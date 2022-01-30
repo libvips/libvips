@@ -286,8 +286,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
-		cgif->cgif_config.attrFlags |= 
-			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
@@ -297,12 +295,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		cgif->cgif_context = cgif_newgif( &cgif->cgif_config );
 	}
-
-	/* Reset global transparency flag.
-	 */
-	cgif->cgif_config.attrFlags = 
-		(cgif->cgif_config.attrFlags & ~CGIF_ATTR_HAS_TRANSPARENCY) |
-		(cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0);
 
 	/* Write frame to cgif.
 	 */
@@ -316,6 +308,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 	frame_config.attrFlags = 0;
+
+	/* Switch per-frame alpha channel on.
+	 * Index 0 is used for pixels with alpha channel.
+	 */
+	if( cgif->has_transparency ) {
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_ALPHA;
+		frame_config.transIndex = 0;
+	}
 
 	/* Do the transparency trick (only possible when no alpha channel present)
 	*/
