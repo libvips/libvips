@@ -135,17 +135,17 @@ jobs:
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
-        run: cd build && ninja
-
-      - name: Check libvips
-        run: cd build && ninja test
+        run: ninja -C build
 
       - name: Install libvips
-        run: cd build && sudo ninja install
+        run: sudo ninja -C build install
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'
         run: sudo ldconfig
+
+      - name: Check libvips
+        run: ninja -C build test
 
       - name: Install pyvips
         run: pip3 install pyvips[test]
