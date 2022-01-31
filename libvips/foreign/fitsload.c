@@ -173,6 +173,7 @@ vips_foreign_load_fits_class_init( VipsForeignLoadFitsClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -183,6 +184,11 @@ vips_foreign_load_fits_class_init( VipsForeignLoadFitsClass *class )
 	object_class->nickname = "fitsload_base";
 	object_class->description = _( "FITS loader base class" );
 	object_class->build = vips_foreign_load_fits_build;
+
+	/* cfitsio has not been fuzzed, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */

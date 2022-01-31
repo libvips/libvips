@@ -504,6 +504,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -513,6 +514,11 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 
 	object_class->nickname = "svgload_base";
 	object_class->description = _( "load SVG with rsvg" );
+
+	/* librsvg has not been fuzzed, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */
