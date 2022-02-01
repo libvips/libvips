@@ -137,15 +137,15 @@ jobs:
       - name: Build libvips
         run: ninja -C build
 
+      - name: Check libvips
+        run: ninja -C build test
+
       - name: Install libvips
         run: sudo ninja -C build install
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'
         run: sudo ldconfig
-
-      - name: Check libvips
-        run: ninja -C build test
 
       - name: Install pyvips
         run: pip3 install pyvips[test]
