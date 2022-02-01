@@ -453,44 +453,6 @@ vips_check_untrusted_class( VipsOperationClass *class, GSList **untrusted )
 	return( NULL );
 }
 
-static void
-vips_check_untrusted( void )
-{
-	GSList *untrusted;
-
-	/* Skip the check if we can.
-	 */
-	if( g_getenv( "VIPS_ALLOW_UNTRUSTED" ) ||
-		vips__block_untrusted ||
-		(g_getenv( "HOME" ) &&
-		 vips_existsf( "%s/.vips-allow-untrusted", g_getenv("HOME") )) )
-		return;
-
-	/* See if any untrusted operations are present. 
-	 */
-	untrusted = NULL;
-	(void) vips_class_map_all( VIPS_TYPE_OPERATION, 
-		(VipsClassMapFn) vips_check_untrusted_class, &untrusted );
-	if( untrusted ) {
-		GSList *p;
-
-		fprintf( stderr, "This libvips binary includes untrusted operations: " );
-		for( p = untrusted; p; p = p->next )
-			fprintf( stderr, "%s ", (const char *) p->data );
-		fprintf( stderr, "\n" );
-		fprintf( stderr, "It might not be safe to process images from "
-			"an unknown source.\n" );
-		fprintf( stderr, "Disable this message by either:\n" );
-		fprintf( stderr, "  1. setting the environment variable "
-			"VIPS_ALLOW_UNTRUSTED\n" );
-		fprintf( stderr, "  2. creating the file %s/.vips-allow-untrusted\n", 
-			g_getenv( "HOME" ) );
-		fprintf( stderr, "  3. calling vips_block_untrusted_set(TRUE)\n" );
-
-		g_slist_free( untrusted );
-	}
-}
-
 /**
  * vips_init:
  * @argv0: name of application
@@ -735,10 +697,6 @@ vips_init( const char *argv0 )
 	 */
         if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
 		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
-
-	/* Warn about untrusted operations.
-	 */
-	vips_check_untrusted();
 
 	done = TRUE;
 
