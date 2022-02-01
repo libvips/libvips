@@ -1,4 +1,3 @@
-leak:python2.7
 leak:python3
 leak:bash
 leak:libfontconfig.so
