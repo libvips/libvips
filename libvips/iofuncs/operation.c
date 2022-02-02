@@ -1490,7 +1490,7 @@ vips_operation_block_untrusted_set_operation( VipsOperationClass *class, gboolea
 }
 
 /** 
- * vips_operation_block_untrusted:
+ * vips_operation_block_untrusted_set:
  * @state: the block state to set
  *
  * Set the block state on all untrusted operations. 
