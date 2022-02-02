@@ -149,7 +149,7 @@ if not magick_dep.found()
     magick_dep = dependency('ImageMagick', required: get_option('magick'))
 endif
 if not get_option('magick').disabled() and magick_dep.found()
-    if get_option('magick-module') and modules_enabled
+    if modules_enabled and not get_option('magick-module').disabled()
         cfg_var.set('MAGICK_MODULE', '1')
     else
         libvips_deps += magick_dep
@@ -332,7 +332,7 @@ endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
 if openslide_dep.found()
-    if get_option('openslide-module') and modules_enabled
+    if modules_enabled and not get_option('openslide-module').disabled()
         cfg_var.set('OPENSLIDE_MODULE', '1')
     else
         libvips_deps += openslide_dep
@@ -397,7 +397,7 @@ endif
 
 libheif_dep = dependency('libheif', version: '>=0.4.11', required: get_option('heif'))
 if libheif_dep.found()
-    if get_option('heif-module') and modules_enabled
+    if modules_enabled and not get_option('heif-module').disabled()
         cfg_var.set('HEIF_MODULE', '1')
     else
         libvips_deps += libheif_dep
@@ -424,7 +424,7 @@ endif
 libjxl_dep = dependency('libjxl', version: '>=0.5', required: get_option('jpeg-xl'))
 libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.5', required: get_option('jpeg-xl'))
 if libjxl_dep.found() and libjxl_threads_dep.found()
-    if get_option('jpeg-xl-module') and modules_enabled
+    if modules_enabled and not get_option('jpeg-xl-module').disabled()
         cfg_var.set('LIBJXL_MODULE', '1')
     else
         libvips_deps += libjxl_dep
@@ -443,7 +443,7 @@ endif
 if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
     message('PDFium has been found, ignoring Poppler support')
 elif libpoppler_dep.found() and cairo_dep.found()
-    if get_option('poppler-module') and modules_enabled
+    if modules_enabled and not get_option('poppler-module').disabled()
         cfg_var.set('POPPLER_MODULE', '1')
     else
         libvips_deps += libpoppler_dep
