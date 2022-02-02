@@ -146,10 +146,6 @@ GQuark vips__image_pixels_quark = 0;
 
 static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
 
-/* Block untrusted operations from running.
- */
-gboolean vips__block_untrusted = FALSE;
-
 /**
  * vips_get_argv0:
  *
@@ -441,16 +437,6 @@ vips__atexit( void )
 			vips_leak();
 		}
 	}
-}
-
-static void *
-vips_check_untrusted_class( VipsOperationClass *class, GSList **untrusted )
-{
-	if( class->flags & VIPS_OPERATION_UNTRUSTED )
-		*untrusted = g_slist_prepend( *untrusted, 
-			(char *) VIPS_OBJECT_CLASS( class )->nickname );
-
-	return( NULL );
 }
 
 /**
@@ -1339,17 +1325,4 @@ size_t
 vips__get_sizeof_vipsobject( void )
 {
 	return( sizeof( VipsObject ) ); 
-}
-
-/**
- * vips_block_untrusted_set:
- * @block_untrusted: block untrusted operations
- *
- * By default, libvips will allow untrusted operations to run. Set this TRUE to block 
- * all untrusted operations.
- */
-void
-vips_block_untrusted_set( gboolean block_untrusted )
-{
-	vips__block_untrusted = block_untrusted;
 }

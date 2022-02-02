@@ -171,7 +171,8 @@
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
- * @VIPS_OPERATION_UNTRUSTED: operation not safe with untrusted input
+ * @VIPS_OPERATION_UNTRUSTED: not hardened for untrusted input
+ * @VIPS_OPERATION_BLOCKED: prevent this operation from running
  *
  * Flags we associate with an operation.
  *
@@ -195,9 +196,12 @@
  * @VIPS_OPERATION_DEPRECATED means this is an old operation kept in vips for
  * compatibility only and should be hidden from users.
  *
- * @VIPS_OPERATION_UNTRUSTED means the operation is potentially unsafe with untrusted
- * input data. It is used for loaders which use load libraries which have not been
- * heavilly fuzzed, for example.
+ * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries which have
+ * not been hardened against attack. It should probably not be used on untrusted input. 
+ * Use vips_operation_block_untrusted() to block all untrusted operations.
+ *
+ * @VIPS_OPERATION_BLOCKED means the operation is prevented from executing. Use
+ * vips_operation_block_set() to enable and disable groups of operations.
  */
 
 /* Abstract base class for operations.
@@ -540,18 +544,16 @@ static int
 vips_operation_build( VipsObject *object )
 {
 	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( object );
-	VipsOperation *operation = VIPS_OPERATION( object );
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 	printf( "vips_operation_build: " ); 
 	vips_object_print_name( object );
 	printf( "\n" );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG*/
 
-	if( vips__block_untrusted &&
-		class->flags & VIPS_OPERATION_UNTRUSTED ) {
-		vips_error( VIPS_OBJECT_CLASS( operation )->nickname, 
-			"%s", _( "not a trusted operation" ) ); 
+	if( class->flags & VIPS_OPERATION_BLOCKED ) {
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
+			"%s", _( "operation is blocked" ) ); 
 		return( -1 );
 	}
 
@@ -1423,4 +1425,88 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 		return( -1 );
 
 	return( 0 );
+}
+
+static void *
+vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
+{
+	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
+
+#ifdef VIPS_DEBUG
+	if( ((class->flags & VIPS_OPERATION_BLOCKED) != 0) != *state )
+		VIPS_DEBUG_MSG( "vips_operation_block_set_operation: "
+			"setting block state on %s = %d\n", 
+			VIPS_OBJECT_CLASS( class )->nickname, *state );
+#endif
+
+	if( state )
+		class->flags |= VIPS_OPERATION_BLOCKED;
+	else
+		class->flags &= ~VIPS_OPERATION_BLOCKED;
+
+	return( NULL );
+}
+
+/** 
+ * vips_operation_block_set:
+ * @name: set block state at this point and below 
+ * @state: the block state to set
+ *
+ * Set the block state on all operations in the libvips class hierarchy at @name and
+ * below.
+ *
+ * For example:
+ *
+ * |[
+ * vips_operation_block_set( "load", TRUE );
+ * vips_operation_block_set( "jpegload_base", FALSE );
+ * ]|
+ *
+ * Will block all load operations, except JPEG.
+ *
+ * Use `vips -l` at the command-line to see the class hierarchy.
+ *
+ * This call does nothing if the named operation is not found.
+ */
+void
+vips_operation_block_set( const char *name, gboolean state )
+{
+	GType base;
+
+	if( (base = vips_type_find( "VipsOperation", name )) )
+		vips_class_map_all( base, 
+			(VipsClassMapFn) vips_operation_block_set_operation, &state );
+}
+
+static void *
+vips_operation_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
+{
+	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
+
+	if( class->flags & VIPS_OPERATION_UNTRUSTED )
+		vips_operation_block_set( VIPS_OBJECT_CLASS( class )->nickname, *state );
+
+	return( NULL );
+}
+
+/** 
+ * vips_operation_block_untrusted:
+ * @state: the block state to set
+ *
+ * Set the block state on all untrusted operations. 
+ *
+ * |[
+ * vips_operation_block_untrusted( TRUE );
+ * ]|
+ *
+ * Will block all untrusted operations from running.
+ *
+ * Use `vips -l` at the command-line to see the class hierarchy and which operations are
+ * marked as untrusted.
+ */
+void
+vips_operation_block_untrusted_set( gboolean state )
+{
+	vips_class_map_all( g_type_from_name( "VipsOperation" ),
+		(VipsClassMapFn) vips_operation_block_untrusted_set_operation, &state );
 }

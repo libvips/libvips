@@ -125,10 +125,6 @@ extern int vips__leak;
  */
 extern int vips__progress;
 
-/* Block untrusted operations from running.
- */
-extern gboolean vips__block_untrusted;
-
 /* Show info messages. Handy for debugging. 
  */
 extern int vips__info;

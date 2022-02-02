@@ -3,8 +3,7 @@
 - add support for another quantiser [DarthSim]
 - jpeg2000 load left-justifies bitdepth
 - add "password" option to pdfload
-- add vips_block_untrusted_set()
-- warn if untrusted operations are allowed to run
+- add vips_operation_block_set(), vips_operation_block_untrusted()
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]

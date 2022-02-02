@@ -1067,7 +1067,7 @@ vips_foreign_load_openslide_source_class_init(
 	 * It has not been fuzzed and is largly unmaintained, so should not be used with
 	 * untrusted input unless you are very careful.
 	 */
-	operation_class->flags = 
+	operation_class->flags =
 		VIPS_OPERATION_NOCACHE |
 		VIPS_OPERATION_UNTRUSTED;
 

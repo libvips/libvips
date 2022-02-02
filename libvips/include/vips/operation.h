@@ -41,7 +41,8 @@ typedef enum /*< flags >*/ {
 	VIPS_OPERATION_SEQUENTIAL_UNBUFFERED = 2,
 	VIPS_OPERATION_NOCACHE = 4,
 	VIPS_OPERATION_DEPRECATED = 8,
-	VIPS_OPERATION_UNTRUSTED = 16
+	VIPS_OPERATION_UNTRUSTED = 16,
+	VIPS_OPERATION_BLOCKED = 32
 } VipsOperationFlags;
 
 #define VIPS_TYPE_OPERATION (vips_operation_get_type())
@@ -135,6 +136,9 @@ void vips_cache_set_trace( gboolean trace );
  */
 void vips_concurrency_set( int concurrency );
 int vips_concurrency_get( void );
+
+void vips_operation_block_set( const char *name, gboolean state );
+void vips_operation_block_untrusted_set( gboolean state );
 
 #ifdef __cplusplus
 }
