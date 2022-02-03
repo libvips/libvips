@@ -38,9 +38,11 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+VIPS_DEPRECATED
 int im_video_v4l1( VipsImage *im, const char *device,
 	int channel, int brightness, int colour, int contrast, int hue,
 	int ngrabs );
+VIPS_DEPRECATED
 int im_video_test( VipsImage *im, int brightness, int error );
 
 #ifdef __cplusplus

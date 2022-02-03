@@ -266,33 +266,44 @@ int im__gprint( im_object obj );		/* GValue */
 
 /* Add a plug-in package.
  */
+VIPS_DEPRECATED
 im_package *im_load_plugin( const char *name );
+VIPS_DEPRECATED
 int im_load_plugins( const char *fmt, ... )
 	__attribute__((format(printf, 1, 2)));
 
 /* Close all plug-ins.
  */
+VIPS_DEPRECATED
 int im_close_plugins( void );
 
 /* Loop over all loaded packages.
  */
+VIPS_DEPRECATED
 void *im_map_packages( VipsSListMap2Fn fn, void *a );
 
 /* Convenience functions for finding packages, functions, etc.
  */
+VIPS_DEPRECATED
 im_function *im_find_function( const char *name );
+VIPS_DEPRECATED
 im_package *im_find_package( const char *name );
+VIPS_DEPRECATED
 im_package *im_package_of_function( const char *name );
 
 /* Allocate space for, and free im_object argument lists.
  */
+VIPS_DEPRECATED
 int im_free_vargv( im_function *fn, im_object *vargv );
+VIPS_DEPRECATED
 int im_allocate_vargv( im_function *fn, im_object *vargv );
 
 /* Run a VIPS command by name.
  */
+VIPS_DEPRECATED
 int im_run_command( char *name, int argc, char **argv );
 
+VIPS_DEPRECATED
 int vips__input_interpolate_init( im_object *obj, char *str );
 
 #ifdef __cplusplus

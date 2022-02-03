@@ -95,24 +95,30 @@ typedef struct _VipsSbufClass {
 
 } VipsSbufClass;
 
+VIPS_API
 GType vips_sbuf_get_type( void );
 
+VIPS_API
 VipsSbuf *vips_sbuf_new_from_source( VipsSource *source );
 
+VIPS_API
 void vips_sbuf_unbuffer( VipsSbuf *sbuf );
 
+VIPS_API
 int vips_sbuf_getc( VipsSbuf *sbuf );
 #define VIPS_SBUF_GETC( S ) ( \
 	(S)->read_point < (S)->chars_in_buffer ? \
 		(S)->input_buffer[(S)->read_point++] : \
 		vips_sbuf_getc( S ) \
 )
+VIPS_API
 void vips_sbuf_ungetc( VipsSbuf *sbuf );
 #define VIPS_SBUF_UNGETC( S ) { \
 	if( (S)->read_point > 0 ) \
 		(S)->read_point -= 1; \
 }
 
+VIPS_API
 int vips_sbuf_require( VipsSbuf *sbuf, int require );
 #define VIPS_SBUF_REQUIRE( S, R ) ( \
 	(S)->read_point + (R) <= (S)->chars_in_buffer ? \
@@ -122,9 +128,13 @@ int vips_sbuf_require( VipsSbuf *sbuf, int require );
 #define VIPS_SBUF_PEEK( S ) ((S)->input_buffer + (S)->read_point)
 #define VIPS_SBUF_FETCH( S ) ((S)->input_buffer[(S)->read_point++])
 
+VIPS_API
 const char *vips_sbuf_get_line( VipsSbuf *sbuf ); 
+VIPS_API
 char *vips_sbuf_get_line_copy( VipsSbuf *sbuf ); 
+VIPS_API
 const char *vips_sbuf_get_non_whitespace( VipsSbuf *sbuf );
+VIPS_API
 int vips_sbuf_skip_whitespace( VipsSbuf *sbuf );
 
 #ifdef __cplusplus

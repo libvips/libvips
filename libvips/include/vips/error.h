@@ -35,59 +35,103 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+VIPS_API
 const char *vips_error_buffer( void );
+VIPS_API
 char *vips_error_buffer_copy( void );
+VIPS_API
 void vips_error_clear( void );
 
+VIPS_API
 void vips_error_freeze( void );
+VIPS_API
 void vips_error_thaw( void );
 
+VIPS_API
 void vips_error( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+VIPS_API
 void vips_verror( const char *domain, const char *fmt, va_list ap );
+VIPS_API
 void vips_error_system( int err, const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 3, 4)));
+VIPS_API
 void vips_verror_system( int err, const char *domain, 
 	const char *fmt, va_list ap );
+VIPS_API
 void vips_error_g( GError **error );
+VIPS_API
 void vips_g_error( GError **error );
 
+VIPS_API
 void vips_error_exit( const char *fmt, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));
 
+VIPS_API
 int vips_check_uncoded( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding );
+VIPS_API
 int vips_check_coding_known( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_coding_noneorlabq( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+VIPS_API
 int vips_check_mono( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_bands( const char *domain, VipsImage *im, int bands );
+VIPS_API
 int vips_check_bands_1or3( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_bands_atleast( const char *domain, VipsImage *im, int bands );
+VIPS_API
 int vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 );
+VIPS_API
 int vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n );
+VIPS_API
 int vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+VIPS_API
 int vips_check_bandno( const char *domain, VipsImage *im, int bandno );
 
+VIPS_API
 int vips_check_int( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_uint( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_uintorf( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_noncomplex( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_complex( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_twocomponents( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt );
+VIPS_API
 int vips_check_u8or16( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_8or16( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_u8or16orf( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+VIPS_API
 int vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 );
+VIPS_API
 int vips_check_oddsquare( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_vector_length( const char *domain, int n, int len );
+VIPS_API
 int vips_check_vector( const char *domain, int n, VipsImage *im );
+VIPS_API
 int vips_check_hist( const char *domain, VipsImage *im );
+VIPS_API
 int vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out );
+VIPS_API
 int vips_check_separable( const char *domain, VipsImage *im );
 
+VIPS_API
 int vips_check_precision_intfloat( const char *domain, 
 	VipsPrecision precision );
 

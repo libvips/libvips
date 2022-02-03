@@ -21,6 +21,7 @@ draw_lib = static_library('draw',
     draw_sources,
     draw_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += draw_lib

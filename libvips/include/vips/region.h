@@ -130,37 +130,56 @@ typedef struct _VipsRegionClass {
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_region_get_type(void);
 
+VIPS_API
 VipsRegion *vips_region_new( VipsImage *image );
 
+VIPS_API
 int vips_region_buffer( VipsRegion *reg, const VipsRect *r );
+VIPS_API
 int vips_region_image( VipsRegion *reg, const VipsRect *r );
+VIPS_API
 int vips_region_region( VipsRegion *reg, VipsRegion *dest, 
 	const VipsRect *r, int x, int y );
+VIPS_API
 int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
+VIPS_API
 int vips_region_position( VipsRegion *reg, int x, int y );
 
+VIPS_API
 void vips_region_paint( VipsRegion *reg, const VipsRect *r, int value );
+VIPS_API
 void vips_region_paint_pel( VipsRegion *reg, 
 	const VipsRect *r, const VipsPel *ink );
+VIPS_API
 void vips_region_black( VipsRegion *reg );
+VIPS_API
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y );
+VIPS_API
 int vips_region_shrink_method( VipsRegion *from, VipsRegion *to, 
 	const VipsRect *target, VipsRegionShrink method );
+VIPS_API
 int vips_region_shrink( VipsRegion *from, VipsRegion *to, 
 	const VipsRect *target );
 
+VIPS_API
 int vips_region_prepare( VipsRegion *reg, const VipsRect *r );
+VIPS_API
 int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, const VipsRect *r, int x, int y );
 
+VIPS_API
 VipsPel *vips_region_fetch( VipsRegion *region, 
 	int left, int top, int width, int height, size_t *len );
+VIPS_API
 int vips_region_width( VipsRegion *region );
+VIPS_API
 int vips_region_height( VipsRegion *region );
 
+VIPS_API
 void vips_region_invalidate( VipsRegion *reg );
 
 /* Use this to count pixels passing through key points. Handy for spotting bad

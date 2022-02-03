@@ -364,6 +364,7 @@ typedef struct _VipsImageClass {
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_image_get_type(void);
 
 /* Has to be guint64 and not size_t/off_t since we have to be able to address
@@ -426,111 +427,175 @@ GType vips_image_get_type(void);
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
 #endif /*VIPS_DEBUG*/
 
+VIPS_API
 void vips_progress_set( gboolean progress );
 
+VIPS_API
 void vips_image_invalidate_all( VipsImage *image );
 
+VIPS_API
 void vips_image_minimise_all( VipsImage *image );
 
+VIPS_API
 gboolean vips_image_is_sequential( VipsImage *image );
 
+VIPS_API
 void vips_image_set_progress( VipsImage *image, gboolean progress );
+VIPS_API
 gboolean vips_image_iskilled( VipsImage *image );
+VIPS_API
 void vips_image_set_kill( VipsImage *image, gboolean kill );
 
+VIPS_API
 char *vips_filename_get_filename( const char *vips_filename );
+VIPS_API
 char *vips_filename_get_options( const char *vips_filename );
 
+VIPS_API
 VipsImage *vips_image_new( void );
+VIPS_API
 VipsImage *vips_image_new_memory( void );
+VIPS_API
 VipsImage *vips_image_memory( void );
+VIPS_API
 VipsImage *vips_image_new_from_file( const char *name, ... )
 	__attribute__((sentinel));
+VIPS_API
 VipsImage *vips_image_new_from_file_RW( const char *filename );
+VIPS_API
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );
+VIPS_API
 VipsImage *vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
+VIPS_API
 VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
+VIPS_API
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
+VIPS_API
 VipsImage *vips_image_new_from_source( VipsSource *source, 
 	const char *option_string, ... ) __attribute__((sentinel));
+VIPS_API
 VipsImage *vips_image_new_matrix( int width, int height );
+VIPS_API
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
+VIPS_API
 VipsImage *vips_image_new_matrix_from_array( int width, int height, 
 	const double *array, int size );
+VIPS_API
 VipsImage *vips_image_matrix_from_array( int width, int height, 
 	const double *array, int size );
+VIPS_API
 VipsImage *vips_image_new_from_image( VipsImage *image, 
 	const double *c, int n );
+VIPS_API
 VipsImage *vips_image_new_from_image1( VipsImage *image, double c );
 
+VIPS_API
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
+VIPS_API
 guint64 vips_get_disc_threshold( void );
+VIPS_API
 VipsImage *vips_image_new_temp_file( const char *format );
 
+VIPS_API
 int vips_image_write( VipsImage *image, VipsImage *out );
+VIPS_API
 int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_image_write_to_buffer( VipsImage *in, 
 	const char *suffix, void **buf, size_t *size, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_image_write_to_target( VipsImage *in, 
 	const char *suffix, VipsTarget *target, ... )
 	__attribute__((sentinel));
+VIPS_API
 void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 
+VIPS_API
 int vips_image_decode_predict( VipsImage *in, 
 	int *bands, VipsBandFormat *format );
+VIPS_API
 int vips_image_decode( VipsImage *in, VipsImage **out );
+VIPS_API
 int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
 
+VIPS_API
 gboolean vips_image_isMSBfirst( VipsImage *image );
+VIPS_API
 gboolean vips_image_isfile( VipsImage *image );
+VIPS_API
 gboolean vips_image_ispartial( VipsImage *image );
+VIPS_API
 gboolean vips_image_hasalpha( VipsImage *image );
 
+VIPS_API
 VipsImage *vips_image_copy_memory( VipsImage *image );
+VIPS_API
 int vips_image_wio_input( VipsImage *image );
+VIPS_API
 int vips_image_pio_input( VipsImage *image );
+VIPS_API
 int vips_image_pio_output( VipsImage *image );
+VIPS_API
 int vips_image_inplace( VipsImage *image );
+VIPS_API
 int vips_image_write_prepare( VipsImage *image );
 
+VIPS_API
 int vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer );
 
+VIPS_API
 gboolean vips_band_format_isint( VipsBandFormat format );
+VIPS_API
 gboolean vips_band_format_isuint( VipsBandFormat format );
+VIPS_API
 gboolean vips_band_format_is8bit( VipsBandFormat format );
+VIPS_API
 gboolean vips_band_format_isfloat( VipsBandFormat format );
+VIPS_API
 gboolean vips_band_format_iscomplex( VipsBandFormat format );
 
+VIPS_API
 int vips_system( const char *cmd_format, ... )
 	__attribute__((sentinel));
 
 /* Defined in type.c but declared here, since they use VipsImage.
  */
+VIPS_API
 VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
+VIPS_API
 VipsArrayImage *vips_array_image_newv( int n, ... );
+VIPS_API
 VipsArrayImage *vips_array_image_new_from_string( const char *string, 
 	VipsAccess flags );
+VIPS_API
 VipsArrayImage *vips_array_image_empty( void );
+VIPS_API
 VipsArrayImage *vips_array_image_append( VipsArrayImage *array, 
 	VipsImage *image );
+VIPS_API
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
+VIPS_API
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
+VIPS_API
 void vips_value_set_array_image( GValue *value, int n );
 
 /* Defined in reorder.c, but really a function on image.
  */
+VIPS_API
 int vips_reorder_prepare_many( VipsImage *image, 
 	VipsRegion **regions, VipsRect *r );
+VIPS_API
 void vips_reorder_margin_hint( VipsImage *image, int margin );
 
+VIPS_API
 void vips_image_free_buffer( VipsImage *image, void *buffer );
 
 #ifdef __cplusplus

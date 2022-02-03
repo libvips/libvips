@@ -94,11 +94,16 @@ typedef struct _VipsInterpolateClass {
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_interpolate_get_type(void);
+VIPS_API
 void vips_interpolate( VipsInterpolate *interpolate,
 	void *out, VipsRegion *in, double x, double y );
+VIPS_API
 VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate *interpolate );
+VIPS_API
 int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
+VIPS_API
 int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 
 /* How many bits of precision we keep for transformations, ie. how many
@@ -117,12 +122,15 @@ int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 
 /* Convenience: return static interpolators, no need to unref.
  */
+VIPS_API
 VipsInterpolate *vips_interpolate_nearest_static( void );
+VIPS_API
 VipsInterpolate *vips_interpolate_bilinear_static( void );
 
 /* Convenience: make an interpolator from a nickname. g_object_unref() when
  * you're done with it.
  */
+VIPS_API
 VipsInterpolate *vips_interpolate_new( const char *nickname );
 
 #ifdef __cplusplus

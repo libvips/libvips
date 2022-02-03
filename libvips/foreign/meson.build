@@ -127,6 +127,7 @@ foreign_lib = static_library('foreign',
     foreign_sources,
     foreign_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += foreign_lib

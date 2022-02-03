@@ -90,11 +90,15 @@ typedef struct _VipsConnectionClass {
 
 } VipsConnectionClass;
 
+VIPS_API
 GType vips_connection_get_type( void );
 
+VIPS_API
 const char *vips_connection_filename( VipsConnection *connection );
+VIPS_API
 const char *vips_connection_nick( VipsConnection *connection );
 
+VIPS_API
 void vips_pipe_read_limit_set( gint64 limit );
 
 #define VIPS_TYPE_SOURCE (vips_source_get_type())
@@ -211,27 +215,46 @@ typedef struct _VipsSourceClass {
 
 } VipsSourceClass;
 
+VIPS_API
 GType vips_source_get_type( void );
 
+VIPS_API
 VipsSource *vips_source_new_from_descriptor( int descriptor );
+VIPS_API
 VipsSource *vips_source_new_from_file( const char *filename );
+VIPS_API
 VipsSource *vips_source_new_from_blob( VipsBlob *blob );
+VIPS_API
 VipsSource *vips_source_new_from_memory( const void *data, size_t size );
+VIPS_API
 VipsSource *vips_source_new_from_options( const char *options );
 
+VIPS_API
 void vips_source_minimise( VipsSource *source );
+VIPS_API
 int vips_source_unminimise( VipsSource *source );
+VIPS_API
 int vips_source_decode( VipsSource *source );
+VIPS_API
 gint64 vips_source_read( VipsSource *source, void *data, size_t length );
+VIPS_API
 gboolean vips_source_is_mappable( VipsSource *source );
+VIPS_API
 gboolean vips_source_is_file( VipsSource *source );
+VIPS_API
 const void *vips_source_map( VipsSource *source, size_t *length );
+VIPS_API
 VipsBlob *vips_source_map_blob( VipsSource *source );
+VIPS_API
 gint64 vips_source_seek( VipsSource *source, gint64 offset, int whence );
+VIPS_API
 int vips_source_rewind( VipsSource *source );
+VIPS_API
 gint64 vips_source_sniff_at_most( VipsSource *source, 
 	unsigned char **data, size_t length );
+VIPS_API
 unsigned char *vips_source_sniff( VipsSource *source, size_t length );
+VIPS_API
 gint64 vips_source_length( VipsSource *source ); 
 
 #define VIPS_TYPE_SOURCE_CUSTOM (vips_source_custom_get_type())
@@ -269,7 +292,9 @@ typedef struct _VipsSourceCustomClass {
 
 } VipsSourceCustomClass;
 
+VIPS_API
 GType vips_source_custom_get_type( void );
+VIPS_API
 VipsSourceCustom *vips_source_custom_new( void );
 
 /* A GInputStream that wraps a VipsSource. This lets us eg. 
@@ -307,6 +332,7 @@ typedef struct _VipsGInputStreamClass {
 
 } VipsGInputStreamClass;
 
+VIPS_API
 GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
 
 /* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from 
@@ -347,6 +373,7 @@ typedef struct _VipsSourceGInputStreamClass {
 
 } VipsSourceGInputStreamClass;
 
+VIPS_API
 VipsSourceGInputStream *vips_source_g_input_stream_new( GInputStream *stream );
 
 #define VIPS_TYPE_TARGET (vips_target_get_type())
@@ -416,25 +443,37 @@ typedef struct _VipsTargetClass {
 
 } VipsTargetClass;
 
+VIPS_API
 GType vips_target_get_type( void );
 
+VIPS_API
 VipsTarget *vips_target_new_to_descriptor( int descriptor );
+VIPS_API
 VipsTarget *vips_target_new_to_file( const char *filename );
+VIPS_API
 VipsTarget *vips_target_new_to_memory( void );
+VIPS_API
 int vips_target_write( VipsTarget *target, const void *data, size_t length );
+VIPS_API
 void vips_target_finish( VipsTarget *target );
+VIPS_API
 unsigned char *vips_target_steal( VipsTarget *target, size_t *length );
+VIPS_API
 char *vips_target_steal_text( VipsTarget *target );
 
+VIPS_API
 int vips_target_putc( VipsTarget *target, int ch );
 #define VIPS_TARGET_PUTC( S, C ) ( \
 	(S)->write_point < VIPS_TARGET_BUFFER_SIZE ? \
 	((S)->output_buffer[(S)->write_point++] = (C), 0) : \
 	vips_target_putc( (S), (C) ) \
 )
+VIPS_API
 int vips_target_writes( VipsTarget *target, const char *str );
+VIPS_API
 int vips_target_writef( VipsTarget *target, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+VIPS_API
 int vips_target_write_amp( VipsTarget *target, const char *str );
 
 #define VIPS_TYPE_TARGET_CUSTOM (vips_target_custom_get_type())
@@ -473,7 +512,9 @@ typedef struct _VipsTargetCustomClass {
 
 } VipsTargetCustomClass;
 
+VIPS_API
 GType vips_target_custom_get_type( void );
+VIPS_API
 VipsTargetCustom *vips_target_custom_new( void );
 
 #ifdef __cplusplus

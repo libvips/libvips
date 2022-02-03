@@ -110,12 +110,15 @@ typedef struct _VipsThreadStateClass {
 
 } VipsThreadStateClass;
 
+VIPS_API
 void *vips_thread_state_set( VipsObject *object, void *a, void *b );
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_thread_state_get_type(void);
 
+VIPS_API
 VipsThreadState *vips_thread_state_new( VipsImage *im, void *a );
 
 /* Constructor for per-thread state.
@@ -139,12 +142,14 @@ typedef int (*VipsThreadpoolWorkFn)( VipsThreadState *state, void *a );
  */
 typedef int (*VipsThreadpoolProgressFn)( void *a );
 
+VIPS_API
 int vips_threadpool_run( VipsImage *im, 
 	VipsThreadStartFn start, 
 	VipsThreadpoolAllocateFn allocate, 
 	VipsThreadpoolWorkFn work,
 	VipsThreadpoolProgressFn progress,
 	void *a );
+VIPS_API
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *n_lines );
 

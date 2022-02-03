@@ -63,6 +63,7 @@ G_STMT_START { \
 
 extern gboolean vips__thread_profile;
 
+VIPS_API
 void vips_profile_set( gboolean profile );
 
 void vips__thread_profile_attach( const char *thread_name );

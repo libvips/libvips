@@ -71,7 +71,9 @@ typedef struct {
 	size_t length;		/* Size of window */
 } VipsWindow;
 
+VIPS_API
 int vips_window_unref( VipsWindow *window );
+VIPS_API
 void vips_window_print( VipsWindow *window );
 
 /* Per-thread buffer state. Held in a GPrivate.
@@ -114,14 +116,22 @@ typedef struct _VipsBuffer {
 	size_t bsize;		/* Size of private malloc() */
 } VipsBuffer;
 
+VIPS_API
 void vips_buffer_dump_all( void );
+VIPS_API
 void vips_buffer_done( VipsBuffer *buffer );
+VIPS_API
 void vips_buffer_undone( VipsBuffer *buffer );
+VIPS_API
 void vips_buffer_unref( VipsBuffer *buffer );
+VIPS_API
 VipsBuffer *vips_buffer_new( struct _VipsImage *im, VipsRect *area );
+VIPS_API
 VipsBuffer *vips_buffer_ref( struct _VipsImage *im, VipsRect *area );
+VIPS_API
 VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer, 
 	struct _VipsImage *im, VipsRect *area );
+VIPS_API
 void vips_buffer_print( VipsBuffer *buffer );
 
 void vips__render_shutdown( void );
@@ -158,6 +168,7 @@ void vips__region_check_ownership( struct _VipsRegion *reg );
 void vips__region_no_ownership( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
+VIPS_API
 int vips_region_fill( struct _VipsRegion *reg, 
 	const VipsRect *r, VipsRegionFillFn fn, void *a );
 
@@ -176,12 +187,14 @@ int vips__image_copy_fields_array( struct _VipsImage *out,
 	struct _VipsImage *in[] );
 
 void vips__region_count_pixels( struct _VipsRegion *region, const char *nickname );
+VIPS_API
 void vips_region_dump_all( void );
 
 /* Deprecated.
  */
 int vips__init( const char *argv0 );
 size_t vips__get_sizeof_vipsobject( void );
+VIPS_API
 int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );
 
 /* Handy for debugging.

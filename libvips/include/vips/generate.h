@@ -38,38 +38,50 @@ extern "C" {
 #endif /*__cplusplus*/
 
 typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
+VIPS_API
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
+VIPS_API
 int vips_sink( VipsImage *im, 
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
+VIPS_API
 int vips_sink_tile( VipsImage *im, 
 	int tile_width, int tile_height,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
 
 typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
+VIPS_API
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int tile_width, int tile_height, int max_tiles,
 	int priority,
 	VipsSinkNotify notify_fn, void *a );
 
+VIPS_API
 int vips_sink_memory( VipsImage *im );
 
+VIPS_API
 void *vips_start_one( VipsImage *out, void *a, void *b );
+VIPS_API
 int vips_stop_one( void *seq, void *a, void *b );
+VIPS_API
 void *vips_start_many( VipsImage *out, void *a, void *b );
+VIPS_API
 int vips_stop_many( void *seq, void *a, void *b );
+VIPS_API
 VipsImage **vips_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_image_generate( VipsImage *image,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
-	void *a, void *b
-);
+	void *a, void *b );
 
+VIPS_API
 int vips_image_pipeline_array( VipsImage *image, 
 	VipsDemandStyle hint, VipsImage **in );
+VIPS_API
 int vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 	__attribute__((sentinel));
 

@@ -68,7 +68,9 @@ typedef enum {
 
 /* Just for testing.
  */
+VIPS_API
 char *vips_path_filename7( const char *path );
+VIPS_API
 char *vips_path_mode7( const char *path );
 
 struct _VipsImage; 

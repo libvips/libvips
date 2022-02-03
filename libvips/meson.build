@@ -23,6 +23,7 @@ libvips_lib = library('vips',
     link_whole: libvips_components,
     dependencies: libvips_deps,
     version: library_version,
+    gnu_symbol_visibility: 'hidden',
     install: true,
 )
 
@@ -72,7 +73,7 @@ endif
 # Keep the autotools convention for shared module suffix because GModule
 # depends on it: https://gitlab.gnome.org/GNOME/glib/issues/1413
 module_suffix = []
-if ['darwin', 'ios'].contains(host_machine.system())
+if ['darwin', 'ios'].contains(host_os)
   module_suffix = 'so'
 endif
 

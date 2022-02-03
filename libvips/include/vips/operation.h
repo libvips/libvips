@@ -102,47 +102,77 @@ typedef struct _VipsOperationClass {
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_operation_get_type(void);
 
+VIPS_API
 VipsOperationFlags vips_operation_get_flags( VipsOperation *operation );
+VIPS_API
 void vips_operation_class_print_usage( VipsOperationClass *operation_class );
+VIPS_API
 void vips_operation_invalidate( VipsOperation *operation );
 
+VIPS_API
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
+VIPS_API
 VipsOperation *vips_operation_new( const char *name ); 
+VIPS_API
 int vips_call_required_optional( VipsOperation **operation,
 	va_list required, va_list optional );
+VIPS_API
 int vips_call( const char *operation_name, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_call_split( const char *operation_name, va_list optional, ... );
+VIPS_API
 int vips_call_split_option_string( const char *operation_name, 
 	const char *option_string, va_list optional, ... );
 
+VIPS_API
 void vips_call_options( GOptionGroup *group, VipsOperation *operation );
+VIPS_API
 int vips_call_argv( VipsOperation *operation, int argc, char **argv );
 
+VIPS_API
 void vips_cache_drop_all( void );
+VIPS_API
 VipsOperation *vips_cache_operation_lookup( VipsOperation *operation );
+VIPS_API
 void vips_cache_operation_add( VipsOperation *operation );
+VIPS_API
 int vips_cache_operation_buildp( VipsOperation **operation );
+VIPS_API
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
+VIPS_API
 void vips_cache_print( void );
+VIPS_API
 void vips_cache_set_max( int max );
+VIPS_API
 void vips_cache_set_max_mem( size_t max_mem );
+VIPS_API
 int vips_cache_get_max( void );
+VIPS_API
 int vips_cache_get_size( void );
+VIPS_API
 size_t vips_cache_get_max_mem( void );
+VIPS_API
 int vips_cache_get_max_files( void );
+VIPS_API
 void vips_cache_set_max_files( int max_files );
+VIPS_API
 void vips_cache_set_dump( gboolean dump );
+VIPS_API
 void vips_cache_set_trace( gboolean trace );
 
 /* Part of threadpool, really, but we want these in a header that gets scanned
  * for our typelib.
  */
+VIPS_API
 void vips_concurrency_set( int concurrency );
+VIPS_API
 int vips_concurrency_get( void );
 
+VIPS_API
 void vips_operation_block_set( const char *name, gboolean state );
 
 #ifdef __cplusplus

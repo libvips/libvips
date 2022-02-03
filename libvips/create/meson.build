@@ -41,6 +41,7 @@ create_lib = static_library('create',
     create_sources,
     create_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += create_lib

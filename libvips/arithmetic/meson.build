@@ -55,6 +55,7 @@ arithmetic_lib = static_library('arithmetic',
     arithmetic_sources,
     arithmetic_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += arithmetic_lib
