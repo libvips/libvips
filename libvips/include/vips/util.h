@@ -273,8 +273,14 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 
 VIPS_API
 gint64 vips_file_length( int fd );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 int vips__write( int fd, const void *buf, size_t count );
 
+/* TODO(kleisauke): VIPS_API is required by test_connections.
+ */
+VIPS_API
 int vips__open( const char *filename, int flags, int mode );
 int vips__open_read( const char *filename );
 FILE *vips__fopen( const char *filename, const char *mode );
@@ -283,10 +289,16 @@ FILE *vips__file_open_read( const char *filename,
 	const char *fallback_dir, gboolean text_mode );
 FILE *vips__file_open_write( const char *filename, 
 	gboolean text_mode );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
+/* TODO(kleisauke): VIPS_API is required by the magick module.
+ */
+VIPS_API
 gint64 vips__get_bytes( const char *filename, 
 	unsigned char buf[], gint64 len );
 int vips__fgetc( FILE *fp );
@@ -298,6 +310,9 @@ GSList *vips__gslist_gvalue_merge( GSList *a, const GSList *b );
 char *vips__gslist_gvalue_get( const GSList *list );
 
 gint64 vips__seek_no_error( int fd, gint64 pos, int whence );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 VIPS_API
@@ -351,6 +366,9 @@ const char *vips__token_segment( const char *p, VipsToken *token,
 const char *vips__token_segment_need( const char *p, VipsToken need_token, 
 	char *string, int size );
 const char *vips__find_rightmost_brackets( const char *p );
+/* TODO(kleisauke): VIPS_API is required by libvips-cpp and vipsheader.
+ */
+VIPS_API
 void vips__filename_split8( const char *name, 
 	char *filename, char *option_string );
 
@@ -359,6 +377,9 @@ int vips_ispoweroftwo( int p );
 VIPS_API
 int vips_amiMSBfirst( void );
 
+/* TODO(kleisauke): VIPS_API is required by jpegsave_file_fuzzer.
+ */
+VIPS_API
 char *vips__temp_name( const char *format );
 
 void vips__change_suffix( const char *name, char *out, int mx,
