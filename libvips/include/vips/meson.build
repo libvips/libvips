@@ -1,16 +1,12 @@
 public_other_headers = files(
-    'almostdeprecated.h',
     'buf.h',
     'connection.h',
     'dbuf.h',
     'debug.h',
-    'deprecated.h',
-    'dispatch.h',
     'format.h',
     'gate.h',
     'generate.h',
     'intl.h',
-    'mask.h',
     'private.h',
     'sbuf.h',
     'semaphore.h',
@@ -19,9 +15,20 @@ public_other_headers = files(
     'transform.h',
     'util.h',
     'vector.h',
+)
+
+public_deprecated_headers = files(
+    'almostdeprecated.h',
+    'deprecated.h',
+    'dispatch.h',
+    'mask.h',
     'video.h',
     'vips7compat.h',
 )
+
+if get_option('deprecated')
+    public_other_headers += public_deprecated_headers
+endif
 
 public_headers = files(
     'arithmetic.h',
