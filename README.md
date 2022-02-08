@@ -61,95 +61,43 @@ There are binaries for Windows in
 The [libvips website](https://libvips.github.io/libvips) has [detailed
 install notes](https://libvips.github.io/libvips/install.html).
 
-# Building libvips from a source tarball
+# Building from source
 
-We keep pre-baked tarballs in
-[releases](https://github.com/libvips/libvips/releases).
+libvips uses the [Meson build system](https://mesonbuild.com), version 0.56 or
+later. The build system also needs `ninja`. 
 
-Untar, then in the libvips directory you should just be able to do:
+To compile, libvips must have `build-essential`, `pkg-config`,
+`libglib2.0-dev`, `libexpat1-dev`.  See the **Dependencies** section below
+for a full list of the libvips optional dependencies.
 
-    ./configure
+## Cheatsheet 
 
-Check the summary at the end of `configure` carefully.  libvips must have
-`build-essential`, `pkg-config`, `libglib2.0-dev`, `libexpat1-dev`.
+```
+cd libvips-x.y.x
+meson setup build --prefix=/aaa/bbb/ccc
+cd build
+ninja
+ninja install
+```
 
-You'll need the dev packages for the file format support you want. For basic
-jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
-and `libgsf-1-dev`.  See the **Dependencies** section below for a full list
-of the things that libvips can be configured to use.
+Notes:
 
-Once `configure` is looking OK, compile and install with the usual:
-
-    make
-    sudo make install
-
-By default this will install files to `/usr/local`.
-
-# Testing
-
-Run the test suite with:
-
-    make check
-
-Run a specific test with:
-
-    pytest test/test-suite/test_foreign.py -k test_tiff
-
-# Building libvips from git
-
-Clone the latest sources with:
-
-    git clone git://github.com/libvips/libvips.git
-
-Building from git needs more packages -- you'll need at least `gtk-doc` 
-and `gobject-introspection`, see the dependencies section below. For example:
-
-    brew install gtk-doc 
-
-Then generate the build system with:
-
-    ./autogen.sh --prefix=/home/john/vips
-
-Debug build:
-
-    CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-      ./configure --prefix=/home/john/vips --enable-debug
-    make
-    make install
-
-# Built-in loaders
-
-libvips has a number of built-in loaders and savers. You can disable these if
-you wish, for example:
-
-    ./configure --prefix=/Users/john/vips --without-nsgif --without-ppm
-
-# Dependencies 
-
-libvips has to have `libglib2.0-dev` and `libexpat1-dev`. Other dependencies
-are optional.
+- Check the output of `meson setup` carefully and make sure it found
+  everything you wanted it to find.
+- Use flags like `-Dnsgif=false` to turn options on and off, see
+  `meson_options.txt` for a list of all the options libvips supports.
+- Use `--buildtype=release` for a release build.
+- You might need `--libdir=lib` on Debian if you don't want the arch name in
+  the library.
+- Use `--default-library=static` for a static build.
+- Use `ninja test` to run the tests.
+- There's a more comprehensive test suite you can run with `pytest`.
 
 ## Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
-libraries automatically. See `./configure --help` for a set of flags to
-control library detection. Packages are generally found with `pkg-config`,
+libraries automatically. Packages are generally found with `pkg-config`,
 so make sure that is working.
-
-Libraries like nifti do not use `pkg-config` so libvips will also
-look for them in the default path and in `$prefix`. If you have installed
-your own versions of these libraries in a different location, libvips will
-not see them. Use switches to libvips configure like:
-
-    ./configure --prefix=/Users/john/vips \
-      --with-nifti-includes=/opt/local/include \
-      --with-nifti-libraries=/opt/local/lib 
-
-or perhaps:
-
-    CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-      CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-      ./configure --prefix=/Users/john/vips 
 
 ### libjpeg
 
@@ -234,9 +182,9 @@ palette-ised PNGs and GIFs.
 
 ### ImageMagick, or optionally GraphicsMagick
 
-If available, libvips adds support for loading and
-saving all libMagick-supported image file types. Use
-`--with-magickpackage=GraphicsMagick` to build against graphicsmagick instead.
+If available, libvips adds support for loading and saving all
+libMagick-supported image file types. You can enable and disable load and save
+separately. 
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
 IMs are, I think.
