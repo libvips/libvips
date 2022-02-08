@@ -36,7 +36,7 @@ add_project_link_arguments(
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
-glib_dep = dependency('glib-2.0')
+glib_dep = dependency('glib-2.0', version: '>=2.40')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')
 gmodule_dep = dependency('gmodule-no-export-2.0', required: get_option('modules'))
