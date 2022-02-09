@@ -63,41 +63,47 @@ install notes](https://libvips.github.io/libvips/install.html).
 
 # Building from source
 
-libvips uses the [Meson build system](https://mesonbuild.com), version 0.56 or
-later, with [ninja](https://ninja-build.org).
+libvips uses the [Meson build system](https://mesonbuild.com), version 0.56
+or later. We suggest installing [`ninja`](https://ninja-build.org) for fast
+compiles, but meson will use whatever make-like tool you have available.
 
-To compile, libvips must have `build-essential`, `pkg-config`,
-`libglib2.0-dev`, `libexpat1-dev`.  See the **Dependencies** section below
-for a full list of the libvips optional dependencies.
+libvips must have `build-essential`, `pkg-config`, `libglib2.0-dev`,
+`libexpat1-dev`.  See the **Dependencies** section below for a full list
+of the libvips optional dependencies.
 
 ## Cheatsheet 
 
 ```
 cd libvips-x.y.x
-meson setup build --prefix=/aaa/bbb/ccc
-cd build
-ninja
-ninja install
+meson setup build-dir --prefix=/aaa/bbb/ccc
+cd build-dir
+meson build
+meson test
+meson install
 ```
 
-Notes:
+Check the output of `meson setup` carefully and make sure it found everything
+you wanted it to find.  Add arguments to `meson setup` to change the build
+configuration.
 
-- Check the output of `meson setup` carefully and make sure it found
-  everything you wanted it to find.
 - Add flags like `-Dnsgif=false` to turn options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
 - Add `--buildtype=release` for a release (optimised) build.
 - You might need to add `--libdir=lib` on Debian if you don't want the arch 
   name in the library path.
-- Use `--default-library=static` for a static build.
-- Use `ninja test` to run the tests.
-- There's a more comprehensive test suite you can run with `pytest`.
+- Add `--default-library=static` for a static build.
+- Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
+- You can have many `build-dir`, pick whatever names you like, for example 
+  one for release and one for debug.
+
+There's a more comprehensive test suite you can run once libvips has been
+installed. Use `pytest` in the libvips base directory.
 
 ## Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
 libraries automatically. Packages are generally found with `pkg-config`,
-so make sure that is working.
+so make sure that is working. 
 
 ### libjpeg
 
