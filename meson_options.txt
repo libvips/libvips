@@ -19,6 +19,7 @@ option('jpeg-xl', type : 'feature', value : 'auto', description: 'Build with lib
 option('jpeg-xl-module', type : 'boolean', value : false, description: 'Build libjxl as module')
 option('lcms', type : 'feature', value : 'auto', description: 'Build with lcms2')
 option('magick', type : 'feature', value : 'auto', description: 'Build with libMagic')
+option('magick-package', type : 'string', value : 'MagickCore', description: 'ImageMagick package to build with')
 option('magick-features', type : 'array', choices : ['load', 'save'], value : ['load', 'save'], description: 'Enable libMagic load or save capabilities')
 option('magick-module', type : 'boolean', value : false, description: 'Build libMagic as module')
 option('matio', type : 'feature', value : 'auto', description: 'Build with matio')

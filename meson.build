@@ -134,8 +134,9 @@ if fftw_dep.found()
 endif
 
 # We can simplify this when requiring meson>=0.60.0
-magick_dep = dependency('MagickCore', required: false)
+magick_dep = dependency(get_option('magick-package'), required: false)
 if not magick_dep.found()
+    # very old versions called it "ImageMagick"
     magick_dep = dependency('ImageMagick', required: get_option('magick'))
 endif
 if not get_option('magick').disabled() and magick_dep.found()
@@ -146,7 +147,9 @@ if not get_option('magick').disabled() and magick_dep.found()
     endif
     if magick_dep.version().version_compare('>=7.0')
         cfg_var.set('HAVE_MAGICK7', '1')
-    elif magick_dep.version().version_compare('>=6.0')
+    else
+        # come here for imagemagick6, and graphicsmagick1.x, which also uses 
+        # the im6 API
         cfg_var.set('HAVE_MAGICK6', '1')
         if cc.has_member('struct _ImageInfo', 'number_scenes', prefix : '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_NUMBER_SCENES', '1')
@@ -167,8 +170,6 @@ if not get_option('magick').disabled() and magick_dep.found()
         if cc.compiles('#include <magick/api.h>\nint main() {(void)GetImageMagick(NULL, 0, NULL);}', name: 'GetImageMagick takes three arguments', dependencies: magick_dep)
             cfg_var.set('HAVE_GETIMAGEMAGICK3', '1')
         endif
-    else
-        error('Unsupported libmagick version')
     endif
 
     if 'load' in get_option('magick-features')
