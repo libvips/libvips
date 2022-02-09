@@ -88,7 +88,8 @@ configuration.
 
 - Add flags like `-Dnsgif=false` to turn options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
-- Add `--buildtype=release` for a release (optimised) build.
+- Meson will do a debug build by default. Add `--buildtype=release` for a 
+  release (optimised) build.
 - You might need to add `--libdir=lib` on Debian if you don't want the arch 
   name in the library path.
 - Add `--default-library=static` for a static build.
