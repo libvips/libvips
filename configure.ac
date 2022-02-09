@@ -402,16 +402,6 @@ AC_CHECK_LIB(m,asinh,[AC_DEFINE(HAVE_ASINH,1,[have asinh() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-no-export-2.0 gobject-2.0 gio-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-no-export-2.0 gobject-2.0 gio-2.0"
 
-# from 2.62 we have datetime
-PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
-  [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
-            [define if your glib has g_date_time_format_iso8601().]
-   )
-  ],
-  [:
-  ]
-)
-
 VIPS_CFLAGS="$VIPS_CFLAGS $GIO_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $GIO_LIBS"
 
@@ -428,14 +418,6 @@ AC_CHECK_FUNC(pthread_setattr_default_np,
 )
 LIBS="$save_pthread_LIBS"
 CFLAGS="$save_pthread_CFLAGS"
-
-# from 2.48 we have g_uint_checked_mul() etc.
-PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
-  [AC_DEFINE(HAVE_CHECKED_MUL,1,[define if your glib has checked multiply.])
-  ],
-  [:
-  ]
-)
 
 AC_MSG_CHECKING([whether to build dynamic modules])
 

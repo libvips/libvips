@@ -70,13 +70,6 @@ module_dir = lib_dir / 'vips-modules-@0@.@1@'.format(version_major, version_mino
 cfg_var = configuration_data()
 cfg_var.set_quoted('G_LOG_DOMAIN', 'VIPS')
 
-if (glib_dep.version().version_compare('>=2.48'))
-    cfg_var.set('HAVE_CHECKED_MUL', '1')
-endif
-if (glib_dep.version().version_compare('>=2.62'))
-    cfg_var.set('HAVE_DATE_TIME_FORMAT_ISO8601', '1')
-endif
-
 if modules_enabled
     cfg_var.set('ENABLE_MODULES', '1')
 endif
