@@ -64,8 +64,8 @@ install notes](https://libvips.github.io/libvips/install.html).
 # Building from source
 
 libvips uses the [Meson build system](https://mesonbuild.com), version 0.56
-or later. We suggest installing [`ninja`](https://ninja-build.org) for fast
-compiles, but meson will use whatever make-like tool you have available.
+or later. Meson can use [`ninja`](https://ninja-build.org), Visual Studio or
+XCode as a backend, so you'll also need one of them.
 
 libvips must have `build-essential`, `pkg-config`, `libglib2.0-dev`,
 `libexpat1-dev`.  See the **Dependencies** section below for a full list
