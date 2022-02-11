@@ -249,31 +249,36 @@ if libjpeg_dep.found()
 endif
 
 # Look for libspng first
-# 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
-# We can simplify this when requiring meson>=0.60.0
-spng_dep = dependency('libspng', version: '>=0.6', required: false)
+# - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
+#   both
+# - we need 0.7+ for PNG write support
+# - simplify this when requiring meson>=0.60.0
+spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 if not spng_dep.found()
-    spng_dep = dependency('spng', version: '>=0.6', required: get_option('spng'))
+    spng_dep = dependency('spng', version: '>=0.7', required: get_option('spng'))
 endif
 if not get_option('spng').disabled() and spng_dep.found()
     libvips_deps += spng_dep
     cfg_var.set('HAVE_SPNG', '1')
 endif
 
-# we can have both PNG and SPNG enabled, with SPNG for read and PNG for write
-png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
-if png_dep.found()
-    libvips_deps += png_dep
-    cfg_var.set('HAVE_PNG', '1')
-    if cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep)
-        cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', '1')
+# only if libspng not found
+png_dep = disabler()
+if not spng_dep.found()
+    png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
+    if png_dep.found()
+        libvips_deps += png_dep
+        cfg_var.set('HAVE_PNG', '1')
+        if cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep)
+            cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', '1')
+        endif
     endif
 endif
 
 
 # libwebp ... target 0.6+ to reduce complication
-# webp has the stuff for handling metadata in two separate libraries  -- we
-# insit on having all of them
+# webp has the stuff for handling metadata in two separate libraries -- we
+# insist on having both of them
 libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('png'))
 if libwebp_dep.found()
     libvips_deps += libwebp_dep

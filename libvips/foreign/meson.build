@@ -43,6 +43,7 @@ foreign_sources = files(
     'rawload.c',
     'rawsave.c',
     'spngload.c',
+    'spngsave.c',
     'svgload.c',
     'tiff2vips.c',
     'tiff.c',
