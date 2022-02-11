@@ -1301,37 +1301,41 @@ VIPS_CFLAGS="$VIPS_CFLAGS $TIFF_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $TIFF_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $TIFF_LIBS"
 
-# Look for libspng first
-# 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
+# Look for libspng before libpng
 AC_ARG_WITH([libspng], 
   AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
 
 if test x"$with_libspng" != x"no"; then
-  PKG_CHECK_MODULES(SPNG, libspng >= 0.6,
-    [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
-     with_libspng=yes
-     PACKAGES_USED="$PACKAGES_USED libspng"
-    ],
-    [PKG_CHECK_MODULES(SPNG, spng >= 0.6,
-      [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
-       with_libspng=yes
-       PACKAGES_USED="$PACKAGES_USED spng"
-      ],
-      [with_libspng=no
-      ]
-     )
-    ]
+  # we need 0.7 for PNG write support
+  # it's sometimes called libspng.pc, sometimes spng.pc, we have to search for both
+  PKG_CHECK_MODULES(SPNG, spng >= 0.7,
+   [with_libspng=yes
+    PACKAGES_USED="$PACKAGES_USED spng"
+   ],
+   [PKG_CHECK_MODULES(SPNG, libspng >= 0.7,
+     [with_libspng=yes
+      PACKAGES_USED="$PACKAGES_USED libspng"
+     ],
+     [with_libspng=no
+     ]
+   )]
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
+if test x"$with_libspng" == x"yes"; then
+  AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
+  VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
+  VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
+fi
 
 # look for PNG with pkg-config ... fall back to our tester
-# we can have both PNG and SPNG enabled, with SPNG for read and PNG for
-# write
 AC_ARG_WITH([png], 
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
+
+# if spng is found, we don't need libpng
+if test x"$with_libspng" = x"yes"; then
+  with_png=no
+fi
 
 if test x"$with_png" != x"no"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
@@ -1642,8 +1646,8 @@ JPEG load/save with libjpeg:            $with_jpeg
 JXL load/save with libjxl:              $with_libjxl (dynamic module: $with_libjxl_module)
 JPEG2000 load/save with libopenjp2:     $with_libopenjp2
  (requires libopenjp2 2.4 or later)
-PNG load with libspng:                  $with_libspng
- (requires libspng-0.6 or later)
+PNG load/save with libspng:             $with_libspng
+ (requires spng 0.7 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
 selected quantisation package:          $quantisation_package
