@@ -34,6 +34,10 @@
 #ifndef VIPS_DRAW_H
 #define VIPS_DRAW_H
 
+#include <glib.h>
+#include <glib-object.h>
+#include <vips/object.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

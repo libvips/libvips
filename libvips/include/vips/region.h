@@ -36,6 +36,13 @@
 #ifndef VIPS_REGION_H
 #define VIPS_REGION_H
 
+#include <glib.h>
+#include <glib-object.h>
+#include <vips/object.h>
+#include <vips/image.h>
+#include <vips/rect.h>
+#include <vips/private.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
