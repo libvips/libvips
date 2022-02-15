@@ -192,7 +192,7 @@ vips_transpose3d_init( VipsTranspose3d *transpose3d )
  *
  * Optional arguments:
  *
- * @page_height: %gint, size of each input page
+ * `page_height`: %gint, size of each input page
  *
  * Transpose a volumetric image. 
  *
@@ -203,7 +203,7 @@ vips_transpose3d_init( VipsTranspose3d *transpose3d )
  * output contains the Nth scanline, in order, from each input page.
  *
  * You can override the #VIPS_META_PAGE_HEIGHT metadata item with the optional
- * @page_height parameter. 
+ * `page_height` parameter. 
  *
  * #VIPS_META_PAGE_HEIGHT in the output image is the number of pages in the
  * input image. 

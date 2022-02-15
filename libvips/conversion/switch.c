@@ -225,7 +225,7 @@ vips_switchv( VipsImage **tests, VipsImage **out, int n, va_list ap )
 }
 
 /**
- * vips_switch: (method)
+ * vips_switch:
  * @tests: (array length=n): test these images
  * @out: (out): output index image
  * @n: number of input images

@@ -1868,7 +1868,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_foreign_find_save_buffer(), vips_image_write_to_file().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save( const char *name )
@@ -1927,7 +1927,7 @@ vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class,
 }
 
 /**
- * vips_foreign_get_suffixes: (method)
+ * vips_foreign_get_suffixes:
  *
  * Get a %NULL-terminated array listing all the supported suffixes. 
  *
@@ -1938,7 +1938,7 @@ vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class,
  *
  * Free the return result with g_strfreev().
  *
- * Returns: (transfer full): all supported file extensions, as a 
+ * Returns: (transfer full) (array): all supported file extensions, as a 
  * %NULL-terminated array. 
  */
 gchar ** 
@@ -2023,7 +2023,7 @@ vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save_target( const char *name )
@@ -2081,7 +2081,7 @@ vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save_buffer( const char *name )

@@ -37,12 +37,13 @@
 #ifndef VIPS_SEMAPHORE_H
 #define VIPS_SEMAPHORE_H
 
+#include <glib.h>
+#include <vips/vips.h>
+#include <vips/thread.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
-
-#include <vips/vips.h>
-#include <vips/thread.h>
 
 /* Implement our own semaphores.
  */
