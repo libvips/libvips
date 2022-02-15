@@ -31,10 +31,6 @@
 #ifndef VIPS_TRANSFORM_H
 #define VIPS_TRANSFORM_H
 
-#include <glib.h>
-#include <vips/image.h>
-#include <vips/rect.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
