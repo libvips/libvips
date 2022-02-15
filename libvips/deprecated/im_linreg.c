@@ -129,7 +129,6 @@ SKIP_ALL_DECL( guint32 );
 SKIP_ALL_DECL( float );
 SKIP_ALL_DECL( double );
 
-
 /** 
  * im_linreg:
  * @ins: NULL-terminated array of input images

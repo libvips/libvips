@@ -315,7 +315,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 /**
  * vips_reorder_prepare_many: (method)
  * @image: the image that's being written
- * @regions: (array) (element-type VipsRegion): the set of regions to prepare
+ * @regions: (array): the set of regions to prepare
  * @r: the #VipsRect to prepare on each region
  *
  * vips_reorder_prepare_many() runs vips_region_prepare() on each region in

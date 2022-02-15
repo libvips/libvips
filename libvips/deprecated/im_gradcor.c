@@ -36,7 +36,6 @@
 
  */
 
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -46,7 +45,6 @@
 
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
-
 
 typedef struct {
   REGION *reg;

@@ -177,9 +177,9 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
  * @X: Input CIE XYZ colour
  * @Y: Input CIE XYZ colour
  * @Z: Input CIE XYZ colour
- * @L: Return CIE Lab value
- * @a: Return CIE Lab value
- * @b: Return CIE Lab value
+ * @L: (out): Return CIE Lab value
+ * @a: (out): Return CIE Lab value
+ * @b: (out): Return CIE Lab value
  *
  * Calculate XYZ from Lab, D65.
  * 
