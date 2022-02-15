@@ -416,7 +416,7 @@ vips_image_get_format( const VipsImage *image )
 
 /**
  * vips_image_get_format_max:
- * @format: image to get from
+ * @format: the format
  *
  * Returns: the maximum numeric value possible for this format.
  */

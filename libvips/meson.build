@@ -49,8 +49,6 @@ if get_option('introspection')
         header: 'vips/vips.h',
         sources: libvips_sources,
         dependencies: libvips_deps,
-        # TODO: Fix all the warnings and remove this extra_arg
-        extra_args: '--quiet',
         includes: 'GObject-2.0',
         install: true
     )

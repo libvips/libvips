@@ -1902,7 +1902,7 @@ vips_region_prepare_many( VipsRegion **reg, const VipsRect *r )
 }
 
 /** 
- * vips_region_fetch:
+ * vips_region_fetch: (method)
  * @region: region to fetch pixels from
  * @left: area of pixels to fetch
  * @top: area of pixels to fetch

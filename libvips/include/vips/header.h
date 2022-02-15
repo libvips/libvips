@@ -223,7 +223,7 @@ int vips_image_get_string( const VipsImage *image,
 	const char *name, const char **out );
 void vips_image_set_string( VipsImage *image, 
 	const char *name, const char *str );
-void vips_image_print_field( const VipsImage *image, const char *field );
+void vips_image_print_field( const VipsImage *image, const char *name );
 int vips_image_get_image( const VipsImage *image, 
 	const char *name, VipsImage **out );
 void vips_image_set_image( VipsImage *image, const char *name, VipsImage *im );

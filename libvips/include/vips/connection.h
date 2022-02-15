@@ -119,7 +119,7 @@ void vips_pipe_read_limit_set( gint64 limit );
  * so readers can rewind and read again. We don't buffer data during the
  * decode stage.
  */
-typedef struct _VipsSource {
+struct _VipsSource {
 	VipsConnection parent_object;
 
 	/* We have two phases: 
@@ -182,7 +182,7 @@ typedef struct _VipsSource {
 	void *mmap_baseaddr;
 	size_t mmap_length;
 
-} VipsSource;
+};
 
 typedef struct _VipsSourceClass {
 	VipsConnectionClass parent_class;
@@ -370,7 +370,7 @@ VipsSourceGInputStream *vips_source_g_input_stream_new( GInputStream *stream );
 
 /* Output to something like a socket, pipe or memory area. 
  */
-typedef struct _VipsTarget {
+struct _VipsTarget {
 	VipsConnection parent_object;
 
 	/*< private >*/
@@ -397,7 +397,7 @@ typedef struct _VipsTarget {
 	unsigned char output_buffer[VIPS_TARGET_BUFFER_SIZE];
 	int write_point;
 
-} VipsTarget;
+};
 
 typedef struct _VipsTargetClass {
 	VipsConnectionClass parent_class;
