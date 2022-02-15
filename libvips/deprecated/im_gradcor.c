@@ -37,7 +37,7 @@
  */
 
 
-/** HEADERS **/
+/* HEADERS */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -50,7 +50,7 @@
 #include <vips/vips7compat.h>
 
 
-/** LOCAL TYPES **/
+/* LOCAL TYPES */
 
 typedef struct {
   REGION *reg;
@@ -62,7 +62,7 @@ typedef struct {
 gradcor_seq_t;
 
 
-/** LOCAL FUNCTION DECLARATIONS **/
+/* LOCAL FUNCTION DECLARATIONS */
 
 static void *gradcor_start( IMAGE *out, void *vptr_large, void *unrequired );
 static int gradcor_stop( void *vptr_seq, void *unrequired, void *unreq2 );
@@ -91,7 +91,7 @@ YGRAD_GEN_DECLARATION( double );
 #endif
 
 
-/** EXPORTED FUNCTION DEFINITIONS **/
+/* EXPORTED FUNCTION DEFINITIONS */
 
 int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
 #define FUNCTION_NAME "im_gradcor_raw"
@@ -336,7 +336,7 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
 }
 
 
-/** LOCAL FUNCTION DEFINITIONS **/
+/* LOCAL FUNCTION DEFINITIONS */
 
 static void *gradcor_start( IMAGE *out, void *vptr_large, void *unrequired ){
 

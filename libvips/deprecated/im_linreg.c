@@ -40,7 +40,7 @@
  */
 
 
-/** HEADERS **/
+/* HEADERS */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -53,7 +53,7 @@
 #include <vips/vips7compat.h>
 
 
-/** TYPES **/
+/* TYPES */
 
 typedef struct {
 
@@ -82,7 +82,7 @@ LINREG_SEQ( float );
 LINREG_SEQ( double );
 
 
-/** LOCAL FUNCTION DECLARATIONS **/
+/* LOCAL FUNCTION DECLARATIONS */
 
 static x_set *x_anal( IMAGE *im, double *xs, unsigned int n );
 
@@ -138,7 +138,7 @@ SKIP_ALL_DECL( float );
 SKIP_ALL_DECL( double );
 
 
-/** EXPORTED FUNCTION DEFINITION **/
+/* EXPORTED FUNCTION DEFINITION */
 
 /** 
  * im_linreg:
@@ -249,7 +249,7 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
 }
 
 
-/** LOCAL FUNCTION DECLARATIONS **/
+/* LOCAL FUNCTION DECLARATIONS */
 
 static x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
   unsigned int i;
