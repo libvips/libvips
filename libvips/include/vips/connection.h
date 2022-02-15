@@ -33,6 +33,12 @@
 #ifndef VIPS_CONNECTION_H
 #define VIPS_CONNECTION_H
 
+#include <glib.h>
+#include <glib-object.h>
+#include <gio/gio.h>
+#include <vips/object.h>
+#include <vips/type.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

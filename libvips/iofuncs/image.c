@@ -1751,7 +1751,7 @@ vips_image_new_mode( const char *filename, const char *mode )
 }
 
 /**
- * vips_image_new_memory: (constructor)
+ * vips_image_new_memory: (skip)
  *
  * vips_image_new_memory() creates a new #VipsImage which, when written to, will
  * create a memory image. 
@@ -2374,7 +2374,7 @@ vips_image_new_matrix_from_array( int width, int height,
 }
 
 /**
- * vips_image_matrix_from_array: (constructor)
+ * vips_image_matrix_from_array: (skip)
  * @width: image width
  * @height: image height
  * @array: (array length=size) (transfer none): array of elements

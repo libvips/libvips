@@ -31,11 +31,12 @@
 #ifndef VIPS_BUF_H
 #define VIPS_BUF_H
 
+#include <glib.h>
+#include <glib-object.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
-
-#include <vips/vips.h>
 
 /* A string in the process of being written to ... multiple calls to 
  * vips_buf_append add to it. On overflow append "..." and block further 
@@ -85,8 +86,8 @@ gboolean vips_buf_appendg( VipsBuf *buf, double g );
 gboolean vips_buf_appendd( VipsBuf *buf, int d );
 int vips_buf_len( VipsBuf *buf );
 
-#endif /*VIPS_BUF_H*/
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif /*VIPS_BUF_H*/

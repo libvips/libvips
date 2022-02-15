@@ -1,0 +1,7 @@
+Object.new_from_string skip
+Object.print_summary_class skip
+ArgumentClass.object_class skip
+class_find skip
+ClassMapFn.cls type="void*"
+ArgumentClassMapFn.object_class type="void*"
+ArgumentTable type="GLib.HashTable<GLib.ParamSpec,Vips.Argument?>"
