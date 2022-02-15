@@ -430,12 +430,12 @@ vips_object_dump( VipsObject *object, VipsBuf *buf )
 }
 
 void
-vips_object_print_summary_class( VipsObjectClass *class )
+vips_object_print_summary_class( VipsObjectClass *klass )
 {
 	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_object_summary_class( class, &buf );
+	vips_object_summary_class( klass, &buf );
 	printf( "%s\n", vips_buf_all( &buf ) );
 }
 
