@@ -276,7 +276,7 @@ int vips_unpremultiply( VipsImage *in, VipsImage **out, ... )
 int vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
 	__attribute__((sentinel));
 int vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
-	VipsBlendMode mode1, ... )
+	VipsBlendMode mode, ... )
 	__attribute__((sentinel));
 
 int vips_falsecolour( VipsImage *in, VipsImage **out, ... )

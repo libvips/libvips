@@ -192,7 +192,7 @@ vips_transpose3d_init( VipsTranspose3d *transpose3d )
  *
  * Optional arguments:
  *
- * @page_height: %gint, size of each input page
+ * * @page_height: %gint, size of each input page
  *
  * Transpose a volumetric image. 
  *

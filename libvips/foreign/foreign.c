@@ -1927,7 +1927,7 @@ vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class,
 }
 
 /**
- * vips_foreign_get_suffixes: (method)
+ * vips_foreign_get_suffixes:
  *
  * Get a %NULL-terminated array listing all the supported suffixes. 
  *

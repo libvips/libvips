@@ -387,10 +387,10 @@ vips_area_new_array_object( int n )
 /**
  * vips_area_get_data: (method)
  * @area: #VipsArea to fetch from
- * @length: (optional): optionally return length in bytes here
- * @n: (optional): optionally return number of elements here
- * @type: (optional): optionally return element type here
- * @sizeof_type: (optional): optionally return sizeof() element type here
+ * @length: (out optional): optionally return length in bytes here
+ * @n: (out optional): optionally return number of elements here
+ * @type: (out optional): optionally return element type here
+ * @sizeof_type: (out optional): optionally return sizeof() element type here
  *
  * Return the data pointer plus optionally the length in bytes of an area, 
  * the number of elements, the %GType of each element and the sizeof() each

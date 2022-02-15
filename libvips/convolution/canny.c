@@ -474,7 +474,6 @@ vips_canny_init( VipsCanny *canny )
  * vips_canny: (method)
  * @in: input image
  * @out: (out): output image
- * @sigma: how large a mask to use
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
