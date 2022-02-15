@@ -85,7 +85,7 @@ vips_rect_includespoint( const VipsRect *r, int x, int y )
 }
 
 /**
- * vips_rect_isempty:
+ * vips_rect_isempty: (method)
  * @r: rectangle to test
  *
  * Is @r empty? ie. zero width or height.
@@ -99,7 +99,7 @@ vips_rect_isempty( const VipsRect *r )
 }
 
 /**
- * vips_rect_includesrect:
+ * vips_rect_includesrect: (method)
  * @r1: outer rectangle
  * @r2: inner rectangle
  *
@@ -117,7 +117,7 @@ vips_rect_includesrect( const VipsRect *r1, const VipsRect *r2 )
 }
 
 /**
- * vips_rect_equalsrect:
+ * vips_rect_equalsrect: (method)
  * @r1: first rectangle
  * @r2: second rectangle
  *
@@ -133,7 +133,7 @@ vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 )
 }
 
 /**
- * vips_rect_overlapsrect:
+ * vips_rect_overlapsrect: (method)
  * @r1: first rectangle
  * @r2: second rectangle
  *
@@ -152,7 +152,7 @@ vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 )
 }
 
 /**
- * vips_rect_marginadjust:
+ * vips_rect_marginadjust: (method)
  * @r: rectangle to adjust
  * @n: enlarge by
  *
@@ -242,7 +242,7 @@ vips_rect_dup( const VipsRect *r )
 }
 
 /**
- * vips_rect_normalise:
+ * vips_rect_normalise: (method)
  * @r: rect to normalise
  *
  * Make sure width and height are >0 by moving the origin and flipping the
