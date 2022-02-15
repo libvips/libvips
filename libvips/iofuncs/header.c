@@ -1878,21 +1878,21 @@ vips_image_get_as_string( const VipsImage *image,
 /**
  * vips_image_print_field:
  * @image: image to get the header field from
- * @field: field name
+ * @name: field name
  *
  * Prints field @name to stdout as ASCII. Handy for debugging. 
  */
 void
-vips_image_print_field( const VipsImage *image, const char *field )
+vips_image_print_field( const VipsImage *image, const char *name )
 {
 	char *str;
 
-	if( vips_image_get_as_string( image, field, &str ) ) {
+	if( vips_image_get_as_string( image, name, &str ) ) {
 		printf( "vips_image_print_field: unable to read field\n" );
 		return;
 	}
 
-	printf( ".%s: %s\n", field, str );
+	printf( ".%s: %s\n", name, str );
 
 	g_free( str ); 
 }

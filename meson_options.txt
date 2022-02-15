@@ -2,7 +2,7 @@ option('deprecated', type : 'boolean', value : true, description: 'Build depreca
 option('doxygen', type : 'boolean', value : false, description: 'Build C++ documentation')
 option('gtk_doc', type : 'boolean', value : false, description: 'Build GTK-doc documentation')
 option('modules', type : 'feature', value : 'auto', description: 'Build dynamic modules')
-option('introspection', type : 'boolean', value : false, description: 'Build GObject Introspection')
+option('introspection', type : 'boolean', value : true, description: 'Build GObject Introspection')
 option('vapi', type : 'boolean', value : false, description: 'Build VAPI')
 # External libraries
 option('cfitsio', type : 'feature', value : 'auto', description: 'Build with cfitsio')

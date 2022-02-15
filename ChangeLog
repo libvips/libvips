@@ -6,6 +6,7 @@
 - add "password" option to pdfload
 - improve the pixel rng
 - add meson build system [tintou]
+- improve introspection annotations [tintou]
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
