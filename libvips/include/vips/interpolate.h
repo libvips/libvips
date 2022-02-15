@@ -33,11 +33,6 @@
 #ifndef VIPS_INTERPOLATE_H
 #define VIPS_INTERPOLATE_H
 
-#include <glib.h>
-#include <glib-object.h>
-#include <vips/object.h>
-#include <vips/region.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

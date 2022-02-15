@@ -33,10 +33,6 @@
 #ifndef VIPS_SBUF_H
 #define VIPS_SBUF_H
 
-#include <glib.h>
-#include <glib-object.h>
-#include <vips/object.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
