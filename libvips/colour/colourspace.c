@@ -490,7 +490,7 @@ static VipsColourRoute vips_colour_routes[] = {
  */
 
 /**
- * vips_colourspace_issupported:
+ * vips_colourspace_issupported: (method)
  * @image: input image
  *
  * Test if @image is in a colourspace that vips_colourspace() can process. 

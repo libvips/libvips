@@ -79,10 +79,10 @@
  *
  * Optional arguments:
  *
- * * @compositing_space: #VipsInterpretation to composite in
- * * @premultiplied: %gboolean, images are already premultiplied
- * * @x: #VipsArrayInt, position of subimages
- * * @y: #VipsArrayInt, position of subimages
+ * * `compositing_space`: #VipsInterpretation to composite in
+ * * `premultiplied`: %gboolean, images are already premultiplied
+ * * `x`: #VipsArrayInt, position of subimages
+ * * `y`: #VipsArrayInt, position of subimages
  *
  * Composite an array of images together. 
  *
@@ -109,11 +109,11 @@
  *
  * The images do not need to match in size or format. They will be expanded to
  * the smallest common size and format in the usual way. Images are positioned
- * using the @x and @y parameters, if set. 
+ * using the `x` and `y` parameters, if set. 
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
  * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied. 
+ * set `premultiplied`. 
  *
  * See also: vips_insert().
  *
@@ -130,10 +130,10 @@
  *
  * Optional arguments:
  *
- * * @compositing_space: #VipsInterpretation to composite in
- * * @premultiplied: %gboolean, images are already premultiplied
- * * @x: %gint, position of overlay
- * * @y: %gint, position of overlay
+ * * `compositing_space`: #VipsInterpretation to composite in
+ * * `premultiplied`: %gboolean, images are already premultiplied
+ * * `x`: %gint, position of overlay
+ * * `y`: %gint, position of overlay
  *
  * Composite @overlay on top of @base with @mode. See vips_composite().
  *

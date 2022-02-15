@@ -39,11 +39,18 @@
 #ifndef VIPS_THREADPOOL_H
 #define VIPS_THREADPOOL_H
 
+#include <glib.h>
+#include <glib-object.h>
+#include <vips/image.h>
+#include <vips/object.h>
+#include <vips/region.h>
+#include <vips/rect.h>
+#include <vips/semaphore.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/semaphore.h>
 
 /* Per-thread state. Allocate functions can use these members to
  * communicate with work functions.
