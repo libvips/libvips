@@ -392,7 +392,7 @@ fi
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf atexit _aligned_malloc posix_memalign memalign])
+AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf _aligned_malloc posix_memalign memalign])
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])

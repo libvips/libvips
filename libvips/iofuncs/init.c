@@ -418,30 +418,6 @@ vips_leak( void )
 	return( n_leaks );
 }
 
-/* This is not guaranteed to be called, and might be called after many parts
- * of libvips have been freed. Threads can be in an indeterminate state. 
- * You must be very careful to avoid segvs.
- */
-static void
-vips__atexit( void )
-{
-	/* In dev releases, always show leaks. But not more than once, it's
-	 * annoying.
-	 */
-#ifndef DEBUG_LEAK
-	if( vips__leak ) 
-#endif /*DEBUG_LEAK*/
-	{
-		static gboolean done = FALSE;
-
-		if( !done ) {
-			done = TRUE;
-			vips_cache_drop_all();
-			vips_leak();
-		}
-	}
-}
-
 /**
  * vips_init:
  * @argv0: name of application
@@ -658,10 +634,6 @@ vips_init( const char *argv0 )
 	gsf_init();
 #endif /*HAVE_GSF*/
 
-#ifdef HAVE_ATEXIT
-	atexit( vips__atexit );
-#endif /*HAVE_ATEXIT*/
-
 #ifdef DEBUG_LEAK
 	vips__image_pixels_quark = 
 		g_quark_from_static_string( "vips-image-pixels" ); 
@@ -750,10 +722,25 @@ void
 vips_shutdown( void )
 {
 #ifdef DEBUG
-	printf( "vips_shutdown:\n" );
 #endif /*DEBUG*/
+	printf( "vips_shutdown:\n" );
 
 	vips_cache_drop_all();
+
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
+	 */
+#ifndef DEBUG_LEAK
+	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		static gboolean done = FALSE;
+
+		if( !done ) {
+			done = TRUE;
+			vips_leak();
+		}
+	}
 
 #if ENABLE_DEPRECATED
 	im_close_plugins();

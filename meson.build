@@ -107,7 +107,7 @@ if cpp.compiles(vector_arithmetic_check, name: 'Has vector arithmetic', dependen
     endif
 endif
 
-func_names = [ 'getcwd', 'gettimeofday', 'getwd', 'memset', 'munmap', 'putenv', 'realpath', 'strcasecmp', 'strchr', 'strcspn', 'strdup', 'strerror', 'strrchr', 'strspn', 'vsnprintf', 'realpath', 'mkstemp', 'mktemp', 'random', 'rand', 'sysconf', 'atexit', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
+func_names = [ 'getcwd', 'gettimeofday', 'getwd', 'memset', 'munmap', 'putenv', 'realpath', 'strcasecmp', 'strchr', 'strcspn', 'strdup', 'strerror', 'strrchr', 'strspn', 'vsnprintf', 'realpath', 'mkstemp', 'mktemp', 'random', 'rand', 'sysconf', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
 foreach func_name : func_names
     if cc.has_function(func_name, dependencies: m_dep)
         cfg_var.set('HAVE_' + func_name.to_upper(), '1')
