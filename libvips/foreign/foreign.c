@@ -2135,6 +2135,9 @@ vips_foreign_find_save_buffer( const char *name )
  * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
  * image.
  *
+ * The bitdepth of the heic image is recorded in the metadata item
+ * `heif-bitdepth`.
+ *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2235,6 +2238,7 @@ vips_heifload_source( VipsSource *source, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
+ * * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
@@ -2256,6 +2260,9 @@ vips_heifload_source( VipsSource *source, VipsImage **out, ... )
  *
  * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
+ *
+ * Use @bitdepth to set the bitdepth of the output file. HEIC supports at
+ * least 8, 10 and 12 bits; other codecs may support more or fewer options.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -2284,6 +2291,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
+ * * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
@@ -2336,6 +2344,7 @@ vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
+ * * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
