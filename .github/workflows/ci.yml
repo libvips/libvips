@@ -121,7 +121,8 @@ jobs:
 
       - name: Configure libvips
         run:
-          meson setup build -Ddebug=true -Ddeprecated=false
+          meson setup build -Ddebug=true -Ddeprecated=false ||
+            (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
         run: cd build && ninja
