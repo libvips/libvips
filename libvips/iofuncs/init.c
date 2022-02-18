@@ -722,8 +722,8 @@ void
 vips_shutdown( void )
 {
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_shutdown:\n" );
+#endif /*DEBUG*/
 
 	vips_cache_drop_all();
 
@@ -748,7 +748,7 @@ vips_shutdown( void )
 
 	/* Mustn't run this more than once. Don't use the VIPS_GATE macro,
 	 * since we don't for gate start.
-	 */
+         */
 {
 	static gboolean done = FALSE;
 
