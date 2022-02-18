@@ -88,12 +88,17 @@ configuration.
 
 - Add flags like `-Dnsgif=false` to turn options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
+
 - Meson will do a debug build by default. Add `--buildtype=release` for a 
   release (optimised) build.
+
 - You might need to add `--libdir=lib` on Debian if you don't want the arch 
   name in the library path.
+
 - Add `--default-library=static` for a static build.
+
 - Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
+
 - You can have many `build-dir`, pick whatever names you like, for example 
   one for release and one for debug.
 
@@ -147,12 +152,18 @@ Create a `pdfium.pc` like this (update the version number):
          Cflags: -I\${includedir}
     EOF
 
-If PDFium is not detected, libvips will look for poppler-glib instead.
+If PDFium is not detected, libvips will look for `poppler-glib` instead.
 
 ### poppler-glib
 
 The Poppler PDF renderer, with a glib API. If this is not present, vips
 will try to load PDFs via imagemagick.
+
+### cgif
+
+If available, libvips will save GIFs with
+[cgif](https://github.com/dloebl/cgif). If this is not present, vips will
+try to save gifs via imagemagick instead.
 
 ### libgsf-1
 
@@ -174,13 +185,8 @@ can be used to manipulate images with ICC profiles.
 
 ### libspng
 
-If present, libvips will load PNG files using libspng. At the moment, libpng
-is still necessary for save.
-
-### libpng
-
-If libspng is not present and libpng is, libvips will load PNG files with
-libpng. It will always save PNG files with libpng.
+If present, libvips will load and save PNG files using libspng. If not, it
+will look for the standard libpng package.
 
 ### libimagequant, quantizr
 
