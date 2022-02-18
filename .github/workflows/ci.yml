@@ -63,7 +63,6 @@ jobs:
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
             ninja-build 
-            gtk-doc-tools gobject-introspection
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
             libpng-dev libwebp-dev libtiff5-dev
@@ -82,7 +81,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install meson ninja fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
+          brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
           brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
           brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
           brew install --build-bottle lovell/cgif-packaging/cgif
@@ -126,8 +125,11 @@ jobs:
 
       - name: Configure libvips
         run:
-          meson setup build -Ddebug=true -Ddeprecated=false ||
-            (cat build/meson-logs/meson-log.txt && exit 1)
+          meson setup build 
+            -Ddebug=true 
+            -Ddeprecated=false 
+            -Dintrospection=false 
+          || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
         run: cd build && ninja
