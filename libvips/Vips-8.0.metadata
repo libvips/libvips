@@ -1,0 +1,29 @@
+Object.new_from_string.object_class type="GLib.ObjectClass"
+Object.print_summary_class.klass type="GLib.ObjectClass"
+ArgumentClass.object_class type="GLib.ObjectClass"
+class_find type="GLib.ObjectClass"
+ClassMapFn.cls type="GLib.ObjectClass"
+ArgumentClassMapFn.object_class type="GLib.ObjectClass"
+ArgumentTable type="GLib.HashTable<GLib.ParamSpec,Vips.Argument?>"
+
+Image.eval#virtual_method skip
+Image.invalidate#virtual_method skip
+Image.minimise#virtual_method skip
+Image.posteval#virtual_method skip
+Image.preeval#virtual_method skip
+Image.written#virtual_method skip
+Image.memory skip
+Image.matrix_from_array skip
+
+Object.close#virtual_method skip
+Object.postbuild#virtual_method skip
+Object.postclose#virtual_method skip
+Object.preclose#virtual_method skip
+Object.preclose#method name="do_preclose"
+_object_set_member name="set_member" parent="Vips.Object" symbol_type="method" instance_idx=0
+
+cache_* skip=false name="cache_(.+)" parent="Vips.Cache"
+col_* skip=false name="col_(.+)" parent="Vips.ColorUtils"
+tracked_* skip=false name="tracked_(.+)" parent="Vips.Tracked"
+check_* skip=false parent="Vips.Utils"
+value_* skip=false name="value_(.+)" parent="Vips.Value"

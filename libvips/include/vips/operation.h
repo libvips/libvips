@@ -31,6 +31,12 @@
 #ifndef VIPS_OPERATION_H
 #define VIPS_OPERATION_H
 
+#include <glib.h>
+#include <glib-object.h>
+#include <vips/object.h>
+#include <vips/buf.h>
+#include <vips/basic.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

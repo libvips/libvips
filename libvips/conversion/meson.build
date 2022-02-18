@@ -1,0 +1,59 @@
+conversion_sources = files(
+    'switch.c',
+    'transpose3d.c',
+    'composite.cpp',
+    'smartcrop.c',
+    'conversion.c',
+    'tilecache.c',
+    'gamma.c',
+    'sequential.c',
+    'flatten.c',
+    'premultiply.c',
+    'unpremultiply.c',
+    'byteswap.c',
+    'cache.c',
+    'copy.c',
+    'embed.c',
+    'flip.c',
+    'insert.c',
+    'join.c',
+    'arrayjoin.c',
+    'extract.c',
+    'replicate.c',
+    'cast.c',
+    'bandjoin.c',
+    'bandrank.c',
+    'recomb.c',
+    'bandmean.c',
+    'bandfold.c',
+    'bandunfold.c',
+    'bandbool.c',
+    'bandary.c',
+    'rot.c',
+    'rot45.c',
+    'autorot.c',
+    'ifthenelse.c',
+    'falsecolour.c',
+    'msb.c',
+    'grid.c',
+    'scale.c',
+    'wrap.c',
+    'subsample.c',
+    'zoom.c',
+)
+
+conversion_headers = files(
+    'pconversion.h',
+    'bandary.h',
+)
+
+libvips_sources += conversion_sources
+
+conversion_lib = static_library('conversion',
+    conversion_sources,
+    conversion_headers,
+    dependencies: libvips_deps,
+    c_args: [ '-Wno-unknown-pragmas' ],
+)
+
+libvips_components += conversion_lib

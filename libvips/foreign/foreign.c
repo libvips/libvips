@@ -1868,7 +1868,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_foreign_find_save_buffer(), vips_image_write_to_file().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save( const char *name )
@@ -1927,7 +1927,7 @@ vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class,
 }
 
 /**
- * vips_foreign_get_suffixes: (method)
+ * vips_foreign_get_suffixes:
  *
  * Get a %NULL-terminated array listing all the supported suffixes. 
  *
@@ -1938,7 +1938,7 @@ vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class,
  *
  * Free the return result with g_strfreev().
  *
- * Returns: (transfer full): all supported file extensions, as a 
+ * Returns: (transfer full) (array): all supported file extensions, as a 
  * %NULL-terminated array. 
  */
 gchar ** 
@@ -2023,7 +2023,7 @@ vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save_target( const char *name )
@@ -2081,7 +2081,7 @@ vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class,
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, %NULL on error
  */
 const char *
 vips_foreign_find_save_buffer( const char *name )
@@ -2592,6 +2592,7 @@ vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @background: #VipsArrayDouble background colour
+ * * @password: %gchararray background colour
  *
  * Render a PDF file into a VIPS image. 
  *
@@ -2611,6 +2612,8 @@ vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  *
  * Use @background to set the background RGBA colour. The default is 255 
  * (solid white), use eg. 0 for a transparent background.
+ *
+ * Use @password to supply a decryption password.
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 
@@ -2825,6 +2828,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_save_png_target_get_type( void ); 
+
+	extern GType vips_foreign_save_spng_file_get_type( void ); 
+	extern GType vips_foreign_save_spng_buffer_get_type( void ); 
+	extern GType vips_foreign_save_spng_target_get_type( void ); 
 
 	extern GType vips_foreign_load_csv_file_get_type( void ); 
 	extern GType vips_foreign_load_csv_source_get_type( void ); 
@@ -3044,6 +3051,9 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_png_file_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
 	vips_foreign_load_png_source_get_type(); 
+	vips_foreign_save_spng_file_get_type(); 
+	vips_foreign_save_spng_buffer_get_type(); 
+	vips_foreign_save_spng_target_get_type(); 
 #endif /*HAVE_SPNG*/
 
 #ifdef HAVE_MATIO

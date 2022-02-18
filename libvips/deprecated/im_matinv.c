@@ -41,8 +41,6 @@
 
  */
 
-/** HEADERS **/
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -56,20 +54,11 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-
-/** CONSTANTS **/
-
 #define TOO_SMALL             ( 2.0 * DBL_MIN )
 /* DBL_MIN is smallest *normalized* double precision float */
 
-
-/** MACROS **/
-
 #define MATRIX( mask, i, j )   ( (mask)-> coeff[ (j) + (i) * (mask)-> xsize ] )
 /* use DOUBLEMASK or INTMASK as matrix type */
-
-
-/** LOCAL FUNCTION DECLARATIONS **/
 
 static int 
 mat_inv_lu(
@@ -83,9 +72,6 @@ mat_inv_direct(
     const DOUBLEMASK *mat, 
     const char *function_name 
   );
-
-
-/** EXPORTED FUNCTION DEFINITIONS **/
 
 /**
  * im_lu_decomp:
@@ -428,9 +414,6 @@ im_invmat(
 
   return to_return;
 }
-
-
-/** LOCAL FUNCTION DEFINITIONS **/
 
 static int
 mat_inv_lu(

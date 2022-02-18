@@ -532,7 +532,7 @@ vips_region_new( VipsImage *image )
  */
 
 /**
- * vips_region_buffer: (method)
+ * vips_region_buffer:
  * @reg: region to operate upon
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -601,7 +601,7 @@ vips_region_buffer( VipsRegion *reg, const VipsRect *r )
 }
 
 /**
- * vips_region_image: (method)
+ * vips_region_image:
  * @reg: region to operate upon
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -681,7 +681,7 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 }
 
 /**
- * vips_region_region: (method)
+ * vips_region_region:
  * @reg: region to operate upon
  * @dest: region to connect to
  * @r: #VipsRect of pixels you need to be able to address
@@ -816,7 +816,7 @@ vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 }
 
 /**
- * vips_region_position: (method)
+ * vips_region_position:
  * @reg: region to operate upon
  * @x: position to move to
  * @y: position to move to
@@ -900,7 +900,7 @@ vips_region_fill( VipsRegion *reg,
 }
 
 /**
- * vips_region_paint: (method)
+ * vips_region_paint:
  * @reg: region to operate upon
  * @r: area to paint
  * @value: value to paint
@@ -969,7 +969,7 @@ vips_region_paint( VipsRegion *reg, const VipsRect *r, int value )
 }
 
 /**
- * vips_region_paint_pel: (method)
+ * vips_region_paint_pel:
  * @reg: region to operate upon
  * @r: area to paint
  * @ink: value to paint
@@ -1020,7 +1020,7 @@ vips_region_paint_pel( VipsRegion *reg, const VipsRect *r, const VipsPel *ink )
 }
 
 /**
- * vips_region_black: (method)
+ * vips_region_black:
  * @reg: region to operate upon
  *
  * Paints 0 into the valid part of @reg.
@@ -1606,7 +1606,7 @@ vips_region_generate( VipsRegion *reg, void *a )
 }
 
 /** 
- * vips_region_prepare: (method)
+ * vips_region_prepare:
  * @reg: region to prepare
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -1733,9 +1733,9 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 }
 
 /** 
- * vips_region_prepare_to: (method)
+ * vips_region_prepare_to:
  * @reg: region to prepare
- * @dest: (inout): region to write to
+ * @dest: region to write to
  * @r: #VipsRect of pixels you need to be able to address
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
@@ -1902,8 +1902,8 @@ vips_region_prepare_many( VipsRegion **reg, const VipsRect *r )
 }
 
 /** 
- * vips_region_fetch: (method)
- * @reg: region to fetch pixels from
+ * vips_region_fetch:
+ * @region: region to fetch pixels from
  * @left: area of pixels to fetch
  * @top: area of pixels to fetch
  * @width: area of pixels to fetch
@@ -1966,7 +1966,7 @@ vips_region_fetch( VipsRegion *region,
 }
 
 /**
- * vips_region_width: (method)
+ * vips_region_width:
  * @region: fetch width from this
  *
  * Returns: Width of the pixels held in region.
@@ -1978,7 +1978,7 @@ vips_region_width( VipsRegion *region )
 }	
 
 /**
- * vips_region_height: (method)
+ * vips_region_height:
  * @region: fetch height from this
  *
  * Returns: Height of the pixels held in region.
@@ -1990,7 +1990,7 @@ vips_region_height( VipsRegion *region )
 }	
 
 /** 
- * vips_region_invalidate: (method)
+ * vips_region_invalidate:
  * @reg: region to invalidate
  *
  * Mark a region as containing invalid pixels. Calling this function means

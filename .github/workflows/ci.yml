@@ -62,7 +62,7 @@ jobs:
         if: runner.os == 'Linux'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            gtk-doc-tools gobject-introspection
+            ninja-build 
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
             libpng-dev libwebp-dev libtiff5-dev
@@ -73,10 +73,15 @@ jobs:
             libopenslide-dev libffi-dev libopenjp2-7-dev
             libimagequant-dev libcgif-dev
 
+      - name: Install recent meson 
+        if: runner.os == 'Linux'
+        run:
+          pip3 install meson
+
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install autoconf automake libtool fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
+          brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
           brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
           brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
           brew install --build-bottle lovell/cgif-packaging/cgif
@@ -120,19 +125,20 @@ jobs:
 
       - name: Configure libvips
         run:
-          ./autogen.sh
-            --enable-debug
-            --disable-dependency-tracking
-            --disable-deprecated || (cat config.log && exit 1)
+          meson setup build 
+            -Ddebug=true 
+            -Ddeprecated=false 
+            -Dintrospection=false 
+          || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
-        run: make V=0 -j$JOBS
+        run: cd build && ninja
 
       - name: Check libvips
-        run: make V=0 VERBOSE=1 check
+        run: cd build && ninja test
 
       - name: Install libvips
-        run: sudo make V=0 install
+        run: cd build && sudo ninja install
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'

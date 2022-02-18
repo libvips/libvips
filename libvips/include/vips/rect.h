@@ -31,6 +31,8 @@
 #ifndef VIPS_RECT_H
 #define VIPS_RECT_H
 
+#include <glib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

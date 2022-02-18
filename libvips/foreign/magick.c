@@ -241,7 +241,7 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	/* Some IMs must have the string version set as well.
 	 */
 	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
-	image_info->scenes = strdup( page );
+	image_info->scenes = g_strdup( page );
 }
 
 int
@@ -546,7 +546,7 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	/* Some IMs must have the string version set as well.
 	 */
 	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
-	image_info->scenes = strdup( page );
+	image_info->scenes = g_strdup( page );
 #else /*!HAVE_NUMBER_SCENES*/
 	/* This works with GM 1.2.31 and probably others.
 	 */
@@ -758,13 +758,13 @@ magick_set_vips_profile_cb( Image *image,
 	char name_text[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC( name_text );
 
-	if( strcasecmp( name, "XMP" ) == 0 )
+	if( g_ascii_strcasecmp( name, "XMP" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_XMP_NAME );
-	else if( strcasecmp( name, "IPTC" ) == 0 )
+	else if( g_ascii_strcasecmp( name, "IPTC" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_IPTC_NAME );
-	else if( strcasecmp( name, "ICC" ) == 0 )
+	else if( g_ascii_strcasecmp( name, "ICC" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_ICC_NAME );
-	else if( strcasecmp( name, "EXIF" ) == 0 )
+	else if( g_ascii_strcasecmp( name, "EXIF" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_EXIF_NAME );
 	else
 		vips_buf_appendf( &vips_name, "magickprofile-%s", name );

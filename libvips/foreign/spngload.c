@@ -76,7 +76,6 @@ typedef struct _VipsForeignLoadPng {
 	VipsInterpretation interpretation;
 	VipsBandFormat format;
 	int y_pos;
-
 } VipsForeignLoadPng;
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;

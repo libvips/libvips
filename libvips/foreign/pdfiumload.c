@@ -12,6 +12,8 @@
  * 	- have a lock just for pdfium [DarthSim]
  * 	- update for current pdfium
  * 	- add _source input
+ * 28/1/22
+ * 	- add password
  */
 
 /*
@@ -129,6 +131,10 @@ typedef struct _VipsForeignLoadPdf {
 	/* Background colour.
 	 */
 	VipsArrayDouble *background;
+
+	/* Decrypt with this.
+	 */
+	const char *password;
 
 	FPDF_FILEACCESS file_access;
 	FPDF_DOCUMENT doc;
@@ -281,7 +287,7 @@ vips_foreign_load_pdf_build( VipsObject *object )
 		g_mutex_lock( vips_pdfium_mutex );
 
 		if( !(pdf->doc = FPDF_LoadCustomDocument( &pdf->file_access, 
-			NULL )) ) {
+			pdf->password )) ) {
 			g_mutex_unlock( vips_pdfium_mutex );
 			vips_pdfium_error();
 			vips_error( "pdfload", 
@@ -692,6 +698,13 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_STRING( class, "password", 25, 
+		_( "Password" ), 
+		_( "Decrypt with this password" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPdf, password ),
+		NULL );
 
 }
 

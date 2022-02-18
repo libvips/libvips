@@ -83,6 +83,8 @@
  * 	- read out background, if we can
  * 29/8/21 joshuamsager
  *	-  add "unlimited" flag to png load
+ * 13/1/22
+ * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
  */
 
 /*
@@ -122,8 +124,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_PNG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -134,6 +134,12 @@
 
 #include "pforeign.h"
 #include "quantise.h"
+
+/* Shared with spng load/save.
+ */
+const char *vips__png_suffs[] = { ".png", NULL };
+
+#ifdef HAVE_PNG
 
 #include <png.h>
 
@@ -165,8 +171,6 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 
 	g_warning( "%s", warning_msg );
 }
-
-#ifndef HAVE_SPNG
 
 #define INPUT_BUFFER_SIZE (4096)
 
@@ -304,6 +308,10 @@ read_new( VipsSource *source, VipsImage *out,
 	png_set_crc_action( read->pPng,
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
+
+	/* libpng has a default soft limit of 1m pixels per axis.
+	 */
+	png_set_user_limits( read->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD );
 
 	if( vips_source_rewind( source ) ) 
 		return( NULL );
@@ -633,7 +641,7 @@ png2vips_header( Read *read, VipsImage *out )
 				array, n );
 	}
 }
-#endif
+#endif /*PNG_bKGD_SUPPORTED*/
 
 	return( 0 );
 }
@@ -793,11 +801,8 @@ vips__png_header_source( VipsSource *source, VipsImage *out,
 	Read *read;
 
 	if( !(read = read_new( source, out, TRUE, unlimited )) ||
-		png2vips_header( read, out ) ) {
-		vips_error( "png2vips", _( "unable to read source %s" ),
-			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+		png2vips_header( read, out ) ) 
 		return( -1 );
-	}
 
 	vips_source_minimise( source );
 
@@ -812,11 +817,8 @@ vips__png_read_source( VipsSource *source, VipsImage *out,
 
 	if( !(read = read_new( source, out, fail_on, unlimited )) ||
 		png2vips_image( read, out ) ||
-		vips_source_decode( source ) ) {
-		vips_error( "png2vips", _( "unable to read source %s" ),
-			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+		vips_source_decode( source ) )
 		return( -1 );
-	}
 
 	return( 0 );
 }
@@ -842,10 +844,6 @@ vips__png_isinterlaced_source( VipsSource *source )
 
 	return( interlace_type != PNG_INTERLACE_NONE );
 }
-
-#endif /*!defined(HAVE_SPNG)*/
-
-const char *vips__png_suffs[] = { ".png", NULL };
 
 /* What we track during a PNG write.
  */
@@ -1047,7 +1045,8 @@ write_vips( Write *write,
 		if( vips_image_pio_input( in ) )
 			return( -1 );
 	}
-	if( compress < 0 || compress > 9 ) {
+	if( compress < 0 || 
+		compress > 9 ) {
 		vips_error( "vips2png", 
 			"%s", _( "compress should be in [0,9]" ) );
 		return( -1 );
@@ -1085,6 +1084,10 @@ write_vips( Write *write,
 #endif /*HAVE_QUANTIZATION*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
+
+	/* libpng has a default soft limit of 1m pixels per axis.
+	 */
+	png_set_user_limits( write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD );
 
 	png_set_IHDR( write->pPng, write->pInfo, 
 		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type, 

@@ -20,6 +20,8 @@
  * 	- allow dpi and scale to both be set [le0daniel]
  * 21/4/21 kleisauke
  * 	- include GObject part from pdfload.c
+ * 28/1/22
+ * 	- add password
  */
 
 /*
@@ -122,6 +124,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsArrayDouble *background;
 
+	/* Decrypt with this.
+	 */
+	const char *password;
+
 	/* Poppler is not thread-safe, so we run inside a single-threaded
 	 * cache. On the plus side, this means we only need one @page pointer,
 	 * even though we change this during _generate().
@@ -182,7 +188,7 @@ vips_foreign_load_pdf_build( VipsObject *object )
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
 	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
-		vips_source_length( pdf->source ), NULL, NULL, &error )) ) { 
+		vips_source_length( pdf->source ), pdf->password, NULL, &error )) ) { 
 		vips_g_error( &error );
 		return( -1 ); 
 	}
@@ -555,6 +561,13 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_STRING( class, "password", 25, 
+		_( "Password" ), 
+		_( "Decrypt with this password" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPdf, password ),
+		NULL );
 
 }
 
