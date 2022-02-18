@@ -39,55 +39,59 @@ by [build-win64](https://github.com/jcupitt/build-win64). This is a
 containerised mingw build system: on any host, install Docker, 
 clone the project, and type `./build.sh 8.5`. The README has notes.
 
-## Building libvips from a source tarball
+## Building libvips from source
 
-If the packaged version is too old, you might need to build from source. 
+If the packaged version is too old, you can also build from source. 
 
-Download `vips-x.y.z.tar.gz` from the [Download area]({{
-site.github.releases_url }}), then:
+libvips uses the [Meson](https://mesonbuild.com) build system, version
+0.56 or later. Meson can use ninja, Visual Studio or XCode as a backend,
+so you'll also need one of them.
 
-	tar xf vips-x.y.z.tar.gz
-	cd vips-x.y.z
-	./configure
+libvips must have `build-essential`, `pkg-config`, `libglib2.0-dev`,
+`libexpat1-dev`. See the Dependencies section below for a full list of the
+libvips optional dependencies.
 
-Check the summary at the end of `configure` carefully.  libvips must have
-`build-essential`, `pkg-config`, `libglib2.0-dev`, `libexpat1-dev`.
+Download the sources from the [Download area]({{
+site.github.releases_url }}), then something like:
+
+	tar xf libvips-x.y.z.tar.gz
+	cd libvips-x.y.z
+    meson setup build-dir --prefix=/aaa/bbb/ccc
+    cd build-dir
+    ninja
+    ninja test
+    ninja install
+
+Check the output of meson setup carefully and make sure it found everything
+you wanted it to find. Add arguments to `meson setup` to change the build
+configuration.
+
+ * Add flags like `-Dnsgif=false` to turn options on and off, see
+   `meson_options.txt` for a list of all the build options libvips supports.
+
+ * Meson will do a debug build by default. Add `--buildtype=release` for a
+   release (optimised) build.
+
+ * You might need to add `--libdir=lib` on Debian if you don't want the arch
+   name in the library path.
+
+ * Add `--default-library=static` for a static build.
+
+ * Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
+
+ * You can have many `build-dir`, pick whatever names you like, for example
+   one for release and one for debug.
+
+ * On some platforms, you might need to run `ldconfig` after installing.
 
 You'll need the dev packages for the file format support you want. For basic
 jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
 and `libgsf-1-dev`.  See the **Dependencies** section below for a full list
 of the things that libvips can be configured to use.
 
-Once `configure` is looking OK, compile and install with the usual:
-
-	make
-	sudo make install
-	sudo ldconfig
-
-By default this will install files to `/usr/local`.
-
 We have detailed guides on the wiki for [building for
 Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
 [building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
-
-## Building libvips from git
-
-Checkout the latest sources with:
-
-	git clone git://github.com/jcupitt/libvips.git
-
-Building from git needs more packages, you'll need at least `gtk-doc` 
-and `gobject-introspection`, see the dependencies section below. 
-
-Then:
-
-	./autogen.sh
-	make
-	sudo make install
-
-And perhaps also:
-
-	sudo ldconfig
 
 ## Dependencies 
 
@@ -118,10 +122,11 @@ The IJG JPEG library. Use the `-turbo` version if you can.
 
 If available, libvips adds support for EXIF metadata in JPEG files.
 
-### giflib
+### cgif
 
-The standard gif loader. If this is not present, vips will try to load gifs
-via imagemagick instead.
+If available, libvips will save GIFs with
+[cgif](https://github.com/dloebl/cgif).  If this is not present, vips will
+try to save gifs via imagemagick instead.
 
 ### librsvg
 
@@ -158,13 +163,15 @@ If libvips finds this library, it uses it for fourier transforms.
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
 are available for transforming images with ICC profiles. 
 
-### libpng
+### libspng
 
-If present, libvips can load and save png files. 
+If present, libvips will load and save png files with
+[libspng](https://github.com/randy408/libspng). If not, it will use libpng.
 
 ### libimagequant
 
-If present, libvips can write 8-bit palette-ised PNGs.
+If present, libvips can write 8-bit palette-ised PNGs and GIFs. If not,
+libvips will look for (quantizr)[https://github.com/DarthSim/quantizr].
 
 ### ImageMagick, or optionally GraphicsMagick
 
@@ -179,10 +186,20 @@ If you are going to be using libvips with untrusted images, perhaps in a
 web server, for example, you should consider the security implications of
 enabling a package with such a large attack surface. 
 
-### pangoft2
+### pangocairo
 
 If available, libvips adds support for text rendering. You need the
-package pangoft2 in `pkg-config --list-all`.
+package `pangocairo` and `fontconfig` in `pkg-config --list-all`.
+
+### OpenJPEG
+
+If `libopenjp2` is available, libvips adds support for loading and saving
+JPEG2000 images.
+
+### libjxl
+
+If `libjxl` is available, libvips adds support for loading and saving
+JXL images.
 
 ### orc-0.4
 
