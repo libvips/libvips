@@ -471,6 +471,8 @@ vips_init( const char *argv0 )
 		vips_verbose();
 	if( g_getenv( "VIPS_PROFILE" ) )
 		vips_profile_set( TRUE );
+	if( g_getenv( "VIPS_BLOCK_UNTRUSTED" ) )
+		vips_block_untrusted_set( TRUE );
 	if( g_getenv( "VIPS_LEAK" ) )
 		vips_leak_set( TRUE );
 	if( g_getenv( "VIPS_TRACE" ) )
