@@ -471,8 +471,6 @@ vips_init( const char *argv0 )
 		vips_verbose();
 	if( g_getenv( "VIPS_PROFILE" ) )
 		vips_profile_set( TRUE );
-	if( g_getenv( "VIPS_BLOCK_UNTRUSTED" ) )
-		vips_block_untrusted_set( TRUE );
 	if( g_getenv( "VIPS_LEAK" ) )
 		vips_leak_set( TRUE );
 	if( g_getenv( "VIPS_TRACE" ) )
@@ -652,6 +650,11 @@ vips_init( const char *argv0 )
 	)
 		g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
+
+	/* Block any untrusted operations. This must come after plugin load.
+	 */
+	if( g_getenv( "VIPS_BLOCK_UNTRUSTED" ) )
+		vips_block_untrusted_set( TRUE );
 
 	/* Set a minimum stacksize, if we can.
 	 */
