@@ -138,7 +138,7 @@ jobs:
         run: cd build && ninja test
 
       - name: Install libvips
-        run: cd build && ninja install
+        run: cd build && sudo ninja install
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'
