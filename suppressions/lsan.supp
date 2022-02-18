@@ -3,3 +3,4 @@ leak:bash
 leak:libfontconfig.so
 leak:libIlmImf-2_3.so
 leak:libIlmThread-2_3.so
+leak:libx265.so
