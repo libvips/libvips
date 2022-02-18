@@ -144,7 +144,6 @@ void vips_concurrency_set( int concurrency );
 int vips_concurrency_get( void );
 
 void vips_operation_block_set( const char *name, gboolean state );
-void vips_operation_block_untrusted_set( gboolean state );
 
 #ifdef __cplusplus
 }

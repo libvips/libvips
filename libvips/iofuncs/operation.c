@@ -670,8 +670,8 @@ vips_operation_invalidate( VipsOperation *operation )
  * Return a new #VipsOperation with the specified nickname. Useful for
  * language bindings. 
  *
- * You'll need to set any arguments and build the operation before you can use it. See
- * vips_call() for a higher-level way to make new operations. 
+ * You'll need to set any arguments and build the operation before you can use 
+ * it. See vips_call() for a higher-level way to make new operations. 
  *
  * Returns: (transfer full): the new operation. 
  */
@@ -1452,8 +1452,8 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
  * @name: set block state at this point and below 
  * @state: the block state to set
  *
- * Set the block state on all operations in the libvips class hierarchy at @name and
- * below.
+ * Set the block state on all operations in the libvips class hierarchy at 
+ * @name and below.
  *
  * For example:
  *
@@ -1467,6 +1467,8 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
  * Use `vips -l` at the command-line to see the class hierarchy.
  *
  * This call does nothing if the named operation is not found.
+ *
+ * See also: vips_block_untrusted_set().
  */
 void
 vips_operation_block_set( const char *name, gboolean state )
@@ -1475,38 +1477,6 @@ vips_operation_block_set( const char *name, gboolean state )
 
 	if( (base = vips_type_find( "VipsOperation", name )) )
 		vips_class_map_all( base, 
-			(VipsClassMapFn) vips_operation_block_set_operation, &state );
-}
-
-static void *
-vips_operation_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
-{
-	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
-
-	if( class->flags & VIPS_OPERATION_UNTRUSTED )
-		vips_operation_block_set( VIPS_OBJECT_CLASS( class )->nickname, *state );
-
-	return( NULL );
-}
-
-/** 
- * vips_operation_block_untrusted_set:
- * @state: the block state to set
- *
- * Set the block state on all untrusted operations. 
- *
- * |[
- * vips_operation_block_untrusted( TRUE );
- * ]|
- *
- * Will block all untrusted operations from running.
- *
- * Use `vips -l` at the command-line to see the class hierarchy and which operations are
- * marked as untrusted.
- */
-void
-vips_operation_block_untrusted_set( gboolean state )
-{
-	vips_class_map_all( g_type_from_name( "VipsOperation" ),
-		(VipsClassMapFn) vips_operation_block_untrusted_set_operation, &state );
+			(VipsClassMapFn) vips_operation_block_set_operation, 
+			&state );
 }

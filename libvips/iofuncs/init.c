@@ -1315,3 +1315,40 @@ vips__get_sizeof_vipsobject( void )
 {
 	return( sizeof( VipsObject ) ); 
 }
+
+static void *
+vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
+{
+	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
+
+	if( class->flags & VIPS_OPERATION_UNTRUSTED )
+		vips_operation_block_set( VIPS_OBJECT_CLASS( class )->nickname,
+			*state );
+
+	return( NULL );
+}
+
+/** 
+ * vips_block_untrusted_set:
+ * @state: the block state to set
+ *
+ * Set the block state on all untrusted operations. 
+ *
+ * |[
+ * vips_block_untrusted_set( TRUE );
+ * ]|
+ *
+ * Will block all untrusted operations from running.
+ *
+ * Use `vips -l` at the command-line to see the class hierarchy and which 
+ * operations are marked as untrusted.
+ *
+ * Set the environment variable `VIPS_BLOCK_UNTRUSTED` to block all untrusted
+ * operations on vips_init().
+ */
+void
+vips_block_untrusted_set( gboolean state )
+{
+	vips_class_map_all( g_type_from_name( "VipsOperation" ),
+		(VipsClassMapFn) vips_block_untrusted_set_operation, &state );
+}

@@ -177,7 +177,9 @@ void vips_thread_shutdown( void );
 
 void vips_add_option_entries( GOptionGroup *option_group );
 
-extern void vips_leak_set( gboolean leak ); 
+void vips_leak_set( gboolean leak ); 
+
+void vips_block_untrusted_set( gboolean state );
 
 const char *vips_version_string( void );
 int vips_version( int flag );
