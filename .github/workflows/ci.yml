@@ -62,7 +62,7 @@ jobs:
         if: runner.os == 'Linux'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            meson ninja-build 
+            ninja-build 
             gtk-doc-tools gobject-introspection
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
@@ -73,6 +73,11 @@ jobs:
             libopenexr-dev libpango1.0-dev libgsf-1-dev
             libopenslide-dev libffi-dev libopenjp2-7-dev
             libimagequant-dev libcgif-dev
+
+      - name: Install recent meson 
+        if: runner.os == 'Linux'
+        run:
+          sudo -E pip3 install meson
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
