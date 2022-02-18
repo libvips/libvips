@@ -1224,7 +1224,7 @@ vips_image_class_init( VipsImageClass *class )
 	/**
 	 * VipsImage::preeval:
 	 * @image: the image to be calculated
-	 * @progress: #VipsProgress for this image
+	 * @progress: (type VipsProgress): #VipsProgress for this image
 	 *
 	 * The ::preeval signal is emitted once before computation of @image
 	 * starts. It's a good place to set up evaluation feedback.
@@ -1244,7 +1244,7 @@ vips_image_class_init( VipsImageClass *class )
 	/**
 	 * VipsImage::eval:
 	 * @image: the image being calculated
-	 * @progress: #VipsProgress for this image
+	 * @progress: (type VipsProgress): #VipsProgress for this image
 	 *
 	 * The ::eval signal is emitted once per work unit (typically a 128 x
 	 * 128 area of pixels) during image computation. 
@@ -1268,7 +1268,7 @@ vips_image_class_init( VipsImageClass *class )
 	/**
 	 * VipsImage::posteval:
 	 * @image: the image that was calculated
-	 * @progress: #VipsProgress for this image
+	 * @progress: (type VipsProgress): #VipsProgress for this image
 	 *
 	 * The ::posteval signal is emitted once at the end of the computation 
 	 * of @image. It's a good place to shut down evaluation feedback.
@@ -1288,7 +1288,7 @@ vips_image_class_init( VipsImageClass *class )
 	/**
 	 * VipsImage::written:
 	 * @image: the image that was calculated
-	 * @result: set to non-zero to indicate error
+	 * @result: (out) (type gint): set to non-zero to indicate error
 	 *
 	 * The ::written signal is emitted just after an image has been 
 	 * written to. It is
@@ -1398,7 +1398,7 @@ vips_image_invalidate_all_cb( VipsImage *image, void *a, void *b )
 }
 
 /**
- * vips_image_invalidate_all: (method)
+ * vips_image_invalidate_all:
  * @image: #VipsImage to invalidate
  *
  * Invalidate all pixel caches on @image and any downstream images, that
@@ -1438,7 +1438,7 @@ vips_image_minimise_all_cb( VipsImage *image, void *a, void *b )
 }
 
 /**
- * vips_image_minimise_all: (method)
+ * vips_image_minimise_all:
  * @image: #VipsImage to minimise
  *
  * Minimise memory use on this image and any upstream images, that is, images
@@ -1462,7 +1462,7 @@ vips_image_minimise_all( VipsImage *image )
 }
 
 /**
- * vips_image_is_sequential: (method)
+ * vips_image_is_sequential:
  * @image: #VipsImage to minimise
  *
  * TRUE if any of the images upstream from @image were opened in sequential
@@ -1599,7 +1599,7 @@ vips_image_posteval( VipsImage *image )
 }
 
 /**
- * vips_image_set_progress: (method)
+ * vips_image_set_progress:
  * @image: image to signal progress on
  * @progress: turn progress reporting on or off
  *
@@ -1622,7 +1622,7 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 }
 
 /**
- * vips_image_iskilled: (method)
+ * vips_image_iskilled:
  * @image: image to test
  *
  * If @image has been killed (see vips_image_set_kill()), set an error message,
@@ -1659,7 +1659,7 @@ vips_image_iskilled( VipsImage *image )
 }
 
 /**
- * vips_image_set_kill: (method)
+ * vips_image_set_kill:
  * @image: image to test
  * @kill: the kill state
  *
@@ -1751,7 +1751,7 @@ vips_image_new_mode( const char *filename, const char *mode )
 }
 
 /**
- * vips_image_new_memory: (constructor)
+ * vips_image_new_memory: (skip)
  *
  * vips_image_new_memory() creates a new #VipsImage which, when written to, will
  * create a memory image. 
@@ -2374,7 +2374,7 @@ vips_image_new_matrix_from_array( int width, int height,
 }
 
 /**
- * vips_image_matrix_from_array: (constructor)
+ * vips_image_matrix_from_array: (skip)
  * @width: image width
  * @height: image height
  * @array: (array length=size) (transfer none): array of elements
@@ -2468,7 +2468,7 @@ vips_image_new_from_image1( VipsImage *image, double c )
 }
 
 /**
- * vips_image_set_delete_on_close: (method)
+ * vips_image_set_delete_on_close:
  * @image: image to set
  * @delete_on_close: format of file
  *
@@ -2599,7 +2599,7 @@ vips_image_write_gen( VipsRegion *or,
 }
 
 /**
- * vips_image_write: (method)
+ * vips_image_write:
  * @image: image to write
  * @out: (out): write to this image
  *
@@ -2652,7 +2652,7 @@ vips_image_write( VipsImage *image, VipsImage *out )
 }
 
 /**
- * vips_image_write_to_file: (method)
+ * vips_image_write_to_file:
  * @image: image to write
  * @name: write to this file
  * @...: %NULL-terminated list of optional named arguments
@@ -2714,7 +2714,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 }
 
 /**
- * vips_image_write_to_buffer: (method)
+ * vips_image_write_to_buffer:
  * @in: image to write
  * @suffix: format to write 
  * @buf: (array length=size) (element-type guint8) (transfer full): return buffer start here
@@ -2806,7 +2806,7 @@ vips_image_write_to_buffer( VipsImage *in,
 }
 
 /**
- * vips_image_write_to_target: (method)
+ * vips_image_write_to_target:
  * @in: image to write
  * @suffix: format to write 
  * @target: target to write to
@@ -2851,7 +2851,7 @@ vips_image_write_to_target( VipsImage *in,
 }
 
 /**
- * vips_image_write_to_memory: (method)
+ * vips_image_write_to_memory:
  * @in: image to write
  * @size: return buffer length here
  *
@@ -2896,7 +2896,7 @@ vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 }
 
 /**
- * vips_image_decode: (method)
+ * vips_image_decode:
  * @in: image to decode
  * @out: (out): write to this image
  *
@@ -2932,7 +2932,7 @@ vips_image_decode( VipsImage *in, VipsImage **out )
 }
 
 /**
- * vips_image_decode_predict: (method)
+ * vips_image_decode_predict:
  * @in: image to decode
  * @bands: (out): predict bands here
  * @format: (out): predict format here
@@ -2971,7 +2971,7 @@ vips_image_decode_predict( VipsImage *in,
 }
 
 /**
- * vips_image_encode: (method)
+ * vips_image_encode:
  * @in: image to encode
  * @out: (out): write to this image
  * @coding: coding to apply
@@ -3003,7 +3003,7 @@ vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding )
 }
 
 /**
- * vips_image_isMSBfirst: (method)
+ * vips_image_isMSBfirst:
  * @image: image to test
  *
  * Return %TRUE if @image is in most-significant-
@@ -3020,7 +3020,7 @@ vips_image_isMSBfirst( VipsImage *image )
 }
 
 /**
- * vips_image_isfile: (method)
+ * vips_image_isfile:
  * @image: image to test
  *
  * Return %TRUE if @image represents a file on disc in some way. 
@@ -3048,7 +3048,7 @@ vips_image_isfile( VipsImage *image )
 }
 
 /**
- * vips_image_ispartial: (method)
+ * vips_image_ispartial:
  * @image: image to test
  *
  * Return %TRUE if @im represents a partial image (a delayed calculation).
@@ -3063,7 +3063,7 @@ vips_image_ispartial( VipsImage *image )
 }
 
 /**
- * vips_image_hasalpha: (method)
+ * vips_image_hasalpha:
  * @image: image to check
  *
  * Look at an image's interpretation and see if it has extra alpha bands. For
@@ -3110,7 +3110,7 @@ vips_image_hasalpha( VipsImage *image )
 }
 
 /**
- * vips_image_write_prepare: (method)
+ * vips_image_write_prepare:
  * @image: image to prepare
  *
  * Call this after setting header fields (width, height, and so on) to
@@ -3174,7 +3174,7 @@ vips_image_write_prepare( VipsImage *image )
 }
 
 /**
- * vips_image_write_line: (method)
+ * vips_image_write_line:
  * @image: image to write to
  * @ypos: vertical position of scan-line to write
  * @linebuffer: scanline of pixels
@@ -3310,7 +3310,7 @@ vips_image_rewind_output( VipsImage *image )
 }
 
 /** 
- * vips_image_copy_memory: (method)
+ * vips_image_copy_memory:
  * @image: image to copy to a memory buffer
  *
  * Make an image which is an area of memory. 
@@ -3363,7 +3363,7 @@ vips_image_copy_memory( VipsImage *image )
 }
 
 /**
- * vips_image_wio_input: (method)
+ * vips_image_wio_input:
  * @image: image to transform
  *
  * Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
@@ -3539,7 +3539,7 @@ vips__image_wio_output( VipsImage *image )
 }
  
 /**
- * vips_image_inplace: (method)
+ * vips_image_inplace:
  * @image: image to make read-write
  *
  * Gets @image ready for an in-place operation, such as vips_draw_circle().
@@ -3599,7 +3599,7 @@ vips_image_inplace( VipsImage *image )
 }
 
 /**
- * vips_image_pio_input: (method)
+ * vips_image_pio_input:
  * @image: image to check
  *
  * Check that an image is readable with vips_region_prepare() and friends. 
@@ -3675,7 +3675,7 @@ vips_image_pio_input( VipsImage *image )
 }
 
 /**
- * vips_image_pio_output: (method)
+ * vips_image_pio_output:
  * @image: image to check
  *
  * Check that an image is writeable with vips_image_generate(). If it isn't,

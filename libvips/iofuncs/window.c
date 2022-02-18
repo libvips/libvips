@@ -196,7 +196,7 @@ vips_getpagesize( void )
 
 		pagesize = si.dwAllocationGranularity;
 #else /*!G_OS_WIN32*/
-		pagesize = getpagesize();
+		pagesize = sysconf(_SC_PAGESIZE);
 #endif /*G_OS_WIN32*/
 
 #ifdef DEBUG_TOTAL

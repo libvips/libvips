@@ -2650,9 +2650,9 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	 */
 	if( (p = strrchr( dz->basename, '.' )) ) {
 		if( !vips_object_argument_isset( object, "container" ) ) {
-			if( strcasecmp( p + 1, "zip" ) == 0 )
+			if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 )
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
-			if( strcasecmp( p + 1, "szi" ) == 0 ) 
+			if( g_ascii_strcasecmp( p + 1, "szi" ) == 0 ) 
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI;
 		}
 

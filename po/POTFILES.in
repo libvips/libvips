@@ -47,7 +47,7 @@ libvips/include/vips/transform.h
 libvips/include/vips/type.h
 libvips/include/vips/util.h
 libvips/include/vips/vector.h
-libvips/include/vips/version.h
+libvips/include/vips/version.h.in
 libvips/include/vips/video.h
 libvips/include/vips/vips7compat.h
 libvips/include/vips/vips.h
