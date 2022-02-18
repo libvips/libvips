@@ -1250,7 +1250,7 @@ class TestForeign:
         assert(im.interpretation == rgb16.interpretation)
         assert(im.get("heif-bitdepth") == 12)
         # good grief, some kind of lossless
-        assert((im - rgb16).abs().max() < 3000)
+        assert((im - rgb16).abs().max() < 4500)
 
     @skip_if_no("heifsave")
     @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
@@ -1277,7 +1277,7 @@ class TestForeign:
         assert(im.interpretation == "rgb16")
         assert(im.get("heif-bitdepth") == 12)
         # good grief, some kind of lossless
-        assert((im - self.colour * 256).abs().max() < 3000)
+        assert((im - self.colour * 256).abs().max() < 4500)
 
     @skip_if_no("jp2kload")
     def test_jp2kload(self):
