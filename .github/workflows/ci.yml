@@ -76,7 +76,7 @@ jobs:
       - name: Install recent meson 
         if: runner.os == 'Linux'
         run:
-          pip3 install meson --verbose --verbose
+          sudo pip3 install meson
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
