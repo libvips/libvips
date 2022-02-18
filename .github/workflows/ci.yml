@@ -62,7 +62,7 @@ jobs:
         if: runner.os == 'Linux'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            meson ninja 
+            meson ninja-build 
             gtk-doc-tools gobject-introspection
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
