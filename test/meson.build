@@ -23,7 +23,7 @@ foreach script_test : script_tests
         workdir: meson.current_build_dir(),
         # Increase the timeout as running the tests with sanitizers
         # enabled could be slower than the default 30 seconds.
-        timeout: 60,
+        timeout: 120,
     )
 endforeach
 
