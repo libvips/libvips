@@ -4,6 +4,13 @@
 
 . ./variables.sh 
 
+exit_code=0
+$vips im_benchmarkn || exit_code=$?
+if [ $exit_code -ne 0 ]; then
+	echo "im_benchmark is not available, skipping test"
+	exit 0
+fi
+
 chain=1
 
 # im_benchmark needs a labq

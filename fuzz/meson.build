@@ -37,4 +37,7 @@ test(
     depends: [
         fuzz_execs,
     ],
+    # Increase the timeout as running the tests with sanitizers
+    # enabled could be slower than the default 30 seconds.
+    timeout: 60,
 )

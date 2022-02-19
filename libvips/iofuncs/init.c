@@ -962,7 +962,7 @@ static char *
 extract_prefix( const char *dir, const char *name )
 {
 	char edir[VIPS_PATH_MAX];
-	char vname[VIPS_PATH_MAX];
+	static char vname[VIPS_PATH_MAX];
 	int i;
 
 	g_info( "trying for dir = \"%s\", name = \"%s\"", dir, name );
@@ -1011,7 +1011,7 @@ extract_prefix( const char *dir, const char *name )
 
 	g_info( "found \"%s\"", vname );
 
-	return( vips_strdup( NULL, vname ) );
+	return( vname );
 }
 
 /* Search a path for a file ... we overwrite the PATH string passed in.

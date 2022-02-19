@@ -77,7 +77,7 @@ of the libvips optional dependencies.
 cd libvips-x.y.x
 meson setup build-dir --prefix=/aaa/bbb/ccc
 cd build-dir
-meson build
+meson compile
 meson test
 meson install
 ```
