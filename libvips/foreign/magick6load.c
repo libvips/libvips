@@ -116,6 +116,11 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	 */
 	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
+	/* *magick is fuzzed, but it's such a huge thing it's safer to
+	 * disable it.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
+
 	/* We need to be well to the back of the queue since vips's
 	 * dedicated loaders are usually preferable.
 	 */

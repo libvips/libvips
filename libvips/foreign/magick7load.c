@@ -341,6 +341,7 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -351,6 +352,15 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 	object_class->nickname = "magickload_base";
 	object_class->description = _( "load with ImageMagick7" );
 	object_class->build = vips_foreign_load_magick7_build;
+
+	/* Don't cache magickload: it can gobble up memory and disc. 
+	 */
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
+
+	/* *magick is fuzzed, but it's such a huge thing it's safer to
+	 * disable it.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* We need to be well to the back of the queue since vips's
 	 * dedicated loaders are usually preferable.
