@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Linux x64 (Ubuntu 20.04) - GCC 10"
+          - name: "Linux x64 (Ubuntu 20.04) - GCC 9"
             os: ubuntu-20.04
             build: { cc: gcc, cxx: g++, linker: ld }
             shell: bash
@@ -20,7 +20,7 @@ jobs:
             build: { cc: clang-13, cxx: clang++-13, linker: ld.lld-13, sanitize: true }
             shell: bash
 
-          - name: "macOS (11.5) - Xcode 12.5.1"
+          - name: "macOS (11.6) - Xcode 13.2.1"
             os: macos-11
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
