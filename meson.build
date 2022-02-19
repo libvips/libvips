@@ -118,6 +118,13 @@ if cc.has_function('pthread_setattr_default_np', args: '-D_GNU_SOURCE', prefix: 
     cfg_var.set('HAVE_PTHREAD_DEFAULT_NP', '1')
 endif
 
+# needed by rsvg and others
+zlib_dep = dependency('zlib', version: '>=0.4', required: get_option('zlib'))
+if zlib_dep.found()
+    libvips_deps += zlib_dep
+    cfg_var.set('HAVE_ZLIB', '1')
+endif
+
 gsf_dep = dependency('libgsf-1', version: '>=1.14.26', required: get_option('gsf'))
 if gsf_dep.found()
     libvips_deps += gsf_dep
@@ -320,15 +327,6 @@ if librsvg_dep.found() and cairo_dep.found()
     if librsvg_dep.version().version_compare('>=2.46')
         cfg_var.set('HAVE_RSVG_HANDLE_RENDER_DOCUMENT', '1')
     endif
-    zlib_dep = dependency('zlib', version: '>=0.4', required: get_option('zlib'))
-    if zlib_dep.found()
-        libvips_deps += zlib_dep
-        cfg_var.set('HAVE_ZLIB', '1')
-    endif
-endif
-
-if get_option('zlib').enabled() and not librsvg_dep.found()
-    message('zlib is only enabled alongside rsvg, disabling as rsvg is not enabled')
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))

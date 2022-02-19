@@ -20,7 +20,10 @@ script_tests = [
 foreach script_test : script_tests
     test(script_test,
         files('test_' + script_test + '.sh'),
-        workdir: meson.current_build_dir()
+        workdir: meson.current_build_dir(),
+        # Increase the timeout as running the tests with sanitizers
+        # enabled could be slower than the default 30 seconds.
+        timeout: 120,
     )
 endforeach
 
