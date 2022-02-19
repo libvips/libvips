@@ -118,6 +118,7 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -126,6 +127,10 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 
 	object_class->nickname = "openexrload";
 	object_class->description = _( "load an OpenEXR image" );
+
+	/* OpenEXR is fuzzed, but not by us.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips_foreign_openexr_suffs;
 

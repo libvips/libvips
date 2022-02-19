@@ -697,6 +697,7 @@ vips_foreign_load_jxl_class_init( VipsForeignLoadJxlClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_jxl_dispose;
@@ -706,6 +707,11 @@ vips_foreign_load_jxl_class_init( VipsForeignLoadJxlClass *class )
 	object_class->nickname = "jxlload_base";
 	object_class->description = _( "load JPEG-XL image" );
 	object_class->build = vips_foreign_load_jxl_build;
+
+	/* libjxl is fuzzed, but it's relatively young and bugs are
+	 * still being found in jan 2022. Revise this status soon.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags = vips_foreign_load_jxl_get_flags;
 	load_class->header = vips_foreign_load_jxl_header;

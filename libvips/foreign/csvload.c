@@ -470,6 +470,7 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_csv_dispose;
@@ -479,6 +480,11 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 	object_class->nickname = "csvload_base";
 	object_class->description = _( "load csv" );
 	object_class->build = vips_foreign_load_csv_build;
+
+	/* This is fuzzed, but you're unlikely to want to use it on 
+	 * untrusted files.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags = vips_foreign_load_csv_get_flags;
 	load_class->header = vips_foreign_load_csv_header;

@@ -736,6 +736,7 @@ vips_foreign_load_ppm_class_init( VipsForeignLoadPpmClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -746,6 +747,10 @@ vips_foreign_load_ppm_class_init( VipsForeignLoadPpmClass *class )
 	object_class->nickname = "ppmload_base";
 	object_class->description = _( "load ppm base class" );
 	object_class->build = vips_foreign_load_ppm_build;
+
+	/* You're unlikely to want to use this on untrusted files.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__ppm_suffs;
 
