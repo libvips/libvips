@@ -15,9 +15,9 @@ jobs:
             build: { cc: gcc, cxx: g++, linker: ld }
             shell: bash
 
-          - name: "Linux x64 (Ubuntu 20.04) - Clang 12 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 20.04) - Clang 13 with ASan and UBSan"
             os: ubuntu-20.04
-            build: { cc: clang-12, cxx: clang++-12, linker: ld.lld-12, sanitize: true }
+            build: { cc: clang-13, cxx: clang++-13, linker: ld.lld-13, sanitize: true }
             shell: bash
 
           - name: "macOS (11.5) - Xcode 12.5.1"
@@ -86,11 +86,13 @@ jobs:
           brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
           brew install --build-bottle lovell/cgif-packaging/cgif
 
-      - name: Install Clang 12
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-12'
-        run:
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            clang-12 libomp-12-dev lld-12 llvm-12
+      - name: Install Clang 13
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-13'
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -sc)/ llvm-toolchain-$(lsb_release -sc)-13 main"
+          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3 \
+            clang-13 libomp-13-dev lld-13 llvm-13
 
       - name: Prepare Ubuntu environment
         if: runner.os == 'Linux'
@@ -105,7 +107,7 @@ jobs:
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-12
+          LLVM_PREFIX: /usr/lib/llvm-13
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
@@ -128,10 +130,10 @@ jobs:
 
       - name: Configure libvips
         run:
-          meson setup build 
-            -Ddebug=true 
-            -Ddeprecated=false 
-            -Dintrospection=false 
+          meson setup build
+            -Ddebug=true
+            -Ddeprecated=false
+            -Dintrospection=false
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
