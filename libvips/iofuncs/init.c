@@ -418,30 +418,6 @@ vips_leak( void )
 	return( n_leaks );
 }
 
-/* This is not guaranteed to be called, and might be called after many parts
- * of libvips have been freed. Threads can be in an indeterminate state. 
- * You must be very careful to avoid segvs.
- */
-static void
-vips__atexit( void )
-{
-	/* In dev releases, always show leaks. But not more than once, it's
-	 * annoying.
-	 */
-#ifndef DEBUG_LEAK
-	if( vips__leak ) 
-#endif /*DEBUG_LEAK*/
-	{
-		static gboolean done = FALSE;
-
-		if( !done ) {
-			done = TRUE;
-			vips_cache_drop_all();
-			vips_leak();
-		}
-	}
-}
-
 /**
  * vips_init:
  * @argv0: name of application
@@ -658,10 +634,6 @@ vips_init( const char *argv0 )
 	gsf_init();
 #endif /*HAVE_GSF*/
 
-#ifdef HAVE_ATEXIT
-	atexit( vips__atexit );
-#endif /*HAVE_ATEXIT*/
-
 #ifdef DEBUG_LEAK
 	vips__image_pixels_quark = 
 		g_quark_from_static_string( "vips-image-pixels" ); 
@@ -755,13 +727,28 @@ vips_shutdown( void )
 
 	vips_cache_drop_all();
 
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
+	 */
+#ifndef DEBUG_LEAK
+	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		static gboolean done = FALSE;
+
+		if( !done ) {
+			done = TRUE;
+			vips_leak();
+		}
+	}
+
 #if ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
 
 	/* Mustn't run this more than once. Don't use the VIPS_GATE macro,
 	 * since we don't for gate start.
-	 */
+         */
 {
 	static gboolean done = FALSE;
 
@@ -975,7 +962,7 @@ static char *
 extract_prefix( const char *dir, const char *name )
 {
 	char edir[VIPS_PATH_MAX];
-	char vname[VIPS_PATH_MAX];
+	static char vname[VIPS_PATH_MAX];
 	int i;
 
 	g_info( "trying for dir = \"%s\", name = \"%s\"", dir, name );
@@ -1024,7 +1011,7 @@ extract_prefix( const char *dir, const char *name )
 
 	g_info( "found \"%s\"", vname );
 
-	return( vips_strdup( NULL, vname ) );
+	return( vname );
 }
 
 /* Search a path for a file ... we overwrite the PATH string passed in.

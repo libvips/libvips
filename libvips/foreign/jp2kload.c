@@ -4,6 +4,8 @@
  * 	- from heifload.c
  * 4/11/21
  * 	- add untiled load
+ * 17/1/22
+ * 	- left-justify bits for eg. 12-bit read
  */
 
 /*
@@ -268,14 +270,16 @@ vips_foreign_load_jp2k_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_PARTIAL );
 }
 
+/* The openjpeg info and warning callbacks are incredibly chatty.
+ */
 static void 
-vips_foreign_load_jp2k_error_callback( const char *msg, void *client )
+vips_foreign_load_jp2k_info_callback( const char *msg, void *client )
 {
-	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) client;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jp2k );
+#ifdef DEBUG
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( client );
 
-	vips_error( class->nickname, "%s", msg ); 
-	jp2k->n_errors += 1;
+	g_info( "%s: %s",  class->nickname, msg );
+#endif /*DEBUG*/
 }
 
 /* The openjpeg info and warning callbacks are incredibly chatty.
@@ -290,16 +294,18 @@ vips_foreign_load_jp2k_warning_callback( const char *msg, void *client )
 #endif /*DEBUG*/
 }
 
-/* The openjpeg info and warning callbacks are incredibly chatty.
- */
 static void 
-vips_foreign_load_jp2k_info_callback( const char *msg, void *client )
+vips_foreign_load_jp2k_error_callback( const char *msg, void *client )
 {
-#ifdef DEBUG
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( client );
+	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) client;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jp2k );
 
-	g_info( "%s: %s",  class->nickname, msg );
+#ifdef DEBUG
+	printf( "%s: %s",  class->nickname, msg );
 #endif /*DEBUG*/
+
+	vips_error( class->nickname, "%s", msg ); 
+	jp2k->n_errors += 1;
 }
 
 static void
@@ -342,7 +348,7 @@ vips_foreign_load_jp2k_print( VipsForeignLoadJp2k *jp2k )
 			"x0 = %u, y0 = %u\n", 
 			i, this->dx, this->dy, this->w, this->h, 
 			this->x0, this->y0 );
-		printf( "    prec = %x, bpp = %x, sgnd = %x, "
+		printf( "    prec = %d, bpp = %x, sgnd = %x, "
 			"resno_decoded = %u, factor = %u\n",
 			this->prec, this->bpp, this->sgnd, 
 			this->resno_decoded, this->factor );
@@ -729,6 +735,51 @@ vips_foreign_load_jp2k_ycc_to_rgb( opj_image_t *image, VipsImage *im,
 	}
 }
 
+#define LSHIFT( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < n_elements; x++ ) \
+		tq[x] = VIPS_LSHIFT_INT( tq[x], shift ); \
+}
+
+/* Left-justify to the libvips pixel bits. We need 12 bit precision images
+ * (for example) to fill 0-65535.
+ */
+static void
+vips_foreign_load_jp2k_ljust( opj_image_t *image, VipsImage *im, 
+	VipsPel *q, int length )
+{
+	int prec = image->comps[0].prec;
+	int shift = VIPS_IMAGE_SIZEOF_ELEMENT( im ) * 8 - prec;
+
+	if( shift != 0 ) {
+		int n_elements = length * im->Bands;
+
+		int x;
+
+		switch( im->BandFmt ) {
+		case VIPS_FORMAT_CHAR:
+		case VIPS_FORMAT_UCHAR:
+			LSHIFT( unsigned char );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+		case VIPS_FORMAT_USHORT:
+			LSHIFT( unsigned short );
+			break;
+
+		case VIPS_FORMAT_INT:
+		case VIPS_FORMAT_UINT:
+			LSHIFT( unsigned int );
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	}
+}
+
 /* Read a tile from an untiled jp2k file. 
  */
 static int
@@ -789,6 +840,9 @@ vips_foreign_load_jp2k_generate_untiled( VipsRegion *out,
 		if( jp2k->ycc_to_rgb )
 			vips_foreign_load_jp2k_ycc_to_rgb( jp2k->image, 
 				out->im, q, r->width );
+
+		vips_foreign_load_jp2k_ljust( jp2k->image, 
+			out->im, q, r->width );
 	}
 
 	/* jp2k files can't be truncated (they fail to open), so all we can
@@ -895,6 +949,9 @@ vips_foreign_load_jp2k_generate_tiled( VipsRegion *out,
 					vips_foreign_load_jp2k_ycc_to_rgb( 
 						jp2k->image, out->im, q, 
 						hit.width );
+
+				vips_foreign_load_jp2k_ljust( jp2k->image, 
+					out->im, q, hit.width );
 			}
 
 			x += hit.width;
@@ -1238,16 +1295,32 @@ vips_foreign_load_jp2k_source_init(
 }
 
 static void 
+info_callback( const char *msg G_GNUC_UNUSED, void *data G_GNUC_UNUSED ) 
+{
+	/* There's a lot of info as well ...
+	 */
+#ifdef DEBUG
+	printf( "info_callback: %s\n", msg );
+#endif /*DEBUG*/
+}
+
+static void 
 warning_callback( const char *msg G_GNUC_UNUSED, void *data G_GNUC_UNUSED ) 
 {
 	/* There are a lot of warnings ...
 	 */
+#ifdef DEBUG
+	printf( "warning_callback: %s\n", msg );
+#endif /*DEBUG*/
 }
 
 static void 
 error_callback( const char *msg, void *data ) 
 {
-	printf( "OpenJPEG: %s", msg ); 
+#ifdef DEBUG
+	printf( "error_callback: %s\n", msg );
+#endif /*DEBUG*/
+
 	vips_error( "OpenJPEG", "%s", msg ); 
 }
 
@@ -1298,14 +1371,16 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 	 */
 	ycc_to_rgb = ycc_to_rgb && out->Bands == 3;
 
-	decompress.codec = opj_create_decompress( OPJ_CODEC_J2K );
 	opj_set_default_decoder_parameters( &parameters );
-	opj_setup_decoder( decompress.codec, &parameters );
+	decompress.codec = opj_create_decompress( OPJ_CODEC_J2K );
+	opj_set_info_handler( decompress.codec, info_callback, NULL );
 	opj_set_warning_handler( decompress.codec, warning_callback, NULL );
 	opj_set_error_handler( decompress.codec, error_callback, NULL );
+	opj_setup_decoder( decompress.codec, &parameters );
 
 	decompress.source = vips_source_new_from_memory( from, from_length );
 	decompress.stream = vips_foreign_load_jp2k_stream( decompress.source );
+
 	if( !opj_read_header( decompress.stream, 
 		decompress.codec, &decompress.image ) ) {
 		vips_error( "jp2kload", "%s", ( "header error" ) );
@@ -1351,6 +1426,9 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 			vips_foreign_load_jp2k_ycc_to_rgb( 
 				decompress.image, out, q, 
 				width );
+
+		vips_foreign_load_jp2k_ljust( decompress.image, 
+			out, q, width );
 
 		q += line_size;
 	}

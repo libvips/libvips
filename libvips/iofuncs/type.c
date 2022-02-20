@@ -237,7 +237,7 @@ vips_area_unref( VipsArea *area )
 }
 
 /**
- * vips_area_new: (constructor)
+ * vips_area_new:
  * @free_fn: (scope async): @data will be freed with this function
  * @data: data will be freed with this function
  *
@@ -385,12 +385,12 @@ vips_area_new_array_object( int n )
 }
 
 /**
- * vips_area_get_data: (method)
+ * vips_area_get_data:
  * @area: #VipsArea to fetch from
- * @length: (optional): optionally return length in bytes here
- * @n: (optional): optionally return number of elements here
- * @type: (optional): optionally return element type here
- * @sizeof_type: (optional): optionally return sizeof() element type here
+ * @length: (out) (optional): optionally return length in bytes here
+ * @n: (out) (optional): optionally return number of elements here
+ * @type: (out) (optional): optionally return element type here
+ * @sizeof_type: (out) (optional): optionally return sizeof() element type here
  *
  * Return the data pointer plus optionally the length in bytes of an area, 
  * the number of elements, the %GType of each element and the sizeof() each
@@ -564,7 +564,7 @@ transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )
  *
  * See also: vips_area_unref().
  *
- * Returns: (transfer full): the new #VipsRefString, or NULL on error.
+ * Returns: (transfer full) (nullable): the new #VipsRefString, or NULL on error.
  */
 VipsRefString *
 vips_ref_string_new( const char *str )
@@ -586,7 +586,7 @@ vips_ref_string_new( const char *str )
 /**
  * vips_ref_string_get:
  * @refstr: the #VipsRefString to fetch from
- * @length: (allow-none): return length here, optionally
+ * @length: (out) (optional): return length here, optionally
  *
  * Get a pointer to the private string inside a refstr. Handy for language
  * bindings. 
@@ -632,7 +632,7 @@ vips_ref_string_get_type( void )
  * @length: number of bytes in @data
  *
  * Like vips_area_new(), but track a length as well. The returned #VipsBlob
- * takes ownership of @data and will free it with @free_fn. Pass NULL for
+ * takes ownership of @data and will free it with @free_fn. Pass %NULL for
  * @free_fn to not transfer ownership.
  *
  * An area of mem with a free func and a length (some sort of binary object,
@@ -700,7 +700,7 @@ vips_blob_get( VipsBlob *blob, size_t *length )
 
 /* vips_blob_set:
  * @blob: #VipsBlob to set
- * @free_fn: (scope async) (allow-none): @data will be freed with this function
+ * @free_fn: (scope async) (nullable): @data will be freed with this function
  * @data: (array length=length) (element-type guint8) (transfer full): data to store
  * @length: number of bytes in @data
  *
@@ -1405,7 +1405,7 @@ vips_array_image_empty( void )
 }
 
 /**
- * vips_array_image_append: (method)
+ * vips_array_image_append:
  * @array: (transfer none): append to this
  * @image: add this
  *
@@ -1445,7 +1445,7 @@ vips_array_image_append( VipsArrayImage *array, VipsImage *image )
 }
 
 /**
- * vips_array_image_get: (method)
+ * vips_array_image_get:
  * @array: the #VipsArrayImage to fetch from
  * @n: length of array
  *
@@ -1509,7 +1509,7 @@ vips_array_image_get_type( void )
 
 /**
  * vips_value_set_area:
- * @value: (out): set this value
+ * @value: set this value
  * @free_fn: (scope async): data will be freed with this function
  * @data: set @value to track this pointer
  *
@@ -1529,7 +1529,7 @@ vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data )
 /**
  * vips_value_get_area:
  * @value: get from this value
- * @length: (allow-none): optionally return length here
+ * @length: (out) (optional): optionally return length here
  *
  * Get the pointer from an area. Don't touch count (area is static).
  *
@@ -1605,7 +1605,7 @@ vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
 /** 
  * vips_value_get_ref_string:
  * @value: %GValue to get from
- * @length: (allow-none): return length here, optionally
+ * @length: (out) (optional): return length here, optionally
  *
  * Get the C string held internally by the %GValue.
  *
@@ -1674,7 +1674,7 @@ vips_value_set_blob( GValue *value,
 
 /** 
  * vips_value_set_blob_free:
- * @value: (out): GValue to set
+ * @value: GValue to set
  * @data: pointer to area of memory
  * @length: length of memory area
  *
@@ -1701,7 +1701,7 @@ vips_value_set_blob_free( GValue *value, void *data, size_t length )
 /** 
  * vips_value_get_blob:
  * @value: GValue to set
- * @length: (allow-none): optionally return length of memory area
+ * @length: (out) (optional): optionally return length of memory area
  *
  * Returns the data pointer from a blob. Optionally returns the length too.
  *
@@ -1744,9 +1744,9 @@ vips_value_set_array( GValue *value, int n, GType type, size_t sizeof_type )
 /** 
  * vips_value_get_array:
  * @value: %GValue to get from
- * @n: (allow-none): return the number of elements here, optionally
- * @type: (allow-none): return the type of each element here, optionally
- * @sizeof_type: (allow-none): return the sizeof each element here, optionally
+ * @n: (out) (optional): return the number of elements here, optionally
+ * @type: (out) (optional): return the type of each element here, optionally
+ * @sizeof_type: (out) (optional): return the sizeof each element here, optionally
  *
  * Return the pointer to the array held by @value.
  * Optionally return the other properties of the array in @n, @type,
@@ -1781,14 +1781,14 @@ vips_value_get_array( const GValue *value,
 /** 
  * vips_value_get_array_int:
  * @value: %GValue to get from
- * @n: (allow-none): return the number of elements here, optionally
+ * @n: (out) (optional): return the number of elements here, optionally
  *
  * Return the start of the array of ints held by @value.
  * optionally return the number of elements in @n.
  *
  * See also: vips_array_int_new().
  *
- * Returns: (transfer none): The array address.
+ * Returns: (transfer none) (array length=n): The array address.
  */
 int *
 vips_value_get_array_int( const GValue *value, int *n )
@@ -1798,7 +1798,7 @@ vips_value_get_array_int( const GValue *value, int *n )
 
 /** 
  * vips_value_set_array_int:
- * @value: (out): %GValue to get from
+ * @value: %GValue to get from
  * @array: (array length=n) (allow-none): array of ints
  * @n: the number of elements 
  *
@@ -1822,14 +1822,14 @@ vips_value_set_array_int( GValue *value, const int *array, int n )
 /** 
  * vips_value_get_array_double:
  * @value: %GValue to get from
- * @n: (allow-none): return the number of elements here, optionally
+ * @n: (out) (optional): return the number of elements here, optionally
  *
  * Return the start of the array of doubles held by @value.
  * optionally return the number of elements in @n.
  *
  * See also: vips_array_double_new().
  *
- * Returns: (transfer none): The array address.
+ * Returns: (transfer none) (array length=n): The array address.
  */
 double *
 vips_value_get_array_double( const GValue *value, int *n )
@@ -1839,7 +1839,7 @@ vips_value_get_array_double( const GValue *value, int *n )
 
 /** 
  * vips_value_set_array_double:
- * @value: (out): %GValue to get from
+ * @value: %GValue to get from
  * @array: (array length=n) (allow-none): array of doubles
  * @n: the number of elements 
  *
@@ -1863,14 +1863,14 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 /** 
  * vips_value_get_array_image:
  * @value: %GValue to get from
- * @n: (allow-none): return the number of elements here, optionally
+ * @n: (out) (optional): return the number of elements here, optionally
  *
  * Return the start of the array of images held by @value.
  * optionally return the number of elements in @n.
  *
  * See also: vips_value_set_array_image().
  *
- * Returns: (transfer none): The array address.
+ * Returns: (transfer none) (array length=n): The array address.
  */
 VipsImage **
 vips_value_get_array_image( const GValue *value, int *n )
@@ -1880,7 +1880,7 @@ vips_value_get_array_image( const GValue *value, int *n )
 
 /** 
  * vips_value_set_array_image:
- * @value: (out): %GValue to get from
+ * @value: %GValue to get from
  * @n: the number of elements 
  *
  * Set @value to hold an array of images. Pass in the array length in @n. 
@@ -1901,14 +1901,14 @@ vips_value_set_array_image( GValue *value, int n )
 /** 
  * vips_value_get_array_object: (skip)
  * @value: %GValue to get from
- * @n: (allow-none): return the number of elements here, optionally
+ * @n: (out) (optional): return the number of elements here, optionally
  *
  * Return the start of the array of %GObject held by @value.
  * Optionally return the number of elements in @n.
  *
  * See also: vips_area_new_array_object().
  *
- * Returns: (transfer none): The array address.
+ * Returns: (transfer none) (array length=n): The array address.
  */
 GObject **
 vips_value_get_array_object( const GValue *value, int *n )

@@ -244,7 +244,7 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 	Source *src = (Source *) cinfo->src;
 
 	size_t read;
-	
+
 	if( (read = vips_source_read( src->source, 
 		src->buf, SOURCE_BUFFER_SIZE )) > 0 ) {
 		src->pub.next_input_byte = src->buf;
@@ -861,6 +861,11 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	if( read_jpeg_header( jpeg, t[0] ) )
 		return( -1 );
 
+	/* Switch to pixel decode.
+	 */
+	if( vips_source_decode( jpeg->source ) )
+		return( -1 );
+
 	jpeg_start_decompress( cinfo );
 
 #ifdef DEBUG
@@ -967,10 +972,6 @@ vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 
 	if( header_only )
 		vips_source_minimise( source );
-	else {
-		if( vips_source_decode( source ) )
-			return( -1 );
-	}
 
 	return( 0 );
 }

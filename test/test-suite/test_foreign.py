@@ -1238,6 +1238,47 @@ class TestForeign:
             y = pyvips.Image.new_from_buffer(buf, "")
             assert y.get("exif-ifd0-XPComment").startswith("banana")
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_heicsave_16_to_12(self):
+        rgb16 = self.colour.colourspace("rgb16")
+        data = rgb16.heifsave_buffer(lossless=True)
+        im = pyvips.Image.heifload_buffer(data)
+
+        assert(im.width == rgb16.width)
+        assert(im.format == rgb16.format)
+        assert(im.interpretation == rgb16.interpretation)
+        assert(im.get("heif-bitdepth") == 12)
+        # good grief, some kind of lossless
+        assert((im - rgb16).abs().max() < 4500)
+
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_heicsave_16_to_8(self):
+        rgb16 = self.colour.colourspace("rgb16")
+        data = rgb16.heifsave_buffer(lossless=True, bitdepth=8)
+        im = pyvips.Image.heifload_buffer(data)
+
+        assert(im.width == rgb16.width)
+        assert(im.format == "uchar")
+        assert(im.interpretation == "srgb")
+        assert(im.get("heif-bitdepth") == 8)
+        # good grief, some kind of lossless
+        assert((im - rgb16 / 256).abs().max() < 80)
+
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_heicsave_8_to_16(self):
+        data = self.colour.heifsave_buffer(lossless=True, bitdepth=12)
+        im = pyvips.Image.heifload_buffer(data)
+
+        assert(im.width == self.colour.width)
+        assert(im.format == "ushort")
+        assert(im.interpretation == "rgb16")
+        assert(im.get("heif-bitdepth") == 12)
+        # good grief, some kind of lossless
+        assert((im - self.colour * 256).abs().max() < 4500)
+
     @skip_if_no("jp2kload")
     def test_jp2kload(self):
         def jp2k_valid(im):

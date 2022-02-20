@@ -75,6 +75,10 @@ struct _VipsImage;
 typedef struct _VipsImage VipsImage;
 struct _VipsRegion; 
 typedef struct _VipsRegion VipsRegion;
+struct _VipsSource; 
+typedef struct _VipsSource VipsSource;
+struct _VipsTarget; 
+typedef struct _VipsTarget VipsTarget;
 
 #ifdef __cplusplus
 }

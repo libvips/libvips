@@ -70,7 +70,7 @@
  */
 
 /**
- * vips_composite: (method)
+ * vips_composite:
  * @in: (array length=n) (transfer none): array of input images
  * @out: (out): output image
  * @n: number of input images

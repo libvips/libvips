@@ -22,6 +22,8 @@
  * 	- block broken thumbnails, if we can
  * 14/2/21 kleisauke
  * 	- move GObject part to heif2vips.c
+ * 22/12/21
+ * 	- add >8 bit support
  */
 
 /*
@@ -158,6 +160,10 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	int page_width;
 	int page_height;
+
+	/* Eg. 8 or 12, typically.
+	 */
+	int bits_per_pixel;
 
 	/* The page number currently in @handle. 
 	 */
@@ -453,6 +459,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	int n_metadata;
 	struct heif_error error;
 	VipsForeignHeifCompression compression;
+	VipsInterpretation interpretation;
+	VipsBandFormat format;
 
 	/* We take the metadata from the non-thumbnail first page. HEIC 
 	 * thumbnails don't have metadata.
@@ -462,7 +470,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 	/* Verify dimensions
 	 */
-	if ( heif->page_width < 1 || heif->page_height < 1 ) {
+	if( heif->page_width < 1 || 
+		heif->page_height < 1 ) {
 		vips_error( "heifload", "%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
@@ -473,6 +482,11 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		heif->has_alpha );
 #endif /*DEBUG*/
 	bands = heif->has_alpha ? 4 : 3;
+
+#ifdef DEBUG
+	printf( "heif_image_handle_get_luma_bits_per_pixel() = %d\n", 
+		heif_image_handle_get_luma_bits_per_pixel( heif->handle ) );
+#endif /*DEBUG*/
 
 	/* FIXME .. IPTC as well?
 	 */
@@ -637,6 +651,17 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
 			compression ) );
 
+	vips_image_set_int( out, "heif-bitdepth", heif->bits_per_pixel );
+
+	if( heif->bits_per_pixel > 8 ) {
+		interpretation = VIPS_INTERPRETATION_RGB16;
+		format = VIPS_FORMAT_USHORT;
+	}
+	else {
+		interpretation = VIPS_INTERPRETATION_sRGB;
+		format = VIPS_FORMAT_UCHAR;
+	}
+
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps. 
 	 */
@@ -644,7 +669,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		return( -1 );
 	vips_image_init_fields( out,
 		heif->page_width, heif->page_height * heif->n, bands, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
+		format, VIPS_CODING_NONE, interpretation, 
 		1.0, 1.0 );
 
 	VIPS_SETSTR( load->out->filename, 
@@ -733,6 +758,10 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 				heif_image_handle_get_width( thumb_handle ) );
 			printf( "    height = %d\n", 
 				heif_image_handle_get_height( thumb_handle ) );
+			printf( "    bits_per_pixel = %d\n", 
+				heif_image_handle_get_luma_bits_per_pixel( 
+					thumb_handle ) );
+
 		}
 	}
 #endif /*DEBUG*/
@@ -744,6 +773,14 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		return( -1 );
 	heif->page_width = heif_image_handle_get_width( heif->handle );
 	heif->page_height = heif_image_handle_get_height( heif->handle );
+	heif->bits_per_pixel = 
+		heif_image_handle_get_luma_bits_per_pixel( heif->handle );
+	if( heif->bits_per_pixel < 0 ) {
+		vips_error( class->nickname, 
+			"%s", _( "undefined bits per pixel" ) ); 
+		return( -1 ); 
+	}
+
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
 		if( vips_foreign_load_heif_set_page( heif, 
 			i, heif->thumbnail ) )
@@ -751,7 +788,10 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		if( heif_image_handle_get_width( heif->handle ) 
 				!= heif->page_width ||
 			heif_image_handle_get_height( heif->handle ) 
-				!= heif->page_height ) {
+				!= heif->page_height ||
+			heif_image_handle_get_luma_bits_per_pixel( 
+				heif->handle ) 
+				!= heif->bits_per_pixel ) {
 			vips_error( class->nickname, "%s", 
 				_( "not all pages are the same size" ) ); 
 			return( -1 ); 
@@ -761,6 +801,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 #ifdef DEBUG
 	printf( "page_width = %d\n", heif->page_width );
 	printf( "page_height = %d\n", heif->page_height );
+	printf( "bits_per_pixel = %d\n", heif->bits_per_pixel );
 
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
@@ -771,6 +812,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 			heif_image_handle_get_width( heif->handle ) );
 		printf( "    height = %d\n", 
 			heif_image_handle_get_height( heif->handle ) );
+		printf( "    bits_per_pixel = %d\n", 
+			heif_image_handle_get_luma_bits_per_pixel( heif->handle ) );
 		printf( "    has_depth = %d\n", 
 			heif_image_handle_has_depth_image( heif->handle ) );
 		printf( "    has_alpha = %d\n", 
@@ -838,6 +881,25 @@ vips__heif_image_print( struct heif_image *img )
 }
 #endif /*DEBUG*/
 
+/* Pick a chroma format. Shared with heifsave.
+ */
+int
+vips__heif_chroma( int bits_per_pixel, gboolean has_alpha )
+{
+	if( bits_per_pixel == 8 ) {
+		if( has_alpha )
+			return( heif_chroma_interleaved_RGBA );
+		else
+			return( heif_chroma_interleaved_RGB );
+	}
+	else {
+		if( has_alpha )
+			return( heif_chroma_interleaved_RRGGBBAA_BE );
+		else
+			return( heif_chroma_interleaved_RRGGBB_BE );
+	}
+}
+
 static int
 vips_foreign_load_heif_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -861,18 +923,14 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	if( !heif->img ) {
 		struct heif_error error;
 		struct heif_decoding_options *options;
-		enum heif_chroma chroma = heif->has_alpha ? 
-			heif_chroma_interleaved_RGBA :
-			heif_chroma_interleaved_RGB;
+		enum heif_chroma chroma = 
+			vips__heif_chroma( heif->bits_per_pixel, 
+				heif->has_alpha );
 
 		options = heif_decoding_options_alloc();
-#ifdef HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT
-		/* VIPS_FORMAT_UCHAR is assumed so downsample HDR to 8bpc
-		 */
-		options->convert_hdr_to_8bit = TRUE;
-#endif /*HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT*/
 		error = heif_decode_image( heif->handle, &heif->img, 
-			heif_colorspace_RGB, chroma, 
+			heif_colorspace_RGB, 
+			chroma, 
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
@@ -913,6 +971,26 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
 		heif->data + heif->stride * line, 
 		VIPS_IMAGE_SIZEOF_LINE( or->im ) );
+
+	/* We may need to swap bytes and shift to fill 16 bits.
+	 */
+	if( heif->bits_per_pixel > 8 ) {
+		int shift = 16 - heif->bits_per_pixel;
+		int ne = VIPS_REGION_N_ELEMENTS( or );
+
+		int i;
+		VipsPel *p;
+
+		p = VIPS_REGION_ADDR( or, 0, r->top );
+		for( i = 0; i < ne; i++ ) {
+			/* We've asked for big endian, we must write native.
+			 */
+			guint16 v = ((p[0] << 8) | p[1]) << shift;
+
+			*((guint16 *) p) = v;
+			p += 2;
+		}
+	}
 
 	return( 0 );
 }

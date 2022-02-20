@@ -8,6 +8,8 @@
  * 	- small celanups
  * 17/8/13
  * 	- redo as a class
+ * 28/1/22 travisbell 
+ * 	- better arg checking
  */
 
 /*
@@ -57,8 +59,6 @@ struct _VipsHistFindNDim;
 typedef struct {
 	struct _VipsHistFindNDim *ndim;
 
-	int bins;
-	int max_val;
 	unsigned int ***data;		
 } Histogram;
 
@@ -68,6 +68,10 @@ typedef struct _VipsHistFindNDim {
 	/* Number of bins on each axis.
 	 */
 	int bins;
+
+	/* Max pixel value for this format.
+	 */
+	int max_val;
 
 	/* Main image histogram. Subhists accumulate to this.
 	 */
@@ -89,7 +93,6 @@ static Histogram *
 histogram_new( VipsHistFindNDim *ndim )
 {
 	VipsImage *in = VIPS_STATISTIC( ndim )->ready;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( ndim );
 	int bins = ndim->bins;
 
 	/* How many dimensions do we need to allocate?
@@ -104,14 +107,6 @@ histogram_new( VipsHistFindNDim *ndim )
 		return( NULL );
 
 	hist->ndim = ndim;
-	hist->bins = bins;
-	hist->max_val = in->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536;
-	if( bins < 1 || 
-		bins > hist->max_val ) {
-		vips_error( class->nickname, 
-			_( "bins out of range [1,%d]" ), hist->max_val );
-		return( NULL );
-	}
 
 	if( !(hist->data = VIPS_ARRAY( ndim, bins, unsigned int ** )) )
 		return( NULL );
@@ -146,6 +141,25 @@ vips_hist_find_ndim_build( VipsObject *object )
 	g_object_set( object, 
 		"out", vips_image_new(),
 		NULL );
+
+	if( statistic->in ) {
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( ndim );
+
+		if( statistic->in->Bands > 3 ) {
+			vips_error( class->nickname, 
+				"%s", _( "image is not 1 - 3 bands" ) );
+			return( -1 );
+		}
+
+		ndim->max_val = 
+			statistic->in->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536;
+		if( ndim->bins < 1 || 
+			ndim->bins > ndim->max_val ) {
+			vips_error( class->nickname, 
+				_( "bins out of range [1,%d]" ), ndim->max_val );
+			return( -1 );
+		}
+	}
 
 	/* main hist made on first thread start.
 	 */
@@ -204,9 +218,9 @@ vips_hist_find_ndim_stop( VipsStatistic *statistic, void *seq )
 
 	int i, j, k;
 
-	for( i = 0; i < hist->bins; i++ )
-		for( j = 0; j < hist->bins; j++ )
-			for( k = 0; k < hist->bins; k++ )
+	for( i = 0; i < ndim->bins; i++ )
+		for( j = 0; j < ndim->bins; j++ )
+			for( k = 0; k < ndim->bins; k++ )
 				if( hist->data[i] && hist->data[i][j] ) {
 					hist->data[i][j][k] += 
 						sub_hist->data[i][j][k];
@@ -236,9 +250,10 @@ vips_hist_find_ndim_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	Histogram *hist = (Histogram *) seq;
+	VipsHistFindNDim *ndim = (VipsHistFindNDim *) statistic;
 	VipsImage *im = statistic->ready;
 	int nb = im->Bands;
-	double scale = (double) (hist->max_val + 1) / hist->bins;
+	double scale = (double) (ndim->max_val + 1) / ndim->bins;
 	int i, j, k; 
 	int index[3];
 

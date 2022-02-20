@@ -211,7 +211,18 @@ vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B )
  */
 #define SCALE (VIPS_D65_Y0)
 
-/* scRGB to XYZ. 
+/**
+ * vips_col_scRGB2XYZ:
+ * @R: Input scRGB value
+ * @G: Input scRGB value
+ * @B: Input scRGB value
+ * @X: (out): Return XYZ colour
+ * @Y: (out): Return XYZ colour
+ * @Z: (out): Return XYZ colour
+ *
+ * Turn scRGB into XYZ.
+ *
+ * See also: vips_scRGB2XYZ().
  */
 int
 vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
@@ -223,7 +234,18 @@ vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
 	return( 0 );
 }
 
-/* Turn XYZ into scRGB. 
+/**
+ * vips_col_XYZ2scRGB:
+ * @X: Input XYZ value
+ * @Y: Input XYZ value
+ * @Z: Input XYZ value
+ * @R: (out): Return scRGB colour
+ * @G: (out): Return scRGB colour
+ * @B: (out): Return scRGB colour
+ *
+ * Turn XYZ into scRGB.
+ *
+ * See also: vips_XYZ2scRGB().
  */
 int
 vips_col_XYZ2scRGB( float X, float Y, float Z, float *R, float *G, float *B ) 
