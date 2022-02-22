@@ -2024,7 +2024,7 @@ vips__get_iso8601( void )
 {
 	char *date;
 
-#ifdef HAVE_DATE_TIME_FORMAT_ISO8601
+#if GLIB_CHECK_VERSION( 2, 62, 0 )
 {
 	GDateTime *now;
 
@@ -2032,14 +2032,14 @@ vips__get_iso8601( void )
 	date = g_date_time_format_iso8601( now );
 	g_date_time_unref( now );
 }
-#else /*!HAVE_DATE_TIME_FORMAT_ISO8601*/
+#else /*!GLIB_CHECK_VERSION( 2, 62, 0 )*/
 {
 	GTimeVal now;
 
 	g_get_current_time( &now );
 	date = g_time_val_to_iso8601( &now ); 
 }
-#endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
+#endif /*GLIB_CHECK_VERSION( 2, 62, 0 )*/
 
 	return( date );
 }

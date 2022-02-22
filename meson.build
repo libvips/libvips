@@ -36,13 +36,13 @@ add_project_link_arguments(
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
-glib_dep = dependency('glib-2.0')
+glib_dep = dependency('glib-2.0', version: '>=2.40')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')
-gmodule_dep = dependency('gmodule-no-export-2.0')
+gmodule_dep = dependency('gmodule-no-export-2.0', required: get_option('modules'))
 expat_dep = dependency('expat')
 thread_dep = dependency('threads')
-m_dep = cc.find_library('m', required : false)
+m_dep = cc.find_library('m', required: false)
 
 libvips_deps = [
     glib_dep,
@@ -56,8 +56,9 @@ libvips_deps = [
 
 prefix_dir = get_option('prefix')
 lib_dir = prefix_dir / get_option('libdir')
-if gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') != 'false'
-    modules_enabled = get_option('modules').enabled() or get_option('modules').auto()
+if gmodule_dep.found() and gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') == 'true'
+    # Disable modules by default when building static libraries
+    modules_enabled = get_option('modules').enabled() or get_option('default_library') == 'shared'
 elif get_option('modules').enabled()
     error('GModule is not supported on your system, please reconfigure with -Dmodules=disabled')
 else
@@ -68,13 +69,6 @@ module_dir = lib_dir / 'vips-modules-@0@.@1@'.format(version_major, version_mino
 
 cfg_var = configuration_data()
 cfg_var.set_quoted('G_LOG_DOMAIN', 'VIPS')
-
-if (glib_dep.version().version_compare('>=2.48'))
-    cfg_var.set('HAVE_CHECKED_MUL', '1')
-endif
-if (glib_dep.version().version_compare('>=2.62'))
-    cfg_var.set('HAVE_DATE_TIME_FORMAT_ISO8601', '1')
-endif
 
 if modules_enabled
     cfg_var.set('ENABLE_MODULES', '1')
@@ -107,7 +101,7 @@ if cpp.compiles(vector_arithmetic_check, name: 'Has vector arithmetic', dependen
     endif
 endif
 
-func_names = [ 'getcwd', 'gettimeofday', 'getwd', 'memset', 'munmap', 'putenv', 'realpath', 'strcasecmp', 'strchr', 'strcspn', 'strdup', 'strerror', 'strrchr', 'strspn', 'vsnprintf', 'realpath', 'mkstemp', 'mktemp', 'random', 'rand', 'sysconf', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
+func_names = [ 'vsnprintf', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
 foreach func_name : func_names
     if cc.has_function(func_name, dependencies: m_dep)
         cfg_var.set('HAVE_' + func_name.to_upper(), '1')
@@ -148,7 +142,7 @@ if not magick_dep.found()
     magick_dep = dependency('ImageMagick', required: get_option('magick'))
 endif
 if not get_option('magick').disabled() and magick_dep.found()
-    if get_option('magick-module') and modules_enabled
+    if modules_enabled and not get_option('magick-module').disabled()
         cfg_var.set('MAGICK_MODULE', '1')
     else
         libvips_deps += magick_dep
@@ -159,12 +153,12 @@ if not get_option('magick').disabled() and magick_dep.found()
         # come here for imagemagick6, and graphicsmagick1.x, which also uses 
         # the im6 API
         cfg_var.set('HAVE_MAGICK6', '1')
-        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_NUMBER_SCENES', '1')
         endif
         func_names = [ 'InheritException', 'AcquireExceptionInfo', 'SetImageProperty', 'SetImageExtent', 'AcquireImage', 'GetVirtualPixels', 'ResetImageProfileIterator', 'ResetImageAttributeIterator', 'ResetImagePropertyIterator', 'MagickCoreGenesis', 'SetImageOption', 'BlobToStringInfo', 'OptimizePlusImageLayers', 'OptimizeImageTransparency' ]
         foreach func_name : func_names
-            if cc.has_function(func_name, prefix : '#include <magick/api.h>', dependencies: magick_dep)
+            if cc.has_function(func_name, prefix: '#include <magick/api.h>', dependencies: magick_dep)
                 cfg_var.set('HAVE_' + func_name.to_upper(), '1')
             endif
         endforeach
@@ -185,10 +179,10 @@ if not get_option('magick').disabled() and magick_dep.found()
     endif
     if 'save' in get_option('magick-features')
         cfg_var.set('ENABLE_MAGICKSAVE', '1')
-        if cc.has_function('ImportImagePixels', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImportImagePixels', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_IMPORTIMAGEPIXELS', '1')
         endif
-        if cc.has_function('ImagesToBlob', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImagesToBlob', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_IMAGESTOBLOB', '1')
         endif
     endif
@@ -331,7 +325,7 @@ endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
 if openslide_dep.found()
-    if get_option('openslide-module') and modules_enabled
+    if modules_enabled and not get_option('openslide-module').disabled()
         cfg_var.set('OPENSLIDE_MODULE', '1')
     else
         libvips_deps += openslide_dep
@@ -396,7 +390,7 @@ endif
 
 libheif_dep = dependency('libheif', version: '>=0.4.11', required: get_option('heif'))
 if libheif_dep.found()
-    if get_option('heif-module') and modules_enabled
+    if modules_enabled and not get_option('heif-module').disabled()
         cfg_var.set('HEIF_MODULE', '1')
     else
         libvips_deps += libheif_dep
@@ -423,7 +417,7 @@ endif
 libjxl_dep = dependency('libjxl', version: '>=0.5', required: get_option('jpeg-xl'))
 libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.5', required: get_option('jpeg-xl'))
 if libjxl_dep.found() and libjxl_threads_dep.found()
-    if get_option('jpeg-xl-module') and modules_enabled
+    if modules_enabled and not get_option('jpeg-xl-module').disabled()
         cfg_var.set('LIBJXL_MODULE', '1')
     else
         libvips_deps += libjxl_dep
@@ -442,7 +436,7 @@ endif
 if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
     message('PDFium has been found, ignoring Poppler support')
 elif libpoppler_dep.found() and cairo_dep.found()
-    if get_option('poppler-module') and modules_enabled
+    if modules_enabled and not get_option('poppler-module').disabled()
         cfg_var.set('POPPLER_MODULE', '1')
     else
         libvips_deps += libpoppler_dep
@@ -453,7 +447,7 @@ endif
 
 libnifti_dep = cc.find_library('niftiio', has_headers: 'nifti1_io.h', required: false)
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method : 'cmake', modules : ['NIFTI'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI'], required: get_option('nifti'))
 endif
 if libnifti_dep.found()
     libvips_deps += libnifti_dep
@@ -504,7 +498,7 @@ cfg_var.set_quoted('VIPS_LIBDIR', lib_dir)
 if cc.has_function('ngettext')
     cfg_var.set('ENABLE_NLS', 1)
 else
-    libintl_dep = cc.find_library('intl', required : false)
+    libintl_dep = cc.find_library('intl', required: false)
     if libintl_dep.found()
         libvips_deps += libintl_dep
         cfg_var.set('ENABLE_NLS', 1)
