@@ -29,7 +29,6 @@ libvips_lib = library('vips',
 libvips_dep = declare_dependency(
     link_with: libvips_lib,
     dependencies: libvips_deps,
-    sources: [ enumtypes, soname_header ]
 )
 
 pkg.generate(
