@@ -42,7 +42,7 @@ gobject_dep = dependency('gobject-2.0')
 gmodule_dep = dependency('gmodule-no-export-2.0')
 expat_dep = dependency('expat')
 thread_dep = dependency('threads')
-m_dep = cc.find_library('m', required : false)
+m_dep = cc.find_library('m', required: false)
 
 libvips_deps = [
     glib_dep,
@@ -159,12 +159,12 @@ if not get_option('magick').disabled() and magick_dep.found()
         # come here for imagemagick6, and graphicsmagick1.x, which also uses 
         # the im6 API
         cfg_var.set('HAVE_MAGICK6', '1')
-        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_NUMBER_SCENES', '1')
         endif
         func_names = [ 'InheritException', 'AcquireExceptionInfo', 'SetImageProperty', 'SetImageExtent', 'AcquireImage', 'GetVirtualPixels', 'ResetImageProfileIterator', 'ResetImageAttributeIterator', 'ResetImagePropertyIterator', 'MagickCoreGenesis', 'SetImageOption', 'BlobToStringInfo', 'OptimizePlusImageLayers', 'OptimizeImageTransparency' ]
         foreach func_name : func_names
-            if cc.has_function(func_name, prefix : '#include <magick/api.h>', dependencies: magick_dep)
+            if cc.has_function(func_name, prefix: '#include <magick/api.h>', dependencies: magick_dep)
                 cfg_var.set('HAVE_' + func_name.to_upper(), '1')
             endif
         endforeach
@@ -185,10 +185,10 @@ if not get_option('magick').disabled() and magick_dep.found()
     endif
     if 'save' in get_option('magick-features')
         cfg_var.set('ENABLE_MAGICKSAVE', '1')
-        if cc.has_function('ImportImagePixels', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImportImagePixels', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_IMPORTIMAGEPIXELS', '1')
         endif
-        if cc.has_function('ImagesToBlob', prefix : '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImagesToBlob', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_IMAGESTOBLOB', '1')
         endif
     endif
@@ -453,7 +453,7 @@ endif
 
 libnifti_dep = cc.find_library('niftiio', has_headers: 'nifti1_io.h', required: false)
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method : 'cmake', modules : ['NIFTI'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI'], required: get_option('nifti'))
 endif
 if libnifti_dep.found()
     libvips_deps += libnifti_dep
@@ -504,7 +504,7 @@ cfg_var.set_quoted('VIPS_LIBDIR', lib_dir)
 if cc.has_function('ngettext')
     cfg_var.set('ENABLE_NLS', 1)
 else
-    libintl_dep = cc.find_library('intl', required : false)
+    libintl_dep = cc.find_library('intl', required: false)
     if libintl_dep.found()
         libvips_deps += libintl_dep
         cfg_var.set('ENABLE_NLS', 1)
