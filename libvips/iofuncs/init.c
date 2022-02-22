@@ -254,6 +254,7 @@ vips_get_prgname( void )
  * Returns: 0 on success, -1 otherwise
  */
 
+#ifdef ENABLE_MODULES
 /* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
  * '.plg' (deprecated) suffix. Error if we had any probs.
  */
@@ -313,6 +314,7 @@ vips_load_plugins( const char *fmt, ... )
 
 	return( result );
 }
+#endif
 
 /* Install this log handler to hide warning messages.
  */
@@ -597,7 +599,6 @@ vips_init( const char *argv0 )
 	 */
 	(void) vips_load_plugins( "%s/vips-modules-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
-#endif /*ENABLE_MODULES*/
 
 #if ENABLE_DEPRECATED
 	/* Load any vips8 plugins from the vips libdir.
@@ -622,7 +623,8 @@ vips_init( const char *argv0 )
 		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
-#endif
+#endif /*ENABLE_DEPRECATED*/
+#endif /*ENABLE_MODULES*/
 
 	/* Get the run-time compiler going.
 	 */
