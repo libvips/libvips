@@ -39,7 +39,7 @@ cpp = meson.get_compiler('cpp')
 glib_dep = dependency('glib-2.0')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')
-gmodule_dep = dependency('gmodule-no-export-2.0')
+gmodule_dep = dependency('gmodule-no-export-2.0', required: get_option('modules'))
 expat_dep = dependency('expat')
 thread_dep = dependency('threads')
 m_dep = cc.find_library('m', required: false)
@@ -56,8 +56,9 @@ libvips_deps = [
 
 prefix_dir = get_option('prefix')
 lib_dir = prefix_dir / get_option('libdir')
-if gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') != 'false'
-    modules_enabled = get_option('modules').enabled() or get_option('modules').auto()
+if gmodule_dep.found() and gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') == 'true'
+    # Disable modules by default when building static libraries
+    modules_enabled = get_option('modules').enabled() or get_option('default_library') == 'shared'
 elif get_option('modules').enabled()
     error('GModule is not supported on your system, please reconfigure with -Dmodules=disabled')
 else
