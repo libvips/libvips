@@ -1785,8 +1785,10 @@ vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
 	va_list ap;
 	int result;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wvarargs"
+	/* Works for gcc and clang.
+	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvarargs"
 
 	/* Triggers a clang compiler warning because mode might not be an int.
 	 * I think the warning is harmless for all platforms we care about.
@@ -1795,7 +1797,7 @@ vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
 
 	g_assert( sizeof( mode ) == sizeof( int ) );
 
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 
 	result = vips_call_split( "composite2", ap, base, overlay, out, mode );
 	va_end( ap );

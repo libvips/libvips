@@ -86,8 +86,12 @@ Check the output of `meson setup` carefully and make sure it found everything
 you wanted it to find.  Add arguments to `meson setup` to change the build
 configuration.
 
-- Add flags like `-Dnsgif=false` to turn options on and off, see
+- Add flags like `-Dnsgif=false` to turn libvips options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
+
+- Add flags like `-Dmagick=disable` to turn libvips dependencies on and off, 
+  see `meson_options.txt` and the list below for a summary of all the libvips
+  dependencies.
 
 - Meson will do a debug build by default. Add `--buildtype=release` for a 
   release (optimised) build.
