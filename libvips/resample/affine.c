@@ -218,7 +218,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	const int window_size = 
 		vips_interpolate_get_window_size( affine->interpolate );
 	const int window_offset = 
-		vips_interpolate_get_window_offset( affine->interpolate );
+		vips_interpolate_get_window_offset( affine->interpolate ) + 1;
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( affine->interpolate );
 
