@@ -314,7 +314,7 @@ vips_load_plugins( const char *fmt, ... )
 
 	return( result );
 }
-#endif
+#endif /*ENABLE_MODULES*/
 
 /* Install this log handler to hide warning messages.
  */
