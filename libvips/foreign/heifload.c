@@ -24,6 +24,8 @@
  * 	- move GObject part to heif2vips.c
  * 22/12/21
  * 	- add >8 bit support
+ * 23/2/22 lovell
+ * 	- add @unlimited
  */
 
 /*
