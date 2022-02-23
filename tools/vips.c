@@ -611,6 +611,7 @@ main( int argc, char **argv )
 		;
 
 	if( main_option_plugin ) {
+#if ENABLE_MODULES
 #if ENABLE_DEPRECATED
 		if( !im_load_plugin( main_option_plugin ) )
 			vips_error_exit( NULL );
@@ -622,7 +623,11 @@ main( int argc, char **argv )
 			vips_error_exit( _( "unable to load \"%s\" -- %s" ),
 				main_option_plugin, g_module_error() );
 		}
-#endif
+#endif /*ENABLE_DEPRECATED*/
+#else /*!ENABLE_MODULES*/
+		g_warning( "%s", _( "plugin load disabled: "
+			"libvips built without modules support" ) );
+#endif /*ENABLE_MODULES*/
 	}
 
 	if( main_option_version ) 
