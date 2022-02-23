@@ -218,9 +218,31 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 
 	bounds->left = min_x;
 	bounds->top = min_y;
-	bounds->width = max_x - min_x + 1;
-	bounds->height = max_y - min_y + 1;
+	bounds->width = (max_x - min_x) + 1;
+	bounds->height = (max_y - min_y) + 1;
 }
+
+/*
+	unsigned int * restrict p1 = (unsigned int *) p; 
+	
+	for( x = 0; x < r->width; x++ ) { 
+		unsigned int px = p1[0]; 
+		unsigned int py = p1[1]; 
+		
+		if( px >= clip_width || 
+			py >= clip_height ) { 
+			for( z = 0; z < ps; z++ )  
+				q[z] = mapim->ink[z]; 
+		} 
+		else 
+			interpolate( mapim->interpolate, q, ir[0], 
+				px + window_offset + 1, 
+				py + window_offset + 1 ); 
+		
+		p1 += 2; 
+		q += ps; 
+	} 
+ */
 
 /* Unsigned int types.
  */
@@ -238,14 +260,15 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, py + window_offset ); \
+				px + window_offset + 1, \
+				py + window_offset + 1 ); \
 		\
 		p1 += 2; \
 		q += ps; \
 	} \
 }
 
-/* Signed int types.
+/* Signed int types. We allow -1 for x/y to get edge antialiasing.
  */
 #define LOOKUP( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
@@ -254,23 +277,24 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE px = p1[0]; \
 		TYPE py = p1[1]; \
 		\
-		if( px < 0 || \
+		if( px < -1 || \
 			px >= clip_width || \
-			py < 0 || \
+			py < -1 || \
 			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = mapim->ink[z]; \
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, py + window_offset ); \
+				px + window_offset + 1, \
+				py + window_offset + 1 ); \
 		\
 		p1 += 2; \
 		q += ps; \
 	} \
 }
 
-/* Float types.
+/* Float types. We allow -1 for x/y to get edge antialiasing.
  */
 #define FLOOKUP( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
@@ -281,17 +305,17 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		\
 		if( VIPS_ISNAN( px ) || \
 			VIPS_ISNAN( py ) || \
-			px < 0 || \
+			px < -1 || \
 			px >= clip_width || \
-			py < 0 || \
+			py < -1 || \
 			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ ) \
 				q[z] = mapim->ink[z]; \
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, \
-				py + window_offset ); \
+				px + window_offset + 1, \
+				py + window_offset + 1 ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -348,8 +372,8 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* And offset for the kernel centre and the antialias edge we have top
 	 * and left.
 	 */
-	need.left = bounds.left + window_offset + 1;
-	need.top = bounds.top + window_offset + 1;
+	need.left = bounds.left + 1;
+	need.top = bounds.top + 1;
 
 	/* Clip against the expanded image.
 	 */
@@ -394,69 +418,13 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			ULOOKUP( unsigned short ); break; 
 		case VIPS_FORMAT_SHORT: 	
 			LOOKUP( signed short ); break; 
-
 		case VIPS_FORMAT_UINT: 	
-
-	unsigned int * restrict p1 = (unsigned int *) p; 
-	
-	for( x = 0; x < r->width; x++ ) { 
-		unsigned int px = p1[0]; 
-		unsigned int py = p1[1]; 
-		
-		if( px >= clip_width || 
-			py >= clip_height ) { 
-			for( z = 0; z < ps; z++ )  
-				q[z] = mapim->ink[z]; 
-		} 
-		else 
-			interpolate( mapim->interpolate, q, ir[0], 
-				px + window_offset + 1, 
-				py + window_offset + 1 ); 
-		
-		p1 += 2; 
-		q += ps; 
-	} 
-
-
-
-			break;
-			// ULOOKUP( unsigned int ); break; 
-			
+			ULOOKUP( unsigned int ); break; 
 		case VIPS_FORMAT_INT: 	
 			LOOKUP( signed int ); break; 
-
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
-
-{
-	float * restrict p1 = (float *) p; 
-	
-	for( x = 0; x < r->width; x++ ) { 
-		float px = p1[0];
-		float py = p1[1];
-		
-		if( VIPS_ISNAN( px ) || 
-			VIPS_ISNAN( py ) || 
-			px < -1 || 
-			px >= clip_width || 
-			py < -1 || 
-			py >= clip_height ) { 
-			for( z = 0; z < ps; z++ ) 
-				q[z] = mapim->ink[z]; 
-		} 
-		else 
-			interpolate( mapim->interpolate, q, ir[0], 
-				px + window_offset + 1, 
-				py + window_offset + 1 ); 
-		
-		p1 += 2; 
-		q += ps; 
-	} 
-}
-
-			//FLOOKUP( float ); break; 
-			break;
-
+			FLOOKUP( float ); break; 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
 			FLOOKUP( double ); break;

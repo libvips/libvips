@@ -218,7 +218,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	const int window_size = 
 		vips_interpolate_get_window_size( affine->interpolate );
 	const int window_offset = 
-		vips_interpolate_get_window_offset( affine->interpolate ) + 1;
+		vips_interpolate_get_window_offset( affine->interpolate );
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( affine->interpolate );
 
@@ -374,8 +374,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					(int) iy - window_offset + 
 						window_size - 1 ) );
 
-				interpolate( affine->interpolate, 
-					q, ir, ix, iy );
+				interpolate( affine->interpolate, q, ir, ix, iy );
 			}
 			else {
 				/* Out of range: paint the background.
