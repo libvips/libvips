@@ -407,6 +407,9 @@ if libheif_dep.found()
     if cc.has_member('struct heif_decoding_options', 'convert_hdr_to_8bit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
         cfg_var.set('HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT', '1')
     endif
+    if cc.has_function('heif_context_set_maximum_image_size_limit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
+        cfg_var.set('HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT', '1')
+    endif
     # heif_main_brand added in 1.4.0, but heif_avif appeared in 1.7 ... just check
     # the libheif version number since testing for enums is annoying
     if libheif_dep.version().version_compare('>=1.7.0')

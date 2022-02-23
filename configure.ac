@@ -938,6 +938,18 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
+# heif_context_set_maximum_image_size_limit added in 1.6.0
+if test x"$with_heif" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $HEIF_LIBS"
+  AC_CHECK_FUNCS(heif_context_set_maximum_image_size_limit,[
+     AC_DEFINE(HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT,1,
+               [define if you have heif_context_set_maximum_image_size_limit.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
 # heif_main_brand added in 1.4.0, but heif_avif appeared in 1.7 ... just check
 # the libheif version number since testing for enums is annoying
 if test x"$with_heif" = x"yes"; then
