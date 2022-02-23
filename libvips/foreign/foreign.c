@@ -2119,6 +2119,7 @@ vips_foreign_find_save_buffer( const char *name )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -2134,6 +2135,9 @@ vips_foreign_find_save_buffer( const char *name )
  *
  * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
  * image.
+ *
+ * By default, input image dimensions are limited to 16384x16384.
+ * If @unlimited is %TRUE, this increases to the maximum of 65535x65535.
  *
  * The bitdepth of the heic image is recorded in the metadata item
  * `heif-bitdepth`.
@@ -2167,6 +2171,7 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a HEIF image file into a VIPS image. 
  * Exactly as vips_heifload(), but read from a memory buffer. 
@@ -2209,6 +2214,7 @@ vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Exactly as vips_heifload(), but read from a source. 
  *

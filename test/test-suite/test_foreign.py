@@ -10,7 +10,8 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, TRUNCATED_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
+    AVIF_FILE_HUGE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
@@ -1172,6 +1173,13 @@ class TestForeign:
 
         self.file_loader("heifload", AVIF_FILE, heif_valid)
         self.buffer_loader("heifload_buffer", AVIF_FILE, heif_valid)
+
+        with pytest.raises(Exception) as e_info:
+            im = pyvips.Image.heifload(AVIF_FILE_HUGE)
+            assert im.avg() == 0.0
+
+        im = pyvips.Image.heifload(AVIF_FILE_HUGE, unlimited=True)
+        assert im.avg() == 0.0
 
     @skip_if_no("heifsave")
     @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")

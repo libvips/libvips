@@ -29,7 +29,6 @@ libvips_lib = library('vips',
 libvips_dep = declare_dependency(
     link_with: libvips_lib,
     dependencies: libvips_deps,
-    sources: [ enumtypes, soname_header ]
 )
 
 pkg.generate(
@@ -77,7 +76,7 @@ if ['darwin', 'ios'].contains(host_machine.system())
   module_suffix = 'so'
 endif
 
-if magick_dep.found() and get_option('magick-module')
+if magick_dep.found() and not get_option('magick-module').disabled()
     shared_module('vips-magick',
         'module/magick.c',
         magick_module_sources,
@@ -90,7 +89,7 @@ if magick_dep.found() and get_option('magick-module')
     )
 endif
 
-if libjxl_dep.found() and get_option('jpeg-xl-module')
+if libjxl_dep.found() and not get_option('jpeg-xl-module').disabled()
     shared_module('vips-jxl',
         'module/jxl.c',
         jpeg_xl_module_sources,
@@ -102,7 +101,7 @@ if libjxl_dep.found() and get_option('jpeg-xl-module')
     )
 endif
 
-if libheif_dep.found() and get_option('heif-module')
+if libheif_dep.found() and not get_option('heif-module').disabled()
     shared_module('vips-heif',
         'module/heif.c',
         heif_module_sources,
@@ -114,7 +113,7 @@ if libheif_dep.found() and get_option('heif-module')
     )
 endif
 
-if libpoppler_dep.found() and get_option('poppler-module')
+if libpoppler_dep.found() and not get_option('poppler-module').disabled()
     shared_module('vips-poppler',
         'module/poppler.c',
         poppler_module_sources,
@@ -126,7 +125,7 @@ if libpoppler_dep.found() and get_option('poppler-module')
     )
 endif
 
-if openslide_dep.found() and get_option('openslide-module')
+if openslide_dep.found() and not get_option('openslide-module').disabled()
     shared_module('vips-openslide',
         'module/openslide.c',
         openslide_module_sources,

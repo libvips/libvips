@@ -6,11 +6,11 @@ tools = [
 ]
 
 foreach tool : tools
-executable(tool,
-    tool + '.c',
-    dependencies: libvips_dep,
-    install: true
-)
+    executable(tool,
+        tool + '.c',
+        dependencies: libvips_dep,
+        install: true
+    )
 endforeach
 
 scripts = [
@@ -24,14 +24,14 @@ scripts = [
 script_data = configuration_data()
 script_data.set('prefix', get_option('prefix'))
 foreach script : scripts
-configure_file(
-    input: script,
-    output: '@BASENAME@',
-    install: true,
-    install_dir: get_option('prefix') / get_option('bindir'),
-    install_mode: 'rwxr-xr-x',
-    configuration: script_data
-)
+    configure_file(
+        input: script,
+        output: '@BASENAME@',
+        install: true,
+        install_dir: get_option('prefix') / get_option('bindir'),
+        install_mode: 'rwxr-xr-x',
+        configuration: script_data
+    )
 endforeach
 
 install_data(

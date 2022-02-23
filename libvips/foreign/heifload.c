@@ -24,6 +24,8 @@
  * 	- move GObject part to heif2vips.c
  * 22/12/21
  * 	- add >8 bit support
+ * 23/2/22 lovell
+ * 	- add @unlimited
  */
 
 /*
@@ -138,6 +140,10 @@ typedef struct _VipsForeignLoadHeif {
 	 * vary in how they do this.
 	 */
 	gboolean autorotate;
+
+	/* remove all denial of service limits.
+	 */
+	gboolean unlimited;
 
 	/* Context for this image.
 	 */
@@ -257,6 +263,10 @@ vips_foreign_load_heif_build( VipsObject *object )
 		struct heif_error error;
 
 		heif->ctx = heif_context_alloc();
+#ifdef HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT
+		heif_context_set_maximum_image_size_limit( heif->ctx,
+			heif->unlimited ? USHRT_MAX : 0x4000 );
+#endif /* HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT */
 		error = heif_context_read_from_reader( heif->ctx, 
 			heif->reader, heif, NULL );
 		if( error.code ) {
@@ -1081,6 +1091,12 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "unlimited", 22,
+		_( "Unlimited" ),
+		_( "Remove all denial of service limits" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, unlimited ),
+		FALSE );
 }
 
 static gint64

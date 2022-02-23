@@ -37,13 +37,13 @@ extern "C" {
 
 /* Slow and horrid version if there's no recent glib.
  */
-#ifndef HAVE_CHECKED_MUL
+#if !GLIB_CHECK_VERSION( 2, 48, 0 )
 #define g_uint_checked_mul( dest, a, b ) ( \
 	((guint64) a * b) > UINT_MAX ? \
 		(*dest = UINT_MAX, FALSE) : \
 		(*dest = a * b, TRUE) \
 )
-#endif /*HAVE_CHECKED_MUL*/
+#endif /*!GLIB_CHECK_VERSION( 2, 48, 0 )*/
 
 /* We've seen real images with 28 chunks, so set 50.
  */

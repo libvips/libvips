@@ -613,6 +613,8 @@ static im_package *built_in[] = {
 	&im__resample,
 	&im__video
 };
+
+#ifdef ENABLE_MODULES
 /* How we represent a loaded plugin.
  */
 typedef struct _Plugin {
@@ -650,12 +652,14 @@ plugin_free( Plugin *plug )
 
 	return( 0 );
 }
+#endif
 
 /* Load a plugin.
  */
 im_package *
 im_load_plugin( const char *name )
 {
+#ifdef ENABLE_MODULES
 	Plugin *plug;
 
 #ifdef DEBUG
@@ -718,6 +722,12 @@ im_load_plugin( const char *name )
 #endif /*DEBUG*/
 
 	return( plug->pack );
+#else /*!ENABLE_MODULES*/
+	vips_error( "plugin",
+		"%s", _( "libvips built without modules support" ) );
+
+	return( NULL );
+#endif /*ENABLE_MODULES*/
 }
 
 /* Load all plugins in a directory ... look for '.plg' suffix. Error if we had
@@ -726,6 +736,7 @@ im_load_plugin( const char *name )
 int
 im_load_plugins( const char *fmt, ... )
 {
+#ifdef ENABLE_MODULES
         va_list ap;
         char dir_name[VIPS_PATH_MAX];
         GDir *dir;
@@ -763,6 +774,11 @@ im_load_plugins( const char *fmt, ... )
         g_dir_close( dir );
 
 	return( result );
+#else /*!ENABLE_MODULES*/
+	/* Silently succeed if we can't do modules.
+	 */
+	return( 0 );
+#endif /*ENABLE_MODULES*/
 }
 
 /* Close all loaded plugins.
@@ -770,13 +786,16 @@ im_load_plugins( const char *fmt, ... )
 int
 im_close_plugins( void )
 {
+#ifdef ENABLE_MODULES
 	while( plugin_list )
 		if( plugin_free( (Plugin *) plugin_list->data ) )
 			return( -1 );
+#endif
 
 	return( 0 );
 }
 
+#ifdef ENABLE_MODULES
 /* Apply a user-function to a plugin package.
  */
 static void *
@@ -787,6 +806,7 @@ apply_plugin( Plugin *plug, VSListMap2Fn fn, void *a )
 	else
 		return( fn( plug->pack, a, NULL ) );
 }
+#endif
 
 /* Map a function over all packages. Map over plugins first, to allow
  * overriding of VIPS functions.
@@ -794,8 +814,12 @@ apply_plugin( Plugin *plug, VSListMap2Fn fn, void *a )
 void *
 im_map_packages( VSListMap2Fn fn, void *a )
 {
+#ifdef ENABLE_MODULES
 	void *r = im_slist_map2( plugin_list, 
 		(VSListMap2Fn) apply_plugin, (void *) fn, a );
+#else /*!ENABLE_MODULES*/
+	void *r = NULL;
+#endif /*ENABLE_MODULES*/
 
 	/* If not there, try main VIPS package list.
 	 */
