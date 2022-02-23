@@ -652,7 +652,7 @@ plugin_free( Plugin *plug )
 
 	return( 0 );
 }
-#endif
+#endif /*ENABLE_MODULES*/
 
 /* Load a plugin.
  */
@@ -790,7 +790,7 @@ im_close_plugins( void )
 	while( plugin_list )
 		if( plugin_free( (Plugin *) plugin_list->data ) )
 			return( -1 );
-#endif
+#endif /*ENABLE_MODULES*/
 
 	return( 0 );
 }
@@ -806,7 +806,7 @@ apply_plugin( Plugin *plug, VSListMap2Fn fn, void *a )
 	else
 		return( fn( plug->pack, a, NULL ) );
 }
-#endif
+#endif /*ENABLE_MODULES*/
 
 /* Map a function over all packages. Map over plugins first, to allow
  * overriding of VIPS functions.
