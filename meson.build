@@ -3,7 +3,9 @@ project('vips', 'c', 'cpp',
     meson_version: '>=0.56',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
-        'c_std=gnu99'
+        'c_std=gnu99',
+        # turn off asserts etc. in release mode
+        'b_ndebug=if-release'
     ]
 )
 
@@ -33,16 +35,16 @@ add_project_link_arguments(
     language: 'c',
 )
 
-# in release mode, we automatically turn off cast checks and asserts
+# in release mode, we automatically turn off cast checks and g_assert
 if get_option('buildtype').startswith('release')
-    add_project_arguments('-DNDEBUG', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
 endif
 
 # in debug mode mode, we automatically enable leak checks and fatal warnings
-if get_option('buildtype').startswith('debug')
+# also true for 'debugoptimized'
+if get_option('debug')
     add_project_arguments('-DDEBUG_FATAL', language : ['cpp', 'c'])
     add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
 endif
