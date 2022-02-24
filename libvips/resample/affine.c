@@ -699,7 +699,7 @@ vips_affine_class_init( VipsAffineClass *class )
 static void
 vips_affine_init( VipsAffine *affine )
 {
-	affine->extend = VIPS_EXTEND_BLACK;
+	affine->extend = VIPS_EXTEND_BACKGROUND;
 	affine->background = vips_array_double_newv( 1, 0.0 );
 }
 

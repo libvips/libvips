@@ -222,28 +222,6 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	bounds->height = (max_y - min_y) + 1;
 }
 
-/*
-	unsigned int * restrict p1 = (unsigned int *) p; 
-	
-	for( x = 0; x < r->width; x++ ) { 
-		unsigned int px = p1[0]; 
-		unsigned int py = p1[1]; 
-		
-		if( px >= clip_width || 
-			py >= clip_height ) { 
-			for( z = 0; z < ps; z++ )  
-				q[z] = mapim->ink[z]; 
-		} 
-		else 
-			interpolate( mapim->interpolate, q, ir[0], 
-				px + window_offset + 1, 
-				py + window_offset + 1 ); 
-		
-		p1 += 2; 
-		q += ps; 
-	} 
- */
-
 /* Unsigned int types.
  */
 #define ULOOKUP( TYPE ) { \
@@ -300,8 +278,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0] + 1; \
-		TYPE py = p1[1] + 1; \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
 		\
 		if( VIPS_ISNAN( px ) || \
 			VIPS_ISNAN( py ) || \
@@ -369,8 +347,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	need.width = bounds.width + window_size - 1;
 	need.height = bounds.height + window_size - 1;
 
-	/* And offset for the kernel centre and the antialias edge we have top
-	 * and left.
+	/* Offset for the antialias edge we have top and left.
 	 */
 	need.left = bounds.left + 1;
 	need.top = bounds.top + 1;
@@ -602,7 +579,7 @@ static void
 vips_mapim_init( VipsMapim *mapim )
 {
 	mapim->interpolate = vips_interpolate_new( "bilinear" );
-	mapim->extend = VIPS_EXTEND_BLACK;
+	mapim->extend = VIPS_EXTEND_BACKGROUND;
 	mapim->background = vips_array_double_newv( 1, 0.0 );
 }
 
@@ -616,6 +593,9 @@ vips_mapim_init( VipsMapim *mapim )
  * Optional arguments:
  *
  * * @interpolate: interpolate pixels with this
+ * * @extend: #VipsExtend how to generate new pixels 
+ * * @background: #VipsArrayDouble colour for new pixels 
+ * * @premultiplied: %gboolean, images are already premultiplied
  *
  * This operator resamples @in using @index to look up pixels. @out is
  * the same size as @index, with each pixel being fetched from that position in
@@ -627,11 +607,20 @@ vips_mapim_init( VipsMapim *mapim )
  *
  * If @index has one band, that band must be complex. Otherwise, @index must
  * have two bands of any format. 
+ *
  * Coordinates in @index are in pixels, with (0, 0) being the top-left corner 
  * of @in, and with y increasing down the image. Use vips_xyz() to build index
  * images. 
  *
  * @interpolate defaults to bilinear. 
+ *
+ * By default, new pixels are filled with @background. This defaults to 
+ * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY 
+ * is better for image upsizing.
+ *
+ * Image are normally treated as unpremultiplied, so this operation can be used
+ * directly on PNG images. If your images have been through vips_premultiply(),
+ * set @premultiplied. 
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 

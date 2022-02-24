@@ -11,6 +11,7 @@
 - new meson build system [tintou]
 - improve introspection annotations [tintou]
 - add @unlimited to heifload [lovell]
+- edge antialiasing for mapim with @background, @extend and @premultiplied
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
