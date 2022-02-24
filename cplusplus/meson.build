@@ -3,6 +3,7 @@ subdir('include/vips')
 libvips_cpp_lib = library('vips-cpp',
     'VImage.cpp',
     'VInterpolate.cpp',
+    'VRegion.cpp',
     'VConnection.cpp',
     'VError.cpp',
     dependencies: libvips_dep,

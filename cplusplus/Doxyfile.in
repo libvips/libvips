@@ -829,6 +829,7 @@ INPUT                  = \
 	@DOXY_INPUT_DIRECTORY@/VError.cpp \
 	@DOXY_INPUT_DIRECTORY@/VImage.cpp \
 	@DOXY_INPUT_DIRECTORY@/VInterpolate.cpp \
+	@DOXY_INPUT_DIRECTORY@/VRegion.cpp \
 	@DOXY_INPUT_DIRECTORY@/vips-operators.cpp \
 	@DOXY_INPUT_DIRECTORY@/include/vips/VConnection8.h \
 	@DOXY_INPUT_DIRECTORY@/include/vips/VError8.h \

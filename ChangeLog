@@ -9,6 +9,7 @@
 - add meson build system [tintou]
 - improve introspection annotations [tintou]
 - add @unlimited to heifload [lovell]
+- add support for regions in C++ API [shado23]
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
