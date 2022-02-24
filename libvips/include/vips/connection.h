@@ -218,6 +218,7 @@ VipsSource *vips_source_new_from_file( const char *filename );
 VipsSource *vips_source_new_from_blob( VipsBlob *blob );
 VipsSource *vips_source_new_from_memory( const void *data, size_t size );
 VipsSource *vips_source_new_from_options( const char *options );
+VipsSource *vips_source_new_from_target( VipsTarget *target );
 
 void vips_source_minimise( VipsSource *source );
 int vips_source_unminimise( VipsSource *source );
@@ -397,6 +398,14 @@ struct _VipsTarget {
 	unsigned char output_buffer[VIPS_TARGET_BUFFER_SIZE];
 	int write_point;
 
+	/* If this is a temp target (eg. a layer in a TIFF pyramid), we may
+	 * need to delete a backing file object on dispose. Use a special
+	 * string here, since we must be very careful not to delete a non-temp
+	 * file.
+	 */
+	gboolean delete_on_dispose;
+	char *delete_on_dispose_filename;
+
 };
 
 typedef struct _VipsTargetClass {
@@ -414,6 +423,12 @@ typedef struct _VipsTargetClass {
 	 */
 	void (*finish)( VipsTarget * );
 
+	/* Given a target, make a "similar" target that can be used for a
+	 * temporary file. This is used by (for example) the TIFF writer to
+	 * generate pyramid layers.
+	 */
+	VipsTarget *(*new_temp)( VipsTarget * );
+
 } VipsTargetClass;
 
 GType vips_target_get_type( void );
@@ -421,6 +436,7 @@ GType vips_target_get_type( void );
 VipsTarget *vips_target_new_to_descriptor( int descriptor );
 VipsTarget *vips_target_new_to_file( const char *filename );
 VipsTarget *vips_target_new_to_memory( void );
+VipsTarget *vips_target_new_to_temp( VipsTarget *target );
 int vips_target_write( VipsTarget *target, const void *data, size_t length );
 void vips_target_finish( VipsTarget *target );
 unsigned char *vips_target_steal( VipsTarget *target, size_t *length );

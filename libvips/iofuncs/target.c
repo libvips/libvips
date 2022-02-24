@@ -82,6 +82,21 @@ vips_target_finalize( GObject *gobject )
 		target->blob = NULL;
 	}
 
+	if( target->delete_on_dispose &&
+		target->delete_on_dispose_filename ) {
+		VIPS_DEBUG_MSG( "vips_target_finalize: removing temp %s\n", 
+				image->delete_on_dispose_filename );
+
+		/* This is only a fallback -- usually, this file will be
+		 * deleted automatically on close.
+		 */
+		g_unlink( target->delete_on_dispose_filename );
+
+		target->delete_on_dispose = FALSE;
+	}
+
+	VIPS_FREE( target->delete_on_dispose_filename ); 
+
 	G_OBJECT_CLASS( vips_target_parent_class )->finalize( gobject );
 }
 
@@ -154,6 +169,50 @@ vips_target_finish_real( VipsTarget *target )
 	VIPS_DEBUG_MSG( "vips_target_finish_real:\n" );
 }
 
+static VipsTarget *
+vips_target_new_temp_real( VipsTarget *target ) 
+{
+	VipsTarget *temp_target;
+
+	VIPS_DEBUG_MSG( "vips_target_new_temp_real:\n" );
+
+	/* We suport memory and disc temps by default, override for something
+	 * else.
+	 */
+	if( target->memory ) 
+		temp_target = vips_target_new_to_memory();
+	else {
+		char *name;
+		int fd;
+
+		if( !(name = vips__temp_name( "" )) )
+			return( NULL );
+
+		/* This must be closed with tracked_close.
+		 */
+		if( (fd = vips__open_image_write( name, TRUE )) < 0 ) {
+			g_free( name );
+			return( NULL );
+		}
+
+		/* vips_target_new_to_descriptor() will dup() fd, so we
+		 * can close now.
+		 */
+		if( !(temp_target = vips_target_new_to_descriptor( fd )) ) {
+			g_unlink( name );
+			vips_tracked_close( fd );
+			g_free( name );
+			return( NULL );
+		}
+		vips_tracked_close( fd );
+
+		temp_target->delete_on_dispose = TRUE;
+		temp_target->delete_on_dispose_filename = name;
+	}
+
+	return( temp_target );
+}
+
 static void
 vips_target_class_init( VipsTargetClass *class )
 {
@@ -171,6 +230,7 @@ vips_target_class_init( VipsTargetClass *class )
 
 	class->write = vips_target_write_real;
 	class->finish = vips_target_finish_real;
+	class->new_temp = vips_target_new_temp_real;
 
 	VIPS_ARG_BOOL( class, "memory", 3, 
 		_( "Memory" ), 
@@ -284,6 +344,28 @@ vips_target_new_to_memory( void )
 	}
 
 	return( target ); 
+}
+
+/**
+ * vips_target_new_to_temp:
+ * @target: target to operate on
+ *
+ * Make a new temporary target based on @target. File-style targets will
+ * return a temporary target which is a temporary file on disc, memory-style 
+ * targets will return a target in memory.
+ *
+ * See vips_image_new_temp_file() for an explanation of where temporary file
+ * objects are created. See vips_source_new_from_target() to see how to read a
+ * target back again.
+ */
+VipsTarget *
+vips_target_new_to_temp( VipsTarget *target )
+{
+	VipsTargetClass *class = VIPS_TARGET_GET_CLASS( target );
+
+	VIPS_DEBUG_MSG( "vips_target_new_to_temp:\n" );
+
+	return( class->new_temp( target ) );
 }
 
 static int
