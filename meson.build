@@ -33,6 +33,20 @@ add_project_link_arguments(
     language: 'c',
 )
 
+# in release mode, we automatically turn off cast checks and asserts
+if get_option('buildtype').startswith('release')
+    add_project_arguments('-DNDEBUG', language : ['cpp', 'c'])
+    add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
+    add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
+    add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
+endif
+
+# in debug mode mode, we automatically enable leak checks and fatal warnings
+if get_option('buildtype').startswith('debug')
+    add_project_arguments('-DDEBUG_FATAL', language : ['cpp', 'c'])
+    add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
+endif
+
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
