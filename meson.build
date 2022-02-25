@@ -271,9 +271,9 @@ endif
 #   both
 # - we need 0.7+ for PNG write support
 # - simplify this when requiring meson>=0.60.0
-spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
+spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
-    spng_dep = dependency('spng', version: '>=0.7', required: get_option('spng'))
+    spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
 if not get_option('spng').disabled() and spng_dep.found()
     libvips_deps += spng_dep
