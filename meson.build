@@ -35,14 +35,15 @@ add_project_link_arguments(
     language: 'c',
 )
 
-# in release mode, we automatically turn off cast checks and g_assert
-if get_option('buildtype').startswith('release')
+# if we're optimising (eg. release mode) we turn off cast checks and
+# g_asserts
+if get_option('optimization') in ['2', '3', 's']
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
 endif
 
-# in debug mode mode, we automatically enable leak checks and fatal warnings
+# in debug mode we automatically enable leak checks and fatal warnings
 # also true for 'debugoptimized'
 if get_option('debug')
     add_project_arguments('-DDEBUG_FATAL', language : ['cpp', 'c'])
