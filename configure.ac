@@ -228,6 +228,13 @@ VIPS_LIBDIR=$expanded_value
 VIPS_EXEEXT=$EXEEXT
 AC_SUBST(VIPS_EXEEXT)
 
+# cplusplus/Doxyfile.in needs an input and output directory ... they are the
+# same for copnfigure, but meson has separate source and build areas
+DOXY_INPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
+DOXY_OUTPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
+AC_SUBST(DOXY_INPUT_DIRECTORY)
+AC_SUBST(DOXY_OUTPUT_DIRECTORY)
+
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
 AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])

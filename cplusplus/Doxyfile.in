@@ -58,7 +58,7 @@ PROJECT_LOGO           =
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = @OUTPUT_DIRECTORY@
+OUTPUT_DIRECTORY       = @DOXY_OUTPUT_DIRECTORY@
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-
 # directories (in 2 levels) under the output directory of each output format and
@@ -756,7 +756,7 @@ CITE_BIB_FILES         =
 # messages are off.
 # The default value is: NO.
 
-QUIET                  = NO
+QUIET                  = YES
 
 # The WARNINGS tag can be used to turn on/off the warning messages that are
 # generated to standard error (stderr) by doxygen. If WARNINGS is set to YES
@@ -824,17 +824,17 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = \
-  README.md \
-	VConnection.cpp \
-	VError.cpp \
-	VImage.cpp \
-	VInterpolate.cpp \
-	vips-operators.cpp \
-	include/vips/VConnection8.h \
-	include/vips/VError8.h \
-	include/vips/VImage8.h \
-	include/vips/VInterpolate8.h \
-	include/vips/vips8
+	@DOXY_INPUT_DIRECTORY@/README.md \
+	@DOXY_INPUT_DIRECTORY@/VConnection.cpp \
+	@DOXY_INPUT_DIRECTORY@/VError.cpp \
+	@DOXY_INPUT_DIRECTORY@/VImage.cpp \
+	@DOXY_INPUT_DIRECTORY@/VInterpolate.cpp \
+	@DOXY_INPUT_DIRECTORY@/vips-operators.cpp \
+	@DOXY_INPUT_DIRECTORY@/include/vips/VConnection8.h \
+	@DOXY_INPUT_DIRECTORY@/include/vips/VError8.h \
+	@DOXY_INPUT_DIRECTORY@/include/vips/VImage8.h \
+	@DOXY_INPUT_DIRECTORY@/include/vips/VInterpolate8.h \
+	@DOXY_INPUT_DIRECTORY@/include/vips/vips8
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
