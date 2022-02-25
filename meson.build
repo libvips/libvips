@@ -297,7 +297,7 @@ endif
 # libwebp ... target 0.6+ to reduce complication
 # webp has the stuff for handling metadata in two separate libraries -- we
 # insist on having both of them
-libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('png'))
+libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('webp'))
 if libwebp_dep.found()
     libvips_deps += libwebp_dep
     libvips_deps += dependency('libwebpmux', version: '>=0.6')
