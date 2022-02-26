@@ -74,7 +74,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #ifdef HAVE_PTHREAD_DEFAULT_NP
 #include <pthread.h>
@@ -451,7 +451,9 @@ vips_init( const char *argv0 )
 	const char *vips_min_stack_size;
 	const char *prefix;
 	const char *libdir;
+#ifdef ENABLE_NLS
 	char *locale;
+#endif /* ENABLE_NLS */
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
 	 * means we're currently initialising. Use this to prevent recursive
@@ -541,10 +543,14 @@ vips_init( const char *argv0 )
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
+#ifdef ENABLE_NLS
 	locale = g_build_filename( prefix, "share", "locale", NULL );
 	bindtextdomain( GETTEXT_PACKAGE, locale );
 	g_free( locale );
+#ifdef HAVE_BIND_TEXTDOMAIN_CODESET
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
+#endif /* HAVE_BIND_TEXTDOMAIN_CODESET */
+#endif /* ENABLE_NLS */
 
 	/* Register base vips types.
 	 */
@@ -774,22 +780,6 @@ vips_shutdown( void )
 	VIPS_FREE( vips__argv0 );
 	VIPS_FREE( vips__prgname );
 	VIPS_FREEF( g_timer_destroy, vips__global_timer );
-}
-
-const char *
-vips__gettext( const char *msgid )
-{
-	vips_check_init();
-
-	return( dgettext( GETTEXT_PACKAGE, msgid ) );
-}
-
-const char *
-vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
-{
-	vips_check_init();
-
-	return( dngettext( GETTEXT_PACKAGE, msgid, plural, n ) );
 }
 
 static gboolean
