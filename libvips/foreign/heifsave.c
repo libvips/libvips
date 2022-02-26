@@ -176,10 +176,14 @@ typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
 	 const struct heif_image_handle *,
 	 const void *, int );
 
-struct _VipsForeignSaveHeifMetadata {
-	const char *name;
-	libheif_metadata_fn saver;
-} libheif_metadata[] = {
+/* String-based metadata fields we add.
+ */
+typedef struct _VipsForeignSaveHeifMetadata {
+	const char *name;		/* as understood by libvips */
+	libheif_metadata_fn saver;		/* as understood by libheif */
+} VipsForeignSaveHeifMetadata;
+
+static VipsForeignSaveHeifMetadata libheif_metadata[] = {
 	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
 	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
 };

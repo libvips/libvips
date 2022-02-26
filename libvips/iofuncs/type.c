@@ -179,7 +179,7 @@ vips_area_free_cb( void *mem, VipsArea *area )
 	return( 0 );
 }
 
-void
+static void
 vips_area_free( VipsArea *area )
 {
 	if( area->free_fn && 

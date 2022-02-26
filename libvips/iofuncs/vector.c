@@ -69,7 +69,7 @@
  */
 gboolean vips__vector_enabled = TRUE;
 
-void
+static void
 vips_vector_error( VipsVector *vector )
 {
 #ifdef HAVE_ORC
