@@ -1562,6 +1562,10 @@ vips_object_class_init( VipsObjectClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 
+	/* We must have threads set up before we can process.
+	 */
+	vips_check_init();
+
 	if( !vips__object_all ) {
 		vips__object_all = g_hash_table_new( 
 			g_direct_hash, g_direct_equal );

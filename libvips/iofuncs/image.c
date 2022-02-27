@@ -1066,10 +1066,6 @@ vips_image_class_init( VipsImageClass *class )
 
 	VIPS_DEBUG_MSG( "vips_image_class_init:\n" );
 
-	/* We must have threads set up before we can process.
-	 */
-	vips_check_init(); 
-
 	gobject_class->finalize = vips_image_finalize;
 	gobject_class->dispose = vips_image_dispose;
 	gobject_class->set_property = vips_object_set_property;
