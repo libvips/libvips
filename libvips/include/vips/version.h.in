@@ -18,19 +18,9 @@
 
 #define VIPS_CONFIG		"@VIPS_CONFIG@"
 
-/** 
- * VIPS_SONAME:
- *
- * The name of the shared object containing the vips library, for example
- * "libvips.so.42", or "libvips-42.dll".
- */
-
-#include "soname.h"
-
 /* Not really anything to do with versions, but this is a handy place to put
  * it.
  */
-#define VIPS_EXEEXT "@VIPS_EXEEXT@"
 #define VIPS_ENABLE_DEPRECATED @VIPS_ENABLE_DEPRECATED@
 
 #endif /*VIPS_VERSION_H*/

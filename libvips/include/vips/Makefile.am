@@ -39,7 +39,6 @@ pkginclude_HEADERS = \
 	region.h \
 	resample.h \
 	semaphore.h \
-	soname.h \
 	threadpool.h \
 	thread.h \
 	transform.h \
