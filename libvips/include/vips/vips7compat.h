@@ -580,7 +580,11 @@ size_t im_ref_string_get_length( const GValue *value );
 #define IM_MINOR_VERSION VIPS_MINOR_VERSION
 #define IM_MICRO_VERSION VIPS_MICRO_VERSION
 
-#define IM_EXEEXT VIPS_EXEEXT
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
+#define IM_EXEEXT ".exe"
+#else /* !defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN) */
+#define IM_EXEEXT ""
+#endif /* defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN) */
 
 #define IM_SIZEOF_HEADER VIPS_SIZEOF_HEADER
 
