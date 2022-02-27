@@ -373,7 +373,7 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 #endif /*DEBUG*/
 }
 
-VipsInterpolate *
+static VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
 	return( VIPS_INTERPOLATE( vips_object_new(

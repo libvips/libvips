@@ -69,7 +69,7 @@
  */
 #define QUANT_ELEMENTS (100000)
 
-float cbrt_table[QUANT_ELEMENTS];
+static float cbrt_table[QUANT_ELEMENTS];
 
 typedef struct _VipsXYZ2Lab {
 	VipsColourTransform parent_instance;

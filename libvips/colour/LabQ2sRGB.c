@@ -75,7 +75,7 @@ G_DEFINE_TYPE( VipsLabQ2sRGB, vips_LabQ2sRGB, VIPS_TYPE_COLOUR_CODE );
  *
  * There's an extra element at the end to let us do a +1 for interpolation.
  */
-int vips_Y2v_8[256 + 1];
+static int vips_Y2v_8[256 + 1];
 
 /* 8-bit sRGB -> linear lut.
  */
@@ -85,7 +85,7 @@ float vips_v2Y_8[256];
  *
  * There's an extra element at the end to let us do a +1 for interpolation.
  */
-int vips_Y2v_16[65536 + 1];
+static int vips_Y2v_16[65536 + 1];
 
 /* 16-bit sRGB -> linear lut.
  */

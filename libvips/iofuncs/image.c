@@ -1381,7 +1381,7 @@ vips_image_written( VipsImage *image )
 	return( result );
 }
 
-void
+static void
 vips_image_invalidate( VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_image_invalidate: %p\n", image );
@@ -1421,7 +1421,7 @@ vips_image_invalidate_all( VipsImage *image )
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
 
-void
+static void
 vips_image_minimise( VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_image_minimise: %p\n", image );
@@ -1681,7 +1681,7 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 /* Fills the given buffer with a temporary filename.
  * Assuming that "int" might be 64 Bit wide a buffer size of 26 suffices.
  */
-void
+static void
 vips_image_temp_name( char *name, int size )
 {
 	static int global_serial = 0;
