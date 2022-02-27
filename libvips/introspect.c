@@ -39,7 +39,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n.h>
 
 #include <locale.h>
 
@@ -65,7 +65,9 @@ main( int argc, char *argv[] )
 	if( VIPS_INIT( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
 
+#ifdef ENABLE_NLS
 	textdomain( GETTEXT_PACKAGE );
+#endif /* ENABLE_NLS */
 	setlocale( LC_ALL, "" );
 
         context = g_option_context_new( _( "- introspect" ) );

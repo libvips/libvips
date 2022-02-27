@@ -56,7 +56,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -597,7 +597,7 @@ vips_image_dump( VipsObject *object, VipsBuf *buf )
 	VipsImage *image = VIPS_IMAGE( object );
 
 	vips_buf_appendf( buf, 
-		ngettext( 
+		g_dngettext( GETTEXT_PACKAGE, 
 			"%dx%d %s, %d band, %s", 
 			"%dx%d %s, %d bands, %s", 
 			vips_image_get_bands( image ) ),
@@ -631,7 +631,7 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 		vips_image_get_width( image ), vips_image_get_height( image ) );
 	if( vips_image_get_coding( image ) == VIPS_CODING_NONE ) {
 		vips_buf_appendf( buf, 
-			ngettext( 
+			g_dngettext( GETTEXT_PACKAGE, 
 				" %s, %d band, %s", 
 				" %s, %d bands, %s", 
 				vips_image_get_bands( image ) ),
