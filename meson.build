@@ -152,7 +152,7 @@ if fftw_dep.found()
     cfg_var.set('HAVE_FFTW', '1')
 endif
 
-# We can simplify this when requiring meson>=0.60.0
+# TODO: simplify this when requiring meson>=0.60.0
 magick_dep = dependency(get_option('magick-package'), required: false)
 if not magick_dep.found()
     # very old versions called it "ImageMagick"
@@ -270,7 +270,7 @@ endif
 # - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
 #   both
 # - we need 0.7+ for PNG write support
-# - simplify this when requiring meson>=0.60.0
+# TODO: simplify this when requiring meson>=0.60.0
 spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
     spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
@@ -465,11 +465,13 @@ elif libpoppler_dep.found() and cairo_dep.found()
     cfg_var.set('HAVE_POPPLER', '1')
 endif
 
-libnifti_dep = cc.find_library('niftiio', has_headers: 'nifti1_io.h', required: false)
+# niftiio.pc is not always present, so fallback to CMake's find_package() functionally
+# TODO: simplify this when requiring meson>=0.60.0
+libnifti_dep = dependency('niftiio', required: false)
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI::niftiio'], required: get_option('nifti'))
 endif
-if libnifti_dep.found()
+if not get_option('nifti').disabled() and libnifti_dep.found()
     libvips_deps += libnifti_dep
     cfg_var.set('HAVE_NIFTI', '1')
 endif
