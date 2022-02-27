@@ -1435,15 +1435,6 @@ VipsImage *vips__deprecated_open_write( const char *filename );
 
 void im__format_init( void );
 
-void im__tiff_register( void );
-void im__jpeg_register( void );
-void im__png_register( void );
-void im__csv_register( void );
-void im__ppm_register( void );
-void im__analyze_register( void );
-void im__exr_register( void );
-void im__magick_register( void );
-
 int im__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
 int im__bandalike_vec( const char *domain, VipsImage **in, VipsImage **out, int n );
 int im__bandalike( const char *domain, 
@@ -1451,13 +1442,6 @@ int im__bandalike( const char *domain,
 int im__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
 
-typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
-int im__wrapscan( VipsImage *in, 
-	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,
-	void *a, void *b );
-int im__colour_difference( const char *domain,
-	VipsImage *in1, VipsImage *in2, VipsImage *out, 
-	im_wrapmany_fn buffer_fn, void *a, void *b );
 int im__colour_unary( const char *domain,
 	VipsImage *in, VipsImage *out, VipsInterpretation interpretation,
 	im_wrapone_fn buffer_fn, void *a, void *b );
@@ -1478,25 +1462,11 @@ int vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
         int *dx0, int *dy0,
         double *scale1, double *angle1, double *dx1, double *dy1 );
 
-/* TODO(kleisauke): Stray declaration
- */
-void imb_LCh2Lab( float *, float *, int );
-
 /* A colour temperature.
  */
 typedef struct {
 	double X0, Y0, Z0;
 } im_colour_temperature;
-
-/* TODO(kleisauke): Stray declaration
- */
-void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
-/* TODO(kleisauke): Stray declaration
- */
-void imb_LabS2Lab( signed short *, float *, int );
-/* TODO(kleisauke): Stray declaration
- */
-void imb_Lab2LabS( float *, signed short *, int n );
 
 VIPS_DEPRECATED
 void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
@@ -1532,10 +1502,6 @@ void im_free_dmat(double **m, int nrl, int nrh, int ncl, int nch);
 
 VIPS_DEPRECATED
 int im_invmat( double **, int );
-
-/* TODO(kleisauke): Stray declaration
- */
-int *im_offsets45( int size );
 
 VIPS_DEPRECATED
 int im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
