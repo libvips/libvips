@@ -374,8 +374,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					(int) iy - window_offset + 
 						window_size - 1 ) );
 
-				interpolate( affine->interpolate, 
-					q, ir, ix, iy );
+				interpolate( affine->interpolate, q, ir, ix, iy );
 			}
 			else {
 				/* Out of range: paint the background.

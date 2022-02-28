@@ -1,14 +1,17 @@
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
+- add "extend", "background" and "premultiplied" to mapim to fix edge
+  antialiasing [GavinJoyce]
 - add support for HDR HEIC and AVIF images
 - add spngsave
 - jpeg2000 load left-justifies bitdepth
 - add "password" option to pdfload
 - improve the pixel rng
-- add meson build system [tintou]
+- new meson build system [tintou]
 - improve introspection annotations [tintou]
 - add @unlimited to heifload [lovell]
+- edge antialiasing for mapim with @background, @extend and @premultiplied
 - add support for regions in C++ API [shado23]
 
 26/11/21 started 8.12.3

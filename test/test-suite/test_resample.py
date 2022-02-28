@@ -242,7 +242,7 @@ class TestResample:
         # distorted, but the rest should not be too bad
         a = r.crop(50, 0, im.width - 50, im.height).gaussblur(2)
         b = im.crop(50, 0, im.width - 50, im.height).gaussblur(2)
-        assert (a - b).abs().max() < 40
+        assert (a - b).abs().max() < 50
 
         # this was a bug at one point, strangely, if executed with debug
         # enabled
