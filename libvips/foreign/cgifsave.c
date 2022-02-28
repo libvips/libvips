@@ -385,8 +385,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		/* Keep head frame_bytes in memory for transparency trick
 		*  which avoids the size explosion (#2576).
 		*/
-		cgif->frame_bytes_head = g_malloc0(4 * frame_rect->width * frame_rect->height);
-		memcpy(cgif->frame_bytes_head, frame_bytes, 4 * frame_rect->width * frame_rect->height);
+		cgif->frame_bytes_head = g_malloc( 4 * n_pels );
+		memcpy( cgif->frame_bytes_head, frame_bytes, 4 * n_pels );
 	}
 
 	return( 0 );
