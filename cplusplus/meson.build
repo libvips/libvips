@@ -3,6 +3,7 @@ subdir('include/vips')
 libvips_cpp_lib = library('vips-cpp',
     'VImage.cpp',
     'VInterpolate.cpp',
+    'VRegion.cpp',
     'VConnection.cpp',
     'VError.cpp',
     dependencies: libvips_dep,
@@ -41,7 +42,9 @@ if get_option('doxygen')
     doxygen_data = configuration_data()
     doxygen_data.set('VIPS_MAJOR_VERSION', version_major)
     doxygen_data.set('VIPS_MINOR_VERSION', version_minor)
-    doxygen_data.set('OUTPUT_DIRECTORY', 'cplusplus')
+    doxygen_data.set('DOXY_INPUT_DIRECTORY', 
+      join_paths(meson.source_root(), meson.current_source_dir()))
+    doxygen_data.set('DOXY_OUTPUT_DIRECTORY', 'cplusplus')
 
     doxyfile = configure_file(
         input: 'Doxyfile.in',

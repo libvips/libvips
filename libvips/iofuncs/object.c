@@ -42,7 +42,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1561,6 +1561,10 @@ static void
 vips_object_class_init( VipsObjectClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+
+	/* We must have threads set up before we can process.
+	 */
+	vips_check_init();
 
 	if( !vips__object_all ) {
 		vips__object_all = g_hash_table_new( 

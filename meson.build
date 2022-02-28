@@ -3,7 +3,9 @@ project('vips', 'c', 'cpp',
     meson_version: '>=0.56',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
-        'c_std=gnu99'
+        'c_std=gnu99',
+        # turn off asserts etc. in release mode
+        'b_ndebug=if-release'
     ]
 )
 
@@ -32,6 +34,21 @@ add_project_link_arguments(
     '-no-undefined',
     language: 'c',
 )
+
+# if we're optimising (eg. release mode) we turn off cast checks and
+# g_asserts
+if get_option('optimization') in ['2', '3', 's']
+    add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
+    add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
+    add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
+endif
+
+# in debug mode we automatically enable leak checks and fatal warnings
+# also true for 'debugoptimized'
+if get_option('debug')
+    add_project_arguments('-DDEBUG_FATAL', language : ['cpp', 'c'])
+    add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
+endif
 
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
@@ -135,7 +152,7 @@ if fftw_dep.found()
     cfg_var.set('HAVE_FFTW', '1')
 endif
 
-# We can simplify this when requiring meson>=0.60.0
+# TODO: simplify this when requiring meson>=0.60.0
 magick_dep = dependency(get_option('magick-package'), required: false)
 if not magick_dep.found()
     # very old versions called it "ImageMagick"
@@ -253,10 +270,10 @@ endif
 # - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
 #   both
 # - we need 0.7+ for PNG write support
-# - simplify this when requiring meson>=0.60.0
-spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
+# TODO: simplify this when requiring meson>=0.60.0
+spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
-    spng_dep = dependency('spng', version: '>=0.7', required: get_option('spng'))
+    spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
 if not get_option('spng').disabled() and spng_dep.found()
     libvips_deps += spng_dep
@@ -280,7 +297,7 @@ endif
 # libwebp ... target 0.6+ to reduce complication
 # webp has the stuff for handling metadata in two separate libraries -- we
 # insist on having both of them
-libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('png'))
+libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('webp'))
 if libwebp_dep.found()
     libvips_deps += libwebp_dep
     libvips_deps += dependency('libwebpmux', version: '>=0.6')
@@ -448,11 +465,13 @@ elif libpoppler_dep.found() and cairo_dep.found()
     cfg_var.set('HAVE_POPPLER', '1')
 endif
 
-libnifti_dep = cc.find_library('niftiio', has_headers: 'nifti1_io.h', required: false)
+# niftiio.pc is not always present, so fallback to CMake's find_package() functionally
+# TODO: simplify this when requiring meson>=0.60.0
+libnifti_dep = dependency('niftiio', required: false)
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI::niftiio'], required: get_option('nifti'))
 endif
-if libnifti_dep.found()
+if not get_option('nifti').disabled() and libnifti_dep.found()
     libvips_deps += libnifti_dep
     cfg_var.set('HAVE_NIFTI', '1')
 endif
@@ -500,13 +519,18 @@ cfg_var.set_quoted('VIPS_PREFIX', prefix_dir)
 cfg_var.set_quoted('VIPS_LIBDIR', lib_dir)
 if cc.has_function('ngettext')
     cfg_var.set('ENABLE_NLS', 1)
+    have_bind_textdomain_codeset = cc.has_function('bind_textdomain_codeset')
 else
     libintl_dep = cc.find_library('intl', required: false)
     if libintl_dep.found()
         libvips_deps += libintl_dep
         cfg_var.set('ENABLE_NLS', 1)
+        have_bind_textdomain_codeset = cc.has_function('bind_textdomain_codeset', prefix: '#include <libintl.h>', dependencies: libintl_dep)
+    else
+        have_bind_textdomain_codeset = false
     endif
 endif
+cfg_var.set('HAVE_BIND_TEXTDOMAIN_CODESET', have_bind_textdomain_codeset)
 
 target_system = target_machine.system()
 if target_system == 'darwin'

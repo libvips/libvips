@@ -816,6 +816,8 @@ typedef enum {
 
 int vips_dzsave( VipsImage *in, const char *name, ... )
 	__attribute__((sentinel));
+int vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignHeifCompression:

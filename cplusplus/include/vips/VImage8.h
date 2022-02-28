@@ -189,6 +189,7 @@ public:
 
 class VIPS_CPLUSPLUS_API VImage;
 class VIPS_CPLUSPLUS_API VInterpolate;
+class VIPS_CPLUSPLUS_API VRegion;
 class VIPS_CPLUSPLUS_API VSource;
 class VIPS_CPLUSPLUS_API VTarget;
 class VIPS_CPLUSPLUS_API VOption;
@@ -1054,6 +1055,24 @@ public:
 
 		return( result ); 
 	}
+
+	/**
+	 * Acquire VRegion covering the whole image.
+	 */
+	VRegion
+	region() const;
+
+	/**
+	 * Acquire VRegion covering the given VipsRect.
+	 */
+	VRegion
+	region( VipsRect *rect ) const;
+
+	/**
+	 * Acquire VRegion covering the given coordinates.
+	 */
+	VRegion
+	region( int left, int top, int width, int height ) const;
 
 	/**
 	 * Apply a linear transform to an image. For every pixel,

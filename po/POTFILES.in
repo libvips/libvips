@@ -40,7 +40,6 @@ libvips/include/vips/region.h
 libvips/include/vips/resample.h
 libvips/include/vips/sbuf.h
 libvips/include/vips/semaphore.h
-libvips/include/vips/soname.h
 libvips/include/vips/thread.h
 libvips/include/vips/threadpool.h
 libvips/include/vips/transform.h

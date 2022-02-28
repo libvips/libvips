@@ -54,7 +54,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -373,7 +373,7 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 #endif /*DEBUG*/
 }
 
-VipsInterpolate *
+static VipsInterpolate *
 vips_interpolate_nearest_new( void )
 {
 	return( VIPS_INTERPOLATE( vips_object_new(
