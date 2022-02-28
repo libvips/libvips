@@ -419,52 +419,46 @@ vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 
 	/* Write the new pixels into frame.
 	 */
-	for(;;) {
+	do {
 		VipsRect *to = &cgif->frame->valid;
-		VipsRect target;
 
-		/* The bit of the frame that needs filling.
-		 */
-		target.left = 0;
-		target.top = cgif->write_y;
-		target.width = to->width;
-		target.height = to->height;
-		vips_rect_intersectrect( &target, to, &target );
+		VipsRect hit;
 
-		/* Clip against the pixels we have just been given.
+		/* The bit of the frame that we can fill.
 		 */
-		vips_rect_intersectrect( &target, area, &target );
-
-		/* Have we used up all the pixels libvips just gave us? We are 
-		 * done.
-		 */
-		if( vips_rect_isempty( &target ) ) 
-			break;
+		vips_rect_intersectrect( area, to, &hit );
 
 		/* Write the new pixels into the frame.
 		 */
 		vips_region_copy( region, cgif->frame, 
-			&target, target.left, target.top );
+			&hit, hit.left, hit.top );
 
-		cgif->write_y += target.height;
+		cgif->write_y += hit.height;
 
-		/* If frame has filled, write it, and move the frame down the
-		 * image.
+		/* If we've filled the frame, write and move it down.
 		 */
-		if( cgif->write_y == VIPS_RECT_BOTTOM( to ) ) {
-			VipsRect frame_rect;
+		if( VIPS_RECT_BOTTOM( &hit ) == VIPS_RECT_BOTTOM( to ) ) {
+			VipsRect new_frame;
+			VipsRect image;
 
 			if( vips_foreign_save_cgif_write_frame( cgif ) ) 
 				return( -1 );
 
-			frame_rect.left = 0;
-			frame_rect.top = cgif->write_y;
-			frame_rect.width = to->width;
-			frame_rect.height = to->height;
-			if( vips_region_buffer( cgif->frame, &frame_rect ) ) 
+			new_frame.left = 0;
+			new_frame.top = cgif->write_y;
+			new_frame.width = to->width;
+			new_frame.height = to->height;
+			image.left = 0;
+			image.top = 0;
+			image.width = cgif->in->Xsize;
+			image.height = cgif->in->Ysize;
+			vips_rect_intersectrect( &new_frame, &image, 
+				&new_frame );
+			if( !vips_rect_isempty( &new_frame ) &&
+				vips_region_buffer( cgif->frame, &new_frame ) ) 
 				return( -1 );
 		}
-	}
+	} while( VIPS_RECT_BOTTOM( area ) > cgif->write_y );
 
 	return( 0 );
 }
