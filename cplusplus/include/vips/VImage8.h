@@ -1057,7 +1057,7 @@ public:
 	}
 
 	/**
-	 * Acquire VRegion covering the whole image.
+	 * Acquire an unprepared VRegion.
 	 */
 	VRegion
 	region() const;

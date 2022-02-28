@@ -835,6 +835,7 @@ INPUT                  = \
 	@DOXY_INPUT_DIRECTORY@/include/vips/VError8.h \
 	@DOXY_INPUT_DIRECTORY@/include/vips/VImage8.h \
 	@DOXY_INPUT_DIRECTORY@/include/vips/VInterpolate8.h \
+	@DOXY_INPUT_DIRECTORY@/include/vips/VRegion8.h \
 	@DOXY_INPUT_DIRECTORY@/include/vips/vips8
 
 # This tag can be used to specify the character encoding of the source files

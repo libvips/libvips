@@ -123,6 +123,15 @@ public:
 	}
 
 	/**
+	 * Get the stride (bytes per row, including padding) of the region.
+	 */
+	size_t
+	stride() const
+	{
+		return VIPS_REGION_LSKIP( get_region() );
+	}
+
+	/**
 	 * Get VipsPel at the given index of the region.
 	 */
 	VipsPel
