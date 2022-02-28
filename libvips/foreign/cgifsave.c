@@ -164,33 +164,19 @@ static int vips__cgif_write( void *target, const uint8_t *buffer,
    In combination with the GIF transparency optimization this leads to
    less difference between frames and therefore improves the compression ratio.
  */
-static int
-cgif_cmppixel(const VipsPel *cur, const VipsPel *bef, const int maxdistance) {
-	int r1,g1,b1,r2,g2,b2;
-	int abs1, abs2, abs3;
-
-	if( bef[3] != 0xFF ) {
+static gboolean
+cgif_pixels_are_equal(const VipsPel *cur, const VipsPel *bef, double maxerror)
+{
+	if( bef[3] != 0xFF )
 		/* Done. Cannot compare with alpha channel in frame before.
 		 */
-		return 1;
-	}
-	r1 = cur[0];
-	g1 = cur[1];
-	b1 = cur[2];
-	r2 = bef[0];
-	g2 = bef[1];
-	b2 = bef[2];
-	/* Calculate Euclidean distance between the two points
-	*  to compare with each other.
+		return FALSE;
+	/* Test Euclidean distance between the two points.
 	*/
-	abs1 = abs(r1 - r2);
-	abs2 = abs(g1 - g2);
-	abs3 = abs(b1 - b2);
-	const int distance = sqrt((abs1 * abs1) + (abs2 * abs2) + (abs3 * abs3));
-	if( distance <= maxdistance ) {
-		return 0;
-	}
-	return 1;
+	const int dR = cur[0] - bef[0];
+	const int dG = cur[1] - bef[1];
+	const int dB = cur[2] - bef[2];
+	return( sqrt( dR * dR + dG * dG + dB * dB ) <= maxerror );
 }
 
 /* We have a complete frame --- write!
@@ -348,21 +334,35 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Do the transparency trick (only possible when no alpha channel present)
 	*/
 	if( cgif->frame_bytes_head ) {
+		VipsPel *cur, *bef;
+
+		cur = frame_bytes;
+		bef = cgif->frame_bytes_head;
 		if( !cgif->has_transparency ) {
-			const uint8_t transIndex = cgif->lp->count;
-			for(uint32_t i = 0; i < frame_rect->width * frame_rect->height; i++) {
-				if(cgif_cmppixel(frame_bytes + 4 * i, cgif->frame_bytes_head + 4 * i, cgif->maxerror) == 0) {
-					cgif->index[i] = transIndex;
-				} else {
-					memcpy(cgif->frame_bytes_head + 4 * i, frame_bytes + 4 * i, 4);
+			const uint8_t trans_index = cgif->lp->count;
+			const double maxerror = cgif->maxerror;
+
+			int i;
+
+			for( i = 0; i < n_pels; i++ ) {
+				if( cgif_pixels_are_equal( cur, bef, maxerror ) )
+					cgif->index[i] = trans_index;
+				else {
+					bef[0] = cur[0];
+					bef[1] = cur[1];
+					bef[2] = cur[2];
+					bef[3] = cur[3];
 				}
+				cur += 4;
+				bef += 4;
 			}
 			frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
-			frame_config.transIndex = transIndex;
+			frame_config.transIndex = trans_index;
 		} else {
-			/* Transparency trick not possible (alpha channel present). Update head.
+			/* Transparency trick not possible (alpha channel present).
+			 * Update head.
 			 */
-			memcpy(cgif->frame_bytes_head, frame_bytes, 4 * frame_rect->width * frame_rect->height);
+			memcpy( bef, cur, 4 * n_pels);
 		}
 	}
 
