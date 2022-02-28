@@ -62,7 +62,7 @@ typedef struct _VipsForeignSaveCgif {
 	double dither;
 	int effort;
 	int bitdepth;
-	int maxerror;
+	double maxerror;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -599,12 +599,12 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, bitdepth ),
 		1, 8, 8 );
 
-	VIPS_ARG_INT( class, "maxerror", 13,
+	VIPS_ARG_DOUBLE( class, "maxerror", 13,
 		_( "Max. error for lossy transparency setting"),
 		_( "Maximum pixel error to allow when identifying areas as identical (inter frame)" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
-		0, 32, 6 );
+		0, 32, 0.0 );
 }
 
 static void
@@ -613,7 +613,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->dither = 1.0;
 	gif->effort = 7;
 	gif->bitdepth = 8;
-	gif->maxerror = 6;
+	gif->maxerror = 0.0;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
