@@ -82,9 +82,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
-          brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
-          brew install --build-bottle lovell/cgif-packaging/cgif
+          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp cgif
 
       - name: Install Clang 13
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-13'

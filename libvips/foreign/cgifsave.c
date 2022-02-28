@@ -45,6 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <vips/vips.h>
 
@@ -61,6 +62,7 @@ typedef struct _VipsForeignSaveCgif {
 	double dither;
 	int effort;
 	int bitdepth;
+	double maxerror;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -100,6 +102,10 @@ typedef struct _VipsForeignSaveCgif {
 	 */
 	VipsPel *index;
 
+	/* frame_bytes head (needed for transparency trick).
+	*/
+	VipsPel *frame_bytes_head;
+
 	/* The frame as written by libcgif.
 	 */
 	CGIF *cgif_context;
@@ -138,6 +144,7 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 
 	VIPS_FREE( cgif->palette_rgb );
 	VIPS_FREE( cgif->index );
+	VIPS_FREE( cgif->frame_bytes_head );
 
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
@@ -151,6 +158,25 @@ static int vips__cgif_write( void *target, const uint8_t *buffer,
 	const size_t length ) {
 	return vips_target_write( (VipsTarget *) target,
 		(const void *) buffer, (size_t) length );
+}
+
+/* Compare pixels in a lossy way (allow a slight colour difference).
+   In combination with the GIF transparency optimization this leads to
+   less difference between frames and therefore improves the compression ratio.
+ */
+static gboolean
+cgif_pixels_are_equal(const VipsPel *cur, const VipsPel *bef, double maxerror)
+{
+	if( bef[3] != 0xFF )
+		/* Done. Cannot compare with alpha channel in frame before.
+		 */
+		return FALSE;
+	/* Test Euclidean distance between the two points.
+	*/
+	const int dR = cur[0] - bef[0];
+	const int dG = cur[1] - bef[1];
+	const int dB = cur[2] - bef[2];
+	return( sqrt( dR * dR + dG * dG + dB * dB ) <= maxerror );
 }
 
 /* We have a complete frame --- write!
@@ -274,8 +300,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
-		cgif->cgif_config.attrFlags |= 
-			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
@@ -285,12 +309,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		cgif->cgif_context = cgif_newgif( &cgif->cgif_config );
 	}
-
-	/* Reset global transparency flag.
-	 */
-	cgif->cgif_config.attrFlags = 
-		(cgif->cgif_config.attrFlags & ~CGIF_ATTR_HAS_TRANSPARENCY) |
-		(cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0);
 
 	/* Write frame to cgif.
 	 */
@@ -303,6 +321,50 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	frame_config.genFlags = 
 		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+	frame_config.attrFlags = 0;
+
+	/* Switch per-frame alpha channel on.
+	 * Index 0 is used for pixels with alpha channel.
+	 */
+	if( cgif->has_transparency ) {
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_ALPHA;
+		frame_config.transIndex = 0;
+	}
+
+	/* Do the transparency trick (only possible when no alpha channel present)
+	*/
+	if( cgif->frame_bytes_head ) {
+		VipsPel *cur, *bef;
+
+		cur = frame_bytes;
+		bef = cgif->frame_bytes_head;
+		if( !cgif->has_transparency ) {
+			const uint8_t trans_index = cgif->lp->count;
+			const double maxerror = cgif->maxerror;
+
+			int i;
+
+			for( i = 0; i < n_pels; i++ ) {
+				if( cgif_pixels_are_equal( cur, bef, maxerror ) )
+					cgif->index[i] = trans_index;
+				else {
+					bef[0] = cur[0];
+					bef[1] = cur[1];
+					bef[2] = cur[2];
+					bef[3] = cur[3];
+				}
+				cur += 4;
+				bef += 4;
+			}
+			frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
+			frame_config.transIndex = trans_index;
+		} else {
+			/* Transparency trick not possible (alpha channel present).
+			 * Update head.
+			 */
+			memcpy( bef, cur, 4 * n_pels);
+		}
+	}
 
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
@@ -312,12 +374,20 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Attach a local palette, if we need one.
 	 */
 	if( cgif->cgif_config.attrFlags & CGIF_ATTR_NO_GLOBAL_TABLE ) {
-		frame_config.attrFlags = CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
 		frame_config.pLocalPalette = cgif->palette_rgb;
 		frame_config.numLocalPaletteEntries = cgif->lp->count;
 	}
 
 	cgif_addframe( cgif->cgif_context, &frame_config );
+
+	if( !cgif->frame_bytes_head ) {
+		/* Keep head frame_bytes in memory for transparency trick
+		*  which avoids the size explosion (#2576).
+		*/
+		cgif->frame_bytes_head = g_malloc( 4 * n_pels );
+		memcpy( cgif->frame_bytes_head, frame_bytes, 4 * n_pels );
+	}
 
 	return( 0 );
 }
@@ -529,6 +599,12 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, bitdepth ),
 		1, 8, 8 );
 
+	VIPS_ARG_DOUBLE( class, "maxerror", 13,
+		_( "Max. error for lossy transparency setting"),
+		_( "Maximum pixel error to allow when identifying areas as identical (inter frame)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
+		0, 32, 0.0 );
 }
 
 static void
@@ -537,6 +613,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->dither = 1.0;
 	gif->effort = 7;
 	gif->bitdepth = 8;
+	gif->maxerror = 0.0;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
