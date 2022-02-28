@@ -234,7 +234,7 @@ endif
 
 cgif_dep = disabler()
 if quantisation_package.found()
-    cgif_dep = dependency('cgif', required: get_option('cgif'))
+    cgif_dep = dependency('cgif', version: '>=0.2.0', required: get_option('cgif'))
     if cgif_dep.found()
         libvips_deps += cgif_dep
         cfg_var.set('HAVE_CGIF', '1')
