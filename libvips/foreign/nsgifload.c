@@ -587,23 +587,6 @@ vips_foreign_load_nsgif_bitmap_create( int width, int height )
 	return g_malloc0( (gsize) width * height * 4 );
 }
 
-static void 
-vips_foreign_load_nsgif_bitmap_set_opaque( void *bitmap, bool opaque )
-{
-        (void) opaque;  /* unused */
-        (void) bitmap;  /* unused */
-        g_assert( bitmap );
-}
-
-static bool 
-vips_foreign_load_nsgif_bitmap_test_opaque( void *bitmap )
-{
-        (void) bitmap;  /* unused */
-        g_assert( bitmap );
-
-        return( false );
-}
-
 static unsigned char *
 vips_foreign_load_nsgif_bitmap_get_buffer( void *bitmap )
 {
@@ -619,22 +602,10 @@ vips_foreign_load_nsgif_bitmap_destroy( void *bitmap )
         g_free( bitmap );
 }
 
-static void 
-vips_foreign_load_nsgif_bitmap_modified( void *bitmap )
-{
-        (void) bitmap;  /* unused */
-        g_assert( bitmap );
-
-        return;
-}
-
 static gif_bitmap_callback_vt vips_foreign_load_nsgif_bitmap_callbacks = {
 	vips_foreign_load_nsgif_bitmap_create,
 	vips_foreign_load_nsgif_bitmap_destroy,
 	vips_foreign_load_nsgif_bitmap_get_buffer,
-	vips_foreign_load_nsgif_bitmap_set_opaque,
-	vips_foreign_load_nsgif_bitmap_test_opaque,
-	vips_foreign_load_nsgif_bitmap_modified
 };
 
 static void
