@@ -205,7 +205,6 @@ void vips_region_dump_all( void );
 
 /* Deprecated.
  */
-int vips__init( const char *argv0 );
 size_t vips__get_sizeof_vipsobject( void );
 VIPS_API
 int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );

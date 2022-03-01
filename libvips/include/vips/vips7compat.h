@@ -1645,6 +1645,8 @@ double *vips__ink_to_vector( const char *domain,
 VipsPel *im__vector_to_ink( const char *domain, 
 	VipsImage *im, int n, double *vec );
 
+int vips__init( const char *argv0 );
+
 /* This stuff is very, very old and should not be used by anyone now.
  */
 #ifdef VIPS_ENABLE_ANCIENT
