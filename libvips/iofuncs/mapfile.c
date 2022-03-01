@@ -79,6 +79,7 @@
 #endif /*HAVE_UNISTD_H*/
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef G_OS_WIN32
 #ifndef S_ISREG
