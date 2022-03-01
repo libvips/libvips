@@ -1647,6 +1647,8 @@ VipsPel *im__vector_to_ink( const char *domain,
 
 int vips__init( const char *argv0 );
 
+size_t vips__get_sizeof_vipsobject( void );
+
 /* This stuff is very, very old and should not be used by anyone now.
  */
 #ifdef VIPS_ENABLE_ANCIENT

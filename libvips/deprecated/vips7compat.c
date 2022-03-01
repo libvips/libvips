@@ -5772,3 +5772,12 @@ vips_window_ref( VipsImage *im, int top, int height )
 {
 	return( NULL );
 }
+
+/* Deprecated.
+ */
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) );
+}
+

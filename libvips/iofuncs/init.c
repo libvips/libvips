@@ -1304,14 +1304,6 @@ vips_leak_set( gboolean leak )
 	vips__leak = leak; 
 }
 
-/* Deprecated.
- */
-size_t
-vips__get_sizeof_vipsobject( void )
-{
-	return( sizeof( VipsObject ) ); 
-}
-
 static void *
 vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
 {

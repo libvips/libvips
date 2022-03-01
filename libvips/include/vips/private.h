@@ -203,9 +203,6 @@ void vips__region_count_pixels( struct _VipsRegion *region, const char *nickname
 VIPS_API
 void vips_region_dump_all( void );
 
-/* Deprecated.
- */
-size_t vips__get_sizeof_vipsobject( void );
 VIPS_API
 int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );
 
