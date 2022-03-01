@@ -71,7 +71,7 @@
 
 #ifdef HAVE_NSGIF
 
-#include <libnsgif/libnsgif.h>
+#include <libnsgif/nsgif.h>
 
 #define VIPS_TYPE_FOREIGN_LOAD_GIF (vips_foreign_load_nsgif_get_type())
 #define VIPS_FOREIGN_LOAD_GIF( obj ) \
