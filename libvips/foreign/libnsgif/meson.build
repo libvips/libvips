@@ -1,6 +1,6 @@
 nsgif_lib = static_library('nsgif',
-    'libnsgif.h',
-    'libnsgif.c',
+    'nsgif.h',
+    'gif.c',
     'lzw.c',
     'lzw.h',
 )
