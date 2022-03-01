@@ -185,7 +185,8 @@ extern "C" {
 
 /* Renamed externs.
  */
-extern const guint64 vips__image_sizeof_bandformat[];
+VIPS_DEPRECATED_FOR(vips_format_sizeof_unsafe)
+const guint64 vips__image_sizeof_bandformat[];
 #define im__sizeof_bandfmt vips__image_sizeof_bandformat
 
 /* Renamed functions.
@@ -238,6 +239,31 @@ int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
  */
 VIPS_DEPRECATED
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
+
+/* im_image_open_input() needs to have this visible.
+ */
+VIPS_DEPRECATED
+int vips_image_open_input( VipsImage *image );
+
+/* im_image_open_output() needs to have this visible.
+ */
+VIPS_DEPRECATED
+int vips_image_open_output( VipsImage *image );
+
+/* im_mapfile() needs to have this visible.
+ */
+VIPS_DEPRECATED
+int vips_mapfile( VipsImage *image );
+
+/* im_mapfilerw() needs to have this visible.
+ */
+VIPS_DEPRECATED
+int vips_mapfilerw( VipsImage *image );
+
+/* im_remapfilerw() needs to have this visible.
+ */
+VIPS_DEPRECATED
+int vips_remapfilerw( VipsImage *image );
 
 #define im_openout( F ) vips_image_new_mode( F, "w" )
 #define im_setbuf( F ) vips_image_new( "t" )

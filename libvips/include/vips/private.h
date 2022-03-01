@@ -175,14 +175,27 @@ int vips_region_fill( struct _VipsRegion *reg,
 int vips__image_wio_output( struct _VipsImage *image );
 int vips__image_pio_output( struct _VipsImage *image );
 
+/* VIPS_ARGUMENT_FOR_ALL() needs to have this visible.
+ */
+VIPS_API
 VipsArgumentInstance *vips__argument_get_instance( 
 	VipsArgumentClass *argument_class,
 	VipsObject *object);
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
 	GParamSpec *pspec);
 
+/* im_demand_hint_array() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 void vips__demand_hint_array( struct _VipsImage *image, 
 	int hint, struct _VipsImage **in );
+/* im_cp_desc_array() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips__image_copy_fields_array( struct _VipsImage *out, 
 	struct _VipsImage *in[] );
 
@@ -203,7 +216,8 @@ int vips__view_image( struct _VipsImage *image );
 
 /* Pre 8.7 libvipses used this for allocating argument ids.
  */
-extern int _vips__argument_id;
+VIPS_API
+int _vips__argument_id;
 
 void vips__meta_init( void );
 

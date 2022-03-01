@@ -157,7 +157,19 @@ int vips__object_leak( void );
  */
 int vips__open_image_read( const char *filename );
 int vips__open_image_write( const char *filename, gboolean temp );
+
+/* im_image_open_input() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips_image_open_input( VipsImage *image );
+
+/* im_image_open_output() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips_image_open_output( VipsImage *image );
 
 void vips__link_break_all( VipsImage *im );
@@ -167,9 +179,27 @@ void *vips__link_map( VipsImage *image, gboolean upstream,
 gboolean vips__mmap_supported( int fd );
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
 int vips__munmap( const void *start, size_t length );
-int vips_mapfile( VipsImage * );
-int vips_mapfilerw( VipsImage * );
-int vips_remapfilerw( VipsImage * );
+
+/* im_mapfile() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_mapfile( VipsImage *image );
+
+/* im_mapfilerw() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_mapfilerw( VipsImage *image );
+
+/* im_remapfilerw() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_remapfilerw( VipsImage *image );
 
 void vips__buffer_init( void );
 void vips__buffer_shutdown( void );
@@ -207,6 +237,12 @@ int vips_image_written( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
+
+/* im_openout() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
