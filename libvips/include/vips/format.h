@@ -29,8 +29,8 @@
 
  */
 
-#ifndef IM_FORMAT_H
-#define IM_FORMAT_H
+#ifndef VIPS_FORMAT_H
+#define VIPS_FORMAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,4 +132,4 @@ int vips_format_write( VipsImage *in, const char *filename );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_FORMAT_H*/
+#endif /*VIPS_FORMAT_H*/
