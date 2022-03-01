@@ -225,10 +225,10 @@ int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
 
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_temp_file
-#define im__test_kill( I ) (vips_image_get_kill( I ))
-#define im__start_eval( I ) (vips_image_preeval( I ), vips_image_get_kill( I ))
+#define im__test_kill( I ) (vips_image_iskilled( I ))
+#define im__start_eval( I ) (vips_image_preeval( I ), vips_image_iskilled( I ))
 #define im__handle_eval( I, W, H ) \
-	(vips_image_eval( I, W, H ), vips_image_get_kill( I ))
+	(vips_image_eval( I, W, H ), vips_image_iskilled( I ))
 #define im__end_eval vips_image_posteval
 #define im_invalidate vips_image_invalidate_all
 #define im_isfile vips_image_isfile
