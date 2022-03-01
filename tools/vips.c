@@ -94,6 +94,7 @@
 #include <ctype.h>
 #include <locale.h>
 
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 
