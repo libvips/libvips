@@ -1533,11 +1533,9 @@ VIPS_DEPRECATED
 FILE *vips_popenf( const char *fmt, const char *mode, ... )
 	__attribute__((format(printf, 1, 3)));
 
-VIPS_DEPRECATED
 double *vips__ink_to_vector( const char *domain, 
 	VipsImage *im, VipsPel *ink, int *n ); 
 
-VIPS_DEPRECATED
 VipsPel *im__vector_to_ink( const char *domain, 
 	VipsImage *im, int n, double *vec );
 
