@@ -114,6 +114,8 @@ vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	VipsBuf buf;
 	char text[1024];
 
+	t[0] = vips_image_new();
+
 	/* Scale, rotate and displace sec.
 	 */
 	if( apply_similarity( &trn, sec, t[0], a, b, dx, dy ) )
@@ -159,6 +161,8 @@ vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	VipsBuf buf;
 	char text[1024];
+
+	t[0] = vips_image_new();
 
 	/* Scale, rotate and displace sec.
 	 */
@@ -259,6 +263,8 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	else
 		t[1] = sec;
 
+	t[2] = vips_image_new();
+
 	/* Solve to get scale + rot + disp.
 	 */
 	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
@@ -346,6 +352,8 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 		vips_object_local_array( VIPS_OBJECT( out ), 2 );
 	VipsImage *dummy;
 
+	t[0] = vips_image_new();
+
 	/* Solve to get scale + rot + disp.
 	 */
 	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
@@ -381,6 +389,8 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 		a1, b1, dx1, dy1 );
 	printf( "final: a = %g, b = %g, dx = %g, dy = %g\n",
 		af, bf, dxf, dyf );
+
+	t[1] = vips_image_new();
 
 	/* Scale and rotate final.
 	 */
