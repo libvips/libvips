@@ -513,9 +513,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	frame_rect.top = 0;
 	frame_rect.width = cgif->in->Xsize;
 	frame_rect.height = page_height;
-	if( (guint64) frame_rect.width * frame_rect.height > 2000 * 2000 ) {
-		/* RGBA sum may overflow a 32-bit uint.
-		 */
+	if( (guint64) frame_rect.width * frame_rect.height > 5000 * 5000 ) {
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
 	}
