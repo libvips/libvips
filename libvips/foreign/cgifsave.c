@@ -91,12 +91,9 @@ typedef struct _VipsForeignSaveCgif {
 	const VipsQuantisePalette *lp;
 
 	/* The current colourmap, updated on a significant frame change.
-	 *
-	 * frame_sum is 32-bit, so we can handle a max of about 2000 x 2000 
-	 * RGB pixel per frame.
 	 */
 	VipsPel *palette_rgb;
-	guint frame_sum;
+	guint64 frame_sum;
 
 	/* The index frame we get libimagequant to generate.
 	 */
@@ -193,14 +190,13 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* We know this fits in an int since we limit frame size.
 	 */
 	int n_pels = frame_rect->height * frame_rect->width;
-	guint max_sum = 256 * n_pels * 4;
 	VipsPel *frame_bytes = 
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
 	VipsPel *rgb;
-	guint sum;
-	double percent_change;
+	guint64 sum;
+	double change;
 	int i;
 	CGIF_FrameConfig frame_config;
 
@@ -230,14 +226,21 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	sum = 0;
 	p = frame_bytes;
-	for( i = 0; i < n_pels * 4; i++ )
-		sum += p[i]; 
-	percent_change = 100 * 
-		fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum) );
+	for( i = 0; i < n_pels; i++ ) {
+		/* Scale RGBA differently so that changes like [0, 255, 0] 
+		 * to [255, 0, 0] are detected.
+		 */
+		sum += p[0] * 1000; 
+		sum += p[1] * 100; 
+		sum += p[2] * 10; 
+		sum += p[3]; 
+
+		p += 4;
+	}
+	change = VIPS_ABS( (sum - cgif->frame_sum) / n_pels );
 
 	if( cgif->frame_sum == 0 ||
-		percent_change > 0 ) { 
+		change > 0 ) { 
 		cgif->frame_sum = sum;
 
 		/* If this is not our first cmap, make a note that we need to
