@@ -69,7 +69,7 @@ vips__clinear( TiePoints *points )
 	VipsImage *mat, *matinv;
 	double *g;
 	double value;
-	double sx1 = 0.0, sx1x1 = 0.0, sy1 = 0.0, sy1y1 = 0.0, sx1y1 = 0.0;
+	double sx1 = 0.0, sx1x1 = 0.0, sy1 = 0.0, sy1y1 = 0.0;
 	double sx2x1 = 0.0, sx2y1 = 0.0, sx2 = 0.0, sy2 = 0.0, sy2y1 = 0.0, sy2x1 = 0.0;
 
 	int i, j;
@@ -99,7 +99,6 @@ vips__clinear( TiePoints *points )
 		sx1x1 += xref[i] * xref[i];
 		sy1 += yref[i];
 		sy1y1 += yref[i] * yref[i];
-		sx1y1 += xref[i] * yref[i];
 		sx2x1 += xsec[i] * xref[i];
 		sx2y1 += xsec[i] * yref[i];
 		sy2y1 += ysec[i] * yref[i];

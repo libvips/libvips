@@ -4363,7 +4363,6 @@ VImage mosaic( VImage sec, VipsDirection direction, int xref, int yref, int xsec
  *   - **search** -- Search to improve tie-points, bool.
  *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **mblend** -- Maximum blend size, int.
- *   - **bandno** -- Band to search for features on, int.
  *
  * @param sec Secondary image.
  * @param direction Horizontal or vertical mosaic.

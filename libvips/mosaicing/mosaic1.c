@@ -114,6 +114,8 @@ vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	VipsBuf buf;
 	char text[1024];
 
+	t[0] = vips_image_new();
+
 	/* Scale, rotate and displace sec.
 	 */
 	if( apply_similarity( &trn, sec, t[0], a, b, dx, dy ) )
@@ -159,6 +161,8 @@ vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	VipsBuf buf;
 	char text[1024];
+
+	t[0] = vips_image_new();
 
 	/* Scale, rotate and displace sec.
 	 */
@@ -222,11 +226,9 @@ rotjoin( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
  */
 static int
 rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
-	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
 	int halfcorrelation, int halfarea,
-	int balancetype,
 	int mwidth )
 { 
 	VipsTransformation trn;
@@ -250,14 +252,20 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 		if( vips_LabQ2LabS( ref, &t[0], NULL ) )
 			return( -1 );
 	}
-	else
+	else {
 		t[0] = ref;
+		g_object_ref( t[0] );
+	}
 	if( sec->Coding == VIPS_CODING_LABQ ) {
 		if( vips_LabQ2LabS( sec, &t[1], NULL ) )
 			return( -1 );
 	}
-	else
+	else {
 		t[1] = sec;
+		g_object_ref( t[1] );
+	}
+
+	t[2] = vips_image_new();
 
 	/* Solve to get scale + rot + disp.
 	 */
@@ -329,7 +337,6 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
 	int halfcorrelation, int halfarea,
-	int balancetype,
 	int mwidth )
 { 
 	VipsTransformation trn1, trn2;
@@ -345,6 +352,8 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( out ), 2 );
 	VipsImage *dummy;
+
+	t[0] = vips_image_new();
 
 	/* Solve to get scale + rot + disp.
 	 */
@@ -382,6 +391,8 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	printf( "final: a = %g, b = %g, dx = %g, dy = %g\n",
 		af, bf, dxf, dyf );
 
+	t[1] = vips_image_new();
+
 	/* Scale and rotate final.
 	 */
 	if( apply_similarity( &trn2, sec, t[1], af, bf, dxf, dyf ) )
@@ -394,7 +405,7 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* And join to ref.
 	 */
-	if( vips_merge( ref, t[1], out, VIPS_DIRECtION_HORIZONTAL,
+	if( vips_merge( ref, t[1], out, VIPS_DIRECTION_HORIZONTAL,
 		-trn2.area.left, -trn2.area.top, mwidth ) )
 		return( -1 );
 
@@ -451,11 +462,9 @@ vips_mosaic1_build( VipsObject *object )
 	if( mosaic1->search ) {
 		if( rotjoin_search( mosaic1->ref, mosaic1->sec, mosaic1->out, 
 			jfn,
-			mosaic1->bandno,
 			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1, 
 			mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
-			mosaic1->hwindow, mosaic1->harea, 
-			0,
+			mosaic1->hwindow, mosaic1->harea,
 			mosaic1->mblend ) )
 			return( -1 );
 	}
@@ -602,7 +611,7 @@ vips_mosaic1_class_init( VipsMosaic1Class *class )
 	VIPS_ARG_INT( class, "bandno", 18, 
 		_( "Search band" ), 
 		_( "Band to search for features on" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsMosaic1, bandno ),
 		0, 10000, 0 );
 
@@ -639,7 +648,6 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * * @harea: half search size 
  * * @interpolate: interpolate pixels with this
  * * @mblend: maximum blend size 
- * * @bandno: band to search for features
  *
  * This operation joins two images top-bottom (with @sec on the right) 
  * or left-right (with @sec at the bottom)

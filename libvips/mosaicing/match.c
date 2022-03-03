@@ -66,14 +66,14 @@ vips__coeff( int xr1, int yr1, int xs1, int ys1,
 		return( -1 );
 	}
 
-	*a = *VIPS_MATRIX( t[1], 0, 0 ) * xr1 + *VIPS_MATRIX( t[1], 0, 1 ) * yr1 +
-		*VIPS_MATRIX( t[1], 0, 2 ) * xr2 + *VIPS_MATRIX( t[1], 0, 3 ) * yr2;
-	*b = *VIPS_MATRIX( t[1], 1, 0 ) * xr1 + *VIPS_MATRIX( t[1], 1, 1 ) * yr1 +
-		*VIPS_MATRIX( t[1], 1, 2 ) * xr2 + *VIPS_MATRIX( t[1], 1, 3 ) * yr2;
-	*dx= *VIPS_MATRIX( t[1], 2, 0 ) * xr1 + *VIPS_MATRIX( t[1], 2, 1 ) * yr1 +
-		*VIPS_MATRIX( t[1], 2, 2 ) * xr2 + *VIPS_MATRIX( t[1], 2, 3 ) * yr2;
-	*dy= *VIPS_MATRIX( t[1], 3, 0 ) * xr1 + *VIPS_MATRIX( t[1], 3, 1 ) * yr1 +
-		*VIPS_MATRIX( t[1], 3, 2 ) * xr2 + *VIPS_MATRIX( t[1], 3, 3 ) * yr2;
+	*a = *VIPS_MATRIX( t[1], 0, 0 ) * xr1 + *VIPS_MATRIX( t[1], 1, 0 ) * yr1 +
+		*VIPS_MATRIX( t[1], 2, 0 ) * xr2 + *VIPS_MATRIX( t[1], 3, 0 ) * yr2;
+	*b = *VIPS_MATRIX( t[1], 0, 1 ) * xr1 + *VIPS_MATRIX( t[1], 1, 1 ) * yr1 +
+		*VIPS_MATRIX( t[1], 2, 1 ) * xr2 + *VIPS_MATRIX( t[1], 3, 1 ) * yr2;
+	*dx = *VIPS_MATRIX( t[1], 0, 2 ) * xr1 + *VIPS_MATRIX( t[1], 1, 2 ) * yr1 +
+		*VIPS_MATRIX( t[1], 2, 2 ) * xr2 + *VIPS_MATRIX( t[1], 3, 2 ) * yr2;
+	*dy = *VIPS_MATRIX( t[1], 0, 3 ) * xr1 + *VIPS_MATRIX( t[1], 1, 3 ) * yr1 +
+		*VIPS_MATRIX( t[1], 2, 3 ) * xr2 + *VIPS_MATRIX( t[1], 3, 3 ) * yr2;
 
 	g_object_unref( t[0] );
 	g_object_unref( t[1] );
