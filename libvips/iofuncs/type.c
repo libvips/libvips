@@ -698,7 +698,8 @@ vips_blob_get( VipsBlob *blob, size_t *length )
 		length, NULL, NULL, NULL ) ); 
 }
 
-/* vips_blob_set:
+/**
+ * vips_blob_set:
  * @blob: #VipsBlob to set
  * @free_fn: (scope async) (allow-none): @data will be freed with this function
  * @data: (array length=length) (element-type guint8) (transfer full): data to store

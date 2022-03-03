@@ -44,7 +44,7 @@ extern "C" {
  * writes.
  */
 
-typedef struct _VipsBuf {
+struct _VipsBuf {
 	/* All fields are private.
 	 */
 	/*< private >*/
@@ -54,7 +54,7 @@ typedef struct _VipsBuf {
 	gboolean full;		/* String has filled, block writes */
 	int lasti;		/* For read-recent */
 	gboolean dynamic;	/* We own the string with malloc() */
-} VipsBuf; 
+}; 
 
 #define VIPS_BUF_STATIC( TEXT ) \
 	{ &TEXT[0], sizeof( TEXT ), 0, FALSE, 0, FALSE }

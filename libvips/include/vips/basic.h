@@ -99,6 +99,8 @@ struct _VipsImage;
 typedef struct _VipsImage VipsImage;
 struct _VipsRegion; 
 typedef struct _VipsRegion VipsRegion;
+struct _VipsBuf;
+typedef struct _VipsBuf VipsBuf;
 struct _VipsSource; 
 typedef struct _VipsSource VipsSource;
 struct _VipsTarget; 
