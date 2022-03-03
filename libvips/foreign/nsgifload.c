@@ -2,6 +2,8 @@
  *
  * 6/10/18
  * 	- from gifload.c
+ * 3/3/22 tlsa
+ *	- update libnsgif API
  */
 
 /*
@@ -63,10 +65,6 @@
  * - hard to detect mono images -- local_colour_table in libnsgif is only set
  *   when we decode a frame, so we can't tell just from init whether any
  *   frames have colour info
- *
- * - don't bother detecting alpha -- if we can't detect RGB, alpha won't help
- *   much
- *
  */
 
 #ifdef HAVE_NSGIF
@@ -129,6 +127,11 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	gboolean has_transparency;
 
+	/* The current frame bitmap and the frame number for it.
+	 */
+	nsgif_bitmap_t *bitmap;
+	int frame_number;
+
 } VipsForeignLoadNsgif;
 
 typedef VipsForeignLoadClass VipsForeignLoadNsgifClass;
@@ -136,19 +139,12 @@ typedef VipsForeignLoadClass VipsForeignLoadNsgifClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNsgif, vips_foreign_load_nsgif, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static const char *
-vips_foreign_load_nsgif_errstr( nsgif_error result )
-{
-	return nsgif_strerror( result );
-}
-
 static void
 vips_foreign_load_nsgif_error( VipsForeignLoadNsgif *gif, nsgif_error result )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 
-	vips_error( class->nickname, "%s", 
-		vips_foreign_load_nsgif_errstr( result ) );
+	vips_error( class->nickname, "%s", nsgif_strerror( result ) );
 }
 
 static void
@@ -198,23 +194,22 @@ vips_foreign_load_nsgif_is_a_source( VipsSource *source )
 #ifdef VERBOSE
 
 static void
-print_frame( const nsgif_frame_info_t *frame )
+print_frame( const nsgif_frame_info_t *frame_info )
 {
-	if ( frame == NULL )
+	if ( frame_info == NULL )
 		return;
 
-	printf( "frame:\n" );
-	printf( "  display = %d\n", frame->display );
-	printf( "  delay = %d\n", frame->delay );
-//	printf( "  opaque = %d\n", frame->opaque );
+	printf( "frame_info:\n" );
+	printf( "  display = %d\n", frame_info->display );
+	printf( "  transparency = %d\n", frame_info->transparency );
 	printf( "  disposal = %d (%s)\n", 
-		frame->disposal, nsgif_str_disposal( frame->disposal ) );
-	printf( "  transparency = %d\n", frame->transparency );
-//	printf( "  transparency_index = %d\n", frame->transparency_index );
-	printf( "  rect.x0 = %u\n", frame->rect.x0 );
-	printf( "  rect.y0 = %u\n", frame->rect.y0 );
-	printf( "  rect.x1 = %u\n", frame->rect.x1 );
-	printf( "  rect.y1 = %u\n", frame->rect.y1 );
+		frame_info->disposal, 
+		nsgif_str_disposal( frame_info->disposal ) );
+	printf( "  delay = %d\n", frame_info->delay );
+	printf( "  rect.x0 = %u\n", frame_info->rect.x0 );
+	printf( "  rect.y0 = %u\n", frame_info->rect.y0 );
+	printf( "  rect.x1 = %u\n", frame_info->rect.x1 );
+	printf( "  rect.y1 = %u\n", frame_info->rect.y1 );
 }
 
 static void
@@ -226,17 +221,20 @@ print_animation( nsgif_t *anim, const nsgif_info_t *info )
 	printf( "  width = %d\n", info->width );
 	printf( "  height = %d\n", info->height );
 	printf( "  frame_count = %d\n", info->frame_count );
+	printf( "  loop_max = %d\n", info->loop_max );
 	printf( "  loop_count = %d\n", info->loop_count );
-//	printf( "  colour_table_size = %d\n", anim->colour_table_size );
-//	printf( "  global_colours = %d\n", anim->global_colours );
-//	printf( "  global_colour_table = %p\n", anim->global_colour_table );
-//	printf( "  local_colour_table = %p\n", anim->local_colour_table );
+	printf( "  background = %d %d %d %d\n",
+		info->background[0],
+		info->background[1],
+		info->background[2],
+		info->background[3] );
 
 	for( i = 0; i < info->frame_count; i++ ) {
 		printf( "%d ", i );
 		print_frame( nsgif_get_frame_info( anim, i ) );
 	}
 }
+
 #endif /*VERBOSE*/
 
 static int
@@ -386,8 +384,6 @@ static int
 vips_foreign_load_nsgif_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
-	int prev_page = -1;
-	nsgif_bitmap_t *bitmap;
 	VipsRect *r = &or->valid;
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) a;
 
@@ -410,21 +406,24 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 		g_assert( line >= 0 && line < gif->info->height );
 		g_assert( page >= 0 && page < gif->info->frame_count );
 
-		if( prev_page != page ) {
-			result = nsgif_frame_decode( gif->anim, page, &bitmap );
+		if( gif->frame_number != page ) {
+			result = nsgif_frame_decode( gif->anim, 
+				page, &gif->bitmap );
 			VIPS_DEBUG_MSG( "  nsgif_frame_decode(%d) = %d\n",
 				page, result );
 			if( result != NSGIF_OK ) {
 				vips_foreign_load_nsgif_error( gif, result );
 				return( -1 );
 			}
+
 #ifdef VERBOSE
-			print_animation( gif->anim );
+			print_frame( nsgif_get_frame_info( gif->anim, page ) );
 #endif /*VERBOSE*/
-			prev_page = page;
+
+			gif->frame_number = page;
 		}
 
-		p = bitmap + line * gif->info->width * sizeof( int );
+		p = gif->bitmap + line * gif->info->width * sizeof( int );
 		q = VIPS_REGION_ADDR( or, 0, r->top + y );
 		if( gif->has_transparency )
 			memcpy( q, p, VIPS_REGION_SIZEOF_LINE( or ) );
@@ -564,7 +563,10 @@ vips_foreign_load_nsgif_init( VipsForeignLoadNsgif *gif )
 			nsgif_strerror( result ) );
 		return;
 	}
+
 	gif->n = 1;
+	gif->frame_number = -1;
+	gif->bitmap = NULL;
 }
 
 typedef struct _VipsForeignLoadNsgifFile {
