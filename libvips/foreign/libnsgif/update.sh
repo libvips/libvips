@@ -7,9 +7,15 @@ set -e
 git clone git://git.netsurf-browser.org/libnsgif.git
 
 echo copying out source files ...
-cp libnsgif/src/libnsgif.c .
-cp libnsgif/include/libnsgif.h .
+
+cp libnsgif/README.md README-ns.md
+
+cp libnsgif/include/nsgif.h .
 cp libnsgif/src/lzw.[ch] .
+cp libnsgif/src/gif.c .
+
+cp libnsgif/test/cli.[ch] test/
+cp libnsgif/test/nsgif.c test/
 
 if [ -d "patches" ]
 then
