@@ -1633,12 +1633,12 @@ vips__affinei( VipsImage *in, VipsImage *out, VipsTransformation *trn )
 {
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( out ), 2 );
-	VipsArea *oarea;
+	VipsArrayInt *oarea;
 	gboolean repack;
 
-	oarea = VIPS_AREA( vips_array_int_newv( 4,
+	oarea = vips_array_int_newv( 4,
 		trn->oarea.left, trn->oarea.top,
-		trn->oarea.width, trn->oarea.height ) );
+		trn->oarea.width, trn->oarea.height );
 
 	/* vips7 affine would repack labq and im_benchmark() depends upon
 	 * this.
@@ -1651,10 +1651,10 @@ vips__affinei( VipsImage *in, VipsImage *out, VipsTransformation *trn )
 		"odx", trn->odx,
 		"ody", trn->ody,
 		NULL ) ) {
-		vips_area_unref( oarea );
+		vips_area_unref( VIPS_AREA( oarea ) );
 		return( -1 );
 	}
-	vips_area_unref( oarea );
+	vips_area_unref( VIPS_AREA( oarea ) );
 	in = t[0];
 
 	if( repack ) {
