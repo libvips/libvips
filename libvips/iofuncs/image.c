@@ -56,7 +56,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -597,7 +597,7 @@ vips_image_dump( VipsObject *object, VipsBuf *buf )
 	VipsImage *image = VIPS_IMAGE( object );
 
 	vips_buf_appendf( buf, 
-		ngettext( 
+		g_dngettext( GETTEXT_PACKAGE, 
 			"%dx%d %s, %d band, %s", 
 			"%dx%d %s, %d bands, %s", 
 			vips_image_get_bands( image ) ),
@@ -631,7 +631,7 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 		vips_image_get_width( image ), vips_image_get_height( image ) );
 	if( vips_image_get_coding( image ) == VIPS_CODING_NONE ) {
 		vips_buf_appendf( buf, 
-			ngettext( 
+			g_dngettext( GETTEXT_PACKAGE, 
 				" %s, %d band, %s", 
 				" %s, %d bands, %s", 
 				vips_image_get_bands( image ) ),
@@ -1066,10 +1066,6 @@ vips_image_class_init( VipsImageClass *class )
 
 	VIPS_DEBUG_MSG( "vips_image_class_init:\n" );
 
-	/* We must have threads set up before we can process.
-	 */
-	vips_check_init(); 
-
 	gobject_class->finalize = vips_image_finalize;
 	gobject_class->dispose = vips_image_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -1381,7 +1377,7 @@ vips_image_written( VipsImage *image )
 	return( result );
 }
 
-void
+static void
 vips_image_invalidate( VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_image_invalidate: %p\n", image );
@@ -1421,7 +1417,7 @@ vips_image_invalidate_all( VipsImage *image )
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
 
-void
+static void
 vips_image_minimise( VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_image_minimise: %p\n", image );
@@ -1681,7 +1677,7 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 /* Fills the given buffer with a temporary filename.
  * Assuming that "int" might be 64 Bit wide a buffer size of 26 suffices.
  */
-void
+static void
 vips_image_temp_name( char *name, int size )
 {
 	static int global_serial = 0;

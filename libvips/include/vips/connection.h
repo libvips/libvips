@@ -218,7 +218,6 @@ VipsSource *vips_source_new_from_file( const char *filename );
 VipsSource *vips_source_new_from_blob( VipsBlob *blob );
 VipsSource *vips_source_new_from_memory( const void *data, size_t size );
 VipsSource *vips_source_new_from_options( const char *options );
-VipsSource *vips_source_new_from_target( VipsTarget *target );
 
 void vips_source_minimise( VipsSource *source );
 int vips_source_unminimise( VipsSource *source );
@@ -429,6 +428,12 @@ typedef struct _VipsTargetClass {
 	 */
 	VipsTarget *(*new_temp)( VipsTarget * );
 
+	/* Given a target, return a source that will read the data 
+	 * that had been written to the target. The target cannot be written
+	 * to after this call.
+	 */
+	VipsSource *(*new_source)( VipsTarget * );
+
 } VipsTargetClass;
 
 GType vips_target_get_type( void );
@@ -441,6 +446,7 @@ int vips_target_write( VipsTarget *target, const void *data, size_t length );
 void vips_target_finish( VipsTarget *target );
 unsigned char *vips_target_steal( VipsTarget *target, size_t *length );
 char *vips_target_steal_text( VipsTarget *target );
+VipsSource *vips_target_new_source( VipsTarget *target );
 
 int vips_target_putc( VipsTarget *target, int ch );
 #define VIPS_TARGET_PUTC( S, C ) ( \

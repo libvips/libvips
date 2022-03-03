@@ -51,7 +51,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -69,7 +69,7 @@
  */
 #define QUANT_ELEMENTS (100000)
 
-float cbrt_table[QUANT_ELEMENTS];
+static float cbrt_table[QUANT_ELEMENTS];
 
 typedef struct _VipsXYZ2Lab {
 	VipsColourTransform parent_instance;

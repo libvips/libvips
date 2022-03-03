@@ -2,6 +2,7 @@ public_cpp_headers = files(
     'VError8.h',
     'VImage8.h',
     'VInterpolate8.h',
+    'VRegion8.h',
     'VConnection8.h',
     'vips8',
 )

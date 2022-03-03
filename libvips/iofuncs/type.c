@@ -46,7 +46,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,7 +179,7 @@ vips_area_free_cb( void *mem, VipsArea *area )
 	return( 0 );
 }
 
-void
+static void
 vips_area_free( VipsArea *area )
 {
 	if( area->free_fn && 
@@ -700,7 +700,7 @@ vips_blob_get( VipsBlob *blob, size_t *length )
 
 /* vips_blob_set:
  * @blob: #VipsBlob to set
- * @free_fn: (scope async) (nullable): @data will be freed with this function
+ * @free_fn: (scope async) (allow-none): @data will be freed with this function
  * @data: (array length=length) (element-type guint8) (transfer full): data to store
  * @length: number of bytes in @data
  *

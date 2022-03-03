@@ -228,6 +228,13 @@ VIPS_LIBDIR=$expanded_value
 VIPS_EXEEXT=$EXEEXT
 AC_SUBST(VIPS_EXEEXT)
 
+# cplusplus/Doxyfile.in needs an input and output directory ... they are the
+# same for copnfigure, but meson has separate source and build areas
+DOXY_INPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
+DOXY_OUTPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
+AC_SUBST(DOXY_INPUT_DIRECTORY)
+AC_SUBST(DOXY_OUTPUT_DIRECTORY)
+
 # vips.c/im_guess_prefix.c need to know the exe suffix and (as a fallback)
 # the configure-time install prefix
 AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])
@@ -1486,8 +1493,8 @@ AC_ARG_WITH([cgif],
   AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
 
 if test x"$quantisation_package" != x"" && test x"$with_cgif" != x"no"; then
-  PKG_CHECK_MODULES(CGIF, cgif,
-    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
+  PKG_CHECK_MODULES(CGIF, cgif >= 0.2.0,
+    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif >= 0.2.0 installed.])
       with_cgif=yes
       PACKAGES_USED="$PACKAGES_USED cgif"
     ],

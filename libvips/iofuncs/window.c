@@ -41,7 +41,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -277,7 +277,7 @@ vips_window_new( VipsImage *im, int top, int height )
 	if( !(window = VIPS_NEW( NULL, VipsWindow )) )
 		return( NULL );
 
-	window->ref_count = 1;
+	window->ref_count = 0;
 	window->im = im;
 	window->top = 0;
 	window->height = 0;
@@ -290,6 +290,7 @@ vips_window_new( VipsImage *im, int top, int height )
 		vips_window_free( window );
 		return( NULL );
 	}
+	window->ref_count = 1;
 
 #ifdef DEBUG
 	printf( "** vips_window_new: window top = %d, height = %d (%p)\n",

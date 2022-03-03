@@ -38,7 +38,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <vips/vips8>
 
@@ -776,6 +776,32 @@ VImage::write_to_target( const char *suffix, VTarget target,
 		(options ? options : VImage::option())->
 			set( "in", *this )->
 			set( "target", target ) );
+}
+
+VRegion
+VImage::region() const
+{
+	return VRegion::new_from_image( *this );
+}
+
+VRegion
+VImage::region( VipsRect *rect ) const
+{
+	VRegion region = VRegion::new_from_image( *this );
+
+	region.prepare( rect );
+
+	return region;
+}
+
+VRegion
+VImage::region( int left, int top, int width, int height ) const
+{
+	VRegion region = VRegion::new_from_image( *this );
+
+	region.prepare( left, top, width, height );
+
+	return region;
 }
 
 #include "vips-operators.cpp"

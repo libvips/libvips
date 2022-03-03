@@ -1,16 +1,11 @@
 public_other_headers = files(
-    'almostdeprecated.h',
     'buf.h',
     'connection.h',
     'dbuf.h',
     'debug.h',
-    'deprecated.h',
-    'dispatch.h',
     'format.h',
     'gate.h',
     'generate.h',
-    'intl.h',
-    'mask.h',
     'private.h',
     'sbuf.h',
     'semaphore.h',
@@ -19,9 +14,21 @@ public_other_headers = files(
     'transform.h',
     'util.h',
     'vector.h',
+)
+
+public_deprecated_headers = files(
+    'almostdeprecated.h',
+    'deprecated.h',
+    'dispatch.h',
+    'intl.h',
+    'mask.h',
     'video.h',
     'vips7compat.h',
 )
+
+if get_option('deprecated')
+    public_other_headers += public_deprecated_headers
+endif
 
 public_headers = files(
     'arithmetic.h',
@@ -130,12 +137,6 @@ version_data.set('LIBRARY_CURRENT', library_current)
 version_data.set('LIBRARY_REVISION', library_revision)
 version_data.set('LIBRARY_AGE', library_age)
 version_data.set('VIPS_CONFIG', ', '.join(vips_verbose_config))
-#FIXME: Do not require this
-if target_machine.system() == 'windows' or target_machine.system() == 'cygwin'
-    version_data.set('VIPS_EXEEXT', '.exe')
-else
-    version_data.set('VIPS_EXEEXT', '')
-endif
 version_data.set10('VIPS_ENABLE_DEPRECATED', get_option('deprecated'))
 
 version_header = configure_file(
@@ -146,28 +147,9 @@ version_header = configure_file(
     install_dir: get_option('prefix') / get_option('includedir') / 'vips'
 )
 
-#FIXME: Do not require this
-soname_data = configuration_data()
-if target_machine.system() == 'windows'
-    soname_data.set_quoted('VIPS_SONAME', 'vips-@0@.dll'.format(library_current - library_age))
-elif target_machine.system() == 'cygwin'
-    soname_data.set_quoted('VIPS_SONAME', 'cygvips-@0@.dll'.format(library_current - library_age))
-elif target_machine.system() == 'darwin'
-    soname_data.set_quoted('VIPS_SONAME', 'libvips.dylib')
-else
-    soname_data.set_quoted('VIPS_SONAME', 'libvips.so')
-endif
-soname_header = configure_file(
-    output: 'soname.h',
-    configuration: soname_data,
-    install: true,
-    install_dir: get_option('prefix') / get_option('includedir') / 'vips'
-)
-
 libvips_sources += public_headers
 libvips_sources += enumtypes
 libvips_sources += version_header
-libvips_sources += soname_header
 
 install_headers(
     public_other_headers,
@@ -181,7 +163,6 @@ libvips_headers_dep = declare_dependency(
         public_headers,
         enumtypes[1],
         version_header,
-        soname_header
     ],
     include_directories: libvips_includedir
 )

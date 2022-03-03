@@ -125,7 +125,9 @@ extern "C" {
 
 #include <vips/private.h>
 
+#if VIPS_ENABLE_DEPRECATED
 #include <vips/mask.h>
+#endif
 #include <vips/image.h>
 #include <vips/memory.h>
 #include <vips/error.h>
@@ -152,7 +154,9 @@ extern "C" {
 #include <vips/colour.h>
 #include <vips/draw.h>
 #include <vips/create.h>
+#if VIPS_ENABLE_DEPRECATED
 #include <vips/video.h>
+#endif
 
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().

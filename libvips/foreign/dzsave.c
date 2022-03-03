@@ -166,7 +166,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1177,7 +1177,7 @@ static char *scan_property_names[][2] = {
 /* Make the xml we write to scan-properties.xml in szi write.
  * Free with g_free().
  */
-char *
+static char *
 build_scan_properties( VipsImage *image )
 {
 	VipsDbuf dbuf;

@@ -32,7 +32,7 @@ Copyright (C) 1992, Kirk Martinez, History of Art Dept, Birkbeck College
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdlib.h>
 #include <string.h>

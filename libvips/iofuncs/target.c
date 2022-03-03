@@ -1,4 +1,4 @@
-/* A byte source/sink .. it can be a pipe, file descriptor, memory area, 
+/* A byte sink .. it can be a pipe, file descriptor, memory area, 
  * socket, node.js stream, etc.
  * 
  * J.Cupitt, 19/6/14
@@ -42,7 +42,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,7 +179,7 @@ vips_target_new_temp_real( VipsTarget *target )
 	/* We suport memory and disc temps by default, override for something
 	 * else.
 	 */
-	if( target->memory ) 
+	if( target->memory )
 		temp_target = vips_target_new_to_memory();
 	else {
 		char *name;
@@ -213,6 +213,26 @@ vips_target_new_temp_real( VipsTarget *target )
 	return( temp_target );
 }
 
+static VipsSource *
+vips_target_new_source_real( VipsTarget *target )
+{
+	VipsSource *source;
+
+	VIPS_DEBUG_MSG( "vips_target_new_source_real: %s\n", 
+		vips_connection_nick( VIPS_CONNECTION( target ) ) );
+
+	vips_target_finish( target );
+
+	if( target->blob )
+		source = VIPS_SOURCE( g_object_new( VIPS_TYPE_SOURCE, NULL ) );
+	else {
+	}
+
+	SANITY( source );
+
+	return( source ); 
+}
+
 static void
 vips_target_class_init( VipsTargetClass *class )
 {
@@ -231,6 +251,7 @@ vips_target_class_init( VipsTargetClass *class )
 	class->write = vips_target_write_real;
 	class->finish = vips_target_finish_real;
 	class->new_temp = vips_target_new_temp_real;
+	class->new_source = vips_target_new_source_real;
 
 	VIPS_ARG_BOOL( class, "memory", 3, 
 		_( "Memory" ), 
@@ -557,6 +578,28 @@ vips_target_steal_text( VipsTarget *target )
 	vips_target_putc( target, '\0' );  
 
 	return( (char *) vips_target_steal( target, NULL ) ); 
+}
+
+/**
+ * vips_target_new_source:
+ * @target: target to create the source from
+ *
+ * Create a source from a target. The source will return all of the bytes that
+ * have been written to the target. The target is finished with
+ * vips_target_finish() and cannot be written to again, though data may be
+ * read out as usual.
+ *
+ * Returns: a new source.
+ */
+VipsSource *
+vips_target_new_source( VipsTarget *target )
+{
+	VipsTargetClass *class = VIPS_TARGET_GET_CLASS( target );
+
+	VIPS_DEBUG_MSG( "vips_target_new_source: %s\n", 
+		vips_connection_nick( VIPS_CONNECTION( target ) ) );
+
+	return( class->new_source( target ) );
 }
 
 /**

@@ -35,7 +35,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <math.h>
 
@@ -206,7 +206,7 @@ vips_col_dE00( float L1, float a1, float b1,
 
 /* Find the difference between two buffers of LAB data.
  */
-void
+static void
 vips_dE00_line( VipsColour *colour, 
 	VipsPel *out, VipsPel **in, int width )
 {
