@@ -132,18 +132,19 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 	}
 #endif/*DEBUG_PERCENT*/
 
-	VIPS_UNREF( cgif->target );
-	VIPS_UNREF( cgif->frame );
+	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
 	VIPS_FREEF( vips__quantise_result_destroy, cgif->quantisation_result );
 	VIPS_FREEF( vips__quantise_image_destroy, cgif->input_image );
 	VIPS_FREEF( vips__quantise_attr_destroy, cgif->attr );
 
+	VIPS_UNREF( cgif->frame );
+
+	VIPS_UNREF( cgif->target );
+
 	VIPS_FREE( cgif->palette_rgb );
 	VIPS_FREE( cgif->index );
 	VIPS_FREE( cgif->frame_bytes_head );
-
-	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
 	G_OBJECT_CLASS( vips_foreign_save_cgif_parent_class )->
 		dispose( gobject );
