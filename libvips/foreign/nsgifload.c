@@ -324,7 +324,8 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 #ifdef VERBOSE
 	print_animation( gif->anim, gif->info );
 #endif /*VERBOSE*/
-	if( result != NSGIF_OK ) {
+	if( result != NSGIF_OK &&
+		load->fail_on >= VIPS_FAIL_ON_WARNING ) {
 		vips_foreign_load_nsgif_error( gif, result ); 
 		return( -1 );
 	}
