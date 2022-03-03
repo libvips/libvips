@@ -254,14 +254,18 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 		if( vips_LabQ2LabS( ref, &t[0], NULL ) )
 			return( -1 );
 	}
-	else
+	else {
 		t[0] = ref;
+		g_object_ref( t[0] );
+	}
 	if( sec->Coding == VIPS_CODING_LABQ ) {
 		if( vips_LabQ2LabS( sec, &t[1], NULL ) )
 			return( -1 );
 	}
-	else
+	else {
 		t[1] = sec;
+		g_object_ref( t[1] );
+	}
 
 	t[2] = vips_image_new();
 
@@ -404,7 +408,7 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* And join to ref.
 	 */
-	if( vips_merge( ref, t[1], out, VIPS_DIRECtION_HORIZONTAL,
+	if( vips_merge( ref, t[1], out, VIPS_DIRECTION_HORIZONTAL,
 		-trn2.area.left, -trn2.area.top, mwidth ) )
 		return( -1 );
 
