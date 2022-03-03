@@ -89,28 +89,6 @@
  */
 #include <gio/gio.h>
 
-/* Defined in config.h
- */
-#ifdef _VIPS_PUBLIC
-#  define VIPS_API _VIPS_PUBLIC extern
-#else
-#  define VIPS_API extern
-#endif
-
-/* VIPS_DISABLE_DEPRECATION_WARNINGS:
- *
- * Disable deprecation warnings from VIPS API.
- *
- * Must be defined before including `vips/vips.h`.
- */
-#ifdef VIPS_DISABLE_DEPRECATION_WARNINGS
-#  define VIPS_DEPRECATED VIPS_API
-#  define VIPS_DEPRECATED_FOR(f) VIPS_API
-#else
-#  define VIPS_DEPRECATED G_DEPRECATED VIPS_API
-#  define VIPS_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f) VIPS_API
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

@@ -33,6 +33,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <vips/basic.h>
 
 #ifdef __cplusplus
 extern "C" {
