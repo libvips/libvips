@@ -207,21 +207,21 @@ static void decode(FILE* ppm, const char *name, nsgif_t *gif)
 		}
 		frame_prev = frame_new;
 
-		err = nsgif_frame_decode(gif, frame_new, &bitmap);
-		if (err != NSGIF_OK) {
-			warning("nsgif_decode_frame", err);
-			return;
-		}
-
 		if (nsgif_options.info == true) {
 			const nsgif_frame_info_t *f_info;
 
 			f_info = nsgif_get_frame_info(gif, frame_new);
-			assert(f_info != NULL);
-			print_gif_frame_info(f_info);
+			if (f_info != NULL) {
+				print_gif_frame_info(f_info);
+			}
 		}
 
-		if (ppm != NULL) {
+		err = nsgif_frame_decode(gif, frame_new, &bitmap);
+		if (err != NSGIF_OK) {
+			warning("nsgif_decode_frame", err);
+			/* Continue decoding the rest of the frames. */
+
+		} else if (ppm != NULL) {
 			fprintf(ppm, "# frame %u:\n", frame_new);
 			image = (const uint8_t *) bitmap;
 			for (uint32_t y = 0; y != info->height; y++) {
@@ -284,10 +284,9 @@ int main(int argc, char *argv[])
 	/* Scan the raw data */
 	err = nsgif_data_scan(gif, size, data);
 	if (err != NSGIF_OK) {
+		/* Not fatal; some GIFs are nasty. Can still try to decode
+		 * any frames that were decoded successfully. */
 		warning("nsgif_data_scan", err);
-		nsgif_destroy(gif);
-		free(data);
-		return EXIT_FAILURE;
 	}
 
 	if (nsgif_options.loops == 0) {
