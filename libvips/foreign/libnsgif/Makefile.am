@@ -1,8 +1,8 @@
 noinst_LTLIBRARIES = libnsgif.la
 
 MY_SOURCES = \
-	libnsgif.h \
-	libnsgif.c \
+	nsgif.h \
+	gif.c \
 	lzw.c \
 	lzw.h
 
@@ -11,11 +11,10 @@ libnsgif_la_SOURCES = $(MY_SOURCES)
 endif
 
 EXTRA_DIST = \
-	README-ns \
+	README-ns.md \
 	README.md \
 	patches \
-	update.sh \
-	utils 
+	update.sh
 
 if !ENABLE_NSGIF
 EXTRA_DIST += \

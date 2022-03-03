@@ -93,7 +93,7 @@ typedef struct _VipsForeignSaveCgif {
 	/* The current colourmap, updated on a significant frame change.
 	 */
 	VipsPel *palette_rgb;
-	guint64 frame_sum;
+	gint64 frame_sum;
 
 	/* The index frame we get libimagequant to generate.
 	 */
@@ -195,7 +195,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	VipsPel * restrict p;
 	VipsPel *rgb;
-	guint64 sum;
+	gint64 sum;
 	double change;
 	int i;
 	CGIF_FrameConfig frame_config;
@@ -237,7 +237,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		p += 4;
 	}
-	change = VIPS_ABS( (sum - cgif->frame_sum) / n_pels );
+	change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
 
 	if( cgif->frame_sum == 0 ||
 		change > 0 ) { 
@@ -289,18 +289,18 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		rgb += 3;
 	}
 
-	/* If there's a transparent pixel, it's always first.
-	 */
-	cgif->has_transparency = cgif->lp->entries[0].a == 0;
-
 #ifdef DEBUG_PERCENT
-	if( percent_change > 0 )
-		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
-			page_index, percent_change, cgif->lp->count );
+	if( change > 0 )
+		printf( "frame %d, change %g, new %d item colourmap\n",
+			page_index, change, cgif->lp->count );
 	else
 		printf( "frame %d, reusing previous %d item colourmap\n",
 			page_index, cgif->lp->count );
 #endif/*DEBUG_PERCENT*/
+
+	/* If there's a transparent pixel, it's always first.
+	 */
+	cgif->has_transparency = cgif->lp->entries[0].a == 0;
 
 	/* Set up cgif on first use, so we can set the first cmap as the global
 	 * one.
