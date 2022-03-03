@@ -63,6 +63,7 @@ typedef struct _VipsForeignSaveCgif {
 	int effort;
 	int bitdepth;
 	double maxerror;
+	gboolean noloop;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -309,7 +310,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
-		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
+		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED | ( cgif->noloop ? CGIF_ATTR_NO_LOOP : 0 );
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
@@ -612,6 +613,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
 		0, 32, 0.0 );
+
+	VIPS_ARG_BOOL( class, "noloop", 14,
+		_( "No loop" ),
+		_( "Disables looping" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, noloop ),
+		FALSE );
 }
 
 static void
