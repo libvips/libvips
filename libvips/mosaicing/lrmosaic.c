@@ -246,7 +246,6 @@ vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno, 
 	int xref, int yref, int xsec, int ysec, 
 	int hwindowsize, int hsearchsize,
-	int balancetype,
 	int mwidth )
 {
 	int dx0, dy0;

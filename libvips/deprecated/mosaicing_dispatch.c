@@ -83,7 +83,7 @@ static im_arg_desc mosaic_args[] = {
 	IM_INPUT_INT( "ys" ),
 	IM_INPUT_INT( "halfcorrelation" ),
 	IM_INPUT_INT( "halfarea" ),
-	IM_INPUT_INT( "balancetype" ),
+	IM_INPUT_INT( "balancetype" ), // Deprecated
 	IM_INPUT_INT( "mwidth" )
 };
 
@@ -93,7 +93,7 @@ static im_arg_desc mosaic1_args[] = {
 	IM_INPUT_IMAGE( "ref" ),
 	IM_INPUT_IMAGE( "sec" ),
 	IM_OUTPUT_IMAGE( "out" ),
-	IM_INPUT_INT( "bandno" ),
+	IM_INPUT_INT( "bandno" ),  // Deprecated
 	IM_INPUT_INT( "xr1" ),
 	IM_INPUT_INT( "yr1" ),
 	IM_INPUT_INT( "xs1" ),
@@ -104,7 +104,7 @@ static im_arg_desc mosaic1_args[] = {
 	IM_INPUT_INT( "ys2" ),
 	IM_INPUT_INT( "halfcorrelation" ),
 	IM_INPUT_INT( "halfarea" ),
-	IM_INPUT_INT( "balancetype" ),
+	IM_INPUT_INT( "balancetype" ), // Deprecated
 	IM_INPUT_INT( "mwidth" )
 };
 
@@ -120,14 +120,13 @@ lrmosaic_vec( im_object *argv )
 	int ys = *((int *) argv[7]);
 	int halfcorrelation = *((int *) argv[8]);
 	int halfarea = *((int *) argv[9]);
-	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
 	return( vips__lrmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		xr, yr, xs, ys, 
 		halfcorrelation, halfarea,
-		balancetype, mwidth ) );
+		mwidth ) );
 }
 
 /* Call im_lrmosaic1 via arg vector.
@@ -135,7 +134,6 @@ lrmosaic_vec( im_object *argv )
 static int
 lrmosaic1_vec( im_object *argv )
 {
-	int bandno = *((int *) argv[3]);
 	int xr1 = *((int *) argv[4]);
 	int yr1 = *((int *) argv[5]);
 	int xs1 = *((int *) argv[6]);
@@ -146,15 +144,14 @@ lrmosaic1_vec( im_object *argv )
 	int ys2 = *((int *) argv[11]);
 	int halfcorrelation = *((int *) argv[12]);
 	int halfarea = *((int *) argv[13]);
-	int balancetype = *((int *) argv[14]);
 	int mwidth = *((int *) argv[15]);
 
 	return( im_lrmosaic1( argv[0], argv[1], argv[2], 
-		bandno, 
+		0, 
 		xr1, yr1, xs1, ys1, 
 		xr2, yr2, xs2, ys2, 
 		halfcorrelation, halfarea,
-		balancetype, mwidth ) );
+		0, mwidth ) );
 }
 
 /* Description of im_lrmosaic.
@@ -254,14 +251,13 @@ tbmosaic_vec( im_object *argv )
 	int y2 = *((int *) argv[7]);
 	int halfcorrelation = *((int *) argv[8]);
 	int halfarea = *((int *) argv[9]);
-	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
 	return( vips__tbmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		x1, y1, x2, y2, 
 		halfcorrelation, halfarea,
-		balancetype, mwidth ) );
+		mwidth ) );
 }
 
 /* Call im_tbmosaic1 via arg vector.
@@ -269,7 +265,6 @@ tbmosaic_vec( im_object *argv )
 static int
 tbmosaic1_vec( im_object *argv )
 {
-	int bandno = *((int *) argv[3]);
 	int xr1 = *((int *) argv[4]);
 	int yr1 = *((int *) argv[5]);
 	int xs1 = *((int *) argv[6]);
@@ -280,15 +275,14 @@ tbmosaic1_vec( im_object *argv )
 	int ys2 = *((int *) argv[11]);
 	int halfcorrelation = *((int *) argv[12]);
 	int halfarea = *((int *) argv[13]);
-	int balancetype = *((int *) argv[14]);
 	int mwidth = *((int *) argv[15]);
 
 	return( im_tbmosaic1( argv[0], argv[1], argv[2], 
-		bandno, 
+		0, 
 		xr1, yr1, xs1, ys1, 
 		xr2, yr2, xs2, ys2, 
 		halfcorrelation, halfarea,
-		balancetype, mwidth ) );
+		0, mwidth ) );
 }
 
 /* Call im__find_tboverlap via arg vector.
