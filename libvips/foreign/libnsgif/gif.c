@@ -625,12 +625,14 @@ static void nsgif__restore_bg(
 		uint32_t offset_x = frame->info.rect.x0;
 		uint32_t offset_y = frame->info.rect.y0;
 
-		width -= gif__clip(offset_x, width, gif->info.width);
-		height -= gif__clip(offset_y, height, gif->info.height);
-
-		if (frame->info.display == false || width == 0) {
+		if (frame->info.display == false ||
+		    frame->info.rect.x0 >= gif->info.width ||
+		    frame->info.rect.y0 >= gif->info.height) {
 			return;
 		}
+
+		width -= gif__clip(offset_x, width, gif->info.width);
+		height -= gif__clip(offset_y, height, gif->info.height);
 
 		if (frame->info.transparency) {
 			for (uint32_t y = 0; y < height; y++) {
@@ -1703,7 +1705,7 @@ nsgif_error nsgif_frame_decode(
 	uint32_t start_frame;
 	nsgif_error ret = NSGIF_OK;
 
-	if (frame > gif->info.frame_count) {
+	if (frame >= gif->info.frame_count) {
 		return NSGIF_ERR_BAD_FRAME;
 	}
 
@@ -1742,7 +1744,7 @@ const nsgif_frame_info_t *nsgif_get_frame_info(
 		const nsgif_t *gif,
 		uint32_t frame)
 {
-	if (frame > gif->info.frame_count) {
+	if (frame >= gif->info.frame_count) {
 		return NULL;
 	}
 
@@ -1759,8 +1761,7 @@ const char *nsgif_strerror(nsgif_error err)
 		[NSGIF_ERR_BAD_FRAME]     = "Requested frame does not exist",
 		[NSGIF_ERR_DATA_FRAME]    = "Invalid frame data",
 		[NSGIF_ERR_FRAME_COUNT]   = "Excessive number of frames",
-		[NSGIF_ERR_END_OF_DATA]   = "Insufficient data for first frame",
-		[NSGIF_ERR_END_OF_FRAME]  = "End of data during frame",
+		[NSGIF_ERR_END_OF_DATA]   = "Unexpected end of GIF source data",
 		[NSGIF_ERR_FRAME_DISPLAY] = "Frame can't be displayed",
 		[NSGIF_ERR_ANIMATION_END] = "Animation complete",
 	};

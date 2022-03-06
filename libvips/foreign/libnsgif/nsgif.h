@@ -82,14 +82,9 @@ typedef enum {
 	NSGIF_ERR_FRAME_COUNT,
 
 	/**
-	 * GIF source data ended without one complete frame available.
+	 * Unexpected end of GIF source data.
 	 */
 	NSGIF_ERR_END_OF_DATA,
-
-	/**
-	 * GIF source data ended with incomplete frame.
-	 */
-	NSGIF_ERR_END_OF_FRAME,
 
 	/**
 	 * The current frame cannot be displayed.
@@ -214,6 +209,9 @@ void nsgif_destroy(nsgif_t *gif);
  * (The actual data pointer is allowed to be different.)
  *
  * If an error occurs, all previously scanned frames are retained.
+ *
+ * Note that an error returned from this function is purely informational.
+ * So long as at least one frame is available, you can display frames.
  *
  * \param[in]  gif     The \ref nsgif_t object.
  * \param[in]  size    Number of bytes in data.
