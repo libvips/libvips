@@ -58,7 +58,7 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * There are three types of operation in this section.
+ * These operations build on each other in a set of layers.
  *
  * First, vips_affine() applies an affine transform to an image. This is any
  * sort of 2D transform which preserves straight lines; so any combination of 
@@ -79,7 +79,14 @@
  * vips_affine() and others to implement a general, high-quality image
  * resizer.
  *
- * Finally, vips_mapim() can apply arbitrary 2D image transforms to an image.
+ * Finally, vips_thumbnail() combines load and resize in one operation, and adds
+ * colour management and correct handling of alpha transparency. Because load
+ * and resize happen together, it can exploit tricks like JPEG and TIFF
+ * shrink-on-load, giving a (potentially) huge speedup. vips_thumbnail_image() 
+ * is only there for emergencies, don't use it unless you really have to.
+ *
+ * As a separate thing, `vips_mapim() can apply arbitrary 2D image transforms 
+ * to an image.
  */
 
 /** 
