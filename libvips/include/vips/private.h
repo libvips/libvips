@@ -165,6 +165,9 @@ typedef enum _RegionType {
 struct _VipsRegion;
 void vips__region_take_ownership( struct _VipsRegion *reg );
 void vips__region_check_ownership( struct _VipsRegion *reg );
+/* TODO(kleisauke): VIPS_API is required by vipsdisp.
+ */
+VIPS_API
 void vips__region_no_ownership( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
