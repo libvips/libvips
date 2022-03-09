@@ -771,6 +771,34 @@ static nsgif_error nsgif__parse_extension_graphic_control(
 }
 
 /**
+ * Check an app ext identifier and authentication code for loop count extension.
+ *
+ * \param[in] data  The data to decode.
+ * \param[in] len   Byte length of data.
+ * \return true if extension is a loop count extension.
+ */
+static bool nsgif__app_ext_is_loop_count(
+		const uint8_t *data,
+		size_t len)
+{
+	enum {
+		EXT_LOOP_COUNT_BLOCK_SIZE = 0x0b,
+	};
+
+	assert(len > 13);
+	(void)(len);
+
+	if (data[1] == EXT_LOOP_COUNT_BLOCK_SIZE) {
+		if (strncmp((const char *)data + 2, "NETSCAPE2.0", 11) == 0 ||
+		    strncmp((const char *)data + 2, "ANIMEXTS1.0", 11) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Parse the application extension
  *
  * \param[in] gif   The gif object we're decoding.
@@ -796,10 +824,24 @@ static nsgif_error nsgif__parse_extension_application(
 		return NSGIF_ERR_END_OF_DATA;
 	}
 
-	if ((data[1] == 0x0b) &&
-	    (strncmp((const char *)data + 2, "NETSCAPE2.0", 11) == 0) &&
-	    (data[13] == 0x03) && (data[14] == 0x01)) {
-		gif->info.loop_max = data[15] | (data[16] << 8);
+	if (nsgif__app_ext_is_loop_count(data, len)) {
+		enum {
+			EXT_LOOP_COUNT_SUB_BLOCK_SIZE = 0x03,
+			EXT_LOOP_COUNT_SUB_BLOCK_ID   = 0x01,
+		};
+		if ((data[13] == EXT_LOOP_COUNT_SUB_BLOCK_SIZE) &&
+		    (data[14] == EXT_LOOP_COUNT_SUB_BLOCK_ID)) {
+			gif->info.loop_max = data[15] | (data[16] << 8);
+
+			/* The value in the source data means repeat N times
+			 * after the first implied play. A value of zero has
+			 * the special meaning of loop forever. (The only way
+			 * to play the animation once is  not to have this
+			 * extension at all. */
+			if (gif->info.loop_max > 0) {
+				gif->info.loop_max++;
+			}
+		}
 	}
 
 	return NSGIF_OK;

@@ -284,7 +284,7 @@ typedef struct nsgif_info {
 	uint32_t height;
 	/** number of frames decoded */
 	uint32_t frame_count;
-	/** number of times to loop animation */
+	/** number of times to play animation (zero means loop forever) */
 	int loop_max;
 	/** number of animation loops so far */
 	int loop_count;
