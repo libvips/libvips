@@ -49,10 +49,15 @@ Now you can load the GIF source data into the nsgif object with
 
 This scans the source data and decodes information about each frame, however
 it doesn't decode any of the bitmap data for the frames. The client may call
-`nsgif_data_scan()` multiple times as source data is fetched. Once the
-function has returned `NSGIF_OK` it has enough data to display at least one
-frame. The early frames can be decoded before the later frames are scanned.
-Frames have to be scanned before they can be decoded.
+`nsgif_data_scan()` multiple times as source data is fetched. The early frames
+can be decoded before the later frames are scanned. Frames have to be scanned
+before they can be decoded.
+
+This function will sometimes return an error. That is OK, and even expected.
+It is fine to proceed to decoding any frames that are available after a scan.
+Some errors indicate that there is a flaw in the source GIF data (not at all
+uncommon, GIF is an ancient format that has had many broken encoders), or that
+it has reached the end of the source data.
 
 > **Note**: The client must not free the data until after calling
 > `nsgif_destroy()`. You can move the data, e.g. if you realloc to a bigger
