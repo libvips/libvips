@@ -238,6 +238,9 @@ if quantisation_package.found()
     if cgif_dep.found()
         libvips_deps += cgif_dep
         cfg_var.set('HAVE_CGIF', '1')
+        if cc.compiles('#include <cgif.h>\nint i = CGIF_ATTR_NO_LOOP;', name: 'Has CGIF_ATTR_NO_LOOP', dependencies: cgif_dep)
+            cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', '1')
+        endif
     endif
 endif
 
