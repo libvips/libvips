@@ -799,8 +799,7 @@ static nsgif_error nsgif__parse_extension_application(
 	if ((data[1] == 0x0b) &&
 	    (strncmp((const char *)data + 2, "NETSCAPE2.0", 11) == 0) &&
 	    (data[13] == 0x03) && (data[14] == 0x01)) {
-		int loop = data[15] | (data[16] << 8);
-		gif->info.loop_max = loop > 0 ? loop + 1 : loop;
+		gif->info.loop_max = data[15] | (data[16] << 8);
 	}
 
 	return NSGIF_OK;
