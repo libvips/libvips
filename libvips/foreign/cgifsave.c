@@ -310,11 +310,19 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
+#ifdef HAVE_CGIF_ATTR_NO_LOOP
+		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED | ( cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0 );
+#else
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
+#endif/*HAVE_CGIF_ATTR_NO_LOOP*/
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
+#ifdef HAVE_CGIF_ATTR_NO_LOOP
+		cgif->cgif_config.numLoops = cgif->loop > 1 ? cgif->loop - 1 : cgif->loop;
+#else
 		cgif->cgif_config.numLoops = cgif->loop;
+#endif/*HAVE_CGIF_ATTR_NO_LOOP*/
 		cgif->cgif_config.pWriteFn = vips__cgif_write;
 		cgif->cgif_config.pContext = (void *) cgif->target;
 
