@@ -185,6 +185,108 @@
 #include <gsf/gsf.h>
 #pragma GCC diagnostic pop
 
+/* A GSF output object that can write to a VipsTarget.
+ */
+
+typedef struct _GsfOutputTarget {
+        GsfOutput output;
+
+        VipsTarget *target;
+
+} GsfOutputTarget;
+
+typedef struct {
+        GsfOutputClass output_class;
+} GsfOutputTargetClass;
+
+G_DEFINE_TYPE( GsfOutputTarget, gsf_output_target, 
+	gsf_output_target_get_type() );
+
+static gboolean
+gsf_output_target_close( GsfOutput *output )
+{
+        GsfOutputTarget *output_target = (GsfOutputTarget *) output;
+
+        if( output_target->target ) {
+		vips_target_finish( output_target->target );
+                VIPS_UNREF( output_target->target );
+
+                return( TRUE );
+        }
+
+        return( FALSE );
+}
+
+static void
+gsf_output_target_finalize( GObject *obj )
+{
+        GObjectClass *parent_class;
+        GsfOutputTarget *output_target = (GsfOutputTarget *) obj;
+
+        gsf_output_target_close( GSF_OUTPUT( output_target ) );
+
+        parent_class = g_type_class_peek( GSF_OUTPUT_TYPE );
+        parent_class->finalize( obj );
+}
+
+static gboolean
+gsf_output_target_write( GsfOutput *output, 
+	size_t num_bytes, guint8 const *buffer )
+{
+        GsfOutputTarget *output_target = (GsfOutputTarget *) output;
+
+        while( num_bytes > 0 ) {
+                gssize nwritten = vips_target_write( output_target->target, 
+		       buffer, num_bytes );
+
+                if( nwritten < 0 )
+                        return( FALSE );
+
+                buffer += nwritten;
+                num_bytes -= nwritten;
+        }
+
+        return( TRUE );
+}
+
+static gboolean
+gsf_output_target_seek( GsfOutput *output, gsf_off_t offset, GSeekType whence )
+{
+	/* No seek needed.
+	 */
+	return FALSE;
+}
+
+static void
+gsf_output_target_init( GsfOutputTarget *output )
+{
+}
+
+static void
+gsf_output_target_class_init( GsfOutputTargetClass *class )
+{
+        GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+        GsfOutputClass *output_class = GSF_OUTPUT_CLASS( class );
+
+        gobject_class->finalize = gsf_output_target_finalize;
+
+        output_class->Close = gsf_output_target_close;
+        output_class->Write = gsf_output_target_write;
+        output_class->Seek = gsf_output_target_seek;
+}
+
+static GsfOutput *
+gsf_output_target_new( VipsTarget *target )
+{
+        GsfOutputTarget *output;
+
+        output = g_object_new( gsf_output_target_get_type(), NULL );
+        output->target = target;
+	g_object_ref( target );
+
+        return( GSF_OUTPUT( output ) );
+}
+
 /* Simple wrapper around libgsf.
  *
  * We need to be able to do scattered writes to structured files. So while
