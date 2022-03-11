@@ -649,11 +649,6 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	gboolean have_imported;
 
-	/* If we shrink in linear space, we need to return to the input
-	 * colourspace after the shrink.
-	 */
-	VipsInterpretation input_interpretation;
-
 	/* The format we need to revert to after unpremultiply.
 	 */
 	VipsBandFormat unpremultiplied_format;
@@ -700,10 +695,6 @@ vips_thumbnail_build( VipsObject *object )
 			return( -1 );
 		in = t[12];
 	}
-
-	/* Note the interpretation we will revert to after linear.
-	 */
-	input_interpretation = in->Type;
 
 	/* In linear mode, we need to transform to a linear space before 
 	 * vips_resize(). 
@@ -792,7 +783,7 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* vips_premultiply() makes a float image, so when we unpremultiply
 	 * below we must cast back to the original format. Use NOTSET to
-	 * meran no pre/unmultiply.
+	 * mean no pre/unmultiply.
 	 */
 	unpremultiplied_format = VIPS_FORMAT_NOTSET;
 
@@ -841,75 +832,51 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* Colour management.
 	 */
-	if( have_imported ) { 
-		/* We've already imported, just export. Go to sRGB if there's
-		 * no export profile.
+	if( have_imported ) {
+		/* We are in PCS. Export with the output profile, if any (this
+		 * will export with the embedded input profile if there's no
+		 * export profile).
 		 */
-		if( thumbnail->export_profile ||
-			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			g_info( "exporting to device space with a profile" );
-			if( vips_icc_export( in, &t[7], 
-				"output_profile", thumbnail->export_profile,
-				"intent", thumbnail->intent,
-				NULL ) )  
-				return( -1 );
-			in = t[7];
-		}
-		else {
-			g_info( "converting to sRGB" );
-			if( vips_colourspace( in, &t[7], 
-				VIPS_INTERPRETATION_sRGB, NULL ) ) 
-				return( -1 ); 
-			in = t[7];
-		}
+		g_info( "exporting to device space with a profile" );
+		if( vips_icc_export( in, &t[7], 
+			"output_profile", thumbnail->export_profile,
+			"intent", thumbnail->intent,
+			NULL ) )  
+			return( -1 );
+		in = t[7];
 	}
 	else if( thumbnail->export_profile ) {
-		/* Not imported, but we are doing colour management. Transform
-		 * to the output space.
+		/* We are in one of the resize space (sRGB, scRGB, B_W, GREY16, 
+		 * etc.) and we have an export profile. Go to PCS, then export.
 		 */
-		g_info( "transforming to %s", thumbnail->export_profile );
-
-		/* If there's some kind of import profile, we can transform to
-		 * the output. Otherwise we have to convert to PCS and then
-		 * export.
-		 */
-		if( thumbnail->import_profile ||
-			(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ||
-			 thumbnail->import_profile) ) {
-			g_info( "transforming with supplied profiles" ); 
-			if( vips_icc_transform( in, &t[7], 
-				thumbnail->export_profile,
-				"input_profile", thumbnail->import_profile,
-				"intent", thumbnail->intent,
-				"embedded", TRUE,
-				NULL ) ) 
-				return( -1 );
-
-			in = t[7];
-		}
-		else {
-			g_info( "exporting with %s", 
-				thumbnail->export_profile ); 
-			if( vips_colourspace( in, &t[7], 
-				VIPS_INTERPRETATION_XYZ, NULL ) || 
-				vips_icc_export( t[7], &t[10], 
-					"output_profile", 
-						thumbnail->export_profile,
-					"intent", thumbnail->intent,
-					NULL ) )  
-				return( -1 ); 
-			in = t[10];
-		}
-	}
-	else if( thumbnail->linear ) {
-		/* Linear mode, no colour management. We went to scRGB for
-		 * processing, so we now revert to the input colourspace.
-		 */
-		g_info( "reverting to input space %s",
-			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
-				input_interpretation ) ); 
+		g_info( "exporting with %s", 
+			thumbnail->export_profile ); 
 		if( vips_colourspace( in, &t[7], 
-			input_interpretation, NULL ) ) 
+			VIPS_INTERPRETATION_XYZ, NULL ) || 
+			vips_icc_export( t[7], &t[10], 
+				"output_profile", 
+					thumbnail->export_profile,
+				"intent", thumbnail->intent,
+				NULL ) )  
+			return( -1 ); 
+		in = t[10];
+	}
+	else {
+		/* We are in one of the resize spaces and there's no export
+		 * profile. Output to sRGB or B_W
+		 */
+		VipsInterpretation interpretation;
+
+		if( in->Bands < 3 )
+			interpretation = VIPS_INTERPRETATION_B_W; 
+		else 
+			interpretation = VIPS_INTERPRETATION_sRGB; 
+
+		g_info( "converting to output space %s",
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+				interpretation ) ); 
+		if( vips_colourspace( in, &t[7], interpretation, 
+			NULL ) ) 
 			return( -1 ); 
 		in = t[7];
 	}

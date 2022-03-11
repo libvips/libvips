@@ -13,7 +13,7 @@
 echo building test image ...
 $vips extract_band $image $tmp/t1.v 1
 $vips linear $tmp/t1.v $tmp/t2.v 1 20 --uchar
-$vips replicate $tmp/t2.v $tmp/t1.v 2 2
+$vips replicate $tmp/t2.v $tmp/t1.v 4 4 
 $vips crop $tmp/t1.v $tmp/t2.v 10 10 1000 1000
 
 # is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
