@@ -600,7 +600,6 @@ vips_opj_image_create( OPJ_UINT32 numcmpts,
 		comp->x0 = cmptparms[compno].x0;
 		comp->y0 = cmptparms[compno].y0;
 		comp->prec = cmptparms[compno].prec;
-		comp->bpp = cmptparms[compno].bpp;
 		comp->sgnd = cmptparms[compno].sgnd;
 
 		if( comp->h != 0 &&
@@ -700,7 +699,6 @@ vips_foreign_save_jp2k_new_image( VipsImage *im,
 		comps[i].x0 = 0;
 		comps[i].y0 = 0;
 		comps[i].prec = bits_per_pixel;
-		comps[i].bpp = bits_per_pixel;
 		comps[i].sgnd = !vips_band_format_isuint( im->BandFmt );
 	}
 

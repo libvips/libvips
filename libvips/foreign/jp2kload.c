@@ -348,9 +348,9 @@ vips_foreign_load_jp2k_print( VipsForeignLoadJp2k *jp2k )
 			"x0 = %u, y0 = %u\n", 
 			i, this->dx, this->dy, this->w, this->h, 
 			this->x0, this->y0 );
-		printf( "    prec = %d, bpp = %x, sgnd = %x, "
+		printf( "    prec = %d, sgnd = %x, "
 			"resno_decoded = %u, factor = %u\n",
-			this->prec, this->bpp, this->sgnd, 
+			this->prec, this->sgnd, 
 			this->resno_decoded, this->factor );
 		printf( "    data = %p, alpha = %u\n",
 			this->data, this->alpha );
@@ -378,7 +378,7 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
 
-	/* OpenJPEG only supports up to 31 bpp. Treat it as 32.
+	/* OpenJPEG only supports up to 31 bits per pixel. Treat it as 32.
 	 */
 	if( first->prec <= 8 ) 
 		format = first->sgnd ? VIPS_FORMAT_CHAR : VIPS_FORMAT_UCHAR;
@@ -547,7 +547,6 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 		}
 
 		if( this->prec != first->prec ||
-			this->bpp != first->bpp ||
 			this->sgnd != first->sgnd ) {
 			vips_error( class->nickname, 
 				"%s", _( "components differ in precision" ) );
