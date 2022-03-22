@@ -95,8 +95,8 @@
  * for analogues of the usual set difference and set union operations.
  *
  * Use vips_image_new_matrixv() to create a mask in source, vips_matrixload()
- * to load a mask from a simple text file, vips_mask_ideal() and friends to
- * create squarem circular and ring masks of specific sizes.
+ * to load a mask from a simple text file, and vips_mask_ideal() and friends to
+ * create square, circular and ring masks of specific sizes.
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsMorphology, vips_morphology, 
