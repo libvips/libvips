@@ -1014,8 +1014,8 @@ vips_image_init_fields( VipsImage *image,
 
 	image->Coding = coding;
 	image->Type = interpretation;
-	image->Xres = xres;
-	image->Yres = yres;
+	image->Xres = VIPS_MAX( 0, xres );
+	image->Yres = VIPS_MAX( 0, yres );
 }
 
 static void *

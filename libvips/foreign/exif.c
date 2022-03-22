@@ -464,8 +464,10 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 		"seen exif resolution %g, %g p/mm\n", xres, yres );
 #endif /*DEBUG*/
 
-	image->Xres = xres;
-	image->Yres = yres;
+	/* Don't allow negative resolution.
+	 */
+	image->Xres = VIPS_MAX( 0, xres );
+	image->Yres = VIPS_MAX( 0, yres );
 
 	return( 0 );
 }
