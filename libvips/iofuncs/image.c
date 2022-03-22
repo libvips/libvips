@@ -3318,7 +3318,7 @@ vips_image_rewind_output( VipsImage *image )
  * Call this before using the draw operations to make sure you have a
  * memory image that can be modified.
  *
- * vips_image_copy() adds a null "copy" node to a pipeline. Use that
+ * vips_copy() adds a null "copy" node to a pipeline. Use that
  * instead if you want to change metadata and not pixels.
  *
  * This operation is thread-safe, unlike vips_image_wio_input(). 
