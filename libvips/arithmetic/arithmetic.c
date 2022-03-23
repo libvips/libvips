@@ -57,7 +57,7 @@
 
 /** 
  * SECTION: arithmetic
- * @short_description: operations which perform pixel arithmetic, trig, log, statistics
+ * @short_description: pixel arithmetic, trig, log, statistics
  * @stability: Stable
  * @include: vips/vips.h
  *
@@ -82,6 +82,20 @@
  * #VIPS_FORMAT_UCHAR images together, for example, produces a 
  * #VIPS_FORMAT_USHORT image, and taking the vips_cos() of a 
  * #VIPS_FORMAT_USHORT image produces #VIPS_FORMAT_FLOAT image. 
+ *
+ * After processing, use vips_cast() and friends to take then format back down
+ * again. vips_cast_uchar(), for example, will cast any image down to 8-bit
+ * unsigned.
+ *
+ * Images have an *interpretation*: a meaning for the pixel values. With
+ * #VIPS_INTERPRETATION_sRGB, for example, the first three bands will be
+ * interpreted (for example, by a saver like vips_jpegsave()) as R, G and B,
+ * with values in 0 - 255, and any fourth band will be interpreted as an
+ * alpha channel.
+ *
+ * After arithmetic, you may wish to change the interpretation (for example to
+ * save as 16-bit PNG). Use vips_copy() to change the interpretation without
+ * changing pixels.
  *
  * For binary arithmetic operations, type promotion occurs in two stages. 
  * First, the two input images are cast up to the smallest common format, 
