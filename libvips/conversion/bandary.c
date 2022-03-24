@@ -271,7 +271,14 @@ vips_bandary_init( VipsBandary *bandary )
 int
 vips_bandary_copy( VipsBandary *bandary )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( bandary );
 	VipsConversion *conversion = VIPS_CONVERSION( bandary );
+
+	if( !bandary->in ) {
+		vips_error( object_class->nickname, 
+			"%s", _( "no input images" ) );
+		return( -1 );
+	}
 
 	/* This isn't set by arith until build(), so we have to set
 	 * again here.
