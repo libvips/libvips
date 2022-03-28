@@ -44,7 +44,7 @@
 
 #include "pcolour.h"
 
-#define SIXTH_OF_CHAR 42.5
+#define SIXTH_OF_CHAR (42.5)
 
 
 typedef VipsColourCode VipsHSV2sRGB;
@@ -67,27 +67,27 @@ vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		x = c * (1 - VIPS_FABS( fmod( p[0] / SIXTH_OF_CHAR, 2 ) - 1 ));
 		m = p[2] - c;
 
-		if( p[0] < SIXTH_OF_CHAR ) {
+		if( p[0] < (int) SIXTH_OF_CHAR ) {
 			q[0] = c + m;
 			q[1] = x + m;
 			q[2] = 0 + m;
 		} 
-		else if( p[0] < 2 * SIXTH_OF_CHAR ) {
+		else if( p[0] < (int) (2 * SIXTH_OF_CHAR) ) {
 			q[0] = x + m;
 			q[1] = c + m;
 			q[2] = 0 + m;
 		} 
-		else if( p[0] < 3 * SIXTH_OF_CHAR ) {
+		else if( p[0] < (int) (3 * SIXTH_OF_CHAR) ) {
 			q[0] = 0 + m;
 			q[1] = c + m;
 			q[2] = x + m;
 		} 
-		else if( p[0] < 4 * SIXTH_OF_CHAR ) {
+		else if( p[0] < (int) (4 * SIXTH_OF_CHAR) ) {
 			q[0] = 0 + m;
 			q[1] = x + m;
 			q[2] = c + m;
 		} 
-		else if( p[0] < 5 * SIXTH_OF_CHAR ) {
+		else if( p[0] < (int) (5 * SIXTH_OF_CHAR) ) {
 			q[0] = x + m;
 			q[1] = 0 + m;
 			q[2] = c + m;
