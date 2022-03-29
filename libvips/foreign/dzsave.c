@@ -91,6 +91,9 @@
  * 	- add IIIF3 layout
  * 21/12/21  whalehub
  * 	- remove trailing comma from IIIFv3 folder names
+ * 29/3/22
+ * 	- always write a properties file
+ * 	- add .szi as a registered suffix
  */
 
 /*
@@ -2363,8 +2366,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		g_assert_not_reached();
 	}
 
-	if( dz->properties &&
-		write_vips_meta( dz ) )
+	if( write_vips_meta( dz ) )
 		return( -1 );
 
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
@@ -2440,7 +2442,7 @@ static int bandfmt_dz[10] = {
    UC, C,  US, S,  UI, I,  F,  F,  D,  D
 };
 
-static const char *dz_suffs[] = { ".dz", NULL };
+static const char *dz_suffs[] = { ".dz", ".szi", NULL };
 
 static void
 vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
@@ -2527,13 +2529,6 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, container ),
 		VIPS_TYPE_FOREIGN_DZ_CONTAINER, VIPS_FOREIGN_DZ_CONTAINER_FS ); 
 
-	VIPS_ARG_BOOL( class, "properties", 16, 
-		_( "Properties" ), 
-		_( "Write a properties file to the output directory" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
-		FALSE );
-
 	VIPS_ARG_INT( class, "compression", 17, 
 		_( "Compression" ), 
 		_( "ZIP deflate compression level" ),
@@ -2592,6 +2587,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
 		1, 8192, 254 );
+
+	VIPS_ARG_BOOL( class, "properties", 16, 
+		_( "Properties" ), 
+		_( "Write a properties file to the output directory" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
+		FALSE );
 
 }
 
@@ -2806,7 +2808,6 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @centre: %gboolean centre the tiles 
  * * @angle: #VipsAngle rotate the image by this much
  * * @container: #VipsForeignDzContainer set container type
- * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
@@ -2844,12 +2845,6 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * and not for things like JPEG. You'll need to rotate those images
  * yourself with vips_rot(). Note that the `autorotate` option to the loader 
  * may do what you need.
- *
- * If @properties is %TRUE, vips_dzsave() will write a file called
- * `vips-properties.xml` to the output directory. This file lists all of the
- * metadata attached to @in in an obvious manner. It can be useful for viewing
- * programs which wish to use fields from source files loaded via
- * vips_openslideload(). 
  *
  * By default, all tiles are stripped since usually you do not want a copy of
  * all metadata in every tile. Set @no_strip if you want to keep metadata.
@@ -2908,7 +2903,6 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @centre: %gboolean centre the tiles 
  * * @angle: #VipsAngle rotate the image by this much
  * * @container: #VipsForeignDzContainer set container type
- * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background

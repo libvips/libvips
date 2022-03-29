@@ -1852,7 +1852,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 	/* vips_foreign_find_save() has already removed any options from the
 	 * end of the filename, so we can test directly against the suffix.
 	 */
-	for( p = class->suffs; *p; p++ ) 
+	for( p = class->suffs; *p; p++ )
 		if( vips_iscasepostfix( filename, *p ) ) 
 			return( save_class );
 

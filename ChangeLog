@@ -15,6 +15,7 @@
 - add support for regions in C++ API [shado23]
 - add maxerror to gifsave [dloebl]
 - update libnsgif API [tlsa]
+- deprecate "properties" option to dzsave (now always on)
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
