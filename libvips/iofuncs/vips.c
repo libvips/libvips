@@ -358,8 +358,8 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	/* We read xres/yres as floats to a staging area, then copy to double
 	 * in the main fields.
 	 */
-	im->Xres = im->Xres_float;
-	im->Yres = im->Yres_float;
+	im->Xres = VIPS_MAX( 0, im->Xres_float );
+	im->Yres = VIPS_MAX( 0, im->Yres_float );
 
 	/* Some protection against malicious files. We also check predicted
 	 * (based on these values) against real file length, see below. 
