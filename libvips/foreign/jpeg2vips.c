@@ -488,6 +488,12 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	size_t data_length;
 	int i;
 
+	/* Trace level 3 means emit warning messages as they happen. This
+	 * lets us spot files with crazy numbers of warnings early and
+	 * prevents some DoS attacks.
+	 */
+	jpeg->eman.pub.trace_level = 3;
+
 	/* Read JPEG header. libjpeg will set out_color_space sanely for us 
 	 * for YUV YCCK etc.
 	 */
