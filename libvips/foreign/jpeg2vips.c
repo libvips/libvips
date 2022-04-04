@@ -494,6 +494,17 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	 */
 	jpeg->eman.pub.trace_level = 3;
 
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * jpeg_read_header(),
+	 */
+	if( setjmp( jpeg->eman.jmp ) ) {
+#ifdef DEBUG
+		printf( "read_jpeg_header: longjmp() exit\n" ); 
+#endif /*DEBUG*/
+
+		return( -1 );
+	}
+
 	/* Read JPEG header. libjpeg will set out_color_space sanely for us 
 	 * for YUV YCCK etc.
 	 */
