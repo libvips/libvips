@@ -223,7 +223,6 @@ print_animation( nsgif_t *anim, const nsgif_info_t *info )
 	printf( "  height = %d\n", info->height );
 	printf( "  frame_count = %d\n", info->frame_count );
 	printf( "  loop_max = %d\n", info->loop_max );
-	printf( "  loop_count = %d\n", info->loop_count );
 	printf( "  background = %d %d %d %d\n",
 		bg[0], bg[1], bg[2], bg[3] );
 
