@@ -20,6 +20,16 @@
 /** Maximum colour table size */
 #define NSGIF_MAX_COLOURS 256
 
+/** Default minimum allowable frame delay in cs. */
+#define NSGIF_FRAME_DELAY_MIN 2
+
+/**
+ * Default frame delay to apply.
+ *
+ * Used when a frame delay lower than the minimum is requested.
+ */
+#define NSGIF_FRAME_DELAY_DEFAULT 10
+
 /** GIF frame data */
 typedef struct nsgif_frame {
 	struct nsgif_frame_info info;
@@ -40,6 +50,14 @@ typedef struct nsgif_frame {
 	uint32_t flags;
 } nsgif_frame;
 
+/** Pixel format: colour component order. */
+struct nsgif_colour_layout {
+	uint8_t r; /**< Byte offset within pixel to red component. */
+	uint8_t g; /**< Byte offset within pixel to green component. */
+	uint8_t b; /**< Byte offset within pixel to blue component. */
+	uint8_t a; /**< Byte offset within pixel to alpha component. */
+};
+
 /** GIF animation data */
 struct nsgif {
 	struct nsgif_info info;
@@ -57,8 +75,14 @@ struct nsgif {
 	/** currently decoded image; stored as bitmap from bitmap_create callback */
 	nsgif_bitmap_t *frame_image;
 
+	/** Minimum allowable frame delay. */
 	uint16_t delay_min;
+
+	/** Frame delay to apply when delay is less than \ref delay_min. */
 	uint16_t delay_default;
+
+	/** number of animation loops so far */
+	int loop_count;
 
 	/** number of frames partially decoded */
 	uint32_t frame_count_partial;
@@ -83,6 +107,8 @@ struct nsgif {
 	bool global_colours;
 	/** current colour table */
 	uint32_t *colour_table;
+	/** Client's colour component order. */
+	struct nsgif_colour_layout colour_layout;
 	/** global colour table */
 	uint32_t global_colour_table[NSGIF_MAX_COLOURS];
 	/** local colour table */
@@ -581,30 +607,6 @@ static inline nsgif_error nsgif__decode(
 }
 
 /**
- * Helper to assign a pixel representation from a gif background colour array.
- *
- * \param[in]  bg  The background colour to read from.
- * \param[out] px  The pixel colour to write.
- */
-static inline void nsgif__gif_bg_to_px(
-		const uint8_t bg[4], uint32_t *px)
-{
-	*px = *(uint32_t *)bg;
-}
-
-/**
- * Helper to assign a gif background colour array from a pixel representation.
- *
- * \param[in]  px  The pixel colour to read from.
- * \param[out] bg  The background colour to write.
- */
-static inline void nsgif__gif_px_to_bg(
-		const uint32_t *px, uint8_t bg[4])
-{
-	*(uint32_t *)bg = *px;
-}
-
-/**
  * Restore a GIF to the background colour.
  *
  * \param[in] gif     The gif object we're decoding.
@@ -646,9 +648,7 @@ static void nsgif__restore_bg(
 				uint32_t *scanline = bitmap + offset_x +
 						(offset_y + y) * gif->info.width;
 				for (uint32_t x = 0; x < width; x++) {
-					nsgif__gif_bg_to_px(
-							gif->info.background,
-							&scanline[x]);
+					scanline[x] = gif->info.background;
 				}
 			}
 		}
@@ -1042,6 +1042,7 @@ static nsgif_error nsgif__parse_image_descriptor(
 static nsgif_error nsgif__colour_table_extract(
 		struct nsgif *gif,
 		uint32_t colour_table[NSGIF_MAX_COLOURS],
+		const struct nsgif_colour_layout *layout,
 		size_t colour_table_entries,
 		const uint8_t **pos,
 		bool decode)
@@ -1060,16 +1061,16 @@ static nsgif_error nsgif__colour_table_extract(
 		while (count--) {
 			/* Gif colour map contents are r,g,b.
 			 *
-			 * We want to pack them bytewise into the
-			 * colour table, such that the red component
-			 * is in byte 0 and the alpha component is in
-			 * byte 3.
+			 * We want to pack them bytewise into the colour table,
+			 * according to the client colour layout.
 			 */
 
-			*entry++ = *data++; /* r */
-			*entry++ = *data++; /* g */
-			*entry++ = *data++; /* b */
-			*entry++ = 0xff;    /* a */
+			entry[layout->r] = *data++;
+			entry[layout->g] = *data++;
+			entry[layout->b] = *data++;
+			entry[layout->a] = 0xff;
+
+			entry += sizeof(uint32_t);
 		}
 	}
 
@@ -1104,7 +1105,8 @@ static nsgif_error nsgif__parse_colour_table(
 		return NSGIF_OK;
 	}
 
-	ret = nsgif__colour_table_extract(gif, gif->local_colour_table,
+	ret = nsgif__colour_table_extract(gif,
+			gif->local_colour_table, &gif->colour_layout,
 			2 << (frame->flags & NSGIF_COLOUR_TABLE_SIZE_MASK),
 			pos, decode);
 	if (ret != NSGIF_OK) {
@@ -1343,8 +1345,90 @@ void nsgif_destroy(nsgif_t *gif)
 	free(gif);
 }
 
+/**
+ * Check whether the host is little endian.
+ *
+ * Checks whether least significant bit is in the first byte of a `uint16_t`.
+ *
+ * \return true if host is little endian.
+ */
+static inline bool nsgif__host_is_little_endian(void)
+{
+	const uint16_t test = 1;
+
+	return ((const uint8_t *) &test)[0];
+}
+
+static struct nsgif_colour_layout nsgif__bitmap_fmt_to_colour_layout(
+		nsgif_bitmap_fmt_t bitmap_fmt)
+{
+	bool le = nsgif__host_is_little_endian();
+
+	/* Map endian-dependant formats to byte-wise format for the host. */
+	switch (bitmap_fmt) {
+	case NSGIF_BITMAP_FMT_RGBA8888:
+		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_A8B8G8R8
+		                  : NSGIF_BITMAP_FMT_R8G8B8A8;
+		break;
+	case NSGIF_BITMAP_FMT_BGRA8888:
+		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_A8R8G8B8
+		                  : NSGIF_BITMAP_FMT_B8G8R8A8;
+		break;
+	case NSGIF_BITMAP_FMT_ARGB8888:
+		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_B8G8R8A8
+		                  : NSGIF_BITMAP_FMT_A8R8G8B8;
+		break;
+	case NSGIF_BITMAP_FMT_ABGR8888:
+		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_R8G8B8A8
+		                  : NSGIF_BITMAP_FMT_A8B8G8R8;
+		break;
+	default:
+		break;
+	}
+
+	/* Set up colour component order for bitmap format. */
+	switch (bitmap_fmt) {
+	default:
+		/* Fall through. */
+	case NSGIF_BITMAP_FMT_R8G8B8A8:
+		return (struct nsgif_colour_layout) {
+			.r = 0,
+			.g = 1,
+			.b = 2,
+			.a = 3,
+		};
+
+	case NSGIF_BITMAP_FMT_B8G8R8A8:
+		return (struct nsgif_colour_layout) {
+			.b = 0,
+			.g = 1,
+			.r = 2,
+			.a = 3,
+		};
+
+	case NSGIF_BITMAP_FMT_A8R8G8B8:
+		return (struct nsgif_colour_layout) {
+			.a = 0,
+			.r = 1,
+			.g = 2,
+			.b = 3,
+		};
+
+	case NSGIF_BITMAP_FMT_A8B8G8R8:
+		return (struct nsgif_colour_layout) {
+			.a = 0,
+			.b = 1,
+			.g = 2,
+			.r = 3,
+		};
+	}
+}
+
 /* exported function documented in nsgif.h */
-nsgif_error nsgif_create(const nsgif_bitmap_cb_vt *bitmap_vt, nsgif_t **gif_out)
+nsgif_error nsgif_create(
+		const nsgif_bitmap_cb_vt *bitmap_vt,
+		nsgif_bitmap_fmt_t bitmap_fmt,
+		nsgif_t **gif_out)
 {
 	nsgif_t *gif;
 
@@ -1357,11 +1441,23 @@ nsgif_error nsgif_create(const nsgif_bitmap_cb_vt *bitmap_vt, nsgif_t **gif_out)
 	gif->decoded_frame = NSGIF_FRAME_INVALID;
 	gif->prev_index = NSGIF_FRAME_INVALID;
 
-	gif->delay_min = 2;
-	gif->delay_default = 10;
+	gif->delay_min = NSGIF_FRAME_DELAY_MIN;
+	gif->delay_default = NSGIF_FRAME_DELAY_DEFAULT;
+
+	gif->colour_layout = nsgif__bitmap_fmt_to_colour_layout(bitmap_fmt);
 
 	*gif_out = gif;
 	return NSGIF_OK;
+}
+
+/* exported function documented in nsgif.h */
+void nsgif_set_frame_delay_behaviour(
+		nsgif_t *gif,
+		uint16_t delay_min,
+		uint16_t delay_default)
+{
+	gif->delay_min = delay_min;
+	gif->delay_default = delay_default;
 }
 
 /**
@@ -1535,6 +1631,7 @@ nsgif_error nsgif_data_scan(
 		if (gif->global_colours) {
 			ret = nsgif__colour_table_extract(gif,
 					gif->global_colour_table,
+					&gif->colour_layout,
 					gif->colour_table_size,
 					&nsgif_data, true);
 			if (ret != NSGIF_OK) {
@@ -1544,27 +1641,30 @@ nsgif_error nsgif_data_scan(
 			gif->buf_pos = (nsgif_data - gif->buf);
 		} else {
 			/* Create a default colour table with the first two
-			 * colours as black and white
-			 */
-			uint32_t *entry = gif->global_colour_table;
+			 * colours as black and white. */
+			uint8_t *entry = (uint8_t *)gif->global_colour_table;
 
-			entry[0] = 0x00000000;
-			/* Force Alpha channel to opaque */
-			((uint8_t *) entry)[3] = 0xff;
+			/* Black */
+			entry[gif->colour_layout.r] = 0x00;
+			entry[gif->colour_layout.g] = 0x00;
+			entry[gif->colour_layout.b] = 0x00;
+			entry[gif->colour_layout.a] = 0xFF;
 
-			entry[1] = 0xffffffff;
+			entry += sizeof(uint32_t);
+
+			/* White */
+			entry[gif->colour_layout.r] = 0xFF;
+			entry[gif->colour_layout.g] = 0xFF;
+			entry[gif->colour_layout.b] = 0xFF;
+			entry[gif->colour_layout.a] = 0xFF;
 		}
 
 		if (gif->global_colours &&
 		    gif->bg_index < gif->colour_table_size) {
 			size_t bg_idx = gif->bg_index;
-			nsgif__gif_px_to_bg(
-					&gif->global_colour_table[bg_idx],
-					gif->info.background);
+			gif->info.background = gif->global_colour_table[bg_idx];
 		} else {
-			nsgif__gif_px_to_bg(
-					&gif->global_colour_table[0],
-					gif->info.background);
+			gif->info.background = gif->global_colour_table[0];
 		}
 	}
 
@@ -1663,7 +1763,7 @@ static inline bool nsgif__animation_complete(int count, int max)
 nsgif_error nsgif_reset(
 		nsgif_t *gif)
 {
-	gif->info.loop_count = 0;
+	gif->loop_count = 0;
 	gif->frame = NSGIF_FRAME_INVALID;
 
 	return NSGIF_OK;
@@ -1691,7 +1791,7 @@ nsgif_error nsgif_frame_prepare(
 	}
 
 	if (nsgif__animation_complete(
-			gif->info.loop_count,
+			gif->loop_count,
 			gif->info.loop_max)) {
 		return NSGIF_ERR_ANIMATION_END;
 	}
@@ -1702,7 +1802,7 @@ nsgif_error nsgif_frame_prepare(
 	}
 
 	if (gif->frame != NSGIF_FRAME_INVALID && frame < gif->frame) {
-		gif->info.loop_count++;
+		gif->loop_count++;
 	}
 
 	if (gif->info.frame_count == 1) {
@@ -1717,7 +1817,7 @@ nsgif_error nsgif_frame_prepare(
 
 		if (frame_next < frame) {
 			if (nsgif__animation_complete(
-					gif->info.loop_count + 1,
+					gif->loop_count + 1,
 					gif->info.loop_max)) {
 				delay = NSGIF_INFINITE;
 			}

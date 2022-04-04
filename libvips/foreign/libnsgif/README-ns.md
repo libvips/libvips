@@ -22,14 +22,17 @@ Using
 LibNSGIF allows the client to allocate the bitmap into which the GIF is
 decoded. The client can have an arbitrary bitmap structure, that is simply
 a void pointer to LibNSGIF. The client must provide a callback table for
-interacting with bitmaps. This table must include as a minimum functions to
-create and destroy bitmaps, and a function to get a pointer to the bitmap's
-pixel data buffer.
+interacting with bitmaps, and the required client bitmap pixel format.
+The bitmap table must include as a minimum functions to create and destroy
+bitmaps, and a function to get a pointer to the bitmap's pixel data buffer.
+
+LibNSGIF always decodes to a 32bpp, 8 bits per channel bitmap pixel format,
+however it allows the client to control the colour component ordering.
 
 To load a GIF, first create an nsgif object with `nsgif_create()`.
 
 ```c
-	err = nsgif_create(&bitmap_callbacks, &gif);
+	err = nsgif_create(&bitmap_callbacks, NSGIF_BITMAP_FMT_R8G8B8A8, &gif);
 	if (err != NSGIF_OK) {
 		fprintf(stderr, "%s\n", nsgif_strerror(err));
 		// Handle error
