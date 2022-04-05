@@ -165,34 +165,20 @@
 void
 vips__new_output_message( j_common_ptr cinfo )
 {
-	/* Some DoS attacks use jpg files with thousands of warnings. Try to
-	 * limit the effect these have.
-	 */
-	if( cinfo->err->num_warnings >= 20 ) {
-		if( cinfo->err->num_warnings == 20 ) {
-			vips_error( "VipsJpeg", 
-				"%s", _( "too many warnings" ) );
-		}
+	char buffer[JMSG_LENGTH_MAX];
 
-		jpeg_abort( cinfo );
-	}
-	else {
-		char buffer[JMSG_LENGTH_MAX];
-
-		(*cinfo->err->format_message)( cinfo, buffer );
-		vips_error( "VipsJpeg", _( "%s" ), buffer );
+	(*cinfo->err->format_message)( cinfo, buffer );
+	vips_error( "VipsJpeg", _( "%s" ), buffer );
 
 #ifdef DEBUG
-		printf( "vips__new_output_message: \"%s\"\n", buffer );
+	printf( "vips__new_output_message: \"%s\"\n", buffer );
 #endif /*DEBUG*/
 
-		/* This is run for things like file truncated. Signal 
-		 * invalidate to force this op out of cache. 
-		 */
-		if( cinfo->client_data )
-			vips_foreign_load_invalidate( 
-				VIPS_IMAGE( cinfo->client_data ) );
-	}
+	/* This is run for things like file truncated. Signal invalidate to
+	 * force this op out of cache. 
+	 */
+        if( cinfo->client_data )
+		vips_foreign_load_invalidate( VIPS_IMAGE( cinfo->client_data ) );
 }
 
 /* New error_exit handler.
