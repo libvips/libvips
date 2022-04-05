@@ -314,6 +314,30 @@ readjpeg_open_input( ReadJpeg *jpeg )
 	return( 0 );
 }
 
+static void
+readjpeg_emit_message( j_common_ptr cinfo, int msg_level )
+{
+	long num_warnings;
+
+	if( msg_level < 0 ) {
+		/* Always count warnings in num_warnings.
+		 */
+		num_warnings = cinfo->err->num_warnings++;
+
+		/* Corrupt files may give many warnings, the policy here is to
+		 * show only the first warning and treat many warnings as fatal.
+		 */
+		if( num_warnings == 0 )
+			(*cinfo->err->output_message)( cinfo );
+		else if( num_warnings >= 100 )
+			cinfo->err->error_exit( cinfo );
+	}
+	else if( cinfo->err->trace_level >= msg_level )
+		/* It's a trace message. Show it if trace_level >= msg_level.
+		 */
+		(*cinfo->err->output_message)( cinfo );
+}
+
 /* This can be called many times.
  */
 static int
@@ -370,6 +394,7 @@ readjpeg_new( VipsSource *source, VipsImage *out,
 	jpeg->fail_on = fail_on;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
+	jpeg->eman.pub.emit_message = readjpeg_emit_message;
 	jpeg->eman.pub.output_message = vips__new_output_message;
 	jpeg->eman.fp = NULL;
 	jpeg->y_pos = 0;
