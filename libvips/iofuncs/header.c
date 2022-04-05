@@ -581,22 +581,70 @@ vips_image_default_interpretation( const VipsImage *image )
 		break;
 	}
 
-	/* 1 and 2 bands -> greyscale. The extra band could be alpha.
-	 */
-	if( image->Bands < 3 ) {
-		if( image->BandFmt == VIPS_FORMAT_USHORT )
-			return( VIPS_INTERPRETATION_GREY16 );
-		else
+	switch( image->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+		switch( image->Bands ) {
+		case 1:
+		case 2:
 			return( VIPS_INTERPRETATION_B_W );
-	} 
-	else {
-		/* 3 or more -> some sort of RGB. You'll need to set CMYK 
-		 * explicitly if you want that.
-		 */
-		if( image->BandFmt == VIPS_FORMAT_USHORT )
-			return( VIPS_INTERPRETATION_RGB16 );
-		else
+
+		case 3:
+		case 4:
 			return( VIPS_INTERPRETATION_sRGB );
+
+		default:
+			return( VIPS_INTERPRETATION_MULTIBAND );
+		}
+
+	case VIPS_FORMAT_CHAR:
+		switch( image->Bands ) {
+		case 1:
+			return( VIPS_INTERPRETATION_MATRIX );
+
+		default:
+			return( VIPS_INTERPRETATION_MULTIBAND );
+		}
+
+	case VIPS_FORMAT_USHORT:
+		switch( image->Bands ) {
+		case 1:
+		case 2:
+			return( VIPS_INTERPRETATION_GREY16 );
+
+		case 3:
+		case 4:
+			return( VIPS_INTERPRETATION_RGB16 );
+
+		default:
+			return( VIPS_INTERPRETATION_MULTIBAND );
+		}
+
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+		return( VIPS_INTERPRETATION_MULTIBAND );
+
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:
+		switch( image->Bands ) {
+		case 1:
+		case 2:
+			return( VIPS_INTERPRETATION_B_W );
+
+		case 3:
+		case 4:
+			return( VIPS_INTERPRETATION_scRGB );
+
+		default:
+			return( VIPS_INTERPRETATION_MULTIBAND );
+		}
+
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:
+		return( VIPS_INTERPRETATION_FOURIER );
+
+	default:
+		return( VIPS_INTERPRETATION_MULTIBAND );
 	}
 }
 
