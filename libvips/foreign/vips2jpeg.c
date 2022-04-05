@@ -165,18 +165,16 @@
 void
 vips__new_output_message( j_common_ptr cinfo )
 {
-	ErrorManager *eman = (ErrorManager *) cinfo->err;
-
 	/* Some DoS attacks use jpg files with thousands of warnings. Try to
 	 * limit the effect these have.
 	 */
-	if( cinfo->err->num_warnings >= 100 ) {
-		vips_error( "VipsJpeg", "%s", _( "too many warnings" ) );
+	if( cinfo->err->num_warnings >= 20 ) {
+		if( cinfo->err->num_warnings == 20 ) {
+			vips_error( "VipsJpeg", 
+				"%s", _( "too many warnings" ) );
+		}
 
-		/* Bail out of jpeg load (ugh!). We have to hope our caller
-		 * has set this up.
-		 */
-		longjmp( eman->jmp, 1 );
+		jpeg_abort( cinfo );
 	}
 	else {
 		char buffer[JMSG_LENGTH_MAX];
