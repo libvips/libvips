@@ -322,12 +322,12 @@ readjpeg_emit_message( j_common_ptr cinfo, int msg_level )
 	if( msg_level < 0 ) {
 		/* Always count warnings in num_warnings.
 		 */
-		num_warnings = cinfo->err->num_warnings++;
+		num_warnings = ++cinfo->err->num_warnings;
 
 		/* Corrupt files may give many warnings, the policy here is to
 		 * show only the first warning and treat many warnings as fatal.
 		 */
-		if( num_warnings == 0 )
+		if( num_warnings == 1 )
 			(*cinfo->err->output_message)( cinfo );
 		else if( num_warnings >= 100 )
 			cinfo->err->error_exit( cinfo );
@@ -820,7 +820,8 @@ read_jpeg_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	/* Here for longjmp() from vips__new_error_exit().
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * jpeg_read_scanlines().
 	 */
 	if( setjmp( jpeg->eman.jmp ) ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
@@ -877,7 +878,8 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 
 	VipsImage *im;
 
-	/* Here for longjmp() from vips__new_error_exit().
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * jpeg_read_header() or jpeg_start_decompress().
 	 */
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
@@ -988,6 +990,9 @@ vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 		autorotate )) )
 		return( -1 );
 
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * cinfo->mem->alloc_small() or jpeg_read_header().
+	 */
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
 
