@@ -471,7 +471,7 @@ static nsgif_error nsgif__decode_complex(
 			while (available == 0) {
 				if (res != LZW_OK) {
 					/* Unexpected end of frame, try to recover */
-					if (res == LZW_OK_EOD) {
+					if (res == LZW_OK_EOD || res == LZW_EOI_CODE) {
 						ret = NSGIF_OK;
 					} else {
 						ret = nsgif__error_from_lzw(res);
@@ -557,7 +557,7 @@ static nsgif_error nsgif__decode_simple(
 		frame_data += written;
 		if (res != LZW_OK) {
 			/* Unexpected end of frame, try to recover */
-			if (res == LZW_OK_EOD) {
+			if (res == LZW_OK_EOD || res == LZW_EOI_CODE) {
 				ret = NSGIF_OK;
 			} else {
 				ret = nsgif__error_from_lzw(res);
