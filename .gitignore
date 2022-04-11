@@ -1,4 +1,5 @@
 compile
+build
 .pytest_cache
 .dirstamp
 a.out
