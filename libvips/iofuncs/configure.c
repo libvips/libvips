@@ -64,6 +64,38 @@ typedef struct _VipsConfigure {
 	 */
 	char *operation_unblock;
 
+	/* Enable leak reporting.
+	 */
+	gboolean leak;
+
+	/* Enable profiling
+	 */
+	gboolean profile;
+
+	/* Threadpool size.
+	 */
+	int concurrency;
+
+	/* Max size of pipe.
+	 */
+	int64 pipe_read_limit;
+
+	/* Trace libvips operation cache actions.
+	 */
+	gboolean cache_trace;
+
+	/* Number of recent operations to cache.
+	 */
+	int cache_max;
+
+	/* Maximum memory to use for operation caching.
+	 */
+	int64 cache_max_mem;
+
+	/* Maximum number of open files we allow in the cache.
+	 */
+	int cache_max_files;
+
 } VipsConfigure;
 
 typedef VipsOperationClass VipsConfigureClass;
