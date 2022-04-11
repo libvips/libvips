@@ -186,9 +186,6 @@ vips_get_prgname( void )
  * VIPS_INIT:
  * @ARGV0: name of application
  *
- * gtk-doc mistakenly tags this macro as deprecated for unknown reasons. It is
- * *NOT* deprecated, please ignore the warning above. 
- *
  * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
  * VIPS_INIT(), VIPS will call it for you when you use your first VIPS 
@@ -647,8 +644,6 @@ vips_init( const char *argv0 )
 		g_quark_from_static_string( "vips-image-pixels" ); 
 #endif /*DEBUG_LEAK*/
 
-	done = TRUE;
-
 	/* If VIPS_WARNING is defined, suppress all warning messages from vips.
 	 *
 	 * Libraries should not call g_log_set_handler(), it is
@@ -664,10 +659,17 @@ vips_init( const char *argv0 )
 		g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
 
+	/* Block any untrusted operations. This must come after plugin load.
+	 */
+	if( g_getenv( "VIPS_BLOCK_UNTRUSTED" ) )
+		vips_block_untrusted_set( TRUE );
+
 	/* Set a minimum stacksize, if we can.
 	 */
         if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
 		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
+
+	done = TRUE;
 
 	vips__thread_gate_stop( "init: startup" ); 
 
@@ -1309,3 +1311,39 @@ vips__get_sizeof_vipsobject( void )
 	return( sizeof( VipsObject ) ); 
 }
 
+static void *
+vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
+{
+	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
+
+	if( class->flags & VIPS_OPERATION_UNTRUSTED )
+		vips_operation_block_set( VIPS_OBJECT_CLASS( class )->nickname,
+			*state );
+
+	return( NULL );
+}
+
+/** 
+ * vips_block_untrusted_set:
+ * @state: the block state to set
+ *
+ * Set the block state on all untrusted operations. 
+ *
+ * |[
+ * vips_block_untrusted_set( TRUE );
+ * ]|
+ *
+ * Will block all untrusted operations from running.
+ *
+ * Use `vips -l` at the command-line to see the class hierarchy and which 
+ * operations are marked as untrusted.
+ *
+ * Set the environment variable `VIPS_BLOCK_UNTRUSTED` to block all untrusted
+ * operations on vips_init().
+ */
+void
+vips_block_untrusted_set( gboolean state )
+{
+	vips_class_map_all( g_type_from_name( "VipsOperation" ),
+		(VipsClassMapFn) vips_block_untrusted_set_operation, &state );
+}

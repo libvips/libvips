@@ -188,7 +188,8 @@ vips_foreign_load_pdf_build( VipsObject *object )
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
 	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
-		vips_source_length( pdf->source ), pdf->password, NULL, &error )) ) { 
+		vips_source_length( pdf->source ), pdf->password, 
+		NULL, &error )) ) { 
 		vips_g_error( &error );
 		return( -1 ); 
 	}
@@ -228,7 +229,8 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = poppler_document_get_page( pdf->doc, page_no )) ) {
+		if( !(pdf->page = 
+			poppler_document_get_page( pdf->doc, page_no )) ) {
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 

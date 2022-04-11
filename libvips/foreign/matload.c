@@ -111,6 +111,7 @@ vips_foreign_load_mat_class_init( VipsForeignLoadMatClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -119,6 +120,10 @@ vips_foreign_load_mat_class_init( VipsForeignLoadMatClass *class )
 
 	object_class->nickname = "matload";
 	object_class->description = _( "load mat from file" );
+
+	/* libmatio is fuzzed, but not by us.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__mat_suffs;
 

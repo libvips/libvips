@@ -417,6 +417,7 @@ vips_foreign_save_nifti_class_init( VipsForeignSaveNiftiClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
@@ -427,6 +428,11 @@ vips_foreign_save_nifti_class_init( VipsForeignSaveNiftiClass *class )
 	object_class->nickname = "niftisave";
 	object_class->description = _( "save image to nifti file" );
 	object_class->build = vips_foreign_save_nifti_build;
+
+	/* nificlib has not been fuzzed, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips_foreign_nifti_suffs;
 

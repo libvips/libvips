@@ -7,6 +7,7 @@
 - add spngsave
 - jpeg2000 load left-justifies bitdepth
 - add "password" option to pdfload
+- add vips_operation_block_set(), vips_operation_block_untrusted_set()
 - improve the pixel rng
 - new meson build system [tintou]
 - improve introspection annotations [tintou]

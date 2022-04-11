@@ -125,10 +125,6 @@ extern int vips__leak;
  */
 extern int vips__progress;
 
-/* Leak check on exit.
- */
-extern int vips__leak;
-
 /* Show info messages. Handy for debugging. 
  */
 extern int vips__info;

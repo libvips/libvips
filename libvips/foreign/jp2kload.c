@@ -1038,6 +1038,7 @@ vips_foreign_load_jp2k_class_init( VipsForeignLoadJp2kClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_jp2k_dispose;
@@ -1047,6 +1048,10 @@ vips_foreign_load_jp2k_class_init( VipsForeignLoadJp2kClass *class )
 	object_class->nickname = "jp2kload_base";
 	object_class->description = _( "load JPEG2000 image" );
 	object_class->build = vips_foreign_load_jp2k_build;
+
+	/* OpenJPEG is fuzzed, but not by us.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags = vips_foreign_load_jp2k_get_flags;
 	load_class->header = vips_foreign_load_jp2k_header;
