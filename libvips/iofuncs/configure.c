@@ -146,25 +146,68 @@ vips_configure_class_init( VipsConfigureClass *class )
 		G_STRUCT_OFFSET( VipsConfigure, untrusted_block ),
 		FALSE );
 
-	VIPS_ARG_STRING( class, "operation_block", 2, 
+	VIPS_ARG_STRING( class, "operation_block", 3, 
 		_( "Block operation" ), 
 		_( "Block an operation (and any subclasses) from running" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, operation_block ),
 		NULL );
 
-	VIPS_ARG_STRING( class, "operation_unblock", 2, 
+	VIPS_ARG_STRING( class, "operation_unblock", 4, 
 		_( "Unblock operation" ), 
 		_( "Unblock an operation (and any subclasses) from running" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, operation_unblock ),
 		NULL );
 
+	VIPS_ARG_BOOL( class, "leak", 5, 
+		_( "Leak" ), 
+		_( "Report any leaks on exit" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, leak ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "profile", 5, 
+		_( "Profile" ), 
+		_( "Write profiling data on exit" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, profile ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "concurrency", 5, 
+		_( "Concurrency" ), 
+		_( "Set threadpool size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, concurrency ),
+		-1 );
+
+
+	/* Max size of pipe.
+	 */
+	int64 pipe_read_limit;
+
+	/* Trace libvips operation cache actions.
+	 */
+	gboolean cache_trace;
+
+	/* Number of recent operations to cache.
+	 */
+	int cache_max;
+
+	/* Maximum memory to use for operation caching.
+	 */
+	int64 cache_max_mem;
+
+	/* Maximum number of open files we allow in the cache.
+	 */
+	int cache_max_files;
+
 }
 
 static void
 vips_configure_init( VipsConfigure *configure )
 {
+	configure->concurrency = -1;
 }
 
 /**
