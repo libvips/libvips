@@ -78,7 +78,7 @@ typedef struct _VipsConfigure {
 
 	/* Max size of pipe.
 	 */
-	int64 pipe_read_limit;
+	gint64 pipe_read_limit;
 
 	/* Trace libvips operation cache actions.
 	 */
@@ -90,7 +90,7 @@ typedef struct _VipsConfigure {
 
 	/* Maximum memory to use for operation caching.
 	 */
-	int64 cache_max_mem;
+	gint64 cache_max_mem;
 
 	/* Maximum number of open files we allow in the cache.
 	 */
@@ -160,20 +160,6 @@ vips_configure_class_init( VipsConfigureClass *class )
 		G_STRUCT_OFFSET( VipsConfigure, operation_unblock ),
 		NULL );
 
-	VIPS_ARG_BOOL( class, "leak", 5, 
-		_( "Leak" ), 
-		_( "Report any leaks on exit" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsConfigure, leak ),
-		FALSE );
-
-	VIPS_ARG_BOOL( class, "profile", 5, 
-		_( "Profile" ), 
-		_( "Write profiling data on exit" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsConfigure, profile ),
-		FALSE );
-
 	VIPS_ARG_INT( class, "concurrency", 5, 
 		_( "Concurrency" ), 
 		_( "Set threadpool size" ),
@@ -181,14 +167,26 @@ vips_configure_class_init( VipsConfigureClass *class )
 		G_STRUCT_OFFSET( VipsConfigure, concurrency ),
 		-1 );
 
+	VIPS_ARG_INT64( class, "pipe_read_limit", 5, 
+		_( "Pipe read limit" ), 
+		_( "Maxiumum number of bytes to buffer for pipe read" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, pipe_read_limit ),
+		-1 );
 
-	/* Max size of pipe.
-	 */
-	int64 pipe_read_limit;
+	VIPS_ARG_INT( class, "cache_max", 5, 
+		_( "Cache max size" ), 
+		_( "Maxium number of operations to cache" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, cache_max ),
+		-1 );
 
-	/* Trace libvips operation cache actions.
-	 */
-	gboolean cache_trace;
+	VIPS_ARG_INT( class, "cache_max_mem", 5, 
+		_( "Cache max memory size" ), 
+		_( "Maxium number of operations to cache" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, cache_max ),
+		-1 );
 
 	/* Number of recent operations to cache.
 	 */
@@ -208,6 +206,7 @@ static void
 vips_configure_init( VipsConfigure *configure )
 {
 	configure->concurrency = -1;
+	configure->pipe_read_limit = -1;
 }
 
 /**
