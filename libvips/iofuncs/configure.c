@@ -165,40 +165,35 @@ vips_configure_class_init( VipsConfigureClass *class )
 		_( "Set threadpool size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, concurrency ),
-		-1 );
+		0, 0, 1024 );
 
-	VIPS_ARG_INT64( class, "pipe_read_limit", 5, 
+	VIPS_ARG_UINT64( class, "pipe_read_limit", 6, 
 		_( "Pipe read limit" ), 
 		_( "Maxiumum number of bytes to buffer for pipe read" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, pipe_read_limit ),
-		-1 );
+		0, 1024L * 1024L * 1024L, 1024L * 1024L * 1024L * 1024L ); 
 
-	VIPS_ARG_INT( class, "cache_max", 5, 
+	VIPS_ARG_INT( class, "cache_max", 7, 
 		_( "Cache max size" ), 
 		_( "Maxium number of operations to cache" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, cache_max ),
-		-1 );
+		0, 100, 100000 );
 
-	VIPS_ARG_INT( class, "cache_max_mem", 5, 
+	VIPS_ARG_UINT64( class, "cache_max_mem", 8, 
 		_( "Cache max memory size" ), 
-		_( "Maxium number of operations to cache" ),
+		_( "Maxium amount of memory for the operation cache" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConfigure, cache_max ),
-		-1 );
+		0, 100 * 1024L * 1024L, 1024L * 1024L * 1024L * 1024L ); 
 
-	/* Number of recent operations to cache.
-	 */
-	int cache_max;
-
-	/* Maximum memory to use for operation caching.
-	 */
-	int64 cache_max_mem;
-
-	/* Maximum number of open files we allow in the cache.
-	 */
-	int cache_max_files;
+	VIPS_ARG_INT( class, "cache_max_files", 9, 
+		_( "Cache max open files" ), 
+		_( "Maxium number of open files in operation cache" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsConfigure, cache_max_files ),
+		0, 100, 100000 );
 
 }
 
