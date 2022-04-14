@@ -33,6 +33,8 @@
  * 27/2/21
  * 	- simplify rules re. processing space, colour management and linear
  * 	  mode
+ * 14/4/22
+ * 	- add a seq to thumbnail_image to stop cache thrashing
  */
 
 /*
@@ -1706,10 +1708,18 @@ static VipsImage *
 vips_thumbnail_image_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( thumbnail ), 1 );
 
-	g_object_ref( image->in ); 
+	/* We want thumbnail to run in sequential mode on this image, or we
+	 * may get horrible cache thrashing.
+	 */
+	if( vips_sequential( image->in, &t[0], "tile-height", 16, NULL ) )
+		return( NULL );
 
-	return( image->in ); 
+	g_object_ref( t[0] );
+
+	return( t[0] ); 
 }
 
 static void
