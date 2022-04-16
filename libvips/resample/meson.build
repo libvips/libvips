@@ -31,6 +31,7 @@ resample_lib = static_library('resample',
     resample_sources,
     resample_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += resample_lib

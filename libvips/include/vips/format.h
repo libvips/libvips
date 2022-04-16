@@ -29,8 +29,8 @@
 
  */
 
-#ifndef IM_FORMAT_H
-#define IM_FORMAT_H
+#ifndef VIPS_FORMAT_H
+#define VIPS_FORMAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,76 +104,32 @@ typedef struct _VipsFormatClass {
 	const char **suffs;
 } VipsFormatClass;
 
+VIPS_API
 GType vips_format_get_type( void );
 
 /* Map over and find formats. This uses type introspection to loop over
  * subclasses of VipsFormat.
  */
+VIPS_API
 void *vips_format_map( VipsSListMap2Fn fn, void *a, void *b );
+VIPS_API
 VipsFormatClass *vips_format_for_file( const char *filename );
+VIPS_API
 VipsFormatClass *vips_format_for_name( const char *filename );
 
+VIPS_API
 VipsFormatFlags vips_format_get_flags( VipsFormatClass *format, 
 	const char *filename );
 
 /* Read/write an image convenience functions.
  */
+VIPS_API
 int vips_format_read( const char *filename, VipsImage *out );
+VIPS_API
 int vips_format_write( VipsImage *in, const char *filename );
-
-/* Low-level read/write operations.
- */
-int im_jpeg2vips( const char *filename, VipsImage *out );
-int im_bufjpeg2vips( void *buf, size_t len, 
-	VipsImage *out, gboolean header_only );
-int im_vips2jpeg( VipsImage *in, const char *filename );
-int im_vips2mimejpeg( VipsImage *in, int qfac );
-int im_vips2bufjpeg( VipsImage *in, VipsImage *out, 
-	int qfac, char **obuf, int *olen );
-
-int im_tiff2vips( const char *filename, VipsImage *out );
-int im_vips2tiff( VipsImage *in, const char *filename );
-int im_tile_cache( VipsImage *in, VipsImage *out, 
-	int tile_width, int tile_height, int max_tiles );
-
-int im_magick2vips( const char *filename, VipsImage *out );
-int im_bufmagick2vips( void *buf, size_t len, 
-	VipsImage *out, gboolean header_only );
-
-int im_exr2vips( const char *filename, VipsImage *out );
-
-int im_ppm2vips( const char *filename, VipsImage *out );
-int im_vips2ppm( VipsImage *in, const char *filename );
-
-int im_analyze2vips( const char *filename, VipsImage *out );
-
-int im_csv2vips( const char *filename, VipsImage *out );
-int im_vips2csv( VipsImage *in, const char *filename );
-
-int im_png2vips( const char *filename, VipsImage *out );
-int im_vips2png( VipsImage *in, const char *filename );
-int im_vips2bufpng( VipsImage *in, VipsImage *out,
-	int compression, int interlace, char **obuf, size_t *olen  );
-
-int im_webp2vips( const char *filename, VipsImage *out );
-int im_vips2webp( VipsImage *in, const char *filename );
-
-int im_raw2vips( const char *filename, VipsImage *out,
-	int width, int height, int bpp, int offset );
-int im_vips2raw( VipsImage *in, int fd );
-
-int im_mat2vips( const char *filename, VipsImage *out );
-
-int im_rad2vips( const char *filename, VipsImage *out );
-int im_vips2rad( VipsImage *in, const char *filename );
-
-int im_fits2vips( const char *filename, VipsImage *out );
-int im_vips2fits( VipsImage *in, const char *filename );
-
-int im_vips2dz( VipsImage *in, const char *filename );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_FORMAT_H*/
+#endif /*VIPS_FORMAT_H*/

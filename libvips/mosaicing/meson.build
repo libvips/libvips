@@ -31,6 +31,7 @@ mosaicing_lib = static_library('mosaicing',
     mosaicing_sources,
     mosaicing_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += mosaicing_lib

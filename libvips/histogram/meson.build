@@ -26,6 +26,7 @@ histogram_lib = static_library('histogram',
     histogram_sources,
     histogram_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += histogram_lib

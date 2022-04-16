@@ -104,6 +104,7 @@
 #pragma GCC diagnostic pop
 #endif /*HAVE_GSF*/
 
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
@@ -1301,14 +1302,6 @@ void
 vips_leak_set( gboolean leak )
 {
 	vips__leak = leak; 
-}
-
-/* Deprecated.
- */
-size_t
-vips__get_sizeof_vipsobject( void )
-{
-	return( sizeof( VipsObject ) ); 
 }
 
 static void *

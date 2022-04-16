@@ -46,6 +46,7 @@ colour_lib = static_library('colour',
     colour_sources,
     colour_headers,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += colour_lib

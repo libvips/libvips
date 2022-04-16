@@ -50,6 +50,7 @@ if get_option('debug')
     add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
 endif
 
+host_os = host_machine.system()
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
@@ -89,6 +90,18 @@ cfg_var.set_quoted('G_LOG_DOMAIN', 'VIPS')
 
 if modules_enabled
     cfg_var.set('ENABLE_MODULES', '1')
+endif
+
+# Detect and set symbol visibility
+if get_option('default_library') == 'shared' and (host_os == 'windows' or host_os == 'cygwin')
+    cfg_var.set('DLL_EXPORT', true)
+    if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl'
+        cfg_var.set('_VIPS_PUBLIC', '__declspec(dllexport)')
+    elif cc.has_function_attribute('visibility:hidden')
+        cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default"))) __declspec(dllexport)')
+    endif
+elif cc.has_function_attribute('visibility:hidden')
+    cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default")))')
 endif
 
 # we also need to be able to mix vector and scalar arithmetic
@@ -535,10 +548,9 @@ else
 endif
 cfg_var.set('HAVE_BIND_TEXTDOMAIN_CODESET', have_bind_textdomain_codeset)
 
-target_system = target_machine.system()
-if target_system == 'darwin'
+if host_os == 'darwin'
     profile_dir = '/Library/ColorSync/Profiles'
-elif target_system == 'windows'
+elif host_os == 'windows'
     # need double escapes since this will get pasted into a #define in a C
     # header ... the C:\Windows is usually overwritten with the result of
     # GetWindowsDirectoryW()

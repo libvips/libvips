@@ -45,33 +45,46 @@ typedef enum {
 	VIPS_COMBINE_LAST
 } VipsCombine;
 
+VIPS_API
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_convi( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_conva( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_convasep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_sobel( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_canny( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 

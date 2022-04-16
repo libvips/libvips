@@ -95,6 +95,8 @@ libvips_sources += deprecated_sources
 deprecated_lib = static_library('deprecated',
     deprecated_sources,
     dependencies: libvips_deps,
+    c_args: [ '-DVIPS_DISABLE_DEPRECATION_WARNINGS' ],
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += deprecated_lib

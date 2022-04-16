@@ -71,7 +71,9 @@ typedef struct {
 	size_t length;		/* Size of window */
 } VipsWindow;
 
+VIPS_API
 int vips_window_unref( VipsWindow *window );
+VIPS_API
 void vips_window_print( VipsWindow *window );
 
 /* Per-thread buffer state. Held in a GPrivate.
@@ -114,14 +116,22 @@ typedef struct _VipsBuffer {
 	size_t bsize;		/* Size of private malloc() */
 } VipsBuffer;
 
+VIPS_API
 void vips_buffer_dump_all( void );
+VIPS_API
 void vips_buffer_done( VipsBuffer *buffer );
+VIPS_API
 void vips_buffer_undone( VipsBuffer *buffer );
+VIPS_API
 void vips_buffer_unref( VipsBuffer *buffer );
+VIPS_API
 VipsBuffer *vips_buffer_new( struct _VipsImage *im, VipsRect *area );
+VIPS_API
 VipsBuffer *vips_buffer_ref( struct _VipsImage *im, VipsRect *area );
+VIPS_API
 VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer, 
 	struct _VipsImage *im, VipsRect *area );
+VIPS_API
 void vips_buffer_print( VipsBuffer *buffer );
 
 void vips__render_shutdown( void );
@@ -155,33 +165,48 @@ typedef enum _RegionType {
 struct _VipsRegion;
 void vips__region_take_ownership( struct _VipsRegion *reg );
 void vips__region_check_ownership( struct _VipsRegion *reg );
+/* TODO(kleisauke): VIPS_API is required by vipsdisp.
+ */
+VIPS_API
 void vips__region_no_ownership( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
+VIPS_API
 int vips_region_fill( struct _VipsRegion *reg, 
 	const VipsRect *r, VipsRegionFillFn fn, void *a );
 
 int vips__image_wio_output( struct _VipsImage *image );
 int vips__image_pio_output( struct _VipsImage *image );
 
+/* VIPS_ARGUMENT_FOR_ALL() needs to have this visible.
+ */
+VIPS_API
 VipsArgumentInstance *vips__argument_get_instance( 
 	VipsArgumentClass *argument_class,
 	VipsObject *object);
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
 	GParamSpec *pspec);
 
+/* im_demand_hint_array() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 void vips__demand_hint_array( struct _VipsImage *image, 
 	int hint, struct _VipsImage **in );
+/* im_cp_desc_array() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips__image_copy_fields_array( struct _VipsImage *out, 
 	struct _VipsImage *in[] );
 
 void vips__region_count_pixels( struct _VipsRegion *region, const char *nickname );
+VIPS_API
 void vips_region_dump_all( void );
 
-/* Deprecated.
- */
-int vips__init( const char *argv0 );
-size_t vips__get_sizeof_vipsobject( void );
+VIPS_API
 int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );
 
 /* Handy for debugging.
@@ -190,7 +215,8 @@ int vips__view_image( struct _VipsImage *image );
 
 /* Pre 8.7 libvipses used this for allocating argument ids.
  */
-extern int _vips__argument_id;
+VIPS_API
+int _vips__argument_id;
 
 void vips__meta_init( void );
 

@@ -343,14 +343,6 @@ vips_window_find( VipsImage *im, int top, int height )
 	return( window );
 }
 
-/* Old API. Just a compat stub now.
- */
-VipsWindow *
-vips_window_ref( VipsImage *im, int top, int height )
-{
-	return( NULL );
-}
-
 /* Update a window to make it enclose top/height. 
  */
 VipsWindow *

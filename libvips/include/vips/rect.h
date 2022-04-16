@@ -50,17 +50,27 @@ typedef struct _VipsRect {
 #define VIPS_RECT_HCENTRE(R) ((R)->left + (R)->width / 2)
 #define VIPS_RECT_VCENTRE(R) ((R)->top + (R)->height / 2)
 
+VIPS_API
 gboolean vips_rect_isempty( const VipsRect *r );
+VIPS_API
 gboolean vips_rect_includespoint( const VipsRect *r, int x, int y );
+VIPS_API
 gboolean vips_rect_includesrect( const VipsRect *r1, const VipsRect *r2 );
+VIPS_API
 gboolean vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 );
+VIPS_API
 gboolean vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 );
+VIPS_API
 void vips_rect_marginadjust( VipsRect *r, int n );
+VIPS_API
 void vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2, 
 	VipsRect *out );
+VIPS_API
 void vips_rect_unionrect( const VipsRect *r1, const VipsRect *r2, 
 	VipsRect *out );
+VIPS_API
 VipsRect *vips_rect_dup( const VipsRect *r );
+VIPS_API
 void vips_rect_normalise( VipsRect *r );
 
 #ifdef __cplusplus

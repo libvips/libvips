@@ -93,7 +93,13 @@ typedef struct _VipsMeta {
 	GValue value;			/* copy of value */
 } VipsMeta;
 
+/* TODO(kleisauke): VIPS_API is required by the magick module.
+ */
+VIPS_API
 int vips__exif_parse( VipsImage *image );
+/* TODO(kleisauke): VIPS_API is required by the heif module.
+ */
+VIPS_API
 int vips__exif_update( VipsImage *image );
 
 void vips_check_init( void );
@@ -151,7 +157,19 @@ int vips__object_leak( void );
  */
 int vips__open_image_read( const char *filename );
 int vips__open_image_write( const char *filename, gboolean temp );
+
+/* im_image_open_input() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips_image_open_input( VipsImage *image );
+
+/* im_image_open_output() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 int vips_image_open_output( VipsImage *image );
 
 void vips__link_break_all( VipsImage *im );
@@ -161,9 +179,27 @@ void *vips__link_map( VipsImage *image, gboolean upstream,
 gboolean vips__mmap_supported( int fd );
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
 int vips__munmap( const void *start, size_t length );
-int vips_mapfile( VipsImage * );
-int vips_mapfilerw( VipsImage * );
-int vips_remapfilerw( VipsImage * );
+
+/* im_mapfile() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_mapfile( VipsImage *image );
+
+/* im_mapfilerw() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_mapfilerw( VipsImage *image );
+
+/* im_remapfilerw() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
+int vips_remapfilerw( VipsImage *image );
 
 void vips__buffer_init( void );
 void vips__buffer_shutdown( void );
@@ -172,11 +208,26 @@ void vips__copy_4byte( int swap, unsigned char *to, unsigned char *from );
 void vips__copy_2byte( gboolean swap, unsigned char *to, unsigned char *from );
 
 guint32 vips__file_magic( const char *filename );
+/* TODO(kleisauke): VIPS_API is required by vipsheader.
+ */
+VIPS_API
 int vips__has_extension_block( VipsImage *im );
+/* TODO(kleisauke): VIPS_API is required by vipsheader.
+ */
+VIPS_API
 void *vips__read_extension_block( VipsImage *im, int *size );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 int vips__write_extension_block( VipsImage *im, void *buf, int size );
 int vips__writehist( VipsImage *image );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 int vips__read_header_bytes( VipsImage *im, unsigned char *from );
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
 int vips__write_header_bytes( VipsImage *im, unsigned char *to );
 int vips__image_meta_copy( VipsImage *dst, const VipsImage *src );
 
@@ -186,6 +237,12 @@ int vips_image_written( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
+
+/* im_openout() needs to have this visible.
+ */
+#if VIPS_ENABLE_DEPRECATED
+VIPS_API
+#endif
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
@@ -206,6 +263,9 @@ int vips__bandalike( const char *domain,
 VipsPel *vips__vector_to_pels( const char *domain, 
 	int bands, VipsBandFormat format, VipsCoding coding, 
 	double *real, double *imag, int n );
+/* TODO(kleisauke): VIPS_API is required by the poppler module.
+ */
+VIPS_API
 VipsPel *vips__vector_to_ink( const char *domain, 
 	VipsImage *im, double *real, double *imag, int n );
 
@@ -248,6 +308,9 @@ void vips_mosaicing_operation_init( void );
 void vips_cimg_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
+/* TODO(kleisauke): VIPS_API is required by vipsthumbnail.
+ */
+VIPS_API
 int vips__substitute( char *buf, size_t len, char *sub );
 
 int vips_check_coding_labq( const char *domain, VipsImage *im );
@@ -258,6 +321,9 @@ int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 
 char *vips__xml_properties( VipsImage *image );
 
+/* TODO(kleisauke): VIPS_API is required by the poppler module.
+ */
+VIPS_API
 void vips__premultiplied_bgra2rgba( guint32 * restrict p, int n );
 void vips__bgra2rgba( guint32 * restrict p, int n );
 void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );

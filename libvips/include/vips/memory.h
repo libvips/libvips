@@ -64,21 +64,31 @@ G_STMT_START { \
 #define VIPS_ARRAY( OBJ, N, T ) \
 	((T *) vips_malloc( VIPS_OBJECT( OBJ ), (N) * sizeof( T )))
 
+VIPS_API
 void *vips_malloc( VipsObject *object, size_t size );
+VIPS_API
 char *vips_strdup( VipsObject *object, const char *str );
 
+VIPS_API
 void vips_tracked_free( void *s );
+VIPS_API
 void *vips_tracked_malloc( size_t size );
+VIPS_API
 size_t vips_tracked_get_mem( void );
+VIPS_API
 size_t vips_tracked_get_mem_highwater( void );
+VIPS_API
 int vips_tracked_get_allocs( void );
 
+VIPS_API
 int vips_tracked_open( const char *pathname, int flags, int mode );
+VIPS_API
 int vips_tracked_close( int fd );
+VIPS_API
 int vips_tracked_get_files( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_MEMORY_H*/
+#endif /*VIPS_MEMORY_H*/

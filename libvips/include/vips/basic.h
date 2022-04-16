@@ -34,6 +34,28 @@
 #ifndef VIPS_BASIC_H
 #define VIPS_BASIC_H
 
+/* Defined in config.h
+ */
+#ifdef _VIPS_PUBLIC
+#  define VIPS_API _VIPS_PUBLIC extern
+#else
+#  define VIPS_API extern
+#endif
+
+/* VIPS_DISABLE_DEPRECATION_WARNINGS:
+ *
+ * Disable deprecation warnings from VIPS API.
+ *
+ * Must be defined before including `vips/vips.h`.
+ */
+#ifdef VIPS_DISABLE_DEPRECATION_WARNINGS
+#  define VIPS_DEPRECATED VIPS_API
+#  define VIPS_DEPRECATED_FOR(f) VIPS_API
+#else
+#  define VIPS_DEPRECATED G_DEPRECATED VIPS_API
+#  define VIPS_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f) VIPS_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -68,13 +90,17 @@ typedef enum {
 
 /* Just for testing.
  */
+VIPS_API
 char *vips_path_filename7( const char *path );
+VIPS_API
 char *vips_path_mode7( const char *path );
 
 struct _VipsImage; 
 typedef struct _VipsImage VipsImage;
 struct _VipsRegion; 
 typedef struct _VipsRegion VipsRegion;
+struct _VipsBuf;
+typedef struct _VipsBuf VipsBuf;
 struct _VipsSource; 
 typedef struct _VipsSource VipsSource;
 struct _VipsTarget; 

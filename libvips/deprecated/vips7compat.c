@@ -5765,3 +5765,19 @@ vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
 	return( result ); 
 }
 
+/* Old API. Just a compat stub now.
+ */
+VipsWindow *
+vips_window_ref( VipsImage *im, int top, int height )
+{
+	return( NULL );
+}
+
+/* Deprecated.
+ */
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) );
+}
+

@@ -39,19 +39,26 @@ extern "C" {
 /* We need wrappers over g_mutex_new(), it was replaced by g_mutex_init() in
  * glib 2.32+
  */
+VIPS_API
 GMutex *vips_g_mutex_new( void );
+VIPS_API
 void vips_g_mutex_free( GMutex * );
 
 /* Same for GCond.
  */
+VIPS_API
 GCond *vips_g_cond_new( void );
+VIPS_API
 void vips_g_cond_free( GCond * );
 
 /* ... and for GThread.
  */
+VIPS_API
 GThread *vips_g_thread_new( const char *, GThreadFunc, gpointer );
+VIPS_API
 void *vips_g_thread_join( GThread *thread );
 
+VIPS_API
 gboolean vips_thread_isworker( void );
 
 #ifdef __cplusplus

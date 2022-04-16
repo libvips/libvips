@@ -38,30 +38,42 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+VIPS_API
 int vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_percent( VipsImage *in, double percent, int *threshold, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_cum( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_norm( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_equal( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_plot( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_local( VipsImage *in, VipsImage **out, 
 	int width, int height, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_ismonotonic( VipsImage *in, gboolean *out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_hist_entropy( VipsImage *in, double *out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_case( VipsImage *index, VipsImage **cases, VipsImage **out, int n, 
 	... )
 	__attribute__((sentinel));
