@@ -1,4 +1,4 @@
-/* A byte source/sink .. it can be a pipe, file descriptor, memory area, 
+/* A byte source/sink .. it can be a pipe, file descriptor, memory area,
  * socket, node.js stream, etc.
  * 
  * 19/6/14

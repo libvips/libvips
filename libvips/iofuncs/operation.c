@@ -33,6 +33,7 @@
 
 /*
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1432,9 +1433,9 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
 {
 	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
 
-#ifdef VIPS_DEBUG
+#ifdef DEBUG
 	if( ((class->flags & VIPS_OPERATION_BLOCKED) != 0) != *state )
-		VIPS_DEBUG_MSG( "vips_operation_block_set_operation: "
+		printf( "vips_operation_block_set_operation: "
 			"setting block state on %s = %d\n", 
 			VIPS_OBJECT_CLASS( class )->nickname, *state );
 #endif

@@ -1,6 +1,7 @@
 iofuncs_sources = files(
     'ginputsource.c',
     'sourceginput.c',
+    'configure.c',
     'connection.c',
     'source.c',
     'sourcecustom.c',

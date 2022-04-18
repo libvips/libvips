@@ -435,6 +435,7 @@ int
 vips_init( const char *argv0 )
 {
 	extern GType vips_system_get_type( void );
+	extern GType vips_configure_get_type( void );
 	extern GType write_thread_state_get_type( void );
 	extern GType sink_memory_thread_state_get_type( void ); 
 	extern GType render_thread_state_get_type( void ); 
@@ -579,6 +580,7 @@ vips_init( const char *argv0 )
 	/* Start up packages.
 	 */
 	(void) vips_system_get_type();
+	(void) vips_configure_get_type();
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
 	vips_create_operation_init();
