@@ -481,11 +481,17 @@ elif libpoppler_dep.found() and cairo_dep.found()
     cfg_var.set('HAVE_POPPLER', '1')
 endif
 
-# niftiio.pc is not always present, so fallback to CMake's find_package() functionally
+# niftiio.pc is not always present, so fall back to CMake's find_package() 
+# functionality
+# cmake find fails on ubuntu due to /usr/lib/x86_64-linux-gnu madness, so it's
+# simplest to create a libnifti.pc in this case
 # TODO: simplify this when requiring meson>=0.60.0
-libnifti_dep = dependency('niftiio', required: false)
+libnifti_dep = dependency('niftiio', required: get_option('nifti'))
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI::niftiio'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI',
+      method: 'cmake',
+      modules: ['NIFTI::niftiio'],
+      required: get_option('nifti'))
 endif
 if not get_option('nifti').disabled() and libnifti_dep.found()
     libvips_deps += libnifti_dep
