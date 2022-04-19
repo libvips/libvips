@@ -447,6 +447,7 @@ vips_init( const char *argv0 )
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
 	const char *vips_min_stack_size;
+	gint64 min_stack_size;
 	const char *prefix;
 	const char *libdir;
 #ifdef ENABLE_NLS
@@ -467,6 +468,14 @@ vips_init( const char *argv0 )
 		 */
 		return( 0 );
 	started = TRUE;
+
+	/* Try to set a minimum stacksize, default 2mb. We need to do this
+	 * before any threads start.
+	 */
+	min_stack_size = 2 * 1024 * 1024;
+        if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
+		min_stack_size = vips__parse_size( vips_min_stack_size );
+	(void) set_stacksize( min_stack_size );
 
 	if( g_getenv( "VIPS_INFO" )
 #if ENABLE_DEPRECATED
@@ -664,11 +673,6 @@ vips_init( const char *argv0 )
 	 */
 	if( g_getenv( "VIPS_BLOCK_UNTRUSTED" ) )
 		vips_block_untrusted_set( TRUE );
-
-	/* Set a minimum stacksize, if we can.
-	 */
-        if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
-		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
 
 	done = TRUE;
 
