@@ -7,7 +7,7 @@ pyvips and php-vips have launched interesting new versions.
 # pyvips
 
 pyvips version 2.2 is just out and thanks to work by erdmann features a range
-of interesting new features.
+of useful new features.
 
 ## PIL and numpy
 
@@ -30,7 +30,9 @@ image = pyvips.Image.new_from_array(a)
 ```
 
 pyvips will even guess a sensible interpretaion for you (sRGB in this case),
-or you can specify with the optional `interpretation=` argument.
+or you can specify with the optional `interpretation=` argument. This works
+by sharing a memory buffer between the two libraries, so no data is copied
+or duplicated, just a pointer.
 
 Going the other way, you can make a numpy array from a pyvips image using
 [`Image.numpy()`](https://libvips.github.io/pyvips/vimage.html#pyvips.Image.numpy):
@@ -45,7 +47,8 @@ Or just use numpy's `asarray()`:
 a1 = np.asarray(image)
 ```
 
-This is a fast way for numpy to load many image formats.
+Again, there's no copying of data, just a pointer, so this is a fast way
+for numpy to load many image formats.
 
 You can use the same method to make a PIL image:
 
@@ -63,15 +66,18 @@ pil_image = PIL.Image.new('RGB', (60, 30), color='red')
 image = pyvips.Image.new_from_array(pil_image)
 ```
 
+Again, no copying.
+
 ## Improved indexing
 
-You can now used extended indexing of band elements. For example:
+Band indexing now supports an optional step. For example:
 
 ```python
 iamge = image[::-1]
 ```
 
-Will reverse the bands in an image, so RGB becomes BGR. The docs have [all the
+Will reverse the bands in an image, so RGB becomes BGR. You
+can also index with a list of bools. The docs have [all the
 details](https://libvips.github.io/pyvips/vimage.html?highlight=getitem#pyvips.Image.__getitem__).
 
 ## Other improvements
@@ -79,7 +85,7 @@ details](https://libvips.github.io/pyvips/vimage.html?highlight=getitem#pyvips.I
 There's a new
 [`invalidate`](https://libvips.github.io/pyvips/vimage.html?highlight=invalidate#pyvips.Image.invalidate) method you can use to throw images out of the
 various libvips caches, a useful speedup for pyvips method call, and support
-for `Path` objects.
+for `Path` objects for load and save.
 
 # php-vips
 
