@@ -115,6 +115,27 @@ class TestResample:
         assert x.width == 50
         assert x.height == 1
 
+        # test whether we use double-precision calculations in reduce{h,v}
+        im = pyvips.Image.black(1600, 1000)
+        x = im.resize(10.0 / im.width)
+        assert x.width == 10
+        assert x.height == 6
+
+        # test round-up option of shrink
+        im = pyvips.Image.black(2049 - 2, 2047 - 2, bands=3)
+        im = im.embed(1, 1, 2049, 2047,
+                      extend=pyvips.Extend.BACKGROUND,
+                      background=[255, 0, 0])
+        for scale in [8, 9.4, 16]:
+            x = im.resize(1 / scale, vscale=1 / scale)
+
+            for point in ([(round(x.width / 2), 0),
+                           (x.width - 1, round(x.height / 2)),
+                           (round(x.width / 2), x.height - 1),
+                           (0, round(x.height / 2))]):
+                y = x(*point)[0]
+                assert y != 0
+
     def test_shrink(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         im2 = im.shrink(4, 4)
