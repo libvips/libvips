@@ -21,6 +21,8 @@
  * 	- deprecate @centre option, it's now always on
  * 	- fix pixel shift
  * 	- speed up the mask construction for uchar/ushort images
+ * 22/4/22 kleisauke
+ * 	- add @gap option
  */
 
 /*
@@ -102,7 +104,8 @@ typedef struct {
 typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
-	double vshrink;		/* Shrink factor */
+	double vshrink;		/* Reduce factor */
+	double gap;			/* Reduce gap */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -734,10 +737,10 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 }
 
 static int
-vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out ) 
+vips_reducev_raw( VipsReducev *reducev, VipsImage *in, int height, 
+		VipsImage **out ) 
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( reducev );
-	VipsResample *resample = VIPS_RESAMPLE( reducev );
 
 	VipsGenerateFn generate;
 
@@ -771,15 +774,11 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
-	/* Size output. We need to always round to nearest, so round(), not
-	 * rint().
-	 *
-	 * Don't change xres/yres, leave that to the application layer. For
+	/* Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	(*out)->Ysize = VIPS_ROUND_UINT( 
-		resample->in->Ysize / reducev->vshrink );
+	(*out)->Ysize = height;
 	if( (*out)->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -808,23 +807,62 @@ vips_reducev_build( VipsObject *object )
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsReducev *reducev = (VipsReducev *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	VipsImage *in;
-	double height, extra_pixels;
+	int height;
+	int int_vshrink;
+	double extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in; 
 
-	if( reducev->vshrink < 1 ) { 
+	if( reducev->vshrink < 1.0 ) { 
 		vips_error( object_class->nickname, 
-			"%s", _( "reduce factor should be >= 1" ) );
+			"%s", _( "reduce factor should be >= 1.0" ) );
 		return( -1 );
 	}
 
-	if( reducev->vshrink == 1 ) 
+	/* Output size. We need to always round to nearest, so round(), not
+	 * rint().
+	 */
+	height = VIPS_ROUND_UINT( 
+		(double) in->Ysize / reducev->vshrink );
+
+	/* How many pixels we are inventing in the input, -ve for
+	 * discarding.
+	 */
+	extra_pixels = height * reducev->vshrink - in->Ysize;
+
+	if( reducev->gap != 0.0 &&
+		reducev->kernel != VIPS_KERNEL_NEAREST ) {
+		if( reducev->gap < 1.0 ) {
+			vips_error( object_class->nickname,
+				"%s", _( "reduce gap should be >= 1.0" ) );
+			return( -1 );
+		}
+
+		/* The int part of our reduce.
+		 */
+		int_vshrink = VIPS_MAX( 1,
+			VIPS_FLOOR( (double) in->Ysize / height / reducev->gap ) );
+
+		if( int_vshrink > 1 ) {
+			g_info( "shrinkv by %d", int_vshrink );
+			if( vips_shrinkv( in, &t[0], int_vshrink,
+				"ceil", TRUE,
+				NULL ) )
+				return( -1 );
+			in = t[0];
+
+			reducev->vshrink /= int_vshrink;
+			extra_pixels /= int_vshrink;
+		}
+	}
+
+	if( reducev->vshrink == 1.0 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	reducev->n_point = 
@@ -835,18 +873,6 @@ vips_reducev_build( VipsObject *object )
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
-
-	/* Output size. We need to always round to nearest, so round(), not
-	 * rint().
-	 */
-	height = VIPS_ROUND_UINT(
-		(double) resample->in->Ysize / reducev->vshrink );
-
-	/* How many pixels we are inventing in the input, -ve for
-	 * discarding.
-	 */
-	extra_pixels =
-		height * reducev->vshrink - resample->in->Ysize;
 
 	/* If we are rounding down, we are not using some input
 	 * pixels. We need to move the origin *inside* the input image
@@ -884,23 +910,23 @@ vips_reducev_build( VipsObject *object )
 
 	/* Unpack for processing.
 	 */
-	if( vips_image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[1] ) )
 		return( -1 );
-	in = t[0];
+	in = t[1];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	if( vips_embed( in, &t[1], 
+	if( vips_embed( in, &t[2], 
 		0, VIPS_CEIL( reducev->n_point / 2.0 ) - 1, 
 		in->Xsize, in->Ysize + reducev->n_point, 
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )
 		return( -1 );
-	in = t[1];
-
-	if( vips_reducev_raw( reducev, in, &t[2] ) )
-		return( -1 );
 	in = t[2];
+
+	if( vips_reducev_raw( reducev, in, height, &t[3] ) )
+		return( -1 );
+	in = t[3];
 
 	/* Large reducev will throw off sequential mode. Suppose thread1 is
 	 * generating tile (0, 0), but stalls. thread2 generates tile
@@ -915,12 +941,12 @@ vips_reducev_build( VipsObject *object )
 	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
 		g_info( "reducev sequential line cache" ); 
 
-		if( vips_sequential( in, &t[3], 
+		if( vips_sequential( in, &t[4], 
 			"tile_height", 10,
 			// "trace", TRUE,
 			(void *) NULL ) )
 			return( -1 );
-		in = t[3];
+		in = t[4];
 	}
 
 	if( vips_image_write( in, resample->out ) )
@@ -954,7 +980,7 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReducev, vshrink ),
-		1, 1000000, 1 );
+		1.0, 1000000.0, 1.0 );
 
 	VIPS_ARG_ENUM( reducev_class, "kernel", 4, 
 		_( "Kernel" ), 
@@ -963,6 +989,13 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		G_STRUCT_OFFSET( VipsReducev, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
+	VIPS_ARG_DOUBLE( reducev_class, "gap", 5, 
+		_( "Gap" ), 
+		_( "Reducing gap" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReducev, gap ),
+		0.0, 1000000.0, 0.0 );
+
 	/* Old name.
 	 */
 	VIPS_ARG_DOUBLE( reducev_class, "yshrink", 3, 
@@ -970,7 +1003,7 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReducev, vshrink ),
-		1, 1000000, 1 );
+		1.0, 1000000.0, 1.0 );
 
 	/* We used to let people pick centre or corner, but it's automatic now.
 	 */
@@ -986,6 +1019,7 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 static void
 vips_reducev_init( VipsReducev *reducev )
 {
+	reducev->gap = 0.0;
 	reducev->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
