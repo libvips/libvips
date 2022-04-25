@@ -93,4 +93,7 @@ if !OPENSLIDE_MODULE
 libforeign_la_SOURCES += openslideload.c
 endif # !OPENSLIDE_MODULE
 
+EXTRA_DIST = \
+	qoi
+
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
