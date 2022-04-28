@@ -18,6 +18,7 @@
 - update libnsgif API [tlsa]
 - deprecate "properties" option to dzsave (now always on)
 - always set the min stack size for pthreads, if we can
+- add fail-on to thumbnail
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
