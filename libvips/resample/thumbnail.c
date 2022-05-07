@@ -36,7 +36,7 @@
  * 14/4/22
  * 	- add a seq to thumbnail_image to stop cache thrashing
  * 28/4/22
- * 	- add fail-on
+ * 	- add fail_on
  */
 
 /*
@@ -1020,7 +1020,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, intent ),
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
 
-	VIPS_ARG_ENUM( class, "fail-on", 121, 
+	VIPS_ARG_ENUM( class, "fail_on", 121, 
 		_( "Fail on" ), 
 		_( "Error level to fail on" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -1095,7 +1095,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail-on", thumbnail->fail_on,
+			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL ) );
 	}
@@ -1103,7 +1103,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail-on", thumbnail->fail_on,
+			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL ) );
 	}
@@ -1112,7 +1112,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail-on", thumbnail->fail_on,
+			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL ) );
 	}
@@ -1122,7 +1122,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				"fail-on", thumbnail->fail_on,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL ) );
 		else
@@ -1137,32 +1137,32 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		if( thumbnail->subifd_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				"fail-on", thumbnail->fail_on,
+				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL ) );
 		else if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				"fail-on", thumbnail->fail_on,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL ) );
 		else
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				"fail-on", thumbnail->fail_on,
+				"fail_on", thumbnail->fail_on,
 				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail-on", thumbnail->fail_on,
+			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail-on", thumbnail->fail_on,
+			"fail_on", thumbnail->fail_on,
 			NULL ) );
 	}
 }

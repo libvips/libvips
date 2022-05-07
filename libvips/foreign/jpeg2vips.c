@@ -111,7 +111,7 @@
  * 13/9/20
  * 	- set resolution unit from JFIF 
  * 24/7/21
- * 	- add fail-on support
+ * 	- add fail_on support
  */
 
 /*

@@ -5,7 +5,7 @@
  * 29/11/11
  * 	- split to make load, load from buffer and load from file
  * 24/7/21
- * 	- add fail-on support
+ * 	- add fail_on support
  */
 
 /*
@@ -470,7 +470,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * |[
  * vips_jpegload( "fred.jpg", &amp;out,
  * 	"shrink", 8,
- * 	"fail-on", VIPS_FAIL_ON_TRUNCATED,
+ * 	"fail_on", VIPS_FAIL_ON_TRUNCATED,
  * 	NULL );
  * ]|
  *

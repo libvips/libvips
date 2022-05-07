@@ -25,7 +25,7 @@
  * 1/4/18
  * 	- drop incompatible ICC profiles before save
  * 24/7/21
- * 	- add fail-on
+ * 	- add fail_on
  */
 
 /*
@@ -1197,7 +1197,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, access ),
 		VIPS_TYPE_ACCESS, VIPS_ACCESS_RANDOM ); 
 
-	VIPS_ARG_ENUM( class, "fail-on", 109, 
+	VIPS_ARG_ENUM( class, "fail_on", 109, 
 		_( "Fail on" ), 
 		_( "Error level to fail on" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
