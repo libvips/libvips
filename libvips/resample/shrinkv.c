@@ -383,7 +383,8 @@ vips_shrinkv_build( VipsObject *object )
 	 */
 	t[2]->Ysize = shrink->ceil ?
 		VIPS_CEIL( (double) resample->in->Ysize / shrink->vshrink ) :
-		VIPS_ROUND_UINT( (double) resample->in->Ysize / shrink->vshrink );
+		VIPS_ROUND_UINT( 
+			(double) resample->in->Ysize / shrink->vshrink );
 	if( t[2]->Ysize <= 0 ) {
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );

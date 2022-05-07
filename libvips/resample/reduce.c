@@ -138,7 +138,7 @@
 typedef struct _VipsReduce {
 	VipsResample parent_instance;
 
-	double hshrink;		/* Shrink factors */
+	double hshrink;			/* Shrink factors */
 	double vshrink;
 	double gap;			/* Reduce gap */
 

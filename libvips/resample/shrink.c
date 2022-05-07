@@ -65,7 +65,7 @@ typedef struct _VipsShrink {
 
 	double hshrink;		/* Shrink factors */
 	double vshrink;
-	gboolean ceil;			/* Round operation */
+	gboolean ceil;		/* Round operation */
 
 } VipsShrink;
 
@@ -95,21 +95,21 @@ vips_shrink_build( VipsObject *object )
 		/* Shrink by int factors, reduce to final size.
 		 */
 		if( vips_reducev( resample->in, &t[0], shrink->vshrink,
-			"gap", 1.0,
-			NULL ) ||
+				"gap", 1.0,
+				NULL ) ||
 			vips_reduceh( t[0], &t[1], shrink->hshrink,
-			"gap", 1.0,
-			NULL ) ||
+				"gap", 1.0,
+				NULL ) ||
 			vips_image_write( t[1], resample->out ) )
 			return( -1 );
 	}
 	else {
 		if( vips_shrinkv( resample->in, &t[0], shrink->vshrink,
-			"ceil", shrink->ceil, 
-			NULL ) ||
+				"ceil", shrink->ceil, 
+				NULL ) ||
 			vips_shrinkh( t[0], &t[1], shrink->hshrink,
-			"ceil", shrink->ceil, 
-			NULL ) ||
+				"ceil", shrink->ceil, 
+				NULL ) ||
 			vips_image_write( t[1], resample->out ) )
 			return( -1 );
 	}

@@ -65,7 +65,7 @@
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
-	double hshrink;		/* Reduce factor */
+	double hshrink;			/* Reduce factor */
 	double gap;			/* Reduce gap */
 
 	/* The thing we use to make the kernel.
@@ -477,8 +477,8 @@ vips_reduceh_build( VipsObject *object )
 
 		/* The int part of our reduce.
 		 */
-		int_hshrink = VIPS_MAX( 1,
-			VIPS_FLOOR( (double) in->Xsize / width / reduceh->gap ) );
+		int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 
+			(double) in->Xsize / width / reduceh->gap ) );
 
 		if( int_hshrink > 1 ) {
 			g_info( "shrinkh by %d", int_hshrink );

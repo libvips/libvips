@@ -178,10 +178,12 @@ vips_resize_build( VipsObject *object )
 			target_width = VIPS_ROUND_UINT( in->Xsize * hscale );
 			target_height = VIPS_ROUND_UINT( in->Ysize * vscale );
 
-			int_hshrink = 
-				VIPS_FLOOR( (double) in->Xsize / target_width / resize->gap );
-			int_vshrink = 
-				VIPS_FLOOR( (double) in->Ysize / target_height / resize->gap );
+			int_hshrink = VIPS_FLOOR( 
+				(double) in->Xsize / target_width / 
+					resize->gap );
+			int_vshrink = VIPS_FLOOR( 
+				(double) in->Ysize / target_height / 
+					resize->gap );
 		}
 
 		int_hshrink = VIPS_MAX( 1, int_hshrink );
