@@ -573,6 +573,10 @@ struct _Layer {
 struct _VipsForeignSaveDz {
 	VipsForeignSave parent_object;
 
+	/* The target we are writing to. This is set by our subclasses.
+	 */
+	VipsTarget *target;
+
 	char *suffix;
 	int overlap;
 	int tile_size;
@@ -803,9 +807,12 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
+	VIPS_UNREF( dz->target );
+
 	VIPS_FREEF( layer_free, dz->layer );
 	VIPS_FREEF( vips_gsf_tree_close,  dz->tree );
 	VIPS_FREEF( g_object_unref, dz->out );
+
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
 	VIPS_FREE( dz->root_name );
@@ -2119,7 +2126,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
 	VipsRect real_pixels; 
+	char *p;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -2283,6 +2292,55 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->tile_step );
 #endif /*DEBUG*/
 
+	/* Init basename and dirname from the associated filesystem names, if
+	 * we can.
+	 */
+	if( !vips_object_argument_isset( object, "basename" ) ) {
+		const char *filename;
+
+		if( (filename = vips_connection_filename( 
+			VIPS_CONNECTION( dz->target ) )) ) {
+			dz->basename = g_path_get_basename( filename ); 
+		}
+		else {
+			dz->basename = g_strdup( "untitled" ); 
+		}
+	}
+
+	if( !vips_object_argument_isset( object, "dirname" ) ) {
+		const char *filename;
+
+		if( (filename = vips_connection_filename( 
+			VIPS_CONNECTION( dz->target ) )) ) {
+			dz->dirname = g_path_get_dirname( filename ); 
+		}
+	}
+
+	/* Remove any [options] from basename.
+	 */
+	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
+		*p = '\0';
+
+	/* If we're writing thing.zip or thing.szi, default to zip 
+	 * container.
+	 */
+	if( (p = strrchr( dz->basename, '.' )) ) {
+		if( !vips_object_argument_isset( object, "container" ) ) {
+			if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 )
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+			if( g_ascii_strcasecmp( p + 1, "szi" ) == 0 ) 
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI;
+		}
+
+		/* Remove any legal suffix. We don't remove all suffixes
+		 * since we might be writing to a dirname with a dot in.
+		 */
+		if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 ||
+			g_ascii_strcasecmp( p + 1, "szi" ) == 0 || 
+			g_ascii_strcasecmp( p + 1, "dz" ) == 0 )
+			*p = '\0';
+	}
+
 	/* Build the skeleton of the image pyramid.
 	 */
 	if( !(dz->layer = pyramid_build( dz, NULL, 
@@ -2294,28 +2352,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 	else
 		dz->root_name = g_strdup( dz->basename );
 
-	/* Drop any options from @suffix.
+	/* Drop any [options] from @suffix.
 	 */
-{
-	char filename[VIPS_PATH_MAX];
-	char option_string[VIPS_PATH_MAX];
-
-	vips__filename_split8( dz->suffix, filename, option_string );
-	dz->file_suffix = g_strdup( filename ); 
-}
-
-	/* If we will be renaming our temp dir to an existing directory or
-	 * file, stop now. See vips_rename() use below.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
-		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS &&
-		dz->dirname &&
-		vips_existsf( "%s/%s_files", dz->dirname, dz->basename ) ) {
-		vips_error( "dzsave", 
-			_( "output directory %s/%s_files exists" ),
-			dz->dirname, dz->basename );
-		return( -1 ); 
-	}
+	dz->file_suffix = g_strdup( dz->suffix ); 
+	if( (p = (char *) vips__find_rightmost_brackets( dz->file_suffix )) )
+		*p = '\0';
 
 	/* Make the thing we write the tiles into.
 	 */
@@ -2353,25 +2394,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		GsfOutput *zip;
 		GsfOutput *out2;
 		GError *error = NULL;
-		char name[VIPS_PATH_MAX];
 
-		/* Output to a file or memory?
+		/* Can be memory, a file (not a directory tree), pipe, etc.
 		 */
-		if( dz->dirname ) { 
-			const char *suffix =
-				dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI ?
-					"szi" : "zip";
-
-			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.%s",
-				dz->dirname, dz->basename, suffix );
-			if( !(dz->out =
-				gsf_output_stdio_new( name, &error )) ) {
-				vips_g_error( &error );
-				return( -1 );
-			}
-		}
-		else
-			dz->out = gsf_output_memory_new();
+		dz->out = gsf_output_target_new( dz->target );
 
 		if( !(zip = (GsfOutput *) 
 			gsf_outfile_zip_new( dz->out, &error )) ) {
@@ -2653,6 +2679,60 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->skip_blanks = -1;
 }
 
+typedef struct _VipsForeignSaveDzTarget {
+	VipsForeignSaveDz parent_object;
+
+	VipsTarget *target; 
+
+} VipsForeignSaveDzTarget;
+
+typedef VipsForeignSaveDzClass VipsForeignSaveDzTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveDzTarget, vips_foreign_save_dz_target, 
+	vips_foreign_save_dz_get_type() );
+
+static int
+vips_foreign_save_dz_target_build( VipsObject *object )
+{
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+	VipsForeignSaveDzTarget *target = (VipsForeignSaveDzTarget *) object;
+
+	dz->target = target->target;
+	g_object_ref( target->target );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_target_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_dz_target_class_init( VipsForeignSaveDzTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "dzsave";
+	object_class->description = _( "save image to deepzoom target" );
+	object_class->build = vips_foreign_save_dz_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveDzTarget, target ),
+		VIPS_TYPE_TARGET );
+}
+
+static void
+vips_foreign_save_dz_target_init( VipsForeignSaveDzTarget *target )
+{
+}
+
 typedef struct _VipsForeignSaveDzFile {
 	VipsForeignSaveDz parent_object;
 
@@ -2673,39 +2753,8 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
 	VipsForeignSaveDzFile *file = (VipsForeignSaveDzFile *) object;
 
-	char *p;
-
-	/* Use @filename to set the default values for dirname and basename.
-	 */
-	if( !vips_object_argument_isset( object, "basename" ) ) 
-		dz->basename = g_path_get_basename( file->filename ); 
-	if( !vips_object_argument_isset( object, "dirname" ) ) 
-		dz->dirname = g_path_get_dirname( file->filename ); 
-
-	/* Remove any [options] from basename.
-	 */
-	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
-		*p = '\0';
-
-	/* If we're writing thing.zip or thing.szi, default to zip 
-	 * container.
-	 */
-	if( (p = strrchr( dz->basename, '.' )) ) {
-		if( !vips_object_argument_isset( object, "container" ) ) {
-			if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 )
-				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
-			if( g_ascii_strcasecmp( p + 1, "szi" ) == 0 ) 
-				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI;
-		}
-
-		/* Remove any legal suffix. We don't remove all suffixes
-		 * since we might be writing to a dirname with a dot in.
-		 */
-		if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 ||
-			g_ascii_strcasecmp( p + 1, "szi" ) == 0 || 
-			g_ascii_strcasecmp( p + 1, "dz" ) == 0 )
-			*p = '\0';
-	}
+	if( !(dz->target = vips_target_new_to_file( file->filename )) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_file_parent_class )->
 		build( object ) )
@@ -2755,43 +2804,19 @@ static int
 vips_foreign_save_dz_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+	VipsForeignSaveDzBuffer *buffer = (VipsForeignSaveDzBuffer *) object;
 
-	void *obuf;
-	size_t olen;
 	VipsBlob *blob;
 
-	if( !vips_object_argument_isset( object, "basename" ) ) 
-		dz->basename = g_strdup( "untitled" ); 
-
-	/* Leave dirname NULL to indicate memory output.
-	 */
+	if( !(dz->target = vips_target_new_to_memory()) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	g_assert( GSF_IS_OUTPUT_MEMORY( dz->out ) );
-
-	/* Oh dear, we can't steal gsf's memory, and blob can't unref something
-	 * or trigger a notify. We have to copy it.
-	 *
-	 * Don't use tracked, we want something that can be freed with g_free.
-	 *
-	 * FIXME ... blob (or area?) needs to support notify or unref.
-	 */
-	olen = gsf_output_size( GSF_OUTPUT( dz->out ) ); 
-	if( !(obuf = g_try_malloc( olen )) ) {
-		vips_error( "vips_tracked", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (olen / (1024.0 * 1024.0))  );
-		return( -1 );
-	}
-	memcpy( obuf, 
-		gsf_output_memory_get_bytes( GSF_OUTPUT_MEMORY( dz->out ) ),
-		olen ); 
-
-	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, obuf, olen );
-	g_object_set( object, "buffer", blob, NULL );
+	g_object_get( dz->target, "blob", &blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( 0 );
@@ -2986,6 +3011,49 @@ vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_dzsave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @basename: %gchar base part of name
+ * * @layout: #VipsForeignDzLayout directory layout convention
+ * * @suffix: %gchar suffix for tiles 
+ * * @overlap: %gint set tile overlap 
+ * * @tile_size: %gint set tile size 
+ * * @background: #VipsArrayDouble background colour
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @centre: %gboolean centre the tiles 
+ * * @angle: #VipsAngle rotate the image by this much
+ * * @container: #VipsForeignDzContainer set container type
+ * * @compression: %gint zip deflate compression level
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
+ * * @no_strip: %gboolean don't strip tiles
+ * * @id: %gchar id for IIIF properties
+ *
+ * As vips_dzsave(), but save to a target.
+ *
+ * See also: vips_dzsave(), vips_image_write_to_target().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dzsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "dzsave_target", ap, in, target );
+	va_end( ap );
 
 	return( result );
 }
