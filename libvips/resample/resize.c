@@ -144,8 +144,6 @@ vips_resize_build( VipsObject *object )
 	double vscale;
 	int int_hshrink;
 	int int_vshrink;
-	int target_width;
-	int target_height;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
@@ -167,6 +165,9 @@ vips_resize_build( VipsObject *object )
 	in = t[0];
 
 	if( resize->kernel == VIPS_KERNEL_NEAREST ) {
+		int target_width;
+		int target_height;
+
 		/* The int part of our scale.
 		 */
 		if( resize->gap < 1.0 ) {

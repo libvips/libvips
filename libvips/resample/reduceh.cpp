@@ -467,7 +467,7 @@ vips_reduceh_build( VipsObject *object )
 	 */
 	extra_pixels = width * reduceh->hshrink - in->Xsize;
 
-	if( reduceh->gap != 0.0 &&
+	if( reduceh->gap > 0.0 &&
 		reduceh->kernel != VIPS_KERNEL_NEAREST ) {
 		if( reduceh->gap < 1.0 ) {
 			vips_error( object_class->nickname,
@@ -493,7 +493,7 @@ vips_reduceh_build( VipsObject *object )
 		}
 	}
 
-	if( reduceh->hshrink == 1 ) 
+	if( reduceh->hshrink == 1.0 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	reduceh->n_point = 

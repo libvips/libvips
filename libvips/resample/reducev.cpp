@@ -836,7 +836,7 @@ vips_reducev_build( VipsObject *object )
 	 */
 	extra_pixels = height * reducev->vshrink - in->Ysize;
 
-	if( reducev->gap != 0.0 &&
+	if( reducev->gap > 0.0 &&
 		reducev->kernel != VIPS_KERNEL_NEAREST ) {
 		if( reducev->gap < 1.0 ) {
 			vips_error( object_class->nickname,
