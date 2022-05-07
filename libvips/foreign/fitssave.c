@@ -119,6 +119,7 @@ vips_foreign_save_fits_class_init( VipsForeignSaveFitsClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
@@ -128,6 +129,11 @@ vips_foreign_save_fits_class_init( VipsForeignSaveFitsClass *class )
 	object_class->nickname = "fitssave";
 	object_class->description = _( "save image to fits file" );
 	object_class->build = vips_foreign_save_fits_build;
+
+	/* cfitsio has not been fuzzed, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__fits_suffs;
 

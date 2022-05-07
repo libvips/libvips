@@ -988,9 +988,16 @@ public:
 	}
 
 	/**
-	 * Make a new image by rendering self to a large memory area, 
-	 * wrapping a VImage around it, and copying all metadata over from 
-	 * self.
+	 * This operation allocates memory, renders self into it, builds a new
+	 * image around the memory area, and returns that.
+	 *
+	 * If the image is already a simple area of memory, it does nothing.
+	 *
+	 * Call this before using the draw operations to make sure you have a
+	 * memory image that can be modified.
+	 *
+	 * VImage::copy() adds a null "copy" node to a pipeline. Use that
+	 * instead if you want to change metadata and not pixels.
 	 */ 
 	VImage 
 	copy_memory() const

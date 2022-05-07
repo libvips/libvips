@@ -135,23 +135,26 @@ static void warning(const char *context, nsgif_error err)
 
 static void print_gif_info(const nsgif_info_t *info)
 {
+	const uint8_t *bg = (uint8_t *) &info->background;
+
 	fprintf(stdout, "gif:\n");
 	fprintf(stdout, "  width: %"PRIu32"\n", info->width);
 	fprintf(stdout, "  height: %"PRIu32"\n", info->height);
 	fprintf(stdout, "  max-loops: %"PRIu32"\n", info->loop_max);
 	fprintf(stdout, "  frame-count: %"PRIu32"\n", info->frame_count);
 	fprintf(stdout, "  background:\n");
-	fprintf(stdout, "    red: 0x%"PRIx8"\n", info->background[0]);
-	fprintf(stdout, "    green: 0x%"PRIx8"\n", info->background[1]);
-	fprintf(stdout, "    blue: 0x%"PRIx8"\n", info->background[2]);
+	fprintf(stdout, "    red: 0x%"PRIx8"\n", bg[0]);
+	fprintf(stdout, "    green: 0x%"PRIx8"\n", bg[1]);
+	fprintf(stdout, "    blue: 0x%"PRIx8"\n", bg[2]);
 	fprintf(stdout, "  frames:\n");
 }
 
-static void print_gif_frame_info(const nsgif_frame_info_t *info)
+static void print_gif_frame_info(const nsgif_frame_info_t *info, uint32_t i)
 {
 	const char *disposal = nsgif_str_disposal(info->disposal);
 
-	fprintf(stdout, "  - disposal-method: %s\n", disposal);
+	fprintf(stdout, "  - frame: %"PRIu32"\n", i);
+	fprintf(stdout, "    disposal-method: %s\n", disposal);
 	fprintf(stdout, "    transparency: %s\n", info->transparency ? "yes" : "no");
 	fprintf(stdout, "    display: %s\n", info->display ? "yes" : "no");
 	fprintf(stdout, "    delay: %"PRIu32"\n", info->delay);
@@ -212,13 +215,15 @@ static void decode(FILE* ppm, const char *name, nsgif_t *gif)
 
 			f_info = nsgif_get_frame_info(gif, frame_new);
 			if (f_info != NULL) {
-				print_gif_frame_info(f_info);
+				print_gif_frame_info(f_info, frame_new);
 			}
 		}
 
 		err = nsgif_frame_decode(gif, frame_new, &bitmap);
 		if (err != NSGIF_OK) {
-			warning("nsgif_decode_frame", err);
+			fprintf(stderr, "Frame %"PRIu32": "
+					"nsgif_decode_frame failed: %s\n",
+					frame_new, nsgif_strerror(err));
 			/* Continue decoding the rest of the frames. */
 
 		} else if (ppm != NULL) {
@@ -272,7 +277,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* create our gif animation */
-	err = nsgif_create(&bitmap_callbacks, &gif);
+	err = nsgif_create(&bitmap_callbacks, NSGIF_BITMAP_FMT_R8G8B8A8, &gif);
 	if (err != NSGIF_OK) {
 		warning("nsgif_create", err);
 		return EXIT_FAILURE;

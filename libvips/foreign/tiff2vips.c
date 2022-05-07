@@ -2203,16 +2203,10 @@ rtiff_stripwise_generate( VipsRegion *or,
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
 	/* If we're reading more than one page, tiles won't fall on strip
-	 * boundaries.
+	 * boundaries. Tiles may be contain several strips.
 	 */
 
-	/* Tiles should always be a strip in height, unless it's the final
-	 * strip in the image.
-	 */
-	g_assert( r->height == 
-		VIPS_MIN( read_height, or->im->Ysize - r->top ) ); 
-
-	/* And check that y_pos is correct. It should be, since we are inside
+	/* Check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
 	if( r->top != rtiff->y_pos ) {
@@ -2340,6 +2334,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		vips_object_local_array( VIPS_OBJECT( out ), 4 );
 
 	VipsImage *in;
+	int tile_height;
 
 #ifdef DEBUG
 	printf( "tiff2vips: rtiff_read_stripwise\n" );
@@ -2408,13 +2403,21 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 
 	/* rows_per_strip can be very large if this is a separate plane image,
 	 * beware.
+	 *
+	 * Some images have very small rowsperstrip which will cause a lot of
+	 * work for the tilecache -- set a min size for tiles which is a
+	 * multiple of rowsperstrip.
 	 */
+	tile_height = VIPS_MAX( 
+		VIPS_ROUND_DOWN( 16, rtiff->header.read_height ),
+		rtiff->header.read_height );
+
 	if( 
 		vips_image_generate( t[0], 
 			NULL, rtiff_stripwise_generate, NULL, 
 			rtiff, NULL ) ||
 		vips_sequential( t[0], &t[1], 
-			"tile_height", rtiff->header.read_height,
+			"tile_height", tile_height,
 			NULL ) ||
 		rtiff_unpremultiply( rtiff, t[1], &t[2] ) )
 		return( -1 );

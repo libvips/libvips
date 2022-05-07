@@ -33,6 +33,10 @@
  * 27/2/21
  * 	- simplify rules re. processing space, colour management and linear
  * 	  mode
+ * 14/4/22
+ * 	- add a seq to thumbnail_image to stop cache thrashing
+ * 28/4/22
+ * 	- add fail-on
  */
 
 /*
@@ -111,6 +115,7 @@ typedef struct _VipsThumbnail {
 	char *export_profile;
 	char *import_profile;
 	VipsIntent intent;
+	VipsFailOn fail_on;
 
 	/* Bits of info we read from the input image when we get the header of
 	 * the original.
@@ -1015,6 +1020,13 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, intent ),
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
 
+	VIPS_ARG_ENUM( class, "fail-on", 121, 
+		_( "Fail on" ), 
+		_( "Error level to fail on" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnail, fail_on ),
+		VIPS_TYPE_FAIL_ON, VIPS_FAIL_ON_NONE ); 
+
 	/* BOOL args which default TRUE arguments don't work with the 
 	 * command-line -- GOption does not allow --auto-rotate=false.
 	 *
@@ -1037,6 +1049,7 @@ vips_thumbnail_init( VipsThumbnail *thumbnail )
 	thumbnail->height = 1;
 	thumbnail->auto_rotate = TRUE;
 	thumbnail->intent = VIPS_INTENT_RELATIVE;
+	thumbnail->fail_on = VIPS_FAIL_ON_NONE;
 }
 
 typedef struct _VipsThumbnailFile {
@@ -1082,6 +1095,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail-on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL ) );
 	}
@@ -1089,6 +1103,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail-on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL ) );
 	}
@@ -1097,6 +1112,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail-on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL ) );
 	}
@@ -1106,6 +1122,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail-on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL ) );
 		else
@@ -1120,27 +1137,32 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		if( thumbnail->subifd_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail-on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL ) );
 		else if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail-on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL ) );
 		else
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail-on", thumbnail->fail_on,
 				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail-on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail-on", thumbnail->fail_on,
 			NULL ) );
 	}
 }
@@ -1192,6 +1214,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @fail_on: #VipsFailOn, load error types to fail on
  *
  * Make a thumbnail from a file. Shrinking is done in three stages: using any
  * shrink-on-load features available in the file import library, using a block
@@ -1235,6 +1258,9 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  *
  * Use @intent to set the rendering intent for any ICC transform. The default
  * is #VIPS_INTENT_RELATIVE.
+ *
+ * Use @fail_on to control the types of error that will cause loading to fail.
+ * The default is #VIPS_FAIL_ON_NONE, ie. thumbnail is permissive.
  *
  * See also: vips_thumbnail_buffer().
  *
@@ -1437,6 +1463,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @fail_on: #VipsFailOn, load error types to fail on
  * * @option_string: %gchararray, extra loader options
  *
  * Exactly as vips_thumbnail(), but read from a memory buffer. One extra
@@ -1650,6 +1677,7 @@ vips_thumbnail_source_init( VipsThumbnailSource *source )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @fail_on: #VipsFailOn, load error types to fail on
  * * @option_string: %gchararray, extra loader options
  *
  * Exactly as vips_thumbnail(), but read from a source. One extra
@@ -1706,10 +1734,18 @@ static VipsImage *
 vips_thumbnail_image_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( thumbnail ), 1 );
 
-	g_object_ref( image->in ); 
+	/* We want thumbnail to run in sequential mode on this image, or we
+	 * may get horrible cache thrashing.
+	 */
+	if( vips_sequential( image->in, &t[0], "tile-height", 16, NULL ) )
+		return( NULL );
 
-	return( image->in ); 
+	g_object_ref( t[0] );
+
+	return( t[0] ); 
 }
 
 static void
@@ -1758,6 +1794,7 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @fail_on: #VipsFailOn, load error types to fail on
  *
  * Exactly as vips_thumbnail(), but read from an existing image. 
  *

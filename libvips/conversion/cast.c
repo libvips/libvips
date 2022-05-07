@@ -130,20 +130,23 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 #define CAST_UINT( X ) VIPS_CLIP( 0, (X), UINT_MAX )
 #define CAST_INT( X ) VIPS_CLIP( INT_MIN, (X), INT_MAX )
 
-/* Rightshift an integer type, ie. sizeof(ITYPE) > sizeof(OTYPE).
+/* Rightshift an integer type, ie. sizeof(ITYPE) >= sizeof(OTYPE).
+ *
+ * If we're casting between two formats of the same size (eg. ushort to
+ * short), sizes can be equal.
  */
 #define SHIFT_RIGHT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	int n = ((int) sizeof( ITYPE ) << 3) - ((int) sizeof( OTYPE ) << 3); \
 	\
-	g_assert( sizeof( ITYPE ) > sizeof( OTYPE ) ); \
+	g_assert( sizeof( ITYPE ) >= sizeof( OTYPE ) ); \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = p[x] >> n; \
 }
 
-/* Leftshift an integer type, ie. sizeof(ITYPE) < sizeof(OTYPE). We need to
+/* Leftshift an integer type, ie. sizeof(ITYPE) <= sizeof(OTYPE). We need to
  * copy the bottom bit up into the fresh new bits.
  */
 #define SHIFT_LEFT( ITYPE, OTYPE ) { \
@@ -151,7 +154,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	int n = ((int) sizeof( OTYPE ) << 3) - ((int) sizeof( ITYPE ) << 3); \
 	\
-	g_assert( sizeof( ITYPE ) < sizeof( OTYPE ) ); \
+	g_assert( sizeof( ITYPE ) <= sizeof( OTYPE ) ); \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = (p[x] << n) | (((p[x] & 1) << n) - (p[x] & 1)); \
@@ -162,7 +165,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	int n = ((int) sizeof( OTYPE ) << 3) - ((int) sizeof( ITYPE ) << 3); \
 	\
-	g_assert( sizeof( ITYPE ) < sizeof( OTYPE ) ); \
+	g_assert( sizeof( ITYPE ) <= sizeof( OTYPE ) ); \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = VIPS_LSHIFT_INT( p[x], n ) | \

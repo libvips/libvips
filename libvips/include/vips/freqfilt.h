@@ -38,17 +38,22 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+VIPS_API
 int vips_fwfft( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_invfft( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_freqmult( VipsImage *in, VipsImage *mask, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_spectrum( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+VIPS_API
 int vips_phasecor( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
 

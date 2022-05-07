@@ -50,6 +50,7 @@ if get_option('debug')
     add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
 endif
 
+host_os = host_machine.system()
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
@@ -89,6 +90,18 @@ cfg_var.set_quoted('G_LOG_DOMAIN', 'VIPS')
 
 if modules_enabled
     cfg_var.set('ENABLE_MODULES', '1')
+endif
+
+# Detect and set symbol visibility
+if get_option('default_library') == 'shared' and (host_os == 'windows' or host_os == 'cygwin')
+    cfg_var.set('DLL_EXPORT', true)
+    if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl'
+        cfg_var.set('_VIPS_PUBLIC', '__declspec(dllexport)')
+    elif cc.has_function_attribute('visibility:hidden')
+        cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default"))) __declspec(dllexport)')
+    endif
+elif cc.has_function_attribute('visibility:hidden')
+    cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default")))')
 endif
 
 # we also need to be able to mix vector and scalar arithmetic
@@ -341,6 +354,10 @@ if librsvg_dep.found() and cairo_dep.found()
     if librsvg_dep.version().version_compare('>=2.46')
         cfg_var.set('HAVE_RSVG_HANDLE_RENDER_DOCUMENT', '1')
     endif
+    # 2.56 for rsvg_handle_get_intrinsic_size_in_pixels
+    if librsvg_dep.version().version_compare('>=2.52')
+        cfg_var.set('HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS', '1')
+    endif
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
@@ -468,11 +485,17 @@ elif libpoppler_dep.found() and cairo_dep.found()
     cfg_var.set('HAVE_POPPLER', '1')
 endif
 
-# niftiio.pc is not always present, so fallback to CMake's find_package() functionally
+# niftiio.pc is not always present, so fall back to CMake's find_package() 
+# functionality
+# cmake find fails on ubuntu due to /usr/lib/x86_64-linux-gnu madness, so it's
+# simplest to create a libnifti.pc in this case
 # TODO: simplify this when requiring meson>=0.60.0
-libnifti_dep = dependency('niftiio', required: false)
+libnifti_dep = dependency('niftiio', required: get_option('nifti'))
 if not libnifti_dep.found()
-    libnifti_dep = dependency('NIFTI', method: 'cmake', modules: ['NIFTI::niftiio'], required: get_option('nifti'))
+    libnifti_dep = dependency('NIFTI',
+      method: 'cmake',
+      modules: ['NIFTI::niftiio'],
+      required: get_option('nifti'))
 endif
 if not get_option('nifti').disabled() and libnifti_dep.found()
     libvips_deps += libnifti_dep
@@ -535,10 +558,9 @@ else
 endif
 cfg_var.set('HAVE_BIND_TEXTDOMAIN_CODESET', have_bind_textdomain_codeset)
 
-target_system = target_machine.system()
-if target_system == 'darwin'
+if host_os == 'darwin'
     profile_dir = '/Library/ColorSync/Profiles'
-elif target_system == 'windows'
+elif host_os == 'windows'
     # need double escapes since this will get pasted into a #define in a C
     # header ... the C:\Windows is usually overwritten with the result of
     # GetWindowsDirectoryW()

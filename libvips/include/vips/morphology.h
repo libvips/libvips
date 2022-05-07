@@ -44,19 +44,25 @@ typedef enum {
 	VIPS_OPERATION_MORPHOLOGY_LAST
 } VipsOperationMorphology;
 
+VIPS_API
 int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
 	VipsOperationMorphology morph, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_rank( VipsImage *in, VipsImage **out, 
 	int width, int height, int index, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_median( VipsImage *in, VipsImage **out, int size, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_countlines( VipsImage *in, double *nolines, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_labelregions( VipsImage *in, VipsImage **mask, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_fill_nearest( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
 

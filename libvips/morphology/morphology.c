@@ -80,19 +80,23 @@
  * mask must have odd length sides --- the origin of the mask is taken to be
  * the centre value. For example, the mask:
  *
- *   3 3 
- *   128 255 128
- *   255 0   255
- *   128 255 128
+ *     VipsImage *mask = vips_image_new_matrixv( 3, 3, 
+ *         128.0, 255.0, 128.0,
+ *         255.0, 255.0, 255.0,
+ *         128.0, 255.0, 128.0 );
  *
- * applied to an image with vips_morph() #VIPS_OPERATION_MORPHOLOGY_ERODE, will 
- * find all black pixels
- * 4-way connected with white pixels. Essentially, dilate
- * sets pixels in the output if any part of the mask matches, whereas
+ * applied to an image with vips_morph() #VIPS_OPERATION_MORPHOLOGY_DILATE will 
+ * do a 4-connected dilation.
+ *
+ * Dilate sets pixels in the output if any part of the mask matches, whereas
  * erode sets pixels only if all of the mask matches.
  *
  * See vips_andimage(), vips_orimage() and vips_eorimage()
  * for analogues of the usual set difference and set union operations.
+ *
+ * Use vips_image_new_matrixv() to create a mask in source, vips_matrixload()
+ * to load a mask from a simple text file, and vips_mask_ideal() and friends to
+ * create square, circular and ring masks of specific sizes.
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsMorphology, vips_morphology, 

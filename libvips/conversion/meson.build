@@ -54,6 +54,7 @@ conversion_lib = static_library('conversion',
     conversion_headers,
     dependencies: libvips_deps,
     c_args: [ '-Wno-unknown-pragmas' ],
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += conversion_lib

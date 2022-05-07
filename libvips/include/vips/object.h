@@ -302,29 +302,38 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
+VIPS_API
 int vips_argument_get_id( void );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
 typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class, 
 	VipsArgumentInstance *argument_instance, void *a, void *b );
+VIPS_API
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
+VIPS_API
 int vips_object_get_args( VipsObject *object, 
 	const char ***names, int **flags, int *n_args );
 typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *object_class, 
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class, void *a, void *b );
+VIPS_API
 void *vips_argument_class_map( VipsObjectClass *object_class, 
 	VipsArgumentClassMapFn fn, void *a, void *b );
+VIPS_API
 gboolean vips_argument_class_needsstring( VipsArgumentClass *argument_class );
+VIPS_API
 int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,
 	VipsArgumentInstance **argument_instance );
+VIPS_API
 gboolean vips_object_argument_isset( VipsObject *object, const char *name );
+VIPS_API
 VipsArgumentFlags vips_object_get_argument_flags( VipsObject *object, 
 	const char *name );
+VIPS_API
 int vips_object_get_argument_priority( VipsObject *object, const char *name );
 
 /* We have to loop over an objects args in several places, and we can't always
@@ -568,83 +577,124 @@ struct _VipsObjectClass {
 	void (*_vips_reserved4)( void ); 
 };
 
+VIPS_API
 gboolean vips_value_is_null( GParamSpec *psoec, const GValue *value );
+VIPS_API
 void vips_object_set_property( GObject *gobject, 
 	guint property_id, const GValue *value, GParamSpec *pspec );
+VIPS_API
 void vips_object_get_property( GObject *gobject, 
 	guint property_id, GValue *value, GParamSpec *pspec );
 
+VIPS_API
 void vips_object_preclose( VipsObject *object );
+VIPS_API
 int vips_object_build( VipsObject *object );
 
+VIPS_API
 void vips_object_summary_class( VipsObjectClass *klass, VipsBuf *buf );
+VIPS_API
 void vips_object_summary( VipsObject *object, VipsBuf *buf );
+VIPS_API
 void vips_object_dump( VipsObject *object, VipsBuf *buf );
 
+VIPS_API
 void vips_object_print_summary_class( VipsObjectClass *klass );
+VIPS_API
 void vips_object_print_summary( VipsObject *object );
+VIPS_API
 void vips_object_print_dump( VipsObject *object );
+VIPS_API
 void vips_object_print_name( VipsObject *object );
 
+VIPS_API
 gboolean vips_object_sanity( VipsObject *object );
 
 /* Don't put spaces around void here, it breaks gtk-doc.
  */
+VIPS_API
 GType vips_object_get_type(void);
 
+VIPS_API
 void vips_object_class_install_argument( VipsObjectClass *cls, 
 	GParamSpec *pspec, VipsArgumentFlags flags, 
 	int priority, guint offset );
+VIPS_API
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
+VIPS_API
 gboolean vips_object_argument_needsstring( VipsObject *object, 
 	const char *name );
+VIPS_API
 int vips_object_get_argument_to_string( VipsObject *object, 
 	const char *name, const char *arg );
+VIPS_API
 int vips_object_set_required( VipsObject *object, const char *value );
 
 typedef void *(*VipsObjectSetArguments)( VipsObject *object, void *a, void *b );
+VIPS_API
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
 
+VIPS_API
 int vips_object_set_valist( VipsObject *object, va_list ap );
+VIPS_API
 int vips_object_set( VipsObject *object, ... )
 	__attribute__((sentinel));
+VIPS_API
 int vips_object_set_from_string( VipsObject *object, const char *string );
 
+VIPS_API
 VipsObject *vips_object_new_from_string( VipsObjectClass *object_class, 
 	const char *p );
+VIPS_API
 void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
+VIPS_API
 void *vips_object_map( VipsSListMap2Fn fn, void *a, void *b );
 
 typedef void *(*VipsTypeMapFn)( GType type, void *a );
 typedef void *(*VipsTypeMap2Fn)( GType type, void *a, void *b );
 typedef void *(*VipsClassMapFn)( VipsObjectClass *cls, void *a );
+VIPS_API
 void *vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b );
+VIPS_API
 void *vips_type_map_all( GType base, VipsTypeMapFn fn, void *a );
+VIPS_API
 int vips_type_depth( GType type );
+VIPS_API
 GType vips_type_find( const char *basename, const char *nickname );
+VIPS_API
 const char *vips_nickname_find( GType type );
 
+VIPS_API
 void *vips_class_map_all( GType type, VipsClassMapFn fn, void *a );
+VIPS_API
 const VipsObjectClass *vips_class_find( const char *basename, 
 	const char *nickname );
 
+VIPS_API
 VipsObject **vips_object_local_array( VipsObject *parent, int n );
 
+VIPS_API
 void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \
 	(g_signal_connect( V, "close", G_CALLBACK( vips_object_local_cb ), G ))
 
+VIPS_API
 void vips_object_set_static( VipsObject *object, gboolean static_object );
+VIPS_API
 void vips_object_print_all( void );
+VIPS_API
 void vips_object_sanity_all( void );
 
+VIPS_API
 void vips_object_rewind( VipsObject *object );
 
+VIPS_API
 void vips_object_unref_outputs( VipsObject *object );
 
+VIPS_API
 const char *vips_object_get_description( VipsObject *object );
 
 #ifdef __cplusplus

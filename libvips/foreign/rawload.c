@@ -117,10 +117,15 @@ vips_foreign_load_raw_class_init( VipsForeignLoadRawClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
+
+	/* You're unlikely to want to use this on untrusted files.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	object_class->nickname = "rawload";
 	object_class->description = _( "load raw data from a file" );

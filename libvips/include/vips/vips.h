@@ -173,20 +173,34 @@ extern "C" {
 		-1 ) : \
 		vips_init( ARGV0 ))
 
+VIPS_API
 int vips_init( const char *argv0 );
+VIPS_API
 const char *vips_get_argv0( void );
+VIPS_API
 const char *vips_get_prgname( void );
+VIPS_API
 void vips_shutdown( void );
+VIPS_API
 void vips_thread_shutdown( void );
 
+VIPS_API
 void vips_add_option_entries( GOptionGroup *option_group );
 
-extern void vips_leak_set( gboolean leak ); 
+VIPS_API
+void vips_leak_set( gboolean leak ); 
 
+VIPS_API
+void vips_block_untrusted_set( gboolean state );
+
+VIPS_API
 const char *vips_version_string( void );
+VIPS_API
 int vips_version( int flag );
 
+VIPS_API
 const char *vips_guess_prefix( const char *argv0, const char *env_name );
+VIPS_API
 const char *vips_guess_libdir( const char *argv0, const char *env_name );
 
 #ifdef __cplusplus

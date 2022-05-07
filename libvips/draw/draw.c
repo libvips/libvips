@@ -59,7 +59,7 @@
  * libvips operations are all functional: they take zero or more existing input 
  * images and generate zero or more new output images. Images are
  * never altered, you always create new images. This means libvips can cache
- * and thread very agressively.
+ * and thread very aggressively.
  *
  * The downside is that creating entirely fresh images each time can be very
  * slow. libvips has a range of tricks to avoid these problems, but there are
@@ -68,9 +68,10 @@
  * need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
  * to be a slow way to do it. This is where the draw operations come in.
  *
- * To use these operations, use vips_copy() to make a copy of the image you 
- * want to modify to ensure that no one else is using it, then call a 
+ * To use these operations, use vips_image_copy_memory() to make a private 
+ * memory copy of the image you want to modify, then call a 
  * series of draw operations.
+ *
  * Once you are done drawing, return to normal use of vips operations. Any time
  * you want to start drawing again, you'll need to copy again. 
  */

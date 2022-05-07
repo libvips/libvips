@@ -55,11 +55,17 @@ typedef struct {
 	GCond *cond;
 } VipsSemaphore;
 
+VIPS_API
 int vips_semaphore_up( VipsSemaphore *s );
+VIPS_API
 int vips_semaphore_down( VipsSemaphore *s );
+VIPS_API
 int vips_semaphore_upn( VipsSemaphore *s, int n );
+VIPS_API
 int vips_semaphore_downn( VipsSemaphore *s, int n );
+VIPS_API
 void vips_semaphore_destroy( VipsSemaphore *s );
+VIPS_API
 void vips_semaphore_init( VipsSemaphore *s, int v, char *name );
 
 #ifdef __cplusplus

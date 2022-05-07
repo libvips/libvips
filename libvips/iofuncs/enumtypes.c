@@ -3,6 +3,9 @@
 
 /* auto-generated enums for vips introspection */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
 #include <vips/vips.h>
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
@@ -972,6 +975,8 @@ vips_operation_flags_get_type( void )
 			{VIPS_OPERATION_SEQUENTIAL_UNBUFFERED, "VIPS_OPERATION_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
 			{VIPS_OPERATION_NOCACHE, "VIPS_OPERATION_NOCACHE", "nocache"},
 			{VIPS_OPERATION_DEPRECATED, "VIPS_OPERATION_DEPRECATED", "deprecated"},
+			{VIPS_OPERATION_UNTRUSTED, "VIPS_OPERATION_UNTRUSTED", "untrusted"},
+			{VIPS_OPERATION_BLOCKED, "VIPS_OPERATION_BLOCKED", "blocked"},
 			{0, NULL, NULL}
 		};
 		

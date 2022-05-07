@@ -1131,8 +1131,7 @@ vips_foreign_load_build( VipsObject *object )
 	/* Tell downstream if we are reading sequentially.
 	 */
 	if( sequential ) 
-		vips_image_set_area( load->out, 
-			VIPS_META_SEQUENTIAL, NULL, NULL ); 
+		vips_image_set_int( load->out, VIPS_META_SEQUENTIAL, 1 );
 
 	return( 0 );
 }
@@ -1166,8 +1165,8 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	object_class->build = vips_foreign_load_build;
 	object_class->summary_class = vips_foreign_load_summary_class;
 	object_class->new_from_string = vips_foreign_load_new_from_string;
-	object_class->nickname = "fileload";
-	object_class->description = _( "file loaders" );
+	object_class->nickname = "load";
+	object_class->description = _( "loaders" );
 
 	operation_class->get_flags = vips_foreign_load_operation_get_flags;
 
@@ -1768,8 +1767,8 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->build = vips_foreign_save_build;
 	object_class->summary_class = vips_foreign_save_summary_class;
 	object_class->new_from_string = vips_foreign_save_new_from_string;
-	object_class->nickname = "filesave";
-	object_class->description = _( "file savers" );
+	object_class->nickname = "save";
+	object_class->description = _( "savers" );
 
 	/* All savers are sequential by definition. Things like tiled tiff 
 	 * write and interlaced png write, which are not, add extra caches 
@@ -1852,7 +1851,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 	/* vips_foreign_find_save() has already removed any options from the
 	 * end of the filename, so we can test directly against the suffix.
 	 */
-	for( p = class->suffs; *p; p++ ) 
+	for( p = class->suffs; *p; p++ )
 		if( vips_iscasepostfix( filename, *p ) ) 
 			return( save_class );
 

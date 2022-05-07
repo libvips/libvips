@@ -61,23 +61,39 @@ typedef struct _VipsDbuf {
 
 } VipsDbuf; 
 
+VIPS_API
 void vips_dbuf_destroy( VipsDbuf *dbuf );
+VIPS_API
 void vips_dbuf_init( VipsDbuf *dbuf );
+VIPS_API
 gboolean vips_dbuf_minimum_size( VipsDbuf *dbuf, size_t size );
+VIPS_API
 gboolean vips_dbuf_allocate( VipsDbuf *dbuf, size_t size );
+VIPS_API
 size_t vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size );
+VIPS_API
 unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
+VIPS_API
 gboolean vips_dbuf_write( VipsDbuf *dbuf, 
 	const unsigned char *data, size_t size );
+VIPS_API
 gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+VIPS_API
 gboolean vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str );
+VIPS_API
 void vips_dbuf_reset( VipsDbuf *dbuf );
+VIPS_API
 void vips_dbuf_destroy( VipsDbuf *dbuf );
+VIPS_API
 gboolean vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence );
+VIPS_API
 void vips_dbuf_truncate( VipsDbuf *dbuf );
+VIPS_API
 off_t vips_dbuf_tell( VipsDbuf *dbuf );
+VIPS_API
 unsigned char *vips_dbuf_string( VipsDbuf *dbuf, size_t *size );
+VIPS_API
 unsigned char *vips_dbuf_steal( VipsDbuf *dbuf, size_t *size );
 
 #endif /*VIPS_DBUF_H*/

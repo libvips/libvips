@@ -3309,10 +3309,17 @@ vips_image_rewind_output( VipsImage *image )
  * vips_image_copy_memory:
  * @image: image to copy to a memory buffer
  *
- * Make an image which is an area of memory. 
+ * This function allocates memory, renders @image into it, builds a new
+ * image around the memory area, and returns that.
  *
- * If @image is already a memory buffer, just ref and return. If it's a file on
- * disc or a partial, allocate memory and copy the image to it. 
+ * If the image is already a simple area of memory, it just refs @image and
+ * returns it.
+ *
+ * Call this before using the draw operations to make sure you have a
+ * memory image that can be modified.
+ *
+ * vips_copy() adds a null "copy" node to a pipeline. Use that
+ * instead if you want to change metadata and not pixels.
  *
  * This operation is thread-safe, unlike vips_image_wio_input(). 
  *

@@ -99,14 +99,69 @@ typedef enum {
 } nsgif_error;
 
 /**
+ * NSGIF \ref nsgif_bitmap_t pixel format.
+ *
+ * All pixel formats are 32 bits per pixel (bpp). The different formats
+ * allow control over the ordering of the colour channels. All colour
+ * channels are 8 bits wide.
+ *
+ * Note that the GIF file format only supports an on/off mask, so the
+ * alpha (A) component (opacity) will always have a value of `0` (fully
+ * transparent) or `255` (fully opaque).
+ */
+typedef enum nsgif_bitmap_fmt {
+	/** Bite-wise RGBA: Byte order: 0xRR, 0xGG, 0xBB, 0xAA. */
+	NSGIF_BITMAP_FMT_R8G8B8A8,
+
+	/** Bite-wise BGRA: Byte order: 0xBB, 0xGG, 0xRR, 0xAA. */
+	NSGIF_BITMAP_FMT_B8G8R8A8,
+
+	/** Bite-wise ARGB: Byte order: 0xAA, 0xRR, 0xGG, 0xBB. */
+	NSGIF_BITMAP_FMT_A8R8G8B8,
+
+	/** Bite-wise ABGR: Byte order: 0xAA, 0xBB, 0xGG, 0xRR. */
+	NSGIF_BITMAP_FMT_A8B8G8R8,
+
+	/**
+	 * 32-bit RGBA (0xRRGGBBAA).
+	 *
+	 * * On little endian host, same as \ref NSGIF_BITMAP_FMT_A8B8G8R8.
+	 * * On big endian host, same as \ref NSGIF_BITMAP_FMT_R8G8B8A8.
+	 */
+	NSGIF_BITMAP_FMT_RGBA8888,
+
+	/**
+	 * 32-bit BGRA (0xBBGGRRAA).
+	 *
+	 * * On little endian host, same as \ref NSGIF_BITMAP_FMT_A8R8G8B8.
+	 * * On big endian host, same as \ref NSGIF_BITMAP_FMT_B8G8R8A8.
+	 */
+	NSGIF_BITMAP_FMT_BGRA8888,
+
+	/**
+	 * 32-bit ARGB (0xAARRGGBB).
+	 *
+	 * * On little endian host, same as \ref NSGIF_BITMAP_FMT_B8G8R8A8.
+	 * * On big endian host, same as \ref NSGIF_BITMAP_FMT_A8R8G8B8.
+	 */
+	NSGIF_BITMAP_FMT_ARGB8888,
+
+	/**
+	 * 32-bit BGRA (0xAABBGGRR).
+	 *
+	 * * On little endian host, same as \ref NSGIF_BITMAP_FMT_R8G8B8A8.
+	 * * On big endian host, same as \ref NSGIF_BITMAP_FMT_A8B8G8R8.
+	 */
+	NSGIF_BITMAP_FMT_ABGR8888,
+} nsgif_bitmap_fmt_t;
+
+/**
  * Client bitmap type.
  *
  * These are client-created and destroyed, via the \ref bitmap callbacks,
  * but they are owned by a \ref nsgif_t.
  *
- * The pixel buffer is is 32bpp, treated as individual bytes in the component
- * order RR GG BB AA. For example, a 1x1 image with a single orange pixel would
- * be encoded as the following sequence of bytes: 0xff, 0x88, 0x00, 0x00.
+ * See \ref nsgif_bitmap_fmt for pixel format information.
  */
 typedef void nsgif_bitmap_t;
 
@@ -176,13 +231,15 @@ const char *nsgif_strerror(nsgif_error err);
 /**
  * Create the NSGIF object.
  *
- * \param[in]  bitmap_vt  Bitmap operation functions v-table.
- * \param[out] gif_out    Return \ref nsgif_t object on success.
+ * \param[in]  bitmap_vt   Bitmap operation functions v-table.
+ * \param[in]  bitmap_fmt  Bitmap pixel format specification.
+ * \param[out] gif_out     Return \ref nsgif_t object on success.
  *
  * \return NSGIF_OK on success, or appropriate error otherwise.
  */
 nsgif_error nsgif_create(
 		const nsgif_bitmap_cb_vt *bitmap_vt,
+		nsgif_bitmap_fmt_t bitmap_fmt,
 		nsgif_t **gif_out);
 
 /**
@@ -286,10 +343,8 @@ typedef struct nsgif_info {
 	uint32_t frame_count;
 	/** number of times to play animation (zero means loop forever) */
 	int loop_max;
-	/** number of animation loops so far */
-	int loop_count;
 	/** background colour in same pixel format as \ref nsgif_bitmap_t. */
-	uint8_t background[4];
+	uint32_t background;
 } nsgif_info_t;
 
 /**
@@ -352,5 +407,36 @@ const nsgif_info_t *nsgif_get_info(const nsgif_t *gif);
 const nsgif_frame_info_t *nsgif_get_frame_info(
 		const nsgif_t *gif,
 		uint32_t frame);
+
+/**
+ * Configure handling of small frame delays.
+ *
+ * Historically people created GIFs with a tiny frame delay, however the slow
+ * hardware of the time meant they actually played much slower. As computers
+ * sped up, to prevent animations playing faster than intended, decoders came
+ * to ignore overly small frame delays.
+ *
+ * By default a \ref nsgif_frame_prepare() managed animation will override
+ * frame delays of less than 2 centiseconds with a default frame delay of
+ * 10 centiseconds. This matches the behaviour of web browsers and other
+ * renderers.
+ *
+ * Both the minimum and the default values can be overridden for a given GIF
+ * by the client. To get frame delays exactly as specified by the GIF file, set
+ * \ref delay_min to zero.
+ *
+ * Note that this does not affect the frame delay in the frame info
+ * (\ref nsgif_frame_info_t) structure, which will always contain values
+ * specified by the GIF.
+ *
+ * \param[in]  gif            The \ref nsgif_t object to configure.
+ * \param[in]  delay_min      The minimum frame delay in centiseconds.
+ * \param[in]  delay_default  The delay to use if a frame delay is less than
+ *                            \ref delay_min.
+ */
+void nsgif_set_frame_delay_behaviour(
+		nsgif_t *gif,
+		uint16_t delay_min,
+		uint16_t delay_default);
 
 #endif

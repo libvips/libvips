@@ -8,6 +8,8 @@
  * 	- rename xshrink -> hshrink for greater consistency 
  * 6/8/19
  * 	- use a double sum buffer for int32 types
+ * 22/4/22 kleisauke
+ * 	- add @ceil option
  */
 
 /*
@@ -60,6 +62,7 @@ typedef struct _VipsShrinkh {
 	VipsResample parent_instance;
 
 	int hshrink;		/* Shrink factor */
+	gboolean ceil;		/* Round operation */
 
 } VipsShrinkh;
 
@@ -267,15 +270,16 @@ vips_shrinkh_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. We need to always round to nearest, so round(), not
-	 * rint().
+	/* Size output.
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true shrink factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = VIPS_ROUND_UINT( 
-		(double) resample->in->Xsize / shrink->hshrink );
+	resample->out->Xsize = shrink->ceil ?
+		VIPS_CEIL( (double) resample->in->Xsize / shrink->hshrink ) :
+		VIPS_ROUND_UINT( 
+			(double) resample->in->Xsize / shrink->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -321,6 +325,13 @@ vips_shrinkh_class_init( VipsShrinkhClass *class )
 		G_STRUCT_OFFSET( VipsShrinkh, hshrink ),
 		1, 1000000, 1 );
 
+	VIPS_ARG_BOOL( class, "ceil", 10, 
+		_( "Ceil" ), 
+		_( "Round-up output dimensions" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsShrinkh, ceil ),
+		FALSE );
+
 	/* The old name .. now use h and v everywhere. 
 	 */
 	VIPS_ARG_INT( class, "xshrink", 8, 
@@ -343,6 +354,10 @@ vips_shrinkh_init( VipsShrinkh *shrink )
  * @out: (out): output image
  * @hshrink: horizontal shrink
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @ceil: round-up output dimensions
  *
  * Shrink @in horizontally by an integer factor. Each pixel in the output is
  * the average of the corresponding line of @hshrink pixels in the input. 

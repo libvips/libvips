@@ -116,6 +116,7 @@ vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -123,6 +124,10 @@ vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
 
 	object_class->nickname = "radload_base";
 	object_class->description = _( "load rad base class" );
+
+	/* You're unlikely to want to use this on untrusted files.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */

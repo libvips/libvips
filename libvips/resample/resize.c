@@ -35,6 +35,8 @@
  * 	- don't let either axis drop below 1px
  * 12/7/20
  * 	- much better handling of "nearest"
+ * 22/4/22 kleisauke
+ * 	- add @gap option
  */
 
 /*
@@ -92,6 +94,7 @@ typedef struct _VipsResize {
 
 	double scale;
 	double vscale;
+	double gap;
 	VipsKernel kernel;
 
 	/* Deprecated.
@@ -134,7 +137,7 @@ vips_resize_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	VipsImage *in;
 	double hscale;
@@ -155,48 +158,48 @@ vips_resize_build( VipsObject *object )
 	else
 		vscale = resize->scale;
 
-	/* The int part of our scale. Leave the final 200 - 300% to reduce.
-	 */
-	int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (hscale * 2) ) );
-	int_vshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (vscale * 2) ) );
-
 	/* Unpack for processing.
 	 */
-	if( vips_image_decode( in, &t[5] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[5];
+	in = t[0];
 
 	if( resize->kernel == VIPS_KERNEL_NEAREST ) {
+		int target_width;
+		int target_height;
+
+		/* The int part of our scale.
+		 */
+		if( resize->gap < 1.0 ) {
+			int_hshrink = VIPS_FLOOR( 1.0 / hscale );
+			int_vshrink = VIPS_FLOOR( 1.0 / vscale );
+		}
+		else {
+			target_width = VIPS_ROUND_UINT( in->Xsize * hscale );
+			target_height = VIPS_ROUND_UINT( in->Ysize * vscale );
+
+			int_hshrink = VIPS_FLOOR( 
+				(double) in->Xsize / target_width / 
+					resize->gap );
+			int_vshrink = VIPS_FLOOR( 
+				(double) in->Ysize / target_height / 
+					resize->gap );
+		}
+
+		int_hshrink = VIPS_MAX( 1, int_hshrink );
+		int_vshrink = VIPS_MAX( 1, int_vshrink );
+
 		if( int_vshrink > 1 ||
 			int_hshrink > 1 ) { 
 			g_info( "subsample by %d, %d", 
 				int_hshrink, int_vshrink );
-			if( vips_subsample( in, &t[0], 
+			if( vips_subsample( in, &t[1], 
 				int_hshrink, int_vshrink, NULL ) )
-				return( -1 );
-			in = t[0];
-
-			hscale *= int_hshrink;
-			vscale *= int_vshrink;
-		}
-	} 
-	else {
-		if( int_vshrink > 1 ) { 
-			g_info( "shrinkv by %d", int_vshrink );
-			if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
-				return( -1 );
-			in = t[0];
-
-			vscale *= int_vshrink;
-		}
-
-		if( int_hshrink > 1 ) { 
-			g_info( "shrinkh by %d", int_hshrink );
-			if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
 				return( -1 );
 			in = t[1];
 
 			hscale *= int_hshrink;
+			vscale *= int_vshrink;
 		}
 	}
 
@@ -211,16 +214,17 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
+			"gap", resize->gap,
 			NULL ) )  
 			return( -1 );
 		in = t[2];
 	}
 
 	if( hscale < 1.0 ) { 
-		g_info( "residual reduceh by %g", 
-			hscale );
+		g_info( "residual reduceh by %g", hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
+			"gap", resize->gap,
 			NULL ) )  
 			return( -1 );
 		in = t[3];
@@ -326,14 +330,14 @@ vips_resize_class_init( VipsResizeClass *class )
 		_( "Scale image by this factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsResize, scale ),
-		0, 10000000, 0 );
+		0.0, 10000000.0, 0.0 );
 
 	VIPS_ARG_DOUBLE( class, "vscale", 113, 
 		_( "Vertical scale factor" ), 
 		_( "Vertical scale image by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsResize, vscale ),
-		0, 10000000, 0 );
+		0.0, 10000000.0, 0.0 );
 
 	VIPS_ARG_ENUM( class, "kernel", 3, 
 		_( "Kernel" ), 
@@ -341,6 +345,13 @@ vips_resize_class_init( VipsResizeClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsResize, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	VIPS_ARG_DOUBLE( class, "gap", 4, 
+		_( "Gap" ), 
+		_( "Reducing gap" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsResize, gap ),
+		0.0, 1000000.0, 2.0 );
 
 	/* We used to let people set the input offset so you could pick centre
 	 * or corner interpolation, but it's not clear this was useful. 
@@ -350,14 +361,14 @@ vips_resize_class_init( VipsResizeClass *class )
 		_( "Horizontal input displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsResize, idx ),
-		-10000000, 10000000, 0 );
+		-10000000.0, 10000000.0, 0.0 );
 
 	VIPS_ARG_DOUBLE( class, "idy", 116, 
 		_( "Input offset" ), 
 		_( "Vertical input displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsResize, idy ),
-		-10000000, 10000000, 0 );
+		-10000000.0, 10000000.0, 0.0 );
 
 	/* It's a kernel now we use vips_reduce() not vips_affine().
 	 */
@@ -381,6 +392,7 @@ vips_resize_class_init( VipsResizeClass *class )
 static void
 vips_resize_init( VipsResize *resize )
 {
+	resize->gap = 2.0;
 	resize->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
@@ -395,18 +407,18 @@ vips_resize_init( VipsResize *resize )
  *
  * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
+ * * @gap: reducing gap to use (default: 2.0)
  *
  * Resize an image. 
  *
- * When downsizing, the
- * image is block-shrunk with vips_shrink(), 
- * then the image is shrunk again to the 
- * target size with vips_reduce(). How much is done by vips_shrink() vs.
- * vips_reduce() varies with the @kernel setting. Downsizing is done with
- * centre convention. 
+ * Set @gap to speed up downsizing by having vips_shrink() to shrink
+ * with a box filter first. The bigger @gap, the closer the result
+ * to the fair resampling. The smaller @gap, the faster resizing.
+ * The default value is 2.0 (very close to fair resampling
+ * while still being faster in many cases).
  *
  * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
- * can change this with @kernel.
+ * can change this with @kernel. Downsizing is done with centre convention. 
  *
  * When upsizing (@scale > 1), the operation uses vips_affine() with
  * a #VipsInterpolate selected depending on @kernel. It will use

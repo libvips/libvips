@@ -24,6 +24,8 @@
  * 	- librsvg can no longer render very large images :( 
  * 14/10/21
  * 	- allow utf-8 headers for svg detection
+ * 28/4/22
+ * 	- support rsvg_handle_get_intrinsic_size_in_pixels()
  */
 
 /*
@@ -317,8 +319,75 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
+#ifdef HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS
+
 static int
-vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
+vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg, 
+	int *out_width, int *out_height )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
+
+	double width;
+	double height;
+	double scale;
+
+	/* If the SVG does not define a width or height we will fall back to
+	 * this size. The SVG will be rendered to fit this viewport
+	 * by rsvg_handle_render_document() below.
+	 */
+	width = 1928;
+	height = 1080;
+
+	/* Get dimensions with the default scale.
+	 */
+	rsvg_handle_set_dpi( svg->page, 72.0 );
+	rsvg_handle_get_intrinsic_size_in_pixels( svg->page, &width, &height );
+	if( width <= 0 || height <= 0 ) {
+		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
+		return( -1 );
+	}
+
+	/* Calculate dimensions at required dpi/scale.
+	 */
+	scale = svg->scale * svg->dpi / 72.0;
+	if( scale != 1.0 ) {
+		double scaled_width;
+		double scaled_height;
+
+		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
+		rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
+			&scaled_width, &scaled_height );
+
+		if( scaled_width == width &&
+			scaled_height == height ) {
+			/* SVG without width and height always reports the same 
+			 * dimensions regardless of dpi. Apply dpi/scale using 
+			 * cairo instead.
+			 */
+			svg->cairo_scale = scale;
+			width = width * scale;
+			height = height * scale;
+		} 
+		else {
+			/* SVG with width and height reports correctly scaled 
+			 * dimensions.
+			 */
+			width = scaled_width;
+			height = scaled_height;
+		}
+	}
+
+	*out_width = VIPS_ROUND_UINT( width );
+	*out_height = VIPS_ROUND_UINT( height );
+
+	return ( 0 );
+}
+
+#else /*!HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+
+static int
+vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg, 
+	int *out_width, int *out_height )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
 
@@ -326,7 +395,6 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	int width;
 	int height;
 	double scale;
-	double res;
 
 	/* Calculate dimensions at default dpi/scale.
 	 */
@@ -365,6 +433,24 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 			height = dimensions.height;
 		}
 	}
+
+	*out_width = width;
+	*out_height = height;
+
+	return ( 0 );
+}
+
+#endif/*HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+
+static int
+vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
+{
+	int width;
+	int height;
+	double res;
+
+	if( vips_foreign_load_svg_get_size( svg, &width, &height ) )
+		return( -1 );
 
 	/* We need pixels/mm for vips.
 	 */
@@ -504,6 +590,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -513,6 +600,11 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 
 	object_class->nickname = "svgload_base";
 	object_class->description = _( "load SVG with rsvg" );
+
+	/* librsvg has not been fuzzed, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */

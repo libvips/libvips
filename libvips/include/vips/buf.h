@@ -33,6 +33,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <vips/basic.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +44,7 @@ extern "C" {
  * writes.
  */
 
-typedef struct _VipsBuf {
+struct _VipsBuf {
 	/* All fields are private.
 	 */
 	/*< private >*/
@@ -53,37 +54,61 @@ typedef struct _VipsBuf {
 	gboolean full;		/* String has filled, block writes */
 	int lasti;		/* For read-recent */
 	gboolean dynamic;	/* We own the string with malloc() */
-} VipsBuf; 
+}; 
 
 #define VIPS_BUF_STATIC( TEXT ) \
 	{ &TEXT[0], sizeof( TEXT ), 0, FALSE, 0, FALSE }
 
 /* Init and append to one of the above.
  */
+VIPS_API
 void vips_buf_rewind( VipsBuf *buf );
+VIPS_API
 void vips_buf_destroy( VipsBuf *buf );
+VIPS_API
 void vips_buf_init( VipsBuf *buf );
+VIPS_API
 void vips_buf_set_static( VipsBuf *buf, char *base, int mx );
+VIPS_API
 void vips_buf_set_dynamic( VipsBuf *buf, int mx );
+VIPS_API
 void vips_buf_init_static( VipsBuf *buf, char *base, int mx );
+VIPS_API
 void vips_buf_init_dynamic( VipsBuf *buf, int mx );
+VIPS_API
 gboolean vips_buf_appendns( VipsBuf *buf, const char *str, int sz );
+VIPS_API
 gboolean vips_buf_appends( VipsBuf *buf, const char *str );
+VIPS_API
 gboolean vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+VIPS_API
 gboolean vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap );
+VIPS_API
 gboolean vips_buf_appendc( VipsBuf *buf, char ch );
+VIPS_API
 gboolean vips_buf_appendsc( VipsBuf *buf, gboolean quote, const char *str );
+VIPS_API
 gboolean vips_buf_appendgv( VipsBuf *buf, GValue *value );
+VIPS_API
 gboolean vips_buf_append_size( VipsBuf *buf, size_t n );
+VIPS_API
 gboolean vips_buf_removec( VipsBuf *buf, char ch );
+VIPS_API
 gboolean vips_buf_change( VipsBuf *buf, const char *o, const char *n );
+VIPS_API
 gboolean vips_buf_is_empty( VipsBuf *buf );
+VIPS_API
 gboolean vips_buf_is_full( VipsBuf *buf );
+VIPS_API
 const char *vips_buf_all( VipsBuf *buf );
+VIPS_API
 const char *vips_buf_firstline( VipsBuf *buf );
+VIPS_API
 gboolean vips_buf_appendg( VipsBuf *buf, double g );
+VIPS_API
 gboolean vips_buf_appendd( VipsBuf *buf, int d );
+VIPS_API
 int vips_buf_len( VipsBuf *buf );
 
 #ifdef __cplusplus

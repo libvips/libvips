@@ -451,6 +451,7 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
@@ -461,6 +462,11 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 	object_class->nickname = "jxlsave_base";
 	object_class->description = _( "save image in JPEG-XL format" );
 	object_class->build = vips_foreign_save_jxl_build;
+
+	/* libjxl is fuzzed, but it's still relatively young and bugs are
+	 * still being found in jan 2022. Revise this status soon.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__jxl_suffs;
 

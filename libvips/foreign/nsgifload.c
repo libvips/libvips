@@ -216,18 +216,15 @@ static void
 print_animation( nsgif_t *anim, const nsgif_info_t *info )
 {
 	int i;
+	const uint8_t *bg = (uint8_t *) &info->background;
 
 	printf( "animation:\n" );
 	printf( "  width = %d\n", info->width );
 	printf( "  height = %d\n", info->height );
 	printf( "  frame_count = %d\n", info->frame_count );
 	printf( "  loop_max = %d\n", info->loop_max );
-	printf( "  loop_count = %d\n", info->loop_count );
 	printf( "  background = %d %d %d %d\n",
-		info->background[0],
-		info->background[1],
-		info->background[2],
-		info->background[3] );
+		bg[0], bg[1], bg[2], bg[3] );
 
 	for( i = 0; i < info->frame_count; i++ ) {
 		printf( "%d ", i );
@@ -242,6 +239,7 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	VipsImage *image )
 {
 	double array[3];
+	const uint8_t *bg;
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_set_header:\n" );
 
@@ -265,9 +263,11 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	vips_image_set_array_int( image, "delay", 
 		gif->delay, gif->info->frame_count );
 
-	array[0] = gif->info->background[0];
-	array[1] = gif->info->background[1];
-	array[2] = gif->info->background[2];
+
+	bg = (uint8_t *) &gif->info->background;
+	array[0] = bg[0];
+	array[1] = bg[1];
+	array[2] = bg[2];
 
 	vips_image_set_array_double( image, "background", array, 3 );
 
@@ -557,6 +557,7 @@ vips_foreign_load_nsgif_init( VipsForeignLoadNsgif *gif )
 {
 	nsgif_error result = nsgif_create(
 		&vips_foreign_load_nsgif_bitmap_callbacks,
+		NSGIF_BITMAP_FMT_R8G8B8A8,
 		&gif->anim );
 	if (result != NSGIF_OK) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );

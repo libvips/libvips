@@ -9,6 +9,7 @@ libvips_cpp_lib = library('vips-cpp',
     dependencies: libvips_dep,
     include_directories: libvips_cpp_includedir,
     version: library_version,
+    gnu_symbol_visibility: 'hidden',
     install: true,
 )
 

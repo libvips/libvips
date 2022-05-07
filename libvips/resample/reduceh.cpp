@@ -11,6 +11,8 @@
  * 6/6/20 kleisauke
  * 	- deprecate @centre option, it's now always on
  * 	- fix pixel shift
+ * 22/4/22 kleisauke
+ * 	- add @gap option
  */
 
 /*
@@ -63,7 +65,8 @@
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
-	double hshrink;		/* Reduce factor */
+	double hshrink;			/* Reduce factor */
+	double gap;			/* Reduce gap */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -435,23 +438,62 @@ vips_reduceh_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsReduceh *reduceh = (VipsReduceh *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 2 );
+		vips_object_local_array( object, 3 );
 
 	VipsImage *in;
-	double width, extra_pixels;
+	int width;
+	int int_hshrink;
+	double extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in; 
 
-	if( reduceh->hshrink < 1 ) { 
+	if( reduceh->hshrink < 1.0 ) { 
 		vips_error( object_class->nickname, 
-			"%s", _( "reduce factors should be >= 1" ) );
+			"%s", _( "reduce factor should be >= 1.0" ) );
 		return( -1 );
 	}
 
-	if( reduceh->hshrink == 1 ) 
+	/* Output size. We need to always round to nearest, so round(), not
+	 * rint().
+	 */
+	width = VIPS_ROUND_UINT(
+		(double) in->Xsize / reduceh->hshrink );
+
+	/* How many pixels we are inventing in the input, -ve for
+	 * discarding.
+	 */
+	extra_pixels = width * reduceh->hshrink - in->Xsize;
+
+	if( reduceh->gap > 0.0 &&
+		reduceh->kernel != VIPS_KERNEL_NEAREST ) {
+		if( reduceh->gap < 1.0 ) {
+			vips_error( object_class->nickname,
+				"%s", _( "reduce gap should be >= 1.0" ) );
+			return( -1 );
+		}
+
+		/* The int part of our reduce.
+		 */
+		int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 
+			(double) in->Xsize / width / reduceh->gap ) );
+
+		if( int_hshrink > 1 ) {
+			g_info( "shrinkh by %d", int_hshrink );
+			if( vips_shrinkh( in, &t[0], int_hshrink,
+				"ceil", TRUE,
+				NULL ) )
+				return( -1 );
+			in = t[0];
+
+			reduceh->hshrink /= int_hshrink;
+			extra_pixels /= int_hshrink;
+		}
+	}
+
+	if( reduceh->hshrink == 1.0 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	reduceh->n_point = 
@@ -462,18 +504,6 @@ vips_reduceh_build( VipsObject *object )
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
-
-	/* Output size. We need to always round to nearest, so round(), not
-	 * rint().
-	 */
-	width = VIPS_ROUND_UINT(
-		(double) resample->in->Xsize / reduceh->hshrink );
-
-	/* How many pixels we are inventing in the input, -ve for
-	 * discarding.
-	 */
-	extra_pixels =
-		width * reduceh->hshrink - resample->in->Xsize;
 
 	/* If we are rounding down, we are not using some input
 	 * pixels. We need to move the origin *inside* the input image
@@ -511,28 +541,25 @@ vips_reduceh_build( VipsObject *object )
 
 	/* Unpack for processing.
 	 */
-	if( vips_image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[1] ) )
 		return( -1 );
-	in = t[0];
+	in = t[1];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	if( vips_embed( in, &t[1], 
+	if( vips_embed( in, &t[2], 
 		VIPS_CEIL( reduceh->n_point / 2.0 ) - 1, 0, 
 		in->Xsize + reduceh->n_point, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )
 		return( -1 );
-	in = t[1];
+	in = t[2];
 
 	if( vips_image_pipelinev( resample->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
-	/* Size output. We need to always round to nearest, so round(), not
-	 * rint().
-	 *
-	 * Don't change xres/yres, leave that to the application layer. For
+	/* Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
@@ -583,7 +610,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
-		1, 1000000, 1 );
+		1.0, 1000000.0, 1.0 );
 
 	VIPS_ARG_ENUM( reduceh_class, "kernel", 4, 
 		_( "Kernel" ), 
@@ -592,6 +619,13 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		G_STRUCT_OFFSET( VipsReduceh, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
+	VIPS_ARG_DOUBLE( reduceh_class, "gap", 5, 
+		_( "Gap" ), 
+		_( "Reducing gap" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduceh, gap ),
+		0.0, 1000000.0, 0.0 );
+
 	/* Old name.
 	 */
 	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
@@ -599,7 +633,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
-		1, 1000000, 1 );
+		1.0, 1000000.0, 1.0 );
 
 	/* We used to let people pick centre or corner, but it's automatic now.
 	 */
@@ -615,6 +649,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 static void
 vips_reduceh_init( VipsReduceh *reduceh )
 {
+	reduceh->gap = 0.0;
 	reduceh->kernel = VIPS_KERNEL_LANCZOS3;
 }
 

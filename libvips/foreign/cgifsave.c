@@ -166,10 +166,14 @@ static gboolean
 vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 	double maxerror )
 {
-	if( bef[3] != 0xFF )
-		/* Solid pixels only.
+	if( bef[3] != cur[3] )
+		/* Alpha channel must be identical.
 		 */
 		return FALSE;
+	if( bef[3] == 0 && cur[3] == 0)
+		/* RGB component can be ignored.
+		 */
+		return TRUE;
 
 	/* Test Euclidean distance between the two points.
 	*/
@@ -178,6 +182,25 @@ vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 	const int dB = cur[2] - bef[2];
 
 	return( sqrt( dR * dR + dG * dG + dB * dB ) <= maxerror );
+}
+
+/* Check if the alpha channel of the current frame matches the frame before.
+ * If the current frame has an alpha component which is not identical to the
+ * frame from before we are forced to use the transparency index for the
+ * alpha channel instead of for the transparency size optimization (maxerror).
+ */
+static gboolean
+vips_foreign_save_cgif_check_alpha_constraint( const VipsPel *cur,
+	const VipsPel *bef, int n_pels )
+{
+	while( n_pels-- ) {
+		if( cur[3] == 0 && bef[3] != 0) {
+			return TRUE;
+		}
+		cur += 4;
+		bef += 4;
+	}
+	return FALSE;
 }
 
 /* We have a complete frame --- write!
@@ -355,13 +378,24 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	*/
 	if( cgif->frame_bytes_head ) {
 		VipsPel *cur, *bef;
+		gboolean has_alpha_constraint;
 
 		cur = frame_bytes;
 		bef = cgif->frame_bytes_head;
-		if( !cgif->has_transparency ) {
-			const uint8_t trans_index = cgif->lp->count;
-
+		has_alpha_constraint =
+			vips_foreign_save_cgif_check_alpha_constraint(cur, bef, n_pels);
+		/* Transparency trick is only possible
+		 * when no alpha channel constraint is present.
+		 */
+		if( !has_alpha_constraint ) {
 			int i;
+			uint8_t trans_index;
+
+			trans_index = cgif->lp->count;
+			if( cgif->has_transparency ) {
+				trans_index = 0;
+				frame_config.attrFlags &= (~CGIF_FRAME_ATTR_HAS_ALPHA);
+			}
 
 			for( i = 0; i < n_pels; i++ ) {
 				if( vips_foreign_save_cgif_pixels_are_equal( 
@@ -383,7 +417,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			frame_config.transIndex = trans_index;
 		} 
 		else {
-			/* Transparency trick not possible (alpha channel 
+			/* Transparency trick not possible (constraining alpha channel
 			 * present). Update head.
 			 */
 			memcpy( bef, cur, 4 * n_pels);

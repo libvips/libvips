@@ -47,6 +47,8 @@
  * 	- add a seq line cache
  * 6/8/19
  * 	- use a double sum buffer for int32 types
+ * 22/4/22 kleisauke
+ * 	- add @ceil option
  */
 
 /*
@@ -99,8 +101,9 @@
 typedef struct _VipsShrinkv {
 	VipsResample parent_instance;
 
-	int vshrink;
+	int vshrink;		/* Shrink factor */
 	size_t sizeof_line_buffer;
+	gboolean ceil;		/* Round operation */
 
 } VipsShrinkv;
 
@@ -372,15 +375,16 @@ vips_shrinkv_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	/* Size output. We need to always round to nearest, so round(), not
-	 * rint().
+	/* Size output.
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true shrink factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	t[2]->Ysize = VIPS_ROUND_UINT( 
-		(double) resample->in->Ysize / shrink->vshrink );
+	t[2]->Ysize = shrink->ceil ?
+		VIPS_CEIL( (double) resample->in->Ysize / shrink->vshrink ) :
+		VIPS_ROUND_UINT( 
+			(double) resample->in->Ysize / shrink->vshrink );
 	if( t[2]->Ysize <= 0 ) {
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -451,9 +455,16 @@ vips_shrinkv_class_init( VipsShrinkvClass *class )
 		G_STRUCT_OFFSET( VipsShrinkv, vshrink ),
 		1, 1000000, 1 );
 
+	VIPS_ARG_BOOL( class, "ceil", 10, 
+		_( "Ceil" ), 
+		_( "Round-up output dimensions" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsShrinkv, ceil ),
+		FALSE );
+
 	/* The old name .. now use h and v everywhere. 
 	 */
-	VIPS_ARG_INT( class, "yshrink", 9, 
+	VIPS_ARG_INT( class, "yshrink", 8, 
 		_( "Yshrink" ), 
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
@@ -473,6 +484,10 @@ vips_shrinkv_init( VipsShrinkv *shrink )
  * @out: (out): output image
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @ceil: round-up output dimensions
  *
  * Shrink @in vertically by an integer factor. Each pixel in the output is
  * the average of the corresponding column of @vshrink pixels in the input. 

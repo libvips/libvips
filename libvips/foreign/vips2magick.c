@@ -439,6 +439,7 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
@@ -449,6 +450,11 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 	object_class->nickname = "magicksave_base";
 	object_class->description = _( "save with ImageMagick" );
 	object_class->build = vips_foreign_save_magick_build;
+
+	/* *magick is fuzzed, but it's such a huge thing it's safer to
+	 * disable it.
+	 */
+	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
 	/* We need to be well to the back of the queue since vips's
 	 * dedicated savers are usually preferable.

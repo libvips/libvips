@@ -55,6 +55,7 @@ iofuncs_lib = static_library('iofuncs',
     iofuncs_headers,
     vipsmarshal,
     dependencies: libvips_deps,
+    gnu_symbol_visibility: 'hidden',
 )
 
 libvips_components += iofuncs_lib
