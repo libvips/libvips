@@ -1,99 +1,99 @@
 /* save to deep zoom format
  *
  * 21/3/12
- * 	- from the tiff pyramid writer
+ *	- from the tiff pyramid writer
  * 5/7/12 (thanks Alexander Koshman)
- * 	- make tiles down to 1x1 pixels 
+ *	- make tiles down to 1x1 pixels 
  *	- oop make right-hand edge tiles 
  *	- improve overlap handling 
  * 7/7/12
- * 	- threaded write
+ *	- threaded write
  * 6/8/12 (thanks to Benjamin Gilbert for pointing out the errors)
- * 	- shrink down to a 1x1 pixel tile, even for very long and thin images
- * 	- round image size up on shrink
- * 	- write a .dzi file with the pyramid params
- * 	- default tile size and overlap now matches the openslide writer
+ *	- shrink down to a 1x1 pixel tile, even for very long and thin images
+ *	- round image size up on shrink
+ *	- write a .dzi file with the pyramid params
+ *	- default tile size and overlap now matches the openslide writer
  * 7/8/12 (thanks to Benjamin Gilbert again for more testing)
- * 	- reorganise the directory structure
- * 	- rename to basename and tile_size
- * 	- deprecate tile_width/_height and dirname 
+ *	- reorganise the directory structure
+ *	- rename to basename and tile_size
+ *	- deprecate tile_width/_height and dirname 
  * 1/10/12
- * 	- did not write low pyramid layers for images with an odd number of
- * 	  scan lines (thanks Martin)
+ *	- did not write low pyramid layers for images with an odd number of
+ *	  scan lines (thanks Martin)
  * 2/10/12
- * 	- remove filename options from format string in .dzi (thanks Martin)
+ *	- remove filename options from format string in .dzi (thanks Martin)
  * 3/10/12
- * 	- add zoomify and google maps output
+ *	- add zoomify and google maps output
  * 10/10/12
- * 	- add @background option
+ *	- add @background option
  * 1/11/12
- * 	- add @depth option
+ *	- add @depth option
  * 21/1/13
- * 	- add @centre option
+ *	- add @centre option
  * 26/2/13
- * 	- fix another corner case, thanks Martin
+ *	- fix another corner case, thanks Martin
  * 29/5/13
- * 	- add --angle option
+ *	- add --angle option
  * 19/6/13
- * 	- faster --centre logic, thanks Kacey
+ *	- faster --centre logic, thanks Kacey
  * 18/4/14
- * 	- use libgsf for output so we can write to .zip etc. as well as the
- * 	  filesystem
+ *	- use libgsf for output so we can write to .zip etc. as well as the
+ *	  filesystem
  * 8/5/14
- * 	- set Type on strips so we can convert for save correctly, thanks
- * 	  philipgiuliani
+ *	- set Type on strips so we can convert for save correctly, thanks
+ *	  philipgiuliani
  * 25/6/14
- * 	- stop on zip write >4gb, thanks bgilbert
- * 	- save metadata, see https://github.com/libvips/libvips/issues/137
+ *	- stop on zip write >4gb, thanks bgilbert
+ *	- save metadata, see https://github.com/libvips/libvips/issues/137
  * 18/8/14
- * 	- use g_ date funcs, helps Windows
+ *	- use g_ date funcs, helps Windows
  * 14/2/15
- * 	- use vips_region_shrink()
+ *	- use vips_region_shrink()
  * 22/2/15
- * 	- use a better temp dir name for fs dz output
+ *	- use a better temp dir name for fs dz output
  * 8/8/15
- * 	- allow zip > 4gb if we have a recent libgsf
+ *	- allow zip > 4gb if we have a recent libgsf
  * 9/9/15
- * 	- better overlap handling, thanks robclouth 
+ *	- better overlap handling, thanks robclouth 
  * 24/11/15
- * 	- don't write almost blank tiles in google mode
+ *	- don't write almost blank tiles in google mode
  * 25/11/15
- * 	- always strip tile metadata 
+ *	- always strip tile metadata 
  * 16/12/15
- * 	- fix overlap handling again, thanks erdmann
+ *	- fix overlap handling again, thanks erdmann
  * 8/6/16 Felix Bünemann
- * 	- add @compression option
+ *	- add @compression option
  * 5/9/16
- * 	- more overlap changes to help gmaps mode
+ *	- more overlap changes to help gmaps mode
  * 8/9/16 Felix Bünemann
- * 	- move vips-properties out of subdir for gm and zoomify layouts
+ *	- move vips-properties out of subdir for gm and zoomify layouts
  * 15/10/16
- * 	- add dzsave_buffer
+ *	- add dzsave_buffer
  * 11/11/16 Felix Bünemann
- * 	- better >4gb detection for zip output on older libgsfs
+ *	- better >4gb detection for zip output on older libgsfs
  * 18/8/17
- * 	- shut down the output earlier to flush zip output
+ *	- shut down the output earlier to flush zip output
  * 24/11/17
- * 	- output overlap-only tiles on edges for better deepzoom spec
- * 	  compliance
+ *	- output overlap-only tiles on edges for better deepzoom spec
+ *	  compliance
  * 6/1/18
- * 	- add scan-properties.xml for szi output
- * 	- write all associated images
+ *	- add scan-properties.xml for szi output
+ *	- write all associated images
  * 19/12/18
- * 	- add @skip_blanks
+ *	- add @skip_blanks
  * 21/10/19
- * 	- add @no_strip
+ *	- add @no_strip
  * 9/11/19
- * 	- add IIIF layout
+ *	- add IIIF layout
  * 24/4/20 [IllyaMoskvin]
- * 	- better IIIF tile naming
+ *	- better IIIF tile naming
  * 15/10/21  martimpassos
- * 	- add IIIF3 layout
+ *	- add IIIF3 layout
  * 21/12/21  whalehub
- * 	- remove trailing comma from IIIFv3 folder names
+ *	- remove trailing comma from IIIFv3 folder names
  * 29/3/22
- * 	- always write a properties file
- * 	- add .szi as a registered suffix
+ *	- always write a properties file
+ *	- add .szi as a registered suffix
  */
 
 /*
@@ -281,10 +281,10 @@ gsf_output_target_class_init( GsfOutputTargetClass *class )
 static GsfOutput *
 gsf_output_target_new( VipsTarget *target )
 {
-        GsfOutputTarget *output;
+	GsfOutputTarget *output;
 
-        output = g_object_new( gsf_output_target_get_type(), NULL );
-        output->target = target;
+	output = g_object_new( gsf_output_target_get_type(), NULL );
+	output->target = target;
 	g_object_ref( target );
 
         return( GSF_OUTPUT( output ) );
@@ -608,12 +608,12 @@ struct _VipsForeignSaveDz {
 	 *
 	 * For deepzoom:
 	 *
-	 * 	tile_margin = overlap
-	 * 	tile_step = tile_size
+	 *	tile_margin = overlap
+	 *	tile_step = tile_size
 	 *
 	 * For google maps:
 	 *
-	 * 	tile_margin = 0
+	 *	tile_margin = 0
 	 *	tile_step = tile_size - overlap
 	 */
 	int tile_margin;
