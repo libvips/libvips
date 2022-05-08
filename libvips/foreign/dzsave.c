@@ -568,6 +568,10 @@ struct _VipsForeignSaveDz {
 	 */
 	VipsTarget *target;
 
+	/* Alternatively, the filename, for filesystem output.
+	 */
+	char *filename;
+
 	char *suffix;
 	int overlap;
 	int tile_size;
@@ -2286,26 +2290,23 @@ vips_foreign_save_dz_build( VipsObject *object )
 	/* Init basename and dirname from the associated filesystem names, if
 	 * we can.
 	 */
-	if( !vips_object_argument_isset( object, "basename" ) ) {
-		const char *filename;
+{
+	const char *filename = dz->filename ?
+		dz->filename :
+		vips_connection_filename( VIPS_CONNECTION( dz->target ) );
 
-		if( (filename = vips_connection_filename( 
-			VIPS_CONNECTION( dz->target ) )) ) {
+	if( !vips_object_argument_isset( object, "basename" ) ) {
+		if( filename ) 
 			dz->basename = g_path_get_basename( filename ); 
-		}
-		else {
+		else 
 			dz->basename = g_strdup( "untitled" ); 
-		}
 	}
 
 	if( !vips_object_argument_isset( object, "dirname" ) ) {
-		const char *filename;
-
-		if( (filename = vips_connection_filename( 
-			VIPS_CONNECTION( dz->target ) )) ) {
+		if( filename )
 			dz->dirname = g_path_get_dirname( filename ); 
-		}
 	}
+}
 
 	/* Remove any [options] from basename.
 	 */
@@ -2385,6 +2386,15 @@ vips_foreign_save_dz_build( VipsObject *object )
 		GsfOutput *zip;
 		GsfOutput *out2;
 		GError *error = NULL;
+
+		/* We can have dzsave("x.zip", container="fs"), ie. zip output
+		 * from write to file. Make a target if we need one.
+		 */
+		if( !dz->target ) {
+			if( !(dz->target = 
+				vips_target_new_to_file( dz->filename )) )
+				return( -1 );
+		}
 
 		/* Can be memory, a file (not a directory tree), pipe, etc.
 		 */
@@ -2744,8 +2754,7 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
 	VipsForeignSaveDzFile *file = (VipsForeignSaveDzFile *) object;
 
-	if( !(dz->target = vips_target_new_to_file( file->filename )) )
-		return( -1 );
+	dz->filename = file->filename;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_file_parent_class )->
 		build( object ) )
