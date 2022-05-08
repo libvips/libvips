@@ -202,8 +202,7 @@ typedef struct {
         GsfOutputClass output_class;
 } GsfOutputTargetClass;
 
-G_DEFINE_TYPE( GsfOutputTarget, gsf_output_target, 
-	gsf_output_target_get_type() );
+G_DEFINE_TYPE( GsfOutputTarget, gsf_output_target, GSF_OUTPUT_TYPE );
 
 static gboolean
 gsf_output_target_close( GsfOutput *output )
@@ -238,16 +237,8 @@ gsf_output_target_write( GsfOutput *output,
 {
         GsfOutputTarget *output_target = (GsfOutputTarget *) output;
 
-        while( num_bytes > 0 ) {
-                gssize nwritten = vips_target_write( output_target->target, 
-		       buffer, num_bytes );
-
-                if( nwritten < 0 )
-                        return( FALSE );
-
-                buffer += nwritten;
-                num_bytes -= nwritten;
-        }
+	if( vips_target_write( output_target->target, buffer, num_bytes ) )
+		return( FALSE );
 
         return( TRUE );
 }
@@ -2386,7 +2377,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	
 		dz->tree = vips_gsf_tree_new( out, 0 );
 }
-	break;
+		break;
 
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
 	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
