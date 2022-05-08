@@ -201,6 +201,7 @@ print_frame( const nsgif_frame_info_t *frame_info )
 
 	printf( "frame_info:\n" );
 	printf( "  display = %d\n", frame_info->display );
+	printf( "  local_palette = %d\n", frame_info->local_palette );
 	printf( "  transparency = %d\n", frame_info->transparency );
 	printf( "  disposal = %d (%s)\n", 
 		frame_info->disposal, 
@@ -222,6 +223,7 @@ print_animation( nsgif_t *anim, const nsgif_info_t *info )
 	printf( "  width = %d\n", info->width );
 	printf( "  height = %d\n", info->height );
 	printf( "  frame_count = %d\n", info->frame_count );
+	printf( "  global_palette = %d\n", info->global_palette );
 	printf( "  loop_max = %d\n", info->loop_max );
 	printf( "  background = %d %d %d %d\n",
 		bg[0], bg[1], bg[2], bg[3] );
