@@ -345,7 +345,7 @@ class TestForeign:
             exif_removed(im)
 
     @skip_if_no("jpegsave")
-    @pytest.mark.xfail(raises=AttributeError, reason="requires libexif >= 0.6.22")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libexif >= 0.6.22")
     def test_jpegsave_exif_2_3_ascii(self):
         def exif_valid(im):
             assert im.get("exif-ifd2-CameraOwnerName").find("ASCII, 14 components, 14 bytes") != -1
