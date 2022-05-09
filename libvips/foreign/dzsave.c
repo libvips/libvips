@@ -94,6 +94,8 @@
  * 29/3/22
  *	- always write a properties file
  *	- add .szi as a registered suffix
+ * 9/5/22
+ * 	- add dzsave_target
  */
 
 /*
