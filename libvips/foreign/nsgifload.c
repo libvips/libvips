@@ -4,6 +4,8 @@
  * 	- from gifload.c
  * 3/3/22 tlsa
  *	- update libnsgif API
+ *9/5/22
+ 	- attach GIF palette as metadata
  */
 
 /*
@@ -126,6 +128,10 @@ typedef struct _VipsForeignLoadNsgif {
 	/* If the GIF contains any frames with transparent elements.
 	 */
 	gboolean has_transparency;
+
+	/* If the GIF has any local palettes.
+	 */
+	gboolean local_palette;
 
 	/* The current frame bitmap and the frame number for it.
 	 */
@@ -289,6 +295,18 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 */
 	vips_image_set_int( image, "gif-delay", gif->gif_delay ); 
 
+	/* If there are no local palettes, we can attach the global palette as
+	 * metadata.
+	 */
+	if( !gif->local_palette ) {
+		size_t entries;
+		uint32_t table[NSGIF_MAX_COLOURS];
+
+		nsgif_global_palette( gif->anim, table, &entries );
+		vips_image_set_array_int( image, "gif-palette", 
+			(const int *) table, entries ); 
+	}
+
 	return( 0 );
 }
 
@@ -342,10 +360,11 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	for( i = 0; i < gif->info->frame_count; i++ ) {
 		const nsgif_frame_info_t *frame_info;
 
-		frame_info = nsgif_get_frame_info( gif->anim, i );
-		if( frame_info != NULL && frame_info->transparency ) {
-			gif->has_transparency = TRUE;
-			break;
+		if( (frame_info = nsgif_get_frame_info( gif->anim, i )) ) {
+			if( frame_info->transparency ) 
+				gif->has_transparency = TRUE;
+			if( frame_info->local_palette ) 
+				gif->local_palette = TRUE;
 		}
 	}
 
