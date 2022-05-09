@@ -196,9 +196,8 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
-	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
-		if( vips__exif_update( heif->image ) )
-			return( -1 );
+	if( vips__exif_update( heif->image ) )
+		return( -1 );
 
 	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
 		if( vips_image_get_typeof( heif->image, 
