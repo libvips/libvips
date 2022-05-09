@@ -669,21 +669,6 @@ typedef VipsForeignSaveClass VipsForeignSaveDzClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
-/* ZIP and SZI are both written as zip files.
- */
-static gboolean
-iszip( VipsForeignDzContainer container )
-{
-	switch( container ) {
-	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
-	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
-		return( TRUE );
-
-	default:
-		return( FALSE );
-	}
-}
-
 #define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
 #define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
 #define VIPS_ZIP_EOCD_SIZE 22
@@ -2481,12 +2466,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 		return( -1 ); 
 	dz->tree = NULL; 
 
-	/* If we are writing a zip to the filesystem, we must unref out to
-	 * force it to disc.
+	/* unref out to force flush in gsf_output_target_close().
 	 */
-	if( iszip( dz->container ) &&
-		dz->dirname != NULL ) 
-		VIPS_FREEF( g_object_unref, dz->out );
+	VIPS_UNREF( dz->out );
 
 	return( 0 );
 }
@@ -2732,6 +2714,11 @@ vips_foreign_save_dz_target_class_init( VipsForeignSaveDzTargetClass *class )
 static void
 vips_foreign_save_dz_target_init( VipsForeignSaveDzTarget *target )
 {
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) target;
+
+	/* zip default for target output.
+	 */
+	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 }
 
 typedef struct _VipsForeignSaveDzFile {
