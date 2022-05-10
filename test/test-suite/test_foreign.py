@@ -344,6 +344,29 @@ class TestForeign:
             im = pyvips.Image.new_from_buffer(buf, "")
             exif_removed(im)
 
+    @skip_if_no("jpegsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libexif >= 0.6.22")
+    def test_jpegsave_exif_2_3_ascii(self):
+        def exif_valid(im):
+            assert im.get("exif-ifd2-CameraOwnerName").find("ASCII, 14 components, 14 bytes") != -1
+            assert im.get("exif-ifd2-BodySerialNumber").find("ASCII, 14 components, 14 bytes") != -1
+            assert im.get("exif-ifd2-LensMake").find("ASCII, 14 components, 14 bytes") != -1
+            assert im.get("exif-ifd2-LensModel").find("ASCII, 14 components, 14 bytes") != -1
+            assert im.get("exif-ifd2-LensSerialNumber").find("ASCII, 14 components, 14 bytes") != -1
+
+        # first make sure we have exif support
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+        if im.get_typeof("exif-ifd0-Orientation") != 0:
+            x = im.copy()
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-CameraOwnerName", "hello ( there")
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-BodySerialNumber", "hello ( there")
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensMake", "hello ( there")
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensModel", "hello ( there")
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensSerialNumber", "hello ( there")
+            buf = x.jpegsave_buffer()
+            y = pyvips.Image.new_from_buffer(buf, "")
+            exif_valid(y)
+
     @skip_if_no("jpegload")
     def test_truncated(self):
         # This should open (there's enough there for the header)
