@@ -72,6 +72,8 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
+	int *gct;
+	int gct_length;
 
 	/* We save ->ready a frame at a time, regenerating the 
 	 * palette if we see a significant frame to frame change. 
@@ -234,6 +236,30 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	cgif->input_image = vips__quantise_image_create_rgba( cgif->attr,
 		frame_bytes, frame_rect->width, frame_rect->height, 0 );
 
+	if( !cgif->gct && vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+		VipsQuantiseImage *tmp_image;
+		int *tmp_gct;
+
+		vips_image_get_array_int( cgif->in, "gif-palette",
+			&cgif->gct, &cgif->gct_length );
+
+		/* Attach fake alpha channel.
+		 * That's necessary, because we do not know whether there is an
+		 * alpha channel before processing the animation.
+		 */
+		tmp_gct = g_malloc((cgif->gct_length + 1) * sizeof(int));
+		memcpy(tmp_gct, cgif->gct, cgif->gct_length * sizeof(int));
+		tmp_gct[cgif->gct_length] = 0;
+		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
+			tmp_gct, cgif->gct_length + 1, 1, 0 );
+
+		/* Quantize attached global palette
+		 */
+		vips__quantise_image_quantize( tmp_image,
+			cgif->attr, &cgif->quantisation_result );
+		VIPS_FREE( tmp_gct );
+		VIPS_FREEF( vips__quantise_image_destroy, tmp_image );
+	}
 	/* Threshold the alpha channel. It's safe to modify the region since 
 	 * it's a buffer we made.
 	 */
@@ -248,50 +274,52 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
-	sum = 0;
-	p = frame_bytes;
-	for( i = 0; i < n_pels; i++ ) {
-		/* Scale RGBA differently so that changes like [0, 255, 0] 
-		 * to [255, 0, 0] are detected.
-		 */
-		sum += p[0] * 1000; 
-		sum += p[1] * 100; 
-		sum += p[2] * 10; 
-		sum += p[3]; 
+	if( !cgif->gct ) {
+		sum = 0;
+		p = frame_bytes;
+		for( i = 0; i < n_pels; i++ ) {
+			/* Scale RGBA differently so that changes like [0, 255, 0]
+			 * to [255, 0, 0] are detected.
+			 */
+			sum += p[0] * 1000;
+			sum += p[1] * 100;
+			sum += p[2] * 10;
+			sum += p[3];
 
-		p += 4;
-	}
-	change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
-
-	if( cgif->frame_sum == 0 ||
-		change > 0 ) { 
-		cgif->frame_sum = sum;
-
-		/* If this is not our first cmap, make a note that we need to
-		 * attach it as a local cmap when we write.
-		 */
-		if( cgif->quantisation_result ) 
-			cgif->cgif_config.attrFlags |= 
-				CGIF_ATTR_NO_GLOBAL_TABLE;
-
-		VIPS_FREEF( vips__quantise_result_destroy, 
-			cgif->quantisation_result );
-		if( vips__quantise_image_quantize( cgif->input_image, 
-			cgif->attr, &cgif->quantisation_result ) ) { 
-			vips_error( class->nickname, 
-				"%s", _( "quantisation failed" ) );
-			return( -1 );
+			p += 4;
 		}
+		change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
+
+		if( cgif->frame_sum == 0 ||
+			change > 0 ) {
+			cgif->frame_sum = sum;
+
+			/* If this is not our first cmap, make a note that we need to
+			 * attach it as a local cmap when we write.
+			 */
+			if( cgif->quantisation_result )
+				cgif->cgif_config.attrFlags |=
+					CGIF_ATTR_NO_GLOBAL_TABLE;
+
+			VIPS_FREEF( vips__quantise_result_destroy,
+				cgif->quantisation_result );
+			if( vips__quantise_image_quantize( cgif->input_image,
+				cgif->attr, &cgif->quantisation_result ) ) {
+				vips_error( class->nickname,
+					"%s", _( "quantisation failed" ) );
+				return( -1 );
+			}
 
 #ifdef DEBUG_PERCENT
-		cgif->n_cmaps_generated += 1;
+			cgif->n_cmaps_generated += 1;
 #endif/*DEBUG_PERCENT*/
+		}
 	}
-
 	/* Dither frame.
 	 */
-	vips__quantise_set_dithering_level( cgif->quantisation_result, 
+	vips__quantise_set_dithering_level( cgif->quantisation_result,
 		cgif->dither );
+
 	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
