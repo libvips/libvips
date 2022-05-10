@@ -59,11 +59,12 @@
 typedef struct _VipsForeignSaveCgif {
 	VipsForeignSave parent_object;
 
+	VipsTarget *target;
+
 	double dither;
 	int effort;
 	int bitdepth;
 	double maxerror;
-	VipsTarget *target;
 
 	/* Derived write params.
 	 */
@@ -72,6 +73,7 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
+	gboolean has_global_palette;
 
 	/* We save ->ready a frame at a time, regenerating the 
 	 * palette if we see a significant frame to frame change. 
@@ -242,6 +244,19 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		p[3] = p[3] >= 128 ? 255 : 0;
 		p += 4;
 	}
+
+	need something like
+
+	vips__quantise_set_palette
+
+	see 
+
+	vips__quantise_get_palette
+
+	needs to init VipsQuantiseResult quantisation_result
+
+	also, break this up into smaller funcs so we disable change detection if
+	has_global_palette is true
 
 	/* Do we need to compute a new palette? Do it if the frame sum
 	 * changes.
@@ -577,6 +592,25 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 */
 	cgif->palette_rgb = g_malloc0( 256 * 3 );
 	cgif->index = g_malloc0( frame_rect.width * frame_rect.height );
+
+	/* Does our input image have a palette? Use that.
+	 */
+	if( vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+		int n;
+		int *array;
+
+		if( vips_image_get_array_int( cgif->in, "gif-palette", 
+			&array, &n ) )
+			return( -1 );
+		if( n > 256 ) {
+			vips_error( class->nickname, 
+				"%s", _( "gif-palette too large" ) );
+			return( -1 );
+		}
+
+		memcpy( cgif->palette_rgb, array, n * 3 );
+		cgif->has_global_palette = TRUE;
+	}
 
 	/* Set up libimagequant.
 	 */
