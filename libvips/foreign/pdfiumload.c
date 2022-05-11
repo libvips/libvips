@@ -242,12 +242,13 @@ vips_pdfium_GetBlock( void *param,
 		return( FALSE );
 
 	while( size > 0 ) {
-		size_t n_read;
+		gint64 bytes_read;
 
-		if( (n_read = vips_source_read( pdf->source, pBuf, size )) < 0 )
+		if( (bytes_read = 
+			vips_source_read( pdf->source, pBuf, size )) < 0 )
 			return( FALSE );
-		pBuf += n_read;
-		size -= n_read;
+		pBuf += bytes_read;
+		size -= bytes_read;
 	}
 
 	return( TRUE );
