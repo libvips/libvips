@@ -202,6 +202,8 @@
  * 20/10/21 [jacopoabramo]
  * 	- subifd enables pyramid
  * 	- add support for page_height param
+ * 11/5/22
+ * 	- switch to terget API for output
  */
 
 /*
@@ -937,11 +939,12 @@ wtiff_allocate_layers( Wtiff *wtiff )
 static void
 layer_free( Layer *layer )
 {
-	VIPS_UNREF( layer->target );
+	/* Don't unref the target for this layer -- we'll need it for gather.
+	 */
+	VIPS_FREEF( TIFFClose, layer->tif );
 	VIPS_UNREF( layer->strip );
 	VIPS_UNREF( layer->copy );
 	VIPS_UNREF( layer->image );
-	VIPS_FREEF( TIFFClose, layer->tif );
 }
 
 /* Free an entire pyramid.
@@ -958,6 +961,13 @@ layer_free_all( Layer *layer )
 static void
 wtiff_free( Wtiff *wtiff )
 {
+	Layer *layer;
+
+	/* unref all the targets, including the base layer.
+	 */
+	for( layer = wtiff->layer; layer; layer = layer->below )
+		VIPS_UNREF( layer->target );
+
 	VIPS_UNREF( wtiff->ready );
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
@@ -2139,6 +2149,8 @@ wtiff_page_end( Wtiff *wtiff )
 	/* Append any pyr layers, if necessary.
 	 */
 	if( wtiff->layer->below ) {
+		Layer *layer;
+
 		/* Free any lower pyramid resources ... this will 
 		 * TIFFClose() (but not delete) the smaller layers 
 		 * ready for us to read from them again.
@@ -2150,10 +2162,14 @@ wtiff_page_end( Wtiff *wtiff )
 		if( wtiff_gather( wtiff ) ) 
 			return( -1 );
 
-		/* And free all lower pyr layers ready to be rebuilt for the
-		 * next page.
+		/* unref all the lower targets.
 		 */
-		VIPS_FREEF( layer_free_all, wtiff->layer->below );
+		for( layer = wtiff->layer->below; layer; layer = layer->below )
+			VIPS_UNREF( layer->target );
+
+		/* ... ready for the next page. 
+		 */
+		wtiff->layer->below = NULL;
 	}
 
 	wtiff->page_number += 1;

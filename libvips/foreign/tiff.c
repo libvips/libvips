@@ -110,11 +110,11 @@ openin_source_write( thandle_t st, tdata_t buffer, tsize_t size )
 }
 
 static toff_t
-openin_source_seek( thandle_t st, toff_t position, int whence )
+openin_source_seek( thandle_t st, toff_t offset, int whence )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
-	return( (toff_t) vips_source_seek( source, position, whence ) );
+	return( (toff_t) vips_source_seek( source, offset, whence ) );
 }
 
 static int
@@ -199,10 +199,14 @@ vips__tiff_openin_source( VipsSource *source )
 /* TIFF output to a target.
  */
 
+/* libtiff needs this (!!?!?!) for writing multipage images.
+ */
 static tsize_t
 openout_target_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	return( -1 );
+	VipsTarget *target = (VipsTarget *) st;
+
+	return( vips_target_read( target, data, size ) );
 }
 
 static tsize_t
@@ -217,27 +221,11 @@ openout_target_write( thandle_t st, tdata_t data, tsize_t size )
 }
 
 static toff_t
-openout_target_seek( thandle_t st, toff_t position, int whence )
+openout_target_seek( thandle_t st, toff_t offset, int whence )
 {
-	switch( whence ) {
-	case SEEK_SET:
-		printf( "openout_target_seek: set pos to %ld\n", position );
-		break;
+	VipsTarget *target = (VipsTarget *) st;
 
-	case SEEK_CUR:
-		printf( "openout_target_seek: forward by %ld\n", position );
-		break;
-
-	case SEEK_END:
-		printf( "openout_target_seek: to end plus %ld\n", position );
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-
-	return( position );
+	return( vips_target_seek( target, offset, whence ) );
 }
 
 static int

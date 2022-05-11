@@ -412,9 +412,11 @@ struct _VipsTarget {
 	 */
 	gboolean finished;
 
-	/* Write memory output here.
+	/* Write memory output and track write point here. We use a GString
+	 * rather than a GByteArray since we need eg. g_string_overwrite_len().
 	 */
-	GByteArray *memory_buffer;
+	GString *memory_buffer;
+	off_t position;
 
 	/* And return memory via this blob.
 	 */
@@ -438,6 +440,24 @@ typedef struct _VipsTargetClass {
 	 */
 	gint64 (*write)( VipsTarget *, const void *, size_t );
 
+	/* libtiff needs to be able to seek and read on targets,
+	 * unfortunately. 
+	 *
+	 * This will not work for eg. pipes, of course.
+	 */
+
+	/* Read from the target into the supplied buffer, args exactly as
+	 * read(2). Set errno on error.
+	 *
+	 * We must return gint64, since ssize_t is often defined as unsigned
+	 * on Windows.
+	 */
+	gint64 (*read)( VipsTarget *, void *, size_t );
+
+	/* Seek output. Args exactly as lseek(2).
+	 */
+	off_t (*seek)( VipsTarget *, off_t offset, int whence);
+
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
@@ -456,6 +476,10 @@ VIPS_API
 VipsTarget *vips_target_new_to_memory( void );
 VIPS_API
 int vips_target_write( VipsTarget *target, const void *data, size_t length );
+VIPS_API
+gint64 vips_target_read( VipsTarget *target, void *buffer, size_t length );
+VIPS_API
+off_t vips_target_seek( VipsTarget *target, off_t offset, int whence );
 VIPS_API
 void vips_target_finish( VipsTarget *target );
 VIPS_API
