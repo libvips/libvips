@@ -114,8 +114,6 @@ openin_source_seek( thandle_t st, toff_t position, int whence )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
-	/* toff_t is usually uint64, with -1 cast to uint64 to indicate error.
-	 */
 	return( (toff_t) vips_source_seek( source, position, whence ) );
 }
 
@@ -202,14 +200,44 @@ vips__tiff_openin_source( VipsSource *source )
  */
 
 static tsize_t
+openout_target_read( thandle_t st, tdata_t data, tsize_t size )
+{
+	return( -1 );
+}
+
+static tsize_t
 openout_target_write( thandle_t st, tdata_t data, tsize_t size )
 {
 	VipsTarget *target = (VipsTarget *) st;
 
 	if( vips_target_write( target, data, size ) )
-		return( -1 );
+		return( (tsize_t) -1 );
 
 	return( size );
+}
+
+static toff_t
+openout_target_seek( thandle_t st, toff_t position, int whence )
+{
+	switch( whence ) {
+	case SEEK_SET:
+		printf( "openout_target_seek: set pos to %ld\n", position );
+		break;
+
+	case SEEK_CUR:
+		printf( "openout_target_seek: forward by %ld\n", position );
+		break;
+
+	case SEEK_END:
+		printf( "openout_target_seek: to end plus %ld\n", position );
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+
+	return( position );
 }
 
 static int
@@ -220,6 +248,30 @@ openout_target_close( thandle_t st )
 	vips_target_finish( target );
 
 	return( 0 );
+}
+
+static toff_t
+openout_target_length( thandle_t st )
+{
+	g_assert_not_reached();
+
+	return( (toff_t) -1 );
+}
+
+static int
+openout_target_map( thandle_t st, tdata_t *start, toff_t *len )
+{
+	g_assert_not_reached();
+
+	return( -1 );
+}
+
+static void
+openout_target_unmap( thandle_t st, tdata_t start, toff_t len )
+{
+	g_assert_not_reached();
+
+	return;
 }
 
 TIFF *
@@ -235,13 +287,13 @@ vips__tiff_openout_target( VipsTarget *target, gboolean bigtiff )
 
 	if( !(tiff = TIFFClientOpen( "target output", mode,
 		(thandle_t) target,
-		NULL,
+		openout_target_read,
 		openout_target_write,
-		NULL,
+		openout_target_seek,
 		openout_target_close,
-		NULL,
-		NULL,
-		NULL )) ) {
+		openout_target_length,
+		openout_target_map,
+		openout_target_unmap )) ) {
 		vips_error( "vips__tiff_openout_target", "%s",
 			_( "unable to open target for output" ) );
 		return( NULL );

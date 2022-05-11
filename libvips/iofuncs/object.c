@@ -770,13 +770,6 @@ vips_object_get_argument( VipsObject *object, const char *name,
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
-	printf( "vips_object_get_argument:\n" );
-	printf( "name = %s\n", name );
-	printf( "pspec = %p\n", pspec );
-	printf( "*pspec = %p\n", *pspec );
-	printf( "argument_class = %p\n", argument_class );
-	printf( "argument_instance = %p\n", argument_instance );
-
 	if( !(*pspec = g_object_class_find_property( 
 		G_OBJECT_CLASS( class ), name )) ) {
 		vips_error( class->nickname, 
@@ -798,17 +791,6 @@ vips_object_get_argument( VipsObject *object, const char *name,
 			_( "argument `%s' has no instance" ), name );
 		return( -1 );
 	}
-
-	printf( "pspec.flags = %d\n", (*pspec)->flags );
-	printf( "pspec.value_type = %ld\n", (*pspec)->value_type );
-	printf( "pspec.owner_type = %ld\n", (*pspec)->owner_type );
-
-	printf( "offset(pspec.flags) = %ld\n", 
-		G_STRUCT_OFFSET( GParamSpec, flags ) );
-	printf( "offset(pspec.value_type) = %ld\n", 
-		G_STRUCT_OFFSET( GParamSpec, value_type ) );
-	printf( "offset(pspec.owner_type) = %ld\n", 
-		G_STRUCT_OFFSET( GParamSpec, owner_type ) );
 
 	return( 0 );
 }
