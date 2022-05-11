@@ -270,10 +270,10 @@ vips_sbuf_require( VipsSbuf *sbuf, int require )
 			int space_available = 
 				VIPS_SBUF_BUFFER_SIZE - 
 				sbuf->chars_in_buffer;
-			size_t bytes_read;
+			gint64 bytes_read;
 
 			if( (bytes_read = vips_source_read( sbuf->source,
-				to, space_available )) == -1 )
+				to, space_available )) < 0 )
 				return( -1 );
 			if( bytes_read == 0 ) { 
 				vips_error( 

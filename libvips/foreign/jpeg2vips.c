@@ -243,12 +243,12 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 
 	Source *src = (Source *) cinfo->src;
 
-	size_t read;
+	gint64 bytes_read;
 
-	if( (read = vips_source_read( src->source, 
+	if( (bytes_read = vips_source_read( src->source, 
 		src->buf, SOURCE_BUFFER_SIZE )) > 0 ) {
 		src->pub.next_input_byte = src->buf;
-		src->pub.bytes_in_buffer = read;
+		src->pub.bytes_in_buffer = bytes_read;
 	}
 	else {
 		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED )
