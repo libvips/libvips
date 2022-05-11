@@ -225,6 +225,8 @@ VipsSource *vips_source_new_from_file( const char *filename );
 VIPS_API
 VipsSource *vips_source_new_from_blob( VipsBlob *blob );
 VIPS_API
+VipsSource *vips_source_new_from_target( VipsTarget *target );
+VIPS_API
 VipsSource *vips_source_new_from_memory( const void *data, size_t size );
 VIPS_API
 VipsSource *vips_source_new_from_options( const char *options );

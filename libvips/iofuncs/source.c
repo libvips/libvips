@@ -12,6 +12,8 @@
  * 	  descriptors
  * 8/10/21
  * 	- fix named pipes
+ * 10/5/22
+ * 	- add vips_source_new_from_target()
  */
 
 /*
@@ -483,6 +485,30 @@ vips_source_new_from_blob( VipsBlob *blob )
 	}
 
 	SANITY( source );
+
+	return( source ); 
+}
+
+/**
+ * vips_source_new_from_target:
+ * @target: build the source from this memory target
+ *
+ * Create a source from a memory target that has been written to.
+ *
+ * Returns: a new source.
+ */
+VipsSource *
+vips_source_new_from_target( VipsTarget *target )
+{
+	VipsSource *source;
+	VipsBlob *blob;
+
+	VIPS_DEBUG_MSG( "vips_source_new_from_target: %p\n", target ); 
+
+	vips_target_finish( target );
+	g_object_get( target, "blob", &blob, NULL );
+	source = vips_source_new_from_blob( blob ); 
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( source ); 
 }
