@@ -27,6 +27,7 @@
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
 - fix thumbnail with CMYK output [AdamGaskins]
+- fix size_t / ssize_t confusion [flga]
 
 26/11/21 started 8.12.2
 - make exif resuint optional and default to inch
