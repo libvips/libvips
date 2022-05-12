@@ -9,6 +9,7 @@ git clone git://git.netsurf-browser.org/libnsgif.git
 echo copying out source files ...
 
 cp libnsgif/README.md README-ns.md
+cp libnsgif/COPYING .
 
 cp libnsgif/include/nsgif.h .
 cp libnsgif/src/lzw.[ch] .
