@@ -408,9 +408,7 @@ vips_target_new_temp( VipsTarget *based_on )
 
 	VIPS_DEBUG_MSG( "vips_target_new_temp: %p\n", based_on );
 
-	if( based_on->memory_buffer ) 
-		target = vips_target_new_to_memory();
-	else {
+	if( vips_connection_filename( VIPS_CONNECTION( based_on ) ) ) {
 		int descriptor;
 		char *filename;
 
@@ -430,6 +428,8 @@ vips_target_new_temp( VipsTarget *based_on )
 		target->delete_on_close = TRUE;
 		target->delete_on_close_filename = filename;
 	}
+	else
+		target = vips_target_new_to_memory();
 
 	return( target ); 
 }
