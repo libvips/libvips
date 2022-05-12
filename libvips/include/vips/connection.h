@@ -541,6 +541,8 @@ typedef struct _VipsTargetCustomClass {
 	 */
 
 	gint64 (*write)( VipsTargetCustom *, const void *, gint64 );
+	gint64 (*read)( VipsTargetCustom *, void *, gint64 );
+	gint64 (*seek)( VipsTargetCustom *, gint64, int );
 	void (*finish)( VipsTargetCustom * );
 
 } VipsTargetCustomClass;
