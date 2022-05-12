@@ -491,24 +491,41 @@ vips_source_new_from_blob( VipsBlob *blob )
 
 /**
  * vips_source_new_from_target:
- * @target: build the source from this memory target
+ * @target: build the source from this target
  *
- * Create a source from a memory target that has been written to.
+ * Create a source from a temp target that has been written to.
  *
  * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_target( VipsTarget *target )
 {
+	VipsConnection *connection = VIPS_CONNECTION( target );
+
 	VipsSource *source;
-	VipsBlob *blob;
 
 	VIPS_DEBUG_MSG( "vips_source_new_from_target: %p\n", target ); 
 
+	/* Flush output buffer, move memory into the blob, etc.
+	 */
 	vips_target_finish( target );
-	g_object_get( target, "blob", &blob, NULL );
-	source = vips_source_new_from_blob( blob ); 
-	vips_area_unref( VIPS_AREA( blob ) );
+
+	if( connection->descriptor > 0 ) {
+		source = vips_source_new_from_descriptor( 
+			connection->descriptor ); 
+	}
+	else if( target->memory ) {
+		VipsBlob *blob;
+
+		g_object_get( target, "blob", &blob, NULL );
+		source = vips_source_new_from_blob( blob ); 
+		vips_area_unref( VIPS_AREA( blob ) );
+	}
+	else {
+		vips_error( vips_connection_nick( connection ),
+			"%s", _( "unimplemented target" ) );
+		return( NULL ); 
+	}
 
 	return( source ); 
 }

@@ -89,6 +89,12 @@ vips_target_finalize( GObject *gobject )
 		target->blob = NULL;
 	}
 
+	if( target->delete_on_close &&
+		target->delete_on_close_filename )
+		g_unlink( target->delete_on_close_filename );
+
+	VIPS_FREE( target->delete_on_close_filename );
+
 	G_OBJECT_CLASS( vips_target_parent_class )->finalize( gobject );
 }
 
@@ -379,6 +385,50 @@ vips_target_new_to_memory( void )
 	if( vips_object_build( VIPS_OBJECT( target ) ) ) {
 		VIPS_UNREF( target );
 		return( NULL );
+	}
+
+	return( target ); 
+}
+
+/**
+ * vips_target_new_temp:
+ * @based_on: base the temporary target on this target
+ *
+ * Create a temporary target -- either a temporary file on disc, or an area in
+ * memory, depending on what sort of target @based_on is.
+ *
+ * See also: vips_target_new_to_file().
+ *
+ * Returns: a new target.
+ */
+VipsTarget *
+vips_target_new_temp( VipsTarget *based_on )
+{
+	VipsTarget *target;
+
+	VIPS_DEBUG_MSG( "vips_target_new_temp: %p\n", based_on );
+
+	if( based_on->memory_buffer ) 
+		target = vips_target_new_to_memory();
+	else {
+		int descriptor;
+		char *filename;
+
+		if( !(filename = vips__temp_name( "%s.target" )) )
+			return( NULL );
+		if( (descriptor = 
+			vips__open_image_write( filename, TRUE )) < 0 ) {
+			g_free( filename );
+			return( NULL );
+		}
+		if( !(target = vips_target_new_to_descriptor( descriptor )) ) {
+			g_free( filename );
+			vips_tracked_close( descriptor );
+			return( NULL );
+		}
+		vips_tracked_close( descriptor );
+		target->delete_on_close = TRUE;
+		target->delete_on_close_filename = filename;
 	}
 
 	return( target ); 

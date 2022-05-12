@@ -428,6 +428,11 @@ struct _VipsTarget {
 	unsigned char output_buffer[VIPS_TARGET_BUFFER_SIZE];
 	int write_point;
 
+	/* Temp targets on the filesystem need deleting, sometimes.
+	 */
+	gboolean delete_on_close;
+	char *delete_on_close_filename;
+
 };
 
 typedef struct _VipsTargetClass {
@@ -474,6 +479,8 @@ VIPS_API
 VipsTarget *vips_target_new_to_file( const char *filename );
 VIPS_API
 VipsTarget *vips_target_new_to_memory( void );
+VIPS_API
+VipsTarget *vips_target_new_temp( VipsTarget *target );
 VIPS_API
 int vips_target_write( VipsTarget *target, const void *data, size_t length );
 VIPS_API

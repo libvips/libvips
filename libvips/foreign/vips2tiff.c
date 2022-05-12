@@ -463,7 +463,8 @@ wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 			g_object_ref( (*layer)->target );
 		}
 		else 
-			(*layer)->target = vips_target_new_to_memory();
+			(*layer)->target = 
+				vips_target_new_temp( wtiff->target );
 
 		/*
 		printf( "wtiff_layer_init: sub = %d, width = %d, height = %d\n",
