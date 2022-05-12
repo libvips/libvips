@@ -63,6 +63,7 @@ typedef struct _VipsForeignSaveCgif {
 	int effort;
 	int bitdepth;
 	double maxerror;
+	gboolean reuse_palette;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -236,7 +237,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	cgif->input_image = vips__quantise_image_create_rgba( cgif->attr,
 		frame_bytes, frame_rect->width, frame_rect->height, 0 );
 
-	if( !cgif->gct && vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+	if( cgif->reuse_palette && !cgif->gct &&
+		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
 		VipsQuantiseImage *tmp_image;
 		int *tmp_gct;
 
@@ -683,6 +685,14 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
 		0, 32, 0.0 );
+
+	VIPS_ARG_BOOL( class, "reuse_palette", 14,
+		_( "Reuse palettes" ),
+		_( "Reuse attached palette. It's faster and the file size \
+is better, but the quality might be reduced" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reuse_palette ),
+		FALSE );
 }
 
 static void
@@ -692,6 +702,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->effort = 7;
 	gif->bitdepth = 8;
 	gif->maxerror = 0.0;
+	gif->reuse_palette = FALSE;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
