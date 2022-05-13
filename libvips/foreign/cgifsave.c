@@ -597,7 +597,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
 	if( !cgif->reoptimise &&
-		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+		vips_image_get_typeof( cgif->in, "gif-palette" ) &&
+		vips_image_get_typeof( cgif->in, "use-lct" ) ) {
 		VipsQuantiseImage *tmp_image;
 		int *tmp_gct;
 
