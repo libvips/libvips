@@ -121,6 +121,11 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	int *delay;
 
+	/* Whether a frame uses the global- or a local-palette.
+	 * Array of length @info->frame_count.
+	 */
+	int *use_lct;
+
 	/* A single centisecond value for compatibility.
 	 */
 	int gif_delay;
@@ -128,10 +133,6 @@ typedef struct _VipsForeignLoadNsgif {
 	/* If the GIF contains any frames with transparent elements.
 	 */
 	gboolean has_transparency;
-
-	/* If the GIF has any local palettes.
-	 */
-	gboolean local_palette;
 
 	/* The current frame bitmap and the frame number for it.
 	 */
@@ -165,6 +166,7 @@ vips_foreign_load_nsgif_dispose( GObject *gobject )
 	}
 	VIPS_UNREF( gif->source );
 	VIPS_FREE( gif->delay );
+	VIPS_FREE( gif->use_lct );
 
 	G_OBJECT_CLASS( vips_foreign_load_nsgif_parent_class )->
 		dispose( gobject );
@@ -295,16 +297,17 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 */
 	vips_image_set_int( image, "gif-delay", gif->gif_delay ); 
 
-	/* If there are no local palettes, we can attach the global palette as
-	 * metadata.
+	/* Attach the global palette (if present).
 	 */
-	if( !gif->local_palette ) {
+	if( gif->info->global_palette ) {
 		size_t entries;
 		uint32_t table[NSGIF_MAX_COLOURS];
 
 		nsgif_global_palette( gif->anim, table, &entries );
 		vips_image_set_array_int( image, "gif-palette", 
-			(const int *) table, entries ); 
+			(const int *) table, entries );
+		vips_image_set_array_int( image, "use-lct",
+			gif->use_lct, gif->info->frame_count );
 	}
 
 	return( 0 );
@@ -357,6 +360,10 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 
 	/* Check for any transparency.
 	 */
+	VIPS_FREE( gif->use_lct );
+	if( !(gif->use_lct = VIPS_ARRAY( NULL,
+		gif->info->frame_count, int )) )
+		return( -1 );
 	for( i = 0; i < gif->info->frame_count; i++ ) {
 		const nsgif_frame_info_t *frame_info;
 
@@ -364,7 +371,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 			if( frame_info->transparency ) 
 				gif->has_transparency = TRUE;
 			if( frame_info->local_palette ) 
-				gif->local_palette = TRUE;
+				gif->use_lct[i] = TRUE;
 		}
 	}
 
