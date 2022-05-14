@@ -595,7 +595,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		return( -1 );
 
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
-	vips_target_finish( cgif->target );
+
+	if( vips_target_end( cgif->target ) )
+		return( -1 );
 
 	return( 0 );
 }

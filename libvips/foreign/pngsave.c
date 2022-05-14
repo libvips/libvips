@@ -89,8 +89,6 @@ vips_foreign_save_png_dispose( GObject *gobject )
 {
 	VipsForeignSavePng *png = (VipsForeignSavePng *) gobject;
 
-	if( png->target ) 
-		vips_target_finish( png->target );
 	VIPS_UNREF( png->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_png_parent_class )->
@@ -158,6 +156,9 @@ vips_foreign_save_png_build( VipsObject *object )
 		g_object_unref( in );
 		return( -1 );
 	}
+
+	if( vips_target_end( png->target ) )
+		return( -1 );
 
 	g_object_unref( in );
 

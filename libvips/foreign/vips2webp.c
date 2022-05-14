@@ -582,7 +582,8 @@ vips__webp_write_target( VipsImage *image, VipsTarget *target,
 		return( -1 );
 	}
 
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	vips_webp_write_unset( &write );
 

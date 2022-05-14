@@ -866,8 +866,6 @@ write_destroy( Write *write )
 #endif /*DEBUG*/
 
 	VIPS_UNREF( write->memory );
-	if( write->target ) 
-		vips_target_finish( write->target );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 	VIPS_FREE( write->row_pointer );
@@ -1306,6 +1304,9 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 	}
 
 	write_destroy( write );
+
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	return( 0 );
 }

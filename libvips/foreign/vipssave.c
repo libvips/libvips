@@ -65,8 +65,6 @@ vips_foreign_save_vips_dispose( GObject *gobject )
 {
 	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) gobject;
 
-	if( vips->target ) 
-		vips_target_finish( vips->target );
 	VIPS_UNREF( vips->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
@@ -115,6 +113,9 @@ vips_foreign_save_vips_build( VipsObject *object )
 			"%s", _( "no filename associated with target" ) );
 		return( -1 );
 	}
+
+	if( vips_target_end( vips->target ) )
+		return( -1 );
 
 	return( 0 );
 }
