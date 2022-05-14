@@ -258,9 +258,9 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		 */
 
 		if( !png->unlimited && n_text > MAX_PNG_TEXT_CHUNKS ) {
-			vips_error( class->nickname, 
-				"%s", _( "too many text chunks" ) );
-			return( -1 );
+			g_warning(_( "%d text chunks, only %d text chunks will be loaded" ),
+					n_text, MAX_PNG_TEXT_CHUNKS );
+			n_text = MAX_PNG_TEXT_CHUNKS;
 		}
 
 		text = VIPS_ARRAY( VIPS_OBJECT( png ), 
