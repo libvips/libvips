@@ -524,6 +524,10 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
 
+	/* Swap B and R.
+	 */
+	vips__bgra2rgba( (guint32 *) pdf->ink, 1 ); 
+
 	return( 0 );
 }
 
@@ -572,10 +576,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
 
-		/* 4 means RGBA.
-		 */
 		g_mutex_lock( vips_pdfium_mutex );
 
+		/* 4 means RGBA.
+		 */
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
 			VIPS_REGION_LSKIP( or ) );  
