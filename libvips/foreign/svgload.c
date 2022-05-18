@@ -633,7 +633,7 @@ gboolean
 vips_foreign_load_svg_source_is_a_source( VipsSource *source )
 {
 	unsigned char *data;
-	size_t bytes_read;
+	gint64 bytes_read;
 
 	if( (bytes_read = vips_source_sniff_at_most( source, 
 		&data, SVG_HEADER_SIZE )) <= 0 )
