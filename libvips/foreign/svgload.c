@@ -319,33 +319,60 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
-#ifdef HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS
-
 static int
-vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg, 
-	int *out_width, int *out_height )
+vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg, 
+	double *out_width, double *out_height )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
 
 	double width;
 	double height;
-	double scale;
 
-	/* If the SVG does not define a width or height we will fall back to
-	 * this size. The SVG will be rendered to fit this viewport
-	 * by rsvg_handle_render_document() below.
-	 */
-	width = 1928;
-	height = 1080;
+#ifdef HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS
+	if( !rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
+		&width, &height ) ) {
+		/* The SVG has no dimensions. Pick a default size and the SVG 
+		 * will be rendered to fit this by 
+		 * rsvg_handle_render_document() below.
+		 */
+		width = 1928.0;
+		height = 1080.0;
+	}
+#else /*!HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+{
+	RsvgDimensionData dimensions;
 
-	/* Get dimensions with the default scale.
-	 */
-	rsvg_handle_set_dpi( svg->page, 72.0 );
-	rsvg_handle_get_intrinsic_size_in_pixels( svg->page, &width, &height );
-	if( width <= 0 || height <= 0 ) {
+	rsvg_handle_get_dimensions( svg->page, &dimensions );
+	width = dimensions.width;
+	height = dimensions.height;
+}
+#endif /*HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+
+	if( width <= 1.0 || 
+		height <= 1.0 ) {
 		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
+
+	*out_width = width;
+	*out_height = height;
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_svg_get_scaled_size( VipsForeignLoadSvg *svg, 
+	int *out_width, int *out_height )
+{
+	double width;
+	double height;
+	double scale;
+
+	/* Get dimensions with the default dpi.
+	 */
+	rsvg_handle_set_dpi( svg->page, 72.0 );
+	if( vips_foreign_load_svg_get_natural_size( svg, &width, &height ) )
+		return( -1 );
 
 	/* Calculate dimensions at required dpi/scale.
 	 */
@@ -354,9 +381,10 @@ vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg,
 		double scaled_width;
 		double scaled_height;
 
-		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
-		rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
-			&scaled_width, &scaled_height );
+		rsvg_handle_set_dpi( svg->page, scale * 72.0 );
+		if( vips_foreign_load_svg_get_natural_size( svg, 
+			&scaled_width, &scaled_height ) )
+			return( -1 );
 
 		if( scaled_width == width &&
 			scaled_height == height ) {
@@ -365,8 +393,8 @@ vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg,
 			 * cairo instead.
 			 */
 			svg->cairo_scale = scale;
-			width = width * scale;
-			height = height * scale;
+			width *= scale;
+			height *= scale;
 		} 
 		else {
 			/* SVG with width and height reports correctly scaled 
@@ -383,65 +411,6 @@ vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg,
 	return ( 0 );
 }
 
-#else /*!HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
-
-static int
-vips_foreign_load_svg_get_size( VipsForeignLoadSvg *svg, 
-	int *out_width, int *out_height )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
-
-	RsvgDimensionData dimensions;
-	int width;
-	int height;
-	double scale;
-
-	/* Calculate dimensions at default dpi/scale.
-	 */
-	rsvg_handle_set_dpi( svg->page, 72.0 );
-	rsvg_handle_get_dimensions( svg->page, &dimensions );
-	width = dimensions.width;
-	height = dimensions.height;
-
-	if( width <= 0 || height <= 0 ) {
-		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
-		return( -1 );
-	}
-
-	/* Calculate dimensions at required dpi/scale.
-	 */
-	scale = svg->scale * svg->dpi / 72.0;
-	if( scale != 1.0 ) {
-		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
-		rsvg_handle_get_dimensions( svg->page, &dimensions );
-
-		if( width == dimensions.width && 
-			height == dimensions.height ) {
-			/* SVG without width and height always reports the same 
-			 * dimensions regardless of dpi. Apply dpi/scale using 
-			 * cairo instead.
-			 */
-			svg->cairo_scale = scale;
-			width = VIPS_ROUND_UINT( width * scale );
-			height = VIPS_ROUND_UINT( height * scale );
-		} 
-		else {
-			/* SVG with width and height reports correctly scaled 
-			 * dimensions.
-			 */
-			width = dimensions.width;
-			height = dimensions.height;
-		}
-	}
-
-	*out_width = width;
-	*out_height = height;
-
-	return ( 0 );
-}
-
-#endif/*HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
-
 static int
 vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 {
@@ -449,7 +418,7 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	int height;
 	double res;
 
-	if( vips_foreign_load_svg_get_size( svg, &width, &height ) )
+	if( vips_foreign_load_svg_get_scaled_size( svg, &width, &height ) )
 		return( -1 );
 
 	/* We need pixels/mm for vips.
