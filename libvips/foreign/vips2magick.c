@@ -409,16 +409,15 @@ vips_foreign_save_magick_build( VipsObject *object )
 	}
 	
 	if( magick->bmp_bitdepth ) {
-		magick
-        		if( !magick_optimize_image_transparency( magick->images, 
-        			magick->exception ) ) {
-        			magick_inherit_exception( magick->exception, 
-        				magick->images );
-        			magick_vips_error( class->nickname, magick->exception );
-        
-        			return( -1 );
-        		}
-        	}
+		if( !magick_set_image_type( magick->images,
+			BilevelType, magick->exception ) ) {
+			magick_inherit_exception( magick->exception, 
+				magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
+	}
 
 	return( 0 );
 }

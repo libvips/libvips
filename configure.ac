@@ -624,7 +624,7 @@ if test x"$magick6" = x"yes"; then
   LIBS="$LIBS $MAGICK_LIBS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
 
-  AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo OptimizePlusImageLayers OptimizeImageTransparency])
+  AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo OptimizePlusImageLayers OptimizeImageTransparency SetImageType])
 
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"
