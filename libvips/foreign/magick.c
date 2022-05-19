@@ -846,4 +846,14 @@ magick_set_magick_profile( Image *image,
 	return( 0 );
 }
 
+int
+magick_set_image_type( Image *images,
+	ImageType image_type, ExceptionInfo *exception )
+{
+//	SetImageDepth( images, 1, exception);
+	SetImageType( images, image_type, exception );
+
+	return( exception->severity == UndefinedException );
+}
+
 #endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/

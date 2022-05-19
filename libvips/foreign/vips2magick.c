@@ -69,6 +69,7 @@ typedef struct _VipsForeignSaveMagick {
 	char *filename;		/* NULL during buffer output */
 	char *format;
 	int quality;
+	gboolean bmp_bitdepth_1;
 	gboolean optimize_gif_frames;
 	gboolean optimize_gif_transparency;
 
@@ -406,6 +407,17 @@ vips_foreign_save_magick_build( VipsObject *object )
 			return( -1 );
 		}
 	}
+	
+	if( magick->bmp_bitdepth_1 ) {
+		if( !magick_set_image_type( magick->images,
+			BilevelType, magick->exception ) ) {
+			magick_inherit_exception( magick->exception, 
+				magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
+	}
 
 	return( 0 );
 }
@@ -492,6 +504,13 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMagick, 
 			optimize_gif_transparency ),
+		FALSE );
+		
+	VIPS_ARG_BOOL( class, "bmp_bitdepth_1", 6,
+		_( "BMP bithdepth 1" ),
+		_( "BMP file bitdepth 1`" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, bmp_bitdepth_1 ),
 		FALSE );
 }
 
