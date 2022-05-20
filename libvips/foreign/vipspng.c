@@ -581,10 +581,9 @@ png2vips_header( Read *read, VipsImage *out )
 		 */
 		if( !read->unlimited && 
 			num_text > MAX_PNG_TEXT_CHUNKS ) {
-			vips_error( "vipspng", 
-				_( "%d text chunks, image blocked" ),
-			       num_text );
-			return( -1 );
+			g_warning(_( "%d text chunks, only %d text chunks will be loaded" ),
+					num_text, MAX_PNG_TEXT_CHUNKS );
+			num_text = MAX_PNG_TEXT_CHUNKS;
 		}
 
 		for( i = 0; i < num_text; i++ ) 
@@ -866,8 +865,6 @@ write_destroy( Write *write )
 #endif /*DEBUG*/
 
 	VIPS_UNREF( write->memory );
-	if( write->target ) 
-		vips_target_finish( write->target );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 	VIPS_FREE( write->row_pointer );
@@ -1306,6 +1303,9 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 	}
 
 	write_destroy( write );
+
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	return( 0 );
 }

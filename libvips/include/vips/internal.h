@@ -325,6 +325,8 @@ char *vips__xml_properties( VipsImage *image );
  */
 VIPS_API
 void vips__premultiplied_bgra2rgba( guint32 * restrict p, int n );
+VIPS_API
+void vips__rgba2bgra_premultiplied( guint32 * restrict p, int n );
 void vips__bgra2rgba( guint32 * restrict p, int n );
 void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
 void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );

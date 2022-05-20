@@ -31,6 +31,8 @@
 
  */
 
+#define DEBUG
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -112,6 +114,7 @@ vips_foreign_save_jxl_dispose( GObject *gobject )
 
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlEncoderDestroy, jxl->encoder );
+	VIPS_UNREF( jxl->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		dispose( gobject );
@@ -168,6 +171,7 @@ static void
 vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 {
 	printf( "JxlPixelFormat:\n" );
+	printf( "    num_channels = %d\n", format->num_channels );
 	printf( "    data_type = " );
 	switch( format->data_type ) {
 	case JXL_TYPE_UINT8: 
@@ -191,7 +195,6 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 		break;
 	}
 	printf( "\n" );
-	printf( "    num_channels = %d\n", format->num_channels );
 	printf( "    endianness = %d\n", format->endianness );
 	printf( "    align = %zd\n", format->align );
 }
@@ -427,7 +430,8 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		}
 	} while( status != JXL_ENC_SUCCESS );
 
-	vips_target_finish( jxl->target );
+	if( vips_target_end( jxl->target ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -9,7 +9,7 @@
  * 18/7/20
  * 	- add @profile param to match tiff, jpg, etc.
  * 30/7/21
- * 	- rename "reduction-effort" as "effort"
+ * 	- rename "reduction_effort" as "effort"
  */
 
 /*
@@ -220,7 +220,7 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, profile ),
 		NULL );
 
-	VIPS_ARG_INT( class, "reduction-effort", 21,
+	VIPS_ARG_INT( class, "reduction_effort", 21,
 		_( "Reduction effort" ),
 		_( "Level of CPU effort to reduce file size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,

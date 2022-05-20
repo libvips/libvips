@@ -131,6 +131,7 @@ vips_foreign_load_jxl_dispose( GObject *gobject )
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlDecoderDestroy, jxl->decoder );
 	VIPS_FREE( jxl->icc_data );
+	VIPS_UNREF( jxl->source );
 
 	G_OBJECT_CLASS( vips_foreign_load_jxl_parent_class )->
 		dispose( gobject );

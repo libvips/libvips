@@ -380,15 +380,16 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	vips_foreign_load_pdf_set_image( pdf, load->out ); 
 
 	/* Convert the background to the image format. 
-	 *
-	 * FIXME ... we probably should convert this to pre-multiplied BGRA
-	 * to match the Cairo convention. See vips__premultiplied_bgra2rgba().
 	 */
 	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
 		load->out, 
 		VIPS_AREA( pdf->background )->data, NULL, 
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
+
+	/* Swap to cairo-style premultiplied bgra.
+	 */
+	vips__rgba2bgra_premultiplied( (guint32 *) pdf->ink, 1 ); 
 
 	vips_source_minimise( pdf->source );
 

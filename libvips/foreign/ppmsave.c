@@ -93,8 +93,6 @@ vips_foreign_save_ppm_dispose( GObject *gobject )
 {
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) gobject;
 
-	if( ppm->target ) 
-		vips_target_finish( ppm->target );
 	VIPS_UNREF( ppm->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
@@ -423,7 +421,8 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
 		return( -1 );
 
-	vips_target_finish( ppm->target );
+	if( vips_target_end( ppm->target ) )
+		return( -1 );
 
 	return( 0 );
 }

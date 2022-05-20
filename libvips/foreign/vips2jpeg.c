@@ -825,7 +825,8 @@ term_destination( j_compress_ptr cinfo )
 		dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
-	vips_target_finish( dest->target );
+	if( vips_target_end( dest->target ) )
+		ERREXIT( cinfo, JERR_FILE_WRITE );
 }
 
 /* Set dest to one of our objects.
