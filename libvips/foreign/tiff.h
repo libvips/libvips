@@ -40,8 +40,7 @@ extern "C" {
 TIFF *vips__tiff_openin_source( VipsSource *source );
 
 TIFF *vips__tiff_openout( const char *path, gboolean bigtiff );
-TIFF *vips__tiff_openout_buffer( VipsImage *image, 
-	gboolean bigtiff, void **out_data, size_t *out_length );
+TIFF *vips__tiff_openout_target( VipsTarget *target, gboolean bigtiff );
 
 #ifdef __cplusplus
 }

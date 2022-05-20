@@ -64,6 +64,8 @@ G_DEFINE_TYPE( VipsTargetCustom, vips_target_custom, VIPS_TYPE_TARGET );
  */
 enum {
 	SIG_WRITE,		
+	SIG_READ,		
+	SIG_SEEK,		
 	SIG_END,		
 	SIG_FINISH,		
 	SIG_LAST
@@ -89,6 +91,68 @@ vips_target_custom_write_real( VipsTarget *target,
 	VIPS_DEBUG_MSG( "  %zd\n", bytes_written );
 
 	return( bytes_written );
+}
+
+static gint64
+vips_target_custom_read_real( VipsTarget *target, void *buffer, size_t length )
+{
+	gint64 bytes_read;
+
+	VIPS_DEBUG_MSG( "vips_target_custom_read_real:\n" );
+
+	/* Return this value (error) if there's no attached handler.
+	 */
+	bytes_read = 0;
+
+	g_signal_emit( target, vips_target_custom_signals[SIG_READ], 0,
+		buffer, (gint64) length, &bytes_read );
+
+	VIPS_DEBUG_MSG( "  vips_target_custom_read_real, seen %zd bytes\n", 
+		bytes_read );
+
+	return( bytes_read );
+}
+
+static gint64
+vips_target_custom_seek_real( VipsTarget *target, gint64 offset, int whence )
+{
+	GValue args[3] = { { 0 } };
+	GValue result = { 0 };
+	gint64 new_position;
+
+	VIPS_DEBUG_MSG( "vips_target_custom_seek_real:\n" );
+
+	/* Set the signal args.
+	 */
+	g_value_init( &args[0], G_TYPE_OBJECT );
+	g_value_set_object( &args[0], target );
+	g_value_init( &args[1], G_TYPE_INT64 );
+	g_value_set_int64( &args[1], offset );
+	g_value_init( &args[2], G_TYPE_INT );
+	g_value_set_int( &args[2], whence );
+
+	/* Set the default value if no handlers are attached.
+	 */
+	g_value_init( &result, G_TYPE_INT64 );
+	g_value_set_int64( &result, -1 );
+
+	/* We need to use this signal interface since we want a default value 
+	 * if no handlers are attached.
+	 */
+	g_signal_emitv( (const GValue *) &args, 
+		vips_target_custom_signals[SIG_SEEK], 0, &result );
+
+	new_position = g_value_get_int64( &result );
+
+	g_value_unset( &args[0] );
+	g_value_unset( &args[1] );
+	g_value_unset( &args[2] );
+	g_value_unset( &result );
+
+	VIPS_DEBUG_MSG( "  vips_target_custom_seek_real, seen new pos %zd\n", 
+		new_position );
+
+	return( new_position );
 }
 
 static int
@@ -125,6 +189,24 @@ vips_target_custom_write_signal_real( VipsTargetCustom *target_custom,
 	return( 0 );
 }
 
+static gint64
+vips_target_custom_read_signal_real( VipsTargetCustom *target_custom, 
+	void *data, gint64 length )
+{
+	VIPS_DEBUG_MSG( "vips_target_custom_read_signal_real:\n" );
+
+	return( 0 );
+}
+
+static gint64
+vips_target_custom_seek_signal_real( VipsTargetCustom *target_custom, 
+	gint64 offset, int whence )
+{
+	VIPS_DEBUG_MSG( "vips_target_custom_seek_signal_real:\n" );
+
+	return( -1 );
+}
+
 static int
 vips_target_custom_end_signal_real( VipsTargetCustom *target_custom ) 
 {
@@ -149,10 +231,14 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 	object_class->description = _( "Custom target" );
 
 	target_class->write = vips_target_custom_write_real;
+	target_class->read = vips_target_custom_read_real;
+	target_class->seek = vips_target_custom_seek_real;
 	target_class->end = vips_target_custom_end_real;
 	target_class->finish = vips_target_custom_finish_real;
 
 	class->write = vips_target_custom_write_signal_real;
+	class->read = vips_target_custom_read_signal_real;
+	class->seek = vips_target_custom_seek_signal_real;
 	class->end = vips_target_custom_end_signal_real;
 	class->finish = vips_target_custom_finish_signal_real;
 
@@ -174,6 +260,49 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 		vips_INT64__POINTER_INT64,
 		G_TYPE_INT64, 2,
 		G_TYPE_POINTER, G_TYPE_INT64 );
+
+	/**
+	 * VipsTargetCustom::read:
+	 * @target_custom: the target being operated on
+	 * @buffer: %gpointer, buffer to fill
+	 * @size: %gint64, size of buffer
+	 *
+	 * This signal is emitted to read bytes from the target into @buffer.
+	 *
+	 * The handler for an unreadable target should always return -1.
+	 *
+	 * Returns: the number of bytes read. Return 0 for EOF.
+	 */
+	vips_target_custom_signals[SIG_READ] = g_signal_new( "read",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsTargetCustomClass, read ), 
+		NULL, NULL,
+		vips_INT64__POINTER_INT64,
+		G_TYPE_INT64, 2,
+		G_TYPE_POINTER, G_TYPE_INT64 );
+
+	/**
+	 * VipsTargetCustom::seek:
+	 * @target_custom: the target being operated on
+	 * @offset: %gint64, seek offset
+	 * @whence: %gint, seek origin
+	 *
+	 * This signal is emitted to seek the target. The handler should
+	 * change the target position appropriately.
+	 *
+	 * The handler for an unseekable target should always return -1.
+	 *
+	 * Returns: the new seek position.
+	 */
+	vips_target_custom_signals[SIG_SEEK] = g_signal_new( "seek",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsTargetCustomClass, seek ), 
+		NULL, NULL,
+		vips_INT64__INT64_INT,
+		G_TYPE_INT64, 2,
+		G_TYPE_INT64, G_TYPE_INT );
 
 	/**
 	 * VipsTargetCustom::end:
@@ -227,8 +356,8 @@ vips_target_custom_new( void )
 
 	VIPS_DEBUG_MSG( "vips_target_custom_new:\n" );
 
-	target_custom = VIPS_TARGET_CUSTOM( g_object_new( 
-		VIPS_TYPE_TARGET_CUSTOM, NULL ) );
+	target_custom = VIPS_TARGET_CUSTOM( 
+		g_object_new( VIPS_TYPE_TARGET_CUSTOM, NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( target_custom ) ) ) {
 		VIPS_UNREF( target_custom );

@@ -90,48 +90,6 @@ vips__tiff_init( void )
 	TIFFSetWarningHandler( vips__thandler_warning );
 }
 
-/* Open TIFF for output.
- */
-TIFF *
-vips__tiff_openout( const char *path, gboolean bigtiff )
-{
-	TIFF *tif;
-	const char *mode = bigtiff ? "w8" : "w";
-
-#ifdef DEBUG
-	printf( "vips__tiff_openout( \"%s\", \"%s\" )\n", path, mode );
-#endif /*DEBUG*/
-
-	/* Need the utf-16 version on Windows.
-	 */
-#ifdef G_OS_WIN32
-{
-	GError *error = NULL;
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *)
-		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) {
-		vips_g_error( &error );
-		return( NULL );
-	}
-
-	tif = TIFFOpenW( path16, mode );
-
-	g_free( path16 );
-}
-#else /*!G_OS_WIN32*/
-	tif = TIFFOpen( path, mode );
-#endif /*G_OS_WIN32*/
-
-	if( !tif ) {
-		vips_error( "tiff",
-			_( "unable to open \"%s\" for output" ), path );
-		return( NULL );
-	}
-
-	return( tif );
-}
-
 /* TIFF input from a vips source.
  */
 
@@ -152,13 +110,11 @@ openin_source_write( thandle_t st, tdata_t buffer, tsize_t size )
 }
 
 static toff_t
-openin_source_seek( thandle_t st, toff_t position, int whence )
+openin_source_seek( thandle_t st, toff_t offset, int whence )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
-	/* toff_t is usually uint64, with -1 cast to uint64 to indicate error.
-	 */
-	return( (toff_t) vips_source_seek( source, position, whence ) );
+	return( (toff_t) vips_source_seek( source, offset, whence ) );
 }
 
 static int
@@ -240,146 +196,95 @@ vips__tiff_openin_source( VipsSource *source )
 	return( tiff );
 }
 
-/* TIFF output to a memory buffer.
+/* TIFF output to a target.
  */
 
-typedef struct _VipsTiffOpenoutBuffer {
-	VipsDbuf dbuf;
-
-	/* On close, consolidate and write the output here.
-	 */
-	void **out_data;
-	size_t *out_length;
-} VipsTiffOpenoutBuffer;
-
+/* libtiff needs this (!!?!?!) for writing multipage images.
+ */
 static tsize_t
-openout_buffer_read( thandle_t st, tdata_t data, tsize_t size )
+openout_target_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
+	VipsTarget *target = (VipsTarget *) st;
 
-#ifdef DEBUG
-	printf( "openout_buffer_read: %zd bytes\n", size );
-#endif /*DEBUG*/
-
-	return( vips_dbuf_read( &buffer->dbuf, data, size ) );
+	return( vips_target_read( target, data, size ) );
 }
 
 static tsize_t
-openout_buffer_write( thandle_t st, tdata_t data, tsize_t size )
+openout_target_write( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
+	VipsTarget *target = (VipsTarget *) st;
 
-#ifdef DEBUG
-	printf( "openout_buffer_write: %zd bytes\n", size );
-#endif /*DEBUG*/
-
-	vips_dbuf_write( &buffer->dbuf, data, size );
+	if( vips_target_write( target, data, size ) )
+		return( (tsize_t) -1 );
 
 	return( size );
 }
 
-static int
-openout_buffer_close( thandle_t st )
+static toff_t
+openout_target_seek( thandle_t st, toff_t offset, int whence )
 {
-	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
+	VipsTarget *target = (VipsTarget *) st;
 
-	*(buffer->out_data) = vips_dbuf_steal( &buffer->dbuf,
-		buffer->out_length);
+	return( vips_target_seek( target, offset, whence ) );
+}
+
+static int
+openout_target_close( thandle_t st )
+{
+	VipsTarget *target = (VipsTarget *) st;
+
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	return( 0 );
 }
 
 static toff_t
-openout_buffer_seek( thandle_t st, toff_t position, int whence )
-{
-	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
-
-#ifdef DEBUG
-	printf( "openout_buffer_seek: position %zd, whence %d ",
-		position, whence );
-	switch( whence ) {
-	case SEEK_SET:
-		printf( "set" ); 
-		break;
-
-	case SEEK_END:
-		printf( "end" ); 
-		break;
-
-	case SEEK_CUR:
-		printf( "cur" ); 
-		break;
-
-	default:
-		printf( "unknown" ); 
-		break;
-	}
-	printf( "\n" ); 
-#endif /*DEBUG*/
-
-	vips_dbuf_seek( &buffer->dbuf, position, whence );
-
-	return( vips_dbuf_tell( &buffer->dbuf ) );
-}
-
-static toff_t
-openout_buffer_length( thandle_t st )
+openout_target_length( thandle_t st )
 {
 	g_assert_not_reached();
 
-	return( 0 );
+	return( (toff_t) -1 );
 }
 
 static int
-openout_buffer_map( thandle_t st, tdata_t *start, toff_t *len )
+openout_target_map( thandle_t st, tdata_t *start, toff_t *len )
 {
 	g_assert_not_reached();
 
-	return( 0 );
+	return( -1 );
 }
 
 static void
-openout_buffer_unmap( thandle_t st, tdata_t start, toff_t len )
+openout_target_unmap( thandle_t st, tdata_t start, toff_t len )
 {
 	g_assert_not_reached();
 
 	return;
 }
 
-/* On TIFFClose(), @data and @length are set to point to the output buffer.
- */
 TIFF *
-vips__tiff_openout_buffer( VipsImage *image,
-	gboolean bigtiff, void **out_data, size_t *out_length )
+vips__tiff_openout_target( VipsTarget *target, gboolean bigtiff )
 {
 	const char *mode = bigtiff ? "w8" : "w";
 
-	VipsTiffOpenoutBuffer *buffer;
 	TIFF *tiff;
 
 #ifdef DEBUG
 	printf( "vips__tiff_openout_buffer:\n" );
 #endif /*DEBUG*/
 
-	g_assert( out_data );
-	g_assert( out_length );
-
-	buffer = VIPS_NEW( image, VipsTiffOpenoutBuffer );
-	vips_dbuf_init( &buffer->dbuf );
-	buffer->out_data = out_data;
-	buffer->out_length = out_length;
-
-	if( !(tiff = TIFFClientOpen( "memory output", mode,
-		(thandle_t) buffer,
-		openout_buffer_read,
-		openout_buffer_write,
-		openout_buffer_seek,
-		openout_buffer_close,
-		openout_buffer_length,
-		openout_buffer_map,
-		openout_buffer_unmap )) ) {
-		vips_error( "vips__tiff_openout_buffer", "%s",
-			_( "unable to open memory buffer for output" ) );
+	if( !(tiff = TIFFClientOpen( "target output", mode,
+		(thandle_t) target,
+		openout_target_read,
+		openout_target_write,
+		openout_target_seek,
+		openout_target_close,
+		openout_target_length,
+		openout_target_map,
+		openout_target_unmap )) ) {
+		vips_error( "vips__tiff_openout_target", "%s",
+			_( "unable to open target for output" ) );
 		return( NULL );
 	}
 
@@ -387,4 +292,3 @@ vips__tiff_openout_buffer( VipsImage *image,
 }
 
 #endif /*HAVE_TIFF*/
-

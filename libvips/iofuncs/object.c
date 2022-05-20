@@ -784,6 +784,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 			_( "no vips argument named `%s'" ), name );
 		return( -1 );
 	}
+
 	if( !(*argument_instance = vips__argument_get_instance( 
 		*argument_class, object )) ) {
 		vips_error( class->nickname, 
