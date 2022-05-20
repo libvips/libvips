@@ -148,6 +148,14 @@ vips_target_write_real( VipsTarget *target, const void *data, size_t length )
 	return( write( connection->descriptor, data, length ) );
 }
 
+static int
+vips_target_end_real( VipsTarget *target ) 
+{
+	VIPS_DEBUG_MSG( "vips_target_finish_real:\n" );
+
+	return( 0 );
+}
+
 static void
 vips_target_finish_real( VipsTarget *target ) 
 {
@@ -170,6 +178,7 @@ vips_target_class_init( VipsTargetClass *class )
 	object_class->build = vips_target_build;
 
 	class->write = vips_target_write_real;
+	class->end = vips_target_end_real;
 	class->finish = vips_target_finish_real;
 
 	VIPS_ARG_BOOL( class, "memory", 3, 
@@ -294,7 +303,7 @@ vips_target_write_unbuffered( VipsTarget *target,
 
 	VIPS_DEBUG_MSG( "vips_target_write_unbuffered:\n" );
 
-	if( target->finished )
+	if( target->ended )
 		return( 0 );
 
 	if( target->memory_buffer ) 
@@ -376,7 +385,7 @@ vips_target_write( VipsTarget *target, const void *buffer, size_t length )
 }
 
 /**
- * vips_target_finish:
+ * vips_target_end:
  * @target: target to operate on
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
@@ -385,18 +394,21 @@ vips_target_write( VipsTarget *target, const void *buffer, size_t length )
  * can call it many times. 
  *
  * After a target has been finished, further writes will do nothing.
+ *
+ * Returns: 0 on success, -1 on error.
  */
-void
-vips_target_finish( VipsTarget *target )
+int
+vips_target_end( VipsTarget *target )
 {
 	VipsTargetClass *class = VIPS_TARGET_GET_CLASS( target );
 
-	VIPS_DEBUG_MSG( "vips_target_finish:\n" );
+	VIPS_DEBUG_MSG( "vips_target_end:\n" );
 
-	if( target->finished )
-		return;
+	if( target->ended )
+		return( 0 );
 
-	(void) vips_target_flush( target );
+	if( vips_target_flush( target ) )
+		return( -1 );
 
 	/* Move the target buffer into the blob so it can be read out.
 	 */
@@ -410,10 +422,28 @@ vips_target_finish( VipsTarget *target )
 		vips_blob_set( target->blob,
 			(VipsCallbackFn) vips_area_free_cb, data, length );
 	}
-	else
-		class->finish( target );
+	else {
+		if( class->end( target ) )
+			return( -1 );
+	}
 
-	target->finished = TRUE;
+	target->ended = TRUE;
+
+	return( 0 );
+}
+
+/**
+ * vips_target_finish:
+ * @target: target to operate on
+ * @buffer: bytes to write
+ * @length: length of @buffer in bytes
+ *
+ * Deprecated in favour of vips_target_end().
+ */
+void
+vips_target_finish( VipsTarget *target )
+{
+	(void) vips_target_end( target );
 }
 
 /**
@@ -440,7 +470,7 @@ vips_target_steal( VipsTarget *target, size_t *length )
 	(void) vips_target_flush( target );
 
 	if( !target->memory_buffer ||
-		target->finished ) {
+		target->ended ) {
 		if( length )
 			*length = target->memory_buffer->len;
 
@@ -452,11 +482,12 @@ vips_target_steal( VipsTarget *target, size_t *length )
 	data = g_byte_array_free( target->memory_buffer, FALSE );
 	target->memory_buffer = NULL;
 
-	/* We must have a valid byte array or finish will fail.
+	/* We must have a valid byte array or end will fail.
 	 */
 	target->memory_buffer = g_byte_array_new();
 
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( NULL );
 
 	return( data );
 }
