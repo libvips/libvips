@@ -26,6 +26,7 @@
 - add vips_target_seek(), vips_target_read(), vips_target_new_temp()
 - add vips_tiffsave_target()
 - add vips_target_end(), deprecate vips_target_finish()
+- add "mixed" to webpsave [dloebl]
 
 26/11/21 started 8.12.3
 - better arg checking for vips_hist_find_ndim() [travisbell]
