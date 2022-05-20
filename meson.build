@@ -186,7 +186,7 @@ if not get_option('magick').disabled() and magick_dep.found()
         if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: '#include <magick/api.h>', dependencies: magick_dep)
             cfg_var.set('HAVE_NUMBER_SCENES', '1')
         endif
-        func_names = [ 'InheritException', 'AcquireExceptionInfo', 'SetImageProperty', 'SetImageExtent', 'AcquireImage', 'GetVirtualPixels', 'ResetImageProfileIterator', 'ResetImageAttributeIterator', 'ResetImagePropertyIterator', 'MagickCoreGenesis', 'SetImageOption', 'BlobToStringInfo', 'OptimizePlusImageLayers', 'OptimizeImageTransparency', 'SetImageType' ]
+        func_names = [ 'InheritException', 'AcquireExceptionInfo', 'SetImageProperty', 'SetImageExtent', 'AcquireImage', 'GetVirtualPixels', 'ResetImageProfileIterator', 'ResetImageAttributeIterator', 'ResetImagePropertyIterator', 'MagickCoreGenesis', 'SetImageOption', 'BlobToStringInfo', 'OptimizePlusImageLayers', 'OptimizeImageTransparency', 'QuantizeImages' ]
         foreach func_name : func_names
             if cc.has_function(func_name, prefix: '#include <magick/api.h>', dependencies: magick_dep)
                 cfg_var.set('HAVE_' + func_name.to_upper(), '1')

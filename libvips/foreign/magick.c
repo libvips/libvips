@@ -286,6 +286,18 @@ magick_ismagick( const unsigned char *bytes, size_t length )
 		GetImageMagick( bytes, length, format ) );
 }
 
+int
+magick_quantize_images( Image *images,
+	const size_t depth, ExceptionInfo *exception )
+{
+	QuantizeInfo info;
+
+	GetQuantizeInfo( &info );
+	info.number_colors = (1 << depth);
+	QuantizeImages( &info, images, exception);
+	return( exception->severity == UndefinedException );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
@@ -616,6 +628,18 @@ magick_ismagick( const unsigned char *bytes, size_t length )
 #endif
 }
 
+
+int
+magick_quantize_images( Image *images,
+	const size_t depth, ExceptionInfo *exception )
+{
+	QuantizeInfo info;
+
+	GetQuantizeInfo( &info );
+	info.number_colors = (1 << depth);
+	return QuantizeImages( &info, images );
+}
+
 #endif /*HAVE_MAGICK6*/
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
@@ -846,14 +870,6 @@ magick_set_magick_profile( Image *image,
 	return( 0 );
 }
 
-int
-magick_set_image_type( Image *images,
-	ImageType image_type, ExceptionInfo *exception )
-{
-//	SetImageDepth( images, 1, exception);
-	SetImageType( images, image_type, exception );
 
-	return( exception->severity == UndefinedException );
-}
 
 #endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/
