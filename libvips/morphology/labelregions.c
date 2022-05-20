@@ -129,7 +129,7 @@ vips_labelregions_class_init( VipsLabelregionsClass *class )
 
 	VIPS_ARG_INT( class, "segments", 3, 
 		_( "Segments" ), 
-		_( "Number of discrete contigious regions" ),
+		_( "Number of discrete contiguous regions" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsLabelregions, segments ),
 		0, 1000000000, 0 );

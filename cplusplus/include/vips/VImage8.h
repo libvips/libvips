@@ -5794,11 +5794,12 @@ static VImage webpload_source( VSource source, VOption *options = 0 );
  *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
  *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
  *   - **alpha_q** -- Change alpha plane fidelity for lossy compression, int.
- *   - **min_size** -- Optimise for minium size, bool.
+ *   - **min_size** -- Optimise for minimum size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
  *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
+ *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -5818,11 +5819,12 @@ void webpsave( const char *filename, VOption *options = 0 ) const;
  *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
  *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
  *   - **alpha_q** -- Change alpha plane fidelity for lossy compression, int.
- *   - **min_size** -- Optimise for minium size, bool.
+ *   - **min_size** -- Optimise for minimum size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
  *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
+ *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -5842,11 +5844,12 @@ VipsBlob *webpsave_buffer( VOption *options = 0 ) const;
  *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
  *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
  *   - **alpha_q** -- Change alpha plane fidelity for lossy compression, int.
- *   - **min_size** -- Optimise for minium size, bool.
+ *   - **min_size** -- Optimise for minimum size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
  *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
+ *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.

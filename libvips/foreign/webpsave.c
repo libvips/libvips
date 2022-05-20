@@ -191,7 +191,7 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 
 	VIPS_ARG_BOOL( class, "min_size", 16,
 		_( "Minimise size" ),
-		_( "Optimise for minium size" ),
+		_( "Optimise for minimum size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, min_size ),
 		FALSE );
