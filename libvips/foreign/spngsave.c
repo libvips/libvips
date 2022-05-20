@@ -374,7 +374,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		return( -1 );
 	}
 
-#ifdef HAVE_IMAGEQUANT
+#ifdef HAVE_QUANTIZATION
 	if( spng->palette ) {
 		VipsImage *im_index;
 		VipsImage *im_palette;
@@ -424,7 +424,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 		in = spng->memory = im_index;
 	}
-#endif /*HAVE_IMAGEQUANT*/
+#endif /*HAVE_QUANTIZATION*/
 
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
@@ -494,13 +494,13 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		vips_foreign_save_spng_metadata( spng, in ) )
 		return( -1 );
 
-#ifdef HAVE_IMAGEQUANT
+#ifdef HAVE_QUANTIZATION
 	if( spng->palette ) {
 		spng_set_plte( spng->ctx, &plte );
 		if( trns.n_type3_entries ) 
 			spng_set_trns( spng->ctx, &trns );
 	}
-#endif /*HAVE_IMAGEQUANT*/
+#endif /*HAVE_QUANTIZATION*/
 
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */

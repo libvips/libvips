@@ -69,6 +69,41 @@ vips__premultiplied_bgra2rgba( guint32 * restrict p, int n )
 	}
 }
 
+/* Unpremultiplied RGBA (vips convention) to cairo-style premul BGRA.
+ */
+void
+vips__rgba2bgra_premultiplied( guint32 * restrict p, int n )
+{
+	int x;
+
+	for( x = 0; x < n; x++ ) {
+		guint32 rgba = GUINT32_FROM_BE( p[x] );
+		guint8 a = rgba & 0xff;
+
+                guint32 bgra;
+
+                if( a == 0 )
+			bgra = 0;
+		else if( a == 255 )
+			bgra = (rgba & 0x00ff00ff) |
+				(rgba & 0x0000ff00) << 16 |
+				(rgba & 0xff000000) >> 16;
+                else {
+			int r = (rgba >> 24) & 0xff;
+			int g = (rgba >> 16) & 0xff;
+			int b = (rgba >> 8) & 0xff;
+
+			r = ((r * a) + 128) >> 8;
+			g = ((g * a) + 128) >> 8;
+			b = ((b * a) + 128) >> 8;
+
+                        bgra = (b << 24) | (g << 16) | (r << 8) | a;
+		}
+
+                p[x] = GUINT32_TO_BE( bgra );
+	}
+}
+
 /* Convert from PDFium-style BGRA to RGBA.
  */
 void

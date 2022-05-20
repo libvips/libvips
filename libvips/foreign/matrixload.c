@@ -422,7 +422,7 @@ static int
 vips_foreign_load_matrix_source_is_a_source( VipsSource *source )
 {
 	unsigned char *data;
-	size_t bytes_read;
+	gint64 bytes_read;
 	char line[80];
 	int width;
 	int height;

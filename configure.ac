@@ -1049,6 +1049,15 @@ if test x"$with_rsvg" != x"no"; then
       [:
       ]
     )
+
+    # 2.52 for rsvg_handle_get_intrinsic_size_in_pixels
+    PKG_CHECK_MODULES(HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS, librsvg-2.0 >= 2.52,
+      [AC_DEFINE(HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS,1,[define if your librsvg has rsvg_handle_get_intrinsic_size_in_pixels().])
+      ],
+      [:
+      ]
+    )
+
   ], [
     AC_MSG_WARN([librsvg-2.0 >= 2.40.3 or cairo >= 1.2 not found; disabling SVG load via rsvg])
     with_rsvg=no

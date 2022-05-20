@@ -91,4 +91,9 @@ libdeprecated_la_SOURCES = \
 	radiance.c \
 	raw.c
 
-AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+# don't warn about deprecation for funcs in this directory
+AM_CPPFLAGS = \
+	-I${top_srcdir}/libvips/include \
+	@VIPS_CFLAGS@ \
+	@VIPS_INCLUDES@ \
+	-DVIPS_DISABLE_DEPRECATION_WARNINGS
