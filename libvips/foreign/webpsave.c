@@ -550,7 +550,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow mixed encoding
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -584,6 +584,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * keyframes. Setting 0 means only keyframes. @kmin sets the minimum number of
  * frames between frames. Setting 0 means no keyframes. By default, keyframes
  * are disabled.
+ *
+ * For animated webp output, @mixed tries to improve the file size by mixing
+ * both lossy and lossless encoding.
  *
  * Use @profile to give the name of a profile to be embedded in the file.
  * This does not affect the pixels which are written, just the way 
@@ -629,7 +632,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow mixed encoding
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -688,6 +691,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -728,6 +732,7 @@ vips_webpsave_mime( VipsImage *in, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
