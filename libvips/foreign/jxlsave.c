@@ -182,10 +182,6 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 		printf( "JXL_TYPE_UINT16" );
 		break;
 
-	case JXL_TYPE_UINT32: 
-		printf( "JXL_TYPE_UINT32" );
-		break;
-
 	case JXL_TYPE_FLOAT: 
 		printf( "JXL_TYPE_FLOAT" );
 		break;
@@ -279,12 +275,6 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->info.bits_per_sample = 16;
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT16;
-		break;
-
-	case VIPS_FORMAT_UINT:
-		jxl->info.bits_per_sample = 32;
-		jxl->info.exponent_bits_per_sample = 0;
-		jxl->format.data_type = JXL_TYPE_UINT32;
 		break;
 
 	case VIPS_FORMAT_FLOAT:
@@ -445,9 +435,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 
 /* Type promotion for save ... unsigned ints + float + double.
  */
-static int bandfmt_jpeg[10] = {
+static int bandfmt_jxl[10] = {
      /* UC   C  US   S  UI   I  F  X  D DX */
-	UC, UC, US, US, UI, UI, F, F, F, F
+	UC, UC, US, US,  F,  F, F, F, F, F
 };
 
 static void
@@ -475,7 +465,7 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 	foreign_class->suffs = vips__jxl_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = bandfmt_jpeg;
+	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT( class, "tier", 10, 
 		_( "Tier" ), 
