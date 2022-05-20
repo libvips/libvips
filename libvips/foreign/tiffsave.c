@@ -127,8 +127,6 @@ vips_foreign_save_tiff_dispose( GObject *gobject )
 {
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) gobject;
 
-	if( tiff->target ) 
-		vips_target_finish( tiff->target );
 	VIPS_UNREF( tiff->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_tiff_parent_class )->
@@ -231,6 +229,9 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->subifd,
 		tiff->premultiply,
 		save->page_height ) )
+		return( -1 );
+
+	if( vips_target_end( tiff->target ) )
 		return( -1 );
 
 	return( 0 );

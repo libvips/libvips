@@ -508,7 +508,8 @@ vips_source_new_from_target( VipsTarget *target )
 
 	/* Flush output buffer, move memory into the blob, etc.
 	 */
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( NULL );
 
 	if( connection->descriptor > 0 ) {
 		source = vips_source_new_from_descriptor( 

@@ -69,8 +69,6 @@ vips_foreign_save_matrix_dispose( GObject *gobject )
 {
 	VipsForeignSaveMatrix *matrix = (VipsForeignSaveMatrix *) gobject;
 
-	if( matrix->target ) 
-		vips_target_finish( matrix->target );
 	VIPS_UNREF( matrix->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_matrix_parent_class )->
@@ -136,7 +134,8 @@ vips_foreign_save_matrix_build( VipsObject *object )
 		vips_foreign_save_matrix_block, matrix ) )
 		return( -1 );
 
-	vips_target_finish( matrix->target );
+	if( vips_target_end( matrix->target ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -69,8 +69,6 @@ vips_foreign_save_csv_dispose( GObject *gobject )
 {
 	VipsForeignSaveCsv *csv = (VipsForeignSaveCsv *) gobject;
 
-	if( csv->target ) 
-		vips_target_finish( csv->target );
 	VIPS_UNREF( csv->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_csv_parent_class )->
@@ -179,7 +177,8 @@ vips_foreign_save_csv_build( VipsObject *object )
 	if( vips_sink_disc( save->ready, vips_foreign_save_csv_block, csv ) )
 		return( -1 );
 
-	vips_target_finish( csv->target );
+	if( vips_target_end( csv->target ) )
+		return( -1 );
 
 	return( 0 );
 }

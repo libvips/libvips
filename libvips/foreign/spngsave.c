@@ -105,8 +105,6 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 
 	GSList *p;
 
-	if( spng->target ) 
-		vips_target_finish( spng->target );
 	VIPS_UNREF( spng->target );
 	VIPS_UNREF( spng->memory );
 	VIPS_FREEF( spng_ctx_free, spng->ctx );
@@ -555,7 +553,8 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			return( -1 );
 	}
 
-	vips_target_finish( spng->target );
+	if( vips_target_end( spng->target ) )
+		return( -1 );
 
 	return( 0 );
 }

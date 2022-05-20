@@ -233,7 +233,8 @@ openout_target_close( thandle_t st )
 {
 	VipsTarget *target = (VipsTarget *) st;
 
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	return( 0 );
 }

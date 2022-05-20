@@ -408,9 +408,9 @@ struct _VipsTarget {
 	 */
 	gboolean memory;
 
-	/* The target has been finished and can no longer be written.
+	/* The target has been ended and can no longer be written.
 	 */
-	gboolean finished;
+	gboolean ended;
 
 	/* Write memory output and track write point here. We use a GString
 	 * rather than a GByteArray since we need eg. g_string_overwrite_len().
@@ -466,6 +466,10 @@ typedef struct _VipsTargetClass {
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
+	int (*end)( VipsTarget * );
+
+	/* Deprecated in favour of ::end.
+	 */
 	void (*finish)( VipsTarget * );
 
 } VipsTargetClass;
@@ -488,6 +492,8 @@ gint64 vips_target_read( VipsTarget *target, void *buffer, size_t length );
 VIPS_API
 off_t vips_target_seek( VipsTarget *target, off_t offset, int whence );
 VIPS_API
+int vips_target_end( VipsTarget *target );
+VIPS_DEPRECATED_FOR(vips_target_end)
 void vips_target_finish( VipsTarget *target );
 VIPS_API
 unsigned char *vips_target_steal( VipsTarget *target, size_t *length );
@@ -543,6 +549,7 @@ typedef struct _VipsTargetCustomClass {
 	gint64 (*write)( VipsTargetCustom *, const void *, gint64 );
 	gint64 (*read)( VipsTargetCustom *, void *, gint64 );
 	gint64 (*seek)( VipsTargetCustom *, gint64, int );
+	int (*end)( VipsTargetCustom * );
 	void (*finish)( VipsTargetCustom * );
 
 } VipsTargetCustomClass;

@@ -66,6 +66,7 @@ enum {
 	SIG_WRITE,		
 	SIG_READ,		
 	SIG_SEEK,		
+	SIG_END,		
 	SIG_FINISH,		
 	SIG_LAST
 };
@@ -154,10 +155,27 @@ vips_target_custom_seek_real( VipsTarget *target, gint64 offset, int whence )
 	return( new_position );
 }
 
+static int
+vips_target_custom_end_real( VipsTarget *target )
+{
+	int result;
+
+	VIPS_DEBUG_MSG( "vips_target_custom_end_real:\n" );
+
+	/* Return value if no attached handler.
+	 */
+	result = 0;
+
+	g_signal_emit( target, vips_target_custom_signals[SIG_END], 0,
+		&result ); 
+
+	return( result );
+}
+
 static void
 vips_target_custom_finish_real( VipsTarget *target )
 {
-	VIPS_DEBUG_MSG( "vips_target_custom_seek_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_finish_real:\n" );
 
 	g_signal_emit( target, vips_target_custom_signals[SIG_FINISH], 0 );
 }
@@ -189,6 +207,14 @@ vips_target_custom_seek_signal_real( VipsTargetCustom *target_custom,
 	return( -1 );
 }
 
+static int
+vips_target_custom_end_signal_real( VipsTargetCustom *target_custom ) 
+{
+	VIPS_DEBUG_MSG( "vips_target_custom_end_signal_real:\n" );
+
+	return( 0 );
+}
+
 static void
 vips_target_custom_finish_signal_real( VipsTargetCustom *target_custom ) 
 {
@@ -207,11 +233,13 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 	target_class->write = vips_target_custom_write_real;
 	target_class->read = vips_target_custom_read_real;
 	target_class->seek = vips_target_custom_seek_real;
+	target_class->end = vips_target_custom_end_real;
 	target_class->finish = vips_target_custom_finish_real;
 
 	class->write = vips_target_custom_write_signal_real;
 	class->read = vips_target_custom_read_signal_real;
 	class->seek = vips_target_custom_seek_signal_real;
+	class->end = vips_target_custom_end_signal_real;
 	class->finish = vips_target_custom_finish_signal_real;
 
 	/**
@@ -277,11 +305,27 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 		G_TYPE_INT64, G_TYPE_INT );
 
 	/**
-	 * VipsTargetCustom::finish:
+	 * VipsTargetCustom::end:
 	 * @target_custom: the target being operated on
 	 *
 	 * This signal is emitted at the end of write. The target should do
 	 * any finishing necessary.
+	 *
+	 * Returns: 0 on success, -1 on error.
+	 */
+	vips_target_custom_signals[SIG_END] = g_signal_new( "end",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsTargetCustomClass, end ), 
+		NULL, NULL,
+		vips_INT__VOID,
+		G_TYPE_NONE, 0 );
+
+	/**
+	 * VipsTargetCustom::finish:
+	 * @target_custom: the target being operated on
+	 *
+	 * Deprecated for VipsTargetCustom::end.
 	 */
 	vips_target_custom_signals[SIG_FINISH] = g_signal_new( "finish",
 		G_TYPE_FROM_CLASS( class ),
