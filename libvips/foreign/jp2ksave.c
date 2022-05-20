@@ -902,7 +902,8 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	opj_end_compress( jp2k->codec, jp2k->stream );
 
-	vips_target_finish( jp2k->target );
+	if( vips_target_end( jp2k->target ) )
+		return( -1 );
 
 	return( 0 );
 }

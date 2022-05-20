@@ -995,10 +995,6 @@ class TestForeign:
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
-        with pytest.raises(pyvips.error.Error):
-            svg = b'<svg viewBox="0 0 0 0"></svg>'
-            im = pyvips.Image.new_from_buffer(svg, "")
-
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
 

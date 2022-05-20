@@ -21,6 +21,7 @@
 - add "gap" option to vips_reduce[hv]() and vips_resize() [kleisauke]
 - add "ceil" option to vips_shrink() [kleisauke]
 - quality improvements for image resizing [kleisauke]
+- add vips_target_end(), deprecate vips_target_finish()
 - add "mixed" to webpsave [dloebl]
 
 26/11/21 started 8.12.3

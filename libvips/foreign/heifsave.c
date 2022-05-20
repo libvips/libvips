@@ -558,7 +558,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 		return( -1 );
 	}
 
-	vips_target_finish( heif->target );
+	if( vips_target_end( heif->target ) )
+		return( -1 );
 
 	return( 0 );
 }

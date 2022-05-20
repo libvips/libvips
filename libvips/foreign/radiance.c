@@ -1185,7 +1185,8 @@ vips__rad_save( VipsImage *in, VipsTarget *target )
 		return( -1 );
 	}
 
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	write_destroy( write );
 
