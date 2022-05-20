@@ -1,7 +1,7 @@
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
-- add "extend", "background" and "premultiplied" to mapim to fix edge
+- add "extend", "background" and "premultiplied" to vips_mapim() to fix edge
   antialiasing [GavinJoyce]
 - add support for HDR HEIC and AVIF images
 - add vips_spngsave()
@@ -16,8 +16,9 @@
 - add "maxerror" to gifsave [dloebl]
 - update libnsgif API [tlsa]
 - deprecate "properties" option to dzsave (now always on)
+- add vips_dzsave_buffer()
 - always set the min stack size for pthreads, if we can
-- add "fail_on" to thumbnail
+- add "fail-on" to thumbnail
 - add "gap" option to vips_reduce[hv]() and vips_resize() [kleisauke]
 - add "ceil" option to vips_shrink() [kleisauke]
 - quality improvements for image resizing [kleisauke]

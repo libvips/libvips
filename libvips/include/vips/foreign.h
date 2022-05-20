@@ -935,6 +935,9 @@ int vips_dzsave( VipsImage *in, const char *name, ... )
 VIPS_API
 int vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
+VIPS_API
+int vips_dzsave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignHeifCompression:
