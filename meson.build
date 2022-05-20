@@ -362,7 +362,7 @@ if librsvg_dep.found() and cairo_dep.found()
     if librsvg_dep.version().version_compare('>=2.46')
         cfg_var.set('HAVE_RSVG_HANDLE_RENDER_DOCUMENT', '1')
     endif
-    # 2.56 for rsvg_handle_get_intrinsic_size_in_pixels
+    # 2.52 for rsvg_handle_get_intrinsic_size_in_pixels
     if librsvg_dep.version().version_compare('>=2.52')
         cfg_var.set('HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS', '1')
     endif
