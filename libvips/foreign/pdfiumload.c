@@ -104,6 +104,7 @@ EOF
 
 #include <fpdfview.h>
 #include <fpdf_doc.h>
+#include <fpdf_edit.h>
 
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
@@ -151,9 +152,9 @@ typedef struct _VipsForeignLoadPdf {
 	VipsRect image;
 	VipsRect *pages;
 
-	/* The [double] background converted to the image format.
+	/* The [double] background converted to the PDFium format.
 	 */
-	VipsPel *ink;
+	FPDF_DWORD ink;
 
 } VipsForeignLoadPdf;
 
@@ -437,6 +438,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	int top;
 	int i;
+	VipsPel *ink;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
@@ -518,15 +520,13 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	/* Convert the background to the image format.
 	 */
-	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
+	if( !(ink = vips__vector_to_ink( class->nickname, 
 		load->out, 
 		VIPS_AREA( pdf->background )->data, NULL, 
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
 
-	/* Swap B and R.
-	 */
-	vips__bgra2rgba( (guint32 *) pdf->ink, 1 ); 
+	pdf->ink = (ink[3] << 24) + (ink[0] << 16) + (ink[1] << 8) + ink[2];
 
 	return( 0 );
 }
@@ -554,10 +554,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		r->left, r->top, r->width, r->height ); 
 	 */
 
-	/* PDFium won't always paint the background. 
-	 */
-	vips_region_paint_pel( or, r, pdf->ink ); 
-
 	/* Search through the pages we are drawing for the first containing
 	 * this rect. This could be quicker, perhaps a binary search, but who 
 	 * cares.
@@ -583,6 +579,11 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
 			VIPS_REGION_LSKIP( or ) );  
+
+		/* PDFium won't always paint the background. 
+		 */
+		if ( !FPDFPage_HasTransparency(pdf->page) )
+			FPDFBitmap_FillRect(bitmap, 0, 0, rect.width, rect.height, pdf->ink); 
 
 		FPDF_RenderPageBitmap( bitmap, pdf->page, 
 			0, 0, rect.width, rect.height,
