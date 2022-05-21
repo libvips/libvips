@@ -212,7 +212,9 @@ gsf_output_target_close( GsfOutput *output )
         GsfOutputTarget *output_target = (GsfOutputTarget *) output;
 
         if( output_target->target ) {
-		vips_target_finish( output_target->target );
+		/* No easy way to report errors here, sadly.
+		 */
+		(void) vips_target_end( output_target->target );
                 VIPS_UNREF( output_target->target );
 
                 return( TRUE );
@@ -227,7 +229,7 @@ gsf_output_target_finalize( GObject *obj )
         GObjectClass *parent_class;
         GsfOutputTarget *output_target = (GsfOutputTarget *) obj;
 
-        gsf_output_target_close( GSF_OUTPUT( output_target ) );
+        (void) gsf_output_target_close( GSF_OUTPUT( output_target ) );
 
         parent_class = g_type_class_peek( GSF_OUTPUT_TYPE );
         parent_class->finalize( obj );
