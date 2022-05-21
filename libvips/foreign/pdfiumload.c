@@ -14,6 +14,8 @@
  * 	- add _source input
  * 28/1/22
  * 	- add password
+ * 21/5/22
+ * 	- improve transparency handling [DarthSim]
  */
 
 /*
@@ -152,9 +154,9 @@ typedef struct _VipsForeignLoadPdf {
 	VipsRect image;
 	VipsRect *pages;
 
-	/* The [double] background converted to the PDFium format.
+	/* The [double] background converted to image format.
 	 */
-	FPDF_DWORD ink;
+	VipsPel *ink;
 
 } VipsForeignLoadPdf;
 
@@ -438,7 +440,6 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	int top;
 	int i;
-	VipsPel *ink;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
@@ -520,13 +521,12 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	/* Convert the background to the image format.
 	 */
-	if( !(ink = vips__vector_to_ink( class->nickname, 
+	if( !(pdf->ink = vips__vector_to_ink( class->nickname,
 		load->out, 
 		VIPS_AREA( pdf->background )->data, NULL, 
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
-
-	pdf->ink = (ink[3] << 24) + (ink[0] << 16) + (ink[1] << 8) + ink[2];
+	vips__bgra2rgba( (guint32 *) pdf->ink, 1 );
 
 	return( 0 );
 }
@@ -580,10 +580,14 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
 			VIPS_REGION_LSKIP( or ) );  
 
-		/* PDFium won't always paint the background. 
+		/* Only paint the background if there's no transparency.
 		 */
-		if ( !FPDFPage_HasTransparency(pdf->page) )
-			FPDFBitmap_FillRect(bitmap, 0, 0, rect.width, rect.height, pdf->ink); 
+		if ( !FPDFPage_HasTransparency( pdf->page ) ) {
+			FPDF_DWORD ink = *((guint32 *) pdf->ink);
+
+			FPDFBitmap_FillRect( bitmap,
+				0, 0, rect.width, rect.height, ink );
+		}
 
 		FPDF_RenderPageBitmap( bitmap, pdf->page, 
 			0, 0, rect.width, rect.height,
