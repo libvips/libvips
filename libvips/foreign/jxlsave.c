@@ -83,6 +83,10 @@ typedef struct _VipsForeignSaveJxl {
 	gboolean lossless;
 	int Q;
 
+	/* A copy of the image we write.
+	 */
+	VipsImage *out;
+
 	/* Base image properties.
 	 */
 	JxlBasicInfo info;
@@ -113,6 +117,7 @@ vips_foreign_save_jxl_dispose( GObject *gobject )
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlEncoderDestroy, jxl->encoder );
 	VIPS_UNREF( jxl->target );
+	VIPS_UNREF( jxl->out );
 
 	G_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		dispose( gobject );
@@ -221,6 +226,35 @@ vips_foreign_save_jxl_print_status( JxlEncoderStatus status )
 #endif /*DEBUG*/
 
 static int
+vips_foreign_save_jxl_add_box( VipsForeignSaveJxl *jxl,
+	VipsImage *out,
+	const char *vips_metadata_name, 
+	const JxlBoxType box_type )
+{
+	const void *data;
+	size_t length;
+
+	if( vips_image_get_typeof( out, vips_metadata_name ) ) {
+		if( vips_image_get_blob( out, vips_metadata_name, 
+			(void *) &data, &length ) )
+			return( -1 );
+
+#ifdef DEBUG
+		printf( "attaching %zd bytes of %s\n", length, box_type );
+#endif /*DEBUG*/
+
+		/* Set TRUE to brotli-compress the box.
+		 */
+		if( JxlEncoderAddBox( jxl->encoder, 
+			box_type, data, length, TRUE ) ) {
+			vips_foreign_save_jxl_error( jxl, "JxlEncoderAddBox" );
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
 vips_foreign_save_jxl_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
@@ -228,6 +262,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 
 	JxlEncoderOptions *options;
 	JxlEncoderStatus status;
+	VipsImage *out;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		build( object ) )
@@ -262,7 +297,14 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	JxlEncoderInitBasicInfo( &jxl->info );
 #endif
 
-	switch( save->ready->BandFmt ) {
+	/* Make a copy of the input image since we may modify it with
+	 * vips__exif_update() etc.
+	 */
+	if( vips_copy( save->ready, &jxl->out, NULL ) )
+		return( -1 );
+	out = jxl->out;
+
+	switch( out->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		jxl->info.bits_per_sample = 8;
 		jxl->info.exponent_bits_per_sample = 0;
@@ -286,7 +328,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		break;
 	}
 
-	switch( save->ready->Type ) {
+	switch( out->Type ) {
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
 		jxl->info.num_color_channels = 1;
@@ -299,18 +341,18 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		break;
 
 	default:
-		jxl->info.num_color_channels = save->ready->Bands;
+		jxl->info.num_color_channels = out->Bands;
 	}
 	jxl->info.num_extra_channels = VIPS_MAX( 0, 
-		save->ready->Bands - jxl->info.num_color_channels );
+		out->Bands - jxl->info.num_color_channels );
 
-	jxl->info.xsize = save->ready->Xsize;
-	jxl->info.ysize = save->ready->Ysize;
-	jxl->format.num_channels = save->ready->Bands;
+	jxl->info.xsize = out->Xsize;
+	jxl->info.ysize = out->Ysize;
+	jxl->format.num_channels = out->Bands;
 	jxl->format.endianness = JXL_NATIVE_ENDIAN;
 	jxl->format.align = 0;
 
-	if( vips_image_hasalpha( save->ready ) ) {
+	if( vips_image_hasalpha( out ) ) {
 		jxl->info.alpha_bits = jxl->info.bits_per_sample;
 		jxl->info.alpha_exponent_bits = 
 			jxl->info.exponent_bits_per_sample;
@@ -320,10 +362,10 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->info.alpha_bits = 0;
 	}
 
-	if( vips_image_get_typeof( save->ready, "stonits" ) ) {
+	if( vips_image_get_typeof( out, "stonits" ) ) {
 		double stonits;
 
-		if( vips_image_get_double( save->ready, "stonits", &stonits ) )
+		if( vips_image_get_double( out, "stonits", &stonits ) )
 			return( -1 );
 		jxl->info.intensity_target = stonits;
 	}
@@ -339,12 +381,14 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	}
 
 	/* Set ICC profile, sRGB, or scRGB.
+	 *
+	 * FIXME ... add a @profile option? see eg. jpeg save
 	 */
-	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+	if( vips_image_get_typeof( out, VIPS_META_ICC_NAME ) ) {
 		const void *data;
 		size_t length;
 
-		if( vips_image_get_blob( save->ready, 
+		if( vips_image_get_blob( out, 
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
@@ -354,12 +398,12 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		if( JxlEncoderSetICCProfile( jxl->encoder,
 			(guint8 *) data, length ) ) {
 			vips_foreign_save_jxl_error( jxl, 
-				"JxlEncoderSetColorEncoding" );
+				"JxlEncoderSetICCProfile" );
 			return( -1 );
 		}
 	}
 	else {
-		if( save->ready->Type == VIPS_INTERPRETATION_scRGB ) {
+		if( out->Type == VIPS_INTERPRETATION_scRGB ) {
 #ifdef DEBUG
 			printf( "setting sRGB colourspace\n" );
 #endif /*DEBUG*/
@@ -384,10 +428,28 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		}
 	}
 
+	/* Add EXIF, XMP, etc.
+	 */
+	if( !save->strip ) {
+		JxlEncoderUseBoxes( jxl->encoder );
+
+		/* We need to rebuild the exif data block from any exif tags
+		 * on the image.
+		 */
+		if( vips__exif_update( out ) ||  
+			vips_foreign_save_jxl_add_box( jxl, out,
+				VIPS_META_EXIF_NAME, "Exif" ) ||
+			vips_foreign_save_jxl_add_box( jxl, out,
+				VIPS_META_XMP_NAME, "xml " ) )
+			return( -1 );
+
+		JxlEncoderCloseBoxes( jxl->encoder );
+	}
+
 	/* Render the entire image in memory. libjxl seems to be missing
 	 * tile-based write at the moment.
 	 */
-	if( vips_image_wio_input( save->ready ) )
+	if( vips_image_wio_input( out ) )
 		return( -1 );
 
 	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
@@ -407,25 +469,25 @@ vips_foreign_save_jxl_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( JxlEncoderAddImageFrame( options, &jxl->format, 
-		VIPS_IMAGE_ADDR( save->ready, 0, 0 ),
-		VIPS_IMAGE_SIZEOF_IMAGE( save->ready ) ) ) { 
+		VIPS_IMAGE_ADDR( out, 0, 0 ),
+		VIPS_IMAGE_SIZEOF_IMAGE( out ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
 		return( -1 );
 	}
 
 	do {
-		uint8_t *out;
+		uint8_t *output_buffer;
 		size_t avail_out;
 
-		out = jxl->output_buffer;
+		output_buffer = jxl->output_buffer;
 		avail_out = OUTPUT_BUFFER_SIZE;
 		status = JxlEncoderProcessOutput( jxl->encoder,
-			&out, &avail_out );
+			&output_buffer, &avail_out );
 		switch( status ) {
 		case JXL_ENC_SUCCESS:
 		case JXL_ENC_NEED_MORE_OUTPUT:
 			if( vips_target_write( jxl->target,
-				jxl->output_buffer, 
+				output_buffer, 
 				OUTPUT_BUFFER_SIZE - avail_out ) )
 				return( -1 );
 			break;
