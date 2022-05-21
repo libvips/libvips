@@ -319,7 +319,7 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 		G_STRUCT_OFFSET( VipsTargetCustomClass, end ), 
 		NULL, NULL,
 		vips_INT__VOID,
-		G_TYPE_NONE, 0 );
+		G_TYPE_INT, 0 );
 
 	/**
 	 * VipsTargetCustom::finish:
