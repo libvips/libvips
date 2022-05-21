@@ -5375,7 +5375,7 @@ msgid "Segments"
 msgstr ""
 
 #: ../libvips/morphology/labelregions.c:132
-msgid "Number of discrete contigious regions"
+msgid "Number of discrete contiguous regions"
 msgstr ""
 
 #: ../libvips/morphology/morphology.c:111
