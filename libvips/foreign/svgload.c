@@ -319,6 +319,65 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
+#if LIBRSVG_CHECK_VERSION( 2, 52, 0 )
+/* Derived from `CssLength::to_user` in librsvg.
+ * https://gitlab.gnome.org/GNOME/librsvg/-/blob/e6607c9ae8d8409d4efff6b12993717400b3356e/src/length.rs#L368
+ */
+static double
+svg_css_length_to_pixels( RsvgLength length, double dpi )
+{
+	double value = length.length;
+
+	/* The following implies that our default font size is 12, which
+	 * matches the default in librsvg.
+	 */
+	double font_size = 12.0;
+
+	switch( length.unit ) {
+		case RSVG_UNIT_PX:
+			/* Already a pixel value.
+			 */
+			break;
+		case RSVG_UNIT_EM:
+			value *= font_size;
+			break;
+		case RSVG_UNIT_EX:
+			value *= font_size / 2.0;
+			break;
+		case RSVG_UNIT_IN:
+			value *= dpi;
+			break;
+		case RSVG_UNIT_CM:
+			/* 2.54 cm in an inch.
+			 */
+			value = dpi * value / 2.54;
+			break;
+		case RSVG_UNIT_MM:
+			/* 25.4 mm in an inch.
+			 */
+			value = dpi * value / 25.4;
+			break;
+		case RSVG_UNIT_PT:
+			/* 72 points in an inch.
+			 */
+			value = dpi * value / 72;
+			break;
+		case RSVG_UNIT_PC:
+			/* 6 picas in an inch.
+			 */
+			value = dpi * value / 6;
+			break;
+		default:
+			/* Probably RSVG_UNIT_PERCENT. We can't know what the pixel
+			 * value is without more information.
+			 */
+			value = 0;
+	}
+
+	return value;
+}
+#endif
+
 static int
 vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg, 
 	double *out_width, double *out_height )
@@ -328,17 +387,80 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 	double width;
 	double height;
 
-#ifdef HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS
+#if LIBRSVG_CHECK_VERSION( 2, 52, 0 )
 	if( !rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
 		&width, &height ) ) {
-		/* The SVG has no dimensions. Pick a default size and the SVG 
-		 * will be rendered to fit this by 
-		 * rsvg_handle_render_document() below.
+		RsvgRectangle zero_rect, viewbox;
+
+		/* Try the intrinsic dimensions first.
 		 */
-		width = 1928.0;
-		height = 1080.0;
+		gboolean has_width, has_height;
+		RsvgLength iwidth, iheight;
+		gboolean has_viewbox;
+
+		rsvg_handle_get_intrinsic_dimensions( svg->page,
+			&has_width, &iwidth,
+			&has_height, &iheight,
+			&has_viewbox, &viewbox );
+
+		/* After librsvg 2.54.0, the `has_width` and `has_height` arguments
+		 * always returns `TRUE`, since with SVG2 all documents *have* a
+		 * default width and height of `100%`.
+		 */
+#if LIBRSVG_CHECK_VERSION( 2, 54, 0 )
+		width = svg_css_length_to_pixels( iwidth, svg->dpi );
+		height = svg_css_length_to_pixels( iheight, svg->dpi );
+
+		has_width = width > 0.0;
+		has_height = height > 0.0;
+
+		if( has_width && has_height ) {
+			/* Success! Taking the viewbox into account is not needed.
+			 */
+		}
+		else if( has_width && has_viewbox ) {
+			height = width * viewbox.height / viewbox.width;
+		}
+		else if( has_height && has_viewbox ) {
+			width = height * viewbox.width / viewbox.height;
+		}
+		else if( has_viewbox ) {
+			width = viewbox.width;
+			height = viewbox.height;
+		}
+#else /*!LIBRSVG_CHECK_VERSION( 2, 54, 0 )*/
+		if( has_width && has_height ) {
+			/* We can use these values directly.
+			 */
+			width = svg_css_length_to_pixels( iwidth, svg->dpi );
+			height = svg_css_length_to_pixels( iheight, svg->dpi );
+		}
+		else if( has_width && has_viewbox ) {
+			width = svg_css_length_to_pixels( iwidth, svg->dpi );
+			height = width * viewbox.height / viewbox.width;
+		}
+		else if( has_height && has_viewbox ) {
+			height = svg_css_length_to_pixels( iheight, svg->dpi );
+			width = height * viewbox.width / viewbox.height;
+		}
+		else if( has_viewbox ) {
+			width = viewbox.width;
+			height = viewbox.height;
+		}
+#endif /*!LIBRSVG_CHECK_VERSION( 2, 54, 0 )*/
+
+		if( width <= 0.0 ||
+			height <= 0.0 ) {
+			/* We haven't found a usable set of sizes, so try working out
+			 * the visible area.
+			 */
+			rsvg_handle_get_geometry_for_layer( svg->page, NULL,
+				&zero_rect, &viewbox, NULL, NULL );
+			width = viewbox.x + viewbox.width;
+			height = viewbox.y + viewbox.height;
+		}
 	}
-#else /*!HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+#else /*!LIBRSVG_CHECK_VERSION( 2, 52, 0 )*/
 {
 	RsvgDimensionData dimensions;
 
@@ -346,10 +468,12 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 	width = dimensions.width;
 	height = dimensions.height;
 }
-#endif /*HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS*/
+#endif /*LIBRSVG_CHECK_VERSION( 2, 52, 0 )*/
 
-	if( width <= 1.0 || 
-		height <= 1.0 ) {
+	/* width or height below 0.5 can't be rounded to 1.
+	 */
+	if( width < 0.5 || 
+		height < 0.5 ) {
 		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
 		return( -1 );
 	}
@@ -479,7 +603,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	/* rsvg is single-threaded, but we don't need to lock since we're
 	 * running inside a non-threaded tilecache.
 	 */
-#ifdef HAVE_RSVG_HANDLE_RENDER_DOCUMENT
+#if LIBRSVG_CHECK_VERSION( 2, 46, 0 )
 {
 	RsvgRectangle viewport;
 	GError *error = NULL;
@@ -501,7 +625,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 	cairo_destroy( cr );
 }
-#else /*!HAVE_RSVG_HANDLE_RENDER_DOCUMENT*/
+#else /*!LIBRSVG_CHECK_VERSION( 2, 46, 0 )*/
 	cairo_scale( cr, svg->cairo_scale, svg->cairo_scale );
 	cairo_translate( cr, -r->left / svg->cairo_scale,
 		-r->top / svg->cairo_scale );
@@ -515,7 +639,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	}
 
 	cairo_destroy( cr );
-#endif /*HAVE_RSVG_HANDLE_RENDER_DOCUMENT*/
+#endif /*LIBRSVG_CHECK_VERSION( 2, 46, 0 )*/
 
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
