@@ -726,9 +726,16 @@ vips_image_guess_interpretation( const VipsImage *image )
 	case VIPS_INTERPRETATION_LCH: 
 	case VIPS_INTERPRETATION_sRGB: 
 	case VIPS_INTERPRETATION_HSV: 
+		if( image->Bands < 3 )
+			sane = FALSE;
+		break;
+
 	case VIPS_INTERPRETATION_scRGB: 
 	case VIPS_INTERPRETATION_YXY: 
-		if( image->Bands < 3 )
+		/* Need float values in 0 - 1.
+		 */
+		if( !vips_band_format_isfloat( image->BandFmt ) ||
+			image->Bands < 3 )
 			sane = FALSE;
 		break;
 
@@ -743,20 +750,22 @@ vips_image_guess_interpretation( const VipsImage *image )
 		break;
 
 	case  VIPS_INTERPRETATION_LABS:
-		if( image->BandFmt != VIPS_FORMAT_SHORT )
+		/* Needs to be able to express +/- 32767
+		 */
+		if( vips_band_format_isuint( image->BandFmt ) ||
+			vips_band_format_is8bit( image->BandFmt ) ||
+			image->Bands < 3 )
 			sane = FALSE;
 		break;
 
 	case  VIPS_INTERPRETATION_RGB16:
-		if( image->BandFmt == VIPS_FORMAT_CHAR ||
-			image->BandFmt == VIPS_FORMAT_UCHAR ||
+		if( vips_band_format_is8bit( image->BandFmt ) ||
 			image->Bands < 3 )
 			sane = FALSE;
 		break;
 
 	case  VIPS_INTERPRETATION_GREY16:
-		if( image->BandFmt == VIPS_FORMAT_CHAR ||
-			image->BandFmt == VIPS_FORMAT_UCHAR )
+		if( vips_band_format_is8bit( image->BandFmt ) )
 			sane = FALSE;
 		break;
 
