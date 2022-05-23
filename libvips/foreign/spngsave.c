@@ -576,39 +576,9 @@ vips_foreign_save_spng_build( VipsObject *object )
 	in = save->ready;
 	g_object_ref( in );
 
-	/* Deprecated "colours" arg just sets bitdepth large enough to hold
-	 * that many colours.
-	 */
-        if( vips_object_argument_isset( object, "colours" ) ) 
-		spng->bitdepth = ceil( log2( spng->colours ) );
-
-	/* If no output bitdepth has been specified, use input Type to pick.
-	 * We only go for 16 bits for the types where we know there's a
-	 * 0-65535 range.
-	 */
-        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		spng->bitdepth = 
-			(in->Type == VIPS_INTERPRETATION_RGB16 ||
-			 in->Type == VIPS_INTERPRETATION_GREY16) ? 16 : 8;
-
-	if( spng->bitdepth > 8 ) 
-		interpretation = in->Bands > 2 ?
-			VIPS_INTERPRETATION_RGB16 : 
-			VIPS_INTERPRETATION_GREY16;
-	else
-		interpretation = in->Bands > 2 ?
-			VIPS_INTERPRETATION_sRGB : 
-			VIPS_INTERPRETATION_B_W;
-
-	if( vips_colourspace( in, &x, interpretation, NULL ) ) {
-		g_object_unref( in );
-		return( -1 );
-	}
-	g_object_unref( in );
-	in = x;
-
-	/* colourspace will leave float srgb as float. We need to force to
-	 * uchar in these cases.
+	/* in will have been converted to uint16 for high-bitdepth
+	 * formats (eg. float) ... we need to check Type to see if we want 
+	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
 	 */
 	if( in->Type == VIPS_INTERPRETATION_sRGB ||
 		in->Type == VIPS_INTERPRETATION_B_W ) {
@@ -622,8 +592,21 @@ vips_foreign_save_spng_build( VipsObject *object )
 		in = x;
 	}
 
+	/* If no output bitdepth has been specified, use input Type to pick.
+	 * We only go for 16 bits for the types where we know there's a
+	 * 0-65535 range.
+	 */
+        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		spng->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+
+	/* Deprecated "colours" arg just sets bitdepth large enough to hold
+	 * that many colours.
+	 */
+        if( vips_object_argument_isset( object, "colours" ) ) 
+		spng->bitdepth = ceil( log2( spng->colours ) );
+
 	/* If this is a RGB or RGBA image and a low bit depth has been
-	 * requested, enable palettization.
+	 * requested, enable palettisation.
 	 */
         if( in->Bands > 2 &&
 		spng->bitdepth < 8 )
