@@ -76,10 +76,6 @@ typedef struct _VipsForeignSaveCgif {
 	int *global_colour_table;
 	int global_colour_table_length;
 
-	/* We save ->ready a frame at a time, regenerating the 
-	 * palette if we see a significant frame to frame change. 
-	 */
-
 	/* The current frame coming from libvips, the y position we write to,
 	 * and some spare pixels we copy down when we move to the next frame.
 	 */
@@ -96,7 +92,7 @@ typedef struct _VipsForeignSaveCgif {
 	/* The current colourmap, updated on a significant frame change.
 	 */
 	VipsPel *palette_rgb;
-	gint64 frame_sum;
+	gint64 frame_checksum;
 
 	/* The index frame we get libimagequant to generate.
 	 */
@@ -222,10 +218,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
-	VipsPel *rgb;
-	gint64 sum;
-	double change;
 	int i;
+	VipsPel *rgb;
 	CGIF_FrameConfig frame_config;
 
 #ifdef DEBUG_VERBOSE
@@ -250,27 +244,31 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Do we need to compute a new palette? Do it if the frame sum
 	 * changes.
 	 *
-	 * frame_sum 0 means no current colourmap.
+	 * frame_checksum 0 means no current colourmap.
 	 */
 	if( !cgif->global_colour_table ) {
-		sum = 0;
+		gint64 checksum;
+
+		/* We need a checksum which detects colour changes, but
+		 * doesn't care about pixel ordering.
+		 *
+		 * Scale RGBA differently so that changes like [0, 255, 0] 
+		 * to [255, 0, 0] are detected.
+		 */
+		checksum = 0;
 		p = frame_bytes;
 		for( i = 0; i < n_pels; i++ ) {
-			/* Scale RGBA differently so that changes like 
-			 * [0, 255, 0] to [255, 0, 0] are detected.
-			 */
-			sum += p[0] * 1000;
-			sum += p[1] * 100;
-			sum += p[2] * 10;
-			sum += p[3];
+			checksum += p[0] * 1000;
+			checksum += p[1] * 100;
+			checksum += p[2] * 10;
+			checksum += p[3];
 
 			p += 4;
 		}
-		change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
 
-		if( cgif->frame_sum == 0 ||
-			change > 0 ) {
-			cgif->frame_sum = sum;
+		if( cgif->frame_checksum == 0 ||
+			checksum != cgif->frame_checksum ) { 
+			cgif->frame_checksum = checksum;
 
 			/* If this is not our first cmap, make a note that we 
 			 * need to attach it as a local cmap when we write.
@@ -292,8 +290,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			cgif->n_cmaps_generated += 1;
 			cgif->lp = vips__quantise_get_palette( 
 				cgif->quantisation_result );
-			printf( "frame %d, change %g, new %d item colourmap\n",
-				page_index, change, cgif->lp->count );
+			printf( "frame %d, new %d item colourmap\n",
+				page_index, cgif->lp->count );
 #endif/*DEBUG_PERCENT*/
 		}
 	}
