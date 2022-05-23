@@ -566,8 +566,6 @@ vips_foreign_save_spng_build( VipsObject *object )
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
 
 	VipsImage *in;
-	VipsInterpretation interpretation;
-	VipsImage *x;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
 		build( object ) )
