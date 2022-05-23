@@ -358,14 +358,6 @@ if librsvg_dep.found() and cairo_dep.found()
     libvips_deps += librsvg_dep
     libvips_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', '1')
-    # 2.46 for rsvg_handle_render_document
-    if librsvg_dep.version().version_compare('>=2.46')
-        cfg_var.set('HAVE_RSVG_HANDLE_RENDER_DOCUMENT', '1')
-    endif
-    # 2.52 for rsvg_handle_get_intrinsic_size_in_pixels
-    if librsvg_dep.version().version_compare('>=2.52')
-        cfg_var.set('HAVE_RSVG_HANDLE_GET_INTRINSIC_SIZE_IN_PIXELS', '1')
-    endif
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
