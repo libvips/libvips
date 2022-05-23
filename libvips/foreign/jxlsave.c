@@ -31,6 +31,8 @@
 
  */
 
+#define DEBUG
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -112,6 +114,7 @@ vips_foreign_save_jxl_dispose( GObject *gobject )
 
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlEncoderDestroy, jxl->encoder );
+	VIPS_UNREF( jxl->target );
 
 	G_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		dispose( gobject );
@@ -168,6 +171,7 @@ static void
 vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 {
 	printf( "JxlPixelFormat:\n" );
+	printf( "    num_channels = %d\n", format->num_channels );
 	printf( "    data_type = " );
 	switch( format->data_type ) {
 	case JXL_TYPE_UINT8: 
@@ -176,10 +180,6 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 
 	case JXL_TYPE_UINT16: 
 		printf( "JXL_TYPE_UINT16" );
-		break;
-
-	case JXL_TYPE_UINT32: 
-		printf( "JXL_TYPE_UINT32" );
 		break;
 
 	case JXL_TYPE_FLOAT: 
@@ -191,7 +191,6 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 		break;
 	}
 	printf( "\n" );
-	printf( "    num_channels = %d\n", format->num_channels );
 	printf( "    endianness = %d\n", format->endianness );
 	printf( "    align = %zd\n", format->align );
 }
@@ -276,12 +275,6 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->info.bits_per_sample = 16;
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT16;
-		break;
-
-	case VIPS_FORMAT_UINT:
-		jxl->info.bits_per_sample = 32;
-		jxl->info.exponent_bits_per_sample = 0;
-		jxl->format.data_type = JXL_TYPE_UINT32;
 		break;
 
 	case VIPS_FORMAT_FLOAT:
@@ -427,7 +420,8 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		}
 	} while( status != JXL_ENC_SUCCESS );
 
-	vips_target_finish( jxl->target );
+	if( vips_target_end( jxl->target ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -441,9 +435,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 
 /* Type promotion for save ... unsigned ints + float + double.
  */
-static int bandfmt_jpeg[10] = {
+static int bandfmt_jxl[10] = {
      /* UC   C  US   S  UI   I  F  X  D DX */
-	UC, UC, US, US, UI, UI, F, F, F, F
+	UC, UC, US, US,  F,  F, F, F, F, F
 };
 
 static void
@@ -471,7 +465,7 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 	foreign_class->suffs = vips__jxl_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = bandfmt_jpeg;
+	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT( class, "tier", 10, 
 		_( "Tier" ), 

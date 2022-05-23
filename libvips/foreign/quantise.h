@@ -59,18 +59,24 @@ extern "C" {
 #endif
 
 #ifdef HAVE_QUANTIZATION
-VipsQuantiseAttr* vips__quantise_attr_create();
-VipsQuantiseError vips__quantise_set_max_colors(VipsQuantiseAttr* attr, int colors);
-VipsQuantiseError vips__quantise_set_quality(VipsQuantiseAttr* attr, int minimum, int maximum);
-VipsQuantiseError vips__quantise_set_speed(VipsQuantiseAttr* attr, int speed);
-VipsQuantiseImage* vips__quantise_image_create_rgba(const VipsQuantiseAttr *attr, const void *bitmap, int width, int height, double gamma);
-VipsQuantiseError vips__quantise_image_quantize(VipsQuantiseImage *const input_image, VipsQuantiseAttr *const options, VipsQuantiseResult **result_output);
-VipsQuantiseError vips__quantise_set_dithering_level(VipsQuantiseResult *res, float dither_level);
-const VipsQuantisePalette* vips__quantise_get_palette(VipsQuantiseResult *result);
-VipsQuantiseError vips__quantise_write_remapped_image(VipsQuantiseResult *result, VipsQuantiseImage *input_image, void *buffer, size_t buffer_size);
-void vips__quantise_result_destroy(VipsQuantiseResult *result);
-void vips__quantise_image_destroy(VipsQuantiseImage *img);
-void vips__quantise_attr_destroy(VipsQuantiseAttr *attr);
+VipsQuantiseAttr *vips__quantise_attr_create();
+VipsQuantiseError vips__quantise_set_max_colors( VipsQuantiseAttr *attr,
+	int colors );
+VipsQuantiseError vips__quantise_set_quality( VipsQuantiseAttr *attr,
+	int minimum, int maximum );
+VipsQuantiseError vips__quantise_set_speed( VipsQuantiseAttr *attr, int speed );
+VipsQuantiseImage *vips__quantise_image_create_rgba( const VipsQuantiseAttr *attr,
+	const void *bitmap, int width, int height, double gamma );
+VipsQuantiseError vips__quantise_image_quantize( VipsQuantiseImage *input_image,
+	VipsQuantiseAttr *options, VipsQuantiseResult **result_output );
+VipsQuantiseError vips__quantise_set_dithering_level( VipsQuantiseResult *res,
+	float dither_level );
+const VipsQuantisePalette *vips__quantise_get_palette( VipsQuantiseResult *result );
+VipsQuantiseError vips__quantise_write_remapped_image( VipsQuantiseResult *result,
+	VipsQuantiseImage *input_image, void *buffer, size_t buffer_size );
+void vips__quantise_result_destroy( VipsQuantiseResult *result );
+void vips__quantise_image_destroy( VipsQuantiseImage *img );
+void vips__quantise_attr_destroy( VipsQuantiseAttr *attr );
 #endif /*HAVE_QUANTIZATION*/
 
 int vips__quantise_image( VipsImage *in,

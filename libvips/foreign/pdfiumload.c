@@ -14,6 +14,8 @@
  * 	- add _source input
  * 28/1/22
  * 	- add password
+ * 21/5/22
+ * 	- improve transparency handling [DarthSim]
  */
 
 /*
@@ -104,6 +106,7 @@ EOF
 
 #include <fpdfview.h>
 #include <fpdf_doc.h>
+#include <fpdf_edit.h>
 
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
@@ -151,7 +154,7 @@ typedef struct _VipsForeignLoadPdf {
 	VipsRect image;
 	VipsRect *pages;
 
-	/* The [double] background converted to the image format.
+	/* The [double] background converted to image format.
 	 */
 	VipsPel *ink;
 
@@ -242,12 +245,13 @@ vips_pdfium_GetBlock( void *param,
 		return( FALSE );
 
 	while( size > 0 ) {
-		size_t n_read;
+		gint64 bytes_read;
 
-		if( (n_read = vips_source_read( pdf->source, pBuf, size )) < 0 )
+		if( (bytes_read = 
+			vips_source_read( pdf->source, pBuf, size )) < 0 )
 			return( FALSE );
-		pBuf += n_read;
-		size -= n_read;
+		pBuf += bytes_read;
+		size -= bytes_read;
 	}
 
 	return( TRUE );
@@ -517,11 +521,12 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	/* Convert the background to the image format.
 	 */
-	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
+	if( !(pdf->ink = vips__vector_to_ink( class->nickname,
 		load->out, 
 		VIPS_AREA( pdf->background )->data, NULL, 
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
+	vips__bgra2rgba( (guint32 *) pdf->ink, 1 );
 
 	return( 0 );
 }
@@ -549,10 +554,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		r->left, r->top, r->width, r->height ); 
 	 */
 
-	/* PDFium won't always paint the background. 
-	 */
-	vips_region_paint_pel( or, r, pdf->ink ); 
-
 	/* Search through the pages we are drawing for the first containing
 	 * this rect. This could be quicker, perhaps a binary search, but who 
 	 * cares.
@@ -571,13 +572,22 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
 
-		/* 4 means RGBA.
-		 */
 		g_mutex_lock( vips_pdfium_mutex );
 
+		/* 4 means RGBA.
+		 */
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
 			VIPS_REGION_LSKIP( or ) );  
+
+		/* Only paint the background if there's no transparency.
+		 */
+		if ( !FPDFPage_HasTransparency( pdf->page ) ) {
+			FPDF_DWORD ink = *((guint32 *) pdf->ink);
+
+			FPDFBitmap_FillRect( bitmap,
+				0, 0, rect.width, rect.height, ink );
+		}
 
 		FPDF_RenderPageBitmap( bitmap, pdf->page, 
 			0, 0, rect.width, rect.height,

@@ -28,6 +28,8 @@
  * 	- deprecate "squash"
  * 1/5/21
  * 	- add "premultiply" flag
+ * 10/5/22
+ * 	- add vips_tiffsave_target()
  */
 
 /*
@@ -83,6 +85,10 @@
 typedef struct _VipsForeignSaveTiff {
 	VipsForeignSave parent_object;
 
+	/* Set by subclasses.
+	 */
+	VipsTarget *target;
+
 	/* Many options argh.
 	 */
 	VipsForeignTiffCompression compression;
@@ -115,6 +121,17 @@ typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_tiff_dispose( GObject *gobject )
+{
+	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) gobject;
+
+	VIPS_UNREF( tiff->target );
+
+	G_OBJECT_CLASS( vips_foreign_save_tiff_parent_class )->
+		dispose( gobject );
+}
 
 #define UC VIPS_FORMAT_UCHAR
 
@@ -186,6 +203,37 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->yres *= 2.54;
 	}
 
+        /* Handle the deprecated squash parameter.
+	 */
+        if( tiff->squash )
+		/* We set that even in the case of LAB to LABQ.
+		 */
+		tiff->bitdepth = 1;
+
+	if( vips__tiff_write_target( save->ready, tiff->target,
+		tiff->compression, tiff->Q, tiff->predictor,
+		tiff->profile,
+		tiff->tile, tiff->tile_width, tiff->tile_height,
+		tiff->pyramid,
+		tiff->bitdepth,
+		tiff->miniswhite,
+		tiff->resunit, tiff->xres, tiff->yres,
+		tiff->bigtiff,
+		tiff->rgbjpeg,
+		tiff->properties,
+		save->strip,
+		tiff->region_shrink,
+		tiff->level,
+		tiff->lossless,
+		tiff->depth,
+		tiff->subifd,
+		tiff->premultiply,
+		save->page_height ) )
+		return( -1 );
+
+	if( vips_target_end( tiff->target ) )
+		return( -1 );
+
 	return( 0 );
 }
 
@@ -197,11 +245,12 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_tiff_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "tiffsave_base";
-	object_class->description = _( "save image to tiff file" );
+	object_class->description = _( "save image as tiff" );
 	object_class->build = vips_foreign_save_tiff_build;
 
 	foreign_class->suffs = vips__foreign_tiff_suffs;
@@ -392,6 +441,61 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->bitdepth = 0;
 }
 
+typedef struct _VipsForeignSaveTiffTarget {
+	VipsForeignSaveTiff parent_object;
+
+	VipsTarget *target;
+} VipsForeignSaveTiffTarget;
+
+typedef VipsForeignSaveTiffClass VipsForeignSaveTiffTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveTiffTarget, vips_foreign_save_tiff_target, 
+	vips_foreign_save_tiff_get_type() );
+
+static int
+vips_foreign_save_tiff_target_build( VipsObject *object )
+{
+	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
+	VipsForeignSaveTiffTarget *target = 
+		(VipsForeignSaveTiffTarget *) object;
+
+	tiff->target = target->target;
+	g_object_ref( tiff->target );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_target_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_tiff_target_class_init( 
+	VipsForeignSaveTiffTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "tiffsave_target";
+	object_class->description = _( "save image to tiff target" );
+	object_class->build = vips_foreign_save_tiff_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveTiffTarget, target ),
+		VIPS_TYPE_TARGET );
+}
+
+static void
+vips_foreign_save_tiff_target_init( VipsForeignSaveTiffTarget *target )
+{
+}
+
 typedef struct _VipsForeignSaveTiffFile {
 	VipsForeignSaveTiff parent_object;
 
@@ -406,40 +510,14 @@ G_DEFINE_TYPE( VipsForeignSaveTiffFile, vips_foreign_save_tiff_file,
 static int
 vips_foreign_save_tiff_file_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 	VipsForeignSaveTiffFile *file = (VipsForeignSaveTiffFile *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_file_parent_class )->
-		build( object ) )
+	if( !(tiff->target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
 
-        /* Handle the deprecated squash parameter.
-	 */
-        if( tiff->squash )
-		/* We set that even in the case of LAB to LABQ.
-		 */
-		tiff->bitdepth = 1;
-
-	if( vips__tiff_write( save->ready, file->filename,
-		tiff->compression, tiff->Q, tiff->predictor,
-		tiff->profile,
-		tiff->tile, tiff->tile_width, tiff->tile_height,
-		tiff->pyramid,
-		tiff->bitdepth,
-		tiff->miniswhite,
-		tiff->resunit, tiff->xres, tiff->yres,
-		tiff->bigtiff,
-		tiff->rgbjpeg,
-		tiff->properties,
-		save->strip,
-		tiff->region_shrink,
-		tiff->level,
-		tiff->lossless,
-		tiff->depth,
-		tiff->subifd,
-		tiff->premultiply,
-		save->page_height ) )
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_file_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -485,40 +563,21 @@ G_DEFINE_TYPE( VipsForeignSaveTiffBuffer, vips_foreign_save_tiff_buffer,
 static int
 vips_foreign_save_tiff_buffer_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
+	VipsForeignSaveTiffBuffer *buffer = 
+		(VipsForeignSaveTiffBuffer *) object;
 
-	void *obuf;
-	size_t olen;
 	VipsBlob *blob;
+
+	if( !(tiff->target = vips_target_new_to_memory()) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__tiff_write_buf( save->ready, &obuf, &olen,
-		tiff->compression, tiff->Q, tiff->predictor,
-		tiff->profile,
-		tiff->tile, tiff->tile_width, tiff->tile_height,
-		tiff->pyramid,
-		tiff->bitdepth,
-		tiff->miniswhite,
-		tiff->resunit, tiff->xres, tiff->yres,
-		tiff->bigtiff,
-		tiff->rgbjpeg,
-		tiff->properties,
-		save->strip,
-		tiff->region_shrink,
-		tiff->level,
-		tiff->lossless, 
-		tiff->depth,
-		tiff->subifd,
-		tiff->premultiply,
-		save->page_height ) )
-		return( -1 );
-
-	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, obuf, olen );
-	g_object_set( object, "buffer", blob, NULL );
+	g_object_get( tiff->target, "blob", &blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( 0 );
@@ -654,8 +713,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * resolutions. By default these values are taken from the VIPS image header. 
  * libvips resolution is always in pixels per millimetre.
  *
- * Set @bigtiff to attempt to write a bigtiff. 
- * Bigtiff is a variant of the TIFF
+ * Set @bigtiff to attempt to write a bigtiff. Bigtiff is a variant of the TIFF
  * format that allows more than 4GB in a file.
  *
  * Set @properties to write all vips metadata to the IMAGEDESCRIPTION tag as
@@ -673,7 +731,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * Set @subifd to save pyramid layers as sub-directories of the main image.
  * Setting this option can improve compatibility with formats like OME.
  *
- * Set @premultiply tio save with premultiplied alpha. Some programs, such as
+ * Set @premultiply to save with premultiplied alpha. Some programs, such as
  * InDesign, will only work with premultiplied alpha.
  *
  * See also: vips_tiffload(), vips_image_write_to_file().
@@ -758,6 +816,55 @@ vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_tiffsave_target: (method)
+ * @in: image to save
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @compression: use this #VipsForeignTiffCompression
+ * * @Q: %gint quality factor
+ * * @predictor: use this #VipsForeignTiffPredictor
+ * * @profile: %gchararray, filename of ICC profile to attach
+ * * @tile: %gboolean, set %TRUE to write a tiled tiff
+ * * @tile_width: %gint for tile size
+ * * @tile_height: %gint for tile size
+ * * @pyramid: %gboolean, write an image pyramid
+ * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
+ * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
+ * * @resunit: #VipsForeignTiffResunit for resolution unit
+ * * @xres: %gdouble horizontal resolution in pixels/mm
+ * * @yres: %gdouble vertical resolution in pixels/mm
+ * * @bigtiff: %gboolean, write a BigTiff file
+ * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
+ * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @level: %gint, Zstd compression level
+ * * @lossless: %gboolean, WebP losssless mode
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @subifd: %gboolean write pyr layers as sub-ifds
+ * * @premultiply: %gboolean write premultiplied alpha
+ *
+ * As vips_tiffsave(), but save to a target.
+ *
+ * See also: vips_tiffsave(), vips_image_write_to_target().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "tiffsave_target", ap, in, target );
+	va_end( ap );
 
 	return( result );
 }

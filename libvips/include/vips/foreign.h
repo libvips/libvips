@@ -597,6 +597,9 @@ int vips_tiffsave( VipsImage *in, const char *filename, ... )
 VIPS_API
 int vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
+VIPS_API
+int vips_tiffsave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
 
 VIPS_API
 int vips_openexrload( const char *filename, VipsImage **out, ... )
@@ -931,6 +934,9 @@ int vips_dzsave( VipsImage *in, const char *name, ... )
 	__attribute__((sentinel));
 VIPS_API
 int vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+VIPS_API
+int vips_dzsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
 /**

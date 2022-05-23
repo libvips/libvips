@@ -87,6 +87,7 @@ typedef struct {
 	int alpha_q;
 	int effort;
 	gboolean min_size;
+	gboolean mixed;
 	int kmin;
 	int kmax;
 	gboolean strip;
@@ -148,7 +149,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int effort,
-	gboolean min_size, int kmin, int kmax,
+	gboolean min_size, gboolean mixed, int kmin, int kmax,
 	gboolean strip, const char *profile )
 {
 	write->image = NULL;
@@ -160,6 +161,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->alpha_q = alpha_q;
 	write->effort = effort;
 	write->min_size = min_size;
+	write->mixed = mixed;
 	write->kmin = kmin;
 	write->kmax = kmax;
 	write->strip = strip;
@@ -314,7 +316,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 	}
 
 	anim_config.minimize_size = write->min_size;
-	anim_config.allow_mixed = write->min_size;
+	anim_config.allow_mixed = write->mixed;
 	anim_config.kmin = write->kmin;
 	anim_config.kmax = write->kmax;
 
@@ -555,14 +557,14 @@ vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int effort,
-	gboolean min_size, int kmin, int kmax,
+	gboolean min_size, gboolean mixed, int kmin, int kmax,
 	gboolean strip, const char *profile )
 {
 	VipsWebPWrite write;
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, effort, min_size, kmin, kmax, strip,
+		alpha_q, effort, min_size, mixed, kmin, kmax, strip,
 		profile ) )
 		return( -1 );
 
@@ -582,7 +584,8 @@ vips__webp_write_target( VipsImage *image, VipsTarget *target,
 		return( -1 );
 	}
 
-	vips_target_finish( target );
+	if( vips_target_end( target ) )
+		return( -1 );
 
 	vips_webp_write_unset( &write );
 

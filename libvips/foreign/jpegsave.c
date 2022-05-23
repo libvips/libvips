@@ -402,7 +402,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
-	VipsForeignSaveJpegBuffer *file = (VipsForeignSaveJpegBuffer *) object;
+	VipsForeignSaveJpegBuffer *buffer = 
+		(VipsForeignSaveJpegBuffer *) object;
 
 	VipsTarget *target;
 	VipsBlob *blob;
@@ -425,7 +426,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	}
 
 	g_object_get( target, "blob", &blob, NULL );
-	g_object_set( file, "buffer", blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
 	VIPS_UNREF( target );

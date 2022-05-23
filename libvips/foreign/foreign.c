@@ -2878,6 +2878,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_tiff_source_get_type( void ); 
 	extern GType vips_foreign_save_tiff_file_get_type( void ); 
 	extern GType vips_foreign_save_tiff_buffer_get_type( void ); 
+	extern GType vips_foreign_save_tiff_target_get_type( void ); 
 
 	extern GType vips_foreign_load_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_get_type( void ); 
@@ -2897,6 +2898,7 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
+	extern GType vips_foreign_save_dz_target_get_type( void ); 
 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
@@ -3041,6 +3043,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_GSF
 	vips_foreign_save_dz_file_get_type(); 
 	vips_foreign_save_dz_buffer_get_type(); 
+	vips_foreign_save_dz_target_get_type(); 
 #endif /*HAVE_GSF*/
 
 #ifdef HAVE_PNG
@@ -3090,6 +3093,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_tiff_source_get_type(); 
 	vips_foreign_save_tiff_file_get_type(); 
 	vips_foreign_save_tiff_buffer_get_type(); 
+	vips_foreign_save_tiff_target_get_type(); 
 #endif /*HAVE_TIFF*/
 
 #if defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)

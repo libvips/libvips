@@ -51,7 +51,7 @@ extern "C" {
 
 void vips__tiff_init( void );
 
-int vips__tiff_write( VipsImage *in, const char *filename, 
+int vips__tiff_write_target( VipsImage *in, VipsTarget *target,
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
 	const char *profile,
@@ -69,27 +69,6 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd, 
-	gboolean premultiply,
-	int page_height );
-
-int vips__tiff_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, 
-	VipsForeignTiffCompression compression, int Q, 
-	VipsForeignTiffPredictor predictor,
-	const char *profile,
-	gboolean tile, int tile_width, int tile_height,
-	gboolean pyramid,
-	int bitdepth,
-	gboolean miniswhite,
-	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff,
-	gboolean rgbjpeg,
-	gboolean properties, gboolean strip,
-	VipsRegionShrink region_shrink,
-	int level, 
-	gboolean lossless,
-	VipsForeignDzDepth depth,
-	gboolean subifd,
 	gboolean premultiply,
 	int page_height );
 
@@ -214,7 +193,7 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int effort,
-	gboolean min_size, int kmin, int kmax,
+	gboolean min_size, gboolean mixed, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
 extern const char *vips_foreign_nifti_suffs[];

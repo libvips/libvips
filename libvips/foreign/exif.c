@@ -776,7 +776,20 @@ tag_is_ascii( ExifTag tag )
 		tag == EXIF_TAG_DATE_TIME_DIGITIZED ||
 		tag == EXIF_TAG_SUB_SEC_TIME ||
 		tag == EXIF_TAG_SUB_SEC_TIME_ORIGINAL ||
-		tag == EXIF_TAG_SUB_SEC_TIME_DIGITIZED );
+		tag == EXIF_TAG_SUB_SEC_TIME_DIGITIZED
+#ifdef HAVE_EXIF_0_6_22
+		|| tag == EXIF_TAG_CAMERA_OWNER_NAME
+		|| tag == EXIF_TAG_BODY_SERIAL_NUMBER
+		|| tag == EXIF_TAG_LENS_MAKE
+		|| tag == EXIF_TAG_LENS_MODEL
+		|| tag == EXIF_TAG_LENS_SERIAL_NUMBER
+#endif
+#ifdef HAVE_EXIF_0_6_23
+		|| tag == EXIF_TAG_OFFSET_TIME
+		|| tag == EXIF_TAG_OFFSET_TIME_ORIGINAL
+		|| tag == EXIF_TAG_OFFSET_TIME_DIGITIZED
+#endif
+		);
 }
 
 static gboolean

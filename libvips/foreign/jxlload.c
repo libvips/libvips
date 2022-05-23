@@ -131,6 +131,7 @@ vips_foreign_load_jxl_dispose( GObject *gobject )
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlDecoderDestroy, jxl->decoder );
 	VIPS_FREE( jxl->icc_data );
+	VIPS_UNREF( jxl->source );
 
 	G_OBJECT_CLASS( vips_foreign_load_jxl_parent_class )->
 		dispose( gobject );
@@ -349,10 +350,6 @@ vips_foreign_load_jxl_print_format( JxlPixelFormat *format )
 		printf( "JXL_TYPE_UINT16" );
 		break;
 
-	case JXL_TYPE_UINT32: 
-		printf( "JXL_TYPE_UINT32" );
-		break;
-
 	case JXL_TYPE_FLOAT: 
 		printf( "JXL_TYPE_FLOAT" );
 		break;
@@ -419,10 +416,6 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 
 	case JXL_TYPE_UINT16:
 		format = VIPS_FORMAT_USHORT;
-		break;
-
-	case JXL_TYPE_UINT32:
-		format = VIPS_FORMAT_UINT;
 		break;
 
 	case JXL_TYPE_FLOAT:
@@ -550,8 +543,6 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 			if( jxl->info.exponent_bits_per_sample > 0 ||
 				jxl->info.alpha_exponent_bits > 0 )
 				jxl->format.data_type = JXL_TYPE_FLOAT;
-			else if( jxl->info.bits_per_sample > 16 )
-				jxl->format.data_type = JXL_TYPE_UINT32;
 			else if( jxl->info.bits_per_sample > 8 )
 				jxl->format.data_type = JXL_TYPE_UINT16;
 			else

@@ -95,6 +95,10 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	gboolean min_size;
 
+	/* Allow mixed encoding (might reduce file size)
+	 */
+	gboolean mixed;
+
 	/* Min between key frames.
 	 */
 	int kmin;
@@ -187,7 +191,7 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 
 	VIPS_ARG_BOOL( class, "min_size", 16,
 		_( "Minimise size" ),
-		_( "Optimise for minium size" ),
+		_( "Optimise for minimum size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, min_size ),
 		FALSE );
@@ -226,6 +230,13 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, effort ),
 		0, 6, 4 );
+
+	VIPS_ARG_BOOL( class, "mixed", 22,
+		_( "Mixed encoding" ),
+		_( "Allow mixed encoding (might reduce file size)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, mixed ),
+		FALSE );
 }
 
 static void
@@ -269,7 +280,7 @@ vips_foreign_save_webp_target_build( VipsObject *object )
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->effort,
-		webp->min_size, webp->kmin, webp->kmax,
+		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) )
 		return( -1 );
 
@@ -337,7 +348,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->effort,
-		webp->min_size, webp->kmin, webp->kmax,
+		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
@@ -409,7 +420,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->effort,
-		webp->min_size, webp->kmin, webp->kmax,
+		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
@@ -483,7 +494,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->effort,
-		webp->min_size, webp->kmin, webp->kmax,
+		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
@@ -539,6 +550,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -572,6 +584,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * keyframes. Setting 0 means only keyframes. @kmin sets the minimum number of
  * frames between frames. Setting 0 means no keyframes. By default, keyframes
  * are disabled.
+ *
+ * For animated webp output, @mixed tries to improve the file size by mixing
+ * both lossy and lossless encoding.
  *
  * Use @profile to give the name of a profile to be embedded in the file.
  * This does not affect the pixels which are written, just the way 
@@ -617,6 +632,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -675,6 +691,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
@@ -715,6 +732,7 @@ vips_webpsave_mime( VipsImage *in, ... )
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
+ * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
