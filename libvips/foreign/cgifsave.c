@@ -615,8 +615,12 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
 			tmp_gct, gct_length + 1, 1, 0 );
 
-		vips__quantise_image_quantize( tmp_image,
-			cgif->attr, &cgif->quantisation_result );
+		if( vips__quantise_image_quantize( tmp_image,
+		       cgif->attr, &cgif->quantisation_result ) ) {
+		       vips_error( class->nickname,
+		       	"%s", _( "quantisation failed" ) );
+		       return( -1 );
+		}
 		VIPS_FREE( tmp_gct );
 		VIPS_FREEF( vips__quantise_image_destroy, tmp_image );
 	}
