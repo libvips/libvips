@@ -27,6 +27,7 @@
 - add vips_tiffsave_target()
 - add vips_target_end(), deprecate vips_target_finish()
 - add "mixed" to webpsave [dloebl]
+- add "reoptimise" to gifsave [dloebl]
 
 26/11/21 started 8.12.3
 - better arg checking for vips_hist_find_ndim() [travisbell]

@@ -63,6 +63,7 @@ typedef struct _VipsForeignSaveCgif {
 	int effort;
 	int bitdepth;
 	double maxerror;
+	gboolean reoptimise;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -72,6 +73,8 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
+	int *global_colour_table;
+	int global_colour_table_length;
 
 	/* We save ->ready a frame at a time, regenerating the 
 	 * palette if we see a significant frame to frame change. 
@@ -248,50 +251,52 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
-	sum = 0;
-	p = frame_bytes;
-	for( i = 0; i < n_pels; i++ ) {
-		/* Scale RGBA differently so that changes like [0, 255, 0] 
-		 * to [255, 0, 0] are detected.
-		 */
-		sum += p[0] * 1000; 
-		sum += p[1] * 100; 
-		sum += p[2] * 10; 
-		sum += p[3]; 
+	if( !cgif->global_colour_table ) {
+		sum = 0;
+		p = frame_bytes;
+		for( i = 0; i < n_pels; i++ ) {
+			/* Scale RGBA differently so that changes like [0, 255, 0]
+			 * to [255, 0, 0] are detected.
+			 */
+			sum += p[0] * 1000;
+			sum += p[1] * 100;
+			sum += p[2] * 10;
+			sum += p[3];
 
-		p += 4;
-	}
-	change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
-
-	if( cgif->frame_sum == 0 ||
-		change > 0 ) { 
-		cgif->frame_sum = sum;
-
-		/* If this is not our first cmap, make a note that we need to
-		 * attach it as a local cmap when we write.
-		 */
-		if( cgif->quantisation_result ) 
-			cgif->cgif_config.attrFlags |= 
-				CGIF_ATTR_NO_GLOBAL_TABLE;
-
-		VIPS_FREEF( vips__quantise_result_destroy, 
-			cgif->quantisation_result );
-		if( vips__quantise_image_quantize( cgif->input_image, 
-			cgif->attr, &cgif->quantisation_result ) ) { 
-			vips_error( class->nickname, 
-				"%s", _( "quantisation failed" ) );
-			return( -1 );
+			p += 4;
 		}
+		change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
+
+		if( cgif->frame_sum == 0 ||
+			change > 0 ) {
+			cgif->frame_sum = sum;
+
+			/* If this is not our first cmap, make a note that we need to
+			 * attach it as a local cmap when we write.
+			 */
+			if( cgif->quantisation_result )
+				cgif->cgif_config.attrFlags |=
+					CGIF_ATTR_NO_GLOBAL_TABLE;
+
+			VIPS_FREEF( vips__quantise_result_destroy,
+				cgif->quantisation_result );
+			if( vips__quantise_image_quantize( cgif->input_image,
+				cgif->attr, &cgif->quantisation_result ) ) {
+				vips_error( class->nickname,
+					"%s", _( "quantisation failed" ) );
+				return( -1 );
+			}
 
 #ifdef DEBUG_PERCENT
-		cgif->n_cmaps_generated += 1;
+			cgif->n_cmaps_generated += 1;
 #endif/*DEBUG_PERCENT*/
+		}
 	}
-
 	/* Dither frame.
 	 */
-	vips__quantise_set_dithering_level( cgif->quantisation_result, 
+	vips__quantise_set_dithering_level( cgif->quantisation_result,
 		cgif->dither );
+
 	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
@@ -585,6 +590,42 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
+	/* Initialise quantization result using global palette.
+	 */
+	if( !cgif->reoptimise &&
+		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+		VipsQuantiseImage *tmp_image;
+		int *tmp_gct;
+		int *gct;
+		int gct_length;
+
+		vips_image_get_array_int( cgif->in, "gif-palette",
+			&cgif->global_colour_table,
+			&cgif->global_colour_table_length);
+		gct = cgif->global_colour_table;
+		gct_length = cgif->global_colour_table_length;
+
+		/* Attach fake alpha channel.
+		 * That's necessary, because we do not know whether there is an
+		 * alpha channel before processing the animation.
+		 */
+		tmp_gct = g_malloc((gct_length + 1) * sizeof(int));
+		memcpy(tmp_gct, gct, gct_length * sizeof(int));
+		tmp_gct[gct_length] = 0;
+		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
+			tmp_gct, gct_length + 1, 1, 0 );
+
+		if( vips__quantise_image_quantize( tmp_image,
+		       cgif->attr, &cgif->quantisation_result ) ) {
+		       vips_error( class->nickname,
+		       	"%s", _( "quantisation failed" ) );
+		       return( -1 );
+		}
+		VIPS_FREE( tmp_gct );
+		VIPS_FREEF( vips__quantise_image_destroy, tmp_image );
+	}
+
+
 	/* Set up cgif on first use.
 	 */
 
@@ -657,6 +698,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
 		0, 32, 0.0 );
+
+	VIPS_ARG_BOOL( class, "reoptimise", 14,
+		_( "Reoptimise palettes" ),
+		_( "Reoptimise colour palettes" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reoptimise ),
+		FALSE );
 }
 
 static void
@@ -666,6 +714,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->effort = 7;
 	gif->bitdepth = 8;
 	gif->maxerror = 0.0;
+	gif->reoptimise = FALSE;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
@@ -847,6 +896,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * Write to a file in GIF format.
  *
@@ -893,6 +943,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -944,6 +995,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a target.
  *
