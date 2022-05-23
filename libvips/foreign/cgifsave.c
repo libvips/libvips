@@ -33,9 +33,9 @@
  */
 
 /*
-#define DEBUG_PERCENT
 #define DEBUG_VERBOSE
  */
+#define DEBUG_PERCENT
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -197,12 +197,13 @@ vips_foreign_save_cgif_check_alpha_constraint( const VipsPel *cur,
 	const VipsPel *bef, int n_pels )
 {
 	while( n_pels-- ) {
-		if( cur[3] == 0 && bef[3] != 0) {
+		if( cur[3] == 0 && bef[3] != 0 ) 
 			return TRUE;
-		}
+
 		cur += 4;
 		bef += 4;
 	}
+
 	return FALSE;
 }
 
@@ -255,8 +256,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		sum = 0;
 		p = frame_bytes;
 		for( i = 0; i < n_pels; i++ ) {
-			/* Scale RGBA differently so that changes like [0, 255, 0]
-			 * to [255, 0, 0] are detected.
+			/* Scale RGBA differently so that changes like 
+			 * [0, 255, 0] to [255, 0, 0] are detected.
 			 */
 			sum += p[0] * 1000;
 			sum += p[1] * 100;
@@ -271,8 +272,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			change > 0 ) {
 			cgif->frame_sum = sum;
 
-			/* If this is not our first cmap, make a note that we need to
-			 * attach it as a local cmap when we write.
+			/* If this is not our first cmap, make a note that we 
+			 * need to attach it as a local cmap when we write.
 			 */
 			if( cgif->quantisation_result )
 				cgif->cgif_config.attrFlags |=
@@ -289,9 +290,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 #ifdef DEBUG_PERCENT
 			cgif->n_cmaps_generated += 1;
+			cgif->lp = vips__quantise_get_palette( 
+				cgif->quantisation_result );
+			printf( "frame %d, change %g, new %d item colourmap\n",
+				page_index, change, cgif->lp->count );
 #endif/*DEBUG_PERCENT*/
 		}
 	}
+
 	/* Dither frame.
 	 */
 	vips__quantise_set_dithering_level( cgif->quantisation_result,
@@ -318,15 +324,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		rgb += 3;
 	}
 
-#ifdef DEBUG_PERCENT
-	if( change > 0 )
-		printf( "frame %d, change %g, new %d item colourmap\n",
-			page_index, change, cgif->lp->count );
-	else
-		printf( "frame %d, reusing previous %d item colourmap\n",
-			page_index, cgif->lp->count );
-#endif/*DEBUG_PERCENT*/
-
 	/* If there's a transparent pixel, it's always first.
 	 */
 	cgif->has_transparency = cgif->lp->entries[0].a == 0;
@@ -339,7 +336,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
-		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED | ( cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0 );
+		cgif->cgif_config.attrFlags = 
+			CGIF_ATTR_IS_ANIMATED | 
+			(cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0);
 #else
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 #endif/*HAVE_CGIF_ATTR_NO_LOOP*/
@@ -347,7 +346,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
-		cgif->cgif_config.numLoops = cgif->loop > 1 ? cgif->loop - 1 : cgif->loop;
+		cgif->cgif_config.numLoops = cgif->loop > 1 ? 
+			cgif->loop - 1 : cgif->loop;
 #else
 		cgif->cgif_config.numLoops = cgif->loop;
 #endif/*HAVE_CGIF_ATTR_NO_LOOP*/
@@ -370,8 +370,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 	frame_config.attrFlags = 0;
 
-	/* Switch per-frame alpha channel on.
-	 * Index 0 is used for pixels with alpha channel.
+	/* Switch per-frame alpha channel on. Index 0 is used for pixels 
+	 * with alpha channel.
 	 */
 	if( cgif->has_transparency ) {
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_ALPHA;
@@ -388,9 +388,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cur = frame_bytes;
 		bef = cgif->frame_bytes_head;
 		has_alpha_constraint =
-			vips_foreign_save_cgif_check_alpha_constraint(cur, bef, n_pels);
-		/* Transparency trick is only possible
-		 * when no alpha channel constraint is present.
+			vips_foreign_save_cgif_check_alpha_constraint( cur, 
+				bef, n_pels );
+
+		/* Transparency trick is only possible when no alpha channel 
+		 * constraint is present.
 		 */
 		if( !has_alpha_constraint ) {
 			int i;
@@ -399,7 +401,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			trans_index = cgif->lp->count;
 			if( cgif->has_transparency ) {
 				trans_index = 0;
-				frame_config.attrFlags &= (~CGIF_FRAME_ATTR_HAS_ALPHA);
+				frame_config.attrFlags &= 
+					~CGIF_FRAME_ATTR_HAS_ALPHA;
 			}
 
 			for( i = 0; i < n_pels; i++ ) {
@@ -422,10 +425,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			frame_config.transIndex = trans_index;
 		} 
 		else {
-			/* Transparency trick not possible (constraining alpha channel
-			 * present). Update head.
+			/* Transparency trick not possible (constraining alpha 
+			 * channel present). Update head.
 			 */
-			memcpy( bef, cur, 4 * n_pels);
+			memcpy( bef, cur, 4 * n_pels );
 		}
 	}
 
