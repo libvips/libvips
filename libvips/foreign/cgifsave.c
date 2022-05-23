@@ -73,8 +73,8 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
-	int *gct;
-	int gct_length;
+	int *global_colour_table;
+	int global_colour_table_length;
 
 	/* We save ->ready a frame at a time, regenerating the 
 	 * palette if we see a significant frame to frame change. 
@@ -251,7 +251,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
-	if( !cgif->gct ) {
+	if( !cgif->global_colour_table ) {
 		sum = 0;
 		p = frame_bytes;
 		for( i = 0; i < n_pels; i++ ) {
@@ -596,19 +596,24 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
 		VipsQuantiseImage *tmp_image;
 		int *tmp_gct;
+		int *gct;
+		int gct_length;
 
 		vips_image_get_array_int( cgif->in, "gif-palette",
-			&cgif->gct, &cgif->gct_length );
+			&cgif->global_colour_table,
+			&cgif->global_colour_table_length);
+		gct = cgif->global_colour_table;
+		gct_length = cgif->global_colour_table_length;
 
 		/* Attach fake alpha channel.
 		 * That's necessary, because we do not know whether there is an
 		 * alpha channel before processing the animation.
 		 */
-		tmp_gct = g_malloc((cgif->gct_length + 1) * sizeof(int));
-		memcpy(tmp_gct, cgif->gct, cgif->gct_length * sizeof(int));
-		tmp_gct[cgif->gct_length] = 0;
+		tmp_gct = g_malloc((gct_length + 1) * sizeof(int));
+		memcpy(tmp_gct, gct, gct_length * sizeof(int));
+		tmp_gct[gct_length] = 0;
 		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
-			tmp_gct, cgif->gct_length + 1, 1, 0 );
+			tmp_gct, gct_length + 1, 1, 0 );
 
 		/* Quantize attached global palette
 		 */
