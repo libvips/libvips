@@ -590,7 +590,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
-	/* Quantize attached global palette (if present)
+	/* Initialise quantization result using global palette.
 	 */
 	if( !cgif->reoptimise &&
 		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
@@ -615,8 +615,6 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
 			tmp_gct, gct_length + 1, 1, 0 );
 
-		/* Quantize attached global palette
-		 */
 		vips__quantise_image_quantize( tmp_image,
 			cgif->attr, &cgif->quantisation_result );
 		VIPS_FREE( tmp_gct );
