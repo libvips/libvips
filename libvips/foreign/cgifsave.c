@@ -33,8 +33,8 @@
  */
 
 /*
-#define DEBUG_PERCENT
 #define DEBUG_VERBOSE
+#define DEBUG_PERCENT
  */
 
 #ifdef HAVE_CONFIG_H
@@ -63,6 +63,7 @@ typedef struct _VipsForeignSaveCgif {
 	int effort;
 	int bitdepth;
 	double maxerror;
+	gboolean reoptimise;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -72,10 +73,8 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
-
-	/* We save ->ready a frame at a time, regenerating the 
-	 * palette if we see a significant frame to frame change. 
-	 */
+	int *global_colour_table;
+	int global_colour_table_length;
 
 	/* The current frame coming from libvips, the y position we write to,
 	 * and some spare pixels we copy down when we move to the next frame.
@@ -93,7 +92,7 @@ typedef struct _VipsForeignSaveCgif {
 	/* The current colourmap, updated on a significant frame change.
 	 */
 	VipsPel *palette_rgb;
-	gint64 frame_sum;
+	gint64 frame_checksum;
 
 	/* The index frame we get libimagequant to generate.
 	 */
@@ -194,12 +193,13 @@ vips_foreign_save_cgif_check_alpha_constraint( const VipsPel *cur,
 	const VipsPel *bef, int n_pels )
 {
 	while( n_pels-- ) {
-		if( cur[3] == 0 && bef[3] != 0) {
+		if( cur[3] == 0 && bef[3] != 0 ) 
 			return TRUE;
-		}
+
 		cur += 4;
 		bef += 4;
 	}
+
 	return FALSE;
 }
 
@@ -218,10 +218,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
-	VipsPel *rgb;
-	gint64 sum;
-	double change;
 	int i;
+	VipsPel *rgb;
 	CGIF_FrameConfig frame_config;
 
 #ifdef DEBUG_VERBOSE
@@ -246,52 +244,63 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Do we need to compute a new palette? Do it if the frame sum
 	 * changes.
 	 *
-	 * frame_sum 0 means no current colourmap.
+	 * frame_checksum 0 means no current colourmap.
 	 */
-	sum = 0;
-	p = frame_bytes;
-	for( i = 0; i < n_pels; i++ ) {
-		/* Scale RGBA differently so that changes like [0, 255, 0] 
+	if( !cgif->global_colour_table ) {
+		gint64 checksum;
+
+		/* We need a checksum which detects colour changes, but
+		 * doesn't care about pixel ordering.
+		 *
+		 * Scale RGBA differently so that changes like [0, 255, 0] 
 		 * to [255, 0, 0] are detected.
 		 */
-		sum += p[0] * 1000; 
-		sum += p[1] * 100; 
-		sum += p[2] * 10; 
-		sum += p[3]; 
+		checksum = 0;
+		p = frame_bytes;
+		for( i = 0; i < n_pels; i++ ) {
+			checksum += p[0] * 1000;
+			checksum += p[1] * 100;
+			checksum += p[2] * 10;
+			checksum += p[3];
 
-		p += 4;
-	}
-	change = VIPS_ABS( ((double) sum - cgif->frame_sum) ) / n_pels;
-
-	if( cgif->frame_sum == 0 ||
-		change > 0 ) { 
-		cgif->frame_sum = sum;
-
-		/* If this is not our first cmap, make a note that we need to
-		 * attach it as a local cmap when we write.
-		 */
-		if( cgif->quantisation_result ) 
-			cgif->cgif_config.attrFlags |= 
-				CGIF_ATTR_NO_GLOBAL_TABLE;
-
-		VIPS_FREEF( vips__quantise_result_destroy, 
-			cgif->quantisation_result );
-		if( vips__quantise_image_quantize( cgif->input_image, 
-			cgif->attr, &cgif->quantisation_result ) ) { 
-			vips_error( class->nickname, 
-				"%s", _( "quantisation failed" ) );
-			return( -1 );
+			p += 4;
 		}
 
+		if( cgif->frame_checksum == 0 ||
+			checksum != cgif->frame_checksum ) { 
+			cgif->frame_checksum = checksum;
+
+			/* If this is not our first cmap, make a note that we 
+			 * need to attach it as a local cmap when we write.
+			 */
+			if( cgif->quantisation_result )
+				cgif->cgif_config.attrFlags |=
+					CGIF_ATTR_NO_GLOBAL_TABLE;
+
+			VIPS_FREEF( vips__quantise_result_destroy,
+				cgif->quantisation_result );
+			if( vips__quantise_image_quantize( cgif->input_image,
+				cgif->attr, &cgif->quantisation_result ) ) {
+				vips_error( class->nickname,
+					"%s", _( "quantisation failed" ) );
+				return( -1 );
+			}
+
 #ifdef DEBUG_PERCENT
-		cgif->n_cmaps_generated += 1;
+			cgif->n_cmaps_generated += 1;
+			cgif->lp = vips__quantise_get_palette( 
+				cgif->quantisation_result );
+			printf( "frame %d, new %d item colourmap\n",
+				page_index, cgif->lp->count );
 #endif/*DEBUG_PERCENT*/
+		}
 	}
 
 	/* Dither frame.
 	 */
-	vips__quantise_set_dithering_level( cgif->quantisation_result, 
+	vips__quantise_set_dithering_level( cgif->quantisation_result,
 		cgif->dither );
+
 	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
@@ -313,15 +322,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		rgb += 3;
 	}
 
-#ifdef DEBUG_PERCENT
-	if( change > 0 )
-		printf( "frame %d, change %g, new %d item colourmap\n",
-			page_index, change, cgif->lp->count );
-	else
-		printf( "frame %d, reusing previous %d item colourmap\n",
-			page_index, cgif->lp->count );
-#endif/*DEBUG_PERCENT*/
-
 	/* If there's a transparent pixel, it's always first.
 	 */
 	cgif->has_transparency = cgif->lp->entries[0].a == 0;
@@ -334,7 +334,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
-		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED | ( cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0 );
+		cgif->cgif_config.attrFlags = 
+			CGIF_ATTR_IS_ANIMATED | 
+			(cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0);
 #else
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 #endif/*HAVE_CGIF_ATTR_NO_LOOP*/
@@ -342,7 +344,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
-		cgif->cgif_config.numLoops = cgif->loop > 1 ? cgif->loop - 1 : cgif->loop;
+		cgif->cgif_config.numLoops = cgif->loop > 1 ? 
+			cgif->loop - 1 : cgif->loop;
 #else
 		cgif->cgif_config.numLoops = cgif->loop;
 #endif/*HAVE_CGIF_ATTR_NO_LOOP*/
@@ -365,8 +368,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 	frame_config.attrFlags = 0;
 
-	/* Switch per-frame alpha channel on.
-	 * Index 0 is used for pixels with alpha channel.
+	/* Switch per-frame alpha channel on. Index 0 is used for pixels 
+	 * with alpha channel.
 	 */
 	if( cgif->has_transparency ) {
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_ALPHA;
@@ -383,9 +386,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cur = frame_bytes;
 		bef = cgif->frame_bytes_head;
 		has_alpha_constraint =
-			vips_foreign_save_cgif_check_alpha_constraint(cur, bef, n_pels);
-		/* Transparency trick is only possible
-		 * when no alpha channel constraint is present.
+			vips_foreign_save_cgif_check_alpha_constraint( cur, 
+				bef, n_pels );
+
+		/* Transparency trick is only possible when no alpha channel 
+		 * constraint is present.
 		 */
 		if( !has_alpha_constraint ) {
 			int i;
@@ -394,7 +399,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			trans_index = cgif->lp->count;
 			if( cgif->has_transparency ) {
 				trans_index = 0;
-				frame_config.attrFlags &= (~CGIF_FRAME_ATTR_HAS_ALPHA);
+				frame_config.attrFlags &= 
+					~CGIF_FRAME_ATTR_HAS_ALPHA;
 			}
 
 			for( i = 0; i < n_pels; i++ ) {
@@ -417,10 +423,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			frame_config.transIndex = trans_index;
 		} 
 		else {
-			/* Transparency trick not possible (constraining alpha channel
-			 * present). Update head.
+			/* Transparency trick not possible (constraining alpha 
+			 * channel present). Update head.
 			 */
-			memcpy( bef, cur, 4 * n_pels);
+			memcpy( bef, cur, 4 * n_pels );
 		}
 	}
 
@@ -585,6 +591,42 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
+	/* Initialise quantization result using global palette.
+	 */
+	if( !cgif->reoptimise &&
+		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+		VipsQuantiseImage *tmp_image;
+		int *tmp_gct;
+		int *gct;
+		int gct_length;
+
+		vips_image_get_array_int( cgif->in, "gif-palette",
+			&cgif->global_colour_table,
+			&cgif->global_colour_table_length);
+		gct = cgif->global_colour_table;
+		gct_length = cgif->global_colour_table_length;
+
+		/* Attach fake alpha channel.
+		 * That's necessary, because we do not know whether there is an
+		 * alpha channel before processing the animation.
+		 */
+		tmp_gct = g_malloc((gct_length + 1) * sizeof(int));
+		memcpy(tmp_gct, gct, gct_length * sizeof(int));
+		tmp_gct[gct_length] = 0;
+		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
+			tmp_gct, gct_length + 1, 1, 0 );
+
+		if( vips__quantise_image_quantize( tmp_image,
+		       cgif->attr, &cgif->quantisation_result ) ) {
+		       vips_error( class->nickname,
+		       	"%s", _( "quantisation failed" ) );
+		       return( -1 );
+		}
+		VIPS_FREE( tmp_gct );
+		VIPS_FREEF( vips__quantise_image_destroy, tmp_image );
+	}
+
+
 	/* Set up cgif on first use.
 	 */
 
@@ -657,6 +699,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
 		0, 32, 0.0 );
+
+	VIPS_ARG_BOOL( class, "reoptimise", 14,
+		_( "Reoptimise palettes" ),
+		_( "Reoptimise colour palettes" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reoptimise ),
+		FALSE );
 }
 
 static void
@@ -666,6 +715,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->effort = 7;
 	gif->bitdepth = 8;
 	gif->maxerror = 0.0;
+	gif->reoptimise = FALSE;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
@@ -847,6 +897,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * Write to a file in GIF format.
  *
@@ -893,6 +944,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -944,6 +996,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a target.
  *

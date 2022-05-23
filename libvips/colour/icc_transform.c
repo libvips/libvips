@@ -1321,7 +1321,11 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	double *mul;
 	int i;
 
+#ifdef G_OS_WIN32
 	if( !(profile = cmsOpenProfileFromFile( profile_filename, "r" )) )
+#else /*!G_OS_WIN32*/
+	if( !(profile = cmsOpenProfileFromFile( profile_filename, "re" )) )
+#endif /*G_OS_WIN32*/
 		return( -1 );
 
 #ifdef DEBUG
