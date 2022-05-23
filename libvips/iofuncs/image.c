@@ -1582,10 +1582,25 @@ vips_image_posteval( VipsImage *image )
 {
 	if( image->progress_signal &&
 		image->progress_signal->time ) { 
+		gint64 processed;
+
 		VIPS_DEBUG_MSG( "vips_image_posteval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
+
+		/* Make sure posteval sees a finished progress.
+		 */
+		processed = image->time->tpels;
+		vips_progress_update( image->time, processed );
+
+		/* For vips7 compat, update the ->time on the signalling image
+		 * too, even though it may have a different width/height to
+		 * the image we are actually generating.
+		 */
+		if( image->progress_signal->time != image->time )
+			vips_progress_update( image->progress_signal->time,
+				processed );
 
 		if( !vips_image_get_typeof( image, "hide-progress" ) )
 			g_signal_emit( image->progress_signal, 
