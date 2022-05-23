@@ -894,6 +894,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * Write to a file in GIF format.
  *
@@ -940,6 +941,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -991,6 +993,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @reoptimise: %gboolean, reoptimise colour palettes
  *
  * As vips_gifsave(), but save to a target.
  *
