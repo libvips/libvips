@@ -628,7 +628,6 @@ magick_ismagick( const unsigned char *bytes, size_t length )
 #endif
 }
 
-
 int
 magick_quantize_images( Image *images,
 	const size_t depth, ExceptionInfo *exception )
@@ -869,7 +868,5 @@ magick_set_magick_profile( Image *image,
 
 	return( 0 );
 }
-
-
 
 #endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/

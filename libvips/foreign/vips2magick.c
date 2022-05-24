@@ -408,10 +408,19 @@ vips_foreign_save_magick_build( VipsObject *object )
 		}
 	}
 	
-	/* Bitdepth <= 8 requested? Quantize images.
+	/* Bitdepth <= 8 requested? Quantize/Dither images.
+	 * ImageMagick then selects the appropriate bit depth when writing
+	 * the actual image (e.g. BMP or GIF).
 	 */
 	if( magick->bitdepth ) {
-		magick_quantize_images( magick->images, magick->bitdepth, magick->exception );
+		if ( !magick_quantize_images( magick->images,
+			magick->bitdepth, magick->exception ) ) {
+			magick_inherit_exception( magick->exception,
+				magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
 	}
 
 	return( 0 );
