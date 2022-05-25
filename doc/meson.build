@@ -1,4 +1,4 @@
-private_headers = [
+private_libvips_headers = [
     'include/vips/almostdeprecated.h',
     'include/vips/deprecated.h',
     'include/vips/vips7compat.h',
@@ -34,7 +34,11 @@ private_headers = [
     'foreign/jpeg.h',
     'foreign/magick.h',
     'foreign/pforeign.h',
+    'foreign/quantise.h',
     'foreign/tiff.h',
+    'foreign/libnsgif/lzw.h',
+    'foreign/libnsgif/nsgif.h',
+    'foreign/libnsgif/test/cli.h',
     'freqfilt/pfreqfilt.h',
     'histogram/hist_unary.h',
     'histogram/phistogram.h',
@@ -46,6 +50,11 @@ private_headers = [
     'resample/presample.h',
     'resample/templates.h'
 ]
+
+private_headers = []
+foreach private_libvips_header : private_libvips_headers
+    private_headers += [join_paths(meson.project_source_root(), 'libvips', private_libvips_header)]
+endforeach
 
 markdown_content_files = files(
     'How-it-works.md',
@@ -109,7 +118,10 @@ docpath = get_option('prefix') / get_option('datadir') / 'gtk-doc' / 'html'
 gnome.gtkdoc('libvips',
     mode: 'none',
     main_xml: 'libvips-docs.xml.in',
-    src_dir: include_directories('../libvips'),
+    src_dir: [
+        join_paths(meson.project_source_root(), 'libvips'),
+        join_paths(meson.project_build_root(), 'libvips'),
+    ],
     dependencies: libvips_dep,
     scan_args: [
       '--ignore-headers=' + ' '.join(private_headers),
