@@ -59,6 +59,6 @@ if get_option('doxygen')
         output: 'html',
         command: [doxygen, doxyfile],
         install: true,
-        install_dir: get_option('prefix') / get_option('datadir') / 'doc' / 'libvips-doc'
+        install_dir: get_option('prefix') / get_option('datadir') / 'doc' / 'vips-doc'
     )
 endif
