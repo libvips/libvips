@@ -395,17 +395,15 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		for( i = 0; i < palette_count; i++ ) {
 			VipsPel *p = (VipsPel *) 
 				VIPS_IMAGE_ADDR( im_palette, i, 0 );
+			struct spng_plte_entry *entry =
+				&plte.entries[plte.n_entries];
 
-			if( p[3] == 255 ) {
-				struct spng_plte_entry *entry = 
-					&plte.entries[plte.n_entries];
+			entry->red = p[0];
+			entry->green = p[1];
+			entry->blue = p[2];
+			plte.n_entries += 1;
 
-				entry->red = p[0];
-				entry->green = p[1];
-				entry->blue = p[2];
-				plte.n_entries += 1;
-			}
-			else {
+			if( p[3] != 255 ) {
 				trns.type3_alpha[trns.n_type3_entries] = p[3];
 				trns.n_type3_entries += 1;
 			}
