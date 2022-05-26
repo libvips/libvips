@@ -237,8 +237,17 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	p = frame_bytes;
 	for( i = 0; i < n_pels; i++ ) {
-		if (p[3] >= 128) p[3] = 255;
-		else memset(p, 0, 4);
+		if( p[3] >= 128 ) 
+			p[3] = 255;
+		else {
+			/* Helps the quanizer generate a better palette.
+			 */
+			p[0] = 0;
+			p[1] = 0;
+			p[2] = 0;
+			p[3] = 0;
+		}
+
 		p += 4;
 	}
 
