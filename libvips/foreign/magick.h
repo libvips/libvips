@@ -88,6 +88,8 @@ int magick_optimize_image_layers( Image **images, ExceptionInfo *exception );
 int magick_optimize_image_transparency( const Image *images,
     ExceptionInfo *exception );
 
+int magick_quantize_images( Image *images, const size_t depth, ExceptionInfo *exception  );
+
 gboolean magick_ismagick( const unsigned char *bytes, size_t length );
 
 #endif /*HAVE_MAGICK6*/

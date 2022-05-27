@@ -286,6 +286,19 @@ magick_ismagick( const unsigned char *bytes, size_t length )
 		GetImageMagick( bytes, length, format ) );
 }
 
+int
+magick_quantize_images( Image *images,
+	const size_t depth, ExceptionInfo *exception )
+{
+	QuantizeInfo info;
+
+	GetQuantizeInfo( &info );
+	info.number_colors = 1 << depth;
+	QuantizeImages( &info, images, exception );
+
+	return( exception->severity == UndefinedException );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
@@ -614,6 +627,17 @@ magick_ismagick( const unsigned char *bytes, size_t length )
 	return( magick_sniff( bytes, length ) ||
 		GetImageMagick( bytes, length ) );
 #endif
+}
+
+int
+magick_quantize_images( Image *images,
+	const size_t depth, ExceptionInfo *exception )
+{
+	QuantizeInfo info;
+
+	GetQuantizeInfo( &info );
+	info.number_colors = (1 << depth);
+	return QuantizeImages( &info, images );
 }
 
 #endif /*HAVE_MAGICK6*/

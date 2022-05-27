@@ -69,6 +69,7 @@ typedef struct _VipsForeignSaveMagick {
 	char *filename;		/* NULL during buffer output */
 	char *format;
 	int quality;
+	int bitdepth;
 	gboolean optimize_gif_frames;
 	gboolean optimize_gif_transparency;
 
@@ -406,6 +407,21 @@ vips_foreign_save_magick_build( VipsObject *object )
 			return( -1 );
 		}
 	}
+	
+	/* Bitdepth <= 8 requested? Quantize/Dither images.
+	 * ImageMagick then selects the appropriate bit depth when writing
+	 * the actual image (e.g. BMP or GIF).
+	 */
+	if( magick->bitdepth ) {
+		if ( !magick_quantize_images( magick->images,
+			magick->bitdepth, magick->exception ) ) {
+			magick_inherit_exception( magick->exception,
+				magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
+	}
 
 	return( 0 );
 }
@@ -493,6 +509,13 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveMagick, 
 			optimize_gif_transparency ),
 		FALSE );
+		
+	VIPS_ARG_INT( class, "bitdepth", 6,
+		_( "Image bitdepth" ),
+		_( "Image bitdepth. Default is auto bitdepth." ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, bitdepth ),
+		0, 8, 0);
 }
 
 static void
@@ -502,6 +525,7 @@ vips_foreign_save_magick_init( VipsForeignSaveMagick *magick )
 	 * int array later.
 	 */
 	g_value_init( &magick->delay_gvalue, G_TYPE_INT );
+	magick->bitdepth = 0;
 }
 
 typedef struct _VipsForeignSaveMagickFile {

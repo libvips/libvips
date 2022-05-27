@@ -66,6 +66,7 @@
  * * @format: %gchararray, format to save as
  * * @optimize_gif_frames: %gboolean, apply GIF frames optimization
  * * @optimize_gif_transparency: %gboolean, apply GIF transparency optimization
+ * * @bitdepth: %gint, number of bits per pixel
  *
  * Write an image using libMagick.
  *
@@ -82,6 +83,9 @@
  * If @optimize_gif_transparency is set, pixels that don't change the image
  * through animation are made transparent. This takes some time for computation
  * but saves some time on encoding and produces smaller files in some cases.
+ *
+ * @bitdepth specifies the number of bits per pixel. The image will be quantized
+ * and dithered if the value is within the valid range (1 to 8).
  *
  * See also: vips_magicksave_buffer(), vips_magickload().
  *
@@ -113,6 +117,7 @@ vips_magicksave( VipsImage *in, const char *filename, ... )
  * * @format: %gchararray, format to save as
  * * @optimize_gif_frames: %gboolean, apply GIF frames optimization
  * * @optimize_gif_transparency: %gboolean, apply GIF transparency optimization
+ * * @bitdepth: %gint, number of bits per pixel
  *
  * As vips_magicksave(), but save to a memory buffer. 
  *
