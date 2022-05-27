@@ -84,6 +84,9 @@
  * through animation are made transparent. This takes some time for computation
  * but saves some time on encoding and produces smaller files in some cases.
  *
+ * @bitdepth specifies the number of bits per pixel. The image will be quantized
+ * and dithered if the value is within the valid range (1 to 8).
+ *
  * See also: vips_magicksave_buffer(), vips_magickload().
  *
  * Returns: 0 on success, -1 on error.

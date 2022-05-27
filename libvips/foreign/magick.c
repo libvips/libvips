@@ -293,8 +293,9 @@ magick_quantize_images( Image *images,
 	QuantizeInfo info;
 
 	GetQuantizeInfo( &info );
-	info.number_colors = (1 << depth);
-	QuantizeImages( &info, images, exception);
+	info.number_colors = 1 << depth;
+	QuantizeImages( &info, images, exception );
+
 	return( exception->severity == UndefinedException );
 }
 
