@@ -2,6 +2,8 @@
  *
  * 18/3/20
  * 	- from heifload.c
+ * 21/5/22
+ * 	- add ICC profile support
  */
 
 /*
@@ -31,7 +33,9 @@
 
  */
 
+/*
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -54,8 +58,6 @@
 
 /* TODO:
  *
- * - libjxl currently seems to be missing API to attach a profile
- *
  * - libjxl encode only works in one shot mode, so there's no way to write in
  *   chunks
  *
@@ -64,8 +66,6 @@
  * - add animation support
  *
  * - libjxl is currently missing error messages (I think)
- *
- * - fix scRGB gamma 
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
@@ -330,8 +330,18 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->info.intensity_target = stonits;
 	}
 
-	/* FIXME libjxl doesn't seem to have this API yet.
-	 *
+	/* We will be setting the ICC profile, or calling
+	 * JxlEncoderSetColorEncoding().
+	 */
+	jxl->info.uses_original_profile = TRUE;
+
+	if( JxlEncoderSetBasicInfo( jxl->encoder, &jxl->info ) ) {
+		vips_foreign_save_jxl_error( jxl, "JxlEncoderSetBasicInfo" );
+		return( -1 );
+	}
+
+	/* Set ICC profile, sRGB, or scRGB.
+	 */
 	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
 		const void *data;
 		size_t length;
@@ -340,28 +350,40 @@ vips_foreign_save_jxl_build( VipsObject *object )
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
-		jxl->info.uses_original_profile = JXL_TRUE;
-		... attach profile
+#ifdef DEBUG
+		printf( "attaching %zd bytes of ICC\n", length );
+#endif /*DEBUG*/
+		if( JxlEncoderSetICCProfile( jxl->encoder,
+			(guint8 *) data, length ) ) {
+			vips_foreign_save_jxl_error( jxl, 
+				"JxlEncoderSetColorEncoding" );
+			return( -1 );
+		}
 	}
-	else 
-		jxl->info.uses_original_profile = JXL_FALSE;
-	 */
+	else {
+		if( save->ready->Type == VIPS_INTERPRETATION_scRGB ) {
+#ifdef DEBUG
+			printf( "setting sRGB colourspace\n" );
+#endif /*DEBUG*/
 
-	/* Remove this when libjxl gets API to attach an ICC profile.
-	 */
-	jxl->info.uses_original_profile = JXL_FALSE;
+			JxlColorEncodingSetToLinearSRGB( &jxl->color_encoding, 
+				jxl->format.num_channels < 3 );
+		}
+		else {
+#ifdef DEBUG
+			printf( "setting scRGB colourspace\n" );
+#endif /*DEBUG*/
 
-	if( JxlEncoderSetBasicInfo( jxl->encoder, &jxl->info ) ) {
-		vips_foreign_save_jxl_error( jxl, "JxlEncoderSetBasicInfo" );
-		return( -1 );
-	}
+			JxlColorEncodingSetToSRGB( &jxl->color_encoding, 
+				jxl->format.num_channels < 3 );
+		}
 
-	JxlColorEncodingSetToSRGB( &jxl->color_encoding, 
-		jxl->format.num_channels < 3 );
-	if( JxlEncoderSetColorEncoding( jxl->encoder, &jxl->color_encoding ) ) {
-		vips_foreign_save_jxl_error( jxl, 
-			"JxlEncoderSetColorEncoding" );
-		return( -1 );
+		if( JxlEncoderSetColorEncoding( jxl->encoder, 
+			&jxl->color_encoding ) ) {
+			vips_foreign_save_jxl_error( jxl, 
+				"JxlEncoderSetColorEncoding" );
+			return( -1 );
+		}
 	}
 
 	/* Render the entire image in memory. libjxl seems to be missing
@@ -430,7 +452,6 @@ vips_foreign_save_jxl_build( VipsObject *object )
  */
 #define UC VIPS_FORMAT_UCHAR
 #define US VIPS_FORMAT_USHORT
-#define UI VIPS_FORMAT_UINT
 #define F VIPS_FORMAT_FLOAT
 
 /* Type promotion for save ... unsigned ints + float + double.

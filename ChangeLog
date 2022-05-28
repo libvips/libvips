@@ -27,6 +27,7 @@
 - add vips_tiffsave_target()
 - add vips_target_end(), deprecate vips_target_finish()
 - add "mixed" to webpsave [dloebl]
+- add support for ICC profiles and linear encoding to JXL load and save [f1ac]
 - add "reoptimise" to gifsave [dloebl]
 - add "bitdepth" to magicksave [dloebl]
 

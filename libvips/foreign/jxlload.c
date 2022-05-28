@@ -36,7 +36,7 @@
 /*
 #define DEBUG_VERBOSE
 #define DEBUG
- */
+*/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -434,7 +434,6 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 			break;
 
 		case VIPS_FORMAT_USHORT:
-		case VIPS_FORMAT_UINT:
 			interpretation = VIPS_INTERPRETATION_GREY16;
 			break;
 
@@ -451,7 +450,6 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 			break;
 
 		case VIPS_FORMAT_USHORT:
-		case VIPS_FORMAT_UINT:
 			interpretation = VIPS_INTERPRETATION_RGB16;
 			break;
 
