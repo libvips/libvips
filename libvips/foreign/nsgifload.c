@@ -248,6 +248,9 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 {
 	double array[3];
 	const uint8_t *bg;
+	size_t entries;
+	uint32_t table[NSGIF_MAX_COLOURS];
+	int colours;
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_set_header:\n" );
 
@@ -299,13 +302,31 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 * metadata.
 	 */
 	if( !gif->local_palette ) {
-		size_t entries;
-		uint32_t table[NSGIF_MAX_COLOURS];
-
 		nsgif_global_palette( gif->anim, table, &entries );
 		vips_image_set_array_int( image, "gif-palette", 
-			(const int *) table, entries ); 
+			(const int *) table, entries );
+
+		colours = entries;
+	} else {
+		int i;
+
+		colours = 0;
+
+		if( gif->info->global_palette ) {
+			nsgif_global_palette( gif->anim, table, &entries );
+			colours = entries;
+		}
+
+		for( i = 0; i < gif->info->frame_count; i++ ) {
+			if( nsgif_local_palette( gif->anim, i, table,
+				&entries) ) {
+				colours = VIPS_MAX(colours, entries);
+			}
+		}
 	}
+
+	vips_image_set_int( image, "palette-bit-depth", 
+		ceil( log2( colours ) ) ); 
 
 	return( 0 );
 }
