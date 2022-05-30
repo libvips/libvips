@@ -183,26 +183,6 @@ vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 	return( sqrt( dR * dR + dG * dG + dB * dB ) <= maxerror );
 }
 
-/* Check if the alpha channel of the current frame matches the frame before.
- * If the current frame has an alpha component which is not identical to the
- * frame from before we are forced to use the transparency index for the
- * alpha channel instead of for the transparency size optimization (maxerror).
- */
-static gboolean
-vips_foreign_save_cgif_check_alpha_constraint( const VipsPel *cur,
-	const VipsPel *bef, int n_pels )
-{
-	while( n_pels-- ) {
-		if( cur[3] == 0 && bef[3] != 0 ) 
-			return TRUE;
-
-		cur += 4;
-		bef += 4;
-	}
-
-	return FALSE;
-}
-
 /* We have a complete frame --- write!
  */
 static int
@@ -217,8 +197,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	VipsPel *frame_bytes = 
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
-	VipsPel * restrict p;
 	int i;
+	VipsPel * restrict cur;
+	VipsPel * restrict bef;
+	gboolean has_alpha_constraint = FALSE;
 	VipsPel *rgb;
 	CGIF_FrameConfig frame_config;
 
@@ -234,21 +216,32 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	/* Threshold the alpha channel. It's safe to modify the region since 
 	 * it's a buffer we made.
+	 *
+	 * Also, check if the alpha channel of the current frame matches the
+	 * frame before.
+	 * If the current frame has an alpha component which is not identical
+	 * to the frame from before we are forced to use the transparency index
+	 * for the alpha channel instead of for the transparency size
+	 * optimization (maxerror).
 	 */
-	p = frame_bytes;
+	cur = frame_bytes;
+	bef = cgif->frame_bytes_head;
 	for( i = 0; i < n_pels; i++ ) {
-		if( p[3] >= 128 ) 
-			p[3] = 255;
+		if( cur[3] >= 128 )
+			cur[3] = 255;
 		else {
 			/* Helps the quanizer generate a better palette.
 			 */
-			p[0] = 0;
-			p[1] = 0;
-			p[2] = 0;
-			p[3] = 0;
+			cur[0] = 0;
+			cur[1] = 0;
+			cur[2] = 0;
+			cur[3] = 0;
+
+			if( bef && bef[i * 4 + 3] != 0 )
+				has_alpha_constraint = TRUE;
 		}
 
-		p += 4;
+		cur += 4;
 	}
 
 	/* Do we need to compute a new palette? Do it if the frame sum
@@ -266,14 +259,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		 * to [255, 0, 0] are detected.
 		 */
 		checksum = 0;
-		p = frame_bytes;
+		cur = frame_bytes;
 		for( i = 0; i < n_pels; i++ ) {
-			checksum += p[0] * 1000;
-			checksum += p[1] * 100;
-			checksum += p[2] * 10;
-			checksum += p[3];
+			checksum += cur[0] * 1000;
+			checksum += cur[1] * 100;
+			checksum += cur[2] * 10;
+			checksum += cur[3];
 
-			p += 4;
+			cur += 4;
 		}
 
 		if( cgif->frame_checksum == 0 ||
@@ -390,20 +383,13 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 * transparent.
 	*/
 	if( cgif->frame_bytes_head ) {
-		VipsPel *cur, *bef;
-		gboolean has_alpha_constraint;
-
 		cur = frame_bytes;
 		bef = cgif->frame_bytes_head;
-		has_alpha_constraint =
-			vips_foreign_save_cgif_check_alpha_constraint( cur, 
-				bef, n_pels );
 
 		/* Transparency trick is only possible when no alpha channel 
 		 * constraint is present.
 		 */
 		if( !has_alpha_constraint ) {
-			int i;
 			uint8_t trans_index;
 
 			trans_index = cgif->lp->count;
