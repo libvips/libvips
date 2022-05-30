@@ -45,7 +45,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include <vips/vips.h>
 
@@ -163,7 +162,7 @@ static int vips__cgif_write( void *target, const uint8_t *buffer,
  */
 static gboolean
 vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
-	double maxerror )
+	double sq_maxerror )
 {
 	if( bef[3] != cur[3] )
 		/* Alpha channel must be identical.
@@ -180,7 +179,7 @@ vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 	const int dG = cur[1] - bef[1];
 	const int dB = cur[2] - bef[2];
 
-	return( sqrt( dR * dR + dG * dG + dB * dB ) <= maxerror );
+	return( dR * dR + dG * dG + dB * dB <= sq_maxerror );
 }
 
 /* We have a complete frame --- write!
@@ -391,6 +390,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		 */
 		if( !has_alpha_constraint ) {
 			uint8_t trans_index;
+			double sq_maxerror;
 
 			trans_index = cgif->lp->count;
 			if( cgif->has_transparency ) {
@@ -399,9 +399,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 					~CGIF_FRAME_ATTR_HAS_ALPHA;
 			}
 
+			sq_maxerror = cgif->maxerror * cgif->maxerror;
+
 			for( i = 0; i < n_pels; i++ ) {
 				if( vips_foreign_save_cgif_pixels_are_equal( 
-					cur, bef, cgif->maxerror ) )
+					cur, bef, sq_maxerror ) )
 					cgif->index[i] = trans_index;
 				else {
 					bef[0] = cur[0];
