@@ -307,7 +307,8 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 			(const int *) table, entries );
 
 		colours = entries;
-	} else {
+	} 
+	else {
 		int i;
 
 		colours = 0;
@@ -319,9 +320,8 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 		for( i = 0; i < gif->info->frame_count; i++ ) {
 			if( nsgif_local_palette( gif->anim, i, table,
-				&entries) ) {
-				colours = VIPS_MAX(colours, entries);
-			}
+				&entries ) ) 
+				colours = VIPS_MAX( colours, entries );
 		}
 	}
 
