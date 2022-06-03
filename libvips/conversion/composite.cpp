@@ -896,7 +896,7 @@ vips_composite_base_blend3( VipsCompositeSequence *seq,
 			break;
 
 		case VIPS_BLEND_MODE_HARD_LIGHT:
-			f = A < 0.5 ? 
+			f = A <= 0.5 ? 
 				2 * A * B :
 				1 - 2 * (1 - A) * (1 - B);
 			break;
