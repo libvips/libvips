@@ -76,6 +76,11 @@
 #include <cairo.h>
 #include <poppler.h>
 
+/* Render PDFs with tiles this size. They need to be pretty big to limit 
+ * overcomputation.
+ */
+#define TILE_SIZE (2000)
+
 #define VIPS_TYPE_FOREIGN_LOAD_PDF (vips_foreign_load_pdf_get_type())
 #define VIPS_FOREIGN_LOAD_PDF( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -495,14 +500,14 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	g_signal_connect( t[0], "minimise",
 		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf );
 
-	/* Very large strips to limit render calls per page.
-	 */
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
 		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
-		vips_sequential( t[0], &t[1],
-			"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
-			NULL ) || 
+		vips_tilecache( t[0], &t[1],
+			"tile_width", TILE_SIZE,
+			"tile_height", TILE_SIZE,
+			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
+			NULL ) ||
 		vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 

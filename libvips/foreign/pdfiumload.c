@@ -637,11 +637,13 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 		return( -1 );
 
 	/* PDFium does not like rendering parts of pages :-( always render
-	 * complete ones. 
+	 * complete pages. 
 	 */
-	if( vips_linecache( t[0], &t[1],
-		"tile_height", pdf->pages[0].height, 
-		NULL ) ) 
+	if( vips_tilecache( t[0], &t[1],
+		"tile_width", pdf->pages[0].width,
+		"tile_height", pdf->pages[0].height,
+		"max_tiles", 1,
+		NULL ) )
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
 		return( -1 );

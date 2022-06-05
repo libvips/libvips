@@ -26,6 +26,8 @@
  * 	- allow utf-8 headers for svg detection
  * 28/4/22
  * 	- support rsvg_handle_get_intrinsic_size_in_pixels()
+ * 5/6/22
+ * 	- allow random access
  */
 
 /*
@@ -78,6 +80,11 @@
 
 #include <cairo.h>
 #include <librsvg/rsvg.h>
+
+/* Render SVGs with tiles this size. They need to be pretty big to limit 
+ * overcomputation.
+ */
+#define TILE_SIZE (2000)
 
 /* The <svg tag must appear within this many bytes of the start of the file.
  */
@@ -310,13 +317,15 @@ vips_foreign_load_svg_dispose( GObject *gobject )
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags_filename( const char *filename )
 {
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	/* We can render any part of the page on demand.
+	 */
+	return( VIPS_FOREIGN_PARTIAL );
 }
 
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 {
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	return( VIPS_FOREIGN_PARTIAL );
 }
 
 #if LIBRSVG_CHECK_VERSION( 2, 52, 0 )
@@ -658,21 +667,18 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 3 );
 
-	/* Make tiles 2000 pixels high to limit overcomputation. 
+	/* Enough tiles for two complete rows.
 	 */
 	t[0] = vips_image_new(); 
 	if( vips_foreign_load_svg_parse( svg, t[0] ) ||
 		vips_image_generate( t[0], NULL,
 			vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
 		vips_tilecache( t[0], &t[1],
-			"tile_width", t[0]->Xsize,
-			"tile_height", 2000,
-			"max_tiles", 1,
+			"tile_width", TILE_SIZE,
+			"tile_height", TILE_SIZE,
+			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
 			NULL ) ||
-		vips_sequential( t[1], &t[2], 
-			"tile_height", 2000, 
-			NULL ) ||
-		vips_image_write( t[2], load->real ) ) 
+		vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 
 	return( 0 );
