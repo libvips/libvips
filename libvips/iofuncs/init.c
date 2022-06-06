@@ -742,21 +742,6 @@ vips_shutdown( void )
 
 	vips_cache_drop_all();
 
-	/* In dev releases, always show leaks. But not more than once, it's
-	 * annoying.
-	 */
-#ifndef DEBUG_LEAK
-	if( vips__leak ) 
-#endif /*DEBUG_LEAK*/
-	{
-		static gboolean done = FALSE;
-
-		if( !done ) {
-			done = TRUE;
-			vips_leak();
-		}
-	}
-
 #if ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
@@ -787,6 +772,21 @@ vips_shutdown( void )
 	VIPS_FREE( vips__argv0 );
 	VIPS_FREE( vips__prgname );
 	VIPS_FREEF( g_timer_destroy, vips__global_timer );
+
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
+	 */
+#ifndef DEBUG_LEAK
+	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		static gboolean done = FALSE;
+
+		if( !done ) {
+			done = TRUE;
+			vips_leak();
+		}
+	}
 }
 
 static gboolean

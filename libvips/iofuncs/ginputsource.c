@@ -99,7 +99,7 @@ vips_g_input_stream_finalize( GObject *object )
 {
 	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( object );
 
-	VIPS_FREEF( g_object_unref, gstream->source );
+	VIPS_UNREF( gstream->source );
 
 	G_OBJECT_CLASS( vips_g_input_stream_parent_class )->finalize( object );
 }
@@ -107,13 +107,13 @@ vips_g_input_stream_finalize( GObject *object )
 static goffset
 vips_g_input_stream_tell( GSeekable *seekable )
 {
-	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( seekable );
 
 	goffset pos;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_tell:\n" );
 
-	pos = vips_source_seek( source, 0, SEEK_CUR );
+	pos = vips_source_seek( gstream->source, 0, SEEK_CUR );
 	if( pos == -1 )
 		return( 0 );
 
@@ -123,12 +123,12 @@ vips_g_input_stream_tell( GSeekable *seekable )
 static gboolean
 vips_g_input_stream_can_seek( GSeekable *seekable )
 {
-	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( seekable );
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_can_seek: %d\n", 
-		!source->is_pipe );
+		!gstream->source->is_pipe );
 
-	return( !source->is_pipe );
+	return( !gstream->source->is_pipe );
 }
 
 static int
@@ -149,12 +149,12 @@ static gboolean
 vips_g_input_stream_seek( GSeekable *seekable, goffset offset,
 	GSeekType type, GCancellable *cancellable, GError **error )
 {
-	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( seekable );
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
 		", type = %d\n", offset, type );
 
-	if( vips_source_seek( source, offset, 
+	if( vips_source_seek( gstream->source, offset, 
 		seek_type_to_lseek( type ) ) == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
@@ -189,17 +189,16 @@ static gssize
 vips_g_input_stream_read( GInputStream *stream, void *buffer, gsize count,
 	GCancellable *cancellable, GError **error )
 {
-	VipsSource *source;
-	gssize res;
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( stream );
 
-	source = VIPS_G_INPUT_STREAM( stream )->source;
+	gssize res;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_read: count: %zd\n", count );
 
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	if( (res = vips_source_read( source, buffer, count )) == -1 )
+	if( (res = vips_source_read( gstream->source, buffer, count )) == -1 )
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
 			_( "Error while reading: %s" ),
@@ -212,17 +211,16 @@ static gssize
 vips_g_input_stream_skip( GInputStream *stream, gsize count,
 	GCancellable *cancellable, GError **error )
 {
-	VipsSource *source;
-	gssize position;
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( stream );
 
-	source = VIPS_G_INPUT_STREAM( stream )->source;
+	gssize position;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_skip: count: %zd\n", count );
 
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	position = vips_source_seek( source, count, SEEK_CUR );
+	position = vips_source_seek( gstream->source, count, SEEK_CUR );
 	if( position == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
