@@ -87,6 +87,9 @@ vips__quantise_image_quantize( VipsQuantiseImage *const input_image,
 	return liq_image_quantize( input_image, options, result_output );
 }
 
+/* Like vips__quantise_image_quantize(), but make a fixed palette that won't
+ * get remapped during dithering.
+ */
 VipsQuantiseError
 vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	VipsQuantiseAttr *const options, VipsQuantiseResult **result_output )
@@ -98,7 +101,7 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	liq_image *fake_image;
 	void *fake_image_pixels;
 
-	/* First, quantize the image and get its palette
+	/* First, quantize the image and get its palette.
 	 */
 	err = liq_image_quantize( input_image, options, &result );
 	if( err != LIQ_OK )
@@ -108,10 +111,11 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 
 	/* Now, we need a fake 1 pixel image that will be quantized on the
 	 * next step. Its pixel color doesn't matter since we'll add all the
-	 * colors frm the palette further.
+	 * colors from the palette further.
 	 */
 	fake_image_pixels = malloc( 4 );
-	fake_image = liq_image_create_rgba( options, fake_image_pixels, 1, 1, 0 );
+	fake_image = 
+		liq_image_create_rgba( options, fake_image_pixels, 1, 1, 0 );
 	if( !fake_image ) {
 		liq_result_destroy( result );
 		free( fake_image_pixels );
@@ -128,7 +132,7 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	liq_result_destroy( result );
 
 	/* Finally, quantize the fake image with fixed colors to get the result
-	 * which palette won't be changed during remapping
+	 * palette which won't be changed during remapping
 	 */
 	err = liq_image_quantize( fake_image, options, result_output );
 

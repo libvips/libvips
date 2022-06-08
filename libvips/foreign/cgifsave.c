@@ -185,16 +185,17 @@ vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 }
 
 static double
-vips__cgif_compare_palettes(const VipsQuantisePalette *new,
-	const VipsQuantisePalette *old)
+vips__cgif_compare_palettes( const VipsQuantisePalette *new,
+	const VipsQuantisePalette *old )
 {
+	int i, j;
+	double best_dist, dist, rd, gd, bd;
+	double total_dist;
+
 	g_assert( new->count <= 256 );
 	g_assert( old->count <= 256 );
 
-	int i, j;
-	double best_dist, dist, rd, gd, bd;
-	double total_dist = 0.0;
-
+	total_dist = 0.0;
 	for( i = 0; i < new->count; i++ ) {
 		best_dist = 255.0 * 255.0 * 3;
 
@@ -210,15 +211,16 @@ vips__cgif_compare_palettes(const VipsQuantisePalette *new,
 				rd = new->entries[i].r - old->entries[j].r;
 				gd = new->entries[i].g - old->entries[j].g;
 				bd = new->entries[i].b - old->entries[j].b;
-				dist = rd*rd + gd*gd + bd*bd;
+				dist = rd * rd + gd * gd + bd * bd;
 
-				best_dist = VIPS_MIN(best_dist, dist);
+				best_dist = VIPS_MIN( best_dist, dist );
 
 				/* We found the closest entry
 				 */
 				if( best_dist == 0 )
 					break;
-			} else {
+			} 
+			else {
 				/* The new entry is transparent.
 				 * If the old entry is transparent too, it's
 				 * the closest color. Otherwise, ignore it.
@@ -233,7 +235,7 @@ vips__cgif_compare_palettes(const VipsQuantisePalette *new,
 		total_dist += best_dist;
 	}
 
-	return total_dist / new->count;
+	return( total_dist / new->count );
 }
 
 /* We have a complete frame --- write!
@@ -276,6 +278,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 *
 	 * Also, check if the alpha channel of the current frame matches the
 	 * frame before.
+	 *
 	 * If the current frame has an alpha component which is not identical
 	 * to the frame from before we are forced to use the transparency index
 	 * for the alpha channel instead of for the transparency size
@@ -306,7 +309,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( cgif->global_colour_table ) {
 		quantisation_result = cgif->quantisation_result;
 		lp = vips__quantise_get_palette( quantisation_result );
-	} else {
+	} 
+	else {
 		if( vips__quantise_image_quantize_fixed( cgif->input_image,
 			cgif->attr, &quantisation_result ) ) {
 			vips_error( class->nickname,
@@ -315,20 +319,19 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		}
 		lp = vips__quantise_get_palette( quantisation_result );
 
-		if( !cgif->quantisation_result ) {
+		if( !cgif->quantisation_result )
 			/* This is the first frame, save global quantization
 			 * result and palette
 			 */
 			cgif->quantisation_result = quantisation_result;
-
-		} else {
+		else {
 			pal_global = vips__quantise_get_palette(
 				cgif->quantisation_result );
 			pal_change_global = vips__cgif_compare_palettes(
 				lp, pal_global );
 
-			if ( !cgif->local_quantisation_result )
-				pal_change_local = 255*255*3;
+			if( !cgif->local_quantisation_result )
+				pal_change_local = 255 * 255 * 3;
 			else {
 				pal_local = vips__quantise_get_palette(
 					cgif->local_quantisation_result );
@@ -336,10 +339,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 					lp, pal_local );
 			}
 
-			if(
-				pal_change_local <= pal_change_global &&
-				pal_change_local <= cgif->interpalette_maxerror
-			) {
+			if( pal_change_local <= pal_change_global &&
+				pal_change_local <= 
+					cgif->interpalette_maxerror ) {
 				/* Local palette change is low, use previous
 				 * local quantization result and palette
 				 */
@@ -351,9 +353,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 				use_local_palette = 1;
 
-			} else if(
-				pal_change_global <= cgif->interpalette_maxerror
-			) {
+			} 
+			else if( pal_change_global <= 
+				cgif->interpalette_maxerror ) {
 				/* Global palette change is low, use global
 				 * quantization result and palette
 				 */
@@ -370,7 +372,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 					cgif->local_quantisation_result );
 				cgif->local_quantisation_result = NULL;
 
-			} else {
+			} 
+			else {
 				/* Palette change is high, use local
 				 * quantization result and palette
 				 */
@@ -389,21 +392,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		}
 	}
 
-	/* Dither frame.
+	/* Extract palette.
 	 */
-	vips__quantise_set_dithering_level( quantisation_result, cgif->dither );
-	if( vips__quantise_write_remapped_image( quantisation_result,
-		cgif->input_image, cgif->index, n_pels ) ) {
-		vips_error( class->nickname, "%s", _( "dither failed" ) );
-		return( -1 );
-	}
-
-	/* Call vips__quantise_get_palette() after vips__quantise_write_remapped_image(),
-	* as palette is improved during remapping.
-	*/
-	lp = vips__quantise_get_palette( quantisation_result );
-
-	if (use_local_palette || !cgif->cgif_context ) {
+	if( use_local_palette || 
+		!cgif->cgif_context ) {
 		rgb = cgif->palette_rgb;
 		g_assert( lp->count <= 256 );
 		for( i = 0; i < lp->count; i++ ) {
@@ -413,6 +405,15 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 			rgb += 3;
 		}
+	}
+
+	/* Dither frame.
+	 */
+	vips__quantise_set_dithering_level( quantisation_result, cgif->dither );
+	if( vips__quantise_write_remapped_image( quantisation_result,
+		cgif->input_image, cgif->index, n_pels ) ) {
+		vips_error( class->nickname, "%s", _( "dither failed" ) );
+		return( -1 );
 	}
 
 	/* If there's a transparent pixel, it's always first.
@@ -490,7 +491,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 					~CGIF_FRAME_ATTR_HAS_ALPHA;
 			}
 
-			sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
+			sq_maxerror = cgif->interframe_maxerror * 
+				cgif->interframe_maxerror;
 
 			for( i = 0; i < n_pels; i++ ) {
 				if( vips_foreign_save_cgif_pixels_are_equal( 
@@ -541,7 +543,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->frame_bytes_head = g_malloc( 4 * n_pels );
 		memcpy( cgif->frame_bytes_head, frame_bytes, 4 * n_pels );
 	}
-
 
 	return( 0 );
 }
@@ -655,7 +656,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* GIF has a limit of 64k per axis -- double-check this.
 	 */
-	if( frame_rect.width > 65535 || frame_rect.height > 65535 ) {
+	if( frame_rect.width > 65535 || 
+		frame_rect.height > 65535 ) {
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
 	}
