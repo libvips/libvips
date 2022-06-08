@@ -61,8 +61,9 @@ typedef struct _VipsForeignSaveCgif {
 	double dither;
 	int effort;
 	int bitdepth;
-	double maxerror;
+	double interframe_maxerror;
 	gboolean reoptimise;
+	double interpalette_maxerror;
 	VipsTarget *target;
 
 	/* Derived write params.
@@ -85,8 +86,7 @@ typedef struct _VipsForeignSaveCgif {
 	 */
 	VipsQuantiseAttr *attr;
 	VipsQuantiseImage *input_image;
-	VipsQuantiseResult *quantisation_result;
-	const VipsQuantisePalette *lp;
+	VipsQuantiseResult *quantisation_result, *local_quantisation_result;
 
 	/* The current colourmap, updated on a significant frame change.
 	 */
@@ -133,6 +133,8 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
 	VIPS_FREEF( vips__quantise_result_destroy, cgif->quantisation_result );
+	VIPS_FREEF( vips__quantise_result_destroy,
+		cgif->local_quantisation_result );
 	VIPS_FREEF( vips__quantise_image_destroy, cgif->input_image );
 	VIPS_FREEF( vips__quantise_attr_destroy, cgif->attr );
 
@@ -182,6 +184,58 @@ vips_foreign_save_cgif_pixels_are_equal( const VipsPel *cur, const VipsPel *bef,
 	return( dR * dR + dG * dG + dB * dB <= sq_maxerror );
 }
 
+static double
+vips__cgif_compare_palettes(const VipsQuantisePalette *new,
+	const VipsQuantisePalette *old)
+{
+	g_assert( new->count <= 256 );
+	g_assert( old->count <= 256 );
+
+	int i, j;
+	double best_dist, dist, rd, gd, bd;
+	double total_dist = 0.0;
+
+	for( i = 0; i < new->count; i++ ) {
+		best_dist = 255.0 * 255.0 * 3;
+
+		for( j = 0; j < old->count; j++ ) {
+			if( new->entries[i].a >= 128 ) {
+				/* The new entry is solid.
+				 * If the old entry is transparent, ignore it.
+				 * Otherwise, compare RGB.
+				*/
+				if( old->entries[j].a < 128 )
+					continue;
+
+				rd = new->entries[i].r - old->entries[j].r;
+				gd = new->entries[i].g - old->entries[j].g;
+				bd = new->entries[i].b - old->entries[j].b;
+				dist = rd*rd + gd*gd + bd*bd;
+
+				best_dist = VIPS_MIN(best_dist, dist);
+
+				/* We found the closest entry
+				 */
+				if( best_dist == 0 )
+					break;
+			} else {
+				/* The new entry is transparent.
+				 * If the old entry is transparent too, it's
+				 * the closest color. Otherwise, ignore it.
+				 */
+				if( old->entries[j].a < 128 ) {
+					best_dist = 0;
+					break;
+				}
+			}
+		}
+
+		total_dist += best_dist;
+	}
+
+	return total_dist / new->count;
+}
+
 /* We have a complete frame --- write!
  */
 static int
@@ -201,6 +255,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	VipsPel * restrict bef;
 	gboolean has_alpha_constraint = FALSE;
 	VipsPel *rgb;
+	VipsQuantiseResult *quantisation_result;
+	const VipsQuantisePalette *lp, *pal_global, *pal_local;
+	double pal_change_global, pal_change_local;
+	gboolean use_local_palette = FALSE;
 	CGIF_FrameConfig frame_config;
 
 #ifdef DEBUG_VERBOSE
@@ -243,90 +301,123 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cur += 4;
 	}
 
-	/* Do we need to compute a new palette? Do it if the frame sum
-	 * changes.
-	 *
-	 * frame_checksum 0 means no current colourmap.
+	/* Do we need to compute a new palette? Do it if the palette changes.
 	 */
-	if( !cgif->global_colour_table ) {
-		gint64 checksum;
-
-		/* We need a checksum which detects colour changes, but
-		 * doesn't care about pixel ordering.
-		 *
-		 * Scale RGBA differently so that changes like [0, 255, 0] 
-		 * to [255, 0, 0] are detected.
-		 */
-		checksum = 0;
-		cur = frame_bytes;
-		for( i = 0; i < n_pels; i++ ) {
-			checksum += cur[0] * 1000;
-			checksum += cur[1] * 100;
-			checksum += cur[2] * 10;
-			checksum += cur[3];
-
-			cur += 4;
+	if( cgif->global_colour_table ) {
+		quantisation_result = cgif->quantisation_result;
+		lp = vips__quantise_get_palette( quantisation_result );
+	} else {
+		if( vips__quantise_image_quantize_fixed( cgif->input_image,
+			cgif->attr, &quantisation_result ) ) {
+			vips_error( class->nickname,
+				"%s", _( "quantisation failed" ) );
+			return( -1 );
 		}
+		lp = vips__quantise_get_palette( quantisation_result );
 
-		if( cgif->frame_checksum == 0 ||
-			checksum != cgif->frame_checksum ) { 
-			cgif->frame_checksum = checksum;
-
-			/* If this is not our first cmap, make a note that we 
-			 * need to attach it as a local cmap when we write.
+		if( !cgif->quantisation_result ) {
+			/* This is the first frame, save global quantization
+			 * result and palette
 			 */
-			if( cgif->quantisation_result )
-				cgif->cgif_config.attrFlags |=
-					CGIF_ATTR_NO_GLOBAL_TABLE;
+			cgif->quantisation_result = quantisation_result;
 
-			VIPS_FREEF( vips__quantise_result_destroy,
+		} else {
+			pal_global = vips__quantise_get_palette(
 				cgif->quantisation_result );
-			if( vips__quantise_image_quantize( cgif->input_image,
-				cgif->attr, &cgif->quantisation_result ) ) {
-				vips_error( class->nickname,
-					"%s", _( "quantisation failed" ) );
-				return( -1 );
+			pal_change_global = vips__cgif_compare_palettes(
+				lp, pal_global );
+
+			if ( !cgif->local_quantisation_result )
+				pal_change_local = 255*255*3;
+			else {
+				pal_local = vips__quantise_get_palette(
+					cgif->local_quantisation_result );
+				pal_change_local = vips__cgif_compare_palettes(
+					lp, pal_local );
 			}
 
+			if(
+				pal_change_local <= pal_change_global &&
+				pal_change_local <= cgif->interpalette_maxerror
+			) {
+				/* Local palette change is low, use previous
+				 * local quantization result and palette
+				 */
+				VIPS_FREEF( vips__quantise_result_destroy,
+					quantisation_result );
+				quantisation_result =
+					cgif->local_quantisation_result;
+				lp = pal_local;
+
+				use_local_palette = 1;
+
+			} else if(
+				pal_change_global <= cgif->interpalette_maxerror
+			) {
+				/* Global palette change is low, use global
+				 * quantization result and palette
+				 */
+				VIPS_FREEF( vips__quantise_result_destroy,
+					quantisation_result );
+				quantisation_result = cgif->quantisation_result;
+				lp = pal_global;
+
+				/* Also drop saved local result as it's usage
+				 * doesn't make sense now and it's better to
+				 * use a new local result if neeeded
+				 */
+				VIPS_FREEF( vips__quantise_result_destroy,
+					cgif->local_quantisation_result );
+				cgif->local_quantisation_result = NULL;
+
+			} else {
+				/* Palette change is high, use local
+				 * quantization result and palette
+				 */
+				VIPS_FREEF( vips__quantise_result_destroy,
+					cgif->local_quantisation_result );
+				cgif->local_quantisation_result =
+					quantisation_result;
+
+				use_local_palette = 1;
 #ifdef DEBUG_PERCENT
-			cgif->n_cmaps_generated += 1;
-			cgif->lp = vips__quantise_get_palette( 
-				cgif->quantisation_result );
-			printf( "frame %d, new %d item colourmap\n",
-				page_index, cgif->lp->count );
+				cgif->n_cmaps_generated += 1;
+				printf( "frame %d, new %d item colourmap\n",
+					page_index, lp->count );
 #endif/*DEBUG_PERCENT*/
+			}
 		}
 	}
 
 	/* Dither frame.
 	 */
-	vips__quantise_set_dithering_level( cgif->quantisation_result,
-		cgif->dither );
-
-	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
+	vips__quantise_set_dithering_level( quantisation_result, cgif->dither );
+	if( vips__quantise_write_remapped_image( quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
 		return( -1 );
 	}
 
-	/* Call vips__quantise_get_palette() after 
-	 * vips__quantise_write_remapped_image(), as palette is improved 
-	 * during remapping.
-	 */
-	cgif->lp = vips__quantise_get_palette( cgif->quantisation_result );
-	rgb = cgif->palette_rgb;
-	g_assert( cgif->lp->count <= 256 );
-	for( i = 0; i < cgif->lp->count; i++ ) {
-		rgb[0] = cgif->lp->entries[i].r;
-		rgb[1] = cgif->lp->entries[i].g;
-		rgb[2] = cgif->lp->entries[i].b;
+	/* Call vips__quantise_get_palette() after vips__quantise_write_remapped_image(),
+	* as palette is improved during remapping.
+	*/
+	lp = vips__quantise_get_palette( quantisation_result );
 
-		rgb += 3;
+	if (use_local_palette || !cgif->cgif_context ) {
+		rgb = cgif->palette_rgb;
+		g_assert( lp->count <= 256 );
+		for( i = 0; i < lp->count; i++ ) {
+			rgb[0] = lp->entries[i].r;
+			rgb[1] = lp->entries[i].g;
+			rgb[2] = lp->entries[i].b;
+
+			rgb += 3;
+		}
 	}
 
 	/* If there's a transparent pixel, it's always first.
 	 */
-	cgif->has_transparency = cgif->lp->entries[0].a == 0;
+	cgif->has_transparency = lp->entries[0].a == 0;
 
 	/* Set up cgif on first use, so we can set the first cmap as the global
 	 * one.
@@ -344,7 +435,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 #endif/*HAVE_CGIF_ATTR_NO_LOOP*/
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
-		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
+		cgif->cgif_config.numGlobalPaletteEntries = lp->count;
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
 		cgif->cgif_config.numLoops = cgif->loop > 1 ? 
 			cgif->loop - 1 : cgif->loop;
@@ -392,14 +483,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			uint8_t trans_index;
 			double sq_maxerror;
 
-			trans_index = cgif->lp->count;
+			trans_index = lp->count;
 			if( cgif->has_transparency ) {
 				trans_index = 0;
 				frame_config.attrFlags &= 
 					~CGIF_FRAME_ATTR_HAS_ALPHA;
 			}
 
-			sq_maxerror = cgif->maxerror * cgif->maxerror;
+			sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
 
 			for( i = 0; i < n_pels; i++ ) {
 				if( vips_foreign_save_cgif_pixels_are_equal( 
@@ -435,10 +526,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	/* Attach a local palette, if we need one.
 	 */
-	if( cgif->cgif_config.attrFlags & CGIF_ATTR_NO_GLOBAL_TABLE ) {
+	if( use_local_palette ) {
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
 		frame_config.pLocalPalette = cgif->palette_rgb;
-		frame_config.numLocalPaletteEntries = cgif->lp->count;
+		frame_config.numLocalPaletteEntries = lp->count;
 	}
 
 	cgif_addframe( cgif->cgif_context, &frame_config );
@@ -450,6 +541,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->frame_bytes_head = g_malloc( 4 * n_pels );
 		memcpy( cgif->frame_bytes_head, frame_bytes, 4 * n_pels );
 	}
+
 
 	return( 0 );
 }
@@ -560,7 +652,10 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	frame_rect.top = 0;
 	frame_rect.width = cgif->in->Xsize;
 	frame_rect.height = page_height;
-	if( (guint64) frame_rect.width * frame_rect.height > 5000 * 5000 ) {
+
+	/* GIF has a limit of 64k per axis -- double-check this.
+	 */
+	if( frame_rect.width > 65535 || frame_rect.height > 65535 ) {
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
 	}
@@ -614,7 +709,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
 			tmp_gct, gct_length + 1, 1, 0 );
 
-		if( vips__quantise_image_quantize( tmp_image,
+		if( vips__quantise_image_quantize_fixed( tmp_image,
 		       cgif->attr, &cgif->quantisation_result ) ) {
 		       vips_error( class->nickname,
 		       	"%s", _( "quantisation failed" ) );
@@ -691,11 +786,11 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, bitdepth ),
 		1, 8, 8 );
 
-	VIPS_ARG_DOUBLE( class, "maxerror", 13,
-		_( "Maximum error" ),
+	VIPS_ARG_DOUBLE( class, "interframe_maxerror", 13,
+		_( "Maximum inter-frame error" ),
 		_( "Maximum inter-frame error for transparency" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveCgif, maxerror ),
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, interframe_maxerror ),
 		0, 32, 0.0 );
 
 	VIPS_ARG_BOOL( class, "reoptimise", 14,
@@ -704,6 +799,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, reoptimise ),
 		FALSE );
+
+	VIPS_ARG_DOUBLE( class, "interpalette_maxerror", 15,
+		_( "Maximum inter-palette error" ),
+		_( "Maximum inter-palette error for palette reusage" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, interpalette_maxerror ),
+		0, 256, 64.0 );
 }
 
 static void
@@ -712,8 +814,9 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->dither = 1.0;
 	gif->effort = 7;
 	gif->bitdepth = 8;
-	gif->maxerror = 0.0;
+	gif->interframe_maxerror = 0.0;
 	gif->reoptimise = FALSE;
+	gif->interpalette_maxerror = 64.0;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
@@ -894,8 +997,10 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @dither: %gdouble, quantisation dithering level
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
- * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
+ *   reusage
  *
  * Write to a file in GIF format.
  *
@@ -908,9 +1013,14 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * always reserved for transparency. For example, a bitdepth of
  * 4 will allow the output to contain up to 15 colours.
  *
- * Use @maxerror to set the threshold below which pixels are considered equal.
+ * Use @interframe_maxerror to set the threshold below which pixels are
+ * considered equal.
  * Pixels which don't change from frame to frame can be made transparent,
  * improving the compression rate. Default 0.
+ *
+ * If @reoptimise is TRUE, new palettes will be generated. Use
+ * @interpalette_maxerror to set the threshold below which one of the previously
+ * generated palettes will be reused.
  *
  * See also: vips_image_new_from_file().
  *
@@ -941,8 +1051,10 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @dither: %gdouble, quantisation dithering level
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
- * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
+ *   reusage
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -993,8 +1105,10 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @dither: %gdouble, quantisation dithering level
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
- * * @maxerror: %gdouble, maximum inter-frame error for transparency
+ * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
+ *   reusage
  *
  * As vips_gifsave(), but save to a target.
  *
