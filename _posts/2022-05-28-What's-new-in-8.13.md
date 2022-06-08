@@ -42,6 +42,8 @@ The [libvips
 README](https://github.com/libvips/libvips/blob/master/README.md#building-from-source)
 has some more notes.
 
+**Maybe move this down the running order? Only devs will care**
+
 # Blocking of unfuzzed loaders 
 
 libvips support many image format libraries. Some of these are well tested
@@ -49,20 +51,23 @@ against malicious input files, but some are not.
 
 If you were developing a web service that used libvips to handle untrusted
 image files, our advice used to be to build your own libvips binary that
-only had support for the file types you wanted to handle.  This was safe, but
-also hard work --- it made deployment significantly more complex in some cases.
+only had support for the file types you wanted to handle (this is what
+projects like [sharp](https://sharp.pixelplumbing.com) do).  This was safe,
+but also hard work --- it could make deployment significantly more complex
+for some users.
 
 libvips 8.13 has a new feature which can block untrusted operations at
 runtime, and at a very low level. This means you can use any libvips binary
 and be confident that any unsafe code is not being exposed to internet data.
 
-If `VIPS_BLOCK_UNTRUSTED` is set, then any operation that we've tagged as
-untrusted will be prevented from running. This should be very simple to add to
-existing projects.
+If the environment variable `VIPS_BLOCK_UNTRUSTED` is set, then any operation
+that we've tagged as untrusted will be prevented from running. This should
+be very simple to add to existing projects.
 
-There's also an API which gives much finer control. See 
-`vips_operation_block_untrusted_set()` and ``vips_operation_block_set()`.
-We'll add these operations to the various libvips bindings.
+There's also an API which gives much finer control. See
+[`vips_operation_block_untrusted_set()`](link) and
+[`vips_operation_block_set()`](link), We'll add these operations to the
+various libvips bindings.
 
 # Improved GIF support
 
@@ -83,20 +88,20 @@ $ ls -l vips-12.gif vips-13.gif
 -rw-r--r-- 1 john john 2487189 Jun  8 16:25 vips-13.gif
 ```
 
-So about 7x faster, and 30% smaller.
-
+So about 7x faster and 30% smaller.
 
 There's a good improvement against imagemagick too:
 
-````
+```
 $ /usr/bin/time -f %M:%e convert 3198.gif -resize 75% im.gif
 200796:6.44
 $ ls -l im.gif vips-13.gif 
 -rw-rw-r-- 1 john john 3176859 Jun  8 16:26 im.gif
 ```
 
-libvips is around 10x faster, needs 4x less memory, makes GIFs which are 
-20% smaller, and produces higher quality output.
+On this task, compared to imagemagick6, libvips is around 10x faster,
+needs 4x less memory, makes GIFs which are 20% smaller, and produces higher
+quality output.
 
 The new GIF saver has quite a few options to control output, take a look at
 [the docs](link).
