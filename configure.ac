@@ -1241,10 +1241,10 @@ AC_ARG_WITH([fontconfig],
     [build without fontconfig (default: test)]))
 
 if test x"$with_pangocairo" != x"no" -a x"$with_fontconfig" != x"no"; then
-  PKG_CHECK_MODULES(FONTCONFIG, fontconfig,
+  PKG_CHECK_MODULES(FONTCONFIG, fontconfig pangoft2 >= 1.4,
     [AC_DEFINE(HAVE_FONTCONFIG,1,[define if you have fontconfig installed.])
      with_fontconfig=yes
-     PACKAGES_USED="$PACKAGES_USED fontconfig"
+     PACKAGES_USED="$PACKAGES_USED fontconfig pangoft2"
     ],
     [AC_MSG_WARN([fontconfig not found; disabling fontconfig support])
      with_fontconfig=no
