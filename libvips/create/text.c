@@ -86,6 +86,7 @@
 #include <pango/pangocairo.h>
 
 #ifdef HAVE_FONTCONFIG
+#include <pango/pangofc-fontmap.h>
 #include <fontconfig/fontconfig.h>
 #endif
 
@@ -389,6 +390,13 @@ vips_text_build( VipsObject *object )
 		g_hash_table_insert( vips_text_fontfiles, 
 			text->fontfile,
 			g_strdup( text->fontfile ) );
+
+		/* We need to inform that pango should invalidate its
+		 * fontconfig cache whenever any changes are made.
+		 */
+		if( PANGO_IS_FC_FONT_MAP( vips_text_fontmap ) )
+			pango_fc_font_map_cache_clear(
+				PANGO_FC_FONT_MAP( vips_text_fontmap ) );
 	}
 #else /*!HAVE_FONTCONFIG*/
 	if( text->fontfile )
