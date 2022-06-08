@@ -140,19 +140,24 @@ If possible, libvips will now use the
 [`libspng`](https://github.com/randy408/libspng) library for PNG write as
 well as PNG read.  This can produce a useful increase in PNG speed.
 
-# Minor improvements
+### HEIC and AVIF
 
-- add "extend", "background" and "premultiplied" to vips_mapim() to fix edge
+These now support HDR images, and the loader has a new option to disable to
+DoS attack limits.
+
+### Other loader improvements
+
+- add `password` option to `pdfload`, fix byte ordering of `background`
+- add `mixed` to `webpsave` [dloebl]
+- add `bitdepth` to `magicksave` [dloebl]
+- `jp2kload` load left-justifies bitdepth
+- add `fail-on` to `thumbnail`
+
+# General minor improvements
+
+- add `extend`, `background` and `premultiplied` to `vips_mapim()` to fix edge
   antialiasing [GavinJoyce]
 - improve the pixel RNG for the noise operators
 - add support for regions in C++ API [shado23]
 - improve introspection annotations [tintou]
-- add support for HDR HEIC and AVIF images
-- add "password" option to pdfload, fix byte ordering of "background"
-- add "mixed" to webpsave [dloebl]
-- add "bitdepth" to magicksave [dloebl]
-- jpeg2000 load left-justifies bitdepth
-- add "unlimited" to heifload [lovell]
-- add "fail-on" to thumbnail
 
-And more even more minor things.
