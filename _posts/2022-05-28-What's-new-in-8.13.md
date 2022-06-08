@@ -131,7 +131,7 @@ means you can write these formats (for example) to pipes or even perhaps S3
 buckets with no need for intermediate files.
 
 There are some complications due to the way these formats work, and you can
-need up to 30% of the image size in memory for extra buffering. But at least
+need up to 30% of the image size in memory for extra buffering, but at least
 it's possible now.
 
 ### `libspng` save
@@ -155,8 +155,8 @@ DoS attack limits.
 
 # General minor improvements
 
-- add `extend`, `background` and `premultiplied` to `vips_mapim()` to fix edge
-  antialiasing [GavinJoyce]
+- add `extend`, `background` and `premultiplied` to [`vips_mapim()`](link) to 
+  fix edge antialiasing [GavinJoyce]
 - improve the pixel RNG for the noise operators
 - add support for regions in C++ API [shado23]
 - improve introspection annotations [tintou]
