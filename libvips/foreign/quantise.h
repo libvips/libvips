@@ -69,6 +69,8 @@ VipsQuantiseImage *vips__quantise_image_create_rgba( const VipsQuantiseAttr *att
 	const void *bitmap, int width, int height, double gamma );
 VipsQuantiseError vips__quantise_image_quantize( VipsQuantiseImage *input_image,
 	VipsQuantiseAttr *options, VipsQuantiseResult **result_output );
+VipsQuantiseError vips__quantise_image_quantize_fixed( VipsQuantiseImage *input_image,
+	VipsQuantiseAttr *options, VipsQuantiseResult **result_output );
 VipsQuantiseError vips__quantise_set_dithering_level( VipsQuantiseResult *res,
 	float dither_level );
 const VipsQuantisePalette *vips__quantise_get_palette( VipsQuantiseResult *result );

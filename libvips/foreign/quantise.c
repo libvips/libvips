@@ -88,6 +88,57 @@ vips__quantise_image_quantize( VipsQuantiseImage *const input_image,
 }
 
 VipsQuantiseError
+vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
+	VipsQuantiseAttr *const options, VipsQuantiseResult **result_output )
+{
+	int i;
+	liq_result *result;
+	const liq_palette *palette;
+	liq_error err;
+	liq_image *fake_image;
+	void *fake_image_pixels;
+
+	/* First, quantize the image and get its palette
+	 */
+	err = liq_image_quantize( input_image, options, &result );
+	if( err != LIQ_OK )
+		return err;
+
+	palette = liq_get_palette( result );
+
+	/* Now, we need a fake 1 pixel image that will be quantized on the
+	 * next step. Its pixel color doesn't matter since we'll add all the
+	 * colors frm the palette further.
+	 */
+	fake_image_pixels = malloc( 4 );
+	fake_image = liq_image_create_rgba( options, fake_image_pixels, 1, 1, 0 );
+	if( !fake_image ) {
+		liq_result_destroy( result );
+		free( fake_image_pixels );
+		return LIQ_OUT_OF_MEMORY;
+	}
+
+	/* Add all the colors from the palette as fixed colors to the fake
+	 * image. Since the fixed colors number is the same as required colors
+	 * number, no new colors will be added.
+	 */
+	for( i = 0; i < palette->count; i++ )
+		liq_image_add_fixed_color( fake_image, palette->entries[i] );
+
+	liq_result_destroy( result );
+
+	/* Finally, quantize the fake image with fixed colors to get the result
+	 * which palette won't be changed during remapping
+	 */
+	err = liq_image_quantize( fake_image, options, result_output );
+
+	liq_image_destroy( fake_image );
+	free( fake_image_pixels );
+
+	return err;
+}
+
+VipsQuantiseError
 vips__quantise_set_dithering_level( VipsQuantiseResult *res,
 	float dither_level )
 {
@@ -172,6 +223,17 @@ vips__quantise_image_quantize( VipsQuantiseImage *const input_image,
 {
 	*result_output = quantizr_quantize( input_image, options );
 	return 0;
+}
+
+VipsQuantiseError
+vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
+	VipsQuantiseAttr *const options, VipsQuantiseResult **result_output )
+{
+	/* Quantizr doesn't change the palette during remapping, so we don't
+	 * need a special implementation for this
+	 */
+	return vips__quantise_image_quantize( input_image, options,
+		result_output );
 }
 
 VipsQuantiseError

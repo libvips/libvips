@@ -307,8 +307,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		quantisation_result = cgif->quantisation_result;
 		lp = vips__quantise_get_palette( quantisation_result );
 	} else {
-		if( vips__quantise_image_quantize( cgif->input_image, cgif->attr,
-			&quantisation_result ) ) {
+		if( vips__quantise_image_quantize_fixed( cgif->input_image,
+			cgif->attr, &quantisation_result ) ) {
 			vips_error( class->nickname,
 				"%s", _( "quantisation failed" ) );
 			return( -1 );
@@ -709,7 +709,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		tmp_image = vips__quantise_image_create_rgba( cgif->attr,
 			tmp_gct, gct_length + 1, 1, 0 );
 
-		if( vips__quantise_image_quantize( tmp_image,
+		if( vips__quantise_image_quantize_fixed( tmp_image,
 		       cgif->attr, &cgif->quantisation_result ) ) {
 		       vips_error( class->nickname,
 		       	"%s", _( "quantisation failed" ) );
