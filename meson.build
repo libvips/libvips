@@ -329,7 +329,7 @@ if libwebp_dep.found()
     cfg_var.set('HAVE_LIBWEBP', '1')
 endif
 
-pangocairo_dep = dependency('pangocairo', required: get_option('pangocairo'))
+pangocairo_dep = dependency('pangocairo', version: '>=1.32.6', required: get_option('pangocairo'))
 if pangocairo_dep.found()
     libvips_deps += pangocairo_dep
     cfg_var.set('HAVE_PANGOCAIRO', '1')
@@ -338,7 +338,7 @@ endif
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
 if fontconfig_dep.found() and pangocairo_dep.found()
     libvips_deps += fontconfig_dep
-    libvips_deps += dependency('pangoft2', version: '>=1.4')
+    libvips_deps += dependency('pangoft2', version: '>=1.32.6')
     cfg_var.set('HAVE_FONTCONFIG', '1')
 endif
 

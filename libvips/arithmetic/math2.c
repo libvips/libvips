@@ -231,7 +231,7 @@ vips_math2_class_init( VipsMath2Class *class )
 
 	VIPS_ARG_ENUM( class, "math2", 200, 
 		_( "Operation" ), 
-		_( "math to perform" ),
+		_( "Math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMath2, math2 ),
 		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW ); 
@@ -462,7 +462,7 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 
 	VIPS_ARG_ENUM( class, "math2", 200, 
 		_( "Operation" ), 
-		_( "math to perform" ),
+		_( "Math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMath2Const, math2 ),
 		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW ); 

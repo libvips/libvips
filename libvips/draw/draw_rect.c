@@ -177,21 +177,21 @@ vips_draw_rect_class_init( VipsDrawRectClass *class )
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "top", 7, 
-		_( "top" ), 
+		_( "Top" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, top ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "width", 8, 
-		_( "width" ), 
+		_( "Width" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, width ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "height", 9, 
-		_( "height" ), 
+		_( "Height" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, height ),

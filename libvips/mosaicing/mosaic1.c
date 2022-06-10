@@ -589,7 +589,7 @@ vips_mosaic1_class_init( VipsMosaic1Class *class )
 		0, 1000000000, 15 );
 
 	VIPS_ARG_BOOL( class, "search", 15, 
-		_( "search" ), 
+		_( "Search" ), 
 		_( "Search to improve tie-points" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, search ),

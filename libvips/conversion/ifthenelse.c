@@ -498,7 +498,7 @@ vips_ifthenelse_class_init( VipsIfthenelseClass *class )
 		G_STRUCT_OFFSET( VipsIfthenelse, in2 ) );
 
 	VIPS_ARG_BOOL( class, "blend", 4, 
-		_( "blend" ), 
+		_( "Blend" ), 
 		_( "Blend smoothly between then and else parts" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsIfthenelse, blend ),

@@ -211,7 +211,7 @@ vips_recomb_class_init( VipsRecombClass *class )
 
 	VIPS_ARG_IMAGE( class, "m", 102, 
 		_( "M" ), 
-		_( "matrix of coefficients" ),
+		_( "Matrix of coefficients" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsRecomb, m ) );
 }

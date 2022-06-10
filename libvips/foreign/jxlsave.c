@@ -503,7 +503,7 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 		0, 15, 1.0 );
 
 	VIPS_ARG_INT( class, "effort", 12, 
-		_( "effort" ), 
+		_( "Effort" ), 
 		_( "Encoding effort" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, effort ),

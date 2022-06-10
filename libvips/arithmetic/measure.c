@@ -192,7 +192,7 @@ vips_measure_class_init( VipsMeasureClass *class )
 	object_class->build = vips_measure_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Image to measure" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, in ) );

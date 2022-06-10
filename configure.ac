@@ -1221,7 +1221,7 @@ AC_ARG_WITH([pangocairo],
     [build without pangocairo (default: test)]))
 
 if test x"$with_pangocairo" != x"no"; then
-  PKG_CHECK_MODULES(PANGOCAIRO, pangocairo,
+  PKG_CHECK_MODULES(PANGOCAIRO, pangocairo >= 1.32.6,
     [AC_DEFINE(HAVE_PANGOCAIRO,1,[define if you have pangocairo installed.])
      with_pangocairo=yes
      PACKAGES_USED="$PACKAGES_USED pangocairo"
@@ -1241,7 +1241,7 @@ AC_ARG_WITH([fontconfig],
     [build without fontconfig (default: test)]))
 
 if test x"$with_pangocairo" != x"no" -a x"$with_fontconfig" != x"no"; then
-  PKG_CHECK_MODULES(FONTCONFIG, fontconfig pangoft2 >= 1.4,
+  PKG_CHECK_MODULES(FONTCONFIG, fontconfig pangoft2 >= 1.32.6,
     [AC_DEFINE(HAVE_FONTCONFIG,1,[define if you have fontconfig installed.])
      with_fontconfig=yes
      PACKAGES_USED="$PACKAGES_USED fontconfig pangoft2"

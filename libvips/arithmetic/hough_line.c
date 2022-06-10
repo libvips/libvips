@@ -145,7 +145,7 @@ vips_hough_line_class_init( VipsHoughClass *class )
 
 	VIPS_ARG_INT( class, "width", 110, 
 		_( "Width" ), 
-		_( "horizontal size of parameter space" ),
+		_( "Horizontal size of parameter space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsHoughLine, width ),
 		1, 100000, 256 );

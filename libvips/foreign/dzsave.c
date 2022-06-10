@@ -2534,7 +2534,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_TYPE_FOREIGN_DZ_LAYOUT, VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
 
 	VIPS_ARG_STRING( class, "suffix", 9, 
-		_( "suffix" ), 
+		_( "Suffix" ), 
 		_( "Filename suffix for tiles" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, suffix ),
@@ -2685,7 +2685,7 @@ vips_foreign_save_dz_target_build( VipsObject *object )
 	VipsForeignSaveDzTarget *target = (VipsForeignSaveDzTarget *) object;
 
 	dz->target = target->target;
-	g_object_ref( target->target );
+	g_object_ref( dz->target );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_target_parent_class )->
 		build( object ) )
@@ -2703,7 +2703,7 @@ vips_foreign_save_dz_target_class_init( VipsForeignSaveDzTargetClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "dzsave";
+	object_class->nickname = "dzsave_target";
 	object_class->description = _( "save image to deepzoom target" );
 	object_class->build = vips_foreign_save_dz_target_build;
 

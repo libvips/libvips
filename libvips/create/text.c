@@ -106,6 +106,7 @@ typedef struct _VipsText {
 	char *fontfile;
 	gboolean rgba;
 
+	PangoFontMap *fontmap;
 	PangoContext *context;
 	PangoLayout *layout;
 
@@ -115,17 +116,9 @@ typedef VipsCreateClass VipsTextClass;
 
 G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
 
-/* ... single-thread the body of vips_text() with this.
+/* ... single-thread vips_text_fontfiles with this.
  */
 static GMutex *vips_text_lock = NULL; 
-
-/* Just have one of these and reuse it.
- *
- * This does not unref cleanly on many platforms, so we will leak horribly
- * unless we reuse it. Sadly this means vips_text() needs to use a lock 
- * internally to single-thread text rendering.
- */
-static PangoFontMap *vips_text_fontmap = NULL;
 
 /* All the fontfiles we've loaded. fontconfig lets you add a fontfile
  * repeatedly, and we obviously don't want that.
@@ -196,7 +189,7 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	PangoRectangle logical_rect;
 
 	pango_cairo_font_map_set_resolution( 
-		PANGO_CAIRO_FONT_MAP( vips_text_fontmap ), text->dpi );
+		PANGO_CAIRO_FONT_MAP( text->fontmap ), text->dpi );
 
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
@@ -365,17 +358,15 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	g_mutex_lock( vips_text_lock ); 
+	text->fontmap = pango_cairo_font_map_get_default();
+	text->context = pango_font_map_create_context(
+		PANGO_FONT_MAP( text->fontmap ) );
 
-	if( !vips_text_fontmap )
-		vips_text_fontmap = pango_cairo_font_map_new();
+	g_mutex_lock( vips_text_lock ); 
 
 	if( !vips_text_fontfiles )
 		vips_text_fontfiles = 
 			g_hash_table_new( g_str_hash, g_str_equal );
-
-	text->context = pango_font_map_create_context( 
-		PANGO_FONT_MAP( vips_text_fontmap ) );
 
 #ifdef HAVE_FONTCONFIG
 	if( text->fontfile &&
@@ -394,9 +385,9 @@ vips_text_build( VipsObject *object )
 		/* We need to inform that pango should invalidate its
 		 * fontconfig cache whenever any changes are made.
 		 */
-		if( PANGO_IS_FC_FONT_MAP( vips_text_fontmap ) )
+		if( PANGO_IS_FC_FONT_MAP( text->fontmap ) )
 			pango_fc_font_map_cache_clear(
-				PANGO_FC_FONT_MAP( vips_text_fontmap ) );
+				PANGO_FC_FONT_MAP( text->fontmap ) );
 	}
 #else /*!HAVE_FONTCONFIG*/
 	if( text->fontfile )
@@ -404,27 +395,25 @@ vips_text_build( VipsObject *object )
 			_( "ignoring fontfile (no fontconfig support)" ) );
 #endif /*HAVE_FONTCONFIG*/
 
+	g_mutex_unlock( vips_text_lock );
+
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
 		!vips_object_argument_isset( object, "dpi" ) ) {
-		if( vips_text_autofit( text ) ) {
-			g_mutex_unlock( vips_text_lock ); 
+		if( vips_text_autofit( text ) )
 			return( -1 );
-		}
 	}
 
 	/* Layout. Can fail for "", for example.
 	 */
-	if( vips_text_get_extents( text, &extents ) ) {
-		g_mutex_unlock( vips_text_lock ); 
+	if( vips_text_get_extents( text, &extents ) )
 		return( -1 );
-	}
+
 	if( extents.width == 0 || 
 		extents.height == 0 ) {
 		vips_error( class->nickname, "%s", _( "no text to render" ) );
-		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
 
@@ -434,7 +423,6 @@ vips_text_build( VipsObject *object )
 		extents.height >= 32768 ) {
 		vips_error( class->nickname, 
 			"%s", _( "text image too large" ) );
-		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
 
@@ -448,10 +436,8 @@ vips_text_build( VipsObject *object )
 	image->Yoffset = extents.top;
 
 	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_write_prepare( image ) ) {
-		g_mutex_unlock( vips_text_lock ); 
+		vips_image_write_prepare( image ) ) 
 		return( -1 );
-	}
 
 	surface = cairo_image_surface_create_for_data( 
 		VIPS_IMAGE_ADDR( image, 0, 0 ), 
@@ -466,8 +452,6 @@ vips_text_build( VipsObject *object )
 	pango_cairo_show_layout( cr, text->layout );
 
 	cairo_destroy( cr );
-
-	g_mutex_unlock( vips_text_lock ); 
 
 	if( text->rgba ) {
 		int y;

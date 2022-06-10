@@ -109,8 +109,8 @@ vips_mask_ideal_band_class_init( VipsMaskIdealBandClass *class )
 		0.0, 1000000.0, 0.5 );
 
 	VIPS_ARG_DOUBLE( class, "radius", 8, 
-		_( "radius" ), 
-		_( "radius of circle" ),
+		_( "Radius" ), 
+		_( "Radius of circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskIdealBand, radius ),
 		0.0, 1000000.0, 0.1 );

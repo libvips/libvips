@@ -131,7 +131,7 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
 
 	VIPS_ARG_BOOL( class, "all_frames", 20, 
-		_( "all_frames" ), 
+		_( "All frames" ), 
 		_( "Read all frames from an image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, all_frames ),

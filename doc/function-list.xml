@@ -452,6 +452,11 @@
   <entry>vips_dzsave_buffer()</entry>
 </row>
 <row>
+  <entry>dzsave_target</entry>
+  <entry>Save image to deepzoom target</entry>
+  <entry>vips_dzsave_target()</entry>
+</row>
+<row>
   <entry>embed</entry>
   <entry>Embed an image in a larger image</entry>
   <entry>vips_embed()</entry>
@@ -1128,12 +1133,12 @@
 </row>
 <row>
   <entry>pngsave</entry>
-  <entry>Save image to png file</entry>
+  <entry>Save image to file as png</entry>
   <entry>vips_pngsave()</entry>
 </row>
 <row>
   <entry>pngsave_buffer</entry>
-  <entry>Save image to png buffer</entry>
+  <entry>Save image to buffer as png</entry>
   <entry>vips_pngsave_buffer()</entry>
 </row>
 <row>
@@ -1500,6 +1505,11 @@
   <entry>tiffsave_buffer</entry>
   <entry>Save image to tiff buffer</entry>
   <entry>vips_tiffsave_buffer()</entry>
+</row>
+<row>
+  <entry>tiffsave_target</entry>
+  <entry>Save image to tiff target</entry>
+  <entry>vips_tiffsave_target()</entry>
 </row>
 <row>
   <entry>tilecache</entry>

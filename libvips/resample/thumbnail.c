@@ -972,7 +972,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_ENUM( class, "size", 114, 
-		_( "size" ), 
+		_( "Size" ), 
 		_( "Only upsize, only downsize, or both" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, size ),

@@ -139,7 +139,7 @@ vips_getpoint_class_init( VipsGetpointClass *class )
 	object_class->build = vips_getpoint_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, in ) );

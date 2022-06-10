@@ -709,8 +709,8 @@ vips_maplut_class_init( VipsMaplutClass *class )
 		G_STRUCT_OFFSET( VipsMaplut, lut ) );
 
 	VIPS_ARG_INT( class, "band", 4, 
-		_( "band" ), 
-		_( "apply one-band lut to this band of in" ),
+		_( "Band" ), 
+		_( "Apply one-band lut to this band of in" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMaplut, band ),
 		-1, 10000, -1 ); 

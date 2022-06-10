@@ -274,7 +274,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		1, 100, 75 );
 
 	VIPS_ARG_ENUM( class, "predictor", 8, 
-		_( "predictor" ), 
+		_( "Predictor" ), 
 		_( "Compression prediction" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, predictor ),
@@ -282,7 +282,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 			VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL ); 
 
 	VIPS_ARG_STRING( class, "profile", 9, 
-		_( "profile" ), 
+		_( "Profile" ), 
 		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, profile ),
@@ -324,7 +324,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		FALSE );
 
 	VIPS_ARG_INT( class, "bitdepth", 15,
-		_( "bitdepth" ),
+		_( "Bit depth" ),
 		_( "Write as a 1, 2, 4 or 8 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, bitdepth ),
