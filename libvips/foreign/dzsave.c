@@ -2534,7 +2534,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_TYPE_FOREIGN_DZ_LAYOUT, VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
 
 	VIPS_ARG_STRING( class, "suffix", 9, 
-		_( "suffix" ), 
+		_( "Suffix" ), 
 		_( "Filename suffix for tiles" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, suffix ),

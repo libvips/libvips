@@ -1,5 +1,4 @@
 // bodies for vips operations
-// Mon Nov  1 03:31:09 PM CET 2021
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const
@@ -3519,6 +3518,14 @@ VipsBlob *VImage::tiffsave_buffer( VOption *options ) const
             set( "buffer", &buffer ) );
 
     return( buffer );
+}
+
+void VImage::tiffsave_target( VTarget target, VOption *options ) const
+{
+    call( "tiffsave_target",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "target", target ) );
 }
 
 VImage VImage::tilecache( VOption *options ) const

@@ -140,13 +140,13 @@ vips_gamma_class_init( VipsGammaClass *class )
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGamma, in ) );
 
 	VIPS_ARG_DOUBLE( class, "exponent", 2, 
-		_( "exponent" ), 
+		_( "Exponent" ), 
 		_( "Gamma factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGamma, exponent ),

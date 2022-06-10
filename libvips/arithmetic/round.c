@@ -167,7 +167,7 @@ vips_round_class_init( VipsRoundClass *class )
 
 	VIPS_ARG_ENUM( class, "round", 200, 
 		_( "Round operation" ), 
-		_( "rounding operation to perform" ),
+		_( "Rounding operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRound, round ),
 		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT ); 

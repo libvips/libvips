@@ -143,7 +143,7 @@ vips_countlines_class_init( VipsCountlinesClass *class )
 		0, 10000000, 0.0 );
 
 	VIPS_ARG_ENUM( class, "direction", 3, 
-		_( "direction" ), 
+		_( "Direction" ), 
 		_( "Countlines left-right or up-down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCountlines, direction ),

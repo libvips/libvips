@@ -154,14 +154,14 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		0, 100, 75 );
 
 	VIPS_ARG_BOOL( class, "lossless", 11, 
-		_( "lossless" ), 
-		_( "enable lossless compression" ),
+		_( "Lossless" ), 
+		_( "Enable lossless compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, lossless ),
 		FALSE ); 
 
 	VIPS_ARG_ENUM( class, "preset", 12,
-		_( "preset" ),
+		_( "Preset" ),
 		_( "Preset for lossy compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, preset ),

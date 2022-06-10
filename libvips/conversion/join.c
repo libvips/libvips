@@ -246,7 +246,7 @@ vips_join_class_init( VipsJoinClass *class )
 		G_STRUCT_OFFSET( VipsJoin, in2 ) );
 
 	VIPS_ARG_ENUM( class, "direction", 3, 
-		_( "direction" ), 
+		_( "Direction" ), 
 		_( "Join left-right or up-down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, direction ),

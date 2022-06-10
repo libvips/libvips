@@ -561,7 +561,7 @@ vips_rank_class_init( VipsRankClass *class )
 		1, 100000, 11 );
 
 	VIPS_ARG_INT( class, "index", 6, 
-		_( "index" ), 
+		_( "Index" ), 
 		_( "Select pixel at index" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRank, index ),

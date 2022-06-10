@@ -248,7 +248,7 @@ vips_boolean_class_init( VipsBooleanClass *class )
 
 	VIPS_ARG_ENUM( class, "boolean", 200, 
 		_( "Operation" ), 
-		_( "boolean to perform" ),
+		_( "Boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBoolean, operation ),
 		VIPS_TYPE_OPERATION_BOOLEAN, 
@@ -548,7 +548,7 @@ vips_boolean_const_class_init( VipsBooleanConstClass *class )
 
 	VIPS_ARG_ENUM( class, "boolean", 200, 
 		_( "Operation" ), 
-		_( "boolean to perform" ),
+		_( "Boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBooleanConst, operation ),
 		VIPS_TYPE_OPERATION_BOOLEAN, 

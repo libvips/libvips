@@ -203,21 +203,21 @@ vips_grid_class_init( VipsGridClass *class )
 
 	VIPS_ARG_INT( class, "tile_height", 3, 
 		_( "Tile height" ), 
-		_( "chop into tiles this high" ),
+		_( "Chop into tiles this high" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, tile_height ),
 		1, 10000000, 128 );
 
 	VIPS_ARG_INT( class, "across", 4, 
 		_( "Across" ), 
-		_( "number of tiles across" ),
+		_( "Number of tiles across" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, across ),
 		1, 10000000, 1 );
 
 	VIPS_ARG_INT( class, "down", 5, 
 		_( "Down" ), 
-		_( "number of tiles down" ),
+		_( "Number of tiles down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, down ),
 		1, 10000000, 1 );

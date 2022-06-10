@@ -1926,7 +1926,7 @@ vips_globalbalance_class_init( VipsGlobalbalanceClass *class )
 		G_STRUCT_OFFSET( VipsGlobalbalance, out ) );
 
 	VIPS_ARG_DOUBLE( class, "gamma", 5, 
-		_( "gamma" ), 
+		_( "Gamma" ), 
 		_( "Image gamma" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGlobalbalance, gamma ),

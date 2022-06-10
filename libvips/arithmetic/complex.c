@@ -258,7 +258,7 @@ vips_complex_class_init( VipsComplexClass *class )
 
 	VIPS_ARG_ENUM( class, "cmplx", 200, 
 		_( "Operation" ), 
-		_( "complex to perform" ),
+		_( "Complex to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplex, cmplx ),
 		VIPS_TYPE_OPERATION_COMPLEX, VIPS_OPERATION_COMPLEX_POLAR ); 
@@ -551,7 +551,7 @@ vips_complex2_class_init( VipsComplex2Class *class )
 
 	VIPS_ARG_ENUM( class, "cmplx", 200, 
 		_( "Operation" ), 
-		_( "binary complex operation to perform" ),
+		_( "Binary complex operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplex2, cmplx ),
 		VIPS_TYPE_OPERATION_COMPLEX2, 
@@ -766,7 +766,7 @@ vips_complexget_class_init( VipsComplexgetClass *class )
 
 	VIPS_ARG_ENUM( class, "get", 200, 
 		_( "Operation" ), 
-		_( "complex to perform" ),
+		_( "Complex to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplexget, get ),
 		VIPS_TYPE_OPERATION_COMPLEXGET, 

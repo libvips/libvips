@@ -511,8 +511,8 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		FALSE );
 		
 	VIPS_ARG_INT( class, "bitdepth", 6,
-		_( "Image bitdepth" ),
-		_( "Image bitdepth. Default is auto bitdepth." ),
+		_( "Bit depth" ),
+		_( "Number of bits per pixel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMagick, bitdepth ),
 		0, 8, 0);

@@ -598,21 +598,21 @@ vips_draw_flood_class_init( VipsDrawFloodClass *class )
 
 	VIPS_ARG_INT( class, "top", 8, 
 		_( "Top" ), 
-		_( "top edge of modified area" ),
+		_( "Top edge of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, top ),
 		0, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "width", 9, 
 		_( "Width" ), 
-		_( "width of modified area" ),
+		_( "Width of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, width ),
 		0, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "height", 10, 
 		_( "Height" ), 
-		_( "height of modified area" ),
+		_( "Height of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, height ),
 		0, 1000000000, 0 );

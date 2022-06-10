@@ -128,7 +128,7 @@ vips_freqmult_class_init( VipsFreqmultClass *class )
 	vobject_class->build = vips_freqmult_build;
 
 	VIPS_ARG_IMAGE( class, "mask", 0, 
-		_( "mask" ), 
+		_( "Mask" ), 
 		_( "Input mask image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFreqmult, mask ) );

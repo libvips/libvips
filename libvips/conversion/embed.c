@@ -813,7 +813,7 @@ vips_gravity_class_init( VipsGravityClass *class )
 
 	VIPS_ARG_ENUM( class, "direction", 3, 
 		_( "Direction" ), 
-		_( "direction to place image within width/height" ),
+		_( "Direction to place image within width/height" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGravity, direction ),
 		VIPS_TYPE_COMPASS_DIRECTION, VIPS_COMPASS_DIRECTION_CENTRE );

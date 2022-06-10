@@ -35,7 +35,7 @@ custom_target('vips-operators-header',
 custom_target('vips-operators-source',
     command: [ 'gen-operators.py', '-g', 'cpp'],
     capture: true,
-    output: 'vips-operators.cc'
+    output: 'vips-operators.cpp'
 )
 
 if get_option('doxygen')

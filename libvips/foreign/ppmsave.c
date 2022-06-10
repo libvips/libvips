@@ -473,21 +473,21 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 
 	VIPS_ARG_BOOL( class, "ascii", 10, 
 		_( "ASCII" ), 
-		_( "save as ascii" ),
+		_( "Save as ascii" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, ascii ),
 		FALSE );
 
 	VIPS_ARG_INT( class, "bitdepth", 15,
-		_( "bitdepth" ),
-		_( "set to 1 to write as a 1 bit image" ),
+		_( "Bit depth" ),
+		_( "Set to 1 to write as a 1 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, bitdepth ),
 		0, 1, 0 );
 
 	VIPS_ARG_BOOL( class, "squash", 11, 
 		_( "Squash" ), 
-		_( "save as one bit" ),
+		_( "Save as one bit" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, squash ),
 		FALSE );

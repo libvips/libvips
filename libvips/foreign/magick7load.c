@@ -393,7 +393,7 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 		-1, 100000, 1 );
 
 	VIPS_ARG_BOOL( class, "all_frames", 23, 
-		_( "all_frames" ), 
+		_( "All frames" ), 
 		_( "Read all frames from an image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, all_frames ),
