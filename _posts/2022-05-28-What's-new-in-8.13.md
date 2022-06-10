@@ -10,40 +10,6 @@ Many thanks to remicollet, DarthSim, GavinJoyce, tintou, lovell, shado23,
 dloebl, tlsa, kleisauke and others for their great work on
 this release.
 
-# New [meson](https://mesonbuild.com) build system
-
-libvips has been using [GNU
-autotools](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html)
-as its build system since the 1990s. It's worked well for us, but the
-world is moving on and a new generation of build systems are trying hard
-to displace it.
-
-We've settled on [meson](https://mesonbuild.com) and tintou has very
-generously done all the work. The old autotools system is still there for this
-release, but it will be removed for 8.14 and meson will the only one we
-support.
-
-The new build cheatsheet is:
-
-```
-cd libvips-x.y.x
-meson setup build-dir --prefix=/aaa/bbb/ccc
-cd build-dir
-meson compile
-meson test
-meson install
-```
-
-The new system is a *lot* faster. On this PC, the autotools build system used 
-to take 17s to configure and 6s to build libvips. Meson takes 2.8s to
-configure and ninja takes 4.6s to build. A four times speedup is very welcome.
-
-The [libvips
-README](https://github.com/libvips/libvips/blob/master/README.md#building-from-source)
-has some more notes.
-
-**Maybe move this down the running order? Only devs will care**
-
 # Blocking of unfuzzed loaders 
 
 libvips support many image format libraries. Some of these are well tested
@@ -58,21 +24,21 @@ for some users.
 
 libvips 8.13 has a new feature which can block untrusted operations at
 runtime, and at a very low level. This means you can use any libvips binary
-and be confident that any unsafe code is not being exposed to internet data.
+and be confident that unfuzzed code is not being exposed to internet data.
 
 If the environment variable `VIPS_BLOCK_UNTRUSTED` is set, then any operation
 that we've tagged as untrusted will be prevented from running. This should
 be very simple to add to existing projects.
 
-There's also an API which gives much finer control. See
-[`vips_operation_block_untrusted_set()`](link) and
-[`vips_operation_block_set()`](link), We'll add these operations to the
+There's also an API which gives much finer
+control. See [`vips_block_untrusted_set()`](link) and
+[`vips_operation_block_set()`](link). We'll add these operations to the
 various libvips bindings.
 
-# Improved GIF support
+# Much better GIF save
 
-GIF handling has been reworked again, and should now produce smaller files
-(sometimes much smaller) with lower CPU and memory load.
+GIF handling has been reworked again, and `gifsave` should now produce
+smaller files (sometimes much smaller) with lower CPU and memory load.
 
 Here's a benchmark with a short video clip:
 
@@ -103,13 +69,8 @@ On this task, compared to imagemagick6, libvips is around 10x faster,
 needs 4x less memory, makes GIFs which are 20% smaller, and produces higher
 quality output.
 
-The new GIF saver has quite a few options to control output, take a look at
-[the docs](link).
-
-**Should we remove some of the gif save options? Maybe just set sane values
-for interframe-maxerror and interpalette-maxerror**
-
-**Perhaps explain reoptimise and the strategy for local ctables?**
+The new GIF saver has quite a few options to control output, take [a look at
+the docs](link).
 
 # Image resize quality improvements
 
@@ -117,7 +78,7 @@ Kleis has spent a long time making a series of quality improvements to the
 image resize code. It should be no slower, but a series of edge cases have
 been identified and resolved.
 
-**add some more stuff**
+**add some more stuff? this is very vague**
 
 # File format support improvements
 
@@ -152,6 +113,38 @@ DoS attack limits.
 - add `bitdepth` to `magicksave` [dloebl]
 - `jp2kload` load left-justifies bitdepth
 - add `fail-on` to `thumbnail`
+
+# New [meson](https://mesonbuild.com) build system
+
+libvips has been using [GNU
+autotools](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html)
+as its build system since the 1990s. It's worked well for us, but the
+world is moving on and a new generation of build systems are trying hard
+to displace it.
+
+We've settled on [meson](https://mesonbuild.com) and tintou has very
+generously done all the work. The old autotools system is still there for this
+release, but it will be removed for 8.14 and meson will the only one we
+support.
+
+The new build cheatsheet is:
+
+```
+cd libvips-x.y.x
+meson setup build-dir --prefix=/aaa/bbb/ccc
+cd build-dir
+meson compile
+meson test
+meson install
+```
+
+The new system is a *lot* faster. On this PC, the autotools build system used 
+to take 17s to configure and 6s to build libvips. Meson takes 2.8s to
+configure and ninja takes 4.6s to build. A four times speedup is very welcome.
+
+The [libvips
+README](https://github.com/libvips/libvips/blob/master/README.md#building-from-source)
+has some more notes.
 
 # General minor improvements
 
