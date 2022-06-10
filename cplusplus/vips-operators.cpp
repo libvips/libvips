@@ -942,6 +942,14 @@ VipsBlob *VImage::dzsave_buffer( VOption *options ) const
     return( buffer );
 }
 
+void VImage::dzsave_target( VTarget target, VOption *options ) const
+{
+    call( "dzsave_target",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "target", target ) );
+}
+
 VImage VImage::embed( int x, int y, int width, int height, VOption *options ) const
 {
     VImage out;

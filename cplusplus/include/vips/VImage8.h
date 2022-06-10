@@ -2724,6 +2724,33 @@ void dzsave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *dzsave_buffer( VOption *options = 0 ) const;
 
 /**
+ * Save image to deepzoom target.
+ *
+ * **Optional parameters**
+ *   - **basename** -- Base name to save to, const char *.
+ *   - **layout** -- Directory layout, VipsForeignDzLayout.
+ *   - **suffix** -- Filename suffix for tiles, const char *.
+ *   - **overlap** -- Tile overlap in pixels, int.
+ *   - **tile_size** -- Tile size in pixels, int.
+ *   - **centre** -- Center image in tile, bool.
+ *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
+ *   - **angle** -- Rotate image during save, VipsAngle.
+ *   - **container** -- Pyramid container type, VipsForeignDzContainer.
+ *   - **compression** -- ZIP deflate compression level, int.
+ *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
+ *   - **skip_blanks** -- Skip tiles which are nearly equal to the background, int.
+ *   - **no_strip** -- Don't strip tile metadata, bool.
+ *   - **id** -- Resource ID, const char *.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void dzsave_target( VTarget target, VOption *options = 0 ) const;
+
+/**
  * Embed an image in a larger image.
  *
  * **Optional parameters**
