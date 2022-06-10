@@ -290,7 +290,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		if( cur[3] >= 128 )
 			cur[3] = 255;
 		else {
-			/* Helps the quanizer generate a better palette.
+			/* Helps the quantizer generate a better palette.
 			 */
 			cur[0] = 0;
 			cur[1] = 0;
@@ -366,7 +366,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 				/* Also drop saved local result as it's usage
 				 * doesn't make sense now and it's better to
-				 * use a new local result if neeeded
+				 * use a new local result if needed
 				 */
 				VIPS_FREEF( vips__quantise_result_destroy,
 					cgif->local_quantisation_result );
@@ -407,6 +407,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		}
 	}
 
+	/* If there's a transparent pixel, it's always first.
+	 */
+	cgif->has_transparency = lp->entries[0].a == 0;
+
 	/* Dither frame.
 	 */
 	vips__quantise_set_dithering_level( quantisation_result, cgif->dither );
@@ -415,10 +419,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
 		return( -1 );
 	}
-
-	/* If there's a transparent pixel, it's always first.
-	 */
-	cgif->has_transparency = lp->entries[0].a == 0;
 
 	/* Set up cgif on first use, so we can set the first cmap as the global
 	 * one.
