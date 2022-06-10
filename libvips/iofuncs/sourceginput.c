@@ -225,7 +225,7 @@ vips_source_g_input_stream_class_init( VipsSourceGInputStreamClass *class )
 	source_class->seek = vips_source_g_input_stream_seek;
 
 	VIPS_ARG_OBJECT( class, "stream", 3, 
-		_( "stream" ),
+		_( "Stream" ),
 		_( "GInputStream to read from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsSourceGInputStream, stream ),

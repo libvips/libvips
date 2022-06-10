@@ -118,8 +118,8 @@ vips_mask_gaussian_band_class_init( VipsMaskGaussianBandClass *class )
 		0.0, 1000000.0, 0.5 );
 
 	VIPS_ARG_DOUBLE( class, "radius", 9, 
-		_( "radius" ), 
-		_( "radius of circle" ),
+		_( "Radius" ), 
+		_( "Radius of circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskGaussianBand, radius ),
 		0.0, 1000000.0, 0.1 );

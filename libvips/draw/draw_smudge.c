@@ -201,21 +201,21 @@ vips_draw_smudge_class_init( VipsDrawSmudgeClass *class )
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "top", 7, 
-		_( "top" ), 
+		_( "Top" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, top ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "width", 8, 
-		_( "width" ), 
+		_( "Width" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, width ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "height", 9, 
-		_( "height" ), 
+		_( "Height" ), 
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, height ),

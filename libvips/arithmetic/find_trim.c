@@ -180,7 +180,7 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 	//operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Image to find_trim" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, in ) );

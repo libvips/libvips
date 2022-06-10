@@ -378,7 +378,7 @@ vips_falsecolour_class_init( VipsFalsecolourClass *class )
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFalsecolour, in ) );

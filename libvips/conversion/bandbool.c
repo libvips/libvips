@@ -219,7 +219,7 @@ vips_bandbool_class_init( VipsBandboolClass *class )
 
 	VIPS_ARG_ENUM( class, "boolean", 200, 
 		_( "Operation" ), 
-		_( "boolean to perform" ),
+		_( "Boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandbool, operation ),
 		VIPS_TYPE_OPERATION_BOOLEAN, 

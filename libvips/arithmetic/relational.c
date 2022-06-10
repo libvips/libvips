@@ -222,7 +222,7 @@ vips_relational_class_init( VipsRelationalClass *class )
 
 	VIPS_ARG_ENUM( class, "relational", 200, 
 		_( "Operation" ), 
-		_( "relational to perform" ),
+		_( "Relational to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRelational, relational ),
 		VIPS_TYPE_OPERATION_RELATIONAL, 
@@ -584,7 +584,7 @@ vips_relational_const_class_init( VipsRelationalConstClass *class )
 
 	VIPS_ARG_ENUM( class, "relational", 200, 
 		_( "Operation" ), 
-		_( "relational to perform" ),
+		_( "Relational to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRelationalConst, relational ),
 		VIPS_TYPE_OPERATION_RELATIONAL, 

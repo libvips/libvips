@@ -95,7 +95,7 @@ vips_freqfilt_class_init( VipsFreqfiltClass *class )
 	vobject_class->build = vips_freqfilt_build;
 
 	VIPS_ARG_IMAGE( class, "in", -1, 
-		_( "in" ), 
+		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFreqfilt, in ) );
