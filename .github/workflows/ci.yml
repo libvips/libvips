@@ -10,14 +10,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Linux x64 (Ubuntu 20.04) - GCC 9"
-            os: ubuntu-20.04
+          - name: "Linux x64 (Ubuntu 22.04) - GCC 11"
+            os: ubuntu-22.04
             build: { cc: gcc, cxx: g++, linker: ld }
             shell: bash
 
-          - name: "Linux x64 (Ubuntu 20.04) - Clang 13 with ASan and UBSan"
-            os: ubuntu-20.04
-            build: { cc: clang-13, cxx: clang++-13, linker: ld.lld-13, sanitize: true }
+          - name: "Linux x64 (Ubuntu 22.04) - Clang 14 with ASan and UBSan"
+            os: ubuntu-22.04
+            build: { cc: clang-14, cxx: clang++-14, linker: ld.lld-14, sanitize: true }
             shell: bash
 
           - name: "macOS (11.6) - Xcode 13.2.1"
@@ -51,18 +51,11 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo -E apt-get update -qq -o Acquire::Retries=3
 
-      - name: Add Ubuntu PPAs
-        if: runner.os == 'Linux'
-        run: |
-          sudo add-apt-repository ppa:strukturag/libde265
-          sudo add-apt-repository ppa:strukturag/libheif
-          sudo add-apt-repository ppa:lovell/cgif
-
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            ninja-build 
+            meson
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
             libpng-dev libwebp-dev libtiff5-dev
@@ -73,24 +66,17 @@ jobs:
             libopenslide-dev libffi-dev libopenjp2-7-dev
             libimagequant-dev libcgif-dev
 
-      - name: Install recent meson 
-        if: runner.os == 'Linux'
-        run:
-          sudo pip3 install meson
-
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
           brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp cgif
 
-      - name: Install Clang 13
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-13'
-        run: |
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -sc)/ llvm-toolchain-$(lsb_release -sc)-13 main"
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3 \
-            clang-13 libomp-13-dev lld-13 llvm-13
+      - name: Install Clang 14
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
+        run:
+          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+            clang-14 libomp-14-dev lld-14 llvm-14
 
       - name: Prepare Ubuntu environment
         if: runner.os == 'Linux'
@@ -105,7 +91,7 @@ jobs:
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-13
+          LLVM_PREFIX: /usr/lib/llvm-14
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
