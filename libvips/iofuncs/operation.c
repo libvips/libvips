@@ -1439,7 +1439,7 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
 			VIPS_OBJECT_CLASS( class )->nickname, *state );
 #endif
 
-	if( state )
+	if( *state )
 		class->flags |= VIPS_OPERATION_BLOCKED;
 	else
 		class->flags &= ~VIPS_OPERATION_BLOCKED;
@@ -1458,8 +1458,8 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
  * For example:
  *
  * |[
- * vips_operation_block_set( "load", TRUE );
- * vips_operation_block_set( "jpegload_base", FALSE );
+ * vips_operation_block_set( "VipsForeignLoad", TRUE );
+ * vips_operation_block_set( "VipsForeignLoadJpeg", FALSE );
  * ]|
  *
  * Will block all load operations, except JPEG.
@@ -1475,7 +1475,8 @@ vips_operation_block_set( const char *name, gboolean state )
 {
 	GType base;
 
-	if( (base = vips_type_find( "VipsOperation", name )) )
+	if( (base = g_type_from_name( name )) &&
+		g_type_is_a( base, VIPS_TYPE_OPERATION ) )
 		vips_class_map_all( base, 
 			(VipsClassMapFn) vips_operation_block_set_operation, 
 			&state );
