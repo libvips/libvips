@@ -1313,8 +1313,13 @@ vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
 {
 	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
 
-	if( class->flags & VIPS_OPERATION_UNTRUSTED )
-		vips_operation_block_set( VIPS_OBJECT_CLASS( class ), *state );
+	if( class->flags & VIPS_OPERATION_UNTRUSTED ) {
+		GTypeClass *type_class =  (GTypeClass *) class;
+		GType gtype = type_class->g_type;
+		const char *name = g_type_name( gtype );
+
+		vips_operation_block_set( name, *state );
+	}
 
 	return( NULL );
 }
