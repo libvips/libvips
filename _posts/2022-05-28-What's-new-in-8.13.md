@@ -10,6 +10,9 @@ Many thanks to remicollet, DarthSim, GavinJoyce, tintou, lovell, shado23,
 dloebl, tlsa, kleisauke and others for their great work on
 this release.
 
+The headline features for 8.13 are a new system for blocking unsafe file
+formats, much better GIF handling, and a new build system. Details below!
+
 # Blocking of unfuzzed loaders 
 
 libvips support many image format libraries. Some of these are well tested
@@ -30,10 +33,21 @@ If the environment variable `VIPS_BLOCK_UNTRUSTED` is set, then any operation
 that we've tagged as untrusted will be prevented from running. This should
 be very simple to add to existing projects.
 
-There's also an API which gives much finer
-control. See [`vips_block_untrusted_set()`](link) and
-[`vips_operation_block_set()`](link). We'll add these operations to the
-various libvips bindings.
+There's also an API which gives much finer control. For example, in Python
+you can write:
+
+```python
+pyvips.operation_block_set("VipsForeignLoad", True)
+pyvips.operation_block_set("VipsForeignLoadJpeg", False)
+```
+
+Now all operations derived from `VipsForeignLoad` (so all loaders) are
+blocked, but we've marked all loaders derived from `VipsForeignLoadJpeg`
+(so all the libjpeg loaders) as runnable. After these calls, libvips will
+only load JPEG files.
+
+See [`vips_block_untrusted_set()`](link) and
+[`vips_operation_block_set()`](link) for more details. 
 
 # Much better GIF save
 
@@ -82,7 +96,7 @@ been identified and resolved.
 
 # File format support improvements
 
-There have been the usual range of improvements to file format support.
+There have been the usual range of minor improvements to file format support.
 Briefly:
 
 ### `tiffsave` and `dzsave` to target
