@@ -233,7 +233,7 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 	object_class->description = _( "load png from source" );
 	object_class->build = vips_foreign_load_png_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_png_source_is_a_source;
 

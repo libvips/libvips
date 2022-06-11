@@ -458,7 +458,7 @@ vips_foreign_load_matrix_source_class_init(
 	object_class->nickname = "matrixload_source";
 	object_class->build = vips_foreign_load_matrix_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_matrix_source_is_a_source;
 

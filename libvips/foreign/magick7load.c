@@ -355,7 +355,7 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 
 	/* Don't cache magickload: it can gobble up memory and disc. 
 	 */
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	/* *magick is fuzzed, but it's such a huge thing it's safer to
 	 * disable it.

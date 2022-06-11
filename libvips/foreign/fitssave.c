@@ -133,7 +133,7 @@ vips_foreign_save_fits_class_init( VipsForeignSaveFitsClass *class )
 	/* cfitsio has not been fuzzed, so should not be used with
 	 * untrusted input unless you are very careful.
 	 */
-	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__fits_suffs;
 

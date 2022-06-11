@@ -188,7 +188,7 @@ vips_foreign_load_fits_class_init( VipsForeignLoadFitsClass *class )
 	/* cfitsio has not been fuzzed, so should not be used with
 	 * untrusted input unless you are very careful.
 	 */
-	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */
@@ -332,7 +332,7 @@ vips_foreign_load_fits_source_class_init(
 	object_class->description = _( "load FITS from a source" );
 	object_class->build = vips_foreign_load_fits_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = 
 		vips_foreign_load_fits_source_is_a_source;

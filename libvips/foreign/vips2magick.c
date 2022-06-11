@@ -470,7 +470,7 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 	/* *magick is fuzzed, but it's such a huge thing it's safer to
 	 * disable it.
 	 */
-	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* We need to be well to the back of the queue since vips's
 	 * dedicated savers are usually preferable.
@@ -686,7 +686,7 @@ vips_foreign_save_magick_bmp_file_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void
@@ -719,7 +719,7 @@ vips_foreign_save_magick_bmp_buffer_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void
@@ -752,7 +752,7 @@ vips_foreign_save_magick_gif_file_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void
@@ -785,7 +785,7 @@ vips_foreign_save_magick_gif_buffer_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void

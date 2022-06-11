@@ -260,7 +260,7 @@ vips_foreign_load_jpeg_source_class_init(
 	object_class->description = _( "load image from jpeg source" );
 	object_class->build = vips_foreign_load_jpeg_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_jpeg_source_is_a_source;
 

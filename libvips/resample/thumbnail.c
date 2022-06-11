@@ -949,7 +949,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 	/* We mustn't cache these calls, since we open the file or buffer in 
 	 * sequential mode.
 	 */
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 

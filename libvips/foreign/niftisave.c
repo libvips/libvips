@@ -432,7 +432,7 @@ vips_foreign_save_nifti_class_init( VipsForeignSaveNiftiClass *class )
 	/* nificlib has not been fuzzed, so should not be used with
 	 * untrusted input unless you are very careful.
 	 */
-	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips_foreign_nifti_suffs;
 
