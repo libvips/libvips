@@ -1314,8 +1314,7 @@ vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )
 	g_assert( VIPS_IS_OPERATION_CLASS( class ) );
 
 	if( class->flags & VIPS_OPERATION_UNTRUSTED )
-		vips_operation_block_set( VIPS_OBJECT_CLASS( class )->nickname,
-			*state );
+		vips_operation_block_set( VIPS_OBJECT_CLASS( class ), *state );
 
 	return( NULL );
 }
