@@ -196,9 +196,10 @@
  * @VIPS_OPERATION_DEPRECATED means this is an old operation kept in vips for
  * compatibility only and should be hidden from users.
  *
- * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries which have
- * not been hardened against attack. It should probably not be used on untrusted input. 
- * Use vips_operation_block_untrusted() to block all untrusted operations.
+ * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries 
+ * which have not been hardened against attack. It should probably not be used 
+ * on untrusted input. Use vips_block_untrusted_set() to block all 
+ * untrusted operations.
  *
  * @VIPS_OPERATION_BLOCKED means the operation is prevented from executing. Use
  * vips_operation_block_set() to enable and disable groups of operations.
