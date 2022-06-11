@@ -271,7 +271,7 @@ vips_system_class_init( VipsSystemClass *class )
 
 	/* Commands can have side-effects, so don't cache them. 
 	 */
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_BOXED( class, "in", 0, 
 		_( "Input" ), 

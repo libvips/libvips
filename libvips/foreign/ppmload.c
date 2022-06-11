@@ -886,7 +886,7 @@ vips_foreign_load_ppm_source_class_init( VipsForeignLoadPpmFileClass *class )
 	object_class->nickname = "ppmload_source";
 	object_class->build = vips_foreign_load_ppm_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_ppm_is_a_source;
 

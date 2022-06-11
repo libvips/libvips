@@ -826,7 +826,7 @@ vips_foreign_load_nsgif_source_class_init(
 	object_class->description = _( "load gif from source" );
 	object_class->build = vips_foreign_load_nsgif_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_nsgif_is_a_source;
 

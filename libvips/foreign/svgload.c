@@ -691,7 +691,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 	/* librsvg has not been fuzzed, so should not be used with
 	 * untrusted input unless you are very careful.
 	 */
-	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */
@@ -814,7 +814,7 @@ vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 	object_class->nickname = "svgload_source";
 	object_class->description = _( "load svg from source" );
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_svg_source_is_a_source;
 	load_class->header = vips_foreign_load_svg_source_header;
