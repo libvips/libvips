@@ -184,30 +184,43 @@ vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
 		(const void *) buffer, (size_t) length );
 }
 
-/* Compare pixels in a lossy way (allow a slight colour difference).
+/* Set pixels in index transparent if they are equal RGB to the previous 
+ * frame.
+ *
  * In combination with the GIF transparency optimization this leads to
  * less difference between frames and therefore improves the compression ratio.
  */
-static gboolean
-vips_foreign_save_cgif_pixels_are_equal( const VipsPel *new, const VipsPel *old,
-	int sq_maxerror )
+static void
+vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
+	VipsPel *old, VipsPel *new, VipsPel *index, int n_pels, int trans )
 {
-	/* Alpha channel must be identical.
-	 */
-	if( old[3] != new[3] )
-		return FALSE;
+	int sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
 
-	/* Both transparent: we have a match and can ignore RGB.
-	 */
-	if( !old[3] && !new[3] )
-		return TRUE;
+	int i;
 
-	/* Test Euclidean distance between the two points.
-	 */
-	const int dR = old[0] - new[0];
-	const int dG = old[1] - new[1];
-	const int dB = old[2] - new[2];
-	return( dR * dR + dG * dG + dB * dB <= sq_maxerror );
+	for( i = 0; i < n_pels; i++ ) {
+		/* Alpha must match
+		 */
+		if( old[3] == new[3] ) {
+			/* Both transparent ... no need to check RGB.
+			 */
+			if( !old[3] && !new[3] )
+				index[i] = trans;
+			else {
+				/* Compare RGB.
+				 */
+				const int dR = old[0] - new[0];
+				const int dG = old[1] - new[1];
+				const int dB = old[2] - new[2];
+
+				if( dR * dR + dG * dG + dB * dB <= sq_maxerror )
+					index[i] = trans;
+			}
+		}
+
+		old += 4;
+		new += 4;
+	}
 }
 
 static int
@@ -415,7 +428,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	gboolean has_transparency;
 	gboolean has_alpha_constraint;
 	VipsPel * restrict p;
-	VipsPel * restrict q;
 	int i;
 	VipsQuantiseImage *image;
 	gboolean use_local;
@@ -544,28 +556,16 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	if( page_index > 0 &&
 		!has_alpha_constraint ) {
-		int sq_maxerror = 
-			cgif->interframe_maxerror * cgif->interframe_maxerror;
-		int trans_index = has_transparency ? 
-			0 : n_colours;
+		int trans = has_transparency ? 0 : n_colours;
+
+		vips_foreign_save_cgif_set_transparent( cgif,
+			cgif->previous_frame, frame_bytes, cgif->index, 
+			n_pels, trans );
 
 		if( has_transparency ) 
-			frame_config.attrFlags &= 
-				~CGIF_FRAME_ATTR_HAS_ALPHA;
-
-		p = frame_bytes;
-		q = cgif->previous_frame;
-		for( i = 0; i < n_pels; i++ ) {
-			if( vips_foreign_save_cgif_pixels_are_equal( p, q, 
-				sq_maxerror ) )
-				cgif->index[i] = trans_index;
-
-			p += 4;
-			q += 4;
-		}
-
+			frame_config.attrFlags &= ~CGIF_FRAME_ATTR_HAS_ALPHA;
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
-		frame_config.transIndex = trans_index;
+		frame_config.transIndex = trans;
 	}
 
 	if( cgif->delay &&
