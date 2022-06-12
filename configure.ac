@@ -304,7 +304,7 @@ EXTRA_LIBS_USED=""
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([errno.h math.h fcntl.h limits.h stdlib.h string.h sys/file.h sys/ioctl.h sys/param.h sys/time.h sys/mman.h sys/types.h sys/stat.h unistd.h io.h direct.h windows.h])
+AC_CHECK_HEADERS([sys/file.h sys/param.h sys/mman.h unistd.h io.h direct.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_RESTRICT

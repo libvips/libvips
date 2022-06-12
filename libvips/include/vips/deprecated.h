@@ -40,14 +40,14 @@ extern "C" {
 
 /* On win32, need to override the wingdi defs for these. Yuk!
  */
-#ifdef HAVE_WINDOWS_H
+#ifdef G_OS_WIN32
 #ifdef RGB
 #undef RGB
 #endif
 #ifdef CMYK
 #undef CMYK
 #endif
-#endif /*HAVE_WINDOWS_H*/
+#endif /*G_OS_WIN32*/
 
 /* Bits per Band */
 #define BBBYTE		8

@@ -99,7 +99,7 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	const liq_palette *palette;
 	liq_error err;
 	liq_image *fake_image;
-	void *fake_image_pixels;
+	char fake_image_pixels[4] = { 0 };
 
 	/* First, quantize the image and get its palette.
 	 */
@@ -113,12 +113,10 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	 * next step. Its pixel color doesn't matter since we'll add all the
 	 * colors from the palette further.
 	 */
-	fake_image_pixels = malloc( 4 );
 	fake_image = 
 		liq_image_create_rgba( options, fake_image_pixels, 1, 1, 0 );
 	if( !fake_image ) {
 		liq_result_destroy( result );
-		free( fake_image_pixels );
 		return LIQ_OUT_OF_MEMORY;
 	}
 
@@ -131,13 +129,12 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 
 	liq_result_destroy( result );
 
-	/* Finally, quantize the fake image with fixed colors to get the result
-	 * palette which won't be changed during remapping
+	/* Finally, quantize the fake image with fixed colors to make a 
+	 * VipsQuantiseResult with a fixed palette.
 	 */
 	err = liq_image_quantize( fake_image, options, result_output );
 
 	liq_image_destroy( fake_image );
-	free( fake_image_pixels );
 
 	return err;
 }
