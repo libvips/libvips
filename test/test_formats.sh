@@ -200,6 +200,16 @@ fi
 
 if test_supported matload; then
 	test_loader $matlab_ref $matlab matlab 0
+
+	# test blocked and untrusted
+	printf "testing VIPS_BLOCK_UNTRUSTED with matio ... "
+	export VIPS_BLOCK_UNTRUSTED=1
+	if vips matload $matlab $tmp/block.png; then
+		echo "failed to block matload"
+		exit 1
+	fi
+	echo "ok"
+	unset VIPS_BLOCK_UNTRUSTED
 fi
 
 if test_supported dzsave; then
@@ -207,16 +217,3 @@ if test_supported dzsave; then
 	test_saver copy $image .dz
 	test_saver copy $image .dz[container=zip]
 fi
-
-# test blocked and untrusted
-if test_supported magicksave; then
-	printf "testing VIPS_BLOCK_UNTRUSTED with imagemagick ... "
-  export VIPS_BLOCK_UNTRUSTED=1
-  if vips magicksave $matlab $tmp/block.png; then
-		echo "failed to block imagemagick"
-		exit 1
-  fi
-	echo "ok"
-  unset VIPS_BLOCK_UNTRUSTED
-fi
-

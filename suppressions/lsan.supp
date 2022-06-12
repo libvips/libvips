@@ -1,6 +1,6 @@
 leak:python3
 leak:bash
 leak:libfontconfig.so
-leak:libIlmImf-2_3.so
-leak:libIlmThread-2_3.so
+leak:libIlmImf-2_5.so
+leak:libIlmThread-2_5.so
 leak:libx265.so
