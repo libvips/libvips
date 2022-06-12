@@ -488,8 +488,23 @@ endif
 
 # niftiio.pc is not always present, so fall back to CMake's find_package() 
 # functionality
+#
 # cmake find fails on ubuntu due to /usr/lib/x86_64-linux-gnu madness, so it's
-# simplest to create a libnifti.pc in this case
+# simplest to create a libniftiio.pc in this case
+#
+# create /usr/lib/x86_64-linux-gnu/pkgconfig/libniftiio.pc:
+#
+#   prefix=/usr
+#   exec_prefix=${prefix}
+#   libdir=${prefix}/lib/x86_64-linux-gnu
+#   includedir=${prefix}/include/nifti
+#   Name: libniftiio
+#   Description: nifti library
+#   Version: 3.0.1
+#   Requires: xproto
+#   Cflags: -I${includedir}
+#   Libs: -L${libdir} -lniftiio -lznz
+#
 # TODO: simplify this when requiring meson>=0.60.0
 libnifti_dep = dependency('niftiio', required: get_option('nifti'))
 if not libnifti_dep.found()
