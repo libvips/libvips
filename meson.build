@@ -336,10 +336,12 @@ if pangocairo_dep.found()
     cfg_var.set('HAVE_PANGOCAIRO', '1')
 endif
 
+# text rendering with fontconfig requires pangoft2
+pangoft2_dep = dependency('pangoft2', version: '>=1.32.6', required: get_option('fontconfig'))
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
-if fontconfig_dep.found() and pangocairo_dep.found()
+if pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
+    libvips_deps += pangoft2_dep
     libvips_deps += fontconfig_dep
-    libvips_deps += dependency('pangoft2', version: '>=1.32.6')
     cfg_var.set('HAVE_FONTCONFIG', '1')
 endif
 
@@ -385,7 +387,6 @@ endif
 lcms_dep = dependency('lcms2', required: get_option('lcms'))
 if lcms_dep.found()
     libvips_deps += lcms_dep
-    cfg_var.set('HAVE_LCMS', '1')
     cfg_var.set('HAVE_LCMS2', '1')
 endif
 
@@ -536,9 +537,6 @@ if cc.has_header('io.h')
 endif
 if cc.has_header('direct.h')
     cfg_var.set('HAVE_DIRECT_H', '1')
-endif
-if cc.has_header('windows.h')
-    cfg_var.set('HAVE_WINDOWS_H', '1')
 endif
 if get_option('deprecated')
     cfg_var.set('ENABLE_DEPRECATED', '1')

@@ -102,10 +102,6 @@
 #include <vips/vips7compat.h>
 #endif
 
-#ifdef G_OS_WIN32
-#define strcasecmp(a,b) _stricmp(a,b)
-#endif /*G_OS_WIN32*/
-
 static char *main_option_plugin = NULL;
 static gboolean main_option_version;
 
