@@ -657,7 +657,7 @@ vips_foreign_load_csv_source_class_init( VipsForeignLoadCsvFileClass *class )
 	object_class->nickname = "csvload_source";
 	object_class->build = vips_foreign_load_csv_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_csv_source_is_a_source;
 

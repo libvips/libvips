@@ -519,6 +519,7 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_pdf_dispose;
@@ -528,6 +529,10 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	object_class->nickname = "pdfload_base";
 	object_class->description = _( "load PDF with libpoppler" );
 	object_class->build = vips_foreign_load_pdf_build;
+
+	/* libpoppler is fuzzed, but not by us.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_pdf_get_flags_filename;
@@ -846,7 +851,7 @@ vips_foreign_load_pdf_source_class_init(
 	object_class->description = _( "load PDF from source" );
 	object_class->build = vips_foreign_load_pdf_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_pdf_source_is_a_source;
 

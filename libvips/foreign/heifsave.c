@@ -868,7 +868,7 @@ vips_foreign_save_avif_target_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void

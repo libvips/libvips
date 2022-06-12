@@ -641,7 +641,7 @@ vips_foreign_save_pbm_target_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void
@@ -673,7 +673,7 @@ vips_foreign_save_pgm_target_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void
@@ -705,7 +705,7 @@ vips_foreign_save_pfm_target_class_init(
 
 	/* Hide from UI.
 	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 }
 
 static void

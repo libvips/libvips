@@ -23,6 +23,7 @@ libvips_lib = library('vips',
     link_whole: libvips_components,
     dependencies: libvips_deps,
     version: library_version,
+    darwin_versions: darwin_versions,
     gnu_symbol_visibility: 'hidden',
     install: true,
 )

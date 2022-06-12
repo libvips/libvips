@@ -859,6 +859,7 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -878,6 +879,16 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 	 * JPEGs.
 	 */
 	foreign_class->priority = 100;
+
+	/* libopenslide does not try to recover from errors, so it's not safe 
+	 * to cache.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+
+	/* openslide has not been fuzzed and is largly unmaintained, so should 
+	 * not be used with untrusted input unless you are very careful.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_openslide_get_flags_filename;
@@ -1053,7 +1064,6 @@ vips_foreign_load_openslide_source_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -1062,16 +1072,6 @@ vips_foreign_load_openslide_source_class_init(
 	object_class->nickname = "openslideload_source";
 	object_class->description = _( "load source with OpenSlide" );
 	object_class->build = vips_foreign_load_openslide_source_build;
-
-	/* libopenslide does not try to recover from errors, so it's not safe 
-	 * to cache.
-	 */
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
-
-	/* openslide has not been fuzzed and is largly unmaintained, so should 
-	 * not be used with untrusted input unless you are very careful.
-	 */
-	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->is_a_source = 
 		vips_foreign_load_openslide_source_is_a_source;
