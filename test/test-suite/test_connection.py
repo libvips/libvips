@@ -124,5 +124,24 @@ class TestConnection:
 
         assert (im - self.mono).abs().max() == 0
 
+    @skip_if_no("tiffload_source")
+    @skip_if_no("tiffsave_target")
+    def test_connection_tiff(self):
+        x = pyvips.Target.new_to_memory()
+        self.mono.tiffsave_target(x)
+        y = pyvips.Source.new_from_memory(x.get("blob"))
+        im = pyvips.Image.tiffload_source(y)
+
+        assert (im - self.mono).abs().max() == 0
+
+    @skip_if_no("dzsave_target")
+    def test_connection_dz(self):
+        x = pyvips.Target.new_to_memory()
+        self.mono.dzsave_target(x)
+        data = x.get("blob")
+
+        # it'll be a zip, we could extract stuff and look for tiles
+        assert len(data) > 1000
+
 if __name__ == '__main__':
     pytest.main()
