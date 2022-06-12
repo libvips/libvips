@@ -34,8 +34,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -227,9 +227,12 @@ vips_foreign_save_jxl_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	JxlEncoderOptions *options;
 	JxlEncoderStatus status;
+	VipsImage *in;
+	VipsBandFormat format;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		build( object ) )
@@ -260,11 +263,28 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
+	in = save->ready;
+
+	/* Fix the input image format. JXL uses float for 0-1 linear (ie.
+	 * scRGB) only. We must convert eg. sRGB float to 8-bit for save.
+	 */
+	if( in->Type == VIPS_INTERPRETATION_scRGB )
+		format = VIPS_FORMAT_FLOAT;
+	else if( in->Type == VIPS_INTERPRETATION_RGB16 ||
+		in->Type == VIPS_INTERPRETATION_GREY16 )
+		format = VIPS_FORMAT_USHORT;
+	else
+		format = VIPS_FORMAT_UCHAR;
+
+	if( vips_cast( in, &t[0], format, NULL ) )
+		return( -1 );
+	in = t[0];
+
 #ifdef HAVE_LIBJXL_JXLENCODERINITBASICINFO
 	JxlEncoderInitBasicInfo( &jxl->info );
 #endif
 
-	switch( save->ready->BandFmt ) {
+	switch( in->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		jxl->info.bits_per_sample = 8;
 		jxl->info.exponent_bits_per_sample = 0;
@@ -288,7 +308,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		break;
 	}
 
-	switch( save->ready->Type ) {
+	switch( in->Type ) {
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
 		jxl->info.num_color_channels = 1;
@@ -301,18 +321,18 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		break;
 
 	default:
-		jxl->info.num_color_channels = save->ready->Bands;
+		jxl->info.num_color_channels = in->Bands;
 	}
 	jxl->info.num_extra_channels = VIPS_MAX( 0, 
-		save->ready->Bands - jxl->info.num_color_channels );
+		in->Bands - jxl->info.num_color_channels );
 
-	jxl->info.xsize = save->ready->Xsize;
-	jxl->info.ysize = save->ready->Ysize;
-	jxl->format.num_channels = save->ready->Bands;
+	jxl->info.xsize = in->Xsize;
+	jxl->info.ysize = in->Ysize;
+	jxl->format.num_channels = in->Bands;
 	jxl->format.endianness = JXL_NATIVE_ENDIAN;
 	jxl->format.align = 0;
 
-	if( vips_image_hasalpha( save->ready ) ) {
+	if( vips_image_hasalpha( in ) ) {
 		jxl->info.alpha_bits = jxl->info.bits_per_sample;
 		jxl->info.alpha_exponent_bits = 
 			jxl->info.exponent_bits_per_sample;
@@ -322,15 +342,15 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->info.alpha_bits = 0;
 	}
 
-	if( vips_image_get_typeof( save->ready, "stonits" ) ) {
+	if( vips_image_get_typeof( in, "stonits" ) ) {
 		double stonits;
 
-		if( vips_image_get_double( save->ready, "stonits", &stonits ) )
+		if( vips_image_get_double( in, "stonits", &stonits ) )
 			return( -1 );
 		jxl->info.intensity_target = stonits;
 	}
 
-	/* We will be setting the ICC profile, or calling
+	/* We will be setting the ICC profile, and/or calling
 	 * JxlEncoderSetColorEncoding().
 	 */
 	jxl->info.uses_original_profile = TRUE;
@@ -340,13 +360,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Set ICC profile, sRGB, or scRGB.
+	/* Set ICC profile.
 	 */
-	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		const void *data;
 		size_t length;
 
-		if( vips_image_get_blob( save->ready, 
+		if( vips_image_get_blob( in, 
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
@@ -360,36 +380,38 @@ vips_foreign_save_jxl_build( VipsObject *object )
 			return( -1 );
 		}
 	}
+
+	/* libjxl will use linear 0 - 1 by default for float, so we don't need
+	 * to call JxlColorEncodingSetToLinearSRGB() or
+	 * JxlColorEncodingSetToSRGB().
+	 */
+	if( in->Type == VIPS_INTERPRETATION_scRGB ) {
+#ifdef DEBUG
+		printf( "setting scRGB colourspace\n" );
+#endif /*DEBUG*/
+
+		JxlColorEncodingSetToLinearSRGB( &jxl->color_encoding, 
+			jxl->format.num_channels < 3 );
+	}
 	else {
-		if( save->ready->Type == VIPS_INTERPRETATION_scRGB ) {
 #ifdef DEBUG
-			printf( "setting sRGB colourspace\n" );
+		printf( "setting sRGB colourspace\n" );
 #endif /*DEBUG*/
 
-			JxlColorEncodingSetToLinearSRGB( &jxl->color_encoding, 
-				jxl->format.num_channels < 3 );
-		}
-		else {
-#ifdef DEBUG
-			printf( "setting scRGB colourspace\n" );
-#endif /*DEBUG*/
+		JxlColorEncodingSetToSRGB( &jxl->color_encoding, 
+			jxl->format.num_channels < 3 );
+	}
 
-			JxlColorEncodingSetToSRGB( &jxl->color_encoding, 
-				jxl->format.num_channels < 3 );
-		}
-
-		if( JxlEncoderSetColorEncoding( jxl->encoder, 
-			&jxl->color_encoding ) ) {
-			vips_foreign_save_jxl_error( jxl, 
-				"JxlEncoderSetColorEncoding" );
-			return( -1 );
-		}
+	if( JxlEncoderSetColorEncoding( jxl->encoder, &jxl->color_encoding ) ) {
+		vips_foreign_save_jxl_error( jxl, 
+			"JxlEncoderSetColorEncoding" );
+		return( -1 );
 	}
 
 	/* Render the entire image in memory. libjxl seems to be missing
 	 * tile-based write at the moment.
 	 */
-	if( vips_image_wio_input( save->ready ) )
+	if( vips_image_wio_input( in ) )
 		return( -1 );
 
 	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
@@ -409,8 +431,8 @@ vips_foreign_save_jxl_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( JxlEncoderAddImageFrame( options, &jxl->format, 
-		VIPS_IMAGE_ADDR( save->ready, 0, 0 ),
-		VIPS_IMAGE_SIZEOF_IMAGE( save->ready ) ) ) { 
+		VIPS_IMAGE_ADDR( in, 0, 0 ),
+		VIPS_IMAGE_SIZEOF_IMAGE( in ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
 		return( -1 );
 	}
@@ -485,7 +507,9 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 
 	foreign_class->suffs = vips__jxl_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	/* This lets throuigh scRGB too, which we then save as jxl float.
+	 */
+	save_class->saveable = VIPS_SAVEABLE_RGBA;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT( class, "tier", 10, 
