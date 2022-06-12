@@ -50,7 +50,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>

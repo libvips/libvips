@@ -1437,7 +1437,7 @@ vips_icc_is_compatible_profile( VipsImage *image,
 	return( TRUE ); 
 }
 
-#endif /*HAVE_LCMS*/
+#endif /*HAVE_LCMS2*/
 
 /**
  * vips_icc_import: (method)
