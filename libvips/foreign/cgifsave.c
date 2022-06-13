@@ -729,7 +729,11 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* Set up libimagequant.
 	 */
 	cgif->attr = vips__quantise_attr_create();
-	vips__quantise_set_max_colors( cgif->attr, 1 << cgif->bitdepth );
+	/* Limit the number of colours to 255, so there is always one index
+	 * free for the transparency optimization.
+	 */
+	vips__quantise_set_max_colors( cgif->attr,
+		MIN( 255, 1 << cgif->bitdepth) );
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
