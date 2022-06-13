@@ -733,7 +733,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 * free for the transparency optimization.
 	 */
 	vips__quantise_set_max_colors( cgif->attr,
-		MIN( 255, 1 << cgif->bitdepth) );
+		VIPS_MIN( 255, 1 << cgif->bitdepth ) );
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
