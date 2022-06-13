@@ -99,7 +99,7 @@ typedef struct _VipsForeignSaveCgif {
 	int *palette;
 	int n_colours;
 
-	/* The global palette as RGB (not RGBA).
+	/* The palette as RGB (not RGBA).
 	 */
 	VipsPel palette_rgb[256 * 3];
 
@@ -576,12 +576,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Attach a local palette, if we need one.
 	 */
 	if( use_local ) {
-		VipsPel rgb[256 * 3];
-
 		vips_foreign_save_cgif_get_rgb_palette( cgif,
-			quantisation_result, rgb );
+			quantisation_result, cgif->palette_rgb );
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
-		frame_config.pLocalPalette = rgb;
+		frame_config.pLocalPalette = cgif->palette_rgb;
 		frame_config.numLocalPaletteEntries = n_colours;
 	}
 
