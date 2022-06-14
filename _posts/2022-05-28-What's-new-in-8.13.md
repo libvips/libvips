@@ -13,7 +13,7 @@ this release.
 The headline features for 8.13 are a new system for blocking unsafe file
 formats, much better GIF handling, and a new build system. Details below!
 
-# Blocking of unfuzzed loaders 
+# Blocking of unfuzzed loaders
 
 libvips support many image format libraries. Some of these are well tested
 against malicious input files, but some are not.
@@ -46,8 +46,10 @@ blocked, but we've marked all loaders derived from `VipsForeignLoadJpeg`
 (so all the libjpeg loaders) as runnable. After these calls, libvips will
 only load JPEG files.
 
-See [`vips_block_untrusted_set()`](link) and
-[`vips_operation_block_set()`](link) for more details. 
+See [`vips_block_untrusted_set()`]({{ site.baseurl
+}}/API/current/libvips-vips.html#vips-block-untrusted-set) and
+[`vips_operation_block_set()`]({{ site.baseurl
+}}/API/current/VipsOperation.html#vips-operation-block-set) for more details.
 
 # Much better GIF save
 
@@ -56,7 +58,7 @@ smaller files (sometimes much smaller) with lower CPU and memory load.
 
 Here's a benchmark with a short video clip:
 
-```
+```bash
 # libvips 8.12
 $ /usr/bin/time -f %M:%e vipsthumbnail 3198.gif[n=-1] -o vips-12.gif --size 224
 57764:3.96
@@ -72,10 +74,10 @@ So about 7x faster and 30% smaller.
 
 There's a good improvement against imagemagick too:
 
-```
+```bash
 $ /usr/bin/time -f %M:%e convert 3198.gif -resize 75% im.gif
 200796:6.44
-$ ls -l im.gif vips-13.gif 
+$ ls -l im.gif vips-13.gif
 -rw-rw-r-- 1 john john 3176859 Jun  8 16:26 im.gif
 ```
 
@@ -84,15 +86,30 @@ needs 4x less memory, makes GIFs which are 20% smaller, and produces higher
 quality output.
 
 The new GIF saver has quite a few options to control output, take [a look at
-the docs](link).
+the docs]({{ site.baseurl
+}}/API/current/VipsForeignSave.html#vips-gifsave).
 
 # Image resize quality improvements
 
-Kleis has spent a long time making a series of quality improvements to the
-image resize code. It should be no slower, but a series of edge cases have
-been identified and resolved.
+In libvips 8.12, in some cases when resizing images, up to 0.5 pixels of
+detail might lost on the image the edges due to losses in the processing
+of intermediate values. Kleis has reworked the image resize code to retain
+these extra pixels in all cases, so image edges are now always complete.
 
-**add some more stuff? this is very vague**
+It is possible that this may result in different image sizes, compared with
+libvips 8.12.
+
+```bash
+$ vips black x.jpg 1600 1000
+# libvips 8.12
+$ vipsthumbnail x.jpg -s 10x
+$ vipsheader tn_x.jpg
+tn_x.jpg: 10x7 uchar, 1 band, b-w, jpegload
+# libvips 8.13
+$ vipsthumbnail x.jpg -s 10x
+$ vipsheader tn_x.jpg
+tn_x.jpg: 10x6 uchar, 1 band, b-w, jpegload
+```
 
 # File format support improvements
 
@@ -152,19 +169,19 @@ meson test
 meson install
 ```
 
-The new system is a *lot* faster. On this PC, the autotools build system used 
+The new system is a *lot* faster. On this PC, the autotools build system used
 to take 17s to configure and 6s to build libvips. Meson takes 2.8s to
 configure and ninja takes 4.6s to build. A four times speedup is very welcome.
 
 The [libvips
-README](https://github.com/libvips/libvips/blob/master/README.md#building-from-source)
+README](https://github.com/libvips/libvips#building-from-source)
 has some more notes.
 
 # General minor improvements
 
-- add `extend`, `background` and `premultiplied` to [`vips_mapim()`](link) to 
-  fix edge antialiasing [GavinJoyce]
+- add `extend`, `background` and `premultiplied` to [`vips_mapim()`]({{ site.baseurl
+  }}/API/current/libvips-resample.html#vips-mapim) to fix edge antialiasing
+  [GavinJoyce]
 - improve the pixel RNG for the noise operators
 - add support for regions in C++ API [shado23]
 - improve introspection annotations [tintou]
-
