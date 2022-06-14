@@ -693,9 +693,11 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	frame_rect.width = cgif->in->Xsize;
 	frame_rect.height = page_height;
 
-	/* GIF has a limit of 64k per axis -- double-check this.
+	/* Reject images that exceed the pixel limit of libimagequant,
+	 * or that exceed the GIF limit of 64k per axis.
 	 */
-	if( frame_rect.width > 65535 || 
+	if( (guint64) frame_rect.width * frame_rect.height > INT_MAX / 4 || 
+		frame_rect.width > 65535 || 
 		frame_rect.height > 65535 ) {
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
@@ -720,7 +722,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* The frame index buffer.
 	 */
 	cgif->index = g_malloc0( (size_t) frame_rect.width * 
-			frame_rect.height );
+		frame_rect.height );
 
 	/* Set up libimagequant.
 	 */
