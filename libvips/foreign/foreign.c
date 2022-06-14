@@ -337,6 +337,8 @@ static void
 vips_foreign_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( object_class );
+	VipsOperationClass *operation_class = 
+		VIPS_OPERATION_CLASS( object_class );
 
 	VIPS_OBJECT_CLASS( vips_foreign_parent_class )->
 		summary_class( object_class, buf );
@@ -355,6 +357,10 @@ vips_foreign_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	vips_buf_appendf( buf, ", priority=%d", class->priority );
 
+	if( operation_class->flags & VIPS_OPERATION_UNTRUSTED )
+		vips_buf_appendf( buf, ", untrusted" );
+	if( operation_class->flags & VIPS_OPERATION_BLOCKED )
+		vips_buf_appendf( buf, ", blocked" );
 }
 
 static void
