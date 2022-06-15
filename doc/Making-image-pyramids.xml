@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<refentry id="Making-image-pyramids.md">
+<refentry id="Making-image-pyramids">
 
 
 <para>
@@ -66,7 +66,7 @@ operation flags: sequential nocache
   You can also call <literal>vips_dzsave()</literal> from any language with a libvips binding, or by using <literal>.dz</literal> or <literal>.szi</literal> as an output file suffix.
 </para>
 <refsect3 xml:id="writing-deepzoom-pyramids">
-  <title>Writing <link xlink:href="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</link> pyramids</title>
+  <title>Writing DeepZoom pyramids</title>
   <para>
     The <literal>--layout</literal> option sets the basic mode of operation. With no <literal>--layout</literal>, dzsave writes DeepZoom pyramids. For example:
   </para>
@@ -102,7 +102,7 @@ $ vips dzsave huge.tif myzoom --layout zoomify
   </para>
 </refsect3>
 <refsect3 xml:id="writing-google-maps-pyramids">
-  <title>Writing <link xlink:href="https://developers.google.com/maps/">Google Maps</link> pyramids</title>
+  <title>Writing Google Maps pyramids</title>
   <para>
     Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <ulink url="http://leafletjs.com">Leaflet</ulink>. For example:
   </para>

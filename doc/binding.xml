@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<refentry id="binding.md">
+<refentry id="binding">
 
 
 <para>
@@ -173,8 +173,8 @@ VImage VImage::invert( VOption *options )
     Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <literal>Image</literal> class as libvips operators. In effect, the binding is generated at runtime.
   </para>
 </refsect3>
-<refsect3 xml:id="dynamic-langauge-without-ffi">
-  <title>Dynamic langauge without FFI</title>
+<refsect3 xml:id="dynamic-language-without-ffi">
+  <title>Dynamic language without FFI</title>
   <para>
     PHP does not have a useful FFI, unfortunately, so for this language a small C module implements the general <literal>vips_call()</literal> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
   </para>

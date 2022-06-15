@@ -67,25 +67,45 @@ markdown_content_files = files(
     'Making-image-pyramids.md',
 )
 
-markdown_content_files_docbook = []
-foreach markdown_content_file : markdown_content_files
+pandoc = find_program('pandoc', required: false)
+
+if pandoc.found()
     # we have some files in markdown ... convert to docbook for gtk-doc
-    # pandoc makes section headers, we want refsect3 for gtk-doc
-    markdown_content_files_docbook += configure_file(
-        input: markdown_content_file,
-        command: [
-            find_program('pandoc'),
+    gen = generator(pandoc,
+        output: '@BASENAME@.xml',
+        arguments: [
             '@INPUT@',
-            '--template', files('pandoc-docbook-template.docbook'),
+            '--template=@0@'.format(join_paths(meson.current_source_dir(), 'pandoc-docbook-template.docbook')),
             '--wrap=none',
             '-V', 'title=@BASENAME@',
             '-f', 'markdown+smart',
             '-t', 'docbook',
             '-o', '@OUTPUT@',
-        ],
-        output: '@BASENAME@.xml',
+        ]
     )
-endforeach
+
+    markdown_content_files_generated = gen.process(markdown_content_files)
+
+    # pandoc makes section headers, we want refsect3 for gtk-doc
+    markdown_content_files_docbook = custom_target('gen-docs',
+        output: 'generated',
+        input: markdown_content_files_generated,
+        command: [ 'sed', '-i', '-e', 's|<section|<refsect3|g', '-e', 's|</section|</refsect3|g', '@INPUT@' ],
+        build_by_default: true
+    )
+else
+    # use the pre-generated docbook files when pandoc is not available
+    markdown_content_files_docbook = files(
+        'How-it-works.xml',
+        'libvips-from-C++.xml',
+        'Using-vipsthumbnail.xml',
+        'How-it-opens-files.xml',
+        'Examples.xml',
+        'Cite.xml',
+        'binding.xml',
+        'Making-image-pyramids.xml',
+    )
+endif
 
 content_files = files(
     'using-command-line.xml',
@@ -124,18 +144,18 @@ gnome.gtkdoc('libvips',
     ],
     dependencies: libvips_dep,
     scan_args: [
-      '--ignore-headers=' + ' '.join(private_headers),
-      '--rebuild-types',
+        '--ignore-headers=' + ' '.join(private_headers),
+        '--rebuild-types',
     ],
     mkdb_args: [ '--default-includes=vips/vips.h' ],
     fixxref_args: [
-      '--html-dir=@0@'.format(docpath),
-      '--extra-dir=@0@'.format(join_paths(glib_docpath, 'glib')),
-       '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
-      '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
+        '--html-dir=@0@'.format(docpath),
+        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'glib')),
+        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
+        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
     ],
     content_files: [ content_files, markdown_content_files_docbook ],
-    expand_content_files: [ content_files, markdown_content_files_docbook ],
+    expand_content_files: [ content_files ],
     html_assets: images,
     install: true
 )

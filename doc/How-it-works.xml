@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<refentry id="How-it-works.md">
+<refentry id="How-it-works">
 
 
 <para>
@@ -55,7 +55,7 @@ VipsPel *pixel = VIPS_REGION_ADDR( region, x, y );
 g_object_unref( region );
 </programlisting>
 <para>
-  The action that <literal>vips_region_prepare()</literal> takes varies with the type of image. If the image is a file on disc, for example, then VIPS will arrange for a refsect3 of the file to be read in.
+  The action that <literal>vips_region_prepare()</literal> takes varies with the type of image. If the image is a file on disc, for example, then VIPS will arrange for a section of the file to be read in.
 </para>
 <para>
   (* there is an image access mode where you can just use a pointer, but it’s rarely used)
@@ -136,7 +136,7 @@ g_object_unref( region );
   <emphasis role="strong">Data sources</emphasis>
 </para>
 <para>
-  VIPS has data sources which can supply pixels for processing from a variety of sources. VIPS can stream images from files in VIPS native format, from tiled TIFF files, from binary PPM/PGM/PBM/PFM, from Radiance (HDR) files, from FITS images and from tiled OpenEXR images. VIPS will automatically unpack other formats to temporary disc files for you but this can obviously generate a lot of disc traffic. It also has a special sequential mode for streaming operations on non-random-access formats. Another refsect3 in these docs explains <ulink url="How-it-opens-files.md.html">how libvips opens a file</ulink>. One of the sources uses the <ulink
+  VIPS has data sources which can supply pixels for processing from a variety of sources. VIPS can stream images from files in VIPS native format, from tiled TIFF files, from binary PPM/PGM/PBM/PFM, from Radiance (HDR) files, from FITS images and from tiled OpenEXR images. VIPS will automatically unpack other formats to temporary disc files for you but this can obviously generate a lot of disc traffic. It also has a special sequential mode for streaming operations on non-random-access formats. Another section in these docs explains <ulink url="How-it-opens-files.md.html">how libvips opens a file</ulink>. One of the sources uses the <ulink
   url="http://www.imagemagick.org">ImageMagick</ulink> (or optionally <ulink
   url="http://www.graphicsmagick.org">GraphicsMagick</ulink> library, so VIPS can read any image format that these libraries can read.
 </para>
