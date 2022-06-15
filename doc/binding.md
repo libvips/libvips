@@ -169,7 +169,7 @@ the method-missing hook and attempt to run any method calls not implemented by
 the `Image` class as libvips operators. In effect, the binding is generated at
 runtime.
 
-# Dynamic langauge without FFI
+# Dynamic language without FFI
 
 PHP does not have a useful FFI, unfortunately, so for this language a small
 C module implements the general `vips_call()` function for PHP language

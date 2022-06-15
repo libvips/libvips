@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<refentry id="Using-vipsthumbnail.md">
+<refentry id="Using-vipsthumbnail">
 
 
 <para>
@@ -56,7 +56,7 @@ $ cat k2.jpg | \
 $ vipsthumbnail *.jpg
 </programlisting>
   <para>
-    will make a thumbnail for every jpeg in the current directory.  See the <link linkend="output-directory">Output directory</link> refsect3 below to see how to change where thumbnails are written.
+    will make a thumbnail for every jpeg in the current directory.  See the <link linkend="output-directory">Output directory</link> section below to see how to change where thumbnails are written.
   </para>
   <para>
     <literal>vipsthumbnail</literal> will process images one after the other. You can get a good speedup by running several <literal>vipsthumbnail</literal>s in parallel, depending on how much load you want to put on your system. For example:

@@ -127,7 +127,7 @@ HTML_IMAGES = \
 # pandoc makes section headers, we want refsect3 for gtk-doc
 .md.xml:
 	pandoc -s --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown+smart -t docbook -o $@ $<
-	sed -e s/section/refsect3/g < $@ > x.$@ && mv x.$@ $@
+	sed -i -e 's|<section|<refsect3|g' -e 's|</section|</refsect3|g' $@
 
 # Our markdown source files
 markdown_content_files = \
