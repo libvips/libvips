@@ -214,6 +214,13 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			}
 		}
 
+		if( index[i] != trans ) {
+			old[0] = new[0];
+			old[1] = new[1];
+			old[2] = new[2];
+			old[3] = new[3];
+		}
+
 		old += 4;
 		new += 4;
 	}
@@ -567,6 +574,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
 		frame_config.transIndex = trans;
 	}
+	else {
+		/* Take a copy of the RGBA frame.
+		 */
+		memcpy( cgif->previous_frame, frame_bytes, 4 * n_pels );
+	}
 
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
@@ -585,10 +597,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	frame_config.pImageData = cgif->index;
 	cgif_addframe( cgif->cgif_context, &frame_config );
-
-	/* Take a copy of the RGBA frame.
-	 */
-	memcpy( cgif->previous_frame, frame_bytes, 4 * n_pels );
 
 	return( 0 );
 }
