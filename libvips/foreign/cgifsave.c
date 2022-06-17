@@ -337,19 +337,23 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 		const VipsQuantisePalette *prev = vips__quantise_get_palette( 
 			cgif->previous_quantisation_result );
 
+		int global_diff = vips__cgif_compare_palettes( this, global );
+		int prev_diff = ( prev == global ) ? global_diff :
+			vips__cgif_compare_palettes( this, prev );
+
 #ifdef DEBUG_VERBOSE
 		printf( "vips_foreign_save_cgif_write_frame: "
 			"this -> global distance = %d\n", 
-			vips__cgif_compare_palettes( this, global ) );
+			global_diff );
 		printf( "vips_foreign_save_cgif_write_frame: "
 			"this -> prev distance = %d\n", 
-			vips__cgif_compare_palettes( this, prev ) );
+			prev_diff );
 		printf( "vips_foreign_save_cgif_write_frame: "
 			"threshold = %g\n", cgif->interpalette_maxerror );
 #endif/*DEBUG_VERBOSE*/
 
-		if( vips__cgif_compare_palettes( this, global ) < 
-			cgif->interpalette_maxerror ) {
+		if( global_diff <= prev_diff &&
+			global_diff < cgif->interpalette_maxerror ) {
 			/* Global is good enough, use that.
 			 */
 #ifdef DEBUG_VERBOSE
@@ -365,8 +369,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 			*result = cgif->quantisation_result;
 			*use_local = FALSE;
 		}
-		else if( vips__cgif_compare_palettes( this, prev ) < 
-			cgif->interpalette_maxerror ) {
+		else if( prev_diff < cgif->interpalette_maxerror ) {
 			/* Previous is good enough, use that again.
 			 */
 #ifdef DEBUG_VERBOSE
