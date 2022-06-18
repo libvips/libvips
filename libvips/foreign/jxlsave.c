@@ -34,8 +34,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -360,11 +360,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Set the colour encoding. Either ICC based, or sRGB. 
-	 *
-	 * libjxl will use linear 0 - 1 by default for float, so we
-	 * don't need to call JxlColorEncodingSetToLinearSRGB() or
-	 * JxlColorEncodingSetToSRGB().
+	/* Set any ICC profile.
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		const void *data;
@@ -380,6 +376,34 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		if( JxlEncoderSetICCProfile( jxl->encoder,
 			(guint8 *) data, length ) ) {
 			vips_foreign_save_jxl_error( jxl, 
+				"JxlEncoderSetColorEncoding" );
+			return( -1 );
+		}
+	}
+	else {
+		/* If there's no ICC profile, we must set the colour encoding
+		 * ourselves.
+		 */
+		if( in->Type == VIPS_INTERPRETATION_scRGB ) {
+#ifdef DEBUG
+			printf( "setting scRGB colourspace\n" );
+#endif /*DEBUG*/
+
+			JxlColorEncodingSetToLinearSRGB( &jxl->color_encoding,
+				jxl->format.num_channels < 3 );
+		}
+		else {
+#ifdef DEBUG
+			printf( "setting sRGB colourspace\n" );
+#endif /*DEBUG*/
+
+			JxlColorEncodingSetToSRGB( &jxl->color_encoding,
+				jxl->format.num_channels < 3 );
+		}
+
+		if( JxlEncoderSetColorEncoding( jxl->encoder, 
+			&jxl->color_encoding ) ) {
+			vips_foreign_save_jxl_error( jxl,
 				"JxlEncoderSetColorEncoding" );
 			return( -1 );
 		}

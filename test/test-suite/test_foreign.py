@@ -1375,6 +1375,51 @@ class TestForeign:
         # im2 = pyvips.Image.new_from_buffer(buf, "")
         # assert (im == im2).min() == 255
 
+    @skip_if_no("jxlsave")
+    def test_jxlsave(self):
+        # save and load with an icc profile
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              self.colour, 120)
+
+        # with no icc profile
+        no_profile = self.colour.copy()
+        no_profile.remove("icc-profile-data")
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              no_profile, 120)
+
+        # scrgb mode
+        scrgb = self.colour.colourspace("scrgb")
+        no_profile.remove("icc-profile-data")
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              scrgb, 120)
+
+        # scrgb mode, no profile
+        scrgb_no_profile = scrgb.copy()
+        scrgb_no_profile.remove("icc-profile-data")
+        no_profile.remove("icc-profile-data")
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              scrgb_no_profile, 120)
+
+        # 16-bit mode
+        rgb16 = self.colour.colourspace("rgb16")
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              rgb16, 30000)
+
+        # repeat for lossless mode
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              self.colour, 0, lossless=True)
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              no_profile, 0, lossless=True)
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              scrgb, 0, lossless=True)
+        self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
+                              scrgb_no_profile, 0, lossless=True)
+
+        # lossy should be much smaller than lossless
+        lossy = self.colour.jxlsave_buffer()
+        lossless = self.colour.jxlsave_buffer(lossless=True)
+        assert len(lossy) < len(lossless) / 5
+
     @skip_if_no("gifsave")
     def test_gifsave(self):
         # Animated GIF round trip
