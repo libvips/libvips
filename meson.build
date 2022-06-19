@@ -44,10 +44,9 @@ if get_option('optimization') in ['2', '3', 's']
     add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
 endif
 
-# in debug mode we automatically enable leak checks and fatal warnings
+# in debug mode we automatically enable leak checks
 # also true for 'debugoptimized'
 if get_option('debug')
-    add_project_arguments('-DDEBUG_FATAL', language : ['cpp', 'c'])
     add_project_arguments('-DDEBUG_LEAK', language : ['cpp', 'c'])
 endif
 
