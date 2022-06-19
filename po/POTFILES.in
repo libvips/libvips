@@ -287,9 +287,6 @@ libvips/foreign/vipssave.c
 libvips/foreign/webp2vips.c
 libvips/foreign/webpload.c
 libvips/foreign/webpsave.c
-libvips/foreign/libnsgif/libnsgif.c
-libvips/foreign/libnsgif/lzw.c
-libvips/foreign/libnsgif/test/decode_gif.c
 libvips/freqfilt/freqfilt.c
 libvips/freqfilt/freqmult.c
 libvips/freqfilt/fwfft.c
