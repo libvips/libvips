@@ -188,11 +188,11 @@ vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
  */
 static void
 vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
-	VipsPel *old, VipsPel *new, VipsPel *index, size_t n_pels, int trans )
+	VipsPel *old, VipsPel *new, VipsPel *index, int n_pels, int trans )
 {
 	int sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
 
-	size_t i;
+	int i;
 
 	for( i = 0; i < n_pels; i++ ) {
 		/* Alpha must match
@@ -427,12 +427,12 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	VipsPel *frame_bytes = 
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
-	size_t n_pels = (size_t) frame_rect->height * frame_rect->width;
+	int n_pels = frame_rect->height * frame_rect->width;
 
 	gboolean has_transparency;
 	gboolean has_alpha_constraint;
 	VipsPel * restrict p;
-	size_t i;
+	int i;
 	VipsQuantiseImage *image;
 	gboolean use_local;
 	VipsQuantiseResult *quantisation_result;
@@ -706,6 +706,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* Reject images that exceed the pixel limit of libimagequant,
 	 * or that exceed the GIF limit of 64k per axis.
+	 *
+	 * Frame width * height will fit in an int, though frame size will
+	 * need at least a uint.
 	 */
 	if( (guint64) frame_rect.width * frame_rect.height > INT_MAX / 4 || 
 		frame_rect.width > 65535 || 
