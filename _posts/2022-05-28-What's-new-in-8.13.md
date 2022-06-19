@@ -11,8 +11,8 @@ The headline features are a new system for blocking unsafe file formats,
 much better GIF handling, and a new build system. Details below!
 
 Many thanks to remicollet, DarthSim, GavinJoyce, tintou, lovell, shado23,
-dloebl, tlsa, kleisauke and others for their great work on
-this release.
+dloebl, tlsa, kleisauke, f1ac, richardmonette and others for their great
+work on this release.
 
 # Blocking of unfuzzed loaders
 
@@ -141,7 +141,7 @@ DoS attack limits.
 
 ### JXL
 
-JXL now supports ICC profiles, and has better support for HDR iamges.
+JXL now supports ICC profiles, and has better support for HDR images.
 
 ### Other loader improvements
 
