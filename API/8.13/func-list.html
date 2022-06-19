@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="extending.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="file-format.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="func-list"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS function list</span></h2>
+<p>Using VIPS — List of VIPS functions and operators</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="function-list"></a><h4>Function list</h4>
+<p>
+      VIPS has a set of operators each of which computes some useful image 
+      processing operation. Each operator is 
+      implemented as a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> class, for example <code class="code">VipsGamma</code>. 
+      Classes are identified by their unique <code class="code">nickname</code>, in this 
+      case <code class="code">gamma</code>. 
+
+      From the command-line, C++ and most language bindings, you use the 
+      nickname to call the operator. For example in C++:
+
+</p>
+<pre class="programlisting">
+  vips::VImage fred = ...;
+  vips::VImage jim = fred.gamma();
+</pre>
+<p>
+
+      or Python:
+
+</p>
+<pre class="programlisting">
+  fred = jim.gamma()
+</pre>
+<p>
+
+      VIPS has a set of C wrapper functions for calling operators, in this 
+      case <a class="link" href="libvips-conversion.html#vips-gamma" title="vips_gamma ()"><code class="function">vips_gamma()</code></a>:
+
+</p>
+<pre class="programlisting">
+  VipsImage *fred = ...;
+  VipsImage *jim;
+
+  if (vips_gamma(fred, &amp;jim, NULL))
+    ...error; 
+</pre>
+<p>
+
+      Some operators have many C convenience functions.
+    </p>
+<p>
+      This table lists all the VIPS operators with their C convenience 
+      functions and a short description. It's supposed to be useful for 
+      searching. See the API docs each function links to for more details.
+    </p>
+<p>
+      </p>
+<div class="table">
+<a name="id-1.2.8.3.4.1"></a><p class="title"><b>Table 1. VIPS functions and operators</b></p>
+<div class="table-contents"><table class="table" summary="VIPS functions and operators" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">Operator</th>
+<th align="left">Description</th>
+<th align="left">C functions</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">CMC2LCh</td>
+<td align="left">Transform lch to cmc</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-CMC2LCh" title="vips_CMC2LCh ()"><code class="function">vips_CMC2LCh()</code></a></td>
+</tr>
+<tr>
+<td align="left">CMYK2XYZ</td>
+<td align="left">Transform cmyk to xyz</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-CMYK2XYZ" title="vips_CMYK2XYZ ()"><code class="function">vips_CMYK2XYZ()</code></a></td>
+</tr>
+<tr>
+<td align="left">HSV2sRGB</td>
+<td align="left">Transform hsv to srgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-HSV2sRGB" title="vips_HSV2sRGB ()"><code class="function">vips_HSV2sRGB()</code></a></td>
+</tr>
+<tr>
+<td align="left">LCh2CMC</td>
+<td align="left">Transform lch to cmc</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LCh2CMC" title="vips_LCh2CMC ()"><code class="function">vips_LCh2CMC()</code></a></td>
+</tr>
+<tr>
+<td align="left">LCh2Lab</td>
+<td align="left">Transform lch to lab</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LCh2Lab" title="vips_LCh2Lab ()"><code class="function">vips_LCh2Lab()</code></a></td>
+</tr>
+<tr>
+<td align="left">Lab2LCh</td>
+<td align="left">Transform lab to lch</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-Lab2LCh" title="vips_Lab2LCh ()"><code class="function">vips_Lab2LCh()</code></a></td>
+</tr>
+<tr>
+<td align="left">Lab2LabQ</td>
+<td align="left">Transform float lab to labq coding</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-Lab2LabQ" title="vips_Lab2LabQ ()"><code class="function">vips_Lab2LabQ()</code></a></td>
+</tr>
+<tr>
+<td align="left">Lab2LabS</td>
+<td align="left">Transform float lab to signed short</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-Lab2LabS" title="vips_Lab2LabS ()"><code class="function">vips_Lab2LabS()</code></a></td>
+</tr>
+<tr>
+<td align="left">Lab2XYZ</td>
+<td align="left">Transform cielab to xyz</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-Lab2XYZ" title="vips_Lab2XYZ ()"><code class="function">vips_Lab2XYZ()</code></a></td>
+</tr>
+<tr>
+<td align="left">LabQ2Lab</td>
+<td align="left">Unpack a labq image to float lab</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LabQ2Lab" title="vips_LabQ2Lab ()"><code class="function">vips_LabQ2Lab()</code></a></td>
+</tr>
+<tr>
+<td align="left">LabQ2LabS</td>
+<td align="left">Unpack a labq image to short lab</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LabQ2LabS" title="vips_LabQ2LabS ()"><code class="function">vips_LabQ2LabS()</code></a></td>
+</tr>
+<tr>
+<td align="left">LabQ2sRGB</td>
+<td align="left">Convert a labq image to srgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LabQ2sRGB" title="vips_LabQ2sRGB ()"><code class="function">vips_LabQ2sRGB()</code></a></td>
+</tr>
+<tr>
+<td align="left">LabS2Lab</td>
+<td align="left">Transform signed short lab to float</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LabS2Lab" title="vips_LabS2Lab ()"><code class="function">vips_LabS2Lab()</code></a></td>
+</tr>
+<tr>
+<td align="left">LabS2LabQ</td>
+<td align="left">Transform short lab to labq coding</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-LabS2LabQ" title="vips_LabS2LabQ ()"><code class="function">vips_LabS2LabQ()</code></a></td>
+</tr>
+<tr>
+<td align="left">XYZ2CMYK</td>
+<td align="left">Transform xyz to cmyk</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-XYZ2CMYK" title="vips_XYZ2CMYK ()"><code class="function">vips_XYZ2CMYK()</code></a></td>
+</tr>
+<tr>
+<td align="left">XYZ2Lab</td>
+<td align="left">Transform xyz to lab</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-XYZ2Lab" title="vips_XYZ2Lab ()"><code class="function">vips_XYZ2Lab()</code></a></td>
+</tr>
+<tr>
+<td align="left">XYZ2Yxy</td>
+<td align="left">Transform xyz to yxy</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-XYZ2Yxy" title="vips_XYZ2Yxy ()"><code class="function">vips_XYZ2Yxy()</code></a></td>
+</tr>
+<tr>
+<td align="left">XYZ2scRGB</td>
+<td align="left">Transform xyz to scrgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-XYZ2scRGB" title="vips_XYZ2scRGB ()"><code class="function">vips_XYZ2scRGB()</code></a></td>
+</tr>
+<tr>
+<td align="left">Yxy2XYZ</td>
+<td align="left">Transform yxy to xyz</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-Yxy2XYZ" title="vips_Yxy2XYZ ()"><code class="function">vips_Yxy2XYZ()</code></a></td>
+</tr>
+<tr>
+<td align="left">abs</td>
+<td align="left">Absolute value of an image</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-abs" title="vips_abs ()"><code class="function">vips_abs()</code></a></td>
+</tr>
+<tr>
+<td align="left">add</td>
+<td align="left">Add two images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a></td>
+</tr>
+<tr>
+<td align="left">affine</td>
+<td align="left">Affine transform of an image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a></td>
+</tr>
+<tr>
+<td align="left">analyzeload</td>
+<td align="left">Load an analyze6 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-analyzeload" title="vips_analyzeload ()"><code class="function">vips_analyzeload()</code></a></td>
+</tr>
+<tr>
+<td align="left">arrayjoin</td>
+<td align="left">Join an array of images</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-arrayjoin" title="vips_arrayjoin ()"><code class="function">vips_arrayjoin()</code></a></td>
+</tr>
+<tr>
+<td align="left">autorot</td>
+<td align="left">Autorotate image by exif tag</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-autorot" title="vips_autorot ()"><code class="function">vips_autorot()</code></a></td>
+</tr>
+<tr>
+<td align="left">avg</td>
+<td align="left">Find image average</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-avg" title="vips_avg ()"><code class="function">vips_avg()</code></a></td>
+</tr>
+<tr>
+<td align="left">bandbool</td>
+<td align="left">Boolean operation across image bands</td>
+<td align="left">
+<a class="link" href="libvips-conversion.html#vips-bandbool" title="vips_bandbool ()"><code class="function">vips_bandbool()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandand" title="vips_bandand ()"><code class="function">vips_bandand()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandor" title="vips_bandor ()"><code class="function">vips_bandor()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandeor" title="vips_bandeor ()"><code class="function">vips_bandeor()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandmean" title="vips_bandmean ()"><code class="function">vips_bandmean()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">bandfold</td>
+<td align="left">Fold up x axis into bands</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-bandfold" title="vips_bandfold ()"><code class="function">vips_bandfold()</code></a></td>
+</tr>
+<tr>
+<td align="left">bandjoin</td>
+<td align="left">Bandwise join a set of images</td>
+<td align="left">
+<a class="link" href="libvips-conversion.html#vips-bandjoin" title="vips_bandjoin ()"><code class="function">vips_bandjoin()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandjoin2" title="vips_bandjoin2 ()"><code class="function">vips_bandjoin2()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">bandjoin_const</td>
+<td align="left">Append a constant band to an image</td>
+<td align="left">
+<a class="link" href="libvips-conversion.html#vips-bandjoin-const" title="vips_bandjoin_const ()"><code class="function">vips_bandjoin_const()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandjoin-const1" title="vips_bandjoin_const1 ()"><code class="function">vips_bandjoin_const1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">bandmean</td>
+<td align="left">Band-wise average</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-bandmean" title="vips_bandmean ()"><code class="function">vips_bandmean()</code></a></td>
+</tr>
+<tr>
+<td align="left">bandrank</td>
+<td align="left">Band-wise rank of a set of images</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-bandrank" title="vips_bandrank ()"><code class="function">vips_bandrank()</code></a></td>
+</tr>
+<tr>
+<td align="left">bandunfold</td>
+<td align="left">Unfold image bands into x axis</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-bandunfold" title="vips_bandunfold ()"><code class="function">vips_bandunfold()</code></a></td>
+</tr>
+<tr>
+<td align="left">black</td>
+<td align="left">Make a black image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-black" title="vips_black ()"><code class="function">vips_black()</code></a></td>
+</tr>
+<tr>
+<td align="left">boolean</td>
+<td align="left">Boolean operation on two images</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-boolean" title="vips_boolean ()"><code class="function">vips_boolean()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-andimage" title="vips_andimage ()"><code class="function">vips_andimage()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-orimage" title="vips_orimage ()"><code class="function">vips_orimage()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-eorimage" title="vips_eorimage ()"><code class="function">vips_eorimage()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lshift" title="vips_lshift ()"><code class="function">vips_lshift()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rshift" title="vips_rshift ()"><code class="function">vips_rshift()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">boolean_const</td>
+<td align="left">Boolean operations against a constant</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-boolean-const" title="vips_boolean_const ()"><code class="function">vips_boolean_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-andimage-const" title="vips_andimage_const ()"><code class="function">vips_andimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-orimage-const" title="vips_orimage_const ()"><code class="function">vips_orimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-eorimage-const" title="vips_eorimage_const ()"><code class="function">vips_eorimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lshift-const" title="vips_lshift_const ()"><code class="function">vips_lshift_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rshift-const" title="vips_rshift_const ()"><code class="function">vips_rshift_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-boolean-const1" title="vips_boolean_const1 ()"><code class="function">vips_boolean_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-andimage-const1" title="vips_andimage_const1 ()"><code class="function">vips_andimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-orimage-const1" title="vips_orimage_const1 ()"><code class="function">vips_orimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-eorimage-const1" title="vips_eorimage_const1 ()"><code class="function">vips_eorimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lshift-const1" title="vips_lshift_const1 ()"><code class="function">vips_lshift_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rshift-const1" title="vips_rshift_const1 ()"><code class="function">vips_rshift_const1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">buildlut</td>
+<td align="left">Build a look-up table</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-buildlut" title="vips_buildlut ()"><code class="function">vips_buildlut()</code></a></td>
+</tr>
+<tr>
+<td align="left">byteswap</td>
+<td align="left">Byteswap an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-byteswap" title="vips_byteswap ()"><code class="function">vips_byteswap()</code></a></td>
+</tr>
+<tr>
+<td align="left">cache</td>
+<td align="left">Cache an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-cache" title="vips_cache ()"><code class="function">vips_cache()</code></a></td>
+</tr>
+<tr>
+<td align="left">canny</td>
+<td align="left">Canny edge detector</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-canny" title="vips_canny ()"><code class="function">vips_canny()</code></a></td>
+</tr>
+<tr>
+<td align="left">case</td>
+<td align="left">Use pixel values to pick cases from an array of images</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-case" title="vips_case ()"><code class="function">vips_case()</code></a></td>
+</tr>
+<tr>
+<td align="left">cast</td>
+<td align="left">Cast an image</td>
+<td align="left">
+<a class="link" href="libvips-conversion.html#vips-cast" title="vips_cast ()"><code class="function">vips_cast()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-uchar" title="vips_cast_uchar ()"><code class="function">vips_cast_uchar()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-char" title="vips_cast_char ()"><code class="function">vips_cast_char()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-ushort" title="vips_cast_ushort ()"><code class="function">vips_cast_ushort()</code></a>, <code class="function">vips_cast_shortcast_uint()</code>, <a class="link" href="libvips-conversion.html#vips-cast-int" title="vips_cast_int ()"><code class="function">vips_cast_int()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-float" title="vips_cast_float ()"><code class="function">vips_cast_float()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-double" title="vips_cast_double ()"><code class="function">vips_cast_double()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-complex" title="vips_cast_complex ()"><code class="function">vips_cast_complex()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast-dpcomplex" title="vips_cast_dpcomplex ()"><code class="function">vips_cast_dpcomplex()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">colourspace</td>
+<td align="left">Convert to a new colorspace</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-colourspace" title="vips_colourspace ()"><code class="function">vips_colourspace()</code></a></td>
+</tr>
+<tr>
+<td align="left">compass</td>
+<td align="left">Convolve with rotating mask</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-compass" title="vips_compass ()"><code class="function">vips_compass()</code></a></td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">Perform a complex operation on an image</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-complex" title="vips_complex ()"><code class="function">vips_complex()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-polar" title="vips_polar ()"><code class="function">vips_polar()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rect" title="vips_rect ()"><code class="function">vips_rect()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-conj" title="vips_conj ()"><code class="function">vips_conj()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">complex2</td>
+<td align="left">Complex binary operations on two images</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-complex2" title="vips_complex2 ()"><code class="function">vips_complex2()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-cross-phase" title="vips_cross_phase ()"><code class="function">vips_cross_phase()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">complexform</td>
+<td align="left">Form a complex image from two real images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-complexform" title="vips_complexform ()"><code class="function">vips_complexform()</code></a></td>
+</tr>
+<tr>
+<td align="left">complexget</td>
+<td align="left">Get a component from a complex image</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-complexget" title="vips_complexget ()"><code class="function">vips_complexget()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-real" title="vips_real ()"><code class="function">vips_real()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-imag" title="vips_imag ()"><code class="function">vips_imag()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">composite</td>
+<td align="left">Blend an array of images with an array of blend modes</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-composite" title="vips_composite ()"><code class="function">vips_composite()</code></a></td>
+</tr>
+<tr>
+<td align="left">composite2</td>
+<td align="left">Blend a pair of images with a blend mode</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-composite2" title="vips_composite2 ()"><code class="function">vips_composite2()</code></a></td>
+</tr>
+<tr>
+<td align="left">conv</td>
+<td align="left">Convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a></td>
+</tr>
+<tr>
+<td align="left">conva</td>
+<td align="left">Approximate integer convolution</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-conva" title="vips_conva ()"><code class="function">vips_conva()</code></a></td>
+</tr>
+<tr>
+<td align="left">convasep</td>
+<td align="left">Approximate separable integer convolution</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convasep" title="vips_convasep ()"><code class="function">vips_convasep()</code></a></td>
+</tr>
+<tr>
+<td align="left">convf</td>
+<td align="left">Float convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convf" title="vips_convf ()"><code class="function">vips_convf()</code></a></td>
+</tr>
+<tr>
+<td align="left">convi</td>
+<td align="left">Int convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convi" title="vips_convi ()"><code class="function">vips_convi()</code></a></td>
+</tr>
+<tr>
+<td align="left">convsep</td>
+<td align="left">Seperable convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a></td>
+</tr>
+<tr>
+<td align="left">copy</td>
+<td align="left">Copy an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy ()"><code class="function">vips_copy()</code></a></td>
+</tr>
+<tr>
+<td align="left">countlines</td>
+<td align="left">Count lines in an image</td>
+<td align="left"><a class="link" href="libvips-morphology.html#vips-countlines" title="vips_countlines ()"><code class="function">vips_countlines()</code></a></td>
+</tr>
+<tr>
+<td align="left">csvload</td>
+<td align="left">Load csv</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-csvload" title="vips_csvload ()"><code class="function">vips_csvload()</code></a></td>
+</tr>
+<tr>
+<td align="left">csvload_source</td>
+<td align="left">Load csv</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-csvload-source" title="vips_csvload_source ()"><code class="function">vips_csvload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">csvsave</td>
+<td align="left">Save image to csv</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-csvsave" title="vips_csvsave ()"><code class="function">vips_csvsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">csvsave_target</td>
+<td align="left">Save image to csv</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-csvsave-target" title="vips_csvsave_target ()"><code class="function">vips_csvsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">dE00</td>
+<td align="left">Calculate de00</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-dE00" title="vips_dE00 ()"><code class="function">vips_dE00()</code></a></td>
+</tr>
+<tr>
+<td align="left">dE76</td>
+<td align="left">Calculate de76</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-dE76" title="vips_dE76 ()"><code class="function">vips_dE76()</code></a></td>
+</tr>
+<tr>
+<td align="left">dECMC</td>
+<td align="left">Calculate decmc</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-dECMC" title="vips_dECMC ()"><code class="function">vips_dECMC()</code></a></td>
+</tr>
+<tr>
+<td align="left">deviate</td>
+<td align="left">Find image standard deviation</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-deviate" title="vips_deviate ()"><code class="function">vips_deviate()</code></a></td>
+</tr>
+<tr>
+<td align="left">divide</td>
+<td align="left">Divide two images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-divide" title="vips_divide ()"><code class="function">vips_divide()</code></a></td>
+</tr>
+<tr>
+<td align="left">draw_circle</td>
+<td align="left">Draw a circle on an image</td>
+<td align="left">
+<a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-circle1" title="vips_draw_circle1 ()"><code class="function">vips_draw_circle1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">draw_flood</td>
+<td align="left">Flood-fill an area</td>
+<td align="left">
+<a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-flood1" title="vips_draw_flood1 ()"><code class="function">vips_draw_flood1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">draw_image</td>
+<td align="left">Paint an image into another image</td>
+<td align="left"><a class="link" href="libvips-draw.html#vips-draw-image" title="vips_draw_image ()"><code class="function">vips_draw_image()</code></a></td>
+</tr>
+<tr>
+<td align="left">draw_line</td>
+<td align="left">Draw a line on an image</td>
+<td align="left">
+<a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-line1" title="vips_draw_line1 ()"><code class="function">vips_draw_line1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">draw_mask</td>
+<td align="left">Draw a mask on an image</td>
+<td align="left">
+<a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()"><code class="function">vips_draw_mask()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-mask1" title="vips_draw_mask1 ()"><code class="function">vips_draw_mask1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">draw_rect</td>
+<td align="left">Paint a rectangle on an image</td>
+<td align="left">
+<a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-rect1" title="vips_draw_rect1 ()"><code class="function">vips_draw_rect1()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()"><code class="function">vips_draw_point()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point1" title="vips_draw_point1 ()"><code class="function">vips_draw_point1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">draw_smudge</td>
+<td align="left">Blur a rectangle on an image</td>
+<td align="left"><a class="link" href="libvips-draw.html#vips-draw-smudge" title="vips_draw_smudge ()"><code class="function">vips_draw_smudge()</code></a></td>
+</tr>
+<tr>
+<td align="left">dzsave</td>
+<td align="left">Save image to deepzoom file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-dzsave" title="vips_dzsave ()"><code class="function">vips_dzsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">dzsave_buffer</td>
+<td align="left">Save image to dz buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-dzsave-buffer" title="vips_dzsave_buffer ()"><code class="function">vips_dzsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">dzsave_target</td>
+<td align="left">Save image to deepzoom target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-dzsave-target" title="vips_dzsave_target ()"><code class="function">vips_dzsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">embed</td>
+<td align="left">Embed an image in a larger image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a></td>
+</tr>
+<tr>
+<td align="left">extract_area</td>
+<td align="left">Extract an area from an image</td>
+<td align="left">
+<a class="link" href="libvips-conversion.html#vips-extract-area" title="vips_extract_area ()"><code class="function">vips_extract_area()</code></a>, <a class="link" href="libvips-conversion.html#vips-crop" title="vips_crop ()"><code class="function">vips_crop()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">extract_band</td>
+<td align="left">Extract band from an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-extract-band" title="vips_extract_band ()"><code class="function">vips_extract_band()</code></a></td>
+</tr>
+<tr>
+<td align="left">eye</td>
+<td align="left">Make an image showing the eye's spatial response</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-eye" title="vips_eye ()"><code class="function">vips_eye()</code></a></td>
+</tr>
+<tr>
+<td align="left">falsecolour</td>
+<td align="left">False-color an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-falsecolour" title="vips_falsecolour ()"><code class="function">vips_falsecolour()</code></a></td>
+</tr>
+<tr>
+<td align="left">fastcor</td>
+<td align="left">Fast correlation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-fastcor" title="vips_fastcor ()"><code class="function">vips_fastcor()</code></a></td>
+</tr>
+<tr>
+<td align="left">fill_nearest</td>
+<td align="left">Fill image zeros with nearest non-zero pixel</td>
+<td align="left"><a class="link" href="libvips-morphology.html#vips-fill-nearest" title="vips_fill_nearest ()"><code class="function">vips_fill_nearest()</code></a></td>
+</tr>
+<tr>
+<td align="left">find_trim</td>
+<td align="left">Search an image for non-edge areas</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-find-trim" title="vips_find_trim ()"><code class="function">vips_find_trim()</code></a></td>
+</tr>
+<tr>
+<td align="left">fitsload</td>
+<td align="left">Load a fits image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-fitsload" title="vips_fitsload ()"><code class="function">vips_fitsload()</code></a></td>
+</tr>
+<tr>
+<td align="left">fitsload_source</td>
+<td align="left">Load fits from a source</td>
+<td align="left"><code class="function">vips_fitsload_source()</code></td>
+</tr>
+<tr>
+<td align="left">fitssave</td>
+<td align="left">Save image to fits file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-fitssave" title="vips_fitssave ()"><code class="function">vips_fitssave()</code></a></td>
+</tr>
+<tr>
+<td align="left">flatten</td>
+<td align="left">Flatten alpha out of an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-flatten" title="vips_flatten ()"><code class="function">vips_flatten()</code></a></td>
+</tr>
+<tr>
+<td align="left">flip</td>
+<td align="left">Flip an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-flip" title="vips_flip ()"><code class="function">vips_flip()</code></a></td>
+</tr>
+<tr>
+<td align="left">float2rad</td>
+<td align="left">Transform float rgb to radiance coding</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-float2rad" title="vips_float2rad ()"><code class="function">vips_float2rad()</code></a></td>
+</tr>
+<tr>
+<td align="left">fractsurf</td>
+<td align="left">Make a fractal surface</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a></td>
+</tr>
+<tr>
+<td align="left">freqmult</td>
+<td align="left">Frequency-domain filtering</td>
+<td align="left"><a class="link" href="libvips-freqfilt.html#vips-freqmult" title="vips_freqmult ()"><code class="function">vips_freqmult()</code></a></td>
+</tr>
+<tr>
+<td align="left">fwfft</td>
+<td align="left">Forward fft</td>
+<td align="left"><a class="link" href="libvips-freqfilt.html#vips-fwfft" title="vips_fwfft ()"><code class="function">vips_fwfft()</code></a></td>
+</tr>
+<tr>
+<td align="left">gamma</td>
+<td align="left">Gamma an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-gamma" title="vips_gamma ()"><code class="function">vips_gamma()</code></a></td>
+</tr>
+<tr>
+<td align="left">gaussblur</td>
+<td align="left">Gaussian blur</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-gaussblur" title="vips_gaussblur ()"><code class="function">vips_gaussblur()</code></a></td>
+</tr>
+<tr>
+<td align="left">gaussmat</td>
+<td align="left">Make a gaussian image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()"><code class="function">vips_gaussmat()</code></a></td>
+</tr>
+<tr>
+<td align="left">gaussnoise</td>
+<td align="left">Make a gaussnoise image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a></td>
+</tr>
+<tr>
+<td align="left">getpoint</td>
+<td align="left">Read a point from an image</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-getpoint" title="vips_getpoint ()"><code class="function">vips_getpoint()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifload</td>
+<td align="left">Load gif with libnsgif</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifload_buffer</td>
+<td align="left">Load gif with libnsgif</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload-buffer" title="vips_gifload_buffer ()"><code class="function">vips_gifload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifload_source</td>
+<td align="left">Load gif from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload-source" title="vips_gifload_source ()"><code class="function">vips_gifload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifsave</td>
+<td align="left">Save as gif</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()"><code class="function">vips_gifsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifsave_buffer</td>
+<td align="left">Save as gif</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifsave-buffer" title="vips_gifsave_buffer ()"><code class="function">vips_gifsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">gifsave_target</td>
+<td align="left">Save as gif</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-gifsave-target" title="vips_gifsave_target ()"><code class="function">vips_gifsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">globalbalance</td>
+<td align="left">Global balance an image mosaic</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a></td>
+</tr>
+<tr>
+<td align="left">gravity</td>
+<td align="left">Place an image within a larger image with a certain gravity</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-gravity" title="vips_gravity ()"><code class="function">vips_gravity()</code></a></td>
+</tr>
+<tr>
+<td align="left">grey</td>
+<td align="left">Make a grey ramp image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()"><code class="function">vips_grey()</code></a></td>
+</tr>
+<tr>
+<td align="left">grid</td>
+<td align="left">Grid an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifload</td>
+<td align="left">Load a heif image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifload" title="vips_heifload ()"><code class="function">vips_heifload()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifload_buffer</td>
+<td align="left">Load a heif image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifload-buffer" title="vips_heifload_buffer ()"><code class="function">vips_heifload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifload_source</td>
+<td align="left">Load a heif image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifload-source" title="vips_heifload_source ()"><code class="function">vips_heifload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifsave</td>
+<td align="left">Save image in heif format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifsave" title="vips_heifsave ()"><code class="function">vips_heifsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifsave_buffer</td>
+<td align="left">Save image in heif format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifsave-buffer" title="vips_heifsave_buffer ()"><code class="function">vips_heifsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">heifsave_target</td>
+<td align="left">Save image in heif format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-heifsave-target" title="vips_heifsave_target ()"><code class="function">vips_heifsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_cum</td>
+<td align="left">Form cumulative histogram</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_entropy</td>
+<td align="left">Estimate image entropy</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-entropy" title="vips_hist_entropy ()"><code class="function">vips_hist_entropy()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_equal</td>
+<td align="left">Histogram equalisation</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-equal" title="vips_hist_equal ()"><code class="function">vips_hist_equal()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_find</td>
+<td align="left">Find image histogram</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_find_indexed</td>
+<td align="left">Find indexed image histogram</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-hist-find-indexed" title="vips_hist_find_indexed ()"><code class="function">vips_hist_find_indexed()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_find_ndim</td>
+<td align="left">Find n-dimensional image histogram</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-hist-find-ndim" title="vips_hist_find_ndim ()"><code class="function">vips_hist_find_ndim()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_ismonotonic</td>
+<td align="left">Test for monotonicity</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-ismonotonic" title="vips_hist_ismonotonic ()"><code class="function">vips_hist_ismonotonic()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_local</td>
+<td align="left">Local histogram equalisation</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-local" title="vips_hist_local ()"><code class="function">vips_hist_local()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_match</td>
+<td align="left">Match two histograms</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-match" title="vips_hist_match ()"><code class="function">vips_hist_match()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_norm</td>
+<td align="left">Normalise histogram</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a></td>
+</tr>
+<tr>
+<td align="left">hist_plot</td>
+<td align="left">Plot histogram</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-hist-plot" title="vips_hist_plot ()"><code class="function">vips_hist_plot()</code></a></td>
+</tr>
+<tr>
+<td align="left">hough_circle</td>
+<td align="left">Find hough circle transform</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-hough-circle" title="vips_hough_circle ()"><code class="function">vips_hough_circle()</code></a></td>
+</tr>
+<tr>
+<td align="left">hough_line</td>
+<td align="left">Find hough line transform</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-hough-line" title="vips_hough_line ()"><code class="function">vips_hough_line()</code></a></td>
+</tr>
+<tr>
+<td align="left">icc_export</td>
+<td align="left">Output to device with icc profile</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-icc-export" title="vips_icc_export ()"><code class="function">vips_icc_export()</code></a></td>
+</tr>
+<tr>
+<td align="left">icc_import</td>
+<td align="left">Import from device with icc profile</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-icc-import" title="vips_icc_import ()"><code class="function">vips_icc_import()</code></a></td>
+</tr>
+<tr>
+<td align="left">icc_transform</td>
+<td align="left">Transform between devices with icc profiles</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-icc-transform" title="vips_icc_transform ()"><code class="function">vips_icc_transform()</code></a></td>
+</tr>
+<tr>
+<td align="left">identity</td>
+<td align="left">Make a 1d image where pixel values are indexes</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a></td>
+</tr>
+<tr>
+<td align="left">ifthenelse</td>
+<td align="left">Ifthenelse an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-ifthenelse" title="vips_ifthenelse ()"><code class="function">vips_ifthenelse()</code></a></td>
+</tr>
+<tr>
+<td align="left">insert</td>
+<td align="left">Insert image <em class="parameter"><code>sub</code></em> into <em class="parameter"><code>main</code></em> at <em class="parameter"><code>x</code></em>, <em class="parameter"><code>y</code></em>
+</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a></td>
+</tr>
+<tr>
+<td align="left">invert</td>
+<td align="left">Invert an image</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a></td>
+</tr>
+<tr>
+<td align="left">invertlut</td>
+<td align="left">Build an inverted look-up table</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-invertlut" title="vips_invertlut ()"><code class="function">vips_invertlut()</code></a></td>
+</tr>
+<tr>
+<td align="left">invfft</td>
+<td align="left">Inverse fft</td>
+<td align="left"><a class="link" href="libvips-freqfilt.html#vips-invfft" title="vips_invfft ()"><code class="function">vips_invfft()</code></a></td>
+</tr>
+<tr>
+<td align="left">join</td>
+<td align="left">Join a pair of images</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-join" title="vips_join ()"><code class="function">vips_join()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2kload</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload" title="vips_jp2kload ()"><code class="function">vips_jp2kload()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2kload_buffer</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload-buffer" title="vips_jp2kload_buffer ()"><code class="function">vips_jp2kload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2kload_source</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload-source" title="vips_jp2kload_source ()"><code class="function">vips_jp2kload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave" title="vips_jp2ksave ()"><code class="function">vips_jp2ksave()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave_buffer</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave-buffer" title="vips_jp2ksave_buffer ()"><code class="function">vips_jp2ksave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave_target</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave-target" title="vips_jp2ksave_target ()"><code class="function">vips_jp2ksave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegload</td>
+<td align="left">Load jpeg from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegload" title="vips_jpegload ()"><code class="function">vips_jpegload()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegload_buffer</td>
+<td align="left">Load jpeg from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegload-buffer" title="vips_jpegload_buffer ()"><code class="function">vips_jpegload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegload_source</td>
+<td align="left">Load image from jpeg source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegload-source" title="vips_jpegload_source ()"><code class="function">vips_jpegload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegsave</td>
+<td align="left">Save image to jpeg file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegsave_buffer</td>
+<td align="left">Save image to jpeg buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-buffer" title="vips_jpegsave_buffer ()"><code class="function">vips_jpegsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegsave_mime</td>
+<td align="left">Save image to jpeg mime</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-mime" title="vips_jpegsave_mime ()"><code class="function">vips_jpegsave_mime()</code></a></td>
+</tr>
+<tr>
+<td align="left">jpegsave_target</td>
+<td align="left">Save image to jpeg target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-target" title="vips_jpegsave_target ()"><code class="function">vips_jpegsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload" title="vips_jxlload ()"><code class="function">vips_jxlload()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload_buffer</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload-buffer" title="vips_jxlload_buffer ()"><code class="function">vips_jxlload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload_source</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload-source" title="vips_jxlload_source ()"><code class="function">vips_jxlload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlsave</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlsave" title="vips_jxlsave ()"><code class="function">vips_jxlsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlsave_buffer</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlsave-buffer" title="vips_jxlsave_buffer ()"><code class="function">vips_jxlsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlsave_target</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlsave-target" title="vips_jxlsave_target ()"><code class="function">vips_jxlsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">labelregions</td>
+<td align="left">Label regions in an image</td>
+<td align="left"><a class="link" href="libvips-morphology.html#vips-labelregions" title="vips_labelregions ()"><code class="function">vips_labelregions()</code></a></td>
+</tr>
+<tr>
+<td align="left">linear</td>
+<td align="left">Calculate (a * in + b)</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-linear" title="vips_linear ()"><code class="function">vips_linear()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-linear1" title="vips_linear1 ()"><code class="function">vips_linear1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">linecache</td>
+<td align="left">Cache an image as a set of lines</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a></td>
+</tr>
+<tr>
+<td align="left">logmat</td>
+<td align="left">Make a laplacian of gaussian image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-logmat" title="vips_logmat ()"><code class="function">vips_logmat()</code></a></td>
+</tr>
+<tr>
+<td align="left">magickload</td>
+<td align="left">Load file with imagemagick</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-magickload" title="vips_magickload ()"><code class="function">vips_magickload()</code></a></td>
+</tr>
+<tr>
+<td align="left">magickload_buffer</td>
+<td align="left">Load buffer with imagemagick</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-magickload-buffer" title="vips_magickload_buffer ()"><code class="function">vips_magickload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">magicksave</td>
+<td align="left">Save file with imagemagick</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-magicksave" title="vips_magicksave ()"><code class="function">vips_magicksave()</code></a></td>
+</tr>
+<tr>
+<td align="left">magicksave_buffer</td>
+<td align="left">Save image to magick buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-magicksave-buffer" title="vips_magicksave_buffer ()"><code class="function">vips_magicksave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">mapim</td>
+<td align="left">Resample with a map image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-mapim" title="vips_mapim ()"><code class="function">vips_mapim()</code></a></td>
+</tr>
+<tr>
+<td align="left">maplut</td>
+<td align="left">Map an image though a lut</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_butterworth</td>
+<td align="left">Make a butterworth filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-butterworth" title="vips_mask_butterworth ()"><code class="function">vips_mask_butterworth()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_butterworth_band</td>
+<td align="left">Make a butterworth_band filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-butterworth-band" title="vips_mask_butterworth_band ()"><code class="function">vips_mask_butterworth_band()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_butterworth_ring</td>
+<td align="left">Make a butterworth ring filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-butterworth-ring" title="vips_mask_butterworth_ring ()"><code class="function">vips_mask_butterworth_ring()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_fractal</td>
+<td align="left">Make fractal filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-fractal" title="vips_mask_fractal ()"><code class="function">vips_mask_fractal()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_gaussian</td>
+<td align="left">Make a gaussian filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-gaussian" title="vips_mask_gaussian ()"><code class="function">vips_mask_gaussian()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_gaussian_band</td>
+<td align="left">Make a gaussian filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-gaussian-band" title="vips_mask_gaussian_band ()"><code class="function">vips_mask_gaussian_band()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_gaussian_ring</td>
+<td align="left">Make a gaussian ring filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-gaussian-ring" title="vips_mask_gaussian_ring ()"><code class="function">vips_mask_gaussian_ring()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_ideal</td>
+<td align="left">Make an ideal filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_ideal_band</td>
+<td align="left">Make an ideal band filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-ideal-band" title="vips_mask_ideal_band ()"><code class="function">vips_mask_ideal_band()</code></a></td>
+</tr>
+<tr>
+<td align="left">mask_ideal_ring</td>
+<td align="left">Make an ideal ring filter</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-mask-ideal-ring" title="vips_mask_ideal_ring ()"><code class="function">vips_mask_ideal_ring()</code></a></td>
+</tr>
+<tr>
+<td align="left">match</td>
+<td align="left">First-order match of two images</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-match" title="vips_match ()"><code class="function">vips_match()</code></a></td>
+</tr>
+<tr>
+<td align="left">math</td>
+<td align="left">Apply a math operation to an image</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-math" title="vips_math ()"><code class="function">vips_math()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-sin" title="vips_sin ()"><code class="function">vips_sin()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-cos" title="vips_cos ()"><code class="function">vips_cos()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-tan" title="vips_tan ()"><code class="function">vips_tan()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-asin" title="vips_asin ()"><code class="function">vips_asin()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-acos" title="vips_acos ()"><code class="function">vips_acos()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-atan" title="vips_atan ()"><code class="function">vips_atan()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-sinh" title="vips_sinh ()"><code class="function">vips_sinh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-cosh" title="vips_cosh ()"><code class="function">vips_cosh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-tanh" title="vips_tanh ()"><code class="function">vips_tanh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-asinh" title="vips_asinh ()"><code class="function">vips_asinh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-acosh" title="vips_acosh ()"><code class="function">vips_acosh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-atanh" title="vips_atanh ()"><code class="function">vips_atanh()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-exp" title="vips_exp ()"><code class="function">vips_exp()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-exp10" title="vips_exp10 ()"><code class="function">vips_exp10()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-log" title="vips_log ()"><code class="function">vips_log()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-log10" title="vips_log10 ()"><code class="function">vips_log10()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">math2</td>
+<td align="left">Binary math operations</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-math2" title="vips_math2 ()"><code class="function">vips_math2()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-pow" title="vips_pow ()"><code class="function">vips_pow()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-wop" title="vips_wop ()"><code class="function">vips_wop()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-atan2" title="vips_atan2 ()"><code class="function">vips_atan2()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">math2_const</td>
+<td align="left">Binary math operations with a constant</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-math2-const" title="vips_math2_const ()"><code class="function">vips_math2_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-andimage-const" title="vips_andimage_const ()"><code class="function">vips_andimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-orimage-const" title="vips_orimage_const ()"><code class="function">vips_orimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-eorimage-const" title="vips_eorimage_const ()"><code class="function">vips_eorimage_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lshift-const" title="vips_lshift_const ()"><code class="function">vips_lshift_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rshift-const" title="vips_rshift_const ()"><code class="function">vips_rshift_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-math2-const1" title="vips_math2_const1 ()"><code class="function">vips_math2_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-andimage-const1" title="vips_andimage_const1 ()"><code class="function">vips_andimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-orimage-const1" title="vips_orimage_const1 ()"><code class="function">vips_orimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-eorimage-const1" title="vips_eorimage_const1 ()"><code class="function">vips_eorimage_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lshift-const1" title="vips_lshift_const1 ()"><code class="function">vips_lshift_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rshift-const1" title="vips_rshift_const1 ()"><code class="function">vips_rshift_const1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">matload</td>
+<td align="left">Load mat from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matload" title="vips_matload ()"><code class="function">vips_matload()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixinvert</td>
+<td align="left">Invert an matrix</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-matrixinvert" title="vips_matrixinvert ()"><code class="function">vips_matrixinvert()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixload</td>
+<td align="left">Load matrix</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matrixload" title="vips_matrixload ()"><code class="function">vips_matrixload()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixload_source</td>
+<td align="left">Load matrix</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matrixload-source" title="vips_matrixload_source ()"><code class="function">vips_matrixload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixprint</td>
+<td align="left">Print matrix</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matrixprint" title="vips_matrixprint ()"><code class="function">vips_matrixprint()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixsave</td>
+<td align="left">Save image to matrix</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matrixsave" title="vips_matrixsave ()"><code class="function">vips_matrixsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">matrixsave_target</td>
+<td align="left">Save image to matrix</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-matrixsave-target" title="vips_matrixsave_target ()"><code class="function">vips_matrixsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">max</td>
+<td align="left">Find image maximum</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-max" title="vips_max ()"><code class="function">vips_max()</code></a></td>
+</tr>
+<tr>
+<td align="left">measure</td>
+<td align="left">Measure a set of patches on a color chart</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-measure" title="vips_measure ()"><code class="function">vips_measure()</code></a></td>
+</tr>
+<tr>
+<td align="left">merge</td>
+<td align="left">Merge two images</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a></td>
+</tr>
+<tr>
+<td align="left">min</td>
+<td align="left">Find image minimum</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-min" title="vips_min ()"><code class="function">vips_min()</code></a></td>
+</tr>
+<tr>
+<td align="left">morph</td>
+<td align="left">Morphology operation</td>
+<td align="left"><a class="link" href="libvips-morphology.html#vips-morph" title="vips_morph ()"><code class="function">vips_morph()</code></a></td>
+</tr>
+<tr>
+<td align="left">mosaic</td>
+<td align="left">Mosaic two images</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-mosaic" title="vips_mosaic ()"><code class="function">vips_mosaic()</code></a></td>
+</tr>
+<tr>
+<td align="left">mosaic1</td>
+<td align="left">First-order mosaic of two images</td>
+<td align="left"><a class="link" href="libvips-mosaicing.html#vips-mosaic1" title="vips_mosaic1 ()"><code class="function">vips_mosaic1()</code></a></td>
+</tr>
+<tr>
+<td align="left">msb</td>
+<td align="left">Pick most-significant byte from an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-msb" title="vips_msb ()"><code class="function">vips_msb()</code></a></td>
+</tr>
+<tr>
+<td align="left">multiply</td>
+<td align="left">Multiply two images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-multiply" title="vips_multiply ()"><code class="function">vips_multiply()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftiload</td>
+<td align="left">Load nifti volume</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftiload" title="vips_niftiload ()"><code class="function">vips_niftiload()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftiload_source</td>
+<td align="left">Load nifti volumes</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftiload-source" title="vips_niftiload_source ()"><code class="function">vips_niftiload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftisave</td>
+<td align="left">Save image to nifti file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftisave" title="vips_niftisave ()"><code class="function">vips_niftisave()</code></a></td>
+</tr>
+<tr>
+<td align="left">openexrload</td>
+<td align="left">Load an openexr image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-openexrload" title="vips_openexrload ()"><code class="function">vips_openexrload()</code></a></td>
+</tr>
+<tr>
+<td align="left">openslideload</td>
+<td align="left">Load file with openslide</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-openslideload" title="vips_openslideload ()"><code class="function">vips_openslideload()</code></a></td>
+</tr>
+<tr>
+<td align="left">openslideload_source</td>
+<td align="left">Load source with openslide</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-openslideload-source" title="vips_openslideload_source ()"><code class="function">vips_openslideload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">pdfload</td>
+<td align="left">Load pdf from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pdfload" title="vips_pdfload ()"><code class="function">vips_pdfload()</code></a></td>
+</tr>
+<tr>
+<td align="left">pdfload_buffer</td>
+<td align="left">Load pdf from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pdfload-buffer" title="vips_pdfload_buffer ()"><code class="function">vips_pdfload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">pdfload_source</td>
+<td align="left">Load pdf from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pdfload-source" title="vips_pdfload_source ()"><code class="function">vips_pdfload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">percent</td>
+<td align="left">Find threshold for percent of pixels</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-percent" title="vips_percent ()"><code class="function">vips_percent()</code></a></td>
+</tr>
+<tr>
+<td align="left">perlin</td>
+<td align="left">Make a perlin noise image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-perlin" title="vips_perlin ()"><code class="function">vips_perlin()</code></a></td>
+</tr>
+<tr>
+<td align="left">phasecor</td>
+<td align="left">Calculate phase correlation</td>
+<td align="left"><a class="link" href="libvips-freqfilt.html#vips-phasecor" title="vips_phasecor ()"><code class="function">vips_phasecor()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngload</td>
+<td align="left">Load png from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload" title="vips_pngload ()"><code class="function">vips_pngload()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngload_buffer</td>
+<td align="left">Load png from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload-buffer" title="vips_pngload_buffer ()"><code class="function">vips_pngload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngload_source</td>
+<td align="left">Load png from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload-source" title="vips_pngload_source ()"><code class="function">vips_pngload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngsave</td>
+<td align="left">Save image to file as png</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngsave_buffer</td>
+<td align="left">Save image to buffer as png</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave-buffer" title="vips_pngsave_buffer ()"><code class="function">vips_pngsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">pngsave_target</td>
+<td align="left">Save image to target as png</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave-target" title="vips_pngsave_target ()"><code class="function">vips_pngsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">ppmload</td>
+<td align="left">Load ppm from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmload" title="vips_ppmload ()"><code class="function">vips_ppmload()</code></a></td>
+</tr>
+<tr>
+<td align="left">ppmload_source</td>
+<td align="left">Load ppm base class</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmload-source" title="vips_ppmload_source ()"><code class="function">vips_ppmload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">ppmsave</td>
+<td align="left">Save image to ppm file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmsave" title="vips_ppmsave ()"><code class="function">vips_ppmsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">ppmsave_target</td>
+<td align="left">Save to ppm</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmsave-target" title="vips_ppmsave_target ()"><code class="function">vips_ppmsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">premultiply</td>
+<td align="left">Premultiply image alpha</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-premultiply" title="vips_premultiply ()"><code class="function">vips_premultiply()</code></a></td>
+</tr>
+<tr>
+<td align="left">profile</td>
+<td align="left">Find image profiles</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-profile" title="vips_profile ()"><code class="function">vips_profile()</code></a></td>
+</tr>
+<tr>
+<td align="left">profile_load</td>
+<td align="left">Load named icc profile</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-profile-load" title="vips_profile_load ()"><code class="function">vips_profile_load()</code></a></td>
+</tr>
+<tr>
+<td align="left">project</td>
+<td align="left">Find image projections</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-project" title="vips_project ()"><code class="function">vips_project()</code></a></td>
+</tr>
+<tr>
+<td align="left">quadratic</td>
+<td align="left">Resample an image with a quadratic transform</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-quadratic" title="vips_quadratic ()"><code class="function">vips_quadratic()</code></a></td>
+</tr>
+<tr>
+<td align="left">rad2float</td>
+<td align="left">Unpack radiance coding to float rgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-rad2float" title="vips_rad2float ()"><code class="function">vips_rad2float()</code></a></td>
+</tr>
+<tr>
+<td align="left">radload</td>
+<td align="left">Load a radiance image from a file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radload" title="vips_radload ()"><code class="function">vips_radload()</code></a></td>
+</tr>
+<tr>
+<td align="left">radload_buffer</td>
+<td align="left">Load rad from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radload-buffer" title="vips_radload_buffer ()"><code class="function">vips_radload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">radload_source</td>
+<td align="left">Load rad from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radload-source" title="vips_radload_source ()"><code class="function">vips_radload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">radsave</td>
+<td align="left">Save image to radiance file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave" title="vips_radsave ()"><code class="function">vips_radsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">radsave_buffer</td>
+<td align="left">Save image to radiance buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave-buffer" title="vips_radsave_buffer ()"><code class="function">vips_radsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">radsave_target</td>
+<td align="left">Save image to radiance target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave-target" title="vips_radsave_target ()"><code class="function">vips_radsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">rank</td>
+<td align="left">Rank filter</td>
+<td align="left">
+<a class="link" href="libvips-morphology.html#vips-rank" title="vips_rank ()"><code class="function">vips_rank()</code></a>, <a class="link" href="libvips-morphology.html#vips-median" title="vips_median ()"><code class="function">vips_median()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">rawload</td>
+<td align="left">Load raw data from a file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-rawload" title="vips_rawload ()"><code class="function">vips_rawload()</code></a></td>
+</tr>
+<tr>
+<td align="left">rawsave</td>
+<td align="left">Save image to raw file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-rawsave" title="vips_rawsave ()"><code class="function">vips_rawsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">rawsave_fd</td>
+<td align="left">Write raw image to file descriptor</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-rawsave-fd" title="vips_rawsave_fd ()"><code class="function">vips_rawsave_fd()</code></a></td>
+</tr>
+<tr>
+<td align="left">recomb</td>
+<td align="left">Linear recombination with matrix</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-recomb" title="vips_recomb ()"><code class="function">vips_recomb()</code></a></td>
+</tr>
+<tr>
+<td align="left">reduce</td>
+<td align="left">Reduce an image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a></td>
+</tr>
+<tr>
+<td align="left">reduceh</td>
+<td align="left">Shrink an image horizontally</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-reduceh" title="vips_reduceh ()"><code class="function">vips_reduceh()</code></a></td>
+</tr>
+<tr>
+<td align="left">reducev</td>
+<td align="left">Shrink an image vertically</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-reducev" title="vips_reducev ()"><code class="function">vips_reducev()</code></a></td>
+</tr>
+<tr>
+<td align="left">relational</td>
+<td align="left">Relational operation on two images</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-relational" title="vips_relational ()"><code class="function">vips_relational()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-equal" title="vips_equal ()"><code class="function">vips_equal()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-notequal" title="vips_notequal ()"><code class="function">vips_notequal()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-less" title="vips_less ()"><code class="function">vips_less()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lesseq" title="vips_lesseq ()"><code class="function">vips_lesseq()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-more" title="vips_more ()"><code class="function">vips_more()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-moreeq" title="vips_moreeq ()"><code class="function">vips_moreeq()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">relational_const</td>
+<td align="left">Relational operations against a constant</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-relational-const" title="vips_relational_const ()"><code class="function">vips_relational_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-equal-const" title="vips_equal_const ()"><code class="function">vips_equal_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-notequal-const" title="vips_notequal_const ()"><code class="function">vips_notequal_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-less-const" title="vips_less_const ()"><code class="function">vips_less_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lesseq-const" title="vips_lesseq_const ()"><code class="function">vips_lesseq_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-more-const" title="vips_more_const ()"><code class="function">vips_more_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-moreeq-const" title="vips_moreeq_const ()"><code class="function">vips_moreeq_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-relational-const1" title="vips_relational_const1 ()"><code class="function">vips_relational_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-equal-const1" title="vips_equal_const1 ()"><code class="function">vips_equal_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-notequal-const1" title="vips_notequal_const1 ()"><code class="function">vips_notequal_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-less-const1" title="vips_less_const1 ()"><code class="function">vips_less_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-lesseq-const1" title="vips_lesseq_const1 ()"><code class="function">vips_lesseq_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-more-const1" title="vips_more_const1 ()"><code class="function">vips_more_const1()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-moreeq-const1" title="vips_moreeq_const1 ()"><code class="function">vips_moreeq_const1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">remainder</td>
+<td align="left">Remainder after integer division of two images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-remainder" title="vips_remainder ()"><code class="function">vips_remainder()</code></a></td>
+</tr>
+<tr>
+<td align="left">remainder_const</td>
+<td align="left">Remainder after integer division of an image and a constant</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-remainder-const" title="vips_remainder_const ()"><code class="function">vips_remainder_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-remainder-const1" title="vips_remainder_const1 ()"><code class="function">vips_remainder_const1()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">replicate</td>
+<td align="left">Replicate an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-replicate" title="vips_replicate ()"><code class="function">vips_replicate()</code></a></td>
+</tr>
+<tr>
+<td align="left">resize</td>
+<td align="left">Resize an image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a></td>
+</tr>
+<tr>
+<td align="left">rot</td>
+<td align="left">Rotate an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-rot" title="vips_rot ()"><code class="function">vips_rot()</code></a></td>
+</tr>
+<tr>
+<td align="left">rot45</td>
+<td align="left">Rotate an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-rot45" title="vips_rot45 ()"><code class="function">vips_rot45()</code></a></td>
+</tr>
+<tr>
+<td align="left">rotate</td>
+<td align="left">Rotate an image by a number of degrees</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-rotate" title="vips_rotate ()"><code class="function">vips_rotate()</code></a></td>
+</tr>
+<tr>
+<td align="left">round</td>
+<td align="left">Perform a round function on an image</td>
+<td align="left">
+<a class="link" href="libvips-arithmetic.html#vips-round" title="vips_round ()"><code class="function">vips_round()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-floor" title="vips_floor ()"><code class="function">vips_floor()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-ceil" title="vips_ceil ()"><code class="function">vips_ceil()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rint" title="vips_rint ()"><code class="function">vips_rint()</code></a>
+</td>
+</tr>
+<tr>
+<td align="left">sRGB2HSV</td>
+<td align="left">Transform srgb to hsv</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-sRGB2HSV" title="vips_sRGB2HSV ()"><code class="function">vips_sRGB2HSV()</code></a></td>
+</tr>
+<tr>
+<td align="left">sRGB2scRGB</td>
+<td align="left">Convert an srgb image to scrgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-sRGB2scRGB" title="vips_sRGB2scRGB ()"><code class="function">vips_sRGB2scRGB()</code></a></td>
+</tr>
+<tr>
+<td align="left">scRGB2BW</td>
+<td align="left">Convert scrgb to bw</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-scRGB2BW" title="vips_scRGB2BW ()"><code class="function">vips_scRGB2BW()</code></a></td>
+</tr>
+<tr>
+<td align="left">scRGB2XYZ</td>
+<td align="left">Transform scrgb to xyz</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-scRGB2XYZ" title="vips_scRGB2XYZ ()"><code class="function">vips_scRGB2XYZ()</code></a></td>
+</tr>
+<tr>
+<td align="left">scRGB2sRGB</td>
+<td align="left">Convert an scrgb image to srgb</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-scRGB2sRGB" title="vips_scRGB2sRGB ()"><code class="function">vips_scRGB2sRGB()</code></a></td>
+</tr>
+<tr>
+<td align="left">scale</td>
+<td align="left">Scale an image to uchar</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-scale" title="vips_scale ()"><code class="function">vips_scale()</code></a></td>
+</tr>
+<tr>
+<td align="left">sequential</td>
+<td align="left">Check sequential access</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-sequential" title="vips_sequential ()"><code class="function">vips_sequential()</code></a></td>
+</tr>
+<tr>
+<td align="left">sharpen</td>
+<td align="left">Unsharp masking for print</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-sharpen" title="vips_sharpen ()"><code class="function">vips_sharpen()</code></a></td>
+</tr>
+<tr>
+<td align="left">shrink</td>
+<td align="left">Shrink an image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a></td>
+</tr>
+<tr>
+<td align="left">shrinkh</td>
+<td align="left">Shrink an image horizontally</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-shrinkh" title="vips_shrinkh ()"><code class="function">vips_shrinkh()</code></a></td>
+</tr>
+<tr>
+<td align="left">shrinkv</td>
+<td align="left">Shrink an image vertically</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-shrinkv" title="vips_shrinkv ()"><code class="function">vips_shrinkv()</code></a></td>
+</tr>
+<tr>
+<td align="left">sign</td>
+<td align="left">Unit vector of pixel</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-sign" title="vips_sign ()"><code class="function">vips_sign()</code></a></td>
+</tr>
+<tr>
+<td align="left">similarity</td>
+<td align="left">Similarity transform of an image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-similarity" title="vips_similarity ()"><code class="function">vips_similarity()</code></a></td>
+</tr>
+<tr>
+<td align="left">sines</td>
+<td align="left">Make a 2d sine wave</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-sines" title="vips_sines ()"><code class="function">vips_sines()</code></a></td>
+</tr>
+<tr>
+<td align="left">smartcrop</td>
+<td align="left">Extract an area from an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-smartcrop" title="vips_smartcrop ()"><code class="function">vips_smartcrop()</code></a></td>
+</tr>
+<tr>
+<td align="left">sobel</td>
+<td align="left">Sobel edge detector</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-sobel" title="vips_sobel ()"><code class="function">vips_sobel()</code></a></td>
+</tr>
+<tr>
+<td align="left">spcor</td>
+<td align="left">Spatial correlation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-spcor" title="vips_spcor ()"><code class="function">vips_spcor()</code></a></td>
+</tr>
+<tr>
+<td align="left">spectrum</td>
+<td align="left">Make displayable power spectrum</td>
+<td align="left"><a class="link" href="libvips-freqfilt.html#vips-spectrum" title="vips_spectrum ()"><code class="function">vips_spectrum()</code></a></td>
+</tr>
+<tr>
+<td align="left">stats</td>
+<td align="left">Find many image stats</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-stats" title="vips_stats ()"><code class="function">vips_stats()</code></a></td>
+</tr>
+<tr>
+<td align="left">stdif</td>
+<td align="left">Statistical difference</td>
+<td align="left"><a class="link" href="libvips-histogram.html#vips-stdif" title="vips_stdif ()"><code class="function">vips_stdif()</code></a></td>
+</tr>
+<tr>
+<td align="left">subsample</td>
+<td align="left">Subsample an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-subsample" title="vips_subsample ()"><code class="function">vips_subsample()</code></a></td>
+</tr>
+<tr>
+<td align="left">subtract</td>
+<td align="left">Subtract two images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-subtract" title="vips_subtract ()"><code class="function">vips_subtract()</code></a></td>
+</tr>
+<tr>
+<td align="left">sum</td>
+<td align="left">Sum an array of images</td>
+<td align="left"><a class="link" href="libvips-arithmetic.html#vips-sum" title="vips_sum ()"><code class="function">vips_sum()</code></a></td>
+</tr>
+<tr>
+<td align="left">svgload</td>
+<td align="left">Load svg with rsvg</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-svgload" title="vips_svgload ()"><code class="function">vips_svgload()</code></a></td>
+</tr>
+<tr>
+<td align="left">svgload_buffer</td>
+<td align="left">Load svg with rsvg</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-svgload-buffer" title="vips_svgload_buffer ()"><code class="function">vips_svgload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">svgload_source</td>
+<td align="left">Load svg from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-svgload-source" title="vips_svgload_source ()"><code class="function">vips_svgload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">switch</td>
+<td align="left">Find the index of the first non-zero pixel in tests</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-switch" title="vips_switch ()"><code class="function">vips_switch()</code></a></td>
+</tr>
+<tr>
+<td align="left">system</td>
+<td align="left">Run an external command</td>
+<td align="left"><a class="link" href="VipsImage.html#vips-system" title="vips_system ()"><code class="function">vips_system()</code></a></td>
+</tr>
+<tr>
+<td align="left">text</td>
+<td align="left">Make a text image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail</td>
+<td align="left">Generate thumbnail from file</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail_buffer</td>
+<td align="left">Generate thumbnail from buffer</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()"><code class="function">vips_thumbnail_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail_image</td>
+<td align="left">Generate thumbnail from image</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-image" title="vips_thumbnail_image ()"><code class="function">vips_thumbnail_image()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail_source</td>
+<td align="left">Generate thumbnail from source</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-source" title="vips_thumbnail_source ()"><code class="function">vips_thumbnail_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffload</td>
+<td align="left">Load tiff from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload" title="vips_tiffload ()"><code class="function">vips_tiffload()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffload_buffer</td>
+<td align="left">Load tiff from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload-buffer" title="vips_tiffload_buffer ()"><code class="function">vips_tiffload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffload_source</td>
+<td align="left">Load tiff from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload-source" title="vips_tiffload_source ()"><code class="function">vips_tiffload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffsave</td>
+<td align="left">Save image to tiff file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffsave_buffer</td>
+<td align="left">Save image to tiff buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffsave-buffer" title="vips_tiffsave_buffer ()"><code class="function">vips_tiffsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">tiffsave_target</td>
+<td align="left">Save image to tiff target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffsave-target" title="vips_tiffsave_target ()"><code class="function">vips_tiffsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">tilecache</td>
+<td align="left">Cache an image as a set of tiles</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a></td>
+</tr>
+<tr>
+<td align="left">tonelut</td>
+<td align="left">Build a look-up table</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-tonelut" title="vips_tonelut ()"><code class="function">vips_tonelut()</code></a></td>
+</tr>
+<tr>
+<td align="left">transpose3d</td>
+<td align="left">Transpose3d an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-transpose3d" title="vips_transpose3d ()"><code class="function">vips_transpose3d()</code></a></td>
+</tr>
+<tr>
+<td align="left">unpremultiply</td>
+<td align="left">Unpremultiply image alpha</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-unpremultiply" title="vips_unpremultiply ()"><code class="function">vips_unpremultiply()</code></a></td>
+</tr>
+<tr>
+<td align="left">vipsload</td>
+<td align="left">Load vips from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipsload" title="vips_vipsload ()"><code class="function">vips_vipsload()</code></a></td>
+</tr>
+<tr>
+<td align="left">vipsload_source</td>
+<td align="left">Load vips from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipsload-source" title="vips_vipsload_source ()"><code class="function">vips_vipsload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">vipssave</td>
+<td align="left">Save image to file in vips format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipssave" title="vips_vipssave ()"><code class="function">vips_vipssave()</code></a></td>
+</tr>
+<tr>
+<td align="left">vipssave_target</td>
+<td align="left">Save image to target in vips format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipssave-target" title="vips_vipssave_target ()"><code class="function">vips_vipssave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpload</td>
+<td align="left">Load webp from file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload" title="vips_webpload ()"><code class="function">vips_webpload()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpload_buffer</td>
+<td align="left">Load webp from buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload-buffer" title="vips_webpload_buffer ()"><code class="function">vips_webpload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpload_source</td>
+<td align="left">Load webp from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload-source" title="vips_webpload_source ()"><code class="function">vips_webpload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpsave</td>
+<td align="left">Save image to webp file</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave" title="vips_webpsave ()"><code class="function">vips_webpsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpsave_buffer</td>
+<td align="left">Save image to webp buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave-buffer" title="vips_webpsave_buffer ()"><code class="function">vips_webpsave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">webpsave_target</td>
+<td align="left">Save image to webp target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave-target" title="vips_webpsave_target ()"><code class="function">vips_webpsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">worley</td>
+<td align="left">Make a worley noise image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-worley" title="vips_worley ()"><code class="function">vips_worley()</code></a></td>
+</tr>
+<tr>
+<td align="left">wrap</td>
+<td align="left">Wrap image origin</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-wrap" title="vips_wrap ()"><code class="function">vips_wrap()</code></a></td>
+</tr>
+<tr>
+<td align="left">xyz</td>
+<td align="left">Make an image where pixel values are coordinates</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a></td>
+</tr>
+<tr>
+<td align="left">zone</td>
+<td align="left">Make a zone plate</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-zone" title="vips_zone ()"><code class="function">vips_zone()</code></a></td>
+</tr>
+<tr>
+<td align="left">zoom</td>
+<td align="left">Zoom an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-zoom" title="vips_zoom ()"><code class="function">vips_zoom()</code></a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break">
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
