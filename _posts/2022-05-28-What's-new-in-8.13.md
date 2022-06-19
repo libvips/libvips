@@ -2,28 +2,29 @@
 title: What's new in libvips 8.13
 ---
 
-libvips 8.13 is almost done, so here's a summary of what's new. Check
-the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
-if you need more details.
+libvips 8.13 is almost done, so here's a summary of what's new. Check the
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if
+you need more details.  The headline features for 8.13 are a new system
+for blocking unsafe file formats, much better GIF handling, and a new build
+system. Details below!
 
 Many thanks to remicollet, DarthSim, GavinJoyce, tintou, lovell, shado23,
 dloebl, tlsa, kleisauke and others for their great work on
 this release.
 
-The headline features for 8.13 are a new system for blocking unsafe file
-formats, much better GIF handling, and a new build system. Details below!
 
 # Blocking of unfuzzed loaders
 
 libvips support many image format libraries. Some of these are well tested
 against malicious input files, but some are not.
 
-If you were developing a web service that used libvips to handle untrusted
-image files, our advice used to be to build your own libvips binary that
-only had support for the file types you wanted to handle (this is what
-projects like [sharp](https://sharp.pixelplumbing.com) do).  This was safe,
-but also hard work --- it could make deployment significantly more complex
-for some users.
+If you were developing a web service that used libvips to handle
+untrusted image files, our advice used to be to build your own libvips
+binary that only had support for the file types you wanted to handle
+(this is what projects like [sharp](https://sharp.pixelplumbing.com) and
+[NetVips](https://kleisauke.github.io/net-vips/) do).  This was safe, but
+also hard work --- it could make deployment significantly more complex for
+some users.
 
 libvips 8.13 has a new feature which can block untrusted operations at
 runtime, and at a very low level. This means you can use any libvips binary
@@ -85,18 +86,18 @@ On this task, compared to imagemagick6, libvips is around 10x faster,
 needs 4x less memory, makes GIFs which are 20% smaller, and produces higher
 quality output.
 
-The new GIF saver has quite a few options to control output, take [a look at
-the docs]({{ site.baseurl
+The new GIF saver now has quite a few options to control
+compression, take [a look at the docs]({{ site.baseurl
 }}/API/current/VipsForeignSave.html#vips-gifsave).
 
 # Image resize quality improvements
 
-In libvips 8.12, in some cases when resizing images, up to 0.5 pixels of
-detail might lost on the image the edges due to losses in the processing
-of intermediate values. Kleis has reworked the image resize code to retain
-these extra pixels in all cases, so image edges are now always complete.
+Image resizing with libvips 8.12 could in some cases lose up to 0.5 pixels
+of detail on the image edge due to losses in the handling of intermediate
+values. Kleis has reworked the image resize code to retain these extra
+pixels in all cases, so image edges are now always complete.
 
-It is possible that this may result in different image sizes, compared with
+It is possible that this may result in different image sizes compared with
 libvips 8.12.
 
 ```bash
@@ -119,8 +120,8 @@ Briefly:
 ### `tiffsave` and `dzsave` to target
 
 You can now write DeepZoom and TIFF images to the new libvips target API. This
-means you can write these formats (for example) to pipes or even perhaps S3
-buckets with no need for intermediate files.
+means you can write these formats directly to pipes (for example) 
+with no need for intermediate files.
 
 There are some complications due to the way these formats work, and you can
 need up to 30% of the image size in memory for extra buffering, but at least
@@ -136,6 +137,10 @@ well as PNG read.  This can produce a useful increase in PNG speed.
 
 These now support HDR images, and the loader has a new option to disable to
 DoS attack limits.
+
+### JXL
+
+JXL now supports ICC profiles, and has better support for HDR iamges.
 
 ### Other loader improvements
 
