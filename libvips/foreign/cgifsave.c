@@ -214,18 +214,25 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			}
 		}
 
+		if( index[i] != trans ) {
+			old[0] = new[0];
+			old[1] = new[1];
+			old[2] = new[2];
+			old[3] = new[3];
+		}
+
 		old += 4;
 		new += 4;
 	}
 }
 
-static int
+static double
 vips__cgif_compare_palettes( const VipsQuantisePalette *new,
 	const VipsQuantisePalette *old )
 {
 	int i, j;
-	int best_dist, dist, rd, gd, bd;
-	int total_dist;
+	double best_dist, dist, rd, gd, bd;
+	double total_dist;
 
 	g_assert( new->count <= 256 );
 	g_assert( old->count <= 256 );
@@ -337,19 +344,23 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 		const VipsQuantisePalette *prev = vips__quantise_get_palette( 
 			cgif->previous_quantisation_result );
 
+		double global_diff = vips__cgif_compare_palettes( this, global );
+		double prev_diff = ( prev == global ) ? global_diff :
+			vips__cgif_compare_palettes( this, prev );
+
 #ifdef DEBUG_VERBOSE
 		printf( "vips_foreign_save_cgif_write_frame: "
-			"this -> global distance = %d\n", 
-			vips__cgif_compare_palettes( this, global ) );
+			"this -> global distance = %g\n",
+			global_diff );
 		printf( "vips_foreign_save_cgif_write_frame: "
-			"this -> prev distance = %d\n", 
-			vips__cgif_compare_palettes( this, prev ) );
+			"this -> prev distance = %g\n",
+			prev_diff );
 		printf( "vips_foreign_save_cgif_write_frame: "
 			"threshold = %g\n", cgif->interpalette_maxerror );
 #endif/*DEBUG_VERBOSE*/
 
-		if( vips__cgif_compare_palettes( this, global ) < 
-			cgif->interpalette_maxerror ) {
+		if( global_diff <= prev_diff &&
+			global_diff < cgif->interpalette_maxerror ) {
 			/* Global is good enough, use that.
 			 */
 #ifdef DEBUG_VERBOSE
@@ -365,8 +376,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 			*result = cgif->quantisation_result;
 			*use_local = FALSE;
 		}
-		else if( vips__cgif_compare_palettes( this, prev ) < 
-			cgif->interpalette_maxerror ) {
+		else if( prev_diff < cgif->interpalette_maxerror ) {
 			/* Previous is good enough, use that again.
 			 */
 #ifdef DEBUG_VERBOSE
@@ -564,6 +574,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
 		frame_config.transIndex = trans;
 	}
+	else {
+		/* Take a copy of the RGBA frame.
+		 */
+		memcpy( cgif->previous_frame, frame_bytes, 4 * n_pels );
+	}
 
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
@@ -582,10 +597,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	frame_config.pImageData = cgif->index;
 	cgif_addframe( cgif->cgif_context, &frame_config );
-
-	/* Take a copy of the RGBA frame.
-	 */
-	memcpy( cgif->previous_frame, frame_bytes, 4 * n_pels );
 
 	return( 0 );
 }
@@ -861,7 +872,7 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		_( "Maximum inter-palette error for palette reusage" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, interpalette_maxerror ),
-		0, 256, 40.0 );
+		0, 256, 3.0 );
 }
 
 static void
@@ -872,7 +883,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->bitdepth = 8;
 	gif->interframe_maxerror = 0.0;
 	gif->reoptimise = FALSE;
-	gif->interpalette_maxerror = 40.0;
+	gif->interpalette_maxerror = 3.0;
 	gif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL;
 }
 
