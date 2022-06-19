@@ -3,15 +3,17 @@ title: What's new in libvips 8.13
 ---
 
 libvips 8.13 is almost done, so here's a summary of what's new. Check the
-[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if
-you need more details.  The headline features for 8.13 are a new system
-for blocking unsafe file formats, much better GIF handling, and a new build
-system. Details below!
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if you
+need more details. There's a release candidate available for download here:
+
+https://github.com/libvips/libvips/releases/tag/v8.13.0-rc1
+
+The headline features are a new system for blocking unsafe file formats,
+much better GIF handling, and a new build system. Details below!
 
 Many thanks to remicollet, DarthSim, GavinJoyce, tintou, lovell, shado23,
 dloebl, tlsa, kleisauke and others for their great work on
 this release.
-
 
 # Blocking of unfuzzed loaders
 
