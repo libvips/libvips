@@ -604,8 +604,16 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 				thumbnail->input_width, 
 				thumbnail->input_height );
 	}
+	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		factor = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->input_width, 
+			thumbnail->page_height );
+
+		/* Avoid upsizing via libwebp.
+		 */
+		factor = VIPS_MAX( 1.0, factor );
+	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) 
 		factor = vips_thumbnail_calculate_common_shrink( thumbnail, 
 			thumbnail->input_width, 
