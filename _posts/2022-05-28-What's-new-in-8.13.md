@@ -3,10 +3,9 @@ title: What's new in libvips 8.13
 ---
 
 libvips 8.13 is almost done, so here's a summary of what's new. Check the
-[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if you
-need more details. There's a release candidate available for download here:
-
-https://github.com/libvips/libvips/releases/tag/v8.13.0-rc1
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
+if you need more details and there's a [release candidate available for
+download](https://github.com/libvips/libvips/releases/tag/v8.13.0-rc1).
 
 The headline features are a new system for blocking unsafe file formats,
 much better GIF handling, and a new build system. Details below!
