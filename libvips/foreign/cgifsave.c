@@ -105,6 +105,11 @@ typedef struct _VipsForeignSaveCgif {
 	VipsRegion *frame;
 	int write_y;
 
+	/* VipsRegion is not always contiguious, but we need contiguious RGBA
+	 * forthe quantizer. We need to copy each frame to a local buffer.
+	 */
+	VipsPel *frame_bytes;
+
 	/* The current frame as seen by libimagequant.
 	 */
 	VipsQuantiseAttr *attr;
@@ -165,6 +170,7 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 	VIPS_UNREF( cgif->target );
 
 	VIPS_FREE( cgif->index );
+	VIPS_FREE( cgif->frame_bytes );
 	VIPS_FREE( cgif->previous_frame );
 
 	G_OBJECT_CLASS( vips_foreign_save_cgif_parent_class )->
@@ -422,17 +428,13 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
 	VipsRect *frame_rect = &cgif->frame->valid;
 	int page_index = frame_rect->top / frame_rect->height;
-
-	/* We know this fits in an int since we limit frame size.
-	 */
-	VipsPel *frame_bytes = 
-		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 	int n_pels = frame_rect->height * frame_rect->width;
 
 	gboolean has_transparency;
 	gboolean has_alpha_constraint;
 	VipsPel * restrict p;
 	int i;
+	int y;
 	VipsQuantiseImage *image;
 	gboolean use_local;
 	VipsQuantiseResult *quantisation_result;
@@ -445,8 +447,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
 #endif/*DEBUG_VERBOSE*/
 
-	/* Threshold the alpha channel. It's safe to modify the region since 
-	 * it's a buffer we made.
+	/* We need the frame as a contiguious RGBA buffer for the quantiser.
+	 */
+	for( y = 0; y < frame_rect->height; y++ )
+		memcpy( cgif->frame_bytes + y * 4 * frame_rect->width,
+			VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top + y ),
+			4 * frame_rect->width );
+
+	/* Threshold the alpha channel. 
 	 *
 	 * Also, check if the alpha channel of the current frame matches the
 	 * frame before.
@@ -456,7 +464,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 * for the alpha channel instead of for the transparency size
 	 * optimization (maxerror).
 	 */
-	p = frame_bytes;
+	p = cgif->frame_bytes;
 	has_alpha_constraint = FALSE;
 	for( i = 0; i < n_pels; i++ ) {
 		if( p[3] >= 128 )
@@ -480,7 +488,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Set up new frame for libimagequant.
 	 */
 	image = vips__quantise_image_create_rgba( cgif->attr,
-		frame_bytes, frame_rect->width, frame_rect->height, 0 );
+		cgif->frame_bytes, frame_rect->width, frame_rect->height, 0 );
 
 	/* Quantise.
 	 */
@@ -566,7 +574,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		int trans = has_transparency ? 0 : n_colours;
 
 		vips_foreign_save_cgif_set_transparent( cgif,
-			cgif->previous_frame, frame_bytes, cgif->index, 
+			cgif->previous_frame, cgif->frame_bytes, cgif->index, 
 			n_pels, trans );
 
 		if( has_transparency ) 
@@ -577,7 +585,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	else {
 		/* Take a copy of the RGBA frame.
 		 */
-		memcpy( cgif->previous_frame, frame_bytes, 4 * n_pels );
+		memcpy( cgif->previous_frame, cgif->frame_bytes, 4 * n_pels );
 	}
 
 	if( cgif->delay &&
@@ -727,6 +735,11 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 * so make sure we don't own them.
 	 */
 	vips__region_no_ownership( cgif->frame );
+
+	/* This RGBA frame as a contiguious buffer.
+	 */
+	cgif->frame_bytes = g_malloc0( (size_t) 4 * 
+		frame_rect.width * frame_rect.height );
 
 	/* The previous RGBA frame (for spotting pixels which haven't changed).
 	 */
