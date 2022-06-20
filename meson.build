@@ -487,32 +487,40 @@ elif libpoppler_dep.found() and cairo_dep.found()
     cfg_var.set('HAVE_POPPLER', '1')
 endif
 
-# niftiio.pc is not always present, so fall back to CMake's find_package() 
-# functionality
+# niftiio.pc is not present, and only provides the CMake package definition
+# files since v3.0.0, so, as a last resort, fall back on heuristic grabbing the
+# libs when -Dnifti-prefix-dir=<PREFIX> is specified
 #
 # cmake find fails on ubuntu due to /usr/lib/x86_64-linux-gnu madness, so it's
-# simplest to create a libniftiio.pc in this case
+# simplest to create a niftiio.pc in this case
 #
-# create /usr/lib/x86_64-linux-gnu/pkgconfig/libniftiio.pc:
+# create /usr/lib/x86_64-linux-gnu/pkgconfig/niftiio.pc:
 #
 #   prefix=/usr
-#   exec_prefix=${prefix}
 #   libdir=${prefix}/lib/x86_64-linux-gnu
 #   includedir=${prefix}/include/nifti
-#   Name: libniftiio
-#   Description: nifti library
+#   Name: niftiio
+#   Description: Core i/o routines for reading and writing nifti-1 format files
 #   Version: 3.0.1
 #   Requires: xproto
-#   Cflags: -I${includedir}
 #   Libs: -L${libdir} -lniftiio -lznz
+#   Cflags: -I${includedir}
 #
 # TODO: simplify this when requiring meson>=0.60.0
-libnifti_dep = dependency('niftiio', required: get_option('nifti'))
+nifti_prefix_dir = get_option('nifti-prefix-dir')
+libnifti_dep = dependency('niftiio', method: 'pkg-config', required: false)
 if not libnifti_dep.found()
     libnifti_dep = dependency('NIFTI',
+      version: '>=3.0.0',
       method: 'cmake',
       modules: ['NIFTI::niftiio'],
-      required: get_option('nifti'))
+      required: get_option('nifti').enabled() and nifti_prefix_dir == '')
+endif
+if nifti_prefix_dir != '' and not libnifti_dep.found()
+    nifti_inc = include_directories(nifti_prefix_dir / 'include' / 'nifti')
+    nifti_lib = cc.find_library('niftiio', has_headers: ['nifti1_io.h'], header_include_directories: nifti_inc, required: get_option('nifti'))
+    znz_lib = cc.find_library('znz', has_headers: ['znzlib.h'], header_include_directories: nifti_inc, required: get_option('nifti'))
+    libnifti_dep = declare_dependency(dependencies: [nifti_lib, znz_lib], include_directories: nifti_inc)
 endif
 if not get_option('nifti').disabled() and libnifti_dep.found()
     libvips_deps += libnifti_dep

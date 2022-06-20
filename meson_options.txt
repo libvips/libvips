@@ -24,6 +24,7 @@ option('magick-features', type: 'array', choices: ['load', 'save'], value: ['loa
 option('magick-module', type: 'feature', value: 'auto', description: 'Build libMagic as module')
 option('matio', type: 'feature', value: 'auto', description: 'Build with matio')
 option('nifti', type: 'feature', value: 'auto', description: 'Build with nifti')
+option('nifti-prefix-dir', type: 'string', value: '', description: 'Prefix where nifticlib is installed (optional)')
 option('openexr', type: 'feature', value: 'auto', description: 'Build with OpenEXR')
 option('openjpeg', type: 'feature', value: 'auto', description: 'Build with libopenjp2')
 option('openslide', type: 'feature', value: 'auto', description: 'Build with OpenSlide')
