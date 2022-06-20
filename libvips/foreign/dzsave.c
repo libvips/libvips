@@ -678,6 +678,21 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz,
 #define VIPS_ZIP_EOCD_SIZE 22
 
 #ifndef HAVE_GSF_ZIP64
+/* ZIP and SZI are both written as zip files.
+ */
+static gboolean
+iszip( VipsForeignDzContainer container )
+{
+	switch( container ) {
+	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
+	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
+		return( TRUE );
+
+	default:
+		return( FALSE );
+	}
+}
+
 static size_t
 estimate_zip_size( VipsForeignSaveDz *dz )
 {
@@ -744,7 +759,7 @@ write_image( VipsForeignSaveDz *dz,
 	gsf_output_close( out );
 
 #ifndef HAVE_GSF_ZIP64
-	if( iszip( dz->container ) ) {
+	if( iszip( dz->container ) ) { 
 		/* Leave 3 entry headroom for blank.png and metadata files.
 		 */
 		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
