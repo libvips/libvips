@@ -36,3 +36,5 @@ libcreate_la_SOURCES = \
 	zone.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+
+EXTRA_DIST = meson.build

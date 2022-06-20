@@ -28,4 +28,5 @@ noinst_LIBRARIES = $(FUZZLIBS)
 
 EXTRA_DIST = \
 	$(TESTS) \
-	common_fuzzer_corpus
+	common_fuzzer_corpus \
+	meson.build

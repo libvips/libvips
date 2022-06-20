@@ -9,14 +9,17 @@ SUBDIRS = \
 	fuzz
 
 EXTRA_DIST = \
-	m4 \
-	benchmark \
 	autogen.sh \
-	vips.pc.in \
-	vips-cpp.pc.in \
-	suppressions \
+	benchmark \
 	depcomp \
-	README.md 
+	m4 \
+	meson.build \
+	meson_options.txt \
+	po/meson.build \
+	README.md \
+	suppressions \
+	vips-cpp.pc.in \
+	vips.pc.in
 
 pkgconfig_DATA = vips.pc vips-cpp.pc
 

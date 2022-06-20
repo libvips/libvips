@@ -14,3 +14,5 @@ libdraw_la_SOURCES = \
 	draw_smudge.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+
+EXTRA_DIST = meson.build

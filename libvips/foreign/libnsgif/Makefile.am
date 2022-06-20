@@ -11,9 +11,10 @@ libnsgif_la_SOURCES = $(MY_SOURCES)
 endif
 
 EXTRA_DIST = \
-	README-ns.md \
-	README.md \
+	meson.build \
 	patches \
+	README.md \
+	README-ns.md \
 	update.sh
 
 if !ENABLE_NSGIF

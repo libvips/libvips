@@ -181,8 +181,9 @@ include gtk-doc.make
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += \
         ${markdown_content_files} \
+	gen-function-list.py \
 	images \
-	gen-function-list.py
+	meson.build
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types

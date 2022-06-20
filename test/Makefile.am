@@ -26,15 +26,16 @@ AM_LDFLAGS = @LDFLAGS@
 LDADD = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
 
 EXTRA_DIST = \
-	variables.sh.in \
+        meson.build \
 	test_cli.sh \
-	test_descriptors.sh \
 	test_connections.sh \
+	test_descriptors.sh \
 	test_formats.sh \
 	test_seq.sh \
-	test_thumbnail.sh \
 	test_stall.sh \
-	test_threading.sh 
+	test_threading.sh \
+	test_thumbnail.sh \
+	variables.sh.in
 
 clean-local: 
 	-rm -rf tmp-*

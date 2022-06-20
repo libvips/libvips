@@ -51,8 +51,9 @@ vipsmarshal.c: vipsmarshal.list
 
 EXTRA_DIST = \
 	enumtemplate \
-	vipsmarshal.h \
+	meson.build \
 	vipsmarshal.c \
+	vipsmarshal.h \
 	vipsmarshal.list
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
@@ -81,3 +82,4 @@ vips_scan_headers = \
 
 enumtypes.c: $(vips_scan_headers) Makefile.am
 	glib-mkenums --template ${top_srcdir}/libvips/iofuncs/enumtemplate $(vips_scan_headers) > enumtypes.c
+

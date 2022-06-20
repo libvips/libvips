@@ -62,7 +62,8 @@ libvips_la_LDFLAGS = \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
 EXTRA_DIST = \
-	$(OPTIONAL_DIST_DIR)
+	$(OPTIONAL_DIST_DIR) \
+        meson.build
 
 CLEANFILES = 
 

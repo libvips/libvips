@@ -44,6 +44,7 @@ profiles.c:
 	./wrap-profiles.sh profiles profiles.c
 
 EXTRA_DIST = \
+	meson.build \
 	wrap-profiles.sh
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

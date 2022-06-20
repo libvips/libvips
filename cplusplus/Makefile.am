@@ -54,8 +54,9 @@ tidy: $(libvips_cpp_la_SOURCES)
 		-- $(AM_CPPFLAGS)
 
 EXTRA_DIST = \
-	README.md \
-	vips-operators.cpp \
 	Doxyfile.in \
-	gen-operators.py
+	gen-operators.py \
+	meson.build \
+	README.md \
+	vips-operators.cpp
 

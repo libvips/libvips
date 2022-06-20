@@ -6,6 +6,9 @@ pkginclude_HEADERS = \
 	VConnection8.h \
 	vips8 
 
+EXTRA_DIST = \
+	meson.build
+
 vips-operators:
 	echo "// headers for vips operations" > vips-operators; \
 	echo "// paste this file into VImage8.h, do not leave in repo" > vips-operators; \

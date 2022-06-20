@@ -94,3 +94,5 @@ libforeign_la_SOURCES += openslideload.c
 endif # !OPENSLIDE_MODULE
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
+
+EXTRA_DIST = meson.build

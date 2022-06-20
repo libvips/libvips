@@ -23,13 +23,14 @@ bin_SCRIPTS = \
 	vips-8.13
 
 EXTRA_DIST = \
-	vipsprofile \
-	vips-8.13 \
-	light_correct.in \
-	shrink_width.in \
+	batch_crop.in \ 
 	batch_image_convert.in \
 	batch_rubber_sheet.in \
-	batch_crop.in 
+	light_correct.in \
+	meson.build \
+	shrink_width.in \
+	vips-8.13 \
+	vipsprofile
 
 install-exec-hook:
 	chmod ugo+x ${DESTDIR}${bindir}/light_correct

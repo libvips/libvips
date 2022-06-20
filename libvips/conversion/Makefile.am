@@ -52,3 +52,5 @@ AM_CPPFLAGS = \
 	@VIPS_CFLAGS@ @VIPS_INCLUDES@ \
 	-Wno-unknown-pragmas
 
+EXTRA_DIST = meson.build
+

@@ -22,7 +22,8 @@ libresample_la_SOURCES = \
 	templates.h 
 
 EXTRA_DIST = \
-	dummy2.cc 
+	dummy2.cc \
+	meson.build
 
 noinst_LTLIBRARIES = libresample.la
 

@@ -9,4 +9,4 @@ man_MANS = \
 	vipsprofile.1 \
 	vipsthumbnail.1
 
-EXTRA_DIST = ${man_MANS}
+EXTRA_DIST = ${man_MANS} meson.build

@@ -49,7 +49,13 @@ pkginclude_HEADERS = \
 
 nodist_pkginclude_HEADERS = version.h
 
-EXTRA_DIST = version.h.in internal.h enumtemplate
+EXTRA_DIST = \
+	enumtemplate \
+	enumtypes.c.in \
+	enumtypes.h.in \
+	internal.h \
+	meson.build \
+	version.h.in 
 
 # the headers we scan for enums etc.
 # keep in sync with ${top_srcdir}/libvips/iofuncs/Makefile.am
