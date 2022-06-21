@@ -226,13 +226,11 @@ gsf_output_target_close( GsfOutput *output )
 static void
 gsf_output_target_finalize( GObject *obj )
 {
-        GObjectClass *parent_class;
         GsfOutputTarget *output_target = (GsfOutputTarget *) obj;
 
         (void) gsf_output_target_close( GSF_OUTPUT( output_target ) );
 
-        parent_class = g_type_class_peek( GSF_OUTPUT_TYPE );
-        parent_class->finalize( obj );
+	G_OBJECT_CLASS( gsf_output_target_parent_class )->finalize( obj );
 }
 
 static gboolean
@@ -250,9 +248,9 @@ gsf_output_target_write( GsfOutput *output,
 static gboolean
 gsf_output_target_seek( GsfOutput *output, gsf_off_t offset, GSeekType whence )
 {
-	/* No seek needed.
+	/* This will make our parent class handle the seek.
 	 */
-	return FALSE;
+	return( TRUE );
 }
 
 static void
