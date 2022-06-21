@@ -412,11 +412,11 @@ struct _VipsTarget {
 	 */
 	gboolean ended;
 
-	/* Write memory output and track write point here. We use a GString
-	 * rather than a GByteArray since we need eg. g_string_overwrite_len().
+	/* Write memory output here. We use a GString rather than a 
+	 * GByteArray since we need eg. g_string_overwrite_len().
+	 * @position tracks the current write position in this.
 	 */
 	GString *memory_buffer;
-	off_t position;
 
 	/* And return memory via this blob.
 	 */
@@ -427,6 +427,10 @@ struct _VipsTarget {
 	 */
 	unsigned char output_buffer[VIPS_TARGET_BUFFER_SIZE];
 	int write_point;
+
+	/* Write position in memory_buffer.
+	 */
+	off_t position;
 
 	/* Temp targets on the filesystem need deleting, sometimes.
 	 */
@@ -444,6 +448,10 @@ typedef struct _VipsTargetClass {
 	 * on Windows.
 	 */
 	gint64 (*write)( VipsTarget *, const void *, size_t );
+
+	/* Deprecated in favour of ::end.
+	 */
+	void (*finish)( VipsTarget * );
 
 	/* libtiff needs to be able to seek and read on targets,
 	 * unfortunately. 
@@ -467,10 +475,6 @@ typedef struct _VipsTargetClass {
 	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
 	int (*end)( VipsTarget * );
-
-	/* Deprecated in favour of ::end.
-	 */
-	void (*finish)( VipsTarget * );
 
 } VipsTargetClass;
 
@@ -547,10 +551,10 @@ typedef struct _VipsTargetCustomClass {
 	 */
 
 	gint64 (*write)( VipsTargetCustom *, const void *, gint64 );
+	void (*finish)( VipsTargetCustom * );
 	gint64 (*read)( VipsTargetCustom *, void *, gint64 );
 	gint64 (*seek)( VipsTargetCustom *, gint64, int );
 	int (*end)( VipsTargetCustom * );
-	void (*finish)( VipsTargetCustom * );
 
 } VipsTargetCustomClass;
 
