@@ -217,3 +217,8 @@ if test_supported dzsave; then
 	test_saver copy $image .dz
 	test_saver copy $image .dz[container=zip]
 fi
+
+if test_supported jp2kload; then
+	test_format $image jp2 20
+	test_format $image jp2 0 [lossless]
+fi
