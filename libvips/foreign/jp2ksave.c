@@ -518,25 +518,21 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 #endif /*DEBUG_VERBOSE*/
 
 	for(;;) {
+		VipsRect *to = &jp2k->strip->valid;
+
 		VipsRect hit;
-		int y;
-		VipsRect strip_position;
+		VipsRect new;
+		VipsRect image;
 
 		/* The intersection with the strip is the fresh pixels we
 		 * have. 
 		 */
-		vips_rect_intersectrect( area, &(jp2k->strip->valid), &hit );
+		vips_rect_intersectrect( area, to, &hit );
 
-		/* Copy the new pixels into the strip.
+		/* Write the new pixels into the strip.
 		 */
-		for( y = 0; y < hit.height; y++ ) {
-			VipsPel *p = VIPS_REGION_ADDR( region, 
-				0, hit.top + y );
-			VipsPel *q = VIPS_REGION_ADDR( jp2k->strip, 
-				0, hit.top + y );
-
-			memcpy( q, p, VIPS_IMAGE_SIZEOF_LINE( region->im ) );
-		}
+		vips_region_copy( region, jp2k->strip, 
+			&hit, hit.left, hit.top );
 
 		/* Have we failed to reach the bottom of the strip? We must
 		 * have run out of fresh pixels, so we are done.
@@ -551,11 +547,22 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 		if( vips_foreign_save_jp2k_write_tiles( jp2k ) )
 			return( -1 );
 
-		strip_position.left = 0;
-		strip_position.top = jp2k->strip->valid.top + jp2k->tile_height;
-		strip_position.width = save->ready->Xsize;
-		strip_position.height = jp2k->tile_height;
-		if( vips_region_buffer( jp2k->strip, &strip_position ) )
+		new.left = 0;
+		new.top = jp2k->strip->valid.top + jp2k->tile_height;
+		new.width = save->ready->Xsize;
+		new.height = jp2k->tile_height;
+		image.left = 0;
+		image.top = 0;
+		image.width = save->ready->Xsize;
+		image.height = save->ready->Ysize;
+		vips_rect_intersectrect( &new, &image, &new);
+
+		/* End of image?
+		 */
+		if( vips_rect_isempty( &new ) )
+			break;
+
+		if( vips_region_buffer( jp2k->strip, &new ) )
 			return( -1 );
 	}
 
