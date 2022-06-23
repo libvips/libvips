@@ -12,6 +12,7 @@ endif
 
 EXTRA_DIST = \
 	meson.build \
+	patches \
 	README.md \
 	README-ns.md \
 	update.sh
