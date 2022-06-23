@@ -1,169 +1,115 @@
-release
-build
-debug
-.pytest_cache
-.dirstamp
-a.out
+### C
+# Object files
+*.o
+
+# Libraries
+*.a
+*.la
+*.lo
+
+# Build directories
+build/
+debug/
+release/
+
+# Executables
+*.out
+### End of C
+
+### Python
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+
+# Unit test
+.pytest_cache/
+### End of Python
+
+### Autotools
+# https://www.gnu.org/software/automake/
+.deps/
+.libs/
 *.log
 *.trs
-cov-int
-tmp
-tmp-*
-test/variables.sh
-libvips/introspect
-scan
-compile
-po/*.pot
-test-driver
-vips-*.tar.gz
-doc/setup-build.stamp
-doc/tmpl-build.stamp
-doc/tmpl.stamp
-doc/tmpl/
-doc/gtk-doc.make
-doc/libvips-docs.sgml
-doc/libvips-docs.xml
-libvips-scan 
-libvips-scan.c
-Makefile.in
-TAGS
-tags
-*.o
-*.a
-fuzz/*_fuzzer
-.*.swp
-*.lo
-*.bak
-*.vect
-*.la
-Vips-8.0.gir
-Vips-8.0.typelib
-*.pc
-*.pyc
-*.pyo
-.deps
 .dirstamp
-.libs
+Makefile.in
+py-compile
+test-driver
+
+# https://www.gnu.org/software/autoconf/
+autom4te.cache/
 aclocal.m4
-config.log
+compile
+config.guess
 config.h
 config.h.*
-config.guess
+config.log
 config.status
 config.sub
 configure
 depcomp
-autom4te.cache/
 install-sh
+missing
+stamp-h1
+
+# https://www.gnu.org/software/libtool/
 libtool
-libvips/include/vips/version.h
-fred
 ltmain.sh
+
+# https://www.gnu.org/software/m4/
 m4/glib-gettext.m4
-m4/pkg.m4
 m4/gtk-doc.m4
 m4/intltool.m4
+m4/introspection.m4
 m4/libtool.m4
-m4/lt~obsolete.m4
 m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
-m4/codeset.m4
-m4/gettext.m4
-m4/glibc21.m4
-m4/iconv.m4
-m4/introspection.m4
-m4/lcmessage.m4
-m4/progtest.m4
-missing
-mkinstalldirs
+m4/lt~obsolete.m4
+m4/pkg.m4
+
+# Generated files
+Makefile
+libvips/include/vips/version.h
+test/variables.sh
+### End of Autotools
+
+### gettext
 po/Makefile.in.in
+po/*.pot
 po/POTFILES
 po/de.gmo
-py-compile
-stamp-h1
-swig/python/setup.py
-swig/vipsCC/VDisplay.py
-swig/vipsCC/VError.py
-swig/vipsCC/VImage.h
-swig/vipsCC/VImage.py
-swig/vipsCC/VMask.py
-swig/vipsCC/vdisplaymodule.cxx
-swig/vipsCC/verrormodule.cxx
-swig/vipsCC/vimagemodule.cxx
-swig/vipsCC/vmaskmodule.cxx
-tools/edvips
-tools/header
-tools/vipsedit
-tools/vipsheader
-tools/vips
-tools/vipsthumbnail
-tools/find_mosaic
-tools/mergeup
-tools/cooc
-tools/cooc_features
-tools/glds
-tools/glds_features
-tools/simcontr
-tools/sines
-tools/spatres
-tools/squares
+po/en_GB.gmo
+po/malkovich.gmo
+### End of gettext
+
+### Tools
 tools/batch_crop
 tools/batch_image_convert
 tools/batch_rubber_sheet
 tools/light_correct
 tools/shrink_width
+tools/vips
+tools/vipsedit
+tools/vipsheader
+tools/vipsthumbnail
+fuzz/*_fuzzer
+### End of Tools
 
-# we can't ignore all Makefile since we have a couple of hand-made ones
-Makefile
-doc/Makefile
-libvips/Makefile
-libvips/acquire/Makefile
-libvips/arithmetic/Makefile
-libvips/boolean/Makefile
-libvips/cimg/Makefile
-libvips/colour/Makefile
-libvips/conversion/Makefile
-libvips/convolution/Makefile
-libvips/deprecated/Makefile
-libvips/format/Makefile
-libvips/freq_filt/Makefile
-libvips/histograms_lut/Makefile
-libvips/include/Makefile
-libvips/include/vips/Makefile
-libvips/inplace/Makefile
-libvips/iofuncs/Makefile
-libvips/mask/Makefile
-libvips/morphology/Makefile
-libvips/mosaicing/Makefile
-libvips/other/Makefile
-libvips/relational/Makefile
-libvips/resample/Makefile
-libvips/video/Makefile
-libvipsCC/Makefile
-libvipsCC/include/Makefile
-libvipsCC/include/vips/Makefile
-man/Makefile
-po/Makefile
-swig/Makefile
-swig/vipsCC/Makefile
-tools/Makefile
-tools/iofuncs/Makefile
-tools/mosaicing/Makefile
-tools/other/Makefile
-tools/scripts/Makefile
-
-# various things made by gtk-doc
+### GTK-Doc
 doc/html-build.stamp
 doc/html.stamp
 doc/html/
 doc/libvips-decl-list.txt
 doc/libvips-decl.txt
+doc/libvips-docs.sgml
+doc/libvips-docs.xml
 doc/libvips-overrides.txt
 doc/libvips-sections.txt
 doc/libvips-undeclared.txt
 doc/libvips-undocumented.txt
 doc/libvips-unused.txt
+doc/libvips.actions
 doc/libvips.args
 doc/libvips.hierarchy
 doc/libvips.interfaces
@@ -171,8 +117,45 @@ doc/libvips.prerequisites
 doc/libvips.signals
 doc/libvips.types
 doc/scan-build.stamp
+doc/setup-build.stamp
 doc/sgml-build.stamp
 doc/sgml.stamp
+doc/tmpl-build.stamp
+doc/tmpl.stamp
+doc/tmpl/
 doc/xml/
-gtkdocerrors
+gtk-doc.make
+libvips-scan
+### End of GTK-Doc
 
+### GObject introspection
+libvips/introspect
+Vips-8.0.gir
+Vips-8.0.typelib
+### End of GObject introspection
+
+### pkg-config
+# Generated files
+*.pc
+### End of pkg-config
+
+### VIM
+# Temporary files
+*~
+tmp
+tmp-*
+
+# Swap
+.*.swp
+.*.swo
+
+# Backup
+*.bak
+
+# Auto-generated tag files
+tags
+### End of VIM
+
+### Distribution
+vips-*.tar.gz
+### End of Distribution
