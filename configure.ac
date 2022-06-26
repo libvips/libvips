@@ -229,7 +229,7 @@ VIPS_EXEEXT=$EXEEXT
 AC_SUBST(VIPS_EXEEXT)
 
 # cplusplus/Doxyfile.in needs an input and output directory ... they are the
-# same for copnfigure, but meson has separate source and build areas
+# same for configure, but meson has separate source and build areas
 DOXY_INPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
 DOXY_OUTPUT_DIRECTORY=$ac_pwd/$srcdir/cplusplus
 AC_SUBST(DOXY_INPUT_DIRECTORY)
