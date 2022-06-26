@@ -2,6 +2,7 @@ cplusplus/include/vips/VConnection8.h
 cplusplus/include/vips/VError8.h
 cplusplus/include/vips/VImage8.h
 cplusplus/include/vips/VInterpolate8.h
+cplusplus/include/vips/VRegion8.h
 libvips/include/vips/arithmetic.h
 libvips/include/vips/basic.h
 libvips/include/vips/buf.h
@@ -46,7 +47,6 @@ libvips/include/vips/transform.h
 libvips/include/vips/type.h
 libvips/include/vips/util.h
 libvips/include/vips/vector.h
-libvips/include/vips/version.h.in
 libvips/include/vips/video.h
 libvips/include/vips/vips7compat.h
 libvips/include/vips/vips.h
@@ -55,6 +55,7 @@ cplusplus/VError.cpp
 cplusplus/VImage.cpp
 cplusplus/VInterpolate.cpp
 cplusplus/vips-operators.cpp
+cplusplus/VRegion.cpp
 libvips/introspect.c
 libvips/arithmetic/abs.c
 libvips/arithmetic/add.c
@@ -226,6 +227,7 @@ libvips/draw/draw_smudge.c
 libvips/foreign/analyze2vips.c
 libvips/foreign/analyzeload.c
 libvips/foreign/cairo.c
+libvips/foreign/cgifsave.c
 libvips/foreign/csvload.c
 libvips/foreign/csvsave.c
 libvips/foreign/dzsave.c
@@ -272,6 +274,7 @@ libvips/foreign/radsave.c
 libvips/foreign/rawload.c
 libvips/foreign/rawsave.c
 libvips/foreign/spngload.c
+libvips/foreign/spngsave.c
 libvips/foreign/svgload.c
 libvips/foreign/tiff2vips.c
 libvips/foreign/tiff.c
