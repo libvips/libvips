@@ -1064,9 +1064,9 @@ vips_foreign_load_build( VipsObject *object )
 
 	g_object_set( load, "flags", flags, NULL );
 
-	/* Seq access has been requested and the loader supports seq.
+	/* Seq access has been requested, or the loader requires seq.
 	 */
-	sequential = (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+	sequential = (load->flags & VIPS_FOREIGN_SEQUENTIAL) || 
 		load->access != VIPS_ACCESS_RANDOM;
 
 	/* We must block caching of seq loads.
@@ -1136,7 +1136,7 @@ vips_foreign_load_build( VipsObject *object )
 
 	/* Tell downstream if we are reading sequentially.
 	 */
-	if( sequential ) 
+	if( sequential )
 		vips_image_set_int( load->out, VIPS_META_SEQUENTIAL, 1 );
 
 	return( 0 );
