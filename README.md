@@ -33,21 +33,29 @@ It comes with bindings for
 [C++](https://libvips.github.io/libvips/API/current/using-from-cpp.html),
 and the
 [command-line](https://libvips.github.io/libvips/API/current/using-cli.html).
-Full bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
-[Python](https://pypi.python.org/pypi/pyvips),
-[PHP](https://github.com/libvips/php-vips),
-[C# / .NET](https://www.nuget.org/packages/NetVips),
-[Go](https://github.com/davidbyttow/govips), and
-[Lua](https://github.com/libvips/lua-vips). libvips
-is used as an image processing engine by [sharp
-(on node.js)](https://www.npmjs.org/package/sharp),
-[bimg](https://github.com/h2non/bimg), [sharp
-for Go](https://github.com/DAddYE/vips), [Ruby on
-Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html),
-[carrierwave-vips](https://github.com/eltiare/carrierwave-vips),
-[mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler),
-[PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others.
-The official libvips GUI is [nip2](https://github.com/libvips/nip2),
+Full bindings are available for 
+|Language   | Bindings  |
+|---|    ---|
+| Ruby  | [ruby-vips](https://rubygems.org/gems/ruby-vips)  |
+| Python  | [pyvips](https://pypi.python.org/pypi/pyvips)  |
+| PHP  | [php-vips](https://github.com/libvips/php-vips)  |
+| C# / .NET  | [NetVips](https://www.nuget.org/packages/NetVips)  |
+| Go  | [govips](https://github.com/davidbyttow/govips)  |
+| Lua  | [lua-vips](https://github.com/libvips/lua-vips)  |
+| Crystal  | [crystal-vips](https://github.com/naqvis/crystal-vips)  |
+
+libvips is used as an image processing engine by 
+| |
+|---|
+|[sharp (on node.js)](https://www.npmjs.org/package/sharp)|
+|[bimg](https://github.com/h2non/bimg)|
+|[sharp for Go](https://github.com/DAddYE/vips)|
+|[Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html)|
+|[carrierwave-vips](https://github.com/eltiare/carrierwave-vips)|
+|[mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler)|
+|[PhotoFlow](https://github.com/aferrero2707/PhotoFlow)|
+
+ and others. The official libvips GUI is [nip2](https://github.com/libvips/nip2),
 a strange combination of a spreadsheet and a photo editor.
 
 # Install
