@@ -4,3 +4,6 @@ description: A fast image processing library with low memory needs.
 google_analytics: UA-48550036-2
 plugins:
   - jekyll-feed
+collections:
+  redirects:
+    output: true
