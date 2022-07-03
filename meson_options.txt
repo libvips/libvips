@@ -1,48 +1,237 @@
-option('deprecated', type: 'boolean', value: true, description: 'Build deprecated components')
-option('doxygen', type: 'boolean', value: false, description: 'Build C++ documentation')
-option('gtk_doc', type: 'boolean', value: false, description: 'Build GTK-doc documentation')
-option('modules', type: 'feature', value: 'auto', description: 'Build dynamic modules')
-option('introspection', type: 'boolean', value: true, description: 'Build GObject Introspection')
-option('vapi', type: 'boolean', value: false, description: 'Build VAPI')
+# core options
+
+option('deprecated', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build deprecated components')
+
+option('doxygen', 
+  type: 'boolean', 
+  value: false, 
+  description: 'Build C++ documentation')
+
+option('gtk_doc', 
+  type: 'boolean', 
+  value: false, 
+  description: 'Build GTK-doc documentation')
+
+option('modules', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build dynamic modules')
+
+option('introspection', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build GObject introspection')
+
+option('vapi', 
+  type: 'boolean', 
+  value: false, 
+  description: 'Build VAPI')
+
 # External libraries
-option('cfitsio', type: 'feature', value: 'auto', description: 'Build with cfitsio')
-option('cgif', type: 'feature', value: 'auto', description: 'Build with cgif')
-option('exif', type: 'feature', value: 'auto', description: 'Build with libexif')
-option('fftw', type: 'feature', value: 'auto', description: 'Build with fftw3')
-option('fontconfig', type: 'feature', value: 'auto', description: 'Build with fontconfig')
-option('gsf', type: 'feature', value: 'auto', description: 'Build with libgsf-1')
-option('heif', type: 'feature', value: 'auto', description: 'Build with libheif')
-option('heif-module', type: 'feature', value: 'auto', description: 'Build libheif as module')
-option('imagequant', type: 'feature', value: 'auto', description: 'Build with imagequant')
-option('jpeg', type: 'feature', value: 'auto', description: 'Build with jpeg')
-option('jpeg-xl', type: 'feature', value: 'auto', description: 'Build with libjxl')
-option('jpeg-xl-module', type: 'feature', value: 'auto', description: 'Build libjxl as module')
-option('lcms', type: 'feature', value: 'auto', description: 'Build with lcms2')
-option('magick', type: 'feature', value: 'auto', description: 'Build with libMagic')
-option('magick-package', type: 'string', value: 'MagickCore', description: 'ImageMagick package to build with')
-option('magick-features', type: 'array', choices: ['load', 'save'], value: ['load', 'save'], description: 'Enable libMagic load or save capabilities')
-option('magick-module', type: 'feature', value: 'auto', description: 'Build libMagic as module')
-option('matio', type: 'feature', value: 'auto', description: 'Build with matio')
-option('nifti', type: 'feature', value: 'auto', description: 'Build with nifti')
-option('nifti-prefix-dir', type: 'string', value: '', description: 'Prefix where nifticlib is installed (optional)')
-option('openexr', type: 'feature', value: 'auto', description: 'Build with OpenEXR')
-option('openjpeg', type: 'feature', value: 'auto', description: 'Build with libopenjp2')
-option('openslide', type: 'feature', value: 'auto', description: 'Build with OpenSlide')
-option('openslide-module', type: 'feature', value: 'auto', description: 'Build OpenSlide as module')
-option('orc', type: 'feature', value: 'auto', description: 'Build with orc-0.4')
-option('pangocairo', type: 'feature', value: 'auto', description: 'Build with pangocairo')
-option('pdfium', type: 'feature', value: 'auto', description: 'Build with pdfium')
-option('png', type: 'feature', value: 'auto', description: 'Build with png')
-option('poppler', type: 'feature', value: 'auto', description: 'Build with poppler')
-option('poppler-module', type: 'feature', value: 'auto', description: 'Build poppler as module')
-option('quantizr', type: 'feature', value: 'auto', description: 'Build with quantizr')
-option('rsvg', type: 'feature', value: 'auto', description: 'Build with rsvg')
-option('spng', type: 'feature', value: 'auto', description: 'Build with spng')
-option('tiff', type: 'feature', value: 'auto', description: 'Build with tiff')
-option('webp', type: 'feature', value: 'auto', description: 'Build with libwebp')
-option('zlib', type: 'feature', value: 'auto', description: 'Build with zlib')
-# not external libraries, but have options to disable them, helps to reduce attack surface
-option('nsgif', type: 'boolean', value: true, description: 'Build with nsgif')
-option('ppm', type: 'boolean', value: true, description: 'Build with ppm')
-option('analyze', type: 'boolean', value: true, description: 'Build with analyze')
-option('radiance', type: 'boolean', value: true, description: 'Build with radiance')
+
+option('cfitsio', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with cfitsio')
+
+option('cgif', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with cgif')
+
+option('exif', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with libexif')
+
+option('fftw', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with fftw3')
+
+option('fontconfig', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with fontconfig')
+
+option('gsf', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with libgsf-1')
+
+option('heif', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with libheif')
+
+option('heif-module', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build libheif as module')
+
+option('imagequant',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with imagequant')
+
+option('jpeg',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with jpeg')
+
+option('jpeg-xl',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libjxl')
+
+option('jpeg-xl-module',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build libjxl as module')
+
+option('lcms',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with lcms2')
+
+option('magick',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libMagic')
+
+option('magick-package',
+  type: 'string',
+  value: 'MagickCore',
+  description: 'ImageMagick package to build with')
+
+option('magick-features',
+  type: 'array',
+  choices: ['load', 'save'],
+  value: ['load', 'save'],
+  description: 'Enable libMagic load or save capabilities')
+
+option('magick-module',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build libMagic as module')
+
+option('matio',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with matio')
+
+option('nifti',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with nifti')
+
+option('nifti-prefix-dir',
+  type: 'string',
+  value: '',
+  description: 'Prefix where nifticlib is installed (optional)')
+
+option('openexr',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with OpenEXR')
+
+option('openjpeg',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libopenjp2')
+
+option('openslide',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with OpenSlide')
+
+option('openslide-module',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build OpenSlide as module')
+
+option('orc',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with orc-0.4')
+
+option('pangocairo',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with pangocairo')
+
+option('pdfium',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with pdfium')
+
+option('png',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with png')
+
+option('poppler',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with poppler')
+
+option('poppler-module',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build poppler as module')
+
+option('quantizr',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with quantizr')
+
+option('rsvg',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with rsvg')
+
+option('spng',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with spng')
+
+option('tiff',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with tiff')
+
+option('webp',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libwebp')
+
+option('zlib',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with zlib')
+
+# not external libraries, but we have options to disable them to reduce 
+# the potential attack surface
+
+option('nsgif', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build with nsgif')
+
+option('ppm', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build with ppm')
+
+option('analyze', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build with analyze')
+
+option('radiance', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build with radiance')
