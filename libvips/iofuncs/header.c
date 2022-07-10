@@ -590,6 +590,9 @@ vips_image_default_interpretation( const VipsImage *image )
 
 	switch( image->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
 		switch( image->Bands ) {
 		case 1:
 		case 2:
@@ -625,11 +628,6 @@ vips_image_default_interpretation( const VipsImage *image )
 		default:
 			return( VIPS_INTERPRETATION_MULTIBAND );
 		}
-
-	case VIPS_FORMAT_SHORT:
-	case VIPS_FORMAT_UINT:
-	case VIPS_FORMAT_INT:
-		return( VIPS_INTERPRETATION_MULTIBAND );
 
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:

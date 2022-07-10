@@ -1464,7 +1464,6 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands < 3 &&
-		vips_colourspace_issupported( in ) &&
 		saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
