@@ -31,10 +31,6 @@ pkg = import('pkgconfig')
 i18n = import('i18n')
 
 add_project_arguments('-Drestrict=__restrict', language: 'cpp')
-add_project_link_arguments(
-    '-no-undefined',
-    language: 'c',
-)
 
 # if we're optimising (eg. release mode) we turn off cast checks and
 # g_asserts
