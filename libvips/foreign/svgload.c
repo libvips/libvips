@@ -400,7 +400,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 
 	if( !rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
 		&width, &height ) ) {
-		RsvgRectangle zero_rect, viewbox;
+		RsvgRectangle viewbox;
 
 		/* Try the intrinsic dimensions first.
 		 */
@@ -465,8 +465,8 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 			/* We haven't found a usable set of sizes, so try 
 			 * working out the visible area.
 			 */
-			rsvg_handle_get_geometry_for_layer( svg->page, NULL,
-				&zero_rect, &viewbox, NULL, NULL );
+			rsvg_handle_get_geometry_for_element( svg->page, NULL,
+				&viewbox, NULL, NULL );
 			width = viewbox.x + viewbox.width;
 			height = viewbox.y + viewbox.height;
 		}
