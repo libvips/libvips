@@ -569,7 +569,7 @@ vips_target_read( VipsTarget *target, void *buffer, size_t length )
  * Seeking a target sounds weird, but libtiff needs this. This method will 
  * fail for targets like pipes.
  *
- * Returns: 0 on success, -1 on error.
+ * Returns: the new seek position, -1 on error.
  */
 off_t
 vips_target_seek( VipsTarget *target, off_t position, int whence )
