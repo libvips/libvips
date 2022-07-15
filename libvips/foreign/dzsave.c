@@ -248,9 +248,30 @@ gsf_output_target_write( GsfOutput *output,
 static gboolean
 gsf_output_target_seek( GsfOutput *output, gsf_off_t offset, GSeekType whence )
 {
+#ifdef HAVE_GSF_ZIP64
+	/* No seek needed.
+	 */
+	return( FALSE );
+#else
+	GsfOutputTarget *output_target = (GsfOutputTarget *) output;
+	int stdio_whence;
+
+	switch( whence ) {
+	case G_SEEK_CUR: stdio_whence = SEEK_CUR; break;
+	case G_SEEK_END: stdio_whence = SEEK_END; break;
+	case G_SEEK_SET: stdio_whence = SEEK_SET; break;
+	default:
+		g_assert_not_reached();
+	}
+
+	if( vips_target_seek( output_target->target,
+		offset, stdio_whence ) == -1 )
+		return( FALSE );
+
 	/* This will make our parent class handle the seek.
 	 */
 	return( TRUE );
+#endif
 }
 
 static void
