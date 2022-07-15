@@ -8,6 +8,8 @@
  * 	- support png8 palette write with palette, colours, Q, dither
  * 24/6/20
  * 	- add @bitdepth, deprecate @colours
+ * 15/7/22 [lovell]
+ * 	- default filter to none
  */
 
 /*
@@ -135,13 +137,6 @@ vips_foreign_save_png_build( VipsObject *object )
         if( !vips_object_argument_isset( object, "bitdepth" ) ) 
 		png->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
 
-	/* Filtering usually reduces the compression ratio for palette images,
-	 * so default off.
-	 */
-        if( !vips_object_argument_isset( object, "filter" ) &&
-		png->palette )
-		png->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
-
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */
@@ -234,7 +229,7 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, filter ),
 		VIPS_TYPE_FOREIGN_PNG_FILTER,
-		VIPS_FOREIGN_PNG_FILTER_ALL );
+		VIPS_FOREIGN_PNG_FILTER_NONE );
 
 	VIPS_ARG_BOOL( class, "palette", 13,
 		_( "Palette" ),
@@ -284,7 +279,7 @@ static void
 vips_foreign_save_png_init( VipsForeignSavePng *png )
 {
 	png->compression = 6;
-	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
+	png->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
 	png->Q = 100;
 	png->dither = 1.0;
 	png->effort = 7;
@@ -493,9 +488,8 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
  * profile from the VIPS header will be attached.
  *
- * Use @filter to specify one or more filters (instead of adaptive filtering),
- * see #VipsForeignPngFilter. @filter defaults to NONE for palette images, 
- * since they generally have very low local correlation.
+ * Use @filter to specify one or more filters, defaults to none,
+ * see #VipsForeignPngFilter.
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are
