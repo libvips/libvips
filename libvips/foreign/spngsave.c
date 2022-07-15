@@ -10,6 +10,8 @@
  * 	- add @bitdepth, deprecate @colours
  * 11/11/21
  * 	- use libspng for save
+ * 15/7/22 [lovell]
+ * 	- default filter to none
  */
 
 /*
@@ -681,7 +683,7 @@ vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, filter ),
 		VIPS_TYPE_FOREIGN_PNG_FILTER,
-		VIPS_FOREIGN_PNG_FILTER_ALL );
+		VIPS_FOREIGN_PNG_FILTER_NONE );
 
 	VIPS_ARG_BOOL( class, "palette", 13,
 		_( "Palette" ),
@@ -731,7 +733,7 @@ static void
 vips_foreign_save_spng_init( VipsForeignSaveSpng *spng )
 {
 	spng->compression = 6;
-	spng->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
+	spng->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
 	spng->Q = 100;
 	spng->dither = 1.0;
 	spng->effort = 7;

@@ -30,6 +30,7 @@
 - add support for ICC profiles and linear encoding to JXL load and save [f1ac]
 - add "reoptimise" to gifsave [dloebl]
 - add "bitdepth" to magicksave [dloebl]
+- change default PNG filter to "none" [lovell]
 
 26/11/21 started 8.12.3
 - better arg checking for vips_hist_find_ndim() [travisbell]
