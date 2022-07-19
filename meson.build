@@ -67,6 +67,7 @@ libvips_deps = [
     thread_dep,
     m_dep,
 ]
+nodelete_link_args = cc.get_supported_link_arguments('-Wl,-z,nodelete')
 
 prefix_dir = get_option('prefix')
 lib_dir = prefix_dir / get_option('libdir')

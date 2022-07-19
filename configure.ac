@@ -457,6 +457,20 @@ else
   fi
 fi
 
+SAVE_LDFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS -Wl,-z,nodelete"
+AC_MSG_CHECKING([whether linker understands -z nodelete])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+  [
+    AC_MSG_RESULT([yes])
+    LDFLAGS_Z_NODELETE="-Wl,-z,nodelete"
+  ],[
+    AC_MSG_RESULT([no])
+    LDFLAGS_Z_NODELETE=""
+  ])
+LDFLAGS="$SAVE_LDFLAGS"
+AC_SUBST(LDFLAGS_Z_NODELETE)
+
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
