@@ -58,6 +58,7 @@ libvips_la_LIBADD = \
 	@VIPS_LIBS@
 
 libvips_la_LDFLAGS = \
+	$(LDFLAGS_Z_NODELETE) \
 	-no-undefined \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
