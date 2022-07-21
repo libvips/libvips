@@ -2,10 +2,9 @@
 title: What's new in libvips 8.13
 ---
 
-libvips 8.13 is almost done, so here's a summary of what's new. Check the
+libvips 8.13 is now done, so here's a summary of what's new. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
-if you need more details and there's a [release candidate available for
-download](https://github.com/libvips/libvips/releases/tag/v8.13.0-rc1).
+if you need more details.
 
 The headline features are a new system for blocking unsafe file formats,
 much better GIF handling, and a new build system. Details below!
@@ -136,7 +135,7 @@ well as PNG read.  This can produce a useful increase in PNG speed.
 
 ### HEIC and AVIF
 
-These now support HDR images, and the loader has a new option to disable to
+These now support HDR images, and the loader has a new option to disable 
 DoS attack limits.
 
 ### JXL
