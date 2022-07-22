@@ -35,7 +35,7 @@ vips_operation_math_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationMath", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationMath" ), values );
 	}
 
 	return( etype );
@@ -54,7 +54,7 @@ vips_operation_math2_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationMath2", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationMath2" ), values );
 	}
 
 	return( etype );
@@ -73,7 +73,7 @@ vips_operation_round_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationRound", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationRound" ), values );
 	}
 
 	return( etype );
@@ -95,7 +95,7 @@ vips_operation_relational_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationRelational", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationRelational" ), values );
 	}
 
 	return( etype );
@@ -116,7 +116,7 @@ vips_operation_boolean_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationBoolean", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationBoolean" ), values );
 	}
 
 	return( etype );
@@ -135,7 +135,7 @@ vips_operation_complex_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationComplex", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationComplex" ), values );
 	}
 
 	return( etype );
@@ -152,7 +152,7 @@ vips_operation_complex2_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationComplex2", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationComplex2" ), values );
 	}
 
 	return( etype );
@@ -170,7 +170,7 @@ vips_operation_complexget_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationComplexget", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationComplexget" ), values );
 	}
 
 	return( etype );
@@ -190,7 +190,7 @@ vips_precision_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsPrecision", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsPrecision" ), values );
 	}
 
 	return( etype );
@@ -211,7 +211,7 @@ vips_intent_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsIntent", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsIntent" ), values );
 	}
 
 	return( etype );
@@ -229,7 +229,7 @@ vips_pcs_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsPCS", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsPCS" ), values );
 	}
 
 	return( etype );
@@ -252,7 +252,7 @@ vips_extend_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsExtend", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsExtend" ), values );
 	}
 
 	return( etype );
@@ -277,7 +277,7 @@ vips_compass_direction_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsCompassDirection", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsCompassDirection" ), values );
 	}
 
 	return( etype );
@@ -295,7 +295,7 @@ vips_direction_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsDirection", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsDirection" ), values );
 	}
 
 	return( etype );
@@ -314,7 +314,7 @@ vips_align_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsAlign", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsAlign" ), values );
 	}
 
 	return( etype );
@@ -334,7 +334,7 @@ vips_angle_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsAngle", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsAngle" ), values );
 	}
 
 	return( etype );
@@ -358,7 +358,7 @@ vips_angle45_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsAngle45", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsAngle45" ), values );
 	}
 
 	return( etype );
@@ -381,7 +381,7 @@ vips_interesting_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsInteresting", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsInteresting" ), values );
 	}
 
 	return( etype );
@@ -422,7 +422,7 @@ vips_blend_mode_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsBlendMode", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsBlendMode" ), values );
 	}
 
 	return( etype );
@@ -442,7 +442,7 @@ vips_combine_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsCombine", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsCombine" ), values );
 	}
 
 	return( etype );
@@ -461,7 +461,7 @@ vips_combine_mode_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsCombineMode", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsCombineMode" ), values );
 	}
 
 	return( etype );
@@ -482,7 +482,7 @@ vips_foreign_flags_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_flags_register_static( "VipsForeignFlags", values );
+		etype = g_flags_register_static( g_intern_static_string( "VipsForeignFlags" ), values );
 	}
 
 	return( etype );
@@ -502,7 +502,7 @@ vips_fail_on_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsFailOn", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsFailOn" ), values );
 	}
 
 	return( etype );
@@ -524,7 +524,7 @@ vips_saveable_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsSaveable", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsSaveable" ), values );
 	}
 
 	return( etype );
@@ -543,7 +543,7 @@ vips_foreign_subsample_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignSubsample", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignSubsample" ), values );
 	}
 
 	return( etype );
@@ -562,7 +562,7 @@ vips_foreign_jpeg_subsample_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignJpegSubsample", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignJpegSubsample" ), values );
 	}
 
 	return( etype );
@@ -584,7 +584,7 @@ vips_foreign_webp_preset_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignWebpPreset", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignWebpPreset" ), values );
 	}
 
 	return( etype );
@@ -609,7 +609,7 @@ vips_foreign_tiff_compression_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignTiffCompression", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignTiffCompression" ), values );
 	}
 
 	return( etype );
@@ -628,7 +628,7 @@ vips_foreign_tiff_predictor_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignTiffPredictor", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignTiffPredictor" ), values );
 	}
 
 	return( etype );
@@ -646,7 +646,7 @@ vips_foreign_tiff_resunit_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignTiffResunit", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignTiffResunit" ), values );
 	}
 
 	return( etype );
@@ -667,7 +667,7 @@ vips_foreign_png_filter_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_flags_register_static( "VipsForeignPngFilter", values );
+		etype = g_flags_register_static( g_intern_static_string( "VipsForeignPngFilter" ), values );
 	}
 
 	return( etype );
@@ -687,7 +687,7 @@ vips_foreign_ppm_format_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignPpmFormat", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignPpmFormat" ), values );
 	}
 
 	return( etype );
@@ -708,7 +708,7 @@ vips_foreign_dz_layout_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignDzLayout", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignDzLayout" ), values );
 	}
 
 	return( etype );
@@ -727,7 +727,7 @@ vips_foreign_dz_depth_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignDzDepth", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignDzDepth" ), values );
 	}
 
 	return( etype );
@@ -746,7 +746,7 @@ vips_foreign_dz_container_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignDzContainer", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignDzContainer" ), values );
 	}
 
 	return( etype );
@@ -766,7 +766,7 @@ vips_foreign_heif_compression_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsForeignHeifCompression", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsForeignHeifCompression" ), values );
 	}
 
 	return( etype );
@@ -787,7 +787,7 @@ vips_demand_style_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsDemandStyle", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsDemandStyle" ), values );
 	}
 
 	return( etype );
@@ -811,7 +811,7 @@ vips_image_type_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsImageType", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsImageType" ), values );
 	}
 
 	return( etype );
@@ -847,7 +847,7 @@ vips_interpretation_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsInterpretation", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsInterpretation" ), values );
 	}
 
 	return( etype );
@@ -874,7 +874,7 @@ vips_band_format_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsBandFormat", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsBandFormat" ), values );
 	}
 
 	return( etype );
@@ -894,7 +894,7 @@ vips_coding_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsCoding", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsCoding" ), values );
 	}
 
 	return( etype );
@@ -913,7 +913,7 @@ vips_access_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsAccess", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsAccess" ), values );
 	}
 
 	return( etype );
@@ -932,7 +932,7 @@ vips_operation_morphology_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsOperationMorphology", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsOperationMorphology" ), values );
 	}
 
 	return( etype );
@@ -957,7 +957,7 @@ vips_argument_flags_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_flags_register_static( "VipsArgumentFlags", values );
+		etype = g_flags_register_static( g_intern_static_string( "VipsArgumentFlags" ), values );
 	}
 
 	return( etype );
@@ -980,7 +980,7 @@ vips_operation_flags_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_flags_register_static( "VipsOperationFlags", values );
+		etype = g_flags_register_static( g_intern_static_string( "VipsOperationFlags" ), values );
 	}
 
 	return( etype );
@@ -1003,7 +1003,7 @@ vips_region_shrink_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsRegionShrink", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsRegionShrink" ), values );
 	}
 
 	return( etype );
@@ -1026,7 +1026,7 @@ vips_kernel_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsKernel", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsKernel" ), values );
 	}
 
 	return( etype );
@@ -1046,7 +1046,7 @@ vips_size_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsSize", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsSize" ), values );
 	}
 
 	return( etype );
@@ -1067,7 +1067,7 @@ vips_token_get_type( void )
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsToken", values );
+		etype = g_enum_register_static( g_intern_static_string( "VipsToken" ), values );
 	}
 
 	return( etype );

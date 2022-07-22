@@ -29,7 +29,7 @@ GType
 			{0, NULL, NULL}
 		};
 		
-		etype = g_@type@_register_static( "@EnumName@", values );
+		etype = g_@type@_register_static( g_intern_static_string( "@EnumName@" ), values );
 	}
 
 	return( etype );
