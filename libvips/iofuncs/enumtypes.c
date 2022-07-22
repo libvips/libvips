@@ -7,7 +7,7 @@
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/vips.h>
-/* enumerations from "../../libvips/include/vips/arithmetic.h" */
+/* enumerations from "arithmetic.h" */
 GType
 vips_operation_math_get_type( void )
 {
@@ -175,7 +175,7 @@ vips_operation_complexget_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/basic.h" */
+/* enumerations from "basic.h" */
 GType
 vips_precision_get_type( void )
 {
@@ -195,7 +195,7 @@ vips_precision_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/colour.h" */
+/* enumerations from "colour.h" */
 GType
 vips_intent_get_type( void )
 {
@@ -234,7 +234,7 @@ vips_pcs_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/conversion.h" */
+/* enumerations from "conversion.h" */
 GType
 vips_extend_get_type( void )
 {
@@ -427,7 +427,7 @@ vips_blend_mode_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/convolution.h" */
+/* enumerations from "convolution.h" */
 GType
 vips_combine_get_type( void )
 {
@@ -447,7 +447,7 @@ vips_combine_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/draw.h" */
+/* enumerations from "draw.h" */
 GType
 vips_combine_mode_get_type( void )
 {
@@ -466,7 +466,7 @@ vips_combine_mode_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/foreign.h" */
+/* enumerations from "foreign.h" */
 GType
 vips_foreign_flags_get_type( void )
 {
@@ -771,7 +771,7 @@ vips_foreign_heif_compression_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/image.h" */
+/* enumerations from "image.h" */
 GType
 vips_demand_style_get_type( void )
 {
@@ -918,7 +918,7 @@ vips_access_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/morphology.h" */
+/* enumerations from "morphology.h" */
 GType
 vips_operation_morphology_get_type( void )
 {
@@ -937,7 +937,7 @@ vips_operation_morphology_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/object.h" */
+/* enumerations from "object.h" */
 GType
 vips_argument_flags_get_type( void )
 {
@@ -962,7 +962,7 @@ vips_argument_flags_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/operation.h" */
+/* enumerations from "operation.h" */
 GType
 vips_operation_flags_get_type( void )
 {
@@ -985,7 +985,7 @@ vips_operation_flags_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/region.h" */
+/* enumerations from "region.h" */
 GType
 vips_region_shrink_get_type( void )
 {
@@ -1008,7 +1008,7 @@ vips_region_shrink_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/resample.h" */
+/* enumerations from "resample.h" */
 GType
 vips_kernel_get_type( void )
 {
@@ -1051,7 +1051,7 @@ vips_size_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/util.h" */
+/* enumerations from "util.h" */
 GType
 vips_token_get_type( void )
 {
