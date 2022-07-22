@@ -5,7 +5,7 @@
 #define VIPS_ENUM_TYPES_H
 
 G_BEGIN_DECLS
-/* enumerations from "../../../libvips/include/vips/arithmetic.h" */
+/* enumerations from "arithmetic.h" */
 VIPS_API
 GType vips_operation_math_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MATH (vips_operation_math_get_type())
@@ -30,18 +30,18 @@ GType vips_operation_complex2_get_type (void) G_GNUC_CONST;
 VIPS_API
 GType vips_operation_complexget_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_COMPLEXGET (vips_operation_complexget_get_type())
-/* enumerations from "../../../libvips/include/vips/basic.h" */
+/* enumerations from "basic.h" */
 VIPS_API
 GType vips_precision_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_PRECISION (vips_precision_get_type())
-/* enumerations from "../../../libvips/include/vips/colour.h" */
+/* enumerations from "colour.h" */
 VIPS_API
 GType vips_intent_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_INTENT (vips_intent_get_type())
 VIPS_API
 GType vips_pcs_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_PCS (vips_pcs_get_type())
-/* enumerations from "../../../libvips/include/vips/conversion.h" */
+/* enumerations from "conversion.h" */
 VIPS_API
 GType vips_extend_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_EXTEND (vips_extend_get_type())
@@ -66,15 +66,15 @@ GType vips_interesting_get_type (void) G_GNUC_CONST;
 VIPS_API
 GType vips_blend_mode_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_BLEND_MODE (vips_blend_mode_get_type())
-/* enumerations from "../../../libvips/include/vips/convolution.h" */
+/* enumerations from "convolution.h" */
 VIPS_API
 GType vips_combine_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE (vips_combine_get_type())
-/* enumerations from "../../../libvips/include/vips/draw.h" */
+/* enumerations from "draw.h" */
 VIPS_API
 GType vips_combine_mode_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE_MODE (vips_combine_mode_get_type())
-/* enumerations from "../../../libvips/include/vips/foreign.h" */
+/* enumerations from "foreign.h" */
 VIPS_API
 GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
@@ -120,7 +120,7 @@ GType vips_foreign_dz_container_get_type (void) G_GNUC_CONST;
 VIPS_API
 GType vips_foreign_heif_compression_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_HEIF_COMPRESSION (vips_foreign_heif_compression_get_type())
-/* enumerations from "../../../libvips/include/vips/image.h" */
+/* enumerations from "image.h" */
 VIPS_API
 GType vips_demand_style_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_DEMAND_STYLE (vips_demand_style_get_type())
@@ -139,30 +139,30 @@ GType vips_coding_get_type (void) G_GNUC_CONST;
 VIPS_API
 GType vips_access_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ACCESS (vips_access_get_type())
-/* enumerations from "../../../libvips/include/vips/morphology.h" */
+/* enumerations from "morphology.h" */
 VIPS_API
 GType vips_operation_morphology_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MORPHOLOGY (vips_operation_morphology_get_type())
-/* enumerations from "../../../libvips/include/vips/object.h" */
+/* enumerations from "object.h" */
 VIPS_API
 GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ARGUMENT_FLAGS (vips_argument_flags_get_type())
-/* enumerations from "../../../libvips/include/vips/operation.h" */
+/* enumerations from "operation.h" */
 VIPS_API
 GType vips_operation_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())
-/* enumerations from "../../../libvips/include/vips/region.h" */
+/* enumerations from "region.h" */
 VIPS_API
 GType vips_region_shrink_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_REGION_SHRINK (vips_region_shrink_get_type())
-/* enumerations from "../../../libvips/include/vips/resample.h" */
+/* enumerations from "resample.h" */
 VIPS_API
 GType vips_kernel_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_KERNEL (vips_kernel_get_type())
 VIPS_API
 GType vips_size_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SIZE (vips_size_get_type())
-/* enumerations from "../../../libvips/include/vips/util.h" */
+/* enumerations from "util.h" */
 VIPS_API
 GType vips_token_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_TOKEN (vips_token_get_type())

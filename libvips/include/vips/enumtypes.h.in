@@ -7,7 +7,7 @@ G_BEGIN_DECLS
 /*** END file-header ***/
 
 /*** BEGIN file-production ***/
-/* enumerations from "@filename@" */
+/* enumerations from "@basename@" */
 /*** END file-production ***/
 
 /*** BEGIN value-header ***/

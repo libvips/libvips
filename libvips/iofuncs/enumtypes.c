@@ -7,13 +7,13 @@
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/vips.h>
-/* enumerations from "../../libvips/include/vips/arithmetic.h" */
+/* enumerations from "arithmetic.h" */
 GType
 vips_operation_math_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_MATH_SIN, "VIPS_OPERATION_MATH_SIN", "sin"},
 			{VIPS_OPERATION_MATH_COS, "VIPS_OPERATION_MATH_COS", "cos"},
@@ -34,18 +34,20 @@ vips_operation_math_get_type( void )
 			{VIPS_OPERATION_MATH_LAST, "VIPS_OPERATION_MATH_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationMath", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationMath" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_math2_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_MATH2_POW, "VIPS_OPERATION_MATH2_POW", "pow"},
 			{VIPS_OPERATION_MATH2_WOP, "VIPS_OPERATION_MATH2_WOP", "wop"},
@@ -53,18 +55,20 @@ vips_operation_math2_get_type( void )
 			{VIPS_OPERATION_MATH2_LAST, "VIPS_OPERATION_MATH2_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationMath2", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationMath2" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_round_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_ROUND_RINT, "VIPS_OPERATION_ROUND_RINT", "rint"},
 			{VIPS_OPERATION_ROUND_CEIL, "VIPS_OPERATION_ROUND_CEIL", "ceil"},
@@ -72,18 +76,20 @@ vips_operation_round_get_type( void )
 			{VIPS_OPERATION_ROUND_LAST, "VIPS_OPERATION_ROUND_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationRound", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationRound" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_relational_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_RELATIONAL_EQUAL, "VIPS_OPERATION_RELATIONAL_EQUAL", "equal"},
 			{VIPS_OPERATION_RELATIONAL_NOTEQ, "VIPS_OPERATION_RELATIONAL_NOTEQ", "noteq"},
@@ -94,18 +100,20 @@ vips_operation_relational_get_type( void )
 			{VIPS_OPERATION_RELATIONAL_LAST, "VIPS_OPERATION_RELATIONAL_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationRelational", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationRelational" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_boolean_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_BOOLEAN_AND, "VIPS_OPERATION_BOOLEAN_AND", "and"},
 			{VIPS_OPERATION_BOOLEAN_OR, "VIPS_OPERATION_BOOLEAN_OR", "or"},
@@ -115,18 +123,20 @@ vips_operation_boolean_get_type( void )
 			{VIPS_OPERATION_BOOLEAN_LAST, "VIPS_OPERATION_BOOLEAN_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationBoolean", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationBoolean" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_complex_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_COMPLEX_POLAR, "VIPS_OPERATION_COMPLEX_POLAR", "polar"},
 			{VIPS_OPERATION_COMPLEX_RECT, "VIPS_OPERATION_COMPLEX_RECT", "rect"},
@@ -134,54 +144,60 @@ vips_operation_complex_get_type( void )
 			{VIPS_OPERATION_COMPLEX_LAST, "VIPS_OPERATION_COMPLEX_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationComplex", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationComplex" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_complex2_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_COMPLEX2_CROSS_PHASE, "VIPS_OPERATION_COMPLEX2_CROSS_PHASE", "cross-phase"},
 			{VIPS_OPERATION_COMPLEX2_LAST, "VIPS_OPERATION_COMPLEX2_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationComplex2", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationComplex2" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_operation_complexget_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_COMPLEXGET_REAL, "VIPS_OPERATION_COMPLEXGET_REAL", "real"},
 			{VIPS_OPERATION_COMPLEXGET_IMAG, "VIPS_OPERATION_COMPLEXGET_IMAG", "imag"},
 			{VIPS_OPERATION_COMPLEXGET_LAST, "VIPS_OPERATION_COMPLEXGET_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationComplexget", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationComplexget" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/basic.h" */
+/* enumerations from "basic.h" */
 GType
 vips_precision_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
 			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
@@ -189,19 +205,21 @@ vips_precision_get_type( void )
 			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsPrecision", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsPrecision" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/colour.h" */
+/* enumerations from "colour.h" */
 GType
 vips_intent_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_INTENT_PERCEPTUAL, "VIPS_INTENT_PERCEPTUAL", "perceptual"},
 			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
@@ -210,37 +228,41 @@ vips_intent_get_type( void )
 			{VIPS_INTENT_LAST, "VIPS_INTENT_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsIntent", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsIntent" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_pcs_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_PCS_LAB, "VIPS_PCS_LAB", "lab"},
 			{VIPS_PCS_XYZ, "VIPS_PCS_XYZ", "xyz"},
 			{VIPS_PCS_LAST, "VIPS_PCS_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsPCS", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsPCS" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/conversion.h" */
+/* enumerations from "conversion.h" */
 GType
 vips_extend_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_EXTEND_BLACK, "VIPS_EXTEND_BLACK", "black"},
 			{VIPS_EXTEND_COPY, "VIPS_EXTEND_COPY", "copy"},
@@ -251,18 +273,20 @@ vips_extend_get_type( void )
 			{VIPS_EXTEND_LAST, "VIPS_EXTEND_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsExtend", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsExtend" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_compass_direction_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_COMPASS_DIRECTION_CENTRE, "VIPS_COMPASS_DIRECTION_CENTRE", "centre"},
 			{VIPS_COMPASS_DIRECTION_NORTH, "VIPS_COMPASS_DIRECTION_NORTH", "north"},
@@ -276,36 +300,40 @@ vips_compass_direction_get_type( void )
 			{VIPS_COMPASS_DIRECTION_LAST, "VIPS_COMPASS_DIRECTION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsCompassDirection", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsCompassDirection" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_direction_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_DIRECTION_HORIZONTAL, "VIPS_DIRECTION_HORIZONTAL", "horizontal"},
 			{VIPS_DIRECTION_VERTICAL, "VIPS_DIRECTION_VERTICAL", "vertical"},
 			{VIPS_DIRECTION_LAST, "VIPS_DIRECTION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsDirection", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsDirection" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_align_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_ALIGN_LOW, "VIPS_ALIGN_LOW", "low"},
 			{VIPS_ALIGN_CENTRE, "VIPS_ALIGN_CENTRE", "centre"},
@@ -313,18 +341,20 @@ vips_align_get_type( void )
 			{VIPS_ALIGN_LAST, "VIPS_ALIGN_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsAlign", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsAlign" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_angle_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_ANGLE_D0, "VIPS_ANGLE_D0", "d0"},
 			{VIPS_ANGLE_D90, "VIPS_ANGLE_D90", "d90"},
@@ -333,18 +363,20 @@ vips_angle_get_type( void )
 			{VIPS_ANGLE_LAST, "VIPS_ANGLE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsAngle", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsAngle" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_angle45_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_ANGLE45_D0, "VIPS_ANGLE45_D0", "d0"},
 			{VIPS_ANGLE45_D45, "VIPS_ANGLE45_D45", "d45"},
@@ -357,18 +389,20 @@ vips_angle45_get_type( void )
 			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsAngle45", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsAngle45" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_interesting_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_INTERESTING_NONE, "VIPS_INTERESTING_NONE", "none"},
 			{VIPS_INTERESTING_CENTRE, "VIPS_INTERESTING_CENTRE", "centre"},
@@ -380,18 +414,20 @@ vips_interesting_get_type( void )
 			{VIPS_INTERESTING_LAST, "VIPS_INTERESTING_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsInteresting", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsInteresting" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_blend_mode_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_BLEND_MODE_CLEAR, "VIPS_BLEND_MODE_CLEAR", "clear"},
 			{VIPS_BLEND_MODE_SOURCE, "VIPS_BLEND_MODE_SOURCE", "source"},
@@ -421,19 +457,21 @@ vips_blend_mode_get_type( void )
 			{VIPS_BLEND_MODE_LAST, "VIPS_BLEND_MODE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsBlendMode", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsBlendMode" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/convolution.h" */
+/* enumerations from "convolution.h" */
 GType
 vips_combine_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
 			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
@@ -441,38 +479,42 @@ vips_combine_get_type( void )
 			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsCombine", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsCombine" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/draw.h" */
+/* enumerations from "draw.h" */
 GType
 vips_combine_mode_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_COMBINE_MODE_SET, "VIPS_COMBINE_MODE_SET", "set"},
 			{VIPS_COMBINE_MODE_ADD, "VIPS_COMBINE_MODE_ADD", "add"},
 			{VIPS_COMBINE_MODE_LAST, "VIPS_COMBINE_MODE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsCombineMode", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsCombineMode" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/foreign.h" */
+/* enumerations from "foreign.h" */
 GType
 vips_foreign_flags_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GFlagsValue values[] = {
 			{VIPS_FOREIGN_NONE, "VIPS_FOREIGN_NONE", "none"},
 			{VIPS_FOREIGN_PARTIAL, "VIPS_FOREIGN_PARTIAL", "partial"},
@@ -481,18 +523,20 @@ vips_foreign_flags_get_type( void )
 			{VIPS_FOREIGN_ALL, "VIPS_FOREIGN_ALL", "all"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_flags_register_static( "VipsForeignFlags", values );
+
+		GType new_type = 
+			g_flags_register_static( g_intern_static_string( "VipsForeignFlags" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_fail_on_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FAIL_ON_NONE, "VIPS_FAIL_ON_NONE", "none"},
 			{VIPS_FAIL_ON_TRUNCATED, "VIPS_FAIL_ON_TRUNCATED", "truncated"},
@@ -501,18 +545,20 @@ vips_fail_on_get_type( void )
 			{VIPS_FAIL_ON_LAST, "VIPS_FAIL_ON_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsFailOn", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsFailOn" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_saveable_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_SAVEABLE_MONO, "VIPS_SAVEABLE_MONO", "mono"},
 			{VIPS_SAVEABLE_RGB, "VIPS_SAVEABLE_RGB", "rgb"},
@@ -523,18 +569,20 @@ vips_saveable_get_type( void )
 			{VIPS_SAVEABLE_LAST, "VIPS_SAVEABLE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsSaveable", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsSaveable" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_subsample_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_SUBSAMPLE_AUTO, "VIPS_FOREIGN_SUBSAMPLE_AUTO", "auto"},
 			{VIPS_FOREIGN_SUBSAMPLE_ON, "VIPS_FOREIGN_SUBSAMPLE_ON", "on"},
@@ -542,18 +590,20 @@ vips_foreign_subsample_get_type( void )
 			{VIPS_FOREIGN_SUBSAMPLE_LAST, "VIPS_FOREIGN_SUBSAMPLE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignSubsample", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignSubsample" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_jpeg_subsample_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO, "VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO", "auto"},
 			{VIPS_FOREIGN_JPEG_SUBSAMPLE_ON, "VIPS_FOREIGN_JPEG_SUBSAMPLE_ON", "on"},
@@ -561,18 +611,20 @@ vips_foreign_jpeg_subsample_get_type( void )
 			{VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST, "VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignJpegSubsample", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignJpegSubsample" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_webp_preset_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_WEBP_PRESET_DEFAULT, "VIPS_FOREIGN_WEBP_PRESET_DEFAULT", "default"},
 			{VIPS_FOREIGN_WEBP_PRESET_PICTURE, "VIPS_FOREIGN_WEBP_PRESET_PICTURE", "picture"},
@@ -583,18 +635,20 @@ vips_foreign_webp_preset_get_type( void )
 			{VIPS_FOREIGN_WEBP_PRESET_LAST, "VIPS_FOREIGN_WEBP_PRESET_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignWebpPreset", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignWebpPreset" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_tiff_compression_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_TIFF_COMPRESSION_NONE, "VIPS_FOREIGN_TIFF_COMPRESSION_NONE", "none"},
 			{VIPS_FOREIGN_TIFF_COMPRESSION_JPEG, "VIPS_FOREIGN_TIFF_COMPRESSION_JPEG", "jpeg"},
@@ -608,18 +662,20 @@ vips_foreign_tiff_compression_get_type( void )
 			{VIPS_FOREIGN_TIFF_COMPRESSION_LAST, "VIPS_FOREIGN_TIFF_COMPRESSION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignTiffCompression", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignTiffCompression" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_tiff_predictor_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_TIFF_PREDICTOR_NONE, "VIPS_FOREIGN_TIFF_PREDICTOR_NONE", "none"},
 			{VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, "VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL", "horizontal"},
@@ -627,36 +683,40 @@ vips_foreign_tiff_predictor_get_type( void )
 			{VIPS_FOREIGN_TIFF_PREDICTOR_LAST, "VIPS_FOREIGN_TIFF_PREDICTOR_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignTiffPredictor", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignTiffPredictor" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_tiff_resunit_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_TIFF_RESUNIT_CM, "VIPS_FOREIGN_TIFF_RESUNIT_CM", "cm"},
 			{VIPS_FOREIGN_TIFF_RESUNIT_INCH, "VIPS_FOREIGN_TIFF_RESUNIT_INCH", "inch"},
 			{VIPS_FOREIGN_TIFF_RESUNIT_LAST, "VIPS_FOREIGN_TIFF_RESUNIT_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignTiffResunit", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignTiffResunit" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_png_filter_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GFlagsValue values[] = {
 			{VIPS_FOREIGN_PNG_FILTER_NONE, "VIPS_FOREIGN_PNG_FILTER_NONE", "none"},
 			{VIPS_FOREIGN_PNG_FILTER_SUB, "VIPS_FOREIGN_PNG_FILTER_SUB", "sub"},
@@ -666,18 +726,20 @@ vips_foreign_png_filter_get_type( void )
 			{VIPS_FOREIGN_PNG_FILTER_ALL, "VIPS_FOREIGN_PNG_FILTER_ALL", "all"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_flags_register_static( "VipsForeignPngFilter", values );
+
+		GType new_type = 
+			g_flags_register_static( g_intern_static_string( "VipsForeignPngFilter" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_ppm_format_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_PPM_FORMAT_PBM, "VIPS_FOREIGN_PPM_FORMAT_PBM", "pbm"},
 			{VIPS_FOREIGN_PPM_FORMAT_PGM, "VIPS_FOREIGN_PPM_FORMAT_PGM", "pgm"},
@@ -686,18 +748,20 @@ vips_foreign_ppm_format_get_type( void )
 			{VIPS_FOREIGN_PPM_FORMAT_LAST, "VIPS_FOREIGN_PPM_FORMAT_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignPpmFormat", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignPpmFormat" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_dz_layout_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_DZ_LAYOUT_DZ, "VIPS_FOREIGN_DZ_LAYOUT_DZ", "dz"},
 			{VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY, "VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY", "zoomify"},
@@ -707,18 +771,20 @@ vips_foreign_dz_layout_get_type( void )
 			{VIPS_FOREIGN_DZ_LAYOUT_LAST, "VIPS_FOREIGN_DZ_LAYOUT_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignDzLayout", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignDzLayout" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_dz_depth_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL, "VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL", "onepixel"},
 			{VIPS_FOREIGN_DZ_DEPTH_ONETILE, "VIPS_FOREIGN_DZ_DEPTH_ONETILE", "onetile"},
@@ -726,18 +792,20 @@ vips_foreign_dz_depth_get_type( void )
 			{VIPS_FOREIGN_DZ_DEPTH_LAST, "VIPS_FOREIGN_DZ_DEPTH_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignDzDepth", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignDzDepth" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_dz_container_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_DZ_CONTAINER_FS, "VIPS_FOREIGN_DZ_CONTAINER_FS", "fs"},
 			{VIPS_FOREIGN_DZ_CONTAINER_ZIP, "VIPS_FOREIGN_DZ_CONTAINER_ZIP", "zip"},
@@ -745,18 +813,20 @@ vips_foreign_dz_container_get_type( void )
 			{VIPS_FOREIGN_DZ_CONTAINER_LAST, "VIPS_FOREIGN_DZ_CONTAINER_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignDzContainer", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignDzContainer" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_foreign_heif_compression_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FOREIGN_HEIF_COMPRESSION_HEVC, "VIPS_FOREIGN_HEIF_COMPRESSION_HEVC", "hevc"},
 			{VIPS_FOREIGN_HEIF_COMPRESSION_AVC, "VIPS_FOREIGN_HEIF_COMPRESSION_AVC", "avc"},
@@ -765,19 +835,21 @@ vips_foreign_heif_compression_get_type( void )
 			{VIPS_FOREIGN_HEIF_COMPRESSION_LAST, "VIPS_FOREIGN_HEIF_COMPRESSION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsForeignHeifCompression", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsForeignHeifCompression" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/image.h" */
+/* enumerations from "image.h" */
 GType
 vips_demand_style_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_DEMAND_STYLE_ERROR, "VIPS_DEMAND_STYLE_ERROR", "error"},
 			{VIPS_DEMAND_STYLE_SMALLTILE, "VIPS_DEMAND_STYLE_SMALLTILE", "smalltile"},
@@ -786,18 +858,20 @@ vips_demand_style_get_type( void )
 			{VIPS_DEMAND_STYLE_ANY, "VIPS_DEMAND_STYLE_ANY", "any"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsDemandStyle", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsDemandStyle" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_image_type_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_IMAGE_ERROR, "VIPS_IMAGE_ERROR", "error"},
 			{VIPS_IMAGE_NONE, "VIPS_IMAGE_NONE", "none"},
@@ -810,18 +884,20 @@ vips_image_type_get_type( void )
 			{VIPS_IMAGE_PARTIAL, "VIPS_IMAGE_PARTIAL", "partial"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsImageType", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsImageType" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_interpretation_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_INTERPRETATION_ERROR, "VIPS_INTERPRETATION_ERROR", "error"},
 			{VIPS_INTERPRETATION_MULTIBAND, "VIPS_INTERPRETATION_MULTIBAND", "multiband"},
@@ -846,18 +922,20 @@ vips_interpretation_get_type( void )
 			{VIPS_INTERPRETATION_LAST, "VIPS_INTERPRETATION_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsInterpretation", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsInterpretation" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_band_format_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_FORMAT_NOTSET, "VIPS_FORMAT_NOTSET", "notset"},
 			{VIPS_FORMAT_UCHAR, "VIPS_FORMAT_UCHAR", "uchar"},
@@ -873,18 +951,20 @@ vips_band_format_get_type( void )
 			{VIPS_FORMAT_LAST, "VIPS_FORMAT_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsBandFormat", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsBandFormat" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_coding_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_CODING_ERROR, "VIPS_CODING_ERROR", "error"},
 			{VIPS_CODING_NONE, "VIPS_CODING_NONE", "none"},
@@ -893,18 +973,20 @@ vips_coding_get_type( void )
 			{VIPS_CODING_LAST, "VIPS_CODING_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsCoding", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsCoding" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_access_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_ACCESS_RANDOM, "VIPS_ACCESS_RANDOM", "random"},
 			{VIPS_ACCESS_SEQUENTIAL, "VIPS_ACCESS_SEQUENTIAL", "sequential"},
@@ -912,38 +994,42 @@ vips_access_get_type( void )
 			{VIPS_ACCESS_LAST, "VIPS_ACCESS_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsAccess", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsAccess" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/morphology.h" */
+/* enumerations from "morphology.h" */
 GType
 vips_operation_morphology_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_MORPHOLOGY_ERODE, "VIPS_OPERATION_MORPHOLOGY_ERODE", "erode"},
 			{VIPS_OPERATION_MORPHOLOGY_DILATE, "VIPS_OPERATION_MORPHOLOGY_DILATE", "dilate"},
 			{VIPS_OPERATION_MORPHOLOGY_LAST, "VIPS_OPERATION_MORPHOLOGY_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsOperationMorphology", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsOperationMorphology" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/object.h" */
+/* enumerations from "object.h" */
 GType
 vips_argument_flags_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GFlagsValue values[] = {
 			{VIPS_ARGUMENT_NONE, "VIPS_ARGUMENT_NONE", "none"},
 			{VIPS_ARGUMENT_REQUIRED, "VIPS_ARGUMENT_REQUIRED", "required"},
@@ -956,19 +1042,21 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_MODIFY, "VIPS_ARGUMENT_MODIFY", "modify"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_flags_register_static( "VipsArgumentFlags", values );
+
+		GType new_type = 
+			g_flags_register_static( g_intern_static_string( "VipsArgumentFlags" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/operation.h" */
+/* enumerations from "operation.h" */
 GType
 vips_operation_flags_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GFlagsValue values[] = {
 			{VIPS_OPERATION_NONE, "VIPS_OPERATION_NONE", "none"},
 			{VIPS_OPERATION_SEQUENTIAL, "VIPS_OPERATION_SEQUENTIAL", "sequential"},
@@ -979,19 +1067,21 @@ vips_operation_flags_get_type( void )
 			{VIPS_OPERATION_BLOCKED, "VIPS_OPERATION_BLOCKED", "blocked"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_flags_register_static( "VipsOperationFlags", values );
+
+		GType new_type = 
+			g_flags_register_static( g_intern_static_string( "VipsOperationFlags" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/region.h" */
+/* enumerations from "region.h" */
 GType
 vips_region_shrink_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_REGION_SHRINK_MEAN, "VIPS_REGION_SHRINK_MEAN", "mean"},
 			{VIPS_REGION_SHRINK_MEDIAN, "VIPS_REGION_SHRINK_MEDIAN", "median"},
@@ -1002,19 +1092,21 @@ vips_region_shrink_get_type( void )
 			{VIPS_REGION_SHRINK_LAST, "VIPS_REGION_SHRINK_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsRegionShrink", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsRegionShrink" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/resample.h" */
+/* enumerations from "resample.h" */
 GType
 vips_kernel_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_KERNEL_NEAREST, "VIPS_KERNEL_NEAREST", "nearest"},
 			{VIPS_KERNEL_LINEAR, "VIPS_KERNEL_LINEAR", "linear"},
@@ -1025,18 +1117,20 @@ vips_kernel_get_type( void )
 			{VIPS_KERNEL_LAST, "VIPS_KERNEL_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsKernel", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsKernel" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 GType
 vips_size_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_SIZE_BOTH, "VIPS_SIZE_BOTH", "both"},
 			{VIPS_SIZE_UP, "VIPS_SIZE_UP", "up"},
@@ -1045,19 +1139,21 @@ vips_size_get_type( void )
 			{VIPS_SIZE_LAST, "VIPS_SIZE_LAST", "last"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsSize", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsSize" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
-/* enumerations from "../../libvips/include/vips/util.h" */
+/* enumerations from "util.h" */
 GType
 vips_token_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const GEnumValue values[] = {
 			{VIPS_TOKEN_LEFT, "VIPS_TOKEN_LEFT", "left"},
 			{VIPS_TOKEN_RIGHT, "VIPS_TOKEN_RIGHT", "right"},
@@ -1066,11 +1162,13 @@ vips_token_get_type( void )
 			{VIPS_TOKEN_COMMA, "VIPS_TOKEN_COMMA", "comma"},
 			{0, NULL, NULL}
 		};
-		
-		etype = g_enum_register_static( "VipsToken", values );
+
+		GType new_type = 
+			g_enum_register_static( g_intern_static_string( "VipsToken" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 
 /* Generated data ends here */

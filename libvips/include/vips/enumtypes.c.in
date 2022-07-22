@@ -8,16 +8,16 @@
 /*** END file-header ***/
 
 /*** BEGIN file-production ***/
-/* enumerations from "@filename@" */
+/* enumerations from "@basename@" */
 /*** END file-production ***/
 
 /*** BEGIN value-header ***/
 GType
 @enum_name@_get_type( void )
 {
-	static GType etype = 0;
+	static gsize gtype_id = 0;
 
-	if( etype == 0 ) {
+	if( g_once_init_enter( &gtype_id ) ) {
 		static const G@Type@Value values[] = {
 /*** END value-header ***/
 
@@ -28,10 +28,13 @@ GType
 /*** BEGIN value-tail ***/
 			{0, NULL, NULL}
 		};
-		
-		etype = g_@type@_register_static( "@EnumName@", values );
+
+		GType new_type = 
+			g_@type@_register_static( g_intern_static_string( "@EnumName@" ), values );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( etype );
+	return( (GType) gtype_id );
 }
 /*** END value-tail ***/
+
