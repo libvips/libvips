@@ -634,7 +634,7 @@ build_summary = {
      'ICC profile support with lcms': lcms_dep.found(),
      'zlib': zlib_dep.found(),
      'text rendering with pangocairo': pangocairo_dep.found(),
-     'font file support with fontcongfig ': fontconfig_found,
+     'font file support with fontconfig ': fontconfig_found,
      'EXIF metadata support with libexif ': libexif_dep.found(),
     },
   'External image format libraries':
