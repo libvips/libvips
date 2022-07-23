@@ -335,7 +335,8 @@ endif
 # text rendering with fontconfig requires pangoft2
 pangoft2_dep = dependency('pangoft2', version: '>=1.32.6', required: get_option('fontconfig'))
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
-if pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
+fontconfig_found = pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
+if fontconfig_found
     libvips_deps += pangoft2_dep
     libvips_deps += fontconfig_dep
     cfg_var.set('HAVE_FONTCONFIG', '1')
@@ -354,7 +355,8 @@ endif
 # 2.40.3 so we get the UNLIMITED open flag
 librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_option('rsvg'))
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
-if librsvg_dep.found() and cairo_dep.found()
+librsvg_found = librsvg_dep.found() and cairo_dep.found()
+if librsvg_found
     libvips_deps += librsvg_dep
     libvips_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', '1')
@@ -612,3 +614,67 @@ subdir('po')
 subdir('tools')
 subdir('test')
 subdir('fuzz')
+
+build_options = [
+  ['enable debug ......................', get_option('debug')],
+  ['enable deprecated .................', get_option('deprecated')],
+  ['enable modules ....................', modules_enabled],
+  ['enable gtk-doc ....................', get_option('gtk_doc')],
+  ['enable doxygen ....................', get_option('doxygen')],
+  ['enable introspection ..............', get_option('introspection')],
+  ['enable RAD load/save ..............', get_option('radiance')],
+  ['enable Analyze7 load/save .........', get_option('analyze')],
+  ['enable PPM load/save ..............', get_option('ppm')],
+  ['enable GIF load ...................', get_option('nsgif')],
+]
+
+output = '\n\n*Build options\n'
+foreach option: build_options
+  output += '  @0@: @1@\n'.format(option[0], option[1])
+endforeach
+
+external_options = [
+  ['use fftw for FFTs .................', fftw_dep.found()],
+  ['accelerate loops with ORC .........', orc_dep.found()],
+  ['ICC profile support with lcms .....', lcms_dep.found()],
+  ['zlib ..............................', zlib_dep.found()],
+  ['text rendering with pangocairo ....', pangocairo_dep.found()],
+  ['font file support with fontcongfig ', fontconfig_found],
+  ['EXIF metadata support with libexif ', libexif_dep.found()],
+]
+
+output += '\n*Optional external packages\n'
+foreach option: external_options
+  output += '  @0@: @1@\n'.format(option[0], option[1])
+endforeach
+
+format_options = [
+  ['JPEG load/save with libjpeg .......', libjpeg_dep.found()],
+  ['JXL load/save with libjxl .........', libjxl_dep.found()],
+  ['JPEG2000 load/save with openjpeg ..', libopenjp2_dep.found()],
+  ['PNG load/save with libspng ........', spng_dep.found()],
+  ['PNG load/save with libpng .........', png_dep.found()],
+  ['selected quantisation package .....', quantisation_package.name()],
+  ['TIFF load/save with libtiff .......', libtiff_dep.found()],
+  ['image pyramid save with libgsf ....', gsf_dep.found()],
+  ['HEIC/AVIF load/save with libheif ..', libheif_dep.found()],
+  ['WebP load/save with libwebp .......', libwebp_dep.found()],
+  ['PDF load with PDFium ..............', pdfium_dep.found()],
+  ['PDF load with poppler-glib ........', libpoppler_dep.found()],
+  ['SVG load with librsvg .............', librsvg_found],
+  ['EXR load/save with openexr ........', openexr_dep.found()],
+  ['OpenSlide load ....................', openslide_dep.found()],
+  ['Matlab load with libmatio .........', matio_dep.found()],
+  ['NIfTI load/save with niftiio ......', libnifti_dep.found()],
+  ['FITS load/save with cfitsio .......', cfitsio_dep.found()],
+  ['GIF save with cgif ................', cgif_dep.found()],
+  ['selected Magick package ...........', get_option('magick-package')],
+  ['Magick load/save ..................', magick_dep.found()],
+]
+
+output += '\n*External image format libraries\n'
+foreach option: format_options
+  output += '  @0@: @1@\n'.format(option[0], option[1])
+endforeach
+
+message(output)
