@@ -174,9 +174,9 @@ vips_extract_area_build( VipsObject *object )
 
 #ifdef __EMSCRIPTEN__
 static void
-vips_crop_class_init_adapter( VipsExtractAreaClass *class, void *dummy )
+vips_crop_class_intern_init_adapter( gpointer class, void *dummy )
 {
-	vips_extract_area_class_init( class );
+	vips_extract_area_class_intern_init( class );
 }
 #endif
 
@@ -284,34 +284,29 @@ vips_extract_area( VipsImage *in, VipsImage **out,
 GType
 vips_crop_get_type( void )
 {
-	static GType type = 0;
+	static gsize gtype_id = 0;
 
-	if( !type ) {
-		static const GTypeInfo info = {
+	if( g_once_init_enter( &gtype_id ) ) {
+		GType new_type = g_type_register_static_simple(	VIPS_TYPE_CONVERSION,
+			g_intern_static_string( "crop" ),
 			sizeof( VipsExtractAreaClass ),
-			NULL,           /* base_init */
-			NULL,           /* base_finalize */
 #ifdef __EMSCRIPTEN__
-			(GClassInitFunc) vips_crop_class_init_adapter,
+			(GClassInitFunc) vips_crop_class_intern_init_adapter,
 #else
-			(GClassInitFunc) vips_extract_area_class_init,
+			(GClassInitFunc)(void (*)(void)) vips_extract_area_class_intern_init,
 #endif
-			NULL,           /* class_finalize */
-			NULL,           /* class_data */
 			sizeof( VipsExtractArea ),
-			32,             /* n_preallocs */
 #ifdef __EMSCRIPTEN__
 			(GInstanceInitFunc) vips_crop_init_adapter,
 #else
-			(GInstanceInitFunc) vips_extract_area_init,
+			(GInstanceInitFunc)(void (*)(void)) vips_extract_area_init,
 #endif
-		};
+			(GTypeFlags) 0 );
 
-		type = g_type_register_static( VIPS_TYPE_CONVERSION, 
-			"crop", &info, 0 );
+		g_once_init_leave( &gtype_id, new_type );
 	}
 
-	return( type );
+	return( (GType) gtype_id );
 }
 
 /**
