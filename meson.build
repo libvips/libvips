@@ -620,66 +620,54 @@ subdir('tools')
 subdir('test')
 subdir('fuzz')
 
-build_options = [
-  ['enable debug ......................', get_option('debug')],
-  ['enable deprecated .................', get_option('deprecated')],
-  ['enable modules ....................', modules_enabled],
-  ['enable gtk-doc ....................', get_option('gtk_doc')],
-  ['enable doxygen ....................', get_option('doxygen')],
-  ['enable introspection ..............', get_option('introspection')],
-  ['enable RAD load/save ..............', get_option('radiance')],
-  ['enable Analyze7 load/save .........', get_option('analyze')],
-  ['enable PPM load/save ..............', get_option('ppm')],
-  ['enable GIF load ...................', get_option('nsgif')],
-]
+build_summary = {
+  'Build options':
+    {'enable debug': get_option('debug'),
+     'enable deprecated': get_option('deprecated'),
+     'enable modules': modules_enabled,
+     'enable gtk-doc': get_option('gtk_doc'),
+     'enable doxygen': get_option('doxygen'),
+     'enable introspection': get_option('introspection'),
+     'enable RAD load/save': get_option('radiance'),
+     'enable Analyze7 load/save': get_option('analyze'),
+     'enable PPM load/save': get_option('ppm'),
+     'enable GIF load': get_option('nsgif'),
+    },
+  'Optional external packages':
+    {'use fftw for FFTs': fftw_dep.found(),
+     'accelerate loops with ORC': orc_dep.found(),
+     'ICC profile support with lcms': lcms_dep.found(),
+     'zlib': zlib_dep.found(),
+     'text rendering with pangocairo': pangocairo_dep.found(),
+     'font file support with fontconfig': fontconfig_found,
+     'EXIF metadata support with libexif ': libexif_dep.found(),
+    },
+  'External image format libraries':
+    {'JPEG load/save with libjpeg': libjpeg_dep.found(),
+     'JXL load/save with libjxl': [libjxl_dep.found(), (modules_enabled and not get_option('jpeg-xl-module').disabled()) ? ' (dynamic module)' : ''],
+     'JPEG2000 load/save with OpenJPEG': libopenjp2_dep.found(),
+     'PNG load/save with libspng': spng_dep.found(),
+     'PNG load/save with libpng': png_dep.found(),
+     'selected quantisation package': quantisation_package.found() ? quantisation_package.name() : 'none',
+     'TIFF load/save with libtiff': libtiff_dep.found(),
+     'image pyramid save with libgsf': gsf_dep.found(),
+     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), (modules_enabled and not get_option('heif-module').disabled()) ? ' (dynamic module)' : ''],
+     'WebP load/save with libwebp': libwebp_dep.found(),
+     'PDF load with PDFium': pdfium_dep.found(),
+     'PDF load with poppler-glib': [libpoppler_dep.found(), (modules_enabled and not get_option('poppler-module').disabled()) ? ' (dynamic module)' : ''],
+     'SVG load with librsvg': librsvg_found,
+     'EXR load with OpenEXR': openexr_dep.found(),
+     'OpenSlide load': [openslide_dep.found(), (modules_enabled and not get_option('openslide-module').disabled()) ? ' (dynamic module)' : ''],
+     'Matlab load with libmatio': matio_dep.found(),
+     'NIfTI load/save with niftiio': libnifti_dep.found(),
+     'FITS load/save with cfitsio': cfitsio_dep.found(),
+     'GIF save with cgif': cgif_dep.found(),
+     'selected Magick package': [get_option('magick-package'), (modules_enabled and not get_option('magick-module').disabled()) ? ' (dynamic module)' : ''],
+     'Magick load': magick_dep.found() and 'load' in get_option('magick-features'),
+     'Magick save': magick_dep.found() and 'save' in get_option('magick-features'),
+    },
+}
 
-output = '\n\n*Build options\n'
-foreach option: build_options
-  output += '  @0@: @1@\n'.format(option[0], option[1])
+foreach section_title, section : build_summary
+    summary(section, bool_yn: true, list_sep: '', section: section_title)
 endforeach
-
-external_options = [
-  ['use fftw for FFTs .................', fftw_dep.found()],
-  ['accelerate loops with ORC .........', orc_dep.found()],
-  ['ICC profile support with lcms .....', lcms_dep.found()],
-  ['zlib ..............................', zlib_dep.found()],
-  ['text rendering with pangocairo ....', pangocairo_dep.found()],
-  ['font file support with fontcongfig ', fontconfig_found],
-  ['EXIF metadata support with libexif ', libexif_dep.found()],
-]
-
-output += '\n*Optional external packages\n'
-foreach option: external_options
-  output += '  @0@: @1@\n'.format(option[0], option[1])
-endforeach
-
-format_options = [
-  ['JPEG load/save with libjpeg .......', libjpeg_dep.found()],
-  ['JXL load/save with libjxl .........', libjxl_dep.found()],
-  ['JPEG2000 load/save with openjpeg ..', libopenjp2_dep.found()],
-  ['PNG load/save with libspng ........', spng_dep.found()],
-  ['PNG load/save with libpng .........', png_dep.found()],
-  ['selected quantisation package .....', quantisation_package.name()],
-  ['TIFF load/save with libtiff .......', libtiff_dep.found()],
-  ['image pyramid save with libgsf ....', gsf_dep.found()],
-  ['HEIC/AVIF load/save with libheif ..', libheif_dep.found()],
-  ['WebP load/save with libwebp .......', libwebp_dep.found()],
-  ['PDF load with PDFium ..............', pdfium_dep.found()],
-  ['PDF load with poppler-glib ........', libpoppler_dep.found()],
-  ['SVG load with librsvg .............', librsvg_found],
-  ['EXR load/save with openexr ........', openexr_dep.found()],
-  ['OpenSlide load ....................', openslide_dep.found()],
-  ['Matlab load with libmatio .........', matio_dep.found()],
-  ['NIfTI load/save with niftiio ......', libnifti_dep.found()],
-  ['FITS load/save with cfitsio .......', cfitsio_dep.found()],
-  ['GIF save with cgif ................', cgif_dep.found()],
-  ['selected Magick package ...........', get_option('magick-package')],
-  ['Magick load/save ..................', magick_dep.found()],
-]
-
-output += '\n*External image format libraries\n'
-foreach option: format_options
-  output += '  @0@: @1@\n'.format(option[0], option[1])
-endforeach
-
-message(output)
