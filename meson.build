@@ -174,29 +174,34 @@ if not get_option('magick').disabled() and magick_dep.found()
     else
         libvips_deps += magick_dep
     endif
-    if magick_dep.version().version_compare('>=7.0')
+    magick7 = magick_dep.version().version_compare('>=7.0')
+    # IM7 uses <MagickCore/MagickCore.h>
+    # IM6 uses <magick/MagickCore.h> (since 6.2.3) but still provides <magick/api.h>
+    # GM uses <magick/api.h>
+    magick_include = magick7 ? '#include <MagickCore/MagickCore.h>' : '#include <magick/api.h>'
+    if magick7
         cfg_var.set('HAVE_MAGICK7', '1')
     else
         # come here for imagemagick6, and graphicsmagick1.x, which also uses 
         # the im6 API
         cfg_var.set('HAVE_MAGICK6', '1')
-        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: magick_include, dependencies: magick_dep)
             cfg_var.set('HAVE_NUMBER_SCENES', '1')
         endif
         func_names = [ 'InheritException', 'AcquireExceptionInfo', 'SetImageProperty', 'SetImageExtent', 'AcquireImage', 'GetVirtualPixels', 'ResetImageProfileIterator', 'ResetImageAttributeIterator', 'ResetImagePropertyIterator', 'MagickCoreGenesis', 'SetImageOption', 'BlobToStringInfo', 'OptimizePlusImageLayers', 'OptimizeImageTransparency' ]
         foreach func_name : func_names
-            if cc.has_function(func_name, prefix: '#include <magick/api.h>', dependencies: magick_dep)
+            if cc.has_function(func_name, prefix: magick_include, dependencies: magick_dep)
                 cfg_var.set('HAVE_' + func_name.to_upper(), '1')
             endif
         endforeach
-        if cc.compiles('#include <magick/api.h>\nColorspaceType colorspace = CMYColorspace;', name: 'Has CMYColorspace', dependencies: magick_dep)
+        if cc.compiles(magick_include + '\nColorspaceType colorspace = CMYColorspace;', name: 'Has CMYColorspace', dependencies: magick_dep)
             cfg_var.set('HAVE_CMYCOLORSPACE', '1')
         endif
-        if cc.compiles('#include <magick/api.h>\nColorspaceType colorspace = HCLpColorspace;', name: 'Has HCLpColorspace', dependencies: magick_dep)
+        if cc.compiles(magick_include + '\nColorspaceType colorspace = HCLpColorspace;', name: 'Has HCLpColorspace', dependencies: magick_dep)
             cfg_var.set('HAVE_HCLPCOLORSPACE', '1')
         endif
         # GetImageMagick() takes two args under GM, three under IM
-        if cc.compiles('#include <magick/api.h>\nint main() {(void)GetImageMagick(NULL, 0, NULL);}', name: 'GetImageMagick takes three arguments', dependencies: magick_dep)
+        if cc.compiles(magick_include + '\nint main() {(void)GetImageMagick(NULL, 0, NULL);}', name: 'GetImageMagick takes three arguments', dependencies: magick_dep)
             cfg_var.set('HAVE_GETIMAGEMAGICK3', '1')
         endif
     endif
@@ -206,10 +211,10 @@ if not get_option('magick').disabled() and magick_dep.found()
     endif
     if 'save' in get_option('magick-features')
         cfg_var.set('ENABLE_MAGICKSAVE', '1')
-        if cc.has_function('ImportImagePixels', prefix: '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImportImagePixels', prefix: magick_include, dependencies: magick_dep)
             cfg_var.set('HAVE_IMPORTIMAGEPIXELS', '1')
         endif
-        if cc.has_function('ImagesToBlob', prefix: '#include <magick/api.h>', dependencies: magick_dep)
+        if cc.has_function('ImagesToBlob', prefix: magick_include, dependencies: magick_dep)
             cfg_var.set('HAVE_IMAGESTOBLOB', '1')
         endif
     endif
