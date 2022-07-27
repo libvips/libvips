@@ -26,7 +26,6 @@ __pycache__/
 ### End of Python
 
 ### gettext
-po/Makefile.in.in
 po/*.pot
 po/POTFILES
 po/de.gmo
@@ -43,8 +42,6 @@ fuzz/*_fuzzer
 ### End of Tools
 
 ### GTK-Doc
-doc/html-build.stamp
-doc/html.stamp
 doc/html/
 doc/libvips-decl-list.txt
 doc/libvips-decl.txt
@@ -62,15 +59,8 @@ doc/libvips.interfaces
 doc/libvips.prerequisites
 doc/libvips.signals
 doc/libvips.types
-doc/scan-build.stamp
-doc/setup-build.stamp
-doc/sgml-build.stamp
-doc/sgml.stamp
-doc/tmpl-build.stamp
-doc/tmpl.stamp
 doc/tmpl/
 doc/xml/
-gtk-doc.make
 libvips-scan
 ### End of GTK-Doc
 
