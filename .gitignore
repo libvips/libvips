@@ -35,11 +35,6 @@ po/malkovich.gmo
 ### End of gettext
 
 ### Tools
-tools/batch_crop
-tools/batch_image_convert
-tools/batch_rubber_sheet
-tools/light_correct
-tools/shrink_width
 tools/vips
 tools/vipsedit
 tools/vipsheader
