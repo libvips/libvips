@@ -1,0 +1,1634 @@
+
+buf.c,1632
+vips_buf_rewind( VipsBuf *buf )vips_buf_rewind95,2098
+vips_buf_init( VipsBuf *buf )vips_buf_init112,2304
+vips_buf_destroy( VipsBuf *buf )vips_buf_destroy128,2569
+vips_buf_set_static( VipsBuf *buf, char *base, int mx )vips_buf_set_static147,2981
+vips_buf_init_static( VipsBuf *buf, char *base, int mx )vips_buf_init_static181,3662
+vips_buf_set_dynamic( VipsBuf *buf, int mx )vips_buf_set_dynamic196,4025
+vips_buf_init_dynamic( VipsBuf *buf, int mx )vips_buf_init_dynamic237,4807
+vips_buf_appendns( VipsBuf *buf, const char *str, int sz )vips_buf_appendns256,5289
+vips_buf_appends( VipsBuf *buf, const char *str )vips_buf_appends311,6316
+vips_buf_appendc( VipsBuf *buf, char ch )vips_buf_appendc326,6620
+vips_buf_change( VipsBuf *buf, const char *old, const char *new )vips_buf_change347,6985
+vips_buf_removec( VipsBuf *buf, char ch )vips_buf_removec390,7830
+vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )vips_buf_vappendf413,8287
+vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )vips_buf_appendf447,8951
+vips_buf_appendg( VipsBuf *buf, double g )vips_buf_appendg469,9379
+vips_buf_appendd( VipsBuf *buf, int d )vips_buf_appendd489,9799
+vips_buf_appendgv( VipsBuf *buf, GValue *value )vips_buf_appendgv511,10378
+vips_buf_append_size( VipsBuf *buf, size_t n )vips_buf_append_size680,13845
+vips_buf_all( VipsBuf *buf )vips_buf_all730,14765
+vips_buf_firstline( VipsBuf *buf )vips_buf_firstline747,15107
+vips_buf_is_empty( VipsBuf *buf )vips_buf_is_empty764,15357
+vips_buf_is_full( VipsBuf *buf )vips_buf_is_full776,15522
+vips_buf_len( VipsBuf *buf )vips_buf_len788,15696
+
+buffer.c,1909
+static GSList *vips__buffer_all = NULL;vips__buffer_all78,2070
+static GSList *vips__buffer_cache_all = NULL; vips__buffer_cache_all82,2148
+static const int buffer_cache_max_reserve = 2; buffer_cache_max_reserve87,2289
+static GPrivate *buffer_thread_key = NULL;buffer_thread_key92,2440
+vips_buffer_print( VipsBuffer *buffer )vips_buffer_print95,2489
+vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )vips_buffer_dump111,3037
+vips_buffer_cache_dump( VipsBufferCache *cache, void *a, void *b )vips_buffer_cache_dump156,4041
+vips_buffer_dump_all( void )vips_buffer_dump_all170,4471
+vips_buffer_free( VipsBuffer *buffer )vips_buffer_free200,5227
+buffer_thread_free( VipsBufferThread *buffer_thread )buffer_thread_free221,5702
+buffer_cache_free( VipsBufferCache *cache )buffer_cache_free230,5921
+buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )buffer_cache_new271,6915
+buffer_thread_new( void )buffer_thread_new299,7638
+buffer_thread_get( void )buffer_thread_get315,8043
+buffer_cache_get( VipsImage *im )buffer_cache_get340,8610
+vips_buffer_done( VipsBuffer *buffer )vips_buffer_done363,9145
+vips_buffer_undone( VipsBuffer *buffer )vips_buffer_undone390,9789
+vips_buffer_unref( VipsBuffer *buffer )vips_buffer_unref422,10631
+buffer_move( VipsBuffer *buffer, VipsRect *area )buffer_move466,11620
+vips_buffer_new( VipsImage *im, VipsRect *area )vips_buffer_new494,12196
+buffer_find( VipsImage *im, VipsRect *r )buffer_find542,13267
+vips_buffer_ref( VipsImage *im, VipsRect *area )vips_buffer_ref589,14390
+vips_buffer_unref_ref( VipsBuffer *old_buffer, VipsImage *im, VipsRect *area )vips_buffer_unref_ref603,14715
+buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )buffer_thread_destroy_notify645,15621
+vips__buffer_init( void )vips__buffer_init659,16020
+vips__buffer_shutdown( void )vips__buffer_shutdown679,16463
+
+cache.c,3682
+gboolean vips__cache_dump = FALSE;vips__cache_dump73,1709
+gboolean vips__cache_trace = FALSE;vips__cache_trace74,1744
+static int vips_cache_max = 100;vips_cache_max81,1917
+static int vips_cache_max_files = 100;vips_cache_max_files85,2027
+static size_t vips_cache_max_mem = 100 * 1024 * 1024;vips_cache_max_mem94,2344
+static GHashTable *vips_cache_table = NULL;vips_cache_table98,2445
+static int vips_cache_time = 0;vips_cache_time102,2567
+static GMutex *vips_cache_lock = NULL;vips_cache_lock106,2639
+#define INT64_HASH(INT64_HASH111,2801
+#define DOUBLE_HASH(DOUBLE_HASH112,2842
+typedef struct _VipsOperationCacheEntry {_VipsOperationCacheEntry116,2907
+	VipsOperation *operation;operation117,2949
+	int time;time122,3059
+	gulong invalidate_id;invalidate_id127,3197
+	gboolean invalid;invalid131,3288
+} VipsOperationCacheEntry;VipsOperationCacheEntry133,3308
+vips_value_hash( GParamSpec *pspec, GValue *value )vips_value_hash140,3552
+vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )vips_value_equal236,6432
+vips_object_hash_arg( VipsObject *object,vips_object_hash_arg335,9335
+vips_operation_hash( VipsOperation *operation )vips_operation_hash362,10099
+vips_object_equal_arg( VipsObject *object,vips_object_equal_arg385,10562
+vips_operation_equal( VipsOperation *a, VipsOperation *b )vips_operation_equal433,11886
+vips__cache_once_init( void *data )vips__cache_once_init448,12214
+vips__cache_init( void )vips__cache_init460,12433
+vips_cache_print_fn( void *value, void *a, void *b )vips_cache_print_fn468,12562
+vips_cache_print_nolock( void )vips_cache_print_nolock483,12869
+vips_cache_print( void )vips_cache_print498,13152
+vips_object_unref_arg( VipsObject *object,vips_object_unref_arg508,13296
+vips_cache_unref( VipsOperation *operation )vips_cache_unref536,13980
+vips_cache_remove( VipsOperation *operation )vips_cache_remove551,14327
+vips_object_ref_arg( VipsObject *object,vips_object_ref_arg575,14885
+vips_operation_touch( VipsOperation *operation )vips_operation_touch597,15416
+vips_cache_ref( VipsOperation *operation )vips_cache_ref615,15871
+vips_cache_invalidate_cb( VipsOperation *operation, vips_cache_invalidate_cb629,16203
+vips_cache_insert( VipsOperation *operation )vips_cache_insert641,16459
+vips_cache_get_first_fn( void *value, void *a, void *b )vips_cache_get_first_fn666,17146
+vips_cache_get_first( void )vips_cache_get_first674,17279
+vips_cache_drop_all( void )vips_cache_drop_all693,17683
+vips_cache_get_lru_cb( VipsOperation *key, VipsOperationCacheEntry *value, vips_cache_get_lru_cb721,18274
+vips_cache_get_lru( void )vips_cache_get_lru734,18580
+vips_cache_trim( void )vips_cache_trim751,18868
+vips_cache_operation_lookup( VipsOperation *operation )vips_cache_operation_lookup783,19708
+vips_cache_operation_add( VipsOperation *operation )vips_cache_operation_add835,20863
+vips_cache_operation_buildp( VipsOperation **operation )vips_cache_operation_buildp886,22192
+vips_cache_operation_build( VipsOperation *operation )vips_cache_operation_build932,23329
+vips_cache_set_max( int max )vips_cache_set_max956,23791
+vips_cache_set_max_mem( size_t max_mem )vips_cache_set_max_mem976,24338
+vips_cache_get_max( void )vips_cache_get_max990,24597
+vips_cache_get_size( void )vips_cache_get_size1003,24808
+vips_cache_get_max_mem( void )vips_cache_get_max_mem1029,25303
+vips_cache_get_max_files( void )vips_cache_get_max_files1049,25864
+vips_cache_set_max_files( int max_files )vips_cache_set_max_files1064,26191
+vips_cache_set_dump( gboolean dump )vips_cache_set_dump1079,26505
+vips_cache_set_trace( gboolean trace )vips_cache_set_trace1096,26911
+
+connection.c,422
+vips_connection_finalize( GObject *gobject )vips_connection_finalize87,2340
+vips_connection_class_init( VipsConnectionClass *class )vips_connection_class_init117,3148
+vips_connection_init( VipsConnection *connection )vips_connection_init142,3838
+vips_connection_filename( VipsConnection *connection )vips_connection_filename156,4161
+vips_connection_nick( VipsConnection *connection )vips_connection_nick169,4433
+
+dbuf.c,1208
+vips_dbuf_init( VipsDbuf *dbuf )vips_dbuf_init51,1196
+vips_dbuf_minimum_size( VipsDbuf *dbuf, size_t size )vips_dbuf_minimum_size69,1525
+vips_dbuf_allocate( VipsDbuf *dbuf, size_t size )vips_dbuf_allocate99,2188
+vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size )vips_dbuf_read116,2599
+vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )vips_dbuf_get_write142,3375
+vips_dbuf_write( VipsDbuf *dbuf, const unsigned char *data, size_t size )vips_dbuf_write168,3991
+vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )vips_dbuf_writef191,4558
+vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str )vips_dbuf_write_amp226,5247
+vips_dbuf_reset( VipsDbuf *dbuf )vips_dbuf_reset274,6378
+vips_dbuf_destroy( VipsDbuf *dbuf )vips_dbuf_destroy287,6573
+vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence )vips_dbuf_seek305,6945
+vips_dbuf_truncate( VipsDbuf *dbuf )vips_dbuf_truncate354,7931
+vips_dbuf_tell( VipsDbuf *dbuf )vips_dbuf_tell366,8104
+vips_dbuf_null_terminate( VipsDbuf *dbuf )vips_dbuf_null_terminate383,8518
+vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )vips_dbuf_steal407,9133
+vips_dbuf_string( VipsDbuf *dbuf, size_t *size )vips_dbuf_string437,9742
+
+enumtypes.c,3629
+vips_operation_math_get_type( void )vips_operation_math_get_type12,397
+vips_operation_math2_get_type( void )vips_operation_math2_get_type46,1897
+vips_operation_round_get_type( void )vips_operation_round_get_type67,2533
+vips_operation_relational_get_type( void )vips_operation_relational_get_type88,3175
+vips_operation_boolean_get_type( void )vips_operation_boolean_get_type112,4119
+vips_operation_complex_get_type( void )vips_operation_complex_get_type135,4924
+vips_operation_complex2_get_type( void )vips_operation_complex2_get_type156,5586
+vips_operation_complexget_get_type( void )vips_operation_complexget_get_type175,6126
+vips_precision_get_type( void )vips_precision_get_type196,6770
+vips_intent_get_type( void )vips_intent_get_type218,7418
+vips_pcs_get_type( void )vips_pcs_get_type240,8079
+vips_extend_get_type( void )vips_extend_get_type261,8587
+vips_compass_direction_get_type( void )vips_compass_direction_get_type285,9326
+vips_direction_get_type( void )vips_direction_get_type312,10507
+vips_align_get_type( void )vips_align_get_type332,11060
+vips_angle_get_type( void )vips_angle_get_type353,11603
+vips_angle45_get_type( void )vips_angle45_get_type375,12183
+vips_interesting_get_type( void )vips_interesting_get_type401,12996
+vips_blend_mode_get_type( void )vips_blend_mode_get_type426,13864
+vips_combine_get_type( void )vips_combine_get_type470,16004
+vips_combine_mode_get_type( void )vips_combine_mode_get_type492,16588
+vips_foreign_flags_get_type( void )vips_foreign_flags_get_type513,17164
+vips_fail_on_get_type( void )vips_fail_on_get_type535,17829
+vips_saveable_get_type( void )vips_saveable_get_type557,18468
+vips_foreign_subsample_get_type( void )vips_foreign_subsample_get_type581,19224
+vips_foreign_jpeg_subsample_get_type( void )vips_foreign_jpeg_subsample_get_type602,19874
+vips_foreign_webp_preset_get_type( void )vips_foreign_webp_preset_get_type623,20573
+vips_foreign_tiff_compression_get_type( void )vips_foreign_tiff_compression_get_type647,21512
+vips_foreign_tiff_predictor_get_type( void )vips_foreign_tiff_predictor_get_type674,22795
+vips_foreign_tiff_resunit_get_type( void )vips_foreign_tiff_resunit_get_type695,23524
+vips_foreign_png_filter_get_type( void )vips_foreign_png_filter_get_type715,24127
+vips_foreign_ppm_format_get_type( void )vips_foreign_ppm_format_get_type738,24935
+vips_foreign_dz_layout_get_type( void )vips_foreign_dz_layout_get_type760,25666
+vips_foreign_dz_depth_get_type( void )vips_foreign_dz_depth_get_type783,26482
+vips_foreign_dz_container_get_type( void )vips_foreign_dz_container_get_type804,27148
+vips_foreign_heif_compression_get_type( void )vips_foreign_heif_compression_get_type825,27824
+vips_demand_style_get_type( void )vips_demand_style_get_type848,28667
+vips_image_type_get_type( void )vips_image_type_get_type870,29381
+vips_interpretation_get_type( void )vips_interpretation_get_type896,30256
+vips_band_format_get_type( void )vips_band_format_get_type934,32061
+vips_coding_get_type( void )vips_coding_get_type963,33076
+vips_access_get_type( void )vips_access_get_type985,33677
+vips_operation_morphology_get_type( void )vips_operation_morphology_get_type1007,34341
+vips_argument_flags_get_type( void )vips_argument_flags_get_type1028,34995
+vips_operation_flags_get_type( void )vips_operation_flags_get_type1055,35981
+vips_region_shrink_get_type( void )vips_region_shrink_get_type1080,36900
+vips_kernel_get_type( void )vips_kernel_get_type1105,37760
+vips_size_get_type( void )vips_size_get_type1129,38517
+vips_token_get_type( void )vips_token_get_type1152,39124
+
+error.c,4174
+#define VIPS_MAX_ERROR VIPS_MAX_ERROR133,3821
+static char vips_error_text[VIPS_MAX_ERROR] = "";vips_error_text134,3852
+static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );vips_error_buf135,3902
+static int vips_error_freeze_count = 0;vips_error_freeze_count136,3970
+vips_error_freeze( void )vips_error_freeze145,4148
+vips_error_thaw( void )vips_error_thaw159,4391
+vips_error_buffer( void )vips_error_buffer178,4852
+vips_error_buffer_copy( void )vips_error_buffer_copy197,5187
+#define va_copy(va_copy215,5575
+vips_verror( const char *domain, const char *fmt, va_list ap )vips_verror229,5848
+vips_error( const char *domain, const char *fmt, ... )vips_error270,6893
+vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )vips_verror_system293,7460
+vips_error_system( int err, const char *domain, const char *fmt, ... )vips_error_system338,8509
+vips_error_g( GError **error )vips_error_g359,9001
+vips_g_error( GError **error )vips_g_error387,9631
+vips_error_clear( void )vips_error_clear406,9972
+vips_error_exit( const char *fmt, ... )vips_error_exit428,10540
+vips_check_uncoded( const char *domain, VipsImage *im )vips_check_uncoded466,11172
+vips_check_coding_noneorlabq( const char *domain, VipsImage *im )vips_check_coding_noneorlabq490,11671
+vips_check_coding_known( const char *domain, VipsImage *im )vips_check_coding_known518,12316
+vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding )vips_check_coding547,12980
+vips_check_mono( const char *domain, VipsImage *im )vips_check_mono572,13507
+vips_check_bands( const char *domain, VipsImage *im, int bands )vips_check_bands597,14002
+vips_check_bands_1or3( const char *domain, VipsImage *im )vips_check_bands_1or3621,14500
+vips_check_bands_atleast( const char *domain, VipsImage *im, int bands )vips_check_bands_atleast647,15055
+vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 )vips_check_bands_1orn674,15658
+vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n )vips_check_bands_1orn_unary703,16362
+vips_check_noncomplex( const char *domain, VipsImage *im )vips_check_noncomplex727,16868
+vips_check_complex( const char *domain, VipsImage *im )vips_check_complex751,17361
+vips_check_twocomponents( const char *domain, VipsImage *im )vips_check_twocomponents776,17924
+vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt )vips_check_format803,18494
+vips_check_int( const char *domain, VipsImage *im )vips_check_int829,19039
+vips_check_uint( const char *domain, VipsImage *im )vips_check_uint853,19546
+vips_check_8or16( const char *domain, VipsImage *im )vips_check_8or16878,20070
+vips_check_u8or16( const char *domain, VipsImage *im )vips_check_u8or16907,20723
+vips_check_u8or16orf( const char *domain, VipsImage *im )vips_check_u8or16orf932,21294
+vips_check_uintorf( const char *domain, VipsImage *im )vips_check_uintorf959,21904
+vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )vips_check_size_same988,22560
+vips_check_oddsquare( const char *domain, VipsImage *im )vips_check_oddsquare1013,23110
+vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 )vips_check_bands_same1040,23676
+vips_check_bandno( const char *domain, VipsImage *im, int bandno )vips_check_bandno1067,24279
+vips_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 )vips_check_format_same1094,24841
+vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 )vips_check_coding_same1120,25407
+vips_check_vector_length( const char *domain, int n, int len )vips_check_vector_length1144,25914
+vips_check_vector( const char *domain, int n, VipsImage *im )vips_check_vector1169,26520
+vips_check_hist( const char *domain, VipsImage *im )vips_check_hist1206,27332
+vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )vips_check_matrix1245,28317
+vips_check_separable( const char *domain, VipsImage *im )vips_check_separable1287,29204
+vips_check_precision_intfloat( const char *domain, VipsPrecision precision )vips_check_precision_intfloat1314,29762
+
+gate.c,2563
+#define VIPS_GATE_SIZE VIPS_GATE_SIZE50,1179
+typedef struct _VipsThreadGateBlock {_VipsThreadGateBlock54,1284
+	struct _VipsThreadGateBlock *prev;prev55,1322
+	gint64 time[VIPS_GATE_SIZE];time57,1359
+	int i;i58,1389
+} VipsThreadGateBlock; VipsThreadGateBlock59,1397
+typedef struct _VipsThreadGate {_VipsThreadGate63,1463
+	const char *name;name64,1496
+	VipsThreadGateBlock *start;start65,1515
+	VipsThreadGateBlock *stop;stop66,1544
+} VipsThreadGate; VipsThreadGate67,1572
+typedef struct _VipsThreadProfile {_VipsThreadProfile72,1645
+	const char *name;name75,1699
+	GThread *thread;thread76,1718
+	GHashTable *gates;gates77,1736
+	VipsThreadGate *memory;memory78,1756
+} VipsThreadProfile; VipsThreadProfile79,1781
+gboolean vips__thread_profile = FALSE;vips__thread_profile81,1804
+static GPrivate *vips_thread_profile_key = NULL;vips_thread_profile_key83,1844
+static FILE *vips__thread_fp = NULL;;vips__thread_fp85,1894
+vips_profile_set( gboolean profile )vips_profile_set95,2164
+vips_thread_gate_block_save( VipsThreadGateBlock *block, FILE *fp )vips_thread_gate_block_save101,2251
+vips_thread_profile_save_gate( VipsThreadGate *gate, FILE *fp )vips_thread_profile_save_gate113,2534
+vips_thread_profile_save_cb( gpointer key, gpointer value, gpointer data )vips_thread_profile_save_cb126,2866
+vips_thread_profile_save( VipsThreadProfile *profile )vips_thread_profile_save135,3081
+vips_thread_gate_block_free( VipsThreadGateBlock *block )vips_thread_gate_block_free162,3827
+vips_thread_gate_free( VipsThreadGate *gate )vips_thread_gate_free169,3980
+vips_thread_profile_free( VipsThreadProfile *profile )vips_thread_profile_free177,4177
+vips__thread_profile_stop( void )vips__thread_profile_stop187,4443
+vips__thread_profile_init_cb( VipsThreadProfile *profile )vips__thread_profile_init_cb194,4565
+vips__thread_profile_init( void *data )vips__thread_profile_init214,5183
+vips_thread_gate_new( const char *gate_name ) vips_thread_gate_new225,5403
+vips__thread_profile_attach( const char *thread_name )vips__thread_profile_attach238,5661
+vips_thread_profile_get( void )vips_thread_profile_get258,6245
+vips__thread_profile_detach( void ) vips__thread_profile_detach270,6597
+vips_thread_gate_block_add( VipsThreadGateBlock **block )vips_thread_gate_block_add286,6947
+vips__thread_gate_start( const char *gate_name )vips__thread_gate_start296,7144
+vips__thread_gate_stop( const char *gate_name )vips__thread_gate_stop324,7811
+vips__thread_malloc_free( gint64 size )vips__thread_malloc_free354,8534
+
+generate.c,1654
+#define MAX_IMAGES MAX_IMAGES128,3217
+vips__link_make( VipsImage *image_up, VipsImage *image_down )vips__link_make133,3338
+vips__link_break( VipsImage *image_up, VipsImage *image_down, void *b )vips__link_break151,3798
+vips__link_break_rev( VipsImage *image_down, VipsImage *image_up, void *b )vips__link_break_rev174,4411
+vips__link_break_all( VipsImage *image )vips__link_break_all182,4602
+typedef struct _LinkMap {_LinkMap197,4973
+	gboolean upstream;upstream198,4999
+	int serial;serial199,5019
+	VipsSListMap2Fn fn;fn200,5032
+	void *a;a201,5053
+	void *b;b202,5063
+} LinkMap;LinkMap203,5073
+vips__link_mapp( VipsImage *image, LinkMap *map, void *b ) vips__link_mapp206,5099
+vips__link_map_cb( VipsImage *image, GSList **images, void *b )vips__link_map_cb225,5491
+vips__link_map( VipsImage *image, gboolean upstream, vips__link_map236,5732
+vips__demand_hint_array( VipsImage *image, vips__demand_hint_array288,6934
+vips_image_pipeline_array( VipsImage *image, vips_image_pipeline_array375,9888
+vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )vips_image_pipelinev409,10779
+vips_start_one( VipsImage *out, void *a, void *b )vips_start_one442,11412
+vips_stop_one( void *seq, void *a, void *b )vips_stop_one460,11721
+vips_stop_many( void *seq, void *a, void *b )vips_stop_many481,12083
+vips_start_many( VipsImage *out, void *a, void *b )vips_start_many508,12571
+vips_allocate_input_array( VipsImage *out, ... )vips_allocate_input_array550,13445
+write_vips( VipsRegion *region, VipsRect *area, void *a )write_vips626,14952
+vips_image_generate( VipsImage *image,vips_image_generate673,16317
+
+ginputsource.c,1589
+	PROP_0,PROP_061,1537
+	PROP_STREAMPROP_STREAM62,1546
+vips_g_input_stream_get_property( GObject *object, guint prop_id,vips_g_input_stream_get_property66,1575
+vips_g_input_stream_set_property( GObject *object, guint prop_id,vips_g_input_stream_set_property82,1929
+vips_g_input_stream_finalize( GObject *object )vips_g_input_stream_finalize98,2290
+vips_g_input_stream_tell( GSeekable *seekable )vips_g_input_stream_tell108,2525
+vips_g_input_stream_can_seek( GSeekable *seekable )vips_g_input_stream_can_seek124,2829
+seek_type_to_lseek( GSeekType type )seek_type_to_lseek135,3086
+vips_g_input_stream_seek( GSeekable *seekable, goffset offset,vips_g_input_stream_seek149,3295
+vips_g_input_stream_can_truncate( GSeekable *seekable )vips_g_input_stream_can_truncate171,3859
+vips_g_input_stream_truncate( GSeekable *seekable, goffset offset,vips_g_input_stream_truncate177,3954
+vips_g_input_stream_read( GInputStream *stream, void *buffer, gsize count,vips_g_input_stream_read189,4220
+vips_g_input_stream_skip( GInputStream *stream, gsize count,vips_g_input_stream_skip211,4792
+vips_g_input_stream_close( GInputStream *stream,vips_g_input_stream_close236,5399
+vips_g_input_stream_seekable_iface_init( GSeekableIface *iface )vips_g_input_stream_seekable_iface_init247,5631
+vips_g_input_stream_class_init( VipsGInputStreamClass *class )vips_g_input_stream_class_init257,5953
+vips_g_input_stream_init( VipsGInputStream *gstream )vips_g_input_stream_init280,6738
+vips_g_input_stream_new_from_source( VipsSource *source )vips_g_input_stream_new_from_source294,7061
+
+header.c,6813
+#define VIPS_DISABLE_DEPRECATION_WARNINGSVIPS_DISABLE_DEPRECATION_WARNINGS84,2222
+static GMutex *vips__meta_lock = NULL;vips__meta_lock145,4701
+typedef struct _HeaderField {_HeaderField149,4818
+	const char *name;name150,4848
+	const char *type;type151,4867
+	glong offset;offset152,4886
+} HeaderField;HeaderField153,4901
+static HeaderField vips_header_fields[] = {vips_header_fields157,4960
+static HeaderField vips_header_fields_old[] = {vips_header_fields_old175,5865
+const guint64 vips__image_sizeof_bandformat[] = {vips__image_sizeof_bandformat197,6916
+vips_format_sizeof( VipsBandFormat format )vips_format_sizeof217,7578
+vips_format_sizeof_unsafe( VipsBandFormat format )vips_format_sizeof_unsafe234,7991
+meta_sanity_on_hash( VipsMeta *meta, VipsImage *im, void *b )meta_sanity_on_hash245,8237
+meta_sanity_on_traverse( const char *name, VipsMeta *meta, VipsImage *im )meta_sanity_on_traverse265,8692
+meta_sanity( const VipsImage *im )meta_sanity281,9099
+meta_free( VipsMeta *meta )meta_free292,9371
+meta_new( VipsImage *image, const char *name, GValue *value )meta_new315,9795
+vips__meta_destroy( VipsImage *image )vips__meta_destroy360,10973
+meta_init( VipsImage *im )meta_init367,11115
+vips_image_get_width( const VipsImage *image )vips_image_get_width383,11423
+vips_image_get_height( const VipsImage *image )vips_image_get_height395,11619
+vips_image_get_bands( const VipsImage *image )vips_image_get_bands407,11823
+vips_image_get_format( const VipsImage *image )vips_image_get_format419,12026
+vips_image_get_format_max( VipsBandFormat format )vips_image_get_format_max431,12241
+vips_image_guess_format( const VipsImage *image )vips_image_guess_format477,13099
+vips_image_get_coding( const VipsImage *image )vips_image_get_coding557,14751
+vips_image_get_interpretation( const VipsImage *image )vips_image_get_interpretation572,15121
+vips_image_default_interpretation( const VipsImage *image )vips_image_default_interpretation580,15285
+vips_image_guess_interpretation( const VipsImage *image )vips_image_guess_interpretation666,16925
+vips_image_get_xres( const VipsImage *image )vips_image_get_xres792,19484
+vips_image_get_yres( const VipsImage *image )vips_image_get_yres804,19699
+vips_image_get_xoffset( const VipsImage *image )vips_image_get_xoffset816,19913
+vips_image_get_yoffset( const VipsImage *image )vips_image_get_yoffset828,20131
+vips_image_get_filename( const VipsImage *image )vips_image_get_filename841,20389
+vips_image_get_mode( const VipsImage *image )vips_image_get_mode856,20688
+vips_image_get_scale( const VipsImage *image )vips_image_get_scale871,20950
+vips_image_get_offset( const VipsImage *image )vips_image_get_offset892,21340
+vips_image_get_page_height( VipsImage *image )vips_image_get_page_height913,21793
+vips_image_get_n_pages( VipsImage *image )vips_image_get_n_pages941,22468
+vips_image_get_n_subifds( VipsImage *image )vips_image_get_n_subifds964,22942
+vips_image_get_orientation( VipsImage *image )vips_image_get_orientation987,23440
+vips_image_get_orientation_swap( VipsImage *image )vips_image_get_orientation_swap1010,23928
+vips_image_get_data( VipsImage *image )vips_image_get_data1034,24663
+vips_image_init_fields( VipsImage *image, vips_image_init_fields1064,25503
+meta_cp_field( VipsMeta *meta, VipsImage *dst, void *b )meta_cp_field1084,25945
+vips__image_meta_copy( VipsImage *dst, const VipsImage *src )vips__image_meta_copy1109,26376
+vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )vips__image_copy_fields_array1129,26853
+vips_image_set( VipsImage *image, const char *name, GValue *value )vips_image_set1202,28714
+vips_set_value_from_pointer( GValue *value, void *data )vips_set_value_from_pointer1239,29781
+vips_image_get( const VipsImage *image, const char *name, GValue *value_copy )vips_image_get1304,31698
+vips_image_get_typeof( const VipsImage *image, const char *name )vips_image_get_typeof1365,33177
+vips_image_remove( VipsImage *image, const char *name )vips_image_remove1408,34242
+static const char *vips_image_header_deprecated[] = {vips_image_header_deprecated1432,34851
+vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )vips_image_map_fn1439,34963
+vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )vips_image_map1469,35835
+count_fields( VipsImage *image, const char *field, GValue *value, void *a )count_fields1495,36414
+add_fields( VipsImage *image, const char *field, GValue *value, void *a )add_fields1505,36574
+vips_image_get_fields( VipsImage *image )vips_image_get_fields1529,37147
+vips_image_set_area( VipsImage *image, const char *name,vips_image_set_area1557,37836
+meta_get_value( const VipsImage *image,meta_get_value1568,38084
+vips_image_get_area( const VipsImage *image, vips_image_get_area1607,39040
+vips_image_set_blob( VipsImage *image, const char *name, vips_image_set_blob1636,39818
+vips_image_set_blob_copy( VipsImage *image, vips_image_set_blob_copy1661,40568
+vips_image_get_blob( const VipsImage *image, const char *name, vips_image_get_blob1704,41810
+vips_image_get_int( const VipsImage *image, const char *name, int *out )vips_image_get_int1733,42484
+vips_image_set_int( VipsImage *image, const char *name, int i )vips_image_set_int1758,43040
+vips_image_get_double( const VipsImage *image, const char *name, double *out )vips_image_get_double1783,43622
+vips_image_set_double( VipsImage *image, const char *name, double d )vips_image_set_double1808,44184
+vips_image_get_string( const VipsImage *image, const char *name, vips_image_get_string1837,44891
+vips_image_set_string( VipsImage *image, const char *name, const char *str )vips_image_set_string1882,45865
+vips_image_get_as_string( const VipsImage *image, vips_image_get_as_string1910,46723
+vips_image_print_field( const VipsImage *image, const char *name )vips_image_print_field1948,47652
+vips_image_get_image( const VipsImage *image, vips_image_get_image1980,48409
+vips_image_set_image( VipsImage *image, const char *name, VipsImage *im )vips_image_set_image2005,48976
+vips_image_get_array_int( VipsImage *image, const char *name, vips_image_get_array_int2036,49832
+vips_image_set_array_int( VipsImage *image, const char *name,vips_image_set_array_int2062,50482
+vips_image_get_array_double( VipsImage *image, const char *name,vips_image_get_array_double2094,51371
+vips_image_set_array_double( VipsImage *image, const char *name,vips_image_set_array_double2120,52037
+vips_image_history_printf( VipsImage *image, const char *fmt, ... )vips_image_history_printf2161,53197
+vips_image_history_args( VipsImage *image, vips_image_history_args2207,54371
+vips_image_get_history( VipsImage *image )vips_image_get_history2244,55360
+vips__meta_init( void )vips__meta_init2255,55575
+
+image.c,8630
+	SIG_PREEVAL,		SIG_PREEVAL372,12884
+	SIG_EVAL,		SIG_EVAL373,12900
+	SIG_POSTEVAL,		SIG_POSTEVAL374,12913
+	SIG_WRITTEN,		SIG_WRITTEN375,12930
+	SIG_INVALIDATE,		SIG_INVALIDATE376,12946
+	SIG_MINIMISE,		SIG_MINIMISE377,12965
+	SIG_LASTSIG_LAST378,12982
+int vips__progress = 0;vips__progress383,13059
+char *vips__disc_threshold = NULL;vips__disc_threshold388,13238
+static GMutex *vips__minimise_lock = NULL;vips__minimise_lock392,13304
+static guint vips_image_signals[SIG_LAST] = { 0 };vips_image_signals394,13348
+vips_progress_set( gboolean progress )vips_progress_set407,13744
+vips_image_delete( VipsImage *image )vips_image_delete413,13828
+vips_image_finalize( GObject *gobject )vips_image_finalize427,14194
+vips_image_dispose( GObject *gobject )vips_image_dispose486,15476
+vips_image_new_from_file_object( const char *string )vips_image_new_from_file_object549,16924
+vips_image_to_string( VipsObject *object, VipsBuf *buf )vips_image_to_string568,17301
+vips_image_write_object( VipsObject *object, const char *string )vips_image_write_object576,17461
+print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )print_field_fn583,17624
+vips_image_dump( VipsObject *object, VipsBuf *buf )vips_image_dump595,17876
+vips_image_summary( VipsObject *object, VipsBuf *buf )vips_image_summary625,18742
+vips_image_sanity_upstream( VipsImage *up, VipsImage *down, void *b )vips_image_sanity_upstream658,19744
+vips_image_sanity_downstream( VipsImage *down, VipsImage *up, void *b )vips_image_sanity_downstream668,19953
+vips_image_sanity( VipsObject *object, VipsBuf *buf )vips_image_sanity674,20096
+vips_image_rewind( VipsObject *object )vips_image_rewind719,21464
+vips_image_save_cb( VipsImage *image, int *result, void *data )vips_image_save_cb745,22062
+vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )vips_image_preeval_cb755,22244
+vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )vips_image_eval_cb775,22715
+vips_image_posteval_cb( VipsImage *image, VipsProgress *progress, void *data )vips_image_posteval_cb793,23081
+vips_image_add_progress( VipsImage *image )vips_image_add_progress805,23433
+vips_image_build( VipsObject *object )vips_image_build835,24202
+vips_image_real_invalidate_cb( VipsRegion *reg, void *a, void *b )vips_image_real_invalidate_cb1019,28389
+vips_image_real_invalidate( VipsImage *image, void *data )vips_image_real_invalidate1027,28524
+vips_image_real_minimise( VipsImage *image, void *data )vips_image_real_minimise1044,28951
+vips_image_real_written( VipsImage *image, int *result, void *data )vips_image_real_written1050,29086
+vips_image_class_init( VipsImageClass *class )vips_image_class_init1062,29383
+vips_image_init( VipsImage *image )vips_image_init1339,37733
+vips_image_written( VipsImage *image )vips_image_written1368,38369
+vips_image_invalidate( VipsImage *image )vips_image_invalidate1381,38597
+vips_image_invalidate_all_cb( VipsImage *image, void *a, void *b )vips_image_invalidate_all_cb1389,38780
+vips_image_invalidate_all( VipsImage *image )vips_image_invalidate_all1412,39444
+vips_image_minimise( VipsImage *image )vips_image_minimise1421,39671
+vips_image_minimise_all_cb( VipsImage *image, void *a, void *b )vips_image_minimise_all_cb1429,39848
+vips_image_minimise_all( VipsImage *image )vips_image_minimise_all1447,40351
+vips_image_is_sequential( VipsImage *image )vips_image_is_sequential1471,40992
+vips_progress_add( VipsImage *image )vips_progress_add1479,41179
+vips_progress_update( VipsProgress *progress, guint64 processed )vips_progress_update1508,41746
+vips_image_preeval( VipsImage *image )vips_image_preeval1528,42234
+vips_image_eval( VipsImage *image, guint64 processed )vips_image_eval1554,42923
+vips_image_posteval( VipsImage *image )vips_image_posteval1581,43683
+vips_image_set_progress( VipsImage *image, gboolean progress )vips_image_set_progress1623,44915
+vips_image_iskilled( VipsImage *image )vips_image_iskilled1649,45594
+vips_image_set_kill( VipsImage *image, gboolean kill )vips_image_set_kill1683,46335
+vips_image_temp_name( char *name, int size )vips_image_temp_name1696,46679
+vips_image_new( void )vips_image_new1719,47312
+vips_image_new_mode( const char *filename, const char *mode )vips_image_new_mode1742,47717
+vips_image_new_memory( void )vips_image_new_memory1775,48386
+vips_image_memory( void )vips_image_memory1794,48832
+vips_filename_get_filename( const char *vips_filename )vips_filename_get_filename1813,49271
+vips_filename_get_options( const char *vips_filename )vips_filename_get_options1837,49856
+vips_image_new_from_file( const char *name, ... )vips_image_new_from_file1921,53024
+vips_image_new_from_file_RW( const char *filename )vips_image_new_from_file_RW1961,53956
+vips_image_new_from_file_raw( const char *filename, vips_image_new_from_file_raw1985,54676
+vips_image_new_from_memory( const void *data, size_t size,vips_image_new_from_memory2040,56375
+vips_image_new_from_memory_copy_cb( VipsImage *image, void *data_copy )vips_image_new_from_memory_copy_cb2078,57246
+vips_image_new_from_memory_copy( const void *data, size_t size,vips_image_new_from_memory_copy2101,57979
+vips_image_new_from_buffer( const void *buf, size_t len, vips_image_new_from_buffer2149,59586
+vips_image_new_from_source( VipsSource *source, vips_image_new_from_source2199,60911
+vips_image_new_matrix( int width, int height )vips_image_new_matrix2286,63080
+vips_image_new_matrixv( int width, int height, ... )vips_image_new_matrixv2330,64101
+vips_image_new_matrix_from_array( int width, int height, vips_image_new_matrix_from_array2361,64817
+vips_image_matrix_from_array( int width, int height, vips_image_matrix_from_array2400,65735
+vips_image_new_from_image( VipsImage *image, const double *c, int n )vips_image_new_from_image2422,66402
+vips_image_new_from_image1( VipsImage *image, double c )vips_image_new_from_image12476,67756
+vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )vips_image_set_delete_on_close2495,68296
+vips_get_disc_threshold( void )vips_get_disc_threshold2517,69020
+vips_image_new_temp_file( const char *format )vips_image_new_temp_file2567,70252
+vips_image_write_gen( VipsRegion *or, vips_image_write_gen2590,70609
+vips_image_write( VipsImage *image, VipsImage *out )vips_image_write2625,71394
+vips_image_write_to_file( VipsImage *image, const char *name, ... )vips_image_write_to_file2683,72904
+vips_image_write_to_buffer( VipsImage *in, vips_image_write_to_buffer2751,74896
+vips_image_write_to_target( VipsImage *in, vips_image_write_to_target2840,76886
+vips_image_write_to_memory( VipsImage *in, size_t *size_out )vips_image_write_to_memory2878,77819
+vips_image_decode( VipsImage *in, VipsImage **out )vips_image_decode2925,78953
+vips_image_decode_predict( VipsImage *in, vips_image_decode_predict2957,79641
+vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding )vips_image_encode2998,80395
+vips_image_isMSBfirst( VipsImage *image )vips_image_isMSBfirst3025,80956
+vips_image_isfile( VipsImage *image )vips_image_isfile3040,81214
+vips_image_ispartial( VipsImage *image )vips_image_ispartial3068,81721
+vips_image_hasalpha( VipsImage *image )vips_image_hasalpha3087,82160
+vips_image_write_prepare( VipsImage *image )vips_image_write_prepare3137,83563
+vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )vips_image_write_line3202,85057
+vips_image_rewind_output( VipsImage *image ) vips_image_rewind_output3264,86429
+vips_image_copy_memory( VipsImage *image )vips_image_copy_memory3349,88873
+vips_image_wio_input( VipsImage *image )vips_image_wio_input3403,90243
+vips__image_wio_output( VipsImage *image )vips__image_wio_output3515,92740
+vips_image_inplace( VipsImage *image )vips_image_inplace3580,94430
+vips_image_pio_input( VipsImage *image )vips_image_pio_input3632,95485
+vips_image_pio_output( VipsImage *image )vips_image_pio_output3707,96998
+vips_band_format_isint( VipsBandFormat format )vips_band_format_isint3753,97852
+vips_band_format_isuint( VipsBandFormat format )vips_band_format_isuint3783,98418
+vips_band_format_is8bit( VipsBandFormat format )vips_band_format_is8bit3813,98967
+vips_band_format_isfloat( VipsBandFormat format )vips_band_format_isfloat3843,99522
+vips_band_format_iscomplex( VipsBandFormat format )vips_band_format_iscomplex3873,100082
+vips_image_free_buffer( VipsImage *image, void *buffer )vips_image_free_buffer3905,100778
+vips__view_image( VipsImage *image )vips__view_image3913,100912
+
+init.c,2867
+#define _GNU_SOURCE_GNU_SOURCE72,2096
+#define VIPS_DISABLE_DEPRECATION_WARNINGSVIPS_DISABLE_DEPRECATION_WARNINGS107,2862
+int vips__fatal = 0;vips__fatal119,3111
+GMutex *vips__global_lock = NULL;vips__global_lock124,3235
+GTimer *vips__global_timer = NULL;vips__global_timer128,3318
+static char *vips__argv0 = NULL;vips__argv0132,3392
+static char *vips__prgname = NULL;vips__prgname136,3482
+int vips__leak = 0;vips__leak140,3545
+GQuark vips__image_pixels_quark = 0; vips__image_pixels_quark145,3630
+static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;vips_pipe_read_limit148,3691
+vips_get_argv0( void )vips_get_argv0160,3953
+vips_get_prgname( void )vips_get_prgname176,4259
+vips_load_plugins( const char *fmt, ... )vips_load_plugins260,7029
+empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,empty_log_handler320,8451
+set_stacksize( guint64 size )set_stacksize329,8704
+vips_verbose( void ) vips_verbose357,9394
+vips_leak( void ) vips_leak377,9769
+vips_init( const char *argv0 )vips_init435,11162
+vips_check_init( void )vips_check_init687,18391
+vips_thread_shutdown( void )vips_thread_shutdown714,19253
+vips_shutdown( void )vips_shutdown737,19934
+vips_lib_info_cb( const gchar *option_name, const gchar *value, vips_lib_info_cb793,20988
+vips_set_fatal_cb( const gchar *option_name, const gchar *value, vips_set_fatal_cb802,21142
+vips_lib_version_cb( const gchar *option_name, const gchar *value, vips_lib_version_cb820,21502
+vips_lib_config_cb( const gchar *option_name, const gchar *value, vips_lib_config_cb829,21702
+vips_cache_max_cb( const gchar *option_name, const gchar *value, vips_cache_max_cb847,22037
+vips_cache_max_memory_cb( const gchar *option_name, const gchar *value, vips_cache_max_memory_cb856,22226
+vips_cache_max_files_cb( const gchar *option_name, const gchar *value, vips_cache_max_files_cb865,22426
+static GOptionEntry option_entries[] = {option_entries873,22611
+vips_add_option_entries( GOptionGroup *option_group )vips_add_option_entries946,25589
+extract_prefix( const char *dir, const char *name )extract_prefix961,25988
+scan_path( char *path, const char *name )scan_path1019,27528
+find_file( const char *name )find_file1048,28110
+guess_prefix( const char *argv0, const char *name )guess_prefix1083,28805
+vips_guess_prefix( const char *argv0, const char *env_name )vips_guess_prefix1167,31069
+vips_guess_libdir( const char *argv0, const char *env_name )vips_guess_libdir1214,32343
+vips_version_string( void )vips_version_string1251,33328
+vips_version( int flag )vips_version1269,33687
+vips_leak_set( gboolean leak )vips_leak_set1306,34345
+vips_block_untrusted_set_operation( VipsOperationClass *class, gboolean *state )vips_block_untrusted_set_operation1312,34416
+vips_block_untrusted_set( gboolean state )vips_block_untrusted_set1342,35156
+
+mapfile.c,421
+#define S_ISREG(S_ISREG86,2106
+vips__mmap_supported( int fd )vips__mmap_supported95,2280
+vips__mmap( int fd, int writeable, size_t length, gint64 offset )vips__mmap146,3376
+vips__munmap( const void *start, size_t length )vips__munmap245,5730
+vips_mapfile( VipsImage *im )vips_mapfile265,6177
+vips_mapfilerw( VipsImage *im )vips_mapfilerw304,7020
+vips_remapfilerw( VipsImage *image )vips_remapfilerw339,7816
+
+memory.c,1215
+static int vips_tracked_allocs = 0;vips_tracked_allocs111,2957
+static size_t vips_tracked_mem = 0;vips_tracked_mem112,2993
+static int vips_tracked_files = 0;vips_tracked_files113,3029
+static size_t vips_tracked_mem_highwater = 0;vips_tracked_mem_highwater114,3064
+static GMutex *vips_tracked_mutex = NULL;vips_tracked_mutex115,3110
+vips_malloc_cb( VipsObject *object, char *buf )vips_malloc_cb151,3965
+vips_malloc( VipsObject *object, size_t size )vips_malloc173,4596
+vips_strdup( VipsObject *object, const char *str )vips_strdup204,5272
+vips_tracked_free( void *s )vips_tracked_free230,5787
+vips_tracked_init_mutex( void *data )vips_tracked_init_mutex260,6481
+vips_tracked_init( void )vips_tracked_init268,6597
+vips_tracked_malloc( size_t size )vips_tracked_malloc293,7213
+vips_tracked_open( const char *pathname, int flags, int mode )vips_tracked_open360,8850
+vips_tracked_close( int fd )vips_tracked_close398,9740
+vips_tracked_get_mem( void )vips_tracked_get_mem432,10493
+vips_tracked_get_mem_highwater( void )vips_tracked_get_mem_highwater457,10959
+vips_tracked_get_allocs( void )vips_tracked_get_allocs480,11305
+vips_tracked_get_files( void )vips_tracked_get_files504,11615
+
+object.c,10445
+	SIG_POSTBUILD,		SIG_POSTBUILD201,7183
+	SIG_PRECLOSE,		SIG_PRECLOSE202,7201
+	SIG_CLOSE,		SIG_CLOSE203,7218
+	SIG_POSTCLOSE,		SIG_POSTCLOSE204,7232
+	SIG_LASTSIG_LAST205,7250
+static GHashTable *vips__object_all = NULL;vips__object_all210,7314
+static GMutex *vips__object_all_lock = NULL;vips__object_all_lock211,7358
+static guint vips_object_signals[SIG_LAST] = { 0 };vips_object_signals213,7404
+int _vips__argument_id = 1;_vips__argument_id217,7538
+static GHashTable *vips__object_nickname_table = NULL;vips__object_nickname_table221,7617
+vips_argument_get_id( void )vips_argument_get_id233,7895
+vips_object_postbuild( VipsObject *object )vips_object_postbuild248,8141
+vips_object_preclose( VipsObject *object )vips_object_preclose264,8425
+vips_object_close( VipsObject *object )vips_object_close280,8731
+vips_object_postclose( VipsObject *object )vips_object_postclose296,9022
+vips_object_check_required( VipsObject *object, GParamSpec *pspec,vips_object_check_required312,9335
+vips_object_build( VipsObject *object )vips_object_build350,10548
+vips_object_summary_class( VipsObjectClass *klass, VipsBuf *buf )vips_object_summary_class397,11497
+vips_object_summary( VipsObject *object, VipsBuf *buf )vips_object_summary410,11765
+vips_object_dump( VipsObject *object, VipsBuf *buf )vips_object_dump425,12078
+vips_object_print_summary_class( VipsObjectClass *klass )vips_object_print_summary_class433,12230
+vips_object_print_summary( VipsObject *object )vips_object_print_summary443,12439
+vips_object_print_dump( VipsObject *object )vips_object_print_dump453,12633
+vips_object_print_name( VipsObject *object )vips_object_print_name463,12822
+vips_object_sanity( VipsObject *object )vips_object_sanity469,12941
+vips_object_rewind( VipsObject *object )vips_object_rewind501,13692
+vips_argument_instance_detach( VipsArgumentInstance *argument_instance )vips_argument_instance_detach512,13909
+vips_argument_instance_free( VipsArgumentInstance *argument_instance )vips_argument_instance_free546,14955
+vips__argument_table_lookup( VipsArgumentTable *table, GParamSpec *pspec )vips__argument_table_lookup553,15129
+vips_argument_table_replace( VipsArgumentTable *table, VipsArgument *argument )vips_argument_table_replace565,15409
+vips_argument_table_destroy( VipsArgumentTable *table )vips_argument_table_destroy571,15565
+vips_argument_map( VipsObject *object,vips_argument_map590,16055
+vips_argument_class_map( VipsObjectClass *object_class,vips_argument_class_map624,16795
+vips_argument_class_needsstring( VipsArgumentClass *argument_class )vips_argument_class_needsstring649,17424
+vips_argument_init( VipsObject *object )vips_argument_init685,18402
+vips__argument_get_instance( VipsArgumentClass *argument_class,vips__argument_get_instance741,20017
+vips_object_get_argument( VipsObject *object, const char *name,vips_object_get_argument766,20753
+vips_object_argument_isset( VipsObject *object, const char *name )vips_object_argument_isset808,21832
+vips_object_get_argument_flags( VipsObject *object, const char *name )vips_object_get_argument_flags831,22417
+vips_object_get_argument_priority( VipsObject *object, const char *name )vips_object_get_argument_priority854,22977
+vips_object_clear_member( VipsArgumentInstance *argument_instance )vips_object_clear_member868,23315
+vips_object_dispose_argument( VipsObject *object, GParamSpec *pspec,vips_object_dispose_argument912,24585
+vips_argument_dispose_all( VipsObject *object )vips_argument_dispose_all946,25638
+vips_object_free_argument( VipsObject *object, GParamSpec *pspec,vips_object_free_argument960,25949
+vips_argument_free_all( VipsObject *object )vips_argument_free_all987,26695
+vips_object_dispose( GObject *gobject )vips_object_dispose999,26948
+vips_object_finalize( GObject *gobject )vips_object_finalize1035,27767
+vips_object_arg_invalidate( GObject *argument,vips_object_arg_invalidate1057,28291
+vips_object_arg_close( GObject *argument,vips_object_arg_close1069,28620
+vips__object_set_member( VipsObject *object, GParamSpec *pspec,vips__object_set_member1087,29095
+vips_value_is_null( GParamSpec *pspec, const GValue *value )vips_value_is_null1162,31292
+vips_object_set_property( GObject *gobject,vips_object_set_property1183,31794
+vips_object_get_property( GObject *gobject,vips_object_get_property1331,35973
+vips_object_real_build( VipsObject *object )vips_object_real_build1426,38773
+vips_object_real_postbuild( VipsObject *object, void *data )vips_object_real_postbuild1464,39748
+vips_object_real_summary_class( VipsObjectClass *class, VipsBuf *buf )vips_object_real_summary_class1478,40004
+vips_object_real_summary( VipsObject *object, VipsBuf *buf )vips_object_real_summary1488,40311
+vips_object_real_dump( VipsObject *object, VipsBuf *buf )vips_object_real_dump1493,40389
+vips_object_real_sanity( VipsObject *object, VipsBuf *buf )vips_object_real_sanity1505,40682
+vips_object_real_rewind( VipsObject *object )vips_object_real_rewind1510,40759
+vips_object_real_new_from_string( const char *string )vips_object_real_new_from_string1527,41108
+vips_object_real_to_string( VipsObject *object, VipsBuf *buf )vips_object_real_to_string1545,41459
+transform_string_double( const GValue *src_value, GValue *dest_value )transform_string_double1555,41679
+vips_object_class_init( VipsObjectClass *class )vips_object_class_init1562,41861
+vips_object_init( VipsObject *object )vips_object_init1681,45339
+traverse_find_required_priority( void *data, void *a, void *b )traverse_find_required_priority1695,45653
+traverse_sort( gconstpointer a, gconstpointer b, void *user_data )traverse_sort1709,46044
+vips_object_class_install_argument( VipsObjectClass *object_class,vips_object_class_install_argument1720,46339
+vips_object_no_value( VipsObject *object, const char *name )vips_object_no_value1841,50130
+vips_object_set_argument_from_string( VipsObject *object, vips_object_set_argument_from_string1866,50802
+vips_object_argument_needsstring( VipsObject *object, const char *name )vips_object_argument_needsstring2151,57557
+vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )vips_object_print_arg2169,58011
+vips_filename_istarget( const char *filename )vips_filename_istarget2188,58626
+vips_object_get_argument_to_string( VipsObject *object, vips_object_get_argument_to_string2199,58867
+vips_argument_is_required( VipsObject *object,vips_argument_is_required2278,60725
+vips_object_find_required( VipsObject *object )vips_object_find_required2296,61201
+typedef struct _VipsNameFlagsPair {_VipsNameFlagsPair2302,61350
+	const char **names;names2303,61386
+	int *flags;flags2304,61407
+} VipsNameFlagsPair;VipsNameFlagsPair2305,61420
+vips_object_find_args( VipsObject *object,vips_object_find_args2308,61456
+vips_object_get_args( VipsObject *object,vips_object_get_args2340,62385
+vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )vips_object_new2382,63294
+vips_object_set_valist( VipsObject *object, va_list ap )vips_object_set_valist2413,63866
+vips_object_set( VipsObject *object, ... )vips_object_set2464,65101
+vips_object_set_args( VipsObject *object, const char *p )vips_object_set_args2480,65455
+vips_object_set_from_string( VipsObject *object, const char *string )vips_object_set_from_string2590,68491
+vips_object_new_from_string( VipsObjectClass *object_class, const char *p )vips_object_new_from_string2612,69075
+vips_object_to_string_required( VipsObject *object,vips_object_to_string_required2643,69861
+vips_object_to_string_optional( VipsObject *object,vips_object_to_string_optional2668,70363
+vips_object_to_string( VipsObject *object, VipsBuf *buf )vips_object_to_string2704,71193
+	VipsSListMap2Fn fn;fn2726,71750
+	void *a;a2727,71771
+	void *b;b2728,71781
+	void *result;result2729,71791
+} VipsObjectMapArgs;VipsObjectMapArgs2730,71806
+vips_object_map_sub( VipsObject *key, VipsObject *value, vips_object_map_sub2733,71840
+vips_object_map( VipsSListMap2Fn fn, void *a, void *b )vips_object_map2753,72338
+vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b )vips_type_map2789,73179
+vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )vips_type_map_all2818,73846
+vips_class_map_all( GType type, VipsClassMapFn fn, void *a )vips_class_map_all2843,74432
+vips_type_depth( GType type )vips_type_depth2868,75000
+test_name( VipsObjectClass *class, const char *nickname )test_name2881,75179
+vips_class_find( const char *basename, const char *nickname )vips_class_find2907,75785
+typedef struct _NicknameGType {_NicknameGType2925,76261
+	const char *nickname;nickname2926,76293
+	GType type;type2927,76316
+	gboolean duplicate;duplicate2928,76329
+} NicknameGType;NicknameGType2929,76350
+vips_class_add_hash( VipsObjectClass *class, GHashTable *table )vips_class_add_hash2932,76382
+vips_class_build_hash_cb( void *dummy )vips_class_build_hash_cb2957,76975
+vips_type_find( const char *basename, const char *nickname )vips_type_find2990,77770
+vips_nickname_find( GType type )vips_nickname_find3036,78780
+vips_object_local_cb( VipsObject *vobject, GObject *gobject )vips_object_local_cb3053,79090
+	VipsObject **array;array3059,79214
+	int n;n3060,79235
+} VipsObjectLocal;VipsObjectLocal3061,79243
+vips_object_local_array_cb( VipsObject *parent, VipsObjectLocal *local )vips_object_local_array_cb3064,79275
+vips_object_local_array( VipsObject *parent, int n )vips_object_local_array3106,80320
+vips_object_set_static( VipsObject *object, gboolean static_object )vips_object_set_static3124,80712
+vips_object_n_static_cb( VipsObject *object, int *n, void *b )vips_object_n_static_cb3130,80840
+vips_object_n_static( void )vips_object_n_static3139,80977
+vips_object_print_all_cb( VipsObject *object, int *n, void *b )vips_object_print_all_cb3151,81133
+vips__object_leak( void )vips__object_leak3176,81778
+vips_object_print_all( void )vips_object_print_all3199,82181
+vips_object_sanity_all_cb( VipsObject *object, void *a, void *b )vips_object_sanity_all_cb3206,82286
+vips_object_sanity_all( void )vips_object_sanity_all3214,82418
+vips_object_unref_outputs_sub( VipsObject *object,vips_object_unref_outputs_sub3221,82548
+vips_object_unref_outputs( VipsObject *object )vips_object_unref_outputs3259,83629
+vips_object_get_description( VipsObject *object )vips_object_get_description3278,84173
+
+operation.c,4673
+	SIG_INVALIDATE,		SIG_INVALIDATE214,6910
+	SIG_LASTSIG_LAST215,6929
+static guint vips_operation_signals[SIG_LAST] = { 0 };vips_operation_signals218,6943
+vips_operation_finalize( GObject *gobject )vips_operation_finalize223,7087
+vips_operation_dispose( GObject *gobject )vips_operation_dispose236,7423
+	USAGE_INPUTS,USAGE_INPUTS257,8009
+	USAGE_NOARG_OUTPUT,USAGE_NOARG_OUTPUT258,8024
+	USAGE_OPTIONS,USAGE_OPTIONS259,8045
+	USAGE_NONEUSAGE_NONE260,8061
+} UsageType; UsageType261,8073
+	char *message;		/* header message on first print */message264,8105
+	UsageType type; 	/* Type of arg to select */type265,8158
+	gboolean oftype;	/* Show as "of type" */oftype266,8204
+	int n;			/* Arg number */n267,8246
+} VipsOperationClassUsage;VipsOperationClassUsage268,8273
+vips_operation_class_usage_classify( VipsArgumentClass *argument_class )vips_operation_class_usage_classify273,8367
+vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )vips_operation_pspec_usage293,8937
+vips_operation_class_usage_arg( VipsObjectClass *object_class, vips_operation_class_usage_arg367,11289
+vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )vips_operation_usage401,12178
+vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,vips_operation_call_argument473,14096
+vips_operation_dump( VipsObject *object, VipsBuf *buf )vips_operation_dump497,14779
+vips_operation_vips_operation_print_summary_arg( VipsObject *object, vips_operation_vips_operation_print_summary_arg512,15263
+vips_operation_build( VipsObject *object )vips_operation_build545,16242
+vips_operation_summary( VipsObject *object, VipsBuf *buf )vips_operation_summary569,16768
+vips_operation_real_get_flags( VipsOperation *operation ) vips_operation_real_get_flags585,17258
+vips_operation_class_init( VipsOperationClass *class )vips_operation_class_init593,17428
+vips_operation_init( VipsOperation *operation )vips_operation_init620,18284
+vips_operation_get_flags( VipsOperation *operation ) vips_operation_get_flags633,18534
+vips_operation_class_print_usage( VipsOperationClass *operation_class )vips_operation_class_print_usage647,18864
+vips_operation_invalidate( VipsOperation *operation )vips_operation_invalidate657,19092
+vips_operation_new( const char *name )vips_operation_new680,19785
+#define va_copy(va_copy713,20515
+vips_operation_set_valist_required( VipsOperation *operation, va_list ap )vips_operation_set_valist_required717,20567
+vips_operation_get_valist_required( VipsOperation *operation, va_list ap )vips_operation_get_valist_required765,21824
+vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )vips_operation_get_valist_optional819,23351
+vips_call_required_optional( VipsOperation **operation,vips_call_required_optional891,25199
+vips_call_by_name( const char *operation_name, vips_call_by_name930,26160
+vips_call( const char *operation_name, ... )vips_call1004,28176
+vips_call_split( const char *operation_name, va_list optional, ... ) vips_call_split1052,29221
+vips_call_split_option_string( const char *operation_name, vips_call_split_option_string1066,29483
+vips_call_find_pspec( VipsObject *object,vips_call_find_pspec1081,29807
+typedef struct _VipsCallOptionOutput {_VipsCallOptionOutput1105,30505
+	VipsArgumentInstance *argument_instance;argument_instance1106,30544
+	char *value;value1107,30586
+} VipsCallOptionOutput;VipsCallOptionOutput1108,30600
+vips_call_option_output( VipsObject *object,vips_call_option_output1111,30636
+vips_call_option_output_free( VipsObject *object, VipsCallOptionOutput *output )vips_call_option_output_free1131,31162
+vips_call_options_set( const gchar *option_name, const gchar *value, vips_call_options_set1138,31313
+vips_call_options_add( VipsObject *object,vips_call_options_add1213,33435
+vips_call_options( GOptionGroup *group, VipsOperation *operation )vips_call_options1264,34832
+typedef struct _VipsCall {_VipsCall1272,35039
+	VipsOperation *operation;operation1273,35066
+	int argc;argc1274,35093
+	char **argv;argv1275,35104
+	int i;i1276,35118
+} VipsCall;VipsCall1277,35126
+vips_call_get_arg( VipsCall *call, int i )vips_call_get_arg1280,35159
+vips_call_argv_input( VipsObject *object,vips_call_argv_input1293,35410
+vips_call_argv_output( VipsObject *object,vips_call_argv_output1328,36305
+vips_call_argv( VipsOperation *operation, int argc, char **argv )vips_call_argv1373,37537
+vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )vips_operation_block_set_operation1432,38908
+vips_operation_block_set( const char *name, gboolean state )vips_operation_block_set1475,40010
+
+rect.c,862
+vips_rect_includespoint( const VipsRect *r, int x, int y )vips_rect_includespoint79,1903
+vips_rect_isempty( const VipsRect *r )vips_rect_isempty96,2222
+vips_rect_includesrect( const VipsRect *r1, const VipsRect *r2 )vips_rect_includesrect111,2482
+vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 )vips_rect_equalsrect129,2873
+vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 )vips_rect_overlapsrect145,3243
+vips_rect_marginadjust( VipsRect *r, int n )vips_rect_marginadjust162,3572
+vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2, VipsRect *out )vips_rect_intersectrect179,3901
+vips_rect_unionrect( const VipsRect *r1, const VipsRect *r2, VipsRect *out )vips_rect_unionrect203,4588
+vips_rect_dup( const VipsRect *r )vips_rect_dup233,5348
+vips_rect_normalise( VipsRect *r )vips_rect_normalise252,5644
+
+region.c,4268
+	PROP_IMAGE = 1,PROP_IMAGE196,5303
+	PROP_LASTPROP_LAST197,5320
+static GSList *vips__regions_all = NULL;vips__regions_all203,5415
+vips_region_finalize( GObject *gobject )vips_region_finalize207,5491
+vips__region_start( VipsRegion *region )vips__region_start227,6027
+vips__region_stop( VipsRegion *region )vips__region_stop260,6828
+vips_region_dispose( GObject *gobject )vips_region_dispose290,7530
+vips_region_dump( VipsObject *object, VipsBuf *buf )vips_region_dump332,8464
+vips_region_summary( VipsObject *object, VipsBuf *buf )vips_region_summary355,9479
+vips__region_take_ownership( VipsRegion *region )vips__region_take_ownership379,10422
+vips__region_check_ownership( VipsRegion *region )vips__region_check_ownership408,11196
+vips__region_no_ownership( VipsRegion *region )vips__region_no_ownership422,11562
+vips_region_build( VipsObject *object )vips_region_build440,11943
+vips_region_class_init( VipsRegionClass *class )vips_region_class_init468,12566
+vips_region_init( VipsRegion *region )vips_region_init482,12979
+vips_region_new( VipsImage *image )vips_region_new505,13593
+vips_region_buffer( VipsRegion *reg, const VipsRect *r )vips_region_buffer545,14634
+vips_region_image( VipsRegion *reg, const VipsRect *r )vips_region_image615,16274
+vips_region_region( VipsRegion *reg, vips_region_region707,18750
+vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )vips_region_equalsregion811,21267
+vips_region_position( VipsRegion *reg, int x, int y )vips_region_position832,21880
+vips_region_fill( VipsRegion *reg, vips_region_fill859,22426
+#define FILL_LINE(FILL_LINE894,23280
+vips_region_paint( VipsRegion *reg, const VipsRect *r, int value )vips_region_paint922,23875
+vips_region_paint_pel( VipsRegion *reg, const VipsRect *r, const VipsPel *ink )vips_region_paint_pel986,25372
+vips_region_black( VipsRegion *reg )vips_region_black1031,26256
+vips_region_copy( VipsRegion *reg, vips_region_copy1051,26764
+vips_region_shrink_labpack( VipsRegion *from, vips_region_shrink_labpack1112,28233
+#define SHRINK_TYPE_MEAN_INT(SHRINK_TYPE_MEAN_INT1149,29020
+#define SHRINK_TYPE_MEAN_FLOAT(SHRINK_TYPE_MEAN_FLOAT1168,29413
+vips_region_shrink_uncoded_mean( VipsRegion *from,vips_region_shrink_uncoded_mean1190,29888
+#define SHRINK_TYPE_MEDIAN(SHRINK_TYPE_MEDIAN1241,31445
+#define SHRINK_TYPE_MODE(SHRINK_TYPE_MODE1273,32327
+#define SHRINK_TYPE_MAX(SHRINK_TYPE_MAX1299,32932
+#define SHRINK_TYPE_MIN(SHRINK_TYPE_MIN1319,33342
+#define SHRINK_TYPE_NEAREST(SHRINK_TYPE_NEAREST1339,33752
+#define VIPS_REGION_SHRINK(VIPS_REGION_SHRINK1352,33992
+VIPS_REGION_SHRINK( MAX );MAX1394,35197
+VIPS_REGION_SHRINK( MIN );MIN1395,35224
+VIPS_REGION_SHRINK( MODE );MODE1396,35251
+VIPS_REGION_SHRINK( MEDIAN );MEDIAN1397,35279
+VIPS_REGION_SHRINK( NEAREST );NEAREST1398,35309
+vips_region_shrink_uncoded( VipsRegion *from,vips_region_shrink_uncoded1403,35425
+#define SHRINK_ALPHA_TYPE(SHRINK_ALPHA_TYPE1438,36275
+vips_region_shrink_alpha( VipsRegion *from, vips_region_shrink_alpha1479,37154
+vips_region_shrink_method( VipsRegion *from, VipsRegion *to, vips_region_shrink_method1535,38737
+vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target )vips_region_shrink1574,39835
+vips_region_generate( VipsRegion *reg, void *a )vips_region_generate1583,40049
+vips_region_prepare( VipsRegion *reg, const VipsRect *r )vips_region_prepare1630,41171
+vips_region_prepare_to_generate( VipsRegion *reg, vips_region_prepare_to_generate1701,42799
+vips_region_prepare_to( VipsRegion *reg, vips_region_prepare_to1759,44440
+vips_region_prepare_many( VipsRegion **reg, const VipsRect *r )vips_region_prepare_many1895,47760
+vips_region_fetch( VipsRegion *region, vips_region_fetch1921,48449
+vips_region_width( VipsRegion *region )vips_region_width1975,49582
+vips_region_height( VipsRegion *region )vips_region_height1987,49782
+vips_region_invalidate( VipsRegion *reg )vips_region_invalidate2006,50282
+vips_region_dump_all_cb( VipsRegion *region, size_t *alive, void *b )vips_region_dump_all_cb2013,50383
+vips_region_dump_all( void )vips_region_dump_all2028,50716
+vips__region_count_pixels( VipsRegion *region, const char *nickname )vips__region_count_pixels2044,51121
+
+reorder.c,1254
+typedef struct _VipsReorder {_VipsReorder49,1211
+	VipsImage *image;image52,1280
+	int n_inputs;n_inputs64,1656
+	VipsImage **input;input65,1671
+	int *score;score66,1691
+	int *recomp_order;recomp_order67,1704
+	int n_sources;n_sources75,1972
+	VipsImage **source;source76,1988
+	int *cumulative_margin;cumulative_margin77,2009
+} VipsReorder;VipsReorder79,2035
+GQuark vips__image_reorder_quark = 0; vips__image_reorder_quark81,2051
+vips_reorder_print( VipsReorder *reorder )vips_reorder_print85,2116
+vips_reorder_free( VipsReorder *reorder )vips_reorder_free115,2892
+vips_reorder_destroy( VipsReorder *reorder )vips_reorder_destroy129,3292
+vips_reorder_get( VipsImage *image )vips_reorder_get136,3418
+vips_reorder_compare_score( const void *a, const void *b, void *arg )vips_reorder_compare_score161,4012
+vips__reorder_set_input( VipsImage *image, VipsImage **in )vips__reorder_set_input171,4237
+vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )vips_reorder_prepare_many332,8471
+vips_reorder_margin_hint( VipsImage *image, int margin )vips_reorder_margin_hint365,9381
+vips__reorder_clear( VipsImage *image )vips__reorder_clear376,9597
+vips__reorder_init( void )vips__reorder_init383,9725
+
+sbuf.c,839
+vips_sbuf_class_init( VipsSbufClass *class )vips_sbuf_class_init76,1877
+vips_sbuf_init( VipsSbuf *sbuf )vips_sbuf_init97,2438
+vips_sbuf_new_from_source( VipsSource *source )vips_sbuf_new_from_source113,2715
+vips_sbuf_unbuffer( VipsSbuf *sbuf )vips_sbuf_unbuffer139,3211
+vips_sbuf_refill( VipsSbuf *sbuf )vips_sbuf_refill152,3540
+vips_sbuf_getc( VipsSbuf *sbuf )vips_sbuf_getc189,4401
+vips_sbuf_ungetc( VipsSbuf *sbuf )vips_sbuf_ungetc221,5120
+vips_sbuf_require( VipsSbuf *sbuf, int require )vips_sbuf_require247,5692
+vips_sbuf_get_line( VipsSbuf *sbuf )vips_sbuf_get_line344,8321
+vips_sbuf_get_line_copy( VipsSbuf *sbuf )vips_sbuf_get_line_copy410,9914
+vips_sbuf_get_non_whitespace( VipsSbuf *sbuf )vips_sbuf_get_non_whitespace476,11443
+vips_sbuf_skip_whitespace( VipsSbuf *sbuf )vips_sbuf_skip_whitespace516,12363
+
+semaphore.c,446
+vips_semaphore_init( VipsSemaphore *s, int v, char *name )vips_semaphore_init58,1343
+vips_semaphore_destroy( VipsSemaphore *s )vips_semaphore_destroy67,1502
+vips_semaphore_upn( VipsSemaphore *s, int n )vips_semaphore_upn77,1732
+vips_semaphore_up( VipsSemaphore *s )vips_semaphore_up107,2384
+vips_semaphore_downn( VipsSemaphore *s, int n )vips_semaphore_downn115,2510
+vips_semaphore_down( VipsSemaphore *s )vips_semaphore_down143,3028
+
+sink.c,2390
+typedef struct _SinkArea {_SinkArea59,1538
+	struct _Sink *sink;sink60,1565
+	VipsRect rect;		/* Part of image this area covers */rect62,1587
+        VipsSemaphore n_thread;	/* Number of threads scanning this area */n_thread63,1641
+} SinkArea;SinkArea64,1716
+typedef struct _Sink {_Sink68,1752
+	SinkBase sink_base;sink_base69,1775
+	VipsImage *t;t74,1910
+	GMutex *sslock;sslock78,1994
+	VipsStartFn start_fn;start_fn82,2034
+	VipsGenerateFn generate_fn;generate_fn83,2057
+	VipsStopFn stop_fn;stop_fn84,2086
+	void *a;a85,2107
+	void *b;b86,2117
+	SinkArea *area;area91,2258
+	SinkArea *old_area;old_area92,2275
+} Sink;Sink94,2297
+typedef struct _SinkThreadState {_SinkThreadState98,2335
+	VipsThreadState parent_object;parent_object99,2369
+        void *seq;seq103,2443
+	VipsRegion *reg;reg108,2578
+        SinkArea *area;area112,2640
+} SinkThreadState;SinkThreadState114,2665
+typedef struct _SinkThreadStateClass {_SinkThreadStateClass116,2685
+	VipsThreadStateClass parent_class;parent_class117,2724
+} SinkThreadStateClass;SinkThreadStateClass119,2761
+sink_area_free( SinkArea *area )sink_area_free124,2876
+sink_area_new( Sink *sink )sink_area_new131,2993
+sink_area_position( SinkArea *area, int top, int height )sink_area_position146,3248
+sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )sink_area_allocate_fn172,3899
+sink_call_stop( Sink *sink, SinkThreadState *state )sink_call_stop253,5852
+sink_thread_state_dispose( GObject *gobject )sink_thread_state_dispose286,6486
+sink_call_start( Sink *sink, SinkThreadState *state )sink_call_start300,6852
+sink_thread_state_build( VipsObject *object )sink_thread_state_build329,7462
+sink_thread_state_class_init( SinkThreadStateClass *class )sink_thread_state_class_init343,7822
+sink_thread_state_init( SinkThreadState *state )sink_thread_state_init356,8227
+vips_sink_thread_state_new( VipsImage *im, void *a )vips_sink_thread_state_new363,8339
+sink_free( Sink *sink )sink_free371,8526
+vips_sink_base_init( SinkBase *sink_base, VipsImage *image )vips_sink_base_init380,8738
+sink_init( Sink *sink, sink_init399,9153
+sink_work( VipsThreadState *state, void *a )sink_work431,9834
+vips_sink_base_progress( void *a )vips_sink_base_progress452,10287
+vips_sink_tile( VipsImage *im, vips_sink_tile492,11392
+vips_sink( VipsImage *im, vips_sink557,13089
+
+sinkdisc.c,2403
+typedef struct _WriteBuffer {_WriteBuffer70,1730
+	struct _Write *write;write71,1760
+	VipsRegion *region;	/* Pixels */region73,1784
+	VipsRect area;		/* Part of image this region covers */area74,1818
+        VipsSemaphore go; 	/* Start bg thread loop */go75,1874
+        VipsSemaphore nwrite; 	/* Number of threads writing to region */nwrite76,1928
+        VipsSemaphore done; 	/* Bg thread has done write */done77,2001
+	VipsSemaphore finish; 	/* Bg thread has finished */finish78,2061
+        int write_errno;	/* Save write errors here */write_errno79,2114
+	gboolean running;	/* Whether the bg writer thread is running */running80,2168
+	gboolean kill;		/* Set to ask thread to exit */kill81,2233
+} WriteBuffer;WriteBuffer82,2282
+typedef struct _Write {_Write86,2321
+	SinkBase sink_base;sink_base87,2345
+	WriteBuffer *buf;buf92,2466
+	WriteBuffer *buf_back;buf_back93,2485
+	VipsRegionWrite write_fn;	write_fn97,2552
+	void *a;		a98,2580
+} Write;Write99,2592
+typedef struct _WriteThreadState {_WriteThreadState104,2704
+	VipsThreadState parent_object;parent_object105,2739
+        WriteBuffer *buf;buf107,2772
+} WriteThreadState;WriteThreadState108,2798
+typedef struct _WriteThreadStateClass {_WriteThreadStateClass110,2819
+	VipsThreadStateClass parent_class;parent_class111,2859
+} WriteThreadStateClass;WriteThreadStateClass113,2896
+write_thread_state_class_init( WriteThreadStateClass *class )write_thread_state_class_init118,3014
+write_thread_state_init( WriteThreadState *state )write_thread_state_init127,3268
+write_thread_state_new( VipsImage *im, void *a )write_thread_state_new133,3369
+wbuffer_free( WriteBuffer *wbuffer )wbuffer_free141,3553
+wbuffer_write( WriteBuffer *wbuffer )wbuffer_write165,4136
+wbuffer_write_thread( void *data, void *user_data )wbuffer_write_thread183,4570
+wbuffer_new( Write *write )wbuffer_new212,5125
+wbuffer_flush( Write *write )wbuffer_flush253,6151
+wbuffer_position( WriteBuffer *wbuffer, int top, int height )wbuffer_position282,6824
+wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )wbuffer_allocate_fn321,7850
+wbuffer_work_fn( VipsThreadState *state, void *a )wbuffer_work_fn421,10355
+write_init( Write *write, write_init445,10936
+write_free( Write *write )write_free457,11207
+vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )vips_sink_disc499,12381
+
+sink.h,319
+#define VIPS_SINK_HVIPS_SINK_H35,1029
+typedef struct _SinkBase {_SinkBase46,1206
+	VipsImage *im;im47,1233
+	int x;x51,1289
+	int y;y52,1297
+	int tile_width;tile_width56,1342
+	int tile_height;tile_height57,1359
+	int n_lines;n_lines58,1377
+	guint64 processed;processed63,1478
+} SinkBase;SinkBase64,1498
+
+sinkmemory.c,1957
+typedef struct _SinkMemoryArea {_SinkMemoryArea62,1604
+	struct _SinkMemory *memory;memory63,1637
+	VipsRect rect;		/* Part of image this area covers */rect65,1667
+        VipsSemaphore nwrite; 	/* Number of threads writing to this area */nwrite66,1721
+} SinkMemoryArea;SinkMemoryArea67,1797
+typedef struct _SinkMemory {_SinkMemory71,1839
+	SinkBase sink_base;sink_base72,1868
+	SinkMemoryArea *area;area77,2028
+	SinkMemoryArea *old_area;old_area78,2051
+	VipsRegion *region;region83,2210
+} SinkMemory;SinkMemory84,2231
+typedef struct _SinkMemoryThreadState {_SinkMemoryThreadState89,2346
+	VipsThreadState parent_object;parent_object90,2386
+        SinkMemoryArea *area;area92,2419
+} SinkMemoryThreadState;SinkMemoryThreadState93,2449
+typedef struct _SinkMemoryThreadStateClass {_SinkMemoryThreadStateClass95,2475
+	VipsThreadStateClass parent_class;parent_class96,2520
+} SinkMemoryThreadStateClass;SinkMemoryThreadStateClass98,2557
+sink_memory_thread_state_class_init( SinkMemoryThreadStateClass *class )sink_memory_thread_state_class_init104,2693
+sink_memory_thread_state_init( SinkMemoryThreadState *state )sink_memory_thread_state_init113,2965
+sink_memory_thread_state_new( VipsImage *image, void *a )sink_memory_thread_state_new118,3057
+sink_memory_area_free( SinkMemoryArea *area )sink_memory_area_free126,3259
+sink_memory_area_new( SinkMemory *memory )sink_memory_area_new133,3393
+sink_memory_area_position( SinkMemoryArea *area, int top, int height )sink_memory_area_position148,3675
+sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )sink_memory_area_allocate_fn174,4355
+sink_memory_area_work_fn( VipsThreadState *state, void *a )sink_memory_area_work_fn255,6400
+sink_memory_free( SinkMemory *memory )sink_memory_free280,7062
+sink_memory_init( SinkMemory *memory, VipsImage *image )sink_memory_init288,7256
+vips_sink_memory( VipsImage *image )vips_sink_memory324,8123
+
+sinkscreen.c,4683
+static int render_num_renders = 0;render_num_renders77,1799
+	struct _Render *render;render83,1909
+	VipsRect area;		/* Place here (unclipped) */area85,1935
+	VipsRegion *region;	/* VipsRegion with the pixels */region86,1981
+	gboolean painted;painted91,2175
+	gboolean dirty;dirty96,2299
+	int ticks;ticks100,2359
+} Tile;Tile101,2371
+typedef struct _Render {_Render105,2403
+	gatomicrefcount ref_count;ref_count111,2639
+	VipsImage *in;		/* Image we render */in119,2743
+	VipsImage *out;		/* Write tiles here on demand */out120,2782
+	VipsImage *mask;	/* Set valid pixels here */mask121,2833
+	int tile_width;		/* Tile size */tile_width122,2879
+	int tile_height;tile_height123,2913
+	int max_tiles;		/* Maximum number of tiles */max_tiles124,2931
+	int priority;		/* Larger numbers done sooner */priority125,2978
+	VipsSinkNotify notify;	/* Tell caller about paints here */notify126,3027
+	void *a;a127,3087
+	GMutex *lock;	lock131,3166
+	GSList *all;		/* All our tiles */all135,3204
+	int ntiles;		/* Number of tiles */ntiles136,3239
+	int ticks;		/* Inc. on each access ... used for LRU */ticks137,3275
+	GSList *dirty;		dirty141,3388
+	GHashTable *tiles;tiles145,3477
+	gboolean shutdown;shutdown150,3616
+} Render;Render151,3636
+typedef struct _RenderThreadState {_RenderThreadState155,3676
+	VipsThreadState parent_object;parent_object156,3712
+	Tile *tile;tile160,3790
+} RenderThreadState;RenderThreadState161,3803
+typedef struct _RenderThreadStateClass {_RenderThreadStateClass163,3825
+	VipsThreadStateClass parent_class;parent_class164,3866
+} RenderThreadStateClass;RenderThreadStateClass166,3903
+static GThread *render_thread = NULL;render_thread173,4159
+static gboolean render_kill = FALSE;render_kill177,4248
+static GMutex *render_dirty_lock = NULL;render_dirty_lock182,4382
+static GSList *render_dirty_all = NULL;render_dirty_all183,4423
+static VipsSemaphore n_render_dirty_sem; n_render_dirty_sem184,4463
+static gboolean render_reschedule = FALSE;render_reschedule188,4565
+render_thread_state_class_init( RenderThreadStateClass *class )render_thread_state_class_init191,4621
+render_thread_state_init( RenderThreadState *state )render_thread_state_init200,4876
+render_thread_state_new( VipsImage *im, void *a )render_thread_state_new206,4980
+tile_free( Tile *tile, void *a, void *b )tile_free214,5168
+render_free( Render *render )render_free225,5331
+render_ref( Render *render )render_ref271,6498
+render_unref( Render *render )render_unref287,6866
+render_tile_dirty_get( Render *render )render_tile_dirty_get311,7381
+render_tile_dirty_reuse( Render *render )render_tile_dirty_reuse332,7895
+tile_dirty_set( Tile *tile )tile_dirty_set354,8317
+tile_dirty_bump( Tile *tile )tile_dirty_bump371,8701
+render_allocate( VipsThreadState *state, void *a, gboolean *stop )render_allocate386,9030
+render_work( VipsThreadState *state, void *a )render_work409,9503
+vips__render_shutdown( void )vips__render_shutdown441,10256
+render_dirty_sort( Render *a, Render *b, void *user_data )render_dirty_sort470,10835
+render_dirty_put( Render *render )render_dirty_put478,11005
+tile_hash( gconstpointer key )tile_hash500,11514
+tile_equal( gconstpointer a, gconstpointer b )tile_equal511,11698
+render_close_cb( VipsImage *image, Render *render )render_close_cb521,11902
+render_new( VipsImage *in, VipsImage *out, VipsImage *mask, render_new542,12500
+tile_new( Render *render )tile_new612,14019
+render_tile_lookup( Render *render, VipsRect *area )render_tile_lookup648,14772
+render_tile_add( Tile *tile, VipsRect *area )render_tile_add656,14942
+render_tile_move( Tile *tile, VipsRect *area )render_tile_move678,15448
+tile_touch( Tile *tile )tile_touch696,15888
+tile_queue( Tile *tile, VipsRegion *reg )tile_queue708,16078
+tile_test_clean_ticks( VipsRect *key, Tile *value, Tile **best )tile_test_clean_ticks752,17277
+render_tile_get_painted( Render *render )render_tile_get_painted762,17510
+render_tile_request( Render *render, VipsRegion *reg, VipsRect *area )render_tile_request782,17942
+tile_copy( Tile *tile, VipsRegion *to )tile_copy832,19112
+image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )image_fill871,20090
+mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )mask_fill924,21292
+render_dirty_get( void )render_dirty_get973,22473
+render_thread_main( void *client )render_thread_main1005,23114
+vips__sink_screen_once( void *data )vips__sink_screen_once1048,24027
+vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask, vips_sink_screen1116,26568
+vips__print_renders( void )vips__print_renders1168,27806
+
+source.c,2996
+#define MODE_READ MODE_READ82,1881
+static gint64 vips__pipe_read_limit = 1024 * 1024 * 1024;vips__pipe_read_limit89,2108
+vips_pipe_read_limit_set( gint64 limit )vips_pipe_read_limit_set109,2816
+vips_source_test_seek( VipsSource *source )vips_source_test_seek119,3049
+vips_source_test_features( VipsSource *source )vips_source_test_features167,4264
+vips_source_sanity( VipsSource *source )vips_source_sanity178,4457
+#define SANITY(SANITY251,6134
+#define SANITY(SANITY254,6240
+vips_source_finalize( GObject *gobject )vips_source_finalize258,6296
+vips_source_build( VipsObject *object )vips_source_build277,6802
+vips_source_read_real( VipsSource *source, void *data, size_t length )vips_source_read_real326,8104
+vips_source_seek_real( VipsSource *source, gint64 offset, int whence )vips_source_seek_real342,8459
+vips_source_class_init( VipsSourceClass *class )vips_source_class_init359,8924
+vips_source_init( VipsSource *source )vips_source_init386,9651
+vips_source_new_from_descriptor( int descriptor )vips_source_new_from_descriptor403,10051
+vips_source_new_from_file( const char *filename )vips_source_new_from_file441,11011
+vips_source_new_from_blob( VipsBlob *blob )vips_source_new_from_blob471,11551
+vips_source_new_from_target( VipsTarget *target )vips_source_new_from_target500,12102
+vips_source_new_from_memory( const void *data, size_t length )vips_source_new_from_memory545,13114
+vips_source_new_from_options( const char *options )vips_source_new_from_options575,13694
+vips_source_minimise( VipsSource *source )vips_source_minimise606,14444
+vips_source_unminimise( VipsSource *source )vips_source_unminimise644,15372
+vips_source_decode( VipsSource *source )vips_source_decode702,16775
+vips_source_print( VipsSource *source )vips_source_print727,17200
+vips_source_read( VipsSource *source, void *buffer, size_t length )vips_source_read759,18278
+vips_source_pipe_read_to_position( VipsSource *source, gint64 target )vips_source_pipe_read_to_position869,21126
+vips_source_read_to_memory( VipsSource *source )vips_source_read_to_memory924,22405
+vips_source_descriptor_to_memory( VipsSource *source )vips_source_descriptor_to_memory979,23658
+vips_source_is_mappable( VipsSource *source )vips_source_is_mappable1011,24457
+vips_source_is_file( VipsSource *source )vips_source_is_file1040,25264
+vips_source_map( VipsSource *source, size_t *length_out )vips_source_map1068,26062
+vips_source_map_cb( void *a, VipsArea *area )vips_source_map_cb1108,26999
+vips_source_map_blob( VipsSource *source )vips_source_map_blob1127,27424
+vips_source_seek( VipsSource *source, gint64 offset, int whence )vips_source_seek1158,28130
+vips_source_rewind( VipsSource *source )vips_source_rewind1257,30300
+vips_source_length( VipsSource *source )vips_source_length1289,31026
+vips_source_sniff_at_most( VipsSource *source, vips_source_sniff_at_most1320,31905
+vips_source_sniff( VipsSource *source, size_t length )vips_source_sniff1370,32957
+
+sourcecustom.c,845
+	SIG_SEEK,		SIG_SEEK65,1522
+	SIG_READ,		SIG_READ66,1535
+	SIG_LASTSIG_LAST67,1548
+static guint vips_source_custom_signals[SIG_LAST] = { 0 };vips_source_custom_signals70,1562
+vips_source_custom_read_real( VipsSource *source, vips_source_custom_read_real73,1636
+vips_source_custom_seek_real( VipsSource *source, vips_source_custom_seek_real94,2116
+vips_source_custom_read_signal_real( VipsSourceCustom *source_custom, vips_source_custom_read_signal_real137,3236
+vips_source_custom_seek_signal_real( VipsSourceCustom *source_custom, vips_source_custom_seek_signal_real146,3431
+vips_source_custom_class_init( VipsSourceCustomClass *class )vips_source_custom_class_init155,3625
+vips_source_custom_init( VipsSourceCustom *source_custom )vips_source_custom_init213,5318
+vips_source_custom_new( void )vips_source_custom_new225,5552
+
+sourceginput.c,699
+vips_source_g_input_stream_build( VipsObject *object )vips_source_g_input_stream_build74,1862
+vips_source_g_input_stream_read( VipsSource *source, vips_source_g_input_stream_read138,3500
+lseek_to_seek_type( int whence )lseek_to_seek_type165,4162
+vips_source_g_input_stream_seek( VipsSource *source, gint64 offset, int whence )vips_source_g_input_stream_seek179,4367
+vips_source_g_input_stream_class_init( VipsSourceGInputStreamClass *class )vips_source_g_input_stream_class_init209,5094
+vips_source_g_input_stream_init( VipsSourceGInputStream *source )vips_source_g_input_stream_init236,5963
+vips_source_g_input_stream_new( GInputStream *stream )vips_source_g_input_stream_new249,6227
+
+system.c,867
+typedef struct _VipsSystem {_VipsSystem72,1766
+	VipsOperation parent_instance;parent_instance73,1795
+	VipsArrayImage *in;in75,1828
+	VipsImage *out;out76,1849
+	char *cmd_format;cmd_format77,1866
+	char *in_format;in_format78,1885
+	char *out_format;out_format79,1903
+	char *log;log80,1922
+	char **in_name;in_name84,1989
+	char *out_name;out_name89,2090
+	char *out_name_options;out_name_options94,2197
+} VipsSystem;VipsSystem96,2223
+typedef VipsOperationClass VipsSystemClass;VipsSystemClass98,2238
+vips_system_dispose( GObject *gobject )vips_system_dispose103,2359
+vips_system_build( VipsObject *object )vips_system_build123,2769
+vips_system_class_init( VipsSystemClass *class )vips_system_class_init258,6249
+vips_system_init( VipsSystem *system )vips_system_init320,7967
+vips_system( const char *cmd_format, ... )vips_system385,10112
+
+target.c,2201
+#define MODE_READWRITE MODE_READWRITE70,1692
+vips_target_finalize( GObject *gobject )vips_target_finalize75,1842
+vips_target_build( VipsObject *object )vips_target_build101,2441
+vips_target_write_real( VipsTarget *target, const void *data, size_t length )vips_target_write_real155,3920
+vips_target_seek_real( VipsTarget *target, off_t offset, int whence )vips_target_seek_real179,4500
+vips_target_read_real( VipsTarget *target, void *data, size_t length )vips_target_read_real221,5417
+vips_target_end_real( VipsTarget *target ) vips_target_end_real253,6179
+vips_target_finish_real( VipsTarget *target ) vips_target_finish_real261,6304
+vips_target_class_init( VipsTargetClass *class )vips_target_class_init267,6417
+vips_target_init( VipsTarget *target )vips_target_init307,7583
+vips_target_new_to_descriptor( int descriptor )vips_target_new_to_descriptor325,7986
+vips_target_new_to_file( const char *filename )vips_target_new_to_file353,8504
+vips_target_new_to_memory( void )vips_target_new_to_memory383,9078
+vips_target_new_temp( VipsTarget *based_on )vips_target_new_temp413,9709
+vips_target_write_unbuffered( VipsTarget *target, vips_target_write_unbuffered446,10482
+vips_target_flush( VipsTarget *target )vips_target_flush480,11206
+vips_target_write( VipsTarget *target, const void *buffer, size_t length )vips_target_write508,11816
+vips_target_read( VipsTarget *target, void *buffer, size_t length )vips_target_read549,12965
+vips_target_seek( VipsTarget *target, off_t position, int whence )vips_target_seek575,13637
+vips_target_end( VipsTarget *target )vips_target_end609,14444
+vips_target_finish( VipsTarget *target )vips_target_finish652,15312
+vips_target_steal( VipsTarget *target, size_t *length )vips_target_steal674,15921
+vips_target_steal_text( VipsTarget *target )vips_target_steal_text712,16733
+vips_target_putc( VipsTarget *target, int ch )vips_target_putc730,17124
+vips_target_writes( VipsTarget *target, const char *str )vips_target_writes753,17587
+vips_target_writef( VipsTarget *target, const char *fmt, ... )vips_target_writef770,17988
+vips_target_write_amp( VipsTarget *target, const char *str )vips_target_write_amp804,18628
+
+targetcustom.c,1620
+	SIG_WRITE,		SIG_WRITE65,1523
+	SIG_READ,		SIG_READ66,1537
+	SIG_SEEK,		SIG_SEEK67,1550
+	SIG_END,		SIG_END68,1563
+	SIG_FINISH,		SIG_FINISH69,1575
+	SIG_LASTSIG_LAST70,1590
+static guint vips_target_custom_signals[SIG_LAST] = { 0 };vips_target_custom_signals73,1604
+vips_target_custom_write_real( VipsTarget *target, vips_target_custom_write_real76,1678
+vips_target_custom_read_real( VipsTarget *target, void *buffer, size_t length )vips_target_custom_read_real96,2113
+vips_target_custom_seek_real( VipsTarget *target, gint64 offset, int whence )vips_target_custom_seek_real116,2591
+vips_target_custom_end_real( VipsTarget *target )vips_target_custom_end_real158,3706
+vips_target_custom_finish_real( VipsTarget *target )vips_target_custom_finish_real175,3999
+vips_target_custom_write_signal_real( VipsTargetCustom *target_custom, vips_target_custom_write_signal_real183,4197
+vips_target_custom_read_signal_real( VipsTargetCustom *target_custom, vips_target_custom_read_signal_real192,4400
+vips_target_custom_seek_signal_real( VipsTargetCustom *target_custom, vips_target_custom_seek_signal_real201,4595
+vips_target_custom_end_signal_real( VipsTargetCustom *target_custom ) vips_target_custom_end_signal_real210,4788
+vips_target_custom_finish_signal_real( VipsTargetCustom *target_custom ) vips_target_custom_finish_signal_real218,4951
+vips_target_custom_class_init( VipsTargetCustomClass *class )vips_target_custom_class_init224,5105
+vips_target_custom_init( VipsTargetCustom *target_custom )vips_target_custom_init340,8534
+vips_target_custom_new( void )vips_target_custom_new352,8771
+
+threadpool.c,3512
+#define MAX_THREADS MAX_THREADS110,3178
+int vips__tile_width = VIPS__TILE_WIDTH;vips__tile_width114,3266
+int vips__tile_height = VIPS__TILE_HEIGHT;vips__tile_height115,3307
+int vips__fatstrip_height = VIPS__FATSTRIP_HEIGHT;vips__fatstrip_height116,3350
+int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;vips__thinstrip_height117,3401
+int vips__concurrency = 0;vips__concurrency121,3514
+static GPrivate *is_worker_key = NULL;is_worker_key126,3639
+static gboolean vips__stall = FALSE;vips__stall130,3722
+static GThreadPool *vips__pool = NULL;vips__pool134,3794
+vips_g_mutex_new( void )vips_g_mutex_new140,3916
+vips_g_mutex_free( GMutex *mutex )vips_g_mutex_free151,4040
+vips_g_cond_new( void )vips_g_cond_new158,4131
+vips_g_cond_free( GCond *cond )vips_g_cond_free169,4247
+vips_thread_isworker( void )vips_thread_isworker180,4507
+	const char *domain; domain186,4609
+	GThreadFunc func; func187,4631
+	gpointer data;data188,4651
+} VipsThreadInfo; VipsThreadInfo189,4667
+vips_thread_run( gpointer data )vips_thread_run192,4701
+vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )vips_g_thread_new216,5118
+vips_g_thread_join( GThread *thread )vips_g_thread_join244,5692
+	const char *name;name259,5938
+	GFunc func;func263,6019
+	gpointer data;data267,6099
+} VipsThreadExec;VipsThreadExec268,6115
+vips_thread_main_loop( gpointer thread_data, gpointer pool_data )vips_thread_main_loop271,6146
+get_num_processors( void )get_num_processors295,6797
+vips__concurrency_get_default( void )vips__concurrency_get_default377,8627
+vips_concurrency_set( int concurrency )vips_concurrency_set420,9623
+vips_concurrency_get( void )vips_concurrency_get460,10816
+vips_thread_state_dispose( GObject *gobject )vips_thread_state_dispose472,11111
+vips_thread_state_build( VipsObject *object )vips_thread_state_build484,11380
+vips_thread_state_class_init( VipsThreadStateClass *class )vips_thread_state_class_init496,11651
+vips_thread_state_init( VipsThreadState *state )vips_thread_state_init509,12062
+vips_thread_state_set( VipsObject *object, void *a, void *b )vips_thread_state_set519,12237
+vips_thread_state_new( VipsImage *im, void *a )vips_thread_state_new533,12522
+typedef struct _VipsTask {_VipsTask543,12813
+	VipsImage *im;		/* Image we are calculating */im547,12879
+	VipsThreadStartFn start; start553,13099
+	VipsThreadpoolAllocateFn allocate;allocate554,13126
+	VipsThreadpoolWorkFn work;work555,13162
+	GMutex *allocate_lock;allocate_lock556,13190
+        void *a; 		/* User argument to start / allocate / etc. */a557,13214
+	VipsSemaphore finish;	finish561,13337
+	VipsSemaphore tick;	tick565,13432
+	gboolean error;		error569,13514
+	gboolean stop;stop573,13611
+} VipsTask;VipsTask574,13627
+vips_task_work_unit( VipsTask *task, VipsThreadState *state )vips_task_work_unit582,13872
+vips_task_run( gpointer data, gpointer user_data )vips_task_run635,15015
+vips__threadpool_shutdown( void )vips__threadpool_shutdown671,15809
+vips_task_new( VipsImage *im, int *n_tasks )vips_task_new685,16081
+vips_task_free( VipsTask *task )vips_task_free723,17102
+vips__thread_once_init( void *data )vips__thread_once_init735,17392
+vips__thread_execute( const char *name, GFunc func, gpointer data )vips__thread_execute761,18024
+vips_threadpool_run( VipsImage *im, vips_threadpool_run892,21719
+vips__threadpool_init( void )vips__threadpool_init956,22884
+vips_get_tile_size( VipsImage *im, vips_get_tile_size994,24110
+
+type.c,8079
+vips_thing_new( int i )vips_thing_new99,2149
+vips_thing_copy( VipsThing *thing )vips_thing_copy112,2332
+vips_thing_free( VipsThing *thing )vips_thing_free124,2534
+vips_thing_get_type( void )vips_thing_get_type141,2804
+static GSList *vips_area_all = NULL;vips_area_all154,3027
+vips_area_copy( VipsArea *area )vips_area_copy157,3076
+vips_area_free_cb( void *mem, VipsArea *area )vips_area_free_cb175,3344
+vips_area_free( VipsArea *area )vips_area_free183,3439
+vips_area_unref( VipsArea *area )vips_area_unref195,3607
+vips_area_new( VipsCallbackFn free_fn, void *data )vips_area_new258,5159
+vips__type_leak( void )vips__type_leak289,5825
+vips_area_new_array( GType type, size_t sizeof_type, int n )vips_area_new_array327,6612
+vips_area_free_array_object( GObject **array, VipsArea *area )vips_area_free_array_object343,6946
+vips_area_new_array_object( int n )vips_area_new_array_object371,7570
+vips_area_get_data( VipsArea *area, vips_area_get_data402,8487
+transform_area_g_string( const GValue *src_value, GValue *dest_value )transform_area_g_string423,8856
+vips_area_get_type( void )vips_area_get_type435,9148
+transform_int_save_string( const GValue *src_value, GValue *dest_value )transform_int_save_string453,9523
+transform_save_string_int( const GValue *src_value, GValue *dest_value )transform_save_string_int460,9696
+transform_double_save_string( const GValue *src_value, GValue *dest_value )transform_double_save_string467,9870
+transform_save_string_double( const GValue *src_value, GValue *dest_value )transform_save_string_double479,10173
+transform_float_save_string( const GValue *src_value, GValue *dest_value )transform_float_save_string487,10373
+transform_save_string_float( const GValue *src_value, GValue *dest_value )transform_save_string_float499,10674
+vips_save_string_get_type( void )vips_save_string_get_type511,11048
+transform_ref_string_g_string( const GValue *src_value, GValue *dest_value )transform_ref_string_g_string527,11336
+transform_g_string_ref_string( const GValue *src_value, GValue *dest_value )transform_g_string_ref_string534,11514
+transform_ref_string_save_string( const GValue *src_value, GValue *dest_value )transform_ref_string_save_string543,11711
+transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )transform_save_string_ref_string550,11907
+vips_ref_string_new( const char *str )vips_ref_string_new570,12481
+vips_ref_string_get( VipsRefString *refstr, size_t *length )vips_ref_string_get599,13153
+vips_ref_string_get_type( void )vips_ref_string_get_type607,13331
+vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t length )vips_blob_new646,14577
+vips_blob_copy( const void *data, size_t length )vips_blob_copy669,15134
+vips_blob_get( VipsBlob *blob, size_t *length )vips_blob_get695,15700
+vips_blob_set( VipsBlob *blob, vips_blob_set716,16272
+transform_blob_g_string( const GValue *src_value, GValue *dest_value )transform_blob_g_string735,16629
+transform_blob_save_string( const GValue *src_value, GValue *dest_value )transform_blob_save_string750,16993
+transform_save_string_blob( const GValue *src_value, GValue *dest_value )transform_save_string_blob769,17433
+vips_blob_get_type( void )vips_blob_get_type787,17895
+vips_array_int_new( const int *array, int n )vips_array_int_new819,18677
+vips_array_int_newv( int n, ... )vips_array_int_newv844,19258
+vips_array_int_get( VipsArrayInt *array, int *n )vips_array_int_get872,19844
+transform_array_int_g_string( const GValue *src_value, GValue *dest_value )transform_array_int_g_string885,20066
+transform_array_int_save_string( const GValue *src_value, GValue *dest_value )transform_array_int_save_string905,20532
+transform_g_string_array_int( const GValue *src_value, GValue *dest_value )transform_g_string_array_int923,20993
+transform_save_string_array_int( const GValue *src_value, GValue *dest_value )transform_save_string_array_int971,22039
+transform_int_array_int( const GValue *src_value, GValue *dest_value )transform_int_array_int988,22462
+transform_double_array_int( const GValue *src_value, GValue *dest_value )transform_double_array_int998,22714
+transform_array_double_array_int( const GValue *src_value, GValue *dest_value )transform_array_double_array_int1008,22972
+vips_array_int_get_type( void )vips_array_int_get_type1022,23338
+vips_array_double_new( const double *array, int n )vips_array_double_new1062,24529
+vips_array_double_newv( int n, ... )vips_array_double_newv1087,25152
+vips_array_double_get( VipsArrayDouble *array, int *n )vips_array_double_get1115,25773
+transform_array_double_g_string( const GValue *src_value, GValue *dest_value )transform_array_double_g_string1128,25996
+transform_g_string_array_double( const GValue *src_value, GValue *dest_value )transform_g_string_array_double1151,26579
+transform_double_array_double( const GValue *src_value, GValue *dest_value )transform_double_array_double1199,27690
+transform_int_array_double( const GValue *src_value, GValue *dest_value )transform_int_array_double1209,27960
+transform_array_int_array_double( const GValue *src_value, GValue *dest_value )transform_array_int_array_double1219,28224
+transform_double_enum( const GValue *src_value, GValue *dest_value )transform_double_enum1235,28684
+vips_array_double_get_type( void )vips_array_double_get_type1241,28831
+vips_array_image_new( VipsImage **array, int n )vips_array_image_new1286,30160
+vips_array_image_newv( int n, ... )vips_array_image_newv1324,31092
+vips_array_image_new_from_string( const char *string, VipsAccess access )vips_array_image_new_from_string1346,31516
+vips_array_image_empty( void )vips_array_image_empty1403,32629
+vips_array_image_append( VipsArrayImage *array, VipsImage *image )vips_array_image_append1423,33116
+vips_array_image_get( VipsArrayImage *array, int *n )vips_array_image_get1458,34034
+transform_g_string_array_image( const GValue *src_value, GValue *dest_value )transform_g_string_array_image1471,34272
+vips_array_image_get_type( void )vips_array_image_get_type1496,34910
+vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data )vips_value_set_area1520,35481
+vips_value_get_area( const GValue *value, size_t *length )vips_value_get_area1540,35981
+vips_value_get_save_string( const GValue *value )vips_value_get_save_string1558,36365
+vips_value_set_save_string( GValue *value, const char *str )vips_value_set_save_string1573,36669
+vips_value_set_save_stringf( GValue *value, const char *fmt, ... )vips_value_set_save_stringf1592,37122
+vips_value_get_ref_string( const GValue *value, size_t *length )vips_value_get_ref_string1616,37675
+vips_value_set_ref_string( GValue *value, const char *str )vips_value_set_ref_string1635,38185
+vips_value_set_blob( GValue *value, vips_value_set_blob1664,39047
+vips_value_set_blob_free( GValue *value, void *data, size_t length ) vips_value_set_blob_free1691,39684
+vips_value_get_blob( const GValue *value, size_t *length )vips_value_get_blob1718,40499
+vips_value_set_array( GValue *value, int n, GType type, size_t sizeof_type )vips_value_set_array1736,40938
+vips_value_get_array( const GValue *value, vips_value_get_array1761,41687
+vips_value_get_array_int( const GValue *value, int *n )vips_value_get_array_int1795,42451
+vips_value_set_array_int( GValue *value, const int *array, int n )vips_value_set_array_int1811,42844
+vips_value_get_array_double( const GValue *value, int *n )vips_value_get_array_double1836,43500
+vips_value_set_array_double( GValue *value, const double *array, int n )vips_value_set_array_double1852,43905
+vips_value_get_array_image( const GValue *value, int *n )vips_value_get_array_image1877,44589
+vips_value_set_array_image( GValue *value, int n )vips_value_set_array_image1892,44934
+vips_value_get_array_object( const GValue *value, int *n )vips_value_get_array_object1915,45532
+vips_value_set_array_object( GValue *value, int n )vips_value_set_array_object1930,45890
+vips__meta_init_types( void )vips__meta_init_types1942,46150
+
+util.c,6559
+#define MAX_BUF MAX_BUF67,1527
+#define MODE_READ MODE_READ69,1553
+vips_slist_equal( GSList *l1, GSList *l2 )vips_slist_equal74,1647
+vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b )vips_slist_map293,1941
+vips_slist_map2_rev( GSList *list, VipsSListMap2Fn fn, void *a, void *b )vips_slist_map2_rev111,2310
+vips_slist_map4( GSList *list, vips_slist_map4128,2634
+vips_slist_fold2( GSList *list, void *start, vips_slist_fold2146,2950
+vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b )vips_slist_filter165,3352
+vips_slist_free_all_cb( void * thing, void * dummy )vips_slist_free_all_cb196,3786
+vips_slist_free_all( GSList *list )vips_slist_free_all204,3923
+vips_map_equal( void *a, void *b )vips_map_equal211,4050
+	void *a;a220,4154
+	void *b;b221,4164
+	VipsSListMap2Fn fn;fn222,4174
+	void *result;result223,4195
+} Pair;Pair224,4210
+vips_hash_table_predicate( const char *key, void *value, Pair *pair )vips_hash_table_predicate227,4235
+vips_hash_table_map( GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b )vips_hash_table_map235,4435
+vips_strncpy( char *dest, const char *src, int n )vips_strncpy254,4889
+vips_strrstr( const char *haystack, const char *needle )vips_strrstr271,5215
+vips_ispostfix( const char *a, const char *b )vips_ispostfix287,5575
+vips_iscasepostfix( const char *a, const char *b )vips_iscasepostfix301,5833
+vips_isprefix( const char *a, const char *b )vips_isprefix316,6123
+strcspne( const char *s, const char *reject )strcspne339,6564
+vips_break_token( char *str, const char *brk )vips_break_token407,8178
+vips_vsnprintf( char *str, size_t size, const char *format, va_list ap )vips_vsnprintf459,9371
+vips_snprintf( char *str, size_t size, const char *format, ... )vips_snprintf489,10106
+vips_filename_suffix_match( const char *path, const char *suffixes[] )vips_filename_suffix_match505,10398
+vips_file_length( int fd )vips_file_length536,10951
+vips__write( int fd, const void *buf, size_t count )vips__write558,11316
+vips__set_create_time( int fd )vips__set_create_time583,11956
+vips__open( const char *filename, int flags, int mode )vips__open606,12423
+vips__open_read( const char *filename )vips__open_read630,12843
+vips__fopen( const char *filename, const char *mode )vips__fopen638,13003
+filename_hasdir( const char *filename )filename_hasdir656,13309
+vips__file_open_read( const char *filename, const char *fallback_dir, vips__file_open_read676,13852
+vips__file_open_write( const char *filename, gboolean text_mode )vips__file_open_write713,14649
+vips__file_read( FILE *fp, const char *filename, size_t *length_out )vips__file_read740,15250
+vips__file_read_name( const char *filename, const char *fallback_dir, vips__file_read_name819,16903
+vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )vips__file_write839,17340
+vips__get_bytes( const char *filename, unsigned char buf[], gint64 len )vips__get_bytes863,17901
+vips__fgetc( FILE *fp )vips__fgetc887,18551
+vips__gvalue_new( GType type )vips__gvalue_new906,18773
+vips__gvalue_copy( GValue *value )vips__gvalue_copy917,18921
+vips__gvalue_free( GValue *value, void *user_data )vips__gvalue_free928,19112
+vips__gvalue_ref_string_new( const char *text )vips__gvalue_ref_string_new935,19221
+vips__gslist_gvalue_free( GSList *list )vips__gslist_gvalue_free948,19441
+vips__gslist_gvalue_copy( const GSList *list )vips__gslist_gvalue_copy957,19610
+vips__gslist_gvalue_merge( GSList *a, const GSList *b )vips__gslist_gvalue_merge978,20065
+vips__gslist_gvalue_get( const GSList *list )vips__gslist_gvalue_get1018,20959
+vips__seek_no_error( int fd, gint64 pos, int whence )vips__seek_no_error1069,21879
+vips__seek( int fd, gint64 pos, int whence )vips__seek1089,22397
+vips__ftruncate( int fd, gint64 pos )vips__ftruncate1110,22901
+vips_existsf( const char *name, ... )vips_existsf1138,23496
+vips_isdirf( const char *name, ... )vips_isdirf1158,23839
+vips_mkdirf( const char *name, ... )vips_mkdirf1178,24154
+vips_rmdirf( const char *name, ... )vips_rmdirf1202,24583
+vips_rename( const char *old_name, const char *new_name )vips_rename1226,25001
+vips__chomp( char *str )vips__chomp1241,25330
+vips__token_get( const char *p, VipsToken *token, char *string, int size )vips__token_get1258,25808
+vips__token_must( const char *p, VipsToken *token, vips__token_must1365,27791
+vips__token_need( const char *p, VipsToken need_token, vips__token_need1380,28087
+vips__token_segment( const char *p, VipsToken *token, vips__token_segment1403,28671
+vips__token_segment_need( const char *p, VipsToken need_token, vips__token_segment_need1450,29524
+#define MAX_TOKENS MAX_TOKENS1470,30023
+vips__find_rightmost_brackets( const char *p )vips__find_rightmost_brackets1488,30597
+vips__filename_split8( const char *name, char *filename, char *option_string )vips__filename_split81541,31532
+vips_ispoweroftwo( int p )vips_ispoweroftwo1561,32200
+vips_amiMSBfirst( void )vips_amiMSBfirst1584,32547
+vips__temp_dir( void )vips__temp_dir1599,32858
+vips__temp_name( const char *format )vips__temp_name1627,33398
+vips__change_suffix( const char *name, char *out, int mx,vips__change_suffix1658,34277
+	const char unit;unit1694,35227
+	int multiplier;multiplier1695,35245
+} Unit;Unit1696,35262
+vips__parse_size( const char *size_string )vips__parse_size1699,35279
+vips_enum_string( GType enm, int v )vips_enum_string1737,35985
+vips_enum_nick( GType enm, int v )vips_enum_nick1748,36179
+vips_enum_from_nick( const char *domain, GType type, const char *nick )vips_enum_from_nick1759,36362
+vips_flags_from_nick( const char *domain, GType type, const char *nick )vips_flags_from_nick1795,37277
+vips__substitute( char *buf, size_t len, char *sub )vips__substitute1834,38332
+vips_realpath( const char *path ) vips_realpath1897,39574
+vips__random_add( guint32 hash, int value )vips__random_add1922,40083
+#define FNV_ADD(FNV_ADD1924,40129
+vips__random( guint32 seed )vips__random1935,40405
+vips_icc_dir_once( void *null )vips_icc_dir_once1946,40548
+vips__icc_dir( void )vips__icc_dir1976,41218
+static HMODULE vips__dll = NULL;vips__dll1985,41369
+DllMain( HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )DllMain1988,41432
+vips__windows_prefix_once( void *null )vips__windows_prefix_once1999,41628
+vips__windows_prefix( void )vips__windows_prefix2014,41924
+vips__get_iso8601( void )vips__get_iso86012023,42079
+vips_strtod( const char *str, double *out )vips_strtod2051,42569
+
+vector.c,2115
+gboolean vips__vector_enabled = TRUE;vips__vector_enabled70,1528
+vips_vector_error( VipsVector *vector )vips_vector_error73,1579
+vips_vector_init( void )vips_vector_init85,1840
+vips_vector_isenabled( void )vips_vector_isenabled116,2436
+vips_vector_set_enabled( gboolean enabled )vips_vector_set_enabled126,2584
+vips_vector_free( VipsVector *vector )vips_vector_free132,2671
+vips_vector_new( const char *name, int dsize )vips_vector_new154,3283
+vips_vector_asm2( VipsVector *vector, vips_vector_asm2202,4415
+vips_vector_asm3( VipsVector *vector, vips_vector_asm3221,4855
+vips_vector_constant( VipsVector *vector, char *name, int value, int size )vips_vector_constant241,5328
+vips_vector_source_scanline( VipsVector *vector, vips_vector_source_scanline279,6183
+vips_vector_source_name( VipsVector *vector, const char *name, int size )vips_vector_source_name303,6795
+vips_vector_temporary( VipsVector *vector, const char *name, int size )vips_vector_temporary326,7347
+vips_vector_parameter( VipsVector *vector, const char *name, int size )vips_vector_parameter343,7797
+vips_vector_destination( VipsVector *vector, const char *name, int size )vips_vector_destination367,8325
+vips_vector_full( VipsVector *vector )vips_vector_full388,8795
+vips_vector_compile( VipsVector *vector )vips_vector_compile421,9568
+vips_vector_print( VipsVector *vector )vips_vector_print450,10194
+vips_executor_set_program( VipsExecutor *executor, VipsVector *vector, int n )vips_executor_set_program474,10974
+vips_executor_set_array( VipsExecutor *executor, int var, void *value )vips_executor_set_array485,11242
+vips_executor_set_parameter( VipsExecutor *executor, int var, int value )vips_executor_set_parameter494,11440
+vips_executor_set_scanline( VipsExecutor *executor, vips_executor_set_scanline503,11640
+vips_executor_set_destination( VipsExecutor *executor, void *value )vips_executor_set_destination518,12000
+vips_executor_run( VipsExecutor *executor )vips_executor_run526,12177
+vips_vector_to_fixed_point( double *in, int *out, int n, int scale )vips_vector_to_fixed_point541,12601
+
+vips.c,3059
+#define _GNU_SOURCE_GNU_SOURCE66,1894
+#define MODE_WRITE MODE_WRITE126,3291
+#define MODE_READWRITE MODE_READWRITE130,3442
+#define MODE_READONLY MODE_READONLY134,3563
+#define NAMESPACE_URI NAMESPACE_URI138,3643
+vips__open_image_read( const char *filename )vips__open_image_read143,3745
+vips__open_image_write( const char *filename, gboolean temp )vips__open_image_write169,4383
+image_pixel_length( VipsImage *image )image_pixel_length234,6064
+vips__copy_4byte( int swap, unsigned char *to, unsigned char *from )vips__copy_4byte256,6429
+vips__copy_2byte( gboolean swap, unsigned char *to, unsigned char *from )vips__copy_2byte268,6642
+vips__file_magic( const char *filename )vips__file_magic280,6863
+typedef struct _FieldIO {_FieldIO294,7133
+	glong offset;offset295,7159
+	int size;size296,7174
+	void (*copy)( gboolean swap, unsigned char *to, unsigned char *from );copy297,7185
+} FieldIO;FieldIO298,7257
+static FieldIO fields[] = {fields300,7269
+vips__read_header_bytes( VipsImage *im, unsigned char *from )vips__read_header_bytes318,8209
+vips__write_header_bytes( VipsImage *im, unsigned char *to )vips__write_header_bytes428,11102
+read_chunk( int fd, gint64 offset, size_t length )read_chunk475,12193
+vips__has_extension_block( VipsImage *im )vips__has_extension_block496,12651
+vips__read_extension_block( VipsImage *im, int *size )vips__read_extension_block509,12885
+parser_read_fd( XML_Parser parser, int fd )parser_read_fd539,13626
+#define MAX_PARSE_ATTR MAX_PARSE_ATTR579,14369
+typedef struct _VipsExpatParse {_VipsExpatParse583,14440
+	VipsImage *image;image584,14473
+	gboolean error;error588,14516
+	gboolean header;header592,14571
+	XML_Char type[MAX_PARSE_ATTR];type596,14640
+	XML_Char name[MAX_PARSE_ATTR];name597,14672
+	VipsDbuf dbuf; dbuf601,14736
+} VipsExpatParse;VipsExpatParse602,14753
+parser_element_start_handler( void *user_data, parser_element_start_handler605,14784
+set_history( VipsImage *im, char *history )set_history645,15877
+set_meta( VipsImage *image, GType gtype, const char *name, const char *data )set_meta672,16396
+parser_element_end_handler( void *user_data, const XML_Char *name )parser_element_end_handler696,16978
+parser_data_handler( void *user_data, const XML_Char *data, int len )parser_data_handler729,17745
+readhist( VipsImage *im )readhist744,18124
+vips__write_extension_block( VipsImage *im, void *buf, int size )vips__write_extension_block777,18808
+target_write_quotes( VipsTarget *target, const char *str )target_write_quotes807,19511
+build_xml_meta( VipsMeta *meta, VipsTarget *target, void *b )build_xml_meta822,19801
+build_xml( VipsImage *image )build_xml865,21006
+vips__xml_properties_meta( VipsImage *image, vips__xml_properties_meta908,22132
+vips__xml_properties( VipsImage *image )vips__xml_properties951,23456
+vips__writehist( VipsImage *image )vips__writehist988,24289
+vips_image_open_input( VipsImage *image )vips_image_open_input1015,24785
+vips_image_open_output( VipsImage *image )vips_image_open_output1075,26397
+
+vipsmarshal.c,2921
+#define g_marshal_value_peek_boolean(g_marshal_value_peek_boolean6,286
+#define g_marshal_value_peek_char(g_marshal_value_peek_char7,351
+#define g_marshal_value_peek_uchar(g_marshal_value_peek_uchar8,414
+#define g_marshal_value_peek_int(g_marshal_value_peek_int9,477
+#define g_marshal_value_peek_uint(g_marshal_value_peek_uint10,538
+#define g_marshal_value_peek_long(g_marshal_value_peek_long11,600
+#define g_marshal_value_peek_ulong(g_marshal_value_peek_ulong12,662
+#define g_marshal_value_peek_int64(g_marshal_value_peek_int6413,725
+#define g_marshal_value_peek_uint64(g_marshal_value_peek_uint6414,788
+#define g_marshal_value_peek_enum(g_marshal_value_peek_enum15,852
+#define g_marshal_value_peek_flags(g_marshal_value_peek_flags16,914
+#define g_marshal_value_peek_float(g_marshal_value_peek_float17,977
+#define g_marshal_value_peek_double(g_marshal_value_peek_double18,1040
+#define g_marshal_value_peek_string(g_marshal_value_peek_string19,1104
+#define g_marshal_value_peek_param(g_marshal_value_peek_param20,1176
+#define g_marshal_value_peek_boxed(g_marshal_value_peek_boxed21,1239
+#define g_marshal_value_peek_pointer(g_marshal_value_peek_pointer22,1302
+#define g_marshal_value_peek_object(g_marshal_value_peek_object23,1367
+#define g_marshal_value_peek_variant(g_marshal_value_peek_variant24,1431
+#define g_marshal_value_peek_boolean(g_marshal_value_peek_boolean30,1715
+#define g_marshal_value_peek_char(g_marshal_value_peek_char31,1775
+#define g_marshal_value_peek_uchar(g_marshal_value_peek_uchar32,1835
+#define g_marshal_value_peek_int(g_marshal_value_peek_int33,1896
+#define g_marshal_value_peek_uint(g_marshal_value_peek_uint34,1956
+#define g_marshal_value_peek_long(g_marshal_value_peek_long35,2017
+#define g_marshal_value_peek_ulong(g_marshal_value_peek_ulong36,2078
+#define g_marshal_value_peek_int64(g_marshal_value_peek_int6437,2140
+#define g_marshal_value_peek_uint64(g_marshal_value_peek_uint6438,2202
+#define g_marshal_value_peek_enum(g_marshal_value_peek_enum39,2265
+#define g_marshal_value_peek_flags(g_marshal_value_peek_flags40,2326
+#define g_marshal_value_peek_float(g_marshal_value_peek_float41,2388
+#define g_marshal_value_peek_double(g_marshal_value_peek_double42,2450
+#define g_marshal_value_peek_string(g_marshal_value_peek_string43,2513
+#define g_marshal_value_peek_param(g_marshal_value_peek_param44,2577
+#define g_marshal_value_peek_boxed(g_marshal_value_peek_boxed45,2641
+#define g_marshal_value_peek_pointer(g_marshal_value_peek_pointer46,2705
+#define g_marshal_value_peek_object(g_marshal_value_peek_object47,2769
+#define g_marshal_value_peek_variant(g_marshal_value_peek_variant48,2833
+vips_INT__VOID (GClosure     *closure,vips_INT__VOID53,2970
+vips_INT64__INT64_INT (GClosure     *closure,vips_INT64__INT64_INT90,4054
+vips_INT64__POINTER_INT64 (GClosure     *closure,vips_INT64__POINTER_INT64131,5484
+
+vipsmarshal.h,52
+#define __VIPS_MARSHAL_H____VIPS_MARSHAL_H__3,240
+
+window.c,1232
+int vips__read_test;vips__read_test68,1577
+int vips__window_margin_pixels = VIPS__WINDOW_MARGIN_PIXELS;vips__window_margin_pixels72,1661
+int vips__window_margin_bytes = VIPS__WINDOW_MARGIN_BYTES;vips__window_margin_bytes77,1823
+static int total_mmap_usage = 0;total_mmap_usage82,1934
+static int max_mmap_usage = 0;max_mmap_usage83,1967
+vips_window_unmap( VipsWindow *window )vips_window_unmap87,2033
+vips_window_free( VipsWindow *window )vips_window_free111,2504
+vips_window_unref( VipsWindow *window )vips_window_unref138,3057
+trace_mmap_usage( void )trace_mmap_usage167,3586
+vips_getpagesize( void )vips_getpagesize187,4019
+vips_window_set( VipsWindow *window, int top, int height )vips_window_set213,4440
+vips_window_new( VipsImage *im, int top, int height )vips_window_new273,5879
+	int top;top306,6573
+	int height;height307,6583
+} request_t;request_t308,6596
+vips_window_fits( VipsWindow *window, request_t *req, void *b )vips_window_fits311,6624
+vips_window_find( VipsImage *im, int top, int height )vips_window_find323,6920
+vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )vips_window_take349,7435
+vips_window_print( VipsWindow *window )vips_window_print413,8865
