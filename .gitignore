@@ -25,55 +25,6 @@ __pycache__/
 .pytest_cache/
 ### End of Python
 
-### gettext
-po/*.pot
-po/POTFILES
-po/de.gmo
-po/en_GB.gmo
-po/malkovich.gmo
-### End of gettext
-
-### Tools
-tools/vips
-tools/vipsedit
-tools/vipsheader
-tools/vipsthumbnail
-fuzz/*_fuzzer
-### End of Tools
-
-### GTK-Doc
-doc/html/
-doc/libvips-decl-list.txt
-doc/libvips-decl.txt
-doc/libvips-docs.sgml
-doc/libvips-docs.xml
-doc/libvips-overrides.txt
-doc/libvips-sections.txt
-doc/libvips-undeclared.txt
-doc/libvips-undocumented.txt
-doc/libvips-unused.txt
-doc/libvips.actions
-doc/libvips.args
-doc/libvips.hierarchy
-doc/libvips.interfaces
-doc/libvips.prerequisites
-doc/libvips.signals
-doc/libvips.types
-doc/tmpl/
-doc/xml/
-libvips-scan
-### End of GTK-Doc
-
-### GObject introspection
-Vips-8.0.gir
-Vips-8.0.typelib
-### End of GObject introspection
-
-### pkg-config
-# Generated files
-*.pc
-### End of pkg-config
-
 ### VIM
 # Temporary files
 *~
