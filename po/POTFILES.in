@@ -15,7 +15,6 @@ libvips/include/vips/dbuf.h
 libvips/include/vips/debug.h
 libvips/include/vips/dispatch.h
 libvips/include/vips/draw.h
-libvips/include/vips/enumtypes.h
 libvips/include/vips/error.h
 libvips/include/vips/foreign.h
 libvips/include/vips/format.h
@@ -56,7 +55,6 @@ cplusplus/VImage.cpp
 cplusplus/VInterpolate.cpp
 cplusplus/vips-operators.cpp
 cplusplus/VRegion.cpp
-libvips/introspect.c
 libvips/arithmetic/abs.c
 libvips/arithmetic/add.c
 libvips/arithmetic/arithmetic.c
@@ -315,7 +313,6 @@ libvips/iofuncs/buffer.c
 libvips/iofuncs/cache.c
 libvips/iofuncs/connection.c
 libvips/iofuncs/dbuf.c
-libvips/iofuncs/enumtypes.c
 libvips/iofuncs/error.c
 libvips/iofuncs/gate.c
 libvips/iofuncs/generate.c
@@ -347,7 +344,6 @@ libvips/iofuncs/type.c
 libvips/iofuncs/util.c
 libvips/iofuncs/vector.c
 libvips/iofuncs/vips.c
-libvips/iofuncs/vipsmarshal.c
 libvips/iofuncs/window.c
 libvips/module/heif.c
 libvips/module/jxl.c
