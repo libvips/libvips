@@ -1,5 +1,2 @@
-# Shell scripts and Automake sources can't have CRLF line endings
-configure.ac	eol=lf
-Makefile.am	eol=lf
-*.m4		eol=lf
+# Shell scripts sources can't have CRLF line endings
 *.sh 		eol=lf
