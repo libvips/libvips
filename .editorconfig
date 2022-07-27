@@ -13,11 +13,3 @@ indent_size = 8
 [*.py]
 indent_style = space
 indent_size = 4
-
-[Makefile.am]
-indent_style = tab
-indent_size = 8
-
-[configure.ac]
-indent_style = space
-indent_size = 2
