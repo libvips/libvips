@@ -301,14 +301,15 @@ spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
     spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
-if not get_option('spng').disabled() and spng_dep.found()
+spng_found = not get_option('spng').disabled() and spng_dep.found()
+if spng_found
     libvips_deps += spng_dep
     cfg_var.set('HAVE_SPNG', '1')
 endif
 
 # only if libspng not found
 png_dep = disabler()
-if not spng_dep.found()
+if not spng_found
     png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
     if png_dep.found()
         libvips_deps += png_dep
@@ -646,7 +647,7 @@ build_summary = {
     {'JPEG load/save with libjpeg': libjpeg_dep.found(),
      'JXL load/save with libjxl': [libjxl_dep.found(), (modules_enabled and not get_option('jpeg-xl-module').disabled()) ? ' (dynamic module)' : ''],
      'JPEG2000 load/save with OpenJPEG': libopenjp2_dep.found(),
-     'PNG load/save with libspng': spng_dep.found(),
+     'PNG load/save with libspng': spng_found,
      'PNG load/save with libpng': png_dep.found(),
      'selected quantisation package': quantisation_package.found() ? quantisation_package.name() : 'none',
      'TIFF load/save with libtiff': libtiff_dep.found(),
