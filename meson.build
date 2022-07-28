@@ -168,8 +168,11 @@ if not magick_dep.found()
     # very old versions called it "ImageMagick"
     magick_dep = dependency('ImageMagick', required: get_option('magick'))
 endif
-if not get_option('magick').disabled() and magick_dep.found()
-    if modules_enabled and not get_option('magick-module').disabled()
+magick_found = not get_option('magick').disabled() and magick_dep.found()
+magick_module = false
+if magick_found
+    magick_module = magick_found and modules_enabled and not get_option('magick-module').disabled()
+    if magick_module
         cfg_var.set('MAGICK_MODULE', '1')
     else
         libvips_deps += magick_dep
@@ -368,8 +371,10 @@ if librsvg_found
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
+openslide_module = false
 if openslide_dep.found()
-    if modules_enabled and not get_option('openslide-module').disabled()
+    openslide_module = modules_enabled and not get_option('openslide-module').disabled()
+    if openslide_module
         cfg_var.set('OPENSLIDE_MODULE', '1')
     else
         libvips_deps += openslide_dep
@@ -432,8 +437,10 @@ endif
 
 
 libheif_dep = dependency('libheif', version: '>=0.4.11', required: get_option('heif'))
+libheif_module = false
 if libheif_dep.found()
-    if modules_enabled and not get_option('heif-module').disabled()
+    libheif_module = modules_enabled and not get_option('heif-module').disabled()
+    if libheif_module
         cfg_var.set('HEIF_MODULE', '1')
     else
         libvips_deps += libheif_dep
@@ -462,8 +469,11 @@ endif
 
 libjxl_dep = dependency('libjxl', version: '>=0.5', required: get_option('jpeg-xl'))
 libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.5', required: get_option('jpeg-xl'))
-if libjxl_dep.found() and libjxl_threads_dep.found()
-    if modules_enabled and not get_option('jpeg-xl-module').disabled()
+libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
+libjxl_module = false
+if libjxl_found
+    libjxl_module = modules_enabled and not get_option('jpeg-xl-module').disabled()
+    if libjxl_module
         cfg_var.set('LIBJXL_MODULE', '1')
     else
         libvips_deps += libjxl_dep
@@ -476,13 +486,17 @@ if libjxl_dep.found() and libjxl_threads_dep.found()
 endif
 
 libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
+libpoppler_found = false
+libpoppler_module = false
 if not cairo_dep.found()
     cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
 endif
 if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
     message('PDFium has been found, ignoring Poppler support')
 elif libpoppler_dep.found() and cairo_dep.found()
-    if modules_enabled and not get_option('poppler-module').disabled()
+    libpoppler_found = true
+    libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
+    if libpoppler_module
         cfg_var.set('POPPLER_MODULE', '1')
     else
         libvips_deps += libpoppler_dep
@@ -644,27 +658,27 @@ build_summary = {
     },
   'External image format libraries':
     {'JPEG load/save with libjpeg': libjpeg_dep.found(),
-     'JXL load/save with libjxl': [libjxl_dep.found(), (modules_enabled and not get_option('jpeg-xl-module').disabled()) ? ' (dynamic module)' : ''],
+     'JXL load/save with libjxl': [libjxl_found, libjxl_module ? ' (dynamic module)' : ''],
      'JPEG2000 load/save with OpenJPEG': libopenjp2_dep.found(),
      'PNG load/save with libspng': spng_dep.found(),
      'PNG load/save with libpng': png_dep.found(),
      'selected quantisation package': quantisation_package.found() ? quantisation_package.name() : 'none',
      'TIFF load/save with libtiff': libtiff_dep.found(),
      'image pyramid save with libgsf': gsf_dep.found(),
-     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), (modules_enabled and not get_option('heif-module').disabled()) ? ' (dynamic module)' : ''],
+     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), libheif_module ? ' (dynamic module)' : ''],
      'WebP load/save with libwebp': libwebp_dep.found(),
      'PDF load with PDFium': pdfium_dep.found(),
-     'PDF load with poppler-glib': [libpoppler_dep.found(), (modules_enabled and not get_option('poppler-module').disabled()) ? ' (dynamic module)' : ''],
+     'PDF load with poppler-glib': [libpoppler_found, libpoppler_module ? ' (dynamic module)' : ''],
      'SVG load with librsvg': librsvg_found,
      'EXR load with OpenEXR': openexr_dep.found(),
-     'OpenSlide load': [openslide_dep.found(), (modules_enabled and not get_option('openslide-module').disabled()) ? ' (dynamic module)' : ''],
+     'OpenSlide load': [openslide_dep.found(), openslide_module ? ' (dynamic module)' : ''],
      'Matlab load with libmatio': matio_dep.found(),
      'NIfTI load/save with niftiio': libnifti_dep.found(),
      'FITS load/save with cfitsio': cfitsio_dep.found(),
      'GIF save with cgif': cgif_dep.found(),
-     'selected Magick package': [get_option('magick-package'), (modules_enabled and not get_option('magick-module').disabled()) ? ' (dynamic module)' : ''],
-     'Magick load': magick_dep.found() and 'load' in get_option('magick-features'),
-     'Magick save': magick_dep.found() and 'save' in get_option('magick-features'),
+     'selected Magick package': [magick_found ? magick_dep.name() : 'none', magick_module ? ' (dynamic module)' : ''],
+     'Magick load': magick_found and 'load' in get_option('magick-features'),
+     'Magick save': magick_found and 'save' in get_option('magick-features'),
     },
 }
 
