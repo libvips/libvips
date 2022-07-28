@@ -624,6 +624,59 @@ config_dep = declare_dependency(
 
 libvips_deps += config_dep
 
+build_summary = {
+  'Build options':
+    {'enable debug': [get_option('debug')],
+     'enable deprecated': [get_option('deprecated')],
+     'enable modules': [modules_enabled],
+     'enable gtk-doc': [get_option('gtk_doc')],
+     'enable doxygen': [get_option('doxygen')],
+     'enable introspection': [get_option('introspection')],
+     'enable RAD load/save': [get_option('radiance')],
+     'enable Analyze7 load/save': [get_option('analyze')],
+     'enable PPM load/save': [get_option('ppm')],
+     'enable GIF load': [get_option('nsgif')],
+    },
+  'Optional external packages':
+    {'use fftw for FFTs': [fftw_dep.found()],
+     'accelerate loops with ORC': [orc_dep.found()],
+     'ICC profile support with lcms': [lcms_dep.found()],
+     'zlib': [zlib_dep.found()],
+     'text rendering with pangocairo': [pangocairo_dep.found()],
+     'font file support with fontconfig': [fontconfig_found],
+     'EXIF metadata support with libexif': [libexif_dep.found()],
+    },
+  'External image format libraries':
+    {'JPEG load/save with libjpeg': [libjpeg_dep.found()],
+     'JXL load/save with libjxl': [libjxl_found, libjxl_module ? ' (dynamic module)' : ''],
+     'JPEG2000 load/save with OpenJPEG': [libopenjp2_dep.found()],
+     'PNG load/save with libspng': [spng_found],
+     'PNG load/save with libpng': [png_dep.found()],
+     'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
+     'TIFF load/save with libtiff': [libtiff_dep.found()],
+     'image pyramid save with libgsf': [gsf_dep.found()],
+     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), libheif_module ? ' (dynamic module)' : ''],
+     'WebP load/save with libwebp': [libwebp_dep.found()],
+     'PDF load with PDFium': [pdfium_dep.found()],
+     'PDF load with poppler-glib': [libpoppler_found, libpoppler_module ? ' (dynamic module)' : ''],
+     'SVG load with librsvg': [librsvg_found],
+     'EXR load with OpenEXR': [openexr_dep.found()],
+     'OpenSlide load': [openslide_dep.found(), openslide_module ? ' (dynamic module)' : ''],
+     'Matlab load with libmatio': [matio_dep.found()],
+     'NIfTI load/save with niftiio': [libnifti_dep.found()],
+     'FITS load/save with cfitsio': [cfitsio_dep.found()],
+     'GIF save with cgif': [cgif_dep.found()],
+     'selected Magick package': [magick_found ? magick_dep.name() : 'none', magick_module ? ' (dynamic module)' : ''],
+     'Magick API version': [magick_found ? 'magick' + magick_dep.version().split('.')[0] : 'none'],
+     'Magick load': [magick_found and 'load' in get_option('magick-features')],
+     'Magick save': [magick_found and 'save' in get_option('magick-features')],
+    },
+}
+
+foreach section_title, section : build_summary
+    summary(section, bool_yn: true, list_sep: '', section: section_title)
+endforeach
+
 subdir('libvips')
 if get_option('gtk_doc')
     subdir('doc')
@@ -634,55 +687,3 @@ subdir('po')
 subdir('tools')
 subdir('test')
 subdir('fuzz')
-
-build_summary = {
-  'Build options':
-    {'enable debug': get_option('debug'),
-     'enable deprecated': get_option('deprecated'),
-     'enable modules': modules_enabled,
-     'enable gtk-doc': get_option('gtk_doc'),
-     'enable doxygen': get_option('doxygen'),
-     'enable introspection': get_option('introspection'),
-     'enable RAD load/save': get_option('radiance'),
-     'enable Analyze7 load/save': get_option('analyze'),
-     'enable PPM load/save': get_option('ppm'),
-     'enable GIF load': get_option('nsgif'),
-    },
-  'Optional external packages':
-    {'use fftw for FFTs': fftw_dep.found(),
-     'accelerate loops with ORC': orc_dep.found(),
-     'ICC profile support with lcms': lcms_dep.found(),
-     'zlib': zlib_dep.found(),
-     'text rendering with pangocairo': pangocairo_dep.found(),
-     'font file support with fontconfig': fontconfig_found,
-     'EXIF metadata support with libexif ': libexif_dep.found(),
-    },
-  'External image format libraries':
-    {'JPEG load/save with libjpeg': libjpeg_dep.found(),
-     'JXL load/save with libjxl': [libjxl_found, libjxl_module ? ' (dynamic module)' : ''],
-     'JPEG2000 load/save with OpenJPEG': libopenjp2_dep.found(),
-     'PNG load/save with libspng': spng_found,
-     'PNG load/save with libpng': png_dep.found(),
-     'selected quantisation package': quantisation_package.found() ? quantisation_package.name() : 'none',
-     'TIFF load/save with libtiff': libtiff_dep.found(),
-     'image pyramid save with libgsf': gsf_dep.found(),
-     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), libheif_module ? ' (dynamic module)' : ''],
-     'WebP load/save with libwebp': libwebp_dep.found(),
-     'PDF load with PDFium': pdfium_dep.found(),
-     'PDF load with poppler-glib': [libpoppler_found, libpoppler_module ? ' (dynamic module)' : ''],
-     'SVG load with librsvg': librsvg_found,
-     'EXR load with OpenEXR': openexr_dep.found(),
-     'OpenSlide load': [openslide_dep.found(), openslide_module ? ' (dynamic module)' : ''],
-     'Matlab load with libmatio': matio_dep.found(),
-     'NIfTI load/save with niftiio': libnifti_dep.found(),
-     'FITS load/save with cfitsio': cfitsio_dep.found(),
-     'GIF save with cgif': cgif_dep.found(),
-     'selected Magick package': [magick_found ? magick_dep.name() : 'none', magick_module ? ' (dynamic module)' : ''],
-     'Magick load': magick_found and 'load' in get_option('magick-features'),
-     'Magick save': magick_found and 'save' in get_option('magick-features'),
-    },
-}
-
-foreach section_title, section : build_summary
-    summary(section, bool_yn: true, list_sep: '', section: section_title)
-endforeach
