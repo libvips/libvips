@@ -92,7 +92,10 @@ foreach _, section : build_summary
            continue
         endif
 
-        vips_verbose_config += '@0@: @1@@2@'.format(key, arr[0], arr.length() > 1 ? arr[1] : '')
+        vips_verbose_config += '@0@: @1@@2@@3@@4@'.format(key, arr[0],
+            arr.length() > 1 ? arr[1] : '',
+            arr.length() > 2 ? arr[2] : '',
+            arr.length() > 3 ? arr[3] : '')
     endforeach
 endforeach
 
