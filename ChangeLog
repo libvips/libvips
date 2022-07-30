@@ -1,3 +1,9 @@
+master
+
+- version bump to 8.14
+- remove autotools
+- jp2ksave defaults to chroma subsample off
+
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
 
