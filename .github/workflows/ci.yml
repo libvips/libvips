@@ -78,14 +78,9 @@ jobs:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
             clang-14 libomp-14-dev lld-14 llvm-14
 
-      - name: Prepare Ubuntu environment
-        if: runner.os == 'Linux'
-        run: echo "JOBS=$(nproc)" >> $GITHUB_ENV
-
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
-          echo "JOBS=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=$(brew --prefix jpeg-turbo)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Prepare sanitizers
