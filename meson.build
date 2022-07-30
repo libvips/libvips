@@ -171,7 +171,7 @@ endif
 magick_found = not get_option('magick').disabled() and magick_dep.found()
 magick_module = false
 if magick_found
-    magick_module = magick_found and modules_enabled and not get_option('magick-module').disabled()
+    magick_module = modules_enabled and not get_option('magick-module').disabled()
     if magick_module
         cfg_var.set('MAGICK_MODULE', '1')
     else
@@ -541,7 +541,8 @@ if nifti_prefix_dir != '' and not libnifti_dep.found()
     znz_lib = cc.find_library('znz', has_headers: ['znzlib.h'], header_include_directories: nifti_inc, required: get_option('nifti'))
     libnifti_dep = declare_dependency(dependencies: [nifti_lib, znz_lib], include_directories: nifti_inc)
 endif
-if not get_option('nifti').disabled() and libnifti_dep.found()
+libnifti_found = not get_option('nifti').disabled() and libnifti_dep.found()
+if libnifti_found
     libvips_deps += libnifti_dep
     cfg_var.set('HAVE_NIFTI', '1')
 endif
@@ -663,7 +664,7 @@ build_summary = {
      'EXR load with OpenEXR': [openexr_dep.found()],
      'OpenSlide load': [openslide_dep.found(), ' (dynamic module: ', openslide_module, ')'],
      'Matlab load with libmatio': [matio_dep.found()],
-     'NIfTI load/save with niftiio': [libnifti_dep.found()],
+     'NIfTI load/save with niftiio': [libnifti_found],
      'FITS load/save with cfitsio': [cfitsio_dep.found()],
      'GIF save with cgif': [cgif_dep.found()],
      'selected Magick package': [magick_found ? magick_dep.name() : 'none', ' (dynamic module: ', magick_module, ')'],
