@@ -829,16 +829,7 @@ static gboolean
 vips_lib_config_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	char **split;
-	char *config;
-
-	split = g_strsplit( VIPS_CONFIG, ", ", -1 );
-	config = g_strjoinv( "\n", split );
-
-	printf( "%s\n", config );
-	g_strfreev( split );
-	g_free( config );
-
+	printf( "%s\n", VIPS_CONFIG );
 	vips_shutdown();
 	exit( 0 );
 }

@@ -108,7 +108,7 @@ version_data.set('VIPS_MICRO_VERSION', version_patch)
 version_data.set('LIBRARY_CURRENT', library_current)
 version_data.set('LIBRARY_REVISION', library_revision)
 version_data.set('LIBRARY_AGE', library_age)
-version_data.set('VIPS_CONFIG', ', '.join(vips_verbose_config))
+version_data.set('VIPS_CONFIG', '\\n'.join(vips_verbose_config))
 version_data.set10('VIPS_ENABLE_DEPRECATED', get_option('deprecated'))
 
 version_header = configure_file(
