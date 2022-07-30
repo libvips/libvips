@@ -276,7 +276,7 @@ if libexif_dep.found()
     if libexif_dep.version().version_compare('>=0.6.22')
         cfg_var.set('HAVE_EXIF_0_6_22', '1')
     endif
-    # 0.6.23 adds some OffsetTime* ASCII tags
+    # 0.6.23 adds some OffsetTime* and GPS* ASCII tags
     if libexif_dep.version().version_compare('>=0.6.23')
         cfg_var.set('HAVE_EXIF_0_6_23', '1')
     endif

@@ -347,25 +347,63 @@ class TestForeign:
     @skip_if_no("jpegsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libexif >= 0.6.22")
     def test_jpegsave_exif_2_3_ascii(self):
-        def exif_valid(im):
-            assert im.get("exif-ifd2-CameraOwnerName").find("ASCII, 14 components, 14 bytes") != -1
-            assert im.get("exif-ifd2-BodySerialNumber").find("ASCII, 14 components, 14 bytes") != -1
-            assert im.get("exif-ifd2-LensMake").find("ASCII, 14 components, 14 bytes") != -1
-            assert im.get("exif-ifd2-LensModel").find("ASCII, 14 components, 14 bytes") != -1
-            assert im.get("exif-ifd2-LensSerialNumber").find("ASCII, 14 components, 14 bytes") != -1
+        def exif_valid(exif_tags, im):
+            for exif_tag in exif_tags:
+                assert im.get(exif_tag).find("ASCII, 14 components, 14 bytes") != -1
 
         # first make sure we have exif support
         im = pyvips.Image.new_from_file(JPEG_FILE)
         if im.get_typeof("exif-ifd0-Orientation") != 0:
             x = im.copy()
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-CameraOwnerName", "hello ( there")
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-BodySerialNumber", "hello ( there")
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensMake", "hello ( there")
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensModel", "hello ( there")
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-LensSerialNumber", "hello ( there")
+            exif_tags = [
+                "exif-ifd2-CameraOwnerName",
+                "exif-ifd2-BodySerialNumber",
+                "exif-ifd2-LensMake",
+                "exif-ifd2-LensModel",
+                "exif-ifd2-LensSerialNumber",
+            ]
+            for exif_tag in exif_tags:
+                x.set_type(pyvips.GValue.gstr_type, exif_tag, "hello ( there")
             buf = x.jpegsave_buffer()
             y = pyvips.Image.new_from_buffer(buf, "")
-            exif_valid(y)
+            exif_valid(exif_tags, y)
+
+    @skip_if_no("jpegsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libexif >= 0.6.23")
+    def test_jpegsave_exif_2_3_ascii_2(self):
+        def exif_valid(exif_tags, im):
+            for exif_tag in exif_tags:
+                assert im.get(exif_tag).find("ASCII, 14 components, 14 bytes") != -1
+
+        # first make sure we have exif support
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+        if im.get_typeof("exif-ifd0-Orientation") != 0:
+            x = im.copy()
+            exif_tags = [
+                "exif-ifd2-OffsetTime",
+                "exif-ifd2-OffsetTimeOriginal",
+                "exif-ifd2-OffsetTimeDigitized",
+                "exif-ifd3-GPSLatitudeRef",
+                "exif-ifd3-GPSLongitudeRef",
+                "exif-ifd3-GPSSatellites",
+                "exif-ifd3-GPSStatus",
+                "exif-ifd3-GPSMeasureMode",
+                "exif-ifd3-GPSSpeedRef",
+                "exif-ifd3-GPSTrackRef",
+                "exif-ifd3-GPSImgDirectionRef",
+                "exif-ifd3-GPSMapDatum",
+                "exif-ifd3-GPSDestLatitudeRef",
+                "exif-ifd3-GPSDestLongitudeRef",
+                "exif-ifd3-GPSDestBearingRef",
+                "exif-ifd3-GPSDestDistanceRef",
+                "exif-ifd3-GPSDateStamp",
+            ]
+            for exif_tag in exif_tags:
+                x.set_type(pyvips.GValue.gstr_type, exif_tag, "hello ( there")
+
+            buf = x.jpegsave_buffer()
+            y = pyvips.Image.new_from_buffer(buf, "")
+            exif_valid(exif_tags, y)
 
     @skip_if_no("jpegload")
     def test_truncated(self):
