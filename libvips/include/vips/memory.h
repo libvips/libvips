@@ -59,10 +59,12 @@ G_STMT_START { \
         } \
 } G_STMT_END
 
+#define VIPS_MALLOC( OBJ, S ) \
+	(vips_malloc( VIPS_OBJECT( OBJ ), S))
 #define VIPS_NEW( OBJ, T ) \
-	((T *) vips_malloc( VIPS_OBJECT( OBJ ), sizeof( T )))
+	((T *) VIPS_MALLOC( OBJ, sizeof( T )))
 #define VIPS_ARRAY( OBJ, N, T ) \
-	((T *) vips_malloc( VIPS_OBJECT( OBJ ), (N) * sizeof( T )))
+	((T *) VIPS_MALLOC( OBJ, (N) * sizeof( T )))
 
 VIPS_API
 void *vips_malloc( VipsObject *object, size_t size );
