@@ -168,8 +168,11 @@ if not magick_dep.found()
     # very old versions called it "ImageMagick"
     magick_dep = dependency('ImageMagick', required: get_option('magick'))
 endif
-if not get_option('magick').disabled() and magick_dep.found()
-    if modules_enabled and not get_option('magick-module').disabled()
+magick_found = not get_option('magick').disabled() and magick_dep.found()
+magick_module = false
+if magick_found
+    magick_module = modules_enabled and not get_option('magick-module').disabled()
+    if magick_module
         cfg_var.set('MAGICK_MODULE', '1')
     else
         libvips_deps += magick_dep
@@ -301,14 +304,15 @@ spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
     spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
-if not get_option('spng').disabled() and spng_dep.found()
+spng_found = not get_option('spng').disabled() and spng_dep.found()
+if spng_found
     libvips_deps += spng_dep
     cfg_var.set('HAVE_SPNG', '1')
 endif
 
 # only if libspng not found
 png_dep = disabler()
-if not spng_dep.found()
+if not spng_found
     png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
     if png_dep.found()
         libvips_deps += png_dep
@@ -340,7 +344,8 @@ endif
 # text rendering with fontconfig requires pangoft2
 pangoft2_dep = dependency('pangoft2', version: '>=1.32.6', required: get_option('fontconfig'))
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
-if pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
+fontconfig_found = pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
+if fontconfig_found
     libvips_deps += pangoft2_dep
     libvips_deps += fontconfig_dep
     cfg_var.set('HAVE_FONTCONFIG', '1')
@@ -359,15 +364,18 @@ endif
 # 2.40.3 so we get the UNLIMITED open flag
 librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_option('rsvg'))
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
-if librsvg_dep.found() and cairo_dep.found()
+librsvg_found = librsvg_dep.found() and cairo_dep.found()
+if librsvg_found
     libvips_deps += librsvg_dep
     libvips_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', '1')
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
+openslide_module = false
 if openslide_dep.found()
-    if modules_enabled and not get_option('openslide-module').disabled()
+    openslide_module = modules_enabled and not get_option('openslide-module').disabled()
+    if openslide_module
         cfg_var.set('OPENSLIDE_MODULE', '1')
     else
         libvips_deps += openslide_dep
@@ -430,8 +438,10 @@ endif
 
 
 libheif_dep = dependency('libheif', version: '>=0.4.11', required: get_option('heif'))
+libheif_module = false
 if libheif_dep.found()
-    if modules_enabled and not get_option('heif-module').disabled()
+    libheif_module = modules_enabled and not get_option('heif-module').disabled()
+    if libheif_module
         cfg_var.set('HEIF_MODULE', '1')
     else
         libvips_deps += libheif_dep
@@ -460,8 +470,11 @@ endif
 
 libjxl_dep = dependency('libjxl', version: '>=0.5', required: get_option('jpeg-xl'))
 libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.5', required: get_option('jpeg-xl'))
-if libjxl_dep.found() and libjxl_threads_dep.found()
-    if modules_enabled and not get_option('jpeg-xl-module').disabled()
+libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
+libjxl_module = false
+if libjxl_found
+    libjxl_module = modules_enabled and not get_option('jpeg-xl-module').disabled()
+    if libjxl_module
         cfg_var.set('LIBJXL_MODULE', '1')
     else
         libvips_deps += libjxl_dep
@@ -474,13 +487,17 @@ if libjxl_dep.found() and libjxl_threads_dep.found()
 endif
 
 libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
+libpoppler_found = false
+libpoppler_module = false
 if not cairo_dep.found()
     cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
 endif
 if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
     message('PDFium has been found, ignoring Poppler support')
 elif libpoppler_dep.found() and cairo_dep.found()
-    if modules_enabled and not get_option('poppler-module').disabled()
+    libpoppler_found = true
+    libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
+    if libpoppler_module
         cfg_var.set('POPPLER_MODULE', '1')
     else
         libvips_deps += libpoppler_dep
@@ -524,7 +541,8 @@ if nifti_prefix_dir != '' and not libnifti_dep.found()
     znz_lib = cc.find_library('znz', has_headers: ['znzlib.h'], header_include_directories: nifti_inc, required: get_option('nifti'))
     libnifti_dep = declare_dependency(dependencies: [nifti_lib, znz_lib], include_directories: nifti_inc)
 endif
-if not get_option('nifti').disabled() and libnifti_dep.found()
+libnifti_found = not get_option('nifti').disabled() and libnifti_dep.found()
+if libnifti_found
     libvips_deps += libnifti_dep
     cfg_var.set('HAVE_NIFTI', '1')
 endif
@@ -606,6 +624,59 @@ config_dep = declare_dependency(
 )
 
 libvips_deps += config_dep
+
+build_summary = {
+  'Build options':
+    {'enable debug': [get_option('debug')],
+     'enable deprecated': [get_option('deprecated')],
+     'enable modules': [modules_enabled],
+     'enable gtk-doc': [get_option('gtk_doc')],
+     'enable doxygen': [get_option('doxygen')],
+     'enable introspection': [get_option('introspection')],
+     'enable RAD load/save': [get_option('radiance')],
+     'enable Analyze7 load/save': [get_option('analyze')],
+     'enable PPM load/save': [get_option('ppm')],
+     'enable GIF load': [get_option('nsgif')],
+    },
+  'Optional external packages':
+    {'use fftw for FFTs': [fftw_dep.found()],
+     'accelerate loops with ORC': [orc_dep.found()],
+     'ICC profile support with lcms': [lcms_dep.found()],
+     'zlib': [zlib_dep.found()],
+     'text rendering with pangocairo': [pangocairo_dep.found()],
+     'font file support with fontconfig': [fontconfig_found],
+     'EXIF metadata support with libexif': [libexif_dep.found()],
+    },
+  'External image format libraries':
+    {'JPEG load/save with libjpeg': [libjpeg_dep.found()],
+     'JXL load/save with libjxl': [libjxl_found, ' (dynamic module: ', libjxl_module, ')'],
+     'JPEG2000 load/save with OpenJPEG': [libopenjp2_dep.found()],
+     'PNG load/save with libspng': [spng_found],
+     'PNG load/save with libpng': [png_dep.found()],
+     'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
+     'TIFF load/save with libtiff': [libtiff_dep.found()],
+     'image pyramid save with libgsf': [gsf_dep.found()],
+     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), ' (dynamic module: ', libheif_module, ')'],
+     'WebP load/save with libwebp': [libwebp_dep.found()],
+     'PDF load with PDFium': [pdfium_dep.found()],
+     'PDF load with poppler-glib': [libpoppler_found, ' (dynamic module: ', libpoppler_module, ')'],
+     'SVG load with librsvg': [librsvg_found],
+     'EXR load with OpenEXR': [openexr_dep.found()],
+     'OpenSlide load': [openslide_dep.found(), ' (dynamic module: ', openslide_module, ')'],
+     'Matlab load with libmatio': [matio_dep.found()],
+     'NIfTI load/save with niftiio': [libnifti_found],
+     'FITS load/save with cfitsio': [cfitsio_dep.found()],
+     'GIF save with cgif': [cgif_dep.found()],
+     'selected Magick package': [magick_found ? magick_dep.name() : 'none', ' (dynamic module: ', magick_module, ')'],
+     'Magick API version': [magick_found ? 'magick' + magick_dep.version().split('.')[0] : 'none'],
+     'Magick load': [magick_found and 'load' in get_option('magick-features')],
+     'Magick save': [magick_found and 'save' in get_option('magick-features')],
+    },
+}
+
+foreach section_title, section : build_summary
+    summary(section, bool_yn: true, list_sep: '', section: section_title)
+endforeach
 
 subdir('libvips')
 if get_option('gtk_doc')

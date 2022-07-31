@@ -82,7 +82,7 @@ magick_module_headers = files(
     'magick.h',
 )
 
-if not modules_enabled or get_option('magick-module').disabled()
+if not magick_module
     foreign_sources += magick_module_sources
     foreign_headers += magick_module_headers
 endif
@@ -92,7 +92,7 @@ jpeg_xl_module_sources = files(
     'jxlsave.c',
 )
 
-if not modules_enabled or get_option('jpeg-xl-module').disabled()
+if not libjxl_module
     foreign_sources += jpeg_xl_module_sources
 endif
 
@@ -101,7 +101,7 @@ heif_module_sources = files(
     'heifsave.c',
 )
 
-if not modules_enabled or get_option('heif-module').disabled()
+if not libheif_module
     foreign_sources += heif_module_sources
 endif
 
@@ -109,7 +109,7 @@ poppler_module_sources = files(
     'popplerload.c',
 )
 
-if not modules_enabled or get_option('poppler-module').disabled()
+if not libpoppler_module
     foreign_sources += poppler_module_sources
 endif
 
@@ -117,7 +117,7 @@ openslide_module_sources = files(
     'openslideload.c',
 )
 
-if not modules_enabled or get_option('openslide-module').disabled()
+if not openslide_module
     foreign_sources += openslide_module_sources
 endif
 
