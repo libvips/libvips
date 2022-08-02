@@ -49,6 +49,8 @@
  * 	- redone as a class
  * 2/7/17
  * 	- remove pts for a small speedup
+ * 2/8/22 kleisauke
+ * 	- bake the scale into the mask
  */
 
 /*
@@ -162,12 +164,10 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 		double sum; \
 		int i; \
 		\
-		sum = 0; \
+		sum = offset; \
 		for ( i = 0; i < nnz; i++ ) \
 			sum += t[i] * p[offsets[i]]; \
  		\
-		sum = (sum / scale) + offset; \
-		\
 		q[x] = sum; \
 		p += 1; \
 	} \
@@ -182,7 +182,6 @@ vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	VipsConvf *convf = (VipsConvf *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convf;
 	VipsImage *M = convolution->M;
-	double scale = vips_image_get_scale( M ); 
 	double offset = vips_image_get_offset( M ); 
 	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
@@ -286,7 +285,8 @@ vips_convf_build( VipsObject *object )
 	VipsImage *M;
 	double *coeff;
 	int ne;
-        int i;
+	int i;
+	double scale;
 
 	if( VIPS_OBJECT_CLASS( vips_convf_parent_class )->build( object ) )
 		return( -1 );
@@ -294,14 +294,21 @@ vips_convf_build( VipsObject *object )
 	M = convolution->M;
 	coeff = (double *) VIPS_IMAGE_ADDR( M, 0, 0 );
 	ne = M->Xsize * M->Ysize;
-        if( !(convf->coeff = VIPS_ARRAY( object, ne, double )) ||
-        	!(convf->coeff_pos = VIPS_ARRAY( object, ne, int )) )
-                return( -1 );
 
-        /* Find non-zero mask elements.
-         */
-        for( i = 0; i < ne; i++ )
-                if( coeff[i] ) {
+	/* Bake the scale into the mask.
+	 */
+	scale = vips_image_get_scale( M );
+	for( i = 0; i < ne; i++ )
+		coeff[i] /= scale;
+
+	if( !(convf->coeff = VIPS_ARRAY( object, ne, double )) ||
+		!(convf->coeff_pos = VIPS_ARRAY( object, ne, int )) )
+			return( -1 );
+
+	/* Find non-zero mask elements.
+	 */
+	for( i = 0; i < ne; i++ )
+		if( coeff[i] ) {
 			convf->coeff[convf->nnz] = coeff[i];
 			convf->coeff_pos[convf->nnz] = i;
 			convf->nnz += 1;
