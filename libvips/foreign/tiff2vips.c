@@ -1787,6 +1787,77 @@ rtiff_seq_start( VipsImage *out, void *a, void *b )
 }
 
 static int
+rtiff_decompress_jpeg( Rtiff *rtiff, )
+{
+        void *tables;
+        uint32_t tables_len;
+        struct jpeg_decompress_struct cinfo = { 0 };
+
+        cinfo.err = jpeg_std_error( &jpeg->eman.pub );
+
+          jpeg_std_error(&jerr->base);
+  jerr->base.error_exit = my_error_exit;
+  jerr->base.output_message = my_output_message;
+  jerr->base.emit_message = my_emit_message;
+
+	jpeg->eman.pub.error_exit = vips__new_error_exit;
+	jpeg->eman.pub.emit_message = readjpeg_emit_message;
+	jpeg->eman.pub.output_message = vips__new_output_message;
+
+        cinfo.err = error_handler_init(&dc->jerr, env);
+        jpeg_create_decompress( &cinfo );
+
+
+        /* Tables are optional.
+         */
+        tables = NULL;
+        tables_len = 0;
+        (void) TIFFGetField( rtiff->tiff, 
+                TIFFTAG_JPEGTABLES, &tables_len, &tables );
+
+
+        if( tables ) {
+                _openslide_jpeg_mem_src(cinfo, (void *) tables, tables_len );
+                if( jpeg_read_header( &cinfo, FALSE ) != 
+                        JPEG_HEADER_TABLES_ONLY ) {
+                        vips_error( "tiff2vips", 
+                                "%s", _( "can't load JPEG tables" ) ); 
+                        return( -1 );
+                }
+        }
+
+        _openslide_jpeg_mem_src( cinfo, (void *) buf, buflen);
+
+            // read header
+    if (jpeg_read_header(cinfo, true) != JPEG_HEADER_OK) {
+      g_set_error(err, OPENSLIDE_ERROR, OPENSLIDE_ERROR_FAILED,
+                  "Couldn't read JPEG header");
+      goto DONE;
+    }
+
+    cinfo->jpeg_color_space = tiffl->photometric == PHOTOMETRIC_YCBCR ? JCS_YCbCr : JCS_RGB
+
+    // decompress
+    if (!_openslide_jpeg_decompress_run(dc, dest, false, w, h, err)) {
+      goto DONE;
+    }
+    result = true;
+  } else {
+    // setjmp has returned again
+    _openslide_jpeg_propagate_error(err, dc);
+  }
+
+DONE:
+  _openslide_jpeg_decompress_destroy(dc);
+
+  return result;
+
+}
+
+
+
+
+static int
 rtiff_decompress_tile( Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out )
 {
 	if( rtiff->header.we_decompress ) {
@@ -2449,7 +2520,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	 * function runs inside the cache lock. 
 	 */
 	if( rtiff->header.separate ) {
-		if( !(rtiff->plane_buf = vips_malloc( VIPS_OBJECT( out ), 
+		if( !(rtiff->plane_buf = VIPS_MALLOC( out, 
 			rtiff->header.read_size )) ) 
 			return( -1 );
 	}
@@ -2471,8 +2542,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		if( rtiff->header.separate )
 			size *= rtiff->header.samples_per_pixel;
 
-		if( !(rtiff->contig_buf = 
-			vips_malloc( VIPS_OBJECT( out ), size )) ) 
+		if( !(rtiff->contig_buf = VIPS_MALLOC( out, size )) ) 
 			return( -1 );
 	}
 
