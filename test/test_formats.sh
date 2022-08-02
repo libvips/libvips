@@ -204,7 +204,7 @@ if test_supported matload; then
 	# test blocked and untrusted
 	printf "testing VIPS_BLOCK_UNTRUSTED with matio ... "
 	export VIPS_BLOCK_UNTRUSTED=1
-	if $vips copy $matlab $tmp/block.png; then
+	if $vips matload $matlab $tmp/block.png; then
 		echo "failed to block matload"
 		exit 1
 	fi

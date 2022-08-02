@@ -112,6 +112,8 @@
  * 	- set resolution unit from JFIF 
  * 24/7/21
  * 	- add fail_on support
+ * 2/8/22       
+ *      - add "unlimited"
  */
 
 /*
@@ -169,6 +171,8 @@
 /* Stuff we track during a read.
  */
 typedef struct _ReadJpeg {
+        VipsImage *out;
+
 	/* Shrink by this much during load. 1, 2, 4, 8.
 	 */
 	int shrink;
@@ -189,6 +193,10 @@ typedef struct _ReadJpeg {
 	 * during load.
 	 */
 	gboolean autorotate;
+
+	/* Remove DoS limits.
+	 */
+	gboolean unlimited;
 
 	/* cinfo->output_width and height can be larger than we want since
 	 * libjpeg rounds up on shrink-on-load. This is the real size we will
@@ -251,8 +259,12 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 		src->pub.bytes_in_buffer = bytes_read;
 	}
 	else {
-		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED )
+		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
+                        /* Knock the output out of cache.
+                         */
+                        vips_foreign_load_invalidate( src->jpeg->out );
 			ERREXIT( cinfo, JERR_INPUT_EOF );
+                }
 		else
 			WARNMS( cinfo, JWRN_JPEG_EOF );
 
@@ -317,6 +329,8 @@ readjpeg_open_input( ReadJpeg *jpeg )
 static void
 readjpeg_emit_message( j_common_ptr cinfo, int msg_level )
 {
+        ReadJpeg *jpeg  = (ReadJpeg *) cinfo->client_data;
+
 	long num_warnings;
 
 	if( msg_level < 0 ) {
@@ -325,11 +339,13 @@ readjpeg_emit_message( j_common_ptr cinfo, int msg_level )
 		num_warnings = ++cinfo->err->num_warnings;
 
 		/* Corrupt files may give many warnings, the policy here is to
-		 * show only the first warning and treat many warnings as fatal.
+		 * show only the first warning and treat many warnings as fatal,
+                 * unless unlimited is set.
 		 */
 		if( num_warnings == 1 )
 			(*cinfo->err->output_message)( cinfo );
-		else if( num_warnings >= 100 )
+		else if( !jpeg ||
+                        (!jpeg->unlimited && num_warnings >= 100) )
 			cinfo->err->error_exit( cinfo );
 	}
 	else if( cinfo->err->trace_level >= msg_level )
@@ -381,13 +397,15 @@ readjpeg_minimise_cb( VipsImage *image, ReadJpeg *jpeg )
 
 static ReadJpeg *
 readjpeg_new( VipsSource *source, VipsImage *out, 
-	int shrink, VipsFailOn fail_on, gboolean autorotate )
+	int shrink, VipsFailOn fail_on, gboolean autorotate, 
+        gboolean unlimited )
 {
 	ReadJpeg *jpeg;
 
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
 
+	jpeg->out = out;
 	jpeg->source = source;
 	g_object_ref( source );
 	jpeg->shrink = shrink;
@@ -399,11 +417,8 @@ readjpeg_new( VipsSource *source, VipsImage *out,
 	jpeg->eman.fp = NULL;
 	jpeg->y_pos = 0;
 	jpeg->autorotate = autorotate;
-
-	/* This is used by the error handlers to signal invalidate on the
-	 * output image.
-	 */
-        jpeg->cinfo.client_data = out;
+	jpeg->unlimited = unlimited;
+        jpeg->cinfo.client_data = jpeg;
 
 	/* jpeg_create_decompress() can fail on some sanity checks. Don't
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
@@ -982,12 +997,12 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 int
 vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on, 
-	gboolean autorotate )
+	gboolean autorotate, gboolean unlimited )
 {
 	ReadJpeg *jpeg;
 
 	if( !(jpeg = readjpeg_new( source, out, shrink, fail_on, 
-		autorotate )) )
+		autorotate, unlimited )) )
 		return( -1 );
 
 	/* Here for longjmp() from vips__new_error_exit() during
