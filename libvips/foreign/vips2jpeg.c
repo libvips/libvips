@@ -173,12 +173,6 @@ vips__new_output_message( j_common_ptr cinfo )
 #ifdef DEBUG
 	printf( "vips__new_output_message: \"%s\"\n", buffer );
 #endif /*DEBUG*/
-
-	/* This is run for things like file truncated. Signal invalidate to
-	 * force this op out of cache. 
-	 */
-        if( cinfo->client_data )
-		vips_foreign_load_invalidate( VIPS_IMAGE( cinfo->client_data ) );
 }
 
 /* New error_exit handler.
