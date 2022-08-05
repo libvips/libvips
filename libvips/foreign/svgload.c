@@ -573,10 +573,11 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	int y;
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_svg_generate:\n     "
-		"left = %d, top = %d, width = %d, height = %d\n", 
-		r->left, r->top, r->width, r->height ); 
 #endif /*DEBUG*/
+	printf( "vips_foreign_load_svg_generate: %p \n     "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		svg,
+		r->left, r->top, r->width, r->height ); 
 
 	/* rsvg won't always paint the background.
 	 */

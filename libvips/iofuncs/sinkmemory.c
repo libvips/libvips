@@ -345,6 +345,8 @@ vips_sink_memory( VipsImage *image )
 
 	sink_memory_free( &memory );
 
+	vips_image_minimise_all( image );
+
 	VIPS_DEBUG_MSG( "vips_sink_memory: done\n" );
 
 	return( result );

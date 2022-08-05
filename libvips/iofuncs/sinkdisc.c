@@ -535,5 +535,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 
 	write_free( &write );
 
+	vips_image_minimise_all( im );
+
 	return( result );
 }
