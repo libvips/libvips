@@ -3,6 +3,7 @@
 - add a summary table at the end of configure in meson
 - fix libpng fallback when spng is disabled in meson
 - add "unlimited" to jpegload
+- better 0 detection in unpremultiply
 
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]

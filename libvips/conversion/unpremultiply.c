@@ -9,6 +9,8 @@
  * 	- match normalised alpha to output type
  * 27/2/21 jjonesrs
  * 	- revise range clipping and 1/x, again
+ * 8/8/22
+ *      - look for alpha near 0, not just exactly 0
  */
 
 /*
@@ -123,6 +125,55 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+/* For float-style images, we need to check for alpha near zero, or we'll get
+ * +/- Inf in the output.
+ */
+#define FUNPRE_MANY( IN, OUT ) { \
+	IN * restrict p = (IN *) in; \
+	OUT * restrict q = (OUT *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		IN alpha = p[alpha_band]; \
+		OUT factor = VIPS_ABS( alpha ) < 0.01 ? 0 : max_alpha / alpha; \
+		\
+		for( i = 0; i < alpha_band; i++ ) \
+			q[i] = factor * p[i]; \
+		q[alpha_band] = VIPS_CLIP( 0, alpha, max_alpha ); \
+		for( i = alpha_band + 1; i < bands; i++ ) \
+			q[i] = p[i]; \
+		\
+		p += bands; \
+		q += bands; \
+	} \
+}
+
+#define FUNPRE_RGBA( IN, OUT ) { \
+	IN * restrict p = (IN *) in; \
+	OUT * restrict q = (OUT *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		IN alpha = p[3]; \
+		OUT factor = VIPS_ABS( alpha ) < 0.01 ? 0 : max_alpha / alpha; \
+		\
+		q[0] = factor * p[0]; \
+		q[1] = factor * p[1]; \
+		q[2] = factor * p[2]; \
+		q[3] = VIPS_CLIP( 0, alpha, max_alpha ); \
+		\
+		p += 4; \
+		q += 4; \
+	} \
+}
+
+#define FUNPRE( IN, OUT ) { \
+	if( bands == 4 ) { \
+		FUNPRE_RGBA( IN, OUT ); \
+	} \
+	else { \
+		FUNPRE_MANY( IN, OUT ); \
+	} \
+}
+
 static int
 vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
@@ -171,11 +222,11 @@ vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			UNPRE( float, float ); 
+			FUNPRE( float, float ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			UNPRE( double, double ); 
+			FUNPRE( double, double ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
