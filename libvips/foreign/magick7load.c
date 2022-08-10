@@ -380,14 +380,14 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 
 	VIPS_ARG_INT( class, "page", 21,
 		_( "Page" ),
-		_( "Load this page from the file" ),
+		_( "First page to load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, page ),
 		0, 100000, 0 );
 
 	VIPS_ARG_INT( class, "n", 22,
 		_( "n" ),
-		_( "Load this many pages" ),
+		_( "Number of pages to load, -1 for all" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, n ),
 		-1, 100000, 1 );
@@ -868,7 +868,8 @@ G_DEFINE_TYPE( VipsForeignLoadMagick7Buffer, vips_foreign_load_magick7_buffer,
 static gboolean
 vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	return( len > 10 && magick_ismagick( (const unsigned char *) buf, len ) );
+	return( len > 10 && 
+                magick_ismagick( (const unsigned char *) buf, len ) );
 }
 
 static int

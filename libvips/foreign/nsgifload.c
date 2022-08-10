@@ -542,14 +542,14 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 
 	VIPS_ARG_INT( class, "page", 10,
 		_( "Page" ),
-		_( "Load this page from the file" ),
+		_( "First page to load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNsgif, page ),
 		0, 100000, 0 );
 
 	VIPS_ARG_INT( class, "n", 6,
 		_( "n" ),
-		_( "Load this many pages" ),
+		_( "Number of pages to load, -1 for all" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNsgif, n ),
 		-1, 100000, 1 );
