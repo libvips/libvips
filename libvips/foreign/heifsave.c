@@ -148,10 +148,10 @@ typedef struct _VipsForeignSaveHeif {
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
 
-/* Defined in heif2vips.c
+/* Defined in heifload.c
  */
-void vips__heif_error( struct heif_error *error );
 void vips__heif_image_print( struct heif_image *img );
+void vips__heif_error( struct heif_error *error );
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif, 
 	VIPS_TYPE_FOREIGN_SAVE );
@@ -179,7 +179,7 @@ typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
 /* String-based metadata fields we add.
  */
 typedef struct _VipsForeignSaveHeifMetadata {
-	const char *name;		/* as understood by libvips */
+	const char *name;		        /* as understood by libvips */
 	libheif_metadata_fn saver;		/* as understood by libheif */
 } VipsForeignSaveHeifMetadata;
 
@@ -263,10 +263,21 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 		options->save_alpha_channel = 1;
 
 #ifdef DEBUG
-	printf( "encoding ..\n" ); 
+{
+        GTimer *timer = g_timer_new();
+
+	printf( "calling heif_context_encode_image() ...\n" ); 
 #endif /*DEBUG*/
+
 	error = heif_context_encode_image( heif->ctx, 
 		heif->img, heif->encoder, options, &heif->handle );
+
+#ifdef DEBUG
+	printf( "... libheif took %.2g seconds\n", 
+                g_timer_elapsed( timer, NULL ) ); 
+        g_timer_destroy( timer );
+}
+#endif /*DEBUG*/
 
 	heif_encoding_options_free( options );
 
