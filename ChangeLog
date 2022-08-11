@@ -2,7 +2,9 @@ master
 
 - version bump to 8.14
 - remove autotools
-- jp2ksave defaults to chroma subsample off
+- remove various obsolete scripts
+- remove benchmark 
+- jp2ksave defaults to chroma subsample off, and jp2 write
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
 
