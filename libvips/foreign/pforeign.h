@@ -153,7 +153,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on, 
-	gboolean autorotate );
+	gboolean autorotate, gboolean unlimited );
 int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_source( VipsSource *source );

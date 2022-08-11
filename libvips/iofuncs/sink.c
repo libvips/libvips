@@ -529,6 +529,8 @@ vips_sink_tile( VipsImage *im,
 
 	sink_free( &sink );
 
+	vips_image_minimise_all( im );
+
 	return( result );
 }
 

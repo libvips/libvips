@@ -178,28 +178,25 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 
 	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
-		_( "Load this page from the file" ),
+		_( "First page to load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, page ),
 		0, 100000, 0 );
 
 	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
-		_( "Load this many pages" ),
+		_( "Number of pages to load, -1 for all" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, n ),
 		-1, 100000, 1 );
 
 	VIPS_ARG_DOUBLE( class, "scale", 22, 
 		_( "Scale" ), 
-		_( "Scale factor on load" ),
+		_( "Factor to scale by" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, scale ),
 		0.0, 1024.0, 1.0 );
 
-	/* Old and deprecated scaling API. A float param lets do
-	 * shrink-on-load for thumbnail faster and more accurately.
-	 */
 	VIPS_ARG_INT( class, "shrink", 23, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),

@@ -191,14 +191,14 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 
 	VIPS_ARG_INT( class, "page", 20, 
 		_( "Page" ), 
-		_( "Load this page from the image" ),
+		_( "First page to load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, page ),
 		0, 100000, 0 );
 
 	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
-		_( "Load this many pages" ),
+		_( "Number of pages to load, -1 for all" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, n ),
 		-1, 100000, 1 );
@@ -212,7 +212,7 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 
 	VIPS_ARG_INT( class, "subifd", 21,
 		_( "subifd" ),
-		_( "Select subifd index" ),
+		_( "Subifd index" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, subifd ),
 		-1, 100000, -1 );

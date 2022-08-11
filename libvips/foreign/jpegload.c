@@ -74,6 +74,10 @@ typedef struct _VipsForeignLoadJpeg {
 	 */
 	VipsSource *source;
 
+	/* Remove DoS limits.
+	 */
+	gboolean unlimited;
+
 	/* Shrink by this much during load.
 	 */
 	int shrink;
@@ -140,7 +144,7 @@ vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 
 	if( vips__jpeg_read_source( jpeg->source, 
 		load->out, TRUE, jpeg->shrink, load->fail_on, 
-		jpeg->autorotate ) )
+		jpeg->autorotate, jpeg->unlimited ) )
 		return( -1 );
 
 	return( 0 );
@@ -153,7 +157,7 @@ vips_foreign_load_jpeg_load( VipsForeignLoad *load )
 
 	if( vips__jpeg_read_source( jpeg->source,
 		load->real, FALSE, jpeg->shrink, load->fail_on, 
-		jpeg->autorotate ) )
+		jpeg->autorotate, jpeg->unlimited ) )
 		return( -1 );
 
 	return( 0 );
@@ -197,6 +201,13 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 		_( "Rotate image using exif orientation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadJpeg, autorotate ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "unlimited", 22,
+		_( "Unlimited" ),
+		_( "Remove all denial of service limits" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadJpeg, unlimited ),
 		FALSE );
 
 }

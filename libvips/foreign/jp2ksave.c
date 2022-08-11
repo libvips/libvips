@@ -141,7 +141,7 @@ vips_foreign_save_jp2k_dispose( GObject *gobject )
 }
 
 static OPJ_SIZE_T
-vips_foreign_save_jp2k_write_target( void *buffer, size_t length, void *client )
+vips_foreign_save_jp2k_target_write( void *buffer, size_t length, void *client )
 {
 	VipsTarget *target = VIPS_TARGET( client );
 
@@ -149,6 +149,28 @@ vips_foreign_save_jp2k_write_target( void *buffer, size_t length, void *client )
 		return( 0 );
 
 	return( length );
+}
+
+static OPJ_BOOL
+vips_foreign_save_jp2k_target_seek( off_t position, void *client )
+{
+	VipsTarget *target = VIPS_TARGET( client );
+
+	if( vips_target_seek( target, position, SEEK_SET ) < 0 )
+		return( FALSE );
+
+	return( TRUE );
+}
+
+static OPJ_OFF_T 
+vips_foreign_save_jp2k_target_skip( off_t offset, void *client)
+{
+	VipsTarget *target = VIPS_TARGET( client );
+
+	if( vips_target_seek( target, offset, SEEK_CUR ) < 0 )
+		return( -1 );
+
+        return( offset );
 }
 
 /* Make a libopenjp2 output stream that wraps a VipsTarget.
@@ -165,7 +187,11 @@ vips_foreign_save_jp2k_target( VipsTarget *target )
 
 	opj_stream_set_user_data( stream, target, NULL );
 	opj_stream_set_write_function( stream,
-		vips_foreign_save_jp2k_write_target );
+		vips_foreign_save_jp2k_target_write );
+	opj_stream_set_seek_function( stream,
+		vips_foreign_save_jp2k_target_seek );
+	opj_stream_set_skip_function( stream,
+		vips_foreign_save_jp2k_target_skip );
 
 	return( stream );
 }
@@ -182,16 +208,16 @@ static void
 vips_foreign_save_jp2k_warning_callback( const char *msg, void *client )
 {
 #ifdef DEBUG
-	g_warning( "jp2ksave: %s", msg );
 #endif /*DEBUG*/
+	g_warning( "jp2ksave: %s", msg );
 }
 
 static void
 vips_foreign_save_jp2k_info_callback( const char *msg, void *client )
 {
 #ifdef DEBUG
-	g_info( "jp2ksave: %s", msg );
 #endif /*DEBUG*/
+	g_info( "jp2ksave: %s", msg );
 }
 
 static void
@@ -795,8 +821,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->subsample =
 			!jp2k->lossless &&
 			jp2k->Q < 90 &&
-			save->ready->Xsize % 2 == 0 &&
-			save->ready->Ysize % 2 == 0 &&
 			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
 			 save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
 			save->ready->Bands == 3;
@@ -851,8 +875,11 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	/* Set up compressor.
 	 */
 
-	jp2k->codec = opj_create_compress( OPJ_CODEC_J2K );
+        /* Save as a jp2 file.
+         */
+	jp2k->codec = opj_create_compress( OPJ_CODEC_JP2 );
 	vips_foreign_save_jp2k_attach_handlers( jp2k->codec );
+
 	/* FALSE means don't alloc memory for image planes (we write in
 	 * tiles, not whole images).
 	 */
@@ -1345,6 +1372,8 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 		return( -1 );
 	}
 
+        /* tiff needs a jpeg2000 codestream, not a jp2 file.
+         */
 	compress.codec = opj_create_compress( OPJ_CODEC_J2K );
 	vips_foreign_save_jp2k_attach_handlers( compress.codec );
         if( !opj_setup_encoder( compress.codec,
@@ -1434,7 +1463,9 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
  * Use @tile_width and @tile_height to set the tile size. The default is 512.
  *
  * Chroma subsampling is normally disabled for compatibility. Set
- * @subsample_mode to auto to enable chroma subsample for Q < 90.
+ * @subsample_mode to auto to enable chroma subsample for Q < 90. Subsample
+ * mode uses YCC rather than RGB colourspace, and many jpeg2000 decoders do
+ * not support this.
  *
  * This operation always writes a pyramid.
  *

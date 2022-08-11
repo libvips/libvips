@@ -117,7 +117,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	if( !(source = vips_source_new_from_file( filename )) ) 
 		return( -1 );
 	if( vips__jpeg_read_source( source, out,
-		header_only, shrink, fail_on_warn, FALSE ) ) {
+		header_only, shrink, fail_on_warn, FALSE, FALSE ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}

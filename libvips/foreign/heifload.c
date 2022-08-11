@@ -1065,14 +1065,14 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 
 	VIPS_ARG_INT( class, "page", 2,
 		_( "Page" ),
-		_( "Load this page from the file" ),
+		_( "First page to load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, page ),
 		0, 100000, 0 );
 
 	VIPS_ARG_INT( class, "n", 3,
 		_( "n" ),
-		_( "Load this many pages" ),
+		_( "Number of pages to load, -1 for all" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, n ),
 		-1, 100000, 1 );

@@ -172,14 +172,6 @@ vips_extract_area_build( VipsObject *object )
 	return( 0 );
 }
 
-#ifdef __EMSCRIPTEN__
-static void
-vips_crop_class_intern_init_adapter( gpointer class, void *dummy )
-{
-	vips_extract_area_class_intern_init( class );
-}
-#endif
-
 static void
 vips_extract_area_class_init( VipsExtractAreaClass *class )
 {
@@ -290,11 +282,7 @@ vips_crop_get_type( void )
 		GType new_type = g_type_register_static_simple(	VIPS_TYPE_CONVERSION,
 			g_intern_static_string( "crop" ),
 			sizeof( VipsExtractAreaClass ),
-#ifdef __EMSCRIPTEN__
-			(GClassInitFunc) vips_crop_class_intern_init_adapter,
-#else
 			(GClassInitFunc)(void (*)(void)) vips_extract_area_class_intern_init,
-#endif
 			sizeof( VipsExtractArea ),
 #ifdef __EMSCRIPTEN__
 			(GInstanceInitFunc) vips_crop_init_adapter,
