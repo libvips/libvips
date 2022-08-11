@@ -795,8 +795,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->subsample =
 			!jp2k->lossless &&
 			jp2k->Q < 90 &&
-			save->ready->Xsize % 2 == 0 &&
-			save->ready->Ysize % 2 == 0 &&
 			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
 			 save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
 			save->ready->Bands == 3;
