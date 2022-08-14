@@ -484,6 +484,9 @@ if libjxl_found
     if cc.has_function('JxlEncoderInitBasicInfo', prefix: '#include <jxl/encode.h>', dependencies: libjxl_dep)
         cfg_var.set('HAVE_LIBJXL_JXLENCODERINITBASICINFO', '1')
     endif
+    if libjxl_dep.version().version_compare('>=0.7')
+        cfg_var.set('HAVE_LIBJXL_0_7', '1')
+    endif
 endif
 
 libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))

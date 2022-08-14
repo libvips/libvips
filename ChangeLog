@@ -16,6 +16,7 @@ master
 - better 0 detection in unpremultiply
 - fix low bitdepth spng save [jeffska]
 - fix PNG low bitdepth save of high bitdepth images
+- add support for libjxl 0.7 [kleisauke]
 
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]
