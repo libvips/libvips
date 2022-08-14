@@ -448,6 +448,12 @@ class TestForeign:
         len_mono1 = len(self.mono.write_to_buffer(".png", bitdepth=1))
         assert( len_mono1 < len_mono2 )
 
+        # take a 1-bit image to png and back
+        onebit = self.mono > 128
+        data = onebit.write_to_buffer(".png", bitdepth=1)
+        after = pyvips.Image.new_from_buffer(data, "")
+        assert( (onebit - after).abs().max() == 0 )
+
         # we can't test palette save since we can't be sure libimagequant is
         # available and there's no easy test for its presence
 

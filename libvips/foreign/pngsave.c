@@ -112,12 +112,22 @@ vips_foreign_save_png_build( VipsObject *object )
 	in = save->ready;
 	g_object_ref( in );
 
-	/* save->ready will have been converted to uint16 for high-bitdepth
-	 * formats (eg. float) ... we need to check Type to see if we want 
-	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
+	/* If no output bitdepth has been specified, use input Type to pick.
 	 */
-	if( in->Type == VIPS_INTERPRETATION_sRGB ||
-		in->Type == VIPS_INTERPRETATION_B_W ) {
+        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		png->bitdepth = 
+                        in->Type == VIPS_INTERPRETATION_RGB16 ||
+                        in->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+
+	/* Deprecated "colours" arg just sets bitdepth large enough to hold
+	 * that many colours.
+	 */
+        if( vips_object_argument_isset( object, "colours" ) ) 
+		png->bitdepth = ceil( log2( png->colours ) );
+
+	/* Cast in down to 8 bit if we can.
+	 */
+	if( png->bitdepth <= 8 ) { 
 		VipsImage *x;
 
 		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
@@ -128,21 +138,17 @@ vips_foreign_save_png_build( VipsObject *object )
 		in = x;
 	}
 
-	/* Deprecated "colours" arg just sets bitdepth large enough to hold
-	 * that many colours.
-	 */
-        if( vips_object_argument_isset( object, "colours" ) ) 
-		png->bitdepth = ceil( log2( png->colours ) );
-
-        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		png->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */
         if( in->Bands > 2 &&
 		png->bitdepth < 8 )
 		png->palette = TRUE;
+
+        /* Disable palettization for >8 bit save.
+         */
+        if( png->bitdepth >= 8 )
+		png->palette = FALSE;
 
 	if( vips__png_write_target( in, png->target,
 		png->compression, png->interlace, png->profile, png->filter,
