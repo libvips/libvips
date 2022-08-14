@@ -7,6 +7,7 @@ master
 - jp2ksave defaults to chroma subsample off, and jp2 write
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
+- require libjxl 0.7+
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
