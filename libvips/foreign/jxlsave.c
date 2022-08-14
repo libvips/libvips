@@ -229,7 +229,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
-#if HAVE_LIBJXL_0_7
+#ifdef HAVE_LIBJXL_0_7
 	JxlEncoderFrameSettings *frame_settings;
 #else
 	JxlEncoderOptions *frame_settings;
@@ -419,7 +419,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( vips_image_wio_input( in ) )
 		return( -1 );
 
-#if HAVE_LIBJXL_0_7
+#ifdef HAVE_LIBJXL_0_7
 	frame_settings = JxlEncoderFrameSettingsCreate( jxl->encoder, NULL );
 	JxlEncoderFrameSettingsSetOption( frame_settings, 
 		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier );
