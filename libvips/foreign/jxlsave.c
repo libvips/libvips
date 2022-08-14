@@ -438,6 +438,11 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
+	/* This function must be called after the final frame and/or box,
+	 * otherwise the codestream will not be encoded correctly.
+	 */
+	JxlEncoderCloseInput( jxl->encoder );
+
 	do {
 		uint8_t *out;
 		size_t avail_out;
