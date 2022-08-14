@@ -270,6 +270,7 @@ vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng,
 	VipsPel *q, VipsPel *p, size_t n )
 {
         int pixel_mask = 8 / spng->bitdepth - 1;
+	int shift = 8 - spng->bitdepth;
 
         VipsPel bits;
         size_t x;
@@ -277,7 +278,7 @@ vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng,
         bits = 0;
         for( x = 0; x < n; x++ ) {
                 bits <<= spng->bitdepth;
-                bits |= p[x];
+		bits |= p[x] >> shift;
 
                 if( (x & pixel_mask) == pixel_mask )
                         *q++ = bits;
