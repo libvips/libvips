@@ -229,7 +229,11 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
-	JxlEncoderOptions *options;
+#if HAVE_LIBJXL_0_7
+	JxlEncoderFrameSettings *frame_settings;
+#else
+	JxlEncoderOptions *frame_settings;
+#endif
 	JxlEncoderStatus status;
 	VipsImage *in;
 	VipsBandFormat format;
@@ -415,23 +419,33 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( vips_image_wio_input( in ) )
 		return( -1 );
 
-	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
-	JxlEncoderOptionsSetDecodingSpeed( options, jxl->tier );
-	JxlEncoderOptionsSetDistance( options, jxl->distance );
-	JxlEncoderOptionsSetEffort( options, jxl->effort );
-	JxlEncoderOptionsSetLossless( options, jxl->lossless );
+#if HAVE_LIBJXL_0_7
+	frame_settings = JxlEncoderFrameSettingsCreate( jxl->encoder, NULL );
+	JxlEncoderFrameSettingsSetOption( frame_settings, 
+		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier );
+	JxlEncoderSetFrameDistance( frame_settings, jxl->distance );
+	JxlEncoderFrameSettingsSetOption( frame_settings, 
+		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort );
+	JxlEncoderSetFrameLossless( frame_settings, jxl->lossless );
+#else
+	frame_settings = JxlEncoderOptionsCreate( jxl->encoder, NULL );
+	JxlEncoderOptionsSetDecodingSpeed( frame_settings, jxl->tier );
+	JxlEncoderOptionsSetDistance( frame_settings, jxl->distance );
+	JxlEncoderOptionsSetEffort( frame_settings, jxl->effort );
+	JxlEncoderOptionsSetLossless( frame_settings, jxl->lossless );
+#endif
 
 #ifdef DEBUG
 	vips_foreign_save_jxl_print_info( &jxl->info );
 	vips_foreign_save_jxl_print_format( &jxl->format );
-	printf( "JxlEncoderOptions:\n" );
+	printf( "JxlEncoderFrameSettings:\n" );
 	printf( "    tier = %d\n", jxl->tier );
 	printf( "    distance = %g\n", jxl->distance );
 	printf( "    effort = %d\n", jxl->effort );
 	printf( "    lossless = %d\n", jxl->lossless );
 #endif /*DEBUG*/
 
-	if( JxlEncoderAddImageFrame( options, &jxl->format, 
+	if( JxlEncoderAddImageFrame( frame_settings, &jxl->format, 
 		VIPS_IMAGE_ADDR( in, 0, 0 ),
 		VIPS_IMAGE_SIZEOF_IMAGE( in ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
