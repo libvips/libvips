@@ -1,7 +1,7 @@
-/* helper stuff for Orc
+/* helper stuff for Highway
  *
- * 29/10/10
- *	- from im_dilate hackery
+ * 16/03/21 kleisauke
+ *	- from vector.h
  */
 
 /*
@@ -46,6 +46,13 @@ VIPS_API
 gboolean vips_vector_isenabled(void);
 VIPS_API
 void vips_vector_set_enabled(gboolean enabled);
+
+VIPS_API
+gint64 vips_vector_get_builtin_targets(void);
+VIPS_API
+gint64 vips_vector_get_supported_targets(void);
+VIPS_API
+const char *vips_vector_target_name(gint64 target);
 
 #ifdef __cplusplus
 }

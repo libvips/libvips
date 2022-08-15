@@ -619,7 +619,7 @@ vips_init(const char *argv0)
 #endif /*ENABLE_DEPRECATED*/
 #endif /*ENABLE_MODULES*/
 
-	/* Get the run-time compiler going.
+	/* Detect SIMD features.
 	 */
 	vips__vector_init();
 

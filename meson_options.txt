@@ -163,6 +163,11 @@ option('openslide-module',
   value: 'auto',
   description: 'Build OpenSlide as module')
 
+option('highway',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with highway')
+
 option('orc',
   type: 'feature',
   value: 'auto',

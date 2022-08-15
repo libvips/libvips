@@ -1,7 +1,7 @@
-/* helper functions for Orc
+/* helper functions for Highway
  *
- * 29/10/10
- * 	- from morph hacking
+ * 29/07/21 kleisauke
+ * 	- from vector.c
  */
 
 /*
@@ -37,6 +37,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdlib.h>
+#include <math.h>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -58,9 +59,11 @@
 #endif
 #endif
 
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+#include <hwy/highway.h>
+#elif defined(HAVE_ORC)
 #include <orc/orc.h>
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 
 /* Cleared by the command-line `--vips-novector` switch and the
  * `VIPS_NOVECTOR` env var.
@@ -87,15 +90,76 @@ vips__vector_init(void)
 gboolean
 vips_vector_isenabled(void)
 {
-#ifdef HAVE_ORC
+#if defined(HAVE_HWY) || defined(HAVE_ORC)
 	return vips__vector_enabled;
-#else  /*!HAVE_ORC*/
+#else
 	return FALSE;
-#endif /*HAVE_ORC*/
+#endif
 }
 
 void
 vips_vector_set_enabled(gboolean enabled)
 {
 	vips__vector_enabled = enabled;
+}
+
+/**
+ * vips_vector_get_builtin_targets:
+ *
+ * Gets a bitfield of builtin targets that libvips was built with.
+ *
+ * Returns: a bitfield of builtin targets.
+ */
+gint64
+vips_vector_get_builtin_targets(void)
+{
+#ifdef HAVE_HWY
+	return HWY_TARGETS;
+#else
+	return 0;
+#endif
+}
+
+/**
+ * vips_vector_get_supported_targets:
+ *
+ * Gets a bitfield of enabled targets that are supported on this CPU. The
+ * targets returned may change after calling vips_vector_disable_targets().
+ *
+ * The return value is only 0 if libvips was built without highway,
+ * otherwise there is always at least one target.
+ *
+ * Returns: a bitfield of supported CPU targets.
+ */
+gint64
+vips_vector_get_supported_targets(void)
+{
+#ifdef HAVE_HWY
+	return hwy::SupportedTargets();
+#elif defined(HAVE_ORC)
+	return orc_target_get_default_flags(orc_target_get_default());
+#else
+	return 0;
+#endif
+}
+
+/**
+ * vips_vector_target_name:
+ * @target: A specific target to describe.
+ *
+ * Generates a human-readable ASCII string descriptor for a specific target.
+ *
+ * Returns: a string describing the target.
+ */
+const char *
+vips_vector_target_name(gint64 target)
+{
+#ifdef HAVE_HWY
+	return hwy::TargetName(target);
+#elif defined(HAVE_ORC)
+	return orc_target_get_flag_name(orc_target_get_default(),
+		log2(target));
+#else
+	return NULL;
+#endif
 }

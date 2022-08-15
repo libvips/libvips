@@ -4,8 +4,8 @@ project('vips', 'c', 'cpp',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu99',
-	# we use some C++11 features
-	'cpp_std=c++11',
+        # we use some C++11 features
+        'cpp_std=c++11',
         # do a release (optimised) build by default
         'buildtype=release',
         # turn off asserts etc. in release mode
@@ -431,15 +431,25 @@ if libopenjp2_dep.found()
     cfg_var.set('HAVE_LIBOPENJP2', '1')
 endif
 
-# we use loadpw etc.
-orc_dep = dependency('orc-0.4', version: '>=0.4.11', required: get_option('orc'))
-if orc_dep.found()
-    libvips_deps += orc_dep
-    cfg_var.set('HAVE_ORC', '1')
-    # orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
-    # definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
-    if orc_dep.version().version_compare('>=0.4.31')
-        cfg_var.set('HAVE_ORC_CF_PROTECTION', '1')
+libhwy_dep = dependency('libhwy', version: '>=1.0.1', required: get_option('highway'))
+if libhwy_dep.found()
+    libvips_deps += libhwy_dep
+    cfg_var.set('HAVE_HWY', '1')
+endif
+
+# only if highway not found
+orc_dep = disabler()
+if not libhwy_dep.found()
+    # we use loadpw etc.
+    orc_dep = dependency('orc-0.4', version: '>=0.4.11', required: get_option('orc'))
+    if orc_dep.found()
+        libvips_deps += orc_dep
+        cfg_var.set('HAVE_ORC', '1')
+        # orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
+        # definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
+        if orc_dep.version().version_compare('>=0.4.31')
+            cfg_var.set('HAVE_ORC_CF_PROTECTION', '1')
+        endif
     endif
 endif
 
@@ -656,6 +666,7 @@ build_summary = {
     },
   'Optional external packages':
     {'use fftw for FFTs': [fftw_dep.found()],
+     'SIMD support with highway': [libhwy_dep.found()],
      'accelerate loops with ORC': [orc_dep.found()],
      'ICC profile support with lcms': [lcms_dep.found()],
      'zlib': [zlib_dep.found()],
