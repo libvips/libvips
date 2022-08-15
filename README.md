@@ -44,6 +44,7 @@ Full bindings are available for :
 | Go | [govips](https://github.com/davidbyttow/govips) |
 | Lua | [lua-vips](https://github.com/libvips/lua-vips) |
 | Crystal | [crystal-vips](https://github.com/naqvis/crystal-vips) |
+| Elixir | [vix](https://github.com/akash-akya/vix) |
 
 libvips is used as an image processing engine by:
 
