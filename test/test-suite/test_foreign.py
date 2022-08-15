@@ -1473,10 +1473,13 @@ class TestForeign:
         # assert x1.get("loop") == x2.get("loop")
 
         # Interlaced write
-        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        x1 = pyvips.Image.new_from_file(GIF_FILE, n=-1)
         b1 = x1.gifsave_buffer(interlace=False)
         b2 = x1.gifsave_buffer(interlace=True)
         # Interlaced GIFs are usually larger in file size
+        # FIXME ... cgif v0.3 or later required for interlaced write.
+        # If interlaced write is not supported b2 and b1 are expected to be
+        # of the same file size.
         assert len(b2) >= len(b1)
 
         # Reducing dither will typically reduce file size (and quality)
