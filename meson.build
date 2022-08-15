@@ -259,6 +259,9 @@ if quantisation_package.found()
         if cc.compiles('#include <cgif.h>\nint i = CGIF_ATTR_NO_LOOP;', name: 'Has CGIF_ATTR_NO_LOOP', dependencies: cgif_dep)
             cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', '1')
         endif
+        if cc.compiles('#include <cgif.h>\nint i = CGIF_FRAME_ATTR_INTERLACED;', name: 'Has CGIF_FRAME_ATTR_INTERLACED', dependencies: cgif_dep)
+            cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', '1')
+        endif
     endif
 endif
 
