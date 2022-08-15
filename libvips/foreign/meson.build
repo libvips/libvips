@@ -7,6 +7,7 @@ foreign_sources = files(
     'analyzeload.c',
     'cairo.c',
     'cgifsave.c',
+    'librawload.cpp',
     'csvload.c',
     'csvsave.c',
     'dzsave.c',
