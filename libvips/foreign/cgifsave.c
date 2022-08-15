@@ -83,6 +83,7 @@ typedef struct _VipsForeignSaveCgif {
 	int bitdepth;
 	double interframe_maxerror;
 	gboolean reoptimise;
+	gboolean interlace;
 	double interpalette_maxerror;
 	VipsTarget *target;
 
@@ -601,6 +602,16 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		frame_config.numLocalPaletteEntries = n_colours;
 	}
 
+	/* Write an interlaced GIF, if requested.
+	*/
+	if( cgif->interlace ) {
+#ifdef HAVE_CGIF_FRAME_ATTR_INTERLACED
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_INTERLACED;
+#else /*!HAVE_CGIF_FRAME_ATTR_INTERLACED*/
+		g_warning( "%s: cgif >= v0.3.0 required for interlaced GIF write", class->nickname );
+#endif /*HAVE_CGIF_FRAME_ATTR_INTERLACED*/
+	}
+
 	/* Write frame to cgif.
 	 */
 	frame_config.pImageData = cgif->index;
@@ -893,6 +904,14 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, interpalette_maxerror ),
 		0, 256, 3.0 );
+
+	VIPS_ARG_BOOL( class, "interlace", 16,
+		_( "Interlaced" ),
+		_( "Generate an interlaced (progressive) GIF" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, interlace ),
+		FALSE );
+
 }
 
 static void
@@ -903,6 +922,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->bitdepth = 8;
 	gif->interframe_maxerror = 0.0;
 	gif->reoptimise = FALSE;
+	gif->interlace = FALSE;
 	gif->interpalette_maxerror = 3.0;
 	gif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL;
 }
@@ -1087,6 +1107,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
  *
@@ -1109,6 +1130,10 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * If @reoptimise is TRUE, new palettes will be generated. Use
  * @interpalette_maxerror to set the threshold below which one of the previously
  * generated palettes will be reused.
+ *
+ * If @interlace is TRUE, the GIF file will be interlaced (progressive GIF).
+ * These files may be better for display over a slow network
+ * conection, but need more memory to encode.
  *
  * See also: vips_image_new_from_file().
  *
@@ -1141,6 +1166,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
  *
@@ -1195,6 +1221,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
  * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
  *
