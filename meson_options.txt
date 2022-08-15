@@ -32,6 +32,11 @@ option('vapi',
 
 # External libraries
 
+option('libraw', 
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build with libraw')
+
 option('cfitsio', 
   type: 'feature', 
   value: 'auto', 

@@ -229,6 +229,12 @@ if cfitsio_dep.found()
     cfg_var.set('HAVE_CFITSIO', '1')
 endif
 
+libraw_dep = dependency('libraw', required: get_option('libraw'))
+if libraw_dep.found()
+    libvips_deps += libraw_dep
+    cfg_var.set('HAVE_LIBRAW', '1')
+endif
+
 # quant package we use
 quantisation_package = disabler()
 
@@ -663,6 +669,7 @@ build_summary = {
      'Matlab load with libmatio': [matio_dep.found()],
      'NIfTI load/save with niftiio': [libnifti_found],
      'FITS load/save with cfitsio': [cfitsio_dep.found()],
+     'RAW load with libraw': [libraw_dep.found()],
      'GIF save with cgif': [cgif_dep.found()],
      'selected Magick package': [magick_found ? magick_dep.name() : 'none', ' (dynamic module: ', magick_module, ')'],
      'Magick API version': [magick_found ? 'magick' + magick_dep.version().split('.')[0] : 'none'],
