@@ -129,7 +129,8 @@ so make sure that is working.
 
 ### libjpeg
 
-The IJG JPEG library. Use the `-turbo` version if you can. 
+Anything that is compatible with the IJG JPEG library. Use `mozjpeg` if you
+can. Another option is `libjpeg-turbo`. 
 
 ### libexif
 
