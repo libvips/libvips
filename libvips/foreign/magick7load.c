@@ -569,6 +569,13 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	if( magick_set_vips_profile( out, image ) )
 		return( -1 );
 
+        /* Something like "BMP".
+         */
+        if( magick7->image->magick &&
+                strlen( magick7->image->magick ) > 0 )
+                vips_image_set_string( out, "magick-format", 
+                        magick7->image->magick );
+
 	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );
 #ifdef DEBUG
 	printf( "image has %d pages\n", magick7->n_pages );
