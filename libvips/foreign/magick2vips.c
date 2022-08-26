@@ -66,6 +66,8 @@
  * 	- add profile (xmp, ipct, etc.) read
  * 12/11/21
  * 	- set "orientation"
+ * 26/8/22
+ *      - set "magick-format"
  */
 
 /*
@@ -484,6 +486,13 @@ parse_header( Read *read )
 	}
 }
 #endif 
+
+        /* Something like "BMP".
+         */
+        if( read->image->magick &&
+                strlen( read->image->magick ) > 0 )
+                vips_image_set_string( im, "magick-format", 
+                        read->image->magick );
 
 	/* Do we have a set of equal-sized frames? Append them.
 
