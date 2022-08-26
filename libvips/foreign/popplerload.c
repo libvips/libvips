@@ -78,8 +78,11 @@
 
 /* Render PDFs with tiles this size. They need to be pretty big to limit 
  * overcomputation.
+ *
+ * An A4 page at 300dpi is 3508 pixels, so this should be enough to prevent
+ * most rerendering.
  */
-#define TILE_SIZE (2000)
+#define TILE_SIZE (4000)
 
 #define VIPS_TYPE_FOREIGN_LOAD_PDF (vips_foreign_load_pdf_get_type())
 #define VIPS_FOREIGN_LOAD_PDF( obj ) \
