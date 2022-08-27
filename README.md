@@ -44,6 +44,7 @@ Full bindings are available for :
 | Go | [govips](https://github.com/davidbyttow/govips) |
 | Lua | [lua-vips](https://github.com/libvips/lua-vips) |
 | Crystal | [crystal-vips](https://github.com/naqvis/crystal-vips) |
+| Elixir | [vix](https://github.com/akash-akya/vix) |
 
 libvips is used as an image processing engine by:
 
@@ -128,7 +129,8 @@ so make sure that is working.
 
 ### libjpeg
 
-The IJG JPEG library. Use the `-turbo` version if you can. 
+Anything that is compatible with the IJG JPEG library. Use `mozjpeg` if you
+can. Another option is `libjpeg-turbo`. 
 
 ### libexif
 

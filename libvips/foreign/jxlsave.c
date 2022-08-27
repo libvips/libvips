@@ -229,7 +229,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
-	JxlEncoderOptions *options;
+	JxlEncoderFrameSettings *frame_settings;
 	JxlEncoderStatus status;
 	VipsImage *in;
 	VipsBandFormat format;
@@ -280,9 +280,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-#ifdef HAVE_LIBJXL_JXLENCODERINITBASICINFO
 	JxlEncoderInitBasicInfo( &jxl->info );
-#endif
 
 	switch( in->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
@@ -415,28 +413,35 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( vips_image_wio_input( in ) )
 		return( -1 );
 
-	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
-	JxlEncoderOptionsSetDecodingSpeed( options, jxl->tier );
-	JxlEncoderOptionsSetDistance( options, jxl->distance );
-	JxlEncoderOptionsSetEffort( options, jxl->effort );
-	JxlEncoderOptionsSetLossless( options, jxl->lossless );
+	frame_settings = JxlEncoderFrameSettingsCreate( jxl->encoder, NULL );
+	JxlEncoderFrameSettingsSetOption( frame_settings, 
+		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier );
+	JxlEncoderSetFrameDistance( frame_settings, jxl->distance );
+	JxlEncoderFrameSettingsSetOption( frame_settings, 
+		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort );
+	JxlEncoderSetFrameLossless( frame_settings, jxl->lossless );
 
 #ifdef DEBUG
 	vips_foreign_save_jxl_print_info( &jxl->info );
 	vips_foreign_save_jxl_print_format( &jxl->format );
-	printf( "JxlEncoderOptions:\n" );
+	printf( "JxlEncoderFrameSettings:\n" );
 	printf( "    tier = %d\n", jxl->tier );
 	printf( "    distance = %g\n", jxl->distance );
 	printf( "    effort = %d\n", jxl->effort );
 	printf( "    lossless = %d\n", jxl->lossless );
 #endif /*DEBUG*/
 
-	if( JxlEncoderAddImageFrame( options, &jxl->format, 
+	if( JxlEncoderAddImageFrame( frame_settings, &jxl->format, 
 		VIPS_IMAGE_ADDR( in, 0, 0 ),
 		VIPS_IMAGE_SIZEOF_IMAGE( in ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
 		return( -1 );
 	}
+
+	/* This function must be called after the final frame and/or box,
+	 * otherwise the codestream will not be encoded correctly.
+	 */
+	JxlEncoderCloseInput( jxl->encoder );
 
 	do {
 		uint8_t *out;

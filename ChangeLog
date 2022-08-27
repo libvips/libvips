@@ -8,12 +8,19 @@ master
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
 - move tiff jp2k decompress outside the lock
+- require libjxl 0.7+
+- add "interlace" option to GIF save [dloebl]
+- magick load sets "magick-format" metadata [aksdb]
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
 - add a summary table at the end of configure in meson
 - fix libpng fallback when spng is disabled in meson
 - add "unlimited" to jpegload
+- better 0 detection in unpremultiply
+- fix low bitdepth spng save [jeffska]
+- fix PNG low bitdepth save of high bitdepth images
+- add support for libjxl 0.7 [kleisauke]
 
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]

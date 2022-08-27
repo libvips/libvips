@@ -158,21 +158,6 @@ vips_foreign_load_jxl_build( VipsObject *object )
 
 	jxl->runner = JxlThreadParallelRunnerCreate( NULL, 
 		vips_concurrency_get() );
-	jxl->decoder = JxlDecoderCreate( NULL );
-
-	if( JxlDecoderSubscribeEvents( jxl->decoder, 
-		JXL_DEC_COLOR_ENCODING |
-		JXL_DEC_BASIC_INFO |
-		JXL_DEC_FULL_IMAGE ) ) {
-		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
-		return( -1 );
-	}
-	if( JxlDecoderSetParallelRunner( jxl->decoder, 
-		JxlThreadParallelRunner, jxl->runner ) ) {
-		vips_foreign_load_jxl_error( jxl, 
-			"JxlDecoderSetParallelRunner" );
-		return( -1 );
-	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_jxl_parent_class )->
 		build( object ) )
@@ -378,10 +363,13 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 		JXL_DEC_NEED_MORE_INPUT ) {
 		size_t bytes_remaining;
 
+#ifdef DEBUG
+                printf( "vips_foreign_load_jxl_process: reading ...\n" );
+#endif /*DEBUG*/
+
 		bytes_remaining = JxlDecoderReleaseInput( jxl->decoder );
 		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) )
 			return( JXL_DEC_ERROR );
-
 		JxlDecoderSetInput( jxl->decoder,
 			jxl->input_buffer, jxl->bytes_in_buffer );
 	}
@@ -505,10 +493,24 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_jxl_header:\n" );
 #endif /*DEBUG*/
 
-	if( vips_source_rewind( jxl->source ) )
-                return( -1 );
+        /* Build the decoder we will use for the header.
+         */
+	jxl->decoder = JxlDecoderCreate( NULL );
+	if( JxlDecoderSubscribeEvents( jxl->decoder, 
+		JXL_DEC_COLOR_ENCODING |
+		JXL_DEC_BASIC_INFO ) ) { 
+		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
+		return( -1 );
+	}
+	if( JxlDecoderSetParallelRunner( jxl->decoder, 
+		JxlThreadParallelRunner, jxl->runner ) ) {
+		vips_foreign_load_jxl_error( jxl, 
+			"JxlDecoderSetParallelRunner" );
+		return( -1 );
+	}
 
-	if( vips_foreign_load_jxl_fill_input( jxl, 0 ) )
+	if( vips_source_rewind( jxl->source ) ||
+                vips_foreign_load_jxl_fill_input( jxl, 0 ) )
 		return( -1 );
 	JxlDecoderSetInput( jxl->decoder, 
 		jxl->input_buffer, jxl->bytes_in_buffer );
@@ -618,13 +620,26 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 	if( vips_foreign_load_jxl_set_header( jxl, t[0] ) ) 
 		return( -1 );
 
-	/* We have to reset the reader ... we can't reply onb the read point
-	 * being left just after the header.
-	 */
-	if( vips_source_rewind( jxl->source ) )
-                return( -1 );
+	/* We have to make a new decoder ... we can't be certain the header
+         * decoder left the input in the correct place.
+         */
+	VIPS_FREEF( JxlDecoderDestroy, jxl->decoder );
 
-	if( vips_foreign_load_jxl_fill_input( jxl, 0 ) )
+	jxl->decoder = JxlDecoderCreate( NULL );
+	if( JxlDecoderSubscribeEvents( jxl->decoder, 
+		JXL_DEC_FULL_IMAGE ) ) {
+		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
+		return( -1 );
+	}
+	if( JxlDecoderSetParallelRunner( jxl->decoder, 
+		JxlThreadParallelRunner, jxl->runner ) ) {
+		vips_foreign_load_jxl_error( jxl, 
+			"JxlDecoderSetParallelRunner" );
+		return( -1 );
+	}
+
+	if( vips_source_rewind( jxl->source ) ||
+                vips_foreign_load_jxl_fill_input( jxl, 0 ) )
 		return( -1 );
 	JxlDecoderSetInput( jxl->decoder, 
 		jxl->input_buffer, jxl->bytes_in_buffer );

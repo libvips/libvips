@@ -270,6 +270,7 @@ vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng,
 	VipsPel *q, VipsPel *p, size_t n )
 {
         int pixel_mask = 8 / spng->bitdepth - 1;
+	int shift = 8 - spng->bitdepth;
 
         VipsPel bits;
         size_t x;
@@ -277,7 +278,7 @@ vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng,
         bits = 0;
         for( x = 0; x < n; x++ ) {
                 bits <<= spng->bitdepth;
-                bits |= p[x];
+		bits |= p[x] >> shift;
 
                 if( (x & pixel_mask) == pixel_mask )
                         *q++ = bits;
@@ -484,7 +485,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	spng_set_option( spng->ctx, 
 		SPNG_FILTER_CHOICE, spng->filter );
 
-	/* Set resolution. libpng uses pixels per meter.
+	/* Set resolution. png uses pixels per meter.
 	 */
 	phys.unit_specifier = 1;
 	phys.ppu_x = VIPS_RINT( in->Xres * 1000.0 );
@@ -579,12 +580,22 @@ vips_foreign_save_spng_build( VipsObject *object )
 	in = save->ready;
 	g_object_ref( in );
 
-	/* in will have been converted to uint16 for high-bitdepth
-	 * formats (eg. float) ... we need to check Type to see if we want 
-	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
+	/* If no output bitdepth has been specified, use input Type to pick.
 	 */
-	if( in->Type == VIPS_INTERPRETATION_sRGB ||
-		in->Type == VIPS_INTERPRETATION_B_W ) {
+        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		spng->bitdepth = 
+                        in->Type == VIPS_INTERPRETATION_RGB16 ||
+                        in->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+
+	/* Deprecated "colours" arg just sets bitdepth large enough to hold
+	 * that many colours.
+	 */
+        if( vips_object_argument_isset( object, "colours" ) ) 
+		spng->bitdepth = ceil( log2( spng->colours ) );
+
+	/* Cast in down to 8 bit if we can.
+	 */
+	if( spng->bitdepth <= 8 ) { 
 		VipsImage *x;
 
 		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
@@ -595,25 +606,17 @@ vips_foreign_save_spng_build( VipsObject *object )
 		in = x;
 	}
 
-	/* If no output bitdepth has been specified, use input Type to pick.
-	 * We only go for 16 bits for the types where we know there's a
-	 * 0-65535 range.
-	 */
-        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		spng->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-
-	/* Deprecated "colours" arg just sets bitdepth large enough to hold
-	 * that many colours.
-	 */
-        if( vips_object_argument_isset( object, "colours" ) ) 
-		spng->bitdepth = ceil( log2( spng->colours ) );
-
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettisation.
 	 */
         if( in->Bands > 2 &&
 		spng->bitdepth < 8 )
 		spng->palette = TRUE;
+
+        /* Disable palettization for >8 bit save.
+         */
+        if( spng->bitdepth >= 8 )
+		spng->palette = FALSE;
 
 	if( vips_foreign_save_spng_write( spng, in ) ) {
 		g_object_unref( in );

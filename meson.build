@@ -259,6 +259,9 @@ if quantisation_package.found()
         if cc.compiles('#include <cgif.h>\nint i = CGIF_ATTR_NO_LOOP;', name: 'Has CGIF_ATTR_NO_LOOP', dependencies: cgif_dep)
             cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', '1')
         endif
+        if cc.compiles('#include <cgif.h>\nint i = CGIF_FRAME_ATTR_INTERLACED;', name: 'Has CGIF_FRAME_ATTR_INTERLACED', dependencies: cgif_dep)
+            cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', '1')
+        endif
     endif
 endif
 
@@ -468,8 +471,8 @@ if libheif_dep.found()
     endif
 endif
 
-libjxl_dep = dependency('libjxl', version: '>=0.5', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.5', required: get_option('jpeg-xl'))
+libjxl_dep = dependency('libjxl', version: '>=0.7', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.7', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
@@ -481,9 +484,6 @@ if libjxl_found
         libvips_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', '1')
-    if cc.has_function('JxlEncoderInitBasicInfo', prefix: '#include <jxl/encode.h>', dependencies: libjxl_dep)
-        cfg_var.set('HAVE_LIBJXL_JXLENCODERINITBASICINFO', '1')
-    endif
 endif
 
 libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
