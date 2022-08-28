@@ -7,7 +7,7 @@ master
 - jp2ksave defaults to chroma subsample off, and jp2 write
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
-- move tiff jp2k decompress outside the lock
+- move tiff jp2k and jpeg decompress outside the lock
 - require libjxl 0.7+
 - add "interlace" option to GIF save [dloebl]
 - magick load sets "magick-format" metadata [aksdb]

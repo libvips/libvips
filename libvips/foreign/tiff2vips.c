@@ -261,6 +261,12 @@
 #include "pforeign.h"
 #include "tiff.h"
 
+/* We do jpeg decompress ourselves, if we can.
+ */
+#ifdef HAVE_JPEG
+#include "jpeg.h"
+#endif /*HAVE_JPEG*/
+
 /* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
  */
 #define JP2K_YCC 33003
@@ -273,6 +279,9 @@
 /* Compression types we handle ourselves.
  */
 static int rtiff_we_decompress[] = {
+#ifdef HAVE_JPEG
+        COMPRESSION_JPEG,
+#endif /*HAVE_JPEG*/
 	JP2K_YCC,
 	JP2K_RGB,
 	JP2K_LOSSY
@@ -1651,7 +1660,7 @@ rtiff_pick_reader( Rtiff *rtiff )
 static int
 rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 {
-	guint32 data_length;
+	guint32 data_len;
 	void *data;
 
 	rtiff_set_decode_format( rtiff );
@@ -1690,36 +1699,36 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_ICCPROFILE, &data_length, &data ) ) 
+		TIFFTAG_ICCPROFILE, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_ICC_NAME, data, data_length );
+			VIPS_META_ICC_NAME, data, data_len );
 
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_XMLPACKET, &data_length, &data ) ) 
+		TIFFTAG_XMLPACKET, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_XMP_NAME, data, data_length );
+			VIPS_META_XMP_NAME, data, data_len );
 
 	/* Read any IPTC metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		TIFFTAG_RICHTIFFIPTC, &data_len, &data ) ) {
 		vips_image_set_blob_copy( out, 
-			VIPS_META_IPTC_NAME, data, data_length );
+			VIPS_META_IPTC_NAME, data, data_len );
 
 		/* Older versions of libvips used this misspelt name :-( attach 
 		 * under this name too for compatibility.
 		 */
-		vips_image_set_blob_copy( out, "ipct-data", data, data_length );
+		vips_image_set_blob_copy( out, "ipct-data", data, data_len );
 	}
 
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) 
+		TIFFTAG_PHOTOSHOP, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_PHOTOSHOP_NAME, data, data_length );
+			VIPS_META_PHOTOSHOP_NAME, data, data_len );
 
 	if( rtiff->header.image_description )
 		vips_image_set_string( out, VIPS_META_IMAGEDESCRIPTION, 
@@ -1786,27 +1795,104 @@ rtiff_seq_start( VipsImage *out, void *a, void *b )
 	return( (void *) seq );
 }
 
+#ifdef HAVE_JPEG
+static void 
+rtiff_decompress_jpeg_init_source( j_decompress_ptr cinfo )
+{
+        /* Nothing.
+         */
+}
+
+static boolean 
+rtiff_decompress_jpeg_fill_input_buffer( j_decompress_ptr cinfo )
+{
+        static const JOCTET mybuffer[4] = {
+                (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+        };
+
+        /* The whole JPEG data is expected to reside in the supplied memory
+         * buffer, so any request for more data beyond the given buffer size
+         * is treated as an error.
+         */
+        WARNMS( cinfo, JWRN_JPEG_EOF );
+
+        /* Insert a fake EOI marker 
+         */
+        cinfo->src->next_input_byte = mybuffer;
+        cinfo->src->bytes_in_buffer = 2;
+
+        return( TRUE );
+}
+
+/* Skip data --- used to skip over a potentially large amount of
+ * uninteresting data (such as an APPn marker).
+ *
+ * Writers of suspendable-input applications must note that skip_input_data
+ * is not granted the right to give a suspension return.  If the skip extends
+ * beyond the data currently in the buffer, the buffer can be marked empty so
+ * that the next read will cause a fill_input_buffer call that can suspend.
+ * Arranging for additional bytes to be discarded before reloading the input
+ * buffer is the application writer's problem.
+ */
+
+static void 
+rtiff_decompress_jpeg_skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+{
+        struct jpeg_source_mgr * src = cinfo->src;
+
+        /* Just a dumb implementation for now.  Could use fseek() except
+         * it doesn't work on pipes.  Not clear that being smart is worth
+         * any trouble anyway --- large skips are infrequent.
+         */
+        if( num_bytes > 0 ) {
+                while( num_bytes > (long) src->bytes_in_buffer ) {
+                        num_bytes -= (long) src->bytes_in_buffer;
+                        (void) (*src->fill_input_buffer)( cinfo );
+                        /* note we assume that fill_input_buffer will never 
+                         * return FALSE, so suspension need not be handled.
+                         */
+                }
+
+                src->next_input_byte += (size_t) num_bytes;
+                src->bytes_in_buffer -= (size_t) num_bytes;
+        }
+}
+
+static void
+rtiff_decompress_jpeg_set_memory( j_decompress_ptr cinfo,
+        void *data, size_t data_len )
+{
+        if( !cinfo->src )
+                cinfo->src = (struct jpeg_source_mgr *)
+                        (*cinfo->mem->alloc_small)( 
+                                (j_common_ptr) cinfo, JPOOL_PERMANENT,
+                                sizeof( struct jpeg_source_mgr ) );
+
+        /* Present the whole of data as one chunk.
+         */
+        cinfo->src->bytes_in_buffer = data_len;
+        cinfo->src->next_input_byte = (JOCTET *) data;
+        cinfo->src->init_source = rtiff_decompress_jpeg_init_source;
+        cinfo->src->fill_input_buffer = rtiff_decompress_jpeg_fill_input_buffer;
+        cinfo->src->skip_input_data = rtiff_decompress_jpeg_skip_input_data; 
+        cinfo->src->resync_to_restart = jpeg_resync_to_restart; 
+}
+
 static int
-rtiff_decompress_jpeg( Rtiff *rtiff, )
+rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
+        void *data, size_t data_len, void *out )
 {
         void *tables;
         uint32_t tables_len;
-        struct jpeg_decompress_struct cinfo = { 0 };
+        int bytes_per_pixel;
+        size_t bytes_per_scanline;
+        VipsPel *q;
+        int y;
 
-        cinfo.err = jpeg_std_error( &jpeg->eman.pub );
-
-          jpeg_std_error(&jerr->base);
-  jerr->base.error_exit = my_error_exit;
-  jerr->base.output_message = my_output_message;
-  jerr->base.emit_message = my_emit_message;
-
-	jpeg->eman.pub.error_exit = vips__new_error_exit;
-	jpeg->eman.pub.emit_message = readjpeg_emit_message;
-	jpeg->eman.pub.output_message = vips__new_output_message;
-
-        cinfo.err = error_handler_init(&dc->jerr, env);
-        jpeg_create_decompress( &cinfo );
-
+#ifdef DEBUG_VERBOSE
+	printf( "rtiff_decompress_jpeg_run: decompressing %zd bytes of jpg\n",
+                data_len ); 
+#endif /*DEBUG_VERBOSE*/
 
         /* Tables are optional.
          */
@@ -1815,74 +1901,152 @@ rtiff_decompress_jpeg( Rtiff *rtiff, )
         (void) TIFFGetField( rtiff->tiff, 
                 TIFFTAG_JPEGTABLES, &tables_len, &tables );
 
-
         if( tables ) {
-                _openslide_jpeg_mem_src(cinfo, (void *) tables, tables_len );
-                if( jpeg_read_header( &cinfo, FALSE ) != 
-                        JPEG_HEADER_TABLES_ONLY ) {
-                        vips_error( "tiff2vips", 
-                                "%s", _( "can't load JPEG tables" ) ); 
+                rtiff_decompress_jpeg_set_memory( cinfo, tables, tables_len );
+                if( jpeg_read_header( cinfo, FALSE ) != 
+                        JPEG_HEADER_TABLES_ONLY ) 
+                        return( -1 );
+        }
+
+        rtiff_decompress_jpeg_set_memory( cinfo, data, data_len );
+
+        if( jpeg_read_header( cinfo, TRUE ) != JPEG_HEADER_OK )
+                return( -1 );
+
+        /* This isn't stored in the tile -- we have to set it from the
+         * enclosing TIFF.
+         */
+        switch( rtiff->header.photometric_interpretation ) {
+        case PHOTOMETRIC_SEPARATED:
+                cinfo->jpeg_color_space = JCS_CMYK;
+                bytes_per_pixel = 4;
+                break;
+
+        case PHOTOMETRIC_YCBCR:
+                cinfo->jpeg_color_space = JCS_YCbCr;
+                bytes_per_pixel = 3;
+                break;
+
+        case PHOTOMETRIC_RGB:
+                cinfo->jpeg_color_space = JCS_RGB;
+                bytes_per_pixel = 3;
+                break;
+
+        case PHOTOMETRIC_MINISBLACK:
+                cinfo->jpeg_color_space = JCS_GRAYSCALE;
+                bytes_per_pixel = 1;
+                break;
+
+        default:
+                g_assert_not_reached();
+                break;
+        }
+
+        jpeg_start_decompress( cinfo );
+
+        bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
+        q = (VipsPel *) out;
+        for( y = 0; y < cinfo->output_height; y++ ) {
+                JSAMPROW row_pointer[1];
+
+                row_pointer[0] = (JSAMPLE *) q;
+                jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
+                q += bytes_per_scanline;
+        }
+
+        return( 0 );
+}
+
+static void
+rtiff_decompress_jpeg_emit_message( j_common_ptr cinfo, int msg_level )
+{
+	if( msg_level < 0 ) {
+                long num_warnings;
+
+		/* Always count warnings in num_warnings.
+		 */
+		num_warnings = ++cinfo->err->num_warnings;
+
+		/* Corrupt files may give many warnings, the policy here is to
+		 * show only the first warning and treat many warnings as fatal,
+                 * unless unlimited is set.
+		 */
+		if( num_warnings == 1 )
+			(*cinfo->err->output_message)( cinfo );
+	}
+	else if( cinfo->err->trace_level >= msg_level )
+		/* It's a trace message. Show it if trace_level >= msg_level.
+		 */
+		(*cinfo->err->output_message)( cinfo );
+}
+
+/* Decompress a tile of size coefficients into out.
+ */
+static int
+rtiff_decompress_jpeg( Rtiff *rtiff, void *data, size_t data_len, void *out )
+{
+        struct jpeg_decompress_struct cinfo = { 0 };
+        ErrorManager eman;
+
+        if( setjmp( eman.jmp ) == 0 ) {
+                cinfo.err = jpeg_std_error( &eman.pub );
+                eman.pub.error_exit = vips__new_error_exit;
+                eman.pub.emit_message = rtiff_decompress_jpeg_emit_message;
+                eman.pub.output_message = vips__new_output_message;
+                eman.fp = NULL;
+
+                jpeg_create_decompress( &cinfo );
+
+                if( rtiff_decompress_jpeg_run( rtiff, &cinfo, 
+                        data, data_len, out ) ) {
+                        jpeg_destroy_decompress( &cinfo );
                         return( -1 );
                 }
         }
+        else {
+#ifdef DEBUG_VERBOSE
+                printf( "rtiff_decompress_jpeg: error return\n" );
+#endif /*DEBUG_VERBOSE*/
 
-        _openslide_jpeg_mem_src( cinfo, (void *) buf, buflen);
+                jpeg_destroy_decompress( &cinfo );
+                return( -1 );
+        }
 
-            // read header
-    if (jpeg_read_header(cinfo, true) != JPEG_HEADER_OK) {
-      g_set_error(err, OPENSLIDE_ERROR, OPENSLIDE_ERROR_FAILED,
-                  "Couldn't read JPEG header");
-      goto DONE;
-    }
+        jpeg_destroy_decompress( &cinfo );
 
-    cinfo->jpeg_color_space = tiffl->photometric == PHOTOMETRIC_YCBCR ? JCS_YCbCr : JCS_RGB
-
-    // decompress
-    if (!_openslide_jpeg_decompress_run(dc, dest, false, w, h, err)) {
-      goto DONE;
-    }
-    result = true;
-  } else {
-    // setjmp has returned again
-    _openslide_jpeg_propagate_error(err, dc);
-  }
-
-DONE:
-  _openslide_jpeg_decompress_destroy(dc);
-
-  return result;
-
+        return( 0 );
 }
-
-
-
+#endif /*HAVE_JPEG*/
 
 static int
 rtiff_decompress_tile( Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out )
 {
-	if( rtiff->header.we_decompress ) {
-                switch( rtiff->header.compression ) {
-                case JP2K_YCC:
-                case JP2K_RGB:
-                case JP2K_LOSSY:
-#ifdef DEBUG_VERBOSE
-                        printf( "rtiff_decompress_tile: %ld bytes of jp2k\n", 
-                                size ); 
-#endif /*DEBUG_VERBOSE*/
-                        if( vips__foreign_load_jp2k_decompress( 
-                                rtiff->out, 
-                                rtiff->header.tile_width, 
-                                rtiff->header.tile_height,
-                                TRUE,
-                                in, size,
-                                out, rtiff->header.tile_size ) ) 
-                                return( -1 );
-                        break;
+	g_assert( rtiff->header.we_decompress );
 
-                default:
-                        g_assert_not_reached();
-                        break;
-                }
+        switch( rtiff->header.compression ) {
+        case JP2K_YCC:
+        case JP2K_RGB:
+        case JP2K_LOSSY:
+                if( vips__foreign_load_jp2k_decompress( 
+                        rtiff->out, 
+                        rtiff->header.tile_width, 
+                        rtiff->header.tile_height,
+                        TRUE,
+                        in, size,
+                        out, rtiff->header.tile_size ) ) 
+                        return( -1 );
+                break;
+
+#ifdef HAVE_JPEG
+        case COMPRESSION_JPEG:
+                if( rtiff_decompress_jpeg( rtiff, in, size, out ) )
+                        return( -1 );
+                break;
+#endif /*HAVE_JPEG*/
+
+        default:
+                g_assert_not_reached();
+                break;
         }
 
         return( 0 );
@@ -1931,8 +2095,11 @@ rtiff_read_tile( RtiffSeq *seq, tdata_t *buf, int page, int x, int y )
                 /* Decompress outside the lock, so we get parallelism.
                  */
                 if( rtiff_decompress_tile( rtiff, 
-                        seq->compressed_buf, size, buf ) )
+                        seq->compressed_buf, size, buf ) ) {
+                        vips_error( "tiff2vips", 
+                                _( "decompress error tile %d x %d" ), x, y ); 
                         return( -1 );
+                }
         }
         else {
                 g_rec_mutex_lock( &rtiff->lock );
