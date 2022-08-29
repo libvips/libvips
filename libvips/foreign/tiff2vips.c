@@ -350,8 +350,7 @@ typedef struct _RtiffHeader {
 	 */
 	char *image_description;
 
-	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must read the raw data and decompress ourselves.
+	/* TRUE if we decompress ourselves rather than relying on libtiff.
 	 */
 	gboolean we_decompress;
 
@@ -1943,8 +1942,15 @@ rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
         }
 
         jpeg_start_decompress( cinfo );
-
         bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
+
+        /* Double-check tile dimensions.
+         */
+        if( cinfo->output_width > rtiff->header.tile_width ||
+                cinfo->output_height > rtiff->header.tile_height ||
+                bytes_per_scanline > rtiff->header.tile_row_size )
+                return( -1 );
+
         q = (VipsPel *) out;
         for( y = 0; y < cinfo->output_height; y++ ) {
                 JSAMPROW row_pointer[1];
