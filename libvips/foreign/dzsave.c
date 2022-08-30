@@ -357,7 +357,7 @@ gsf_output_dir_new_valist( char const *root,
 	output_dir->root = g_strdup( root );
 	gsf_output_set_name_from_filename( GSF_OUTPUT( output_dir ), root );
 
-	return GSF_OUTFILE( output_dir );
+	return( GSF_OUTFILE( output_dir ) );
 }
 
 static GsfOutput *
@@ -414,7 +414,7 @@ gsf_output_dir_new( char const *root, ... )
 	output = gsf_output_dir_new_valist( root, NULL, var_args );
 	va_end( var_args );
 
-	return GSF_OUTPUT( output );
+	return( GSF_OUTPUT( output ) );
 }
 
 /* Simple wrapper around libgsf.
