@@ -384,6 +384,7 @@ gsf_output_dir_new_child( GsfOutfile *parent,
 static void
 gsf_output_dir_init( GsfOutputDir *output )
 {
+	output->root = NULL;
 }
 
 static void
