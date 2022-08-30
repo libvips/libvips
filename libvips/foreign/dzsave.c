@@ -304,6 +304,119 @@ gsf_output_target_new( VipsTarget *target )
         return( GSF_OUTPUT( output ) );
 }
 
+/* A GSF output object that can write to a directory.
+ */
+
+typedef struct _GsfOutputDir {
+	GsfOutfile output;
+
+	char *root;
+
+} GsfOutputDir;
+
+typedef struct {
+	GsfOutfileClass output_class;
+} GsfOutputDirClass;
+
+G_DEFINE_TYPE( GsfOutputDir, gsf_output_dir, GSF_OUTFILE_TYPE );
+
+static gboolean
+gsf_output_dir_close( GsfOutput *output )
+{
+	return( TRUE );
+}
+
+static void
+gsf_output_dir_finalize( GObject *obj )
+{
+	GsfOutputDir *output_dir = (GsfOutputDir *) obj;
+
+	g_free( output_dir->root );
+
+	G_OBJECT_CLASS( gsf_output_dir_parent_class )->finalize( obj );
+}
+
+static GsfOutfile *
+gsf_output_dir_new_valist( char const *root,
+	char const *first_property_name, va_list var_args )
+{
+	GsfOutputDir *output_dir;
+
+	if( g_mkdir( root, 0777 ) != 0 && errno != EEXIST ) {
+		int save_errno = errno;
+		char *utf8name = g_filename_display_name( root );
+		vips_error( "dzsave",
+			_( "unable to create directory \"%s\", %s" ),
+			utf8name, g_strerror( save_errno ) );
+		g_free( utf8name );
+		return( NULL );
+	}
+
+	output_dir = (GsfOutputDir *) g_object_new_valist( GSF_OUTFILE_STDIO_TYPE,
+		first_property_name, var_args );
+	output_dir->root = g_strdup( root );
+	gsf_output_set_name_from_filename( GSF_OUTPUT( output_dir ), root );
+
+	return( GSF_OUTFILE( output_dir ) );
+}
+
+static GsfOutput *
+gsf_output_dir_new_child( GsfOutfile *parent,
+	char const *name, gboolean is_dir,
+	char const *first_property_name,
+	va_list args )
+{
+	GsfOutputDir *output_dir = (GsfOutputDir *) parent;
+	GsfOutput *child;
+	char *path = g_build_filename( output_dir->root, name, NULL );
+
+	if( is_dir )
+		child = (GsfOutput *) gsf_output_dir_new_valist( path,
+			first_property_name, args );
+	else
+		child = gsf_output_stdio_new_valist( path, NULL,
+			first_property_name, args );
+	g_free( path );
+
+	return( child );
+}
+
+static void
+gsf_output_dir_init( GsfOutputDir *output )
+{
+	output->root = NULL;
+}
+
+static void
+gsf_output_dir_class_init( GsfOutputDirClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GsfOutputClass *output_class = GSF_OUTPUT_CLASS( class );
+	GsfOutfileClass *outfile_class = GSF_OUTFILE_CLASS( class );
+
+	gobject_class->finalize = gsf_output_dir_finalize;
+
+	output_class->Close = gsf_output_dir_close;
+	output_class->Seek = NULL;
+	output_class->Write = NULL;
+	output_class->Vprintf = NULL;
+
+	outfile_class->new_child = gsf_output_dir_new_child;
+}
+
+static GsfOutput *
+gsf_output_dir_new( char const *root, ... )
+{
+	GsfOutfile *output;
+	va_list var_args;
+
+	va_start( var_args, root );
+	output = gsf_output_dir_new_valist( root, NULL, var_args );
+	va_end( var_args );
+
+	return( GSF_OUTPUT( output ) );
+}
+
 /* Simple wrapper around libgsf.
  *
  * We need to be able to do scattered writes to structured files. So while
@@ -2379,7 +2492,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	case VIPS_FOREIGN_DZ_CONTAINER_FS:
 {
 		GsfOutput *out;
-		GError *error = NULL;
 		char name[VIPS_PATH_MAX];
 
 		/* For filesystem output of deepzoom, we write 
@@ -2394,8 +2506,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				"%s/%s", dz->dirname, dz->basename ); 
 
 		if( !(out = (GsfOutput *) 
-			gsf_outfile_stdio_new( name, &error )) ) {
-			vips_g_error( &error );
+			gsf_output_dir_new( name, NULL )) ) {
 			return( -1 );
 		}
 	

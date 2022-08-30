@@ -715,6 +715,7 @@ int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @VIPS_FOREIGN_PPM_FORMAT_PGM: portable greymap
  * @VIPS_FOREIGN_PPM_FORMAT_PPM: portable pixmap
  * @VIPS_FOREIGN_PPM_FORMAT_PFM: portable float map
+ * @VIPS_FOREIGN_PPM_FORMAT_PNM: portable anymap
  *
  * The netpbm file format to save as.
  *
@@ -725,12 +726,17 @@ int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * #VIPS_FOREIGN_PPM_FORMAT_PPM images are 8, 16, or 32-bits, three bands.
  *
  * #VIPS_FOREIGN_PPM_FORMAT_PFM images are 32-bit float pixels.
+ *
+ * #VIPS_FOREIGN_PPM_FORMAT_PNM images are anymap images -- the image format
+ * is used to pick the saver.
+ *
  */
 typedef enum {
 	VIPS_FOREIGN_PPM_FORMAT_PBM,
 	VIPS_FOREIGN_PPM_FORMAT_PGM,
 	VIPS_FOREIGN_PPM_FORMAT_PPM,
 	VIPS_FOREIGN_PPM_FORMAT_PFM,
+	VIPS_FOREIGN_PPM_FORMAT_PNM,
 	VIPS_FOREIGN_PPM_FORMAT_LAST
 } VipsForeignPpmFormat;
 

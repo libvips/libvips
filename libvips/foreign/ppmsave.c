@@ -14,6 +14,8 @@
  * 	- don't add date with @strip [ewelot]
  * 28/10/21
  * 	- add @format, default type by filename
+ * 30/8/22
+ *      - add ".pnm", save as image format [ewelot]
  */
 
 /*
@@ -239,6 +241,7 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	 *   pgm ... 1 band many bit
 	 *   ppm ... 3 band many bit
 	 *   pfm ... 1 or 3 bands, 32 bit
+	 *   pnm ... pick from input
 	 */
 	switch( ppm->format ) {
 	case VIPS_FOREIGN_PPM_FORMAT_PBM:
@@ -265,8 +268,9 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		target_format = VIPS_FORMAT_FLOAT;
 		break;
 
+	case VIPS_FOREIGN_PPM_FORMAT_PNM:
 	default:
-		/* Harmless.
+		/* Just use the input format and interpretation.
 		 */
 		break;
 	}
@@ -527,6 +531,8 @@ vips_foreign_save_ppm_file_build( VipsObject *object )
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PGM;
 	else if( vips_iscasepostfix( file->filename, ".pfm" ) )
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PFM;
+	else if( vips_iscasepostfix( file->filename, ".pnm" ) )
+		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PNM;
 
 	return( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_file_parent_class )->
 		build( object ) );
@@ -714,6 +720,38 @@ vips_foreign_save_pfm_target_init( VipsForeignSavePfmTarget *target )
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) target;
 
 	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PFM;
+}
+
+typedef VipsForeignSavePpmTarget VipsForeignSavePnmTarget;
+typedef VipsForeignSavePpmTargetClass VipsForeignSavePnmTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSavePnmTarget, vips_foreign_save_pnm_target, 
+	vips_foreign_save_ppm_target_get_type() );
+
+static void
+vips_foreign_save_pnm_target_class_init( 
+	VipsForeignSavePfmTargetClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "pnmsave_target";
+	object_class->description = _( "save image in pnm format" );
+
+	foreign_class->suffs = vips__save_pnm_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_pnm_target_init( VipsForeignSavePfmTarget *target )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) target;
+
+	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PNM;
 }
 
 #endif /*HAVE_PPM*/
