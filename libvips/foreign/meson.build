@@ -51,7 +51,6 @@ foreign_sources = files(
     'tiffsave.c',
     'vips2jpeg.c',
     'vips2tiff.c',
-    'vips2webp.c',
     'vipsload.c',
     'vipspng.c',
     'vipssave.c',

@@ -1,21 +1,11 @@
-/* save to webp
+/* save as WebP 
  *
- * 24/11/11
- * 	- wrap a class around the webp writer
- * 29/10/18 
- * 	- add animated webp support
- * 15/1/19 lovell
- * 	- add @effort 
- * 18/7/20
- * 	- add @profile param to match tiff, jpg, etc.
- * 30/7/21
- * 	- rename "reduction_effort" as "effort"
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -34,14 +24,13 @@
  */
 
 /*
-
+ 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,74 +38,589 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
+#ifdef HAVE_LIBWEBP
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 
-#ifdef HAVE_LIBWEBP
+#include <webp/encode.h>
+#include <webp/types.h>
+#include <webp/mux.h>
 
-typedef struct _VipsForeignSaveWebp {
+typedef int (*webp_import)( WebPPicture *picture,
+        const uint8_t *rgb, int stride );
+
+typedef struct _VipsForeignSaveWebP {
 	VipsForeignSave parent_object;
 
-	/* Quality factor.
+        VipsImage *image;
+
+	int timestamp_ms;
+        int Q;
+        gboolean lossless;
+        VipsForeignWebpPreset preset;
+        gboolean smart_subsample;
+        gboolean near_lossless;
+        int alpha_q;
+        int effort;
+        gboolean min_size;
+        gboolean mixed;
+        int kmin;
+        int kmax;
+	int gif_delay;
+	int *delay;
+	int delay_length;
+        gboolean strip;
+        const char *profile;
+
+        WebPConfig config;
+
+        /* Output is written here. We can only support memory write, since we
+         * handle metadata.
+         */
+        WebPMemoryWriter memory_writer;
+
+        /* Write animated webp here.
+         */
+        WebPAnimEncoder *enc;
+
+        /* Add metadata with this.
+         */
+        WebPMux *mux;
+	VipsTarget *target;
+
+	/* The current frame coming from libvips, and the y position 
+	 * in the input image.
 	 */
-	int Q;
+	VipsRegion *frame;
+	int write_y;
 
-	/* Turn on lossless encode.
+	/* VipsRegion is not always contiguious, but we need contiguious RGBA
+	 * for libwebp. We need to copy each frame to a local buffer.
 	 */
-	gboolean lossless;
+	VipsPel *frame_bytes;
 
-	/* Lossy compression preset.
-	 */
-	VipsForeignWebpPreset preset;
+} VipsForeignSaveWebP;
 
-	/* Enable smart chroma subsampling.
-	 */
-	gboolean smart_subsample;
+typedef VipsForeignSaveClass VipsForeignSaveWebPClass;
 
-	/* Use preprocessing in lossless mode.
-	 */
-	gboolean near_lossless;
-
-	/* Alpha quality.
-	 */
-	int alpha_q;
-
-	/* Level of CPU effort to reduce file size.
-	 */
-	int effort;
-
-	/* Animated webp options.
-	 */
-
-	/* Attempt to minimise size
-	 */
-	gboolean min_size;
-
-	/* Allow mixed encoding (might reduce file size)
-	 */
-	gboolean mixed;
-
-	/* Min between key frames.
-	 */
-	int kmin;
-
-	/* Max between keyframes.
-	 */
-	int kmax;
-
-	/* Profile to embed.
-	 */
-	char *profile;
-
-} VipsForeignSaveWebp;
-
-typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
-
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebp, vips_foreign_save_webp, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebP, vips_foreign_save_webp,
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_webp_write_unset( VipsForeignSaveWebP *write )
+{
+	WebPMemoryWriterClear( &write->memory_writer );
+	VIPS_FREEF( WebPAnimEncoderDelete, write->enc );
+	VIPS_FREEF( WebPMuxDelete, write->mux );
+	VIPS_UNREF( write->image );
+}
+
+static void
+vips_foreign_save_webp_dispose( GObject *gobject )
+{
+	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) gobject;
+
+	VIPS_UNREF( webp->frame );
+
+	VIPS_UNREF( webp->target );
+
+	VIPS_FREE( webp->frame_bytes );
+
+	G_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
+		dispose( gobject );
+}
+
+static gboolean
+vips_webp_pic_init( VipsForeignSaveWebP *write, WebPPicture *pic )
+{
+	if( !WebPPictureInit( pic ) ) {
+		vips_error( "webpsave", "%s", _( "picture version error" ) );
+		return( FALSE );
+	}
+	pic->writer = WebPMemoryWrite;
+	pic->custom_ptr = (void *) &write->memory_writer;
+
+        /* Smart subsampling needs use_argb because it is applied during 
+         * RGB to YUV conversion.
+         */
+        pic->use_argb = write->lossless ||
+                write->near_lossless ||
+                write->smart_subsample;
+
+        return( TRUE );
+}
+
+/* Write a VipsImage into an unintialised pic.
+ */
+static int
+write_webp_image( VipsForeignSaveWebP *write, VipsPel *imagedata, WebPPicture *pic )
+{
+        webp_import import;
+	int page_height = vips_image_get_page_height( write->image );
+
+        if( !vips_webp_pic_init( write, pic ) )
+                return( -1 );
+
+        pic->width = write->image->Xsize;
+        pic->height = page_height; 
+
+        if( write->image->Bands == 4 )
+                import = WebPPictureImportRGBA;
+        else
+                import = WebPPictureImportRGB;
+
+        if( !import( pic, imagedata,
+                write->image->Xsize * write->image->Bands ) ) {
+                WebPPictureFree( pic );
+                vips_error( "webpsave", "%s", _( "picture memory error" ) );
+                return( -1 );
+        }
+
+        return( 0 );
+}
+
+/* We have a complete frame --- write!
+ */
+static int
+vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
+{
+	WebPPicture pic;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( webp );
+	VipsRect *frame_rect = &webp->frame->valid;
+	int page_index = frame_rect->top / frame_rect->height;
+	int n_pels = frame_rect->height * frame_rect->width;
+
+	/* We need the frame as a contiguous RGB(A) buffer for libwebp.
+	 */
+	for( int y = 0; y < frame_rect->height; y++ )
+		memcpy( webp->frame_bytes + y * webp->image->Bands * frame_rect->width,
+			VIPS_REGION_ADDR( webp->frame, 0, frame_rect->top + y ),
+			webp->image->Bands * frame_rect->width );
+
+	if( write_webp_image( webp, webp->frame_bytes, &pic ) ) {
+		return( -1 );
+	}
+	if( !WebPAnimEncoderAdd( webp->enc,
+		&pic, webp->timestamp_ms, &webp->config ) ) {
+		WebPPictureFree( &pic );
+		vips_error( "webpsave",
+			"%s", _( "anim add error" ) );
+		return( -1 );
+	}
+	/* Adjust current timestamp
+	 */
+	if( webp->delay &&
+		page_index < webp->delay_length )
+		webp->timestamp_ms += webp->delay[page_index] <= 10 ?
+			100 : webp->delay[page_index];
+	else
+		webp->timestamp_ms += webp->gif_delay * 10;
+
+	WebPPictureFree( &pic );
+
+	return( 0 );
+}
+
+/* Another chunk of pixels have arrived from the pipeline. Add to frame, and
+ * if the frame completes, compress and write to the target.
+ */
+static int
+vips_foreign_save_webp_sink_disc( VipsRegion *region, VipsRect *area, void *a )
+{
+	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP*) a;
+
+	/* Write the new pixels into frame.
+	 */
+	do {
+		VipsRect *to = &webp->frame->valid;
+
+		VipsRect hit;
+
+		/* The bit of the frame that we can fill.
+		 */
+		vips_rect_intersectrect( area, to, &hit );
+
+		/* Write the new pixels into the frame.
+		 */
+		vips_region_copy( region, webp->frame, 
+			&hit, hit.left, hit.top );
+
+		webp->write_y += hit.height;
+
+		/* If we've filled the frame, write and move it down.
+		 */
+		if( VIPS_RECT_BOTTOM( &hit ) == VIPS_RECT_BOTTOM( to ) ) {
+			VipsRect new_frame;
+			VipsRect image;
+
+			if( vips_foreign_save_webp_write_frame( webp ) ) 
+				return( -1 );
+
+			new_frame.left = 0;
+			new_frame.top = webp->write_y;
+			new_frame.width = to->width;
+			new_frame.height = to->height;
+			image.left = 0;
+			image.top = 0;
+			image.width = webp->image->Xsize;
+			image.height = webp->image->Ysize;
+			vips_rect_intersectrect( &new_frame, &image, 
+				&new_frame );
+
+			/* End of image?
+			 */
+			if( vips_rect_isempty( &new_frame ) )
+				break;
+
+			if( vips_region_buffer( webp->frame, &new_frame ) ) 
+				return( -1 );
+		}
+	} while( VIPS_RECT_BOTTOM( area ) > webp->write_y );
+
+	return( 0 );
+}
+
+static WebPPreset
+get_preset( VipsForeignWebpPreset preset )
+{
+        switch( preset ) {
+        case VIPS_FOREIGN_WEBP_PRESET_DEFAULT:
+                return( WEBP_PRESET_DEFAULT );
+        case VIPS_FOREIGN_WEBP_PRESET_PICTURE:
+                return( WEBP_PRESET_PICTURE );
+        case VIPS_FOREIGN_WEBP_PRESET_PHOTO:
+                return( WEBP_PRESET_PHOTO );
+        case VIPS_FOREIGN_WEBP_PRESET_DRAWING:
+                return( WEBP_PRESET_DRAWING );
+        case VIPS_FOREIGN_WEBP_PRESET_ICON:
+                return( WEBP_PRESET_ICON );
+        case VIPS_FOREIGN_WEBP_PRESET_TEXT:
+                return( WEBP_PRESET_TEXT );
+
+        default:
+                g_assert_not_reached();
+        }
+
+        /* Keep -Wall happy.
+         */
+        return( -1 );
+}
+
+static void
+vips_webp_set_count( VipsForeignSaveWebP *write, int loop_count )
+{
+	uint32_t features;
+
+	if( WebPMuxGetFeatures( write->mux, &features ) == WEBP_MUX_OK &&
+		(features & ANIMATION_FLAG) ) {
+		WebPMuxAnimParams params;
+
+		if( WebPMuxGetAnimationParams( write->mux, &params ) == 
+			WEBP_MUX_OK ) {
+			params.loop_count = loop_count;
+			WebPMuxSetAnimationParams( write->mux, &params );
+		}
+	}
+}
+
+static int
+vips_webp_set_chunk( VipsForeignSaveWebP *write, 
+	const char *webp_name, const void *data, size_t length )
+{
+	WebPData chunk;
+
+	chunk.bytes = data;
+	chunk.size = length;
+
+	if( WebPMuxSetChunk( write->mux, webp_name, &chunk, 1 ) != 
+		WEBP_MUX_OK ) { 
+		vips_error( "webpsave", 
+			"%s", _( "chunk add error" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int 
+vips_webp_add_chunks( VipsForeignSaveWebP *write )
+{
+	int i;
+
+	for( i = 0; i < vips__n_webp_names; i++ ) { 
+		const char *vips_name = vips__webp_names[i].vips;
+		const char *webp_name = vips__webp_names[i].webp;
+
+		if( vips_image_get_typeof( write->image, vips_name ) ) {
+			const void *data;
+			size_t length;
+
+			if( vips_image_get_blob( write->image, 
+				vips_name, &data, &length ) ||
+				vips_webp_set_chunk( write, 
+					webp_name, data, length ) )
+				return( -1 ); 
+		}
+	}
+
+	return( 0 );
+}
+
+static int 
+vips_webp_add_metadata( VipsForeignSaveWebP *write )
+{
+	WebPData data;
+
+	data.bytes = write->memory_writer.mem;
+	data.size = write->memory_writer.size;
+
+	/* Parse what we have.
+	 */
+	if( !(write->mux = WebPMuxCreate( &data, 1 )) ) {
+		vips_error( "webpsave", "%s", _( "mux error" ) );
+		return( -1 );
+	}
+
+	if( vips_image_get_typeof( write->image, "loop" ) ) {
+		int loop;
+
+		if( vips_image_get_int( write->image, "loop", &loop ) )
+			return( -1 );
+
+		vips_webp_set_count( write, loop );
+	}
+	/* DEPRECATED "gif-loop"
+	 */
+	else if ( vips_image_get_typeof( write->image, "gif-loop" ) ) {
+		int gif_loop;
+
+		if( vips_image_get_int( write->image, "gif-loop", &gif_loop ) )
+			return( -1 );
+
+		vips_webp_set_count( write, gif_loop == 0 ? 0 : gif_loop + 1 );
+	}
+
+	/* Add extra metadata.
+	 */
+	if( !write->strip ) {
+		/* We need to rebuild exif from the other image tags before
+		 * writing the metadata.
+		 */
+		if( vips__exif_update( write->image ) )
+			return( -1 );
+
+		/* Override profile.
+		 */
+		if( write->profile &&
+			vips__profile_set( write->image, write->profile ) )
+			return( -1 );
+
+		if( vips_webp_add_chunks( write ) ) 
+			return( -1 );
+	}
+
+	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
+		vips_error( "webpsave", "%s", _( "mux error" ) );
+		return( -1 );
+	}
+
+	/* Free old stuff, reinit with new stuff.
+	 */
+	WebPMemoryWriterClear( &write->memory_writer );
+	write->memory_writer.mem = (uint8_t *) data.bytes;
+	write->memory_writer.size = data.size;
+  
+	return( 0 );
+}
+
+static int
+vips_foreign_save_webp_build( VipsObject *object )
+{
+	WebPAnimEncoderOptions anim_config;
+	WebPData webp_data;
+
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( webp );
+
+	int page_height;
+	VipsRect frame_rect;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* We need a copy of the input image in case we change the metadata
+	 * eg. in vips__exif_update().
+	 */
+	if( vips_copy( save->ready, &webp->image, NULL ) ) {
+		vips_webp_write_unset( webp );
+		return( -1 );
+	}
+
+	/* Animation properties.
+	 */
+	page_height = vips_image_get_page_height( webp->image );
+	frame_rect.left = 0;
+	frame_rect.top = 0;
+	frame_rect.width = webp->image->Xsize;
+	frame_rect.height = page_height;
+	webp->timestamp_ms = 0;
+
+	/* Init WebP config.
+	 */
+	WebPMemoryWriterInit( &webp->memory_writer );
+	if( !WebPConfigInit( &webp->config ) ) {
+		vips_webp_write_unset( webp );
+		vips_error( "webpsave",
+			"%s", _( "config version error" ) );
+		return( -1 );
+	}
+
+	/* These presets are only for lossy compression. There seems to be
+	 * separate API for lossless or near-lossless, see
+	 * WebPConfigLosslessPreset().
+	 */
+	if( !(webp->lossless || webp->near_lossless) &&
+		!WebPConfigPreset( &webp->config, get_preset( webp->preset ), webp->Q ) ) {
+		vips_webp_write_unset( webp );
+		vips_error( "webpsave", "%s", _( "config version error" ) );
+		return( -1 );
+	}
+
+	webp->config.lossless = webp->lossless || webp->near_lossless;
+	webp->config.alpha_quality = webp->alpha_q;
+	webp->config.method = webp->effort;
+
+        if( webp->lossless )
+                webp->config.quality = webp->Q;
+        if( webp->near_lossless )
+                webp->config.near_lossless = webp->Q;
+        if( webp->smart_subsample )
+                webp->config.use_sharp_yuv = 1;
+
+        if( !WebPValidateConfig( &webp->config ) ) {
+		vips_webp_write_unset( webp );
+                vips_error( "webpsave", "%s", _( "invalid configuration" ) );
+                return( -1 );
+        }
+
+	/* Init config for animated write
+	 */
+	if( !WebPAnimEncoderOptionsInit( &anim_config ) ) {
+		vips_error( "webpsave",
+			"%s", _( "config version error" ) );
+		return( -1 );
+	}
+
+	anim_config.minimize_size = webp->min_size;
+	anim_config.allow_mixed = webp->mixed;
+	anim_config.kmin = webp->kmin;
+	anim_config.kmax = webp->kmax;
+	webp->enc = WebPAnimEncoderNew( webp->image->Xsize, page_height,
+		&anim_config );
+	if( !webp->enc ) {
+		vips_error( "webpsave",
+			"%s", _( "unable to init animation" ) );
+	        return( -1 );
+	}
+
+	/* Assemble frames here.
+	 */
+	webp->frame = vips_region_new( webp->image );
+	if( vips_region_buffer( webp->frame, &frame_rect ) ) 
+		return( -1 );
+
+	/* The regions will get used in the bg thread callback,
+	 * so make sure we don't own them.
+	 */
+	vips__region_no_ownership( webp->frame );
+
+	/* RGB(A) frame as a contiguous buffer.
+	 */
+	webp->frame_bytes = g_malloc( (size_t) webp->image->Bands *
+		frame_rect.width * frame_rect.height );
+
+	/* Get delay array
+	 *
+	 * There might just be the old gif-delay field. This is centiseconds.
+	 */
+	webp->gif_delay = 10;
+	if( vips_image_get_typeof( webp->image, "gif-delay" ) &&
+		vips_image_get_int( webp->image, "gif-delay", &webp->gif_delay ) )
+		return( -1 );
+
+	/* Force frames with a small or no duration to 100ms
+	 * to be consistent with web browsers and other
+	 * transcoding tools.
+	 */
+	if( webp->gif_delay <= 1 )
+		webp->gif_delay = 10;
+
+        /* New images have an array of ints instead.
+         */
+	webp->delay = NULL;
+	if( vips_image_get_typeof( webp->image, "delay" ) &&
+		vips_image_get_array_int( webp->image, "delay",
+			&webp->delay, &webp->delay_length ) )
+		return( -1 );
+
+	if( vips_sink_disc( webp->image, 
+		vips_foreign_save_webp_sink_disc, webp ) ) 
+		return( -1 );
+	
+	/* Closes encoder and adds last frame delay.
+	 */
+	if( !WebPAnimEncoderAdd( webp->enc,
+		NULL, webp->timestamp_ms, NULL ) ) {
+		vips_error( "webpsave",
+			"%s", _( "anim close error" ) );
+		return( -1 );
+	}
+
+	if( !WebPAnimEncoderAssemble( webp->enc, &webp_data ) ) {
+		vips_error( "webpsave",
+			"%s", _( "anim build error" ) );
+		return( -1 );
+	}
+
+        /* Terrible. This will only work if the output buffer is currently
+         * empty. 
+         */
+        if( webp->memory_writer.mem != NULL ) {
+                vips_error( "webpsave", "%s", _( "internal error" ) );
+                return( -1 );
+        }
+        webp->memory_writer.mem = (uint8_t *) webp_data.bytes;
+        webp->memory_writer.size = webp_data.size;
+
+	if( vips_webp_add_metadata( webp ) ) {
+		vips_webp_write_unset( webp );
+		return( -1 );
+	}
+
+	if( vips_target_write( webp->target,
+		webp->memory_writer.mem, webp->memory_writer.size ) ) {
+		vips_webp_write_unset( webp);
+		return( -1 );
+	}
+
+	if( vips_target_end( webp->target ) )
+		return( -1 );
+
+	vips_webp_write_unset( webp );
+
+	return( 0 );
+}
+
+static const char *vips__save_webp_suffs[] = { ".webp", NULL };
 
 #define UC VIPS_FORMAT_UCHAR
 
@@ -128,20 +632,22 @@ static int bandfmt_webp[10] = {
 };
 
 static void
-vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
+vips_foreign_save_webp_class_init( VipsForeignSaveWebPClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_webp_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "webpsave_base";
-	object_class->description = _( "save webp" );
+	object_class->description = _( "save as WebP" );
+	object_class->build = vips_foreign_save_webp_build;
 
-	foreign_class->suffs = vips__webp_suffs;
+	foreign_class->suffs = vips__save_webp_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
 	save_class->format_table = bandfmt_webp;
@@ -150,21 +656,21 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		_( "Q" ), 
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, Q ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, Q ),
 		0, 100, 75 );
 
 	VIPS_ARG_BOOL( class, "lossless", 11, 
 		_( "Lossless" ), 
 		_( "Enable lossless compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, lossless ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, lossless ),
 		FALSE ); 
 
 	VIPS_ARG_ENUM( class, "preset", 12,
 		_( "Preset" ),
 		_( "Preset for lossy compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, preset ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, preset ),
 		VIPS_TYPE_FOREIGN_WEBP_PRESET,
 		VIPS_FOREIGN_WEBP_PRESET_DEFAULT );
 
@@ -172,75 +678,75 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		_( "Smart subsampling" ),
 		_( "Enable high quality chroma subsampling" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, smart_subsample ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, smart_subsample ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "near_lossless", 14,
 		_( "Near lossless" ),
 		_( "Enable preprocessing in lossless mode (uses Q)" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, near_lossless ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, near_lossless ),
 		FALSE );
 
 	VIPS_ARG_INT( class, "alpha_q", 15,
 		_( "Alpha quality" ),
 		_( "Change alpha plane fidelity for lossy compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, alpha_q ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, alpha_q ),
 		0, 100, 100 );
 
 	VIPS_ARG_BOOL( class, "min_size", 16,
 		_( "Minimise size" ),
 		_( "Optimise for minimum size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, min_size ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, min_size ),
 		FALSE );
 
 	VIPS_ARG_INT( class, "kmin", 17,
 		_( "Minimum keyframe spacing" ),
 		_( "Minimum number of frames between key frames" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmin ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, kmin ),
 		0, INT_MAX, INT_MAX - 1 );
 
 	VIPS_ARG_INT( class, "kmax", 18,
 		_( "Maximum keyframe spacing" ),
 		_( "Maximum number of frames between key frames" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmax ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, kmax ),
 		0, INT_MAX, INT_MAX );
 
 	VIPS_ARG_INT( class, "effort", 19,
 		_( "Effort" ),
 		_( "Level of CPU effort to reduce file size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, effort ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, effort ),
 		0, 6, 4 );
 
 	VIPS_ARG_STRING( class, "profile", 20, 
 		_( "Profile" ), 
 		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, profile ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, profile ),
 		NULL );
 
 	VIPS_ARG_INT( class, "reduction_effort", 21,
 		_( "Reduction effort" ),
 		_( "Level of CPU effort to reduce file size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, effort ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, effort ),
 		0, 6, 4 );
 
 	VIPS_ARG_BOOL( class, "mixed", 22,
 		_( "Mixed encoding" ),
 		_( "Allow mixed encoding (might reduce file size)" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, mixed ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebP, mixed ),
 		FALSE );
 }
 
 static void
-vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
+vips_foreign_save_webp_init( VipsForeignSaveWebP *webp )
 {
 	webp->Q = 75;
 	webp->alpha_q = 100;
@@ -252,36 +758,29 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 	webp->kmax = INT_MAX;
 }
 
-typedef struct _VipsForeignSaveWebpTarget {
-	VipsForeignSaveWebp parent_object;
+typedef struct _VipsForeignSaveWebPTarget {
+	VipsForeignSaveWebP parent_object;
 
 	VipsTarget *target;
+} VipsForeignSaveWebPTarget;
 
-} VipsForeignSaveWebpTarget;
+typedef VipsForeignSaveWebPClass VipsForeignSaveWebPTargetClass;
 
-typedef VipsForeignSaveWebpClass VipsForeignSaveWebpTargetClass;
-
-G_DEFINE_TYPE( VipsForeignSaveWebpTarget, vips_foreign_save_webp_target, 
+G_DEFINE_TYPE( VipsForeignSaveWebPTarget, vips_foreign_save_webp_target,
 	vips_foreign_save_webp_get_type() );
 
 static int
 vips_foreign_save_webp_target_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
-	VipsForeignSaveWebpTarget *target = 
-		(VipsForeignSaveWebpTarget *) object;
+	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP *) object;
+	VipsForeignSaveWebPTarget *target = 
+		(VipsForeignSaveWebPTarget *) object;
+
+	webp->target = target->target;
+	g_object_ref( webp->target );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_target_parent_class )->
 		build( object ) )
-		return( -1 );
-
-	if( vips__webp_write_target( save->ready, target->target, 
-		webp->Q, webp->lossless, webp->preset,
-		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->effort,
-		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
-		save->strip, webp->profile ) )
 		return( -1 );
 
 	return( 0 );
@@ -289,7 +788,7 @@ vips_foreign_save_webp_target_build( VipsObject *object )
 
 static void
 vips_foreign_save_webp_target_class_init( 
-	VipsForeignSaveWebpTargetClass *class )
+	VipsForeignSaveWebPTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -298,68 +797,50 @@ vips_foreign_save_webp_target_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "webpsave_target";
-	object_class->description = _( "save image to webp target" );
 	object_class->build = vips_foreign_save_webp_target_build;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveWebpTarget, target ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebPTarget, target ),
 		VIPS_TYPE_TARGET );
+
 }
 
 static void
-vips_foreign_save_webp_target_init( VipsForeignSaveWebpTarget *target )
+vips_foreign_save_webp_target_init( VipsForeignSaveWebPTarget *target )
 {
 }
 
+typedef struct _VipsForeignSaveWebPFile {
+	VipsForeignSaveWebP parent_object;
+	char *filename;
+} VipsForeignSaveWebPFile;
 
-typedef struct _VipsForeignSaveWebpFile {
-	VipsForeignSaveWebp parent_object;
+typedef VipsForeignSaveWebPClass VipsForeignSaveWebPFileClass;
 
-	/* Filename for save.
-	 */
-	char *filename; 
-
-} VipsForeignSaveWebpFile;
-
-typedef VipsForeignSaveWebpClass VipsForeignSaveWebpFileClass;
-
-G_DEFINE_TYPE( VipsForeignSaveWebpFile, vips_foreign_save_webp_file, 
+G_DEFINE_TYPE( VipsForeignSaveWebPFile, vips_foreign_save_webp_file,
 	vips_foreign_save_webp_get_type() );
 
 static int
 vips_foreign_save_webp_file_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
-	VipsForeignSaveWebpFile *file = (VipsForeignSaveWebpFile *) object;
+	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP *) object;
+	VipsForeignSaveWebPFile *file = (VipsForeignSaveWebPFile *) object;
 
-	VipsTarget *target;
+	if( !(webp->target = vips_target_new_to_file( file->filename )) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(target = vips_target_new_to_file( file->filename )) )
-		return( -1 );
-	if( vips__webp_write_target( save->ready, target,
-		webp->Q, webp->lossless, webp->preset,
-		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->effort,
-		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
-		save->strip, webp->profile ) ) {
-		VIPS_UNREF( target );
-		return( -1 );
-	}
-	VIPS_UNREF( target );
-
 	return( 0 );
 }
 
 static void
-vips_foreign_save_webp_file_class_init( VipsForeignSaveWebpFileClass *class )
+vips_foreign_save_webp_file_class_init( VipsForeignSaveWebPFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -368,76 +849,57 @@ vips_foreign_save_webp_file_class_init( VipsForeignSaveWebpFileClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "webpsave";
-	object_class->description = _( "save image to webp file" );
 	object_class->build = vips_foreign_save_webp_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveWebpFile, filename ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebPFile, filename ),
 		NULL );
 }
 
 static void
-vips_foreign_save_webp_file_init( VipsForeignSaveWebpFile *file )
+vips_foreign_save_webp_file_init( VipsForeignSaveWebPFile *file )
 {
 }
 
-typedef struct _VipsForeignSaveWebpBuffer {
-	VipsForeignSaveWebp parent_object;
-
-	/* Save to a buffer.
-	 */
+typedef struct _VipsForeignSaveWebPBuffer {
+	VipsForeignSaveWebP parent_object;
 	VipsArea *buf;
+} VipsForeignSaveWebPBuffer;
 
-} VipsForeignSaveWebpBuffer;
+typedef VipsForeignSaveWebPClass VipsForeignSaveWebPBufferClass;
 
-typedef VipsForeignSaveWebpClass VipsForeignSaveWebpBufferClass;
-
-G_DEFINE_TYPE( VipsForeignSaveWebpBuffer, vips_foreign_save_webp_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveWebPBuffer, vips_foreign_save_webp_buffer,
 	vips_foreign_save_webp_get_type() );
 
 static int
 vips_foreign_save_webp_buffer_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
-	VipsForeignSaveWebpBuffer *buffer = 
-		(VipsForeignSaveWebpBuffer *) object;
+	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP *) object;
+	VipsForeignSaveWebPBuffer *buffer = 
+		(VipsForeignSaveWebPBuffer *) object;
 
-	VipsTarget *target;
 	VipsBlob *blob;
+
+	if( !(webp->target = vips_target_new_to_memory()) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(target = vips_target_new_to_memory()) )
-		return( -1 );
-
-	if( vips__webp_write_target( save->ready, target,
-		webp->Q, webp->lossless, webp->preset,
-		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->effort,
-		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
-		save->strip, webp->profile ) ) {
-		VIPS_UNREF( target );
-		return( -1 );
-	}
-
-	g_object_get( target, "blob", &blob, NULL );
+	g_object_get( webp->target, "blob", &blob, NULL );
 	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
-
-	VIPS_UNREF( target );
 
 	return( 0 );
 }
 
 static void
 vips_foreign_save_webp_buffer_class_init( 
-	VipsForeignSaveWebpBufferClass *class )
+	VipsForeignSaveWebPBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -446,39 +908,37 @@ vips_foreign_save_webp_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "webpsave_buffer";
-	object_class->description = _( "save image to webp buffer" );
 	object_class->build = vips_foreign_save_webp_buffer_build;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveWebpBuffer, buf ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebPBuffer, buf ),
 		VIPS_TYPE_BLOB );
 }
 
 static void
-vips_foreign_save_webp_buffer_init( VipsForeignSaveWebpBuffer *file )
+vips_foreign_save_webp_buffer_init( VipsForeignSaveWebPBuffer *buffer )
 {
 }
 
-typedef struct _VipsForeignSaveWebpMime {
-	VipsForeignSaveWebp parent_object;
+typedef struct _VipsForeignSaveWebPMime {
+	VipsForeignSaveWebP parent_object;
 
-} VipsForeignSaveWebpMime;
+} VipsForeignSaveWebPMime;
 
-typedef VipsForeignSaveWebpClass VipsForeignSaveWebpMimeClass;
+typedef VipsForeignSaveWebPClass VipsForeignSaveWebPMimeClass;
 
-G_DEFINE_TYPE( VipsForeignSaveWebpMime, vips_foreign_save_webp_mime, 
+G_DEFINE_TYPE( VipsForeignSaveWebPMime, vips_foreign_save_webp_mime, 
 	vips_foreign_save_webp_get_type() );
 
 static int
 vips_foreign_save_webp_mime_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
+	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP *) object;
 
-	VipsTarget *target;
 	VipsBlob *blob;
 	void *data;
 	size_t len;
@@ -487,20 +947,11 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(target = vips_target_new_to_memory()) )
+	if( !(webp->target = vips_target_new_to_memory()) )
 		return( -1 );
+	// TBD
 
-	if( vips__webp_write_target( save->ready, target,
-		webp->Q, webp->lossless, webp->preset,
-		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->effort,
-		webp->min_size, webp->mixed, webp->kmin, webp->kmax,
-		save->strip, webp->profile ) ) {
-		VIPS_UNREF( target );
-		return( -1 );
-	}
-
-	g_object_get( target, "blob", &blob, NULL );
+	g_object_get( webp->target, "blob", &blob, NULL );
 	data = VIPS_AREA( blob )->data;
 	len = VIPS_AREA( blob )->length;
 	vips_area_unref( VIPS_AREA( blob ) );
@@ -511,13 +962,13 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	(void) fwrite( data, sizeof( char ), len, stdout );
 	fflush( stdout );
 
-	VIPS_UNREF( target );
+	VIPS_UNREF( webp->target );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_save_webp_mime_class_init( VipsForeignSaveWebpMimeClass *class )
+vips_foreign_save_webp_mime_class_init( VipsForeignSaveWebPMimeClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
@@ -528,7 +979,7 @@ vips_foreign_save_webp_mime_class_init( VipsForeignSaveWebpMimeClass *class )
 }
 
 static void
-vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
+vips_foreign_save_webp_mime_init( VipsForeignSaveWebPMime *mime )
 {
 }
 
