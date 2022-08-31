@@ -195,7 +195,6 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( webp );
 	VipsRect *frame_rect = &webp->frame->valid;
 	int page_index = frame_rect->top / frame_rect->height;
-	int n_pels = frame_rect->height * frame_rect->width;
 
 	/* We need the frame as a contiguous RGB(A) buffer for libwebp.
 	 */
@@ -210,7 +209,7 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 	if( !WebPAnimEncoderAdd( webp->enc,
 		&pic, webp->timestamp_ms, &webp->config ) ) {
 		WebPPictureFree( &pic );
-		vips_error( "webpsave",
+		vips_error( class->nickname,
 			"%s", _( "anim add error" ) );
 		return( -1 );
 	}
@@ -479,7 +478,7 @@ vips_foreign_save_webp_build( VipsObject *object )
 	WebPMemoryWriterInit( &webp->memory_writer );
 	if( !WebPConfigInit( &webp->config ) ) {
 		vips_webp_write_unset( webp );
-		vips_error( "webpsave",
+		vips_error( class->nickname,
 			"%s", _( "config version error" ) );
 		return( -1 );
 	}
@@ -936,20 +935,18 @@ G_DEFINE_TYPE( VipsForeignSaveWebPMime, vips_foreign_save_webp_mime,
 static int
 vips_foreign_save_webp_mime_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP *) object;
 
 	VipsBlob *blob;
 	void *data;
 	size_t len;
 
+	if( !(webp->target = vips_target_new_to_memory()) )
+		return( -1 );
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_mime_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	if( !(webp->target = vips_target_new_to_memory()) )
-		return( -1 );
-	// TBD
 
 	g_object_get( webp->target, "blob", &blob, NULL );
 	data = VIPS_AREA( blob )->data;
