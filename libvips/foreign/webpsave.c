@@ -1,5 +1,35 @@
-/* save as WebP
+/* save to webp
  *
+ * 24/11/11
+ * 	- wrap a class around the webp writer
+ * 6/8/13
+ * 	- from vips2jpeg.c
+ * 31/5/16
+ * 	- buffer write ignored lossless, thanks aaron42net
+ * 2/5/16 Felix Bünemann
+ * 	- used advanced encoding API, expose controls
+ * 8/11/16
+ * 	- add metadata write
+ * 29/10/18
+ * 	- add animated webp support
+ * 29/10/18
+ * 	- target libwebp 0.5+ and remove some ifdefs
+ * 	- add animated webp write
+ * 	- use libwebpmux instead of our own thing, phew
+ * 15/1/19 lovell
+ * 	- add @effort
+ * 6/7/19 [deftomat]
+ * 	- support array of delays
+ * 8/7/19
+ * 	- set loop even if we strip
+ * 14/10/19
+ * 	- revise for target IO
+ * 18/7/20
+ * 	- add @profile param to match tiff, jpg, etc.
+ * 18/7/20
+ * 	- add @profile param to match tiff, jpg, etc.
+ * 30/7/21
+ * 	- rename "reduction_effort" as "effort"
  */
 
 /*
@@ -31,6 +61,7 @@
 
 /*
 #define DEBUG_VERBOSE
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -63,6 +94,7 @@ typedef enum _VipsForeignSaveWebPMode {
 
 typedef struct _VipsForeignSaveWebP {
 	VipsForeignSave parent_object;
+	VipsTarget *target;
 
 	/* Animated or single image write mode?
 	 * Important, because we use a different API
@@ -72,21 +104,61 @@ typedef struct _VipsForeignSaveWebP {
 	VipsImage *image;
 
 	int timestamp_ms;
+
+	/* Quality factor.
+	 */
 	int Q;
+
+	/* Turn on lossless encode.
+	 */
 	gboolean lossless;
+
+	/* Lossy compression preset.
+	 */
 	VipsForeignWebpPreset preset;
+
+	/* Enable smart chroma subsampling.
+	 */
 	gboolean smart_subsample;
+
+	/* Use preprocessing in lossless mode.
+	 */
 	gboolean near_lossless;
+
+	/* Alpha quality.
+	 */
 	int alpha_q;
+
+	/* Level of CPU effort to reduce file size.
+	 */
 	int effort;
-	gboolean min_size;
-	gboolean mixed;
-	int kmin;
-	int kmax;
+
+	/* Animated webp options.
+	 */
+
 	int gif_delay;
 	int *delay;
 	int delay_length;
 	gboolean strip;
+
+	/* Attempt to minimise size
+	 */
+	gboolean min_size;
+
+	/* Allow mixed encoding (might reduce file size)
+	 */
+	gboolean mixed;
+
+	/* Min between key frames.
+	 */
+	int kmin;
+
+	/* Max between keyframes.
+	 */
+	int kmax;
+
+	/* Profile to embed.
+	 */
 	const char *profile;
 
 	WebPConfig config;
@@ -103,7 +175,6 @@ typedef struct _VipsForeignSaveWebP {
 	/* Add metadata with this.
 	 */
 	WebPMux *mux;
-	VipsTarget *target;
 
 	/* The current frame coming from libvips, and the y position
 	 * in the input image.
@@ -115,7 +186,6 @@ typedef struct _VipsForeignSaveWebP {
 	 * for libwebp. We need to copy each frame to a local buffer.
 	 */
 	VipsPel *frame_bytes;
-
 } VipsForeignSaveWebP;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebPClass;
