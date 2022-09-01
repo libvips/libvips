@@ -56,9 +56,19 @@
 typedef int (*webp_import)( WebPPicture *picture,
         const uint8_t *rgb, int stride );
 
+typedef enum _VipsForeignSaveWebPMode {
+	VIPS_FOREIGN_SAVE_WEBP_MODE_SINGLE,
+	VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM
+} VipsForeignSaveWebPMode;
+
 typedef struct _VipsForeignSaveWebP {
 	VipsForeignSave parent_object;
 
+	/* Animated or single image write mode?
+	 * Important, because we use a different API
+	 * for animated WebP write.
+	 */
+	VipsForeignSaveWebPMode mode;
         VipsImage *image;
 
 	int timestamp_ms;
@@ -101,7 +111,7 @@ typedef struct _VipsForeignSaveWebP {
 	VipsRegion *frame;
 	int write_y;
 
-	/* VipsRegion is not always contiguious, but we need contiguious RGBA
+	/* VipsRegion is not always contiguious, but we need contiguous RGB(A)
 	 * for libwebp. We need to copy each frame to a local buffer.
 	 */
 	VipsPel *frame_bytes;
@@ -160,7 +170,7 @@ vips_webp_pic_init( VipsForeignSaveWebP *write, WebPPicture *pic )
 /* Write a VipsImage into an unintialised pic.
  */
 static int
-write_webp_image( VipsForeignSaveWebP *write, VipsPel *imagedata, WebPPicture *pic )
+write_webp_image( VipsForeignSaveWebP *write, const VipsPel *imagedata, WebPPicture *pic )
 {
         webp_import import;
 	int page_height = vips_image_get_page_height( write->image );
@@ -206,21 +216,34 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 	if( write_webp_image( webp, webp->frame_bytes, &pic ) ) {
 		return( -1 );
 	}
-	if( !WebPAnimEncoderAdd( webp->enc,
-		&pic, webp->timestamp_ms, &webp->config ) ) {
-		WebPPictureFree( &pic );
-		vips_error( class->nickname,
-			"%s", _( "anim add error" ) );
-		return( -1 );
-	}
-	/* Adjust current timestamp
+
+	/* Animated write
 	 */
-	if( webp->delay &&
-		page_index < webp->delay_length )
-		webp->timestamp_ms += webp->delay[page_index] <= 10 ?
-			100 : webp->delay[page_index];
-	else
-		webp->timestamp_ms += webp->gif_delay * 10;
+	if( webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM ) {
+		if( !WebPAnimEncoderAdd( webp->enc,
+			&pic, webp->timestamp_ms, &webp->config ) ) {
+			WebPPictureFree( &pic );
+			vips_error( class->nickname,
+				"%s", _( "anim add error" ) );
+			return( -1 );
+		}
+		/* Adjust current timestamp
+		 */
+		if( webp->delay &&
+			page_index < webp->delay_length )
+			webp->timestamp_ms += webp->delay[page_index] <= 10 ?
+				100 : webp->delay[page_index];
+		else
+			webp->timestamp_ms += webp->gif_delay * 10;
+	} else {
+		/* Single image write
+		 */
+		if( !WebPEncode( &webp->config, &pic ) ) {
+			WebPPictureFree( &pic );
+			vips_error( "webpsave", "%s", _( "unable to encode" ) );
+			return( -1 );
+		}
+	}
 
 	WebPPictureFree( &pic );
 
@@ -440,45 +463,13 @@ vips_webp_add_metadata( VipsForeignSaveWebP *write )
 }
 
 static int
-vips_foreign_save_webp_build( VipsObject *object )
-{
-	WebPAnimEncoderOptions anim_config;
-	WebPData webp_data;
-
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) object;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( webp );
-
-	int page_height;
-	VipsRect frame_rect;
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	/* We need a copy of the input image in case we change the metadata
-	 * eg. in vips__exif_update().
-	 */
-	if( vips_copy( save->ready, &webp->image, NULL ) ) {
-		vips_webp_write_unset( webp );
-		return( -1 );
-	}
-
-	/* Animation properties.
-	 */
-	page_height = vips_image_get_page_height( webp->image );
-	frame_rect.left = 0;
-	frame_rect.top = 0;
-	frame_rect.width = webp->image->Xsize;
-	frame_rect.height = page_height;
-	webp->timestamp_ms = 0;
-
+vips_foreign_save_webp_init_config( VipsForeignSaveWebP *webp ) {
 	/* Init WebP config.
 	 */
 	WebPMemoryWriterInit( &webp->memory_writer );
 	if( !WebPConfigInit( &webp->config ) ) {
 		vips_webp_write_unset( webp );
-		vips_error( class->nickname,
+		vips_error( "webpsave",
 			"%s", _( "config version error" ) );
 		return( -1 );
 	}
@@ -511,6 +502,14 @@ vips_foreign_save_webp_build( VipsObject *object )
                 return( -1 );
         }
 
+	return ( 0 );
+}
+
+static int
+vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebP *webp ) {
+	WebPAnimEncoderOptions anim_config;
+	int page_height = vips_image_get_page_height( webp->image );
+
 	/* Init config for animated write
 	 */
 	if( !WebPAnimEncoderOptionsInit( &anim_config ) ) {
@@ -530,22 +529,6 @@ vips_foreign_save_webp_build( VipsObject *object )
 			"%s", _( "unable to init animation" ) );
 	        return( -1 );
 	}
-
-	/* Assemble frames here.
-	 */
-	webp->frame = vips_region_new( webp->image );
-	if( vips_region_buffer( webp->frame, &frame_rect ) ) 
-		return( -1 );
-
-	/* The regions will get used in the bg thread callback,
-	 * so make sure we don't own them.
-	 */
-	vips__region_no_ownership( webp->frame );
-
-	/* RGB(A) frame as a contiguous buffer.
-	 */
-	webp->frame_bytes = g_malloc( (size_t) webp->image->Bands *
-		frame_rect.width * frame_rect.height );
 
 	/* Get delay array
 	 *
@@ -571,11 +554,16 @@ vips_foreign_save_webp_build( VipsObject *object )
 			&webp->delay, &webp->delay_length ) )
 		return( -1 );
 
-	if( vips_sink_disc( webp->image, 
-		vips_foreign_save_webp_sink_disc, webp ) ) 
-		return( -1 );
-	
-	/* Closes encoder and adds last frame delay.
+	webp->timestamp_ms = 0;
+
+	return ( 0 );
+}
+
+static int
+vips_foreign_save_webp_finish_anim( VipsForeignSaveWebP *webp ) {
+	WebPData webp_data;
+
+	/* Closes animated encoder and adds last frame delay.
 	 */
 	if( !WebPAnimEncoderAdd( webp->enc,
 		NULL, webp->timestamp_ms, NULL ) ) {
@@ -597,8 +585,83 @@ vips_foreign_save_webp_build( VipsObject *object )
                 vips_error( "webpsave", "%s", _( "internal error" ) );
                 return( -1 );
         }
+
         webp->memory_writer.mem = (uint8_t *) webp_data.bytes;
         webp->memory_writer.size = webp_data.size;
+
+	return ( 0 );
+}
+
+static int
+vips_foreign_save_webp_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) object;
+
+	int page_height;
+	VipsRect frame_rect;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* We need a copy of the input image in case we change the metadata
+	 * eg. in vips__exif_update().
+	 */
+	if( vips_copy( save->ready, &webp->image, NULL ) ) {
+		vips_webp_write_unset( webp );
+		return( -1 );
+	}
+
+	page_height = vips_image_get_page_height( webp->image );
+	frame_rect.left = 0;
+	frame_rect.top = 0;
+	frame_rect.width = webp->image->Xsize;
+	frame_rect.height = page_height;
+
+	/* Assemble frames here.
+	 */
+	webp->frame = vips_region_new( webp->image );
+	if( vips_region_buffer( webp->frame, &frame_rect ) )
+		return( -1 );
+
+	/* The regions will get used in the bg thread callback,
+	 * so make sure we don't own them.
+	 */
+	vips__region_no_ownership( webp->frame );
+
+	/* RGB(A) frame as a contiguous buffer.
+	 */
+	webp->frame_bytes = g_malloc( (size_t) webp->image->Bands *
+		frame_rect.width * frame_rect.height );
+
+	/* Init generic WebP config
+	 */
+	if( vips_foreign_save_webp_init_config( webp ) ) {
+		return ( -1 );
+	}
+
+	/* Determine the write mode (single image or animated write)
+	 */
+	webp->mode = VIPS_FOREIGN_SAVE_WEBP_MODE_SINGLE;
+	if( page_height != webp->image->Ysize )
+		webp->mode = VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM;
+
+	/* Init config for animated write (if necessary)
+	 */
+	if( webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM )
+		if( vips_foreign_save_webp_init_anim_enc( webp ) )
+			return ( -1 );
+
+	if( vips_sink_disc( webp->image,
+		vips_foreign_save_webp_sink_disc, webp ) )
+		return( -1 );
+
+	/* Finish animated write
+	 */
+	if( webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM )
+		if( vips_foreign_save_webp_finish_anim( webp ) )
+			return( -1 );
 
 	if( vips_webp_add_metadata( webp ) ) {
 		vips_webp_write_unset( webp );
