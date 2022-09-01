@@ -5961,6 +5961,31 @@ VipsBlob *webpsave_buffer( VOption *options = 0 ) const;
 void webpsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
+ * Save image to webp mime.
+ *
+ * **Optional parameters**
+ *   - **Q** -- Q factor, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
+ *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
+ *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
+ *   - **alpha_q** -- Change alpha plane fidelity for lossy compression, int.
+ *   - **min_size** -- Optimise for minimum size, bool.
+ *   - **kmin** -- Minimum number of frames between key frames, int.
+ *   - **kmax** -- Maximum number of frames between key frames, int.
+ *   - **effort** -- Level of CPU effort to reduce file size, int.
+ *   - **profile** -- ICC profile to embed, const char *.
+ *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void webpsave_mime( VOption *options = 0 ) const;
+
+/**
  * Make a worley noise image.
  *
  * **Optional parameters**
