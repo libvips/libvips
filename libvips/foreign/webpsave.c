@@ -30,6 +30,8 @@
  * 	- add @profile param to match tiff, jpg, etc.
  * 30/7/21
  * 	- rename "reduction_effort" as "effort"
+ * 2/9/22 dloebl
+ * 	- switch to sink_disc for animated write
  */
 
 /*
