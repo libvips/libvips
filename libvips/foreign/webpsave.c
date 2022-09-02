@@ -684,14 +684,12 @@ vips_foreign_save_webp_write_single( VipsForeignSaveWebP *webp )
 	VipsImage* memory;
 
 	if( !(memory = vips_image_copy_memory( webp->image )) ) {
-		WebPPictureFree( &pic );
 		return( -1 );
 	}
 
 	if( write_webp_image( webp,
 		VIPS_IMAGE_ADDR( memory, 0, 0 ), &pic ) ) {
 		VIPS_UNREF( memory );
-		WebPPictureFree( &pic );
 		return( -1 );
 	}
 
