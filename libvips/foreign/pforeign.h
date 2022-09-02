@@ -190,13 +190,6 @@ int vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 int vips__webp_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, double scale ); 
 
-int vips__webp_write_target( VipsImage *image, VipsTarget *target,
-	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, int effort,
-	gboolean min_size, gboolean mixed, int kmin, int kmax,
-	gboolean strip, const char *profile );
-
 extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
