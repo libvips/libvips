@@ -482,7 +482,10 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	printf( "get_vips_properties: fmt = %d\n", fmt );
 #endif /*DEBUG*/
 
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+        /* We load to memory then write to out, so we'll hint THINSTRIP.
+         */
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 	vips_image_init_fields( out,
 		width, height, bands, fmt, 
 		VIPS_CODING_NONE, 

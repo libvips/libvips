@@ -447,11 +447,9 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 		return( -1 );
 	}
 
-	/* Even though this is a tiled reader, we hint thinstrip since with
-	 * the cache we are quite happy serving that if anything downstream 
-	 * would like it.
+	/* We use a tilecache on our output.
 	 */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	vips_image_init_fields( out,

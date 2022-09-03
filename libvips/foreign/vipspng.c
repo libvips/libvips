@@ -393,7 +393,6 @@ png2vips_header( Read *read, VipsImage *out )
 	png_uint_32 width, height;
 	int bitdepth, color_type;
 	int interlace_type;
-	VipsDemandStyle hint;
 
 	png_uint_32 res_x, res_y;
 	int unit_type;
@@ -524,17 +523,7 @@ png2vips_header( Read *read, VipsImage *out )
 	VIPS_SETSTR( out->filename, 
 		vips_connection_filename( VIPS_CONNECTION( read->source ) ) );
 
-	/* Uninterlaced images will be read in seq mode. Interlaced images are
-	 * read via a huge memory buffer.
-	 */
-	if( interlace_type == PNG_INTERLACE_NONE ) 
-		/* Sequential mode needs thinstrip to work with things like
-		 * vips_shrink().
-		 */
-		hint = VIPS_DEMAND_STYLE_THINSTRIP;
-	else 
-		hint = VIPS_DEMAND_STYLE_ANY;
-	if( vips_image_pipelinev( out, hint, NULL ) )
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or

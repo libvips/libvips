@@ -552,6 +552,9 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 
 	attach_meta( out, d );
 
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
+
 	return( 0 );
 }
 

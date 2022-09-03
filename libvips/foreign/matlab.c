@@ -220,6 +220,11 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
+        /* We read to a huge memory area.
+         */
+	if( vips_image_pipelinev( im, VIPS_DEMAND_STYLE_ANY, NULL ) )
+		return( -1 );
+
 	return( 0 );
 }
 
