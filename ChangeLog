@@ -12,6 +12,7 @@ master
 - add "interlace" option to GIF save [dloebl]
 - magick load sets "magick-format" metadata [aksdb]
 - add ".pnm", save as image format [ewelot]
+- threaded tiff jp2k and jpeg decompress
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson

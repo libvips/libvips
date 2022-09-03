@@ -209,6 +209,8 @@
  * 	- fix tiled + packed formats
  * 31/7/22
  *      - move jp2k decompress outside the lock
+ *      - move jpeg decode outside the lock
+ *      - fix demand hinting
  */
 
 /*
@@ -1683,12 +1685,6 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 
 	vips_image_set_int( out, VIPS_META_N_PAGES, rtiff->n_pages );
 
-	/* Even though we could end up serving tiled data, always hint
-	 * THINSTRIP, since we're quite happy doing that too, and it could need
-	 * a lot less memory.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	/* We have a range of output paths. Look at the tiff header and try to
 	 * route the input image to the best output path.
 	 */
@@ -1741,6 +1737,15 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	 */
 	vips_image_set_int( out, 
 		VIPS_META_ORIENTATION, rtiff->header.orientation );
+
+        /* Hint smalltile for tiled images, since we may be decompressing
+         * outside the lock and THINSTRIP would prevent parallel tile decode.
+         */
+        vips_image_pipelinev( out, 
+                rtiff->header.tiled ? 
+                        VIPS_DEMAND_STYLE_SMALLTILE :
+                        VIPS_DEMAND_STYLE_THINSTRIP,
+                NULL ); 
 
 	return( 0 );
 }
@@ -2403,12 +2408,6 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		}
 	}
 
-	/* Even though this is a tiled reader, we hint thinstrip since with
-	 * the cache we are quite happy serving that if anything downstream 
-	 * would like it.
-	 */
-        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	/* Generate to out, adding a cache. Enough tiles for two complete rows.
          * Set "threaded", so we allow many tiles to be read at once. We lock
          * around each tile read.
@@ -2662,8 +2661,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	t[0] = vips_image_new();
 	if( rtiff_set_header( rtiff, t[0] ) )
 		return( -1 );
-
-        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
