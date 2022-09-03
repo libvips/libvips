@@ -207,6 +207,10 @@
  * 	- add fail_on
  * 30/9/21
  * 	- fix tiled + packed formats
+ * 31/7/22
+ *      - move jp2k decompress outside the lock
+ *      - move jpeg decode outside the lock
+ *      - fix demand hinting
  */
 
 /*
@@ -259,6 +263,12 @@
 #include "pforeign.h"
 #include "tiff.h"
 
+/* We do jpeg decompress ourselves, if we can.
+ */
+#ifdef HAVE_JPEG
+#include "jpeg.h"
+#endif /*HAVE_JPEG*/
+
 /* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
  */
 #define JP2K_YCC 33003
@@ -271,6 +281,9 @@
 /* Compression types we handle ourselves.
  */
 static int rtiff_we_decompress[] = {
+#ifdef HAVE_JPEG
+        COMPRESSION_JPEG,
+#endif /*HAVE_JPEG*/
 	JP2K_YCC,
 	JP2K_RGB,
 	JP2K_LOSSY
@@ -339,8 +352,7 @@ typedef struct _RtiffHeader {
 	 */
 	char *image_description;
 
-	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must read the raw data and decompress ourselves.
+	/* TRUE if we decompress ourselves rather than relying on libtiff.
 	 */
 	gboolean we_decompress;
 
@@ -364,6 +376,11 @@ typedef struct _Rtiff {
 	gboolean autorotate;
 	int subifd;
 	VipsFailOn fail_on;
+        
+        /* We decompress some compression types in parallel, so we need to
+         * lock tile get.
+         */
+	GRecMutex lock;
 
 	/* The TIFF we read.
 	 */
@@ -399,12 +416,6 @@ typedef struct _Rtiff {
 	 * strips or tiles interleaved. 
 	 */
 	tdata_t contig_buf;
-
-	/* If we are decompressing, we need a buffer to read the raw tile to
-	 * before running the decompressor.
-	 */
-	tdata_t compressed_buf;
-	tsize_t compressed_buf_length;
 
 	/* The Y we are reading at. Used to verify strip read is sequential.
 	 */
@@ -553,6 +564,7 @@ static void
 rtiff_free( Rtiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
+	g_rec_mutex_clear( &rtiff->lock );
 	VIPS_UNREF( rtiff->source );
 }
 
@@ -566,9 +578,7 @@ static void
 rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 {
 	/* We must not minimised tiled images. These can be read from many
-	 * threads, and this minimise handler is not inside the lock that our
-	 * tilecache is using to guarantee single-threaded access to our
-	 * source.
+	 * threads, and this minimise handler is not inside the lock.
 	 */
 	if( !rtiff->header.tiled &&
 		rtiff->source )
@@ -592,6 +602,7 @@ rtiff_new( VipsSource *source, VipsImage *out,
 	rtiff->autorotate = autorotate;
 	rtiff->subifd = subifd;
 	rtiff->fail_on = fail_on;
+	g_rec_mutex_init( &rtiff->lock );
 	rtiff->tiff = NULL;
 	rtiff->n_pages = 0;
 	rtiff->current_page = -1;
@@ -1650,7 +1661,7 @@ rtiff_pick_reader( Rtiff *rtiff )
 static int
 rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 {
-	guint32 data_length;
+	guint32 data_len;
 	void *data;
 
 	rtiff_set_decode_format( rtiff );
@@ -1674,12 +1685,6 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 
 	vips_image_set_int( out, VIPS_META_N_PAGES, rtiff->n_pages );
 
-	/* Even though we could end up serving tiled data, always hint
-	 * THINSTRIP, since we're quite happy doing that too, and it could need
-	 * a lot less memory.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	/* We have a range of output paths. Look at the tiff header and try to
 	 * route the input image to the best output path.
 	 */
@@ -1689,36 +1694,36 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_ICCPROFILE, &data_length, &data ) ) 
+		TIFFTAG_ICCPROFILE, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_ICC_NAME, data, data_length );
+			VIPS_META_ICC_NAME, data, data_len );
 
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_XMLPACKET, &data_length, &data ) ) 
+		TIFFTAG_XMLPACKET, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_XMP_NAME, data, data_length );
+			VIPS_META_XMP_NAME, data, data_len );
 
 	/* Read any IPTC metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		TIFFTAG_RICHTIFFIPTC, &data_len, &data ) ) {
 		vips_image_set_blob_copy( out, 
-			VIPS_META_IPTC_NAME, data, data_length );
+			VIPS_META_IPTC_NAME, data, data_len );
 
 		/* Older versions of libvips used this misspelt name :-( attach 
 		 * under this name too for compatibility.
 		 */
-		vips_image_set_blob_copy( out, "ipct-data", data, data_length );
+		vips_image_set_blob_copy( out, "ipct-data", data, data_len );
 	}
 
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) 
+		TIFFTAG_PHOTOSHOP, &data_len, &data ) ) 
 		vips_image_set_blob_copy( out, 
-			VIPS_META_PHOTOSHOP_NAME, data, data_length );
+			VIPS_META_PHOTOSHOP_NAME, data, data_len );
 
 	if( rtiff->header.image_description )
 		vips_image_set_string( out, VIPS_META_IMAGEDESCRIPTION, 
@@ -1733,8 +1738,34 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	vips_image_set_int( out, 
 		VIPS_META_ORIENTATION, rtiff->header.orientation );
 
+        /* Hint smalltile for tiled images, since we may be decompressing
+         * outside the lock and THINSTRIP would prevent parallel tile decode.
+         */
+        vips_image_pipelinev( out, 
+                rtiff->header.tiled ? 
+                        VIPS_DEMAND_STYLE_SMALLTILE :
+                        VIPS_DEMAND_STYLE_THINSTRIP,
+                NULL ); 
+
 	return( 0 );
 }
+
+/* Tilewise read sequence value.
+ */
+typedef struct _RtiffSeq {
+        Rtiff *rtiff;
+
+        /* Decompressed tile here.
+         */
+	tdata_t *buf;
+
+	/* If we are decompressing, we need a buffer to read the raw tile to
+	 * before running the decompressor. This needs to be per-thread, since
+         * we decompress in parallel.
+	 */
+	tdata_t compressed_buf;
+	tsize_t compressed_buf_length;
+} RtiffSeq;
 
 /* Allocate a tile buffer. Have one of these for each thread so we can unpack
  * to vips in parallel.
@@ -1743,60 +1774,360 @@ static void *
 rtiff_seq_start( VipsImage *out, void *a, void *b )
 {
 	Rtiff *rtiff = (Rtiff *) a;
-	tdata_t *buf;
+        RtiffSeq *seq;
 
-	if( !(buf = vips_malloc( NULL, rtiff->header.tile_size )) )
+	if( !(seq = VIPS_NEW( out, RtiffSeq )) )
+                return( NULL );
+	seq->rtiff = rtiff;
+	if( !(seq->buf = vips_malloc( NULL, rtiff->header.tile_size )) )
 		return( NULL );
 
-	return( (void *) buf );
+	/* If we will be decompressing, we need a buffer large enough to hold
+	 * the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
+	 * than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	if( rtiff->header.we_decompress ) {
+		seq->compressed_buf_length = 2 * rtiff->header.tile_size;
+		if( !(seq->compressed_buf = VIPS_MALLOC( NULL, 
+			seq->compressed_buf_length )) )
+			return( NULL );
+	}
+
+	return( (void *) seq );
+}
+
+#ifdef HAVE_JPEG
+static void 
+rtiff_decompress_jpeg_init_source( j_decompress_ptr cinfo )
+{
+        /* Nothing.
+         */
+}
+
+static boolean 
+rtiff_decompress_jpeg_fill_input_buffer( j_decompress_ptr cinfo )
+{
+        static const JOCTET mybuffer[4] = {
+                (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+        };
+
+        /* The whole JPEG data is expected to reside in the supplied memory
+         * buffer, so any request for more data beyond the given buffer size
+         * is treated as an error.
+         */
+        WARNMS( cinfo, JWRN_JPEG_EOF );
+
+        /* Insert a fake EOI marker 
+         */
+        cinfo->src->next_input_byte = mybuffer;
+        cinfo->src->bytes_in_buffer = 2;
+
+        return( TRUE );
+}
+
+/* Skip data --- used to skip over a potentially large amount of
+ * uninteresting data (such as an APPn marker).
+ *
+ * Writers of suspendable-input applications must note that skip_input_data
+ * is not granted the right to give a suspension return.  If the skip extends
+ * beyond the data currently in the buffer, the buffer can be marked empty so
+ * that the next read will cause a fill_input_buffer call that can suspend.
+ * Arranging for additional bytes to be discarded before reloading the input
+ * buffer is the application writer's problem.
+ */
+
+static void 
+rtiff_decompress_jpeg_skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+{
+        struct jpeg_source_mgr * src = cinfo->src;
+
+        /* Just a dumb implementation for now.  Could use fseek() except
+         * it doesn't work on pipes.  Not clear that being smart is worth
+         * any trouble anyway --- large skips are infrequent.
+         */
+        if( num_bytes > 0 ) {
+                while( num_bytes > (long) src->bytes_in_buffer ) {
+                        num_bytes -= (long) src->bytes_in_buffer;
+                        (void) (*src->fill_input_buffer)( cinfo );
+                        /* note we assume that fill_input_buffer will never 
+                         * return FALSE, so suspension need not be handled.
+                         */
+                }
+
+                src->next_input_byte += (size_t) num_bytes;
+                src->bytes_in_buffer -= (size_t) num_bytes;
+        }
+}
+
+static void
+rtiff_decompress_jpeg_set_memory( j_decompress_ptr cinfo,
+        void *data, size_t data_len )
+{
+        if( !cinfo->src )
+                cinfo->src = (struct jpeg_source_mgr *)
+                        (*cinfo->mem->alloc_small)( 
+                                (j_common_ptr) cinfo, JPOOL_PERMANENT,
+                                sizeof( struct jpeg_source_mgr ) );
+
+        /* Present the whole of data as one chunk.
+         */
+        cinfo->src->bytes_in_buffer = data_len;
+        cinfo->src->next_input_byte = (JOCTET *) data;
+        cinfo->src->init_source = rtiff_decompress_jpeg_init_source;
+        cinfo->src->fill_input_buffer = rtiff_decompress_jpeg_fill_input_buffer;
+        cinfo->src->skip_input_data = rtiff_decompress_jpeg_skip_input_data; 
+        cinfo->src->resync_to_restart = jpeg_resync_to_restart; 
 }
 
 static int
-rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
+rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
+        void *data, size_t data_len, void *out )
 {
+        void *tables;
+        uint32_t tables_len;
+        int bytes_per_pixel;
+        size_t bytes_per_scanline;
+        VipsPel *q;
+        int y;
+
 #ifdef DEBUG_VERBOSE
-	printf( "rtiff_read_tile: x = %d, y = %d, we_decompress = %d\n", 
-		x, y, rtiff->header.we_decompress ); 
+	printf( "rtiff_decompress_jpeg_run: decompressing %zd bytes of jpg\n",
+                data_len ); 
 #endif /*DEBUG_VERBOSE*/
 
-	if( rtiff->header.we_decompress ) {
-		ttile_t tile_no = TIFFComputeTile( rtiff->tiff, x, y, 0, 0 );
+        /* Tables are optional.
+         */
+        tables = NULL;
+        tables_len = 0;
+        (void) TIFFGetField( rtiff->tiff, 
+                TIFFTAG_JPEGTABLES, &tables_len, &tables );
 
-		tsize_t size;
+        if( tables ) {
+                rtiff_decompress_jpeg_set_memory( cinfo, tables, tables_len );
+                if( jpeg_read_header( cinfo, FALSE ) != 
+                        JPEG_HEADER_TABLES_ONLY ) 
+                        return( -1 );
+        }
+
+        rtiff_decompress_jpeg_set_memory( cinfo, data, data_len );
+
+        if( jpeg_read_header( cinfo, TRUE ) != JPEG_HEADER_OK )
+                return( -1 );
+
+        /* This isn't stored in the tile -- we have to set it from the
+         * enclosing TIFF.
+         */
+        switch( rtiff->header.photometric_interpretation ) {
+        case PHOTOMETRIC_SEPARATED:
+                cinfo->jpeg_color_space = JCS_CMYK;
+                bytes_per_pixel = 4;
+                break;
+
+        case PHOTOMETRIC_YCBCR:
+                cinfo->jpeg_color_space = JCS_YCbCr;
+                bytes_per_pixel = 3;
+                break;
+
+        case PHOTOMETRIC_RGB:
+                cinfo->jpeg_color_space = JCS_RGB;
+                bytes_per_pixel = 3;
+                break;
+
+        case PHOTOMETRIC_MINISBLACK:
+                cinfo->jpeg_color_space = JCS_GRAYSCALE;
+                bytes_per_pixel = 1;
+                break;
+
+        default:
+                g_assert_not_reached();
+                break;
+        }
+
+        jpeg_start_decompress( cinfo );
+        bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
+
+        /* Double-check tile dimensions.
+         */
+        if( cinfo->output_width > rtiff->header.tile_width ||
+                cinfo->output_height > rtiff->header.tile_height ||
+                bytes_per_scanline > rtiff->header.tile_row_size )
+                return( -1 );
+
+        q = (VipsPel *) out;
+        for( y = 0; y < cinfo->output_height; y++ ) {
+                JSAMPROW row_pointer[1];
+
+                row_pointer[0] = (JSAMPLE *) q;
+                jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
+                q += bytes_per_scanline;
+        }
+
+        return( 0 );
+}
+
+static void
+rtiff_decompress_jpeg_emit_message( j_common_ptr cinfo, int msg_level )
+{
+	if( msg_level < 0 ) {
+                long num_warnings;
+
+		/* Always count warnings in num_warnings.
+		 */
+		num_warnings = ++cinfo->err->num_warnings;
+
+		/* Corrupt files may give many warnings, the policy here is to
+		 * show only the first warning and treat many warnings as fatal,
+                 * unless unlimited is set.
+		 */
+		if( num_warnings == 1 )
+			(*cinfo->err->output_message)( cinfo );
+	}
+	else if( cinfo->err->trace_level >= msg_level )
+		/* It's a trace message. Show it if trace_level >= msg_level.
+		 */
+		(*cinfo->err->output_message)( cinfo );
+}
+
+/* Decompress a tile of size coefficients into out.
+ */
+static int
+rtiff_decompress_jpeg( Rtiff *rtiff, void *data, size_t data_len, void *out )
+{
+        struct jpeg_decompress_struct cinfo = { 0 };
+        ErrorManager eman;
+
+        if( setjmp( eman.jmp ) == 0 ) {
+                cinfo.err = jpeg_std_error( &eman.pub );
+                eman.pub.error_exit = vips__new_error_exit;
+                eman.pub.emit_message = rtiff_decompress_jpeg_emit_message;
+                eman.pub.output_message = vips__new_output_message;
+                eman.fp = NULL;
+
+                jpeg_create_decompress( &cinfo );
+
+                if( rtiff_decompress_jpeg_run( rtiff, &cinfo, 
+                        data, data_len, out ) ) {
+                        jpeg_destroy_decompress( &cinfo );
+                        return( -1 );
+                }
+        }
+        else {
+#ifdef DEBUG_VERBOSE
+                printf( "rtiff_decompress_jpeg: error return\n" );
+#endif /*DEBUG_VERBOSE*/
+
+                jpeg_destroy_decompress( &cinfo );
+                return( -1 );
+        }
+
+        jpeg_destroy_decompress( &cinfo );
+
+        return( 0 );
+}
+#endif /*HAVE_JPEG*/
+
+static int
+rtiff_decompress_tile( Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out )
+{
+	g_assert( rtiff->header.we_decompress );
+
+        switch( rtiff->header.compression ) {
+        case JP2K_YCC:
+        case JP2K_RGB:
+        case JP2K_LOSSY:
+                if( vips__foreign_load_jp2k_decompress( 
+                        rtiff->out, 
+                        rtiff->header.tile_width, 
+                        rtiff->header.tile_height,
+                        TRUE,
+                        in, size,
+                        out, rtiff->header.tile_size ) ) 
+                        return( -1 );
+                break;
+
+#ifdef HAVE_JPEG
+        case COMPRESSION_JPEG:
+                if( rtiff_decompress_jpeg( rtiff, in, size, out ) )
+                        return( -1 );
+                break;
+#endif /*HAVE_JPEG*/
+
+        default:
+                g_assert_not_reached();
+                break;
+        }
+
+        return( 0 );
+}
+
+/* Select a page and decompress a tile. This has to be a single operation,
+ * since it changes the current page number in TIFF.
+ */
+static int
+rtiff_read_tile( RtiffSeq *seq, tdata_t *buf, int page, int x, int y )
+{
+        Rtiff *rtiff = seq->rtiff;
+
+        tsize_t size;
+
+#ifdef DEBUG_VERBOSE
+	printf( "rtiff_read_tile: page = %d, x = %d, y = %d, "
+                "we_decompress = %d\n", 
+		page, x, y, rtiff->header.we_decompress ); 
+#endif /*DEBUG_VERBOSE*/
+
+        /* Compressed tiles load to compressed_buf.
+         */
+	if( rtiff->header.we_decompress ) {
+		ttile_t tile_no;
+
+                g_rec_mutex_lock( &rtiff->lock );
+
+                if( rtiff_set_page( rtiff, page ) ) {
+                        g_rec_mutex_unlock( &rtiff->lock );
+                        return( -1 );
+                }
+
+		tile_no = TIFFComputeTile( rtiff->tiff, x, y, 0, 0 );
 
 		size = TIFFReadRawTile( rtiff->tiff, tile_no, 
-			rtiff->compressed_buf, rtiff->compressed_buf_length );
+			seq->compressed_buf, seq->compressed_buf_length );
 		if( size <= 0 ) {
 			vips_foreign_load_invalidate( rtiff->out );
+                        g_rec_mutex_unlock( &rtiff->lock );
 			return( -1 ); 
 		}
 
-		switch( rtiff->header.compression ) {
-		case JP2K_YCC:
-		case JP2K_RGB:
-		case JP2K_LOSSY:
-			if( vips__foreign_load_jp2k_decompress( 
-				rtiff->out, 
-				rtiff->header.tile_width, 
-				rtiff->header.tile_height,
-				TRUE,
-				rtiff->compressed_buf, size,
-				buf, rtiff->header.tile_size ) ) 
-				return( -1 );
-			break;
+                g_rec_mutex_unlock( &rtiff->lock );
 
-		default:
-			g_assert_not_reached();
-			break;
-		}
+                /* Decompress outside the lock, so we get parallelism.
+                 */
+                if( rtiff_decompress_tile( rtiff, 
+                        seq->compressed_buf, size, buf ) ) {
+                        vips_error( "tiff2vips", 
+                                _( "decompress error tile %d x %d" ), x, y ); 
+                        return( -1 );
+                }
+        }
+        else {
+                g_rec_mutex_lock( &rtiff->lock );
 
-	}
-	else {
-		if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
+                if( rtiff_set_page( rtiff, page ) ) {
+                        g_rec_mutex_unlock( &rtiff->lock );
+                        return( -1 );
+                }
+
+                if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
 			vips_foreign_load_invalidate( rtiff->out );
+                        g_rec_mutex_unlock( &rtiff->lock );
 			return( -1 ); 
 		}
-	}
+
+                g_rec_mutex_unlock( &rtiff->lock );
+        }
 
 	return( 0 ); 
 }
@@ -1808,8 +2139,9 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
  */
 static int
 rtiff_fill_region_aligned( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop )
+	void *vseq, void *a, void *b, gboolean *stop )
 {
+        RtiffSeq *seq = (RtiffSeq *) vseq;
 	Rtiff *rtiff = (Rtiff *) a;
 	VipsRect *r = &out->valid;
 	int page_height = rtiff->header.height;
@@ -1828,10 +2160,9 @@ rtiff_fill_region_aligned( VipsRegion *out,
 
 	/* Read that tile directly into the vips tile.
 	 */
-	if( rtiff_set_page( rtiff, rtiff->page + page_no ) ||
-		rtiff_read_tile( rtiff,
-			(tdata_t *) VIPS_REGION_ADDR( out, r->left, r->top ), 
-		r->left, page_y ) ) 
+	if( rtiff_read_tile( seq,
+                (tdata_t *) VIPS_REGION_ADDR( out, r->left, r->top ), 
+                rtiff->page + page_no, r->left, page_y ) )
 		return( -1 );
 
 	return( 0 );
@@ -1841,9 +2172,9 @@ rtiff_fill_region_aligned( VipsRegion *out,
  */
 static int
 rtiff_fill_region_unaligned( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop )
+	void *vseq, void *a, void *b, gboolean *stop )
 {
-	tdata_t *buf = (tdata_t *) seq;
+        RtiffSeq *seq = (RtiffSeq *) vseq;
 	Rtiff *rtiff = (Rtiff *) a;
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
@@ -1880,8 +2211,8 @@ rtiff_fill_region_unaligned( VipsRegion *out,
 			int xs = ((r->left + x) / tile_width) * tile_width;
 			int ys = (page_y / tile_height) * tile_height;
 
-			if( rtiff_set_page( rtiff, rtiff->page + page_no ) ||
-				rtiff_read_tile( rtiff, buf, xs, ys ) )  
+			if( rtiff_read_tile( seq, 
+                                seq->buf, rtiff->page + page_no, xs, ys ) )  
 				return( -1 );
 
 			/* Position of tile on the page. 
@@ -1918,7 +2249,7 @@ rtiff_fill_region_unaligned( VipsRegion *out,
 			 * Just unpack the section of the tile we need.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
-				VipsPel *p = (VipsPel *) buf +
+				VipsPel *p = (VipsPel *) seq->buf +
 					(hit.top - tile.top + z) * 
 					tile_row_size;
 				VipsPel *q = VIPS_REGION_ADDR( out, 
@@ -1944,7 +2275,7 @@ rtiff_fill_region_unaligned( VipsRegion *out,
  */
 static int
 rtiff_fill_region( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop )
+	void *vseq, void *a, void *b, gboolean *stop )
 {
 	Rtiff *rtiff = (Rtiff *) a;
 	int tile_width = rtiff->header.tile_width;
@@ -1984,7 +2315,7 @@ rtiff_fill_region( VipsRegion *out,
 
 	VIPS_GATE_START( "rtiff_fill_region: work" ); 
 
-	if( generate( out, seq, a, b, stop ) ) {
+	if( generate( out, vseq, a, b, stop ) ) {
 		VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 		return( -1 );
 	}
@@ -1995,9 +2326,12 @@ rtiff_fill_region( VipsRegion *out,
 }
 
 static int
-rtiff_seq_stop( void *seq, void *a, void *b )
+rtiff_seq_stop( void *vseq, void *a, void *b )
 {
-	g_free( seq );
+        RtiffSeq *seq = (RtiffSeq *) vseq;
+
+	VIPS_FREE( seq->buf );
+	VIPS_FREE( seq->compressed_buf );
 
 	return( 0 );
 }
@@ -2053,20 +2387,6 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		return( -1 );
 	}
 
-	/* If we will be decompressing, we need a buffer large enough to hold
-	 * the largest compressed tile in any page.
-	 *
-	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
-	 * than searching every page for the largest tile with
-	 * TIFFTAG_TILEBYTECOUNTS.
-	 */
-	if( rtiff->header.we_decompress ) {
-		rtiff->compressed_buf_length = 2 * rtiff->header.tile_size;
-		if( !(rtiff->compressed_buf = vips_malloc( VIPS_OBJECT( out ), 
-			rtiff->compressed_buf_length )) )
-			return( -1 );
-	}
-
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
@@ -2088,13 +2408,9 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		}
 	}
 
-	/* Even though this is a tiled reader, we hint thinstrip since with
-	 * the cache we are quite happy serving that if anything downstream 
-	 * would like it.
-	 */
-        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	/* Generate to out, adding a cache. Enough tiles for two complete rows.
+         * Set "threaded", so we allow many tiles to be read at once. We lock
+         * around each tile read.
 	 */
 	if( 
 		vips_image_generate( t[0], 
@@ -2104,6 +2420,7 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 			"tile_width", tile_width,
 			"tile_height", tile_height,
 			"max_tiles", 2 * (1 + t[0]->Xsize / tile_width),
+			"threaded", TRUE,
 			NULL ) ||
 		rtiff_unpremultiply( rtiff, t[1], &t[2] ) )
 		return( -1 );
@@ -2124,18 +2441,22 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* Read a strip. If the image is in separate planes, read each plane and
- * interleave to the output.
+/* Read a strip from a page. If the image is in separate planes, read each 
+ * plane and interleave to the output.
  *
- * strip is the number of this strip in this page. 
+ * No need to lock -- this is inside a sequential.
  */
 static int
-rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
+rtiff_strip_read_interleaved( Rtiff *rtiff, 
+        int page, tstrip_t strip, tdata_t buf )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int read_height = rtiff->header.read_height;
 	int bits_per_sample = rtiff->header.bits_per_sample;
 	int strip_y = strip * read_height;
+
+        if( rtiff_set_page( rtiff, page ) ) 
+                return( -1 );
 
 	if( rtiff->header.separate ) {
 		int page_width = rtiff->header.width;
@@ -2154,7 +2475,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 
 			if( rtiff_strip_read( rtiff,
 				strips_per_plane * i + strip, 
-				rtiff->plane_buf ) )
+				rtiff->plane_buf ) ) 
 				return( -1 );
 
 			p = (VipsPel *) rtiff->plane_buf;
@@ -2169,7 +2490,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 		}
 	}
 	else { 
-		if( rtiff_strip_read( rtiff, strip, buf ) )
+		if( rtiff_strip_read( rtiff, strip, buf ) ) 
 			return( -1 );
 	}
 
@@ -2263,11 +2584,6 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 		g_assert( hit.height > 0 ); 
 
-		if( rtiff_set_page( rtiff, rtiff->page + page_no ) ) {
-			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
-			return( -1 );
-		}
-
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.
 		 *
@@ -2277,7 +2593,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 		if( rtiff->memcpy &&
 			hit.top == strip.top &&
 			hit.height == strip.height ) {
-			if( rtiff_strip_read_interleaved( rtiff, strip_no, 
+			if( rtiff_strip_read_interleaved( rtiff, 
+                                rtiff->page + page_no, strip_no, 
 				VIPS_REGION_ADDR( or, 0, r->top + y ) ) ) {
 				VIPS_GATE_STOP( 
 					"rtiff_stripwise_generate: work" ); 
@@ -2291,7 +2608,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 			/* Read and interleave the entire strip.
 			 */
-			if( rtiff_strip_read_interleaved( rtiff, strip_no, 
+			if( rtiff_strip_read_interleaved( rtiff, 
+                                rtiff->page + page_no, strip_no, 
 				rtiff->contig_buf ) ) {
 				VIPS_GATE_STOP( 
 					"rtiff_stripwise_generate: work" ); 
@@ -2344,8 +2662,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	if( rtiff_set_header( rtiff, t[0] ) )
 		return( -1 );
 
-        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
 	 */
@@ -2374,7 +2690,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	 * function runs inside the cache lock. 
 	 */
 	if( rtiff->header.separate ) {
-		if( !(rtiff->plane_buf = vips_malloc( VIPS_OBJECT( out ), 
+		if( !(rtiff->plane_buf = VIPS_MALLOC( out, 
 			rtiff->header.read_size )) ) 
 			return( -1 );
 	}
@@ -2396,8 +2712,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		if( rtiff->header.separate )
 			size *= rtiff->header.samples_per_pixel;
 
-		if( !(rtiff->contig_buf = 
-			vips_malloc( VIPS_OBJECT( out ), size )) ) 
+		if( !(rtiff->contig_buf = VIPS_MALLOC( out, size )) ) 
 			return( -1 );
 	}
 

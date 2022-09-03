@@ -58,6 +58,7 @@ extern "C" {
 #undef FALSE
 #endif /*FALSE*/
 
+#include <setjmp.h>
 #include <jpeglib.h>
 #include <jerror.h>
 
