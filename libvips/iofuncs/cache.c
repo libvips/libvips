@@ -798,8 +798,10 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
-		if( hit->invalid ) {
-			/* There but has been tagged for removal.
+		if( hit->invalid ||
+                        (VIPS_OPERATION_GET_CLASS( hit->operation )->flags &
+                                VIPS_OPERATION_BLOCKED) ) {
+			/* Has been tagged for removal, or has been blocked.
 			 */
 			vips_cache_remove( hit->operation );
 			hit = NULL;
