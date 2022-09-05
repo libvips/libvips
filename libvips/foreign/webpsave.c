@@ -281,12 +281,16 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 
 	/* We need the frame as a contiguous RGB(A) buffer for libwebp.
 	 */
-	for( int y = 0; y < frame_rect->height; y++ )
-		memcpy( webp->frame_bytes + y * webp->image->Bands * frame_rect->width,
-			VIPS_REGION_ADDR( webp->frame, 0, frame_rect->top + y ),
+	VipsPel *p = webp->frame_bytes;
+	for( int y = 0; y < frame_rect->height; y++ ) {
+		memcpy( p, VIPS_REGION_ADDR( webp->frame, 0,
+				frame_rect->top + y ),
 			webp->image->Bands * frame_rect->width );
+		p += webp->image->Bands * frame_rect->width;
+	}
 
-	if( vips_foreign_save_webp_write_webp_image( webp, webp->frame_bytes, &pic ) )
+	if( vips_foreign_save_webp_write_webp_image( webp, webp->frame_bytes,
+			&pic ) )
 		return( -1 );
 
 	/* Animated write
@@ -312,7 +316,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 		 */
 		if( !WebPEncode( &webp->config, &pic ) ) {
 			WebPPictureFree( &pic );
-			vips_error( "webpsave", "%s", _( "unable to encode" ) );
+			vips_error( "webpsave", "%s",
+				_( "unable to encode" ) );
 			return( -1 );
 		}
 	}
@@ -551,7 +556,8 @@ vips_foreign_save_webp_init_config( VipsForeignSaveWebP *webp ) {
 	 * WebPConfigLosslessPreset().
 	 */
 	if( !(webp->lossless || webp->near_lossless) &&
-		!WebPConfigPreset( &webp->config, get_preset( webp->preset ), webp->Q ) ) {
+		!WebPConfigPreset( &webp->config, get_preset( webp->preset ),
+			webp->Q ) ) {
 		vips_foreign_save_webp_unset( webp );
 		vips_error( "webpsave", "%s", _( "config version error" ) );
 		return( -1 );
@@ -609,7 +615,8 @@ vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebP *webp ) {
 	 */
 	webp->gif_delay = 10;
 	if( vips_image_get_typeof( webp->image, "gif-delay" ) &&
-		vips_image_get_int( webp->image, "gif-delay", &webp->gif_delay ) )
+		vips_image_get_int( webp->image, "gif-delay",
+			&webp->gif_delay ) )
 		return( -1 );
 
 	/* New images have an array of ints instead.
