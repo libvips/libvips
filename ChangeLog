@@ -14,6 +14,9 @@ master
 - add ".pnm", save as image format [ewelot]
 - threaded tiff jp2k and jpeg decompress
 
+5/9/22 started 8.13.2
+- in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
+
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
 - add a summary table at the end of configure in meson
