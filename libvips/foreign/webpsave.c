@@ -183,11 +183,6 @@ typedef struct _VipsForeignSaveWebP {
 	 */
 	VipsRegion *frame;
 	int write_y;
-
-	/* VipsRegion is not always contiguious, but we need contiguous RGB(A)
-	 * for libwebp. We need to copy each frame to a local buffer.
-	 */
-	VipsPel *frame_bytes;
 } VipsForeignSaveWebP;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebPClass;
@@ -212,8 +207,6 @@ vips_foreign_save_webp_dispose( GObject *gobject )
 	VIPS_UNREF( webp->frame );
 
 	VIPS_UNREF( webp->target );
-
-	VIPS_FREE( webp->frame_bytes );
 
 	G_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
 		dispose( gobject );
@@ -279,18 +272,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 	VipsRect *frame_rect = &webp->frame->valid;
 	int page_index = frame_rect->top / frame_rect->height;
 
-	/* We need the frame as a contiguous RGB(A) buffer for libwebp.
-	 */
-	VipsPel *p = webp->frame_bytes;
-	for( int y = 0; y < frame_rect->height; y++ ) {
-		memcpy( p, VIPS_REGION_ADDR( webp->frame, 0,
-				frame_rect->top + y ),
-			webp->image->Bands * frame_rect->width );
-		p += webp->image->Bands * frame_rect->width;
-	}
-
-	if( vips_foreign_save_webp_write_webp_image( webp, webp->frame_bytes,
-			&pic ) )
+	if( vips_foreign_save_webp_write_webp_image( webp,
+			VIPS_REGION_ADDR_TOPLEFT( webp->frame ), &pic ) )
 		return( -1 );
 
 	/* Animated write
@@ -711,11 +694,6 @@ vips_foreign_save_webp_build( VipsObject *object )
 	 * so make sure we don't own them.
 	 */
 	vips__region_no_ownership( webp->frame );
-
-	/* RGB(A) frame as a contiguous buffer.
-	 */
-	webp->frame_bytes = g_malloc( (size_t) webp->image->Bands *
-		frame_rect.width * frame_rect.height );
 
 	/* Init generic WebP config
 	 */
