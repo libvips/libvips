@@ -196,7 +196,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebP, vips_foreign_save_webp,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
-vips_webp_write_unset( VipsForeignSaveWebP *write )
+vips_foreign_save_webp_unset( VipsForeignSaveWebP *write )
 {
 	WebPMemoryWriterClear( &write->memory_writer );
 	VIPS_FREEF( WebPAnimEncoderDelete, write->enc );
@@ -220,7 +220,7 @@ vips_foreign_save_webp_dispose( GObject *gobject )
 }
 
 static gboolean
-vips_webp_pic_init( VipsForeignSaveWebP *write, WebPPicture *pic )
+vips_foreign_save_webp_pic_init( VipsForeignSaveWebP *write, WebPPicture *pic )
 {
 	if( !WebPPictureInit( pic ) ) {
 		vips_error( "webpsave", "%s", _( "picture version error" ) );
@@ -242,12 +242,13 @@ vips_webp_pic_init( VipsForeignSaveWebP *write, WebPPicture *pic )
 /* Write a VipsImage into an unintialised pic.
  */
 static int
-write_webp_image( VipsForeignSaveWebP *write, const VipsPel *imagedata, WebPPicture *pic )
+vips_foreign_save_webp_write_webp_image( VipsForeignSaveWebP *write,
+	const VipsPel *imagedata, WebPPicture *pic )
 {
 	webp_import import;
 	int page_height = vips_image_get_page_height( write->image );
 
-	if( !vips_webp_pic_init( write, pic ) )
+	if( !vips_foreign_save_webp_pic_init( write, pic ) )
 		return( -1 );
 
 	pic->width = write->image->Xsize;
@@ -285,9 +286,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 			VIPS_REGION_ADDR( webp->frame, 0, frame_rect->top + y ),
 			webp->image->Bands * frame_rect->width );
 
-	if( write_webp_image( webp, webp->frame_bytes, &pic ) ) {
+	if( vips_foreign_save_webp_write_webp_image( webp, webp->frame_bytes, &pic ) )
 		return( -1 );
-	}
 
 	/* Animated write
 	 */
@@ -303,10 +303,10 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 		 */
 		if( webp->delay &&
 			page_index < webp->delay_length )
-			webp->timestamp_ms += webp->delay[page_index] <= 10 ?
-				100 : webp->delay[page_index];
+			webp->timestamp_ms += webp->delay[page_index];
 		else
 			webp->timestamp_ms += webp->gif_delay * 10;
+
 	} else {
 		/* Single image write
 		 */
@@ -540,7 +540,7 @@ vips_foreign_save_webp_init_config( VipsForeignSaveWebP *webp ) {
 	 */
 	WebPMemoryWriterInit( &webp->memory_writer );
 	if( !WebPConfigInit( &webp->config ) ) {
-		vips_webp_write_unset( webp );
+		vips_foreign_save_webp_unset( webp );
 		vips_error( "webpsave",
 			"%s", _( "config version error" ) );
 		return( -1 );
@@ -552,7 +552,7 @@ vips_foreign_save_webp_init_config( VipsForeignSaveWebP *webp ) {
 	 */
 	if( !(webp->lossless || webp->near_lossless) &&
 		!WebPConfigPreset( &webp->config, get_preset( webp->preset ), webp->Q ) ) {
-		vips_webp_write_unset( webp );
+		vips_foreign_save_webp_unset( webp );
 		vips_error( "webpsave", "%s", _( "config version error" ) );
 		return( -1 );
 	}
@@ -569,17 +569,18 @@ vips_foreign_save_webp_init_config( VipsForeignSaveWebP *webp ) {
 		webp->config.use_sharp_yuv = 1;
 
 	if( !WebPValidateConfig( &webp->config ) ) {
-		vips_webp_write_unset( webp );
+		vips_foreign_save_webp_unset( webp );
 		vips_error( "webpsave", "%s", _( "invalid configuration" ) );
 		return( -1 );
 	}
 
-	return ( 0 );
+	return( 0 );
 }
 
 static int
 vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebP *webp ) {
 	WebPAnimEncoderOptions anim_config;
+	int i;
 	int page_height = vips_image_get_page_height( webp->image );
 
 	/* Init config for animated write
@@ -611,13 +612,6 @@ vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebP *webp ) {
 		vips_image_get_int( webp->image, "gif-delay", &webp->gif_delay ) )
 		return( -1 );
 
-	/* Force frames with a small or no duration to 100ms
-	 * to be consistent with web browsers and other
-	 * transcoding tools.
-	 */
-	if( webp->gif_delay <= 1 )
-		webp->gif_delay = 10;
-
 	/* New images have an array of ints instead.
 	*/
 	webp->delay = NULL;
@@ -626,9 +620,18 @@ vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebP *webp ) {
 			&webp->delay, &webp->delay_length ) )
 		return( -1 );
 
-	webp->timestamp_ms = 0;
+	/* Force frames with a small or no duration to 100ms
+	 * to be consistent with web browsers and other
+	 * transcoding tools.
+	 */
+	if( webp->gif_delay <= 1 )
+		webp->gif_delay = 10;
 
-	return ( 0 );
+	for( i = 0; i < webp->delay_length; i++ )
+		if( webp->delay[i] <= 10 )
+			webp->delay[i] = 100;
+
+	return( 0 );
 }
 
 static int
@@ -681,7 +684,7 @@ vips_foreign_save_webp_build( VipsObject *object )
 	 * eg. in vips__exif_update().
 	 */
 	if( vips_copy( save->ready, &webp->image, NULL ) ) {
-		vips_webp_write_unset( webp );
+		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
 
@@ -709,9 +712,8 @@ vips_foreign_save_webp_build( VipsObject *object )
 
 	/* Init generic WebP config
 	 */
-	if( vips_foreign_save_webp_init_config( webp ) ) {
-		return ( -1 );
-	}
+	if( vips_foreign_save_webp_init_config( webp ) )
+		return( -1 );
 
 	/* Determine the write mode (single image or animated write)
 	 */
@@ -723,7 +725,7 @@ vips_foreign_save_webp_build( VipsObject *object )
 	 */
 	if( webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM )
 		if( vips_foreign_save_webp_init_anim_enc( webp ) )
-			return ( -1 );
+			return( -1 );
 
 	if( vips_sink_disc( webp->image,
 		vips_foreign_save_webp_sink_disc, webp ) )
@@ -736,20 +738,20 @@ vips_foreign_save_webp_build( VipsObject *object )
 			return( -1 );
 
 	if( vips_webp_add_metadata( webp ) ) {
-		vips_webp_write_unset( webp );
+		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
 
 	if( vips_target_write( webp->target,
 		webp->memory_writer.mem, webp->memory_writer.size ) ) {
-		vips_webp_write_unset( webp);
+		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
 
 	if( vips_target_end( webp->target ) )
 		return( -1 );
 
-	vips_webp_write_unset( webp );
+	vips_foreign_save_webp_unset( webp );
 
 	return( 0 );
 }
