@@ -210,7 +210,6 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	struct spng_phys phys;
 	struct spng_bkgd bkgd;
 	guint32 n_text;
-	VipsDemandStyle hint;
 
 	/* Get resolution. Default to 72 pixels per inch.
 	 */
@@ -233,16 +232,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	VIPS_SETSTR( image->filename, 
 		vips_connection_filename( VIPS_CONNECTION( png->source ) ) );
 
-	if( png->ihdr.interlace_method == SPNG_INTERLACE_NONE ) 
-		/* Sequential mode needs thinstrip to work with things like
-		 * vips_shrink().
-		 */
-		hint = VIPS_DEMAND_STYLE_THINSTRIP;
-	else 
-		/* Interlaced images are read via a huge memory buffer.
-		 */
-		hint = VIPS_DEMAND_STYLE_ANY;
-	(void) vips_image_pipelinev( image, hint, NULL );
+	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	if( !spng_get_iccp( png->ctx, &iccp ) ) 
 		vips_image_set_blob_copy( image, 

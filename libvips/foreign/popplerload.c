@@ -277,11 +277,6 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	printf( "vips_foreign_load_pdf_set_image: %p\n", pdf );
 #endif /*DEBUG*/
 
-	/* We render to a linecache, so fat strips work well.
-	 */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
-		return( -1 );
-
 	/* Extract and attach metadata. Set the old name too for compat.
 	 */
 	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
@@ -307,6 +302,11 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 		pdf->image.width, pdf->image.height, 
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
+
+        /* We render to a tilecache, so it has to be SMALLTILE.
+         */
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -543,10 +543,9 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
-	/* We render to a cache with a couple of rows of tiles, so fat strips 
-	 * work well.
+	/* We use a tilecache, so it's smalltile.
 	 */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	return( 0 );
