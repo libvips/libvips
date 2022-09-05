@@ -859,20 +859,37 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[7];
 	}
 	else if( thumbnail->export_profile ) {
-		/* We are in one of the resize space (sRGB, scRGB, B_W, GREY16, 
-		 * etc.) and we have an export profile. Go to PCS, then export.
+		/* If there's some kind of import profile, we can transform to
+		 * the output. Otherwise, we are in one of the resize space
+		 * (sRGB, scRGB, B_W, GREY16, etc.) and need to go to PCS,
+		 * then export.
 		 */
-		g_info( "exporting with %s", 
-			thumbnail->export_profile ); 
-		if( vips_colourspace( in, &t[7], 
-			VIPS_INTERPRETATION_XYZ, NULL ) || 
-			vips_icc_export( t[7], &t[10], 
-				"output_profile", 
-					thumbnail->export_profile,
+		if( thumbnail->import_profile ||
+			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			g_info( "transforming with supplied profiles" ); 
+			if( vips_icc_transform( in, &t[7], 
+				thumbnail->export_profile,
+				"input_profile", thumbnail->import_profile,
 				"intent", thumbnail->intent,
-				NULL ) )  
-			return( -1 ); 
-		in = t[10];
+				"embedded", TRUE,
+				NULL ) ) 
+				return( -1 );
+
+			in = t[7];
+		}
+		else {
+			g_info( "exporting with %s", 
+				thumbnail->export_profile ); 
+			if( vips_colourspace( in, &t[7], 
+				VIPS_INTERPRETATION_XYZ, NULL ) || 
+				vips_icc_export( t[7], &t[10], 
+					"output_profile", 
+						thumbnail->export_profile,
+					"intent", thumbnail->intent,
+					NULL ) )  
+				return( -1 ); 
+			in = t[10];
+		}
 	}
 	else {
 		/* We are in one of the resize spaces and there's no export

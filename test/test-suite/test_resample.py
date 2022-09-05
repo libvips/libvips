@@ -2,8 +2,8 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, OME_FILE, HEIC_FILE, TIF_FILE, all_formats, \
-    have, RGBA_FILE, RGBA_CORRECT_FILE, AVIF_FILE
+from helpers import JPEG_FILE, JPEG_FILE_XYB, OME_FILE, HEIC_FILE, TIF_FILE, \
+    all_formats, have, RGBA_FILE, RGBA_CORRECT_FILE, AVIF_FILE
 
 
 # Run a function expecting a complex image on a two-band image
@@ -228,6 +228,21 @@ class TestResample:
             # thumb should be portrait 
             assert thumb.width < thumb.height
             assert thumb.height == 100
+
+    @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
+                        reason="requires libvips >= 8.5")
+    def test_thumbnail_icc(self):
+        im = pyvips.Image.thumbnail(JPEG_FILE_XYB, 442, export_profile="srgb", intent="perceptual")
+
+        assert im.width == 290
+        assert im.height == 442
+        assert im.bands == 3
+        assert im.bands == 3
+
+        # the colour distance should not deviate too much
+        # (i.e. the embedded profile should not be ignored)
+        im_orig = pyvips.Image.new_from_file(JPEG_FILE)
+        assert im_orig.de00(im).max() < 10
 
     def test_similarity(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
