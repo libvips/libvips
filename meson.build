@@ -1,5 +1,5 @@
 project('vips', 'c', 'cpp',
-    version: '8.13.1',
+    version: '8.13.2',
     meson_version: '>=0.56',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
@@ -21,7 +21,7 @@ version_patch = version_parts[2]
 #   binary interface changes not backwards compatible?: reset age to 0
 library_current = 57
 library_age = 15
-library_revision = 1
+library_revision = 2
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
 darwin_versions = [library_current + 1, '@0@.@1@'.format(library_current + 1, library_revision)]
 

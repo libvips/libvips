@@ -1,3 +1,6 @@
+head of 8.13
+- in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
+
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
 - add a summary table at the end of configure in meson
