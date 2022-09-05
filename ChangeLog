@@ -1,4 +1,4 @@
-head of 8.13
+5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
 
 24/7/22 started 8.13.1
