@@ -1,5 +1,7 @@
 /* 19/08/22 kleisauke
  * 	- initial implementation
+ * 07/09/22 kleisauke
+ * 	- implement using ReorderWidenMulAccumulate
  */
 
 /*
@@ -60,6 +62,7 @@ using DI32 = ScalableTag<int32_t>;
 using DI16 = ScalableTag<int16_t>;
 using DU8 = ScalableTag<uint8_t>;
 constexpr DU8 du8;
+constexpr Rebind<uint8_t, DI16> du8x16;
 constexpr Rebind<uint8_t, DI32> du8x32;
 constexpr DI16 di16;
 constexpr DI32 di32;
@@ -70,52 +73,87 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 {
 	const auto l1 = lskip / sizeof(uint8_t);
 
+#if HWY_TARGET != HWY_SCALAR
 	const int32_t N = Lanes(di32);
+	const auto zero = Zero(du8);
+#endif
 	const auto initial = Set(di32, VIPS_INTERPOLATE_SCALE >> 1);
 
 	/* Main loop: unrolled.
 	 */
 	int32_t x = 0;
+#if HWY_TARGET != HWY_SCALAR
 	for (; x + N <= ne; x += N) {
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
-		auto sum = initial;
+		auto sum0 = initial; /* left row */
+		auto sum1 = initial; /* unused on x86 and Wasm */
+		auto sum2 = initial; /* right row */
+		auto sum3 = initial; /* unused on x86 and Wasm */
 
 		int32_t i = 0;
-		/* TODO(kleisauke): Unroll?
+
+#if (HWY_ARCH_X86 || HWY_ARCH_WASM) && HWY_TARGET != HWY_EMU128
+		/* 2x unroll loop on x86 and Wasm, as it uses 1 accumulator.
 		 */
-		/*for (; i < n - 1; i += 2) {
-			// Load two coefficients at once
-			auto mmk = Set(di16, *(int32_t *) &k[i]);
-
-			auto top = LoadU(du8, p); // top line
-			p += l1;
-			auto bottom = LoadU(du8, p); // bottom line
-			p += l1;
-
-			auto source = InterleaveLower(du8, top, bottom);
-			auto pix = BitCast(di16, source);
-
-			sum = Add(sum, MulAddAdjacent(pix, mmk));
-		}*/
-		for (; i < n; ++i) {
-			auto mmk = Set(di16, k[i]);
+		for (; i + 2 <= n; i += 2) {
+			/* Load two coefficients at once.
+			 */
+			auto mmk = BitCast(di16, Set(di32, *(int32_t *) &k[i]));
 
 			auto top = LoadU(du8, p); /* top line */
 			p += l1;
+			auto bottom = LoadU(du8, p); /* bottom line */
+			p += l1;
 
-			auto source = InterleaveLower(du8, top, Zero(du8));
-			auto pix = BitCast(di16, source);
+			auto source = ZipLower(du8, top, bottom);
+			auto pix = BitCast(di16, ZipLower(du8, source, zero));
 
-			sum = Add(sum, MulAddAdjacent(pix, mmk));
+			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
+				/* byref */ sum1);
+
+			pix = BitCast(di16, ZipUpper(du8, source, zero));
+
+			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
+				/* byref */ sum3);
+		}
+#endif
+		for (; i < n; ++i) {
+			auto mmk = Set(di16, k[i]);
+
+			auto top = LoadU(du8, p);
+			p += l1;
+
+			auto source = ZipLower(du8, top, zero);
+			auto pix = BitCast(di16, ZipLower(du8, source, zero));
+
+			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
+				/* byref */ sum1);
+
+			pix = BitCast(di16, ZipUpper(du8, source, zero));
+
+			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
+				/* byref */ sum3);
 		}
 
-		sum = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum);
+#if !(HWY_ARCH_X86 || HWY_ARCH_WASM) || HWY_TARGET == HWY_EMU128
+		/* De-interleave all accumulators by pairs.
+		 */
+		sum0 = ConcatEven(di32, /* hi */ sum1, /* lo */ sum0);
+		sum2 = ConcatEven(di32, /* hi */ sum3, /* lo */ sum2);
+#endif
 
-		auto demoted = DemoteTo(du8x32, sum);
-		StoreU(demoted, du8x32, q);
+		/* The final 32->8 conversion.
+		 */
+		sum0 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum0);
+		sum2 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum2);
+
+		auto demoted = DemoteTo(du8x16,
+			ReorderDemote2To(di16, sum0, sum2));
+		StoreU(demoted, du8x16, q);
 	}
+#endif
 
 	/* `ne` was not a multiple of the vector length `N`;
 	 * proceed one by one.
@@ -124,23 +162,55 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
-		auto sum = initial;
+		auto sum0 = initial;
+		auto sum1 = initial; /* unused on x86 and Wasm */
 
-		for (int32_t i = 0; i < n; ++i) {
+		int32_t i = 0;
+
+#if (HWY_ARCH_X86 || HWY_ARCH_WASM) && HWY_TARGET != HWY_EMU128
+		/* 2x unroll loop on x86 and Wasm, as it uses 1 accumulator.
+		 */
+		for (; i + 2 <= n; i += 2) {
+			/* Load two coefficients at once.
+			 */
+			auto mmk = BitCast(di16, Set(di32, *(int32_t *) &k[i]));
+
+			auto top = LoadU(du8x16, p); /* top line */
+			p += l1;
+			auto bottom = LoadU(du8x16, p); /* bottom line */
+			p += l1;
+
+			auto source = ZipLower(du8x16, top, bottom);
+			auto pix = PromoteTo(di16, source);
+
+			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
+				/* byref */ sum1);
+		}
+#endif
+		for (; i < n; ++i) {
 			auto mmk = Set(di16, k[i]);
 
-			auto top = LoadU(du8x32, p); /* top line */
+			auto top = LoadU(du8x32, p);
 			p += l1;
 
 			auto source = PromoteTo(di32, top);
 			auto pix = BitCast(di16, source);
 
-			sum = Add(sum, MulAddAdjacent(pix, mmk));
+			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
+				/* byref */ sum1);
 		}
 
-		sum = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum);
+#if !(HWY_ARCH_X86 || HWY_ARCH_WASM) || HWY_TARGET == HWY_EMU128
+		/* De-interleave all accumulators by pairs.
+		 */
+		sum0 = ConcatEven(di32, /* hi */ sum1, /* lo */ sum0);
+#endif
 
-		auto demoted = DemoteTo(du8x32, sum);
+		/* The final 32->8 conversion.
+		 */
+		sum0 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum0);
+
+		auto demoted = DemoteTo(du8x32, sum0);
 		*q = GetLane(demoted);
 	}
 }
