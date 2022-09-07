@@ -106,7 +106,7 @@ typedef struct _VipsForeignSaveCgif {
 	VipsRegion *frame;
 	int write_y;
 
-	/* VipsRegion is not always contiguious, but we need contiguious RGBA
+	/* VipsRegion is not always contiguous, but we need contiguous RGBA
 	 * forthe quantizer. We need to copy each frame to a local buffer.
 	 */
 	VipsPel *frame_bytes;
@@ -448,7 +448,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
 #endif/*DEBUG_VERBOSE*/
 
-	/* We need the frame as a contiguious RGBA buffer for the quantiser.
+	/* We need the frame as a contiguous RGBA buffer for the quantiser.
 	 */
 	for( y = 0; y < frame_rect->height; y++ )
 		memcpy( cgif->frame_bytes + y * 4 * frame_rect->width,
@@ -747,7 +747,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 */
 	vips__region_no_ownership( cgif->frame );
 
-	/* This RGBA frame as a contiguious buffer.
+	/* This RGBA frame as a contiguous buffer.
 	 */
 	cgif->frame_bytes = g_malloc0( (size_t) 4 * 
 		frame_rect.width * frame_rect.height );
