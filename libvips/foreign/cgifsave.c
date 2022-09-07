@@ -635,7 +635,7 @@ vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 
 	/* Write the new pixels into frame.
 	 */
-	do {
+	while( cgif->write_y < VIPS_RECT_BOTTOM( area ) ) {
 		VipsRect *to = &cgif->frame->valid;
 
 		VipsRect hit;
@@ -679,7 +679,7 @@ vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 			if( vips_region_buffer( cgif->frame, &new_frame ) ) 
 				return( -1 );
 		}
-	} while( VIPS_RECT_BOTTOM( area ) > cgif->write_y );
+	}
 
 	return( 0 );
 }
