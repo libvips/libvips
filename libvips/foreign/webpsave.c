@@ -178,11 +178,10 @@ typedef struct _VipsForeignSaveWebP {
 	 */
 	WebPMux *mux;
 
-	/* The current frame coming from libvips, and the y position
-	 * in the input image.
+	/* The current y position in the frame and the current page index.
 	 */
-	VipsRegion *frame;
 	int write_y;
+	int page_index;
 
 	/* VipsRegion is not always contiguious, but we need contiguous RGB(A)
 	 * for libwebp. We need to copy each frame to a local buffer.
@@ -208,8 +207,6 @@ static void
 vips_foreign_save_webp_dispose( GObject *gobject )
 {
 	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) gobject;
-
-	VIPS_UNREF( webp->frame );
 
 	VIPS_UNREF( webp->target );
 
@@ -276,18 +273,6 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 {
 	WebPPicture pic;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( webp );
-	VipsRect *frame_rect = &webp->frame->valid;
-	int page_index = frame_rect->top / frame_rect->height;
-
-	/* We need the frame as a contiguous RGB(A) buffer for libwebp.
-	 */
-	VipsPel *p = webp->frame_bytes;
-	for( int y = 0; y < frame_rect->height; y++ ) {
-		memcpy( p, VIPS_REGION_ADDR( webp->frame, 0,
-				frame_rect->top + y ),
-			webp->image->Bands * frame_rect->width );
-		p += webp->image->Bands * frame_rect->width;
-	}
 
 	if( vips_foreign_save_webp_write_webp_image( webp, webp->frame_bytes,
 			&pic ) )
@@ -306,8 +291,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebP *webp)
 		/* Adjust current timestamp
 		 */
 		if( webp->delay &&
-			page_index < webp->delay_length )
-			webp->timestamp_ms += webp->delay[page_index];
+			webp->page_index < webp->delay_length )
+			webp->timestamp_ms += webp->delay[webp->page_index];
 		else
 			webp->timestamp_ms += webp->gif_delay * 10;
 
@@ -334,54 +319,29 @@ static int
 vips_foreign_save_webp_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveWebP *webp = (VipsForeignSaveWebP*) a;
+	int i;
+	int page_height = vips_image_get_page_height( webp->image );
 
-	/* Write the new pixels into frame.
+	/* Write the new pixels into the frame.
 	 */
-	do {
-		VipsRect *to = &webp->frame->valid;
+	for( i = 0; i < area->height; i++ ) {
+		memcpy( webp->frame_bytes + area->width *
+				webp->write_y * webp->image->Bands,
+			VIPS_REGION_ADDR( region, 0, area->top + i ),
+			area->width * webp->image->Bands );
 
-		VipsRect hit;
-
-		/* The bit of the frame that we can fill.
-		 */
-		vips_rect_intersectrect( area, to, &hit );
-
-		/* Write the new pixels into the frame.
-		 */
-		vips_region_copy( region, webp->frame,
-			&hit, hit.left, hit.top );
-
-		webp->write_y += hit.height;
+		webp->write_y += 1;
 
 		/* If we've filled the frame, write and move it down.
 		 */
-		if( VIPS_RECT_BOTTOM( &hit ) == VIPS_RECT_BOTTOM( to ) ) {
-			VipsRect new_frame;
-			VipsRect image;
-
+		if( webp->write_y == page_height ) {
 			if( vips_foreign_save_webp_write_frame( webp ) )
 				return( -1 );
 
-			new_frame.left = 0;
-			new_frame.top = webp->write_y;
-			new_frame.width = to->width;
-			new_frame.height = to->height;
-			image.left = 0;
-			image.top = 0;
-			image.width = webp->image->Xsize;
-			image.height = webp->image->Ysize;
-			vips_rect_intersectrect( &new_frame, &image,
-				&new_frame );
-
-			/* End of image?
-			 */
-			if( vips_rect_isempty( &new_frame ) )
-				break;
-
-			if( vips_region_buffer( webp->frame, &new_frame ) )
-				return( -1 );
+			webp->write_y = 0;
+			webp->page_index += 1;
 		}
-	} while( VIPS_RECT_BOTTOM( area ) > webp->write_y );
+	}
 
 	return( 0 );
 }
@@ -681,7 +641,6 @@ vips_foreign_save_webp_build( VipsObject *object )
 	VipsForeignSaveWebP *webp= (VipsForeignSaveWebP *) object;
 
 	int page_height;
-	VipsRect frame_rect;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_parent_class )->
 		build( object ) )
@@ -696,26 +655,11 @@ vips_foreign_save_webp_build( VipsObject *object )
 	}
 
 	page_height = vips_image_get_page_height( webp->image );
-	frame_rect.left = 0;
-	frame_rect.top = 0;
-	frame_rect.width = webp->image->Xsize;
-	frame_rect.height = page_height;
-
-	/* Assemble frames here.
-	 */
-	webp->frame = vips_region_new( webp->image );
-	if( vips_region_buffer( webp->frame, &frame_rect ) )
-		return( -1 );
-
-	/* The regions will get used in the bg thread callback,
-	 * so make sure we don't own them.
-	 */
-	vips__region_no_ownership( webp->frame );
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
 	webp->frame_bytes = g_malloc( (size_t) webp->image->Bands *
-		frame_rect.width * frame_rect.height );
+		webp->image->Xsize * page_height );
 
 	/* Init generic WebP config
 	 */
