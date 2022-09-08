@@ -145,9 +145,9 @@ vips_foreign_save_png_build( VipsObject *object )
 		png->bitdepth < 8 )
 		png->palette = TRUE;
 
-        /* Disable palettization for >8 bit save.
-         */
-        if( png->bitdepth >= 8 )
+	/* Disable palettization for >8 bit save.
+	 */
+	if( png->bitdepth > 8 )
 		png->palette = FALSE;
 
 	if( vips__png_write_target( in, png->target,
