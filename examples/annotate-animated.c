@@ -73,7 +73,7 @@ main( int argc, char **argv )
 	VipsObject *context;
 	VipsImage *x;
 
-	if( VIPS_INIT( "" ) ) 
+	if( VIPS_INIT( argv[0] ) ) 
 		vips_error_exit( NULL ); 
 
         if( argc != 3 ) 
