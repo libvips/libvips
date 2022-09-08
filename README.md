@@ -101,7 +101,7 @@ configuration.
 - Add flags like `-Dnsgif=false` to turn libvips options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
 
-- Add flags like `-Dmagick=disable` to turn libvips dependencies on and off, 
+- Add flags like `-Dmagick=disabled` to turn libvips dependencies on and off, 
   see `meson_options.txt` and the list below for a summary of all the libvips
   dependencies.
 
