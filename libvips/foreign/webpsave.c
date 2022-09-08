@@ -181,7 +181,7 @@ typedef struct _VipsForeignSaveWebp {
 	/* The current y position in the frame and the current page index.
 	 */
 	int write_y;
-	int page_index;
+	int page_number;
 
 	/* VipsRegion is not always contiguious, but we need contiguous RGB(A)
 	 * for libwebp. We need to copy each frame to a local buffer.
@@ -291,8 +291,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebp *webp)
 		/* Adjust current timestamp
 		 */
 		if( webp->delay &&
-			webp->page_index < webp->delay_length )
-			webp->timestamp_ms += webp->delay[webp->page_index];
+			webp->page_number < webp->delay_length )
+			webp->timestamp_ms += webp->delay[webp->page_number];
 		else
 			webp->timestamp_ms += webp->gif_delay * 10;
 
@@ -339,7 +339,7 @@ vips_foreign_save_webp_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 				return( -1 );
 
 			webp->write_y = 0;
-			webp->page_index += 1;
+			webp->page_number += 1;
 		}
 	}
 
