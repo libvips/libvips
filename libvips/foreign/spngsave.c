@@ -613,9 +613,9 @@ vips_foreign_save_spng_build( VipsObject *object )
 		spng->bitdepth < 8 )
 		spng->palette = TRUE;
 
-        /* Disable palettization for >8 bit save.
-         */
-        if( spng->bitdepth >= 8 )
+	/* Disable palettization for >8 bit save.
+	 */
+	if( spng->bitdepth > 8 )
 		spng->palette = FALSE;
 
 	if( vips_foreign_save_spng_write( spng, in ) ) {
