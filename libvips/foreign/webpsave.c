@@ -30,8 +30,8 @@
  * 	- add @profile param to match tiff, jpg, etc.
  * 30/7/21
  * 	- rename "reduction_effort" as "effort"
- * 2/9/22 dloebl
- * 	- switch to sink_disc for animated write
+ * 7/9/22 dloebl
+ * 	- switch to sink_disc
  */
 
 /*
@@ -171,7 +171,7 @@ typedef struct _VipsForeignSaveWebp {
 	WebPMemoryWriter memory_writer;
 
 	/* Write animated webp here.
-	*/
+	 */
 	WebPAnimEncoder *enc;
 
 	/* Add metadata with this.
@@ -183,7 +183,7 @@ typedef struct _VipsForeignSaveWebp {
 	int write_y;
 	int page_number;
 
-	/* VipsRegion is not always contiguious, but we need contiguous RGB(A)
+	/* VipsRegion is not always contiguous, but we need contiguous RGB(A)
 	 * for libwebp. We need to copy each frame to a local buffer.
 	 */
 	VipsPel *frame_bytes;
@@ -206,7 +206,7 @@ vips_foreign_save_webp_unset( VipsForeignSaveWebp *write )
 static void
 vips_foreign_save_webp_dispose( GObject *gobject )
 {
-	VipsForeignSaveWebp *webp= (VipsForeignSaveWebp *) gobject;
+	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) gobject;
 
 	VIPS_UNREF( webp->target );
 
@@ -296,7 +296,8 @@ vips_foreign_save_webp_write_frame( VipsForeignSaveWebp *webp)
 		else
 			webp->timestamp_ms += webp->gif_delay * 10;
 
-	} else {
+	}
+	else {
 		/* Single image write
 		 */
 		if( !WebPEncode( &webp->config, &pic ) ) {
