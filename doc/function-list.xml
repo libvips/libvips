@@ -1582,6 +1582,11 @@
   <entry>vips_webpsave_target()</entry>
 </row>
 <row>
+  <entry>webpsave_mime</entry>
+  <entry>Save image to webp mime</entry>
+  <entry>vips_webpsave_mime()</entry>
+</row>
+<row>
   <entry>worley</entry>
   <entry>Make a worley noise image</entry>
   <entry>vips_worley()</entry>

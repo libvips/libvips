@@ -13,6 +13,7 @@ master
 - magick load sets "magick-format" metadata [aksdb]
 - add ".pnm", save as image format [ewelot]
 - threaded tiff jp2k and jpeg decompress
+- improve speed and efficiency of animated WebP write [dloebl]
 
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
