@@ -1,5 +1,6 @@
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
+- fix 8 bit pallete PNG save [lovell]
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
