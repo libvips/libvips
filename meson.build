@@ -633,6 +633,7 @@ build_summary = {
      'enable gtk-doc': [get_option('gtk_doc')],
      'enable doxygen': [get_option('doxygen')],
      'enable introspection': [get_option('introspection')],
+     'enable examples': [get_option('examples')],
      'enable RAD load/save': [get_option('radiance')],
      'enable Analyze7 load/save': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
@@ -686,6 +687,8 @@ subdir('cplusplus')
 subdir('man')
 subdir('po')
 subdir('tools')
-subdir('examples')
+if get_option('examples')
+  subdir('examples')
+endif
 subdir('test')
 subdir('fuzz')

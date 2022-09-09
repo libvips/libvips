@@ -1,5 +1,7 @@
 examples = [
     'annotate-animated',
+    'new-from-buffer',
+    'progress-cancel',
 ]
 
 foreach example : examples

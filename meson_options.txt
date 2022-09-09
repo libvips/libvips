@@ -5,6 +5,11 @@ option('deprecated',
   value: true, 
   description: 'Build deprecated components')
 
+option('examples', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build example programs')
+
 option('doxygen', 
   type: 'boolean', 
   value: false, 
