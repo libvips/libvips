@@ -262,6 +262,8 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 
 	if( buf->full )
 		return( FALSE );
+        if( !str )
+		return( TRUE );
 
 	/* Amount we want to copy.
 	 */
@@ -528,7 +530,7 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 		 * handled by boxed, see below.
 		 */
 		str = g_value_get_string( value );
-		result = vips_buf_appends( buf, str ); 
+                result = vips_buf_appends( buf, str ); 
 		handled = TRUE;
 }
 		break;
