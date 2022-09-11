@@ -683,12 +683,12 @@ subdir('libvips')
 if get_option('gtk_doc')
     subdir('doc')
 endif
+if get_option('examples')
+  subdir('examples')
+endif
 subdir('cplusplus')
 subdir('man')
 subdir('po')
 subdir('tools')
-if get_option('examples')
-  subdir('examples')
-endif
 subdir('test')
 subdir('fuzz')
