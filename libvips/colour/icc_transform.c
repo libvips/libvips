@@ -326,6 +326,17 @@ vips_icc_build( VipsObject *object )
 				TYPE_CMYK_16 : TYPE_CMYK_8;
 			break;
 
+		case cmsSig6colorData:
+			colour->interpretation = VIPS_INTERPRETATION_CMYK;
+			colour->format = 
+				icc->depth == 8 ? 
+				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
+			colour->bands = 6;
+			icc->out_icc_format = 
+				icc->depth == 16 ? 
+				TYPE_CMYK6_16 : TYPE_CMYK6_8;
+			break;
+
 		case cmsSigLabData:
 			colour->interpretation = VIPS_INTERPRETATION_LAB;
 			colour->format = VIPS_FORMAT_FLOAT;
