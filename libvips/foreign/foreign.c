@@ -932,15 +932,11 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 static gboolean
 vips_foreign_load_iscompat( VipsImage *a, VipsImage *b )
 {
-        /* dhint must match too, or we can get terrible performance with some
-         * formats.
-         */
 	if( a->Xsize != b->Xsize ||
 		a->Ysize != b->Ysize ||
 		a->Bands != b->Bands ||
 		a->Coding != b->Coding ||
-		a->BandFmt != b->BandFmt ||
-                a->dhint != b->dhint ) {
+		a->BandFmt != b->BandFmt ) { 
 		vips_error( "VipsForeignLoad", "%s", 
                         _( "images do not match between header and load" ) ); 
 		return( FALSE );
