@@ -213,6 +213,58 @@ is_pcs( cmsHPROFILE profile )
 		cmsGetColorSpace( profile ) == cmsSigXYZData ); 
 }
 
+typedef struct _VipsIccImportType {
+        cmsColorSpaceSignature signature;
+        VipsBandFormat input_format;
+        int input_bands;
+        guint output_format;
+} VipsIccImportType;
+
+static VipsIccImportType vips_icc_import_table[] = {
+        { cmsSigGrayData, VIPS_FORMAT_UCHAR, 1, TYPE_GRAY_8 },
+        { cmsSigGrayData, VIPS_FORMAT_USHORT, 1, TYPE_GRAY_16 },
+        { cmsSigRgbData, VIPS_FORMAT_UCHAR, 3, TYPE_RGB_8 },
+        { cmsSigRgbData, VIPS_FORMAT_USHORT, 3, TYPE_RGB_16 },
+        { cmsSigLabData, VIPS_FORMAT_FLOAT, 3, TYPE_Lab_16 },
+        { cmsSigXYZData, VIPS_FORMAT_FLOAT, 3, TYPE_XYZ_16 },
+        { cmsSigCmykData, VIPS_FORMAT_UCHAR, 4, TYPE_CMYK_8 },
+        { cmsSigCmykData, VIPS_FORMAT_USHORT, 4, TYPE_CMYK_16 },
+        { cmsSigCmykData, VIPS_FORMAT_UCHAR, 4, TYPE_CMYK_8 },
+        { cmsSig6colorData, VIPS_FORMAT_UCHAR, 6, TYPE_CMYK6_8 },
+        { cmsSig6colorData, VIPS_FORMAT_USHORT, 6, TYPE_CMYK6_16 },
+};
+
+typedef struct _VipsIccExportType {
+        cmsColorSpaceSignature signature;
+        VipsBandFormat output_format;
+        int depth;
+        VipsInterpretation interpretation;
+        guint input_format;
+} VipsIccImportType;
+
+static VipsIccExportType vips_icc_export_table[] = {
+        { cmsSigRgbData, 8,
+                VIPS_INTERPRETATION_sRGB, VIPS_FORMAT_UCHAR, 3, TYPE_RGB_8 },
+        { cmsSigRgbData, 16,
+                VIPS_INTERPRETATION_RGB16, VIPS_FORMAT_USHORT, 3, TYPE_RGB_16 },
+        { cmsSigLabData, 8,
+                VIPS_INTERPRETATION_sRGB, VIPS_FORMAT_UCHAR, 3, TYPE_RGB_8 },
+        { cmsSigRgbData, 16,
+                VIPS_INTERPRETATION_RGB16, VIPS_FORMAT_USHORT, 3, TYPE_RGB_16 },
+
+        { cmsSigGrayData, VIPS_FORMAT_UCHAR, 1, TYPE_GRAY_8 },
+        { cmsSigGrayData, VIPS_FORMAT_USHORT, 1, TYPE_GRAY_16 },
+        { cmsSigRgbData, VIPS_FORMAT_UCHAR, 3, TYPE_RGB_8 },
+        { cmsSigRgbData, VIPS_FORMAT_USHORT, 3, TYPE_RGB_16 },
+        { cmsSigLabData, VIPS_FORMAT_FLOAT, 3, TYPE_Lab_16 },
+        { cmsSigXYZData, VIPS_FORMAT_FLOAT, 3, TYPE_XYZ_16 },
+        { cmsSigCmykData, VIPS_FORMAT_UCHAR, 4, TYPE_CMYK_8 },
+        { cmsSigCmykData, VIPS_FORMAT_USHORT, 4, TYPE_CMYK_16 },
+        { cmsSigCmykData, VIPS_FORMAT_UCHAR, 4, TYPE_CMYK_8 },
+        { cmsSig6colorData, VIPS_FORMAT_UCHAR, 6, TYPE_CMYK6_8 },
+        { cmsSig6colorData, VIPS_FORMAT_USHORT, 6, TYPE_CMYK6_16 },
+};
+
 static int
 vips_icc_build( VipsObject *object )
 {
@@ -222,6 +274,7 @@ vips_icc_build( VipsObject *object )
 	VipsIcc *icc = (VipsIcc *) object;
 
 	cmsUInt32Number flags;
+        int i;
 
 	if( icc->depth != 8 &&
 		icc->depth != 16 ) {
@@ -232,57 +285,28 @@ vips_icc_build( VipsObject *object )
 
 	if( icc->in_profile &&
 		code->in ) {
-		switch( cmsGetColorSpace( icc->in_profile ) ) {
-		case cmsSigRgbData:
-			colour->input_bands = 3;
-			code->input_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_RGB_16 : TYPE_RGB_8;
-			break;
+                cmsColorSpaceSignature signature = 
+                        cmsGetColorSpace( icc->in_profile );
+                VipsBandFormat input_format = code->in->BandFmt;
 
-		case cmsSigGrayData:
-			colour->input_bands = 1;
-			code->input_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_GRAY_16 : TYPE_GRAY_8;
-			break;
+                for( i = 0; i < VIPS_NUMBER( vips_icc_import_table ); i++ ) {
+                        VipsIccImportType *type = &vips_icc_import_table[i];
 
-		case cmsSigCmykData:
-			colour->input_bands = 4;
-			code->input_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_CMYK_16 : TYPE_CMYK_8;
-			break;
+                        if( type->signature == signature &&
+                                type->input_format == input_format )
+                                break;
+                }
 
-		case cmsSigLabData:
-			colour->input_bands = 3;
-			code->input_format = VIPS_FORMAT_FLOAT;
-			code->input_interpretation = 
-				VIPS_INTERPRETATION_LAB;
-			icc->in_icc_format = TYPE_Lab_16;
-			break;
-
-		case cmsSigXYZData:
-			colour->input_bands = 3;
-			code->input_format = VIPS_FORMAT_FLOAT;
-			icc->in_icc_format = TYPE_XYZ_16;
-			break;
-
-		default:
+                if( i == VIPS_NUMBER( vips_icc_import_table ) ) {
 			vips_error( class->nickname, 
 				_( "unimplemented input color space 0x%x" ), 
 				cmsGetColorSpace( icc->in_profile ) );
 			return( -1 );
-		}
+                }
+
+                colour->input_format = code->in->BandFmt;
+                colour->input_bands = vips_icc_import_table[i].input_bands;
+                colour->in_icc_format = vips_icc_import_table[i].output_format;
 	}
 
 	if( icc->out_profile ) 
