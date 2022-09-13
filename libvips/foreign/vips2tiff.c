@@ -822,12 +822,12 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	else
 		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, wtiff->tileh );
 
+
 	if( layer->above ) 
 		/* Pyramid layer.
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
-
-	if( wtiff->toilet_roll ) {
+	else if( wtiff->toilet_roll ) {
 		/* One page of many.
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE );
@@ -835,6 +835,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_PAGENUMBER, 
 			wtiff->page_number, wtiff->n_pages );
 	}
+
 
 	/* Sample format.
 	 *
