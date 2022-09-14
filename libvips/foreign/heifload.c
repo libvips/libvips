@@ -307,17 +307,16 @@ vips_foreign_load_heif_is_a( const char *buf, int len )
 {
 	if( len >= 12 ) {
 		const guint32 chunk_len = 
-			(guint32) buf[0] << 24 |
-			(guint32) buf[1] << 16 |
-			(guint32) buf[2] << 8 |
-			(guint32) buf[3];
+			(unsigned char) buf[0] << 24 |
+			(unsigned char) buf[1] << 16 |
+			(unsigned char) buf[2] << 8 |
+			(unsigned char) buf[3];
 
 		int i;
 
-                /* We've seen real files with 36 here, so 64 should be
-                 * plenty.
+                /* chunk_len can be pretty big for eg. animated AVIF.
                  */
-		if( chunk_len > 64 || 
+		if( chunk_len > 2048 || 
 			chunk_len % 4 != 0 )
 			return( 0 );
 
