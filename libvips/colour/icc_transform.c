@@ -213,6 +213,40 @@ is_pcs( cmsHPROFILE profile )
 		cmsGetColorSpace( profile ) == cmsSigXYZData ); 
 }
 
+/* Treat these as all forms of CMYK.
+ */
+typedef struct _VipsIccInfo {
+        int signature;
+        int bands;
+        guint lcms_type8;
+        guint lcms_type16;
+} VipsIccInfo;
+
+static VipsIccInfo vips_icc_info_table[] = {
+        { cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
+        { cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
+        { cmsSig5colorData, 5, TYPE_CMYK5_8, TYPE_CMYK5_16 },
+        { cmsSig6colorData, 6, TYPE_CMYK6_8, TYPE_CMYK6_16 },
+        { cmsSig7colorData, 7, TYPE_CMYK7_8, TYPE_CMYK7_16 },
+        { cmsSig8colorData, 8, TYPE_CMYK8_8, TYPE_CMYK8_16 },
+        { cmsSig9colorData, 9, TYPE_CMYK9_8, TYPE_CMYK9_16 },
+        { cmsSig10colorData, 10, TYPE_CMYK10_8, TYPE_CMYK10_16 },
+        { cmsSig11colorData, 11, TYPE_CMYK11_8, TYPE_CMYK11_16 },
+        { cmsSig12colorData, 12, TYPE_CMYK12_8, TYPE_CMYK12_16 },
+};
+
+static VipsIccInfo *
+vips_icc_info( int signature )
+{
+        int i;
+
+        for( i = 0; i < VIPS_NUMBER( vips_icc_info_table ); i++ )
+                if( vips_icc_info_table[i].signature == signature )
+                        return( &vips_icc_info_table[i] );
+
+        return( NULL );
+}
+
 static int
 vips_icc_build( VipsObject *object )
 {
@@ -222,6 +256,7 @@ vips_icc_build( VipsObject *object )
 	VipsIcc *icc = (VipsIcc *) object;
 
 	cmsUInt32Number flags;
+        VipsIccInfo *info;
 
 	if( icc->depth != 8 &&
 		icc->depth != 16 ) {
@@ -316,25 +351,27 @@ vips_icc_build( VipsObject *object )
 			break;
 
 		case cmsSigCmykData:
-			colour->interpretation = VIPS_INTERPRETATION_CMYK;
-			colour->format = 
-				icc->depth == 8 ? 
-				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			colour->bands = 4;
-			icc->out_icc_format = 
-				icc->depth == 16 ? 
-				TYPE_CMYK_16 : TYPE_CMYK_8;
-			break;
-
+		case cmsSig5colorData:
 		case cmsSig6colorData:
+		case cmsSig7colorData:
+		case cmsSig8colorData:
+		case cmsSig9colorData:
+		case cmsSig10colorData:
+		case cmsSig11colorData:
+		case cmsSig12colorData:
+                        /* Treat as forms of CMYK.
+                         */
+                        info = vips_icc_info( 
+                                cmsGetColorSpace( icc->out_profile ) );
+
 			colour->interpretation = VIPS_INTERPRETATION_CMYK;
 			colour->format = 
 				icc->depth == 8 ? 
 				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			colour->bands = 6;
+			colour->bands = info->bands;
 			icc->out_icc_format = 
 				icc->depth == 16 ? 
-				TYPE_CMYK6_16 : TYPE_CMYK6_8;
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
 		case cmsSigLabData:
