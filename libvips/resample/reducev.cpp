@@ -211,10 +211,10 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * of the previous pass. 
 	 */
 	if( first ) {
-		char c0[256];
+		char c32[256];
 
-		CONST( c0, 0, 2 );
-		ASM2( "loadpw", "sum", c0 );
+		CONST( c32, 32, 2 );
+		ASM2( "loadpw", "sum", c32 );
 	}
 	else 
 		ASM2( "loadw", "sum", "r" );
@@ -242,7 +242,8 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 		 * of the image and coefficient are interesting, so we can take
 		 * the bottom bits of a 16x16->32 multiply. 
 		 *
-		 * We accumulate the signed 16-bit result in sum.
+		 * We accumulate the signed 16-bit result in sum. Saturated
+		 * add.
 		 */
 		ASM2( "convubw", "value", source );
 		ASM3( "mullw", "value", "value", coeff );
@@ -266,13 +267,10 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
 	if( pass->last >= reducev->n_point - 1 ) {
-		char c32[256];
 		char c6[256];
 		char c0[256];
 		char c255[256];
 
-		CONST( c32, 32, 2 );
-		ASM3( "addw", "sum", "sum", c32 );
 		CONST( c6, 6, 2 );
 		ASM3( "shrsw", "sum", "sum", c6 );
 
