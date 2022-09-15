@@ -306,11 +306,12 @@ static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
 	if( len >= 12 ) {
-		const guint32 chunk_len = 
-			(unsigned char) buf[0] << 24 |
-			(unsigned char) buf[1] << 16 |
-			(unsigned char) buf[2] << 8 |
-			(unsigned char) buf[3];
+                unsigned char *p = (unsigned char *) buf;
+		guint32 chunk_len = 
+			VIPS_LSHIFT_INT( p[0], 24 ) |
+			VIPS_LSHIFT_INT( p[1], 16 ) |
+			VIPS_LSHIFT_INT( p[2], 8 ) |
+			VIPS_LSHIFT_INT( p[3], 0 );
 
 		int i;
 
