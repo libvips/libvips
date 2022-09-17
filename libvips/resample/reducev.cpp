@@ -268,24 +268,13 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	if( pass->last >= reducev->n_point - 1 ) {
 		char c32[256];
 		char c6[256];
-		char c0[256];
-		char c255[256];
 
 		CONST( c32, 32, 2 );
 		ASM3( "addw", "sum", "sum", c32 );
 		CONST( c6, 6, 2 );
 		ASM3( "shrsw", "sum", "sum", c6 );
 
-		/* You'd think "convsuswb", convert signed 16-bit to unsigned
-		 * 8-bit with saturation, would be quicker, but it's a lot
-		 * slower.
-		 */
-		CONST( c0, 0, 2 );
-		ASM3( "maxsw", "sum", c0, "sum" ); 
-		CONST( c255, 255, 2 );
-		ASM3( "minsw", "sum", c255, "sum" ); 
-
-		ASM2( "convwb", "d1", "sum" );
+		ASM2( "convsuswb", "d1", "sum" );
 	}
 	else 
 		ASM2( "copyw", "d2", "sum" );
