@@ -1044,7 +1044,6 @@ vips_foreign_load_build( VipsObject *object )
 	VipsForeignLoadClass *fclass = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
 	VipsForeignFlags flags;
-	gboolean sequential;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_build:\n" );
@@ -1064,14 +1063,12 @@ vips_foreign_load_build( VipsObject *object )
 
 	g_object_set( load, "flags", flags, NULL );
 
-	/* Seq access has been requested, or the loader requires seq.
+	/* We must block caching of seq loaders running in seq mode. A seq
+	 * loader in random mode is fine, since we'll read to ram or a temp
+	 * file.
 	 */
-	sequential = (load->flags & VIPS_FOREIGN_SEQUENTIAL) || 
-		load->access != VIPS_ACCESS_RANDOM;
-
-	/* We must block caching of seq loads.
-	 */
-	if( sequential )
+	if( (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+		load->access != VIPS_ACCESS_RANDOM )
 		load->nocache = TRUE;
 
 	/* The deprecated "fail" field sets fail_on warning.
@@ -1134,9 +1131,9 @@ vips_foreign_load_build( VipsObject *object )
 			return( -1 );
 	}
 
-	/* Tell downstream if we are reading sequentially.
+	/* Tell downstream if seq mode was requested.
 	 */
-	if( sequential )
+	if( load->access != VIPS_ACCESS_RANDOM )
 		vips_image_set_int( load->out, VIPS_META_SEQUENTIAL, 1 );
 
 	return( 0 );
