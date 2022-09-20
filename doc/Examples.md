@@ -1,13 +1,4 @@
-  <refmeta>
-    <refentrytitle>Examples</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>libvips examples</refname>
-    <refpurpose>A few example Python programs using libvips</refpurpose>
-  </refnamediv>
+Title: A few example Python programs using libvips
 
 This page shows a few libvips examples using Python. They will work with
 small syntax changes in any language with a libvips binding.
@@ -31,6 +22,49 @@ height = 64
 image = pyvips.Image.new_from_file(sys.argv[1])
 roi = image.crop(left, top, width, height)
 print('average:', roi.avg())
+```
+
+# libvips and numpy
+
+You can use `pyvips.Image.new_from_memory()` to make a vips image from
+an area of memory. The memory array needs to be laid out band-interleaved,
+as a set of scanlines, with no padding between lines.
+
+```python
+#!/usr/bin/python3
+
+import sys
+import time
+
+import pyvips
+from PIL import Image
+import numpy as np
+
+if len(sys.argv) != 3:
+    print(f'usage: {sys.argv[0]} input-filename output-filename')
+    sys.exit(-1)
+
+# load with PIL
+start_pillow = time.time()
+pillow_img = np.asarray(Image.open(sys.argv[1]))
+print('Pillow Time:', time.time()-start_pillow)
+print('original shape', pillow_img.shape)
+
+# load with vips to a numpy array
+start_vips = time.time()
+img = pyvips.Image.new_from_file(sys.argv[1], access='sequential')
+np_3d = img.numpy()
+print('Vips Time:', time.time()-start_vips)
+print('final shape', np_3d.shape)
+
+# verify we have the same result
+print('Sum of the Differences:', np.sum(np_3d-pillow_img))
+
+# make a vips image from the numpy array
+vi = pyvips.Image.new_from_array(np_3d)
+
+# and write back to disc for checking
+vi.write_to_file(sys.argv[2])
 ```
 
 # Build huge image mosaic

@@ -1,13 +1,4 @@
-<refmeta>
-  <refentrytitle>libvips from C++</refentrytitle>
-  <manvolnum>3</manvolnum>
-  <refmiscinfo>libvips</refmiscinfo>
-</refmeta>
-
-<refnamediv>
-  <refname>C++</refname>
-  <refpurpose>Using libvips from C++</refpurpose>
-</refnamediv>
+Title: Using libvips from C++
 
 libvips comes with a convenient C++ API. It is a very thin wrapper over the 
 C API and adds automatic reference counting, exceptions, operator 

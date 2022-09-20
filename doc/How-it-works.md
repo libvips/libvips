@@ -1,13 +1,4 @@
-  <refmeta>
-    <refentrytitle>How libvips works</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>Internals</refname>
-    <refpurpose>A high-level technical overview of libvips's evaluation system</refpurpose>
-  </refnamediv>
+Title: A high-level technical overview of libvips's evaluation system
 
 Compared to most image processing libraries, VIPS needs little RAM and runs
 quickly, especially on machines with more than one CPU.  VIPS achieves this

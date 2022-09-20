@@ -1,13 +1,4 @@
-  <refmeta>
-    <refentrytitle>Image pyramids</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>Pyramids</refname>
-    <refpurpose>How to use libvips to make image pyramids</refpurpose>
-  </refnamediv>
+Title: How to use libvips to make image pyramids
 
 libvips includes `vips_dzsave()`, an operation
 that can build image pyramids compatible with <ulink

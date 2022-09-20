@@ -1,13 +1,4 @@
-<refmeta>
-  <refentrytitle>Opening files</refentrytitle>
-  <manvolnum>3</manvolnum>
-  <refmiscinfo>libvips</refmiscinfo>
-</refmeta>
-
-<refnamediv>
-  <refname>Opening</refname>
-  <refpurpose>How libvips opens files</refpurpose>
-</refnamediv>
+Title: How libvips opens files
 
 libvips has at least four different ways of opening image files, each
 best for different file types, file sizes and image use cases. libvips tries

@@ -1,13 +1,4 @@
-<refmeta>
-  <refentrytitle>Using `vipsthumbnail`</refentrytitle>
-  <manvolnum>3</manvolnum>
-  <refmiscinfo>libvips</refmiscinfo>
-</refmeta>
-
-<refnamediv>
-  <refname>`vipsthumbnail`</refname>
-  <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
-</refnamediv>
+Title: Introduction to `vipsthumbnail`
 
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples.
@@ -17,7 +8,7 @@ The thumbnailing functionality is implemented by `vips_thumbnail()` and
 see the docs for details. You can use these functions from any language
 with a libvips binding. For example, from PHP you could write:
 
-```php?start_inline=1
+```php
 $filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
