@@ -1,0 +1,49 @@
+[library]
+description = "The libvips image processing library"
+authors = "The libvips.org team"
+license = "GPL-2.1-or-later"
+browse_url = "https://github.com/libvips/libvips"
+repository_url = "https://github.com/libvips/libvips.git"
+website_url = "https://www.libvips.org"
+
+# List the dependencies using their GIR namespace
+# FIXME ... add some more, eg. GLib-2.0
+dependencies = [
+  "GObject-2.0",
+]
+
+[dependencies."GObject-2.0"]
+name = "GObject"
+description = "The base type system library"
+docs_url = "https://developer.gnome.org/gobject/stable"
+
+[source-location]
+# The base URL for the web UI
+base_url = "https://github.com/libvips/libvips/blob/master/"
+# The format for links, using "filename" and "line" for the format
+file_format = "{filename}#L{line}"
+
+[extra]
+content_files = [
+  "binding.md",
+  "Cite.md",
+  "Examples.md",
+  "How-it-opens-files.md",
+  "How-it-works.md",
+  "libvips-from-C++.md",
+  "Making-image-pyramids.md",
+  "Using-vipsthumbnail.md",
+]
+
+content_images = [
+  "images/Combine.png",
+  "images/interconvert.png",
+  "images/Memtrace.png",
+  "images/owl.jpg",
+  "images/Sequence.png",
+  "images/Sink.png",
+  "images/tn_owl.jpg",
+  "images/Vips-smp.png",
+]
+
+
