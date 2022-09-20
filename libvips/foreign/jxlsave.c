@@ -245,7 +245,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "distance" ) ) 
 		jxl->distance = jxl->Q >= 30 ?
 			0.1 + (100 - jxl->Q) * 0.09 :
-			6.4 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
+			6.24 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
 
 	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
 	 */
