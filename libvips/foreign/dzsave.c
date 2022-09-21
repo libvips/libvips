@@ -1828,6 +1828,12 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
+        /* killed is checked by sink_disc, but that's only once per strip, and
+         * they can be huge. Check per output tile as well.
+         */
+	if( vips_image_iskilled( save->in ) )
+		return( -1 );
+
 	/* If we are centering we may be outside the real pixels. Skip in 
 	 * this case, and the viewer will display blank.png for us. 
 	 */

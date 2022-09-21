@@ -20,6 +20,7 @@ master
 - fix 8 bit pallete PNG save [lovell]
 - fix null string in buffer print [pclewis]
 - revise caching of seq mode loaders [jcupitt]
+- reduce latency on dzsave kill [kleisauke]
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
