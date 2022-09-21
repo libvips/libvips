@@ -11,7 +11,6 @@ search_index = true
 docs_url = "https://www.libvips.org/API/@VIPS_VERSION@/"
 
 # List the dependencies using their GIR namespace
-# FIXME ... add some more, eg. GLib-2.0 maybe?
 dependencies = [
   "GObject-2.0",
 ]
@@ -19,7 +18,7 @@ dependencies = [
   [dependencies."GObject-2.0"]
   name = "GObject"
   description = "The base type system library"
-  docs_url = "https://developer.gnome.org/gobject/stable"
+  docs_url = "https://docs.gtk.org/gobject/"
 
 [source-location]
 # The base URL for the web UI
@@ -32,6 +31,7 @@ show_class_hierarchy = true
 show_index_summary = true
 
 [extra]
+# this order used for the index
 content_files = [
   "using-command-line.md",
   "libvips-from-C++.md",
@@ -56,4 +56,4 @@ content_images = [
   "images/Vips-smp.png",
 ]
 
-
+urlmap_file = "urlmap.js"

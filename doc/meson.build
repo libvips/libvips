@@ -46,7 +46,7 @@ custom_target('libvips-doc',
     '--content-dir=@0@'.format(meson.current_source_dir()),
     '@INPUT@',
   ],
-  depend_files: [vips_toml, vips_content_files],
+  depend_files: [vips_toml, 'urlmap.js', vips_content_files],
   build_by_default: true,
   install: true,
   install_dir: get_option('prefix') / get_option('datadir') / 'doc'

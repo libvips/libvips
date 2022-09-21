@@ -1,7 +1,8 @@
 Title: Writing bindings for libvips
 
-There are full libvips bindings for quite a few environments now: C, C++,
-command-line, Ruby, PHP, Lua, Python and JavaScript (node).
+There are full libvips bindings for quite a few environments now, including
+C, C++, command-line, Ruby, PHP, Lua, Python, Crystal, Elixir, and JavaScript
+(Node.js).
 
 This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
@@ -9,28 +10,28 @@ to what you need.
 
 # Don't bind the top-level C API
 
-The libvips C API (vips_add() and so on) was designed to be easy for humans
+The libvips C API ([func@add] and so on) was designed to be easy for humans
 to write. It is inconvenient and dangerous to use from other languages due
 to its heavy use of varargs.
 
 It's much better to use the layer below. This lower layer is structured as:
 
-- Create operator. You can use vips_operation_new() to make a new
-  `VipsOperation` object from an operator nickname, like `"add"`.
+- Create operator. You can use [ctor@Operation.new] to make a new
+  [class@Operation] object from an operator nickname, like `"add"`.
 
-- Set parameters. You can loop over the operation with vips_argument_map() to
-  get the name and type of each input argument.  For each argument, you
-  need to get the value from your language, convert to a `GValue`, then
-  use g_object_set_property() to set that value on the operator.
+- Set parameters. You can use [method@Object.get_args] to
+  get the name and type of all arguments.  For each argument, you need to
+  get the value from your language, convert to a [struct@GObject.Value], then
+  use [method@GObject.Object.set_property] to set that value on the operator.
 
-- Execute with vips_cache_operation_build().
+- Execute with [func@cache_operation_build].
 
-- Extract results. Again, you loop over the operator arguments with
-  vips_argument_map(), but instead of inputs, this time you look for output
-  arguments. You extract their value with g_object_get_property(), and pass
+- Extract results. Again, you loop over the arguments,
+  but instead of inputs, this time you look for output arguments. You
+  extract their value with [method@GObject.Object.get_property], and pass
   the value back to your language.
 
-For example, you can execute vips_invert() like this:
+For example, you can execute [method@Image.invert] like this:
 
 ```c
 /* compile with
@@ -188,9 +189,9 @@ If you have a choice, I would recommend simply using FFI.
 
 # Documentation
 
-You can generate searchable docs from a <code>.gir</code> (the thing that
-is built from scanning libvips and which in turn turn the typelib is
-made from) with <command>g-ir-doc-tool</command>, for example:
+You can generate searchable docs from a `.gir` (the thing that is built
+from scanning libvips and which in turn turn the typelib is made from) with
+`g-ir-doc-tool`, for example:
 
 ```bash
 $ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
