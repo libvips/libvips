@@ -7,6 +7,8 @@ license = "GPL-2.1-or-later"
 browse_url = "https://github.com/libvips/libvips"
 repository_url = "https://github.com/libvips/libvips.git"
 website_url = "https://www.libvips.org"
+search_index = true
+docs_url = "https://www.libvips.org/API/@VIPS_VERSION@/"
 
 # List the dependencies using their GIR namespace
 # FIXME ... add some more, eg. GLib-2.0 maybe?

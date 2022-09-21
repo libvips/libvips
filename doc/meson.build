@@ -26,7 +26,7 @@ vips_content_files = [
 
 vips_include_dir = meson.current_build_dir() / 'libvips' / 'include'
 doc_conf = configuration_data()
-doc_conf.set('VIPS_VERSION', meson.project_version())
+doc_conf.set('VIPS_VERSION', version_major + '.' + version_minor)
 
 vips_toml = configure_file(input: 'vips.toml.in',
   output: 'vips.toml',
