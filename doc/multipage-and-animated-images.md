@@ -1,13 +1,4 @@
-  <refmeta>
-    <refentrytitle>Multipage and animated images</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>Multipage and animated images</refname>
-    <refpurpose>Processing multipage and animated images</refpurpose>
-  </refnamediv>
+Title: Processing multipage and animated images
 
 libvips represents animated and multipage images as tall, thin strips of
 frames, like a strip of movie film (or a roll of toilet paper). Special image

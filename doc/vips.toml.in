@@ -1,4 +1,6 @@
 [library]
+namespace = "Vips"
+version = "@VIPS_VERSION@"
 description = "The libvips image processing library"
 authors = "The libvips.org team"
 license = "GPL-2.1-or-later"
@@ -7,15 +9,15 @@ repository_url = "https://github.com/libvips/libvips.git"
 website_url = "https://www.libvips.org"
 
 # List the dependencies using their GIR namespace
-# FIXME ... add some more, eg. GLib-2.0
+# FIXME ... add some more, eg. GLib-2.0 maybe?
 dependencies = [
   "GObject-2.0",
 ]
 
-[dependencies."GObject-2.0"]
-name = "GObject"
-description = "The base type system library"
-docs_url = "https://developer.gnome.org/gobject/stable"
+  [dependencies."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://developer.gnome.org/gobject/stable"
 
 [source-location]
 # The base URL for the web UI
@@ -25,14 +27,16 @@ file_format = "{filename}#L{line}"
 
 [extra]
 content_files = [
-  "binding.md",
-  "Cite.md",
-  "Examples.md",
-  "How-it-opens-files.md",
-  "How-it-works.md",
+  "using-command-line.md",
   "libvips-from-C++.md",
+  "using-threads.md",
+  "How-it-works.md",
+  "How-it-opens-files.md",
   "Making-image-pyramids.md",
   "Using-vipsthumbnail.md",
+  "binding.md",
+  "Examples.md",
+  "Cite.md",
 ]
 
 content_images = [

@@ -1,13 +1,4 @@
-  <refmeta>
-    <refentrytitle>Developer checklist</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>Dev checklist</refname>
-    <refpurpose>Checklist for libvips users</refpurpose>
-  </refnamediv>
+Title: Checklist for libvips users
 
 libvips is a slightly unusual library and you may need to take some of its
 stranger features into account when you design software that uses it.

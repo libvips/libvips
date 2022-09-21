@@ -9,8 +9,10 @@ vips_content_files = [
   'How-it-works.md',
   'libvips-from-C++.md',
   'Making-image-pyramids.md',
-  'Using-vipsthumbnail.md',
   'multipage-and-animated-images.md',
+  'using-command-line.md',
+  'using-threads.md', 
+  'Using-vipsthumbnail.md',
   'images/Combine.png',
   'images/interconvert.png',
   'images/interconvert.svg',
@@ -23,6 +25,12 @@ vips_content_files = [
 ]
 
 vips_include_dir = meson.current_build_dir() / 'libvips' / 'include'
+doc_conf = configuration_data()
+doc_conf.set('VIPS_VERSION', meson.project_version())
+
+vips_toml = configure_file(input: 'vips.toml.in',
+  output: 'vips.toml',
+  configuration: doc_conf)
 
 custom_target('libvips-doc',
   input: vips_gir[0],
@@ -32,13 +40,13 @@ custom_target('libvips-doc',
     'generate',
     '--quiet',
     '--add-include-path=@0@'.format(vips_include_dir),
-    '--config', meson.current_source_dir() / 'vips.toml',
+    '--config', vips_toml,
     '--output-dir=@OUTPUT@',
     '--no-namespace-dir',
     '--content-dir=@0@'.format(meson.current_source_dir()),
     '@INPUT@',
   ],
-  depend_files: ['vips.toml', vips_content_files],
+  depend_files: [vips_toml, vips_content_files],
   build_by_default: true,
   install: true,
   install_dir: get_option('prefix') / get_option('datadir') / 'doc'
