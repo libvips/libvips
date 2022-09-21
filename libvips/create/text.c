@@ -348,6 +348,7 @@ vips_text_build( VipsObject *object )
 	VipsImage *image;
 	cairo_surface_t *surface;
 	cairo_t *cr;
+	cairo_status_t status;
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
@@ -417,15 +418,6 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Cairo can't go over 32k pixels.
-	 */
-	if( extents.width >= 32768 || 
-		extents.height >= 32768 ) {
-		vips_error( class->nickname, 
-			"%s", _( "text image too large" ) );
-		return( -1 );
-	}
-
 	image = t[0] = vips_image_new_memory();
 	vips_image_init_fields( image,
 		extents.width, extents.height, 4, 
@@ -444,6 +436,15 @@ vips_text_build( VipsObject *object )
 		CAIRO_FORMAT_ARGB32,
 		image->Xsize, image->Ysize,
 		VIPS_IMAGE_SIZEOF_LINE( image ) );
+
+	status = cairo_surface_status( surface );
+	if( status ) {
+		cairo_surface_destroy( surface );
+		vips_error( class->nickname,
+			"%s", cairo_status_to_string( status ) );
+		return( -1 );
+	}
+
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
 
