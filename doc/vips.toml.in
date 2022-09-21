@@ -27,6 +27,10 @@ base_url = "https://github.com/libvips/libvips/blob/master/"
 # The format for links, using "filename" and "line" for the format
 file_format = "{filename}#L{line}"
 
+[theme]
+show_class_hierarchy = true
+show_index_summary = true
+
 [extra]
 content_files = [
   "using-command-line.md",
