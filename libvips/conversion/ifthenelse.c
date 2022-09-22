@@ -557,7 +557,7 @@ vips_ifthenelse_init(VipsIfthenelse *ifthenelse)
 }
 
 /**
- * vips_ifthenelse:
+ * vips_ifthenelse: (method)
  * @cond: condition #VipsImage
  * @in1: then #VipsImage
  * @in2: else #VipsImage

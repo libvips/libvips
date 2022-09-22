@@ -220,7 +220,7 @@ vips_divide_init(VipsDivide *divide)
 }
 
 /**
- * vips_divide:
+ * vips_divide: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image

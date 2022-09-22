@@ -184,7 +184,7 @@ vips_subtract_init(VipsSubtract *subtract)
 }
 
 /**
- * vips_subtract:
+ * vips_subtract: (method)
  * @in1: input image
  * @in2: input image
  * @out: (out): output image

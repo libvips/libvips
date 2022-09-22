@@ -72,7 +72,7 @@ vips_dECMC_init(VipsdECMC *dECMC)
 }
 
 /**
- * vips_dECMC:
+ * vips_dECMC: (method)
  * @left: first input image
  * @right: second input image
  * @out: (out): output image

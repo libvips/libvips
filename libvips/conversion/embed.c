@@ -822,7 +822,7 @@ vips_gravity_init(VipsGravity *gravity)
 }
 
 /**
- * vips_gravity:
+ * vips_gravity: (method)
  * @in: input image
  * @out: output image
  * @direction: place @in at this direction in @out
