@@ -30,11 +30,7 @@ def gen_function(operation_name, overloads):
     if overloads:
         c_operations += ', ' + (', '.join('vips_{}()'.format(n) for n in overloads))
 
-    result = '<row>\n'
-    result += '  <entry>{}</entry>\n'.format(operation_name)
-    result += '  <entry>{}</entry>\n'.format(intro.description.capitalize())
-    result += '  <entry>{}</entry>\n'.format(c_operations)
-    result += '</row>'
+    result = f"`{operation_name}` | {intro.description.capitalize()} | {c_operations}"
 
     return result
 
@@ -105,4 +101,48 @@ def gen_function_list():
 
 
 if __name__ == '__main__':
+    print("""Title: All VIPS functions and operators
+# Introduction
+
+VIPS has a set of operators, each of which computes some useful image
+processing operation. Each operator is implemented as a %GObject class,
+for example `VipsGamma`.  Classes are identified by their unique `nickname`,
+in this case `gamma`.
+
+From the command-line, C++ and most language bindings, you use the nickname
+to call the operator. For example in C++:
+
+```C++
+  vips::VImage fred = ...;
+  vips::VImage jim = fred.gamma();
+```
+
+or Python:
+
+```python
+  fred = jim.gamma()
+```
+
+VIPS has a set of C wrapper functions for calling operators, in this 
+case vips_gamma():
+
+```C
+  VipsImage *fred = ...;
+  VipsImage *jim;
+
+  if (vips_gamma(fred, &jim, NULL))
+    ...error; 
+```
+
+Some operators have many C convenience functions.
+
+# All VIPS operators
+
+This table lists all the VIPS operators with their C convenience functions
+and a short description. It's supposed to be useful for searching. See the
+API docs each function links to for more details.
+
+Operator | Description | C functions
+-------- | ----------- | ---- """)
+
     gen_function_list()

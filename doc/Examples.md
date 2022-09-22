@@ -1,12 +1,14 @@
 Title: A few example Python programs using libvips
 
+# A few example Python programs using libvips
+
 This page shows a few libvips examples using Python. They will work with
 small syntax changes in any language with a libvips binding.
 
 The libvips test suite is written in Python and exercises every operation
 in the API.  It's also a useful source of examples.
 
-# Average a region of interest box on an image
+## Average a region of interest box on an image
 
 ```python
 #!/usr/bin/python3
@@ -24,7 +26,7 @@ roi = image.crop(left, top, width, height)
 print('average:', roi.avg())
 ```
 
-# libvips and numpy
+## libvips and numpy
 
 You can use `pyvips.Image.new_from_memory()` to make a vips image from
 an area of memory. The memory array needs to be laid out band-interleaved,
@@ -67,7 +69,7 @@ vi = pyvips.Image.new_from_array(np_3d)
 vi.write_to_file(sys.argv[2])
 ```
 
-# Build huge image mosaic
+## Build huge image mosaic
 
 This makes a 100,000 x 100,000 black image, then inserts all the images you
 pass on the command-line into it at random positions. libvips is able to run

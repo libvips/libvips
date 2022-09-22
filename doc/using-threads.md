@@ -1,12 +1,12 @@
 Title: Using threads
 
-# Introduction
+# Using threads
 
 This section tries to summarise the rules for threaded programs using 
 libvips. Generally, libvips is threaded and thread-safe, with a few 
 exceptions.
 
-# Images
+## Images
 
 On startup, you need to call VIPS_INIT() single-threaded. After that,
 you can freely create images in any thread and read them in any other 
@@ -23,7 +23,7 @@ obviously also fail.
 When libvips calculates an image, by default it will use as many 
 threads as you have CPU cores. Use vips_concurrency_set() to change this.
 
-# Error handling
+## Error handling
 
 libvips has a single error code (-1 or %NULL) returned by all functions 
 on error. Error messages are not returned, instead they are logged  
@@ -40,7 +40,7 @@ The simplest way to handle this is to present the whole error log to
 the user on the next interaction and leave it to them to decide what 
 action caused the failure. 
 
-# Using #VipsRegion between threads
+## Using #VipsRegion between threads
 
 #VipsImage objects are immutable and can be shared between 
 threads very simply.
@@ -59,7 +59,7 @@ vips_tilecache() if you're curious how this works.
 libvips includes a set of sanity checks for region ownership and will
 fail if you don't pass ownership correctly. 
 
-# Example
+## Example
 
 This example runs many vips_resize() in parallel from many threads. 
 

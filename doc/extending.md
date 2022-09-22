@@ -1,6 +1,6 @@
 Title: How to add operations to VIPS
 
-# Introduction
+# How to add operations to VIPS
 
 This section runs quickly through adding a simple operator to VIPS.
 For more information, see [class@Operation] and [class@Region]. A good
@@ -11,7 +11,7 @@ All VIPS operations are subclasses of #VipsOperation, which in turn subclasses
 VIPS by defining a new subclass of [class@Operation] and arranging for its
 `class_init()` to be called, perhaps by calling its `get_type()` function.
 
-# The class and object structures
+## The class and object structures
 
 First you need to define a new object struct and a new class struct.
 
@@ -53,7 +53,7 @@ integer). negative_get_type() in turn needs two functions, negative_init(),
 to initialise a new instance, and negative_class_init(), to initialise a
 new class.
 
-# Class and object initialisation
+## Class and object initialisation
 
 negative_init() is very simple, it just sets the default value for our
 optional parameter.
@@ -126,7 +126,7 @@ describing the argument, and finally the position of the member in the struct.
 Integer arguments take three more values: the minimum, maximum and
 default value for the argument.
 
-# The build() function
+## The build() function
 
 The build function is the thing #VipsObject calls during object construction,
 after all arguments have been supplied and before the object is used. It
@@ -189,7 +189,7 @@ Finally, vips_image_generate() attaches a set of callbacks to the output image
 to generate chunks of it on request. vips_start_one() and vips_stop_one()
 are convenience functions that make the input region for you, see below.
 
-# The generate() function
+## The generate() function
 
 The generate() function does the actual image processing.  negative_generate()
 (of type #VipsGenerateFn, supplied to vips_image_generate() above) is called
@@ -260,7 +260,7 @@ valid area of the output and calls VIPS_REGION_ADDR() for each line. This
 macro is reasonaly quick, but it's best not to call it for each pixel. Once
 per line is fine though.
 
-# Adding to VIPS
+## Adding to VIPS
 
 To add the operation to vips, just call negative_get_type(). You can include
 the source in your program, or use %GModule to make a binary plugin that
@@ -316,7 +316,7 @@ if( negative( in, &amp;out, "image_max", 128, NULL ) )
 
 and it's at least a bit safer.
 
-# Other types of operation
+## Other types of operation
 
 Change the `_build()` function to make other types of operation.
 

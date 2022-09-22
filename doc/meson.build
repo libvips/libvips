@@ -7,6 +7,7 @@ vips_content_files = [
   'Examples.md',
   'extending.md',
   'file-format.md',
+  'function-list.md',
   'How-it-opens-files.md',
   'How-it-works.md',
   'libvips-from-C++.md',

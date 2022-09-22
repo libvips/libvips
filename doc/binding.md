@@ -1,5 +1,7 @@
 Title: Writing bindings for libvips
 
+# Writing bindings for libvips
+
 There are full libvips bindings for quite a few environments now, including
 C, C++, command-line, Ruby, PHP, Lua, Python, Crystal, Elixir, and JavaScript
 (Node.js).
@@ -8,7 +10,7 @@ This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
 to what you need.
 
-# Don't bind the top-level C API
+## Don't bind the top-level C API
 
 The libvips C API ([func@add] and so on) was designed to be easy for humans
 to write. It is inconvenient and dangerous to use from other languages due
@@ -121,7 +123,7 @@ main(int argc, char **argv)
 }
 ```
 
-# Compiled language which can call C
+## Compiled language which can call C
 
 The C++ binding uses this lower layer to define a function called
 `VImage::call()` which can call any libvips operator with a set of variable
@@ -151,7 +153,7 @@ to get type-checked calls for at least the required operator arguments.
 The `VImage` class also adds automatic reference counting, constant expansion,
 operator overloads, and various other useful features.
 
-# Dynamic language with FFI
+## Dynamic language with FFI
 
 Languages like Ruby, Python, JavaScript and LuaJIT can't call C directly, but
 they do support FFI. The bindings for these languages work rather like C++,
@@ -187,7 +189,7 @@ users is likely to be tricky.
 
 If you have a choice, I would recommend simply using FFI.
 
-# Documentation
+## Documentation
 
 You can generate searchable docs from a `.gir` (the thing that is built
 from scanning libvips and which in turn turn the typelib is made from) with

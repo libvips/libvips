@@ -1,11 +1,11 @@
 Title: Using libvips from C
 
-# Introduction
+# Using libvips from C
 
 VIPS comes with a convenient, high-level C API. You should read the API
 docs for full details, but this section will try to give a brief overview.
 
-# Library startup
+## Library startup
 
 When your program starts, use VIPS_INIT() to start up the VIPS library. You
 should pass it the name of your program, usually `argv[0]`. If
@@ -18,7 +18,7 @@ linked to matches the libvips headers you included.
 You can add the VIPS flags to your %GObject command-line processing with
 vips_add_option_entries().
 
-# The #VipsImage class
+## The #VipsImage class
 
 The basic data object is the #VipsImage. You can create an image from a
 file on disc or from an area of memory, either as a C-style array, or as a
@@ -33,7 +33,7 @@ g_object_get(), to get %GObject properties. All VIPS objects are immutable,
 meaning you can only get properties, you can't set them.  See <link
 linkend="libvips-header">VIPS Header</link> to read about image properties.
 
-# Reference counting
+## Reference counting
 
 VIPS is based on the %GObject library and is therefore reference counted.
 vips_image_new_from_file() returns an object with a count of 1.  When you are
@@ -46,7 +46,7 @@ See #VipsOperation for more detail on VIPS reference counting conventions. See
 the <link linkend="reference-pools-ref">Reference pools</link> section
 below for a way to automate reference counting in C.
 
-# VIPS operations
+## VIPS operations
 
 Use things like vips_embed() to manipulate your images. You use it from C
 like this:
@@ -124,19 +124,19 @@ When you are done, you can write the final image to a disc file,
 to a formatted memory buffer, or to C-style memory array. See
 vips_image_write_to_file() and friends.
 
-# Getting pixels
+## Getting pixels
 
 Use #VipsRegion to read pixels out of images. You can use VIPS_IMAGE_ADDR()
 as well, but this can need a large amount of memory to work. See <link
 linkend="extending">extending</link> for an introduction to writing your
 own operations.
 
-# Error handling
+## Error handling
 
 VIPS keeps a log of error message, see  <link linkend="libvips-error">VIPS
 Error</link> to find out how to get and clear the error log.
 
-# Example
+## Example
 
 On Unix systems, you can compile the <link linkend="using-C-example">example
 code</link> with something like:
@@ -161,7 +161,7 @@ x86_64-w64-mingw32-gcc-win32 -mms-bitfields \
   -o myprog.exe
 ```
 
-# VIPS from C example
+## VIPS from C example
 
 ```C
 #include <stdio.h>
@@ -204,7 +204,7 @@ main( int argc, char **argv )
 }
 ```
 
-# Reference pools
+## Reference pools
 
 libvips has a simple system to automate at least some reference counting
 issues. Reference pools are arrays of object pointers which will be released

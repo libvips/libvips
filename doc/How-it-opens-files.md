@@ -1,5 +1,7 @@
 Title: How libvips opens files
 
+# How libvips opens files
+
 libvips has at least four different ways of opening image files, each
 best for different file types, file sizes and image use cases. libvips tries
 hard to pick the best strategy in each case and mostly you don't need to
@@ -9,7 +11,7 @@ This page tries to explain what the different strategies are and when each is
 used. If you are running into unexpected memory, disc or CPU use, this might
 be helpful. `vips_image_new_from_file()` has the official documentation.
 
-# Caching
+## Caching
 
 libvips caches recent operations. This means that if a file changes between
 one load and the next, the second load will return the old image, even though
@@ -18,7 +20,7 @@ the file has been replaced.
 You can force libvips to load a file and ignore any cached value by
 setting the `revalidate` flag, see #VipsForeignLoad.
 
-# Direct access
+## Direct access
 
 This is the fastest and simplest one. The file is mapped directly into the
 process's address space and can be read with ordinary pointer access. Small
@@ -37,7 +39,7 @@ libvips has a special direct write mode where pixels can be written directly
 to the file image. This is used for the <ulink url="libvips-draw.html">draw
 operators</ulink>.
 
-# Random access via load library
+## Random access via load library
 
 Some image file formats have libraries which allow true random access to
 image pixels. For example, libtiff lets you read any tile out of a tiled
@@ -55,7 +57,7 @@ same tile.
 libvips can load tiled tiff, tiled OpenEXR, FITS and OpenSlide images in
 this manner.
 
-# Full decompression
+## Full decompression
 
 Many image load libraries do not support random access. In order to use
 images of this type as inputs to pipelines, libvips has to convert them
@@ -78,7 +80,7 @@ and disc and where on disc the temporary files are held.
 This is the slowest and most memory-hungry way to read files, but it's
 unavoidable for many file formats. Unless you can use the next one!
 
-# Sequential access
+## Sequential access
 
 This a fairly recent addition to libvips and is a hybrid of the previous
 two.

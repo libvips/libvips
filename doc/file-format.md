@@ -1,6 +1,6 @@
 Title: The VIPS file format
 
-# Introduction
+# The VIPS file format
 
 VIPS has a simple, native file format. It's very fast, there is no image
 size limit, and it supports arbitrary metadata. Although few other programs
@@ -27,7 +27,7 @@ scanlines, from the top of the image to the bottom.  Finally, after the
 pixel data comes an optional block of XML containing any extra metadata,
 such as an ICC profile or the EXIF data.
 
-# The header
+## The header
 
 The fields in the VIPS header are always stored least-significant byte first
 (Intel ordering). Only the most basic information about the image is in
@@ -58,7 +58,7 @@ Bytes   | Type     | VIPS name      | Meaning
 52 - 55 | int32   | `yoffset`       | Vertical offset of origin, in pixels
 56 - 63 |         |                 | Unused
 
-# The image data
+## The image data
 
 If `coding` is set to #VIPS_CODING_NONE, pixels are stored in native C format,
 that is, the native format of the machine that wrote the data. If you open a
@@ -81,7 +81,7 @@ three channels. This coding style is used by the Radiance family of programs
 Other values of `coding` can set other coding styles. Use
 VIPS_IMAGE_SIZEOF_IMAGE() to calculate the size of the image data section.
 
-# The metadata
+## The metadata
 
 Following the image data is a chunk of XML holding a simple list of name-value
 pairs. Binary data is encoded with base64. Use vips_image_set() and friends
