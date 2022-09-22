@@ -12,9 +12,9 @@ to what you need.
 
 ## Don't bind the top-level C API
 
-The libvips C API ([func@add] and so on) was designed to be easy for humans
-to write. It is inconvenient and dangerous to use from other languages due
-to its heavy use of varargs.
+The libvips C API ([method@Image.add] and so on) was designed to be easy
+for humans to write. It is inconvenient and dangerous to use from other
+languages due to its heavy use of varargs.
 
 It's much better to use the layer below. This lower layer is structured as:
 

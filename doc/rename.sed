@@ -1,6 +1,7 @@
 s/vips_\(.*\)_new()/[ctor@\u\1.new]/g
 s/vips_image_\(new_.*\)()/[ctor@Image.\1]/g
 s/vips_object_\(.*\)()/[method@Object.\1]/g
+s/vips_image_\(generate\)()/[func@image_generate]/g
 s/vips_image_\(.*\)()/[method@Image.\1]/g
 s/vips_region_\(.*\)()/[method@Region.\1]/g
 
@@ -26,7 +27,6 @@ s/vips_\(Yxy2XYZ\)()/[method@Image.\1]/g
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(add\)()/[method@Image.\1]/g
 s/vips_\(affine\)()/[method@Image.\1]/g
-s/vips_\(analyzeload\)()/[method@Image.\1]/g
 s/vips_\(autorot\)()/[method@Image.\1]/g
 s/vips_\(avg\)()/[method@Image.\1]/g
 s/vips_\(bandbool\)()/[method@Image.\1]/g
@@ -167,7 +167,6 @@ s/vips_\(ppmsave\)()/[method@Image.\1]/g
 s/vips_\(ppmsave_target\)()/[method@Image.\1]/g
 s/vips_\(premultiply\)()/[method@Image.\1]/g
 s/vips_\(profile\)()/[method@Image.\1]/g
-s/vips_\(profile_load\)()/[method@Image.\1]/g
 s/vips_\(project\)()/[method@Image.\1]/g
 s/vips_\(quadratic\)()/[method@Image.\1]/g
 s/vips_\(rad2float\)()/[method@Image.\1]/g
@@ -214,15 +213,10 @@ s/vips_\(stats\)()/[method@Image.\1]/g
 s/vips_\(stdif\)()/[method@Image.\1]/g
 s/vips_\(subsample\)()/[method@Image.\1]/g
 s/vips_\(subtract\)()/[method@Image.\1]/g
-s/vips_\(text\)()/[method@Image.\1]/g
-s/vips_\(thumbnail\)()/[method@Image.\1]/g
-s/vips_\(thumbnail_buffer\)()/[method@Image.\1]/g
 s/vips_\(thumbnail_image\)()/[method@Image.\1]/g
-s/vips_\(thumbnail_source\)()/[method@Image.\1]/g
 s/vips_\(tiffsave\)()/[method@Image.\1]/g
 s/vips_\(tiffsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(tilecache\)()/[method@Image.\1]/g
-s/vips_\(tonelut\)()/[method@Image.\1]/g
 s/vips_\(transpose3d\)()/[method@Image.\1]/g
 s/vips_\(unpremultiply\)()/[method@Image.\1]/g
 s/vips_\(vipssave\)()/[method@Image.\1]/g
@@ -231,12 +225,14 @@ s/vips_\(webpsave\)()/[method@Image.\1]/g
 s/vips_\(webpsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(webpsave_target\)()/[method@Image.\1]/g
 s/vips_\(wrap\)()/[method@Image.\1]/g
-s/vips_\(xyz\)()/[method@Image.\1]/g
-s/vips_\(zone\)()/[method@Image.\1]/g
 s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\(.*\)()/[func@\1]/g
 
+s/#Vips\(BandFormat\)/[enum@\1]/g
+s/#Vips\(Interpretation\)/[enum@\1]/g
+s/#Vips\(Coding\)/[enum@\1]/g
+s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(.*\)/[class@\1]/g
 
 s/g_object_\(.*\)()/[method@GObject.Object.\1]/g
