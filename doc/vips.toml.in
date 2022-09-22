@@ -40,6 +40,7 @@ content_files = [
   "How-it-opens-files.md",
   "Making-image-pyramids.md",
   "Using-vipsthumbnail.md",
+  'extending.md',
   "binding.md",
   "Examples.md",
   "Cite.md",
