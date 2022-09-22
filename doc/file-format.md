@@ -1,8 +1,8 @@
-Title: The VIPS file format
+Title: The libvips file format
 
-# The VIPS file format
+# The libvips file format
 
-VIPS has a simple, native file format. It's very fast, there is no image
+libvips has a simple, native file format. It's very fast, there is no image
 size limit, and it supports arbitrary metadata. Although few other programs
 can read these images (though recent versions of ImageMagick do have basic
 support for `.vips` format), it can be useful as an intermediate format
@@ -14,13 +14,13 @@ $ vips gamma t.v output.tif
 ```
 
 is faster than using `.tif` for the temporary intermediate image. This
-section documents the VIPS file format.
+section documents the libvips file format.
 
-VIPS comes with a command-line program called `vipsedit` which is useful
+libvips comes with a command-line program called `vipsedit` which is useful
 for destructively changing fields in a vips image. The `vipsheader` program
 can be used to extract any metadata.
 
-VIPS files come in three parts. First, there is a 64-byte header, containing
+libvips files come in three parts. First, there is a 64-byte header, containing
 an identifying magic number and a set of very basic fields, such as image
 width in pixels. Next, the image data is stored as a set of band-interleaved
 scanlines, from the top of the image to the bottom.  Finally, after the
@@ -29,7 +29,7 @@ such as an ICC profile or the EXIF data.
 
 ## The header
 
-The fields in the VIPS header are always stored least-significant byte first
+The fields in the libvips header are always stored least-significant byte first
 (Intel ordering). Only the most basic information about the image is in
 the header: most metadata is stored in the XML extension block after the
 pixel data.
@@ -41,8 +41,8 @@ If the magic number is b6 a6 f2 08, the image data is in SPARC order and
 will need to swapped if read on an Intel-style machine. libvips does this
 swapping automatically.
 
-Bytes   | Type     | VIPS name      | Meaning
------   | ----     | ---------      | -------
+Bytes   | Type     | libvips name   | Meaning
+-----   | ----     | ------------   | -------
 0 - 3   |          |                | Magic number: 08 f2 a6 b6, or b6 a6 f2 08
 4 - 7   | int32    | `width`        | Width of image, in pixels
 8 - 11  | int32    | `height`       | Height of image, in pixels
@@ -61,12 +61,12 @@ Bytes   | Type     | VIPS name      | Meaning
 ## The image data
 
 If `coding` is set to #VIPS_CODING_NONE, pixels are stored in native C format,
-that is, the native format of the machine that wrote the data. If you open a
-big-endian image on a little-endian machine, VIPS will automatically byte-swap
-for you.  VIPS has 10 band formats, see #VipsBandFormat.  Image data is
-stored as a simple list of scanlines, from the top of the image to the
-bottom. Pixels are band-interleaved, so RGBRGBRGBRGB, for example. There
-is no padding at the end of scanlines.
+that is, the native format of the machine that wrote the data. If you open
+a big-endian image on a little-endian machine, libvips will automatically
+byte-swap for you.  libvips has 10 band formats, see #VipsBandFormat.
+Image data is stored as a simple list of scanlines, from the top of the
+image to the bottom. Pixels are band-interleaved, so RGBRGBRGBRGB, for
+example. There is no padding at the end of scanlines.
 
 If `coding` is set to #VIPS_CODING_LABQ, each pixel is four bytes, with
 10 bits for L\* and 11 bits for each of a\* and b\*. These 32 bits are packed
@@ -87,5 +87,5 @@ Following the image data is a chunk of XML holding a simple list of name-value
 pairs. Binary data is encoded with base64. Use vips_image_set() and friends
 to set and get image metadata.
 
-You can use `vipsheader -f getext some_file.v` to get the XML from a VIPS
+You can use `vipsheader -f getext some_file.v` to get the XML from a libvips
 image, and `vipsedit --setext some_file.v < file.xml` to replace the XML.

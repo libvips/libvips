@@ -2,20 +2,20 @@ Title: Using libvips from C
 
 # Using libvips from C
 
-VIPS comes with a convenient, high-level C API. You should read the API
+libvips comes with a convenient, high-level C API. You should read the API
 docs for full details, but this section will try to give a brief overview.
 
 ## Library startup
 
-When your program starts, use VIPS_INIT() to start up the VIPS library. You
+When your program starts, use VIPS_INIT() to start up libvips. You
 should pass it the name of your program, usually `argv[0]`. If
 you call vips_shutdown() just before you exit, libvips will attempt to free
 all resources. This can help leak checking, but is not required.
 
-VIPS_INIT() is a macro to let it check that the libvips library you have
-linked to matches the libvips headers you included.
+VIPS_INIT() is a macro to let it check that the libvips shared library you
+have linked to matches the libvips headers you included.
 
-You can add the VIPS flags to your %GObject command-line processing with
+You can add the libvips flags to your %GObject command-line processing with
 vips_add_option_entries().
 
 ## The #VipsImage class
@@ -23,30 +23,30 @@ vips_add_option_entries().
 The basic data object is the #VipsImage. You can create an image from a
 file on disc or from an area of memory, either as a C-style array, or as a
 formatted object, like JPEG. See vips_image_new_from_file() and friends.
-Loading an image is fast: VIPS read just enough of the image to be able
+Loading an image is fast: libvips read just enough of the image to be able
 to get the various properties, such as width, but no decoding occurs until
 pixel values are really needed.
 
 Once you have an image, you can get properties from it in the usual
 way.  You can use projection functions, like vips_image_get_width() or
-g_object_get(), to get %GObject properties. All VIPS objects are immutable,
+g_object_get(), to get %GObject properties. All libvips objects are immutable,
 meaning you can only get properties, you can't set them.  See <link
-linkend="libvips-header">VIPS Header</link> to read about image properties.
+linkend="libvips-header">libvips Header</link> to read about image properties.
 
 ## Reference counting
 
-VIPS is based on the %GObject library and is therefore reference counted.
+libvips is based on the %GObject library and is therefore reference counted.
 vips_image_new_from_file() returns an object with a count of 1.  When you are
 done with an image, use g_object_unref() to dispose of it.  If you pass an
 image to an operation and that operation needs to keep a copy of the image,
 it will ref it. So you can unref an image as soon as you no longer need it,
 you don't need to hang on to it in case anyone else is still using it.
 
-See #VipsOperation for more detail on VIPS reference counting conventions. See
-the <link linkend="reference-pools-ref">Reference pools</link> section
-below for a way to automate reference counting in C.
+See #VipsOperation for more details on libvips' reference counting
+conventions. See the <link linkend="reference-pools-ref">Reference
+pools</link> section below for a way to automate reference counting in C.
 
-## VIPS operations
+## libvips operations
 
 Use things like vips_embed() to manipulate your images. You use it from C
 like this:
@@ -133,7 +133,8 @@ own operations.
 
 ## Error handling
 
-VIPS keeps a log of error message, see  <link linkend="libvips-error">VIPS
+libvips keeps a log of error message, see  <link
+linkend="libvips-error">libvips
 Error</link> to find out how to get and clear the error log.
 
 ## Example
@@ -161,7 +162,7 @@ x86_64-w64-mingw32-gcc-win32 -mms-bitfields \
   -o myprog.exe
 ```
 
-## VIPS from C example
+## libvips from C example
 
 ```C
 #include <stdio.h>

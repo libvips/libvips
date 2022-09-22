@@ -45,7 +45,7 @@ action caused the failure.
 #VipsImage objects are immutable and can be shared between 
 threads very simply.
 However the lower-level #VipsRegion object used to implement #VipsImage 
-(see <link linkend="extending">Extending VIPS</link>) is mutable and you 
+(see <link linkend="extending">Extending libvips</link>) is mutable and you 
 can only use a #VipsRegion from one thread at once. 
 
 In fact it's worse than that: to reduce locking, #VipsRegion keeps a 

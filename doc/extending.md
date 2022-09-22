@@ -1,15 +1,16 @@
-Title: How to add operations to VIPS
+Title: How to add operations to libvips
 
-# How to add operations to VIPS
+# How to add operations to libvips
 
-This section runs quickly through adding a simple operator to VIPS.
+This section runs quickly through adding a simple operator to libvips.
 For more information, see [class@Operation] and [class@Region]. A good
-starting point for a new operation is a similar one in the VIPS library.
+starting point for a new operation is a similar one in libvips.
 
-All VIPS operations are subclasses of #VipsOperation, which in turn subclasses
-[class@Object] and then [class@GObject.Object]. You add an operation to
-VIPS by defining a new subclass of [class@Operation] and arranging for its
-`class_init()` to be called, perhaps by calling its `get_type()` function.
+All libvips operations are subclasses of #VipsOperation, which in turn
+subclasses [class@Object] and then [class@GObject.Object]. You add an
+operation to libvips by defining a new subclass of [class@Operation] and
+arranging for its `class_init()` to be called, perhaps by calling its
+`get_type()` function.
 
 ## The class and object structures
 
@@ -243,7 +244,7 @@ created (in this example) by vips_start_one(). In this simple case it's
 just a #VipsRegion defined on the input image. If you need more per-thread
 state you can write your own start and stop functions and have a struct
 you create and pass as a sequence value. There are plenty of examples in
-the VIPS source code, see vips_rank().
+the libvips source code, see vips_rank().
 
 @a and @b are the last two arguments to vips_image_generate() above.
 @stop is a bool pointer you can set to stop computation early. vips_min()
@@ -260,7 +261,7 @@ valid area of the output and calls VIPS_REGION_ADDR() for each line. This
 macro is reasonaly quick, but it's best not to call it for each pixel. Once
 per line is fine though.
 
-## Adding to VIPS
+## Adding to libvips
 
 To add the operation to vips, just call negative_get_type(). You can include
 the source in your program, or use %GModule to make a binary plugin that

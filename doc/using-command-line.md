@@ -1,8 +1,8 @@
-Title: Using VIPS at the command-line
+Title: Using libvips at the command-line
 
-# Using VIPS at the command-line
+# Using libvips at the command-line
 
-Use the `vips` command to execute VIPS operations from the command-line. For
+Use the `vips` command to execute libvips operations from the command-line. For
 example:
 
 ```
@@ -159,6 +159,6 @@ Finally, `vips` has a couple of useful extra options.
 - Set `G_MESSAGES_DEBUG=VIPS` and GLib will display informational
   and debug messages from libvips.
 
-VIPS comes with a couple of other useful programs.  `vipsheader` is a
+libvips comes with a couple of other useful programs.  `vipsheader` is a
 command which can print image header fields. `vipsedit` can change fields
 in vips format images. `vipsthumbnail` can make image thumbnails quickly.

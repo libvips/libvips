@@ -1,7 +1,7 @@
-Title: All VIPS functions and operators
-# VIPS functions and operators
+Title: All libvips functions and operators
+# Introduction
 
-VIPS has a set of operators, each of which computes some useful image
+libvips has a set of operators, each of which computes some useful image
 processing operation. Each operator is implemented as a %GObject class,
 for example `VipsGamma`.  Classes are identified by their unique `nickname`,
 in this case `gamma`.
@@ -20,7 +20,7 @@ or Python:
   fred = jim.gamma()
 ```
 
-VIPS has a set of C wrapper functions for calling operators, in this 
+libvips has a set of C wrapper functions for calling operators, in this 
 case vips_gamma():
 
 ```C
@@ -33,7 +33,9 @@ case vips_gamma():
 
 Some operators have many C convenience functions.
 
-This table lists all the VIPS operators with their C convenience functions
+# All libvips operators
+
+This table lists all the libvips operators with their C convenience functions
 and a short description. It's supposed to be useful for searching. See the
 API docs each function links to for more details.
 
