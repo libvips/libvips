@@ -82,7 +82,7 @@ Operator | Description | C functions
 `cache` | Cache an image | vips_cache()
 `canny` | Canny edge detector | vips_canny()
 `case` | Use pixel values to pick cases from an array of images | vips_case()
-`cast` | Cast an image | vips_cast(), vips_cast_uchar(), vips_cast_char(), vips_cast_ushort(), vips_cast_shortcast_uint(), vips_cast_int(), vips_cast_float(), vips_cast_double(), vips_cast_complex(), vips_cast_dpcomplex()
+`cast` | Cast an image | vips_cast(), vips_cast_uchar(), vips_cast_char(), vips_cast_ushort(), vips_cast_short(), vips_cast_uint(), vips_cast_int(), vips_cast_float(), vips_cast_double(), vips_cast_complex(), vips_cast_dpcomplex()
 `colourspace` | Convert to a new colorspace | vips_colourspace()
 `compass` | Convolve with rotating mask | vips_compass()
 `complex` | Perform a complex operation on an image | vips_complex(), vips_polar(), vips_rect(), vips_conj()

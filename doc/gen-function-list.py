@@ -66,8 +66,9 @@ def gen_function_list():
         'bandjoin': ['bandjoin2'],
         'bandjoin_const': ['bandjoin_const1'],
         'boolean': ['andimage', 'orimage', 'eorimage', 'lshift', 'rshift'],
-        'cast': ['cast_uchar', 'cast_char', 'cast_ushort', 'cast_short' 'cast_uint', 'cast_int', 'cast_float',
-                 'cast_double', 'cast_complex', 'cast_dpcomplex'],
+        'cast': ['cast_uchar', 'cast_char', 'cast_ushort', 'cast_short',
+            'cast_uint', 'cast_int', 'cast_float', 'cast_double', 
+            'cast_complex', 'cast_dpcomplex'],
         'complex': ['polar', 'rect', 'conj'],
         'complex2': ['cross_phase'],
         'complexget': ['real', 'imag'],
@@ -78,7 +79,9 @@ def gen_function_list():
         'draw_rect': ['draw_rect1', 'draw_point', 'draw_point1'],
         'extract_area': ['crop'],
         'linear': ['linear1'],
-        'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'exp', 'exp10', 'log', 'log10'],
+        'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 
+            'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'exp', 'exp10', 
+            'log', 'log10'],
         'math2': ['pow', 'wop', 'atan2'],
         'rank': ['median'],
         'relational': ['equal', 'notequal', 'less', 'lesseq', 'more', 'moreeq'],
@@ -86,17 +89,24 @@ def gen_function_list():
         'round': ['floor', 'ceil', 'rint'],
     }
 
-    overloads['boolean_const'] = [o + '_const' for o in overloads['boolean']] + ['boolean_const1'] + \
-                                 [o + '_const1' for o in overloads['boolean']]
+    overloads['boolean_const'] = \
+            [o + '_const' for o in overloads['boolean']] \
+            + ['boolean_const1'] \
+            + [o + '_const1' for o in overloads['boolean']]
 
-    overloads['math2_const'] = [o + '_const' for o in overloads['boolean']] + ['math2_const1'] + \
-                               [o + '_const1' for o in overloads['boolean']]
+    overloads['math2_const'] = \
+            [o + '_const' for o in overloads['boolean']] \
+            + ['math2_const1'] \
+            + [o + '_const1' for o in overloads['boolean']]
 
-    overloads['relational_const'] = [o + '_const' for o in overloads['relational']] + ['relational_const1'] + \
-                                    [o + '_const1' for o in overloads['relational']]
+    overloads['relational_const'] = \
+            [o + '_const' for o in overloads['relational']] \
+            + ['relational_const1'] \
+            + [o + '_const1' for o in overloads['relational']]
 
     for nickname in all_nicknames:
-        result = gen_function(nickname, overloads[nickname] if nickname in overloads else None)
+        result = gen_function(nickname, 
+                overloads[nickname] if nickname in overloads else None)
         print(result)
 
 
