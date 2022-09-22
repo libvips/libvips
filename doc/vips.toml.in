@@ -34,6 +34,7 @@ show_index_summary = true
 # this order used for the index
 content_files = [
   "using-command-line.md",
+  "using-C.md",
   "libvips-from-C++.md",
   "using-threads.md",
   "How-it-works.md",

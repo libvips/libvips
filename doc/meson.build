@@ -11,6 +11,7 @@ vips_content_files = [
   'libvips-from-C++.md',
   'Making-image-pyramids.md',
   'multipage-and-animated-images.md',
+  'using-C.md',
   'using-command-line.md',
   'using-threads.md',
   'Using-vipsthumbnail.md',
