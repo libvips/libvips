@@ -232,6 +232,7 @@ s/vips_\(.*\)()/[func@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
+s/#Vips\(DemandStyle\)/[enum@\1]/g
 s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(.*\)/[class@\1]/g
 
