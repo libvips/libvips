@@ -2127,11 +2127,14 @@ wtiff_page_start( Wtiff *wtiff )
 		 */
 		for( n_layers = 0, p = wtiff->layer->below; p; p = p->below )
 			n_layers += 1;
-		subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
-		memset( subifd_offsets, 0, n_layers * sizeof( toff_t ) );
-		TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD, 
-			n_layers, subifd_offsets );
-		g_free( subifd_offsets );
+
+		if( n_layers > 0 ){
+		  subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
+		  memset( subifd_offsets, 0, n_layers * sizeof( toff_t ) );
+		  TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD,
+			  n_layers, subifd_offsets );
+		  g_free( subifd_offsets );
+		}
 	}
 
 	return( 0 );
