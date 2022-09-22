@@ -5,6 +5,7 @@
 - revise caching of seq mode loaders [jcupitt]
 - reduce latency on dzsave kill [kleisauke]
 - improve text too large check [kleisauke]
+- fix subifd writing for small images [ruven]
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson
