@@ -2115,26 +2115,29 @@ wtiff_page_start( Wtiff *wtiff )
 	 */
 	if( wtiff->subifd ) {
 		int n_layers;
-		toff_t *subifd_offsets;
 		Layer *p;
 
 #ifdef DEBUG
 		printf( "wtiff_write_page: OME pyr mode\n" ); 
 #endif /*DEBUG*/
 
-		/* This magic tag makes the n_layers directories we write 
-		 * after this one into subdirectories. We set the offsets to 0
-		 * and libtiff will fill them in automatically.
-		 */
 		for( n_layers = 0, p = wtiff->layer->below; p; p = p->below )
 			n_layers += 1;
 
-		if( n_layers > 0 ){
-		  subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
-		  memset( subifd_offsets, 0, n_layers * sizeof( toff_t ) );
-		  TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD,
-			  n_layers, subifd_offsets );
-		  g_free( subifd_offsets );
+		if( n_layers > 0 ) {
+                        toff_t *subifd_offsets;
+
+                        /* This magic tag makes the n_layers directories we 
+                         * write after this one into subdirectories. We set 
+                         * the offsets to 0 and libtiff will fill them in 
+                         * automatically.
+                         */
+                        subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
+                        memset( subifd_offsets, 
+                                0, n_layers * sizeof( toff_t ) );
+                        TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD,
+                                n_layers, subifd_offsets );
+                        g_free( subifd_offsets );
 		}
 	}
 
