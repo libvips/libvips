@@ -270,7 +270,7 @@ VIPS_DEPRECATED
 im_package *im_load_plugin( const char *name );
 VIPS_DEPRECATED
 int im_load_plugins( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 
 /* Close all plug-ins.
  */

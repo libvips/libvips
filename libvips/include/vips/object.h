@@ -349,7 +349,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 			(VipsArgumentClass *) p->data; \
 		VipsArgument *argument = (VipsArgument *) argument_class; \
 		GParamSpec *PSPEC = argument->pspec; \
-		VipsArgumentInstance *ARG_INSTANCE __attribute__ ((unused)) = \
+		VipsArgumentInstance *ARG_INSTANCE G_GNUC_UNUSED = \
 			vips__argument_get_instance( argument_class, \
 			VIPS_OBJECT( OBJECT ) ); \
 
@@ -401,7 +401,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 		g_value_unset( &value ); \
 	} \
 	else if( (ARG_CLASS->flags & VIPS_ARGUMENT_OUTPUT) ) { \
-		void **arg __attribute__ ((unused)); \
+		void **arg G_GNUC_UNUSED; \
  		\
 		/* Output args are a pointer to where to send the \
 		 * result. \
@@ -640,7 +640,7 @@ VIPS_API
 int vips_object_set_valist( VipsObject *object, va_list ap );
 VIPS_API
 int vips_object_set( VipsObject *object, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_object_set_from_string( VipsObject *object, const char *string );
 

@@ -401,23 +401,23 @@ const char *vips_foreign_find_save_target( const char *suffix );
 
 VIPS_API
 int vips_vipsload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_vipsload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_vipssave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_vipssave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_openslideload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignSubsample:
@@ -453,26 +453,26 @@ typedef enum {
 
 VIPS_API
 int vips_jpegload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jpegload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jpegsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jpegsave_mime( VipsImage *in, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignWebpPreset:
@@ -497,26 +497,26 @@ typedef enum {
 
 VIPS_API
 int vips_webpload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_webpload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_webpsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_webpsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_webpsave_mime( VipsImage *in, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignTiffCompression:
@@ -584,90 +584,90 @@ typedef enum {
 
 VIPS_API
 int vips_tiffload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tiffload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tiffsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_openexrload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_fitsload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_fitssave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_analyzeload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_rawload( const char *filename, VipsImage **out, 
 	int width, int height, int bands, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rawsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rawsave_fd( VipsImage *in, int fd, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_csvload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_csvload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_csvsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_csvsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_matrixload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_matrixload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_matrixsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_matrixsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_matrixprint( VipsImage *in, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_magickload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_magicksave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_magicksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignPngFilter:
@@ -692,22 +692,22 @@ typedef enum /*< flags >*/ {
 
 VIPS_API
 int vips_pngload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pngload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pngsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pngsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignPpmFormat:
@@ -742,149 +742,149 @@ typedef enum {
 
 VIPS_API
 int vips_ppmload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ppmload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ppmsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ppmsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_matload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_radload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_radload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_radsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_radsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_pdfload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_svgload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_svgload_string( const char *str, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_svgload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_gifload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gifload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_gifsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gifsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_heifload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_heifload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_heifsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_heifsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_niftiload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_niftisave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_jp2kload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jp2kload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jp2kload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jp2ksave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jp2ksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jp2ksave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_jxlload_source( VipsSource *source, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jxlload_buffer( void *buf, size_t len, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jxlload( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jxlsave( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jxlsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignDzLayout:
@@ -937,13 +937,13 @@ typedef enum {
 
 VIPS_API
 int vips_dzsave( VipsImage *in, const char *name, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_dzsave_target( VipsImage *in, VipsTarget *target, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 /**
  * VipsForeignHeifCompression:

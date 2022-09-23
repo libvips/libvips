@@ -49,12 +49,12 @@ void vips_error_thaw( void );
 
 VIPS_API
 void vips_error( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
 void vips_verror( const char *domain, const char *fmt, va_list ap );
 VIPS_API
 void vips_error_system( int err, const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 3, 4)));
+	G_GNUC_PRINTF( 3, 4 );
 VIPS_API
 void vips_verror_system( int err, const char *domain, 
 	const char *fmt, va_list ap );
@@ -65,7 +65,7 @@ void vips_g_error( GError **error );
 
 VIPS_API
 void vips_error_exit( const char *fmt, ... )
-	__attribute__((noreturn, format(printf, 1, 2)));
+	G_GNUC_NORETURN G_GNUC_PRINTF( 1, 2 );
 
 VIPS_API
 int vips_check_uncoded( const char *domain, VipsImage *im );

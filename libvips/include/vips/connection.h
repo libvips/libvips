@@ -515,7 +515,7 @@ VIPS_API
 int vips_target_writes( VipsTarget *target, const char *str );
 VIPS_API
 int vips_target_writef( VipsTarget *target, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
 int vips_target_write_amp( VipsTarget *target, const char *str );
 

@@ -266,7 +266,7 @@ VIPS_API
 int vips_vsnprintf( char *str, size_t size, const char *format, va_list ap );
 VIPS_API
 int vips_snprintf( char *str, size_t size, const char *format, ... )
-	__attribute__((format(printf, 3, 4)));
+	G_GNUC_PRINTF( 3, 4 );
 
 VIPS_API
 int vips_filename_suffix_match( const char *path, const char *suffixes[] );
@@ -317,16 +317,16 @@ gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 VIPS_API
 int vips_existsf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_API
 int vips_isdirf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_API
 int vips_mkdirf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_API
 int vips_rmdirf( const char *name, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_API
 int vips_rename( const char *old_name, const char *new_name );
 

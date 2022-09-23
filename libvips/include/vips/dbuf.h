@@ -78,7 +78,7 @@ gboolean vips_dbuf_write( VipsDbuf *dbuf,
 	const unsigned char *data, size_t size );
 VIPS_API
 gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
 gboolean vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str );
 VIPS_API

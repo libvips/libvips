@@ -256,7 +256,7 @@ VIPS_API
 void vips_value_set_save_string( GValue *value, const char *str );
 VIPS_API
 void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 
 VIPS_API
 const char *vips_value_get_ref_string( const GValue *value, size_t *length );

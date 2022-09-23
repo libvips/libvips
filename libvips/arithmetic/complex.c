@@ -654,7 +654,7 @@ vips_complexget_build( VipsObject *object )
 }
 
 #define GETLOOP( TYPE, OP ) { \
-	TYPE *p __attribute__ ((unused)) = (TYPE *) in[0]; \
+	TYPE *p G_GNUC_UNUSED = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
@@ -663,7 +663,7 @@ vips_complexget_build( VipsObject *object )
 }
 
 #define CGETLOOP( TYPE, OP ) { \
-	TYPE *p __attribute__ ((unused)) = (TYPE *) in[0]; \
+	TYPE *p G_GNUC_UNUSED = (TYPE *) in[0]; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \

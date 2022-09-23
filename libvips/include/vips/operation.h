@@ -121,7 +121,7 @@ int vips_call_required_optional( VipsOperation **operation,
 	va_list required, va_list optional );
 VIPS_API
 int vips_call( const char *operation_name, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_call_split( const char *operation_name, va_list optional, ... );
 VIPS_API

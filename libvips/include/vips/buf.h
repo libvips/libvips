@@ -81,7 +81,7 @@ VIPS_API
 gboolean vips_buf_appends( VipsBuf *buf, const char *str );
 VIPS_API
 gboolean vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
 gboolean vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap );
 VIPS_API

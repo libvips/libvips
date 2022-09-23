@@ -41,36 +41,36 @@ extern "C" {
 VIPS_API
 int vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, int dx, int dy, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mosaic( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, int xref, int yref, int xsec, int ysec, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, 
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_match( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_globalbalance( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_remosaic( VipsImage *in, VipsImage **out, 
 	const char *old_str, const char *new_str, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_matrixinvert( VipsImage *m, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 
 #ifdef __cplusplus

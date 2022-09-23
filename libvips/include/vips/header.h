@@ -289,7 +289,7 @@ void vips_image_set_array_double( VipsImage *image, const char *name,
 
 VIPS_API
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
 int vips_image_history_args( VipsImage *image, 
 	const char *name, int argc, char *argv[] );

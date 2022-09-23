@@ -349,9 +349,9 @@ int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsArrayDouble *background );
 
 int vips_foreign_load( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 int vips_foreign_save( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 int vips__image_intize( VipsImage *in, VipsImage **out );
 

@@ -93,22 +93,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* If we're being parsed by SWIG, remove gcc attributes.
- */
-#ifdef SWIG
-#  ifndef __attribute__
-#    define __attribute__(x)  /*NOTHING*/
-#  endif
-#endif /*SWIG*/
-
-/* Or if this isn't gcc.
- */
-#ifndef __GNUC__
-#  ifndef __attribute__
-#    define __attribute__(x)  /*NOTHING*/
-#  endif
-#endif /*__GNUC__*/
-
 #include <vips/basic.h>
 
 #include <vips/buf.h>

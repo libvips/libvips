@@ -193,376 +193,376 @@ typedef enum {
 
 VIPS_API
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_sum( VipsImage **in, VipsImage **out, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_multiply( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_divide( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_linear( VipsImage *in, VipsImage **out, 
 	const double *a, const double *b, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_remainder_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_remainder_const1( VipsImage *in, VipsImage **out, 
 	double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_invert( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_abs( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_sign( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_floor( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ceil( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rint( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_math( VipsImage *in, VipsImage **out, 
 	VipsOperationMath math, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_sin( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_cos( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tan( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_asin( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_acos( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_atan( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_exp( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_exp10( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_log( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_log10( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_sinh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_cosh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tanh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_asinh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_acosh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_atanh( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_complex( VipsImage *in, VipsImage **out, 
 	VipsOperationComplex cmplx, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_polar( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rect( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_conj( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationComplex2 cmplx, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_cross_phase( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_complexget( VipsImage *in, VipsImage **out, 
 	VipsOperationComplexget get, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_real( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_imag( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_complexform( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationRelational relational, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_equal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_notequal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_less( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lesseq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_more( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_moreeq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_relational_const( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_equal_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_notequal_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_less_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lesseq_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_more_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_moreeq_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_less_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lesseq_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_more_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_moreeq_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationBoolean boolean, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_andimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_orimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_eorimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_boolean_const( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_andimage_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_orimage_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_eorimage_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lshift_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rshift_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_boolean_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_orimage_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_eorimage_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_lshift_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rshift_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
 	VipsOperationMath2 math2, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pow( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_wop( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_atan2( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_math2_const( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pow_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_wop_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_atan2_const( VipsImage *in, VipsImage **out, 
 	const double *c, int n, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_math2_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_atan2_const1( VipsImage *in, VipsImage **out, double c, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_avg( VipsImage *in, double *out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_deviate( VipsImage *in, double *out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_min( VipsImage *in, double *out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_max( VipsImage *in, double *out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_stats( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_find_trim( VipsImage *in, 
 	int *left, int *top, int *width, int *height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_hist_find( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_hist_find_indexed( VipsImage *in, VipsImage *index, 
 	VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_hough_line( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_hough_circle( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_project( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_profile( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
 }

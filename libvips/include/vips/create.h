@@ -40,111 +40,111 @@ extern "C" {
 
 VIPS_API
 int vips_black( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_xyz( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_grey( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gaussmat( VipsImage **out, double sigma, double min_ampl, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_logmat( VipsImage **out, double sigma, double min_ampl, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_text( VipsImage **out, const char *text, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_gaussnoise( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_eye( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_sines( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_zone( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_identity( VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_buildlut( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_invertlut( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_tonelut( VipsImage **out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_mask_ideal( VipsImage **out, int width, int height, 
 	double frequency_cutoff, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_ideal_ring( VipsImage **out, int width, int height, 
 	double frequency_cutoff, double ringwidth, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_ideal_band( VipsImage **out, int width, int height, 
 	double frequency_cutoff_x, double frequency_cutoff_y, 
 	double radius, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_butterworth( VipsImage **out, int width, int height, 
 	double order, 
 	double frequency_cutoff, double amplitude_cutoff, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_butterworth_ring( VipsImage **out, int width, int height, 
 	double order, 
 	double frequency_cutoff, double amplitude_cutoff, 
 	double ringwidth, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_butterworth_band( VipsImage **out, int width, int height, 
 	double order, 
 	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
 	double amplitude_cutoff, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_gaussian( VipsImage **out, int width, int height, 
 	double frequency_cutoff, double amplitude_cutoff, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_gaussian_ring( VipsImage **out, int width, int height, 
 	double frequency_cutoff, double amplitude_cutoff, 
 	double ringwidth, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_gaussian_band( VipsImage **out, int width, int height, 
 	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
 	double amplitude_cutoff, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_mask_fractal( VipsImage **out, int width, int height, 
 	double fractal_dimension, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_fractsurf( VipsImage **out, 
 	int width, int height, double fractal_dimension, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_worley( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_perlin( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
 }

@@ -71,7 +71,7 @@ VIPS_API
 int vips_stop_many( void *seq, void *a, void *b );
 VIPS_API
 VipsImage **vips_allocate_input_array( VipsImage *out, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_image_generate( VipsImage *image,
@@ -83,7 +83,7 @@ int vips_image_pipeline_array( VipsImage *image,
 	VipsDemandStyle hint, VipsImage **in );
 VIPS_API
 int vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
 }

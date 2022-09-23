@@ -134,18 +134,18 @@ int im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture );
  */
 VIPS_DEPRECATED_FOR(vips_error)
 void im_errormsg( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_DEPRECATED_FOR(vips_verror)
 void im_verrormsg( const char *fmt, va_list ap );
 VIPS_DEPRECATED_FOR(vips_error_system)
 void im_errormsg_system( int err, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_DEPRECATED_FOR(g_info)
 void im_diagnostics( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 VIPS_DEPRECATED_FOR(g_warning)
 void im_warning( const char *fmt, ... )
-	__attribute__((format(printf, 1, 2)));
+	G_GNUC_PRINTF( 1, 2 );
 
 VIPS_DEPRECATED
 int im_iterate( VipsImage *im,
@@ -384,14 +384,14 @@ int im_smear( IMAGE *im, int ix, int iy, VipsRect *r );
 
 VIPS_DEPRECATED_FOR(g_warning)
 void vips_warn( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_DEPRECATED_FOR(g_warning)
 void vips_vwarn( const char *domain, const char *fmt, va_list ap );
 VIPS_DEPRECATED
 void vips_info_set( gboolean info );
 VIPS_DEPRECATED_FOR(g_info)
 void vips_info( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
+	G_GNUC_PRINTF( 2, 3 );
 VIPS_DEPRECATED_FOR(g_info)
 void vips_vinfo( const char *domain, const char *fmt, va_list ap );
 

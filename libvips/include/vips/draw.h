@@ -51,60 +51,60 @@ typedef enum {
 VIPS_API
 int vips_draw_rect( VipsImage *image, 
 	double *ink, int n, int left, int top, int width, int height, ... ) 
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_rect1( VipsImage *image, 
 	double ink, int left, int top, int width, int height, ... ) 
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... ) 
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_point1( VipsImage *image, double ink, int x, int y, ... ) 
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_mask( VipsImage *image, 
 	double *ink, int n, VipsImage *mask, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_mask1( VipsImage *image, 
 	double ink, VipsImage *mask, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_line( VipsImage *image, 
 	double *ink, int n, int x1, int y1, int x2, int y2, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_line1( VipsImage *image, 
 	double ink, int x1, int y1, int x2, int y2, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_circle( VipsImage *image, 
 	double *ink, int n, int cx, int cy, int radius, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_circle1( VipsImage *image, 
 	double ink, int cx, int cy, int radius, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_flood( VipsImage *image, double *ink, int n, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_draw_flood1( VipsImage *image, double ink, int x, int y, ... )
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_draw_smudge( VipsImage *image, 
 	int left, int top, int width, int height, ... ) 
-	__attribute__((sentinel));
+	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
 }
