@@ -1251,7 +1251,7 @@ vips_version_string( void )
  * Get the major, minor or micro library version, with @flag values 0, 1 and
  * 2.
  *
- * Get the ABI current, revision and age (as used by libtool) with @flag 
+ * Get the ABI current, revision and age (as used by Meson) with @flag 
  * values 3, 4, 5. 
  *
  * Returns: library version number
