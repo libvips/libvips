@@ -217,7 +217,7 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 			"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-		vips_strncpy( iccp.profile_name, "", 
+		vips_strncpy( iccp.profile_name, "icc",
 			sizeof( iccp.profile_name ) );
 		iccp.profile_len = length;
 		iccp.profile = (void *) data;
