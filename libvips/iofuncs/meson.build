@@ -1,4 +1,5 @@
 iofuncs_sources = files(
+    'threadset.c',
     'ginputsource.c',
     'sourceginput.c',
     'connection.c',
