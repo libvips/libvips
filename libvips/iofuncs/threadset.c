@@ -1,4 +1,6 @@
-/* Create and reuse a set of OS threads.
+/* A set of threads. We try to reuse threads when possible, rather than
+ * creating and destroying them all the time. This can be slow on some
+ * platforms.
  */
 
 /*
@@ -54,7 +56,7 @@ typedef struct _VipsThreadsetMember {
          */
         GThread *thread;
 
-        /* The task the thread should run next, and the result it returned.
+        /* The task the thread should run next.
          */
         const char *domain;
 	GFunc func; 
@@ -80,14 +82,26 @@ struct _VipsThreadset {
         /* The set of currently idle threads.
          */
         GSList *free;
+
+        /* Leak checking.
+         */
+        int n_threads;
+        int max_threads;
 };
 
 /* Set this GPrivate to indicate that this is a libvips worker.
  */
 static GPrivate *is_worker_key = NULL;
 
-static int vips_threadset_n_threads = 0;
-static int vips_threadset_max_threads = 0;
+/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
+ * differently for vips workers since we can cheaply free stuff on thread
+ * termination.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( g_private_get( is_worker_key ) != NULL );
+}
 
 /* The thread work function.
  */
@@ -138,16 +152,6 @@ vips_threadset_work( void *pointer )
         return( NULL );
 }
 
-/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
- * differently for vips workers since we can cheaply free stuff on thread
- * termination.
- */
-gboolean
-vips_thread_isworker( void )
-{
-	return( g_private_get( is_worker_key ) != NULL );
-}
-
 /* Create a new idle member for the set.
  */
 static VipsThreadsetMember *
@@ -183,9 +187,8 @@ vips_threadset_add( VipsThreadset *set )
 
         g_mutex_lock( set->lock );
         set->members = g_slist_prepend( set->members, member );
-        vips_threadset_n_threads += 1;
-        vips_threadset_max_threads = VIPS_MAX( vips_threadset_max_threads, 
-                vips_threadset_n_threads );;
+        set->n_threads += 1;
+        set->max_threads = VIPS_MAX( set->max_threads, set->n_threads );;
         g_mutex_unlock( set->lock );
 
         return( member );
@@ -210,7 +213,7 @@ vips_threadset_new( void )
  */
 int
 vips_threadset_run( VipsThreadset *set, 
-        const char *domain, GFunc func, gpointer data, gpointer user_data )
+        const char *domain, GFunc func, gpointer data )
 {
         VipsThreadsetMember *member;
 
@@ -239,7 +242,7 @@ vips_threadset_run( VipsThreadset *set,
         member->domain = domain;
         member->func = func;
         member->data = data;
-        member->user_data = user_data;
+        member->user_data = NULL;
         vips_semaphore_up( &member->idle );
 
         return( 0 );
@@ -260,7 +263,7 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
 
         g_mutex_lock( set->lock );
         set->free = g_slist_remove( set->free, member );
-        vips_threadset_n_threads += 1;
+        set->n_threads += 1;
         g_mutex_unlock( set->lock );
 
         VIPS_FREE( member );
@@ -271,6 +274,8 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
 void
 vips_threadset_free( VipsThreadset *set )
 {
+        VIPS_DEBUG_MSG( "vips_threadset_free: %p\n", set );
+
         /* Try to get and finish a thread.
          */
         for(;;) {
@@ -289,6 +294,10 @@ vips_threadset_free( VipsThreadset *set )
 
                 vips_threadset_kill_member( member );
         }
+
+        if( vips__leak )
+                printf( "vips_threadset_free: %d max threads\n", 
+                        set->max_threads );
 
 	VIPS_FREEF( vips_g_mutex_free, set->lock );
 	VIPS_FREE( set );

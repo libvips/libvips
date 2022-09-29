@@ -64,7 +64,7 @@ gboolean vips_thread_isworker( void );
 typedef struct _VipsThreadset VipsThreadset;
 VipsThreadset *vips_threadset_new( void );
 int vips_threadset_run( VipsThreadset *set, 
-	const char *domain, GFunc func, gpointer data, gpointer user_data );
+	const char *domain, GFunc func, gpointer data );
 void vips_threadset_free( VipsThreadset *set );
 
 #ifdef __cplusplus

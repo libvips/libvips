@@ -143,6 +143,7 @@ extern char *vips__disc_threshold;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
+void vips__thread_init( void );
 void vips__threadpool_init( void );
 void vips__threadpool_shutdown( void );
 int vips__thread_execute( const char *name, GFunc func, gpointer data );
