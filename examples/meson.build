@@ -2,6 +2,7 @@ examples = [
     'annotate-animated',
     'new-from-buffer',
     'progress-cancel',
+    'use-vips-func',
 ]
 
 foreach example : examples
