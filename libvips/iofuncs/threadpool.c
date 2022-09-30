@@ -53,7 +53,6 @@
  */
 
 /* 
-#define DEBUG_OUT_OF_THREADS
 #define VIPS_DEBUG
 #define VIPS_DEBUG_RED
  */
@@ -61,7 +60,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
-#include <vips/intl.h>
+#include <glib/gi18n-lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -191,7 +190,7 @@ vips_thread_state_set( VipsObject *object, void *a, void *b )
 	VipsThreadState *state = (VipsThreadState *) object;
 	VipsImage *im = (VipsImage *) a;
 
-	VIPS_DEBUG_MSG( "vips_thread_state_set:\n" );
+	VIPS_DEBUG_MSG( "vips_thread_state_set: image %p\n", im );
 
 	state->im = im;
 	state->a = b;
@@ -202,7 +201,7 @@ vips_thread_state_set( VipsObject *object, void *a, void *b )
 VipsThreadState *
 vips_thread_state_new( VipsImage *im, void *a )
 {
-	VIPS_DEBUG_MSG( "vips_thread_state_new:\n" );
+	VIPS_DEBUG_MSG( "vips_thread_state_new: image %p\n", im );
 
 	return( VIPS_THREAD_STATE( vips_object_new( 
 		VIPS_TYPE_THREAD_STATE, vips_thread_state_set, im, a ) ) );
@@ -497,7 +496,7 @@ vips_threadpool_new( VipsImage *im )
 	vips_get_tile_size( im, &tile_width, &tile_height, &n_lines );
 	n_tiles = (1 + (gint64) im->Xsize / tile_width) * 
 		(1 + (gint64) im->Ysize / tile_height);
-	n_tiles = VIPS_CLIP( 0, n_tiles, 1024 ); 
+	n_tiles = VIPS_CLIP( 1, n_tiles, 1024 ); 
 	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
 
 	VIPS_DEBUG_MSG( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 

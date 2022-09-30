@@ -57,8 +57,8 @@
 #include <windows.h>
 #endif /*G_OS_WIN32*/
 
-/* Maximum number of concurrent threads we allow. It prevents huge values of 
- * VIPS_CONCURRENCY killing the system.
+/* Maximum value we allow for VIPS_CONCURRENCY. We need to stop huge values
+ * killing the system.
  */
 #define MAX_THREADS (1024)
 
@@ -140,7 +140,8 @@ vips_thread_run( gpointer data )
 	void *result;
 
 	/* Set this to something (anything) to tag this thread as a vips 
-	 * worker.
+	 * worker. No need to call g_private_replace as there is no
+         * GDestroyNotify handler associated with a worker.
 	 */
 	g_private_set( is_worker_key, info );
 
