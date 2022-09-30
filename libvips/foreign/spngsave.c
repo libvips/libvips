@@ -377,17 +377,6 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	ihdr.height = in->Ysize;
 	ihdr.bit_depth = spng->bitdepth;
 
-	/* Low-bitdepth write needs an extra buffer for packing pixels.
-	 */
-	if( spng->bitdepth < 8 ) {
-		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE( in ) / 
-			(8 / spng->bitdepth);
-
-		if( !(spng->line = 
-			vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( in ) )) )
-			return( -1 );
-	}
-
 	switch( in->Bands ) {
 	case 1:
 		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
@@ -510,6 +499,17 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		in = spng->memory = im_index;
 	}
 #endif /*HAVE_QUANTIZATION*/
+
+	/* Low-bitdepth write needs an extra buffer for packing pixels.
+	 */
+	if( spng->bitdepth < 8 ) {
+		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE( in ) / 
+			(8 / spng->bitdepth);
+
+		if( !(spng->line = 
+			vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( in ) )) )
+			return( -1 );
+	}
 
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */
