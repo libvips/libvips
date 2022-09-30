@@ -135,6 +135,7 @@ vips__thread_execute( const char *domain, GFunc func, gpointer data )
         return( vips_threadset_run( vips__threadset, domain, func, data ) );
 }
 
+
 G_DEFINE_TYPE( VipsThreadState, vips_thread_state, VIPS_TYPE_OBJECT );
 
 static void

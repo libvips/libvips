@@ -73,6 +73,20 @@ int vips__tile_height = VIPS__TILE_HEIGHT;
 int vips__fatstrip_height = VIPS__FATSTRIP_HEIGHT;
 int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
 
+/* Set this GPrivate to indicate that is a libvips thread.
+ */
+static GPrivate *is_worker_key = NULL;
+
+/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
+ * differently for vips workers since we can cheaply free stuff on thread
+ * termination.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( g_private_get( is_worker_key ) != NULL );
+}
+
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
 
@@ -125,8 +139,10 @@ vips_thread_run( gpointer data )
 
 	void *result;
 
-	if( vips__thread_profile ) 
-		vips__thread_profile_attach( info->domain );
+	/* Set this to something (anything) to tag this thread as a vips 
+	 * worker.
+	 */
+	g_private_set( is_worker_key, info );
 
 	result = info->func( info->data );
 
@@ -428,6 +444,10 @@ vips_get_tile_size( VipsImage *im,
 void
 vips__thread_init( void )
 {
+	static GPrivate private = { 0 }; 
+
+	is_worker_key = &private;
+
 	if( vips__concurrency == 0 )
 		vips__concurrency = vips__concurrency_get_default();
 }

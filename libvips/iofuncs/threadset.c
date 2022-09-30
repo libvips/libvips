@@ -89,20 +89,6 @@ struct _VipsThreadset {
         int max_threads;
 };
 
-/* Set this GPrivate to indicate that this is a libvips worker.
- */
-static GPrivate *is_worker_key = NULL;
-
-/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
- * differently for vips workers since we can cheaply free stuff on thread
- * termination.
- */
-gboolean
-vips_thread_isworker( void )
-{
-	return( g_private_get( is_worker_key ) != NULL );
-}
-
 /* The thread work function.
  */
 static void *
@@ -180,11 +166,6 @@ vips_threadset_add( VipsThreadset *set )
                 return( NULL );
 	}
 
-	/* Set this to something (anything) to tag this thread as a vips 
-	 * worker.
-	 */
-	g_private_set( is_worker_key, member );
-
         g_mutex_lock( set->lock );
         set->members = g_slist_prepend( set->members, member );
         set->n_threads += 1;
@@ -197,11 +178,7 @@ vips_threadset_add( VipsThreadset *set )
 VipsThreadset *
 vips_threadset_new( void )
 {
-	static GPrivate private = { 0 }; 
-
         VipsThreadset *set;
-
-	is_worker_key = &private;
 
         set = g_new0( VipsThreadset, 1 );
 	set->lock = vips_g_mutex_new();
