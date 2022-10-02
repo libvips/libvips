@@ -255,7 +255,7 @@ typedef struct _VipsThreadpool {
 	/* The number of active threads in this pool (as a negative number, so
          * -4 means 4 active).
 	 */
-	VipsSemaphore finish;
+	VipsSemaphore n_workers;
 
 	/* Workers up this for every loop to make the main thread tick.
 	 */
@@ -399,7 +399,7 @@ vips_thread_main_loop( void *a )
 
 	/* We are exiting: tell the main thread. 
 	 */
-	vips_semaphore_up( &pool->finish );
+        vips_semaphore_upn( &pool->n_workers, 1 );
 
 	VIPS_GATE_STOP( "vips_thread_main_loop: thread" ); 
 
@@ -426,6 +426,8 @@ vips_thread_new( VipsThreadpool *pool )
 	 * owned by the correct thread.
 	 */
 
+        vips_semaphore_upn( &pool->n_workers, -1 );
+
 	if( !(worker->thread = vips_g_thread_new( "worker", 
 		vips_thread_main_loop, worker )) ) {  
 		vips_thread_free( worker );
@@ -449,7 +451,10 @@ vips_threadpool_kill_threads( VipsThreadpool *pool )
 
 		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
 			"killed %d threads\n", pool->max_workers );
+
 	}
+
+        vips_semaphore_downn( &pool->n_workers, 0 );
 }
 
 static void
@@ -460,7 +465,7 @@ vips_threadpool_free( VipsThreadpool *pool )
 
 	vips_threadpool_kill_threads( pool );
 	VIPS_FREEF( vips_g_mutex_free, pool->allocate_lock );
-	vips_semaphore_destroy( &pool->finish );
+	vips_semaphore_destroy( &pool->n_workers );
 	vips_semaphore_destroy( &pool->tick );
 	VIPS_FREE( pool->workers );
 	VIPS_FREE( pool );
@@ -485,7 +490,7 @@ vips_threadpool_new( VipsImage *im )
 	pool->allocate_lock = vips_g_mutex_new();
 	pool->max_workers = vips_concurrency_get();
 	pool->workers = NULL;
-	vips_semaphore_init( &pool->finish, 0, "finish" );
+	vips_semaphore_init( &pool->n_workers, 0, "n_workers" );
 	vips_semaphore_init( &pool->tick, 0, "tick" );
 	pool->error = FALSE;
 	pool->stop = FALSE;
@@ -680,10 +685,6 @@ vips_threadpool_run( VipsImage *im,
 			pool->error )
 			break;
 	}
-
-	/* Wait for them all to hit finish.
-	 */
-	vips_semaphore_downn( &pool->finish, pool->max_workers );
 
 	/* Return 0 for success.
 	 */
