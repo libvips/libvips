@@ -406,14 +406,9 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			entry->blue = p[2];
 			plte.n_entries += 1;
 
-			/* Quantizr and libimagequant sort the pallette
-			 * by transparency, so trns.type3_alpha[] and
-			 * plte.entries[] will use the same indexing.
-			 */
-			g_assert( i == 0 || p[3] >= p[-1] );
+			trns.type3_alpha[i] = p[3];
 			if( p[3] != 255 ) {
-				trns.type3_alpha[trns.n_type3_entries] = p[3];
-				trns.n_type3_entries += 1;
+				trns.n_type3_entries = i+1;
 			}
 		}
 
