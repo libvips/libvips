@@ -209,7 +209,7 @@ vips_thread_state_new( VipsImage *im, void *a )
 
 /* What we track for each thread in the pool.
  */
-typedef struct {
+typedef struct _VipsWorker {
 	/* All private.
 	 */
 	/*< private >*/
@@ -229,7 +229,7 @@ typedef struct {
 	 */
 	gboolean error;	
 
-} VipsThread;
+} VipsWorker;
 
 /* What we track for a group of threads working together.
  */
@@ -249,12 +249,13 @@ typedef struct _VipsThreadpool {
 	GMutex *allocate_lock;
         void *a; 		/* User argument to start / allocate / etc. */
 
-	int nthr;		/* Number of threads in pool */
-	VipsThread **thr;	/* Threads */
+	int max_workers;	/* Max number of workers in pool */
+	VipsWorker **workers;	/* Threads */
 
-	/* The caller blocks here until all threads finish.
+	/* The number of active threads in this pool (as a negative number, so
+         * -4 means 4 active).
 	 */
-	VipsSemaphore finish;	
+	VipsSemaphore finish;
 
 	/* Workers up this for every loop to make the main thread tick.
 	 */
@@ -272,37 +273,37 @@ typedef struct _VipsThreadpool {
 /* Junk a thread.
  */
 static void
-vips_thread_free( VipsThread *thr )
+vips_thread_free( VipsWorker *worker )
 {
         /* Is there a thread running this region? Kill it!
          */
-        if( thr->thread ) {
-                thr->exit = 1;
+        if( worker->thread ) {
+                worker->exit = 1;
 
 		/* Return value is always NULL (see thread_main_loop).
 		 */
-		(void) vips_g_thread_join( thr->thread );
-		thr->thread = NULL;
+		(void) vips_g_thread_join( worker->thread );
+		worker->thread = NULL;
         }
 
-	VIPS_FREEF( g_object_unref, thr->state );
-	thr->pool = NULL;
+	VIPS_FREEF( g_object_unref, worker->state );
+	worker->pool = NULL;
 
-	VIPS_FREE( thr );
+	VIPS_FREE( worker );
 }
 
 static int
-vips_thread_allocate( VipsThread *thr )
+vips_thread_allocate( VipsWorker *worker )
 {
-	VipsThreadpool *pool = thr->pool;
+	VipsThreadpool *pool = worker->pool;
 
 	g_assert( !pool->stop );
 
-	if( !thr->state &&
-		!(thr->state = pool->start( pool->im, pool->a )) ) 
+	if( !worker->state &&
+		!(worker->state = pool->start( pool->im, pool->a )) ) 
 		return( -1 );
 
-	if( pool->allocate( thr->state, pool->a, &pool->stop ) ) 
+	if( pool->allocate( worker->state, pool->a, &pool->stop ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -315,11 +316,11 @@ vips_thread_allocate( VipsThread *thr )
  * loaders a change to seek to the correct spot, see vips_sequential().
  */
 static void
-vips_thread_work_unit( VipsThread *thr )
+vips_thread_work_unit( VipsWorker *worker )
 {
-	VipsThreadpool *pool = thr->pool;
+	VipsThreadpool *pool = worker->pool;
 
-	if( thr->error )
+	if( worker->error )
 		return;
 
 	VIPS_GATE_START( "vips_thread_work_unit: wait" ); 
@@ -335,8 +336,8 @@ vips_thread_work_unit( VipsThread *thr )
 		return;
 	}
 
-	if( vips_thread_allocate( thr ) ) {
-		thr->error = TRUE;
+	if( vips_thread_allocate( worker ) ) {
+		worker->error = TRUE;
 		pool->error = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
@@ -351,21 +352,21 @@ vips_thread_work_unit( VipsThread *thr )
 
 	g_mutex_unlock( pool->allocate_lock );
 
-	if( thr->state->stall &&
+	if( worker->state->stall &&
 		vips__stall ) { 
 		/* Sleep for 0.5s. Handy for stressing the seq system. Stall
 		 * is set by allocate funcs in various places. 
 		 */
 		g_usleep( 500000 ); 
-		thr->state->stall = FALSE;
+		worker->state->stall = FALSE;
 		printf( "vips_thread_work_unit: "
-			"stall done, releasing y = %d ...\n", thr->state->y ); 
+			"stall done, releasing y = %d ...\n", worker->state->y ); 
 	}
 
 	/* Process a work unit.
 	 */
-	if( pool->work( thr->state, pool->a ) ) { 
-		thr->error = TRUE;
+	if( pool->work( worker->state, pool->a ) ) { 
+		worker->error = TRUE;
 		pool->error = TRUE;
 	}
 }
@@ -375,10 +376,10 @@ vips_thread_work_unit( VipsThread *thr )
 static void *
 vips_thread_main_loop( void *a )
 {
-        VipsThread *thr = (VipsThread *) a;
-	VipsThreadpool *pool = thr->pool;
+        VipsWorker *worker = (VipsWorker *) a;
+	VipsThreadpool *pool = worker->pool;
 
-	g_assert( pool == thr->pool );
+	g_assert( pool == worker->pool );
 
 	VIPS_GATE_START( "vips_thread_main_loop: thread" ); 
 
@@ -387,7 +388,7 @@ vips_thread_main_loop( void *a )
 	 */
 	for(;;) {
 		VIPS_GATE_START( "vips_thread_work_unit: u" ); 
-		vips_thread_work_unit( thr );
+		vips_thread_work_unit( worker );
 		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
 		vips_semaphore_up( &pool->tick );
 
@@ -407,31 +408,31 @@ vips_thread_main_loop( void *a )
 
 /* Attach another thread to a threadpool.
  */
-static VipsThread *
+static VipsWorker *
 vips_thread_new( VipsThreadpool *pool )
 {
-	VipsThread *thr;
+	VipsWorker *worker;
 
-	if( !(thr = VIPS_NEW( NULL, VipsThread )) )
+	if( !(worker = VIPS_NEW( NULL, VipsWorker )) )
 		return( NULL );
-	thr->pool = pool;
-	thr->state = NULL;
-	thr->thread = NULL;
-	thr->exit = 0;
-	thr->error = 0;
+	worker->pool = pool;
+	worker->state = NULL;
+	worker->thread = NULL;
+	worker->exit = 0;
+	worker->error = 0;
 
 	/* We can't build the state here, it has to be done by the worker
 	 * itself the first time that allocate runs so that any regions are 
 	 * owned by the correct thread.
 	 */
 
-	if( !(thr->thread = vips_g_thread_new( "worker", 
-		vips_thread_main_loop, thr )) ) {  
-		vips_thread_free( thr );
+	if( !(worker->thread = vips_g_thread_new( "worker", 
+		vips_thread_main_loop, worker )) ) {  
+		vips_thread_free( worker );
 		return( NULL );
 	}
 
-	return( thr );
+	return( worker );
 }
 
 /* Kill all threads in a threadpool, if there are any. Can be called multiple
@@ -440,14 +441,14 @@ vips_thread_new( VipsThreadpool *pool )
 static void
 vips_threadpool_kill_threads( VipsThreadpool *pool )
 {
-	if( pool->thr ) {
+	if( pool->workers ) {
 		int i;
 
-		for( i = 0; i < pool->nthr; i++ ) 
-			VIPS_FREEF( vips_thread_free, pool->thr[i] );
+		for( i = 0; i < pool->max_workers; i++ ) 
+			VIPS_FREEF( vips_thread_free, pool->workers[i] );
 
 		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
-			"killed %d threads\n", pool->nthr );
+			"killed %d threads\n", pool->max_workers );
 	}
 }
 
@@ -461,7 +462,7 @@ vips_threadpool_free( VipsThreadpool *pool )
 	VIPS_FREEF( vips_g_mutex_free, pool->allocate_lock );
 	vips_semaphore_destroy( &pool->finish );
 	vips_semaphore_destroy( &pool->tick );
-	VIPS_FREE( pool->thr );
+	VIPS_FREE( pool->workers );
 	VIPS_FREE( pool );
 }
 
@@ -482,14 +483,14 @@ vips_threadpool_new( VipsImage *im )
 	pool->allocate = NULL;
 	pool->work = NULL;
 	pool->allocate_lock = vips_g_mutex_new();
-	pool->nthr = vips_concurrency_get();
-	pool->thr = NULL;
+	pool->max_workers = vips_concurrency_get();
+	pool->workers = NULL;
 	vips_semaphore_init( &pool->finish, 0, "finish" );
 	vips_semaphore_init( &pool->tick, 0, "tick" );
 	pool->error = FALSE;
 	pool->stop = FALSE;
 
-	/* If this is a tiny image, we won't need all nthr threads. Guess how
+	/* If this is a tiny image, we won't need all max_workers threads. Guess how
 	 * many tiles we might need to cover the image and use that to limit
 	 * the number of threads we create.
 	 */
@@ -497,10 +498,10 @@ vips_threadpool_new( VipsImage *im )
 	n_tiles = (1 + (gint64) im->Xsize / tile_width) * 
 		(1 + (gint64) im->Ysize / tile_height);
 	n_tiles = VIPS_CLIP( 1, n_tiles, 1024 ); 
-	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
+	pool->max_workers = VIPS_MIN( pool->max_workers, n_tiles ); 
 
 	VIPS_DEBUG_MSG( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
-		im->filename, pool, pool->nthr );
+		im->filename, pool, pool->max_workers );
 
 	return( pool );
 }
@@ -512,19 +513,19 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
 {
 	int i;
 
-	g_assert( !pool->thr );
+	g_assert( !pool->workers );
 
 	/* Make thread array.
 	 */
-	if( !(pool->thr = VIPS_ARRAY( NULL, pool->nthr, VipsThread * )) )
+	if( !(pool->workers = VIPS_ARRAY( NULL, pool->max_workers, VipsWorker * )) )
 		return( -1 );
-	for( i = 0; i < pool->nthr; i++ )
-		pool->thr[i] = NULL;
+	for( i = 0; i < pool->max_workers; i++ )
+		pool->workers[i] = NULL;
 
 	/* Attach threads and start them working.
 	 */
-	for( i = 0; i < pool->nthr; i++ )
-		if( !(pool->thr[i] = vips_thread_new( pool )) ) {
+	for( i = 0; i < pool->max_workers; i++ )
+		if( !(pool->workers[i] = vips_thread_new( pool )) ) {
 			vips_threadpool_kill_threads( pool );
 			return( -1 );
 		}
@@ -682,7 +683,7 @@ vips_threadpool_run( VipsImage *im,
 
 	/* Wait for them all to hit finish.
 	 */
-	vips_semaphore_downn( &pool->finish, pool->nthr );
+	vips_semaphore_downn( &pool->finish, pool->max_workers );
 
 	/* Return 0 for success.
 	 */
