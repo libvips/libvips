@@ -194,9 +194,10 @@ vips_threadset_run( VipsThreadset *set,
 {
         VipsThreadsetMember *member;
 
+        member = NULL;
+
         /* Try to get an idle thread.
          */
-        member = NULL;
         g_mutex_lock( set->lock );
         if( set->free ) {
                 member = (VipsThreadsetMember *) set->free->data;
