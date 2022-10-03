@@ -314,9 +314,9 @@ vips__concurrency_get_default( void )
  * Sets the number of worker threads that vips should use when running a
  * #VipsThreadPool. 
  *
- * The special value 0 means "default". In this case, the number of threads is
- * set by the environment variable VIPS_CONCURRENCY, or if that is not set, the
- * number of threads available on the host machine.
+ * The special value 0 means "default". In this case, the number of threads 
+ * is set by the environment variable VIPS_CONCURRENCY, or if that is not 
+ * set, the number of threads available on the host machine.
  *
  * See also: vips_concurrency_get().
  */
@@ -427,8 +427,9 @@ vips_get_tile_size( VipsImage *im,
 	 * to a multiple of tileheight.
 	 */
 	*n_lines = vips__tile_height * 
-		VIPS_ROUND_UP( vips__tile_width * nthr, typical_image_width ) / 
-			typical_image_width;
+		VIPS_ROUND_UP( vips__tile_width * nthr, 
+                        typical_image_width ) / 
+                typical_image_width;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
 	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
