@@ -10,6 +10,7 @@ ArrayDouble.newv skip=false
 ArrayImage.newv skip=false
 ArrayInt.newv skip=false
 
+Image.*#constructor skip=fase
 Image.*#method skip=false
 Image.eval#virtual_method name="eval_impl"
 Image.invalidate#virtual_method name="invalidate_impl"
