@@ -450,7 +450,9 @@ fits2vips_generate( VipsRegion *out,
 
 		q = VIPS_REGION_ADDR( out, r->left, r->top );
 
+                vips__worker_set_waiting( TRUE );
 		g_mutex_lock( fits->lock );
+                vips__worker_set_waiting( FALSE );
 		if( vips_fits_read_subset( fits, fpixel, lpixel, inc, q ) ) {
 			g_mutex_unlock( fits->lock );
 			return( -1 );
@@ -478,7 +480,9 @@ fits2vips_generate( VipsRegion *out,
 
 			q = VIPS_REGION_ADDR( out, r->left, y );
 
+                        vips__worker_set_waiting( TRUE );
 			g_mutex_lock( fits->lock );
+                        vips__worker_set_waiting( FALSE );
 			if( vips_fits_read_subset( fits, 
 				fpixel, lpixel, inc, q ) ) { 
 				g_mutex_unlock( fits->lock );

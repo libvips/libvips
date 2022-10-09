@@ -75,7 +75,7 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
 
 /* Set this GPrivate to indicate that is a libvips thread.
  */
-static GPrivate *is_worker_key = NULL;
+static GPrivate *is_vips_thread_key = NULL;
 
 /* TRUE if we are a vips worker thread. We sometimes manage resource allocation
  * differently for vips workers since we can cheaply free stuff on thread
@@ -84,7 +84,7 @@ static GPrivate *is_worker_key = NULL;
 gboolean
 vips_thread_isworker( void )
 {
-	return( g_private_get( is_worker_key ) != NULL );
+	return( g_private_get( is_vips_thread_key ) != NULL );
 }
 
 /* Glib 2.32 revised the thread API. We need some compat functions.
@@ -143,7 +143,7 @@ vips_thread_run( gpointer data )
 	 * worker. No need to call g_private_replace as there is no
          * GDestroyNotify handler associated with a worker.
 	 */
-	g_private_set( is_worker_key, info );
+	g_private_set( is_vips_thread_key, info );
 
 	result = info->func( info->data );
 
@@ -448,7 +448,7 @@ vips__thread_init( void )
 {
 	static GPrivate private = { 0 }; 
 
-	is_worker_key = &private;
+	is_vips_thread_key = &private;
 
 	if( vips__concurrency == 0 )
 		vips__concurrency = vips__concurrency_get_default();
