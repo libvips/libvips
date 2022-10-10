@@ -499,6 +499,11 @@ vips_threadpool_new( VipsImage *im )
 	n_tiles = VIPS_CLIP( 1, n_tiles, 1024 ); 
 	pool->max_workers = VIPS_MIN( pool->max_workers, n_tiles ); 
 
+        /* VIPS_META_CONCURRENCY on the image can optionally override 
+         * concurrency.
+         */
+        pool->max_workers = vips_image_get_concurrency( im, pool->max_workers );
+
 	VIPS_DEBUG_MSG( "vips_threadpool_new: "
                 "\"%s\" (%p), with %d threads\n", 
 		im->filename, pool, pool->max_workers );
@@ -629,11 +634,6 @@ vips_threadpool_run( VipsImage *im,
 	pool->work = work;
 	pool->a = a;
 
-        /* VIPS_META_CONCURRENCY on the image can optionally override 
-         * concurrency.
-         */
-        pool->max_workers = vips_image_get_concurrency( im, pool->max_workers );
-
 	/* Start with half of the max number of threads, then let it size up
          * and down.
 	 */
@@ -667,8 +667,6 @@ vips_threadpool_run( VipsImage *im,
 
                 if( n_waiting > 3 &&
                         n_working > 1 ) {
-                        /* Ask a worker to volunteer to exit.
-                         */
                         VIPS_DEBUG_MSG( "shrinking thread pool\n" );
                         g_atomic_int_add( &pool->exit, 1 );
                         n_working -= 1;

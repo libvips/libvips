@@ -408,8 +408,12 @@ vips_get_tile_size( VipsImage *im,
 		break;
 
 	case VIPS_DEMAND_STYLE_THINSTRIP:
-		*tile_width = im->Xsize;
-		*tile_height = vips__thinstrip_height;
+                *tile_width = im->Xsize;
+                /* Only enable thinstrip height for very wide images -- the
+                 * overheads are too high to be worthwhile otherwise.
+                 */
+                *tile_height = im->Xsize > 10000 ? 
+                        vips__thinstrip_height : vips__fatstrip_height;
 		break;
 
 	default:
