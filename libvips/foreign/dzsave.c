@@ -1900,6 +1900,8 @@ strip_work( VipsThreadState *state, void *a )
 
 	g_mutex_unlock( vips__global_lock );
 
+        vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
+
 	if( write_image( dz, out, x, dz->suffix ) ) {
 		g_object_unref( out );
 		g_object_unref( x );

@@ -952,6 +952,30 @@ vips_image_get_n_pages( VipsImage *image )
 }
 
 /**
+ * vips_image_get_concurrency:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check #VIPS_CONCURRENCY. Default to 1 if not present or
+ * crazy.
+ *
+ * Returns: the suggested concurrency for this image
+ */
+int
+vips_image_get_concurrency( VipsImage *image, int default_concurrency )
+{
+        int concurrency;
+
+	if( vips_image_get_typeof( image, VIPS_META_CONCURRENCY ) &&
+		!vips_image_get_int( image, 
+                        VIPS_META_CONCURRENCY, &concurrency ) &&
+		concurrency >= 1 &&
+		concurrency < 100 )
+		return( concurrency );
+
+	return(	default_concurrency );
+}
+
+/**
  * vips_image_get_n_subifds:
  * @image: image to get from
  *

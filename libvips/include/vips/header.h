@@ -157,6 +157,13 @@ extern "C" {
  */
 #define VIPS_META_N_SUBIFDS "n-subifds"
 
+/**
+ * VIPS_META_CONCURRENCY:
+ *
+ * If set, the suggested concurrency for this image.
+ */
+#define VIPS_META_CONCURRENCY "concurrency"
+
 VIPS_API
 guint64 vips_format_sizeof( VipsBandFormat format );
 VIPS_API
@@ -206,6 +213,8 @@ VIPS_API
 int vips_image_get_orientation( VipsImage *image );
 VIPS_API
 gboolean vips_image_get_orientation_swap( VipsImage *image );
+VIPS_API
+int vips_image_get_concurrency( VipsImage *image, int default_concurrency );
 VIPS_API
 const void *vips_image_get_data( VipsImage *image );
 
