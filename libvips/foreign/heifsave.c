@@ -14,6 +14,8 @@
  * 	- rename "speed" as "effort" for consistency with other savers
  * 22/12/21
  * 	- add >8 bit support
+ * 22/10/11
+ *      - improve rules for 16-bit write [johntrunc]
  */
 
 /*
@@ -47,21 +49,6 @@
 #define DEBUG_VERBOSE
 #define DEBUG
  */
-
-/*
- *
-
-TODO:
-
-	what about a 16-bit PNG saved with bitdepth=8? does this work?
-
-		no!
-
-	what about a 8-bit PNG saved with bitdepth=12? does this work?
-
- * 
- */
-
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -320,7 +307,7 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 
 	if( heif->image->BandFmt == VIPS_FORMAT_UCHAR &&
 		heif->bitdepth == 8 )
-		/* Most common cases -- 8 bit to 8 bit.
+		/* Most common case -- 8 bit to 8 bit.
 		 */
 		memcpy( q, p, ne );
 	else if( heif->image->BandFmt == VIPS_FORMAT_UCHAR &&
@@ -341,8 +328,14 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 	else if( heif->image->BandFmt == VIPS_FORMAT_USHORT &&
                 heif->bitdepth <= 8 ) {
 		/* 16-bit native byte order source, 8 bit write.
-		 */
-		int shift = 16 - heif->bitdepth;
+                 *
+                 * Pick the high or low bits of the source.
+                 */
+                int vips_bitdepth = 
+                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
+                                16 : 8;
+		int shift = vips_bitdepth - heif->bitdepth;
 
 		for( i = 0; i < ne; i++ ) {
 			guint16 v = *((gushort *) p) >> shift;
@@ -356,7 +349,11 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
                 heif->bitdepth > 8 ) {
 		/* 16-bit native byte order source, 16 bit bigendian write.
 		 */
-		int shift = 16 - heif->bitdepth;
+                int vips_bitdepth = 
+                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
+                                16 : 8;
+		int shift = vips_bitdepth - heif->bitdepth;
 
 		for( i = 0; i < ne; i++ ) {
 			guint16 v = *((gushort *) p) >> shift;
@@ -446,6 +443,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* Make a copy of the image in case we modify the metadata eg. for
+	 * exif_update.
+	 */
+	if( vips_copy( save->ready, &heif->image, NULL ) ) 
+		return( -1 );
+
 	/* If the old, deprecated "speed" param is being used and the new
 	 * "effort" param is not, use speed to init effort.
 	 */
@@ -453,18 +456,14 @@ vips_foreign_save_heif_build( VipsObject *object )
 		!vips_object_argument_isset( object, "effort" ) )
 		heif->effort = 9 - heif->speed;
 
-	/* Default 12 bit save for ushort. HEIC (for example) implements 
+	/* Default 12 bit save for 16-bit images. HEIC (for example) implements 
 	 * 8 / 10 / 12.
 	 */
 	if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		heif->bitdepth = save->ready->BandFmt == VIPS_FORMAT_UCHAR ?
-			8 : 12;
-
-	/* Make a copy of the image in case we modify the metadata eg. for
-	 * exif_update.
-	 */
-	if( vips_copy( save->ready, &heif->image, NULL ) ) 
-		return( -1 );
+		heif->bitdepth = 
+                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
+                                12 : 8;
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
