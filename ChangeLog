@@ -1,3 +1,6 @@
+11/10/22 started 8.13.3
+- improve rules for 16-bit heifsave [johntrunc]
+
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
 - fix 8 bit pallete PNG save [lovell]
