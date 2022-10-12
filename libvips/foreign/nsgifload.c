@@ -488,23 +488,27 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 }
 
 int
-vips_foreign_load_nsgif_tile_height(VipsForeignLoadNsgif *gif) {
-	int i;
+vips_foreign_load_nsgif_tile_height( VipsForeignLoadNsgif *gif ) 
+{
 	int height = gif->info->height;
 
-	// First, check the perfect size
-	if (height % 16 == 0)
-		return 16;
+	int i;
 
-	// Next, check larger and smaller sizes
-	for (i = 1; i < 16; i++) {
-		if (height % (16 + i) == 0)
-			return (16 + i);
-		if (height % (16 - i) == 0)
-			return (16 - i);
+	/* First, check the perfect size.
+         */
+	if( height % 16 == 0 )
+		return( 16 );
+
+	/* Next, check larger and smaller sizes.
+         */
+	for( i = 1; i < 16; i++ ) {
+		if( height % (16 + i) == 0 )
+			return( 16 + i );
+		if( height % (16 - i) == 0 )
+			return( 16 - i );
 	}
 
-	return 1;
+	return( 1 );
 }
 
 static int
