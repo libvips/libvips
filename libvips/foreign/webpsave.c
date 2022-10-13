@@ -647,6 +647,13 @@ vips_foreign_save_webp_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	page_height = vips_image_get_page_height( save->ready );
+	if( save->ready->Xsize > 16383 || page_height > 16383 ) {
+		vips_error( "webpsave", _( "image too large" ) );
+		vips_foreign_save_webp_unset( webp );
+		return( -1 );
+	}
+
 	/* We need a copy of the input image in case we change the metadata
 	 * eg. in vips__exif_update().
 	 */
@@ -654,8 +661,6 @@ vips_foreign_save_webp_build( VipsObject *object )
 		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
-
-	page_height = vips_image_get_page_height( webp->image );
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
