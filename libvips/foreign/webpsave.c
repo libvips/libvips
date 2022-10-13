@@ -664,10 +664,10 @@ vips_foreign_save_webp_build( VipsObject *object )
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
-	webp->frame_bytes = g_try_malloc( (size_t) webp->image->Bands *
-		webp->image->Xsize * page_height );
+	size_t frame_size = (size_t) webp->image->Bands * webp->image->Xsize * page_height;
+	webp->frame_bytes = g_try_malloc( frame_size );
 	if( webp->frame_bytes == NULL ) {
-		vips_error( "webpsave", _( "out of memory" ) );
+		vips_error( "webpsave", _( "failed to allocate %zu bytes" ), frame_size );
 		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
