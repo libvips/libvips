@@ -669,23 +669,23 @@ vips__openslide_generate( VipsRegion *out,
 	g_assert( r->width <= rslide->tile_width );
 	g_assert( r->height <= rslide->tile_height );
 
-        /* In RGB mode we need to read to tile tile buffer.
+        /* The memory on the region should be contiguous.
+         */
+        g_assert( VIPS_REGION_LSKIP( out ) == r->width * out->im->Bands );
+
+        /* In RGB mode we need to read to the tile buffer.
          */
         if( rslide->rgb ) {
                 g_assert( rslide->tile_buffer );
                 g_assert( rslide->tile_buffer_length ==
                         rslide->tile_width * rslide->tile_height * 4 );
+                g_assert( rslide->tile_width >= r->width );
+                g_assert( rslide->tile_height >= r->height );
 
                 buf = rslide->tile_buffer;
         }
-        else {
-                /* The memory on the region should be contiguous for our 
-                 * ARGB->RGBA loop below.
-                 */
-                g_assert( VIPS_REGION_LSKIP( out ) == r->width * 4 );
-
+        else
                 buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
-        }
 
 	openslide_read_region( rslide->osr, 
 		buf,
@@ -710,8 +710,7 @@ vips__openslide_generate( VipsRegion *out,
 
         if( rslide->rgb ) 
                 argb2rgb( rslide->tile_buffer,
-                        VIPS_REGION_ADDR( out, r->left, r->top ), 
-                        rslide->tile_width * rslide->tile_height );
+                        VIPS_REGION_ADDR( out, r->left, r->top ), n );
         else
                 argb2rgba( buf, n, bg );
 
