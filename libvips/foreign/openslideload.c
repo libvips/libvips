@@ -127,12 +127,6 @@ typedef struct {
 	 */
 	int tile_width;
 	int tile_height;
-
-        /* In RGB mode, we read the ARGB tile to this buffer, then convert to
-         * RGB in the output region.
-         */
-        uint32_t *tile_buffer;
-        size_t tile_buffer_length;
 } ReadSlide;
 
 static int
@@ -192,7 +186,6 @@ readslide_destroy_cb( VipsImage *image, ReadSlide *rslide )
 	VIPS_FREEF( openslide_close, rslide->osr );
 	VIPS_FREE( rslide->associated );
 	VIPS_FREE( rslide->filename );
-	VIPS_FREE( rslide->tile_buffer );
 	VIPS_FREE( rslide );
 }
 
@@ -618,16 +611,6 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
                 VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
                 VIPS_INTERPRETATION_sRGB, xres, yres );
 
-        if( rslide->rgb ) {
-                VIPS_FREE( rslide->tile_buffer );
-
-                rslide->tile_buffer_length = 
-                        rslide->tile_width * rslide->tile_height * 4;
-                if( !(rslide->tile_buffer = VIPS_MALLOC( NULL, 
-                       rslide->tile_buffer_length )) )
-                       return( -1 );
-        }
-
 	return( 0 );
 }
 
@@ -646,10 +629,30 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+/* Allocate a tile buffer. Have one of these for each thread so we can unpack
+ * to vips in parallel.
+ */
+static void *
+vips__openslide_start( VipsImage *out, void *a, void *b )
+{
+	ReadSlide *rslide = (ReadSlide *) a;
+
+        uint32_t *tile_buffer;
+
+        tile_buffer = NULL;
+        if( rslide->rgb &&
+                !(tile_buffer = VIPS_MALLOC( NULL, 
+                       rslide->tile_width * rslide->tile_height * 4 )) )
+               return( NULL );
+
+	return( (void *) tile_buffer );
+}
+
 static int
 vips__openslide_generate( VipsRegion *out, 
 	void *_seq, void *_rslide, void *unused, gboolean *stop )
 {
+        uint32_t *tile_buffer = (uint32_t *) _seq;
 	ReadSlide *rslide = _rslide;
 	uint32_t bg = rslide->bg;
 	VipsRect *r = &out->valid;
@@ -676,13 +679,11 @@ vips__openslide_generate( VipsRegion *out,
         /* In RGB mode we need to read to the tile buffer.
          */
         if( rslide->rgb ) {
-                g_assert( rslide->tile_buffer );
-                g_assert( rslide->tile_buffer_length ==
-                        rslide->tile_width * rslide->tile_height * 4 );
+                g_assert( tile_buffer );
                 g_assert( rslide->tile_width >= r->width );
                 g_assert( rslide->tile_height >= r->height );
 
-                buf = rslide->tile_buffer;
+                buf = tile_buffer;
         }
         else
                 buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
@@ -708,11 +709,21 @@ vips__openslide_generate( VipsRegion *out,
 		return( -1 );
 	}
 
-        if( rslide->rgb ) 
-                argb2rgb( rslide->tile_buffer,
+        if( rslide->rgb )
+                argb2rgb( tile_buffer,
                         VIPS_REGION_ADDR( out, r->left, r->top ), n );
         else
                 argb2rgba( buf, n, bg );
+
+	return( 0 );
+}
+
+static int
+vips__openslide_stop( void *_seq, void *a, void *b )
+{
+        uint32_t *tile_buffer = (uint32_t *) _seq;
+
+	VIPS_FREE( tile_buffer );
 
 	return( 0 );
 }
@@ -738,7 +749,9 @@ vips__openslide_read( const char *filename, VipsImage *out,
 
 	if( readslide_parse( rslide, raw ) ||
 		vips_image_generate( raw, 
-			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
+                        vips__openslide_start, 
+                        vips__openslide_generate, 
+                        vips__openslide_stop, rslide, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows, 
