@@ -362,8 +362,6 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	int error;
 	struct spng_ihdr ihdr;
 	struct spng_phys phys;
-	struct spng_plte plte = { 0 };
-	struct spng_trns trns = { 0 };
 	int fmt;
 	enum spng_encode_flags encode_flags;
 
@@ -375,8 +373,76 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		return( -1 );
 	}
 
+	ihdr.width = in->Xsize;
+	ihdr.height = in->Ysize;
+	ihdr.bit_depth = spng->bitdepth;
+
+	switch( in->Bands ) {
+	case 1:
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
+		break;
+
+	case 2:
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
+		break;
+
+	case 3:
+		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
+		break;
+
+	case 4: 
+		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA; 
+		break;
+
+	default:
+		vips_error( class->nickname, "%s", _( "bad bands" ) );
+		return( -1 );
+	}
+
+#ifdef HAVE_QUANTIZATION
+	/* Enable image quantisation to paletted 8bpp PNG if palette is set.
+	 */
+	if( spng->palette )
+		ihdr.color_type = SPNG_COLOR_TYPE_INDEXED;
+#else
+	if( spng->palette )
+		g_warning( "%s",
+			_( "ignoring palette (no quantisation support)" ) );
+#endif /*HAVE_QUANTIZATION*/
+
+	ihdr.compression_method = 0;
+	ihdr.filter_method = 0;
+	ihdr.interlace_method = spng->interlace ? 1 : 0;
+	if( (error = spng_set_ihdr( spng->ctx, &ihdr )) ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
+	spng_set_option( spng->ctx, 
+		SPNG_IMG_COMPRESSION_LEVEL, spng->compression );
+	spng_set_option( spng->ctx, 
+		SPNG_TEXT_COMPRESSION_LEVEL, spng->compression );
+	spng_set_option( spng->ctx, 
+		SPNG_FILTER_CHOICE, spng->filter );
+
+	/* Set resolution. spng uses pixels per meter.
+	 */
+	phys.unit_specifier = 1;
+	phys.ppu_x = VIPS_RINT( in->Xres * 1000.0 );
+	phys.ppu_y = VIPS_RINT( in->Xres * 1000.0 );
+	spng_set_phys( spng->ctx, &phys );
+
+	/* Metadata.
+	 */
+	if( !save->strip &&
+		vips_foreign_save_spng_metadata( spng, in ) )
+		return( -1 );
+
 #ifdef HAVE_QUANTIZATION
 	if( spng->palette ) {
+		struct spng_plte plte = { 0 };
+		struct spng_trns trns = { 0 };
+
 		VipsImage *im_index;
 		VipsImage *im_palette;
 		int palette_count;
@@ -426,13 +492,13 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 		VIPS_UNREF( im_palette );
 
+		spng_set_plte( spng->ctx, &plte );
+		if( trns.n_type3_entries ) 
+			spng_set_trns( spng->ctx, &trns );
+
 		in = spng->memory = im_index;
 	}
 #endif /*HAVE_QUANTIZATION*/
-
-	ihdr.width = in->Xsize;
-	ihdr.height = in->Ysize;
-	ihdr.bit_depth = spng->bitdepth;
 
 	/* Low-bitdepth write needs an extra buffer for packing pixels.
 	 */
@@ -444,67 +510,6 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( in ) )) )
 			return( -1 );
 	}
-
-	switch( in->Bands ) {
-	case 1:
-		if( spng->palette )
-			ihdr.color_type = SPNG_COLOR_TYPE_INDEXED; 
-		else
-			ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
-		break;
-
-	case 2:
-		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
-		break;
-
-	case 3:
-		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
-		break;
-
-	case 4: 
-		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA; 
-		break;
-
-	default:
-		vips_error( class->nickname, "%s", _( "bad bands" ) );
-		return( -1 );
-	}
-
-	ihdr.compression_method = 0;
-	ihdr.filter_method = 0;
-	ihdr.interlace_method = spng->interlace ? 1 : 0;
-	if( (error = spng_set_ihdr( spng->ctx, &ihdr )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
-		return( -1 );
-	}
-
-	spng_set_option( spng->ctx, 
-		SPNG_IMG_COMPRESSION_LEVEL, spng->compression );
-	spng_set_option( spng->ctx, 
-		SPNG_TEXT_COMPRESSION_LEVEL, spng->compression );
-	spng_set_option( spng->ctx, 
-		SPNG_FILTER_CHOICE, spng->filter );
-
-	/* Set resolution. png uses pixels per meter.
-	 */
-	phys.unit_specifier = 1;
-	phys.ppu_x = VIPS_RINT( in->Xres * 1000.0 );
-	phys.ppu_y = VIPS_RINT( in->Xres * 1000.0 );
-	spng_set_phys( spng->ctx, &phys );
-
-	/* Metadata.
-	 */
-	if( !save->strip &&
-		vips_foreign_save_spng_metadata( spng, in ) )
-		return( -1 );
-
-#ifdef HAVE_QUANTIZATION
-	if( spng->palette ) {
-		spng_set_plte( spng->ctx, &plte );
-		if( trns.n_type3_entries ) 
-			spng_set_trns( spng->ctx, &trns );
-	}
-#endif /*HAVE_QUANTIZATION*/
 
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */
