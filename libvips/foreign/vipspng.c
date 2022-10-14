@@ -1066,7 +1066,7 @@ write_vips( Write *write,
 	}
 
 #ifdef HAVE_QUANTIZATION
-	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
+	/* Enable image quantisation to paletted 8bpp PNG if palette is set.
 	 */
 	if( palette ) 
 		color_type = PNG_COLOR_TYPE_PALETTE;
