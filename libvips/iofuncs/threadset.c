@@ -274,7 +274,7 @@ vips_threadset_free( VipsThreadset *set )
         }
 
         if( vips__leak )
-                printf( "vips_threadset_free: %d max threads\n", 
+                printf( "vips_threadset_free: peak of %d threads\n", 
                         set->max_threads );
 
 	VIPS_FREEF( vips_g_mutex_free, set->lock );

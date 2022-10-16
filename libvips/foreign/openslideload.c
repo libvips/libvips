@@ -639,10 +639,8 @@ vips__openslide_start( VipsImage *out, void *a, void *b )
 
         uint32_t *tile_buffer;
 
-        tile_buffer = NULL;
-        if( rslide->rgb &&
-                !(tile_buffer = VIPS_MALLOC( NULL, 
-                       rslide->tile_width * rslide->tile_height * 4 )) )
+        if( !(tile_buffer = VIPS_MALLOC( NULL, 
+               (size_t) rslide->tile_width * rslide->tile_height * 4 )) )
                return( NULL );
 
 	return( (void *) tile_buffer );
@@ -783,7 +781,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	VipsImage *associated;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read_associated: %s %s\n", 
-		filename, associated );
+		filename, associated_name );
 
 	if( !(rslide = readslide_new( filename, 
                 out, 0, FALSE, associated_name, FALSE, rgb )) )
