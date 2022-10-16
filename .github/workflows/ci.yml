@@ -68,7 +68,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp cgif
+          brew install cfitsio cgif jpeg-xl libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
