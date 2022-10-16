@@ -49,12 +49,12 @@ jobs:
 
       - name: Update apt
         if: runner.os == 'Linux'
-        run: sudo -E apt-get update -qq -o Acquire::Retries=3
+        run: sudo -E apt-get update -qq
 
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
         run:
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+          sudo -E apt-get install --fix-missing -qq
             meson
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
@@ -75,7 +75,7 @@ jobs:
       - name: Install Clang 14
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
         run:
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+          sudo -E apt-get install --fix-missing -qq
             clang-14 libomp-14-dev lld-14 llvm-14
 
       - name: Prepare macOS environment
