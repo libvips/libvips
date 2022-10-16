@@ -40,7 +40,6 @@ jobs:
       CXX: ${{ matrix.build.cxx }}
       LD: ${{ matrix.build.linker }}
       CPPFLAGS: -Wall
-      HOMEBREW_NO_AUTO_UPDATE: 1
 
     steps:
       - name: Checkout code
