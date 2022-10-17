@@ -77,12 +77,12 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
  */
 static GPrivate *is_vips_thread_key = NULL;
 
-/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
- * differently for vips workers since we can cheaply free stuff on thread
+/* TRUE if we are a vips thread. We sometimes manage resource allocation
+ * differently for vips threads since we can cheaply free stuff on thread
  * termination.
  */
 gboolean
-vips_thread_isworker( void )
+vips_thread_isvips( void )
 {
 	return( g_private_get( is_vips_thread_key ) != NULL );
 }

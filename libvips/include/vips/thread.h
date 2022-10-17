@@ -59,7 +59,7 @@ VIPS_API
 void *vips_g_thread_join( GThread *thread );
 
 VIPS_API
-gboolean vips_thread_isworker( void );
+gboolean vips_thread_isvips( void );
 
 typedef struct _VipsThreadset VipsThreadset;
 VipsThreadset *vips_threadset_new( void );

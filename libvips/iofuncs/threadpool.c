@@ -53,9 +53,9 @@
  */
 
 /* 
- */
 #define VIPS_DEBUG
 #define VIPS_DEBUG_RED
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -687,8 +687,8 @@ vips_threadpool_run( VipsImage *im,
                 }
 	}
 
-        printf( "vips_threadpool_run: finished with %d workers in pool\n",
-                n_working );
+        //printf( "vips_threadpool_run: finished with %d workers in pool\n",
+                //n_working );
 
 	/* Return 0 for success.
 	 */

@@ -144,22 +144,14 @@ static VipsThreadsetMember *
 vips_threadset_add( VipsThreadset *set )
 {
         VipsThreadsetMember *member;
-	GError *error = NULL;
 
         member = g_new0( VipsThreadsetMember, 1 );
         member->set = set;
 
 	vips_semaphore_init( &member->idle, 0, "idle" );
 
-	member->thread = g_thread_try_new( "libvips worker", 
-                vips_threadset_work, member, &error );
-	if( !member->thread ) {
-		if( error ) 
-			vips_g_error( &error ); 
-		else
-			vips_error( "vips_threadset_add", 
-				"%s", _( "unable to create thread" ) );
-
+	if( !(member->thread = vips_g_thread_new( "libvips worker", 
+                vips_threadset_work, member )) ) {
                 vips_semaphore_destroy( &member->idle );
                 VIPS_FREE( member );
 
