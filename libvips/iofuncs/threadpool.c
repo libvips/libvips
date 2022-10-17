@@ -687,8 +687,11 @@ vips_threadpool_run( VipsImage *im,
                 }
 	}
 
-        //printf( "vips_threadpool_run: finished with %d workers in pool\n",
-                //n_working );
+        /*
+        if( !vips_image_get_concurrency( im, 0 ) )
+                printf( "vips_threadpool_run: "
+                        "finished with %d workers in pool\n", n_working );
+         */
 
 	/* Return 0 for success.
 	 */
