@@ -572,9 +572,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
 
-                vips__worker_set_waiting( TRUE );
-		g_mutex_lock( vips_pdfium_mutex );
-                vips__worker_set_waiting( FALSE );
+		vips__worker_lock( vips_pdfium_mutex );
 
 		/* 4 means RGBA.
 		 */

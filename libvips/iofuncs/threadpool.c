@@ -53,9 +53,9 @@
  */
 
 /* 
+ */
 #define VIPS_DEBUG
 #define VIPS_DEBUG_RED
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -277,7 +277,7 @@ typedef struct _VipsThreadpool {
 } VipsThreadpool;
 
 static int
-vips_thread_allocate( VipsWorker *worker )
+vips_worker_allocate( VipsWorker *worker )
 {
 	VipsThreadpool *pool = worker->pool;
 
@@ -300,17 +300,15 @@ vips_thread_allocate( VipsWorker *worker )
  * loaders a change to seek to the correct spot, see vips_sequential().
  */
 static void
-vips_thread_work_unit( VipsWorker *worker )
+vips_worker_work_unit( VipsWorker *worker )
 {
 	VipsThreadpool *pool = worker->pool;
 
-	VIPS_GATE_START( "vips_thread_work_unit: wait" ); 
+	VIPS_GATE_START( "vips_worker_work_unit: wait" ); 
 
-        vips__worker_set_waiting( TRUE );
-	g_mutex_lock( pool->allocate_lock );
-        vips__worker_set_waiting( FALSE );
+	vips__worker_lock( pool->allocate_lock );
 
-	VIPS_GATE_STOP( "vips_thread_work_unit: wait" ); 
+	VIPS_GATE_STOP( "vips_worker_work_unit: wait" ); 
 
 	/* Has another worker signaled stop while we've been waiting?
 	 */
@@ -337,7 +335,7 @@ vips_thread_work_unit( VipsWorker *worker )
                 g_atomic_int_add( &pool->exit, 1 );
         }
 
-	if( vips_thread_allocate( worker ) ) {
+	if( vips_worker_allocate( worker ) ) {
 		pool->error = TRUE;
                 worker->stop = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
@@ -361,7 +359,7 @@ vips_thread_work_unit( VipsWorker *worker )
 		 */
 		g_usleep( 500000 ); 
 		worker->state->stall = FALSE;
-		printf( "vips_thread_work_unit: stall done, "
+		printf( "vips_worker_work_unit: stall done, "
                         "releasing y = %d ...\n", worker->state->y ); 
 	}
 
@@ -390,23 +388,24 @@ vips_thread_main_loop( void *a, void *b )
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit. 
 	 */
-	while( !pool->stop && !worker->stop && !pool->error ) {
-		VIPS_GATE_START( "vips_thread_work_unit: u" ); 
-		vips_thread_work_unit( worker );
+	while( !pool->stop && 
+                !worker->stop && 
+                !pool->error ) {
+		VIPS_GATE_START( "vips_worker_work_unit: u" ); 
+		vips_worker_work_unit( worker );
 		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
 		vips_semaphore_up( &pool->tick );
 	} 
-
-	g_private_set( worker_key, NULL );
-
-	/* We are exiting: tell the main thread.
-	 */
-        vips_semaphore_upn( &pool->n_workers, 1 );
 
 	VIPS_GATE_STOP( "vips_thread_main_loop: thread" ); 
 
 	VIPS_FREEF( g_object_unref, worker->state );
 	VIPS_FREE( worker );
+	g_private_set( worker_key, NULL );
+
+	/* We are done: tell the main thread.
+	 */
+        vips_semaphore_upn( &pool->n_workers, 1 );
 }
 
 /* Attach another thread to a threadpool.
@@ -440,12 +439,15 @@ vips_worker_new( VipsThreadpool *pool )
 }
 
 void
-vips__worker_set_waiting( gboolean waiting )
+vips__worker_lock( GMutex *mutex )
 {
-        VipsWorker *worker;
+        VipsWorker *worker = (VipsWorker *) g_private_get( worker_key );
 
-        if( (worker = (VipsWorker *) g_private_get( worker_key )) ) 
-                g_atomic_int_add( &worker->pool->n_waiting, waiting ? 1 : -1 );
+        if( worker )
+                g_atomic_int_add( &worker->pool->n_waiting, 1 );
+	g_mutex_lock( mutex );
+        if( worker )
+                g_atomic_int_add( &worker->pool->n_waiting, -1 );
 }
 
 static void
@@ -685,8 +687,8 @@ vips_threadpool_run( VipsImage *im,
                 }
 	}
 
-        //printf( "vips_threadpool_run: finished with %d workers in pool\n",
-                //n_working );
+        printf( "vips_threadpool_run: finished with %d workers in pool\n",
+                n_working );
 
 	/* Return 0 for success.
 	 */

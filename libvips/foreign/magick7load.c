@@ -676,12 +676,12 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 		Quantum * restrict p;
 		VipsPel * restrict q;
 
-                vips__worker_set_waiting( TRUE );
-		g_mutex_lock( magick7->lock );
-                vips__worker_set_waiting( FALSE );
+		vips__worker_lock( magick7->lock );
+
 		p = GetCacheViewAuthenticPixels( magick7->cache_view[frame],
 			r->left, line, r->width, 1, 
 			magick7->exception );
+
 		g_mutex_unlock( magick7->lock );
 
 		if( !p ) 
