@@ -71,18 +71,16 @@ HWY_ATTR void
 vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int32_t n, int32_t ne, int32_t lskip, const int16_t *HWY_RESTRICT k)
 {
+#if HWY_TARGET != HWY_SCALAR
 	const auto l1 = lskip / sizeof(uint8_t);
 
-#if HWY_TARGET != HWY_SCALAR
 	const int32_t N = Lanes(di32);
 	const auto zero = Zero(du8);
-#endif
 	const auto initial = Set(di32, VIPS_INTERPOLATE_SCALE >> 1);
 
 	/* Main loop: unrolled.
 	 */
 	int32_t x = 0;
-#if HWY_TARGET != HWY_SCALAR
 	for (; x + N <= ne; x += N) {
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
@@ -107,13 +105,13 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			auto bottom = LoadU(du8, p); /* bottom line */
 			p += l1;
 
-			auto source = ZipLower(du8, top, bottom);
-			auto pix = BitCast(di16, ZipLower(du8, source, zero));
+			auto source = InterleaveLower(top, bottom);
+			auto pix = BitCast(di16, InterleaveLower(source, zero));
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 				/* byref */ sum1);
 
-			pix = BitCast(di16, ZipUpper(du8, source, zero));
+			pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 				/* byref */ sum3);
@@ -125,13 +123,13 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			auto top = LoadU(du8, p);
 			p += l1;
 
-			auto source = ZipLower(du8, top, zero);
-			auto pix = BitCast(di16, ZipLower(du8, source, zero));
+			auto source = InterleaveLower(top, zero);
+			auto pix = BitCast(di16, InterleaveLower(source, zero));
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 				/* byref */ sum1);
 
-			pix = BitCast(di16, ZipUpper(du8, source, zero));
+			pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 				/* byref */ sum3);
@@ -163,7 +161,6 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		StoreU(demoted, du8x16, q);
 #endif
 	}
-#endif
 
 	/* `ne` was not a multiple of the vector length `N`;
 	 * proceed one by one.
@@ -190,7 +187,7 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			auto bottom = LoadU(du8x16, p); /* bottom line */
 			p += l1;
 
-			auto source = ZipLower(du8x16, top, bottom);
+			auto source = InterleaveLower(top, bottom);
 			auto pix = PromoteTo(di16, source);
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
@@ -223,6 +220,7 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		auto demoted = DemoteTo(du8x32, sum0);
 		*q = GetLane(demoted);
 	}
+#endif
 }
 
 } /*namespace HWY_NAMESPACE*/
