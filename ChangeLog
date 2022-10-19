@@ -13,6 +13,7 @@ master
 - add ".pnm" save [ewelot]
 - threaded tiff jp2k and jpeg decompress
 - improve speed and efficiency of animated WebP write [dloebl]
+- support for N-colour ICC profiles
 
 11/10/22 started 8.13.3
 - improve rules for 16-bit heifsave [johntrunc]
