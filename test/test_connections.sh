@@ -12,4 +12,6 @@ if test_supported jpegload_source; then
 
 	# test max difference < 10
 	test_difference $image $tmp/x.png 10
+else
+	exit 77
 fi

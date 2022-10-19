@@ -14,4 +14,6 @@ if test_supported tiffload; then
 -1 -1 -1
 EOF
 	VIPS_STALL=1 $vips conv $tmp/x.tif $tmp/x2.tif $tmp/mask.con
+else
+	exit 77
 fi
