@@ -7,32 +7,6 @@
 
 . ./variables.sh
 
-# is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
-# error, or outside threshold)
-# 
-# use bc since bash does not support fp math
-break_threshold() {
-	diff=$1
-	threshold=$2
-	return $(echo "$diff <= $threshold" | bc -l)
-}
-
-# subtract, look for max difference less than a threshold
-test_difference() {
-	before=$1
-	after=$2
-	threshold=$3
-
-	$vips subtract $before $after $tmp/difference.v
-	$vips abs $tmp/difference.v $tmp/abs.v 
-	dif=$($vips max $tmp/abs.v)
-
-	if break_threshold $dif $threshold; then
-		echo "difference is $dif"
-		exit 1
-	fi
-}
-
 test_rotate() {
 	im=$1
 	inter=$2
