@@ -178,7 +178,17 @@ vips_exif_load_data_without_fix( const void *data, size_t length )
 	}
 
 	exif_data_unset_option( ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
-	exif_data_load_data( ed, data, length );
+	if( !vips_isprefix( "Exif", (char *) data ) ) {
+		/* Ensure "Exif" prefix as loaders may not provide it.
+		 */
+		void* data_with_prefix;
+		data_with_prefix = g_malloc0( length + 6 );
+		memcpy( data_with_prefix, "Exif\0\0", 6 );
+		memcpy( data_with_prefix + 6, data, length );
+		exif_data_load_data( ed, data_with_prefix, length + 6 );
+		g_free( data_with_prefix );
+	} else
+		exif_data_load_data( ed, data, length );
 
 	return( ed );
 }
@@ -1405,7 +1415,7 @@ vips__exif_update( VipsImage *image )
 			(void *) &data, &length ) )
 			return( -1 );
 
-		if( !(ed = exif_data_new_from_data( data, length )) )
+		if( !(ed = vips_exif_load_data_without_fix( data, length )) )
 			return( -1 );
 	}
 	else  {
@@ -1415,11 +1425,12 @@ vips__exif_update( VipsImage *image )
 			EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
 		exif_data_set_data_type( ed, EXIF_DATA_TYPE_COMPRESSED );
 		exif_data_set_byte_order( ed, EXIF_BYTE_ORDER_INTEL );
-	
-		/* Create the mandatory EXIF fields with default data.
-		 */
-		exif_data_fix( ed );
 	}
+
+	/* Make sure all required fields are there before we attach the vips
+	 * metadata.
+	 */
+	exif_data_fix( ed );
 
 	/* Update EXIF tags from the image metadata.
 	 */
