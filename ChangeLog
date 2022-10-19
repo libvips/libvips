@@ -20,6 +20,8 @@ master
 - improve libspng pallette write [kleisauke]
 - improve libspng pallette sort [DarthSim]
 - ensure EXIF has prefix before parsing [lovell]
+- fix low bit depth pallette spng save [DarthSim]
+- fix thumbnail of non-sRGB images with an export profile [kleisauke]
 
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
