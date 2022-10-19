@@ -2,6 +2,7 @@
 - improve rules for 16-bit heifsave [johntrunc]
 - improve libspng pallette write [kleisauke]
 - improve libspng pallette sort [DarthSim]
+- ensure EXIF has prefix before parsing [lovell]
 
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
