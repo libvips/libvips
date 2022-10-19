@@ -37,6 +37,9 @@ test_supported() {
 break_threshold() {
 	diff=$1
 	threshold=$2
+	if ! command -v bc >/dev/null; then
+		exit 77
+	fi
 	return $(echo "$diff <= $threshold" | bc -l)
 }
 
