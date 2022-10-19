@@ -32,6 +32,8 @@ test_supported() {
 
 # is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
 # error, or outside threshold)
+#
+# use bc since bash does not support fp math
 break_threshold() {
 	diff=$1
 	threshold=$2
