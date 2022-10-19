@@ -87,7 +87,7 @@ of the libvips optional dependencies.
 
 ```
 cd libvips-x.y.x
-meson build --prefix=/aaa/bbb/ccc
+meson build --prefix /my/install/prefix
 cd build
 meson compile
 meson test
@@ -105,13 +105,13 @@ configuration.
   see `meson_options.txt` and the list below for a summary of all the libvips
   dependencies.
 
-- Meson will do a debug build by default. Add `--buildtype=release` for a 
+- Meson will do a debug build by default. Add `--buildtype release` for a 
   release (optimised) build.
 
-- You might need to add `--libdir=lib` on Debian if you don't want the arch 
+- You might need to add `--libdir lib` on Debian if you don't want the arch 
   name in the library path.
 
-- Add `--default-library=static` for a static build.
+- Add `--default-library static` for a static build.
 
 - Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
 
