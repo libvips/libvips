@@ -20,8 +20,8 @@ jobs:
             build: { cc: clang-14, cxx: clang++-14, linker: ld.lld-14, sanitize: true }
             shell: bash
 
-          - name: "macOS (11.6) - Xcode 13.2.1"
-            os: macos-11
+          - name: "macOS (12.6) - Xcode 14.0.1"
+            os: macos-12
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
 
@@ -40,21 +40,19 @@ jobs:
       CXX: ${{ matrix.build.cxx }}
       LD: ${{ matrix.build.linker }}
       CPPFLAGS: -Wall
-      DEBIAN_FRONTEND: noninteractive
-      HOMEBREW_NO_AUTO_UPDATE: 1
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Update apt
         if: runner.os == 'Linux'
-        run: sudo -E apt-get update -qq -o Acquire::Retries=3
+        run: sudo apt-get update -qq
 
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
         run:
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+          sudo apt-get install -fqq
             meson
             python3-pip python3-setuptools python3-wheel
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
@@ -70,12 +68,12 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp cgif
+          brew install cfitsio cgif jpeg-xl libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
         run:
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+          sudo apt-get install -fqq
             clang-14 libomp-14-dev lld-14 llvm-14
 
       - name: Prepare macOS environment

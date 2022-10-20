@@ -1433,14 +1433,12 @@ class TestForeign:
 
         # scrgb mode
         scrgb = self.colour.colourspace("scrgb")
-        no_profile.remove("icc-profile-data")
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
                               scrgb, 120)
 
         # scrgb mode, no profile
         scrgb_no_profile = scrgb.copy()
         scrgb_no_profile.remove("icc-profile-data")
-        no_profile.remove("icc-profile-data")
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
                               scrgb_no_profile, 120)
 
