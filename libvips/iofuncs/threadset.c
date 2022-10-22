@@ -233,7 +233,7 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
 
         g_mutex_lock( set->lock );
         set->free = g_slist_remove( set->free, member );
-        set->n_threads += 1;
+        set->n_threads -= 1;
         g_mutex_unlock( set->lock );
 
         VIPS_FREE( member );
