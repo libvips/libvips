@@ -71,8 +71,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#ifdef HAVE_LIBWEBP
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,6 +79,8 @@
 #include <vips/internal.h>
 
 #include "pforeign.h"
+
+#ifdef HAVE_LIBWEBP
 
 #include <webp/encode.h>
 #include <webp/types.h>
