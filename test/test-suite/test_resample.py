@@ -88,7 +88,7 @@ class TestResample:
                     x = im.cast(fmt)
                     r = x.reduce(fac, fac, kernel=kernel)
                     d = abs(r.avg() - im.avg())
-                    assert d < 2
+                    assert d < 5
 
         # try constant images ... should not change the constant
         for const in [0, 1, 2, 254, 255]:

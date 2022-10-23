@@ -83,9 +83,11 @@ struct _VipsThreadset {
          */
         GSList *free;
 
-        /* Leak checking.
+        /* The current number of threads, the highwater mark, and 
+         * the max we allow before blocking thread creation.
          */
         int n_threads;
+        int n_threads_highwater;
         int max_threads;
 };
 
@@ -145,6 +147,13 @@ vips_threadset_add( VipsThreadset *set )
 {
         VipsThreadsetMember *member;
 
+        if( set->max_threads &&
+                set->n_threads >= set->max_threads ) {
+                vips_error( "VipsThreadset", 
+                        "%s", _( "threadset is exhausted" ) );
+                return( NULL );
+        }
+
         member = g_new0( VipsThreadsetMember, 1 );
         member->set = set;
 
@@ -161,24 +170,65 @@ vips_threadset_add( VipsThreadset *set )
         g_mutex_lock( set->lock );
         set->members = g_slist_prepend( set->members, member );
         set->n_threads += 1;
-        set->max_threads = VIPS_MAX( set->max_threads, set->n_threads );;
+        set->n_threads_highwater = 
+                VIPS_MAX( set->n_threads_highwater, set->n_threads );;
         g_mutex_unlock( set->lock );
 
         return( member );
 }
 
+/** 
+ * vips_threadset_new:
+ * @max_threads: maxium number of system threads
+ *
+ * Create a new threadset. 
+ *
+ * If @max_threads is 0, new threads will be created when necessary by
+ * vips_threadset_run(), with no limit on the number of threads.
+ *
+ * If @max_threads is > 0, then that many threads will be created by
+ * vips_threadset_new() during startup and vips_threadset_run() will fail if
+ * no free threads are available.
+ *
+ * Returns: the new threadset.
+ */
 VipsThreadset *
-vips_threadset_new( void )
+vips_threadset_new( int max_threads )
 {
         VipsThreadset *set;
 
         set = g_new0( VipsThreadset, 1 );
 	set->lock = vips_g_mutex_new();
+	set->max_threads = max_threads;
+
+        if( set->max_threads > 0 )
+                for( int i = 0; i < set->max_threads; i++ ) {
+                        VipsThreadsetMember *member;
+
+                        if( !(member = vips_threadset_add( set )) ) {
+                                vips_threadset_free( set );
+                                return( NULL );
+                        }
+
+                        set->free = g_slist_prepend( set->free, member );
+                }
 
         return( set );
 }
 
-/* Execute a task in a thread. If there are no idle threads, create a new one.
+/**
+ * vips_threadset_run: 
+ * @set: the threadset to runthe task in
+ * @domain: the name of the task (useful for debugging)
+ * @func: the task to execute
+ * @data: the task's data
+ *
+ * Execute a task in a thread. If there are no idle threads, create a new one,
+ * provided we are under @max_threads.
+ *
+ * See also: vips_threadset_new().
+ *
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_threadset_run( VipsThreadset *set, 
@@ -267,7 +317,7 @@ vips_threadset_free( VipsThreadset *set )
 
         if( vips__leak )
                 printf( "vips_threadset_free: peak of %d threads\n", 
-                        set->max_threads );
+                        set->n_threads_highwater );
 
 	VIPS_FREEF( vips_g_mutex_free, set->lock );
 	VIPS_FREE( set );
