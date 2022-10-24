@@ -109,35 +109,25 @@ vips__threadpool_init( void )
 {
 	static GPrivate private = { 0 }; 
 
+        const char *max_threads_env = g_getenv( "VIPS_MAX_THREADS" );
+        int max_threads = max_threads_env ? atoi( max_threads_env ) : 0;
+
 	worker_key = &private;
 
 	if( g_getenv( "VIPS_STALL" ) )
 		vips__stall = TRUE;
+
+        /* max_threads > 0 will create a set of threads on startup. Thuis is
+         * necessary for wasm, but may break on systems that try to fork()
+         * after init.
+         */
+        vips__threadset = vips_threadset_new( max_threads );
 }
 
 void
 vips__threadpool_shutdown( void )
 {
         VIPS_FREEF( vips_threadset_free, vips__threadset );
-}
-
-static void *
-vips_threadpool_init_once( void *data )
-{
-        const char *max_threads_env = g_getenv( "VIPS_MAX_THREADS" );
-        int max_threads = max_threads_env ? atoi( max_threads_env ) : 0;
-
-        vips__threadset = vips_threadset_new( max_threads );
-
-	return( NULL ); 
-}
-
-static void 
-vips_threadpool_init( void )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, vips_threadpool_init_once, NULL );
 }
 
 /**
@@ -156,8 +146,6 @@ vips_threadpool_init( void )
 int
 vips__thread_execute( const char *domain, GFunc func, gpointer data )
 {
-        vips_threadpool_init();
-
         return( vips_threadset_run( vips__threadset, domain, func, data ) );
 }
 
@@ -655,8 +643,6 @@ vips_threadpool_run( VipsImage *im,
 	int result;
         int n_waiting;
         int n_working;
-
-        vips_threadpool_init();
 
 	if( !(pool = vips_threadpool_new( im )) )
 		return( -1 );
