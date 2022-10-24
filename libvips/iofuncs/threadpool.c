@@ -418,7 +418,15 @@ vips_thread_main_loop( void *a, void *b )
 
 	VIPS_GATE_STOP( "vips_thread_main_loop: thread" ); 
 
+        /* unreffing the worker state will trigger stop in the threadstate, so
+         * we need to single-thread.
+         */
+	g_mutex_lock( pool->allocate_lock );
+
 	VIPS_FREEF( g_object_unref, worker->state );
+
+	g_mutex_unlock( pool->allocate_lock );
+
 	VIPS_FREE( worker );
 	g_private_set( worker_key, NULL );
 
