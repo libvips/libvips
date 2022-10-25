@@ -2,7 +2,7 @@ top_srcdir=@abs_top_srcdir@
 top_builddir=@abs_top_builddir@
 PYTHON=@PYTHON@
 # we need a different tmp for each script since make can run tests in parallel
-tmp=$top_srcdir/test/tmp-$$
+tmp=$top_builddir/test/tmp-$$
 test_images=$top_srcdir/test/test-suite/images
 image=$test_images/sample.jpg
 mkdir -p $tmp
