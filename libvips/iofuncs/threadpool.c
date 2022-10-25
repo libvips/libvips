@@ -96,6 +96,8 @@
  */
 static gboolean vips__stall = FALSE;
 
+/* The global threadset we run workers in.
+ */
 static VipsThreadset *vips__threadset = NULL;
 
 /* Set this GPrivate to link a thread back to its VipsWorker struct.
@@ -117,7 +119,7 @@ vips__threadpool_init( void )
 	if( g_getenv( "VIPS_STALL" ) )
 		vips__stall = TRUE;
 
-        /* max_threads > 0 will create a set of threads on startup. Thuis is
+        /* max_threads > 0 will create a set of threads on startup. This is
          * necessary for wasm, but may break on systems that try to fork()
          * after init.
          */
@@ -133,13 +135,11 @@ vips__threadpool_shutdown( void )
 /**
  * vips__thread_execute:
  * @name: a name for the thread
- * @func: a function to execute in the thread pool
+ * @func: a function to execute in the global threadset
  * @data: an argument to supply to @func
  *
- * A newly created or reused thread will execute @func with with the
+ * A newly created or reused thread will execute @func with the
  * argument @data.
- *
- * See also: vips_concurrency_set().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -224,8 +224,6 @@ vips_thread_state_new( VipsImage *im, void *a )
 /* What we track for each thread in the pool.
  */
 typedef struct _VipsWorker {
-	/* All private.
-	 */
 	/*< private >*/
 	struct _VipsThreadpool *pool; /* Pool we are part of */
 
@@ -238,8 +236,6 @@ typedef struct _VipsWorker {
 /* What we track for a group of threads working together.
  */
 typedef struct _VipsThreadpool {
-	/* All private.
-	 */
 	/*< private >*/
 	VipsImage *im;		/* Image we are calculating */
 

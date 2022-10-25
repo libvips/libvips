@@ -1,6 +1,7 @@
-/* A set of threads. We try to reuse threads when possible, rather than
- * creating and destroying them all the time. This can be slow on some
- * platforms.
+/* A set of threads. 
+ *
+ * Creating and destroying threads can be expensive on some platforms, so we
+ * try to only create once, then reuse.
  */
 
 /*
@@ -218,7 +219,7 @@ vips_threadset_new( int max_threads )
 
 /**
  * vips_threadset_run: 
- * @set: the threadset to runthe task in
+ * @set: the threadset to run the task in
  * @domain: the name of the task (useful for debugging)
  * @func: the task to execute
  * @data: the task's data
@@ -289,7 +290,12 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
         VIPS_FREE( member );
 }
 
-/* Wait for all pending tasks to finish and clean up.
+/** 
+ * vips_threadset_free:
+ * @set: the threadset to free
+ *
+ * Free a threadset. This call will block until all pending tasks are
+ * finished.
  */
 void
 vips_threadset_free( VipsThreadset *set )
