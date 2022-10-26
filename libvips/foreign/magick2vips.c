@@ -754,9 +754,11 @@ magick_fill_region( VipsRegion *out,
 
 		PixelPacket *pixels;
 
-		g_mutex_lock( read->lock );
+		vips__worker_lock( read->lock );
+
 		pixels = get_pixels( read->frames[frame], 
 			r->left, line, r->width, 1 );
+
 		g_mutex_unlock( read->lock );
 
 		if( !pixels ) {

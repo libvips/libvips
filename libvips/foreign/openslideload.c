@@ -110,6 +110,7 @@ typedef struct {
 	gboolean autocrop;
 	char *associated;
 	gboolean attach_associated;
+	gboolean rgb;
 
 	openslide_t *osr;
 
@@ -237,7 +238,7 @@ get_bounds( openslide_t *osr, VipsRect *rect )
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
 	int level, gboolean autocrop, 
-	const char *associated, gboolean attach_associated )
+	const char *associated, gboolean attach_associated, gboolean rgb )
 {
 	ReadSlide *rslide;
 
@@ -268,6 +269,7 @@ readslide_new( const char *filename, VipsImage *out,
 	rslide->autocrop = autocrop;
 	rslide->associated = g_strdup( associated );
 	rslide->attach_associated = attach_associated;
+	rslide->rgb = rgb;
 
 	/* Non-crazy defaults, override in _parse() if we can.
 	 */
@@ -289,11 +291,11 @@ readslide_new( const char *filename, VipsImage *out,
  * compatibility with older vipses.
  */
 static void
-argb2rgba( uint32_t * restrict buf, int n, uint32_t bg )
+argb2rgba( uint32_t * restrict buf, int64_t n, uint32_t bg )
 {
 	const uint32_t pbg = GUINT32_TO_BE( (bg << 8) | 255 );
 
-	int i;
+	int64_t i;
 
 	for( i = 0; i < n; i++ ) {
 		uint32_t * restrict p = buf + i;
@@ -318,6 +320,90 @@ argb2rgba( uint32_t * restrict buf, int n, uint32_t bg )
 	}
 }
 
+/* Convert from ARGB to RGB. In RGB mode, assume a is always 255.
+ */
+static void
+argb2rgb( uint32_t * restrict buf, VipsPel *restrict q, int64_t n )
+{
+	int64_t i;
+
+	for( i = 0; i < n; i++ ) {
+		uint32_t x = buf[i];
+
+                q[0] = ((x >> 16) & 0xff);
+                q[1] = ((x >> 8) & 0xff);
+                q[2] = (x & 0xff);
+                q += 3;
+	}
+}
+
+static VipsImage *
+vips__openslide_get_associated( ReadSlide *rslide, const char *associated_name )
+{
+        VipsImage *associated;
+        int64_t w, h;
+        const char *error;
+
+        associated = vips_image_new_memory();
+        openslide_get_associated_image_dimensions( rslide->osr,
+                associated_name, &w, &h );
+
+        /* Always 4 bands, since this is the image that gets the ARGB from
+         * cairo.
+         */
+        vips_image_init_fields( associated, w, h, 4,
+                VIPS_FORMAT_UCHAR,
+                VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+        if( vips_image_pipelinev( associated, 
+                VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
+                vips_image_write_prepare( associated ) ) {
+                g_object_unref( associated );
+                return( NULL );
+        }
+
+        openslide_read_associated_image( rslide->osr, 
+                associated_name, 
+                (uint32_t *) VIPS_IMAGE_ADDR( associated, 0, 0 ) );
+        error = openslide_get_error( rslide->osr );
+        if( error ) {
+                vips_error( "openslide2vips",
+                        _( "reading associated image: %s" ), error );
+                g_object_unref( associated );
+                return( NULL );
+        }
+
+        /* In RGB mode we make a second RGB image and repack to that.
+         */
+        if( rslide->rgb ) {
+                VipsImage *rgb;
+
+                rgb = vips_image_new_memory();
+                vips_object_local( rgb, associated );
+
+                vips_image_init_fields( rgb, w, h, 3,
+                        VIPS_FORMAT_UCHAR,
+                        VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+                if( vips_image_pipelinev( rgb, 
+                        VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
+                        vips_image_write_prepare( rgb ) ) {
+                        g_object_unref( rgb );
+                        return( NULL );
+                }
+
+                argb2rgb( (uint32_t *) VIPS_IMAGE_ADDR( associated, 0, 0 ), 
+                        VIPS_IMAGE_ADDR( rgb, 0, 0 ), w * h );
+
+                associated = rgb;
+        }
+        else 
+                /* We can do this in place.
+                 */
+                argb2rgba( (uint32_t *) VIPS_IMAGE_ADDR( associated, 0, 0 ),
+                        w * h, rslide->bg );
+
+        return( associated );
+}
+
 static int
 readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
 {
@@ -326,38 +412,17 @@ readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
 	for( associated_name = 
 		openslide_get_associated_image_names( rslide->osr );
 		*associated_name != NULL; associated_name++ ) {
-		int64_t w, h;
 		VipsImage *associated;
-		uint32_t *p;
-		const char *error;
-		char buf[256];
+                char buf[256];
 
-		associated = vips_image_new_memory();
-		openslide_get_associated_image_dimensions( rslide->osr,
-			*associated_name, &w, &h );
-		vips_image_init_fields( associated, w, h, 4, VIPS_FORMAT_UCHAR,
-			VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-		if( vips_image_pipelinev( associated, 
-			VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
-			vips_image_write_prepare( associated ) ) {
-			g_object_unref( associated );
-			return( -1 );
-		}
-		p = (uint32_t *) VIPS_IMAGE_ADDR( associated, 0, 0 );
-		openslide_read_associated_image( rslide->osr, 
-			*associated_name, p );
-		error = openslide_get_error( rslide->osr );
-		if( error ) {
-			vips_error( "openslide2vips",
-				_( "reading associated image: %s" ), error );
-			g_object_unref( associated );
-			return( -1 );
-		}
-		argb2rgba( p, w * h, rslide->bg );
+                if( !(associated = vips__openslide_get_associated( rslide, 
+                        *associated_name )) )
+                        return( -1 );
 
 		vips_snprintf( buf, 256, 
 			"openslide.associated.%s", *associated_name );
 		vips_image_set_image( image, buf, associated );
+
 		g_object_unref( associated );
 	}
 
@@ -542,8 +607,9 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 		"slide-associated-images", associated_names );
 	VIPS_FREE( associated_names );
 
-	vips_image_init_fields( image, w, h, 4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, xres, yres );
+	vips_image_init_fields( image, w, h, rslide->rgb ? 3 : 4,
+                VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
+                VIPS_INTERPRETATION_sRGB, xres, yres );
 
 	return( 0 );
 }
@@ -551,28 +617,46 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 static int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
 	int level, gboolean autocrop, 
-	char *associated, gboolean attach_associated )
+	char *associated, gboolean attach_associated, gboolean rgb )
 {
 	ReadSlide *rslide;
 
 	if( !(rslide = readslide_new( filename, 
-		out, level, autocrop, associated, attach_associated )) ||
+		out, level, autocrop, associated, attach_associated, rgb )) ||
 		readslide_parse( rslide, out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
+/* Allocate a tile buffer. Have one of these for each thread so we can unpack
+ * to vips in parallel.
+ */
+static void *
+vips__openslide_start( VipsImage *out, void *a, void *b )
+{
+	ReadSlide *rslide = (ReadSlide *) a;
+
+        uint32_t *tile_buffer;
+
+        if( !(tile_buffer = VIPS_MALLOC( NULL, 
+               (size_t) rslide->tile_width * rslide->tile_height * 4 )) )
+               return( NULL );
+
+	return( (void *) tile_buffer );
+}
+
 static int
 vips__openslide_generate( VipsRegion *out, 
 	void *_seq, void *_rslide, void *unused, gboolean *stop )
 {
+        uint32_t *tile_buffer = (uint32_t *) _seq;
 	ReadSlide *rslide = _rslide;
 	uint32_t bg = rslide->bg;
 	VipsRect *r = &out->valid;
 	int n = r->width * r->height;
-	uint32_t *buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
 
+	uint32_t *buf;
 	const char *error;
 
 	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
@@ -586,10 +670,21 @@ vips__openslide_generate( VipsRegion *out,
 	g_assert( r->width <= rslide->tile_width );
 	g_assert( r->height <= rslide->tile_height );
 
-	/* The memory on the region should be contiguous for our ARGB->RGBA
-	 * loop below.
-	 */
-	g_assert( VIPS_REGION_LSKIP( out ) == r->width * 4 );
+        /* The memory on the region should be contiguous.
+         */
+        g_assert( VIPS_REGION_LSKIP( out ) == r->width * out->im->Bands );
+
+        /* In RGB mode we need to read to the tile buffer.
+         */
+        if( rslide->rgb ) {
+                g_assert( tile_buffer );
+                g_assert( rslide->tile_width >= r->width );
+                g_assert( rslide->tile_height >= r->height );
+
+                buf = tile_buffer;
+        }
+        else
+                buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
 
 	openslide_read_region( rslide->osr, 
 		buf,
@@ -612,16 +707,29 @@ vips__openslide_generate( VipsRegion *out,
 		return( -1 );
 	}
 
-	/* Since we are inside a cache, we know buf must be continuous.
-	 */
-	argb2rgba( buf, n, bg );
+        if( rslide->rgb )
+                argb2rgb( tile_buffer,
+                        VIPS_REGION_ADDR( out, r->left, r->top ), n );
+        else
+                argb2rgba( buf, n, bg );
+
+	return( 0 );
+}
+
+static int
+vips__openslide_stop( void *_seq, void *a, void *b )
+{
+        uint32_t *tile_buffer = (uint32_t *) _seq;
+
+	VIPS_FREE( tile_buffer );
 
 	return( 0 );
 }
 
 static int
 vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, gboolean attach_associated )
+	int level, gboolean autocrop, gboolean attach_associated,
+        gboolean rgb )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -631,7 +739,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 		filename, level );
 
 	if( !(rslide = readslide_new( filename, out, level, autocrop, 
-		NULL, attach_associated )) )
+		NULL, attach_associated, rgb )) )
 		return( -1 );
 
 	raw = vips_image_new();
@@ -639,7 +747,9 @@ vips__openslide_read( const char *filename, VipsImage *out,
 
 	if( readslide_parse( rslide, raw ) ||
 		vips_image_generate( raw, 
-			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
+                        vips__openslide_start, 
+                        vips__openslide_generate, 
+                        vips__openslide_stop, rslide, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows, 
@@ -665,41 +775,27 @@ vips__openslide_read( const char *filename, VipsImage *out,
 
 static int
 vips__openslide_read_associated( const char *filename, VipsImage *out, 
-	const char *associated )
+	const char *associated_name, gboolean rgb )
 {
 	ReadSlide *rslide;
-	VipsImage *raw;
-	uint32_t *buf;
-	const char *error;
+	VipsImage *associated;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read_associated: %s %s\n", 
-		filename, associated );
+		filename, associated_name );
 
-	if( !(rslide = readslide_new( filename, out, 0, FALSE, 
-		associated, FALSE )) )
+	if( !(rslide = readslide_new( filename, 
+                out, 0, FALSE, associated_name, FALSE, rgb )) )
 		return( -1 );
 
-	/* Memory buffer. Get associated directly to this, then copy to out.
-	 */
-	raw = vips_image_new_memory();
-	vips_object_local( out, raw );
+        if( !(associated = vips__openslide_get_associated( rslide, 
+                associated_name )) )
+                return( -1 );
 
-	if( readslide_parse( rslide, raw ) ||
-		vips_image_write_prepare( raw ) )
+	if( vips_image_write( associated, out ) ) {
+                VIPS_UNREF( associated );
 		return( -1 );
-
-	buf = (uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 );
-	openslide_read_associated_image( rslide->osr, rslide->associated, buf );
-	error = openslide_get_error( rslide->osr );
-	if( error ) {
-		vips_error( "openslide2vips",
-			_( "reading associated image: %s" ), error );
-		return( -1 );
-	}
-	argb2rgba( buf, raw->Xsize * raw->Ysize, rslide->bg );
-
-	if( vips_image_write( raw, out ) ) 
-		return( -1 );
+        }
+        VIPS_UNREF( associated );
 
 	return( 0 );
 }
@@ -730,6 +826,10 @@ typedef struct _VipsForeignLoadOpenslide {
 	/* Attach all associated images as metadata items.
 	 */
 	gboolean attach_associated;
+
+        /* Read as RGB, not RGBA.
+         */
+	gboolean rgb;
 
 } VipsForeignLoadOpenslide;
 
@@ -826,7 +926,8 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 
 	if( vips__openslide_read_header( openslide->filename, load->out, 
 		openslide->level, openslide->autocrop, 
-		openslide->associated, openslide->attach_associated ) )
+		openslide->associated, openslide->attach_associated,
+                openslide->rgb ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, openslide->filename );
@@ -842,12 +943,13 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 	if( !openslide->associated ) {
 		if( vips__openslide_read( openslide->filename, load->real, 
 			openslide->level, openslide->autocrop, 
-			openslide->attach_associated ) )
+			openslide->attach_associated,
+                        openslide->rgb ) )
 			return( -1 );
 	}
 	else {
 		if( vips__openslide_read_associated( openslide->filename, 
-			load->real, openslide->associated ) )
+			load->real, openslide->associated, openslide->rgb ) )
 			return( -1 );
 	}
 
@@ -917,11 +1019,18 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, associated ),
 		NULL );
 
-	VIPS_ARG_BOOL( class, "attach_associated", 13,
+	VIPS_ARG_BOOL( class, "attach_associated", 23,
 		_( "Attach associated" ),
 		_( "Attach all associated images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, attach_associated ),
+		FALSE ); 
+
+	VIPS_ARG_BOOL( class, "rgb", 24,
+		_( "RGB" ),
+		_( "Output RGB (not RGBA)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, rgb ),
 		FALSE ); 
 
 }

@@ -505,6 +505,7 @@ vips_init( const char *argv0 )
 	(void) _setmaxstdio( 2048 );
 #endif /*G_OS_WIN32*/
 
+        vips__thread_init();
 	vips__threadpool_init();
 	vips__buffer_init();
 	vips__meta_init();

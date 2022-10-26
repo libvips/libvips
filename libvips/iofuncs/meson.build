@@ -1,4 +1,7 @@
 iofuncs_sources = files(
+    'thread.c',
+    'threadset.c',
+    'threadpool.c',
     'ginputsource.c',
     'sourceginput.c',
     'connection.c',
@@ -28,7 +31,6 @@ iofuncs_sources = files(
     'region.c',
     'rect.c',
     'semaphore.c',
-    'threadpool.c',
     'util.c',
     'init.c',
     'buf.c',

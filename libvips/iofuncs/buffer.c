@@ -316,8 +316,10 @@ buffer_thread_get( void )
 {
 	VipsBufferThread *buffer_thread;
 
-	if( vips_thread_isworker() ) {
-		/* Workers get a private set of buffers.
+	if( vips_thread_isvips() ) {
+		/* Our threads get a set of private buffers, since we know we
+                 * will be calling vips_thread_shutdown() on thread
+                 * termination.
 		 */
 		if( !(buffer_thread = g_private_get( buffer_thread_key )) ) {
 			buffer_thread = buffer_thread_new();
@@ -327,7 +329,7 @@ buffer_thread_get( void )
 		g_assert( buffer_thread->thread == g_thread_self() ); 
 	}
 	else 
-		/* Non-workers don't have one. 
+		/* Non-vips threads don't have one. 
 		 */
 		buffer_thread = NULL; 
 
