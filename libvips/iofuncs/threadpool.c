@@ -104,6 +104,11 @@ static VipsThreadset *vips__threadset = NULL;
  */
 static GPrivate *worker_key = NULL;
 
+/* Maximum value we allow for VIPS_CONCURRENCY. We need to stop huge values
+ * killing the system.
+ */
+#define MAX_THREADS (1024)
+
 /* Start up threadpools. This is called during vips_init.
  */
 void
@@ -111,8 +116,12 @@ vips__threadpool_init( void )
 {
 	static GPrivate private = { 0 }; 
 
+	/* 3 is the useful minimum, and huge values can crash the machine.
+	 */
         const char *max_threads_env = g_getenv( "VIPS_MAX_THREADS" );
-        int max_threads = max_threads_env ? atoi( max_threads_env ) : 0;
+        int max_threads = max_threads_env ? 
+		VIPS_CLIP( 3, atoi( max_threads_env ), MAX_THREADS ) : 
+		0;
 
 	worker_key = &private;
 
