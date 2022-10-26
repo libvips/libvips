@@ -1,9 +1,9 @@
 /* draw_flood-fill
  *
  * JC 30/8/97
- *	- VIPSified, cleaned up, from "John Robinson's prog to fill 
+ *	- VIPSified, cleaned up, from "John Robinson's prog to fill
  *	  enclosed areas"
- *	- something Kirk gave me, so thanks John 
+ *	- something Kirk gave me, so thanks John
  * JC 1/10/97
  *	- swapped inner memcmp/cpy for a loop ... faster for small pixels
  * 13/7/02 JC
@@ -37,7 +37,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -75,14 +75,14 @@
 
 #include "drawink.h"
 
-/* Size of a scanline buffer. We allocate a list of these to hold scanlines 
+/* Size of a scanline buffer. We allocate a list of these to hold scanlines
  * we need to visit.
  */
 #define PBUFSIZE (1000)
 
 /* A scanline we know could contain pixels connected to us.
  *
- * Dir is the direction of connection: +1 means y is increasing, ie. the line 
+ * Dir is the direction of connection: +1 means y is increasing, ie. the line
  * above this one is filled. -1 if y is decreasing.
  */
 typedef struct {
@@ -103,7 +103,7 @@ typedef struct _Buffer {
 } Buffer;
 
 /* What we track during a flood. We have this in a separate struct so that we
- * can support vips__draw_flood_direct() ... a fast path for 
+ * can support vips__draw_flood_direct() ... a fast path for
  * vips_labelregions() that avoids all of the GObject call overhead. This
  * gives a huge speedup, >x10 in many cases.
  */
@@ -114,7 +114,7 @@ typedef struct _Flood {
 
 	/* Draw pixels here, can be equal to test.
 	 */
-	VipsImage *image; 
+	VipsImage *image;
 
 	/* Sizeof pel in test.
 	 */
@@ -144,7 +144,7 @@ typedef struct _Flood {
 	/* Record bounding box of modified pixels.
 	 */
 	int left;
-	int right;	
+	int right;
 	int top;
 	int bottom;
 
@@ -153,7 +153,7 @@ typedef struct _Flood {
 	Buffer *in;
 	Buffer *out;
 
-} Flood; 
+} Flood;
 
 /* Alloc a new buffer.
  */
@@ -191,7 +191,7 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 {
 	/* Clip against image size.
 	 */
-	if( y < 0 || 
+	if( y < 0 ||
 		y >= flood->test->Ysize )
 		return( buf );
 	x1 = VIPS_CLIP( 0, x1, flood->test->Xsize - 1 );
@@ -199,7 +199,7 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 	if( x2 - x1 < 0 )
 		return( buf );
 
-	if( buf->n == PBUFSIZE ) { 
+	if( buf->n == PBUFSIZE ) {
 		Buffer *new;
 
 		new = buffer_build();
@@ -218,15 +218,15 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 
 /* Is p "connected"? ie. is equal to or not equal to flood->edge, depending on
  * whether we are flooding to the edge boundary or flooding edge-coloured
- * pixels. p is a pel in @test. 
+ * pixels. p is a pel in @test.
  */
 static gboolean
 flood_connected( Flood *flood, VipsPel *p )
 {
  	int j;
 
-	for( j = 0; j < flood->tsize; j++ ) 
-		if( p[j] != flood->edge[j] ) 
+	for( j = 0; j < flood->tsize; j++ )
+		if( p[j] != flood->edge[j] )
 			break;
 
 	/* If flood->equal, true if point == edge.
@@ -234,15 +234,15 @@ flood_connected( Flood *flood, VipsPel *p )
 	return( flood->equal ^ (j < flood->tsize) );
 }
 
-/* Is p painted? p is a pel in @image. 
+/* Is p painted? p is a pel in @image.
  */
 static gboolean
 flood_painted( Flood *flood, VipsPel *p )
 {
  	int j;
 
-	for( j = 0; j < flood->psize; j++ ) 
-		if( p[j] != flood->ink[j] ) 
+	for( j = 0; j < flood->psize; j++ )
+		if( p[j] != flood->ink[j] )
 			break;
 
 	return( j == flood->psize );
@@ -255,13 +255,13 @@ flood_pel( Flood *flood, VipsPel *q )
 
 	/* Faster than memcopy() for n < about 20.
 	 */
-	for( j = 0; j < flood->psize; j++ ) 
+	for( j = 0; j < flood->psize; j++ )
 		q[j] = flood->ink[j];
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
  */
-static void 
+static void
 flood_draw_scanline( Flood *flood, int y, int x1, int x2 )
 {
 	VipsPel *p;
@@ -270,13 +270,13 @@ flood_draw_scanline( Flood *flood, int y, int x1, int x2 )
 
 	g_assert( x1 <= x2 );
 
-	if( y < 0 || 
+	if( y < 0 ||
 		y >= flood->image->Ysize )
 		return;
-	if( x1 < 0 && 
+	if( x1 < 0 &&
 		x2 < 0 )
 		return;
-	if( x1 >= flood->image->Xsize && 
+	if( x1 >= flood->image->Xsize &&
 		x2 >= flood->image->Xsize )
 		return;
 	x1 = VIPS_CLIP( 0, x1, flood->image->Xsize - 1 );
@@ -291,19 +291,19 @@ flood_draw_scanline( Flood *flood, int y, int x1, int x2 )
 	}
 }
 
-/* Fill left and right, return the endpoints. The start point (x, y) must be 
+/* Fill left and right, return the endpoints. The start point (x, y) must be
  * connected and unpainted.
  */
-static void 
+static void
 flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 {
 	const int width = flood->test->Xsize;
 
 	int i;
 
-	g_assert( flood_connected( flood, 
+	g_assert( flood_connected( flood,
 		VIPS_IMAGE_ADDR( flood->test, x, y ) ) );
-	g_assert( !flood_painted( flood, 
+	g_assert( !flood_painted( flood,
 		VIPS_IMAGE_ADDR( flood->image, x, y ) ) );
 
 	/* Search to the right for the first non-connected pixel. If the start
@@ -320,7 +320,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 		}
 		*x2 = i - 1;
 	}
-	else 
+	else
 		*x2 = width;
 
 	/* Search left.
@@ -348,7 +348,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	flood->bottom = VIPS_MAX( flood->bottom, y );
 }
 
-/* We know the line below or above us is filled between x1 and x2. Search our 
+/* We know the line below or above us is filled between x1 and x2. Search our
  * line in this range looking for an edge pixel we can flood from.
  */
 static void
@@ -357,12 +357,12 @@ flood_around( Flood *flood, Scan *scan )
 	VipsPel *p;
 	int x;
 
-	g_assert( scan->dir == 1 || 
+	g_assert( scan->dir == 1 ||
 		scan->dir == -1 );
 
-	for( p = VIPS_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
-		x = scan->x1; 
-		x <= scan->x2; 
+	for( p = VIPS_IMAGE_ADDR( flood->test, scan->x1, scan->y ),
+		x = scan->x1;
+		x <= scan->x2;
 		p += flood->tsize, x++ ) {
 		if( flood_connected( flood, p ) ) {
 			int x1a;
@@ -373,7 +373,7 @@ flood_around( Flood *flood, Scan *scan )
 			 * connected loops.
 			 */
 			if( flood->image != flood->test ) {
-				VipsPel *mp = VIPS_IMAGE_ADDR( 
+				VipsPel *mp = VIPS_IMAGE_ADDR(
 					flood->image, x, scan->y );
 
 				if( flood_painted( flood, mp ) )
@@ -388,14 +388,14 @@ flood_around( Flood *flood, Scan *scan )
 			 */
 			if( x1a < scan->x1 - 1 )
 				flood->out = buffer_add( flood->out, flood,
-					x1a, scan->x1 - 2, 
+					x1a, scan->x1 - 2,
 					scan->y - scan->dir, -scan->dir );
 			if( x2a > scan->x2 + 1 )
 				flood->out = buffer_add( flood->out, flood,
-					scan->x2 + 2, x2a, 
+					scan->x2 + 2, x2a,
 					scan->y - scan->dir, -scan->dir );
 			flood->out = buffer_add( flood->out, flood,
-				x1a, x2a, scan->y + scan->dir, 
+				x1a, x2a, scan->y + scan->dir,
 				scan->dir );
 
 			x = x2a + 1;
@@ -411,7 +411,7 @@ flood_all( Flood *flood, int x, int y )
 
 	/* Test start pixel ... nothing to do?
 	 */
-	if( !flood_connected( flood, VIPS_IMAGE_ADDR( flood->test, x, y ) ) ) 
+	if( !flood_connected( flood, VIPS_IMAGE_ADDR( flood->test, x, y ) ) )
 		return;
 
 	flood->in = buffer_build();
@@ -451,8 +451,8 @@ typedef struct _VipsDrawFlood {
 	int y;
 	VipsImage *test;
 	gboolean equal;
-	int left;		
-	int top;	
+	int left;
+	int top;
 	int width;
 	int height;
 
@@ -465,13 +465,13 @@ G_DEFINE_TYPE( VipsDrawFlood, vips_draw_flood, VIPS_TYPE_DRAWINK );
 static int
 vips_draw_flood_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsDrawink *drawink = VIPS_DRAWINK( object );
 	VipsDrawFlood *drawflood = (VipsDrawFlood *) object;
 
-	Flood flood; 
-	int j; 
+	Flood flood;
+	int j;
 
 	if( VIPS_OBJECT_CLASS( vips_draw_flood_parent_class )->build( object ) )
 		return( -1 );
@@ -482,11 +482,11 @@ vips_draw_flood_build( VipsObject *object )
 		/* Setting input params like this will break caching, but we
 		 * don't cache draw ops anyway.
 		 */
-		g_object_set( object, "test", draw->image, NULL ); 
+		g_object_set( object, "test", draw->image, NULL );
 
 	if( vips_image_wio_input( drawflood->test ) ||
 		vips_check_coding_known( class->nickname, drawflood->test ) ||
-		vips_check_size_same( class->nickname, 
+		vips_check_size_same( class->nickname,
 			drawflood->test, draw->image ) )
 		return( -1 );
 
@@ -507,17 +507,17 @@ vips_draw_flood_build( VipsObject *object )
 		 */
 		if( !(flood.edge = VIPS_ARRAY( object, flood.tsize, VipsPel )) )
 			return( -1 );
-		memcpy( flood.edge, 
-			VIPS_IMAGE_ADDR( flood.test, 
-				drawflood->x, drawflood->y ), 
+		memcpy( flood.edge,
+			VIPS_IMAGE_ADDR( flood.test,
+				drawflood->x, drawflood->y ),
 			flood.tsize );
 
-		/* If @test and @image are the same and edge == ink, we'll 
+		/* If @test and @image are the same and edge == ink, we'll
 		 * never stop :-( or rather, there's nothing to do.
 		 */
-		if( flood.test == flood.image ) { 
-			for( j = 0; j < flood.tsize; j++ ) 
-				if( flood.edge[j] != flood.ink[j] ) 
+		if( flood.test == flood.image ) {
+			for( j = 0; j < flood.tsize; j++ )
+				if( flood.edge[j] != flood.ink[j] )
 					break;
 
 			if( j != flood.tsize )
@@ -528,23 +528,23 @@ vips_draw_flood_build( VipsObject *object )
 	}
 	else {
 		/* Flood to ink colour. We need to be able to compare @test to
-		 * @ink. 
+		 * @ink.
 		 */
-		if( !(flood.edge = vips__vector_to_ink( class->nickname, 
-			flood.test, 
-			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL, 
+		if( !(flood.edge = vips__vector_to_ink( class->nickname,
+			flood.test,
+			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL,
 			VIPS_AREA( drawink->ink )->n )) )
 			return( -1 );
 
 		flood_all( &flood, drawflood->x, drawflood->y );
 	}
 
-	g_object_set( object, 
-		"left", flood.left, 
-		"top", flood.top, 
+	g_object_set( object,
+		"left", flood.left,
+		"top", flood.top,
 		"width", flood.right - flood.left + 1,
 		"height", flood.bottom - flood.top + 1,
-		NULL ); 
+		NULL );
 
 	return( 0 );
 }
@@ -562,56 +562,56 @@ vips_draw_flood_class_init( VipsDrawFloodClass *class )
 	vobject_class->description = _( "flood-fill an area" );
 	vobject_class->build = vips_draw_flood_build;
 
-	VIPS_ARG_INT( class, "x", 3, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 3,
+		_( "x" ),
 		_( "DrawFlood start point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, x ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 4, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 4,
+		_( "y" ),
 		_( "DrawFlood start point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, y ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_IMAGE( class, "test", 5, 
-		_( "Test" ), 
+	VIPS_ARG_IMAGE( class, "test", 5,
+		_( "Test" ),
 		_( "Test pixels in this image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsDrawFlood, test ) ); 
+		G_STRUCT_OFFSET( VipsDrawFlood, test ) );
 
-	VIPS_ARG_BOOL( class, "equal", 6, 
-		_( "Equal" ), 
+	VIPS_ARG_BOOL( class, "equal", 6,
+		_( "Equal" ),
 		_( "DrawFlood while equal to edge" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, equal ),
-		FALSE ); 
+		FALSE );
 
-	VIPS_ARG_INT( class, "left", 7, 
-		_( "Left" ), 
+	VIPS_ARG_INT( class, "left", 7,
+		_( "Left" ),
 		_( "Left edge of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, left ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "top", 8, 
-		_( "Top" ), 
+	VIPS_ARG_INT( class, "top", 8,
+		_( "Top" ),
 		_( "Top edge of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, top ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "width", 9, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 9,
+		_( "Width" ),
 		_( "Width of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, width ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "height", 10, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 10,
+		_( "Height" ),
 		_( "Height of modified area" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsDrawFlood, height ),
@@ -634,21 +634,21 @@ vips_draw_flood_init( VipsDrawFlood *draw_flood )
  *       "equal", TRUE,
  *       NULL )
  *
- * image must be 1-band int. 
+ * image must be 1-band int.
  */
 int
-vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
+vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 	int serial, int x, int y )
 {
-	Flood flood; 
+	Flood flood;
 
-	if( vips_check_format( "vips__draw_flood_direct", 
+	if( vips_check_format( "vips__draw_flood_direct",
 			image, VIPS_FORMAT_INT ) ||
 		vips_check_mono( "vips__draw_flood_direct", image ) ||
 		vips_check_coding_known( "vips__draw_flood_direct", test ) ||
-		vips_check_size_same( "vips__draw_flood_direct", 
+		vips_check_size_same( "vips__draw_flood_direct",
 			test, image ) ||
-		vips_image_wio_input( test ) ||  
+		vips_image_wio_input( test ) ||
 		vips_image_inplace( image ) )
 		return( -1 );
 
@@ -666,16 +666,16 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 
 	if( !(flood.edge = VIPS_ARRAY( image, flood.tsize, VipsPel )) )
 		return( -1 );
-	memcpy( flood.edge, 
+	memcpy( flood.edge,
 		VIPS_IMAGE_ADDR( test, x, y ), flood.tsize );
 
 	flood_all( &flood, x, y );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 static int
-vips_draw_floodv( VipsImage *image, 
+vips_draw_floodv( VipsImage *image,
 	double *ink, int n, int x, int y, va_list ap )
 {
 	VipsArea *area_ink;
@@ -713,21 +713,21 @@ vips_draw_floodv( VipsImage *image,
  * If @equal is set, it instead searches for pixels which are equal to the
  * start point and fills them with @ink.
  *
- * Normally it will test and set pixels in @image. If @test is set, it will 
+ * Normally it will test and set pixels in @image. If @test is set, it will
  * test pixels in @test and set pixels in @image. This lets you search an
- * image (@test) for continuous areas of pixels without modifying it. 
+ * image (@test) for continuous areas of pixels without modifying it.
  *
  * @left, @top, @width, @height output the bounding box of the modified
- * pixels. 
+ * pixels.
  *
- * @ink is an array of double containing values to draw. 
+ * @ink is an array of double containing values to draw.
  *
  * See also: vips_draw_flood1().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_flood( VipsImage *image, 
+vips_draw_flood( VipsImage *image,
 	double *ink, int n, int x, int y, ... )
 {
 	va_list ap;
@@ -757,7 +757,7 @@ vips_draw_flood( VipsImage *image,
  * * @width: output width of bounding box of modified area
  * * @height: output height of bounding box of modified area
  *
- * As vips_draw_flood(), but just takes a single double for @ink. 
+ * As vips_draw_flood(), but just takes a single double for @ink.
  *
  * See also: vips_draw_flood().
  *
@@ -770,7 +770,7 @@ vips_draw_flood1( VipsImage *image, double ink, int x, int y, ... )
 	va_list ap;
 	int result;
 
-	array_ink[0] = ink; 
+	array_ink[0] = ink;
 
 	va_start( ap, y );
 	result = vips_draw_floodv( image, array_ink, 1, x, y, ap );

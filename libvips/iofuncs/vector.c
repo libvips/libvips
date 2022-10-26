@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -31,7 +31,7 @@
 
  */
 
-/* 
+/*
 
  	TODO
 
@@ -75,13 +75,13 @@ vips_vector_error( VipsVector *vector )
 #ifdef HAVE_ORC
 #ifdef HAVE_ORC_PROGRAM_GET_ERROR
 	if( vector->program )
-		g_warning( "orc error: %s", 
-			orc_program_get_error( vector->program ) ); 
+		g_warning( "orc error: %s",
+			orc_program_get_error( vector->program ) );
 #endif /*HAVE_ORC_PROGRAM_GET_ERROR*/
 #endif /*HAVE_ORC*/
 }
 
-void 
+void
 vips_vector_init( void )
 {
 #ifdef HAVE_ORC
@@ -94,7 +94,7 @@ vips_vector_init( void )
 	/* You can also do ORC_DEBUG=99 at the command-line.
 	 */
 #ifdef DEBUG_TRACE
-	printf( "orc_debug_set_level( 99 );\n" ); 
+	printf( "orc_debug_set_level( 99 );\n" );
 #endif /*DEBUG_TRACE*/
 	orc_debug_set_level( 99 );
 #endif /*DEBUG_ORC*/
@@ -112,7 +112,7 @@ vips_vector_init( void )
 #endif /*HAVE_ORC*/
 }
 
-gboolean 
+gboolean
 vips_vector_isenabled( void )
 {
 #ifdef HAVE_ORC
@@ -122,7 +122,7 @@ vips_vector_isenabled( void )
 #endif /*HAVE_ORC*/
 }
 
-void 
+void
 vips_vector_set_enabled( gboolean enabled )
 {
 	vips__vector_enabled = enabled;
@@ -133,7 +133,7 @@ vips_vector_free( VipsVector *vector )
 {
 #ifdef HAVE_ORC
 	/* orc-0.4.19 will crash if you free programs. Update your orc, or
-	 * comment out this line. 
+	 * comment out this line.
 	 *
 	 * See https://bugzilla.gnome.org/show_bug.cgi?id=731227
 	 *
@@ -141,8 +141,8 @@ vips_vector_free( VipsVector *vector )
 	 * free automatically.
 	 */
 #ifdef DEBUG_TRACE
-	printf( "orc_program_free( %s );\n", vector->unique_name ); 
-	printf( "%s = NULL;\n", vector->unique_name ); 
+	printf( "orc_program_free( %s );\n", vector->unique_name );
+	printf( "%s = NULL;\n", vector->unique_name );
 #endif /*DEBUG_TRACE*/
 	VIPS_FREEF( orc_program_free, vector->program );
 #endif /*HAVE_ORC*/
@@ -191,15 +191,15 @@ vips_vector_new( const char *name, int dsize )
 	 *
 	 * Don't check error return. orc uses 0 to mean error, but the first
 	 * var you create will have id 0 :-( The first var is unlikely to fail
-	 * anyway. 
+	 * anyway.
 	 */
-	vector->d1 = vips_vector_destination( vector, "d1", dsize ); 
+	vector->d1 = vips_vector_destination( vector, "d1", dsize );
 
 	return( vector );
 }
 
-void 
-vips_vector_asm2( VipsVector *vector, 
+void
+vips_vector_asm2( VipsVector *vector,
 	const char *op, const char *a, const char *b )
 {
 	vector->n_instruction += 1;
@@ -211,14 +211,14 @@ vips_vector_asm2( VipsVector *vector,
 #ifdef HAVE_ORC
 #ifdef DEBUG_TRACE
 	printf( "orc_program_append_ds_str( %s, \"%s\", \"%s\", \"%s\" );\n",
-		vector->unique_name, op, a, b ); 
+		vector->unique_name, op, a, b );
 #endif /*DEBUG_TRACE*/
 	 orc_program_append_ds_str( vector->program, op, a, b );
 #endif /*HAVE_ORC*/
 }
 
-void 
-vips_vector_asm3( VipsVector *vector, 
+void
+vips_vector_asm3( VipsVector *vector,
 	const char *op, const char *a, const char *b, const char *c )
 {
 	vector->n_instruction += 1;
@@ -231,7 +231,7 @@ vips_vector_asm3( VipsVector *vector,
 #ifdef DEBUG_TRACE
 	printf( "orc_program_append_str( %s, \"%s\", "
 		"\"%s\", \"%s\", \"%s\" );\n",
-		vector->unique_name, op, a, b, c ); 
+		vector->unique_name, op, a, b, c );
 #endif /*DEBUG_TRACE*/
 	 orc_program_append_str( vector->program, op, a, b, c );
 #endif /*HAVE_ORC*/
@@ -264,10 +264,10 @@ vips_vector_constant( VipsVector *vector, char *name, int value, int size )
 
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
 #ifdef DEBUG_TRACE
-		printf( "orc_program_add_constant( %s, %d, %d, \"%s\" );\n", 
-			vector->unique_name, size, value, name ); 
+		printf( "orc_program_add_constant( %s, %d, %d, \"%s\" );\n",
+			vector->unique_name, size, value, name );
 #endif /*DEBUG_TRACE*/
-		if( !orc_program_add_constant( vector->program, 
+		if( !orc_program_add_constant( vector->program,
 			size, value, name ) )
 			vips_vector_error( vector );
 		vector->n_constant += 1;
@@ -276,7 +276,7 @@ vips_vector_constant( VipsVector *vector, char *name, int value, int size )
 }
 
 void
-vips_vector_source_scanline( VipsVector *vector, 
+vips_vector_source_scanline( VipsVector *vector,
 	char *name, int line, int size )
 {
 #ifdef HAVE_ORC
@@ -285,8 +285,8 @@ vips_vector_source_scanline( VipsVector *vector,
 	if( orc_program_find_var_by_name( vector->program, name ) == -1 ) {
 		int var;
 
-		if( !(var = orc_program_add_source( vector->program, 
-			size, name )) ) 
+		if( !(var = orc_program_add_source( vector->program,
+			size, name )) )
 			vips_vector_error( vector );
 #ifdef DEBUG_TRACE
 		printf( "orc_program_add_source( %s, %d, \"%s\" );\n",
@@ -308,10 +308,10 @@ vips_vector_source_name( VipsVector *vector, const char *name, int size )
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
 	if( !(var = orc_program_add_source( vector->program, size, name )) )
-		vips_vector_error( vector ); 
+		vips_vector_error( vector );
 	vector->s[vector->n_source] = var;
 #ifdef DEBUG_TRACE
-	printf( "orc_program_add_source( %s, %d, \"%s\" );\n", 
+	printf( "orc_program_add_source( %s, %d, \"%s\" );\n",
 		vector->unique_name, size, name );
 #endif /*DEBUG_TRACE*/
 	vector->n_source += 1;
@@ -329,7 +329,7 @@ vips_vector_temporary( VipsVector *vector, const char *name, int size )
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
 
 	if( !orc_program_add_temporary( vector->program, size, name ) )
-		vips_vector_error( vector ); 
+		vips_vector_error( vector );
 
 #ifdef DEBUG_TRACE
 	printf( "orc_program_add_temporary( %s, %d, \"%s\" );\n",
@@ -349,7 +349,7 @@ vips_vector_parameter( VipsVector *vector, const char *name, int size )
 
 	var = orc_program_add_parameter( vector->program, size, name );
 	if( !var )
-		vips_vector_error( vector ); 
+		vips_vector_error( vector );
 
 #ifdef DEBUG_TRACE
 	printf( "orc_program_add_parameter( %s, %d, \"%s\" );\n",
@@ -360,7 +360,7 @@ vips_vector_parameter( VipsVector *vector, const char *name, int size )
 	var = -1;
 #endif /*HAVE_ORC*/
 
-	return ( var ); 
+	return ( var );
 }
 
 int
@@ -381,7 +381,7 @@ vips_vector_destination( VipsVector *vector, const char *name, int size )
 	var = -1;
 #endif /*HAVE_ORC*/
 
-	return( var ); 
+	return( var );
 }
 
 gboolean
@@ -403,12 +403,12 @@ vips_vector_full( VipsVector *vector )
 	if( vector->n_source + vector->n_scanline + 1 > 7 /*ORC_MAX_SRC_VARS - 1*/ )
 		return( TRUE );
 
-	/* Need to leave some space, so 1 spare. 
+	/* Need to leave some space, so 1 spare.
 	 */
 	if( vector->n_parameter > 7 /*ORC_MAX_PARAM_VARS - 1*/ )
 		return( TRUE );
 
-	/* After signalling full, some operations will add up to 4 more 
+	/* After signalling full, some operations will add up to 4 more
 	 * instructions as they finish up. Leave a margin.
 	 */
 	if( vector->n_instruction + 10 > 50 /*ORC_N_INSNS / 2*/ )
@@ -458,8 +458,8 @@ vips_vector_print( VipsVector *vector )
 		printf( "not compiled\n" );
 	printf( "  n_scanline = %d\n", vector->n_scanline );
 	for( i = 0; i < vector->n_scanline; i++ )
-		printf( "        var %d = line %d\n", 
-			vector->sl[i], vector->line[i] ); 
+		printf( "        var %d = line %d\n",
+			vector->sl[i], vector->line[i] );
 	printf( "  n_source = %d\n", vector->n_source );
 	for( i = 0; i < vector->n_source; i++ )
 		printf( "        var %d\n", vector->s[i] );
@@ -485,7 +485,7 @@ void
 vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 {
 #ifdef HAVE_ORC
-	if( var != -1 )  
+	if( var != -1 )
 		orc_executor_set_array( &executor->executor, var, value );
 #endif /*HAVE_ORC*/
 }
@@ -494,13 +494,13 @@ void
 vips_executor_set_parameter( VipsExecutor *executor, int var, int value )
 {
 #ifdef HAVE_ORC
-	if( var != -1 )  
+	if( var != -1 )
 		orc_executor_set_param( &executor->executor, var, value );
 #endif /*HAVE_ORC*/
 }
 
 void
-vips_executor_set_scanline( VipsExecutor *executor, 
+vips_executor_set_scanline( VipsExecutor *executor,
 	VipsRegion *ir, int x, int y )
 {
 	VipsVector *vector = executor->vector;
@@ -509,8 +509,8 @@ vips_executor_set_scanline( VipsExecutor *executor,
 
 	int i;
 
-	for( i = 0; i < vector->n_scanline; i++ ) 
-		vips_executor_set_array( executor, 
+	for( i = 0; i < vector->n_scanline; i++ )
+		vips_executor_set_array( executor,
 			vector->sl[i], base + vector->line[i] * lsk );
 }
 
@@ -530,8 +530,8 @@ vips_executor_run( VipsExecutor *executor )
 #endif /*HAVE_ORC*/
 }
 
-/* Make a fixed-point version of a matrix. Each 
- * out[i] = rint(in[i] * adj_scale), where adj_scale is selected so that 
+/* Make a fixed-point version of a matrix. Each
+ * out[i] = rint(in[i] * adj_scale), where adj_scale is selected so that
  * sum(out) = sum(in) * scale.
  *
  * Because of the vagaries of rint(), we can't just calc this, we have to
@@ -564,7 +564,7 @@ vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 	do {
 		guess = (high + low) / 2.0;
 
-		for( i = 0; i < n; i++ ) 
+		for( i = 0; i < n; i++ )
 			out[i] = VIPS_RINT( in[i] * guess );
 
 		sum = 0;
@@ -592,7 +592,7 @@ vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 		 *	1 1 1
 		 *
 		 * being converted with scale = 64 (convi does this). We want
-		 * to generate a mix of 7s and 8s. 
+		 * to generate a mix of 7s and 8s.
 		 */
 		int each_error = (target - sum) / n;
 		int extra_error = (target - sum) % n;

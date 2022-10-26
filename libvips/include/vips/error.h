@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -56,7 +56,7 @@ VIPS_API
 void vips_error_system( int err, const char *domain, const char *fmt, ... )
 	G_GNUC_PRINTF( 3, 4 );
 VIPS_API
-void vips_verror_system( int err, const char *domain, 
+void vips_verror_system( int err, const char *domain,
 	const char *fmt, va_list ap );
 VIPS_API
 void vips_error_g( GError **error );
@@ -132,7 +132,7 @@ VIPS_API
 int vips_check_separable( const char *domain, VipsImage *im );
 
 VIPS_API
-int vips_check_precision_intfloat( const char *domain, 
+int vips_check_precision_intfloat( const char *domain,
 	VipsPrecision precision );
 
 #ifdef __cplusplus

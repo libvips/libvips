@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -73,10 +73,10 @@
 gboolean vips__cache_dump = FALSE;
 gboolean vips__cache_trace = FALSE;
 
-/* Max number of cached operations. 
+/* Max number of cached operations.
  *
  * It was 10,000, but this was too high for batch-style applications with
- * little reuse. 
+ * little reuse.
  */
 static int vips_cache_max = 100;
 
@@ -132,7 +132,7 @@ typedef struct _VipsOperationCacheEntry {
 
 } VipsOperationCacheEntry;
 
-/* Pass in the pspec so we can get the generic type. For example, a 
+/* Pass in the pspec so we can get the generic type. For example, a
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
  */
@@ -204,21 +204,21 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 		return( p ? g_direct_hash( p ) : 0 );
 	}
 	else {
-		/* Fallback: convert to a string and hash that. 
-		 * This is very slow, print a warning if we use it 
+		/* Fallback: convert to a string and hash that.
+		 * This is very slow, print a warning if we use it
 		 * so we can add another case.
 		 */
 		char *s;
 		unsigned int hash;
 
-		s = g_strdup_value_contents( value ); 
+		s = g_strdup_value_contents( value );
 		hash = g_str_hash( s );
 
 		printf( "vips_value_hash: no case for %s\n", s );
-		printf( "\ttype %d, %s\n", 
+		printf( "\ttype %d, %s\n",
 			(int) G_VALUE_TYPE( value ),
 			g_type_name( G_VALUE_TYPE( value ) ) );
-		printf( "\tgeneric %d, %s\n", 
+		printf( "\tgeneric %d, %s\n",
 			(int) G_VALUE_TYPE( generic ),
 			g_type_name( generic ) );
 
@@ -228,11 +228,11 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	}
 }
 
-/* Pass in the pspec so we can get the generic type. For example, a 
- * value could be held in a GParamSpec allowing OBJECT, but the value 
+/* Pass in the pspec so we can get the generic type. For example, a
+ * value could be held in a GParamSpec allowing OBJECT, but the value
  * could be of type VipsImage. generics are much faster to compare.
  */
-static gboolean 
+static gboolean
 vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 {
 	GType generic = G_PARAM_SPEC_TYPE( pspec );
@@ -246,43 +246,43 @@ vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 	 * make a table at run time I guess.
 	 */
 
-	if( generic == G_TYPE_PARAM_BOOLEAN ) 
-		return( g_value_get_boolean( v1 ) == 
+	if( generic == G_TYPE_PARAM_BOOLEAN )
+		return( g_value_get_boolean( v1 ) ==
 			g_value_get_boolean( v2 ) );
-	else if( generic == G_TYPE_PARAM_CHAR ) 
+	else if( generic == G_TYPE_PARAM_CHAR )
 		return( g_value_get_schar( v1 ) ==
 			g_value_get_schar( v2 ) );
-	if( generic == G_TYPE_PARAM_UCHAR ) 
+	if( generic == G_TYPE_PARAM_UCHAR )
 		return( g_value_get_uchar( v1 ) ==
 			g_value_get_uchar( v2 ) );
-	if( generic == G_TYPE_PARAM_INT ) 
+	if( generic == G_TYPE_PARAM_INT )
 		return( g_value_get_int( v1 ) ==
 			g_value_get_int( v2 ) );
-	if( generic == G_TYPE_PARAM_UINT ) 
+	if( generic == G_TYPE_PARAM_UINT )
 		return( g_value_get_uint( v1 ) ==
 			g_value_get_uint( v2 ) );
-	if( generic == G_TYPE_PARAM_LONG ) 
+	if( generic == G_TYPE_PARAM_LONG )
 		return( g_value_get_long( v1 ) ==
 			g_value_get_long( v2 ) );
-	if( generic == G_TYPE_PARAM_ULONG ) 
+	if( generic == G_TYPE_PARAM_ULONG )
 		return( g_value_get_ulong( v1 ) ==
 			g_value_get_ulong( v2 ) );
-	if( generic == G_TYPE_PARAM_ENUM ) 
+	if( generic == G_TYPE_PARAM_ENUM )
 		return( g_value_get_enum( v1 ) ==
 			g_value_get_enum( v2 ) );
-	if( generic == G_TYPE_PARAM_FLAGS ) 
+	if( generic == G_TYPE_PARAM_FLAGS )
 		return( g_value_get_flags( v1 ) ==
 			g_value_get_flags( v2 ) );
-	if( generic == G_TYPE_PARAM_UINT64 ) 
+	if( generic == G_TYPE_PARAM_UINT64 )
 		return( g_value_get_uint64( v1 ) ==
 			g_value_get_uint64( v2 ) );
-	if( generic == G_TYPE_PARAM_INT64 ) 
+	if( generic == G_TYPE_PARAM_INT64 )
 		return( g_value_get_int64( v1 ) ==
 			g_value_get_int64( v2 ) );
-	if( generic == G_TYPE_PARAM_FLOAT ) 
+	if( generic == G_TYPE_PARAM_FLOAT )
 		return( g_value_get_float( v1 ) ==
 			g_value_get_float( v2 ) );
-	if( generic == G_TYPE_PARAM_DOUBLE ) 
+	if( generic == G_TYPE_PARAM_DOUBLE )
 		return( g_value_get_double( v1 ) ==
 			g_value_get_double( v2 ) );
 	if( generic == G_TYPE_PARAM_STRING ) {
@@ -294,33 +294,33 @@ vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 		else
 			return( s1 && s2 && strcmp( s1, s2 ) == 0 );
 	}
-	if( generic == G_TYPE_PARAM_BOXED ) 
+	if( generic == G_TYPE_PARAM_BOXED )
 		return( g_value_get_boxed( v1 ) ==
 			g_value_get_boxed( v2 ) );
-	if( generic == G_TYPE_PARAM_POINTER ) 
+	if( generic == G_TYPE_PARAM_POINTER )
 		return( g_value_get_pointer( v1 ) ==
 			g_value_get_pointer( v2 ) );
-	if( generic == G_TYPE_PARAM_OBJECT ) 
+	if( generic == G_TYPE_PARAM_OBJECT )
 		return( g_value_get_object( v1 ) ==
 			g_value_get_object( v2 ) );
 	else {
-		/* Fallback: convert to a string and compare that. 
-		 * This is very slow, print a warning if we use it 
+		/* Fallback: convert to a string and compare that.
+		 * This is very slow, print a warning if we use it
 		 * so we can add another case.
 		 */
 		char *s1;
 		char *s2;
 		gboolean equal;
 
-		s1 = g_strdup_value_contents( v1 ); 
-		s2 = g_strdup_value_contents( v2 ); 
+		s1 = g_strdup_value_contents( v1 );
+		s2 = g_strdup_value_contents( v2 );
 		equal = strcmp( s1, s2 ) == 0;
 
-		printf( "vips_value_equal: no case for %s, %s\n", 
+		printf( "vips_value_equal: no case for %s, %s\n",
 			s1, s2 );
 		printf( "\tt1 %d, %s\n", (int) t1, g_type_name( t1 ) );
 		printf( "\tt2 %d, %s\n", (int) t2, g_type_name( t2 ) );
-		printf( "\tgeneric %d, %s\n", 
+		printf( "\tgeneric %d, %s\n",
 			(int) G_VALUE_TYPE( generic ),
 			g_type_name( generic ) );
 
@@ -348,7 +348,7 @@ vips_object_hash_arg( VipsObject *object,
 		GValue value = { 0, };
 
 		g_value_init( &value, type );
-		g_object_get_property( G_OBJECT( object ), name, &value ); 
+		g_object_get_property( G_OBJECT( object ), name, &value );
 		*hash = (*hash << 1) ^ vips_value_hash( pspec, &value );
 		g_value_unset( &value );
 	}
@@ -401,7 +401,7 @@ vips_object_equal_arg( VipsObject *object,
 	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
 		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
-		!argument_instance->assigned ) 
+		!argument_instance->assigned )
 		return( NULL );
 
 	/* If this is an optional arg, we need to check that this was
@@ -412,32 +412,32 @@ vips_object_equal_arg( VipsObject *object,
 		/* Optional and was not set on other ... we've found a
 		 * difference!
 		 */
-		return( object ); 
+		return( object );
 
 	g_value_init( &v1, type );
 	g_value_init( &v2, type );
-	g_object_get_property( G_OBJECT( object ), name, &v1 ); 
-	g_object_get_property( G_OBJECT( other ), name, &v2 ); 
+	g_object_get_property( G_OBJECT( object ), name, &v1 );
+	g_object_get_property( G_OBJECT( other ), name, &v2 );
 	equal = vips_value_equal( pspec, &v1, &v2 );
 	g_value_unset( &v1 );
 	g_value_unset( &v2 );
 
 	/* Stop (return non-NULL) if we've found a difference.
 	 */
-	return( !equal ? object : NULL ); 
+	return( !equal ? object : NULL );
 }
 
 /* Are two objects equal, ie. have the same inputs.
  */
-static gboolean 
+static gboolean
 vips_operation_equal( VipsOperation *a, VipsOperation *b )
 {
-	if( a == b ) 
+	if( a == b )
 		return( TRUE );
 
 	if( G_OBJECT_TYPE( a ) == G_OBJECT_TYPE( b ) &&
 		vips_operation_hash( a ) == vips_operation_hash( b ) &&
-		!vips_argument_map( VIPS_OBJECT( a ), 
+		!vips_argument_map( VIPS_OBJECT( a ),
 			vips_object_equal_arg, b, NULL ) )
 		return( TRUE );
 
@@ -449,11 +449,11 @@ vips__cache_once_init( void *data )
 {
 	vips_cache_lock = vips_g_mutex_new();
 
-	vips_cache_table = g_hash_table_new( 
-		(GHashFunc) vips_operation_hash, 
+	vips_cache_table = g_hash_table_new(
+		(GHashFunc) vips_operation_hash,
 		(GEqualFunc) vips_operation_equal );
 
-	return( NULL ); 
+	return( NULL );
 }
 
 void
@@ -519,7 +519,7 @@ vips_object_unref_arg( VipsObject *object,
 
 		/* This will up the ref count for us.
 		 */
-		g_object_get( G_OBJECT( object ), 
+		g_object_get( G_OBJECT( object ),
 			g_param_spec_get_name( pspec ), &value, NULL );
 
 		/* Drop the ref we just got, then drop the ref we make when we
@@ -558,9 +558,9 @@ vips_cache_remove( VipsOperation *operation )
 	vips_object_print_summary( VIPS_OBJECT( operation ) );
 #endif /*DEBUG*/
 
-	g_assert( entry ); 
+	g_assert( entry );
 
-	if( entry->invalidate_id ) { 
+	if( entry->invalidate_id ) {
 		g_signal_handler_disconnect( operation, entry->invalidate_id );
 		entry->invalidate_id = 0;
 	}
@@ -586,7 +586,7 @@ vips_object_ref_arg( VipsObject *object,
 
 		/* This will up the ref count for us.
 		 */
-		g_object_get( G_OBJECT( object ), 
+		g_object_get( G_OBJECT( object ),
 			g_param_spec_get_name( pspec ), &value, NULL );
 	}
 
@@ -604,12 +604,12 @@ vips_operation_touch( VipsOperation *operation )
 	/* Don't up the time for invalid items -- we want them to fall out of
 	 * cache.
 	 */
-	if( !entry->invalid ) 
+	if( !entry->invalid )
 		entry->time = vips_cache_time;
 }
 
-/* Ref an operation for the cache. The operation itself, plus all the output 
- * objects it makes. 
+/* Ref an operation for the cache. The operation itself, plus all the output
+ * objects it makes.
  */
 static void
 vips_cache_ref( VipsOperation *operation )
@@ -626,7 +626,7 @@ vips_cache_ref( VipsOperation *operation )
 }
 
 static void
-vips_cache_invalidate_cb( VipsOperation *operation, 
+vips_cache_invalidate_cb( VipsOperation *operation,
 	VipsOperationCacheEntry *entry )
 {
 #ifdef DEBUG
@@ -658,8 +658,8 @@ vips_cache_insert( VipsOperation *operation )
 	/* If the operation signals "invalidate", we must tag this cache entry
 	 * for removal.
 	 */
-	entry->invalidate_id = g_signal_connect( operation, "invalidate", 
-		G_CALLBACK( vips_cache_invalidate_cb ), entry ); 
+	entry->invalidate_id = g_signal_connect( operation, "invalidate",
+		G_CALLBACK( vips_cache_invalidate_cb ), entry );
 }
 
 static void *
@@ -676,11 +676,11 @@ vips_cache_get_first( void )
 	VipsOperationCacheEntry *entry;
 
 	if( vips_cache_table &&
-		(entry = vips_hash_table_map( vips_cache_table, 
+		(entry = vips_hash_table_map( vips_cache_table,
 			vips_cache_get_first_fn, NULL, NULL )) )
 		return( VIPS_OPERATION( entry->operation ) );
 
-	return( NULL ); 
+	return( NULL );
 }
 
 /**
@@ -708,7 +708,7 @@ vips_cache_drop_all( void )
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
-		while( (operation = vips_cache_get_first()) ) 
+		while( (operation = vips_cache_get_first()) )
 			vips_cache_remove( operation );
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
@@ -718,7 +718,7 @@ vips_cache_drop_all( void )
 }
 
 static void
-vips_cache_get_lru_cb( VipsOperation *key, VipsOperationCacheEntry *value, 
+vips_cache_get_lru_cb( VipsOperation *key, VipsOperationCacheEntry *value,
 	VipsOperationCacheEntry **best )
 {
 	if( !*best ||
@@ -726,7 +726,7 @@ vips_cache_get_lru_cb( VipsOperation *key, VipsOperationCacheEntry *value,
 		*best = value;
 }
 
-/* Get the least-recently-used cache item. 
+/* Get the least-recently-used cache item.
  *
  * TODO ... will this be too expensive? probably not
  */
@@ -742,7 +742,7 @@ vips_cache_get_lru( void )
 	if( entry )
 		return( entry->operation );
 
-	return( NULL ); 
+	return( NULL );
 }
 
 /* Is the cache full? Drop until it's not.
@@ -774,7 +774,7 @@ vips_cache_trim( void )
  * vips_cache_operation_lookup:
  * @operation: (transfer none): pointer to operation to lookup
  *
- * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
+ * Look up an unbuilt @operation in the cache. If we get a hit, ref and
  * return the old operation. If there's no hit, return NULL.
  *
  * Returns: (transfer full): the cache hit, if any.
@@ -786,7 +786,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	VipsOperation *result;
 
 	g_assert( VIPS_IS_OPERATION( operation ) );
-	g_assert( !VIPS_OBJECT( operation )->constructed ); 
+	g_assert( !VIPS_OBJECT( operation )->constructed );
 
 #ifdef VIPS_DEBUG
 	printf( "vips_cache_operation_lookup: " );
@@ -799,8 +799,8 @@ vips_cache_operation_lookup( VipsOperation *operation )
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
 		if( hit->invalid ||
-                        (VIPS_OPERATION_GET_CLASS( hit->operation )->flags &
-                                VIPS_OPERATION_BLOCKED) ) {
+			(VIPS_OPERATION_GET_CLASS( hit->operation )->flags &
+				VIPS_OPERATION_BLOCKED) ) {
 			/* Has been tagged for removal, or has been blocked.
 			 */
 			vips_cache_remove( hit->operation );
@@ -809,7 +809,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
 		else {
 			if( vips__cache_trace ) {
 				printf( "vips cache*: " );
-				vips_object_print_summary( 
+				vips_object_print_summary(
 					VIPS_OBJECT( operation ) );
 			}
 
@@ -831,12 +831,12 @@ vips_cache_operation_lookup( VipsOperation *operation )
  * vips_cache_operation_add:
  * @operation: (transfer none): pointer to operation to add
  *
- * Add a built operation to the cache. The cache will ref the operation. 
+ * Add a built operation to the cache. The cache will ref the operation.
  */
 void
 vips_cache_operation_add( VipsOperation *operation )
 {
-	g_assert( VIPS_OBJECT( operation )->constructed ); 
+	g_assert( VIPS_OBJECT( operation )->constructed );
 
 	g_mutex_lock( vips_cache_lock );
 
@@ -845,12 +845,12 @@ vips_cache_operation_add( VipsOperation *operation )
 	vips_object_print_dump( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
-	/* If two threads call the same operation at the same time, 
+	/* If two threads call the same operation at the same time,
 	 * we can get multiple adds. Let the first one win. See
 	 * https://github.com/libvips/libvips/pull/181
 	 */
 	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
-		VipsOperationFlags flags = 
+		VipsOperationFlags flags =
 			vips_operation_get_flags( operation );
 		gboolean nocache = flags & VIPS_OPERATION_NOCACHE;
 
@@ -864,7 +864,7 @@ vips_cache_operation_add( VipsOperation *operation )
 			vips_object_print_summary( VIPS_OBJECT( operation ) );
 		}
 
-		if( !nocache ) 
+		if( !nocache )
 			vips_cache_insert( operation );
 	}
 
@@ -878,7 +878,7 @@ vips_cache_operation_add( VipsOperation *operation )
  * @operation: pointer to operation to lookup
  *
  * Look up @operation in the cache. If we get a hit, unref @operation, ref the
- * old one and return that through the argument pointer. 
+ * old one and return that through the argument pointer.
  *
  * If we miss, build and add @operation.
  *
@@ -909,10 +909,10 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		printf( "vips_cache_operation_buildp: cache miss, building\n" );
 #endif /*VIPS_DEBUG*/
 
-		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
+		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
 			return( -1 );
 
-		vips_cache_operation_add( *operation ); 
+		vips_cache_operation_add( *operation );
 	}
 
 	return( 0 );
@@ -952,7 +952,7 @@ vips_cache_operation_build( VipsOperation *operation )
  * vips_cache_set_max:
  * @max: maximum number of operation to cache
  *
- * Set the maximum number of operations we keep in cache. 
+ * Set the maximum number of operations we keep in cache.
  */
 void
 vips_cache_set_max( int max )
@@ -963,16 +963,16 @@ vips_cache_set_max( int max )
 
 /**
  * vips_cache_set_max_mem:
- * @max_mem: maximum amount of tracked memory we use 
+ * @max_mem: maximum amount of tracked memory we use
  *
  * Set the maximum amount of tracked memory we allow before we start dropping
  * cached operations. See vips_tracked_get_mem().
  *
  * libvips only tracks memory it allocates, it can't track memory allocated by
  * external libraries. If you use an operation like vips_magickload(), most of
- * the memory it uses won't be included. 
+ * the memory it uses won't be included.
  *
- * See also: vips_tracked_get_mem(). 
+ * See also: vips_tracked_get_mem().
  */
 void
 vips_cache_set_max_mem( size_t max_mem )
@@ -984,7 +984,7 @@ vips_cache_set_max_mem( size_t max_mem )
 /**
  * vips_cache_get_max:
  *
- * Get the maximum number of operations we keep in cache. 
+ * Get the maximum number of operations we keep in cache.
  *
  * Returns: the maximum number of operations we keep in cache
  */
@@ -997,7 +997,7 @@ vips_cache_get_max( void )
 /**
  * vips_cache_get_size:
  *
- * Get the current number of operations in cache. 
+ * Get the current number of operations in cache.
  *
  * Returns: get the current number of operations in cache.
  */
@@ -1023,7 +1023,7 @@ vips_cache_get_size( void )
  * Get the maximum amount of tracked memory we allow before we start dropping
  * cached operations. See vips_tracked_get_mem().
  *
- * See also: vips_tracked_get_mem(). 
+ * See also: vips_tracked_get_mem().
  *
  * Returns: the maximum amount of tracked memory we allow
  */
@@ -1039,11 +1039,11 @@ vips_cache_get_max_mem( void )
  * Get the maximum number of tracked files we allow before we start dropping
  * cached operations. See vips_tracked_get_files().
  *
- * libvips only tracks file descriptors it allocates, it can't track ones 
- * allocated by external libraries. If you use an operation like 
- * vips_magickload(), most of the descriptors it uses won't be included. 
+ * libvips only tracks file descriptors it allocates, it can't track ones
+ * allocated by external libraries. If you use an operation like
+ * vips_magickload(), most of the descriptors it uses won't be included.
  *
- * See also: vips_tracked_get_files(). 
+ * See also: vips_tracked_get_files().
  *
  * Returns: the maximum number of tracked files we allow
  */
@@ -1060,7 +1060,7 @@ vips_cache_get_max_files( void )
  * Set the maximum number of tracked files we allow before we start dropping
  * cached operations. See vips_tracked_get_files().
  *
- * See also: vips_tracked_get_files(). 
+ * See also: vips_tracked_get_files().
  */
 void
 vips_cache_set_max_files( int max_files )
@@ -1075,7 +1075,7 @@ vips_cache_set_max_files( int max_files )
  *
  * Handy for debugging. Print the operation cache to stdout just before exit.
  *
- * See also: vips_cache_set_trace(). 
+ * See also: vips_cache_set_trace().
  */
 void
 vips_cache_set_dump( gboolean dump )
@@ -1085,14 +1085,14 @@ vips_cache_set_dump( gboolean dump )
 
 /**
  * vips_cache_set_trace:
- * @trace: if %TRUE, trace the operation cache 
+ * @trace: if %TRUE, trace the operation cache
  *
  * Handy for debugging. Print operation cache actions to stdout as we run.
  *
  * You can set the environment variable `VIPS_TRACE` to turn this option on, or
  * use the command-line flag `--vips-cache-trace`.
  *
- * See also: vips_cache_set_dump(). 
+ * See also: vips_cache_set_dump().
  */
 void
 vips_cache_set_trace( gboolean trace )

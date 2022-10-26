@@ -28,7 +28,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -99,13 +99,13 @@ vips_getpoint_build( VipsObject *object )
 
 	/* Crop, decode and unpack to double.
 	 */
-	if( vips_crop( getpoint->in, &t[0], 
+	if( vips_crop( getpoint->in, &t[0],
 		getpoint->x, getpoint->y, 1, 1, NULL ) ||
 		vips_image_decode( t[0], &t[1] ) ||
 		vips_cast( t[1], &t[2], VIPS_FORMAT_DOUBLE, NULL ) )
 		return( -1 );
 
-	/* To a mem buffer, then copy to out. 
+	/* To a mem buffer, then copy to out.
 	 */
 	vips_image_set_int( t[2], "hide-progress", 1 );
 	if( !(t[3] = vips_image_new_memory()) ||
@@ -117,7 +117,7 @@ vips_getpoint_build( VipsObject *object )
 	memcpy( vector, t[3]->data, VIPS_IMAGE_SIZEOF_PEL( t[3] ) );
 
 	out_array = vips_array_double_new( vector, t[3]->Bands );
-	g_object_set( object, 
+	g_object_set( object,
 		"out_array", out_array,
 		NULL );
 	vips_area_unref( VIPS_AREA( out_array ) );
@@ -139,27 +139,27 @@ vips_getpoint_class_init( VipsGetpointClass *class )
 	object_class->build = vips_getpoint_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "Input" ), 
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, in ) );
 
-	VIPS_ARG_BOXED( class, "out_array", 2, 
-		_( "Output array" ), 
+	VIPS_ARG_BOXED( class, "out_array", 2,
+		_( "Output array" ),
 		_( "Array of output values" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, out_array ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_INT( class, "x", 5, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 5,
+		_( "x" ),
 		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, x ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "y", 6, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 6,
+		_( "y" ),
 		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, y ),
@@ -181,7 +181,7 @@ vips_getpoint_init( VipsGetpoint *getpoint )
  * @y: position to read
  * @...: %NULL-terminated list of optional named arguments
  *
- * Reads a single pixel on an image. 
+ * Reads a single pixel on an image.
  *
  * The pixel values are returned in @vector, the length of the
  * array in @n. You must free the array with g_free() when you are done with
@@ -204,7 +204,7 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 	va_end( ap );
 
 	if( result )
-		return( -1 ); 
+		return( -1 );
 
 	area = VIPS_AREA( out_array );
 	*vector = VIPS_ARRAY( NULL, area->n, double );
@@ -212,9 +212,9 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 		vips_area_unref( area );
 		return( -1 );
 	}
-	memcpy( *vector, area->data, area->n * area->sizeof_type ); 
+	memcpy( *vector, area->data, area->n * area->sizeof_type );
 	*n = area->n;
-        vips_area_unref( area );
+	vips_area_unref( area );
 
 	return( 0 );
 }

@@ -162,7 +162,7 @@ vips_foreign_save_jp2k_target_seek( off_t position, void *client )
 	return( TRUE );
 }
 
-static OPJ_OFF_T 
+static OPJ_OFF_T
 vips_foreign_save_jp2k_target_skip( off_t offset, void *client)
 {
 	VipsTarget *target = VIPS_TARGET( client );
@@ -170,7 +170,7 @@ vips_foreign_save_jp2k_target_skip( off_t offset, void *client)
 	if( vips_target_seek( target, offset, SEEK_CUR ) < 0 )
 		return( -1 );
 
-        return( offset );
+	return( offset );
 }
 
 /* Make a libopenjp2 output stream that wraps a VipsTarget.
@@ -615,15 +615,15 @@ vips_opj_image_create( OPJ_UINT32 numcmpts,
 	if( !(image = VIPS_OPJ_CALLOC( 1, opj_image_t )) )
 		return( NULL );
 
-        image->color_space = clrspc;
-        image->numcomps = numcmpts;
-        image->comps = VIPS_OPJ_CALLOC( image->numcomps, opj_image_comp_t );
-        if( !image->comps ) {
-            opj_image_destroy( image );
-            return( NULL );
-        }
+	image->color_space = clrspc;
+	image->numcomps = numcmpts;
+	image->comps = VIPS_OPJ_CALLOC( image->numcomps, opj_image_comp_t );
+	if( !image->comps ) {
+	    opj_image_destroy( image );
+	    return( NULL );
+	}
 
-        for( compno = 0; compno < numcmpts; compno++ ) {
+	for( compno = 0; compno < numcmpts; compno++ ) {
 		opj_image_comp_t *comp = &image->comps[compno];
 
 		comp->dx = cmptparms[compno].dx;
@@ -646,7 +646,7 @@ vips_opj_image_create( OPJ_UINT32 numcmpts,
 		 */
 		if( allocate ) {
 			size_t bytes = (size_t) comp->w * comp->h *
-                                sizeof( OPJ_INT32 );
+				sizeof( OPJ_INT32 );
 
 			comp->data = (OPJ_INT32*) opj_image_data_alloc( bytes );
 			if( !comp->data ) {
@@ -875,8 +875,8 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	/* Set up compressor.
 	 */
 
-        /* Save as a jp2 file.
-         */
+	/* Save as a jp2 file.
+	 */
 	jp2k->codec = opj_create_compress( OPJ_CODEC_JP2 );
 	vips_foreign_save_jp2k_attach_handlers( jp2k->codec );
 
@@ -887,7 +887,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		save->ready->Xsize, save->ready->Ysize,
 		jp2k->subsample, jp2k->save_as_ycc, FALSE )) )
 		return( -1 );
-        if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) )
+	if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) )
 		return( -1 );
 
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
@@ -916,7 +916,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	 * no ownership.
 	 */
 	jp2k->strip = vips_region_new( save->ready );
-        vips__region_no_ownership( jp2k->strip );
+	vips__region_no_ownership( jp2k->strip );
 
 	/* Position strip at the top of the image, the height of a row of
 	 * tiles.
@@ -1193,7 +1193,7 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
 /* Stuff we track during tile compress.
  */
 typedef struct _TileCompress {
-        opj_codec_t *codec;
+	opj_codec_t *codec;
 	opj_image_t *image;
 	opj_stream_t *stream;
 	VipsPel *accumulate;
@@ -1285,7 +1285,7 @@ vips_foreign_save_jp2k_unpack_image( VipsRegion *region, VipsRect *tile,
 
 		for( i = 0; i < b; i++ ) {
 			opj_image_comp_t *comp = &image->comps[i];
-                        int *q = comp->data + y * comp->w;
+			int *q = comp->data + y * comp->w;
 
 			switch( im->BandFmt ) {
 			case VIPS_FORMAT_CHAR:
@@ -1331,7 +1331,7 @@ int
 vips__foreign_load_jp2k_compress( VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
-        gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
+	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
 {
 	TileCompress compress = { 0 };
 	opj_cparameters_t parameters;
@@ -1372,11 +1372,11 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 		return( -1 );
 	}
 
-        /* tiff needs a jpeg2000 codestream, not a jp2 file.
-         */
+	/* tiff needs a jpeg2000 codestream, not a jp2 file.
+	 */
 	compress.codec = opj_create_compress( OPJ_CODEC_J2K );
 	vips_foreign_save_jp2k_attach_handlers( compress.codec );
-        if( !opj_setup_encoder( compress.codec,
+	if( !opj_setup_encoder( compress.codec,
 		&parameters, compress.image ) ) {
 		vips__foreign_load_jp2k_compress_free( &compress );
 		return( -1 );
@@ -1427,7 +1427,7 @@ int
 vips__foreign_load_jp2k_compress( VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
-        gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
+	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
 {
 	vips_error( "jp2k",
 		"%s", _( "libvips built without JPEG2000 support" ) );

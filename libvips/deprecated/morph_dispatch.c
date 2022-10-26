@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,7 +59,7 @@ profile_vec( im_object *argv )
 }
 
 /* Description of im_profile.
- */ 
+ */
 static im_function profile_desc = {
 	"im_profile",	 		/* Name */
 	"find first horizontal/vertical edge",	/* Descr. */
@@ -88,7 +88,7 @@ dilate_vec( im_object *argv )
 }
 
 /* Description of im_dilate.
- */ 
+ */
 static im_function dilate_desc = {
 	"im_dilate",	 		/* Name */
 	"dilate image with mask, adding a black border",
@@ -109,7 +109,7 @@ erode_vec( im_object *argv )
 }
 
 /* Description of im_erode.
- */ 
+ */
 static im_function erode_desc = {
 	"im_erode",	 		/* Name */
 	"erode image with mask, adding a black border",
@@ -139,7 +139,7 @@ cntlines_vec( im_object *argv )
 }
 
 /* Description of im_cntlines.
- */ 
+ */
 static im_function cntlines_desc = {
 	"im_cntlines",	 		/* Name */
 	"count horizontal or vertical lines",
@@ -172,7 +172,7 @@ rank_vec( im_object *argv )
 }
 
 /* Description of im_rank.
- */ 
+ */
 static im_function rank_desc = {
 	"im_rank",	 		/* Name */
 	"rank filter nth element of xsize/ysize window",
@@ -201,7 +201,7 @@ zerox_vec( im_object *argv )
 }
 
 /* Description of im_zerox.
- */ 
+ */
 static im_function zerox_desc = {
 	"im_zerox",	 		/* Name */
 	"find +ve or -ve zero crossings in image",
@@ -278,7 +278,7 @@ label_regions_vec( im_object *argv )
 }
 
 /* Description of im_label_regions().
- */ 
+ */
 static im_function label_regions_desc = {
 	"im_label_regions",		/* Name */
 	"number continuous regions in an image",

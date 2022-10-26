@@ -11,7 +11,7 @@
  * 8/6/18
  * 	- add background param
  * 16/8/18 [kleisauke]
- * 	- shut down the input file as soon as we can 
+ * 	- shut down the input file as soon as we can
  * 19/9/19
  * 	- reopen the input if we minimised too early
  * 11/3/20
@@ -27,7 +27,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -76,7 +76,7 @@
 #include <cairo.h>
 #include <poppler.h>
 
-/* Render PDFs with tiles this size. They need to be pretty big to limit 
+/* Render PDFs with tiles this size. They need to be pretty big to limit
  * overcomputation.
  *
  * An A4 page at 300dpi is 3508 pixels, so this should be enough to prevent
@@ -114,7 +114,7 @@ typedef struct _VipsForeignLoadPdf {
 
 	/* Load this many pages.
 	 */
-	int n; 
+	int n;
 
 	/* Render at this DPI.
 	 */
@@ -144,7 +144,7 @@ typedef struct _VipsForeignLoadPdf {
 	PopplerPage *page;
 	int current_page;
 
-	/* Doc has this many pages. 
+	/* Doc has this many pages.
 	 */
 	int n_pages;
 
@@ -165,7 +165,7 @@ typedef struct _VipsForeignLoadPdfClass {
 
 } VipsForeignLoadPdfClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -175,8 +175,8 @@ vips_foreign_load_pdf_dispose( GObject *gobject )
 
 	VIPS_UNREF( pdf->page );
 	VIPS_UNREF( pdf->doc );
-	VIPS_UNREF( pdf->source ); 
-	VIPS_UNREF( pdf->stream ); 
+	VIPS_UNREF( pdf->source );
+	VIPS_UNREF( pdf->stream );
 
 	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		dispose( gobject );
@@ -195,11 +195,11 @@ vips_foreign_load_pdf_build( VipsObject *object )
 	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
-	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
-		vips_source_length( pdf->source ), pdf->password, 
-		NULL, &error )) ) { 
+	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream,
+		vips_source_length( pdf->source ), pdf->password,
+		NULL, &error )) ) {
 		vips_g_error( &error );
-		return( -1 ); 
+		return( -1 );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
@@ -227,7 +227,7 @@ static int
 vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 {
 	if( pdf->current_page != page_no ||
-		!pdf->page ) { 
+		!pdf->page ) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
 		VIPS_UNREF( pdf->page );
@@ -237,11 +237,11 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = 
+		if( !(pdf->page =
 			poppler_document_get_page( pdf->doc, page_no )) ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				_( "unable to load page %d" ), page_no );
-			return( -1 ); 
+			return( -1 );
 		}
 		pdf->current_page = page_no;
 	}
@@ -279,17 +279,17 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 
 	/* Extract and attach metadata. Set the old name too for compat.
 	 */
-	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
+	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages );
 	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages );
 
 	for( i = 0; i < n_metadata; i++ ) {
-		VipsForeignLoadPdfMetadata *metadata = 
+		VipsForeignLoadPdfMetadata *metadata =
 			&vips_foreign_load_pdf_metadata[i];
 
 		char *str;
 
-		if( (str = metadata->pdf_fetch( pdf->doc )) ) { 
-			vips_image_set_string( out, metadata->field, str ); 
+		if( (str = metadata->pdf_fetch( pdf->doc )) ) {
+			vips_image_set_string( out, metadata->field, str );
 			g_free( str );
 		}
 	}
@@ -298,14 +298,14 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	 */
 	res = pdf->dpi / 25.4;
 
-	vips_image_init_fields( out, 
-		pdf->image.width, pdf->image.height, 
+	vips_image_init_fields( out,
+		pdf->image.width, pdf->image.height,
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
-        /* We render to a tilecache, so it has to be SMALLTILE.
-         */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+	/* We render to a tilecache, so it has to be SMALLTILE.
+	 */
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -335,13 +335,13 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		pdf->page_no < 0 ||
 		pdf->n <= 0 ) {
 		vips_error( class->nickname, "%s", _( "pages out of range" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 
 	/* Lay out the pages in our output image.
 	 */
 	if( !(pdf->pages = VIPS_ARRAY( pdf, pdf->n, VipsRect )) )
-		return( -1 ); 
+		return( -1 );
 
 	top = 0;
 	pdf->image.left = 0;
@@ -354,7 +354,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 );
-		poppler_page_get_size( pdf->page, &width, &height ); 
+		poppler_page_get_size( pdf->page, &width, &height );
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
 		/* We do round to nearest, in the same way that vips_resize()
@@ -374,7 +374,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	/* If all pages are the same height, we can tag this as a toilet roll
 	 * image.
 	 */
-	for( i = 1; i < pdf->n; i++ ) 
+	for( i = 1; i < pdf->n; i++ )
 		if( pdf->pages[i].height != pdf->pages[0].height )
 			break;
 
@@ -382,22 +382,22 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	 * accidentally turn into an animated image later.
 	 */
 	if( pdf->n > 1 )
-		vips_image_set_int( load->out, 
+		vips_image_set_int( load->out,
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height );
 
-	vips_foreign_load_pdf_set_image( pdf, load->out ); 
+	vips_foreign_load_pdf_set_image( pdf, load->out );
 
-	/* Convert the background to the image format. 
+	/* Convert the background to the image format.
 	 */
-	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
-		load->out, 
-		VIPS_AREA( pdf->background )->data, NULL, 
+	if( !(pdf->ink = vips__vector_to_ink( class->nickname,
+		load->out,
+		VIPS_AREA( pdf->background )->data, NULL,
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
 
 	/* Swap to cairo-style premultiplied bgra.
 	 */
-	vips__rgba2bgra_premultiplied( (guint32 *) pdf->ink, 1 ); 
+	vips__rgba2bgra_premultiplied( (guint32 *) pdf->ink, 1 );
 
 	vips_source_minimise( pdf->source );
 
@@ -411,7 +411,7 @@ vips_foreign_load_pdf_minimise( VipsImage *image, VipsForeignLoadPdf *pdf )
 }
 
 static int
-vips_foreign_load_pdf_generate( VipsRegion *or, 
+vips_foreign_load_pdf_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( a );
@@ -423,23 +423,23 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	/*
 	printf( "vips_foreign_load_pdf_generate: "
-		"left = %d, top = %d, width = %d, height = %d\n", 
-		r->left, r->top, r->width, r->height ); 
+		"left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height );
 	 */
 
-	/* Poppler won't always paint the background. 
+	/* Poppler won't always paint the background.
 	 */
-	vips_region_paint_pel( or, r, pdf->ink ); 
+	vips_region_paint_pel( or, r, pdf->ink );
 
 	/* Search through the pages we are drawing for the first containing
-	 * this rect. This could be quicker, perhaps a binary search, but who 
+	 * this rect. This could be quicker, perhaps a binary search, but who
 	 * cares.
 	 */
 	for( i = 0; i < pdf->n; i++ )
 		if( VIPS_RECT_BOTTOM( &pdf->pages[i] ) > r->top )
 			break;
 
-	top = r->top; 
+	top = r->top;
 	while( top < VIPS_RECT_BOTTOM( r ) ) {
 		VipsRect rect;
 		cairo_surface_t *surface;
@@ -447,24 +447,24 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		vips_rect_intersectrect( r, &pdf->pages[i], &rect );
 
-		surface = cairo_image_surface_create_for_data( 
-			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
-			CAIRO_FORMAT_ARGB32, 
-			rect.width, rect.height, 
+		surface = cairo_image_surface_create_for_data(
+			VIPS_REGION_ADDR( or, rect.left, rect.top ),
+			CAIRO_FORMAT_ARGB32,
+			rect.width, rect.height,
 			VIPS_REGION_LSKIP( or ) );
 		cr = cairo_create( surface );
 		cairo_surface_destroy( surface );
 
 		cairo_scale( cr, pdf->total_scale, pdf->total_scale );
-		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->total_scale, 
+		cairo_translate( cr,
+			(pdf->pages[i].left - rect.left) / pdf->total_scale,
 			(pdf->pages[i].top - rect.top) / pdf->total_scale );
 
-		/* poppler is single-threaded, but we don't need to lock since 
+		/* poppler is single-threaded, but we don't need to lock since
 		 * we're running inside a non-threaded tilecache.
 		 */
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
-			return( -1 ); 
+			return( -1 );
 		poppler_page_render( pdf->page, cr );
 
 		cairo_destroy( cr );
@@ -475,19 +475,19 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
-	for( y = 0; y < r->height; y++ ) 
-		vips__premultiplied_bgra2rgba( 
+	for( y = 0; y < r->height; y++ )
+		vips__premultiplied_bgra2rgba(
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
-			r->width ); 
+			r->width );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 static int
 vips_foreign_load_pdf_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( (VipsObject *) load, 2 );
 
 #ifdef DEBUG
@@ -496,22 +496,22 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 
 	/* Read to this image, then cache to out, see below.
 	 */
-	t[0] = vips_image_new(); 
+	t[0] = vips_image_new();
 
 	/* Close input immediately at end of read.
 	 */
 	g_signal_connect( t[0], "minimise",
 		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf );
 
-	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
-	if( vips_image_generate( t[0], 
+	vips_foreign_load_pdf_set_image( pdf, t[0] );
+	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
 		vips_tilecache( t[0], &t[1],
 			"tile_width", TILE_SIZE,
 			"tile_height", TILE_SIZE,
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
 			NULL ) ||
-		vips_image_write( t[1], load->real ) ) 
+		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -537,7 +537,7 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_pdf_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
 	load_class->header = vips_foreign_load_pdf_header;
@@ -571,15 +571,15 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, scale ),
 		0.001, 100000.0, 1.0 );
 
-	VIPS_ARG_BOXED( class, "background", 24, 
-		_( "Background" ), 
+	VIPS_ARG_BOXED( class, "background", 24,
+		_( "Background" ),
 		_( "Background colour" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_STRING( class, "password", 25, 
-		_( "Password" ), 
+	VIPS_ARG_STRING( class, "password", 25,
+		_( "Password" ),
 		_( "Password to decrypt with" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, password ),
@@ -602,7 +602,7 @@ typedef struct _VipsForeignLoadPdfFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 	char *uri;
 
@@ -610,13 +610,13 @@ typedef struct _VipsForeignLoadPdfFile {
 
 typedef VipsForeignLoadPdfClass VipsForeignLoadPdfFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPdfFile, vips_foreign_load_pdf_file, 
+G_DEFINE_TYPE( VipsForeignLoadPdfFile, vips_foreign_load_pdf_file,
 	vips_foreign_load_pdf_get_type() );
 
 static void
 vips_foreign_load_pdf_file_dispose( GObject *gobject )
 {
-	VipsForeignLoadPdfFile *file = 
+	VipsForeignLoadPdfFile *file =
 		(VipsForeignLoadPdfFile *) gobject;
 
 	VIPS_FREE( file->uri );
@@ -651,21 +651,21 @@ vips_foreign_load_pdf_file_build( VipsObject *object )
 	printf( "vips_foreign_load_pdf_file_build: %s\n", file->filename );
 #endif /*DEBUG*/
 
-	if( file->filename ) { 
+	if( file->filename ) {
 		char *path;
 		GError *error = NULL;
 
 		/* We need an absolute path for a URI.
 		 */
 		path = vips_realpath( file->filename );
-		if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
+		if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) {
 			g_free( path );
 			vips_g_error( &error );
-			return( -1 ); 
+			return( -1 );
 		}
 		g_free( path );
 
-		if( !(pdf->source = 
+		if( !(pdf->source =
 			vips_source_new_from_file( file->filename )) )
 			return( -1 );
 
@@ -681,7 +681,7 @@ vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
 	const guchar *str = (const guchar *) buf;
 
 	if( len >= 4 &&
-		str[0] == '%' && 
+		str[0] == '%' &&
 		str[1] == 'P' &&
 		str[2] == 'D' &&
 		str[3] == 'F' )
@@ -703,7 +703,7 @@ vips_foreign_load_pdf_is_a( const char *filename )
 }
 
 static void
-vips_foreign_load_pdf_file_class_init( 
+vips_foreign_load_pdf_file_class_init(
 	VipsForeignLoadPdfFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -724,10 +724,10 @@ vips_foreign_load_pdf_file_class_init(
 	load_class->is_a = vips_foreign_load_pdf_is_a;
 	load_class->header = vips_foreign_load_pdf_file_header;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdfFile, filename ),
 		NULL );
 
@@ -749,7 +749,7 @@ typedef struct _VipsForeignLoadPdfBuffer {
 
 typedef VipsForeignLoadPdfClass VipsForeignLoadPdfBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 	vips_foreign_load_pdf_get_type() );
 
 static int
@@ -759,8 +759,8 @@ vips_foreign_load_pdf_buffer_build( VipsObject *object )
 	VipsForeignLoadPdfBuffer *buffer = (VipsForeignLoadPdfBuffer *) pdf;
 
 	if( buffer->buf &&
-		!(pdf->source = vips_source_new_from_memory( 
-			VIPS_AREA( buffer->buf )->data, 
+		!(pdf->source = vips_source_new_from_memory(
+			VIPS_AREA( buffer->buf )->data,
 			VIPS_AREA( buffer->buf )->length )) )
 		return( -1 );
 
@@ -769,7 +769,7 @@ vips_foreign_load_pdf_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_load_pdf_buffer_class_init( 
+vips_foreign_load_pdf_buffer_class_init(
 	VipsForeignLoadPdfBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -785,10 +785,10 @@ vips_foreign_load_pdf_buffer_class_init(
 
 	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdfBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
@@ -808,7 +808,7 @@ typedef struct _VipsForeignLoadPdfSource {
 
 typedef VipsForeignLoadPdfClass VipsForeignLoadPdfSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPdfSource, vips_foreign_load_pdf_source, 
+G_DEFINE_TYPE( VipsForeignLoadPdfSource, vips_foreign_load_pdf_source,
 	vips_foreign_load_pdf_get_type() );
 
 static int
@@ -832,14 +832,14 @@ vips_foreign_load_pdf_source_is_a_source( VipsSource *source )
 	const unsigned char *p;
 
 	return( (p = vips_source_sniff( source, 4 )) &&
-		p[0] == '%' && 
+		p[0] == '%' &&
 		p[1] == 'P' &&
 		p[2] == 'D' &&
 		p[3] == 'F' );
 }
 
 static void
-vips_foreign_load_pdf_source_class_init( 
+vips_foreign_load_pdf_source_class_init(
 	VipsForeignLoadPdfSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -861,7 +861,7 @@ vips_foreign_load_pdf_source_class_init(
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdfSource, source ),
 		VIPS_TYPE_SOURCE );
 

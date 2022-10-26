@@ -20,14 +20,14 @@
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
- * 12/8/13	
+ * 12/8/13
  * 	- redone im_histnorm() as a class, vips_hist_norm()
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -78,12 +78,12 @@ vips_hist_norm_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	guint64 new_max;
-	int bands; 
+	int bands;
 	double *a, *b;
 	int y;
 	VipsBandFormat fmt;
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_hist_norm_parent_class )->build( object ) )
 		return( -1 );
@@ -91,7 +91,7 @@ vips_hist_norm_build( VipsObject *object )
 	/* Need max for each channel.
 	 */
 	if( vips_stats( norm->in, &t[0], NULL ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Scale each channel by px / channel max
 	 */
@@ -110,11 +110,11 @@ vips_hist_norm_build( VipsObject *object )
 
 	/* Make output format as small as we can.
 	 */
-	if( new_max <= 255 ) 
+	if( new_max <= 255 )
 		fmt = VIPS_FORMAT_UCHAR;
-	else if( new_max <= 65535 ) 
+	else if( new_max <= 65535 )
 		fmt = VIPS_FORMAT_USHORT;
-	else 
+	else
 		fmt = VIPS_FORMAT_UINT;
 
 	if( vips_cast( t[1], &t[2], fmt, NULL ) ||
@@ -137,16 +137,16 @@ vips_hist_norm_class_init( VipsHistNormClass *class )
 	object_class->description = _( "normalise histogram" );
 	object_class->build = vips_hist_norm_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistNorm, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistNorm, out ) );
 }
 
@@ -160,8 +160,8 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
- * 
- * Normalise histogram. The maximum of each band becomes equal to the maximum 
+ *
+ * Normalise histogram. The maximum of each band becomes equal to the maximum
  * index, so for example the max for a uchar image becomes 255.
  * Normalise each band separately.
  *
@@ -169,7 +169,7 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_norm( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

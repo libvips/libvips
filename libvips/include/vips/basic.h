@@ -74,11 +74,11 @@ typedef int (*VipsCallbackFn)( void *a, void *b );
 
 /* Like GFunc, but return a value.
  */
-typedef void *(*VipsSListMap2Fn)( void *item, 
+typedef void *(*VipsSListMap2Fn)( void *item,
 	void *a, void *b );
-typedef void *(*VipsSListMap4Fn)( void *item, 
+typedef void *(*VipsSListMap4Fn)( void *item,
 	void *a, void *b, void *c, void *d );
-typedef void *(*VipsSListFold2Fn)( void *item, 
+typedef void *(*VipsSListFold2Fn)( void *item,
 	void *a, void *b, void *c );
 
 typedef enum {
@@ -95,15 +95,15 @@ char *vips_path_filename7( const char *path );
 VIPS_API
 char *vips_path_mode7( const char *path );
 
-struct _VipsImage; 
+struct _VipsImage;
 typedef struct _VipsImage VipsImage;
-struct _VipsRegion; 
+struct _VipsRegion;
 typedef struct _VipsRegion VipsRegion;
 struct _VipsBuf;
 typedef struct _VipsBuf VipsBuf;
-struct _VipsSource; 
+struct _VipsSource;
 typedef struct _VipsSource VipsSource;
-struct _VipsTarget; 
+struct _VipsTarget;
 typedef struct _VipsTarget VipsTarget;
 
 #ifdef __cplusplus

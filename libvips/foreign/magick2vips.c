@@ -1,5 +1,5 @@
 /* Read a file using libMagick
- * 
+ *
  * 7/1/03 JC
  *	- from im_tiff2vips
  * 3/2/03 JC
@@ -16,7 +16,7 @@
  * 	- set RGB16/GREY16 if appropriate
  * 10/8/07
  * 	- support 32/64 bit imagemagick too
- * 21/2/08 
+ * 21/2/08
  * 	- use MaxRGB if QuantumRange is missing (thanks Bob)
  * 	- look for MAGICKCORE_HDRI_SUPPORT (thanks Marcel)
  * 	- use image->attributes if GetNextImageAttribute() is missing
@@ -25,7 +25,7 @@
  * 17/3/09
  * 	- reset dcm:display-range to help DICOM read
  * 20/4/09
- * 	- argh libMagick uses 255 == transparent ... we must invert all 
+ * 	- argh libMagick uses 255 == transparent ... we must invert all
  * 	  alpha channels
  * 12/5/09
  *	- fix signed/unsigned warnings
@@ -41,12 +41,12 @@
  * 11/6/13
  * 	- add @all_frames option, off by default
  * 4/12/14 Lovell
- * 	- add @density option 
+ * 	- add @density option
  * 16/2/15 mcuelenaere
  * 	- add blob read
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
- * 	  fd during file read, handy for large numbers of input images 
+ * 	  fd during file read, handy for large numbers of input images
  * 14/2/16
  * 	- add @page option, 0 by default
  * 18/4/16
@@ -73,7 +73,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -141,7 +141,7 @@ typedef struct _Read {
 	char *filename;
 	VipsImage *im;
 	const void *buf;
-	size_t len; 
+	size_t len;
 	int page;
 	int n;
 
@@ -176,9 +176,9 @@ read_free( Read *read )
 
 	VIPS_FREE( read->filename );
 	VIPS_FREEF( DestroyImageList, read->image );
-	VIPS_FREEF( DestroyImageInfo, read->image_info ); 
+	VIPS_FREEF( DestroyImageInfo, read->image_info );
 	VIPS_FREE( read->frames );
-	VIPS_FREEF( magick_destroy_exception, read->exception ); 
+	VIPS_FREEF( magick_destroy_exception, read->exception );
 	VIPS_FREEF( vips_g_mutex_free, read->lock );
 }
 
@@ -187,15 +187,15 @@ read_free( Read *read )
 static int
 read_close( VipsImage *im, Read *read )
 {
-	read_free( read ); 
+	read_free( read );
 
 	return( 0 );
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im, 
-	const void *buf, const size_t len, 
-	const char *density, int page, int n ) 
+read_new( const char *filename, VipsImage *im,
+	const void *buf, const size_t len,
+	const char *density, int page, int n )
 {
 	Read *read;
 
@@ -217,7 +217,7 @@ read_new( const char *filename, VipsImage *im,
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
-	read->exception = magick_acquire_exception(); 
+	read->exception = magick_acquire_exception();
 	read->n_pages = 0;
 	read->n_frames = 0;
 	read->frames = NULL;
@@ -226,18 +226,18 @@ read_new( const char *filename, VipsImage *im,
 
 	g_signal_connect( im, "close", G_CALLBACK( read_close ), read );
 
-	if( !read->image_info ) 
+	if( !read->image_info )
 		return( NULL );
 
-	if( filename ) 
-		vips_strncpy( read->image_info->filename, 
+	if( filename )
+		vips_strncpy( read->image_info->filename,
 			filename, MaxTextExtent );
 
 	/* Any extra file format detection.
 	 */
-	if( filename ) 
+	if( filename )
 		magick_sniff_file( read->image_info, filename );
-	if( buf ) 
+	if( buf )
 		magick_sniff_bytes( read->image_info, buf, len );
 
 	/* Canvas resolution for rendering vector formats like SVG.
@@ -246,15 +246,15 @@ read_new( const char *filename, VipsImage *im,
 
 	/* When reading DICOM images, we want to ignore any
 	 * window_center/_width setting, since it may put pixels outside the
-	 * 0-65535 range and lose data. 
+	 * 0-65535 range and lose data.
 	 *
 	 * These window settings are attached as vips metadata, so our caller
 	 * can interpret them if it wants.
 	 */
-  	magick_set_image_option( read->image_info, 
+  	magick_set_image_option( read->image_info,
 		"dcm:display-range", "reset" );
 
-	if( read->page > 0 )  
+	if( read->page > 0 )
 		magick_set_number_scenes( read->image_info,
 			read->page, read->n );
 
@@ -333,8 +333,8 @@ parse_header( Read *read )
 		IsMonochromeImage( image, &image->exception ) );
 	printf( "IsOpaqueImage() = %d\n",
 		IsOpaqueImage( image, &image->exception ) );
-	printf( "image->columns = %zd\n", image->columns ); 
-	printf( "image->rows = %zd\n", image->rows ); 
+	printf( "image->columns = %zd\n", image->columns );
+	printf( "image->rows = %zd\n", image->rows );
 #endif /*DEBUG*/
 
 	im->Xsize = image->columns;
@@ -353,19 +353,19 @@ parse_header( Read *read )
 		return( -1 );
 	}
 
-	/* Depth can be 'fractional'. 
+	/* Depth can be 'fractional'.
 	 *
 	 * You'd think we should use
-	 * GetImageDepth() but that seems unreliable. 16-bit mono DICOM images 
+	 * GetImageDepth() but that seems unreliable. 16-bit mono DICOM images
 	 * are reported as depth 1, for example.
 	 *
 	 * Try GetImageChannelDepth(), maybe that works.
 	 */
 	depth = GetImageChannelDepth( image, AllChannels, &image->exception );
 	im->BandFmt = -1;
-	if( depth >= 1 && depth <= 8 ) 
+	if( depth >= 1 && depth <= 8 )
 		im->BandFmt = VIPS_FORMAT_UCHAR;
-	if( depth >= 9 && depth <= 16 ) 
+	if( depth >= 9 && depth <= 16 )
 		im->BandFmt = VIPS_FORMAT_USHORT;
 #ifdef UseHDRI
 	if( depth == 32 )
@@ -450,7 +450,7 @@ parse_header( Read *read )
 		VipsBuf name = VIPS_BUF_STATIC( name_text );
 
 		vips_buf_appendf( &name, "magick-%s", key );
-		vips_image_set_string( im, 
+		vips_image_set_string( im,
 			vips_buf_all( &name ), GetImageProperty( image, key ) );
 	}
 }
@@ -485,25 +485,25 @@ parse_header( Read *read )
 		vips_image_set_string( im, vips_buf_all( &name ), attr->value );
 	}
 }
-#endif 
+#endif
 
-        /* Something like "BMP".
-         */
-        if( read->image->magick &&
-                strlen( read->image->magick ) > 0 )
-                vips_image_set_string( im, "magick-format", 
-                        read->image->magick );
+	/* Something like "BMP".
+	 */
+	if( read->image->magick &&
+		strlen( read->image->magick ) > 0 )
+		vips_image_set_string( im, "magick-format",
+			read->image->magick );
 
 	/* Do we have a set of equal-sized frames? Append them.
 
-	   	FIXME ... there must be an attribute somewhere from dicom read 
+	   	FIXME ... there must be an attribute somewhere from dicom read
 		which says this is a volumetric image
 
 	 */
 	read->n_pages = GetImageListLength( image );
 	read->n_frames = 0;
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
-		int p_depth = 
+		int p_depth =
 			GetImageChannelDepth( p, AllChannels, &p->exception );
 
 		if( p->columns != (unsigned int) im->Xsize ||
@@ -512,9 +512,9 @@ parse_header( Read *read )
 			p_depth != depth ) {
 #ifdef DEBUG
 			printf( "frame %d differs\n", read->n_frames );
-			printf( "%zdx%zd, %d bands\n", 
+			printf( "%zdx%zd, %d bands\n",
 				p->columns, p->rows, get_bands( p ) );
-			printf( "first frame is %dx%d, %d bands\n", 
+			printf( "first frame is %dx%d, %d bands\n",
 				im->Xsize, im->Ysize, im->Bands );
 #endif /*DEBUG*/
 
@@ -523,7 +523,7 @@ parse_header( Read *read )
 
 		read->n_frames += 1;
 	}
-	if( p ) 
+	if( p )
 		/* Nope ... just do the first image in the list.
 		 */
 		read->n_frames = 1;
@@ -552,7 +552,7 @@ parse_header( Read *read )
 
 	vips_image_set_int( im, VIPS_META_N_PAGES, read->n_pages );
 
-	vips_image_set_int( im, VIPS_META_ORIENTATION, 
+	vips_image_set_int( im, VIPS_META_ORIENTATION,
 		VIPS_CLIP( 1, image->orientation, 8 ) );
 
 	return( 0 );
@@ -621,13 +621,13 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 		/* Gray.
 		 */
 		switch( im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR:	
+		case VIPS_FORMAT_UCHAR:
 			GRAY_LOOP( unsigned char, 255 ); break;
-		case VIPS_FORMAT_USHORT: 
+		case VIPS_FORMAT_USHORT:
 			GRAY_LOOP( unsigned short, 65535 ); break;
-		case VIPS_FORMAT_UINT:	
+		case VIPS_FORMAT_UINT:
 			GRAY_LOOP( unsigned int, 4294967295UL ); break;
-		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DOUBLE:
 			GRAY_LOOP( double, QuantumRange ); break;
 
 		default:
@@ -641,11 +641,11 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			GRAYA_LOOP( unsigned char, 255 ); break;
-		case VIPS_FORMAT_USHORT:	
+		case VIPS_FORMAT_USHORT:
 			GRAYA_LOOP( unsigned short, 65535 ); break;
-		case VIPS_FORMAT_UINT:	
+		case VIPS_FORMAT_UINT:
 			GRAYA_LOOP( unsigned int, 4294967295UL ); break;
-		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DOUBLE:
 			GRAYA_LOOP( double, QuantumRange ); break;
 
 		default:
@@ -657,13 +657,13 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 		/* RGB.
 		 */
 		switch( im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR:	
+		case VIPS_FORMAT_UCHAR:
 			RGB_LOOP( unsigned char, 255 ); break;
-		case VIPS_FORMAT_USHORT:	
+		case VIPS_FORMAT_USHORT:
 			RGB_LOOP( unsigned short, 65535 ); break;
-		case VIPS_FORMAT_UINT:	
+		case VIPS_FORMAT_UINT:
 			RGB_LOOP( unsigned int, 4294967295UL ); break;
-		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DOUBLE:
 			RGB_LOOP( double, QuantumRange ); break;
 
 		default:
@@ -677,11 +677,11 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			RGBA_LOOP( unsigned char, 255 ); break;
-		case VIPS_FORMAT_USHORT:	
+		case VIPS_FORMAT_USHORT:
 			RGBA_LOOP( unsigned short, 65535 ); break;
-		case VIPS_FORMAT_UINT:	
+		case VIPS_FORMAT_UINT:
 			RGBA_LOOP( unsigned int, 4294967295UL ); break;
-		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DOUBLE:
 			RGBA_LOOP( double, QuantumRange ); break;
 
 		default:
@@ -700,7 +700,7 @@ get_pixels( Image *image, int left, int top, int width, int height )
 	PixelPacket *pixels;
 
 #ifdef HAVE_GETVIRTUALPIXELS
-	if( !(pixels = (PixelPacket *) GetVirtualPixels( image, 
+	if( !(pixels = (PixelPacket *) GetVirtualPixels( image,
 		left, top, width, height, &image->exception )) )
 #else
 	if( !(pixels = GetImagePixels( image, left, top, width, height )) )
@@ -714,7 +714,7 @@ get_pixels( Image *image, int left, int top, int width, int height )
 	 */
 	if( image->storage_class == PseudoClass ) {
 #ifdef HAVE_GETVIRTUALPIXELS
-		IndexPacket *indexes = (IndexPacket *) 
+		IndexPacket *indexes = (IndexPacket *)
 			GetVirtualIndexQueue( image );
 #else
 		/* Was GetIndexes(), but that's now deprecated.
@@ -740,7 +740,7 @@ get_pixels( Image *image, int left, int top, int width, int height )
 }
 
 static int
-magick_fill_region( VipsRegion *out, 
+magick_fill_region( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	Read *read = (Read *) a;
@@ -756,19 +756,19 @@ magick_fill_region( VipsRegion *out,
 
 		vips__worker_lock( read->lock );
 
-		pixels = get_pixels( read->frames[frame], 
+		pixels = get_pixels( read->frames[frame],
 			r->left, line, r->width, 1 );
 
 		g_mutex_unlock( read->lock );
 
 		if( !pixels ) {
 			vips_foreign_load_invalidate( read->im );
-			vips_error( "magick2vips", 
+			vips_error( "magick2vips",
 				"%s", _( "unable to read pixels" ) );
 			return( -1 );
 		}
 
-		unpack_pixels( read->im, VIPS_REGION_ADDR( out, r->left, top ), 
+		unpack_pixels( read->im, VIPS_REGION_ADDR( out, r->left, top ),
 			pixels, r->width );
 	}
 
@@ -776,7 +776,7 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, 
+vips__magick_read( const char *filename,
 	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
@@ -795,14 +795,14 @@ vips__magick_read( const char *filename,
 	read->image = ReadImage( read->image_info, read->exception );
 	if( !read->image ) {
 		magick_vips_error( "magick2vips", read->exception );
-		vips_error( "magick2vips", 
+		vips_error( "magick2vips",
 			_( "unable to read file \"%s\"" ), filename );
 		return( -1 );
 	}
 
 	if( parse_header( read ) )
 		return( -1 );
-	if( vips_image_generate( out, 
+	if( vips_image_generate( out,
 		NULL, magick_fill_region, NULL, read, NULL ) )
 		return( -1 );
 
@@ -810,7 +810,7 @@ vips__magick_read( const char *filename,
 }
 
 int
-vips__magick_read_header( const char *filename, 
+vips__magick_read_header( const char *filename,
 	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
@@ -828,20 +828,20 @@ vips__magick_read_header( const char *filename,
 
 	/* It would be great if we could PingImage and just read the header,
 	 * but sadly many IM coders do not support ping. The critical one for
-	 * us is DICOM. TGA also has issues. 
+	 * us is DICOM. TGA also has issues.
 	 */
 	read->image = ReadImage( read->image_info, read->exception );
 	if( !read->image ) {
 		magick_vips_error( "magick2vips", read->exception );
-		vips_error( "magick2vips", 
-			_( "unable to read file \"%s\"" ), filename ); 
+		vips_error( "magick2vips",
+			_( "unable to read file \"%s\"" ), filename );
 		return( -1 );
 	}
 
-	if( parse_header( read ) ) 
+	if( parse_header( read ) )
 		return( -1 );
 
-	if( out->Xsize <= 0 || 
+	if( out->Xsize <= 0 ||
 		out->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
@@ -855,7 +855,7 @@ vips__magick_read_header( const char *filename,
 }
 
 int
-vips__magick_read_buffer( const void *buf, const size_t len, 
+vips__magick_read_buffer( const void *buf, const size_t len,
 	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
@@ -871,7 +871,7 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 	printf( "magick2vips: calling BlobToImage() ...\n" );
 #endif /*DEBUG*/
 
-	read->image = BlobToImage( read->image_info, 
+	read->image = BlobToImage( read->image_info,
 		buf, len, read->exception );
 	if( !read->image ) {
 		magick_vips_error( "magick2vips", read->exception );
@@ -881,7 +881,7 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 
 	if( parse_header( read ) )
 		return( -1 );
-	if( vips_image_generate( out, 
+	if( vips_image_generate( out,
 		NULL, magick_fill_region, NULL, read, NULL ) )
 		return( -1 );
 
@@ -889,7 +889,7 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 }
 
 int
-vips__magick_read_buffer_header( const void *buf, const size_t len, 
+vips__magick_read_buffer_header( const void *buf, const size_t len,
 	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
@@ -906,10 +906,10 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 #endif /*DEBUG*/
 
 	/* It would be great if we could PingBlob and just read the header,
-	 * but sadly many IM coders do not support ping well. The critical one 
-	 * for us is DICOM. TGA also has issues. 
+	 * but sadly many IM coders do not support ping well. The critical one
+	 * for us is DICOM. TGA also has issues.
 	 */
-	read->image = BlobToImage( read->image_info, 
+	read->image = BlobToImage( read->image_info,
 		buf, len, read->exception );
 	if( !read->image ) {
 		magick_vips_error( "magick2vips", read->exception );
@@ -917,10 +917,10 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 		return( -1 );
 	}
 
-	if( parse_header( read ) ) 
+	if( parse_header( read ) )
 		return( -1 );
 
-	if( out->Xsize <= 0 || 
+	if( out->Xsize <= 0 ||
 		out->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );

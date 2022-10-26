@@ -1,4 +1,4 @@
-/* Smudge a piece of image. 
+/* Smudge a piece of image.
  *
  * Copyright: J. Cupitt
  * Written: 15/06/1992
@@ -25,7 +25,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,7 +77,7 @@ typedef struct _VipsDrawSmudge {
 typedef struct _VipsDrawSmudgeClass {
 	VipsDrawClass parent_class;
 
-} VipsDrawSmudgeClass; 
+} VipsDrawSmudgeClass;
 
 G_DEFINE_TYPE( VipsDrawSmudge, vips_draw_smudge, VIPS_TYPE_DRAW );
 
@@ -85,7 +85,7 @@ static int
 vips_draw_smudge_build( VipsObject *object )
 {
 	VipsDraw *draw = VIPS_DRAW( object );
-	VipsImage *im = draw->image; 
+	VipsImage *im = draw->image;
 	VipsDrawSmudge *smudge = (VipsDrawSmudge *) object;
 	int left = smudge->left;
 	int top = smudge->top;
@@ -94,8 +94,8 @@ vips_draw_smudge_build( VipsObject *object )
 
 	/* Double bands for complex images.
 	 */
-	int bands = vips_image_get_bands( draw->image ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+	int bands = vips_image_get_bands( draw->image ) *
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ?
 		 	2 : 1);
 	int elements = bands * vips_image_get_width( im );
 
@@ -161,15 +161,15 @@ vips_draw_smudge_build( VipsObject *object )
 		} \
 	}
 
-	switch( vips_image_get_format( im ) ) { 
-	case VIPS_FORMAT_UCHAR: 	SMUDGE( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR: 		SMUDGE( char ); break; 
-	case VIPS_FORMAT_USHORT: 	SMUDGE( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT: 	SMUDGE( short ); break; 
-	case VIPS_FORMAT_UINT: 		SMUDGE( unsigned int ); break; 
-	case VIPS_FORMAT_INT: 		SMUDGE( int ); break; 
-	case VIPS_FORMAT_FLOAT: 	SMUDGE( float ); break; 
-	case VIPS_FORMAT_DOUBLE: 	SMUDGE( double ); break; 
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_UCHAR: 	SMUDGE( unsigned char ); break;
+	case VIPS_FORMAT_CHAR: 		SMUDGE( char ); break;
+	case VIPS_FORMAT_USHORT: 	SMUDGE( unsigned short ); break;
+	case VIPS_FORMAT_SHORT: 	SMUDGE( short ); break;
+	case VIPS_FORMAT_UINT: 		SMUDGE( unsigned int ); break;
+	case VIPS_FORMAT_INT: 		SMUDGE( int ); break;
+	case VIPS_FORMAT_FLOAT: 	SMUDGE( float ); break;
+	case VIPS_FORMAT_DOUBLE: 	SMUDGE( double ); break;
 	case VIPS_FORMAT_COMPLEX: 	SMUDGE( float ); break;
 	case VIPS_FORMAT_DPCOMPLEX: 	SMUDGE( double ); break;
 
@@ -193,29 +193,29 @@ vips_draw_smudge_class_init( VipsDrawSmudgeClass *class )
 	vobject_class->description = _( "blur a rectangle on an image" );
 	vobject_class->build = vips_draw_smudge_build;
 
-	VIPS_ARG_INT( class, "left", 6, 
-		_( "Left" ), 
+	VIPS_ARG_INT( class, "left", 6,
+		_( "Left" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, left ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "top", 7, 
-		_( "Top" ), 
+	VIPS_ARG_INT( class, "top", 7,
+		_( "Top" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, top ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "width", 8, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 8,
+		_( "Width" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, width ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "height", 9, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 9,
+		_( "Height" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawSmudge, height ),
@@ -238,22 +238,22 @@ vips_draw_smudge_init( VipsDrawSmudge *draw_smudge )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Smudge a section of @image. Each pixel in the area @left, @top, @width,
- * @height is replaced by the average of the surrounding 3x3 pixels. 
+ * @height is replaced by the average of the surrounding 3x3 pixels.
  *
  * See also: vips_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_smudge( VipsImage *image, 
-	int left, int top, int width, int height, ... ) 
+vips_draw_smudge( VipsImage *image,
+	int left, int top, int width, int height, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, height );
-	result = vips_call_split( "draw_smudge", ap, 
-		image, left, top, width, height ); 
+	result = vips_call_split( "draw_smudge", ap,
+		image, left, top, width, height );
 	va_end( ap );
 
 	return( result );

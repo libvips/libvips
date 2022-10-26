@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -52,7 +52,7 @@
 int
 im_vips2jpeg( IMAGE *in, const char *filename )
 {
-	int qfac = 75; 
+	int qfac = 75;
 
 	/* profile has to default to NULL, meaning "no param". If we default
 	 * to "none" we will not attach the profile from the metadata.
@@ -68,23 +68,23 @@ im_vips2jpeg( IMAGE *in, const char *filename )
 	/* Parse mode from filename.
 	 */
 	im_filename_split( filename, name, mode );
-	strcpy( buf, mode ); 
+	strcpy( buf, mode );
 	p = &buf[0];
 	if( (q = im_getnextoption( &p )) ) {
 		if( strcmp( q, "" ) != 0 )
 			qfac = atoi( mode );
 	}
 	if( (q = im_getnextoption( &p )) ) {
-		if( strcmp( q, "" ) != 0 ) 
+		if( strcmp( q, "" ) != 0 )
 			profile = q;
 	}
 	if( (q = im_getnextoption( &p )) ) {
-		im_error( "im_vips2jpeg", 
+		im_error( "im_vips2jpeg",
 			_( "unknown extra options \"%s\"" ), q );
 		return( -1 );
 	}
 
-	return( vips_jpegsave( in, name, 
+	return( vips_jpegsave( in, name,
 		"Q", qfac, "profile", profile, NULL ) );
 }
 
@@ -96,8 +96,8 @@ im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 	if( vips_jpegsave_buffer( in, (void **) obuf, &len, "Q", qfac, NULL ) )
 		return( -1 );
 	if( out )
-		im_add_callback( out, "close", 
-			(im_callback_fn) vips_free, obuf, NULL ); 
+		im_add_callback( out, "close",
+			(im_callback_fn) vips_free, obuf, NULL );
 
 	if( olen )
 		*olen = len;
@@ -108,5 +108,5 @@ im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 int
 im_vips2mimejpeg( IMAGE *in, int qfac )
 {
-	return( vips_jpegsave_mime( in, "Q", qfac, NULL ) ); 
+	return( vips_jpegsave_mime( in, "Q", qfac, NULL ) );
 }

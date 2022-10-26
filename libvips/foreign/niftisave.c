@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,7 @@ typedef struct _VipsForeignSaveNifti {
 
 	/* Filename for save.
 	 */
-	char *filename; 
+	char *filename;
 
 	nifti_image *nim;
 
@@ -68,7 +68,7 @@ typedef struct _VipsForeignSaveNifti {
 
 typedef VipsForeignSaveClass VipsForeignSaveNiftiClass;
 
-G_DEFINE_TYPE( VipsForeignSaveNifti, vips_foreign_save_nifti, 
+G_DEFINE_TYPE( VipsForeignSaveNifti, vips_foreign_save_nifti,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -85,7 +85,7 @@ vips_foreign_save_nifti_dispose( GObject *gobject )
 /* Make ->nim from the vips header fields.
  */
 static int
-vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti, 
+vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti,
 	VipsImage *image )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( nifti );
@@ -110,26 +110,26 @@ vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti,
 		dims[3] = image->Ysize / dims[2];
 	}
 
-	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt ); 
+	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt );
 	if( datatype == -1 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unsupported libvips image type" ) );
 		return( -1 );
 	}
 
 	if( image->Bands > 1 ) {
 		if( image->BandFmt != VIPS_FORMAT_UCHAR ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				"%s", _( "8-bit colour images only" ) );
 			return( -1 );
 		}
 
-		if( image->Bands == 3 ) 
+		if( image->Bands == 3 )
 			datatype = DT_RGB;
-		else if( image->Bands == 4 ) 
+		else if( image->Bands == 4 )
 			datatype = DT_RGBA32;
 		else {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				"%s", _( "3 or 4 band colour images only" ) );
 			return( -1 );
 		}
@@ -144,7 +144,7 @@ vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti,
 	nifti->nim->xyz_units = NIFTI_UNITS_MM;
 
 	vips_snprintf( nifti->nim->descrip, sizeof( nifti->nim->descrip ),
-		"libvips-%s", VIPS_VERSION ); 
+		"libvips-%s", VIPS_VERSION );
 
 	/* All other fields can stay at their default value.
 	 */
@@ -160,12 +160,12 @@ typedef struct _VipsNdimInfo {
 } VipsNdimInfo;
 
 static void *
-vips_foreign_save_nifti_set_dims( const char *name, 
+vips_foreign_save_nifti_set_dims( const char *name,
 	GValue *value, glong offset, void *a, void *b )
 {
 	VipsNdimInfo *info = (VipsNdimInfo *) a;
 
-	/* The first 8 members are the dims fields. 
+	/* The first 8 members are the dims fields.
 	 */
 	if( info->n < 8 ) {
 		char vips_name[256];
@@ -174,14 +174,14 @@ vips_foreign_save_nifti_set_dims( const char *name,
 		vips_snprintf( vips_name, 256, "nifti-%s", name );
 		if( vips_image_get_int( info->image, vips_name, &i ) ||
 			i <= 0 ||
-			i >= VIPS_MAX_COORD ) 
+			i >= VIPS_MAX_COORD )
 			return( info );
 		info->dims[info->n] = i;
 	}
 
 	info->n += 1;
 
-	return( NULL ); 
+	return( NULL );
 }
 
 /* How I wish glib had something like this :( Just implement the ones we need
@@ -200,13 +200,13 @@ vips_gvalue_write( GValue *value, void *p )
 		break;
 
 	default:
-		g_warning( "vips_gvalue_write: unsupported GType %s", 
+		g_warning( "vips_gvalue_write: unsupported GType %s",
 			g_type_name( G_VALUE_TYPE( value ) ) );
 	}
 }
 
 static void *
-vips_foreign_save_nifti_set_fields( const char *name, 
+vips_foreign_save_nifti_set_fields( const char *name,
 	GValue *value, glong offset, void *a, void *b )
 {
 	VipsNdimInfo *info = (VipsNdimInfo *) a;
@@ -227,11 +227,11 @@ vips_foreign_save_nifti_set_fields( const char *name,
 
 	info->n += 1;
 
-	return( NULL ); 
+	return( NULL );
 }
 
 static void *
-vips_foreign_save_nifti_ext( VipsImage *image, 
+vips_foreign_save_nifti_ext( VipsImage *image,
 	const char *field, GValue *value, void *a )
 {
 	nifti_image *nim = (nifti_image *) a;
@@ -248,8 +248,8 @@ vips_foreign_save_nifti_ext( VipsImage *image,
 	 * and XX is the nifti ext ecode.
 	 */
 	if( sscanf( field, "nifti-ext-%d-%d", &i, &ecode ) != 2 ) {
-		vips_error( "niftisave", 
-			"%s", _( "bad nifti-ext- field name" ) ); 
+		vips_error( "niftisave",
+			"%s", _( "bad nifti-ext- field name" ) );
 		return( image );
 	}
 
@@ -257,8 +257,8 @@ vips_foreign_save_nifti_ext( VipsImage *image,
 		return( image );
 
 	if( nifti_add_extension( nim, data, length, ecode ) ) {
-		vips_error( "niftisave", 
-			"%s", _( "unable to attach nifti ext" ) ); 
+		vips_error( "niftisave",
+			"%s", _( "unable to attach nifti ext" ) );
 		return( image );
 	}
 
@@ -268,7 +268,7 @@ vips_foreign_save_nifti_ext( VipsImage *image,
 /* Make ->nim from the nifti- fields.
  */
 static int
-vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti, 
+vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	VipsImage *image )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( nifti );
@@ -287,12 +287,12 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	info.image = image;
 	info.dims = dims;
 	info.n = 0;
-	if( vips__foreign_nifti_map( 
+	if( vips__foreign_nifti_map(
 		vips_foreign_save_nifti_set_dims, &info, NULL ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* page-height overrides ny if it makes sense. This might not be
-	 * correct :( 
+	 * correct :(
 	 */
 	dims[2] = vips_image_get_page_height( image );
 
@@ -306,20 +306,20 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	height = 1;
 	for( i = 2; i < VIPS_NUMBER( dims ) && i < dims[0] + 1; i++ )
 		if( !g_uint_checked_mul( &height, height, dims[i] ) ) {
-			vips_error( class->nickname, 
-				"%s", _( "dimension overflow" ) ); 
+			vips_error( class->nickname,
+				"%s", _( "dimension overflow" ) );
 			return( 0 );
 		}
 	if( image->Xsize != dims[1] ||
 		image->Ysize != height ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "bad image dimensions" ) );
 		return( -1 );
 	}
 
-	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt ); 
+	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt );
 	if( datatype == -1 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unsupported libvips image type" ) );
 		return( -1 );
 	}
@@ -330,9 +330,9 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	info.image = image;
 	info.nim = nifti->nim;
 	info.n = 0;
-	if( vips__foreign_nifti_map( 
+	if( vips__foreign_nifti_map(
 		vips_foreign_save_nifti_set_fields, &info, NULL ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Attach any ext blocks.
 	 */
@@ -354,7 +354,7 @@ vips_foreign_save_nifti_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* This could be an image (indirectly) from niftiload, or something 
+	/* This could be an image (indirectly) from niftiload, or something
 	 * like OME_TIFF, which does not have all the "nifti-ndim" fields.
 	 *
 	 * If it doesn't look like a nifti, try to make a nifti header from
@@ -373,12 +373,12 @@ vips_foreign_save_nifti_build( VipsObject *object )
 	 */
 
 	if( nifti_set_filenames( nifti->nim, nifti->filename, FALSE, TRUE ) ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unable to set nifti filename" ) );
 		return( -1 );
 	}
 
-	if( !(nifti->nim->data = 
+	if( !(nifti->nim->data =
 		vips_image_write_to_memory( save->ready, NULL )) )
 		return( -1 );
 
@@ -439,10 +439,10 @@ vips_foreign_save_nifti_class_init( VipsForeignSaveNiftiClass *class )
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = vips_nifti_bandfmt;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveNifti, filename ),
 		NULL );
 }
@@ -456,11 +456,11 @@ vips_foreign_save_nifti_init( VipsForeignSaveNifti *nifti )
 
 /**
  * vips_niftisave: (method)
- * @in: image to save 
- * @filename: file to write to 
+ * @in: image to save
+ * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Write a VIPS image to a file in NIFTI format. 
+ * Write a VIPS image to a file in NIFTI format.
  *
  * Use the various NIFTI suffixes to pick the nifti save format.
  *

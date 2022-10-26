@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -51,11 +51,11 @@
 #include "point.h"
 #include "pmask.h"
 
-G_DEFINE_TYPE( VipsMaskButterworth, vips_mask_butterworth, 
+G_DEFINE_TYPE( VipsMaskButterworth, vips_mask_butterworth,
 	VIPS_TYPE_MASK );
 
 static double
-vips_mask_butterworth_point( VipsMask *mask, double dx, double dy ) 
+vips_mask_butterworth_point( VipsMask *mask, double dx, double dy )
 {
 	VipsMaskButterworth *butterworth = (VipsMaskButterworth *) mask;
 	double order = butterworth->order;
@@ -69,7 +69,7 @@ vips_mask_butterworth_point( VipsMask *mask, double dx, double dy )
 	if( d == 0 )
 		return( 0 );
 	else
-		return( 1.0 / (1.0 + cnst * pow( fc2 / d, order )) ); 
+		return( 1.0 / (1.0 + cnst * pow( fc2 / d, order )) );
 }
 
 static void
@@ -87,22 +87,22 @@ vips_mask_butterworth_class_init( VipsMaskButterworthClass *class )
 
 	mask_class->point = vips_mask_butterworth_point;
 
-	VIPS_ARG_DOUBLE( class, "order", 6, 
-		_( "Order" ), 
+	VIPS_ARG_DOUBLE( class, "order", 6,
+		_( "Order" ),
 		_( "Filter order" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskButterworth, order ),
 		1.0, 1000000.0, 1.0 );
 
-	VIPS_ARG_DOUBLE( class, "frequency_cutoff", 7, 
-		_( "Frequency cutoff" ), 
+	VIPS_ARG_DOUBLE( class, "frequency_cutoff", 7,
+		_( "Frequency cutoff" ),
 		_( "Frequency cutoff" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskButterworth, frequency_cutoff ),
 		0.0, 1000000.0, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 8, 
-		_( "Amplitude cutoff" ), 
+	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 8,
+		_( "Amplitude cutoff" ),
 		_( "Amplitude cutoff" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskButterworth, amplitude_cutoff ),
@@ -140,22 +140,22 @@ vips_mask_butterworth_init( VipsMaskButterworth *butterworth )
  * positioned at @frequency_cutoff, where @frequency_cutoff is in
  * range 0 - 1. The shape of the curve is controlled by
  * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
- * Digital Image Processing, 1987. 
+ * Digital Image Processing, 1987.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_butterworth( VipsImage **out, int width, int height, 
+vips_mask_butterworth( VipsImage **out, int width, int height,
 	double order, double frequency_cutoff, double amplitude_cutoff, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, amplitude_cutoff );
-	result = vips_call_split( "mask_butterworth", ap, 
-		out, width, height, 
+	result = vips_call_split( "mask_butterworth", ap,
+		out, width, height,
 		order, frequency_cutoff, amplitude_cutoff );
 	va_end( ap );
 

@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -122,9 +122,9 @@ lrmosaic_vec( im_object *argv )
 	int halfarea = *((int *) argv[9]);
 	int mwidth = *((int *) argv[11]);
 
-	return( vips__lrmosaic( argv[0], argv[1], argv[2], 
-		bandno, 
-		xr, yr, xs, ys, 
+	return( vips__lrmosaic( argv[0], argv[1], argv[2],
+		bandno,
+		xr, yr, xs, ys,
 		halfcorrelation, halfarea,
 		mwidth ) );
 }
@@ -146,16 +146,16 @@ lrmosaic1_vec( im_object *argv )
 	int halfarea = *((int *) argv[13]);
 	int mwidth = *((int *) argv[15]);
 
-	return( im_lrmosaic1( argv[0], argv[1], argv[2], 
-		0, 
-		xr1, yr1, xs1, ys1, 
-		xr2, yr2, xs2, ys2, 
+	return( im_lrmosaic1( argv[0], argv[1], argv[2],
+		0,
+		xr1, yr1, xs1, ys1,
+		xr2, yr2, xs2, ys2,
 		halfcorrelation, halfarea,
 		0, mwidth ) );
 }
 
 /* Description of im_lrmosaic.
- */ 
+ */
 static im_function lrmosaic_desc = {
 	"im_lrmosaic", 			/* Name */
 	"left-right mosaic of ref and sec",/* Description */
@@ -207,9 +207,9 @@ find_lroverlap_vec( im_object *argv )
 
 	if( !(t = im_open( "find_lroverlap_vec", "p" )) )
 		return( -1 );
-	result = vips__find_lroverlap( argv[0], argv[1], t, 
-		bandno, 
-		xr, yr, xs, ys, 
+	result = vips__find_lroverlap( argv[0], argv[1], t,
+		bandno,
+		xr, yr, xs, ys,
 		halfcorrelation, halfarea,
 		dx0, dy0, scale1, angle1, dx1, dy1 );
 	im_close( t );
@@ -218,7 +218,7 @@ find_lroverlap_vec( im_object *argv )
 }
 
 /* Description of im__find_lroverlap.
- */ 
+ */
 static im_function find_lroverlap_desc = {
 	"im__find_lroverlap",		/* Name */
 	"search for left-right overlap of ref and sec",/* Description */
@@ -229,7 +229,7 @@ static im_function find_lroverlap_desc = {
 };
 
 /* Description of im_lrmosaic1.
- */ 
+ */
 static im_function lrmosaic1_desc = {
 	"im_lrmosaic1",			/* Name */
 	"first-order left-right mosaic of ref and sec",/* Description */
@@ -253,9 +253,9 @@ tbmosaic_vec( im_object *argv )
 	int halfarea = *((int *) argv[9]);
 	int mwidth = *((int *) argv[11]);
 
-	return( vips__tbmosaic( argv[0], argv[1], argv[2], 
-		bandno, 
-		x1, y1, x2, y2, 
+	return( vips__tbmosaic( argv[0], argv[1], argv[2],
+		bandno,
+		x1, y1, x2, y2,
 		halfcorrelation, halfarea,
 		mwidth ) );
 }
@@ -277,10 +277,10 @@ tbmosaic1_vec( im_object *argv )
 	int halfarea = *((int *) argv[13]);
 	int mwidth = *((int *) argv[15]);
 
-	return( im_tbmosaic1( argv[0], argv[1], argv[2], 
-		0, 
-		xr1, yr1, xs1, ys1, 
-		xr2, yr2, xs2, ys2, 
+	return( im_tbmosaic1( argv[0], argv[1], argv[2],
+		0,
+		xr1, yr1, xs1, ys1,
+		xr2, yr2, xs2, ys2,
 		halfcorrelation, halfarea,
 		0, mwidth ) );
 }
@@ -309,9 +309,9 @@ find_tboverlap_vec( im_object *argv )
 
 	if( !(t = im_open( "find_tboverlap_vec", "p" )) )
 		return( -1 );
-	result = vips__find_tboverlap( argv[0], argv[1], t, 
-		bandno, 
-		xr, yr, xs, ys, 
+	result = vips__find_tboverlap( argv[0], argv[1], t,
+		bandno,
+		xr, yr, xs, ys,
 		halfcorrelation, halfarea,
 		dx0, dy0, scale1, angle1, dx1, dy1 );
 	im_close( t );
@@ -320,7 +320,7 @@ find_tboverlap_vec( im_object *argv )
 }
 
 /* Description of im__find_tboverlap.
- */ 
+ */
 static im_function find_tboverlap_desc = {
 	"im__find_tboverlap",		/* Name */
 	"search for top-bottom overlap of ref and sec",/* Description */
@@ -331,7 +331,7 @@ static im_function find_tboverlap_desc = {
 };
 
 /* Description of im_tbmosaic.
- */ 
+ */
 static im_function tbmosaic_desc = {
 	"im_tbmosaic", 			/* Name */
 	"top-bottom mosaic of in1 and in2",/* Description */
@@ -342,7 +342,7 @@ static im_function tbmosaic_desc = {
 };
 
 /* Description of im_tbmosaic1.
- */ 
+ */
 static im_function tbmosaic1_desc = {
 	"im_tbmosaic1",			/* Name */
 	"first-order top-bottom mosaic of ref and sec",/* Description */
@@ -379,13 +379,13 @@ lrmerge1_vec( im_object *argv )
 	int ys2 = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( im_lrmerge1( argv[0], argv[1], argv[2], 
-		xr1, yr1, xs1, ys1, 
-		xr2, yr2, xs2, ys2, mwidth ) ); 
+	return( im_lrmerge1( argv[0], argv[1], argv[2],
+		xr1, yr1, xs1, ys1,
+		xr2, yr2, xs2, ys2, mwidth ) );
 }
 
 /* Description of im_lrmerge.
- */ 
+ */
 static im_function lrmerge_desc = {
 	"im_lrmerge", 			/* Name */
 	"left-right merge of in1 and in2",/* Description */
@@ -396,7 +396,7 @@ static im_function lrmerge_desc = {
 };
 
 /* Description of im_lrmerge1.
- */ 
+ */
 static im_function lrmerge1_desc = {
 	"im_lrmerge1", 			/* Name */
 	"first-order left-right merge of ref and sec",/* Description */
@@ -433,13 +433,13 @@ tbmerge1_vec( im_object *argv )
 	int ys2 = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( im_tbmerge1( argv[0], argv[1], argv[2], 
-		xr1, yr1, xs1, ys1, 
-		xr2, yr2, xs2, ys2, mwidth ) ); 
+	return( im_tbmerge1( argv[0], argv[1], argv[2],
+		xr1, yr1, xs1, ys1,
+		xr2, yr2, xs2, ys2, mwidth ) );
 }
 
 /* Description of im_tbmerge.
- */ 
+ */
 static im_function tbmerge_desc = {
 	"im_tbmerge", 			/* Name */
 	"top-bottom merge of in1 and in2",/* Description */
@@ -450,7 +450,7 @@ static im_function tbmerge_desc = {
 };
 
 /* Description of im_tbmerge1.
- */ 
+ */
 static im_function tbmerge1_desc = {
 	"im_tbmerge1", 			/* Name */
 	"first-order top-bottom merge of in1 and in2",/* Description */
@@ -491,12 +491,12 @@ match_linear_vec( im_object *argv )
 	int ysec2 = *((int *) argv[10]);
 
 	return( im_match_linear( argv[0], argv[1], argv[2],
-		xref1, yref1, xsec1, ysec1, 
+		xref1, yref1, xsec1, ysec1,
 		xref2, yref2, xsec2, ysec2 ) );
 }
 
 /* Description of im_match_linear.
- */ 
+ */
 static im_function match_linear_desc = {
 	"im_match_linear", 		/* Name */
 	"resample ref so that tie-points match",
@@ -541,13 +541,13 @@ match_linear_search_vec( im_object *argv )
 	int hsrch = *((int *) argv[12]);
 
 	return( im_match_linear_search( argv[0], argv[1], argv[2],
-		xref1, yref1, xsec1, ysec1, 
+		xref1, yref1, xsec1, ysec1,
 		xref2, yref2, xsec2, ysec2,
 		hwin, hsrch ) );
 }
 
 /* Description of im_match_linear_search.
- */ 
+ */
 static im_function match_linear_search_desc = {
 	"im_match_linear_search", 	/* Name */
 	"search sec, then resample so that tie-points match",
@@ -588,12 +588,12 @@ correl_vec( im_object *argv )
 	int *y = (int *) argv[9];
 	double *correlation = (double *) argv[10];
 
-	return( vips__correl( argv[0], argv[1], 
+	return( vips__correl( argv[0], argv[1],
 		xref, yref, xsec, ysec, cor, area, correlation, x, y ) );
 }
 
 /* Description of im_correl.
- */ 
+ */
 static im_function correl_desc = {
 	"im_correl", 			/* Name */
 	"search area around sec for match for area around ref",
@@ -622,7 +622,7 @@ global_balance_vec( im_object *argv )
 }
 
 /* Description of im_global_balance.
- */ 
+ */
 static im_function global_balance_desc = {
 	"im_global_balance",		/* Name */
 	"automatically rebuild mosaic with balancing",
@@ -643,7 +643,7 @@ global_balancef_vec( im_object *argv )
 }
 
 /* Description of im_global_balancef.
- */ 
+ */
 static im_function global_balancef_desc = {
 	"im_global_balancef",		/* Name */
 	"automatically rebuild mosaic with balancing, float output",
@@ -671,7 +671,7 @@ remosaic_vec( im_object *argv )
 }
 
 /* Description of im_remosaic.
- */ 
+ */
 static im_function remosaic_desc = {
 	"im_remosaic",		/* Name */
 	"automatically rebuild mosaic with new files",
@@ -721,7 +721,7 @@ static im_function maxpos_subpel_desc= {
 /* Package up all these functions.
  */
 static im_function *mos_list[] = {
-        &align_bands_desc,
+	&align_bands_desc,
 	&correl_desc,
 	&find_lroverlap_desc,
 	&find_tboverlap_desc,
@@ -733,7 +733,7 @@ static im_function *mos_list[] = {
 	&lrmosaic1_desc,
 	&match_linear_desc,
 	&match_linear_search_desc,
-        &maxpos_subpel_desc,
+	&maxpos_subpel_desc,
 	&remosaic_desc,
 	&tbmerge_desc,
 	&tbmerge1_desc,

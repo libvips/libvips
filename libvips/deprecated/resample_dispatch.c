@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -112,12 +112,12 @@ affinei_vec( im_object *argv )
 	int w = *((int *) argv[11]);
 	int h = *((int *) argv[12]);
 
-	return( im_affinei( argv[0], argv[1], interpolate, 
+	return( im_affinei( argv[0], argv[1], interpolate,
 		a, b, c, d, dx, dy, x, y, w, h ) );
 }
 
 /* Description of im_affinei.
- */ 
+ */
 static im_function affinei_desc = {
 	"im_affinei", 			/* Name */
 	"affine transform",
@@ -154,12 +154,12 @@ affinei_all_vec( im_object *argv )
 	double dx = *((double *) argv[7]);
 	double dy = *((double *) argv[8]);
 
-	return( im_affinei_all( argv[0], argv[1], interpolate, 
+	return( im_affinei_all( argv[0], argv[1], interpolate,
 		a, b, c, d, dx, dy ) );
 }
 
 /* Description of im_affinei_all.
- */ 
+ */
 static im_function affinei_all_desc = {
 	"im_affinei_all", 		/* Name */
 	"affine transform of whole image",
@@ -190,7 +190,7 @@ shrink_vec( im_object *argv )
 }
 
 /* Description of im_shrink.
- */ 
+ */
 static im_function shrink_desc = {
 	"im_shrink",	 		/* Name */
 	"shrink image by xfac, yfac times",
@@ -221,7 +221,7 @@ stretch3_vec( im_object *argv )
 }
 
 /* Description of im_stretch3.
- */ 
+ */
 static im_function stretch3_desc = {
 	"im_stretch3",	 		/* Name */
 	"stretch 3%, sub-pixel displace by xdisp/ydisp",

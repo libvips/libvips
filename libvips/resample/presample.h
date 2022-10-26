@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -70,7 +70,7 @@ GType vips_resample_get_type( void );
 #define MAX_POINT (2000)
 
 int vips_reduce_get_points( VipsKernel kernel, double shrink );
-void vips_reduce_make_mask( double *c, 
+void vips_reduce_make_mask( double *c,
 	VipsKernel kernel, double shrink, double x );
 
 #ifdef __cplusplus

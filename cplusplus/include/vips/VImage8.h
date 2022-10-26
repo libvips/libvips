@@ -3,7 +3,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -68,7 +68,7 @@ class VObject
 {
 private:
 	// can be NULL, see eg. VObject()
-	VipsObject *vobject; 
+	VipsObject *vobject;
 
 public:
 	/**
@@ -77,28 +77,28 @@ public:
 	 * If steal is STEAL, then the new VObject takes over the reference
 	 * that you pass in.
 	 */
-	VObject( VipsObject *new_vobject, VSteal steal = STEAL ) : 
+	VObject( VipsObject *new_vobject, VSteal steal = STEAL ) :
 		vobject( new_vobject )
 	{
 		// we allow NULL init, eg. "VImage a;"
 		g_assert( !new_vobject ||
-			VIPS_IS_OBJECT( new_vobject ) ); 
+			VIPS_IS_OBJECT( new_vobject ) );
 
 #ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject constructor, obj = %p, steal = %d\n",
-			new_vobject, steal ); 
-		if( new_vobject ) { 
-			printf( "   obj " ); 
+			new_vobject, steal );
+		if( new_vobject ) {
+			printf( "   obj " );
 			vips_object_print_name( VIPS_OBJECT( new_vobject ) );
-			printf( "\n" ); 
+			printf( "\n" );
 		}
 #endif /*VIPS_DEBUG_VERBOSE*/
 
 		if( !steal && vobject ) {
 #ifdef VIPS_DEBUG_VERBOSE
-			printf( "   reffing object\n" ); 
+			printf( "   reffing object\n" );
 #endif /*VIPS_DEBUG_VERBOSE*/
-			g_object_ref( vobject ); 
+			g_object_ref( vobject );
 		}
 	}
 
@@ -107,16 +107,16 @@ public:
 	{
 	}
 
-	VObject( const VObject &a ) : 
+	VObject( const VObject &a ) :
 		vobject( a.vobject )
 	{
 		g_assert( !vobject ||
 			VIPS_IS_OBJECT( vobject ) );
 
 #ifdef VIPS_DEBUG_VERBOSE
-		printf( "VObject copy constructor, obj = %p\n", 
-			vobject ); 
-		printf( "   reffing object\n" ); 
+		printf( "VObject copy constructor, obj = %p\n",
+			vobject );
+		printf( "   reffing object\n" );
 #endif /*VIPS_DEBUG_VERBOSE*/
 		if( vobject )
 			g_object_ref( vobject );
@@ -126,25 +126,25 @@ public:
 	VObject &operator=( const VObject &a )
 	{
 #ifdef VIPS_DEBUG_VERBOSE
-		printf( "VObject assignment\n" );  
-		printf( "   reffing %p\n", a.vobject ); 
-		printf( "   unreffing %p\n", vobject ); 
+		printf( "VObject assignment\n" );
+		printf( "   reffing %p\n", a.vobject );
+		printf( "   unreffing %p\n", vobject );
 #endif /*VIPS_DEBUG_VERBOSE*/
 
 		g_assert( !vobject ||
-			VIPS_IS_OBJECT( vobject ) ); 
+			VIPS_IS_OBJECT( vobject ) );
 		g_assert( !a.vobject ||
-			VIPS_IS_OBJECT( a.vobject ) ); 
+			VIPS_IS_OBJECT( a.vobject ) );
 
 		// delete the old ref at the end ... otherwise "a = a;" could
-		// unref before reffing again 
+		// unref before reffing again
 		if( a.vobject )
 			g_object_ref( a.vobject );
 		if( vobject )
 			g_object_unref( vobject );
 		vobject = a.vobject;
 
-		return( *this ); 
+		return( *this );
 	}
 
 	// this mustn't be virtual: we want this class to only be a pointer,
@@ -152,15 +152,15 @@ public:
 	~VObject()
 	{
 #ifdef VIPS_DEBUG_VERBOSE
-		printf( "VObject destructor\n" );  
-		printf( "   unreffing %p\n", vobject ); 
+		printf( "VObject destructor\n" );
+		printf( "   unreffing %p\n", vobject );
 #endif /*VIPS_DEBUG_VERBOSE*/
 
 		g_assert( !vobject ||
-			VIPS_IS_OBJECT( vobject ) ); 
-		
-		if( vobject ) 
-			g_object_unref( vobject ); 
+			VIPS_IS_OBJECT( vobject ) );
+
+		if( vobject )
+			g_object_unref( vobject );
 	}
 
 	/**
@@ -172,9 +172,9 @@ public:
 	get_object() const
 	{
 		g_assert( !vobject ||
-			VIPS_IS_OBJECT( vobject ) ); 
+			VIPS_IS_OBJECT( vobject ) );
 
-		return( vobject ); 
+		return( vobject );
 	}
 
 	/**
@@ -221,11 +221,11 @@ private:
 		const char *name;
 
 		// the thing we pass to and from our caller
-		GValue value; 
+		GValue value;
 
 		// an input or output parameter ... we guess the direction
 		// from the arg to set()
-		bool input; 
+		bool input;
 
 		// the pointer we write output values to
 		union {
@@ -235,13 +235,13 @@ private:
 			VImage *vimage;
 			std::vector<double> *vvector;
 			VipsBlob **vblob;
-		}; 
+		};
 
-		Pair( const char *name ) : 
+		Pair( const char *name ) :
 			name( name ), input( false ), vimage( 0 )
 		{
 			// argh = {0} won't work wil vanilla C++
-			memset( &value, 0, sizeof( GValue ) ); 
+			memset( &value, 0, sizeof( GValue ) );
 		}
 
 		~Pair()
@@ -263,7 +263,7 @@ public:
 	 * Set an input boolean option.
 	 */
 	VOption *
-	set( const char *name, bool value ); 
+	set( const char *name, bool value );
 
 	/**
 	 * Set an input int option. This is used for enums as well, or you can
@@ -272,7 +272,7 @@ public:
 	VOption *
 	set( const char *name, int value );
 
-	/** 
+	/**
 	 * Set an input unsigned 64-bit integer option.
 	 */
 	VOption *
@@ -285,7 +285,7 @@ public:
 	set( const char *name, double value );
 
 	/**
-	 * Set an input string option. 
+	 * Set an input string option.
 	 *
 	 * A copy is taken of the object.
 	 */
@@ -327,18 +327,18 @@ public:
 
 	/**
 	 * Set a binary object an input option. Use vips_blob_new() to make
-	 * blobs. 
+	 * blobs.
 	 *
 	 * A copy is taken of the object.
 	 */
 	VOption *
-	set( const char *name, VipsBlob *value ); 
+	set( const char *name, VipsBlob *value );
 
 	/**
 	 * Set an option which will return a bool value.
 	 */
 	VOption *
-	set( const char *name, bool *value ); 
+	set( const char *name, bool *value );
 
 	/**
 	 * Set an option which will return an integer value.
@@ -353,7 +353,7 @@ public:
 	set( const char *name, double *value );
 
 	/**
-	 * Set an option which will return a reference to an image. 
+	 * Set an option which will return a reference to an image.
 	 */
 	VOption *
 	set( const char *name, VImage *value );
@@ -369,37 +369,37 @@ public:
 	 * profile.
 	 */
 	VOption *
-	set( const char *name, VipsBlob **blob ); 
+	set( const char *name, VipsBlob **blob );
 
 	/**
 	 * Walk the set of options, setting options on the operation. This is
 	 * used internally by VImage::call().
 	 */
-	void 
+	void
 	set_operation( VipsOperation *operation );
 
 	/**
 	 * Walk the set of options, fetching any output values. This is used
 	 * internally by VImage::call().
 	 */
-	void 
+	void
 	get_operation( VipsOperation *operation );
 
 };
 
 /**
- * An image object. 
+ * An image object.
  *
  * Image processing operations on images are member functions of VImage. For
  * example:
  *
  *     VImage in = VImage::new_from_file( argv[1], VImage::option()
- *         ->set( "access", "sequential" ) ); 
+ *         ->set( "access", "sequential" ) );
  *     VImage out = in.embed( 10, 10, 1000, 1000, VImage::option()
  *         ->set( "extend", "copy" ) );
  *     out.write_to_file( argv[2] );
  *
- * VImage objects are smart pointers over the underlying VipsImage objects. 
+ * VImage objects are smart pointers over the underlying VipsImage objects.
  * They manage the complications of GLib's ref and unref system for you.
  */
 class VImage : public VObject
@@ -408,12 +408,12 @@ public:
 	using VObject::is_null;
 
 	/**
-	 * Wrap a VImage around an underlying VipsImage object. 
+	 * Wrap a VImage around an underlying VipsImage object.
 	 *
-	 * If steal is STEAL, then the VImage will take ownership of the 
+	 * If steal is STEAL, then the VImage will take ownership of the
 	 * reference to the VipsImage.
 	 */
-	VImage( VipsImage *image, VSteal steal = STEAL ) : 
+	VImage( VipsImage *image, VSteal steal = STEAL ) :
 		VObject( (VipsObject *) image, steal )
 	{
 	}
@@ -431,7 +431,7 @@ public:
 	 * This does not make a new reference -- you'll need to g_object_ref()
 	 * the pointer if you need it to last.
 	 */
-	VipsImage * 
+	VipsImage *
 	get_image() const
 	{
 		return( (VipsImage *) VObject::get_object() );
@@ -440,84 +440,84 @@ public:
 	/**
 	 * Return the width of the image in pixels.
 	 */
-	int 
+	int
 	width() const
 	{
-		return( vips_image_get_width( get_image() ) ); 
+		return( vips_image_get_width( get_image() ) );
 	}
 
 	/**
 	 * Return the height of the image in pixels.
 	 */
-	int 
+	int
 	height() const
 	{
-		return( vips_image_get_height( get_image() ) ); 
+		return( vips_image_get_height( get_image() ) );
 	}
 
 	/**
 	 * Return the number of image bands.
 	 */
-	int 
+	int
 	bands() const
 	{
-		return( vips_image_get_bands( get_image() ) ); 
+		return( vips_image_get_bands( get_image() ) );
 	}
 
 	/**
 	 * Return the image format, for example VIPS_FORMAT_UCHAR.
 	 */
-	VipsBandFormat 
+	VipsBandFormat
 	format() const
 	{
-		return( vips_image_get_format( get_image() ) ); 
+		return( vips_image_get_format( get_image() ) );
 	}
 
 	/**
 	 * Return the image coding, for example VIPS_CODING_NONE.
 	 */
-	VipsCoding 
+	VipsCoding
 	coding() const
 	{
-		return( vips_image_get_coding( get_image() ) ); 
+		return( vips_image_get_coding( get_image() ) );
 	}
 
 	/**
 	 * Return the image interpretation, for example
 	 * VIPS_INTERPRETATION_sRGB.
 	 */
-	VipsInterpretation 
+	VipsInterpretation
 	interpretation() const
 	{
-		return( vips_image_get_interpretation( get_image() ) ); 
+		return( vips_image_get_interpretation( get_image() ) );
 	}
 
 	/**
 	 * Try to guess the image interpretation from other fields. This is
 	 * handy if the interpretation has not been set correctly.
 	 */
-	VipsInterpretation 
+	VipsInterpretation
 	guess_interpretation() const
 	{
-		return( vips_image_guess_interpretation( get_image() ) ); 
+		return( vips_image_guess_interpretation( get_image() ) );
 	}
 
 	/**
 	 * The horizontal resolution in pixels per millimeter.
 	 */
-	double 
+	double
 	xres() const
 	{
-		return( vips_image_get_xres( get_image() ) ); 
+		return( vips_image_get_xres( get_image() ) );
 	}
 
 	/**
 	 * The vertical resolution in pixels per millimeter.
 	 */
-	double 
+	double
 	yres() const
 	{
-		return( vips_image_get_yres( get_image() ) ); 
+		return( vips_image_get_yres( get_image() ) );
 	}
 
 	/**
@@ -526,7 +526,7 @@ public:
 	int
 	xoffset() const
 	{
-		return( vips_image_get_xoffset( get_image() ) ); 
+		return( vips_image_get_xoffset( get_image() ) );
 	}
 
 	/**
@@ -535,7 +535,7 @@ public:
 	int
 	yoffset() const
 	{
-		return( vips_image_get_yoffset( get_image() ) ); 
+		return( vips_image_get_yoffset( get_image() ) );
 	}
 
 	/**
@@ -548,34 +548,34 @@ public:
 	}
 
 	/**
-	 * The name of the file this image originally came from, or NULL if 
-	 * it's not a file image. 
+	 * The name of the file this image originally came from, or NULL if
+	 * it's not a file image.
 	 */
 	const char *
 	filename() const
 	{
-		return( vips_image_get_filename( get_image() ) ); 
+		return( vips_image_get_filename( get_image() ) );
 	}
 
 	/**
 	 * Arrange for the underlying object to be entirely in memory, then
 	 * return a pointer to the first pixel.
-	 * 
+	 *
 	 * This can take a long time and need a very large amount of RAM.
 	 */
 	const void *
 	data() const
 	{
-		return( vips_image_get_data( get_image() ) ); 
+		return( vips_image_get_data( get_image() ) );
 	}
 
 	/**
 	 * Set the value of an int metadata item on an image.
 	 */
-	void 
+	void
 	set( const char *field, int value )
 	{
-		vips_image_set_int( this->get_image(), field, value ); 
+		vips_image_set_int( this->get_image(), field, value );
 	}
 
 	/**
@@ -583,10 +583,10 @@ public:
 	 *
 	 * A copy of the array is taken.
 	 */
-	void 
+	void
 	set( const char *field, int *value, int n )
 	{
-		vips_image_set_array_int( this->get_image(), field, value, n ); 
+		vips_image_set_array_int( this->get_image(), field, value, n );
 	}
 
 	/**
@@ -594,7 +594,7 @@ public:
 	 *
 	 * A copy of the array is taken.
 	 */
-	void 
+	void
 	set( const char *field, std::vector<int> value )
 	{
 		vips_image_set_array_int( this->get_image(), field, &value[0],
@@ -627,10 +627,10 @@ public:
 	/**
 	 * Set the value of a double metadata item on an image.
 	 */
-	void 
+	void
 	set( const char *field, double value )
 	{
-		vips_image_set_double( this->get_image(), field, value ); 
+		vips_image_set_double( this->get_image(), field, value );
 	}
 
 	/**
@@ -638,10 +638,10 @@ public:
 	 *
 	 * A copy of the string is taken.
 	 */
-	void 
+	void
 	set( const char *field, const char *value )
 	{
-		vips_image_set_string( this->get_image(), field, value ); 
+		vips_image_set_string( this->get_image(), field, value );
 	}
 
 	/**
@@ -651,68 +651,68 @@ public:
 	 * When libvips no longer needs the value, it will be disposed with
 	 * the free function. This can be NULL.
 	 */
-	void 
-	set( const char *field, 
+	void
+	set( const char *field,
 		VipsCallbackFn free_fn, void *data, size_t length )
 	{
-		vips_image_set_blob( this->get_image(), field, 
-			free_fn, data, length ); 
+		vips_image_set_blob( this->get_image(), field,
+			free_fn, data, length );
 	}
 
 	/**
 	 * Return the GType of a metadata item, or 0 if the named item does not
 	 * exist.
 	 */
-	GType 
+	GType
 	get_typeof( const char *field ) const
 	{
-		return( vips_image_get_typeof( this->get_image(), field ) ); 
+		return( vips_image_get_typeof( this->get_image(), field ) );
 	}
 
 	/**
-	 * Get the value of a metadata item as an int. 
+	 * Get the value of a metadata item as an int.
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
-	int 
+	int
 	get_int( const char *field ) const
 	{
 		int value;
 
 		if( vips_image_get_int( this->get_image(), field, &value ) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( value ); 
+		return( value );
 	}
 
 	/**
 	 * Get the value of a metadata item as an array of ints. Do not free
-	 * the result. 
+	 * the result.
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
 	void
 	get_array_int( const char *field, int **out, int *n ) const
 	{
-		if( vips_image_get_array_int( this->get_image(), 
+		if( vips_image_get_array_int( this->get_image(),
 			field, out, n ) )
-			throw( VError() ); 
+			throw( VError() );
 	}
 
 	/**
-	 * Get the value of a metadata item as an array of ints. 
+	 * Get the value of a metadata item as an array of ints.
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
-	std::vector<int> 
+	std::vector<int>
 	get_array_int( const char *field ) const
 	{
 		int length;
 		int *array;
 
-		if( vips_image_get_array_int( this->get_image(), 
+		if( vips_image_get_array_int( this->get_image(),
 			field, &array, &length ) )
-			throw( VError() ); 
+			throw( VError() );
 
 		std::vector<int> vector( array, array + length );
 
@@ -721,7 +721,7 @@ public:
 
 	/**
 	 * Get the value of a metadata item as an array of doubles. Do not free
-	 * the result. 
+	 * the result.
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
@@ -734,7 +734,7 @@ public:
 	}
 
 	/**
-	 * Get the value of a metadata item as an array of doubles. 
+	 * Get the value of a metadata item as an array of doubles.
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
@@ -758,15 +758,15 @@ public:
 	 *
 	 * If the item is not of this type, an exception is thrown.
 	 */
-	double 
+	double
 	get_double( const char *field ) const
 	{
 		double value;
 
 		if( vips_image_get_double( this->get_image(), field, &value ) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( value ); 
+		return( value );
 	}
 
 	/**
@@ -778,16 +778,16 @@ public:
 	const char *
 	get_string( const char *field ) const
 	{
-		const char *value; 
+		const char *value;
 
 		if( vips_image_get_string( this->get_image(), field, &value ) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( value ); 
+		return( value );
 	}
 
 	/**
-	 * Get the value of a metadata item as a binary object. You must not 
+	 * Get the value of a metadata item as a binary object. You must not
 	 * free the result.
 	 *
 	 * If the item is not of this type, an exception is thrown.
@@ -795,13 +795,13 @@ public:
 	const void *
 	get_blob( const char *field, size_t *length ) const
 	{
-		const void *value; 
+		const void *value;
 
-		if( vips_image_get_blob( this->get_image(), field, 
+		if( vips_image_get_blob( this->get_image(), field,
 			&value, length ) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( value ); 
+		return( value );
 	}
 
 	/**
@@ -827,39 +827,39 @@ public:
 	 * Call any libvips operation, with a set of string-encoded options as
 	 * well as VOption.
 	 */
-	static void 
-	call_option_string( const char *operation_name, 
+	static void
+	call_option_string( const char *operation_name,
 		const char *option_string, VOption *options = 0 );
 
 	/**
 	 * Call any libvips operation.
 	 */
-	static void 
+	static void
 	call( const char *operation_name, VOption *options = 0 );
 
 	/**
 	 * Make a new image which, when written to, will create a large memory
 	 * object. See VImage::write().
 	 */
-	static VImage 
+	static VImage
 	new_memory()
 	{
-		return( VImage( vips_image_new_memory() ) ); 
+		return( VImage( vips_image_new_memory() ) );
 	}
 
 	/**
 	 * Make a new VImage which, when written to, will craete a temporary
 	 * file on disc. See VImage::write().
 	 */
-	static VImage 
+	static VImage
 	new_temp_file( const char *file_format = ".v" )
 	{
 		VipsImage *image;
 
 		if( !(image = vips_image_new_temp_file( file_format )) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( VImage( image ) ); 
+		return( VImage( image ) );
 	}
 
 	/**
@@ -868,7 +868,7 @@ public:
 	 * The available options depends on the image format. See for example
 	 * VImage::jpegload().
 	 */
-	static VImage 
+	static VImage
 	new_from_file( const char *name, VOption *options = 0 );
 
 	/**
@@ -878,7 +878,7 @@ public:
 	 * The available options depends on the image format. See for example
 	 * VImage::jpegload().
 	 */
-	static VImage 
+	static VImage
 	new_from_buffer( const void *buf, size_t len,
 		const char *option_string, VOption *options = 0 );
 
@@ -889,7 +889,7 @@ public:
 	 * The available options depends on the image format. See for example
 	 * VImage::jpegload().
 	 */
-	static VImage 
+	static VImage
 	new_from_buffer( const std::string &buf,
 		const char *option_string, VOption *options = 0 );
 
@@ -899,25 +899,25 @@ public:
 	 * The available options depends on the image format. See for example
 	 * VImage::jpegload().
 	 */
-	static VImage 
-	new_from_source( VSource source, 
+	static VImage
+	new_from_source( VSource source,
 		const char *option_string, VOption *options = 0 );
 
 	/**
 	 * Create a new VImage object from an area of memory containing a
 	 * C-style array.
 	 */
-	static VImage 
+	static VImage
 	new_from_memory( void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format )
 	{
 		VipsImage *image;
 
-		if( !(image = vips_image_new_from_memory( data, size, 
+		if( !(image = vips_image_new_from_memory( data, size,
 			width, height, bands, format )) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( VImage( image ) ); 
+		return( VImage( image ) );
 	}
 
 	/**
@@ -927,7 +927,7 @@ public:
 	 * The VImage steals ownership of @data and will free() it when it
 	 * goes out of scope.
 	 */
-	static VImage 
+	static VImage
 	new_from_memory_steal( void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format );
 
@@ -942,49 +942,49 @@ public:
 	 * Create a matrix image of a specified size, initialized from the
 	 * array.
 	 */
-	static VImage 
+	static VImage
 	new_matrix( int width, int height, double *array, int size )
 	{
 		VipsImage *image;
 
 		if( !(image = vips_image_new_matrix_from_array( width, height,
 			array, size )) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( VImage( image ) ); 
+		return( VImage( image ) );
 	}
 
 	/**
 	 * Create a matrix image of a specified size, initialized from the
 	 * function parameters.
 	 */
-	static VImage 
+	static VImage
 	new_matrixv( int width, int height, ... );
 
 	/**
 	 * Make a new image of the same size and type as self, but with each
 	 * pixel initialized with the constant.
 	 */
-	VImage 
+	VImage
 	new_from_image( std::vector<double> pixel ) const
 	{
 		VipsImage *image;
 
-		if( !(image = vips_image_new_from_image( this->get_image(), 
+		if( !(image = vips_image_new_from_image( this->get_image(),
 			&pixel[0], static_cast<int>( pixel.size() ) )) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( VImage( image ) ); 
+		return( VImage( image ) );
 	}
 
 	/**
 	 * Make a new image of the same size and type as self, but with each
 	 * pixel initialized with the constant.
 	 */
-	VImage 
+	VImage
 	new_from_image( double pixel ) const
 	{
-		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
+		return( new_from_image( to_vectorv( 1, pixel ) ) );
 	}
 
 	/**
@@ -998,8 +998,8 @@ public:
 	 *
 	 * VImage::copy() adds a null "copy" node to a pipeline. Use that
 	 * instead if you want to change metadata and not pixels.
-	 */ 
-	VImage 
+	 */
+	VImage
 	copy_memory() const
 	{
 		VipsImage *image;
@@ -1036,16 +1036,16 @@ public:
 	 * The available options depends on the file format. See
 	 * VImage::jpegsave(), for example.
 	 */
-	void write_to_buffer( const char *suffix, void **buf, size_t *size, 
+	void write_to_buffer( const char *suffix, void **buf, size_t *size,
 		VOption *options = 0 ) const;
 
 	/**
-	 * Write an image to a generic target object in the specified format. 
+	 * Write an image to a generic target object in the specified format.
 	 *
 	 * The available options depends on the file format. See
 	 * VImage::jpegsave(), for example.
 	 */
-	void write_to_target( const char *suffix, VTarget target, 
+	void write_to_target( const char *suffix, VTarget target,
 		VOption *options = 0 ) const;
 
 	/**
@@ -1056,11 +1056,11 @@ public:
 	{
 		void *result;
 
-		if( !(result = vips_image_write_to_memory( this->get_image(), 
+		if( !(result = vips_image_write_to_memory( this->get_image(),
 			size )) )
-			throw( VError() ); 
+			throw( VError() );
 
-		return( result ); 
+		return( result );
 	}
 
 	/**
@@ -1089,8 +1089,8 @@ public:
 	VImage
 	linear( double a, double b, VOption *options = 0 ) const
 	{
-		return( this->linear( to_vector( a ), to_vector( b ), 
-			options ) ); 
+		return( this->linear( to_vector( a ), to_vector( b ),
+			options ) );
 	}
 
 	/**
@@ -1101,7 +1101,7 @@ public:
 	VImage
 	linear( std::vector<double> a, double b, VOption *options = 0 ) const
 	{
-		return( this->linear( a, to_vector( b ), options ) ); 
+		return( this->linear( a, to_vector( b ), options ) );
 	}
 
 	/**
@@ -1112,11 +1112,11 @@ public:
 	VImage
 	linear( double a, std::vector<double> b, VOption *options = 0 ) const
 	{
-		return( this->linear( to_vector( a ), b, options ) ); 
+		return( this->linear( to_vector( a ), b, options ) );
 	}
 
 	/**
-	 * Split a many-band image into an array of one-band images. 
+	 * Split a many-band image into an array of one-band images.
 	 */
 	std::vector<VImage> bandsplit( VOption *options = 0 ) const;
 
@@ -1132,23 +1132,23 @@ public:
 	VImage
 	bandjoin( double other, VOption *options = 0 ) const
 	{
-		return( bandjoin( to_vector( other ), options ) ); 
+		return( bandjoin( to_vector( other ), options ) );
 	}
 
 	/**
-	 * Append a series of bands to an image, with each element initialized 
+	 * Append a series of bands to an image, with each element initialized
 	 * to the constant values.
 	 */
 	VImage
 	bandjoin( std::vector<double> other, VOption *options = 0 ) const
 	{
-		return( bandjoin_const( other, options ) ); 
+		return( bandjoin_const( other, options ) );
 	}
 
 	/**
 	 * Composite other on top of self using the specified blending mode.
 	 */
-	VImage composite( VImage other, VipsBlendMode mode, 
+	VImage composite( VImage other, VipsBlendMode mode,
 		VOption *options = 0 ) const;
 
 	/**
@@ -1164,106 +1164,106 @@ public:
 	/**
 	 * Flip the image left-right.
 	 */
-	VImage 
+	VImage
 	fliphor( VOption *options = 0 ) const
 	{
-		return( flip( VIPS_DIRECTION_HORIZONTAL, options ) ); 
+		return( flip( VIPS_DIRECTION_HORIZONTAL, options ) );
 	}
 
 	/**
 	 * Flip the image top-bottom.
 	 */
-	VImage 
+	VImage
 	flipver( VOption *options = 0 ) const
 	{
-		return( flip( VIPS_DIRECTION_VERTICAL, options ) ); 
+		return( flip( VIPS_DIRECTION_VERTICAL, options ) );
 	}
 
 	/**
 	 * Rotate the image by 90 degrees clockwise.
 	 */
-	VImage 
+	VImage
 	rot90( VOption *options = 0 ) const
 	{
-		return( rot( VIPS_ANGLE_D90, options ) ); 
+		return( rot( VIPS_ANGLE_D90, options ) );
 	}
 
 	/**
 	 * Rotate the image by 180 degrees.
 	 */
-	VImage 
+	VImage
 	rot180( VOption *options = 0 ) const
 	{
-		return( rot( VIPS_ANGLE_D180, options ) ); 
+		return( rot( VIPS_ANGLE_D180, options ) );
 	}
 
 	/**
 	 * Rotate the image by 270 degrees clockwise.
 	 */
-	VImage 
+	VImage
 	rot270( VOption *options = 0 ) const
 	{
-		return( rot( VIPS_ANGLE_D270, options ) ); 
+		return( rot( VIPS_ANGLE_D270, options ) );
 	}
 
 	/**
 	 * Dilate the image with the specified strucuring element, see
-	 * VImage::new_matrix(). Stucturing element values can be 0 for 
+	 * VImage::new_matrix(). Stucturing element values can be 0 for
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
-	VImage 
+	VImage
 	dilate( VImage mask, VOption *options = 0 ) const
 	{
-		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_DILATE, 
-			options ) ); 
+		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_DILATE,
+			options ) );
 	}
 
 	/**
 	 * Erode the image with the specified strucuring element, see
-	 * VImage::new_matrix(). Stucturing element values can be 0 for 
+	 * VImage::new_matrix(). Stucturing element values can be 0 for
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
-	VImage 
+	VImage
 	erode( VImage mask, VOption *options = 0 ) const
 	{
-		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_ERODE, 
-			options ) ); 
+		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_ERODE,
+			options ) );
 	}
 
 	/**
 	 * A median filter of the specified size. See VImage::rank().
 	 */
-	VImage 
+	VImage
 	median( int size = 3, VOption *options = 0 ) const
 	{
-		return( rank( size, size, (size * size) / 2, options ) ); 
+		return( rank( size, size, (size * size) / 2, options ) );
 	}
 
 	/**
 	 * Convert to integer, rounding down.
 	 */
-	VImage 
+	VImage
 	floor( VOption *options = 0 ) const
 	{
-		return( round( VIPS_OPERATION_ROUND_FLOOR, options ) ); 
+		return( round( VIPS_OPERATION_ROUND_FLOOR, options ) );
 	}
 
 	/**
 	 * Convert to integer, rounding up.
 	 */
-	VImage 
+	VImage
 	ceil( VOption *options = 0 ) const
 	{
-		return( round( VIPS_OPERATION_ROUND_CEIL, options ) ); 
+		return( round( VIPS_OPERATION_ROUND_CEIL, options ) );
 	}
 
 	/**
 	 * Convert to integer, rounding to nearest.
 	 */
-	VImage 
+	VImage
 	rint( VOption *options = 0 ) const
 	{
-		return( round( VIPS_OPERATION_ROUND_RINT, options ) ); 
+		return( round( VIPS_OPERATION_ROUND_RINT, options ) );
 	}
 
 	/**
@@ -1272,10 +1272,10 @@ public:
 	 *
 	 *     VImage mask = (in > 128).bandand()
 	 */
-	VImage 
+	VImage
 	bandand( VOption *options = 0 ) const
 	{
-		return( bandbool( VIPS_OPERATION_BOOLEAN_AND, options ) ); 
+		return( bandbool( VIPS_OPERATION_BOOLEAN_AND, options ) );
 	}
 
 	/**
@@ -1284,10 +1284,10 @@ public:
 	 *
 	 *     VImage mask = (in > 128).bandand()
 	 */
-	VImage 
+	VImage
 	bandor( VOption *options = 0 ) const
 	{
-		return( bandbool( VIPS_OPERATION_BOOLEAN_OR, options ) ); 
+		return( bandbool( VIPS_OPERATION_BOOLEAN_OR, options ) );
 	}
 
 	/**
@@ -1296,16 +1296,16 @@ public:
 	 *
 	 *     VImage mask = (in > 128).bandand()
 	 */
-	VImage 
+	VImage
 	bandeor( VOption *options = 0 ) const
 	{
-		return( bandbool( VIPS_OPERATION_BOOLEAN_EOR, options ) ); 
+		return( bandbool( VIPS_OPERATION_BOOLEAN_EOR, options ) );
 	}
 
 	/**
 	 * Return the real part of a complex image.
 	 */
-	VImage 
+	VImage
 	real( VOption *options = 0 ) const
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_REAL, options ) );
@@ -1314,7 +1314,7 @@ public:
 	/**
 	 * Return the imaginary part of a complex image.
 	 */
-	VImage 
+	VImage
 	imag( VOption *options = 0 ) const
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_IMAG, options ) );
@@ -1323,7 +1323,7 @@ public:
 	/**
 	 * Convert a complex image to polar coordinates.
 	 */
-	VImage 
+	VImage
 	polar( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_POLAR, options ) );
@@ -1332,7 +1332,7 @@ public:
 	/**
 	 * Convert a complex image to rectangular coordinates.
 	 */
-	VImage 
+	VImage
 	rect( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_RECT, options ) );
@@ -1341,7 +1341,7 @@ public:
 	/**
 	 * Find the complex conjugate.
 	 */
-	VImage 
+	VImage
 	conj( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_CONJ, options ) );
@@ -1350,7 +1350,7 @@ public:
 	/**
 	 * Find the sine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	sin( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_SIN, options ) );
@@ -1359,7 +1359,7 @@ public:
 	/**
 	 * Find the cosine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	cos( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_COS, options ) );
@@ -1368,7 +1368,7 @@ public:
 	/**
 	 * Find the tangent of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	tan( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_TAN, options ) );
@@ -1377,7 +1377,7 @@ public:
 	/**
 	 * Find the arc sine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	asin( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ASIN, options ) );
@@ -1386,7 +1386,7 @@ public:
 	/**
 	 * Find the arc cosine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	acos( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ACOS, options ) );
@@ -1395,7 +1395,7 @@ public:
 	/**
 	 * Find the arc tangent of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	atan( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ATAN, options ) );
@@ -1404,7 +1404,7 @@ public:
 	/**
 	 * Find the hyperbolic sine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	sinh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_SINH, options ) );
@@ -1413,7 +1413,7 @@ public:
 	/**
 	 * Find the hyperbolic cosine of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	cosh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_COSH, options ) );
@@ -1422,7 +1422,7 @@ public:
 	/**
 	 * Find the hyperbolic tangent of each pixel. Angles are in degrees.
 	 */
-	VImage 
+	VImage
 	tanh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_TANH, options ) );
@@ -1431,7 +1431,7 @@ public:
 	/**
 	 * Find the hyperbolic arc sine of each pixel. Angles are in radians.
 	 */
-	VImage 
+	VImage
 	asinh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ASINH, options ) );
@@ -1440,7 +1440,7 @@ public:
 	/**
 	 * Find the hyperbolic arc cosine of each pixel. Angles are in radians.
 	 */
-	VImage 
+	VImage
 	acosh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ACOSH, options ) );
@@ -1449,25 +1449,25 @@ public:
 	/**
 	 * Find the hyperbolic arc tangent of each pixel. Angles are in radians.
 	 */
-	VImage 
+	VImage
 	atanh( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ATANH, options ) );
 	}
 
 	/**
-	 * Find the natural log of each pixel. 
+	 * Find the natural log of each pixel.
 	 */
-	VImage 
+	VImage
 	log( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_LOG, options ) );
 	}
 
 	/**
-	 * Find the base 10 log of each pixel. 
+	 * Find the base 10 log of each pixel.
 	 */
-	VImage 
+	VImage
 	log10( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_LOG10, options ) );
@@ -1476,7 +1476,7 @@ public:
 	/**
 	 * Find e to the power of each pixel.
 	 */
-	VImage 
+	VImage
 	exp( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_EXP, options ) );
@@ -1485,7 +1485,7 @@ public:
 	/**
 	 * Find 10 to the power of each pixel.
 	 */
-	VImage 
+	VImage
 	exp10( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_EXP10, options ) );
@@ -1494,7 +1494,7 @@ public:
 	/**
 	 * Raise each pixel to the specified power.
 	 */
-	VImage 
+	VImage
 	pow( VImage other, VOption *options = 0 ) const
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_POW, options ) );
@@ -1503,27 +1503,27 @@ public:
 	/**
 	 * Raise each pixel to the specified power.
 	 */
-	VImage 
+	VImage
 	pow( double other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_POW, 
+		return( math2_const( VIPS_OPERATION_MATH2_POW,
 			to_vector( other ), options ) );
 	}
 
 	/**
 	 * Raise each pixel to the specified power.
 	 */
-	VImage 
+	VImage
 	pow( std::vector<double> other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_POW, 
+		return( math2_const( VIPS_OPERATION_MATH2_POW,
 			other, options ) );
 	}
 
 	/**
 	 * Raise other to the power of each pixel (the opposite of pow).
 	 */
-	VImage 
+	VImage
 	wop( VImage other, VOption *options = 0 ) const
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_WOP, options ) );
@@ -1532,27 +1532,27 @@ public:
 	/**
 	 * Raise the constant to the power of each pixel (the opposite of pow).
 	 */
-	VImage 
+	VImage
 	wop( double other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
+		return( math2_const( VIPS_OPERATION_MATH2_WOP,
 			to_vector( other ), options ) );
 	}
 
 	/**
 	 * Raise the constant to the power of each pixel (the opposite of pow).
 	 */
-	VImage 
+	VImage
 	wop( std::vector<double> other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
+		return( math2_const( VIPS_OPERATION_MATH2_WOP,
 			other, options ) );
 	}
-	
+
 	/**
 	 * Calculate atan2 of each pixel.
 	 */
-	VImage 
+	VImage
 	atan2( VImage other, VOption *options = 0 ) const
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_ATAN2, options ) );
@@ -1561,20 +1561,20 @@ public:
 	/**
 	 * Calculate atan2 of each pixel.
 	 */
-	VImage 
+	VImage
 	atan2( double other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2,
 			to_vector( other ), options ) );
 	}
 
 	/**
 	 * Calculate atan2 of each pixel.
 	 */
-	VImage 
+	VImage
 	atan2( std::vector<double> other, VOption *options = 0 ) const
 	{
-		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2,
 			other, options ) );
 	}
 
@@ -1582,64 +1582,64 @@ public:
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
-	ifthenelse( std::vector<double> th, VImage el, 
+	VImage
+	ifthenelse( std::vector<double> th, VImage el,
 		VOption *options = 0 ) const
 	{
-		return( ifthenelse( el.new_from_image( th ), el, options ) ); 
+		return( ifthenelse( el.new_from_image( th ), el, options ) );
 	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
-	ifthenelse( VImage th, std::vector<double> el, 
+	VImage
+	ifthenelse( VImage th, std::vector<double> el,
 		VOption *options = 0 ) const
 	{
-		return( ifthenelse( th, th.new_from_image( el ), options ) ); 
+		return( ifthenelse( th, th.new_from_image( el ), options ) );
 	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
-	ifthenelse( std::vector<double> th, std::vector<double> el, 
+	VImage
+	ifthenelse( std::vector<double> th, std::vector<double> el,
 		VOption *options = 0 ) const
 	{
 		return( ifthenelse( new_from_image( th ), new_from_image( el ),
-			options ) ); 
+			options ) );
 	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
+	VImage
 	ifthenelse( double th, VImage el, VOption *options = 0 ) const
 	{
-		return( ifthenelse( to_vector( th ), el, options ) ); 
+		return( ifthenelse( to_vector( th ), el, options ) );
 	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
+	VImage
 	ifthenelse( VImage th, double el, VOption *options = 0 ) const
 	{
-		return( ifthenelse( th, to_vector( el ), options ) ); 
+		return( ifthenelse( th, to_vector( el ), options ) );
 	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
 	 * pixels from th (then) or el (else).
 	 */
-	VImage 
+	VImage
 	ifthenelse( double th, double el, VOption *options = 0 ) const
 	{
-		return( ifthenelse( to_vector( th ), to_vector( el ), 
+		return( ifthenelse( to_vector( th ), to_vector( el ),
 			options ) );
 	}
 
@@ -1649,241 +1649,241 @@ public:
 
 	std::vector<double> operator()( int x, int y ) const;
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator+( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator+( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator+( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator+( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator+( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator+=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator+=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator+=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator-=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator-=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator-=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator-( const VImage a );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator*( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator*( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator*( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator*( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator*( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator*=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator*=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator*=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator/( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator/( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator/( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator/( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator/( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator/=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator/=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator/=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator%( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator%( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator%( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator%=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator%=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator%=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<=( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<=( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<=( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<=( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<=( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>=( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>=( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>=( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>=( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>=( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator==( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator==( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator==( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator==( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator==( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator!=( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator!=( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator!=( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator!=( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator!=( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator&( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator&( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator&( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator&( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator&( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator&=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator&=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator&=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator|( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator|( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator|( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator|( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator|( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator|=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator|=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator|=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator^( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator^( const double a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator^( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator^( const std::vector<double> a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator^( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator^=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator^=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator^=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<<( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<<( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator<<( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator<<=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator<<=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator<<=( VImage &a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>>( const VImage a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>>( const VImage a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage 
+	friend VIPS_CPLUSPLUS_API VImage
 		operator>>( const VImage a, const std::vector<double> b );
 
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator>>=( VImage &a, const VImage b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator>>=( VImage &a, const double b );
-	friend VIPS_CPLUSPLUS_API VImage & 
+	friend VIPS_CPLUSPLUS_API VImage &
 		operator>>=( VImage &a, const std::vector<double> b );
 
 	/* Automatically generated members.
@@ -1893,7 +1893,7 @@ public:
 	 * 	make vips-operators
 	 *
 	 * Then delete from here to the end of the class and paste in
-	 * vips-operators.h. We could just #include vips-operators.h, but 
+	 * vips-operators.h. We could just #include vips-operators.h, but
 	 * that confuses doxygen.
 	 */
 

@@ -5,13 +5,13 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on : 
+ * Modified on :
  * 20/2/95 JC
  *	- updated
  *	- ANSIfied, a little
  * 21/2/95 JC
  *	- rewritten
- *	- partialed 
+ *	- partialed
  *	- speed-ups
  *	- new correlation coefficient (see above), from Niblack "An
  *	  Introduction to Digital Image Processing", Prentice/Hall, pp 138.
@@ -43,7 +43,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -87,10 +87,10 @@ typedef struct _VipsSpcor {
 	 */
 	double *rmean;
 
-	/* Per band sqrt(sumij (ref(i,j)-mean(ref))^2) 
+	/* Per band sqrt(sumij (ref(i,j)-mean(ref))^2)
 	 */
 	double *c1;
-} VipsSpcor; 
+} VipsSpcor;
 
 typedef VipsCorrelationClass VipsSpcorClass;
 
@@ -103,43 +103,43 @@ vips_spcor_pre_generate( VipsCorrelation *correlation )
 	VipsSpcor *spcor = (VipsSpcor *) correlation;
 	VipsImage *ref = correlation->ref_ready;
 	int bands = ref->Bands;
-	VipsImage **b = (VipsImage **) 
+	VipsImage **b = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( spcor ), bands );
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( spcor ), 2 );
-	VipsImage **b2 = (VipsImage **) 
+	VipsImage **b2 = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( spcor ), bands );
 
-	int i; 
+	int i;
 	double *offset;
 	double *scale;
 
 	if( vips_check_noncomplex( class->nickname, ref ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Per-band mean.
 	 */
 	if( !(spcor->rmean = VIPS_ARRAY( spcor, bands, double )) ||
 		!(spcor->c1 = VIPS_ARRAY( spcor, bands, double )) )
-		return( -1 ); 
-	for( i = 0; i < bands; i++ ) 
+		return( -1 );
+	for( i = 0; i < bands; i++ )
 		if( vips_extract_band( ref, &b[i], i, NULL ) ||
 			vips_avg( b[i], &spcor->rmean[i], NULL ) )
 			return( -1 );
 
-	/* Per band sqrt(sumij (ref(i,j)-mean(ref))^2) 
+	/* Per band sqrt(sumij (ref(i,j)-mean(ref))^2)
 	 */
 	if( !(offset = VIPS_ARRAY( spcor, bands, double )) ||
 		!(scale = VIPS_ARRAY( spcor, bands, double )) )
-		return( -1 ); 
+		return( -1 );
 	for( i = 0; i < bands; i++ ) {
 		offset[i] = -spcor->rmean[i];
 		scale[i] = 1.0;
 	}
 	if( vips_linear( ref, &t[0], scale, offset, bands, NULL ) ||
 		vips_multiply( t[0], t[0], &t[1], NULL ) )
-		return( -1 ); 
-	for( i = 0; i < bands; i++ ) 
+		return( -1 );
+	for( i = 0; i < bands; i++ )
 		if( vips_extract_band( t[1], &b2[i], i, NULL ) ||
 			vips_avg( b2[i], &spcor->c1[i], NULL ) )
 			return( -1 );
@@ -206,10 +206,10 @@ vips_spcor_correlation( VipsCorrelation *correlation,
 	VipsSpcor *spcor = (VipsSpcor *) correlation;
 	VipsRect *r = &out->valid;
 	VipsImage *ref = correlation->ref_ready;
-	int bands = vips_band_format_iscomplex( ref->BandFmt ) ? 
-		ref->Bands * 2 : ref->Bands; 
-	int sz = ref->Xsize * bands; 
-	int lsk = VIPS_REGION_LSKIP( in ); 
+	int bands = vips_band_format_iscomplex( ref->BandFmt ) ?
+		ref->Bands * 2 : ref->Bands;
+	int sz = ref->Xsize * bands;
+	int lsk = VIPS_REGION_LSKIP( in );
 
 	int x, y, b, j, i;
 
@@ -219,47 +219,47 @@ vips_spcor_correlation( VipsCorrelation *correlation,
 	double c2, cc;
 
 	for( y = 0; y < r->height; y++ ) {
-		float *q = (float *) 
+		float *q = (float *)
 			VIPS_REGION_ADDR( out, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
-			VipsPel *p = 
+			VipsPel *p =
 				VIPS_REGION_ADDR( in, r->left + x, r->top + y );
 
-			for( b = 0; b < bands; b++ ) { 
+			for( b = 0; b < bands; b++ ) {
 				switch( vips_image_get_format( ref ) ) {
-				case VIPS_FORMAT_UCHAR:	
-					LOOP( unsigned char ); 
+				case VIPS_FORMAT_UCHAR:
+					LOOP( unsigned char );
 					break;
 
-				case VIPS_FORMAT_CHAR:	
-					LOOP( signed char ); 
+				case VIPS_FORMAT_CHAR:
+					LOOP( signed char );
 					break;
 
-				case VIPS_FORMAT_USHORT: 
-					LOOP( unsigned short ); 
+				case VIPS_FORMAT_USHORT:
+					LOOP( unsigned short );
 					break;
 
-				case VIPS_FORMAT_SHORT:	
-					LOOP( signed short ); 
+				case VIPS_FORMAT_SHORT:
+					LOOP( signed short );
 					break;
 
-				case VIPS_FORMAT_UINT: 	
-					LOOP( unsigned int ); 
-					break; 
+				case VIPS_FORMAT_UINT:
+					LOOP( unsigned int );
+					break;
 
-				case VIPS_FORMAT_INT: 	
-					LOOP( signed int ); 
-					break; 
+				case VIPS_FORMAT_INT:
+					LOOP( signed int );
+					break;
 
-				case VIPS_FORMAT_FLOAT:	
-				case VIPS_FORMAT_COMPLEX: 
-					LOOP( float ); 
-					break; 
+				case VIPS_FORMAT_FLOAT:
+				case VIPS_FORMAT_COMPLEX:
+					LOOP( float );
+					break;
 
-				case VIPS_FORMAT_DOUBLE: 
-				case VIPS_FORMAT_DPCOMPLEX: 
-					LOOP( double ); 
+				case VIPS_FORMAT_DOUBLE:
+				case VIPS_FORMAT_DPCOMPLEX:
+					LOOP( double );
 					break;
 
 				default:
@@ -338,8 +338,8 @@ vips_spcor_init( VipsSpcor *spcor )
  * image is always float.
  *
  * The output
- * image is the same size as the input. Extra input edge pixels are made by 
- * copying the existing edges outwards. 
+ * image is the same size as the input. Extra input edge pixels are made by
+ * copying the existing edges outwards.
  *
  * The correlation coefficient is calculated as:
  *
@@ -352,11 +352,11 @@ vips_spcor_init( VipsSpcor *spcor )
  *
  * where inkl is the area of @in centred at position (k,l).
  *
- * from Niblack "An Introduction to Digital Image Processing", 
+ * from Niblack "An Introduction to Digital Image Processing",
  * Prentice/Hall, pp 138.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
@@ -367,7 +367,7 @@ vips_spcor_init( VipsSpcor *spcor )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 {
 	va_list ap;

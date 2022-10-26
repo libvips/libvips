@@ -20,7 +20,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,7 +53,7 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsHistIsmonotonic { 
+typedef struct _VipsHistIsmonotonic {
 	VipsOperation parent_instance;
 
 	VipsImage *in;
@@ -63,17 +63,17 @@ typedef struct _VipsHistIsmonotonic {
 
 typedef VipsOperationClass VipsHistIsmonotonicClass;
 
-G_DEFINE_TYPE( VipsHistIsmonotonic, vips_hist_ismonotonic, 
+G_DEFINE_TYPE( VipsHistIsmonotonic, vips_hist_ismonotonic,
 	VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_ismonotonic_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHistIsmonotonic *ismonotonic = (VipsHistIsmonotonic *) object; 
+	VipsHistIsmonotonic *ismonotonic = (VipsHistIsmonotonic *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
-	double m; 
+	double m;
 
 	if( VIPS_OBJECT_CLASS( vips_hist_ismonotonic_parent_class )->
 		build( object ) )
@@ -82,22 +82,22 @@ vips_hist_ismonotonic_build( VipsObject *object )
 	if( vips_check_hist( class->nickname, ismonotonic->in ) )
 		return( -1 );
 
-	if( ismonotonic->in->Xsize == 1 ) 
+	if( ismonotonic->in->Xsize == 1 )
 		t[0] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 );
-	else 
+	else
 		t[0] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 );
-        vips_image_set_double( t[0], "offset", 128 );
+	vips_image_set_double( t[0], "offset", 128 );
 
 	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
-	if( vips_conv( ismonotonic->in, &t[1], t[0], 
+	if( vips_conv( ismonotonic->in, &t[1], t[0],
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL ) ||
 		vips_moreeq_const1( t[1], &t[2], 128, NULL ) ||
 		vips_min( t[2], &m, NULL ) )
 		return( -1 );
 
-	g_object_set( ismonotonic, "monotonic", (int) m == 255, NULL ); 
+	g_object_set( ismonotonic, "monotonic", (int) m == 255, NULL );
 
 	return( 0 );
 }
@@ -115,18 +115,18 @@ vips_hist_ismonotonic_class_init( VipsHistIsmonotonicClass *class )
 	object_class->description = _( "test for monotonicity" );
 	object_class->build = vips_hist_ismonotonic_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input histogram image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistIsmonotonic, in ) );
 
-	VIPS_ARG_BOOL( class, "monotonic", 2, 
-		_( "Monotonic" ), 
+	VIPS_ARG_BOOL( class, "monotonic", 2,
+		_( "Monotonic" ),
 		_( "true if in is monotonic" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistIsmonotonic, monotonic ),
-		FALSE ); 
+		FALSE );
 
 }
 
@@ -145,7 +145,7 @@ vips_hist_ismonotonic_init( VipsHistIsmonotonic *ismonotonic )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_ismonotonic( VipsImage *in, gboolean *out, ... )
 {
 	va_list ap;

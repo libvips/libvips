@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -89,9 +89,9 @@ typedef struct _VipsOperationClass {
 	 */
 	void (*usage)( struct _VipsOperationClass *cls, VipsBuf *buf );
 
-	/* Return a set of operation flags. 
+	/* Return a set of operation flags.
 	 */
-	VipsOperationFlags (*get_flags)( VipsOperation *operation ); 
+	VipsOperationFlags (*get_flags)( VipsOperation *operation );
 	VipsOperationFlags flags;
 
 	/* One of our input images has signalled "invalidate". The cache uses
@@ -115,7 +115,7 @@ void vips_operation_invalidate( VipsOperation *operation );
 VIPS_API
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VIPS_API
-VipsOperation *vips_operation_new( const char *name ); 
+VipsOperation *vips_operation_new( const char *name );
 VIPS_API
 int vips_call_required_optional( VipsOperation **operation,
 	va_list required, va_list optional );
@@ -125,7 +125,7 @@ int vips_call( const char *operation_name, ... )
 VIPS_API
 int vips_call_split( const char *operation_name, va_list optional, ... );
 VIPS_API
-int vips_call_split_option_string( const char *operation_name, 
+int vips_call_split_option_string( const char *operation_name,
 	const char *option_string, va_list optional, ... );
 
 VIPS_API

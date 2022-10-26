@@ -1,4 +1,4 @@
-/* A GInputStream that links to a VipsSource under the hood. 
+/* A GInputStream that links to a VipsSource under the hood.
  *
  * 10/11/19 kleisauke
  */
@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,7 +53,7 @@
 
 static void vips_g_input_stream_seekable_iface_init( GSeekableIface *iface );
 
-G_DEFINE_TYPE_WITH_CODE( VipsGInputStream, vips_g_input_stream, 
+G_DEFINE_TYPE_WITH_CODE( VipsGInputStream, vips_g_input_stream,
 	G_TYPE_INPUT_STREAM, G_IMPLEMENT_INTERFACE( G_TYPE_SEEKABLE,
 		vips_g_input_stream_seekable_iface_init ) )
 
@@ -125,7 +125,7 @@ vips_g_input_stream_can_seek( GSeekable *seekable )
 {
 	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( seekable );
 
-	VIPS_DEBUG_MSG( "vips_g_input_stream_can_seek: %d\n", 
+	VIPS_DEBUG_MSG( "vips_g_input_stream_can_seek: %d\n",
 		!gstream->source->is_pipe );
 
 	return( !gstream->source->is_pipe );
@@ -154,7 +154,7 @@ vips_g_input_stream_seek( GSeekable *seekable, goffset offset,
 	VIPS_DEBUG_MSG( "vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
 		", type = %d\n", offset, type );
 
-	if( vips_source_seek( gstream->source, offset, 
+	if( vips_source_seek( gstream->source, offset,
 		seek_type_to_lseek( type ) ) == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
@@ -271,7 +271,7 @@ vips_g_input_stream_class_init( VipsGInputStreamClass *class )
 		g_param_spec_object( "input",
 			_( "Input" ),
 			_( "Stream to wrap" ),
-			VIPS_TYPE_SOURCE, G_PARAM_CONSTRUCT_ONLY | 
+			VIPS_TYPE_SOURCE, G_PARAM_CONSTRUCT_ONLY |
 				G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
 
 }

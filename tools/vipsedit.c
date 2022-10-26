@@ -23,7 +23,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -84,37 +84,37 @@ static gboolean setext = FALSE;
 static gboolean version = FALSE;
 
 static GOptionEntry entries[] = {
-	{ "endian", 'n', 0, G_OPTION_ARG_STRING, &endian, 
+	{ "endian", 'n', 0, G_OPTION_ARG_STRING, &endian,
 		N_( "tag file as big or little-endian" ), NULL },
-	{ "width", 'w', 0, G_OPTION_ARG_STRING, &xsize, 
+	{ "width", 'w', 0, G_OPTION_ARG_STRING, &xsize,
 		N_( "set width to N pixels" ), "N" },
-	{ "height", 'h', 0, G_OPTION_ARG_STRING, &ysize, 
+	{ "height", 'h', 0, G_OPTION_ARG_STRING, &ysize,
 		N_( "set height to N pixels" ), "N" },
-	{ "bands", 'b', 0, G_OPTION_ARG_STRING, &bands, 
+	{ "bands", 'b', 0, G_OPTION_ARG_STRING, &bands,
 		N_( "set Bands to N" ), "N" },
-	{ "format", 'f', 0, G_OPTION_ARG_STRING, &format, 
+	{ "format", 'f', 0, G_OPTION_ARG_STRING, &format,
 		N_( "set BandFmt to F (eg. uchar, float)" ), "F" },
-	{ "interpretation", 'i', 0, G_OPTION_ARG_STRING, &interpretation, 
+	{ "interpretation", 'i', 0, G_OPTION_ARG_STRING, &interpretation,
 		N_( "set interpretation to I (eg. xyz)" ), "I" },
-	{ "coding", 'c', 0, G_OPTION_ARG_STRING, &coding, 
+	{ "coding", 'c', 0, G_OPTION_ARG_STRING, &coding,
 		N_( "set Coding to C (eg. labq)" ), "C" },
-	{ "xres", 'X', 0, G_OPTION_ARG_STRING, &xres, 
+	{ "xres", 'X', 0, G_OPTION_ARG_STRING, &xres,
 		N_( "set Xres to R pixels/mm" ), "R" },
-	{ "yres", 'Y', 0, G_OPTION_ARG_STRING, &yres, 
+	{ "yres", 'Y', 0, G_OPTION_ARG_STRING, &yres,
 		N_( "set Yres to R pixels/mm" ), "R" },
-	{ "xoffset", 'u', 0, G_OPTION_ARG_STRING, &xoffset, 
+	{ "xoffset", 'u', 0, G_OPTION_ARG_STRING, &xoffset,
 		N_( "set Xoffset to N pixels" ), "N" },
-	{ "yoffset", 'v', 0, G_OPTION_ARG_STRING, &yoffset, 
+	{ "yoffset", 'v', 0, G_OPTION_ARG_STRING, &yoffset,
 		N_( "set Yoffset to N pixels" ), "N" },
-	{ "setext", 'e', 0, G_OPTION_ARG_NONE, &setext, 
+	{ "setext", 'e', 0, G_OPTION_ARG_NONE, &setext,
 		N_( "replace extension block with stdin" ), NULL },
-	{ "xsize", 'x', 0, G_OPTION_ARG_STRING, &xsize, 
+	{ "xsize", 'x', 0, G_OPTION_ARG_STRING, &xsize,
 		N_( "set Xsize to N (deprecated, use width)" ), "N" },
-	{ "ysize", 'y', 0, G_OPTION_ARG_STRING, &ysize, 
+	{ "ysize", 'y', 0, G_OPTION_ARG_STRING, &ysize,
 		N_( "set Ysize to N (deprecated, use height)" ), "N" },
-	{ "type", 't', 0, G_OPTION_ARG_STRING, &interpretation, 
+	{ "type", 't', 0, G_OPTION_ARG_STRING, &interpretation,
 		N_( "set Type to T (deprecated, use interpretation)" ), "T" },
-	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version, 
+	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version,
 		N_( "print version" ), NULL },
 	{ NULL }
 };
@@ -139,7 +139,7 @@ main( int argc, char **argv )
 	unsigned char header[VIPS_SIZEOF_HEADER];
 
 	if( VIPS_INIT( argv[0] ) )
-	        vips_error_exit( "%s", _( "unable to start VIPS" ) );
+		vips_error_exit( "%s", _( "unable to start VIPS" ) );
 
 #ifdef ENABLE_NLS
 	textdomain( GETTEXT_PACKAGE );
@@ -161,18 +161,18 @@ main( int argc, char **argv )
 	argv = g_win32_get_command_line();
 #endif /*G_OS_WIN32*/
 
-	context = g_option_context_new( 
+	context = g_option_context_new(
 		_( "vipsedit - edit vips file header" ) );
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
 	g_option_group_add_entries( main_group, entries );
-	vips_add_option_entries( main_group ); 
+	vips_add_option_entries( main_group );
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
 #ifdef G_OS_WIN32
-	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+	if( !g_option_context_parse_strv( context, &argv, &error ) )
 #else /*!G_OS_WIN32*/
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+	if( !g_option_context_parse( context, &argc, &argv, &error ) )
 #endif /*G_OS_WIN32*/
 	{
 		vips_g_error( &error );
@@ -186,11 +186,11 @@ main( int argc, char **argv )
 	for( argc = 0; argv[argc]; argc++ )
 		;
 
-	if( version ) 
+	if( version )
 		printf( "vips-%s\n", vips_version_string() );
 
-	if( argc != 2 ) { 
-		fprintf( stderr, _( "usage: %s [OPTION...] vips-file\n" ), 
+	if( argc != 2 ) {
+		fprintf( stderr, _( "usage: %s [OPTION...] vips-file\n" ),
 			g_get_prgname() );
 
 		exit( -1 );
@@ -215,11 +215,11 @@ main( int argc, char **argv )
 			vips_error_exit( _( "bad endian-ness %s, "
 				"should be 'big' or 'little'" ), endian );
 	}
-	if( xsize ) 
+	if( xsize )
 		parse_pint( xsize, &im->Xsize );
-	if( ysize ) 
+	if( ysize )
 		parse_pint( ysize, &im->Ysize );
-	if( bands ) 
+	if( bands )
 		parse_pint( bands, &im->Bands );
 	if( format ) {
 		int f;
@@ -230,7 +230,7 @@ main( int argc, char **argv )
 
 		im->BandFmt = f;
 
-		/* We don't use this, but make sure it's set in case any 
+		/* We don't use this, but make sure it's set in case any
 		 * old binaries are expecting it.
 		 */
 		im->Bbits = vips_format_sizeof( f ) << 3;
@@ -238,9 +238,9 @@ main( int argc, char **argv )
 	if( interpretation ) {
 		int i;
 
-		if( (i = vips_enum_from_nick( argv[0], 
+		if( (i = vips_enum_from_nick( argv[0],
 				VIPS_TYPE_INTERPRETATION, interpretation )) < 0 )
-			vips_error_exit( _( "bad interpretation %s" ), 
+			vips_error_exit( _( "bad interpretation %s" ),
 				interpretation );
 
 		im->Type = i;
@@ -254,13 +254,13 @@ main( int argc, char **argv )
 
 		im->Coding = c;
 	}
-	if( xres ) 
+	if( xres )
 		im->Xres = atof( xres );
-	if( yres ) 
+	if( yres )
 		im->Yres = atof( yres );
-	if( xoffset ) 
+	if( xoffset )
 		im->Xoffset = atoi( xoffset );
-	if( yoffset ) 
+	if( yoffset )
 		im->Yoffset = atoi( yoffset );
 
 	if( vips__seek( im->fd, 0, SEEK_SET ) == (off_t) -1 )
@@ -276,7 +276,7 @@ main( int argc, char **argv )
 		if( !(xml = vips__file_read( stdin, "stdin", &size )) )
 			vips_error_exit( "%s", _( "could not get ext data" ) );
 
-		/* Strip trailing whitespace ... we can get stray \n at the 
+		/* Strip trailing whitespace ... we can get stray \n at the
 		 * end, eg. "echo | vipsedit --setext fred.v".
 		 */
 		while( size > 0 && isspace( xml[size - 1] ) )
@@ -292,7 +292,7 @@ main( int argc, char **argv )
 	g_option_context_free( context );
 
 #ifdef G_OS_WIN32
-	g_strfreev( argv ); 
+	g_strfreev( argv );
 #endif /*G_OS_WIN32*/
 
 	vips_shutdown();

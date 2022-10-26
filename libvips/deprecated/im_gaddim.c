@@ -1,11 +1,11 @@
-/* @(#)  Generalised addition of two vasari images. 
+/* @(#)  Generalised addition of two vasari images.
  * @(#)Inputs, outputs are neither float nor double
  * @(#) Result at each point is a*in1 + b*in2 + c
  * @(#) Result depends on inputs, rounding is carried out;
  * @(#) Function im_gaddim() assumes that the both input files
  * @(#) are either memory mapped or in a buffer.
  * @(#) Images must have the same no of bands and must not be complex
- * @(#)  No check for overflow is done; 
+ * @(#)  No check for overflow is done;
  * @(#)
  * @(#) int im_gaddim(a, in1, b, in2, c, out)
  * @(#) double a, b, c;
@@ -24,7 +24,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@
  */
 
 /*		 uchar char ushort short uint   int */
-static int array[6][6] = { 
+static int array[6][6] = {
 /* uchar */	{  2,    3,    2,    3,    4,    5 },
 /* char */	{  3,    3,    3,    3,    5,    5 },
 /* ushort */	{  2,    3,    2,    3,    4,    5 },
@@ -123,7 +123,7 @@ static int array[6][6] = {
 int im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 {
 	static int fmt[] = { IM_BANDFMT_UCHAR, IM_BANDFMT_CHAR,
-	IM_BANDFMT_USHORT, IM_BANDFMT_SHORT, 
+	IM_BANDFMT_USHORT, IM_BANDFMT_SHORT,
 		IM_BANDFMT_UINT, IM_BANDFMT_INT };
 	int y, x;
 	int first, second, result;
@@ -133,9 +133,9 @@ int im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 
 /* fd, data filename must have been set before the function is called
  * Check whether they are set properly */
-        if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1))
+	if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1))
 		{
-                return(-1);
+		return(-1);
 		}
 /* Checks the arguments entered in in and prepares out */
 	if ( (in1->Xsize != in2->Xsize) || (in1->Ysize != in2->Ysize) ||

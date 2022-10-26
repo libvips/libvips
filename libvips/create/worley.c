@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -107,15 +107,15 @@ typedef struct _Sequence {
 
 } Sequence;
 
-/* Generate a 3 x 3 grid of cells around a point. 
+/* Generate a 3 x 3 grid of cells around a point.
  */
 static void
-vips_worley_create_cells( VipsWorley *worley, 
+vips_worley_create_cells( VipsWorley *worley,
 	Cell cells[9], int cell_x, int cell_y )
 {
 	int x, y;
 
-	for( y = 0; y < 3; y++ ) 
+	for( y = 0; y < 3; y++ )
 		for( x = 0; x < 3; x++ ) {
 			Cell *cell = &cells[x + y * 3];
 
@@ -137,7 +137,7 @@ vips_worley_create_cells( VipsWorley *worley,
 				value = 0;
 			else if( cell->cell_x < 0 )
 				value = worley->cells_across - 1;
-			else 
+			else
 				value = cell->cell_x;
 			seed = vips__random_add( seed, value );
 
@@ -145,7 +145,7 @@ vips_worley_create_cells( VipsWorley *worley,
 				value = 0;
 			else if( cell->cell_y < 0 )
 				value = worley->cells_down - 1;
-			else 
+			else
 				value = cell->cell_y;
 			seed = vips__random_add( seed, value );
 
@@ -154,14 +154,14 @@ vips_worley_create_cells( VipsWorley *worley,
 			cell->n_features = (seed % (MAX_FEATURES - 1)) + 1;
 
 			for( j = 0; j < cell->n_features; j++ ) {
-				seed = vips__random( seed ); 
-				cell->feature_x[j] = 
-					cell->cell_x * worley->cell_size + 
+				seed = vips__random( seed );
+				cell->feature_x[j] =
+					cell->cell_x * worley->cell_size +
 					seed % worley->cell_size;
 
-				seed = vips__random( seed ); 
-				cell->feature_y[j] = 
-					cell->cell_y * worley->cell_size + 
+				seed = vips__random( seed );
+				cell->feature_y[j] =
+					cell->cell_y * worley->cell_size +
 					seed % worley->cell_size;
 			}
 		}
@@ -215,8 +215,8 @@ vips_worley_distance( VipsWorley *worley, Cell cells[9], int x, int y )
 		Cell *cell = &cells[i];
 
 		for( j = 0; j < cell->n_features; j++ ) {
-			float d = vips_hypot( 
-				x - cell->feature_x[j], 
+			float d = vips_hypot(
+				x - cell->feature_x[j],
 				y - cell->feature_y[j] );
 
 			distance = VIPS_MIN( distance, d );
@@ -245,13 +245,13 @@ vips_worley_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 			if( cell_x != seq->cell_x ||
 				cell_y != seq->cell_y ) {
-				vips_worley_create_cells( worley, 
+				vips_worley_create_cells( worley,
 					seq->cells, cell_x, cell_y );
 				seq->cell_x = cell_x;
 				seq->cell_y = cell_y;
 			}
 
-			q[x] = vips_worley_distance( worley, seq->cells, 
+			q[x] = vips_worley_distance( worley, seq->cells,
 				r->left + x, r->top + y );
 		}
 	}
@@ -270,21 +270,21 @@ vips_worley_build( VipsObject *object )
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
-	worley->cells_across = 
-		VIPS_ROUND_UP( worley->width, worley->cell_size ) / 
+	worley->cells_across =
+		VIPS_ROUND_UP( worley->width, worley->cell_size ) /
 		worley->cell_size;
-	worley->cells_down = 
-		VIPS_ROUND_UP( worley->height, worley->cell_size ) / 
+	worley->cells_down =
+		VIPS_ROUND_UP( worley->height, worley->cell_size ) /
 		worley->cell_size;
 
 	vips_image_init_fields( create->out,
 		worley->width, worley->height, 1,
-		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, 
+		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
 	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
 		vips_image_generate( create->out,
-			vips_worley_start, vips_worley_gen, vips_worley_stop, 
+			vips_worley_start, vips_worley_gen, vips_worley_stop,
 			worley, NULL ) )
 		return( -1 );
 
@@ -304,29 +304,29 @@ vips_worley_class_init( VipsWorleyClass *class )
 	vobject_class->description = _( "make a worley noise image" );
 	vobject_class->build = vips_worley_build;
 
-	VIPS_ARG_INT( class, "width", 2, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 2,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsWorley, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 3, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 3,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsWorley, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "cell_size", 3, 
-		_( "Cell size" ), 
+	VIPS_ARG_INT( class, "cell_size", 3,
+		_( "Cell size" ),
 		_( "Size of Worley cells" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWorley, cell_size ),
 		1, VIPS_MAX_COORD, 256 );
 
-	VIPS_ARG_INT( class, "seed", 4, 
-		_( "Seed" ), 
+	VIPS_ARG_INT( class, "seed", 4,
+		_( "Seed" ),
 		_( "Random number seed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWorley, seed ),

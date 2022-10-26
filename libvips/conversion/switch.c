@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,8 +57,8 @@ typedef VipsOperationClass VipsSwitchClass;
 
 G_DEFINE_TYPE( VipsSwitch, vips_switch, VIPS_TYPE_OPERATION );
 
-static int 
-vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b, 
+static int
+vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsRegion **ar = (VipsRegion **) seq;
@@ -94,7 +94,7 @@ vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 		}
 
 		q += qls;
-		for( i = 0; i < swit->n; i++ ) 
+		for( i = 0; i < swit->n; i++ )
 			p[i] += ls[i];
 	}
 
@@ -114,7 +114,7 @@ vips_switch_build( VipsObject *object )
 	VipsImage **size;
 	int i;
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_switch_parent_class )->build( object ) )
 		return( -1 );
@@ -122,7 +122,7 @@ vips_switch_build( VipsObject *object )
 	/* 255 rather than 256, since we want to reserve +1 as the no
 	 * match value.
 	 */
-	tests = vips_area_get_data( &swit->tests->area, 
+	tests = vips_area_get_data( &swit->tests->area,
 		NULL, &swit->n, NULL, NULL );
 	if( swit->n > 255 ||
 		swit->n < 1 ) {
@@ -152,22 +152,22 @@ vips_switch_build( VipsObject *object )
 	/* Images must match in size and bands.
 	 */
 	if( vips__bandalike_vec( class->nickname, tests, band, swit->n, 1 ) ||
-		vips__sizealike_vec( band, size, swit->n ) ) 
+		vips__sizealike_vec( band, size, swit->n ) )
 		return( -1 );
 	tests = size;
 
 	if( tests[0]->Bands > 1 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "test images not 1-band" ) );
 		return( -1 );
 	}
 
-	if( vips_image_pipeline_array( swit->out, 
+	if( vips_image_pipeline_array( swit->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, tests ) )
 		return( -1 );
 
 	if( vips_image_generate( swit->out,
-		vips_start_many, vips_switch_gen, vips_stop_many, 
+		vips_start_many, vips_switch_gen, vips_stop_many,
 		tests, swit ) )
 		return( -1 );
 
@@ -185,23 +185,23 @@ vips_switch_class_init( VipsSwitchClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "switch";
-	object_class->description = 
+	object_class->description =
 		_( "find the index of the first non-zero pixel in tests" );
 	object_class->build = vips_switch_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_BOXED( class, "tests", 1, 
-		_( "Tests" ), 
+	VIPS_ARG_BOXED( class, "tests", 1,
+		_( "Tests" ),
 		_( "Table of images to test" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSwitch, tests ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsSwitch, out ) );
 
 }
@@ -214,10 +214,10 @@ vips_switch_init( VipsSwitch *swit )
 static int
 vips_switchv( VipsImage **tests, VipsImage **out, int n, va_list ap )
 {
-	VipsArrayImage *tests_array; 
+	VipsArrayImage *tests_array;
 	int result;
 
-	tests_array = vips_array_image_new( tests, n ); 
+	tests_array = vips_array_image_new( tests, n );
 	result = vips_call_split( "switch", ap, tests_array, out );
 	vips_area_unref( VIPS_AREA( tests_array ) );
 
@@ -231,13 +231,13 @@ vips_switchv( VipsImage **tests, VipsImage **out, int n, va_list ap )
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * The @tests images are evaluated and at each point the index of the first 
- * non-zero value is written to @out. If all @tests are false, the value 
- * (@n + 1) is written. 
+ * The @tests images are evaluated and at each point the index of the first
+ * non-zero value is written to @out. If all @tests are false, the value
+ * (@n + 1) is written.
  *
  * Images in @tests must have one band. They are expanded to the
  * bounding box of the set of images in @tests, and that size is used for
- * @out. @tests can have up to 255 elements.  
+ * @out. @tests can have up to 255 elements.
  *
  * Combine with vips_case() to make an efficient multi-way vips_ifthenelse().
  *

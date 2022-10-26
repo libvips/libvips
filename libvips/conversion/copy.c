@@ -1,9 +1,9 @@
-/* Copy an image. 
+/* Copy an image.
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 23/4/93 J.Cupitt
  *	- adapted to work with partial images
  * 30/6/93 JC
@@ -59,7 +59,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -119,7 +119,7 @@ typedef struct _VipsCopy {
 	int xoffset;
 	int yoffset;
 	int bands;
-	VipsBandFormat format;	
+	VipsBandFormat format;
 	VipsCoding coding;
 	int width;
 	int height;
@@ -146,17 +146,17 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 /* The props we copy, if set, from the operation to the image.
  */
 static const char *vips_copy_names[] = {
-	"interpretation", 
-	"xres", 	
-	"yres", 
-	"xoffset", 
+	"interpretation",
+	"xres",
+	"yres",
+	"xoffset",
 	"yoffset",
-	"bands", 
-	"format", 		
-	"coding", 	
-	"width", 
+	"bands",
+	"format",
+	"coding",
+	"width",
 	"height"
-}; 
+};
 
 static int
 vips_copy_build( VipsObject *object )
@@ -176,11 +176,11 @@ vips_copy_build( VipsObject *object )
 	if( vips_image_pio_input( copy->in ) )
 		return( -1 );
 
-	if( copy->swap ) 
-		g_warning( "%s", 
+	if( copy->swap )
+		g_warning( "%s",
 			_( "copy swap is deprecated, use byteswap instead" ) );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL ) )
 		return( -1 );
 
@@ -207,7 +207,7 @@ vips_copy_build( VipsObject *object )
 			GValue value = { 0, };
 
 			g_value_init( &value, type );
-			g_object_get_property( G_OBJECT( object ), 
+			g_object_get_property( G_OBJECT( object ),
 				name, &value );
 
 #ifdef VIPS_DEBUG
@@ -220,7 +220,7 @@ vips_copy_build( VipsObject *object )
 }
 #endif /* VIPS_DEBUG */
 
-			g_object_set_property( G_OBJECT( conversion->out ), 
+			g_object_set_property( G_OBJECT( conversion->out ),
 				name, &value );
 			g_value_unset( &value );
 		}
@@ -231,13 +231,13 @@ vips_copy_build( VipsObject *object )
 	pel_size_before = VIPS_IMAGE_SIZEOF_PEL( &copy_of_fields );
 	pel_size_after = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
 	if( pel_size_after != pel_size_before ) {
-		vips_error( class->nickname, 
-			"%s", _( "must not change pel size" ) ); 
+		vips_error( class->nickname,
+			"%s", _( "must not change pel size" ) );
 		return( -1 );
 	}
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_copy_gen, vips_stop_one, 
+		vips_start_one, vips_copy_gen, vips_stop_one,
 		copy->in, copy ) )
 		return( -1 );
 
@@ -263,88 +263,88 @@ vips_copy_class_init( VipsCopyClass *class )
 	/* We use copy to make fresh vipsimages to stop sharing, so don't
 	 * cache it. Plus copy is cheap.
 	 */
-	operation_class->flags = 
-		VIPS_OPERATION_SEQUENTIAL | 
+	operation_class->flags =
+		VIPS_OPERATION_SEQUENTIAL |
 		VIPS_OPERATION_NOCACHE;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, in ) );
 
-	VIPS_ARG_BOOL( class, "swap", 2, 
-		_( "Swap" ), 
+	VIPS_ARG_BOOL( class, "swap", 2,
+		_( "Swap" ),
 		_( "Swap bytes in image between little and big-endian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsCopy, swap ),
 		FALSE );
 
-	VIPS_ARG_INT( class, "width", 3, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 3,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, width ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "height", 4, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 4,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, height ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "bands", 5, 
-		_( "Bands" ), 
+	VIPS_ARG_INT( class, "bands", 5,
+		_( "Bands" ),
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, bands ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_ENUM( class, "format", 6, 
-		_( "Format" ), 
+	VIPS_ARG_ENUM( class, "format", 6,
+		_( "Format" ),
 		_( "Pixel format in image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, format ),
-		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR ); 
+		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR );
 
-	VIPS_ARG_ENUM( class, "coding", 7, 
-		_( "Coding" ), 
+	VIPS_ARG_ENUM( class, "coding", 7,
+		_( "Coding" ),
 		_( "Pixel coding" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, coding ),
-		VIPS_TYPE_CODING, VIPS_CODING_NONE ); 
+		VIPS_TYPE_CODING, VIPS_CODING_NONE );
 
-	VIPS_ARG_ENUM( class, "interpretation", 8, 
-		_( "Interpretation" ), 
+	VIPS_ARG_ENUM( class, "interpretation", 8,
+		_( "Interpretation" ),
 		_( "Pixel interpretation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, interpretation ),
-		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_MULTIBAND ); 
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_MULTIBAND );
 
-	VIPS_ARG_DOUBLE( class, "xres", 9, 
-		_( "Xres" ), 
+	VIPS_ARG_DOUBLE( class, "xres", 9,
+		_( "Xres" ),
 		_( "Horizontal resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, xres ),
 		-0.0, 1000000, 0 );
 
-	VIPS_ARG_DOUBLE( class, "yres", 10, 
-		_( "Yres" ), 
+	VIPS_ARG_DOUBLE( class, "yres", 10,
+		_( "Yres" ),
 		_( "Vertical resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, yres ),
 		-0.0, 1000000, 0 );
 
-	VIPS_ARG_INT( class, "xoffset", 11, 
-		_( "Xoffset" ), 
+	VIPS_ARG_INT( class, "xoffset", 11,
+		_( "Xoffset" ),
 		_( "Horizontal offset of origin" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, xoffset ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "yoffset", 12, 
-		_( "Yoffset" ), 
+	VIPS_ARG_INT( class, "yoffset", 12,
+		_( "Yoffset" ),
 		_( "Vertical offset of origin" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, yoffset ),
@@ -377,7 +377,7 @@ vips_copy_init( VipsCopy *copy )
  * * @xoffset: %gint, set image xoffset
  * * @yoffset: %gint, set image yoffset
  *
- * Copy an image, optionally modifying the header. VIPS copies images by 
+ * Copy an image, optionally modifying the header. VIPS copies images by
  * copying pointers, so this operation is instant, even for very large images.
  *
  * You can optionally change any or all header fields during the copy. You can
@@ -385,7 +385,7 @@ vips_copy_init( VipsCopy *copy )
  * you can turn a 4-band uchar image into a 2-band ushort image, but you
  * cannot change a 100 x 100 RGB image into a 300 x 100 mono image.
  *
- * See also: vips_byteswap(), vips_bandfold(), vips_bandunfold(). 
+ * See also: vips_byteswap(), vips_bandfold(), vips_bandunfold().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -408,11 +408,11 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * A simple convenience function to copy an image to a file, then copy 
- * again to output. If the image is already a file, just copy straight 
+ * A simple convenience function to copy an image to a file, then copy
+ * again to output. If the image is already a file, just copy straight
  * through.
  *
- * The file is allocated with vips_image_new_temp_file(). 
+ * The file is allocated with vips_image_new_temp_file().
  * The file is automatically deleted when @out is closed.
  *
  * See also: vips_copy(), vips_image_new_temp_file().
@@ -425,11 +425,11 @@ vips_copy_file( VipsImage *in, VipsImage **out, ... )
 {
 	VipsImage *file;
 
-	if( vips_image_isfile( in ) ) 
-		return( vips_copy( in, out, NULL ) ); 
+	if( vips_image_isfile( in ) )
+		return( vips_copy( in, out, NULL ) );
 
 	if( !(file = vips_image_new_temp_file( "%s.v" )) )
-		return( -1 ); 
+		return( -1 );
 	if( vips_image_write( in, file ) ||
 		vips_image_pio_input( file ) ) {
 		g_object_unref( file );

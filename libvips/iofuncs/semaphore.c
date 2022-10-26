@@ -1,5 +1,5 @@
 /* Support for thread stuff.
- * 
+ *
  * JC & KM 9/5/94
  * Modified:
  * 28/11/94 JC
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -37,7 +37,7 @@
 
  */
 
-/* 
+/*
 #define DEBUG_IO
  */
 
@@ -70,7 +70,7 @@ vips_semaphore_destroy( VipsSemaphore *s )
 	VIPS_FREEF( vips_g_cond_free, s->cond );
 }
 
-/* Add n to the semaphore and signal any threads that are blocked waiting 
+/* Add n to the semaphore and signal any threads that are blocked waiting
  * a change.
  */
 int
@@ -92,7 +92,7 @@ vips_semaphore_upn( VipsSemaphore *s, int n )
 	g_mutex_unlock( s->mutex );
 
 #ifdef DEBUG_IO
-	printf( "vips_semaphore_upn(\"%s\",%d) = %d\n", 
+	printf( "vips_semaphore_upn(\"%s\",%d) = %d\n",
 		s->name, n, value_after_op );
 	if( value_after_op > 1 )
 		vips_error( "vips_semaphore_upn", "up over 1!" );
@@ -128,7 +128,7 @@ vips_semaphore_downn( VipsSemaphore *s, int n )
 	g_mutex_unlock( s->mutex );
 
 #ifdef DEBUG_IO
-	printf( "vips_semaphore_downn(\"%s\",%d): %d\n", 
+	printf( "vips_semaphore_downn(\"%s\",%d): %d\n",
 		s->name, n, value_after_op );
 #endif /*DEBUG_IO*/
 

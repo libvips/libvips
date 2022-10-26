@@ -179,11 +179,11 @@ typedef struct _VipsInterpolateVsqbsClass {
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
   vsqbs_ ## conversion(       void*    restrict pout, \
-                        const VipsPel* restrict pin,  \
-                        const int             bands, \
-                        const int             lskip, \
-                        const double          x_0,   \
-                        const double          y_0 )  \
+			const VipsPel* restrict pin,  \
+			const int             bands, \
+			const int             lskip, \
+			const double          x_0,   \
+			const double          y_0 )  \
   { \
     T* restrict out = (T *) pout; \
     \
@@ -239,41 +239,41 @@ typedef struct _VipsInterpolateVsqbsClass {
     \
     do \
       { \
-        const double double_result =               \
-          (                                        \
-            (                                      \
-              (                                    \
-                four_c_uno_two * in[uno_two_shift] \
-                +                                  \
-                four_c_dos_one * in[dos_one_shift] \
-              )                                    \
-              +                                    \
-              (                                    \
-                four_c_dos_two * in[dos_two_shift] \
-                +                                  \
-                four_c_dos_thr * in[dos_thr_shift] \
-              )                                    \
-            )                                      \
-            +                                      \
-            (                                      \
-              (                                    \
-                four_c_tre_two * in[tre_two_shift] \
-                +                                  \
-                four_c_tre_thr * in[tre_thr_shift] \
-              )                                    \
-              +                                    \
-              (                                    \
-                four_c_uno_thr * in[uno_thr_shift] \
-                +                                  \
-                four_c_tre_one * in[tre_one_shift] \
-              )                                    \
-            )                                      \
-          ) * 0.25;                                \
-        \
-        const T result = to_ ## conversion<T>( double_result ); \
-        in++;                                                   \
-        *out++ = result;                                        \
-        \
+	const double double_result =               \
+	  (                                        \
+	    (                                      \
+	      (                                    \
+		four_c_uno_two * in[uno_two_shift] \
+		+                                  \
+		four_c_dos_one * in[dos_one_shift] \
+	      )                                    \
+	      +                                    \
+	      (                                    \
+		four_c_dos_two * in[dos_two_shift] \
+		+                                  \
+		four_c_dos_thr * in[dos_thr_shift] \
+	      )                                    \
+	    )                                      \
+	    +                                      \
+	    (                                      \
+	      (                                    \
+		four_c_tre_two * in[tre_two_shift] \
+		+                                  \
+		four_c_tre_thr * in[tre_thr_shift] \
+	      )                                    \
+	      +                                    \
+	      (                                    \
+		four_c_uno_thr * in[uno_thr_shift] \
+		+                                  \
+		four_c_tre_one * in[tre_one_shift] \
+	      )                                    \
+	    )                                      \
+	  ) * 0.25;                                \
+	\
+	const T result = to_ ## conversion<T>( double_result ); \
+	in++;                                                   \
+	*out++ = result;                                        \
+	\
       } while (--band); \
   }
 
@@ -285,11 +285,11 @@ VSQBS_CONVERSION( nosign )
 
 #define CALL( T, conversion )               \
   vsqbs_ ## conversion<T>( out,             \
-                              p,            \
-                              bands,        \
-                              lskip,        \
-                              relative_x,   \
-                              relative_y );
+			      p,            \
+			      bands,        \
+			      lskip,        \
+			      relative_x,   \
+			      relative_y );
 
 
 /*
@@ -297,19 +297,19 @@ VSQBS_CONVERSION( nosign )
  */
 extern "C" {
   G_DEFINE_TYPE( VipsInterpolateVsqbs, vips_interpolate_vsqbs,
-                 VIPS_TYPE_INTERPOLATE );
+		 VIPS_TYPE_INTERPOLATE );
 }
 
 
 static void
 vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
-                                    void*            restrict out,
-                                    VipsRegion*      restrict in,
-                                    double                    absolute_x,
-                                    double                    absolute_y )
+				    void*            restrict out,
+				    VipsRegion*      restrict in,
+				    double                    absolute_x,
+				    double                    absolute_y )
 {
   /* absolute_x and absolute_y are always >= 1.0 (see double-check assert
-   * below), so we don't need floor(). 
+   * below), so we don't need floor().
    *
    * It's 1 not 0 since we ask for a window_offset of 1 at the bottom.
    */
@@ -329,7 +329,7 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
   /*
    * VIPS versions of Nicolas's pixel addressing values.
    */
-  const int lskip = VIPS_REGION_LSKIP( in ) / 
+  const int lskip = VIPS_REGION_LSKIP( in ) /
 	  VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
 
   /*
@@ -338,7 +338,7 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
    */
   const int actual_bands = in->im->Bands;
   const int bands =
-    vips_band_format_iscomplex( in->im->BandFmt ) ? 
+    vips_band_format_iscomplex( in->im->BandFmt ) ?
       2 * actual_bands : actual_bands;
 
   g_assert( ix - 1 >= in->valid.left );
@@ -346,7 +346,7 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
   g_assert( ix + 1 <= VIPS_RECT_RIGHT( &in->valid ) );
   g_assert( iy + 1 <= VIPS_RECT_BOTTOM( &in->valid ) );
 
-  /* Confirm that absolute_x and absolute_y are >= 1, see above. 
+  /* Confirm that absolute_x and absolute_y are >= 1, see above.
    */
   g_assert( absolute_x >= 1.0 );
   g_assert( absolute_y >= 1.0 );

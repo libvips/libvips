@@ -19,7 +19,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -73,7 +73,7 @@
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
- * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
+ * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many
  * others.
  * The reader can handle any ImageMagick image, including the float and double
  * formats. It will work with any quantum size, including HDR. Any metadata
@@ -90,8 +90,8 @@
  * pages to load. Set @n to -1 to load all pages from @page onwards.
  *
  * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
- * the [density 
- * docs](http://www.imagemagick.org/script/command-line-options.php#density) 
+ * the [density
+ * docs](http://www.imagemagick.org/script/command-line-options.php#density)
  * on the imagemagick website.
  *
  * See also: vips_image_new_from_file().
@@ -125,10 +125,10 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read an image memory block using libMagick into a VIPS image. Exactly as
- * vips_magickload(), but read from a memory source. 
+ * vips_magickload(), but read from a memory source.
  *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * See also: vips_magickload().
  *

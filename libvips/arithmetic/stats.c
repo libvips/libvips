@@ -17,9 +17,9 @@
 	- still did not init max and min correctly --- now fixed for good
 
  * 13/1/05
- *	- use 64 bit arithmetic 
+ *	- use 64 bit arithmetic
  * 1/9/09
- *	- argh nope min/max was broken again for >1CPU in short pipelines on 
+ *	- argh nope min/max was broken again for >1CPU in short pipelines on
  *  	  some architectures
  * 7/9/09
  * 	- rework based on new im__wrapscan() / im_max() ideas for a proper fix
@@ -32,7 +32,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -106,7 +106,7 @@ static int
 vips_stats_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsStats *stats = (VipsStats *) object;
 
 	gint64 vals, pels;
@@ -119,7 +119,7 @@ vips_stats_build( VipsObject *object )
 		if( vips_check_noncomplex( class->nickname, statistic->in ) )
 			return( -1 );
 
-		g_object_set( object, 
+		g_object_set( object,
 			"out", vips_image_new_matrix( COL_LAST, bands + 1 ),
 			NULL );
 	}
@@ -127,17 +127,17 @@ vips_stats_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_stats_parent_class )->build( object ) )
 		return( -1 );
 
-	pels = (gint64) vips_image_get_width( statistic->in ) * 
+	pels = (gint64) vips_image_get_width( statistic->in ) *
 		vips_image_get_height( statistic->in );
 	vals = pels * vips_image_get_bands( statistic->in );
 
-	row0 = VIPS_MATRIX( stats->out, 0, 0 ); 
-	row = VIPS_MATRIX( stats->out, 0, 1 ); 
+	row0 = VIPS_MATRIX( stats->out, 0, 0 );
+	row = VIPS_MATRIX( stats->out, 0, 1 );
 	for( i = 0; i < COL_LAST; i++ )
 		row0[i] = row[i];
 
 	for( b = 1; b < vips_image_get_bands( statistic->in ); b++ ) {
-		row = VIPS_MATRIX( stats->out, 0, b + 1 ); 
+		row = VIPS_MATRIX( stats->out, 0, b + 1 );
 
 		if( row[COL_MIN] < row0[COL_MIN] ) {
 			row0[COL_MIN] = row[COL_MIN];
@@ -156,15 +156,15 @@ vips_stats_build( VipsObject *object )
 	}
 
 	for( y = 1; y < vips_image_get_height( stats->out ); y++ ) {
-		double *row = VIPS_MATRIX( stats->out, 0, y ); 
+		double *row = VIPS_MATRIX( stats->out, 0, y );
 
 		row[COL_AVG] = row[COL_SUM] / pels;
-		row[COL_SD] = sqrt( VIPS_FABS( row[COL_SUM2] - 
+		row[COL_SD] = sqrt( VIPS_FABS( row[COL_SUM2] -
 			(row[COL_SUM] * row[COL_SUM] / pels) ) / (pels - 1) );
 	}
 
 	row0[COL_AVG] = row0[COL_SUM] / vals;
-	row0[COL_SD] = sqrt( VIPS_FABS( row0[COL_SUM2] - 
+	row0[COL_SD] = sqrt( VIPS_FABS( row0[COL_SUM2] -
 		(row0[COL_SUM] * row0[COL_SUM] / vals) ) / (vals - 1) );
 
 	return( 0 );
@@ -222,7 +222,7 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
-/* Start function: make a dummy local stats for the private use of this thread. 
+/* Start function: make a dummy local stats for the private use of this thread.
  */
 static void *
 vips_stats_start( VipsStatistic *statistic )
@@ -304,7 +304,7 @@ vips_stats_start( VipsStatistic *statistic )
 	} \
 	\
 	local->set = TRUE; \
-} 
+}
 
 /* As above, but for float/double types where we have to avoid NaN.
  */
@@ -368,12 +368,12 @@ vips_stats_start( VipsStatistic *statistic )
 	} \
 	\
 	local->set = TRUE; \
-} 
+}
 
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int
-vips_stats_scan( VipsStatistic *statistic, void *seq, 
+vips_stats_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	const int bands = vips_image_get_bands( statistic->in );
@@ -382,16 +382,16 @@ vips_stats_scan( VipsStatistic *statistic, void *seq,
 	int b, i;
 
 	switch( vips_image_get_format( statistic->in ) ) {
-	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
-	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break; 
+	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break;
+	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break;
 	case VIPS_FORMAT_UINT:		LOOP( unsigned int ); break;
-	case VIPS_FORMAT_INT:		LOOP( signed int ); break; 
-	case VIPS_FORMAT_FLOAT:		LOOP( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
+	case VIPS_FORMAT_INT:		LOOP( signed int ); break;
+	case VIPS_FORMAT_FLOAT:		LOOP( float ); break;
+	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break;
 
-	default: 
+	default:
 		g_assert_not_reached();
 	}
 
@@ -416,10 +416,10 @@ vips_stats_class_init( VipsStatsClass *class )
 	sclass->scan = vips_stats_scan;
 	sclass->stop = vips_stats_stop;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output array of statistics" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsStats, out ) );
 }
 
@@ -435,18 +435,18 @@ vips_stats_init( VipsStats *stats )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Find many image statistics in a single pass through the data. @out is a
- * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1 
- * (where n is number of bands in image @in) 
- * rows. Columns are statistics, and are, in order: minimum, maximum, sum, 
+ * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1
+ * (where n is number of bands in image @in)
+ * rows. Columns are statistics, and are, in order: minimum, maximum, sum,
  * sum of squares, mean, standard deviation, x coordinate of minimum, y
- * coordinate of minimum, x coordinate of maximum, y coordinate of maximum. 
+ * coordinate of minimum, x coordinate of maximum, y coordinate of maximum.
  * Later versions of vips_stats() may add more columns.
  *
- * Row 0 has statistics for all 
+ * Row 0 has statistics for all
  * bands together, row 1 has stats for band 1, and so on.
  *
- * If there is more than one maxima or minima, one of them will be chosen at 
- * random. 
+ * If there is more than one maxima or minima, one of them will be chosen at
+ * random.
  *
  * See also: vips_avg(), vips_min().
  *

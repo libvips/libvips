@@ -25,7 +25,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -74,7 +74,7 @@ typedef VipsPointClass VipsGreyClass;
 G_DEFINE_TYPE( VipsGrey, vips_grey, VIPS_TYPE_POINT );
 
 static float
-vips_grey_point( VipsPoint *point, int x, int y ) 
+vips_grey_point( VipsPoint *point, int x, int y )
 {
 	return( (double) x / (point->width - 1) );
 }
@@ -89,8 +89,8 @@ vips_grey_class_init( VipsGreyClass *class )
 	vobject_class->description = _( "make a grey ramp image" );
 
 	point_class->point = vips_grey_point;
-	point_class->min = 0.0; 
-	point_class->max = 1.0; 
+	point_class->min = 0.0;
+	point_class->max = 1.0;
 }
 
 static void
@@ -113,7 +113,7 @@ vips_grey_init( VipsGrey *grey )
  * right-most 1. Intermediate pixels are a linear ramp.
  *
  * Set @uchar to output a uchar image with the leftmost pixel 0 and the
- * rightmost 255. 
+ * rightmost 255.
  *
  * See also: vips_xyz(), vips_identity().
  *

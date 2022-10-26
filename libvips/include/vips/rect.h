@@ -63,10 +63,10 @@ gboolean vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 );
 VIPS_API
 void vips_rect_marginadjust( VipsRect *r, int n );
 VIPS_API
-void vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2, 
+void vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2,
 	VipsRect *out );
 VIPS_API
-void vips_rect_unionrect( const VipsRect *r1, const VipsRect *r2, 
+void vips_rect_unionrect( const VipsRect *r1, const VipsRect *r2,
 	VipsRect *out );
 VIPS_API
 VipsRect *vips_rect_dup( const VipsRect *r );

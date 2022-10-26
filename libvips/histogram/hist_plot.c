@@ -16,7 +16,7 @@
  * 26/9/99 JC
  *	- oooops, graph float was wrong
  * 17/11/99 JC
- *	- oops, failed for all 0's histogram 
+ *	- oops, failed for all 0's histogram
  * 14/12/05
  * 	- redone plot function in C, also use incheck() to cache calcs
  * 	- much, much faster!
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -114,16 +114,16 @@ vips_hist_plot_vert_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	VERT( unsigned char ); break;
-		case VIPS_FORMAT_CHAR: 		VERT( signed char ); break; 
-		case VIPS_FORMAT_USHORT: 	VERT( unsigned short ); break; 
-		case VIPS_FORMAT_SHORT: 	VERT( signed short ); break; 
-		case VIPS_FORMAT_UINT: 		VERT( unsigned int ); break; 
-		case VIPS_FORMAT_INT: 		VERT( signed int );  break; 
-		case VIPS_FORMAT_FLOAT: 	VERT( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	VERT( double ); break; 
+		case VIPS_FORMAT_CHAR: 		VERT( signed char ); break;
+		case VIPS_FORMAT_USHORT: 	VERT( unsigned short ); break;
+		case VIPS_FORMAT_SHORT: 	VERT( signed short ); break;
+		case VIPS_FORMAT_UINT: 		VERT( unsigned int ); break;
+		case VIPS_FORMAT_INT: 		VERT( signed int );  break;
+		case VIPS_FORMAT_FLOAT: 	VERT( float ); break;
+		case VIPS_FORMAT_DOUBLE:	VERT( double ); break;
 
 		default:
-			g_assert_not_reached(); 
+			g_assert_not_reached();
 		}
 	}
 
@@ -165,13 +165,13 @@ vips_hist_plot_horz_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	HORZ( unsigned char ); break;
-		case VIPS_FORMAT_CHAR: 		HORZ( signed char ); break; 
-		case VIPS_FORMAT_USHORT:	HORZ( unsigned short ); break; 
-		case VIPS_FORMAT_SHORT: 	HORZ( signed short ); break; 
-		case VIPS_FORMAT_UINT: 		HORZ( unsigned int ); break; 
-		case VIPS_FORMAT_INT: 		HORZ( signed int );  break; 
-		case VIPS_FORMAT_FLOAT: 	HORZ( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	HORZ( double ); break; 
+		case VIPS_FORMAT_CHAR: 		HORZ( signed char ); break;
+		case VIPS_FORMAT_USHORT:	HORZ( unsigned short ); break;
+		case VIPS_FORMAT_SHORT: 	HORZ( signed short ); break;
+		case VIPS_FORMAT_UINT: 		HORZ( unsigned int ); break;
+		case VIPS_FORMAT_INT: 		HORZ( signed int );  break;
+		case VIPS_FORMAT_FLOAT: 	HORZ( float ); break;
+		case VIPS_FORMAT_DOUBLE:	HORZ( double ); break;
 
 		default:
 			g_assert_not_reached();
@@ -193,7 +193,7 @@ vips_hist_plot_build( VipsObject *object )
 	int width, height, tsize;
 	VipsGenerateFn generate_fn;
 
-	g_object_set( plot, "out", vips_image_new(), NULL ); 
+	g_object_set( plot, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_hist_plot_parent_class )->build( object ) )
 		return( -1 );
@@ -207,7 +207,7 @@ vips_hist_plot_build( VipsObject *object )
 
 	if( !vips_band_format_isuint( in->BandFmt ) &&
 		vips_band_format_isint( in->BandFmt ) ) {
-		/* A signed int type. Move min up to 0. 
+		/* A signed int type. Move min up to 0.
 		 */
 		double min;
 
@@ -228,7 +228,7 @@ vips_hist_plot_build( VipsObject *object )
 		min = *VIPS_MATRIX( t[0], 0, 0 );
 		max = *VIPS_MATRIX( t[0], 1, 0 );
 
-		if( vips_linear1( in, &t[1], 
+		if( vips_linear1( in, &t[1],
 			any / (max - min), -min * any / (max - min), NULL ) )
 			return( -1 );
 
@@ -270,12 +270,12 @@ vips_hist_plot_build( VipsObject *object )
 
 	/* Set image.
 	 */
-	vips_image_init_fields( plot->out, width, height, in->Bands, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
-		VIPS_INTERPRETATION_HISTOGRAM, 
-		1.0, 1.0 ); 
+	vips_image_init_fields( plot->out, width, height, in->Bands,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_HISTOGRAM,
+		1.0, 1.0 );
 	if( vips_image_pipelinev( plot->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_generate( plot->out, 
+		vips_image_generate( plot->out,
 			NULL, generate_fn, NULL, in, NULL ) )
 		return( -1 );
 
@@ -295,16 +295,16 @@ vips_hist_plot_class_init( VipsHistPlotClass *class )
 	object_class->description = _( "plot histogram" );
 	object_class->build = vips_hist_plot_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistPlot, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistPlot, out ) );
 }
 
@@ -319,22 +319,22 @@ vips_hist_plot_init( VipsHistPlot *hist_plot )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Plot a 1 by any or any by 1 image file as a max by any or 
+ * Plot a 1 by any or any by 1 image file as a max by any or
  * any by max image using these rules:
- * 
- * <emphasis>unsigned char</emphasis> max is always 256 
  *
- * <emphasis>other unsigned integer types</emphasis> output 0 - maxium 
+ * <emphasis>unsigned char</emphasis> max is always 256
+ *
+ * <emphasis>other unsigned integer types</emphasis> output 0 - maxium
  * value of @in.
  *
  * <emphasis>signed int types</emphasis> min moved to 0, max moved to max + min.
  *
- * <emphasis>float types</emphasis> min moved to 0, max moved to any 
+ * <emphasis>float types</emphasis> min moved to 0, max moved to any
  * (square output)
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_plot( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

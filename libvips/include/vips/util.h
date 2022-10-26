@@ -1,4 +1,4 @@
-/* Various useful definitions. 
+/* Various useful definitions.
  *
  * J.Cupitt, 8/4/93
  * 15/7/96 JC
@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -46,7 +46,7 @@ extern "C" {
  */
 #define VIPS_PI (3.14159265358979323846)
 
-/* Convert degrees->rads and vice-versa. 
+/* Convert degrees->rads and vice-versa.
  */
 #define VIPS_RAD( R ) (((R) / 360.0) * 2.0 * VIPS_PI)
 #define VIPS_DEG( A ) (((A) / (2.0 * VIPS_PI)) * 360.0)
@@ -88,21 +88,21 @@ extern "C" {
  */
 #define VIPS_ONCE( ONCE, FUNC, CLIENT ) \
 G_STMT_START { \
-        if( G_UNLIKELY( (ONCE)->status != G_ONCE_STATUS_READY ) ) \
+	if( G_UNLIKELY( (ONCE)->status != G_ONCE_STATUS_READY ) ) \
 		(void) g_once( ONCE, FUNC, CLIENT ); \
 } G_STMT_END
 
 /* VIPS_RINT() does "bankers rounding", it rounds to the nearest even integer.
  * For things like image geometry, we want strict nearest int.
  *
- * If you know it's unsigned, _UINT is a little faster. 
+ * If you know it's unsigned, _UINT is a little faster.
  */
 #define VIPS_ROUND_INT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
 #define VIPS_ROUND_UINT( R ) ((int) ((R) + 0.5))
 
 /* Round N down and up to the nearest multiple of P.
  */
-#define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P))) 
+#define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P)))
 #define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 #define VIPS_SWAP( TYPE, A, B ) \
@@ -144,7 +144,7 @@ G_STMT_START { \
 /* The g_info() macro was added in 2.40.
  */
 #ifndef g_info
-/* Hopefully we have varargs macros. Maybe revisit this. 
+/* Hopefully we have varargs macros. Maybe revisit this.
  */
 #define g_info(...) \
 	 g_log( G_LOG_DOMAIN, G_LOG_LEVEL_INFO, __VA_ARGS__ )
@@ -231,10 +231,10 @@ void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
 VIPS_API
 void *vips_slist_map2_rev( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
 VIPS_API
-void *vips_slist_map4( GSList *list, 
+void *vips_slist_map4( GSList *list,
 	VipsSListMap4Fn fn, void *a, void *b, void *c, void *d );
 VIPS_API
-void *vips_slist_fold2( GSList *list, void *start, 
+void *vips_slist_fold2( GSList *list, void *start,
 	VipsSListFold2Fn fn, void *a, void *b );
 VIPS_API
 GSList *vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
@@ -244,7 +244,7 @@ VIPS_API
 void *vips_map_equal( void *a, void *b );
 
 VIPS_API
-void *vips_hash_table_map( GHashTable *hash, 
+void *vips_hash_table_map( GHashTable *hash,
 	VipsSListMap2Fn fn, void *a, void *b );
 
 VIPS_API
@@ -285,21 +285,21 @@ int vips__open( const char *filename, int flags, int mode );
 int vips__open_read( const char *filename );
 FILE *vips__fopen( const char *filename, const char *mode );
 
-FILE *vips__file_open_read( const char *filename, 
+FILE *vips__file_open_read( const char *filename,
 	const char *fallback_dir, gboolean text_mode );
-FILE *vips__file_open_write( const char *filename, 
+FILE *vips__file_open_write( const char *filename,
 	gboolean text_mode );
 /* TODO(kleisauke): VIPS_API is required by vipsedit.
  */
 VIPS_API
 char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
-char *vips__file_read_name( const char *name, const char *fallback_dir, 
+char *vips__file_read_name( const char *name, const char *fallback_dir,
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
 /* TODO(kleisauke): VIPS_API is required by the magick module.
  */
 VIPS_API
-gint64 vips__get_bytes( const char *filename, 
+gint64 vips__get_bytes( const char *filename,
 	unsigned char buf[], gint64 len );
 int vips__fgetc( FILE *fp );
 
@@ -330,7 +330,7 @@ int vips_rmdirf( const char *name, ... )
 VIPS_API
 int vips_rename( const char *old_name, const char *new_name );
 
-/** 
+/**
  * VipsToken:
  * @VIPS_TOKEN_LEFT: left bracket
  * @VIPS_TOKEN_RIGHT: right bracket
@@ -339,7 +339,7 @@ int vips_rename( const char *old_name, const char *new_name );
  * @VIPS_TOKEN_COMMA: comma
  *
  * Tokens returned by the vips lexical analyzer, see vips__token_get(). This
- * is used to parse option strings for arguments. 
+ * is used to parse option strings for arguments.
  *
  * Left and right brackets can be any of (, {, [, <.
  *
@@ -355,21 +355,21 @@ typedef enum {
 	VIPS_TOKEN_COMMA
 } VipsToken;
 
-const char *vips__token_get( const char *buffer, 
+const char *vips__token_get( const char *buffer,
 	VipsToken *token, char *string, int size );
-const char *vips__token_must( const char *buffer, VipsToken *token, 
+const char *vips__token_must( const char *buffer, VipsToken *token,
 	char *string, int size );
-const char *vips__token_need( const char *buffer, VipsToken need_token, 
+const char *vips__token_need( const char *buffer, VipsToken need_token,
 	char *string, int size );
-const char *vips__token_segment( const char *p, VipsToken *token, 
+const char *vips__token_segment( const char *p, VipsToken *token,
 	char *string, int size );
-const char *vips__token_segment_need( const char *p, VipsToken need_token, 
+const char *vips__token_segment_need( const char *p, VipsToken need_token,
 	char *string, int size );
 const char *vips__find_rightmost_brackets( const char *p );
 /* TODO(kleisauke): VIPS_API is required by libvips-cpp and vipsheader.
  */
 VIPS_API
-void vips__filename_split8( const char *name, 
+void vips__filename_split8( const char *name,
 	char *filename, char *option_string );
 
 VIPS_API
@@ -383,7 +383,7 @@ VIPS_API
 char *vips__temp_name( const char *format );
 
 void vips__change_suffix( const char *name, char *out, int mx,
-        const char *new_suff, const char **olds, int nolds );
+	const char *new_suff, const char **olds, int nolds );
 
 VIPS_API
 char *vips_realpath( const char *path );

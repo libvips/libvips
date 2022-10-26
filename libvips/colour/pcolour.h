@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,13 +53,13 @@ extern "C" {
 		VIPS_TYPE_COLOUR, VipsColourClass ))
 
 struct _VipsColour;
-typedef void (*VipsColourProcessFn)( struct _VipsColour *colour, 
+typedef void (*VipsColourProcessFn)( struct _VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsColour {
 	VipsOperation parent_instance;
 
-	/* Null-terminated array of input arguments, set these from a 
+	/* Null-terminated array of input arguments, set these from a
 	 * subclass.
 	 */
 	VipsImage **in;
@@ -68,7 +68,7 @@ typedef struct _VipsColour {
 	/* If this is >0, only process this many bands from the input. Extra
 	 * bands are removed and reattached after processing.
 	 */
-	int input_bands; 
+	int input_bands;
 
 	VipsImage *out;
 
@@ -165,7 +165,7 @@ typedef struct _VipsColourCodeClass {
 
 GType vips_colour_code_get_type( void );
 
-/* Difference between two colour images. 
+/* Difference between two colour images.
  */
 
 #define VIPS_TYPE_COLOUR_DIFFERENCE (vips_colour_difference_get_type())
@@ -202,7 +202,7 @@ typedef struct _VipsColourDifferenceClass {
 
 GType vips_colour_difference_get_type( void );
 
-void vips__pythagoras_line( VipsColour *colour, 
+void vips__pythagoras_line( VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width );
 
 /* Colour tables for Y<->v conversion. Call vips_col_make_tables_RGB_8() and
@@ -218,7 +218,7 @@ void vips_col_make_tables_RGB_16( void );
  */
 typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
 
-int vips__colourspace_process_n( const char *domain, 
+int vips__colourspace_process_n( const char *domain,
 	VipsImage *in, VipsImage **out, int n, VipsColourTransformFn fn );
 
 #ifdef __cplusplus

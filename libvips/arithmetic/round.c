@@ -22,7 +22,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -75,8 +75,8 @@ vips_round_build( VipsObject *object )
 	 * is.
 	 */
 	if( unary->in &&
-		vips_band_format_isint( unary->in->BandFmt ) ) 
-		return( vips_unary_copy( unary ) ); 
+		vips_band_format_isint( unary->in->BandFmt ) )
+		return( vips_unary_copy( unary ) );
 
 	if( VIPS_OBJECT_CLASS( vips_round_parent_class )->build( object ) )
 		return( -1 );
@@ -94,10 +94,10 @@ vips_round_build( VipsObject *object )
 
 #define SWITCH( OP ) { \
 	switch( vips_image_get_format( im ) ) { \
-        case VIPS_FORMAT_COMPLEX: \
+	case VIPS_FORMAT_COMPLEX: \
 	case VIPS_FORMAT_FLOAT: LOOP( float, OP ); break; \
 	\
-        case VIPS_FORMAT_DPCOMPLEX: \
+	case VIPS_FORMAT_DPCOMPLEX: \
 	case VIPS_FORMAT_DOUBLE:LOOP( double, OP ); break;\
  	\
 	default: \
@@ -106,7 +106,7 @@ vips_round_build( VipsObject *object )
 }
 
 static void
-vips_round_buffer( VipsArithmetic *arithmetic, 
+vips_round_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsRound *round = (VipsRound *) arithmetic;
@@ -114,7 +114,7 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * 
+	const int sz = width * im->Bands *
 		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int x;
@@ -124,9 +124,9 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_ROUND_CEIL:		SWITCH( VIPS_CEIL ); break;
 	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( VIPS_FLOOR ); break;
 
-	default: 
-		g_assert_not_reached(); 
-	} 
+	default:
+		g_assert_not_reached();
+	}
 }
 
 /* Save a bit of typing.
@@ -144,7 +144,7 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 
 static const VipsBandFormat vips_round_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+   UC, C,  US, S,  UI, I,  F,  X,  D,  DX
 };
 
 static void
@@ -163,14 +163,14 @@ vips_round_class_init( VipsRoundClass *class )
 
 	aclass->process_line = vips_round_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_round_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_round_format_table );
 
-	VIPS_ARG_ENUM( class, "round", 200, 
-		_( "Round operation" ), 
+	VIPS_ARG_ENUM( class, "round", 200,
+		_( "Round operation" ),
 		_( "Rounding operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRound, round ),
-		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT ); 
+		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT );
 }
 
 static void
@@ -179,7 +179,7 @@ vips_round_init( VipsRound *round )
 }
 
 static int
-vips_roundv( VipsImage *in, VipsImage **out, 
+vips_roundv( VipsImage *in, VipsImage **out,
 	VipsOperationRound round, va_list ap )
 {
 	return( vips_call_split( "round", ap, in, out, round ) );
@@ -194,8 +194,8 @@ vips_roundv( VipsImage *in, VipsImage **out,
  *
  * Round to an integral value.
  *
- * Copy for integer types, round float and 
- * complex types. 
+ * Copy for integer types, round float and
+ * complex types.
  *
  * The format of @out is always the same as @in, so you may wish to cast to an
  * integer format afterwards.
@@ -223,8 +223,8 @@ vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -247,8 +247,8 @@ vips_floor( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -271,8 +271,8 @@ vips_ceil( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */

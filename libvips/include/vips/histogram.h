@@ -63,7 +63,7 @@ VIPS_API
 int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_hist_local( VipsImage *in, VipsImage **out, 
+int vips_hist_local( VipsImage *in, VipsImage **out,
 	int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -74,7 +74,7 @@ int vips_hist_entropy( VipsImage *in, double *out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_case( VipsImage *index, VipsImage **cases, VipsImage **out, int n, 
+int vips_case( VipsImage *index, VipsImage **cases, VipsImage **out, int n,
 	... )
 	G_GNUC_NULL_TERMINATED;
 

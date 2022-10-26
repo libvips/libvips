@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,8 +53,8 @@
  * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
  * @include: vips/vips.h
  *
- * These operators let you transform coordinates and images between colour 
- * spaces, calculate colour differences, and move 
+ * These operators let you transform coordinates and images between colour
+ * spaces, calculate colour differences, and move
  * to and from device spaces.
  *
  * All operations process colour from the first few bands and pass other bands
@@ -66,25 +66,25 @@
  * another 8 bits of exponent, common to all channels. They are widely used in
  * the HDR imaging community.
  *
- * The colour functions can be divided into three main groups. First, 
- * functions to transform images between the different colour spaces supported 
- * by VIPS: #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_scRGB,  
+ * The colour functions can be divided into three main groups. First,
+ * functions to transform images between the different colour spaces supported
+ * by VIPS: #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_scRGB,
  * #VIPS_INTERPRETATION_B_W,
- * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,  
- * #VIPS_INTERPRETATION_LAB, 
+ * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,
+ * #VIPS_INTERPRETATION_LAB,
  * #VIPS_INTERPRETATION_LCH, and
  * #VIPS_INTERPRETATION_CMC.
  *
  * There are also a set of minor colourspaces which are one of the above in a
  * slightly different format:
- * #VIPS_INTERPRETATION_LAB, #VIPS_INTERPRETATION_LABQ, 
- * #VIPS_INTERPRETATION_LABS, #VIPS_INTERPRETATION_LCH, 
+ * #VIPS_INTERPRETATION_LAB, #VIPS_INTERPRETATION_LABQ,
+ * #VIPS_INTERPRETATION_LABS, #VIPS_INTERPRETATION_LCH,
  * #VIPS_INTERPRETATION_RGB16, and #VIPS_INTERPRETATION_GREY16.
  *
  * Use vips_colourspace() to move an image to a
- * target colourspace using the best sequence of colour transform operations. 
+ * target colourspace using the best sequence of colour transform operations.
  *
- * Secondly, there are a set of operations for 
+ * Secondly, there are a set of operations for
  * calculating colour difference metrics. Finally, VIPS wraps LittleCMS and
  * uses it to provide a set of operations for reading and writing images with
  * ICC profiles.
@@ -97,13 +97,13 @@
  *
  * The colour spaces supported by VIPS are:
  *
- * * #VIPS_INTERPRETATION_LAB -- CIELAB '76 colourspace with a D65 white. This 
- *   uses three floats for each band, and bands have the obvious range. 
+ * * #VIPS_INTERPRETATION_LAB -- CIELAB '76 colourspace with a D65 white. This
+ *   uses three floats for each band, and bands have the obvious range.
  *
  *   There are two
  *   variants, #VIPS_INTERPRETATION_LABQ and #VIPS_INTERPRETATION_LABS, which
  *   use ints to store values. These are less precise, but can be quicker to
- *   store and process. 
+ *   store and process.
  *
  *   #VIPS_INTERPRETATION_LCH is the same, but with a*b* as polar coordinates.
  *   Hue is expressed in degrees.
@@ -112,24 +112,24 @@
  *   See #VIPS_D75_X0 and friends for values for the ranges
  *   under various illuminants.
  *
- *   #VIPS_INTERPRETATION_YXY is the same, but with little x and y. 
+ *   #VIPS_INTERPRETATION_YXY is the same, but with little x and y.
  *
  * * #VIPS_INTERPRETATION_scRGB -- a linear colourspace with the sRGB
  *   primaries. This is useful if you need linear light and don't care
- *   much what the primaries are. 
+ *   much what the primaries are.
  *
  *   Linearization is performed with the usual sRGB equations, see below.
  *
- * * #VIPS_INTERPRETATION_sRGB -- the standard sRGB colourspace, see: 
+ * * #VIPS_INTERPRETATION_sRGB -- the standard sRGB colourspace, see:
  *   [wikipedia sRGB](http://en.wikipedia.org/wiki/SRGB).
  *
- *   This uses three 8-bit values for each of RGB. 
+ *   This uses three 8-bit values for each of RGB.
  *
  *   #VIPS_INTERPRETATION_RGB16 is the same, but using three 16-bit values for
  *   RGB.
  *
  *   #VIPS_INTERPRETATION_HSV is sRGB, but in polar coordinates.
- *   #VIPS_INTERPRETATION_LCH is much better, only use HSV if you have to. 
+ *   #VIPS_INTERPRETATION_LCH is much better, only use HSV if you have to.
  *
  * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
  *   The grey value is
@@ -138,19 +138,19 @@
  *
  *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16-bits.
  *
- * * #VIPS_INTERPRETATION_CMC -- a colour space based on the CMC(1:1) 
- *   colour difference measurement. This is a highly uniform colour space, 
- *   much better than CIELAB for expressing small differences. 
+ * * #VIPS_INTERPRETATION_CMC -- a colour space based on the CMC(1:1)
+ *   colour difference measurement. This is a highly uniform colour space,
+ *   much better than CIELAB for expressing small differences.
  *
  *   The CMC colourspace is described in "Uniform Colour Space Based on the
  *   CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
- *   Society of Dyers and Colourists, vol 102, 1986. Distances in this 
+ *   Society of Dyers and Colourists, vol 102, 1986. Distances in this
  *   colourspace approximate, within 10% or so, differences in the CMC(l:c)
  *   colour difference formula.
  *
  *   You can calculate metrics like CMC(2:1) by scaling the spaces before
- *   finding differences. 
- * 
+ *   finding differences.
+ *
  */
 
 /* Areas under curves for Dxx. 2 degree observer.
@@ -223,28 +223,28 @@ G_DEFINE_ABSTRACT_TYPE( VipsColour, vips_colour, VIPS_TYPE_OPERATION );
 #define MAX_INPUT_IMAGES (64)
 
 static int
-vips_colour_gen( VipsRegion *or, 
+vips_colour_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
-	VipsColour *colour = VIPS_COLOUR( b ); 
-	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
+	VipsColour *colour = VIPS_COLOUR( b );
+	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour );
 	VipsRect *r = &or->valid;
 
 	int i, y;
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 
-        /*
-        printf( "vips_colour_gen: %s, "
-                "left = %d, top = %d, width = %d, height = %d\n",
-                VIPS_OBJECT_CLASS( class )->nickname,
-                r->left, r->top, r->width, r->height );
-         */
+	/*
+	printf( "vips_colour_gen: %s, "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		VIPS_OBJECT_CLASS( class )->nickname,
+		r->left, r->top, r->width, r->height );
+	 */
 
 	if( vips_reorder_prepare_many( or->im, ir, r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_colour_gen: work" ); 
+	VIPS_GATE_START( "vips_colour_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
 		for( i = 0; ir[i]; i++ )
@@ -255,9 +255,9 @@ vips_colour_gen( VipsRegion *or,
 		class->process_line( colour, q, p, r->width );
 	}
 
-	VIPS_GATE_STOP( "vips_colour_gen: work" ); 
+	VIPS_GATE_STOP( "vips_colour_gen: work" );
 
-	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_GET_CLASS( colour )->nickname ); 
+	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_GET_CLASS( colour )->nickname );
 
 	return( 0 );
 }
@@ -265,11 +265,11 @@ vips_colour_gen( VipsRegion *or,
 static int
 vips_colour_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsColour *colour = VIPS_COLOUR( object );
 
 	VipsImage **in;
-	VipsImage **extra_bands; 
+	VipsImage **extra_bands;
 	VipsImage *out;
 
 	int i;
@@ -281,7 +281,7 @@ vips_colour_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( VIPS_OBJECT_CLASS( vips_colour_parent_class )->
-		build( object ) ) 
+		build( object ) )
 		return( -1 );
 
 	if( colour->n > MAX_INPUT_IMAGES ) {
@@ -296,40 +296,40 @@ vips_colour_build( VipsObject *object )
 	/* colour->in[] must be NULL-terminated, we can use it as an arg to
 	 * vips_start_many().
 	 */
-	g_assert( !colour->in[colour->n] ); 
+	g_assert( !colour->in[colour->n] );
 
 	in = colour->in;
-	extra_bands = (VipsImage **) 
+	extra_bands = (VipsImage **)
 		vips_object_local_array( object, colour->n );
 
 	/* If there are more than @input_bands bands, we detach and reattach
 	 * after processing.
 	 */
 	if( colour->input_bands > 0 ) {
-		VipsImage **new_in = (VipsImage **) 
+		VipsImage **new_in = (VipsImage **)
 			vips_object_local_array( object, colour->n );
 
 		for( i = 0; i < colour->n; i++ ) {
-			if( vips_check_bands_atleast( class->nickname, 
+			if( vips_check_bands_atleast( class->nickname,
 				in[i], colour->input_bands ) )
-				return( -1 ); 
+				return( -1 );
 
 			if( in[i]->Bands > colour->input_bands ) {
-				if( vips_extract_band( in[i], &new_in[i], 0, 
-					"n", colour->input_bands, 
+				if( vips_extract_band( in[i], &new_in[i], 0,
+					"n", colour->input_bands,
 					NULL ) )
-					return( -1 ); 
+					return( -1 );
 			}
 			else {
 				new_in[i] = in[i];
-				g_object_ref( new_in[i] ); 
+				g_object_ref( new_in[i] );
 			}
 
-			if( in[i]->Bands > colour->input_bands ) 
-				if( vips_extract_band( in[i], &extra_bands[i], 
-					colour->input_bands, 
-					"n", in[i]->Bands - 
-						colour->input_bands, 
+			if( in[i]->Bands > colour->input_bands )
+				if( vips_extract_band( in[i], &extra_bands[i],
+					colour->input_bands,
+					"n", in[i]->Bands -
+						colour->input_bands,
 					NULL ) )
 					return( -1 );
 		}
@@ -338,7 +338,7 @@ vips_colour_build( VipsObject *object )
 	}
 
 	out = vips_image_new();
-	if( vips_image_pipeline_array( out, 
+	if( vips_image_pipeline_array( out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in ) ) {
 		g_object_unref( out );
 		return( -1 );
@@ -353,16 +353,16 @@ vips_colour_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_generate( out,
-		vips_start_many, vips_colour_gen, vips_stop_many, 
+		vips_start_many, vips_colour_gen, vips_stop_many,
 		in, colour ) ) {
 		g_object_unref( out );
 		return( -1 );
 	}
 
 	/* Reattach higher bands, if necessary. If we have more than one input
-	 * image, just use the first extra bands. 
+	 * image, just use the first extra bands.
 	 */
-	for( i = 0; i < colour->n; i++ ) 
+	for( i = 0; i < colour->n; i++ )
 		if( extra_bands[i] ) {
 			VipsImage *t1, *t2;
 
@@ -391,7 +391,7 @@ vips_colour_build( VipsObject *object )
 			break;
 		}
 
-	g_object_set( colour, "out", out, NULL ); 
+	g_object_set( colour, "out", out, NULL );
 
 	return( 0 );
 }
@@ -412,10 +412,10 @@ vips_colour_class_init( VipsColourClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsColour, out ) );
 }
 
@@ -429,7 +429,7 @@ vips_colour_init( VipsColour *colour )
 	colour->input_bands = -1;
 }
 
-G_DEFINE_ABSTRACT_TYPE( VipsColourTransform, vips_colour_transform, 
+G_DEFINE_ABSTRACT_TYPE( VipsColourTransform, vips_colour_transform,
 	VIPS_TYPE_COLOUR );
 
 static int
@@ -442,16 +442,16 @@ vips_colour_transform_build( VipsObject *object )
 	/* We only process float.
 	 */
 	if( transform->in &&
-		transform->in->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		transform->in->BandFmt != VIPS_FORMAT_FLOAT ) {
 		if( vips_cast_float( transform->in, &t[0], NULL ) )
 			return( -1 );
 	}
 	else {
 		t[0] = transform->in;
-		g_object_ref( t[0] ); 
+		g_object_ref( t[0] );
 	}
 
-	/* We always do 3 bands -> 3 bands. 
+	/* We always do 3 bands -> 3 bands.
 	 */
 	colour->input_bands = 3;
 
@@ -478,17 +478,17 @@ vips_colour_transform_class_init( VipsColourTransformClass *class )
 	vobject_class->description = _( "color space transformations" );
 	vobject_class->build = vips_colour_transform_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourTransform, in ) );
 }
 
 static void
 vips_colour_transform_init( VipsColourTransform *space )
 {
-	VipsColour *colour = (VipsColour *) space; 
+	VipsColour *colour = (VipsColour *) space;
 
 	/* What we write. interpretation should be overwritten in subclass
 	 * builds.
@@ -506,7 +506,7 @@ vips_colour_code_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
 	VipsColourCode *code = VIPS_COLOUR_CODE( object );
-	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( object ); 
+	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( object );
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
 	VipsImage *in;
@@ -515,7 +515,7 @@ vips_colour_code_build( VipsObject *object )
 
 	/* If this is a LABQ and the coder wants uncoded, unpack.
 	 */
-	if( in && 
+	if( in &&
 		in->Coding == VIPS_CODING_LABQ &&
 		code->input_coding == VIPS_CODING_NONE ) {
 		if( vips_LabQ2Lab( in, &t[0], NULL ) )
@@ -523,7 +523,7 @@ vips_colour_code_build( VipsObject *object )
 		in = t[0];
 	}
 
-	if( in && 
+	if( in &&
 		vips_check_coding( VIPS_OBJECT_CLASS( class )->nickname,
 			in, code->input_coding ) )
 		return( -1 );
@@ -531,7 +531,7 @@ vips_colour_code_build( VipsObject *object )
 	if( in &&
 		code->input_coding == VIPS_CODING_NONE &&
 		code->input_format != VIPS_FORMAT_NOTSET &&
-		in->BandFmt != code->input_format ) { 
+		in->BandFmt != code->input_format ) {
 		if( vips_cast( in, &t[3], code->input_format, NULL ) )
 			return( -1 );
 		in = t[3];
@@ -540,8 +540,8 @@ vips_colour_code_build( VipsObject *object )
 	if( in &&
 		code->input_coding == VIPS_CODING_NONE &&
 		code->input_interpretation != VIPS_INTERPRETATION_ERROR &&
-		in->Type != code->input_interpretation ) { 
-		if( vips_colourspace( in, &t[4], 
+		in->Type != code->input_interpretation ) {
+		if( vips_colourspace( in, &t[4],
 			code->input_interpretation, NULL ) )
 			return( -1 );
 		in = t[4];
@@ -572,10 +572,10 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 	vobject_class->description = _( "change color coding" );
 	vobject_class->build = vips_colour_code_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourCode, in ) );
 }
 
@@ -587,7 +587,7 @@ vips_colour_code_init( VipsColourCode *code )
 	code->input_format = VIPS_FORMAT_NOTSET;
 }
 
-G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference, 
+G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference,
 	VIPS_TYPE_COLOUR );
 
 static int
@@ -617,21 +617,21 @@ vips_colour_difference_build( VipsObject *object )
 		right = t[1];
 	}
 
-	/* Detach and reattach any extra bands. 
+	/* Detach and reattach any extra bands.
 	 */
 	colour->input_bands = 3;
 
 	if( left &&
 		left->Type != difference->interpretation ) {
-		if( vips_colourspace( left, &t[6], 
+		if( vips_colourspace( left, &t[6],
 			difference->interpretation, NULL ) )
 			return( -1 );
 		left = t[6];
 	}
 
 	if( right &&
-		right->Type != difference->interpretation ) { 
-		if( vips_colourspace( right, &t[7], 
+		right->Type != difference->interpretation ) {
+		if( vips_colourspace( right, &t[7],
 			difference->interpretation, NULL ) )
 			return( -1 );
 		right = t[7];
@@ -640,14 +640,14 @@ vips_colour_difference_build( VipsObject *object )
 	/* We only process float.
 	 */
 	if( left &&
-		left->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		left->BandFmt != VIPS_FORMAT_FLOAT ) {
 		if( vips_cast_float( left, &t[8], NULL ) )
 			return( -1 );
 		left = t[8];
 	}
 
 	if( right &&
-		right->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		right->BandFmt != VIPS_FORMAT_FLOAT ) {
 		if( vips_cast_float( right, &t[9], NULL ) )
 			return( -1 );
 		right = t[9];
@@ -684,16 +684,16 @@ vips_colour_difference_class_init( VipsColourDifferenceClass *class )
 	vobject_class->description = _( "calculate color difference" );
 	vobject_class->build = vips_colour_difference_build;
 
-	VIPS_ARG_IMAGE( class, "left", 1, 
-		_( "Left" ), 
+	VIPS_ARG_IMAGE( class, "left", 1,
+		_( "Left" ),
 		_( "Left-hand input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourDifference, left ) );
 
-	VIPS_ARG_IMAGE( class, "right", 2, 
-		_( "Right" ), 
+	VIPS_ARG_IMAGE( class, "right", 2,
+		_( "Right" ),
 		_( "Right-hand input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourDifference, right ) );
 
 }
@@ -715,43 +715,43 @@ vips_colour_difference_init( VipsColourDifference *difference )
 void
 vips_colour_operation_init( void )
 {
-	extern GType vips_colourspace_get_type( void ); 
-	extern GType vips_Lab2XYZ_get_type( void ); 
-	extern GType vips_XYZ2Lab_get_type( void ); 
-	extern GType vips_Lab2LCh_get_type( void ); 
-	extern GType vips_LCh2Lab_get_type( void ); 
-	extern GType vips_LCh2CMC_get_type( void ); 
-	extern GType vips_CMC2LCh_get_type( void ); 
-	extern GType vips_Yxy2XYZ_get_type( void ); 
-	extern GType vips_XYZ2Yxy_get_type( void ); 
-	extern GType vips_LabQ2Lab_get_type( void ); 
-	extern GType vips_Lab2LabQ_get_type( void ); 
-	extern GType vips_LabQ2LabS_get_type( void ); 
-	extern GType vips_LabS2LabQ_get_type( void ); 
-	extern GType vips_LabS2Lab_get_type( void ); 
-	extern GType vips_Lab2LabS_get_type( void ); 
-	extern GType vips_rad2float_get_type( void ); 
-	extern GType vips_float2rad_get_type( void ); 
-	extern GType vips_LabQ2sRGB_get_type( void ); 
-	extern GType vips_XYZ2sRGB_get_type( void ); 
-	extern GType vips_sRGB2scRGB_get_type( void ); 
-	extern GType vips_sRGB2HSV_get_type( void ); 
-	extern GType vips_HSV2sRGB_get_type( void ); 
-	extern GType vips_scRGB2XYZ_get_type( void ); 
-	extern GType vips_scRGB2BW_get_type( void ); 
+	extern GType vips_colourspace_get_type( void );
+	extern GType vips_Lab2XYZ_get_type( void );
+	extern GType vips_XYZ2Lab_get_type( void );
+	extern GType vips_Lab2LCh_get_type( void );
+	extern GType vips_LCh2Lab_get_type( void );
+	extern GType vips_LCh2CMC_get_type( void );
+	extern GType vips_CMC2LCh_get_type( void );
+	extern GType vips_Yxy2XYZ_get_type( void );
+	extern GType vips_XYZ2Yxy_get_type( void );
+	extern GType vips_LabQ2Lab_get_type( void );
+	extern GType vips_Lab2LabQ_get_type( void );
+	extern GType vips_LabQ2LabS_get_type( void );
+	extern GType vips_LabS2LabQ_get_type( void );
+	extern GType vips_LabS2Lab_get_type( void );
+	extern GType vips_Lab2LabS_get_type( void );
+	extern GType vips_rad2float_get_type( void );
+	extern GType vips_float2rad_get_type( void );
+	extern GType vips_LabQ2sRGB_get_type( void );
+	extern GType vips_XYZ2sRGB_get_type( void );
+	extern GType vips_sRGB2scRGB_get_type( void );
+	extern GType vips_sRGB2HSV_get_type( void );
+	extern GType vips_HSV2sRGB_get_type( void );
+	extern GType vips_scRGB2XYZ_get_type( void );
+	extern GType vips_scRGB2BW_get_type( void );
 	extern GType vips_XYZ2scRGB_get_type( void );
-	extern GType vips_scRGB2sRGB_get_type( void ); 
-	extern GType vips_CMYK2XYZ_get_type( void ); 
-	extern GType vips_XYZ2CMYK_get_type( void ); 
-	extern GType vips_profile_load_get_type( void ); 
+	extern GType vips_scRGB2sRGB_get_type( void );
+	extern GType vips_CMYK2XYZ_get_type( void );
+	extern GType vips_XYZ2CMYK_get_type( void );
+	extern GType vips_profile_load_get_type( void );
 #ifdef HAVE_LCMS2
-	extern GType vips_icc_import_get_type( void ); 
-	extern GType vips_icc_export_get_type( void ); 
-	extern GType vips_icc_transform_get_type( void ); 
+	extern GType vips_icc_import_get_type( void );
+	extern GType vips_icc_export_get_type( void );
+	extern GType vips_icc_transform_get_type( void );
 #endif
-	extern GType vips_dE76_get_type( void ); 
-	extern GType vips_dE00_get_type( void ); 
-	extern GType vips_dECMC_get_type( void ); 
+	extern GType vips_dE76_get_type( void );
+	extern GType vips_dE00_get_type( void );
+	extern GType vips_dECMC_get_type( void );
 
 	vips_colourspace_get_type();
 	vips_Lab2XYZ_get_type();
@@ -774,19 +774,19 @@ vips_colour_operation_init( void )
 	vips_sRGB2scRGB_get_type();
 	vips_scRGB2XYZ_get_type();
 	vips_scRGB2BW_get_type();
-	vips_sRGB2HSV_get_type(); 
-	vips_HSV2sRGB_get_type(); 
+	vips_sRGB2HSV_get_type();
+	vips_HSV2sRGB_get_type();
 	vips_XYZ2scRGB_get_type();
 	vips_scRGB2sRGB_get_type();
 	vips_CMYK2XYZ_get_type();
 	vips_XYZ2CMYK_get_type();
-	vips_profile_load_get_type(); 
+	vips_profile_load_get_type();
 #ifdef HAVE_LCMS2
 	vips_icc_import_get_type();
 	vips_icc_export_get_type();
 	vips_icc_transform_get_type();
 #endif
-	vips_dE76_get_type(); 
-	vips_dE00_get_type(); 
-	vips_dECMC_get_type(); 
+	vips_dE76_get_type();
+	vips_dE00_get_type();
+	vips_dECMC_get_type();
 }

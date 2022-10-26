@@ -6,7 +6,7 @@
  * 2/2/10
  * 	- rewritten in terms of im_replicate()/im_extract_area()
  * 	- gtkdoc
- * 	- allows any x/y 
+ * 	- allows any x/y
  * 31/5/13
  * 	- redone as a class
  * 	- added rotquad behaviour if x/y not set
@@ -83,15 +83,15 @@ vips_wrap_build( VipsObject *object )
 	/* Clock arithmetic: we want negative x/y to wrap around
 	 * nicely.
 	 */
-	x = wrap->x < 0 ? 
-		-wrap->x % wrap->in->Xsize : 
+	x = wrap->x < 0 ?
+		-wrap->x % wrap->in->Xsize :
 		wrap->in->Xsize - wrap->x % wrap->in->Xsize;
-	y = wrap->y < 0 ? 
-		-wrap->y % wrap->in->Ysize : 
+	y = wrap->y < 0 ?
+		-wrap->y % wrap->in->Ysize :
 		wrap->in->Ysize - wrap->y % wrap->in->Ysize;
 
 	if( vips_replicate( wrap->in, &t[0], 2, 2, NULL ) ||
-		vips_extract_area( t[0], &t[1], 
+		vips_extract_area( t[0], &t[1],
 			x, y, wrap->in->Xsize, wrap->in->Ysize, NULL ) ||
 		vips_image_write( t[1], conversion->out ) )
 		return( -1 );
@@ -115,21 +115,21 @@ vips_wrap_class_init( VipsWrapClass *class )
 	vobject_class->description = _( "wrap image origin" );
 	vobject_class->build = vips_wrap_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsWrap, in ) );
 
-	VIPS_ARG_INT( class, "x", 3, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 3,
+		_( "x" ),
 		_( "Left edge of input in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWrap, x ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "y", 4, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 4,
+		_( "y" ),
 		_( "Top edge of input in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWrap, y ),
@@ -155,7 +155,7 @@ vips_wrap_init( VipsWrap *wrap )
  *
  * Slice an image up and move the segments about so that the pixel that was
  * at 0, 0 is now at @x, @y. If @x and @y are not set, they default to the
- * centre of the image. 
+ * centre of the image.
  *
  * See also: vips_embed(), vips_replicate().
  *

@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -62,9 +62,9 @@
  *
  * #VipsOperation is the base class for all operations in libvips. It builds
  * on #VipsObject to provide the introspection and command-line interface to
- * libvips. 
+ * libvips.
  *
- * It also maintains a cache of recent operations. See below. 
+ * It also maintains a cache of recent operations. See below.
  *
  * vips_call(), vips_call_split() and vips_call_split_option_string() are used
  * by vips to implement the C API. They can execute any #VipsOperation,
@@ -75,7 +75,7 @@
  *
  * |[
  * int
- * vips_embed( VipsImage *in, VipsImage **out, 
+ * vips_embed( VipsImage *in, VipsImage **out,
  *   int x, int y, int width, int height, ... )
  * {
  *   va_list ap;
@@ -91,7 +91,7 @@
  *
  * Use vips_call_argv() to run any vips operation from a command-line style
  * argc/argv array. This is the thing used by the vips main program to
- * implement the vips command-line interface. 
+ * implement the vips command-line interface.
  *
  * ## #VipsOperation and reference counting
  *
@@ -100,18 +100,18 @@
  *
  * |[
  * VipsImage *im = ...;
- * VipsImage *t1; 
+ * VipsImage *t1;
  *
- * if (vips_invert (im, &t1, NULL)) 
+ * if (vips_invert (im, &t1, NULL))
  *   error ..
  * ]|
  *
  * This will invert @im and return a new #VipsImage, @t1. As the caller
  * of vips_invert(), you are responsible for @t1 and must unref it when you no
  * longer need it. If vips_invert() fails, no @t1 is returned and you don't
- * need to do anything. 
+ * need to do anything.
  *
- * If you don't need to use @im for another operation, 
+ * If you don't need to use @im for another operation,
  * you can unref @im immediately after the call. If @im is needed to calculate
  * @t1, vips_invert() will add a ref to @im and automatically drop it when @t1
  * is unreffed.
@@ -156,16 +156,16 @@
  * ## The #VipsOperation cache
  *
  * Because all #VipsObject are immutable, they can be cached. The cache is
- * very simple to use: instead of calling vips_object_build(), call 
+ * very simple to use: instead of calling vips_object_build(), call
  * vips_cache_operation_build(). This function calculates a hash from the
  * operations's input arguments and looks it up in table of all recent
  * operations. If there's a hit, the new operation is unreffed, the old
  * operation reffed, and the old operation returned in place of the new one.
  *
- * The cache size is controlled with vips_cache_set_max() and friends. 
+ * The cache size is controlled with vips_cache_set_max() and friends.
  */
 
-/** 
+/**
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
@@ -178,7 +178,7 @@
  *
  * @VIPS_OPERATION_SEQUENTIAL means that the operation works like vips_conv():
  * it can process images top-to-bottom with only small non-local
- * references. 
+ * references.
  *
  * Every scan-line must be requested, you are not allowed to skip
  * ahead, but as a special case, the very first request can be for a region
@@ -191,14 +191,14 @@
  * be read and discarded
  *
  * @VIPS_OPERATION_NOCACHE means that the operation must not be cached by
- * vips. 
+ * vips.
  *
  * @VIPS_OPERATION_DEPRECATED means this is an old operation kept in vips for
  * compatibility only and should be hidden from users.
  *
- * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries 
- * which have not been hardened against attack. It should probably not be used 
- * on untrusted input. Use vips_block_untrusted_set() to block all 
+ * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries
+ * which have not been hardened against attack. It should probably not be used
+ * on untrusted input. Use vips_block_untrusted_set() to block all
  * untrusted operations.
  *
  * @VIPS_OPERATION_BLOCKED means the operation is prevented from executing. Use
@@ -208,10 +208,10 @@
 /* Abstract base class for operations.
  */
 
-/* Our signals. 
+/* Our signals.
  */
 enum {
-	SIG_INVALIDATE,		
+	SIG_INVALIDATE,
 	SIG_LAST
 };
 
@@ -226,8 +226,8 @@ vips_operation_finalize( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_operation_finalize: %p\n", gobject );
 
-	if( operation->pixels ) 
-		g_info( _( "%d pixels calculated" ), operation->pixels ); 
+	if( operation->pixels )
+		g_info( _( "%d pixels calculated" ), operation->pixels );
 
 	G_OBJECT_CLASS( vips_operation_parent_class )->finalize( gobject );
 }
@@ -240,7 +240,7 @@ vips_operation_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_operation_parent_class )->dispose( gobject );
 }
 
-/* Three basic types of command-line argument. 
+/* Three basic types of command-line argument.
  *
  * INPUTS: things like an input image, there is a filename argument on the
  * command-line which is used to construct the operation argument.
@@ -258,7 +258,7 @@ typedef enum {
 	USAGE_NOARG_OUTPUT,
 	USAGE_OPTIONS,
 	USAGE_NONE
-} UsageType; 
+} UsageType;
 
 typedef struct {
 	char *message;		/* header message on first print */
@@ -273,20 +273,20 @@ static UsageType
 vips_operation_class_usage_classify( VipsArgumentClass *argument_class )
 {
 	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
-		(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) 
-		return( USAGE_NONE ); 
+		(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) )
+		return( USAGE_NONE );
 
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) )
-		return( USAGE_OPTIONS ); 
+		return( USAGE_OPTIONS );
 
 	if( vips_argument_class_needsstring( argument_class ) )
-		return( USAGE_INPUTS ); 
+		return( USAGE_INPUTS );
 
 	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
 		!vips_argument_class_needsstring( argument_class ) )
-		return( USAGE_NOARG_OUTPUT ); 
+		return( USAGE_NOARG_OUTPUT );
 
-	return( USAGE_NONE ); 
+	return( USAGE_NONE );
 }
 
 static void
@@ -301,7 +301,7 @@ vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )
 		GParamSpecEnum *pspec_enum = (GParamSpecEnum *) pspec;
 
 		GEnumClass *genum;
-		int i; 
+		int i;
 
 		/* Should be impossible, no need to warn.
 		 */
@@ -310,13 +310,13 @@ vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )
 
 		genum = G_ENUM_CLASS( class );
 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "default" ) );
-		vips_buf_appendf( buf, ": %s\n", 
-			vips_enum_nick( type, pspec_enum->default_value ) ); 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, ": %s\n",
+			vips_enum_nick( type, pspec_enum->default_value ) );
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "allowed" ) );
-		vips_buf_appendf( buf, ": " ); 
+		vips_buf_appendf( buf, ": " );
 
 		/* -1 since we always have a "last" member.
 		 */
@@ -326,68 +326,68 @@ vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )
 			vips_buf_appends( buf, genum->values[i].value_nick );
 		}
 
-		vips_buf_appendf( buf, "\n" ); 
+		vips_buf_appendf( buf, "\n" );
 	}
 	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
 		GParamSpecBoolean *pspec_boolean = (GParamSpecBoolean *) pspec;
 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "default" ) );
-		vips_buf_appendf( buf, ": %s\n", 
-			pspec_boolean->default_value ? "true" : "false" ); 
+		vips_buf_appendf( buf, ": %s\n",
+			pspec_boolean->default_value ? "true" : "false" );
 	}
 	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		GParamSpecDouble *pspec_double = (GParamSpecDouble *) pspec;
 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "default" ) );
-		vips_buf_appendf( buf, ": %g\n", pspec_double->default_value ); 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, ": %g\n", pspec_double->default_value );
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "min" ) );
-		vips_buf_appendf( buf, ": %g, ", pspec_double->minimum ); 
+		vips_buf_appendf( buf, ": %g, ", pspec_double->minimum );
 		vips_buf_appendf( buf, "%s", _( "max" ) );
-		vips_buf_appendf( buf, ": %g\n", pspec_double->maximum ); 
+		vips_buf_appendf( buf, ": %g\n", pspec_double->maximum );
 	}
 	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
 		GParamSpecInt *pspec_int = (GParamSpecInt *) pspec;
 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "default" ) );
-		vips_buf_appendf( buf, ": %d\n", pspec_int->default_value ); 
-		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, ": %d\n", pspec_int->default_value );
+		vips_buf_appendf( buf, "\t\t\t" );
 		vips_buf_appendf( buf, "%s", _( "min" ) );
-		vips_buf_appendf( buf, ": %d, ", pspec_int->minimum ); 
+		vips_buf_appendf( buf, ": %d, ", pspec_int->minimum );
 		vips_buf_appendf( buf, "%s", _( "max" ) );
-		vips_buf_appendf( buf, ": %d\n", pspec_int->maximum ); 
+		vips_buf_appendf( buf, ": %d\n", pspec_int->maximum );
 	}
 
 }
 
 static void *
-vips_operation_class_usage_arg( VipsObjectClass *object_class, 
+vips_operation_class_usage_arg( VipsObjectClass *object_class,
 	GParamSpec *pspec, VipsArgumentClass *argument_class,
 	VipsBuf *buf, VipsOperationClassUsage *usage )
 {
-	if( usage->type == 
-		vips_operation_class_usage_classify( argument_class ) ) { 
-		if( usage->message && 
-			usage->n == 0 ) 
+	if( usage->type ==
+		vips_operation_class_usage_classify( argument_class ) ) {
+		if( usage->message &&
+			usage->n == 0 )
 			vips_buf_appendf( buf, "%s\n", usage->message );
 
 		if( usage->oftype ) {
 			vips_buf_appendf( buf, "   %-12s - %s, %s %s\n",
-				g_param_spec_get_name( pspec ), 
-				g_param_spec_get_blurb( pspec ), 
+				g_param_spec_get_name( pspec ),
+				g_param_spec_get_blurb( pspec ),
 				(argument_class->flags & VIPS_ARGUMENT_INPUT) ?
 					_( "input" ) : _( "output" ),
-				g_type_name( 
+				g_type_name(
 					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
 			vips_operation_pspec_usage( buf, pspec );
 		}
 		else {
 				if( usage->n > 0 )
 					vips_buf_appends( buf, " " );
-				vips_buf_appends( buf, 
+				vips_buf_appends( buf,
 					g_param_spec_get_name( pspec ) );
 		}
 
@@ -405,7 +405,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	VipsOperationClassUsage usage;
 
 	vips_buf_appendf( buf, "%s\n", object_class->description );
-	vips_buf_appendf( buf, "usage:\n" ); 
+	vips_buf_appendf( buf, "usage:\n" );
 
 	/* First pass through args: show the required names.
 	 */
@@ -415,7 +415,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	usage.oftype = FALSE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg,
 			buf, &usage );
 	vips_buf_appends( buf, " [--option-name option-value ...]\n" );
 
@@ -426,7 +426,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	usage.oftype = TRUE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg,
 			buf, &usage );
 
 	/* Show outputs with no input arg (eg. output maximum value for
@@ -437,7 +437,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	usage.oftype = TRUE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg,
 			buf, &usage );
 
 	/* Show optional args.
@@ -447,7 +447,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	usage.oftype = TRUE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
-		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg,
 			buf, &usage );
 
 	/* Show flags.
@@ -455,12 +455,12 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	if( class->flags ) {
 		GFlagsValue *value;
 		VipsOperationFlags flags;
-		GFlagsClass *flags_class = 
+		GFlagsClass *flags_class =
 			g_type_class_ref( VIPS_TYPE_OPERATION_FLAGS );
 
 		vips_buf_appendf( buf, "operation flags: " );
-		flags = class->flags; 
-		while( flags && (value = 
+		flags = class->flags;
+		while( flags && (value =
 			g_flags_get_first_value( flags_class, flags )) ) {
 			vips_buf_appendf( buf, "%s ", value->value_nick );
 			flags &= ~value->value;
@@ -477,7 +477,7 @@ vips_operation_call_argument( VipsObject *object, GParamSpec *pspec,
 {
 	VipsArgument *argument = (VipsArgument *) argument_class;
 
-	printf( "   %s: offset = %d ", 
+	printf( "   %s: offset = %d ",
 		g_param_spec_get_name( argument->pspec ),
 		argument_class->offset );
 	if( argument_class->flags & VIPS_ARGUMENT_REQUIRED )
@@ -500,7 +500,7 @@ vips_operation_dump( VipsObject *object, VipsBuf *buf )
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
 	if( operation->found_hash )
-		printf( "hash = %x\n", operation->hash ); 
+		printf( "hash = %x\n", operation->hash );
 	printf( "%s args:\n", object_class->nickname );
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_call_argument, NULL, NULL );
@@ -509,7 +509,7 @@ vips_operation_dump( VipsObject *object, VipsBuf *buf )
 }
 
 static void *
-vips_operation_vips_operation_print_summary_arg( VipsObject *object, 
+vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 	GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance,
@@ -517,7 +517,7 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	/* Just assigned input and output construct args. _summary() is used 
+	/* Just assigned input and output construct args. _summary() is used
 	 * for things like cache tracing, so it's useful to show output args.
 	 */
 	if( ((argument_class->flags & VIPS_ARGUMENT_INPUT) ||
@@ -531,11 +531,11 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 		char *str;
 
 		g_value_init( &gvalue, type );
-		g_object_get_property( G_OBJECT( object ), name, &gvalue ); 
+		g_object_get_property( G_OBJECT( object ), name, &gvalue );
 		str = g_strdup_value_contents( &gvalue );
 		vips_buf_appendf( buf, " %s=%s", name, str );
 		g_free( str );
-		g_value_unset( &gvalue ); 
+		g_value_unset( &gvalue );
 	}
 
 	return( NULL );
@@ -547,19 +547,19 @@ vips_operation_build( VipsObject *object )
 	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( object );
 
 #ifdef VIPS_DEBUG
-	printf( "vips_operation_build: " ); 
+	printf( "vips_operation_build: " );
 	vips_object_print_name( object );
 	printf( "\n" );
 #endif /*VIPS_DEBUG*/
 
 	if( class->flags & VIPS_OPERATION_BLOCKED ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->nickname, 
-			"%s", _( "operation is blocked" ) ); 
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname,
+			"%s", _( "operation is blocked" ) );
 		return( -1 );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_operation_parent_class )->
-		build( object ) ) 
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -571,7 +571,7 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
-	vips_buf_appendf( buf, "%s", object_class->nickname ); 
+	vips_buf_appendf( buf, "%s", object_class->nickname );
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_vips_operation_print_summary_arg, buf, NULL );
 
@@ -582,7 +582,7 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 }
 
 static VipsOperationFlags
-vips_operation_real_get_flags( VipsOperation *operation ) 
+vips_operation_real_get_flags( VipsOperation *operation )
 {
 	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
 
@@ -610,7 +610,7 @@ vips_operation_class_init( VipsOperationClass *class )
 	vips_operation_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET( VipsOperationClass, invalidate ), 
+		G_STRUCT_OFFSET( VipsOperationClass, invalidate ),
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
@@ -630,7 +630,7 @@ vips_operation_init( VipsOperation *operation )
  * Returns: 0 on success, or -1 on error.
  */
 VipsOperationFlags
-vips_operation_get_flags( VipsOperation *operation ) 
+vips_operation_get_flags( VipsOperation *operation )
 {
 	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
 
@@ -657,8 +657,8 @@ void
 vips_operation_invalidate( VipsOperation *operation )
 {
 #ifdef VIPS_DEBUG
-	printf( "vips_operation_invalidate: %p\n", operation ); 
-	vips_object_print_summary( VIPS_OBJECT( operation ) ); 
+	printf( "vips_operation_invalidate: %p\n", operation );
+	vips_object_print_summary( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
 	g_signal_emit( operation, vips_operation_signals[SIG_INVALIDATE], 0 );
@@ -669,12 +669,12 @@ vips_operation_invalidate( VipsOperation *operation )
  * @name: nickname of operation to create
  *
  * Return a new #VipsOperation with the specified nickname. Useful for
- * language bindings. 
+ * language bindings.
  *
- * You'll need to set any arguments and build the operation before you can use 
- * it. See vips_call() for a higher-level way to make new operations. 
+ * You'll need to set any arguments and build the operation before you can use
+ * it. See vips_call() for a higher-level way to make new operations.
  *
- * Returns: (transfer full): the new operation. 
+ * Returns: (transfer full): the new operation.
  */
 VipsOperation *
 vips_operation_new( const char *name )
@@ -686,13 +686,13 @@ vips_operation_new( const char *name )
 	vips_check_init();
 
 	if( !(type = vips_type_find( "VipsOperation", name )) ) {
-		vips_error( "VipsOperation", 
+		vips_error( "VipsOperation",
 			_( "class \"%s\" not found" ), name );
 		return( NULL );
 	}
 
 	if( !(object = g_object_new( type, NULL )) ) {
-		vips_error( "VipsOperation", 
+		vips_error( "VipsOperation",
 			_( "\"%s\" is not an instantiable class" ), name );
 		return( NULL );
 	}
@@ -718,10 +718,10 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_set_valist_required:\n" );
 
-	/* Set required input arguments. Can't use vips_argument_map here 
-	 * :-( because passing va_list by reference is not portable. 
+	/* Set required input arguments. Can't use vips_argument_map here
+	 * :-( because passing va_list by reference is not portable.
 	 */
-	VIPS_ARGUMENT_FOR_ALL( operation, 
+	VIPS_ARGUMENT_FOR_ALL( operation,
 		pspec, argument_class, argument_instance ) {
 
 		g_assert( argument_instance );
@@ -738,7 +738,7 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 				char *str;
 
 				str = g_strdup_value_contents( &value );
-				VIPS_DEBUG_MSG( "\t%s = %s\n", 
+				VIPS_DEBUG_MSG( "\t%s = %s\n",
 					g_param_spec_get_name( pspec ), str );
 				g_free( str );
 			}
@@ -750,7 +750,7 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 			VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
 
 #ifdef VIPS_DEBUG
-			printf( "\tskipping arg %p for %s\n", 
+			printf( "\tskipping arg %p for %s\n",
 				arg, g_param_spec_get_name( pspec ) );
 #endif /*VIPS_DEBUG */
 
@@ -766,21 +766,21 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_required:\n" );
 
-	/* Extract output arguments. Can't use vips_argument_map here 
-	 * :-( because passing va_list by reference is not portable. 
+	/* Extract output arguments. Can't use vips_argument_map here
+	 * :-( because passing va_list by reference is not portable.
 	 */
-	VIPS_ARGUMENT_FOR_ALL( operation, 
+	VIPS_ARGUMENT_FOR_ALL( operation,
 		pspec, argument_class, argument_instance ) {
 		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
 			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
 
 			VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
 
-			if( !argument_instance->assigned ) 
+			if( !argument_instance->assigned )
 				continue;
 
 #ifdef VIPS_DEBUG
-			printf( "\twriting %s to %p\n", 
+			printf( "\twriting %s to %p\n",
 				g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
@@ -794,7 +794,7 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 			 * to get coredumps.
 			 */
 
-			g_object_get( G_OBJECT( operation ), 
+			g_object_get( G_OBJECT( operation ),
 				g_param_spec_get_name( pspec ), arg, NULL );
 
 			/* If the pspec is an object, that will up the ref
@@ -805,7 +805,7 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 				GObject *object;
 
 				object = *((GObject **) arg);
-				g_object_unref( object ); 
+				g_object_unref( object );
 			}
 
 			VIPS_ARGUMENT_COLLECT_END
@@ -822,7 +822,7 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_optional:\n" );
 
-	for( name = va_arg( ap, char * ); name; name = va_arg( ap, char * ) ) { 
+	for( name = va_arg( ap, char * ); name; name = va_arg( ap, char * ) ) {
 		GParamSpec *pspec;
 		VipsArgumentClass *argument_class;
 		VipsArgumentInstance *argument_instance;
@@ -845,26 +845,26 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 		 */
 
 #ifdef VIPS_DEBUG
-		printf( "\twriting %s to %p\n", 
+		printf( "\twriting %s to %p\n",
 			g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
 		/* If the dest pointer is NULL, skip the read.
 		 */
 		if( arg ) {
-			g_object_get( G_OBJECT( operation ), 
-				g_param_spec_get_name( pspec ), arg, 
+			g_object_get( G_OBJECT( operation ),
+				g_param_spec_get_name( pspec ), arg,
 				NULL );
 
-			/* If the pspec is an object, that will up 
-			 * the ref count. We want to hand over the 
+			/* If the pspec is an object, that will up
+			 * the ref count. We want to hand over the
 			 * ref, so we have to knock it down again.
 			 */
 			if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
 				GObject *object;
 
 				object = *((GObject **) arg);
-				g_object_unref( object ); 
+				g_object_unref( object );
 			}
 		}
 
@@ -878,10 +878,10 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
  * vips_call_required_optional:
  * @operation: the operation to execute
  * @required: %va_list of required arguments
- * @optional: NULL-terminated %va_list of name / value pairs 
+ * @optional: NULL-terminated %va_list of name / value pairs
  *
- * This is the main entry point for the C and C++ varargs APIs. @operation 
- * is executed, supplying @required and @optional arguments. 
+ * This is the main entry point for the C and C++ varargs APIs. @operation
+ * is executed, supplying @required and @optional arguments.
  *
  * Beware, this can change @operation to point at an old, cached one.
  *
@@ -889,7 +889,7 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
  */
 int
 vips_call_required_optional( VipsOperation **operation,
-	va_list required, va_list optional ) 
+	va_list required, va_list optional )
 {
 	int result;
 	va_list a;
@@ -927,13 +927,13 @@ vips_call_required_optional( VipsOperation **operation,
 }
 
 static int
-vips_call_by_name( const char *operation_name, 
+vips_call_by_name( const char *operation_name,
 	const char *option_string, va_list required, va_list optional )
 {
 	VipsOperation *operation;
 	int result;
 
-	VIPS_DEBUG_MSG( "vips_call_by_name: starting for %s ...\n", 
+	VIPS_DEBUG_MSG( "vips_call_by_name: starting for %s ...\n",
 		operation_name );
 
 	if( !(operation = vips_operation_new( operation_name )) )
@@ -943,12 +943,12 @@ vips_call_by_name( const char *operation_name,
 	 * things we set deliberately.
 	 */
 	if( option_string &&
-		vips_object_set_from_string( VIPS_OBJECT( operation ), 
+		vips_object_set_from_string( VIPS_OBJECT( operation ),
 			option_string ) ) {
 		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation ); 
+		g_object_unref( operation );
 
-		return( -1 ); 
+		return( -1 );
 	}
 
 	result = vips_call_required_optional( &operation, required, optional );
@@ -962,7 +962,7 @@ vips_call_by_name( const char *operation_name,
 		return( -1 );
 	}
 
-	/* The operation we have built should now have been reffed by one of 
+	/* The operation we have built should now have been reffed by one of
 	 * its arguments or have finished its work. Either way, we can unref.
 	 */
 	g_object_unref( operation );
@@ -977,11 +977,11 @@ vips_call_by_name( const char *operation_name,
  *
  * vips_call() calls the named operation, passing in required arguments and
  * then setting any optional ones from the remainder of the arguments as a set
- * of name/value pairs. 
+ * of name/value pairs.
  *
- * For example, vips_embed() takes six required arguments, @in, @out, @x, @y, 
+ * For example, vips_embed() takes six required arguments, @in, @out, @x, @y,
  * @width, @height, and has two optional arguments, @extend and @background.
- * You can run it with vips_call() like this: 
+ * You can run it with vips_call() like this:
  *
  * |[
  * VipsImage *in = ...
@@ -994,7 +994,7 @@ vips_call_by_name( const char *operation_name,
  * ]|
  *
  * Normally of course you'd just use the vips_embed() wrapper function and get
- * type-safety for the required arguments. 
+ * type-safety for the required arguments.
  *
  * See also: vips_call_split(), vips_call_options().
  *
@@ -1011,7 +1011,7 @@ vips_call( const char *operation_name, ... )
 	if( !(operation = vips_operation_new( operation_name )) )
 		return( -1 );
 
-	/* We have to break the va_list into separate required and optional 
+	/* We have to break the va_list into separate required and optional
 	 * components.
 	 *
 	 * Note the start, grab the required, then copy and reuse.
@@ -1020,16 +1020,16 @@ vips_call( const char *operation_name, ... )
 
 	va_copy( optional, required );
 
-	VIPS_ARGUMENT_FOR_ALL( operation, 
+	VIPS_ARGUMENT_FOR_ALL( operation,
 		pspec, argument_class, argument_instance ) {
 
 		g_assert( argument_instance );
 
 		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
-			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, 
+			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class,
 				optional );
 
-			VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, 
+			VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class,
 				optional );
 
 			VIPS_ARGUMENT_COLLECT_END
@@ -1038,9 +1038,9 @@ vips_call( const char *operation_name, ... )
 
 	/* We just needed this operation for the arg loop.
 	 */
-	g_object_unref( operation ); 
+	g_object_unref( operation );
 
-	result = vips_call_by_name( operation_name, NULL, required, optional ); 
+	result = vips_call_by_name( operation_name, NULL, required, optional );
 
 	va_end( required );
 	va_end( optional );
@@ -1049,13 +1049,13 @@ vips_call( const char *operation_name, ... )
 }
 
 int
-vips_call_split( const char *operation_name, va_list optional, ... ) 
+vips_call_split( const char *operation_name, va_list optional, ... )
 {
 	int result;
 	va_list required;
 
 	va_start( required, optional );
-	result = vips_call_by_name( operation_name, NULL, 
+	result = vips_call_by_name( operation_name, NULL,
 		required, optional );
 	va_end( required );
 
@@ -1063,14 +1063,14 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 }
 
 int
-vips_call_split_option_string( const char *operation_name, 
-	const char *option_string, va_list optional, ... ) 
+vips_call_split_option_string( const char *operation_name,
+	const char *option_string, va_list optional, ... )
 {
 	int result;
 	va_list required;
 
 	va_start( required, optional );
-	result = vips_call_by_name( operation_name, option_string, 
+	result = vips_call_by_name( operation_name, option_string,
 		required, optional );
 	va_end( required );
 
@@ -1091,10 +1091,10 @@ vips_call_find_pspec( VipsObject *object,
 	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!argument_instance->assigned ) 
-		if( (strlen( name ) == 1 && 
+		!argument_instance->assigned )
+		if( (strlen( name ) == 1 &&
 			g_param_spec_get_name( pspec )[0] == name[0]) ||
-			strcmp( g_param_spec_get_name( pspec ), name  ) == 0 ) 
+			strcmp( g_param_spec_get_name( pspec ), name  ) == 0 )
 			return( argument_instance );
 
 	return( NULL );
@@ -1117,25 +1117,25 @@ vips_call_option_output( VipsObject *object,
 	int result;
 
 	/* Don't look at the output arg if _build() hasn't run sucessfully, it
-	 * probably won't have been set. 
+	 * probably won't have been set.
 	 */
 	result = 0;
 	if( object->constructed )
-		result = vips_object_get_argument_to_string( object, 
+		result = vips_object_get_argument_to_string( object,
 			g_param_spec_get_name( pspec ), output->value );
 
-	return( result ); 
+	return( result );
 }
 
 static void
 vips_call_option_output_free( VipsObject *object, VipsCallOptionOutput *output )
 {
-	VIPS_FREE( output->value ); 
+	VIPS_FREE( output->value );
 	g_free( output );
 }
 
 static gboolean
-vips_call_options_set( const gchar *option_name, const gchar *value, 
+vips_call_options_set( const gchar *option_name, const gchar *value,
 	gpointer data, GError **error )
 {
 	VipsOperation *operation = (VipsOperation *) data;
@@ -1144,7 +1144,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	VipsArgumentClass *argument_class;
 	GParamSpec *pspec;
 
-	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n", 
+	VIPS_DEBUG_MSG( "vips_call_options_set: %s = %s\n",
 		option_name, value );
 
 	/* Remove any leading "--" from the option name.
@@ -1152,11 +1152,11 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	for( name = option_name; *name == '-'; name++ )
 		;
 
-	if( !(argument_instance = (VipsArgumentInstance *) 
-		vips_argument_map( 
+	if( !(argument_instance = (VipsArgumentInstance *)
+		vips_argument_map(
 			VIPS_OBJECT( operation ),
 			vips_call_find_pspec, (void *) name, NULL )) ) {
-		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
+		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname,
 			_( "unknown argument '%s'" ), name );
 		vips_error_g( error );
 		return( FALSE );
@@ -1165,7 +1165,7 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 	pspec = ((VipsArgument *) argument_instance)->pspec;
 
 	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
-		if( vips_object_set_argument_from_string( 
+		if( vips_object_set_argument_from_string(
 			VIPS_OBJECT( operation ),
 			g_param_spec_get_name( pspec ), value ) ) {
 			vips_error_g( error );
@@ -1179,13 +1179,13 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 		char *str;
 
 		g_value_init( &gvalue, type );
-		g_object_get_property( G_OBJECT( operation ), 
-			g_param_spec_get_name( pspec ), &gvalue ); 
+		g_object_get_property( G_OBJECT( operation ),
+			g_param_spec_get_name( pspec ), &gvalue );
 		str = g_strdup_value_contents( &gvalue );
-		VIPS_DEBUG_MSG( "\tGValue %s = %s\n", 
+		VIPS_DEBUG_MSG( "\tGValue %s = %s\n",
 			g_param_spec_get_name( pspec ), str );
 		g_free( str );
-		g_value_unset( &gvalue ); 
+		g_value_unset( &gvalue );
 }
 #endif /*VIPS_DEBUG*/
 	}
@@ -1222,7 +1222,7 @@ vips_call_options_add( VipsObject *object,
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		!argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
-		gboolean needs_string = 
+		gboolean needs_string =
 			vips_object_argument_needsstring( object, name );
 		GOptionEntry entry[2];
 
@@ -1231,21 +1231,21 @@ vips_call_options_add( VipsObject *object,
 
 		/* Don't set short names for deprecated args.
 		 */
-		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED ) 
+		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED )
 			entry[0].short_name = '\0';
 		else
 			entry[0].short_name = name[0];
 
 		entry[0].flags = 0;
-		if( !needs_string ) 
+		if( !needs_string )
 			entry[0].flags |= G_OPTION_FLAG_NO_ARG;
-		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED ) 
+		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED )
 			entry[0].flags |= G_OPTION_FLAG_HIDDEN;
 
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
-		if( needs_string ) 
-			entry[0].arg_description = 
+		if( needs_string )
+			entry[0].arg_description =
 				g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
 		else
 			entry[0].arg_description = NULL;
@@ -1279,9 +1279,9 @@ typedef struct _VipsCall {
 static const char *
 vips_call_get_arg( VipsCall *call, int i )
 {
-	if( i < 0 || 
+	if( i < 0 ||
 		i >= call->argc ) {
-		vips_error( VIPS_OBJECT_GET_CLASS( call->operation )->nickname, 
+		vips_error( VIPS_OBJECT_GET_CLASS( call->operation )->nickname,
 			"%s", _( "too few arguments" ) );
 		return( NULL );
 	}
@@ -1302,15 +1302,15 @@ vips_call_argv_input( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) {
 		const char *name = g_param_spec_get_name( pspec );
 
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
 			const char *arg;
 
 			if( !(arg = vips_call_get_arg( call, call->i )) ||
-				vips_object_set_argument_from_string( object, 
-					name, arg ) ) 
+				vips_object_set_argument_from_string( object,
+					name, arg ) )
 				return( pspec );
 
 			call->i += 1;
@@ -1337,8 +1337,8 @@ vips_call_argv_output( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
-		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) {
+		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) )
 			call->i += 1;
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
 			const char *name = g_param_spec_get_name( pspec );
@@ -1353,8 +1353,8 @@ vips_call_argv_output( VipsObject *object,
 				call->i += 1;
 			}
 
-			if( vips_object_get_argument_to_string( object, 
-				name, arg ) ) 
+			if( vips_object_get_argument_to_string( object,
+				name, arg ) )
 				return( pspec );
 		}
 	}
@@ -1394,7 +1394,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_input, &call, NULL ) ) 
+		vips_call_argv_input, &call, NULL ) )
 		return( -1 );
 
 	/* Any unused arguments? We must fail. Consider eg. "vips bandjoin a b
@@ -1402,7 +1402,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	 * disastrous.
 	 */
 	if( argc > call.i ) {
-		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
+		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname,
 			"%s", _( "too many arguments" ) );
 		return( -1 );
 	}
@@ -1410,7 +1410,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	/* We can't use the operation cache, we need to be able to change the
 	 * operation pointer. The cache probably wouldn't help anyway.
 	 */
-	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
+	if( vips_object_build( VIPS_OBJECT( operation ) ) )
 		return( -1 );
 
 	/* We're not using the cache, so we need to print the trace line.
@@ -1422,7 +1422,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),
-		vips_call_argv_output, &call, NULL ) ) 
+		vips_call_argv_output, &call, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -1436,7 +1436,7 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
 #ifdef VIPS_DEBUG
 	if( ((class->flags & VIPS_OPERATION_BLOCKED) != 0) != *state )
 		VIPS_DEBUG_MSG( "vips_operation_block_set_operation: "
-			"setting block state on %s = %d\n", 
+			"setting block state on %s = %d\n",
 			VIPS_OBJECT_CLASS( class )->nickname, *state );
 #endif
 
@@ -1448,12 +1448,12 @@ vips_operation_block_set_operation( VipsOperationClass *class, gboolean *state )
 	return( NULL );
 }
 
-/** 
+/**
  * vips_operation_block_set:
- * @name: set block state at this point and below 
+ * @name: set block state at this point and below
  * @state: the block state to set
  *
- * Set the block state on all operations in the libvips class hierarchy at 
+ * Set the block state on all operations in the libvips class hierarchy at
  * @name and below.
  *
  * For example:
@@ -1478,7 +1478,7 @@ vips_operation_block_set( const char *name, gboolean state )
 
 	if( (base = g_type_from_name( name )) &&
 		g_type_is_a( base, VIPS_TYPE_OPERATION ) )
-		vips_class_map_all( base, 
-			(VipsClassMapFn) vips_operation_block_set_operation, 
+		vips_class_map_all( base,
+			(VipsClassMapFn) vips_operation_block_set_operation,
 			&state );
 }

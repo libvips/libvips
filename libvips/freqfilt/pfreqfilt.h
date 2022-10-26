@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -69,7 +69,7 @@ GType vips_freqfilt_get_type( void );
 
 typedef int (*VipsFftProcessFn)( VipsObject *, VipsImage *, VipsImage ** );
 
-int vips__fftproc( VipsObject *context, 
+int vips__fftproc( VipsObject *context,
 	VipsImage *in, VipsImage **out, VipsFftProcessFn fn );
 
 #ifdef __cplusplus

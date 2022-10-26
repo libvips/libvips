@@ -20,7 +20,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@
 typedef struct _VipsLab2XYZ {
 	VipsColourTransform parent_instance;
 
-	/* The colour temperature -- default to D65. 
+	/* The colour temperature -- default to D65.
 	 */
 	VipsArea *temp;
 
@@ -149,7 +149,7 @@ vips_Lab2XYZ_build( VipsObject *object )
 	VipsLab2XYZ *Lab2XYZ = (VipsLab2XYZ *) object;
 
 	if( Lab2XYZ->temp ) {
-		if( vips_check_vector_length( class->nickname, 
+		if( vips_check_vector_length( class->nickname,
 			Lab2XYZ->temp->n, 3 ) )
 			return( -1 );
 		Lab2XYZ->X0 = ((double *) Lab2XYZ->temp->data)[0];
@@ -179,8 +179,8 @@ vips_Lab2XYZ_class_init( VipsLab2XYZClass *class )
 
 	colour_class->process_line = vips_Lab2XYZ_line;
 
-	VIPS_ARG_BOXED( class, "temp", 110, 
-		_( "Temperature" ), 
+	VIPS_ARG_BOXED( class, "temp", 110,
+		_( "Temperature" ),
 		_( "Color temperature" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsLab2XYZ, temp ),
@@ -209,7 +209,7 @@ vips_Lab2XYZ_init( VipsLab2XYZ *Lab2XYZ )
  *
  * * @temp: #VipsArrayDouble, colour temperature
  *
- * Turn Lab to XYZ. The colour temperature defaults to D65, but can be 
+ * Turn Lab to XYZ. The colour temperature defaults to D65, but can be
  * specified with @temp.
  *
  * Returns: 0 on success, -1 on error
@@ -237,7 +237,7 @@ vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
  * @Z: (out): Return CIE XYZ colour
  *
  * Calculate XYZ from Lab, D65.
- * 
+ *
  * See also: vips_Lab2XYZ().
  */
 void

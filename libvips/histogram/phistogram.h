@@ -14,7 +14,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -56,7 +56,7 @@ extern "C" {
 
 typedef struct _VipsHistogram VipsHistogram;
 
-typedef void (*VipsHistogramProcessFn)( VipsHistogram *histogram, 
+typedef void (*VipsHistogramProcessFn)( VipsHistogram *histogram,
 	VipsPel *out, VipsPel **in, int width );
 
 struct _VipsHistogram {
@@ -64,20 +64,20 @@ struct _VipsHistogram {
 
 	VipsImage *out;
 
-	/* NULL-terminated array of input images. 
+	/* NULL-terminated array of input images.
 	 */
 	VipsImage **in;
 	int n;
 
 	/* ... and transformed ready for processing.
 	 */
-	VipsImage **ready; 
+	VipsImage **ready;
 };
 
 typedef struct _VipsHistogramClass {
 	VipsOperationClass parent_class;
 
-	/* For each input format, what output format. 
+	/* For each input format, what output format.
 	 */
 	const VipsBandFormat *format_table;
 

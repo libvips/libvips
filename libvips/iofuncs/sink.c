@@ -1,5 +1,5 @@
 /* A sink that's not attached to anything, eg. find image average,
- * 
+ *
  * 28/3/10
  * 	- from im_iterate(), reworked for threadpool
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -50,17 +50,17 @@
 
 #include "sink.h"
 
-/* A part of the image we are scanning. 
+/* A part of the image we are scanning.
  *
  * We can't let any threads fall too far behind as that would mess up seq
  * image sources. Keep track of two areas moving down the image, and stall if
- * the previous area still has active threads. 
+ * the previous area still has active threads.
  */
 typedef struct _SinkArea {
 	struct _Sink *sink;
 
 	VipsRect rect;		/* Part of image this area covers */
-        VipsSemaphore n_thread;	/* Number of threads scanning this area */
+	VipsSemaphore n_thread;	/* Number of threads scanning this area */
 } SinkArea;
 
 /* Per-call state.
@@ -82,7 +82,7 @@ typedef struct _Sink {
 	void *b;
 
 	/* We are current scanning area, we'll delay starting a new
-	 * area if old_area (the previous position) hasn't completed. 
+	 * area if old_area (the previous position) hasn't completed.
 	 */
 	SinkArea *area;
 	SinkArea *old_area;
@@ -96,16 +96,16 @@ typedef struct _SinkThreadState {
 
 	/* Sequence value for this thread.
 	 */
-        void *seq;
+	void *seq;
 
 	/* The region we walk over sink.t copy. We can't use
 	 * parent_object.reg, it's defined on the outer image.
 	 */
 	VipsRegion *reg;
 
-	/* The area we were allocated from. 
+	/* The area we were allocated from.
 	 */
-        SinkArea *area;
+	SinkArea *area;
 
 } SinkThreadState;
 
@@ -138,7 +138,7 @@ sink_area_new( Sink *sink )
 
 /* Move an area to a position.
  */
-static void 
+static void
 sink_area_position( SinkArea *area, int top, int height )
 {
 	Sink *sink = area->sink;
@@ -160,7 +160,7 @@ sink_area_position( SinkArea *area, int top, int height )
 
 /* Our VipsThreadpoolAllocate function ... move the thread to the next tile
  * that needs doing. If we fill the current area, we block until the previous
- * area is finished, then swap areas. 
+ * area is finished, then swap areas.
  *
  * If all tiles are done, we return FALSE to end iteration.
  */
@@ -176,7 +176,7 @@ sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 	VIPS_DEBUG_MSG( "sink_area_allocate_fn: %p\n", g_thread_self() );
 
-	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
+	/* Is the state x/y OK? New line or maybe new buffer or maybe even
 	 * all done.
 	 */
 	if( sink_base->x >= sink->area->rect.width ) {
@@ -186,8 +186,8 @@ sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 		if( sink_base->y >= VIPS_RECT_BOTTOM( &sink->area->rect ) ) {
 			/* Block until the previous area is done.
 			 */
-			if( sink->area->rect.top > 0 ) 
-				vips_semaphore_downn( 
+			if( sink->area->rect.top > 0 )
+				vips_semaphore_downn(
 					&sink->old_area->n_thread, 0 );
 
 			/* End of image?
@@ -199,12 +199,12 @@ sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 			/* Swap buffers.
 			 */
-			VIPS_SWAP( SinkArea *, 
+			VIPS_SWAP( SinkArea *,
 				sink->area, sink->old_area );
 
 			/* Position buf at the new y.
 			 */
-			sink_area_position( sink->area, 
+			sink_area_position( sink->area,
 				sink_base->y, sink_base->n_lines );
 		}
 	}
@@ -225,7 +225,7 @@ sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	sstate->area = sink->area;
 
-	VIPS_DEBUG_MSG( "  %p allocated %d x %d:\n", 
+	VIPS_DEBUG_MSG( "  %p allocated %d x %d:\n",
 		g_thread_self(), state->pos.left, state->pos.top );
 
 	/* Add to the number of writers on the area.
@@ -243,7 +243,7 @@ sink_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	return( 0 );
 }
 
-/* Call a thread's stop function. 
+/* Call a thread's stop function.
  */
 static int
 sink_call_stop( Sink *sink, SinkThreadState *state )
@@ -258,8 +258,8 @@ sink_call_stop( Sink *sink, SinkThreadState *state )
 		if( result ) {
 			SinkBase *sink_base = (SinkBase *) sink;
 
-			vips_error( "vips_sink", 
-				_( "stop function failed for image \"%s\"" ), 
+			vips_error( "vips_sink",
+				_( "stop function failed for image \"%s\"" ),
 				sink_base->im->filename );
 			return( -1 );
 		}
@@ -295,8 +295,8 @@ sink_call_start( Sink *sink, SinkThreadState *state )
 		if( !state->seq ) {
 			SinkBase *sink_base = (SinkBase *) sink;
 
-			vips_error( "vips_sink", 
-				_( "start function failed for image \"%s\"" ), 
+			vips_error( "vips_sink",
+				_( "start function failed for image \"%s\"" ),
 				sink_base->im->filename );
 			return( -1 );
 		}
@@ -315,7 +315,7 @@ sink_thread_state_build( VipsObject *object )
 		sink_call_start( sink, state ) )
 		return( -1 );
 
-	return( VIPS_OBJECT_CLASS( 
+	return( VIPS_OBJECT_CLASS(
 		sink_thread_state_parent_class )->build( object ) );
 }
 
@@ -342,8 +342,8 @@ sink_thread_state_init( SinkThreadState *state )
 VipsThreadState *
 vips_sink_thread_state_new( VipsImage *im, void *a )
 {
-	return( VIPS_THREAD_STATE( vips_object_new( 
-		sink_thread_state_get_type(), 
+	return( VIPS_THREAD_STATE( vips_object_new(
+		sink_thread_state_get_type(),
 		vips_thread_state_set, im, a ) ) );
 }
 
@@ -358,7 +358,7 @@ sink_free( Sink *sink )
 void
 vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 {
-	/* Always clear kill before we start looping. See the 
+	/* Always clear kill before we start looping. See the
 	 * call to vips_image_iskilled() below.
 	 */
 	vips_image_set_kill( image, FALSE );
@@ -367,16 +367,16 @@ vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 	sink_base->x = 0;
 	sink_base->y = 0;
 
-	vips_get_tile_size( image, 
-		&sink_base->tile_width, &sink_base->tile_height, 
+	vips_get_tile_size( image,
+		&sink_base->tile_width, &sink_base->tile_height,
 		&sink_base->n_lines );
 
 	sink_base->processed = 0;
 }
 
 static int
-sink_init( Sink *sink, 
-	VipsImage *image, 
+sink_init( Sink *sink,
+	VipsImage *image,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
 {
@@ -405,7 +405,7 @@ sink_init( Sink *sink,
 	return( 0 );
 }
 
-static int 
+static int
 sink_work( VipsThreadState *state, void *a )
 {
 	SinkThreadState *sstate = (SinkThreadState *) state;
@@ -426,12 +426,12 @@ sink_work( VipsThreadState *state, void *a )
 	return( result );
 }
 
-int 
+int
 vips_sink_base_progress( void *a )
 {
 	SinkBase *sink_base = (SinkBase *) a;
 
-	VIPS_DEBUG_MSG( "vips_sink_base_progress:\n" ); 
+	VIPS_DEBUG_MSG( "vips_sink_base_progress:\n" );
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
@@ -454,12 +454,12 @@ vips_sink_base_progress( void *a )
  * @a: user data
  * @b: user data
  *
- * Loops over an image. @generate_fn is called for every 
+ * Loops over an image. @generate_fn is called for every
  * pixel in the image, with
  * the @reg argument being a region of calculated pixels.
  *
- * Each set of pixels is @tile_width by @tile_height pixels (less at the 
- * image edges). This is handy for things like writing a tiled TIFF image, 
+ * Each set of pixels is @tile_width by @tile_height pixels (less at the
+ * image edges). This is handy for things like writing a tiled TIFF image,
  * where tiles have to be generated with a certain size.
  *
  * See also: vips_sink(), vips_get_tile_size().
@@ -467,7 +467,7 @@ vips_sink_base_progress( void *a )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_sink_tile( VipsImage *im, 
+vips_sink_tile( VipsImage *im,
 	int tile_width, int tile_height,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
@@ -481,7 +481,7 @@ vips_sink_tile( VipsImage *im,
 	 * are expecting it.
 	 */
 	im->Bbits = vips_format_sizeof( im->BandFmt ) << 3;
- 
+
 	if( sink_init( &sink, im, start_fn, generate_fn, stop_fn, a, b ) )
 		return( -1 );
 
@@ -496,11 +496,11 @@ vips_sink_tile( VipsImage *im,
 	vips_image_preeval( im );
 
 	sink_area_position( sink.area, 0, sink.sink_base.n_lines );
-	result = vips_threadpool_run( im, 
+	result = vips_threadpool_run( im,
 		vips_sink_thread_state_new,
-		sink_area_allocate_fn, 
-		sink_work, 
-		vips_sink_base_progress, 
+		sink_area_allocate_fn,
+		sink_work,
+		vips_sink_base_progress,
 		&sink );
 
 	vips_image_posteval( im );
@@ -521,7 +521,7 @@ vips_sink_tile( VipsImage *im,
  * @a: user data
  * @b: user data
  *
- * Loops over an image. @generate_fn is called for every pixel in 
+ * Loops over an image. @generate_fn is called for every pixel in
  * the image, with
  * the @reg argument being a region of calculated pixels. vips_sink() is
  * used to implement operations like vips_avg() which have no image output.
@@ -534,10 +534,10 @@ vips_sink_tile( VipsImage *im,
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_sink( VipsImage *im, 
+vips_sink( VipsImage *im,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b )
 {
-	return( vips_sink_tile( im, -1, -1, 
+	return( vips_sink_tile( im, -1, -1,
 		start_fn, generate_fn, stop_fn, a, b ) );
 }

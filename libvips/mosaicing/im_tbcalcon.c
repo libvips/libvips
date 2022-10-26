@@ -14,14 +14,14 @@
  * @(#) Input image should are either memory mapped or in a buffer.
  * @(#) To make the calculation faster set FACTOR to 1, 2 or 3
  * @(#)  Calculations are based on bandno only.
- * @(#)  The function uses functions vips__find_best_contrast() 
+ * @(#)  The function uses functions vips__find_best_contrast()
  * @(#) which is in vips_lrcalcon()
  * @(#)
  * @(#) int vips_tbcalcon( ref, sec, bandno, points )
  * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
  * @(#) TiePoints *points; 	see mosaic.h
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
@@ -42,7 +42,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -79,7 +79,7 @@
 
 #include "pmosaicing.h"
 
-int 
+int
 vips__tbcalcon( VipsImage *ref, TiePoints *points )
 {
 	/* Geometry: border we must leave around each area.
@@ -101,7 +101,7 @@ vips__tbcalcon( VipsImage *ref, TiePoints *points )
 	 */
 	if( vips_image_wio_input( ref ) )
 		return( -1 );
-	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) { 
+	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) {
 		vips_error( "vips__tbcalcon", "%s", _( "help!" ) );
 		return( -1 );
 	}
@@ -122,12 +122,12 @@ vips__tbcalcon( VipsImage *ref, TiePoints *points )
 
 	/* Loop over areas, finding points.
 	 */
-	for( i = 0; area.left < ref->Xsize; area.left += awidth, i++ ) 
-		if( vips__find_best_contrast( ref, 
+	for( i = 0; area.left < ref->Xsize; area.left += awidth, i++ )
+		if( vips__find_best_contrast( ref,
 			area.left, area.top, area.width, area.height,
 			points->x_reference + i * len,
 			points->y_reference + i * len,
-			points->contrast + i * len, 
+			points->contrast + i * len,
 			len,
 			points->halfcorsize ) )
 				return( -1 );

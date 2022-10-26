@@ -1,5 +1,5 @@
 /* Old and broken stuff that we still enable by default, but don't document
- * and certainly don't recommend. 
+ * and certainly don't recommend.
  *
  * 30/6/09
  * 	- from vips.h
@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -54,7 +54,7 @@ typedef enum {
 /* Used to define a region of interest for im_extract() etc. Too boring to be
  * public API, see im_extract_area() etc.
  */
-typedef struct { 
+typedef struct {
 	int xstart;
 	int ystart;
 	int xsize;
@@ -66,7 +66,7 @@ typedef struct {
 VIPS_DEPRECATED
 int im_extract( IMAGE *, IMAGE *, IMAGE_BOX * );
 VIPS_DEPRECATED
-DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+DOUBLEMASK *im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 	int *sel, int nsel, const char *name );
 
 VIPS_DEPRECATED
@@ -87,25 +87,25 @@ VIPS_DEPRECATED
 int im_clip( IMAGE *in, IMAGE *out );
 
 #define MASK_IDEAL_HIGHPASS IM_MASK_IDEAL_HIGHPASS
-#define MASK_IDEAL_LOWPASS IM_MASK_IDEAL_LOWPASS 
-#define MASK_BUTTERWORTH_HIGHPASS IM_MASK_BUTTERWORTH_HIGHPASS 
-#define MASK_BUTTERWORTH_LOWPASS IM_MASK_BUTTERWORTH_LOWPASS 
-#define MASK_GAUSS_HIGHPASS IM_MASK_GAUSS_HIGHPASS 
-#define MASK_GAUSS_LOWPASS IM_MASK_GAUSS_LOWPASS 
+#define MASK_IDEAL_LOWPASS IM_MASK_IDEAL_LOWPASS
+#define MASK_BUTTERWORTH_HIGHPASS IM_MASK_BUTTERWORTH_HIGHPASS
+#define MASK_BUTTERWORTH_LOWPASS IM_MASK_BUTTERWORTH_LOWPASS
+#define MASK_GAUSS_HIGHPASS IM_MASK_GAUSS_HIGHPASS
+#define MASK_GAUSS_LOWPASS IM_MASK_GAUSS_LOWPASS
 
 #define MASK_IDEAL_RINGPASS IM_MASK_IDEAL_RINGPASS
-#define MASK_IDEAL_RINGREJECT IM_MASK_IDEAL_RINGREJECT 
-#define MASK_BUTTERWORTH_RINGPASS IM_MASK_BUTTERWORTH_RINGPASS 
-#define MASK_BUTTERWORTH_RINGREJECT IM_MASK_BUTTERWORTH_RINGREJECT 
-#define MASK_GAUSS_RINGPASS IM_MASK_GAUSS_RINGPASS 
-#define MASK_GAUSS_RINGREJECT IM_MASK_GAUSS_RINGREJECT 
+#define MASK_IDEAL_RINGREJECT IM_MASK_IDEAL_RINGREJECT
+#define MASK_BUTTERWORTH_RINGPASS IM_MASK_BUTTERWORTH_RINGPASS
+#define MASK_BUTTERWORTH_RINGREJECT IM_MASK_BUTTERWORTH_RINGREJECT
+#define MASK_GAUSS_RINGPASS IM_MASK_GAUSS_RINGPASS
+#define MASK_GAUSS_RINGREJECT IM_MASK_GAUSS_RINGREJECT
 
 #define MASK_IDEAL_BANDPASS IM_MASK_IDEAL_BANDPASS
-#define MASK_IDEAL_BANDREJECT IM_MASK_IDEAL_BANDREJECT 
-#define MASK_BUTTERWORTH_BANDPASS IM_MASK_BUTTERWORTH_BANDPASS 
-#define MASK_BUTTERWORTH_BANDREJECT IM_MASK_BUTTERWORTH_BANDREJECT 
-#define MASK_GAUSS_BANDPASS IM_MASK_GAUSS_BANDPASS 
-#define MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT 
+#define MASK_IDEAL_BANDREJECT IM_MASK_IDEAL_BANDREJECT
+#define MASK_BUTTERWORTH_BANDPASS IM_MASK_BUTTERWORTH_BANDPASS
+#define MASK_BUTTERWORTH_BANDREJECT IM_MASK_BUTTERWORTH_BANDREJECT
+#define MASK_GAUSS_BANDPASS IM_MASK_GAUSS_BANDPASS
+#define MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT
 
 #define MASK_FRACTAL_FLT IM_MASK_FRACTAL_FLT
 
@@ -258,7 +258,7 @@ int im_similarity_area( IMAGE *in, IMAGE *out,
 /* colour
  */
 VIPS_DEPRECATED_FOR(vips_icc_export)
-int im_icc_export( IMAGE *in, IMAGE *out, 
+int im_icc_export( IMAGE *in, IMAGE *out,
 	const char *output_profile_filename, int intent );
 
 /* conversion
@@ -318,7 +318,7 @@ int im_spcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
 VIPS_DEPRECATED
 int im_gradcor_raw( IMAGE *in, IMAGE *ref, IMAGE *out );
 VIPS_DEPRECATED
-int im_contrast_surface_raw( IMAGE *in, IMAGE *out, 
+int im_contrast_surface_raw( IMAGE *in, IMAGE *out,
 	int half_win_size, int spacing );
 
 VIPS_DEPRECATED_FOR(vips_stdif)
@@ -352,7 +352,7 @@ int im_flood_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 VIPS_DEPRECATED_FOR(vips_draw_flood)
 int im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink );
 VIPS_DEPRECATED_FOR(vips_draw_flood)
-int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out, 
+int im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 	int x, int y, int serial );
 
 VIPS_DEPRECATED_FOR(vips_draw_flood)
@@ -360,14 +360,14 @@ int im_flood( IMAGE *im, int x, int y, PEL *ink, VipsRect *dout );
 VIPS_DEPRECATED_FOR(vips_draw_flood)
 int im_flood_blob( IMAGE *im, int x, int y, PEL *ink, VipsRect *dout );
 VIPS_DEPRECATED_FOR(vips_draw_flood)
-int im_flood_other( IMAGE *test, IMAGE *mark, 
+int im_flood_other( IMAGE *test, IMAGE *mark,
 	int x, int y, int serial, VipsRect *dout );
 
 VIPS_DEPRECATED_FOR(vips_draw_line)
 int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
 VIPS_DEPRECATED_FOR(vips_draw_line)
-int im_fastlineuser( IMAGE *im, 
-	int x1, int y1, int x2, int y2, 
+int im_fastlineuser( IMAGE *im,
+	int x1, int y1, int x2, int y2,
 	VipsPlotFn fn, void *client1, void *client2, void *client3 );
 
 VIPS_DEPRECATED_FOR(vips_draw_mask)

@@ -1,6 +1,6 @@
 /* Inverse FFT
  *
- * Author: Nicos Dessipris 
+ * Author: Nicos Dessipris
  * Written on: 12/04/1990
  * Modified on :
  * 28/6/95 JC
@@ -31,7 +31,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -84,7 +84,7 @@ G_DEFINE_TYPE( VipsInvfft, vips_invfft, VIPS_TYPE_FREQFILT );
 
 /* Complex to complex inverse transform.
  */
-static int 
+static int
 cinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -96,32 +96,32 @@ cinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	if( vips_check_mono( class->nickname, in ) ||
 		vips_check_uncoded( class->nickname, in ) )
-                return( -1 );
+		return( -1 );
 
 	/* Convert input to a complex double membuffer.
 	 */
 	*out = vips_image_new_memory();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
 		vips_image_write( t[0], *out ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
-	if( !(planner_scratch = VIPS_ARRAY( invfft, 
+	if( !(planner_scratch = VIPS_ARRAY( invfft,
 		VIPS_IMAGE_N_PELS( in ) * 2, double )) )
 		return( -1 );
 	if( !(plan = fftw_plan_dft_2d( in->Ysize, in->Xsize,
-		(fftw_complex *) planner_scratch, 
 		(fftw_complex *) planner_scratch,
-		FFTW_BACKWARD, 
+		(fftw_complex *) planner_scratch,
+		FFTW_BACKWARD,
 		0 )) ) {
-                vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
-	fftw_execute_dft( plan, 
+	fftw_execute_dft( plan,
 		(fftw_complex *) (*out)->data, (fftw_complex *) (*out)->data );
 
 	fftw_destroy_plan( plan );
@@ -133,7 +133,7 @@ cinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 /* Complex to real inverse transform.
  */
-static int 
+static int
 rinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -152,16 +152,16 @@ rinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 	t[1] = vips_image_new_memory();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
 		vips_image_write( t[0], t[1] ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Build half-complex image.
 	 */
-	if( !(half_complex = VIPS_ARRAY( invfft, 
+	if( !(half_complex = VIPS_ARRAY( invfft,
 		t[1]->Ysize * half_width * 2, double )) )
 		return( -1 );
 	q = half_complex;
 	for( y = 0; y < t[1]->Ysize; y++ ) {
-		p = ((double *) t[1]->data) + (guint64) y * t[1]->Xsize * 2; 
+		p = ((double *) t[1]->data) + (guint64) y * t[1]->Xsize * 2;
 
 		for( x = 0; x < half_width; x++ ) {
 			q[0] = p[0];
@@ -175,22 +175,22 @@ rinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 	 */
 	*out = vips_image_new_memory();
 	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, t[1], NULL ) )
-                return( -1 );
+		return( -1 );
 	(*out)->BandFmt = VIPS_FORMAT_DOUBLE;
 	(*out)->Type = VIPS_INTERPRETATION_B_W;
-	if( vips_image_write_prepare( *out ) ) 
-		return( -1 ); 
+	if( vips_image_write_prepare( *out ) )
+		return( -1 );
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
-	if( !(planner_scratch = VIPS_ARRAY( invfft, 
+	if( !(planner_scratch = VIPS_ARRAY( invfft,
 		t[1]->Ysize * half_width * 2, double )) )
 		return( -1 );
 	if( !(plan = fftw_plan_dft_c2r_2d( t[1]->Ysize, t[1]->Xsize,
 		(fftw_complex *) planner_scratch, (double *) (*out)->data,
 		0 )) ) {
-                vips_error( class->nickname,
+		vips_error( class->nickname,
 			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
@@ -216,24 +216,24 @@ vips_invfft_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	in = freqfilt->in; 
+	in = freqfilt->in;
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
 	if( invfft->real ) {
-		if( vips__fftproc( VIPS_OBJECT( invfft ), 
+		if( vips__fftproc( VIPS_OBJECT( invfft ),
 			in, &t[1], rinvfft1 ) )
 			return( -1 );
 	}
 	else {
-		if( vips__fftproc( VIPS_OBJECT( invfft ), 
+		if( vips__fftproc( VIPS_OBJECT( invfft ),
 			in, &t[1], cinvfft1 ) )
 			return( -1 );
 	}
-	
-	if( vips_image_write( t[1], freqfilt->out ) ) 
+
+	if( vips_image_write( t[1], freqfilt->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -252,8 +252,8 @@ vips_invfft_class_init( VipsInvfftClass *class )
 	vobject_class->description = _( "inverse FFT" );
 	vobject_class->build = vips_invfft_build;
 
-	VIPS_ARG_BOOL( class, "real", 4, 
-		_( "Real" ), 
+	VIPS_ARG_BOOL( class, "real", 4,
+		_( "Real" ),
 		_( "Output only the real part of the transform" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsInvfft, real ),
@@ -270,7 +270,7 @@ vips_invfft_init( VipsInvfft *invfft )
 
 /**
  * vips_invfft: (method)
- * @in: input image 
+ * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *

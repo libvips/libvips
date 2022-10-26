@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -54,7 +54,7 @@ extern "C" {
 		VIPS_TYPE_ARITHMETIC, VipsArithmeticClass ))
 
 struct _VipsArithmetic;
-typedef void (*VipsArithmeticProcessFn)( struct _VipsArithmetic *arithmetic, 
+typedef void (*VipsArithmeticProcessFn)( struct _VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsArithmetic {
@@ -106,13 +106,13 @@ typedef struct _VipsArithmeticClass {
 
 GType vips_arithmetic_get_type( void );
 
-void vips_arithmetic_set_format_table( VipsArithmeticClass *klass, 
-	const VipsBandFormat *format_table ); 
+void vips_arithmetic_set_format_table( VipsArithmeticClass *klass,
+	const VipsBandFormat *format_table );
 void vips_arithmetic_set_vector( VipsArithmeticClass *klass );
-VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass, 
+VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass,
 	VipsBandFormat fmt );
-void vips_arithmetic_compile( VipsArithmeticClass *klass ); 
-VipsVector *vips_arithmetic_get_program( VipsArithmeticClass *klass, 
+void vips_arithmetic_compile( VipsArithmeticClass *klass );
+VipsVector *vips_arithmetic_get_program( VipsArithmeticClass *klass,
 	VipsBandFormat fmt );
 
 #ifdef __cplusplus

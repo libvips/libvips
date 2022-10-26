@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -80,14 +80,14 @@ typedef struct _VipsDrawImage {
 	VipsImage *sub;
 	int x;
 	int y;
-	VipsCombineMode mode; 
+	VipsCombineMode mode;
 
 } VipsDrawImage;
 
 typedef struct _VipsDrawImageClass {
 	VipsDrawClass parent_class;
 
-} VipsDrawImageClass; 
+} VipsDrawImageClass;
 
 G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 
@@ -113,36 +113,36 @@ G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 }
 
 static void
-vips_draw_image_mode_add( VipsDrawImage *draw_image, VipsImage *im, 
+vips_draw_image_mode_add( VipsDrawImage *draw_image, VipsImage *im,
 	VipsPel *q, VipsPel *p, int n )
 {
 	/* Complex just doubles the size.
 	 */
-	const int sz = n * im->Bands * 
+	const int sz = n * im->Bands *
 		(vips_band_format_iscomplex( im->BandFmt ) ?  2 : 1);
 
 	int x;
 
 	switch( im->BandFmt ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, int, 0, UCHAR_MAX ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOP( signed char, int, SCHAR_MIN, SCHAR_MAX ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, int, 0, USHRT_MAX ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOP( signed short, int, SCHAR_MIN, SCHAR_MAX ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, gint64, 0, UINT_MAX ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOP( signed int, gint64, INT_MIN, INT_MAX ); break; 
+	case VIPS_FORMAT_UCHAR:
+		LOOP( unsigned char, int, 0, UCHAR_MAX ); break;
+	case VIPS_FORMAT_CHAR:
+		LOOP( signed char, int, SCHAR_MIN, SCHAR_MAX ); break;
+	case VIPS_FORMAT_USHORT:
+		LOOP( unsigned short, int, 0, USHRT_MAX ); break;
+	case VIPS_FORMAT_SHORT:
+		LOOP( signed short, int, SCHAR_MIN, SCHAR_MAX ); break;
+	case VIPS_FORMAT_UINT:
+		LOOP( unsigned int, gint64, 0, UINT_MAX ); break;
+	case VIPS_FORMAT_INT:
+		LOOP( signed int, gint64, INT_MIN, INT_MAX ); break;
 
-	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
-		LOOPF( float ); break; 
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		LOOPF( float ); break;
 
-	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
 		LOOPF( double ); break;
 
 	default:
@@ -160,31 +160,31 @@ vips_draw_image_build( VipsObject *object )
 
 	VipsImage *im;
 	VipsRect image_rect;
-	VipsRect sub_rect; 
+	VipsRect sub_rect;
 	VipsRect clip_rect;
 
 	if( VIPS_OBJECT_CLASS( vips_draw_image_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_check_coding_known( class->nickname, draw->image ) ||
-		vips_check_coding_same( class->nickname, 
+		vips_check_coding_same( class->nickname,
 			draw->image, draw_image->sub ) ||
-		vips_check_bands_1orn_unary( class->nickname, 
+		vips_check_bands_1orn_unary( class->nickname,
 			draw_image->sub, draw->image->Bands ) )
 		return( -1 );
 
-	/* SET will work for any matching coding, but every other mode needs 
-	 * uncoded images. 
+	/* SET will work for any matching coding, but every other mode needs
+	 * uncoded images.
 	 */
 	if( draw_image->mode != VIPS_COMBINE_MODE_SET &&
 		vips_check_uncoded( class->nickname, draw->image ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Cast sub to match main in bands and format.
 	 */
 	im = draw_image->sub;
 	if( im->Coding == VIPS_CODING_NONE ) {
-		if( vips__bandup( class->nickname, 
+		if( vips__bandup( class->nickname,
 			im, &t[0], draw->image->Bands ) ||
 			vips_cast( t[0], &t[1], draw->image->BandFmt, NULL ) )
 			return( -1 );
@@ -209,25 +209,25 @@ vips_draw_image_build( VipsObject *object )
 		int y;
 
 		if( vips_image_wio_input( im ) )
-			return( -1 ); 
+			return( -1 );
 
-		p = VIPS_IMAGE_ADDR( im, 
-			clip_rect.left - draw_image->x, 
+		p = VIPS_IMAGE_ADDR( im,
+			clip_rect.left - draw_image->x,
 			clip_rect.top - draw_image->y );
-		q = VIPS_IMAGE_ADDR( draw->image, 
+		q = VIPS_IMAGE_ADDR( draw->image,
 			clip_rect.left, clip_rect.top );
 
 		for( y = 0; y < clip_rect.height; y++ ) {
 			switch( draw_image->mode ) {
 			case VIPS_COMBINE_MODE_SET:
-				memcpy( (char *) q, (char *) p, 
-					clip_rect.width * 
+				memcpy( (char *) q, (char *) p,
+					clip_rect.width *
 						VIPS_IMAGE_SIZEOF_PEL( im ) );
 				break;
 
 			case VIPS_COMBINE_MODE_ADD:
-				vips_draw_image_mode_add( draw_image, 
-					im, q, p, clip_rect.width ); 
+				vips_draw_image_mode_add( draw_image,
+					im, q, p, clip_rect.width );
 				break;
 
 			default:
@@ -255,32 +255,32 @@ vips_draw_image_class_init( VipsDrawImageClass *class )
 	vobject_class->description = _( "paint an image into another image" );
 	vobject_class->build = vips_draw_image_build;
 
-	VIPS_ARG_IMAGE( class, "sub", 5, 
-		_( "Sub-image" ), 
+	VIPS_ARG_IMAGE( class, "sub", 5,
+		_( "Sub-image" ),
 		_( "Sub-image to insert into main image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawImage, sub ) );
 
-	VIPS_ARG_INT( class, "x", 6, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 6,
+		_( "x" ),
 		_( "Draw image here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawImage, x ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 7, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 7,
+		_( "y" ),
 		_( "Draw image here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawImage, y ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_ENUM( class, "mode", 8, 
-		_( "Mode" ), 
+	VIPS_ARG_ENUM( class, "mode", 8,
+		_( "Mode" ),
 		_( "Combining mode" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsDrawImage, mode ),
-		VIPS_TYPE_COMBINE_MODE, VIPS_COMBINE_MODE_SET ); 
+		VIPS_TYPE_COMBINE_MODE, VIPS_COMBINE_MODE_SET );
 
 }
 
@@ -300,15 +300,15 @@ vips_draw_image_init( VipsDrawImage *draw_image )
  *
  * Optional arguments:
  *
- * * @mode: how to combine pixels 
+ * * @mode: how to combine pixels
  *
- * Draw @sub on top of @image at position @x, @y. The two images must have the 
+ * Draw @sub on top of @image at position @x, @y. The two images must have the
  * same Coding. If @sub has 1 band, the bands will be duplicated to match the
  * number of bands in @image. @sub will be converted to @image's format, see
  * vips_cast().
  *
- * Use @mode to set how pixels are combined. If you use 
- * #VIPS_COMBINE_MODE_ADD, both images muct be uncoded. 
+ * Use @mode to set how pixels are combined. If you use
+ * #VIPS_COMBINE_MODE_ADD, both images muct be uncoded.
  *
  * See also: vips_draw_mask(), vips_insert().
  *

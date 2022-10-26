@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 29/4/93 J.Cupitt
  *	- now works for partial images
  * 1/7/93 JC
@@ -51,7 +51,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -105,35 +105,35 @@ add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
+	const int sz = width * vips_image_get_bands( im ) *
+		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ?
 		 	2 : 1);
 
 	int x;
 
-	/* Add all input types. Keep types here in sync with 
+	/* Add all input types. Keep types here in sync with
 	 * vips_add_format_table[] below.
 	 */
 	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, unsigned short ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOP( signed char, signed short ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, unsigned int ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOP( signed short, signed int ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, unsigned int ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOP( signed int, signed int ); break; 
+	case VIPS_FORMAT_UCHAR:
+		LOOP( unsigned char, unsigned short ); break;
+	case VIPS_FORMAT_CHAR:
+		LOOP( signed char, signed short ); break;
+	case VIPS_FORMAT_USHORT:
+		LOOP( unsigned short, unsigned int ); break;
+	case VIPS_FORMAT_SHORT:
+		LOOP( signed short, signed int ); break;
+	case VIPS_FORMAT_UINT:
+		LOOP( unsigned int, unsigned int ); break;
+	case VIPS_FORMAT_INT:
+		LOOP( signed int, signed int ); break;
 
-	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
-		LOOP( float, float ); break; 
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		LOOP( float, float ); break;
 
-	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
 		LOOP( double, double ); break;
 
 	default:
@@ -173,7 +173,7 @@ vips_add_class_init( VipsAddClass *class )
 
 	aclass->process_line = add_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_add_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_add_format_table );
 }
 
 static void
@@ -183,24 +183,24 @@ vips_add_init( VipsAdd *add )
 
 /**
  * vips_add:
- * @left: input image 
- * @right: input image 
+ * @left: input image
+ * @right: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @in1 + @in2 and writes the result to @out. 
+ * This operation calculates @in1 + @in2 and writes the result to @out.
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the
  * following table is used to determine the output type:
  *
  * <table>

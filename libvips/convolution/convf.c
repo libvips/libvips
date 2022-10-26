@@ -16,15 +16,15 @@
  *	- evalend callbacks
  *	- more typedef
  * 9/3/01 JC
- *	- redone from im_conv() 
+ *	- redone from im_conv()
  * 27/7/01 JC
  *	- rejects masks with scale == 0
- * 7/4/04 
+ * 7/4/04
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
  * 11/11/05
- * 	- simpler inner loop avoids gcc4 bug 
+ * 	- simpler inner loop avoids gcc4 bug
  * 12/11/09
  * 	- only rebuild the buffer offsets if bpl changes
  * 	- tiny speedups and cleanups
@@ -56,7 +56,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -147,7 +147,7 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 	seq->last_bpl = -1;
 
 	seq->ir = vips_region_new( in );
-	if( !(seq->offsets = VIPS_ARRAY( out, convf->nnz, int )) ) { 
+	if( !(seq->offsets = VIPS_ARRAY( out, convf->nnz, int )) ) {
 		vips_convf_stop( seq, in, convf );
 		return( NULL );
 	}
@@ -182,16 +182,16 @@ vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	VipsConvf *convf = (VipsConvf *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convf;
 	VipsImage *M = convolution->M;
-	double offset = vips_image_get_offset( M ); 
+	double offset = vips_image_get_offset( M );
 	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
-	double * restrict t = convf->coeff; 
+	double * restrict t = convf->coeff;
 	const int nnz = convf->nnz;
 	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM( r );
-	int sz = VIPS_REGION_N_ELEMENTS( or ) * 
+	int sz = VIPS_REGION_N_ELEMENTS( or ) *
 		(vips_band_format_iscomplex( in->BandFmt ) ? 2 : 1);
 
 	VipsRect s;
@@ -206,7 +206,7 @@ vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
-        /* Fill offset array. Only do this if the bpl has changed since the 
+	/* Fill offset array. Only do this if the bpl has changed since the
 	 * previous vips_region_prepare().
 	 */
 	if( seq->last_bpl != VIPS_REGION_LSKIP( ir ) ) {
@@ -217,49 +217,49 @@ vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 			x = z % M->Xsize;
 			y = z / M->Xsize;
 
-			seq->offsets[i] = 
+			seq->offsets[i] =
 				(VIPS_REGION_ADDR( ir, x + le, y + to ) -
-				 VIPS_REGION_ADDR( ir, le, to )) / 
-					VIPS_IMAGE_SIZEOF_ELEMENT( ir->im ); 
+				 VIPS_REGION_ADDR( ir, le, to )) /
+					VIPS_IMAGE_SIZEOF_ELEMENT( ir->im );
 		}
 	}
 
-	VIPS_GATE_START( "vips_convf_gen: work" ); 
+	VIPS_GATE_START( "vips_convf_gen: work" );
 
-	for( y = to; y < bo; y++ ) { 
+	for( y = to; y < bo; y++ ) {
 		switch( in->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 	
-			CONV_FLOAT( unsigned char, float ); 
+		case VIPS_FORMAT_UCHAR:
+			CONV_FLOAT( unsigned char, float );
 			break;
 
-		case VIPS_FORMAT_CHAR:   
-			CONV_FLOAT( signed char, float ); 
+		case VIPS_FORMAT_CHAR:
+			CONV_FLOAT( signed char, float );
 			break;
 
-		case VIPS_FORMAT_USHORT: 
-			CONV_FLOAT( unsigned short, float ); 
+		case VIPS_FORMAT_USHORT:
+			CONV_FLOAT( unsigned short, float );
 			break;
 
-		case VIPS_FORMAT_SHORT:  
-			CONV_FLOAT( signed short, float ); 
+		case VIPS_FORMAT_SHORT:
+			CONV_FLOAT( signed short, float );
 			break;
 
-		case VIPS_FORMAT_UINT:   
-			CONV_FLOAT( unsigned int, float ); 
+		case VIPS_FORMAT_UINT:
+			CONV_FLOAT( unsigned int, float );
 			break;
 
-		case VIPS_FORMAT_INT:    
-			CONV_FLOAT( signed int, float ); 
+		case VIPS_FORMAT_INT:
+			CONV_FLOAT( signed int, float );
 			break;
 
-		case VIPS_FORMAT_FLOAT:  
-		case VIPS_FORMAT_COMPLEX:  
-			CONV_FLOAT( float, float ); 
+		case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_COMPLEX:
+			CONV_FLOAT( float, float );
 			break;
 
-		case VIPS_FORMAT_DOUBLE: 
-		case VIPS_FORMAT_DPCOMPLEX:  
-			CONV_FLOAT( double, double ); 
+		case VIPS_FORMAT_DOUBLE:
+		case VIPS_FORMAT_DPCOMPLEX:
+			CONV_FLOAT( double, double );
 			break;
 
 		default:
@@ -267,9 +267,9 @@ vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_convf_gen: work" ); 
+	VIPS_GATE_STOP( "vips_convf_gen: work" );
 
-	VIPS_COUNT_PIXELS( or, "vips_convf_gen" ); 
+	VIPS_COUNT_PIXELS( or, "vips_convf_gen" );
 
 	return( 0 );
 }
@@ -325,16 +325,16 @@ vips_convf_build( VipsObject *object )
 
 	in = convolution->in;
 
-	if( vips_embed( in, &t[0], 
-		M->Xsize / 2, M->Ysize / 2, 
+	if( vips_embed( in, &t[0],
+		M->Xsize / 2, M->Ysize / 2,
 		in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
-	g_object_set( convf, "out", vips_image_new(), NULL ); 
-	if( vips_image_pipelinev( convolution->out, 
+	g_object_set( convf, "out", vips_image_new(), NULL );
+	if( vips_image_pipelinev( convolution->out,
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
@@ -344,12 +344,12 @@ vips_convf_build( VipsObject *object )
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
-	if( vips_band_format_isint( in->BandFmt ) ) 
+	if( vips_band_format_isint( in->BandFmt ) )
 		convolution->out->BandFmt = VIPS_FORMAT_FLOAT;
 	convolution->out->Xsize -= M->Xsize - 1;
 	convolution->out->Ysize -= M->Ysize - 1;
 
-	if( vips_image_generate( convolution->out, 
+	if( vips_image_generate( convolution->out,
 		vips_convf_start, vips_convf_gen, vips_convf_stop, in, convf ) )
 		return( -1 );
 
@@ -372,9 +372,9 @@ vips_convf_class_init( VipsConvfClass *class )
 static void
 vips_convf_init( VipsConvf *convf )
 {
-        convf->nnz = 0;
-        convf->coeff = NULL;
-        convf->coeff_pos = NULL;
+	convf->nnz = 0;
+	convf->coeff = NULL;
+	convf->coeff_pos = NULL;
 }
 
 /**
@@ -385,22 +385,22 @@ vips_convf_init( VipsConvf *convf )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convolution. This is a low-level operation, see vips_conv() for something
- * more convenient. 
+ * more convenient.
  *
  * Perform a convolution of @in with @mask.
  * Each output pixel is
  * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
- * and offset are part of @mask. 
+ * and offset are part of @mask.
  *
- * The convolution is performed with floating-point arithmetic. The output image 
+ * The convolution is performed with floating-point arithmetic. The output image
  * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
- * @out is also #VIPS_FORMAT_DOUBLE. 
+ * @out is also #VIPS_FORMAT_DOUBLE.
  *
  * See also: vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 {
 	va_list ap;

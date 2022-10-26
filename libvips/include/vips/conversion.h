@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -154,33 +154,33 @@ int vips_copy_file( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_embed( VipsImage *in, VipsImage **out, 
+int vips_embed( VipsImage *in, VipsImage **out,
 	int x, int y, int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_gravity( VipsImage *in, VipsImage **out, 
+int vips_gravity( VipsImage *in, VipsImage **out,
 	VipsCompassDirection direction, int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
+int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out,
 	int x, int y, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
+int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out,
 	VipsDirection direction, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_arrayjoin( VipsImage **in, VipsImage **out, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_extract_area( VipsImage *in, VipsImage **out, 
+int vips_extract_area( VipsImage *in, VipsImage **out,
 	int left, int top, int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_crop( VipsImage *in, VipsImage **out, 
+int vips_crop( VipsImage *in, VipsImage **out,
 	int left, int top, int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -193,7 +193,7 @@ VIPS_API
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_grid( VipsImage *in, VipsImage **out, 
+int vips_grid( VipsImage *in, VipsImage **out,
 	int tile_height, int across, int down, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -295,7 +295,7 @@ int vips_bandunfold( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_bandbool( VipsImage *in, VipsImage **out, 
+int vips_bandbool( VipsImage *in, VipsImage **out,
 	VipsOperationBoolean boolean, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -316,7 +316,7 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
+int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2,
 	VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

@@ -1,6 +1,6 @@
 /* save with libMagick
  *
- * 22/12/17 dlemstra 
+ * 22/12/17 dlemstra
  * 6/2/19 DarthSim
  * 	- fix GraphicsMagick support
  * 17/2/19
@@ -9,7 +9,7 @@
  * 29/6/19
  * 	- support "strip" option
  * 6/7/19 [deftomat]
- * 	- support array of delays 
+ * 	- support array of delays
  * 5/8/19 DarthSim
  * 	- support GIF optimization
  * 21/4/21 kleisauke
@@ -21,7 +21,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -102,7 +102,7 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) gobject;
 
 #ifdef DEBUG
-	printf( "vips_foreign_save_magick_dispose: %p\n", gobject ); 
+	printf( "vips_foreign_save_magick_dispose: %p\n", gobject );
 #endif /*DEBUG*/
 
 	VIPS_FREE( magick->filename );
@@ -119,7 +119,7 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 /* Move current_image on to the next image we will write.
  */
 static int
-vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick ) 
+vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
 	VipsForeignSave *save = (VipsForeignSave *) magick;
@@ -133,7 +133,7 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	g_assert( !magick->current_image );
 
 	if( magick->images == NULL ) {
-		if( !(image = magick_acquire_image( magick->image_info, 
+		if( !(image = magick_acquire_image( magick->image_info,
 			magick->exception )) )
 			return( -1 );
 
@@ -145,7 +145,7 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	}
 	else {
 		image = GetLastImageInList( magick->images );
-		magick_acquire_next_image( magick->image_info, image, 
+		magick_acquire_next_image( magick->image_info, image,
 			magick->exception );
 		if( GetNextImageInList( image ) == NULL )
 			return( -1 );
@@ -154,9 +154,9 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 		magick->position.top += magick->page_height;
 	}
 
-	if( !magick_set_image_size( image, 
+	if( !magick_set_image_size( image,
 		im->Xsize, magick->page_height, magick->exception ) ) {
-		magick_vips_error( class->nickname, magick->exception ); 
+		magick_vips_error( class->nickname, magick->exception );
 		return( -1 );
 	}
 
@@ -165,8 +165,8 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 */
 	if( magick->delays ) {
 		page_index = magick->position.top / magick->page_height;
-		if( page_index < magick->delays_length ) 
-			image->delay = 
+		if( page_index < magick->delays_length )
+			image->delay =
 				VIPS_RINT( magick->delays[page_index] / 10.0 );
 	}
 
@@ -183,7 +183,7 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	else {
 		/* DEPRECATED "gif-loop"
 		 *
-		 * We have the simple gif meaning, so we must add one unless 
+		 * We have the simple gif meaning, so we must add one unless
 		 * it's zero.
 		 */
 		if( vips_image_get_typeof( im, "gif-loop" ) &&
@@ -202,12 +202,12 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 
 	if( !save->strip &&
 		magick_set_magick_profile( image, im, magick->exception ) ) {
-		magick_vips_error( class->nickname, magick->exception ); 
+		magick_vips_error( class->nickname, magick->exception );
 		return( -1 );
 	}
 
 	magick->current_image = image;
-	
+
 	return( 0 );
 }
 
@@ -217,21 +217,21 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 static void
 vips_foreign_save_magick_end_image( VipsForeignSaveMagick *magick )
 {
-	if( magick->current_image ) { 
-		magick_inherit_exception( magick->exception, 
+	if( magick->current_image ) {
+		magick_inherit_exception( magick->exception,
 			magick->current_image );
 		magick->current_image = NULL;
 	}
 }
 
-/* Another block of pixels have arrived from libvips. 
+/* Another block of pixels have arrived from libvips.
  */
 static int
-vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area, 
+vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area,
 	void *a )
 {
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) a;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
 
 	VipsRect pixels;
 
@@ -246,21 +246,21 @@ vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area,
 
 		vips_rect_intersectrect( &pixels, &magick->position, &hit );
 		p = VIPS_REGION_ADDR( region, hit.left, hit.top );
-		if( !magick_import_pixels( magick->current_image, 
-			hit.left, hit.top - magick->position.top, 
-			hit.width, hit.height, 
-			magick->map, magick->storage_type, 
-			p, 
+		if( !magick_import_pixels( magick->current_image,
+			hit.left, hit.top - magick->position.top,
+			hit.width, hit.height,
+			magick->map, magick->storage_type,
+			p,
 			magick->exception ) ) {
-			magick_vips_error( class->nickname, 
-				magick->exception ); 
+			magick_vips_error( class->nickname,
+				magick->exception );
 			return( -1 );
 		}
 
 		/* Have we filled the page.
 		 */
-		if( VIPS_RECT_BOTTOM( &hit ) == 
-			VIPS_RECT_BOTTOM( &magick->position ) ) 
+		if( VIPS_RECT_BOTTOM( &hit ) ==
+			VIPS_RECT_BOTTOM( &magick->position ) )
 			vips_foreign_save_magick_end_image( magick );
 
 		pixels.top += hit.height;
@@ -273,14 +273,14 @@ vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area,
 static int
 vips_foreign_save_magick_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 
 	VipsImage *im;
 
 #ifdef DEBUG
-	printf( "vips_foreign_save_magick_build: %p\n", object ); 
+	printf( "vips_foreign_save_magick_build: %p\n", object );
 #endif /*DEBUG*/
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
@@ -318,7 +318,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 		break;
 
 	default:
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unsupported image format" ) );
 		return( -1 );
 	}
@@ -348,7 +348,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 		break;
 
 	default:
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unsupported number of image bands" ) );
 		return( -1 );
 	}
@@ -356,9 +356,9 @@ vips_foreign_save_magick_build( VipsObject *object )
 	if( magick->format ) {
 		vips_strncpy( magick->image_info->magick,
 			magick->format, MaxPathExtent );
-		if( magick->filename ) 
+		if( magick->filename )
 			(void) vips_snprintf( magick->image_info->filename,
-				MaxPathExtent, "%s:%s", 
+				MaxPathExtent, "%s:%s",
 				magick->format, magick->filename );
 	}
 	else if( magick->filename ) {
@@ -366,7 +366,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 			magick->filename, MaxPathExtent );
 	}
 
-	if( magick->quality > 0 ) 
+	if( magick->quality > 0 )
 		magick->image_info->quality = magick->quality;
 
 	magick->page_height = vips_image_get_page_height( im );
@@ -376,20 +376,20 @@ vips_foreign_save_magick_build( VipsObject *object )
 	 */
 	if( vips_image_get_typeof( im, "delay" ) ) {
 		g_value_unset( &magick->delay_gvalue );
-		if( vips_image_get( im, "delay", &magick->delay_gvalue ) ) 
+		if( vips_image_get( im, "delay", &magick->delay_gvalue ) )
 			return( -1 );
-		magick->delays = vips_value_get_array_int( 
+		magick->delays = vips_value_get_array_int(
 			&magick->delay_gvalue, &magick->delays_length );
 	}
 
-	if( vips_sink_disc( im, 
-		vips_foreign_save_magick_write_block, magick ) ) 
+	if( vips_sink_disc( im,
+		vips_foreign_save_magick_write_block, magick ) )
 		return( -1 );
 
 	if( magick->optimize_gif_frames ) {
-		if( !magick_optimize_image_layers( &magick->images, 
+		if( !magick_optimize_image_layers( &magick->images,
 			magick->exception ) ) {
-			magick_inherit_exception( magick->exception, 
+			magick_inherit_exception( magick->exception,
 				magick->images );
 			magick_vips_error( class->nickname, magick->exception );
 
@@ -398,16 +398,16 @@ vips_foreign_save_magick_build( VipsObject *object )
 	}
 
 	if( magick->optimize_gif_transparency ) {
-		if( !magick_optimize_image_transparency( magick->images, 
+		if( !magick_optimize_image_transparency( magick->images,
 			magick->exception ) ) {
-			magick_inherit_exception( magick->exception, 
+			magick_inherit_exception( magick->exception,
 				magick->images );
 			magick_vips_error( class->nickname, magick->exception );
 
 			return( -1 );
 		}
 	}
-	
+
 	/* Bitdepth <= 8 requested? Quantize/Dither images.
 	 * ImageMagick then selects the appropriate bit depth when writing
 	 * the actual image (e.g. BMP or GIF).
@@ -430,7 +430,7 @@ vips_foreign_save_magick_build( VipsObject *object )
  * that would mean starting up libMagick on libvips init, and that would add a
  * lot of time.
  *
- * Instead, just list the commonly-used formats that all libMagicks support and 
+ * Instead, just list the commonly-used formats that all libMagicks support and
  * that libvips does not.
  */
 static const char *vips__save_magick_suffs[] = { NULL };
@@ -506,10 +506,10 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		_( "Optimize_gif_transparency" ),
 		_( "Apply GIF transparency optimization" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagick, 
+		G_STRUCT_OFFSET( VipsForeignSaveMagick,
 			optimize_gif_transparency ),
 		FALSE );
-		
+
 	VIPS_ARG_INT( class, "bitdepth", 6,
 		_( "Bit depth" ),
 		_( "Number of bits per pixel" ),
@@ -543,7 +543,7 @@ G_DEFINE_TYPE( VipsForeignSaveMagickFile, vips_foreign_save_magick_file,
 static int
 vips_foreign_save_magick_file_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 	VipsForeignSaveMagickFile *file = (VipsForeignSaveMagickFile *) object;
 
@@ -603,15 +603,15 @@ typedef struct _VipsForeignSaveMagickBuffer {
 
 typedef VipsForeignSaveMagickClass VipsForeignSaveMagickBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMagickBuffer, vips_foreign_save_magick_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveMagickBuffer, vips_foreign_save_magick_buffer,
 	vips_foreign_save_magick_get_type() );
 
 static int
 vips_foreign_save_magick_buffer_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
-	VipsForeignSaveMagickBuffer *buffer = 
+	VipsForeignSaveMagickBuffer *buffer =
 		(VipsForeignSaveMagickBuffer *) object;
 
 	void *obuf;
@@ -622,7 +622,7 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(obuf = magick_images_to_blob( magick->image_info, magick->images, 
+	if( !(obuf = magick_images_to_blob( magick->image_info, magick->images,
 		&olen, magick->exception )) ) {
 		magick_inherit_exception( magick->exception, magick->images );
 		magick_vips_error( class->nickname, magick->exception );
@@ -638,7 +638,7 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_magick_buffer_class_init( 
+vips_foreign_save_magick_buffer_class_init(
 	VipsForeignSaveMagickBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -668,11 +668,11 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 typedef VipsForeignSaveMagickFile VipsForeignSaveMagickBmpFile;
 typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickBmpFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMagickBmpFile, vips_foreign_save_magick_bmp_file, 
+G_DEFINE_TYPE( VipsForeignSaveMagickBmpFile, vips_foreign_save_magick_bmp_file,
 	vips_foreign_save_magick_file_get_type() );
 
 static void
-vips_foreign_save_magick_bmp_file_class_init( 
+vips_foreign_save_magick_bmp_file_class_init(
 	VipsForeignSaveMagickBmpFileClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -700,8 +700,8 @@ vips_foreign_save_magick_bmp_file_init( VipsForeignSaveMagickBmpFile *file )
 typedef VipsForeignSaveMagickBuffer VipsForeignSaveMagickBmpBuffer;
 typedef VipsForeignSaveMagickBufferClass VipsForeignSaveMagickBmpBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMagickBmpBuffer, 
-	vips_foreign_save_magick_bmp_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveMagickBmpBuffer,
+	vips_foreign_save_magick_bmp_buffer,
 	vips_foreign_save_magick_buffer_get_type() );
 
 static void
@@ -723,7 +723,7 @@ vips_foreign_save_magick_bmp_buffer_class_init(
 }
 
 static void
-vips_foreign_save_magick_bmp_buffer_init( 
+vips_foreign_save_magick_bmp_buffer_init(
 	VipsForeignSaveMagickBmpBuffer *buffer )
 {
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) buffer;
@@ -734,11 +734,11 @@ vips_foreign_save_magick_bmp_buffer_init(
 typedef VipsForeignSaveMagickFile VipsForeignSaveMagickGifFile;
 typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickGifFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMagickGifFile, vips_foreign_save_magick_gif_file, 
+G_DEFINE_TYPE( VipsForeignSaveMagickGifFile, vips_foreign_save_magick_gif_file,
 	vips_foreign_save_magick_file_get_type() );
 
 static void
-vips_foreign_save_magick_gif_file_class_init( 
+vips_foreign_save_magick_gif_file_class_init(
 	VipsForeignSaveMagickGifFileClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -766,8 +766,8 @@ vips_foreign_save_magick_gif_file_init( VipsForeignSaveMagickGifFile *file )
 typedef VipsForeignSaveMagickBuffer VipsForeignSaveMagickGifBuffer;
 typedef VipsForeignSaveMagickBufferClass VipsForeignSaveMagickGifBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMagickGifBuffer, 
-	vips_foreign_save_magick_gif_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveMagickGifBuffer,
+	vips_foreign_save_magick_gif_buffer,
 	vips_foreign_save_magick_buffer_get_type() );
 
 static void
@@ -789,7 +789,7 @@ vips_foreign_save_magick_gif_buffer_class_init(
 }
 
 static void
-vips_foreign_save_magick_gif_buffer_init( 
+vips_foreign_save_magick_gif_buffer_init(
 	VipsForeignSaveMagickGifBuffer *buffer )
 {
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) buffer;

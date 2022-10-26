@@ -20,7 +20,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -60,7 +60,7 @@ typedef struct _VipsRecomb {
 	VipsImage *in;
 	VipsImage *m;
 
-	/* Our input matrix as a one-band double. 
+	/* Our input matrix as a one-band double.
 	 */
 	VipsImage *coeff;
 
@@ -97,7 +97,7 @@ G_DEFINE_TYPE( VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION );
 }
 
 static int
-vips_recomb_gen( VipsRegion *or, 
+vips_recomb_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -108,24 +108,24 @@ vips_recomb_gen( VipsRegion *or,
 
 	int y, x, u, v;
 
-	if( vips_region_prepare( ir, &or->valid ) ) 
+	if( vips_region_prepare( ir, &or->valid ) )
 		return( -1 );
 
 	for( y = 0; y < or->valid.height; y++ ) {
-		VipsPel *in = VIPS_REGION_ADDR( ir, 
+		VipsPel *in = VIPS_REGION_ADDR( ir,
 			or->valid.left, or->valid.top + y );
-		VipsPel *out = VIPS_REGION_ADDR( or, 
+		VipsPel *out = VIPS_REGION_ADDR( or,
 			or->valid.left, or->valid.top + y );
 
 		switch( vips_image_get_format( im ) ) {
 		case VIPS_FORMAT_UCHAR: LOOP( unsigned char, float ); break;
-		case VIPS_FORMAT_CHAR: 	LOOP( signed char, float ); break; 
-		case VIPS_FORMAT_USHORT:LOOP( unsigned short, float ); break; 
-		case VIPS_FORMAT_SHORT: LOOP( signed short, float ); break; 
-		case VIPS_FORMAT_UINT: 	LOOP( unsigned int, float ); break; 
-		case VIPS_FORMAT_INT: 	LOOP( signed int, float );  break; 
-		case VIPS_FORMAT_FLOAT: LOOP( float, float ); break; 
-		case VIPS_FORMAT_DOUBLE:LOOP( double, double ); break; 
+		case VIPS_FORMAT_CHAR: 	LOOP( signed char, float ); break;
+		case VIPS_FORMAT_USHORT:LOOP( unsigned short, float ); break;
+		case VIPS_FORMAT_SHORT: LOOP( signed short, float ); break;
+		case VIPS_FORMAT_UINT: 	LOOP( unsigned int, float ); break;
+		case VIPS_FORMAT_INT: 	LOOP( signed int, float );  break;
+		case VIPS_FORMAT_FLOAT: LOOP( float, float ); break;
+		case VIPS_FORMAT_DOUBLE:LOOP( double, double ); break;
 
 		default:
 			g_assert_not_reached();
@@ -148,39 +148,39 @@ vips_recomb_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_recomb_parent_class )->build( object ) )
 		return( -1 );
 
-	in = recomb->in; 
+	in = recomb->in;
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
 	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
-	if( vips_image_pio_input( recomb->m ) || 
+	if( vips_image_pio_input( recomb->m ) ||
 		vips_check_uncoded( class->nickname, recomb->m ) ||
 		vips_check_noncomplex( class->nickname, recomb->m ) ||
 		vips_check_mono( class->nickname, recomb->m ) )
 		return( -1 );
 	if( in->Bands != recomb->m->Xsize ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "bands in must equal matrix width" ) );
 		return( -1 );
 	}
 
 	if( vips_check_matrix( class->nickname, recomb->m, &t[1] ) )
-		return( -1 ); 
-	recomb->coeff = t[1]; 
+		return( -1 );
+	recomb->coeff = t[1];
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	conversion->out->Bands = recomb->m->Ysize;
-	if( vips_band_format_isint( in->BandFmt ) ) 
+	if( vips_band_format_isint( in->BandFmt ) )
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_recomb_gen, vips_stop_one, 
+		vips_start_one, vips_recomb_gen, vips_stop_one,
 		in, recomb ) )
 		return( -1 );
 
@@ -203,16 +203,16 @@ vips_recomb_class_init( VipsRecombClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRecomb, in ) );
 
-	VIPS_ARG_IMAGE( class, "m", 102, 
-		_( "M" ), 
+	VIPS_ARG_IMAGE( class, "m", 102,
+		_( "M" ),
 		_( "Matrix of coefficients" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRecomb, m ) );
 }
 
@@ -221,14 +221,14 @@ vips_recomb_init( VipsRecomb *recomb )
 {
 }
 
-/** 
+/**
  * vips_recomb: (method)
  * @in: input image
  * @out: (out): output image
  * @m: recombination matrix
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation recombines an image's bands. Each pixel in @in is treated as 
+ * This operation recombines an image's bands. Each pixel in @in is treated as
  * an n-element vector, where n is the number of bands in @in, and multipled by
  * the n x m matrix @m to produce the m-band image @out.
  *

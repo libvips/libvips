@@ -1,5 +1,5 @@
 /* Read a csv file.
- * 
+ *
  * 16/12/11
  * 	- just a stub
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -78,7 +78,7 @@ im_csv2vips( const char *filename, IMAGE *out )
 			lines = atoi( r );
 	}
 
-	if( vips_csvload( name, &x, 
+	if( vips_csvload( name, &x,
 		"skip", start_skip,
 		"lines", lines,
 		"whitespace", whitespace,

@@ -2,7 +2,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 27/03/1991
- * Modified on : 
+ * Modified on :
  * 16/6/93 J.Cupitt
  *	- im_ioflag() changed to im_iocheck()
  * 23/2/95 JC
@@ -21,7 +21,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -82,7 +82,7 @@ vips_spectrum_build( VipsObject *object )
 	}
 
 	if( vips_abs( in, &t[1], NULL ) ||
-		vips_scale( t[1], &t[2], "log", TRUE, NULL ) || 
+		vips_scale( t[1], &t[2], "log", TRUE, NULL ) ||
 		vips_wrap( t[2], &t[3], NULL ) )
 		return( -1 );
 
@@ -110,7 +110,7 @@ vips_spectrum_init( VipsSpectrum *spectrum )
 
 /**
  * vips_spectrum: (method)
- * @in: input image 
+ * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *

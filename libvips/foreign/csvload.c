@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -98,7 +98,7 @@ typedef struct _VipsForeignLoadCsv {
 
 typedef VipsForeignLoadClass VipsForeignLoadCsvClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadCsv, vips_foreign_load_csv, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadCsv, vips_foreign_load_csv,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -125,7 +125,7 @@ vips_foreign_load_csv_build( VipsObject *object )
 	if( !(csv->sbuf = vips_sbuf_new_from_source( csv->source )) )
 		return( -1 );
 
-	/* Make our char maps. 
+	/* Make our char maps.
 	 */
 	for( i = 0; i < 256; i++ ) {
 		csv->whitemap[i] = 0;
@@ -158,15 +158,15 @@ vips_foreign_load_csv_get_flags( VipsForeignLoad *load )
  *
  * Result: !white, \n, EOF
  */
-static int 
+static int
 vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
 {
-        int ch;
+	int ch;
 
 	do {
 		ch = VIPS_SBUF_GETC( csv->sbuf );
-	} while( ch != EOF && 
-		ch != '\n' && 
+	} while( ch != EOF &&
+		ch != '\n' &&
 		csv->whitemap[ch] );
 
 	VIPS_SBUF_UNGETC( csv->sbuf );
@@ -174,7 +174,7 @@ vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
 	return( ch );
 }
 
-/* We have just seen " (open quotes). Skip to just after the matching close 
+/* We have just seen " (open quotes). Skip to just after the matching close
  * quotes.
  *
  * If there is no matching close quotes before the end of the line, don't
@@ -182,21 +182,21 @@ vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
  *
  * Result: ", \n, EOF
  */
-static int 
+static int
 vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
 {
-        int ch;
+	int ch;
 
 	do {
 		ch = VIPS_SBUF_GETC( csv->sbuf );
 
 		/* Ignore \" (actually \anything) in strings.
 		 */
-		if( ch == '\\' ) 
+		if( ch == '\\' )
 			ch = VIPS_SBUF_GETC( csv->sbuf );
 		else if( ch == '"' )
 			break;
-	} while( ch != EOF && 
+	} while( ch != EOF &&
 		ch != '\n' );
 
 	if( ch == '\n' )
@@ -205,7 +205,7 @@ vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
 	return( ch );
 }
 
-/* Fetch the next item (not whitespace, separator or \n), as a string. The 
+/* Fetch the next item (not whitespace, separator or \n), as a string. The
  * returned string is valid until the next call to fetch item. NULL for EOF.
  */
 static const char *
@@ -233,24 +233,24 @@ vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
 
 	/* If we hit EOF immediately, return EOF.
 	 */
-	if( ch == -1 && 
+	if( ch == -1 &&
 		write_point == 0 )
 		return( NULL );
 
-	/* If we filled the item buffer without seeing the end of the item, 
+	/* If we filled the item buffer without seeing the end of the item,
 	 * read up to the item end.
 	 */
 	while( ch != -1 &&
 		ch != '\n' &&
 		!csv->whitemap[ch] &&
-		!csv->sepmap[ch] ) 
+		!csv->sepmap[ch] )
 		ch = VIPS_SBUF_GETC( csv->sbuf );
 
 	/* We've (probably) read the end of item character. Push it bakc.
 	 */
 	if( ch == '\n' ||
 		csv->whitemap[ch] ||
-		csv->sepmap[ch] ) 
+		csv->sepmap[ch] )
 		VIPS_SBUF_UNGETC( csv->sbuf );
 
 	return( csv->item );
@@ -258,10 +258,10 @@ vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
 
 /* Read a single item. The syntax is:
  *
- * element : 
+ * element :
  * 	whitespace* item whitespace* [EOF|EOL|separator]
  *
- * item : 
+ * item :
  * 	double |
  * 	"anything" |
  * 	empty
@@ -281,8 +281,8 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 	*out = 0;
 
 	ch = vips_foreign_load_csv_skip_white( csv );
-	if( ch == EOF || 
-		ch == '\n' ) 
+	if( ch == EOF ||
+		ch == '\n' )
 		return( ch );
 
 	if( ch == '"' ) {
@@ -296,8 +296,8 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 		if( !item )
 			return( EOF );
 
-		if( vips_strtod( item, out ) ) 
-			/* Only a warning, since (for example) exported 
+		if( vips_strtod( item, out ) )
+			/* Only a warning, since (for example) exported
 			 * spreadsheets will often have text or date fields.
 			 */
 			g_warning( _( "bad number, line %d, column %d" ),
@@ -305,14 +305,14 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 	}
 
 	ch = vips_foreign_load_csv_skip_white( csv );
-	if( ch == EOF || 
-		ch == '\n' ) 
+	if( ch == EOF ||
+		ch == '\n' )
 		return( ch );
 
-	/* If it's a separator, we have to step over it. 
+	/* If it's a separator, we have to step over it.
 	 */
-	if( csv->sepmap[ch] ) 
-		(void) VIPS_SBUF_GETC( csv->sbuf ); 
+	if( csv->sepmap[ch] )
+		(void) VIPS_SBUF_GETC( csv->sbuf );
 
 	return( ch );
 }
@@ -360,21 +360,21 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 
 	/* If @lines is -1, we must scan the whole file to get the height.
 	 */
-	if( csv->lines == -1 ) 
+	if( csv->lines == -1 )
 		for( height = 0; vips_sbuf_get_line( csv->sbuf ); height++ )
 			;
-	else 
+	else
 		height = csv->lines;
 
 	vips_image_init_fields( load->out,
-		width, height, 1, 
-		VIPS_FORMAT_DOUBLE, 
+		width, height, 1,
+		VIPS_FORMAT_DOUBLE,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-	if( vips_image_pipelinev( load->out, 
+	if( vips_image_pipelinev( load->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, 
+	VIPS_SETSTR( load->out->filename,
 		vips_connection_filename( VIPS_CONNECTION( csv->source ) ) );
 
 	return( 0 );
@@ -406,10 +406,10 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 		}
 
 	vips_image_init_fields( load->real,
-		load->out->Xsize, load->out->Ysize, 1, 
-		VIPS_FORMAT_DOUBLE, 
+		load->out->Xsize, load->out->Ysize, 1,
+		VIPS_FORMAT_DOUBLE,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-	if( vips_image_pipelinev( load->real, 
+	if( vips_image_pipelinev( load->real,
 		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
@@ -453,11 +453,11 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 		/* Step over the line separator.
 		 */
 		if( ch == '\n' ) {
-			(void) VIPS_SBUF_GETC( csv->sbuf ); 
+			(void) VIPS_SBUF_GETC( csv->sbuf );
 			csv->lineno += 1;
 		}
 
-		if( vips_image_write_line( load->real, y, 
+		if( vips_image_write_line( load->real, y,
 			(VipsPel *) csv->linebuf ) )
 			return( -1 );
 	}
@@ -481,7 +481,7 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 	object_class->description = _( "load csv" );
 	object_class->build = vips_foreign_load_csv_build;
 
-	/* This is fuzzed, but you're unlikely to want to use it on 
+	/* This is fuzzed, but you're unlikely to want to use it on
 	 * untrusted files.
 	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
@@ -490,33 +490,33 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 	load_class->header = vips_foreign_load_csv_header;
 	load_class->load = vips_foreign_load_csv_load;
 
-	VIPS_ARG_INT( class, "skip", 20, 
-		_( "Skip" ), 
+	VIPS_ARG_INT( class, "skip", 20,
+		_( "Skip" ),
 		_( "Skip this many lines at the start of the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, skip ),
 		0, 10000000, 0 );
 
-	VIPS_ARG_INT( class, "lines", 21, 
-		_( "Lines" ), 
+	VIPS_ARG_INT( class, "lines", 21,
+		_( "Lines" ),
 		_( "Read this many lines from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, lines ),
 		-1, 10000000, 0 );
 
-	VIPS_ARG_STRING( class, "whitespace", 22, 
-		_( "Whitespace" ), 
+	VIPS_ARG_STRING( class, "whitespace", 22,
+		_( "Whitespace" ),
 		_( "Set of whitespace characters" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, whitespace ),
-		" " ); 
+		" " );
 
-	VIPS_ARG_STRING( class, "separator", 23, 
-		_( "Separator" ), 
+	VIPS_ARG_STRING( class, "separator", 23,
+		_( "Separator" ),
 		_( "Set of separator characters" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, separator ),
-		";,\t" ); 
+		";,\t" );
 }
 
 static void
@@ -553,8 +553,8 @@ vips_foreign_load_csv_file_build( VipsObject *object )
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
 	VipsForeignLoadCsvFile *file = (VipsForeignLoadCsvFile *) object;
 
-	if( file->filename ) 
-		if( !(csv->source = 
+	if( file->filename )
+		if( !(csv->source =
 			vips_source_new_from_file( file->filename )) )
 			return( -1 );
 
@@ -586,7 +586,7 @@ vips_foreign_load_csv_file_class_init( VipsForeignLoadCsvFileClass *class )
 
 	foreign_class->suffs = vips_foreign_load_csv_suffs;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_csv_file_get_flags_filename;
 
 	VIPS_ARG_STRING( class, "filename", 1,
@@ -664,7 +664,7 @@ vips_foreign_load_csv_source_class_init( VipsForeignLoadCsvFileClass *class )
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsvSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -689,26 +689,26 @@ vips_foreign_load_csv_source_init( VipsForeignLoadCsvSource *source )
  * * @separator: set of separator characters
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
- * Load a CSV (comma-separated values) file. The output image is always 1 
+ * Load a CSV (comma-separated values) file. The output image is always 1
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
- * RGBRGBRGB mono images into colour iamges. 
+ * RGBRGBRGB mono images into colour iamges.
  *
- * Items in lines can be either floating point numbers in the C locale, or 
+ * Items in lines can be either floating point numbers in the C locale, or
  * strings enclosed in double-quotes ("), or empty.
  * You can use a backslash (\) within the quotes to escape special characters,
  * such as quote marks.
  *
- * @skip sets the number of lines to skip at the start of the file. 
+ * @skip sets the number of lines to skip at the start of the file.
  * Default zero.
  *
- * @lines sets the number of lines to read from the file. Default -1, 
+ * @lines sets the number of lines to read from the file. Default -1,
  * meaning read all lines to end of file.
  *
- * @whitespace sets the skippable whitespace characters. 
+ * @whitespace sets the skippable whitespace characters.
  * Default <emphasis>space</emphasis>.
  * Whitespace characters are always run together.
  *
- * @separator sets the characters that separate fields. 
+ * @separator sets the characters that separate fields.
  * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
@@ -725,7 +725,7 @@ vips_csvload( const char *filename, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "csvload", ap, filename, out ); 
+	result = vips_call_split( "csvload", ap, filename, out );
 	va_end( ap );
 
 	return( result );
@@ -745,7 +745,7 @@ vips_csvload( const char *filename, VipsImage **out, ... )
  * * @separator: set of separator characters
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
- * Exactly as vips_csvload(), but read from a source. 
+ * Exactly as vips_csvload(), but read from a source.
  *
  * See also: vips_csvload().
  *
@@ -758,7 +758,7 @@ vips_csvload_source( VipsSource *source, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "csvload_source", ap, source, out ); 
+	result = vips_call_split( "csvload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

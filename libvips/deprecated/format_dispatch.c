@@ -301,116 +301,116 @@ static im_function tiff2vips_desc = {
 static int
 analyze2vips_vec( im_object *argv )
 {
-        const char *in = argv[0];
-        IMAGE *out = argv[1];
+	const char *in = argv[0];
+	IMAGE *out = argv[1];
 
-        return( im_analyze2vips( in, out ) );
+	return( im_analyze2vips( in, out ) );
 }
 
 static im_arg_desc analyze2vips_arg_types[] = {
-        IM_INPUT_STRING( "filename" ),
-        IM_OUTPUT_IMAGE( "im" )
+	IM_INPUT_STRING( "filename" ),
+	IM_OUTPUT_IMAGE( "im" )
 };
 
 static im_function analyze2vips_desc = {
-        "im_analyze2vips",          	/* Name */
-        "read a file in analyze format",/* Description */
-        0,                             	/* Flags */
-        analyze2vips_vec,               /* Dispatch function */
-        IM_NUMBER( analyze2vips_arg_types ),/* Size of arg list */
-        analyze2vips_arg_types          /* Arg list */
+	"im_analyze2vips",          	/* Name */
+	"read a file in analyze format",/* Description */
+	0,                             	/* Flags */
+	analyze2vips_vec,               /* Dispatch function */
+	IM_NUMBER( analyze2vips_arg_types ),/* Size of arg list */
+	analyze2vips_arg_types          /* Arg list */
 };
 
 static int
 csv2vips_vec( im_object *argv )
 {
-        const char *in = argv[0];
-        IMAGE *out = argv[1];
+	const char *in = argv[0];
+	IMAGE *out = argv[1];
 
-        return( im_csv2vips( in, out ) );
+	return( im_csv2vips( in, out ) );
 }
 
 static im_arg_desc csv2vips_arg_types[] = {
-        IM_INPUT_STRING( "filename" ),
-        IM_OUTPUT_IMAGE( "im" )
+	IM_INPUT_STRING( "filename" ),
+	IM_OUTPUT_IMAGE( "im" )
 };
 
 static im_function csv2vips_desc = {
-        "im_csv2vips",          	/* Name */
-        "read a file in csv format",/* Description */
-        0,                             	/* Flags */
-        csv2vips_vec,               /* Dispatch function */
-        IM_NUMBER( csv2vips_arg_types ),/* Size of arg list */
-        csv2vips_arg_types          /* Arg list */
+	"im_csv2vips",          	/* Name */
+	"read a file in csv format",/* Description */
+	0,                             	/* Flags */
+	csv2vips_vec,               /* Dispatch function */
+	IM_NUMBER( csv2vips_arg_types ),/* Size of arg list */
+	csv2vips_arg_types          /* Arg list */
 };
 
 static int
 vips2csv_vec( im_object *argv )
 {
-        IMAGE *in = argv[0];
-        const char *filename = argv[1];
+	IMAGE *in = argv[0];
+	const char *filename = argv[1];
 
-        return( im_vips2csv( in, filename ) );
+	return( im_vips2csv( in, filename ) );
 }
 
 static im_arg_desc vips2csv_arg_types[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_INPUT_STRING( "filename" )
+	IM_INPUT_IMAGE( "in" ),
+	IM_INPUT_STRING( "filename" )
 };
 
 static im_function vips2csv_desc = {
-        "im_vips2csv",          	/* Name */
-        "write an image in csv format",	/* Description */
-        0,                          	/* Flags */
-        vips2csv_vec,               	/* Dispatch function */
-        IM_NUMBER( vips2csv_arg_types ),/* Size of arg list */
-        vips2csv_arg_types          	/* Arg list */
+	"im_vips2csv",          	/* Name */
+	"write an image in csv format",	/* Description */
+	0,                          	/* Flags */
+	vips2csv_vec,               	/* Dispatch function */
+	IM_NUMBER( vips2csv_arg_types ),/* Size of arg list */
+	vips2csv_arg_types          	/* Arg list */
 };
 
 static int
 ppm2vips_vec( im_object *argv )
 {
-        const char *in = argv[0];
-        IMAGE *out = argv[1];
+	const char *in = argv[0];
+	IMAGE *out = argv[1];
 
-        return( im_ppm2vips( in, out ) );
+	return( im_ppm2vips( in, out ) );
 }
 
 static im_arg_desc ppm2vips_arg_types[] = {
-        IM_INPUT_STRING( "filename" ),
-        IM_OUTPUT_IMAGE( "im" )
+	IM_INPUT_STRING( "filename" ),
+	IM_OUTPUT_IMAGE( "im" )
 };
 
 static im_function ppm2vips_desc = {
-        "im_ppm2vips",                  /* Name */
-        "read a file in pbm/pgm/ppm format",     /* Description */
-        0,                              /* Flags */
-        ppm2vips_vec,                  	/* Dispatch function */
-        IM_NUMBER( ppm2vips_arg_types ),/* Size of arg list */
-        ppm2vips_arg_types              /* Arg list */
+	"im_ppm2vips",                  /* Name */
+	"read a file in pbm/pgm/ppm format",     /* Description */
+	0,                              /* Flags */
+	ppm2vips_vec,                  	/* Dispatch function */
+	IM_NUMBER( ppm2vips_arg_types ),/* Size of arg list */
+	ppm2vips_arg_types              /* Arg list */
 };
 
 static int
 vips2ppm_vec( im_object *argv )
 {
-        IMAGE *im = argv[0];
-        const char *filename = argv[1];
+	IMAGE *im = argv[0];
+	const char *filename = argv[1];
 
-        return( im_vips2ppm( im, filename ) );
+	return( im_vips2ppm( im, filename ) );
 }
 
 static im_arg_desc vips2ppm_arg_types[] = {
-        IM_INPUT_IMAGE( "im" ),
-        IM_INPUT_STRING( "filename" )
+	IM_INPUT_IMAGE( "im" ),
+	IM_INPUT_STRING( "filename" )
 };
 
 static im_function vips2ppm_desc = {
-        "im_vips2ppm",                  /* Name */
-        "write a file in pbm/pgm/ppm format",     /* Description */
-        0,                              /* Flags */
-        vips2ppm_vec,                  	/* Dispatch function */
-        IM_NUMBER( vips2ppm_arg_types ),/* Size of arg list */
-        vips2ppm_arg_types              /* Arg list */
+	"im_vips2ppm",                  /* Name */
+	"write a file in pbm/pgm/ppm format",     /* Description */
+	0,                              /* Flags */
+	vips2ppm_vec,                  	/* Dispatch function */
+	IM_NUMBER( vips2ppm_arg_types ),/* Size of arg list */
+	vips2ppm_arg_types              /* Arg list */
 };
 
 static int

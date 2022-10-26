@@ -80,7 +80,7 @@ extern "C" {
 /**
  * VIPS_META_IMAGEDESCRIPTION:
  *
- * The IMAGEDESCRIPTION tag. Often has useful metadata. 
+ * The IMAGEDESCRIPTION tag. Often has useful metadata.
  */
 #define VIPS_META_IMAGEDESCRIPTION "image-description"
 
@@ -105,15 +105,15 @@ extern "C" {
  *
  * Images loaded via vips_sequential() have this int field defined. Some
  * operations (eg. vips_shrinkv()) add extra caches if they see it on their
- * input. 
+ * input.
  */
 #define VIPS_META_SEQUENTIAL "vips-sequential"
 
 /**
  * VIPS_META_ORIENTATION:
  *
- * The orientation tag for this image. An int from 1 - 8 using the standard 
- * exif/tiff meanings. 
+ * The orientation tag for this image. An int from 1 - 8 using the standard
+ * exif/tiff meanings.
  *
  * * 1 - The 0th row represents the visual top of the image, and the 0th column
  *   represents the visual left-hand side.
@@ -130,7 +130,7 @@ extern "C" {
  * * 7 - The 0th row represents the visual right-hand side of the image, and the
  *   0th column represents the visual bottom.
  * * 8 - The 0th row represents the visual left-hand side of the image, and the
- *   0th column represents the visual bottom. 
+ *   0th column represents the visual bottom.
  */
 #define VIPS_META_ORIENTATION "orientation"
 
@@ -139,14 +139,14 @@ extern "C" {
  *
  * If set, the height of each page when this image was loaded. If you save an
  * image with "page-height" set to a format that supports multiple pages, such
- * as tiff, the image will be saved as a series of pages. 
+ * as tiff, the image will be saved as a series of pages.
  */
 #define VIPS_META_PAGE_HEIGHT "page-height"
 
 /**
  * VIPS_META_N_PAGES:
  *
- * If set, the number of pages in the original file. 
+ * If set, the number of pages in the original file.
  */
 #define VIPS_META_N_PAGES "n-pages"
 
@@ -219,25 +219,25 @@ VIPS_API
 const void *vips_image_get_data( VipsImage *image );
 
 VIPS_API
-void vips_image_init_fields( VipsImage *image, 
-	int xsize, int ysize, int bands, 
-	VipsBandFormat format, VipsCoding coding, 
-	VipsInterpretation interpretation, 
+void vips_image_init_fields( VipsImage *image,
+	int xsize, int ysize, int bands,
+	VipsBandFormat format, VipsCoding coding,
+	VipsInterpretation interpretation,
 	double xres, double yres );
 
 VIPS_API
 void vips_image_set( VipsImage *image, const char *name, GValue *value );
 VIPS_API
-int vips_image_get( const VipsImage *image, 
+int vips_image_get( const VipsImage *image,
 	const char *name, GValue *value_copy );
 VIPS_API
-int vips_image_get_as_string( const VipsImage *image, 
+int vips_image_get_as_string( const VipsImage *image,
 	const char *name, char **out );
 VIPS_API
 GType vips_image_get_typeof( const VipsImage *image, const char *name );
 VIPS_API
 gboolean vips_image_remove( VipsImage *image, const char *name );
-typedef void *(*VipsImageMapFn)( VipsImage *image, 
+typedef void *(*VipsImageMapFn)( VipsImage *image,
 	const char *name, GValue *value, void *a );
 VIPS_API
 void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
@@ -245,20 +245,20 @@ VIPS_API
 gchar **vips_image_get_fields( VipsImage *image );
 
 VIPS_API
-void vips_image_set_area( VipsImage *image, 
+void vips_image_set_area( VipsImage *image,
 	const char *name, VipsCallbackFn free_fn, void *data );
 VIPS_API
-int vips_image_get_area( const VipsImage *image, 
+int vips_image_get_area( const VipsImage *image,
 	const char *name, const void **data );
 VIPS_API
-void vips_image_set_blob( VipsImage *image, 
-	const char *name, 
+void vips_image_set_blob( VipsImage *image,
+	const char *name,
 	VipsCallbackFn free_fn, const void *data, size_t length );
 VIPS_API
-void vips_image_set_blob_copy( VipsImage *image, 
+void vips_image_set_blob_copy( VipsImage *image,
 	const char *name, const void *data, size_t length );
 VIPS_API
-int vips_image_get_blob( const VipsImage *image, 
+int vips_image_get_blob( const VipsImage *image,
 	const char *name, const void **data, size_t *length );
 
 VIPS_API
@@ -266,20 +266,20 @@ int vips_image_get_int( const VipsImage *image, const char *name, int *out );
 VIPS_API
 void vips_image_set_int( VipsImage *image, const char *name, int i );
 VIPS_API
-int vips_image_get_double( const VipsImage *image, 
+int vips_image_get_double( const VipsImage *image,
 	const char *name, double *out );
 VIPS_API
 void vips_image_set_double( VipsImage *image, const char *name, double d );
 VIPS_API
-int vips_image_get_string( const VipsImage *image, 
+int vips_image_get_string( const VipsImage *image,
 	const char *name, const char **out );
 VIPS_API
-void vips_image_set_string( VipsImage *image, 
+void vips_image_set_string( VipsImage *image,
 	const char *name, const char *str );
 VIPS_API
 void vips_image_print_field( const VipsImage *image, const char *name );
 VIPS_API
-int vips_image_get_image( const VipsImage *image, 
+int vips_image_get_image( const VipsImage *image,
 	const char *name, VipsImage **out );
 VIPS_API
 void vips_image_set_image( VipsImage *image, const char *name, VipsImage *im );
@@ -287,10 +287,10 @@ VIPS_API
 void vips_image_set_array_int( VipsImage *image, const char *name,
 	const int *array, int n );
 VIPS_API
-int vips_image_get_array_int( VipsImage *image, const char *name, 
+int vips_image_get_array_int( VipsImage *image, const char *name,
 	int **out, int *n );
 VIPS_API
-int vips_image_get_array_double( VipsImage *image, const char *name, 
+int vips_image_get_array_double( VipsImage *image, const char *name,
 	double **out, int *n );
 VIPS_API
 void vips_image_set_array_double( VipsImage *image, const char *name,
@@ -300,7 +300,7 @@ VIPS_API
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	G_GNUC_PRINTF( 2, 3 );
 VIPS_API
-int vips_image_history_args( VipsImage *image, 
+int vips_image_history_args( VipsImage *image,
 	const char *name, int argc, char *argv[] );
 VIPS_API
 const char *vips_image_get_history( VipsImage *image );

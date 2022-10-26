@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -42,8 +42,8 @@ extern "C" {
 #undef HAVE_STDLIB_H
 #endif /*HAVE_STDLIB_H*/
 
-/* jpeglib defines its own boolean type as an enum which then clashes with 
- * everyone elses. Rename it as jboolean. 
+/* jpeglib defines its own boolean type as an enum which then clashes with
+ * everyone elses. Rename it as jboolean.
  */
 #define boolean jboolean
 

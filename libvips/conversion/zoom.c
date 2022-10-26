@@ -13,7 +13,7 @@
  * 30/8/96 JC
  *	- sets demand_hint
  * 10/2/00 JC
- *	- check for integer overflow in zoom facs ... was happening with ip's 
+ *	- check for integer overflow in zoom facs ... was happening with ip's
  * 	  zoom on large images
  * 3/8/02 JC
  *	- fall back to im_copy() for x & y factors == 1
@@ -28,7 +28,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -52,8 +52,8 @@
 
  */
 
-/* 
-#define DEBUG 
+/*
+#define DEBUG
 #define DEBUG_VERBOSE
  */
 
@@ -108,7 +108,7 @@ vips_zoom_paint_whole( VipsRegion *or, VipsRegion *ir, VipsZoom *zoom,
 
 	/* We know this!
 	 */
-	g_assert( right > left && bottom > top && 
+	g_assert( right > left && bottom > top &&
 		right % zoom->xfac == 0 &&
 		left % zoom->xfac == 0 &&
 		top % zoom->yfac == 0 &&
@@ -244,7 +244,7 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	int width, height;
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_zoom_gen: left=%d, top=%d, width=%d, height=%d\n", 
+	printf( "vips_zoom_gen: left=%d, top=%d, width=%d, height=%d\n",
 		r->left, r->top, r->width, r->height );
 #endif /*DEBUG_VERBOSE*/
 
@@ -263,7 +263,7 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	s.height = height / zoom->yfac;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
-	
+
 	/* Find the part of the output (if any) which uses only whole pels.
 	 */
 	left = VIPS_ROUND_UP( r->left, zoom->xfac );
@@ -276,31 +276,31 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Stage 1: we just paint the whole pels in the centre of the region.
 	 * As we know they are not clipped, we can do it quickly.
 	 */
-	if( width > 0 && height > 0 ) 
+	if( width > 0 && height > 0 )
 		vips_zoom_paint_whole( or, ir, zoom, left, right, top, bottom );
 
 	/* Just fractional pixels left. Paint in the top, left, right and
 	 * bottom parts.
 	 */
-	if( top - r->top > 0 ) 
+	if( top - r->top > 0 )
 		/* Some top pixels.
 		 */
-		vips_zoom_paint_part( or, ir, zoom, 
+		vips_zoom_paint_part( or, ir, zoom,
 			r->left, ri, r->top, VIPS_MIN( top, bo ) );
 	if( left - r->left > 0 && height > 0 )
 		/* Left pixels.
 		 */
-		vips_zoom_paint_part( or, ir, zoom, 
+		vips_zoom_paint_part( or, ir, zoom,
 			r->left, VIPS_MIN( left, ri ), top, bottom );
 	if( ri - right > 0 && height > 0 )
 		/* Right pixels.
 		 */
-		vips_zoom_paint_part( or, ir, zoom, 
+		vips_zoom_paint_part( or, ir, zoom,
 			VIPS_MAX( right, r->left ), ri, top, bottom );
 	if( bo - bottom > 0 && height >= 0 )
 		/* Bottom pixels.
 		 */
-		vips_zoom_paint_part( or, ir, zoom, 
+		vips_zoom_paint_part( or, ir, zoom,
 			r->left, ri, VIPS_MAX( bottom, r->top ), bo );
 
 	return( 0 );
@@ -316,36 +316,36 @@ vips_zoom_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_zoom_parent_class )->build( object ) )
 		return( -1 );
 
-	g_assert( zoom->xfac > 0 ); 
-	g_assert( zoom->yfac > 0 ); 
-	
+	g_assert( zoom->xfac > 0 );
+	g_assert( zoom->yfac > 0 );
+
 	/* Make sure we won't get integer overflow.
 	 */
-	if( (double) zoom->in->Xsize * zoom->xfac > (double) INT_MAX / 2 || 
+	if( (double) zoom->in->Xsize * zoom->xfac > (double) INT_MAX / 2 ||
 		(double) zoom->in->Ysize * zoom->yfac > (double) INT_MAX / 2 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "zoom factors too large" ) );
 		return( -1 );
 	}
-	if( zoom->xfac == 1 && 
-		zoom->yfac == 1 ) 
+	if( zoom->xfac == 1 &&
+		zoom->yfac == 1 )
 		return( vips_image_write( zoom->in, conversion->out ) );
 
-	if( vips_image_pio_input( zoom->in ) || 
-		vips_check_coding_known( class->nickname, zoom->in ) )  
+	if( vips_image_pio_input( zoom->in ) ||
+		vips_check_coding_known( class->nickname, zoom->in ) )
 		return( -1 );
 
 	/* Set demand hints. THINSTRIP will prevent us from using
 	 * vips_zoom_paint_whole() much ... so go for FATSTRIP.
 	 */
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_FATSTRIP, zoom->in, NULL ) )
 		return( -1 );
 	conversion->out->Xsize = zoom->in->Xsize * zoom->xfac;
 	conversion->out->Ysize = zoom->in->Ysize * zoom->yfac;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_zoom_gen, vips_stop_one, 
+		vips_start_one, vips_zoom_gen, vips_stop_one,
 		zoom->in, zoom ) )
 		return( -1 );
 
@@ -368,21 +368,21 @@ vips_zoom_class_init( VipsZoomClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "input", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "input", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsZoom, in ) );
 
-	VIPS_ARG_INT( class, "xfac", 3, 
-		_( "Xfac" ), 
+	VIPS_ARG_INT( class, "xfac", 3,
+		_( "Xfac" ),
 		_( "Horizontal zoom factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsZoom, xfac ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "yfac", 4, 
-		_( "Yfac" ), 
+	VIPS_ARG_INT( class, "yfac", 4,
+		_( "Yfac" ),
 		_( "Vertical zoom factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsZoom, yfac ),
@@ -407,7 +407,7 @@ vips_zoom_init( VipsZoom *zoom )
  * zoom.
  *
  * See also: vips_affine(), vips_subsample().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int

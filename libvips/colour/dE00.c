@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -62,21 +62,21 @@ G_DEFINE_TYPE( VipsdE00, vips_dE00, VIPS_TYPE_COLOUR_DIFFERENCE );
  * @a2: Input coordinate 2
  * @b2: Input coordinate 2
  *
- * CIEDE2000, from: 
- * 
- * Luo, Cui, Rigg, "The Development of the CIE 2000 Colour-Difference 
+ * CIEDE2000, from:
+ *
+ * Luo, Cui, Rigg, "The Development of the CIE 2000 Colour-Difference
  * Formula: CIEDE2000", COLOR research and application, pp 340
  *
  * Returns: CIE dE2000 colour difference.
  */
-float 
-vips_col_dE00( float L1, float a1, float b1, 
+float
+vips_col_dE00( float L1, float a1, float b1,
 	float L2, float a2, float b2 )
 {
 /* Code if you want XYZ params and the colour temp used in the reference
 
-	float 
-	vips_col_dE00( float X1, float Y1, float Z1, 
+	float
+	vips_col_dE00( float X1, float Y1, float Z1,
 		float X2, float Y2, float Z2 )
 	{
 		const double X0 = 94.811;
@@ -146,7 +146,7 @@ vips_col_dE00( float L1, float a1, float b1,
 	/* RT, T.
 	 */
 	double RT = -sin( VIPS_RAD( 2 * dtheta ) ) * RC;
-	double T = 1 - 
+	double T = 1 -
 		0.17 * cos( VIPS_RAD( hdb - 30 ) ) +
 		0.24 * cos( VIPS_RAD( 2 * hdb ) ) +
 		0.32 * cos( VIPS_RAD( 3 * hdb + 6 ) ) -
@@ -207,7 +207,7 @@ vips_col_dE00( float L1, float a1, float b1,
 /* Find the difference between two buffers of LAB data.
  */
 static void
-vips_dE00_line( VipsColour *colour, 
+vips_dE00_line( VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width )
 {
 	float *p1 = (float *) in[0];
@@ -217,7 +217,7 @@ vips_dE00_line( VipsColour *colour,
 	int x;
 
 	for( x = 0; x < width; x++ ) {
-		q[x] = vips_col_dE00( p1[0], p1[1], p1[2], 
+		q[x] = vips_col_dE00( p1[0], p1[1], p1[2],
 			p2[0], p2[1], p2[2] );
 
 		p1 += 3;
@@ -240,7 +240,7 @@ vips_dE00_class_init( VipsdE00Class *class )
 static void
 vips_dE00_init( VipsdE00 *dE00 )
 {
-	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE00 ); 
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE00 );
 
 	difference->interpretation = VIPS_INTERPRETATION_LAB;
 }

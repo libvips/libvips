@@ -41,7 +41,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/** 
+/**
  * VipsOperationMath:
  * @VIPS_OPERATION_MATH_SIN: sin(), angles in degrees
  * @VIPS_OPERATION_MATH_COS: cos(), angles in degrees
@@ -49,8 +49,8 @@ extern "C" {
  * @VIPS_OPERATION_MATH_ASIN: asin(), angles in degrees
  * @VIPS_OPERATION_MATH_ACOS: acos(), angles in degrees
  * @VIPS_OPERATION_MATH_ATAN: atan(), angles in degrees
- * @VIPS_OPERATION_MATH_LOG: log base e 
- * @VIPS_OPERATION_MATH_LOG10: log base 10 
+ * @VIPS_OPERATION_MATH_LOG: log base e
+ * @VIPS_OPERATION_MATH_LOG10: log base 10
  * @VIPS_OPERATION_MATH_EXP: e to the something
  * @VIPS_OPERATION_MATH_EXP10: 10 to the something
  * @VIPS_OPERATION_MATH_SINH: sinh(), angles in radians
@@ -82,11 +82,11 @@ typedef enum {
 	VIPS_OPERATION_MATH_LAST
 } VipsOperationMath;
 
-/** 
+/**
  * VipsOperationMath2:
  * @VIPS_OPERATION_MATH2_POW: pow( left, right )
- * @VIPS_OPERATION_MATH2_WOP: pow( right, left ) 
- * @VIPS_OPERATION_MATH2_ATAN2: atan2( left, right ) 
+ * @VIPS_OPERATION_MATH2_WOP: pow( right, left )
+ * @VIPS_OPERATION_MATH2_ATAN2: atan2( left, right )
  *
  * See also: vips_math().
  */
@@ -97,7 +97,7 @@ typedef enum {
 	VIPS_OPERATION_MATH2_LAST
 } VipsOperationMath2;
 
-/** 
+/**
  * VipsOperationRound:
  * @VIPS_OPERATION_ROUND_RINT: round to nearest
  * @VIPS_OPERATION_ROUND_FLOOR: largest integral value not greater than
@@ -112,7 +112,7 @@ typedef enum {
 	VIPS_OPERATION_ROUND_LAST
 } VipsOperationRound;
 
-/** 
+/**
  * VipsOperationRelational:
  * @VIPS_OPERATION_RELATIONAL_EQUAL: ==
  * @VIPS_OPERATION_RELATIONAL_NOTEQ: !=
@@ -133,7 +133,7 @@ typedef enum {
 	VIPS_OPERATION_RELATIONAL_LAST
 } VipsOperationRelational;
 
-/** 
+/**
  * VipsOperationBoolean:
  * @VIPS_OPERATION_BOOLEAN_AND: &
  * @VIPS_OPERATION_BOOLEAN_OR: |
@@ -152,7 +152,7 @@ typedef enum {
 	VIPS_OPERATION_BOOLEAN_LAST
 } VipsOperationBoolean;
 
-/** 
+/**
  * VipsOperationComplex:
  * @VIPS_OPERATION_COMPLEX_POLAR: convert to polar coordinates
  * @VIPS_OPERATION_COMPLEX_RECT: convert to rectangular coordinates
@@ -167,7 +167,7 @@ typedef enum {
 	VIPS_OPERATION_COMPLEX_LAST
 } VipsOperationComplex;
 
-/** 
+/**
  * VipsOperationComplex2:
  * @VIPS_OPERATION_COMPLEX2_CROSS_PHASE: convert to polar coordinates
  *
@@ -178,7 +178,7 @@ typedef enum {
 	VIPS_OPERATION_COMPLEX2_LAST
 } VipsOperationComplex2;
 
-/** 
+/**
  * VipsOperationComplexget:
  * @VIPS_OPERATION_COMPLEXGET_REAL: get real component
  * @VIPS_OPERATION_COMPLEXGET_IMAG: get imaginary component
@@ -207,7 +207,7 @@ VIPS_API
 int vips_divide( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_linear( VipsImage *in, VipsImage **out, 
+int vips_linear( VipsImage *in, VipsImage **out,
 	const double *a, const double *b, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -217,11 +217,11 @@ VIPS_API
 int vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_remainder_const( VipsImage *in, VipsImage **out, 
+int vips_remainder_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_remainder_const1( VipsImage *in, VipsImage **out, 
+int vips_remainder_const1( VipsImage *in, VipsImage **out,
 	double c, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -247,7 +247,7 @@ int vips_rint( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_math( VipsImage *in, VipsImage **out, 
+int vips_math( VipsImage *in, VipsImage **out,
 	VipsOperationMath math, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -300,7 +300,7 @@ int vips_atanh( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_complex( VipsImage *in, VipsImage **out, 
+int vips_complex( VipsImage *in, VipsImage **out,
 	VipsOperationComplex cmplx, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -314,7 +314,7 @@ int vips_conj( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out, 
+int vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationComplex2 cmplx, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -322,7 +322,7 @@ int vips_cross_phase( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_complexget( VipsImage *in, VipsImage **out, 
+int vips_complexget( VipsImage *in, VipsImage **out,
 	VipsOperationComplexget get, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -337,7 +337,7 @@ int vips_complexform( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out, 
+int vips_relational( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationRelational relational, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -359,35 +359,35 @@ VIPS_API
 int vips_moreeq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_relational_const( VipsImage *in, VipsImage **out, 
+int vips_relational_const( VipsImage *in, VipsImage **out,
 	VipsOperationRelational relational, const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_equal_const( VipsImage *in, VipsImage **out, 
+int vips_equal_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_notequal_const( VipsImage *in, VipsImage **out, 
+int vips_notequal_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_less_const( VipsImage *in, VipsImage **out, 
+int vips_less_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_lesseq_const( VipsImage *in, VipsImage **out, 
+int vips_lesseq_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_more_const( VipsImage *in, VipsImage **out, 
+int vips_more_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_moreeq_const( VipsImage *in, VipsImage **out, 
+int vips_moreeq_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_relational_const1( VipsImage *in, VipsImage **out, 
+int vips_relational_const1( VipsImage *in, VipsImage **out,
 	VipsOperationRelational relational, double c, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -410,7 +410,7 @@ int vips_moreeq_const1( VipsImage *in, VipsImage **out, double c, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
+int vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationBoolean boolean, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -430,31 +430,31 @@ int vips_rshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_boolean_const( VipsImage *in, VipsImage **out, 
+int vips_boolean_const( VipsImage *in, VipsImage **out,
 	VipsOperationBoolean boolean, const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_andimage_const( VipsImage *in, VipsImage **out, 
+int vips_andimage_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_orimage_const( VipsImage *in, VipsImage **out, 
+int vips_orimage_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_eorimage_const( VipsImage *in, VipsImage **out, 
+int vips_eorimage_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_lshift_const( VipsImage *in, VipsImage **out, 
+int vips_lshift_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_rshift_const( VipsImage *in, VipsImage **out, 
+int vips_rshift_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_boolean_const1( VipsImage *in, VipsImage **out, 
+int vips_boolean_const1( VipsImage *in, VipsImage **out,
 	VipsOperationBoolean boolean, double c, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -474,7 +474,7 @@ int vips_rshift_const1( VipsImage *in, VipsImage **out, double c, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
+int vips_math2( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationMath2 math2, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -487,23 +487,23 @@ VIPS_API
 int vips_atan2( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_math2_const( VipsImage *in, VipsImage **out, 
+int vips_math2_const( VipsImage *in, VipsImage **out,
 	VipsOperationMath2 math2, const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_pow_const( VipsImage *in, VipsImage **out, 
+int vips_pow_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_wop_const( VipsImage *in, VipsImage **out, 
+int vips_wop_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_atan2_const( VipsImage *in, VipsImage **out, 
+int vips_atan2_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_math2_const1( VipsImage *in, VipsImage **out, 
+int vips_math2_const1( VipsImage *in, VipsImage **out,
 	VipsOperationMath2 math2, double c, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -535,7 +535,7 @@ VIPS_API
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_find_trim( VipsImage *in, 
+int vips_find_trim( VipsImage *in,
 	int *left, int *top, int *width, int *height, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -548,7 +548,7 @@ VIPS_API
 int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_hist_find_indexed( VipsImage *in, VipsImage *index, 
+int vips_hist_find_indexed( VipsImage *in, VipsImage *index,
 	VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

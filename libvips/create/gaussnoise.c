@@ -31,7 +31,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -95,7 +95,7 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 	int y;
 
 	for( y = 0; y < or->valid.height; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, 
+		float *q = (float *) VIPS_REGION_ADDR( or,
 			or->valid.left, y + or->valid.top );
 
 		int x;
@@ -111,11 +111,11 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 			sum = 0.0;
 			for( i = 0; i < 12; i++ ) {
-				seed = vips__random( seed ); 
+				seed = vips__random( seed );
 				sum += (double) seed / UINT_MAX;
 			}
 
-			q[x] = (sum - 6.0) * gaussnoise->sigma + 
+			q[x] = (sum - 6.0) * gaussnoise->sigma +
 				gaussnoise->mean;
 		}
 	}
@@ -138,7 +138,7 @@ vips_gaussnoise_build( VipsObject *object )
 		VIPS_INTERPRETATION_MULTIBAND, 1.0, 1.0 );
 
 	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_generate( create->out, 
+		vips_image_generate( create->out,
 			NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )
 		return( -1 );
 
@@ -163,36 +163,36 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 	 */
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_DOUBLE( class, "mean", 6, 
-		_( "Mean" ), 
+	VIPS_ARG_DOUBLE( class, "mean", 6,
+		_( "Mean" ),
 		_( "Mean of pixels in generated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, mean ),
 		-10000000, 1000000, 128 );
 
-	VIPS_ARG_DOUBLE( class, "sigma", 6, 
-		_( "Sigma" ), 
+	VIPS_ARG_DOUBLE( class, "sigma", 6,
+		_( "Sigma" ),
 		_( "Standard deviation of pixels in generated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, sigma ),
 		0, 100000, 30 );
 
-	VIPS_ARG_INT( class, "seed", 7, 
-		_( "Seed" ), 
+	VIPS_ARG_INT( class, "seed", 7,
+		_( "Seed" ),
 		_( "Random number seed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, seed ),
@@ -205,7 +205,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
 {
 	gaussnoise->mean = 128.0;
 	gaussnoise->sigma = 30.0;
-	gaussnoise->seed = UINT_MAX * g_random_double(); 
+	gaussnoise->seed = UINT_MAX * g_random_double();
 }
 
 /**
@@ -221,7 +221,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  * * @sigma: standard deviation of generated pixels
  *
  * Make a one band float image of gaussian noise with the specified
- * distribution. The noise distribution is created by averaging 12 random 
+ * distribution. The noise distribution is created by averaging 12 random
  * numbers with the appropriate weights.
  *
  * See also: vips_black(), vips_xyz(), vips_text().

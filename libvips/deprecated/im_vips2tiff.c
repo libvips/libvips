@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -55,30 +55,30 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	char mode[FILENAME_MAX];
 	char buf[FILENAME_MAX];
 
-	VipsForeignTiffCompression compression = 
+	VipsForeignTiffCompression compression =
 		VIPS_FOREIGN_TIFF_COMPRESSION_NONE;
-	int Q = 75; 
+	int Q = 75;
 	VipsForeignTiffPredictor predictor = VIPS_FOREIGN_TIFF_PREDICTOR_NONE;
 	char *profile = NULL;
-	gboolean tile = FALSE; 
+	gboolean tile = FALSE;
 	int tile_width = 128;
 	int tile_height = 128;
 	gboolean pyramid = FALSE;
 	gboolean squash = FALSE;
-	VipsForeignTiffResunit resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM; 
+	VipsForeignTiffResunit resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM;
 	double xres = in->Xres * 10.0;
 	double yres = in->Yres * 10.0;
 	gboolean bigtiff = FALSE;
 
 	im_filename_split( filename, name, mode );
-	strcpy( buf, mode ); 
+	strcpy( buf, mode );
 	p = &buf[0];
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "none", q ) ) 
+		if( im_isprefix( "none", q ) )
 			compression = VIPS_FOREIGN_TIFF_COMPRESSION_NONE;
-		else if( im_isprefix( "packbits", q ) ) 
+		else if( im_isprefix( "packbits", q ) )
 			compression = VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS;
-		else if( im_isprefix( "ccittfax4", q ) ) 
+		else if( im_isprefix( "ccittfax4", q ) )
 			compression = VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4;
 		else if( im_isprefix( "lzw", q ) ) {
 			compression = VIPS_FOREIGN_TIFF_COMPRESSION_LZW;
@@ -113,7 +113,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		else if( im_isprefix( "jpeg", q ) ) {
 			compression = VIPS_FOREIGN_TIFF_COMPRESSION_JPEG;
 
-			if( (r = im_getsuboption( q )) ) 
+			if( (r = im_getsuboption( q )) )
 				if( sscanf( r, "%d", &Q ) != 1 ) {
 					im_error( "im_vips2tiff",
 						"%s", _( "bad JPEG quality "
@@ -135,15 +135,15 @@ im_vips2tiff( IMAGE *in, const char *filename )
 			tile = TRUE;
 
 			if( (r = im_getsuboption( q )) ) {
-				if( sscanf( r, "%dx%d", 
+				if( sscanf( r, "%dx%d",
 					&tile_width, &tile_height ) != 2 ) {
-					im_error( "im_vips2tiff", "%s", 
+					im_error( "im_vips2tiff", "%s",
 						_( "bad tile sizes" ) );
 					return( -1 );
 				}
 			}
 		}
-		else if( im_isprefix( "strip", q ) ) 
+		else if( im_isprefix( "strip", q ) )
 			tile = FALSE;
 		else {
 			im_error( "im_vips2tiff", _( "unknown layout mode "
@@ -154,9 +154,9 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "pyramid", q ) ) 
+		if( im_isprefix( "pyramid", q ) )
 			pyramid = TRUE;
-		else if( im_isprefix( "flat", q ) ) 
+		else if( im_isprefix( "flat", q ) )
 			pyramid = FALSE;
 		else {
 			im_error( "im_vips2tiff", _( "unknown multi-res mode "
@@ -167,9 +167,9 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "onebit", q ) ) 
+		if( im_isprefix( "onebit", q ) )
 			squash = TRUE;
-		else if( im_isprefix( "manybit", q ) ) 
+		else if( im_isprefix( "manybit", q ) )
 			squash = FALSE;
 		else {
 			im_error( "im_vips2tiff", _( "unknown format "
@@ -180,9 +180,9 @@ im_vips2tiff( IMAGE *in, const char *filename )
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "res_cm", q ) ) 
+		if( im_isprefix( "res_cm", q ) )
 			resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM;
-		else if( im_isprefix( "res_inch", q ) ) 
+		else if( im_isprefix( "res_inch", q ) )
 			resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 		else {
 			im_error( "im_vips2tiff", _( "unknown resolution unit "
@@ -194,7 +194,7 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		if( (r = im_getsuboption( q )) ) {
 			if( sscanf( r, "%lfx%lf", &xres, &yres ) != 2 ) {
 				if( sscanf( r, "%lf", &xres ) != 1 ) {
-					im_error( "im_vips2tiff", "%s", 
+					im_error( "im_vips2tiff", "%s",
 						_( "bad resolution values" ) );
 					return( -1 );
 				}
@@ -213,14 +213,14 @@ im_vips2tiff( IMAGE *in, const char *filename )
 		}
 	}
 
-	if( (q = im_getnextoption( &p )) && strcmp( q, "" ) != 0 ) 
+	if( (q = im_getnextoption( &p )) && strcmp( q, "" ) != 0 )
 		profile = im_strdup( NULL, q );
 
-	if( (q = im_getnextoption( &p )) && strcmp( q, "8" ) == 0 ) 
+	if( (q = im_getnextoption( &p )) && strcmp( q, "8" ) == 0 )
 		bigtiff = TRUE;
 
 	if( (q = im_getnextoption( &p )) ) {
-		im_error( "im_vips2tiff", 
+		im_error( "im_vips2tiff",
 			_( "unknown extra options \"%s\"" ), q );
 		return( -1 );
 	}

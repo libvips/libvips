@@ -38,25 +38,25 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #define VIPS_FREEF( F, S ) G_STMT_START { \
-        if( S ) { \
-                (void) F( (S) ); \
-                (S) = 0; \
-        } \
+	if( S ) { \
+		(void) F( (S) ); \
+		(S) = 0; \
+	} \
 } G_STMT_END
 
 #define VIPS_FREE( S ) VIPS_FREEF( g_free, (S) );
 
 #define VIPS_SETSTR( S, V ) \
 G_STMT_START { \
-        const char *sst = (V); \
+	const char *sst = (V); \
 	\
-        if( (S) != sst ) { \
-                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
-                        VIPS_FREE( S ); \
-                        if( sst ) \
-                                (S) = g_strdup( sst ); \
-                } \
-        } \
+	if( (S) != sst ) { \
+		if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
+			VIPS_FREE( S ); \
+			if( sst ) \
+				(S) = g_strdup( sst ); \
+		} \
+	} \
 } G_STMT_END
 
 #define VIPS_MALLOC( OBJ, S ) \

@@ -1,9 +1,9 @@
 /* 2D reduce ... call reduceh and reducev
  *
  * 27/1/16
- * 	- from shrink.c 
+ * 	- from shrink.c
  * 15/8/16
- * 	- rename xshrink -> hshrink for greater consistency 
+ * 	- rename xshrink -> hshrink for greater consistency
  * 9/9/16
  * 	- add @centre option
  * 6/6/20 kleisauke
@@ -15,7 +15,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,15 +59,15 @@
 #include "presample.h"
 
 /**
- * VipsKernel: 
+ * VipsKernel:
  * @VIPS_KERNEL_NEAREST: The nearest pixel to the point.
- * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter. 
- * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter. 
+ * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter.
+ * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter.
  * @VIPS_KERNEL_MITCHELL: Convolve with a Mitchell kernel.
  * @VIPS_KERNEL_LANCZOS2: Convolve with a two-lobe Lanczos kernel.
  * @VIPS_KERNEL_LANCZOS3: Convolve with a three-lobe Lanczos kernel.
  *
- * The resampling kernels vips supports. See vips_reduce(), for example.  
+ * The resampling kernels vips supports. See vips_reduce(), for example.
  */
 
 /* gtk-doc does not see comments in C++ files, so we have these docs here.
@@ -94,10 +94,10 @@
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
@@ -125,10 +125,10 @@
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
@@ -161,18 +161,18 @@ vips_reduce_build( VipsObject *object )
 {
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsReduce *reduce = (VipsReduce *) object;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( object, 2 );
 
 	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_reducev( resample->in, &t[0], reduce->vshrink, 
-		"kernel", reduce->kernel, 
+	if( vips_reducev( resample->in, &t[0], reduce->vshrink,
+		"kernel", reduce->kernel,
 		"gap", reduce->gap,
 		NULL ) ||
-		vips_reduceh( t[0], &t[1], reduce->hshrink, 
-			"kernel", reduce->kernel, 
+		vips_reduceh( t[0], &t[1], reduce->hshrink,
+			"kernel", reduce->kernel,
 			"gap", reduce->gap,
 			NULL ) ||
 		vips_image_write( t[1], resample->out ) )
@@ -199,45 +199,45 @@ vips_reduce_class_init( VipsReduceClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_DOUBLE( class, "hshrink", 8, 
-		_( "Hshrink" ), 
+	VIPS_ARG_DOUBLE( class, "hshrink", 8,
+		_( "Hshrink" ),
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReduce, hshrink ),
 		1.0, 1000000.0, 1.0 );
 
-	VIPS_ARG_DOUBLE( class, "vshrink", 9, 
-		_( "Vshrink" ), 
+	VIPS_ARG_DOUBLE( class, "vshrink", 9,
+		_( "Vshrink" ),
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReduce, vshrink ),
 		1.0, 1000000.0, 1.0 );
 
-	VIPS_ARG_ENUM( class, "kernel", 3, 
-		_( "Kernel" ), 
+	VIPS_ARG_ENUM( class, "kernel", 3,
+		_( "Kernel" ),
 		_( "Resampling kernel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduce, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
-	VIPS_ARG_DOUBLE( class, "gap", 4, 
-		_( "Gap" ), 
+	VIPS_ARG_DOUBLE( class, "gap", 4,
+		_( "Gap" ),
 		_( "Reducing gap" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduce, gap ),
 		0.0, 1000000.0, 0.0 );
 
-	/* The old names .. now use h and v everywhere. 
+	/* The old names .. now use h and v everywhere.
 	 */
-	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
-		_( "Xshrink" ), 
+	VIPS_ARG_DOUBLE( class, "xshrink", 8,
+		_( "Xshrink" ),
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReduce, hshrink ),
 		1.0, 1000000.0, 1.0 );
 
-	VIPS_ARG_DOUBLE( class, "yshrink", 9, 
-		_( "Yshrink" ), 
+	VIPS_ARG_DOUBLE( class, "yshrink", 9,
+		_( "Yshrink" ),
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReduce, vshrink ),
@@ -274,7 +274,7 @@ vips_reduce_init( VipsReduce *reduce )
  * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  * * @gap: reducing gap to use (default: 0.0)
  *
- * Reduce @in by a pair of factors with a pair of 1D kernels. This 
+ * Reduce @in by a pair of factors with a pair of 1D kernels. This
  * will not work well for shrink factors greater than three.
  *
  * Set @gap to speed up reducing by having vips_shrink() to shrink
@@ -283,17 +283,17 @@ vips_reduce_init( VipsReduce *reduce )
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reduce( VipsImage *in, VipsImage **out, 
+vips_reduce( VipsImage *in, VipsImage **out,
 	double hshrink, double vshrink, ... )
 {
 	va_list ap;

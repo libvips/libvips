@@ -1,5 +1,5 @@
 /* Manage pipelines of partial images.
- * 
+ *
  * J.Cupitt, 17/4/93.
  * 1/7/93 JC
  *	- adapted for partial v2
@@ -58,7 +58,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -115,11 +115,11 @@
  * SECTION: generate
  * @short_description: calculate pixels and pixel buffers
  * @stability: Stable
- * @see_also: <link linkend="VipsImage">VipsImage</link>, 
+ * @see_also: <link linkend="VipsImage">VipsImage</link>,
  * <link linkend="VipsRegion">VipsRegion</link>
  * @include: vips/vips.h
  *
- * These functions let you attach generate functions to images  
+ * These functions let you attach generate functions to images
  * and ask for regions of images to be calculated.
  */
 
@@ -129,21 +129,21 @@
 
 /* Make an upstream/downstream link. upstream is one of downstream's inputs.
  */
-static void 
+static void
 vips__link_make( VipsImage *image_up, VipsImage *image_down )
 {
 	g_assert( image_up );
 	g_assert( image_down );
 
-	image_up->downstream = 
+	image_up->downstream =
 		g_slist_prepend( image_up->downstream, image_down );
-	image_down->upstream = 
+	image_down->upstream =
 		g_slist_prepend( image_down->upstream, image_up );
 
 	/* Propogate the progress indicator.
 	 */
-	if( image_up->progress_signal && 
-		!image_down->progress_signal ) 
+	if( image_up->progress_signal &&
+		!image_down->progress_signal )
 		image_down->progress_signal = image_up->progress_signal;
 }
 
@@ -156,15 +156,15 @@ vips__link_break( VipsImage *image_up, VipsImage *image_down, void *b )
 	g_assert( g_slist_find( image_up->downstream, image_down ) );
 	g_assert( g_slist_find( image_down->upstream, image_up ) );
 
-	image_up->downstream = 
+	image_up->downstream =
 		g_slist_remove( image_up->downstream, image_down );
-	image_down->upstream = 
+	image_down->upstream =
 		g_slist_remove( image_down->upstream, image_up );
 
 	/* Unlink the progress chain.
 	 */
-	if( image_down->progress_signal && 
-		image_down->progress_signal == image_up->progress_signal ) 
+	if( image_down->progress_signal &&
+		image_down->progress_signal == image_up->progress_signal )
 		image_down->progress_signal = NULL;
 
 	return( NULL );
@@ -183,9 +183,9 @@ vips__link_break_all( VipsImage *image )
 {
 	g_mutex_lock( vips__global_lock );
 
-	vips_slist_map2( image->upstream, 
+	vips_slist_map2( image->upstream,
 		(VipsSListMap2Fn) vips__link_break, image, NULL );
-	vips_slist_map2( image->downstream, 
+	vips_slist_map2( image->downstream,
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
 
 	g_assert( !image->upstream );
@@ -203,7 +203,7 @@ typedef struct _LinkMap {
 } LinkMap;
 
 static void *
-vips__link_mapp( VipsImage *image, LinkMap *map, void *b ) 
+vips__link_mapp( VipsImage *image, LinkMap *map, void *b )
 {
 	void *res;
 
@@ -216,7 +216,7 @@ vips__link_mapp( VipsImage *image, LinkMap *map, void *b )
 	if( (res = map->fn( image, map->a, map->b )) )
 		return( res );
 
-	return( vips_slist_map2( map->upstream ? 
+	return( vips_slist_map2( map->upstream ?
 		image->upstream : image->downstream,
 		(VipsSListMap2Fn) vips__link_mapp, map, NULL ) );
 }
@@ -229,11 +229,11 @@ vips__link_map_cb( VipsImage *image, GSList **images, void *b )
 	return( NULL );
 }
 
-/* Apply a function to an image and all upstream or downstream images, 
- * direct and indirect. 
+/* Apply a function to an image and all upstream or downstream images,
+ * direct and indirect.
  */
 void *
-vips__link_map( VipsImage *image, gboolean upstream, 
+vips__link_map( VipsImage *image, gboolean upstream,
 	VipsSListMap2Fn fn, void *a, void *b )
 {
 	static int serial = 0;
@@ -246,7 +246,7 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	images = NULL;
 
 	/* The function might do anything, including removing images
-	 * or invalidating other images, so we can't trigger them from within 
+	 * or invalidating other images, so we can't trigger them from within
 	 * the image loop. Instead we collect a list of images, ref them,
 	 * run the functions, and unref.
 	 */
@@ -265,16 +265,16 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	serial += 1;
 	map.serial = serial;
 
-	vips__link_mapp( image, &map, NULL ); 
+	vips__link_mapp( image, &map, NULL );
 
-	for( p = images; p; p = p->next ) 
+	for( p = images; p; p = p->next )
 		g_object_ref( p->data );
 
 	g_mutex_unlock( vips__global_lock );
 
 	result = vips_slist_map2( images, fn, a, b );
 
-	for( p = images; p; p = p->next ) 
+	for( p = images; p; p = p->next )
 		g_object_unref( p->data );
 	g_slist_free( images );
 
@@ -284,8 +284,8 @@ vips__link_map( VipsImage *image, gboolean upstream,
 /* We have to have this as a separate entry point so we can support the old
  * vips7 API.
  */
-void 
-vips__demand_hint_array( VipsImage *image, 
+void
+vips__demand_hint_array( VipsImage *image,
 	VipsDemandStyle hint, VipsImage **in )
 {
 	int i, len, nany;
@@ -307,21 +307,21 @@ vips__demand_hint_array( VipsImage *image,
 	 */
 	set_hint = hint;
 	for( i = 0; i < len; i++ )
-		set_hint = (VipsDemandStyle) VIPS_MIN( 
+		set_hint = (VipsDemandStyle) VIPS_MIN(
 			(int) set_hint, (int) in[i]->dhint );
 
 	image->dhint = set_hint;
 
 #ifdef DEBUG
-        printf( "vips_image_pipeline_array: set dhint for \"%s\" to %s\n",
-		image->filename, 
+	printf( "vips_image_pipeline_array: set dhint for \"%s\" to %s\n",
+		image->filename,
 		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
-	printf( "\toperation requested %s\n", 
+	printf( "\toperation requested %s\n",
 		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, hint ) );
 	printf( "\tinputs were:\n" );
 	printf( "\t" );
 	for( i = 0; in[i]; i++ )
-		printf( "%s ", vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, 
+		printf( "%s ", vips_enum_nick( VIPS_TYPE_DEMAND_STYLE,
 			in[i]->dhint ) );
 	printf( "\n" );
 #endif /*DEBUG*/
@@ -340,10 +340,10 @@ vips__demand_hint_array( VipsImage *image,
 }
 
 /**
- * vips_image_pipeline_array: 
+ * vips_image_pipeline_array:
  * @image: (out): output image
  * @hint: demand hint for @image
- * @in: (array zero-terminated=1): %NULL-terminated array of input images 
+ * @in: (array zero-terminated=1): %NULL-terminated array of input images
  *
  * Add an image to a pipeline. @image depends on all of the images in @in,
  * @image prefers to supply pixels according to @hint.
@@ -351,11 +351,11 @@ vips__demand_hint_array( VipsImage *image,
  * Operations can set demand hints, that is, hints to the VIPS IO system about
  * the type of region geometry they work best with. For example,
  * operations which transform coordinates will usually work best with
- * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of 
+ * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of
  * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
  *
  * Header fields in @image are set from the fields in @in, with lower-numbered
- * images in @in taking priority. 
+ * images in @in taking priority.
  * For example, if @in[0] and @in[1] both have an item
  * called "icc-profile", it's the profile attached to @in[0] that will end up
  * on @image.
@@ -365,14 +365,14 @@ vips__demand_hint_array( VipsImage *image,
  * pipeline.
  *
  * VIPS uses the list of input images to build the tree of operations it needs
- * for the cache invalidation system. 
+ * for the cache invalidation system.
  *
  * See also: vips_image_pipelinev(), vips_image_generate().
  *
  * Returns: 0 on success, -1 on error.
  */
-int 
-vips_image_pipeline_array( VipsImage *image, 
+int
+vips_image_pipeline_array( VipsImage *image,
 	VipsDemandStyle hint, VipsImage **in )
 {
 	/* This function can be called more than once per output image. For
@@ -385,12 +385,12 @@ vips_image_pipeline_array( VipsImage *image,
 	 */
 	vips__demand_hint_array( image, hint, in );
 
-	if( in[0] && 
+	if( in[0] &&
 		vips__image_copy_fields_array( image, in ) )
-		return( -1 ); 
+		return( -1 );
 
 	if( vips__reorder_set_input( image, in ) )
-		return( -1 ); 
+		return( -1 );
 
 	return( 0 );
 }
@@ -399,13 +399,13 @@ vips_image_pipeline_array( VipsImage *image,
  * vips_image_pipelinev:
  * @image: output image of pipeline
  * @hint: hint for this image
- * @...: %NULL-terminated list of input images 
+ * @...: %NULL-terminated list of input images
  *
  * Build an array and call vips_image_pipeline_array().
  *
  * See also: vips_image_generate().
  */
-int 
+int
 vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 {
 	va_list ap;
@@ -413,7 +413,7 @@ vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 	VipsImage *ar[MAX_IMAGES];
 
 	va_start( ap, hint );
-	for( i = 0; i < MAX_IMAGES && 
+	for( i = 0; i < MAX_IMAGES &&
 		(ar[i] = va_arg( ap, VipsImage * )); i++ )
 		;
 	va_end( ap );
@@ -472,7 +472,7 @@ vips_stop_one( void *seq, void *a, void *b )
  * @a: user data
  * @b: user data
  *
- * Stop function for many images in. @a is a pointer to 
+ * Stop function for many images in. @a is a pointer to
  * a %NULL-terminated array of input images.
  *
  * See also: vips_image_generate().
@@ -482,7 +482,7 @@ vips_stop_many( void *seq, void *a, void *b )
 {
 	VipsRegion **ar = (VipsRegion **) seq;
 
-        if( ar ) {
+	if( ar ) {
 		int i;
 
 		for( i = 0; ar[i]; i++ )
@@ -499,7 +499,7 @@ vips_stop_many( void *seq, void *a, void *b )
  * @a: user data
  * @b: user data
  *
- * Start function for many images in. @a is a pointer to 
+ * Start function for many images in. @a is a pointer to
  * a %NULL-terminated array of input images.
  *
  * See also: vips_image_generate(), vips_allocate_input_array()
@@ -568,7 +568,7 @@ vips_allocate_input_array( VipsImage *out, ... )
 	/* Fill array.
 	 */
 	va_start( ap, out );
-	for( i = 0; i < n; i++ ) 
+	for( i = 0; i < n; i++ )
 		ar[i] = va_arg( ap, VipsImage * );
 	va_end( ap );
 	ar[n] = NULL;
@@ -599,7 +599,7 @@ vips_allocate_input_array( VipsImage *out, ... )
  * @stop: set this to stop processing
  *
  * Fill @out->valid with pixels. @seq contains per-thread state, such as the
- * input regions. Set @stop to %TRUE to stop processing. 
+ * input regions. Set @stop to %TRUE to stop processing.
  *
  * See also: vips_image_generate(), vips_stop_many().
  *
@@ -632,8 +632,8 @@ write_vips( VipsRegion *region, VipsRect *area, void *a )
 	buf = VIPS_REGION_ADDR( region, 0, area->top );
 
 	do {
-		nwritten = write( region->im->fd, buf, count ); 
-		if( nwritten == (size_t) -1 ) 
+		nwritten = write( region->im->fd, buf, count );
+		if( nwritten == (size_t) -1 )
 			return( errno );
 
 		buf = (void *) ((char *) buf + nwritten);
@@ -654,35 +654,35 @@ write_vips( VipsRegion *region, VipsRect *area, void *a )
  *
  * Generates an image. The action depends on the image type.
  *
- * For images created with vips_image_new(), vips_image_generate() just 
+ * For images created with vips_image_new(), vips_image_generate() just
  * attaches the start/generate/stop callbacks and returns.
  *
- * For images created with vips_image_new_memory(), memory is allocated for 
+ * For images created with vips_image_new_memory(), memory is allocated for
  * the whole image and it is entirely generated using vips_sink_memory().
  *
- * For images created with vips_image_new_temp_file() and friends, memory for 
+ * For images created with vips_image_new_temp_file() and friends, memory for
  * a few scanlines is allocated and
  * vips_sink_disc() used to generate the image in small chunks. As each
  * chunk is generated, it is written to disc.
  *
- * See also: vips_sink(), vips_image_new(), vips_region_prepare(). 
+ * See also: vips_sink(), vips_image_new(), vips_region_prepare().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_generate( VipsImage *image,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
-        void *a, void *b )
+	void *a, void *b )
 {
-        int res;
+	int res;
 
-	VIPS_DEBUG_MSG( "vips_image_generate: %p\n", image ); 
+	VIPS_DEBUG_MSG( "vips_image_generate: %p\n", image );
 
 	g_assert( generate_fn );
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( !image->hint_set ) {
-		vips_error( "vips_image_generate", 
+		vips_error( "vips_image_generate",
 			"%s", _( "demand hint not set" ) );
 		return( -1 );
 	}
@@ -691,69 +691,69 @@ vips_image_generate( VipsImage *image,
 	 * are expecting it.
 	 */
 	image->Bbits = vips_format_sizeof( image->BandFmt ) << 3;
- 
-        /* Look at output type to decide our action.
-         */
-        switch( image->dtype ) {
-        case VIPS_IMAGE_PARTIAL:
-                /* Output to partial image. Just attach functions and return.
-                 */
-                if( image->generate_fn || 
-			image->start_fn || 
-			image->stop_fn ) {
-                        vips_error( "VipsImage", 
-				"%s", _( "generate() called twice" ) );
-                        return( -1 );
-                }
 
-                image->start_fn = start_fn;
-                image->generate_fn = generate_fn;
-                image->stop_fn = stop_fn;
-                image->client1 = a;
-                image->client2 = b;
- 
-                VIPS_DEBUG_MSG( "vips_image_generate: "
+	/* Look at output type to decide our action.
+	 */
+	switch( image->dtype ) {
+	case VIPS_IMAGE_PARTIAL:
+		/* Output to partial image. Just attach functions and return.
+		 */
+		if( image->generate_fn ||
+			image->start_fn ||
+			image->stop_fn ) {
+			vips_error( "VipsImage",
+				"%s", _( "generate() called twice" ) );
+			return( -1 );
+		}
+
+		image->start_fn = start_fn;
+		image->generate_fn = generate_fn;
+		image->stop_fn = stop_fn;
+		image->client1 = a;
+		image->client2 = b;
+
+		VIPS_DEBUG_MSG( "vips_image_generate: "
 			"attaching partial callbacks\n" );
 
 		if( vips_image_written( image ) )
 			return( -1 );
- 
-                break;
- 
-        case VIPS_IMAGE_SETBUF:
-        case VIPS_IMAGE_SETBUF_FOREIGN:
-        case VIPS_IMAGE_MMAPINRW:
-        case VIPS_IMAGE_OPENOUT:
-                /* Eval now .. sanity check.
-                 */
-                if( image->generate_fn || 
-			image->start_fn || 
+
+		break;
+
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
+	case VIPS_IMAGE_OPENOUT:
+		/* Eval now .. sanity check.
+		 */
+		if( image->generate_fn ||
+			image->start_fn ||
 			image->stop_fn ) {
-                        vips_error( "VipsImage", 
+			vips_error( "VipsImage",
 				"%s", _( "generate() called twice" ) );
-                        return( -1 );
-                }
+			return( -1 );
+		}
 
-                /* Attach callbacks.
-                 */
-                image->start_fn = start_fn;
-                image->generate_fn = generate_fn;
-                image->stop_fn = stop_fn;
-                image->client1 = a;
-                image->client2 = b;
+		/* Attach callbacks.
+		 */
+		image->start_fn = start_fn;
+		image->generate_fn = generate_fn;
+		image->stop_fn = stop_fn;
+		image->client1 = a;
+		image->client2 = b;
 
-                if( vips_image_write_prepare( image ) )
-                        return( -1 );
+		if( vips_image_write_prepare( image ) )
+			return( -1 );
 
-                if( image->dtype == VIPS_IMAGE_OPENOUT ) 
+		if( image->dtype == VIPS_IMAGE_OPENOUT )
 			res = vips_sink_disc( image, write_vips, NULL );
-                else 
-                        res = vips_sink_memory( image );
+		else
+			res = vips_sink_memory( image );
 
-                /* Error?
-                 */
-                if( res )
-                        return( -1 );
+		/* Error?
+		 */
+		if( res )
+			return( -1 );
 
 		/* Must come before we rewind.
 		 */
@@ -763,19 +763,19 @@ vips_image_generate( VipsImage *image,
 		/* We've written to image ... rewind it ready for reading.
 		 */
 		if( vips_image_pio_input( image ) )
-			return( -1 ); 
+			return( -1 );
 
-                break;
- 
-        default:
-                /* Not a known output style.
-                 */
-		vips_error( "VipsImage", 
+		break;
+
+	default:
+		/* Not a known output style.
+		 */
+		vips_error( "VipsImage",
 			_( "unable to output to a %s image" ),
-			vips_enum_nick( VIPS_TYPE_IMAGE_TYPE, 
+			vips_enum_nick( VIPS_TYPE_IMAGE_TYPE,
 				image->dtype ) );
-                return( -1 );
-        }
+		return( -1 );
+	}
 
-        return( 0 );
+	return( 0 );
 }

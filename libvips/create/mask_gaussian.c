@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -54,17 +54,17 @@
 G_DEFINE_TYPE( VipsMaskGaussian, vips_mask_gaussian, VIPS_TYPE_MASK );
 
 static double
-vips_mask_gaussian_point( VipsMask *mask, double dx, double dy ) 
+vips_mask_gaussian_point( VipsMask *mask, double dx, double dy )
 {
 	VipsMaskGaussian *gaussian = (VipsMaskGaussian *) mask;
 	double fc = gaussian->frequency_cutoff;
 	double ac = gaussian->amplitude_cutoff;
 
-	double cnst = log( ac ); 
+	double cnst = log( ac );
 	double fc2 = fc * fc;
 	double dist2 = (dx * dx + dy * dy) / fc2;
 
-	return( 1.0 - exp( cnst * dist2 ) ); 
+	return( 1.0 - exp( cnst * dist2 ) );
 }
 
 static void
@@ -82,15 +82,15 @@ vips_mask_gaussian_class_init( VipsMaskGaussianClass *class )
 
 	mask_class->point = vips_mask_gaussian_point;
 
-	VIPS_ARG_DOUBLE( class, "frequency_cutoff", 7, 
-		_( "Frequency cutoff" ), 
+	VIPS_ARG_DOUBLE( class, "frequency_cutoff", 7,
+		_( "Frequency cutoff" ),
 		_( "Frequency cutoff" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskGaussian, frequency_cutoff ),
 		0.0, 1000000.0, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 8, 
-		_( "Amplitude cutoff" ), 
+	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 8,
+		_( "Amplitude cutoff" ),
 		_( "Amplitude cutoff" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskGaussian, amplitude_cutoff ),
@@ -124,19 +124,19 @@ vips_mask_gaussian_init( VipsMaskGaussian *gaussian )
  * Make a gaussian high- or low-pass filter, that is, one with a variable,
  * smooth transition positioned at @frequency_cutoff.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_gaussian( VipsImage **out, int width, int height, 
+vips_mask_gaussian( VipsImage **out, int width, int height,
 	double frequency_cutoff, double amplitude_cutoff, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, amplitude_cutoff );
-	result = vips_call_split( "mask_gaussian", ap, out, width, height, 
+	result = vips_call_split( "mask_gaussian", ap, out, width, height,
 		frequency_cutoff, amplitude_cutoff );
 	va_end( ap );
 

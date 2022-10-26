@@ -25,7 +25,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -80,7 +80,7 @@ typedef struct _VipsDrawMask {
 typedef struct _VipsDrawMaskClass {
 	VipsDrawinkClass parent_class;
 
-} VipsDrawMaskClass; 
+} VipsDrawMaskClass;
 
 G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAWINK );
 
@@ -131,12 +131,12 @@ G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAWINK );
 }
 
 static int
-vips_draw_mask_draw_labq( VipsImage *image, VipsImage *mask, VipsPel *ink, 
+vips_draw_mask_draw_labq( VipsImage *image, VipsImage *mask, VipsPel *ink,
 	VipsRect *image_clip, VipsRect *mask_clip )
 {
 	int width = image_clip->width;
 	int height = image_clip->height;
-	int bands = image->Bands; 
+	int bands = image->Bands;
 
 	float *lab_buffer;
 	int y;
@@ -145,11 +145,11 @@ vips_draw_mask_draw_labq( VipsImage *image, VipsImage *mask, VipsPel *ink,
 		return( -1 );
 
 	for( y = 0; y < height; y++ ) {
-		VipsPel *to = VIPS_IMAGE_ADDR( image, 
-			image_clip->left, 
+		VipsPel *to = VIPS_IMAGE_ADDR( image,
+			image_clip->left,
 			y + image_clip->top );
-		VipsPel *m = VIPS_IMAGE_ADDR( mask, 
-			mask_clip->left, 
+		VipsPel *m = VIPS_IMAGE_ADDR( mask,
+			mask_clip->left,
 			y + mask_clip->top );
 
 		vips__LabQ2Lab_vec( lab_buffer, to, width );
@@ -163,47 +163,47 @@ vips_draw_mask_draw_labq( VipsImage *image, VipsImage *mask, VipsPel *ink,
 }
 
 static int
-vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink, 
+vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink,
 	VipsRect *image_clip, VipsRect *mask_clip )
 {
 	int width = image_clip->width;
 	int height = image_clip->height;
-	int bands = image->Bands; 
+	int bands = image->Bands;
 
 	int y;
 
 	for( y = 0; y < height; y++ ) {
-		VipsPel *to = VIPS_IMAGE_ADDR( image, 
+		VipsPel *to = VIPS_IMAGE_ADDR( image,
 			image_clip->left, y + image_clip->top );
-		VipsPel *m = VIPS_IMAGE_ADDR( mask, 
+		VipsPel *m = VIPS_IMAGE_ADDR( mask,
 			mask_clip->left, y + mask_clip->top );
 
 		switch( image->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 
+		case VIPS_FORMAT_UCHAR:
 			IBLEND( unsigned char, to, ink );
 			break;
 
-		case VIPS_FORMAT_CHAR: 
+		case VIPS_FORMAT_CHAR:
 			IBLEND( signed char, to, ink );
 			break;
 
-		case VIPS_FORMAT_USHORT: 
+		case VIPS_FORMAT_USHORT:
 			IBLEND( unsigned short, to, ink );
 			break;
 
-		case VIPS_FORMAT_SHORT: 
+		case VIPS_FORMAT_SHORT:
 			IBLEND( signed short, to, ink );
 			break;
 
-		case VIPS_FORMAT_UINT: 
+		case VIPS_FORMAT_UINT:
 			DBLEND( unsigned int, to, ink );
 			break;
 
-		case VIPS_FORMAT_INT: 
+		case VIPS_FORMAT_INT:
 			DBLEND( signed int, to, ink );
 			break;
 
-		case VIPS_FORMAT_FLOAT:  
+		case VIPS_FORMAT_FLOAT:
 			DBLEND( float, to, ink );
 			break;
 
@@ -220,7 +220,7 @@ vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink,
 			break;
 
 		default:
-			g_assert_not_reached(); 
+			g_assert_not_reached();
 		}
 	}
 
@@ -233,7 +233,7 @@ vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink,
  * The vips7 im_draw_mask() wrapper calls this as well.
  */
 int
-vips__draw_mask_direct( VipsImage *image, VipsImage *mask, 
+vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 	VipsPel *ink, int x, int y )
 {
 	VipsRect image_rect;
@@ -246,7 +246,7 @@ vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 		vips_image_wio_input( mask ) ||
 		vips_check_mono( "draw_mask_direct", mask ) ||
 		vips_check_uncoded( "draw_mask_direct", mask ) ||
-		vips_check_format( "draw_mask_direct", 
+		vips_check_format( "draw_mask_direct",
 			mask, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
@@ -268,16 +268,16 @@ vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 	mask_clip.left -= x;
 	mask_clip.top -= y;
 
-	if( !vips_rect_isempty( &image_clip ) ) 
+	if( !vips_rect_isempty( &image_clip ) )
 		switch( image->Coding ) {
 		case VIPS_CODING_LABQ:
-			if( vips_draw_mask_draw_labq( image, mask, ink, 
+			if( vips_draw_mask_draw_labq( image, mask, ink,
 				&image_clip, &mask_clip ) )
 				return( -1 );
 			break;
 
 		case VIPS_CODING_NONE:
-			if( vips_draw_mask_draw( image, mask, ink, 
+			if( vips_draw_mask_draw( image, mask, ink,
 				&image_clip, &mask_clip ) )
 				return( -1 );
 			break;
@@ -319,21 +319,21 @@ vips_draw_mask_class_init( VipsDrawMaskClass *class )
 	vobject_class->description = _( "draw a mask on an image" );
 	vobject_class->build = vips_draw_mask_build;
 
-	VIPS_ARG_IMAGE( class, "mask", 5, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "mask", 5,
+		_( "Mask" ),
 		_( "Mask of pixels to draw" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsDrawMask, mask ) ); 
+		G_STRUCT_OFFSET( VipsDrawMask, mask ) );
 
-	VIPS_ARG_INT( class, "x", 6, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 6,
+		_( "x" ),
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawMask, x ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 7, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 7,
+		_( "y" ),
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawMask, y ),
@@ -347,14 +347,14 @@ vips_draw_mask_init( VipsDrawMask *draw_mask )
 }
 
 static int
-vips_draw_maskv( VipsImage *image, 
+vips_draw_maskv( VipsImage *image,
 	double *ink, int n, VipsImage *mask, int x, int y, va_list ap )
 {
 	VipsArea *area_ink;
 	int result;
 
 	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
-	result = vips_call_split( "draw_mask", ap, 
+	result = vips_call_split( "draw_mask", ap,
 		image, area_ink, mask, x, y );
 	vips_area_unref( area_ink );
 
@@ -373,17 +373,17 @@ vips_draw_maskv( VipsImage *image,
  *
  * Draw @mask on the image. @mask is a monochrome 8-bit image with 0/255
  * for transparent or @ink coloured points. Intermediate values blend the ink
- * with the pixel. Use with vips_text() to draw text on an image. Use in a 
- * vips_draw_line() subclass to draw an object along a line. 
+ * with the pixel. Use with vips_text() to draw text on an image. Use in a
+ * vips_draw_line() subclass to draw an object along a line.
  *
- * @ink is an array of double containing values to draw. 
+ * @ink is an array of double containing values to draw.
  *
  * See also: vips_text(), vips_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_mask( VipsImage *image, 
+vips_draw_mask( VipsImage *image,
 	double *ink, int n, VipsImage *mask, int x, int y, ... )
 {
 	va_list ap;
@@ -405,21 +405,21 @@ vips_draw_mask( VipsImage *image,
  * @y: draw mask here
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_draw_mask(), but just takes a single double for @ink. 
+ * As vips_draw_mask(), but just takes a single double for @ink.
  *
  * See also: vips_draw_mask().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_mask1( VipsImage *image, 
+vips_draw_mask1( VipsImage *image,
 	double ink, VipsImage *mask, int x, int y, ... )
 {
 	double array_ink[1];
 	va_list ap;
 	int result;
 
-	array_ink[0] = ink; 
+	array_ink[0] = ink;
 
 	va_start( ap, y );
 	result = vips_draw_maskv( image, array_ink, 1, mask, x, y, ap );

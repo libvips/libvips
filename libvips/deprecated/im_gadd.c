@@ -1,10 +1,10 @@
-/* @(#)  Generalised addition of two vasari images  using the routines 
+/* @(#)  Generalised addition of two vasari images  using the routines
  * @(#) im_gaddim or im_gfadd
  * @(#) Convention to ease the complilation time.
  * @(#) Function im_gadd() assumes that the both input files
  * @(#) are either memory mapped or in a buffer.
  * @(#) Images must have the same no of bands and must not be complex
- * @(#)  No check for overflow is carried out.  
+ * @(#)  No check for overflow is carried out.
  * @(#)
  * @(#) int im_gadd(a, in1, b, in2, c, out)
  * @(#) IMAGE *in1, *in2, *out;
@@ -17,13 +17,13 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -86,7 +86,7 @@ int im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			flagint = 1;
 			break;
 		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:	
+		case IM_BANDFMT_DOUBLE:
 			flagfloat = 1;
 			break;
 		default: im_error("im_gadd","%s", _("Unable to accept image1"));
@@ -102,7 +102,7 @@ int im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			flagint = 1;
 			break;
 		case IM_BANDFMT_FLOAT:
-		case IM_BANDFMT_DOUBLE:	
+		case IM_BANDFMT_DOUBLE:
 			flagfloat = 1;
 			break;
 		default: im_error("im_gadd","%s", _("Unable to accept image1"));
@@ -121,7 +121,7 @@ int im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		if (value == -1)
 			return(-1);
 		}
-	else 
+	else
 		assert( 0 );
 
 	return(0);

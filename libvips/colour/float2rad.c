@@ -3,7 +3,7 @@
  * 23/3/09
  * 	- from im_rad2float and Radiance sources
  * 2/11/09
- * 	- gtkdoc 
+ * 	- gtkdoc
  * 20/9/12
  * 	- redo as a class
  * 13/12/12
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -39,7 +39,7 @@
 
 /*
 
-    Sections of this file from Greg Ward and Radiance with kind 
+    Sections of this file from Greg Ward and Radiance with kind
     permission. The Radience copyright notice appears below.
 
  */
@@ -139,34 +139,34 @@ typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
 static void
 setcolr( COLR clr, double r, double g, double b )           /* assign a short color value */
 {
-        double  d;
-        int  e;
+	double  d;
+	int  e;
 
-        d = r > g ? r : g;
-        if (b > d) d = b;
+	d = r > g ? r : g;
+	if (b > d) d = b;
 
-        if (d <= 1e-32) {
-                clr[RED] = clr[GRN] = clr[BLU] = 0;
-                clr[EXP] = 0;
-                return;
-        }
+	if (d <= 1e-32) {
+		clr[RED] = clr[GRN] = clr[BLU] = 0;
+		clr[EXP] = 0;
+		return;
+	}
 
-        d = frexp(d, &e) * 255.9999 / d;
+	d = frexp(d, &e) * 255.9999 / d;
 
-        if (r > 0.0)
-                clr[RED] = r * d;
-        else
-                clr[RED] = 0;
-        if (g > 0.0)
-                clr[GRN] = g * d;
-        else
-                clr[GRN] = 0;
-        if (b > 0.0)
-                clr[BLU] = b * d;
-        else
-                clr[BLU] = 0;
+	if (r > 0.0)
+		clr[RED] = r * d;
+	else
+		clr[RED] = 0;
+	if (g > 0.0)
+		clr[GRN] = g * d;
+	else
+		clr[GRN] = 0;
+	if (b > 0.0)
+		clr[BLU] = b * d;
+	else
+		clr[BLU] = 0;
 
-        clr[EXP] = e + COLXS;
+	clr[EXP] = e + COLXS;
 }
 
 /* End copy-paste from Radiance sources.
@@ -197,7 +197,7 @@ vips_float2rad_class_init( VipsFloat2radClass *class )
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
 	object_class->nickname = "float2rad";
-	object_class->description = 
+	object_class->description =
 		_( "transform float RGB to Radiance coding" );
 
 	colour_class->process_line = vips_float2rad_line;

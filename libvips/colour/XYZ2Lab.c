@@ -1,4 +1,4 @@
-/* Turn XYZ to Lab colourspace. 
+/* Turn XYZ to Lab colourspace.
  *
  * Modifed:
  * 16/11/94 JC
@@ -24,7 +24,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -74,7 +74,7 @@ static float cbrt_table[QUANT_ELEMENTS];
 typedef struct _VipsXYZ2Lab {
 	VipsColourTransform parent_instance;
 
-	/* The colour temperature -- default to D65. 
+	/* The colour temperature -- default to D65.
 	 */
 	VipsArea *temp;
 
@@ -98,9 +98,9 @@ table_init( void *client )
 	for( i = 0; i < QUANT_ELEMENTS; i++ ) {
 		float Y = (double) i / QUANT_ELEMENTS;
 
-		if( Y < 0.008856 ) 
+		if( Y < 0.008856 )
 			cbrt_table[i] = 7.787 * Y + (16.0 / 116.0);
-		else 
+		else
 			cbrt_table[i] = cbrt( Y );
 	}
 
@@ -182,7 +182,7 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
  * @b: (out): Return CIE Lab value
  *
  * Calculate XYZ from Lab, D65.
- * 
+ *
  * See also: vips_XYZ2Lab().
  */
 void
@@ -203,7 +203,7 @@ vips_XYZ2Lab_build( VipsObject *object )
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) object;
 
 	if( XYZ2Lab->temp ) {
-		if( vips_check_vector_length( class->nickname, 
+		if( vips_check_vector_length( class->nickname,
 			XYZ2Lab->temp->n, 3 ) )
 			return( -1 );
 		XYZ2Lab->X0 = ((double *) XYZ2Lab->temp->data)[0];
@@ -233,8 +233,8 @@ vips_XYZ2Lab_class_init( VipsXYZ2LabClass *class )
 
 	colour_class->process_line = vips_XYZ2Lab_line;
 
-	VIPS_ARG_BOXED( class, "temp", 110, 
-		_( "Temperature" ), 
+	VIPS_ARG_BOXED( class, "temp", 110,
+		_( "Temperature" ),
 		_( "Colour temperature" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXYZ2Lab, temp ),
@@ -264,7 +264,7 @@ vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
  * * @temp: #VipsArrayDouble, colour temperature
  *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
- * defaults to D65. 
+ * defaults to D65.
  *
  * Returns: 0 on success, -1 on error.
  */

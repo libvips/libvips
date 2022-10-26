@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,7 @@ typedef struct _VipsForeignLoadWebp {
 
 	/* Scale by this much during load.
 	 */
-	double scale; 
+	double scale;
 
 	/* Old and deprecated scaling path.
 	 */
@@ -81,7 +81,7 @@ typedef struct _VipsForeignLoadWebp {
 
 typedef VipsForeignLoadClass VipsForeignLoadWebpClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadWebp, vips_foreign_load_webp, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadWebp, vips_foreign_load_webp,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -131,8 +131,8 @@ vips_foreign_load_webp_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 
-	if( vips__webp_read_header_source( webp->source, load->out, 
-		webp->page, webp->n, webp->scale ) ) 
+	if( vips__webp_read_header_source( webp->source, load->out,
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	return( 0 );
@@ -143,8 +143,8 @@ vips_foreign_load_webp_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 
-	if( vips__webp_read_source( webp->source, load->real, 
-		webp->page, webp->n, webp->scale ) ) 
+	if( vips__webp_read_source( webp->source, load->real,
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	return( 0 );
@@ -170,7 +170,7 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 	 */
 	foreign_class->priority = 200;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_webp_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_webp_get_flags;
 	load_class->header = vips_foreign_load_webp_header;
@@ -190,15 +190,15 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 22, 
-		_( "Scale" ), 
+	VIPS_ARG_DOUBLE( class, "scale", 22,
+		_( "Scale" ),
 		_( "Factor to scale by" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, scale ),
 		0.0, 1024.0, 1.0 );
 
-	VIPS_ARG_INT( class, "shrink", 23, 
-		_( "Shrink" ), 
+	VIPS_ARG_INT( class, "shrink", 23,
+		_( "Shrink" ),
 		_( "Shrink factor on load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, shrink ),
@@ -223,14 +223,14 @@ typedef struct _VipsForeignLoadWebpSource {
 
 typedef VipsForeignLoadWebpClass VipsForeignLoadWebpSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadWebpSource, vips_foreign_load_webp_source, 
+G_DEFINE_TYPE( VipsForeignLoadWebpSource, vips_foreign_load_webp_source,
 	vips_foreign_load_webp_get_type() );
 
 static int
 vips_foreign_load_webp_source_build( VipsObject *object )
 {
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) object;
-	VipsForeignLoadWebpSource *source = 
+	VipsForeignLoadWebpSource *source =
 		(VipsForeignLoadWebpSource *) object;
 
 	if( source->source ) {
@@ -246,7 +246,7 @@ vips_foreign_load_webp_source_build( VipsObject *object )
 }
 
 static void
-vips_foreign_load_webp_source_class_init( 
+vips_foreign_load_webp_source_class_init(
 	VipsForeignLoadWebpSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -263,12 +263,12 @@ vips_foreign_load_webp_source_class_init(
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->is_a_source = vips__iswebp_source; 
+	load_class->is_a_source = vips__iswebp_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebpSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -284,13 +284,13 @@ typedef struct _VipsForeignLoadWebpFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadWebpFile;
 
 typedef VipsForeignLoadWebpClass VipsForeignLoadWebpFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadWebpFile, vips_foreign_load_webp_file, 
+G_DEFINE_TYPE( VipsForeignLoadWebpFile, vips_foreign_load_webp_file,
 	vips_foreign_load_webp_get_type() );
 
 static int
@@ -300,7 +300,7 @@ vips_foreign_load_webp_file_build( VipsObject *object )
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) object;
 
 	if( file->filename &&
-		!(webp->source = 
+		!(webp->source =
 			vips_source_new_from_file( file->filename )) )
 		return( -1 );
 
@@ -346,10 +346,10 @@ vips_foreign_load_webp_file_class_init( VipsForeignLoadWebpFileClass *class )
 
 	load_class->is_a = vips_foreign_load_webp_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebpFile, filename ),
 		NULL );
 }
@@ -370,19 +370,19 @@ typedef struct _VipsForeignLoadWebpBuffer {
 
 typedef VipsForeignLoadWebpClass VipsForeignLoadWebpBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadWebpBuffer, vips_foreign_load_webp_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadWebpBuffer, vips_foreign_load_webp_buffer,
 	vips_foreign_load_webp_get_type() );
 
 static int
 vips_foreign_load_webp_buffer_build( VipsObject *object )
 {
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) object;
-	VipsForeignLoadWebpBuffer *buffer = 
+	VipsForeignLoadWebpBuffer *buffer =
 		(VipsForeignLoadWebpBuffer *) object;
 
 	if( buffer->blob &&
-		!(webp->source = vips_source_new_from_memory( 
-			VIPS_AREA( buffer->blob )->data, 
+		!(webp->source = vips_source_new_from_memory(
+			VIPS_AREA( buffer->blob )->data,
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
@@ -408,7 +408,7 @@ vips_foreign_load_webp_buffer_is_a_buffer( const void *buf, size_t len )
 }
 
 static void
-vips_foreign_load_webp_buffer_class_init( 
+vips_foreign_load_webp_buffer_class_init(
 	VipsForeignLoadWebpBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -422,12 +422,12 @@ vips_foreign_load_webp_buffer_class_init(
 	object_class->description = _( "load webp from buffer" );
 	object_class->build = vips_foreign_load_webp_buffer_build;
 
-	load_class->is_a_buffer = vips_foreign_load_webp_buffer_is_a_buffer; 
+	load_class->is_a_buffer = vips_foreign_load_webp_buffer_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadWebpBuffer, blob ),
 		VIPS_TYPE_BLOB );
 }
@@ -451,20 +451,20 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  * * @n: %gint, load this many pages
  * * @scale: %gdouble, scale by this much on load
  *
- * Read a WebP file into a VIPS image. 
+ * Read a WebP file into a VIPS image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column, with each individual page aligned to the
- * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
+ * left. Set to -1 to mean "until the end of the document". Use vips_grid()
  * to change page layout.
  *
  * Use @scale to specify a scale-on-load factor. For example, 2.0 to double
  * the size on load. Animated webp images don't support shrink-on-load, so a
  * further resize may be necessary.
  *
- * The loader supports ICC, EXIF and XMP metadata. 
+ * The loader supports ICC, EXIF and XMP metadata.
  *
  * See also: vips_image_new_from_file().
  *
@@ -497,10 +497,10 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  * * @scale: %gdouble, scale by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
- * vips_webpload(), but read from a memory buffer. 
+ * vips_webpload(), but read from a memory buffer.
  *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * See also: vips_webpload()
  *
@@ -538,7 +538,7 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @scale: %gdouble, scale by this much on load
  *
- * Exactly as vips_webpload(), but read from a source. 
+ * Exactly as vips_webpload(), but read from a source.
  *
  * See also: vips_webpload()
  *

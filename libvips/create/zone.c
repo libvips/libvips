@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,7 +67,7 @@ typedef VipsPointClass VipsZoneClass;
 G_DEFINE_TYPE( VipsZone, vips_zone, VIPS_TYPE_POINT );
 
 static float
-vips_zone_point( VipsPoint *point, int x, int y ) 
+vips_zone_point( VipsPoint *point, int x, int y )
 {
 	VipsZone *zone = (VipsZone *) point;
 
@@ -108,9 +108,9 @@ vips_zone_init( VipsZone *zone )
  *
  * * @uchar: output a uchar image
  *
- * Create a one-band image of a zone plate. 
+ * Create a one-band image of a zone plate.
  *
- * Pixels are normally in [-1, +1], set @uchar to output [0, 255]. 
+ * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
  * See also: vips_eye(), vips_xyz().
  *

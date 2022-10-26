@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,10 +56,10 @@ int
 im_exr2vips( const char *filename, IMAGE *out )
 {
 #ifdef HAVE_OPENEXR
-	return( vips__openexr_read( filename, out ) ); 
+	return( vips__openexr_read( filename, out ) );
 #else
-	vips_error( "im_exr2vips", 
-		"%s", _( "no OpenEXR support in your libvips" ) ); 
+	vips_error( "im_exr2vips",
+		"%s", _( "no OpenEXR support in your libvips" ) );
 
 	return( -1 );
 #endif /*HAVE_OPENEXR*/
@@ -75,7 +75,7 @@ exr_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( (VipsFormatFlags) 
+	return( (VipsFormatFlags)
 		vips_foreign_flags( "openexrload", filename ) );
 }
 

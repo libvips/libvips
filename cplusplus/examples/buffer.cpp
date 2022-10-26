@@ -1,4 +1,4 @@
-/* 
+/*
  * compile with:
  *
  *      g++ -g -Wall buffer.cpp `pkg-config vips-cpp --cflags --libs`
@@ -15,13 +15,13 @@ int
 main( int argc, char **argv )
 {
 	if( VIPS_INIT( argv[0] ) )
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 
 	// load an image from a file
-	VImage im = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", "sequential" ) ); 
-	printf( "loaded %d x %d pixel image from %s\n", 
-		im.width(), im.height(), argv[1] ); 
+	VImage im = VImage::new_from_file( argv[1],
+		VImage::option()->set( "access", "sequential" ) );
+	printf( "loaded %d x %d pixel image from %s\n",
+		im.width(), im.height(), argv[1] );
 
 	// write to a formatted memory buffer
 	size_t size;
@@ -31,12 +31,12 @@ main( int argc, char **argv )
 
 	// load from the formatted memory area
 	im = VImage::new_from_buffer( buf, size, "" );
-	printf( "loaded from memory, %d x %d pixel image\n", 
-		im.width(), im.height() ); 
+	printf( "loaded from memory, %d x %d pixel image\n",
+		im.width(), im.height() );
 
 	// write back to a file
 	im.write_to_file( argv[2] );
-	printf( "written back to  %s\n", argv[2] ); 
+	printf( "written back to  %s\n", argv[2] );
 
-        return( 0 );
+	return( 0 );
 }

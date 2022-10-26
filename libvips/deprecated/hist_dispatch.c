@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -66,7 +66,7 @@ gammacorrect_vec( im_object *argv )
 }
 
 /* Description of im_gammacorrect.
- */ 
+ */
 static im_function gammacorrect_desc = {
 	"im_gammacorrect", 		/* Name */
 	"gamma-correct image",		/* Description */
@@ -95,7 +95,7 @@ heq_vec( im_object *argv )
 }
 
 /* Description of im_heq.
- */ 
+ */
 static im_function heq_desc = {
 	"im_heq", 			/* Name */
 	"histogram-equalise image",	/* Description */
@@ -120,7 +120,7 @@ histindexed_vec( im_object *argv )
 }
 
 /* Description of im_histindexed.
- */ 
+ */
 static im_function histindexed_desc = {
 	"im_hist_indexed", 		/* Name */
 	"make a histogram with an index image",	/* Description */
@@ -141,7 +141,7 @@ hist_vec( im_object *argv )
 }
 
 /* Description of im_hist.
- */ 
+ */
 static im_function hist_desc = {
 	"im_hist", 			/* Name */
 	"find and graph histogram of image",	/* Description */
@@ -160,7 +160,7 @@ histcum_vec( im_object *argv )
 }
 
 /* Description of im_histcum.
- */ 
+ */
 static im_function histcum_desc = {
 	"im_histcum", 			/* Name */
 	"turn histogram to cumulative histogram",/* Description */
@@ -179,7 +179,7 @@ histnorm_vec( im_object *argv )
 }
 
 /* Description of im_histcum.
- */ 
+ */
 static im_function histnorm_desc = {
 	"im_histnorm", 			/* Name */
 	"form normalised histogram",/* Description */
@@ -198,7 +198,7 @@ histeq_vec( im_object *argv )
 }
 
 /* Description of im_histeq.
- */ 
+ */
 static im_function histeq_desc = {
 	"im_histeq", 			/* Name */
 	"form histogram equalistion LUT",/* Description */
@@ -219,7 +219,7 @@ histgr_vec( im_object *argv )
 }
 
 /* Description of im_histgr.
- */ 
+ */
 static im_function histgr_desc = {
 	"im_histgr", 			/* Name */
 	"find histogram of image",	/* Description */
@@ -248,7 +248,7 @@ static im_arg_desc histnD_args[] = {
 };
 
 /* Description of im_histnD().
- */ 
+ */
 static im_function histnD_desc = {
 	"im_histnD", 			/* Name */
 	"find 1D, 2D or 3D histogram of image",	/* Description */
@@ -267,7 +267,7 @@ histplot_vec( im_object *argv )
 }
 
 /* Description of im_histplot.
- */ 
+ */
 static im_function histplot_desc = {
 	"im_histplot", 			/* Name */
 	"plot graph of histogram",	/* Description */
@@ -294,7 +294,7 @@ histspec_vec( im_object *argv )
 }
 
 /* Description of im_histspec.
- */ 
+ */
 static im_function histspec_desc = {
 	"im_histspec", 			/* Name */
 	"find histogram which will make pdf of in match ref",
@@ -313,7 +313,7 @@ hsp_vec( im_object *argv )
 }
 
 /* Description of im_hsp.
- */ 
+ */
 static im_function hsp_desc = {
 	"im_hsp", 			/* Name */
 	"match stats of in to stats of ref",
@@ -341,7 +341,7 @@ identity_vec( im_object *argv )
 }
 
 /* Description of im_identity.
- */ 
+ */
 static im_function identity_desc = {
 	"im_identity", 			/* Name */
 	"generate identity histogram",
@@ -371,7 +371,7 @@ identity_ushort_vec( im_object *argv )
 }
 
 /* Description of im_identity_ushort.
- */ 
+ */
 static im_function identity_ushort_desc = {
 	"im_identity_ushort", 		/* Name */
 	"generate ushort identity histogram",
@@ -402,7 +402,7 @@ lhisteq_vec( im_object *argv )
 }
 
 /* Description of im_lhisteq.
- */ 
+ */
 static im_function lhisteq_desc = {
 	"im_lhisteq", 		/* Name */
 	"local histogram equalisation",
@@ -429,7 +429,7 @@ maplut_vec( im_object *argv )
 }
 
 /* Description of im_maplut.
- */ 
+ */
 static im_function maplut_desc = {
 	"im_maplut", 		/* Name */
 	"map image through LUT",
@@ -456,10 +456,10 @@ static im_arg_desc project_args[] = {
 };
 
 /* Description of im_project().
- */ 
+ */
 static im_function project_desc = {
 	"im_project", 			/* Name */
-	"find horizontal and vertical projections of an image",	
+	"find horizontal and vertical projections of an image",
 	IM_FN_TRANSFORM,		/* Flags */
 	project_vec, 			/* Dispatch function */
 	IM_NUMBER( project_args ), 	/* Size of arg list */
@@ -495,7 +495,7 @@ stdif_vec( im_object *argv )
 }
 
 /* Description of im_stdif.
- */ 
+ */
 static im_function stdif_desc = {
 	"im_stdif", 		/* Name */
 	"statistical differencing",
@@ -523,7 +523,7 @@ buildlut_vec( im_object *argv )
 }
 
 /* Description of im_buildlut.
- */ 
+ */
 static im_function buildlut_desc = {
 	"im_buildlut", 	/* Name */
 	"generate LUT table from set of x/y positions",
@@ -553,7 +553,7 @@ invertlut_vec( im_object *argv )
 }
 
 /* Description of im_invertlut.
- */ 
+ */
 static im_function invertlut_desc = {
 	"im_invertlut", 	/* Name */
 	"generate correction table from set of measures",
@@ -595,7 +595,7 @@ tone_build_vec( im_object *argv )
 }
 
 /* Description of im_tone_build.
- */ 
+ */
 static im_function tone_build_desc = {
 	"im_tone_build", 		/* Name */
 	"create LUT for tone adjustment of LabS images",
@@ -642,7 +642,7 @@ tone_build_range_vec( im_object *argv )
 }
 
 /* Description of im_tone_build_range.
- */ 
+ */
 static im_function tone_build_range_desc = {
 	"im_tone_build_range", 		/* Name */
 	"create LUT for tone adjustment",
@@ -681,7 +681,7 @@ tone_analyse_vec( im_object *argv )
 }
 
 /* Description of im_tone_analyse.
- */ 
+ */
 static im_function tone_analyse_desc = {
 	"im_tone_analyse", 		/* Name */
 	"analyse in and create LUT for tone adjustment",
@@ -709,7 +709,7 @@ ismonotonic_vec( im_object *argv )
 }
 
 /* Description of im_ismonotonic.
- */ 
+ */
 static im_function ismonotonic_desc = {
 	"im_ismonotonic", 		/* Name */
 	"test LUT for monotonicity",
@@ -736,7 +736,7 @@ tone_map_vec( im_object *argv )
 }
 
 /* Description of im_tone_map.
- */ 
+ */
 static im_function tone_map_desc = {
 	"im_tone_map", 		/* Name */
 	"map L channel of LabS or LabQ image through LUT",
@@ -765,7 +765,7 @@ mpercent_vec( im_object *argv )
 }
 
 /* Description of im_mpercent.
- */ 
+ */
 static im_function mpercent_desc = {
 	"im_mpercent",	 		/* Name */
 	"find threshold above which there are percent values",

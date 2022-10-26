@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 12/02/1990
- * Modified on : 
+ * Modified on :
  * 1/2/95 JC
  *	- rewritten for PIO
  *	- some bugs removed
@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -78,7 +78,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 	Rect irect;
 	Rect *r = &or->valid;
 
-	/* Range of pixels we loop over. 
+	/* Range of pixels we loop over.
 	 */
 	int le = r->left;
 	int to = r->top;
@@ -88,7 +88,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 
 	int i, y;
 
-	/* We need to be able to see one pixel to the right. 
+	/* We need to be able to see one pixel to the right.
 	 */
 	irect.top = r->top;
 	irect.left = r->left;
@@ -96,7 +96,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 	irect.height = r->height;
 	if( im_prepare( ir, &irect ) )
 		return( -1 );
-	
+
 	for( y = to; y < bo; y++ ) {
 		VipsPel *p = IM_REGION_ADDR( ir, le, y );
 		VipsPel *q = IM_REGION_ADDR( or, le, y );
@@ -114,7 +114,7 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
 	}
 
 	return( 0 );
-} 
+}
 
 /**
  * im_zerox:
@@ -122,19 +122,19 @@ zerox_gen( REGION *or, void *seq, void *a, void *b )
  * @out: output image
  * @sign: detect positive or negative zero crossings
  *
- * im_zerox() detects the positive or negative zero crossings @in, 
+ * im_zerox() detects the positive or negative zero crossings @in,
  * depending on @sign. If @sign is -1, negative zero crossings are returned,
  * if @sign is 1, positive zero crossings are returned.
  *
  * The output image is byte with zero crossing set to 255 and all other values
- * set to zero. Input can have any number of channels, and be any non-complex 
+ * set to zero. Input can have any number of channels, and be any non-complex
  * type.
  *
  * See also: im_conv(), im_rot90.
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 im_zerox( IMAGE *in, IMAGE *out, int sign )
 {
 	IMAGE *t1;
@@ -171,7 +171,7 @@ im_zerox( IMAGE *in, IMAGE *out, int sign )
 
 	/* Generate image.
 	 */
-	if( im_generate( t1, im_start_one, zerox_gen, im_stop_one, 
+	if( im_generate( t1, im_start_one, zerox_gen, im_stop_one,
 		in, GINT_TO_POINTER( sign ) ) )
 		return( -1 );
 

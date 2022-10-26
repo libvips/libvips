@@ -1,7 +1,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -55,11 +55,11 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 	VipsSource *source;
 	int result;
 
-	if( !(source = vips_source_new_from_file( filename )) ) 
+	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( header_only ) 
+	if( header_only )
 		result = vips__webp_read_header_source( source, out, 0, 1, 1 );
-	else 
+	else
 		result = vips__webp_read_source( source, out, 0, 1, 1 );
 	VIPS_UNREF( source );
 
@@ -67,8 +67,8 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 		return( result );
 }
 #else
-	vips_error( "im_webp2vips", 
-		"%s", _( "no webp support in your libvips" ) ); 
+	vips_error( "im_webp2vips",
+		"%s", _( "no webp support in your libvips" ) );
 
 	return( -1 );
 #endif /*HAVE_LIBWEBP*/
@@ -98,7 +98,7 @@ vips__iswebp( const char *filename )
 int
 im_webp2vips( const char *name, IMAGE *out )
 {
-	return( webp2vips( name, out, FALSE ) ); 
+	return( webp2vips( name, out, FALSE ) );
 }
 
 #ifdef HAVE_LIBWEBP
@@ -106,7 +106,7 @@ im_webp2vips( const char *name, IMAGE *out )
 static int
 im_webp2vips_header( const char *name, IMAGE *out )
 {
-	return( webp2vips( name, out, TRUE ) ); 
+	return( webp2vips( name, out, TRUE ) );
 }
 
 static const char *webp_suffs[] = { ".webp", NULL };

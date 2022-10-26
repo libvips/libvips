@@ -4,7 +4,7 @@
  *
  * Author: N. Dessipris
  * Written on: 17/04/1991
- * Modified on : 
+ * Modified on :
  * 16/3/94 JC
  *	- rewritten for partials
  *	- now in ANSI C
@@ -31,7 +31,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -88,7 +88,7 @@ typedef VipsBandaryClass VipsBandjoinClass;
 G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_BANDARY );
 
 static void
-vips_bandjoin_buffer( VipsBandarySequence *seq, 
+vips_bandjoin_buffer( VipsBandarySequence *seq,
 	VipsPel *q, VipsPel **p, int width )
 {
 	VipsBandary *bandary = seq->bandary;
@@ -137,15 +137,15 @@ vips_bandjoin_build( VipsObject *object )
 	if( bandjoin->in ) {
 		bandary->in = vips_array_image_get( bandjoin->in, &bandary->n );
 
-		if( bandary->n == 1 ) 
+		if( bandary->n == 1 )
 			return( vips_bandary_copy( bandary ) );
 		else {
 			int i;
 
 			bandary->out_bands = 0;
-			for( i = 0; i < bandary->n; i++ ) 
-				if( bandary->in[i] ) 
-					bandary->out_bands += 
+			for( i = 0; i < bandary->n; i++ )
+				if( bandary->in[i] )
+					bandary->out_bands +=
 						bandary->in[i]->Bands;
 		}
 	}
@@ -174,8 +174,8 @@ vips_bandjoin_class_init( VipsBandjoinClass *class )
 
 	bandary_class->process_line = vips_bandjoin_buffer;
 
-	VIPS_ARG_BOXED( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_BOXED( class, "in", 0,
+		_( "Input" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandjoin, in ),
@@ -193,10 +193,10 @@ vips_bandjoin_init( VipsBandjoin *bandjoin )
 static int
 vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	VipsArrayImage *array; 
+	VipsArrayImage *array;
 	int result;
 
-	array = vips_array_image_new( in, n ); 
+	array = vips_array_image_new( in, n );
 	result = vips_call_split( "bandjoin", ap, array, out );
 	vips_area_unref( VIPS_AREA( array ) );
 
@@ -210,18 +210,18 @@ vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * Join a set of images together, bandwise. 
+ * Join a set of images together, bandwise.
  *
  * If the images
  * have n and m bands, then the output image will have n + m
  * bands, with the first n coming from the first image and the last m
- * from the second. 
+ * from the second.
  *
  * If the images differ in size, the smaller images are enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * The input images are cast up to the smallest common type (see table 
- * Smallest common format in 
+ * The input images are cast up to the smallest common type (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_insert().
@@ -292,7 +292,7 @@ vips_bandjoin_const_finalize( GObject *object )
 {
 	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) object;
 
-	VIPS_FREE( bandjoin->c_ready ); 
+	VIPS_FREE( bandjoin->c_ready );
 
 	G_OBJECT_CLASS( vips_bandjoin_const_parent_class )->finalize( object );
 }
@@ -316,7 +316,7 @@ vips_bandjoin_const_buffer( VipsBandarySequence *seq,
 
 	/* Extra bands size.
 	 */
-	const int ebs = ops - ips; 
+	const int ebs = ops - ips;
 
 	VipsPel * restrict p1;
 	VipsPel * restrict q1;
@@ -371,16 +371,16 @@ vips_bandjoin_const_build( VipsObject *object )
 
 		c = vips_array_double_get( bandjoin->c, &n );
 
-		if( n == 0 ) 
+		if( n == 0 )
 			return( vips_bandary_copy( bandary ) );
-		else 
+		else
 			bandary->out_bands = bandjoin->in->Bands + n;
 
 		bandary->n = 1;
 		bandary->in = &bandjoin->in;
 
 		if( !(bandjoin->c_ready = vips__vector_to_pels( class->nickname,
-			n, bandjoin->in->BandFmt, bandjoin->in->Coding, 
+			n, bandjoin->in->BandFmt, bandjoin->in->Coding,
 			c, NULL, n )) )
 			return( -1 );
 
@@ -412,14 +412,14 @@ vips_bandjoin_const_class_init( VipsBandjoinConstClass *class )
 
 	bandary_class->process_line = vips_bandjoin_const_buffer;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBandjoinConst, in ) ); 
+		G_STRUCT_OFFSET( VipsBandjoinConst, in ) );
 
-	VIPS_ARG_BOXED( class, "c", 12, 
-		_( "Constants" ), 
+	VIPS_ARG_BOXED( class, "c", 12,
+		_( "Constants" ),
 		_( "Array of constants to add" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandjoinConst, c ),
@@ -435,13 +435,13 @@ vips_bandjoin_const_init( VipsBandjoinConst *bandjoin )
 }
 
 static int
-vips_bandjoin_constv( VipsImage *in, VipsImage **out, 
+vips_bandjoin_constv( VipsImage *in, VipsImage **out,
 	double *c, int n, va_list ap )
 {
-	VipsArrayDouble *array; 
+	VipsArrayDouble *array;
 	int result;
 
-	array = vips_array_double_new( c, n ); 
+	array = vips_array_double_new( c, n );
 	result = vips_call_split( "bandjoin_const", ap, in, out, array );
 	vips_area_unref( VIPS_AREA( array ) );
 
@@ -456,7 +456,7 @@ vips_bandjoin_constv( VipsImage *in, VipsImage **out,
  * @n: number of constants
  * @...: %NULL-terminated list of optional named arguments
  *
- * Append a set of constant bands to an image. 
+ * Append a set of constant bands to an image.
  *
  * See also: vips_bandjoin().
  *

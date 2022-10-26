@@ -1,7 +1,7 @@
-/* Like copy, but ensure sequential access. 
+/* Like copy, but ensure sequential access.
  *
  * Handy with sequential for loading files formats which are strictly
- * top-to-bottom, like PNG. 
+ * top-to-bottom, like PNG.
  *
  * 15/2/12
  * 	- from VipsForeignLoad
@@ -30,7 +30,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -112,16 +112,16 @@ vips_sequential_dispose( GObject *gobject )
 }
 
 static int
-vips_sequential_generate( VipsRegion *or, 
+vips_sequential_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsSequential *sequential = (VipsSequential *) b;
-        VipsRect *r = &or->valid;
+	VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
 	if( sequential->trace )
 		printf( "vips_sequential_generate %p: "
-			"request for line %d, height %d\n", 
+			"request for line %d, height %d\n",
 			sequential, r->top, r->height );
 
 	VIPS_GATE_START( "vips_sequential_generate: wait" );
@@ -138,16 +138,16 @@ vips_sequential_generate( VipsRegion *or,
 	}
 
 	if( r->top > sequential->y_pos ) {
-		/* This is a request for something some way down the image. 
-		 * Probably the operation is something like extract_area and 
-		 * we should skip the initial part of the image. In fact, 
+		/* This is a request for something some way down the image.
+		 * Probably the operation is something like extract_area and
+		 * we should skip the initial part of the image. In fact,
 		 * we read to cache, since it may be useful.
 		 */
 		VipsRect area;
 
 		if( sequential->trace )
 			printf( "vips_sequential_generate %p: "
-				"skipping to line %d ...\n", 
+				"skipping to line %d ...\n",
 				sequential, r->top );
 
 		area.left = 0;
@@ -173,7 +173,7 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	sequential->y_pos = 
+	sequential->y_pos =
 		VIPS_MAX( sequential->y_pos, VIPS_RECT_BOTTOM( r ) );
 
 	g_mutex_unlock( sequential->lock );
@@ -202,19 +202,19 @@ vips_sequential_build( VipsObject *object )
 	 * On balance, if you want to make many crops from one source, use a
 	 * RANDOM image.
 	 */
-	if( vips_linecache( sequential->in, &t, 
+	if( vips_linecache( sequential->in, &t,
 		"tile_height", sequential->tile_height,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL ) )
 		return( -1 );
 
-	vips_object_local( object, t ); 
+	vips_object_local( object, t );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL ) )
 		return( -1 );
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_sequential_generate, vips_stop_one, 
+		vips_start_one, vips_sequential_generate, vips_stop_one,
 		t, sequential ) )
 		return( -1 );
 
@@ -237,28 +237,28 @@ vips_sequential_class_init( VipsSequentialClass *class )
 	vobject_class->description = _( "check sequential access" );
 	vobject_class->build = vips_sequential_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, in ) );
 
-	VIPS_ARG_INT( class, "tile_height", 3, 
-		_( "Tile height" ), 
+	VIPS_ARG_INT( class, "tile_height", 3,
+		_( "Tile height" ),
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, tile_height ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_ENUM( class, "access", 6, 
-		_( "Strategy" ), 
+	VIPS_ARG_ENUM( class, "access", 6,
+		_( "Strategy" ),
 		_( "Expected access pattern" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsSequential, access ),
 		VIPS_TYPE_ACCESS, VIPS_ACCESS_SEQUENTIAL );
 
-	VIPS_ARG_BOOL( class, "trace", 2, 
-		_( "Trace" ), 
+	VIPS_ARG_BOOL( class, "trace", 2,
+		_( "Trace" ),
 		_( "Trace pixel requests" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsSequential, trace ),
@@ -287,8 +287,8 @@ vips_sequential_init( VipsSequential *sequential )
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels on @in are only requested
- * top-to-bottom. This operation is useful for loading file formats which are 
- * strictly top-to-bottom, like PNG. 
+ * top-to-bottom. This operation is useful for loading file formats which are
+ * strictly top-to-bottom, like PNG.
  *
  * @strip_height can be used to set the size of the tiles that
  * vips_sequential() uses. The default value is 1.

@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,12 +61,12 @@ im_vips2ppm( IMAGE *in, const char *filename )
 		else if( im_isprefix( "ascii", mode ) )
 			ascii = 1;
 		else {
-			im_error( "im_vips2ppm", 
+			im_error( "im_vips2ppm",
 				"%s", _( "bad mode string, "
 					"should be \"binary\" or \"ascii\"" ) );
 			return( -1 );
 		}
 	}
 
-	return( vips_ppmsave( in, name, "ascii", ascii, NULL ) ); 
+	return( vips_ppmsave( in, name, "ascii", ascii, NULL ) );
 }

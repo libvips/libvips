@@ -4,7 +4,7 @@
  * 16/11/94 JC
  *	- partialed!
  * 31/10/09
- * 	- use im__colour_binary() 
+ * 	- use im__colour_binary()
  * 	- gtkdoc comment
  * 25/10/12
  * 	- redone as a class
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -82,7 +82,7 @@ vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
 /* Find the difference between two buffers of LAB data.
  */
 void
-vips__pythagoras_line( VipsColour *colour, 
+vips__pythagoras_line( VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width )
 {
 	float * restrict p1 = (float *) in[0];
@@ -118,7 +118,7 @@ vips_dE76_class_init( VipsdE76Class *class )
 static void
 vips_dE76_init( VipsdE76 *dE76 )
 {
-	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE76 ); 
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE76 );
 
 	difference->interpretation = VIPS_INTERPRETATION_LAB;
 }

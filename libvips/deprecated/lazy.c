@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -81,7 +81,7 @@ lazy_free_cb( VipsImage *image, Lazy *lazy )
 }
 
 static Lazy *
-lazy_new( VipsImage *image, 
+lazy_new( VipsImage *image,
 	VipsFormatClass *format, const char *filename, gboolean sequential )
 {
 	Lazy *lazy;
@@ -113,10 +113,10 @@ disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
-		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) )
 			threshold = vips__parse_size( env );
 
-		if( vips__disc_threshold ) 
+		if( vips__disc_threshold )
 			threshold = vips__parse_size( vips__disc_threshold );
 
 		VIPS_DEBUG_MSG( "disc_threshold: %zd bytes\n", threshold );
@@ -129,7 +129,7 @@ disc_threshold( void )
  * somewhere.
  */
 static VipsImage *
-lazy_real_image( Lazy *lazy ) 
+lazy_real_image( Lazy *lazy )
 {
 	VipsImage *real;
 
@@ -140,17 +140,17 @@ lazy_real_image( Lazy *lazy )
 	 * - the uncompressed image will be larger than disc_threshold()
 	 */
 	real = NULL;
-	if( !lazy->sequential && 
-		disc_threshold() && 
-	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
+	if( !lazy->sequential &&
+		disc_threshold() &&
+		!(vips_format_get_flags( lazy->format, lazy->filename ) &
 			VIPS_FORMAT_PARTIAL) &&
-		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) 
+		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() )
 			if( !(real = vips_image_new_temp_file( "%s.v" )) )
 				return( NULL );
 
 	/* Otherwise, fall back to a "p".
 	 */
-	if( !real && 
+	if( !real &&
 		!(real = vips_image_new()) )
 		return( NULL );
 
@@ -166,7 +166,7 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 	Lazy *lazy = (Lazy *) a;
 
 	if( !lazy->real ) {
-		if( !(lazy->real = lazy_real_image( lazy )) || 
+		if( !(lazy->real = lazy_real_image( lazy )) ||
 			lazy->format->load( lazy->filename, lazy->real ) ||
 			vips_image_pio_input( lazy->real ) ) {
 			VIPS_UNREF( lazy->real );
@@ -180,31 +180,31 @@ open_lazy_start( VipsImage *out, void *a, void *dummy )
 /* Just copy.
  */
 static int
-open_lazy_generate( VipsRegion *or, 
+open_lazy_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 
-        VipsRect *r = &or->valid;
+	VipsRect *r = &or->valid;
 
-        /* Ask for input we need.
-         */
-        if( vips_region_prepare( ir, r ) )
-                return( -1 );
+	/* Ask for input we need.
+	 */
+	if( vips_region_prepare( ir, r ) )
+		return( -1 );
 
-        /* Attach output region to that.
-         */
-        if( vips_region_region( or, ir, r, r->left, r->top ) )
-                return( -1 );
+	/* Attach output region to that.
+	 */
+	if( vips_region_region( or, ir, r, r->left, r->top ) )
+		return( -1 );
 
-        return( 0 );
+	return( 0 );
 }
 
 /* Lazy open ... init the header with the first OpenLazyFn, delay actually
  * decoding pixels with the second OpenLazyFn until the first generate().
  */
 static int
-vips_image_open_lazy( VipsImage *image, 
+vips_image_open_lazy( VipsImage *image,
 	VipsFormatClass *format, const char *filename, gboolean sequential )
 {
 	Lazy *lazy;
@@ -214,17 +214,17 @@ vips_image_open_lazy( VipsImage *image,
 	/* Is there a ->header() function? We need to do a lazy load.
 	 */
 	if( format->header ) {
-		/* Read header fields to init the return image. 
+		/* Read header fields to init the return image.
 		 */
 		if( format->header( filename, image ) )
 			return( -1 );
 
-		/* Then 'start' creates the real image and 'gen' paints 'image' 
+		/* Then 'start' creates the real image and 'gen' paints 'image'
 		 * with pixels from the real image on demand.
 		 */
 		if( vips_image_pipelinev( image, image->dhint, NULL ) ||
-			vips_image_generate( image, 
-				open_lazy_start, open_lazy_generate, 
+			vips_image_generate( image,
+				open_lazy_start, open_lazy_generate,
 				vips_stop_one, lazy, NULL ) )
 			return( -1 );
 	}
@@ -273,7 +273,7 @@ vips_attach_save( VipsImage *image, VipsSaveFn save_fn, const char *filename )
 	sb = g_new( SaveBlock, 1 );
 	sb->save_fn = save_fn;
 	sb->filename = g_strdup( filename );
-	g_signal_connect( image, "written", 
+	g_signal_connect( image, "written",
 		G_CALLBACK( vips_image_save_cb ), sb );
 }
 
@@ -298,7 +298,7 @@ vips__deprecated_open_read( const char *filename, gboolean sequential )
 		IMAGE *image;
 
 		image = vips_image_new();
-		if( vips_image_open_lazy( image, format, 
+		if( vips_image_open_lazy( image, format,
 			filename, sequential ) ) {
 			g_object_unref( image );
 			return( NULL );
@@ -307,7 +307,7 @@ vips__deprecated_open_read( const char *filename, gboolean sequential )
 		/* Yuk. Can't g_object_set() filename since it's after
 		 * construct. Just zap the new filename in.
 		 */
-		VIPS_SETSTR( image->filename, filename ); 
+		VIPS_SETSTR( image->filename, filename );
 
 		return( image );
 	}
@@ -318,10 +318,10 @@ vips__deprecated_open_write( const char *filename )
 {
 	VipsFormatClass *format;
 
-	if( !(format = vips_format_for_name( filename )) ) 
+	if( !(format = vips_format_for_name( filename )) )
 		return( NULL );
 
-	if( vips_format_is_vips( format ) ) 
+	if( vips_format_is_vips( format ) )
 		/* For vips format, we can just the main vips path.
 		 */
 		return( vips_image_new_mode( filename, "w" ) );
@@ -334,7 +334,7 @@ vips__deprecated_open_write( const char *filename )
 
 		if( !(image = vips_image_new()) )
 			return( NULL );
-		vips_attach_save( image, 
+		vips_attach_save( image,
 			format->save, filename );
 		return( image );
 	}

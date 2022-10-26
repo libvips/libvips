@@ -30,7 +30,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -176,8 +176,8 @@ G_DEFINE_TYPE( VipsIfthenelse, vips_ifthenelse, VIPS_TYPE_CONVERSION );
 /* Blend with a 1-band conditional image.
  */
 static void
-vips_blend1_buffer( VipsPel *qp, 
-	VipsPel *c, VipsPel *ap, VipsPel *bp, int width, 
+vips_blend1_buffer( VipsPel *qp,
+	VipsPel *c, VipsPel *ap, VipsPel *bp, int width,
 	VipsImage *im )
 {
 	int i, x, z;
@@ -204,8 +204,8 @@ vips_blend1_buffer( VipsPel *qp,
 /* Blend with a many band conditional image.
  */
 static void
-vips_blendn_buffer( VipsPel *qp, 
-	VipsPel *c, VipsPel *ap, VipsPel *bp, int width, 
+vips_blendn_buffer( VipsPel *qp,
+	VipsPel *c, VipsPel *ap, VipsPel *bp, int width,
 	VipsImage *im )
 {
 	int x, z;
@@ -281,14 +281,14 @@ vips_blend_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			return( -1 );
 	}
 	else {
-		/* Mix of set and clear ... ask for both then and else parts 
+		/* Mix of set and clear ... ask for both then and else parts
 		 * and interleave.
 		 *
 		 * We can't use vips_reorder_prepare_many() since we always
 		 * want the c image first.
 		 */
-		if( vips_region_prepare( ir[0], r ) || 
-			vips_region_prepare( ir[1], r ) ) 
+		if( vips_region_prepare( ir[0], r ) ||
+			vips_region_prepare( ir[1], r ) )
 			return( -1 );
 
 		for( y = to; y < bo; y++ ) {
@@ -297,11 +297,11 @@ vips_blend_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			VipsPel *cp = VIPS_REGION_ADDR( ir[2], le, y );
 			VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
-			if( c->Bands == 1 ) 
-				vips_blend1_buffer( q, cp, ap, bp, 
+			if( c->Bands == 1 )
+				vips_blend1_buffer( q, cp, ap, bp,
 					r->width, a );
 			else
-				vips_blendn_buffer( q, cp, ap, bp, 
+				vips_blendn_buffer( q, cp, ap, bp,
 					r->width, a );
 		}
 	}
@@ -375,11 +375,11 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			return( -1 );
 	}
 	else {
-		/* Mix of set and clear ... ask for both then and else parts 
+		/* Mix of set and clear ... ask for both then and else parts
 		 * and interleave.
 		 */
-		if( vips_region_prepare( ir[0], r ) || 
-			vips_region_prepare( ir[1], r ) ) 
+		if( vips_region_prepare( ir[0], r ) ||
+			vips_region_prepare( ir[1], r ) )
 			return( -1 );
 
 		for( y = to; y < bo; y++ ) {
@@ -388,7 +388,7 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 			VipsPel *cp = VIPS_REGION_ADDR( ir[2], le, y );
 			VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
-			for( x = 0, i = 0; i < width; i++, x += size ) 
+			for( x = 0, i = 0; i < width; i++, x += size )
 				if( cp[i] )
 					for( z = x; z < x + size; z++ )
 						q[z] = ap[z];
@@ -407,12 +407,12 @@ vips_ifthenelse_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsIfthenelse *ifthenelse = (VipsIfthenelse *) object;
-	VipsGenerateFn generate_fn = ifthenelse->blend ? 
+	VipsGenerateFn generate_fn = ifthenelse->blend ?
 		vips_blend_gen : vips_ifthenelse_gen;
 
 	VipsImage **band = (VipsImage **) vips_object_local_array( object, 3 );
 	VipsImage **size = (VipsImage **) vips_object_local_array( object, 3 );
-	VipsImage **format = 
+	VipsImage **format =
 		(VipsImage **) vips_object_local_array( object, 3 );
 
 
@@ -440,24 +440,24 @@ vips_ifthenelse_build( VipsObject *object )
 
 	/* Condition is cast to uchar, then/else to a common type.
 	 */
-	if( size[2]->BandFmt != VIPS_FORMAT_UCHAR ) { 
+	if( size[2]->BandFmt != VIPS_FORMAT_UCHAR ) {
 		if( vips_cast( size[2], &format[2], VIPS_FORMAT_UCHAR, NULL ) )
 			return( -1 );
 	}
 	else {
 		format[2] = size[2];
-		g_object_ref( format[2] ); 
+		g_object_ref( format[2] );
 	}
 
-	if( vips__formatalike_vec( size, format, 2 ) ) 
-		return( -1 ); 
+	if( vips__formatalike_vec( size, format, 2 ) )
+		return( -1 );
 
-	if( vips_image_pipeline_array( conversion->out, 
+	if( vips_image_pipeline_array( conversion->out,
 		VIPS_DEMAND_STYLE_SMALLTILE, format ) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, generate_fn, vips_stop_many, 
+		vips_start_many, generate_fn, vips_stop_many,
 		format, ifthenelse ) )
 		return( -1 );
 
@@ -479,26 +479,26 @@ vips_ifthenelse_class_init( VipsIfthenelseClass *class )
 	vobject_class->description = _( "ifthenelse an image" );
 	vobject_class->build = vips_ifthenelse_build;
 
-	VIPS_ARG_IMAGE( class, "cond", -2, 
-		_( "Condition" ), 
+	VIPS_ARG_IMAGE( class, "cond", -2,
+		_( "Condition" ),
 		_( "Condition input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsIfthenelse, cond ) );
 
-	VIPS_ARG_IMAGE( class, "in1", -1, 
-		_( "Then image" ), 
+	VIPS_ARG_IMAGE( class, "in1", -1,
+		_( "Then image" ),
 		_( "Source for TRUE pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsIfthenelse, in1 ) );
 
-	VIPS_ARG_IMAGE( class, "in2", 0, 
-		_( "Else image" ), 
+	VIPS_ARG_IMAGE( class, "in2", 0,
+		_( "Else image" ),
 		_( "Source for FALSE pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsIfthenelse, in2 ) );
 
-	VIPS_ARG_BOOL( class, "blend", 4, 
-		_( "Blend" ), 
+	VIPS_ARG_BOOL( class, "blend", 4,
+		_( "Blend" ),
 		_( "Blend smoothly between then and else parts" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsIfthenelse, blend ),
@@ -522,12 +522,12 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
  *
  * * @blend: blend smoothly between @in1 and @in2
  *
- * This operation scans the condition image @cond 
+ * This operation scans the condition image @cond
  * and uses it to select pixels from either the then image @in1 or the else
  * image @in2. Non-zero means @in1, 0 means @in2.
  *
  * Any image can have either 1 band or n bands, where n is the same for all
- * the non-1-band images. Single band images are then effectively copied to 
+ * the non-1-band images. Single band images are then effectively copied to
  * make n-band images.
  *
  * Images @in1 and @in2 are cast up to the smallest common format. @cond is
@@ -546,7 +546,7 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
+vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2,
 	VipsImage **out, ... )
 {
 	va_list ap;

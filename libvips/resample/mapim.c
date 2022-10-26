@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -96,7 +96,7 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
-/* Minmax of a line of pixels. 
+/* Minmax of a line of pixels.
  */
 #define MINMAX( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
@@ -157,41 +157,41 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	max_y = 0.0;
 	first = TRUE;
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel * restrict p = 
+		VipsPel * restrict p =
 			VIPS_REGION_ADDR( region, r->left, r->top + y );
 
 		switch( region->im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 	
+		case VIPS_FORMAT_UCHAR:
 			MINMAX( unsigned char );
-			break; 
+			break;
 
-		case VIPS_FORMAT_CHAR: 	
+		case VIPS_FORMAT_CHAR:
 			MINMAX( signed char );
-			break; 
+			break;
 
-		case VIPS_FORMAT_USHORT: 
+		case VIPS_FORMAT_USHORT:
 			MINMAX( unsigned short );
-			break; 
+			break;
 
-		case VIPS_FORMAT_SHORT: 	
+		case VIPS_FORMAT_SHORT:
 			MINMAX( signed short );
-			break; 
+			break;
 
-		case VIPS_FORMAT_UINT: 	
+		case VIPS_FORMAT_UINT:
 			MINMAX( unsigned int );
-			break; 
+			break;
 
-		case VIPS_FORMAT_INT: 	
+		case VIPS_FORMAT_INT:
 			MINMAX( signed int );
-			break; 
+			break;
 
-		case VIPS_FORMAT_FLOAT: 		
-		case VIPS_FORMAT_COMPLEX: 
+		case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_COMPLEX:
 			MINMAX( float );
-			break; 
+			break;
 
-		case VIPS_FORMAT_DOUBLE:	
-		case VIPS_FORMAT_DPCOMPLEX: 
+		case VIPS_FORMAT_DOUBLE:
+		case VIPS_FORMAT_DPCOMPLEX:
 			MINMAX( double );
 			break;
 
@@ -306,13 +306,13 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRect *r = &or->valid;
 	VipsRegion **ir = (VipsRegion **) seq;
 	const VipsImage **in_array = (const VipsImage **) a;
-	const VipsMapim *mapim = (VipsMapim *) b; 
+	const VipsMapim *mapim = (VipsMapim *) b;
 	const VipsImage *in = in_array[0];
-	const int window_size = 
+	const int window_size =
 		vips_interpolate_get_window_size( mapim->interpolate );
-	const int window_offset = 
+	const int window_offset =
 		vips_interpolate_get_window_offset( mapim->interpolate );
-	const VipsInterpolateMethod interpolate = 
+	const VipsInterpolateMethod interpolate =
 		vips_interpolate_get_method( mapim->interpolate );
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 	const int clip_width = in->Xsize - window_size;
@@ -320,10 +320,10 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	VipsRect bounds, need, image, clipped;
 	int x, y, z;
-	
+
 #ifdef DEBUG_VERBOSE
 	printf( "vips_mapim_gen: "
-		"generating left=%d, top=%d, width=%d, height=%d\n", 
+		"generating left=%d, top=%d, width=%d, height=%d\n",
 		r->left,
 		r->top,
 		r->width,
@@ -336,11 +336,11 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	if( vips_region_prepare( ir[1], r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_mapim_gen: work" ); 
+	VIPS_GATE_START( "vips_mapim_gen: work" );
 
-	vips_mapim_region_minmax( ir[1], r, &bounds ); 
+	vips_mapim_region_minmax( ir[1], r, &bounds );
 
-	VIPS_GATE_STOP( "vips_mapim_gen: work" ); 
+	VIPS_GATE_STOP( "vips_mapim_gen: work" );
 
 	/* Enlarge by the stencil size.
 	 */
@@ -362,7 +362,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_mapim_gen: "
-		"preparing left=%d, top=%d, width=%d, height=%d\n", 
+		"preparing left=%d, top=%d, width=%d, height=%d\n",
 		clipped.left,
 		clipped.top,
 		clipped.width,
@@ -376,34 +376,34 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	if( vips_region_prepare( ir[0], &clipped ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_mapim_gen: work" ); 
+	VIPS_GATE_START( "vips_mapim_gen: work" );
 
 	/* Resample! x/y loop over pixels in the output (and index) images.
 	 */
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel * restrict p = 
+		VipsPel * restrict p =
 			VIPS_REGION_ADDR( ir[1], r->left, y + r->top );
-		VipsPel * restrict q = 
+		VipsPel * restrict q =
 			VIPS_REGION_ADDR( or, r->left, y + r->top );
 
 		switch( ir[1]->im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 	
-			ULOOKUP( unsigned char ); break; 
-		case VIPS_FORMAT_CHAR: 	
-			LOOKUP( signed char ); break; 
-		case VIPS_FORMAT_USHORT: 
-			ULOOKUP( unsigned short ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			LOOKUP( signed short ); break; 
-		case VIPS_FORMAT_UINT: 	
-			ULOOKUP( unsigned int ); break; 
-		case VIPS_FORMAT_INT: 	
-			LOOKUP( signed int ); break; 
-		case VIPS_FORMAT_FLOAT: 		
-		case VIPS_FORMAT_COMPLEX: 
-			FLOOKUP( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	
-		case VIPS_FORMAT_DPCOMPLEX: 
+		case VIPS_FORMAT_UCHAR:
+			ULOOKUP( unsigned char ); break;
+		case VIPS_FORMAT_CHAR:
+			LOOKUP( signed char ); break;
+		case VIPS_FORMAT_USHORT:
+			ULOOKUP( unsigned short ); break;
+		case VIPS_FORMAT_SHORT:
+			LOOKUP( signed short ); break;
+		case VIPS_FORMAT_UINT:
+			ULOOKUP( unsigned int ); break;
+		case VIPS_FORMAT_INT:
+			LOOKUP( signed int ); break;
+		case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_COMPLEX:
+			FLOOKUP( float ); break;
+		case VIPS_FORMAT_DOUBLE:
+		case VIPS_FORMAT_DPCOMPLEX:
 			FLOOKUP( double ); break;
 
 		default:
@@ -411,7 +411,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_mapim_gen: work" ); 
+	VIPS_GATE_STOP( "vips_mapim_gen: work" );
 
 	return( 0 );
 }
@@ -447,20 +447,20 @@ vips_mapim_build( VipsObject *object )
 	in = t[0];
 
 	window_size = vips_interpolate_get_window_size( mapim->interpolate );
-	window_offset = 
+	window_offset =
 		vips_interpolate_get_window_offset( mapim->interpolate );
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 *
 	 * We add the interpolate stencil, plus one extra pixel on all the
-	 * edges. This means when we clip in generate (above) we can be sure 
+	 * edges. This means when we clip in generate (above) we can be sure
 	 * we clip outside the real pixels and don't get jaggies on edges.
 	 *
 	 * We allow for the +1 in the adjustment to window_offset in generate.
 	 */
-	if( vips_embed( in, &t[1], 
-		window_offset + 1, window_offset + 1, 
-		in->Xsize + window_size - 1 + 2, 
+	if( vips_embed( in, &t[1],
+		window_offset + 1, window_offset + 1,
+		in->Xsize + window_size - 1 + 2,
 		in->Ysize + window_size - 1 + 2,
 		"extend", mapim->extend,
 		"background", mapim->background,
@@ -468,13 +468,13 @@ vips_mapim_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	/* If there's an alpha and we've not premultiplied, we have to 
-	 * premultiply before resampling. 
+	/* If there's an alpha and we've not premultiplied, we have to
+	 * premultiply before resampling.
 	 */
 	have_premultiplied = FALSE;
 	if( vips_image_hasalpha( in ) &&
-		!mapim->premultiplied ) { 
-		if( vips_premultiply( in, &t[2], NULL ) ) 
+		!mapim->premultiplied ) {
+		if( vips_premultiply( in, &t[2], NULL ) )
 			return( -1 );
 		have_premultiplied = TRUE;
 
@@ -488,14 +488,14 @@ vips_mapim_build( VipsObject *object )
 
 	/* Convert the background to the image's format.
 	 */
-	if( !(mapim->ink = vips__vector_to_ink( class->nickname, 
+	if( !(mapim->ink = vips__vector_to_ink( class->nickname,
 		in,
-		VIPS_AREA( mapim->background )->data, NULL, 
+		VIPS_AREA( mapim->background )->data, NULL,
 		VIPS_AREA( mapim->background )->n )) )
 		return( -1 );
 
 	t[3] = vips_image_new();
-	if( vips_image_pipelinev( t[3], VIPS_DEMAND_STYLE_SMALLTILE, 
+	if( vips_image_pipelinev( t[3], VIPS_DEMAND_STYLE_SMALLTILE,
 		in, NULL ) )
 		return( -1 );
 
@@ -505,15 +505,15 @@ vips_mapim_build( VipsObject *object )
 	mapim->in_array[0] = in;
 	mapim->in_array[1] = mapim->index;
 	mapim->in_array[2] = NULL;
-	if( vips_image_generate( t[3], 
-		vips_start_many, vips_mapim_gen, vips_stop_many, 
+	if( vips_image_generate( t[3],
+		vips_start_many, vips_mapim_gen, vips_stop_many,
 		mapim->in_array, mapim ) )
 		return( -1 );
 
 	in = t[3];
 
 	if( have_premultiplied ) {
-		if( vips_unpremultiply( in, &t[4], NULL ) || 
+		if( vips_unpremultiply( in, &t[4], NULL ) ||
 			vips_cast( t[4], &t[5], unpremultiplied_format, NULL ) )
 			return( -1 );
 		in = t[5];
@@ -540,27 +540,27 @@ vips_mapim_class_init( VipsMapimClass *class )
 	vobject_class->description = _( "resample with a map image" );
 	vobject_class->build = vips_mapim_build;
 
-	VIPS_ARG_IMAGE( class, "index", 3, 
-		_( "Index" ), 
+	VIPS_ARG_IMAGE( class, "index", 3,
+		_( "Index" ),
 		_( "Index pixels with this" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMapim, index ) );
 
-	VIPS_ARG_INTERPOLATE( class, "interpolate", 4, 
-		_( "Interpolate" ), 
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 4,
+		_( "Interpolate" ),
 		_( "Interpolate pixels with this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMapim, interpolate ) );
 
-	VIPS_ARG_ENUM( class, "extend", 117, 
-		_( "Extend" ), 
+	VIPS_ARG_ENUM( class, "extend", 117,
+		_( "Extend" ),
 		_( "How to generate the extra pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMapim, extend ),
 		VIPS_TYPE_EXTEND, VIPS_EXTEND_BACKGROUND );
 
-	VIPS_ARG_BOXED( class, "background", 116, 
-		_( "Background" ), 
+	VIPS_ARG_BOXED( class, "background", 116,
+		_( "Background" ),
 		_( "Background value" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMapim, background ),
@@ -593,8 +593,8 @@ vips_mapim_init( VipsMapim *mapim )
  * Optional arguments:
  *
  * * @interpolate: interpolate pixels with this
- * * @extend: #VipsExtend how to generate new pixels 
- * * @background: #VipsArrayDouble colour for new pixels 
+ * * @extend: #VipsExtend how to generate new pixels
+ * * @background: #VipsArrayDouble colour for new pixels
  * * @premultiplied: %gboolean, images are already premultiplied
  *
  * This operator resamples @in using @index to look up pixels. @out is
@@ -606,28 +606,28 @@ vips_mapim_init( VipsMapim *mapim )
  * ]|
  *
  * If @index has one band, that band must be complex. Otherwise, @index must
- * have two bands of any format. 
+ * have two bands of any format.
  *
- * Coordinates in @index are in pixels, with (0, 0) being the top-left corner 
+ * Coordinates in @index are in pixels, with (0, 0) being the top-left corner
  * of @in, and with y increasing down the image. Use vips_xyz() to build index
- * images. 
+ * images.
  *
- * @interpolate defaults to bilinear. 
+ * @interpolate defaults to bilinear.
  *
- * By default, new pixels are filled with @background. This defaults to 
- * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY 
+ * By default, new pixels are filled with @background. This defaults to
+ * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY
  * is better for image upsizing.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
  * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied. 
+ * set @premultiplied.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
- * See vips_maplut() for a 1D equivalent of this operation. 
+ * See vips_maplut() for a 1D equivalent of this operation.
  *
- * See also: vips_xyz(), vips_affine(), vips_resize(), 
+ * See also: vips_xyz(), vips_affine(), vips_resize(),
  * vips_maplut(), #VipsInterpolate.
  *
  * Returns: 0 on success, -1 on error

@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveCsv {
 
 typedef VipsForeignSaveClass VipsForeignSaveCsvClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -127,28 +127,28 @@ vips_foreign_save_csv_block( VipsRegion *region, VipsRect *area, void *a )
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
 
 		switch( image->BandFmt ) {
-		case VIPS_FORMAT_UCHAR:		
-			PRINT_INT( unsigned char ); break; 
-		case VIPS_FORMAT_CHAR:		
-			PRINT_INT( char ); break; 
-		case VIPS_FORMAT_USHORT:		
-			PRINT_INT( unsigned short ); break; 
-		case VIPS_FORMAT_SHORT:		
-			PRINT_INT( short ); break; 
-		case VIPS_FORMAT_UINT:		
-			PRINT_INT( unsigned int ); break; 
-		case VIPS_FORMAT_INT:		
-			PRINT_INT( int ); break; 
-		case VIPS_FORMAT_FLOAT:		
-			PRINT_FLOAT( float ); break; 
-		case VIPS_FORMAT_DOUBLE:		
-			PRINT_FLOAT( double ); break; 
-		case VIPS_FORMAT_COMPLEX:	
-			PRINT_COMPLEX( float ); break; 
-		case VIPS_FORMAT_DPCOMPLEX:	
-			PRINT_COMPLEX( double ); break; 
+		case VIPS_FORMAT_UCHAR:
+			PRINT_INT( unsigned char ); break;
+		case VIPS_FORMAT_CHAR:
+			PRINT_INT( char ); break;
+		case VIPS_FORMAT_USHORT:
+			PRINT_INT( unsigned short ); break;
+		case VIPS_FORMAT_SHORT:
+			PRINT_INT( short ); break;
+		case VIPS_FORMAT_UINT:
+			PRINT_INT( unsigned int ); break;
+		case VIPS_FORMAT_INT:
+			PRINT_INT( int ); break;
+		case VIPS_FORMAT_FLOAT:
+			PRINT_FLOAT( float ); break;
+		case VIPS_FORMAT_DOUBLE:
+			PRINT_FLOAT( double ); break;
+		case VIPS_FORMAT_COMPLEX:
+			PRINT_COMPLEX( float ); break;
+		case VIPS_FORMAT_DPCOMPLEX:
+			PRINT_COMPLEX( double ); break;
 
-		default: 
+		default:
 			g_assert_not_reached();
 		}
 
@@ -208,12 +208,12 @@ vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_MONO;
 
-	VIPS_ARG_STRING( class, "separator", 13, 
-		_( "Separator" ), 
+	VIPS_ARG_STRING( class, "separator", 13,
+		_( "Separator" ),
 		_( "Separator characters" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCsv, separator ),
-		"\t" ); 
+		"\t" );
 }
 
 static void
@@ -225,12 +225,12 @@ vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
 typedef struct _VipsForeignSaveCsvFile {
 	VipsForeignSaveCsv parent_object;
 
-	char *filename; 
+	char *filename;
 } VipsForeignSaveCsvFile;
 
 typedef VipsForeignSaveCsvClass VipsForeignSaveCsvFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveCsvFile, vips_foreign_save_csv_file, 
+G_DEFINE_TYPE( VipsForeignSaveCsvFile, vips_foreign_save_csv_file,
 	vips_foreign_save_csv_get_type() );
 
 static int
@@ -259,10 +259,10 @@ vips_foreign_save_csv_file_class_init( VipsForeignSaveCsvFileClass *class )
 	object_class->nickname = "csvsave";
 	object_class->build = vips_foreign_save_csv_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCsvFile, filename ),
 		NULL );
 
@@ -281,7 +281,7 @@ typedef struct _VipsForeignSaveCsvTarget {
 
 typedef VipsForeignSaveCsvClass VipsForeignSaveCsvTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveCsvTarget, vips_foreign_save_csv_target, 
+G_DEFINE_TYPE( VipsForeignSaveCsvTarget, vips_foreign_save_csv_target,
 	vips_foreign_save_csv_get_type() );
 
 static int
@@ -291,7 +291,7 @@ vips_foreign_save_csv_target_build( VipsObject *object )
 	VipsForeignSaveCsvTarget *target = (VipsForeignSaveCsvTarget *) object;
 
 	if( target->target ) {
-		csv->target = target->target; 
+		csv->target = target->target;
 		g_object_ref( csv->target );
 	}
 
@@ -314,7 +314,7 @@ vips_foreign_save_csv_target_class_init( VipsForeignSaveCsvTargetClass *class )
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCsvTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -327,7 +327,7 @@ vips_foreign_save_csv_target_init( VipsForeignSaveCsvTarget *target )
 
 /**
  * vips_csvsave: (method)
- * @in: image to save 
+ * @in: image to save
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -337,11 +337,11 @@ vips_foreign_save_csv_target_init( VipsForeignSaveCsvTarget *target )
  *
  * Writes the pixels in @in to the @filename as CSV (comma-separated values).
  * The image is written
- * one line of text per scanline. Complex numbers are written as 
+ * one line of text per scanline. Complex numbers are written as
  * "(real,imaginary)" and will need extra parsing I guess. Only the first band
- * is written. 
+ * is written.
  *
- * @separator gives the string to use to separate numbers in the output. 
+ * @separator gives the string to use to separate numbers in the output.
  * The default is "\\t" (tab).
  *
  * See also: vips_image_write_to_file().
@@ -363,7 +363,7 @@ vips_csvsave( VipsImage *in, const char *filename, ... )
 
 /**
  * vips_csvsave_target: (method)
- * @in: image to save 
+ * @in: image to save
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *

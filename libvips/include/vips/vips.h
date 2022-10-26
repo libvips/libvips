@@ -53,7 +53,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -172,7 +172,7 @@ VIPS_API
 void vips_add_option_entries( GOptionGroup *option_group );
 
 VIPS_API
-void vips_leak_set( gboolean leak ); 
+void vips_leak_set( gboolean leak );
 
 VIPS_API
 void vips_block_untrusted_set( gboolean state );

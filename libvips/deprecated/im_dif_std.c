@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -48,19 +48,19 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 
-static int 
-im__mean_std_int_buffer( int *buffer, int size, 
+static int
+im__mean_std_int_buffer( int *buffer, int size,
 	double *pmean, double *pstd )
 {
 	double mean, std;
 	register int i;
-	int sumf;	
+	int sumf;
 	int temp;
 	int *pbuffer;
 	int sumf2;
 	double correction; /* calulates the correction term for the variance */
 	double variance;	/* = (sumf2 - correction)/n */
-	
+
 	if (size <= 0) {
 		im_error( "im_mean_std_int_buffer", "%s", _( "wrong args") );
 		return(-1);
@@ -98,16 +98,16 @@ int im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int 
 		return( -1 );
 
 	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
-		im_error( "im_dif_std", "%s", _( "Unable to accept input") ); 
+		im_error( "im_dif_std", "%s", _( "Unable to accept input") );
 		return(-1);}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
-		im_error( "im_dif_std", "%s", _( "wrong args") ); 
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) {
+		im_error( "im_dif_std", "%s", _( "wrong args") );
 		return(-1); }
 
 	bufsize = xsize * ysize;
 	buf = (int *)calloc( (unsigned)bufsize, sizeof(int) );
-	if ( buf == NULL ) { 
-		im_error( "im_dif_std", "%s", _( "calloc failed") ); 
+	if ( buf == NULL ) {
+		im_error( "im_dif_std", "%s", _( "calloc failed") );
 		return(-1); }
 	input = (PEL*)im->data;
 	input += ( ypos * im->Xsize + xpos );

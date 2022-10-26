@@ -3,7 +3,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -40,7 +40,7 @@
 VIPS_NAMESPACE_START
 
 /**
- * The libvips error class. It holds a single string containing an 
+ * The libvips error class. It holds a single string containing an
  * internationalized error message in utf-8 encoding.
  */
 class VIPS_CPLUSPLUS_API VError : public std::exception {
@@ -52,7 +52,7 @@ public:
 	 */
 	VError( const std::string &what ) : _what( what ) {}
 
-	/** 
+	/**
 	 * Construct a VError, fetching the error message from the libvips
 	 * error buffer.
 	 */

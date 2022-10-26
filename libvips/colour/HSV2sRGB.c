@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -52,8 +52,8 @@ typedef VipsColourCodeClass VipsHSV2sRGBClass;
 
 G_DEFINE_TYPE( VipsHSV2sRGB, vips_HSV2sRGB, VIPS_TYPE_COLOUR_CODE );
 
-static void 
-vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width ) 
+static void
+vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	unsigned char *p = (unsigned char *) in[0];
 	unsigned char *q = (unsigned char *) out;
@@ -71,27 +71,27 @@ vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			q[0] = c + m;
 			q[1] = x + m;
 			q[2] = 0 + m;
-		} 
+		}
 		else if( p[0] < (int) (2 * SIXTH_OF_CHAR) ) {
 			q[0] = x + m;
 			q[1] = c + m;
 			q[2] = 0 + m;
-		} 
+		}
 		else if( p[0] < (int) (3 * SIXTH_OF_CHAR) ) {
 			q[0] = 0 + m;
 			q[1] = c + m;
 			q[2] = x + m;
-		} 
+		}
 		else if( p[0] < (int) (4 * SIXTH_OF_CHAR) ) {
 			q[0] = 0 + m;
 			q[1] = x + m;
 			q[2] = c + m;
-		} 
+		}
 		else if( p[0] < (int) (5 * SIXTH_OF_CHAR) ) {
 			q[0] = x + m;
 			q[1] = 0 + m;
 			q[2] = c + m;
-		} 
+		}
 		else {
 			q[0] = c + m;
 			q[1] = 0 + m;
@@ -140,7 +140,7 @@ vips_HSV2sRGB_init( VipsHSV2sRGB *HSV2sRGB )
  * Convert HSV to sRGB.
  *
  * HSV is a crude polar coordinate system for RGB images. It is provided for
- * compatibility with other image processing systems. See vips_Lab2LCh() for a 
+ * compatibility with other image processing systems. See vips_Lab2LCh() for a
  * much better colour space.
  *
  * See also: vips_sRGB2HSV().

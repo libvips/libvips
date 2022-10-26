@@ -1,6 +1,6 @@
 /* replicate an image x times horizontally and vertically
  *
- * JC, 30 sep 03 
+ * JC, 30 sep 03
  *
  * 15/4/04
  *	- some optimisations for some cases
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -73,7 +73,7 @@ typedef VipsConversionClass VipsReplicateClass;
 G_DEFINE_TYPE( VipsReplicate, vips_replicate, VIPS_TYPE_CONVERSION );
 
 static int
-vips_replicate_gen( VipsRegion *or, void *seq, void *a, void *b, 
+vips_replicate_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -162,7 +162,7 @@ vips_replicate_build( VipsObject *object )
 	if( vips_image_pio_input( replicate->in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_SMALLTILE, replicate->in, NULL ) )
 		return( -1 );
 
@@ -170,7 +170,7 @@ vips_replicate_build( VipsObject *object )
 	conversion->out->Ysize *= replicate->down;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_replicate_gen, vips_stop_one, 
+		vips_start_one, vips_replicate_gen, vips_stop_one,
 		replicate->in, replicate ) )
 		return( -1 );
 
@@ -192,21 +192,21 @@ vips_replicate_class_init( VipsReplicateClass *class )
 	vobject_class->description = _( "replicate an image" );
 	vobject_class->build = vips_replicate_build;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReplicate, in ) );
 
-	VIPS_ARG_INT( class, "across", 4, 
-		_( "Across" ), 
+	VIPS_ARG_INT( class, "across", 4,
+		_( "Across" ),
 		_( "Repeat this many times horizontally" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReplicate, across ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_INT( class, "down", 5, 
-		_( "Down" ), 
+	VIPS_ARG_INT( class, "down", 5,
+		_( "Down" ),
 		_( "Repeat this many times vertically" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsReplicate, down ),

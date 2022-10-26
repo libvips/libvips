@@ -1,13 +1,13 @@
-/* A byte source/sink .. it can be a pipe, file descriptor, memory area, 
+/* A byte source/sink .. it can be a pipe, file descriptor, memory area,
  * socket, node.js stream, etc.
- * 
+ *
  * J.Cupitt, 19/6/14
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,26 +59,26 @@
  * SECTION: connection
  * @short_description: a source/sink of bytes, perhaps a network socket
  * @stability: Stable
- * @see_also: <link linkend="libvips-foreign">foreign</link> 
+ * @see_also: <link linkend="libvips-foreign">foreign</link>
  * @include: vips/vips.h
  * @title: VipsConnection
  *
- * A #VipsConnection is a source or sink of bytes for something like jpeg 
- * loading, see for example vips_jpegload_source(). 
+ * A #VipsConnection is a source or sink of bytes for something like jpeg
+ * loading, see for example vips_jpegload_source().
  *
- * It can be connected to a network socket, for example, or perhaps 
- * a node.js stream, or to an area of memory. 
+ * It can be connected to a network socket, for example, or perhaps
+ * a node.js stream, or to an area of memory.
  *
  * Subclass to add other input sources. Use #VipsSourceCustom and
- * #VipsTargetCustom to make a source or target with action signals for 
+ * #VipsTargetCustom to make a source or target with action signals for
  * ::read, ::write and ::seek.
  */
 
 /**
  * VipsConnection:
  *
- * A #VipsConnection is a source or sink of bytes for something like jpeg 
- * loading. It can be connected to a network socket, for example. 
+ * A #VipsConnection is a source or sink of bytes for something like jpeg
+ * loading. It can be connected to a network socket, for example.
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsConnection, vips_connection, VIPS_TYPE_OBJECT );
@@ -108,7 +108,7 @@ vips_connection_finalize( GObject *gobject )
 		connection->descriptor = -1;
 	}
 
-	VIPS_FREE( connection->filename ); 
+	VIPS_FREE( connection->filename );
 
 	G_OBJECT_CLASS( vips_connection_parent_class )->finalize( gobject );
 }
@@ -122,8 +122,8 @@ vips_connection_class_init( VipsConnectionClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	VIPS_ARG_INT( class, "descriptor", 1, 
-		_( "Descriptor" ), 
+	VIPS_ARG_INT( class, "descriptor", 1,
+		_( "Descriptor" ),
 		_( "File descriptor for read or write" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsConnection, descriptor ),
@@ -146,8 +146,8 @@ vips_connection_init( VipsConnection *connection )
 	connection->close_descriptor = -1;
 }
 
-/** 
- * vips_connection_filename: 
+/**
+ * vips_connection_filename:
  * @connection: connection to operate on
  *
  * Returns: any filename associated with this connection, or NULL.
@@ -158,8 +158,8 @@ vips_connection_filename( VipsConnection *connection )
 	return( connection->filename );
 }
 
-/** 
- * vips_connection_nick: 
+/**
+ * vips_connection_nick:
  * @connection: connection to operate on
  *
  * Returns: a string describing this connection which could be displayed to a

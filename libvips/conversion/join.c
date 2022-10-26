@@ -14,7 +14,7 @@
  *	- bug in checking of image compatibility fixed
  * 23/10/95 JC
  *	- rewritten in terms of im_insert()
- * 14/4/04 
+ * 14/4/04
  *	- sets Xoffset / Yoffset
  * 1/2/10
  * 	- gtkdoc
@@ -28,7 +28,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -177,7 +177,7 @@ vips_join_build( VipsObject *object )
 			left = VIPS_MAX( 0, x ) - x;
 			top = 0;
 			width = VIPS_MIN( join->in1->Xsize, join->in2->Xsize );
-			height = t->Ysize; 
+			height = t->Ysize;
 			break;
 
 		default:
@@ -195,7 +195,7 @@ vips_join_build( VipsObject *object )
 			top != 0 ||
 			width != t->Xsize ||
 			height != t->Ysize ) {
-			if( vips_extract_area( t, &t2, 
+			if( vips_extract_area( t, &t2,
 				left, top, width, height, NULL ) ) {
 				g_object_unref( t );
 				return( -1 );
@@ -233,52 +233,52 @@ vips_join_class_init( VipsJoinClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in1", 0, 
-		_( "in1" ), 
+	VIPS_ARG_IMAGE( class, "in1", 0,
+		_( "in1" ),
 		_( "First input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, in1 ) );
 
-	VIPS_ARG_IMAGE( class, "in2", 1, 
-		_( "in2" ), 
+	VIPS_ARG_IMAGE( class, "in2", 1,
+		_( "in2" ),
 		_( "Second input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, in2 ) );
 
-	VIPS_ARG_ENUM( class, "direction", 3, 
-		_( "Direction" ), 
+	VIPS_ARG_ENUM( class, "direction", 3,
+		_( "Direction" ),
 		_( "Join left-right or up-down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, direction ),
-		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL );
 
-	VIPS_ARG_BOOL( class, "expand", 4, 
-		_( "Expand" ), 
+	VIPS_ARG_BOOL( class, "expand", 4,
+		_( "Expand" ),
 		_( "Expand output to hold all of both inputs" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, expand ),
 		FALSE );
 
-	VIPS_ARG_INT( class, "shim", 5, 
-		_( "Shim" ), 
+	VIPS_ARG_INT( class, "shim", 5,
+		_( "Shim" ),
 		_( "Pixels between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, shim ),
 		0, 1000000, 0 );
 
-	VIPS_ARG_BOXED( class, "background", 6, 
-		_( "Background" ), 
+	VIPS_ARG_BOXED( class, "background", 6,
+		_( "Background" ),
 		_( "Colour for new pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_ENUM( class, "align", 7, 
-		_( "Align" ), 
+	VIPS_ARG_ENUM( class, "align", 7,
+		_( "Align" ),
 		_( "Align on the low, centre or high coordinate edge" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, align ),
-		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
+		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW );
 }
 
 static void
@@ -286,15 +286,15 @@ vips_join_init( VipsJoin *join )
 {
 	/* Init our instance fields.
 	 */
-	join->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	join->background =
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 );
 	((double *) (join->background->data))[0] = 0.0;
 }
 
 /**
  * vips_join:
- * @in1: first input image 
- * @in2: second input image 
+ * @in1: first input image
+ * @in2: second input image
  * @out: (out): output image
  * @direction: join horizontally or vertically
  * @...: %NULL-terminated list of optional named arguments
@@ -306,7 +306,7 @@ vips_join_init( VipsJoin *join )
  * * @background: background ink colour
  * * @align: low, centre or high alignment
  *
- * Join @in1 and @in2 together, left-right or up-down depending on the value 
+ * Join @in1 and @in2 together, left-right or up-down depending on the value
  * of @direction.
  *
  * If one is taller or wider than the
@@ -320,14 +320,14 @@ vips_join_init( VipsJoin *join )
  * present in either @in1 or @in2.
  *
  * Use @shim to set the spacing between the images. By default this is 0.
- * 
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ *
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
+ * The two input images are cast up to the smallest common type (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * If you are going to be joining many thousands of images in a regular
@@ -338,7 +338,7 @@ vips_join_init( VipsJoin *join )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
+vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out,
 	VipsDirection direction, ... )
 {
 	va_list ap;

@@ -80,7 +80,7 @@ extern "C" {
  */
 #define VIPS_LSHIFT_INT( I, N ) ((int) ((unsigned int) (I) << (N)))
 
-/* What we store in the Meta hash table. We can't just use GHashTable's 
+/* What we store in the Meta hash table. We can't just use GHashTable's
  * key/value pairs, since we need to iterate over meta in Meta_traverse order.
  *
  * We don't refcount at this level ... large meta values are refcounted by
@@ -131,12 +131,12 @@ extern int vips__leak;
  */
 extern int vips__progress;
 
-/* Show info messages. Handy for debugging. 
+/* Show info messages. Handy for debugging.
  */
 extern int vips__info;
 
-/* A string giving the image size (in bytes of uncompressed image) above which 
- * we decompress to disc on open. 
+/* A string giving the image size (in bytes of uncompressed image) above which
+ * we decompress to disc on open.
  */
 extern char *vips__disc_threshold;
 
@@ -175,7 +175,7 @@ VIPS_API
 int vips_image_open_output( VipsImage *image );
 
 void vips__link_break_all( VipsImage *im );
-void *vips__link_map( VipsImage *image, gboolean upstream, 
+void *vips__link_map( VipsImage *image, gboolean upstream,
 	VipsSListMap2Fn fn, void *a, void *b );
 
 gboolean vips__mmap_supported( int fd );
@@ -250,35 +250,35 @@ VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n );
-int vips__bandalike_vec( const char *domain, 
+int vips__bandalike_vec( const char *domain,
 	VipsImage **in, VipsImage **out, int n, int base_bands );
 
-int vips__formatalike( VipsImage *in1, VipsImage *in2, 
+int vips__formatalike( VipsImage *in1, VipsImage *in2,
 	VipsImage **out1, VipsImage **out2 );
-int vips__sizealike( VipsImage *in1, VipsImage *in2, 
+int vips__sizealike( VipsImage *in1, VipsImage *in2,
 	VipsImage **out1, VipsImage **out2 );
-int vips__bandalike( const char *domain, 
+int vips__bandalike( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage **out1, VipsImage **out2 );
 
 /* draw
  */
-VipsPel *vips__vector_to_pels( const char *domain, 
-	int bands, VipsBandFormat format, VipsCoding coding, 
+VipsPel *vips__vector_to_pels( const char *domain,
+	int bands, VipsBandFormat format, VipsCoding coding,
 	double *real, double *imag, int n );
 /* TODO(kleisauke): VIPS_API is required by the poppler module.
  */
 VIPS_API
-VipsPel *vips__vector_to_ink( const char *domain, 
+VipsPel *vips__vector_to_ink( const char *domain,
 	VipsImage *im, double *real, double *imag, int n );
 
-int vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
+int vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 	int serial, int x, int y );
-int vips__draw_mask_direct( VipsImage *image, VipsImage *mask, 
-	VipsPel *ink, int x, int y ); 
+int vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
+	VipsPel *ink, int x, int y );
 
-typedef void (*VipsDrawPoint)( VipsImage *image, 
-	int x, int y, void *client ); 
-typedef void (*VipsDrawScanline)( VipsImage *image, 
+typedef void (*VipsDrawPoint)( VipsImage *image,
+	int x, int y, void *client );
+typedef void (*VipsDrawScanline)( VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client );
 
 void vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
@@ -337,11 +337,11 @@ void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 extern GQuark vips__image_pixels_quark;
 #endif /*DEBUG_LEAK*/
 
-/* With DEBUG_LEAK, hang one of these off each image and count pixels 
+/* With DEBUG_LEAK, hang one of these off each image and count pixels
  * calculated.
  */
 typedef struct _VipsImagePixels {
-	const char *nickname; 
+	const char *nickname;
 	gint64 tpels;		/* Number of pels we expect to calculate */
 	gint64 npels;		/* Number of pels calculated so far */
 } VipsImagePixels;
@@ -363,7 +363,7 @@ void vips__reorder_clear( VipsImage *image );
 
 /* Window manager API.
  */
-VipsWindow *vips_window_take( VipsWindow *window, 
+VipsWindow *vips_window_take( VipsWindow *window,
 	VipsImage *im, int top, int height );
 
 int vips__profile_set( VipsImage *image, const char *name );
@@ -380,7 +380,7 @@ int vips__tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int hwindowsize, int hsearchsize,
 	int mwidth );
 
-int vips__correl( VipsImage *ref, VipsImage *sec, 
+int vips__correl( VipsImage *ref, VipsImage *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y );

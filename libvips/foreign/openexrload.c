@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,13 +57,13 @@ typedef struct _VipsForeignLoadOpenexr {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadOpenexr;
 
 typedef VipsForeignLoadClass VipsForeignLoadOpenexrClass;
 
-G_DEFINE_TYPE( VipsForeignLoadOpenexr, vips_foreign_load_openexr, 
+G_DEFINE_TYPE( VipsForeignLoadOpenexr, vips_foreign_load_openexr,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static VipsForeignFlags
@@ -83,7 +83,7 @@ vips_foreign_load_openexr_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
-	return( vips_foreign_load_openexr_get_flags_filename( 
+	return( vips_foreign_load_openexr_get_flags_filename(
 		openexr->filename ) );
 }
 
@@ -92,7 +92,7 @@ vips_foreign_load_openexr_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
-	if( vips__openexr_read_header( openexr->filename, load->out ) ) 
+	if( vips__openexr_read_header( openexr->filename, load->out ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, openexr->filename );
@@ -105,7 +105,7 @@ vips_foreign_load_openexr_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
-	if( vips__openexr_read( openexr->filename, load->real ) ) 
+	if( vips__openexr_read( openexr->filename, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -139,16 +139,16 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 	foreign_class->priority = 200;
 
 	load_class->is_a = vips__openexr_isexr;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_openexr_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_openexr_get_flags;
 	load_class->header = vips_foreign_load_openexr_header;
 	load_class->load = vips_foreign_load_openexr_load;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenexr, filename ),
 		NULL );
 }
@@ -166,7 +166,7 @@ vips_foreign_load_openexr_init( VipsForeignLoadOpenexr *openexr )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a OpenEXR file into a VIPS image. 
+ * Read a OpenEXR file into a VIPS image.
  *
  * The reader can handle scanline and tiled OpenEXR images. It can't handle
  * OpenEXR colour management, image attributes, many pixel formats, anything

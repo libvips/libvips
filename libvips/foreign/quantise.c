@@ -1,13 +1,13 @@
 /* quantise an image
  *
- * 20/6/18 
+ * 20/6/18
  * 	  - from vipspng.c
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -113,7 +113,7 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 	 * next step. Its pixel color doesn't matter since we'll add all the
 	 * colors from the palette further.
 	 */
-	fake_image = 
+	fake_image =
 		liq_image_create_rgba( options, fake_image_pixels, 1, 1, 0 );
 	if( !fake_image ) {
 		liq_result_destroy( result );
@@ -129,7 +129,7 @@ vips__quantise_image_quantize_fixed( VipsQuantiseImage *const input_image,
 
 	liq_result_destroy( result );
 
-	/* Finally, quantize the fake image with fixed colors to make a 
+	/* Finally, quantize the fake image with fixed colors to make a
 	 * VipsQuantiseResult with a fixed palette.
 	 */
 	err = liq_image_quantize( fake_image, options, result_output );
@@ -304,13 +304,13 @@ vips__quantise_free( Quantise *quantise )
 	VIPS_FREEF( vips__quantise_attr_destroy, quantise->attr );
 
 	for( i = 0; i < VIPS_NUMBER( quantise->t ); i++ )
-		VIPS_UNREF( quantise->t[i] ); 
+		VIPS_UNREF( quantise->t[i] );
 
 	VIPS_FREE( quantise );
 }
 
 static Quantise *
-vips__quantise_new( VipsImage *in, 
+vips__quantise_new( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither, int effort )
 {
@@ -326,13 +326,13 @@ vips__quantise_new( VipsImage *in,
 	quantise->dither = dither;
 	quantise->effort = effort;
 	for( i = 0; i < VIPS_NUMBER( quantise->t ); i++ )
-		quantise->t[i] = NULL; 
+		quantise->t[i] = NULL;
 
-	return( quantise ); 
+	return( quantise );
 }
 
 int
-vips__quantise_image( VipsImage *in, 
+vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha )
@@ -345,26 +345,26 @@ vips__quantise_image( VipsImage *in,
 	VipsPel * restrict p;
 	gboolean added_alpha;
 
-	quantise = vips__quantise_new( in, index_out, palette_out, 
+	quantise = vips__quantise_new( in, index_out, palette_out,
 		colours, Q, dither, effort );
 
-	/* Ensure input is sRGB. 
+	/* Ensure input is sRGB.
 	 */
 	if( in->Type != VIPS_INTERPRETATION_sRGB ) {
-		if( vips_colourspace( in, &quantise->t[0], 
+		if( vips_colourspace( in, &quantise->t[0],
 			VIPS_INTERPRETATION_sRGB, NULL ) ) {
-			vips__quantise_free( quantise ); 
+			vips__quantise_free( quantise );
 			return( -1 );
 		}
 		in = quantise->t[0];
 	}
 
-	/* Add alpha channel if missing. 
+	/* Add alpha channel if missing.
 	 */
 	added_alpha = FALSE;
 	if( !vips_image_hasalpha( in ) ) {
 		if( vips_bandjoin_const1( in, &quantise->t[1], 255, NULL ) ) {
-			vips__quantise_free( quantise ); 
+			vips__quantise_free( quantise );
 			return( -1 );
 		}
 		added_alpha = TRUE;
@@ -372,14 +372,14 @@ vips__quantise_image( VipsImage *in,
 	}
 
 	if( !(quantise->t[2] = vips_image_copy_memory( in )) ) {
-		vips__quantise_free( quantise ); 
+		vips__quantise_free( quantise );
 		return( -1 );
 	}
 	in = quantise->t[2];
 
 	/* Threshold alpha channel.
 	 */
-	if( threshold_alpha && 
+	if( threshold_alpha &&
 		!added_alpha ) {
 		const guint64 n_pels = VIPS_IMAGE_N_PELS( in );
 
@@ -401,19 +401,19 @@ vips__quantise_image( VipsImage *in,
 	if( vips__quantise_image_quantize( quantise->input_image, quantise->attr,
 		&quantise->quantisation_result ) ) {
 		vips_error( "quantise", "%s", _( "quantisation failed" ) );
-		vips__quantise_free( quantise ); 
+		vips__quantise_free( quantise );
 		return( -1 );
 	}
 
 	vips__quantise_set_dithering_level( quantise->quantisation_result, dither );
 
 	index = quantise->t[3] = vips_image_new_memory();
-	vips_image_init_fields( index, 
+	vips_image_init_fields( index,
 		in->Xsize, in->Ysize, 1, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
 	if( vips_image_write_prepare( index ) ) {
-		vips__quantise_free( quantise ); 
+		vips__quantise_free( quantise );
 		return( -1 );
 	}
 
@@ -421,7 +421,7 @@ vips__quantise_image( VipsImage *in,
 		quantise->input_image,
 		VIPS_IMAGE_ADDR( index, 0, 0 ), VIPS_IMAGE_N_PELS( index ) ) ) {
 		vips_error( "quantise", "%s", _( "quantisation failed" ) );
-		vips__quantise_free( quantise ); 
+		vips__quantise_free( quantise );
 		return( -1 );
 	}
 
@@ -433,7 +433,7 @@ vips__quantise_image( VipsImage *in,
 		1.0, 1.0 );
 
 	if( vips_image_write_prepare( palette ) ) {
-		vips__quantise_free( quantise ); 
+		vips__quantise_free( quantise );
 		return( -1 );
 	}
 
@@ -452,7 +452,7 @@ vips__quantise_image( VipsImage *in,
 	*palette_out = palette;
 	g_object_ref( palette );
 
-	vips__quantise_free( quantise ); 
+	vips__quantise_free( quantise );
 
 	return( 0 );
 }
@@ -460,13 +460,13 @@ vips__quantise_image( VipsImage *in,
 #else /*!HAVE_QUANTIZATION*/
 
 int
-vips__quantise_image( VipsImage *in, 
+vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha )
 {
-	vips_error( "vips__quantise_image", 
-		"%s", _( "libvips not built with quantisation support" ) ); 
+	vips_error( "vips__quantise_image",
+		"%s", _( "libvips not built with quantisation support" ) );
 
 	return( -1 );
 }

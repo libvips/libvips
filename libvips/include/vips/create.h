@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -86,56 +86,56 @@ int vips_tonelut( VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_mask_ideal( VipsImage **out, int width, int height, 
+int vips_mask_ideal( VipsImage **out, int width, int height,
 	double frequency_cutoff, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_ideal_ring( VipsImage **out, int width, int height, 
+int vips_mask_ideal_ring( VipsImage **out, int width, int height,
 	double frequency_cutoff, double ringwidth, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_ideal_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, 
+int vips_mask_ideal_band( VipsImage **out, int width, int height,
+	double frequency_cutoff_x, double frequency_cutoff_y,
 	double radius, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_butterworth( VipsImage **out, int width, int height, 
-	double order, 
+int vips_mask_butterworth( VipsImage **out, int width, int height,
+	double order,
 	double frequency_cutoff, double amplitude_cutoff, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_butterworth_ring( VipsImage **out, int width, int height, 
-	double order, 
-	double frequency_cutoff, double amplitude_cutoff, 
+int vips_mask_butterworth_ring( VipsImage **out, int width, int height,
+	double order,
+	double frequency_cutoff, double amplitude_cutoff,
 	double ringwidth, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_butterworth_band( VipsImage **out, int width, int height, 
-	double order, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
+int vips_mask_butterworth_band( VipsImage **out, int width, int height,
+	double order,
+	double frequency_cutoff_x, double frequency_cutoff_y, double radius,
 	double amplitude_cutoff, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_gaussian( VipsImage **out, int width, int height, 
+int vips_mask_gaussian( VipsImage **out, int width, int height,
 	double frequency_cutoff, double amplitude_cutoff, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_gaussian_ring( VipsImage **out, int width, int height, 
-	double frequency_cutoff, double amplitude_cutoff, 
+int vips_mask_gaussian_ring( VipsImage **out, int width, int height,
+	double frequency_cutoff, double amplitude_cutoff,
 	double ringwidth, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_gaussian_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
+int vips_mask_gaussian_band( VipsImage **out, int width, int height,
+	double frequency_cutoff_x, double frequency_cutoff_y, double radius,
 	double amplitude_cutoff, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_mask_fractal( VipsImage **out, int width, int height, 
+int vips_mask_fractal( VipsImage **out, int width, int height,
 	double fractal_dimension, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_fractsurf( VipsImage **out, 
+int vips_fractsurf( VipsImage **out,
 	int width, int height, double fractal_dimension, ... )
 	G_GNUC_NULL_TERMINATED;
 

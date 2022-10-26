@@ -55,22 +55,22 @@ G_MODULE_EXPORT const gchar *
 g_module_check_init( GModule *module )
 {
 #ifdef DEBUG
-	printf( "vips_jxl: module init\n" ); 
+	printf( "vips_jxl: module init\n" );
 #endif /*DEBUG*/
 
-	extern GType vips_foreign_load_jxl_file_get_type( void ); 
-	extern GType vips_foreign_load_jxl_buffer_get_type( void ); 
-	extern GType vips_foreign_load_jxl_source_get_type( void ); 
-	extern GType vips_foreign_save_jxl_file_get_type( void ); 
-	extern GType vips_foreign_save_jxl_buffer_get_type( void ); 
-	extern GType vips_foreign_save_jxl_target_get_type( void ); 
+	extern GType vips_foreign_load_jxl_file_get_type( void );
+	extern GType vips_foreign_load_jxl_buffer_get_type( void );
+	extern GType vips_foreign_load_jxl_source_get_type( void );
+	extern GType vips_foreign_save_jxl_file_get_type( void );
+	extern GType vips_foreign_save_jxl_buffer_get_type( void );
+	extern GType vips_foreign_save_jxl_target_get_type( void );
 
-	vips_foreign_load_jxl_file_get_type(); 
-	vips_foreign_load_jxl_buffer_get_type(); 
-	vips_foreign_load_jxl_source_get_type(); 
-	vips_foreign_save_jxl_file_get_type(); 
-	vips_foreign_save_jxl_buffer_get_type(); 
-	vips_foreign_save_jxl_target_get_type(); 
+	vips_foreign_load_jxl_file_get_type();
+	vips_foreign_load_jxl_buffer_get_type();
+	vips_foreign_load_jxl_source_get_type();
+	vips_foreign_save_jxl_file_get_type();
+	vips_foreign_save_jxl_buffer_get_type();
+	vips_foreign_save_jxl_target_get_type();
 
 	return( NULL );
 }

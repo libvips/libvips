@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,19 +61,19 @@ extern "C" {
 typedef char *im_arg_type;              /* Type of argument id */
 
 /* Internal representation of an argument to an image processing function.
- */ 
+ */
 typedef void *im_object;
 
 /* These bits are ored together to make the flags in a type descriptor.
  *
- * IM_TYPE_OUTPUT: set to indicate output, otherwise input. If the IM_TYPE_RW 
- * bit is set and IM_TYPE_OUTPUT is not set, both input and output (ie. the 
+ * IM_TYPE_OUTPUT: set to indicate output, otherwise input. If the IM_TYPE_RW
+ * bit is set and IM_TYPE_OUTPUT is not set, both input and output (ie. the
  * operation side-effects this argument).
  *
- * IM_TYPE_ARG: Two ways of making an im_object --- with and without a 
- * command-line string to help you along. Arguments with a string are thing 
- * like IMAGE descriptors, which require a filename to initialise. 
- * Arguments without are things like output numbers, where making the object 
+ * IM_TYPE_ARG: Two ways of making an im_object --- with and without a
+ * command-line string to help you along. Arguments with a string are thing
+ * like IMAGE descriptors, which require a filename to initialise.
+ * Arguments without are things like output numbers, where making the object
  * simply involves allocating storage.
  */
 typedef enum {
@@ -100,7 +100,7 @@ typedef struct {
 	im_dest_obj_fn dest;            /* Destroy object */
 } im_type_desc;
 
-/* Success on an argument. This is called if the image processing function 
+/* Success on an argument. This is called if the image processing function
  * succeeds and should be used to (for example) print output.
  */
 typedef int (*im_print_obj_fn)( im_object obj );

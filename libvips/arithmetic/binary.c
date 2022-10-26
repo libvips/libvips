@@ -19,7 +19,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -92,14 +92,14 @@ vips_binary_class_init( VipsBinaryClass *class )
 	/* Create properties.
 	 */
 
-	VIPS_ARG_IMAGE( class, "left", 1, 
-		_( "Left" ), 
+	VIPS_ARG_IMAGE( class, "left", 1,
+		_( "Left" ),
 		_( "Left-hand image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBinary, left ) );
 
 	VIPS_ARG_IMAGE( class, "right", 2,
-		_( "Right" ), 
+		_( "Right" ),
 		_( "Right-hand image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBinary, right ) );

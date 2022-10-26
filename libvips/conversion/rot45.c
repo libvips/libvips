@@ -13,13 +13,13 @@
  * 1/12/10
  * 	- allow any size mask for the 90 degree rot45ates by using im_rot4590().
  * 12/10/13
- * 	- rewritten as a class 
+ * 	- rewritten as a class
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -103,16 +103,16 @@ G_DEFINE_TYPE( VipsRot45, vips_rot45, VIPS_TYPE_CONVERSION );
 static void
 vips_rot45_rot45( VipsImage *out, VipsImage *in )
 {
-	size_t ps = VIPS_IMAGE_SIZEOF_PEL( in ); 
-	VipsPel *temp = VIPS_ARRAY( in, ps, VipsPel ); 
-	int size = in->Xsize; 
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	VipsPel *temp = VIPS_ARRAY( in, ps, VipsPel );
+	int size = in->Xsize;
 	int size_2 = size / 2;
 
 	int x, y;
 
-	g_assert( in->Xsize == in->Ysize ); 
-	g_assert( out->Xsize == out->Ysize ); 
-	g_assert( in->Xsize == out->Xsize ); 
+	g_assert( in->Xsize == in->Ysize );
+	g_assert( out->Xsize == out->Ysize );
+	g_assert( in->Xsize == out->Xsize );
 	g_assert( in->Xsize % 2 == 1 );
 
 	/* Split the square into 8 triangles. Loop over the top-left one,
@@ -122,26 +122,26 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 	 * 	8 1 2 3 3
 	 * 	8 8 x 4 4
 	 * 	7 7 6 5 4
-	 * 	7 6 6 5 5 
+	 * 	7 6 6 5 5
 	 *
 	 * do the centre separately.
 	 */
 
-	for( y = 0; y < size_2; y++ )  
+	for( y = 0; y < size_2; y++ )
 		for( x = y; x < size_2; x++ ) {
 			/* Save 1, it goes into 2 at the end.
 			 */
-			POINT_TO_TEMP( temp, x, y ); 
+			POINT_TO_TEMP( temp, x, y );
 
 			/* Fill 1 from 8.
 			 */
-			ASSIGN( x, y, 
+			ASSIGN( x, y,
 				y, size_2 - (x - y) );
 
 			/* 8 from 7.
 			 */
 			ASSIGN( y, size_2 - (x - y),
-				y, (size - 1) - x ); 
+				y, (size - 1) - x );
 
 			/* 7 from 6.
 			 */
@@ -151,14 +151,14 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 			/* 6 from 5.
 			 */
 			ASSIGN( size_2 - (x - y), (size - 1) - y,
-				(size - 1) - x, (size - 1) - y ); 
+				(size - 1) - x, (size - 1) - y );
 
-			/* 5 from 4. 
+			/* 5 from 4.
 			 */
 			ASSIGN( (size - 1) - x, (size - 1) - y,
 				(size - 1) - y, (x - y) + size_2 );
 
-			/* 4 from 3. 
+			/* 4 from 3.
 			 */
 			ASSIGN( (size - 1) - y, (x - y) + size_2,
 				(size - 1) - y, x );
@@ -168,14 +168,14 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 			ASSIGN( (size - 1) - y, x,
 				(x - y) + size_2, y );
 
-			/* 2 from saved 1. 
+			/* 2 from saved 1.
 			 */
-			TEMP_TO_POINT( (x - y) + size_2, y, temp ); 
+			TEMP_TO_POINT( (x - y) + size_2, y, temp );
 		}
 
 	/* Centre.
 	 */
-	ASSIGN( size_2, size_2, size_2, size_2 ); 
+	ASSIGN( size_2, size_2, size_2, size_2 );
 }
 
 static int
@@ -192,7 +192,7 @@ vips_rot45_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_check_oddsquare( class->nickname, rot45->in ) )
-		return( -1 ); 
+		return( -1 );
 
 	if( rot45->angle == VIPS_ANGLE45_D0 )
 		return( vips_image_write( rot45->in, conversion->out ) );
@@ -202,7 +202,7 @@ vips_rot45_build( VipsObject *object )
 	in = t[1];
 
 	t[0] = vips_image_new_memory();
-	if( vips_image_pipelinev( t[0], 
+	if( vips_image_pipelinev( t[0],
 		VIPS_DEMAND_STYLE_ANY, rot45->in, NULL ) )
 		return( -1 );
 	if( vips_image_write_prepare( t[0] ) )
@@ -212,7 +212,7 @@ vips_rot45_build( VipsObject *object )
 	case VIPS_ANGLE45_D315:
 		vips_rot45_rot45( t[0], in );
 		in = t[0];
-		
+
 	case VIPS_ANGLE45_D270:
 		vips_rot45_rot45( t[0], in );
 		in = t[0];
@@ -263,18 +263,18 @@ vips_rot45_class_init( VipsRot45Class *class )
 	vobject_class->description = _( "rotate an image" );
 	vobject_class->build = vips_rot45_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRot45, in ) );
 
-	VIPS_ARG_ENUM( class, "angle", 6, 
-		_( "Angle" ), 
+	VIPS_ARG_ENUM( class, "angle", 6,
+		_( "Angle" ),
 		_( "Angle to rotate image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsRot45, angle ),
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D45 ); 
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D45 );
 }
 
 static void
@@ -294,10 +294,10 @@ vips_rot45_init( VipsRot45 *rot45 )
  * * @angle: #VipsAngle45 rotation angle
  *
  * Rotate @in by a multiple of 45 degrees. Odd-length sides and square images
- * only. 
+ * only.
  *
  * This operation is useful for rotating convolution masks. Use
- * vips_similarity() to rotate images by arbitrary angles. 
+ * vips_similarity() to rotate images by arbitrary angles.
  *
  * See also: vips_rot(), vips_similarity().
  *

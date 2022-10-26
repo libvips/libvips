@@ -1,5 +1,5 @@
 /* Read raw image. Just a wrapper over im_binfile().
- * 
+ *
  * 15/12/11
  * 	- just a compat stub now
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -44,13 +44,13 @@
 #include <vips/vips7compat.h>
 
 int
-im_raw2vips( const char *filename, IMAGE *out, 
+im_raw2vips( const char *filename, IMAGE *out,
 	int width, int height, int bpp, int offset )
 {
 	VipsImage *t;
 
 	if( vips_rawload( filename, &t, width, height, bpp,
-		"offset", offset, 
+		"offset", offset,
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {

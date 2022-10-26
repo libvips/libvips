@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -66,7 +66,7 @@ vips_dECMC_class_init( VipsdECMCClass *class )
 static void
 vips_dECMC_init( VipsdECMC *dECMC )
 {
-	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dECMC ); 
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dECMC );
 
 	difference->interpretation = VIPS_INTERPRETATION_CMC;
 }
@@ -79,7 +79,7 @@ vips_dECMC_init( VipsdECMC *dECMC )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Calculate dE CMC. The input images are transformed to CMC colour space and
- * the euclidean distance between corresponding pixels calculated. 
+ * the euclidean distance between corresponding pixels calculated.
  *
  * To calculate a colour difference with values for (l:c) other than (1:1),
  * transform the two source images to CMC yourself, scale the channels

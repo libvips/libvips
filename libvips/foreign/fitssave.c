@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -58,13 +58,13 @@ typedef struct _VipsForeignSaveFits {
 
 	/* Filename for save.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignSaveFits;
 
 typedef VipsForeignSaveClass VipsForeignSaveFitsClass;
 
-G_DEFINE_TYPE( VipsForeignSaveFits, vips_foreign_save_fits, 
+G_DEFINE_TYPE( VipsForeignSaveFits, vips_foreign_save_fits,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static int
@@ -72,7 +72,7 @@ vips_foreign_save_fits_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveFits *fits = (VipsForeignSaveFits *) object;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( fits ), 2 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_fits_parent_class )->
@@ -81,8 +81,8 @@ vips_foreign_save_fits_build( VipsObject *object )
 
 	/* FITS is written bottom-to-top, so we must flip.
 	 *
-	 * But all vips readers must work top-to-bottom (or vips_copy()'s seq 
-	 * hint won't work) so we must cache the input image. 
+	 * But all vips readers must work top-to-bottom (or vips_copy()'s seq
+	 * hint won't work) so we must cache the input image.
 	 *
 	 * We cache to RAM, but perhaps we should use something like
 	 * vips_get_disc_threshold() and copy to a tempfile.
@@ -90,7 +90,7 @@ vips_foreign_save_fits_build( VipsObject *object )
 	t[0] = vips_image_new_memory();
 	if( vips_image_write( save->ready, t[0] ) ||
 		vips_flip( t[0], &t[1], VIPS_DIRECTION_VERTICAL, NULL ) ||
-		vips__fits_write( t[1], fits->filename ) ) 
+		vips__fits_write( t[1], fits->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -140,10 +140,10 @@ vips_foreign_save_fits_class_init( VipsForeignSaveFitsClass *class )
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_fits;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveFits, filename ),
 		NULL );
 }
@@ -157,8 +157,8 @@ vips_foreign_save_fits_init( VipsForeignSaveFits *fits )
 
 /**
  * vips_fitssave: (method)
- * @in: image to save 
- * @filename: file to write to 
+ * @in: image to save
+ * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in FITS format.

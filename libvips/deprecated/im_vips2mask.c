@@ -7,7 +7,7 @@
  * 16/10/06
  * 	- allow 1xn-band images too
  * 23/2/07
- * 	- oop, broken for nx1 m-band images 
+ * 	- oop, broken for nx1 m-band images
  * 	- now casts to double for you
  * 1/2/10
  * 	- gtkdoc
@@ -16,7 +16,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,7 +53,7 @@
 /**
  * im_vips2mask:
  * @in: input image
- * @filename: name for output mask 
+ * @filename: name for output mask
  *
  * Make a mask from an image. All images are cast to %IM_BANDFMT_DOUBLE
  * before processing. There are two cases for handling bands:
@@ -110,7 +110,7 @@ im_vips2mask( IMAGE *in, const char *filename )
 		height = in->Bands;
 	}
 	else {
-		im_error( "im_vips2mask", 
+		im_error( "im_vips2mask",
 			"%s", _( "one band, nx1, or 1xn images only" ) );
 		return( NULL );
 	}
@@ -129,7 +129,7 @@ im_vips2mask( IMAGE *in, const char *filename )
 					data[x * height + y];
 	}
 	else
-		memcpy( out->coeff, in->data, 
+		memcpy( out->coeff, in->data,
 			width * height * sizeof( double ) );
 
 	out->scale = vips_image_get_scale( in );
@@ -185,7 +185,7 @@ im_vips2imask( IMAGE *in, const char *filename )
 		height = in->Bands;
 	}
 	else {
-		im_error( "im_vips2imask", 
+		im_error( "im_vips2imask",
 			"%s", _( "one band, nx1, or 1xn images only" ) );
 		return( NULL );
 	}
@@ -212,8 +212,8 @@ im_vips2imask( IMAGE *in, const char *filename )
 
 	for( y = 0; y < height; y++ )
 		for( x = 0; x < width; x++ )
-			if( in->Bands > 1 && in->Ysize == 1 ) 
-				/* Need to transpose: the image is RGBRGBRGB, 
+			if( in->Bands > 1 && in->Ysize == 1 )
+				/* Need to transpose: the image is RGBRGBRGB,
 				 * we need RRRGGGBBB.
 				 */
 				out->coeff[x + y * width] =
@@ -236,10 +236,10 @@ im_vips2imask( IMAGE *in, const char *filename )
 			int_result += out->coeff[x + width * y];
 	int_result /= out->scale;
 
-	/* And adjust the scale to get as close to a match as we can. 
+	/* And adjust the scale to get as close to a match as we can.
 	 */
 	out->scale = VIPS_RINT( out->scale + (int_result - double_result) );
-	if( out->scale == 0 ) 
+	if( out->scale == 0 )
 		out->scale = 1;
 
 	return( out );

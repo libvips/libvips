@@ -2,7 +2,7 @@
  *
  * Author: John Cupitt
  * Written on: 22/4/93
- * Modified on: 
+ * Modified on:
  * 30/6/93 JC
  *	- adapted for partial v2
  * 	- ANSI
@@ -22,14 +22,14 @@
  * 	- use linear uchar mode
  * 14/7/14
  * 	- round to nearest on uchar output
- * 29/12/18 kleisauke 
- * 	- ... and round to nearest in log mode too 
+ * 29/12/18 kleisauke
+ * 	- ... and round to nearest in log mode too
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -101,13 +101,13 @@ vips_scale_build( VipsObject *object )
 	if( mn == mx ) {
 		/* Range of zero: just return black.
 		 */
-		if( vips_black( &t[1], scale->in->Xsize, scale->in->Ysize, 
+		if( vips_black( &t[1], scale->in->Xsize, scale->in->Ysize,
 			"bands", scale->in->Bands,
 			NULL ) ||
 			vips_image_write( t[1], conversion->out ) )
 			return( -1 );
 	}
-	else if( scale->log ) { 
+	else if( scale->log ) {
 		double f = 255.0 / log10( 1.0 + pow( mx, scale->exp ) );
 
 		if( vips_pow_const1( scale->in, &t[2], scale->exp, NULL ) ||
@@ -115,8 +115,8 @@ vips_scale_build( VipsObject *object )
 			vips_log10( t[3], &t[4], NULL ) ||
 			/* Add 0.5 to get round to nearest.
 			 */
-			vips_linear1( t[4], &t[5], f, 0.5, 
-				"uchar", TRUE, 
+			vips_linear1( t[4], &t[5], f, 0.5,
+				"uchar", TRUE,
 				NULL ) ||
 			vips_image_write( t[5], conversion->out ) )
 			return( -1 );
@@ -128,8 +128,8 @@ vips_scale_build( VipsObject *object )
 		 */
 		double a = -(mn * f) + 0.5;
 
-		if( vips_linear1( scale->in, &t[2], f, a, 
-			"uchar", TRUE, 
+		if( vips_linear1( scale->in, &t[2], f, a,
+			"uchar", TRUE,
 			NULL ) ||
 			vips_image_write( t[2], conversion->out ) )
 			return( -1 );
@@ -151,21 +151,21 @@ vips_scale_class_init( VipsScaleClass *class )
 	vobject_class->description = _( "scale an image to uchar" );
 	vobject_class->build = vips_scale_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsScale, in ) );
 
-	VIPS_ARG_BOOL( class, "log", 3, 
-		_( "Log" ), 
+	VIPS_ARG_BOOL( class, "log", 3,
+		_( "Log" ),
 		_( "Log scale" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsScale, log ),
 		FALSE );
 
-	VIPS_ARG_DOUBLE( class, "exp", 3, 
-		_( "Exponent" ), 
+	VIPS_ARG_DOUBLE( class, "exp", 3,
+		_( "Exponent" ),
 		_( "Exponent for log scale" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsScale, exp ),
@@ -194,7 +194,7 @@ vips_scale_init( VipsScale *scale )
  * as unsigned 8-bit, scaled so that the maximum value is 255 and the
  * minimum is zero.
  *
- * If @log is set, transform with log10(1.0 + pow(x, @exp)) + .5, 
+ * If @log is set, transform with log10(1.0 + pow(x, @exp)) + .5,
  * then scale so max == 255. By default, @exp is 0.25.
  *
  * See also: vips_cast().

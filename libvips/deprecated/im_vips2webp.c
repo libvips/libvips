@@ -1,7 +1,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -46,8 +46,8 @@
 int
 im_vips2webp( IMAGE *in, const char *filename )
 {
-	int compression; 
-	int lossless; 
+	int compression;
+	int lossless;
 
 	char *p, *q;
 
@@ -56,16 +56,16 @@ im_vips2webp( IMAGE *in, const char *filename )
 	char buf[FILENAME_MAX];
 
 	im_filename_split( filename, name, mode );
-	strcpy( buf, mode ); 
+	strcpy( buf, mode );
 	p = &buf[0];
 	compression = 6;
 	lossless = 0;
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		compression = atoi( q );
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		lossless = atoi( q );
 
-	return( vips_webpsave( in, name, 
+	return( vips_webpsave( in, name,
 		"Q", compression, "lossless", lossless, NULL ) );
 }
 

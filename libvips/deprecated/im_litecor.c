@@ -1,4 +1,4 @@
-/* @(#) Function to perform lighting correction. 
+/* @(#) Function to perform lighting correction.
  * @(#) One band IM_BANDFMT_UCHAR images only. Always writes UCHAR.
  * @(#)
  * @(#) Function im_litecor() assumes that imin
@@ -9,7 +9,7 @@
  * @(#) int clip;
  * @(#) double factor;
  * @(#)
- * @(#) clip==1	
+ * @(#) clip==1
  * @(#)	   - Compute max(white)*factor*(image/white), Clip to 255.
  * @(#)	clip==0
  * @(#)	   - Compute factor for you.
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -85,30 +85,30 @@ im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 	double max;
 	int wtmp, maxw, maxout, temp;
 
-	/* Check white is some simple multiple of image.  
+	/* Check white is some simple multiple of image.
 	 */
 	if( xrat < 1.0 || xrat != xstep || yrat < 1.0 || yrat != ystep ) {
 		im_error( "im_litecor", "white not simple scale of image" );
 		return( -1 );
 	}
 
-	/* Find the maximum of the white.  
+	/* Find the maximum of the white.
 	 */
 	if( im_max( white, &max ) )
 		return( -1 );
 	maxw = (int)max;
 
-	/* Set up the output header.  
+	/* Set up the output header.
 	 */
-	if( im_cp_desc( out, in ) ) 
+	if( im_cp_desc( out, in ) )
 		return( -1 );
 	if( im_setupout( out ) )
 		return( -1 );
 
-	/* Make buffer for outputting to.  
+	/* Make buffer for outputting to.
 	 */
-	if( !(bu = (PEL *) im_malloc( out, out->Xsize )) )  
-		return( -1 ); 
+	if( !(bu = (PEL *) im_malloc( out, out->Xsize )) )
+		return( -1 );
 
 	/* Find largest value we might generate if factor == 1.0
 	 */
@@ -122,19 +122,19 @@ im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 		w = (PEL *) (white->data + white->Xsize * (int)(y/ystep));
 		c = 0;
 
-		/* Scan along line.  
+		/* Scan along line.
 		 */
 		for( x = 0; x < out->Xsize; x++ ) {
 			wtmp = (int)*w;
-			temp = ( maxw * (int) *p++ + (wtmp>>1) ) / wtmp; 
+			temp = ( maxw * (int) *p++ + (wtmp>>1) ) / wtmp;
 			if (temp > maxout )
 				maxout = temp;
 
 			/* Move white pointer on if necessary.  */
 			c++;
-			if( c == xstep ) { 
-				w++; 
-				c = 0; 
+			if( c == xstep ) {
+				w++;
+				c = 0;
 			}
 		}
 	}
@@ -145,25 +145,25 @@ im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 	p = (PEL *) in->data;
 	if (maxout <= 255 )	/* no need for rescaling output */
 		{
-		for( y = 0; y < in->Ysize; y++ ) 
+		for( y = 0; y < in->Ysize; y++ )
 			{
 			q = bu;
-			w = (PEL *) (white->data + 
+			w = (PEL *) (white->data +
 				white->Xsize * (int)(y/ystep));
 			c = 0;
 
 			/* Scan along line.  */
-			for( x = 0; x < in->Xsize; x++ ) 
+			for( x = 0; x < in->Xsize; x++ )
 				{
 				wtmp = (int)*w;
 				*q++ = (PEL)
-				( ( maxw * (int) *p++ + (wtmp>>1) ) / wtmp ); 
+				( ( maxw * (int) *p++ + (wtmp>>1) ) / wtmp );
 				/* Move white pointer on if necessary.
 				 */
 				c++;
 				if( c == xstep ) { w++; c = 0; }
 				}
-			if( im_writeline( y, out, bu ) ) 
+			if( im_writeline( y, out, bu ) )
 				{
 				im_error("im_litecor", "im_writeline failed");
 				return( -1 );
@@ -172,15 +172,15 @@ im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 		}
 	else		/* rescale output wrt maxout */
 		{
-		for( y = 0; y < in->Ysize; y++ ) 
+		for( y = 0; y < in->Ysize; y++ )
 			{
 			q = bu;
-			w = (PEL *) (white->data + 
+			w = (PEL *) (white->data +
 				white->Xsize * (int)(y/ystep));
 			c = 0;
 
 			/* Scan along line.  */
-			for( x = 0; x < in->Xsize; x++ ) 
+			for( x = 0; x < in->Xsize; x++ )
 				{
 				wtmp = maxout * ((int)*w);
 				*q++ = (PEL)
@@ -190,7 +190,7 @@ im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 				c++;
 				if( c == xstep ) { w++; c = 0; }
 				}
-			if( im_writeline( y, out, bu ) ) 
+			if( im_writeline( y, out, bu ) )
 				{
 				im_error("im_litecor", "im_writeline failed");
 				return( -1 );
@@ -217,32 +217,32 @@ im_litecor1( IMAGE *in, IMAGE *white, IMAGE *out, double factor )
 	double maxw, temp;
 	int nclipped = 0;
 
-	/* Check white is some simple multiple of image.  
+	/* Check white is some simple multiple of image.
 	 */
 	if( xrat < 1.0 || xrat != xstep || yrat < 1.0 || yrat != ystep ) {
 		im_error( "im_litecor", "white not simple scale of image" );
 		return( -1 );
 	}
 
-	/* Find the maximum of the white.  
+	/* Find the maximum of the white.
 	 */
 	if( im_max( white, &max ) )
 		return( -1 );
 	maxw = max;
 
-	/* Set up the output header.  
+	/* Set up the output header.
 	 */
-	if( im_cp_desc( out, in ) ) 
+	if( im_cp_desc( out, in ) )
 		return( -1 );
 	if( im_setupout( out ) )
 		return( -1 );
 
-	/* Make buffer we write to.  
+	/* Make buffer we write to.
 	 */
-	if( !(bu = (PEL *) im_malloc( out, out->Xsize )) )  
-		return( -1 ); 
+	if( !(bu = (PEL *) im_malloc( out, out->Xsize )) )
+		return( -1 );
 
-	/* Loop through sorting max output  
+	/* Loop through sorting max output
 	 */
 	p = (PEL *) in->data;
 	for( y = 0; y < in->Ysize; y++ ) {
@@ -252,22 +252,22 @@ im_litecor1( IMAGE *in, IMAGE *white, IMAGE *out, double factor )
 
 		for( x = 0; x < out->Xsize; x++ ) {
 			temp = ((factor * maxw * (int) *p++)/((int) *w)) + 0.5;
-			if( temp > 255.0 ) { 
-				temp = 255; 
-				nclipped++; 
+			if( temp > 255.0 ) {
+				temp = 255;
+				nclipped++;
 			}
 			*q++ = temp;
 
 			/* Move white pointer on if necessary.
 			 */
 			c++;
-			if( c == xstep ) { 
-				w++; 
-				c = 0; 
+			if( c == xstep ) {
+				w++;
+				c = 0;
 			}
 		}
 
-		if( im_writeline( y, out, bu ) ) 
+		if( im_writeline( y, out, bu ) )
 			return( -1 );
 	}
 
@@ -284,17 +284,17 @@ im_litecor1( IMAGE *in, IMAGE *white, IMAGE *out, double factor )
  */
 int
 im_litecor( IMAGE *in, IMAGE *white, IMAGE *out, int clip, double factor )
-{	/* Check our args. 
+{	/* Check our args.
 	 */
-	if( im_iocheck( in, out ) ) 
+	if( im_iocheck( in, out ) )
 		return( -1 );
-	if( in->Bands != 1 || 
+	if( in->Bands != 1 ||
 		in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ) {
-		im_error( "im_litecor", "bad input format" ); 
+		im_error( "im_litecor", "bad input format" );
 		return( -1 );
 	}
-	if( white->Bands != 1 || 
-		white->Coding != IM_CODING_NONE || white->BandFmt != IM_BANDFMT_UCHAR ) { 
+	if( white->Bands != 1 ||
+		white->Coding != IM_CODING_NONE || white->BandFmt != IM_BANDFMT_UCHAR ) {
 		im_error( "im_litecor", "bad white format" );
 		return( -1 );
 	}
@@ -302,12 +302,12 @@ im_litecor( IMAGE *in, IMAGE *white, IMAGE *out, int clip, double factor )
 	switch( clip ) {
 	case 1:
 		return( im_litecor1( in, white, out, factor ) );
-		
-	case 0: 
+
+	case 0:
 		return( im_litecor0( in, white, out ) );
 
 	default:
-		im_error( "im_litecor", "unknown flag %d", clip ); 
+		im_error( "im_litecor", "unknown flag %d", clip );
 		return( -1 );
 	}
 }

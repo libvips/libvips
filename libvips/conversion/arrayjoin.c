@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,7 +77,7 @@ typedef VipsConversionClass VipsArrayjoinClass;
 G_DEFINE_TYPE( VipsArrayjoin, vips_arrayjoin, VIPS_TYPE_CONVERSION );
 
 static int
-vips_arrayjoin_gen( VipsRegion *or, void *seq, 
+vips_arrayjoin_gen( VipsRegion *or, void *seq,
 	void *a, void *b, gboolean *stop )
 {
 	VipsRegion **ir = (VipsRegion **) seq;
@@ -92,10 +92,10 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 
 	in = vips_array_image_get( join->in, &n );
 
-	/* Does this rect fit completely within one of our inputs? 
+	/* Does this rect fit completely within one of our inputs?
 	 */
 	just_one = FALSE;
-	for( i = 0; i < n; i++ ) 
+	for( i = 0; i < n; i++ )
 		if( vips_rect_includesrect( &join->rects[i], r ) ) {
 			just_one = TRUE;
 			break;
@@ -110,11 +110,11 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 		       return( -1 );
 	}
 	else {
-		/* Output requires more than one input. Paste all touching 
+		/* Output requires more than one input. Paste all touching
 		 * inputs into the output.
 		 */
-		for( i = 0; i < n; i++ ) 
-			if( vips__insert_paste_region( or, ir[i], 
+		for( i = 0; i < n; i++ )
+			if( vips__insert_paste_region( or, ir[i],
 				&join->rects[i] ) )
 				return( -1 );
 	}
@@ -169,7 +169,7 @@ vips_arrayjoin_build( VipsObject *object )
 	/* Array length zero means error.
 	 */
 	if( n == 0 )
-		return( -1 ); 
+		return( -1 );
 
 	/* Move all input images to a common format and number of bands.
 	 */
@@ -182,7 +182,7 @@ vips_arrayjoin_build( VipsObject *object )
 	 * calculation.
 	 */
 	band = (VipsImage **) vips_object_local_array( object, n );
-	if( vips__bandalike_vec( class->nickname, 
+	if( vips__bandalike_vec( class->nickname,
 		in, band, n, join->background->n ) )
 		return( -1 );
 	in = band;
@@ -192,21 +192,21 @@ vips_arrayjoin_build( VipsObject *object )
 	hspacing = in[0]->Xsize;
 	vspacing = in[0]->Ysize;
 	for( i = 1; i < n; i++ ) {
-		if( in[i]->Xsize > hspacing ) 
+		if( in[i]->Xsize > hspacing )
 			hspacing = in[i]->Xsize;
-		if( in[i]->Ysize > vspacing ) 
+		if( in[i]->Ysize > vspacing )
 			vspacing = in[i]->Ysize;
 	}
 
-	if( !vips_object_argument_isset( object, "hspacing" ) ) 
+	if( !vips_object_argument_isset( object, "hspacing" ) )
 		join->hspacing = hspacing;
-	if( !vips_object_argument_isset( object, "vspacing" ) ) 
+	if( !vips_object_argument_isset( object, "vspacing" ) )
 		join->vspacing = vspacing;
 
 	hspacing = join->hspacing;
 	vspacing = join->vspacing;
 
-	if( !vips_object_argument_isset( object, "across" ) ) 
+	if( !vips_object_argument_isset( object, "across" ) )
 		join->across = n;
 
 	/* How many images down the grid?
@@ -215,14 +215,14 @@ vips_arrayjoin_build( VipsObject *object )
 
 	/* The output size.
 	 */
-	output_width = hspacing * join->across + 
+	output_width = hspacing * join->across +
 		join->shim * (join->across - 1);
-	output_height = vspacing * join->down + 
+	output_height = vspacing * join->down +
 		join->shim * (join->down - 1);
 
 	/* Make a rect for the position of each input.
 	 */
-	join->rects = VIPS_ARRAY( join, n, VipsRect ); 
+	join->rects = VIPS_ARRAY( join, n, VipsRect );
 	for( i = 0; i < n; i++ ) {
 		int x = i % join->across;
 		int y = i / join->across;
@@ -243,15 +243,15 @@ vips_arrayjoin_build( VipsObject *object )
 		/* The right edge of the final image is stretched to the right
 		 * to fill the whole row.
 		 */
-		if( i == n - 1 ) 
-			join->rects[i].width = 
+		if( i == n - 1 )
+			join->rects[i].width =
 				output_width - join->rects[i].left;
 	}
 
 	/* A thing to track which inputs we've signalled minimise on.
 	 */
-	join->minimised = VIPS_ARRAY( join, n, gboolean ); 
-	for( i = 0; i < n; i++ ) 
+	join->minimised = VIPS_ARRAY( join, n, gboolean );
+	for( i = 0; i < n; i++ )
 		join->minimised[i] = FALSE;
 
 	/* Each image must be cropped and aligned within an @hspacing by
@@ -262,7 +262,7 @@ vips_arrayjoin_build( VipsObject *object )
 		int left, top;
 		int width, height;
 
-		/* Compiler warnings. 
+		/* Compiler warnings.
 		 */
 		left = 0;
 		top = 0;
@@ -313,7 +313,7 @@ vips_arrayjoin_build( VipsObject *object )
 			return( -1 );
 	}
 
-	if( vips_image_pipeline_array( conversion->out, 
+	if( vips_image_pipeline_array( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, size ) )
 		return( -1 );
 
@@ -321,7 +321,7 @@ vips_arrayjoin_build( VipsObject *object )
 	conversion->out->Ysize = output_height;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_arrayjoin_gen, vips_stop_many, 
+		vips_start_many, vips_arrayjoin_gen, vips_stop_many,
 		size, join ) )
 		return( -1 );
 
@@ -346,57 +346,57 @@ vips_arrayjoin_class_init( VipsArrayjoinClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_BOXED( class, "in", -1, 
-		_( "Input" ), 
+	VIPS_ARG_BOXED( class, "in", -1,
+		_( "Input" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, in ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
-	VIPS_ARG_INT( class, "across", 4, 
-		_( "Across" ), 
+	VIPS_ARG_INT( class, "across", 4,
+		_( "Across" ),
 		_( "Number of images across grid" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, across ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_INT( class, "shim", 5, 
-		_( "Shim" ), 
+	VIPS_ARG_INT( class, "shim", 5,
+		_( "Shim" ),
 		_( "Pixels between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, shim ),
 		0, 1000000, 0 );
 
-	VIPS_ARG_BOXED( class, "background", 6, 
-		_( "Background" ), 
+	VIPS_ARG_BOXED( class, "background", 6,
+		_( "Background" ),
 		_( "Colour for new pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_ENUM( class, "halign", 7, 
-		_( "Horizontal align" ), 
+	VIPS_ARG_ENUM( class, "halign", 7,
+		_( "Horizontal align" ),
 		_( "Align on the left, centre or right" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, halign ),
-		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
+		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW );
 
-	VIPS_ARG_ENUM( class, "valign", 8, 
-		_( "Vertical align" ), 
+	VIPS_ARG_ENUM( class, "valign", 8,
+		_( "Vertical align" ),
 		_( "Align on the top, centre or bottom" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, valign ),
-		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
+		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW );
 
-	VIPS_ARG_INT( class, "hspacing", 9, 
-		_( "Horizontal spacing" ), 
+	VIPS_ARG_INT( class, "hspacing", 9,
+		_( "Horizontal spacing" ),
 		_( "Horizontal spacing between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, hspacing ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_INT( class, "vspacing", 10, 
-		_( "Vertical spacing" ), 
+	VIPS_ARG_INT( class, "vspacing", 10,
+		_( "Vertical spacing" ),
 		_( "Vertical spacing between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, vspacing ),
@@ -409,18 +409,18 @@ vips_arrayjoin_init( VipsArrayjoin *join )
 {
 	/* Init our instance fields.
 	 */
-	join->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	join->background =
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 );
 	((double *) (join->background->data))[0] = 0.0;
 }
 
 static int
 vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	VipsArrayImage *array; 
+	VipsArrayImage *array;
 	int result;
 
-	array = vips_array_image_new( in, n ); 
+	array = vips_array_image_new( in, n );
 	result = vips_call_split( "arrayjoin", ap, array, out );
 	vips_area_unref( VIPS_AREA( array ) );
 
@@ -449,25 +449,25 @@ vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * left-to-right and top-to-bottom. @across defaults to @n.
  *
  * Each input image is placed with a box of size @hspacing by @vspacing
- * pixels and cropped. These default to the largest width and largest height 
- * of the input images. 
+ * pixels and cropped. These default to the largest width and largest height
+ * of the input images.
  *
  * Space between images is filled with @background. This defaults to 0
  * (black).
  *
- * Images are positioned within their @hspacing by @vspacing box at low, 
+ * Images are positioned within their @hspacing by @vspacing box at low,
  * centre or high coordinate values, controlled by @halign and @valign. These
- * default to left-top. 
+ * default to left-top.
  *
  * Boxes are joined and separated by @shim pixels. This defaults to 0.
  *
- * If the number of bands in the input images differs, all but one of the 
- * images must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands in the input images differs, all but one of the
+ * images must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the n-band images are operated upon.
  *
- * The input images are cast up to the smallest common type (see table 
- * Smallest common format in 
+ * The input images are cast up to the smallest common type (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * vips_colourspace() can be useful for moving the images to a common

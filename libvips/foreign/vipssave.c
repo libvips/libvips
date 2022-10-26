@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,7 +57,7 @@ typedef struct _VipsForeignSaveVips {
 
 typedef VipsForeignSaveClass VipsForeignSaveVipsClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveVips, vips_foreign_save_vips, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveVips, vips_foreign_save_vips,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -82,7 +82,7 @@ vips_foreign_save_vips_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( (filename = 
+	if( (filename =
 		vips_connection_filename( VIPS_CONNECTION( vips->target ) )) ) {
 		VipsForeignSave *save = (VipsForeignSave *) object;
 
@@ -96,7 +96,7 @@ vips_foreign_save_vips_build( VipsObject *object )
 			return( -1 );
 		if( vips_image_write( save->ready, x ) ) {
 			g_object_unref( x );
-			return( -1 ); 
+			return( -1 );
 		}
 		g_object_unref( x );
 	}
@@ -109,7 +109,7 @@ vips_foreign_save_vips_build( VipsObject *object )
 		 * For now, just fail unless there's a filename associated
 		 * with this source.
 		 */
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "no filename associated with target" ) );
 		return( -1 );
 	}
@@ -160,7 +160,7 @@ typedef struct _VipsForeignSaveVipsFile {
 
 typedef VipsForeignSaveVipsClass VipsForeignSaveVipsFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveVipsFile, vips_foreign_save_vips_file, 
+G_DEFINE_TYPE( VipsForeignSaveVipsFile, vips_foreign_save_vips_file,
 	vips_foreign_save_vips_get_type() );
 
 static int
@@ -192,10 +192,10 @@ vips_foreign_save_vips_file_class_init( VipsForeignSaveVipsFileClass *class )
 	object_class->description = _( "save image to file in vips format" );
 	object_class->build = vips_foreign_save_vips_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveVipsFile, filename ),
 		NULL );
 }
@@ -214,14 +214,14 @@ typedef struct _VipsForeignSaveVipsTarget {
 
 typedef VipsForeignSaveVipsClass VipsForeignSaveVipsTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveVipsTarget, vips_foreign_save_vips_target, 
+G_DEFINE_TYPE( VipsForeignSaveVipsTarget, vips_foreign_save_vips_target,
 	vips_foreign_save_vips_get_type() );
 
 static int
 vips_foreign_save_vips_target_build( VipsObject *object )
 {
 	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
-	VipsForeignSaveVipsTarget *target = 
+	VipsForeignSaveVipsTarget *target =
 		(VipsForeignSaveVipsTarget *) object;
 
 	vips->target = target->target;
@@ -235,7 +235,7 @@ vips_foreign_save_vips_target_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_vips_target_class_init( 
+vips_foreign_save_vips_target_class_init(
 	VipsForeignSaveVipsTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -251,7 +251,7 @@ vips_foreign_save_vips_target_class_init(
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveVipsTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -264,8 +264,8 @@ vips_foreign_save_vips_target_init( VipsForeignSaveVipsTarget *target )
 
 /**
  * vips_vipssave: (method)
- * @in: image to save 
- * @filename: file to write to 
+ * @in: image to save
+ * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Write @in to @filename in VIPS format.
@@ -289,7 +289,7 @@ vips_vipssave( VipsImage *in, const char *filename, ... )
 
 /**
  * vips_vipssave_target: (method)
- * @in: image to save 
+ * @in: image to save
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *

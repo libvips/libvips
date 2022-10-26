@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -66,12 +66,12 @@ im_nifti2vips( const char *name, IMAGE *out )
 	return( 0 );
 }
 
-static const char *nifti_suffs[] = { 
-	".nii", ".nii.gz", 
-	".hdr", ".hdr.gz", 
-	".img", ".img.gz", 
-	".nia", ".nia.gz", 
-	NULL 
+static const char *nifti_suffs[] = {
+	".nii", ".nii.gz",
+	".hdr", ".hdr.gz",
+	".img", ".img.gz",
+	".nia", ".nia.gz",
+	NULL
 };
 
 static VipsFormatFlags
@@ -82,7 +82,7 @@ nifti_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( (VipsFormatFlags) 
+	return( (VipsFormatFlags)
 		vips_foreign_flags( "niftiload", filename ) );
 }
 

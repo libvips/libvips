@@ -3,7 +3,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -34,12 +34,12 @@
 
 VIPS_NAMESPACE_START
 
-/** 
+/**
  * An interpolation. You can pass one of these to something like
  * VImage::affine for it to use to interpolate pixels.
  *
  * The available interpolators vary a bit with your libvips version and how it
- * was built, but will include `nearest`, `bilinear` and `bicubic`. Run 
+ * was built, but will include `nearest`, `bilinear` and `bicubic`. Run
  * vips -l interpolate` to see them all.
  */
 class VInterpolate : public VObject
@@ -50,7 +50,7 @@ public:
 	 * is STEAL, then this VInterpolate takes over ownership of the libvips
 	 * object and will automatically unref it.
 	 */
-	VInterpolate( VipsInterpolate *interpolate, VSteal steal = STEAL ) : 
+	VInterpolate( VipsInterpolate *interpolate, VSteal steal = STEAL ) :
 		VObject( (VipsObject *) interpolate, steal )
 	{
 	}
@@ -58,7 +58,7 @@ public:
 	/**
 	 * Create a VInterpolate from a name, for example `"bicubic"`.
 	 */
-	static 
+	static
 	VInterpolate new_from_name( const char *name, VOption *options = 0 );
 
 	/**

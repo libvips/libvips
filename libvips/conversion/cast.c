@@ -2,7 +2,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 07/03/1991
- * Modified on: 
+ * Modified on:
  * 04/05/1992 JC
  *	- works for char, uchar too
  *	- floating point code removed from integer clip operations
@@ -61,7 +61,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -125,7 +125,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 #define CAST_USHORT( X ) VIPS_CLIP( 0, (X), USHRT_MAX )
 #define CAST_SHORT( X ) VIPS_CLIP( SHRT_MIN, (X), SHRT_MAX )
 
-/* These cast down from gint64 to uint32 or int32. 
+/* These cast down from gint64 to uint32 or int32.
  */
 #define CAST_UINT( X ) VIPS_CLIP( 0, (X), UINT_MAX )
 #define CAST_INT( X ) VIPS_CLIP( INT_MIN, (X), INT_MAX )
@@ -187,7 +187,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	} \
 }
 
-/* Int to int handling. 
+/* Int to int handling.
  */
 #define INT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	if( cast->shift && \
@@ -200,9 +200,9 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	else { \
 		CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ); \
 	} \
-} 
+}
 
-/* Int to int handling for signed int types. 
+/* Int to int handling for signed int types.
  */
 #define INT_INT_SIGNED( ITYPE, OTYPE, TEMP, CAST ) { \
 	if( cast->shift && \
@@ -215,7 +215,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	else { \
 		CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ); \
 	} \
-} 
+}
 
 /* Cast float types to an int type.
  *
@@ -358,83 +358,83 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	VIPS_GATE_START( "vips_cast_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
-		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
+		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		switch( ir->im->BandFmt ) { 
-		case VIPS_FORMAT_UCHAR: 
+		switch( ir->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
 			BAND_SWITCH_INNER( unsigned char,
-				INT_INT, 
-				CAST_REAL_FLOAT, 
+				INT_INT,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_CHAR: 
+		case VIPS_FORMAT_CHAR:
 			BAND_SWITCH_INNER( signed char,
-				INT_INT_SIGNED, 
-				CAST_REAL_FLOAT, 
+				INT_INT_SIGNED,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_USHORT: 
+		case VIPS_FORMAT_USHORT:
 			BAND_SWITCH_INNER( unsigned short,
-				INT_INT, 
-				CAST_REAL_FLOAT, 
+				INT_INT,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_SHORT: 
+		case VIPS_FORMAT_SHORT:
 			BAND_SWITCH_INNER( signed short,
-				INT_INT_SIGNED, 
-				CAST_REAL_FLOAT, 
+				INT_INT_SIGNED,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_UINT: 
+		case VIPS_FORMAT_UINT:
 			BAND_SWITCH_INNER( unsigned int,
-				INT_INT, 
-				CAST_REAL_FLOAT, 
+				INT_INT,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_INT: 
+		case VIPS_FORMAT_INT:
 			BAND_SWITCH_INNER( signed int,
-				INT_INT_SIGNED, 
-				CAST_REAL_FLOAT, 
+				INT_INT_SIGNED,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_FLOAT: 
+		case VIPS_FORMAT_FLOAT:
 			BAND_SWITCH_INNER( float,
-				CAST_FLOAT_INT, 
-				CAST_REAL_FLOAT, 
+				CAST_FLOAT_INT,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_DOUBLE: 
+		case VIPS_FORMAT_DOUBLE:
 			BAND_SWITCH_INNER( double,
-				CAST_FLOAT_INT, 
-				CAST_REAL_FLOAT, 
+				CAST_FLOAT_INT,
+				CAST_REAL_FLOAT,
 				CAST_REAL_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_COMPLEX: 
+		case VIPS_FORMAT_COMPLEX:
 			BAND_SWITCH_INNER( float,
-				CAST_COMPLEX_INT, 
-				CAST_COMPLEX_FLOAT, 
+				CAST_COMPLEX_INT,
+				CAST_COMPLEX_FLOAT,
 				CAST_COMPLEX_COMPLEX );
-			break; 
+			break;
 
-		case VIPS_FORMAT_DPCOMPLEX: 
+		case VIPS_FORMAT_DPCOMPLEX:
 			BAND_SWITCH_INNER( double,
-				CAST_COMPLEX_INT, 
-				CAST_COMPLEX_FLOAT, 
+				CAST_COMPLEX_INT,
+				CAST_COMPLEX_FLOAT,
 				CAST_COMPLEX_COMPLEX );
-			break; 
+			break;
 
-		default: 
-			g_assert_not_reached(); 
-		} 
+		default:
+			g_assert_not_reached();
+		}
 	}
 
 	VIPS_GATE_STOP( "vips_cast_gen: work" );
@@ -447,47 +447,47 @@ vips_cast_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCast *cast = (VipsCast *) object;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( object, 2 );
 
-	VipsImage *in; 
+	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_cast_parent_class )->build( object ) )
 		return( -1 );
 
-	in = cast->in; 
+	in = cast->in;
 
 	/* Trivial case: fall back to copy().
 	 */
-	if( in->BandFmt == cast->format ) 
+	if( in->BandFmt == cast->format )
 		return( vips_image_write( in, conversion->out ) );
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
 	/* If @shift is on but we're not in an int format and we're going to
-	 * an int format, we need to cast to int first. For example, what 
-	 * about a float image tagged as rgb16 being cast to uint8? We need 
+	 * an int format, we need to cast to int first. For example, what
+	 * about a float image tagged as rgb16 being cast to uint8? We need
 	 * to cast to ushort before we do the final cast to uint8.
 	 */
-	if( cast->shift && 
+	if( cast->shift &&
 		!vips_band_format_isint( in->BandFmt ) &&
 		vips_band_format_isint( cast->format ) ) {
-		if( vips_cast( in, &t[1], 
+		if( vips_cast( in, &t[1],
 			vips_image_guess_format( in ), NULL ) )
 			return( -1 );
 		in = t[1];
 	}
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	conversion->out->BandFmt = cast->format;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_cast_gen, vips_stop_one, 
+		vips_start_one, vips_cast_gen, vips_stop_one,
 		in, cast ) )
 		return( -1 );
 
@@ -512,21 +512,21 @@ vips_cast_class_init( VipsCastClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCast, in ) );
 
-	VIPS_ARG_ENUM( class, "format", 6, 
-		_( "Format" ), 
+	VIPS_ARG_ENUM( class, "format", 6,
+		_( "Format" ),
 		_( "Format to cast to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCast, format ),
-		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR ); 
+		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR );
 
-	VIPS_ARG_BOOL( class, "shift", 7, 
-		_( "Shift" ), 
+	VIPS_ARG_BOOL( class, "shift", 7,
+		_( "Shift" ),
 		_( "Shift integer values up and down" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCast, shift ),
@@ -558,12 +558,12 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
  * Convert @in to @format. You can convert between any pair of formats.
  * Floats are truncated (not rounded). Out of range values are clipped.
  *
- * Casting from complex to real returns the real part. 
+ * Casting from complex to real returns the real part.
  *
  * If @shift is %TRUE, integer values are shifted up and down. For example,
  * casting from unsigned 8 bit to unsigned 16 bit would
  * shift every value left by 8 bits. The bottom bit is copied into the new
- * bits, so 255 would become 65535.  
+ * bits, so 255 would become 65535.
  *
  * See also: vips_scale(), vips_complexform(), vips_real(), vips_imag(),
  * vips_cast_uchar(), vips_msb().
@@ -589,7 +589,7 @@ vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_UCHAR. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_UCHAR. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -612,7 +612,7 @@ vips_cast_uchar( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_CHAR. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_CHAR. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -635,7 +635,7 @@ vips_cast_char( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_USHORT. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_USHORT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -658,7 +658,7 @@ vips_cast_ushort( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_SHORT. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_SHORT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -681,7 +681,7 @@ vips_cast_short( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_UINT. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_UINT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -704,7 +704,7 @@ vips_cast_uint( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_INT. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_INT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -727,7 +727,7 @@ vips_cast_int( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_FLOAT. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_FLOAT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -750,7 +750,7 @@ vips_cast_float( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_DOUBLE. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_DOUBLE. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -773,7 +773,7 @@ vips_cast_double( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_COMPLEX. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_COMPLEX. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -796,7 +796,7 @@ vips_cast_complex( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert @in to #VIPS_FORMAT_DPCOMPLEX. See vips_cast(). 
+ * Convert @in to #VIPS_FORMAT_DPCOMPLEX. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,11 +67,11 @@ VIPS_API
 void vips_profile_set( gboolean profile );
 
 void vips__thread_profile_attach( const char *thread_name );
-void vips__thread_profile_detach( void ); 
+void vips__thread_profile_detach( void );
 void vips__thread_profile_stop( void );
 
-void vips__thread_gate_start( const char *gate_name ); 
-void vips__thread_gate_stop( const char *gate_name ); 
+void vips__thread_gate_start( const char *gate_name );
+void vips__thread_gate_stop( const char *gate_name );
 
 void vips__thread_malloc_free( gint64 size );
 

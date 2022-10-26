@@ -87,7 +87,7 @@
 #include <webp/mux.h>
 
 typedef int (*webp_import)( WebPPicture *picture,
-        const uint8_t *rgb, int stride );
+	const uint8_t *rgb, int stride );
 
 typedef enum _VipsForeignSaveWebpMode {
 	VIPS_FOREIGN_SAVE_WEBP_MODE_SINGLE,
@@ -567,7 +567,7 @@ vips_foreign_save_webp_init_anim_enc( VipsForeignSaveWebp *webp ) {
 	if( !webp->enc ) {
 		vips_error( "webpsave",
 			"%s", _( "unable to init animation" ) );
-	        return( -1 );
+		return( -1 );
 	}
 
 	/* Get delay array

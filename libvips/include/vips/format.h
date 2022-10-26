@@ -5,7 +5,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -51,7 +51,7 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FORMAT, VipsFormatClass ))
 
-/* Image file properties. 
+/* Image file properties.
  */
 typedef enum {
 	VIPS_FORMAT_NONE = 0,		/* No flags set */
@@ -118,7 +118,7 @@ VIPS_API
 VipsFormatClass *vips_format_for_name( const char *filename );
 
 VIPS_API
-VipsFormatFlags vips_format_get_flags( VipsFormatClass *format, 
+VipsFormatFlags vips_format_get_flags( VipsFormatClass *format,
 	const char *filename );
 
 /* Read/write an image convenience functions.

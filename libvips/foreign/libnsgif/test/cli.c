@@ -626,7 +626,7 @@ static size_t cli__terminal_width(void)
  *
  * The indent is assumed to already be applied for the first line of the
  * output by the caller.
- * 
+ *
  * \param[in] entry   The entry to print the description for.
  * \param[in] indent  The number of spaces to pad the left margin with.
  */

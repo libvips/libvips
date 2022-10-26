@@ -1,6 +1,6 @@
 /* im_measure.c
  *
- * Modified: 
+ * Modified:
  * 19/8/94 JC
  *	- now uses doubles for addressing
  *	- could miss by up to h pixels previously!
@@ -27,7 +27,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -65,10 +65,10 @@
 /* Measure into array.
  */
 static int
-measure_patches( IMAGE *im, double *coeff, 
-	int left, int top, int width, int height, 
+measure_patches( IMAGE *im, double *coeff,
+	int left, int top, int width, int height,
 	int u, int v, int *sel, int nsel )
-{	
+{
 	IMAGE *tmp;
 	int patch;
 	int i, j;
@@ -92,7 +92,7 @@ measure_patches( IMAGE *im, double *coeff,
 		/* Sanity check. Is the patch number sensible?
 		 */
 		if( sel[patch] <= 0 || sel[patch] > u * v ) {
-			im_error( "im_measure", 
+			im_error( "im_measure",
 				_( "patch %d is out of range" ),
 				sel[patch] );
 			return( 1 );
@@ -100,7 +100,7 @@ measure_patches( IMAGE *im, double *coeff,
 
 		/* Patch coordinates.
 		 */
-		m = (sel[patch] - 1) % u;  
+		m = (sel[patch] - 1) % u;
 		n = (sel[patch] - 1) / u;
 
 		/* Move sub to correct position.
@@ -113,9 +113,9 @@ measure_patches( IMAGE *im, double *coeff,
 		for( i = 0; i < im->Bands; i++, j++ ) {
 			/* Make temp buffer to extract to.
 			 */
-			if( !(tmp = im_open( "patch", "t" )) ) 
+			if( !(tmp = im_open( "patch", "t" )) )
 				return( -1 );
-			
+
 			/* Extract and measure.
 			 */
 			if( im_extract_areabands( im, tmp, x, y, w, h, i, 1 ) ||
@@ -135,7 +135,7 @@ measure_patches( IMAGE *im, double *coeff,
 			if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
 				im_warn( "im_measure",
 					_( "patch %d, band %d: "
-						"avg = %g, sdev = %g" ), 
+						"avg = %g, sdev = %g" ),
 					patch, i, avg, dev );
 
 			/* Save results.
@@ -148,11 +148,11 @@ measure_patches( IMAGE *im, double *coeff,
 }
 
 static DOUBLEMASK *
-internal_im_measure_area( IMAGE *im, 
-	int left, int top, int width, int height, 
-	int u, int v, 
+internal_im_measure_area( IMAGE *im,
+	int left, int top, int width, int height,
+	int u, int v,
 	int *sel, int nsel, const char *name )
-{	
+{
 	DOUBLEMASK *mask;
 
 	if( im_check_uncoded( "im_measure", im ) ||
@@ -178,7 +178,7 @@ internal_im_measure_area( IMAGE *im,
 
 	/* Perform measure and return.
 	 */
-	if( measure_patches( im, mask->coeff, left, top, width, height, 
+	if( measure_patches( im, mask->coeff, left, top, width, height,
 		u, v, sel, nsel ) ) {
 		im_free_dmask( mask );
 		return( NULL );
@@ -188,9 +188,9 @@ internal_im_measure_area( IMAGE *im,
 }
 
 DOUBLEMASK *
-im_measure_area( IMAGE *im, 
-	int left, int top, int width, int height, 
-	int u, int v, 
+im_measure_area( IMAGE *im,
+	int left, int top, int width, int height,
+	int u, int v,
 	int *sel, int nsel, const char *name )
 {
 	DOUBLEMASK *mask;
@@ -202,9 +202,9 @@ im_measure_area( IMAGE *im,
 		if( !(t = im_open( "measure-temp", "p" )) )
 			return( NULL );
 		if( im_LabQ2Lab( im, t ) ||
-			!(mask = im_measure_area( t, 
+			!(mask = im_measure_area( t,
 				left, top, width, height,
-				u, v, 
+				u, v,
 				sel, nsel, name )) ) {
 			g_object_unref( t );
 			return( NULL );
@@ -215,10 +215,10 @@ im_measure_area( IMAGE *im,
 	}
 
 	if( sel )
-		return( internal_im_measure_area( im, 
+		return( internal_im_measure_area( im,
 			left, top, width, height, u, v, sel, nsel, name ) );
 	else {
-		if( vips_measure( im, &t, u, v, 
+		if( vips_measure( im, &t, u, v,
 			"left", left,
 			"top", top,
 			"width", width,

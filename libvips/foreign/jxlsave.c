@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -104,7 +104,7 @@ typedef struct _VipsForeignSaveJxl {
 
 typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveJxl, vips_foreign_save_jxl, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -139,14 +139,14 @@ vips_foreign_save_jxl_print_info( JxlBasicInfo *info )
 	printf( "    xsize = %d\n", info->xsize );
 	printf( "    ysize = %d\n", info->ysize );
 	printf( "    bits_per_sample = %d\n", info->bits_per_sample );
-	printf( "    exponent_bits_per_sample = %d\n", 
+	printf( "    exponent_bits_per_sample = %d\n",
 		info->exponent_bits_per_sample );
 	printf( "    intensity_target = %g\n", info->intensity_target );
 	printf( "    min_nits = %g\n", info->min_nits );
-	printf( "    relative_to_max_display = %d\n", 
+	printf( "    relative_to_max_display = %d\n",
 		info->relative_to_max_display );
 	printf( "    linear_below = %g\n", info->linear_below );
-	printf( "    uses_original_profile = %d\n", 
+	printf( "    uses_original_profile = %d\n",
 		info->uses_original_profile );
 	printf( "    have_preview = %d\n", info->have_preview );
 	printf( "    have_animation = %d\n", info->have_animation );
@@ -158,12 +158,12 @@ vips_foreign_save_jxl_print_info( JxlBasicInfo *info )
 	printf( "    alpha_premultiplied = %d\n", info->alpha_premultiplied );
 	printf( "    preview.xsize = %d\n", info->preview.xsize );
 	printf( "    preview.ysize = %d\n", info->preview.ysize );
-	printf( "    animation.tps_numerator = %d\n", 
+	printf( "    animation.tps_numerator = %d\n",
 		info->animation.tps_numerator );
-	printf( "    animation.tps_denominator = %d\n", 
+	printf( "    animation.tps_denominator = %d\n",
 		info->animation.tps_denominator );
 	printf( "    animation.num_loops = %d\n", info->animation.num_loops );
-	printf( "    animation.have_timecodes = %d\n", 
+	printf( "    animation.have_timecodes = %d\n",
 		info->animation.have_timecodes );
 }
 
@@ -174,15 +174,15 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 	printf( "    num_channels = %d\n", format->num_channels );
 	printf( "    data_type = " );
 	switch( format->data_type ) {
-	case JXL_TYPE_UINT8: 
+	case JXL_TYPE_UINT8:
 		printf( "JXL_TYPE_UINT8" );
 		break;
 
-	case JXL_TYPE_UINT16: 
+	case JXL_TYPE_UINT16:
 		printf( "JXL_TYPE_UINT16" );
 		break;
 
-	case JXL_TYPE_FLOAT: 
+	case JXL_TYPE_FLOAT:
 		printf( "JXL_TYPE_FLOAT" );
 		break;
 
@@ -242,7 +242,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	 * value. Formula stolen from cjxl.c and very roughly approximates
 	 * libjpeg values.
 	 */
-	if( !vips_object_argument_isset( object, "distance" ) ) 
+	if( !vips_object_argument_isset( object, "distance" ) )
 		jxl->distance = jxl->Q >= 30 ?
 			0.1 + (100 - jxl->Q) * 0.09 :
 			6.24 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
@@ -252,13 +252,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( jxl->distance == 0 )
 		jxl->lossless = TRUE;
 
-	jxl->runner = JxlThreadParallelRunnerCreate( NULL, 
+	jxl->runner = JxlThreadParallelRunnerCreate( NULL,
 		vips_concurrency_get() );
 	jxl->encoder = JxlEncoderCreate( NULL );
 
-	if( JxlEncoderSetParallelRunner( jxl->encoder, 
+	if( JxlEncoderSetParallelRunner( jxl->encoder,
 		JxlThreadParallelRunner, jxl->runner ) ) {
-		vips_foreign_save_jxl_error( jxl, 
+		vips_foreign_save_jxl_error( jxl,
 			"JxlDecoderSetParallelRunner" );
 		return( -1 );
 	}
@@ -321,7 +321,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	default:
 		jxl->info.num_color_channels = in->Bands;
 	}
-	jxl->info.num_extra_channels = VIPS_MAX( 0, 
+	jxl->info.num_extra_channels = VIPS_MAX( 0,
 		in->Bands - jxl->info.num_color_channels );
 
 	jxl->info.xsize = in->Xsize;
@@ -332,7 +332,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 
 	if( vips_image_hasalpha( in ) ) {
 		jxl->info.alpha_bits = jxl->info.bits_per_sample;
-		jxl->info.alpha_exponent_bits = 
+		jxl->info.alpha_exponent_bits =
 			jxl->info.exponent_bits_per_sample;
 	}
 	else {
@@ -364,7 +364,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		const void *data;
 		size_t length;
 
-		if( vips_image_get_blob( in, 
+		if( vips_image_get_blob( in,
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
@@ -373,7 +373,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 #endif /*DEBUG*/
 		if( JxlEncoderSetICCProfile( jxl->encoder,
 			(guint8 *) data, length ) ) {
-			vips_foreign_save_jxl_error( jxl, 
+			vips_foreign_save_jxl_error( jxl,
 				"JxlEncoderSetColorEncoding" );
 			return( -1 );
 		}
@@ -399,7 +399,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 				jxl->format.num_channels < 3 );
 		}
 
-		if( JxlEncoderSetColorEncoding( jxl->encoder, 
+		if( JxlEncoderSetColorEncoding( jxl->encoder,
 			&jxl->color_encoding ) ) {
 			vips_foreign_save_jxl_error( jxl,
 				"JxlEncoderSetColorEncoding" );
@@ -414,10 +414,10 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 
 	frame_settings = JxlEncoderFrameSettingsCreate( jxl->encoder, NULL );
-	JxlEncoderFrameSettingsSetOption( frame_settings, 
+	JxlEncoderFrameSettingsSetOption( frame_settings,
 		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier );
 	JxlEncoderSetFrameDistance( frame_settings, jxl->distance );
-	JxlEncoderFrameSettingsSetOption( frame_settings, 
+	JxlEncoderFrameSettingsSetOption( frame_settings,
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort );
 	JxlEncoderSetFrameLossless( frame_settings, jxl->lossless );
 
@@ -431,9 +431,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	printf( "    lossless = %d\n", jxl->lossless );
 #endif /*DEBUG*/
 
-	if( JxlEncoderAddImageFrame( frame_settings, &jxl->format, 
+	if( JxlEncoderAddImageFrame( frame_settings, &jxl->format,
 		VIPS_IMAGE_ADDR( in, 0, 0 ),
-		VIPS_IMAGE_SIZEOF_IMAGE( in ) ) ) { 
+		VIPS_IMAGE_SIZEOF_IMAGE( in ) ) ) {
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
 		return( -1 );
 	}
@@ -455,13 +455,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		case JXL_ENC_SUCCESS:
 		case JXL_ENC_NEED_MORE_OUTPUT:
 			if( vips_target_write( jxl->target,
-				jxl->output_buffer, 
+				jxl->output_buffer,
 				OUTPUT_BUFFER_SIZE - avail_out ) )
 				return( -1 );
 			break;
 
 		default:
-			vips_foreign_save_jxl_error( jxl, 
+			vips_foreign_save_jxl_error( jxl,
 				"JxlEncoderProcessOutput" );
 #ifdef DEBUG
 			vips_foreign_save_jxl_print_status( status );
@@ -518,36 +518,36 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 	save_class->saveable = VIPS_SAVEABLE_RGBA;
 	save_class->format_table = bandfmt_jxl;
 
-	VIPS_ARG_INT( class, "tier", 10, 
-		_( "Tier" ), 
+	VIPS_ARG_INT( class, "tier", 10,
+		_( "Tier" ),
 		_( "Decode speed tier" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, tier ),
 		0, 4, 0 );
 
-	VIPS_ARG_DOUBLE( class, "distance", 11, 
-		_( "Distance" ), 
+	VIPS_ARG_DOUBLE( class, "distance", 11,
+		_( "Distance" ),
 		_( "Target butteraugli distance" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, distance ),
 		0, 15, 1.0 );
 
-	VIPS_ARG_INT( class, "effort", 12, 
-		_( "Effort" ), 
+	VIPS_ARG_INT( class, "effort", 12,
+		_( "Effort" ),
 		_( "Encoding effort" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, effort ),
 		3, 9, 7 );
 
-	VIPS_ARG_BOOL( class, "lossless", 13, 
-		_( "Lossless" ), 
+	VIPS_ARG_BOOL( class, "lossless", 13,
+		_( "Lossless" ),
 		_( "Enable lossless compression" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, lossless ),
-		FALSE ); 
+		FALSE );
 
-	VIPS_ARG_INT( class, "Q", 14, 
-		_( "Q" ), 
+	VIPS_ARG_INT( class, "Q", 14,
+		_( "Q" ),
 		_( "Quality factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, Q ),
@@ -570,13 +570,13 @@ typedef struct _VipsForeignSaveJxlFile {
 
 	/* Filename for save.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignSaveJxlFile;
 
 typedef VipsForeignSaveJxlClass VipsForeignSaveJxlFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveJxlFile, vips_foreign_save_jxl_file, 
+G_DEFINE_TYPE( VipsForeignSaveJxlFile, vips_foreign_save_jxl_file,
 	vips_foreign_save_jxl_get_type() );
 
 static int
@@ -607,10 +607,10 @@ vips_foreign_save_jxl_file_class_init( VipsForeignSaveJxlFileClass *class )
 	object_class->nickname = "jxlsave";
 	object_class->build = vips_foreign_save_jxl_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxlFile, filename ),
 		NULL );
 
@@ -632,14 +632,14 @@ typedef struct _VipsForeignSaveJxlBuffer {
 
 typedef VipsForeignSaveJxlClass VipsForeignSaveJxlBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveJxlBuffer, vips_foreign_save_jxl_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveJxlBuffer, vips_foreign_save_jxl_buffer,
 	vips_foreign_save_jxl_get_type() );
 
 static int
 vips_foreign_save_jxl_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsForeignSaveJxlBuffer *buffer = 
+	VipsForeignSaveJxlBuffer *buffer =
 		(VipsForeignSaveJxlBuffer *) object;
 
 	VipsBlob *blob;
@@ -659,7 +659,7 @@ vips_foreign_save_jxl_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_jxl_buffer_class_init( 
+vips_foreign_save_jxl_buffer_class_init(
 	VipsForeignSaveJxlBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -671,10 +671,10 @@ vips_foreign_save_jxl_buffer_class_init(
 	object_class->nickname = "jxlsave_buffer";
 	object_class->build = vips_foreign_save_jxl_buffer_build;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxlBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
@@ -693,14 +693,14 @@ typedef struct _VipsForeignSaveJxlTarget {
 
 typedef VipsForeignSaveJxlClass VipsForeignSaveJxlTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveJxlTarget, vips_foreign_save_jxl_target, 
+G_DEFINE_TYPE( VipsForeignSaveJxlTarget, vips_foreign_save_jxl_target,
 	vips_foreign_save_jxl_get_type() );
 
 static int
 vips_foreign_save_jxl_target_build( VipsObject *object )
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsForeignSaveJxlTarget *target = 
+	VipsForeignSaveJxlTarget *target =
 		(VipsForeignSaveJxlTarget *) object;
 
 	if( target->target ) {
@@ -716,7 +716,7 @@ vips_foreign_save_jxl_target_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_jxl_target_class_init( 
+vips_foreign_save_jxl_target_class_init(
 	VipsForeignSaveJxlTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -731,7 +731,7 @@ vips_foreign_save_jxl_target_class_init(
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxlTarget, target ),
 		VIPS_TYPE_TARGET );
 

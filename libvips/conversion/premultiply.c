@@ -14,7 +14,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -130,7 +130,7 @@ vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsImage *im = ir->im;
 	VipsRect *r = &or->valid;
 	int width = r->width;
-	int bands = im->Bands; 
+	int bands = im->Bands;
 	double max_alpha = premultiply->max_alpha;
 
 	int x, y, i;
@@ -139,47 +139,47 @@ vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
-		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
+		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		switch( im->BandFmt ) { 
-		case VIPS_FORMAT_UCHAR: 
-			PRE( unsigned char, float ); 
-			break; 
+		switch( im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			PRE( unsigned char, float );
+			break;
 
-		case VIPS_FORMAT_CHAR: 
-			PRE( signed char, float ); 
-			break; 
+		case VIPS_FORMAT_CHAR:
+			PRE( signed char, float );
+			break;
 
-		case VIPS_FORMAT_USHORT: 
-			PRE( unsigned short, float ); 
-			break; 
+		case VIPS_FORMAT_USHORT:
+			PRE( unsigned short, float );
+			break;
 
-		case VIPS_FORMAT_SHORT: 
-			PRE( signed short, float ); 
-			break; 
+		case VIPS_FORMAT_SHORT:
+			PRE( signed short, float );
+			break;
 
-		case VIPS_FORMAT_UINT: 
-			PRE( unsigned int, float ); 
-			break; 
+		case VIPS_FORMAT_UINT:
+			PRE( unsigned int, float );
+			break;
 
-		case VIPS_FORMAT_INT: 
-			PRE( signed int, float ); 
-			break; 
+		case VIPS_FORMAT_INT:
+			PRE( signed int, float );
+			break;
 
-		case VIPS_FORMAT_FLOAT: 
-			PRE( float, float ); 
-			break; 
+		case VIPS_FORMAT_FLOAT:
+			PRE( float, float );
+			break;
 
-		case VIPS_FORMAT_DOUBLE: 
-			PRE( double, double ); 
-			break; 
+		case VIPS_FORMAT_DOUBLE:
+			PRE( double, double );
+			break;
 
-		case VIPS_FORMAT_COMPLEX: 
-		case VIPS_FORMAT_DPCOMPLEX: 
-		default: 
-			g_assert_not_reached(); 
-		} 
+		case VIPS_FORMAT_COMPLEX:
+		case VIPS_FORMAT_DPCOMPLEX:
+		default:
+			g_assert_not_reached();
+		}
 	}
 
 	return( 0 );
@@ -200,11 +200,11 @@ vips_premultiply_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	in = premultiply->in; 
+	in = premultiply->in;
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
 	/* Trivial case: fall back to copy().
 	 */
@@ -214,14 +214,14 @@ vips_premultiply_build( VipsObject *object )
 	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	/* Is max-alpha unset? Default to the correct value for this
 	 * interpretation.
 	 */
-	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
+	if( !vips_object_argument_isset( object, "max_alpha" ) )
 		if( in->Type == VIPS_INTERPRETATION_GREY16 ||
 			in->Type == VIPS_INTERPRETATION_RGB16 )
 			premultiply->max_alpha = 65535;
@@ -232,7 +232,7 @@ vips_premultiply_build( VipsObject *object )
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_premultiply_gen, vips_stop_one, 
+		vips_start_one, vips_premultiply_gen, vips_stop_one,
 		in, premultiply ) )
 		return( -1 );
 
@@ -257,14 +257,14 @@ vips_premultiply_class_init( VipsPremultiplyClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPremultiply, in ) );
 
-	VIPS_ARG_DOUBLE( class, "max_alpha", 115, 
-		_( "Maximum alpha" ), 
+	VIPS_ARG_DOUBLE( class, "max_alpha", 115,
+		_( "Maximum alpha" ),
 		_( "Maximum value of alpha channel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsPremultiply, max_alpha ),
@@ -287,19 +287,19 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  *
  * * @max_alpha: %gdouble, maximum value for alpha
  *
- * Premultiplies any alpha channel. 
+ * Premultiplies any alpha channel.
  * The final band is taken to be the alpha
  * and the bands are transformed as:
  *
  * |[
- *   alpha = clip( 0, in[in.bands - 1], @max_alpha ); 
- *   norm = alpha / @max_alpha; 
+ *   alpha = clip( 0, in[in.bands - 1], @max_alpha );
+ *   norm = alpha / @max_alpha;
  *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha];
  * ]|
  *
- * So for an N-band image, the first N - 1 bands are multiplied by the clipped 
- * and normalised final band, the final band is clipped. 
- * If there is only a single band, 
+ * So for an N-band image, the first N - 1 bands are multiplied by the clipped
+ * and normalised final band, the final band is clipped.
+ * If there is only a single band,
  * the image is passed through unaltered.
  *
  * The result is
@@ -308,7 +308,7 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  *
  * @max_alpha has the default value 255, or 65535 for images tagged as
  * #VIPS_INTERPRETATION_RGB16 or
- * #VIPS_INTERPRETATION_GREY16. 
+ * #VIPS_INTERPRETATION_GREY16.
  *
  * Non-complex images only.
  *

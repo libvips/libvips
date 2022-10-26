@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveMatrix {
 
 typedef VipsForeignSaveClass VipsForeignSaveMatrixClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -83,18 +83,18 @@ vips_foreign_save_matrix_block( VipsRegion *region, VipsRect *area, void *a )
 	int x, y;
 
 	for( y = 0; y < area->height; y++ ) {
-		double *p = (double *) 
+		double *p = (double *)
 			VIPS_REGION_ADDR( region, 0, area->top + y );
 
-		char buf[G_ASCII_DTOSTR_BUF_SIZE]; 
+		char buf[G_ASCII_DTOSTR_BUF_SIZE];
 
 		for( x = 0; x < area->width; x++ ) {
-			if( x > 0 ) 
+			if( x > 0 )
 				vips_target_writes( matrix->target, " " );
 
 			g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, p[x] );
-			vips_target_writes( matrix->target, buf ); 
-		} 
+			vips_target_writes( matrix->target, buf );
+		}
 
 		if( vips_target_writes( matrix->target, "\n" ) )
 			return( -1 );
@@ -121,7 +121,7 @@ vips_foreign_save_matrix_build( VipsObject *object )
 		vips_check_uncoded( class->nickname, save->ready ) )
 		return( -1 );
 
-	vips_target_writef( matrix->target, "%d %d", 
+	vips_target_writef( matrix->target, "%d %d",
 		save->ready->Xsize, save->ready->Ysize );
 	scale = vips_image_get_scale( save->ready );
 	offset = vips_image_get_offset( save->ready );
@@ -192,12 +192,12 @@ vips_foreign_save_matrix_init( VipsForeignSaveMatrix *matrix )
 typedef struct _VipsForeignSaveMatrixFile {
 	VipsForeignSaveMatrix parent_object;
 
-	char *filename; 
+	char *filename;
 } VipsForeignSaveMatrixFile;
 
 typedef VipsForeignSaveMatrixClass VipsForeignSaveMatrixFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMatrixFile, vips_foreign_save_matrix_file, 
+G_DEFINE_TYPE( VipsForeignSaveMatrixFile, vips_foreign_save_matrix_file,
 	vips_foreign_save_matrix_get_type() );
 
 static int
@@ -210,12 +210,12 @@ vips_foreign_save_matrix_file_build( VipsObject *object )
 		!(matrix->target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
 
-	return( VIPS_OBJECT_CLASS( 
+	return( VIPS_OBJECT_CLASS(
 		vips_foreign_save_matrix_file_parent_class )->build( object ) );
 }
 
 static void
-vips_foreign_save_matrix_file_class_init( 
+vips_foreign_save_matrix_file_class_init(
 	VipsForeignSaveMatrixFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -227,10 +227,10 @@ vips_foreign_save_matrix_file_class_init(
 	object_class->nickname = "matrixsave";
 	object_class->build = vips_foreign_save_matrix_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMatrixFile, filename ),
 		NULL );
 
@@ -249,28 +249,28 @@ typedef struct _VipsForeignSaveMatrixTarget {
 
 typedef VipsForeignSaveMatrixClass VipsForeignSaveMatrixTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMatrixTarget, vips_foreign_save_matrix_target, 
+G_DEFINE_TYPE( VipsForeignSaveMatrixTarget, vips_foreign_save_matrix_target,
 	vips_foreign_save_matrix_get_type() );
 
 static int
 vips_foreign_save_matrix_target_build( VipsObject *object )
 {
 	VipsForeignSaveMatrix *matrix = (VipsForeignSaveMatrix *) object;
-	VipsForeignSaveMatrixTarget *target = 
+	VipsForeignSaveMatrixTarget *target =
 		(VipsForeignSaveMatrixTarget *) object;
 
 	if( target->target ) {
-		matrix->target = target->target; 
+		matrix->target = target->target;
 		g_object_ref( matrix->target );
 	}
 
-	return( VIPS_OBJECT_CLASS( 
+	return( VIPS_OBJECT_CLASS(
 		vips_foreign_save_matrix_target_parent_class )->
 			build( object ) );
 }
 
 static void
-vips_foreign_save_matrix_target_class_init( 
+vips_foreign_save_matrix_target_class_init(
 	VipsForeignSaveMatrixTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -285,7 +285,7 @@ vips_foreign_save_matrix_target_class_init(
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMatrixTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -303,7 +303,7 @@ typedef struct _VipsForeignPrintMatrix {
 
 typedef VipsForeignSaveClass VipsForeignPrintMatrixClass;
 
-G_DEFINE_TYPE( VipsForeignPrintMatrix, vips_foreign_print_matrix, 
+G_DEFINE_TYPE( VipsForeignPrintMatrix, vips_foreign_print_matrix,
 	vips_foreign_save_matrix_get_type() );
 
 static int
@@ -338,7 +338,7 @@ vips_foreign_print_matrix_init( VipsForeignPrintMatrix *matrix )
 
 /**
  * vips_matrixsave: (method)
- * @in: image to save 
+ * @in: image to save
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -364,7 +364,7 @@ vips_matrixsave( VipsImage *in, const char *filename, ... )
 
 /**
  * vips_matrixsave_target: (method)
- * @in: image to save 
+ * @in: image to save
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -389,7 +389,7 @@ vips_matrixsave_target( VipsImage *in, VipsTarget *target, ... )
 
 /**
  * vips_matrixprint: (method)
- * @in: image to print 
+ * @in: image to print
  * @...: %NULL-terminated list of optional named arguments
  *
  * Print @in to %stdout in matrix format. See vips_matrixload() for a

@@ -90,9 +90,9 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
     return -1;
 
   if( im_check_uncoded( "im_gradcor", large ) ||
-	im_check_mono( "im_gradcor", large ) || 
+	im_check_mono( "im_gradcor", large ) ||
 	im_check_uncoded( "im_gradcor", small ) ||
-	im_check_mono( "im_gradcor", small ) || 
+	im_check_mono( "im_gradcor", small ) ||
 	im_check_format_same( "im_gradcor", large, small ) ||
 	im_check_int( "im_gradcor", large ) )
 	return( -1 );
@@ -136,13 +136,13 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
  * calculated. One-band, integer images only. @in and @ref must have the
  * same #VipsBandFmt. The output
  * image is always %IM_BANDFMT_FLOAT. @ref must be smaller than @in. The output
- * image is the same size as the input. 
+ * image is the same size as the input.
  *
- * The method takes the gradient images of the two images then takes the 
+ * The method takes the gradient images of the two images then takes the
  * dot-product correlation of the two vector images.
  * The vector expression of this method is my (tcv) own creation. It is
  * equivalent to the complex-number method of:
- * 
+ *
  * ARGYRIOU, V. et al. 2003. Estimation of sub-pixel motion using
  * gradient cross correlation. Electronics Letters, 39 (13).
  *
@@ -150,18 +150,18 @@ int im_gradcor_raw( IMAGE *large, IMAGE *small, IMAGE *out ){
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 im_gradcor( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 #define FUNCTION_NAME "im_gradcor"
 	IMAGE *t1 = im_open_local( out, FUNCTION_NAME " intermediate", "p" );
 
 	if( !t1 ||
-		im_embed( in, t1, 1, 
-			ref->Xsize / 2, ref->Ysize / 2, 
-			in->Xsize + ref->Xsize - 1, 
+		im_embed( in, t1, 1,
+			ref->Xsize / 2, ref->Ysize / 2,
+			in->Xsize + ref->Xsize - 1,
 			in->Ysize + ref->Ysize - 1 ) ||
-		im_gradcor_raw( t1, ref, out ) ) 
+		im_gradcor_raw( t1, ref, out ) )
 		return( -1 );
 
 	out->Xoffset = 0;
@@ -197,7 +197,7 @@ int im_grad_x( IMAGE *in, IMAGE *out ){
     return -1;
 
   if( im_check_uncoded( "im_grad_x", in ) ||
-	im_check_mono( "im_grad_x", in ) || 
+	im_check_mono( "im_grad_x", in ) ||
 	im_check_int( "im_grad_x", in ) )
 	return( -1 );
   if( im_cp_desc( out, in ) )
@@ -274,7 +274,7 @@ int im_grad_y( IMAGE *in, IMAGE *out ){
     return -1;
 
   if( im_check_uncoded( "im_grad_y", in ) ||
-	im_check_mono( "im_grad_y", in ) || 
+	im_check_mono( "im_grad_y", in ) ||
 	im_check_int( "im_grad_y", in ) )
 	return( -1 );
 
@@ -385,12 +385,12 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
     TYPE *reading= (TYPE*) IM_REGION_ADDR( make_from, require. left, require. top );                \
     size_t read_skip= ( IM_REGION_LSKIP( make_from ) / sizeof(TYPE) ) - region_xgrad_width;         \
     size_t area_need= region_xgrad_width * require. height;                                         \
-                                                                                                    \
+					                                                            \
     if( seq-> region_xgrad_area < area_need ){                                                      \
       free( seq-> region_xgrad );                                                                   \
       seq-> region_xgrad= malloc( area_need * sizeof(int) );                                        \
       if( ! seq-> region_xgrad )                                                                    \
-        return -1;                                                                                  \
+	return -1;                                                                                  \
       seq-> region_xgrad_area= area_need;                                                           \
     }                                                                                               \
     {                                                                                               \
@@ -398,8 +398,8 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
       int *write_end= writing + area_need;                                                          \
       int *write_stop;                                                                              \
       for( ; writing < write_end; reading+= read_skip )                                             \
-        for( write_stop= writing + region_xgrad_width; writing < write_stop; ++reading, ++writing ) \
-          *writing= reading[1] - reading[0];                                                        \
+	for( write_stop= writing + region_xgrad_width; writing < write_stop; ++reading, ++writing ) \
+	  *writing= reading[1] - reading[0];                                                        \
     }                                                                                               \
   }                                                                                                 \
   {     /* fill region_ygrad */                                                                     \
@@ -407,12 +407,12 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
     size_t read_line= IM_REGION_LSKIP( make_from ) / sizeof(TYPE);                                  \
     size_t read_skip= read_line - require. width;                                                   \
     size_t area_need= require. width * region_ygrad_height;                                         \
-                                                                                                    \
+					                                                            \
     if( seq-> region_ygrad_area < area_need ){                                                      \
       free( seq-> region_ygrad );                                                                   \
       seq-> region_ygrad= malloc( area_need * sizeof(int) );                                        \
       if( ! seq-> region_ygrad )                                                                    \
-        return -1;                                                                                  \
+	return -1;                                                                                  \
       seq-> region_ygrad_area= area_need;                                                           \
     }                                                                                               \
     {                                                                                               \
@@ -420,8 +420,8 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
       int *write_end= writing + area_need;                                                          \
       int *write_stop;                                                                              \
       for( ; writing < write_end; reading+= read_skip )                                             \
-        for( write_stop= writing + require. width; writing < write_stop; ++reading, ++writing )     \
-          *writing= reading[ read_line ] - reading[0];                                              \
+	for( write_stop= writing + require. width; writing < write_stop; ++reading, ++writing )     \
+	  *writing= reading[ read_line ] - reading[0];                                              \
     }                                                                                               \
   }
   switch( make_from-> im-> BandFmt ){
@@ -470,26 +470,26 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
 
     for( ; writing < write_end; writing+= write_skip, region_xgrad_start+= region_xgrad_start_skip, region_ygrad_start+= region_ygrad_start_skip )
       for( write_stop= writing + write_width; writing < write_stop; ++writing, ++region_xgrad_start, ++region_ygrad_start ){
-        gint64 sum= 0;
-        {
-          int *small_xgrad_read= (int*) small_xgrad-> data;
-          int *small_xgrad_stop;
-          int *region_xgrad_read= region_xgrad_start;
+	gint64 sum= 0;
+	{
+	  int *small_xgrad_read= (int*) small_xgrad-> data;
+	  int *small_xgrad_stop;
+	  int *region_xgrad_read= region_xgrad_start;
 
-          for( ; small_xgrad_read < small_xgrad_end; region_xgrad_read+= region_xgrad_read_skip )
-            for( small_xgrad_stop= small_xgrad_read + small_xgrad_width; small_xgrad_read < small_xgrad_stop; ++small_xgrad_read, ++region_xgrad_read )
-              sum+= *small_xgrad_read * *region_xgrad_read;
-        }
-        {
-          int *small_ygrad_read= (int*) small_ygrad-> data;
-          int *small_ygrad_stop;
-          int *region_ygrad_read= region_ygrad_start;
+	  for( ; small_xgrad_read < small_xgrad_end; region_xgrad_read+= region_xgrad_read_skip )
+	    for( small_xgrad_stop= small_xgrad_read + small_xgrad_width; small_xgrad_read < small_xgrad_stop; ++small_xgrad_read, ++region_xgrad_read )
+	      sum+= *small_xgrad_read * *region_xgrad_read;
+	}
+	{
+	  int *small_ygrad_read= (int*) small_ygrad-> data;
+	  int *small_ygrad_stop;
+	  int *region_ygrad_read= region_ygrad_start;
 
-          for( ; small_ygrad_read < small_ygrad_end; region_ygrad_read+= region_ygrad_read_skip )
-            for( small_ygrad_stop= small_ygrad_read + small_ygrad_width; small_ygrad_read < small_ygrad_stop; ++small_ygrad_read, ++region_ygrad_read )
-              sum+= *small_ygrad_read * *region_ygrad_read;
-        }
-        *writing= sum;
+	  for( ; small_ygrad_read < small_ygrad_end; region_ygrad_read+= region_ygrad_read_skip )
+	    for( small_ygrad_stop= small_ygrad_read + small_ygrad_width; small_ygrad_read < small_ygrad_stop; ++small_ygrad_read, ++region_ygrad_read )
+	      sum+= *small_ygrad_read * *region_ygrad_read;
+	}
+	*writing= sum;
       }
   }
   return 0;
@@ -497,7 +497,7 @@ static int gradcor_gen( REGION *to_make, void *vptr_seq, void *unrequired, void 
 
 #define XGRAD_GEN_DEFINITION( TYPE ) \
 static int xgrad_gen_ ## TYPE( REGION *to_make, void *vptr_make_from, void *unrequired, void *unreq2 ){   \
-                                                                                                          \
+					                                                                  \
   REGION *make_from= (REGION*) vptr_make_from;                                                            \
   Rect require= {                                                                                         \
     to_make-> valid. left,                                                                                \
@@ -507,29 +507,29 @@ static int xgrad_gen_ ## TYPE( REGION *to_make, void *vptr_make_from, void *unre
   };                                                                                                      \
   if( im_prepare( make_from, &require ) )                                                                 \
     return -1;                                                                                            \
-                                                                                                          \
+					                                                                  \
   {                                                                                                       \
     int *writing= (int*) IM_REGION_ADDR_TOPLEFT( to_make );                                               \
     size_t write_skip= IM_REGION_LSKIP( to_make ) / sizeof(int);                                          \
     int *write_end= writing + write_skip * to_make-> valid. height;                                       \
     size_t write_width= to_make-> valid. width;                                                           \
     int *write_stop;                                                                                      \
-                                                                                                          \
+					                                                                  \
     TYPE *reading= (TYPE*) IM_REGION_ADDR( make_from, require. left, require. top );                      \
     size_t read_skip= ( IM_REGION_LSKIP( make_from ) / sizeof(TYPE) ) - write_width;                      \
-                                                                                                          \
+					                                                                  \
     write_skip-= write_width;                                                                             \
-                                                                                                          \
+					                                                                  \
     for( ; writing < write_end; writing+= write_skip, reading+= read_skip )                               \
       for( write_stop= writing + write_width; writing < write_stop; ++writing, ++reading )                \
-        *writing= (int)( reading[1] - reading[0] );                                                       \
+	*writing= (int)( reading[1] - reading[0] );                                                       \
   }                                                                                                       \
   return 0;                                                                                               \
 }
 
 #define YGRAD_GEN_DEFINITION( TYPE ) \
 static int ygrad_gen_ ## TYPE( REGION *to_make, void *vptr_make_from, void *unrequired, void *unreq2 ){   \
-                                                                                                          \
+					                                                                  \
   REGION *make_from= (REGION*) vptr_make_from;                                                            \
   Rect require= {                                                                                         \
     to_make-> valid. left,                                                                                \
@@ -539,23 +539,23 @@ static int ygrad_gen_ ## TYPE( REGION *to_make, void *vptr_make_from, void *unre
   };                                                                                                      \
   if( im_prepare( make_from, &require ) )                                                                 \
     return -1;                                                                                            \
-                                                                                                          \
+					                                                                  \
   {                                                                                                       \
     int *writing= (int*) IM_REGION_ADDR_TOPLEFT( to_make );                                               \
     size_t write_skip= IM_REGION_LSKIP( to_make ) / sizeof(int);                                          \
     int *write_end= writing + write_skip * to_make-> valid. height;                                       \
     size_t write_width= to_make-> valid. width;                                                           \
     int *write_stop;                                                                                      \
-                                                                                                          \
+					                                                                  \
     TYPE *reading= (TYPE*) IM_REGION_ADDR( make_from, require. left, require. top );                      \
     size_t read_line= IM_REGION_LSKIP( make_from ) / sizeof(TYPE);                                        \
     size_t read_skip= read_line - write_width;                                                            \
-                                                                                                          \
+					                                                                  \
     write_skip-= write_width;                                                                             \
-                                                                                                          \
+					                                                                  \
     for( ; writing < write_end; writing+= write_skip, reading+= read_skip )                               \
       for( write_stop= writing + write_width; writing < write_stop; ++writing, ++reading )                \
-        *writing= (int)( reading[ read_line ] - reading[0] );                                             \
+	*writing= (int)( reading[ read_line ] - reading[0] );                                             \
   }                                                                                                       \
   return 0;                                                                                               \
 }

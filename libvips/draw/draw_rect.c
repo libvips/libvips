@@ -1,4 +1,4 @@
-/* Fill Rect r of image im with pels of colour ink. 
+/* Fill Rect r of image im with pels of colour ink.
  *
  * Copyright: J. Cupitt
  * Written: 15/06/1992
@@ -17,14 +17,14 @@
  * 	- renamed as im_draw_rect() for consistency
  * 27/9/10
  * 	- memcpy() subsequent lines of the rect
- * 10/2/14	
+ * 10/2/14
  * 	- redo as a class
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -71,14 +71,14 @@ typedef struct _VipsDrawRect {
 	int top;
 	int width;
 	int height;
-	gboolean fill; 
+	gboolean fill;
 
 } VipsDrawRect;
 
 typedef struct _VipsDrawRectClass {
 	VipsDrawinkClass parent_class;
 
-} VipsDrawRectClass; 
+} VipsDrawRectClass;
 
 G_DEFINE_TYPE( VipsDrawRect, vips_draw_rect, VIPS_TYPE_DRAWINK );
 
@@ -95,7 +95,7 @@ vips_draw_rect_build( VipsObject *object )
 	int height = draw_rect->height;
 
 	VipsRect image;
-	VipsRect rect; 
+	VipsRect rect;
 	VipsRect clip;
 
 	if( VIPS_OBJECT_CLASS( vips_draw_rect_parent_class )->build( object ) )
@@ -105,18 +105,18 @@ vips_draw_rect_build( VipsObject *object )
 	 */
 	if( !draw_rect->fill &&
 		width > 2 &&
-		height > 2 ) 
-		return( vips_draw_rect( draw->image, 
-				ink->data, ink->n, 
+		height > 2 )
+		return( vips_draw_rect( draw->image,
+				ink->data, ink->n,
 				left, top, width, 1, NULL ) ||
-			vips_draw_rect( draw->image, 
-				ink->data, ink->n, 
+			vips_draw_rect( draw->image,
+				ink->data, ink->n,
 				left + width - 1, top, 1, height, NULL ) ||
-			vips_draw_rect( draw->image, 
-				ink->data, ink->n, 
+			vips_draw_rect( draw->image,
+				ink->data, ink->n,
 				left, top + height - 1, width, 1, NULL ) ||
-			vips_draw_rect( draw->image, 
-				ink->data, ink->n, 
+			vips_draw_rect( draw->image,
+				ink->data, ink->n,
 				left, top, 1, height, NULL ) );
 
 	image.left = 0;
@@ -130,7 +130,7 @@ vips_draw_rect_build( VipsObject *object )
 	vips_rect_intersectrect( &rect, &image, &clip );
 
 	if( !vips_rect_isempty( &clip ) ) {
-		VipsPel *to = 
+		VipsPel *to =
 			VIPS_IMAGE_ADDR( draw->image, clip.left, clip.top );
 
 		VipsPel *q;
@@ -169,40 +169,40 @@ vips_draw_rect_class_init( VipsDrawRectClass *class )
 	vobject_class->description = _( "paint a rectangle on an image" );
 	vobject_class->build = vips_draw_rect_build;
 
-	VIPS_ARG_INT( class, "left", 6, 
-		_( "Left" ), 
+	VIPS_ARG_INT( class, "left", 6,
+		_( "Left" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, left ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "top", 7, 
-		_( "Top" ), 
+	VIPS_ARG_INT( class, "top", 7,
+		_( "Top" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, top ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "width", 8, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 8,
+		_( "Width" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, width ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "height", 9, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 9,
+		_( "Height" ),
 		_( "Rect to fill" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, height ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_BOOL( class, "fill", 10, 
-		_( "Fill" ), 
+	VIPS_ARG_BOOL( class, "fill", 10,
+		_( "Fill" ),
 		_( "Draw a solid object" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsDrawRect, fill ),
-		FALSE ); 
+		FALSE );
 
 }
 
@@ -212,16 +212,16 @@ vips_draw_rect_init( VipsDrawRect *draw_rect )
 }
 
 static int
-vips_draw_rectv( VipsImage *image, 
-	double *ink, int n, int left, int top, int width, int height, 
+vips_draw_rectv( VipsImage *image,
+	double *ink, int n, int left, int top, int width, int height,
 	va_list ap )
 {
 	VipsArea *area_ink;
 	int result;
 
 	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
-	result = vips_call_split( "draw_rect", ap, 
-		image, area_ink, left, top, width, height ); 
+	result = vips_call_split( "draw_rect", ap,
+		image, area_ink, left, top, width, height );
 	vips_area_unref( area_ink );
 
 	return( result );
@@ -250,15 +250,15 @@ vips_draw_rectv( VipsImage *image,
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_rect( VipsImage *image, 
-	double *ink, int n, int left, int top, int width, int height, ... ) 
+vips_draw_rect( VipsImage *image,
+	double *ink, int n, int left, int top, int width, int height, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, height );
-	result = vips_draw_rectv( image, 
-		ink, n, left, top, width, height, ap ); 
+	result = vips_draw_rectv( image,
+		ink, n, left, top, width, height, ap );
 	va_end( ap );
 
 	return( result );
@@ -278,24 +278,24 @@ vips_draw_rect( VipsImage *image,
  *
  * * @fill: fill the rect
  *
- * As vips_draw_rect(), but just take a single double for @ink. 
+ * As vips_draw_rect(), but just take a single double for @ink.
  *
  * See also: vips_draw_rect().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_rect1( VipsImage *image, 
-	double ink, int left, int top, int width, int height, ... ) 
+vips_draw_rect1( VipsImage *image,
+	double ink, int left, int top, int width, int height, ... )
 {
 	double array_ink[1];
 	va_list ap;
 	int result;
 
-	array_ink[0] = ink; 
+	array_ink[0] = ink;
 
 	va_start( ap, height );
-	result = vips_draw_rectv( image, 
+	result = vips_draw_rectv( image,
 		array_ink, 1, left, top, width, height, ap );
 	va_end( ap );
 
@@ -318,13 +318,13 @@ vips_draw_rect1( VipsImage *image,
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... ) 
+vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, y );
-	result = vips_draw_rectv( image, ink, n, x, y, 1, 1, ap ); 
+	result = vips_draw_rectv( image, ink, n, x, y, 1, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -338,20 +338,20 @@ vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... )
  * @y: point to draw
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_draw_point(), but just take a single double for @ink. 
+ * As vips_draw_point(), but just take a single double for @ink.
  *
  * See also: vips_draw_point().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_point1( VipsImage *image, double ink, int x, int y, ... ) 
+vips_draw_point1( VipsImage *image, double ink, int x, int y, ... )
 {
 	double array_ink[1];
 	va_list ap;
 	int result;
 
-	array_ink[0] = ink; 
+	array_ink[0] = ink;
 
 	va_start( ap, y );
 	result = vips_draw_rectv( image, array_ink, 1, x, y, 1, 1, ap );

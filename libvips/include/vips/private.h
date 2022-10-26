@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -42,12 +42,12 @@ extern "C" {
 
 #define VIPS_SPARE (8)
 
-/* Private to iofuncs: the minimum number of scanlines we add above and below 
+/* Private to iofuncs: the minimum number of scanlines we add above and below
  * the window as a margin for slop.
  */
 #define VIPS__WINDOW_MARGIN_PIXELS (128)
 
-/* Private to iofuncs: add at least this many bytes above and below the window. 
+/* Private to iofuncs: add at least this many bytes above and below the window.
  * There's no point mapping just a few KB of a small image.
  */
 #define VIPS__WINDOW_MARGIN_BYTES (1024 * 1024 * 10)
@@ -84,7 +84,7 @@ typedef struct {
 } VipsBufferThread;
 
 /* Per-image buffer cache. This keeps a list of "done" VipsBuffer that this
- * worker has generated. We use this to reuse results within a thread. 
+ * worker has generated. We use this to reuse results within a thread.
  *
  * Hash to this from VipsBufferThread::hash.
  * We can't store the GSList directly in the hash table as GHashTable lacks an
@@ -101,9 +101,9 @@ typedef struct _VipsBufferCache {
 } VipsBufferCache;
 
 /* What we track for each pixel buffer. These can move between caches and
- * between threads, but not between images. 
+ * between threads, but not between images.
  *
- * Moving between threads is difficult, use region ownership stuff. 
+ * Moving between threads is difficult, use region ownership stuff.
  */
 typedef struct _VipsBuffer {
 	int ref_count;		/* # of regions referencing us */
@@ -129,7 +129,7 @@ VipsBuffer *vips_buffer_new( struct _VipsImage *im, VipsRect *area );
 VIPS_API
 VipsBuffer *vips_buffer_ref( struct _VipsImage *im, VipsRect *area );
 VIPS_API
-VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer, 
+VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer,
 	struct _VipsImage *im, VipsRect *area );
 VIPS_API
 void vips_buffer_print( VipsBuffer *buffer );
@@ -149,7 +149,7 @@ typedef enum _RegionType {
 	VIPS_REGION_WINDOW		/* A VipsWindow on fd */
 } RegionType;
 
-/* Private to iofuncs: the size of the `tiles' requested by 
+/* Private to iofuncs: the size of the `tiles' requested by
  * vips_image_generate() when acting as a data sink.
  */
 #define VIPS__TILE_WIDTH (128)
@@ -172,7 +172,7 @@ void vips__region_no_ownership( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 VIPS_API
-int vips_region_fill( struct _VipsRegion *reg, 
+int vips_region_fill( struct _VipsRegion *reg,
 	const VipsRect *r, VipsRegionFillFn fn, void *a );
 
 int vips__image_wio_output( struct _VipsImage *image );
@@ -181,10 +181,10 @@ int vips__image_pio_output( struct _VipsImage *image );
 /* VIPS_ARGUMENT_FOR_ALL() needs to have this visible.
  */
 VIPS_API
-VipsArgumentInstance *vips__argument_get_instance( 
+VipsArgumentInstance *vips__argument_get_instance(
 	VipsArgumentClass *argument_class,
 	VipsObject *object);
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
+VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table,
 	GParamSpec *pspec);
 
 /* im_demand_hint_array() needs to have this visible.
@@ -192,14 +192,14 @@ VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table,
 #if VIPS_ENABLE_DEPRECATED
 VIPS_API
 #endif
-void vips__demand_hint_array( struct _VipsImage *image, 
+void vips__demand_hint_array( struct _VipsImage *image,
 	int hint, struct _VipsImage **in );
 /* im_cp_desc_array() needs to have this visible.
  */
 #if VIPS_ENABLE_DEPRECATED
 VIPS_API
 #endif
-int vips__image_copy_fields_array( struct _VipsImage *out, 
+int vips__image_copy_fields_array( struct _VipsImage *out,
 	struct _VipsImage *in[] );
 
 void vips__region_count_pixels( struct _VipsRegion *region, const char *nickname );

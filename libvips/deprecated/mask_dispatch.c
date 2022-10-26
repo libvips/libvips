@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ matinv_vec( im_object *argv )
 	im_mask_object *in = argv[0];
 	im_mask_object *out = argv[1];
 
-	if( !(out->mask = 
+	if( !(out->mask =
 		im_matinv( in->mask, out->name )) )
 		return( -1 );
 
@@ -71,7 +71,7 @@ matinv_vec( im_object *argv )
 }
 
 /* Description of im_matinv.
- */ 
+ */
 static im_function matinv_desc = {
 	"im_matinv",	 		/* Name */
 	"invert matrix",
@@ -89,7 +89,7 @@ mattrn_vec( im_object *argv )
 	im_mask_object *in = argv[0];
 	im_mask_object *out = argv[1];
 
-	if( !(out->mask = 
+	if( !(out->mask =
 		im_mattrn( in->mask, out->name )) )
 		return( -1 );
 
@@ -97,7 +97,7 @@ mattrn_vec( im_object *argv )
 }
 
 /* Description of im_mattrn.
- */ 
+ */
 static im_function mattrn_desc = {
 	"im_mattrn",	 		/* Name */
 	"transpose matrix",
@@ -116,7 +116,7 @@ matcat_vec( im_object *argv )
 	im_mask_object *in2 = argv[1];
 	im_mask_object *out = argv[2];
 
-	if( !(out->mask = 
+	if( !(out->mask =
 		im_matcat( in1->mask, in2->mask, out->name )) )
 		return( -1 );
 
@@ -124,7 +124,7 @@ matcat_vec( im_object *argv )
 }
 
 /* Description of im_matcat.
- */ 
+ */
 static im_function matcat_desc = {
 	"im_matcat",	 		/* Name */
 	"append matrix in2 to the end of matrix in1",
@@ -143,7 +143,7 @@ matmul_vec( im_object *argv )
 	im_mask_object *in2 = argv[1];
 	im_mask_object *out = argv[2];
 
-	if( !(out->mask = 
+	if( !(out->mask =
 		im_matmul( in1->mask, in2->mask, out->name )) )
 		return( -1 );
 
@@ -151,7 +151,7 @@ matmul_vec( im_object *argv )
 }
 
 /* Description of im_matmul.
- */ 
+ */
 static im_function matmul_desc = {
 	"im_matmul",	 		/* Name */
 	"multiply matrix in1 by matrix in2",
@@ -182,7 +182,7 @@ read_dmask_vec( im_object *argv )
 }
 
 /* Description of im_read_dmask().
- */ 
+ */
 static im_function read_dmask_desc = {
 	"im_read_dmask",		/* Name */
 	"read matrix of double from file",
@@ -209,15 +209,15 @@ gauss_dmask_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_gauss_dmask( mo->name, sigma, min_amp )) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
 /* Description of im_gauss_dmask.
- */ 
+ */
 static im_function gauss_dmask_desc = {
 	"im_gauss_dmask", 		/* Name */
 	"generate gaussian DOUBLEMASK",
@@ -236,15 +236,15 @@ gauss_dmask_sep_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_gauss_dmask_sep( mo->name, sigma, min_amp )) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
 /* Description of im_gauss_dmask_sep.
- */ 
+ */
 static im_function gauss_dmask_sep_desc = {
 	"im_gauss_dmask_sep", 		/* Name */
 	"generate separable gaussian DOUBLEMASK",
@@ -271,15 +271,15 @@ gauss_imask_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_gauss_imask( mo->name, sigma, min_amp )) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
 /* Description of im_gauss_imask.
- */ 
+ */
 static im_function gauss_imask_desc = {
 	"im_gauss_imask", 		/* Name */
 	"generate gaussian INTMASK",
@@ -298,15 +298,15 @@ gauss_imask_sep_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_gauss_imask_sep( mo->name, sigma, min_amp )) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
 /* Description of im_gauss_imask_sep.
- */ 
+ */
 static im_function gauss_imask_sep_desc = {
 	"im_gauss_imask_sep", 		/* Name */
 	"generate separable gaussian INTMASK",
@@ -333,7 +333,7 @@ log_imask_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_log_imask( mo->name, sigma, min_amp )) )
 		return( -1 );
 
@@ -341,7 +341,7 @@ log_imask_vec( im_object *argv )
 }
 
 /* Description of im_log_imask.
- */ 
+ */
 static im_function log_imask_desc = {
 	"im_log_imask", 		/* Name */
 	"generate laplacian of gaussian INTMASK",
@@ -368,7 +368,7 @@ log_dmask_vec( im_object *argv )
 	double sigma = *((double *) argv[1]);
 	double min_amp = *((double *) argv[2]);
 
-	if( !(mo->mask = 
+	if( !(mo->mask =
 		im_log_dmask( mo->name, sigma, min_amp )) )
 		return( -1 );
 
@@ -376,7 +376,7 @@ log_dmask_vec( im_object *argv )
 }
 
 /* Description of im_log_dmask.
- */ 
+ */
 static im_function log_dmask_desc = {
 	"im_log_dmask", 		/* Name */
 	"generate laplacian of gaussian DOUBLEMASK",
@@ -411,7 +411,7 @@ rotate_imask45_vec( im_object *argv )
 }
 
 /* Description of im_rotate_imask45.
- */ 
+ */
 static im_function rotate_imask45_desc = {
 	"im_rotate_imask45",	 	/* Name */
 	"rotate INTMASK clockwise by 45 degrees",
@@ -436,7 +436,7 @@ rotate_imask90_vec( im_object *argv )
 }
 
 /* Description of im_rotate_imask90.
- */ 
+ */
 static im_function rotate_imask90_desc = {
 	"im_rotate_imask90",	 	/* Name */
 	"rotate INTMASK clockwise by 90 degrees",
@@ -461,7 +461,7 @@ rotate_dmask45_vec( im_object *argv )
 }
 
 /* Description of im_rotate_dmask45.
- */ 
+ */
 static im_function rotate_dmask45_desc = {
 	"im_rotate_dmask45",	 	/* Name */
 	"rotate DOUBLEMASK clockwise by 45 degrees",
@@ -486,7 +486,7 @@ rotate_dmask90_vec( im_object *argv )
 }
 
 /* Description of im_rotate_dmask90.
- */ 
+ */
 static im_function rotate_dmask90_desc = {
 	"im_rotate_dmask90",	 	/* Name */
 	"rotate DOUBLEMASK clockwise by 90 degrees",
@@ -579,10 +579,10 @@ static im_function *mask_list[] = {
 	&log_imask_desc,
 	&gauss_imask_desc,
 	&gauss_imask_sep_desc,
-        &dmask_xsize_desc,
-        &dmask_ysize_desc,
-        &imask_xsize_desc,
-        &imask_ysize_desc,
+	&dmask_xsize_desc,
+	&dmask_ysize_desc,
+	&imask_xsize_desc,
+	&imask_ysize_desc,
 	&read_dmask_desc,
 	&rotate_dmask45_desc,
 	&rotate_dmask90_desc,

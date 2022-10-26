@@ -11,10 +11,10 @@ int
 main( int argc, char **argv )
 {
 	if( VIPS_INIT( argv[0] ) )
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 
 	VImage in = VImage::new_from_file( argv[1], VImage::option()
-		->set( "access", "sequential" ) ); 
+		->set( "access", "sequential" ) );
 
 	VImage out = in.resize( 0.2, VImage::option()
 		->set( "kernel", "cubic" )
@@ -24,5 +24,5 @@ main( int argc, char **argv )
 
 	vips_shutdown();
 
-        return( 0 );
+	return( 0 );
 }

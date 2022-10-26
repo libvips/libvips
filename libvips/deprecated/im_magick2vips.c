@@ -1,5 +1,5 @@
 /* Read a file using libMagick
- * 
+ *
  * 17/12/11
  * 	- just a stub
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -53,8 +53,8 @@ im_magick2vips( const char *filename, IMAGE *out )
 	 */
 	return( vips__magick_read( filename, out, NULL, 0, -1 ) );
 #else
-	vips_error( "im_magick2vips", 
-		"%s", _( "no libMagick support in your libvips" ) ); 
+	vips_error( "im_magick2vips",
+		"%s", _( "no libMagick support in your libvips" ) );
 
 	return( -1 );
 #endif /*HAVE_MAGICK*/
@@ -104,7 +104,7 @@ im_bufmagick2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 {
 	VipsImage *t;
 
-	/* header_only is automatic ... this call will only decompress on 
+	/* header_only is automatic ... this call will only decompress on
 	 * pixel access.
 	 */
 

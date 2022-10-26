@@ -78,14 +78,14 @@ system_image_vec( im_object *argv )
 
 	IMAGE *out_image;
 
-	if( !(out_image = im_system_image( in, 
+	if( !(out_image = im_system_image( in,
 		in_format, out_format, cmd, log )) ) {
 		im_error( "im_system_image", "%s", *log );
 		return( -1 );
 	}
 
 	if( im_copy( out_image, out ) ||
-		im_add_close_callback( out, 
+		im_add_close_callback( out,
 			(im_callback_fn) im_close, out_image, NULL ) ) {
 		im_close( out_image );
 		return( -1 );
@@ -164,12 +164,12 @@ gaussnoise_vec( im_object *argv )
 
 	if( im_gaussnoise( argv[0], xsize, ysize, mean, sigma ) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
 /* Description of im_gaussnoise.
- */ 
+ */
 static im_function gaussnoise_desc = {
 	"im_gaussnoise", 		/* Name */
 	"generate image of gaussian noise with specified statistics",
@@ -202,7 +202,7 @@ extract_vec( im_object *argv )
 	int height = *((int *) argv[5]);
 	int band = *((int *) argv[6]);
 
-	return( im_extract_areabands( argv[0], argv[1], 
+	return( im_extract_areabands( argv[0], argv[1],
 		left, top, width, height, band, 1 ) );
 }
 
@@ -658,7 +658,7 @@ copy_set_meta_vec( im_object *argv )
 	const char *field = argv[2];
 	GValue *value = argv[3];
 
-	return( im_copy_set_meta( argv[0], argv[1], field, value ) ); 
+	return( im_copy_set_meta( argv[0], argv[1], field, value ) );
 }
 
 /* Description of im_copy_set_meta.
@@ -898,7 +898,7 @@ insertset_vec( im_object *argv )
 	im_intvec_object *yv = (im_intvec_object *) argv[4];
 
 	if( xv->n != yv->n ) {
-		im_error( "im_insertset", "%s", 
+		im_error( "im_insertset", "%s",
 			_( "vectors not same length" ) );
 		return( -1 );
 	}
@@ -910,7 +910,7 @@ insertset_vec( im_object *argv )
 }
 
 /* Description of im_insertset.
- */ 
+ */
 static im_function insertset_desc = {
 	"im_insertset", 		/* Name */
 	"insert sub into main at every position in x, y",
@@ -1275,10 +1275,10 @@ embed_vec( im_object *argv )
 }
 
 /* Description of im_embed.
- */ 
+ */
 static im_function embed_desc = {
 	"im_embed",	 		/* Name */
-	"embed in within a set of borders", 
+	"embed in within a set of borders",
 	IM_FN_PIO | IM_FN_TRANSFORM,	/* Flags */
 	embed_vec, 			/* Dispatch function */
 	IM_NUMBER( embed_args ), 	/* Size of arg list */
@@ -1317,8 +1317,8 @@ static im_function *conv_list[] = {
 	&insert_noexpand_desc,
 	&embed_desc,
 	&lrjoin_desc,
-        &msb_desc,
-        &msb_band_desc,
+	&msb_desc,
+	&msb_band_desc,
 	&replicate_desc,
 	&ri2c_desc,
 	&rot180_desc,

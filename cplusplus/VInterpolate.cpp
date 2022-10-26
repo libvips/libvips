@@ -43,20 +43,20 @@
 
 VIPS_NAMESPACE_START
 
-VInterpolate 
+VInterpolate
 VInterpolate::new_from_name( const char *name, VOption *options )
 {
 	VipsInterpolate *interp;
 
 	if( !(interp = vips_interpolate_new( name )) ) {
-		delete options; 
-		throw VError(); 
+		delete options;
+		throw VError();
 	}
-	delete options; 
+	delete options;
 
-	VInterpolate out( interp ); 
+	VInterpolate out( interp );
 
-	return( out ); 
+	return( out );
 }
 
 VIPS_NAMESPACE_END

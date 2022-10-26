@@ -2,7 +2,7 @@
  *
  * Copyright: 1991, N. Dessipris
  * Written on: 28/10/91
- * Updated on: 2/4/92, J.Cupitt 
+ * Updated on: 2/4/92, J.Cupitt
  * 	bugs in im_la90rot fixed, now works for any type.
  * 19/7/93 JC
  *	- IM_CODING_LABQ allowed now
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -124,7 +124,7 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 	need.height = r->width;
 	if( vips_region_prepare( ir, &need ) )
 		return( -1 );
-	
+
 	/* Find PEL size and line skip for ir.
 	 */
 	ps = VIPS_IMAGE_SIZEOF_PEL( in );
@@ -139,8 +139,8 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
-			need.left + y - to, 
+		VipsPel *p = VIPS_REGION_ADDR( ir,
+			need.left + y - to,
 			need.top + need.height - 1 );
 
 		for( x = le; x < ri; x++ ) {
@@ -200,8 +200,8 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
-			need.left + need.width - 1, 
+		VipsPel *p = VIPS_REGION_ADDR( ir,
+			need.left + need.width - 1,
 			need.top + need.height - (y - to) - 1 );
 
 		/* Blap across!
@@ -247,7 +247,7 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 	need.height = r->width;
 	if( vips_region_prepare( ir, &need ) )
 		return( -1 );
-	
+
 	/* Find PEL size and line skip for ir.
 	 */
 	ps = VIPS_IMAGE_SIZEOF_PEL( in );
@@ -262,7 +262,7 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR( ir,
 			need.left + need.width - (y - to) - 1,
 			need.top );
 
@@ -296,9 +296,9 @@ vips_rot_build( VipsObject *object )
 	if( vips_image_pio_input( rot->in ) )
 		return( -1 );
 
-	hint = rot->angle == VIPS_ANGLE_D180 ? 
+	hint = rot->angle == VIPS_ANGLE_D180 ?
 		VIPS_DEMAND_STYLE_THINSTRIP :
-		VIPS_DEMAND_STYLE_SMALLTILE; 
+		VIPS_DEMAND_STYLE_SMALLTILE;
 
 	if( vips_image_pipelinev( conversion->out, hint, rot->in, NULL ) )
 		return( -1 );
@@ -335,7 +335,7 @@ vips_rot_build( VipsObject *object )
 	}
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, generate_fn, vips_stop_one, 
+		vips_start_one, generate_fn, vips_stop_one,
 		rot->in, rot ) )
 		return( -1 );
 
@@ -357,18 +357,18 @@ vips_rot_class_init( VipsRotClass *class )
 	vobject_class->description = _( "rotate an image" );
 	vobject_class->build = vips_rot_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRot, in ) );
 
-	VIPS_ARG_ENUM( class, "angle", 6, 
-		_( "Angle" ), 
+	VIPS_ARG_ENUM( class, "angle", 6,
+		_( "Angle" ),
 		_( "Angle to rotate image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRot, angle ),
-		VIPS_TYPE_ANGLE, VIPS_ANGLE_D90 ); 
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D90 );
 }
 
 static void
@@ -391,8 +391,8 @@ vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
  *
  * Rotate @in by a multiple of 90 degrees.
  *
- * Use vips_similarity() to rotate by an arbitary angle. vips_rot45() is 
- * useful for rotating convolution masks by 45 degrees. 
+ * Use vips_similarity() to rotate by an arbitary angle. vips_rot45() is
+ * useful for rotating convolution masks by 45 degrees.
  *
  * See also: vips_flip(), vips_similarity(), vips_rot45().
  *

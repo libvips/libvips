@@ -3,7 +3,7 @@
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 5/5/93 J.Cupitt
  *	- adapted from im_lintra to work with partial images
  *	- complex and signed support added
@@ -26,7 +26,7 @@
  * 	- redone as a class
  * 3/12/13
  * 	- add orc, though the speed improvement vs. gcc's auto-vectorizer
- * 	  seems very marginal 
+ * 	  seems very marginal
  * 21/2/19
  * 	- move orc init to first use of abs
  */
@@ -42,7 +42,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -88,16 +88,16 @@ vips_abs_orc_init_cb( void *a )
 
 	VipsVector *v;
 
-	vips_arithmetic_set_vector( aclass ); 
+	vips_arithmetic_set_vector( aclass );
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
-	vips_vector_asm2( v, "absb", "d1", "s1" ); 
+	vips_vector_asm2( v, "absb", "d1", "s1" );
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
-	vips_vector_asm2( v, "absw", "d1", "s1" ); 
+	vips_vector_asm2( v, "absw", "d1", "s1" );
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_INT );
-	vips_vector_asm2( v, "absl", "d1", "s1" ); 
+	vips_vector_asm2( v, "absl", "d1", "s1" );
 
 	vips_arithmetic_compile( aclass );
 
@@ -111,11 +111,11 @@ vips_abs_build( VipsObject *object )
 
 	VipsUnary *unary = (VipsUnary *) object;
 
-	VIPS_ONCE( &once, vips_abs_orc_init_cb, object ); 
+	VIPS_ONCE( &once, vips_abs_orc_init_cb, object );
 
 	if( unary->in &&
-		vips_band_format_isuint( unary->in->BandFmt ) ) 
-		return( vips_unary_copy( unary ) ); 
+		vips_band_format_isuint( unary->in->BandFmt ) )
+		return( vips_unary_copy( unary ) );
 
 	if( VIPS_OBJECT_CLASS( vips_abs_parent_class )->build( object ) )
 		return( -1 );
@@ -192,7 +192,7 @@ vips_abs_build( VipsObject *object )
 #endif /*HAVE_HYPOT*/
 
 static void
-vips_abs_buffer( VipsArithmetic *arithmetic, 
+vips_abs_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
@@ -202,7 +202,7 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 
 	VipsVector *v;
 
-	if( (v = vips_arithmetic_get_vector( class, 
+	if( (v = vips_arithmetic_get_vector( class,
 		vips_image_get_format( im ) )) ) {
 		VipsExecutor ex;
 
@@ -214,11 +214,11 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 	}
 	else {
 		switch( vips_image_get_format( im ) ) {
-		case VIPS_FORMAT_CHAR: 		ABS_INT( signed char ); break; 
-		case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break; 
-		case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break; 
-		case VIPS_FORMAT_FLOAT: 	ABS_FLOAT( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( double ); break; 
+		case VIPS_FORMAT_CHAR: 		ABS_INT( signed char ); break;
+		case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break;
+		case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break;
+		case VIPS_FORMAT_FLOAT: 	ABS_FLOAT( float ); break;
+		case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( double ); break;
 		case VIPS_FORMAT_COMPLEX:	ABS_COMPLEX( float ); break;
 		case VIPS_FORMAT_DPCOMPLEX:	ABS_COMPLEX( double ); break;
 
@@ -245,7 +245,7 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
  */
 static const VipsBandFormat vips_abs_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  F,  D,  D 
+   UC, C,  US, S,  UI, I,  F,  F,  D,  D
 };
 
 static void
@@ -260,7 +260,7 @@ vips_abs_class_init( VipsAbsClass *class )
 
 	aclass->process_line = vips_abs_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_abs_format_table );
 }
 
 static void
@@ -268,17 +268,17 @@ vips_abs_init( VipsAbs *abs )
 {
 }
 
-/** 
+/**
  * vips_abs: (method)
  * @in: input #VipsImage
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation finds the absolute value of an image. It does a copy for 
- * unsigned integer types, negate for negative values in 
- * signed integer types, <function>fabs(3)</function> for 
- * float types, and calculates modulus for complex 
- * types. 
+ * This operation finds the absolute value of an image. It does a copy for
+ * unsigned integer types, negate for negative values in
+ * signed integer types, <function>fabs(3)</function> for
+ * float types, and calculates modulus for complex
+ * types.
  *
  * See also: vips_sign().
  *

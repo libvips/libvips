@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -45,25 +45,25 @@ typedef enum {
 } VipsOperationMorphology;
 
 VIPS_API
-int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask,
 	VipsOperationMorphology morph, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_rank( VipsImage *in, VipsImage **out, 
+int vips_rank( VipsImage *in, VipsImage **out,
 	int width, int height, int index, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_median( VipsImage *in, VipsImage **out, int size, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_countlines( VipsImage *in, double *nolines, 
+int vips_countlines( VipsImage *in, double *nolines,
 	VipsDirection direction, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_labelregions( VipsImage *in, VipsImage **mask, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_fill_nearest( VipsImage *in, VipsImage **out, ... ) 
+int vips_fill_nearest( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus

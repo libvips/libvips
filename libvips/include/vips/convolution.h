@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -71,7 +71,7 @@ VIPS_API
 int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
+int vips_sharpen( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API

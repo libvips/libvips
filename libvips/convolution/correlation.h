@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -72,16 +72,16 @@ typedef struct {
 typedef struct {
 	VipsOperationClass parent_class;
 
-	/* For each upcast input format, what output format. 
+	/* For each upcast input format, what output format.
 	 */
 	const VipsBandFormat *format_table;
 
 	/* Run just before generate. The subclass can fill in some stuff.
 	 */
-	int (*pre_generate)( VipsCorrelation * );  
+	int (*pre_generate)( VipsCorrelation * );
 
-	void (*correlation)( VipsCorrelation *, 
-		VipsRegion *in, VipsRegion *out ); 
+	void (*correlation)( VipsCorrelation *,
+		VipsRegion *in, VipsRegion *out );
 
 } VipsCorrelationClass;
 

@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -160,7 +160,7 @@ vips_grid_build( VipsObject *object )
 		return( -1 );
 
 	if( grid->in->Ysize % grid->tile_height != 0 ||
-		grid->in->Ysize / grid->tile_height != 
+		grid->in->Ysize / grid->tile_height !=
 			grid->across * grid->down ) {
 		vips_error( class->nickname, "%s", _( "bad grid geometry" ) );
 		return( -1 );
@@ -168,14 +168,14 @@ vips_grid_build( VipsObject *object )
 
 	/* We can render small tiles with pointer copies.
 	 */
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_SMALLTILE, grid->in, NULL ) )
 		return( -1 );
 	conversion->out->Xsize = grid->in->Xsize * grid->across;
 	conversion->out->Ysize = grid->tile_height * grid->down;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_grid_gen, vips_stop_one, 
+		vips_start_one, vips_grid_gen, vips_stop_one,
 		grid->in, grid ) )
 		return( -1 );
 
@@ -195,28 +195,28 @@ vips_grid_class_init( VipsGridClass *class )
 	vobject_class->description = _( "grid an image" );
 	vobject_class->build = vips_grid_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, in ) );
 
-	VIPS_ARG_INT( class, "tile_height", 3, 
-		_( "Tile height" ), 
+	VIPS_ARG_INT( class, "tile_height", 3,
+		_( "Tile height" ),
 		_( "Chop into tiles this high" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, tile_height ),
 		1, 10000000, 128 );
 
-	VIPS_ARG_INT( class, "across", 4, 
-		_( "Across" ), 
+	VIPS_ARG_INT( class, "across", 4,
+		_( "Across" ),
 		_( "Number of tiles across" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, across ),
 		1, 10000000, 1 );
 
-	VIPS_ARG_INT( class, "down", 5, 
-		_( "Down" ), 
+	VIPS_ARG_INT( class, "down", 5,
+		_( "Down" ),
 		_( "Number of tiles down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, down ),
@@ -241,7 +241,7 @@ vips_grid_init( VipsGrid *grid )
  * @down: tiles down
  * @...: %NULL-terminated list of optional named arguments
  *
- * Chop a tall thin image up into a set of tiles, lay the tiles out in a grid. 
+ * Chop a tall thin image up into a set of tiles, lay the tiles out in a grid.
  *
  * The input image should be a very tall, thin image containing a list of
  * smaller images. Volumetric or time-sequence images are often laid out like
@@ -251,21 +251,21 @@ vips_grid_init( VipsGrid *grid )
  *
  * Supplying @tile_height, @across and @down is not strictly necessary, we
  * only really need two of these. Requiring three is a double-check that the
- * image has the expected geometry. 
+ * image has the expected geometry.
  *
  * See also: vips_embed(), vips_insert(), vips_join().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_grid( VipsImage *in, VipsImage **out, 
+vips_grid( VipsImage *in, VipsImage **out,
 	int tile_height, int across, int down, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, down );
-	result = vips_call_split( "grid", ap, 
+	result = vips_call_split( "grid", ap,
 		in, out, tile_height, across, down );
 	va_end( ap );
 

@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -70,14 +70,14 @@ G_DEFINE_TYPE( VipsByteswap, vips_byteswap, VIPS_TYPE_CONVERSION );
  */
 static void
 vips_byteswap_swap2( VipsPel *in, VipsPel *out, int width, VipsImage *im )
-{ 
+{
 	guint16 *p = (guint16 *) in;
 	guint16 *q = (guint16 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 2;    
+	int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 2;
 
-        int x;
+	int x;
 
-        for( x = 0; x < sz; x++ ) 
+	for( x = 0; x < sz; x++ )
 		q[x] = GUINT16_SWAP_LE_BE( p[x] );
 }
 
@@ -88,11 +88,11 @@ vips_byteswap_swap4( VipsPel *in, VipsPel *out, int width, VipsImage *im )
 {
 	guint32 *p = (guint32 *) in;
 	guint32 *q = (guint32 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 4;    
+	int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 4;
 
-        int x;
+	int x;
 
-        for( x = 0; x < sz; x++ ) 
+	for( x = 0; x < sz; x++ )
 		q[x] = GUINT32_SWAP_LE_BE( p[x] );
 }
 
@@ -103,11 +103,11 @@ vips_byteswap_swap8( VipsPel *in, VipsPel *out, int width, VipsImage *im )
 {
 	guint64 *p = (guint64 *) in;
 	guint64 *q = (guint64 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 8;    
+	int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 8;
 
-        int x;
+	int x;
 
-        for( x = 0; x < sz; x++ ) 
+	for( x = 0; x < sz; x++ )
 		q[x] = GUINT64_SWAP_LE_BE( p[x] );
 }
 
@@ -129,7 +129,7 @@ static SwapFn vips_byteswap_swap_fn[] = {
 /* Byteswap, turning bands into the x axis.
  */
 static int
-vips_byteswap_gen( VipsRegion *or, 
+vips_byteswap_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -139,7 +139,7 @@ vips_byteswap_gen( VipsRegion *or,
 
 	int y;
 
-	g_assert( swap ); 
+	g_assert( swap );
 
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
@@ -167,17 +167,17 @@ vips_byteswap_build( VipsObject *object )
 	 */
 	if( byteswap->in->Coding != VIPS_CODING_NONE ||
 		!vips_byteswap_swap_fn[byteswap->in->BandFmt] )
-		return( vips_image_write( byteswap->in, conversion->out ) ); 
+		return( vips_image_write( byteswap->in, conversion->out ) );
 
 	if( vips_image_pio_input( byteswap->in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, byteswap->in, NULL ) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_byteswap_gen, vips_stop_one, 
+		vips_start_one, vips_byteswap_gen, vips_stop_one,
 		byteswap->in, byteswap ) )
 		return( -1 );
 
@@ -202,8 +202,8 @@ vips_byteswap_class_init( VipsByteswapClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsByteswap, in ) );
@@ -221,7 +221,7 @@ vips_byteswap_init( VipsByteswap *byteswap )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Swap the byte order in an image. 
+ * Swap the byte order in an image.
  *
  * See also: vips_rawload().
  *
@@ -245,7 +245,7 @@ vips_byteswap( VipsImage *in, VipsImage **out, ... )
 int
 vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap )
 {
-	if( swap ) 
+	if( swap )
 		return( vips_byteswap( in, out, NULL ) );
 	else
 		return( vips_copy( in, out, NULL ) );

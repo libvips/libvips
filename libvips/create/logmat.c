@@ -22,7 +22,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,7 @@ typedef struct _VipsLogmat {
 
 	gboolean separable;
 	gboolean integer;		/* Deprecated */
-	VipsPrecision precision; 
+	VipsPrecision precision;
 
 } VipsLogmat;
 
@@ -89,12 +89,12 @@ vips_logmat_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsLogmat *logmat = (VipsLogmat *) object;
-	double sig2 = logmat->sigma * logmat->sigma; 
+	double sig2 = logmat->sigma * logmat->sigma;
 
-	double last; 
+	double last;
 	int x, y;
-	int width, height; 
-	double sum; 
+	int width, height;
+	double sum;
 
 	if( VIPS_OBJECT_CLASS( vips_logmat_parent_class )->build( object ) )
 		return( -1 );
@@ -105,15 +105,15 @@ vips_logmat_build( VipsObject *object )
 	 */
 	if( vips_object_argument_isset( object, "integer" ) &&
 		!vips_object_argument_isset( object, "precision" ) &&
-		!logmat->integer ) 
+		!logmat->integer )
 		logmat->precision = VIPS_PRECISION_FLOAT;
 
-	if( vips_check_precision_intfloat( class->nickname, 
+	if( vips_check_precision_intfloat( class->nickname,
 		logmat->precision ) )
-		return( -1 ); 
+		return( -1 );
 
-	/* Find the size of the mask. We want to eval the mask out to the 
-	 * flat zero part, ie. beyond the minimum and to the point where it 
+	/* Find the size of the mask. We want to eval the mask out to the
+	 * flat zero part, ie. beyond the minimum and to the point where it
 	 * comes back up towards zero.
 	 */
 	last = 0.0;
@@ -124,17 +124,17 @@ vips_logmat_build( VipsObject *object )
 		/* Handbook of Pattern Recognition and image processing
 		 * by Young and Fu AP 1986 pp 220-221
 		 * temp =  (1.0 / (2.0 * IM_PI * sig4)) *
-			(2.0 - (distance / sig2)) * 
+			(2.0 - (distance / sig2)) *
 			exp( (-1.0) * distance / (2.0 * sig2) )
 
 		   .. use 0.5 to normalise
 		 */
-		val = 0.5 * 
-			(2.0 - (distance / sig2)) * 
+		val = 0.5 *
+			(2.0 - (distance / sig2)) *
 			exp( -distance / (2.0 * sig2) );
 
 		/* Stop when change in value (ie. difference from the last
-		 * point) is positive (ie. we are going up) and absolute value 
+		 * point) is positive (ie. we are going up) and absolute value
 		 * is less than the min.
 		 */
 		if( val - last >= 0 &&
@@ -149,13 +149,13 @@ vips_logmat_build( VipsObject *object )
 	}
 
 	width = x * 2 + 1;
-	height = logmat->separable ? 1 : width; 
+	height = logmat->separable ? 1 : width;
 
 	vips_image_init_fields( create->out,
-		width, height, 1, 
-		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+		width, height, 1,
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
-		1.0, 1.0 ); 
+		1.0, 1.0 );
 	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
 		vips_image_write_prepare( create->out ) )
 		return( -1 );
@@ -174,12 +174,12 @@ vips_logmat_build( VipsObject *object )
 				v = VIPS_RINT( 20 * v );
 
 			*VIPS_MATRIX( create->out, x, y ) = v;
-			sum += v; 
+			sum += v;
 		}
 	}
 
-	vips_image_set_double( create->out, "scale", sum ); 
-	vips_image_set_double( create->out, "offset", 0.0 ); 
+	vips_image_set_double( create->out, "scale", sum );
+	vips_image_set_double( create->out, "offset", 0.0 );
 
 	return( 0 );
 }
@@ -197,40 +197,40 @@ vips_logmat_class_init( VipsLogmatClass *class )
 	vobject_class->description = _( "make a Laplacian of Gaussian image" );
 	vobject_class->build = vips_logmat_build;
 
-	VIPS_ARG_DOUBLE( class, "sigma", 2, 
-		_( "Radius" ), 
+	VIPS_ARG_DOUBLE( class, "sigma", 2,
+		_( "Radius" ),
 		_( "Radius of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, sigma ),
 		0.000001, 10000.0, 1.0 );
 
-	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
-		_( "Width" ), 
+	VIPS_ARG_DOUBLE( class, "min_ampl", 3,
+		_( "Width" ),
 		_( "Minimum amplitude of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, min_ampl ),
 		0.000001, 10000.0, 0.1 );
 
-	VIPS_ARG_BOOL( class, "separable", 4, 
-		_( "Separable" ), 
+	VIPS_ARG_BOOL( class, "separable", 4,
+		_( "Separable" ),
 		_( "Generate separable Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, separable ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "integer", 5, 
-		_( "Integer" ), 
+	VIPS_ARG_BOOL( class, "integer", 5,
+		_( "Integer" ),
 		_( "Generate integer Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsLogmat, integer ),
 		FALSE );
 
-	VIPS_ARG_ENUM( class, "precision", 6, 
-		_( "Precision" ), 
+	VIPS_ARG_ENUM( class, "precision", 6,
+		_( "Precision" ),
 		_( "Generate with this precision" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsLogmat, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsLogmat, precision ),
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER );
 
 }
 
@@ -254,30 +254,30 @@ vips_logmat_init( VipsLogmat *logmat )
  * * @separable: generate a separable mask
  * * @precision: #VipsPrecision for @out
  *
- * Creates a circularly symmetric Laplacian of Gaussian mask 
- * of radius 
- * @sigma.  The size of the mask is determined by the variable @min_ampl; 
- * if for instance the value .1 is entered this means that the produced mask 
- * is clipped at values within 10 persent of zero, and where the change 
+ * Creates a circularly symmetric Laplacian of Gaussian mask
+ * of radius
+ * @sigma.  The size of the mask is determined by the variable @min_ampl;
+ * if for instance the value .1 is entered this means that the produced mask
+ * is clipped at values within 10 persent of zero, and where the change
  * between mask elements is less than 10%.
  *
- * The program uses the following equation: (from Handbook of Pattern 
+ * The program uses the following equation: (from Handbook of Pattern
  * Recognition and image processing by Young and Fu, AP 1986 pages 220-221):
  *
  *  H(r) = (1 / (2 * M_PI * s4)) *
- * 	(2 - (r2 / s2)) * 
+ * 	(2 - (r2 / s2)) *
  * 	exp(-r2 / (2 * s2))
  *
- * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.  
+ * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.
  *
- * The generated mask has odd size and its maximum value is normalised to 
+ * The generated mask has odd size and its maximum value is normalised to
  * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
  *
  * If @separable is set, only the centre horizontal is generated. This is
- * useful for separable convolutions. 
+ * useful for separable convolutions.
  *
- * If @precision is #VIPS_PRECISION_INTEGER, an integer mask is generated. 
- * This is useful for integer convolutions. 
+ * If @precision is #VIPS_PRECISION_INTEGER, an integer mask is generated.
+ * This is useful for integer convolutions.
  *
  * "scale" is set to the sum of all the mask elements.
  *

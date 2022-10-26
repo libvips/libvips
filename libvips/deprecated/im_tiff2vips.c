@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -32,7 +32,7 @@
 
  */
 
-/* 
+/*
 #define DEBUG
  */
 
@@ -68,14 +68,14 @@ im_istifftiled( const char *filename )
 }
 
 static int
-im_tiff_read_header( const char *filename, VipsImage *out, 
+im_tiff_read_header( const char *filename, VipsImage *out,
 	int page, int n, gboolean autorotate )
 {
 	VipsSource *source;
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_header_source( source, out, 
+	if( vips__tiff_read_header_source( source, out,
 		page, n, autorotate, -1, VIPS_FAIL_ON_ERROR ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
@@ -86,14 +86,14 @@ im_tiff_read_header( const char *filename, VipsImage *out,
 }
 
 static int
-im_tiff_read( const char *filename, VipsImage *out, 
+im_tiff_read( const char *filename, VipsImage *out,
 	int page, int n, gboolean autorotate )
 {
 	VipsSource *source;
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_source( source, out, 
+	if( vips__tiff_read_source( source, out,
 		page, n, autorotate, -1, VIPS_FAIL_ON_ERROR ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
@@ -127,7 +127,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			seq = 1;
 	}
 
-	/* We need to be compatible with the pre-sequential mode 
+	/* We need to be compatible with the pre-sequential mode
 	 * im_tiff2vips(). This returned a "t" if given a "p" image, since it
 	 * used writeline.
 	 *
@@ -142,7 +142,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 		!seq &&
 		!im_istifftiled( filename ) &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
-		if( vips__image_wio_output( out ) ) 
+		if( vips__image_wio_output( out ) )
 			return( -1 );
 	}
 
@@ -155,8 +155,8 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 #else
-	vips_error( "im_tiff2vips", 
-		"%s", _( "no TIFF support in your libvips" ) ); 
+	vips_error( "im_tiff2vips",
+		"%s", _( "no TIFF support in your libvips" ) );
 
 	return( -1 );
 #endif /*HAVE_TIFF*/
@@ -167,7 +167,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 int
 im_tiff2vips( const char *name, IMAGE *out )
 {
-	return( tiff2vips( name, out, FALSE ) ); 
+	return( tiff2vips( name, out, FALSE ) );
 }
 
 /* By having a separate header func, we get lazy.c to open via disc/mem.
@@ -175,7 +175,7 @@ im_tiff2vips( const char *name, IMAGE *out )
 static int
 im_tiff2vips_header( const char *name, IMAGE *out )
 {
-	return( tiff2vips( name, out, TRUE ) ); 
+	return( tiff2vips( name, out, TRUE ) );
 }
 
 static VipsFormatFlags

@@ -14,14 +14,14 @@
  * 	- force input to mono 8-bit for the user
  * 1/8/13
  * 	- redone as a class
- * 23/1/14	
+ * 23/1/14
  * 	- oops, was not auto-getting and casting the first band
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -340,10 +340,10 @@ vips_falsecolour_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(t[0] = vips_image_new_from_memory( 
-		(void *) vips_falsecolour_pet, 
+	if( !(t[0] = vips_image_new_from_memory(
+		(void *) vips_falsecolour_pet,
 		sizeof( vips_falsecolour_pet ),
-		1, VIPS_NUMBER( vips_falsecolour_pet ), 3, 
+		1, VIPS_NUMBER( vips_falsecolour_pet ), 3,
 		VIPS_FORMAT_UCHAR )) )
 		return( -1 );
 
@@ -355,7 +355,7 @@ vips_falsecolour_build( VipsObject *object )
 		vips_extract_band( t[1], &t[2], 0, NULL ) ||
 		vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
 		vips_maplut( t[3], &t[4], t[0], NULL ) ||
-		vips_image_write( t[4], conversion->out ) ) 
+		vips_image_write( t[4], conversion->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -377,8 +377,8 @@ vips_falsecolour_class_init( VipsFalsecolourClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFalsecolour, in ) );
@@ -392,11 +392,11 @@ vips_falsecolour_init( VipsFalsecolour *falsecolour )
 
 /**
  * vips_falsecolour: (method)
- * @in: input image 
+ * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Force @in to 1 band, 8-bit, then transform to 
+ * Force @in to 1 band, 8-bit, then transform to
  * a 3-band 8-bit image with a false colour
  * map. The map is supposed to make small differences in brightness more
  * obvious.

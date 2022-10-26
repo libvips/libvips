@@ -39,10 +39,10 @@ annotate_image( VipsObject *context, VipsImage *image, VipsImage **out )
 
 	/* Make an overlay ... a solid red square, with a transparent hole.
 	 */
-	if( 
-		!(overlay[0] = vips_image_new_from_image( page[0], 
+	if(
+		!(overlay[0] = vips_image_new_from_image( page[0],
 			red, VIPS_NUMBER( red ) )) ||
-		vips_draw_rect( overlay[0], 
+		vips_draw_rect( overlay[0],
 			transparent, VIPS_NUMBER( transparent ),
 			10, 10, overlay[0]->Xsize - 20, overlay[0]->Ysize - 20,
 			"fill", TRUE,
@@ -58,7 +58,7 @@ annotate_image( VipsObject *context, VipsImage *image, VipsImage **out )
 
 	/* Reassemble the frames.
 	 */
-	if( vips_arrayjoin( annotated, out, n_pages, 
+	if( vips_arrayjoin( annotated, out, n_pages,
 		"across", 1,
 		NULL ) )
 		return( -1 );
@@ -66,29 +66,29 @@ annotate_image( VipsObject *context, VipsImage *image, VipsImage **out )
 	return( 0 );
 }
 
-int 
+int
 main( int argc, char **argv )
 {
 	VipsImage *image;
 	VipsObject *context;
 	VipsImage *x;
 
-	if( VIPS_INIT( argv[0] ) ) 
-		vips_error_exit( NULL ); 
+	if( VIPS_INIT( argv[0] ) )
+		vips_error_exit( NULL );
 
-        if( argc != 3 ) 
-		vips_error_exit( "usage: %s xxx.gif[n=-1] yyy.gif", argv[0] ); 
+	if( argc != 3 )
+		vips_error_exit( "usage: %s xxx.gif[n=-1] yyy.gif", argv[0] );
 
-	if( !(image = vips_image_new_from_file( argv[1], 
+	if( !(image = vips_image_new_from_file( argv[1],
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL )) )
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 
 	context = VIPS_OBJECT( vips_image_new() );
 	if( annotate_image( context, image, &x ) ) {
 		g_object_unref( image );
 		g_object_unref( context );
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 	}
 	g_object_unref( image );
 	g_object_unref( context );
@@ -96,7 +96,7 @@ main( int argc, char **argv )
 
 	if( vips_image_write_to_file( image, argv[2], NULL ) ) {
 		g_object_unref( image );
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 	}
 
 	g_object_unref( image );

@@ -3,7 +3,7 @@
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 5/5/93 JC
  *	- adapted from im_lintra to work with partial images
  *	- incorrect implementation of complex logs removed
@@ -38,7 +38,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -127,7 +127,7 @@ vips_math_build( VipsObject *object )
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 /* If there's asinh, assume we have the other two as well.
  */
@@ -160,7 +160,7 @@ vips_math_build( VipsObject *object )
 #define LOGZ10( X ) ((X) == 0.0 ? 0.0 : log10( X ))
 
 static void
-vips_math_buffer( VipsArithmetic *arithmetic, 
+vips_math_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsMath *math = (VipsMath *) arithmetic;
@@ -207,7 +207,7 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 
 static const VipsBandFormat vips_math_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
+   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX
 };
 
 static void
@@ -226,14 +226,14 @@ vips_math_class_init( VipsMathClass *class )
 
 	aclass->process_line = vips_math_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_math_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_math_format_table );
 
-	VIPS_ARG_ENUM( class, "math", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "math", 200,
+		_( "Operation" ),
 		_( "Math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMath, math ),
-		VIPS_TYPE_OPERATION_MATH, VIPS_OPERATION_MATH_SIN ); 
+		VIPS_TYPE_OPERATION_MATH, VIPS_OPERATION_MATH_SIN );
 }
 
 static void
@@ -254,10 +254,10 @@ vips_mathv( VipsImage *in, VipsImage **out, VipsOperationMath math, va_list ap )
  * @math: math operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform various functions in -lm, the maths library, on images. 
+ * Perform various functions in -lm, the maths library, on images.
  *
- * Angles are expressed in degrees. The output type is float unless the 
- * input is double, in which case the output is double.  
+ * Angles are expressed in degrees. The output type is float unless the
+ * input is double, in which case the output is double.
  *
  * Non-complex images only.
  *

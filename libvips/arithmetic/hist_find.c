@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -91,7 +91,7 @@ typedef struct _VipsHistFind {
 
 	/* Write hist to this output image.
 	 */
-	VipsImage *out; 
+	VipsImage *out;
 
 	/* TRUE for "large" histograms ... causes double output rather than
 	 * uint.
@@ -121,7 +121,7 @@ histogram_new( VipsHistFind *hist_find, int n_bands, int band, int size )
 		return( NULL );
 
 	for( i = 0; i < n_bands; i++ ) {
-		if( !(hist->bins[i] = VIPS_ARRAY( hist_find, 
+		if( !(hist->bins[i] = VIPS_ARRAY( hist_find,
 			n_bytes, VipsPel )) )
 			return( NULL );
 		memset( hist->bins[i], 0, n_bytes );
@@ -139,26 +139,26 @@ static int
 vips_hist_find_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsHistFind *hist_find = (VipsHistFind *) object;
 	VipsImage *in = statistic->in;
 
 	VipsPel *obuffer;
 
-	g_object_set( object, 
+	g_object_set( object,
 		"out", vips_image_new(),
 		NULL );
 
 	if( in &&
 		vips_check_bandno( class->nickname, in, hist_find->band ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Is this a large histogram? We want to avoid overflow of the uint
 	 * accumulators.
 	 */
 	if( in &&
-		(guint64) in->Xsize * (guint64) in->Ysize >= 
-			((guint64) 1 << 32) ) 
+		(guint64) in->Xsize * (guint64) in->Ysize >=
+			((guint64) 1 << 32) )
 		hist_find->large = TRUE;
 
 	/* main hist made on in vips_hist_find_start().
@@ -169,17 +169,17 @@ vips_hist_find_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_pipelinev( hist_find->out, 
-		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
+	if( vips_image_pipelinev( hist_find->out,
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) )
 		return( -1 );
 	vips_image_init_fields( hist_find->out,
-		hist_find->hist->mx + 1, 1, hist_find->hist->n_bands, 
-		hist_find->large ? VIPS_FORMAT_DOUBLE : VIPS_FORMAT_UINT, 
+		hist_find->hist->mx + 1, 1, hist_find->hist->n_bands,
+		hist_find->large ? VIPS_FORMAT_DOUBLE : VIPS_FORMAT_UINT,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
 
 	/* Interleave for output.
 	 */
-	if( !(obuffer = VIPS_ARRAY( object, 
+	if( !(obuffer = VIPS_ARRAY( object,
 		VIPS_IMAGE_SIZEOF_LINE( hist_find->out ), VipsPel )) )
 		return( -1 );
 
@@ -194,7 +194,7 @@ vips_hist_find_build( VipsObject *object )
 			*q++ = bins[i][j]; \
 } G_STMT_END
 
-	if( hist_find->large )  
+	if( hist_find->large )
 		INTERLEAVE( double );
 	else
 		INTERLEAVE( unsigned int );
@@ -214,17 +214,17 @@ vips_hist_find_start( VipsStatistic *statistic )
 
 	/* Make the main hist, if necessary.
 	 */
-	if( !hist_find->hist ) 
-		hist_find->hist = histogram_new( hist_find, 
+	if( !hist_find->hist )
+		hist_find->hist = histogram_new( hist_find,
 			hist_find->band == -1 ?
 				statistic->ready->Bands : 1,
-			hist_find->band, 
-			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ? 
+			hist_find->band,
+			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ?
 				256 : 65536 );
 
-	return( (void *) histogram_new( hist_find, 
-		hist_find->hist->n_bands, 
-		hist_find->hist->band, 
+	return( (void *) histogram_new( hist_find,
+		hist_find->hist->n_bands,
+		hist_find->hist->band,
 		hist_find->hist->size ) );
 }
 
@@ -235,11 +235,11 @@ vips_hist_find_stop( VipsStatistic *statistic, void *seq )
 {
 	Histogram *sub_hist = (Histogram *) seq;
 	VipsHistFind *hist_find = (VipsHistFind *) statistic;
-	Histogram *hist = hist_find->hist; 
+	Histogram *hist = hist_find->hist;
 
 	int i, j;
 
-	g_assert( sub_hist->n_bands == hist->n_bands && 
+	g_assert( sub_hist->n_bands == hist->n_bands &&
 		sub_hist->size == hist->size );
 
 	/* Add on sub-data.
@@ -255,11 +255,11 @@ vips_hist_find_stop( VipsStatistic *statistic, void *seq )
 			main_bins[i][j] += sub_bins[i][j]; \
 } G_STMT_END
 
-	if( hist_find->large ) 
+	if( hist_find->large )
 		SUM( double );
 	else
-		SUM( unsigned int ); 
-			
+		SUM( unsigned int );
+
 	/* Blank out sub-hist to make sure we can't add it again.
 	 */
 	sub_hist->mx = 0;
@@ -323,17 +323,17 @@ vips_hist_find_stop( VipsStatistic *statistic, void *seq )
 } G_STMT_END
 
 static int
-vips_hist_find_scan( VipsStatistic *statistic, void *seq, 
+vips_hist_find_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	VipsHistFind *hist_find = (VipsHistFind *) statistic;
 	Histogram *hist = (Histogram *) seq;
-	int nb = statistic->ready->Bands; 
+	int nb = statistic->ready->Bands;
 	int mx = hist->mx;
 
 	int i;
 
-	if( hist_find->band < 0 ) 
+	if( hist_find->band < 0 )
 		switch( statistic->ready->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			if( hist_find->large )
@@ -353,7 +353,7 @@ vips_hist_find_scan( VipsStatistic *statistic, void *seq,
 		default:
 			g_assert_not_reached();
 		}
-	else 
+	else
 		switch( statistic->ready->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			if( hist_find->large )
@@ -409,16 +409,16 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 	sclass->stop = vips_hist_find_stop;
 	sclass->format_table = vips_hist_find_format_table;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output histogram" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistFind, out ) );
 
-	VIPS_ARG_INT( class, "band", 110, 
-		_( "Band" ), 
+	VIPS_ARG_INT( class, "band", 110,
+		_( "Band" ),
 		_( "Find histogram of band" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsHistFind, band ),
 		-1, 100000, -1 );
 
@@ -441,8 +441,8 @@ vips_hist_find_init( VipsHistFind *hist_find )
  * * @band: band to equalise
  *
  * Find the histogram of @in. Find the histogram for band @band (producing a
- * one-band histogram), or for all bands (producing an n-band histogram) if 
- * @band is -1. 
+ * one-band histogram), or for all bands (producing an n-band histogram) if
+ * @band is -1.
  *
  * char and uchar images are cast to uchar before histogramming, all other
  * image types are cast to ushort.

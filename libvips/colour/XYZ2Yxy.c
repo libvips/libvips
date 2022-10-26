@@ -1,4 +1,4 @@
-/* Turn XYZ to Yxy colourspace. 
+/* Turn XYZ to Yxy colourspace.
  *
  * Modified:
  * 29/5/02 JC
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,7 @@ vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		p += 3;
 
-	        x = X / total;
+		x = X / total;
 		y = Y / total;
 
 		q[0] = Y;

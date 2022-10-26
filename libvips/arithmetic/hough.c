@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,11 +49,11 @@ static VipsImage *
 vips_hough_new_accumulator( VipsHough *hough )
 {
 	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
-	VipsStatistic *statistic = VIPS_STATISTIC( hough ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( hough );
 
-	VipsImage *accumulator; 
+	VipsImage *accumulator;
 
-	accumulator = vips_image_new_memory(); 
+	accumulator = vips_image_new_memory();
 
 	if( vips_image_pipelinev( accumulator,
 		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ||
@@ -70,21 +70,21 @@ static int
 vips_hough_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsHough *hough = (VipsHough *) object;
 
-	VipsImage *out; 
+	VipsImage *out;
 
 	/* Mono only, we use the bands dimension of the output image for
 	 * a parameter.
 	 */
-	if( statistic->in ) 
+	if( statistic->in )
 		if( vips_check_mono( class->nickname, statistic->in ) )
 			return( -1 );
 
 	if( !(out = vips_hough_new_accumulator( hough )) )
 		return( -1 );
-	g_object_set( object, 
+	g_object_set( object,
 		"out", out,
 		NULL );
 
@@ -94,7 +94,7 @@ vips_hough_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Build a new accumulator. 
+/* Build a new accumulator.
  */
 static void *
 vips_hough_start( VipsStatistic *statistic )
@@ -104,9 +104,9 @@ vips_hough_start( VipsStatistic *statistic )
 	VipsImage *accumulator;
 
 	if( !(accumulator = vips_hough_new_accumulator( hough )) )
-		return( NULL ); 
+		return( NULL );
 
-	return( (void *) accumulator ); 
+	return( (void *) accumulator );
 }
 
 /* Add our finished accumulator to the main area.
@@ -120,17 +120,17 @@ vips_hough_stop( VipsStatistic *statistic, void *seq )
 	if( vips_draw_image( hough->out, accumulator, 0, 0,
 		"mode", VIPS_COMBINE_MODE_ADD,
 		NULL ) ) {
-		g_object_unref( accumulator ); 
-		return( -1 ); 
+		g_object_unref( accumulator );
+		return( -1 );
 	}
 
-	g_object_unref( accumulator ); 
+	g_object_unref( accumulator );
 
 	return( 0 );
 }
 
 static int
-vips_hough_scan( VipsStatistic *statistic, 
+vips_hough_scan( VipsStatistic *statistic,
 	void *seq, int x, int y, void *in, int n )
 {
 	VipsHough *hough = (VipsHough *) statistic;
@@ -175,10 +175,10 @@ vips_hough_class_init( VipsHoughClass *class )
 	sclass->stop = vips_hough_stop;
 	sclass->format_table = vips_hough_format_table;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHough, out ) );
 
 }

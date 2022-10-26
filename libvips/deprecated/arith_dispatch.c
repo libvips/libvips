@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -100,7 +100,7 @@ abs_vec( im_object *argv )
 }
 
 /* Description of im_abs.
- */ 
+ */
 static im_function abs_desc = {
 	"im_abs", 			/* Name */
 	N_( "absolute value" ),		/* Description */
@@ -119,7 +119,7 @@ add_vec( im_object *argv )
 }
 
 /* Description of im_add.
- */ 
+ */
 static im_function add_desc = {
 	"im_add", 			/* Name */
 	N_( "add two images" ),		/* Description */
@@ -144,7 +144,7 @@ avg_vec( im_object *argv )
 }
 
 /* Description of im_avg.
- */ 
+ */
 static im_function avg_desc = {
 	"im_avg", 			/* Name */
 	N_( "average value of image" ),	/* Description */
@@ -233,7 +233,7 @@ deviate_vec( im_object *argv )
 }
 
 /* Description of im_deviate.
- */ 
+ */
 static im_function deviate_desc = {
 	"im_deviate", 			/* Name */
 	N_( "standard deviation of image" ),	/* Description */
@@ -252,7 +252,7 @@ exp10tra_vec( im_object *argv )
 }
 
 /* Description of im_exp10tra.
- */ 
+ */
 static im_function exp10tra_desc = {
 	"im_exp10tra", 			/* Name */
 	N_( "10^pel of image" ),	/* Description */
@@ -271,7 +271,7 @@ exptra_vec( im_object *argv )
 }
 
 /* Description of im_exptra.
- */ 
+ */
 static im_function exptra_desc = {
 	"im_exptra", 			/* Name */
 	N_( "e^pel of image" ),		/* Description */
@@ -300,7 +300,7 @@ expntra_vec( im_object *argv )
 }
 
 /* Description of im_expntra.
- */ 
+ */
 static im_function expntra_desc = {
 	"im_expntra", 			/* Name */
 	N_( "x^pel of image" ),		/* Description */
@@ -329,7 +329,7 @@ expntra_vec_vec( im_object *argv )
 }
 
 /* Description of im_expntra_vec.
- */ 
+ */
 static im_function expntra_vec_desc = {
 	"im_expntra_vec", 		/* Name */
 	N_( "[x,y,z]^pel of image" ),	/* Description */
@@ -348,7 +348,7 @@ divide_vec( im_object *argv )
 }
 
 /* Description of im_divide.
- */ 
+ */
 static im_function divide_desc = {
 	"im_divide", 			/* Name */
 	N_( "divide two images" ),
@@ -367,7 +367,7 @@ invert_vec( im_object *argv )
 }
 
 /* Description of im_invert.
- */ 
+ */
 static im_function invert_desc = {
 	"im_invert", 			/* Name */
 	N_( "photographic negative" ),	/* Description */
@@ -398,7 +398,7 @@ lintra_vec( im_object *argv )
 }
 
 /* Description of im_lintra().
- */ 
+ */
 static im_function lintra_desc = {
 	"im_lintra", 			/* Name */
 	N_( "calculate a*in + b = outfile" ),
@@ -426,7 +426,7 @@ lintra_vec_vec( im_object *argv )
 	im_doublevec_object *dvb = (im_doublevec_object *) argv[2];
 
 	if( dva->n != dvb->n ) {
-		im_error( "im_lintra_vec", 
+		im_error( "im_lintra_vec",
 			"%s", _( "vectors not equal length" ) );
 		return( -1 );
 	}
@@ -435,7 +435,7 @@ lintra_vec_vec( im_object *argv )
 }
 
 /* Description of im_lintra_vec().
- */ 
+ */
 static im_function lintra_vec_desc = {
 	"im_lintra_vec", 		/* Name */
 	N_( "calculate a*in + b -> out, a and b vectors" ),
@@ -454,7 +454,7 @@ log10tra_vec( im_object *argv )
 }
 
 /* Description of im_log10tra.
- */ 
+ */
 static im_function log10tra_desc = {
 	"im_log10tra", 			/* Name */
 	N_( "log10 of image" ),		/* Description */
@@ -473,7 +473,7 @@ logtra_vec( im_object *argv )
 }
 
 /* Description of im_logtra.
- */ 
+ */
 static im_function logtra_desc = {
 	"im_logtra", 			/* Name */
 	N_( "ln of image" ),		/* Description */
@@ -492,7 +492,7 @@ tantra_vec( im_object *argv )
 }
 
 /* Description of im_tantra.
- */ 
+ */
 static im_function tantra_desc = {
 	"im_tantra", 			/* Name */
 	N_( "tan of image (angles in degrees)" ),
@@ -511,7 +511,7 @@ atantra_vec( im_object *argv )
 }
 
 /* Description of im_atantra.
- */ 
+ */
 static im_function atantra_desc = {
 	"im_atantra", 			/* Name */
 	N_( "atan of image (result in degrees)" ),
@@ -530,7 +530,7 @@ costra_vec( im_object *argv )
 }
 
 /* Description of im_costra.
- */ 
+ */
 static im_function costra_desc = {
 	"im_costra", 			/* Name */
 	N_( "cos of image (angles in degrees)" ),
@@ -549,7 +549,7 @@ acostra_vec( im_object *argv )
 }
 
 /* Description of im_acostra.
- */ 
+ */
 static im_function acostra_desc = {
 	"im_acostra", 			/* Name */
 	N_( "acos of image (result in degrees)" ),
@@ -568,7 +568,7 @@ ceil_vec( im_object *argv )
 }
 
 /* Description of im_ceil.
- */ 
+ */
 static im_function ceil_desc = {
 	"im_ceil", 			/* Name */
 	N_( "round to smallest integer value not less than" ),
@@ -587,7 +587,7 @@ floor_vec( im_object *argv )
 }
 
 /* Description of im_floor.
- */ 
+ */
 static im_function floor_desc = {
 	"im_floor", 			/* Name */
 	N_( "round to largest integer value not greater than" ),
@@ -606,7 +606,7 @@ rint_vec( im_object *argv )
 }
 
 /* Description of im_rint.
- */ 
+ */
 static im_function rint_desc = {
 	"im_rint", 			/* Name */
 	N_( "round to nearest integer value" ),
@@ -625,7 +625,7 @@ sintra_vec( im_object *argv )
 }
 
 /* Description of im_sintra.
- */ 
+ */
 static im_function sintra_desc = {
 	"im_sintra", 			/* Name */
 	N_( "sin of image (angles in degrees)" ),
@@ -644,7 +644,7 @@ bandmean_vec( im_object *argv )
 }
 
 /* Description of im_bandmean.
- */ 
+ */
 static im_function bandmean_desc = {
 	"im_bandmean", 			/* Name */
 	N_( "average image bands" ),
@@ -663,7 +663,7 @@ sign_vec( im_object *argv )
 }
 
 /* Description of im_sign.
- */ 
+ */
 static im_function sign_desc = {
 	"im_sign", 			/* Name */
 	N_( "unit vector in direction of value" ),
@@ -682,7 +682,7 @@ asintra_vec( im_object *argv )
 }
 
 /* Description of im_asintra.
- */ 
+ */
 static im_function asintra_desc = {
 	"im_asintra", 			/* Name */
 	N_( "asin of image (result in degrees)" ),
@@ -707,7 +707,7 @@ max_vec( im_object *argv )
 }
 
 /* Description of im_max.
- */ 
+ */
 static im_function max_desc = {
 	"im_max", 			/* Name */
 	N_( "maximum value of image" ),	/* Description */
@@ -742,7 +742,7 @@ maxpos_vec( im_object *argv )
 }
 
 /* Description of im_maxpos.
- */ 
+ */
 static im_function maxpos_desc = {
 	"im_maxpos", 			/* Name */
 	N_( "position of maximum value of image" ),
@@ -886,8 +886,8 @@ measure_vec( im_object *argv )
 	int u = *((int *) argv[6]);
 	int v = *((int *) argv[7]);
 
-	if( !(mo->mask = 
-		im_measure_area( argv[0], 
+	if( !(mo->mask =
+		im_measure_area( argv[0],
 			x, y, w, h, u, v, NULL, 0, mo->name )) ) {
 		return( -1 );
 	}
@@ -921,7 +921,7 @@ min_vec( im_object *argv )
 }
 
 /* Description of im_min.
- */ 
+ */
 static im_function min_desc = {
 	"im_min", 			/* Name */
 	N_( "minimum value of image" ),	/* Description */
@@ -949,7 +949,7 @@ minpos_vec( im_object *argv )
 }
 
 /* Description of im_minpos.
- */ 
+ */
 static im_function minpos_desc = {
 	"im_minpos", 			/* Name */
 	N_( "position of minimum value of image" ),
@@ -968,7 +968,7 @@ remainder_vec( im_object *argv )
 }
 
 /* Description of im_remainder.
- */ 
+ */
 static im_function remainder_desc = {
 	"im_remainder", 		/* Name */
 	N_( "remainder after integer division" ),	/* Description */
@@ -997,7 +997,7 @@ static im_arg_desc remainderconst_args[] = {
 };
 
 /* Description of im_remainderconst.
- */ 
+ */
 static im_function remainderconst_desc = {
 	"im_remainderconst", 		/* Name */
 	N_( "remainder after integer division by a constant" ),/* Description */
@@ -1026,7 +1026,7 @@ static im_arg_desc remainder_vec_args[] = {
 };
 
 /* Description of im_remainder_vec.
- */ 
+ */
 static im_function remainder_vec_desc = {
 	"im_remainder_vec", 		/* Name */
 	N_( "remainder after integer division by a vector of constants" ),
@@ -1046,7 +1046,7 @@ multiply_vec( im_object *argv )
 }
 
 /* Description of im_multiply.
- */ 
+ */
 static im_function multiply_desc = {
 	"im_multiply", 			/* Name */
 	N_( "multiply two images" ),	/* Description */
@@ -1067,7 +1067,7 @@ powtra_vec( im_object *argv )
 }
 
 /* Description of im_powtra().
- */ 
+ */
 static im_function powtra_desc = {
 	"im_powtra", 			/* Name */
 	N_( "pel^x of image" ),
@@ -1088,7 +1088,7 @@ powtra_vec_vec( im_object *argv )
 }
 
 /* Description of im_powtra_vec().
- */ 
+ */
 static im_function powtra_vec_desc = {
 	"im_powtra_vec", 		/* Name */
 	N_( "pel^[x,y,z] of image" ),
@@ -1119,7 +1119,7 @@ stats_vec( im_object *argv )
 }
 
 /* Description of im_stats().
- */ 
+ */
 static im_function stats_desc = {
 	"im_stats", 			/* Name */
 	N_( "many image statistics in one pass" ),
@@ -1138,7 +1138,7 @@ subtract_vec( im_object *argv )
 }
 
 /* Description of im_subtract.
- */ 
+ */
 static im_function subtract_desc = {
 	"im_subtract", 			/* Name */
 	N_( "subtract two images" ),	/* Description */
@@ -1153,7 +1153,7 @@ static im_function subtract_desc = {
 static im_arg_desc linreg_args[] = {
 	IM_INPUT_IMAGEVEC( "ins" ),
 	IM_OUTPUT_IMAGE( "out" ),
-        IM_INPUT_DOUBLEVEC( "xs" )
+	IM_INPUT_DOUBLEVEC( "xs" )
 };
 
 /* Call im_linreg() via arg vector.
@@ -1175,7 +1175,7 @@ linreg_vec( im_object *argv )
     ins[ i ]= ins_vec-> vec[ i ];
 
   ins[ ins_vec-> n ]= NULL;
-  
+
   if( xs_vec-> n != ins_vec-> n ){
     im_error( FUNCTION_NAME, "image vector and x vector differ in length" );
     return -1;
@@ -1186,7 +1186,7 @@ linreg_vec( im_object *argv )
 }
 
 /* Description of im_linreg().
- */ 
+ */
 static im_function linreg_desc = {
 	"im_linreg", 			/* Name */
 	N_( "pixelwise linear regression" ),
@@ -1205,7 +1205,7 @@ cross_phase_vec( im_object *argv )
 }
 
 /* Description of im_cross_phase.
- */ 
+ */
 static im_function cross_phase_desc = {
 	"im_cross_phase", 			/* Name */
 	N_( "phase of cross power spectrum of two complex images" ),	/* Description */
@@ -1224,9 +1224,9 @@ static im_function *arith_list[] = {
 	&asintra_desc,
 	&atantra_desc,
 	&avg_desc,
-        &point_desc,
-        &point_bilinear_desc,
-        &bandmean_desc,
+	&point_desc,
+	&point_bilinear_desc,
+	&bandmean_desc,
 	&ceil_desc,
 	&costra_desc,
 	&cross_phase_desc,

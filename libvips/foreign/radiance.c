@@ -1,4 +1,4 @@
-/* Read Radiance (.hdr) files 
+/* Read Radiance (.hdr) files
  *
  * 3/3/09
  * 	- write packed data, a separate im_rad2float() operation can unpack
@@ -16,7 +16,7 @@
  * 	- put the reader globals into a struct so we can have many active
  * 	  readers
  * 23/5/16
- *	- add buffer save functions   
+ *	- add buffer save functions
  * 28/2/17
  * 	- use dbuf for buffer output
  * 4/4/17
@@ -34,7 +34,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -70,7 +70,7 @@
 
 /*
 
-    Sections of this reader from Greg Ward and Radiance with kind 
+    Sections of this reader from Greg Ward and Radiance with kind
     permission. The Radience copyright notice appears below.
 
  */
@@ -505,7 +505,7 @@ getheader(		/* get header from file */
 	void  *p
 )
 {
-	for(;;) { 
+	for(;;) {
 		const char *line;
 
 		if( !(line = vips_sbuf_get_line( sbuf )) )
@@ -515,7 +515,7 @@ getheader(		/* get header from file */
 			 */
 			break;
 
-		if( f != NULL && 
+		if( f != NULL &&
 			(*f)( (char *) line, p ) < 0 )
 			return( -1 );
 	}
@@ -531,10 +531,10 @@ scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 	int rshift;
 
 	rshift = 0;
-	
+
 	while( width > 0 ) {
 		if( VIPS_SBUF_REQUIRE( sbuf, 4 ) )
-			return( -1 ); 
+			return( -1 );
 
 		scanline[0][RED] = VIPS_SBUF_FETCH( sbuf );
 		scanline[0][GRN] = VIPS_SBUF_FETCH( sbuf );
@@ -546,7 +546,7 @@ scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 			scanline[0][BLU] == 1 ) {
 			guint i;
 
-			for( i = ((guint32) scanline[0][EXP] << rshift); 
+			for( i = ((guint32) scanline[0][EXP] << rshift);
 				i > 0 && width > 0; i-- ) {
 				copycolr( scanline[0], scanline[-1] );
 				scanline += 1;
@@ -559,7 +559,7 @@ scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 			 */
 			if( rshift > 24 )
 				return( -1 );
-		} 
+		}
 		else {
 			scanline += 1;
 			width -= 1;
@@ -584,54 +584,54 @@ scanline_read( VipsSbuf *sbuf, COLR *scanline, int width )
 		return( scanline_read_old( sbuf, scanline, width ) );
 
 	if( VIPS_SBUF_REQUIRE( sbuf, 4 ) )
-		return( -1 ); 
+		return( -1 );
 
-	if( VIPS_SBUF_PEEK( sbuf )[0] != 2 ) 
+	if( VIPS_SBUF_PEEK( sbuf )[0] != 2 )
 		return( scanline_read_old( sbuf, scanline, width ) );
 
 	scanline[0][RED] = VIPS_SBUF_FETCH( sbuf );
 	scanline[0][GRN] = VIPS_SBUF_FETCH( sbuf );
 	scanline[0][BLU] = VIPS_SBUF_FETCH( sbuf );
 	scanline[0][EXP] = VIPS_SBUF_FETCH( sbuf );
-	if( scanline[0][GRN] != 2 || 
-		scanline[0][BLU] & 128 ) 
-		return( scanline_read_old( sbuf, 
+	if( scanline[0][GRN] != 2 ||
+		scanline[0][BLU] & 128 )
+		return( scanline_read_old( sbuf,
 			scanline + 1, width - 1 ) );
 
 	if( ((scanline[0][BLU] << 8) | scanline[0][EXP]) != width ) {
 		vips_error( "rad2vips", "%s", _( "scanline length mismatch" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 
-	for( i = 0; i < 4; i++ ) 
+	for( i = 0; i < 4; i++ )
 		for( j = 0; j < width; ) {
 			int code, len;
 			gboolean run;
 
 			if( VIPS_SBUF_REQUIRE( sbuf, 2 ) )
-				return( -1 ); 
+				return( -1 );
 
-			code = VIPS_SBUF_FETCH( sbuf ); 
+			code = VIPS_SBUF_FETCH( sbuf );
 			run = code > 128;
-			len = run ? code & 127 : code; 
+			len = run ? code & 127 : code;
 
 			if( j + len > width ) {
-				vips_error( "rad2vips", "%s", _( "overrun" ) ); 
+				vips_error( "rad2vips", "%s", _( "overrun" ) );
 				return( -1 );
 			}
 
-			if( run ) { 
+			if( run ) {
 				int val;
 
-				val = VIPS_SBUF_FETCH( sbuf ); 
+				val = VIPS_SBUF_FETCH( sbuf );
 				while( len-- )
 					scanline[j++][i] = val;
-			} 
+			}
 			else {
 				if( VIPS_SBUF_REQUIRE( sbuf, len ) )
-					return( -1 ); 
-				while( len-- ) 
-					scanline[j++][i] = 
+					return( -1 );
+				while( len-- )
+					scanline[j++][i] =
 						VIPS_SBUF_FETCH( sbuf );
 			}
 		}
@@ -646,7 +646,7 @@ scanline_read( VipsSbuf *sbuf, COLR *scanline, int width )
 /* write an RLE scanline. Write magic header.
  */
 static void
-rle_scanline_write( COLR *scanline, int width, 
+rle_scanline_write( COLR *scanline, int width,
 	unsigned char *buffer, int *length )
 {
 	int i, j, beg, cnt;
@@ -658,10 +658,10 @@ rle_scanline_write( COLR *scanline, int width,
 
 	*length = 0;
 
-	PUTC( 2 ); 
-	PUTC( 2 ); 
-	PUTC( width >> 8 ); 
-	PUTC( width & 255 ); 
+	PUTC( 2 );
+	PUTC( 2 );
+	PUTC( width >> 8 );
+	PUTC( width & 255 );
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
@@ -670,15 +670,15 @@ rle_scanline_write( COLR *scanline, int width,
 			 */
 			cnt = 1;
 
-			/* Set beg / cnt to the start and length of the next 
+			/* Set beg / cnt to the start and length of the next
 			 * run longer than MINRUN.
 			 */
 			for( beg = j; beg < width; beg += cnt ) {
-				for( cnt = 1; 
-					cnt < 127 && 
+				for( cnt = 1;
+					cnt < 127 &&
 					beg + cnt < width &&
-					scanline[beg + cnt][i] == 
-						scanline[beg][i]; 
+					scanline[beg + cnt][i] ==
+						scanline[beg][i];
 					cnt++ )
 					;
 
@@ -687,15 +687,15 @@ rle_scanline_write( COLR *scanline, int width,
 			}
 
 			/* Code pixels leading up to the run as a set of
-			 * non-runs. 
+			 * non-runs.
 			 */
 			while( j < beg ) {
-				int len = VIPS_MIN( 128, beg - j ); 
-				COLR *p = scanline + j; 
+				int len = VIPS_MIN( 128, beg - j );
+				COLR *p = scanline + j;
 
 				int k;
 
-				PUTC( len ); 
+				PUTC( len );
 				for( k = 0; k < len; k++ )
 					PUTC( p[k][i] );
 				j += len;
@@ -704,10 +704,10 @@ rle_scanline_write( COLR *scanline, int width,
 			/* Code the run we found, if any
 			 */
 			if( cnt >= MINRUN ) {
-				PUTC( 128 + cnt ); 
-				PUTC( scanline[j][i] ); 
-				j += cnt; 
-			} 
+				PUTC( 128 + cnt );
+				PUTC( scanline[j][i] );
+				j += cnt;
+			}
 		}
 	}
 }
@@ -784,10 +784,10 @@ read_new( VipsSource *source, VipsImage *out )
 	read->prims[3][0] = CIE_x_w;
 	read->prims[3][1] = CIE_y_w;
 
-	g_signal_connect( out, "close", 
+	g_signal_connect( out, "close",
 		G_CALLBACK( read_destroy ), read );
 	g_signal_connect( out, "minimise",
-		G_CALLBACK( read_minimise_cb ), read ); 
+		G_CALLBACK( read_minimise_cb ), read );
 
 	return( read );
 }
@@ -821,7 +821,7 @@ rad2vips_process_line( char *line, Read *read )
 }
 
 static const char *prims_name[4][2] = {
-	{ "rad-prims-rx", "rad-prims-ry" }, 
+	{ "rad-prims-rx", "rad-prims-ry" },
 	{ "rad-prims-gx", "rad-prims-gy" },
 	{ "rad-prims-bx", "rad-prims-by" },
 	{ "rad-prims-wx", "rad-prims-wy" }
@@ -842,11 +842,11 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	int height;
 	int i, j;
 
-	if( getheader( read->sbuf, 
+	if( getheader( read->sbuf,
 		(gethfunc *) rad2vips_process_line, read ) ||
 		!(line = vips_sbuf_get_line( read->sbuf )) ||
 		!str2resolu( &read->rs, (char *) line ) ) {
-		vips_error( "rad2vips", "%s", 
+		vips_error( "rad2vips", "%s",
 			_( "error reading radiance header" ) );
 		return( -1 );
 	}
@@ -860,9 +860,9 @@ rad2vips_get_header( Read *read, VipsImage *out )
 
 	width = scanlen( &read->rs );
 	height = numscans( &read->rs );
-	if( width <= 0 || 
+	if( width <= 0 ||
 		width >= VIPS_MAX_COORD ||
-		height <= 0 || 
+		height <= 0 ||
 		height >= VIPS_MAX_COORD ) {
 		vips_error( "rad2vips", "%s", _( "image size out of bounds" ) );
 		return( -1 );
@@ -874,7 +874,7 @@ rad2vips_get_header( Read *read, VipsImage *out )
 		1, read->aspect );
 
 	VIPS_SETSTR( out->filename,
-		vips_connection_filename( 
+		vips_connection_filename(
 			VIPS_CONNECTION( read->sbuf->source ) ) );
 
 	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
@@ -885,14 +885,14 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	vips_image_set_double( out, "rad-expos", read->expos );
 
 	for( i = 0; i < 3; i++ )
-		vips_image_set_double( out, 
+		vips_image_set_double( out,
 			colcor_name[i], read->colcor[i] );
 
 	vips_image_set_double( out, "rad-aspect", read->aspect );
 
 	for( i = 0; i < 4; i++ )
 		for( j = 0; j < 2; j++ )
-			vips_image_set_double( out, 
+			vips_image_set_double( out,
 				prims_name[i][j], read->prims[i][j] );
 
 	return( 0 );
@@ -903,9 +903,9 @@ vips__rad_header( VipsSource *source, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out )) ) 
+	if( !(read = read_new( source, out )) )
 		return( -1 );
-	if( rad2vips_get_header( read, read->out ) ) 
+	if( rad2vips_get_header( read, read->out ) )
 		return( -1 );
 	vips_source_minimise( source );
 
@@ -913,27 +913,27 @@ vips__rad_header( VipsSource *source, VipsImage *out )
 }
 
 static int
-rad2vips_generate( VipsRegion *or, 
+rad2vips_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
-        VipsRect *r = &or->valid;
-	Read *read = (Read *) a; 
+	VipsRect *r = &or->valid;
+	Read *read = (Read *) a;
 
 	int y;
 
 #ifdef DEBUG
-	printf( "rad2vips_generate: line %d, %d rows\n", 
+	printf( "rad2vips_generate: line %d, %d rows\n",
 		r->top, r->height );
 #endif /*DEBUG*/
 
 	VIPS_GATE_START( "rad2vips_generate: work" );
 
 	for( y = 0; y < r->height; y++ ) {
-		COLR *buf = (COLR *) 
+		COLR *buf = (COLR *)
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
 		if( scanline_read( read->sbuf, buf, or->im->Xsize ) ) {
-			vips_error( "rad2vips", 
+			vips_error( "rad2vips",
 				_( "read error line %d" ), r->top + y );
 			VIPS_GATE_STOP( "rad2vips_generate: work" );
 			return( -1 );
@@ -948,27 +948,27 @@ rad2vips_generate( VipsRegion *or,
 int
 vips__rad_load( VipsSource *source, VipsImage *out )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 	Read *read;
 
 #ifdef DEBUG
-	printf( "rad2vips: reading \"%s\"\n", 
+	printf( "rad2vips: reading \"%s\"\n",
 		vips_connection_nick( VIPS_CONNECTION( source ) ) );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( source, out )) ) 
+	if( !(read = read_new( source, out )) )
 		return( -1 );
 
 	t[0] = vips_image_new();
 	if( rad2vips_get_header( read, t[0] ) )
 		return( -1 );
 
-	if( vips_image_generate( t[0], 
+	if( vips_image_generate( t[0],
 		NULL, rad2vips_generate, NULL, read, NULL ) ||
-		vips_sequential( t[0], &t[1], 
-			"tile_height", VIPS__FATSTRIP_HEIGHT, 
+		vips_sequential( t[0], &t[1],
+			"tile_height", VIPS__FATSTRIP_HEIGHT,
 			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
@@ -1049,7 +1049,7 @@ vips2rad_make_header( Write *write )
 		vips_image_get_double( write->in, "rad-expos", &write->expos );
 
 	if( vips_image_get_typeof( write->in, "rad-aspect" ) )
-		vips_image_get_double( write->in, 
+		vips_image_get_double( write->in,
 			"rad-aspect", &write->aspect );
 
 	if( vips_image_get_typeof( write->in, "rad-format" ) &&
@@ -1062,14 +1062,14 @@ vips2rad_make_header( Write *write )
 		strcpy( write->format, CIEFMT );
 
 	for( i = 0; i < 3; i++ )
-		if( vips_image_get_typeof( write->in, colcor_name[i] ) && 
-			!vips_image_get_double( write->in, 
+		if( vips_image_get_typeof( write->in, colcor_name[i] ) &&
+			!vips_image_get_double( write->in,
 				colcor_name[i], &d ) )
 			write->colcor[i] = d;
 
 	for( i = 0; i < 4; i++ )
 		for( j = 0; j < 2; j++ ) {
-			const char *name = prims_name[i][j]; 
+			const char *name = prims_name[i][j];
 
 			if( vips_image_get_typeof( write->in, name ) &&
 				!vips_image_get_double( write->in, name, &d ) )
@@ -1091,22 +1091,22 @@ vips2rad_put_header( Write *write )
 	vips_target_writes( write->target, "#?RADIANCE\n" );
 	vips_target_writef( write->target, "%s%s\n", FMTSTR, write->format );
 	vips_target_writef( write->target, "%s%e\n", EXPOSSTR, write->expos );
-	vips_target_writef( write->target, 
-		"%s %f %f %f\n", COLCORSTR, 
+	vips_target_writef( write->target,
+		"%s %f %f %f\n", COLCORSTR,
 		write->colcor[RED], write->colcor[GRN], write->colcor[BLU] );
-	vips_target_writef( write->target, 
+	vips_target_writef( write->target,
 		"SOFTWARE=vips %s\n", vips_version_string() );
-	vips_target_writef( write->target, 
+	vips_target_writef( write->target,
 		"%s%f\n", ASPECTSTR, write->aspect );
-	vips_target_writef( write->target, 
-		"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", 
-		PRIMARYSTR, 
-		write->prims[RED][CIEX], write->prims[RED][CIEY], 
-		write->prims[GRN][CIEX], write->prims[GRN][CIEY], 
-		write->prims[BLU][CIEX], write->prims[BLU][CIEY], 
+	vips_target_writef( write->target,
+		"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n",
+		PRIMARYSTR,
+		write->prims[RED][CIEX], write->prims[RED][CIEY],
+		write->prims[GRN][CIEX], write->prims[GRN][CIEY],
+		write->prims[BLU][CIEX], write->prims[BLU][CIEY],
 		write->prims[WHT][CIEX], write->prims[WHT][CIEY] );
 	vips_target_writes( write->target, "\n" );
-	vips_target_writes( write->target, 
+	vips_target_writes( write->target,
 		resolu2str( resolu_buf, &write->rs ) );
 
 	return( 0 );
@@ -1117,11 +1117,11 @@ vips2rad_put_header( Write *write )
 static int
 scanline_write( Write *write, COLR *scanline, int width )
 {
-	if( width < MINELEN || 
+	if( width < MINELEN ||
 		width > MAXELEN ) {
 		/* Too large or small for RLE ... do a simple write.
 		 */
-		if( vips_target_write( write->target, 
+		if( vips_target_write( write->target,
 			scanline, sizeof( COLR ) * width ) )
 			return( -1 );
 	}
@@ -1148,7 +1148,7 @@ vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( scanline_write( write, (COLR *) p, area->width ) ) 
+		if( scanline_write( write, (COLR *) p, area->width ) )
 			return( -1 );
 	}
 
@@ -1176,7 +1176,7 @@ vips__rad_save( VipsImage *in, VipsTarget *target )
 	if( vips_image_pio_input( in ) ||
 		vips_check_coding( "vips2rad", in, VIPS_CODING_RAD ) )
 		return( -1 );
-	if( !(write = write_new( in, target )) ) 
+	if( !(write = write_new( in, target )) )
 		return( -1 );
 
 	if( vips2rad_put_header( write ) ||

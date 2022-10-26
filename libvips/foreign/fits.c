@@ -18,7 +18,7 @@
  * 21/3/11
  * 	- read/write metadata as whole records to avoid changing things
  * 	- cast input to a supported format
- * 	- bandsplit for write 
+ * 	- bandsplit for write
  * 13/12/11
  * 	- redo as a set of fns ready for wrapping in a new-style class
  * 23/6/13
@@ -28,9 +28,9 @@
  * 	  support for BSCALE / BZERO settings
  * 17/1/17
  * 	- invalidate operation on read error
- * 26/1/17 aferrero2707 
+ * 26/1/17 aferrero2707
  * 	- use fits_open_diskfile(), not fits_open_file() ... we don't want the
- *	  extended filename syntax 
+ *	  extended filename syntax
  * 15/4/17
  * 	- skip HDUs with zero dimensions, thanks benepo
  */
@@ -38,7 +38,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -91,7 +91,7 @@
 
 	- ask Doug for a test colour image
 
-		found WFPC2u5780205r_c0fx.fits on the fits samples page, 
+		found WFPC2u5780205r_c0fx.fits on the fits samples page,
 		but it's tiny
 
 	- test performance
@@ -122,7 +122,7 @@ typedef struct {
 	/* Set this to -1 to read all bands, or a +ve int to read a specific
 	 * band.
 	 */
-	int band_select;	
+	int band_select;
 
 	/* We split bands up for write into this buffer.
 	 */
@@ -153,7 +153,7 @@ vips_fits_close( VipsFits *fits )
 
 		status = 0;
 
-		if( fits_close_file( fits->fptr, &status ) ) 
+		if( fits_close_file( fits->fptr, &status ) )
 			vips_fits_error( status );
 
 		fits->fptr = NULL;
@@ -183,7 +183,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	fits->lock = NULL;
 	fits->band_select = band_select;
 	fits->buffer = NULL;
-	g_signal_connect( out, "close", 
+	g_signal_connect( out, "close",
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	status = 0;
@@ -228,8 +228,8 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	/* Some FITS images have the first HDU for extra metadata ... skip
 	 * forward until we find a header unit we can load as an image.
 	 */
-	for(;;) { 
-		if( fits_get_img_paramll( fits->fptr, 
+	for(;;) {
+		if( fits_get_img_paramll( fits->fptr,
 			10, &bitpix, &fits->naxis, fits->naxes, &status ) ) {
 			vips_fits_error( status );
 			return( -1 );
@@ -240,14 +240,14 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 
 		if( fits_movrel_hdu( fits->fptr, 1, NULL, &status ) ) {
 			vips_fits_error( status );
-			vips_error( "fits", 
+			vips_error( "fits",
 				"%s", _( "no HDU found with naxes > 0" ) );
 			return( -1 );
 		}
 	}
 
 	/* cfitsio does automatic conversion from the format stored in
-	 * the file to the equivalent type after scale/offset. We need 
+	 * the file to the equivalent type after scale/offset. We need
 	 * to allocate a vips image of the equivalent type, not the original
 	 * type.
 	 */
@@ -278,7 +278,7 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	case 4:
 		for( i = fits->naxis; i > 3; i-- )
 			if( fits->naxes[i - 1] != 1 ) {
-				vips_error( "fits", 
+				vips_error( "fits",
 					"%s", _( "dimensions above 3 "
 					"must be size 1" ) );
 				return( -1 );
@@ -378,15 +378,15 @@ vips__fits_read_header( const char *filename, VipsImage *out )
 
 	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
 
-	if( !(fits = vips_fits_new_read( filename, out, -1 )) || 
-		vips_fits_get_header( fits, out ) ) 
+	if( !(fits = vips_fits_new_read( filename, out, -1 )) ||
+		vips_fits_get_header( fits, out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static int
-vips_fits_read_subset( VipsFits *fits, 
+vips_fits_read_subset( VipsFits *fits,
 	long *fpixel, long *lpixel, long *inc, VipsPel *q )
 {
 	int status;
@@ -397,20 +397,20 @@ vips_fits_read_subset( VipsFits *fits,
 
 	/* Break on ffgsv() for this call.
 	 */
-	if( fits_read_subset( fits->fptr, fits->datatype, 
-		fpixel, lpixel, inc, 
+	if( fits_read_subset( fits->fptr, fits->datatype,
+		fpixel, lpixel, inc,
 		NULL, q, NULL, &status ) ) {
 		vips_fits_error( status );
 		vips_foreign_load_invalidate( fits->image );
 
-		return( -1 ); 
+		return( -1 );
 	}
 
 	return( 0 );
 }
 
 static int
-fits2vips_generate( VipsRegion *out, 
+fits2vips_generate( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsFits *fits = (VipsFits *) a;
@@ -424,7 +424,7 @@ fits2vips_generate( VipsRegion *out,
 	long inc[MAX_DIMENSIONS];
 
 	VIPS_DEBUG_MSG( "fits2vips_generate: "
-		"generating left = %d, top = %d, width = %d, height = %d\n", 
+		"generating left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height );
 
 	/* Special case: the region we are writing to is exactly the width we
@@ -482,8 +482,8 @@ fits2vips_generate( VipsRegion *out,
 
 			vips__worker_lock( fits->lock );
 
-			if( vips_fits_read_subset( fits, 
-				fpixel, lpixel, inc, q ) ) { 
+			if( vips_fits_read_subset( fits,
+				fpixel, lpixel, inc, q ) ) {
 				g_mutex_unlock( fits->lock );
 				return( -1 );
 			}
@@ -507,7 +507,7 @@ fits2vips( const char *filename, VipsImage *out, int band_select )
 	if( !(fits = vips_fits_new_read( filename, out, band_select )) )
 		return( -1 );
 	if( vips_fits_get_header( fits, out ) ||
-		vips_image_generate( out, 
+		vips_image_generate( out,
 			NULL, fits2vips_generate, NULL, fits, NULL ) ) {
 		vips_fits_close( fits );
 		return( -1 );
@@ -553,9 +553,9 @@ vips__fits_read( const char *filename, VipsImage *out )
 		int i;
 
 		t = vips_image_new();
-		x = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
+		x = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ),
 			bands );
-		y = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
+		y = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ),
 			3 );
 
 		for( i = 0; i < bands; i++ ) {
@@ -567,7 +567,7 @@ vips__fits_read( const char *filename, VipsImage *out )
 		}
 
 		if( vips_bandjoin( x, &y[0], bands, NULL ) ||
-			vips_copy( y[0], &y[1], 
+			vips_copy( y[0], &y[1],
 				"interpretation", interpretation,
 				NULL ) ||
 			vips_image_write( y[1], out ) ) {
@@ -621,7 +621,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	fits->lock = NULL;
 	fits->band_select = -1;
 	fits->buffer = NULL;
-	g_signal_connect( in, "close", 
+	g_signal_connect( in, "close",
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	if( !(fits->filename = vips_strdup( NULL, filename )) )
@@ -629,7 +629,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 
 	/* We need to be able to hold one scanline of one band.
 	 */
-	if( !(fits->buffer = VIPS_ARRAY( NULL, 
+	if( !(fits->buffer = VIPS_ARRAY( NULL,
 		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, VipsPel )) )
 		return( NULL );
 
@@ -640,7 +640,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	g_unlink( filename );
 
 	if( fits_create_file( &fits->fptr, filename, &status ) ) {
-		vips_error( "fits", 
+		vips_error( "fits",
 			_( "unable to write to \"%s\"" ), filename );
 		vips_fits_error( status );
 		return( NULL );
@@ -652,7 +652,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 }
 
 static void *
-vips_fits_write_meta( VipsImage *image, 
+vips_fits_write_meta( VipsImage *image,
 	const char *field, GValue *value, void *a )
 {
 	VipsFits *fits = (VipsFits *) a;
@@ -667,7 +667,7 @@ vips_fits_write_meta( VipsImage *image,
 	if( !vips_isprefix( "fits-", field ) )
 		return( NULL );
 
-	/* The value should be a refstring, since we wrote it in fits2vips 
+	/* The value should be a refstring, since we wrote it in fits2vips
 	 * above ^^.
 	 */
 	value_str = vips_value_get_ref_string( value, NULL );
@@ -701,7 +701,7 @@ vips_fits_set_header( VipsFits *fits, VipsImage *in )
 		if( fits2vips_formats[i][1] == in->BandFmt )
 			break;
 	if( i == VIPS_NUMBER( fits2vips_formats ) ) {
-		vips_error( "fits", 
+		vips_error( "fits",
 			_( "unsupported BandFmt %d\n" ), in->BandFmt );
 		return( -1 );
 	}
@@ -715,7 +715,7 @@ vips_fits_set_header( VipsFits *fits, VipsImage *in )
 	VIPS_DEBUG_MSG( "bitpix = %d\n", bitpix );
 #endif /*VIPS_DEBUG*/
 
-	if( fits_create_imgll( fits->fptr, bitpix, fits->naxis, 
+	if( fits_create_imgll( fits->fptr, bitpix, fits->naxis,
 		fits->naxes, &status ) ) {
 		vips_fits_error( status );
 		return( -1 );
@@ -742,7 +742,7 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 	status = 0;
 
 	VIPS_DEBUG_MSG( "vips_fits_write: "
-		"writing left = %d, top = %d, width = %d, height = %d\n", 
+		"writing left = %d, top = %d, width = %d, height = %d\n",
 		area->left, area->top, area->width, area->height );
 
 	/* We need to write a band at a time. We can't bandsplit in vips,
@@ -750,7 +750,7 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 	 */
 
 	for( y = 0; y < area->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( region, 
+		VipsPel *p = VIPS_REGION_ADDR( region,
 			area->left, area->top + y );
 
 		for( b = 0; b < image->Bands; b++ ) {
@@ -761,9 +761,9 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			q = fits->buffer;
 
 			for( x = 0; x < area->width; x++ ) {
-				for( k = 0; k < es; k++ ) 
+				for( k = 0; k < es; k++ )
 					q[k] = p1[k];
-				
+
 				q += es;
 				p1 += ps;
 			}
@@ -775,8 +775,8 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			/* No need to lock, write functions are single-threaded.
 			 */
 
-			if( fits_write_pix( fits->fptr, fits->datatype, 
-				fpixel, area->width, fits->buffer, 
+			if( fits_write_pix( fits->fptr, fits->datatype,
+				fpixel, area->width, fits->buffer,
 				&status ) ) {
 				vips_fits_error( status );
 				return( -1 );

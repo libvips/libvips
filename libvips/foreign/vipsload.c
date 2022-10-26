@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,7 +56,7 @@ typedef struct _VipsForeignLoadVips {
 
 typedef VipsForeignLoadClass VipsForeignLoadVipsClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadVips, vips_foreign_load_vips, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadVips, vips_foreign_load_vips,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -79,7 +79,7 @@ vips_foreign_load_vips_get_flags_source( VipsSource *source )
 	flags = VIPS_FOREIGN_PARTIAL;
 
 	if( vips_source_sniff_at_most( source, &data, 4 ) == 4 &&
-		*((guint32 *) data) == VIPS_MAGIC_SPARC ) 
+		*((guint32 *) data) == VIPS_MAGIC_SPARC )
 		flags |= VIPS_FOREIGN_BIGENDIAN;
 
 	return( flags );
@@ -120,7 +120,7 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 
 	if( !vips_source_is_file( vips->source ) ||
 		!(filename = vips_connection_filename( connection )) ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "no filename associated with source" ) );
 		return( -1 );
 	}
@@ -129,7 +129,7 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 		return( -1 );
 
 	/* What a hack. Remove the @out that's there now and replace it with
-	 * our image. 
+	 * our image.
 	 */
 	g_object_get( load, "out", &x, NULL );
 	g_object_unref( x );
@@ -163,7 +163,7 @@ vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 	foreign_class->priority = 200;
 
 	load_class->get_flags = vips_foreign_load_vips_get_flags;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_vips_get_flags_filename;
 	load_class->header = vips_foreign_load_vips_header;
 	load_class->load = NULL;
@@ -184,7 +184,7 @@ typedef struct _VipsForeignLoadVipsFile {
 
 typedef VipsForeignLoadVipsClass VipsForeignLoadVipsFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadVipsFile, vips_foreign_load_vips_file, 
+G_DEFINE_TYPE( VipsForeignLoadVipsFile, vips_foreign_load_vips_file,
 	vips_foreign_load_vips_get_type() );
 
 static int
@@ -231,10 +231,10 @@ vips_foreign_load_vips_file_class_init( VipsForeignLoadVipsClass *class )
 
 	load_class->is_a = vips_foreign_load_vips_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadVipsFile, filename ),
 		NULL );
 }
@@ -253,14 +253,14 @@ typedef struct _VipsForeignLoadVipsSource {
 
 typedef VipsForeignLoadVipsClass VipsForeignLoadVipsSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadVipsSource, vips_foreign_load_vips_source, 
+G_DEFINE_TYPE( VipsForeignLoadVipsSource, vips_foreign_load_vips_source,
 	vips_foreign_load_vips_get_type() );
 
 static int
 vips_foreign_load_vips_source_build( VipsObject *object )
 {
 	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) object;
-	VipsForeignLoadVipsSource *source = 
+	VipsForeignLoadVipsSource *source =
 		(VipsForeignLoadVipsSource *) object;
 
 	if( source->source ) {
@@ -304,13 +304,13 @@ vips_foreign_load_vips_source_class_init( VipsForeignLoadVipsClass *class )
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->is_a_source = 
+	load_class->is_a_source =
 		vips_foreign_load_vips_source_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadVipsSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -327,7 +327,7 @@ vips_foreign_load_vips_source_init( VipsForeignLoadVipsSource *source )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read in a vips image. 
+ * Read in a vips image.
  *
  * See also: vips_vipssave().
  *
@@ -352,7 +352,7 @@ vips_vipsload( const char *filename, VipsImage **out, ... )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_vipsload(), but read from a source. 
+ * Exactly as vips_vipsload(), but read from a source.
  *
  * Returns: 0 on success, -1 on error.
  */

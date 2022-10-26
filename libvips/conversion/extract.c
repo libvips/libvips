@@ -42,7 +42,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -108,7 +108,7 @@ G_DEFINE_TYPE( VipsExtractArea, vips_extract_area, VIPS_TYPE_CONVERSION );
 /* Extract an area. Can just use pointers.
  */
 static int
-vips_extract_area_gen( VipsRegion *or, void *seq, void *a, void *b, 
+vips_extract_area_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -128,7 +128,7 @@ vips_extract_area_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	if( vips_region_region( or, ir, &or->valid, iarea.left, iarea.top ) )
 		return( -1 );
-	
+
 	return( 0 );
 }
 
@@ -151,21 +151,21 @@ vips_extract_area_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( vips_image_pio_input( extract->in ) || 
-		vips_check_coding_known( class->nickname, extract->in ) )  
+	if( vips_image_pio_input( extract->in ) ||
+		vips_check_coding_known( class->nickname, extract->in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL ) )
 		return( -1 );
 
-        conversion->out->Xsize = extract->width;
-        conversion->out->Ysize = extract->height;
-        conversion->out->Xoffset = -extract->left;
-        conversion->out->Yoffset = -extract->top;
+	conversion->out->Xsize = extract->width;
+	conversion->out->Ysize = extract->height;
+	conversion->out->Xoffset = -extract->left;
+	conversion->out->Yoffset = -extract->top;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_extract_area_gen, vips_stop_one, 
+		vips_start_one, vips_extract_area_gen, vips_stop_one,
 		extract->in, extract ) )
 		return( -1 );
 
@@ -190,35 +190,35 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "input", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "input", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, in ) );
 
-	VIPS_ARG_INT( class, "left", 3, 
-		_( "Left" ), 
+	VIPS_ARG_INT( class, "left", 3,
+		_( "Left" ),
 		_( "Left edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, left ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "top", 4, 
-		_( "Top" ), 
+	VIPS_ARG_INT( class, "top", 4,
+		_( "Top" ),
 		_( "Top edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, top ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "width", 5, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 5,
+		_( "Width" ),
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 6, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 6,
+		_( "Height" ),
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, height ),
@@ -252,18 +252,18 @@ vips_extract_area_init( VipsExtractArea *extract )
  * Extract an area from an image. The area must fit within @in.
  *
  * See also: vips_extract_bands(), vips_smartcrop().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_extract_area( VipsImage *in, VipsImage **out, 
+vips_extract_area( VipsImage *in, VipsImage **out,
 	int left, int top, int width, int height, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, height );
-	result = vips_call_split( "extract_area", ap, in, out, 
+	result = vips_call_split( "extract_area", ap, in, out,
 		left, top, width, height );
 	va_end( ap );
 
@@ -307,21 +307,21 @@ vips_crop_get_type( void )
  * @height: height of area to extract
  * @...: %NULL-terminated list of optional named arguments
  *
- * A synonym for vips_extract_area(). 
+ * A synonym for vips_extract_area().
  *
  * See also: vips_extract_bands(), vips_smartcrop().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_crop( VipsImage *in, VipsImage **out, 
+vips_crop( VipsImage *in, VipsImage **out,
 	int left, int top, int width, int height, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, height );
-	result = vips_call_split( "crop", ap, in, out, 
+	result = vips_call_split( "crop", ap, in, out,
 		left, top, width, height );
 	va_end( ap );
 
@@ -377,7 +377,7 @@ vips_extract_band_build( VipsObject *object )
 	VipsExtractBand *extract = (VipsExtractBand *) object;
 
 	if( extract->in ) {
-		int bands; 
+		int bands;
 
 		vips_image_decode_predict( extract->in, &bands, NULL );
 
@@ -386,13 +386,13 @@ vips_extract_band_build( VipsObject *object )
 		bandary->out_bands = extract->n;
 
 		if( extract->band + extract->n > bands ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				"%s", _( "bad extract band" ) );
 			return( -1 );
 		}
 
-		if( extract->band == 0 && 
-			extract->n == bands ) 
+		if( extract->band == 0 &&
+			extract->n == bands )
 			return( vips_bandary_copy( bandary ) );
 	}
 
@@ -421,21 +421,21 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 
 	bandary_class->process_line = vips_extract_band_buffer;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractBand, in ) );
 
-	VIPS_ARG_INT( class, "band", 3, 
-		_( "Band" ), 
+	VIPS_ARG_INT( class, "band", 3,
+		_( "Band" ),
 		_( "Band to extract" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractBand, band ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "n", 4, 
-		_( "n" ), 
+	VIPS_ARG_INT( class, "n", 4,
+		_( "n" ),
 		_( "Number of bands to extract" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsExtractBand, n ),
@@ -463,7 +463,7 @@ vips_extract_band_init( VipsExtractBand *extract )
  * Extract a band or bands from an image. Extracting out of range is an error.
  *
  * See also: vips_extract_area().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int

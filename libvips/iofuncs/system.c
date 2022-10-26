@@ -27,7 +27,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -107,7 +107,7 @@ vips_system_dispose( GObject *gobject )
 	if( system->in_name ) {
 		int i;
 
-		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) { 
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) {
 			g_unlink( system->in_name[i] );
 			VIPS_FREE( system->in_name[i] );
 		}
@@ -139,24 +139,24 @@ vips_system_build( VipsObject *object )
 		return( -1 );
 
 	/* Write the input images to files. We must always make copies of the
-	 * files, even if this image is a disc file already, in case the 
+	 * files, even if this image is a disc file already, in case the
 	 * command needs a different format.
 	 */
-	if( system->in ) { 
-		char *in_format = system->in_format ? 
+	if( system->in ) {
+		char *in_format = system->in_format ?
 			system->in_format : "%s.tif";
 		int n;
-		VipsImage **in = vips_array_image_get( system->in, &n ); 
+		VipsImage **in = vips_array_image_get( system->in, &n );
 
 		if( !(system->in_name = VIPS_ARRAY( object, n, char * )) )
-			return( -1 ); 
-		memset( system->in_name, 0, n * sizeof( char * ) ); 
-		for( i = 0; i < n; i++ ) { 
-			if( !(system->in_name[i] = 
+			return( -1 );
+		memset( system->in_name, 0, n * sizeof( char * ) );
+		for( i = 0; i < n; i++ ) {
+			if( !(system->in_name[i] =
 				vips__temp_name( in_format )) )
 				return( -1 );
-			if( vips_image_write_to_file( in[i], 
-				system->in_name[i], NULL ) ) 
+			if( vips_image_write_to_file( in[i],
+				system->in_name[i], NULL ) )
 				return( -1 );
 		}
 	}
@@ -167,29 +167,29 @@ vips_system_build( VipsObject *object )
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 
-		vips__filename_split8( system->out_format, 
+		vips__filename_split8( system->out_format,
 			filename, option_string );
 		if( !(system->out_name = vips__temp_name( filename )) )
-			return( -1 ); 
-		system->out_name_options = 
-			g_strconcat( system->out_name, option_string, NULL ); 
+			return( -1 );
+		system->out_name_options =
+			g_strconcat( system->out_name, option_string, NULL );
 	}
 
 	vips_strncpy( cmd, system->cmd_format, VIPS_PATH_MAX );
-	if( system->in ) 
-		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) 
-			if( vips__substitute( cmd, VIPS_PATH_MAX, 
+	if( system->in )
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ )
+			if( vips__substitute( cmd, VIPS_PATH_MAX,
 				system->in_name[i] ) ) {
 				vips_error( class->nickname, "%s",
 					_( "unable to substitute "
-					"input filename" ) ); 
-				return( -1 ); 
+					"input filename" ) );
+				return( -1 );
 			}
 	if( system->out_name &&
 		vips__substitute( cmd, VIPS_PATH_MAX, system->out_name ) ) {
 		vips_error( class->nickname, "%s",
-			_( "unable to substitute output filename" ) ); 
-		return( -1 ); 
+			_( "unable to substitute output filename" ) );
+		return( -1 );
 	}
 
 	/* Swap all "%%" in the string for a single "%". We need this for
@@ -201,7 +201,7 @@ vips_system_build( VipsObject *object )
 			p[1] == '%' )
 			memmove( p, p + 1, strlen( p ) );
 
-	if( !g_spawn_command_line_sync( cmd, 
+	if( !g_spawn_command_line_sync( cmd,
 		&std_output, &std_error, &result, &error ) ||
 		result ) {
 		if( error ) {
@@ -209,46 +209,46 @@ vips_system_build( VipsObject *object )
 			g_error_free( error );
 		}
 		if( std_error ) {
-			vips__chomp( std_error ); 
+			vips__chomp( std_error );
 			if( strcmp( std_error, "" ) != 0 )
-				vips_error( class->nickname, 
+				vips_error( class->nickname,
 					"error output: %s", std_error );
 			VIPS_FREE( std_error );
 		}
 		if( std_output ) {
-			vips__chomp( std_output ); 
+			vips__chomp( std_output );
 			if( strcmp( std_output, "" ) != 0 )
-				vips_error( class->nickname, 
+				vips_error( class->nickname,
 					"output: %s", std_output );
 			VIPS_FREE( std_output );
 		}
-		vips_error_system( result, class->nickname, 
-			_( "command \"%s\" failed" ), cmd ); 
+		vips_error_system( result, class->nickname,
+			_( "command \"%s\" failed" ), cmd );
 
-		return( -1 ); 
+		return( -1 );
 	}
 
 	if( std_error ) {
-		vips__chomp( std_error ); 
+		vips__chomp( std_error );
 		if( strcmp( std_error, "" ) != 0 )
-			g_warning( _( "stderr output: %s" ), std_error ); 
+			g_warning( _( "stderr output: %s" ), std_error );
 	}
 	if( std_output ) {
-		vips__chomp( std_output ); 
-		g_object_set( system, "log", std_output, NULL ); 
+		vips__chomp( std_output );
+		g_object_set( system, "log", std_output, NULL );
 	}
 
 	VIPS_FREE( std_output );
 	VIPS_FREE( std_error );
 
 	if( system->out_name_options ) {
-		VipsImage *out; 
+		VipsImage *out;
 
-		if( !(out = vips_image_new_from_file( system->out_name_options, 
+		if( !(out = vips_image_new_from_file( system->out_name_options,
 			NULL )) )
 			return( -1 );
 		vips_image_set_delete_on_close( out, TRUE );
-		g_object_set( system, "out", out, NULL ); 
+		g_object_set( system, "out", out, NULL );
 	}
 
 	return( 0 );
@@ -269,46 +269,46 @@ vips_system_class_init( VipsSystemClass *class )
 	vobject_class->description = _( "run an external command" );
 	vobject_class->build = vips_system_build;
 
-	/* Commands can have side-effects, so don't cache them. 
+	/* Commands can have side-effects, so don't cache them.
 	 */
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	VIPS_ARG_BOXED( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_BOXED( class, "in", 0,
+		_( "Input" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSystem, in ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 1,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_OPTIONAL_OUTPUT, 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSystem, out ) );
 
-	VIPS_ARG_STRING( class, "cmd_format", 2, 
-		_( "Command" ), 
+	VIPS_ARG_STRING( class, "cmd_format", 2,
+		_( "Command" ),
 		_( "Command to run" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSystem, cmd_format ),
 		NULL );
 
-	VIPS_ARG_STRING( class, "in_format", 2, 
-		_( "Input format" ), 
+	VIPS_ARG_STRING( class, "in_format", 2,
+		_( "Input format" ),
 		_( "Format for input filename" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSystem, in_format ),
 		NULL );
 
-	VIPS_ARG_STRING( class, "out_format", 2, 
-		_( "Output format" ), 
+	VIPS_ARG_STRING( class, "out_format", 2,
+		_( "Output format" ),
 		_( "Format for output filename" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSystem, out_format ),
 		NULL );
 
-	VIPS_ARG_STRING( class, "log", 2, 
-		_( "Log" ), 
+	VIPS_ARG_STRING( class, "log", 2,
+		_( "Log" ),
 		_( "Command log" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSystem, log ),
@@ -334,32 +334,32 @@ vips_system_init( VipsSystem *system )
  * * @out_format: write output filename like this
  * * @log: stdout of command is returned here
  *
- * vips_system() runs a command, optionally passing a set of images in and 
- * optionally getting an image back. The command's stdout is returned in @log. 
+ * vips_system() runs a command, optionally passing a set of images in and
+ * optionally getting an image back. The command's stdout is returned in @log.
  *
  * First, if @in is set, the array of images are written to files. See
- * vips_image_new_temp_file() to see how temporary files are created. 
+ * vips_image_new_temp_file() to see how temporary files are created.
  * If @in_format is
  * something like &percnt;s.png, the file will be written in PNG format. By
- * default, @in_format is &percnt;s.tif. 
+ * default, @in_format is &percnt;s.tif.
  *
  * If @out_format is set, an output filename is formed in the same way. Any
- * trailing [options] are stripped from @out_format. 
+ * trailing [options] are stripped from @out_format.
  *
- * The command string to run is made by substituting the first set of &percnt;s 
- * in @cmd_format for the names of the input files, if @in is set, and then 
- * the next &percnt;s for the output filename, if @out_format is set. 
- * You can put a number between the &percnt; and the s to change the order 
+ * The command string to run is made by substituting the first set of &percnt;s
+ * in @cmd_format for the names of the input files, if @in is set, and then
+ * the next &percnt;s for the output filename, if @out_format is set.
+ * You can put a number between the &percnt; and the s to change the order
  * in which the substitution occurs.
  *
- * The command is executed with popen() and the output captured in @log. 
+ * The command is executed with popen() and the output captured in @log.
  *
  * After the command finishes, if @out_format is set, the output image is
  * opened and returned in @out. You can append [options] to @out_format to
- * control how this open happens. 
+ * control how this open happens.
  * Closing @out image will automatically delete the output file.
  *
- * Finally the input images are deleted. 
+ * Finally the input images are deleted.
  *
  * For example, this call will run the ImageMagick convert program on an
  * image, using JPEG files to pass images into and out of the convert command.
@@ -370,16 +370,16 @@ vips_system_init( VipsSystem *system )
  * char *log;
  *
  * if (vips_system ("convert %s -swirl 45 %s",
- * 	"in", in, 
- * 	"out", &out, 
- *   	"in_format", "%s.jpg", 
- *   	"out_format", "%s.jpg", 
+ * 	"in", in,
+ * 	"out", &out,
+ *   	"in_format", "%s.jpg",
+ *   	"out_format", "%s.jpg",
  *   	"log", &log,
  *   	NULL))
  *   	error ...
  * ]|
  *
- * Returns: 0 on success, -1 on failure. 
+ * Returns: 0 on success, -1 on failure.
  */
 int
 vips_system( const char *cmd_format, ... )

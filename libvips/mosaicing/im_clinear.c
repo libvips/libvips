@@ -9,7 +9,7 @@
  * @(#)
  * @(#) int vips_clinear( points )
  * @(#) TiePoints *points;
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on sucess  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
@@ -26,7 +26,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@
 
 #include "pmosaicing.h"
 
-int 
+int
 vips__clinear( TiePoints *points )
 {
 	VipsImage *mat, *matinv;
@@ -135,7 +135,7 @@ vips__clinear( TiePoints *points )
 	if( vips_matrixinvert( mat, &matinv, NULL ) ) {
 		g_object_unref( mat );
 		g_free( g );
-		vips_error( "vips_clinear", "%s", _( "vips_invmat failed" ) ); 
+		vips_error( "vips_clinear", "%s", _( "vips_invmat failed" ) );
 		return( -1 );
 	}
 
@@ -155,13 +155,13 @@ vips__clinear( TiePoints *points )
 
 	/* find the deviation of each point for the estimated variables
 	 * if it greater than 1 then the solution is not good enough
-	 * but this is handled by the main program 
+	 * but this is handled by the main program
 	 */
 	for( i = 0; i < points->nopoints; i++ ) {
-		dx[i] = xsec[i] - 
+		dx[i] = xsec[i] -
 			((scale * xref[i]) - (angle * yref[i]) + xdelta);
 
-		dy[i] = ysec[i] - 
+		dy[i] = ysec[i] -
 			((angle * xref[i]) + (scale * yref[i]) + ydelta);
 
 		value = sqrt( dx[i] * dx[i] + dy[i] * dy[i] );

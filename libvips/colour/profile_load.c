@@ -1,4 +1,4 @@
-/* Load profiles as blobs. 
+/* Load profiles as blobs.
  *
  * 10/1/19
  *      - from CMYK2XYZ.c
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ vips_profile_fallback_get( const char *name, size_t *length )
 	int i;
 	VipsProfileFallback *fallback;
 
-	for( i = 0; (fallback = vips__profile_fallback_table[i]); i++ ) 
+	for( i = 0; (fallback = vips__profile_fallback_table[i]); i++ )
 		if( g_ascii_strcasecmp( fallback->name, name ) == 0 ) {
 			void *data;
 			GConverter *converter;
@@ -99,33 +99,33 @@ vips_profile_fallback_get( const char *name, size_t *length )
 static int
 vips_profile_load_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsProfileLoad *load = (VipsProfileLoad *) object;
 
 	size_t length;
 	const void *data;
-	VipsBlob *profile; 
+	VipsBlob *profile;
 
 	if( VIPS_OBJECT_CLASS( vips_profile_load_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) 
+	if( g_ascii_strcasecmp( load->name, "none" ) == 0 )
 		profile = NULL;
-	else if( (data = vips_profile_fallback_get( load->name, &length )) ) 
+	else if( (data = vips_profile_fallback_get( load->name, &length )) )
 		profile = vips_blob_new(
 			(VipsCallbackFn) vips_area_free_cb, data, length );
-	else if( (data = vips__file_read_name( load->name, 
-		vips__icc_dir(), &length )) ) 
-		profile = vips_blob_new( 
+	else if( (data = vips__file_read_name( load->name,
+		vips__icc_dir(), &length )) )
+		profile = vips_blob_new(
 			(VipsCallbackFn) vips_area_free_cb, data, length );
 	else {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			_( "unable to load profile \"%s\"" ), load->name );
 		return( -1 );
 	}
 
-	g_object_set( object, "profile", profile, NULL ); 
+	g_object_set( object, "profile", profile, NULL );
 
 	if( profile ) {
 		vips_area_unref( (VipsArea *) profile );
@@ -148,18 +148,18 @@ vips_profile_load_class_init( VipsProfileLoadClass *class )
 	object_class->description = _( "load named ICC profile" );
 	object_class->build = vips_profile_load_build;
 
-	VIPS_ARG_STRING( class, "name", 1, 
-		_( "Name" ), 
+	VIPS_ARG_STRING( class, "name", 1,
+		_( "Name" ),
 		_( "Profile name" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsProfileLoad, name ), 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsProfileLoad, name ),
 		NULL );
 
-	VIPS_ARG_BOXED( class, "profile", 2, 
-		_( "Profile" ), 
+	VIPS_ARG_BOXED( class, "profile", 2,
+		_( "Profile" ),
 		_( "Loaded profile" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsProfileLoad, profile ), 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET( VipsProfileLoad, profile ),
 		VIPS_TYPE_BLOB );
 
 }
@@ -170,12 +170,12 @@ vips_profile_load_init( VipsProfileLoad *load )
 }
 
 /**
- * vips_profile_load: 
+ * vips_profile_load:
  * @name: name of profile to load
  * @profile: (out): loaded profile
  * @...: %NULL-terminated list of optional named arguments
  *
- * Load a named profile. 
+ * Load a named profile.
  *
  * Profiles are loaded from four sources:
  *
@@ -205,14 +205,14 @@ vips_profile_load( const char *name, VipsBlob **profile, ... )
 	return( result );
 }
 
-/* Set (or remove) a named profile on an image. 
+/* Set (or remove) a named profile on an image.
  */
 int
 vips__profile_set( VipsImage *image, const char *name )
 {
 	VipsBlob *profile;
 
-	if( vips_profile_load( name, &profile, NULL ) ) 
+	if( vips_profile_load( name, &profile, NULL ) )
 		return( -1 );
 
 	if( profile ) {
@@ -223,7 +223,7 @@ vips__profile_set( VipsImage *image, const char *name )
 		vips_image_set( image, VIPS_META_ICC_NAME, &value );
 		g_value_unset( &value );
 	}
-	else 
+	else
 		vips_image_remove( image, VIPS_META_ICC_NAME );
 
 	if( profile ) {

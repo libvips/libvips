@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,7 +61,7 @@
  * @lut: look-up table
  *
  * Map the first channel of @in through @lut. If @in is IM_CODING_LABQ, unpack
- * to LABS, map L and then repack. 
+ * to LABS, map L and then repack.
  *
  * @in should be a LABS or LABQ image for this to work
  * sensibly.
@@ -102,7 +102,7 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 	if( im_maplut( t[1], t[3], lut ) )
 		return( -1 );
 
-	/* Recombine bands. 
+	/* Recombine bands.
 	 */
 	if( t[0]->Bands > 1 ) {
 		if( im_bandjoin( t[3], t[2], t[4] ) )
@@ -117,16 +117,16 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
 		if( im_LabS2LabQ( t[4], t[5] ) )
 			return( -1 );
 	}
-	else 
+	else
 		t[5] = t[4];
-	
+
 	return( im_copy( t[4], out ) );
 }
 
 /**
  * im_tone_analyse:
- * @in: input image 
- * @out: output image 
+ * @in: input image
+ * @out: output image
  * @Ps: shadow point (eg. 0.2)
  * @Pm: mid-tone point (eg. 0.5)
  * @Ph: highlight point (eg. 0.8)
@@ -141,10 +141,10 @@ im_tone_map( IMAGE *in, IMAGE *out, IMAGE *lut )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-im_tone_analyse( 
-	IMAGE *in, 
-	IMAGE *out, 
+int
+im_tone_analyse(
+	IMAGE *in,
+	IMAGE *out,
 	double Ps, double Pm, double Ph,
 	double S, double M, double H )
 {

@@ -10,7 +10,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -42,12 +42,12 @@
 /* TODO
  *
  * - for uncompressed images, we could do direct mapping of the input
- * - perhaps we could stream compressed images? but only if ext is defined at 
+ * - perhaps we could stream compressed images? but only if ext is defined at
  *   the start of the file
  *   	(yes, file format is magic number, 348-byte header, extension data,
  *   	pixel data, then all gz'd)
  * - we could use the much faster byteswap in glib?
- * - I have not been able to test the ext stuff :( 
+ * - I have not been able to test the ext stuff :(
  *
  * There should be at least a x2 speedup possible.
  */
@@ -87,7 +87,7 @@ typedef struct _VipsForeignLoadNifti {
 	nifti_image *nim;
 
 	/* Wrap this VipsImage around the NIFTI pointer, then redirect read
-	 * requests to that. Saves a copy. 
+	 * requests to that. Saves a copy.
 	 */
 	VipsImage *memory;
 
@@ -95,7 +95,7 @@ typedef struct _VipsForeignLoadNifti {
 
 typedef VipsForeignLoadClass VipsForeignLoadNiftiClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNifti, vips_foreign_load_nifti, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNifti, vips_foreign_load_nifti,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -127,12 +127,12 @@ vips_foreign_load_nifti_build( VipsObject *object )
 
 		if( !vips_source_is_file( nifti->source ) ||
 			!(filename = vips_connection_filename( connection )) ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				"%s", _( "no filename available" ) );
 			return( -1 );
 		}
 
-		nifti->filename = filename; 
+		nifti->filename = filename;
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
@@ -200,123 +200,123 @@ static VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 	/* The first 8 must be the dims[] fields, see
 	 * vips_foreign_save_nifti_make_nim().
 	 */
-	{ "ndim", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ndim ) }, 
-	{ "nx", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nx ) }, 
-	{ "ny", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ny ) }, 
-	{ "nz", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nz ) }, 
-	{ "nt", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nt ) }, 
-	{ "nu", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nu ) }, 
-	{ "nv", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nv ) }, 
-	{ "nw", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nw ) }, 
+	{ "ndim", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ndim ) },
+	{ "nx", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nx ) },
+	{ "ny", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ny ) },
+	{ "nz", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nz ) },
+	{ "nt", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nt ) },
+	{ "nu", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nu ) },
+	{ "nv", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nv ) },
+	{ "nw", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nw ) },
 
-	{ "dx", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dx ) }, 
-	{ "dy", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dy ) }, 
-	{ "dz", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dz ) }, 
-	{ "dt", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dt ) }, 
-	{ "du", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, du ) }, 
-	{ "dv", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dv ) }, 
-	{ "dw", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dw ) }, 
+	{ "dx", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dx ) },
+	{ "dy", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dy ) },
+	{ "dz", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dz ) },
+	{ "dt", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dt ) },
+	{ "du", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, du ) },
+	{ "dv", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dv ) },
+	{ "dw", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dw ) },
 
-	{ "scl_slope", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, scl_slope ) }, 
-	{ "scl_inter", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, scl_inter ) }, 
+	{ "scl_slope", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, scl_slope ) },
+	{ "scl_inter", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, scl_inter ) },
 
-	{ "cal_min", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, cal_min ) }, 
-	{ "cal_max", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, cal_max ) }, 
+	{ "cal_min", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, cal_min ) },
+	{ "cal_max", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, cal_max ) },
 
-	{ "qform_code", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, qform_code ) }, 
-	{ "sform_code", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, sform_code ) }, 
+	{ "qform_code", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, qform_code ) },
+	{ "sform_code", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, sform_code ) },
 
-	{ "freq_dim", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, freq_dim ) }, 
-	{ "phase_dim", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, phase_dim ) }, 
-	{ "slice_dim", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, slice_dim ) }, 
+	{ "freq_dim", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, freq_dim ) },
+	{ "phase_dim", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, phase_dim ) },
+	{ "slice_dim", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, slice_dim ) },
 
-	{ "slice_code", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, slice_code ) }, 
-	{ "slice_start", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, slice_start ) }, 
-	{ "slice_end", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, slice_end ) }, 
-	{ "slice_duration", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, slice_duration ) }, 
+	{ "slice_code", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, slice_code ) },
+	{ "slice_start", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, slice_start ) },
+	{ "slice_end", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, slice_end ) },
+	{ "slice_duration", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, slice_duration ) },
 
-	{ "quatern_b", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, quatern_b ) }, 
-	{ "quatern_c", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, quatern_c ) }, 
-	{ "quatern_d", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, quatern_d ) }, 
-	{ "qoffset_x", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, qoffset_x ) }, 
-	{ "qoffset_y", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, qoffset_y ) }, 
-	{ "qoffset_z", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, qoffset_z ) }, 
-	{ "qfac", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, qfac ) }, 
+	{ "quatern_b", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, quatern_b ) },
+	{ "quatern_c", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, quatern_c ) },
+	{ "quatern_d", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, quatern_d ) },
+	{ "qoffset_x", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, qoffset_x ) },
+	{ "qoffset_y", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, qoffset_y ) },
+	{ "qoffset_z", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, qoffset_z ) },
+	{ "qfac", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, qfac ) },
 
-	{ "sto_xyz00", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][0] ) }, 
-	{ "sto_xyz01", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][1] ) }, 
-	{ "sto_xyz02", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][2] ) }, 
-	{ "sto_xyz03", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][3] ) }, 
+	{ "sto_xyz00", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][0] ) },
+	{ "sto_xyz01", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][1] ) },
+	{ "sto_xyz02", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][2] ) },
+	{ "sto_xyz03", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][3] ) },
 
-	{ "sto_xyz10", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][0] ) }, 
-	{ "sto_xyz11", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][1] ) }, 
-	{ "sto_xyz12", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][2] ) }, 
-	{ "sto_xyz13", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][3] ) }, 
+	{ "sto_xyz10", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][0] ) },
+	{ "sto_xyz11", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][1] ) },
+	{ "sto_xyz12", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][2] ) },
+	{ "sto_xyz13", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][3] ) },
 
-	{ "sto_xyz20", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][0] ) }, 
-	{ "sto_xyz21", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][1] ) }, 
-	{ "sto_xyz22", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][2] ) }, 
-	{ "sto_xyz23", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][3] ) }, 
+	{ "sto_xyz20", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][0] ) },
+	{ "sto_xyz21", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][1] ) },
+	{ "sto_xyz22", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][2] ) },
+	{ "sto_xyz23", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][3] ) },
 
-	{ "sto_xyz30", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][0] ) }, 
-	{ "sto_xyz31", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][1] ) }, 
-	{ "sto_xyz32", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][2] ) }, 
-	{ "sto_xyz33", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][3] ) }, 
+	{ "sto_xyz30", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][0] ) },
+	{ "sto_xyz31", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][1] ) },
+	{ "sto_xyz32", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][2] ) },
+	{ "sto_xyz33", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][3] ) },
 
-	{ "toffset", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, toffset ) }, 
+	{ "toffset", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, toffset ) },
 
-	{ "xyz_units", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, xyz_units ) }, 
-	{ "time_units", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, time_units ) }, 
+	{ "xyz_units", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, xyz_units ) },
+	{ "time_units", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, time_units ) },
 
-	{ "nifti_type", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, nifti_type ) }, 
-	{ "intent_code", G_TYPE_INT, 
-		G_STRUCT_OFFSET( nifti_image, intent_code ) }, 
-	{ "intent_p1", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, intent_p1 ) }, 
-	{ "intent_p2", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, intent_p2 ) }, 
-	{ "intent_p3", G_TYPE_DOUBLE, 
-		G_STRUCT_OFFSET( nifti_image, intent_p3 ) }, 
+	{ "nifti_type", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, nifti_type ) },
+	{ "intent_code", G_TYPE_INT,
+		G_STRUCT_OFFSET( nifti_image, intent_code ) },
+	{ "intent_p1", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, intent_p1 ) },
+	{ "intent_p2", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, intent_p2 ) },
+	{ "intent_p3", G_TYPE_DOUBLE,
+		G_STRUCT_OFFSET( nifti_image, intent_p3 ) },
 };
 
 void *
@@ -359,7 +359,7 @@ vips_gvalue_read( GValue *value, void *p )
 		break;
 
 	default:
-		g_warning( "vips_gvalue_read: unsupported GType %s", 
+		g_warning( "vips_gvalue_read: unsupported GType %s",
 			g_type_name( G_VALUE_TYPE( value ) ) );
 	}
 }
@@ -397,15 +397,15 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 
 	if( nim->ndim < 1 ||
 		nim->ndim > 7 ) {
-		vips_error( class->nickname, 
-			_( "%d-dimensional images not supported" ), 
-			nim->ndim ); 
+		vips_error( class->nickname,
+			_( "%d-dimensional images not supported" ),
+			nim->ndim );
 		return( 0 );
 	}
 	for( i = 1; i < 8 && i < nim->ndim + 1; i++ ) {
 		if( nim->dim[i] <= 0 ) {
-			vips_error( class->nickname, 
-				"%s", _( "invalid dimension" ) ); 
+			vips_error( class->nickname,
+				"%s", _( "invalid dimension" ) );
 			return( 0 );
 		}
 
@@ -413,10 +413,10 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		 * be non-zero or we'll get a /0 error in resolution
 		 * calculation.
 		 */
-		if( nim->dim[i] > 1 && 
+		if( nim->dim[i] > 1 &&
 			nim->pixdim[i] == 0 ) {
-			vips_error( class->nickname, 
-				"%s", _( "invalid resolution" ) ); 
+			vips_error( class->nickname,
+				"%s", _( "invalid resolution" ) );
 			return( 0 );
 		}
 	}
@@ -429,18 +429,18 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	height = (guint) nim->ny;
 	for( i = 3; i < 8 && i < nim->ndim + 1; i++ )
 		if( !g_uint_checked_mul( &height, height, nim->dim[i] ) ) {
-			vips_error( class->nickname, 
-				"%s", _( "dimension overflow" ) ); 
+			vips_error( class->nickname,
+				"%s", _( "dimension overflow" ) );
 			return( 0 );
 		}
 	if( height > INT_MAX ) {
-		vips_error( class->nickname, "%s", _( "dimension overflow" ) ); 
+		vips_error( class->nickname, "%s", _( "dimension overflow" ) );
 		return( 0 );
 	}
 
 	fmt = vips__foreign_nifti_datatype2BandFmt( nim->datatype );
-	if( fmt == VIPS_FORMAT_NOTSET ) { 
-		vips_error( class->nickname, 
+	if( fmt == VIPS_FORMAT_NOTSET ) {
+		vips_error( class->nickname,
 			_( "datatype %d not supported" ), nim->datatype );
 		return( -1 );
 	}
@@ -455,20 +455,20 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	xres = 1.0;
 	yres = 1.0;
 	if( nim->nz == 1 ||
-		nim->dz == nim->dy ) 
+		nim->dz == nim->dy )
 		switch( nim->xyz_units ) {
 		case NIFTI_UNITS_METER:
-			xres = 1000.0 / nim->dx; 
-			yres = 1000.0 / nim->dy; 
-			break; 
+			xres = 1000.0 / nim->dx;
+			yres = 1000.0 / nim->dy;
+			break;
 		case NIFTI_UNITS_MM:
-			xres = 1.0 / nim->dx; 
-			yres = 1.0 / nim->dy; 
+			xres = 1.0 / nim->dx;
+			yres = 1.0 / nim->dy;
 			break;
 
 		case NIFTI_UNITS_MICRON:
-			xres = 1.0 / (1000.0 * nim->dx); 
-			yres = 1.0 / (1000.0 * nim->dy); 
+			xres = 1.0 / (1000.0 * nim->dx);
+			yres = 1.0 / (1000.0 * nim->dy);
 			break;
 
 		default:
@@ -482,21 +482,21 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	printf( "get_vips_properties: fmt = %d\n", fmt );
 #endif /*DEBUG*/
 
-        /* We load to memory then write to out, so we'll hint THINSTRIP.
-         */
+	/* We load to memory then write to out, so we'll hint THINSTRIP.
+	 */
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_image_init_fields( out,
-		width, height, bands, fmt, 
-		VIPS_CODING_NONE, 
-		bands == 1 ? 
-			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB, 
+		width, height, bands, fmt,
+		VIPS_CODING_NONE,
+		bands == 1 ?
+			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB,
 		xres, yres );
 
 	/* Set some vips metadata for every nifti header field.
 	 */
 	if( vips__foreign_nifti_map( vips_foreign_load_nifti_set, nim, out ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* One byte longer than the spec to leave space for any extra
 	 * '\0' termination.
@@ -532,13 +532,13 @@ vips_foreign_load_nifti_header( VipsForeignLoad *load )
 	/* FALSE means don't read data, just the header. Use
 	 * nifti_image_load() later to pull the data in.
 	 */
-	if( !(nifti->nim = nifti_image_read( nifti->filename, FALSE )) ) { 
-		vips_error( class->nickname, 
+	if( !(nifti->nim = nifti_image_read( nifti->filename, FALSE )) ) {
+		vips_error( class->nickname,
 			"%s", _( "unable to read NIFTI header" ) );
 		return( 0 );
 	}
 
-	if( vips_foreign_load_nifti_set_header( nifti, 
+	if( vips_foreign_load_nifti_set_header( nifti,
 		nifti->nim, load->out ) ) {
 		return( -1 );
 	}
@@ -558,18 +558,18 @@ vips_foreign_load_nifti_load( VipsForeignLoad *load )
 	printf( "vips_foreign_load_nifti_load: loading image\n" );
 #endif /*DEBUG*/
 
-	/* We just read the entire image to memory. 
+	/* We just read the entire image to memory.
 	 */
 	if( nifti_image_load( nifti->nim ) ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unable to load NIFTI file" ) );
 		return( -1 );
 	}
 
-	if( !(nifti->memory = vips_image_new_from_memory( 
+	if( !(nifti->memory = vips_image_new_from_memory(
 		nifti->nim->data, VIPS_IMAGE_SIZEOF_IMAGE( load->out ),
-		load->out->Xsize, load->out->Ysize, 
-		load->out->Bands, load->out->BandFmt )) ) 
+		load->out->Xsize, load->out->Ysize,
+		load->out->Bands, load->out->BandFmt )) )
 		return( -1 );
 
 	if( vips_image_write( nifti->memory, load->real ) )
@@ -618,13 +618,13 @@ typedef struct _VipsForeignLoadNiftiFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadNiftiFile;
 
 typedef VipsForeignLoadNiftiClass VipsForeignLoadNiftiFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNiftiFile, vips_foreign_load_nifti_file, 
+G_DEFINE_TYPE( VipsForeignLoadNiftiFile, vips_foreign_load_nifti_file,
 	vips_foreign_load_nifti_get_type() );
 
 static int
@@ -634,7 +634,7 @@ vips_foreign_load_nifti_file_build( VipsObject *object )
 	VipsForeignLoadNiftiFile *file = (VipsForeignLoadNiftiFile *) object;
 
 	if( file->filename &&
-		!(nifti->source = 
+		!(nifti->source =
 			vips_source_new_from_file( file->filename )) )
 		return( -1 );
 
@@ -645,12 +645,12 @@ vips_foreign_load_nifti_file_build( VipsObject *object )
 	return( 0 );
 }
 
-const char *vips_foreign_nifti_suffs[] = { 
-	".nii", ".nii.gz", 
-	".hdr", ".hdr.gz", 
-	".img", ".img.gz", 
-	".nia", ".nia.gz", 
-	NULL 
+const char *vips_foreign_nifti_suffs[] = {
+	".nii", ".nii.gz",
+	".hdr", ".hdr.gz",
+	".img", ".img.gz",
+	".nia", ".nia.gz",
+	NULL
 };
 
 static int
@@ -668,7 +668,7 @@ vips_foreign_load_nifti_is_a( const char *filename )
 		return( 0 );
 
 	fp = znzopen( hfile, "rb", nifti_is_gzfile( hfile ));
-	if( znz_isnull( fp ) ) { 
+	if( znz_isnull( fp ) ) {
 		free( hfile );
 		return( 0 );
 	}
@@ -681,17 +681,17 @@ vips_foreign_load_nifti_is_a( const char *filename )
 	/* Test for sanity both ways around. There's a thing to test for byte
 	 * order in niftilib, but it's static :(
 	 */
-	if( nifti_hdr_looks_good( &nhdr ) ) 
+	if( nifti_hdr_looks_good( &nhdr ) )
 		return( 1 );
 	swap_nifti_header( &nhdr, FALSE );
-	if( nifti_hdr_looks_good( &nhdr ) ) 
+	if( nifti_hdr_looks_good( &nhdr ) )
 		return( 1 );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_load_nifti_file_class_init( 
+vips_foreign_load_nifti_file_class_init(
 	VipsForeignLoadNiftiFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -710,10 +710,10 @@ vips_foreign_load_nifti_file_class_init(
 
 	load_class->is_a = vips_foreign_load_nifti_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNiftiFile, filename ),
 		NULL );
 
@@ -735,14 +735,14 @@ typedef struct _VipsForeignLoadNiftiSource {
 
 typedef VipsForeignLoadNiftiClass VipsForeignLoadNiftiSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNiftiSource, vips_foreign_load_nifti_source, 
+G_DEFINE_TYPE( VipsForeignLoadNiftiSource, vips_foreign_load_nifti_source,
 	vips_foreign_load_nifti_get_type() );
 
 static int
 vips_foreign_load_nifti_source_build( VipsObject *object )
 {
 	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) object;
-	VipsForeignLoadNiftiSource *source = 
+	VipsForeignLoadNiftiSource *source =
 		(VipsForeignLoadNiftiSource *) object;
 
 	if( source->source ) {
@@ -750,7 +750,7 @@ vips_foreign_load_nifti_source_build( VipsObject *object )
 		g_object_ref( nifti->source );
 	}
 
-	if( VIPS_OBJECT_CLASS( 
+	if( VIPS_OBJECT_CLASS(
 		vips_foreign_load_nifti_source_parent_class )->
 			build( object ) )
 		return( -1 );
@@ -771,7 +771,7 @@ vips_foreign_load_nifti_source_is_a_source( VipsSource *source )
 }
 
 static void
-vips_foreign_load_nifti_source_class_init( 
+vips_foreign_load_nifti_source_class_init(
 	VipsForeignLoadNiftiSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -788,20 +788,20 @@ vips_foreign_load_nifti_source_class_init(
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->is_a_source = 
+	load_class->is_a_source =
 		vips_foreign_load_nifti_source_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNiftiSource, source ),
 		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_foreign_load_nifti_source_init( 
+vips_foreign_load_nifti_source_init(
 	VipsForeignLoadNiftiSource *nifti )
 {
 }
@@ -814,7 +814,7 @@ vips_foreign_load_nifti_source_init(
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a NIFTI image file into a VIPS image. 
+ * Read a NIFTI image file into a VIPS image.
  *
  * NIFTI metadata is attached with the "nifti-" prefix.
  *
@@ -841,7 +841,7 @@ vips_niftiload( const char *filename, VipsImage **out, ... )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_niftiload(), but read from a source. 
+ * Exactly as vips_niftiload(), but read from a source.
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -31,7 +31,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -116,7 +116,7 @@ vips_remainder_build( VipsObject *object )
 }
 
 static void
-vips_remainder_buffer( VipsArithmetic *arithmetic, 
+vips_remainder_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
@@ -124,19 +124,19 @@ vips_remainder_buffer( VipsArithmetic *arithmetic,
 
 	int x;
 
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	IREMAINDER( signed char ); break; 
-        case VIPS_FORMAT_UCHAR: IREMAINDER( unsigned char ); break; 
-        case VIPS_FORMAT_SHORT: IREMAINDER( signed short ); break; 
-        case VIPS_FORMAT_USHORT:IREMAINDER( unsigned short ); break; 
-        case VIPS_FORMAT_INT: 	IREMAINDER( signed int ); break; 
-        case VIPS_FORMAT_UINT: 	IREMAINDER( unsigned int ); break; 
-        case VIPS_FORMAT_FLOAT: FREMAINDER( float ); break; 
-        case VIPS_FORMAT_DOUBLE:FREMAINDER( double ); break;
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_CHAR: 	IREMAINDER( signed char ); break;
+	case VIPS_FORMAT_UCHAR: IREMAINDER( unsigned char ); break;
+	case VIPS_FORMAT_SHORT: IREMAINDER( signed short ); break;
+	case VIPS_FORMAT_USHORT:IREMAINDER( unsigned short ); break;
+	case VIPS_FORMAT_INT: 	IREMAINDER( signed int ); break;
+	case VIPS_FORMAT_UINT: 	IREMAINDER( unsigned int ); break;
+	case VIPS_FORMAT_FLOAT: FREMAINDER( float ); break;
+	case VIPS_FORMAT_DOUBLE:FREMAINDER( double ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -170,14 +170,14 @@ vips_remainder_class_init( VipsRemainderClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "remainder";
-	object_class->description = 
+	object_class->description =
 		_( "remainder after integer division of two images" );
 	object_class->build = vips_remainder_build;
 
 	aclass->process_line = vips_remainder_buffer;
 
-	vips_arithmetic_set_format_table( aclass, 
-		vips_remainder_format_table ); 
+	vips_arithmetic_set_format_table( aclass,
+		vips_remainder_format_table );
 }
 
 static void
@@ -192,21 +192,21 @@ vips_remainder_init( VipsRemainder *remainder )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @left % @right (remainder after integer division) 
- * and writes the result to @out. The images may have any 
+ * This operation calculates @left % @right (remainder after integer division)
+ * and writes the result to @out. The images may have any
  * non-complex format. For float formats, vips_remainder() calculates @in1 -
  * @in2 * floor (@in1 / @in2).
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>), and that format is the
  * result type.
  *
@@ -230,7 +230,7 @@ vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 typedef VipsUnaryConst VipsRemainderConst;
 typedef VipsUnaryConstClass VipsRemainderConstClass;
 
-G_DEFINE_TYPE( VipsRemainderConst, 
+G_DEFINE_TYPE( VipsRemainderConst,
 	vips_remainder_const, VIPS_TYPE_UNARY_CONST );
 
 static int
@@ -281,7 +281,7 @@ vips_remainder_const_build( VipsObject *object )
 }
 
 static void
-vips_remainder_const_buffer( VipsArithmetic *arithmetic, 
+vips_remainder_const_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
@@ -290,19 +290,19 @@ vips_remainder_const_buffer( VipsArithmetic *arithmetic,
 
 	int i, x, b;
 
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	IREMAINDERCONST( signed char ); break; 
-        case VIPS_FORMAT_UCHAR: IREMAINDERCONST( unsigned char ); break; 
-        case VIPS_FORMAT_SHORT: IREMAINDERCONST( signed short ); break; 
-        case VIPS_FORMAT_USHORT:IREMAINDERCONST( unsigned short ); break; 
-        case VIPS_FORMAT_INT: 	IREMAINDERCONST( signed int ); break; 
-        case VIPS_FORMAT_UINT: 	IREMAINDERCONST( unsigned int ); break; 
-        case VIPS_FORMAT_FLOAT: FREMAINDERCONST( float ); break; 
-        case VIPS_FORMAT_DOUBLE:FREMAINDERCONST( double ); break;
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_CHAR: 	IREMAINDERCONST( signed char ); break;
+	case VIPS_FORMAT_UCHAR: IREMAINDERCONST( unsigned char ); break;
+	case VIPS_FORMAT_SHORT: IREMAINDERCONST( signed short ); break;
+	case VIPS_FORMAT_USHORT:IREMAINDERCONST( unsigned short ); break;
+	case VIPS_FORMAT_INT: 	IREMAINDERCONST( signed int ); break;
+	case VIPS_FORMAT_UINT: 	IREMAINDERCONST( unsigned int ); break;
+	case VIPS_FORMAT_FLOAT: FREMAINDERCONST( float ); break;
+	case VIPS_FORMAT_DOUBLE:FREMAINDERCONST( double ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 static void
@@ -316,8 +316,8 @@ vips_remainder_const_class_init( VipsRemainderConstClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "remainder_const";
-	object_class->description = 
-		_( "remainder after integer division of an image " 
+	object_class->description =
+		_( "remainder after integer division of an image "
 		"and a constant" );
 	object_class->build = vips_remainder_const_build;
 
@@ -332,17 +332,17 @@ vips_remainder_const_init( VipsRemainderConst *remainder_const )
 }
 
 static int
-vips_remainder_constv( VipsImage *in, VipsImage **out, 
+vips_remainder_constv( VipsImage *in, VipsImage **out,
 	const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
-	double *array; 
+	double *array;
 	int result;
 	int i;
 
-	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
+	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
 	array = (double *) area_c->data;
-	for( i = 0; i < n; i++ ) 
+	for( i = 0; i < n; i++ )
 		array[i] = c[i];
 
 	result = vips_call_split( "remainder_const", ap, in, out, area_c );
@@ -360,16 +360,16 @@ vips_remainder_constv( VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @in % @c (remainder after division by an 
- * array of constants) 
- * and writes the result to @out. 
- * The image may have any 
- * non-complex format. For float formats, vips_remainder_const() calculates 
+ * This operation calculates @in % @c (remainder after division by an
+ * array of constants)
+ * and writes the result to @out.
+ * The image may have any
+ * non-complex format. For float formats, vips_remainder_const() calculates
  * @in - @c * floor (@in / @c).
  *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
+ * If the array of constants has just one element, that constant is used for
+ * all image bands. If the array has more than one element and they have
+ * the same number of elements as there are bands in the image, then
  * one array element is used for each band. If the arrays have more than one
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
@@ -379,14 +379,14 @@ vips_remainder_constv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_remainder_const( VipsImage *in, VipsImage **out, 
+vips_remainder_const( VipsImage *in, VipsImage **out,
 	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_remainder_constv( in, out, c, n, ap ); 
+	result = vips_remainder_constv( in, out, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -396,19 +396,19 @@ vips_remainder_const( VipsImage *in, VipsImage **out,
  * vips_remainder_const1: (method)
  * @in: input image
  * @out: (out): output image
- * @c: constant 
+ * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @in % @c (remainder after division by a 
- * constant) 
- * and writes the result to @out. 
- * The image may have any 
- * non-complex format. For float formats, vips_remainder_const() calculates 
+ * This operation calculates @in % @c (remainder after division by a
+ * constant)
+ * and writes the result to @out.
+ * The image may have any
+ * non-complex format. For float formats, vips_remainder_const() calculates
  * @in - @c * floor (@in / @c).
  *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
+ * If the array of constants has just one element, that constant is used for
+ * all image bands. If the array has more than one element and they have
+ * the same number of elements as there are bands in the image, then
  * one array element is used for each band. If the arrays have more than one
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
@@ -424,7 +424,7 @@ vips_remainder_const1( VipsImage *in, VipsImage **out, double c, ... )
 	int result;
 
 	va_start( ap, c );
-	result = vips_remainder_constv( in, out, &c, 1, ap ); 
+	result = vips_remainder_constv( in, out, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

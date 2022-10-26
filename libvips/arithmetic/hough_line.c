@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,7 +49,7 @@
 typedef struct _VipsHoughLine {
 	VipsHough parent_instance;
 
-	/* Size of parameter space. 
+	/* Size of parameter space.
 	 */
 	int width;
 	int height;
@@ -73,12 +73,12 @@ vips_hough_line_build( VipsObject *object )
 	int i;
 
 	if( !(hough_line->sin = VIPS_ARRAY( object, 2 * width, double )) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Map width to 180 degrees, width * 2 to 360.
 	 */
-	for( i = 0; i < 2 * width; i++ )  
-		hough_line->sin[i] = sin( 2 * VIPS_PI * i / (2 * width) );  
+	for( i = 0; i < 2 * width; i++ )
+		hough_line->sin[i] = sin( 2 * VIPS_PI * i / (2 * width) );
 
 	if( VIPS_OBJECT_CLASS( vips_hough_line_parent_class )->build( object ) )
 		return( -1 );
@@ -97,7 +97,7 @@ vips_hough_line_init_accumulator( VipsHough *hough, VipsImage *accumulator )
 		VIPS_INTERPRETATION_MATRIX,
 		1.0, 1.0 );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 /* Cast votes for all lines passing through x, y.
@@ -105,8 +105,8 @@ vips_hough_line_init_accumulator( VipsHough *hough, VipsImage *accumulator )
 static void
 vips_hough_line_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 {
-	VipsHoughLine *hough_line = (VipsHoughLine *) hough; 
-	VipsStatistic *statistic = (VipsStatistic *) hough;  
+	VipsHoughLine *hough_line = (VipsHoughLine *) hough;
+	VipsStatistic *statistic = (VipsStatistic *) hough;
 	double xd = (double) x / statistic->ready->Xsize;
 	double yd = (double) y / statistic->ready->Ysize;
 	int width = hough_line->width;
@@ -143,17 +143,17 @@ vips_hough_line_class_init( VipsHoughClass *class )
 	hclass->init_accumulator = vips_hough_line_init_accumulator;
 	hclass->vote = vips_hough_line_vote;
 
-	VIPS_ARG_INT( class, "width", 110, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 110,
+		_( "Width" ),
 		_( "Horizontal size of parameter space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsHoughLine, width ),
 		1, 100000, 256 );
 
-	VIPS_ARG_INT( class, "height", 111, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 111,
+		_( "Height" ),
 		_( "Vertical size of parameter space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsHoughLine, height ),
 		1, 100000, 256 );
 
@@ -179,11 +179,11 @@ vips_hough_line_init( VipsHoughLine *hough_line )
  *
  * Find the line Hough transform for @in. @in must have one band. @out has one
  * band, with pixels being the number of votes for that line. The X dimension
- * of @out is the line angle in 0 - 180 degrees, the Y dimension is the 
- * distance of the closest part of that line to the origin in the top-left. 
+ * of @out is the line angle in 0 - 180 degrees, the Y dimension is the
+ * distance of the closest part of that line to the origin in the top-left.
  *
  * Use @width @height to set the size of the parameter space image (@out),
- * that is, how accurate the line determination should be. 
+ * that is, how accurate the line determination should be.
  *
  * See also: vips_hough_circle().
  *

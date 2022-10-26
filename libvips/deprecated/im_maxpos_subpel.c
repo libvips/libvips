@@ -51,8 +51,8 @@
 /**
  * im_maxpos_subpel:
  * @in: input image
- * @x: output position of maximum 
- * @y: output position of maximum 
+ * @x: output position of maximum
+ * @y: output position of maximum
  *
  * This function implements:
  *
@@ -102,22 +102,22 @@ int im_maxpos_subpel( IMAGE *in, double *x, double *y ){
     return -1;
 
 #define WRAP_TEST_RETURN()                                                \
-                                                                          \
+					                                  \
     /* wrap around if we have alignment -1 < d <= 0 */                    \
     /* (change it to: size - 1 <= d < size ) */                           \
-                                                                          \
+					                                  \
     if( ! xa && in-> Xsize - 1 == xb )                                    \
       xa= in-> Xsize;                                                     \
-                                                                          \
+					                                  \
     else if( ! xb && in-> Xsize - 1 == xa )                               \
       xb= in-> Xsize;                                                     \
-                                                                          \
+					                                  \
     if( ! ya && in-> Ysize - 1 == yb )                                    \
       ya= in-> Ysize;                                                     \
-                                                                          \
+					                                  \
     else if( ! yb && in-> Ysize - 1 == ya )                               \
       yb= in-> Ysize;                                                     \
-                                                                          \
+					                                  \
     if( 1 == abs( xb - xa ) && 1 == abs( yb - ya )){                      \
       *x= ((double)xa) + ((double)( xb - xa )) * ( vxb / ( vxa + vxb ));  \
       *y= ((double)ya) + ((double)( yb - ya )) * ( vyb / ( vya + vyb ));  \

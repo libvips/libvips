@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -178,7 +178,7 @@ cmulnorm_vec( im_object *argv )
 }
 
 /* Description of im_cmulnorm.
- */ 
+ */
 static im_function cmulnorm_desc = {
 	"im_cmulnorm", 			/* Name */
 	N_( "multiply two complex images, normalising output" ),
@@ -214,7 +214,7 @@ fav4_vec( im_object *argv )
 }
 
 /* Description of im_fav4.
- */ 
+ */
 static im_function fav4_desc = {
 	"im_fav4", 			/* Name */
 	N_( "average of 4 images" ),
@@ -248,7 +248,7 @@ gadd_vec( im_object *argv )
 }
 
 /* Description of im_gadd().
- */ 
+ */
 static im_function gadd_desc = {
 	"im_gadd", 			/* Name */
 	N_( "calculate a*in1 + b*in2 + c = outfile" ),
@@ -280,7 +280,7 @@ litecor_vec( im_object *argv )
 }
 
 /* Description of im_litecor().
- */ 
+ */
 static im_function litecor_desc = {
 	"im_litecor", 			/* Name */
 	N_( "calculate max(white)*factor*(in/white), if clip == 1" ),
@@ -327,7 +327,7 @@ affine_vec( im_object *argv )
 }
 
 /* Description of im_affine.
- */ 
+ */
 static im_function affine_desc = {
 	"im_affine", 			/* Name */
 	"affine transform",
@@ -362,7 +362,7 @@ similarity_vec( im_object *argv )
 }
 
 /* Description of im_similarity.
- */ 
+ */
 static im_function similarity_desc = {
 	"im_similarity", 		/* Name */
 	"similarity transformation",
@@ -406,7 +406,7 @@ similarity_area_vec( im_object *argv )
 }
 
 /* Description of im_similarity_area.
- */ 
+ */
 static im_function similarity_area_desc = {
 	"im_similarity_area", 		/* Name */
 	"output area xywh of similarity transformation",
@@ -421,22 +421,22 @@ icc_export_vec( im_object *argv )
 {
 	int intent = *((int *) argv[3]);
 
-	return( im_icc_export( argv[0], argv[1], 
+	return( im_icc_export( argv[0], argv[1],
 		argv[2], intent ) );
 }
 
 static im_arg_desc icc_export_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_STRING( "output_profile" ),
 	IM_INPUT_INT( "intent" )
 };
 
 /* Description of im_icc_export.
- */ 
+ */
 static im_function icc_export_desc = {
 	"im_icc_export", 		/* Name */
-	"convert a float LAB to an 8-bit device image with an ICC profile",	
+	"convert a float LAB to an 8-bit device image with an ICC profile",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	icc_export_vec, 		/* Dispatch function */
@@ -465,7 +465,7 @@ segment_vec( im_object *argv )
 }
 
 /* Description of im_segment().
- */ 
+ */
 static im_function segment_desc = {
 	"im_segment",		/* Name */
 	"number continuous regions in an image",
@@ -756,7 +756,7 @@ convsub_vec( im_object *argv )
 }
 
 /* Description of im_convsub.
- */ 
+ */
 static im_function convsub_desc = {
 	"im_convsub", 			/* Name */
 	"convolve uchar to uchar, sub-sampling by xskip, yskip",
@@ -827,7 +827,7 @@ line_vec( im_object *argv )
 }
 
 /* Description of im_line.
- */ 
+ */
 static im_function line_desc = {
 	"im_line", 		/* Name */
 	"draw line between points (x1,y1) and (x2,y2)",
@@ -858,7 +858,7 @@ resize_linear_vec( im_object *argv )
 }
 
 /* Description of im_resize_linear.
- */ 
+ */
 static im_function resize_linear_desc = {
 	"im_resize_linear",	 	/* Name */
 	"resize to X by Y pixels with linear interpolation",
@@ -887,7 +887,7 @@ insertplaceset_vec( im_object *argv )
 	im_intvec_object *yv = (im_intvec_object *) argv[4];
 
 	if( xv->n != yv->n ) {
-		im_error( "im_insertplaceset", "%s", 
+		im_error( "im_insertplaceset", "%s",
 			_( "vectors not same length" ) );
 		return( -1 );
 	}
@@ -899,7 +899,7 @@ insertplaceset_vec( im_object *argv )
 }
 
 /* Description of im_insertplaceset.
- */ 
+ */
 static im_function insertplaceset_desc = {
 	"im_insertplaceset", 		/* Name */
 	"insert sub into main at every position in x, y",
@@ -918,7 +918,7 @@ spcor_raw_vec( im_object *argv )
 }
 
 /* Description of im_spcor_raw.
- */ 
+ */
 static im_function spcor_raw_desc = {
 	"im_spcor_raw",	 		/* Name */
 	"normalised correlation of in2 within in1, no black padding",
@@ -937,7 +937,7 @@ gradcor_raw_vec( im_object *argv )
 }
 
 /* Description of im_gradcor_raw.
- */ 
+ */
 static im_function gradcor_raw_desc = {
 	"im_gradcor_raw",	 		/* Name */
 	"non-normalised correlation of gradient of in2 within in1, no padding",
@@ -956,7 +956,7 @@ fastcor_raw_vec( im_object *argv )
 }
 
 /* Description of im_fastcor_raw.
- */ 
+ */
 static im_function fastcor_raw_desc = {
 	"im_fastcor_raw", 		/* Name */
 	"fast correlate in2 within in1, no border",
@@ -977,7 +977,7 @@ convsepf_raw_vec( im_object *argv )
 }
 
 /* Description of im_convsepf_raw.
- */ 
+ */
 static im_function convsepf_raw_desc = {
 	"im_convsepf_raw", 		/* Name */
 	"seperable convolution, with DOUBLEMASK, no border",
@@ -998,7 +998,7 @@ convsep_raw_vec( im_object *argv )
 }
 
 /* Description of im_convsep_raw.
- */ 
+ */
 static im_function convsep_raw_desc = {
 	"im_convsep_raw", 			/* Name */
 	"seperable convolution, no border",
@@ -1019,7 +1019,7 @@ convf_raw_vec( im_object *argv )
 }
 
 /* Description of im_convf_raw.
- */ 
+ */
 static im_function convf_raw_desc = {
 	"im_convf_raw", 			/* Name */
 	"convolve, with DOUBLEMASK, no border",
@@ -1040,7 +1040,7 @@ conv_raw_vec( im_object *argv )
 }
 
 /* Description of im_conv_raw.
- */ 
+ */
 static im_function conv_raw_desc = {
 	"im_conv_raw", 			/* Name */
 	"convolve, no border",
@@ -1067,12 +1067,12 @@ contrast_surface_raw_vec( im_object *argv )
 	int half_win_size = *((int *) argv[2]);
 	int spacing = *((int *) argv[3]);
 
-	return( im_contrast_surface_raw( argv[0], argv[1], 
+	return( im_contrast_surface_raw( argv[0], argv[1],
 		half_win_size, spacing ) );
 }
 
 /* Description of im_contrast_surface_raw.
- */ 
+ */
 static im_function contrast_surface_raw_desc = {
 	"im_contrast_surface_raw",	/* Name */
 	"find high-contrast points in an image",
@@ -1098,7 +1098,7 @@ stdif_raw_vec( im_object *argv )
 }
 
 /* Description of im_stdif.
- */ 
+ */
 static im_function stdif_raw_desc = {
 	"im_stdif_raw", 	/* Name */
 	"statistical differencing, no border",
@@ -1120,7 +1120,7 @@ lhisteq_raw_vec( im_object *argv )
 }
 
 /* Description of im_lhisteq_raw.
- */ 
+ */
 static im_function lhisteq_raw_desc = {
 	"im_lhisteq_raw",	/* Name */
 	"local histogram equalisation, no border",
@@ -1143,7 +1143,7 @@ rank_raw_vec( im_object *argv )
 }
 
 /* Description of im_rank_raw.
- */ 
+ */
 static im_function rank_raw_desc = {
 	"im_rank_raw",	 		/* Name */
 	"rank filter nth element of xsize/ysize window, no border",
@@ -1164,7 +1164,7 @@ erode_raw_vec( im_object *argv )
 }
 
 /* Description of im_erode_raw.
- */ 
+ */
 static im_function erode_raw_desc = {
 	"im_erode_raw",	 		/* Name */
 	"erode image with mask",
@@ -1185,7 +1185,7 @@ dilate_raw_vec( im_object *argv )
 }
 
 /* Description of im_dilate_raw.
- */ 
+ */
 static im_function dilate_raw_desc = {
 	"im_dilate_raw",	 	/* Name */
 	"dilate image with mask",
@@ -1206,7 +1206,7 @@ convsepf_vec( im_object *argv )
 }
 
 /* Description of im_convsepf.
- */ 
+ */
 static im_function convsepf_desc = {
 	"im_convsepf", 			/* Name */
 	"seperable convolution, with DOUBLEMASK",
@@ -1227,7 +1227,7 @@ convf_vec( im_object *argv )
 }
 
 /* Description of im_convf.
- */ 
+ */
 static im_function convf_desc = {
 	"im_convf", 			/* Name */
 	"convolve, with DOUBLEMASK",
@@ -1261,7 +1261,7 @@ circle_vec( im_object *argv )
 }
 
 /* Description of im_circle.
- */ 
+ */
 static im_function circle_desc = {
 	"im_circle", 			/* Name */
 	"plot circle on image",
@@ -1302,7 +1302,7 @@ flood_blob_copy_vec( im_object *argv )
 }
 
 /* Description of im_flood_blob_copy().
- */ 
+ */
 static im_function flood_blob_copy_desc = {
 	"im_flood_blob_copy",	/* Name */
 	"flood with ink from start_x, start_y while pixel == start pixel",
@@ -1343,7 +1343,7 @@ flood_copy_vec( im_object *argv )
 }
 
 /* Description of im_flood_copy().
- */ 
+ */
 static im_function flood_copy_desc = {
 	"im_flood_copy",	/* Name */
 	"flood with ink from start_x, start_y while pixel == start pixel",
@@ -1376,12 +1376,12 @@ flood_other_copy_vec( im_object *argv )
 	int start_y = *((int *) argv[4]);
 	int serial = *((int *) argv[5]);
 
-	return( im_flood_other_copy( test, mark, out, 
+	return( im_flood_other_copy( test, mark, out,
 		start_x, start_y, serial ) );
 }
 
 /* Description of im_flood_other_copy().
- */ 
+ */
 static im_function flood_other_copy_desc = {
 	"im_flood_other_copy",	/* Name */
 	"flood mark with serial from start_x, start_y while pixel == start pixel",
@@ -1412,7 +1412,7 @@ insertplace_vec( im_object *argv )
 }
 
 /* Description of im_insertplace.
- */ 
+ */
 static im_function insertplace_desc = {
 	"im_insertplace", 		/* Name */
 	"draw image sub inside image main at position (x,y)",
@@ -1540,7 +1540,7 @@ andimage_vec( im_object *argv )
 }
 
 /* Description of im_andimage.
- */ 
+ */
 static im_function andimage_desc = {
 	"im_andimage", 			/* Name */
 	"bitwise and of two images",	/* Description */
@@ -1561,7 +1561,7 @@ andimageconst_vec( im_object *argv )
 }
 
 /* Description of im_andconst.
- */ 
+ */
 static im_function andimageconst_desc = {
 	"im_andimageconst", 		/* Name */
 	"bitwise and of an image with a constant",
@@ -1582,7 +1582,7 @@ andimage_vec_vec( im_object *argv )
 }
 
 /* Description of im_andimageconst.
- */ 
+ */
 static im_function andimage_vec_desc = {
 	"im_andimage_vec", 		/* Name */
 	"bitwise and of an image with a vector constant",
@@ -1601,7 +1601,7 @@ orimage_vec( im_object *argv )
 }
 
 /* Description of im_orimage.
- */ 
+ */
 static im_function orimage_desc = {
 	"im_orimage", 			/* Name */
 	"bitwise or of two images",	/* Description */
@@ -1622,7 +1622,7 @@ orimageconst_vec( im_object *argv )
 }
 
 /* Description of im_orimageconst.
- */ 
+ */
 static im_function orimageconst_desc = {
 	"im_orimageconst", 		/* Name */
 	"bitwise or of an image with a constant",
@@ -1643,7 +1643,7 @@ orimage_vec_vec( im_object *argv )
 }
 
 /* Description of im_orimage_vec.
- */ 
+ */
 static im_function orimage_vec_desc = {
 	"im_orimage_vec", 		/* Name */
 	"bitwise or of an image with a vector constant",
@@ -1662,7 +1662,7 @@ eorimage_vec( im_object *argv )
 }
 
 /* Description of im_eorimage.
- */ 
+ */
 static im_function eorimage_desc = {
 	"im_eorimage", 			/* Name */
 	"bitwise eor of two images",	/* Description */
@@ -1683,7 +1683,7 @@ eorimageconst_vec( im_object *argv )
 }
 
 /* Description of im_eorimageconst.
- */ 
+ */
 static im_function eorimageconst_desc = {
 	"im_eorimageconst", 		/* Name */
 	"bitwise eor of an image with a constant",
@@ -1704,7 +1704,7 @@ eorimage_vec_vec( im_object *argv )
 }
 
 /* Description of im_eorimage_vec.
- */ 
+ */
 static im_function eorimage_vec_desc = {
 	"im_eorimage_vec", 		/* Name */
 	"bitwise eor of an image with a vector constant",
@@ -1725,7 +1725,7 @@ shiftleft_vec( im_object *argv )
 }
 
 /* Description of im_shiftleft.
- */ 
+ */
 static im_function shiftleft_desc = {
 	"im_shiftleft", 		/* Name */
 	"shift image n bits to left",
@@ -1746,7 +1746,7 @@ shiftleft_vec_vec( im_object *argv )
 }
 
 /* Description of im_shiftleft_vec.
- */ 
+ */
 static im_function shiftleft_vec_desc = {
 	"im_shiftleft_vec", 		/* Name */
 	"shift image array bits to left",
@@ -1767,7 +1767,7 @@ shiftright_vec( im_object *argv )
 }
 
 /* Description of im_shiftright.
- */ 
+ */
 static im_function shiftright_desc = {
 	"im_shiftright", 		/* Name */
 	"shift integer image n bits to right",
@@ -1788,7 +1788,7 @@ shiftright_vec_vec( im_object *argv )
 }
 
 /* Description of im_shiftright_vec.
- */ 
+ */
 static im_function shiftright_vec_desc = {
 	"im_shiftright_vec", 		/* Name */
 	"shift image array bits to right",
@@ -1807,7 +1807,7 @@ equal_vec( im_object *argv )
 }
 
 /* Description of im_equal.
- */ 
+ */
 static im_function equal_desc = {
 	"im_equal", 			/* Name */
 	"two images equal in value",	/* Description */
@@ -1828,7 +1828,7 @@ equalconst_vec( im_object *argv )
 }
 
 /* Description of im_equalconst.
- */ 
+ */
 static im_function equalconst_desc = {
 	"im_equalconst", 		/* Name */
 	"image equals const",		/* Description */
@@ -1849,7 +1849,7 @@ equal_vec_vec( im_object *argv )
 }
 
 /* Description of im_equal_vec.
- */ 
+ */
 static im_function equal_vec_desc = {
 	"im_equal_vec", 		/* Name */
 	"image equals doublevec",		/* Description */
@@ -1868,7 +1868,7 @@ notequal_vec( im_object *argv )
 }
 
 /* Description of im_notequal.
- */ 
+ */
 static im_function notequal_desc = {
 	"im_notequal", 			/* Name */
 	"two images not equal in value",/* Description */
@@ -1889,7 +1889,7 @@ notequalconst_vec( im_object *argv )
 }
 
 /* Description of im_notequalconst.
- */ 
+ */
 static im_function notequalconst_desc = {
 	"im_notequalconst", 		/* Name */
 	"image does not equal const",	/* Description */
@@ -1910,7 +1910,7 @@ notequal_vec_vec( im_object *argv )
 }
 
 /* Description of im_notequal_vec.
- */ 
+ */
 static im_function notequal_vec_desc = {
 	"im_notequal_vec", 		/* Name */
 	"image does not equal doublevec",	/* Description */
@@ -1929,7 +1929,7 @@ less_vec( im_object *argv )
 }
 
 /* Description of im_less.
- */ 
+ */
 static im_function less_desc = {
 	"im_less", 			/* Name */
 	"in1 less than in2 in value",	/* Description */
@@ -1950,7 +1950,7 @@ lessconst_vec( im_object *argv )
 }
 
 /* Description of im_lessconst.
- */ 
+ */
 static im_function lessconst_desc = {
 	"im_lessconst", 		/* Name */
 	"in less than const",		/* Description */
@@ -1971,7 +1971,7 @@ less_vec_vec( im_object *argv )
 }
 
 /* Description of im_less_vec.
- */ 
+ */
 static im_function less_vec_desc = {
 	"im_less_vec", 			/* Name */
 	"in less than doublevec",		/* Description */
@@ -1990,7 +1990,7 @@ more_vec( im_object *argv )
 }
 
 /* Description of im_more.
- */ 
+ */
 static im_function more_desc = {
 	"im_more", 			/* Name */
 	"in1 more than in2 in value",	/* Description */
@@ -2011,7 +2011,7 @@ moreconst_vec( im_object *argv )
 }
 
 /* Description of im_moreconst.
- */ 
+ */
 static im_function moreconst_desc = {
 	"im_moreconst", 		/* Name */
 	"in more than const",		/* Description */
@@ -2032,7 +2032,7 @@ more_vec_vec( im_object *argv )
 }
 
 /* Description of im_more_vec.
- */ 
+ */
 static im_function more_vec_desc = {
 	"im_more_vec", 			/* Name */
 	"in more than doublevec",		/* Description */
@@ -2051,7 +2051,7 @@ moreeq_vec( im_object *argv )
 }
 
 /* Description of im_moreeq.
- */ 
+ */
 static im_function moreeq_desc = {
 	"im_moreeq", 			/* Name */
 	"in1 more than or equal to in2 in value",
@@ -2072,7 +2072,7 @@ moreeqconst_vec( im_object *argv )
 }
 
 /* Description of im_moreeqconst.
- */ 
+ */
 static im_function moreeqconst_desc = {
 	"im_moreeqconst", 		/* Name */
 	"in more than or equal to const",
@@ -2093,7 +2093,7 @@ moreeq_vec_vec( im_object *argv )
 }
 
 /* Description of im_moreeq_vec.
- */ 
+ */
 static im_function moreeq_vec_desc = {
 	"im_moreeq_vec", 		/* Name */
 	"in more than or equal to doublevec",
@@ -2112,7 +2112,7 @@ lesseq_vec( im_object *argv )
 }
 
 /* Description of im_lesseq.
- */ 
+ */
 static im_function lesseq_desc = {
 	"im_lesseq", 			/* Name */
 	"in1 less than or equal to in2 in value",
@@ -2133,7 +2133,7 @@ lesseqconst_vec( im_object *argv )
 }
 
 /* Description of im_lesseqconst.
- */ 
+ */
 static im_function lesseqconst_desc = {
 	"im_lesseqconst", 		/* Name */
 	"in less than or equal to const",
@@ -2154,7 +2154,7 @@ lesseq_vec_vec( im_object *argv )
 }
 
 /* Description of im_lesseq_vec.
- */ 
+ */
 static im_function lesseq_vec_desc = {
 	"im_lesseq_vec", 		/* Name */
 	"in less than or equal to doublevec",
@@ -2182,7 +2182,7 @@ blend_vec( im_object *argv )
 }
 
 /* Description of im_blend.
- */ 
+ */
 static im_function blend_desc = {
 	"im_blend", 			/* Name */
 	"use cond image to blend between images in1 and in2",
@@ -2201,7 +2201,7 @@ ifthenelse_vec( im_object *argv )
 }
 
 /* Description of im_ifthenelse.
- */ 
+ */
 static im_function ifthenelse_desc = {
 	"im_ifthenelse", 		/* Name */
 	"use cond image to choose pels from image in1 or in2",
@@ -2220,7 +2220,7 @@ argb2rgba_vec( im_object *argv )
 }
 
 /* Description of im_argb2rgba.
- */ 
+ */
 static im_function argb2rgba_desc = {
 	"im_argb2rgba", 		/* Name */
 	"convert pre-multipled argb to png-style rgba",	/* Description */
@@ -2272,7 +2272,7 @@ static im_function *deprecated_list[] = {
 	&convsepf_raw_desc,
 	&convsep_raw_desc,
 	&fastcor_raw_desc,
-        &gradcor_raw_desc,
+	&gradcor_raw_desc,
 	&spcor_raw_desc,
 	&lhisteq_raw_desc,
 	&stdif_raw_desc,

@@ -10,7 +10,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -102,13 +102,13 @@ DOUBLEMASK *im_log_dmask( const char *filename, double sigma, double min_ampl );
 VIPS_DEPRECATED
 INTMASK *im_gauss_imask( const char *filename, double sigma, double min_ampl );
 VIPS_DEPRECATED
-INTMASK *im_gauss_imask_sep( const char *filename, 
+INTMASK *im_gauss_imask_sep( const char *filename,
 	double sigma, double min_ampl );
 VIPS_DEPRECATED
-DOUBLEMASK *im_gauss_dmask( const char *filename, 
+DOUBLEMASK *im_gauss_dmask( const char *filename,
 	double sigma, double min_ampl );
 VIPS_DEPRECATED
-DOUBLEMASK *im_gauss_dmask_sep( const char *filename, 
+DOUBLEMASK *im_gauss_dmask_sep( const char *filename,
 	double sigma, double min_ampl );
 
 VIPS_DEPRECATED
@@ -137,7 +137,7 @@ DOUBLEMASK *im_rotate_dmask45( DOUBLEMASK *in, const char *filename );
 VIPS_DEPRECATED
 DOUBLEMASK *im_mattrn( DOUBLEMASK *in, const char *filename );
 VIPS_DEPRECATED
-DOUBLEMASK *im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, 
+DOUBLEMASK *im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom,
 	const char *filename );
 VIPS_DEPRECATED
 DOUBLEMASK *im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *filename );

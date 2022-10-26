@@ -47,10 +47,10 @@
  * @out: output image
  *
  * This operation uses im_phasecor_fft() to find an integer displacement to
- * align all image bands band 0. It is very slow and not very accurate. 
+ * align all image bands band 0. It is very slow and not very accurate.
  *
  * Use im_estpar() in preference: it's fast and accurate.
- * 
+ *
  * See also: im_global_balancef(), im_remosaic().
  *
  * Returns: 0 on success, -1 on error
@@ -70,12 +70,12 @@ int im_align_bands( IMAGE *in, IMAGE *out ){
     int i;
 
     if( ! bands || im_open_local_array( out, bands, in-> Bands, FUNCTION_NAME ": bands", "p" )
-        || im_open_local_array( out, wrapped_bands + 1, in-> Bands - 1, FUNCTION_NAME ": wrapped_bands", "p" ))
+	|| im_open_local_array( out, wrapped_bands + 1, in-> Bands - 1, FUNCTION_NAME ": wrapped_bands", "p" ))
       return -1;
 
     for( i= 0; i < in-> Bands; ++i )
       if( im_extract_band( in, bands[i], i ))
-        return -1;
+	return -1;
 
     wrapped_bands[ 0 ]= bands[0];
 
@@ -84,14 +84,14 @@ int im_align_bands( IMAGE *in, IMAGE *out ){
       double this_x, this_y, val;
 
       if( ! temp || im_phasecor_fft( bands[i-1], bands[i], temp )
-          || im_maxpos_avg( temp, & this_x, & this_y, & val ) || im_close( temp ))
-        return -1;
+	  || im_maxpos_avg( temp, & this_x, & this_y, & val ) || im_close( temp ))
+	return -1;
 
       x+= this_x;
       y+= this_y;
 
       if( im_wrap( bands[i], wrapped_bands[i], (int) x, (int) y ))
-        return -1;
+	return -1;
     }
     return im_gbandjoin( wrapped_bands, out, in-> Bands );
   }

@@ -14,7 +14,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -108,8 +108,8 @@ vips_phasecor_class_init( VipsPhasecorClass *class )
 	vobject_class->description = _( "calculate phase correlation" );
 	vobject_class->build = vips_phasecor_build;
 
-	VIPS_ARG_IMAGE( class, "in2", 0, 
-		_( "in2" ), 
+	VIPS_ARG_IMAGE( class, "in2", 0,
+		_( "in2" ),
 		_( "Second input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPhasecor, in2 ) );
@@ -131,7 +131,7 @@ vips_phasecor_init( VipsPhasecor *phasecor )
  * Convert the two input images to Fourier space, calculate phase-correlation,
  * back to real space.
  *
- * See also: vips_fwfft(), vips_cross_phase(), 
+ * See also: vips_fwfft(), vips_cross_phase(),
  *
  * Returns: 0 on success, -1 on error.
  */

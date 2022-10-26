@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -49,9 +49,9 @@
 
 #include "pmorphology.h"
 
-/** 
+/**
  * SECTION: morphology
- * @short_description: morphological operators, rank filters and related image 
+ * @short_description: morphological operators, rank filters and related image
  * analysis
  * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
  * @stability: Stable
@@ -68,10 +68,10 @@
  * (vips_rot45(), for example) and apply them repeatedly, you
  * can achieve very complicated effects: you can thin, prune, fill, open edges,
  * close gaps, and many others. For example, see `Fundamentals  of  Digital
- * Image Processing' by A.  Jain, pp 384-388, Prentice-Hall, 1989 for more 
+ * Image Processing' by A.  Jain, pp 384-388, Prentice-Hall, 1989 for more
  * ideas.
  *
- * Beware that VIPS reverses the usual image processing convention, by 
+ * Beware that VIPS reverses the usual image processing convention, by
  * assuming white objects (non-zero pixels) on a black background (zero
  * pixels).
  *
@@ -80,12 +80,12 @@
  * mask must have odd length sides --- the origin of the mask is taken to be
  * the centre value. For example, the mask:
  *
- *     VipsImage *mask = vips_image_new_matrixv( 3, 3, 
+ *     VipsImage *mask = vips_image_new_matrixv( 3, 3,
  *         128.0, 255.0, 128.0,
  *         255.0, 255.0, 255.0,
  *         128.0, 255.0, 128.0 );
  *
- * applied to an image with vips_morph() #VIPS_OPERATION_MORPHOLOGY_DILATE will 
+ * applied to an image with vips_morph() #VIPS_OPERATION_MORPHOLOGY_DILATE will
  * do a 4-connected dilation.
  *
  * Dilate sets pixels in the output if any part of the mask matches, whereas
@@ -99,7 +99,7 @@
  * create square, circular and ring masks of specific sizes.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsMorphology, vips_morphology, 
+G_DEFINE_ABSTRACT_TYPE( VipsMorphology, vips_morphology,
 	VIPS_TYPE_OPERATION );
 
 static void
@@ -117,8 +117,8 @@ vips_morphology_class_init( VipsMorphologyClass *class )
 	/* Inputs set by subclassess.
 	 */
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMorphology, in ) );
@@ -136,15 +136,15 @@ vips_morphology_init( VipsMorphology *morphology )
 void
 vips_morphology_operation_init( void )
 {
-	extern GType vips_morph_get_type( void ); 
-	extern GType vips_rank_get_type( void ); 
-	extern GType vips_countlines_get_type( void ); 
-	extern GType vips_labelregions_get_type( void ); 
-	extern GType vips_fill_nearest_get_type( void ); 
+	extern GType vips_morph_get_type( void );
+	extern GType vips_rank_get_type( void );
+	extern GType vips_countlines_get_type( void );
+	extern GType vips_labelregions_get_type( void );
+	extern GType vips_fill_nearest_get_type( void );
 
-	vips_morph_get_type(); 
-	vips_rank_get_type(); 
-	vips_countlines_get_type(); 
-	vips_labelregions_get_type(); 
-	vips_fill_nearest_get_type(); 
+	vips_morph_get_type();
+	vips_rank_get_type();
+	vips_countlines_get_type();
+	vips_labelregions_get_type();
+	vips_fill_nearest_get_type();
 }

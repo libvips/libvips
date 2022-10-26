@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -116,7 +116,7 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	const nsgif_info_t *info;
 
-	/* Delays between frames (in milliseconds). Array of length 
+	/* Delays between frames (in milliseconds). Array of length
 	 * @info->frame_count.
 	 */
 	int *delay;
@@ -142,7 +142,7 @@ typedef struct _VipsForeignLoadNsgif {
 
 typedef VipsForeignLoadClass VipsForeignLoadNsgifClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNsgif, vips_foreign_load_nsgif, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNsgif, vips_foreign_load_nsgif,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -209,8 +209,8 @@ print_frame( const nsgif_frame_info_t *frame_info )
 	printf( "  display = %d\n", frame_info->display );
 	printf( "  local_palette = %d\n", frame_info->local_palette );
 	printf( "  transparency = %d\n", frame_info->transparency );
-	printf( "  disposal = %d (%s)\n", 
-		frame_info->disposal, 
+	printf( "  disposal = %d (%s)\n",
+		frame_info->disposal,
 		nsgif_str_disposal( frame_info->disposal ) );
 	printf( "  delay = %d\n", frame_info->delay );
 	printf( "  rect.x0 = %u\n", frame_info->rect.x0 );
@@ -243,7 +243,7 @@ print_animation( nsgif_t *anim, const nsgif_info_t *info )
 #endif /*VERBOSE*/
 
 static int
-vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif, 
+vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	VipsImage *image )
 {
 	double array[3];
@@ -267,11 +267,11 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	if( gif->n > 1 )
 		vips_image_set_int( image,
 			VIPS_META_PAGE_HEIGHT, gif->info->height );
-	vips_image_set_int( image, VIPS_META_N_PAGES, 
+	vips_image_set_int( image, VIPS_META_N_PAGES,
 		gif->info->frame_count );
 	vips_image_set_int( image, "loop", gif->info->loop_max );
 
-	vips_image_set_array_int( image, "delay", 
+	vips_image_set_array_int( image, "delay",
 		gif->delay, gif->info->frame_count );
 
 
@@ -282,7 +282,7 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 	vips_image_set_array_double( image, "background", array, 3 );
 
-	VIPS_SETSTR( image->filename, 
+	VIPS_SETSTR( image->filename,
 		vips_connection_filename( VIPS_CONNECTION( gif->source ) ) );
 
 	/* DEPRECATED "gif-loop"
@@ -291,23 +291,23 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 * but we want to keep the old behavior untouched!
 	 */
 	vips_image_set_int( image,
-		"gif-loop", gif->info->loop_max == 0 ? 
+		"gif-loop", gif->info->loop_max == 0 ?
 			0 : gif->info->loop_max - 1 );
 
 	/* The deprecated gif-delay field is in centiseconds.
 	 */
-	vips_image_set_int( image, "gif-delay", gif->gif_delay ); 
+	vips_image_set_int( image, "gif-delay", gif->gif_delay );
 
 	/* If there are no local palettes, we can attach the global palette as
 	 * metadata.
 	 */
 	if( !gif->local_palette ) {
 		nsgif_global_palette( gif->anim, table, &entries );
-		vips_image_set_array_int( image, "gif-palette", 
+		vips_image_set_array_int( image, "gif-palette",
 			(const int *) table, entries );
 
 		colours = entries;
-	} 
+	}
 	else {
 		int i;
 
@@ -320,13 +320,13 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 		for( i = 0; i < gif->info->frame_count; i++ ) {
 			if( nsgif_local_palette( gif->anim, i, table,
-				&entries ) ) 
+				&entries ) )
 				colours = VIPS_MAX( colours, entries );
 		}
 	}
 
-	vips_image_set_int( image, "palette-bit-depth", 
-		ceil( log2( colours ) ) ); 
+	vips_image_set_int( image, "palette-bit-depth",
+		ceil( log2( colours ) ) );
 
 	return( 0 );
 }
@@ -355,7 +355,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	/* We map in the image, then minimise to close any underlying file
 	 * object. This won't unmap.
 	 */
-	if( !(data = vips_source_map( gif->source, &size )) ) 
+	if( !(data = vips_source_map( gif->source, &size )) )
 		return( -1 );
 	vips_source_minimise( gif->source );
 
@@ -367,7 +367,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 #endif /*VERBOSE*/
 	if( result != NSGIF_OK &&
 		load->fail_on >= VIPS_FAIL_ON_WARNING ) {
-		vips_foreign_load_nsgif_error( gif, result ); 
+		vips_foreign_load_nsgif_error( gif, result );
 		return( -1 );
 	}
 
@@ -382,9 +382,9 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		const nsgif_frame_info_t *frame_info;
 
 		if( (frame_info = nsgif_get_frame_info( gif->anim, i )) ) {
-			if( frame_info->transparency ) 
+			if( frame_info->transparency )
 				gif->has_transparency = TRUE;
-			if( frame_info->local_palette ) 
+			if( frame_info->local_palette )
 				gif->local_palette = TRUE;
 		}
 	}
@@ -402,7 +402,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	/* In ms, frame_delay in cs.
 	 */
 	VIPS_FREE( gif->delay );
-	if( !(gif->delay = VIPS_ARRAY( NULL, 
+	if( !(gif->delay = VIPS_ARRAY( NULL,
 		gif->info->frame_count, int )) )
 		return( -1 );
 	for( i = 0; i < gif->info->frame_count; i++ ) {
@@ -450,7 +450,7 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 		g_assert( page >= 0 && page < gif->info->frame_count );
 
 		if( gif->frame_number != page ) {
-			result = nsgif_frame_decode( gif->anim, 
+			result = nsgif_frame_decode( gif->anim,
 				page, &gif->bitmap );
 			VIPS_DEBUG_MSG( "  nsgif_frame_decode(%d) = %d\n",
 				page, result );
@@ -488,19 +488,19 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 }
 
 int
-vips_foreign_load_nsgif_tile_height( VipsForeignLoadNsgif *gif ) 
+vips_foreign_load_nsgif_tile_height( VipsForeignLoadNsgif *gif )
 {
 	int height = gif->info->height;
 
 	int i;
 
 	/* First, check the perfect size.
-         */
+	 */
 	if( height % 16 == 0 )
 		return( 16 );
 
 	/* Next, check larger and smaller sizes.
-         */
+	 */
 	for( i = 1; i < 16; i++ ) {
 		if( height % (16 + i) == 0 )
 			return( 16 + i );
@@ -558,7 +558,7 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 	 */
 	foreign_class->priority = 50;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_nsgif_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_nsgif_get_flags;
 	load_class->header = vips_foreign_load_nsgif_header;
@@ -600,16 +600,16 @@ vips_foreign_load_nsgif_bitmap_create( int width, int height )
 static unsigned char *
 vips_foreign_load_nsgif_bitmap_get_buffer( void *bitmap )
 {
-        g_assert( bitmap );
+	g_assert( bitmap );
 
-        return( bitmap );
+	return( bitmap );
 }
 
-static void 
+static void
 vips_foreign_load_nsgif_bitmap_destroy( void *bitmap )
 {
-        g_assert( bitmap );
-        g_free( bitmap );
+	g_assert( bitmap );
+	g_free( bitmap );
 }
 
 static nsgif_bitmap_cb_vt vips_foreign_load_nsgif_bitmap_callbacks = {
@@ -642,13 +642,13 @@ typedef struct _VipsForeignLoadNsgifFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadNsgifFile;
 
 typedef VipsForeignLoadNsgifClass VipsForeignLoadNsgifFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNsgifFile, vips_foreign_load_nsgif_file, 
+G_DEFINE_TYPE( VipsForeignLoadNsgifFile, vips_foreign_load_nsgif_file,
 	vips_foreign_load_nsgif_get_type() );
 
 static int
@@ -689,7 +689,7 @@ vips_foreign_load_nsgif_file_is_a( const char *filename )
 }
 
 static void
-vips_foreign_load_nsgif_file_class_init( 
+vips_foreign_load_nsgif_file_class_init(
 	VipsForeignLoadNsgifFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -708,10 +708,10 @@ vips_foreign_load_nsgif_file_class_init(
 
 	load_class->is_a = vips_foreign_load_nsgif_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNsgifFile, filename ),
 		NULL );
 
@@ -733,19 +733,19 @@ typedef struct _VipsForeignLoadNsgifBuffer {
 
 typedef VipsForeignLoadNsgifClass VipsForeignLoadNsgifBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNsgifBuffer, vips_foreign_load_nsgif_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadNsgifBuffer, vips_foreign_load_nsgif_buffer,
 	vips_foreign_load_nsgif_get_type() );
 
 static int
 vips_foreign_load_nsgif_buffer_build( VipsObject *object )
 {
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) object;
-	VipsForeignLoadNsgifBuffer *buffer = 
+	VipsForeignLoadNsgifBuffer *buffer =
 		(VipsForeignLoadNsgifBuffer *) object;
 
 	if( buffer->blob &&
-		!(gif->source = vips_source_new_from_memory( 
-			buffer->blob->data, 
+		!(gif->source = vips_source_new_from_memory(
+			buffer->blob->data,
 			buffer->blob->length )) )
 		return( -1 );
 
@@ -771,7 +771,7 @@ vips_foreign_load_nsgif_buffer_is_a_buffer( const void *buf, size_t len )
 }
 
 static void
-vips_foreign_load_nsgif_buffer_class_init( 
+vips_foreign_load_nsgif_buffer_class_init(
 	VipsForeignLoadNsgifBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -787,10 +787,10 @@ vips_foreign_load_nsgif_buffer_class_init(
 
 	load_class->is_a_buffer = vips_foreign_load_nsgif_buffer_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNsgifBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
@@ -812,14 +812,14 @@ typedef struct _VipsForeignLoadNsgifSource {
 
 typedef VipsForeignLoadClass VipsForeignLoadNsgifSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNsgifSource, vips_foreign_load_nsgif_source, 
+G_DEFINE_TYPE( VipsForeignLoadNsgifSource, vips_foreign_load_nsgif_source,
 	vips_foreign_load_nsgif_get_type() );
 
 static int
 vips_foreign_load_nsgif_source_build( VipsObject *object )
 {
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) object;
-	VipsForeignLoadNsgifSource *source = 
+	VipsForeignLoadNsgifSource *source =
 		(VipsForeignLoadNsgifSource *) object;
 
 	if( source->source ) {
@@ -835,7 +835,7 @@ vips_foreign_load_nsgif_source_build( VipsObject *object )
 }
 
 static void
-vips_foreign_load_nsgif_source_class_init( 
+vips_foreign_load_nsgif_source_class_init(
 	VipsForeignLoadNsgifSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -857,7 +857,7 @@ vips_foreign_load_nsgif_source_class_init(
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadNsgifSource, source ),
 		VIPS_TYPE_SOURCE );
 

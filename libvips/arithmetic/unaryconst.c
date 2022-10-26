@@ -17,7 +17,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -70,9 +70,9 @@ vips_unary_const_build( VipsObject *object )
 		uconst->n = VIPS_MAX( uconst->n, unary->in->Bands );
 	arithmetic->base_bands = uconst->n;
 
-	if( unary->in && 
+	if( unary->in &&
 		uconst->c ) {
-		if( vips_check_vector( class->nickname, 
+		if( vips_check_vector( class->nickname,
 			uconst->c->n, unary->in ) )
 		return( -1 );
 	}
@@ -88,7 +88,7 @@ vips_unary_const_build( VipsObject *object )
 	 * imaginary part to 0.
 	 */
 	if( uconst->c ) {
-		gboolean is_complex = 
+		gboolean is_complex =
 			vips_band_format_iscomplex( unary->in->BandFmt );
 		int step = is_complex ? 2 : 1;
 		int n = step * uconst->n;
@@ -105,12 +105,12 @@ vips_unary_const_build( VipsObject *object )
 		memset( uconst->c_double, 0, n * sizeof( double ) );
 
 		for( i = 0; i < n; i += step )
-			uconst->c_double[i] = 
+			uconst->c_double[i] =
 				c[VIPS_MIN( i / step, uconst->c->n - 1)];
 
 		for( i = 0; i < n; i += step )
 			uconst->c_int[i] = uconst->c_double[i];
-		
+
 		uconst->is_int = TRUE;
 		for( i = 0; i < n; i += step )
 			if( uconst->c_int[i] != uconst->c_double[i] ) {
@@ -139,8 +139,8 @@ vips_unary_const_class_init( VipsUnaryConstClass *class )
 	object_class->description = _( "unary operations with a constant" );
 	object_class->build = vips_unary_const_build;
 
-	VIPS_ARG_BOXED( class, "c", 201, 
-		_( "c" ), 
+	VIPS_ARG_BOXED( class, "c", 201,
+		_( "c" ),
 		_( "Array of constants" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsUnaryConst, c ),

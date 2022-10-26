@@ -1,4 +1,4 @@
-/* Turn XYZ to scRGB colourspace. 
+/* Turn XYZ to scRGB colourspace.
  *
  * 11/12/12
  * 	- from Yxy2XYZ.c
@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,14 +56,14 @@ G_DEFINE_TYPE( VipsXYZ2scRGB, vips_XYZ2scRGB, VIPS_TYPE_COLOUR_TRANSFORM );
 
 	 * We've converted to sRGB without a profile. We must remove any ICC
 	 * profile left over from import or there will be a mismatch between
-	 * pixel values and the attached profile. 
+	 * pixel values and the attached profile.
 
-   But this isn't right, we often call things sRGB that we know are not true 
+   But this isn't right, we often call things sRGB that we know are not true
    sRGB, for example:
 
    	vips sharpen k2.jpg x.jpg
 
-   sharpen will treat k2 as being in sRGB space even if that image has a 
+   sharpen will treat k2 as being in sRGB space even if that image has a
    profile. If we drop the profile, x.jpg is suddenly untagged.
 
  */

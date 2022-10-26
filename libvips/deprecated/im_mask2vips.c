@@ -12,7 +12,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -66,7 +66,7 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 
 	/* Check the mask.
 	 */
-	if( !in || 
+	if( !in ||
 		!in->coeff ) {
 		im_error( "im_mask2vips", "%s", _( "bad input mask" ) );
 		return( -1 );
@@ -74,11 +74,11 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 
 	/* Make the output image.
 	 */
-	im_initdesc( out, in->xsize, in->ysize, 1, 
-		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE, 
-		IM_CODING_NONE, 
-		IM_TYPE_B_W, 
-		1.0, 1.0, 
+	im_initdesc( out, in->xsize, in->ysize, 1,
+		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
+		IM_CODING_NONE,
+		IM_TYPE_B_W,
+		1.0, 1.0,
 		0, 0 );
 	if( im_setupout( out ) )
 		return( -1 );
@@ -100,8 +100,8 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 			return( -1 );
 	}
 
-	vips_image_set_double( out, "scale", in->scale ); 
-	vips_image_set_double( out, "offset", in->offset ); 
+	vips_image_set_double( out, "scale", in->scale );
+	vips_image_set_double( out, "offset", in->offset );
 
 	return( 0 );
 }
@@ -117,6 +117,6 @@ im_imask2vips( INTMASK *in, IMAGE *out )
 	result = im_mask2vips( d, out );
 	im_free_dmask( d );
 
-	return( result ); 
+	return( result );
 }
 

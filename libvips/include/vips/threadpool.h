@@ -12,7 +12,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -80,9 +80,9 @@ typedef struct _VipsThreadState {
 	VipsImage *im;
 
 	/* This region is created and destroyed by the threadpool for the
-	 * use of the worker. 
+	 * use of the worker.
 	 */
-	VipsRegion *reg;		
+	VipsRegion *reg;
 
 	/* Neither used nor set, do what you like with them.
 	 */
@@ -95,7 +95,7 @@ typedef struct _VipsThreadState {
 
 	/* The client data passed to the enclosing vips_threadpool_run().
 	 */
-        void *a;
+	void *a;
 
 	/* Set in allocate to stall this thread for a moment. Handy for
 	 * debugging race conditions.
@@ -126,14 +126,14 @@ VipsThreadState *vips_thread_state_new( VipsImage *im, void *a );
 typedef VipsThreadState *(*VipsThreadStartFn)( VipsImage *im, void *a );
 
 /* A work allocate function. This is run single-threaded by a worker to
- * set up a new work unit. 
+ * set up a new work unit.
  * Return non-zero for errors. Set *stop for "no more work to do"
  */
 typedef int (*VipsThreadpoolAllocateFn)( VipsThreadState *state,
 	void *a, gboolean *stop );
 
 /* A work function. This does a unit of work (eg. processing a tile or
- * whatever). Return non-zero for errors. 
+ * whatever). Return non-zero for errors.
  */
 typedef int (*VipsThreadpoolWorkFn)( VipsThreadState *state, void *a );
 
@@ -143,14 +143,14 @@ typedef int (*VipsThreadpoolWorkFn)( VipsThreadState *state, void *a );
 typedef int (*VipsThreadpoolProgressFn)( void *a );
 
 VIPS_API
-int vips_threadpool_run( VipsImage *im, 
-	VipsThreadStartFn start, 
-	VipsThreadpoolAllocateFn allocate, 
+int vips_threadpool_run( VipsImage *im,
+	VipsThreadStartFn start,
+	VipsThreadpoolAllocateFn allocate,
 	VipsThreadpoolWorkFn work,
 	VipsThreadpoolProgressFn progress,
 	void *a );
 VIPS_API
-void vips_get_tile_size( VipsImage *im, 
+void vips_get_tile_size( VipsImage *im,
 	int *tile_width, int *tile_height, int *n_lines );
 
 #ifdef __cplusplus

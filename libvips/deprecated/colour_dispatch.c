@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ sRGB2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_sRGB2XYZ.
- */ 
+ */
 static im_function sRGB2XYZ_desc = {
 	"im_sRGB2XYZ", 			/* Name */
 	"convert sRGB to XYZ",		/* Description */
@@ -83,7 +83,7 @@ XYZ2sRGB_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2sRGB.
- */ 
+ */
 static im_function XYZ2sRGB_desc = {
 	"im_XYZ2sRGB", 			/* Name */
 	"convert XYZ to sRGB",		/* Description */
@@ -102,7 +102,7 @@ LCh2Lab_vec( im_object *argv )
 }
 
 /* Description of im_LCh2Lab.
- */ 
+ */
 static im_function LCh2Lab_desc = {
 	"im_LCh2Lab", 			/* Name */
 	"convert LCh to Lab",		/* Description */
@@ -121,7 +121,7 @@ LabQ2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_LabQ2XYZ.
- */ 
+ */
 static im_function LabQ2XYZ_desc = {
 	"im_LabQ2XYZ", 			/* Name */
 	"convert LabQ to XYZ",		/* Description */
@@ -140,7 +140,7 @@ LCh2UCS_vec( im_object *argv )
 }
 
 /* Description of im_LCh2UCS.
- */ 
+ */
 static im_function LCh2UCS_desc = {
 	"im_LCh2UCS", 			/* Name */
 	"convert LCh to UCS",		/* Description */
@@ -159,7 +159,7 @@ Lab2LCh_vec( im_object *argv )
 }
 
 /* Description of im_Lab2LCh.
- */ 
+ */
 static im_function Lab2LCh_desc = {
 	"im_Lab2LCh", 			/* Name */
 	"convert Lab to LCh",		/* Description */
@@ -178,7 +178,7 @@ Lab2LabQ_vec( im_object *argv )
 }
 
 /* Description of im_Lab2LabQ.
- */ 
+ */
 static im_function Lab2LabQ_desc = {
 	"im_Lab2LabQ", 			/* Name */
 	"convert Lab to LabQ",		/* Description */
@@ -197,7 +197,7 @@ Lab2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_Lab2XYZ.
- */ 
+ */
 static im_function Lab2XYZ_desc = {
 	"im_Lab2XYZ", 			/* Name */
 	"convert D65 Lab to XYZ",	/* Description */
@@ -218,11 +218,11 @@ icc_present_vec( im_object *argv )
 }
 
 static im_arg_desc icc_present_args[] = {
-        IM_OUTPUT_INT( "present" )
+	IM_OUTPUT_INT( "present" )
 };
 
 /* Description of im_icc_present.
- */ 
+ */
 static im_function icc_present_desc = {
 	"im_icc_present", 		/* Name */
 	"test for presence of ICC library", /* Description */
@@ -237,20 +237,20 @@ icc_transform_vec( im_object *argv )
 {
 	int intent = *((int *) argv[4]);
 
-	return( im_icc_transform( argv[0], argv[1], 
+	return( im_icc_transform( argv[0], argv[1],
 		argv[2], argv[3], intent ) );
 }
 
 static im_arg_desc icc_transform_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_STRING( "input_profile" ),
 	IM_INPUT_STRING( "output_profile" ),
 	IM_INPUT_INT( "intent" )
 };
 
 /* Description of im_icc_transform.
- */ 
+ */
 static im_function icc_transform_desc = {
 	"im_icc_transform", 		/* Name */
 	"convert between two device images with a pair of ICC profiles",
@@ -270,16 +270,16 @@ icc_import_embedded_vec( im_object *argv )
 }
 
 static im_arg_desc icc_import_embedded_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_INT( "intent" )
 };
 
 /* Description of im_icc_import_embedded.
- */ 
+ */
 static im_function icc_import_embedded_desc = {
 	"im_icc_import_embedded", 	/* Name */
-	"convert a device image to float LAB using the embedded profile",	
+	"convert a device image to float LAB using the embedded profile",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	icc_import_embedded_vec, 	/* Dispatch function */
@@ -292,22 +292,22 @@ icc_import_vec( im_object *argv )
 {
 	int intent = *((int *) argv[3]);
 
-	return( im_icc_import( argv[0], argv[1], 
+	return( im_icc_import( argv[0], argv[1],
 		argv[2], intent ) );
 }
 
 static im_arg_desc icc_import_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_STRING( "input_profile" ),
 	IM_INPUT_INT( "intent" )
 };
 
 /* Description of im_icc_import.
- */ 
+ */
 static im_function icc_import_desc = {
 	"im_icc_import", 		/* Name */
-	"convert a device image to float LAB with an ICC profile",	
+	"convert a device image to float LAB with an ICC profile",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	icc_import_vec, 		/* Dispatch function */
@@ -321,23 +321,23 @@ icc_export_depth_vec( im_object *argv )
 	int intent = *((int *) argv[4]);
 	int depth = *((int *) argv[2]);
 
-	return( im_icc_export_depth( argv[0], argv[1], 
+	return( im_icc_export_depth( argv[0], argv[1],
 		depth, argv[3], intent ) );
 }
 
 static im_arg_desc icc_export_depth_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_INT( "depth" ),
 	IM_INPUT_STRING( "output_profile" ),
 	IM_INPUT_INT( "intent" )
 };
 
 /* Description of im_icc_export_depth.
- */ 
+ */
 static im_function icc_export_depth_desc = {
 	"im_icc_export_depth", 		/* Name */
-	"convert a float LAB to device space with an ICC profile",	
+	"convert a float LAB to device space with an ICC profile",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	icc_export_depth_vec, 		/* Dispatch function */
@@ -352,16 +352,16 @@ icc_ac2rc_vec( im_object *argv )
 }
 
 static im_arg_desc icc_ac2rc_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_STRING( "profile" )
 };
 
 /* Description of im_icc_ac2rc.
- */ 
+ */
 static im_function icc_ac2rc_desc = {
 	"im_icc_ac2rc", 		/* Name */
-	"convert LAB from AC to RC using an ICC profile",	
+	"convert LAB from AC to RC using an ICC profile",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	icc_ac2rc_vec, 			/* Dispatch function */
@@ -380,15 +380,15 @@ Lab2XYZ_temp_vec( im_object *argv )
 }
 
 static im_arg_desc temp_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_DOUBLE( "X0" ),
 	IM_INPUT_DOUBLE( "Y0" ),
 	IM_INPUT_DOUBLE( "Z0" )
 };
 
 /* Description of im_Lab2XYZ_temp.
- */ 
+ */
 static im_function Lab2XYZ_temp_desc = {
 	"im_Lab2XYZ_temp", 		/* Name */
 	"convert Lab to XYZ, with a specified colour temperature",
@@ -408,7 +408,7 @@ Lab2UCS_vec( im_object *argv )
 }
 
 /* Description of im_Lab2UCS.
- */ 
+ */
 static im_function Lab2UCS_desc = {
 	"im_Lab2UCS", 			/* Name */
 	"convert Lab to UCS",		/* Description */
@@ -427,7 +427,7 @@ LabQ2Lab_vec( im_object *argv )
 }
 
 /* Description of im_LabQ2Lab.
- */ 
+ */
 static im_function LabQ2Lab_desc = {
 	"im_LabQ2Lab", 			/* Name */
 	"convert LabQ to Lab",		/* Description */
@@ -446,7 +446,7 @@ rad2float_vec( im_object *argv )
 }
 
 /* Description of im_rad2float.
- */ 
+ */
 static im_function rad2float_desc = {
 	"im_rad2float", 		/* Name */
 	"convert Radiance packed to float",	/* Description */
@@ -465,7 +465,7 @@ float2rad_vec( im_object *argv )
 }
 
 /* Description of im_float2rad
- */ 
+ */
 static im_function float2rad_desc = {
 	"im_float2rad", 		/* Name */
 	"convert float to Radiance packed",	/* Description */
@@ -484,7 +484,7 @@ LabQ2LabS_vec( im_object *argv )
 }
 
 /* Description of im_LabQ2LabS.
- */ 
+ */
 static im_function LabQ2LabS_desc = {
 	"im_LabQ2LabS", 		/* Name */
 	"convert LabQ to LabS",		/* Description */
@@ -503,7 +503,7 @@ Lab2LabS_vec( im_object *argv )
 }
 
 /* Description of im_Lab2LabS.
- */ 
+ */
 static im_function Lab2LabS_desc = {
 	"im_Lab2LabS", 			/* Name */
 	"convert Lab to LabS",		/* Description */
@@ -522,7 +522,7 @@ LabS2Lab_vec( im_object *argv )
 }
 
 /* Description of im_LabS2Lab.
- */ 
+ */
 static im_function LabS2Lab_desc = {
 	"im_LabS2Lab", 			/* Name */
 	"convert LabS to Lab",		/* Description */
@@ -541,7 +541,7 @@ LabS2LabQ_vec( im_object *argv )
 }
 
 /* Description of im_LabS2LabQ.
- */ 
+ */
 static im_function LabS2LabQ_desc = {
 	"im_LabS2LabQ", 		/* Name */
 	"convert LabS to LabQ",		/* Description */
@@ -560,7 +560,7 @@ UCS2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_UCS2XYZ.
- */ 
+ */
 static im_function UCS2XYZ_desc = {
 	"im_UCS2XYZ", 			/* Name */
 	"convert UCS to XYZ",		/* Description */
@@ -579,7 +579,7 @@ UCS2LCh_vec( im_object *argv )
 }
 
 /* Description of im_UCS2LCh.
- */ 
+ */
 static im_function UCS2LCh_desc = {
 	"im_UCS2LCh", 			/* Name */
 	"convert UCS to LCh",		/* Description */
@@ -598,7 +598,7 @@ UCS2Lab_vec( im_object *argv )
 }
 
 /* Description of im_UCS2Lab.
- */ 
+ */
 static im_function UCS2Lab_desc = {
 	"im_UCS2Lab", 			/* Name */
 	"convert UCS to Lab",		/* Description */
@@ -617,7 +617,7 @@ Yxy2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_Yxy2XYZ.
- */ 
+ */
 static im_function Yxy2XYZ_desc = {
 	"im_Yxy2XYZ", 			/* Name */
 	"convert Yxy to XYZ",		/* Description */
@@ -636,7 +636,7 @@ XYZ2Yxy_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2Yxy.
- */ 
+ */
 static im_function XYZ2Yxy_desc = {
 	"im_XYZ2Yxy", 			/* Name */
 	"convert XYZ to Yxy",		/* Description */
@@ -655,7 +655,7 @@ XYZ2Lab_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2Lab.
- */ 
+ */
 static im_function XYZ2Lab_desc = {
 	"im_XYZ2Lab", 			/* Name */
 	"convert D65 XYZ to Lab",	/* Description */
@@ -676,10 +676,10 @@ XYZ2Lab_temp_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2Lab_temp.
- */ 
+ */
 static im_function XYZ2Lab_temp_desc = {
 	"im_XYZ2Lab_temp", 		/* Name */
-	"convert XYZ to Lab, with a specified colour temperature",	
+	"convert XYZ to Lab, with a specified colour temperature",
 					/* Description */
 	IM_FN_PIO,			/* Flags */
 	XYZ2Lab_temp_vec, 		/* Dispatch function */
@@ -696,7 +696,7 @@ XYZ2UCS_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2UCS.
- */ 
+ */
 static im_function XYZ2UCS_desc = {
 	"im_XYZ2UCS", 			/* Name */
 	"convert XYZ to UCS",		/* Description */
@@ -723,7 +723,7 @@ XYZ2disp_vec( im_object *argv )
 }
 
 /* Description of im_XYZ2disp.
- */ 
+ */
 static im_function XYZ2disp_desc = {
 	"im_XYZ2disp", 			/* Name */
 	"convert XYZ to displayble",	/* Description */
@@ -742,7 +742,7 @@ Lab2disp_vec( im_object *argv )
 }
 
 /* Description of im_Lab2disp.
- */ 
+ */
 static im_function Lab2disp_desc = {
 	"im_Lab2disp", 			/* Name */
 	"convert Lab to displayable",	/* Description */
@@ -761,7 +761,7 @@ LabQ2disp_vec( im_object *argv )
 }
 
 /* Description of im_LabQ2disp.
- */ 
+ */
 static im_function LabQ2disp_desc = {
 	"im_LabQ2disp", 		/* Name */
 	"convert LabQ to displayable",	/* Description */
@@ -780,7 +780,7 @@ dE00_fromLab_vec( im_object *argv )
 }
 
 /* Description of im_dE00_fromLab.
- */ 
+ */
 static im_function dE00_fromLab_desc = {
 	"im_dE00_fromLab", 		/* Name */
 	"calculate delta-E CIE2000 for two Lab images",
@@ -799,7 +799,7 @@ dECMC_fromLab_vec( im_object *argv )
 }
 
 /* Description of im_dECMC_fromLab.
- */ 
+ */
 static im_function dECMC_fromLab_desc = {
 	"im_dECMC_fromLab", 		/* Name */
 	"calculate delta-E CMC(1:1) for two Lab images",
@@ -818,7 +818,7 @@ dE_fromXYZ_vec( im_object *argv )
 }
 
 /* Description of im_dE_fromXYZ.
- */ 
+ */
 static im_function dE_fromXYZ_desc = {
 	"im_dE_fromXYZ", 		/* Name */
 	"calculate delta-E for two XYZ images",
@@ -837,7 +837,7 @@ dE_fromLab_vec( im_object *argv )
 }
 
 /* Description of im_dE_fromLab.
- */ 
+ */
 static im_function dE_fromLab_desc = {
 	"im_dE_fromLab", 		/* Name */
 	"calculate delta-E for two Lab images",
@@ -865,7 +865,7 @@ dE_fromdisp_vec( im_object *argv )
 }
 
 /* Description of im_dE_fromdisp.
- */ 
+ */
 static im_function dE_fromdisp_desc = {
 	"im_dE_fromdisp", 		/* Name */
 	"calculate delta-E for two displayable images",
@@ -884,7 +884,7 @@ dECMC_fromdisp_vec( im_object *argv )
 }
 
 /* Description of im_dECMC_fromdisp.
- */ 
+ */
 static im_function dECMC_fromdisp_desc = {
 	"im_dECMC_fromdisp", 		/* Name */
 	"calculate delta-E CMC(1:1) for two displayable images",
@@ -903,7 +903,7 @@ disp2XYZ_vec( im_object *argv )
 }
 
 /* Description of im_disp2XYZ.
- */ 
+ */
 static im_function disp2XYZ_desc = {
 	"im_disp2XYZ", 			/* Name */
 	"convert displayable to XYZ",	/* Description */
@@ -922,7 +922,7 @@ disp2Lab_vec( im_object *argv )
 }
 
 /* Description of im_disp2Lab.
- */ 
+ */
 static im_function disp2Lab_desc = {
 	"im_disp2Lab", 			/* Name */
 	"convert displayable to Lab",	/* Description */
@@ -933,8 +933,8 @@ static im_function disp2Lab_desc = {
 };
 
 static im_arg_desc morph_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
 	IM_INPUT_DMASK( "greyscale" ),
 	IM_INPUT_DOUBLE( "L_offset" ),
 	IM_INPUT_DOUBLE( "L_scale" ),
@@ -951,17 +951,17 @@ morph_vec( im_object *argv )
 	double a_scale = *((double *) argv[5]);
 	double b_scale = *((double *) argv[6]);
 
-        return( im_lab_morph( argv[0], argv[1], 
+	return( im_lab_morph( argv[0], argv[1],
 		mo->mask, L_offset, L_scale, a_scale, b_scale ) );
 }
 
 static im_function morph_desc = {
-        "im_lab_morph",                	/* Name */
-        "morph colourspace of a LAB image",
-        IM_FN_PIO | IM_FN_PTOP,  	/* Flags */
-        morph_vec,            		/* Dispatch function */
-        IM_NUMBER( morph_args ),      	/* Size of arg list */
-        morph_args                 	/* Arg list */
+	"im_lab_morph",                	/* Name */
+	"morph colourspace of a LAB image",
+	IM_FN_PIO | IM_FN_PTOP,  	/* Flags */
+	morph_vec,            		/* Dispatch function */
+	IM_NUMBER( morph_args ),      	/* Size of arg list */
+	morph_args                 	/* Arg list */
 };
 
 /* Package up all these functions.

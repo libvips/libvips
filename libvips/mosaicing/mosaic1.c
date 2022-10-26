@@ -22,7 +22,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -69,10 +69,10 @@
 #define OLD
  */
 
-/* Like vips_similarity(), but return the transform we generated. 
+/* Like vips_similarity(), but return the transform we generated.
  */
-static int 
-apply_similarity( VipsTransformation *trn, VipsImage *in, VipsImage *out, 
+static int
+apply_similarity( VipsTransformation *trn, VipsImage *in, VipsImage *out,
 	double a, double b, double dx, double dy )
 {
 	trn->iarea.left = 0;
@@ -99,7 +99,7 @@ apply_similarity( VipsTransformation *trn, VipsImage *in, VipsImage *out,
 
 /* A join function ... either left-right or top-bottom rotscalemerge.
  */
-typedef int (*joinfn)( VipsImage *, VipsImage *, VipsImage *, 
+typedef int (*joinfn)( VipsImage *, VipsImage *, VipsImage *,
 	double, double, double, double, int );
 
 /* similarity+lrmerge.
@@ -109,7 +109,7 @@ vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
 	VipsTransformation trn;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	VipsBuf buf;
 	char text[1024];
@@ -123,7 +123,7 @@ vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* And join to ref.
 	 */
-	if( vips__lrmerge( ref, t[0], out, 
+	if( vips__lrmerge( ref, t[0], out,
 		-trn.oarea.left, -trn.oarea.top, mwidth ) )
 		return( -1 );
 
@@ -133,9 +133,9 @@ vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	vips__add_mosaic_name( out );
 	vips_buf_init_static( &buf, text, 1024 );
 	vips_buf_appendf( &buf, "#LRROTSCALE <%s> <%s> <%s> <",
-		vips__get_mosaic_name( ref ), 
-		vips__get_mosaic_name( sec ), 
-		vips__get_mosaic_name( out ) );  
+		vips__get_mosaic_name( ref ),
+		vips__get_mosaic_name( sec ),
+		vips__get_mosaic_name( out ) );
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );
@@ -171,7 +171,7 @@ vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* And join to ref.
 	 */
-	if( vips__tbmerge( ref, t[0], out, 
+	if( vips__tbmerge( ref, t[0], out,
 		-trn.oarea.left, -trn.oarea.top, mwidth ) )
 		return( -1 );
 
@@ -183,7 +183,7 @@ vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	vips_buf_appendf( &buf, "#TBROTSCALE <%s> <%s> <%s> <",
 		vips__get_mosaic_name( ref ),
 		vips__get_mosaic_name( sec ),
-		vips__get_mosaic_name( out ) );  
+		vips__get_mosaic_name( out ) );
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );
@@ -202,15 +202,15 @@ vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
  */
 static int
 rotjoin( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
-	int xr1, int yr1, int xs1, int ys1, 
+	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
 	int mwidth )
-{ 
+{
 	double a, b, dx, dy;
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 		&a, &b, &dx, &dy ) )
 		return( -1 );
 
@@ -226,11 +226,11 @@ rotjoin( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
  */
 static int
 rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
-	int xr1, int yr1, int xs1, int ys1, 
+	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
 	int halfcorrelation, int halfarea,
 	int mwidth )
-{ 
+{
 	VipsTransformation trn;
 	double cor1, cor2;
 	double a, b, dx, dy;
@@ -269,9 +269,9 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 		&a, &b, &dx, &dy ) ||
-		apply_similarity( &trn, t[1], t[2], a, b, dx, dy ) ) 
+		apply_similarity( &trn, t[1], t[2], a, b, dx, dy ) )
 		return( -1 );
 
 	/* Map points on sec to rotated image.
@@ -280,14 +280,14 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	vips__transform_forward_point( &trn, xs2, ys2, &xs4, &ys4 );
 
 	/* Refine tie-points on rotated image. Remember the clip
-	 * vips__transform_set_area() has set, and move the sec tie-points 
+	 * vips__transform_set_area() has set, and move the sec tie-points
 	 * accordingly.
 	 */
-	if( vips__correl( t[0], t[2], xr1, yr1, 
+	if( vips__correl( t[0], t[2], xr1, yr1,
 		xs3 - trn.oarea.left, ys3 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor1, &xs5, &ys5 ) )
 		return( -1 );
-	if( vips__correl( t[0], t[2], xr2, yr2, 
+	if( vips__correl( t[0], t[2], xr2, yr2,
 		xs4 - trn.oarea.left, ys4 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor2, &xs6, &ys6 ) )
 		return( -1 );
@@ -315,7 +315,7 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 
 	/* Recalc the transform using the refined points.
 	 */
-	if( vips__coeff( xr1, yr1, xs7, ys7, xr2, yr2, xs8, ys8, 
+	if( vips__coeff( xr1, yr1, xs7, ys7, xr2, yr2, xs8, ys8,
 		&a, &b, &dx, &dy ) )
 		return( -1 );
 
@@ -334,11 +334,11 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 static int
 old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno,
-	int xr1, int yr1, int xs1, int ys1, 
+	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
 	int halfcorrelation, int halfarea,
 	int mwidth )
-{ 
+{
 	VipsTransformation trn1, trn2;
 	int dx0, dy0;
 	double a, b, dx, dy;
@@ -357,7 +357,7 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 		&a, &b, &dx, &dy ) ||
 		apply_similarity( &trn1, sec, t[0], a, b, dx, dy ) )
 		return( -1 );
@@ -367,7 +367,7 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	 */
 	dummy = vips_image_new();
 	if( vips__find_lroverlap( ref, t[0], dummy,
-		bandno, 
+		bandno,
 		-trn1.area.left, -trn1.area.top, 0, 0,
 		halfcorrelation, halfarea,
 		&dx0, &dy0,
@@ -398,9 +398,9 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	if( apply_similarity( &trn2, sec, t[1], af, bf, dxf, dyf ) )
 		return( -1 );
 
-	printf( "disp: trn1 left = %d, top = %d\n", 
+	printf( "disp: trn1 left = %d, top = %d\n",
 		trn1.area.left, trn1.area.top );
-	printf( "disp: trn2 left = %d, top = %d\n", 
+	printf( "disp: trn2 left = %d, top = %d\n",
 		trn2.area.left, trn2.area.top );
 
 	/* And join to ref.
@@ -448,7 +448,7 @@ vips_mosaic1_build( VipsObject *object )
 
 	joinfn jfn;
 
-	g_object_set( mosaic1, "out", vips_image_new(), NULL ); 
+	g_object_set( mosaic1, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_mosaic1_parent_class )->build( object ) )
 		return( -1 );
@@ -460,18 +460,18 @@ vips_mosaic1_build( VipsObject *object )
 		vips__lrmerge1 : vips__tbmerge1;
 
 	if( mosaic1->search ) {
-		if( rotjoin_search( mosaic1->ref, mosaic1->sec, mosaic1->out, 
+		if( rotjoin_search( mosaic1->ref, mosaic1->sec, mosaic1->out,
 			jfn,
-			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1, 
+			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1,
 			mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
 			mosaic1->hwindow, mosaic1->harea,
 			mosaic1->mblend ) )
 			return( -1 );
 	}
 	else {
-		if( rotjoin( mosaic1->ref, mosaic1->sec, mosaic1->out, 
+		if( rotjoin( mosaic1->ref, mosaic1->sec, mosaic1->out,
 			jfn,
-			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1, 
+			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1,
 			mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
 			mosaic1->mblend ) )
 			return( -1 );
@@ -493,123 +493,123 @@ vips_mosaic1_class_init( VipsMosaic1Class *class )
 	object_class->description = _( "first-order mosaic of two images" );
 	object_class->build = vips_mosaic1_build;
 
-	VIPS_ARG_IMAGE( class, "ref", 1, 
-		_( "Reference" ), 
+	VIPS_ARG_IMAGE( class, "ref", 1,
+		_( "Reference" ),
 		_( "Reference image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, ref ) );
 
-	VIPS_ARG_IMAGE( class, "sec", 2, 
-		_( "Secondary" ), 
+	VIPS_ARG_IMAGE( class, "sec", 2,
+		_( "Secondary" ),
 		_( "Secondary image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, sec ) );
 
-	VIPS_ARG_IMAGE( class, "out", 3, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 3,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, out ) );
 
-	VIPS_ARG_ENUM( class, "direction", 4, 
-		_( "Direction" ), 
+	VIPS_ARG_ENUM( class, "direction", 4,
+		_( "Direction" ),
 		_( "Horizontal or vertical mosaic" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsMosaic1, direction ), 
-		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, direction ),
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL );
 
-	VIPS_ARG_INT( class, "xr1", 5, 
-		_( "xr1" ), 
+	VIPS_ARG_INT( class, "xr1", 5,
+		_( "xr1" ),
 		_( "Position of first reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, xr1 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "yr1", 6, 
-		_( "yr1" ), 
+	VIPS_ARG_INT( class, "yr1", 6,
+		_( "yr1" ),
 		_( "Position of first reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, yr1 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "xs1", 7, 
-		_( "xs1" ), 
+	VIPS_ARG_INT( class, "xs1", 7,
+		_( "xs1" ),
 		_( "Position of first secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, xs1 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "ys1", 8, 
-		_( "ys1" ), 
+	VIPS_ARG_INT( class, "ys1", 8,
+		_( "ys1" ),
 		_( "Position of first secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, ys1 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "xr2", 9, 
-		_( "xr2" ), 
+	VIPS_ARG_INT( class, "xr2", 9,
+		_( "xr2" ),
 		_( "Position of second reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, xr2 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "yr2", 10, 
-		_( "yr2" ), 
+	VIPS_ARG_INT( class, "yr2", 10,
+		_( "yr2" ),
 		_( "Position of second reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, yr2 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "xs2", 11, 
-		_( "xs2" ), 
+	VIPS_ARG_INT( class, "xs2", 11,
+		_( "xs2" ),
 		_( "Position of second secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, xs2 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "ys2", 12, 
-		_( "ys2" ), 
+	VIPS_ARG_INT( class, "ys2", 12,
+		_( "ys2" ),
 		_( "Position of second secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, ys2 ),
 		-1000000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "hwindow", 13, 
-		_( "hwindow" ), 
+	VIPS_ARG_INT( class, "hwindow", 13,
+		_( "hwindow" ),
 		_( "Half window size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, hwindow ),
 		0, 1000000000, 5 );
 
-	VIPS_ARG_INT( class, "harea", 14, 
-		_( "harea" ), 
+	VIPS_ARG_INT( class, "harea", 14,
+		_( "harea" ),
 		_( "Half area size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, harea ),
 		0, 1000000000, 15 );
 
-	VIPS_ARG_BOOL( class, "search", 15, 
-		_( "Search" ), 
+	VIPS_ARG_BOOL( class, "search", 15,
+		_( "Search" ),
 		_( "Search to improve tie-points" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, search ),
-		FALSE ); 
+		FALSE );
 
-	VIPS_ARG_INTERPOLATE( class, "interpolate", 16, 
-		_( "Interpolate" ), 
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 16,
+		_( "Interpolate" ),
 		_( "Interpolate pixels with this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, interpolate ) );
 
-	VIPS_ARG_INT( class, "mblend", 17, 
-		_( "Max blend" ), 
+	VIPS_ARG_INT( class, "mblend", 17,
+		_( "Max blend" ),
 		_( "Maximum blend size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, mblend ),
 		0, 10000, 10 );
 
-	VIPS_ARG_INT( class, "bandno", 18, 
-		_( "Search band" ), 
+	VIPS_ARG_INT( class, "bandno", 18,
+		_( "Search band" ),
 		_( "Band to search for features on" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsMosaic1, bandno ),
@@ -640,39 +640,39 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * @xs2: second secondary tie-point
  * @ys2: second secondary tie-point
  * @...: %NULL-terminated list of optional named arguments
- * 
+ *
  * Optional arguments:
  *
  * * @search: search to improve tie-points
  * * @hwindow: half window size
- * * @harea: half search size 
+ * * @harea: half search size
  * * @interpolate: interpolate pixels with this
- * * @mblend: maximum blend size 
+ * * @mblend: maximum blend size
  *
- * This operation joins two images top-bottom (with @sec on the right) 
+ * This operation joins two images top-bottom (with @sec on the right)
  * or left-right (with @sec at the bottom)
  * given an approximate pair of tie-points. @sec is scaled and rotated as
  * necessary before the join.
  *
- * If @search is %TRUE, before performing the transformation, the tie-points 
+ * If @search is %TRUE, before performing the transformation, the tie-points
  * are improved by searching an area of @sec of size @harea for a
- * object of size @hwindow in @ref. 
+ * object of size @hwindow in @ref.
  *
  * @mblend limits  the  maximum size of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
+ * blend area.  A value of "-1" means "unlimited". The two images are blended
+ * with a raised cosine.
  *
  * Pixels with all bands equal to zero are "transparent", that
  * is, zero pixels in the overlap area do not  contribute  to  the  merge.
  * This makes it possible to join non-rectangular images.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
+ * The two input images are cast up to the smallest common type (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_merge(), vips_insert(), vips_globalbalance().
@@ -680,9 +680,9 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out, 
-	VipsDirection direction, 
-	int xr1, int yr1, int xs1, int ys1, 
+vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out,
+	VipsDirection direction,
+	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2, ... )
 {
 	va_list ap;

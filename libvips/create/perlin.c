@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -92,15 +92,15 @@ typedef struct _Sequence {
 
 } Sequence;
 
-/* Generate a 3 x 3 grid of cells around a point. 
+/* Generate a 3 x 3 grid of cells around a point.
  */
 static void
-vips_perlin_create_cells( VipsPerlin *perlin, 
+vips_perlin_create_cells( VipsPerlin *perlin,
 	float gx[4], float gy[4], int cell_x, int cell_y )
 {
 	int x, y;
 
-	for( y = 0; y < 2; y++ ) 
+	for( y = 0; y < 2; y++ )
 		for( x = 0; x < 2; x++ ) {
 			int ci = x + y * 2;
 
@@ -164,7 +164,7 @@ vips_perlin_start( VipsImage *out, void *a, void *b )
  *
  * https://en.wikipedia.org/wiki/Smoothstep
  */
-static float 
+static float
 smootherstep( float x )
 {
     return( x * x * x * (x * (x * 6 - 15) + 10) );
@@ -181,7 +181,7 @@ vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int x, y;
 
 	for( y = 0; y < r->height; y++ ) {
-		float *fq = (float *) 
+		float *fq = (float *)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 		VipsPel *q = (VipsPel *) fq;
 
@@ -200,7 +200,7 @@ vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 			if( cell_x != seq->cell_x ||
 				cell_y != seq->cell_y ) {
-				vips_perlin_create_cells( perlin, 
+				vips_perlin_create_cells( perlin,
 					seq->gx, seq->gy, cell_x, cell_y );
 				seq->cell_x = cell_x;
 				seq->cell_y = cell_y;
@@ -237,21 +237,21 @@ vips_perlin_build( VipsObject *object )
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
-	perlin->cells_across = 
-		VIPS_ROUND_UP( perlin->width, perlin->cell_size ) / 
+	perlin->cells_across =
+		VIPS_ROUND_UP( perlin->width, perlin->cell_size ) /
 		perlin->cell_size;
-	perlin->cells_down = 
-		VIPS_ROUND_UP( perlin->height, perlin->cell_size ) / 
+	perlin->cells_down =
+		VIPS_ROUND_UP( perlin->height, perlin->cell_size ) /
 		perlin->cell_size;
 
 	vips_image_init_fields( create->out,
 		perlin->width, perlin->height, 1,
-		perlin->uchar ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_FLOAT, 
+		perlin->uchar ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_FLOAT,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
 	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
 		vips_image_generate( create->out,
-			vips_perlin_start, vips_perlin_gen, vips_perlin_stop, 
+			vips_perlin_start, vips_perlin_gen, vips_perlin_stop,
 			perlin, NULL ) )
 		return( -1 );
 
@@ -290,36 +290,36 @@ vips_perlin_class_init( VipsPerlinClass *class )
 	vobject_class->description = _( "make a perlin noise image" );
 	vobject_class->build = vips_perlin_build;
 
-	VIPS_ARG_INT( class, "width", 2, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 2,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPerlin, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 3, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 3,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPerlin, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "cell_size", 3, 
-		_( "Cell size" ), 
+	VIPS_ARG_INT( class, "cell_size", 3,
+		_( "Cell size" ),
 		_( "Size of Perlin cells" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsPerlin, cell_size ),
 		1, VIPS_MAX_COORD, 256 );
 
-	VIPS_ARG_BOOL( class, "uchar", 4, 
-		_( "Uchar" ), 
+	VIPS_ARG_BOOL( class, "uchar", 4,
+		_( "Uchar" ),
 		_( "Output an unsigned char image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsPerlin, uchar ),
 		FALSE );
 
-	VIPS_ARG_INT( class, "seed", 5, 
-		_( "Seed" ), 
+	VIPS_ARG_INT( class, "seed", 5,
+		_( "Seed" ),
 		_( "Random number seed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsPerlin, seed ),
@@ -355,8 +355,8 @@ vips_perlin_init( VipsPerlin *perlin )
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
- * Normally, output pixels are #VIPS_FORMAT_FLOAT in the range [-1, +1]. Set 
- * @uchar to output a uchar image with pixels in [0, 255]. 
+ * Normally, output pixels are #VIPS_FORMAT_FLOAT in the range [-1, +1]. Set
+ * @uchar to output a uchar image with pixels in [0, 255].
  *
  * See also: vips_worley(), vips_fractsurf(), vips_gaussnoise().
  *

@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -73,7 +73,7 @@ typedef VipsPointClass VipsEyeClass;
 G_DEFINE_TYPE( VipsEye, vips_eye, VIPS_TYPE_POINT );
 
 static float
-vips_eye_point( VipsPoint *point, int x, int y ) 
+vips_eye_point( VipsPoint *point, int x, int y )
 {
 	VipsEye *eye = (VipsEye *) point;
 
@@ -99,13 +99,13 @@ vips_eye_class_init( VipsEyeClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "eye";
-	vobject_class->description = 
+	vobject_class->description =
 		_( "make an image showing the eye's spatial response" );
 
 	point_class->point = vips_eye_point;
 
-	VIPS_ARG_DOUBLE( class, "factor", 6, 
-		_( "Factor" ), 
+	VIPS_ARG_DOUBLE( class, "factor", 6,
+		_( "Factor" ),
 		_( "Maximum spatial frequency" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsEye, factor ),
@@ -131,11 +131,11 @@ vips_eye_init( VipsEye *eye )
  * * @factor: maximum spatial frequency
  * * @uchar: output a uchar image
  *
- * Create a test pattern with increasing spatial frequence in X and 
- * amplitude in Y. @factor should be between 0 and 1 and determines the 
+ * Create a test pattern with increasing spatial frequence in X and
+ * amplitude in Y. @factor should be between 0 and 1 and determines the
  * maximum spatial frequency.
  *
- * Set @uchar to output a uchar image. 
+ * Set @uchar to output a uchar image.
  *
  * See also: vips_zone().
  *

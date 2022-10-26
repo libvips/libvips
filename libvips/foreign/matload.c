@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,13 +59,13 @@ typedef struct _VipsForeignLoadMat {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadMat;
 
 typedef VipsForeignLoadClass VipsForeignLoadMatClass;
 
-G_DEFINE_TYPE( VipsForeignLoadMat, vips_foreign_load_mat, 
+G_DEFINE_TYPE( VipsForeignLoadMat, vips_foreign_load_mat,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static VipsForeignFlags
@@ -128,16 +128,16 @@ vips_foreign_load_mat_class_init( VipsForeignLoadMatClass *class )
 	foreign_class->suffs = vips__mat_suffs;
 
 	load_class->is_a = vips__mat_ismat;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_mat_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_mat_get_flags;
 	load_class->header = vips_foreign_load_mat_header;
 	load_class->load = vips_foreign_load_mat_load;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMat, filename ),
 		NULL );
 }
@@ -155,12 +155,12 @@ vips_foreign_load_mat_init( VipsForeignLoadMat *mat )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a Matlab save file into a VIPS image. 
+ * Read a Matlab save file into a VIPS image.
  *
  * This operation searches the save
  * file for the first array variable with between 1 and 3 dimensions and loads
  * it as an image. It will not handle complex images. It does not handle
- * sparse matrices. 
+ * sparse matrices.
  *
  * See also: vips_image_new_from_file().
  *
@@ -173,7 +173,7 @@ vips_matload( const char *filename, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "matload", ap, filename, out ); 
+	result = vips_call_split( "matload", ap, filename, out );
 	va_end( ap );
 
 	return( result );

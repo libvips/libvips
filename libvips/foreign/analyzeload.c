@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,13 +57,13 @@ typedef struct _VipsForeignLoadAnalyze {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadAnalyze;
 
 typedef VipsForeignLoadClass VipsForeignLoadAnalyzeClass;
 
-G_DEFINE_TYPE( VipsForeignLoadAnalyze, vips_foreign_load_analyze, 
+G_DEFINE_TYPE( VipsForeignLoadAnalyze, vips_foreign_load_analyze,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static VipsForeignFlags
@@ -83,7 +83,7 @@ vips_foreign_load_analyze_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
-	if( vips__analyze_read_header( analyze->filename, load->out ) ) 
+	if( vips__analyze_read_header( analyze->filename, load->out ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, analyze->filename );
@@ -96,7 +96,7 @@ vips_foreign_load_analyze_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
-	if( vips__analyze_read( analyze->filename, load->real ) ) 
+	if( vips__analyze_read( analyze->filename, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -119,7 +119,7 @@ vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
 	object_class->nickname = "analyzeload";
 	object_class->description = _( "load an Analyze6 image" );
 
-	/* This is fuzzed, but you're unlikely to want to use it on 
+	/* This is fuzzed, but you're unlikely to want to use it on
 	 * untrusted files.
 	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
@@ -131,16 +131,16 @@ vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
 	foreign_class->priority = -50;
 
 	load_class->is_a = vips__isanalyze;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_analyze_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_analyze_get_flags;
 	load_class->header = vips_foreign_load_analyze_header;
 	load_class->load = vips_foreign_load_analyze_load;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadAnalyze, filename ),
 		NULL );
 }

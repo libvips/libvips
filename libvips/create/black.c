@@ -23,7 +23,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -83,13 +83,13 @@ static int
 vips_black_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
-        /*
-        VipsRect *r = &or->valid;
+	/*
+	VipsRect *r = &or->valid;
 
-        printf( "vips_black_gen: "
-                "left = %d, top = %d, width = %d, height = %d\n",
-                r->left, r->top, r->width, r->height );
-         */
+	printf( "vips_black_gen: "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height );
+	 */
 
 	vips_region_black( or );
 
@@ -106,15 +106,15 @@ vips_black_build( VipsObject *object )
 		return( -1 );
 
 	vips_image_init_fields( create->out,
-		black->width, black->height, black->bands, 
+		black->width, black->height, black->bands,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
-                VIPS_INTERPRETATION_MULTIBAND,
+		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	if( vips_image_pipelinev( create->out, 
+	if( vips_image_pipelinev( create->out,
 		VIPS_DEMAND_STYLE_ANY, NULL ) )
 		return( -1 );
 
-	if( vips_image_generate( create->out, 
+	if( vips_image_generate( create->out,
 		NULL, vips_black_gen, NULL, NULL, NULL ) )
 		return( -1 );
 
@@ -136,22 +136,22 @@ vips_black_class_init( VipsBlackClass *class )
 	vobject_class->description = _( "make a black image" );
 	vobject_class->build = vips_black_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBlack, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBlack, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "bands", 6, 
-		_( "Bands" ), 
+	VIPS_ARG_INT( class, "bands", 6,
+		_( "Bands" ),
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsBlack, bands ),

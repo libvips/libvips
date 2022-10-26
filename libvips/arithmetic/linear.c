@@ -1,16 +1,16 @@
-/* im_lintra.c -- linear transform 
+/* im_lintra.c -- linear transform
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 23/4/93 JC
  *	- adapted to work with partial images
  * 1/7/93 JC
  *	- adapted for partial v2
  * 7/10/94 JC
  *	- new IM_NEW()
- *	- more typedefs 
+ *	- more typedefs
  * 9/2/95 JC
  *	- adapted for im_wrap...
  *	- operations on complex images now just transform the real channel
@@ -58,7 +58,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -136,17 +136,17 @@ vips_linear_build( VipsObject *object )
 	if( unary->in ) {
 		int bands;
 
-		vips_image_decode_predict( unary->in, &bands, NULL ); 
+		vips_image_decode_predict( unary->in, &bands, NULL );
 		linear->n = VIPS_MAX( linear->n, bands );
 	}
 	arithmetic->base_bands = linear->n;
 
-	if( unary->in && 
-		linear->a && 
+	if( unary->in &&
+		linear->a &&
 		linear->b ) {
-		if( vips_check_vector( class->nickname, 
+		if( vips_check_vector( class->nickname,
 			linear->a->n, unary->in ) ||
-			vips_check_vector( class->nickname, 
+			vips_check_vector( class->nickname,
 				linear->b->n, unary->in ) )
 		return( -1 );
 	}
@@ -246,7 +246,7 @@ vips_linear_build( VipsObject *object )
 	} \
 }
 
-/* Complex input, complex output. 
+/* Complex input, complex output.
  */
 #define LOOPCMPLXN( IN, OUT ) { \
 	IN * restrict p = (IN *) in[0]; \
@@ -301,7 +301,7 @@ vips_linear_build( VipsObject *object )
 	} \
 }
 
-/* Complex input, uchar output. 
+/* Complex input, uchar output.
  */
 #define LOOPCMPLXNuc( IN ) { \
 	IN * restrict p = (IN *) in[0]; \
@@ -319,7 +319,7 @@ vips_linear_build( VipsObject *object )
 /* Lintra a buffer, n set of scale/offset.
  */
 static void
-vips_linear_buffer( VipsArithmetic *arithmetic, 
+vips_linear_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
@@ -332,25 +332,25 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 
 	if( linear->uchar )
 		switch( vips_image_get_format( im ) ) {
-		case VIPS_FORMAT_UCHAR: 	
+		case VIPS_FORMAT_UCHAR:
 			LOOPuc( unsigned char ); break;
-		case VIPS_FORMAT_CHAR: 		
-			LOOPuc( signed char ); break; 
-		case VIPS_FORMAT_USHORT: 	
-			LOOPuc( unsigned short ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			LOOPuc( signed short ); break; 
-		case VIPS_FORMAT_UINT: 		
-			LOOPuc( unsigned int ); break; 
-		case VIPS_FORMAT_INT: 		
-			LOOPuc( signed int );  break; 
-		case VIPS_FORMAT_FLOAT: 	
-			LOOPuc( float ); break; 
-		case VIPS_FORMAT_DOUBLE:	
-			LOOPuc( double ); break; 
-		case VIPS_FORMAT_COMPLEX:	
-			LOOPCMPLXNuc( float ); break; 
-		case VIPS_FORMAT_DPCOMPLEX:	
+		case VIPS_FORMAT_CHAR:
+			LOOPuc( signed char ); break;
+		case VIPS_FORMAT_USHORT:
+			LOOPuc( unsigned short ); break;
+		case VIPS_FORMAT_SHORT:
+			LOOPuc( signed short ); break;
+		case VIPS_FORMAT_UINT:
+			LOOPuc( unsigned int ); break;
+		case VIPS_FORMAT_INT:
+			LOOPuc( signed int );  break;
+		case VIPS_FORMAT_FLOAT:
+			LOOPuc( float ); break;
+		case VIPS_FORMAT_DOUBLE:
+			LOOPuc( double ); break;
+		case VIPS_FORMAT_COMPLEX:
+			LOOPCMPLXNuc( float ); break;
+		case VIPS_FORMAT_DPCOMPLEX:
 			LOOPCMPLXNuc( double ); break;
 
 		default:
@@ -358,25 +358,25 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 		}
 	else
 		switch( vips_image_get_format( im ) ) {
-		case VIPS_FORMAT_UCHAR: 	
+		case VIPS_FORMAT_UCHAR:
 			LOOP( unsigned char, float ); break;
-		case VIPS_FORMAT_CHAR: 		
-			LOOP( signed char, float ); break; 
-		case VIPS_FORMAT_USHORT: 	
-			LOOP( unsigned short, float ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			LOOP( signed short, float ); break; 
-		case VIPS_FORMAT_UINT: 		
-			LOOP( unsigned int, float ); break; 
-		case VIPS_FORMAT_INT: 		
-			LOOP( signed int, float );  break; 
-		case VIPS_FORMAT_FLOAT: 	
-			LOOP( float, float ); break; 
-		case VIPS_FORMAT_DOUBLE:	
-			LOOP( double, double ); break; 
-		case VIPS_FORMAT_COMPLEX:	
-			LOOPCMPLXN( float, float ); break; 
-		case VIPS_FORMAT_DPCOMPLEX:	
+		case VIPS_FORMAT_CHAR:
+			LOOP( signed char, float ); break;
+		case VIPS_FORMAT_USHORT:
+			LOOP( unsigned short, float ); break;
+		case VIPS_FORMAT_SHORT:
+			LOOP( signed short, float ); break;
+		case VIPS_FORMAT_UINT:
+			LOOP( unsigned int, float ); break;
+		case VIPS_FORMAT_INT:
+			LOOP( signed int, float );  break;
+		case VIPS_FORMAT_FLOAT:
+			LOOP( float, float ); break;
+		case VIPS_FORMAT_DOUBLE:
+			LOOP( double, double ); break;
+		case VIPS_FORMAT_COMPLEX:
+			LOOPCMPLXN( float, float ); break;
+		case VIPS_FORMAT_DPCOMPLEX:
 			LOOPCMPLXN( double, double ); break;
 
 		default:
@@ -402,7 +402,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
  */
 static const VipsBandFormat vips_linear_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
+   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX
 };
 
 static void
@@ -421,24 +421,24 @@ vips_linear_class_init( VipsLinearClass *class )
 
 	aclass->process_line = vips_linear_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_linear_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_linear_format_table );
 
-	VIPS_ARG_BOXED( class, "a", 110, 
-		_( "a" ), 
+	VIPS_ARG_BOXED( class, "a", 110,
+		_( "a" ),
 		_( "Multiply by this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, a ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_BOXED( class, "b", 111, 
-		_( "b" ), 
+	VIPS_ARG_BOXED( class, "b", 111,
+		_( "b" ),
 		_( "Add this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, b ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_BOOL( class, "uchar", 112, 
-		_( "uchar" ), 
+	VIPS_ARG_BOOL( class, "uchar", 112,
+		_( "uchar" ),
 		_( "Output should be uchar" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, uchar ),
@@ -452,7 +452,7 @@ vips_linear_init( VipsLinear *linear )
 }
 
 static int
-vips_linearv( VipsImage *in, VipsImage **out, 
+vips_linearv( VipsImage *in, VipsImage **out,
 	const double *a, const double *b, int n, va_list ap )
 {
 	VipsArea *area_a;
@@ -486,11 +486,11 @@ vips_linearv( VipsImage *in, VipsImage **out,
  * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
  * is float for integer input, double for double input, complex for
  * complex input and double complex for double complex input. Set @uchar to
- * output uchar pixels. 
+ * output uchar pixels.
  *
- * If the arrays of constants have just one element, that constant is used for 
- * all image bands. If the arrays have more than one element and they have 
- * the same number of elements as there are bands in the image, then 
+ * If the arrays of constants have just one element, that constant is used for
+ * all image bands. If the arrays have more than one element and they have
+ * the same number of elements as there are bands in the image, then
  * one array element is used for each band. If the arrays have more than one
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
@@ -500,7 +500,7 @@ vips_linearv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_linear( VipsImage *in, VipsImage **out, 
+vips_linear( VipsImage *in, VipsImage **out,
 	const double *a, const double *b, int n, ... )
 {
 	va_list ap;
@@ -525,7 +525,7 @@ vips_linear( VipsImage *in, VipsImage **out,
  *
  * * @uchar: output uchar pixels
  *
- * Run vips_linear() with a single constant. 
+ * Run vips_linear() with a single constant.
  *
  * See also: vips_linear().
  *

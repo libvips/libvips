@@ -62,7 +62,7 @@ typedef struct _VipsMsb {
 	/* Params.
 	 */
 	VipsImage *in;
-	int band; 
+	int band;
 
 	/* Initial input offset.
 	 */
@@ -100,8 +100,8 @@ vips_msb_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		return( -1 );
 
 	for( y = to; y < bo; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( ir, le, y ); 
-		VipsPel *q = VIPS_REGION_ADDR( or, le, y ); 
+		VipsPel *p = VIPS_REGION_ADDR( ir, le, y );
+		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
 
 		if( msb->in->Coding == VIPS_CODING_LABQ &&
 			msb->band == -1 ) {
@@ -127,7 +127,7 @@ vips_msb_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			}
 		}
 		else {
-			/* Just pick out bytes. 
+			/* Just pick out bytes.
 			 */
 			p += msb->offset;
 			for( i = 0; i < sz; i++ ) {
@@ -159,7 +159,7 @@ vips_msb_build( VipsObject *object )
 
 	/* Effective number of bands this image has.
 	 */
-	vbands = msb->in->Coding == VIPS_CODING_LABQ ? 
+	vbands = msb->in->Coding == VIPS_CODING_LABQ ?
 		3 : msb->in->Bands;
 
 	if( msb->band > vbands - 1 ) {
@@ -173,13 +173,13 @@ vips_msb_build( VipsObject *object )
 
 	/* Offset into first band element of high order byte.
 	 */
-	msb->offset = vips_amiMSBfirst() ?  
+	msb->offset = vips_amiMSBfirst() ?
 		0 : VIPS_IMAGE_SIZEOF_ELEMENT( msb->in ) - 1;
 
 	/* If we're picking out a band, they need scaling up.
 	 */
 	if( msb->band != -1 ) {
-		msb->offset += VIPS_IMAGE_SIZEOF_ELEMENT( msb->in ) * 
+		msb->offset += VIPS_IMAGE_SIZEOF_ELEMENT( msb->in ) *
 			msb->band;
 		msb->instep *= msb->in->Bands;
 	}
@@ -201,17 +201,17 @@ vips_msb_build( VipsObject *object )
 		msb->in->BandFmt == VIPS_FORMAT_UCHAR )
 		return( vips_image_write( msb->in, conversion->out ) );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, msb->in, NULL ) )
 		return( -1 );
 
 	if( msb->band != -1 )
 		conversion->out->Bands = 1;
-	else 
+	else
 		conversion->out->Bands = vbands;
 	conversion->out->BandFmt = VIPS_FORMAT_UCHAR;
 	conversion->out->Coding = VIPS_CODING_NONE;
-	if( conversion->out->Bands == 1 ) 
+	if( conversion->out->Bands == 1 )
 		conversion->out->Type = VIPS_INTERPRETATION_B_W;
 	else
 		conversion->out->Type = VIPS_INTERPRETATION_MULTIBAND;
@@ -234,20 +234,20 @@ vips_msb_class_init( VipsMsbClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "msb";
-	vobject_class->description = 
+	vobject_class->description =
 		_( "pick most-significant byte from an image" );
 	vobject_class->build = vips_msb_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMsb, in ) );
 
-	VIPS_ARG_INT( class, "band", 3, 
-		_( "Band" ), 
+	VIPS_ARG_INT( class, "band", 3,
+		_( "Band" ),
 		_( "Band to msb" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMsb, band ),
@@ -274,12 +274,12 @@ vips_msb_init( VipsMsb *msb )
  * Turn any integer image to 8-bit unsigned char by discarding all but the most
  * significant byte. Signed values are converted to unsigned by adding 128.
  *
- * Use @band to make a one-band 8-bit image. 
+ * Use @band to make a one-band 8-bit image.
  *
  * This operator also works for LABQ coding.
  *
  * See also: vips_scale(), vips_cast().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int

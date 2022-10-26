@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ typedef struct _VipsForeignLoadRad {
 
 typedef VipsForeignLoadClass VipsForeignLoadRadClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadRad, vips_foreign_load_rad, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadRad, vips_foreign_load_rad,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -133,7 +133,7 @@ vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
 	 */
 	foreign_class->priority = -50;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_rad_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_rad_get_flags;
 	load_class->header = vips_foreign_load_rad_header;
@@ -157,7 +157,7 @@ typedef struct _VipsForeignLoadRadSource {
 
 typedef VipsForeignLoadRadClass VipsForeignLoadRadSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadRadSource, vips_foreign_load_rad_source, 
+G_DEFINE_TYPE( VipsForeignLoadRadSource, vips_foreign_load_rad_source,
 	vips_foreign_load_rad_get_type() );
 
 static int
@@ -206,7 +206,7 @@ vips_foreign_load_rad_source_class_init( VipsForeignLoadRadSourceClass *class )
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRadSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -222,13 +222,13 @@ typedef struct _VipsForeignLoadRadFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadRadFile;
 
 typedef VipsForeignLoadRadClass VipsForeignLoadRadFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadRadFile, vips_foreign_load_rad_file, 
+G_DEFINE_TYPE( VipsForeignLoadRadFile, vips_foreign_load_rad_file,
 	vips_foreign_load_rad_get_type() );
 
 static int
@@ -281,10 +281,10 @@ vips_foreign_load_rad_file_class_init( VipsForeignLoadRadFileClass *class )
 
 	load_class->is_a = vips_foreign_load_rad_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRadFile, filename ),
 		NULL );
 }
@@ -305,7 +305,7 @@ typedef struct _VipsForeignLoadRadBuffer {
 
 typedef VipsForeignLoadRadClass VipsForeignLoadRadBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadRadBuffer, vips_foreign_load_rad_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadRadBuffer, vips_foreign_load_rad_buffer,
 	vips_foreign_load_rad_get_type() );
 
 static int
@@ -315,8 +315,8 @@ vips_foreign_load_rad_buffer_build( VipsObject *object )
 	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) object;
 
 	if( buffer->blob &&
-		!(rad->source = vips_source_new_from_memory( 
-			VIPS_AREA( buffer->blob )->data, 
+		!(rad->source = vips_source_new_from_memory(
+			VIPS_AREA( buffer->blob )->data,
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
@@ -357,10 +357,10 @@ vips_foreign_load_rad_buffer_class_init( VipsForeignLoadRadBufferClass *class )
 
 	load_class->is_a_buffer = vips_foreign_load_rad_buffer_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRadBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
@@ -379,19 +379,19 @@ vips_foreign_load_rad_buffer_init( VipsForeignLoadRadBuffer *buffer )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a Radiance (HDR) file into a VIPS image. 
+ * Read a Radiance (HDR) file into a VIPS image.
  *
  * Radiance files are read as #VIPS_CODING_RAD. They have one byte for each of
  * red, green and blue, and one byte of shared exponent. Some operations (like
- * vips_extract_area()) can work directly with images in this format, but 
- * mmany (all the arithmetic operations, for example) will not. Unpack 
- * #VIPS_CODING_RAD images to 3 band float with vips_rad2float() if 
+ * vips_extract_area()) can work directly with images in this format, but
+ * mmany (all the arithmetic operations, for example) will not. Unpack
+ * #VIPS_CODING_RAD images to 3 band float with vips_rad2float() if
  * you want to do arithmetic on them.
  *
- * This operation ignores some header fields, like VIEW and DATE. It will not 
+ * This operation ignores some header fields, like VIEW and DATE. It will not
  * rotate/flip as the FORMAT string asks.
  *
- * Sections of this reader from Greg Ward and Radiance with kind permission. 
+ * Sections of this reader from Greg Ward and Radiance with kind permission.
  *
  * See also: vips_image_new_from_file().
  *
@@ -404,7 +404,7 @@ vips_radload( const char *filename, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "radload", ap, filename, out ); 
+	result = vips_call_split( "radload", ap, filename, out );
 	va_end( ap );
 
 	return( result );
@@ -419,8 +419,8 @@ vips_radload( const char *filename, VipsImage **out, ... )
  *
  * Exactly as vips_radload(), but read from a HDR-formatted memory block.
  *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * See also: vips_radload().
  *
@@ -452,7 +452,7 @@ vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_radload(), but read from a source. 
+ * Exactly as vips_radload(), but read from a source.
  *
  * See also: vips_radload().
  *

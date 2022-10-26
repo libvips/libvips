@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -78,29 +78,29 @@ vips__drawink_pel( VipsDrawink *drawink, VipsPel *q )
 
 	/* Faster than memcopy() for n < about 20.
 	 */
-	for( j = 0; j < draw->psize; j++ ) 
+	for( j = 0; j < draw->psize; j++ )
 		q[j] = drawink->pixel_ink[j];
 
-	return( 0 ); 
+	return( 0 );
 }
 
 /* Paint, with clip.
  */
-static inline int 
+static inline int
 vips__drawink_pel_clip( VipsDrawink *drawink, int x, int y )
 {
 	VipsDraw *draw = (VipsDraw *) drawink;
 
-	if( x < 0 || 
+	if( x < 0 ||
 		x >= draw->image->Xsize )
 		return( 0 );
-	if( y < 0 || 
+	if( y < 0 ||
 		y >= draw->image->Ysize )
 		return( 0 );
 
 	vips__drawink_pel( drawink, VIPS_IMAGE_ADDR( draw->image, x, y ) );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 /* Is p painted?
@@ -112,8 +112,8 @@ vips__drawink_painted( VipsDrawink *drawink, VipsPel *p )
 
  	int j;
 
-	for( j = 0; j < draw->psize; j++ ) 
-		if( p[j] != drawink->pixel_ink[j] ) 
+	for( j = 0; j < draw->psize; j++ )
+		if( p[j] != drawink->pixel_ink[j] )
 			break;
 
 	return( j == draw->psize );

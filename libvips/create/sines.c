@@ -1,4 +1,4 @@
-/* creates a 2d sinewave 
+/* creates a 2d sinewave
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,7 +77,7 @@ typedef VipsPointClass VipsSinesClass;
 G_DEFINE_TYPE( VipsSines, vips_sines, VIPS_TYPE_POINT );
 
 static float
-vips_sines_point( VipsPoint *point, int x, int y ) 
+vips_sines_point( VipsPoint *point, int x, int y )
 {
 	VipsSines *sines = (VipsSines *) point;
 
@@ -96,11 +96,11 @@ vips_sines_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_sines_parent_class )->build( object ) )
 		return( -1 );
 
-	theta = sines->hfreq == 0.0 ? 
+	theta = sines->hfreq == 0.0 ?
 		VIPS_PI / 2.0 : atan( sines->vfreq / sines->hfreq );
-	factor = sqrt( sines->hfreq * sines->hfreq + 
+	factor = sqrt( sines->hfreq * sines->hfreq +
 		sines->vfreq * sines->vfreq );
-	sines->costheta = cos( theta ); 
+	sines->costheta = cos( theta );
 	sines->sintheta = sin( theta );
 	sines->c = factor * VIPS_PI * 2.0 / point->width;
 
@@ -123,15 +123,15 @@ vips_sines_class_init( VipsSinesClass *class )
 
 	point_class->point = vips_sines_point;
 
-	VIPS_ARG_DOUBLE( class, "hfreq", 6, 
-		_( "hfreq" ), 
+	VIPS_ARG_DOUBLE( class, "hfreq", 6,
+		_( "hfreq" ),
 		_( "Horizontal spatial frequency" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSines, hfreq ),
 		0.0, 10000.0, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "vfreq", 7, 
-		_( "vfreq" ), 
+	VIPS_ARG_DOUBLE( class, "vfreq", 7,
+		_( "vfreq" ),
 		_( "Vertical spatial frequency" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSines, vfreq ),
@@ -159,7 +159,7 @@ vips_sines_init( VipsSines *sines )
  * * @uchar: output a uchar image
  *
  * Creates a float one band image of the a sine waveform in two
- * dimensions.  
+ * dimensions.
  *
  * The number of horizontal and vertical spatial frequencies are
  * determined by the variables @hfreq and @vfreq respectively.  The
@@ -169,9 +169,9 @@ vips_sines_init( VipsSines *sines )
  * If horfreq and verfreq are integers the resultant image is periodical
  * and therfore the Fourier transform does not present spikes
  *
- * Pixels are normally in [-1, +1], set @uchar to output [0, 255]. 
- * 
- * See also: vips_grey(), vips_xyz(). 
+ * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
+ *
+ * See also: vips_grey(), vips_xyz().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ sines_vec( im_object *argv )
 }
 
 /* Description of im_sines.
- */ 
+ */
 static im_function sines_desc = {
 	"im_sines", 			/* Name */
 	"generate 2D sine image",
@@ -96,7 +96,7 @@ eye_vec( im_object *argv )
 }
 
 /* Description of im_eye.
- */ 
+ */
 static im_function eye_desc = {
 	"im_eye", 			/* Name */
 	"generate IM_BANDFMT_UCHAR [0,255] frequency/amplitude image",
@@ -119,7 +119,7 @@ feye_vec( im_object *argv )
 }
 
 /* Description of im_feye.
- */ 
+ */
 static im_function feye_desc = {
 	"im_feye", 			/* Name */
 	"generate IM_BANDFMT_FLOAT [-1,1] frequency/amplitude image",
@@ -147,7 +147,7 @@ zone_vec( im_object *argv )
 }
 
 /* Description of im_zone.
- */ 
+ */
 static im_function zone_desc = {
 	"im_zone", 			/* Name */
 	"generate IM_BANDFMT_UCHAR [0,255] zone plate image", /* Description */
@@ -168,7 +168,7 @@ fzone_vec( im_object *argv )
 }
 
 /* Description of im_fzone.
- */ 
+ */
 static im_function fzone_desc = {
 	"im_fzone", 			/* Name */
 	"generate IM_BANDFMT_FLOAT [-1,1] zone plate image", /* Description */
@@ -194,7 +194,7 @@ benchmark_vec( im_object *argv )
 }
 
 /* Description of im_benchmark.
- */ 
+ */
 static im_function benchmark_desc = {
 	"im_benchmark", 		/* Name */
 	"do something complicated for testing", /* Description */
@@ -207,8 +207,8 @@ static im_function benchmark_desc = {
 /* Args for im_benchmark2.
  */
 static im_arg_desc benchmark2_args[] = {
-        IM_INPUT_IMAGE( "in" ),
-        IM_OUTPUT_DOUBLE( "value" )
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_DOUBLE( "value" )
 };
 
 /* Call im_benchmark2 via arg vector.
@@ -216,25 +216,25 @@ static im_arg_desc benchmark2_args[] = {
 static int
 benchmark2_vec( im_object *argv )
 {
-        double f;
+	double f;
 
-        if( im_benchmark2( argv[0], &f ) )
-                return( -1 );
+	if( im_benchmark2( argv[0], &f ) )
+		return( -1 );
 
-        *((double *) argv[1]) = f;
+	*((double *) argv[1]) = f;
 
-        return( 0 );
+	return( 0 );
 }
 
 /* Description of im_benchmark2.
  */
 static im_function benchmark2_desc = {
-        "im_benchmark2",                /* Name */
-        "do something complicated for testing", /* Description */
-        IM_FN_PIO,                      /* Flags */
-        benchmark2_vec,                 /* Dispatch function */
-        IM_NUMBER( benchmark2_args ),   /* Size of arg list */
-        benchmark2_args                 /* Arg list */
+	"im_benchmark2",                /* Name */
+	"do something complicated for testing", /* Description */
+	IM_FN_PIO,                      /* Flags */
+	benchmark2_vec,                 /* Dispatch function */
+	IM_NUMBER( benchmark2_args ),   /* Size of arg list */
+	benchmark2_args                 /* Arg list */
 };
 
 /* Args for im_benchmarkn.
@@ -256,7 +256,7 @@ benchmarkn_vec( im_object *argv )
 }
 
 /* Description of im_benchmarkn.
- */ 
+ */
 static im_function benchmarkn_desc = {
 	"im_benchmarkn", 		/* Name */
 	"do something complicated for testing", /* Description */
@@ -286,7 +286,7 @@ grey_vec( im_object *argv )
 }
 
 /* Description of im_grey.
- */ 
+ */
 static im_function grey_desc = {
 	"im_grey", 			/* Name */
 	"generate IM_BANDFMT_UCHAR [0,255] grey scale image", /* Description */
@@ -308,7 +308,7 @@ fgrey_vec( im_object *argv )
 }
 
 /* Description of im_fgrey.
- */ 
+ */
 static im_function fgrey_desc = {
 	"im_fgrey", 			/* Name */
 	"generate IM_BANDFMT_FLOAT [0,1] grey scale image", /* Description */
@@ -330,7 +330,7 @@ make_xy_vec( im_object *argv )
 }
 
 /* Description of im_make_xy.
- */ 
+ */
 static im_function make_xy_desc = {
 	"im_make_xy", 			/* Name */
 	"generate image with pixel value equal to coordinate", /* Description */

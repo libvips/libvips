@@ -2,18 +2,18 @@
  *
  * Author: JC
  * Written on: 19/8/96
- * Modified on: 
+ * Modified on:
  * JC 20/8/96
  *	- now uses insert-sort rather than bubble-sort
  *	- now works for any non-complex type
- * JC 22/6/01 
+ * JC 22/6/01
  *	- oops, sanity check on n wrong
  * JC 28/8/03
  *	- cleanups
  *	- better selection algorithm ... same speed for 3x3, about 3x faster
  *	  for 5x5, faster still for larger windows
  *	- index from zero for consistency with other parts of vips
- * 7/4/04 
+ * 7/4/04
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -81,7 +81,7 @@ typedef struct _VipsRank {
 	int height;
 	int index;
 
-	int n; 
+	int n;
 
 	gboolean hist_path;
 
@@ -118,7 +118,7 @@ vips_rank_stop( void *vseq, void *a, void *b )
 		in ) {
 		int i;
 
-		for( i = 0; i < in->Bands; i++ ) 
+		for( i = 0; i < in->Bands; i++ )
 			VIPS_FREE( seq->hist[i] );
 	}
 	VIPS_FREE( seq->hist );
@@ -140,8 +140,8 @@ vips_rank_start( VipsImage *out, void *a, void *b )
 	seq->hist = NULL;
 
 	seq->ir = vips_region_new( in );
-	if( !(seq->sort = VIPS_ARRAY( NULL, 
-		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * rank->n, VipsPel )) ) { 
+	if( !(seq->sort = VIPS_ARRAY( NULL,
+		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * rank->n, VipsPel )) ) {
 		vips_rank_stop( seq, in, rank );
 		return( NULL );
 	}
@@ -149,14 +149,14 @@ vips_rank_start( VipsImage *out, void *a, void *b )
 	if( rank->hist_path ) {
 		int i;
 
-		if( !(seq->hist = 
+		if( !(seq->hist =
 			VIPS_ARRAY( NULL, in->Bands, unsigned int * )) ) {
 			vips_rank_stop( seq, in, rank );
 			return( NULL );
 		}
 
-		for( i = 0; i < in->Bands; i++ ) 
-			if( !(seq->hist[i] = 
+		for( i = 0; i < in->Bands; i++ )
+			if( !(seq->hist[i] =
 				VIPS_ARRAY( NULL, 256, unsigned int )) ) {
 				vips_rank_stop( seq, in, rank );
 				return( NULL );
@@ -169,19 +169,19 @@ vips_rank_start( VipsImage *out, void *a, void *b )
 /* Histogram path for large uchar ranks.
  */
 static void
-vips_rank_generate_uchar( VipsRegion *or, 
+vips_rank_generate_uchar( VipsRegion *or,
 	VipsRankSequence *seq, VipsRank *rank, int y )
 {
 	VipsImage *in = seq->ir->im;
 	VipsRect *r = &or->valid;
-	const int bands = in->Bands; 
+	const int bands = in->Bands;
 	const int last = bands * (rank->width - 1);
 
 	/* Get input and output pointers for this line.
 	 */
-	VipsPel * restrict p = 
+	VipsPel * restrict p =
 		VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
-	VipsPel * restrict q = 
+	VipsPel * restrict q =
 		VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 	VipsPel * restrict p1;
@@ -210,7 +210,7 @@ vips_rank_generate_uchar( VipsRegion *or,
 			/* Calculate cumulative histogram -- the value is the
 			 * index at which we pass the rank.
 			 */
-			unsigned int * restrict hist = seq->hist[b]; 
+			unsigned int * restrict hist = seq->hist[b];
 
 			int sum;
 			int i;
@@ -223,8 +223,8 @@ vips_rank_generate_uchar( VipsRegion *or,
 			}
 			q[b] = i;
 
-			/* Adapt histogram --- remove the pels from 
-			 * the left hand column, add in pels for a 
+			/* Adapt histogram --- remove the pels from
+			 * the left hand column, add in pels for a
 			 * new right-hand column.
 			 */
 			p1 = p + b;
@@ -260,14 +260,14 @@ vips_rank_generate_uchar( VipsRegion *or,
 			d += ls; \
 		} \
 		\
-		/* Rearrange sort[] to make the index-th element the index-th 
+		/* Rearrange sort[] to make the index-th element the index-th
 		 * smallest, adapted from Numerical Recipes in C.
 		 */ \
 		lower = 0;	/* Range we know the result lies in */ \
 		upper = rank->n - 1; \
 		for(;;) { \
 			if( upper - lower < 2 ) { \
-				/* 1 or 2 elements left. 
+				/* 1 or 2 elements left.
 				 */ \
 				if( upper - lower == 1 &&  \
 					sort[lower] > sort[upper] ) \
@@ -276,13 +276,13 @@ vips_rank_generate_uchar( VipsRegion *or,
 				break; \
 			} \
 			else { \
-				/* Pick mid-point of remaining elements. 
+				/* Pick mid-point of remaining elements.
 				 */ \
 				mid = (lower + upper) >> 1; \
 				\
-				/* Sort lower/mid/upper elements, hold 
-				 * midpoint in sort[lower + 1] for 
-				 * partitioning. 
+				/* Sort lower/mid/upper elements, hold
+				 * midpoint in sort[lower + 1] for
+				 * partitioning.
 				 */  \
 				VIPS_SWAP( TYPE, sort[lower + 1], sort[mid] ); \
 				if( sort[lower] > sort[upper] ) \
@@ -300,7 +300,7 @@ vips_rank_generate_uchar( VipsRegion *or,
 				a = sort[lower + 1]; \
 				\
 				for(;;) { \
-					/* Search for out of order elements. 
+					/* Search for out of order elements.
 					 */ \
 					do \
 						i++; \
@@ -313,12 +313,12 @@ vips_rank_generate_uchar( VipsRegion *or,
 					VIPS_SWAP( TYPE, sort[i], sort[j] ); \
 				} \
 				\
-				/* Replace mid element. 
+				/* Replace mid element.
 				 */ \
 				sort[lower + 1] = sort[j]; \
 				sort[j] = a; \
 				\
-				/* Move to partition with the kth element. 
+				/* Move to partition with the kth element.
 				 */ \
 				if( j >= rank->index ) \
 					upper = j - 1; \
@@ -400,10 +400,10 @@ vips_rank_generate_uchar( VipsRegion *or,
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 static int
-vips_rank_generate( VipsRegion *or, 
+vips_rank_generate( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsRect *r = &or->valid;
@@ -432,14 +432,14 @@ vips_rank_generate( VipsRegion *or,
 		return( -1 );
 	ls = VIPS_REGION_LSKIP( ir ) / VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
-	for( y = 0; y < r->height; y++ ) { 
-		if( rank->hist_path ) 
+	for( y = 0; y < r->height; y++ ) {
+		if( rank->hist_path )
 			vips_rank_generate_uchar( or, seq, rank, y );
 		else if( rank->index == 0 )
 			SWITCH( LOOP_MIN )
-		else if( rank->index == rank->n - 1 ) 
+		else if( rank->index == rank->n - 1 )
 			SWITCH( LOOP_MAX )
-		else 
+		else
 			SWITCH( LOOP_SELECT ) }
 
 	return( 0 );
@@ -458,7 +458,7 @@ vips_rank_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_rank_parent_class )->build( object ) )
 		return( -1 );
 
-	in = morphology->in; 
+	in = morphology->in;
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
@@ -466,7 +466,7 @@ vips_rank_build( VipsObject *object )
 
 	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
-	if( rank->width > in->Xsize || 
+	if( rank->width > in->Xsize ||
 		rank->height > in->Ysize ) {
 		vips_error( class->nickname, "%s", _( "window too large" ) );
 		return( -1 );
@@ -480,49 +480,49 @@ vips_rank_build( VipsObject *object )
 	/* Enable the hist path if it'll probably help.
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR ) {
-		/* The hist path is always faster for windows larger than about 
+		/* The hist path is always faster for windows larger than about
 		 * 10x10, and faster for >3x3 on the non-max/min case.
 		 */
 		if( rank->n > 90 )
 			rank->hist_path = TRUE;
-		else if( rank->n > 10 && 
+		else if( rank->n > 10 &&
 			rank->index != 0 &&
 		       	rank->index != rank->n - 1 )
 			rank->hist_path = TRUE;
 	}
 
-	/* Expand the input. 
+	/* Expand the input.
 	 */
-	if( vips_embed( in, &t[1], 
-		rank->width / 2, rank->height / 2, 
+	if( vips_embed( in, &t[1],
+		rank->width / 2, rank->height / 2,
 		in->Xsize + rank->width - 1, in->Ysize + rank->height - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
 	in = t[1];
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( vips_image_pipelinev( rank->out, 
+	if( vips_image_pipelinev( rank->out,
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 	rank->out->Xsize -= rank->width - 1;
 	rank->out->Ysize -= rank->height - 1;
 
-	if( vips_image_generate( rank->out, 
-		vips_rank_start, 
-		vips_rank_generate, 
-		vips_rank_stop, 
+	if( vips_image_generate( rank->out,
+		vips_rank_start,
+		vips_rank_generate,
+		vips_rank_stop,
 		in, rank ) )
 		return( -1 );
 
 	rank->out->Xoffset = 0;
 	rank->out->Yoffset = 0;
 
-	vips_reorder_margin_hint( rank->out, rank->width * rank->height ); 
+	vips_reorder_margin_hint( rank->out, rank->width * rank->height );
 
 	return( 0 );
 }
@@ -540,28 +540,28 @@ vips_rank_class_init( VipsRankClass *class )
 	object_class->description = _( "rank filter" );
 	object_class->build = vips_rank_build;
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsRank, out ) );
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Window width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRank, width ),
 		1, 100000, 11 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Window height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRank, height ),
 		1, 100000, 11 );
 
-	VIPS_ARG_INT( class, "index", 6, 
-		_( "Index" ), 
+	VIPS_ARG_INT( class, "index", 6,
+		_( "Index" ),
 		_( "Select pixel at index" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRank, index ),
@@ -587,28 +587,28 @@ vips_rank_init( VipsRank *rank )
  * @...: %NULL-terminated list of optional named arguments
  *
  * vips_rank() does rank filtering on an image. A window of size @width by
- * @height is passed over the image. At each position, the pixels inside the 
- * window are sorted into ascending order and the pixel at position @index is 
+ * @height is passed over the image. At each position, the pixels inside the
+ * window are sorted into ascending order and the pixel at position @index is
  * output. @index numbers from 0.
  *
- * It works for any non-complex image type, with any number of bands. 
- * The input is expanded by copying edge pixels before performing the 
- * operation so that the output image has the same size as the input. 
+ * It works for any non-complex image type, with any number of bands.
+ * The input is expanded by copying edge pixels before performing the
+ * operation so that the output image has the same size as the input.
  * Edge pixels in the output image are therefore only approximate.
  *
  * For a median filter with mask size m (3 for 3x3, 5 for 5x5, etc.) use
  *
  *  vips_rank( in, out, m, m, m * m / 2 );
  *
- * The special cases n == 0 and n == m * m - 1 are useful dilate and 
+ * The special cases n == 0 and n == m * m - 1 are useful dilate and
  * expand operators.
  *
  * See also: vips_conv(), vips_median(), vips_spcor().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_rank( VipsImage *in, VipsImage **out, 
+int
+vips_rank( VipsImage *in, VipsImage **out,
 	int width, int height, int index, ... )
 {
 	va_list ap;
@@ -643,7 +643,7 @@ vips_median( VipsImage *in, VipsImage **out, int size, ... )
 	int result;
 
 	va_start( ap, size );
-	result = vips_call_split( "rank", ap, in, out, 
+	result = vips_call_split( "rank", ap, in, out,
 		size, size, (size * size) / 2 );
 	va_end( ap );
 

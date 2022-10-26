@@ -15,7 +15,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 im_simcontr( IMAGE *out, int xsize, int ysize )
 {
 	int x, y;
@@ -75,17 +75,17 @@ im_simcontr( IMAGE *out, int xsize, int ysize )
 		return( -1 );
 
 /* Set now image properly */
-        im_initdesc(out, xsize, ysize, 1, IM_BBITS_BYTE, IM_BANDFMT_UCHAR,
+	im_initdesc(out, xsize, ysize, 1, IM_BBITS_BYTE, IM_BANDFMT_UCHAR,
 		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
 
 /* Set up image checking whether the output is a buffer or a file */
-        if (im_setupout( out ) == -1 )
-                return( -1 );
+	if (im_setupout( out ) == -1 )
+		return( -1 );
 /* Create data */
-        line1 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
-        line2 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
-        if ( (line1 == NULL) || (line2 == NULL) ) { 
-		im_error( "im_simcontr", "%s", _( "calloc failed") ); 
+	line1 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
+	line2 = (unsigned char *)calloc((unsigned)xsize, sizeof(char));
+	if ( (line1 == NULL) || (line2 == NULL) ) {
+		im_error( "im_simcontr", "%s", _( "calloc failed") );
 		return(-1); }
 
 	cpline = line1;
@@ -94,7 +94,7 @@ im_simcontr( IMAGE *out, int xsize, int ysize )
 	cpline = line1;
 	for (x=0; x<xsize/2; x++)
 		*cpline++ = (PEL)0;
-	
+
 	cpline = line2;
 	for (x=0; x<xsize; x++)
 		*cpline++ = (PEL)255;

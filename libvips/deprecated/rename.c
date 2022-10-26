@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -41,51 +41,51 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 
-int 
+int
 im_remainderconst_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
 	return( im_remainder_vec( in, out, n, c ) );
 }
 
-int 
+int
 im_and_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	return( im_andimage_vec( in, out, n, c ) ); 
+	return( im_andimage_vec( in, out, n, c ) );
 }
 
-int 
+int
 im_or_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	return( im_orimage_vec( in, out, n, c ) ); 
+	return( im_orimage_vec( in, out, n, c ) );
 }
 
-int 
+int
 im_eor_vec( IMAGE *in, IMAGE *out, int n, double *c )
 {
-	return( im_eorimage_vec( in, out, n, c ) ); 
+	return( im_eorimage_vec( in, out, n, c ) );
 }
 
-int 
+int
 im_andconst( IMAGE *in, IMAGE *out, double c )
 {
-	return( im_andimageconst( in, out, c ) ); 
+	return( im_andimageconst( in, out, c ) );
 }
 
-int 
+int
 im_orconst( IMAGE *in, IMAGE *out, double c )
 {
 	return( im_orimageconst( in, out, c ) );
 }
 
-int 
+int
 im_eorconst( IMAGE *in, IMAGE *out, double c )
 {
 	return( im_eorimageconst( in, out, c ) );
 }
 
-void 
+void
 im_errormsg( const char *fmt, ... )
-{	
+{
 	va_list ap;
 
 	va_start( ap, fmt );
@@ -93,9 +93,9 @@ im_errormsg( const char *fmt, ... )
 	va_end( ap );
 }
 
-void 
+void
 im_verrormsg( const char *fmt, va_list ap )
-{	
+{
 	im_verror( "untranslated", fmt, ap );
 }
 
@@ -109,9 +109,9 @@ im_errormsg_system( int err,  const char *fmt, ... )
 	va_end( ap );
 }
 
-void 
+void
 im_diagnostics( const char *fmt, ... )
-{	
+{
 	va_list ap;
 
 	va_start( ap, fmt );
@@ -119,7 +119,7 @@ im_diagnostics( const char *fmt, ... )
 	va_end( ap );
 }
 
-void 
+void
 im_warning( const char *fmt, ... )
 {
 	va_list ap;
@@ -129,39 +129,39 @@ im_warning( const char *fmt, ... )
 	va_end( ap );
 }
 
-int 
-im_affine( IMAGE *in, IMAGE *out, 
-	double a, double b, double c, double d, double dx, double dy, 
+int
+im_affine( IMAGE *in, IMAGE *out,
+	double a, double b, double c, double d, double dx, double dy,
 	int ox, int oy, int ow, int oh )
 {
-	return( im_affinei( in, out, 
-		vips_interpolate_bilinear_static(), 
-		a, b, c, d, dx, dy, 
+	return( im_affinei( in, out,
+		vips_interpolate_bilinear_static(),
+		a, b, c, d, dx, dy,
 		ox, oy, ow, oh ) );
 }
 
-int 
-im_similarity_area( IMAGE *in, IMAGE *out, 
-	double a, double b, double dx, double dy, 
+int
+im_similarity_area( IMAGE *in, IMAGE *out,
+	double a, double b, double dx, double dy,
 	int ox, int oy, int ow, int oh )
 {
-	return( im_affinei( in, out, 
-		vips_interpolate_bilinear_static(), 
-		a, -b, b, a, dx, dy, 
+	return( im_affinei( in, out,
+		vips_interpolate_bilinear_static(),
+		a, -b, b, a, dx, dy,
 		ox, oy, ow, oh ) );
 }
 
-int 
-im_similarity( IMAGE *in, IMAGE *out, 
+int
+im_similarity( IMAGE *in, IMAGE *out,
 	double a, double b, double dx, double dy )
 {
-	return( im_affinei_all( in, out, 
-		vips_interpolate_bilinear_static(), 
-		a, -b, b, a, dx, dy ) ); 
+	return( im_affinei_all( in, out,
+		vips_interpolate_bilinear_static(),
+		a, -b, b, a, dx, dy ) );
 }
 
 DOUBLEMASK *
-im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v, 
+im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 	int *sel, int nsel, const char *name )
 {
 	return( im_measure_area( im,
@@ -169,18 +169,18 @@ im_measure( IMAGE *im, IMAGE_BOX *box, int h, int v,
 		box->ystart,
 		box->xsize,
 		box->ysize,
-		h, v, sel, nsel, name ) ); 
+		h, v, sel, nsel, name ) );
 }
 
 int
 im_extract( IMAGE *in, IMAGE *out, IMAGE_BOX *box )
-{	
+{
 	if( box->chsel == -1 )
-		return( im_extract_areabands( in, out, 
+		return( im_extract_areabands( in, out,
 			box->xstart, box->ystart, box->xsize, box->ysize,
 			0, in->Bands ) );
 	else
-		return( im_extract_areabands( in, out, 
+		return( im_extract_areabands( in, out,
 			box->xstart, box->ystart, box->xsize, box->ysize,
 			box->chsel, 1 ) );
 }
@@ -190,26 +190,26 @@ im_extract( IMAGE *in, IMAGE *out, IMAGE_BOX *box )
 typedef void (*notify_fn)( IMAGE *, Rect *, void * );
 
 int
-im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask, 
-	int width, int height, int max, 
+im_render_fade( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
 	int fps, int steps,
 	int priority,
 	notify_fn notify, void *client )
 {
-	return( im_render_priority( in, out, mask, 
-		width, height, max, 
+	return( im_render_priority( in, out, mask,
+		width, height, max,
 		priority,
 		notify, client ) );
 }
 
 int
-im_render( IMAGE *in, IMAGE *out, IMAGE *mask, 
-	int width, int height, int max, 
+im_render( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
 	notify_fn notify, void *client )
 {
-	return( im_render_priority( in, out, mask, 
-		width, height, max, 
-		0, 
+	return( im_render_priority( in, out, mask,
+		width, height, max,
+		0,
 		notify, client ) );
 }
 
@@ -220,20 +220,20 @@ im_makerw( IMAGE *im )
 }
 
 int
-im_icc_export( IMAGE *in, IMAGE *out, 
+im_icc_export( IMAGE *in, IMAGE *out,
 	const char *output_profile_filename, int intent )
-{ 
-	return( im_icc_export_depth( in, out, 
+{
+	return( im_icc_export_depth( in, out,
 		8, output_profile_filename, (VipsIntent) intent ) );
 }
 
-int 
+int
 im_segment( IMAGE *test, IMAGE *mask, int *segments )
 {
 	return( im_label_regions( test, mask, segments ) );
 }
 
-int 
+int
 im_convf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
 	return( im_conv_f( in, out, mask ) );
@@ -245,7 +245,7 @@ im_convf_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	return( im_conv_f_raw( in, out, mask ) );
 }
 
-int 
+int
 im_convsepf( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
 	return( im_convsep_f( in, out, mask ) );
@@ -265,7 +265,7 @@ im_isint( IMAGE *im )
 
 gboolean
 im_isuint( IMAGE *im )
-{	
+{
 	return( vips_bandfmt_isuint( im->BandFmt ) );
 }
 
@@ -277,7 +277,7 @@ im_isfloat( IMAGE *im )
 
 gboolean
 im_iscomplex( IMAGE *im )
-{	
+{
 	return( vips_band_format_iscomplex( im->BandFmt ) );
 }
 
@@ -287,7 +287,7 @@ im_isscalar( IMAGE *im )
 	return( !im_iscomplex( im ) );
 }
 
-int 
+int
 im_c2ps( IMAGE *in, IMAGE *out )
 {
 	return( im_abs( in, out ) );
@@ -364,15 +364,15 @@ im_copy_from( IMAGE *in, IMAGE *out, im_arch_type architecture )
 		return( im_copy_swap( in, out ) );
 
 	case IM_ARCH_LSB_FIRST:
-		return( im_amiMSBfirst() ? 
+		return( im_amiMSBfirst() ?
 			im_copy_swap( in, out ) : im_copy( in, out ) );
 
 	case IM_ARCH_MSB_FIRST:
-		return( im_amiMSBfirst() ? 
+		return( im_amiMSBfirst() ?
 			im_copy( in, out ) : im_copy_swap( in, out ) );
 
 	default:
-		im_error( "im_copy_from", 
+		im_error( "im_copy_from",
 			_( "bad architecture: %d" ), architecture );
 		return( -1 );
 	}
@@ -384,18 +384,18 @@ gboolean
 im_isnative( im_arch_type arch )
 {
 	switch( arch ) {
-	case IM_ARCH_NATIVE: 		
+	case IM_ARCH_NATIVE:
 		return( TRUE );
-	case IM_ARCH_BYTE_SWAPPED: 	
+	case IM_ARCH_BYTE_SWAPPED:
 		return( FALSE );
-	case IM_ARCH_LSB_FIRST: 	
+	case IM_ARCH_LSB_FIRST:
 		return( !im_amiMSBfirst() );
-	case IM_ARCH_MSB_FIRST: 	
+	case IM_ARCH_MSB_FIRST:
 		return( im_amiMSBfirst() );
 
 	default:
 		g_assert( 0 );
-	}  
+	}
 
 	/* Keep -Wall happy.
 	 */
@@ -403,7 +403,7 @@ im_isnative( im_arch_type arch )
 }
 
 int
-im_iterate( IMAGE *im, 
+im_iterate( IMAGE *im,
 	im_start_fn start, im_generate_fn generate, im_stop_fn stop,
 	void *b, void *c )
 {
@@ -411,13 +411,13 @@ im_iterate( IMAGE *im,
 }
 
 int
-im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask, 
-	int width, int height, int max, 
+im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int width, int height, int max,
 	int priority,
 	notify_fn notify, void *client )
 {
-	return( vips_sink_screen( in, out, mask, 
-		width, height, max, priority, notify, client ) ); 
+	return( vips_sink_screen( in, out, mask,
+		width, height, max, priority, notify, client ) );
 }
 
 /**
@@ -428,7 +428,7 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
  * @radius: circle radius
  * @intensity: value to draw
  *
- * Draws a circle on a 1-band 8-bit image. 
+ * Draws a circle on a 1-band 8-bit image.
  *
  * This an inplace operation, so @im is changed. It does not thread and will
  * not work well as part of a pipeline. On 32-bit machines it will be limited
@@ -438,7 +438,7 @@ im_render_priority( IMAGE *in, IMAGE *out, IMAGE *mask,
  *
  * Returns: 0 on success, or -1 on error.
  */
-int 
+int
 im_circle( IMAGE *im, int cx, int cy, int radius, int intensity )
 {
 	PEL ink[1];
@@ -466,7 +466,7 @@ im_flood_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
 	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
 		im_copy( in, t ) ||
 		im_flood( t, x, y, ink, NULL ) ||
-		im_copy( t, out ) ) 
+		im_copy( t, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -480,14 +480,14 @@ im_flood_blob_copy( IMAGE *in, IMAGE *out, int x, int y, PEL *ink )
 	if( !(t = im_open_local( out, "im_flood_blob_copy", "t" )) ||
 		im_copy( in, t ) ||
 		im_flood_blob( t, x, y, ink, NULL ) ||
-		im_copy( t, out ) ) 
+		im_copy( t, out ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 int
-im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out, 
+im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 	int x, int y, int serial )
 {
 	IMAGE *t;
@@ -495,7 +495,7 @@ im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 	if( !(t = im_open_local( out, "im_flood_other_copy", "t" )) ||
 		im_copy( mark, t ) ||
 		im_flood_other( test, t, x, y, serial, NULL ) ||
-		im_copy( t, out ) ) 
+		im_copy( t, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -504,7 +504,7 @@ im_flood_other_copy( IMAGE *test, IMAGE *mark, IMAGE *out,
 int
 im_paintrect( IMAGE *im, Rect *r, PEL *ink )
 {
-	return( im_draw_rect( im, 
+	return( im_draw_rect( im,
 		r->left, r->top, r->width, r->height, 1, ink ) );
 }
 
@@ -514,18 +514,18 @@ im_insertplace( IMAGE *main, IMAGE *sub, int x, int y )
 	return( im_draw_image( main, sub, x, y ) );
 }
 
-int 
+int
 im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 {
 	return( im_draw_line( im, x1, y1, x2, y2, pel ) );
 }
 
-int 
-im_fastlineuser( IMAGE *im, 
-	int x1, int y1, int x2, int y2, 
+int
+im_fastlineuser( IMAGE *im,
+	int x1, int y1, int x2, int y2,
 	VipsPlotFn fn, void *client1, void *client2, void *client3 )
 {
-	return( im_draw_line_user( im, x1, y1, x2, y2, 
+	return( im_draw_line_user( im, x1, y1, x2, y2,
 		fn, client1, client2, client3 ) );
 }
 
@@ -534,7 +534,7 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 {
 	IMAGE *mask_im;
 
-	if( !(mask_im = im_image( mask, 
+	if( !(mask_im = im_image( mask,
 		r->width, r->height, 1, IM_BANDFMT_UCHAR )) )
 		return( -1 );
 	if( im_draw_mask( im, mask_im, ix + r->left, iy + r->top, ink ) ) {
@@ -546,13 +546,13 @@ im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, Rect *r )
 	return( 0 );
 }
 
-int 
+int
 im_readpoint( IMAGE *im, int x, int y, PEL *pel )
 {
 	return( im_read_point( im, x, y, pel ) );
 }
 
-int 
+int
 im_plotpoint( IMAGE *im, int x, int y, PEL *pel )
 {
 	return( im_draw_point( im, x, y, pel ) );
@@ -562,7 +562,7 @@ im_plotpoint( IMAGE *im, int x, int y, PEL *pel )
  */
 int
 im_smear( IMAGE *im, int ix, int iy, Rect *r )
-{	
+{
 	int x, y, a, b, c;
 	int ba = im->Bands;
 	int el = ba * im->Xsize;
@@ -619,37 +619,37 @@ im_smear( IMAGE *im, int ix, int iy, Rect *r )
 	/* Loop through the remaining pixels.
 	 */
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR: 
-		SMEAR(unsigned char); 
-		break; 
+	case IM_BANDFMT_UCHAR:
+		SMEAR(unsigned char);
+		break;
 
-	case IM_BANDFMT_CHAR: 
-		SMEAR(char); 
-		break; 
+	case IM_BANDFMT_CHAR:
+		SMEAR(char);
+		break;
 
-	case IM_BANDFMT_USHORT: 
-		SMEAR(unsigned short); 
-		break; 
+	case IM_BANDFMT_USHORT:
+		SMEAR(unsigned short);
+		break;
 
-	case IM_BANDFMT_SHORT: 
-		SMEAR(short); 
-		break; 
+	case IM_BANDFMT_SHORT:
+		SMEAR(short);
+		break;
 
-	case IM_BANDFMT_UINT: 
-		SMEAR(unsigned int); 
-		break; 
+	case IM_BANDFMT_UINT:
+		SMEAR(unsigned int);
+		break;
 
-	case IM_BANDFMT_INT: 
-		SMEAR(int); 
-		break; 
+	case IM_BANDFMT_INT:
+		SMEAR(int);
+		break;
 
-	case IM_BANDFMT_FLOAT: 
-		SMEAR(float); 
-		break; 
+	case IM_BANDFMT_FLOAT:
+		SMEAR(float);
+		break;
 
-	case IM_BANDFMT_DOUBLE: 
-		SMEAR(double); 
-		break; 
+	case IM_BANDFMT_DOUBLE:
+		SMEAR(double);
+		break;
 
 	/* Do complex types too. Just treat as float and double, but with
 	 * twice the number of bands.
@@ -685,24 +685,24 @@ im_smear( IMAGE *im, int ix, int iy, Rect *r )
 int
 im_smudge( VipsImage *image, int ix, int iy, Rect *r )
 {
-	return( im_draw_smudge( image, 
+	return( im_draw_smudge( image,
 		r->left + ix, r->top + iy, r->width, r->height ) );
 }
 
-int 
+int
 im_flood( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	return( im_draw_flood( im, x, y, ink, dout ) );
 }
 
-int 
+int
 im_flood_blob( IMAGE *im, int x, int y, PEL *ink, Rect *dout )
 {
 	return( im_draw_flood_blob( im, x, y, ink, dout ) );
 }
 
-int 
-im_flood_other( IMAGE *test, IMAGE *mark, 
+int
+im_flood_other( IMAGE *test, IMAGE *mark,
 	int x, int y, int serial, Rect *dout )
 {
 	return( im_draw_flood_other( mark, test, x, y, serial, dout ) );
@@ -711,19 +711,19 @@ im_flood_other( IMAGE *test, IMAGE *mark,
 int
 vips_check_coding_rad( const char *domain, VipsImage *im )
 {
-	return( vips_check_coding( domain, im, VIPS_CODING_RAD ) ); 
+	return( vips_check_coding( domain, im, VIPS_CODING_RAD ) );
 }
 
 int
 vips_check_coding_labq( const char *domain, VipsImage *im )
 {
-	return( vips_check_coding( domain, im, VIPS_CODING_LABQ ) ); 
+	return( vips_check_coding( domain, im, VIPS_CODING_LABQ ) );
 }
 
 int
 vips_check_bands_3ormore( const char *domain, VipsImage *im )
 {
-	return( vips_check_bands_atleast( domain, im, 3 ) ); 
+	return( vips_check_bands_atleast( domain, im, 3 ) );
 }
 
 /* The old vips_info() stuff, now replaced by g_warning() / g_info().
@@ -736,7 +736,7 @@ vips_info_set( gboolean info )
 {
 	vips__info = info;
 
-	if( info ) { 
+	if( info ) {
 		const char *old;
 		char *new;
 
@@ -749,10 +749,10 @@ vips_info_set( gboolean info )
 	}
 }
 
-void 
+void
 vips_vinfo( const char *domain, const char *fmt, va_list ap )
 {
-	if( vips__info ) { 
+	if( vips__info ) {
 		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "info" ) );
 		if( domain )
@@ -763,7 +763,7 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
 	}
 }
 
-void 
+void
 vips_info( const char *domain, const char *fmt, ... )
 {
 	va_list ap;
@@ -773,9 +773,9 @@ vips_info( const char *domain, const char *fmt, ... )
 	va_end( ap );
 }
 
-void 
+void
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
-{	
+{
 	if( !g_getenv( "IM_WARNING" ) &&
 		!g_getenv( "VIPS_WARNING" ) ) {
 		g_mutex_lock( vips__global_lock );
@@ -791,9 +791,9 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
 		vips_error_exit( "vips__fatal" );
 }
 
-void 
+void
 vips_warn( const char *domain, const char *fmt, ... )
-{	
+{
 	va_list ap;
 
 	va_start( ap, fmt );

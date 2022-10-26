@@ -1,4 +1,4 @@
-/* 
+/*
  * compile with:
  *
  *      g++ -g -Wall invert.cpp `pkg-config vips-cpp --cflags --libs`
@@ -15,16 +15,16 @@ int
 main( int argc, char **argv )
 {
 	if( vips_init( argv[0] ) )
-		vips_error_exit( NULL ); 
+		vips_error_exit( NULL );
 
-	printf( "these should match if VImage is compile-time-only\n" ); 
-	printf( "sizeof( VipsImage *) = %zd\n", sizeof( VipsImage *) ); 
-	printf( "sizeof( VImage ) = %zd\n", sizeof( VImage ) ); 
+	printf( "these should match if VImage is compile-time-only\n" );
+	printf( "sizeof( VipsImage *) = %zd\n", sizeof( VipsImage *) );
+	printf( "sizeof( VImage ) = %zd\n", sizeof( VImage ) );
 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
+	VImage in = VImage::new_from_file( argv[1],
+		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL ) );
 
-	VImage out; 
+	VImage out;
 
 	out = in.invert();
 
@@ -32,5 +32,5 @@ main( int argc, char **argv )
 
 	vips_shutdown();
 
-        return( 0 );
+	return( 0 );
 }

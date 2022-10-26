@@ -22,7 +22,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -120,34 +120,34 @@ G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_BANDARY );
 }
 
 static void
-vips_bandmean_buffer( VipsBandarySequence *seq, 
+vips_bandmean_buffer( VipsBandarySequence *seq,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsBandary *bandary = seq->bandary;
 	VipsImage *im = bandary->ready[0];
 	const int bands = im->Bands;
-	const int sz = width * 
+	const int sz = width *
 		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int i, j;
 
 	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_CHAR: 	
-		SILOOP( signed char, int ); break; 
-	case VIPS_FORMAT_UCHAR:	
-		UILOOP( unsigned char, unsigned int ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		SILOOP( signed short, int ); break; 
-	case VIPS_FORMAT_USHORT:	
-		UILOOP( unsigned short, unsigned int ); break; 
-	case VIPS_FORMAT_INT: 	
-		SILOOP( signed int, int ); break; 
-	case VIPS_FORMAT_UINT: 	
-		UILOOP( unsigned int, unsigned int ); break; 
-	case VIPS_FORMAT_FLOAT: 	
-		FLOOP( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	
-		FLOOP( double ); break; 
+	case VIPS_FORMAT_CHAR:
+		SILOOP( signed char, int ); break;
+	case VIPS_FORMAT_UCHAR:
+		UILOOP( unsigned char, unsigned int ); break;
+	case VIPS_FORMAT_SHORT:
+		SILOOP( signed short, int ); break;
+	case VIPS_FORMAT_USHORT:
+		UILOOP( unsigned short, unsigned int ); break;
+	case VIPS_FORMAT_INT:
+		SILOOP( signed int, int ); break;
+	case VIPS_FORMAT_UINT:
+		UILOOP( unsigned int, unsigned int ); break;
+	case VIPS_FORMAT_FLOAT:
+		FLOOP( float ); break;
+	case VIPS_FORMAT_DOUBLE:
+		FLOOP( double ); break;
 	case VIPS_FORMAT_COMPLEX:
 		FLOOP( float ); break;
 	case VIPS_FORMAT_DPCOMPLEX:
@@ -168,7 +168,7 @@ vips_bandmean_build( VipsObject *object )
 	bandary->in = &bandmean->in;
 
 	if( bandmean->in &&
-		bandmean->in->Bands == 1 ) 
+		bandmean->in->Bands == 1 )
 		return( vips_bandary_copy( bandary ) );
 
 	bandary->out_bands = 1;
@@ -195,8 +195,8 @@ vips_bandmean_class_init( VipsBandmeanClass *class )
 
 	bandary_class->process_line = vips_bandmean_buffer;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandmean, in ) );
@@ -213,8 +213,8 @@ vips_bandmean_init( VipsBandmean *bandmean )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation writes a one-band image where each pixel is the average of 
- * the bands for that pixel in the input image. The output band format is 
+ * This operation writes a one-band image where each pixel is the average of
+ * the bands for that pixel in the input image. The output band format is
  * the same as the input band format. Integer types use round-to-nearest
  * averaging.
  *

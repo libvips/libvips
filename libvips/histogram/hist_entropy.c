@@ -1,7 +1,7 @@
 /* estimate entropy
  *
  * Author: John Cupitt
- * 11/8/15	
+ * 11/8/15
  * 	- from hist_ismonotonic.c
  * 6/3/16
  * 	- vips_log() call was mangled, thanks Lovell
@@ -10,7 +10,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -44,7 +44,7 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsHistEntropy { 
+typedef struct _VipsHistEntropy {
 	VipsOperation parent_instance;
 
 	VipsImage *in;
@@ -54,18 +54,18 @@ typedef struct _VipsHistEntropy {
 
 typedef VipsOperationClass VipsHistEntropyClass;
 
-G_DEFINE_TYPE( VipsHistEntropy, vips_hist_entropy, 
+G_DEFINE_TYPE( VipsHistEntropy, vips_hist_entropy,
 	VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_entropy_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHistEntropy *entropy = (VipsHistEntropy *) object; 
+	VipsHistEntropy *entropy = (VipsHistEntropy *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
-	double avg; 
-	double sum; 
+	double avg;
+	double sum;
 
 	if( VIPS_OBJECT_CLASS( vips_hist_entropy_parent_class )->
 		build( object ) )
@@ -88,10 +88,10 @@ vips_hist_entropy_build( VipsObject *object )
 		vips_avg( t[3], &avg, NULL ) )
 		return( -1 );
 
-	g_object_set( entropy, 
-		"out", -avg * 
+	g_object_set( entropy,
+		"out", -avg *
 			VIPS_IMAGE_N_PELS( entropy->in ) * entropy->in->Bands,
-		NULL ); 
+		NULL );
 
 	return( 0 );
 }
@@ -109,14 +109,14 @@ vips_hist_entropy_class_init( VipsHistEntropyClass *class )
 	object_class->description = _( "estimate image entropy" );
 	object_class->build = vips_hist_entropy_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input histogram image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistEntropy, in ) );
 
-	VIPS_ARG_DOUBLE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_DOUBLE( class, "out", 2,
+		_( "Output" ),
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistEntropy, out ),
@@ -131,7 +131,7 @@ vips_hist_entropy_init( VipsHistEntropy *entropy )
 
 /**
  * vips_hist_entropy: (method)
- * @in: input histogram 
+ * @in: input histogram
  * @out: (out): image entropy
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -145,7 +145,7 @@ vips_hist_entropy_init( VipsHistEntropy *entropy )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_entropy( VipsImage *in, double *out, ... )
 {
 	va_list ap;

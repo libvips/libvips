@@ -1,5 +1,5 @@
 /* Read a Analyze file. Old-style header (so called 7.5 format).
- * 
+ *
  * 3/8/05
  * 	- dbh.h header from Ralph Myers
  * 22/8/05
@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -71,7 +71,7 @@ typedef enum {
 	BYTE,
 	SHORT,
 	INT,
-	FLOAT, 
+	FLOAT,
 	STRING
 } Type;
 
@@ -85,139 +85,139 @@ typedef struct {
 } Field;
 
 static Field dsr_header[] = {
-	{ "dsr-header_key.sizeof_hdr", INT, 
+	{ "dsr-header_key.sizeof_hdr", INT,
 		G_STRUCT_OFFSET( struct dsr, hk.sizeof_hdr ), 4 },
-	{ "dsr-header_key.data_type", STRING, 
+	{ "dsr-header_key.data_type", STRING,
 		G_STRUCT_OFFSET( struct dsr, hk.data_type ), 10 },
-	{ "dsr-header_key.db_name", STRING, 
+	{ "dsr-header_key.db_name", STRING,
 		G_STRUCT_OFFSET( struct dsr, hk.db_name ), 18 },
-	{ "dsr-header_key.extents", INT, 
+	{ "dsr-header_key.extents", INT,
 		G_STRUCT_OFFSET( struct dsr, hk.extents ), 4 },
-	{ "dsr-header_key.session_error", SHORT, 
+	{ "dsr-header_key.session_error", SHORT,
 		G_STRUCT_OFFSET( struct dsr, hk.session_error ), 2 },
-	{ "dsr-header_key.regular", BYTE, 
+	{ "dsr-header_key.regular", BYTE,
 		G_STRUCT_OFFSET( struct dsr, hk.regular ), 1 },
-	{ "dsr-header_key.hkey_un0", BYTE, 
+	{ "dsr-header_key.hkey_un0", BYTE,
 		G_STRUCT_OFFSET( struct dsr, hk.hkey_un0 ), 1 },
 
-	{ "dsr-image_dimension.dim[0]", SHORT, 
+	{ "dsr-image_dimension.dim[0]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[0] ), 2 },
-	{ "dsr-image_dimension.dim[1]", SHORT, 
+	{ "dsr-image_dimension.dim[1]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[1] ), 2 },
-	{ "dsr-image_dimension.dim[2]", SHORT, 
+	{ "dsr-image_dimension.dim[2]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[2] ), 2 },
-	{ "dsr-image_dimension.dim[3]", SHORT, 
+	{ "dsr-image_dimension.dim[3]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[3] ), 2 },
-	{ "dsr-image_dimension.dim[4]", SHORT, 
+	{ "dsr-image_dimension.dim[4]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[4] ), 2 },
-	{ "dsr-image_dimension.dim[5]", SHORT, 
+	{ "dsr-image_dimension.dim[5]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[5] ), 2 },
-	{ "dsr-image_dimension.dim[6]", SHORT, 
+	{ "dsr-image_dimension.dim[6]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[6] ), 2 },
-	{ "dsr-image_dimension.dim[7]", SHORT, 
+	{ "dsr-image_dimension.dim[7]", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim[7] ), 2 },
-	{ "dsr-image_dimension.vox_units[0]", BYTE, 
+	{ "dsr-image_dimension.vox_units[0]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.vox_units[0] ), 1 },
-	{ "dsr-image_dimension.vox_units[1]", BYTE, 
+	{ "dsr-image_dimension.vox_units[1]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.vox_units[1] ), 1 },
-	{ "dsr-image_dimension.vox_units[2]", BYTE, 
+	{ "dsr-image_dimension.vox_units[2]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.vox_units[2] ), 1 },
-	{ "dsr-image_dimension.vox_units[3]", BYTE, 
+	{ "dsr-image_dimension.vox_units[3]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.vox_units[3] ), 1 },
-	{ "dsr-image_dimension.cal_units[0]", BYTE, 
+	{ "dsr-image_dimension.cal_units[0]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[0] ), 1 },
-	{ "dsr-image_dimension.cal_units[1]", BYTE, 
+	{ "dsr-image_dimension.cal_units[1]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[1] ), 1 },
-	{ "dsr-image_dimension.cal_units[2]", BYTE, 
+	{ "dsr-image_dimension.cal_units[2]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[2] ), 1 },
-	{ "dsr-image_dimension.cal_units[3]", BYTE, 
+	{ "dsr-image_dimension.cal_units[3]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[3] ), 1 },
-	{ "dsr-image_dimension.cal_units[4]", BYTE, 
+	{ "dsr-image_dimension.cal_units[4]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[4] ), 1 },
-	{ "dsr-image_dimension.cal_units[5]", BYTE, 
+	{ "dsr-image_dimension.cal_units[5]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[5] ), 1 },
-	{ "dsr-image_dimension.cal_units[6]", BYTE, 
+	{ "dsr-image_dimension.cal_units[6]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[6] ), 1 },
-	{ "dsr-image_dimension.cal_units[7]", BYTE, 
+	{ "dsr-image_dimension.cal_units[7]", BYTE,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_units[7] ), 1 },
-	{ "dsr-image_dimension.data_type", SHORT, 
+	{ "dsr-image_dimension.data_type", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.datatype ), 2 },
-	{ "dsr-image_dimension.bitpix", SHORT, 
+	{ "dsr-image_dimension.bitpix", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.bitpix ), 2 },
-	{ "dsr-image_dimension.dim_un0", SHORT, 
+	{ "dsr-image_dimension.dim_un0", SHORT,
 		G_STRUCT_OFFSET( struct dsr, dime.dim_un0 ), 2 },
-	{ "dsr-image_dimension.pixdim[0]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[0]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[0] ), 4 },
-	{ "dsr-image_dimension.pixdim[1]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[1]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[1] ), 4 },
-	{ "dsr-image_dimension.pixdim[2]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[2]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[2] ), 4 },
-	{ "dsr-image_dimension.pixdim[3]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[3]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[3] ), 4 },
-	{ "dsr-image_dimension.pixdim[4]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[4]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[4] ), 4 },
-	{ "dsr-image_dimension.pixdim[5]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[5]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[5] ), 4 },
-	{ "dsr-image_dimension.pixdim[6]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[6]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[6] ), 4 },
-	{ "dsr-image_dimension.pixdim[7]", FLOAT, 
+	{ "dsr-image_dimension.pixdim[7]", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.pixdim[7] ), 4 },
-	{ "dsr-image_dimension.vox_offset", FLOAT, 
+	{ "dsr-image_dimension.vox_offset", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.vox_offset ), 4 },
-	{ "dsr-image_dimension.cal_max", FLOAT, 
+	{ "dsr-image_dimension.cal_max", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_max ), 4 },
-	{ "dsr-image_dimension.cal_min", FLOAT, 
+	{ "dsr-image_dimension.cal_min", FLOAT,
 		G_STRUCT_OFFSET( struct dsr, dime.cal_min ), 4 },
-	{ "dsr-image_dimension.compressed", INT, 
+	{ "dsr-image_dimension.compressed", INT,
 		G_STRUCT_OFFSET( struct dsr, dime.compressed ), 4 },
-	{ "dsr-image_dimension.verified", INT, 
+	{ "dsr-image_dimension.verified", INT,
 		G_STRUCT_OFFSET( struct dsr, dime.verified ), 4 },
-	{ "dsr-image_dimension.glmax", INT, 
+	{ "dsr-image_dimension.glmax", INT,
 		G_STRUCT_OFFSET( struct dsr, dime.glmax ), 4 },
-	{ "dsr-image_dimension.glmin", INT, 
+	{ "dsr-image_dimension.glmin", INT,
 		G_STRUCT_OFFSET( struct dsr, dime.glmin ), 4 },
 
-	{ "dsr-data_history.descrip", STRING, 
+	{ "dsr-data_history.descrip", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.descrip ), 80 },
-	{ "dsr-data_history.aux_file", STRING, 
+	{ "dsr-data_history.aux_file", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.aux_file ), 24 },
-	{ "dsr-data_history.orient", BYTE, 
+	{ "dsr-data_history.orient", BYTE,
 		G_STRUCT_OFFSET( struct dsr, hist.orient ), 1 },
-	{ "dsr-data_history.originator", STRING, 
+	{ "dsr-data_history.originator", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.originator ), 10 },
-	{ "dsr-data_history.generated", STRING, 
+	{ "dsr-data_history.generated", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.generated ), 10 },
-	{ "dsr-data_history.scannum", STRING, 
+	{ "dsr-data_history.scannum", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.scannum ), 10 },
-	{ "dsr-data_history.patient_id", STRING, 
+	{ "dsr-data_history.patient_id", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.patient_id ), 10 },
-	{ "dsr-data_history.exp_date", STRING, 
+	{ "dsr-data_history.exp_date", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.exp_date ), 10 },
-	{ "dsr-data_history.exp_time", STRING, 
+	{ "dsr-data_history.exp_time", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.exp_time ), 10 },
-	{ "dsr-data_history.hist_un0", STRING, 
+	{ "dsr-data_history.hist_un0", STRING,
 		G_STRUCT_OFFSET( struct dsr, hist.hist_un0 ), 3 },
-	{ "dsr-data_history.views", INT, 
+	{ "dsr-data_history.views", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.views ), 4 },
-	{ "dsr-data_history.vols_added", INT, 
+	{ "dsr-data_history.vols_added", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.vols_added ), 4 },
-	{ "dsr-data_history.start_field", INT, 
+	{ "dsr-data_history.start_field", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.start_field ), 4 },
-	{ "dsr-data_history.field_skip", INT, 
+	{ "dsr-data_history.field_skip", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.field_skip ), 4 },
-	{ "dsr-data_history.omax", INT, 
+	{ "dsr-data_history.omax", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.omax ), 4 },
-	{ "dsr-data_history.omin", INT, 
+	{ "dsr-data_history.omin", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.omin ), 4 },
-	{ "dsr-data_history.smax", INT, 
+	{ "dsr-data_history.smax", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.smax ), 4 },
-	{ "dsr-data_history.smin", INT, 
+	{ "dsr-data_history.smin", INT,
 		G_STRUCT_OFFSET( struct dsr, hist.smin ), 4 }
 };
 
 /* Given a filename, generate the names for the header and the image data.
  *
- * Eg. 
+ * Eg.
  * 	"fred" 		-> "fred.hdr", "fred.img"
  * 	"fred.img" 	-> "fred.hdr", "fred.img"
  */
@@ -248,7 +248,7 @@ getstr( int mx, const char *str )
 	/* How annoying, patient_id has some funny ctrlchars in that mess up
 	 * xml encode later.
 	 */
-	for( i = 0; i < mx && buf[i]; i++ ) 
+	for( i = 0; i < mx && buf[i]; i++ )
 		if( !isascii( buf[i] ) || buf[i] < 32 )
 			buf[i] = '@';
 
@@ -266,28 +266,28 @@ print_dsr( struct dsr *d )
 
 		switch( dsr_header[i].type ) {
 		case BYTE:
-			printf( "%d\n", G_STRUCT_MEMBER( char, d, 
+			printf( "%d\n", G_STRUCT_MEMBER( char, d,
 				dsr_header[i].offset ) );
 			break;
 
 		case SHORT:
-			printf( "%d\n", G_STRUCT_MEMBER( short, d, 
+			printf( "%d\n", G_STRUCT_MEMBER( short, d,
 				dsr_header[i].offset ) );
 			break;
 
 		case INT:
-			printf( "%d\n", G_STRUCT_MEMBER( int, d, 
+			printf( "%d\n", G_STRUCT_MEMBER( int, d,
 				dsr_header[i].offset ) );
 			break;
 
-		case FLOAT: 
-			printf( "%g\n", G_STRUCT_MEMBER( float, d, 
+		case FLOAT:
+			printf( "%g\n", G_STRUCT_MEMBER( float, d,
 				dsr_header[i].offset ) );
 			break;
 
 		case STRING:
-			printf( "\"%s\"\n", getstr( dsr_header[i].len, 
-				&G_STRUCT_MEMBER( char, d, 
+			printf( "\"%s\"\n", getstr( dsr_header[i].len,
+				&G_STRUCT_MEMBER( char, d,
 					dsr_header[i].offset ) ) );
 			break;
 
@@ -308,7 +308,7 @@ read_header( const char *header )
 		return( NULL );
 
 	if( len != sizeof( struct dsr ) ) {
-		vips_error( "analyze2vips", 
+		vips_error( "analyze2vips",
 			"%s", _( "header file size incorrect" ) );
 		g_free( d );
 		return( NULL );
@@ -318,7 +318,7 @@ read_header( const char *header )
 	 */
 	g_assert( sizeof( struct dsr ) == 348 );
 
-	/* dsr headers are always SPARC byte order (MSB first). Do we need to 
+	/* dsr headers are always SPARC byte order (MSB first). Do we need to
 	 * swap?
 	 */
 	if( !vips_amiMSBfirst() ) {
@@ -330,14 +330,14 @@ read_header( const char *header )
 
 			switch( dsr_header[i].type ) {
 			case SHORT:
-				p = &G_STRUCT_MEMBER( unsigned char, d, 
+				p = &G_STRUCT_MEMBER( unsigned char, d,
 					dsr_header[i].offset );
 				vips__copy_2byte( TRUE, p, p );
 				break;
 
 			case INT:
-			case FLOAT: 
-				p = &G_STRUCT_MEMBER( unsigned char, d, 
+			case FLOAT:
+				p = &G_STRUCT_MEMBER( unsigned char, d,
 					dsr_header[i].offset );
 				vips__copy_4byte( TRUE, p, p );
 				break;
@@ -353,7 +353,7 @@ read_header( const char *header )
 	}
 
 	if( (int) len != d->hk.sizeof_hdr ) {
-		vips_error( "analyze2vips", 
+		vips_error( "analyze2vips",
 			"%s", _( "header size incorrect" ) );
 		g_free( d );
 		return( NULL );
@@ -371,8 +371,8 @@ get_vips_properties( struct dsr *d,
 	int i;
 
 	if( d->dime.dim[0] < 2 || d->dime.dim[0] > 7 ) {
-		vips_error( "analyze2vips", 
-			_( "%d-dimensional images not supported" ), 
+		vips_error( "analyze2vips",
+			_( "%d-dimensional images not supported" ),
 			d->dime.dim[0] );
 		return( -1 );
 	}
@@ -424,7 +424,7 @@ get_vips_properties( struct dsr *d,
 		break;
 
 	default:
-		vips_error( "analyze2vips", 
+		vips_error( "analyze2vips",
 			_( "datatype %d not supported" ), d->dime.datatype );
 		return( -1 );
 	}
@@ -444,39 +444,39 @@ attach_meta( VipsImage *out, struct dsr *d )
 {
 	int i;
 
-	vips_image_set_blob( out, "dsr", 
+	vips_image_set_blob( out, "dsr",
 		(VipsCallbackFn) vips_area_free_cb, d, d->hk.sizeof_hdr );
 
 	for( i = 0; i < VIPS_NUMBER( dsr_header ); i++ ) {
 		switch( dsr_header[i].type ) {
 		case BYTE:
 			vips_image_set_int( out, dsr_header[i].name,
-				G_STRUCT_MEMBER( char, d, 
+				G_STRUCT_MEMBER( char, d,
 					dsr_header[i].offset ) );
 			break;
 
 		case SHORT:
 			vips_image_set_int( out, dsr_header[i].name,
-				G_STRUCT_MEMBER( short, d, 
+				G_STRUCT_MEMBER( short, d,
 					dsr_header[i].offset ) );
 			break;
 
 		case INT:
 			vips_image_set_int( out, dsr_header[i].name,
-				G_STRUCT_MEMBER( int, d, 
+				G_STRUCT_MEMBER( int, d,
 					dsr_header[i].offset ) );
 			break;
 
-		case FLOAT: 
+		case FLOAT:
 			vips_image_set_double( out, dsr_header[i].name,
-				G_STRUCT_MEMBER( float, d, 
+				G_STRUCT_MEMBER( float, d,
 					dsr_header[i].offset ) );
 			break;
 
 		case STRING:
 			vips_image_set_string( out, dsr_header[i].name,
-				getstr( dsr_header[i].len, 
-					&G_STRUCT_MEMBER( char, d, 
+				getstr( dsr_header[i].len,
+					&G_STRUCT_MEMBER( char, d,
 						dsr_header[i].offset ) ) );
 			break;
 
@@ -531,7 +531,7 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 	VipsBandFormat fmt;
 
 	generate_filenames( filename, header, image );
-	if( !(d = read_header( header )) ) 
+	if( !(d = read_header( header )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -544,15 +544,15 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 	}
 
 	vips_image_init_fields( out,
-		width, height, bands, fmt, 
-		VIPS_CODING_NONE, 
-		bands == 1 ? 
-			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB, 
+		width, height, bands, fmt,
+		VIPS_CODING_NONE,
+		bands == 1 ?
+			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
 
 	attach_meta( out, d );
 
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -565,7 +565,7 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	char image[FILENAME_MAX];
 	struct dsr *d;
 	VipsImage *x = vips_image_new();
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( x ), 3 );
 	int width, height;
 	int bands;

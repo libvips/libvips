@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -51,7 +51,7 @@
 #include "point.h"
 #include "pmask.h"
 
-/** 
+/**
  * SECTION: create
  * @short_description: create images in various ways
  * @stability: Stable
@@ -76,7 +76,7 @@ vips_create_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	g_object_set( create, "out", vips_image_new(), NULL ); 
+	g_object_set( create, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_create_parent_class )->build( object ) )
 		return( -1 );
@@ -97,10 +97,10 @@ vips_create_class_init( VipsCreateClass *class )
 	vobject_class->description = _( "create operations" );
 	vobject_class->build = vips_create_build;
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 1,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsCreate, out ) );
 }
 
@@ -112,64 +112,64 @@ vips_create_init( VipsCreate *create )
 void
 vips_create_operation_init( void )
 {
-	extern GType vips_black_get_type( void ); 
-	extern GType vips_gaussmat_get_type( void ); 
-	extern GType vips_logmat_get_type( void ); 
-	extern GType vips_gaussnoise_get_type( void ); 
+	extern GType vips_black_get_type( void );
+	extern GType vips_gaussmat_get_type( void );
+	extern GType vips_logmat_get_type( void );
+	extern GType vips_gaussnoise_get_type( void );
 #ifdef HAVE_PANGOCAIRO
-	extern GType vips_text_get_type( void ); 
+	extern GType vips_text_get_type( void );
 #endif /*HAVE_PANGOCAIRO*/
-	extern GType vips_xyz_get_type( void ); 
-	extern GType vips_eye_get_type( void ); 
-	extern GType vips_grey_get_type( void ); 
-	extern GType vips_zone_get_type( void ); 
-	extern GType vips_sines_get_type( void ); 
-	extern GType vips_buildlut_get_type( void ); 
-	extern GType vips_invertlut_get_type( void ); 
-	extern GType vips_tonelut_get_type( void ); 
-	extern GType vips_identity_get_type( void ); 
-	extern GType vips_mask_butterworth_get_type( void ); 
-	extern GType vips_mask_butterworth_ring_get_type( void ); 
-	extern GType vips_mask_butterworth_band_get_type( void ); 
-	extern GType vips_mask_gaussian_get_type( void ); 
-	extern GType vips_mask_gaussian_ring_get_type( void ); 
-	extern GType vips_mask_gaussian_band_get_type( void ); 
-	extern GType vips_mask_ideal_get_type( void ); 
-	extern GType vips_mask_ideal_ring_get_type( void ); 
-	extern GType vips_mask_ideal_band_get_type( void ); 
-	extern GType vips_mask_fractal_get_type( void ); 
-	extern GType vips_fractsurf_get_type( void ); 
-	extern GType vips_worley_get_type( void ); 
-	extern GType vips_perlin_get_type( void ); 
+	extern GType vips_xyz_get_type( void );
+	extern GType vips_eye_get_type( void );
+	extern GType vips_grey_get_type( void );
+	extern GType vips_zone_get_type( void );
+	extern GType vips_sines_get_type( void );
+	extern GType vips_buildlut_get_type( void );
+	extern GType vips_invertlut_get_type( void );
+	extern GType vips_tonelut_get_type( void );
+	extern GType vips_identity_get_type( void );
+	extern GType vips_mask_butterworth_get_type( void );
+	extern GType vips_mask_butterworth_ring_get_type( void );
+	extern GType vips_mask_butterworth_band_get_type( void );
+	extern GType vips_mask_gaussian_get_type( void );
+	extern GType vips_mask_gaussian_ring_get_type( void );
+	extern GType vips_mask_gaussian_band_get_type( void );
+	extern GType vips_mask_ideal_get_type( void );
+	extern GType vips_mask_ideal_ring_get_type( void );
+	extern GType vips_mask_ideal_band_get_type( void );
+	extern GType vips_mask_fractal_get_type( void );
+	extern GType vips_fractsurf_get_type( void );
+	extern GType vips_worley_get_type( void );
+	extern GType vips_perlin_get_type( void );
 
 	vips_black_get_type();
 	vips_gaussmat_get_type();
 	vips_logmat_get_type();
-	vips_gaussnoise_get_type(); 
+	vips_gaussnoise_get_type();
 #ifdef HAVE_PANGOCAIRO
-	vips_text_get_type(); 
+	vips_text_get_type();
 #endif /*HAVE_PANGOCAIRO*/
-	vips_xyz_get_type(); 
-	vips_eye_get_type(); 
-	vips_grey_get_type(); 
-	vips_zone_get_type(); 
-	vips_sines_get_type(); 
-	vips_buildlut_get_type(); 
-	vips_invertlut_get_type(); 
-	vips_tonelut_get_type(); 
-	vips_identity_get_type(); 
-	vips_mask_ideal_get_type(); 
-	vips_mask_ideal_ring_get_type(); 
-	vips_mask_ideal_band_get_type(); 
-	vips_mask_butterworth_get_type(); 
-	vips_mask_butterworth_ring_get_type(); 
-	vips_mask_butterworth_band_get_type(); 
-	vips_mask_gaussian_get_type(); 
-	vips_mask_gaussian_ring_get_type(); 
-	vips_mask_gaussian_band_get_type(); 
-	vips_mask_fractal_get_type(); 
-	vips_fractsurf_get_type(); 
-	vips_worley_get_type(); 
-	vips_perlin_get_type(); 
+	vips_xyz_get_type();
+	vips_eye_get_type();
+	vips_grey_get_type();
+	vips_zone_get_type();
+	vips_sines_get_type();
+	vips_buildlut_get_type();
+	vips_invertlut_get_type();
+	vips_tonelut_get_type();
+	vips_identity_get_type();
+	vips_mask_ideal_get_type();
+	vips_mask_ideal_ring_get_type();
+	vips_mask_ideal_band_get_type();
+	vips_mask_butterworth_get_type();
+	vips_mask_butterworth_ring_get_type();
+	vips_mask_butterworth_band_get_type();
+	vips_mask_gaussian_get_type();
+	vips_mask_gaussian_ring_get_type();
+	vips_mask_gaussian_band_get_type();
+	vips_mask_fractal_get_type();
+	vips_fractsurf_get_type();
+	vips_worley_get_type();
+	vips_perlin_get_type();
 }
 

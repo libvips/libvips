@@ -1,5 +1,5 @@
 /* Write a csv file.
- * 
+ *
  * 16/12/11
  * 	- just a stub
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -39,7 +39,7 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-int 
+int
 im_vips2csv( IMAGE *in, const char *filename )
 {
 	char *separator = "\t";

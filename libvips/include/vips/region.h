@@ -120,7 +120,7 @@ struct _VipsRegion {
 	/* The image this region is on has changed and caches need to be
 	 * dropped.
 	 */
-	gboolean invalid;	
+	gboolean invalid;
 };
 
 typedef struct _VipsRegionClass {
@@ -141,7 +141,7 @@ int vips_region_buffer( VipsRegion *reg, const VipsRect *r );
 VIPS_API
 int vips_region_image( VipsRegion *reg, const VipsRect *r );
 VIPS_API
-int vips_region_region( VipsRegion *reg, VipsRegion *dest, 
+int vips_region_region( VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y );
 VIPS_API
 int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
@@ -151,7 +151,7 @@ int vips_region_position( VipsRegion *reg, int x, int y );
 VIPS_API
 void vips_region_paint( VipsRegion *reg, const VipsRect *r, int value );
 VIPS_API
-void vips_region_paint_pel( VipsRegion *reg, 
+void vips_region_paint_pel( VipsRegion *reg,
 	const VipsRect *r, const VipsPel *ink );
 VIPS_API
 void vips_region_black( VipsRegion *reg );
@@ -159,10 +159,10 @@ VIPS_API
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y );
 VIPS_API
-int vips_region_shrink_method( VipsRegion *from, VipsRegion *to, 
+int vips_region_shrink_method( VipsRegion *from, VipsRegion *to,
 	const VipsRect *target, VipsRegionShrink method );
 VIPS_API
-int vips_region_shrink( VipsRegion *from, VipsRegion *to, 
+int vips_region_shrink( VipsRegion *from, VipsRegion *to,
 	const VipsRect *target );
 
 VIPS_API
@@ -172,7 +172,7 @@ int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, const VipsRect *r, int x, int y );
 
 VIPS_API
-VipsPel *vips_region_fetch( VipsRegion *region, 
+VipsPel *vips_region_fetch( VipsRegion *region,
 	int left, int top, int width, int height, size_t *len );
 VIPS_API
 int vips_region_width( VipsRegion *region );
@@ -188,7 +188,7 @@ void vips_region_invalidate( VipsRegion *reg );
 #ifdef DEBUG_LEAK
 #define VIPS_COUNT_PIXELS( R, N ) vips__region_count_pixels( R, N )
 #else /*!DEBUG_LEAK*/
-#define VIPS_COUNT_PIXELS( R, N ) 
+#define VIPS_COUNT_PIXELS( R, N )
 #endif /*DEBUG_LEAK*/
 
 #define VIPS_REGION_LSKIP( R ) \

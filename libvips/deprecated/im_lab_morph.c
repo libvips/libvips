@@ -10,7 +10,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -65,7 +65,7 @@ im__colour_unary( const char *domain,
 		return( -1 );
 	out->Type = type;
 
-	if( im_wrapone( t[0], out, 
+	if( im_wrapone( t[0], out,
 		(im_wrapone_fn) buffer_fn, a, b ) )
 		return( -1 );
 
@@ -83,9 +83,9 @@ typedef struct {
 } Params;
 
 static int
-morph_init( Params *parm, 
+morph_init( Params *parm,
 	IMAGE *in, IMAGE *out,
-	double L_scale, double L_offset, 
+	double L_scale, double L_offset,
 	DOUBLEMASK *mask, double a_scale, double b_scale )
 {
 	int i, j;
@@ -98,7 +98,7 @@ morph_init( Params *parm,
 	parm->b_scale = b_scale;
 
 	if( mask->xsize != 3 || mask->ysize < 1 || mask->ysize > 100 ) {
-		im_error( "im_lab_morph", "%s", 
+		im_error( "im_lab_morph", "%s",
 			_( "bad greyscale mask size" ) );
 		return( -1 );
 	}
@@ -107,9 +107,9 @@ morph_init( Params *parm,
 		double a = mask->coeff[i*3 + 1];
 		double b = mask->coeff[i*3 + 2];
 
-		if( L < 0 || L > 100 || a < -120 || a > 120 || 
+		if( L < 0 || L > 100 || a < -120 || a > 120 ||
 			b < -120 || b > 120 ) {
-			im_error( "im_lab_morph", 
+			im_error( "im_lab_morph",
 				_( "bad greyscale mask value, row %d" ), i );
 			return( -1 );
 		}
@@ -157,9 +157,9 @@ morph_init( Params *parm,
 
 		/* Interpolate.
 		 */
-		parm->a_offset[i] = a_low + 
+		parm->a_offset[i] = a_low +
 			(a_high - a_low) * ((i - L_low) / (L_high - L_low));
-		parm->b_offset[i] = b_low + 
+		parm->b_offset[i] = b_low +
 			(b_high - b_low) * ((i - L_low) / (L_high - L_low));
 	}
 
@@ -171,28 +171,28 @@ morph_buffer( float *in, float *out, int width, Params *parm )
 {
 	int x;
 
-	for( x = 0; x < width; x++ ) { 
-		double L = in[0]; 
-		double a = in[1]; 
-		double b = in[2]; 
- 		
-		L = IM_CLIP( 0, L, 100 ); 
-		a -= parm->a_offset[(int) L]; 
-		b -= parm->b_offset[(int) L]; 
- 		
-		L = (L + parm->L_offset) * parm->L_scale; 
-		L = IM_CLIP( 0, L, 100 ); 
+	for( x = 0; x < width; x++ ) {
+		double L = in[0];
+		double a = in[1];
+		double b = in[2];
 
-		a *= parm->a_scale; 
-		b *= parm->b_scale; 
- 
-		out[0] = L; 
-		out[1] = a; 
-		out[2] = b; 
+		L = IM_CLIP( 0, L, 100 );
+		a -= parm->a_offset[(int) L];
+		b -= parm->b_offset[(int) L];
 
-		in += 3; 
-		out += 3; 
-	} 
+		L = (L + parm->L_offset) * parm->L_scale;
+		L = IM_CLIP( 0, L, 100 );
+
+		a *= parm->a_scale;
+		b *= parm->b_scale;
+
+		out[0] = L;
+		out[1] = a;
+		out[2] = b;
+
+		in += 3;
+		out += 3;
+	}
 }
 
 /**
@@ -209,7 +209,7 @@ morph_buffer( float *in, float *out, int width, Params *parm )
  * mapping, or correction of greyscales on some printers.
  *
  * We perform three adjustments:
- * 	
+ *
  * <itemizedlist>
  *   <listitem>
  *     <para>
@@ -248,8 +248,8 @@ morph_buffer( float *in, float *out, int width, Params *parm )
  * </tgroup>
  *
  * Interpolation from this makes cast corrector. The top and tail are
- * interpolated towards [0, 0, 0] and [100, 0, 0], intermediate values are 
- * interpolated along straight lines fitted between the specified points. 
+ * interpolated towards [0, 0, 0] and [100, 0, 0], intermediate values are
+ * interpolated along straight lines fitted between the specified points.
  * Rows may be in any order (ie. they need not be sorted on L*).
  *
  * Each pixel is displaced in a/b by the amount specified for that L in the
@@ -259,7 +259,7 @@ morph_buffer( float *in, float *out, int width, Params *parm )
  *   <listitem>
  *     <para>
  *       <emphasis>L*</emphasis>
- *	
+ *
  * Pass in scale and offset for L. L' = (L + offset) * scale.
  *     </para>
  *   </listitem>
@@ -267,7 +267,7 @@ morph_buffer( float *in, float *out, int width, Params *parm )
  *     <para>
  *       <emphasis>saturation</emphasis>
  *
- * scale a and b by these amounts, eg. 1.5 increases saturation. 
+ * scale a and b by these amounts, eg. 1.5 increases saturation.
  *     </para>
  *   </listitem>
  * </itemizedlist>
@@ -279,20 +279,20 @@ morph_buffer( float *in, float *out, int width, Params *parm )
  */
 int
 im_lab_morph( IMAGE *in, IMAGE *out,
-	DOUBLEMASK *mask, 
-	double L_offset, double L_scale, 
+	DOUBLEMASK *mask,
+	double L_offset, double L_scale,
 	double a_scale, double b_scale )
 {
 	Params *parm;
 
-        /* Recurse for coded images.
-         */
+	/* Recurse for coded images.
+	 */
 	if( in->Coding == IM_CODING_LABQ ) {
 		IMAGE *t[2];
 
 		if( im_open_local_array( out, t, 2, "im_lab_morph", "p" ) ||
 			im_LabQ2Lab( in, t[0] ) ||
-			im_lab_morph( t[0], t[1], 
+			im_lab_morph( t[0], t[1],
 				mask, L_offset, L_scale, a_scale, b_scale ) ||
 			im_Lab2LabQ( t[1], out ) )
 			return( -1 );
@@ -302,7 +302,7 @@ im_lab_morph( IMAGE *in, IMAGE *out,
 
 	if( !(parm = IM_NEW( out, Params )) ||
 		morph_init( parm,
-			in, out, L_scale, L_offset, mask, a_scale, b_scale ) ) 
+			in, out, L_scale, L_offset, mask, a_scale, b_scale ) )
 		return( -1 );
 
 	return( im__colour_unary( "im_lab_morph", in, out, IM_TYPE_LAB,

@@ -12,7 +12,7 @@
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
- * 12/8/13	
+ * 12/8/13
  * 	- redone im_histspec() as a class, vips_hist_match()
  * 19/12/13
  * 	- oop, upcast input
@@ -21,7 +21,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -75,11 +75,11 @@ typedef VipsHistogramClass VipsHistMatchClass;
 G_DEFINE_TYPE( VipsHistMatch, vips_hist_match, VIPS_TYPE_HISTOGRAM );
 
 static void
-vips_hist_match_process( VipsHistogram *histogram, 
+vips_hist_match_process( VipsHistogram *histogram,
 	VipsPel *out, VipsPel **in, int width )
 {
-	VipsHistMatch *match = (VipsHistMatch *) histogram; 
-	const int bands = match->in->Bands;	
+	VipsHistMatch *match = (VipsHistMatch *) histogram;
+	const int bands = match->in->Bands;
 	const int max = width * bands;
 
 	unsigned int *inbuf = (unsigned int *) in[0];
@@ -104,7 +104,7 @@ vips_hist_match_process( VipsHistogram *histogram,
 			if( ri < limit ) {
 				/* Simple rounding.
 				 */
-				double mid = refbuf[ri] + 
+				double mid = refbuf[ri] +
 					refbuf[ri + bands] / 2.0;
 
 				if( inv < mid )
@@ -112,7 +112,7 @@ vips_hist_match_process( VipsHistogram *histogram,
 				else
 					outbuf[i] = ri / bands + 1;
 			}
-			else 
+			else
 				outbuf[i] = refbuf[ri];
 		}
 	}
@@ -154,17 +154,17 @@ vips_hist_match_class_init( VipsHistMatchClass *class )
 	vobject_class->description = _( "match two histograms" );
 	vobject_class->build = vips_hist_match_build;
 
-	hclass->input_format = VIPS_FORMAT_UINT; 
+	hclass->input_format = VIPS_FORMAT_UINT;
 	hclass->process = vips_hist_match_process;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input histogram" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistMatch, in ) );
 
-	VIPS_ARG_IMAGE( class, "ref", 2, 
-		_( "Reference" ), 
+	VIPS_ARG_IMAGE( class, "ref", 2,
+		_( "Reference" ),
 		_( "Reference histogram" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistMatch, ref ) );
@@ -179,20 +179,20 @@ vips_hist_match_init( VipsHistMatch *match )
 /**
  * vips_hist_match: (method)
  * @in: input histogram
- * @ref: reference histogram 
+ * @ref: reference histogram
  * @out: (out): output histogram
  * @...: %NULL-terminated list of optional named arguments
  *
  * Adjust @in to match @ref. If @in and @ref are normalised
  * cumulative histograms, @out will be a LUT that adjusts the PDF of the image
- * from which @in was made to match the PDF of @ref's image. 
+ * from which @in was made to match the PDF of @ref's image.
  *
  * See also: vips_maplut(), vips_hist_find(), vips_hist_norm(),
- * vips_hist_cum(). 
+ * vips_hist_cum().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 {
 	va_list ap;

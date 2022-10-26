@@ -17,7 +17,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -51,7 +51,7 @@
 
 #include "pconvolution.h"
 
-/** 
+/**
  * SECTION: convolution
  * @short_description: convolve and correlate images
  * @stability: Stable
@@ -62,16 +62,16 @@
  *
  */
 
-/** 
+/**
  * VipsPrecision:
  * @VIPS_PRECISION_INTEGER: int everywhere
  * @VIPS_PRECISION_FLOAT: float everywhere
  * @VIPS_PRECISION_APPROXIMATE: approximate integer output
  *
- * How accurate an operation should be. 
+ * How accurate an operation should be.
  */
 
-/** 
+/**
  * VipsCombine:
  * @VIPS_COMBINE_MAX: take the maximum of the possible values
  * @VIPS_COMBINE_SUM: sum all the values
@@ -80,7 +80,7 @@
  * How to combine values. See vips_compass(), for example.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsConvolution, vips_convolution, 
+G_DEFINE_ABSTRACT_TYPE( VipsConvolution, vips_convolution,
 	VIPS_TYPE_OPERATION );
 
 static int
@@ -101,7 +101,7 @@ vips_convolution_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_check_matrix( class->nickname, convolution->mask, &t[0] ) )
-		return( -1 ); 
+		return( -1 );
 	convolution->M = t[0];
 
 	return( 0 );
@@ -126,22 +126,22 @@ vips_convolution_class_init( VipsConvolutionClass *class )
 	/* Inputs set by subclassess.
 	 */
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsConvolution, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 10, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 10,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsConvolution, out ) );
 
-	VIPS_ARG_IMAGE( class, "mask", 20, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "mask", 20,
+		_( "Mask" ),
 		_( "Input matrix image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsConvolution, mask ) );
 
 }
@@ -157,31 +157,31 @@ vips_convolution_init( VipsConvolution *convolution )
 void
 vips_convolution_operation_init( void )
 {
-	extern GType vips_conv_get_type( void ); 
-	extern GType vips_conva_get_type( void ); 
-	extern GType vips_convf_get_type( void ); 
-	extern GType vips_convi_get_type( void ); 
-	extern GType vips_convsep_get_type( void ); 
-	extern GType vips_convasep_get_type( void ); 
-	extern GType vips_compass_get_type( void ); 
-	extern GType vips_fastcor_get_type( void ); 
-	extern GType vips_spcor_get_type( void ); 
-	extern GType vips_sharpen_get_type( void ); 
-	extern GType vips_gaussblur_get_type( void ); 
-	extern GType vips_sobel_get_type( void ); 
-	extern GType vips_canny_get_type( void ); 
+	extern GType vips_conv_get_type( void );
+	extern GType vips_conva_get_type( void );
+	extern GType vips_convf_get_type( void );
+	extern GType vips_convi_get_type( void );
+	extern GType vips_convsep_get_type( void );
+	extern GType vips_convasep_get_type( void );
+	extern GType vips_compass_get_type( void );
+	extern GType vips_fastcor_get_type( void );
+	extern GType vips_spcor_get_type( void );
+	extern GType vips_sharpen_get_type( void );
+	extern GType vips_gaussblur_get_type( void );
+	extern GType vips_sobel_get_type( void );
+	extern GType vips_canny_get_type( void );
 
-	vips_conv_get_type(); 
-	vips_conva_get_type(); 
-	vips_convf_get_type(); 
-	vips_convi_get_type(); 
-	vips_compass_get_type(); 
-	vips_convsep_get_type(); 
-	vips_convasep_get_type(); 
-	vips_fastcor_get_type(); 
-	vips_spcor_get_type(); 
-	vips_sharpen_get_type(); 
-	vips_gaussblur_get_type(); 
-	vips_canny_get_type(); 
-	vips_sobel_get_type(); 
+	vips_conv_get_type();
+	vips_conva_get_type();
+	vips_convf_get_type();
+	vips_convi_get_type();
+	vips_compass_get_type();
+	vips_convsep_get_type();
+	vips_convasep_get_type();
+	vips_fastcor_get_type();
+	vips_spcor_get_type();
+	vips_sharpen_get_type();
+	vips_gaussblur_get_type();
+	vips_canny_get_type();
+	vips_sobel_get_type();
 }

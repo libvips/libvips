@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 10/12/93 JC
  *	- now reports total number of x/0, rather than each one.
  * 1/2/95 JC
@@ -39,7 +39,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -133,7 +133,7 @@ vips_math2_build( VipsObject *object )
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 #define POW( Y, X, E ) { \
 	double left = (double) (X); \
@@ -152,8 +152,8 @@ vips_math2_build( VipsObject *object )
 }
 
 #define WOP( Y, X, E ) POW( Y, E, X )
- 
-#ifdef HAVE_ATAN2 
+
+#ifdef HAVE_ATAN2
 #define ATAN2( Y, L, R ) { \
 	double left = (double) (L); \
 	double right = (double) (R); \
@@ -169,10 +169,10 @@ vips_math2_build( VipsObject *object )
 	\
 	(Y) = vips_col_ab2h( left, right ); \
 }
-#endif 
+#endif
 
 static void
-vips_math2_buffer( VipsArithmetic *arithmetic, 
+vips_math2_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsMath2 *math2 = (VipsMath2 *) arithmetic;
@@ -186,9 +186,9 @@ vips_math2_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH2_WOP: 	SWITCH( LOOP, WOP ); break;
 	case VIPS_OPERATION_MATH2_ATAN2: 	SWITCH( LOOP, ATAN2 ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -208,7 +208,7 @@ vips_math2_buffer( VipsArithmetic *arithmetic,
  */
 static int vips_math2_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
+   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX
 };
 
 static void
@@ -227,14 +227,14 @@ vips_math2_class_init( VipsMath2Class *class )
 
 	aclass->process_line = vips_math2_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_math2_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_math2_format_table );
 
-	VIPS_ARG_ENUM( class, "math2", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "math2", 200,
+		_( "Operation" ),
 		_( "Math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMath2, math2 ),
-		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW ); 
+		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW );
 }
 
 static void
@@ -243,7 +243,7 @@ vips_math2_init( VipsMath2 *math2 )
 }
 
 static int
-vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out, 
+vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationMath2 math2, va_list ap )
 {
 	return( vips_call_split( "math2", ap, left, right, out, math2 ) );
@@ -258,23 +258,23 @@ vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out,
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates a 2-ary maths operation on a pair of images
- * and writes the result to @out. The images may have any 
+ * and writes the result to @out. The images may have any
  * non-complex format. @out is float except in the case that either of @left
  * or @right are double, in which case @out is also double.
  *
- * It detects division by zero, setting those pixels to zero in the output. 
+ * It detects division by zero, setting those pixels to zero in the output.
  * Beware: it does this silently!
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>), and that format is the
  * result type.
  *
@@ -283,7 +283,7 @@ vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_math2( VipsImage *left, VipsImage *right, VipsImage **out, 
+vips_math2( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationMath2 math2, ... )
 {
 	va_list ap;
@@ -381,7 +381,7 @@ typedef struct _VipsMath2Const {
 
 typedef VipsUnaryConstClass VipsMath2ConstClass;
 
-G_DEFINE_TYPE( VipsMath2Const, 
+G_DEFINE_TYPE( VipsMath2Const,
 	vips_math2_const, VIPS_TYPE_UNARY_CONST );
 
 static int
@@ -412,7 +412,7 @@ vips_math2_const_build( VipsObject *object )
 }
 
 static void
-vips_math2_const_buffer( VipsArithmetic *arithmetic, 
+vips_math2_const_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnaryConst *uconst = (VipsUnaryConst *) arithmetic;
@@ -423,22 +423,22 @@ vips_math2_const_buffer( VipsArithmetic *arithmetic,
 	int i, x, b;
 
 	switch( math2->math2 ) {
-	case VIPS_OPERATION_MATH2_POW: 	
-		SWITCH( LOOPC, POW ); 
+	case VIPS_OPERATION_MATH2_POW:
+		SWITCH( LOOPC, POW );
 		break;
 
-	case VIPS_OPERATION_MATH2_WOP: 	
-		SWITCH( LOOPC, WOP ); 
+	case VIPS_OPERATION_MATH2_WOP:
+		SWITCH( LOOPC, WOP );
 		break;
 
-	case VIPS_OPERATION_MATH2_ATAN2: 	
-		SWITCH( LOOPC, ATAN2 ); 
+	case VIPS_OPERATION_MATH2_ATAN2:
+		SWITCH( LOOPC, ATAN2 );
 		break;
 
-        default:
+	default:
 		g_assert_not_reached();
 		break;
-        }
+	}
 }
 
 static void
@@ -452,20 +452,20 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "math2_const";
-	object_class->description = 
+	object_class->description =
 		_( "binary math operations with a constant" );
 	object_class->build = vips_math2_const_build;
 
 	aclass->process_line = vips_math2_const_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_math2_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_math2_format_table );
 
-	VIPS_ARG_ENUM( class, "math2", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "math2", 200,
+		_( "Operation" ),
 		_( "Math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMath2Const, math2 ),
-		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW ); 
+		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW );
 }
 
 static void
@@ -474,17 +474,17 @@ vips_math2_const_init( VipsMath2Const *math2_const )
 }
 
 static int
-vips_math2_constv( VipsImage *in, VipsImage **out, 
+vips_math2_constv( VipsImage *in, VipsImage **out,
 	VipsOperationMath2 math2, const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
-	double *array; 
+	double *array;
 	int result;
 	int i;
 
-	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
+	area_c = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
 	array = (double *) area_c->data;
-	for( i = 0; i < n; i++ ) 
+	for( i = 0; i < n; i++ )
 		array[i] = c[i];
 
 	result = vips_call_split( "math2_const", ap, in, out, math2, area_c );
@@ -503,18 +503,18 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates various 2-ary maths operations on an image and 
- * an array of constants and writes the result to @out. 
- * The image may have any 
+ * This operation calculates various 2-ary maths operations on an image and
+ * an array of constants and writes the result to @out.
+ * The image may have any
  * non-complex format. @out is float except in the case that @in
  * is double, in which case @out is also double.
  *
- * It detects division by zero, setting those pixels to zero in the output. 
+ * It detects division by zero, setting those pixels to zero in the output.
  * Beware: it does this silently!
  *
- * If the array of constants has just one element, that constant is used for 
- * all image bands. If the array has more than one element and they have 
- * the same number of elements as there are bands in the image, then 
+ * If the array of constants has just one element, that constant is used for
+ * all image bands. If the array has more than one element and they have
+ * the same number of elements as there are bands in the image, then
  * one array element is used for each band. If the arrays have more than one
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
@@ -524,14 +524,14 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_math2_const( VipsImage *in, VipsImage **out, 
+vips_math2_const( VipsImage *in, VipsImage **out,
 	VipsOperationMath2 math2, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_math2_constv( in, out, math2, c, n, ap ); 
+	result = vips_math2_constv( in, out, math2, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -557,7 +557,7 @@ vips_pow_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 	int result;
 
 	va_start( ap, n );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_POW, c, n, ap );
 	va_end( ap );
 
@@ -584,7 +584,7 @@ vips_wop_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 	int result;
 
 	va_start( ap, n );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_WOP, c, n, ap );
 	va_end( ap );
 
@@ -611,7 +611,7 @@ vips_atan2_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 	int result;
 
 	va_start( ap, n );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_ATAN2, c, n, ap );
 	va_end( ap );
 
@@ -623,23 +623,23 @@ vips_atan2_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
  * @in: input image
  * @out: (out): output image
  * @math2: math operation to perform
- * @c: constant 
+ * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates various 2-ary maths operations on an image and 
+ * This operation calculates various 2-ary maths operations on an image and
  * a constant. See vips_math2_const().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_math2_const1( VipsImage *in, VipsImage **out, 
+vips_math2_const1( VipsImage *in, VipsImage **out,
 	VipsOperationMath2 math2, double c, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, c );
-	result = vips_math2_constv( in, out, math2, &c, 1, ap ); 
+	result = vips_math2_constv( in, out, math2, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -649,7 +649,7 @@ vips_math2_const1( VipsImage *in, VipsImage **out,
  * vips_pow_const1: (method)
  * @in: left-hand input #VipsImage
  * @out: (out): output #VipsImage
- * @c: constant 
+ * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH2_POW on an image and a constant. See
@@ -664,7 +664,7 @@ vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
 	int result;
 
 	va_start( ap, c );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_POW, &c, 1, ap );
 	va_end( ap );
 
@@ -675,7 +675,7 @@ vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
  * vips_wop_const1: (method)
  * @in: left-hand input #VipsImage
  * @out: (out): output #VipsImage
- * @c: constant 
+ * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH2_WOP on an image and a constant. See
@@ -690,7 +690,7 @@ vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
 	int result;
 
 	va_start( ap, c );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_WOP, &c, 1, ap );
 	va_end( ap );
 
@@ -701,7 +701,7 @@ vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
  * vips_atan2_const1: (method)
  * @in: left-hand input #VipsImage
  * @out: (out): output #VipsImage
- * @c: constant 
+ * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH2_ATAN2 on an image and a constant. See
@@ -716,7 +716,7 @@ vips_atan2_const1( VipsImage *in, VipsImage **out, double c, ... )
 	int result;
 
 	va_start( ap, c );
-	result = vips_math2_constv( in, out, 
+	result = vips_math2_constv( in, out,
 		VIPS_OPERATION_MATH2_ATAN2, &c, 1, ap );
 	va_end( ap );
 

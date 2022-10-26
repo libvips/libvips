@@ -1,4 +1,4 @@
-/* base class for all Fourier stuff 
+/* base class for all Fourier stuff
  *
  * properties:
  * 	- single output image
@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -73,7 +73,7 @@ vips_freqfilt_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	g_object_set( freqfilt, "out", vips_image_new(), NULL ); 
+	g_object_set( freqfilt, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_freqfilt_parent_class )->build( object ) )
 		return( -1 );
@@ -94,16 +94,16 @@ vips_freqfilt_class_init( VipsFreqfiltClass *class )
 	vobject_class->description = _( "frequency-domain filter operations" );
 	vobject_class->build = vips_freqfilt_build;
 
-	VIPS_ARG_IMAGE( class, "in", -1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", -1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFreqfilt, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 1,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFreqfilt, out ) );
 }
 
@@ -118,9 +118,9 @@ vips_freqfilt_init( VipsFreqfilt *freqfilt )
  * fftw. In some modes fftw generates only half the output and we construct
  * the rest.
  *
- * input pipeline -> 
- *   bandsplit -> 
- *     full memory image, freed when im_*fft*() exits -> 
+ * input pipeline ->
+ *   bandsplit ->
+ *     full memory image, freed when im_*fft*() exits ->
  *       fftw ->
  *         half memory image, freed when im_*fft*() exits ->
  *           full memory image, freed when @out is freed ->
@@ -130,21 +130,21 @@ vips_freqfilt_init( VipsFreqfilt *freqfilt )
  * vips__fftproc() needs to just call VipsFftProcessFn directly for 1 band images,
  * so we can't cache the output in this fn.
  */
-int 
-vips__fftproc( VipsObject *context, 
+int
+vips__fftproc( VipsObject *context,
 	VipsImage *in, VipsImage **out, VipsFftProcessFn fn )
 {
-	VipsImage **bands = (VipsImage **) 
+	VipsImage **bands = (VipsImage **)
 		vips_object_local_array( context, in->Bands );
-	VipsImage **fft = (VipsImage **) 
+	VipsImage **fft = (VipsImage **)
 		vips_object_local_array( context, in->Bands );
 
 	int b;
 
-	if( in->Bands == 1 ) 
+	if( in->Bands == 1 )
 		return( fn( context, in, out ) );
 
-	for( b = 0; b < in->Bands; b++ ) 
+	for( b = 0; b < in->Bands; b++ )
 		if( vips_extract_band( in, &bands[b], b, NULL ) ||
 			fn( context, bands[b], &fft[b] ) )
 			return( -1 );
@@ -162,19 +162,19 @@ void
 vips_freqfilt_operation_init( void )
 {
 #ifdef HAVE_FFTW
-	extern GType vips_fwfft_get_type( void ); 
-	extern GType vips_invfft_get_type( void ); 
+	extern GType vips_fwfft_get_type( void );
+	extern GType vips_invfft_get_type( void );
 #endif /*HAVE_FFTW*/
-	extern GType vips_freqmult_get_type( void ); 
-	extern GType vips_spectrum_get_type( void ); 
-	extern GType vips_phasecor_get_type( void ); 
+	extern GType vips_freqmult_get_type( void );
+	extern GType vips_spectrum_get_type( void );
+	extern GType vips_phasecor_get_type( void );
 
 #ifdef HAVE_FFTW
-	vips_fwfft_get_type(); 
-	vips_invfft_get_type(); 
+	vips_fwfft_get_type();
+	vips_invfft_get_type();
 #endif /*HAVE_FFTW*/
-	vips_freqmult_get_type(); 
-	vips_spectrum_get_type(); 
-	vips_phasecor_get_type(); 
+	vips_freqmult_get_type();
+	vips_spectrum_get_type();
+	vips_phasecor_get_type();
 }
 

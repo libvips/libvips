@@ -10,7 +10,7 @@
  * 9/2/95 JC
  *	- new im_wrapone function
  * 22/5/95 JC
- *	- changed char to unsigned char for RS/6000 
+ *	- changed char to unsigned char for RS/6000
  * 	- small tidies and speed-ups
  * 4/9/97 JC
  *	- L* = 100.0 now handled correctly
@@ -23,7 +23,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -102,7 +102,7 @@ vips_LabQ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		/* And b.
 		 */
 		l = VIPS_LSHIFT_INT( p[2], 3) | (lsbs & 0x7);
-		q[2] = (float) l * 0.125;        
+		q[2] = (float) l * 0.125;
 
 		p += 4;
 		q += 3;

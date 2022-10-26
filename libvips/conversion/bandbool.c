@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -71,9 +71,9 @@ vips_bandbool_build( VipsObject *object )
 	 */
 	if( bandbool->operation == VIPS_OPERATION_BOOLEAN_LSHIFT ||
 		bandbool->operation == VIPS_OPERATION_BOOLEAN_RSHIFT ) {
-		vips_error( class->nickname, 
-			_( "operator %s not supported across image bands" ), 
-			vips_enum_nick( VIPS_TYPE_OPERATION_BOOLEAN, 
+		vips_error( class->nickname,
+			_( "operator %s not supported across image bands" ),
+			vips_enum_nick( VIPS_TYPE_OPERATION_BOOLEAN,
 				bandbool->operation ) );
 		return( -1 );
 	}
@@ -85,7 +85,7 @@ vips_bandbool_build( VipsObject *object )
 		bandary->n = 1;
 		bandary->in = &bandbool->in;
 
-		if( bandbool->in->Bands == 1 ) 
+		if( bandbool->in->Bands == 1 )
 			return( vips_bandary_copy( bandary ) );
 	}
 
@@ -111,7 +111,7 @@ vips_bandbool_build( VipsObject *object )
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 #define LOOPB( TYPE, OP ) { \
 	TYPE *p = (TYPE *) in[0]; \
@@ -157,16 +157,16 @@ vips_bandbool_buffer( VipsBandarySequence *seq,
 	int x, b;
 
 	switch( bandbool->operation ) {
-	case VIPS_OPERATION_BOOLEAN_AND: 	
-		SWITCH( LOOPB, FLOOPB, & ); 
+	case VIPS_OPERATION_BOOLEAN_AND:
+		SWITCH( LOOPB, FLOOPB, & );
 		break;
 
-	case VIPS_OPERATION_BOOLEAN_OR: 	
-		SWITCH( LOOPB, FLOOPB, | ); 
+	case VIPS_OPERATION_BOOLEAN_OR:
+		SWITCH( LOOPB, FLOOPB, | );
 		break;
 
-	case VIPS_OPERATION_BOOLEAN_EOR: 	
-		SWITCH( LOOPB, FLOOPB, ^ ); 
+	case VIPS_OPERATION_BOOLEAN_EOR:
+		SWITCH( LOOPB, FLOOPB, ^ );
 		break;
 
 	default:
@@ -187,7 +187,7 @@ vips_bandbool_buffer( VipsBandarySequence *seq,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Format conversions for boolean. 
+/* Format conversions for boolean.
  */
 static const VipsBandFormat vips_bandbool_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
@@ -211,19 +211,19 @@ vips_bandbool_class_init( VipsBandboolClass *class )
 	bandary_class->process_line = vips_bandbool_buffer;
 	bandary_class->format_table = vips_bandbool_format_table;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandbool, in ) );
 
-	VIPS_ARG_ENUM( class, "boolean", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "boolean", 200,
+		_( "Operation" ),
 		_( "Boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandbool, operation ),
-		VIPS_TYPE_OPERATION_BOOLEAN, 
-			VIPS_OPERATION_BOOLEAN_AND ); 
+		VIPS_TYPE_OPERATION_BOOLEAN,
+			VIPS_OPERATION_BOOLEAN_AND );
 }
 
 static void
@@ -233,7 +233,7 @@ vips_bandbool_init( VipsBandbool *bandbool )
 }
 
 static int
-vips_bandboolv( VipsImage *in, VipsImage **out, 
+vips_bandboolv( VipsImage *in, VipsImage **out,
 	VipsOperationBoolean operation, va_list ap )
 {
 	return( vips_call_split( "bandbool", ap, in, out, operation ) );
@@ -250,23 +250,23 @@ vips_bandboolv( VipsImage *in, VipsImage **out,
  * example, a three-band uchar image operated on with
  * #VIPS_OPERATION_BOOLEAN_AND will produce a one-band uchar image where each
  * pixel is the bitwise and of the band elements of the corresponding pixel in
- * the input image. 
+ * the input image.
  *
  * The output image is the same format as the input image for integer
  * types. Float types are cast to int before processing. Complex types are not
  * supported.
  *
- * The output image always has one band. 
+ * The output image always has one band.
  *
  * This operation is useful in conjuction with vips_relational(). You can use
- * it to see if all image bands match exactly. 
+ * it to see if all image bands match exactly.
  *
  * See also: vips_boolean_const().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_bandbool( VipsImage *in, VipsImage **out, 
+vips_bandbool( VipsImage *in, VipsImage **out,
 	VipsOperationBoolean boolean, ... )
 {
 	va_list ap;

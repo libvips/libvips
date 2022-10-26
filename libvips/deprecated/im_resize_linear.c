@@ -14,7 +14,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -99,9 +99,9 @@
 			\
 			p += ies; \
 			q += oes; \
-		} 
+		}
 
-int 
+int
 im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 {
     double	dx, dy, xscale, yscale;
@@ -127,7 +127,7 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 		im_error("im_lowpass: ", "%s", _( "put should be uncoded") );
 		return( -1 );
 	}
-	if( im_cp_desc( out, in ) ) 
+	if( im_cp_desc( out, in ) )
 		return( -1 );
 
 	out->Xsize = X;
@@ -145,7 +145,7 @@ im_resize_linear( IMAGE *in, IMAGE *out, int X, int Y )
 
 /* buffer lines
 ***************/
-	if( !(opline = IM_ARRAY( out, ols, PEL )) ) 
+	if( !(opline = IM_ARRAY( out, ols, PEL )) )
 		return( -1 );
 
 /* Resampling
@@ -186,6 +186,6 @@ for (y=0; y<Y; y++)
 
     if (im_writeline(y, out, opline) )
 	    return(-1);
-  } 
+  }
 return(0);
 }

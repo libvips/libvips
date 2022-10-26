@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,9 +64,9 @@ vips_drawink_build( VipsObject *object )
 		return( -1 );
 
 	if( drawink->ink &&
-		!(drawink->pixel_ink = vips__vector_to_ink( class->nickname, 
+		!(drawink->pixel_ink = vips__vector_to_ink( class->nickname,
 			draw->image,
-			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL, 
+			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL,
 			VIPS_AREA( drawink->ink )->n )) )
 		return( -1 );
 
@@ -86,8 +86,8 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 	vobject_class->description = _( "draw with ink operations" );
 	vobject_class->build = vips_drawink_build;
 
-	VIPS_ARG_BOXED( class, "ink", 2, 
-		_( "Ink" ), 
+	VIPS_ARG_BOXED( class, "ink", 2,
+		_( "Ink" ),
 		_( "Color for pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawink, ink ),
@@ -98,7 +98,7 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 static void
 vips_drawink_init( VipsDrawink *drawink )
 {
-	drawink->ink = vips_array_double_newv( 1, 0.0 ); 
+	drawink->ink = vips_array_double_newv( 1, 0.0 );
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
@@ -114,13 +114,13 @@ vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 )
 
 	g_assert( x1 <= x2 );
 
-	if( y < 0 || 
+	if( y < 0 ||
 		y >= draw->image->Ysize )
 		return( 0 );
-	if( x1 < 0 && 
+	if( x1 < 0 &&
 		x2 < 0 )
 		return( 0 );
-	if( x1 >= draw->image->Xsize && 
+	if( x1 >= draw->image->Xsize &&
 		x2 >= draw->image->Xsize )
 		return( 0 );
 	x1 = VIPS_CLIP( 0, x1, draw->image->Xsize - 1 );

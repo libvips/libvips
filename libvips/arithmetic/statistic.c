@@ -19,7 +19,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -66,7 +66,7 @@ vips_statistic_scan_start( VipsImage *in, void *a, void *b )
 }
 
 static int
-vips_statistic_scan( VipsRegion *region, 
+vips_statistic_scan( VipsRegion *region,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( a );
@@ -81,13 +81,13 @@ vips_statistic_scan( VipsRegion *region,
 	VIPS_DEBUG_MSG( "vips_statistic_scan: %d x %d @ %d x %d\n",
 		r->width, r->height, r->left, r->top );
 
-	p = VIPS_REGION_ADDR( region, r->left, r->top ); 
-	for( y = 0; y < r->height; y++ ) { 
-		if( class->scan( statistic, 
-			seq, r->left, r->top + y, p, r->width ) ) 
+	p = VIPS_REGION_ADDR( region, r->left, r->top );
+	for( y = 0; y < r->height; y++ ) {
+		if( class->scan( statistic,
+			seq, r->left, r->top + y, p, r->width ) )
 			return( -1 );
 		p += lsk;
-	} 
+	}
 
 	/* If we've requested stop, pass the message on.
 	 */
@@ -131,16 +131,16 @@ vips_statistic_build( VipsObject *object )
 	/* If there's a format table, cast the input.
 	 */
 	if( sclass->format_table ) {
-		if( vips_cast( statistic->ready, &t[1], 
+		if( vips_cast( statistic->ready, &t[1],
 			sclass->format_table[statistic->in->BandFmt], NULL ) )
 			return( -1 );
 		statistic->ready = t[1];
 	}
 
-	if( vips_sink( statistic->ready, 
-		vips_statistic_scan_start, 
-		vips_statistic_scan, 
-		vips_statistic_scan_stop, 
+	if( vips_sink( statistic->ready,
+		vips_statistic_scan_start,
+		vips_statistic_scan,
+		vips_statistic_scan_stop,
 		statistic, NULL ) )
 		return( -1 );
 
@@ -163,8 +163,8 @@ vips_statistic_class_init( VipsStatisticClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsStatistic, in ) );

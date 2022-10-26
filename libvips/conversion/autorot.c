@@ -71,12 +71,12 @@ typedef VipsConversionClass VipsAutorotClass;
 G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
 
 static void *
-vips_autorot_remove_angle_sub( VipsImage *image, 
+vips_autorot_remove_angle_sub( VipsImage *image,
 	const char *field, GValue *value, void *my_data )
 {
 	if( strcmp( field, "exif-ifd0-Orientation" ) == 0 ) {
 #ifdef DEBUG
-		printf( "vips_autorot_remove_angle: %s\n", field ); 
+		printf( "vips_autorot_remove_angle: %s\n", field );
 #endif /*DEBUG*/
 
 		(void) vips_image_remove( image, field );
@@ -109,7 +109,7 @@ vips_autorot_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_autorot_parent_class )->build( object ) )
 		return( -1 );
-	
+
 	VipsAngle angle;
 	gboolean flip;
 	VipsImage *in;
@@ -171,7 +171,7 @@ vips_autorot_build( VipsObject *object )
 		in = t[0];
 	}
 
-	if( flip ) { 
+	if( flip ) {
 		if( vips_flip( in, &t[1], VIPS_DIRECTION_HORIZONTAL, NULL ) )
 			return( -1 );
 		in = t[1];
@@ -204,14 +204,14 @@ vips_autorot_class_init( VipsAutorotClass *class )
 	vobject_class->description = _( "autorotate image by exif tag" );
 	vobject_class->build = vips_autorot_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsAutorot, in ) );
 
-	VIPS_ARG_ENUM( class, "angle", 6, 
-		_( "Angle" ), 
+	VIPS_ARG_ENUM( class, "angle", 6,
+		_( "Angle" ),
 		_( "Angle image was rotated by" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsAutorot, angle ),
@@ -241,13 +241,13 @@ vips_autorot_init( VipsAutorot *autorot )
  * Optional arguments:
  *
  * * @angle: output #VipsAngle the image was rotated by
- * * @flip: output %gboolean whether the image was flipped 
+ * * @flip: output %gboolean whether the image was flipped
  *
- * Look at the image metadata and rotate and flip the image to make it 
- * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent 
- * accidental double rotation. 
+ * Look at the image metadata and rotate and flip the image to make it
+ * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent
+ * accidental double rotation.
  *
- * Read @angle to find the amount the image was rotated by. Read @flip to 
+ * Read @angle to find the amount the image was rotated by. Read @flip to
  * see if the image was also flipped.
  *
  * Returns: 0 on success, -1 on error

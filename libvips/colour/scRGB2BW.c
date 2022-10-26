@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -62,7 +62,7 @@ G_DEFINE_TYPE( VipsscRGB2BW, vips_scRGB2BW, VIPS_TYPE_OPERATION );
 /* Process a buffer of data.
  */
 static void
-vips_scRGB2BW_line_8( VipsPel * restrict q, float * restrict p, 
+vips_scRGB2BW_line_8( VipsPel * restrict q, float * restrict p,
 	int extra_bands, int width )
 {
 	int i, j;
@@ -83,7 +83,7 @@ vips_scRGB2BW_line_8( VipsPel * restrict q, float * restrict p,
 
 		q += 1;
 
-		for( j = 0; j < extra_bands; j++ ) 
+		for( j = 0; j < extra_bands; j++ )
 			q[j] = VIPS_CLIP( 0, p[j], UCHAR_MAX );
 		p += extra_bands;
 		q += extra_bands;
@@ -91,7 +91,7 @@ vips_scRGB2BW_line_8( VipsPel * restrict q, float * restrict p,
 }
 
 static void
-vips_scRGB2BW_line_16( unsigned short * restrict q, float * restrict p, 
+vips_scRGB2BW_line_16( unsigned short * restrict q, float * restrict p,
 	int extra_bands, int width )
 {
 	int i, j;
@@ -112,7 +112,7 @@ vips_scRGB2BW_line_16( unsigned short * restrict q, float * restrict p,
 
 		q += 1;
 
-		for( j = 0; j < extra_bands; j++ ) 
+		for( j = 0; j < extra_bands; j++ )
 			q[j] = VIPS_CLIP( 0, (int) (p[j] * 256.0), USHRT_MAX );
 		p += extra_bands;
 		q += extra_bands;
@@ -120,7 +120,7 @@ vips_scRGB2BW_line_16( unsigned short * restrict q, float * restrict p,
 }
 
 static int
-vips_scRGB2BW_gen( VipsRegion *or, 
+vips_scRGB2BW_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -130,26 +130,26 @@ vips_scRGB2BW_gen( VipsRegion *or,
 
 	int y;
 
-	if( vips_region_prepare( ir, r ) ) 
+	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_scRGB2BW_gen: work" ); 
+	VIPS_GATE_START( "vips_scRGB2BW_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
-		float *p = (float *) 
+		float *p = (float *)
 			VIPS_REGION_ADDR( ir, r->left, r->top + y );
-		VipsPel *q = (VipsPel *) 
+		VipsPel *q = (VipsPel *)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		if( scRGB2BW->depth == 16 ) 
-			vips_scRGB2BW_line_16( (unsigned short *) q, p, 
+		if( scRGB2BW->depth == 16 )
+			vips_scRGB2BW_line_16( (unsigned short *) q, p,
 				in->Bands - 3, r->width );
 		else
-			vips_scRGB2BW_line_8( q, p, 
+			vips_scRGB2BW_line_8( q, p,
 				in->Bands - 3, r->width );
 	}
 
-	VIPS_GATE_STOP( "vips_scRGB2BW_gen: work" ); 
+	VIPS_GATE_STOP( "vips_scRGB2BW_gen: work" );
 
 	return( 0 );
 }
@@ -157,24 +157,24 @@ vips_scRGB2BW_gen( VipsRegion *or,
 static int
 vips_scRGB2BW_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsscRGB2BW *scRGB2BW = (VipsscRGB2BW *) object;
 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	VipsImage *in; 
+	VipsImage *in;
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
-	VipsImage *out; 
+	VipsImage *out;
 
 	if( VIPS_OBJECT_CLASS( vips_scRGB2BW_parent_class )->build( object ) )
 		return( -1 );
 
 	in = scRGB2BW->in;
 	if( vips_check_bands_atleast( class->nickname, in, 3 ) )
-		return( -1 ); 
+		return( -1 );
 
-	switch( scRGB2BW->depth ) { 
+	switch( scRGB2BW->depth ) {
 	case 16:
 		interpretation = VIPS_INTERPRETATION_GREY16;
 		format = VIPS_FORMAT_USHORT;
@@ -186,7 +186,7 @@ vips_scRGB2BW_build( VipsObject *object )
 		break;
 
 	default:
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "depth must be 8 or 16" ) );
 		return( -1 );
 	}
@@ -196,7 +196,7 @@ vips_scRGB2BW_build( VipsObject *object )
 	in = t[0];
 
 	out = vips_image_new();
-	if( vips_image_pipelinev( out, 
+	if( vips_image_pipelinev( out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) ) {
 		g_object_unref( out );
 		return( -1 );
@@ -206,13 +206,13 @@ vips_scRGB2BW_build( VipsObject *object )
 	out->Bands = in->Bands - 2;
 
 	if( vips_image_generate( out,
-		vips_start_one, vips_scRGB2BW_gen, vips_stop_one, 
+		vips_start_one, vips_scRGB2BW_gen, vips_stop_one,
 		in, scRGB2BW ) ) {
 		g_object_unref( out );
 		return( -1 );
 	}
 
-	g_object_set( object, "out", out, NULL ); 
+	g_object_set( object, "out", out, NULL );
 
 	return( 0 );
 }
@@ -228,27 +228,27 @@ vips_scRGB2BW_class_init( VipsscRGB2BWClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "scRGB2BW";
-	object_class->description = _( "convert scRGB to BW" ); 
+	object_class->description = _( "convert scRGB to BW" );
 	object_class->build = vips_scRGB2BW_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsscRGB2BW, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsscRGB2BW, out ) );
 
-	VIPS_ARG_INT( class, "depth", 130, 
+	VIPS_ARG_INT( class, "depth", 130,
 		_( "Depth" ),
 		_( "Output device space depth in bits" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsscRGB2BW, depth ),
 		8, 16, 8 );
 
@@ -272,8 +272,8 @@ vips_scRGB2BW_init( VipsscRGB2BW *scRGB2BW )
  *
  * Convert an scRGB image to greyscale. Set @depth to 16 to get 16-bit output.
  *
- * If @depth is 16, any extra channels after RGB are 
- * multiplied by 256. 
+ * If @depth is 16, any extra channels after RGB are
+ * multiplied by 256.
  *
  * See also: vips_LabS2LabQ(), vips_sRGB2scRGB(), vips_rad2float().
  *

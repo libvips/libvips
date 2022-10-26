@@ -21,7 +21,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -79,7 +79,7 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int Q;
 
-	/* bitdepth to save at for >8 bit images. 
+	/* bitdepth to save at for >8 bit images.
 	 */
 	int bitdepth;
 
@@ -120,7 +120,7 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	struct heif_image *img;
 
-	/* The libheif memory area we fill with pixels from the libvips 
+	/* The libheif memory area we fill with pixels from the libvips
 	 * pipe.
 	 */
 	uint8_t *data;
@@ -140,7 +140,7 @@ typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
 void vips__heif_image_print( struct heif_image *img );
 void vips__heif_error( struct heif_error *error );
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -166,7 +166,7 @@ typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
 /* String-based metadata fields we add.
  */
 typedef struct _VipsForeignSaveHeifMetadata {
-	const char *name;		        /* as understood by libvips */
+	const char *name;			/* as understood by libvips */
 	libheif_metadata_fn saver;		/* as understood by libheif */
 } VipsForeignSaveHeifMetadata;
 
@@ -186,22 +186,22 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 	if( vips__exif_update( heif->image ) )
 		return( -1 );
 
-	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
-		if( vips_image_get_typeof( heif->image, 
+	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )
+		if( vips_image_get_typeof( heif->image,
 			libheif_metadata[i].name ) ) {
 			const void *data;
 			size_t length;
 
 #ifdef DEBUG
-			printf( "attaching %s ..\n", 
-				libheif_metadata[i].name ); 
+			printf( "attaching %s ..\n",
+				libheif_metadata[i].name );
 #endif /*DEBUG*/
 
-			if( vips_image_get_blob( heif->image, 
+			if( vips_image_get_blob( heif->image,
 				libheif_metadata[i].name, &data, &length ) )
 				return( -1 );
 
-			error = libheif_metadata[i].saver( heif->ctx, 
+			error = libheif_metadata[i].saver( heif->ctx,
 				heif->handle, data, length );
 			if( error.code ) {
 				vips__heif_error( &error );
@@ -227,16 +227,16 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 		size_t length;
 
 #ifdef DEBUG
-		printf( "attaching profile ..\n" ); 
+		printf( "attaching profile ..\n" );
 #endif /*DEBUG*/
 
-		if( vips_image_get_blob( heif->image, 
+		if( vips_image_get_blob( heif->image,
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
 		/* FIXME .. also see heif_image_set_nclx_color_profile()
 		 */
-		error = heif_image_set_raw_color_profile( heif->img, 
+		error = heif_image_set_raw_color_profile( heif->img,
 			"rICC", data, length );
 		if( error.code ) {
 			vips__heif_error( &error );
@@ -251,18 +251,18 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 
 #ifdef DEBUG
 {
-        GTimer *timer = g_timer_new();
+	GTimer *timer = g_timer_new();
 
-	printf( "calling heif_context_encode_image() ...\n" ); 
+	printf( "calling heif_context_encode_image() ...\n" );
 #endif /*DEBUG*/
 
-	error = heif_context_encode_image( heif->ctx, 
+	error = heif_context_encode_image( heif->ctx,
 		heif->img, heif->encoder, options, &heif->handle );
 
 #ifdef DEBUG
-	printf( "... libheif took %.2g seconds\n", 
-                g_timer_elapsed( timer, NULL ) ); 
-        g_timer_destroy( timer );
+	printf( "... libheif took %.2g seconds\n",
+		g_timer_elapsed( timer, NULL ) );
+	g_timer_destroy( timer );
 }
 #endif /*DEBUG*/
 
@@ -273,15 +273,15 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 		return( -1 );
 	}
 
-	if( vips_image_get_typeof( heif->image, "heif-primary" ) ) { 
+	if( vips_image_get_typeof( heif->image, "heif-primary" ) ) {
 		int primary;
 
-		if( vips_image_get_int( heif->image, 
-			"heif-primary", &primary ) ) 
-			return( -1 ); 	
+		if( vips_image_get_int( heif->image,
+			"heif-primary", &primary ) )
+			return( -1 );
 
-		if( page == primary ) { 
-			error = heif_context_set_primary_image( heif->ctx, 
+		if( page == primary ) {
+			error = heif_context_set_primary_image( heif->ctx,
 				heif->handle );
 			if( error.code ) {
 				vips__heif_error( &error );
@@ -300,7 +300,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 }
 
 static int
-vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif, 
+vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 	VipsPel *q, VipsPel *p, int ne )
 {
 	int i;
@@ -311,7 +311,7 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 		 */
 		memcpy( q, p, ne );
 	else if( heif->image->BandFmt == VIPS_FORMAT_UCHAR &&
-                heif->bitdepth > 8 ) {
+		heif->bitdepth > 8 ) {
 		/* 8-bit source, write a bigendian short, shifted up.
 		 */
 		int shift = heif->bitdepth - 8;
@@ -326,15 +326,15 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 		}
 	}
 	else if( heif->image->BandFmt == VIPS_FORMAT_USHORT &&
-                heif->bitdepth <= 8 ) {
+		heif->bitdepth <= 8 ) {
 		/* 16-bit native byte order source, 8 bit write.
-                 *
-                 * Pick the high or low bits of the source.
-                 */
-                int vips_bitdepth = 
-                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
-                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
-                                16 : 8;
+		 *
+		 * Pick the high or low bits of the source.
+		 */
+		int vips_bitdepth =
+			heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+			heif->image->Type == VIPS_INTERPRETATION_GREY16 ?
+				16 : 8;
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for( i = 0; i < ne; i++ ) {
@@ -346,13 +346,13 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 		}
 	}
 	else if( heif->image->BandFmt == VIPS_FORMAT_USHORT &&
-                heif->bitdepth > 8 ) {
+		heif->bitdepth > 8 ) {
 		/* 16-bit native byte order source, 16 bit bigendian write.
 		 */
-                int vips_bitdepth = 
-                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
-                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
-                                16 : 8;
+		int vips_bitdepth =
+			heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+			heif->image->Type == VIPS_INTERPRETATION_GREY16 ?
+				16 : 8;
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for( i = 0; i < ne; i++ ) {
@@ -368,7 +368,7 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 	else {
 		VipsObjectClass *class = VIPS_OBJECT_CLASS( heif );
 
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "unimplemeted format conversion" ) );
 		return( -1 );
 	}
@@ -377,7 +377,7 @@ vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif,
 }
 
 static int
-vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area, 
+vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 	void *a )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) a;
@@ -388,7 +388,7 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 	printf( "vips_foreign_save_heif_write_block: y = %d\n", area->top );
 #endif /*DEBUG*/
 
-	/* Copy a line at a time into our output image, write each time the 
+	/* Copy a line at a time into our output image, write each time the
 	 * image fills.
 	 */
 	for( y = 0; y < area->height; y++ ) {
@@ -399,11 +399,11 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
 		VipsPel *q = heif->data + line * heif->stride;
 
-		if( vips_foreign_save_heif_pack( heif, 
+		if( vips_foreign_save_heif_pack( heif,
 			q, p, VIPS_REGION_N_ELEMENTS( region ) ) )
 			return( -1 );
 
-		/* Did we just write the final line? Write as a new page 
+		/* Did we just write the final line? Write as a new page
 		 * into the output.
 		 */
 		if( line == heif->page_height - 1 )
@@ -414,8 +414,8 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 	return( 0 );
 }
 
-struct heif_error 
-vips_foreign_save_heif_write( struct heif_context *ctx, 
+struct heif_error
+vips_foreign_save_heif_write( struct heif_context *ctx,
 	const void *data, size_t length, void *userdata )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) userdata;
@@ -446,7 +446,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	/* Make a copy of the image in case we modify the metadata eg. for
 	 * exif_update.
 	 */
-	if( vips_copy( save->ready, &heif->image, NULL ) ) 
+	if( vips_copy( save->ready, &heif->image, NULL ) )
 		return( -1 );
 
 	/* If the old, deprecated "speed" param is being used and the new
@@ -456,23 +456,23 @@ vips_foreign_save_heif_build( VipsObject *object )
 		!vips_object_argument_isset( object, "effort" ) )
 		heif->effort = 9 - heif->speed;
 
-	/* Default 12 bit save for 16-bit images. HEIC (for example) implements 
+	/* Default 12 bit save for 16-bit images. HEIC (for example) implements
 	 * 8 / 10 / 12.
 	 */
-	if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		heif->bitdepth = 
-                        heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
-                        heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
-                                12 : 8;
+	if( !vips_object_argument_isset( object, "bitdepth" ) )
+		heif->bitdepth =
+			heif->image->Type == VIPS_INTERPRETATION_RGB16 ||
+			heif->image->Type == VIPS_INTERPRETATION_GREY16 ?
+				12 : 8;
 
-	error = heif_context_get_encoder_for_format( heif->ctx, 
-		(enum heif_compression_format) heif->compression, 
+	error = heif_context_get_encoder_for_format( heif->ctx,
+		(enum heif_compression_format) heif->compression,
 		&heif->encoder );
 	if( error.code ) {
-		if( error.code == heif_error_Unsupported_filetype ) 
-			vips_error( "heifsave", 
+		if( error.code == heif_error_Unsupported_filetype )
+			vips_error( "heifsave",
 				"%s", _( "Unsupported compression" ) );
-		else 
+		else
 			vips__heif_error( &error );
 
 		return( -1 );
@@ -509,7 +509,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* TODO .. support extra per-encoder params with 
+	/* TODO .. support extra per-encoder params with
 	 * heif_encoder_list_parameters().
 	 */
 
@@ -517,7 +517,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	heif->page_height = vips_image_get_page_height( heif->image );
 	heif->n_pages = heif->image->Ysize / heif->page_height;
 
-	/* Make a heif image the size of a page. We send sink_disc() output 
+	/* Make a heif image the size of a page. We send sink_disc() output
 	 * here and write a frame each time it fills.
 	 */
 #ifdef DEBUG
@@ -526,9 +526,9 @@ vips_foreign_save_heif_build( VipsObject *object )
 	printf( "\theight = %d\n", heif->page_height );
 	printf( "\talpha = %d\n", vips_image_hasalpha( heif->image ) );
 #endif /*DEBUG*/
-	error = heif_image_create( heif->page_width, heif->page_height, 
-		heif_colorspace_RGB, 
-		vips__heif_chroma( heif->bitdepth, 
+	error = heif_image_create( heif->page_width, heif->page_height,
+		heif_colorspace_RGB,
+		vips__heif_chroma( heif->bitdepth,
 			vips_image_hasalpha( heif->image ) ),
 		&heif->img );
 	if( error.code ) {
@@ -536,8 +536,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 		return( -1 );
 	}
 
-	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
-		heif->page_width, heif->page_height, 
+	error = heif_image_add_plane( heif->img, heif_channel_interleaved,
+		heif->page_width, heif->page_height,
 		heif->bitdepth );
 	if( error.code ) {
 		vips__heif_error( &error );
@@ -548,12 +548,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 	vips__heif_image_print( heif->img );
 #endif /*DEBUG*/
 
-	heif->data = heif_image_get_plane( heif->img, 
+	heif->data = heif_image_get_plane( heif->img,
 		heif_channel_interleaved, &heif->stride );
 
-	/* Write data. 
+	/* Write data.
 	 */
-	if( vips_sink_disc( heif->image, 
+	if( vips_sink_disc( heif->image,
 		vips_foreign_save_heif_write_block, heif ) )
 		return( -1 );
 
@@ -600,8 +600,8 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
 	save_class->format_table = vips_heif_bandfmt;
 
-	VIPS_ARG_INT( class, "Q", 10, 
-		_( "Q" ), 
+	VIPS_ARG_INT( class, "Q", 10,
+		_( "Q" ),
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, Q ),
@@ -673,13 +673,13 @@ typedef struct _VipsForeignSaveHeifFile {
 
 	/* Filename for save.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignSaveHeifFile;
 
 typedef VipsForeignSaveHeifClass VipsForeignSaveHeifFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveHeifFile, vips_foreign_save_heif_file, 
+G_DEFINE_TYPE( VipsForeignSaveHeifFile, vips_foreign_save_heif_file,
 	vips_foreign_save_heif_get_type() );
 
 static int
@@ -716,10 +716,10 @@ vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
 
 	foreign_class->suffs = vips__heif_suffs;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeifFile, filename ),
 		NULL );
 
@@ -741,14 +741,14 @@ typedef struct _VipsForeignSaveHeifBuffer {
 
 typedef VipsForeignSaveHeifClass VipsForeignSaveHeifBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveHeifBuffer, vips_foreign_save_heif_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveHeifBuffer, vips_foreign_save_heif_buffer,
 	vips_foreign_save_heif_get_type() );
 
 static int
 vips_foreign_save_heif_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
-	VipsForeignSaveHeifBuffer *buffer = 
+	VipsForeignSaveHeifBuffer *buffer =
 		(VipsForeignSaveHeifBuffer *) object;
 
 	VipsBlob *blob;
@@ -768,7 +768,7 @@ vips_foreign_save_heif_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_heif_buffer_class_init( 
+vips_foreign_save_heif_buffer_class_init(
 	VipsForeignSaveHeifBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -783,10 +783,10 @@ vips_foreign_save_heif_buffer_class_init(
 
 	foreign_class->suffs = vips__heic_suffs;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeifBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
@@ -805,14 +805,14 @@ typedef struct _VipsForeignSaveHeifTarget {
 
 typedef VipsForeignSaveHeifClass VipsForeignSaveHeifTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveHeifTarget, vips_foreign_save_heif_target, 
+G_DEFINE_TYPE( VipsForeignSaveHeifTarget, vips_foreign_save_heif_target,
 	vips_foreign_save_heif_get_type() );
 
 static int
 vips_foreign_save_heif_target_build( VipsObject *object )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
-	VipsForeignSaveHeifTarget *target = 
+	VipsForeignSaveHeifTarget *target =
 		(VipsForeignSaveHeifTarget *) object;
 
 	if( target->target ) {
@@ -828,7 +828,7 @@ vips_foreign_save_heif_target_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_heif_target_class_init( 
+vips_foreign_save_heif_target_class_init(
 	VipsForeignSaveHeifTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -846,7 +846,7 @@ vips_foreign_save_heif_target_class_init(
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeifTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -860,11 +860,11 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
 typedef VipsForeignSaveHeifTarget VipsForeignSaveAvifTarget;
 typedef VipsForeignSaveHeifTargetClass VipsForeignSaveAvifTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveAvifTarget, vips_foreign_save_avif_target, 
+G_DEFINE_TYPE( VipsForeignSaveAvifTarget, vips_foreign_save_avif_target,
 	vips_foreign_save_heif_target_get_type() );
 
 static void
-vips_foreign_save_avif_target_class_init( 
+vips_foreign_save_avif_target_class_init(
 	VipsForeignSaveAvifTargetClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;

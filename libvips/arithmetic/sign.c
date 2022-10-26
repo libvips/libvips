@@ -19,7 +19,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -100,7 +100,7 @@ G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
 }
 
 static void
-vips_sign_buffer( VipsArithmetic *arithmetic, 
+vips_sign_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsUnary *unary = VIPS_UNARY( arithmetic );
@@ -108,16 +108,16 @@ vips_sign_buffer( VipsArithmetic *arithmetic,
 	int sz = width * bands;
 
 	switch( vips_image_get_format( unary->in ) ) {
-        case VIPS_FORMAT_UCHAR: 	SIGN( unsigned char ); break;
-        case VIPS_FORMAT_CHAR: 		SIGN( signed char ); break; 
-        case VIPS_FORMAT_USHORT: 	SIGN( unsigned short ); break; 
-        case VIPS_FORMAT_SHORT: 	SIGN( signed short ); break; 
-        case VIPS_FORMAT_UINT: 		SIGN( unsigned int ); break; 
-        case VIPS_FORMAT_INT: 		SIGN( signed int );  break; 
-        case VIPS_FORMAT_FLOAT: 	SIGN( float ); break; 
-        case VIPS_FORMAT_DOUBLE:	SIGN( double ); break; 
+	case VIPS_FORMAT_UCHAR: 	SIGN( unsigned char ); break;
+	case VIPS_FORMAT_CHAR: 		SIGN( signed char ); break;
+	case VIPS_FORMAT_USHORT: 	SIGN( unsigned short ); break;
+	case VIPS_FORMAT_SHORT: 	SIGN( signed short ); break;
+	case VIPS_FORMAT_UINT: 		SIGN( unsigned int ); break;
+	case VIPS_FORMAT_INT: 		SIGN( signed int );  break;
+	case VIPS_FORMAT_FLOAT: 	SIGN( float ); break;
+	case VIPS_FORMAT_DOUBLE:	SIGN( double ); break;
 	case VIPS_FORMAT_COMPLEX:	CSIGN( float ); break;
-	case VIPS_FORMAT_DPCOMPLEX:	CSIGN( double ); break; 
+	case VIPS_FORMAT_DPCOMPLEX:	CSIGN( double ); break;
 
 	default:
 		g_assert_not_reached();
@@ -139,7 +139,7 @@ vips_sign_buffer( VipsArithmetic *arithmetic,
 
 static const VipsBandFormat vips_sign_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   C,  C,  C,  C,  C,  C,  C,  X,  C,  DX 
+   C,  C,  C,  C,  C,  C,  C,  X,  C,  DX
 };
 
 static void
@@ -153,7 +153,7 @@ vips_sign_class_init( VipsSignClass *class )
 
 	aclass->process_line = vips_sign_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_sign_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_sign_format_table );
 }
 
 static void

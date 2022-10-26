@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -52,7 +52,7 @@ extern "C" {
 void vips__tiff_init( void );
 
 int vips__tiff_write_target( VipsImage *in, VipsTarget *target,
-	VipsForeignTiffCompression compression, int Q, 
+	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
@@ -65,16 +65,16 @@ int vips__tiff_write_target( VipsImage *in, VipsTarget *target,
 	gboolean properties,
 	gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, 
+	int level,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd, 
+	gboolean subifd,
 	gboolean premultiply,
 	int page_height );
 
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
-int vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
+int vips__tiff_read_header_source( VipsSource *source, VipsImage *out,
 	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
 int vips__tiff_read_source( VipsSource *source, VipsImage *out,
 	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
@@ -110,9 +110,9 @@ int vips__fits_read( const char *filename, VipsImage *out );
 
 int vips__fits_write( VipsImage *in, const char *filename );
 
-int vips__magick_read( const char *filename, 
+int vips__magick_read( const char *filename,
 	VipsImage *out, const char *density, int page, int n );
-int vips__magick_read_header( const char *filename, 
+int vips__magick_read_header( const char *filename,
 	VipsImage *out, const char *density, int page, int n );
 
 int vips__magick_read_buffer( const void *buf, const size_t len,
@@ -146,21 +146,21 @@ extern const char *vips__rad_suffs[];
 extern const char *vips__jpeg_suffs[];
 
 int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
-	int Q, const char *profile, 
+	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
-	gboolean header_only, int shrink, VipsFailOn fail_on, 
+	gboolean header_only, int shrink, VipsFailOn fail_on,
 	gboolean autorotate, gboolean unlimited );
 int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_source( VipsSource *source );
-int vips__png_header_source( VipsSource *source, VipsImage *out, 
+int vips__png_header_source( VipsSource *source, VipsImage *out,
 	gboolean unlimited );
-int vips__png_read_source( VipsSource *source, VipsImage *out, 
+int vips__png_read_source( VipsSource *source, VipsImage *out,
 	VipsFailOn fail_on, gboolean unlimited );
 gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
@@ -186,16 +186,16 @@ extern const char *vips__webp_suffs[];
 int vips__iswebp_source( VipsSource *source );
 
 int vips__webp_read_header_source( VipsSource *source, VipsImage *out,
-	int page, int n, double scale ); 
-int vips__webp_read_source( VipsSource *source, VipsImage *out, 
-	int page, int n, double scale ); 
+	int page, int n, double scale );
+int vips__webp_read_source( VipsSource *source, VipsImage *out,
+	int page, int n, double scale );
 
 extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
 int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );
 
-typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset, 
+typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset,
 	void *a, void *b );
 void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 

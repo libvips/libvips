@@ -1,10 +1,10 @@
 /* local histogram equalisation
  *
- * Copyright: 1991, N. Dessipris 
+ * Copyright: 1991, N. Dessipris
  *
  * Author: N. Dessipris
  * Written on: 24/10/1991
- * Modified on : 
+ * Modified on :
  * 25/1/96 JC
  *	- rewritten, adapting im_spcor()
  *	- correct result, 2x faster, partial, simpler, better arg checking
@@ -32,7 +32,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -104,7 +104,7 @@ vips_hist_local_stop( void *vseq, void *a, void *b )
 	VIPS_UNREF( seq->ir );
 	if( seq->hist &&
 		in ) {
-		int i; 
+		int i;
 
 		for( i = 0; i < in->Bands; i++ )
 			VIPS_FREE( seq->hist[i] );
@@ -128,30 +128,30 @@ vips_hist_local_start( VipsImage *out, void *a, void *b )
 	seq->ir = NULL;
 	seq->hist = NULL;
 
-	if( !(seq->ir = vips_region_new( in )) || 
+	if( !(seq->ir = vips_region_new( in )) ||
 		!(seq->hist = VIPS_ARRAY( NULL, in->Bands, unsigned int * )) ) {
 		vips_hist_local_stop( seq, NULL, NULL );
-		return( NULL ); 
+		return( NULL );
 	}
 
 	for( i = 0; i < in->Bands; i++ )
 		if( !(seq->hist[i] = VIPS_ARRAY( NULL, 256, unsigned int )) ) {
 		vips_hist_local_stop( seq, NULL, NULL );
-		return( NULL ); 
+		return( NULL );
 	}
 
 	return( seq );
 }
 
 static int
-vips_hist_local_generate( VipsRegion *or, 
+vips_hist_local_generate( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsHistLocalSequence *seq = (VipsHistLocalSequence *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	const VipsHistLocal *local = (VipsHistLocal *) b;
 	VipsRect *r = &or->valid;
-	const int bands = in->Bands; 
+	const int bands = in->Bands;
 	const int max_slope = local->max_slope;
 
 	VipsRect irect;
@@ -163,8 +163,8 @@ vips_hist_local_generate( VipsRegion *or,
 	 */
 	irect.left = r->left;
 	irect.top = r->top;
-	irect.width = r->width + local->width; 
-	irect.height = r->height + local->height; 
+	irect.width = r->width + local->width;
+	irect.height = r->height + local->height;
 	if( vips_region_prepare( seq->ir, &irect ) )
 		return( -1 );
 
@@ -174,15 +174,15 @@ vips_hist_local_generate( VipsRegion *or,
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel * restrict p = 
+		VipsPel * restrict p =
 			VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
-		VipsPel * restrict q = 
+		VipsPel * restrict q =
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		VipsPel * restrict p1;
 		int x, i, j, b;
 
-		/* Find histogram for the start of this line. 
+		/* Find histogram for the start of this line.
 		 */
 		for( b = 0; b < bands; b++ )
 			memset( seq->hist[b], 0, 256 * sizeof( unsigned int ) );
@@ -201,7 +201,7 @@ vips_hist_local_generate( VipsRegion *or,
 			for( b = 0; b < bands; b++ ) {
 				/* Sum histogram up to current pel.
 				 */
-				unsigned int * restrict hist = seq->hist[b]; 
+				unsigned int * restrict hist = seq->hist[b];
 				const int target = p[centre + b];
 
 				int sum;
@@ -210,7 +210,7 @@ vips_hist_local_generate( VipsRegion *or,
 
 				/* For CLAHE we need to limit the height of the
 				 * hist to limit the amount we boost the
-				 * contrast by. 
+				 * contrast by.
 				 */
 				if( max_slope > 0 ) {
 					int sum_over;
@@ -222,17 +222,17 @@ vips_hist_local_generate( VipsRegion *or,
 					 */
 					for( i = 0; i <= target; i++ ) {
 						if( hist[i] > max_slope ) {
-							sum_over += hist[i] - 
+							sum_over += hist[i] -
 								max_slope;
 							sum += max_slope;
 						}
-						else 
+						else
 							sum += hist[i];
 					}
 
 					for( ; i < 256; i++ ) {
-						if( hist[i] > max_slope ) 
-							sum_over += hist[i] - 
+						if( hist[i] > max_slope )
+							sum_over += hist[i] -
 								max_slope;
 					}
 
@@ -254,11 +254,11 @@ vips_hist_local_generate( VipsRegion *or,
 				 * Scale by 255, not 256, or we'll get
 				 * overflow.
 				 */
-				q[b] = 255 * sum / 
+				q[b] = 255 * sum /
 					(local->width * local->height);
 
-				/* Adapt histogram --- remove the pels from 
-				 * the left hand column, add in pels for a 
+				/* Adapt histogram --- remove the pels from
+				 * the left hand column, add in pels for a
 				 * new right-hand column.
 				 */
 				p1 = p + b;
@@ -290,53 +290,53 @@ vips_hist_local_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_hist_local_parent_class )->build( object ) )
 		return( -1 );
 
-	in = local->in; 
+	in = local->in;
 
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
-	in = t[0]; 
+	in = t[0];
 
 	if( vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
-	if( local->width > in->Xsize || 
+	if( local->width > in->Xsize ||
 		local->height > in->Ysize ) {
 		vips_error( class->nickname, "%s", _( "window too large" ) );
 		return( -1 );
 	}
 
-	/* Expand the input. 
+	/* Expand the input.
 	 */
-	if( vips_embed( in, &t[1], 
-		local->width / 2, local->height / 2, 
+	if( vips_embed( in, &t[1],
+		local->width / 2, local->height / 2,
 		in->Xsize + local->width - 1, in->Ysize + local->height - 1,
 		"extend", VIPS_EXTEND_MIRROR,
 		NULL ) )
 		return( -1 );
 	in = t[1];
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( vips_image_pipelinev( local->out, 
+	if( vips_image_pipelinev( local->out,
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 	local->out->Xsize -= local->width - 1;
 	local->out->Ysize -= local->height - 1;
 
-	if( vips_image_generate( local->out, 
-		vips_hist_local_start, 
-		vips_hist_local_generate, 
-		vips_hist_local_stop, 
+	if( vips_image_generate( local->out,
+		vips_hist_local_start,
+		vips_hist_local_generate,
+		vips_hist_local_stop,
 		in, local ) )
 		return( -1 );
 
 	local->out->Xoffset = 0;
 	local->out->Yoffset = 0;
 
-	vips_reorder_margin_hint( local->out, local->width * local->height ); 
+	vips_reorder_margin_hint( local->out, local->width * local->height );
 
 	return( 0 );
 }
@@ -357,34 +357,34 @@ vips_hist_local_class_init( VipsHistLocalClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, out ) );
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Window width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Window height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "max_slope", 6, 
-		_( "Max slope" ), 
+	VIPS_ARG_INT( class, "max_slope", 6,
+		_( "Max slope" ),
 		_( "Maximum slope (CLAHE)" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, max_slope ),
@@ -410,7 +410,7 @@ vips_hist_local_init( VipsHistLocal *local )
  * * @max_slope: maximum brightening
  *
  * Performs local histogram equalisation on @in using a
- * window of size @width by @height centered on the input pixel. 
+ * window of size @width by @height centered on the input pixel.
  *
  * The output image is the same size as the input image. The edge pixels are
  * created by mirroring the input image outwards.
@@ -424,7 +424,7 @@ vips_hist_local_init( VipsHistLocal *local )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_local( VipsImage *in, VipsImage **out, int width, int height, ... )
 {
 	va_list ap;

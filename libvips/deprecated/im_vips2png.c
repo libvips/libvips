@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -52,8 +52,8 @@
 int
 im_vips2png( IMAGE *in, const char *filename )
 {
-	int compression; 
-	int interlace; 
+	int compression;
+	int interlace;
 
 	char *p, *q;
 
@@ -64,16 +64,16 @@ im_vips2png( IMAGE *in, const char *filename )
 	/* Extract write mode from filename and parse.
 	 */
 	im_filename_split( filename, name, mode );
-	strcpy( buf, mode ); 
+	strcpy( buf, mode );
 	p = &buf[0];
 	compression = 6;
 	interlace = 0;
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		compression = atoi( q );
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		interlace = atoi( q );
 
-	return( vips_pngsave( in, name, 
+	return( vips_pngsave( in, name,
 		"compression", compression, "interlace", interlace, NULL ) );
 }
 
@@ -81,15 +81,15 @@ int
 im_vips2bufpng( IMAGE *in, IMAGE *out,
 	int compression, int interlace, char **obuf, size_t *olen )
 {
-	if( vips_pngsave_buffer( in, (void **) obuf, olen, 
-		"compression", compression, 
-		"interlace", interlace, 
+	if( vips_pngsave_buffer( in, (void **) obuf, olen,
+		"compression", compression,
+		"interlace", interlace,
 		NULL ) )
 		return( -1 );
 
 	if( out )
-		im_add_callback( out, "close", 
-			(im_callback_fn) vips_free, obuf, NULL ); 
+		im_add_callback( out, "close",
+			(im_callback_fn) vips_free, obuf, NULL );
 
 	return( 0 );
 }

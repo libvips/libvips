@@ -9,29 +9,29 @@
 #include <vips/vips.h>
 
 typedef struct _MyInput {
-	const char *filename; 
-	unsigned char *contents; 
+	const char *filename;
+	unsigned char *contents;
 	size_t length;
 	size_t read_position;
 } MyInput;
 
 typedef struct _MyOutput {
-	const char *filename; 
+	const char *filename;
 	int fd;
 } MyOutput;
 
 static gint64
-read_cb( VipsSourceCustom *source_custom, 
+read_cb( VipsSourceCustom *source_custom,
 	void *buffer, gint64 length, MyInput *my_input )
 {
-	gint64 bytes_read = VIPS_MIN( length, 
+	gint64 bytes_read = VIPS_MIN( length,
 		my_input->length - my_input->read_position );
 
 	/*
 	printf( "read_cb: buffer = 0x%p, length = %zd\n", buffer, length );
 	 */
 
-	memcpy( buffer, 
+	memcpy( buffer,
 		my_input->contents + my_input->read_position, bytes_read );
 	my_input->read_position += bytes_read;
 
@@ -39,7 +39,7 @@ read_cb( VipsSourceCustom *source_custom,
 }
 
 static gint64
-seek_cb( VipsSourceCustom *source_custom, 
+seek_cb( VipsSourceCustom *source_custom,
 	gint64 offset, int whence, MyInput *my_input )
 {
 	gint64 new_pos;
@@ -72,7 +72,7 @@ seek_cb( VipsSourceCustom *source_custom,
 }
 
 static gint64
-write_cb( VipsTargetCustom *target_custom, 
+write_cb( VipsTargetCustom *target_custom,
 	const void *data, gint64 length, MyOutput *my_output )
 {
 	gint64 bytes_written;
@@ -87,7 +87,7 @@ write_cb( VipsTargetCustom *target_custom,
 }
 
 static void
-finish_cb( VipsTargetCustom *target_custom, MyOutput *my_output ) 
+finish_cb( VipsTargetCustom *target_custom, MyOutput *my_output )
 {
 	/*
 	printf( "finish_cb:\n" );
@@ -109,7 +109,7 @@ main( int argc, char **argv )
 	if( VIPS_INIT( argv[0] ) )
 		return( -1 );
 
-	if( argc != 3 ) 
+	if( argc != 3 )
 		vips_error_exit( "usage: %s in-file out-file.png", argv[0] );
 
 	my_input.filename = argv[1];
@@ -117,37 +117,37 @@ main( int argc, char **argv )
 	my_input.length = 0;
 	my_input.read_position = 0;
 
-	if( !g_file_get_contents( my_input.filename, 
-		(char **) &my_input.contents, &my_input.length, NULL ) ) 
+	if( !g_file_get_contents( my_input.filename,
+		(char **) &my_input.contents, &my_input.length, NULL ) )
 		vips_error_exit( "unable to load from %s", my_input.filename );
 
 	source_custom = vips_source_custom_new();
-	g_signal_connect( source_custom, "seek", 
+	g_signal_connect( source_custom, "seek",
 		G_CALLBACK( seek_cb ), &my_input );
-	g_signal_connect( source_custom, "read", 
+	g_signal_connect( source_custom, "read",
 		G_CALLBACK( read_cb ), &my_input );
 
-	if( !(image = vips_image_new_from_source( 
+	if( !(image = vips_image_new_from_source(
 		VIPS_SOURCE( source_custom ), "",
 		"access", VIPS_ACCESS_SEQUENTIAL,
-		NULL )) ) 
+		NULL )) )
 		vips_error_exit( NULL );
 
 	my_output.filename = argv[2];
 	my_output.fd = -1;
 
-	if( (my_output.fd = vips__open( my_output.filename, 
+	if( (my_output.fd = vips__open( my_output.filename,
 		O_WRONLY | O_CREAT | O_TRUNC, 0644 )) == -1 )
 		vips_error_exit( "unable to save to %s", my_output.filename );
 
 	target_custom = vips_target_custom_new();
 	g_signal_connect( target_custom, "write",
 		G_CALLBACK( write_cb ), &my_output );
-	g_signal_connect( target_custom, "finish", 
+	g_signal_connect( target_custom, "finish",
 		G_CALLBACK( finish_cb ), &my_output );
 
-	if( vips_image_write_to_target( image, ".png", 
-		VIPS_TARGET( target_custom ), NULL ) ) 
+	if( vips_image_write_to_target( image, ".png",
+		VIPS_TARGET( target_custom ), NULL ) )
 		vips_error_exit( NULL );
 
 	VIPS_UNREF( image );

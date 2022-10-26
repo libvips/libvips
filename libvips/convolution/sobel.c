@@ -1,5 +1,5 @@
 /* Sobel edge detector
- * 
+ *
  * 2/2/18
  * 	- from vips_sobel()
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -62,7 +62,7 @@ typedef VipsOperationClass VipsSobelClass;
 G_DEFINE_TYPE( VipsSobel, vips_sobel, VIPS_TYPE_OPERATION );
 
 static int
-vips_sobel_uchar_gen( VipsRegion *or, 
+vips_sobel_uchar_gen( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **in = (VipsRegion **) vseq;
@@ -75,11 +75,11 @@ vips_sobel_uchar_gen( VipsRegion *or,
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p1 = (VipsPel * restrict) 
+		VipsPel *p1 = (VipsPel * restrict)
 			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
-		VipsPel *p2 = (VipsPel * restrict) 
+		VipsPel *p2 = (VipsPel * restrict)
 			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
-		VipsPel *q = (VipsPel * restrict) 
+		VipsPel *q = (VipsPel * restrict)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < sz; x++ ) {
@@ -99,10 +99,10 @@ vips_sobel_uchar_gen( VipsRegion *or,
 static int
 vips_sobel_build_uchar( VipsSobel *sobel )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
 
-	g_info( "vips_sobel: uchar path" ); 
+	g_info( "vips_sobel: uchar path" );
 
 	/* Sobel is separable, but it's so small there's no speed to be gained,
 	 * and doing it one pass lets us keep more precision.
@@ -110,34 +110,34 @@ vips_sobel_build_uchar( VipsSobel *sobel )
 	 * Divide the result by 2 to prevent overflow, since our result will be
 	 * just 8 bits.
 	 */
-	t[1] = vips_image_new_matrixv( 3, 3, 
+	t[1] = vips_image_new_matrixv( 3, 3,
 		 1.0,  2.0,  1.0,
 		 0.0,  0.0,  0.0,
 		-1.0, -2.0, -1.0 );
-	vips_image_set_double( t[1], "offset", 128.0 ); 
-	vips_image_set_double( t[1], "scale", 2.0 ); 
-	if( vips_conv( sobel->in, &t[3], t[1], 
+	vips_image_set_double( t[1], "offset", 128.0 );
+	vips_image_set_double( t[1], "scale", 2.0 );
+	if( vips_conv( sobel->in, &t[3], t[1],
 		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) )
 		return( -1 );
 
 	if( vips_rot90( t[1], &t[5], NULL ) ||
-		vips_conv( sobel->in, &t[7], t[5], 
+		vips_conv( sobel->in, &t[7], t[5],
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL ) )
 		return( -1 );
 
-	g_object_set( sobel, "out", vips_image_new(), NULL ); 
+	g_object_set( sobel, "out", vips_image_new(), NULL );
 
 	sobel->args[0] = t[3];
 	sobel->args[1] = t[7];
 	sobel->args[2] = NULL;
-	if( vips_image_pipeline_array( sobel->out, 
+	if( vips_image_pipeline_array( sobel->out,
 		VIPS_DEMAND_STYLE_FATSTRIP, sobel->args ) )
 		return( -1 );
 
-	if( vips_image_generate( sobel->out, 
-		vips_start_many, vips_sobel_uchar_gen, vips_stop_many, 
+	if( vips_image_generate( sobel->out,
+		vips_start_many, vips_sobel_uchar_gen, vips_stop_many,
 		sobel->args, NULL ) )
 		return( -1 );
 
@@ -149,12 +149,12 @@ vips_sobel_build_uchar( VipsSobel *sobel )
 static int
 vips_sobel_build_float( VipsSobel *sobel )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
 
-	g_info( "vips_sobel: float path" ); 
+	g_info( "vips_sobel: float path" );
 
-	t[1] = vips_image_new_matrixv( 3, 3, 
+	t[1] = vips_image_new_matrixv( 3, 3,
 		 1.0,  2.0,  1.0,
 		 0.0,  0.0,  0.0,
 		-1.0, -2.0, -1.0 );
@@ -167,9 +167,9 @@ vips_sobel_build_float( VipsSobel *sobel )
 		vips_abs( t[7], &t[10], NULL ) ||
 		vips_add( t[9], t[10], &t[11], NULL ) ||
 		vips_cast( t[11], &t[12], sobel->in->BandFmt, NULL ) )
-		return( -1 ); 
+		return( -1 );
 
-	g_object_set( sobel, "out", vips_image_new(), NULL ); 
+	g_object_set( sobel, "out", vips_image_new(), NULL );
 
 	if( vips_image_write( t[12], sobel->out ) )
 		return( -1 );
@@ -184,7 +184,7 @@ vips_sobel_build( VipsObject *object )
 
 	if( sobel->in->BandFmt == VIPS_FORMAT_UCHAR ) {
 		if( vips_sobel_build_uchar( sobel ) )
-			return( -1 ); 
+			return( -1 );
 	}
 	else {
 		if( vips_sobel_build_float( sobel ) )
@@ -207,16 +207,16 @@ vips_sobel_class_init( VipsSobelClass *class )
 	object_class->description = _( "Sobel edge detector" );
 	object_class->build = vips_sobel_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSobel, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsSobel, out ) );
 
 }
@@ -235,17 +235,17 @@ vips_sobel_init( VipsSobel *sobel )
  * Simple Sobel edge detector.
  *
  * See also: vips_canny().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
-int 
+int
 vips_sobel( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "sobel", ap, in, out );  
+	result = vips_call_split( "sobel", ap, in, out );
 	va_end( ap );
 
 	return( result );

@@ -55,13 +55,13 @@ G_MODULE_EXPORT const gchar *
 g_module_check_init( GModule *module )
 {
 #ifdef DEBUG
-	printf( "vips_magick: module init\n" ); 
+	printf( "vips_magick: module init\n" );
 #endif /*DEBUG*/
 
-	extern GType vips_foreign_load_magick_file_get_type( void ); 
-	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
-	extern GType vips_foreign_load_magick7_file_get_type( void ); 
-	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
+	extern GType vips_foreign_load_magick_file_get_type( void );
+	extern GType vips_foreign_load_magick_buffer_get_type( void );
+	extern GType vips_foreign_load_magick7_file_get_type( void );
+	extern GType vips_foreign_load_magick7_buffer_get_type( void );
 	extern GType vips_foreign_save_magick_file_get_type( void );
 	extern GType vips_foreign_save_magick_bmp_file_get_type( void );
 	extern GType vips_foreign_save_magick_buffer_get_type( void );

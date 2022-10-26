@@ -13,7 +13,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -45,7 +45,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/** 
+/**
  * SECTION: mosaicing
  * @short_description: build image mosaics
  * @stability: Stable
@@ -63,16 +63,16 @@
  * left-right or up-down with a smooth seam.
  *
  * Next, vips_mosaic() uses
- * search functions plus the two low-level merge operations to join two images 
- * given just an approximate overlap as a start point. 
+ * search functions plus the two low-level merge operations to join two images
+ * given just an approximate overlap as a start point.
  *
  * vips_mosaic1() is a first-order
- * analogue of the basic mosaic functions: it takes two approximate 
+ * analogue of the basic mosaic functions: it takes two approximate
  * tie-points and uses
  * them to rotate and scale the right-hand or bottom image before starting to
  * join.
  *
- * Finally, vips_globalbalance() can be used to remove contrast differences in 
+ * Finally, vips_globalbalance() can be used to remove contrast differences in
  * a mosaic
  * which has been assembled with these functions. It takes the mosaic apart,
  * measures image contrast differences along the seams, finds a set of
@@ -91,17 +91,17 @@
 void
 vips_mosaicing_operation_init( void )
 {
-	extern GType vips_merge_get_type( void ); 
-	extern GType vips_mosaic_get_type( void ); 
-	extern GType vips_mosaic1_get_type( void ); 
-	extern GType vips_match_get_type( void ); 
-	extern GType vips_globalbalance_get_type( void ); 
+	extern GType vips_merge_get_type( void );
+	extern GType vips_mosaic_get_type( void );
+	extern GType vips_mosaic1_get_type( void );
+	extern GType vips_match_get_type( void );
+	extern GType vips_globalbalance_get_type( void );
 	extern GType vips_matrixinvert_get_type( void );
 
-	vips_merge_get_type(); 
-	vips_mosaic_get_type(); 
-	vips_mosaic1_get_type(); 
+	vips_merge_get_type();
+	vips_mosaic_get_type();
+	vips_mosaic1_get_type();
 	vips_matrixinvert_get_type();
-	vips_match_get_type(); 
-	vips_globalbalance_get_type(); 
+	vips_match_get_type();
+	vips_globalbalance_get_type();
 }

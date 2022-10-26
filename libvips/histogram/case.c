@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,8 +57,8 @@ typedef VipsOperationClass VipsCaseClass;
 
 G_DEFINE_TYPE( VipsCase, vips_case, VIPS_TYPE_OPERATION );
 
-static int 
-vips_case_gen( VipsRegion *or, void *seq, void *a, void *b, 
+static int
+vips_case_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsRegion **ar = (VipsRegion **) seq;
@@ -98,7 +98,7 @@ vips_case_gen( VipsRegion *or, void *seq, void *a, void *b,
 		ip += ils;
 	}
 
-	for( i = 0; i < cas->n; i++ ) 
+	for( i = 0; i < cas->n; i++ )
 		if( hist[i] ) {
 			if( vips_region_prepare( ar[i], r ) )
 				return( -1 );
@@ -128,8 +128,8 @@ vips_case_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 		ip += ils;
 		q += qls;
-		for( i = 0; i < cas->n; i++ ) 
-			if( hist[i] ) 
+		for( i = 0; i < cas->n; i++ )
+			if( hist[i] )
 				p[i] += ls[i];
 	}
 
@@ -151,13 +151,13 @@ vips_case_build( VipsObject *object )
 	VipsImage **size;
 	int i;
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_case_parent_class )->build( object ) )
 		return( -1 );
 
 	index = cas->index;
-	cases = vips_area_get_data( &cas->cases->area, 
+	cases = vips_area_get_data( &cas->cases->area,
 		NULL, &cas->n, NULL, NULL );
 	if( cas->n > 256 ||
 		cas->n < 1 ) {
@@ -165,7 +165,7 @@ vips_case_build( VipsObject *object )
 		return( -1 );
 	}
 	if( index->Bands > 1 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "index image not 1-band" ) );
 		return( -1 );
 	}
@@ -194,15 +194,15 @@ vips_case_build( VipsObject *object )
 	 * that to the end of the set of images for sizealike.
 	 */
 	band[cas->n] = index;
-	g_object_ref( index ); 
+	g_object_ref( index );
 	if( vips__formatalike_vec( cases, format, cas->n ) ||
-		vips__bandalike_vec( class->nickname, 
+		vips__bandalike_vec( class->nickname,
 			format, band, cas->n, 1 ) ||
-		vips__sizealike_vec( band, size, cas->n + 1 ) ) 
+		vips__sizealike_vec( band, size, cas->n + 1 ) )
 		return( -1 );
 	cases = size;
 
-	if( vips_image_pipeline_array( cas->out, 
+	if( vips_image_pipeline_array( cas->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, cases ) )
 		return( -1 );
 
@@ -211,7 +211,7 @@ vips_case_build( VipsObject *object )
 	cas->out->Type = cases[0]->Type;
 
 	if( vips_image_generate( cas->out,
-		vips_start_many, vips_case_gen, vips_stop_many, 
+		vips_start_many, vips_case_gen, vips_stop_many,
 		cases, cas ) )
 		return( -1 );
 
@@ -229,29 +229,29 @@ vips_case_class_init( VipsCaseClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "case";
-	object_class->description = 
+	object_class->description =
 		_( "use pixel values to pick cases from an array of images" );
 	object_class->build = vips_case_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "index", 1, 
-		_( "Index" ), 
+	VIPS_ARG_IMAGE( class, "index", 1,
+		_( "Index" ),
 		_( "Index image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCase, index ) );
 
-	VIPS_ARG_BOXED( class, "cases", 2, 
-		_( "Cases" ), 
+	VIPS_ARG_BOXED( class, "cases", 2,
+		_( "Cases" ),
 		_( "Array of case images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCase, cases ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
-	VIPS_ARG_IMAGE( class, "out", 3, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 3,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsCase, out ) );
 
 }
@@ -262,13 +262,13 @@ vips_case_init( VipsCase *cas )
 }
 
 static int
-vips_casev( VipsImage *index, VipsImage **cases, VipsImage **out, int n, 
+vips_casev( VipsImage *index, VipsImage **cases, VipsImage **out, int n,
 	va_list ap )
 {
-	VipsArrayImage *array; 
+	VipsArrayImage *array;
 	int result;
 
-	array = vips_array_image_new( cases, n ); 
+	array = vips_array_image_new( cases, n );
 	result = vips_call_split( "case", ap, index, array, out );
 	vips_area_unref( VIPS_AREA( array ) );
 
@@ -286,9 +286,9 @@ vips_casev( VipsImage *index, VipsImage **cases, VipsImage **out, int n,
  * Use values in @index to select pixels from @cases.
  *
  * @index must have one band. @cases can have up to 256 elements. Values in
- * @index greater than or equal to @n use the final image in @cases. The 
- * images in @cases must have either one band or the same number of bands. 
- * The output image is the same size as @index. Images in @cases are 
+ * @index greater than or equal to @n use the final image in @cases. The
+ * images in @cases must have either one band or the same number of bands.
+ * The output image is the same size as @index. Images in @cases are
  * expanded to the smallest common format and number of bands.
  *
  * Combine this with vips_switch() to make something like a case statement or

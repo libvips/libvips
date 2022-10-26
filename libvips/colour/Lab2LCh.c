@@ -10,7 +10,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,7 +56,7 @@ G_DEFINE_TYPE( VipsLab2LCh, vips_Lab2LCh, VIPS_TYPE_COLOUR_TRANSFORM );
  * @a: CIE a
  * @b: CIE b
  *
- * Returns: Hue (degrees) 
+ * Returns: Hue (degrees)
  */
 double
 vips_col_ab2h( double a, double b )
@@ -91,10 +91,10 @@ vips_col_ab2h( double a, double b )
 void
 vips_col_ab2Ch( float a, float b, float *C, float *h )
 {
-	*h = vips_col_ab2h( a, b ); 
+	*h = vips_col_ab2h( a, b );
 
 #ifdef HAVE_HYPOT
-	*C = hypot( a, b ); 
+	*C = hypot( a, b );
 #else
 	*C = sqrt( a * a + b * b );
 #endif
@@ -103,8 +103,8 @@ vips_col_ab2Ch( float a, float b, float *C, float *h )
 static void
 vips_Lab2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float * restrict p = (float *) in[0]; 
-	float * restrict q = (float *) out; 
+	float * restrict p = (float *) in[0];
+	float * restrict q = (float *) out;
 
 	int x;
 

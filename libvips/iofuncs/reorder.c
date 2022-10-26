@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,7 +56,7 @@ typedef struct _VipsReorder {
 	 * NULL-terminated.
 	 *
 	 * Score is the priority we give to the inputs as we de-dupe the source
-	 * arrays. 
+	 * arrays.
 	 *
 	 * The recomp order is the order we prepare regions in ... just make a
 	 * range then sort by score.
@@ -66,10 +66,10 @@ typedef struct _VipsReorder {
 	int *score;
 	int *recomp_order;
 
-	/* Source images are images with no input images, so file load, 
+	/* Source images are images with no input images, so file load,
 	 * vips_black(), etc. NULL-terminated array.
 	 *
-	 * The cumulative margin is the total margin that has been added to 
+	 * The cumulative margin is the total margin that has been added to
 	 * each source image up to this point in the pipeline.
 	 */
 	int n_sources;
@@ -78,7 +78,7 @@ typedef struct _VipsReorder {
 
 } VipsReorder;
 
-GQuark vips__image_reorder_quark = 0; 
+GQuark vips__image_reorder_quark = 0;
 
 #ifdef DEBUG
 static void
@@ -93,7 +93,7 @@ vips_reorder_print( VipsReorder *reorder )
 	printf( "n_inputs = %d\n", reorder->n_inputs );
 	printf( " n      score       order\n" );
 	for( i = 0; i < reorder->n_inputs; i++ ) {
-		printf( "%2d - %8d, %8d, ", 
+		printf( "%2d - %8d, %8d, ",
 			i, reorder->score[i], reorder->recomp_order[i] );
 		vips_object_print_name( VIPS_OBJECT( reorder->input[i] ) );
 		printf( "\n" );
@@ -102,7 +102,7 @@ vips_reorder_print( VipsReorder *reorder )
 	printf( "n_sources = %d\n", reorder->n_sources );
 	printf( " n     margin\n" );
 	for( i = 0; i < reorder->n_sources; i++ ) {
-		printf( "%2d - %8d, ", 
+		printf( "%2d - %8d, ",
 			i, reorder->cumulative_margin[i] );
 		vips_object_print_name( VIPS_OBJECT( reorder->source[i] ) );
 		printf( "\n" );
@@ -118,17 +118,17 @@ vips_reorder_free( VipsReorder *reorder )
 	 * we need to make sure these pointers are valid to this point in the
 	 * close cycle.
 	 */
-	VIPS_FREE( reorder->input ); 
-	VIPS_FREE( reorder->score ); 
-	VIPS_FREE( reorder->recomp_order ); 
-	VIPS_FREE( reorder->source ); 
-	VIPS_FREE( reorder->cumulative_margin ); 
+	VIPS_FREE( reorder->input );
+	VIPS_FREE( reorder->score );
+	VIPS_FREE( reorder->recomp_order );
+	VIPS_FREE( reorder->source );
+	VIPS_FREE( reorder->cumulative_margin );
 }
 
 static void
 vips_reorder_destroy( VipsReorder *reorder )
 {
-	vips_reorder_free( reorder ); 
+	vips_reorder_free( reorder );
 	VIPS_FREE( reorder );
 }
 
@@ -136,9 +136,9 @@ static VipsReorder *
 vips_reorder_get( VipsImage *image )
 {
 	VipsReorder *reorder;
-		
-	if( (reorder = g_object_get_qdata( G_OBJECT( image ), 
-		vips__image_reorder_quark )) ) 
+
+	if( (reorder = g_object_get_qdata( G_OBJECT( image ),
+		vips__image_reorder_quark )) )
 		return( reorder );
 
 	reorder = VIPS_NEW( NULL, VipsReorder );
@@ -151,7 +151,7 @@ vips_reorder_get( VipsImage *image )
 	reorder->source = NULL;
 	reorder->cumulative_margin = NULL;
 
-	g_object_set_qdata_full( G_OBJECT( image ), vips__image_reorder_quark, 
+	g_object_set_qdata_full( G_OBJECT( image ), vips__image_reorder_quark,
 		reorder, (GDestroyNotify) vips_reorder_destroy );
 
 	return( reorder );
@@ -176,8 +176,8 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	int total;
 
 	/* We have to support being called more than once on the same image.
-	 * Two cases: 
-	 * 
+	 * Two cases:
+	 *
 	 * 1. in the first call, no images were set ... we throw away
 	 * everything from the first call and try again. foreign can do this.
 	 *
@@ -186,7 +186,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	if( reorder->source ) {
 		if( reorder->n_inputs == 0 ) {
 			reorder->n_sources = 0;
-			vips_reorder_free( reorder ); 
+			vips_reorder_free( reorder );
 		}
 		else {
 			for( i = 0; in[i]; i++ )
@@ -213,7 +213,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	reorder->recomp_order = VIPS_ARRAY( NULL, reorder->n_inputs, int );
 	if( !reorder->input )
 		return( -1 );
-	if( reorder->n_inputs && 
+	if( reorder->n_inputs &&
 		(!reorder->score ||
 		 !reorder->recomp_order) )
 		return( -1 );
@@ -229,7 +229,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	 * to the size of the unique source image array we will need.
 	 */
 	total = 0;
-	for( i = 0; i < reorder->n_inputs; i++ ) 
+	for( i = 0; i < reorder->n_inputs; i++ )
 		total += vips_reorder_get( reorder->input[i] )->n_sources;
 
 	/* No source images means this must itself be a source image, so it has
@@ -267,7 +267,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 				 * margin? Adjust the score to reflect the
 				 * change, note the new max.
 				 */
-				reorder->score[i] += 
+				reorder->score[i] +=
 					input->cumulative_margin[j] -
 					reorder->cumulative_margin[k];
 
@@ -279,9 +279,9 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 			else {
 				/* No dupe, just add to the table.
 				 */
-				reorder->source[reorder->n_sources] = 
+				reorder->source[reorder->n_sources] =
 					input->source[j];
-				reorder->cumulative_margin[reorder->n_sources] = 
+				reorder->cumulative_margin[reorder->n_sources] =
 					input->cumulative_margin[j];
 				reorder->n_sources += 1;
 			}
@@ -291,10 +291,10 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	/* Sort recomp_order by score. qsort_r() is a GNU libc thing, don't use
 	 * it.
 	 */
-	if( reorder->n_inputs > 1 ) 
-		g_qsort_with_data( reorder->recomp_order, 
-			reorder->n_inputs, 
-			sizeof( int ), 
+	if( reorder->n_inputs > 1 )
+		g_qsort_with_data( reorder->recomp_order,
+			reorder->n_inputs,
+			sizeof( int ),
 			vips_reorder_compare_score, reorder );
 
 	/* No sources ... make one, us!
@@ -322,7 +322,7 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
  * @regions, requesting the pixels in @r.
  *
  * It tries to request the regions in the order which will cause least
- * recomputation. This can give a large speedup, in some cases. 
+ * recomputation. This can give a large speedup, in some cases.
  *
  * See also: vips_region_prepare(), vips_reorder_margin_hint().
  *
@@ -335,10 +335,10 @@ vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
 
 	int i;
 
-	for( i = 0; i < reorder->n_inputs; i++ ) { 
+	for( i = 0; i < reorder->n_inputs; i++ ) {
 		g_assert( regions[i] );
 
-		if( vips_region_prepare( 
+		if( vips_region_prepare(
 			regions[reorder->recomp_order[i]], r ) )
 			return( -1 );
 	}
@@ -354,7 +354,7 @@ vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
  * vips_reorder_margin_hint() sets a hint that @image contains a margin, that
  * is, that each vips_region_prepare() on @image will request a slightly larger
  * region from it's inputs. A good value for @margin is (width * height) for
- * the window the operation uses. 
+ * the window the operation uses.
  *
  * This information is used by vips_image_prepare_many() to attempt to reorder
  * computations to minimise recomputation.
@@ -368,14 +368,14 @@ vips_reorder_margin_hint( VipsImage *image, int margin )
 
 	int i;
 
-	for( i = 0; i < reorder->n_sources; i++ )  
+	for( i = 0; i < reorder->n_sources; i++ )
 		reorder->cumulative_margin[i] += margin;
 }
 
 void
 vips__reorder_clear( VipsImage *image )
 {
-	g_object_set_qdata( G_OBJECT( image ), 
+	g_object_set_qdata( G_OBJECT( image ),
 		vips__image_reorder_quark, NULL );
 }
 
@@ -383,6 +383,6 @@ void
 vips__reorder_init( void )
 {
 	if( !vips__image_reorder_quark )
-		vips__image_reorder_quark = 
-			g_quark_from_static_string( "vips-image-reorder" ); 
+		vips__image_reorder_quark =
+			g_quark_from_static_string( "vips-image-reorder" );
 }

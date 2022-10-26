@@ -1,5 +1,5 @@
 /* Manage sets of mmap buffers on an image.
- * 
+ *
  * 30/10/06
  *	- from region.c
  * 19/3/09
@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -174,7 +174,7 @@ trace_mmap_usage( void )
 
 		if( total != last_total ) {
 			printf( "vips_window_set: current mmap "
-				"usage of ~%dMB (high water mark %dMB)\n", 
+				"usage of ~%dMB (high water mark %dMB)\n",
 				total, max );
 			last_total = total;
 		}
@@ -218,9 +218,9 @@ vips_window_set( VipsWindow *window, int top, int height )
 	gint64 start, end, pagestart;
 	size_t length, pagelength;
 
-	/* Calculate start and length for our window. 
+	/* Calculate start and length for our window.
 	 */
-	start = window->im->sizeof_header + 
+	start = window->im->sizeof_header +
 		VIPS_IMAGE_SIZEOF_LINE( window->im ) * top;
 	length = VIPS_IMAGE_SIZEOF_LINE( window->im ) * height;
 
@@ -231,7 +231,7 @@ vips_window_set( VipsWindow *window, int top, int height )
 	/* Make sure we have enough file.
 	 */
 	if( end > window->im->file_length ) {
-		vips_error( "vips_window_set", 
+		vips_error( "vips_window_set",
 			_( "unable to read data for \"%s\", %s" ),
 			window->im->filename, _( "file has been truncated" ) );
 		return( -1 );
@@ -240,9 +240,9 @@ vips_window_set( VipsWindow *window, int top, int height )
 	if( vips_window_unmap( window ) )
 		return( -1 );
 
-	if( !(baseaddr = vips__mmap( window->im->fd, 
+	if( !(baseaddr = vips__mmap( window->im->fd,
 		0, pagelength, pagestart )) )
-		return( -1 ); 
+		return( -1 );
 
 	window->baseaddr = baseaddr;
 	window->length = pagelength;
@@ -310,7 +310,7 @@ typedef struct {
 static void *
 vips_window_fits( VipsWindow *window, request_t *req, void *b )
 {
-	if( window->top <= req->top && 
+	if( window->top <= req->top &&
 		window->top + window->height >= req->top + req->height )
 		return( window );
 
@@ -327,7 +327,7 @@ vips_window_find( VipsImage *im, int top, int height )
 
 	req.top = top;
 	req.height = height;
-	window = vips_slist_map2( im->windows, 
+	window = vips_slist_map2( im->windows,
 		(VipsSListMap2Fn) vips_window_fits, &req, NULL );
 
 	if( window ) {
@@ -343,7 +343,7 @@ vips_window_find( VipsImage *im, int top, int height )
 	return( window );
 }
 
-/* Update a window to make it enclose top/height. 
+/* Update a window to make it enclose top/height.
  */
 VipsWindow *
 vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )
@@ -354,7 +354,7 @@ vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )
 	 */
 	if( window &&
 		window->top <= top &&
-		window->top + window->height >= top + height ) 
+		window->top + window->height >= top + height )
 		return( window );
 
 	g_mutex_lock( im->sslock );
@@ -378,7 +378,7 @@ vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )
 	/* There's more than one ref to the window. We can just decrement.
 	 * Don't call _unref, since we've inside the lock.
 	 */
-	if( window ) 
+	if( window )
 		window->ref_count -= 1;
 
 	/* Is there an existing window we can reuse?
@@ -389,7 +389,7 @@ vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )
 		return( window );
 	}
 
-	/* We have to make a new window. Make it a bit bigger than strictly 
+	/* We have to make a new window. Make it a bit bigger than strictly
 	 * necessary.
 	 */
 	margin = VIPS_MIN( vips__window_margin_pixels,

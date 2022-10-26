@@ -24,9 +24,9 @@
  * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
  * @(#) TiePoints *points; 	see mosaic.h
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on sucess  and -1 on error.
- * @(#) 
+ * @(#)
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -44,7 +44,7 @@
  * 26/9/97 JC
  *	- now skips all-black windows, instead of any-black windows
  * 11/4/01 JC
- *	- ooops, < 0 should have been <= 0 
+ *	- ooops, < 0 should have been <= 0
  * 10/3/03 JC
  *	- better error message for overlap too small
  * 18/6/20 kleisauke
@@ -54,7 +54,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -116,8 +116,8 @@ all_black( VipsImage *im, int xpos, int ypos, int winsize )
 	 */
 	line = im->data + top*ls + left;
 	for( y = 0; y < winsize; y++ ) {
-		for( x = 0; x < winsize; x++ ) 
-			if( line[x] ) 
+		for( x = 0; x < winsize; x++ )
+			if( line[x] )
 				/* Not all black.
 				 */
 				return( 0 );
@@ -130,9 +130,9 @@ all_black( VipsImage *im, int xpos, int ypos, int winsize )
 
 /* Calculate a value for 'contrast' within a window
  * of (odd) size winsize*winsize centered at location (xpos, ypos).
- * One band uchar only, 
+ * One band uchar only,
  */
-static int 
+static int
 calculate_contrast( VipsImage *im, int xpos, int ypos, int winsize )
 {
 	const int hwinsize = (winsize - 1) / 2;
@@ -173,15 +173,15 @@ pos_compare( const void *vl, const void *vr )
 	return( r->cont - l->cont );
 }
 
-/* Search an area for the n best contrast areas. 
+/* Search an area for the n best contrast areas.
  */
-int 
-vips__find_best_contrast( VipsImage *im, 
+int
+vips__find_best_contrast( VipsImage *im,
 	int xpos, int ypos, int xsize, int ysize,
-	int xarray[], int yarray[], int cont[], 
+	int xarray[], int yarray[], int cont[],
 	int nbest, int hcorsize )
 {
-	/* Geometry: we test squares of size windowsize, overlapping by 
+	/* Geometry: we test squares of size windowsize, overlapping by
 	 * hcorsize.
 	 */
 	const int windowsize = 2 * hcorsize + 1;
@@ -202,7 +202,7 @@ vips__find_best_contrast( VipsImage *im,
 	int x, y, i;
 
 	if( nacross <= 0 || ndown <= 0 ) {
-		vips_error( "vips__lrcalcon", "%s", 
+		vips_error( "vips__lrcalcon", "%s",
 			_( "overlap too small for your search size" ) );
 		return( -1 );
 	}
@@ -215,7 +215,7 @@ vips__find_best_contrast( VipsImage *im,
 
 	/* Find contrast for each area.
 	 */
-	for( i = 0, y = 0; y < ndown; y++ ) 
+	for( i = 0, y = 0; y < ndown; y++ )
 		for( x = 0; x < nacross; x++ ) {
 			const int left = xpos + x * hcorsize;
 			const int top = ypos + y * hcorsize;
@@ -229,7 +229,7 @@ vips__find_best_contrast( VipsImage *im,
 			 */
 			pc[i].x = left;
 			pc[i].y = top;
-			pc[i].cont = calculate_contrast( im, 
+			pc[i].cont = calculate_contrast( im,
 				left, top, windowsize );
 			i++;
 		}
@@ -241,8 +241,8 @@ vips__find_best_contrast( VipsImage *im,
 	/* Found enough tie-points?
 	 */
 	if( elms < nbest ) {
-		vips_error( "vips_mosaic", 
-			_( "found %d tie-points, need at least %d" ), 
+		vips_error( "vips_mosaic",
+			_( "found %d tie-points, need at least %d" ),
 			elms, nbest );
 		g_free( pc );
 		return( -1 );
@@ -264,7 +264,7 @@ vips__find_best_contrast( VipsImage *im,
 	return( 0 );
 }
 
-int 
+int
 vips__lrcalcon( VipsImage *ref, TiePoints *points )
 {
 	/* Geometry: border we must leave around each area.
@@ -286,7 +286,7 @@ vips__lrcalcon( VipsImage *ref, TiePoints *points )
 	 */
 	if( vips_image_wio_input( ref ) )
 		return( -1 );
-	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) { 
+	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) {
 		vips_error( "vips__lrcalcon", "%s", _( "not 1-band uchar image" ) );
 		return( -1 );
 	}
@@ -304,12 +304,12 @@ vips__lrcalcon( VipsImage *ref, TiePoints *points )
 
 	/* Loop over areas, finding points.
 	 */
-	for( i = 0; area.top < ref->Ysize; area.top += aheight, i++ ) 
-		if( vips__find_best_contrast( ref, 
+	for( i = 0; area.top < ref->Ysize; area.top += aheight, i++ )
+		if( vips__find_best_contrast( ref,
 			area.left, area.top, area.width, area.height,
 			points->x_reference + i*len,
 			points->y_reference + i*len,
-			points->contrast + i*len, 
+			points->contrast + i*len,
 			len,
 			points->halfcorsize ) )
 			return( -1 );

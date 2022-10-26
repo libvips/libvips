@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -75,15 +75,15 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	if( (q = im_getnextoption( &p )) ) {
 		shrink = atoi( q );
 
-		if( shrink != 1 && shrink != 2 && 
+		if( shrink != 1 && shrink != 2 &&
 			shrink != 4 && shrink != 8 ) {
-			im_error( "im_jpeg2vips", 
+			im_error( "im_jpeg2vips",
 				_( "bad shrink factor %d" ), shrink );
 			return( -1 );
 		}
 	}
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "fail", q ) ) 
+		if( im_isprefix( "fail", q ) )
 			fail_on_warn = TRUE;
 	}
 	if( (q = im_getnextoption( &p )) ) {
@@ -96,7 +96,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	 * like that.
 	 */
 
-	/* We need to be compatible with the pre-sequential mode 
+	/* We need to be compatible with the pre-sequential mode
 	 * im_jpeg2vips(). This returned a "t" if given a "p" image, since it
 	 * used writeline.
 	 *
@@ -106,7 +106,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	if( !header_only &&
 		!seq &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
-		if( vips__image_wio_output( out ) ) 
+		if( vips__image_wio_output( out ) )
 			return( -1 );
 	}
 
@@ -114,7 +114,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	VipsSource *source;
 
-	if( !(source = vips_source_new_from_file( filename )) ) 
+	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
 	if( vips__jpeg_read_source( source, out,
 		header_only, shrink, fail_on_warn, FALSE, FALSE ) ) {
@@ -124,8 +124,8 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	VIPS_UNREF( source );
 }
 #else
-	vips_error( "im_jpeg2vips", 
-		"%s", _( "no JPEG support in your libvips" ) ); 
+	vips_error( "im_jpeg2vips",
+		"%s", _( "no JPEG support in your libvips" ) );
 
 	return( -1 );
 #endif /*HAVE_JPEG*/
@@ -136,7 +136,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 int
 im_jpeg2vips( const char *name, IMAGE *out )
 {
-	return( jpeg2vips( name, out, FALSE ) ); 
+	return( jpeg2vips( name, out, FALSE ) );
 }
 
 /* By having a separate header func, we get lazy.c to open via disc/mem.
@@ -144,7 +144,7 @@ im_jpeg2vips( const char *name, IMAGE *out )
 static int
 im_jpeg2vips_header( const char *name, IMAGE *out )
 {
-	return( jpeg2vips( name, out, TRUE ) ); 
+	return( jpeg2vips( name, out, TRUE ) );
 }
 
 int
@@ -152,7 +152,7 @@ im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
 {
 	VipsImage *t;
 
-	/* header_only is now automatic ... this call will only decompress on 
+	/* header_only is now automatic ... this call will only decompress on
 	 * pixel access.
 	 */
 

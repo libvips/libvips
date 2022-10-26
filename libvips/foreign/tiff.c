@@ -79,8 +79,8 @@ vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 
 /* Called during library init.
  *
- * libtiff error and warning handlers may be called from other threads 
- * running in other libs. Other libs may install error handlers and capture 
+ * libtiff error and warning handlers may be called from other threads
+ * running in other libs. Other libs may install error handlers and capture
  * messages caused by us.
  */
 void
@@ -169,10 +169,10 @@ vips__tiff_openin_source( VipsSource *source )
 		return( NULL );
 
 	/* Disable memory mapped input -- it chews up VM and the performance
-	 * gain is very small. 
+	 * gain is very small.
 	 *
-	 * C enables strip chopping: very large uncompressed strips are 
-	 * chopped into c. 8kb chunks. This can reduce peak memory use for 
+	 * C enables strip chopping: very large uncompressed strips are
+	 * chopped into c. 8kb chunks. This can reduce peak memory use for
 	 * this type of file.
 	 */
 	if( !(tiff = TIFFClientOpen( "source input", "rmC",

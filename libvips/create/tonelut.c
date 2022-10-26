@@ -1,4 +1,4 @@
-/* Build a tone curve. 
+/* Build a tone curve.
  *
  * Author: John Cupitt
  * Written on: 18/7/1995
@@ -20,7 +20,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ typedef struct _VipsTonelut {
 	/* Parameters for tone curve formation.
 	 */
 	double Lb, Lw;
-	double Ps, Pm, Ph; 
+	double Ps, Pm, Ph;
 	double S, M, H;
 
 	/* Range we process.
@@ -96,7 +96,7 @@ shad( VipsTonelut *lut, double x )
 		out = 3.0 * x1 * x1 - 2.0 * x1 * x1 * x1;
 	else if( x < lut->Lm )
 		out = 1.0 - 3.0 * x2 * x2 + 2.0 * x2 * x2 * x2;
-	else 
+	else
 		out = 0;
 
 	return( out );
@@ -118,7 +118,7 @@ mid( VipsTonelut *lut, double x )
 		out = 3.0 * x1 * x1 - 2.0 * x1 * x1 * x1;
 	else if( x < lut->Lh )
 		out = 1.0 - 3.0 * x2 * x2 + 2.0 * x2 * x2 * x2;
-	else 
+	else
 		out = 0;
 
 	return( out );
@@ -140,7 +140,7 @@ high( VipsTonelut *lut, double x )
 		out = 3.0 * x1 * x1 - 2.0 * x1 * x1 * x1;
 	else if( x < lut->Lw )
 		out = 1.0 - 3.0 * x2 * x2 + 2.0 * x2 * x2 * x2;
-	else 
+	else
 		out = 0;
 
 	return( out );
@@ -153,11 +153,11 @@ tone_curve( VipsTonelut *lut, double x )
 {
 	double out;
 
-	out = x + 
-		lut->S * shad( lut, x ) + 
-		lut->M * mid( lut, x ) + 
+	out = x +
+		lut->S * shad( lut, x ) +
+		lut->M * mid( lut, x ) +
 		lut->H * high( lut, x );
-	
+
 	return( out );
 }
 
@@ -167,14 +167,14 @@ vips_tonelut_build( VipsObject *object )
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsTonelut *lut = (VipsTonelut *) object;
 
-	int i; 
+	int i;
 	unsigned short buf[65536];
 
 	if( VIPS_OBJECT_CLASS( vips_tonelut_parent_class )->build( object ) )
 		return( -1 );
 
-	g_assert( lut->in_max > 0 && lut->in_max < 65536 ); 
-	g_assert( lut->out_max > 0 && lut->out_max < 65536 ); 
+	g_assert( lut->in_max > 0 && lut->in_max < 65536 );
+	g_assert( lut->out_max > 0 && lut->out_max < 65536 );
 
 	/* Note derived params.
 	 */
@@ -185,7 +185,7 @@ vips_tonelut_build( VipsObject *object )
 	/* Generate curve.
 	 */
 	for( i = 0; i <= lut->in_max; i++ ) {
-		int v = (lut->out_max / 100.0) * 
+		int v = (lut->out_max / 100.0) *
 			tone_curve( lut, 100.0 * i / lut->in_max );
 
 		if( v < 0 )
@@ -198,11 +198,11 @@ vips_tonelut_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-        vips_image_init_fields( create->out,
-                lut->in_max + 1, 1, 1, 
-		VIPS_FORMAT_USHORT, VIPS_CODING_NONE, 
+	vips_image_init_fields( create->out,
+		lut->in_max + 1, 1, 1,
+		VIPS_FORMAT_USHORT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
-        if( vips_image_write_line( create->out, 0, (VipsPel *) buf ) ) 
+	if( vips_image_write_line( create->out, 0, (VipsPel *) buf ) )
 		return( -1 );
 
 	return( 0 );
@@ -221,101 +221,101 @@ vips_tonelut_class_init( VipsTonelutClass *class )
 	vobject_class->description = _( "build a look-up table" );
 	vobject_class->build = vips_tonelut_build;
 
-	VIPS_ARG_INT( class, "in_max", 4, 
-		_( "In-max" ), 
+	VIPS_ARG_INT( class, "in_max", 4,
+		_( "In-max" ),
 		_( "Size of LUT to build" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, in_max ),
 		1, 65535, 32767 );
 
-	VIPS_ARG_INT( class, "out_max", 5, 
-		_( "Out-max" ), 
+	VIPS_ARG_INT( class, "out_max", 5,
+		_( "Out-max" ),
 		_( "Maximum value in output LUT" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, out_max ),
 		1, 65535, 32767 );
 
-	VIPS_ARG_DOUBLE( class, "Lb", 6, 
-		_( "Black point" ), 
+	VIPS_ARG_DOUBLE( class, "Lb", 6,
+		_( "Black point" ),
 		_( "Lowest value in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, Lb ),
-		0, 100, 0 ); 
+		0, 100, 0 );
 
-	VIPS_ARG_DOUBLE( class, "Lw", 7, 
-		_( "White point" ), 
+	VIPS_ARG_DOUBLE( class, "Lw", 7,
+		_( "White point" ),
 		_( "Highest value in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, Lw ),
-		0, 100, 100 ); 
+		0, 100, 100 );
 
-	VIPS_ARG_DOUBLE( class, "Ps", 8, 
-		_( "Shadow point" ), 
+	VIPS_ARG_DOUBLE( class, "Ps", 8,
+		_( "Shadow point" ),
 		_( "Position of shadow" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, Ps ),
-		0, 1, 0.2 ); 
+		0, 1, 0.2 );
 
-	VIPS_ARG_DOUBLE( class, "Pm", 9, 
-		_( "Mid-tone point" ), 
+	VIPS_ARG_DOUBLE( class, "Pm", 9,
+		_( "Mid-tone point" ),
 		_( "Position of mid-tones" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, Pm ),
-		0, 1, 0.5 ); 
+		0, 1, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "Ph", 10, 
-		_( "Highlight point" ), 
+	VIPS_ARG_DOUBLE( class, "Ph", 10,
+		_( "Highlight point" ),
 		_( "Position of highlights" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, Ph ),
-		0, 1, 0.8 ); 
+		0, 1, 0.8 );
 
-	VIPS_ARG_DOUBLE( class, "S", 11, 
-		_( "Shadow adjust" ), 
+	VIPS_ARG_DOUBLE( class, "S", 11,
+		_( "Shadow adjust" ),
 		_( "Adjust shadows by this much" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, S ),
-		-30, 30, 0 ); 
+		-30, 30, 0 );
 
-	VIPS_ARG_DOUBLE( class, "M", 12, 
-		_( "Mid-tone adjust" ), 
+	VIPS_ARG_DOUBLE( class, "M", 12,
+		_( "Mid-tone adjust" ),
 		_( "Adjust mid-tones by this much" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, M ),
-		-30, 30, 0 ); 
+		-30, 30, 0 );
 
-	VIPS_ARG_DOUBLE( class, "H", 13, 
-		_( "Highlight adjust" ), 
+	VIPS_ARG_DOUBLE( class, "H", 13,
+		_( "Highlight adjust" ),
 		_( "Adjust highlights by this much" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsTonelut, H ),
-		-30, 30, 0 ); 
+		-30, 30, 0 );
 
 }
 
 static void
 vips_tonelut_init( VipsTonelut *lut )
 {
-	lut->in_max = 32767; 
-	lut->out_max = 32767; 
-	lut->Lb = 0.0; 
-	lut->Lw = 100.0; 
-	lut->Ps = 0.2; 
-	lut->Pm = 0.5; 
-	lut->Ph = 0.8; 
-	lut->S = 0.0; 
-	lut->M = 0.0; 
-	lut->H = 0.0; 
+	lut->in_max = 32767;
+	lut->out_max = 32767;
+	lut->Lb = 0.0;
+	lut->Lw = 100.0;
+	lut->Ps = 0.2;
+	lut->Pm = 0.5;
+	lut->Ph = 0.8;
+	lut->S = 0.0;
+	lut->M = 0.0;
+	lut->H = 0.0;
 }
 
 /**
  * vips_tonelut:
- * @out: (out): output image 
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * * @in_max: input range 
+ * * @in_max: input range
  * * @out_max: output range
  * * @Lb: black-point [0-100]
  * * @Lw: white-point [0-100]
@@ -326,15 +326,15 @@ vips_tonelut_init( VipsTonelut *lut )
  * * @M: mid-tone adjustment (+/- 30)
  * * @H: highlight adjustment (+/- 30)
  *
- * vips_tonelut() generates a tone curve for the adjustment of image 
+ * vips_tonelut() generates a tone curve for the adjustment of image
  * levels. It is mostly designed for adjusting the L* part of a LAB image in
  * a way suitable for print work, but you can use it for other things too.
  *
- * The curve is an unsigned 16-bit image with (@in_max + 1) entries, 
+ * The curve is an unsigned 16-bit image with (@in_max + 1) entries,
  * each in the range [0, @out_max].
  *
- * @Lb, @Lw are expressed as 0-100, as in LAB colour space. You 
- * specify the scaling for the input and output images with the @in_max and 
+ * @Lb, @Lw are expressed as 0-100, as in LAB colour space. You
+ * specify the scaling for the input and output images with the @in_max and
  * @out_max parameters.
  *
  * Returns: 0 on success, -1 on error

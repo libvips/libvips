@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -45,7 +45,7 @@
 
 /**
  * im_matmul:
- * @in1: input matrix 
+ * @in1: input matrix
  * @in2: input matrix
  * @filename: name for output matrix
  *
@@ -60,7 +60,7 @@
  */
 DOUBLEMASK *
 im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
-{	
+{
 	int xc, yc, col;
 	double sum;
 	DOUBLEMASK *mat;
@@ -76,7 +76,7 @@ im_matmul( DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name )
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, in2->xsize, in1->ysize )) ) 
+	if( !(mat = im_create_dmask( name, in2->xsize, in1->ysize )) )
 		return( NULL );
 
 	/* Multiply.

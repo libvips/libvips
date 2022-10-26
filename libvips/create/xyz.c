@@ -1,4 +1,4 @@
-/* make an xy index image 
+/* make an xy index image
  *
  * 21/4/04
  *	- from im_grey
@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -85,22 +85,22 @@ vips_xyz_gen( VipsRegion *or, void *seq, void *a, void *b,
 	int x, y, i;
 
 	for( y = to; y < bo; y++ ) {
-		unsigned int *q = (unsigned int *) 
+		unsigned int *q = (unsigned int *)
 			VIPS_REGION_ADDR( or, le, y );
 
 		unsigned int dims[5];
 		int r;
 		int h;
 
-		h = xyz->height * xyz->csize * xyz->dsize; 
+		h = xyz->height * xyz->csize * xyz->dsize;
 		dims[4] = y / h;
 		r = y % h;
 
-		h /= xyz->dsize; 
+		h /= xyz->dsize;
 		dims[3] = r / h;
 		r %= h;
 
-		h /= xyz->csize; 
+		h /= xyz->csize;
 		dims[2] = r / h;
 		r %= h;
 
@@ -135,9 +135,9 @@ vips_xyz_build( VipsObject *object )
 		!vips_object_argument_isset( object, "csize" )) ||
 		(vips_object_argument_isset( object, "esize" ) &&
 		 !vips_object_argument_isset( object, "dsize" )) ) {
-		vips_error( class->nickname, "%s", 
+		vips_error( class->nickname, "%s",
 			_( "lower dimensions not set" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 
 	if( vips_object_argument_isset( object, "csize" ) ) {
@@ -146,25 +146,25 @@ vips_xyz_build( VipsObject *object )
 		if( vips_object_argument_isset( object, "dsize" ) ) {
 			xyz->dimensions += 1;
 
-			if( vips_object_argument_isset( object, "esize" ) ) 
+			if( vips_object_argument_isset( object, "esize" ) )
 				xyz->dimensions += 1;
 		}
 	}
 
-	d = (double) xyz->height * xyz->csize * xyz->dsize * xyz->esize; 
+	d = (double) xyz->height * xyz->csize * xyz->dsize * xyz->esize;
 	if( d > INT_MAX ) {
 		vips_error( class->nickname, "%s", _( "image too large" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 	ysize = d;
 
 	vips_image_init_fields( create->out,
-		xyz->width, ysize, xyz->dimensions, 
+		xyz->width, ysize, xyz->dimensions,
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
 	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_generate( create->out, 
+		vips_image_generate( create->out,
 			NULL, vips_xyz_gen, NULL, xyz, NULL ) )
 		return( -1 );
 
@@ -183,40 +183,40 @@ vips_xyz_class_init( VipsXyzClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "xyz";
-	vobject_class->description = 
+	vobject_class->description =
 		_( "make an image where pixel values are coordinates" );
 	vobject_class->build = vips_xyz_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, width ),
 		1, VIPS_MAX_COORD, 64 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, height ),
 		1, VIPS_MAX_COORD, 64 );
 
-	VIPS_ARG_INT( class, "csize", 6, 
-		_( "csize" ), 
+	VIPS_ARG_INT( class, "csize", 6,
+		_( "csize" ),
 		_( "Size of third dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, csize ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "dsize", 7, 
-		_( "dsize" ), 
+	VIPS_ARG_INT( class, "dsize", 7,
+		_( "dsize" ),
 		_( "Size of fourth dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, dsize ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "esize", 8, 
-		_( "esize" ), 
+	VIPS_ARG_INT( class, "esize", 8,
+		_( "esize" ),
 		_( "Size of fifth dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, esize ),
@@ -250,14 +250,14 @@ vips_xyz_init( VipsXyz *xyz )
  *
  * Create a two-band uint32 image where the elements in the first band have the
  * value of their x coordinate and elements in the second band have their y
- * coordinate. 
+ * coordinate.
  *
  * You can make any image where the value of a pixel is a function of its (x,
- * y) coordinate by combining this operator with the arithmetic operators. 
+ * y) coordinate by combining this operator with the arithmetic operators.
  *
  * Set @csize, @dsize, @esize to generate higher dimensions and add more
  * bands. The extra dimensions are placed down the vertical axis. Use
- * vips_grid() to change the layout. 
+ * vips_grid() to change the layout.
  *
  * See also: vips_grey(), vips_grid(), vips_identity().
  *

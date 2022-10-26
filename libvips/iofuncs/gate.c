@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,14 +49,14 @@
 
 #define VIPS_GATE_SIZE (1000)
 
-/* A set of timing records. i is the index of the next slot we fill. 
+/* A set of timing records. i is the index of the next slot we fill.
  */
 typedef struct _VipsThreadGateBlock {
 	struct _VipsThreadGateBlock *prev;
 
 	gint64 time[VIPS_GATE_SIZE];
 	int i;
-} VipsThreadGateBlock; 
+} VipsThreadGateBlock;
 
 /* What we track for each gate-name.
  */
@@ -64,9 +64,9 @@ typedef struct _VipsThreadGate {
 	const char *name;
 	VipsThreadGateBlock *start;
 	VipsThreadGateBlock *stop;
-} VipsThreadGate; 
+} VipsThreadGate;
 
-/* One of these in per-thread private storage. 
+/* One of these in per-thread private storage.
  */
 
 typedef struct _VipsThreadProfile {
@@ -76,7 +76,7 @@ typedef struct _VipsThreadProfile {
 	GThread *thread;
 	GHashTable *gates;
 	VipsThreadGate *memory;
-} VipsThreadProfile; 
+} VipsThreadProfile;
 
 gboolean vips__thread_profile = FALSE;
 
@@ -89,7 +89,7 @@ static FILE *vips__thread_fp = NULL;;
  * @profile: %TRUE to enable profile recording
  *
  * If set, vips will record profiling information, and dump it on program
- * exit. These profiles can be analysed with the `vipsprofile` program. 
+ * exit. These profiles can be analysed with the `vipsprofile` program.
  */
 void
 vips_profile_set( gboolean profile )
@@ -104,16 +104,16 @@ vips_thread_gate_block_save( VipsThreadGateBlock *block, FILE *fp )
 
 	for( i = block->i - 1; i >= 0; i-- )
 		fprintf( fp, "%" G_GINT64_FORMAT " ", block->time[i] );
-	fprintf( fp, "\n" ); 
+	fprintf( fp, "\n" );
 	if( block->prev )
-		vips_thread_gate_block_save( block->prev, fp ); 
+		vips_thread_gate_block_save( block->prev, fp );
 }
 
 static void
 vips_thread_profile_save_gate( VipsThreadGate *gate, FILE *fp )
 {
-	if( gate->start->i || 
-		gate->start->prev ) { 
+	if( gate->start->i ||
+		gate->start->prev ) {
 		fprintf( fp, "gate: %s\n", gate->name );
 		fprintf( fp, "start:\n" );
 		vips_thread_gate_block_save( gate->start, fp );
@@ -128,7 +128,7 @@ vips_thread_profile_save_cb( gpointer key, gpointer value, gpointer data )
 	VipsThreadGate *gate = (VipsThreadGate *) value;
 	FILE *fp = (FILE *) data;
 
-	vips_thread_profile_save_gate( gate, fp ); 
+	vips_thread_profile_save_gate( gate, fp );
 }
 
 static void
@@ -136,24 +136,24 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 {
 	g_mutex_lock( vips__global_lock );
 
-	VIPS_DEBUG_MSG( "vips_thread_profile_save: %s\n", profile->name ); 
+	VIPS_DEBUG_MSG( "vips_thread_profile_save: %s\n", profile->name );
 
-	if( !vips__thread_fp ) { 
-		vips__thread_fp = 
+	if( !vips__thread_fp ) {
+		vips__thread_fp =
 			vips__file_open_write( "vips-profile.txt", TRUE );
 		if( !vips__thread_fp ) {
 			g_mutex_unlock( vips__global_lock );
-			g_warning( "unable to create profile log" ); 
+			g_warning( "unable to create profile log" );
 			return;
 		}
 
-		printf( "recording profile in vips-profile.txt\n" );  
+		printf( "recording profile in vips-profile.txt\n" );
 	}
 
 	fprintf( vips__thread_fp, "thread: %s (%p)\n", profile->name, profile );
-	g_hash_table_foreach( profile->gates, 
+	g_hash_table_foreach( profile->gates,
 		vips_thread_profile_save_cb, vips__thread_fp );
-	vips_thread_profile_save_gate( profile->memory, vips__thread_fp ); 
+	vips_thread_profile_save_gate( profile->memory, vips__thread_fp );
 
 	g_mutex_unlock( vips__global_lock );
 }
@@ -170,13 +170,13 @@ vips_thread_gate_free( VipsThreadGate *gate )
 {
 	VIPS_FREEF( vips_thread_gate_block_free, gate->start );
 	VIPS_FREEF( vips_thread_gate_block_free, gate->stop );
-	VIPS_FREE( gate ); 
+	VIPS_FREE( gate );
 }
 
 static void
 vips_thread_profile_free( VipsThreadProfile *profile )
 {
-	VIPS_DEBUG_MSG( "vips_thread_profile_free: %s\n", profile->name ); 
+	VIPS_DEBUG_MSG( "vips_thread_profile_free: %s\n", profile->name );
 
 	VIPS_FREEF( g_hash_table_destroy, profile->gates );
 	VIPS_FREEF( vips_thread_gate_free, profile->memory );
@@ -186,8 +186,8 @@ vips_thread_profile_free( VipsThreadProfile *profile )
 void
 vips__thread_profile_stop( void )
 {
-	if( vips__thread_profile ) 
-		VIPS_FREEF( fclose, vips__thread_fp ); 
+	if( vips__thread_profile )
+		VIPS_FREEF( fclose, vips__thread_fp );
 }
 
 static void
@@ -196,16 +196,16 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 	/* We only come here if vips_thread_shutdown() was not called for this
 	 * thread. Do our best to clean up.
 	 *
-	 * GPrivate has stopped working, be careful not to touch that. 
+	 * GPrivate has stopped working, be careful not to touch that.
 	 *
 	 * Don't try to save: we must free all mem before saving and we
 	 * probably haven't done that because vips_thread_shutdown() has not
-	 * been called. 
+	 * been called.
 	 */
-	if( vips__thread_profile ) 
+	if( vips__thread_profile )
 		g_warning( "discarding unsaved state for thread %p --- "
 			"call vips_thread_shutdown() for this thread",
-			profile->thread ); 
+			profile->thread );
 
 	vips_thread_profile_free( profile );
 }
@@ -213,7 +213,7 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 static void *
 vips__thread_profile_init( void *data )
 {
-	static GPrivate private = 
+	static GPrivate private =
 		G_PRIVATE_INIT( (GDestroyNotify) vips__thread_profile_init_cb );
 
 	vips_thread_profile_key = &private;
@@ -222,12 +222,12 @@ vips__thread_profile_init( void *data )
 }
 
 static VipsThreadGate *
-vips_thread_gate_new( const char *gate_name ) 
+vips_thread_gate_new( const char *gate_name )
 {
 	VipsThreadGate *gate;
 
 	gate = g_new( VipsThreadGate, 1 );
-	gate->name = gate_name; 
+	gate->name = gate_name;
 	gate->start = g_new0( VipsThreadGateBlock, 1 );
 	gate->stop = g_new0( VipsThreadGateBlock, 1 );
 
@@ -243,39 +243,39 @@ vips__thread_profile_attach( const char *thread_name )
 
 	VIPS_ONCE( &once, vips__thread_profile_init, NULL );
 
-	VIPS_DEBUG_MSG( "vips__thread_profile_attach: %s\n", thread_name ); 
+	VIPS_DEBUG_MSG( "vips__thread_profile_attach: %s\n", thread_name );
 
 	profile = g_new( VipsThreadProfile, 1 );
-	profile->name = thread_name; 
-	profile->gates = g_hash_table_new_full( 
-		g_direct_hash, g_str_equal, 
+	profile->name = thread_name;
+	profile->gates = g_hash_table_new_full(
+		g_direct_hash, g_str_equal,
 		NULL, (GDestroyNotify) vips_thread_gate_free );
-	profile->memory = vips_thread_gate_new( "memory" ); 
+	profile->memory = vips_thread_gate_new( "memory" );
 	g_private_replace( vips_thread_profile_key, profile );
 }
 
 static VipsThreadProfile *
 vips_thread_profile_get( void )
 {
-	return( g_private_get( vips_thread_profile_key ) ); 
+	return( g_private_get( vips_thread_profile_key ) );
 }
 
-/* This usually happens automatically when a thread shuts down, see 
+/* This usually happens automatically when a thread shuts down, see
  * vips__thread_profile_init() where we set a GDestroyNotify, but will not
- * happen for the main thread. 
+ * happen for the main thread.
  *
  * Shut down any stats on the main thread with this, see vips_shutdown()
  */
 void
-vips__thread_profile_detach( void ) 
+vips__thread_profile_detach( void )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG( "vips__thread_profile_detach:\n" ); 
+	VIPS_DEBUG_MSG( "vips__thread_profile_detach:\n" );
 
 	if( (profile = vips_thread_profile_get()) ) {
-		if( vips__thread_profile ) 
-			vips_thread_profile_save( profile ); 
+		if( vips__thread_profile )
+			vips_thread_profile_save( profile );
 
 		vips_thread_profile_free( profile );
 		g_private_set( vips_thread_profile_key, NULL );
@@ -297,17 +297,17 @@ vips__thread_gate_start( const char *gate_name )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG_RED( "vips__thread_gate_start: %s\n", gate_name ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_gate_start: %s\n", gate_name );
 
-	if( (profile = vips_thread_profile_get()) ) { 
+	if( (profile = vips_thread_profile_get()) ) {
 		gint64 time = g_get_monotonic_time();
 
 		VipsThreadGate *gate;
 
-		if( !(gate = 
+		if( !(gate =
 			g_hash_table_lookup( profile->gates, gate_name )) ) {
 			gate = vips_thread_gate_new( gate_name );
-			g_hash_table_insert( profile->gates, 
+			g_hash_table_insert( profile->gates,
 				(char *) gate_name, gate );
 		}
 
@@ -316,7 +316,7 @@ vips__thread_gate_start( const char *gate_name )
 
 		gate->start->time[gate->start->i++] = time;
 
-		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time ); 
+		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time );
 	}
 }
 
@@ -325,17 +325,17 @@ vips__thread_gate_stop( const char *gate_name )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG_RED( "vips__thread_gate_stop: %s\n", gate_name ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_gate_stop: %s\n", gate_name );
 
-	if( (profile = vips_thread_profile_get()) ) { 
+	if( (profile = vips_thread_profile_get()) ) {
 		gint64 time = g_get_monotonic_time();
 
 		VipsThreadGate *gate;
 
-		if( !(gate = 
+		if( !(gate =
 			g_hash_table_lookup( profile->gates, gate_name )) ) {
 			gate = vips_thread_gate_new( gate_name );
-			g_hash_table_insert( profile->gates, 
+			g_hash_table_insert( profile->gates,
 				(char *) gate_name, gate );
 		}
 
@@ -344,7 +344,7 @@ vips__thread_gate_stop( const char *gate_name )
 
 		gate->stop->time[gate->stop->i++] = time;
 
-		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time ); 
+		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time );
 	}
 }
 
@@ -355,14 +355,14 @@ vips__thread_malloc_free( gint64 size )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG_RED( "vips__thread_malloc_free: %zd\n", size ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_malloc_free: %zd\n", size );
 
 #ifdef VIPS_DEBUG
-	if( !(profile = vips_thread_profile_get()) ) 
-		printf( "argh no block to record free() in!\n" ); 
+	if( !(profile = vips_thread_profile_get()) )
+		printf( "argh no block to record free() in!\n" );
 #endif /*VIPS_DEBUG*/
 
-	if( (profile = vips_thread_profile_get()) ) { 
+	if( (profile = vips_thread_profile_get()) ) {
 		gint64 time = g_get_monotonic_time();
 		VipsThreadGate *gate = profile->memory;
 

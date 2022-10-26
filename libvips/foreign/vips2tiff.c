@@ -7,7 +7,7 @@
  * software program in whole or part.  Users may copy, modify or
  * distribute this file at will.
  *
- * MODIFICATION FOR VIPS Copyright 1991, K.Martinez 
+ * MODIFICATION FOR VIPS Copyright 1991, K.Martinez
  *
  * software may be distributed FREE, with these copyright notices
  * no responsibility/warantee is implied or given
@@ -69,7 +69,7 @@
  * 19/7/04
  *	- write several scanlines at once, good speed up for some cases
  * 22/9/04
- *	- got rid of wrapper image so nip gets progress feedback 
+ *	- got rid of wrapper image so nip gets progress feedback
  * 	- fixed tiny read-beyond-buffer issue for edge tiles
  * 7/10/04
  * 	- added ICC profile embedding
@@ -80,11 +80,11 @@
  * 9/3/05
  *	- set PHOTOMETRIC_CIELAB for vips TYPE_LAB images ... so we can write
  *	  float LAB as well as float RGB
- *	- also LABS images 
+ *	- also LABS images
  * 22/6/05
  *	- 16 bit LAB write was broken
  * 9/9/05
- * 	- write any icc profile from meta 
+ * 	- write any icc profile from meta
  * 3/3/06
  * 	- raise tile buffer limit (thanks Ruven)
  * 11/11/06
@@ -95,7 +95,7 @@
  * 3/11/07
  * 	- use im_wbuffer() for background writes
  * 15/2/08
- * 	- set TIFFTAG_JPEGQUALITY explicitly when we copy TIFF files, since 
+ * 	- set TIFFTAG_JPEGQUALITY explicitly when we copy TIFF files, since
  * 	  libtiff doesn't keep this in the header (thanks Joe)
  * 20/2/08
  * 	- use tiff error handler from im_tiff2vips.c
@@ -169,8 +169,8 @@
  * 14/10/16
  * 	- add buffer output
  * 29/1/17
- * 	- enable bigtiff automatically for large, uncompressed writes, thanks 
- * 	  AndreasSchmid1 
+ * 	- enable bigtiff automatically for large, uncompressed writes, thanks
+ * 	  AndreasSchmid1
  * 26/8/17
  * 	- support pyramid creation to buffer, thanks bubba
  * 24/10/17
@@ -209,7 +209,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -233,7 +233,7 @@
 
  */
 
-/* 
+/*
 #define DEBUG_VERBOSE
 #define DEBUG
  */
@@ -304,7 +304,7 @@ struct _Layer {
 	TIFF *tif;			/* TIFF file we write this layer to */
 
 	/* The image we build. We only keep a few scanlines of this around in
-	 * @strip. 
+	 * @strip.
 	 */
 	VipsImage *image;
 
@@ -312,7 +312,7 @@ struct _Layer {
 	 */
 	int y;
 
-	/* The next line we write to in strip. 
+	/* The next line we write to in strip.
 	 */
 	int write_y;
 
@@ -348,9 +348,9 @@ struct _Wtiff {
 	int pyramid;			/* Wtiff pyramid */
 	int bitdepth;                   /* Write as 1, 2 or 4 bit */
 	int miniswhite;			/* Wtiff as 0 == white */
-        int resunit;                    /* Resolution unit (inches or cm) */
-        double xres;                   	/* Resolution in X */
-        double yres;                   	/* Resolution in Y */
+	int resunit;                    /* Resolution unit (inches or cm) */
+	double xres;                   	/* Resolution in X */
+	double yres;                   	/* Resolution in Y */
 	const char *profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
@@ -378,7 +378,7 @@ struct _Wtiff {
 	int image_height;
 
 	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must compress ourselves. 
+	 * and we must compress ourselves.
 	 */
 	gboolean we_compress;
 };
@@ -429,19 +429,19 @@ embed_profile_meta( TIFF *tif, VipsImage *im )
 }
 
 static void
-wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above, 
+wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 	int width, int height )
 {
 	if( !*layer ) {
 		*layer = VIPS_NEW( wtiff->ready, Layer );
 		(*layer)->wtiff = wtiff;
 		(*layer)->width = width;
-		(*layer)->height = height; 
+		(*layer)->height = height;
 
 		if( !above )
 			/* Top of pyramid.
 			 */
-			(*layer)->sub = 1;	
+			(*layer)->sub = 1;
 		else
 			(*layer)->sub = above->sub * 2;
 
@@ -462,8 +462,8 @@ wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 			(*layer)->target = wtiff->target;
 			g_object_ref( (*layer)->target );
 		}
-		else 
-			(*layer)->target = 
+		else
+			(*layer)->target =
 				vips_target_new_temp( wtiff->target );
 
 		/*
@@ -500,11 +500,11 @@ wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 		 * Very tall or wide images might end up with a smallest layer
 		 * larger than one tile.
 		 */
-		if( ((*layer)->width > limitw || 
-			(*layer)->height > limith) && 
-		 	(*layer)->width > 1 && 
-		 	(*layer)->height > 1 ) 
-			wtiff_layer_init( wtiff, &(*layer)->below, *layer, 
+		if( ((*layer)->width > limitw ||
+			(*layer)->height > limith) &&
+		 	(*layer)->width > 1 &&
+		 	(*layer)->height > 1 )
+			wtiff_layer_init( wtiff, &(*layer)->below, *layer,
 				width / 2, height / 2 );
 	}
 }
@@ -516,7 +516,7 @@ wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 		embed_profile_file( tif, wtiff->profile ) )
 		return( -1 );
 
-	if( !wtiff->profile && 
+	if( !wtiff->profile &&
 		vips_image_get_typeof( wtiff->ready, VIPS_META_ICC_NAME ) &&
 		embed_profile_meta( tif, wtiff->ready ) )
 		return( -1 );
@@ -532,7 +532,7 @@ wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 
 	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_XMP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->ready, VIPS_META_XMP_NAME, 
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_XMP_NAME,
 		&data, &size ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_XMLPACKET, size, data );
@@ -552,7 +552,7 @@ wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 
 	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_IPTC_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->ready, VIPS_META_IPTC_NAME, 
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_IPTC_NAME,
 		&data, &size ) )
 		return( -1 );
 
@@ -584,7 +584,7 @@ wtiff_embed_photoshop( Wtiff *wtiff, TIFF *tif )
 
 	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->ready, VIPS_META_PHOTOSHOP_NAME, 
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_PHOTOSHOP_NAME,
 		&data, &size ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, size, data );
@@ -629,7 +629,7 @@ wtiff_embed_imagedescription( Wtiff *wtiff, TIFF *tif )
 	return( 0 );
 }
 
-/* Write a TIFF header for this layer. 
+/* Write a TIFF header for this layer.
  */
 static int
 wtiff_write_header( Wtiff *wtiff, Layer *layer )
@@ -637,7 +637,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	TIFF *tif = layer->tif;
 
 	int i;
-	int orientation; 
+	int orientation;
 
 #ifdef DEBUG
 	printf( "wtiff_write_header: sub %d, width %d, height %d\n",
@@ -652,7 +652,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	TIFFSetField( tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, wtiff->compression );
 
-	if( wtiff->compression == COMPRESSION_JPEG ) 
+	if( wtiff->compression == COMPRESSION_JPEG )
 		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->Q );
 
 #ifdef HAVE_TIFF_COMPRESSION_WEBP
@@ -662,15 +662,15 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	}
 	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( tif, TIFFTAG_ZSTD_LEVEL, wtiff->level );
-		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
-			TIFFSetField( tif, 
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
+			TIFFSetField( tif,
 				TIFFTAG_PREDICTOR, wtiff->predictor );
 	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
 		wtiff->compression == COMPRESSION_LZW) &&
-		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, wtiff->predictor );
 
 	for( i = 0; i < VIPS_NUMBER( wtiff_we_compress ); i++ )
@@ -682,21 +682,21 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
 	TIFFSetField( tif, TIFFTAG_RESOLUTIONUNIT, wtiff->resunit );
-	TIFFSetField( tif, TIFFTAG_XRESOLUTION, 
+	TIFFSetField( tif, TIFFTAG_XRESOLUTION,
 		VIPS_FCLIP( 0.01, wtiff->xres, 1000000 ) );
-	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
+	TIFFSetField( tif, TIFFTAG_YRESOLUTION,
 		VIPS_FCLIP( 0.01, wtiff->yres, 1000000 ) );
 
-	if( !wtiff->strip ) 
+	if( !wtiff->strip )
 		if( wtiff_embed_profile( wtiff, tif ) ||
 			wtiff_embed_xmp( wtiff, tif ) ||
 			wtiff_embed_iptc( wtiff, tif ) ||
 			wtiff_embed_photoshop( wtiff, tif ) ||
 			wtiff_embed_imagedescription( wtiff, tif ) )
-			return( -1 ); 
+			return( -1 );
 
 	if( vips_image_get_typeof( wtiff->ready, VIPS_META_ORIENTATION ) &&
-		!vips_image_get_int( wtiff->ready, 
+		!vips_image_get_int( wtiff->ready,
 			VIPS_META_ORIENTATION, &orientation ) )
 		TIFFSetField( tif, TIFFTAG_ORIENTATION, orientation );
 
@@ -708,7 +708,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_CIELAB );
 	}
 	else if( wtiff->bitdepth == 1 || wtiff->bitdepth == 2 ||
-                 wtiff->bitdepth == 4 ) {
+		 wtiff->bitdepth == 4 ) {
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, wtiff->bitdepth );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC,
@@ -726,14 +726,14 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 
 		int alpha_bands;
 
-		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 
+		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL,
 			wtiff->ready->Bands );
-		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
+		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE,
 			vips_format_sizeof( wtiff->ready->BandFmt ) << 3 );
 
 		if( wtiff->ready->Type == VIPS_INTERPRETATION_B_W ||
 			wtiff->ready->Type == VIPS_INTERPRETATION_GREY16 ||
-			wtiff->ready->Bands < 3 ) { 
+			wtiff->ready->Bands < 3 ) {
 			/* Mono or mono + alpha.
 			 */
 			photometric = wtiff->miniswhite ?
@@ -741,22 +741,22 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 				PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
-		else if( wtiff->ready->Type == VIPS_INTERPRETATION_LAB || 
+		else if( wtiff->ready->Type == VIPS_INTERPRETATION_LAB ||
 			wtiff->ready->Type == VIPS_INTERPRETATION_LABS ) {
 			photometric = PHOTOMETRIC_CIELAB;
 			colour_bands = 3;
 		}
-		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ ) { 
+		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ ) {
 			double stonits;
 
 			photometric = PHOTOMETRIC_LOGLUV;
 			/* Tell libtiff we will write as float XYZ.
 			 */
-			TIFFSetField( tif, 
+			TIFFSetField( tif,
 				TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
 			stonits = 1.0;
 			if( vips_image_get_typeof( wtiff->ready, "stonits" ) )
-				vips_image_get_double( wtiff->ready, 
+				vips_image_get_double( wtiff->ready,
 					"stonits", &stonits );
 			TIFFSetField( tif, TIFFTAG_STONITS, stonits );
 			colour_bands = 3;
@@ -770,43 +770,43 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		else if( wtiff->compression == COMPRESSION_JPEG &&
 			wtiff->ready->Bands == 3 &&
 			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
-			(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
+			(!wtiff->rgbjpeg && wtiff->Q < 90) ) {
 			/* This signals to libjpeg that it can do
 			 * YCbCr chrominance subsampling from RGB, not
 			 * that we will supply the image as YCbCr.
 			 */
 			photometric = PHOTOMETRIC_YCBCR;
-			TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
+			TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE,
 				JPEGCOLORMODE_RGB );
 			colour_bands = 3;
 		}
 		else {
 			/* Some kind of generic multi-band image with three or
-			 * more bands ... save the first three bands as RGB, 
+			 * more bands ... save the first three bands as RGB,
 			 * the rest as alpha.
 			 */
 			photometric = PHOTOMETRIC_RGB;
 			colour_bands = 3;
 		}
 
-		alpha_bands = VIPS_CLIP( 0, 
+		alpha_bands = VIPS_CLIP( 0,
 			wtiff->ready->Bands - colour_bands, MAX_ALPHA );
-		if( alpha_bands > 0 ) { 
+		if( alpha_bands > 0 ) {
 			guint16 v[MAX_ALPHA];
 			int i;
 
 			/* EXTRASAMPLE_UNASSALPHA means generic extra
 			 * alpha-like channels. ASSOCALPHA means pre-multipled
-			 * alpha only. 
+			 * alpha only.
 			 *
 			 * Make the first channel the premultiplied alpha, if
 			 * we are premultiplying.
 			 */
 			for( i = 0; i < alpha_bands; i++ )
-				v[i] = i == 0 && wtiff->premultiply ? 
+				v[i] = i == 0 && wtiff->premultiply ?
 					EXTRASAMPLE_ASSOCALPHA :
 					EXTRASAMPLE_UNASSALPHA;
-			TIFFSetField( tif, 
+			TIFFSetField( tif,
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
 		}
 
@@ -823,7 +823,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, wtiff->tileh );
 
 
-	if( layer->above ) 
+	if( layer->above )
 		/* Pyramid layer.
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
@@ -832,7 +832,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE );
 
-		TIFFSetField( tif, TIFFTAG_PAGENUMBER, 
+		TIFFSetField( tif, TIFFTAG_PAGENUMBER,
 			wtiff->page_number, wtiff->n_pages );
 	}
 
@@ -841,8 +841,8 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	 *
 	 * Don't set for logluv: libtiff does this for us.
 	 */
-	if( wtiff->input->Type != VIPS_INTERPRETATION_XYZ ) { 
-		int format; 
+	if( wtiff->input->Type != VIPS_INTERPRETATION_XYZ ) {
+		int format;
 
 		format = SAMPLEFORMAT_UINT;
 		if( vips_band_format_isuint( wtiff->ready->BandFmt ) )
@@ -864,10 +864,10 @@ wtiff_layer_rewind( Wtiff *wtiff, Layer *layer )
 {
 	VipsRect strip_size;
 
-	/* Build a line of tiles here. 
+	/* Build a line of tiles here.
 	 *
-	 * Expand the strip if necessary to make sure we have an even 
-	 * number of lines. 
+	 * Expand the strip if necessary to make sure we have an even
+	 * number of lines.
 	 */
 	strip_size.left = 0;
 	strip_size.top = 0;
@@ -875,7 +875,7 @@ wtiff_layer_rewind( Wtiff *wtiff, Layer *layer )
 	strip_size.height = wtiff->tileh;
 	if( (strip_size.height & 1) == 1 )
 		strip_size.height += 1;
-	if( vips_region_buffer( layer->strip, &strip_size ) ) 
+	if( vips_region_buffer( layer->strip, &strip_size ) )
 		return( -1 );
 
 	layer->y = 0;
@@ -894,8 +894,8 @@ wtiff_allocate_layers( Wtiff *wtiff )
 	for( layer = wtiff->layer; layer; layer = layer->below ) {
 		if( !layer->image ) {
 			layer->image = vips_image_new();
-			if( vips_image_pipelinev( layer->image, 
-				VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL ) ) 
+			if( vips_image_pipelinev( layer->image,
+				VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL ) )
 				return( -1 );
 			layer->image->Xsize = layer->width;
 			layer->image->Ysize = layer->height;
@@ -909,27 +909,27 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			vips__region_no_ownership( layer->strip );
 			vips__region_no_ownership( layer->copy );
 
-			layer->tif = vips__tiff_openout_target( layer->target, 
+			layer->tif = vips__tiff_openout_target( layer->target,
 				wtiff->bigtiff );
-			if( !layer->tif ) 
+			if( !layer->tif )
 				return( -1 );
 		}
 
 		if( wtiff_layer_rewind( wtiff, layer ) )
-			return( -1 ); 
+			return( -1 );
 
-		if( wtiff_write_header( wtiff, layer ) )  
+		if( wtiff_write_header( wtiff, layer ) )
 			return( -1 );
 	}
 
-	if( !wtiff->tbuf ) { 
-		if( wtiff->tile ) 
-			wtiff->tbuf = vips_malloc( NULL, 
+	if( !wtiff->tbuf ) {
+		if( wtiff->tile )
+			wtiff->tbuf = vips_malloc( NULL,
 				TIFFTileSize( wtiff->layer->tif ) );
 		else
-			wtiff->tbuf = vips_malloc( NULL, 
+			wtiff->tbuf = vips_malloc( NULL,
 				TIFFScanlineSize( wtiff->layer->tif ) );
-		if( !wtiff->tbuf ) 
+		if( !wtiff->tbuf )
 			return( -1 );
 	}
 
@@ -954,7 +954,7 @@ layer_free( Layer *layer )
 static void
 layer_free_all( Layer *layer )
 {
-	if( layer->below ) 
+	if( layer->below )
 		layer_free_all( layer->below );
 
 	layer_free( layer );
@@ -1000,7 +1000,7 @@ get_compression( VipsForeignTiffCompression compression )
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 	case VIPS_FOREIGN_TIFF_COMPRESSION_JP2K:
 		return( JP2K_LOSSY );
-	
+
 	default:
 		return( COMPRESSION_NONE );
 	}
@@ -1084,7 +1084,7 @@ ready_to_write( Wtiff *wtiff )
 
 static Wtiff *
 wtiff_new( VipsImage *input, VipsTarget *target,
-	VipsForeignTiffCompression compression, int Q, 
+	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
@@ -1097,9 +1097,9 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 	gboolean properties,
 	gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, 
+	int level,
 	gboolean lossless,
-	VipsForeignDzDepth depth, 
+	VipsForeignDzDepth depth,
 	gboolean subifd,
 	gboolean premultiply,
 	int page_height )
@@ -1151,7 +1151,7 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 
 	/* XYZ images are written as libtiff LOGLUV.
 	 */
-	if( wtiff->ready->Type == VIPS_INTERPRETATION_XYZ ) 
+	if( wtiff->ready->Type == VIPS_INTERPRETATION_XYZ )
 		wtiff->compression = COMPRESSION_SGILOG;
 
 	/* Multipage image? 0 is the default for this argument.
@@ -1163,9 +1163,9 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 		wtiff->ready->Ysize % wtiff->page_height == 0 ) {
 #ifdef DEBUG
 		printf( "wtiff_new: detected toilet roll image, "
-			"page-height=%d\n", 
+			"page-height=%d\n",
 			wtiff->page_height );
-		printf( "wtiff_new: pages=%d\n", 
+		printf( "wtiff_new: pages=%d\n",
 			wtiff->ready->Ysize / wtiff->page_height );
 #endif/*DEBUG*/
 
@@ -1190,13 +1190,13 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 		wtiff->toilet_roll )
 		wtiff->subifd = TRUE;
 
-	/* We can only pyramid LABQ and non-complex images. 
+	/* We can only pyramid LABQ and non-complex images.
 	 */
 	if( wtiff->pyramid ) {
-		if( wtiff->ready->Coding == VIPS_CODING_NONE && 
+		if( wtiff->ready->Coding == VIPS_CODING_NONE &&
 			vips_band_format_iscomplex( wtiff->ready->BandFmt ) ) {
 			wtiff_free( wtiff );
-			vips_error( "vips2tiff", 
+			vips_error( "vips2tiff",
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );
 			return( NULL );
@@ -1216,11 +1216,11 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 	/* In strip mode we use tileh to set rowsperstrip, and that does not
 	 * have the multiple-of-16 restriction.
 	 */
-	if( wtiff->tile ) { 
-		if( (wtiff->tilew & 0xf) != 0 || 
+	if( wtiff->tile ) {
+		if( (wtiff->tilew & 0xf) != 0 ||
 			(wtiff->tileh & 0xf) != 0 ) {
 			wtiff_free( wtiff );
-			vips_error( "vips2tiff", 
+			vips_error( "vips2tiff",
 				"%s", _( "tile size not a multiple of 16" ) );
 			return( NULL );
 		}
@@ -1228,9 +1228,9 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 
 	/* Depth 8 is handled above.
 	 */
-	if( wtiff->bitdepth && 
-		!(wtiff->bitdepth == 1 || 
-		  wtiff->bitdepth == 2 || 
+	if( wtiff->bitdepth &&
+		!(wtiff->bitdepth == 1 ||
+		  wtiff->bitdepth == 2 ||
 		  wtiff->bitdepth == 4) ) {
 		g_warning( "%s",
 			_( "bitdepth 1, 2 or 4 only -- disabling bitdepth") );
@@ -1240,30 +1240,30 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 	/* Can only have byte fractional bit depths for 8 bit mono.
 	 * 3-band float should have been packed above.
 	 */
-	if( wtiff->bitdepth && 
+	if( wtiff->bitdepth &&
 		!(wtiff->ready->Coding == VIPS_CODING_NONE &&
-		  wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR && 
-		  wtiff->ready->Bands == 1) ) { 
+		  wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
+		  wtiff->ready->Bands == 1) ) {
 		g_warning( "%s",
 			( "can only set bitdepth for 1-band uchar and "
-                        "3-band float lab -- disabling bitdepth" ) );
+			"3-band float lab -- disabling bitdepth" ) );
 		wtiff->bitdepth = 0;
 	}
 
 	if( wtiff->bitdepth &&
 		wtiff->compression == COMPRESSION_JPEG ) {
-		g_warning( "%s", 
+		g_warning( "%s",
 			_( "can't have <8 bit JPEG -- disabling JPEG" ) );
 		wtiff->compression = COMPRESSION_NONE;
 	}
- 
+
 	/* We can only MINISWHITE non-complex images of 1 or 2 bands.
 	 */
 	if( wtiff->miniswhite &&
-		(wtiff->ready->Coding != VIPS_CODING_NONE || 
+		(wtiff->ready->Coding != VIPS_CODING_NONE ||
 			vips_band_format_iscomplex( wtiff->ready->BandFmt ) ||
 			wtiff->ready->Bands > 2) ) {
-		g_warning( "%s", 
+		g_warning( "%s",
 			_( "can only save non-complex greyscale images "
 				"as miniswhite -- disabling miniswhite" ) );
 		wtiff->miniswhite = FALSE;
@@ -1280,7 +1280,7 @@ wtiff_new( VipsImage *input, VipsTarget *target,
 	else if( wtiff->bitdepth == 4 )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 2 ) / 2;
 	else
-		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
+		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) *
 			wtiff->tilew;
 
 	return( wtiff );
@@ -1317,16 +1317,16 @@ eightbit2nbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	int shift = 8 - wtiff->bitdepth;
 
 	VipsPel bits;
-        int x;
+	int x;
 
 	bits = 0;
-        for( x = 0; x < n; x++ ) {
+	for( x = 0; x < n; x++ ) {
 		bits <<= wtiff->bitdepth;
 		bits |= p[x] >> shift;
 
-		if( (x & pixel_mask) == pixel_mask ) 
+		if( (x & pixel_mask) == pixel_mask )
 			*q++ = bits ^ mask;
-        }
+	}
 
 	/* Any left-over bits? Need to be left-aligned.
 	 */
@@ -1340,7 +1340,7 @@ eightbit2nbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	}
 }
 
-/* Swap the sense of the first channel, if necessary. 
+/* Swap the sense of the first channel, if necessary.
  */
 #define GREY_LOOP( TYPE, MAX ) { \
 	TYPE *p1; \
@@ -1372,36 +1372,36 @@ invert_band0( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	VipsImage *im = wtiff->ready;
 	gboolean invert = wtiff->miniswhite;
 
-        int x, i;
+	int x, i;
 
 	switch( im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
-		GREY_LOOP( guchar, UCHAR_MAX ); 
+		GREY_LOOP( guchar, UCHAR_MAX );
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		GREY_LOOP( gshort, SHRT_MAX ); 
+		GREY_LOOP( gshort, SHRT_MAX );
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		GREY_LOOP( gushort, USHRT_MAX ); 
+		GREY_LOOP( gushort, USHRT_MAX );
 		break;
 
 	case VIPS_FORMAT_INT:
-		GREY_LOOP( gint, INT_MAX ); 
+		GREY_LOOP( gint, INT_MAX );
 		break;
 
 	case VIPS_FORMAT_UINT:
-		GREY_LOOP( guint, UINT_MAX ); 
+		GREY_LOOP( guint, UINT_MAX );
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		GREY_LOOP( float, 1.0 ); 
+		GREY_LOOP( float, 1.0 );
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		GREY_LOOP( double, 1.0 ); 
+		GREY_LOOP( double, 1.0 );
 		break;
 
 	default:
@@ -1419,12 +1419,12 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 
 	int x;
 
-        for( x = 0; x < n; x++ ) {
+	for( x = 0; x < n; x++ ) {
 		int i;
 
-                /* LABS L can be negative.
-                 */
-                q1[0] = VIPS_LSHIFT_INT( VIPS_MAX( 0, p1[0] ), 1 );
+		/* LABS L can be negative.
+		 */
+		q1[0] = VIPS_LSHIFT_INT( VIPS_MAX( 0, p1[0] ), 1 );
 
 		for( i = 1; i < samples_per_pixel; i++ )
 			q1[i] = p1[i];
@@ -1444,12 +1444,12 @@ XYZ2tiffxyz( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 
 	int x;
 
-        for( x = 0; x < n; x++ ) {
+	for( x = 0; x < n; x++ ) {
 		int i;
 
-                q1[0] = p1[0] / VIPS_D65_X0;
-                q1[1] = p1[1] / VIPS_D65_Y0;
-                q1[2] = p1[2] / VIPS_D65_Z0;
+		q1[0] = p1[0] / VIPS_D65_X0;
+		q1[1] = p1[1] / VIPS_D65_Y0;
+		q1[2] = p1[2] / VIPS_D65_Z0;
 
 		for( i = 3; i < samples_per_pixel; i++ )
 			q1[i] = p1[i];
@@ -1462,7 +1462,7 @@ XYZ2tiffxyz( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 /* Pack the pixels in @area from @in into a TIFF tile buffer.
  */
 static void
-wtiff_pack2tiff( Wtiff *wtiff, Layer *layer, 
+wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 	VipsRegion *in, VipsRect *area, VipsPel *q )
 {
 	int y;
@@ -1475,7 +1475,7 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 	 * zero.
 	 */
 	if( wtiff->compression == COMPRESSION_JPEG &&
-		(area->width < wtiff->tilew || 
+		(area->width < wtiff->tilew ||
 		 area->height < wtiff->tileh) )
 		memset( q, 0, TIFFTileSize( layer->tif ) );
 
@@ -1488,15 +1488,15 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 			eightbit2nbit( wtiff, q, p, area->width );
 		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ )
 			XYZ2tiffxyz( q, p, area->width, in->im->Bands );
-		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
-			wtiff->miniswhite ) 
+		else if( (in->im->Bands == 1 || in->im->Bands == 2) &&
+			wtiff->miniswhite )
 			invert_band0( wtiff, q, p, area->width );
 		else if( wtiff->ready->BandFmt == VIPS_FORMAT_SHORT &&
 			wtiff->ready->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width, in->im->Bands );
 		else
-			memcpy( q, p, 
-				area->width * 
+			memcpy( q, p,
+				area->width *
 					VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) );
 
 		q += wtiff->tls;
@@ -1562,13 +1562,13 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 				 * FIXME ... try again with openjpeg 2.5,
 				 * when that comes.
 				 */
-				result = vips__foreign_load_jp2k_compress( 
+				result = vips__foreign_load_jp2k_compress(
 					strip, &tile, target,
 					wtiff->tilew, wtiff->tileh,
 					!wtiff->rgbjpeg,
 				 	// !wtiff->rgbjpeg && wtiff->Q < 90,
 					FALSE,
-					wtiff->lossless, 
+					wtiff->lossless,
 					wtiff->Q );
 				break;
 
@@ -1587,13 +1587,13 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 
 			g_object_unref( target );
 
-			result = TIFFWriteRawTile( layer->tif, tile_no, 
+			result = TIFFWriteRawTile( layer->tif, tile_no,
 				buffer, length );
 
 			g_free( buffer );
-		
+
 			if( result < 0 ) {
-				vips_error( "vips2tiff", 
+				vips_error( "vips2tiff",
 					"%s", _( "TIFF write tile failed" ) );
 				return( -1 );
 			}
@@ -1601,12 +1601,12 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		else {
 			/* Have to repack pixels for libtiff.
 			 */
-			wtiff_pack2tiff( wtiff, 
+			wtiff_pack2tiff( wtiff,
 				layer, strip, &tile, wtiff->tbuf );
 
-			if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
+			if( TIFFWriteTile( layer->tif, wtiff->tbuf,
 				tile.left, tile.top, 0, 0 ) < 0 ) {
-				vips_error( "vips2tiff", 
+				vips_error( "vips2tiff",
 					"%s", _( "TIFF write tile failed" ) );
 				return( -1 );
 			}
@@ -1623,7 +1623,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
 	VipsImage *im = layer->image;
 	VipsRect *area = &strip->valid;
-	int height = VIPS_MIN( wtiff->tileh, area->height ); 
+	int height = VIPS_MIN( wtiff->tileh, area->height );
 
 	int y;
 
@@ -1654,13 +1654,13 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			eightbit2nbit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
-		else if( (im->Bands == 1 || im->Bands == 2) && 
+		else if( (im->Bands == 1 || im->Bands == 2) &&
 			wtiff->miniswhite ) {
 			invert_band0( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
 
-		if( TIFFWriteScanline( layer->tif, p, area->top + y, 0 ) < 0 ) 
+		if( TIFFWriteScanline( layer->tif, p, area->top + y, 0 ) < 0 )
 			return( -1 );
 	}
 
@@ -1694,7 +1694,7 @@ layer_strip_shrink( Layer *layer )
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
 
-		/* Those pixels need this area of this layer. 
+		/* Those pixels need this area of this layer.
 		 */
 		source.left = target.left * 2;
 		source.top = target.top * 2;
@@ -1737,8 +1737,8 @@ layer_strip_shrink( Layer *layer )
 	return( 0 );
 }
 
-/* A new strip has arrived! The strip has at least enough pixels in to 
- * write a line of tiles or a set of scanlines.  
+/* A new strip has arrived! The strip has at least enough pixels in to
+ * write a line of tiles or a set of scanlines.
  *
  * - write a line of tiles / set of scanlines
  * - shrink what we can to the layer below
@@ -1755,7 +1755,7 @@ layer_strip_arrived( Layer *layer )
 	VipsRect overlap;
 	VipsRect image_area;
 
-	if( wtiff->tile ) 
+	if( wtiff->tile )
 		result = wtiff_layer_write_tiles( wtiff, layer, layer->strip );
 	else
 		result = wtiff_layer_write_strip( wtiff, layer, layer->strip );
@@ -1763,13 +1763,13 @@ layer_strip_arrived( Layer *layer )
 		return( -1 );
 
 	if( layer->below &&
-		layer_strip_shrink( layer ) ) 
+		layer_strip_shrink( layer ) )
 		return( -1 );
 
-	/* Position our strip down the image.  
+	/* Position our strip down the image.
 	 *
-	 * Expand the strip if necessary to make sure we have an even 
-	 * number of lines. 
+	 * Expand the strip if necessary to make sure we have an even
+	 * number of lines.
 	 */
 	layer->y += wtiff->tileh;
 	new_strip.left = 0;
@@ -1781,54 +1781,54 @@ layer_strip_arrived( Layer *layer )
 	image_area.top = 0;
 	image_area.width = layer->image->Xsize;
 	image_area.height = layer->image->Ysize;
-	vips_rect_intersectrect( &new_strip, &image_area, &new_strip ); 
+	vips_rect_intersectrect( &new_strip, &image_area, &new_strip );
 
 	if( (new_strip.height & 1) == 1 )
 		new_strip.height += 1;
 
-	/* What pixels that we will need do we already have? Save them in 
+	/* What pixels that we will need do we already have? Save them in
 	 * overlap.
 	 */
 	vips_rect_intersectrect( &new_strip, &layer->strip->valid, &overlap );
 	if( !vips_rect_isempty( &overlap ) ) {
 		if( vips_region_buffer( layer->copy, &overlap ) )
 			return( -1 );
-		vips_region_copy( layer->strip, layer->copy, 
+		vips_region_copy( layer->strip, layer->copy,
 			&overlap, overlap.left, overlap.top );
 	}
 
 	if( !vips_rect_isempty( &new_strip ) ) {
-		if( vips_region_buffer( layer->strip, &new_strip ) ) 
+		if( vips_region_buffer( layer->strip, &new_strip ) )
 			return( -1 );
 
 		/* And copy back again.
 		 */
-		if( !vips_rect_isempty( &overlap ) ) 
-			vips_region_copy( layer->copy, layer->strip, 
+		if( !vips_rect_isempty( &overlap ) )
+			vips_region_copy( layer->copy, layer->strip,
 				&overlap, overlap.left, overlap.top );
 	}
 
 	return( 0 );
 }
 
-/* Another few scanlines of pixels. We know the scanlines are all within the 
+/* Another few scanlines of pixels. We know the scanlines are all within the
  * current page.
  */
 static int
 wtiff_write_lines( Wtiff *wtiff, VipsRegion *region, VipsRect *lines )
 {
-	Layer *layer = wtiff->layer; 
+	Layer *layer = wtiff->layer;
 	int page_top = wtiff->page_number * wtiff->page_height;
 
 #ifdef DEBUG_VERBOSE
-	printf( "wtiff_write_lines: top %d, height %d\n", 
+	printf( "wtiff_write_lines: top %d, height %d\n",
 		lines->top, lines->height );
 #endif/*DEBUG_VERBOSE*/
 
 	/* Keep filling the current strip of the top layer. Each time it
 	 * fills, write a chunk of pyramid.
 	 *
-	 * lines is in 
+	 * lines is in
 	 */
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
@@ -1855,17 +1855,17 @@ wtiff_write_lines( Wtiff *wtiff, VipsRegion *region, VipsRect *lines )
 
 		/* Are we empty? All done.
 		 */
-		if( vips_rect_isempty( &target ) ) 
+		if( vips_rect_isempty( &target ) )
 			break;
 
 		/* And copy those pixels in.
 		 *
-		 * FIXME: If the strip fits inside the region we've just 
+		 * FIXME: If the strip fits inside the region we've just
 		 * received, we could skip the copy. Will this happen very
 		 * often? Unclear.
 		 */
 		target.top += page_top;
-		vips_region_copy( region, layer->strip, 
+		vips_region_copy( region, layer->strip,
 			&target, target.left, target.top - page_top );
 
 		layer->write_y += target.height;
@@ -1876,7 +1876,7 @@ wtiff_write_lines( Wtiff *wtiff, VipsRegion *region, VipsRect *lines )
 		 */
 		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
 			layer->write_y == layer->height ) {
-			if( layer_strip_arrived( layer ) ) 
+			if( layer_strip_arrived( layer ) )
 				return( -1 );
 		}
 	}
@@ -1898,13 +1898,13 @@ wtiff_copy_tiles( Wtiff *wtiff, TIFF *out, TIFF *in )
 	tdata_t buf;
 	ttile_t i;
 
-	if( wtiff->compression == COMPRESSION_JPEG ) 
+	if( wtiff->compression == COMPRESSION_JPEG )
 		tile_size = TIFFTileSize( in );
-	else 
-		/* If we will be copying raw tiles we need a buffer large 
+	else
+		/* If we will be copying raw tiles we need a buffer large
 		 * enough to hold the largest compressed tile in any page.
 		 *
-		 * Allocate a buffer 2x the uncompressed tile size ... much 
+		 * Allocate a buffer 2x the uncompressed tile size ... much
 		 * simpler than searching every page for the largest tile with
 		 * TIFFTAG_TILEBYTECOUNTS.
 		 */
@@ -1914,12 +1914,12 @@ wtiff_copy_tiles( Wtiff *wtiff, TIFF *out, TIFF *in )
 	for( i = 0; i < n_tiles; i++ ) {
 		tsize_t len;
 
-		/* If this is a JPEG-compressed TIFF, we need to decompress 
-		 * and recompress, since tiles are actually written in several 
-		 * places (coefficients go in the tile, huffman tables go 
+		/* If this is a JPEG-compressed TIFF, we need to decompress
+		 * and recompress, since tiles are actually written in several
+		 * places (coefficients go in the tile, huffman tables go
 		 * elsewhere).
 		 *
-		 * For all other compression types, we can just use 
+		 * For all other compression types, we can just use
 		 * TIFFReadRawTile()/TIFFWriteRawTile().
 		 */
 		if( wtiff->compression == COMPRESSION_JPEG ) {
@@ -1945,7 +1945,7 @@ wtiff_copy_tiles( Wtiff *wtiff, TIFF *out, TIFF *in )
 	return( 0 );
 }
 
-/* Copy a TIFF file ... we know we wrote it, so just copy the tags we know 
+/* Copy a TIFF file ... we know we wrote it, so just copy the tags we know
  * we might have set.
  */
 static int
@@ -1976,10 +1976,10 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, ui32 );
 	CopyField( TIFFTAG_SUBFILETYPE, ui32 );
 
-	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &ui16, &a ) ) 
+	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &ui16, &a ) )
 		TIFFSetField( out, TIFFTAG_EXTRASAMPLES, ui16, a );
 
-	if( TIFFGetField( in, TIFFTAG_PAGENUMBER, &ui16, &ui16_2 ) ) 
+	if( TIFFGetField( in, TIFFTAG_PAGENUMBER, &ui16, &ui16_2 ) )
 		TIFFSetField( out, TIFFTAG_PAGENUMBER, ui16, ui16_2 );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
@@ -1991,20 +1991,20 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		/* Only for three-band, 8-bit images.
 		 */
 		if( wtiff->ready->Bands == 3 &&
-			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR ) { 
-			/* Enable rgb->ycbcr conversion in the jpeg write. 
+			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR ) {
+			/* Enable rgb->ycbcr conversion in the jpeg write.
 			 */
 			if( !wtiff->rgbjpeg &&
-				wtiff->Q < 90 ) 
-				TIFFSetField( out, 
-					TIFFTAG_JPEGCOLORMODE, 
+				wtiff->Q < 90 )
+				TIFFSetField( out,
+					TIFFTAG_JPEGCOLORMODE,
 						JPEGCOLORMODE_RGB );
 
 			/* And we want ycbcr expanded to rgb on read. Otherwise
 			 * TIFFTileSize() will give us the size of a chrominance
 			 * subsampled tile.
 			 */
-			TIFFSetField( in, 
+			TIFFSetField( in,
 				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 		}
 	}
@@ -2018,20 +2018,20 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	}
 	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
-		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
-			TIFFSetField( out, 
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
+			TIFFSetField( out,
 				TIFFTAG_PREDICTOR, wtiff->predictor );
 	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
 		wtiff->compression == COMPRESSION_LZW) &&
-		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
 		TIFFSetField( out, TIFFTAG_PREDICTOR, wtiff->predictor );
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
-	if( !wtiff->strip ) 
+	if( !wtiff->strip )
 		if( wtiff_embed_profile( wtiff, out ) ||
 			wtiff_embed_xmp( wtiff, out ) ||
 			wtiff_embed_iptc( wtiff, out ) ||
@@ -2058,7 +2058,7 @@ wtiff_gather( Wtiff *wtiff )
 
 	if( wtiff->layer &&
 		wtiff->layer->below )
-		for( layer = wtiff->layer->below; layer; 
+		for( layer = wtiff->layer->below; layer;
 			layer = layer->below ) {
 			VipsSource *source;
 			TIFF *in;
@@ -2067,8 +2067,8 @@ wtiff_gather( Wtiff *wtiff )
 			printf( "appending layer sub = %d ...\n", layer->sub );
 #endif /*DEBUG*/
 
-			if( !(source = 
-				vips_source_new_from_target( layer->target )) ) 
+			if( !(source =
+				vips_source_new_from_target( layer->target )) )
 				return( -1 );
 
 			if( !(in = vips__tiff_openin_source( source )) ) {
@@ -2085,7 +2085,7 @@ wtiff_gather( Wtiff *wtiff )
 
 			TIFFClose( in );
 
-			if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
+			if( !TIFFWriteDirectory( wtiff->layer->tif ) )
 				return( -1 );
 		}
 
@@ -2096,18 +2096,18 @@ static int
 wtiff_page_start( Wtiff *wtiff )
 {
 #ifdef DEBUG
-	printf( "wtiff_page_start: page %d\n", wtiff->page_number ); 
+	printf( "wtiff_page_start: page %d\n", wtiff->page_number );
 #endif /*DEBUG*/
 
-	/* Init the pyramid framework for this page. This will just make a 
+	/* Init the pyramid framework for this page. This will just make a
 	 * single layer if we're not pyramiding.
 	 */
-	wtiff_layer_init( wtiff, &wtiff->layer, NULL, 
+	wtiff_layer_init( wtiff, &wtiff->layer, NULL,
 		wtiff->ready->Xsize, wtiff->page_height );
 
 	/* Fill all the layers and write the TIFF headers.
 	 */
-	if( wtiff_allocate_layers( wtiff ) ) 
+	if( wtiff_allocate_layers( wtiff ) )
 		return( -1 );
 
 	/* In ifd mode, we write the pyramid layers as subdirectories of this
@@ -2118,26 +2118,26 @@ wtiff_page_start( Wtiff *wtiff )
 		Layer *p;
 
 #ifdef DEBUG
-		printf( "wtiff_write_page: OME pyr mode\n" ); 
+		printf( "wtiff_write_page: OME pyr mode\n" );
 #endif /*DEBUG*/
 
 		for( n_layers = 0, p = wtiff->layer->below; p; p = p->below )
 			n_layers += 1;
 
 		if( n_layers > 0 ) {
-                        toff_t *subifd_offsets;
+			toff_t *subifd_offsets;
 
-                        /* This magic tag makes the n_layers directories we 
-                         * write after this one into subdirectories. We set 
-                         * the offsets to 0 and libtiff will fill them in 
-                         * automatically.
-                         */
-                        subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
-                        memset( subifd_offsets, 
-                                0, n_layers * sizeof( toff_t ) );
-                        TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD,
-                                n_layers, subifd_offsets );
-                        g_free( subifd_offsets );
+			/* This magic tag makes the n_layers directories we
+			 * write after this one into subdirectories. We set
+			 * the offsets to 0 and libtiff will fill them in
+			 * automatically.
+			 */
+			subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
+			memset( subifd_offsets,
+				0, n_layers * sizeof( toff_t ) );
+			TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD,
+				n_layers, subifd_offsets );
+			g_free( subifd_offsets );
 		}
 	}
 
@@ -2148,10 +2148,10 @@ static int
 wtiff_page_end( Wtiff *wtiff )
 {
 #ifdef DEBUG
-	printf( "wtiff_page_end: page %d\n", wtiff->page_number ); 
+	printf( "wtiff_page_end: page %d\n", wtiff->page_number );
 #endif /*DEBUG*/
 
-	if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
+	if( !TIFFWriteDirectory( wtiff->layer->tif ) )
 		return( -1 );
 
 	/* Append any pyr layers, if necessary.
@@ -2159,15 +2159,15 @@ wtiff_page_end( Wtiff *wtiff )
 	if( wtiff->layer->below ) {
 		Layer *layer;
 
-		/* Free any lower pyramid resources ... this will 
-		 * TIFFClose() (but not delete) the smaller layers 
+		/* Free any lower pyramid resources ... this will
+		 * TIFFClose() (but not delete) the smaller layers
 		 * ready for us to read from them again.
 		 */
 		layer_free_all( wtiff->layer->below );
 
 		/* Append smaller layers to the main file.
 		 */
-		if( wtiff_gather( wtiff ) ) 
+		if( wtiff_gather( wtiff ) )
 			return( -1 );
 
 		/* unref all the lower targets.
@@ -2175,7 +2175,7 @@ wtiff_page_end( Wtiff *wtiff )
 		for( layer = wtiff->layer->below; layer; layer = layer->below )
 			VIPS_UNREF( layer->target );
 
-		/* ... ready for the next page. 
+		/* ... ready for the next page.
 		 */
 		wtiff->layer->below = NULL;
 	}
@@ -2196,8 +2196,8 @@ wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 	VipsRect pixels;
 
 #ifdef DEBUG_VERBOSE
-	printf( "wtiff_sink_disc_strip: top %d, height %d\n", 
-	     	area->top, area->height ); 
+	printf( "wtiff_sink_disc_strip: top %d, height %d\n",
+	     	area->top, area->height );
 #endif /*DEBUG_VERBOSE*/
 
 	g_assert( area->width == wtiff->ready->Xsize );
@@ -2224,7 +2224,7 @@ wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 		/* At the top of the page? Run the page start code.
 		 */
 		if( lines.top == page.top &&
-			wtiff_page_start( wtiff ) ) 
+			wtiff_page_start( wtiff ) )
 			return( -1 );
 
 		/* Write the scanlines into the page.
@@ -2235,7 +2235,7 @@ wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 		/* Hit the end of the page? Run the page end code.
 		 */
 		if( VIPS_RECT_BOTTOM( &page ) == VIPS_RECT_BOTTOM( &lines ) &&
-			wtiff_page_end( wtiff ) ) 
+			wtiff_page_end( wtiff ) )
 			return( -1 );
 
 		/* Remove the pixels we've written and loop if we have some
@@ -2248,9 +2248,9 @@ wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
-int 
+int
 vips__tiff_write_target( VipsImage *input, VipsTarget *target,
-	VipsForeignTiffCompression compression, int Q, 
+	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
@@ -2260,9 +2260,9 @@ vips__tiff_write_target( VipsImage *input, VipsTarget *target,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip, 
+	gboolean properties, gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, 
+	int level,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd,
@@ -2273,10 +2273,10 @@ vips__tiff_write_target( VipsImage *input, VipsTarget *target,
 
 	vips__tiff_init();
 
-	if( !(wtiff = wtiff_new( input, target, 
+	if( !(wtiff = wtiff_new( input, target,
 		compression, Q, predictor, profile,
-                tile, tile_width, tile_height, pyramid, bitdepth,
-		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
+		tile, tile_width, tile_height, pyramid, bitdepth,
+		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg,
 		properties, strip, region_shrink, level, lossless, depth,
 		subifd, premultiply, page_height )) )
 		return( -1 );

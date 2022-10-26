@@ -20,14 +20,14 @@
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
- * 12/8/13	
+ * 12/8/13
  * 	- redone im_histcum() as a class, vips_hist_cum()
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -83,41 +83,41 @@ G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY );
 }
 
 static void
-vips_hist_cum_process( VipsHistogram *histogram, 
+vips_hist_cum_process( VipsHistogram *histogram,
 	VipsPel *out, VipsPel **in, int width )
 {
 	const int bands = vips_image_get_bands( histogram->ready[0] );
-	const int nb = 
-		vips_band_format_iscomplex( histogram->ready[0]->BandFmt ) ? 
+	const int nb =
+		vips_band_format_iscomplex( histogram->ready[0]->BandFmt ) ?
 		bands * 2 : bands;
 	int mx = width * nb;
 
-	int x, b; 
+	int x, b;
 
 	switch( vips_image_get_format( histogram->ready[0] ) ) {
-        case VIPS_FORMAT_CHAR: 		
-		ACCUMULATE( signed char, signed int ); break; 
-        case VIPS_FORMAT_UCHAR: 		
-		ACCUMULATE( unsigned char, unsigned int ); break; 
-        case VIPS_FORMAT_SHORT: 		
-		ACCUMULATE( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT: 	
-		ACCUMULATE( unsigned short, unsigned int ); break; 
-        case VIPS_FORMAT_INT: 		
-		ACCUMULATE( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 		
-		ACCUMULATE( unsigned int, unsigned int ); break; 
+	case VIPS_FORMAT_CHAR:
+		ACCUMULATE( signed char, signed int ); break;
+	case VIPS_FORMAT_UCHAR:
+		ACCUMULATE( unsigned char, unsigned int ); break;
+	case VIPS_FORMAT_SHORT:
+		ACCUMULATE( signed short, signed int ); break;
+	case VIPS_FORMAT_USHORT:
+		ACCUMULATE( unsigned short, unsigned int ); break;
+	case VIPS_FORMAT_INT:
+		ACCUMULATE( signed int, signed int ); break;
+	case VIPS_FORMAT_UINT:
+		ACCUMULATE( unsigned int, unsigned int ); break;
 
-        case VIPS_FORMAT_FLOAT: 		
-        case VIPS_FORMAT_COMPLEX:	
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
 		ACCUMULATE( float, float ); break;
-        case VIPS_FORMAT_DOUBLE:		
-        case VIPS_FORMAT_DPCOMPLEX:	
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
 		ACCUMULATE( double, double ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -135,7 +135,7 @@ vips_hist_cum_process( VipsHistogram *histogram,
 
 static const VipsBandFormat vips_hist_cum_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UI, I,  UI, I,  UI, I,  F,  F,  D,  D 
+   UI, I,  UI, I,  UI, I,  F,  F,  D,  D
 };
 
 static void
@@ -162,13 +162,13 @@ vips_hist_cum_init( VipsHistCum *hist_cum )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Form cumulative histogram. 
+ * Form cumulative histogram.
  *
  * See also: vips_hist_norm().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_hist_cum( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

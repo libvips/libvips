@@ -1,4 +1,4 @@
-/* LabS2Lab() 
+/* LabS2Lab()
  *
  * 12/12/02 JC
  * 	- adapted from im_LabS2LabQ()
@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or

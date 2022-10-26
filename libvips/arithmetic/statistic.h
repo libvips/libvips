@@ -12,7 +12,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -55,9 +55,9 @@ extern "C" {
 typedef struct _VipsStatistic VipsStatistic;
 typedef struct _VipsStatisticClass VipsStatisticClass;
 
-typedef void *(*VipsStatisticStartFn)( VipsStatistic *statistic ); 
-typedef int (*VipsStatisticScanFn)( VipsStatistic *statistic, 
-	void *seq, int x, int y, void *p, int n );  
+typedef void *(*VipsStatisticStartFn)( VipsStatistic *statistic );
+typedef int (*VipsStatisticScanFn)( VipsStatistic *statistic,
+	void *seq, int x, int y, void *p, int n );
 typedef int (*VipsStatisticStopFn)( VipsStatistic *statistic, void *seq );
 
 struct _VipsStatistic {
@@ -67,7 +67,7 @@ struct _VipsStatistic {
 	 */
 	VipsImage *in;
 
-	/* The input image cast and ready for processing. 
+	/* The input image cast and ready for processing.
 	 */
 	VipsImage *ready;
 
@@ -77,7 +77,7 @@ struct _VipsStatistic {
 
 	/* Client data for the subclass.
 	 */
-	void *a; 
+	void *a;
 	void *b;
 };
 
@@ -86,8 +86,8 @@ struct _VipsStatisticClass {
 
 	/* Start/scan/stop, for vips_sink.
 	 */
-	VipsStatisticStartFn start; 
-	VipsStatisticScanFn scan; 
+	VipsStatisticStartFn start;
+	VipsStatisticScanFn scan;
 	VipsStatisticStopFn stop;
 
 	/* For each input format, what output format. If NULL, no casting.

@@ -68,15 +68,15 @@ typedef struct _VipsArea {
 
 	/*< private >*/
 
-	/* Reference count and lock. 
+	/* Reference count and lock.
 	 *
 	 * We could use an atomic int, but this is not a high-traffic data
 	 * structure, so a simple GMutex is OK.
 	 */
 	int count;
-	GMutex *lock;		
+	GMutex *lock;
 
-	/* Things like ICC profiles need their own free functions. 
+	/* Things like ICC profiles need their own free functions.
 	 *
 	 * Set client to anything you like -- VipsArea doesn't use this.
 	 */
@@ -107,7 +107,7 @@ VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
 VIPS_API
 VipsArea *vips_area_new_array_object( int n );
 VIPS_API
-void *vips_area_get_data( VipsArea *area, 
+void *vips_area_get_data( VipsArea *area,
 	size_t *length, int *n, GType *type, size_t *sizeof_type );
 
 #ifdef VIPS_DEBUG
@@ -153,7 +153,7 @@ GType vips_save_string_get_type(void);
  */
 #define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
 
-typedef struct _VipsRefString { 
+typedef struct _VipsRefString {
 	VipsArea area;
 } VipsRefString;
 
@@ -171,19 +171,19 @@ GType vips_ref_string_get_type(void);
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 
-typedef struct _VipsBlob { 
+typedef struct _VipsBlob {
 	VipsArea area;
 } VipsBlob;
 
 VIPS_API
-VipsBlob *vips_blob_new( VipsCallbackFn free_fn, 
+VipsBlob *vips_blob_new( VipsCallbackFn free_fn,
 	const void *data, size_t length );
 VIPS_API
 VipsBlob *vips_blob_copy( const void *data, size_t length );
 VIPS_API
 const void *vips_blob_get( VipsBlob *blob, size_t *length );
 VIPS_API
-void vips_blob_set( VipsBlob *blob, 
+void vips_blob_set( VipsBlob *blob,
 	VipsCallbackFn free_fn, const void *data, size_t length );
 VIPS_API
 GType vips_blob_get_type(void);
@@ -195,7 +195,7 @@ GType vips_blob_get_type(void);
  */
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
 
-typedef struct _VipsArrayDouble { 
+typedef struct _VipsArrayDouble {
 	VipsArea area;
 } VipsArrayDouble;
 
@@ -215,7 +215,7 @@ GType vips_array_double_get_type(void);
  */
 #define VIPS_TYPE_ARRAY_INT (vips_array_int_get_type())
 
-typedef struct _VipsArrayInt { 
+typedef struct _VipsArrayInt {
 	VipsArea area;
 } VipsArrayInt;
 
@@ -235,7 +235,7 @@ GType vips_array_int_get_type(void);
  */
 #define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
 
-typedef struct _VipsArrayImage { 
+typedef struct _VipsArrayImage {
 	VipsArea area;
 } VipsArrayImage;
 
@@ -266,16 +266,16 @@ void vips_value_set_ref_string( GValue *value, const char *str );
 VIPS_API
 void *vips_value_get_blob( const GValue *value, size_t *length );
 VIPS_API
-void vips_value_set_blob( GValue *value, 
+void vips_value_set_blob( GValue *value,
 	VipsCallbackFn free_fn, const void *data, size_t length );
 VIPS_API
 void vips_value_set_blob_free( GValue *value, void *data, size_t length );
 
 VIPS_API
-void vips_value_set_array( GValue *value, 
+void vips_value_set_array( GValue *value,
 	int n, GType type, size_t sizeof_type );
 VIPS_API
-void *vips_value_get_array( const GValue *value, 
+void *vips_value_get_array( const GValue *value,
 	int *n, GType *type, size_t *sizeof_type );
 
 VIPS_API
@@ -293,9 +293,9 @@ GObject **vips_value_get_array_object( const GValue *value, int *n );
 VIPS_API
 void vips_value_set_array_object( GValue *value, int n );
 
-/* See also image.h, that has vips_array_image_get(), vips_array_image_new(), 
- * vips_value_get_array_image() and vips_value_set_array_image(). They need 
- * to be declared after VipsImage. 
+/* See also image.h, that has vips_array_image_get(), vips_array_image_new(),
+ * vips_value_get_array_image() and vips_value_set_array_image(). They need
+ * to be declared after VipsImage.
  */
 
 #ifdef __cplusplus

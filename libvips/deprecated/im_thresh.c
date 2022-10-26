@@ -12,13 +12,13 @@
  *
  * Author: N. Dessipris, J. Cupitt
  * Written on: 15/03/1991
- * Modified on : 
+ * Modified on :
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,31 +64,31 @@
 	case IM_BANDFMT_UINT:	A(unsigned int); break; \
 	case IM_BANDFMT_INT:	A(signed int); break; \
 	case IM_BANDFMT_FLOAT:	A(float); break; \
-	case IM_BANDFMT_DOUBLE:	A(double); break; 
+	case IM_BANDFMT_DOUBLE:	A(double); break;
 
 /* Replacement for im_thresh */
 int
 im_thresh( in, out, threshold )
 IMAGE *in, *out;
 double threshold;
-{	
+{
 	int x, y;
 	PEL *bu;		/* Buffer we write to */
 	int s, epl;		/* Size and els per line */
 
 /* Check our args. */
-	if( im_iocheck( in, out ) ) 
+	if( im_iocheck( in, out ) )
 		return( -1 );
-	if( in->Coding != IM_CODING_NONE ) { 
+	if( in->Coding != IM_CODING_NONE ) {
 		im_error( "im_thresh", "%s", _( "input should be uncoded") );
 		return(-1);
 	}
 
 /* Set up the output header.  */
-	if( im_cp_desc( out, in ) ) 
+	if( im_cp_desc( out, in ) )
 		return( -1 );
 	out->BandFmt = IM_BANDFMT_UCHAR;
-	if( im_setupout( out ) ) 
+	if( im_setupout( out ) )
 		return( -1 );
 
 /* Make buffer for building o/p in.  */

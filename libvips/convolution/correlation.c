@@ -1,4 +1,4 @@
-/* base class for correlation 
+/* base class for correlation
  *
  * 7/11/13
  * 	- from convolution.c
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -45,16 +45,16 @@
 #include "pconvolution.h"
 #include "correlation.h"
 
-G_DEFINE_ABSTRACT_TYPE( VipsCorrelation, vips_correlation, 
+G_DEFINE_ABSTRACT_TYPE( VipsCorrelation, vips_correlation,
 	VIPS_TYPE_OPERATION );
 
 static int
-vips_correlation_gen( VipsRegion *or, 
+vips_correlation_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsCorrelation *correlation = (VipsCorrelation *) b;
-	VipsCorrelationClass *cclass = 
+	VipsCorrelationClass *cclass =
 		VIPS_CORRELATION_GET_CLASS( correlation );
 	VipsRect *r = &or->valid;
 
@@ -89,9 +89,9 @@ vips_correlation_build( VipsObject *object )
 
 	/* Stretch input out.
 	 */
-	if( vips_embed( correlation->in, &t[0], 
-		correlation->ref->Xsize / 2, correlation->ref->Ysize / 2, 
-		correlation->in->Xsize + correlation->ref->Xsize - 1, 
+	if( vips_embed( correlation->in, &t[0],
+		correlation->ref->Xsize / 2, correlation->ref->Ysize / 2,
+		correlation->in->Xsize + correlation->ref->Xsize - 1,
 		correlation->in->Ysize + correlation->ref->Ysize - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
@@ -104,28 +104,28 @@ vips_correlation_build( VipsObject *object )
 	correlation->in_ready = t[3];
 	correlation->ref_ready = t[5];
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	/* FATSTRIP is good for us as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	if( vips_image_pipelinev( correlation->out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, 
+	if( vips_image_pipelinev( correlation->out,
+		VIPS_DEMAND_STYLE_FATSTRIP,
 		correlation->in_ready, correlation->ref_ready, NULL ) )
-		return( -1 ); 
+		return( -1 );
 	correlation->out->Xsize = correlation->in->Xsize;
 	correlation->out->Ysize = correlation->in->Ysize;
-	correlation->out->BandFmt = 
+	correlation->out->BandFmt =
 		cclass->format_table[correlation->in_ready->BandFmt];
 	if( cclass->pre_generate &&
 		cclass->pre_generate( correlation ) )
-		return( -1 ); 
-	if( vips_image_generate( correlation->out, 
+		return( -1 );
+	if( vips_image_generate( correlation->out,
 		vips_start_one, vips_correlation_gen, vips_stop_one,
 		correlation->in_ready, correlation ) )
 		return( -1 );
 
-	vips_reorder_margin_hint( correlation->out, 
+	vips_reorder_margin_hint( correlation->out,
 		correlation->ref->Xsize * correlation->ref->Ysize );
 
 	return( 0 );
@@ -147,22 +147,22 @@ vips_correlation_class_init( VipsCorrelationClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Input image argument" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCorrelation, in ) );
 
-	VIPS_ARG_IMAGE( class, "ref", 10, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "ref", 10,
+		_( "Mask" ),
 		_( "Input reference image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCorrelation, ref ) );
 
-	VIPS_ARG_IMAGE( class, "out", 20, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 20,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsCorrelation, out ) );
 
 }

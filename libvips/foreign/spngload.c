@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -80,7 +80,7 @@ typedef struct _VipsForeignLoadPng {
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -95,8 +95,8 @@ vips_foreign_load_png_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-static int 
-vips_foreign_load_png_stream( spng_ctx *ctx, void *user, 
+static int
+vips_foreign_load_png_stream( spng_ctx *ctx, void *user,
 	void *dest, size_t length )
 {
 	VipsSource *source = VIPS_SOURCE( user );
@@ -126,9 +126,9 @@ vips_foreign_load_png_get_flags_source( VipsSource *source )
 
 	ctx = spng_ctx_new( SPNG_CTX_IGNORE_ADLER32 );
 	spng_set_crc_action( ctx, SPNG_CRC_USE, SPNG_CRC_USE );
-	if( vips_source_rewind( source ) ) 
+	if( vips_source_rewind( source ) )
 		return( 0 );
-	spng_set_png_stream( ctx, 
+	spng_set_png_stream( ctx,
 		vips_foreign_load_png_stream, source );
 	if( spng_get_ihdr( ctx, &ihdr ) ) {
 		spng_ctx_free( ctx );
@@ -171,11 +171,11 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
  * null-terminated strings.
  */
 static void
-vips_foreign_load_png_set_text( VipsImage *out, 
-	int i, const char *key, const char *value ) 
+vips_foreign_load_png_set_text( VipsImage *out,
+	int i, const char *key, const char *value )
 {
 #ifdef DEBUG
-	printf( "vips_foreign_load_png_set_text: key %s, value %s\n", 
+	printf( "vips_foreign_load_png_set_text: key %s, value %s\n",
 		key, value );
 #endif /*DEBUG*/
 
@@ -186,7 +186,7 @@ vips_foreign_load_png_set_text( VipsImage *out,
 		 * Note that this will remove the null-termination from the
 		 * string. We must carefully reattach this.
 		 */
-		vips_image_set_blob_copy( out, 
+		vips_image_set_blob_copy( out,
 			VIPS_META_XMP_NAME, value, strlen( value ) );
 	}
 	else  {
@@ -218,25 +218,25 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	if( !spng_get_phys( png->ctx, &phys ) ) {
 		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
-		xres = phys.unit_specifier == 1 ? 
+		xres = phys.unit_specifier == 1 ?
 			phys.ppu_x / 1000.0 : phys.ppu_x;
-		yres = phys.unit_specifier == 1 ? 
+		yres = phys.unit_specifier == 1 ?
 			phys.ppu_y / 1000.0 : phys.ppu_y;
 	}
 
 	vips_image_init_fields( image,
 		png->ihdr.width, png->ihdr.height, png->bands,
-		png->format, VIPS_CODING_NONE, png->interpretation, 
+		png->format, VIPS_CODING_NONE, png->interpretation,
 		xres, yres );
 
-	VIPS_SETSTR( image->filename, 
+	VIPS_SETSTR( image->filename,
 		vips_connection_filename( VIPS_CONNECTION( png->source ) ) );
 
 	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
-	if( !spng_get_iccp( png->ctx, &iccp ) ) 
-		vips_image_set_blob_copy( image, 
+	if( !spng_get_iccp( png->ctx, &iccp ) )
+		vips_image_set_blob_copy( image,
 			VIPS_META_ICC_NAME, iccp.profile, iccp.profile_len );
 
 	if( !spng_get_text( png->ctx, NULL, &n_text ) ) {
@@ -252,42 +252,42 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			n_text = MAX_PNG_TEXT_CHUNKS;
 		}
 
-		text = VIPS_ARRAY( VIPS_OBJECT( png ), 
+		text = VIPS_ARRAY( VIPS_OBJECT( png ),
 			n_text, struct spng_text );
 		if( !spng_get_text( png->ctx, text, &n_text ) ) {
 			guint32 i;
 
-			for( i = 0; i < n_text; i++ ) 
+			for( i = 0; i < n_text; i++ )
 				/* .text is always a null-terminated C string.
 				 */
-				vips_foreign_load_png_set_text( image, 
+				vips_foreign_load_png_set_text( image,
 					i, text[i].keyword, text[i].text );
 		}
 	}
 
-	if( !spng_get_exif( png->ctx, &exif ) ) 
-		vips_image_set_blob_copy( image, VIPS_META_EXIF_NAME, 
+	if( !spng_get_exif( png->ctx, &exif ) )
+		vips_image_set_blob_copy( image, VIPS_META_EXIF_NAME,
 			exif.data, exif.length );
 
 	/* Attach original palette bit depth, if any, as metadata.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED )
-		vips_image_set_int( image, 
+		vips_image_set_int( image,
 			"palette-bit-depth", png->ihdr.bit_depth );
 
 	/* Let our caller know. These are very expensive to decode.
 	 */
-	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) 
-		vips_image_set_int( image, "interlaced", 1 ); 
+	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE )
+		vips_image_set_int( image, "interlaced", 1 );
 
 	if( !spng_get_bkgd( png->ctx, &bkgd ) ) {
-		const int scale = image->BandFmt == 
+		const int scale = image->BandFmt ==
 			VIPS_FORMAT_UCHAR ? 1 : 256;
 
 		double array[3];
 		int n;
 
-		switch( png->ihdr.color_type ) { 
+		switch( png->ihdr.color_type ) {
 		case SPNG_COLOR_TYPE_GRAYSCALE:
 		case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
 			array[0] = bkgd.gray / scale;
@@ -311,8 +311,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			break;
 		}
 
-		if( n > 0 ) 
-			vips_image_set_array_double( image, "background", 
+		if( n > 0 )
+			vips_image_set_array_double( image, "background",
 				array, n );
 	}
 
@@ -347,18 +347,18 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	 * they wish.
 	 */
 	if ( !png->unlimited ) {
-		spng_set_image_limits( png->ctx, 
+		spng_set_image_limits( png->ctx,
 			VIPS_MAX_COORD, VIPS_MAX_COORD );
-		spng_set_chunk_limits( png->ctx, 
+		spng_set_chunk_limits( png->ctx,
 			60 * 1024 * 1024, 60 * 1024 * 1024 );
 	}
 
-	if( vips_source_rewind( png->source ) ) 
+	if( vips_source_rewind( png->source ) )
 		return( -1 );
-	spng_set_png_stream( png->ctx, 
+	spng_set_png_stream( png->ctx,
 		vips_foreign_load_png_stream, png->source );
 	if( (error = spng_get_ihdr( png->ctx, &png->ihdr )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
@@ -373,22 +373,22 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 #endif /*DEBUG*/
 
 	/* Just convert to host-endian if nothing else applies.
-	 */ 
+	 */
 	png->fmt = SPNG_FMT_PNG;
 
 	switch( png->ihdr.color_type ) {
-	case SPNG_COLOR_TYPE_INDEXED: 
-		png->bands = 3; 
+	case SPNG_COLOR_TYPE_INDEXED:
+		png->bands = 3;
 		break;
 
-	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA: 
-	case SPNG_COLOR_TYPE_GRAYSCALE: 
-		png->bands = 1; 
+	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
+	case SPNG_COLOR_TYPE_GRAYSCALE:
+		png->bands = 1;
 		break;
 
-	case SPNG_COLOR_TYPE_TRUECOLOR: 
-	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA: 
-		png->bands = 3; 
+	case SPNG_COLOR_TYPE_TRUECOLOR:
+	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
+		png->bands = 3;
 		break;
 
 	default:
@@ -433,37 +433,37 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	error = spng_get_trns( png->ctx, &trns );
 	if( error &&
 		error != SPNG_ECHUNKAVAIL ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
 	/* Expand transparency.
 	 *
-	 * The _ALPHA types should not have the optional trns chunk (they 
-	 * always have a transparent band), see 
+	 * The _ALPHA types should not have the optional trns chunk (they
+	 * always have a transparent band), see
 	 * https://www.w3.org/TR/2003/REC-PNG-20031110/#11tRNS
 	 *
-	 * It's quick and safe to call spng_get_trns() again, and we now know 
+	 * It's quick and safe to call spng_get_trns() again, and we now know
 	 * it will only fail for no transparency chunk.
 	 */
-	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
-		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
+	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA ||
+		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA )
 		png->bands += 1;
 	else if( !spng_get_trns( png->ctx, &trns ) ) {
 		png->bands += 1;
 
 		if( png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR ) {
-			if( png->ihdr.bit_depth == 16 ) 
+			if( png->ihdr.bit_depth == 16 )
 				png->fmt = SPNG_FMT_RGBA16;
-			else 
+			else
 				png->fmt = SPNG_FMT_RGBA8;
 		}
-		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED ) 
+		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED )
 			png->fmt = SPNG_FMT_RGBA8;
 		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE ) {
-			if( png->ihdr.bit_depth == 16 ) 
+			if( png->ihdr.bit_depth == 16 )
 				png->fmt = SPNG_FMT_GA16;
-			else 
+			else
 				png->fmt = SPNG_FMT_GA8;
 		}
 	}
@@ -483,10 +483,10 @@ vips_foreign_load_png_minimise( VipsObject *object, VipsForeignLoadPng *png )
 }
 
 static int
-vips_foreign_load_png_generate( VipsRegion *or, 
+vips_foreign_load_png_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
-        VipsRect *r = &or->valid;
+	VipsRect *r = &or->valid;
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( a );
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( png );
@@ -495,7 +495,7 @@ vips_foreign_load_png_generate( VipsRegion *or,
 	int error;
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_png_generate: line %d, %d rows\n", 
+	printf( "vips_foreign_load_png_generate: line %d, %d rows\n",
 		r->top, r->height );
 	printf( "vips_foreign_load_png_generate: y_top = %d\n", png->y_pos );
 #endif /*DEBUG*/
@@ -510,48 +510,48 @@ vips_foreign_load_png_generate( VipsRegion *or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
-		or->im->Ysize - r->top ) ); 
+	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT,
+		or->im->Ysize - r->top ) );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
 	if( r->top != png->y_pos ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			_( "out of order read at line %d" ), png->y_pos );
 		return( -1 );
 	}
 
 	for( y = 0; y < r->height; y++ ) {
-		/* libspng returns EOI when successfully reading the 
+		/* libspng returns EOI when successfully reading the
 		 * final line of input.
 		 */
-		error = spng_decode_row( png->ctx, 
+		error = spng_decode_row( png->ctx,
 			VIPS_REGION_ADDR( or, 0, r->top + y ),
 			VIPS_REGION_SIZEOF_LINE( or ) );
 		if( error != 0 &&
-			error != SPNG_EOI ) { 
-			/* We've failed to read some pixels. Knock this 
-			 * operation out of cache. 
+			error != SPNG_EOI ) {
+			/* We've failed to read some pixels. Knock this
+			 * operation out of cache.
 			 */
-			vips_operation_invalidate( VIPS_OPERATION( png ) ); 
+			vips_operation_invalidate( VIPS_OPERATION( png ) );
 
 #ifdef DEBUG
-			printf( "vips_foreign_load_png_generate:\n" ); 
-			printf( "  spng_decode_row() failed, line %d\n", 
-				r->top + y ); 
+			printf( "vips_foreign_load_png_generate:\n" );
+			printf( "  spng_decode_row() failed, line %d\n",
+				r->top + y );
 			printf( "  thread %p\n", g_thread_self() );
-			printf( "  error %s\n", spng_strerror( error ) ); 
+			printf( "  error %s\n", spng_strerror( error ) );
 #endif /*DEBUG*/
 
-			g_warning( "%s: %s", 
+			g_warning( "%s: %s",
 				class->nickname, spng_strerror( error ) );
 
-			/* And bail if trunc is on. 
+			/* And bail if trunc is on.
 			 */
 			if( load->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
-				vips_error( class->nickname, 
-					"%s", _( "libspng read error" ) ); 
+				vips_error( class->nickname,
+					"%s", _( "libspng read error" ) );
 				return( -1 );
 			}
 		}
@@ -567,7 +567,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
 
 	enum spng_decode_flags flags;
@@ -581,7 +581,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	flags = SPNG_DECODE_TRNS;
 
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) {
-		/* Arg awful interlaced image. We have to load to a huge mem 
+		/* Arg awful interlaced image. We have to load to a huge mem
 		 * buffer, then copy to out.
 		 */
 		t[0] = vips_image_new_memory();
@@ -589,12 +589,12 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 			vips_image_write_prepare( t[0] ) )
 			return( -1 );
 
-		if( (error = spng_decode_image( png->ctx, 
-			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
-			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ), 
+		if( (error = spng_decode_image( png->ctx,
+			VIPS_IMAGE_ADDR( t[0], 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
 			png->fmt, flags )) ) {
-			vips_error( class->nickname, 
-				"%s", spng_strerror( error ) ); 
+			vips_error( class->nickname,
+				"%s", spng_strerror( error ) );
 			return( -1 );
 		}
 
@@ -615,10 +615,10 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		 */
 		flags |= SPNG_DECODE_PROGRESSIVE;
 
-		if( (error = spng_decode_image( png->ctx, NULL, 0, 
+		if( (error = spng_decode_image( png->ctx, NULL, 0,
 			png->fmt, flags )) ) {
-			vips_error( class->nickname, 
-				"%s", spng_strerror( error ) ); 
+			vips_error( class->nickname,
+				"%s", spng_strerror( error ) );
 			return( -1 );
 		}
 
@@ -627,11 +627,11 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		g_signal_connect( t[0], "minimise",
 			G_CALLBACK( vips_foreign_load_png_minimise ), png );
 
-		if( vips_image_generate( t[0], 
-				NULL, vips_foreign_load_png_generate, NULL, 
+		if( vips_image_generate( t[0],
+				NULL, vips_foreign_load_png_generate, NULL,
 				png, NULL ) ||
-			vips_sequential( t[0], &t[1], 
-				"tile_height", VIPS__FATSTRIP_HEIGHT, 
+			vips_sequential( t[0], &t[1],
+				"tile_height", VIPS__FATSTRIP_HEIGHT,
 				NULL ) ||
 			vips_image_write( t[1], load->real ) )
 			return( -1 );
@@ -659,7 +659,7 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	 */
 	foreign_class->priority = 200;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_png_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_png_get_flags;
 	load_class->header = vips_foreign_load_png_header;
@@ -689,7 +689,7 @@ typedef struct _VipsForeignLoadPngSource {
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source, 
+G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -719,9 +719,9 @@ vips_foreign_load_png_source_is_a_source( VipsSource *source )
 
 	if( (p = vips_source_sniff( source, 8 )) &&
 		memcmp( p, signature, 8 ) == 0 )
-		return( TRUE ); 
+		return( TRUE );
 
-	return( FALSE ); 
+	return( FALSE );
 }
 
 static void
@@ -746,7 +746,7 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -762,13 +762,13 @@ typedef struct _VipsForeignLoadPngFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadPngFile;
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngFile, vips_foreign_load_png_file, 
+G_DEFINE_TYPE( VipsForeignLoadPngFile, vips_foreign_load_png_file,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -823,10 +823,10 @@ vips_foreign_load_png_file_class_init( VipsForeignLoadPngFileClass *class )
 
 	load_class->is_a = vips_foreign_load_png_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngFile, filename ),
 		NULL );
 }
@@ -847,7 +847,7 @@ typedef struct _VipsForeignLoadPngBuffer {
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -857,8 +857,8 @@ vips_foreign_load_png_buffer_build( VipsObject *object )
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) object;
 
 	if( buffer->blob &&
-		!(png->source = vips_source_new_from_memory( 
-			VIPS_AREA( buffer->blob )->data, 
+		!(png->source = vips_source_new_from_memory(
+			VIPS_AREA( buffer->blob )->data,
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
@@ -899,10 +899,10 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 
 	load_class->is_a_buffer = vips_foreign_load_png_buffer_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
 

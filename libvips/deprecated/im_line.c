@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,28 +67,28 @@ double signx, signy;
 		return( -1 );
 /* check coordinates */
 if (  (x1 > image->Xsize)||(x1<0)||(y1 > image->Ysize)||(y1<0)
-    ||(x2 > image->Xsize)||(x2<0)||(y2 > image->Ysize)||(y2<0) ) { 
-	im_error( "im_line", "%s", _( "invalid line cooordinates") ); 
+    ||(x2 > image->Xsize)||(x2<0)||(y2 > image->Ysize)||(y2<0) ) {
+	im_error( "im_line", "%s", _( "invalid line cooordinates") );
 	return(-1); }
 if ((pelval > 255)||(pelval < 0)) {
-	im_error( "im_line", "%s", _( "line intensity between 0 and 255") ); 
+	im_error( "im_line", "%s", _( "line intensity between 0 and 255") );
 	return(-1); }
 
-if (image->Bands != 1) { 
+if (image->Bands != 1) {
 	im_error( "im_line", "%s", _( "image should have one band only") );
-	return(-1); } 
+	return(-1); }
 
 dx = (double)(x2 - x1);
 dy = (double)(y2 - y1);
 
-if (dx < 0.0) 
+if (dx < 0.0)
 	signx = -1.0;
-else 
+else
 	signx = 1.0;
 
 if (dy < 0.0)
 	signy = -1.0;
-else 
+else
 	signy = 1.0;
 
 if (dx == 0.0)

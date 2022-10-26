@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -74,7 +74,7 @@ addgnoise_vec( im_object *argv )
 }
 
 /* Description of im_addgnoise.
- */ 
+ */
 static im_function addgnoise_desc = {
 	"im_addgnoise", 		/* Name */
 	"add gaussian noise with mean 0 and std. dev. sigma",
@@ -101,12 +101,12 @@ contrast_surface_vec( im_object *argv )
 	int half_win_size = *((int *) argv[2]);
 	int spacing = *((int *) argv[3]);
 
-	return( im_contrast_surface( argv[0], argv[1], 
+	return( im_contrast_surface( argv[0], argv[1],
 		half_win_size, spacing ) );
 }
 
 /* Description of im_contrast_surface.
- */ 
+ */
 static im_function contrast_surface_desc = {
 	"im_contrast_surface",	 	/* Name */
 	"find high-contrast points in an image",
@@ -145,7 +145,7 @@ sharpen_vec( im_object *argv )
 }
 
 /* Description of im_sharpen.
- */ 
+ */
 static im_function sharpen_desc = {
 	"im_sharpen",	 		/* Name */
 	"sharpen high frequencies of L channel of LabQ",
@@ -182,7 +182,7 @@ compass_vec( im_object *argv )
 }
 
 /* Description of im_compass.
- */ 
+ */
 static im_function compass_desc = {
 	"im_compass", 			/* Name */
 	"convolve with 8-way rotating integer mask",
@@ -203,7 +203,7 @@ conv_vec( im_object *argv )
 }
 
 /* Description of im_conv.
- */ 
+ */
 static im_function conv_desc = {
 	"im_conv", 			/* Name */
 	"convolve",
@@ -224,7 +224,7 @@ conv_f_vec( im_object *argv )
 }
 
 /* Description of im_conv_f.
- */ 
+ */
 static im_function conv_f_desc = {
 	"im_conv_f", 			/* Name */
 	"convolve, with DOUBLEMASK",
@@ -245,7 +245,7 @@ convsep_vec( im_object *argv )
 }
 
 /* Description of im_convsep.
- */ 
+ */
 static im_function convsep_desc = {
 	"im_convsep", 			/* Name */
 	"seperable convolution",
@@ -266,7 +266,7 @@ convsep_f_vec( im_object *argv )
 }
 
 /* Description of im_convsep_f.
- */ 
+ */
 static im_function convsep_f_desc = {
 	"im_convsep_f", 			/* Name */
 	"seperable convolution, with DOUBLEMASK",
@@ -285,7 +285,7 @@ fastcor_vec( im_object *argv )
 }
 
 /* Description of im_fastcor.
- */ 
+ */
 static im_function fastcor_desc = {
 	"im_fastcor", 			/* Name */
 	"fast correlate in2 within in1",
@@ -304,7 +304,7 @@ grad_x_vec( im_object *argv )
 }
 
 /* Description of im_grad_x.
- */ 
+ */
 static im_function grad_x_desc = {
 	"im_grad_x",	 		/* Name */
 	"horizontal difference image",
@@ -323,7 +323,7 @@ grad_y_vec( im_object *argv )
 }
 
 /* Description of im_grad_y.
- */ 
+ */
 static im_function grad_y_desc = {
 	"im_grad_y",	 		/* Name */
 	"vertical difference image",
@@ -342,7 +342,7 @@ gradcor_vec( im_object *argv )
 }
 
 /* Description of im_gradcor.
- */ 
+ */
 static im_function gradcor_desc = {
 	"im_gradcor",	 		/* Name */
 	"non-normalised correlation of gradient of in2 within in1",
@@ -363,7 +363,7 @@ gradient_vec( im_object *argv )
 }
 
 /* Description of im_gradient.
- */ 
+ */
 static im_function gradient_desc = {
 	"im_gradient", 			/* Name */
 	"convolve with 2-way rotating mask",
@@ -384,7 +384,7 @@ lindetect_vec( im_object *argv )
 }
 
 /* Description of im_lindetect.
- */ 
+ */
 static im_function lindetect_desc = {
 	"im_lindetect", 		/* Name */
 	"convolve with 4-way rotating mask",
@@ -403,7 +403,7 @@ spcor_vec( im_object *argv )
 }
 
 /* Description of im_spcor.
- */ 
+ */
 static im_function spcor_desc = {
 	"im_spcor",	 		/* Name */
 	"normalised correlation of in2 within in1",
@@ -436,7 +436,7 @@ aconv_vec( im_object *argv )
 }
 
 /* Description of im_aconv.
- */ 
+ */
 static im_function aconv_desc = {
 	"im_aconv", 			/* Name */
 	"approximate convolution",
@@ -467,7 +467,7 @@ aconvsep_vec( im_object *argv )
 }
 
 /* Description of im_aconvsep.
- */ 
+ */
 static im_function aconvsep_desc = {
 	"im_aconvsep", 			/* Name */
 	"approximate separable convolution",
@@ -490,10 +490,10 @@ static im_function *convol_list[] = {
 	&convsep_desc,
 	&convsep_f_desc,
 	&fastcor_desc,
-        &gradcor_desc,
+	&gradcor_desc,
 	&gradient_desc,
-        &grad_x_desc,
-        &grad_y_desc,
+	&grad_x_desc,
+	&grad_y_desc,
 	&lindetect_desc,
 	&sharpen_desc,
 	&spcor_desc,

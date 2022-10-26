@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -91,7 +91,7 @@ create_fmask_vec( im_object *argv )
 }
 
 /* Description of im_create_fmask.
- */ 
+ */
 static im_function create_fmask_desc = {
 	"im_create_fmask", 		/* Name */
 	"create frequency domain filter mask",
@@ -126,12 +126,12 @@ flt_image_freq_vec( im_object *argv )
 	double p4 = *((double *) argv[6]);
 	double p5 = *((double *) argv[7]);
 
-	return( im_flt_image_freq( argv[0], argv[1], 
+	return( im_flt_image_freq( argv[0], argv[1],
 		type, p1, p2, p3, p4, p5 ) );
 }
 
 /* Description of im_flt_image_freq.
- */ 
+ */
 static im_function flt_image_freq_desc = {
 	"im_flt_image_freq", 		/* Name */
 	"frequency domain filter image",
@@ -161,7 +161,7 @@ fractsurf_vec( im_object *argv )
 }
 
 /* Description of im_fractsurf.
- */ 
+ */
 static im_function fractsurf_desc = {
 	"im_fractsurf", 			/* Name */
 	"generate a fractal surface of given dimension",
@@ -188,7 +188,7 @@ freqflt_vec( im_object *argv )
 }
 
 /* Description of im_freqflt.
- */ 
+ */
 static im_function freqflt_desc = {
 	"im_freqflt", 			/* Name */
 	"frequency-domain filter of in with mask",
@@ -207,7 +207,7 @@ disp_ps_vec( im_object *argv )
 }
 
 /* Description of im_disp_ps.
- */ 
+ */
 static im_function disp_ps_desc = {
 	"im_disp_ps", 			/* Name */
 	"make displayable power spectrum",
@@ -226,7 +226,7 @@ rotquad_vec( im_object *argv )
 }
 
 /* Description of im_rotquad.
- */ 
+ */
 static im_function rotquad_desc = {
 	"im_rotquad", 			/* Name */
 	"rotate image quadrants to move origin to centre",
@@ -245,7 +245,7 @@ fwfft_vec( im_object *argv )
 }
 
 /* Description of im_fwfft.
- */ 
+ */
 static im_function fwfft_desc = {
 	"im_fwfft", 			/* Name */
 	"forward fast-fourier transform",
@@ -264,7 +264,7 @@ invfft_vec( im_object *argv )
 }
 
 /* Description of im_invfft.
- */ 
+ */
 static im_function invfft_desc = {
 	"im_invfft", 			/* Name */
 	"inverse fast-fourier transform",
@@ -283,7 +283,7 @@ invfftr_vec( im_object *argv )
 }
 
 /* Description of im_invfftr.
- */ 
+ */
 static im_function invfftr_desc = {
 	"im_invfftr", 			/* Name */
 	"real part of inverse fast-fourier transform",
@@ -302,7 +302,7 @@ phasecor_fft_vec( im_object *argv )
 }
 
 /* Description of im_phasecor_fft.
- */ 
+ */
 static im_function phasecor_fft_desc = {
 	"im_phasecor_fft",	 		/* Name */
 	"non-normalised correlation of gradient of in2 within in1",

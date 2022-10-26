@@ -17,7 +17,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 15/6/93 J.Cupitt
  *	- externs removed
  *	- casts added to please ANSI C
@@ -27,7 +27,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -89,7 +89,7 @@ static int array[8][8] = {
 		case IM_BANDFMT_SHORT:	loop(signed short, IN2, OUT); break;\
 		case IM_BANDFMT_UINT:	loop(unsigned int, IN2, OUT); break;\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2char(IN2, OUT)\
 		case IM_BANDFMT_CHAR:	loop(signed char, IN2, OUT); break;\
@@ -97,32 +97,32 @@ static int array[8][8] = {
 		case IM_BANDFMT_SHORT:	loop(signed short, IN2, OUT); break;\
 		case IM_BANDFMT_UINT:	loop(unsigned int, IN2, OUT); break;\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2ushort(IN2, OUT)\
 		case IM_BANDFMT_USHORT:	loop(unsigned short, IN2, OUT); break;\
 		case IM_BANDFMT_SHORT:	loop(signed short, IN2, OUT); break;\
 		case IM_BANDFMT_UINT:	loop(unsigned int, IN2, OUT); break;\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2short(IN2, OUT)\
 		case IM_BANDFMT_SHORT:	loop(signed short, IN2, OUT); break;\
 		case IM_BANDFMT_UINT:	loop(unsigned int, IN2, OUT); break;\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2uint(IN2, OUT)\
 		case IM_BANDFMT_UINT:	loop(unsigned int, IN2, OUT); break;\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2int(IN2, OUT)\
 		case IM_BANDFMT_INT:	loop(signed int, IN2, OUT); break;\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 #define outfloat_2float(IN2, OUT)\
-		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break; 
+		case IM_BANDFMT_FLOAT:	loop(float, IN2, OUT); break;
 
 /**
  * im_gfadd:
@@ -140,7 +140,7 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 
 /* fd, data filename must have been set before the function is called
  * Check whether they are set properly */
-        if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1))
+	if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1))
 		{ im_error("im_gfadd"," im_iocheck failed"); return( -1 ); }
 /* Checks the arguments entered in in and prepares out */
 	if ( (in1->Xsize != in2->Xsize) || (in1->Ysize != in2->Ysize) ||
@@ -213,43 +213,43 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		{ im_error("im_gfadd"," unable to calloc"); return( -1 ); }
 
 	switch (out->BandFmt)	{
-		case IM_BANDFMT_DOUBLE: 
+		case IM_BANDFMT_DOUBLE:
 			switch (tmp2->BandFmt)	{
-			case IM_BANDFMT_UCHAR:	
-				select_outdouble(unsigned char, double); 
+			case IM_BANDFMT_UCHAR:
+				select_outdouble(unsigned char, double);
 				break;
 
-			case IM_BANDFMT_CHAR:	
-				select_outdouble(signed char, double); 
+			case IM_BANDFMT_CHAR:
+				select_outdouble(signed char, double);
 				break;
 
-			case IM_BANDFMT_USHORT:	
-				select_outdouble(unsigned short, double); 
+			case IM_BANDFMT_USHORT:
+				select_outdouble(unsigned short, double);
 				break;
 
-			case IM_BANDFMT_SHORT:	
-				select_outdouble(signed short, double); 
+			case IM_BANDFMT_SHORT:
+				select_outdouble(signed short, double);
 				break;
 
-			case IM_BANDFMT_UINT:	
-				select_outdouble(unsigned int, double); 
+			case IM_BANDFMT_UINT:
+				select_outdouble(unsigned int, double);
 				break;
 
-			case IM_BANDFMT_INT:	
-				select_outdouble(signed int, double); 
+			case IM_BANDFMT_INT:
+				select_outdouble(signed int, double);
 				break;
 
-			case IM_BANDFMT_FLOAT:	
-				select_outdouble(float, double); 
+			case IM_BANDFMT_FLOAT:
+				select_outdouble(float, double);
 				break;
 
-			case IM_BANDFMT_DOUBLE:	
-				select_outdouble(double, double); 
+			case IM_BANDFMT_DOUBLE:
+				select_outdouble(double, double);
 				break;
 
-			default:	
+			default:
 				im_error("im_gfadd","Wrong tmp2 format(d)");
-				free( line ); 
+				free( line );
 				return( -1 );
 			}
 
@@ -257,18 +257,18 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 
 		case IM_BANDFMT_FLOAT :
 			switch (tmp2->BandFmt)	{
-			case IM_BANDFMT_UCHAR:	
+			case IM_BANDFMT_UCHAR:
 				switch (tmp1->BandFmt) {
 				outfloat_2uchar(unsigned char, float);
 
 				default:
 					im_error("im_gfadd"," Error (a)");
-					free( line ); 
+					free( line );
 					return( -1 );
 				}
 				break;
 
-			case IM_BANDFMT_CHAR:	
+			case IM_BANDFMT_CHAR:
 				switch (tmp1->BandFmt) {
 				outfloat_2char(signed char, float);
 
@@ -278,7 +278,7 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 				}
 				break;
 
-			case IM_BANDFMT_USHORT:	
+			case IM_BANDFMT_USHORT:
 				switch (tmp1->BandFmt) {
 				outfloat_2ushort(unsigned short, float);
 
@@ -288,7 +288,7 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 				}
 				break;
 
-			case IM_BANDFMT_SHORT:	
+			case IM_BANDFMT_SHORT:
 				switch (tmp1->BandFmt) {
 				outfloat_2short(signed short, float);
 
@@ -298,7 +298,7 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 				}
 				break;
 
-			case IM_BANDFMT_UINT:	
+			case IM_BANDFMT_UINT:
 				switch (tmp1->BandFmt) {
 				outfloat_2uint(unsigned int, float);
 
@@ -308,31 +308,31 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 				}
 				break;
 
-			case IM_BANDFMT_INT:	
+			case IM_BANDFMT_INT:
 				switch (tmp1->BandFmt) {
 				outfloat_2int(signed int,  float);
 
 				default:
 					im_error("im_gfadd"," Error (f)");
-					free( line ); 
+					free( line );
 					return( -1 );
 				}
 				break;
 
-			case IM_BANDFMT_FLOAT:	
+			case IM_BANDFMT_FLOAT:
 				switch (tmp1->BandFmt) {
 				outfloat_2float(float,  float);
 
 				default:
 					im_error("im_gfadd"," Error (g)");
-					free( line ); 
+					free( line );
 					return( -1 );
 				}
 				break;
 
-			default:	
+			default:
 				im_error("im_gfadd"," Wrong tmp2 format(f)");
-				free( line ); 
+				free( line );
 				return( -1 );
 			}
 
@@ -340,7 +340,7 @@ int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 
 		default:
 			im_error("im_gfadd"," Impossible output state");
-			free( line ); 
+			free( line );
 			return( -1 );
 		}
 

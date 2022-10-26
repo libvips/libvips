@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,17 +56,17 @@ extern "C" {
 typedef struct _VipsHough VipsHough;
 typedef struct _VipsHoughClass VipsHoughClass;
 
-typedef int (*VipsHoughInitAccumulator)( VipsHough *hough, 
-	VipsImage *accumulator );  
-typedef void (*VipsHoughVote)( VipsHough *hough, 
-	VipsImage *accumulator, int x, int y ); 
+typedef int (*VipsHoughInitAccumulator)( VipsHough *hough,
+	VipsImage *accumulator );
+typedef void (*VipsHoughVote)( VipsHough *hough,
+	VipsImage *accumulator, int x, int y );
 
 struct _VipsHough {
 	VipsStatistic parent_instance;
 
 	/* Sum the thread accumulators to here.
 	 */
-	VipsImage *out; 
+	VipsImage *out;
 
 };
 
@@ -77,9 +77,9 @@ struct _VipsHoughClass {
 	 */
 	VipsHoughInitAccumulator init_accumulator;
 
-	/* Vote function for this parameter space. 
+	/* Vote function for this parameter space.
 	 */
-	VipsHoughVote vote; 
+	VipsHoughVote vote;
 
 };
 

@@ -8,7 +8,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,17 +77,17 @@ vips_CMYK2XYZ_build( VipsObject *object )
 	VipsCMYK2XYZ *CMYK2XYZ = (VipsCMYK2XYZ *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	VipsImage *out; 
+	VipsImage *out;
 
 	if( VIPS_OBJECT_CLASS( vips_CMYK2XYZ_parent_class )->build( object ) )
 		return( -1 );
 
 	out = vips_image_new();
-	g_object_set( object, "out", out, NULL ); 
+	g_object_set( object, "out", out, NULL );
 
 	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
 		vips__profile_set( t[0], "cmyk" ) ||
-		vips__colourspace_process_n( "CMYK2XYZ", 
+		vips__colourspace_process_n( "CMYK2XYZ",
 			t[0], &t[1], 4, vips_CMYK2XYZ_process ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
@@ -175,7 +175,7 @@ vips_CMYK2XYZ_class_init( VipsCMYK2XYZClass *class )
 
 	object_class->nickname = "CMYK2XYZ";
 	object_class->description = _( "transform CMYK to XYZ" );
-    
+
 	colour_class->process_line = vips_CMYK2XYZ_line;
 }
 
@@ -205,9 +205,9 @@ vips_CMYK2XYZ_init( VipsCMYK2XYZ *CMYK2XYZ )
  *
  * Turn CMYK to XYZ. If the image has an embedded ICC profile this will be
  * used for the conversion. If there is no embedded profile, a generic
- * fallback profile will be used. 
+ * fallback profile will be used.
  *
- * Conversion is to D65 XYZ with relative intent. If you need more control 
+ * Conversion is to D65 XYZ with relative intent. If you need more control
  * over the process, use vips_icc_import() instead.
  *
  * Returns: 0 on success, -1 on error

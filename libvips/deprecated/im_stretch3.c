@@ -28,7 +28,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -100,17 +100,17 @@ stretch_start( IMAGE *out, void *a, void *b )
 	StretchInfo *sin = (StretchInfo *) b;
 	SeqInfo *seq;
 
-        if( !(seq = IM_NEW( out, SeqInfo )) )
+	if( !(seq = IM_NEW( out, SeqInfo )) )
 		return( NULL );
 
-        seq->sin = sin;
+	seq->sin = sin;
 	seq->ir = im_region_create( in );
 	seq->lsk = IM_IMAGE_N_ELEMENTS( out );
-        seq->buf = IM_ARRAY( out, 4*seq->lsk, unsigned short );
+	seq->buf = IM_ARRAY( out, 4*seq->lsk, unsigned short );
 
-        if( !seq->buf || !seq->ir ) {
+	if( !seq->buf || !seq->ir ) {
 		stretch_stop( seq, NULL, NULL );
-        	return( NULL );
+		return( NULL );
 	}
 
 	return( (void *)seq );
@@ -119,7 +119,7 @@ stretch_start( IMAGE *out, void *a, void *b )
 /* Stretch a line of pels into a line in the buffer.
  */
 static void
-make_xline( StretchInfo *sin, 
+make_xline( StretchInfo *sin,
 	unsigned short *p, unsigned short *q, int w, int m )
 {
 	int bands = sin->in->Bands;
@@ -139,7 +139,7 @@ make_xline( StretchInfo *sin,
 		/* Loop for this pel.
 		 */
 		for( b = 0; b < bands; b++ ) {
-			tot = p1[0]*mask[0] + p1[o1]*mask[1] + 
+			tot = p1[0]*mask[0] + p1[o1]*mask[1] +
 				p1[o2]*mask[2] + p1[o3]*mask[3];
 			tot = IM_MAX( 0, tot );
 			p1++;
@@ -164,7 +164,7 @@ make_xline( StretchInfo *sin,
  * a line in p, boff is [0,1,2,3] for which buffer line is mask[3].
  */
 static void
-make_yline( StretchInfo *sin, int lsk, int boff, 
+make_yline( StretchInfo *sin, int lsk, int boff,
 	unsigned short *p, unsigned short *q, int w, int m )
 {
 	int bands = sin->in->Bands;
@@ -181,7 +181,7 @@ make_yline( StretchInfo *sin, int lsk, int boff,
 	int o3 = lsk*((boff + 3) % 4);
 
 	for( x = 0; x < we; x++ ) {
-		tot = p[o0]*mask[0] + p[o1]*mask[1] + 
+		tot = p[o0]*mask[0] + p[o1]*mask[1] +
 			p[o2]*mask[2] + p[o3]*mask[3];
 		tot = IM_MAX( 0, tot );
 		p++;
@@ -191,7 +191,7 @@ make_yline( StretchInfo *sin, int lsk, int boff,
 
 static int
 stretch_gen( REGION *or, void *vseq, void *a, void *b )
-{ 
+{
 	SeqInfo *seq = (SeqInfo *) vseq;
 	StretchInfo *sin = (StretchInfo *) b;
 	REGION *ir = seq->ir;
@@ -203,7 +203,7 @@ stretch_gen( REGION *or, void *vseq, void *a, void *b )
 	 */
 	int xstart = (r->left + sin->xoff) % 34;
 
-	/* What part of input do we need for this output? 
+	/* What part of input do we need for this output?
 	 */
 	r1.left = r->left - (r->left + sin->xoff) / 34;
 	r1.top = r->top;
@@ -211,13 +211,13 @@ stretch_gen( REGION *or, void *vseq, void *a, void *b )
 	x = x - (x + sin->xoff) / 34 + 3;
 	r1.width = x - r1.left;
 	r1.height = r->height + 3;
-        if( im_prepare( ir, &r1 ) )
-        	return( -1 );
-	
+	if( im_prepare( ir, &r1 ) )
+		return( -1 );
+
 	/* Fill the first three lines of the buffer.
 	 */
 	for( y = 0; y < 3; y++ ) {
-		unsigned short *p = (unsigned short *) 
+		unsigned short *p = (unsigned short *)
 			IM_REGION_ADDR( ir, r1.left, y + r1.top );
 		unsigned short *q = seq->buf + seq->lsk*y;
 
@@ -231,7 +231,7 @@ stretch_gen( REGION *or, void *vseq, void *a, void *b )
 	for( y = 0; y < r->height; y++ ) {
 		/* Next line of fresh input pels.
 		 */
-		unsigned short *p = (unsigned short *) 
+		unsigned short *p = (unsigned short *)
 			IM_REGION_ADDR( ir, r1.left, y + r1.top + 3 );
 
 		/* Next line we fill in the buffer.
@@ -241,7 +241,7 @@ stretch_gen( REGION *or, void *vseq, void *a, void *b )
 
 		/* Line we write in output.
 		 */
-		unsigned short *q1 = (unsigned short *) 
+		unsigned short *q1 = (unsigned short *)
 			IM_REGION_ADDR( or, r->left, y + r->top );
 
 		/* Process this new xline.
@@ -250,7 +250,7 @@ stretch_gen( REGION *or, void *vseq, void *a, void *b )
 
 		/* Generate new output line.
 		 */
-		make_yline( sin, seq->lsk, boff, 
+		make_yline( sin, seq->lsk, boff,
 			seq->buf, q1, r->width, sin->yoff );
 	}
 
@@ -262,34 +262,34 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
 {
 	StretchInfo *sin;
 	int i;
- 
-        /* Check our args. 
+
+	/* Check our args.
 	 */
-        if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_USHORT ) {
-        	im_error( "im_stretch3", 
+	if( in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_USHORT ) {
+		im_error( "im_stretch3",
 			"%s", _( "not uncoded unsigned short" ) );
-        	return( -1 );
-        }
+		return( -1 );
+	}
 	if( dx < 0 || dx >= 1.0 || dy < 0 || dy >= 1.0 ) {
-		im_error( "im_stretch3", 
+		im_error( "im_stretch3",
 			"%s", _( "displacements out of range [0,1)" ) );
 		return( -1 );
 	}
 	if( im_piocheck( in, out ) )
 		return( -1 );
 
-        /* Prepare the output image.
+	/* Prepare the output image.
 	 */
-        if( im_cp_desc( out, in ) )
+	if( im_cp_desc( out, in ) )
 		return( -1 );
  	out->Xsize = 34*(in->Xsize / 33) + in->Xsize%33 - 3;
-        out->Ysize = in->Ysize - 3;
+	out->Ysize = in->Ysize - 3;
 
-        if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
-        	return( -1 );
+	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
+		return( -1 );
 
-        if( !(sin = IM_NEW( out, StretchInfo )) )
-        	return( -1 );
+	if( !(sin = IM_NEW( out, StretchInfo )) )
+		return( -1 );
 
 	/* Save parameters.
 	 */
@@ -299,8 +299,8 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
 
 	/* Generate masks.
 	 */
-        for( i = 0; i < 34; i++ ) {
-        	double d = (34.0 - i)/34.0;
+	for( i = 0; i < 34; i++ ) {
+		double d = (34.0 - i)/34.0;
 
 		double y0 = 2.0*d*d - d - d*d*d;
 		double y1 = 1.0 - 2.0*d*d + d*d*d;
@@ -318,9 +318,9 @@ im_stretch3( IMAGE *in, IMAGE *out, double dx, double dy )
 	sin->xoff = (dx * 33.0) + 0.5;
 	sin->yoff = (dy * 33.0) + 0.5;
 
-        if( im_generate( out, 
+	if( im_generate( out,
 		stretch_start, stretch_gen, stretch_stop, in, sin ) )
-        	return( -1 );
+		return( -1 );
 
 	return( 0 );
 }

@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -65,22 +65,22 @@ vips_merge_build( VipsObject *object )
 {
 	VipsMerge *merge = (VipsMerge *) object;
 
-	g_object_set( merge, "out", vips_image_new(), NULL ); 
+	g_object_set( merge, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_merge_parent_class )->build( object ) )
 		return( -1 );
 
-	switch( merge->direction ) { 
+	switch( merge->direction ) {
 	case VIPS_DIRECTION_HORIZONTAL:
-		if( vips__lrmerge( merge->ref, merge->sec, merge->out, 
+		if( vips__lrmerge( merge->ref, merge->sec, merge->out,
 			merge->dx, merge->dy, merge->mblend ) )
-			return( -1 ); 
+			return( -1 );
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
-		if( vips__tbmerge( merge->ref, merge->sec, merge->out, 
+		if( vips__tbmerge( merge->ref, merge->sec, merge->out,
 			merge->dx, merge->dy, merge->mblend ) )
-			return( -1 ); 
+			return( -1 );
 		break;
 
 	default:
@@ -88,14 +88,14 @@ vips_merge_build( VipsObject *object )
 	}
 
 	vips__add_mosaic_name( merge->out );
-	if( vips_image_history_printf( merge->out, 
-		"#%s <%s> <%s> <%s> <%d> <%d> <%d>", 
+	if( vips_image_history_printf( merge->out,
+		"#%s <%s> <%s> <%s> <%d> <%d> <%d>",
 		merge->direction == VIPS_DIRECTION_HORIZONTAL ?
 			"LRJOIN" : "TBJOIN",
-		vips__get_mosaic_name( merge->ref ), 
-		vips__get_mosaic_name( merge->sec ), 
-		vips__get_mosaic_name( merge->out ), 
-		-merge->dx, -merge->dy, merge->mblend ) ) 
+		vips__get_mosaic_name( merge->ref ),
+		vips__get_mosaic_name( merge->sec ),
+		vips__get_mosaic_name( merge->out ),
+		-merge->dx, -merge->dy, merge->mblend ) )
 		return( -1 );
 
 	return( 0 );
@@ -117,47 +117,47 @@ vips_merge_class_init( VipsMergeClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "ref", 1, 
-		_( "Reference" ), 
+	VIPS_ARG_IMAGE( class, "ref", 1,
+		_( "Reference" ),
 		_( "Reference image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMerge, ref ) );
 
-	VIPS_ARG_IMAGE( class, "sec", 2, 
-		_( "Secondary" ), 
+	VIPS_ARG_IMAGE( class, "sec", 2,
+		_( "Secondary" ),
 		_( "Secondary image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMerge, sec ) );
 
-	VIPS_ARG_IMAGE( class, "out", 3, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 3,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMerge, out ) );
 
-	VIPS_ARG_ENUM( class, "direction", 4, 
-		_( "Direction" ), 
+	VIPS_ARG_ENUM( class, "direction", 4,
+		_( "Direction" ),
 		_( "Horizontal or vertical merge" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsMerge, direction ), 
-		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMerge, direction ),
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL );
 
-	VIPS_ARG_INT( class, "dx", 5, 
-		_( "dx" ), 
+	VIPS_ARG_INT( class, "dx", 5,
+		_( "dx" ),
 		_( "Horizontal displacement from sec to ref" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMerge, dx ),
 		-100000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "dy", 6, 
-		_( "dy" ), 
+	VIPS_ARG_INT( class, "dy", 6,
+		_( "dy" ),
 		_( "Vertical displacement from sec to ref" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMerge, dy ),
 		-100000000, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "mblend", 7, 
-		_( "Max blend" ), 
+	VIPS_ARG_INT( class, "mblend", 7,
+		_( "Max blend" ),
 		_( "Maximum blend size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMerge, mblend ),
@@ -180,30 +180,30 @@ vips_merge_init( VipsMerge *merge )
  * @dx: displacement of ref from sec
  * @dy: displacement of ref from sec
  * @...: %NULL-terminated list of optional named arguments
- * 
+ *
  * Optional arguments:
  *
- * * @mblend: %gint, maximum blend size 
+ * * @mblend: %gint, maximum blend size
  *
  * This operation joins two images left-right (with @ref on the left) or
  * up-down (with @ref above) with a smooth seam.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
+ * The two input images are cast up to the smallest common type (see table
+ * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * @dx and @dy give the displacement of @sec relative to @ref, in other words,
  * the vector to get from the origin of @sec to the origin of @ref, in other
- * words, @dx will generally be a negative number. 
+ * words, @dx will generally be a negative number.
  *
  * @mblend limits  the  maximum width of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
+ * blend area.  A value of "-1" means "unlimited". The two images are blended
+ * with a raised cosine.
  *
  * Pixels with all bands equal to zero are "transparent", that
  * is, zero pixels in the overlap area do not  contribute  to  the  merge.
@@ -213,15 +213,15 @@ vips_merge_init( VipsMerge *merge )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out, 
+int
+vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out,
 	VipsDirection direction, int dx, int dy, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, dy );
-	result = vips_call_split( "merge", ap, 
+	result = vips_call_split( "merge", ap,
 		ref, sec, out, direction, dx, dy );
 	va_end( ap );
 

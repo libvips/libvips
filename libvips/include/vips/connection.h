@@ -58,7 +58,7 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_CONNECTION, VipsConnectionClass ))
 
-/* Communicate with something like a socket or pipe. 
+/* Communicate with something like a socket or pipe.
  */
 typedef struct _VipsConnection {
 	VipsObject parent_object;
@@ -68,20 +68,20 @@ typedef struct _VipsConnection {
 	/* Read/write this fd if connected to a system pipe/socket. Override
 	 * ::read() and ::write() to do something else.
 	 */
-	int descriptor;	
+	int descriptor;
 
 	/* A descriptor we close with vips_tracked_close().
 	 */
-	int tracked_descriptor;	
+	int tracked_descriptor;
 
 	/* A descriptor we close with close().
 	 */
-	int close_descriptor;	
+	int close_descriptor;
 
 	/* If descriptor is a file, the filename we opened. Handy for error
-	 * messages. 
+	 * messages.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsConnection;
 
@@ -126,7 +126,7 @@ void vips_pipe_read_limit_set( gint64 limit );
 struct _VipsSource {
 	VipsConnection parent_object;
 
-	/* We have two phases: 
+	/* We have two phases:
 	 *
 	 * During the header phase, we save bytes read from the input (if this
 	 * is an unseekable source) so that we can rewind and try again, if
@@ -140,7 +140,7 @@ struct _VipsSource {
 	/* TRUE if this input is something like a pipe. These don't support
 	 * seek or map -- all you can do is read() bytes sequentially.
 	 *
-	 * If you attempt to map or get the size of a pipe-style input, it'll 
+	 * If you attempt to map or get the size of a pipe-style input, it'll
 	 * get read entirely into memory. Seeks will cause read up to the seek
 	 * point.
 	 */
@@ -151,7 +151,7 @@ struct _VipsSource {
 	 *
 	 * length is -1 for is_pipe sources.
 	 *
-	 * off_t can be 32 bits on some platforms, so make sure we have a 
+	 * off_t can be 32 bits on some platforms, so make sure we have a
 	 * full 64.
 	 */
 	gint64 read_position;
@@ -160,12 +160,12 @@ struct _VipsSource {
 	/*< private >*/
 
 	/* For sources where we have the whole image in memory (from a memory
-	 * buffer, from mmaping the file, from reading the pipe into memory), 
+	 * buffer, from mmaping the file, from reading the pipe into memory),
 	 * a pointer to the start.
 	 */
 	const void *data;
 
-	/* For is_pipe sources, save data read during header phase here. If 
+	/* For is_pipe sources, save data read during header phase here. If
 	 * we rewind and try again, serve data from this until it runs out.
 	 *
 	 * If we need to force the whole pipe into memory, read everything to
@@ -177,7 +177,7 @@ struct _VipsSource {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory source, the blob we read from. 
+	/* For a memory source, the blob we read from.
 	 */
 	VipsBlob *blob;
 
@@ -252,12 +252,12 @@ gint64 vips_source_seek( VipsSource *source, gint64 offset, int whence );
 VIPS_API
 int vips_source_rewind( VipsSource *source );
 VIPS_API
-gint64 vips_source_sniff_at_most( VipsSource *source, 
+gint64 vips_source_sniff_at_most( VipsSource *source,
 	unsigned char **data, size_t length );
 VIPS_API
 unsigned char *vips_source_sniff( VipsSource *source, size_t length );
 VIPS_API
-gint64 vips_source_length( VipsSource *source ); 
+gint64 vips_source_length( VipsSource *source );
 
 #define VIPS_TYPE_SOURCE_CUSTOM (vips_source_custom_get_type())
 #define VIPS_SOURCE_CUSTOM( obj ) \
@@ -299,7 +299,7 @@ GType vips_source_custom_get_type( void );
 VIPS_API
 VipsSourceCustom *vips_source_custom_new( void );
 
-/* A GInputStream that wraps a VipsSource. This lets us eg. 
+/* A GInputStream that wraps a VipsSource. This lets us eg.
  * hook librsvg up to libvips using their GInputStream interface.
  */
 
@@ -337,7 +337,7 @@ typedef struct _VipsGInputStreamClass {
 VIPS_API
 GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
 
-/* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from 
+/* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from
  * GFile objects.
  */
 
@@ -397,7 +397,7 @@ VipsSourceGInputStream *vips_source_g_input_stream_new( GInputStream *stream );
  */
 #define VIPS_TARGET_BUFFER_SIZE (8500)
 
-/* Output to something like a socket, pipe or memory area. 
+/* Output to something like a socket, pipe or memory area.
  */
 struct _VipsTarget {
 	VipsConnection parent_object;
@@ -412,7 +412,7 @@ struct _VipsTarget {
 	 */
 	gboolean ended;
 
-	/* Write memory output here. We use a GString rather than a 
+	/* Write memory output here. We use a GString rather than a
 	 * GByteArray since we need eg. g_string_overwrite_len().
 	 * @position tracks the current write position in this.
 	 */
@@ -454,7 +454,7 @@ typedef struct _VipsTargetClass {
 	void (*finish)( VipsTarget * );
 
 	/* libtiff needs to be able to seek and read on targets,
-	 * unfortunately. 
+	 * unfortunately.
 	 *
 	 * This will not work for eg. pipes, of course.
 	 */
@@ -536,7 +536,7 @@ int vips_target_write_amp( VipsTarget *target, const char *str );
 
 #define VIPS_TARGET_CUSTOM_BUFFER_SIZE (4096)
 
-/* Output to something like a socket, pipe or memory area. 
+/* Output to something like a socket, pipe or memory area.
  */
 typedef struct _VipsTargetCustom {
 	VipsTarget parent_object;

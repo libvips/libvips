@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,8 +49,8 @@ typedef struct _VipsCanny {
 	VipsImage *in;
 	VipsImage *out;
 
-	double sigma; 
-	VipsPrecision precision; 
+	double sigma;
+	VipsPrecision precision;
 
 	/* Need an image vector for start_many.
 	 */
@@ -74,35 +74,35 @@ vips_canny_gradient( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 	scope = vips_image_new();
 	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 2 );
 
-	t[0] = vips_image_new_matrixv( 2, 2, 
+	t[0] = vips_image_new_matrixv( 2, 2,
 		-1.0, 1.0,
 		-1.0, 1.0 );
 
 	if( in->BandFmt == VIPS_FORMAT_UCHAR ) {
 		precision = VIPS_PRECISION_INTEGER;
-		vips_image_set_double( t[0], "offset", 128.0 ); 
+		vips_image_set_double( t[0], "offset", 128.0 );
 	}
-	else 
+	else
 		precision = VIPS_PRECISION_FLOAT;
 
 	if( vips_conv( in, Gx, t[0], "precision", precision, NULL ) ||
 		vips_rot90( t[0], &t[1], NULL ) ||
-		vips_conv( in, Gy, t[1], "precision", precision, NULL ) ) { 
-		g_object_unref( scope ); 
+		vips_conv( in, Gy, t[1], "precision", precision, NULL ) ) {
+		g_object_unref( scope );
 		return( -1 );
 	}
 
-	g_object_unref( scope ); 
+	g_object_unref( scope );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 /* LUT for calculating atan2() with +/- 4 bits of precision in each axis.
  */
 static VipsPel vips_canny_polar_atan2[256];
 
-/* For the uchar path, gx/gy are -128 to +127, and we need -8 to +7 for the 
- * atan2 LUT. 
+/* For the uchar path, gx/gy are -128 to +127, and we need -8 to +7 for the
+ * atan2 LUT.
  *
  * For G, we should calculate sqrt( gx * gx + gy * gy ), however we are only
  * interested in relative magnitude (max of sqrt), so we can skip the sqrt
@@ -128,7 +128,7 @@ static VipsPel vips_canny_polar_atan2[256];
 }
 
 /* Float/double path. We keep the same ranges as the uchar path to reduce
- * confusion. 
+ * confusion.
  */
 #define POLAR( TYPE ) { \
 	TYPE *tp1 = (TYPE *) p1; \
@@ -153,24 +153,24 @@ static VipsPel vips_canny_polar_atan2[256];
 }
 
 static int
-vips_canny_polar_generate( VipsRegion *or, 
+vips_canny_polar_generate( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **in = (VipsRegion **) vseq;
 	VipsRect *r = &or->valid;
 	VipsImage *Gx = in[0]->im;
 
-	int x, y, band; 
+	int x, y, band;
 
 	if( vips_reorder_prepare_many( or->im, in, r ) )
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p1 = (VipsPel * restrict) 
+		VipsPel *p1 = (VipsPel * restrict)
 			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
-		VipsPel *p2 = (VipsPel * restrict) 
+		VipsPel *p2 = (VipsPel * restrict)
 			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
-		VipsPel *q = (VipsPel * restrict) 
+		VipsPel *q = (VipsPel * restrict)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		switch( Gx->BandFmt ) {
@@ -211,14 +211,14 @@ vips_atan2_init( void *null )
 		vips_canny_polar_atan2[i] = 256 * theta / 360;
 	}
 
-	return( NULL ); 
+	return( NULL );
 }
 
 /* Calculate G/theta from Gx/Gy. We code theta as 0-256 for 0-360
  * and skip the sqrt on G.
  *
  * For a white disc on a black background, theta is 0 at the top, 64 on the
- * left, 128 on the right and 192 on the right edge. 
+ * left, 128 on the right and 192 on the right edge.
  */
 static int
 vips_canny_polar( VipsImage **args, VipsImage **out )
@@ -228,13 +228,13 @@ vips_canny_polar( VipsImage **args, VipsImage **out )
 	g_once( &once, vips_atan2_init, NULL );
 
 	*out = vips_image_new();
-	if( vips_image_pipeline_array( *out, 
+	if( vips_image_pipeline_array( *out,
 		VIPS_DEMAND_STYLE_THINSTRIP, args ) )
 		return( -1 );
 	(*out)->Bands *= 2;
 
-	if( vips_image_generate( *out, 
-		vips_start_many, vips_canny_polar_generate, vips_stop_many, 
+	if( vips_image_generate( *out,
+		vips_start_many, vips_canny_polar_generate, vips_stop_many,
 		args, NULL ) )
 		return( -1 );
 
@@ -275,7 +275,7 @@ vips_canny_polar( VipsImage **args, VipsImage **out )
 }
 
 static int
-vips_canny_thin_generate( VipsRegion *or, 
+vips_canny_thin_generate( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *in = (VipsRegion *) vseq;
@@ -284,7 +284,7 @@ vips_canny_thin_generate( VipsRegion *or,
 	int out_bands = or->im->Bands;
 
 	VipsRect rect;
-	int x, y, band; 
+	int x, y, band;
 	int lsk;
 	int psk;
 
@@ -298,7 +298,7 @@ vips_canny_thin_generate( VipsRegion *or,
 
 	/* These are in typed units.
 	 */
-	lsk = VIPS_REGION_LSKIP( in ) / VIPS_IMAGE_SIZEOF_ELEMENT( im ); 
+	lsk = VIPS_REGION_LSKIP( in ) / VIPS_IMAGE_SIZEOF_ELEMENT( im );
 	psk = VIPS_IMAGE_SIZEOF_PEL( im ) / VIPS_IMAGE_SIZEOF_ELEMENT( im );
 
 	/* For each of the 8 directions, the offset to get to that pixel from
@@ -320,9 +320,9 @@ vips_canny_thin_generate( VipsRegion *or,
 	offset[7] = 2 * psk;
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p = (VipsPel * restrict) 
+		VipsPel *p = (VipsPel * restrict)
 			VIPS_REGION_ADDR( in, r->left, r->top + y );
-		VipsPel *q = (VipsPel * restrict) 
+		VipsPel *q = (VipsPel * restrict)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		switch( im->BandFmt ) {
@@ -353,15 +353,15 @@ static int
 vips_canny_thin( VipsImage *in, VipsImage **out )
 {
 	*out = vips_image_new();
-	if( vips_image_pipelinev( *out, 
+	if( vips_image_pipelinev( *out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 	(*out)->Bands /= 2;
 	(*out)->Xsize -= 2;
 	(*out)->Ysize -= 2;
 
-	if( vips_image_generate( *out, 
-		vips_start_one, vips_canny_thin_generate, vips_stop_one, 
+	if( vips_image_generate( *out,
+		vips_start_one, vips_canny_thin_generate, vips_stop_one,
 		in, NULL ) )
 		return( -1 );
 
@@ -381,14 +381,14 @@ vips_canny_build( VipsObject *object )
 
 	in = canny->in;
 
-	if( vips_gaussblur( in, &t[0], canny->sigma, 
+	if( vips_gaussblur( in, &t[0], canny->sigma,
 		"precision", canny->precision,
 		NULL ) )
 		return( -1 );
 	in = t[0];
 
 	if( vips_canny_gradient( in, &t[1], &t[2] ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* Form (G, theta).
 	 */
@@ -396,7 +396,7 @@ vips_canny_build( VipsObject *object )
 	canny->args[1] = t[2];
 	canny->args[2] = NULL;
 	if( vips_canny_polar( canny->args, &t[3] ) )
-		return( -1 ); 
+		return( -1 );
 	in = t[3];
 
 	/* Expand by two pixels all around, then thin in the direction of the
@@ -411,7 +411,7 @@ vips_canny_build( VipsObject *object )
 		return( -1 );
 	in = t[5];
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	if( vips_image_write( in, canny->out ) )
 		return( -1 );
@@ -435,38 +435,38 @@ vips_canny_class_init( VipsCannyClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCanny, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsCanny, out ) );
 
-	VIPS_ARG_DOUBLE( class, "sigma", 10, 
-		_( "Sigma" ), 
+	VIPS_ARG_DOUBLE( class, "sigma", 10,
+		_( "Sigma" ),
 		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCanny, sigma ),
 		0.01, 1000, 1.4 );
 
-	VIPS_ARG_ENUM( class, "precision", 103, 
-		_( "Precision" ), 
+	VIPS_ARG_ENUM( class, "precision", 103,
+		_( "Precision" ),
 		_( "Convolve with this precision" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCanny, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, precision ),
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT );
 
 }
 
 static void
 vips_canny_init( VipsCanny *canny )
 {
-	canny->sigma = 1.4; 
+	canny->sigma = 1.4;
 	canny->precision = VIPS_PRECISION_FLOAT;
 }
 
@@ -484,30 +484,30 @@ vips_canny_init( VipsCanny *canny )
  * Find edges by Canny's method: The maximum of the derivative of the gradient
  * in the direction of the gradient. Output is float, except for uchar input,
  * where output is uchar, and double input, where output is double. Non-complex
- * images only. 
+ * images only.
  *
  * Use @sigma to control the scale over which gradient is measured. 1.4 is
  * usually a good value.
  *
  * Use @precision to set the precision of edge detection. For uchar images,
- * setting this to #VIPS_PRECISION_INTEGER will make edge detection much 
- * faster, but sacrifice some sensitivity. 
+ * setting this to #VIPS_PRECISION_INTEGER will make edge detection much
+ * faster, but sacrifice some sensitivity.
  *
- * You will probably need to process the output further to eliminate weak 
- * edges. 
+ * You will probably need to process the output further to eliminate weak
+ * edges.
  *
  * See also: vips_sobel().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
-int 
+int
 vips_canny( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "canny", ap, in, out );  
+	result = vips_call_split( "canny", ap, in, out );
 	va_end( ap );
 
 	return( result );

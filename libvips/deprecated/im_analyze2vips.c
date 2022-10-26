@@ -1,5 +1,5 @@
 /* Read a Analyze file. Old-style header (so called 7.5 format).
- * 
+ *
  * 14/12/11
  * 	- just a compat stub now
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -46,7 +46,7 @@
 static VipsFormatFlags
 analyze_flags( const char *filename )
 {
-	return( (VipsFormatFlags) 
+	return( (VipsFormatFlags)
 		vips_foreign_flags( "analyzeload", filename ) );
 }
 

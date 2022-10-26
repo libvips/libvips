@@ -36,7 +36,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -129,7 +129,7 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 static double
 vips_complex_hypot( double a, double b )
@@ -139,12 +139,12 @@ vips_complex_hypot( double a, double b )
 	/* hypot() is less sensitive to overflow. Use it if we can.
 	 */
 #ifdef HAVE_HYPOT
-	d = hypot( a, b ); 
+	d = hypot( a, b );
 #else
 	d = sqrt( a * a + b * b );
 #endif
 
-	return( d ); 
+	return( d );
 }
 
 static double
@@ -160,10 +160,10 @@ vips_complex_atan2( double a, double b )
 	if( h < 0.0 )
 		h += 360;
 #else
-	h = vips_col_ab2h( a, b ); 
-#endif 
+	h = vips_col_ab2h( a, b );
+#endif
 
-	return( h ); 
+	return( h );
 }
 
 #define POLAR( Q, X, Y ) { \
@@ -176,7 +176,7 @@ vips_complex_atan2( double a, double b )
 	\
 	Q[0] = am; \
 	Q[1] = ph; \
-} 
+}
 
 #define RECT( Q, X, Y ) { \
 	double am = (X); \
@@ -201,7 +201,7 @@ vips_complex_atan2( double a, double b )
 }
 
 static void
-vips_complex_buffer( VipsArithmetic *arithmetic, 
+vips_complex_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsComplex *cmplx = (VipsComplex *) arithmetic;
@@ -235,7 +235,7 @@ vips_complex_buffer( VipsArithmetic *arithmetic,
 
 static const VipsBandFormat vips_complex_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   X,  X,  X,  X,  X,  X,  X,  X,  DX, DX 
+   X,  X,  X,  X,  X,  X,  X,  X,  DX, DX
 };
 
 static void
@@ -249,19 +249,19 @@ vips_complex_class_init( VipsComplexClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "complex";
-	object_class->description = 
+	object_class->description =
 		_( "perform a complex operation on an image" );
 
 	aclass->process_line = vips_complex_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_complex_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_complex_format_table );
 
-	VIPS_ARG_ENUM( class, "cmplx", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "cmplx", 200,
+		_( "Operation" ),
 		_( "Complex to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplex, cmplx ),
-		VIPS_TYPE_OPERATION_COMPLEX, VIPS_OPERATION_COMPLEX_POLAR ); 
+		VIPS_TYPE_OPERATION_COMPLEX, VIPS_OPERATION_COMPLEX_POLAR );
 }
 
 static void
@@ -270,7 +270,7 @@ vips_complex_init( VipsComplex *cmplx )
 }
 
 static int
-vips_complexv( VipsImage *in, VipsImage **out, 
+vips_complexv( VipsImage *in, VipsImage **out,
 	VipsOperationComplex cmplx, va_list ap )
 {
 	return( vips_call_split( "complex", ap, in, out, cmplx ) );
@@ -285,8 +285,8 @@ vips_complexv( VipsImage *in, VipsImage **out,
  *
  * Perform various operations on complex images.
  *
- * Angles are expressed in degrees. The output type is complex unless the 
- * input is double or dpcomplex, in which case the output is dpcomplex.  
+ * Angles are expressed in degrees. The output type is complex unless the
+ * input is double or dpcomplex, in which case the output is dpcomplex.
  *
  * Returns: 0 on success, -1 on error
  */
@@ -434,13 +434,13 @@ G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
-/* There doesn't seem to be much difference in speed between these two methods 
- * (on an Athlon64), so I use the modulus argument version, since atan2() is 
+/* There doesn't seem to be much difference in speed between these two methods
+ * (on an Athlon64), so I use the modulus argument version, since atan2() is
  * in c89 but hypot() is c99.
  *
- * If you think that it might be faster on your platform, uncomment the 
+ * If you think that it might be faster on your platform, uncomment the
  * following:
  */
 #define USE_MODARG_DIV
@@ -494,7 +494,7 @@ G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
 #endif /* USE_MODARG_DIV */
 
 static void
-vips_complex2_buffer( VipsArithmetic *arithmetic, 
+vips_complex2_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsComplex2 *cmplx = (VipsComplex2 *) arithmetic;
@@ -504,8 +504,8 @@ vips_complex2_buffer( VipsArithmetic *arithmetic,
 	int x;
 
 	switch( cmplx->cmplx ) {
-	case VIPS_OPERATION_COMPLEX2_CROSS_PHASE:	
-		SWITCH2( CROSS ); 
+	case VIPS_OPERATION_COMPLEX2_CROSS_PHASE:
+		SWITCH2( CROSS );
 		break;
 
 	default:
@@ -528,7 +528,7 @@ vips_complex2_buffer( VipsArithmetic *arithmetic,
 
 static const VipsBandFormat vips_complex2_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   X,  X,  X,  X,  X,  X,  X,  X,  DX, DX 
+   X,  X,  X,  X,  X,  X,  X,  X,  DX, DX
 };
 
 static void
@@ -542,20 +542,20 @@ vips_complex2_class_init( VipsComplex2Class *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "complex2";
-	object_class->description = 
+	object_class->description =
 		_( "complex binary operations on two images" );
 
 	aclass->process_line = vips_complex2_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_complex2_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_complex2_format_table );
 
-	VIPS_ARG_ENUM( class, "cmplx", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "cmplx", 200,
+		_( "Operation" ),
 		_( "Binary complex operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplex2, cmplx ),
-		VIPS_TYPE_OPERATION_COMPLEX2, 
-			VIPS_OPERATION_COMPLEX2_CROSS_PHASE ); 
+		VIPS_TYPE_OPERATION_COMPLEX2,
+			VIPS_OPERATION_COMPLEX2_CROSS_PHASE );
 }
 
 static void
@@ -564,7 +564,7 @@ vips_complex2_init( VipsComplex2 *cmplx )
 }
 
 static int
-vips_complex2v( VipsImage *left, VipsImage *right, VipsImage **out, 
+vips_complex2v( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationComplex2 cmplx, va_list ap )
 {
 	return( vips_call_split( "complex2", ap, left, right, out, cmplx ) );
@@ -580,13 +580,13 @@ vips_complex2v( VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * Perform various binary operations on complex images.
  *
- * Angles are expressed in degrees. The output type is complex unless the 
- * input is double or dpcomplex, in which case the output is dpcomplex.  
+ * Angles are expressed in degrees. The output type is complex unless the
+ * input is double or dpcomplex, in which case the output is dpcomplex.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out, 
+vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationComplex2 cmplx, ... )
 {
 	va_list ap;
@@ -606,7 +606,7 @@ vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out,
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEX2_CROSS_PHASE on an image. 
+ * Perform #VIPS_OPERATION_COMPLEX2_CROSS_PHASE on an image.
  * See vips_complex2().
  *
  * Returns: 0 on success, -1 on error
@@ -618,7 +618,7 @@ vips_cross_phase( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_complex2v( left, right, out, 
+	result = vips_complex2v( left, right, out,
 		VIPS_OPERATION_COMPLEX2_CROSS_PHASE, ap );
 	va_end( ap );
 
@@ -644,8 +644,8 @@ vips_complexget_build( VipsObject *object )
 
 	if( unary->in &&
 		!vips_band_format_iscomplex( unary->in->BandFmt ) &&
-		complexget->get == VIPS_OPERATION_COMPLEXGET_REAL ) 
-		return( vips_unary_copy( unary ) ); 
+		complexget->get == VIPS_OPERATION_COMPLEXGET_REAL )
+		return( vips_unary_copy( unary ) );
 
 	if( VIPS_OBJECT_CLASS( vips_complexget_parent_class )->build( object ) )
 		return( -1 );
@@ -698,18 +698,18 @@ vips_complexget_build( VipsObject *object )
  	\
 	default: \
 		g_assert_not_reached(); \
-	} 
+	}
 
 #define REAL( Q, X, Y ) { \
 	Q = X; \
-} 
+}
 
 #define IMAG( Q, X, Y ) { \
 	Q = Y; \
-} 
+}
 
 static void
-vips_complexget_buffer( VipsArithmetic *arithmetic, 
+vips_complexget_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsComplexget *complexget = (VipsComplexget *) arithmetic;
@@ -761,16 +761,16 @@ vips_complexget_class_init( VipsComplexgetClass *class )
 
 	aclass->process_line = vips_complexget_buffer;
 
-	vips_arithmetic_set_format_table( aclass, 
-		vips_complexget_format_table ); 
+	vips_arithmetic_set_format_table( aclass,
+		vips_complexget_format_table );
 
-	VIPS_ARG_ENUM( class, "get", 200, 
-		_( "Operation" ), 
+	VIPS_ARG_ENUM( class, "get", 200,
+		_( "Operation" ),
 		_( "Complex to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplexget, get ),
-		VIPS_TYPE_OPERATION_COMPLEXGET, 
-			VIPS_OPERATION_COMPLEXGET_REAL ); 
+		VIPS_TYPE_OPERATION_COMPLEXGET,
+			VIPS_OPERATION_COMPLEXGET_REAL );
 }
 
 static void
@@ -779,7 +779,7 @@ vips_complexget_init( VipsComplexget *complexget )
 }
 
 static int
-vips_complexgetv( VipsImage *in, VipsImage **out, 
+vips_complexgetv( VipsImage *in, VipsImage **out,
 	VipsOperationComplexget get, va_list ap )
 {
 	return( vips_call_split( "complexget", ap, in, out, get ) );
@@ -792,16 +792,16 @@ vips_complexgetv( VipsImage *in, VipsImage **out,
  * @get: complex operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
- * Get components of complex images. 
+ * Get components of complex images.
  *
  * The output type is the same as the input type, except #VIPS_FORMAT_COMPLEX
- * becomes #VIPS_FORMAT_FLOAT and #VIPS_FORMAT_DPCOMPLEX becomes 
+ * becomes #VIPS_FORMAT_FLOAT and #VIPS_FORMAT_DPCOMPLEX becomes
  * #VIPS_FORMAT_DOUBLE.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_complexget( VipsImage *in, VipsImage **out, 
+vips_complexget( VipsImage *in, VipsImage **out,
 	VipsOperationComplexget get, ... )
 {
 	va_list ap;
@@ -831,7 +831,7 @@ vips_real( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_complexgetv( in, out, 
+	result = vips_complexgetv( in, out,
 		VIPS_OPERATION_COMPLEXGET_REAL, ap );
 	va_end( ap );
 
@@ -855,7 +855,7 @@ vips_imag( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_complexgetv( in, out, 
+	result = vips_complexgetv( in, out,
 		VIPS_OPERATION_COMPLEXGET_IMAG, ap );
 	va_end( ap );
 
@@ -901,7 +901,7 @@ vips_complexform_build( VipsObject *object )
 }
 
 static void
-vips_complexform_buffer( VipsArithmetic *arithmetic, 
+vips_complexform_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
@@ -909,30 +909,30 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 
 	int x;
 
-	/* Keep types here in sync with bandfmt_complexform[] 
+	/* Keep types here in sync with bandfmt_complexform[]
 	 * below.
-         */
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_UCHAR:	
-		CFORM( unsigned char, float ); break; 
-        case VIPS_FORMAT_CHAR: 	
-		CFORM( signed char, float ); break; 
-        case VIPS_FORMAT_USHORT:
-		CFORM( unsigned short, float ); break; 
-        case VIPS_FORMAT_SHORT:	
-		CFORM( signed short, float ); break; 
-        case VIPS_FORMAT_UINT: 	
-		CFORM( unsigned int, float ); break; 
-        case VIPS_FORMAT_INT: 	
-		CFORM( signed int, float ); break; 
-        case VIPS_FORMAT_FLOAT:	
-		CFORM( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE: 
+	 */
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_UCHAR:
+		CFORM( unsigned char, float ); break;
+	case VIPS_FORMAT_CHAR:
+		CFORM( signed char, float ); break;
+	case VIPS_FORMAT_USHORT:
+		CFORM( unsigned short, float ); break;
+	case VIPS_FORMAT_SHORT:
+		CFORM( signed short, float ); break;
+	case VIPS_FORMAT_UINT:
+		CFORM( unsigned int, float ); break;
+	case VIPS_FORMAT_INT:
+		CFORM( signed int, float ); break;
+	case VIPS_FORMAT_FLOAT:
+		CFORM( float, float ); break;
+	case VIPS_FORMAT_DOUBLE:
 		CFORM( double, double ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -948,7 +948,7 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for form complex. Sign and value preserving. Make sure 
+/* Type promotion for form complex. Sign and value preserving. Make sure
  * these match the case statement in complexform_buffer() above.
  */
 static int vips_complexform_format_table[10] = {
@@ -963,14 +963,14 @@ vips_complexform_class_init( VipsComplexformClass *class )
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
 
 	object_class->nickname = "complexform";
-	object_class->description = 
+	object_class->description =
 		_( "form a complex image from two real images" );
 	object_class->build = vips_complexform_build;
 
 	aclass->process_line = vips_complexform_buffer;
 
-	vips_arithmetic_set_format_table( aclass, 
-		vips_complexform_format_table ); 
+	vips_arithmetic_set_format_table( aclass,
+		vips_complexform_format_table );
 }
 
 static void
@@ -980,18 +980,18 @@ vips_complexform_init( VipsComplexform *complexform )
 
 /**
  * vips_complexform:
- * @left: input image 
- * @right: input image 
+ * @left: input image
+ * @right: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Compose two real images to make a complex image. If either @left or @right 
- * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out 
- * is #VIPS_FORMAT_COMPLEX. @left becomes the real component of @out and 
+ * Compose two real images to make a complex image. If either @left or @right
+ * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out
+ * is #VIPS_FORMAT_COMPLEX. @left becomes the real component of @out and
  * @right the imaginary.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *

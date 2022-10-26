@@ -1,6 +1,6 @@
 /* repeatedly convolve with a rotating mask
  *
- * 23/10/13	
+ * 23/10/13
  * 	- from vips_conv()
  * 8/5/17
  *      - default to float ... int will often lose precision and should not be
@@ -12,7 +12,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -50,12 +50,12 @@
 typedef struct {
 	VipsConvolution parent_instance;
 
-	int times; 
-	VipsAngle45 angle; 
-	VipsCombine combine; 
-	VipsPrecision precision; 
-	int layers; 
-	int cluster; 
+	int times;
+	VipsAngle45 angle;
+	VipsCombine combine;
+	VipsPrecision precision;
+	int layers;
+	int cluster;
 } VipsCompass;
 
 typedef VipsConvolutionClass VipsCompassClass;
@@ -70,59 +70,59 @@ vips_compass_build( VipsObject *object )
 	VipsImage **masks;
 	VipsImage *mask;
 	VipsImage **images;
-	int i; 
+	int i;
 	VipsImage **abs;
 	VipsImage **combine;
 	VipsImage *x;
 
-	g_object_set( compass, "out", vips_image_new(), NULL ); 
+	g_object_set( compass, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_compass_parent_class )->build( object ) )
 		return( -1 );
 
-	masks = (VipsImage **) 
+	masks = (VipsImage **)
 		vips_object_local_array( object, compass->times );
-	images = (VipsImage **) 
+	images = (VipsImage **)
 		vips_object_local_array( object, compass->times );
-	abs = (VipsImage **) 
+	abs = (VipsImage **)
 		vips_object_local_array( object, compass->times );
-	combine = (VipsImage **) 
+	combine = (VipsImage **)
 		vips_object_local_array( object, compass->times );
 
 	mask = convolution->M;
 	for( i = 0; i < compass->times; i++ ) {
-		if( vips_conv( convolution->in, &images[i], mask, 
+		if( vips_conv( convolution->in, &images[i], mask,
 			"precision", compass->precision,
 			"layers", compass->layers,
 			"cluster", compass->cluster,
 			NULL ) )
-			return( -1 ); 
+			return( -1 );
 		if( vips_rot45( mask, &masks[i],
 			"angle", compass->angle,
 			NULL ) )
-			return( -1 ); 
+			return( -1 );
 
 		mask = masks[i];
 	}
 
 	for( i = 0; i < compass->times; i++ )
 		if( vips_abs( images[i], &abs[i], NULL ) )
-			return( -1 ); 
+			return( -1 );
 
-	switch( compass->combine ) { 
+	switch( compass->combine ) {
 	case VIPS_COMBINE_MAX:
 		if( vips_bandrank( abs, &combine[0], compass->times,
 			"index", compass->times - 1,
 			NULL ) )
-			return( -1 ); 
+			return( -1 );
 		x = combine[0];
 		break;
 
 	case VIPS_COMBINE_MIN:
 		if( vips_bandrank( abs, &combine[0], compass->times,
-			"index", 0, 
+			"index", 0,
 			NULL ) )
-			return( -1 ); 
+			return( -1 );
 		x = combine[0];
 		break;
 
@@ -141,7 +141,7 @@ vips_compass_build( VipsObject *object )
 	}
 
 	if( vips_image_write( x, convolution->out ) )
-		return( -1 ); 
+		return( -1 );
 
 	return( 0 );
 }
@@ -159,47 +159,47 @@ vips_compass_class_init( VipsCompassClass *class )
 	object_class->description = _( "convolve with rotating mask" );
 	object_class->build = vips_compass_build;
 
-	VIPS_ARG_INT( class, "times", 101, 
-		_( "Times" ), 
+	VIPS_ARG_INT( class, "times", 101,
+		_( "Times" ),
 		_( "Rotate and convolve this many times" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, times ), 
-		1, 1000, 2 ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, times ),
+		1, 1000, 2 );
 
-	VIPS_ARG_ENUM( class, "angle", 103, 
-		_( "Angle" ), 
+	VIPS_ARG_ENUM( class, "angle", 103,
+		_( "Angle" ),
 		_( "Rotate mask by this much between convolutions" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, angle ), 
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D90 ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, angle ),
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D90 );
 
-	VIPS_ARG_ENUM( class, "combine", 104, 
-		_( "Combine" ), 
-		_( "Combine convolution results like this" ), 
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, combine ), 
-		VIPS_TYPE_COMBINE, VIPS_COMBINE_MAX ); 
+	VIPS_ARG_ENUM( class, "combine", 104,
+		_( "Combine" ),
+		_( "Combine convolution results like this" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, combine ),
+		VIPS_TYPE_COMBINE, VIPS_COMBINE_MAX );
 
-	VIPS_ARG_ENUM( class, "precision", 203, 
-		_( "Precision" ), 
+	VIPS_ARG_ENUM( class, "precision", 203,
+		_( "Precision" ),
 		_( "Convolve with this precision" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, precision ),
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT );
 
-	VIPS_ARG_INT( class, "layers", 204, 
-		_( "Layers" ), 
+	VIPS_ARG_INT( class, "layers", 204,
+		_( "Layers" ),
 		_( "Use this many layers in approximation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, layers ), 
-		1, 1000, 5 ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, layers ),
+		1, 1000, 5 );
 
-	VIPS_ARG_INT( class, "cluster", 205, 
-		_( "Cluster" ), 
+	VIPS_ARG_INT( class, "cluster", 205,
+		_( "Cluster" ),
 		_( "Cluster lines closer than this in approximation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsCompass, cluster ), 
-		1, 100, 1 ); 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompass, cluster ),
+		1, 100, 1 );
 
 }
 
@@ -238,7 +238,7 @@ vips_compass_init( VipsCompass *compass )
  *
  * Returns: 0 on success, -1 on error.
  */
-int 
+int
 vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 {
 	va_list ap;

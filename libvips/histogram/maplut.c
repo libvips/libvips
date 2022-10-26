@@ -38,7 +38,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -79,7 +79,7 @@ typedef struct _VipsMaplut {
 	VipsImage *in;
 	VipsImage *out;
 	VipsImage *lut;
-	int band; 
+	int band;
 
 	int fmt;		/* LUT image BandFmt */
 	int nb;			/* Number of bands in lut */
@@ -96,14 +96,14 @@ typedef VipsOperationClass VipsMaplutClass;
 G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_OPERATION );
 
 static void
-vips_maplut_preeval( VipsImage *image, VipsProgress *progress, 
+vips_maplut_preeval( VipsImage *image, VipsProgress *progress,
 	VipsMaplut *maplut )
 {
 	maplut->overflow = 0;
 }
 
 static void
-vips_maplut_posteval( VipsImage *image, VipsProgress *progress, 
+vips_maplut_posteval( VipsImage *image, VipsProgress *progress,
 	VipsMaplut *maplut )
 {
 	if( maplut->overflow )
@@ -133,7 +133,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	seq->ir = NULL;
 	seq->overflow = 0;
 
-	if( !(seq->ir = vips_region_new( in )) ) 
+	if( !(seq->ir = vips_region_new( in )) )
 		return( NULL );
 
 	return( seq );
@@ -436,8 +436,8 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Do a map.
  */
-static int 
-vips_maplut_gen( VipsRegion *or, void *vseq, void *a, void *b, 
+static int
+vips_maplut_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsMaplutSequence *seq = (VipsMaplutSequence *) vseq;
@@ -459,14 +459,14 @@ vips_maplut_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	if( maplut->nb == 1 )
 		/* One band lut.
 		 */
-		outer_switch( loop1, loop1c, loop1g, loop1cg ) 
-	else 
+		outer_switch( loop1, loop1c, loop1g, loop1cg )
+	else
 		/* Many band lut.
 		 */
 		if( in->Bands == 1 )
 			/* ... but 1 band input.
 			 */
-			outer_switch( loop1m, loop1cm, loop1gm, loop1cgm ) 
+			outer_switch( loop1m, loop1cm, loop1gm, loop1cgm )
 		else
 			outer_switch( loop, loopc, loopg, loopcg )
 
@@ -496,7 +496,7 @@ vips_maplut_stop( void *vseq, void *a, void *b )
 #define US VIPS_FORMAT_USHORT
 #define UI VIPS_FORMAT_UINT
 
-/* Type mapping: go to uchar / ushort / uint to make an index. 
+/* Type mapping: go to uchar / ushort / uint to make an index.
  */
 static int bandfmt_maplut[10] = {
 /* UC   C  US   S  UI   I   F   X  D   DX */
@@ -504,8 +504,8 @@ static int bandfmt_maplut[10] = {
 };
 
 /* Repack lut into a set of band arrays. If we're just passing one band of the
- * image through the lut, put the identity function in the other bands. 
- */ 
+ * image through the lut, put the identity function in the other bands.
+ */
 #define PACK_TABLE( TYPE ) { \
 	TYPE *data = (TYPE *) lut->data; \
 	int x, b; \
@@ -564,7 +564,7 @@ vips_maplut_build( VipsObject *object )
 	VipsImage *lut;
 	int i;
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_maplut_parent_class )->build( object ) )
 		return( -1 );
@@ -587,7 +587,7 @@ vips_maplut_build( VipsObject *object )
 		vips_image_pio_input( in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( maplut->out, 
+	if( vips_image_pipelinev( maplut->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in, lut, NULL ) )
 		return( -1 );
 	maplut->out->BandFmt = lut->BandFmt;
@@ -605,9 +605,9 @@ vips_maplut_build( VipsObject *object )
 	if( lut->Bands != 1 )
 		maplut->out->Type = lut->Type;
 
-	g_signal_connect( in, "preeval", 
+	g_signal_connect( in, "preeval",
 		G_CALLBACK( vips_maplut_preeval ), maplut );
-	g_signal_connect( in, "posteval", 
+	g_signal_connect( in, "posteval",
 		G_CALLBACK( vips_maplut_posteval ), maplut );
 
 	/* Make luts. We unpack the LUT image into a 2D C array to speed
@@ -622,9 +622,9 @@ vips_maplut_build( VipsObject *object )
 	maplut->clp = maplut->sz - 1;
 
 	/* If @bands is >= 0, we need to expand the lut to the number of bands
-	 * in the input image. 
+	 * in the input image.
 	 */
-	if( maplut->band >= 0 && 
+	if( maplut->band >= 0 &&
 		lut->Bands == 1 )
 		maplut->nb = in->Bands;
 	else
@@ -632,42 +632,42 @@ vips_maplut_build( VipsObject *object )
 
 	/* Attach tables.
 	 */
-	if( !(maplut->table = VIPS_ARRAY( maplut, maplut->nb, VipsPel * )) ) 
-                return( -1 );
+	if( !(maplut->table = VIPS_ARRAY( maplut, maplut->nb, VipsPel * )) )
+		return( -1 );
 	for( i = 0; i < maplut->nb; i++ )
-		if( !(maplut->table[i] = VIPS_ARRAY( maplut, 
+		if( !(maplut->table[i] = VIPS_ARRAY( maplut,
 			maplut->sz * maplut->es, VipsPel )) )
 			return( -1 );
 
 	/* Scan LUT and fill table.
 	 */
 	switch( lut->BandFmt ) {
-	case VIPS_FORMAT_UCHAR: 
-		PACK_TABLE( unsigned char ); break; 
+	case VIPS_FORMAT_UCHAR:
+		PACK_TABLE( unsigned char ); break;
 	case VIPS_FORMAT_CHAR:
-		PACK_TABLE( char ); break; 
-	case VIPS_FORMAT_USHORT: 
-		PACK_TABLE( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT: 
-		PACK_TABLE( short ); break; 
-	case VIPS_FORMAT_UINT: 
-		PACK_TABLE( unsigned int ); break; 
-	case VIPS_FORMAT_INT: 
-		PACK_TABLE( int ); break; 
-	case VIPS_FORMAT_FLOAT: 
-		PACK_TABLE( float ); break; 
-	case VIPS_FORMAT_DOUBLE: 
-		PACK_TABLE( double ); break; 
-	case VIPS_FORMAT_COMPLEX: 
-		PACK_TABLEC( float ); break; 
-	case VIPS_FORMAT_DPCOMPLEX: 
-		PACK_TABLEC( double ); break; 
-	default: 
-		g_assert_not_reached(); 
+		PACK_TABLE( char ); break;
+	case VIPS_FORMAT_USHORT:
+		PACK_TABLE( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:
+		PACK_TABLE( short ); break;
+	case VIPS_FORMAT_UINT:
+		PACK_TABLE( unsigned int ); break;
+	case VIPS_FORMAT_INT:
+		PACK_TABLE( int ); break;
+	case VIPS_FORMAT_FLOAT:
+		PACK_TABLE( float ); break;
+	case VIPS_FORMAT_DOUBLE:
+		PACK_TABLE( double ); break;
+	case VIPS_FORMAT_COMPLEX:
+		PACK_TABLEC( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX:
+		PACK_TABLEC( double ); break;
+	default:
+		g_assert_not_reached();
 	}
 
 	if( vips_image_generate( maplut->out,
-		vips_maplut_start, vips_maplut_gen, vips_maplut_stop, 
+		vips_maplut_start, vips_maplut_gen, vips_maplut_stop,
 		in, maplut ) )
 		return( -1 );
 
@@ -690,30 +690,30 @@ vips_maplut_class_init( VipsMaplutClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaplut, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMaplut, out ) );
 
-	VIPS_ARG_IMAGE( class, "lut", 3, 
-		_( "LUT" ), 
+	VIPS_ARG_IMAGE( class, "lut", 3,
+		_( "LUT" ),
 		_( "Look-up table image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaplut, lut ) );
 
-	VIPS_ARG_INT( class, "band", 4, 
-		_( "Band" ), 
+	VIPS_ARG_INT( class, "band", 4,
+		_( "Band" ),
 		_( "Apply one-band lut to this band of in" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMaplut, band ),
-		-1, 10000, -1 ); 
+		-1, 10000, -1 );
 
 }
 
@@ -734,21 +734,21 @@ vips_maplut_init( VipsMaplut *maplut )
  *
  * * @band: apply one-band @lut to this band of @in
  *
- * Map an image through another image acting as a LUT (Look Up Table). 
+ * Map an image through another image acting as a LUT (Look Up Table).
  * The lut may have any type and the output image will be that type.
- * 
+ *
  * The input image will be cast to one of the unsigned integer types, that is,
  * VIPS_FORMAT_UCHAR, VIPS_FORMAT_USHORT or VIPS_FORMAT_UINT.
- * 
+ *
  * If @lut is too small for the input type (for example, if @in is
  * VIPS_FORMAT_UCHAR but @lut only has 100 elements), the lut is padded out
- * by copying the last element. Overflows are reported at the end of 
+ * by copying the last element. Overflows are reported at the end of
  * computation.
- * If @lut is too large, extra values are ignored. 
- * 
- * If @lut has one band and @band is -1 (the default), then all bands of @in 
- * pass through @lut. If @band is >= 0, then just that band of @in passes 
- * through @lut and other bands are just copied. 
+ * If @lut is too large, extra values are ignored.
+ *
+ * If @lut has one band and @band is -1 (the default), then all bands of @in
+ * pass through @lut. If @band is >= 0, then just that band of @in passes
+ * through @lut and other bands are just copied.
  *
  * If @lut
  * has same number of bands as @in, then each band is mapped

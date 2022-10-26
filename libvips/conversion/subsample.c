@@ -20,7 +20,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,7 @@ typedef struct _VipsSubsample {
 	VipsConversion parent_instance;
 
 	VipsImage *in;
-	int xfac;	
+	int xfac;
 	int yfac;
 	gboolean point;
 
@@ -74,11 +74,11 @@ G_DEFINE_TYPE( VipsSubsample, vips_subsample, VIPS_TYPE_CONVERSION );
  */
 #define VIPS_MAX_WIDTH (100)
 
-/* Subsample a VipsRegion. We fetch in VIPS_MAX_WIDTH pixel-wide strips, 
+/* Subsample a VipsRegion. We fetch in VIPS_MAX_WIDTH pixel-wide strips,
  * left-to-right across the input.
  */
 static int
-vips_subsample_line_gen( VipsRegion *or, 
+vips_subsample_line_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -109,7 +109,7 @@ vips_subsample_line_gen( VipsRegion *or,
 			 */
 			int ow = VIPS_MIN( owidth, ri - x );
 
-			/* Ask for this many from input ... can save a 
+			/* Ask for this many from input ... can save a
 			 * little here!
 			 */
 			int iw = ow * subsample->xfac - (subsample->xfac - 1);
@@ -142,7 +142,7 @@ vips_subsample_line_gen( VipsRegion *or,
 /* Fetch one pixel at a time ... good for very large shrinks.
  */
 static int
-vips_subsample_point_gen( VipsRegion *or, 
+vips_subsample_point_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -201,20 +201,20 @@ vips_subsample_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_subsample_parent_class )->build( object ) )
 		return( -1 );
 
-	g_assert( subsample->xfac > 0 ); 
-	g_assert( subsample->yfac > 0 ); 
+	g_assert( subsample->xfac > 0 );
+	g_assert( subsample->yfac > 0 );
 
-	if( subsample->xfac == 1 && 
-		subsample->yfac == 1 ) 
+	if( subsample->xfac == 1 &&
+		subsample->yfac == 1 )
 		return( vips_image_write( subsample->in, conversion->out ) );
-	if( vips_image_pio_input( subsample->in ) || 
-		vips_check_coding_known( class->nickname, subsample->in ) )  
+	if( vips_image_pio_input( subsample->in ) ||
+		vips_check_coding_known( class->nickname, subsample->in ) )
 		return( -1 );
 
 	/* Set demand hints. We want THINSTRIP, as we will be demanding a
 	 * large area of input for each output line.
 	 */
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, subsample->in, NULL ) )
 		return( -1 );
 
@@ -224,23 +224,23 @@ vips_subsample_build( VipsObject *object )
 	conversion->out->Ysize = subsample->in->Ysize / subsample->yfac;
 	conversion->out->Xres = subsample->in->Xres / subsample->xfac;
 	conversion->out->Yres = subsample->in->Yres / subsample->yfac;
-	if( conversion->out->Xsize <= 0 || 
+	if( conversion->out->Xsize <= 0 ||
 		conversion->out->Ysize <= 0 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 
-	/* Generate! If this is a very large shrink, then it's probably faster 
-	 * to do it a pixel at a time. 
+	/* Generate! If this is a very large shrink, then it's probably faster
+	 * to do it a pixel at a time.
 	 */
 	if( subsample->point ||
-		subsample->xfac > 10 ) 
+		subsample->xfac > 10 )
 		subsample_fn = vips_subsample_point_gen;
-	else 
+	else
 		subsample_fn = vips_subsample_line_gen;
 
-	if( vips_image_generate( conversion->out, 
+	if( vips_image_generate( conversion->out,
 		vips_start_one, subsample_fn, vips_stop_one,
 		subsample->in, subsample ) )
 		return( -1 );
@@ -265,28 +265,28 @@ vips_subsample_class_init( VipsSubsampleClass *class )
 	 * scanlines, and that confuses vips_sequential().
 	 */
 
-	VIPS_ARG_IMAGE( class, "input", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "input", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, in ) );
 
-	VIPS_ARG_INT( class, "xfac", 3, 
-		_( "Xfac" ), 
+	VIPS_ARG_INT( class, "xfac", 3,
+		_( "Xfac" ),
 		_( "Horizontal subsample factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, xfac ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "yfac", 4, 
-		_( "Yfac" ), 
+	VIPS_ARG_INT( class, "yfac", 4,
+		_( "Yfac" ),
 		_( "Vertical subsample factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, yfac ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_BOOL( class, "point", 5, 
-		_( "Point" ), 
+	VIPS_ARG_BOOL( class, "point", 5,
+		_( "Point" ),
 		_( "Point sample" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, point ),
@@ -318,11 +318,11 @@ vips_subsample_init( VipsSubsample *subsample )
  * from @in and then subsample that line. For large shrinks it will fetch
  * single pixels.
  *
- * If @point is set, @in will always be sampled in points. This can be faster 
+ * If @point is set, @in will always be sampled in points. This can be faster
  * if the previous operations in the pipeline are very slow.
  *
  * See also: vips_affine(), vips_shrink(), vips_zoom().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
 int

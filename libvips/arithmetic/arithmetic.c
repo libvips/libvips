@@ -21,7 +21,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -55,7 +55,7 @@
 
 #include "parithmetic.h"
 
-/** 
+/**
  * SECTION: arithmetic
  * @short_description: pixel arithmetic, trig, log, statistics
  * @stability: Stable
@@ -63,25 +63,25 @@
  *
  * These operations perform pixel arithmetic, that is, they perform an
  * arithmetic operation, such as addition, on every pixel in an image or a
- * pair of images. All (except in a few cases noted below) will work with 
- * images of any type or any mixture of types, of any size and of any number 
+ * pair of images. All (except in a few cases noted below) will work with
+ * images of any type or any mixture of types, of any size and of any number
  * of bands.
  *
- * For binary operations, if the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * For binary operations, if the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * In the same way, for operations that take an array constant, such as 
- * vips_remainder_const(), you can mix single-element arrays or single-band 
+ * In the same way, for operations that take an array constant, such as
+ * vips_remainder_const(), you can mix single-element arrays or single-band
  * images freely.
  *
  * Arithmetic operations try to preserve precision by increasing the number of
  * bits in the output image when necessary. Generally, this follows the ANSI C
  * conventions for type promotion, so multiplying two
- * #VIPS_FORMAT_UCHAR images together, for example, produces a 
- * #VIPS_FORMAT_USHORT image, and taking the vips_cos() of a 
- * #VIPS_FORMAT_USHORT image produces #VIPS_FORMAT_FLOAT image. 
+ * #VIPS_FORMAT_UCHAR images together, for example, produces a
+ * #VIPS_FORMAT_USHORT image, and taking the vips_cos() of a
+ * #VIPS_FORMAT_USHORT image produces #VIPS_FORMAT_FLOAT image.
  *
  * After processing, use vips_cast() and friends to take then format back down
  * again. vips_cast_uchar(), for example, will cast any image down to 8-bit
@@ -97,9 +97,9 @@
  * save as 16-bit PNG). Use vips_copy() to change the interpretation without
  * changing pixels.
  *
- * For binary arithmetic operations, type promotion occurs in two stages. 
- * First, the two input images are cast up to the smallest common format, 
- * that is, the type with the smallest range that can represent the full 
+ * For binary arithmetic operations, type promotion occurs in two stages.
+ * First, the two input images are cast up to the smallest common format,
+ * that is, the type with the smallest range that can represent the full
  * range of both inputs. This conversion can be represented as a table:
  *
  * <table>
@@ -255,10 +255,10 @@
  *   </tgroup>
  * </table>
  *
- * In the second stage, the operation is performed between the two identical 
- * types to form the output. The details vary between operations, but 
- * generally the principle is that the output type should be large enough to 
- * represent the whole range of possible values, except that int never becomes 
+ * In the second stage, the operation is performed between the two identical
+ * types to form the output. The details vary between operations, but
+ * generally the principle is that the output type should be large enough to
+ * represent the whole range of possible values, except that int never becomes
  * float.
  */
 
@@ -281,7 +281,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsArithmetic, vips_arithmetic, VIPS_TYPE_OPERATION );
  * full range of both.
  */
 static VipsBandFormat format_largest[6][6] = {
-        /* UC  C   US  S   UI  I */
+	/* UC  C   US  S   UI  I */
 /* UC */ { UC, S,  US, S,  UI, I },
 /* C */  { S,  C,  I,  S,  I,  I },
 /* US */ { US, I,  US, I,  UI, I },
@@ -295,24 +295,24 @@ static VipsBandFormat format_largest[6][6] = {
 static VipsBandFormat
 vips_format_common( VipsBandFormat a, VipsBandFormat b )
 {
-	if( vips_band_format_iscomplex( a ) || 
+	if( vips_band_format_iscomplex( a ) ||
 		vips_band_format_iscomplex( b ) ) {
-		if( a == VIPS_FORMAT_DPCOMPLEX || 
+		if( a == VIPS_FORMAT_DPCOMPLEX ||
 			b == VIPS_FORMAT_DPCOMPLEX )
 			return( VIPS_FORMAT_DPCOMPLEX );
 		else
 			return( VIPS_FORMAT_COMPLEX );
 
 	}
-	else if( vips_band_format_isfloat( a ) || 
+	else if( vips_band_format_isfloat( a ) ||
 		vips_band_format_isfloat( b ) ) {
-		if( a == VIPS_FORMAT_DOUBLE || 
+		if( a == VIPS_FORMAT_DOUBLE ||
 			b == VIPS_FORMAT_DOUBLE )
 			return( VIPS_FORMAT_DOUBLE );
 		else
 			return( VIPS_FORMAT_FLOAT );
 	}
-	else 
+	else
 		return( format_largest[a][b] );
 }
 
@@ -334,7 +334,7 @@ vips__formatalike_vec( VipsImage **in, VipsImage **out, int n )
 			 * pointer and add a ref.
 			 */
 			out[i] = in[i];
-			g_object_ref( in[i] ); 
+			g_object_ref( in[i] );
 		}
 		else {
 			if( vips_cast( in[i], &out[i], format, NULL ) )
@@ -367,10 +367,10 @@ vips__sizealike_vec( VipsImage **in, VipsImage **out, int n )
 			 * pointer and add a ref.
 			 */
 			out[i] = in[i];
-			g_object_ref( in[i] ); 
+			g_object_ref( in[i] );
 		}
 		else {
-			if( vips_embed( in[i], &out[i], 
+			if( vips_embed( in[i], &out[i],
 				0, 0, width_max, height_max, NULL ) )
 				return( -1 );
 		}
@@ -387,13 +387,13 @@ vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 	int i;
 	int result;
 
-	if( in->Bands == n ) 
+	if( in->Bands == n )
 		return( vips_copy( in, out, NULL ) );
 	if( in->Bands != 1 ) {
 		vips_error( domain, _( "not one band or %d bands" ), n );
 		return( -1 );
 	}
-	if( n > VIPS_MAX_COORD || 
+	if( n > VIPS_MAX_COORD ||
 		n < 1 ) {
 		vips_error( domain, "%s", _( "bad bands" ) );
 		return( -1 );
@@ -409,14 +409,14 @@ vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 	return( result );
 }
 
-/* base_bands is the default minimum. 
+/* base_bands is the default minimum.
  *
  * Handy for example, if you have VipsLinear with
  * a 3-element vector of constants and a 1-band input image, you need to cast
  * the image up to three bands.
  */
 int
-vips__bandalike_vec( const char *domain, 
+vips__bandalike_vec( const char *domain,
 	VipsImage **in, VipsImage **out, int n, int base_bands )
 {
 	int i;
@@ -436,25 +436,25 @@ vips__bandalike_vec( const char *domain,
 		/* >= so we can pick up interpretation if base_bands is equal
 		 * to the number of bands of the largest image.
 		 */
-		if( in[i]->Bands >= max_bands ) { 
+		if( in[i]->Bands >= max_bands ) {
 			max_bands = in[i]->Bands;
 			interpretation = in[i]->Type;
 		}
 	}
 
-	for( i = 0; i < n; i++ ) 
+	for( i = 0; i < n; i++ )
 		if( in[i]->Bands == max_bands ) {
-			/* Already the right number of bands ... just copy the 
+			/* Already the right number of bands ... just copy the
 			 * image pointer and add a ref.
 			 */
 			out[i] = in[i];
-			g_object_ref( in[i] ); 
+			g_object_ref( in[i] );
 		}
 		else {
 			if( vips__bandup( domain, in[i], &out[i], max_bands ) )
 				return( -1 );
 
-			if( interpretation != VIPS_INTERPRETATION_ERROR ) 
+			if( interpretation != VIPS_INTERPRETATION_ERROR )
 				out[i]->Type = interpretation;
 		}
 
@@ -462,7 +462,7 @@ vips__bandalike_vec( const char *domain,
 }
 
 int
-vips__formatalike( VipsImage *in1, VipsImage *in2, 
+vips__formatalike( VipsImage *in1, VipsImage *in2,
 	VipsImage **out1, VipsImage **out2 )
 {
 	VipsImage *in[2];
@@ -481,7 +481,7 @@ vips__formatalike( VipsImage *in1, VipsImage *in2,
 }
 
 int
-vips__sizealike( VipsImage *in1, VipsImage *in2, 
+vips__sizealike( VipsImage *in1, VipsImage *in2,
 	VipsImage **out1, VipsImage **out2 )
 {
 	VipsImage *in[2];
@@ -500,7 +500,7 @@ vips__sizealike( VipsImage *in1, VipsImage *in2,
 }
 
 int
-vips__bandalike( const char *domain, 
+vips__bandalike( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage **out1, VipsImage **out2 )
 {
 	VipsImage *in[2];
@@ -538,7 +538,7 @@ vips_arithmetic_stop( void *vseq, void *a, void *b )
 {
 	VipsArithmeticSequence *seq = (VipsArithmeticSequence *) vseq;
 
-        if( seq->ir ) {
+	if( seq->ir ) {
 		int i;
 
 		for( i = 0; seq->ir[i]; i++ )
@@ -601,13 +601,13 @@ vips_arithmetic_start( VipsImage *out, void *a, void *b )
 }
 
 static int
-vips_arithmetic_gen( VipsRegion *or, 
+vips_arithmetic_gen( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsArithmeticSequence *seq = (VipsArithmeticSequence *) vseq;
 	VipsRegion **ir = seq->ir;
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( b ); 
-	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
+	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( b );
+	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 	VipsRect *r = &or->valid;
 
 	VipsPel *q;
@@ -615,10 +615,10 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	if( vips_reorder_prepare_many( or->im, ir, r ) ) 
+	if( vips_reorder_prepare_many( or->im, ir, r ) )
 		return( -1 );
-	for( i = 0; ir[i]; i++ ) 
-		seq->p[i] = (VipsPel *) 
+	for( i = 0; ir[i]; i++ )
+		seq->p[i] = (VipsPel *)
 			VIPS_REGION_ADDR( ir[i], r->left, r->top );
 	seq->p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
@@ -635,7 +635,7 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	VIPS_GATE_STOP( "vips_arithmetic_gen: work" );
 
-	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_CLASS( class )->nickname ); 
+	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_CLASS( class )->nickname );
 
 	return( 0 );
 }
@@ -660,18 +660,18 @@ vips_arithmetic_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( VIPS_OBJECT_CLASS( vips_arithmetic_parent_class )->
-		build( object ) ) 
+		build( object ) )
 		return( -1 );
 
-	g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
+	g_object_set( arithmetic, "out", vips_image_new(), NULL );
 
-	decode = (VipsImage **) 
+	decode = (VipsImage **)
 		vips_object_local_array( object, arithmetic->n );
-	format = (VipsImage **) 
+	format = (VipsImage **)
 		vips_object_local_array( object, arithmetic->n );
-	band = (VipsImage **) 
+	band = (VipsImage **)
 		vips_object_local_array( object, arithmetic->n );
-	size = (VipsImage **) 
+	size = (VipsImage **)
 		vips_object_local_array( object, arithmetic->n );
 
 	/* Decode RAD/LABQ etc.
@@ -683,31 +683,31 @@ vips_arithmetic_build( VipsObject *object )
 	/* Cast our input images up to a common format, bands and size.
 	 */
 	if( vips__formatalike_vec( decode, format, arithmetic->n ) ||
-		vips__bandalike_vec( class->nickname, 
+		vips__bandalike_vec( class->nickname,
 			format, band, arithmetic->n, arithmetic->base_bands ) ||
-		vips__sizealike_vec( band, size, arithmetic->n ) ) 
+		vips__sizealike_vec( band, size, arithmetic->n ) )
 		return( -1 );
 
 	/* Keep a copy of the processed images here for subclasses.
 	 */
 	arithmetic->ready = size;
 
-	if( vips_image_pipeline_array( arithmetic->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, arithmetic->ready ) ) 
+	if( vips_image_pipeline_array( arithmetic->out,
+		VIPS_DEMAND_STYLE_THINSTRIP, arithmetic->ready ) )
 		return( -1 );
 
 	arithmetic->out->Bands = arithmetic->ready[0]->Bands;
 	if( arithmetic->format != VIPS_FORMAT_NOTSET )
 		arithmetic->out->BandFmt = arithmetic->format;
 	else
-		arithmetic->out->BandFmt = 
+		arithmetic->out->BandFmt =
 			aclass->format_table[arithmetic->ready[0]->BandFmt];
 
 	if( vips_image_generate( arithmetic->out,
-		vips_arithmetic_start, 
-		vips_arithmetic_gen, 
-		vips_arithmetic_stop, 
-		arithmetic->ready, arithmetic ) ) 
+		vips_arithmetic_start,
+		vips_arithmetic_gen,
+		vips_arithmetic_stop,
+		arithmetic->ready, arithmetic ) )
 		return( -1 );
 
 	return( 0 );
@@ -729,10 +729,10 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsArithmetic, out ) );
 }
 
@@ -743,8 +743,8 @@ vips_arithmetic_init( VipsArithmetic *arithmetic )
 	arithmetic->format = VIPS_FORMAT_NOTSET;
 }
 
-void 
-vips_arithmetic_set_format_table( VipsArithmeticClass *class, 
+void
+vips_arithmetic_set_format_table( VipsArithmeticClass *class,
 	const VipsBandFormat *format_table )
 {
 	g_assert( !class->format_table );
@@ -752,8 +752,8 @@ vips_arithmetic_set_format_table( VipsArithmeticClass *class,
 	class->format_table = format_table;
 }
 
-void 
-vips_arithmetic_set_vector( VipsArithmeticClass *class ) 
+void
+vips_arithmetic_set_vector( VipsArithmeticClass *class )
 {
 	int i;
 
@@ -805,13 +805,13 @@ vips_arithmetic_get_vector( VipsArithmeticClass *class, VipsBandFormat fmt )
 }
 
 void
-vips_arithmetic_compile( VipsArithmeticClass *class ) 
+vips_arithmetic_compile( VipsArithmeticClass *class )
 {
 	int i;
 
 	g_assert( class->format_table );
 
-	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) 
+	for( i = 0; i < VIPS_FORMAT_LAST; i++ )
 		if( class->vector_program[i] &&
 			!vips_vector_compile( class->vectors[i] ) )
 			/* If compilation fails, turn off the vector for this
@@ -821,9 +821,9 @@ vips_arithmetic_compile( VipsArithmeticClass *class )
 
 #ifdef DEBUG
 	printf( "vips_arithmetic_compile: " );
-	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) 
+	for( i = 0; i < VIPS_FORMAT_LAST; i++ )
 		if( class->vector_program[i] )
-			printf( "%s ", 
+			printf( "%s ",
 				vips_enum_nick( VIPS_TYPE_BAND_FORMAT, i ) );
 	printf( "\n" );
 #endif /*DEBUG*/
@@ -835,44 +835,44 @@ vips_arithmetic_compile( VipsArithmeticClass *class )
 void
 vips_arithmetic_operation_init( void )
 {
-	extern GType vips_add_get_type( void ); 
-	extern GType vips_sum_get_type( void ); 
-	extern GType vips_subtract_get_type( void ); 
-	extern GType vips_multiply_get_type( void ); 
-	extern GType vips_divide_get_type( void ); 
-	extern GType vips_invert_get_type( void ); 
-	extern GType vips_avg_get_type( void ); 
-	extern GType vips_min_get_type( void ); 
-	extern GType vips_max_get_type( void ); 
-	extern GType vips_deviate_get_type( void ); 
-	extern GType vips_linear_get_type( void ); 
-	extern GType vips_math_get_type( void ); 
-	extern GType vips_abs_get_type( void ); 
-	extern GType vips_sign_get_type( void ); 
-	extern GType vips_stats_get_type( void ); 
-	extern GType vips_hist_find_get_type( void ); 
-	extern GType vips_hist_find_ndim_get_type( void ); 
-	extern GType vips_hist_find_indexed_get_type( void ); 
-	extern GType vips_hough_line_get_type( void ); 
-	extern GType vips_hough_circle_get_type( void ); 
-	extern GType vips_project_get_type( void ); 
-	extern GType vips_profile_get_type( void ); 
-	extern GType vips_measure_get_type( void ); 
-	extern GType vips_getpoint_get_type( void ); 
-	extern GType vips_round_get_type( void ); 
-	extern GType vips_relational_get_type( void ); 
-	extern GType vips_relational_const_get_type( void ); 
-	extern GType vips_remainder_get_type( void ); 
-	extern GType vips_remainder_const_get_type( void ); 
-	extern GType vips_boolean_get_type( void ); 
-	extern GType vips_boolean_const_get_type( void ); 
-	extern GType vips_math2_get_type( void ); 
-	extern GType vips_math2_const_get_type( void ); 
-	extern GType vips_complex_get_type( void ); 
-	extern GType vips_complex2_get_type( void ); 
-	extern GType vips_complexget_get_type( void ); 
-	extern GType vips_complexform_get_type( void ); 
-	extern GType vips_find_trim_get_type( void ); 
+	extern GType vips_add_get_type( void );
+	extern GType vips_sum_get_type( void );
+	extern GType vips_subtract_get_type( void );
+	extern GType vips_multiply_get_type( void );
+	extern GType vips_divide_get_type( void );
+	extern GType vips_invert_get_type( void );
+	extern GType vips_avg_get_type( void );
+	extern GType vips_min_get_type( void );
+	extern GType vips_max_get_type( void );
+	extern GType vips_deviate_get_type( void );
+	extern GType vips_linear_get_type( void );
+	extern GType vips_math_get_type( void );
+	extern GType vips_abs_get_type( void );
+	extern GType vips_sign_get_type( void );
+	extern GType vips_stats_get_type( void );
+	extern GType vips_hist_find_get_type( void );
+	extern GType vips_hist_find_ndim_get_type( void );
+	extern GType vips_hist_find_indexed_get_type( void );
+	extern GType vips_hough_line_get_type( void );
+	extern GType vips_hough_circle_get_type( void );
+	extern GType vips_project_get_type( void );
+	extern GType vips_profile_get_type( void );
+	extern GType vips_measure_get_type( void );
+	extern GType vips_getpoint_get_type( void );
+	extern GType vips_round_get_type( void );
+	extern GType vips_relational_get_type( void );
+	extern GType vips_relational_const_get_type( void );
+	extern GType vips_remainder_get_type( void );
+	extern GType vips_remainder_const_get_type( void );
+	extern GType vips_boolean_get_type( void );
+	extern GType vips_boolean_const_get_type( void );
+	extern GType vips_math2_get_type( void );
+	extern GType vips_math2_const_get_type( void );
+	extern GType vips_complex_get_type( void );
+	extern GType vips_complex2_get_type( void );
+	extern GType vips_complexget_get_type( void );
+	extern GType vips_complexform_get_type( void );
+	extern GType vips_find_trim_get_type( void );
 
 	vips_add_get_type();
 	vips_sum_get_type();
@@ -889,27 +889,27 @@ vips_arithmetic_operation_init( void )
 	vips_abs_get_type();
 	vips_sign_get_type();
 	vips_stats_get_type();
-	vips_hist_find_get_type(); 
-	vips_hist_find_ndim_get_type(); 
-	vips_hist_find_indexed_get_type(); 
-	vips_hough_line_get_type(); 
-	vips_hough_circle_get_type(); 
-	vips_project_get_type(); 
-	vips_profile_get_type(); 
+	vips_hist_find_get_type();
+	vips_hist_find_ndim_get_type();
+	vips_hist_find_indexed_get_type();
+	vips_hough_line_get_type();
+	vips_hough_circle_get_type();
+	vips_project_get_type();
+	vips_profile_get_type();
 	vips_measure_get_type();
 	vips_getpoint_get_type();
 	vips_round_get_type();
 	vips_relational_get_type();
-	vips_relational_const_get_type(); 
+	vips_relational_const_get_type();
 	vips_remainder_get_type();
-	vips_remainder_const_get_type(); 
-	vips_boolean_get_type(); 
-	vips_boolean_const_get_type(); 
-	vips_math2_get_type(); 
-	vips_math2_const_get_type(); 
-	vips_complex_get_type(); 
-	vips_complex2_get_type(); 
-	vips_complexget_get_type(); 
-	vips_complexform_get_type(); 
-	vips_find_trim_get_type(); 
+	vips_remainder_const_get_type();
+	vips_boolean_get_type();
+	vips_boolean_const_get_type();
+	vips_math2_get_type();
+	vips_math2_const_get_type();
+	vips_complex_get_type();
+	vips_complex2_get_type();
+	vips_complexget_get_type();
+	vips_complexform_get_type();
+	vips_find_trim_get_type();
 }

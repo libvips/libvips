@@ -6,7 +6,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -93,7 +93,7 @@ im__ink_to_vector( const char *domain, IMAGE *im, VipsPel *ink )
 		case IM_BANDFMT_DOUBLE: 	READ( double ); break;
 
 		default:
-			g_assert( 0 ); 
+			g_assert( 0 );
 		}
 
 	return( vec );
@@ -120,7 +120,7 @@ draw_image_vec( im_object *argv )
 }
 
 /* Description of im_draw_image.
- */ 
+ */
 static im_function draw_image_desc = {
 	"im_draw_image", 		/* Name */
 	"draw image sub inside image main at position (x,y)",
@@ -163,7 +163,7 @@ lineset_vec( im_object *argv )
 }
 
 /* Description of im_lineset.
- */ 
+ */
 static im_function lineset_desc = {
 	"im_lineset", 		/* Name */
 	"draw line between points (x1,y1) and (x2,y2)",
@@ -196,7 +196,7 @@ draw_mask_vec( im_object *argv )
 
 	VipsPel *ink;
 
-	if( !(ink = im__vector_to_ink( "im_draw_mask", 
+	if( !(ink = im__vector_to_ink( "im_draw_mask",
 		image, dv->n, dv->vec )) )
 		return( -1 );
 
@@ -204,7 +204,7 @@ draw_mask_vec( im_object *argv )
 }
 
 /* Description of im_draw_mask.
- */ 
+ */
 static im_function draw_mask_desc = {
 	"im_draw_mask", 		/* Name */
 	"draw mask sub inside image main at position (x,y)",
@@ -235,7 +235,7 @@ draw_flood_blob_vec( im_object *argv )
 
 	VipsPel *ink;
 
-	if( !(ink = im__vector_to_ink( "im_draw_flood_blob", 
+	if( !(ink = im__vector_to_ink( "im_draw_flood_blob",
 		image, dv->n, dv->vec )) )
 		return( -1 );
 
@@ -243,7 +243,7 @@ draw_flood_blob_vec( im_object *argv )
 }
 
 /* Description of im_draw_flood_blob().
- */ 
+ */
 static im_function draw_flood_blob_desc = {
 	"im_draw_flood_blob",	/* Name */
 	"flood with ink from x, y while pixel == start",
@@ -274,7 +274,7 @@ draw_flood_vec( im_object *argv )
 
 	VipsPel *ink;
 
-	if( !(ink = im__vector_to_ink( "im_draw_flood", 
+	if( !(ink = im__vector_to_ink( "im_draw_flood",
 		image, dv->n, dv->vec )) )
 		return( -1 );
 
@@ -282,7 +282,7 @@ draw_flood_vec( im_object *argv )
 }
 
 /* Description of im_draw_flood().
- */ 
+ */
 static im_function draw_flood_desc = {
 	"im_draw_flood",	/* Name */
 	"flood with ink from x, y while pixel != ink",
@@ -317,7 +317,7 @@ draw_flood_other_vec( im_object *argv )
 }
 
 /* Description of im_draw_flood_other().
- */ 
+ */
 static im_function draw_flood_other_desc = {
 	"im_draw_flood_other",	/* Name */
 	"flood image with serial from x, y while pixel == start",
@@ -356,7 +356,7 @@ draw_point_vec( im_object *argv )
 }
 
 /* Description of im_draw_point.
- */ 
+ */
 static im_function draw_point_desc = {
 	"im_draw_point", 		/* Name */
 	"draw point on image",
@@ -397,7 +397,7 @@ read_point_vec( im_object *argv )
 }
 
 /* Description of im_read_point.
- */ 
+ */
 static im_function read_point_desc = {
 	"im_read_point", 		/* Name */
 	"read point from image",
@@ -440,7 +440,7 @@ draw_line_vec( im_object *argv )
 }
 
 /* Description of im_draw_line.
- */ 
+ */
 static im_function draw_line_desc = {
 	"im_draw_line", 		/* Name */
 	"draw line on image",
@@ -475,7 +475,7 @@ draw_smudge_vec( im_object *argv )
 }
 
 /* Description of im_draw_smudge.
- */ 
+ */
 static im_function draw_smudge_desc = {
 	"im_draw_smudge", 		/* Name */
 	"smudge part of an image",
@@ -520,7 +520,7 @@ draw_rect_vec( im_object *argv )
 }
 
 /* Description of im_draw_rect.
- */ 
+ */
 static im_function draw_rect_desc = {
 	"im_draw_rect", 		/* Name */
 	"draw rect on image",
@@ -555,7 +555,7 @@ draw_circle_vec( im_object *argv )
 
 	VipsPel *ink;
 
-	if( !(ink = im__vector_to_ink( "im_draw_circle", 
+	if( !(ink = im__vector_to_ink( "im_draw_circle",
 		image, dv->n, dv->vec )) )
 		return( -1 );
 
@@ -563,7 +563,7 @@ draw_circle_vec( im_object *argv )
 }
 
 /* Description of im_draw_circle.
- */ 
+ */
 static im_function draw_circle_desc = {
 	"im_draw_circle", 		/* Name */
 	"draw circle on image",

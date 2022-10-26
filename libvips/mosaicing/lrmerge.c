@@ -1,6 +1,6 @@
-/* Merge two images left-right. 
+/* Merge two images left-right.
  *
- * Copyright: 1990, 1991 N. Dessipris 
+ * Copyright: 1990, 1991 N. Dessipris
  * Author: N. Dessipris
  * Written on: 20/09/1990
  * Updated on: 17/04/1991
@@ -90,7 +90,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -143,7 +143,7 @@ double *vips__coef2 = NULL;
 int *vips__icoef1 = NULL;
 int *vips__icoef2 = NULL;
 
-/* Create a lut for the merging area. Always BLEND_SIZE entries, we 
+/* Create a lut for the merging area. Always BLEND_SIZE entries, we
  * scale later when we index it.
  */
 int
@@ -162,8 +162,8 @@ vips__make_blend_luts( void )
 	vips__coef2 = VIPS_ARRAY( NULL, BLEND_SIZE, double );
 	vips__icoef1 = VIPS_ARRAY( NULL, BLEND_SIZE, int );
 	vips__icoef2 = VIPS_ARRAY( NULL, BLEND_SIZE, int );
-	if( !vips__coef1 || !vips__coef2 || !vips__icoef1 || !vips__icoef2 ) 
-		return( -1 ); 
+	if( !vips__coef1 || !vips__coef2 || !vips__icoef1 || !vips__icoef2 )
+		return( -1 );
 
 	for( x = 0; x < BLEND_SIZE; x++ ) {
 		double a = VIPS_PI * x / (BLEND_SIZE - 1.0);
@@ -203,19 +203,19 @@ find_first( VipsRegion *ir, int *pos, int x, int y, int w )
 }
 
 	switch( im->BandFmt ) {
-	case VIPS_FORMAT_UCHAR:		lsearch( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:		lsearch( signed char ); break; 
-	case VIPS_FORMAT_USHORT:	lsearch( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:		lsearch( signed short ); break; 
-	case VIPS_FORMAT_UINT:		lsearch( unsigned int ); break; 
-	case VIPS_FORMAT_INT:		lsearch( signed int );  break; 
-	case VIPS_FORMAT_FLOAT:		lsearch( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	lsearch( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	lsearch( float ); break; 
+	case VIPS_FORMAT_UCHAR:		lsearch( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:		lsearch( signed char ); break;
+	case VIPS_FORMAT_USHORT:	lsearch( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:		lsearch( signed short ); break;
+	case VIPS_FORMAT_UINT:		lsearch( unsigned int ); break;
+	case VIPS_FORMAT_INT:		lsearch( signed int );  break;
+	case VIPS_FORMAT_FLOAT:		lsearch( float ); break;
+	case VIPS_FORMAT_DOUBLE:	lsearch( double ); break;
+	case VIPS_FORMAT_COMPLEX:	lsearch( float ); break;
 	case VIPS_FORMAT_DPCOMPLEX:	lsearch( double ); break;
 
 	default:
-		g_assert_not_reached(); 
+		g_assert_not_reached();
 		return( -1 );
 	}
 
@@ -252,15 +252,15 @@ find_last( VipsRegion *ir, int *pos, int x, int y, int w )
 }
 
 	switch( im->BandFmt ) {
-	case VIPS_FORMAT_UCHAR:		rsearch( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:		rsearch( signed char ); break; 
-	case VIPS_FORMAT_USHORT:	rsearch( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:		rsearch( signed short ); break; 
-	case VIPS_FORMAT_UINT:		rsearch( unsigned int ); break; 
-	case VIPS_FORMAT_INT:		rsearch( signed int );  break; 
-	case VIPS_FORMAT_FLOAT:		rsearch( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	rsearch( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	rsearch( float ); break; 
+	case VIPS_FORMAT_UCHAR:		rsearch( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:		rsearch( signed char ); break;
+	case VIPS_FORMAT_USHORT:	rsearch( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:		rsearch( signed short ); break;
+	case VIPS_FORMAT_UINT:		rsearch( unsigned int ); break;
+	case VIPS_FORMAT_INT:		rsearch( signed int );  break;
+	case VIPS_FORMAT_FLOAT:		rsearch( float ); break;
+	case VIPS_FORMAT_DOUBLE:	rsearch( double ); break;
+	case VIPS_FORMAT_COMPLEX:	rsearch( float ); break;
 	case VIPS_FORMAT_DPCOMPLEX:	rsearch( double ); break;
 
 	default:
@@ -347,7 +347,7 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 
 	/* Make first/last cache.
 	 */
-	for( y = oreg->top, yr = rr.top, ys = sr.top; 
+	for( y = oreg->top, yr = rr.top, ys = sr.top;
 		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) {
 		const int j = y - ovlap->overlap.top;
 		int *first = &ovlap->first[j];
@@ -358,9 +358,9 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 		if( *first < 0 ) {
 			/* Search for start/end of overlap on this scan-line.
 			 */
-			if( find_first( sir, first, 
+			if( find_first( sir, first,
 				sr.left, ys, sr.width ) ||
-				find_last( rir, last, 
+				find_last( rir, last,
 					rr.left, yr, rr.width ) ) {
 				g_mutex_unlock( ovlap->fl_lock );
 				return( -1 );
@@ -373,7 +373,7 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 
 			/* Clip to maximum blend width, if necessary.
 			 */
-			if( ovlap->mwidth >= 0 && 
+			if( ovlap->mwidth >= 0 &&
 				*last - *first > ovlap->mwidth ) {
 				int shrinkby = (*last - *first) - ovlap->mwidth;
 
@@ -565,14 +565,14 @@ lr_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 
 	/* Make pixels.
 	 */
-	if( vips_region_prepare( rir, &prr ) || 
+	if( vips_region_prepare( rir, &prr ) ||
 		vips_region_prepare( sir, &psr ) )
 		return( -1 );
 
 	/* Loop down overlap area.
 	 */
-	for( y = oreg->top, yr = prr.top, ys = psr.top; 
-		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
+	for( y = oreg->top, yr = prr.top, ys = psr.top;
+		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) {
 		VipsPel *pr = VIPS_REGION_ADDR( rir, prr.left, yr );
 		VipsPel *ps = VIPS_REGION_ADDR( sir, psr.left, ys );
 		VipsPel *q = VIPS_REGION_ADDR( or, oreg->left, y );
@@ -583,24 +583,24 @@ lr_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 		const int bwidth = last - first;
 
 		switch( im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 	
-			iblend( unsigned char, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_CHAR: 	
-			iblend( signed char, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_USHORT: 
-			iblend( unsigned short, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			iblend( signed short, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_UINT: 	
-			iblend( unsigned int, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_INT: 	
-			iblend( signed int, im->Bands, pr, ps, q );  break; 
-		case VIPS_FORMAT_FLOAT: 	
-			fblend( float, im->Bands, pr, ps, q ); break; 
-		case VIPS_FORMAT_DOUBLE:	
-			fblend( double, im->Bands, pr, ps, q ); break; 
+		case VIPS_FORMAT_UCHAR:
+			iblend( unsigned char, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_CHAR:
+			iblend( signed char, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_USHORT:
+			iblend( unsigned short, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_SHORT:
+			iblend( signed short, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_UINT:
+			iblend( unsigned int, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_INT:
+			iblend( signed int, im->Bands, pr, ps, q );  break;
+		case VIPS_FORMAT_FLOAT:
+			fblend( float, im->Bands, pr, ps, q ); break;
+		case VIPS_FORMAT_DOUBLE:
+			fblend( double, im->Bands, pr, ps, q ); break;
 		case VIPS_FORMAT_COMPLEX:
-			fblend( float, im->Bands * 2, pr, ps, q ); break; 
+			fblend( float, im->Bands * 2, pr, ps, q ); break;
 		case VIPS_FORMAT_DPCOMPLEX:
 			fblend( double, im->Bands * 2, pr, ps, q ); break;
 
@@ -616,7 +616,7 @@ lr_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 /* Left-right blend function for VIPS_CODING_LABQ images.
  */
 static int
-lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, 
+lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap,
 	VipsRect *oreg )
 {
 	VipsRegion *rir = inf->rir;
@@ -644,14 +644,14 @@ lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap,
 
 	/* Make pixels.
 	 */
-	if( vips_region_prepare( rir, &prr ) || 
+	if( vips_region_prepare( rir, &prr ) ||
 		vips_region_prepare( sir, &psr ) )
 		return( -1 );
 
 	/* Loop down overlap area.
 	 */
-	for( y = oreg->top, yr = prr.top, ys = psr.top; 
-		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
+	for( y = oreg->top, yr = prr.top, ys = psr.top;
+		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) {
 		VipsPel *pr = VIPS_REGION_ADDR( rir, prr.left, yr );
 		VipsPel *ps = VIPS_REGION_ADDR( sir, psr.left, ys );
 		VipsPel *q = VIPS_REGION_ADDR( or, oreg->left, y );
@@ -672,7 +672,7 @@ lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap,
 
 		/* Blend as floats.
 		 */
-		fblend( float, 3, r, s, fq ); 
+		fblend( float, 3, r, s, fq );
 
 		/* Re-pack to output buffer.
 		 */
@@ -693,7 +693,7 @@ lock_free( VipsImage *image, GMutex *lock )
  */
 Overlapping *
 vips__build_mergestate( const char *domain,
-	VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx, int dy, int mwidth )
 {
 	VipsImage **t = (VipsImage **)
@@ -719,7 +719,7 @@ vips__build_mergestate( const char *domain,
 	if( vips__formatalike( ref, sec, &t[0], &t[1] ) ||
 		vips__bandalike( domain, t[0], t[1], &t[2], &t[3] ) )
 		return( NULL );
-	
+
 	if( !(arry = vips_allocate_input_array( out,
 		t[2], t[3], NULL )) )
 		return( NULL );
@@ -750,14 +750,14 @@ vips__build_mergestate( const char *domain,
    	ovlap->rarea.width = ovlap->ref->Xsize;
    	ovlap->rarea.height = ovlap->ref->Ysize;
 
-	/* Area occupied by sec image. 
+	/* Area occupied by sec image.
 	 */
    	ovlap->sarea.left = -dx;
    	ovlap->sarea.top = -dy;
    	ovlap->sarea.width = ovlap->sec->Xsize;
    	ovlap->sarea.height = ovlap->sec->Ysize;
 
-	/* Compute overlap. 
+	/* Compute overlap.
 	 */
 	vips_rect_intersectrect( &ovlap->rarea, &ovlap->sarea, &ovlap->overlap );
 	if( vips_rect_isempty( &ovlap->overlap ) ) {
@@ -784,7 +784,7 @@ vips__build_mergestate( const char *domain,
 	/* Make sure blend luts are built.
 	 */
 	vips__make_blend_luts();
-	
+
 	/* Size of first/last cache. Could be either of these ... just pick
 	 * the larger.
 	 */
@@ -794,8 +794,8 @@ vips__build_mergestate( const char *domain,
 	 */
 	ovlap->first = VIPS_ARRAY( out, ovlap->flsize, int );
 	ovlap->last = VIPS_ARRAY( out, ovlap->flsize, int );
-	if( !ovlap->first || !ovlap->last ) 
-		return( NULL ); 
+	if( !ovlap->first || !ovlap->last )
+		return( NULL );
 	for( x = 0; x < ovlap->flsize; x++ )
 		ovlap->first[x] = -1;
 
@@ -810,12 +810,12 @@ vips__build_mergestate( const char *domain,
 /* Build per-call state.
  */
 static Overlapping *
-build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx, int dy, int mwidth )
 {
    	Overlapping *ovlap;
 
-	if( !(ovlap = vips__build_mergestate( "lrmerge", 
+	if( !(ovlap = vips__build_mergestate( "lrmerge",
 		ref, sec, out, dx, dy, mwidth )) )
 		return( NULL );
 
@@ -846,7 +846,7 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	/* Is there too much overlap? ie. right edge of ref image is greater
 	 * than right edge of sec image, or left > left.
 	 */
-	if( VIPS_RECT_RIGHT( &ovlap->rarea ) > 
+	if( VIPS_RECT_RIGHT( &ovlap->rarea ) >
 		VIPS_RECT_RIGHT( &ovlap->sarea ) ||
 		ovlap->rarea.left > ovlap->sarea.left ) {
 		vips_error( "lrmerge", "%s", _( "too much overlap" ) );
@@ -860,8 +860,8 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	return( ovlap );
 }
 
-/* The area being demanded can be filled using only pels from either the ref 
- * or the sec images. Attach output to the appropriate part of the input image. 
+/* The area being demanded can be filled using only pels from either the ref
+ * or the sec images. Attach output to the appropriate part of the input image.
  * area is the position that ir->im occupies in the output image.
  *
  * Shared with tbmerge, so not static.
@@ -889,14 +889,14 @@ vips__attach_input( VipsRegion *or, VipsRegion *ir, VipsRect *area )
 	return( 0 );
 }
 
-/* The area being demanded requires pixels from the ref and sec images. As 
- * above, but just do a sub-area of the output, and make sure we copy rather 
+/* The area being demanded requires pixels from the ref and sec images. As
+ * above, but just do a sub-area of the output, and make sure we copy rather
  * than just pointer-fiddling. reg is the sub-area of or->valid we should do.
  *
  * Shared with tbmerge, so not static.
  */
 int
-vips__copy_input( VipsRegion *or, VipsRegion *ir, 
+vips__copy_input( VipsRegion *or, VipsRegion *ir,
 	VipsRect *area, VipsRect *reg )
 {
 	VipsRect r = *reg;
@@ -918,7 +918,7 @@ vips__copy_input( VipsRegion *or, VipsRegion *ir,
  * tbmerge.
  */
 int
-vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b, 
+vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	MergeInfo *inf = (MergeInfo *) seq;
@@ -926,12 +926,12 @@ vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRect *r = &or->valid;
 	VipsRect rreg, sreg, oreg;
 
-	/* Find intersection with overlap, ref and sec parts. 
+	/* Find intersection with overlap, ref and sec parts.
 	 */
 	vips_rect_intersectrect( r, &ovlap->rpart, &rreg );
 	vips_rect_intersectrect( r, &ovlap->spart, &sreg );
 
-	/* Do easy cases first: can we satisfy this demand with pixels just 
+	/* Do easy cases first: can we satisfy this demand with pixels just
 	 * from ref, or just from sec.
 	 */
 	if( vips_rect_equalsrect( r, &rreg ) ) {
@@ -943,10 +943,10 @@ vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b,
 			return( -1 );
 	}
 	else {
-		/* Difficult case - do in three stages: black out whole area, 
-		 * copy in parts of ref and sec we touch, write blend area. 
-		 * This could be sped up somewhat ... we will usually black 
-		 * out far too much, and write to the blend area three times. 
+		/* Difficult case - do in three stages: black out whole area,
+		 * copy in parts of ref and sec we touch, write blend area.
+		 * This could be sped up somewhat ... we will usually black
+		 * out far too much, and write to the blend area three times.
 		 * Upgrade in the future!
 		 */
 
@@ -958,12 +958,12 @@ vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b,
 		vips_rect_intersectrect( r, &ovlap->overlap, &oreg );
 
 		vips_region_black( or );
-		if( !vips_rect_isempty( &rreg ) ) 
-			if( vips__copy_input( or, 
+		if( !vips_rect_isempty( &rreg ) )
+			if( vips__copy_input( or,
 				inf->rir, &ovlap->rarea, &rreg ) )
 				return( -1 );
 		if( !vips_rect_isempty( &sreg ) )
-			if( vips__copy_input( or, 
+			if( vips__copy_input( or,
 				inf->sir, &ovlap->sarea, &sreg ) )
 				return( -1 );
 
@@ -1020,7 +1020,7 @@ vips__start_merge( VipsImage *out, void *a, void *b )
 	inf->from2 = NULL;
 	inf->merge = NULL;
 
-	/* If this is going to be a VIPS_CODING_LABQ, we need VIPS_CODING_LABQ 
+	/* If this is going to be a VIPS_CODING_LABQ, we need VIPS_CODING_LABQ
 	 * blend buffers.
 	 */
 	if( out->Coding == VIPS_CODING_LABQ ) {
@@ -1029,7 +1029,7 @@ vips__start_merge( VipsImage *out, void *a, void *b )
 		inf->merge = VIPS_ARRAY( NULL, ovlap->blsize * 3, float );
 		if( !inf->from1 || !inf->from2 || !inf->merge ) {
 			vips__stop_merge( inf, NULL, NULL );
-			return( NULL ); 
+			return( NULL );
 		}
 	}
 
@@ -1045,14 +1045,14 @@ vips__start_merge( VipsImage *out, void *a, void *b )
 }
 
 int
-vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx, int dy, int mwidth )
 {
 	Overlapping *ovlap;
 
 #ifdef DEBUG
-	printf( "lrmerge %s %s %s %d %d %d\n", 
-		ref->filename, sec->filename, out->filename, 
+	printf( "lrmerge %s %s %s %d %d %d\n",
+		ref->filename, sec->filename, out->filename,
 		dx, dy, mwidth );
 	printf( "ref is %d x %d pixels\n", ref->Xsize, ref->Ysize );
 	printf( "sec is %d x %d pixels\n", sec->Xsize, sec->Ysize );
@@ -1062,7 +1062,7 @@ vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
 		VipsImage *x;
 
 #ifdef DEBUG
-		printf( "lrmerge: no overlap, using insert\n" ); 
+		printf( "lrmerge: no overlap, using insert\n" );
 #endif
 
 		/* No overlap, use insert instead.
@@ -1096,7 +1096,7 @@ vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	out->Yoffset = -dy;
 
 	if( vips_image_generate( out,
-		vips__start_merge, vips__merge_gen, vips__stop_merge, 
+		vips__start_merge, vips__merge_gen, vips__stop_merge,
 		ovlap, NULL ) )
 		return( -1 );
 
@@ -1112,10 +1112,10 @@ vips__get_mosaic_name( VipsImage *image )
 		if( vips_image_get_string( image, "mosaic-name", &name ) )
 			return( NULL );
 	}
-	else 
+	else
 		name = image->filename;
 
-	return( name ); 
+	return( name );
 }
 
 void

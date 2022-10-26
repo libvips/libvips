@@ -11,7 +11,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,10 +77,10 @@ im_openslide2vips( const char *name, IMAGE *out )
 			return( -1 );
 		}
 	}
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		associated = q;
 
-	if( vips_openslideload( filename, &t, 
+	if( vips_openslideload( filename, &t,
 		"level", level,
 		"associated", associated,
 		NULL ) )
@@ -94,7 +94,7 @@ im_openslide2vips( const char *name, IMAGE *out )
 	return( 0 );
 }
 
-static const char *openslide_suffs[] = { 
+static const char *openslide_suffs[] = {
 	".svs", 	/* Aperio */
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
 	".scn",		/* Leica */
@@ -113,7 +113,7 @@ openslide_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( (VipsFormatFlags) 
+	return( (VipsFormatFlags)
 		vips_foreign_flags( "openslideload", filename ) );
 }
 

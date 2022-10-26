@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -126,7 +126,7 @@ im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
 	return( vapplydmask( in, filename, im_rot90 ) );
 }
 
-static int 
+static int
 im_rot45( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;

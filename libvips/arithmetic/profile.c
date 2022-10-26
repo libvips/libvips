@@ -1,4 +1,4 @@
-/* find image profiles 
+/* find image profiles
  *
  * 11/8/99 JC
  *	- from im_cntlines()
@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -76,8 +76,8 @@ typedef struct _VipsProfile {
 
 	/* Write profiles here.
 	 */
-	VipsImage *columns; 
-	VipsImage *rows; 
+	VipsImage *columns;
+	VipsImage *rows;
 
 } VipsProfile;
 
@@ -88,24 +88,24 @@ G_DEFINE_TYPE( VipsProfile, vips_profile, VIPS_TYPE_STATISTIC );
 static Edges *
 edges_new( VipsProfile *profile )
 {
-	VipsStatistic *statistic = VIPS_STATISTIC( profile ); 
-	VipsImage *in = statistic->ready; 
+	VipsStatistic *statistic = VIPS_STATISTIC( profile );
+	VipsImage *in = statistic->ready;
 
 	Edges *edges;
-	int i; 
+	int i;
 
 	if( !(edges = VIPS_NEW( profile, Edges )) )
 		return( NULL );
 	edges->column_edges = VIPS_ARRAY( profile, in->Xsize * in->Bands, int );
 	edges->row_edges = VIPS_ARRAY( profile, in->Ysize * in->Bands, int );
-	if( !edges->column_edges || 
+	if( !edges->column_edges ||
 		!edges->row_edges )
 		return( NULL );
 
 	for( i = 0; i < in->Xsize * in->Bands; i++ )
-		edges->column_edges[i] = in->Ysize; 
+		edges->column_edges[i] = in->Ysize;
 	for( i = 0; i < in->Ysize * in->Bands; i++ )
-		edges->row_edges[i] = in->Xsize; 
+		edges->row_edges[i] = in->Xsize;
 
 	return( edges );
 }
@@ -114,16 +114,16 @@ static int
 vips_profile_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsProfile *profile = (VipsProfile *) object;
 
 	int y;
 
 	if( statistic->in &&
 		vips_check_noncomplex( class->nickname, statistic->in ) )
-		return( -1 ); 
+		return( -1 );
 
-	g_object_set( object, 
+	g_object_set( object,
 		"columns", vips_image_new(),
 		"rows", vips_image_new(),
 		NULL );
@@ -136,31 +136,31 @@ vips_profile_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_pipelinev( profile->columns, 
-			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) || 
-		vips_image_pipelinev( profile->rows, 
-			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
+	if( vips_image_pipelinev( profile->columns,
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ||
+		vips_image_pipelinev( profile->rows,
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) )
 		return( -1 );
 	profile->columns->Ysize = 1;
-	profile->columns->BandFmt = VIPS_FORMAT_INT; 
+	profile->columns->BandFmt = VIPS_FORMAT_INT;
 	profile->columns->Type = VIPS_INTERPRETATION_HISTOGRAM;
 	profile->rows->Xsize = 1;
-	profile->rows->BandFmt = VIPS_FORMAT_INT; 
+	profile->rows->BandFmt = VIPS_FORMAT_INT;
 	profile->rows->Type = VIPS_INTERPRETATION_HISTOGRAM;
 
-	if( vips_image_write_line( profile->columns, 0, 
+	if( vips_image_write_line( profile->columns, 0,
 		(VipsPel *) profile->edges->column_edges ) )
 		return( -1 );
 	for( y = 0; y < profile->rows->Ysize; y++ )
-		if( vips_image_write_line( profile->rows, y, 
-			(VipsPel *) profile->edges->row_edges + 
+		if( vips_image_write_line( profile->rows, y,
+			(VipsPel *) profile->edges->row_edges +
 				y * VIPS_IMAGE_SIZEOF_PEL( profile->rows ) ) )
 			return( -1 );
 
 	return( 0 );
 }
 
-/* New edge accumulator. 
+/* New edge accumulator.
  */
 static void *
 vips_profile_start( VipsStatistic *statistic )
@@ -169,10 +169,10 @@ vips_profile_start( VipsStatistic *statistic )
 
 	/* Make the main hist, if necessary.
 	 */
-	if( !profile->edges ) 
-		profile->edges = edges_new( profile );  
+	if( !profile->edges )
+		profile->edges = edges_new( profile );
 
-	return( (void *) edges_new( profile ) );  
+	return( (void *) edges_new( profile ) );
 }
 
 /* We do this a lot.
@@ -205,7 +205,7 @@ vips_profile_start( VipsStatistic *statistic )
 /* Add a region to a profile.
  */
 static int
-vips_profile_scan( VipsStatistic *statistic, void *seq, 
+vips_profile_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	int nb = statistic->ready->Bands;
@@ -258,22 +258,22 @@ static int
 vips_profile_stop( VipsStatistic *statistic, void *seq )
 {
 	VipsProfile *profile = (VipsProfile *) statistic;
-	Edges *edges = profile->edges; 
+	Edges *edges = profile->edges;
 	Edges *sub_edges = (Edges *) seq;
 	VipsImage *in = statistic->ready;
 
-	int i; 
+	int i;
 
 	for( i = 0; i < in->Xsize * in->Bands; i++ )
-		MINBANG( edges->column_edges[i], sub_edges->column_edges[i] ); 
+		MINBANG( edges->column_edges[i], sub_edges->column_edges[i] );
 
 	for( i = 0; i < in->Ysize * in->Bands; i++ )
-		MINBANG( edges->row_edges[i], sub_edges->row_edges[i] ); 
+		MINBANG( edges->row_edges[i], sub_edges->row_edges[i] );
 
 	/* Blank out sub-profile to make sure we can't add it again.
 	 */
-	sub_edges->row_edges = NULL; 
-	sub_edges->column_edges = NULL; 
+	sub_edges->row_edges = NULL;
+	sub_edges->column_edges = NULL;
 
 	return( 0 );
 }
@@ -296,16 +296,16 @@ vips_profile_class_init( VipsProfileClass *class )
 	sclass->scan = vips_profile_scan;
 	sclass->stop = vips_profile_stop;
 
-	VIPS_ARG_IMAGE( class, "columns", 100, 
-		_( "Columns" ), 
+	VIPS_ARG_IMAGE( class, "columns", 100,
+		_( "Columns" ),
 		_( "First non-zero pixel in column" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsProfile, columns ) );
 
-	VIPS_ARG_IMAGE( class, "rows", 101, 
-		_( "Rows" ), 
+	VIPS_ARG_IMAGE( class, "rows", 101,
+		_( "Rows" ),
 		_( "First non-zero pixel in row" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsProfile, rows ) );
 
 }
@@ -322,9 +322,9 @@ vips_profile_init( VipsProfile *profile )
  * @rows: (out): distances from left edge
  * @...: %NULL-terminated list of optional named arguments
  *
- * vips_profile() searches inward from the edge of @in and finds the 
- * first non-zero pixel. Pixels in @columns have the distance from the top edge 
- * to the first non-zero pixel in that column, @rows has the distance from the 
+ * vips_profile() searches inward from the edge of @in and finds the
+ * first non-zero pixel. Pixels in @columns have the distance from the top edge
+ * to the first non-zero pixel in that column, @rows has the distance from the
  * left edge to the first non-zero pixel in that row.
  *
  * See also: vips_project(), vips_hist_find().

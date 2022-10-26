@@ -39,7 +39,7 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 
-/* To iterate over supported formats, we build a temp list of subclasses of 
+/* To iterate over supported formats, we build a temp list of subclasses of
  * VipsFormat, sort by priority, iterate, and free.
  */
 
@@ -57,7 +57,7 @@ format_add_class( VipsFormatClass *format, GSList **formats )
 static gint
 format_compare( VipsFormatClass *a, VipsFormatClass *b )
 {
-        return( b->priority - a->priority );
+	return( b->priority - a->priority );
 }
 
 /**
@@ -67,7 +67,7 @@ format_compare( VipsFormatClass *a, VipsFormatClass *b )
  * @b: user data
  *
  * Apply a function to every %VipsFormatClass that VIPS knows about. Formats
- * are presented to the function in priority order. 
+ * are presented to the function in priority order.
  *
  * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
  * it returns non-%NULL, iteration terminates and that value is returned. The
@@ -84,7 +84,7 @@ vips_format_map( VSListMap2Fn fn, void *a, void *b )
 	void *result;
 
 	formats = NULL;
-	(void) vips_class_map_all( g_type_from_name( "VipsFormat" ), 
+	(void) vips_class_map_all( g_type_from_name( "VipsFormat" ),
 		(VipsClassMapFn) format_add_class, (void *) &formats );
 
 	formats = g_slist_sort( formats, (GCompareFunc) format_compare );
@@ -156,7 +156,7 @@ vips_format_init( VipsFormat *object )
  * @format: format to test
  * @filename: file to test
  *
- * Get a set of flags for this file. 
+ * Get a set of flags for this file.
  *
  * Returns: flags for this format and file
  */
@@ -213,9 +213,9 @@ vips_flags( const char *filename )
 	flags = VIPS_FORMAT_PARTIAL;
 
 	if( im__get_bytes( filename, buf, 4 ) == 4 &&
-		buf[0] == 0x08 && 
+		buf[0] == 0x08 &&
 		buf[1] == 0xf2 &&
-		buf[2] == 0xa6 && 
+		buf[2] == 0xa6 &&
 		buf[3] == 0xb6 )
 		flags |= VIPS_FORMAT_BIGENDIAN;
 
@@ -230,7 +230,7 @@ typedef VipsFormatClass VipsFormatVipsClass;
 static int
 vips_format_vips_save( VipsImage *image, const char *filename )
 {
-	return( vips_image_write_to_file( image, filename, NULL ) ); 
+	return( vips_image_write_to_file( image, filename, NULL ) );
 }
 
 static void
@@ -314,11 +314,11 @@ im__format_init( void )
 /* Can this format open this file?
  */
 static void *
-format_for_file_sub( VipsFormatClass *format, 
+format_for_file_sub( VipsFormatClass *format,
 	const char *name, const char *filename )
 {
 	if( format->is_a ) {
-		if( format->is_a( filename ) ) 
+		if( format->is_a( filename ) )
 			return( format );
 	}
 	else if( im_filename_suffix_match( filename, format->suffs ) )
@@ -344,7 +344,7 @@ vips_format_for_file( const char *filename )
 	char options[FILENAME_MAX];
 	VipsFormatClass *format;
 
-	/* Break any options off the name ... eg. "fred.tif:jpeg,tile" 
+	/* Break any options off the name ... eg. "fred.tif:jpeg,tile"
 	 * etc.
 	 */
 	im_filename_split( filename, name, options );
@@ -354,10 +354,10 @@ vips_format_for_file( const char *filename )
 		return( NULL );
 	}
 
-	if( !(format = (VipsFormatClass *) vips_format_map( 
-		(VSListMap2Fn) format_for_file_sub, 
+	if( !(format = (VipsFormatClass *) vips_format_map(
+		(VSListMap2Fn) format_for_file_sub,
 		(void *) filename, (void *) name )) ) {
-		im_error( "VipsFormat", 
+		im_error( "VipsFormat",
 			_( "file \"%s\" not a known format" ), name );
 		return( NULL );
 	}
@@ -393,11 +393,11 @@ vips_format_for_name( const char *filename )
 {
 	VipsFormatClass *format;
 
-	if( !(format = (VipsFormatClass *) vips_format_map( 
-		(VSListMap2Fn) format_for_name_sub, 
+	if( !(format = (VipsFormatClass *) vips_format_map(
+		(VSListMap2Fn) format_for_name_sub,
 		(void *) filename, NULL )) ) {
 		im_error( "VipsFormat",
-			_( "\"%s\" is not a supported image format." ), 
+			_( "\"%s\" is not a supported image format." ),
 			filename );
 
 		return( NULL );
@@ -422,7 +422,7 @@ vips_format_read( const char *filename, IMAGE *out )
 {
 	VipsFormatClass *format;
 
-	if( !(format = vips_format_for_file( filename )) || 
+	if( !(format = vips_format_for_file( filename )) ||
 		format->load( filename, out ) )
 		return( -1 );
 
@@ -445,8 +445,8 @@ vips_format_write( IMAGE *in, const char *filename )
 {
 	VipsFormatClass *format;
 
-	if( !(format = vips_format_for_name( filename )) || 
-		format->save( in, filename ) ) 
+	if( !(format = vips_format_for_name( filename )) ||
+		format->save( in, filename ) )
 		return( -1 );
 
 	return( 0 );

@@ -1,21 +1,21 @@
 /* n-dimensional histogram
  *
- * Written on: 8/7/03 
- * 10/11/04 
+ * Written on: 8/7/03
+ * 10/11/04
  *	- oops, was not checking the bandfmt coming in
  * 24/3/10
  * 	- gtkdoc
  * 	- small celanups
  * 17/8/13
  * 	- redo as a class
- * 28/1/22 travisbell 
+ * 28/1/22 travisbell
  * 	- better arg checking
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,7 +59,7 @@ struct _VipsHistFindNDim;
 typedef struct {
 	struct _VipsHistFindNDim *ndim;
 
-	unsigned int ***data;		
+	unsigned int ***data;
 } Histogram;
 
 typedef struct _VipsHistFindNDim {
@@ -79,7 +79,7 @@ typedef struct _VipsHistFindNDim {
 
 	/* Write hist to this output image.
 	 */
-	VipsImage *out; 
+	VipsImage *out;
 
 } VipsHistFindNDim;
 
@@ -113,15 +113,15 @@ histogram_new( VipsHistFindNDim *ndim )
 	memset( hist->data, 0, bins * sizeof( unsigned int ** ) );
 
 	for( i = 0; i < ilimit; i++ ) {
-		if( !(hist->data[i] = 
+		if( !(hist->data[i] =
 			VIPS_ARRAY( ndim, bins, unsigned int * )) )
 			return( NULL );
 		memset( hist->data[i], 0, bins * sizeof( unsigned int * ) );
 		for( j = 0; j < jlimit; j++ ) {
-			if( !(hist->data[i][j] = 
+			if( !(hist->data[i][j] =
 				VIPS_ARRAY( ndim, bins, unsigned int )) )
 				return( NULL );
-			memset( hist->data[i][j], 
+			memset( hist->data[i][j],
 				0, bins * sizeof( unsigned int ) );
 		}
 	}
@@ -132,13 +132,13 @@ histogram_new( VipsHistFindNDim *ndim )
 static int
 vips_hist_find_ndim_build( VipsObject *object )
 {
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsHistFindNDim *ndim = (VipsHistFindNDim *) object;
 
 	unsigned int *obuffer;
-	int y, i, x, z; 
+	int y, i, x, z;
 
-	g_object_set( object, 
+	g_object_set( object,
 		"out", vips_image_new(),
 		NULL );
 
@@ -146,16 +146,16 @@ vips_hist_find_ndim_build( VipsObject *object )
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( ndim );
 
 		if( statistic->in->Bands > 3 ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				"%s", _( "image is not 1 - 3 bands" ) );
 			return( -1 );
 		}
 
-		ndim->max_val = 
+		ndim->max_val =
 			statistic->in->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536;
-		if( ndim->bins < 1 || 
+		if( ndim->bins < 1 ||
 			ndim->bins > ndim->max_val ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				_( "bins out of range [1,%d]" ), ndim->max_val );
 			return( -1 );
 		}
@@ -168,22 +168,22 @@ vips_hist_find_ndim_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( ndim->out, 
-		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
+	if( vips_image_pipelinev( ndim->out,
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) )
 		return( -1 );
 	vips_image_init_fields( ndim->out,
-		ndim->bins, 
-		statistic->ready->Bands > 1 ? ndim->bins : 1, 
+		ndim->bins,
+		statistic->ready->Bands > 1 ? ndim->bins : 1,
 		statistic->ready->Bands > 2 ? ndim->bins : 1,
-		VIPS_FORMAT_UINT, 
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 ); 
+		VIPS_FORMAT_UINT,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
 
-	if( !(obuffer = VIPS_ARRAY( ndim, 
+	if( !(obuffer = VIPS_ARRAY( ndim,
 		VIPS_IMAGE_N_ELEMENTS( ndim->out ), unsigned int )) )
 		return( -1 );
 
 	for( y = 0; y < ndim->out->Ysize; y++ ) {
-		for( i = 0, x = 0; x < ndim->out->Xsize; x++ ) 
+		for( i = 0, x = 0; x < ndim->out->Xsize; x++ )
 			for( z = 0; z < ndim->out->Bands; z++, i++ )
 				obuffer[i] = ndim->hist->data[z][y][x];
 
@@ -201,8 +201,8 @@ vips_hist_find_ndim_start( VipsStatistic *statistic )
 
 	/* Make the main hist, if necessary.
 	 */
-	if( !ndim->hist ) 
-		ndim->hist = histogram_new( ndim );  
+	if( !ndim->hist )
+		ndim->hist = histogram_new( ndim );
 
 	return( (void *) histogram_new( ndim ) );
 }
@@ -214,7 +214,7 @@ vips_hist_find_ndim_stop( VipsStatistic *statistic, void *seq )
 {
 	Histogram *sub_hist = (Histogram *) seq;
 	VipsHistFindNDim *ndim = (VipsHistFindNDim *) statistic;
-	Histogram *hist = ndim->hist; 
+	Histogram *hist = ndim->hist;
 
 	int i, j, k;
 
@@ -222,10 +222,10 @@ vips_hist_find_ndim_stop( VipsStatistic *statistic, void *seq )
 		for( j = 0; j < ndim->bins; j++ )
 			for( k = 0; k < ndim->bins; k++ )
 				if( hist->data[i] && hist->data[i][j] ) {
-					hist->data[i][j][k] += 
+					hist->data[i][j][k] +=
 						sub_hist->data[i][j][k];
 
-					/* Zap sub-hist to make sure we 
+					/* Zap sub-hist to make sure we
 					 * can't add it again.
 					 */
 					sub_hist->data[i][j][k] = 0;
@@ -246,7 +246,7 @@ vips_hist_find_ndim_stop( VipsStatistic *statistic, void *seq )
 }
 
 static int
-vips_hist_find_ndim_scan( VipsStatistic *statistic, void *seq, 
+vips_hist_find_ndim_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	Histogram *hist = (Histogram *) seq;
@@ -254,7 +254,7 @@ vips_hist_find_ndim_scan( VipsStatistic *statistic, void *seq,
 	VipsImage *im = statistic->ready;
 	int nb = im->Bands;
 	double scale = (double) (ndim->max_val + 1) / ndim->bins;
-	int i, j, k; 
+	int i, j, k;
 	int index[3];
 
 	/* Fill these with dimensions, backwards.
@@ -271,7 +271,7 @@ vips_hist_find_ndim_scan( VipsStatistic *statistic, void *seq,
 		break;
 
 	default:
-		g_assert_not_reached(); 
+		g_assert_not_reached();
 	}
 
 	return( 0 );
@@ -309,16 +309,16 @@ vips_hist_find_ndim_class_init( VipsHistFindNDimClass *class )
 	sclass->stop = vips_hist_find_ndim_stop;
 	sclass->format_table = vips_hist_find_ndim_format_table;
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output histogram" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsHistFindNDim, out ) );
 
-	VIPS_ARG_INT( class, "bins", 110, 
-		_( "Bins" ), 
+	VIPS_ARG_INT( class, "bins", 110,
+		_( "Bins" ),
 		_( "Number of bins in each dimension" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsHistFindNDim, bins ),
 		1, 65536, 10 );
 
@@ -343,7 +343,7 @@ vips_hist_find_ndim_init( VipsHistFindNDim *ndim )
  * Make a one, two or three dimensional histogram of a 1, 2 or
  * 3 band image. Divide each axis into @bins bins .. ie.
  * output is 1 x bins, bins x bins, or bins x bins x bins bands.
- * @bins defaults to 10. 
+ * @bins defaults to 10.
  *
  * char and uchar images are cast to uchar before histogramming, all other
  * image types are cast to ushort.

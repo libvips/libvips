@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -47,8 +47,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* If you read MSB first, you get these two values.  
- * intel order: byte 0 = b6 
+/* If you read MSB first, you get these two values.
+ * intel order: byte 0 = b6
  * SPARC order: byte 0 = 08
  */
 #define VIPS_MAGIC_INTEL (0xb6a6f208U)
@@ -64,18 +64,18 @@ extern "C" {
 #define VIPS_MAX_COORD (10000000)
 
 typedef enum {
-	VIPS_DEMAND_STYLE_ERROR = -1,	
-	VIPS_DEMAND_STYLE_SMALLTILE,	
+	VIPS_DEMAND_STYLE_ERROR = -1,
+	VIPS_DEMAND_STYLE_SMALLTILE,
 	VIPS_DEMAND_STYLE_FATSTRIP,
 	VIPS_DEMAND_STYLE_THINSTRIP,
-	VIPS_DEMAND_STYLE_ANY			
+	VIPS_DEMAND_STYLE_ANY
 } VipsDemandStyle;
 
 /* Types of image descriptor we may have. The type field is advisory only: it
  * does not imply that any fields in IMAGE have valid data.
  */
 typedef enum {
-	VIPS_IMAGE_ERROR = -1,	
+	VIPS_IMAGE_ERROR = -1,
 	VIPS_IMAGE_NONE,		/* no type set */
 	VIPS_IMAGE_SETBUF,		/* malloced memory array */
 	VIPS_IMAGE_SETBUF_FOREIGN,	/* memory array, don't free on close */
@@ -141,7 +141,7 @@ typedef enum {
 } VipsAccess;
 
 typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerateFn)( VipsRegion *out, 
+typedef int (*VipsGenerateFn)( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *stop );
 typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 
@@ -200,7 +200,7 @@ struct _VipsImage {
 	int Xoffset;		/* image origin hint */
 	int Yoffset;		/* image origin hint */
 
-	/* No longer used, the names are here for compat with very, very old 
+	/* No longer used, the names are here for compat with very, very old
 	 * code.
 	 */
 	int Length;
@@ -239,7 +239,7 @@ struct _VipsImage {
 	size_t length;		/* size of mmap area */
 	guint32 magic;		/* magic from header, endian-ness of image */
 
-	/* Partial image stuff. All these fields are initialised 
+	/* Partial image stuff. All these fields are initialised
 	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
 	VipsStartFn start_fn;
@@ -271,7 +271,7 @@ struct _VipsImage {
 	 */
 	GSList *windows;
 
-	/* Upstream/downstream relationships, built from args to 
+	/* Upstream/downstream relationships, built from args to
 	 * vips_demand_hint().
 	 *
 	 * We use these to invalidate downstream pixel buffers.
@@ -338,23 +338,23 @@ typedef struct _VipsImageClass {
 	 */
 	void (*posteval)( VipsImage *image, VipsProgress *progress, void *data );
 
-	/* An image has been written to. 
-	 * Used by eg. vips_image_new_mode("x.jpg", "w") to do the 
+	/* An image has been written to.
+	 * Used by eg. vips_image_new_mode("x.jpg", "w") to do the
 	 * final write to jpeg.
 	 * Set *result to non-zero to indicate an error on write.
 	 */
 	void (*written)( VipsImage *image, int *result, void *data );
 
-	/* An image has been modified in some way and all caches 
-	 * need dropping. 
+	/* An image has been modified in some way and all caches
+	 * need dropping.
 	 */
 	void (*invalidate)( VipsImage *image, void *data );
 
-	/* Minimise this pipeline. 
+	/* Minimise this pipeline.
 	 *
 	 * This is triggered (sometimes) at the end of eval to signal that
 	 * we're probably done and that operations involved should try to
-	 * minimise memory use by, for example, dropping caches. 
+	 * minimise memory use by, for example, dropping caches.
 	 *
 	 * See vips_tilecache().
 	 */
@@ -421,7 +421,7 @@ GType vips_image_get_type(void);
 	  VIPS_IMAGE( I )->Bands == 1) ? \
 	 ((double *) VIPS_IMAGE_ADDR( I, X, Y )) : \
 	 (fprintf( stderr, "VIPS_MATRIX: not a matrix image\n" ), \
-	  	(double *) NULL)) 
+	  	(double *) NULL))
 #else /*!VIPS_DEBUG*/
 #define VIPS_MATRIX( I, X, Y ) \
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
@@ -463,7 +463,7 @@ VipsImage *vips_image_new_from_file( const char *name, ... )
 VIPS_API
 VipsImage *vips_image_new_from_file_RW( const char *filename );
 VIPS_API
-VipsImage *vips_image_new_from_file_raw( const char *filename, 
+VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VIPS_API
 VipsImage *vips_image_new_from_memory( const void *data, size_t size,
@@ -472,30 +472,30 @@ VIPS_API
 VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
 VIPS_API
-VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
+VipsImage *vips_image_new_from_buffer( const void *buf, size_t len,
 	const char *option_string, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-VipsImage *vips_image_new_from_source( VipsSource *source, 
+VipsImage *vips_image_new_from_source( VipsSource *source,
 	const char *option_string, ... ) G_GNUC_NULL_TERMINATED;
 VIPS_API
 VipsImage *vips_image_new_matrix( int width, int height );
 VIPS_API
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
 VIPS_API
-VipsImage *vips_image_new_matrix_from_array( int width, int height, 
+VipsImage *vips_image_new_matrix_from_array( int width, int height,
 	const double *array, int size );
 VIPS_API
-VipsImage *vips_image_matrix_from_array( int width, int height, 
+VipsImage *vips_image_matrix_from_array( int width, int height,
 	const double *array, int size );
 VIPS_API
-VipsImage *vips_image_new_from_image( VipsImage *image, 
+VipsImage *vips_image_new_from_image( VipsImage *image,
 	const double *c, int n );
 VIPS_API
 VipsImage *vips_image_new_from_image1( VipsImage *image, double c );
 
 VIPS_API
-void vips_image_set_delete_on_close( VipsImage *image, 
+void vips_image_set_delete_on_close( VipsImage *image,
 	gboolean delete_on_close );
 VIPS_API
 guint64 vips_get_disc_threshold( void );
@@ -508,18 +508,18 @@ VIPS_API
 int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_image_write_to_buffer( VipsImage *in, 
+int vips_image_write_to_buffer( VipsImage *in,
 	const char *suffix, void **buf, size_t *size, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_image_write_to_target( VipsImage *in, 
+int vips_image_write_to_target( VipsImage *in,
 	const char *suffix, VipsTarget *target, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 
 VIPS_API
-int vips_image_decode_predict( VipsImage *in, 
+int vips_image_decode_predict( VipsImage *in,
 	int *bands, VipsBandFormat *format );
 VIPS_API
 int vips_image_decode( VipsImage *in, VipsImage **out );
@@ -573,12 +573,12 @@ VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
 VIPS_API
 VipsArrayImage *vips_array_image_newv( int n, ... );
 VIPS_API
-VipsArrayImage *vips_array_image_new_from_string( const char *string, 
+VipsArrayImage *vips_array_image_new_from_string( const char *string,
 	VipsAccess flags );
 VIPS_API
 VipsArrayImage *vips_array_image_empty( void );
 VIPS_API
-VipsArrayImage *vips_array_image_append( VipsArrayImage *array, 
+VipsArrayImage *vips_array_image_append( VipsArrayImage *array,
 	VipsImage *image );
 VIPS_API
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
@@ -590,7 +590,7 @@ void vips_value_set_array_image( GValue *value, int n );
 /* Defined in reorder.c, but really a function on image.
  */
 VIPS_API
-int vips_reorder_prepare_many( VipsImage *image, 
+int vips_reorder_prepare_many( VipsImage *image,
 	VipsRegion **regions, VipsRect *r );
 VIPS_API
 void vips_reorder_margin_hint( VipsImage *image, int margin );

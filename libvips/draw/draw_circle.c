@@ -24,7 +24,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -73,7 +73,7 @@ typedef struct _VipsDrawCircle {
 typedef struct _VipsDrawCircleClass {
 	VipsDrawinkClass parent_class;
 
-} VipsDrawCircleClass; 
+} VipsDrawCircleClass;
 
 G_DEFINE_TYPE( VipsDrawCircle, vips_draw_circle, VIPS_TYPE_DRAWINK );
 
@@ -111,21 +111,21 @@ vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
 static inline void
 vips_draw_circle_draw_point( VipsImage *image, int x, int y, void *client )
 {
-	VipsPel *ink = (VipsPel *) client; 
+	VipsPel *ink = (VipsPel *) client;
 	VipsPel *q = VIPS_IMAGE_ADDR( image, x, y );
-	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image );
 
  	int j;
 
 	/* Faster than memcopy() for n < about 20.
 	 */
-	for( j = 0; j < psize; j++ ) 
+	for( j = 0; j < psize; j++ )
 		q[j] = ink[j];
 }
 
 /* Paint endpoints, with clip.
  */
-static void 
+static void
 vips_draw_circle_draw_endpoints_clip( VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client )
 {
@@ -142,7 +142,7 @@ vips_draw_circle_draw_endpoints_clip( VipsImage *image,
 
 /* Paint endpoints, no clip.
  */
-static void 
+static void
 vips_draw_circle_draw_endpoints_noclip( VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client )
 {
@@ -152,12 +152,12 @@ vips_draw_circle_draw_endpoints_noclip( VipsImage *image,
 
 /* Paint scanline.
  */
-static void 
+static void
 vips_draw_circle_draw_scanline( VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client )
 {
-	VipsPel *ink = (VipsPel *) client; 
-	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+	VipsPel *ink = (VipsPel *) client;
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image );
 
 	VipsPel *q;
 	int len;
@@ -165,13 +165,13 @@ vips_draw_circle_draw_scanline( VipsImage *image,
 
 	g_assert( x1 <= x2 );
 
-	if( y < 0 || 
+	if( y < 0 ||
 		y >= image->Ysize )
 		return;
-	if( x1 < 0 && 
+	if( x1 < 0 &&
 		x2 < 0 )
 		return;
-	if( x1 >= image->Xsize && 
+	if( x1 >= image->Xsize &&
 		x2 >= image->Xsize )
 		return;
 	x1 = VIPS_CLIP( 0, x1, image->Xsize - 1 );
@@ -203,15 +203,15 @@ vips_draw_circle_build( VipsObject *object )
 
 	if( circle->fill )
 		draw_scanline = vips_draw_circle_draw_scanline;
-	else if( circle->cx - circle->radius >= 0 && 
+	else if( circle->cx - circle->radius >= 0 &&
 		circle->cx + circle->radius < draw->image->Xsize &&
-		circle->cy - circle->radius >= 0 && 
+		circle->cy - circle->radius >= 0 &&
 		circle->cy + circle->radius < draw->image->Ysize )
-		draw_scanline = vips_draw_circle_draw_endpoints_noclip; 
+		draw_scanline = vips_draw_circle_draw_endpoints_noclip;
 		else
-		draw_scanline = vips_draw_circle_draw_endpoints_clip; 
+		draw_scanline = vips_draw_circle_draw_endpoints_clip;
 
-	vips__draw_circle_direct( draw->image, 
+	vips__draw_circle_direct( draw->image,
 		circle->cx, circle->cy, circle->radius,
 		draw_scanline, drawink->pixel_ink );
 
@@ -231,33 +231,33 @@ vips_draw_circle_class_init( VipsDrawCircleClass *class )
 	vobject_class->description = _( "draw a circle on an image" );
 	vobject_class->build = vips_draw_circle_build;
 
-	VIPS_ARG_INT( class, "cx", 3, 
-		_( "cx" ), 
+	VIPS_ARG_INT( class, "cx", 3,
+		_( "cx" ),
 		_( "Centre of draw_circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawCircle, cx ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "cy", 4, 
-		_( "cy" ), 
+	VIPS_ARG_INT( class, "cy", 4,
+		_( "cy" ),
 		_( "Centre of draw_circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawCircle, cy ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "radius", 5, 
-		_( "Radius" ), 
+	VIPS_ARG_INT( class, "radius", 5,
+		_( "Radius" ),
 		_( "Radius in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawCircle, radius ),
 		0, 1000000000, 0 );
 
-	VIPS_ARG_BOOL( class, "fill", 6, 
-		_( "Fill" ), 
+	VIPS_ARG_BOOL( class, "fill", 6,
+		_( "Fill" ),
 		_( "Draw a solid object" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsDrawCircle, fill ),
-		FALSE ); 
+		FALSE );
 
 }
 
@@ -268,14 +268,14 @@ vips_draw_circle_init( VipsDrawCircle *circle )
 }
 
 static int
-vips_draw_circlev( VipsImage *image, 
+vips_draw_circlev( VipsImage *image,
 	double *ink, int n, int cx, int cy, int radius, va_list ap )
 {
 	VipsArea *area_ink;
 	int result;
 
 	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
-	result = vips_call_split( "draw_circle", ap, 
+	result = vips_call_split( "draw_circle", ap,
 		image, area_ink, cx, cy, radius );
 	vips_area_unref( area_ink );
 
@@ -299,14 +299,14 @@ vips_draw_circlev( VipsImage *image,
  * Draws a circle on @image. If @fill is %TRUE then the circle is filled,
  * otherwise a 1-pixel-wide perimeter is drawn.
  *
- * @ink is an array of double containing values to draw. 
+ * @ink is an array of double containing values to draw.
  *
  * See also: vips_draw_circle1(), vips_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_circle( VipsImage *image, 
+vips_draw_circle( VipsImage *image,
 	double *ink, int n, int cx, int cy, int radius, ... )
 {
 	va_list ap;
@@ -332,21 +332,21 @@ vips_draw_circle( VipsImage *image,
  *
  * * @fill: fill the draw_circle
  *
- * As vips_draw_circle(), but just takes a single double for @ink. 
+ * As vips_draw_circle(), but just takes a single double for @ink.
  *
  * See also: vips_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_draw_circle1( VipsImage *image, 
+vips_draw_circle1( VipsImage *image,
 	double ink, int cx, int cy, int radius, ... )
 {
 	double array_ink[1];
 	va_list ap;
 	int result;
 
-	array_ink[0] = ink; 
+	array_ink[0] = ink;
 
 	va_start( ap, radius );
 	result = vips_draw_circlev( image, array_ink, 1, cx, cy, radius, ap );

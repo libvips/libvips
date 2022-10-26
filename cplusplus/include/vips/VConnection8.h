@@ -3,7 +3,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -36,7 +36,7 @@ VIPS_NAMESPACE_START
 
 /**
  * A generic source object. These supply a stream of bytes that loaders can
- * use to fetch image files, see VImage::new_from_source(). 
+ * use to fetch image files, see VImage::new_from_source().
  *
  * Methods let you can connect a source up to memory, a file or
  * a file descriptor. Use vips::VSourceCustom to implement custom sources
@@ -48,7 +48,7 @@ public:
 	/**
 	 * Wrap a VSource around an underlying VipsSource object.
 	 */
-	VSource( VipsSource *input, VSteal steal = STEAL ) : 
+	VSource( VipsSource *input, VSteal steal = STEAL ) :
 		VObject( (VipsObject *) input, steal )
 	{
 	}
@@ -56,36 +56,36 @@ public:
 	/**
 	 * Make a new VSource from a file descriptor.
 	 */
-	static VSource 
+	static VSource
 	new_from_descriptor( int descriptor );
 
 	/**
 	 * Make a new VSource from a file on disc.
 	 */
-	static VSource 
+	static VSource
 	new_from_file( const char *filename );
 
 	/**
 	 * Make a new VSource from a binary object.
 	 */
-	static VSource 
+	static VSource
 	new_from_blob( VipsBlob *blob );
 
 	/**
 	 * Make a new VSource from an area of memory.
 	 */
-	static VSource 
+	static VSource
 	new_from_memory( const void *data, size_t size );
 
 	/**
 	 * Make a new VSource from a set of options encoded as a string. See
 	 * vips_source_new().
 	 */
-	static VSource 
+	static VSource
 	new_from_options( const char *options );
 
 	/**
-	 * Get a pointer to the underlying VipsSoure object. 
+	 * Get a pointer to the underlying VipsSoure object.
 	 */
 	VipsSource *
 	get_source() const
@@ -97,7 +97,7 @@ public:
 
 /**
  * A generic target object. Savers can use these to write a stream of bytes
- * somewhere, see VImage::write_to_target(). 
+ * somewhere, see VImage::write_to_target().
  *
  * Methods let you can connect a target up to memory, a file or
  * a file descriptor. Use vips::VTargetCustom to implement custom targets
@@ -109,29 +109,29 @@ public:
 	/**
 	 * Wrap a VTarget around an underlying VipsTarget object.
 	 */
-	VTarget( VipsTarget *output, VSteal steal = STEAL ) : 
+	VTarget( VipsTarget *output, VSteal steal = STEAL ) :
 		VObject( (VipsObject *) output, steal )
 	{
 	}
 
 	/**
-	 * Make a new VTarget which, when written to, will write to a file 
+	 * Make a new VTarget which, when written to, will write to a file
 	 * descriptor.
 	 */
-	static VTarget 
+	static VTarget
 	new_to_descriptor( int descriptor );
 
 	/**
 	 * Make a new VTarget which, when written to, will write to a file.
 	 */
-	static 
+	static
 	VTarget new_to_file( const char *filename );
 
 	/**
 	 * Make a new VTarget which, when written to, will write to a file
 	 * descriptor.
 	 */
-	static 
+	static
 	VTarget new_to_memory();
 
 	/**

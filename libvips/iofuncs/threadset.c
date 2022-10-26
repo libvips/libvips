@@ -1,4 +1,4 @@
-/* A set of threads. 
+/* A set of threads.
  *
  * Creating and destroying threads can be expensive on some platforms, so we
  * try to only create once, then reuse.
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,7 @@ typedef struct _VipsThreadsetMember {
 	/* The task the thread should run next.
 	 */
 	const char *domain;
-	GFunc func; 
+	GFunc func;
 	void *data;
 	void *user_data;
 
@@ -84,7 +84,7 @@ struct _VipsThreadset {
 	 */
 	GSList *free;
 
-	/* The current number of threads, the highwater mark, and 
+	/* The current number of threads, the highwater mark, and
 	 * the max we allow before blocking thread creation.
 	 */
 	int n_threads;
@@ -105,12 +105,12 @@ vips_threadset_work( void *pointer )
 		 */
 		vips_semaphore_down( &member->idle );
 		if( member->kill ||
-			!member->func ) 
+			!member->func )
 			break;
 
 		/* If we're profiling, attach a prof struct to this thread.
 		 */
-		if( vips__thread_profile ) 
+		if( vips__thread_profile )
 			vips__thread_profile_attach( member->domain );
 
 		/* Execute the task.
@@ -134,7 +134,7 @@ vips_threadset_work( void *pointer )
 		g_mutex_unlock( set->lock );
 	}
 
-	/* Kill has been requested. We leave this thread on the members 
+	/* Kill has been requested. We leave this thread on the members
 	 * list so it can be found and joined.
 	 */
 
@@ -150,7 +150,7 @@ vips_threadset_add( VipsThreadset *set )
 
 	if( set->max_threads &&
 		set->n_threads >= set->max_threads ) {
-		vips_error( "VipsThreadset", 
+		vips_error( "VipsThreadset",
 			"%s", _( "threadset is exhausted" ) );
 		return( NULL );
 	}
@@ -160,7 +160,7 @@ vips_threadset_add( VipsThreadset *set )
 
 	vips_semaphore_init( &member->idle, 0, "idle" );
 
-	if( !(member->thread = vips_g_thread_new( "libvips worker", 
+	if( !(member->thread = vips_g_thread_new( "libvips worker",
 		vips_threadset_work, member )) ) {
 		vips_semaphore_destroy( &member->idle );
 		VIPS_FREE( member );
@@ -171,18 +171,18 @@ vips_threadset_add( VipsThreadset *set )
 	g_mutex_lock( set->lock );
 	set->members = g_slist_prepend( set->members, member );
 	set->n_threads += 1;
-	set->n_threads_highwater = 
+	set->n_threads_highwater =
 		VIPS_MAX( set->n_threads_highwater, set->n_threads );;
 	g_mutex_unlock( set->lock );
 
 	return( member );
 }
 
-/** 
+/**
  * vips_threadset_new:
  * @max_threads: maxium number of system threads
  *
- * Create a new threadset. 
+ * Create a new threadset.
  *
  * If @max_threads is 0, new threads will be created when necessary by
  * vips_threadset_run(), with no limit on the number of threads.
@@ -218,7 +218,7 @@ vips_threadset_new( int max_threads )
 }
 
 /**
- * vips_threadset_run: 
+ * vips_threadset_run:
  * @set: the threadset to run the task in
  * @domain: the name of the task (useful for debugging)
  * @func: the task to execute
@@ -232,7 +232,7 @@ vips_threadset_new( int max_threads )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_threadset_run( VipsThreadset *set, 
+vips_threadset_run( VipsThreadset *set,
 	const char *domain, GFunc func, gpointer data )
 {
 	VipsThreadsetMember *member;
@@ -290,7 +290,7 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
 	VIPS_FREE( member );
 }
 
-/** 
+/**
  * vips_threadset_free:
  * @set: the threadset to free
  *
@@ -322,7 +322,7 @@ vips_threadset_free( VipsThreadset *set )
 	}
 
 	if( vips__leak )
-		printf( "vips_threadset_free: peak of %d threads\n", 
+		printf( "vips_threadset_free: peak of %d threads\n",
 			set->n_threads_highwater );
 
 	VIPS_FREEF( vips_g_mutex_free, set->lock );

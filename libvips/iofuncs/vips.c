@@ -1,5 +1,5 @@
 /* Read and write a vips file.
- * 
+ *
  * 22/5/08
  * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
  * 	  im_openout.c
@@ -13,7 +13,7 @@
  * 	- only wholly map input files on im_incheck() ... this reduces VM use,
  * 	  especially with large numbers of small files
  * 14/2/11
- * 	- renamed to vips.c from im_open_vips.c, some stuff chopped out for 
+ * 	- renamed to vips.c from im_open_vips.c, some stuff chopped out for
  * 	  image.c ... this file now just does read / write to disc
  * 28/3/11
  * 	- moved to vips_ namespace
@@ -32,7 +32,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -110,7 +110,7 @@
  * @see_also: <link linkend="VipsOperation">VipsOperation</link>
  * @include: vips/vips.h
  *
- * Start VIPS up, shut VIPS down, get version information, relocation. 
+ * Start VIPS up, shut VIPS down, get version information, relocation.
  *
  * VIPS is a relocatable package, meaning you can move the directory tree you
  * compiled it to at runtime and it will still be able to find all data files.
@@ -120,7 +120,7 @@
 
 /* Open mode for image write.
  *
- * We use O_RDWR not O_WRONLY since after writing we may want to rewind the 
+ * We use O_RDWR not O_WRONLY since after writing we may want to rewind the
  * image and read from it.
  */
 #define MODE_WRITE CLOEXEC (BINARYIZE (O_RDWR | O_CREAT | O_TRUNC))
@@ -135,27 +135,27 @@
 
 /* Our XML namespace.
  */
-#define NAMESPACE_URI "http://www.vips.ecs.soton.ac.uk/" 
+#define NAMESPACE_URI "http://www.vips.ecs.soton.ac.uk/"
 
-/* Open for read for image files. 
+/* Open for read for image files.
  */
 int
 vips__open_image_read( const char *filename )
 {
 	int fd;
 
-	/* Try to open read-write, so that calls to vips_image_inplace() will 
-	 * work. When we later mmap this file, we set read-only, so there 
+	/* Try to open read-write, so that calls to vips_image_inplace() will
+	 * work. When we later mmap this file, we set read-only, so there
 	 * is little danger of scrubbing over files we own.
 	 */
 	fd = vips_tracked_open( filename, MODE_READWRITE, 0 );
-	if( fd == -1 ) 
+	if( fd == -1 )
 		/* Open read-write failed. Fall back to open read-only.
 		 */
 		fd = vips_tracked_open( filename, MODE_READONLY, 0 );
-	
+
 	if( fd == -1 ) {
-		vips_error_system( errno, "VipsImage", 
+		vips_error_system( errno, "VipsImage",
 			_( "unable to open \"%s\"" ), filename );
 		return( -1 );
 	}
@@ -163,7 +163,7 @@ vips__open_image_read( const char *filename )
 	return( fd );
 }
 
-/* Open for write for image files. 
+/* Open for write for image files.
  */
 int
 vips__open_image_write( const char *filename, gboolean temp )
@@ -174,7 +174,7 @@ vips__open_image_write( const char *filename, gboolean temp )
 	fd = -1;
 
 #ifndef O_TMPFILE
-	if( temp ) 
+	if( temp )
 		g_info( "vips__open_image_write: O_TMPFILE not available" );
 #endif /*!O_TMPFILE*/
 
@@ -184,17 +184,17 @@ vips__open_image_write( const char *filename, gboolean temp )
 	 *
 	 * This can fail since not all filesystems support it. In this case,
 	 * we open as a regular file and rely on the delete-on-close
-	 * mechanism, see vips_image_delete(). 
+	 * mechanism, see vips_image_delete().
 	 */
 	if( temp ) {
 		char *dirname;
 
 		g_info( "vips__open_image_write: opening with O_TMPFILE" );
-		dirname = g_path_get_dirname( filename ); 
+		dirname = g_path_get_dirname( filename );
 		fd = vips_tracked_open( dirname, O_TMPFILE | O_RDWR , 0644 );
-		g_free( dirname ); 
+		g_free( dirname );
 
-		if( fd < 0 ) 
+		if( fd < 0 )
 			g_info( "vips__open_image_write: O_TMPFILE failed!" );
 	}
 #endif /*O_TMPFILE*/
@@ -203,7 +203,7 @@ vips__open_image_write( const char *filename, gboolean temp )
 
 #ifdef _O_TEMPORARY
 	/* On Windows, setting _O_TEMPORARY will delete the file automatically
-	 * on process exit, even if the processes crashes. 
+	 * on process exit, even if the processes crashes.
 	 */
 	if( temp ) {
 		g_info( "vips__open_image_write: setting _O_TEMPORARY" );
@@ -218,7 +218,7 @@ vips__open_image_write( const char *filename, gboolean temp )
 
 	if( fd < 0 ) {
 		g_info( "vips__open_image_write: failed!" );
-		vips_error_system( errno, "VipsImage", 
+		vips_error_system( errno, "VipsImage",
 			_( "unable to write to \"%s\"" ), filename );
 		return( -1 );
 	}
@@ -282,7 +282,7 @@ vips__file_magic( const char *filename )
 	guint32 magic;
 
 	if( vips__get_bytes( filename, (unsigned char *) &magic, 4 ) == 4 &&
-		(magic == VIPS_MAGIC_INTEL || 
+		(magic == VIPS_MAGIC_INTEL ||
 		 magic == VIPS_MAGIC_SPARC) )
 		return( magic );
 
@@ -322,24 +322,24 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	GEnumValue *value;
 
 #ifdef SHOW_HEADER
-	printf( "vips__read_header_bytes: file bytes:\n" ); 
+	printf( "vips__read_header_bytes: file bytes:\n" );
 	for( i = 0; i < im->sizeof_header; i++ )
 		printf( "%2d - 0x%02x\n", i, from[i] );
 #endif /*SHOW_HEADER*/
 
 	/* The magic number is always written MSB first, we may need to swap.
 	 */
-	vips__copy_4byte( !vips_amiMSBfirst(), 
+	vips__copy_4byte( !vips_amiMSBfirst(),
 		(unsigned char *) &im->magic, from );
 	from += 4;
-	if( im->magic != VIPS_MAGIC_INTEL && 
+	if( im->magic != VIPS_MAGIC_INTEL &&
 		im->magic != VIPS_MAGIC_SPARC ) {
-		vips_error( "VipsImage", 
+		vips_error( "VipsImage",
 			_( "\"%s\" is not a VIPS image" ), im->filename );
 		return( -1 );
 	}
 
-	/* We need to swap for other fields if the file byte order is 
+	/* We need to swap for other fields if the file byte order is
 	 * different from ours.
 	 */
 	swap = vips_amiMSBfirst() != vips_image_isMSBfirst( im );
@@ -362,7 +362,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	im->Yres = VIPS_MAX( 0, im->Yres_float );
 
 	/* Some protection against malicious files. We also check predicted
-	 * (based on these values) against real file length, see below. 
+	 * (based on these values) against real file length, see below.
 	 */
 	im->Xsize = VIPS_CLIP( 1, im->Xsize, VIPS_MAX_COORD );
 	im->Ysize = VIPS_CLIP( 1, im->Ysize, VIPS_MAX_COORD );
@@ -382,7 +382,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 		strcmp( value->value_nick, "last" ) == 0 )
 		im->Coding = VIPS_CODING_ERROR;
 
-	/* Offset, Res, etc. don't affect vips file layout, just 
+	/* Offset, Res, etc. don't affect vips file layout, just
 	 * pixel interpretation, don't clip them.
 	 */
 
@@ -401,8 +401,8 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	case VIPS_CODING_LABQ:
 		if( im->Bands != 4 ||
 			im->BandFmt != VIPS_FORMAT_UCHAR ) {
-			vips_error( "VipsImage", 
-				"%s", _( "malformed LABQ image" ) ); 
+			vips_error( "VipsImage",
+				"%s", _( "malformed LABQ image" ) );
 			return( -1 );
 		}
 		break;
@@ -410,8 +410,8 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	case VIPS_CODING_RAD:
 		if( im->Bands != 4 ||
 			im->BandFmt != VIPS_FORMAT_UCHAR ) {
-			vips_error( "VipsImage", 
-				"%s", _( "malformed RAD image" ) ); 
+			vips_error( "VipsImage",
+				"%s", _( "malformed RAD image" ) );
 			return( -1 );
 		}
 		break;
@@ -436,21 +436,21 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 	unsigned char *q;
 
 	/* We set xres/yres as floats in a staging area, then copy those
-	 * smaller values to the file. 
+	 * smaller values to the file.
 	 */
 	im->Xres_float = im->Xres;
 	im->Yres_float = im->Yres;
 
 	/* Always write the magic number MSB first.
 	 */
-	vips__copy_4byte( !vips_amiMSBfirst(), 
+	vips__copy_4byte( !vips_amiMSBfirst(),
 		to, (unsigned char *) &im->magic );
 	q = to + 4;
 
 	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
 		fields[i].copy( swap,
-			q, 
-			&G_STRUCT_MEMBER( unsigned char, im, 
+			q,
+			&G_STRUCT_MEMBER( unsigned char, im,
 				fields[i].offset ) );
 		q += fields[i].size;
 	}
@@ -461,7 +461,7 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 		*q++ = 0;
 
 #ifdef SHOW_HEADER
-	printf( "vips__write_header_bytes: file bytes:\n" ); 
+	printf( "vips__write_header_bytes: file bytes:\n" );
 	for( i = 0; i < im->sizeof_header; i++ )
 		printf( "%2d - 0x%02x\n", i, to[i] );
 #endif /*SHOW_HEADER*/
@@ -538,7 +538,7 @@ vips__read_extension_block( VipsImage *im, int *size )
 static int
 parser_read_fd( XML_Parser parser, int fd )
 {
-	const int chunk_size = 1024; 
+	const int chunk_size = 1024;
 
 	gint64 bytes_read;
 	gint64 len;
@@ -549,13 +549,13 @@ parser_read_fd( XML_Parser parser, int fd )
 		void *buf;
 
 		if( !(buf = XML_GetBuffer( parser, chunk_size )) ) {
-			vips_error( "VipsImage", 
+			vips_error( "VipsImage",
 				"%s", _( "unable to allocate read buffer" ) );
 			return( -1 );
 		}
 		len = read( fd, buf, chunk_size );
 		if( len == -1 ) {
-			vips_error( "VipsImage", 
+			vips_error( "VipsImage",
 				"%s", _( "read error while fetching XML" ) );
 			return( -1 );
 		}
@@ -598,11 +598,11 @@ typedef struct _VipsExpatParse {
 
 	/* Accumulate data here.
 	 */
-	VipsDbuf dbuf; 
+	VipsDbuf dbuf;
 } VipsExpatParse;
 
 static void
-parser_element_start_handler( void *user_data, 
+parser_element_start_handler( void *user_data,
 	const XML_Char *name, const XML_Char **atts )
 {
 	VipsExpatParse *vep = (VipsExpatParse *) user_data;
@@ -610,29 +610,29 @@ parser_element_start_handler( void *user_data,
 
 #ifdef DEBUG
 	printf( "parser_element_start: %s\n", name );
-	for( p = atts; *p; p += 2 ) 
+	for( p = atts; *p; p += 2 )
 		printf( "%s = %s\n", p[0], p[1] );
 #endif /*DEBUG*/
 
-	if( strcmp( name, "field" ) == 0 ) { 
+	if( strcmp( name, "field" ) == 0 ) {
 		for( p = atts; *p; p += 2 ) {
 			if( strcmp( p[0], "name" ) == 0 )
-				vips_strncpy( vep->name, p[1], MAX_PARSE_ATTR ); 
+				vips_strncpy( vep->name, p[1], MAX_PARSE_ATTR );
 			if( strcmp( p[0], "type" ) == 0 )
-				vips_strncpy( vep->type, p[1], MAX_PARSE_ATTR ); 
+				vips_strncpy( vep->type, p[1], MAX_PARSE_ATTR );
 		}
 
 		vips_dbuf_reset( &vep->dbuf );
-	} 
-	else if( strcmp( name, "header" ) == 0 )  
+	}
+	else if( strcmp( name, "header" ) == 0 )
 		vep->header = TRUE;
-	else if( strcmp( name, "meta" ) == 0 )  
+	else if( strcmp( name, "meta" ) == 0 )
 		vep->header = FALSE;
 	else if( strcmp( name, "root" ) == 0 ) {
-		for( p = atts; *p; p += 2 ) 
+		for( p = atts; *p; p += 2 )
 			if( strcmp( p[0], "xmlns" ) == 0 &&
 				!vips_isprefix( NAMESPACE_URI "vips", p[1] ) ) {
-				vips_error( "VipsImage", "%s", 
+				vips_error( "VipsImage", "%s",
 					_( "incorrect namespace in XML" ) );
 				vep->error = TRUE;
 			}
@@ -658,10 +658,10 @@ set_history( VipsImage *im, char *history )
 			*q = '\0';
 			q += 1;
 		}
-		else 
+		else
 			q = p + strlen( p );
 
-		history_list = g_slist_prepend( history_list, 
+		history_list = g_slist_prepend( history_list,
 			vips__gvalue_ref_string_new( p ) );
 	}
 
@@ -680,9 +680,9 @@ set_meta( VipsImage *image, GType gtype, const char *name, const char *data )
 	g_value_init( &value, gtype );
 	if( !g_value_transform( &save_value, &value ) ) {
 		g_value_unset( &save_value );
-		vips_error( "VipsImage", "%s", 
+		vips_error( "VipsImage", "%s",
 			_( "error transforming from save format" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 
 	vips_image_set( image, name, &value );
@@ -698,27 +698,27 @@ parser_element_end_handler( void *user_data, const XML_Char *name )
 	VipsExpatParse *vep = (VipsExpatParse *) user_data;
 
 #ifdef DEBUG
-	printf( "parser_element_end_handler: %s\n", name ); 
+	printf( "parser_element_end_handler: %s\n", name );
 #endif /*DEBUG*/
 
 	if( strcmp( name, "field" ) == 0 ) {
 		if( vep->header ) {
-			if( strcmp( name, "Hist" ) == 0 ) 
-				set_history( vep->image, 
-					(char *) vips_dbuf_string( &vep->dbuf, 
-						NULL ) ); 
+			if( strcmp( name, "Hist" ) == 0 )
+				set_history( vep->image,
+					(char *) vips_dbuf_string( &vep->dbuf,
+						NULL ) );
 		}
 		else {
 			GType gtype = g_type_from_name( vep->type );
 
 			/* Can we convert from VIPS_SAVE_STRING to type?
 			 */
-			if( gtype && 
-				g_value_type_transformable( 
+			if( gtype &&
+				g_value_type_transformable(
 					VIPS_TYPE_SAVE_STRING, gtype ) &&
-				set_meta( vep->image, 
-					gtype, vep->name, 
-					(char *) vips_dbuf_string( &vep->dbuf, 
+				set_meta( vep->image,
+					gtype, vep->name,
+					(char *) vips_dbuf_string( &vep->dbuf,
 						NULL ) ) )
 				vep->error = TRUE;
 		}
@@ -731,7 +731,7 @@ parser_data_handler( void *user_data, const XML_Char *data, int len )
 	VipsExpatParse *vep = (VipsExpatParse *) user_data;
 
 #ifdef DEBUG
-	printf( "parser_data_handler: %d bytes\n", len ); 
+	printf( "parser_data_handler: %d bytes\n", len );
 #endif /*DEBUG*/
 
 	vips_dbuf_write( &vep->dbuf, (unsigned char *) data, len );
@@ -740,37 +740,37 @@ parser_data_handler( void *user_data, const XML_Char *data, int len )
 /* Called at the end of vips open ... get any XML after the pixel data
  * and read it in.
  */
-static int 
+static int
 readhist( VipsImage *im )
 {
 	XML_Parser parser;
 	VipsExpatParse vep;
 
-	if( vips__seek( im->fd, image_pixel_length( im ), SEEK_SET ) == -1 ) 
+	if( vips__seek( im->fd, image_pixel_length( im ), SEEK_SET ) == -1 )
 		return( -1 );
 
 	parser = XML_ParserCreate( "UTF-8" );
 
 	vep.image = im;
-	vips_dbuf_init( &vep.dbuf ); 
+	vips_dbuf_init( &vep.dbuf );
 	vep.error = FALSE;
 	XML_SetUserData( parser, &vep );
 
-	XML_SetElementHandler( parser, 
+	XML_SetElementHandler( parser,
 		parser_element_start_handler, parser_element_end_handler );
-	XML_SetCharacterDataHandler( parser, parser_data_handler ); 
+	XML_SetCharacterDataHandler( parser, parser_data_handler );
 
 	if( parser_read_fd( parser, im->fd ) ||
-		vep.error ) { 
-		vips_dbuf_destroy( &vep.dbuf ); 
+		vep.error ) {
+		vips_dbuf_destroy( &vep.dbuf );
 		XML_ParserFree( parser );
 		return( -1 );
 	}
 
-	vips_dbuf_destroy( &vep.dbuf ); 
+	vips_dbuf_destroy( &vep.dbuf );
 	XML_ParserFree( parser );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 int
@@ -788,10 +788,10 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	}
 
 	if( vips__ftruncate( im->fd, psize ) ||
-		vips__seek( im->fd, psize, SEEK_SET ) == -1 ) 
+		vips__seek( im->fd, psize, SEEK_SET ) == -1 )
 		return( -1 );
 	if( vips__write( im->fd, buf, size ) )
-                return( -1 );
+		return( -1 );
 
 #ifdef DEBUG
 	printf( "vips__write_extension_block: written %d bytes of XML to %s\n",
@@ -825,8 +825,8 @@ build_xml_meta( VipsMeta *meta, VipsTarget *target, void *b )
 
 	const char *str;
 
-	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
-	 * and restore. 
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save
+	 * and restore.
 	 */
 	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
 		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
@@ -834,23 +834,23 @@ build_xml_meta( VipsMeta *meta, VipsTarget *target, void *b )
 
 		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
 		if( !g_value_transform( &meta->value, &save_value ) ) {
-			vips_error( "VipsImage", "%s", 
+			vips_error( "VipsImage", "%s",
 				_( "error transforming to save format" ) );
 			return( meta );
 		}
 
 		/* We need to validate the str to make sure we'll be able to
-		 * read it back. 
+		 * read it back.
 		 */
 		str = vips_value_get_save_string( &save_value );
-		if( g_utf8_validate( str, -1, NULL ) ) { 
-			vips_target_writef( target, 
-				"    <field type=\"%s\" name=\"", 
-				g_type_name( type ) ); 
+		if( g_utf8_validate( str, -1, NULL ) ) {
+			vips_target_writef( target,
+				"    <field type=\"%s\" name=\"",
+				g_type_name( type ) );
 			target_write_quotes( target, meta->name );
-			vips_target_writes( target, "\">" );  
+			vips_target_writes( target, "\">" );
 			vips_target_write_amp( target, str );
-			vips_target_writes( target, "</field>\n" );  
+			vips_target_writes( target, "</field>\n" );
 		}
 
 		g_value_unset( &save_value );
@@ -870,42 +870,42 @@ build_xml( VipsImage *image )
 
 	target = vips_target_new_to_memory();
 
-	vips_target_writef( target, "<?xml version=\"1.0\"?>\n" ); 
-	vips_target_writef( target, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
-		NAMESPACE_URI, 
+	vips_target_writef( target, "<?xml version=\"1.0\"?>\n" );
+	vips_target_writef( target, "<root xmlns=\"%svips/%d.%d.%d\">\n",
+		NAMESPACE_URI,
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	vips_target_writef( target, "  <header>\n" );  
+	vips_target_writef( target, "  <header>\n" );
 
 	str = vips_image_get_history( image );
-	if( g_utf8_validate( str, -1, NULL ) ) { 
-		vips_target_writef( target, 
-			"    <field type=\"%s\" name=\"Hist\">", 
+	if( g_utf8_validate( str, -1, NULL ) ) {
+		vips_target_writef( target,
+			"    <field type=\"%s\" name=\"Hist\">",
 			g_type_name( VIPS_TYPE_REF_STRING ) );
 		vips_target_write_amp( target, str );
-		vips_target_writef( target, "</field>\n" ); 
+		vips_target_writef( target, "</field>\n" );
 	}
 
-	vips_target_writef( target, "  </header>\n" ); 
-	vips_target_writef( target, "  <meta>\n" );  
+	vips_target_writef( target, "  </header>\n" );
+	vips_target_writef( target, "  <meta>\n" );
 
-	if( vips_slist_map2( image->meta_traverse, 
+	if( vips_slist_map2( image->meta_traverse,
 		(VipsSListMap2Fn) build_xml_meta, target, NULL ) ) {
-		VIPS_UNREF( target ); 
+		VIPS_UNREF( target );
 		return( NULL );
 	}
 
-	vips_target_writef( target, "  </meta>\n" );  
-	vips_target_writef( target, "</root>\n" );  
+	vips_target_writef( target, "  </meta>\n" );
+	vips_target_writef( target, "</root>\n" );
 
-	result = vips_target_steal_text( target ); 
+	result = vips_target_steal_text( target );
 
 	VIPS_UNREF( target );
 
-	return( result ); 
+	return( result );
 }
 
 static void *
-vips__xml_properties_meta( VipsImage *image, 
+vips__xml_properties_meta( VipsImage *image,
 	const char *field, GValue *value, void *a )
 {
 	VipsTarget *target = (VipsTarget *) a;
@@ -913,8 +913,8 @@ vips__xml_properties_meta( VipsImage *image,
 
 	const char *str;
 
-	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
-	 * and restore. 
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save
+	 * and restore.
 	 */
 	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
 		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
@@ -922,21 +922,21 @@ vips__xml_properties_meta( VipsImage *image,
 
 		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
 		if( !g_value_transform( value, &save_value ) ) {
-			vips_error( "VipsImage", "%s", 
+			vips_error( "VipsImage", "%s",
 				_( "error transforming to save format" ) );
 			return( target );
 		}
 		str = vips_value_get_save_string( &save_value );
 
-		vips_target_writef( target, "    <property>\n" );  
-		vips_target_writef( target, "      <name>" ); 
+		vips_target_writef( target, "    <property>\n" );
+		vips_target_writef( target, "      <name>" );
 		vips_target_write_amp( target, field );
-		vips_target_writef( target, "</name>\n" ); 
+		vips_target_writef( target, "</name>\n" );
 		vips_target_writef( target, "      <value type=\"%s\">",
-			g_type_name( type ) );  
+			g_type_name( type ) );
 		vips_target_write_amp( target, str );
-		vips_target_writef( target, "</value>\n" ); 
-		vips_target_writef( target, "    </property>\n" );  
+		vips_target_writef( target, "</value>\n" );
+		vips_target_writef( target, "    </property>\n" );
 
 		g_value_unset( &save_value );
 	}
@@ -957,25 +957,25 @@ vips__xml_properties( VipsImage *image )
 	date = vips__get_iso8601();
 
 	target = vips_target_new_to_memory();
-	vips_target_writef( target, "<?xml version=\"1.0\"?>\n" ); 
+	vips_target_writef( target, "<?xml version=\"1.0\"?>\n" );
 	vips_target_writef( target, "<image xmlns=\"%s/dzsave\" "
-		"date=\"%s\" version=\"%d.%d.%d\">\n", 
-		NAMESPACE_URI, 
-		date, 
+		"date=\"%s\" version=\"%d.%d.%d\">\n",
+		NAMESPACE_URI,
+		date,
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	vips_target_writef( target, "  <properties>\n" );  
+	vips_target_writef( target, "  <properties>\n" );
 
-	g_free( date ); 
+	g_free( date );
 
 	if( vips_image_map( image, vips__xml_properties_meta, target ) ) {
 		VIPS_UNREF( target );
 		return( NULL );
 	}
 
-	vips_target_writef( target, "  </properties>\n" );  
-	vips_target_writef( target, "</image>\n" );  
+	vips_target_writef( target, "  </properties>\n" );
+	vips_target_writef( target, "</image>\n" );
 
-	result = vips_target_steal_text( target ); 
+	result = vips_target_steal_text( target );
 
 	VIPS_UNREF( target );
 
@@ -984,7 +984,7 @@ vips__xml_properties( VipsImage *image )
 
 /* Append XML to output fd.
  */
-int 
+int
 vips__writehist( VipsImage *image )
 {
 	char *xml;
@@ -997,8 +997,8 @@ vips__writehist( VipsImage *image )
 
 	if( vips__write_extension_block( image, xml, strlen( xml ) ) ) {
 		g_free( xml );
-                return( -1 );
-        }
+		return( -1 );
+	}
 
 #ifdef DEBUG
 	printf( "vips__writehist: saved XML is: \"%s\"\n", xml );
@@ -1033,10 +1033,10 @@ vips_image_open_input( VipsImage *image )
 	}
 
 	vips__seek( image->fd, 0, SEEK_SET );
-	if( read( image->fd, header, VIPS_SIZEOF_HEADER ) != 
+	if( read( image->fd, header, VIPS_SIZEOF_HEADER ) !=
 		VIPS_SIZEOF_HEADER ||
 		vips__read_header_bytes( image, header ) ) {
-		vips_error_system( errno, "VipsImage", 
+		vips_error_system( errno, "VipsImage",
 			_( "unable to read header for \"%s\"" ),
 			image->filename );
 		return( -1 );
@@ -1044,10 +1044,10 @@ vips_image_open_input( VipsImage *image )
 
 	/* Predict and check the file size. Only issue a warning, we want to be
 	 * able to read all the header fields we can, even if the actual data
-	 * isn't there. 
+	 * isn't there.
 	 */
 	psize = image_pixel_length( image );
-	if( (rsize = vips_file_length( image->fd )) == -1 ) 
+	if( (rsize = vips_file_length( image->fd )) == -1 )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize )
@@ -1063,7 +1063,7 @@ vips_image_open_input( VipsImage *image )
 	 * harmless.
 	 */
 	if( readhist( image ) ) {
-		g_warning( _( "error reading vips image metadata: %s" ), 
+		g_warning( _( "error reading vips image metadata: %s" ),
 			vips_error_buffer() );
 		vips_error_clear();
 	}
@@ -1071,23 +1071,23 @@ vips_image_open_input( VipsImage *image )
 	return( 0 );
 }
 
-int 
+int
 vips_image_open_output( VipsImage *image )
 {
 	if( image->fd == -1 ) {
-		/* Don't use im->sizeof_header here, but we know we're 
+		/* Don't use im->sizeof_header here, but we know we're
 		 * writing a VIPS image anyway.
 		 */
 		unsigned char header[VIPS_SIZEOF_HEADER];
 
-		if( (image->fd = vips__open_image_write( image->filename, 
+		if( (image->fd = vips__open_image_write( image->filename,
 			image->delete_on_close )) < 0 )
 			return( -1 );
 
 		/* We always write in native mode, so we must overwrite the
 		 * magic we read from the file originally.
 		 */
-		image->magic = vips_amiMSBfirst() ? 
+		image->magic = vips_amiMSBfirst() ?
 			VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
 
 		if( vips__write_header_bytes( image, header ) ||

@@ -349,11 +349,11 @@ static inline bool nsgif__deinterlace(uint32_t height, uint32_t *y, uint8_t *ste
 
 	switch (*step) {
 	case 24: *y = 4; *step = 8; if (*y < height) return true;
-	         /* Fall through. */
+		 /* Fall through. */
 	case  8: *y = 2; *step = 4; if (*y < height) return true;
-	         /* Fall through. */
+		 /* Fall through. */
 	case  4: *y = 1; *step = 2; if (*y < height) return true;
-	         /* Fall through. */
+		 /* Fall through. */
 	default:
 		break;
 	}
@@ -1407,19 +1407,19 @@ static struct nsgif_colour_layout nsgif__bitmap_fmt_to_colour_layout(
 	switch (bitmap_fmt) {
 	case NSGIF_BITMAP_FMT_RGBA8888:
 		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_A8B8G8R8
-		                  : NSGIF_BITMAP_FMT_R8G8B8A8;
+				  : NSGIF_BITMAP_FMT_R8G8B8A8;
 		break;
 	case NSGIF_BITMAP_FMT_BGRA8888:
 		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_A8R8G8B8
-		                  : NSGIF_BITMAP_FMT_B8G8R8A8;
+				  : NSGIF_BITMAP_FMT_B8G8R8A8;
 		break;
 	case NSGIF_BITMAP_FMT_ARGB8888:
 		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_B8G8R8A8
-		                  : NSGIF_BITMAP_FMT_A8R8G8B8;
+				  : NSGIF_BITMAP_FMT_A8R8G8B8;
 		break;
 	case NSGIF_BITMAP_FMT_ABGR8888:
 		bitmap_fmt = (le) ? NSGIF_BITMAP_FMT_R8G8B8A8
-		                  : NSGIF_BITMAP_FMT_A8B8G8R8;
+				  : NSGIF_BITMAP_FMT_A8B8G8R8;
 		break;
 	default:
 		break;
@@ -1901,7 +1901,7 @@ nsgif_error nsgif_frame_decode(
 		return NSGIF_OK;
 
 	} else if (gif->decoded_frame >= frame ||
-	           gif->decoded_frame == NSGIF_FRAME_INVALID) {
+		   gif->decoded_frame == NSGIF_FRAME_INVALID) {
 		/* Can skip to first frame or restart. */
 		start_frame = 0;
 	} else {

@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -45,7 +45,7 @@
 
 #include "pdraw.h"
 
-/** 
+/**
  * SECTION: draw
  * @short_description: drawing operations: flood, paste, line, circle
  * @stability: Stable
@@ -53,10 +53,10 @@
  *
  * These operations directly modify the image. They do not thread, on 32-bit
  * machines they will be limited to 2GB images, and a little care needs to be
- * taken if you use them as part of an image pipeline. 
+ * taken if you use them as part of an image pipeline.
  * They are mostly supposed to be useful for paintbox-style programs.
  *
- * libvips operations are all functional: they take zero or more existing input 
+ * libvips operations are all functional: they take zero or more existing input
  * images and generate zero or more new output images. Images are
  * never altered, you always create new images. This means libvips can cache
  * and thread very aggressively.
@@ -68,15 +68,15 @@
  * need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
  * to be a slow way to do it. This is where the draw operations come in.
  *
- * To use these operations, use vips_image_copy_memory() to make a private 
- * memory copy of the image you want to modify, then call a 
+ * To use these operations, use vips_image_copy_memory() to make a private
+ * memory copy of the image you want to modify, then call a
  * series of draw operations.
  *
  * Once you are done drawing, return to normal use of vips operations. Any time
- * you want to start drawing again, you'll need to copy again. 
+ * you want to start drawing again, you'll need to copy again.
  */
 
-/** 
+/**
  * VipsCombineMode:
  * @VIPS_COMBINE_MODE_SET: set pixels to the new value
  * @VIPS_COMBINE_MODE_ADD: add pixels
@@ -84,7 +84,7 @@
  * See vips_draw_image() and so on.
  *
  * Operations like vips_draw_image() need to be told how to combine images
- * from two sources. 
+ * from two sources.
  *
  * See also: vips_join().
  */
@@ -130,10 +130,10 @@ vips_draw_class_init( VipsDrawClass *class )
 	vobject_class->description = _( "draw operations" );
 	vobject_class->build = vips_draw_build;
 
-	VIPS_ARG_IMAGE( class, "image", 1, 
-		_( "Image" ), 
+	VIPS_ARG_IMAGE( class, "image", 1,
+		_( "Image" ),
 		_( "Image to draw on" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_MODIFY, 
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_MODIFY,
 		G_STRUCT_OFFSET( VipsDraw, image ) );
 
 }
@@ -146,13 +146,13 @@ vips_draw_init( VipsDraw *draw )
 void
 vips_draw_operation_init( void )
 {
-	extern GType vips_draw_rect_get_type( void ); 
-	extern GType vips_draw_image_get_type( void ); 
-	extern GType vips_draw_mask_get_type( void ); 
-	extern GType vips_draw_line_get_type( void ); 
-	extern GType vips_draw_circle_get_type( void ); 
-	extern GType vips_draw_flood_get_type( void ); 
-	extern GType vips_draw_smudge_get_type( void ); 
+	extern GType vips_draw_rect_get_type( void );
+	extern GType vips_draw_image_get_type( void );
+	extern GType vips_draw_mask_get_type( void );
+	extern GType vips_draw_line_get_type( void );
+	extern GType vips_draw_circle_get_type( void );
+	extern GType vips_draw_flood_get_type( void );
+	extern GType vips_draw_smudge_get_type( void );
 
 	vips_draw_rect_get_type();
 	vips_draw_image_get_type();

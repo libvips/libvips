@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -84,8 +84,8 @@ vips_unary_class_init( VipsUnaryClass *class )
 	/* Create properties.
 	 */
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsUnary, in ) );
@@ -112,7 +112,7 @@ vips_unary_copy( VipsUnary *unary )
 	 *
 	 * Should arith set out in _init()?
 	 */
-	g_object_set( unary, "out", vips_image_new(), NULL ); 
+	g_object_set( unary, "out", vips_image_new(), NULL );
 
 	return( vips_image_write( unary->in, arithmetic->out ) );
 }

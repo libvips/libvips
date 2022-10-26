@@ -3,7 +3,7 @@
  * 3/3/09
  * 	- from LabQ2Lab and Radiance sources
  * 2/11/09
- * 	- gtkdoc 
+ * 	- gtkdoc
  * 20/9/12
  * 	- redo as a class
  * 13/12/12
@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -39,7 +39,7 @@
 
 /*
 
-    Sections of this file from Greg Ward and Radiance with kind 
+    Sections of this file from Greg Ward and Radiance with kind
     permission. The Radience copyright notice appears below.
 
  */
@@ -177,7 +177,7 @@ vips_rad2float_class_init( VipsRad2floatClass *class )
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
 	object_class->nickname = "rad2float";
-	object_class->description = 
+	object_class->description =
 		_( "unpack Radiance coding to float RGB" );
 
 	colour_class->process_line = vips_rad2float_line;

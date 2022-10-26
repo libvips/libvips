@@ -1,13 +1,13 @@
 /* A Source subclass with signals you can easily hook up to other input
  * sources.
- * 
+ *
  * J.Cupitt, 21/11/19
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,18 +59,18 @@
 
 G_DEFINE_TYPE( VipsSourceCustom, vips_source_custom, VIPS_TYPE_SOURCE );
 
-/* Our signals. 
+/* Our signals.
  */
 enum {
-	SIG_SEEK,		
-	SIG_READ,		
+	SIG_SEEK,
+	SIG_READ,
 	SIG_LAST
 };
 
 static guint vips_source_custom_signals[SIG_LAST] = { 0 };
 
 static gint64
-vips_source_custom_read_real( VipsSource *source, 
+vips_source_custom_read_real( VipsSource *source,
 	void *buffer, size_t length )
 {
 	gint64 bytes_read;
@@ -84,14 +84,14 @@ vips_source_custom_read_real( VipsSource *source,
 	g_signal_emit( source, vips_source_custom_signals[SIG_READ], 0,
 		buffer, (gint64) length, &bytes_read );
 
-	VIPS_DEBUG_MSG( "  vips_source_custom_read_real, seen %zd bytes\n", 
+	VIPS_DEBUG_MSG( "  vips_source_custom_read_real, seen %zd bytes\n",
 		bytes_read );
 
 	return( bytes_read );
 }
 
 static gint64
-vips_source_custom_seek_real( VipsSource *source, 
+vips_source_custom_seek_real( VipsSource *source,
 	gint64 offset, int whence )
 {
 	GValue args[3] = { { 0 } };
@@ -114,10 +114,10 @@ vips_source_custom_seek_real( VipsSource *source,
 	g_value_init( &result, G_TYPE_INT64 );
 	g_value_set_int64( &result, -1 );
 
-	/* We need to use this signal interface since we want a default value 
+	/* We need to use this signal interface since we want a default value
 	 * if no handlers are attached.
 	 */
-	g_signal_emitv( (const GValue *) &args, 
+	g_signal_emitv( (const GValue *) &args,
 		vips_source_custom_signals[SIG_SEEK], 0, &result );
 
 	new_position = g_value_get_int64( &result );
@@ -127,14 +127,14 @@ vips_source_custom_seek_real( VipsSource *source,
 	g_value_unset( &args[2] );
 	g_value_unset( &result );
 
-	VIPS_DEBUG_MSG( "  vips_source_custom_seek_real, seen new pos %zd\n", 
+	VIPS_DEBUG_MSG( "  vips_source_custom_seek_real, seen new pos %zd\n",
 		new_position );
 
 	return( new_position );
 }
 
 static gint64
-vips_source_custom_read_signal_real( VipsSourceCustom *source_custom, 
+vips_source_custom_read_signal_real( VipsSourceCustom *source_custom,
 	void *data, gint64 length )
 {
 	VIPS_DEBUG_MSG( "vips_source_custom_read_signal_real:\n" );
@@ -143,7 +143,7 @@ vips_source_custom_read_signal_real( VipsSourceCustom *source_custom,
 }
 
 static gint64
-vips_source_custom_seek_signal_real( VipsSourceCustom *source_custom, 
+vips_source_custom_seek_signal_real( VipsSourceCustom *source_custom,
 	gint64 offset, int whence )
 {
 	VIPS_DEBUG_MSG( "vips_source_custom_seek_signal_real:\n" );
@@ -179,7 +179,7 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 	vips_source_custom_signals[SIG_READ] = g_signal_new( "read",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsSourceCustomClass, read ), 
+		G_STRUCT_OFFSET( VipsSourceCustomClass, read ),
 		NULL, NULL,
 		vips_INT64__POINTER_INT64,
 		G_TYPE_INT64, 2,
@@ -201,7 +201,7 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 	vips_source_custom_signals[SIG_SEEK] = g_signal_new( "seek",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsSourceCustomClass, seek ), 
+		G_STRUCT_OFFSET( VipsSourceCustomClass, seek ),
 		NULL, NULL,
 		vips_INT64__INT64_INT,
 		G_TYPE_INT64, 2,
@@ -236,5 +236,5 @@ vips_source_custom_new( void )
 		return( NULL );
 	}
 
-	return( source_custom ); 
+	return( source_custom );
 }

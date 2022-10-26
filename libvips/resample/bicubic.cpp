@@ -120,15 +120,15 @@ bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -158,7 +158,7 @@ bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		bicubic = VIPS_CLIP( 0, bicubic, max_value ); 
+		bicubic = VIPS_CLIP( 0, bicubic, max_value );
 
 		out[z] = bicubic;
 
@@ -183,15 +183,15 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -221,7 +221,7 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		bicubic = VIPS_CLIP( min_value, bicubic, max_value ); 
+		bicubic = VIPS_CLIP( min_value, bicubic, max_value );
 
 		out[z] = bicubic;
 
@@ -248,15 +248,15 @@ bicubic_float_tab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -312,15 +312,15 @@ bicubic_unsigned_int32_tab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -350,7 +350,7 @@ bicubic_unsigned_int32_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		bicubic = VIPS_CLIP( 0, bicubic, max_value ); 
+		bicubic = VIPS_CLIP( 0, bicubic, max_value );
 
 		out[z] = bicubic;
 
@@ -375,15 +375,15 @@ bicubic_signed_int32_tab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -413,7 +413,7 @@ bicubic_signed_int32_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		bicubic = VIPS_CLIP( min_value, bicubic, max_value ); 
+		bicubic = VIPS_CLIP( min_value, bicubic, max_value );
 
 		out[z] = bicubic;
 
@@ -440,15 +440,15 @@ bicubic_notab( void *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-        const int l1_plus_b1 = l1 + b1;
-        const int l1_plus_b2 = l1 + b2;
-        const int l1_plus_b3 = l1 + b3;
-        const int l2_plus_b1 = l2 + b1;
-        const int l2_plus_b2 = l2 + b2;
-        const int l2_plus_b3 = l2 + b3;
-        const int l3_plus_b1 = l3 + b1;
-        const int l3_plus_b2 = l3 + b2;
-        const int l3_plus_b3 = l3 + b3;
+	const int l1_plus_b1 = l1 + b1;
+	const int l1_plus_b2 = l1 + b2;
+	const int l1_plus_b3 = l1 + b3;
+	const int l2_plus_b1 = l2 + b1;
+	const int l2_plus_b2 = l2 + b2;
+	const int l2_plus_b3 = l2 + b3;
+	const int l3_plus_b1 = l3 + b1;
+	const int l3_plus_b2 = l3 + b2;
+	const int l3_plus_b3 = l3 + b3;
 
 	double cx[4];
 	double cy[4];
@@ -494,9 +494,9 @@ static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	void *out, VipsRegion *in, double x, double y )
 {
-	/* Find the mask index. We round-to-nearest, so we need to generate 
-	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
-	 * by 2 more than we need to, add one, mask, then shift down again to 
+	/* Find the mask index. We round-to-nearest, so we need to generate
+	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply
+	 * by 2 more than we need to, add one, mask, then shift down again to
 	 * get the extra range.
 	 */
 	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
@@ -508,14 +508,14 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	const int tx = (six + 1) >> 1;
 	const int ty = (siy + 1) >> 1;
 
-	/* We know x/y are always positive, so we can just (int) them. 
+	/* We know x/y are always positive, so we can just (int) them.
 	 */
 	const int ix = (int) x;
 	const int iy = (int) y;
 
 	/* Back and up one to get the top-left of the 4x4.
 	 */
-	const VipsPel *p = VIPS_REGION_ADDR( in, ix - 1, iy - 1 ); 
+	const VipsPel *p = VIPS_REGION_ADDR( in, ix - 1, iy - 1 );
 
 	/* Look up the tables we need.
 	 */
@@ -588,13 +588,13 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_UINT:
-		bicubic_unsigned_int32_tab<unsigned int, INT_MAX>( 
+		bicubic_unsigned_int32_tab<unsigned int, INT_MAX>(
 			out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
 	case VIPS_FORMAT_INT:
-		bicubic_signed_int32_tab<signed int, INT_MIN, INT_MAX>( 
+		bicubic_signed_int32_tab<signed int, INT_MIN, INT_MAX>(
 			out, p, bands, lskip,
 			cxf, cyf );
 		break;
@@ -640,12 +640,12 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	/* Build the tables of pre-computed coefficients.
 	 */
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		calculate_coefficients_catmull( vips_bicubic_matrixf[x], 
-			(float) x / VIPS_TRANSFORM_SCALE ); 
+		calculate_coefficients_catmull( vips_bicubic_matrixf[x],
+			(float) x / VIPS_TRANSFORM_SCALE );
 
 		for( int i = 0; i < 4; i++ )
 			vips_bicubic_matrixi[x][i] =
-				vips_bicubic_matrixf[x][i] * 
+				vips_bicubic_matrixf[x][i] *
 				VIPS_INTERPOLATE_SCALE;
 	}
 }

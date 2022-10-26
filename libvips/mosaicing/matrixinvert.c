@@ -1,5 +1,5 @@
 /* solve and invert matrices
- * 
+ *
  * 19/4/20 kleisauke
  *	- from im_matinv
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -79,7 +79,7 @@ vips_matrixinvert_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_matrixinvert_parent_class )->dispose( gobject );
 }
 
-/* DBL_MIN is smallest *normalized* double precision float 
+/* DBL_MIN is smallest *normalized* double precision float
  */
 #define TOO_SMALL (2.0 * DBL_MIN)
 
@@ -96,17 +96,17 @@ vips_matrixinvert_dispose( GObject *gobject )
  *
  * It calculates the PLU decomposition, storing the upper and diagonal parts
  * of U, together with the lower parts of L, as an NxN matrix in the first
- * N rows of the new matrix.  The diagonal parts of L are all set to unity 
- * and are not stored.  
+ * N rows of the new matrix.  The diagonal parts of L are all set to unity
+ * and are not stored.
  *
- * The final row of the new #VipsImage has only integer entries, which 
+ * The final row of the new #VipsImage has only integer entries, which
  * represent the row-wise permutations made by the permutation matrix P.
  *
  * The scale and offset members of the input #VipsImage are ignored.
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * Returns: the decomposed matrix on success, or NULL on error.
@@ -117,7 +117,7 @@ lu_decomp( VipsImage *mat )
 	int i, j, k;
 	double *row_scale;
 	VipsImage *lu;
-	
+
 	if ( !(row_scale = VIPS_ARRAY( NULL, mat->Xsize, double )) ) {
 		return( NULL );
 	}
@@ -225,7 +225,7 @@ lu_decomp( VipsImage *mat )
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * See also: vips__matrixtranspose(), vips__matrixmultiply().
@@ -285,7 +285,7 @@ vips_matrixinvert_solve( VipsMatrixinvert *matrix )
 
 		vec[j] = 1.0;
 
-		if( lu_solve( matrix->lu, vec ) ) 
+		if( lu_solve( matrix->lu, vec ) )
 			return( -1 );
 
 		for( i = 0; i < matrix->lu->Xsize; ++i )
@@ -303,7 +303,7 @@ vips_matrixinvert_direct( VipsMatrixinvert *matrix )
 	VipsImage *out = matrix->out;
 
 	switch( matrix->mat->Xsize ) {
-	case 1: 
+	case 1:
 {
 		double det = ME( in, 0, 0 );
 
@@ -318,9 +318,9 @@ vips_matrixinvert_direct( VipsMatrixinvert *matrix )
 }
 		break;
 
-	case 2: 
+	case 2:
 {
-		double det = ME( in, 0, 0 ) * ME( in, 1, 1 ) - 
+		double det = ME( in, 0, 0 ) * ME( in, 1, 1 ) -
 			ME( in, 0, 1 ) * ME( in, 1, 0 );
 
 		double tmp;
@@ -340,16 +340,16 @@ vips_matrixinvert_direct( VipsMatrixinvert *matrix )
 }
 		break;
 
-	case 3: 
+	case 3:
 {
 		double det;
 		double tmp;
 
-		det = ME( in, 0, 0 ) * ( ME( in, 1, 1 ) * 
+		det = ME( in, 0, 0 ) * ( ME( in, 1, 1 ) *
 			ME( in, 2, 2 ) - ME( in, 1, 2 ) * ME( in, 2, 1 ) );
-		det -= ME( in, 0, 1 ) * ( ME( in, 1, 0 ) * 
+		det -= ME( in, 0, 1 ) * ( ME( in, 1, 0 ) *
 			ME( in, 2, 2 ) - ME( in, 1, 2 ) * ME( in, 2, 0) );
-		det += ME( in, 0, 2)  *  ( ME( in, 1, 0 ) * 
+		det += ME( in, 0, 2)  *  ( ME( in, 1, 0 ) *
 			ME( in, 2, 1 ) - ME( in, 1, 1 ) * ME( in, 2, 0 ) );
 
 		if( fabs( det ) < TOO_SMALL ) {
@@ -414,12 +414,12 @@ vips_matrixinvert_build( VipsObject *object )
 		return( -1 );
 	}
 
-	g_object_set( matrix, 
-		"out", vips_image_new_matrix( matrix->mat->Xsize, 
+	g_object_set( matrix,
+		"out", vips_image_new_matrix( matrix->mat->Xsize,
 			matrix->mat->Ysize ),
 		NULL );
 
-	/* Direct path for < 4x4 matrices 
+	/* Direct path for < 4x4 matrices
 	 */
 	if( matrix->mat->Xsize >= 4 ) {
 		if( vips_matrixinvert_solve( matrix ) )
@@ -453,10 +453,10 @@ vips_matrixinvert_class_init( VipsMatrixinvertClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatrixinvert, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 1,
+		_( "Output" ),
 		_( "Output matrix" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMatrixinvert, out ) );
 }
 

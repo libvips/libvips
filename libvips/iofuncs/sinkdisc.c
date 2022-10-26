@@ -1,5 +1,5 @@
-/* Write an image to a disc file. 
- * 
+/* Write an image to a disc file.
+ *
  * 19/3/10
  * 	- from im_wbuffer.c
  * 	- move on top of VipsThreadpool, instead of im_threadgroup_t
@@ -14,7 +14,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -72,11 +72,11 @@ typedef struct _WriteBuffer {
 
 	VipsRegion *region;	/* Pixels */
 	VipsRect area;		/* Part of image this region covers */
-        VipsSemaphore go; 	/* Start bg thread loop */
-        VipsSemaphore nwrite; 	/* Number of threads writing to region */
-        VipsSemaphore done; 	/* Bg thread has done write */
+	VipsSemaphore go; 	/* Start bg thread loop */
+	VipsSemaphore nwrite; 	/* Number of threads writing to region */
+	VipsSemaphore done; 	/* Bg thread has done write */
 	VipsSemaphore finish; 	/* Bg thread has finished */
-        int write_errno;	/* Save write errors here */
+	int write_errno;	/* Save write errors here */
 	gboolean running;	/* Whether the bg writer thread is running */
 	gboolean kill;		/* Set to ask thread to exit */
 } WriteBuffer;
@@ -94,8 +94,8 @@ typedef struct _Write {
 
 	/* The file format write operation.
 	 */
-	VipsRegionWrite write_fn;	
-	void *a;		
+	VipsRegionWrite write_fn;
+	void *a;
 } Write;
 
 /* Our per-thread state ... we need to also track the buffer that pos is
@@ -104,7 +104,7 @@ typedef struct _Write {
 typedef struct _WriteThreadState {
 	VipsThreadState parent_object;
 
-        WriteBuffer *buf;
+	WriteBuffer *buf;
 } WriteThreadState;
 
 typedef struct _WriteThreadStateClass {
@@ -132,18 +132,18 @@ write_thread_state_init( WriteThreadState *state )
 static VipsThreadState *
 write_thread_state_new( VipsImage *im, void *a )
 {
-	return( VIPS_THREAD_STATE( vips_object_new( 
-		write_thread_state_get_type(), 
+	return( VIPS_THREAD_STATE( vips_object_new(
+		write_thread_state_get_type(),
 		vips_thread_state_set, im, a ) ) );
 }
 
 static void
 wbuffer_free( WriteBuffer *wbuffer )
 {
-        /* Is there a thread running this region? Kill it!
-         */
-        if( wbuffer->running ) {
-                wbuffer->kill = TRUE;
+	/* Is there a thread running this region? Kill it!
+	 */
+	if( wbuffer->running ) {
+		wbuffer->kill = TRUE;
 		vips_semaphore_up( &wbuffer->go );
 
 		vips_semaphore_down( &wbuffer->finish );
@@ -151,7 +151,7 @@ wbuffer_free( WriteBuffer *wbuffer )
 		VIPS_DEBUG_MSG( "wbuffer_free:\n" );
 
 		wbuffer->running = FALSE;
-        }
+	}
 
 	VIPS_UNREF( wbuffer->region );
 	vips_semaphore_destroy( &wbuffer->go );
@@ -166,15 +166,15 @@ wbuffer_write( WriteBuffer *wbuffer )
 {
 	Write *write = wbuffer->write;
 
-	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n", 
+	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n",
 		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 
-	VIPS_GATE_START( "wbuffer_write: work" ); 
+	VIPS_GATE_START( "wbuffer_write: work" );
 
-	wbuffer->write_errno = write->write_fn( wbuffer->region, 
+	wbuffer->write_errno = write->write_fn( wbuffer->region,
 		&wbuffer->area, write->a );
 
-	VIPS_GATE_STOP( "wbuffer_write: work" ); 
+	VIPS_GATE_STOP( "wbuffer_write: work" );
 }
 
 /* Run this as a thread to do a BG write.
@@ -236,7 +236,7 @@ wbuffer_new( Write *write )
 
 	/* Make this last (picks up parts of wbuffer on startup).
 	 */
-	if( vips__thread_execute( "wbuffer", wbuffer_write_thread, 
+	if( vips__thread_execute( "wbuffer", wbuffer_write_thread,
 		wbuffer ) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
@@ -254,7 +254,7 @@ wbuffer_flush( Write *write )
 {
 	VIPS_DEBUG_MSG( "wbuffer_flush:\n" );
 
-	/* Block until the other buffer has been written. We have to do this 
+	/* Block until the other buffer has been written. We have to do this
 	 * before we can set this buffer writing or we'll lose output ordering.
 	 */
 	if( write->buf->area.top > 0 ) {
@@ -265,7 +265,7 @@ wbuffer_flush( Write *write )
 		if( write->buf_back->write_errno ) {
 			vips_error_system( write->buf_back->write_errno,
 				"wbuffer_write", "%s", _( "write failed" ) );
-			return( -1 ); 
+			return( -1 );
 		}
 	}
 
@@ -278,7 +278,7 @@ wbuffer_flush( Write *write )
 
 /* Move a wbuffer to a position.
  */
-static int 
+static int
 wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 {
 	VipsRect image, area;
@@ -329,7 +329,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 	VIPS_DEBUG_MSG( "wbuffer_allocate_fn:\n"  );
 
-	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
+	/* Is the state x/y OK? New line or maybe new buffer or maybe even
 	 * all done.
 	 */
 	if( sink_base->x >= write->buf->area.width ) {
@@ -341,7 +341,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 				"finished top = %d, height = %d\n",
 				write->buf->area.top, write->buf->area.height );
 
-			/* Block until the write of the previous buffer 
+			/* Block until the write of the previous buffer
 			 * is done, then set write of this buffer going.
 			 */
 			if( wbuffer_flush( write ) ) {
@@ -366,7 +366,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 			/* Position buf at the new y.
 			 */
-			if( wbuffer_position( write->buf, 
+			if( wbuffer_position( write->buf,
 				sink_base->y, sink_base->n_lines ) ) {
 				*stop = TRUE;
 				return( -1 );
@@ -396,8 +396,8 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	wstate->buf = write->buf;
 
 	VIPS_DEBUG_MSG( "  thread %p allocated "
-		"left = %d, top = %d, width = %d, height = %d\n", 
-		g_thread_self(), 
+		"left = %d, top = %d, width = %d, height = %d\n",
+		g_thread_self(),
 		tile.left, tile.top, tile.width, tile.height );
 
 	/* Add to the number of writers on the buffer.
@@ -424,14 +424,14 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 
 	int result;
 
-	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p, %d x %d\n", 
-		g_thread_self(), 
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p, %d x %d\n",
+		g_thread_self(),
 		state->pos.left, state->pos.top );
 
-	result = vips_region_prepare_to( state->reg, wstate->buf->region, 
+	result = vips_region_prepare_to( state->reg, wstate->buf->region,
 		&state->pos, state->pos.left, state->pos.top );
 
-	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p result = %d\n", 
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p result = %d\n",
 		g_thread_self(), result );
 
 	/* Tell the bg write thread we've left.
@@ -442,7 +442,7 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 }
 
 static void
-write_init( Write *write, 
+write_init( Write *write,
 	VipsImage *image, VipsRegionWrite write_fn, void *a )
 {
 	vips_sink_base_init( &write->sink_base, image );
@@ -466,7 +466,7 @@ write_free( Write *write )
  * @area: area to write
  * @a: client data
  *
- * The function should write the pixels in @area from @region. @a is the 
+ * The function should write the pixels in @area from @region. @a is the
  * value passed into vips_sink_disc().
  *
  * See also: vips_sink_disc().
@@ -487,9 +487,9 @@ write_free( Write *write )
  * thread), it's always given image
  * sections in top-to-bottom order, and there are never any gaps.
  *
- * This operation is handy for making image sinks which output to things like 
+ * This operation is handy for making image sinks which output to things like
  * disc files. Things like vips_jpegsave(), for example, use this to write
- * images to files in JPEG format. 
+ * images to files in JPEG format.
  *
  * See also: vips_concurrency_set().
  *
@@ -506,29 +506,29 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	write_init( &write, im, write_fn, a );
 
 	result = 0;
-	if( !write.buf || 
-		!write.buf_back || 
+	if( !write.buf ||
+		!write.buf_back ||
 		wbuffer_position( write.buf, 0, write.sink_base.n_lines ) ||
-		vips_threadpool_run( im, 
-			write_thread_state_new, 
-			wbuffer_allocate_fn, 
-			wbuffer_work_fn, 
-			vips_sink_base_progress, 
-			&write ) )  
+		vips_threadpool_run( im,
+			write_thread_state_new,
+			wbuffer_allocate_fn,
+			wbuffer_work_fn,
+			vips_sink_base_progress,
+			&write ) )
 		result = -1;
 
 	/* Just before allocate signalled stop, it set write.buf writing. We
-	 * need to wait for this write to finish. 
+	 * need to wait for this write to finish.
 	 *
-	 * We can't just free the buffers (which will wait for the bg threads 
-	 * to finish), since the bg thread might see the kill before it gets a 
+	 * We can't just free the buffers (which will wait for the bg threads
+	 * to finish), since the bg thread might see the kill before it gets a
 	 * chance to write.
 	 *
 	 * If the pool exited with an error, write.buf might not have been
 	 * started (if the allocate failed), and in any case, we don't care if
 	 * the final write went through or not.
 	 */
-	if( !result ) 
+	if( !result )
 		vips_semaphore_down( &write.buf->done );
 
 	vips_image_posteval( im );

@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -43,47 +43,47 @@ extern "C" {
 
 /* We have this misspelt in earlier versions :(
  */
-#define VIPS_META_IPCT_NAME VIPS_META_IPTC_NAME 
+#define VIPS_META_IPCT_NAME VIPS_META_IPTC_NAME
 
-#define IM_D93_X0 VIPS_D93_X0 
-#define IM_D93_Y0 VIPS_D93_Y0 
-#define IM_D93_Z0 VIPS_D93_Z0 
+#define IM_D93_X0 VIPS_D93_X0
+#define IM_D93_Y0 VIPS_D93_Y0
+#define IM_D93_Z0 VIPS_D93_Z0
 
-#define IM_D75_X0 VIPS_D75_X0 
-#define IM_D75_Y0 VIPS_D75_Y0 
-#define IM_D75_Z0 VIPS_D75_Z0 
+#define IM_D75_X0 VIPS_D75_X0
+#define IM_D75_Y0 VIPS_D75_Y0
+#define IM_D75_Z0 VIPS_D75_Z0
 
-#define IM_D65_X0 VIPS_D65_X0 
-#define IM_D65_Y0 VIPS_D65_Y0 
-#define IM_D65_Z0 VIPS_D65_Z0 
+#define IM_D65_X0 VIPS_D65_X0
+#define IM_D65_Y0 VIPS_D65_Y0
+#define IM_D65_Z0 VIPS_D65_Z0
 
-#define IM_D55_X0 VIPS_D55_X0 
-#define IM_D55_Y0 VIPS_D55_Y0 
-#define IM_D55_Z0 VIPS_D55_Z0 
+#define IM_D55_X0 VIPS_D55_X0
+#define IM_D55_Y0 VIPS_D55_Y0
+#define IM_D55_Z0 VIPS_D55_Z0
 
-#define IM_D50_X0 VIPS_D50_X0 
-#define IM_D50_Y0 VIPS_D50_Y0 
-#define IM_D50_Z0 VIPS_D50_Z0 
+#define IM_D50_X0 VIPS_D50_X0
+#define IM_D50_Y0 VIPS_D50_Y0
+#define IM_D50_Z0 VIPS_D50_Z0
 
-#define IM_A_X0 VIPS_A_X0 
-#define IM_A_Y0 VIPS_A_Y0 
-#define IM_A_Z0 VIPS_A_Z0 
+#define IM_A_X0 VIPS_A_X0
+#define IM_A_Y0 VIPS_A_Y0
+#define IM_A_Z0 VIPS_A_Z0
 
-#define IM_B_X0 VIPS_B_X0 
-#define IM_B_Y0 VIPS_B_Y0 
-#define IM_B_Z0 VIPS_B_Z0 
+#define IM_B_X0 VIPS_B_X0
+#define IM_B_Y0 VIPS_B_Y0
+#define IM_B_Z0 VIPS_B_Z0
 
-#define IM_C_X0 VIPS_C_X0 
-#define IM_C_Y0 VIPS_C_Y0 
-#define IM_C_Z0 VIPS_C_Z0 
+#define IM_C_X0 VIPS_C_X0
+#define IM_C_Y0 VIPS_C_Y0
+#define IM_C_Z0 VIPS_C_Z0
 
-#define IM_E_X0 VIPS_E_X0 
-#define IM_E_Y0 VIPS_E_Y0 
-#define IM_E_Z0 VIPS_E_Z0 
+#define IM_E_X0 VIPS_E_X0
+#define IM_E_Y0 VIPS_E_Y0
+#define IM_E_Z0 VIPS_E_Z0
 
-#define IM_D3250_X0 VIPS_D3250_X0 
-#define IM_D3250_Y0 VIPS_D3250_Y0 
-#define IM_D3250_Z0 VIPS_D3250_Z0 
+#define IM_D3250_X0 VIPS_D3250_X0
+#define IM_D3250_Y0 VIPS_D3250_Y0
+#define IM_D3250_Z0 VIPS_D3250_Z0
 
 #define im_col_Lab2XYZ vips_col_Lab2XYZ
 #define im_col_XYZ2Lab vips_col_XYZ2Lab
@@ -299,25 +299,25 @@ int vips_remapfilerw( VipsImage *image );
  */
 
 VIPS_DEPRECATED_FOR(vips_init)
-int im_init_world( const char *argv0 ); 
+int im_init_world( const char *argv0 );
 
 VIPS_DEPRECATED_FOR(vips_image_new_mode)
 VipsImage *im_open( const char *filename, const char *mode );
 
 VIPS_DEPRECATED
-VipsImage *im_open_local( VipsImage *parent, 
+VipsImage *im_open_local( VipsImage *parent,
 	const char *filename, const char *mode );
 VIPS_DEPRECATED
-int im_open_local_array( VipsImage *parent, 
+int im_open_local_array( VipsImage *parent,
 	VipsImage **images, int n, const char *filename, const char *mode );
 
 #define im_callback_fn VipsCallbackFn
 
 VIPS_DEPRECATED_FOR(g_signal_connect)
-int im_add_callback( VipsImage *im, 
+int im_add_callback( VipsImage *im,
 	const char *callback, im_callback_fn fn, void *a, void *b );
 VIPS_DEPRECATED_FOR(g_signal_connect)
-int im_add_callback1( VipsImage *im, 
+int im_add_callback1( VipsImage *im,
 	const char *callback, im_callback_fn fn, void *a, void *b );
 #define im_add_close_callback( IM, FN, A, B ) \
 	im_add_callback( IM, "close", FN, A, B )
@@ -339,7 +339,7 @@ int im_add_callback1( VipsImage *im,
 
 typedef void *(*im_construct_fn)( void *, void *, void * );
 VIPS_DEPRECATED_FOR(vips_object_local)
-void *im_local( VipsImage *im, 
+void *im_local( VipsImage *im,
 	im_construct_fn cons, im_callback_fn dest, void *a, void *b, void *c );
 VIPS_DEPRECATED_FOR(vips_object_local_array)
 int im_local_array( VipsImage *im, void **out, int n,
@@ -416,10 +416,10 @@ int im_cache( IMAGE *in, IMAGE *out, int width, int height, int max );
 
 #define IM_FREEF( F, S ) \
 G_STMT_START { \
-        if( S ) { \
-                (void) F( (S) ); \
-                (S) = 0; \
-        } \
+	if( S ) { \
+		(void) F( (S) ); \
+		(S) = 0; \
+	} \
 } G_STMT_END
 
 /* Can't just use VIPS_FREEF(), we want the extra cast to void on the argument
@@ -427,23 +427,23 @@ G_STMT_START { \
  */
 #define IM_FREE( S ) \
 G_STMT_START { \
-        if( S ) { \
-                (void) im_free( (void *) (S) ); \
-                (S) = 0; \
-        } \
+	if( S ) { \
+		(void) im_free( (void *) (S) ); \
+		(S) = 0; \
+	} \
 } G_STMT_END
 
 #define IM_SETSTR( S, V ) \
 G_STMT_START { \
-        const char *sst = (V); \
+	const char *sst = (V); \
 	\
-        if( (S) != sst ) { \
-                if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
-                        IM_FREE( S ); \
-                        if( sst ) \
-                                (S) = im_strdup( NULL, sst ); \
-                } \
-        } \
+	if( (S) != sst ) { \
+		if( !(S) || !sst || strcmp( (S), sst ) != 0 ) { \
+			IM_FREE( S ); \
+			if( sst ) \
+				(S) = im_strdup( NULL, sst ); \
+		} \
+	} \
 } G_STMT_END
 
 #define im_malloc( IM, SZ ) \
@@ -463,39 +463,39 @@ G_STMT_START { \
 #define im_iocheck( I, O ) im_incheck( I )
 #define im_piocheck( I, O ) im_pincheck( I )
 
-#define im_check_uncoded vips_check_uncoded 
-#define im_check_coding_known vips_check_coding_known 
-#define im_check_coding_labq vips_check_coding_labq 
-#define im_check_coding_rad vips_check_coding_rad 
-#define im_check_coding_noneorlabq vips_check_coding_noneorlabq 
-#define im_check_coding_same vips_check_coding_same 
-#define im_check_mono vips_check_mono 
-#define im_check_bands_1or3 vips_check_bands_1or3 
-#define im_check_bands vips_check_bands 
-#define im_check_bands_1orn vips_check_bands_1orn 
-#define im_check_bands_1orn_unary vips_check_bands_1orn_unary 
-#define im_check_bands_same vips_check_bands_same 
-#define im_check_bandno vips_check_bandno 
-#define im_check_int vips_check_int 
-#define im_check_uint vips_check_uint 
-#define im_check_uintorf vips_check_uintorf 
-#define im_check_noncomplex vips_check_noncomplex 
-#define im_check_complex vips_check_complex 
-#define im_check_format vips_check_format 
-#define im_check_u8or16 vips_check_u8or16 
-#define im_check_8or16 vips_check_8or16 
-#define im_check_u8or16orf vips_check_u8or16orf 
-#define im_check_format_same vips_check_format_same 
-#define im_check_size_same vips_check_size_same 
-#define im_check_vector vips_check_vector 
-#define im_check_hist vips_check_hist 
-#define im_check_imask vips_check_imask 
-#define im_check_dmask vips_check_dmask 
+#define im_check_uncoded vips_check_uncoded
+#define im_check_coding_known vips_check_coding_known
+#define im_check_coding_labq vips_check_coding_labq
+#define im_check_coding_rad vips_check_coding_rad
+#define im_check_coding_noneorlabq vips_check_coding_noneorlabq
+#define im_check_coding_same vips_check_coding_same
+#define im_check_mono vips_check_mono
+#define im_check_bands_1or3 vips_check_bands_1or3
+#define im_check_bands vips_check_bands
+#define im_check_bands_1orn vips_check_bands_1orn
+#define im_check_bands_1orn_unary vips_check_bands_1orn_unary
+#define im_check_bands_same vips_check_bands_same
+#define im_check_bandno vips_check_bandno
+#define im_check_int vips_check_int
+#define im_check_uint vips_check_uint
+#define im_check_uintorf vips_check_uintorf
+#define im_check_noncomplex vips_check_noncomplex
+#define im_check_complex vips_check_complex
+#define im_check_format vips_check_format
+#define im_check_u8or16 vips_check_u8or16
+#define im_check_8or16 vips_check_8or16
+#define im_check_u8or16orf vips_check_u8or16orf
+#define im_check_format_same vips_check_format_same
+#define im_check_size_same vips_check_size_same
+#define im_check_vector vips_check_vector
+#define im_check_hist vips_check_hist
+#define im_check_imask vips_check_imask
+#define im_check_dmask vips_check_dmask
 
-#define vips_bandfmt_isint vips_band_format_isint 
-#define vips_bandfmt_isuint vips_band_format_isuint 
-#define vips_bandfmt_isfloat vips_band_format_isfloat 
-#define vips_bandfmt_iscomplex vips_band_format_iscomplex 
+#define vips_bandfmt_isint vips_band_format_isint
+#define vips_bandfmt_isuint vips_band_format_isuint
+#define vips_bandfmt_isfloat vips_band_format_isfloat
+#define vips_bandfmt_iscomplex vips_band_format_iscomplex
 
 #define im__change_suffix vips__change_suffix
 
@@ -507,8 +507,8 @@ VIPS_DEPRECATED
 int im_wrapone( VipsImage *in, VipsImage *out,
 	im_wrapone_fn fn, void *a, void *b );
 
-typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out, 
-        int width, void *a, void *b );
+typedef void (*im_wraptwo_fn)( void *in1, void *in2, void *out,
+	int width, void *a, void *b );
 VIPS_DEPRECATED
 int im_wraptwo( VipsImage *in1, VipsImage *in2, VipsImage *out,
 	im_wraptwo_fn fn, void *a, void *b );
@@ -519,13 +519,13 @@ VIPS_DEPRECATED
 int im_wrapmany( VipsImage **in, VipsImage *out,
 	im_wrapmany_fn fn, void *a, void *b );
 
-#define IM_META_EXIF_NAME VIPS_META_EXIF_NAME 
-#define IM_META_ICC_NAME VIPS_META_ICC_NAME 
-#define IM_META_RESOLUTION_UNIT VIPS_META_RESOLUTION_UNIT 
-#define IM_TYPE_SAVE_STRING VIPS_TYPE_SAVE_STRING 
-#define IM_TYPE_BLOB VIPS_TYPE_BLOB 
-#define IM_TYPE_AREA VIPS_TYPE_AREA 
-#define IM_TYPE_REF_STRING VIPS_TYPE_REF_STRING 
+#define IM_META_EXIF_NAME VIPS_META_EXIF_NAME
+#define IM_META_ICC_NAME VIPS_META_ICC_NAME
+#define IM_META_RESOLUTION_UNIT VIPS_META_RESOLUTION_UNIT
+#define IM_TYPE_SAVE_STRING VIPS_TYPE_SAVE_STRING
+#define IM_TYPE_BLOB VIPS_TYPE_BLOB
+#define IM_TYPE_AREA VIPS_TYPE_AREA
+#define IM_TYPE_REF_STRING VIPS_TYPE_REF_STRING
 
 #define im_header_map_fn VipsImageMapFn
 #define im_header_map vips_image_map
@@ -681,9 +681,9 @@ int im_sign( VipsImage *in, VipsImage *out );
 VIPS_DEPRECATED_FOR(vips_stats)
 DOUBLEMASK *im_stats( VipsImage *in );
 VIPS_DEPRECATED_FOR(vips_measure)
-DOUBLEMASK *im_measure_area( VipsImage *im, 
-	int left, int top, int width, int height, 
-	int h, int v, 
+DOUBLEMASK *im_measure_area( VipsImage *im,
+	int left, int top, int width, int height,
+	int h, int v,
 	int *sel, int nsel, const char *name );
 
 VIPS_DEPRECATED_FOR(vips_sin)
@@ -811,23 +811,23 @@ VIPS_DEPRECATED_FOR(vips_cross_phase)
 int im_cross_phase( VipsImage *a, VipsImage *b, VipsImage *out );
 
 VIPS_DEPRECATED
-int im_point( VipsImage *im, VipsInterpolate *interpolate, 
+int im_point( VipsImage *im, VipsInterpolate *interpolate,
 	double x, double y, int band, double *out );
 VIPS_DEPRECATED
-int im_point_bilinear( VipsImage *im, 
+int im_point_bilinear( VipsImage *im,
 	double x, double y, int band, double *out );
 
 VIPS_DEPRECATED_FOR(vips_image_write)
 int im_copy( VipsImage *in, VipsImage *out );
 VIPS_DEPRECATED_FOR(vips_copy)
-int im_copy_set( VipsImage *in, VipsImage *out, 
-	VipsInterpretation interpretation, 
+int im_copy_set( VipsImage *in, VipsImage *out,
+	VipsInterpretation interpretation,
 	float xres, float yres, int xoffset, int yoffset );
 VIPS_DEPRECATED
-int im_copy_set_meta( VipsImage *in, VipsImage *out, 
+int im_copy_set_meta( VipsImage *in, VipsImage *out,
 	const char *field, GValue *value );
 VIPS_DEPRECATED_FOR(vips_copy)
-int im_copy_morph( VipsImage *in, VipsImage *out, 
+int im_copy_morph( VipsImage *in, VipsImage *out,
 	int bands, VipsBandFormat format, VipsCoding coding );
 VIPS_DEPRECATED_FOR(vips_byteswap)
 int im_copy_swap( VipsImage *in, VipsImage *out );
@@ -836,7 +836,7 @@ int im_copy_file( VipsImage *in, VipsImage *out );
 VIPS_DEPRECATED
 int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
 VIPS_DEPRECATED_FOR(vips_embed)
-int im_embed( VipsImage *in, VipsImage *out, 
+int im_embed( VipsImage *in, VipsImage *out,
 	int type, int x, int y, int width, int height );
 VIPS_DEPRECATED_FOR(vips_flip)
 int im_fliphor( VipsImage *in, VipsImage *out );
@@ -851,7 +851,7 @@ int im_lrjoin( VipsImage *left, VipsImage *right, VipsImage *out );
 VIPS_DEPRECATED_FOR(vips_join)
 int im_tbjoin( VipsImage *top, VipsImage *bottom, VipsImage *out );
 VIPS_DEPRECATED_FOR(vips_extract_area)
-int im_extract_area( VipsImage *in, VipsImage *out, 
+int im_extract_area( VipsImage *in, VipsImage *out,
 	int left, int top, int width, int height );
 VIPS_DEPRECATED_FOR(vips_extract_band)
 int im_extract_band( VipsImage *in, VipsImage *out, int band );
@@ -939,8 +939,8 @@ int im_tone_build( VipsImage *out,
 VIPS_DEPRECATED_FOR(vips_system)
 int im_system( VipsImage *im, const char *cmd, char **out );
 VIPS_DEPRECATED_FOR(vips_system)
-VipsImage *im_system_image( VipsImage *im, 
-	const char *in_format, const char *out_format, const char *cmd_format, 
+VipsImage *im_system_image( VipsImage *im,
+	const char *in_format, const char *out_format, const char *cmd_format,
 	char **log );
 
 VIPS_DEPRECATED_FOR(vips_complex)
@@ -995,15 +995,15 @@ int im_tile_cache_random( IMAGE *in, IMAGE *out,
 VIPS_DEPRECATED_FOR(vips_shrink)
 int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
 VIPS_DEPRECATED_FOR(vips_affine)
-int im_affinei( VipsImage *in, VipsImage *out, 
+int im_affinei( VipsImage *in, VipsImage *out,
 	VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy, 
+	double a, double b, double c, double d, double dx, double dy,
 	int ox, int oy, int ow, int oh );
 VIPS_DEPRECATED_FOR(vips_affine)
 int im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy );
 VIPS_DEPRECATED_FOR(vips_shrink)
-int im_rightshift_size( VipsImage *in, VipsImage *out, 
+int im_rightshift_size( VipsImage *in, VipsImage *out,
 	int xshift, int yshift, int band_fmt );
 
 VIPS_DEPRECATED_FOR(vips_Lab2XYZ)
@@ -1013,7 +1013,7 @@ int im_Lab2XYZ( IMAGE *in, IMAGE *out );
 VIPS_DEPRECATED_FOR(vips_XYZ2Lab)
 int im_XYZ2Lab( VipsImage *in, VipsImage *out );
 VIPS_DEPRECATED_FOR(vips_XYZ2Lab)
-int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out, 
+int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out,
 	double X0, double Y0, double Z0 );
 VIPS_DEPRECATED_FOR(vips_Lab2LCh)
 int im_Lab2LCh( VipsImage *in, VipsImage *out );
@@ -1071,7 +1071,7 @@ int im_dECMC_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
 #define im_LabQ2disp(A, B, C) (im_LabQ2sRGB(A, B))
 
 VIPS_DEPRECATED_FOR(vips_icc_transform)
-int im_icc_transform( VipsImage *in, VipsImage *out, 
+int im_icc_transform( VipsImage *in, VipsImage *out,
 	const char *input_profile_filename,
 	const char *output_profile_filename,
 	VipsIntent intent );
@@ -1079,7 +1079,7 @@ int im_icc_transform( VipsImage *in, VipsImage *out,
 #define im_icc_present vips_icc_present
 
 VIPS_DEPRECATED_FOR(vips_icc_import)
-int im_icc_import( VipsImage *in, VipsImage *out, 
+int im_icc_import( VipsImage *in, VipsImage *out,
 	const char *input_profile_filename, VipsIntent intent );
 VIPS_DEPRECATED_FOR(vips_icc_import)
 int im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent );
@@ -1181,7 +1181,7 @@ VIPS_DEPRECATED_FOR(vips_morph)
 int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 VIPS_DEPRECATED_FOR(vips_conva)
-int im_aconv( VipsImage *in, VipsImage *out, 
+int im_aconv( VipsImage *in, VipsImage *out,
 	DOUBLEMASK *mask, int n_layers, int cluster );
 VIPS_DEPRECATED_FOR(vips_convi)
 int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
@@ -1189,7 +1189,7 @@ VIPS_DEPRECATED_FOR(vips_convf)
 int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
 VIPS_DEPRECATED_FOR(vips_convasep)
-int im_aconvsep( VipsImage *in, VipsImage *out, 
+int im_aconvsep( VipsImage *in, VipsImage *out,
 	DOUBLEMASK *mask, int n_layers );
 
 VIPS_DEPRECATED_FOR(vips_convsep)
@@ -1208,10 +1208,10 @@ VIPS_DEPRECATED
 int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
 
 VIPS_DEPRECATED
-int im_contrast_surface_raw( IMAGE *in, IMAGE *out, 
+int im_contrast_surface_raw( IMAGE *in, IMAGE *out,
 	int half_win_size, int spacing );
 VIPS_DEPRECATED
-int im_contrast_surface( VipsImage *in, VipsImage *out, 
+int im_contrast_surface( VipsImage *in, VipsImage *out,
 	int half_win_size, int spacing );
 
 VIPS_DEPRECATED
@@ -1227,64 +1227,64 @@ VIPS_DEPRECATED
 int im_gradcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 
 VIPS_DEPRECATED_FOR(vips_sharpen)
-int im_sharpen( VipsImage *in, VipsImage *out, 
-	int mask_size, 
-	double x1, double y2, double y3, 
+int im_sharpen( VipsImage *in, VipsImage *out,
+	int mask_size,
+	double x1, double y2, double y3,
 	double m1, double m2 );
 
 typedef enum {
-        IM_MASK_IDEAL_HIGHPASS = 0,
-        IM_MASK_IDEAL_LOWPASS = 1,
-        IM_MASK_BUTTERWORTH_HIGHPASS = 2,
-        IM_MASK_BUTTERWORTH_LOWPASS = 3,
-        IM_MASK_GAUSS_HIGHPASS = 4,
-        IM_MASK_GAUSS_LOWPASS = 5,
+	IM_MASK_IDEAL_HIGHPASS = 0,
+	IM_MASK_IDEAL_LOWPASS = 1,
+	IM_MASK_BUTTERWORTH_HIGHPASS = 2,
+	IM_MASK_BUTTERWORTH_LOWPASS = 3,
+	IM_MASK_GAUSS_HIGHPASS = 4,
+	IM_MASK_GAUSS_LOWPASS = 5,
 
-        IM_MASK_IDEAL_RINGPASS = 6,
-        IM_MASK_IDEAL_RINGREJECT = 7,
-        IM_MASK_BUTTERWORTH_RINGPASS = 8,
-        IM_MASK_BUTTERWORTH_RINGREJECT = 9,
-        IM_MASK_GAUSS_RINGPASS = 10,
-        IM_MASK_GAUSS_RINGREJECT = 11,
+	IM_MASK_IDEAL_RINGPASS = 6,
+	IM_MASK_IDEAL_RINGREJECT = 7,
+	IM_MASK_BUTTERWORTH_RINGPASS = 8,
+	IM_MASK_BUTTERWORTH_RINGREJECT = 9,
+	IM_MASK_GAUSS_RINGPASS = 10,
+	IM_MASK_GAUSS_RINGREJECT = 11,
 
-        IM_MASK_IDEAL_BANDPASS = 12,
-        IM_MASK_IDEAL_BANDREJECT = 13,
-        IM_MASK_BUTTERWORTH_BANDPASS = 14,
-        IM_MASK_BUTTERWORTH_BANDREJECT = 15,
-        IM_MASK_GAUSS_BANDPASS = 16,
-        IM_MASK_GAUSS_BANDREJECT = 17,
+	IM_MASK_IDEAL_BANDPASS = 12,
+	IM_MASK_IDEAL_BANDREJECT = 13,
+	IM_MASK_BUTTERWORTH_BANDPASS = 14,
+	IM_MASK_BUTTERWORTH_BANDREJECT = 15,
+	IM_MASK_GAUSS_BANDPASS = 16,
+	IM_MASK_GAUSS_BANDREJECT = 17,
 
-        IM_MASK_FRACTAL_FLT = 18
+	IM_MASK_FRACTAL_FLT = 18
 } ImMaskType;
 
 /* We had them in the VIPS namespace for a while before deprecating them.
  */
-#define VIPS_MASK_IDEAL_HIGHPASS IM_MASK_IDEAL_HIGHPASS 
-#define VIPS_MASK_IDEAL_LOWPASS IM_MASK_IDEAL_LOWPASS 
-#define VIPS_MASK_BUTTERWORTH_HIGHPASS IM_MASK_BUTTERWORTH_HIGHPASS 
-#define VIPS_MASK_BUTTERWORTH_LOWPASS IM_MASK_BUTTERWORTH_LOWPASS 
-#define VIPS_MASK_GAUSS_HIGHPASS IM_MASK_GAUSS_HIGHPASS 
-#define VIPS_MASK_GAUSS_LOWPASS IM_MASK_GAUSS_LOWPASS 
-#define VIPS_MASK_IDEAL_RINGPASS IM_MASK_IDEAL_RINGPASS 
-#define VIPS_MASK_IDEAL_RINGREJECT IM_MASK_IDEAL_RINGREJECT 
-#define VIPS_MASK_BUTTERWORTH_RINGPASS IM_MASK_BUTTERWORTH_RINGPASS 
-#define VIPS_MASK_BUTTERWORTH_RINGREJECT IM_MASK_BUTTERWORTH_RINGREJECT 
-#define VIPS_MASK_GAUSS_RINGPASS IM_MASK_GAUSS_RINGPASS 
-#define VIPS_MASK_GAUSS_RINGREJECT IM_MASK_GAUSS_RINGREJECT 
-#define VIPS_MASK_IDEAL_BANDPASS IM_MASK_IDEAL_BANDPASS 
-#define VIPS_MASK_IDEAL_BANDREJECT IM_MASK_IDEAL_BANDREJECT 
-#define VIPS_MASK_BUTTERWORTH_BANDPASS IM_MASK_BUTTERWORTH_BANDPASS 
-#define VIPS_MASK_BUTTERWORTH_BANDREJECT IM_MASK_BUTTERWORTH_BANDREJECT 
-#define VIPS_MASK_GAUSS_BANDPASS IM_MASK_GAUSS_BANDPASS 
-#define VIPS_MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT 
-#define VIPS_MASK_FRACTAL_FLT IM_MASK_FRACTAL_FLT 
+#define VIPS_MASK_IDEAL_HIGHPASS IM_MASK_IDEAL_HIGHPASS
+#define VIPS_MASK_IDEAL_LOWPASS IM_MASK_IDEAL_LOWPASS
+#define VIPS_MASK_BUTTERWORTH_HIGHPASS IM_MASK_BUTTERWORTH_HIGHPASS
+#define VIPS_MASK_BUTTERWORTH_LOWPASS IM_MASK_BUTTERWORTH_LOWPASS
+#define VIPS_MASK_GAUSS_HIGHPASS IM_MASK_GAUSS_HIGHPASS
+#define VIPS_MASK_GAUSS_LOWPASS IM_MASK_GAUSS_LOWPASS
+#define VIPS_MASK_IDEAL_RINGPASS IM_MASK_IDEAL_RINGPASS
+#define VIPS_MASK_IDEAL_RINGREJECT IM_MASK_IDEAL_RINGREJECT
+#define VIPS_MASK_BUTTERWORTH_RINGPASS IM_MASK_BUTTERWORTH_RINGPASS
+#define VIPS_MASK_BUTTERWORTH_RINGREJECT IM_MASK_BUTTERWORTH_RINGREJECT
+#define VIPS_MASK_GAUSS_RINGPASS IM_MASK_GAUSS_RINGPASS
+#define VIPS_MASK_GAUSS_RINGREJECT IM_MASK_GAUSS_RINGREJECT
+#define VIPS_MASK_IDEAL_BANDPASS IM_MASK_IDEAL_BANDPASS
+#define VIPS_MASK_IDEAL_BANDREJECT IM_MASK_IDEAL_BANDREJECT
+#define VIPS_MASK_BUTTERWORTH_BANDPASS IM_MASK_BUTTERWORTH_BANDPASS
+#define VIPS_MASK_BUTTERWORTH_BANDREJECT IM_MASK_BUTTERWORTH_BANDREJECT
+#define VIPS_MASK_GAUSS_BANDPASS IM_MASK_GAUSS_BANDPASS
+#define VIPS_MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT
+#define VIPS_MASK_FRACTAL_FLT IM_MASK_FRACTAL_FLT
 
 #define VIPS_MASK IM_MASK
 
 VIPS_DEPRECATED
 int im_flt_image_freq( VipsImage *in, VipsImage *out, ImMaskType flag, ... );
 VIPS_DEPRECATED
-int im_create_fmask( VipsImage *out, 
+int im_create_fmask( VipsImage *out,
 	int xsize, int ysize, ImMaskType flag, ... );
 
 VIPS_DEPRECATED_FOR(vips_fwfft)
@@ -1318,27 +1318,27 @@ VIPS_DEPRECATED
 int im_benchmark2( VipsImage *in, double *out );
 
 VIPS_DEPRECATED_FOR(vips_draw_circle)
-int im_draw_circle( VipsImage *image, 
+int im_draw_circle( VipsImage *image,
 	int x, int y, int radius, gboolean fill, VipsPel *ink );
 
 VIPS_DEPRECATED_FOR(vips_draw_mask)
-int im_draw_mask( VipsImage *image, 
+int im_draw_mask( VipsImage *image,
 	VipsImage *mask_im, int x, int y, VipsPel *ink );
 VIPS_DEPRECATED_FOR(vips_draw_image)
 int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 VIPS_DEPRECATED_FOR(vips_draw_rect)
-int im_draw_rect( VipsImage *image, 
+int im_draw_rect( VipsImage *image,
 	int left, int top, int width, int height, int fill, VipsPel *ink );
 
-typedef int (*VipsPlotFn)( VipsImage *image, int x, int y, 
-	void *a, void *b, void *c ); 
+typedef int (*VipsPlotFn)( VipsImage *image, int x, int y,
+	void *a, void *b, void *c );
 
 VIPS_DEPRECATED_FOR(vips_draw_line)
-int im_draw_line_user( VipsImage *image, 
-	int x1, int y1, int x2, int y2, 
+int im_draw_line_user( VipsImage *image,
+	int x1, int y1, int x2, int y2,
 	VipsPlotFn plot, void *a, void *b, void *c );
 VIPS_DEPRECATED_FOR(vips_draw_line)
-int im_draw_line( VipsImage *image, 
+int im_draw_line( VipsImage *image,
 	int x1, int y1, int x2, int y2, VipsPel *ink );
 VIPS_DEPRECATED
 int im_lineset( VipsImage *in, VipsImage *out, VipsImage *mask, VipsImage *ink,
@@ -1350,10 +1350,10 @@ int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x
 VIPS_DEPRECATED_FOR(vips_draw_flood)
 int im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, VipsRect *dout );
 VIPS_DEPRECATED_FOR(vips_draw_flood)
-int im_draw_flood_blob( VipsImage *image, 
+int im_draw_flood_blob( VipsImage *image,
 	int x, int y, VipsPel *ink, VipsRect *dout );
 VIPS_DEPRECATED_FOR(vips_draw_flood1)
-int im_draw_flood_other( VipsImage *image, VipsImage *test, 
+int im_draw_flood_other( VipsImage *image, VipsImage *test,
 	int x, int y, int serial, VipsRect *dout );
 
 VIPS_DEPRECATED_FOR(vips_draw_point)
@@ -1362,7 +1362,7 @@ VIPS_DEPRECATED_FOR(vips_getpoint)
 int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
 
 VIPS_DEPRECATED_FOR(vips_draw_smudge)
-int im_draw_smudge( VipsImage *image, 
+int im_draw_smudge( VipsImage *image,
 	int left, int top, int width, int height );
 
 VIPS_DEPRECATED
@@ -1422,17 +1422,17 @@ int im_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int balancetype,
 	int mwidth );
 VIPS_DEPRECATED_FOR(vips_mosaic1)
-int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno,
-	int xr1, int yr1, int xs1, int ys1, 
+	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
 VIPS_DEPRECATED_FOR(vips_mosaic)
-int im_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+int im_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno,
-	int xref, int yref, int xsec, int ysec, 
+	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
@@ -1466,14 +1466,14 @@ void im__format_init( void );
 VIPS_DEPRECATED
 int im_jpeg2vips( const char *filename, VipsImage *out );
 VIPS_DEPRECATED
-int im_bufjpeg2vips( void *buf, size_t len, 
+int im_bufjpeg2vips( void *buf, size_t len,
 	VipsImage *out, gboolean header_only );
 VIPS_DEPRECATED
 int im_vips2jpeg( VipsImage *in, const char *filename );
 VIPS_DEPRECATED
 int im_vips2mimejpeg( VipsImage *in, int qfac );
 VIPS_DEPRECATED
-int im_vips2bufjpeg( VipsImage *in, VipsImage *out, 
+int im_vips2bufjpeg( VipsImage *in, VipsImage *out,
 	int qfac, char **obuf, int *olen );
 
 VIPS_DEPRECATED
@@ -1481,13 +1481,13 @@ int im_tiff2vips( const char *filename, VipsImage *out );
 VIPS_DEPRECATED
 int im_vips2tiff( VipsImage *in, const char *filename );
 VIPS_DEPRECATED
-int im_tile_cache( VipsImage *in, VipsImage *out, 
+int im_tile_cache( VipsImage *in, VipsImage *out,
 	int tile_width, int tile_height, int max_tiles );
 
 VIPS_DEPRECATED
 int im_magick2vips( const char *filename, VipsImage *out );
 VIPS_DEPRECATED
-int im_bufmagick2vips( void *buf, size_t len, 
+int im_bufmagick2vips( void *buf, size_t len,
 	VipsImage *out, gboolean header_only );
 
 VIPS_DEPRECATED
@@ -1543,7 +1543,7 @@ int im_vips2dz( VipsImage *in, const char *filename );
 
 int im__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
 int im__bandalike_vec( const char *domain, VipsImage **in, VipsImage **out, int n );
-int im__bandalike( const char *domain, 
+int im__bandalike( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
 int im__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
@@ -1551,22 +1551,22 @@ int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage 
 int im__colour_unary( const char *domain,
 	VipsImage *in, VipsImage *out, VipsInterpretation interpretation,
 	im_wrapone_fn buffer_fn, void *a, void *b );
-VipsImage **im__insert_base( const char *domain, 
+VipsImage **im__insert_base( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 /* TODO(kleisauke): These are also defined in pmosaicing.h */
 int vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
-        int bandno_in,
-        int xref, int yref, int xsec, int ysec,
-        int halfcorrelation, int halfarea,
-        int *dx0, int *dy0,
-        double *scale1, double *angle1, double *dx1, double *dy1 );
+	int bandno_in,
+	int xref, int yref, int xsec, int ysec,
+	int halfcorrelation, int halfarea,
+	int *dx0, int *dy0,
+	double *scale1, double *angle1, double *dx1, double *dy1 );
 int vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
-        int bandno_in,
-        int xref, int yref, int xsec, int ysec,
-        int halfcorrelation, int halfarea,
-        int *dx0, int *dy0,
-        double *scale1, double *angle1, double *dx1, double *dy1 );
+	int bandno_in,
+	int xref, int yref, int xsec, int ysec,
+	int halfcorrelation, int halfarea,
+	int *dx0, int *dy0,
+	double *scale1, double *angle1, double *dx1, double *dy1 );
 
 /* A colour temperature.
  */
@@ -1615,9 +1615,9 @@ VIPS_DEPRECATED
 int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
 VIPS_DEPRECATED
-int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask, 
-	int iterations, float amplitude, float sharpness, float anisotropy, 
-	float alpha, float sigma, float dl, float da, float gauss_prec, 
+int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask,
+	int iterations, float amplitude, float sharpness, float anisotropy,
+	float alpha, float sigma, float dl, float da, float gauss_prec,
 	int interpolation, int fast_approx );
 
 VIPS_DEPRECATED
@@ -1639,10 +1639,10 @@ VIPS_DEPRECATED
 FILE *vips_popenf( const char *fmt, const char *mode, ... )
 	G_GNUC_PRINTF( 1, 3 );
 
-double *vips__ink_to_vector( const char *domain, 
-	VipsImage *im, VipsPel *ink, int *n ); 
+double *vips__ink_to_vector( const char *domain,
+	VipsImage *im, VipsPel *ink, int *n );
 
-VipsPel *im__vector_to_ink( const char *domain, 
+VipsPel *im__vector_to_ink( const char *domain,
 	VipsImage *im, int n, double *vec );
 
 int vips__init( const char *argv0 );

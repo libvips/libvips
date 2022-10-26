@@ -36,7 +36,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -86,7 +86,7 @@ static void
 vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float * restrict p = (float *) in[0];
-	VipsPel * restrict q = out; 
+	VipsPel * restrict q = out;
 
 	int i;
 
@@ -95,9 +95,9 @@ vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		int lsbs;
 		int intv;
 
-		/* Scale L up to 10 bits. 
+		/* Scale L up to 10 bits.
 		 */
-		intv = VIPS_ROUND_UINT( 10.23 * p[0] ); 
+		intv = VIPS_ROUND_UINT( 10.23 * p[0] );
 		intv = VIPS_CLIP( 0, intv, 1023 );
 		lsbs = (intv & 0x3) << 6;       /* 00000011 -> 11000000 */
 		q[0] = intv >> 2; 		/* drop bot 2 bits and store */

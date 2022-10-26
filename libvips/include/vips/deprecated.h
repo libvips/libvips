@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -87,9 +87,9 @@ extern "C" {
 #define sRGB		22
 #define YXY		23
 
-/* BandFmt 
+/* BandFmt
  */
-#define FMTNOTSET	-1	
+#define FMTNOTSET	-1
 #define FMTUCHAR	0	/* pels interpreted as unsigned chars */
 #define FMTCHAR		1	/* pels interpreted as signed chars */
 #define FMTUSHORT	2	/* pels interpreted as unsigned shorts */
@@ -101,7 +101,7 @@ extern "C" {
 #define FMTDOUBLE	8	/* pels interpreted as unsigned double */
 #define FMTDPCOMPLEX	9	/* pels interpreted as complex (2 double each)*/
 
-/* Coding type 
+/* Coding type
  */
 #define NOCODING		0
 #define COLQUANT		1
@@ -110,7 +110,7 @@ extern "C" {
 #define RGB_COMPRESSED		4
 #define LUM_COMPRESSED		5
 
-/* Compression type 
+/* Compression type
  */
 #define NO_COMPRESSION		0
 #define TCSF_COMPRESSION	1
@@ -125,7 +125,7 @@ extern "C" {
 #define nele(B) IM_REGION_N_ELEMENTS(B)
 #define rsize(B) IM_REGION_SIZEOF_LINE(B)
 
-#define addr(B,X,Y) IM_REGION_ADDR(B,X,Y) 
+#define addr(B,X,Y) IM_REGION_ADDR(B,X,Y)
 
 #ifndef MAX
 #define MAX(A,B) IM_MAX(A, B)

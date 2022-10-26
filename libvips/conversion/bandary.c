@@ -4,7 +4,7 @@
  *
  * Author: N. Dessipris
  * Written on: 17/04/1991
- * Modified on : 
+ * Modified on :
  * 16/3/94 JC
  *	- rewritten for partials
  *	- now in ANSI C
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -84,7 +84,7 @@ vips_bandary_stop( void *vseq, void *a, void *b )
 {
 	VipsBandarySequence *seq = (VipsBandarySequence *) vseq;
 
-        if( seq->ir ) {
+	if( seq->ir ) {
 		int i;
 
 		for( i = 0; seq->ir[i]; i++ )
@@ -147,7 +147,7 @@ vips_bandary_start( VipsImage *out, void *a, void *b )
 
 	/* Pixel buffer. This is used as working space by some subclasses.
 	 */
-	if( !(seq->pixels = VIPS_ARRAY( NULL, 
+	if( !(seq->pixels = VIPS_ARRAY( NULL,
 		n * VIPS_IMAGE_SIZEOF_PEL( bandary->ready[0] ), VipsPel )) ) {
 		vips_bandary_stop( seq, NULL, NULL );
 		return( NULL );
@@ -161,7 +161,7 @@ vips_bandary_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsBandarySequence *seq = (VipsBandarySequence *) vseq;
 	VipsBandary *bandary = (VipsBandary *) b;
-	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( bandary ); 
+	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( bandary );
 	VipsRect *r = &or->valid;
 
 	VipsPel *q;
@@ -169,12 +169,12 @@ vips_bandary_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 	if( vips_reorder_prepare_many( or->im, seq->ir, r ) )
 		return( -1 );
-	for( i = 0; i < bandary->n; i++ ) 
+	for( i = 0; i < bandary->n; i++ )
 		seq->p[i] = VIPS_REGION_ADDR( seq->ir[i], r->left, r->top );
 	seq->p[i] = NULL;
 	q = VIPS_REGION_ADDR( or, r->left, r->top );
 
-	VIPS_GATE_START( "vips_bandary_gen: work" ); 
+	VIPS_GATE_START( "vips_bandary_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
 		class->process_line( seq, q, seq->p, r->width );
@@ -184,7 +184,7 @@ vips_bandary_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 		q += VIPS_REGION_LSKIP( or );
 	}
 
-	VIPS_GATE_STOP( "vips_bandary_gen: work" ); 
+	VIPS_GATE_STOP( "vips_bandary_gen: work" );
 
 	return( 0 );
 }
@@ -193,7 +193,7 @@ static int
 vips_bandary_build( VipsObject *object )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
-	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( object ); 
+	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandary *bandary = VIPS_BANDARY( object );
 
@@ -206,7 +206,7 @@ vips_bandary_build( VipsObject *object )
 		return( -1 );
 
 	if( bandary->n <= 0 ) {
-		vips_error( object_class->nickname, 
+		vips_error( object_class->nickname,
 			"%s", _( "no input images" ) );
 		return( -1 );
 	}
@@ -223,17 +223,17 @@ vips_bandary_build( VipsObject *object )
 		return( -1 );
 	bandary->ready = size;
 
-	if( vips_image_pipeline_array( conversion->out, 
+	if( vips_image_pipeline_array( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, bandary->ready ) )
 		return( -1 );
 
 	conversion->out->Bands = bandary->out_bands;
 	if( class->format_table )
-		conversion->out->BandFmt = 
+		conversion->out->BandFmt =
 			class->format_table[bandary->ready[0]->BandFmt];
 
 	if( vips_image_generate( conversion->out,
-		vips_bandary_start, vips_bandary_gen, vips_bandary_stop, 
+		vips_bandary_start, vips_bandary_gen, vips_bandary_stop,
 		bandary->ready, bandary ) )
 		return( -1 );
 
@@ -275,7 +275,7 @@ vips_bandary_copy( VipsBandary *bandary )
 	VipsConversion *conversion = VIPS_CONVERSION( bandary );
 
 	if( !bandary->in ) {
-		vips_error( object_class->nickname, 
+		vips_error( object_class->nickname,
 			"%s", _( "no input images" ) );
 		return( -1 );
 	}
@@ -285,7 +285,7 @@ vips_bandary_copy( VipsBandary *bandary )
 	 *
 	 * Should arith set out in _init()?
 	 */
-	g_object_set( bandary, "out", vips_image_new(), NULL ); 
+	g_object_set( bandary, "out", vips_image_new(), NULL );
 
 	return( vips_image_write( bandary->in[0], conversion->out ) );
 }

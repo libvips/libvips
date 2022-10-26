@@ -16,7 +16,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ typedef VipsColourTransformClass VipsCMC2LChClass;
 
 G_DEFINE_TYPE( VipsCMC2LCh, vips_CMC2LCh, VIPS_TYPE_COLOUR_TRANSFORM );
 
-/* Generate LI (inverse) tables. 
+/* Generate LI (inverse) tables.
  */
 static void
 make_LI( void )
@@ -71,23 +71,23 @@ make_LI( void )
 	int i;
 	float Ll[1001];
 
-	for( i = 0; i < 1001; i++ ) 
-		Ll[i] = vips_col_L2Lcmc( i / 10.0 ); 
+	for( i = 0; i < 1001; i++ )
+		Ll[i] = vips_col_L2Lcmc( i / 10.0 );
 
 	for( i = 0; i < 1001; i++ ) {
 		int j;
 
 		/* Must be 1000, since j will be +1 on exit.
 		 */
-		for( j = 0; j < 1000 && Ll[j] <= i / 10.0; j++ ) 
+		for( j = 0; j < 1000 && Ll[j] <= i / 10.0; j++ )
 			;
 
-		LI[i] = (j - 1) / 10.0 + 
+		LI[i] = (j - 1) / 10.0 +
 			(i / 10.0 - Ll[j - 1]) / ((Ll[j] - Ll[j - 1]) * 10.0);
 	}
 }
 
-/* Generate Ccmc table. 
+/* Generate Ccmc table.
  */
 static void
 make_CI( void )
@@ -95,8 +95,8 @@ make_CI( void )
 	int i;
 	float Cl[3001];
 
-	for( i = 0; i < 3001; i++ ) 
-		Cl[i] = vips_col_C2Ccmc( i / 10.0 ); 
+	for( i = 0; i < 3001; i++ )
+		Cl[i] = vips_col_C2Ccmc( i / 10.0 );
 
 	for( i = 0; i < 3001; i++ ) {
 		int j;
@@ -106,12 +106,12 @@ make_CI( void )
 		for( j = 0; j < 3000 && Cl[j] <= i / 10.0; j++ )
 			;
 
-		CI[i] = (j - 1) / 10.0 + 
+		CI[i] = (j - 1) / 10.0 +
 			(i / 10.0 - Cl[j - 1]) / ((Cl[j] - Cl[j - 1]) * 10.0);
 	}
 }
 
-/* The difficult one: hcmc. 
+/* The difficult one: hcmc.
  */
 static void
 make_hI( void )
@@ -119,18 +119,18 @@ make_hI( void )
 	int i, j;
 	float hl[101][361];
 
-	for( i = 0; i < 361; i++ ) 
-		for( j = 0; j < 101; j++ ) 
+	for( i = 0; i < 361; i++ )
+		for( j = 0; j < 101; j++ )
 			hl[j][i] = vips_col_Ch2hcmc( j * 2.0, i );
 
 	for( j = 0; j < 101; j++ ) {
 		for( i = 0; i < 361; i++ ) {
 			int k;
 
-			for( k = 1; k < 360 && hl[j][k] <= i; k++ ) 
+			for( k = 1; k < 360 && hl[j][k] <= i; k++ )
 				;
 
-			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / 
+			hI[j][i] = k - 1 + (i - hl[j][k - 1]) /
 				(hl[j][k] - hl[j][k - 1]);
 		}
 	}
@@ -147,13 +147,13 @@ make_hI( void )
  */
 float
 vips_col_Lcmc2L( float Lcmc )
-{	
+{
 	int known;
 
 	known = VIPS_FLOOR( Lcmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 999 );
 
-	return( LI[known] + 
+	return( LI[known] +
 		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known) );
 }
 
@@ -161,7 +161,7 @@ vips_col_Lcmc2L( float Lcmc )
  * vips_col_Ccmc2C:
  * @Ccmc: Ccmc
  *
- * Calculate C from Ccmc using a table. 
+ * Calculate C from Ccmc using a table.
  * Call vips_col_make_tables_CMC() at
  * least once before using this function.
  *
@@ -169,13 +169,13 @@ vips_col_Lcmc2L( float Lcmc )
  */
 float
 vips_col_Ccmc2C( float Ccmc )
-{	
+{
 	int known;
 
 	known = VIPS_FLOOR( Ccmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 2999 );
 
-	return( CI[known] + 
+	return( CI[known] +
 		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known) );
 }
 
@@ -192,25 +192,25 @@ vips_col_Ccmc2C( float Ccmc )
  */
 float
 vips_col_Chcmc2h( float C, float hcmc )
-{	
+{
 	int r;
 	int known;
 
 	/* Which row of the table?
 	 */
 	r = (int) ((C + 1.0) / 2.0);
-	r = VIPS_CLIP( 0, r, 99 ); 
+	r = VIPS_CLIP( 0, r, 99 );
 
 	known = VIPS_FLOOR( hcmc );
-	known = VIPS_CLIP( 0, known, 359 ); 
+	known = VIPS_CLIP( 0, known, 359 );
 
-	return( hI[r][known] + 
+	return( hI[r][known] +
 		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known) );
 }
 
 static void *
 tables_init( void *client )
-{	
+{
 	make_LI();
 	make_CI();
 	make_hI();
@@ -220,7 +220,7 @@ tables_init( void *client )
 
 /**
  * vips_col_make_tables_CMC:
- * 
+ *
  * Make the lookup tables for cmc.
  */
 void
@@ -291,7 +291,7 @@ vips_CMC2LCh_init( VipsCMC2LCh *CMC2LCh )
  *
  * Turn LCh to CMC.
  *
- * See also: vips_LCh2CMC(). 
+ * See also: vips_LCh2CMC().
  *
  * Returns: 0 on success, -1 on error
  */

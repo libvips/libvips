@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -69,7 +69,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				c_min = p[1];
 				secondary_diff = p[1] - p[2];
 				wrap_around_hue = 255.0;
-			} 
+			}
 			else {
 				/* Center blue.
 				 */
@@ -78,7 +78,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				secondary_diff = p[0] - p[1];
 				wrap_around_hue = 170.0;
 			}
-		} 
+		}
 		else {
 			if( p[1] < p[0] ) {
 				/* Center red (at bottom)
@@ -87,7 +87,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				c_min = p[2];
 				secondary_diff = p[1] - p[2];
 				wrap_around_hue = 0.0;
-			} 
+			}
 			else {
 				/* Center green
 				 */
@@ -103,16 +103,16 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			q[0] = 0;
 			q[1] = 0;
 			q[2] = 0;
-		} 
+		}
 		else {
 			unsigned char delta;
 
 			q[2] = c_max;
 			delta = c_max - c_min;
 
-			if( delta == 0 ) 
+			if( delta == 0 )
 				q[0] = 0;
-			else 
+			else
 				q[0] = 42.5 * (secondary_diff / (float) delta) +
 				       	wrap_around_hue;
 
@@ -161,7 +161,7 @@ vips_sRGB2HSV_init( VipssRGB2HSV *sRGB2HSV )
  * Convert to HSV.
  *
  * HSV is a crude polar coordinate system for RGB images. It is provided for
- * compatibility with other image processing systems. See vips_Lab2LCh() for a 
+ * compatibility with other image processing systems. See vips_Lab2LCh() for a
  * much better colour space.
  *
  * See also: vips_HSV2sRGB(), vips_Lab2LCh().

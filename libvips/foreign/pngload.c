@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -69,7 +69,7 @@ typedef struct _VipsForeignLoadPng {
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -135,7 +135,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read_source( png->source, load->real, 
+	if( vips__png_read_source( png->source, load->real,
 		load->fail_on, png->unlimited ) )
 		return( -1 );
 
@@ -161,7 +161,7 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	 */
 	foreign_class->priority = 200;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_png_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_png_get_flags;
 	load_class->header = vips_foreign_load_png_header;
@@ -191,7 +191,7 @@ typedef struct _VipsForeignLoadPngSource {
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source, 
+G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -240,7 +240,7 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -256,13 +256,13 @@ typedef struct _VipsForeignLoadPngFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadPngFile;
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngFile, vips_foreign_load_png_file, 
+G_DEFINE_TYPE( VipsForeignLoadPngFile, vips_foreign_load_png_file,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -315,10 +315,10 @@ vips_foreign_load_png_file_class_init( VipsForeignLoadPngFileClass *class )
 
 	load_class->is_a = vips_foreign_load_png_file_is_a;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngFile, filename ),
 		NULL );
 }
@@ -339,7 +339,7 @@ typedef struct _VipsForeignLoadPngBuffer {
 
 typedef VipsForeignLoadPngClass VipsForeignLoadPngBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer,
 	vips_foreign_load_png_get_type() );
 
 static int
@@ -349,8 +349,8 @@ vips_foreign_load_png_buffer_build( VipsObject *object )
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) object;
 
 	if( buffer->blob &&
-		!(png->source = vips_source_new_from_memory( 
-			VIPS_AREA( buffer->blob )->data, 
+		!(png->source = vips_source_new_from_memory(
+			VIPS_AREA( buffer->blob )->data,
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
@@ -391,10 +391,10 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 
 	load_class->is_a_buffer = vips_foreign_load_png_buffer_is_a_buffer;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
@@ -427,8 +427,8 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
- * By default, the PNG loader limits the number of text and data chunks to 
- * block some denial of service attacks. Set @unlimited to disable these 
+ * By default, the PNG loader limits the number of text and data chunks to
+ * block some denial of service attacks. Set @unlimited to disable these
  * limits.
  *
  * See also: vips_image_new_from_file().
@@ -462,8 +462,8 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  *
  * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
  *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * See also: vips_pngload().
  *
@@ -500,7 +500,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @unlimited: %gboolean, Remove all denial of service limits
  *
- * Exactly as vips_pngload(), but read from a source. 
+ * Exactly as vips_pngload(), but read from a source.
  *
  * See also: vips_pngload().
  *

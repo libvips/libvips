@@ -14,7 +14,7 @@
  * 2/9/09
  * 	- gtk-doc comment
  * 23/8/11
- * 	- rewrite as a class 
+ * 	- rewrite as a class
  * 7/12/12
  * 	- only invert real part of complex
  */
@@ -30,7 +30,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -98,7 +98,7 @@ G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
 }
 
 static void
-vips_invert_buffer( VipsArithmetic *arithmetic, 
+vips_invert_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
@@ -107,27 +107,27 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
 	int x;
 
 	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, UCHAR_MAX ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOPN( signed char ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, USHRT_MAX ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOPN( signed short ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, UINT_MAX ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOPN( signed int ); break; 
+	case VIPS_FORMAT_UCHAR:
+		LOOP( unsigned char, UCHAR_MAX ); break;
+	case VIPS_FORMAT_CHAR:
+		LOOPN( signed char ); break;
+	case VIPS_FORMAT_USHORT:
+		LOOP( unsigned short, USHRT_MAX ); break;
+	case VIPS_FORMAT_SHORT:
+		LOOPN( signed short ); break;
+	case VIPS_FORMAT_UINT:
+		LOOP( unsigned int, UINT_MAX ); break;
+	case VIPS_FORMAT_INT:
+		LOOPN( signed int ); break;
 
-	case VIPS_FORMAT_FLOAT: 		
-		LOOPN( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_FLOAT:
+		LOOPN( float ); break;
+	case VIPS_FORMAT_DOUBLE:
 		LOOPN( double ); break;
 
-	case VIPS_FORMAT_COMPLEX: 
+	case VIPS_FORMAT_COMPLEX:
 		LOOPC( float ); break;
-	case VIPS_FORMAT_DPCOMPLEX: 
+	case VIPS_FORMAT_DPCOMPLEX:
 		LOOPC( double ); break;
 
 	default:
@@ -152,7 +152,7 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
  */
 static const VipsBandFormat vips_invert_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+   UC, C,  US, S,  UI, I,  F,  X,  D,  DX
 };
 
 static void
@@ -166,7 +166,7 @@ vips_invert_class_init( VipsInvertClass *class )
 
 	aclass->process_line = vips_invert_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_invert_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_invert_format_table );
 }
 
 static void
@@ -182,7 +182,7 @@ vips_invert_init( VipsInvert *invert )
  *
  * For unsigned formats, this operation calculates (max - @in), eg. (255 -
  * @in) for uchar. For signed and float formats, this operation calculates (-1
- * @in). 
+ * @in).
  *
  * For complex images, only the real part is inverted. See also vips_conj().
  *

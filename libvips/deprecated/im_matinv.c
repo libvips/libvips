@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,17 +60,17 @@
 #define MATRIX( mask, i, j )   ( (mask)-> coeff[ (j) + (i) * (mask)-> xsize ] )
 /* use DOUBLEMASK or INTMASK as matrix type */
 
-static int 
+static int
 mat_inv_lu(
-    DOUBLEMASK *inv, 
-    const DOUBLEMASK *lu 
+    DOUBLEMASK *inv,
+    const DOUBLEMASK *lu
   );
 
-static int 
-mat_inv_direct( 
-    DOUBLEMASK *inv, 
-    const DOUBLEMASK *mat, 
-    const char *function_name 
+static int
+mat_inv_direct(
+    DOUBLEMASK *inv,
+    const DOUBLEMASK *mat,
+    const char *function_name
   );
 
 /**
@@ -83,17 +83,17 @@ mat_inv_direct(
  *
  * It calculates the PLU decomposition, storing the upper and diagonal parts
  * of U, together with the lower parts of L, as an NxN matrix in the first
- * N rows of the new matrix.  The diagonal parts of L are all set to unity 
- * and are not stored.  
+ * N rows of the new matrix.  The diagonal parts of L are all set to unity
+ * and are not stored.
  *
- * The final row of the new #DOUBLEMASK has only integer entries, which 
+ * The final row of the new #DOUBLEMASK has only integer entries, which
  * represent the row-wise permutations made by the permuatation matrix P.
  *
  * The scale and offset members of the input #DOUBLEMASK are ignored.
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * See also: im_mattrn(), im_matinv().
@@ -102,7 +102,7 @@ mat_inv_direct(
  */
 
 DOUBLEMASK *
-im_lu_decomp( 
+im_lu_decomp(
     const DOUBLEMASK *mat,
     const char *name
 ){
@@ -143,7 +143,7 @@ im_lu_decomp(
       /* find largest in each ROW */
 
       if( abs_val > row_scale[ i ] )
-        row_scale[ i ]= abs_val;
+	row_scale[ i ]= abs_val;
     }
     if( ! row_scale[ i ] ){
       im_error( FUNCTION_NAME, "singular matrix" );
@@ -163,31 +163,31 @@ im_lu_decomp(
     i_of_max= 0;
 
     /* loop over ROWS in upper-half, except diagonal */
-    
-    for( i= 0; i < j; ++i )      
-      for( k= 0; k < i; ++k )
-        LU( i, j )-= LU( i, k ) * LU( k, j );
 
-    /* loop over ROWS in diagonal and lower-half */     
-    
-    for( i= j; i < N; ++i ){ 
+    for( i= 0; i < j; ++i )
+      for( k= 0; k < i; ++k )
+	LU( i, j )-= LU( i, k ) * LU( k, j );
+
+    /* loop over ROWS in diagonal and lower-half */
+
+    for( i= j; i < N; ++i ){
       double abs_val;
 
       for( k= 0; k < j; ++k )
-        LU( i, j )-= LU( i, k ) * LU( k, j );
-      
+	LU( i, j )-= LU( i, k ) * LU( k, j );
+
       /* find largest element in each COLUMN scaled so that */
       /* largest in each ROW is 1.0 */
-      
+
       abs_val= row_scale[ i ] * fabs( LU( i, j ) );
 
       if( abs_val > max ){
-        max= abs_val;
-        i_of_max= i;
+	max= abs_val;
+	i_of_max= i;
       }
     }
-    if( fabs( LU( i_of_max, j ) ) < TOO_SMALL ){  
-      /* divisor is near zero */      
+    if( fabs( LU( i_of_max, j ) ) < TOO_SMALL ){
+      /* divisor is near zero */
       im_error( FUNCTION_NAME, "singular or near-singular matrix" );
       im_free_dmask( lu );
       im_free( row_scale );
@@ -197,9 +197,9 @@ im_lu_decomp(
       /* swap ROWS */
 
       for( k= 0; k < N; ++k ){
-        double temp= LU( j, k );
-        LU( j, k )= LU( i_of_max, k );
-        LU( i_of_max, k )= temp;
+	double temp= LU( j, k );
+	LU( j, k )= LU( i_of_max, k );
+	LU( i_of_max, k )= temp;
       }
       row_scale[ i_of_max ]= row_scale[ j ];
       /* no need to copy this scale back up - we won't use it */
@@ -209,10 +209,10 @@ im_lu_decomp(
 
     /* divide by best (largest scaled) pivot found */
     for( i= j + 1; i < N; ++i )
-      LU( i, j )/= LU( j, j );   
+      LU( i, j )/= LU( j, j );
   }
   im_free( row_scale );
-  
+
   return lu;
 
 #undef N
@@ -232,7 +232,7 @@ im_lu_decomp(
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
+ *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * See also: im_mattrn(), im_matinv().
@@ -240,10 +240,10 @@ im_lu_decomp(
  * Returns: the decomposed matrix on success, or NULL on error.
  */
 
-int 
-im_lu_solve( 
-  const DOUBLEMASK *lu, 
-  double *vec 
+int
+im_lu_solve(
+  const DOUBLEMASK *lu,
+  double *vec
 ){
 #define FUNCTION_NAME "im_lu_solve"
   int i, j;
@@ -255,7 +255,7 @@ im_lu_solve(
 #define   N            ( lu -> xsize )
 #define   LU( i, j )   MATRIX( lu,  (i), (j) )
 #define   perm         ( lu-> coeff + N * N )
-  
+
   for( i= 0; i < N; ++i ){
     int i_perm= perm[ i ];
 
@@ -288,7 +288,7 @@ im_lu_solve(
  * @mat: matrix to invert
  * @filename: name for output matrix
  *
- * Allocate, and return a pointer to, a DOUBLEMASK representing the 
+ * Allocate, and return a pointer to, a DOUBLEMASK representing the
  * inverse of the matrix represented in @mat.  Give it the filename
  * member @filename.  Returns NULL on error.  Scale and offset are ignored.
  *
@@ -297,8 +297,8 @@ im_lu_solve(
  * Returns: the inverted matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
-im_matinv( 
-  const DOUBLEMASK *mat, 
+im_matinv(
+  const DOUBLEMASK *mat,
   const char *filename
 ){
 #define FUNCTION_NAME "im_matinv"
@@ -308,7 +308,7 @@ im_matinv(
   if( mat-> xsize != mat-> ysize ){
     im_error( FUNCTION_NAME, "non-square matrix" );
     return NULL;
-  } 
+  }
 #define   N                ( mat -> xsize )
   inv= im_create_dmask( filename, N, N );
   if( ! inv )
@@ -317,13 +317,13 @@ im_matinv(
   if( N < 4 ){
     if( mat_inv_direct( inv, (const DOUBLEMASK *) mat, FUNCTION_NAME ) ){
       im_free_dmask( inv );
-      return NULL;    
+      return NULL;
     }
     return inv;
   }
   else {
     DOUBLEMASK *lu= im_lu_decomp( mat, "temp" );
-    
+
     if( ! lu || mat_inv_lu( inv, (const DOUBLEMASK*) lu ) ){
       im_free_dmask( lu );
       im_free_dmask( inv );
@@ -341,7 +341,7 @@ im_matinv(
  * im_matinv_inplace:
  * @mat: matrix to invert
  *
- * Invert the matrix represented by the DOUBLEMASK @mat, and store 
+ * Invert the matrix represented by the DOUBLEMASK @mat, and store
  * it in the place of @mat. Scale and offset
  * are ignored.
  *
@@ -350,8 +350,8 @@ im_matinv(
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_matinv_inplace( 
-  DOUBLEMASK *mat 
+im_matinv_inplace(
+  DOUBLEMASK *mat
 ){
 #define FUNCTION_NAME "im_matinv_inplace"
   int to_return= 0;
@@ -369,19 +369,19 @@ im_matinv_inplace(
     to_return= mat_inv_direct( mat, (const DOUBLEMASK*) dup, FUNCTION_NAME );
 
     im_free_dmask( dup );
-      
+
     return to_return;
   }
   {
     DOUBLEMASK *lu;
 
     lu= im_lu_decomp( mat, "temp" );
-    
+
     if( ! lu || mat_inv_lu( mat, (const DOUBLEMASK*) lu ) )
       to_return= -1;
-    
+
     im_free_dmask( lu );
-      
+
     return to_return;
   }
 #undef N
@@ -391,10 +391,10 @@ im_matinv_inplace(
 /* Invert a square  size x size matrix stored in matrix[][]
  * result is returned in the same matrix
  */
-int 
-im_invmat( 
-    double **matrix, 
-    int size 
+int
+im_invmat(
+    double **matrix,
+    int size
   ){
 
   DOUBLEMASK *mat= im_create_dmask( "temp", size, size );
@@ -417,7 +417,7 @@ im_invmat(
 
 static int
 mat_inv_lu(
-  DOUBLEMASK *inv, 
+  DOUBLEMASK *inv,
   const DOUBLEMASK *lu
 ){
 #define   N                ( lu-> xsize )
@@ -430,7 +430,7 @@ mat_inv_lu(
     return -1;
 
   for( j= 0; j < N; ++j ){
-    
+
     for( i= 0; i < N; ++i )
       vec[ i ]= 0.0;
 
@@ -452,11 +452,11 @@ mat_inv_lu(
 #undef INV
 }
 
-static int 
-mat_inv_direct( 
-  DOUBLEMASK *inv, 
-  const DOUBLEMASK *mat, 
-  const char *function_name 
+static int
+mat_inv_direct(
+  DOUBLEMASK *inv,
+  const DOUBLEMASK *mat,
+  const char *function_name
 ){
 #define   N                ( mat -> xsize )
 #define   MAT( i, j )      MATRIX( mat, (i), (j) )
@@ -467,51 +467,51 @@ mat_inv_direct(
 
   switch( N ){
     case 1: {
-      if( fabs( MAT( 0, 0 ) ) < TOO_SMALL ){  
-        im_error( function_name, "singular or near-singular matrix" );
-        return -1;
+      if( fabs( MAT( 0, 0 ) ) < TOO_SMALL ){
+	im_error( function_name, "singular or near-singular matrix" );
+	return -1;
       }
       INV( 0, 0 )= 1.0 / MAT( 0, 0 );
       return 0;
-    } 
+    }
     case 2: {
       double det= MAT( 0, 0 ) * MAT( 1, 1 ) - MAT( 0, 1 ) * MAT( 1, 0 );
-      
-      if( fabs( det ) < TOO_SMALL ){  
-        im_error( function_name, "singular or near-singular matrix" );
-        return -1;
+
+      if( fabs( det ) < TOO_SMALL ){
+	im_error( function_name, "singular or near-singular matrix" );
+	return -1;
       }
       INV( 0, 0 )= MAT( 1, 1 ) / det;
       INV( 0, 1 )= -MAT( 0, 1 ) / det;
       INV( 1, 0 )= -MAT( 1, 0 ) / det;
       INV( 1, 1 )= MAT( 0, 0 ) / det;
-      
+
       return 0;
     }
     case 3: {
-      double det= MAT( 0, 0 ) * ( MAT( 1, 1 ) * MAT( 2, 2 ) - MAT( 1, 2 ) * MAT( 2, 1 ) ) 
-                - MAT( 0, 1 ) * ( MAT( 1, 0 ) * MAT( 2, 2 ) - MAT( 1, 2 ) * MAT( 2, 0 ) ) 
-                + MAT( 0, 2 ) * ( MAT( 1, 0 ) * MAT( 2, 1 ) - MAT( 1, 1 ) * MAT( 2, 0 ) );
+      double det= MAT( 0, 0 ) * ( MAT( 1, 1 ) * MAT( 2, 2 ) - MAT( 1, 2 ) * MAT( 2, 1 ) )
+		- MAT( 0, 1 ) * ( MAT( 1, 0 ) * MAT( 2, 2 ) - MAT( 1, 2 ) * MAT( 2, 0 ) )
+		+ MAT( 0, 2 ) * ( MAT( 1, 0 ) * MAT( 2, 1 ) - MAT( 1, 1 ) * MAT( 2, 0 ) );
 
-      if( fabs( det ) < TOO_SMALL ){  
-        im_error( function_name, "singular or near-singular matrix" );
-        return -1;
+      if( fabs( det ) < TOO_SMALL ){
+	im_error( function_name, "singular or near-singular matrix" );
+	return -1;
       }
       INV( 0, 0 )= ( MAT( 1, 1 ) * MAT( 2, 2 ) - MAT( 1, 2 ) * MAT( 2, 1 ) ) / det;
       INV( 0, 1 )= ( MAT( 0, 2 ) * MAT( 2, 1 ) - MAT( 0, 1 ) * MAT( 2, 2 ) ) / det;
       INV( 0, 2 )= ( MAT( 0, 1 ) * MAT( 1, 2 ) - MAT( 0, 2 ) * MAT( 1, 1 ) ) / det;
-      
+
       INV( 1, 0 )= ( MAT( 1, 2 ) * MAT( 2, 0 ) - MAT( 1, 0 ) * MAT( 2, 2 ) ) / det;
       INV( 1, 1 )= ( MAT( 0, 0 ) * MAT( 2, 2 ) - MAT( 0, 2 ) * MAT( 2, 0 ) ) / det;
       INV( 1, 2 )= ( MAT( 0, 2 ) * MAT( 1, 0 ) - MAT( 0, 0 ) * MAT( 1, 2 ) ) / det;
-      
+
       INV( 2, 0 )= ( MAT( 1, 0 ) * MAT( 2, 1 ) - MAT( 1, 1 ) * MAT( 2, 0 ) ) / det;
       INV( 2, 1 )= ( MAT( 0, 1 ) * MAT( 2, 0 ) - MAT( 0, 0 ) * MAT( 2, 1 ) ) / det;
       INV( 2, 2 )= ( MAT( 0, 0 ) * MAT( 1, 1 ) - MAT( 0, 1 ) * MAT( 1, 0 ) ) / det;
 
       return 0;
     }
-    default:  
+    default:
       return -1;
   }
 

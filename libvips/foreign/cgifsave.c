@@ -27,7 +27,7 @@
  */
 
 /*
- 
+
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
@@ -57,9 +57,9 @@
 /* The modes we work in.
  *
  * VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL:
- * 	
- * 	Each frame is dithered to single global colour table taken from the 
- * 	input image "gif-palette" metadata item. 
+ *
+ * 	Each frame is dithered to single global colour table taken from the
+ * 	input image "gif-palette" metadata item.
  *
  * VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL:
  *
@@ -102,8 +102,8 @@ typedef struct _VipsForeignSaveCgif {
 
 	/* The frame we are building, the y position in the frame.
 	 */
-        int frame_width;
-        int frame_height;
+	int frame_width;
+	int frame_height;
 	VipsPel *frame_bytes;
 	int write_y;
 	int page_number;
@@ -113,7 +113,7 @@ typedef struct _VipsForeignSaveCgif {
 	VipsQuantiseAttr *attr;
 	VipsQuantiseResult *quantisation_result;
 
-	/* The palette we used for the previous frame. This can be equal to 
+	/* The palette we used for the previous frame. This can be equal to
 	 * quantisation_result if we used the global palette for the previous
 	 * frame, so don't free this.
 	 */
@@ -149,8 +149,8 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 {
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) gobject;
 
-        g_info( "cgifsave: %d frames", cgif->page_number );
-        g_info( "cgifsave: %d unique palettes", cgif->n_palettes_generated );
+	g_info( "cgifsave: %d frames", cgif->page_number );
+	g_info( "cgifsave: %d unique palettes", cgif->n_palettes_generated );
 
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
@@ -169,8 +169,8 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-static int 
-vips__cgif_write( void *client, const uint8_t *buffer, const size_t length ) 
+static int
+vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
 {
 	VipsTarget *target = VIPS_TARGET( client );
 
@@ -178,7 +178,7 @@ vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
 		(const void *) buffer, (size_t) length );
 }
 
-/* Set pixels in index transparent if they are equal RGB to the previous 
+/* Set pixels in index transparent if they are equal RGB to the previous
  * frame.
  *
  * In combination with the GIF transparency optimization this leads to
@@ -259,7 +259,7 @@ vips__cgif_compare_palettes( const VipsQuantisePalette *new,
 				 */
 				if( best_dist == 0 )
 					break;
-			} 
+			}
 			else {
 				/* The new entry is transparent.
 				 * If the old entry is transparent too, it's
@@ -284,7 +284,7 @@ static void
 vips_foreign_save_cgif_get_rgb_palette( VipsForeignSaveCgif *cgif,
 	VipsQuantiseResult *quantisation_result, VipsPel *rgb )
 {
-	const VipsQuantisePalette *lp = 
+	const VipsQuantisePalette *lp =
 		vips__quantise_get_palette( quantisation_result );
 
 	int i;
@@ -303,7 +303,7 @@ vips_foreign_save_cgif_get_rgb_palette( VipsForeignSaveCgif *cgif,
 /* Pick a quantiser for LOCAL mode.
  */
 int
-vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif, 
+vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 	VipsQuantiseImage *image,
 	VipsQuantiseResult **result, gboolean *use_local )
 {
@@ -311,7 +311,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 
 	VipsQuantiseResult *this_result;
 
-	if( vips__quantise_image_quantize_fixed( image, cgif->attr, 
+	if( vips__quantise_image_quantize_fixed( image, cgif->attr,
 		&this_result ) ) {
 		vips_error( class->nickname, "%s", _( "quantisation failed" ) );
 		return( -1 );
@@ -335,11 +335,11 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 		/* Compare the palette we just made to the palette
 		 * for the previous frame, and to the global palette.
 		 */
-		const VipsQuantisePalette *global = vips__quantise_get_palette( 
+		const VipsQuantisePalette *global = vips__quantise_get_palette(
 			cgif->quantisation_result );
-		const VipsQuantisePalette *this = vips__quantise_get_palette( 
+		const VipsQuantisePalette *this = vips__quantise_get_palette(
 			this_result );
-		const VipsQuantisePalette *prev = vips__quantise_get_palette( 
+		const VipsQuantisePalette *prev = vips__quantise_get_palette(
 			cgif->previous_quantisation_result );
 
 		double global_diff = vips__cgif_compare_palettes( this, global );
@@ -366,9 +366,9 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 				"using global palette\n" );
 #endif/*DEBUG_VERBOSE*/
 
-			VIPS_FREEF( vips__quantise_result_destroy, 
+			VIPS_FREEF( vips__quantise_result_destroy,
 				this_result );
-			VIPS_FREEF( vips__quantise_result_destroy, 
+			VIPS_FREEF( vips__quantise_result_destroy,
 				cgif->free_quantisation_result );
 
 			*result = cgif->quantisation_result;
@@ -382,7 +382,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 				"using previous palette\n" );
 #endif/*DEBUG_VERBOSE*/
 
-			VIPS_FREEF( vips__quantise_result_destroy, 
+			VIPS_FREEF( vips__quantise_result_destroy,
 				this_result );
 
 			*result = cgif->previous_quantisation_result;
@@ -397,7 +397,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 				"using new local palette\n" );
 #endif/*DEBUG_VERBOSE*/
 
-			VIPS_FREEF( vips__quantise_result_destroy, 
+			VIPS_FREEF( vips__quantise_result_destroy,
 				cgif->free_quantisation_result );
 			cgif->free_quantisation_result = this_result;
 			cgif->n_palettes_generated += 1;
@@ -436,7 +436,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", cgif->page_number );
 #endif/*DEBUG_VERBOSE*/
 
-	/* Threshold the alpha channel. 
+	/* Threshold the alpha channel.
 	 *
 	 * Also, check if the alpha channel of the current frame matches the
 	 * frame before.
@@ -483,7 +483,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	else {
 		/* Local mode. Pick the global, this or previous palette.
 		 */
-		if( vips_foreign_save_cgif_pick_quantiser( cgif, 
+		if( vips_foreign_save_cgif_pick_quantiser( cgif,
 			image, &quantisation_result, &use_local ) )
 			return( -1 );
 	}
@@ -512,10 +512,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	if( !cgif->cgif_context ) {
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
-		cgif->cgif_config.attrFlags = 
-			CGIF_ATTR_IS_ANIMATED | 
+		cgif->cgif_config.attrFlags =
+			CGIF_ATTR_IS_ANIMATED |
 			(cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0);
-		cgif->cgif_config.numLoops = cgif->loop > 1 ? 
+		cgif->cgif_config.numLoops = cgif->loop > 1 ?
 			cgif->loop - 1 : cgif->loop;
 #else /*!HAVE_CGIF_ATTR_NO_LOOP*/
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
@@ -535,12 +535,12 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Allow cgif to optimise by adding transparency. These optimisations
 	 * will be automatically disabled if they are not possible.
 	 */
-	frame_config.genFlags = 
-		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
+	frame_config.genFlags =
+		CGIF_FRAME_GEN_USE_TRANSPARENCY |
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 	frame_config.attrFlags = 0;
 
-	/* Switch per-frame alpha channel on. Index 0 is used for pixels 
+	/* Switch per-frame alpha channel on. Index 0 is used for pixels
 	 * with alpha channel.
 	 */
 	if( has_transparency ) {
@@ -556,10 +556,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		int trans = has_transparency ? 0 : n_colours;
 
 		vips_foreign_save_cgif_set_transparent( cgif,
-			cgif->previous_frame, cgif->frame_bytes, cgif->index, 
+			cgif->previous_frame, cgif->frame_bytes, cgif->index,
 			n_pels, trans );
 
-		if( has_transparency ) 
+		if( has_transparency )
 			frame_config.attrFlags &= ~CGIF_FRAME_ATTR_HAS_ALPHA;
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
 		frame_config.transIndex = trans;
@@ -572,7 +572,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	if( cgif->delay &&
 		cgif->page_number < cgif->delay_length )
-		frame_config.delay = 
+		frame_config.delay =
 			VIPS_RINT( cgif->delay[cgif->page_number] / 10.0 );
 
 	/* Attach a local palette, if we need one.
@@ -608,29 +608,29 @@ static int
 vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) a;
-        int line_size = cgif->frame_width * 4;
+	int line_size = cgif->frame_width * 4;
 
-        int y;
+	int y;
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_foreign_save_cgif_sink_disc: strip at %d, height %d\n", 
+	printf( "vips_foreign_save_cgif_sink_disc: strip at %d, height %d\n",
 		area->top, area->height );
 #endif/*DEBUG_VERBOSE*/
 
-        for( y = 0; y < area->height; y++ ) {
+	for( y = 0; y < area->height; y++ ) {
 		memcpy( cgif->frame_bytes + cgif->write_y * line_size,
 			VIPS_REGION_ADDR( region, 0, area->top + y ),
 			line_size );
-                cgif->write_y += 1;
+		cgif->write_y += 1;
 
-                if( cgif->write_y >= cgif->frame_height ) { 
+		if( cgif->write_y >= cgif->frame_height ) {
 			if( vips_foreign_save_cgif_write_frame( cgif ) )
 				return( -1 );
 
 			cgif->write_y = 0;
 			cgif->page_number += 1;
-                }
-        }
+		}
+	}
 
 	return( 0 );
 }
@@ -653,7 +653,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* libimagequant only works with RGBA images.
 	 */
 	if( !vips_image_hasalpha( cgif->in ) ) {
-		if( vips_addalpha( cgif->in, &t[1], NULL ) ) 
+		if( vips_addalpha( cgif->in, &t[1], NULL ) )
 			return( -1 );
 		cgif->in = t[1];
 	}
@@ -675,8 +675,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 * Frame width * height will fit in an int, though frame size will
 	 * need at least a uint.
 	 */
-	if( (guint64) cgif->frame_width * cgif->frame_height > INT_MAX / 4 || 
-		cgif->frame_width > 65535 || 
+	if( (guint64) cgif->frame_width * cgif->frame_height > INT_MAX / 4 ||
+		cgif->frame_width > 65535 ||
 		cgif->frame_height > 65535 ) {
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
@@ -684,17 +684,17 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* This RGBA frame as a contiguous buffer.
 	 */
-	cgif->frame_bytes = g_malloc0( (size_t) 4 * 
+	cgif->frame_bytes = g_malloc0( (size_t) 4 *
 		cgif->frame_width * cgif->frame_height );
 
 	/* The previous RGBA frame (for spotting pixels which haven't changed).
 	 */
-	cgif->previous_frame = g_malloc0( (size_t) 4 * 
+	cgif->previous_frame = g_malloc0( (size_t) 4 *
 		cgif->frame_width * cgif->frame_height );
 
 	/* The frame index buffer.
 	 */
-	cgif->index = g_malloc0( (size_t) cgif->frame_width * 
+	cgif->index = g_malloc0( (size_t) cgif->frame_width *
 		cgif->frame_height );
 
 	/* Set up libimagequant.
@@ -725,7 +725,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* LOCAL mode if there's no input palette, or reoptimise is set.
 	 */
 	if( cgif->reoptimise ||
-		!cgif->palette ) 
+		!cgif->palette )
 		cgif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL;
 
 	/* Set up GLOBAL mode. Init the quantisation_result we will
@@ -733,7 +733,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	 * image.
 	 */
 	if( cgif->mode == VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL ) {
-		/* Make a fake image from the input palette, and quantise that. 
+		/* Make a fake image from the input palette, and quantise that.
 		 * Add a zero pixel (transparent) in case the input image has
 		 * transparency.
 		 *
@@ -742,7 +742,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		guint32 fake_image[257];
 		VipsQuantiseImage *image;
 
-		memcpy( fake_image, cgif->palette, 
+		memcpy( fake_image, cgif->palette,
 			cgif->n_colours * sizeof( int ) );
 		fake_image[cgif->n_colours] = 0;
 		image = vips__quantise_image_create_rgba( cgif->attr,
@@ -758,8 +758,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		VIPS_FREEF( vips__quantise_image_destroy, image );
 	}
 
-	if( vips_sink_disc( cgif->in, 
-		vips_foreign_save_cgif_sink_disc, cgif ) ) 
+	if( vips_sink_disc( cgif->in,
+		vips_foreign_save_cgif_sink_disc, cgif ) )
 		return( -1 );
 
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
@@ -877,7 +877,7 @@ static int
 vips_foreign_save_cgif_target_build( VipsObject *object )
 {
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
-	VipsForeignSaveCgifTarget *target = 
+	VipsForeignSaveCgifTarget *target =
 		(VipsForeignSaveCgifTarget *) object;
 
 	gif->target = target->target;
@@ -891,7 +891,7 @@ vips_foreign_save_cgif_target_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_cgif_target_class_init( 
+vips_foreign_save_cgif_target_class_init(
 	VipsForeignSaveCgifTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -982,7 +982,7 @@ static int
 vips_foreign_save_cgif_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
-	VipsForeignSaveCgifBuffer *buffer = 
+	VipsForeignSaveCgifBuffer *buffer =
 		(VipsForeignSaveCgifBuffer *) object;
 
 	VipsBlob *blob;
@@ -1002,7 +1002,7 @@ vips_foreign_save_cgif_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_cgif_buffer_class_init( 
+vips_foreign_save_cgif_buffer_class_init(
 	VipsForeignSaveCgifBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );

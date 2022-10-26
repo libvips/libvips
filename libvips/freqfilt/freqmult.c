@@ -20,7 +20,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -82,15 +82,15 @@ vips_freqmult_build( VipsObject *object )
 
 	if( vips_band_format_iscomplex( in->BandFmt ) ) {
 		if( vips_multiply( in, freqmult->mask, &t[0], NULL ) ||
-			vips_invfft( t[0], &t[1], "real", TRUE, NULL ) ) 
+			vips_invfft( t[0], &t[1], "real", TRUE, NULL ) )
 			return( -1 );
 
 		in = t[1];
 	}
 	else {
-		/* Optimisation: output of vips_invfft() is double, we 
+		/* Optimisation: output of vips_invfft() is double, we
 		 * will usually cast to char, so rather than keeping a
-		 * large double buffer and partial to char from that, 
+		 * large double buffer and partial to char from that,
 		 * cast to a memory buffer and copy to out from that.
 		 *
 		 * FIXME does this actually work now we're a class? test
@@ -105,7 +105,7 @@ vips_freqmult_build( VipsObject *object )
 			vips_image_write( t[3], t[4] ) )
 			return( -1 );
 
-		in = t[4]; 
+		in = t[4];
 	}
 
 	if( vips_image_write( in, freqfilt->out ) )
@@ -127,8 +127,8 @@ vips_freqmult_class_init( VipsFreqmultClass *class )
 	vobject_class->description = _( "frequency-domain filtering" );
 	vobject_class->build = vips_freqmult_build;
 
-	VIPS_ARG_IMAGE( class, "mask", 0, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "mask", 0,
+		_( "Mask" ),
 		_( "Input mask image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFreqmult, mask ) );
@@ -142,7 +142,7 @@ vips_freqmult_init( VipsFreqmult *freqmult )
 
 /**
  * vips_freqmult: (method)
- * @in: input image 
+ * @in: input image
  * @mask: mask image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments

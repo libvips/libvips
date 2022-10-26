@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -56,13 +56,13 @@ im_vips2dz( IMAGE *in, const char *filename )
 	char buf[FILENAME_MAX];
 
 	int i;
-	VipsForeignDzLayout layout = VIPS_FOREIGN_DZ_LAYOUT_DZ; 
+	VipsForeignDzLayout layout = VIPS_FOREIGN_DZ_LAYOUT_DZ;
 	char *suffix = ".jpeg";
 	int overlap = 0;
 	int tile_size = 256;
-	VipsForeignDzDepth depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
+	VipsForeignDzDepth depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL;
 	gboolean centre = FALSE;
-	VipsAngle angle = VIPS_ANGLE_D0; 
+	VipsAngle angle = VIPS_ANGLE_D0;
 
 	/* We can't use im_filename_split() --- it assumes that we have a
 	 * filename with an extension before the ':', and filename here is
@@ -70,45 +70,45 @@ im_vips2dz( IMAGE *in, const char *filename )
 	 *
 	 * Just split on the first ':'.
 	 */
-	im_strncpy( name, filename, FILENAME_MAX ); 
+	im_strncpy( name, filename, FILENAME_MAX );
 	if( (p = strchr( name, ':' )) ) {
 		*p = '\0';
-		im_strncpy( mode, p + 1, FILENAME_MAX ); 
+		im_strncpy( mode, p + 1, FILENAME_MAX );
 	}
-	else 
-		strcpy( mode, "" ); 
+	else
+		strcpy( mode, "" );
 
-	strcpy( buf, mode ); 
+	strcpy( buf, mode );
 	p = &buf[0];
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( (i = vips_enum_from_nick( "im_vips2dz", 
-			VIPS_TYPE_FOREIGN_DZ_LAYOUT, q )) < 0 ) 
+		if( (i = vips_enum_from_nick( "im_vips2dz",
+			VIPS_TYPE_FOREIGN_DZ_LAYOUT, q )) < 0 )
 			return( -1 );
 		layout = i;
 	}
 
-	if( (q = im_getnextoption( &p )) ) 
+	if( (q = im_getnextoption( &p )) )
 		suffix = g_strdup( q );
-	if( (q = im_getnextoption( &p )) ) 
-		overlap = atoi( q ); 
-	if( (q = im_getnextoption( &p )) ) 
-		tile_size = atoi( q ); 
+	if( (q = im_getnextoption( &p )) )
+		overlap = atoi( q );
+	if( (q = im_getnextoption( &p )) )
+		tile_size = atoi( q );
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( (i = vips_enum_from_nick( "im_vips2dz", 
+		if( (i = vips_enum_from_nick( "im_vips2dz",
 			VIPS_TYPE_FOREIGN_DZ_DEPTH, q )) < 0 )
 			return( -1 );
 		depth = i;
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "cen", q ) ) 
+		if( im_isprefix( "cen", q ) )
 			centre = TRUE;
 	}
 
 	if( (q = im_getnextoption( &p )) ) {
-		if( (i = vips_enum_from_nick( "im_vips2dz", 
+		if( (i = vips_enum_from_nick( "im_vips2dz",
 			VIPS_TYPE_ANGLE, q )) < 0 )
 			return( -1 );
 		angle = i;

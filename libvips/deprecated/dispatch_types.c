@@ -12,7 +12,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -50,7 +50,7 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 
-/* String containing each of the characters which can be used within a 
+/* String containing each of the characters which can be used within a
  * single command line argument to separate the elements of a vector.
  */
 #define VEC_SEPS " "
@@ -193,7 +193,7 @@ input_imagevec_init( im_object *obj, char *str )
 	for( i = 0; i < nargs; i++ )
 		iv->vec[i] = NULL;
 
-	for( i = 0; i < nargs; i++ ) 
+	for( i = 0; i < nargs; i++ )
 		if( !(iv->vec[i] = im_open( strv[i], "rd" )) ) {
 			g_strfreev( strv );
 			return( -1 );
@@ -223,7 +223,7 @@ mask_init( im_object *obj, char *str )
 
 	/* Install string, clear mask.
 	 */
-	if( str && !(mo->name = im_strdup( NULL, str )) ) 
+	if( str && !(mo->name = im_strdup( NULL, str )) )
 		return( -1 );
 	mo->mask = NULL;
 
@@ -245,7 +245,7 @@ dmask_init( im_object *obj, char *str )
 	return( 0 );
 }
 
-/* Init function for input imasks. 
+/* Init function for input imasks.
  */
 static int
 imask_init( im_object *obj, char *str )
@@ -421,7 +421,7 @@ input_doublevec_init( im_object *obj, char *str )
 	for( i = 0; i < nargs; i++ ) {
 		dv->vec[i] = g_ascii_strtod( strv[i], NULL );
 		if( errno ) {
-			vips_error_system( errno, "input_doublevec_init", 
+			vips_error_system( errno, "input_doublevec_init",
 				_( "bad double \"%s\"" ), strv[i] );
 			g_strfreev( strv );
 			return( -1 );
@@ -451,7 +451,7 @@ im__dvprint( im_object obj )
 	im_doublevec_object *dv = obj;
 	int i;
 
-	for( i = 0; i < dv->n; i++ ) 
+	for( i = 0; i < dv->n; i++ )
 		printf( "%G ", dv->vec[i] );
 	printf( "\n" );
 
@@ -504,18 +504,18 @@ input_intvec_init( im_object *obj, char *str )
 	iv->n = nargs;
 
 	for( i = 0; i < nargs; i++ ) {
-                long int val= strtol( strv[i], NULL, 10 );
+		long int val= strtol( strv[i], NULL, 10 );
 
 		if( errno ) {
-			vips_error_system( errno, "input_intvec_init", 
+			vips_error_system( errno, "input_intvec_init",
 				_( "bad integer \"%s\"" ), strv[i] );
 			g_strfreev( strv );
 			return( -1 );
 		}
-                if( INT_MAX < val || INT_MIN > val ) {
-                        vips_error( "input_intvec_init", 
-                                "%ld overflows integer type", val );
-                }
+		if( INT_MAX < val || INT_MIN > val ) {
+			vips_error( "input_intvec_init",
+				"%ld overflows integer type", val );
+		}
 		iv->vec[i] = (int) val;
 	}
 
@@ -542,7 +542,7 @@ im__ivprint( im_object obj )
 	im_intvec_object *iv = obj;
 	int i;
 
-	for( i = 0; i < iv->n; i++ ) 
+	for( i = 0; i < iv->n; i++ )
 		printf( "%d ", iv->vec[i] );
 	printf( "\n" );
 
@@ -589,7 +589,7 @@ im_type_desc im__input_int = {
 static int
 input_string_init( im_object *obj, char *str )
 {
-	if( !(*obj = (im_object) im_strdup( NULL, str )) ) 
+	if( !(*obj = (im_object) im_strdup( NULL, str )) )
 		return( -1 );
 
 	return( 0 );
@@ -702,7 +702,7 @@ im__dmsprint( im_object obj )
 	double *row;
 	int i, j;
 
-	/* Print statistics band stats eg: 2 bands:b 0,1 
+	/* Print statistics band stats eg: 2 bands:b 0,1
 	 */
 	printf( "band    minimum     maximum         sum       "
 		"sum^2        mean   deviation\n" );
@@ -755,7 +755,7 @@ gvalue_free( im_object obj )
 /* Input GValue type.
  */
 im_type_desc im__input_gvalue = {
-	IM_TYPE_GVALUE,		
+	IM_TYPE_GVALUE,
 	sizeof( GValue ),		/* Need some storage */
 	IM_TYPE_ARG,			/* It requires a command-line arg */
 	(im_init_obj_fn) input_gvalue_init,	/* Init function */
@@ -788,7 +788,7 @@ output_gvalue_init( im_object *obj )
 }
 
 im_type_desc im__output_gvalue = {
-	IM_TYPE_GVALUE,	
+	IM_TYPE_GVALUE,
 	sizeof( GValue ),       	/* Need some storage */
 	IM_TYPE_OUTPUT,			/* No arg needed (just print) */
 	(im_init_obj_fn) output_gvalue_init,	/* Init function */
@@ -828,7 +828,7 @@ input_interpolate_dest( im_object obj )
 }
 
 im_type_desc im__input_interpolate = {
-	IM_TYPE_INTERPOLATE,	
+	IM_TYPE_INTERPOLATE,
 	0,      			/* No storage required */
 	IM_TYPE_ARG,			/* It requires a command-line arg */
 	vips__input_interpolate_init,	/* Init function */

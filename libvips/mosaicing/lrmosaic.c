@@ -32,7 +32,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -98,10 +98,10 @@ vips__print_mdebug( TiePoints *points )
 }
 #endif /*DEBUG*/
 
-int 
+int
 vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
-	int bandno_in, 
-	int xref, int yref, int xsec, int ysec, 
+	int bandno_in,
+	int xref, int yref, int xsec, int ysec,
 	int halfcorrelation, int halfarea,
 	int *dx0, int *dy0,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
@@ -117,7 +117,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 
 	/* Test cor and area.
 	 */
-	if( halfcorrelation < 0 || halfarea < 0 || 
+	if( halfcorrelation < 0 || halfarea < 0 ||
 		halfarea < halfcorrelation ) {
 		vips_error( "vips__lrmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
@@ -139,7 +139,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	vips_rect_intersectrect( &left, &right, &overlap );
 	if( overlap.width < 2 * halfarea + 1 ||
 		overlap.height < 2 * halfarea + 1 ) {
-		vips_error( "vips__lrmosaic", 
+		vips_error( "vips__lrmosaic",
 			"%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
@@ -147,10 +147,10 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	/* Extract overlaps as 8-bit, 1 band.
 	 */
 	if( vips_extract_area( ref_in, &t[0],
-			overlap.left, overlap.top, 
+			overlap.left, overlap.top,
 			overlap.width, overlap.height, NULL ) ||
-		vips_extract_area( sec_in, &t[1], 
-			overlap.left - right.left, overlap.top - right.top, 
+		vips_extract_area( sec_in, &t[1],
+			overlap.left - right.left, overlap.top - right.top,
 			overlap.width, overlap.height, NULL ) )
 		return( -1 );
 	if( ref_in->Coding == VIPS_CODING_LABQ ) {
@@ -172,7 +172,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 		return( -1 );
 	}
 
-	/* Initialise and fill TiePoints 
+	/* Initialise and fill TiePoints
 	 */
 	p_points = &points;
 	p_newpoints = &newpoints;
@@ -181,10 +181,10 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	p_points->nopoints = VIPS_MAXPOINTS;
 	p_points->deltax = 0;
 	p_points->deltay = 0;
-	p_points->halfcorsize = halfcorrelation; 	
+	p_points->halfcorsize = halfcorrelation;
 	p_points->halfareasize = halfarea;
 
-	/* Initialise the structure 
+	/* Initialise the structure
 	 */
 	for( i = 0; i < VIPS_MAXPOINTS; i++ ) {
 		p_points->x_reference[i] = 0;
@@ -198,11 +198,11 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 		p_points->deviation[i] = 0.0;
 	}
 
-	/* Search ref for possible tie-points. Sets: p_points->contrast, 
+	/* Search ref for possible tie-points. Sets: p_points->contrast,
 	 * p_points->x,y_reference.
  	 */
 	if( vips__lrcalcon( t[4], p_points ) )
-		return( -1 ); 
+		return( -1 );
 
 	/* For each candidate point, correlate against corresponding part of
 	 * sec. Sets x,y_secondary and fills correlation and dx, dy.
@@ -215,7 +215,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
   	if( vips__initialize( p_points ) )
 		return( -1 );
 
-	/* Improve the selection of tiepoints until all abs(deviations) are 
+	/* Improve the selection of tiepoints until all abs(deviations) are
 	 * < 1.0 by deleting all wrong points.
  	 */
 	if( vips__improve( p_points, p_newpoints ) )
@@ -241,10 +241,10 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	return( 0 );
 }
 
-int 
-vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
-	int bandno, 
-	int xref, int yref, int xsec, int ysec, 
+int
+vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	int mwidth )
 {
@@ -258,7 +258,7 @@ vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	 */
 	dummy = vips_image_new();
 	if( vips__find_lroverlap( ref, sec, dummy,
-		bandno, 
+		bandno,
 		xref, yref, xsec, ysec,
 		hwindowsize, hsearchsize,
 		&dx0, &dy0,
@@ -270,10 +270,10 @@ vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* Merge left right.
 	 */
-	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL, dx0, dy0, 
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL, dx0, dy0,
 		"mblend", mwidth,
 		NULL ) )
-		return( -1 ); 
+		return( -1 );
 	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );

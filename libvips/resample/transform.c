@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -43,7 +43,7 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-/* DBL_MIN is smallest *normalized* double precision float 
+/* DBL_MIN is smallest *normalized* double precision float
  */
 #define TOO_SMALL (2.0 * DBL_MIN)
 
@@ -101,8 +101,8 @@ vips__transform_init( VipsTransformation *trn )
 int
 vips__transform_isidentity( const VipsTransformation *trn )
 {
-	if( trn->a == 1.0 && trn->b == 0.0 && 
-		trn->c == 0.0 && trn->d == 1.0 && 
+	if( trn->a == 1.0 && trn->b == 0.0 &&
+		trn->c == 0.0 && trn->d == 1.0 &&
 		trn->idx == 0.0 && trn->idy == 0.0 &&
 		trn->odx == 0.0 && trn->ody == 0.0 )
 		return( 1 );
@@ -113,7 +113,7 @@ vips__transform_isidentity( const VipsTransformation *trn )
 /* Combine two transformations. out can be one of the ins.
  */
 int
-vips__transform_add( const VipsTransformation *in1, 
+vips__transform_add( const VipsTransformation *in1,
 	const VipsTransformation *in2, VipsTransformation *out )
 {
 	out->a = in1->a * in2->a + in1->c * in2->b;
@@ -132,7 +132,7 @@ vips__transform_add( const VipsTransformation *in1,
 	return( 0 );
 }
 
-void 
+void
 vips__transform_print( const VipsTransformation *trn )
 {
 	printf( "vips__transform_print:\n" );
@@ -152,10 +152,10 @@ vips__transform_print( const VipsTransformation *trn )
 		trn->odx, trn->ody, trn->idx, trn->idy );
 }
 
-/* Map a pixel coordinate through the transform. 
+/* Map a pixel coordinate through the transform.
  */
 void
-vips__transform_forward_point( const VipsTransformation *trn, 
+vips__transform_forward_point( const VipsTransformation *trn,
 	double x, double y,	/* In input space */
 	double *ox, double *oy )/* In output space */
 {
@@ -166,10 +166,10 @@ vips__transform_forward_point( const VipsTransformation *trn,
 	*oy = trn->c * x + trn->d * y + trn->ody;
 }
 
-/* Map a pixel coordinate through the inverse transform. 
+/* Map a pixel coordinate through the inverse transform.
  */
 void
-vips__transform_invert_point( const VipsTransformation *trn, 
+vips__transform_invert_point( const VipsTransformation *trn,
 	double x, double y,	/* In output space */
 	double *ox, double *oy )/* In input space */
 {
@@ -180,7 +180,7 @@ vips__transform_invert_point( const VipsTransformation *trn,
 	*oy = trn->ic * x + trn->id * y - trn->idy;
 }
 
-typedef void (*transform_fn)( const VipsTransformation *, 
+typedef void (*transform_fn)( const VipsTransformation *,
 	const double, const double, double*, double* );
 
 /* Transform a rect using a point transformer.
@@ -198,13 +198,13 @@ transform_rect( const VipsTransformation *trn, transform_fn transform,
 
 	/* Map input VipsRect.
 	 */
-	transform( trn, in->left, in->top, 
+	transform( trn, in->left, in->top,
 		&x1, &y1 );
-	transform( trn, in->left, VIPS_RECT_BOTTOM( in ), 
+	transform( trn, in->left, VIPS_RECT_BOTTOM( in ),
 		&x3, &y3 );
-	transform( trn, VIPS_RECT_RIGHT( in ), in->top, 
+	transform( trn, VIPS_RECT_RIGHT( in ), in->top,
 		&x2, &y2 );
-	transform( trn, VIPS_RECT_RIGHT( in ), VIPS_RECT_BOTTOM( in ), 
+	transform( trn, VIPS_RECT_RIGHT( in ), VIPS_RECT_BOTTOM( in ),
 		&x4, &y4 );
 
 	/* Find bounding box for these four corners. Round-to-nearest to try
@@ -232,11 +232,11 @@ vips__transform_forward_rect( const VipsTransformation *trn,
 	transform_rect( trn, vips__transform_forward_point, in, out );
 }
 
-/* Given an area in the output image, calculate the bounding box for the 
+/* Given an area in the output image, calculate the bounding box for the
  * corresponding pixels in the input image.
  */
 void
-vips__transform_invert_rect( const VipsTransformation *trn, 
+vips__transform_invert_rect( const VipsTransformation *trn,
 	const VipsRect *in,	/* In output space */
 	VipsRect *out )		/* In input space */
 {

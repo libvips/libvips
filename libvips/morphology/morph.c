@@ -4,7 +4,7 @@
  *	- rewritten
  * 6/7/99 JC
  *	- small tidies
- * 7/4/04 
+ * 7/4/04
  *	- now uses im_embed() with edge stretching on the input, not
  *	  the output
  *	- sets Xoffset / Yoffset
@@ -15,13 +15,13 @@
  * 	- start again from the Orc'd im_conv
  * 29/10/10
  * 	- use VipsVector
- * 	- do erode as well 
+ * 	- do erode as well
  * 7/11/10
  * 	- gtk-doc
  * 	- do (!=0) to make uchar, if we're not given uchar
  * 28/6/13
  * 	- oops, fix !=0 code
- * 23/10/13	
+ * 23/10/13
  * 	- from vips_conv()
  * 25/2/20 kleisauke
  * 	- rewritten as a class
@@ -31,7 +31,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,7 +77,7 @@
  */
 #define MAX_PASS (10)
 
-/* A pass with a vector. 
+/* A pass with a vector.
  */
 typedef struct {
 	int first;		/* The index of the first mask coff we use */
@@ -85,17 +85,17 @@ typedef struct {
 
 	int r;			/* Set previous result in this var */
 
-	/* The code we generate for this section of this mask. 
+	/* The code we generate for this section of this mask.
 	 */
 	VipsVector *vector;
 } Pass;
 
-/** 
+/**
  * VipsOperationMorphology:
  * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
  * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
  *
- * More like hit-miss, really. 
+ * More like hit-miss, really.
  *
  * See also: vips_morph().
  */
@@ -117,7 +117,7 @@ typedef struct {
 
 	/* The passes we generate for this mask.
 	 */
-	int n_pass;	
+	int n_pass;
 	Pass pass[MAX_PASS];
 } VipsMorph;
 
@@ -138,7 +138,7 @@ typedef struct {
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
 
-	/* In vector mode we need a pair of intermediate buffers to keep the 
+	/* In vector mode we need a pair of intermediate buffers to keep the
 	 * results of each pass in.
 	 */
 	void *t1;
@@ -166,7 +166,7 @@ vips_morph_dispose( GObject *gobject )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	vips_morph_compile_free( morph ); 
+	vips_morph_compile_free( morph );
 
 	G_OBJECT_CLASS( vips_morph_parent_class )->dispose( gobject );
 }
@@ -217,7 +217,7 @@ vips_morph_start( VipsImage *out, void *a, void *b )
 	seq->soff = VIPS_ARRAY( out, morph->n_point, int );
 	seq->coff = VIPS_ARRAY( out, morph->n_point, int );
 
-	if( !seq->soff || 
+	if( !seq->soff ||
 		!seq->coff ) {
 		vips_morph_stop( seq, in, morph );
 		return( NULL );
@@ -226,12 +226,12 @@ vips_morph_start( VipsImage *out, void *a, void *b )
 	/* Vector mode.
 	 */
 	if( morph->n_pass ) {
-		seq->t1 = VIPS_ARRAY( NULL, 
+		seq->t1 = VIPS_ARRAY( NULL,
 			VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
-		seq->t2 = VIPS_ARRAY( NULL, 
+		seq->t2 = VIPS_ARRAY( NULL,
 			VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
 
-		if( !seq->t1 || 
+		if( !seq->t1 ||
 			!seq->t2 ) {
 			vips_morph_stop( seq, in, morph );
 			return( NULL );
@@ -248,7 +248,7 @@ vips_morph_start( VipsImage *out, void *a, void *b )
 #define ASM3( OP, A, B, C ) vips_vector_asm3( v, OP, A, B, C )
 
 /* Generate code for a section of the mask. first is the index we start
- * at, we set last to the index of the last one we use before we run 
+ * at, we set last to the index of the last one we use before we run
  * out of intermediates / constants / parameters / sources or mask
  * coefficients.
  *
@@ -278,8 +278,8 @@ vips_morph_compile_section( VipsMorph *morph, Pass *pass, gboolean first_pass )
 	CONST( one, 255, 1 );
 
 	/* Init the sum. If this is the first pass, it's a constant. If this
-	 * is a later pass, we have to init the sum from the result 
-	 * of the previous pass. 
+	 * is a later pass, we have to init the sum from the result
+	 * of the previous pass.
 	 */
 	if( first_pass ) {
 		if( morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE )
@@ -288,7 +288,7 @@ vips_morph_compile_section( VipsMorph *morph, Pass *pass, gboolean first_pass )
 			ASM2( "copyb", "sum", one );
 	}
 	else {
-		/* "r" is the result of the previous pass. 
+		/* "r" is the result of the previous pass.
 		 */
 		pass->r = vips_vector_source_name( v, "r", 1 );
 		ASM2( "loadb", "sum", "r" );
@@ -320,7 +320,7 @@ vips_morph_compile_section( VipsMorph *morph, Pass *pass, gboolean first_pass )
 		 * add an extra negate.
 		 */
 		if( morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE ) {
-			if( !morph->coeff[i] ) 
+			if( !morph->coeff[i] )
 				ASM3( "xorb", "value", "value", one );
 			ASM3( "orb", "sum", "sum", "value" );
 		}
@@ -328,7 +328,7 @@ vips_morph_compile_section( VipsMorph *morph, Pass *pass, gboolean first_pass )
 			if( !morph->coeff[i] ) {
 				/* You'd think we could use andnb, but it
 				 * fails on some machines with some orc
-				 * versions :( 
+				 * versions :(
 				 */
 				ASM3( "xorb", "value", "value", one );
 				ASM3( "andb", "sum", "sum", "value" );
@@ -345,7 +345,7 @@ vips_morph_compile_section( VipsMorph *morph, Pass *pass, gboolean first_pass )
 
 	ASM2( "copyb", "d1", "sum" );
 
-	if( !vips_vector_compile( v ) ) 
+	if( !vips_vector_compile( v ) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -371,7 +371,7 @@ vips_morph_compile( VipsMorph *morph )
 	/* Generate passes until we've used up the whole mask.
 	 */
 	for( i = 0;;) {
-		/* Skip any don't-care coefficients at the start of the mask 
+		/* Skip any don't-care coefficients at the start of the mask
 		 * region.
 		 */
 		for( ; i < morph->n_point && morph->coeff[i] == 128; i++ )
@@ -381,7 +381,7 @@ vips_morph_compile( VipsMorph *morph )
 
 		/* Allocate space for another pass.
 		 */
-		if( morph->n_pass == MAX_PASS ) 
+		if( morph->n_pass == MAX_PASS )
 			return( -1 );
 		pass = &morph->pass[morph->n_pass];
 		morph->n_pass += 1;
@@ -404,7 +404,7 @@ vips_morph_compile( VipsMorph *morph )
 /* Dilate!
  */
 static int
-vips_dilate_gen( VipsRegion *or, 
+vips_dilate_gen( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
@@ -436,7 +436,7 @@ vips_dilate_gen( VipsRegion *or,
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_dilate_gen: preparing %dx%d@%dx%d pixels\n", 
+	printf( "vips_dilate_gen: preparing %dx%d@%dx%d pixels\n",
 		s.width, s.height, s.left, s.top );
 #endif /*DEBUG_VERBOSE*/
 
@@ -453,7 +453,7 @@ vips_dilate_gen( VipsRegion *or,
 				switch( *t ) {
 				case 255:
 					soff[seq->ss++] =
-						VIPS_REGION_ADDR( ir, 
+						VIPS_REGION_ADDR( ir,
 							x + le, y + to ) -
 						VIPS_REGION_ADDR( ir, le, to );
 					break;
@@ -463,7 +463,7 @@ vips_dilate_gen( VipsRegion *or,
 
 				case 0:
 					coff[seq->cs++] =
-						VIPS_REGION_ADDR( ir, 
+						VIPS_REGION_ADDR( ir,
 							x + le, y + to ) -
 						VIPS_REGION_ADDR( ir, le, to );
 					break;
@@ -487,7 +487,7 @@ vips_dilate_gen( VipsRegion *or,
 			result = 0;
 			for( i = 0; i < seq->ss; i++ )
 				if( p[soff[i]] ) {
-					/* Found a match! 
+					/* Found a match!
 					 */
 					result = 255;
 					break;
@@ -499,7 +499,7 @@ vips_dilate_gen( VipsRegion *or,
 			if( !result )
 				for( i = 0; i < seq->cs; i++ )
 					if( !p[coff[i]] ) {
-						/* Found a match! 
+						/* Found a match!
 						 */
 						result = 255;
 						break;
@@ -508,14 +508,14 @@ vips_dilate_gen( VipsRegion *or,
 			*q = result;
 		}
 	}
-	
+
 	return( 0 );
 }
 
 /* Erode!
  */
 static int
-vips_erode_gen( VipsRegion *or, 
+vips_erode_gen( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
@@ -547,7 +547,7 @@ vips_erode_gen( VipsRegion *or,
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_erode_gen: preparing %dx%d@%dx%d pixels\n", 
+	printf( "vips_erode_gen: preparing %dx%d@%dx%d pixels\n",
 		s.width, s.height, s.left, s.top );
 #endif /*DEBUG_VERBOSE*/
 
@@ -564,7 +564,7 @@ vips_erode_gen( VipsRegion *or,
 				switch( *t ) {
 				case 255:
 					soff[seq->ss++] =
-						VIPS_REGION_ADDR( ir, 
+						VIPS_REGION_ADDR( ir,
 							x + le, y + to ) -
 						VIPS_REGION_ADDR( ir, le, to );
 					break;
@@ -574,7 +574,7 @@ vips_erode_gen( VipsRegion *or,
 
 				case 0:
 					coff[seq->cs++] =
-						VIPS_REGION_ADDR( ir, 
+						VIPS_REGION_ADDR( ir,
 							x + le, y + to ) -
 						VIPS_REGION_ADDR( ir, le, to );
 					break;
@@ -598,7 +598,7 @@ vips_erode_gen( VipsRegion *or,
 			result = 255;
 			for( i = 0; i < seq->ss; i++ )
 				if( !p[soff[i]] ) {
-					/* Found a mismatch! 
+					/* Found a mismatch!
 					 */
 					result = 0;
 					break;
@@ -616,14 +616,14 @@ vips_erode_gen( VipsRegion *or,
 			*q = result;
 		}
 	}
-	
+
 	return( 0 );
 }
 
 /* The vector codepath.
  */
 static int
-vips_morph_gen_vector( VipsRegion *or, 
+vips_morph_gen_vector( VipsRegion *or,
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
@@ -647,17 +647,17 @@ vips_morph_gen_vector( VipsRegion *or,
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_morph_gen_vector: preparing %dx%d@%dx%d pixels\n", 
+	printf( "vips_morph_gen_vector: preparing %dx%d@%dx%d pixels\n",
 		s.width, s.height, s.left, s.top );
 #endif /*DEBUG_VERBOSE*/
 
-	for( j = 0; j < morph->n_pass; j++ ) 
-		vips_executor_set_program( &executor[j], 
+	for( j = 0; j < morph->n_pass; j++ )
+		vips_executor_set_program( &executor[j],
 			morph->pass[j].vector, sz );
 
-	VIPS_GATE_START( "vips_morph_gen_vector: work" ); 
+	VIPS_GATE_START( "vips_morph_gen_vector: work" );
 
-	for( y = 0; y < r->height; y++ ) { 
+	for( y = 0; y < r->height; y++ ) {
 		for( j = 0; j < morph->n_pass; j++ ) {
 			void *d;
 
@@ -666,10 +666,10 @@ vips_morph_gen_vector( VipsRegion *or,
 			 */
 			if( j == morph->n_pass - 1 )
 				d = VIPS_REGION_ADDR( or, r->left, r->top + y );
-			else 
+			else
 				d = seq->t2;
 
-			vips_executor_set_scanline( &executor[j], 
+			vips_executor_set_scanline( &executor[j],
 				ir, r->left, r->top + y );
 			vips_executor_set_array( &executor[j],
 				morph->pass[j].r, seq->t1 );
@@ -680,9 +680,9 @@ vips_morph_gen_vector( VipsRegion *or,
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_morph_gen_vector: work" ); 
+	VIPS_GATE_STOP( "vips_morph_gen_vector: work" );
 
-	VIPS_COUNT_PIXELS( or, "vips_morph_gen_vector" ); 
+	VIPS_COUNT_PIXELS( or, "vips_morph_gen_vector" );
 
 	return( 0 );
 }
@@ -713,17 +713,17 @@ vips_morph_build( VipsObject *object )
 	in = t[0];
 
 	if( vips_check_matrix( class->nickname, morph->mask, &t[1] ) )
-		return( -1 ); 
+		return( -1 );
 	morph->M = M = t[1];
 	morph->n_point = M->Xsize * M->Ysize;
 
-	if( vips_embed( in, &t[2], 
-		M->Xsize / 2, M->Ysize / 2, 
+	if( vips_embed( in, &t[2],
+		M->Xsize / 2, M->Ysize / 2,
 		in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[2]; 
+	in = t[2];
 
 	/* Make sure we are uchar.
 	 */
@@ -734,18 +734,18 @@ vips_morph_build( VipsObject *object )
 	/* Make an int version of our mask.
 	 */
 	if( vips__image_intize( M, &t[4] ) )
-		return( -1 ); 
+		return( -1 );
 	M = t[4];
 
-	coeff = VIPS_MATRIX( M, 0, 0 ); 
+	coeff = VIPS_MATRIX( M, 0, 0 );
 	if( !(morph->coeff = VIPS_ARRAY( object, morph->n_point, int )) )
 		return( -1 );
 
 	for( i = 0; i < morph->n_point; i++ ) {
-		if( coeff[i] != 0 && 
+		if( coeff[i] != 0 &&
 			coeff[i] != 128 &&
 			coeff[i] != 255 ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				_( "bad mask element (%f "
 				"should be 0, 128 or 255)" ),
 				coeff[i] );
@@ -764,14 +764,14 @@ vips_morph_build( VipsObject *object )
 	if( vips_vector_isenabled() ) {
 		if( !vips_morph_compile( morph ) ) {
 			generate = vips_morph_gen_vector;
-			g_info( "morph: using vector path" ); 
+			g_info( "morph: using vector path" );
 		}
 		else
 			vips_morph_compile_free( morph );
 	}
 
-	g_object_set( morph, "out", vips_image_new(), NULL ); 
-	if( vips_image_pipelinev( morph->out, 
+	g_object_set( morph, "out", vips_image_new(), NULL );
+	if( vips_image_pipelinev( morph->out,
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
@@ -781,7 +781,7 @@ vips_morph_build( VipsObject *object )
 	morph->out->Xsize -= M->Xsize - 1;
 	morph->out->Ysize -= M->Ysize - 1;
 
-	if( vips_image_generate( morph->out, 
+	if( vips_image_generate( morph->out,
 		vips_morph_start, generate, vips_morph_stop, in, morph ) )
 		return( -1 );
 
@@ -808,25 +808,25 @@ vips_morph_class_init( VipsMorphClass *class )
 	object_class->description = _( "morphology operation" );
 	object_class->build = vips_morph_build;
 
-	VIPS_ARG_IMAGE( class, "out", 10, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 10,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMorph, out ) );
 
-	VIPS_ARG_IMAGE( class, "mask", 20, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "mask", 20,
+		_( "Mask" ),
 		_( "Input matrix image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMorph, mask ) );
 
-	VIPS_ARG_ENUM( class, "morph", 103, 
-		_( "Morphology" ), 
+	VIPS_ARG_ENUM( class, "morph", 103,
+		_( "Morphology" ),
 		_( "Morphological operation to perform" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsMorph, morph ), 
-		VIPS_TYPE_OPERATION_MORPHOLOGY, 
-			VIPS_OPERATION_MORPHOLOGY_ERODE ); 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMorph, morph ),
+		VIPS_TYPE_OPERATION_MORPHOLOGY,
+			VIPS_OPERATION_MORPHOLOGY_ERODE );
 
 }
 
@@ -846,7 +846,7 @@ vips_morph_init( VipsMorph *morph )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Performs a morphological operation on @in using @mask as a
- * structuring element. 
+ * structuring element.
  *
  * The image should have 0 (black) for no object and 255
  * (non-zero) for an object. Note that this is the reverse of the usual
@@ -855,22 +855,22 @@ vips_morph_init( VipsMorph *morph )
  * size as the input image: edge pxels are made by expanding the input image
  * as necessary.
  *
- * Mask coefficients can be either 0 (for object) or 255 (for background) 
+ * Mask coefficients can be either 0 (for object) or 255 (for background)
  * or 128 (for do not care).  The origin of the mask is at location
- * (m.xsize / 2, m.ysize / 2), integer division.  All algorithms have been 
- * based on the book "Fundamentals of Digital Image Processing" by A. Jain, 
- * pp 384-388, Prentice-Hall, 1989. 
+ * (m.xsize / 2, m.ysize / 2), integer division.  All algorithms have been
+ * based on the book "Fundamentals of Digital Image Processing" by A. Jain,
+ * pp 384-388, Prentice-Hall, 1989.
  *
- * For #VIPS_OPERATION_MORPHOLOGY_ERODE, 
+ * For #VIPS_OPERATION_MORPHOLOGY_ERODE,
  * the whole mask must match for the output pixel to be
  * set, that is, the result is the logical AND of the selected input pixels.
  *
- * For #VIPS_OPERATION_MORPHOLOGY_DILATE, 
- * the output pixel is set if any part of the mask 
+ * For #VIPS_OPERATION_MORPHOLOGY_DILATE,
+ * the output pixel is set if any part of the mask
  * matches, that is, the result is the logical OR of the selected input pixels.
  *
- * See the boolean operations vips_andimage(), vips_orimage() and 
- * vips_eorimage() 
+ * See the boolean operations vips_andimage(), vips_orimage() and
+ * vips_eorimage()
  * for analogues of the usual set difference and set union operations.
  *
  * Operations are performed using the processor's vector unit,
@@ -878,8 +878,8 @@ vips_morph_init( VipsMorph *morph )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+int
+vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask,
 	VipsOperationMorphology morph, ... )
 {
 	va_list ap;

@@ -6,7 +6,7 @@
  * @(#) int vips__avgdxdy( points, dx, dy )
  * @(#) TiePoints *points;
  * @(#) int *dx, *dy;
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
@@ -19,7 +19,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -55,7 +55,7 @@
 
 #include "pmosaicing.h"
 
-int 
+int
 vips__avgdxdy( TiePoints *points, int *dx, int *dy )
 {
 	int sumdx, sumdy;

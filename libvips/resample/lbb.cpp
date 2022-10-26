@@ -205,37 +205,37 @@ typedef struct _VipsInterpolateLbbClass {
 
 static inline double
 lbbicubic( const double c00,
-           const double c10,
-           const double c01,
-           const double c11,
-           const double c00dx,
-           const double c10dx,
-           const double c01dx,
-           const double c11dx,
-           const double c00dy,
-           const double c10dy,
-           const double c01dy,
-           const double c11dy,
-           const double c00dxdy,
-           const double c10dxdy,
-           const double c01dxdy,
-           const double c11dxdy,
-           const double uno_one,
-           const double uno_two,
-           const double uno_thr,
-           const double uno_fou,
-           const double dos_one,
-           const double dos_two,
-           const double dos_thr,
-           const double dos_fou,
-           const double tre_one,
-           const double tre_two,
-           const double tre_thr,
-           const double tre_fou,
-           const double qua_one,
-           const double qua_two,
-           const double qua_thr,
-           const double qua_fou )
+	   const double c10,
+	   const double c01,
+	   const double c11,
+	   const double c00dx,
+	   const double c10dx,
+	   const double c01dx,
+	   const double c11dx,
+	   const double c00dy,
+	   const double c10dy,
+	   const double c01dy,
+	   const double c11dy,
+	   const double c00dxdy,
+	   const double c10dxdy,
+	   const double c01dxdy,
+	   const double c11dxdy,
+	   const double uno_one,
+	   const double uno_two,
+	   const double uno_thr,
+	   const double uno_fou,
+	   const double dos_one,
+	   const double dos_two,
+	   const double dos_thr,
+	   const double dos_fou,
+	   const double tre_one,
+	   const double tre_two,
+	   const double tre_thr,
+	   const double tre_fou,
+	   const double qua_one,
+	   const double qua_two,
+	   const double qua_thr,
+	   const double qua_fou )
 {
   /*
    * STENCIL (FOOTPRINT) OF INPUT VALUES:
@@ -551,22 +551,22 @@ lbbicubic( const double c00,
    * Part of the result which does not need derivatives:
    */
   const double newval1 = c00 * dos_two + c10 * dos_thr +
-                         c01 * tre_two + c11 * tre_thr;
+			 c01 * tre_two + c11 * tre_thr;
 
   /*
    * Twice the part of the result which only needs first derivatives.
    */
   const double newval2 = c00dx * dble_dzdx00 + c10dx * dble_dzdx10 +
-                         c01dx * dble_dzdx01 + c11dx * dble_dzdx11 +
-                         c00dy * dble_dzdy00 + c10dy * dble_dzdy10 +
-                         c01dy * dble_dzdy01 + c11dy * dble_dzdy11;
+			 c01dx * dble_dzdx01 + c11dx * dble_dzdx11 +
+			 c00dy * dble_dzdy00 + c10dy * dble_dzdy10 +
+			 c01dy * dble_dzdy01 + c11dy * dble_dzdy11;
 
   /*
    * Four times the part of the result which only uses cross
    * derivatives:
    */
   const double newval3 = c00dxdy * quad_d2zdxdy00 + c10dxdy * quad_d2zdxdy10 +
-                         c01dxdy * quad_d2zdxdy01 + c11dxdy * quad_d2zdxdy11;
+			 c01dxdy * quad_d2zdxdy01 + c11dxdy * quad_d2zdxdy11;
 
   const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
@@ -582,11 +582,11 @@ lbbicubic( const double c00,
 #define LBB_CONVERSION( conversion )                     \
   template <typename T> static void inline               \
   lbb_ ## conversion(       void*      restrict pout,    \
-                      const VipsPel*   restrict pin,     \
-                      const int             bands,       \
-                      const int             lskip,       \
-                      const double          relative_x,  \
-                      const double          relative_y ) \
+		      const VipsPel*   restrict pin,     \
+		      const int             bands,       \
+		      const int             lskip,       \
+		      const double          relative_x,  \
+		      const double          relative_y ) \
   { \
     T* restrict out = (T *) pout; \
     \
@@ -701,43 +701,43 @@ lbbicubic( const double c00,
     \
     do \
       { \
-        const double double_result =        \
-          lbbicubic( c00,                   \
-                     c10,                   \
-                     c01,                   \
-                     c11,                   \
-                     c00dx,                 \
-                     c10dx,                 \
-                     c01dx,                 \
-                     c11dx,                 \
-                     c00dy,                 \
-                     c10dy,                 \
-                     c01dy,                 \
-                     c11dy,                 \
-                     c00dxdy,               \
-                     c10dxdy,               \
-                     c01dxdy,               \
-                     c11dxdy,               \
-                     in[ uno_one_shift ],   \
-                     in[ uno_two_shift ],   \
-                     in[ uno_thr_shift ],   \
-                     in[ uno_fou_shift ],   \
-                     in[ dos_one_shift ],   \
-                     in[             0 ],   \
-                     in[ dos_thr_shift ],   \
-                     in[ dos_fou_shift ],   \
-                     in[ tre_one_shift ],   \
-                     in[ tre_two_shift ],   \
-                     in[ tre_thr_shift ],   \
-                     in[ tre_fou_shift ],   \
-                     in[ qua_one_shift ],   \
-                     in[ qua_two_shift ],   \
-                     in[ qua_thr_shift ],   \
-                     in[ qua_fou_shift ] ); \
-        \
-        const T result = to_ ## conversion<T>( double_result ); \
-        in++; \
-        *out++ = result; \
+	const double double_result =        \
+	  lbbicubic( c00,                   \
+		     c10,                   \
+		     c01,                   \
+		     c11,                   \
+		     c00dx,                 \
+		     c10dx,                 \
+		     c01dx,                 \
+		     c11dx,                 \
+		     c00dy,                 \
+		     c10dy,                 \
+		     c01dy,                 \
+		     c11dy,                 \
+		     c00dxdy,               \
+		     c10dxdy,               \
+		     c01dxdy,               \
+		     c11dxdy,               \
+		     in[ uno_one_shift ],   \
+		     in[ uno_two_shift ],   \
+		     in[ uno_thr_shift ],   \
+		     in[ uno_fou_shift ],   \
+		     in[ dos_one_shift ],   \
+		     in[             0 ],   \
+		     in[ dos_thr_shift ],   \
+		     in[ dos_fou_shift ],   \
+		     in[ tre_one_shift ],   \
+		     in[ tre_two_shift ],   \
+		     in[ tre_thr_shift ],   \
+		     in[ tre_fou_shift ],   \
+		     in[ qua_one_shift ],   \
+		     in[ qua_two_shift ],   \
+		     in[ qua_thr_shift ],   \
+		     in[ qua_fou_shift ] ); \
+	\
+	const T result = to_ ## conversion<T>( double_result ); \
+	in++; \
+	*out++ = result; \
       } while (--band); \
   }
 
@@ -747,11 +747,11 @@ LBB_CONVERSION( nosign )
 
 #define CALL( T, conversion )          \
   lbb_ ## conversion<T>( out,          \
-                         p,            \
-                         bands,        \
-                         lskip,        \
-                         relative_x,   \
-                         relative_y );
+			 p,            \
+			 bands,        \
+			 lskip,        \
+			 relative_x,   \
+			 relative_y );
 
 /*
  * We need C linkage:
@@ -763,13 +763,13 @@ G_DEFINE_TYPE( VipsInterpolateLbb, vips_interpolate_lbb,
 
 static void
 vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
-                                  void*            restrict out,
-                                  VipsRegion*      restrict in,
-                                  double                    absolute_x,
-                                  double                    absolute_y )
+				  void*            restrict out,
+				  VipsRegion*      restrict in,
+				  double                    absolute_x,
+				  double                    absolute_y )
 {
   /* absolute_x and absolute_y are always >= 1.0 (see double-check assert
-   * below), so we don't need floor(). 
+   * below), so we don't need floor().
    *
    * It's 1 not 0 since have a window_offset of 1.
    */
@@ -789,7 +789,7 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
   /*
    * VIPS versions of Nicolas's pixel addressing values.
    */
-  const int lskip = VIPS_REGION_LSKIP( in ) / 
+  const int lskip = VIPS_REGION_LSKIP( in ) /
 	  VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
   /*
    * Double the bands for complex images to account for the real and
@@ -797,7 +797,7 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
    */
   const int actual_bands = in->im->Bands;
   const int bands =
-    vips_band_format_iscomplex( in->im->BandFmt ) ? 
+    vips_band_format_iscomplex( in->im->BandFmt ) ?
       2 * actual_bands : actual_bands;
 
   g_assert( ix - 1 >= in->valid.left );
@@ -805,7 +805,7 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
   g_assert( ix + 2 < VIPS_RECT_RIGHT( &in->valid ) );
   g_assert( iy + 2 < VIPS_RECT_BOTTOM( &in->valid ) );
 
-  /* Confirm that absolute_x and absolute_y are >= 1, see above. 
+  /* Confirm that absolute_x and absolute_y are >= 1, see above.
    */
   g_assert( absolute_x >= 1.0 );
   g_assert( absolute_y >= 1.0 );

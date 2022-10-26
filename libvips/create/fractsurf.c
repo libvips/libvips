@@ -15,7 +15,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -77,8 +77,8 @@ vips_fractsurf_build( VipsObject *object )
 	if( vips_gaussnoise( &t[0], fractsurf->width, fractsurf->height,
 			"mean", 0.0,
 			"sigma", 1.0,
-			NULL ) || 
-		vips_mask_fractal( &t[1], fractsurf->width, fractsurf->height, 
+			NULL ) ||
+		vips_mask_fractal( &t[1], fractsurf->width, fractsurf->height,
 			fractsurf->fractal_dimension, NULL ) ||
 		vips_freqmult( t[0], t[1], &t[2], NULL ) ||
 		vips_image_write( t[2], create->out ) )
@@ -100,22 +100,22 @@ vips_fractsurf_class_init( VipsFractsurfClass *class )
 	vobject_class->description = _( "make a fractal surface" );
 	vobject_class->build = vips_fractsurf_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 4,
+		_( "Width" ),
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFractsurf, width ),
 		1, VIPS_MAX_COORD, 64 );
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 5,
+		_( "Height" ),
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFractsurf, height ),
 		1, VIPS_MAX_COORD, 64 );
 
-	VIPS_ARG_DOUBLE( class, "fractal_dimension", 8, 
-		_( "Fractal dimension" ), 
+	VIPS_ARG_DOUBLE( class, "fractal_dimension", 8,
+		_( "Fractal dimension" ),
 		_( "Fractal dimension" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFractsurf, fractal_dimension ),
@@ -126,8 +126,8 @@ vips_fractsurf_class_init( VipsFractsurfClass *class )
 static void
 vips_fractsurf_init( VipsFractsurf *fractsurf )
 {
-	fractsurf->width = 64; 
-	fractsurf->height = 64; 
+	fractsurf->width = 64;
+	fractsurf->height = 64;
 	fractsurf->fractal_dimension = 2.5;
 }
 
@@ -139,7 +139,7 @@ vips_fractsurf_init( VipsFractsurf *fractsurf )
  * @fractal_dimension: fractal dimension
  * @...: %NULL-terminated list of optional named arguments
  *
- * Generate an image of size @width by @height and fractal dimension 
+ * Generate an image of size @width by @height and fractal dimension
  * @fractal_dimension. The dimension should be between 2 and 3.
  *
  * See also: vips_gaussnoise(), vips_mask_fractal().
@@ -147,14 +147,14 @@ vips_fractsurf_init( VipsFractsurf *fractsurf )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_fractsurf( VipsImage **out, 
+vips_fractsurf( VipsImage **out,
 	int width, int height, double fractal_dimension, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, fractal_dimension );
-	result = vips_call_split( "fractsurf", ap, 
+	result = vips_call_split( "fractsurf", ap,
 		out, width, height, fractal_dimension );
 	va_end( ap );
 

@@ -13,7 +13,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -86,7 +86,7 @@ remosaic_fn( JoinNode *node, VipsRemosaic *remosaic )
 	char *p;
 
 	if( !im ) {
-		vips_error( "vips_remosaic", _( "file \"%s\" not found" ), 
+		vips_error( "vips_remosaic", _( "file \"%s\" not found" ),
 			node->name );
 		return( NULL );
 	}
@@ -100,22 +100,22 @@ remosaic_fn( JoinNode *node, VipsRemosaic *remosaic )
 
 		vips_strncpy( p, remosaic->new_str, FILENAME_MAX - offset );
 		vips_strncpy( p + remosaic->new_len,
-			im->filename + offset + remosaic->old_len, 
+			im->filename + offset + remosaic->old_len,
 			FILENAME_MAX - offset - remosaic->new_len );
 	}
 
 #ifdef DEBUG
-	printf( "vips_remosaic: filename \"%s\" -> \"%s\"\n", 
+	printf( "vips_remosaic: filename \"%s\" -> \"%s\"\n",
 		im->filename, filename );
 #endif /*DEBUG*/
 
-	if( !(out = vips__global_open_image( st, filename )) ) 
+	if( !(out = vips__global_open_image( st, filename )) )
 		return( NULL );
 
 	if( out->Xsize != im->Xsize || out->Ysize != im->Ysize ) {
-		vips_error( "vips_remosaic", 
+		vips_error( "vips_remosaic",
 			_( "substitute image \"%s\" is not "
-				"the same size as \"%s\"" ), 
+				"the same size as \"%s\"" ),
 			filename, im->filename );
 		return( NULL );
 	}
@@ -130,7 +130,7 @@ vips_remosaic_build( VipsObject *object )
 
 	SymbolTable *st;
 
-	g_object_set( remosaic, "out", vips_image_new(), NULL ); 
+	g_object_set( remosaic, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_remosaic_parent_class )->
 		build( object ) )
@@ -142,7 +142,7 @@ vips_remosaic_build( VipsObject *object )
 
 	remosaic->old_len = strlen( remosaic->old_str );
 	remosaic->new_len = strlen( remosaic->new_str );
-	if( vips__build_mosaic( st, remosaic->out, 
+	if( vips__build_mosaic( st, remosaic->out,
 		(transform_fn) remosaic_fn, remosaic ) )
 		return( -1 );
 
@@ -162,31 +162,31 @@ vips_remosaic_class_init( VipsRemosaicClass *class )
 	object_class->description = _( "rebuild an mosaiced image" );
 	object_class->build = vips_remosaic_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRemosaic, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsRemosaic, out ) );
 
-	VIPS_ARG_STRING( class, "old_str", 5, 
-		_( "old_str" ), 
+	VIPS_ARG_STRING( class, "old_str", 5,
+		_( "old_str" ),
 		_( "Search for this string" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRemosaic, old_str ),
-		"" ); 
+		"" );
 
-	VIPS_ARG_STRING( class, "new_str", 6, 
-		_( "new_str" ), 
+	VIPS_ARG_STRING( class, "new_str", 6,
+		_( "new_str" ),
 		_( "And swap for this string" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRemosaic, new_str ),
-		"" ); 
+		"" );
 
 }
 
@@ -218,8 +218,8 @@ vips_remosaic_init( VipsRemosaic *remosaic )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_remosaic( VipsImage *in, VipsImage **out, 
+int
+vips_remosaic( VipsImage *in, VipsImage **out,
 	const char *old_str, const char *new_str, ... )
 {
 	va_list ap;

@@ -1,4 +1,4 @@
-/* Fold up x into bands. 
+/* Fold up x into bands.
  *
  * 5/6/15
  * 	- from copy.c
@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -69,7 +69,7 @@ typedef VipsConversionClass VipsBandfoldClass;
 G_DEFINE_TYPE( VipsBandfold, vips_bandfold, VIPS_TYPE_CONVERSION );
 
 static int
-vips_bandfold_gen( VipsRegion *or, 
+vips_bandfold_gen( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsBandfold *bandfold = (VipsBandfold *) b;
@@ -89,7 +89,7 @@ vips_bandfold_gen( VipsRegion *or,
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR( ir,
 			r->left * bandfold->factor, r->top + y );
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
@@ -118,12 +118,12 @@ vips_bandfold_build( VipsObject *object )
 	if( bandfold->factor == 0 )
 		bandfold->factor = bandfold->in->Xsize;
 	if( bandfold->in->Xsize % bandfold->factor != 0 ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "@factor must be a factor of image width" ) );
-		return( -1 ); 
+		return( -1 );
 	}
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, bandfold->in, NULL ) )
 		return( -1 );
 
@@ -131,7 +131,7 @@ vips_bandfold_build( VipsObject *object )
 	conversion->out->Bands *= bandfold->factor;
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_bandfold_gen, vips_stop_one, 
+		vips_start_one, vips_bandfold_gen, vips_stop_one,
 		bandfold->in, bandfold ) )
 		return( -1 );
 
@@ -156,14 +156,14 @@ vips_bandfold_class_init( VipsBandfoldClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandfold, in ) );
 
-	VIPS_ARG_INT( class, "factor", 11, 
-		_( "Factor" ), 
+	VIPS_ARG_INT( class, "factor", 11,
+		_( "Factor" ),
 		_( "Fold by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsBandfold, factor ),
@@ -188,10 +188,10 @@ vips_bandfold_init( VipsBandfold *bandfold )
  *
  * * @factor: fold by this factor
  *
- * Fold up an image horizontally: width is collapsed into bands. 
+ * Fold up an image horizontally: width is collapsed into bands.
  * Use @factor to set how much to fold by: @factor 3, for example, will make
  * the output image three times narrower than the input, and with three times
- * as many bands. By default the whole of the input width is folded up. 
+ * as many bands. By default the whole of the input width is folded up.
  *
  * See also: vips_csvload(), vips_bandunfold().
  *

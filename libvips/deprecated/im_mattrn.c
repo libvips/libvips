@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -43,7 +43,7 @@
 
 /**
  * im_mattrn:
- * @in: input matrix 
+ * @in: input matrix
  * @filename: name for output matrix
  *
  * Transposes the input matrix.
@@ -55,14 +55,14 @@
  */
 DOUBLEMASK *
 im_mattrn( DOUBLEMASK *in, const char *name )
-{	
+{
 	int xc, yc;
 	DOUBLEMASK *mat;
 	double *out, *a, *b;
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) ) 
+	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) )
 		return( NULL );
 	mat->scale = in->scale;
 	mat->offset = in->offset;

@@ -25,12 +25,12 @@
   TODO
 
 	- colour management
-	- attributes 
-	- more of OpenEXR's pixel formats 
+	- attributes
+	- more of OpenEXR's pixel formats
 	- more than just RGBA channels
 	- turn alpha to vips 0 - 255 from exr 0 - 1
 
-	the openexr C API is very limited ... it seems RGBA half pixels is 
+	the openexr C API is very limited ... it seems RGBA half pixels is
 	all you can do
 
 	openexr lets you have different formats in different channels :-(
@@ -44,7 +44,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -137,7 +137,7 @@ read_destroy( VipsImage *out, Read *read )
 {
 	VIPS_FREE( read->filename );
 
-	read_close( read ); 
+	read_close( read );
 
 	g_free( read );
 }
@@ -155,13 +155,13 @@ read_new( const char *filename, VipsImage *out )
 	read->out = out;
 	read->tiles = NULL;
 	read->lines = NULL;
-	if( out ) 
-		g_signal_connect( out, "close", 
-			G_CALLBACK( read_destroy ), read ); 
+	if( out )
+		g_signal_connect( out, "close",
+			G_CALLBACK( read_destroy ), read );
 
 	/* Try to open tiled first ... if that fails, fall back to scanlines.
 
-	   	FIXME ... seems a bit ugly, but how else can you spot a tiled 
+	   	FIXME ... seems a bit ugly, but how else can you spot a tiled
 		EXR image?
 
 	 */
@@ -217,10 +217,10 @@ read_header( Read *read, VipsImage *out )
 {
 	VipsDemandStyle hint;
 
-	/* 
+	/*
 
-	   FIXME ... not really scRGB, you should get the chromaticities 
-	   from the header and transform 
+	   FIXME ... not really scRGB, you should get the chromaticities
+	   from the header and transform
 
 	 */
 	vips_image_init_fields( out,
@@ -229,8 +229,8 @@ read_header( Read *read, VipsImage *out )
 		 VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
 
 	if( read->tiles )
-		/* Even though this is a tiled reader, we hint thinstrip 
-		 * since with the cache we are quite happy serving that if 
+		/* Even though this is a tiled reader, we hint thinstrip
+		 * since with the cache we are quite happy serving that if
 		 * anything downstream would like it.
 		 */
 		hint = VIPS_DEMAND_STYLE_THINSTRIP;
@@ -268,7 +268,7 @@ vips__openexr_start( VipsImage *out, void *a, void *b )
 }
 
 static int
-vips__openexr_generate( VipsRegion *out, 
+vips__openexr_generate( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *top )
 {
 	ImfRgba *imf_buffer = (ImfRgba *) seq;
@@ -300,7 +300,7 @@ vips__openexr_generate( VipsRegion *out,
 			int result;
 
 			if( !ImfTiledInputSetFrameBuffer( read->tiles,
-				imf_buffer - 
+				imf_buffer -
 					(read->window.left + x) -
 					(read->window.top + y) * tw,
 				1, tw ) ) {
@@ -310,11 +310,11 @@ vips__openexr_generate( VipsRegion *out,
 			}
 
 #ifdef DEBUG
-			printf( "exr2vips: requesting tile %d x %d\n", 
+			printf( "exr2vips: requesting tile %d x %d\n",
 				x / tw, y / th );
 #endif /*DEBUG*/
 
-			result = ImfTiledInputReadTile( read->tiles, 
+			result = ImfTiledInputReadTile( read->tiles,
 				x / tw, y / th, 0, 0 );
 
 			if( !result ) {
@@ -337,7 +337,7 @@ vips__openexr_generate( VipsRegion *out,
 			/* Convert to float and write to the region.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
-				ImfRgba *p = imf_buffer + 
+				ImfRgba *p = imf_buffer +
 					(hit.left - tile.left) +
 					(hit.top - tile.top + z) * tw;
 				float *q = (float *) VIPS_REGION_ADDR( out,
@@ -345,13 +345,13 @@ vips__openexr_generate( VipsRegion *out,
 
 				int i;
 
-				ImfHalfToFloatArray( 4 * hit.width, 
+				ImfHalfToFloatArray( 4 * hit.width,
 					(ImfHalf *) p, q );
 
-				/* oexr uses 0 - 1 for alpha, but vips is 
+				/* oexr uses 0 - 1 for alpha, but vips is
 				 * always 0 - 255, even for scrgb images.
 				 */
-				for( i = 0; i < hit.width; i++ ) 
+				for( i = 0; i < hit.width; i++ )
 					q[4 * i + 3] *= 255;
 			}
 		}
@@ -379,17 +379,17 @@ vips__openexr_read( const char *filename, VipsImage *out )
 
 		read_header( read, raw );
 
-		if( vips_image_generate( raw, 
-			vips__openexr_start, vips__openexr_generate, NULL, 
+		if( vips_image_generate( raw,
+			vips__openexr_start, vips__openexr_generate, NULL,
 			read, NULL ) )
 			return( -1 );
 
-		if( vips_tilecache( raw, &t, 
-			"tile_width", read->tile_width, 
+		if( vips_tilecache( raw, &t,
+			"tile_width", read->tile_width,
 			"tile_height", read->tile_height,
-			"max_tiles", (int) 
+			"max_tiles", (int)
 				(2.5 * (1 + raw->Xsize / read->tile_width)),
-			NULL ) ) 
+			NULL ) )
 			return( -1 );
 		if( vips_image_write( t, out ) ) {
 			g_object_unref( t );
@@ -422,27 +422,27 @@ vips__openexr_read( const char *filename, VipsImage *out )
 				get_imf_error();
 				return( -1 );
 			}
-			if( !ImfInputReadPixels( read->lines, 
+			if( !ImfInputReadPixels( read->lines,
 				top + y, top + y ) ) {
 				get_imf_error();
 				return( -1 );
 			}
 
-			ImfHalfToFloatArray( 4 * width, 
+			ImfHalfToFloatArray( 4 * width,
 				(ImfHalf *) imf_buffer, vips_buffer );
 
 			/* oexr uses 0 - 1 for alpha, but vips is always 0 -
 			 * 255, even for scrgb images.
 			 */
-			for( i = 0; i < width; i++ ) 
+			for( i = 0; i < width; i++ )
 				vips_buffer[4 * i + 3] *= 255;
 
-			if( vips_image_write_line( out, y, 
+			if( vips_image_write_line( out, y,
 				(VipsPel *) vips_buffer ) )
 				return( -1 );
 		}
 
-		read_close( read ); 
+		read_close( read );
 	}
 
 	return( 0 );

@@ -1,4 +1,4 @@
-/* Read Radiance (.hdr) files 
+/* Read Radiance (.hdr) files
  *
  * 20/12/11
  * 	- just a compat stub
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ israd( const char *filename )
 int
 im_vips2rad( IMAGE *in, const char *filename )
 {
-	return( vips_radsave( in, filename, NULL ) ); 
+	return( vips_radsave( in, filename, NULL ) );
 }
 
 static const char *rad_suffs[] = { ".hdr", NULL };

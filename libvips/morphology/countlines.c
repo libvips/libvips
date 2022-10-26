@@ -1,10 +1,10 @@
-/* count lines 
+/* count lines
  *
  * Copyright: 1990, N. Dessipris.
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on : 
+ * Modified on :
  *
  * 19/9/95 JC
  *	- tidied up
@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -92,23 +92,23 @@ vips_countlines_build( VipsObject *object )
 	case VIPS_DIRECTION_HORIZONTAL:
 		if( !(t[0] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 )) ||
 			vips_moreeq_const1( in, &t[1], 128, NULL ) ||
-			vips_conv( t[1], &t[2], t[0], 
+			vips_conv( t[1], &t[2], t[0],
 				"precision", VIPS_PRECISION_INTEGER,
 				NULL ) ||
 			vips_project( t[2], &t[3], &t[4], NULL ) ||
 			vips_avg( t[3], &nolines, NULL ) )
-			return( -1 ); 
+			return( -1 );
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
 		if( !(t[0] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 )) ||
 			vips_moreeq_const1( in, &t[1], 128, NULL ) ||
-			vips_conv( t[1], &t[2], t[0], 
+			vips_conv( t[1], &t[2], t[0],
 				"precision", VIPS_PRECISION_INTEGER,
 				NULL ) ||
 			vips_project( t[2], &t[3], &t[4], NULL ) ||
 			vips_avg( t[4], &nolines, NULL ) )
-			return( -1 ); 
+			return( -1 );
 		break;
 
 	default:
@@ -132,22 +132,22 @@ vips_countlines_class_init( VipsCountlinesClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "countlines";
-	vobject_class->description = _( "count lines in an image" ); 
+	vobject_class->description = _( "count lines in an image" );
 	vobject_class->build = vips_countlines_build;
 
-	VIPS_ARG_DOUBLE( class, "nolines", 2, 
-		_( "Nolines" ), 
+	VIPS_ARG_DOUBLE( class, "nolines", 2,
+		_( "Nolines" ),
 		_( "Number of lines" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsCountlines, nolines ),
 		0, 10000000, 0.0 );
 
-	VIPS_ARG_ENUM( class, "direction", 3, 
-		_( "Direction" ), 
+	VIPS_ARG_ENUM( class, "direction", 3,
+		_( "Direction" ),
 		_( "Countlines left-right or up-down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCountlines, direction ),
-		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL );
 
 }
 
@@ -175,7 +175,7 @@ vips_countlines_init( VipsCountlines *countlines )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_countlines( VipsImage *in, double *nolines, 
+vips_countlines( VipsImage *in, double *nolines,
 	VipsDirection direction, ... )
 {
 	va_list ap;

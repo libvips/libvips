@@ -1,7 +1,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -37,7 +37,7 @@
 
 #include "pmosaicing.h"
 
-int 
+int
 vips__initialize( TiePoints *points )
 {
 	if( vips__clinear( points ) ) {
@@ -90,7 +90,7 @@ vips__initialize( TiePoints *points )
 			a1 = dx[i];
 			a2 = dy[i];
 			points->deviation[i] = sqrt( a1 * a1 + a2 * a2 );
-		}	
+		}
 
 		points->l_scale = 1.0;
 		points->l_angle = 0.0;

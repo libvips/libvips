@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,16 +60,16 @@ typedef struct _VipsMaskButterworthRing {
 
 typedef VipsMaskButterworthClass VipsMaskButterworthRingClass;
 
-G_DEFINE_TYPE( VipsMaskButterworthRing, vips_mask_butterworth_ring, 
+G_DEFINE_TYPE( VipsMaskButterworthRing, vips_mask_butterworth_ring,
 	VIPS_TYPE_MASK_BUTTERWORTH );
 
 static double
-vips_mask_butterworth_ring_point( VipsMask *mask, 
-	double dx, double dy ) 
+vips_mask_butterworth_ring_point( VipsMask *mask,
+	double dx, double dy )
 {
-	VipsMaskButterworth *butterworth = 
+	VipsMaskButterworth *butterworth =
 		(VipsMaskButterworth *) mask;
-	VipsMaskButterworthRing *butterworth_ring = 
+	VipsMaskButterworthRing *butterworth_ring =
 		(VipsMaskButterworthRing *) mask;
 
 	double order = butterworth->order;
@@ -79,15 +79,15 @@ vips_mask_butterworth_ring_point( VipsMask *mask,
 
 	double df = ringwidth / 2.0;
 	double cnst = (1.0 / ac) - 1.0;
-	double df2 = df * df; 
+	double df2 = df * df;
 	double dist = sqrt( dx * dx + dy * dy );
 
-	return( 1.0 / (1.0 + cnst * pow( 
-		(dist - fc) * (dist - fc) / df2, order )) ); 
+	return( 1.0 / (1.0 + cnst * pow(
+		(dist - fc) * (dist - fc) / df2, order )) );
 }
 
 static void
-vips_mask_butterworth_ring_class_init( 
+vips_mask_butterworth_ring_class_init(
 	VipsMaskButterworthRingClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -102,8 +102,8 @@ vips_mask_butterworth_ring_class_init(
 
 	mask_class->point = vips_mask_butterworth_ring_point;
 
-	VIPS_ARG_DOUBLE( class, "ringwidth", 20, 
-		_( "Ringwidth" ), 
+	VIPS_ARG_DOUBLE( class, "ringwidth", 20,
+		_( "Ringwidth" ),
 		_( "Ringwidth" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskButterworthRing, ringwidth ),
@@ -112,7 +112,7 @@ vips_mask_butterworth_ring_class_init(
 }
 
 static void
-vips_mask_butterworth_ring_init( 
+vips_mask_butterworth_ring_init(
 	VipsMaskButterworthRing *butterworth_ring )
 {
 	butterworth_ring->ringwidth = 0.1;
@@ -136,29 +136,29 @@ vips_mask_butterworth_ring_init(
  * * @optical: coordinates in optical space
  * * @uchar: output a uchar image
  *
- * Make a butterworth ring-pass or ring-reject filter, that is, one with a 
+ * Make a butterworth ring-pass or ring-reject filter, that is, one with a
  * variable,
  * smooth transition
- * positioned at @frequency_cutoff of width @width, where @frequency_cutoff is 
+ * positioned at @frequency_cutoff of width @width, where @frequency_cutoff is
  * in the range 0 - 1. The shape of the curve is controlled by
  * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
- * Digital Image Processing, 1987. 
+ * Digital Image Processing, 1987.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_butterworth_ring( VipsImage **out, int width, int height, 
-	double order, double frequency_cutoff, double amplitude_cutoff, 
+vips_mask_butterworth_ring( VipsImage **out, int width, int height,
+	double order, double frequency_cutoff, double amplitude_cutoff,
 	double ringwidth, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, ringwidth );
-	result = vips_call_split( "mask_butterworth_ring", ap, 
-		out, width, height, 
+	result = vips_call_split( "mask_butterworth_ring", ap,
+		out, width, height,
 		order, frequency_cutoff, amplitude_cutoff, ringwidth );
 	va_end( ap );
 

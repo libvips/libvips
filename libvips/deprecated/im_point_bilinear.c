@@ -63,17 +63,17 @@
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-im_point( IMAGE *im, VipsInterpolate *interpolate, 
+int
+im_point( IMAGE *im, VipsInterpolate *interpolate,
 	double x, double y, int band, double *out )
 {
 	IMAGE *mem;
 	IMAGE *t[2];
 
-	if( band >= im->Bands || 
-		x < 0.0 || y < 0.0 || 
+	if( band >= im->Bands ||
+		x < 0.0 || y < 0.0 ||
 		x > im->Xsize || y > im->Ysize ) {
-		im_error( "im_point_bilinear", "%s", 
+		im_error( "im_point_bilinear", "%s",
 			_( "coords outside image" ) );
 		return( -1 );
 	}
@@ -82,7 +82,7 @@ im_point( IMAGE *im, VipsInterpolate *interpolate,
 		return( -1 );
 	if( im_open_local_array( mem, t, 2, "im_point", "p" ) ||
 		im_extract_band( im, t[0], band ) ||
-		im_affinei( t[0], t[1], 
+		im_affinei( t[0], t[1],
 			interpolate,
 			1, 0, 0, 1,
 			floor( x ) - x, floor( y ) - y,
@@ -105,16 +105,16 @@ im_point( IMAGE *im, VipsInterpolate *interpolate,
  * @out: return interpolated value
  *
  * Find the value at (@x,@y) in given band of image.
- * Use bilinear interpolation if @x or @y are non-integral. 
+ * Use bilinear interpolation if @x or @y are non-integral.
  *
  * See also: im_avg(), im_point().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 im_point_bilinear( IMAGE *im, double x, double y, int band, double *out )
 {
 	return( im_point( im, vips_interpolate_bilinear_static(),
-		x, y, band, out ) ); 
+		x, y, band, out ) );
 }
 

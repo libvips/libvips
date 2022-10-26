@@ -10,7 +10,7 @@
  * 3/7/18
  * 	- add support for writing string-valued fields
  * 9/7/18 [@Nan619]
- * 	- get tag name from tag plus ifd 
+ * 	- get tag name from tag plus ifd
  * 13/11/21
  * 	- better handling of strings with embedded metacharacters
  */
@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -90,22 +90,22 @@ show_tags( ExifData *data )
 
 	printf( "show EXIF tags:\n" );
 
-        for( i = 0; i < EXIF_IFD_COUNT; i++ )
-                printf( "%-7.7s", exif_ifd_get_name( i ) );
+	for( i = 0; i < EXIF_IFD_COUNT; i++ )
+		printf( "%-7.7s", exif_ifd_get_name( i ) );
 	printf( "\n" );
 
-        for( tag = 0; tag < 0xffff; tag++ ) {
-                name = exif_tag_get_title( tag );
-                if( !name )      
-                        continue;   
-                printf( "  0x%04x %-29.29s", tag, name );
-                for( i = 0; i < EXIF_IFD_COUNT; i++ )
-                        if( exif_content_get_entry( data->ifd[i], tag ) )
-                                printf( "   *   " );
-                        else
-                                printf( "   -   " );
+	for( tag = 0; tag < 0xffff; tag++ ) {
+		name = exif_tag_get_title( tag );
+		if( !name )
+			continue;
+		printf( "  0x%04x %-29.29s", tag, name );
+		for( i = 0; i < EXIF_IFD_COUNT; i++ )
+			if( exif_content_get_entry( data->ifd[i], tag ) )
+				printf( "   *   " );
+			else
+				printf( "   -   " );
 		printf( "\n" );
-        }
+	}
 }
 
 static void
@@ -114,13 +114,13 @@ show_entry( ExifEntry *entry, void *client )
 	char exif_text[256];
 
 	printf( "%s", exif_tag_get_title( entry->tag ) );
-        printf( "|" );
+	printf( "|" );
 	printf( "%s", exif_entry_get_value( entry, exif_text, 256 ) );
-        printf( "|" );
+	printf( "|" );
 	printf( "%s", exif_format_get_name( entry->format ) );
-        printf( "|" );
+	printf( "|" );
 	printf( "%d bytes", entry->size );
-        printf( "\n" );
+	printf( "\n" );
 }
 
 static void
@@ -128,8 +128,8 @@ show_ifd( ExifContent *content, void *client )
 {
 	int *ifd = (int *) client;
 
-        printf( "- ifd %d\n", *ifd );
-        exif_content_foreach_entry( content, show_entry, client );
+	printf( "- ifd %d\n", *ifd );
+	exif_content_foreach_entry( content, show_entry, client );
 
 	*ifd += 1;
 }
@@ -137,27 +137,27 @@ show_ifd( ExifContent *content, void *client )
 static void
 show_values( ExifData *data )
 {
-        ExifByteOrder order;
+	ExifByteOrder order;
 	int ifd;
 
-        order = exif_data_get_byte_order( data );
-        printf( "EXIF tags in '%s' byte order\n", 
+	order = exif_data_get_byte_order( data );
+	printf( "EXIF tags in '%s' byte order\n",
 		exif_byte_order_get_name( order ) );
 
-	printf( "Title|Value|Format|Size\n" ); 
+	printf( "Title|Value|Format|Size\n" );
 
 	ifd = 0;
-        exif_data_foreach_content( data, show_ifd, &ifd );
+	exif_data_foreach_content( data, show_ifd, &ifd );
 
-        if( data->size ) 
-                printf( "contains thumbnail of %d bytes\n", data->size );
+	if( data->size )
+		printf( "contains thumbnail of %d bytes\n", data->size );
 }
 #endif /*DEBUG_VERBOSE*/
 
-/* Like exif_data_new_from_data(), but don't default missing fields. 
- * 
- * If we do exif_data_new_from_data(), then missing fields are set to 
- * their default value and we won't know about it. 
+/* Like exif_data_new_from_data(), but don't default missing fields.
+ *
+ * If we do exif_data_new_from_data(), then missing fields are set to
+ * their default value and we won't know about it.
  */
 static ExifData *
 vips_exif_load_data_without_fix( const void *data, size_t length )
@@ -168,12 +168,12 @@ vips_exif_load_data_without_fix( const void *data, size_t length )
 	 * than that: 2**20 should be enough for anyone.
 	 */
 	if( length > 1 << 20 ) {
-		vips_error( "exif", "%s", _( "exif too large" ) ); 
+		vips_error( "exif", "%s", _( "exif too large" ) );
 		return( NULL );
 	}
 
 	if( !(ed = exif_data_new()) ) {
-		vips_error( "exif", "%s", _( "unable to init exif" ) ); 
+		vips_error( "exif", "%s", _( "unable to init exif" ) );
 		return( NULL );
 	}
 
@@ -194,22 +194,22 @@ vips_exif_load_data_without_fix( const void *data, size_t length )
 }
 
 static int
-vips_exif_get_int( ExifData *ed, 
+vips_exif_get_int( ExifData *ed,
 	ExifEntry *entry, unsigned long component, int *out )
 {
 	ExifByteOrder bo = exif_data_get_byte_order( ed );
 	size_t sizeof_component = entry->size / entry->components;
 	size_t offset = component * sizeof_component;
 
-	if( entry->format == EXIF_FORMAT_SHORT ) 
+	if( entry->format == EXIF_FORMAT_SHORT )
 		*out = exif_get_short( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_SSHORT ) 
+	else if( entry->format == EXIF_FORMAT_SSHORT )
 		*out = exif_get_sshort( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_LONG ) 
+	else if( entry->format == EXIF_FORMAT_LONG )
 		/* This won't work for huge values, but who cares.
 		 */
 		*out = (int) exif_get_long( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_SLONG ) 
+	else if( entry->format == EXIF_FORMAT_SLONG )
 		*out = exif_get_slong( entry->data + offset, bo );
 	else
 		return( -1 );
@@ -218,7 +218,7 @@ vips_exif_get_int( ExifData *ed,
 }
 
 static int
-vips_exif_get_rational( ExifData *ed, 
+vips_exif_get_rational( ExifData *ed,
 	ExifEntry *entry, unsigned long component, ExifRational *out )
 {
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
@@ -235,7 +235,7 @@ vips_exif_get_rational( ExifData *ed,
 }
 
 static int
-vips_exif_get_srational( ExifData *ed, 
+vips_exif_get_srational( ExifData *ed,
 	ExifEntry *entry, unsigned long component, ExifSRational *out )
 {
 	if( entry->format == EXIF_FORMAT_SRATIONAL ) {
@@ -252,7 +252,7 @@ vips_exif_get_srational( ExifData *ed,
 }
 
 static int
-vips_exif_get_double( ExifData *ed, 
+vips_exif_get_double( ExifData *ed,
 	ExifEntry *entry, unsigned long component, double *out )
 {
 	ExifRational rv;
@@ -297,7 +297,7 @@ vips_exif_to_s( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 		/* libexif does not null-terminate strings. Copy out and add
 		 * the \0 ourselves.
 		 */
-		int len = VIPS_MIN( 254, entry->size ); 
+		int len = VIPS_MIN( 254, entry->size );
 
 		memcpy( txt, entry->data, len );
 		txt[len] = '\0';
@@ -314,7 +314,7 @@ vips_exif_to_s( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 		!vips_exif_get_rational( ed, entry, 0, &rv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
 			vips_exif_get_rational( ed, entry, i, &rv );
-			vips_buf_appendf( buf, "%u/%u ", 
+			vips_buf_appendf( buf, "%u/%u ",
 				rv.numerator, rv.denominator );
 		}
 	}
@@ -322,15 +322,15 @@ vips_exif_to_s( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 		!vips_exif_get_srational( ed, entry, 0, &srv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
 			vips_exif_get_srational( ed, entry, i, &srv );
-			vips_buf_appendf( buf, "%d/%d ", 
+			vips_buf_appendf( buf, "%d/%d ",
 				srv.numerator, srv.denominator );
 		}
 	}
-	else 
-		vips_buf_appendf( buf, "%s ", 
+	else
+		vips_buf_appendf( buf, "%s ",
 			exif_entry_get_value( entry, txt, 256 ) );
 
-	vips_buf_appendf( buf, "(%s, %s, %lu components, %d bytes)", 
+	vips_buf_appendf( buf, "(%s, %s, %lu components, %d bytes)",
 		exif_entry_get_value( entry, txt, 256 ),
 		exif_format_get_name( entry->format ),
 		entry->components,
@@ -353,7 +353,7 @@ vips_exif_entry_get_name( ExifEntry *entry )
 	if( !entry->parent )
 		return( NULL );
 
-	return( exif_tag_get_name_in_ifd( entry->tag, 
+	return( exif_tag_get_name_in_ifd( entry->tag,
 		exif_entry_get_ifd( entry ) ) );
 }
 
@@ -369,20 +369,20 @@ vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
 
-	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+	vips_buf_appendf( &vips_name, "exif-ifd%d-%s",
 		exif_entry_get_ifd( entry ), tag_name );
-	vips_exif_to_s( params->ed, entry, &value ); 
+	vips_exif_to_s( params->ed, entry, &value );
 
 	/* Can't do anything sensible with the error return.
 	 */
-	(void) vips_image_set_string( params->image, 
+	(void) vips_image_set_string( params->image,
 		vips_buf_all( &vips_name ), vips_buf_all( &value ) );
 }
 
 static void
 vips_exif_get_content( ExifContent *content, VipsExifParams *params )
 {
-        exif_content_foreach_entry( content, 
+	exif_content_foreach_entry( content,
 		(ExifContentForeachEntryFunc) vips_exif_attach_entry, params );
 }
 
@@ -425,14 +425,14 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 	 * things like webp.
 	 */
 	if( vips_exif_entry_get_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
-		vips_exif_entry_get_double( ed, 
+		vips_exif_entry_get_double( ed,
 			0, EXIF_TAG_Y_RESOLUTION, &yres ) )
 		return( -1 );
 
 	/* resuint is optional and defaults to inch.
 	 */
 	unit = 2;
-	(void) vips_exif_entry_get_int( ed, 
+	(void) vips_exif_entry_get_int( ed,
 		0, EXIF_TAG_RESOLUTION_UNIT, &unit );
 
 #ifdef DEBUG
@@ -451,7 +451,7 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 		 */
 		xres /= 25.4;
 		yres /= 25.4;
-		vips_image_set_string( image, 
+		vips_image_set_string( image,
 			VIPS_META_RESOLUTION_UNIT, "in" );
 		break;
 
@@ -460,7 +460,7 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 		 */
 		xres /= 10.0;
 		yres /= 10.0;
-		vips_image_set_string( image, 
+		vips_image_set_string( image,
 			VIPS_META_RESOLUTION_UNIT, "cm" );
 		break;
 
@@ -487,7 +487,7 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 static int
 vips_exif_resolution_from_image( ExifData *ed, VipsImage *image );
 
-/* Scan the exif block on the image, if any, and make a set of vips metadata 
+/* Scan the exif block on the image, if any, and make a set of vips metadata
  * tags for what we find.
  */
 int
@@ -502,7 +502,7 @@ vips__exif_parse( VipsImage *image )
 	if( !vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) )
 		return( 0 );
 	if( vips_image_get_blob( image, VIPS_META_EXIF_NAME, &data, &size ) )
-		return( -1 ); 
+		return( -1 );
 	if( !(ed = vips_exif_load_data_without_fix( data, size )) )
 		return( -1 );
 
@@ -511,16 +511,16 @@ vips__exif_parse( VipsImage *image )
 	show_values( ed );
 #endif /*DEBUG_VERBOSE*/
 
-	/* Look for resolution fields and use them to set the VIPS xres/yres 
+	/* Look for resolution fields and use them to set the VIPS xres/yres
 	 * fields.
 	 *
 	 * If the fields are missing, set them from the image, which will have
-	 * previously had them set from something like JFIF. 
+	 * previously had them set from something like JFIF.
 	 */
 	if( vips_image_resolution_from_exif( image, ed ) &&
 		vips_exif_resolution_from_image( ed, image ) ) {
 		exif_data_free( ed );
-		return( -1 ); 
+		return( -1 );
 	}
 
 	/* Make sure all required fields are there before we attach the vips
@@ -532,24 +532,24 @@ vips__exif_parse( VipsImage *image )
 	 */
 	params.image = image;
 	params.ed = ed;
-	exif_data_foreach_content( ed, 
+	exif_data_foreach_content( ed,
 		(ExifDataForeachContentFunc) vips_exif_get_content, &params );
 
-	vips_image_set_blob_copy( image, 
+	vips_image_set_blob_copy( image,
 		"jpeg-thumbnail-data", ed->data, ed->size );
 
 	exif_data_free( ed );
 
 	/* Orientation handling. ifd0 has the Orientation tag for the main
-	 * image. 
+	 * image.
 	 */
 	if( vips_image_get_typeof( image, "exif-ifd0-Orientation" ) != 0 &&
-		!vips_image_get_string( image, 
+		!vips_image_get_string( image,
 			"exif-ifd0-Orientation", &str ) ) {
 		int orientation;
 
 		orientation = atoi( str );
-		if( orientation < 1 || 
+		if( orientation < 1 ||
 			orientation > 8 )
 			orientation = 1;
 		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
@@ -559,7 +559,7 @@ vips__exif_parse( VipsImage *image )
 }
 
 static void
-vips_exif_set_int( ExifData *ed, 
+vips_exif_set_int( ExifData *ed,
 	ExifEntry *entry, unsigned long component, void *data )
 {
 	int value = *((int *) data);
@@ -582,13 +582,13 @@ vips_exif_set_int( ExifData *ed,
 	VIPS_DEBUG_MSG( "vips_exif_set_int: %s = %d\n",
 		vips_exif_entry_get_name( entry ), value );
 
-	if( entry->format == EXIF_FORMAT_SHORT ) 
+	if( entry->format == EXIF_FORMAT_SHORT )
 		exif_set_short( entry->data + offset, bo, value );
-	else if( entry->format == EXIF_FORMAT_SSHORT ) 
+	else if( entry->format == EXIF_FORMAT_SSHORT )
 		exif_set_sshort( entry->data + offset, bo, value );
-	else if( entry->format == EXIF_FORMAT_LONG ) 
+	else if( entry->format == EXIF_FORMAT_LONG )
 		exif_set_long( entry->data + offset, bo, value );
-	else if( entry->format == EXIF_FORMAT_SLONG ) 
+	else if( entry->format == EXIF_FORMAT_SLONG )
 		exif_set_slong( entry->data + offset, bo, value );
 }
 
@@ -627,7 +627,7 @@ vips_exif_parse_rational( const char *str, ExifRational *rv )
 static void
 vips_exif_parse_srational( const char *str, ExifSRational *srv )
 {
-	if( sscanf( str, " %d / %d ", 
+	if( sscanf( str, " %d / %d ",
 		&srv->numerator, &srv->denominator ) == 2 )
 		return;
 	vips_exif_double_to_srational( g_ascii_strtod( str, NULL ), srv );
@@ -636,7 +636,7 @@ vips_exif_parse_srational( const char *str, ExifSRational *srv )
 /* Does both signed and unsigned rationals from a char *.
  */
 static void
-vips_exif_set_rational( ExifData *ed, 
+vips_exif_set_rational( ExifData *ed,
 	ExifEntry *entry, unsigned long component, void *data )
 {
 	char *value = (char *) data;
@@ -663,21 +663,21 @@ vips_exif_set_rational( ExifData *ed,
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
 
-		vips_exif_parse_rational( value, &rv ); 
+		vips_exif_parse_rational( value, &rv );
 
-		VIPS_DEBUG_MSG( "vips_exif_set_rational: %u / %u\n", 
-			rv.numerator, 
-			rv.denominator ); 
+		VIPS_DEBUG_MSG( "vips_exif_set_rational: %u / %u\n",
+			rv.numerator,
+			rv.denominator );
 
 		exif_set_rational( entry->data + offset, bo, rv );
 	}
 	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
 		ExifSRational srv;
 
-		vips_exif_parse_srational( value, &srv ); 
+		vips_exif_parse_srational( value, &srv );
 
-		VIPS_DEBUG_MSG( "vips_exif_set_rational: %d / %d\n", 
-			srv.numerator, srv.denominator ); 
+		VIPS_DEBUG_MSG( "vips_exif_set_rational: %d / %d\n",
+			srv.numerator, srv.denominator );
 
 		exif_set_srational( entry->data + offset, bo, srv );
 	}
@@ -689,7 +689,7 @@ vips_exif_set_rational( ExifData *ed,
  * approximation of the double we are trying to set.
  */
 static void
-vips_exif_set_double( ExifData *ed, 
+vips_exif_set_double( ExifData *ed,
 	ExifEntry *entry, unsigned long component, void *data )
 {
 	double value = *((double *) data);
@@ -724,11 +724,11 @@ vips_exif_set_double( ExifData *ed,
 			old_value = (double) rv.numerator / rv.denominator;
 
 		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
-			vips_exif_double_to_rational( value, &rv ); 
+			vips_exif_double_to_rational( value, &rv );
 
-			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n", 
-				rv.numerator, 
-				rv.denominator ); 
+			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n",
+				rv.numerator,
+				rv.denominator );
 
 			exif_set_rational( entry->data + offset, bo, rv );
 		}
@@ -743,22 +743,22 @@ vips_exif_set_double( ExifData *ed,
 			old_value = (double) srv.numerator / srv.denominator;
 
 		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
-			vips_exif_double_to_srational( value, &srv ); 
+			vips_exif_double_to_srational( value, &srv );
 
-			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
-				srv.numerator, srv.denominator ); 
+			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n",
+				srv.numerator, srv.denominator );
 
 			exif_set_srational( entry->data + offset, bo, srv );
 		}
 	}
 }
 
-typedef void (*write_fn)( ExifData *ed, 
+typedef void (*write_fn)( ExifData *ed,
 	ExifEntry *entry, unsigned long component, void *data );
 
 /* String-valued tags need special treatment, sadly.
  *
- * Strings are written in three ways: 
+ * Strings are written in three ways:
  *
  * 1. As ASCII, but with an 8-byte preamble giving the encoding (it's always
  * ASCII though) and the format undefined.
@@ -819,14 +819,14 @@ tag_is_ascii( ExifTag tag )
 static gboolean
 tag_is_utf16( ExifTag tag )
 {
-	return( tag == EXIF_TAG_XP_TITLE || 
-		tag == EXIF_TAG_XP_COMMENT || 
-		tag == EXIF_TAG_XP_AUTHOR || 
+	return( tag == EXIF_TAG_XP_TITLE ||
+		tag == EXIF_TAG_XP_COMMENT ||
+		tag == EXIF_TAG_XP_AUTHOR ||
 		tag == EXIF_TAG_XP_KEYWORDS ||
 		tag == EXIF_TAG_XP_SUBJECT );
 }
 
-/* Set a libexif-formatted string entry. 
+/* Set a libexif-formatted string entry.
  */
 static void
 vips_exif_alloc_string( ExifEntry *entry, unsigned long components )
@@ -842,19 +842,19 @@ vips_exif_alloc_string( ExifEntry *entry, unsigned long components )
 	 */
 	mem = exif_mem_new_default();
 
-	/* EXIF_FORMAT_UNDEFINED is correct for EXIF_TAG_USER_COMMENT, our 
+	/* EXIF_FORMAT_UNDEFINED is correct for EXIF_TAG_USER_COMMENT, our
 	 * caller should change this if it wishes.
 	 */
 	entry->data = exif_mem_alloc( mem, components );
-        entry->size = components;
-        entry->components = components;
-        entry->format = EXIF_FORMAT_UNDEFINED;
+	entry->size = components;
+	entry->components = components;
+	entry->format = EXIF_FORMAT_UNDEFINED;
 
 	VIPS_FREEF( exif_mem_unref, mem );
 }
 
 /* The final " (xx, yy, zz, kk)" part of the string (if present) was
- * added by us in _to_s(), we must remove it before setting the string 
+ * added by us in _to_s(), we must remove it before setting the string
  * back again.
  *
  * It may not be there if the user has changed the string.
@@ -886,7 +886,7 @@ drop_tail( const char *data )
  * encoding. UserComment is like this, for example.
  */
 static void
-vips_exif_set_string_encoding( ExifData *ed, 
+vips_exif_set_string_encoding( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
@@ -901,13 +901,13 @@ vips_exif_set_string_encoding( ExifData *ed,
 	g_free( str );
 	str = ascii;
 
-	/* libexif comment strings are not NULL-terminated, and have an 
+	/* libexif comment strings are not NULL-terminated, and have an
 	 * encoding tag (always ASCII) in the first 8 bytes.
 	 */
 	len = strlen( str );
 	vips_exif_alloc_string( entry, sizeof( ASCII_COMMENT ) - 1 + len );
 	memcpy( entry->data, ASCII_COMMENT, sizeof( ASCII_COMMENT ) - 1 );
-        memcpy( entry->data + sizeof( ASCII_COMMENT ) - 1, str, len );
+	memcpy( entry->data + sizeof( ASCII_COMMENT ) - 1, str, len );
 
 	g_free( str );
 }
@@ -916,7 +916,7 @@ vips_exif_set_string_encoding( ExifData *ed,
  * ImageDescription work like this.
  */
 static void
-vips_exif_set_string_ascii( ExifData *ed, 
+vips_exif_set_string_ascii( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
@@ -935,8 +935,8 @@ vips_exif_set_string_ascii( ExifData *ed,
 	 */
 	len = strlen( str );
 	vips_exif_alloc_string( entry, len + 1 );
-        memcpy( entry->data, str, len + 1 );
-        entry->format = EXIF_FORMAT_ASCII;
+	memcpy( entry->data, str, len + 1 );
+	entry->format = EXIF_FORMAT_ASCII;
 
 	g_free( str );
 }
@@ -944,7 +944,7 @@ vips_exif_set_string_ascii( ExifData *ed,
 /* Write a libvips NULL-terminated utf-8 string into a utf16 entry.
  */
 static void
-vips_exif_set_string_utf16( ExifData *ed, 
+vips_exif_set_string_utf16( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
@@ -958,10 +958,10 @@ vips_exif_set_string_utf16( ExifData *ed,
 	/* libexif utf16 strings are NULL-terminated.
 	 */
 	vips_exif_alloc_string( entry, (len + 1) * 2 );
-	memcpy( entry->data, utf16, (len + 1) * 2 ); 
-        entry->format = EXIF_FORMAT_BYTE;
+	memcpy( entry->data, utf16, (len + 1) * 2 );
+	entry->format = EXIF_FORMAT_BYTE;
 
-	g_free( utf16 ); 
+	g_free( utf16 );
 	g_free( str );
 }
 
@@ -980,16 +980,16 @@ vips_exif_set_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 
 		/* tag must be set before calling exif_content_add_entry.
 		 */
-		entry->tag = tag; 
+		entry->tag = tag;
 		exif_content_add_entry( ed->ifd[ifd], entry );
 		exif_entry_unref( entry );
 
 		/* libexif makes us have a special path for string-valued
 		 * fields :(
 		 */
-		if( tag_is_encoding( tag ) ) 
+		if( tag_is_encoding( tag ) )
 			vips_exif_set_string_encoding( ed, entry, 0, data );
-		else if( tag_is_ascii( tag ) ) 
+		else if( tag_is_ascii( tag ) )
 			vips_exif_set_string_ascii( ed, entry, 0, data );
 		else if( tag_is_utf16( tag ) )
 			vips_exif_set_string_utf16( ed, entry, 0, data );
@@ -1016,11 +1016,11 @@ vips_exif_resolution_from_image( ExifData *ed, VipsImage *image )
 	 */
 	unit = 2;
 	if( vips_image_get_typeof( image, VIPS_META_RESOLUTION_UNIT ) &&
-		!vips_image_get_string( image, 
+		!vips_image_get_string( image,
 			VIPS_META_RESOLUTION_UNIT, &p ) ) {
-		if( vips_isprefix( "cm", p ) ) 
+		if( vips_isprefix( "cm", p ) )
 			unit = 3;
-		else if( vips_isprefix( "none", p ) ) 
+		else if( vips_isprefix( "none", p ) )
 			unit = 1;
 	}
 
@@ -1048,17 +1048,17 @@ vips_exif_resolution_from_image( ExifData *ed, VipsImage *image )
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
 	 * xres/yres/unit.
 	 */
-	vips_exif_set_tag( ed, 0, EXIF_TAG_X_RESOLUTION, 
+	vips_exif_set_tag( ed, 0, EXIF_TAG_X_RESOLUTION,
 		vips_exif_set_double, (void *) &xres );
-	vips_exif_set_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, 
+	vips_exif_set_tag( ed, 0, EXIF_TAG_Y_RESOLUTION,
 		vips_exif_set_double, (void *) &yres );
-	vips_exif_set_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, 
+	vips_exif_set_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT,
 		vips_exif_set_int, (void *) &unit );
 
 	return( 0 );
 }
 
-/* Exif also tracks image dimensions. 
+/* Exif also tracks image dimensions.
  */
 static int
 vips_exif_set_dimensions( ExifData *ed, VipsImage *im )
@@ -1066,15 +1066,15 @@ vips_exif_set_dimensions( ExifData *ed, VipsImage *im )
 	VIPS_DEBUG_MSG( "vips_exif_set_dimensions: vips size of %d, %d\n",
 		im->Xsize, im->Ysize );
 
-	vips_exif_set_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION, 
+	vips_exif_set_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION,
 		vips_exif_set_int, (void *) &im->Xsize );
-	vips_exif_set_tag( ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION, 
+	vips_exif_set_tag( ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION,
 		vips_exif_set_int, (void *) &im->Ysize );
 
 	return( 0 );
 }
 
-/* And orientation. 
+/* And orientation.
  */
 static int
 vips_exif_set_orientation( ExifData *ed, VipsImage *im )
@@ -1085,18 +1085,18 @@ vips_exif_set_orientation( ExifData *ed, VipsImage *im )
 	 * field.
 	 */
 	if( !vips_image_get_typeof( im, VIPS_META_ORIENTATION ) ||
-		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) ) 
+		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
 		orientation = 1;
 
 	VIPS_DEBUG_MSG( "set_exif_orientation: %d\n", orientation );
 
-	vips_exif_set_tag( ed, 0, EXIF_TAG_ORIENTATION, 
+	vips_exif_set_tag( ed, 0, EXIF_TAG_ORIENTATION,
 		vips_exif_set_int, (void *) &orientation );
 
 	return( 0 );
 }
 
-/* And thumbnail. 
+/* And thumbnail.
  */
 static int
 vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
@@ -1106,7 +1106,7 @@ vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
 	 * are just using free().
 	 *
 	 * exif.c makes this assumption too when it tries to update a
-	 * thumbnail. 
+	 * thumbnail.
 	 */
 	if( ed->data ) {
 		free( ed->data );
@@ -1114,21 +1114,21 @@ vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
 	}
 	ed->size = 0;
 
-	/* Update EXIF thumbnail from metadata, if any. 
+	/* Update EXIF thumbnail from metadata, if any.
 	 */
-	if( vips_image_get_typeof( im, "jpeg-thumbnail-data" ) ) { 
+	if( vips_image_get_typeof( im, "jpeg-thumbnail-data" ) ) {
 		const void *data;
 		size_t size;
 
-		if( vips_image_get_blob( im, "jpeg-thumbnail-data", 
-			&data, &size ) ) 
+		if( vips_image_get_blob( im, "jpeg-thumbnail-data",
+			&data, &size ) )
 			return( -1 );
 
 		/* Again, we should use the exif allocator attached to this
 		 * entry, but it is not exposed!
 		 */
-		if( size > 0 && 
-			data ) { 
+		if( size > 0 &&
+			data ) {
 			ed->data = malloc( size );
 			memcpy( ed->data, data, size );
 			ed->size = size;
@@ -1162,7 +1162,7 @@ skip_nonspace( const char *p )
 
 /* See also vips_exif_to_s() ... keep in sync. Only the numeric types are
  * handled here, since they can be updated. For string types, we have to
- * destroy and recreate, see above. 
+ * destroy and recreate, see above.
  */
 static void
 vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
@@ -1181,7 +1181,7 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 		p = value;
 		for( i = 0; i < entry->components; i++ ) {
 			if( !(p = skip_space( p )) )
-			       break;	
+			       break;
 
 			v = atof( p );
 			vips_exif_set_int( ed, entry, i, &v );
@@ -1197,7 +1197,7 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 		p = value;
 		for( i = 0; i < entry->components; i++ ) {
 			if( !(p = skip_space( p )) )
-			       break;	
+			       break;
 
 			vips_exif_set_rational( ed, entry, i, (void *) p );
 
@@ -1207,17 +1207,17 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 
 }
 
-static void 
-vips_exif_set_entry( ExifData *ed, ExifEntry *entry, 
+static void
+vips_exif_set_entry( ExifData *ed, ExifEntry *entry,
 	unsigned long component, void *data )
 {
-	const char *string = (const char *) data; 
+	const char *string = (const char *) data;
 
-	vips_exif_from_s( ed, entry, string ); 
+	vips_exif_from_s( ed, entry, string );
 }
 
 static void *
-vips_exif_image_field( VipsImage *image, 
+vips_exif_image_field( VipsImage *image,
 	const char *field, GValue *value, void *data )
 {
 	ExifData *ed = (ExifData *) data;
@@ -1227,24 +1227,24 @@ vips_exif_image_field( VipsImage *image,
 	const char *p;
 	ExifTag tag;
 
-	if( !vips_isprefix( "exif-ifd", field ) ) 
+	if( !vips_isprefix( "exif-ifd", field ) )
 		return( NULL );
 
 	/* value must be a string.
 	 */
 	if( vips_image_get_string( image, field, &string ) ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
-		return( NULL ); 
+		return( NULL );
 	}
 
 	p = field + strlen( "exif-ifd" );
-	ifd = atoi( p ); 
+	ifd = atoi( p );
 
 	for( ; isdigit( *p ); p++ )
 		;
 	if( *p != '-' ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
-		return( NULL ); 
+		return( NULL );
 	}
 
 	/* GPSVersionID is tag 0 (the error return) so we have to
@@ -1253,12 +1253,12 @@ vips_exif_image_field( VipsImage *image,
 	if( !(tag = exif_tag_from_name( p + 1 )) &&
 		strcmp( p + 1, "GPSVersionID" ) != 0 ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
-		return( NULL ); 
+		return( NULL );
 	}
 
 	vips_exif_set_tag( ed, ifd, tag, vips_exif_set_entry, (void *) string );
 
-	return( NULL ); 
+	return( NULL );
 }
 
 typedef struct _VipsExifRemove {
@@ -1281,7 +1281,7 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
 
-	vips_buf_appendf( &vips_name_buf, "exif-ifd%d-%s", 
+	vips_buf_appendf( &vips_name_buf, "exif-ifd%d-%s",
 		exif_entry_get_ifd( entry ), tag_name );
 	vips_name = vips_buf_all( &vips_name_buf );
 
@@ -1309,7 +1309,7 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 		vips_value )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 
-	/* If this is a string tag with a new value, we must also remove it 
+	/* If this is a string tag with a new value, we must also remove it
 	 * ready for recreation, see the comment below.
 	 */
 	if( vips_value &&
@@ -1341,7 +1341,7 @@ vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve, void *b )
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 
 	tag_name = vips_exif_entry_get_name( entry );
-	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+	vips_buf_appendf( &vips_name, "exif-ifd%d-%s",
 		exif_entry_get_ifd( entry ), tag_name );
 
 	printf( "vips_exif_exif_remove: %s\n", vips_buf_all( &vips_name ) );
@@ -1358,7 +1358,7 @@ vips_exif_exif_content( ExifContent *content, VipsExifRemove *ve )
 {
 	ve->content = content;
 	ve->to_remove = NULL;
-        exif_content_foreach_entry( content, 
+	exif_content_foreach_entry( content,
 		(ExifContentForeachEntryFunc) vips_exif_exif_entry, ve );
 	vips_slist_map2( ve->to_remove,
 		(VipsSListMap2Fn) vips_exif_exif_remove, ve, NULL );
@@ -1377,8 +1377,8 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 	 * the image must have been deliberately removed. Remove them from the
 	 * block as well.
 	 *
-	 * Any string-valued fields (eg. comment etc.) which exist as libvips 
-	 * metadata tags with changed  whose values have changed must also be 
+	 * Any string-valued fields (eg. comment etc.) which exist as libvips
+	 * metadata tags with changed  whose values have changed must also be
 	 * removed.
 	 *
 	 * libexif does not allow you to change string lengths (you must make
@@ -1387,8 +1387,8 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 	if( vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) ) {
 		ve.image = image;
 		ve.ed = ed;
-		exif_data_foreach_content( ed, 
-			(ExifDataForeachContentFunc) vips_exif_exif_content, 
+		exif_data_foreach_content( ed,
+			(ExifDataForeachContentFunc) vips_exif_exif_content,
 			&ve );
 	}
 
@@ -1411,7 +1411,7 @@ vips__exif_update( VipsImage *image )
 	 * some fresh EXIF we can write the resolution to.
 	 */
 	if( vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) ) {
-		if( vips_image_get_blob( image, VIPS_META_EXIF_NAME, 
+		if( vips_image_get_blob( image, VIPS_META_EXIF_NAME,
 			(void *) &data, &length ) )
 			return( -1 );
 
@@ -1421,7 +1421,7 @@ vips__exif_update( VipsImage *image )
 	else  {
 		ed = exif_data_new();
 
-		exif_data_set_option( ed, 
+		exif_data_set_option( ed,
 			EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
 		exif_data_set_data_type( ed, EXIF_DATA_TYPE_COMPRESSED );
 		exif_data_set_byte_order( ed, EXIF_BYTE_ORDER_INTEL );
@@ -1479,7 +1479,7 @@ vips__exif_update( VipsImage *image )
 	printf( "vips__exif_update: generated %zd bytes of EXIF\n", length  );
 #endif /*DEBUG*/
 
-	vips_image_set_blob( image, VIPS_META_EXIF_NAME, 
+	vips_image_set_blob( image, VIPS_META_EXIF_NAME,
 		(VipsCallbackFn) vips_area_free_cb, data, length );
 
 	exif_data_free( ed );

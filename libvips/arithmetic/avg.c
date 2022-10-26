@@ -4,7 +4,7 @@
  *
  * Author: J. Cupitt
  * Written on: 02/08/1990
- * Modified on: 
+ * Modified on:
  * 5/5/93 JC
  *	- now does partial images
  *	- less likely to overflow
@@ -18,7 +18,7 @@
  * 20/6/95 JC
  *	- now returns double
  * 13/1/05
- *	- use 64 bit arithmetic 
+ *	- use 64 bit arithmetic
  * 8/12/06
  * 	- add liboil support
  * 18/8/09
@@ -39,7 +39,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -91,7 +91,7 @@ G_DEFINE_TYPE( VipsAvg, vips_avg, VIPS_TYPE_STATISTIC );
 static int
 vips_avg_build( VipsObject *object )
 {
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsAvg *avg = (VipsAvg *) object;
 
 	gint64 vals;
@@ -100,9 +100,9 @@ vips_avg_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_avg_parent_class )->build( object ) )
 		return( -1 );
 
-	vals = (gint64) 
-		vips_image_get_width( statistic->in ) * 
-		vips_image_get_height( statistic->in ) * 
+	vals = (gint64)
+		vips_image_get_width( statistic->in ) *
+		vips_image_get_height( statistic->in ) *
 		vips_image_get_bands( statistic->in );
 	average = avg->sum / vals;
 	g_object_set( object, "out", average, NULL );
@@ -152,12 +152,12 @@ vips_avg_stop( VipsStatistic *statistic, void *seq )
 		m += mod; \
 		p += 2; \
 	} \
-} 
+}
 
 /* Loop over region, accumulating a sum in *tmp.
  */
 static int
-vips_avg_scan( VipsStatistic *statistic, void *seq, 
+vips_avg_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	const int sz = n * vips_image_get_bands( statistic->in );
@@ -169,21 +169,21 @@ vips_avg_scan( VipsStatistic *statistic, void *seq,
 
 	m = *sum;
 
-	/* Now generate code for all types. 
+	/* Now generate code for all types.
 	 */
 	switch( vips_image_get_format( statistic->in ) ) {
-	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
-	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break; 
+	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break;
+	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break;
 	case VIPS_FORMAT_UINT:		LOOP( unsigned int ); break;
-	case VIPS_FORMAT_INT:		LOOP( signed int ); break; 
-	case VIPS_FORMAT_FLOAT:		LOOP( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	CLOOP( float ); break; 
-	case VIPS_FORMAT_DPCOMPLEX:	CLOOP( double ); break; 
+	case VIPS_FORMAT_INT:		LOOP( signed int ); break;
+	case VIPS_FORMAT_FLOAT:		LOOP( float ); break;
+	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break;
+	case VIPS_FORMAT_COMPLEX:	CLOOP( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX:	CLOOP( double ); break;
 
-	default: 
+	default:
 		g_assert_not_reached();
 	}
 
@@ -210,8 +210,8 @@ vips_avg_class_init( VipsAvgClass *class )
 	sclass->scan = vips_avg_scan;
 	sclass->stop = vips_avg_stop;
 
-	VIPS_ARG_DOUBLE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_DOUBLE( class, "out", 2,
+		_( "Output" ),
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsAvg, out ),
@@ -230,8 +230,8 @@ vips_avg_init( VipsAvg *avg )
  * @out: (out): output pixel average
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation finds the average value in an image. It operates on all 
- * bands of the input image: use vips_stats() if you need to calculate an 
+ * This operation finds the average value in an image. It operates on all
+ * bands of the input image: use vips_stats() if you need to calculate an
  * average for each band. For complex images, return the average modulus.
  *
  * See also: vips_stats(), vips_bandmean(), vips_deviate(), vips_rank()

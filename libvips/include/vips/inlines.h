@@ -31,7 +31,7 @@
 #ifndef VIPS_INLINE_H
 #define VIPS_INLINE_H
 
-/* glib promises to define inline in a portable way 
+/* glib promises to define inline in a portable way
  */
 
 #include <glib.h>
@@ -46,8 +46,8 @@ extern "C" {
 
 #else /* HAVE_HYPOT */
 
-static inline double 
-vips__hypot( double a, double b ) 
+static inline double
+vips__hypot( double a, double b )
 {
 	double ta = fabs( a );
 	double tb = fabs( b );

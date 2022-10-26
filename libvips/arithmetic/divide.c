@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 29/4/93 JC
  *	- now works for partial images
  * 1/7/93 JC
@@ -25,9 +25,9 @@
  * 	- add gtkdoc comments
  * 31/7/10
  * 	- remove liboil support
- * 	- avoid /0 
+ * 	- avoid /0
  * 6/11/11
- * 	- rewrite as a class 
+ * 	- rewrite as a class
  * 22/2/12
  * 	- avoid /0 for complex as well
  * 6/4/12
@@ -46,7 +46,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -94,7 +94,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	TYPE * restrict right = (TYPE *) in[1]; \
 	TYPE * restrict q = (TYPE *) out; \
 	int i; \
-        \
+	\
 	for( i = 0; i < sz; i++ ) { \
 		if( right[0] == 0.0 && \
 			right[1] == 0.0 ) { \
@@ -124,7 +124,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	TYPE * restrict right = (TYPE *) in[1]; \
 	TYPE * restrict q = (TYPE *) out; \
 	int i; \
-        \
+	\
 	for( i = 0; i < sz; i++ ) { \
 		if( right[0] == 0.0 && \
 			right[1] == 0.0 ) { \
@@ -166,7 +166,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 }
 
 static void
-vips_divide_buffer( VipsArithmetic *arithmetic, 
+vips_divide_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
@@ -174,24 +174,24 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 
 	int x;
 
-	/* Keep types here in sync with vips_divide_format_table[] 
+	/* Keep types here in sync with vips_divide_format_table[]
 	 * below.
-         */
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 		RLOOP( signed char, float ); break; 
-        case VIPS_FORMAT_UCHAR:		RLOOP( unsigned char, float ); break; 
-        case VIPS_FORMAT_SHORT:		RLOOP( signed short, float ); break; 
-        case VIPS_FORMAT_USHORT: 	RLOOP( unsigned short, float ); break; 
-        case VIPS_FORMAT_INT: 		RLOOP( signed int, float ); break; 
-        case VIPS_FORMAT_UINT: 		RLOOP( unsigned int, float ); break; 
-        case VIPS_FORMAT_FLOAT:		RLOOP( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE: 	RLOOP( double, double ); break;
-        case VIPS_FORMAT_COMPLEX: 	CLOOP( float ); break;
-        case VIPS_FORMAT_DPCOMPLEX: 	CLOOP( double ); break;
+	 */
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_CHAR: 		RLOOP( signed char, float ); break;
+	case VIPS_FORMAT_UCHAR:		RLOOP( unsigned char, float ); break;
+	case VIPS_FORMAT_SHORT:		RLOOP( signed short, float ); break;
+	case VIPS_FORMAT_USHORT: 	RLOOP( unsigned short, float ); break;
+	case VIPS_FORMAT_INT: 		RLOOP( signed int, float ); break;
+	case VIPS_FORMAT_UINT: 		RLOOP( unsigned int, float ); break;
+	case VIPS_FORMAT_FLOAT:		RLOOP( float, float ); break;
+	case VIPS_FORMAT_DOUBLE: 	RLOOP( double, double ); break;
+	case VIPS_FORMAT_COMPLEX: 	CLOOP( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX: 	CLOOP( double ); break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -207,7 +207,7 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for division. Sign and value preserving. Make sure 
+/* Type promotion for division. Sign and value preserving. Make sure
  * these match the case statement in divide_buffer() above.
  */
 static int vips_divide_format_table[10] = {
@@ -226,7 +226,7 @@ vips_divide_class_init( VipsDivideClass *class )
 
 	aclass->process_line = vips_divide_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_divide_format_table ); 
+	vips_arithmetic_set_format_table( aclass, vips_divide_format_table );
 }
 
 static void
@@ -236,8 +236,8 @@ vips_divide_init( VipsDivide *divide )
 
 /**
  * vips_divide:
- * @left: input image 
- * @right: input image 
+ * @left: input image
+ * @right: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -247,14 +247,14 @@ vips_divide_init( VipsDivide *divide )
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the
  * following table is used to determine the output type:
  *
  * <table>

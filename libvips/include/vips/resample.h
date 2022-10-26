@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -57,7 +57,7 @@ typedef enum {
 } VipsSize;
 
 VIPS_API
-int vips_shrink( VipsImage *in, VipsImage **out, 
+int vips_shrink( VipsImage *in, VipsImage **out,
 	double hshrink, double vshrink, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -68,7 +68,7 @@ int vips_shrinkv( VipsImage *in, VipsImage **out, int vshrink, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_reduce( VipsImage *in, VipsImage **out, 
+int vips_reduce( VipsImage *in, VipsImage **out,
 	double hshrink, double vshrink, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -82,14 +82,14 @@ VIPS_API
 int vips_thumbnail( const char *filename, VipsImage **out, int width, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, 
+int vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out,
 	int width, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_thumbnail_image( VipsImage *in, VipsImage **out, int width, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_thumbnail_source( VipsSource *source, VipsImage **out, 
+int vips_thumbnail_source( VipsSource *source, VipsImage **out,
 	int width, ... )
 	G_GNUC_NULL_TERMINATED;
 
@@ -100,7 +100,7 @@ VIPS_API
 int vips_rotate( VipsImage *in, VipsImage **out, double angle, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_affine( VipsImage *in, VipsImage **out, 
+int vips_affine( VipsImage *in, VipsImage **out,
 	double a, double b, double c, double d, ... )
 	G_GNUC_NULL_TERMINATED;
 
@@ -109,7 +109,7 @@ int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... ) 
+int vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API

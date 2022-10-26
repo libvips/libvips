@@ -12,7 +12,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -70,8 +70,8 @@ typedef struct _VipsProject {
 
 	/* Write sums here.
 	 */
-	VipsImage *columns; 
-	VipsImage *rows; 
+	VipsImage *columns;
+	VipsImage *rows;
 
 } VipsProject;
 
@@ -94,10 +94,10 @@ static const VipsBandFormat vips_project_format_table[10] = {
 static Histogram *
 histogram_new( VipsProject *project )
 {
-	VipsStatistic *statistic = VIPS_STATISTIC( project ); 
-	VipsImage *in = statistic->ready; 
+	VipsStatistic *statistic = VIPS_STATISTIC( project );
+	VipsImage *in = statistic->ready;
 	VipsBandFormat outfmt = vips_project_format_table[in->BandFmt];
-	int psize = vips_format_sizeof( outfmt ) * in->Bands; 
+	int psize = vips_format_sizeof( outfmt ) * in->Bands;
 
 	Histogram *hist;
 
@@ -105,7 +105,7 @@ histogram_new( VipsProject *project )
 		return( NULL );
 	hist->column_sums = VIPS_ARRAY( project, psize * in->Xsize, guchar );
 	hist->row_sums = VIPS_ARRAY( project, psize * in->Ysize, guchar );
-	if( !hist->column_sums || 
+	if( !hist->column_sums ||
 		!hist->row_sums )
 		return( NULL );
 
@@ -119,16 +119,16 @@ static int
 vips_project_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsProject *project = (VipsProject *) object;
 
 	int y;
 
 	if( statistic->in &&
 		vips_check_noncomplex( class->nickname, statistic->in ) )
-		return( -1 ); 
+		return( -1 );
 
-	g_object_set( object, 
+	g_object_set( object,
 		"columns", vips_image_new(),
 		"rows", vips_image_new(),
 		NULL );
@@ -141,26 +141,26 @@ vips_project_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_pipelinev( project->columns, 
-			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) || 
-		vips_image_pipelinev( project->rows, 
-			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
+	if( vips_image_pipelinev( project->columns,
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ||
+		vips_image_pipelinev( project->rows,
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) )
 		return( -1 );
 	project->columns->Ysize = 1;
-	project->columns->BandFmt = 
+	project->columns->BandFmt =
 		vips_project_format_table[statistic->ready->BandFmt];
 	project->columns->Type = VIPS_INTERPRETATION_HISTOGRAM;
 	project->rows->Xsize = 1;
-	project->rows->BandFmt = 
+	project->rows->BandFmt =
 		vips_project_format_table[statistic->ready->BandFmt];
 	project->rows->Type = VIPS_INTERPRETATION_HISTOGRAM;
 
-	if( vips_image_write_line( project->columns, 0, 
+	if( vips_image_write_line( project->columns, 0,
 		(VipsPel *) project->hist->column_sums ) )
 		return( -1 );
 	for( y = 0; y < project->rows->Ysize; y++ )
-		if( vips_image_write_line( project->rows, y, 
-			(VipsPel *) project->hist->row_sums + 
+		if( vips_image_write_line( project->rows, y,
+			(VipsPel *) project->hist->row_sums +
 				y * VIPS_IMAGE_SIZEOF_PEL( project->rows ) ) )
 			return( -1 );
 
@@ -176,10 +176,10 @@ vips_project_start( VipsStatistic *statistic )
 
 	/* Make the main hist, if necessary.
 	 */
-	if( !project->hist ) 
-		project->hist = histogram_new( project );  
+	if( !project->hist )
+		project->hist = histogram_new( project );
 
-	return( (void *) histogram_new( project ) );  
+	return( (void *) histogram_new( project ) );
 }
 
 /* Add a line of pixels.
@@ -205,7 +205,7 @@ vips_project_start( VipsStatistic *statistic )
 /* Add a region to a project.
  */
 static int
-vips_project_scan( VipsStatistic *statistic, void *seq, 
+vips_project_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	int nb = statistic->ready->Bands;
@@ -268,7 +268,7 @@ static int
 vips_project_stop( VipsStatistic *statistic, void *seq )
 {
 	VipsProject *project = (VipsProject *) statistic;
-	Histogram *hist = project->hist; 
+	Histogram *hist = project->hist;
 	Histogram *sub_hist = (Histogram *) seq;
 	VipsImage *in = statistic->ready;
 	VipsBandFormat outfmt = vips_project_format_table[in->BandFmt];
@@ -279,19 +279,19 @@ vips_project_stop( VipsStatistic *statistic, void *seq )
 	 */
 	switch( outfmt ) {
 	case VIPS_FORMAT_UINT:
-		ADD_BUFFER( guint, 
+		ADD_BUFFER( guint,
 			hist->column_sums, sub_hist->column_sums, hsz );
 		ADD_BUFFER( guint, hist->row_sums, sub_hist->row_sums, vsz );
 		break;
 
 	case VIPS_FORMAT_INT:
-		ADD_BUFFER( int, 
+		ADD_BUFFER( int,
 			hist->column_sums, sub_hist->column_sums, hsz );
 		ADD_BUFFER( int, hist->row_sums, sub_hist->row_sums, vsz );
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		ADD_BUFFER( double, 
+		ADD_BUFFER( double,
 			hist->column_sums, sub_hist->column_sums, hsz );
 		ADD_BUFFER( double, hist->row_sums, sub_hist->row_sums, vsz );
 		break;
@@ -302,8 +302,8 @@ vips_project_stop( VipsStatistic *statistic, void *seq )
 
 	/* Blank out sub-project to make sure we can't add it again.
 	 */
-	sub_hist->column_sums = NULL; 
-	sub_hist->row_sums = NULL; 
+	sub_hist->column_sums = NULL;
+	sub_hist->row_sums = NULL;
 
 	return( 0 );
 }
@@ -326,16 +326,16 @@ vips_project_class_init( VipsProjectClass *class )
 	sclass->scan = vips_project_scan;
 	sclass->stop = vips_project_stop;
 
-	VIPS_ARG_IMAGE( class, "columns", 100, 
-		_( "Columns" ), 
+	VIPS_ARG_IMAGE( class, "columns", 100,
+		_( "Columns" ),
 		_( "Sums of columns" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsProject, columns ) );
 
-	VIPS_ARG_IMAGE( class, "rows", 101, 
-		_( "Rows" ), 
+	VIPS_ARG_IMAGE( class, "rows", 101,
+		_( "Rows" ),
 		_( "Sums of rows" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsProject, rows ) );
 
 }

@@ -42,11 +42,11 @@ VIPS_API
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
 VIPS_API
-int vips_sink( VipsImage *im, 
+int vips_sink( VipsImage *im,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
 VIPS_API
-int vips_sink_tile( VipsImage *im, 
+int vips_sink_tile( VipsImage *im,
 	int tile_width, int tile_height,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
@@ -79,7 +79,7 @@ int vips_image_generate( VipsImage *image,
 	void *a, void *b );
 
 VIPS_API
-int vips_image_pipeline_array( VipsImage *image, 
+int vips_image_pipeline_array( VipsImage *image,
 	VipsDemandStyle hint, VipsImage **in );
 VIPS_API
 int vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )

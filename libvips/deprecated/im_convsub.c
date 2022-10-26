@@ -16,13 +16,13 @@
  *
  * Author: Nicos Dessipris
  * Written on: 29/04/1991
- * Modified on: 
+ * Modified on:
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,11 +59,11 @@
 #include <vips/internal.h>
 
 /* Create multiplication luts for all non zero elements  of the original mask;
- * which is kept in buffer of length buffersize 
- * cnt is needed for freeing luts 
+ * which is kept in buffer of length buffersize
+ * cnt is needed for freeing luts
  */
 static int
-im__create_int_luts( int *buffer, int buffersize, 
+im__create_int_luts( int *buffer, int buffersize,
 	int **orig_luts, int **luts, int *cnt )
 {
 	int *pbuffer;
@@ -98,7 +98,7 @@ im__create_int_luts( int *buffer, int buffersize,
 /* find a min at a time; put it into buf2 and mark all values of
  * buf1 equal to found min, to INT_MAX
  */
-	for ( i=0; i < buffersize; i++ )	
+	for ( i=0; i < buffersize; i++ )
 		{
 		min = mark + 1; /* force min to be greater than mark */
 		pbuf1 = buf1;
@@ -120,9 +120,9 @@ im__create_int_luts( int *buffer, int buffersize,
 				*pbuf1 = mark;
 			pbuf1++;
 			}
-		}	
+		}
 /* buf2 should keep now counter unique values of the mask, descending order
- * Malloc counter luts and initialise them 
+ * Malloc counter luts and initialise them
  */
 	pbuf2 = buf2;
 	for ( i=0; i<counter; i++)
@@ -187,13 +187,13 @@ int xskip, yskip;
 
 /* Check input, output and vars */
 	if ((xskip < 1)||(yskip < 1))
-                {
-                im_error( "im_convsub", "%s", _( "xskip and yskip must be >= 1") );
-                return(-1);
-                }
+		{
+		im_error( "im_convsub", "%s", _( "xskip and yskip must be >= 1") );
+		return(-1);
+		}
 	if (im_iocheck(in, out) == -1)
 		return( -1 );
-	
+
 	if ( (in->Coding != IM_CODING_NONE)||
 	    (in->BandFmt != IM_BANDFMT_UCHAR) )
 		{
@@ -214,9 +214,9 @@ int xskip, yskip;
 		if ( tempsize < 0 )
 			break;
 		}
-        out->Xsize = tempsize;
+	out->Xsize = tempsize;
 	tempsize = in->Ysize/yskip;
-	while ( 1 ) 
+	while ( 1 )
 		{
 		if ( tempsize * yskip + m->ysize < in->Ysize )
 			break;
@@ -225,22 +225,22 @@ int xskip, yskip;
 		if ( tempsize < 0 )
 			break;
 		}
-        out->Ysize = tempsize;
+	out->Ysize = tempsize;
 	if ( ( out->Xsize < 2 )||( out->Ysize < 2 ) ) {
 		im_error( "im_convsub", "%s", _( "too small output sizes") );
-		return(-1); 
+		return(-1);
 	}
 
 	if( im_setupout(out) == -1)
-		return(-1); 
+		return(-1);
 
 /* Malloc one line of output data */
 	os = out->Xsize * out->Bands;
-	if ( (line=(PEL*)calloc( (unsigned)os, sizeof(char))) == NULL) { 
+	if ( (line=(PEL*)calloc( (unsigned)os, sizeof(char))) == NULL) {
 		im_error( "im_convsub", "%s", _( "unable to calloc(1)") );
-		return(-1); 
+		return(-1);
 	}
-	
+
 /* Malloc pointers and put them at correct location */
 	ms = m->xsize * m->ysize;
 	count = 0;	/* exclude the non-zero elms */
@@ -248,18 +248,18 @@ int xskip, yskip;
 	for ( i=0; i<ms; i++)
 		{
 		if ( *pm++ != 0 )
-			count++; 
+			count++;
 		}
 
 	if (((newm = (int*)calloc((unsigned)count, sizeof(int))) == NULL )||
 	    ((pnts = (PEL**)calloc((unsigned)count, sizeof(char *))) == NULL)||
 	    ((cpnt1s=(PEL**)calloc((unsigned)count, sizeof(char *))) == NULL)||
 	    ((cpnt2s=(PEL**)calloc((unsigned)count, sizeof(char *))) ==NULL ) )
-		{ 
+		{
 		im_error( "im_convsub", "%s", _( "unable to calloc(2)") );
-		return(-1); 
+		return(-1);
 	}
-	
+
 	pnt = pnts;
 	cpnt1 = cpnt1s;
 	cpnt2 = cpnt2s;
@@ -283,24 +283,24 @@ int xskip, yskip;
 			}
 		}
 
-	if ( i != count ) { 
-		im_error( "im_convsub", "%s", _( "impossible state") ); 
+	if ( i != count ) {
+		im_error( "im_convsub", "%s", _( "impossible state") );
 		return(-1); }
 
 /* Malloc pointers; not all lut_orig are used necessarily */
-        lut_orig = (int**)calloc((unsigned)count, sizeof(int**) );
-        lut = (int**)calloc((unsigned)count, sizeof(int**) );
-        if ( (lut == NULL) || (lut_orig == NULL) ) { 
-		im_error( "im_conv", "%s", _( "unable to calloc(1)") ); 
+	lut_orig = (int**)calloc((unsigned)count, sizeof(int**) );
+	lut = (int**)calloc((unsigned)count, sizeof(int**) );
+	if ( (lut == NULL) || (lut_orig == NULL) ) {
+		im_error( "im_conv", "%s", _( "unable to calloc(1)") );
 		return(-1); }
 
 /* Create luts; count is needed for freeing pointers. Not all lut_orig are used
  * if zero elms are detected.
  */
-        if ( im__create_int_luts(newm, count, lut_orig, lut, &lutcnt ) == -1 )
+	if ( im__create_int_luts(newm, count, lut_orig, lut, &lutcnt ) == -1 )
 		{
 		im_error( "im_convsub", "%s", _( "im_create_int_luts failed") );
-                return(-1);
+		return(-1);
 		}
 
 	rounding = m->scale/2;
@@ -354,11 +354,11 @@ int xskip, yskip;
 			return(-1);
 			}
 		}		/* end of the for (..y..) loop */
-	
+
 	if (n_clipped || p_clipped)
-               fprintf(stderr,
-               "im_convsub: %d pels over 255 and %d under 0 clipped\n",
-                p_clipped, n_clipped);
+	       fprintf(stderr,
+	       "im_convsub: %d pels over 255 and %d under 0 clipped\n",
+		p_clipped, n_clipped);
 
 	free((char*)line); free((char*)newm);
 	free((char*)pnts);

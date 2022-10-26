@@ -1,7 +1,7 @@
 /* Parse ".desc" files from mosaiced images to generate (x,y) offsets for
  * every sub-image. Find all overlap stats and solve balancing with LMS.
  * Regenerate mosaic, with balancing fixed.
- * 
+ *
  * 1/12/93 JC
  *	- first version, unfinished!
  * 6/9/95 JC
@@ -65,7 +65,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -175,7 +175,7 @@ vips__global_open_image( SymbolTable *st, char *name )
 	if( !(image = vips_image_new_from_file( name, NULL ))) {
 		/* TODO(kleisauke): Is this behavior the same as im_skip_dir?
 		 * i.e. could we open a filename which came
-		 * from a win32 (`\\`) on a *nix machine? 
+		 * from a win32 (`\\`) on a *nix machine?
 		 */
 		basename = g_path_get_basename( name );
 
@@ -223,7 +223,7 @@ build_node( SymbolTable *st, char *name )
 
 	/* Fill fields.
 	 */
-	if( !node || !(node->name = 
+	if( !node || !(node->name =
 		vips_strdup( VIPS_OBJECT( st->im ), name )) )
 		return( NULL );
 
@@ -320,7 +320,7 @@ vips__build_symtab( VipsImage *out, int sz )
 	st->leaf = NULL;
 	st->fac = NULL;
 
-	g_signal_connect( out, "close", 
+	g_signal_connect( out, "close",
 		G_CALLBACK( junk_table ), st );
 
 	for( i = 0; i < sz; i++ )
@@ -343,7 +343,7 @@ test_name( JoinNode *node, char *name, void *b )
 /* Look up a filename in the symbol_table.
  */
 static JoinNode *
-find_node( SymbolTable *st, char *name ) 
+find_node( SymbolTable *st, char *name )
 {
 	return( vips_slist_map2( st->table[hash( name )],
 		(VipsSListMap2Fn) test_name, name, NULL ) );
@@ -357,25 +357,25 @@ add_node( SymbolTable *st, char *name )
 {
 	JoinNode *node;
 
-	if( !(node = find_node( st, name )) && 
+	if( !(node = find_node( st, name )) &&
 		!(node = build_node( st, name )) )
 		return( NULL );
 
 	return( node );
 }
 
-/* Map a user function over the whole of the symbol table. 
+/* Map a user function over the whole of the symbol table.
  */
 void *
 vips__map_table( SymbolTable *st, VipsSListMap2Fn fn, void *a, void *b )
 {
 	int i;
 	void *r;
-	
+
 	for( i = 0; i < st->sz; i++ )
 		if( (r = vips_slist_map2( st->table[i], fn, a, b )) )
 			return( r );
-	
+
 	return( NULL );
 }
 
@@ -383,7 +383,7 @@ vips__map_table( SymbolTable *st, VipsSListMap2Fn fn, void *a, void *b )
  */
 static void *
 set_dirty( JoinNode *node, int state, void *b )
-{	
+{
 	node->dirty = state;
 
 	return( NULL );
@@ -394,11 +394,11 @@ set_dirty( JoinNode *node, int state, void *b )
 static void
 clean_table( SymbolTable *st )
 {
-	(void) vips__map_table( st, 
+	(void) vips__map_table( st,
 		(VipsSListMap2Fn) set_dirty, (void *) 0, NULL );
 }
 
-/* Do geometry calculations on a node, assuming geo is up to date for any 
+/* Do geometry calculations on a node, assuming geo is up to date for any
  * children.
  */
 static void
@@ -448,7 +448,7 @@ calc_geometry( JoinNode *node )
 
 /* Propagate a transform down a tree. If dirty is set, we've been here before,
  * so there is a doubling up of this node. If this is a leaf, then we have the
- * same leaf twice (which, in fact, we can cope with); if this is a node, we 
+ * same leaf twice (which, in fact, we can cope with); if this is a node, we
  * have circularity.
  */
 static int
@@ -458,7 +458,7 @@ propagate_transform( JoinNode *node, VipsTransformation *trn )
 		return( 0 );
 
 	if( node->dirty && node->arg1 && node->arg2 ) {
-		vips_error( "vips_global_balance", 
+		vips_error( "vips_global_balance",
 			"%s", _( "circularity detected" ) );
 		return( -1 );
 	}
@@ -479,12 +479,12 @@ propagate_transform( JoinNode *node, VipsTransformation *trn )
 }
 
 /* Ah ha! A leaf is actually made up of two smaller files with an lr or a tb
- * merge. Turn a leaf node into a join node. Propagate the transform down 
+ * merge. Turn a leaf node into a join node. Propagate the transform down
  * arg2's side of the tree.
  */
 static int
-make_join( SymbolTable *st, JoinType type, 
-	JoinNode *arg1, JoinNode *arg2, JoinNode *out, 
+make_join( SymbolTable *st, JoinType type,
+	JoinNode *arg1, JoinNode *arg2, JoinNode *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
 	VipsTransformation trn;
@@ -492,7 +492,7 @@ make_join( SymbolTable *st, JoinType type,
 	/* Check output is ok.
 	 */
 	if( out->type != JOIN_LEAF ) {
-		vips_error( "vips_global_balance", 
+		vips_error( "vips_global_balance",
 			_( "image \"%s\" used twice as output" ), out->name );
 		return( -1 );
 	}
@@ -552,7 +552,7 @@ make_copy( SymbolTable *st, JoinNode *before, JoinNode *after )
 	/* Check output is ok.
 	 */
 	if( after->type != JOIN_LEAF ) {
-		vips_error( "vips_global_balance", 
+		vips_error( "vips_global_balance",
 			_( "image \"%s\" used twice as output" ), after->name );
 		return( -1 );
 	}
@@ -565,7 +565,7 @@ make_copy( SymbolTable *st, JoinNode *before, JoinNode *after )
 
 	/* Copy over the position and size from the before to the after.
 	 */
-	calc_geometry( after ); 
+	calc_geometry( after );
 
 	return( 0 );
 }
@@ -601,7 +601,7 @@ process_line( SymbolTable *st, const char *text )
 		if( (nitems = break_items( line, item )) < 0 )
 			return( -1 );
 		if( nitems != 5 && nitems != 6 ) {
-			vips_error( "global_balance", 
+			vips_error( "global_balance",
 				"%s", _( "bad number of args in join line" ) );
 			return( -1 );
 		}
@@ -612,7 +612,7 @@ process_line( SymbolTable *st, const char *text )
 			return( -1 );
 		dx = atoi( item[3] );
 		dy = atoi( item[4] );
-		if( nitems == 6 ) 
+		if( nitems == 6 )
 			mwidth = atoi( item[5] );
 		else
 			mwidth = -1;
@@ -621,7 +621,7 @@ process_line( SymbolTable *st, const char *text )
 		else
 			type = JOIN_TB;
 
-		if( make_join( st, type, arg1, arg2, 
+		if( make_join( st, type, arg1, arg2,
 			join, 1.0, 0.0, dx, dy, mwidth ) )
 			return( -1 );
 	}
@@ -643,7 +643,7 @@ process_line( SymbolTable *st, const char *text )
 		if( (nitems = break_items( line, item )) < 0 )
 			return( -1 );
 		if( nitems != 7 && nitems != 8 ) {
-			vips_error( "global_balance", 
+			vips_error( "global_balance",
 				"%s", _( "bad number of args in join1 line" ) );
 			return( -1 );
 		}
@@ -665,7 +665,7 @@ process_line( SymbolTable *st, const char *text )
 		else
 			type = JOIN_TBROTSCALE;
 
-		if( make_join( st, type, arg1, arg2, 
+		if( make_join( st, type, arg1, arg2,
 			join, a, b, dx, dy, mwidth ) )
 			return( -1 );
 	}
@@ -679,7 +679,7 @@ process_line( SymbolTable *st, const char *text )
 		if( (nitems = break_items( line, item )) < 0 )
 			return( -1 );
 		if( nitems != 2 ) {
-			vips_error( "global_balance", 
+			vips_error( "global_balance",
 				"%s", _( "bad number of args in copy line" ) );
 			return( -1 );
 		}
@@ -702,7 +702,7 @@ set_referenced( JoinNode *node, void *a, void *b )
 		node->arg1->dirty = 1;
 	if( node->arg2 )
 		node->arg2->dirty = 1;
-	
+
 	return( NULL );
 }
 
@@ -731,13 +731,13 @@ find_root( SymbolTable *st )
 
 	/* Look for the first clean symbol.
 	 */
-	root = (JoinNode *) vips__map_table( st, 
+	root = (JoinNode *) vips__map_table( st,
 		(VipsSListMap2Fn) is_root, NULL, NULL );
 
 	/* No root? Hot dang!
 	 */
 	if( !root ) {
-		vips_error( "vips_global_balance", 
+		vips_error( "vips_global_balance",
 			"%s", _( "mosaic root not found in desc file\n"
 			"is this really a mosaiced image?" ) );
 		return( NULL );
@@ -748,7 +748,7 @@ find_root( SymbolTable *st )
 	 */
 	root->dirty = 1;
 	if( vips__map_table( st, (VipsSListMap2Fn) is_root, NULL, NULL ) ) {
-		vips_error( "vips_global_balance", 
+		vips_error( "vips_global_balance",
 			"%s", _( "more than one root" ) );
 		return( NULL );
 	}
@@ -815,7 +815,7 @@ print_node( JoinNode *node )
 static void *
 print_leaf( JoinNode *node, void *a, void *b )
 {
-	if( node->type == JOIN_LEAF ) 
+	if( node->type == JOIN_LEAF )
 		print_node( node );
 
 	return( NULL );
@@ -884,8 +884,8 @@ print_joins( JoinNode *node, int indent )
 	case JOIN_TBROTSCALE:
 	case JOIN_LRROTSCALE:
 		spc( indent );
-		printf( "%s to make %s, size %dx%d, pos. %dx%d, of:\n", 
-			JoinType2char( node->type ), 
+		printf( "%s to make %s, size %dx%d, pos. %dx%d, of:\n",
+			JoinType2char( node->type ),
 			basename,
 			node->cumtrn.oarea.width, node->cumtrn.oarea.height,
 			node->cumtrn.oarea.left, node->cumtrn.oarea.top );
@@ -923,7 +923,7 @@ print_overlap( OverlapInfo *lap, void *a, void *b )
 {
 	char *basename_node = g_path_get_basename( lap->node->name );
 	char *basename_other = g_path_get_basename( lap->other->name );
-	
+
 	printf( "-> %s overlaps with %s; (this, other) = (%.4G, %.4G)\n",
 		basename_node,
 		basename_other,
@@ -932,7 +932,7 @@ print_overlap( OverlapInfo *lap, void *a, void *b )
 
 	g_free( basename_node );
 	g_free( basename_other );
-	
+
 	return( NULL );
 }
 #endif /*DEBUG*/
@@ -944,12 +944,12 @@ static void *
 print_overlaps( JoinNode *node, void *a, void *b )
 {
 	char *basename;
-	
+
 	if( node->type == JOIN_LEAF && g_slist_length( node->overlaps ) > 0 ) {
 		basename = g_path_get_basename( node->name );
 		printf( "overlap of %s with:\n", basename );
 		g_free( basename );
-		vips_slist_map2( node->overlaps, 
+		vips_slist_map2( node->overlaps,
 			(VipsSListMap2Fn) print_overlap, NULL, NULL );
 	}
 
@@ -978,7 +978,7 @@ print_overlap_error( OverlapInfo *lap, double *fac, double *total )
 	printf( "-> file %s, error = %g\n",
 		basename_other, err );
 	*total += err * err;
-	
+
 	g_free( basename_other );
 
 	return( NULL );
@@ -992,13 +992,13 @@ static void *
 print_overlap_errors( JoinNode *node, double *fac, double *total )
 {
 	char *basename;
-	
+
 	if( node->type == JOIN_LEAF && g_slist_length( node->overlaps ) > 0 ) {
 		basename = g_path_get_basename( node->name );
-		printf( "overlap of %s (index %d) with:\n", basename, 
+		printf( "overlap of %s (index %d) with:\n", basename,
 			node->index );
 		g_free( basename );
-		vips_slist_map2( node->overlaps, 
+		vips_slist_map2( node->overlaps,
 			(VipsSListMap2Fn) print_overlap_error, fac, total );
 	}
 
@@ -1011,7 +1011,7 @@ print_overlap_errors( JoinNode *node, double *fac, double *total )
 static int
 extract_rect( VipsImage *in, VipsImage **out, VipsRect *r )
 {
-	return( vips_extract_area( in, out, 
+	return( vips_extract_area( in, out,
 		r->left, r->top, r->width, r->height, NULL ) );
 }
 
@@ -1019,11 +1019,11 @@ extract_rect( VipsImage *in, VipsImage **out, VipsRect *r )
  * has 255 for every pixel where both images are non-zero.
  */
 static int
-make_overlap_mask( VipsImage *mem, 
-	VipsImage *ref, VipsImage *sec, VipsImage **mask, 
+make_overlap_mask( VipsImage *mem,
+	VipsImage *ref, VipsImage *sec, VipsImage **mask,
 	VipsRect *rarea, VipsRect *sarea )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( mem ), 6 );
 
 	if( extract_rect( ref, &t[0], rarea ) ||
@@ -1032,7 +1032,7 @@ make_overlap_mask( VipsImage *mem,
 		vips_extract_band( t[1], &t[3], 0, NULL ) ||
 		vips_notequal_const1( t[2], &t[4], 0.0, NULL ) ||
 		vips_notequal_const1( t[3], &t[5], 0.0, NULL ) ||
-		vips_andimage( t[4], t[5], mask, NULL ) ) 
+		vips_andimage( t[4], t[5], mask, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -1056,10 +1056,10 @@ count_nonzero( VipsImage *in, gint64 *count )
  * mask is true.
  */
 static VipsImage *
-find_image_stats( VipsImage *mem, 
+find_image_stats( VipsImage *mem,
 	VipsImage *in, VipsImage *mask, VipsRect *area )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( mem ), 5 );
 
 	gint64 count;
@@ -1067,8 +1067,8 @@ find_image_stats( VipsImage *mem,
 	/* Extract area, build black image, mask out pixels we want.
 	 */
 	if( extract_rect( in, &t[0], area ) ||
-		vips_black( &t[1], t[0]->Xsize, t[0]->Ysize, 
-			"bands", t[0]->Bands, 
+		vips_black( &t[1], t[0]->Xsize, t[0]->Ysize,
+			"bands", t[0]->Bands,
 			NULL ) ||
 		vips_cast( t[1], &t[2], t[0]->BandFmt, NULL ) ||
 		vips_ifthenelse( mask, t[0], t[2], &t[3], NULL ) )
@@ -1086,7 +1086,7 @@ find_image_stats( VipsImage *mem,
 
 	/* And scale masked average to match.
 	 */
-	*VIPS_MATRIX( t[4], 4, 0 ) *= 
+	*VIPS_MATRIX( t[4], 4, 0 ) *=
 		(double) count / VIPS_IMAGE_N_PELS( mask );
 
 	/* Yuk! Zap the deviation column with the pixel count. Used later to
@@ -1108,7 +1108,7 @@ static int
 find_overlap_stats( OverlapInfo *lap )
 {
 	VipsImage *mem = lap->node->st->im;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( mem ), 1 );
 
 	VipsRect rarea, sarea;
@@ -1129,16 +1129,16 @@ find_overlap_stats( OverlapInfo *lap )
 
 	/* Make a mask for the overlap.
 	 */
-	if( make_overlap_mask( mem, 
+	if( make_overlap_mask( mem,
 		lap->node->trnim, lap->other->trnim, &t[0], &rarea, &sarea ) )
 		return( -1 );
 
 	/* Find stats for that area.
 	 */
-	if( !(lap->nstats = find_image_stats( mem, 
+	if( !(lap->nstats = find_image_stats( mem,
 		lap->node->trnim, t[0], &rarea )) )
 		return( -1 );
-	if( !(lap->ostats = find_image_stats( mem, 
+	if( !(lap->ostats = find_image_stats( mem,
 		lap->other->trnim, t[0], &sarea )) )
 		return( -1 );
 
@@ -1166,14 +1166,14 @@ test_overlap( JoinNode *other, JoinNode *node, void *b )
 
 	/* Is other a suitable leaf to overlap with node?
 	 */
-	if( other->type != JOIN_LEAF || node == other ) 
+	if( other->type != JOIN_LEAF || node == other )
 		return( NULL );
 
 	/* Is there an overlap?
 	 */
-	vips_rect_intersectrect( &node->cumtrn.oarea, &other->cumtrn.oarea, 
+	vips_rect_intersectrect( &node->cumtrn.oarea, &other->cumtrn.oarea,
 		&overlap );
-	if( vips_rect_isempty( &overlap ) ) 
+	if( vips_rect_isempty( &overlap ) )
 		return( NULL );
 
 	/* Is this a trivial overlap? Ignore it if it is.
@@ -1183,10 +1183,10 @@ test_overlap( JoinNode *other, JoinNode *node, void *b )
 		 */
 		return( NULL );
 
-	/* Have we already added this overlap the other way around? ie. is 
+	/* Have we already added this overlap the other way around? ie. is
 	 * node on other's overlap list?
 	 */
-	if( vips_slist_map2( other->overlaps, 
+	if( vips_slist_map2( other->overlaps,
 		(VipsSListMap2Fn) overlap_eq, node, NULL ) )
 		return( NULL );
 
@@ -1195,10 +1195,10 @@ test_overlap( JoinNode *other, JoinNode *node, void *b )
 	if( !(lap = build_overlap( node, other, &overlap )) )
 		return( node );
 
-	/* Calculate overlap statistics. Open stuff relative to this, and 
+	/* Calculate overlap statistics. Open stuff relative to this, and
 	 * free quickly.
 	 */
-	if( find_overlap_stats( lap ) ) 
+	if( find_overlap_stats( lap ) )
 		return( node );
 
 	/* If the pixel count either masked overlap is trivial, ignore this
@@ -1229,17 +1229,17 @@ find_overlaps( JoinNode *node, SymbolTable *st, void *b )
 		/* Check for image.
 		 */
 		if( !node->im ) {
-			vips_error( "vips_global_balance", 
+			vips_error( "vips_global_balance",
 				_( "unable to open \"%s\"" ), node->name );
 			return( node );
 		}
-		if( !node->trnim ) 
+		if( !node->trnim )
 			vips_error_exit( "global_balance: sanity failure #9834" );
 
-		return( vips__map_table( st, 
+		return( vips__map_table( st,
 			(VipsSListMap2Fn) test_overlap, node, NULL ) );
 	}
-	
+
 	return( NULL );
 }
 
@@ -1291,12 +1291,12 @@ static void *
 add_row( JoinNode *node, MatrixBundle *bun, double *gamma )
 {
 	if( node == bun->leaf )
-		vips_slist_map2( node->overlaps, 
+		vips_slist_map2( node->overlaps,
 			(VipsSListMap2Fn) add_nominated, bun, gamma );
 	else
-		vips_slist_map2( node->overlaps, 
+		vips_slist_map2( node->overlaps,
 			(VipsSListMap2Fn) add_other, bun, gamma );
-	
+
 	return( NULL );
 }
 
@@ -1325,7 +1325,7 @@ choose_leaf( JoinNode *node, void *a, void *b )
 {
 	if( node->type == JOIN_LEAF )
 		return( node );
-	
+
 	return( NULL );
 }
 
@@ -1343,11 +1343,11 @@ make_mos_image( SymbolTable *st, JoinNode *node, transform_fn tfn, void *a )
 			!(im2 = make_mos_image( st, node->arg2, tfn, a )) )
 			return( NULL );
 
-		if( vips_merge( im1, im2, &out, 
-			node->type == JOIN_LR ? 
-				VIPS_DIRECTION_HORIZONTAL : 
+		if( vips_merge( im1, im2, &out,
+			node->type == JOIN_LR ?
+				VIPS_DIRECTION_HORIZONTAL :
 				VIPS_DIRECTION_VERTICAL,
-			-node->dx, -node->dy, 
+			-node->dx, -node->dy,
 			"mblend", node->mwidth,
 			NULL ) )
 			return( NULL );
@@ -1368,13 +1368,13 @@ make_mos_image( SymbolTable *st, JoinNode *node, transform_fn tfn, void *a )
 		vips_image_set_string( out, "mosaic-name", node->name );
 
 		if( node->type == JOIN_LRROTSCALE ) {
-			if( vips__lrmerge1( im1, im2, out, 
+			if( vips__lrmerge1( im1, im2, out,
 				node->a, node->b, node->dx, node->dy,
 				node->mwidth ) )
 				return( NULL );
 		}
 		else {
-			if( vips__tbmerge1( im1, im2, out, 
+			if( vips__tbmerge1( im1, im2, out,
 				node->a, node->b, node->dx, node->dy,
 				node->mwidth ) )
 				return( NULL );
@@ -1406,7 +1406,7 @@ make_mos_image( SymbolTable *st, JoinNode *node, transform_fn tfn, void *a )
 	return( out );
 }
 
-/* Re-build mosaic. 
+/* Re-build mosaic.
  */
 int
 vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
@@ -1422,11 +1422,11 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 			!(im2 = make_mos_image( st, root->arg2, tfn, a )) )
 			return( -1 );
 
-		if( vips_merge( im1, im2, &x, 
-			root->type == JOIN_LR ? 
-				VIPS_DIRECTION_HORIZONTAL : 
+		if( vips_merge( im1, im2, &x,
+			root->type == JOIN_LR ?
+				VIPS_DIRECTION_HORIZONTAL :
 				VIPS_DIRECTION_VERTICAL,
-			-root->dx, -root->dy, 
+			-root->dx, -root->dy,
 			"mblend", root->mwidth,
 			NULL ) )
 			return( -1 );
@@ -1445,13 +1445,13 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 			return( -1 );
 
 		if( root->type == JOIN_LRROTSCALE ) {
-			if( vips__lrmerge1( im1, im2, out, 
+			if( vips__lrmerge1( im1, im2, out,
 				root->a, root->b, root->dx, root->dy,
 				root->mwidth ) )
 				return( -1 );
 		}
 		else {
-			if( vips__tbmerge1( im1, im2, out, 
+			if( vips__tbmerge1( im1, im2, out,
 				root->a, root->b, root->dx, root->dy,
 				root->mwidth ) )
 				return( -1 );
@@ -1462,7 +1462,7 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 	case JOIN_LEAF:
 		/* Trivial case! Just one file in our mosaic.
 		 */
-		if( !(im1 = tfn( root, a )) || 
+		if( !(im1 = tfn( root, a )) ||
 			vips_image_write( im1, out ) )
 			return( -1 );
 
@@ -1558,7 +1558,7 @@ vips__matrixmultiply( VipsImage *in1, VipsImage *in2, VipsImage **out )
 static int
 find_factors( SymbolTable *st, double gamma )
 {
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( st->im ), 7 );
 
 	double total;
@@ -1574,7 +1574,7 @@ find_factors( SymbolTable *st, double gamma )
 	fill_matrices( st, gamma, t[0], t[1] );
 
 #ifdef DEBUG
-	vips_image_write_to_file( t[0], "K.mat", NULL ); 
+	vips_image_write_to_file( t[0], "K.mat", NULL );
 	vips_image_write_to_file( t[1], "M.mat", NULL );
 #endif /*DEBUG*/
 
@@ -1612,13 +1612,13 @@ find_factors( SymbolTable *st, double gamma )
 		printf( "balance factor %d = %g\n", i, st->fac[i] );
 	total = 0.0;
 	printf( "Overlap errors:\n" );
-	vips__map_table( st, 
+	vips__map_table( st,
 		(VipsSListMap2Fn) print_overlap_errors, NULL, &total );
 	printf( "RMS error = %g\n", sqrt( total / st->novl ) );
 
 	total = 0.0;
 	printf( "Overlap errors after adjustment:\n" );
-	vips__map_table( st, 
+	vips__map_table( st,
 		(VipsSListMap2Fn) print_overlap_errors, st->fac, &total );
 	printf( "RMS error = %g\n", sqrt( total / st->novl ) );
 #endif /*DEBUG*/
@@ -1679,11 +1679,11 @@ generate_trn_leaves( JoinNode *node, SymbolTable *st, void *b )
 		/* Check for image.
 		 */
 		if( !node->im ) {
-			vips_error( "vips_global_balance", 
+			vips_error( "vips_global_balance",
 				_( "unable to open \"%s\"" ), node->name );
 			return( node );
 		}
-		if( node->trnim ) 
+		if( node->trnim )
 			vips_error_exit( "global_balance: sanity failure #765" );
 
 		/* Special case: if this is an untransformed leaf (there will
@@ -1726,7 +1726,7 @@ analyse_mosaic( SymbolTable *st, VipsImage *in )
 
 	/* Generate transformed leaves.
 	 */
-	if( vips__map_table( st, 
+	if( vips__map_table( st,
 		(VipsSListMap2Fn) generate_trn_leaves, st, NULL ) )
 		return( -1 );
 
@@ -1735,7 +1735,7 @@ analyse_mosaic( SymbolTable *st, VipsImage *in )
 	if( vips__map_table( st, (VipsSListMap2Fn) find_overlaps, st, NULL ) )
 		return( -1 );
 
-	/* Scan table, counting and indexing input images and joins. 
+	/* Scan table, counting and indexing input images and joins.
 	 */
 	vips__map_table( st, (VipsSListMap2Fn) count_leaves, NULL, NULL );
 	vips__map_table( st, (VipsSListMap2Fn) count_joins, NULL, NULL );
@@ -1743,7 +1743,7 @@ analyse_mosaic( SymbolTable *st, VipsImage *in )
 	/* Select leaf to be 1.000.
 	 * This must be index == 0, unless you change stuff above!
 	 */
-	st->leaf = vips__map_table( st, 
+	st->leaf = vips__map_table( st,
 		(VipsSListMap2Fn) choose_leaf, NULL, NULL );
 
 	/* And print overlaps.
@@ -1753,7 +1753,7 @@ analyse_mosaic( SymbolTable *st, VipsImage *in )
 	print_node( st->leaf );
 	printf( "\nOverlaps:\n" );
 	vips__map_table( st, (VipsSListMap2Fn) print_overlaps, NULL, NULL );
-	printf( "\n%d input files, %d unique overlaps, %d joins\n", 
+	printf( "\n%d input files, %d unique overlaps, %d joins\n",
 		st->nim, st->novl, st->njoin );
 #endif /*DEBUG*/
 
@@ -1779,9 +1779,9 @@ transform( JoinNode *node, double *gamma )
 		 */
 		out = in;
 	}
-	/* TODO(kleisauke): Could we call vips_gamma instead? 
+	/* TODO(kleisauke): Could we call vips_gamma instead?
 	 */
-	else if( in->BandFmt == VIPS_FORMAT_UCHAR || 
+	else if( in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT ) {
 		if( vips_identity( &t[0],
 				"bands", 1,
@@ -1819,7 +1819,7 @@ transformf( JoinNode *node, double *gamma )
 	SymbolTable *st = node->st;
 	VipsImage *in = node->im;
 	double fac = node->st->fac[node->index];
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( st->im ), 6 );
 
 	VipsImage *out;
@@ -1829,7 +1829,7 @@ transformf( JoinNode *node, double *gamma )
 		 */
 		out = in;
 	}
-	else if( in->BandFmt == VIPS_FORMAT_UCHAR || 
+	else if( in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT ) {
 		if( vips_identity( &t[0],
 				"bands", 1,
@@ -1880,7 +1880,7 @@ vips_globalbalance_build( VipsObject *object )
 	SymbolTable *st;
 	transform_fn trn;
 
-	g_object_set( globalbalance, "out", vips_image_new(), NULL ); 
+	g_object_set( globalbalance, "out", vips_image_new(), NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_globalbalance_parent_class )->
 		build( object ) )
@@ -1891,9 +1891,9 @@ vips_globalbalance_build( VipsObject *object )
 		find_factors( st, globalbalance->gamma ) )
 		return( -1 );
 
-	trn = globalbalance->int_output ? 
-		(transform_fn) transform : (transform_fn) transformf; 
-	if( vips__build_mosaic( st, globalbalance->out, 
+	trn = globalbalance->int_output ?
+		(transform_fn) transform : (transform_fn) transformf;
+	if( vips__build_mosaic( st, globalbalance->out,
 		trn, &globalbalance->gamma ) )
 		return( -1 );
 
@@ -1913,31 +1913,31 @@ vips_globalbalance_class_init( VipsGlobalbalanceClass *class )
 	object_class->description = _( "global balance an image mosaic" );
 	object_class->build = vips_globalbalance_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGlobalbalance, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsGlobalbalance, out ) );
 
-	VIPS_ARG_DOUBLE( class, "gamma", 5, 
-		_( "Gamma" ), 
+	VIPS_ARG_DOUBLE( class, "gamma", 5,
+		_( "Gamma" ),
 		_( "Image gamma" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGlobalbalance, gamma ),
 		0.00001, 10, 1.6 );
 
-	VIPS_ARG_BOOL( class, "int_output", 7, 
-		_( "Int output" ), 
+	VIPS_ARG_BOOL( class, "int_output", 7,
+		_( "Int output" ),
 		_( "Integer output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGlobalbalance, int_output ),
-		FALSE ); 
+		FALSE );
 
 }
 
@@ -1952,13 +1952,13 @@ vips_globalbalance_init( VipsGlobalbalance *globalbalance )
  * @in: mosaic to rebuild
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
- * 
+ *
  * Optional arguments:
  *
  * * @gamma: gamma of source images
  * * @int_output: %TRUE for integer image output
  *
- * vips_globalbalance() can be used to remove contrast differences in 
+ * vips_globalbalance() can be used to remove contrast differences in
  * an assembled mosaic.
  *
  * It reads the History field attached to @in and builds a list of the source
@@ -1972,10 +1972,10 @@ vips_globalbalance_init( VipsGlobalbalance *globalbalance )
  * gamma-correct the source images before calculating the factors. A value of
  * 1.0 will stop this.
  *
- * Each of the source images is transformed with the appropriate correction 
- * factor, then the mosaic is reassembled. @out is #VIPS_FORMAT_FLOAT, but 
+ * Each of the source images is transformed with the appropriate correction
+ * factor, then the mosaic is reassembled. @out is #VIPS_FORMAT_FLOAT, but
  * if @int_output is set, the output image is the same format as the input
- * images.  
+ * images.
  *
  * There are some conditions that must be met before this operation can work:
  * the source images must all be present under the filenames recorded in the
@@ -1986,7 +1986,7 @@ vips_globalbalance_init( VipsGlobalbalance *globalbalance )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
+int
 vips_globalbalance( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

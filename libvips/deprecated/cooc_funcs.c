@@ -6,8 +6,8 @@
  * @(#) Usage:
  * @(#) int im_cooc_matrix(im, m, xpos, ypos, xsize, ysize, dx, dy, sym_flag)
  * @(#) IMAGE *im, *m;
- * @(#) int xpos, ypos, xsize, ysize;  location of the box within im 
- * @(#) int dx, dy;    displacements 
+ * @(#) int xpos, ypos, xsize, ysize;  location of the box within im
+ * @(#) int dx, dy;    displacements
  * @(#) int sym_flag;
  * @(#)
  * @(#) int im_cooc_asm(m, asmoment)
@@ -35,13 +35,13 @@
  *	- extern decls removed
  *	- im_incheck() calls added
  * 28/5/97 JC
- *	- protos added :( 
+ *	- protos added :(
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -95,8 +95,8 @@ int im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 		im_error( "im_cooc_sym", "%s", _( "Unable to accept input") );
 		return(-1);
 		}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
-		im_error( "im_cooc_sym", "%s", _( "wrong args") ); 
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) {
+		im_error( "im_cooc_sym", "%s", _( "wrong args") );
 		return(-1); }
 	if (im_cp_desc(m, im) == -1)
 		return( -1 );
@@ -109,8 +109,8 @@ int im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 /* malloc space to keep the read values */
 	buf = (int *)calloc( (unsigned)m->Xsize*m->Ysize, sizeof(int) );
 	line = (double *)calloc( (unsigned)m->Xsize * m->Bands, sizeof(double));
-	if ( (buf == NULL) || (line == NULL) ) { 
-		im_error( "im_cooc_sym", "%s", _( "calloc failed") ); 
+	if ( (buf == NULL) || (line == NULL) ) {
+		im_error( "im_cooc_sym", "%s", _( "calloc failed") );
 		return(-1); }
 	input = im->data;
 	input += ( ypos * im->Xsize + xpos );
@@ -140,7 +140,7 @@ int im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 		cpline = line;
 		for (x=0; x<m->Xsize; x++)
 			*cpline++ = (double)(*cpnt++)/(double)norm;
-		if (im_writeline( y, m, (VipsPel *) line ) == -1) 
+		if (im_writeline( y, m, (VipsPel *) line ) == -1)
 			{
 			im_error( "im_cooc_sym", "%s", _( "unable to im_writeline") );
 			return(-1);
@@ -170,8 +170,8 @@ int im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 		im_error( "im_cooc_ord", "%s", _( "Unable to accept input") );
 		return(-1);
 		}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
-		im_error( "im_cooc_ord", "%s", _( "wrong args") ); 
+	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) {
+		im_error( "im_cooc_ord", "%s", _( "wrong args") );
 		return(-1); }
 	if (im_cp_desc(m, im) == -1)
 		return( -1 );
@@ -183,8 +183,8 @@ int im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 /* malloc space to keep the read values */
 	buf = (int *)calloc( (unsigned)m->Xsize*m->Ysize, sizeof(int) );
 	line = (double *)calloc( (unsigned)m->Xsize * m->Bands, sizeof(double));
-	if ( (buf == NULL) || (line == NULL) ) { 
-		im_error( "im_cooc_ord", "%s", _( "calloc failed") ); 
+	if ( (buf == NULL) || (line == NULL) ) {
+		im_error( "im_cooc_ord", "%s", _( "calloc failed") );
 		return(-1); }
 	input = im->data;
 	input += ( ypos * im->Xsize + xpos );
@@ -212,7 +212,7 @@ int im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 		cpline = line;
 		for (x=0; x<m->Xsize; x++)
 			*cpline++ = (double)(*cpnt++)/(double)norm;
-		if (im_writeline( y, m, (PEL *) line ) == -1) 
+		if (im_writeline( y, m, (PEL *) line ) == -1)
 			{
 			im_error( "im_cooc_ord", "%s", _( "unable to im_writeline") );
 			return(-1);
@@ -225,22 +225,22 @@ int im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, i
 
 /* Keep the coocurrence matrix as a 256x256x1 double image */
 
-int 
-im_cooc_matrix( IMAGE *im, IMAGE *m, 
+int
+im_cooc_matrix( IMAGE *im, IMAGE *m,
 	int xp, int yp, int xs, int ys, int dx, int dy, int flag )
 {
 	if (flag == 0)
 		return( im_cooc_ord(im, m, xp, yp, xs, ys, dx, dy) );
 	else if (flag == 1)	/* symmetrical cooc */
 		return( im_cooc_sym(im, m, xp, yp, xs, ys, dx, dy) );
-	else { 
-		im_error( "im_cooc_matrix", "%s", _( "wrong flag!") ); 
+	else {
+		im_error( "im_cooc_matrix", "%s", _( "wrong flag!") );
 		return(-1); }
 }
 
 /* Calculate contrast, asmoment, entropy and correlation
  */
-int 
+int
 im_cooc_asm( IMAGE *m, double *asmoment )
 {
 	double temp, tmpasm, *pnt;
@@ -249,7 +249,7 @@ im_cooc_asm( IMAGE *m, double *asmoment )
 	if( im_incheck( m ) )
 		return( -1 );
 
-	if (m->Xsize != 256 || m->Ysize != 256 || 
+	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
 		im_error( "im_cooc_asm", "%s", _( "unable to accept input") );
@@ -266,7 +266,7 @@ im_cooc_asm( IMAGE *m, double *asmoment )
 	return(0);
 }
 
-int 
+int
 im_cooc_contrast( IMAGE *m, double *contrast )
 {
 	double dtemp, tmpcon, *pnt, *cpnt;
@@ -275,7 +275,7 @@ im_cooc_contrast( IMAGE *m, double *contrast )
 	if( im_incheck( m ) )
 		return( -1 );
 
-	if (m->Xsize != 256 || m->Ysize != 256 || 
+	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
 		im_error( "im_cooc_contrast", "%s", _( "unable to accept input") );
@@ -302,7 +302,7 @@ im_cooc_contrast( IMAGE *m, double *contrast )
 /* buffer contains the frequency distributions f[i] */
 /*  Note that sum(f[i]) = 1.0 and that the */
 /* cooccurence matrix is symmetrical */
-static void 
+static void
 stats(double *buffer, int size, double *pmean, double *pstd)
 {
 	double mean, std;
@@ -313,7 +313,7 @@ stats(double *buffer, int size, double *pmean, double *pstd)
 	double sumf2;	/* calculates the sum of f[i]^2 */
 	double correction; /* calulates the correction term for the variance */
 	double variance;	/* = (sumf2 - correction)/n, n=sum(f[i]) = 1 */
-	
+
 	mean = 0.0; std = 0.0;
 	sumf = 0.0; sumf2 = 0.0;
 	pbuffer = buffer;
@@ -331,7 +331,7 @@ stats(double *buffer, int size, double *pmean, double *pstd)
 	*pstd = std;
 }
 
-int 
+int
 im_cooc_correlation( IMAGE *m, double *correlation )
 {
 	double mcol, stdcol, mrow, stdrow; /* mean and std of cols and rows */
@@ -347,7 +347,7 @@ im_cooc_correlation( IMAGE *m, double *correlation )
 	if( im_incheck( m ) )
 		return( -1 );
 
-	if (m->Xsize != 256 || m->Ysize != 256 || 
+	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
 		im_error( "im_cooc_correlation", "%s", _( "unable to accept input") );
@@ -419,7 +419,7 @@ mrow, stdrow, mcol, stdcol);
 	return(0);
 }
 
-int 
+int
 im_cooc_entropy( IMAGE *m, double *entropy )
 {
 	double *pbuf, *pbufstart;
@@ -431,7 +431,7 @@ im_cooc_entropy( IMAGE *m, double *entropy )
 	if( im_incheck( m ) )
 		return( -1 );
 
-	if (m->Xsize != 256 || m->Ysize != 256 || 
+	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE)
 		{
 		im_error( "im_cooc_entropy", "%s", _( "unable to accept input") );

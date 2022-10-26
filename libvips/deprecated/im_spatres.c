@@ -18,7 +18,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -54,7 +54,7 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-int 
+int
 im_spatres( IMAGE *in,  IMAGE *out, int step )
 {
 	int x, y;	/* horizontal and vertical direction */
@@ -75,18 +75,18 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 
 	if (im_iocheck(in, out) == -1)
 		return( -1 );
-        
-        if((in->Coding != IM_CODING_NONE)||(in->BandFmt !=IM_BANDFMT_UCHAR)) { 
-		im_error( "im_spatres", "%s", _( "wrong input") ); 
+
+	if((in->Coding != IM_CODING_NONE)||(in->BandFmt !=IM_BANDFMT_UCHAR)) {
+		im_error( "im_spatres", "%s", _( "wrong input") );
 		return(-1); }
 
 /* Prepare output */
-        if (im_cp_desc(out, in) == -1)
+	if (im_cp_desc(out, in) == -1)
 		return( -1 );
 	out->Xsize = in->Xsize - in->Xsize%step;
 	out->Ysize = in->Ysize - in->Ysize%step;
-         
-        if( im_setupout(out) == -1)
+
+	if( im_setupout(out) == -1)
 		return( -1 );
 
 	/* Malloc buffer for one 'line' of input data */
@@ -94,8 +94,8 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 	line = (unsigned char *)calloc((unsigned)os, sizeof(char));
 	/* Malloc space for values */
 	values = (unsigned char *)calloc((unsigned)out->Bands, sizeof(char));
-	if ( line == NULL || values == NULL ) { 
-		im_error( "im_spatres", "%s", _( "calloc failed") ); 
+	if ( line == NULL || values == NULL ) {
+		im_error( "im_spatres", "%s", _( "calloc failed") );
 		return(-1); }
 
 	step2 = step * step;
@@ -140,7 +140,7 @@ im_spatres( IMAGE *in,  IMAGE *out, int step )
 				return( -1 );
 				}
 		}		/* end of the for (..y..) loop */
-	
+
 	free ( (char *)line ); free ( (char *)values );
 	return(0);
 }

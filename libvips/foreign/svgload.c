@@ -21,7 +21,7 @@
  * 	- rework as a sequential loader to reduce overcomputation
  * 11/6/21
  * 	- switch to rsvg_handle_render_document()
- * 	- librsvg can no longer render very large images :( 
+ * 	- librsvg can no longer render very large images :(
  * 14/10/21
  * 	- allow utf-8 headers for svg detection
  * 28/4/22
@@ -33,7 +33,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -81,7 +81,7 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
-/* Render SVGs with tiles this size. They need to be pretty big to limit 
+/* Render SVGs with tiles this size. They need to be pretty big to limit
  * overcomputation.
  */
 #define TILE_SIZE (2000)
@@ -125,7 +125,7 @@ typedef struct _VipsForeignLoadSvg {
 
 typedef VipsForeignLoadClass VipsForeignLoadSvgClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadSvg, vips_foreign_load_svg, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadSvg, vips_foreign_load_svg,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 #ifdef HANDLE_SVGZ
@@ -142,83 +142,83 @@ vips_foreign_load_svg_zfree( void *opaque, void *ptr )
 }
 #endif /*HANDLE_SVGZ*/
 
-/* Find a utf-8 substring within the first len_bytes (not characters). 
+/* Find a utf-8 substring within the first len_bytes (not characters).
  *
  *   - case-insensitive
  *   - needle must be zero-terminated, but hackstack need not be
  *   - haystack can be null-terminated
- *   - if haystack is shorter than len bytes, that'll end the search 
+ *   - if haystack is shorter than len bytes, that'll end the search
  *   - if we hit invalid utf-8, we return NULL
  */
 static const char *
-vips_utf8_strcasestr( const char *haystack_start, const char *needle_start, 
+vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
 	int len_bytes )
 {
-        int needle_len = g_utf8_strlen( needle_start, -1 );
-        int needle_len_bytes = strlen( needle_start );
+	int needle_len = g_utf8_strlen( needle_start, -1 );
+	int needle_len_bytes = strlen( needle_start );
 
 	const char *haystack;
 
-	for( haystack = haystack_start; 
-		haystack - haystack_start <= len_bytes - needle_len_bytes; 
+	for( haystack = haystack_start;
+		haystack - haystack_start <= len_bytes - needle_len_bytes;
 		haystack = g_utf8_find_next_char( haystack, NULL ) ) {
-                const char *needle_char;
-                const char *haystack_char;
+		const char *needle_char;
+		const char *haystack_char;
 		int i;
 
-                haystack_char = haystack;
-                needle_char = needle_start;
-                for( i = 0; i < needle_len; i++ ) {
+		haystack_char = haystack;
+		needle_char = needle_start;
+		for( i = 0; i < needle_len; i++ ) {
 			/* Haystack isn't necessarily null-terminated and
 			 * might end half-way through a utf-8 character, so we
 			 * need to be careful not to run off the end.
 			 */
-                        gunichar a = 
-				g_utf8_get_char_validated( haystack_char, 
+			gunichar a =
+				g_utf8_get_char_validated( haystack_char,
 					haystack_start + len_bytes - haystack );
-                        gunichar b = 
+			gunichar b =
 				g_utf8_get_char_validated( needle_char, -1 );
 
-                        /* Invalid utf8? 
+			/* Invalid utf8?
 			 *
-			 * gunichar is a uint32, so we can't compare < 0, we 
-			 * have to look for -1 and -2 (the two possible error 
+			 * gunichar is a uint32, so we can't compare < 0, we
+			 * have to look for -1 and -2 (the two possible error
 			 * values).
-                         */
-                        if( a == (gunichar) -1 ||
+			 */
+			if( a == (gunichar) -1 ||
 				a == (gunichar) -2 ||
 				b == (gunichar) -1 ||
 				b == (gunichar) -2 )
-                                return( NULL );
+				return( NULL );
 
-                        /* End of haystack. There can't be a complete needle
-                         * anywhere.
-                         */
-                        if( a == (gunichar) 0 )
-                                return( NULL );
+			/* End of haystack. There can't be a complete needle
+			 * anywhere.
+			 */
+			if( a == (gunichar) 0 )
+				return( NULL );
 
-                        /* Mismatch.
-                         */
-                        if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
-                                break;
+			/* Mismatch.
+			 */
+			if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
+				break;
 
-                        haystack_char = 
-				g_utf8_find_next_char( haystack_char, 
+			haystack_char =
+				g_utf8_find_next_char( haystack_char,
 					haystack_start + len_bytes );
-                        needle_char = 
+			needle_char =
 				g_utf8_find_next_char( needle_char, NULL );
-                }
+		}
 
-                if( i == needle_len )
-			/* Walked the whole of needle, so we must have found a 
+		if( i == needle_len )
+			/* Walked the whole of needle, so we must have found a
 			 * complete match.
 			 */
-                        return( haystack );
-        }
+			return( haystack );
+	}
 
-        /* Walked the whole of haystack without finding a match.
-         */
-        return( NULL );
+	/* Walked the whole of haystack without finding a match.
+	 */
+	return( NULL );
 }
 
 /* This is used by both the file and buffer subclasses.
@@ -245,8 +245,8 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 *
 	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
 	 */
-	if( len >= 18 && 
-		str[0] == '\037' && 
+	if( len >= 18 &&
+		str[0] == '\037' &&
 		str[1] == '\213' ) {
 		z_stream zs;
 		size_t opos;
@@ -259,7 +259,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 
 		/* There isn't really an error return from is_a_buffer()
 		 */
-		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
+		if( inflateInit2( &zs, 15 | 32 ) != Z_OK )
 			return( FALSE );
 
 		opos = 0;
@@ -271,7 +271,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 				return( FALSE );
 			}
 			opos = sizeof( obuf ) - zs.avail_out;
-		} while( opos < sizeof( obuf ) && 
+		} while( opos < sizeof( obuf ) &&
 			zs.avail_in > 0 );
 
 		inflateEnd( &zs );
@@ -295,7 +295,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 * valid utf-8.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
-	 * horribly slow for large documents. 
+	 * horribly slow for large documents.
 	 */
 	if( vips_utf8_strcasestr( str, "<svg", len ) )
 		return( TRUE );
@@ -377,7 +377,7 @@ svg_css_length_to_pixels( RsvgLength length, double dpi )
 			value = dpi * value / 6;
 			break;
 		default:
-			/* Probably RSVG_UNIT_PERCENT. We can't know what the 
+			/* Probably RSVG_UNIT_PERCENT. We can't know what the
 			 * pixel value is without more information.
 			 */
 			value = 0;
@@ -388,7 +388,7 @@ svg_css_length_to_pixels( RsvgLength length, double dpi )
 #endif
 
 static int
-vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg, 
+vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 	double *out_width, double *out_height )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
@@ -398,7 +398,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 
 #if LIBRSVG_CHECK_VERSION( 2, 52, 0 )
 
-	if( !rsvg_handle_get_intrinsic_size_in_pixels( svg->page, 
+	if( !rsvg_handle_get_intrinsic_size_in_pixels( svg->page,
 		&width, &height ) ) {
 		RsvgRectangle viewbox;
 
@@ -414,8 +414,8 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 			&has_viewbox, &viewbox );
 
 #if LIBRSVG_CHECK_VERSION( 2, 54, 0 )
-		/* After librsvg 2.54.0, the `has_width` and `has_height` 
-		 * arguments always returns `TRUE`, since with SVG2 all 
+		/* After librsvg 2.54.0, the `has_width` and `has_height`
+		 * arguments always returns `TRUE`, since with SVG2 all
 		 * documents *have* a default width and height of `100%`.
 		 */
 		width = svg_css_length_to_pixels( iwidth, svg->dpi );
@@ -425,7 +425,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 		has_height = height > 0.0;
 
 		if( has_width && has_height ) {
-			/* Success! Taking the viewbox into account is not 
+			/* Success! Taking the viewbox into account is not
 			 * needed.
 			 */
 		}
@@ -462,7 +462,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 
 		if( width <= 0.0 ||
 			height <= 0.0 ) {
-			/* We haven't found a usable set of sizes, so try 
+			/* We haven't found a usable set of sizes, so try
 			 * working out the visible area.
 			 */
 			rsvg_handle_get_geometry_for_element( svg->page, NULL,
@@ -486,7 +486,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 
 	/* width or height below 0.5 can't be rounded to 1.
 	 */
-	if( width < 0.5 || 
+	if( width < 0.5 ||
 		height < 0.5 ) {
 		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
 		return( -1 );
@@ -499,7 +499,7 @@ vips_foreign_load_svg_get_natural_size( VipsForeignLoadSvg *svg,
 }
 
 static int
-vips_foreign_load_svg_get_scaled_size( VipsForeignLoadSvg *svg, 
+vips_foreign_load_svg_get_scaled_size( VipsForeignLoadSvg *svg,
 	int *out_width, int *out_height )
 {
 	double width;
@@ -538,14 +538,14 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	 */
 	res = svg->dpi / 25.4;
 
-	vips_image_init_fields( out, 
+	vips_image_init_fields( out,
 		width, height,
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
 	/* We use a tilecache, so it's smalltile.
 	 */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	return( 0 );
@@ -560,7 +560,7 @@ vips_foreign_load_svg_header( VipsForeignLoad *load )
 }
 
 static int
-vips_foreign_load_svg_generate( VipsRegion *or, 
+vips_foreign_load_svg_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	const VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) a;
@@ -573,19 +573,19 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_svg_generate: %p \n     "
-		"left = %d, top = %d, width = %d, height = %d\n", 
+		"left = %d, top = %d, width = %d, height = %d\n",
 		svg,
-		r->left, r->top, r->width, r->height ); 
+		r->left, r->top, r->width, r->height );
 #endif /*DEBUG*/
 
 	/* rsvg won't always paint the background.
 	 */
-	vips_region_black( or ); 
+	vips_region_black( or );
 
-	surface = cairo_image_surface_create_for_data( 
-		VIPS_REGION_ADDR( or, r->left, r->top ), 
-		CAIRO_FORMAT_ARGB32, 
-		r->width, r->height, 
+	surface = cairo_image_surface_create_for_data(
+		VIPS_REGION_ADDR( or, r->left, r->top ),
+		CAIRO_FORMAT_ARGB32,
+		r->width, r->height,
 		VIPS_REGION_LSKIP( or ) );
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
@@ -611,7 +611,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	if( !rsvg_handle_render_document( svg->page, cr, &viewport, &error ) ) {
 		cairo_destroy( cr );
 		vips_operation_invalidate( VIPS_OPERATION( svg ) );
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "SVG rendering failed" ) );
 		vips_g_error( &error );
 		return( -1 );
@@ -640,24 +640,24 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
-	for( y = 0; y < r->height; y++ ) 
-                vips__premultiplied_bgra2rgba( 
+	for( y = 0; y < r->height; y++ )
+		vips__premultiplied_bgra2rgba(
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
-			r->width ); 
+			r->width );
 
-	return( 0 ); 
+	return( 0 );
 }
 
 static int
 vips_foreign_load_svg_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsImage **t = (VipsImage **) 
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( (VipsObject *) load, 3 );
 
 	/* Enough tiles for two complete rows.
 	 */
-	t[0] = vips_image_new(); 
+	t[0] = vips_image_new();
 	if( vips_foreign_load_svg_parse( svg, t[0] ) ||
 		vips_image_generate( t[0], NULL,
 			vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
@@ -666,7 +666,7 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 			"tile_height", TILE_SIZE,
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
 			NULL ) ||
-		vips_image_write( t[1], load->real ) ) 
+		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -697,7 +697,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 	 */
 	foreign_class->priority = -5;
 
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_svg_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_svg_get_flags;
 	load_class->load = vips_foreign_load_svg_load;
@@ -744,7 +744,7 @@ typedef struct _VipsForeignLoadSvgSource {
 
 typedef VipsForeignLoadClass VipsForeignLoadSvgSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadSvgSource, vips_foreign_load_svg_source, 
+G_DEFINE_TYPE( VipsForeignLoadSvgSource, vips_foreign_load_svg_source,
 	vips_foreign_load_svg_get_type() );
 
 gboolean
@@ -753,7 +753,7 @@ vips_foreign_load_svg_source_is_a_source( VipsSource *source )
 	unsigned char *data;
 	gint64 bytes_read;
 
-	if( (bytes_read = vips_source_sniff_at_most( source, 
+	if( (bytes_read = vips_source_sniff_at_most( source,
 		&data, SVG_HEADER_SIZE )) <= 0 )
 		return( FALSE );
 
@@ -764,7 +764,7 @@ static int
 vips_foreign_load_svg_source_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgSource *source = 
+	VipsForeignLoadSvgSource *source =
 		(VipsForeignLoadSvgSource *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
@@ -776,11 +776,11 @@ vips_foreign_load_svg_source_header( VipsForeignLoad *load )
 		return( -1 );
 
 	gstream = vips_g_input_stream_new_from_source( source->source );
-	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
+	if( !(svg->page = rsvg_handle_new_from_stream_sync(
 		gstream, NULL, flags, NULL, &error )) ) {
 		g_object_unref( gstream );
 		vips_g_error( &error );
-		return( -1 ); 
+		return( -1 );
 	}
 	g_object_unref( gstream );
 
@@ -823,7 +823,7 @@ vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadSvgSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -839,13 +839,13 @@ typedef struct _VipsForeignLoadSvgFile {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadSvgFile;
 
 typedef VipsForeignLoadSvgClass VipsForeignLoadSvgFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file, 
+G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file,
 	vips_foreign_load_svg_get_type() );
 
 static gboolean
@@ -854,7 +854,7 @@ vips_foreign_load_svg_file_is_a( const char *filename )
 	unsigned char buf[SVG_HEADER_SIZE];
 	guint64 bytes;
 
-	return( (bytes = vips__get_bytes( filename, 
+	return( (bytes = vips__get_bytes( filename,
 			buf, SVG_HEADER_SIZE )) > 0 &&
 		vips_foreign_load_svg_is_a( buf, bytes ) );
 }
@@ -871,11 +871,11 @@ vips_foreign_load_svg_file_header( VipsForeignLoad *load )
 	GFile *gfile;
 
 	gfile = g_file_new_for_path( file->filename );
-	if( !(svg->page = rsvg_handle_new_from_gfile_sync( 
-		gfile, flags, NULL, &error )) ) { 
+	if( !(svg->page = rsvg_handle_new_from_gfile_sync(
+		gfile, flags, NULL, &error )) ) {
 		g_object_unref( gfile );
 		vips_g_error( &error );
-		return( -1 ); 
+		return( -1 );
 	}
 	g_object_unref( gfile );
 
@@ -896,7 +896,7 @@ static const char *vips_foreign_svg_suffs[] = {
 };
 
 static void
-vips_foreign_load_svg_file_class_init( 
+vips_foreign_load_svg_file_class_init(
 	VipsForeignLoadSvgFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -914,10 +914,10 @@ vips_foreign_load_svg_file_class_init(
 	load_class->is_a = vips_foreign_load_svg_file_is_a;
 	load_class->header = vips_foreign_load_svg_file_header;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadSvgFile, filename ),
 		NULL );
 
@@ -939,14 +939,14 @@ typedef struct _VipsForeignLoadSvgBuffer {
 
 typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 
-G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
+G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer,
 	vips_foreign_load_svg_get_type() );
 
 static int
 vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgBuffer *buffer = 
+	VipsForeignLoadSvgBuffer *buffer =
 		(VipsForeignLoadSvgBuffer *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
@@ -954,13 +954,13 @@ vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
 
 	GInputStream *gstream;
 
-	gstream = g_memory_input_stream_new_from_data( 
+	gstream = g_memory_input_stream_new_from_data(
 		buffer->buf->data, buffer->buf->length, NULL );
-	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
-		gstream, NULL, flags, NULL, &error )) ) { 
+	if( !(svg->page = rsvg_handle_new_from_stream_sync(
+		gstream, NULL, flags, NULL, &error )) ) {
 		g_object_unref( gstream );
 		vips_g_error( &error );
-		return( -1 ); 
+		return( -1 );
 	}
 	g_object_unref( gstream );
 
@@ -968,7 +968,7 @@ vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
 }
 
 static void
-vips_foreign_load_svg_buffer_class_init( 
+vips_foreign_load_svg_buffer_class_init(
 	VipsForeignLoadSvgBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -983,10 +983,10 @@ vips_foreign_load_svg_buffer_class_init(
 	load_class->is_a_buffer = vips_foreign_load_svg_is_a;
 	load_class->header = vips_foreign_load_svg_buffer_header;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadSvgBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
@@ -1015,7 +1015,7 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
  * and should be fast.
  *
  * Use @dpi to set the rendering resolution. The default is 72. You can also
- * scale the rendering by @scale. 
+ * scale the rendering by @scale.
  *
  * This function only reads the image header and does not render any pixel
  * data. Rendering occurs when pixels are accessed.
@@ -1054,10 +1054,10 @@ vips_svgload( const char *filename, VipsImage **out, ... )
  * * @unlimited: %gboolean, allow SVGs of any size
  *
  * Read a SVG-formatted memory block into a VIPS image. Exactly as
- * vips_svgload(), but read from a memory buffer. 
+ * vips_svgload(), but read from a memory buffer.
  *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * See also: vips_svgload().
  *
@@ -1128,7 +1128,7 @@ vips_svgload_string( const char *str, VipsImage **out, ... )
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_svgload(), but read from a source. 
+ * Exactly as vips_svgload(), but read from a source.
  *
  * See also: vips_svgload().
  *

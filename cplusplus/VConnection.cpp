@@ -43,7 +43,7 @@
 
 VIPS_NAMESPACE_START
 
-VSource 
+VSource
 VSource::new_from_descriptor( int descriptor )
 {
 	VipsSource *input;
@@ -51,12 +51,12 @@ VSource::new_from_descriptor( int descriptor )
 	if( !(input = vips_source_new_from_descriptor( descriptor )) )
 		throw VError();
 
-	VSource out( input ); 
+	VSource out( input );
 
-	return( out ); 
+	return( out );
 }
 
-VSource 
+VSource
 VSource::new_from_file( const char *filename )
 {
 	VipsSource *input;
@@ -64,12 +64,12 @@ VSource::new_from_file( const char *filename )
 	if( !(input = vips_source_new_from_file( filename )) )
 		throw VError();
 
-	VSource out( input ); 
+	VSource out( input );
 
-	return( out ); 
+	return( out );
 }
 
-VSource 
+VSource
 VSource::new_from_blob( VipsBlob *blob )
 {
 	VipsSource *input;
@@ -77,13 +77,13 @@ VSource::new_from_blob( VipsBlob *blob )
 	if( !(input = vips_source_new_from_blob( blob )) )
 		throw VError();
 
-	VSource out( input ); 
+	VSource out( input );
 
-	return( out ); 
+	return( out );
 }
 
-VSource 
-VSource::new_from_memory( const void *data, 
+VSource
+VSource::new_from_memory( const void *data,
 	size_t size )
 {
 	VipsSource *input;
@@ -91,12 +91,12 @@ VSource::new_from_memory( const void *data,
 	if( !(input = vips_source_new_from_memory( data, size )) )
 		throw VError();
 
-	VSource out( input ); 
+	VSource out( input );
 
-	return( out ); 
+	return( out );
 }
 
-VSource 
+VSource
 VSource::new_from_options( const char *options )
 {
 	VipsSource *input;
@@ -104,12 +104,12 @@ VSource::new_from_options( const char *options )
 	if( !(input = vips_source_new_from_options( options )) )
 		throw VError();
 
-	VSource out( input ); 
+	VSource out( input );
 
-	return( out ); 
+	return( out );
 }
 
-VTarget 
+VTarget
 VTarget::new_to_descriptor( int descriptor )
 {
 	VipsTarget *output;
@@ -117,12 +117,12 @@ VTarget::new_to_descriptor( int descriptor )
 	if( !(output = vips_target_new_to_descriptor( descriptor )) )
 		throw VError();
 
-	VTarget out( output ); 
+	VTarget out( output );
 
-	return( out ); 
+	return( out );
 }
 
-VTarget 
+VTarget
 VTarget::new_to_file( const char *filename )
 {
 	VipsTarget *output;
@@ -130,12 +130,12 @@ VTarget::new_to_file( const char *filename )
 	if( !(output = vips_target_new_to_file( filename )) )
 		throw VError();
 
-	VTarget out( output ); 
+	VTarget out( output );
 
-	return( out ); 
+	return( out );
 }
 
-VTarget 
+VTarget
 VTarget::new_to_memory()
 {
 	VipsTarget *output;
@@ -143,9 +143,9 @@ VTarget::new_to_memory()
 	if( !(output = vips_target_new_to_memory()) )
 		throw VError();
 
-	VTarget out( output ); 
+	VTarget out( output );
 
-	return( out ); 
+	return( out );
 }
 
 VIPS_NAMESPACE_END

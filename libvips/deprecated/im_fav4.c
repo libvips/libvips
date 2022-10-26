@@ -5,7 +5,7 @@ Copyright (C) 1992, Kirk Martinez, History of Art Dept, Birkbeck College
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -48,7 +48,7 @@ Copyright (C) 1992, Kirk Martinez, History of Art Dept, Birkbeck College
  * @in: array of 4 input #IMAGE s
  * @out: output #IMAGE
  *
- * Average four identical images. 
+ * Average four identical images.
  *
  * Deprecated.
 */
@@ -59,7 +59,7 @@ im_fav4( IMAGE **in, IMAGE *out)
 	int x,y;
 	int linebytes, PICY;
 
-/* check IMAGEs parameters 
+/* check IMAGEs parameters
 */
 if(im_iocheck(in[1], out)) return(-1);
 

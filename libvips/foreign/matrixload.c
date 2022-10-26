@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -71,7 +71,7 @@ typedef struct _VipsForeignLoadMatrix {
 
 typedef VipsForeignLoadClass VipsForeignLoadMatrixClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadMatrix, vips_foreign_load_matrix, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadMatrix, vips_foreign_load_matrix,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -109,24 +109,24 @@ vips_foreign_load_matrix_get_flags( VipsForeignLoad *load )
 }
 
 /* Parse a header line. Two numbers for width and height, and two optional
- * numbers for scale and offset. 
+ * numbers for scale and offset.
  *
  * We can have scale and no offset, in which case we assume offset = 0.
  */
 static int
 parse_matrix_header( char *line,
-	int *width, int *height, double *scale, double *offset )   
+	int *width, int *height, double *scale, double *offset )
 {
 	double header[4];
 	char *p, *q;
 	int i;
 
-	for( i = 0, p = line; 
+	for( i = 0, p = line;
 		(q = vips_break_token( p, " \t" )) &&
-			i < 4; 
+			i < 4;
 		i++, p = q )
 		if( vips_strtod( p, &header[i] ) ) {
-			vips_error( "matload", 
+			vips_error( "matload",
 				_( "bad number \"%s\"" ), p );
 			return( -1 );
 		}
@@ -150,11 +150,11 @@ parse_matrix_header( char *line,
 	 */
 	*width = header[0];
 	*height = header[1];
-	if( *width <= 0 || 
+	if( *width <= 0 ||
 		*width > 100000 ||
-		*height <= 0 || 
-		*height > 100000 ) { 
-		vips_error( "mask2vips", 
+		*height <= 0 ||
+		*height > 100000 ) {
+		vips_error( "mask2vips",
 			"%s", _( "width / height out of range" ) );
 		return( -1 );
 	}
@@ -193,18 +193,18 @@ vips_foreign_load_matrix_header( VipsForeignLoad *load )
 	if( result )
 		return( -1 );
 
-	if( vips_image_pipelinev( load->out, 
+	if( vips_image_pipelinev( load->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 	vips_image_init_fields( load->out,
-		width, height, 1, 
-		VIPS_FORMAT_DOUBLE, 
+		width, height, 1,
+		VIPS_FORMAT_DOUBLE,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
-	vips_image_set_double( load->out, "scale", scale ); 
-	vips_image_set_double( load->out, "offset", offset ); 
+	vips_image_set_double( load->out, "scale", scale );
+	vips_image_set_double( load->out, "offset", offset );
 
-	VIPS_SETSTR( load->out->filename, 
+	VIPS_SETSTR( load->out->filename,
 		vips_connection_filename( VIPS_CONNECTION( matrix->source ) ) );
 
 	if( !(matrix->linebuf = VIPS_ARRAY( NULL, width, double )) )
@@ -221,12 +221,12 @@ vips_foreign_load_matrix_load( VipsForeignLoad *load )
 
 	int x, y;
 
-	if( vips_image_pipelinev( load->real, 
+	if( vips_image_pipelinev( load->real,
 		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 	vips_image_init_fields( load->real,
-		load->out->Xsize, load->out->Ysize, 1, 
-		VIPS_FORMAT_DOUBLE, 
+		load->out->Xsize, load->out->Ysize, 1,
+		VIPS_FORMAT_DOUBLE,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
 	for( y = 0; y < load->real->Ysize; y++ ) {
@@ -235,12 +235,12 @@ vips_foreign_load_matrix_load( VipsForeignLoad *load )
 
 		line = vips_sbuf_get_line_copy( matrix->sbuf );
 
-		for( x = 0, p = line; 
+		for( x = 0, p = line;
 			(q = vips_break_token( p, " \t" )) &&
 				x < load->out->Xsize;
 			x++, p = q )
 			if( vips_strtod( p, &matrix->linebuf[x] ) ) {
-				vips_error( class->nickname, 
+				vips_error( class->nickname,
 					_( "bad number \"%s\"" ), p );
 				g_free( line );
 				return( -1 );
@@ -249,12 +249,12 @@ vips_foreign_load_matrix_load( VipsForeignLoad *load )
 		g_free( line );
 
 		if( x != load->out->Xsize ) {
-			vips_error( class->nickname, 
+			vips_error( class->nickname,
 				_( "line %d too short" ), y );
 			return( -1 );
 		}
 
-		if( vips_image_write_line( load->real, y, 
+		if( vips_image_write_line( load->real, y,
 			(VipsPel *) matrix->linebuf ) )
 			return( -1 );
 	}
@@ -312,8 +312,8 @@ vips_foreign_load_matrix_file_build( VipsObject *object )
 	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
 	VipsForeignLoadMatrixFile *file = (VipsForeignLoadMatrixFile *) object;
 
-	if( file->filename ) 
-		if( !(matrix->source = 
+	if( file->filename )
+		if( !(matrix->source =
 			vips_source_new_from_file( file->filename )) )
 			return( -1 );
 
@@ -345,15 +345,15 @@ vips_foreign_load_matrix_file_is_a( const char *filename )
 	line[bytes] = '\0';
 
 	vips_error_freeze();
-	result = parse_matrix_header( (char *) line, 
-		&width, &height, &scale, &offset ); 
+	result = parse_matrix_header( (char *) line,
+		&width, &height, &scale, &offset );
 	vips_error_thaw();
 
-	return( result == 0 ); 
+	return( result == 0 );
 }
 
 static void
-vips_foreign_load_matrix_file_class_init( 
+vips_foreign_load_matrix_file_class_init(
 	VipsForeignLoadMatrixFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -370,7 +370,7 @@ vips_foreign_load_matrix_file_class_init(
 	foreign_class->suffs = vips_foreign_load_matrix_suffs;
 
 	load_class->is_a = vips_foreign_load_matrix_file_is_a;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_matrix_file_get_flags_filename;
 
 	VIPS_ARG_STRING( class, "filename", 1,
@@ -403,7 +403,7 @@ static int
 vips_foreign_load_matrix_source_build( VipsObject *object )
 {
 	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
-	VipsForeignLoadMatrixSource *source = 
+	VipsForeignLoadMatrixSource *source =
 		(VipsForeignLoadMatrixSource *) object;
 
 	if( source->source ) {
@@ -430,21 +430,21 @@ vips_foreign_load_matrix_source_is_a_source( VipsSource *source )
 	double offset;
 	int result;
 
-	if( (bytes_read = vips_source_sniff_at_most( source, 
+	if( (bytes_read = vips_source_sniff_at_most( source,
 		&data, 79 )) <= 0 )
 		return( FALSE );
 	vips_strncpy( line, (const char *) data, 80 );
 
 	vips_error_freeze();
-	result = parse_matrix_header( line, 
-		&width, &height, &scale, &offset ); 
+	result = parse_matrix_header( line,
+		&width, &height, &scale, &offset );
 	vips_error_thaw();
 
-	return( result == 0 ); 
+	return( result == 0 );
 }
 
 static void
-vips_foreign_load_matrix_source_class_init( 
+vips_foreign_load_matrix_source_class_init(
 	VipsForeignLoadMatrixFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -465,7 +465,7 @@ vips_foreign_load_matrix_source_class_init(
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMatrixSource, source ),
 		VIPS_TYPE_SOURCE );
 
@@ -485,18 +485,18 @@ vips_foreign_load_matrix_source_init( VipsForeignLoadMatrixSource *source )
  * Reads a matrix from a file.
  *
  * Matrix files have a simple format that's supposed to be easy to create with
- * a text editor or a spreadsheet. 
+ * a text editor or a spreadsheet.
  *
  * The first line has four numbers for width, height, scale and
  * offset (scale and offset may be omitted, in which case they default to 1.0
  * and 0.0). Scale must be non-zero. Width and height must be positive
- * integers. The numbers are separated by any mixture of spaces, commas, 
- * tabs and quotation marks ("). The scale and offset fields may be 
+ * integers. The numbers are separated by any mixture of spaces, commas,
+ * tabs and quotation marks ("). The scale and offset fields may be
  * floating-point, and must use '.'
  * as a decimal separator.
  *
  * Subsequent lines each hold one row of matrix data, with numbers again
- * separated by any mixture of spaces, commas, 
+ * separated by any mixture of spaces, commas,
  * tabs and quotation marks ("). The numbers may be floating-point, and must
  * use '.'
  * as a decimal separator.
@@ -515,7 +515,7 @@ vips_matrixload( const char *filename, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "matrixload", ap, filename, out ); 
+	result = vips_call_split( "matrixload", ap, filename, out );
 	va_end( ap );
 
 	return( result );
@@ -527,7 +527,7 @@ vips_matrixload( const char *filename, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_matrixload(), but read from a source. 
+ * Exactly as vips_matrixload(), but read from a source.
  *
  * See also: vips_matrixload().
  *
@@ -540,7 +540,7 @@ vips_matrixload_source( VipsSource *source, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "matrixload_source", ap, source, out ); 
+	result = vips_call_split( "matrixload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

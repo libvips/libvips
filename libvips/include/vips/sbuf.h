@@ -59,7 +59,7 @@ extern "C" {
 #define VIPS_SBUF_BUFFER_SIZE (4096)
 
 /* Layer over source: read with an input buffer.
- * 
+ *
  * Libraries like libjpeg do their own input buffering and need raw IO, but
  * others, like radiance, need to parse the input into lines. A buffered read
  * class is very convenient.
@@ -129,9 +129,9 @@ int vips_sbuf_require( VipsSbuf *sbuf, int require );
 #define VIPS_SBUF_FETCH( S ) ((S)->input_buffer[(S)->read_point++])
 
 VIPS_API
-const char *vips_sbuf_get_line( VipsSbuf *sbuf ); 
+const char *vips_sbuf_get_line( VipsSbuf *sbuf );
 VIPS_API
-char *vips_sbuf_get_line_copy( VipsSbuf *sbuf ); 
+char *vips_sbuf_get_line_copy( VipsSbuf *sbuf );
 VIPS_API
 const char *vips_sbuf_get_non_whitespace( VipsSbuf *sbuf );
 VIPS_API

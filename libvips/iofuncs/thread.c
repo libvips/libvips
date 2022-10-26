@@ -1,5 +1,5 @@
 /* Basic functions to support threading.
- * 
+ *
  * 29/9/22
  * 	- from threadpool.c
  */
@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -127,10 +127,10 @@ vips_g_cond_free( GCond *cond )
 }
 
 typedef struct {
-	const char *domain; 
-	GThreadFunc func; 
+	const char *domain;
+	GThreadFunc func;
 	gpointer data;
-} VipsThreadInfo; 
+} VipsThreadInfo;
 
 static void *
 vips_thread_run( gpointer data )
@@ -139,7 +139,7 @@ vips_thread_run( gpointer data )
 
 	void *result;
 
-	/* Set this to something (anything) to tag this thread as a vips 
+	/* Set this to something (anything) to tag this thread as a vips
 	 * worker. No need to call g_private_replace as there is no
 	 * GDestroyNotify handler associated with a worker.
 	 */
@@ -147,21 +147,21 @@ vips_thread_run( gpointer data )
 
 	result = info->func( info->data );
 
-	g_free( info ); 
+	g_free( info );
 
 	vips_thread_shutdown();
 
-	return( result ); 
+	return( result );
 }
 
 GThread *
 vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 {
 	GThread *thread;
-	VipsThreadInfo *info; 
+	VipsThreadInfo *info;
 	GError *error = NULL;
 
-	info = g_new( VipsThreadInfo, 1 ); 
+	info = g_new( VipsThreadInfo, 1 );
 	info->domain = domain;
 	info->func = func;
 	info->data = data;
@@ -172,10 +172,10 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 		domain, thread );
 
 	if( !thread ) {
-		if( error ) 
-			vips_g_error( &error ); 
+		if( error )
+			vips_g_error( &error );
 		else
-			vips_error( domain, 
+			vips_error( domain,
 				"%s", _( "unable to create thread" ) );
 	}
 
@@ -189,10 +189,10 @@ vips_g_thread_join( GThread *thread )
 
 	result = g_thread_join( thread );
 
-	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n",
 		thread );
 
-	return( result ); 
+	return( result );
 }
 
 static int
@@ -243,18 +243,18 @@ get_num_processors( void )
 
 #ifdef G_OS_WIN32
 {
-	/* Count the CPUs currently available to this process.  
+	/* Count the CPUs currently available to this process.
 	 */
 	SYSTEM_INFO sysinfo;
 	DWORD_PTR process_cpus;
 	DWORD_PTR system_cpus;
 
-	/* This *never* fails, use it as fallback 
+	/* This *never* fails, use it as fallback
 	 */
 	GetNativeSystemInfo( &sysinfo );
 	nproc = (int) sysinfo.dwNumberOfProcessors;
 
-	if( GetProcessAffinityMask( GetCurrentProcess(), 
+	if( GetProcessAffinityMask( GetCurrentProcess(),
 		&process_cpus, &system_cpus ) ) {
 		unsigned int af_count;
 
@@ -262,7 +262,7 @@ get_num_processors( void )
 			if( process_cpus & 1 )
 				af_count++;
 
-		/* Prefer affinity-based result, if available 
+		/* Prefer affinity-based result, if available
 		 */
 		if( af_count > 0 )
 			nproc = af_count;
@@ -294,10 +294,10 @@ vips__concurrency_get_default( void )
 #endif
 	) && (x = atoi( str )) > 0 )
 		nthr = x;
-	else 
+	else
 		nthr = get_num_processors();
 
-	if( nthr < 1 || 
+	if( nthr < 1 ||
 		nthr > MAX_THREADS ) {
 		nthr = VIPS_CLIP( 1, nthr, MAX_THREADS );
 
@@ -312,10 +312,10 @@ vips__concurrency_get_default( void )
  * @concurrency: number of threads to run
  *
  * Sets the number of worker threads that vips should use when running a
- * #VipsThreadPool. 
+ * #VipsThreadPool.
  *
- * The special value 0 means "default". In this case, the number of threads 
- * is set by the environment variable VIPS_CONCURRENCY, or if that is not 
+ * The special value 0 means "default". In this case, the number of threads
+ * is set by the environment variable VIPS_CONCURRENCY, or if that is not
  * set, the number of threads available on the host machine.
  *
  * See also: vips_concurrency_get().
@@ -340,7 +340,7 @@ vips_concurrency_set( int concurrency )
  * vips_concurrency_get:
  *
  * Returns the number of worker threads that vips should use when running a
- * #VipsThreadPool. 
+ * #VipsThreadPool.
  *
  * vips gets this values from these sources in turn:
  *
@@ -352,7 +352,7 @@ vips_concurrency_set( int concurrency )
  * was used, vips uses the value of the environment variable VIPS_CONCURRENCY,
  *
  * If VIPS_CONCURRENCY has not been set, vips finds the number of hardware
- * threads that the host machine can run in parallel and uses that value. 
+ * threads that the host machine can run in parallel and uses that value.
  *
  * The final value is clipped to the range 1 - 1024.
  *
@@ -369,20 +369,20 @@ vips_concurrency_get( void )
 /**
  * vips_get_tile_size: (method)
  * @im: image to guess for
- * @tile_width: (out): return selected tile width 
- * @tile_height: (out): return selected tile height 
+ * @tile_width: (out): return selected tile width
+ * @tile_height: (out): return selected tile height
  * @n_lines: (out): return buffer height in scanlines
  *
  * Pick a tile size and a buffer height for this image and the current
- * value of vips_concurrency_get(). The buffer height 
+ * value of vips_concurrency_get(). The buffer height
  * will always be a multiple of tile_height.
  *
  * The buffer height is the height of each buffer we fill in sink disc. Since
  * we have two buffers, the largest range of input locality is twice the output
- * buffer size, plus whatever margin we add for things like convolution. 
+ * buffer size, plus whatever margin we add for things like convolution.
  */
 void
-vips_get_tile_size( VipsImage *im, 
+vips_get_tile_size( VipsImage *im,
 	int *tile_width, int *tile_height, int *n_lines )
 {
 	const int nthr = vips_concurrency_get();
@@ -412,7 +412,7 @@ vips_get_tile_size( VipsImage *im,
 		/* Only enable thinstrip height for very wide images -- the
 		 * overheads are too high to be worthwhile otherwise.
 		 */
-		*tile_height = im->Xsize > 10000 ? 
+		*tile_height = im->Xsize > 10000 ?
 			vips__thinstrip_height : vips__fatstrip_height;
 		break;
 
@@ -430,9 +430,9 @@ vips_get_tile_size( VipsImage *im,
 	 * Pick the maximum buffer size we might possibly need, then round up
 	 * to a multiple of tileheight.
 	 */
-	*n_lines = vips__tile_height * 
-		VIPS_ROUND_UP( vips__tile_width * nthr, 
-			typical_image_width ) / 
+	*n_lines = vips__tile_height *
+		VIPS_ROUND_UP( vips__tile_width * nthr,
+			typical_image_width ) /
 		typical_image_width;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
@@ -443,14 +443,14 @@ vips_get_tile_size( VipsImage *im,
 	g_assert( *n_lines % *tile_height == 0 );
 
 	VIPS_DEBUG_MSG( "vips_get_tile_size: %d by %d patches, "
-		"groups of %d scanlines\n", 
+		"groups of %d scanlines\n",
 		*tile_width, *tile_height, *n_lines );
 }
 
 void
 vips__thread_init( void )
 {
-	static GPrivate private = { 0 }; 
+	static GPrivate private = { 0 };
 
 	is_vips_thread_key = &private;
 

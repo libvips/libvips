@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -59,7 +59,7 @@ typedef struct _VipsDbuf {
 	 */
 	size_t write_point;
 
-} VipsDbuf; 
+} VipsDbuf;
 
 VIPS_API
 void vips_dbuf_destroy( VipsDbuf *dbuf );
@@ -74,7 +74,7 @@ size_t vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size );
 VIPS_API
 unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
 VIPS_API
-gboolean vips_dbuf_write( VipsDbuf *dbuf, 
+gboolean vips_dbuf_write( VipsDbuf *dbuf,
 	const unsigned char *data, size_t size );
 VIPS_API
 gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )

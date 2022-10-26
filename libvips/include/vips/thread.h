@@ -5,7 +5,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ gboolean vips_thread_isvips( void );
 
 typedef struct _VipsThreadset VipsThreadset;
 VipsThreadset *vips_threadset_new( int max_threads );
-int vips_threadset_run( VipsThreadset *set, 
+int vips_threadset_run( VipsThreadset *set,
 	const char *domain, GFunc func, gpointer data );
 void vips_threadset_free( VipsThreadset *set );
 

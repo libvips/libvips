@@ -130,13 +130,13 @@ SKIP_ALL_DECL( float );
 SKIP_ALL_DECL( double );
 
 
-/** 
+/**
  * im_linreg:
  * @ins: NULL-terminated array of input images
  * @out: results of analysis
  * @xs:	X position of each image (pixel value is Y)
  *
- * Function to find perform pixelwise linear regression on an array of 
+ * Function to find perform pixelwise linear regression on an array of
  * single band images. The output is a seven-band douuble image
  *
  * TODO: figure out how this works and fix up these docs!
@@ -169,18 +169,18 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
     }
     if( n ){
       if( ins[ n ]-> BandFmt != ins[ 0 ]-> BandFmt ){
-        im_error( FUNCTION_NAME, "image band formats differ" );
-        return( -1 );
+	im_error( FUNCTION_NAME, "image band formats differ" );
+	return( -1 );
       }
     }
     else {
       if( vips_band_format_iscomplex( ins[ 0 ]->BandFmt ) ){
-        im_error( FUNCTION_NAME, "image has non-scalar band format" );
-        return( -1 );
+	im_error( FUNCTION_NAME, "image has non-scalar band format" );
+	return( -1 );
       }
     }
     if( n && ( ins[ n ]-> Xsize != ins[ 0 ]-> Xsize
-        || ins[ n ]-> Ysize != ins[ 0 ]-> Ysize ) ){
+	|| ins[ n ]-> Ysize != ins[ 0 ]-> Ysize ) ){
 
       im_error( FUNCTION_NAME, "image sizes differ" );
       return( -1 );
@@ -272,17 +272,17 @@ static x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
 }
 
 #define LINREG_START_DEFN( TYPE ) static void *linreg_start_ ## TYPE( IMAGE *out, void *a, void *b ){ \
-  IMAGE **ins= (IMAGE **) a; 			                                                    \
+  IMAGE **ins= (IMAGE **) a; 							                    \
   x_set *x_vals= (x_set *) b;                                                                       \
   linreg_seq_ ## TYPE *seq= IM_NEW( out, linreg_seq_ ## TYPE );                                     \
-                                                                                                    \
+					                                                            \
   if( ! seq )                                                                                       \
     return NULL;                                                                                    \
-                                                                                                    \
+					                                                            \
   seq-> regs= im_start_many( NULL, ins, NULL );                                                     \
   seq-> ptrs= IM_ARRAY( out, x_vals-> n, TYPE* );                                                   \
   seq-> skips= IM_ARRAY( out, x_vals-> n, size_t );                                                 \
-                                                                                                    \
+					                                                            \
   if( ! seq-> ptrs || ! seq-> regs || ! seq-> skips ){                                              \
     linreg_stop_ ## TYPE( seq, NULL, NULL );                                                        \
     return NULL;                                                                                    \
@@ -314,17 +314,17 @@ static x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
   double *out_stop;                                                                                 \
   size_t out_n= IM_REGION_N_ELEMENTS( to_make );                                                    \
   unsigned int i;                                                                                            \
-                                                                                                    \
+					                                                            \
   out_skip-= out_n;                                                                                 \
-                                                                                                    \
+					                                                            \
   if( im_prepare_many( seq-> regs, & to_make-> valid ) )                                            \
     return -1;                                                                                      \
-                                                                                                    \
+					                                                            \
   for( i= 0; i < n; ++i ){                                                                          \
     seq-> ptrs[ i ]= (TYPE*) IM_REGION_ADDR( seq-> regs[ i ], to_make-> valid. left, to_make-> valid. top ); \
     seq-> skips[ i ]= ( IM_REGION_LSKIP( seq-> regs[ i ] ) / sizeof( TYPE ) ) - IM_REGION_N_ELEMENTS( seq-> regs[ i ] ); \
   }                                                                                                 \
-                                                                                                    \
+					                                                            \
   for( ; out < out_end; out+= out_skip, skip_all_ ## TYPE( seq-> ptrs, seq-> skips, n ) )           \
     for( out_stop= out + out_n; out < out_stop; out+= 7, incr_all_ ## TYPE( seq-> ptrs, n ) ){      \
       double Sy= 0.0;                                                                               \
@@ -332,21 +332,21 @@ static x_set *x_anal( IMAGE *im, double *xs, unsigned int n ){
       double Syd2= 0.0;                                                                             \
       double Sxd_yd= 0.0;                                                                           \
       double Se2= 0.0;                                                                              \
-                                                                                                    \
+					                                                            \
       for( i= 0; i < n; ++i ){                                                                      \
-        Sy+= y(i);                                                                                  \
-        Sxd_y+= xd(i) * y(i);                                                                       \
+	Sy+= y(i);                                                                                  \
+	Sxd_y+= xd(i) * y(i);                                                                       \
       }                                                                                             \
       mean_y= Sy / N;                                                                               \
       dy_dx= Sxd_y / Sxd2;                                                                          \
       y_x0= mean_y - dy_dx * mean_x;                                                                \
-                                                                                                    \
+					                                                            \
       for( i= 0; i < n; ++i ){                                                                      \
-        double yd= y(i) - mean_y;                                                                   \
-        double e= y(i) - dy_dx * x(i) - y_x0;                                                       \
-        Syd2+= yd * yd;                                                                             \
-        Sxd_yd+= xd(i) * yd;                                                                        \
-        Se2+= e * e;                                                                                \
+	double yd= y(i) - mean_y;                                                                   \
+	double e= y(i) - dy_dx * x(i) - y_x0;                                                       \
+	Syd2+= yd * yd;                                                                             \
+	Sxd_yd+= xd(i) * yd;                                                                        \
+	Se2+= e * e;                                                                                \
       }                                                                                             \
       dev_y= sqrt( Syd2 / N );                                                                      \
       Se2/= ( N - 2.0 );                                                                            \

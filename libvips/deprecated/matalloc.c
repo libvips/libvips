@@ -25,17 +25,17 @@
  * @(#) Right call
  * @(#) int *im_ivector(nl, nh)
  * @(#) int nl, nh;
- * @(#) returns a pointer to an int array or NULL on error 
+ * @(#) returns a pointer to an int array or NULL on error
  * @(#)
  * @(#) Right call
  * @(#) float *im_fvector(nl, nh)
  * @(#) int nl, nh;
- * @(#) returns a pointer to a float array or NULL on error 
+ * @(#) returns a pointer to a float array or NULL on error
  * @(#)
  * @(#) Right call
  * @(#) double *im_dvector(nl, nh)
  * @(#) int nl, nh;
- * @(#) returns a pointer to a double array or NULL on error 
+ * @(#) returns a pointer to a double array or NULL on error
  * @(#)
  * @(#)  The following functions free the array allocated by the functions above
  * @(#)
@@ -104,19 +104,19 @@ void im_free_dvector(double *v, int nl, int nh)
 
 /* @(#)   Allocates and returns an pointer at the beginning of
  * @(#) an int, float or double, two dimensional matrix[nrl,nrh][ncl,nch]
- * @(#) 
+ * @(#)
  * @(#) Right call
  * @(#) int **im_imat_alloc(nrl, nrh, ncl, nch)
  * @(#) int nrl, nrh, ncl, nch;
- * @(#) returns a pointer to an int matrix or NULL on error 
+ * @(#) returns a pointer to an int matrix or NULL on error
  * @(#)
  * @(#) float **im_fmat_alloc(nrl, nrh, ncl, nch)
  * @(#) int nrl, nrh, ncl, nch;
- * @(#) returns a pointer to an int matrix or NULL on error 
+ * @(#) returns a pointer to an int matrix or NULL on error
  * @(#)
  * @(#) double **im_dmat_alloc(nrl, nrh, ncl, nch)
  * @(#) int nrl, nrh, ncl, nch;
- * @(#) returns a pointer to a double matrix or NULL on error 
+ * @(#) returns a pointer to a double matrix or NULL on error
  * @(#)
  * @(#) The following routines free the matrix allocated by the functions above
  * @(#) void im_free_imat(m, nrl, nrh, ncl, nch)

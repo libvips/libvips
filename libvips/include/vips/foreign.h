@@ -5,7 +5,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -91,10 +91,10 @@ GType vips_foreign_get_type(void);
  * subclasses of VipsForeign.
  */
 VIPS_API
-void *vips_foreign_map( const char *base, 
+void *vips_foreign_map( const char *base,
 	VipsSListMap2Fn fn, void *a, void *b );
 
-/* Image file load properties. 
+/* Image file load properties.
  *
  * Keep in sync with the deprecated VipsFormatFlags, we need to be able to
  * cast between them.
@@ -107,16 +107,16 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_ALL = 7		/* All flags set */
 } VipsForeignFlags;
 
-/** 
+/**
  * VipsFailOn:
- * @VIPS_FAIL_ON_NONE: never stop 
+ * @VIPS_FAIL_ON_NONE: never stop
  * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated, nothing else
  * @VIPS_FAIL_ON_ERROR: stop on serious error or truncation
  * @VIPS_FAIL_ON_WARNING: stop on anything, even warnings
  *
- * How sensitive loaders are to errors, from never stop (very insensitive), to 
- * stop on the smallest warning (very sensitive). 
- * 
+ * How sensitive loaders are to errors, from never stop (very insensitive), to
+ * stop on the smallest warning (very sensitive).
+ *
  * Each one implies the ones before it, so #VIPS_FAIL_ON_ERROR implies
  * #VIPS_FAIL_ON_TRUNCATED.
  */
@@ -147,11 +147,11 @@ typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
 	/*< private >*/
 
-	/* Set TRUE to force open via memory. 
+	/* Set TRUE to force open via memory.
 	 */
 	gboolean memory;
 
-	/* Type of access upstream wants and the loader must supply. 
+	/* Type of access upstream wants and the loader must supply.
 	 */
 	VipsAccess access;
 
@@ -198,64 +198,64 @@ typedef struct _VipsForeignLoadClass {
 	VipsForeignClass parent_class;
 	/*< public >*/
 
-	/* Is a file in this format. 
+	/* Is a file in this format.
 	 *
-	 * This function should return %TRUE if the file contains an image of 
+	 * This function should return %TRUE if the file contains an image of
 	 * this type. If you don't define this function, #VipsForeignLoad
 	 * will use @suffs instead.
 	 */
 	gboolean (*is_a)( const char *filename );
 
-	/* Is a buffer in this format. 
+	/* Is a buffer in this format.
 	 *
-	 * This function should return %TRUE if the buffer contains an image of 
-	 * this type. 
+	 * This function should return %TRUE if the buffer contains an image of
+	 * this type.
 	 */
 	gboolean (*is_a_buffer)( const void *data, size_t size );
 
-	/* Is a stream in this format. 
+	/* Is a stream in this format.
 	 *
-	 * This function should return %TRUE if the stream contains an image of 
-	 * this type. 
+	 * This function should return %TRUE if the stream contains an image of
+	 * this type.
 	 */
 	gboolean (*is_a_source)( VipsSource *source );
 
-	/* Get the flags from a filename. 
+	/* Get the flags from a filename.
 	 *
 	 * This function should examine the file and return a set
-	 * of flags. If you don't define it, vips will default to 0 (no flags 
-	 * set).  
+	 * of flags. If you don't define it, vips will default to 0 (no flags
+	 * set).
 	 *
 	 * This method is necessary for vips7 compatibility. Don't define
 	 * it if you don't need vips7.
 	 */
 	VipsForeignFlags (*get_flags_filename)( const char *filename );
 
-	/* Get the flags for this load operation. Images can be loaded from 
+	/* Get the flags for this load operation. Images can be loaded from
 	 * (for example) memory areas rather than files, so you can't just use
 	 * @get_flags_filename().
 	 */
 	VipsForeignFlags (*get_flags)( VipsForeignLoad *load );
 
-	/* Do the minimum read we can. 
+	/* Do the minimum read we can.
 	 *
-	 * Set the header fields in @out from @filename. If you can read the 
+	 * Set the header fields in @out from @filename. If you can read the
 	 * whole image as well with no performance cost (as with vipsload),
 	 * or if your loader does not support reading only the header, read
 	 * the entire image in this method and leave @load() NULL.
 	 *
-	 * @header() needs to set the dhint on the image .. otherwise you get 
+	 * @header() needs to set the dhint on the image .. otherwise you get
 	 * the default SMALLTILE.
 	 *
 	 * Return 0 for success, -1 for error, setting vips_error().
 	 */
 	int (*header)( VipsForeignLoad *load );
 
-	/* Read the whole image into @real. The pixels will get copied to @out 
+	/* Read the whole image into @real. The pixels will get copied to @out
 	 * later.
 	 *
-	 * You can omit this method if you define a @header() method which 
-	 * loads the whole file. 
+	 * You can omit this method if you define a @header() method which
+	 * loads the whole file.
 	 *
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().
@@ -280,10 +280,10 @@ VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 VIPS_API
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
 VIPS_API
-gboolean vips_foreign_is_a_buffer( const char *loader, 
+gboolean vips_foreign_is_a_buffer( const char *loader,
 	const void *data, size_t size );
 VIPS_API
-gboolean vips_foreign_is_a_source( const char *loader, 
+gboolean vips_foreign_is_a_source( const char *loader,
 	VipsSource *source );
 
 VIPS_API
@@ -304,10 +304,10 @@ void vips_foreign_load_invalidate( VipsImage *image );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FOREIGN_SAVE, VipsForeignSaveClass ))
 
-/** 
+/**
  * VipsSaveable:
  * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
- * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM) 
+ * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM)
  * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
  * @VIPS_SAVEABLE_RGBA_ONLY: 3 or 4 bands (eg. WEBP)
  * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
@@ -343,7 +343,7 @@ typedef struct _VipsForeignSave {
 
 	/*< public >*/
 
-	/* The image we are to save, as supplied by our caller. 
+	/* The image we are to save, as supplied by our caller.
 	 */
 	VipsImage *in;
 
@@ -363,17 +363,17 @@ typedef struct _VipsForeignSaveClass {
 
 	/* How this format treats bands.
 	 *
-	 * @saveable describes the bands that your saver can handle. For 
-	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it 
+	 * @saveable describes the bands that your saver can handle. For
+	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it
 	 * uses #VIPS_SAVEABLE_RGB.
 	 */
 	VipsSaveable saveable;
 
 	/* How this format treats band formats.
 	 *
-	 * @format_table describes the band formats that your saver can 
-	 * handle. For each of the 10 #VipsBandFormat values, the array 
-	 * should give the format your saver will accept. 
+	 * @format_table describes the band formats that your saver can
+	 * handle. For each of the 10 #VipsBandFormat values, the array
+	 * should give the format your saver will accept.
 	 */
 	VipsBandFormat *format_table;
 
@@ -617,7 +617,7 @@ int vips_analyzeload( const char *filename, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_rawload( const char *filename, VipsImage **out, 
+int vips_rawload( const char *filename, VipsImage **out,
 	int width, int height, int bands, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -894,7 +894,7 @@ int vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF v2 directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_IIIF3: use IIIF v3 directory layout
  *
- * What directory layout and metadata standard to use. 
+ * What directory layout and metadata standard to use.
  */
 typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_DZ,
@@ -952,7 +952,7 @@ int vips_dzsave_target( VipsImage *in, VipsTarget *target, ... )
  * @VIPS_FOREIGN_HEIF_COMPRESSION_JPEG: jpeg
  * @VIPS_FOREIGN_HEIF_COMPRESSION_AV1: aom
  *
- * The compression format to use inside a HEIF container. 
+ * The compression format to use inside a HEIF container.
  *
  * This is assumed to use the same numbering as %heif_compression_format.
  */

@@ -4,7 +4,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -39,8 +39,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* A string in the process of being written to ... multiple calls to 
- * vips_buf_append add to it. On overflow append "..." and block further 
+/* A string in the process of being written to ... multiple calls to
+ * vips_buf_append add to it. On overflow append "..." and block further
  * writes.
  */
 
@@ -54,7 +54,7 @@ struct _VipsBuf {
 	gboolean full;		/* String has filled, block writes */
 	int lasti;		/* For read-recent */
 	gboolean dynamic;	/* We own the string with malloc() */
-}; 
+};
 
 #define VIPS_BUF_STATIC( TEXT ) \
 	{ &TEXT[0], sizeof( TEXT ), 0, FALSE, 0, FALSE }

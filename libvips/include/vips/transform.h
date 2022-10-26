@@ -42,10 +42,10 @@ extern "C" {
 /* Params for an affine transformation.
  */
 typedef struct {
-	/* Area of input we can use. This can be smaller than the real input 
-	 * image: we expand the input to add extra pixels for interpolation. 
+	/* Area of input we can use. This can be smaller than the real input
+	 * image: we expand the input to add extra pixels for interpolation.
 	 */
-	VipsRect iarea;			
+	VipsRect iarea;
 
 	/* The area of the output we've been asked to generate. left/top can
 	 * be negative.
@@ -54,7 +54,7 @@ typedef struct {
 
 	/* The transform.
 	 */
-	double a, b, c, d;		
+	double a, b, c, d;
 	double idx, idy;
 	double odx, ody;
 
@@ -64,18 +64,18 @@ typedef struct {
 void vips__transform_init( VipsTransformation *trn );
 int vips__transform_calc_inverse( VipsTransformation *trn );
 int vips__transform_isidentity( const VipsTransformation *trn );
-int vips__transform_add( const VipsTransformation *in1, 
-	const VipsTransformation *in2, 
+int vips__transform_add( const VipsTransformation *in1,
+	const VipsTransformation *in2,
 	VipsTransformation *out );
 void vips__transform_print( const VipsTransformation *trn );
 
-void vips__transform_forward_point( const VipsTransformation *trn, 
+void vips__transform_forward_point( const VipsTransformation *trn,
 	const double x, const double y, double *ox, double *oy );
-void vips__transform_invert_point( const VipsTransformation *trn, 
+void vips__transform_invert_point( const VipsTransformation *trn,
 	const double x, const double y, double *ox, double *oy );
 void vips__transform_forward_rect( const VipsTransformation *trn,
 	const VipsRect *in, VipsRect *out );
-void vips__transform_invert_rect( const VipsTransformation *trn, 
+void vips__transform_invert_rect( const VipsTransformation *trn,
 	const VipsRect *in, VipsRect *out );
 
 void vips__transform_set_area( VipsTransformation * );

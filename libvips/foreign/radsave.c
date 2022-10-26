@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,7 @@ typedef struct _VipsForeignSaveRad {
 
 typedef VipsForeignSaveClass VipsForeignSaveRadClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveRad, vips_foreign_save_rad, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveRad, vips_foreign_save_rad,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 /* Save a bit of typing.
@@ -108,7 +108,7 @@ vips_foreign_save_rad_init( VipsForeignSaveRad *rad )
 typedef struct _VipsForeignSaveRadFile {
 	VipsForeignSaveRad parent_object;
 
-	char *filename; 
+	char *filename;
 } VipsForeignSaveRadFile;
 
 typedef VipsForeignSaveRadClass VipsForeignSaveRadFileClass;
@@ -152,10 +152,10 @@ vips_foreign_save_rad_file_class_init( VipsForeignSaveRadFileClass *class )
 	object_class->description = _( "save image to Radiance file" );
 	object_class->build = vips_foreign_save_rad_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveRadFile, filename ),
 		NULL );
 }
@@ -173,7 +173,7 @@ typedef struct _VipsForeignSaveRadTarget {
 
 typedef VipsForeignSaveRadClass VipsForeignSaveRadTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRadTarget, vips_foreign_save_rad_target, 
+G_DEFINE_TYPE( VipsForeignSaveRadTarget, vips_foreign_save_rad_target,
 	vips_foreign_save_rad_get_type() );
 
 static int
@@ -186,7 +186,7 @@ vips_foreign_save_rad_target_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_save( save->ready, target->target ) ) 
+	if( vips__rad_save( save->ready, target->target ) )
 		return( -1 );
 
 	return( 0 );
@@ -208,7 +208,7 @@ vips_foreign_save_rad_target_class_init( VipsForeignSaveRadTargetClass *class )
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveRadTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -227,7 +227,7 @@ typedef struct _VipsForeignSaveRadBuffer {
 
 typedef VipsForeignSaveRadClass VipsForeignSaveRadBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRadBuffer, vips_foreign_save_rad_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveRadBuffer, vips_foreign_save_rad_buffer,
 	vips_foreign_save_rad_get_type() );
 
 static int
@@ -272,10 +272,10 @@ vips_foreign_save_rad_buffer_class_init( VipsForeignSaveRadBufferClass *class )
 	object_class->description = _( "save image to Radiance buffer" );
 	object_class->build = vips_foreign_save_rad_buffer_build;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveRadBuffer, buf ),
 		VIPS_TYPE_BLOB );
 }
@@ -289,13 +289,13 @@ vips_foreign_save_rad_buffer_init( VipsForeignSaveRadBuffer *buffer )
 
 /**
  * vips_radsave: (method)
- * @in: image to save 
+ * @in: image to save
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Write a VIPS image in Radiance (HDR) format.
  *
- * Sections of this reader from Greg Ward and Radiance with kind permission. 
+ * Sections of this reader from Greg Ward and Radiance with kind permission.
  *
  * See also: vips_image_write_to_file().
  *
@@ -316,12 +316,12 @@ vips_radsave( VipsImage *in, const char *filename, ... )
 
 /**
  * vips_radsave_buffer: (method)
- * @in: image to save 
+ * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_radsave(), but save to a memory buffer. 
+ * As vips_radsave(), but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
  * @len. You are responsible for freeing the buffer with g_free() when you
@@ -338,19 +338,19 @@ vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	VipsArea *area;
 	int result;
 
-	area = NULL; 
+	area = NULL;
 
 	va_start( ap, len );
 	result = vips_call_split( "radsave_buffer", ap, in, &area );
 	va_end( ap );
 
 	if( !result &&
-		area ) { 
+		area ) {
 		if( buf ) {
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( len ) 
+		if( len )
 			*len = area->length;
 
 		vips_area_unref( area );
@@ -361,7 +361,7 @@ vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 /**
  * vips_radsave_target: (method)
- * @in: image to save 
+ * @in: image to save
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *

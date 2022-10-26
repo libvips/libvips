@@ -4,7 +4,7 @@
  *
  * Author: J. Cupitt
  * Written on: 02/08/1990
- * Modified on: 
+ * Modified on:
  * 5/5/93 JC
  *	- now does partial images
  *	- less likely to overflow
@@ -19,7 +19,7 @@
  * 20/6/95 JC
  *	- now returns double, not float
  * 13/1/05
- *	- use 64 bit arithmetic 
+ *	- use 64 bit arithmetic
  * 8/12/06
  * 	- add liboil support
  * 2/9/09
@@ -36,7 +36,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -90,7 +90,7 @@ static int
 vips_deviate_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsDeviate *deviate = (VipsDeviate *) object;
 
 	gint64 vals;
@@ -104,23 +104,23 @@ vips_deviate_build( VipsObject *object )
 		return( -1 );
 
 	/*
-	  
-		NOTE: NR suggests a two-pass algorithm to minimise roundoff. 
-		But that's too expensive for us :-( so do it the old one-pass 
+
+		NOTE: NR suggests a two-pass algorithm to minimise roundoff.
+		But that's too expensive for us :-( so do it the old one-pass
 		way.
 
 	 */
 
 	/* Calculate and return deviation. Add a fabs to stop sqrt(<=0).
 	 */
-	vals = (gint64) 
-		vips_image_get_width( statistic->in ) * 
-		vips_image_get_height( statistic->in ) * 
+	vals = (gint64)
+		vips_image_get_width( statistic->in ) *
+		vips_image_get_height( statistic->in ) *
 		vips_image_get_bands( statistic->in );
 	s = deviate->sum;
 	s2 = deviate->sum2;
 
-	g_object_set( object, 
+	g_object_set( object,
 		"out", sqrt( VIPS_FABS( s2 - (s * s / vals) ) / (vals - 1) ),
 		NULL );
 
@@ -164,7 +164,7 @@ vips_deviate_stop( VipsStatistic *statistic, void *seq )
 }
 
 static int
-vips_deviate_scan( VipsStatistic *statistic, void *seq, 
+vips_deviate_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	const int sz = n * vips_image_get_bands( statistic->in );
@@ -177,19 +177,19 @@ vips_deviate_scan( VipsStatistic *statistic, void *seq,
 	sum = ss2[0];
 	sum2 = ss2[1];
 
-	/* Now generate code for all types. 
+	/* Now generate code for all types.
 	 */
 	switch( vips_image_get_format( statistic->in ) ) {
-	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break; 
-	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break; 
+	case VIPS_FORMAT_UCHAR:		LOOP( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:		LOOP( signed char ); break;
+	case VIPS_FORMAT_USHORT:	LOOP( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:		LOOP( signed short ); break;
 	case VIPS_FORMAT_UINT:		LOOP( unsigned int ); break;
-	case VIPS_FORMAT_INT:		LOOP( signed int ); break; 
-	case VIPS_FORMAT_FLOAT:		LOOP( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
+	case VIPS_FORMAT_INT:		LOOP( signed int ); break;
+	case VIPS_FORMAT_FLOAT:		LOOP( float ); break;
+	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break;
 
-	default: 
+	default:
 		g_assert_not_reached();
 	}
 
@@ -217,8 +217,8 @@ vips_deviate_class_init( VipsDeviateClass *class )
 	sclass->scan = vips_deviate_scan;
 	sclass->stop = vips_deviate_stop;
 
-	VIPS_ARG_DOUBLE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_DOUBLE( class, "out", 2,
+		_( "Output" ),
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsDeviate, out ),
@@ -236,9 +236,9 @@ vips_deviate_init( VipsDeviate *deviate )
  * @out: (out): output pixel standard deviation
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation finds the standard deviation of all pixels in @in. It 
- * operates on all bands of the input image: use vips_stats() if you need 
- * to calculate an average for each band. 
+ * This operation finds the standard deviation of all pixels in @in. It
+ * operates on all bands of the input image: use vips_stats() if you need
+ * to calculate an average for each band.
  *
  * Non-complex images only.
  *

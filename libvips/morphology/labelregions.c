@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,7 +49,7 @@ typedef struct _VipsLabelregions {
 	VipsMorphology parent_instance;
 
 	VipsImage *mask;
-	int segments; 
+	int segments;
 } VipsLabelregions;
 
 typedef VipsMorphologyClass VipsLabelregionsClass;
@@ -77,9 +77,9 @@ vips_labelregions_build( VipsObject *object )
 	mask = vips_image_new_memory();
 	g_object_set( object,
 		"mask", mask,
-		NULL ); 
+		NULL );
 	if( vips_black( &t[0], in->Xsize, in->Ysize, NULL ) ||
-		vips_cast( t[0], &t[1], VIPS_FORMAT_INT, NULL ) || 
+		vips_cast( t[0], &t[1], VIPS_FORMAT_INT, NULL ) ||
 		vips_image_write( t[1], mask ) )
 		return( -1 );
 
@@ -90,9 +90,9 @@ vips_labelregions_build( VipsObject *object )
 			if( !m[x] ) {
 				/* Use a direct path for speed.
 				 */
-				if( vips__draw_flood_direct( mask, in, 
+				if( vips__draw_flood_direct( mask, in,
 					segments, x, y ) )
-					return( -1 ); 
+					return( -1 );
 
 				segments += 1;
 			}
@@ -103,7 +103,7 @@ vips_labelregions_build( VipsObject *object )
 
 	g_object_set( object,
 		"segments", segments,
-		NULL ); 
+		NULL );
 
 	return( 0 );
 }
@@ -118,17 +118,17 @@ vips_labelregions_class_init( VipsLabelregionsClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "labelregions";
-	vobject_class->description = _( "label regions in an image" ); 
+	vobject_class->description = _( "label regions in an image" );
 	vobject_class->build = vips_labelregions_build;
 
-	VIPS_ARG_IMAGE( class, "mask", 2, 
-		_( "Mask" ), 
+	VIPS_ARG_IMAGE( class, "mask", 2,
+		_( "Mask" ),
 		_( "Mask of region labels" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsLabelregions, mask ) ); 
+		G_STRUCT_OFFSET( VipsLabelregions, mask ) );
 
-	VIPS_ARG_INT( class, "segments", 3, 
-		_( "Segments" ), 
+	VIPS_ARG_INT( class, "segments", 3,
+		_( "Segments" ),
 		_( "Number of discrete contiguous regions" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsLabelregions, segments ),
@@ -171,7 +171,7 @@ vips_labelregions_init( VipsLabelregions *labelregions )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_labelregions( VipsImage *in, VipsImage **mask, ... ) 
+vips_labelregions( VipsImage *in, VipsImage **mask, ... )
 {
 	va_list ap;
 	int result;

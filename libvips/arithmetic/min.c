@@ -30,7 +30,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -112,7 +112,7 @@ typedef struct _VipsMin {
 	int x;
 	int y;
 
-	/* And the positions and values we found as VipsArrays for returning 
+	/* And the positions and values we found as VipsArrays for returning
 	 * to our caller.
 	 */
 	VipsArrayDouble *min_array;
@@ -146,7 +146,7 @@ vips_values_add( VipsValues *values, double v, int x, int y )
 	/* Find insertion point.
 	 */
 	for( i = 0; i < values->n; i++ ) {
-		if( v > values->value[i] ) 
+		if( v > values->value[i] )
 			break;
 
 		if( v == values->value[i] ) {
@@ -159,7 +159,7 @@ vips_values_add( VipsValues *values, double v, int x, int y )
 		}
 	}
 
-	/* Array full? 
+	/* Array full?
 	 */
 	if( values->n == values->size ) {
 		if( i > 0 ) {
@@ -198,7 +198,7 @@ G_DEFINE_TYPE( VipsMin, vips_min, VIPS_TYPE_STATISTIC );
 static int
 vips_min_build( VipsObject *object )
 {
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsStatistic *statistic = VIPS_STATISTIC( object );
 	VipsMin *min = (VipsMin *) object;
 	VipsValues *values = &min->values;
 
@@ -209,11 +209,11 @@ vips_min_build( VipsObject *object )
 
 	/* For speed we accumulate min ** 2 for complex.
 	 */
-	if( vips_band_format_iscomplex( 
+	if( vips_band_format_iscomplex(
 		vips_image_get_format( statistic->in ) ) ) {
 		int i;
 
-		for( i = 0; i < values->n; i++ ) 
+		for( i = 0; i < values->n; i++ )
 			values->value[i] = sqrt( values->value[i] );
 	}
 
@@ -232,7 +232,7 @@ vips_min_build( VipsObject *object )
 		/* We have to set the props via g_object_set() to stop vips
 		 * complaining they are unset.
 		 */
-		g_object_set( min, 
+		g_object_set( min,
 			"out", values->value[values->n - 1],
 			"x", values->x_pos[values->n - 1],
 			"y", values->y_pos[values->n - 1],
@@ -247,15 +247,15 @@ vips_min_build( VipsObject *object )
 	}
 
 #ifdef DEBUG
-{	
+{
 	int i;
 
 	printf( "vips_min_build: %d values found\n", values->n );
 	for( i = 0; i < values->n; i++ )
-		printf( "%d) %g\t%d\t%d\n", 
-			i, 
-			values->value[i], 
-			values->x_pos[i], values->y_pos[i] ); 
+		printf( "%d) %g\t%d\t%d\n",
+			i,
+			values->value[i],
+			values->x_pos[i], values->y_pos[i] );
 }
 #endif /*DEBUG*/
 
@@ -270,7 +270,7 @@ vips_min_start( VipsStatistic *statistic )
 	VipsValues *values;
 
 	values = g_new( VipsValues, 1 );
-	vips_values_init( values, (VipsMin *) statistic ); 
+	vips_values_init( values, (VipsMin *) statistic );
 
 	return( (void *) values );
 }
@@ -286,7 +286,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	int i;
 
 	for( i = 0; i < values->n; i++ )
-		vips_values_add( &min->values, 
+		vips_values_add( &min->values,
 			values->value[i], values->x_pos[i], values->y_pos[i] );
 
 	g_free( values );
@@ -294,7 +294,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
-/* Real min with a lower bound. 
+/* Real min with a lower bound.
  *
  * Add values to the buffer if they are less than the buffer maximum. If
  * the buffer isn't full, there is no maximum.
@@ -323,12 +323,12 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 			} \
 		} \
 	} \
-} 
+}
 
 /* float/double min ... no limits, and we have to avoid NaN.
  *
  * NaN compares false to every float value, so we don't need to test for NaN
- * in the second loop. 
+ * in the second loop.
  */
 #define LOOPF( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
@@ -344,7 +344,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 			vips_values_add( values, p[i], x + i / bands, y ); \
 			m = values->value[0]; \
 		} \
-} 
+}
 
 /* As LOOPF, but complex. Track min(mod ** 2) to avoid sqrt().
  */
@@ -372,12 +372,12 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 		\
 		p += 2; \
 	} \
-} 
+}
 
 /* Loop over region, adding to seq.
  */
 static int
-vips_min_scan( VipsStatistic *statistic, void *seq, 
+vips_min_scan( VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n )
 {
 	VipsValues *values = (VipsValues *) seq;
@@ -387,30 +387,30 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 	int i;
 
 	switch( vips_image_get_format( statistic->in ) ) {
-	case VIPS_FORMAT_UCHAR:		
-		LOOPU( unsigned char, 0 ); break; 
-	case VIPS_FORMAT_CHAR:	
-		LOOPU( signed char, SCHAR_MIN ); break; 
-	case VIPS_FORMAT_USHORT:	
-		LOOPU( unsigned short, 0 ); break; 
-	case VIPS_FORMAT_SHORT:	
-		LOOPU( signed short, SHRT_MIN ); break; 
-	case VIPS_FORMAT_UINT:	
+	case VIPS_FORMAT_UCHAR:
+		LOOPU( unsigned char, 0 ); break;
+	case VIPS_FORMAT_CHAR:
+		LOOPU( signed char, SCHAR_MIN ); break;
+	case VIPS_FORMAT_USHORT:
+		LOOPU( unsigned short, 0 ); break;
+	case VIPS_FORMAT_SHORT:
+		LOOPU( signed short, SHRT_MIN ); break;
+	case VIPS_FORMAT_UINT:
 		LOOPU( unsigned int, 0 ); break;
-	case VIPS_FORMAT_INT:	
-		LOOPU( signed int, INT_MIN ); break; 
+	case VIPS_FORMAT_INT:
+		LOOPU( signed int, INT_MIN ); break;
 
-	case VIPS_FORMAT_FLOAT:	
-		LOOPF( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	
-		LOOPF( double ); break; 
+	case VIPS_FORMAT_FLOAT:
+		LOOPF( float ); break;
+	case VIPS_FORMAT_DOUBLE:
+		LOOPF( double ); break;
 
 	case VIPS_FORMAT_COMPLEX:
-		LOOPC( float ); break; 
+		LOOPC( float ); break;
 	case VIPS_FORMAT_DPCOMPLEX:
-		LOOPC( double ); break; 
+		LOOPC( double ); break;
 
-	default:  
+	default:
 		g_assert_not_reached();
 	}
 
@@ -435,50 +435,50 @@ vips_min_class_init( VipsMinClass *class )
 	sclass->scan = vips_min_scan;
 	sclass->stop = vips_min_stop;
 
-	VIPS_ARG_DOUBLE( class, "out", 1, 
-		_( "Output" ), 
+	VIPS_ARG_DOUBLE( class, "out", 1,
+		_( "Output" ),
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, min ),
 		-INFINITY, INFINITY, 0.0 );
 
-	VIPS_ARG_INT( class, "x", 2, 
-		_( "x" ), 
+	VIPS_ARG_INT( class, "x", 2,
+		_( "x" ),
 		_( "Horizontal position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, x ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "y", 3, 
-		_( "y" ), 
+	VIPS_ARG_INT( class, "y", 3,
+		_( "y" ),
 		_( "Vertical position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, y ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "size", 4, 
-		_( "Size" ), 
+	VIPS_ARG_INT( class, "size", 4,
+		_( "Size" ),
 		_( "Number of minimum values to find" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMin, size ),
 		1, 1000000, 10 );
 
-	VIPS_ARG_BOXED( class, "out_array", 6, 
-		_( "Output array" ), 
+	VIPS_ARG_BOXED( class, "out_array", 6,
+		_( "Output array" ),
 		_( "Array of output values" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, min_array ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_BOXED( class, "x_array", 7, 
-		_( "x array" ), 
+	VIPS_ARG_BOXED( class, "x_array", 7,
+		_( "x array" ),
 		_( "Array of horizontal positions" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, x_array ),
 		VIPS_TYPE_ARRAY_INT );
 
-	VIPS_ARG_BOXED( class, "y_array", 8, 
-		_( "y array" ), 
+	VIPS_ARG_BOXED( class, "y_array", 8,
+		_( "y array" ),
 		_( "Array of vertical positions" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, y_array ),
@@ -506,27 +506,27 @@ vips_min_init( VipsMin *min )
  * * @x_array: corresponding horizontal positions
  * * @y_array: corresponding vertical positions
  *
- * This operation finds the minimum value in an image. 
+ * This operation finds the minimum value in an image.
  *
- * By default it finds the single smallest value. If @size is set >1, it will 
- * find the @size smallest values. It will stop searching early if has found 
- * enough values. 
+ * By default it finds the single smallest value. If @size is set >1, it will
+ * find the @size smallest values. It will stop searching early if has found
+ * enough values.
  * Equal values will be sorted by y then x.
  *
- * It operates on all 
- * bands of the input image: use vips_stats() if you need to find an 
- * minimum for each band. 
+ * It operates on all
+ * bands of the input image: use vips_stats() if you need to find an
+ * minimum for each band.
  *
  * For complex images, this operation finds the minimum modulus.
  *
  * You can read out the position of the minimum with @x and @y. You can read
  * out arrays of the values and positions of the top @size minima with
  * @out_array, @x_array and @y_array.
- * These values are returned sorted from 
+ * These values are returned sorted from
  * smallest to largest.
  *
  * If there are more than @size minima, the minima returned will be a random
- * selection of the minima in the image. 
+ * selection of the minima in the image.
  *
  * See also: vips_min(), vips_stats().
  *

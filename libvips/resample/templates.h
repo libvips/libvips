@@ -169,32 +169,32 @@ bicubic_unsigned_int(
 	const int c2 = cx[2];
 	const int c3 = cx[3];
 
-	const int r0 = unsigned_fixed_round( 
+	const int r0 = unsigned_fixed_round(
 		c0 * uno_one +
 		c1 * uno_two +
 		c2 * uno_thr +
-		c3 * uno_fou ); 
-	const int r1 = unsigned_fixed_round( 
+		c3 * uno_fou );
+	const int r1 = unsigned_fixed_round(
 		c0 * dos_one +
 		c1 * dos_two +
 		c2 * dos_thr +
-		c3 * dos_fou ); 
-	const int r2 = unsigned_fixed_round( 
+		c3 * dos_fou );
+	const int r2 = unsigned_fixed_round(
 		c0 * tre_one +
 		c1 * tre_two +
 		c2 * tre_thr +
-		c3 * tre_fou ); 
-	const int r3 = unsigned_fixed_round( 
+		c3 * tre_fou );
+	const int r3 = unsigned_fixed_round(
 		c0 * qua_one +
 		c1 * qua_two +
 		c2 * qua_thr +
-		c3 * qua_fou ); 
+		c3 * qua_fou );
 
-	return( unsigned_fixed_round( 
+	return( unsigned_fixed_round(
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) ); 
+		cy[3] * r3 ) );
 }
 
 static int inline
@@ -221,32 +221,32 @@ bicubic_signed_int(
 	const int c2 = cx[2];
 	const int c3 = cx[3];
 
-	const int r0 = signed_fixed_round( 
+	const int r0 = signed_fixed_round(
 		c0 * uno_one +
 		c1 * uno_two +
 		c2 * uno_thr +
-		c3 * uno_fou ); 
-	const int r1 = signed_fixed_round( 
+		c3 * uno_fou );
+	const int r1 = signed_fixed_round(
 		c0 * dos_one +
 		c1 * dos_two +
 		c2 * dos_thr +
-		c3 * dos_fou ); 
-	const int r2 = signed_fixed_round( 
+		c3 * dos_fou );
+	const int r2 = signed_fixed_round(
 		c0 * tre_one +
 		c1 * tre_two +
 		c2 * tre_thr +
-		c3 * tre_fou ); 
-	const int r3 = signed_fixed_round( 
+		c3 * tre_fou );
+	const int r3 = signed_fixed_round(
 		c0 * qua_one +
 		c1 * qua_two +
 		c2 * qua_thr +
-		c3 * qua_fou ); 
+		c3 * qua_fou );
 
-	return( signed_fixed_round( 
+	return( signed_fixed_round(
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) ); 
+		cy[3] * r3 ) );
 }
 
 template <typename T> static T inline
@@ -270,16 +270,16 @@ bicubic_float(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const double* restrict cx, const double* restrict cy )
 {
-	const double r0 = cubic_float<T>( 
-		uno_one, uno_two, uno_thr, uno_fou, cx ); 
-	const double r1 = cubic_float<T>( 
-		dos_one, dos_two, dos_thr, dos_fou, cx ); 
-	const double r2 = cubic_float<T>( 
-		tre_one, tre_two, tre_thr, tre_fou, cx ); 
-	const double r3 = cubic_float<T>( 
-		qua_one, qua_two, qua_thr, qua_fou, cx ); 
+	const double r0 = cubic_float<T>(
+		uno_one, uno_two, uno_thr, uno_fou, cx );
+	const double r1 = cubic_float<T>(
+		dos_one, dos_two, dos_thr, dos_fou, cx );
+	const double r2 = cubic_float<T>(
+		tre_one, tre_two, tre_thr, tre_fou, cx );
+	const double r3 = cubic_float<T>(
+		qua_one, qua_two, qua_thr, qua_fou, cx );
 
-	return( cubic_float<T>( r0, r1, r2, r3, cy ) ); 
+	return( cubic_float<T>( r0, r1, r2, r3, cy ) );
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),
@@ -316,7 +316,7 @@ calculate_coefficients_catmull( double c[4], const double x )
  * from the interpolator as well as from the table builder.
  */
 static void inline
-calculate_coefficients_triangle( double *c, 
+calculate_coefficients_triangle( double *c,
 	const double shrink, const double x )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
@@ -325,7 +325,7 @@ calculate_coefficients_triangle( double *c,
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum; 
+	double sum;
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
@@ -334,19 +334,19 @@ calculate_coefficients_triangle( double *c,
 		double l;
 
 		l = 1.0 - VIPS_FABS( xp );
-		l = VIPS_MAX( 0.0, l ); 
+		l = VIPS_MAX( 0.0, l );
 
 		c[i] = l;
 		sum += l;
 	}
 
-	for( i = 0; i < n_points; i++ ) 
+	for( i = 0; i < n_points; i++ )
 		c[i] /= sum;
 }
 
 /* Generate a cubic filter. See:
  *
- * Mitchell and Netravali, Reconstruction Filters in Computer Graphics 
+ * Mitchell and Netravali, Reconstruction Filters in Computer Graphics
  * Computer Graphics, Volume 22, Number 4, August 1988.
  *
  * B = 1,   C = 0   - cubic B-spline
@@ -354,43 +354,43 @@ calculate_coefficients_triangle( double *c,
  * B = 0,   C = 1/2 - Catmull-Rom spline
  */
 static void inline
-calculate_coefficients_cubic( double *c, 
+calculate_coefficients_cubic( double *c,
 	const double shrink, const double x, double B, double C )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = 2 * rint( 2 * shrink ) + 1; 
+	const int n_points = 2 * rint( 2 * shrink ) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum; 
+	double sum;
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
 		const double xp = (i - half) / shrink;
-		const double axp = VIPS_FABS( xp ); 
+		const double axp = VIPS_FABS( xp );
 		const double axp2 = axp * axp;
 		const double axp3 = axp2 * axp;
 
 		double l;
 
-		if( axp <= 1 ) 
+		if( axp <= 1 )
 			l = ((12 - 9 * B - 6 * C) * axp3 +
-			     (-18 + 12 * B + 6 * C) * axp2 + 
+			     (-18 + 12 * B + 6 * C) * axp2 +
 			     (6 - 2 * B)) / 6;
 		else if( axp <= 2 )
 			l = ((-B - 6 * C) * axp3 +
-			     (6 * B + 30 * C) * axp2 + 
-			     (-12 * B - 48 * C) * axp + 
+			     (6 * B + 30 * C) * axp2 +
+			     (-12 * B - 48 * C) * axp +
 			     (8 * B + 24 * C)) / 6;
-		else 
+		else
 			l = 0.0;
 
 		c[i] = l;
 		sum += l;
 	}
 
-	for( i = 0; i < n_points; i++ ) 
+	for( i = 0; i < n_points; i++ )
 		c[i] /= sum;
 }
 
@@ -400,19 +400,19 @@ calculate_coefficients_cubic( double *c,
  *
  * @a is the number of lobes, so usually 2 or 3. @shrink is the reduction
  * factor, so 1 for interpolation, 2 for a x2 reduction, etc. We need more
- * points for large decimations to avoid aliasing. 
+ * points for large decimations to avoid aliasing.
  */
 static void inline
-calculate_coefficients_lanczos( double *c, 
+calculate_coefficients_lanczos( double *c,
 	const int a, const double shrink, const double x )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = 2 * rint( a * shrink ) + 1; 
+	const int n_points = 2 * rint( a * shrink ) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum; 
+	double sum;
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
@@ -427,19 +427,19 @@ calculate_coefficients_lanczos( double *c,
 		else if( xp > a )
 			l = 0.0;
 		else
-			l = (double) a * sin( VIPS_PI * xp ) * 
-				sin( VIPS_PI * xp / (double) a ) / 
+			l = (double) a * sin( VIPS_PI * xp ) *
+				sin( VIPS_PI * xp / (double) a ) /
 				(VIPS_PI * VIPS_PI * xp * xp);
 
 		c[i] = l;
 		sum += l;
 	}
 
-	for( i = 0; i < n_points; i++ ) 
+	for( i = 0; i < n_points; i++ )
 		c[i] /= sum;
 }
 
-/* Our inner loop for resampling with a convolution. Operate on elements of 
+/* Our inner loop for resampling with a convolution. Operate on elements of
  * type T, gather results in an intermediate of type IT.
  */
 template <typename T, typename IT>
@@ -448,11 +448,11 @@ reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
 {
 	IT sum;
 
-	sum = 0; 
+	sum = 0;
 	for( int i = 0; i < n; i++ ) {
 		sum += c[i] * in[0];
 		in += stride;
 	}
 
-	return( sum ); 
+	return( sum );
 }

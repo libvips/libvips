@@ -9,7 +9,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,7 +67,7 @@ im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
 	/* matrices must be same width
 	 */
 	if( top->xsize != bottom->xsize ) {
-		im_error( "im_matcat", "%s", 
+		im_error( "im_matcat", "%s",
 			_( "matrices must be same width" ) );
 		return( NULL );
 	}
@@ -77,15 +77,15 @@ im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( filename, newxsize, newysize )) ) 
+	if( !(mat = im_create_dmask( filename, newxsize, newysize )) )
 		return( NULL );
 
 	/* copy first matrix then add second on the end
 	 */
-	memcpy( mat->coeff, top->coeff, 
+	memcpy( mat->coeff, top->coeff,
 		top->xsize * top->ysize * sizeof( double ) );
 	out = mat->coeff + top->xsize * top->ysize;
-	memcpy( out, bottom->coeff, 
+	memcpy( out, bottom->coeff,
 		bottom->xsize * bottom->ysize * sizeof( double ) );
 
 	return( mat );

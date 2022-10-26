@@ -6,15 +6,15 @@
  * 	- reworked as some fns ready for new-style classes
  * 21/8/14
  * 	- swap width/height
- * 	- set interpretation to rgb16 etc. 
+ * 	- set interpretation to rgb16 etc.
  * 16/2/16
- * 	- more specific is_a test 
+ * 	- more specific is_a test
  */
 
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -46,7 +46,7 @@
 
 + it will not handle sparse matricies
 
-+ it loads the first variable in the file with between 1 and 3 dimensions, 
++ it loads the first variable in the file with between 1 and 3 dimensions,
   is this sensible behaviour?
 
 + load only, no save
@@ -109,7 +109,7 @@ read_new( const char *filename, VipsImage *out )
 	read->var = NULL;
 
 	if( !(read->mat = Mat_Open( filename, MAT_ACC_RDONLY )) ) {
-		vips_error( "mat2vips", 
+		vips_error( "mat2vips",
 			_( "unable to open \"%s\"" ), filename );
 		read_destroy( read );
 		return( NULL );
@@ -117,8 +117,8 @@ read_new( const char *filename, VipsImage *out )
 
 	for(;;) {
 		if( !(read->var = Mat_VarReadNextInfo( read->mat )) ) {
-			vips_error( "mat2vips", 
-				_( "no matrix variables in \"%s\"" ), 
+			vips_error( "mat2vips",
+				_( "no matrix variables in \"%s\"" ),
 				filename );
 			read_destroy( read );
 			return( NULL );
@@ -157,22 +157,22 @@ static int mat2vips_formats[][2] = {
 
 /* Pick an interpretation.
  */
-static VipsInterpretation 
+static VipsInterpretation
 mat2vips_pick_interpretation( int bands, VipsBandFormat format )
 {
 	if( bands == 3 &&
 		vips_band_format_is8bit( format ) )
 		return( VIPS_INTERPRETATION_sRGB );
 	if( bands == 3 &&
-		(format == VIPS_FORMAT_USHORT || 
+		(format == VIPS_FORMAT_USHORT ||
 		 format == VIPS_FORMAT_SHORT) )
 		return( VIPS_INTERPRETATION_RGB16 );
 	if( bands == 1 &&
-		(format == VIPS_FORMAT_USHORT || 
+		(format == VIPS_FORMAT_USHORT ||
 		 format == VIPS_FORMAT_SHORT) )
 		return( VIPS_INTERPRETATION_GREY16 );
 	if( bands > 1 )
-		return( VIPS_INTERPRETATION_MULTIBAND ); 
+		return( VIPS_INTERPRETATION_MULTIBAND );
 
 	return( VIPS_INTERPRETATION_MULTIBAND );
 }
@@ -182,7 +182,7 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 {
 	int width, height, bands;
 	VipsBandFormat format;
-	VipsInterpretation interpretation; 
+	VipsInterpretation interpretation;
 	int i;
 
 	width = 1;
@@ -199,7 +199,7 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 		break;
 
 	default:
-		vips_error( "mat2vips", 
+		vips_error( "mat2vips",
 			_( "unsupported rank %d\n" ), var->rank );
 		return( -1 );
 	}
@@ -220,8 +220,8 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
-        /* We read to a huge memory area.
-         */
+	/* We read to a huge memory area.
+	 */
 	if( vips_image_pipelinev( im, VIPS_DEMAND_STYLE_ANY, NULL ) )
 		return( -1 );
 
@@ -237,7 +237,7 @@ vips__mat_header( const char *filename, VipsImage *out )
 	printf( "mat2vips_header: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out )) ) 
+	if( !(read = read_new( filename, out )) )
 		return( -1 );
 	if( mat2vips_get_header( read->var, read->out ) ) {
 		read_destroy( read );
@@ -261,7 +261,7 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 	const guint64 is = es * VIPS_IMAGE_N_PELS( im );
 
 	if( Mat_VarReadDataAll( mat, var ) ) {
-		vips_error( "mat2vips", "%s", 
+		vips_error( "mat2vips", "%s",
 			_( "Mat_VarReadDataAll failed" ) );
 		return( -1 );
 	}
@@ -269,7 +269,7 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 	/* Matlab images are in columns, so we have to transpose into
 	 * scanlines with this buffer.
 	 */
-	if( !(buffer = VIPS_ARRAY( im, 
+	if( !(buffer = VIPS_ARRAY( im,
 		VIPS_IMAGE_SIZEOF_LINE( im ), VipsPel )) )
 		return( -1 );
 
@@ -311,7 +311,7 @@ vips__mat_load( const char *filename, VipsImage *out )
 	printf( "mat2vips: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out )) ) 
+	if( !(read = read_new( filename, out )) )
 		return( -1 );
 	if( mat2vips_get_header( read->var, read->out ) ||
 		mat2vips_get_data( read->mat, read->var, read->out ) ) {

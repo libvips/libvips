@@ -9,13 +9,13 @@
 #include <vips/vips.h>
 #include <errno.h>
 
-void 
+void
 preeval_callback( VipsImage *image, VipsProgress *progress, void* pdata )
 {
 	printf( "preeval_callback:\n" );
 }
 
-void 
+void
 eval_callback( VipsImage *image, VipsProgress *progress, void* pdata )
 {
 	printf( "eval_callback: percent = %d\n", progress->percent );
@@ -26,14 +26,14 @@ eval_callback( VipsImage *image, VipsProgress *progress, void* pdata )
 	}
 }
 
-void 
+void
 posteval_callback( VipsImage *image, VipsProgress *progress, void* pdata )
 {
-	printf( "posteval_callback: finished in %.3gs\n", 
-                g_timer_elapsed( progress->start, NULL ) );
+	printf( "posteval_callback: finished in %.3gs\n",
+		g_timer_elapsed( progress->start, NULL ) );
 }
 
-int 
+int
 main( int argc, char **argv )
 {
 	VipsImage *image;
@@ -44,11 +44,11 @@ main( int argc, char **argv )
 	if( VIPS_INIT( argv[0] ) )
 		vips_error_exit( NULL );
 
-        if( argc != 3 ) 
-		vips_error_exit( "usage: %s INPUT-FILE OUTPUT-FILE", argv[0] ); 
+	if( argc != 3 )
+		vips_error_exit( "usage: %s INPUT-FILE OUTPUT-FILE", argv[0] );
 
-	if( !(image = vips_image_new_from_file( argv[1], 
-		"access", VIPS_ACCESS_SEQUENTIAL, 
+	if( !(image = vips_image_new_from_file( argv[1],
+		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL )) )
 		vips_error_exit( NULL );
 
@@ -56,16 +56,16 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 
 	vips_image_set_progress( out, TRUE );
-	g_signal_connect( out, "preeval", 
-                G_CALLBACK( preeval_callback ), NULL );
-	g_signal_connect( out, "eval", 
-                G_CALLBACK( eval_callback ), NULL );
-	g_signal_connect( out, "posteval", 
-                G_CALLBACK( posteval_callback ), NULL );
+	g_signal_connect( out, "preeval",
+		G_CALLBACK( preeval_callback ), NULL );
+	g_signal_connect( out, "eval",
+		G_CALLBACK( eval_callback ), NULL );
+	g_signal_connect( out, "posteval",
+		G_CALLBACK( posteval_callback ), NULL );
 
 	output = NULL;
-	if( vips_image_write_to_buffer( out, argv[2], &output, &output_length, 
-		NULL ) ) 
+	if( vips_image_write_to_buffer( out, argv[2], &output, &output_length,
+		NULL ) )
 		printf( "error return from vips_image_write_to_buffer()\n" );
 
 	g_object_unref( out );

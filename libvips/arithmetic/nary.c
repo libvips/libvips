@@ -15,7 +15,7 @@
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -83,8 +83,8 @@ vips_nary_class_init( VipsNaryClass *class )
 	/* Create properties.
 	 */
 
-	VIPS_ARG_BOXED( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_BOXED( class, "in", 0,
+		_( "Input" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsNary, in ),

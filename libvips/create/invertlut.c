@@ -107,7 +107,7 @@ compare( const void *a, const void *b )
 		return( 1 );
 	else if( diff == 0 )
 		return( 0 );
-	else 
+	else
 		return( -1 );
 }
 
@@ -261,11 +261,11 @@ vips_invertlut_build( VipsObject *object )
 		vips_invertlut_build_create( lut ) )
 		return( -1 );
 
-        vips_image_init_fields( create->out,
-                lut->size, 1, lut->mat->Xsize - 1,
+	vips_image_init_fields( create->out,
+		lut->size, 1, lut->mat->Xsize - 1,
 		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
-        if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) )
+	if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) )
 		return( -1 );
 
 	return( 0 );

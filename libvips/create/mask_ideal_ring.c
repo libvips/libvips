@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,11 +60,11 @@ typedef struct _VipsMaskIdealRing {
 
 typedef VipsMaskIdealClass VipsMaskIdealRingClass;
 
-G_DEFINE_TYPE( VipsMaskIdealRing, vips_mask_ideal_ring, 
+G_DEFINE_TYPE( VipsMaskIdealRing, vips_mask_ideal_ring,
 	VIPS_TYPE_MASK_IDEAL );
 
 static double
-vips_mask_ideal_ring_point( VipsMask *mask, double dx, double dy ) 
+vips_mask_ideal_ring_point( VipsMask *mask, double dx, double dy )
 {
 	VipsMaskIdeal *ideal = (VipsMaskIdeal *) mask;
 	VipsMaskIdealRing *ideal_ring = (VipsMaskIdealRing *) mask;
@@ -76,7 +76,7 @@ vips_mask_ideal_ring_point( VipsMask *mask, double dx, double dy )
 	double fc2_1 = (fc - df) * (fc - df);
 	double fc2_2 = (fc + df) * (fc + df);
 
-	return( dist2 > fc2_1 && dist2 < fc2_2 ? 1.0 : 0.0 ); 
+	return( dist2 > fc2_1 && dist2 < fc2_2 ? 1.0 : 0.0 );
 }
 
 static void
@@ -94,8 +94,8 @@ vips_mask_ideal_ring_class_init( VipsMaskIdealClass *class )
 
 	mask_class->point = vips_mask_ideal_ring_point;
 
-	VIPS_ARG_DOUBLE( class, "ringwidth", 20, 
-		_( "Ringwidth" ), 
+	VIPS_ARG_DOUBLE( class, "ringwidth", 20,
+		_( "Ringwidth" ),
 		_( "Ringwidth" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskIdealRing, ringwidth ),
@@ -125,23 +125,23 @@ vips_mask_ideal_ring_init( VipsMaskIdealRing *ideal_ring )
  * * @optical: coordinates in optical space
  * * @uchar: output a uchar image
  *
- * Make an ideal ring-pass or ring-reject filter, that is, one with a sharp 
- * ring positioned at @frequency_cutoff of width @width, where 
+ * Make an ideal ring-pass or ring-reject filter, that is, one with a sharp
+ * ring positioned at @frequency_cutoff of width @width, where
  * @frequency_cutoff and @width are expressed as the range 0 - 1.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_ideal_ring( VipsImage **out, int width, int height, 
+vips_mask_ideal_ring( VipsImage **out, int width, int height,
 	double frequency_cutoff, double ringwidth, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, ringwidth );
-	result = vips_call_split( "mask_ideal_ring", ap, out, width, height, 
+	result = vips_call_split( "mask_ideal_ring", ap, out, width, height,
 		frequency_cutoff, ringwidth );
 	va_end( ap );
 

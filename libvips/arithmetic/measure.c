@@ -1,6 +1,6 @@
 /* im_measure.c
  *
- * Modified: 
+ * Modified:
  * 19/8/94 JC
  *	- now uses doubles for addressing
  *	- could miss by up to h pixels previously!
@@ -28,7 +28,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -105,12 +105,12 @@ vips_measure_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_decode( measure->in, &ready ) )
-		return( -1 ); 
-	vips_object_local( measure, ready ); 
+		return( -1 );
+	vips_object_local( measure, ready );
 
 	bands = vips_image_get_bands( ready );
 
-	g_object_set( object, 
+	g_object_set( object,
 		"out", vips_image_new_matrix( bands, measure->h * measure->v ),
 		NULL );
 
@@ -139,36 +139,36 @@ vips_measure_build( VipsObject *object )
 			double avg, dev;
 
 			for( b = 0; b < bands; b++ ) {
-				VipsImage **t = (VipsImage **) 
+				VipsImage **t = (VipsImage **)
 					vips_object_local_array( object, 2 );
 
 				/* Extract and measure.
 				 */
-				if( vips_extract_area( ready, &t[0], 
+				if( vips_extract_area( ready, &t[0],
 						x, y, w, h, NULL ) ||
-					vips_extract_band( t[0], &t[1], 
+					vips_extract_band( t[0], &t[1],
 						b, NULL ) ||
 					vips_avg( t[1], &avg, NULL ) ||
-					vips_deviate( t[1], &dev, NULL ) ) 
+					vips_deviate( t[1], &dev, NULL ) )
 					return( -1 );
 
-				/* Is the deviation large compared with the 
-				 * average? This could be a clue that our 
-				 * parameters have caused us to miss the 
-				 * patch. Look out for averages <0, or 
+				/* Is the deviation large compared with the
+				 * average? This could be a clue that our
+				 * parameters have caused us to miss the
+				 * patch. Look out for averages <0, or
 				 * averages near zero (can get these if use
 				 * measure on IM_TYPE_LAB images).
 				 */
-				if( dev * 5 > VIPS_FABS( avg ) && 
+				if( dev * 5 > VIPS_FABS( avg ) &&
 					VIPS_FABS( avg ) > 3 )
 					g_warning( _( "%s: "
 							"patch %d x %d, "
-							"band %d: " 
-							"avg = %g, sdev = %g" ), 
+							"band %d: "
+							"avg = %g, sdev = %g" ),
 						class->nickname,
 						i, j, b, avg, dev );
 
-				*VIPS_MATRIX( measure->out, 
+				*VIPS_MATRIX( measure->out,
 					b, i + j * measure->h ) = avg;
 			}
 		}
@@ -187,59 +187,59 @@ vips_measure_class_init( VipsMeasureClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "measure";
-	object_class->description = 
+	object_class->description =
 		_( "measure a set of patches on a color chart" );
 	object_class->build = vips_measure_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "Input" ), 
+		_( "Input" ),
 		_( "Image to measure" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 2,
+		_( "Output" ),
 		_( "Output array of statistics" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsMeasure, out ) );
 
-	VIPS_ARG_INT( class, "h", 5, 
-		_( "Across" ), 
+	VIPS_ARG_INT( class, "h", 5,
+		_( "Across" ),
 		_( "Number of patches across chart" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, h ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "v", 6, 
-		_( "Down" ), 
+	VIPS_ARG_INT( class, "v", 6,
+		_( "Down" ),
 		_( "Number of patches down chart" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, v ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "left", 10, 
-		_( "Left" ), 
+	VIPS_ARG_INT( class, "left", 10,
+		_( "Left" ),
 		_( "Left edge of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, left ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "top", 11, 
-		_( "Top" ), 
+	VIPS_ARG_INT( class, "top", 11,
+		_( "Top" ),
 		_( "Top edge of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, top ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "width", 12, 
-		_( "Width" ), 
+	VIPS_ARG_INT( class, "width", 12,
+		_( "Width" ),
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 13, 
-		_( "Height" ), 
+	VIPS_ARG_INT( class, "height", 13,
+		_( "Height" ),
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, height ),
@@ -269,11 +269,11 @@ vips_measure_init( VipsMeasure *measure )
  *
  * Analyse a grid of colour patches, producing an array of patch averages.
  * The mask has a row for each measured patch and a column for each image
- * band. The operations issues a warning if any patch has a deviation more 
+ * band. The operations issues a warning if any patch has a deviation more
  * than 20% of
- * the mean. Only the central 50% of each patch is averaged. 
+ * the mean. Only the central 50% of each patch is averaged.
  *
- * If the chart does not fill the whole image, use the optional @left, @top, 
+ * If the chart does not fill the whole image, use the optional @left, @top,
  * @width, @height arguments to indicate the
  * position of the chart.
  *

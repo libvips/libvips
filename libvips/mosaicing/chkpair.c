@@ -1,4 +1,4 @@
-/* find image overlaps 
+/* find image overlaps
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -22,7 +22,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,12 +67,12 @@
  * @xsec: position in secondary image
  * @ysec: position in secondary image
  * @hwindowsize: half window size
- * @hsearchsize: half search size 
+ * @hsearchsize: half search size
  * @correlation: return detected correlation
  * @x: return found position
  * @y: return found position
  *
- * This operation finds the position of @sec within @ref. 
+ * This operation finds the position of @sec within @ref.
  *
  * The area around
  * (@xsec, @ysec) is searched for the best match to the area around (@xref,
@@ -84,13 +84,13 @@
  * very large --- the function  extracts  and  generates  just  the
  * parts needed.  Correlation is done with vips_spcor(); the position of
  * the maximum is found with vips_max().
- * 
+ *
  * See also: vips_match(), vips__lrmosaic().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips__correl( VipsImage *ref, VipsImage *sec, 
+int
+vips__correl( VipsImage *ref, VipsImage *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y )
@@ -102,7 +102,7 @@ vips__correl( VipsImage *ref, VipsImage *sec,
 	VipsRect refr, secr;
 	VipsRect winr, srhr;
 	VipsRect wincr, srhcr;
-	
+
 	/* Find position of window and search area, and clip against image
 	 * size.
 	 */
@@ -128,11 +128,11 @@ vips__correl( VipsImage *ref, VipsImage *sec,
 
 	/* Extract window and search area.
 	 */
-	if( vips_extract_area( ref, &t[0], 
-			wincr.left, wincr.top, wincr.width, wincr.height, 
+	if( vips_extract_area( ref, &t[0],
+			wincr.left, wincr.top, wincr.width, wincr.height,
 			NULL ) ||
-		vips_extract_area( sec, &t[1], 
-			srhcr.left, srhcr.top, srhcr.width, srhcr.height, 
+		vips_extract_area( sec, &t[1],
+			srhcr.left, srhcr.top, srhcr.width, srhcr.height,
 			NULL ) ) {
 		g_object_unref( surface );
 		return( -1 );
@@ -181,7 +181,7 @@ vips__correl( VipsImage *ref, VipsImage *sec,
 	return( 0 );
 }
 
-int 
+int
 vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 {
 	int i;
@@ -193,12 +193,12 @@ vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 
 	/* Check images.
 	 */
-	if( vips_image_wio_input( ref ) || vips_image_wio_input( sec ) ) 
+	if( vips_image_wio_input( ref ) || vips_image_wio_input( sec ) )
 		return( -1 );
-	if( ref->Bands != sec->Bands || ref->BandFmt != sec->BandFmt || 
+	if( ref->Bands != sec->Bands || ref->BandFmt != sec->BandFmt ||
 		ref->Coding != sec->Coding ) {
-		vips_error( "vips_chkpair", "%s", _( "inputs incompatible" ) ); 
-		return( -1 ); 
+		vips_error( "vips_chkpair", "%s", _( "inputs incompatible" ) );
+		return( -1 );
 	}
 	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) {
 		vips_error( "vips_chkpair", "%s", _( "help!" ) );
@@ -208,11 +208,11 @@ vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 	for( i = 0; i < points->nopoints; i++ ) {
 		/* Find correlation point.
 		 */
-		if( vips__correl( ref, sec, 
+		if( vips__correl( ref, sec,
 			points->x_reference[i], points->y_reference[i],
 			points->x_reference[i], points->y_reference[i],
-			hcor, harea, 
-			&correlation, &x, &y ) ) 
+			hcor, harea,
+			&correlation, &x, &y ) )
 			return( -1 );
 
 		/* And note in x_secondary.
@@ -223,9 +223,9 @@ vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 
 		/* Note each dx, dy too.
 		 */
-		points->dx[i] = 
+		points->dx[i] =
 			points->x_secondary[i] - points->x_reference[i];
-		points->dy[i] = 
+		points->dy[i] =
 			points->y_secondary[i] - points->y_reference[i];
 	}
 

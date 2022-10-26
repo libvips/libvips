@@ -8,7 +8,7 @@
  *	- yuk! needs rewriting
  * 21/12/94 JC
  *	- rewritten
- * 14/4/04 
+ * 14/4/04
  *	- sets Xoffset / Yoffset
  * 24/3/09
  * 	- added IM_CODING_RAD support
@@ -22,7 +22,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -128,7 +128,7 @@ vips_flip_vertical_gen( VipsRegion *or, void *seq, void *a, void *b,
 }
 
 static int
-vips_flip_horizontal_gen( VipsRegion *or, void *seq, void *a, void *b, 
+vips_flip_horizontal_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -198,7 +198,7 @@ vips_flip_build( VipsObject *object )
 	if( vips_image_pio_input( flip->in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
+	if( vips_image_pipelinev( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL ) )
 		return( -1 );
 
@@ -214,7 +214,7 @@ vips_flip_build( VipsObject *object )
 	}
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, generate_fn, vips_stop_one, 
+		vips_start_one, generate_fn, vips_stop_one,
 		flip->in, flip ) )
 		return( -1 );
 
@@ -236,18 +236,18 @@ vips_flip_class_init( VipsFlipClass *class )
 	vobject_class->description = _( "flip an image" );
 	vobject_class->build = vips_flip_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFlip, in ) );
 
-	VIPS_ARG_ENUM( class, "direction", 6, 
-		_( "Direction" ), 
+	VIPS_ARG_ENUM( class, "direction", 6,
+		_( "Direction" ),
 		_( "Direction to flip image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFlip, direction ),
-		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL );
 }
 
 static void

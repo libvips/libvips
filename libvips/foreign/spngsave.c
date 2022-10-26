@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -97,7 +97,7 @@ typedef struct _VipsForeignSaveSpng {
 
 typedef VipsForeignSaveClass VipsForeignSaveSpngClass;
 
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveSpng, vips_foreign_save_spng, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveSpng, vips_foreign_save_spng,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -126,7 +126,7 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 }
 
 static int
-vips_foreign_save_spng_text( VipsForeignSaveSpng *spng, 
+vips_foreign_save_spng_text( VipsForeignSaveSpng *spng,
 	const char *keyword, const char *value )
 {
 	struct spng_text *text = VIPS_NEW( NULL, struct spng_text );
@@ -139,17 +139,17 @@ vips_foreign_save_spng_text( VipsForeignSaveSpng *spng,
 	text->text = g_strdup( value );
 
 	spng->text_chunks = g_slist_prepend( spng->text_chunks, text );
-	
+
 	return( 0 );
 }
 
 static void *
-vips_foreign_save_spng_comment( VipsImage *image, 
+vips_foreign_save_spng_comment( VipsImage *image,
 	const char *field, GValue *value, void *user_data )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user_data;
 
-	if( vips_isprefix( "png-comment-", field ) ) { 
+	if( vips_isprefix( "png-comment-", field ) ) {
 		const char *value;
 		int i;
 		char key[256];
@@ -159,7 +159,7 @@ vips_foreign_save_spng_comment( VipsImage *image,
 
 		if( strlen( field ) > 256 ||
 			sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
-			vips_error( "vips2png", 
+			vips_error( "vips2png",
 				"%s", _( "bad png comment key" ) );
 			return( image );
 		}
@@ -171,7 +171,7 @@ vips_foreign_save_spng_comment( VipsImage *image,
 }
 
 static int
-vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in ) 
+vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 {
 	struct spng_iccp iccp;
 	uint32_t n_text;
@@ -194,7 +194,7 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 				"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-			vips_strncpy( iccp.profile_name, basename, 
+			vips_strncpy( iccp.profile_name, basename,
 				sizeof( iccp.profile_name ) );
 			iccp.profile_len = length;
 			iccp.profile = (void *) data;
@@ -266,38 +266,38 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 /* Pack a line of 1/2/4 bit index values.
  */
 static void
-vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng, 
+vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng,
 	VipsPel *q, VipsPel *p, size_t n )
 {
-        int pixel_mask = 8 / spng->bitdepth - 1;
+	int pixel_mask = 8 / spng->bitdepth - 1;
 	int shift = spng->palette ? 0 : 8 - spng->bitdepth;
 
-        VipsPel bits;
-        size_t x;
+	VipsPel bits;
+	size_t x;
 
-        bits = 0;
-        for( x = 0; x < n; x++ ) {
-                bits <<= spng->bitdepth;
+	bits = 0;
+	for( x = 0; x < n; x++ ) {
+		bits <<= spng->bitdepth;
 		bits |= p[x] >> shift;
 
-                if( (x & pixel_mask) == pixel_mask )
-                        *q++ = bits;
-        }
+		if( (x & pixel_mask) == pixel_mask )
+			*q++ = bits;
+	}
 
-        /* Any left-over bits? Need to be left-aligned.
-         */
-        if( (x & pixel_mask) != 0 ) {
-                /* The number of bits we've collected and must
-                 * left-align and flush.
-                 */
-                int collected_bits = (x & pixel_mask) << (spng->bitdepth - 1);
+	/* Any left-over bits? Need to be left-aligned.
+	 */
+	if( (x & pixel_mask) != 0 ) {
+		/* The number of bits we've collected and must
+		 * left-align and flush.
+		 */
+		int collected_bits = (x & pixel_mask) << (spng->bitdepth - 1);
 
-                *q++ = bits << (8 - collected_bits);
-        }
+		*q++ = bits << (8 - collected_bits);
+	}
 }
 
-static int 
-vips_foreign_save_spng_write_fn( spng_ctx *ctx, void *user, 
+static int
+vips_foreign_save_spng_write_fn( spng_ctx *ctx, void *user,
 	void *data, size_t n )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user;
@@ -309,7 +309,7 @@ vips_foreign_save_spng_write_fn( spng_ctx *ctx, void *user,
 }
 
 static int
-vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area, 
+vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 	void *user )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user;
@@ -344,9 +344,9 @@ vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 
 	/* You can get SPNG_EOI for the final scanline.
 	 */
-	if( error && 
+	if( error &&
 		error != SPNG_EOI ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
@@ -354,7 +354,7 @@ vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 }
 
 static int
-vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in ) 
+vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( spng );
 	VipsForeignSave *save = (VipsForeignSave *) spng;
@@ -367,9 +367,9 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 	spng->ctx = spng_ctx_new( SPNG_CTX_ENCODER );
 
-	if( (error = spng_set_png_stream( spng->ctx, 
+	if( (error = spng_set_png_stream( spng->ctx,
 		vips_foreign_save_spng_write_fn, spng )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
@@ -383,15 +383,15 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		break;
 
 	case 2:
-		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA;
 		break;
 
 	case 3:
 		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
 		break;
 
-	case 4: 
-		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA; 
+	case 4:
+		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA;
 		break;
 
 	default:
@@ -414,15 +414,15 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	ihdr.filter_method = 0;
 	ihdr.interlace_method = spng->interlace ? 1 : 0;
 	if( (error = spng_set_ihdr( spng->ctx, &ihdr )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
-	spng_set_option( spng->ctx, 
+	spng_set_option( spng->ctx,
 		SPNG_IMG_COMPRESSION_LEVEL, spng->compression );
-	spng_set_option( spng->ctx, 
+	spng_set_option( spng->ctx,
 		SPNG_TEXT_COMPRESSION_LEVEL, spng->compression );
-	spng_set_option( spng->ctx, 
+	spng_set_option( spng->ctx,
 		SPNG_FILTER_CHOICE, spng->filter );
 
 	/* Set resolution. spng uses pixels per meter.
@@ -448,11 +448,11 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		int palette_count;
 		int i;
 
-		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << spng->bitdepth, 
-			spng->Q, 
-			spng->dither, 
-			spng->effort, 
+		if( vips__quantise_image( in, &im_index, &im_palette,
+			1 << spng->bitdepth,
+			spng->Q,
+			spng->dither,
+			spng->effort,
 			FALSE ) )
 			return( -1 );
 
@@ -462,7 +462,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		g_assert( palette_count <= 256 );
 
 		for( i = 0; i < palette_count; i++ ) {
-			VipsPel *p = (VipsPel *) 
+			VipsPel *p = (VipsPel *)
 				VIPS_IMAGE_ADDR( im_palette, i, 0 );
 			struct spng_plte_entry *entry =
 				&plte.entries[plte.n_entries];
@@ -481,14 +481,14 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 #ifdef DEBUG
 		printf( "attaching %d entry palette\n", plte.n_entries );
 		if( trns.n_type3_entries )
-			printf( "attaching %d transparency values\n", 
+			printf( "attaching %d transparency values\n",
 			     trns.n_type3_entries );
 #endif /*DEBUG*/
 
 		VIPS_UNREF( im_palette );
 
 		spng_set_plte( spng->ctx, &plte );
-		if( trns.n_type3_entries ) 
+		if( trns.n_type3_entries )
 			spng_set_trns( spng->ctx, &trns );
 
 		in = spng->memory = im_index;
@@ -498,21 +498,21 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	/* Low-bitdepth write needs an extra buffer for packing pixels.
 	 */
 	if( spng->bitdepth < 8 ) {
-		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE( in ) / 
+		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE( in ) /
 			(8 / spng->bitdepth);
 
-		if( !(spng->line = 
+		if( !(spng->line =
 			vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( in ) )) )
 			return( -1 );
 	}
 
-	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
+	/* SPNG_FMT_PNG is a special value that matches the format in ihdr
 	 */
 	fmt = SPNG_FMT_PNG;
 	encode_flags = SPNG_ENCODE_PROGRESSIVE | SPNG_ENCODE_FINALIZE;
-	if( (error = spng_encode_image( spng->ctx, 
+	if( (error = spng_encode_image( spng->ctx,
 		NULL, -1, fmt, encode_flags )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		vips_error( class->nickname, "%s", spng_strerror( error ) );
 		return( -1 );
 	}
 
@@ -530,7 +530,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			VipsPel *line;
 			size_t sizeof_line;
 
-			if( (error = 
+			if( (error =
 				spng_get_row_info( spng->ctx, &row_info )) )
 				break;
 
@@ -548,13 +548,13 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		} while( !error );
 
 		if( error != SPNG_EOI ) {
-			vips_error( class->nickname, 
-				"%s", spng_strerror( error ) ); 
+			vips_error( class->nickname,
+				"%s", spng_strerror( error ) );
 			return( -1 );
 		}
 	}
 	else {
-		if( vips_sink_disc( in, 
+		if( vips_sink_disc( in,
 			vips_foreign_save_spng_write_block, spng ) )
 			return( -1 );
 	}
@@ -582,20 +582,20 @@ vips_foreign_save_spng_build( VipsObject *object )
 
 	/* If no output bitdepth has been specified, use input Type to pick.
 	 */
-        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		spng->bitdepth = 
-                        in->Type == VIPS_INTERPRETATION_RGB16 ||
-                        in->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+	if( !vips_object_argument_isset( object, "bitdepth" ) )
+		spng->bitdepth =
+			in->Type == VIPS_INTERPRETATION_RGB16 ||
+			in->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
 	 * that many colours.
 	 */
-        if( vips_object_argument_isset( object, "colours" ) ) 
+	if( vips_object_argument_isset( object, "colours" ) )
 		spng->bitdepth = ceil( log2( spng->colours ) );
 
 	/* Cast in down to 8 bit if we can.
 	 */
-	if( spng->bitdepth <= 8 ) { 
+	if( spng->bitdepth <= 8 ) {
 		VipsImage *x;
 
 		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
@@ -609,7 +609,7 @@ vips_foreign_save_spng_build( VipsObject *object )
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettisation.
 	 */
-        if( in->Bands > 2 &&
+	if( in->Bands > 2 &&
 		spng->bitdepth < 8 )
 		spng->palette = TRUE;
 
@@ -659,22 +659,22 @@ vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
 	save_class->saveable = VIPS_SAVEABLE_RGBA;
 	save_class->format_table = bandfmt_spng;
 
-	VIPS_ARG_INT( class, "compression", 6, 
-		_( "Compression" ), 
+	VIPS_ARG_INT( class, "compression", 6,
+		_( "Compression" ),
 		_( "Compression factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, compression ),
 		0, 9, 6 );
 
-	VIPS_ARG_BOOL( class, "interlace", 7, 
-		_( "Interlace" ), 
+	VIPS_ARG_BOOL( class, "interlace", 7,
+		_( "Interlace" ),
 		_( "Interlace image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, interlace ),
 		FALSE );
 
-	VIPS_ARG_STRING( class, "profile", 11, 
-		_( "Profile" ), 
+	VIPS_ARG_STRING( class, "profile", 11,
+		_( "Profile" ),
 		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, profile ),
@@ -750,14 +750,14 @@ typedef struct _VipsForeignSaveSpngTarget {
 
 typedef VipsForeignSaveSpngClass VipsForeignSaveSpngTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveSpngTarget, vips_foreign_save_spng_target, 
+G_DEFINE_TYPE( VipsForeignSaveSpngTarget, vips_foreign_save_spng_target,
 	vips_foreign_save_spng_get_type() );
 
 static int
 vips_foreign_save_spng_target_build( VipsObject *object )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
-	VipsForeignSaveSpngTarget *target = 
+	VipsForeignSaveSpngTarget *target =
 		(VipsForeignSaveSpngTarget *) object;
 
 	spng->target = target->target;
@@ -786,7 +786,7 @@ vips_foreign_save_spng_target_class_init( VipsForeignSaveSpngTargetClass *class 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
 		_( "Target to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpngTarget, target ),
 		VIPS_TYPE_TARGET );
 
@@ -800,12 +800,12 @@ vips_foreign_save_spng_target_init( VipsForeignSaveSpngTarget *target )
 typedef struct _VipsForeignSaveSpngFile {
 	VipsForeignSaveSpng parent_object;
 
-	char *filename; 
+	char *filename;
 } VipsForeignSaveSpngFile;
 
 typedef VipsForeignSaveSpngClass VipsForeignSaveSpngFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveSpngFile, vips_foreign_save_spng_file, 
+G_DEFINE_TYPE( VipsForeignSaveSpngFile, vips_foreign_save_spng_file,
 	vips_foreign_save_spng_get_type() );
 
 static int
@@ -837,10 +837,10 @@ vips_foreign_save_spng_file_class_init( VipsForeignSaveSpngFileClass *class )
 	object_class->description = _( "save image to file as PNG" );
 	object_class->build = vips_foreign_save_spng_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpngFile, filename ),
 		NULL );
 }
@@ -858,14 +858,14 @@ typedef struct _VipsForeignSaveSpngBuffer {
 
 typedef VipsForeignSaveSpngClass VipsForeignSaveSpngBufferClass;
 
-G_DEFINE_TYPE( VipsForeignSaveSpngBuffer, vips_foreign_save_spng_buffer, 
+G_DEFINE_TYPE( VipsForeignSaveSpngBuffer, vips_foreign_save_spng_buffer,
 	vips_foreign_save_spng_get_type() );
 
 static int
 vips_foreign_save_spng_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
-	VipsForeignSaveSpngBuffer *buffer = 
+	VipsForeignSaveSpngBuffer *buffer =
 		(VipsForeignSaveSpngBuffer *) object;
 
 	VipsBlob *blob;
@@ -897,10 +897,10 @@ vips_foreign_save_spng_buffer_class_init( VipsForeignSaveSpngBufferClass *class 
 	object_class->description = _( "save image to buffer as PNG" );
 	object_class->build = vips_foreign_save_spng_buffer_build;
 
-	VIPS_ARG_BOXED( class, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1,
 		_( "Buffer" ),
 		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpngBuffer, buf ),
 		VIPS_TYPE_BLOB );
 }

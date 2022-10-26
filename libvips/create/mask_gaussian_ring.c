@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,14 +60,14 @@ typedef struct _VipsMaskGaussianRing {
 
 typedef VipsMaskGaussianClass VipsMaskGaussianRingClass;
 
-G_DEFINE_TYPE( VipsMaskGaussianRing, vips_mask_gaussian_ring, 
+G_DEFINE_TYPE( VipsMaskGaussianRing, vips_mask_gaussian_ring,
 	VIPS_TYPE_MASK_GAUSSIAN );
 
 static double
-vips_mask_gaussian_ring_point( VipsMask *mask, double dx, double dy ) 
+vips_mask_gaussian_ring_point( VipsMask *mask, double dx, double dy )
 {
 	VipsMaskGaussian *gaussian = (VipsMaskGaussian *) mask;
-	VipsMaskGaussianRing *gaussian_ring = 
+	VipsMaskGaussianRing *gaussian_ring =
 		(VipsMaskGaussianRing *) mask;
 
 	double fc = gaussian->frequency_cutoff;
@@ -75,11 +75,11 @@ vips_mask_gaussian_ring_point( VipsMask *mask, double dx, double dy )
 	double ringwidth = gaussian_ring->ringwidth;
 
 	double df = ringwidth / 2.0;
-	double df2 = df * df; 
-	double cnst = log( ac ); 
+	double df2 = df * df;
+	double cnst = log( ac );
 	double dist = sqrt( dx * dx + dy * dy );
 
-	return( exp( cnst * (dist - fc) * (dist - fc) / df2 ) ); 
+	return( exp( cnst * (dist - fc) * (dist - fc) / df2 ) );
 }
 
 static void
@@ -97,8 +97,8 @@ vips_mask_gaussian_ring_class_init( VipsMaskGaussianRingClass *class )
 
 	mask_class->point = vips_mask_gaussian_ring_point;
 
-	VIPS_ARG_DOUBLE( class, "ringwidth", 20, 
-		_( "Ringwidth" ), 
+	VIPS_ARG_DOUBLE( class, "ringwidth", 20,
+		_( "Ringwidth" ),
 		_( "Ringwidth" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskGaussianRing, ringwidth ),
@@ -129,25 +129,25 @@ vips_mask_gaussian_ring_init( VipsMaskGaussianRing *gaussian_ring )
  * * @optical: coordinates in optical space
  * * @uchar: output a uchar image
  *
- * Make a gaussian ring-pass or ring-reject filter, that is, one with a 
+ * Make a gaussian ring-pass or ring-reject filter, that is, one with a
  * variable, smooth transition positioned at @frequency_cutoff of width
- * @ringwidth. 
+ * @ringwidth.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_gaussian_ring( VipsImage **out, int width, int height, 
-	double frequency_cutoff, double amplitude_cutoff, double ringwidth, 
+vips_mask_gaussian_ring( VipsImage **out, int width, int height,
+	double frequency_cutoff, double amplitude_cutoff, double ringwidth,
 	... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, ringwidth );
-	result = vips_call_split( "mask_gaussian_ring", 
-		ap, out, width, height, 
+	result = vips_call_split( "mask_gaussian_ring",
+		ap, out, width, height,
 		frequency_cutoff, amplitude_cutoff, ringwidth );
 	va_end( ap );
 
