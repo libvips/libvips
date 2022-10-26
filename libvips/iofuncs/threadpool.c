@@ -118,8 +118,8 @@ vips__threadpool_init( void )
 
 	/* 3 is the useful minimum, and huge values can crash the machine.
 	 */
-        const char *max_threads_env = g_getenv( "VIPS_MAX_THREADS" );
-        int max_threads = max_threads_env ? 
+	const char *max_threads_env = g_getenv( "VIPS_MAX_THREADS" );
+	int max_threads = max_threads_env ? 
 		VIPS_CLIP( 3, atoi( max_threads_env ), MAX_THREADS ) : 
 		0;
 
@@ -128,17 +128,17 @@ vips__threadpool_init( void )
 	if( g_getenv( "VIPS_STALL" ) )
 		vips__stall = TRUE;
 
-        /* max_threads > 0 will create a set of threads on startup. This is
-         * necessary for wasm, but may break on systems that try to fork()
-         * after init.
-         */
-        vips__threadset = vips_threadset_new( max_threads );
+	/* max_threads > 0 will create a set of threads on startup. This is
+	 * necessary for wasm, but may break on systems that try to fork()
+	 * after init.
+	 */
+	vips__threadset = vips_threadset_new( max_threads );
 }
 
 void
 vips__threadpool_shutdown( void )
 {
-        VIPS_FREEF( vips_threadset_free, vips__threadset );
+	VIPS_FREEF( vips_threadset_free, vips__threadset );
 }
 
 /**
@@ -155,7 +155,7 @@ vips__threadpool_shutdown( void )
 int
 vips__thread_execute( const char *domain, GFunc func, gpointer data )
 {
-        return( vips_threadset_run( vips__threadset, domain, func, data ) );
+	return( vips_threadset_run( vips__threadset, domain, func, data ) );
 }
 
 G_DEFINE_TYPE( VipsThreadState, vips_thread_state, VIPS_TYPE_OBJECT );
@@ -238,7 +238,7 @@ typedef struct _VipsWorker {
 
 	VipsThreadState *state;
 
-        gboolean stop;
+	gboolean stop;
 
 } VipsWorker;
 
@@ -256,12 +256,12 @@ typedef struct _VipsThreadpool {
 	VipsThreadpoolAllocateFn allocate;
 	VipsThreadpoolWorkFn work;
 	GMutex *allocate_lock;
-        void *a; 		/* User argument to start / allocate / etc. */
+	void *a; 		/* User argument to start / allocate / etc. */
 
 	int max_workers;	/* Max number of workers in pool */
 
 	/* The number of workers in the pool (as a negative number, so
-         * -4 means 4 workers are running).
+	 * -4 means 4 workers are running).
 	 */
 	VipsSemaphore n_workers;
 
@@ -270,7 +270,7 @@ typedef struct _VipsThreadpool {
 	VipsSemaphore tick;
 
 	/* The number of workers queueing up on allocate_lock. Use this to
-         * grow and shrink the threadpool.
+	 * grow and shrink the threadpool.
 	 */
 	int n_waiting;
 
@@ -282,10 +282,10 @@ typedef struct _VipsThreadpool {
 	 */
 	gboolean stop;
 
-        /* Set this and the next worker to see it will clear the flag and exit
-         * (used to downsize the threadpool).
-         */
-        int exit;
+	/* Set this and the next worker to see it will clear the flag and exit
+	 * (used to downsize the threadpool).
+	 */
+	int exit;
 } VipsThreadpool;
 
 static int
@@ -325,31 +325,31 @@ vips_worker_work_unit( VipsWorker *worker )
 	/* Has another worker signaled stop while we've been waiting?
 	 */
 	if( pool->stop ) {
-                worker->stop = TRUE;
+		worker->stop = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
 	}
 
-        /* Has a thread been asked to exit? Volunteer if yes.
-         */
-        if( g_atomic_int_add( &pool->exit, -1 ) > 0 ) {
-                /* A thread had been asked to exit, and we've grabbed the
-                 * flag.
-                 */
-                worker->stop = TRUE;
+	/* Has a thread been asked to exit? Volunteer if yes.
+	 */
+	if( g_atomic_int_add( &pool->exit, -1 ) > 0 ) {
+		/* A thread had been asked to exit, and we've grabbed the
+		 * flag.
+		 */
+		worker->stop = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
-        }
-        else {
-                /* No one had been asked to exit and we've mistakenly taken 
-                 * the exit count below zero. Put it back up again.
-                 */
-                g_atomic_int_add( &pool->exit, 1 );
-        }
+	}
+	else {
+		/* No one had been asked to exit and we've mistakenly taken 
+		 * the exit count below zero. Put it back up again.
+		 */
+		g_atomic_int_add( &pool->exit, 1 );
+	}
 
 	if( vips_worker_allocate( worker ) ) {
 		pool->error = TRUE;
-                worker->stop = TRUE;
+		worker->stop = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
 	}
@@ -357,7 +357,7 @@ vips_worker_work_unit( VipsWorker *worker )
 	/* Have we just signalled stop?
 	 */
 	if( pool->stop ) {
-                worker->stop = TRUE;
+		worker->stop = TRUE;
 		g_mutex_unlock( pool->allocate_lock );
 		return;
 	}
@@ -372,15 +372,15 @@ vips_worker_work_unit( VipsWorker *worker )
 		g_usleep( 500000 ); 
 		worker->state->stall = FALSE;
 		printf( "vips_worker_work_unit: stall done, "
-                        "releasing y = %d ...\n", worker->state->y ); 
+			"releasing y = %d ...\n", worker->state->y ); 
 	}
 
 	/* Process a work unit.
 	 */
 	if( pool->work( worker->state, pool->a ) ) {
-                worker->stop = TRUE;
+		worker->stop = TRUE;
 		pool->error = TRUE;
-        }
+	}
 }
 
 /* What runs as a thread ... loop, waiting to be told to do stuff.
@@ -388,7 +388,7 @@ vips_worker_work_unit( VipsWorker *worker )
 static void
 vips_thread_main_loop( void *a, void *b )
 {
-        VipsWorker *worker = (VipsWorker *) a;
+	VipsWorker *worker = (VipsWorker *) a;
 	VipsThreadpool *pool = worker->pool;
 
 	g_assert( pool == worker->pool );
@@ -401,8 +401,8 @@ vips_thread_main_loop( void *a, void *b )
 	 * main thread will wake up for exit. 
 	 */
 	while( !pool->stop && 
-                !worker->stop && 
-                !pool->error ) {
+		!worker->stop && 
+		!pool->error ) {
 		VIPS_GATE_START( "vips_worker_work_unit: u" ); 
 		vips_worker_work_unit( worker );
 		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
@@ -411,9 +411,9 @@ vips_thread_main_loop( void *a, void *b )
 
 	VIPS_GATE_STOP( "vips_thread_main_loop: thread" ); 
 
-        /* unreffing the worker state will trigger stop in the threadstate, so
-         * we need to single-thread.
-         */
+	/* unreffing the worker state will trigger stop in the threadstate, so
+	 * we need to single-thread.
+	 */
 	g_mutex_lock( pool->allocate_lock );
 
 	VIPS_FREEF( g_object_unref, worker->state );
@@ -425,7 +425,7 @@ vips_thread_main_loop( void *a, void *b )
 
 	/* We are done: tell the main thread.
 	 */
-        vips_semaphore_upn( &pool->n_workers, 1 );
+	vips_semaphore_upn( &pool->n_workers, 1 );
 }
 
 /* Attach another thread to a threadpool.
@@ -445,15 +445,15 @@ vips_worker_new( VipsThreadpool *pool )
 	 * owned by the correct thread.
 	 */
 
-        if( vips__thread_execute( "worker", 
-                vips_thread_main_loop, worker ) ) {
+	if( vips__thread_execute( "worker", 
+		vips_thread_main_loop, worker ) ) {
 		g_free( worker );
 		return( -1 );
 	}
 
-        /* One more worker in the pool.
-         */
-        vips_semaphore_upn( &pool->n_workers, -1 );
+	/* One more worker in the pool.
+	 */
+	vips_semaphore_upn( &pool->n_workers, -1 );
 
 	return( 0 );
 }
@@ -461,24 +461,24 @@ vips_worker_new( VipsThreadpool *pool )
 void
 vips__worker_lock( GMutex *mutex )
 {
-        VipsWorker *worker = (VipsWorker *) g_private_get( worker_key );
+	VipsWorker *worker = (VipsWorker *) g_private_get( worker_key );
 
-        if( worker )
-                g_atomic_int_add( &worker->pool->n_waiting, 1 );
+	if( worker )
+		g_atomic_int_add( &worker->pool->n_waiting, 1 );
 	g_mutex_lock( mutex );
-        if( worker )
-                g_atomic_int_add( &worker->pool->n_waiting, -1 );
+	if( worker )
+		g_atomic_int_add( &worker->pool->n_waiting, -1 );
 }
 
 static void
 vips_threadpool_free( VipsThreadpool *pool )
 {
 	VIPS_DEBUG_MSG( "vips_threadpool_free: \"%s\" (%p)\n", 
-                pool->im->filename, pool );
+		pool->im->filename, pool );
 
 	/* Wait for them all to exit.
 	 */
-        pool->stop = TRUE;
+	pool->stop = TRUE;
 	vips_semaphore_downn( &pool->n_workers, 0 );
 
 	VIPS_FREEF( vips_g_mutex_free, pool->allocate_lock );
@@ -512,7 +512,7 @@ vips_threadpool_new( VipsImage *im )
 	pool->exit = 0;
 
 	/* If this is a tiny image, we won't need all max_workers threads. 
-         * Guess how
+	 * Guess how
 	 * many tiles we might need to cover the image and use that to limit
 	 * the number of threads we create.
 	 */
@@ -522,13 +522,13 @@ vips_threadpool_new( VipsImage *im )
 	n_tiles = VIPS_CLIP( 1, n_tiles, 1024 ); 
 	pool->max_workers = VIPS_MIN( pool->max_workers, n_tiles ); 
 
-        /* VIPS_META_CONCURRENCY on the image can optionally override 
-         * concurrency.
-         */
-        pool->max_workers = vips_image_get_concurrency( im, pool->max_workers );
+	/* VIPS_META_CONCURRENCY on the image can optionally override 
+	 * concurrency.
+	 */
+	pool->max_workers = vips_image_get_concurrency( im, pool->max_workers );
 
 	VIPS_DEBUG_MSG( "vips_threadpool_new: "
-                "\"%s\" (%p), with %d threads\n", 
+		"\"%s\" (%p), with %d threads\n", 
 		im->filename, pool, pool->max_workers );
 
 	return( pool );
@@ -646,8 +646,8 @@ vips_threadpool_run( VipsImage *im,
 {
 	VipsThreadpool *pool; 
 	int result;
-        int n_waiting;
-        int n_working;
+	int n_waiting;
+	int n_working;
 
 	if( !(pool = vips_threadpool_new( im )) )
 		return( -1 );
@@ -658,13 +658,13 @@ vips_threadpool_run( VipsImage *im,
 	pool->a = a;
 
 	/* Start with half of the max number of threads, then let it drift up
-         * and down with load.
+	 * and down with load.
 	 */
-        for( n_working = 0; n_working < 1 + pool->max_workers / 2; n_working++ )
-                if( vips_worker_new( pool ) ) {
-                        vips_threadpool_free( pool );
-                        return( -1 );
-                }
+	for( n_working = 0; n_working < 1 + pool->max_workers / 2; n_working++ )
+		if( vips_worker_new( pool ) ) {
+			vips_threadpool_free( pool );
+			return( -1 );
+		}
 
 	for(;;) {
 		/* Wait for a tick from a worker.
@@ -685,33 +685,33 @@ vips_threadpool_run( VipsImage *im,
 			pool->error )
 			break;
 
-                n_waiting = g_atomic_int_get( &pool->n_waiting );
-                VIPS_DEBUG_MSG( "n_waiting = %d\n", n_waiting );
-                VIPS_DEBUG_MSG( "n_working = %d\n", n_working );
-                VIPS_DEBUG_MSG( "exit = %d\n", pool->exit );
+		n_waiting = g_atomic_int_get( &pool->n_waiting );
+		VIPS_DEBUG_MSG( "n_waiting = %d\n", n_waiting );
+		VIPS_DEBUG_MSG( "n_working = %d\n", n_working );
+		VIPS_DEBUG_MSG( "exit = %d\n", pool->exit );
 
-                if( n_waiting > 3 &&
-                        n_working > 1 ) {
-                        VIPS_DEBUG_MSG( "shrinking thread pool\n" );
-                        g_atomic_int_add( &pool->exit, 1 );
-                        n_working -= 1;
-                }
-                else if( n_waiting < 2 &&
-                        n_working < pool->max_workers ) {
-                        VIPS_DEBUG_MSG( "expanding thread pool\n" );
-                        if( vips_worker_new( pool ) ) {
-                                vips_threadpool_free( pool );
-                                return( -1 );
-                        }
-                        n_working += 1;
-                }
+		if( n_waiting > 3 &&
+			n_working > 1 ) {
+			VIPS_DEBUG_MSG( "shrinking thread pool\n" );
+			g_atomic_int_add( &pool->exit, 1 );
+			n_working -= 1;
+		}
+		else if( n_waiting < 2 &&
+			n_working < pool->max_workers ) {
+			VIPS_DEBUG_MSG( "expanding thread pool\n" );
+			if( vips_worker_new( pool ) ) {
+				vips_threadpool_free( pool );
+				return( -1 );
+			}
+			n_working += 1;
+		}
 	}
 
-        /*
-        if( !vips_image_get_concurrency( im, 0 ) )
-                printf( "vips_threadpool_run: "
-                        "finished with %d workers in pool\n", n_working );
-         */
+	/*
+	if( !vips_image_get_concurrency( im, 0 ) )
+		printf( "vips_threadpool_run: "
+			"finished with %d workers in pool\n", n_working );
+	 */
 
 	/* Return 0 for success.
 	 */

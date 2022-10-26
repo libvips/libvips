@@ -141,7 +141,7 @@ vips_thread_run( gpointer data )
 
 	/* Set this to something (anything) to tag this thread as a vips 
 	 * worker. No need to call g_private_replace as there is no
-         * GDestroyNotify handler associated with a worker.
+	 * GDestroyNotify handler associated with a worker.
 	 */
 	g_private_set( is_vips_thread_key, info );
 
@@ -408,12 +408,12 @@ vips_get_tile_size( VipsImage *im,
 		break;
 
 	case VIPS_DEMAND_STYLE_THINSTRIP:
-                *tile_width = im->Xsize;
-                /* Only enable thinstrip height for very wide images -- the
-                 * overheads are too high to be worthwhile otherwise.
-                 */
-                *tile_height = im->Xsize > 10000 ? 
-                        vips__thinstrip_height : vips__fatstrip_height;
+		*tile_width = im->Xsize;
+		/* Only enable thinstrip height for very wide images -- the
+		 * overheads are too high to be worthwhile otherwise.
+		 */
+		*tile_height = im->Xsize > 10000 ? 
+			vips__thinstrip_height : vips__fatstrip_height;
 		break;
 
 	default:
@@ -432,8 +432,8 @@ vips_get_tile_size( VipsImage *im,
 	 */
 	*n_lines = vips__tile_height * 
 		VIPS_ROUND_UP( vips__tile_width * nthr, 
-                        typical_image_width ) / 
-                typical_image_width;
+			typical_image_width ) / 
+		typical_image_width;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
 	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
