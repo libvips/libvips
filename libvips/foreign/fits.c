@@ -330,8 +330,7 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
-        /* SMALLTILE is very small, since we do three calls into fits for each
-         * tile. FATSTRIP is much faster for larger images.
+        /* We read in lines, so SMALLTILE ends up being too small.
          */
 	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
 		return( -1 );
@@ -460,7 +459,7 @@ vips_fits_scatter( VipsFits *fits, VipsPel *q, VipsPel *p, int width, int band )
 }
 
 static int
-fits2vips_generate( VipsRegion *out, 
+vips_fits_generate( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsFits *fits = (VipsFits *) a;
@@ -521,7 +520,7 @@ vips__fits_read( const char *filename, VipsImage *out )
 		return( -1 );
 	if( vips_fits_get_header( fits, out ) ||
 		vips_image_generate( out, 
-			NULL, fits2vips_generate, NULL, fits, NULL ) ) {
+			NULL, vips_fits_generate, NULL, fits, NULL ) ) {
 		vips_fits_close( fits );
 		return( -1 );
 	}
