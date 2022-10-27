@@ -35,6 +35,7 @@
  * 	- skip HDUs with zero dimensions, thanks benepo
  * 27/10/22
  *      - band interleave ourselves on read
+ *      - don't duplicate metadata
  */
 
 /*
@@ -597,6 +598,20 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	return( fits );
 }
 
+/* Header fields which cfitsio 4.1 writes for us start like this.
+ */
+const char *vips_fits_basic[] = {
+	"SIMPLE ",
+	"BITPIX ",
+	"NAXIS ",
+	"NAXIS1 ",
+	"NAXIS2 ",
+	"NAXIS3 ",
+	"EXTEND ",
+	"COMMENT   FITS (Fl",
+	"COMMENT   and Astro",
+};
+
 static void *
 vips_fits_write_meta( VipsImage *image, 
 	const char *field, GValue *value, void *a )
@@ -617,6 +632,12 @@ vips_fits_write_meta( VipsImage *image,
 	 * above ^^.
 	 */
 	value_str = vips_value_get_ref_string( value, NULL );
+
+	/* We don't want fields which cfitsio will have already written for us.
+	 */
+	for( int i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ ) 
+		if( vips_isprefix( vips_fits_basic[i], value_str ) )
+		       return( NULL );	
 
 	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
 	VIPS_DEBUG_MSG( " value == \"%s\"\n", value_str );

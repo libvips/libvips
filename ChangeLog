@@ -18,7 +18,8 @@ master
 - threadpools size dynamically with load
 - operations can hint threadpool size
 - support for N-colour ICC profiles
-- revised fits load allows many more bands
+- fits load and allows many more bands
+- fits write doesn't duplicate header fields
 
 11/10/22 started 8.13.3
 - improve rules for 16-bit heifsave [johntrunc]
