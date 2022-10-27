@@ -531,7 +531,8 @@ vips_foreign_load_nsgif_load( VipsForeignLoad *load )
 	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_nsgif_generate, NULL, gif, NULL ) ||
 		vips_sequential( t[0], &t[1],
-			"tile_height", vips_foreign_load_nsgif_tile_height(gif),
+			"tile_height", 
+				vips_foreign_load_nsgif_tile_height( gif ),
 			NULL ) ||
 		vips_image_write( t[1], load->real ) )
 		return( -1 );
@@ -627,6 +628,7 @@ vips_foreign_load_nsgif_init( VipsForeignLoadNsgif *gif )
 		&gif->anim );
 	if (result != NSGIF_OK) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+
 		vips_error( class->nickname, "%s",
 			nsgif_strerror( result ) );
 		return;
