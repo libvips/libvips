@@ -33,6 +33,8 @@
  *	  extended filename syntax 
  * 15/4/17
  * 	- skip HDUs with zero dimensions, thanks benepo
+ * 27/10/22
+ *      - band interleave ourselves on read
  */
 
 /*
@@ -326,7 +328,11 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		 width, height, bands,
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
-	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+
+        /* SMALLTILE is very small, since we do three calls into fits for each
+         * tile. FATSTRIP is much faster for larger images.
+         */
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
 		return( -1 );
 
 	/* We need to be able to hold one scanline of one band for
