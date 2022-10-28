@@ -484,8 +484,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		/* Local mode. Pick the global, this or previous palette.
 		 */
 		if( vips_foreign_save_cgif_pick_quantiser( cgif, 
-			image, &quantisation_result, &use_local ) )
+			image, &quantisation_result, &use_local ) ) {
+			VIPS_FREEF( vips__quantise_image_destroy, image );
 			return( -1 );
+		}
 	}
 
 	lp = vips__quantise_get_palette( quantisation_result );
