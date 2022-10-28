@@ -234,6 +234,13 @@ vips_colour_gen( VipsRegion *or,
 	int i, y;
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 
+        /*
+        printf( "vips_colour_gen: %s, "
+                "left = %d, top = %d, width = %d, height = %d\n",
+                VIPS_OBJECT_CLASS( class )->nickname,
+                r->left, r->top, r->width, r->height );
+         */
+
 	if( vips_reorder_prepare_many( or->im, ir, r ) )
 		return( -1 );
 

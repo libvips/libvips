@@ -213,6 +213,46 @@ is_pcs( cmsHPROFILE profile )
 		cmsGetColorSpace( profile ) == cmsSigXYZData ); 
 }
 
+/* Info for all supported lcms profile signatures.
+ */
+typedef struct _VipsIccInfo {
+        int signature;
+        int bands;
+        guint lcms_type8;
+        guint lcms_type16;
+} VipsIccInfo;
+
+static VipsIccInfo vips_icc_info_table[] = {
+        { cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16 },
+
+        { cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16 },
+        { cmsSigLabData, 3, TYPE_Lab_8, TYPE_Lab_16 },
+        { cmsSigXYZData, 3, -1, TYPE_XYZ_16 },
+
+        { cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
+        { cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
+        { cmsSig5colorData, 5, TYPE_CMYK5_8, TYPE_CMYK5_16 },
+        { cmsSig6colorData, 6, TYPE_CMYK6_8, TYPE_CMYK6_16 },
+        { cmsSig7colorData, 7, TYPE_CMYK7_8, TYPE_CMYK7_16 },
+        { cmsSig8colorData, 8, TYPE_CMYK8_8, TYPE_CMYK8_16 },
+        { cmsSig9colorData, 9, TYPE_CMYK9_8, TYPE_CMYK9_16 },
+        { cmsSig10colorData, 10, TYPE_CMYK10_8, TYPE_CMYK10_16 },
+        { cmsSig11colorData, 11, TYPE_CMYK11_8, TYPE_CMYK11_16 },
+        { cmsSig12colorData, 12, TYPE_CMYK12_8, TYPE_CMYK12_16 },
+};
+
+static VipsIccInfo *
+vips_icc_info( int signature )
+{
+        int i;
+
+        for( i = 0; i < VIPS_NUMBER( vips_icc_info_table ); i++ )
+                if( vips_icc_info_table[i].signature == signature )
+                        return( &vips_icc_info_table[i] );
+
+        return( NULL );
+}
+
 static int
 vips_icc_build( VipsObject *object )
 {
@@ -232,75 +272,95 @@ vips_icc_build( VipsObject *object )
 
 	if( icc->in_profile &&
 		code->in ) {
-		switch( cmsGetColorSpace( icc->in_profile ) ) {
-		case cmsSigRgbData:
-			colour->input_bands = 3;
-			code->input_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = 
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_RGB_16 : TYPE_RGB_8;
-			break;
+                int signature;
+                VipsIccInfo *info;
 
+                signature = cmsGetColorSpace( icc->in_profile );
+                if( !(info = vips_icc_info( signature )) ) {
+			vips_error( class->nickname, 
+				_( "unimplemented input color space 0x%x" ), 
+				signature );
+			return( -1 );
+		}
+
+                colour->input_bands = info->bands;
+
+		switch( signature ) {
 		case cmsSigGrayData:
-			colour->input_bands = 1;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
 			icc->in_icc_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_GRAY_16 : TYPE_GRAY_8;
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
-		case cmsSigCmykData:
-			colour->input_bands = 4;
+		case cmsSigRgbData:
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
 			icc->in_icc_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-				TYPE_CMYK_16 : TYPE_CMYK_8;
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
 		case cmsSigLabData:
-			colour->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_LAB;
-			icc->in_icc_format = TYPE_Lab_16;
+			icc->in_icc_format = info->lcms_type16;
 			break;
 
 		case cmsSigXYZData:
-			colour->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
-			icc->in_icc_format = TYPE_XYZ_16;
+			code->input_interpretation = 
+				VIPS_INTERPRETATION_XYZ;
+			icc->in_icc_format = info->lcms_type16;
+			break;
+
+		case cmsSigCmykData:
+		case cmsSig5colorData:
+		case cmsSig6colorData:
+		case cmsSig7colorData:
+		case cmsSig8colorData:
+		case cmsSig9colorData:
+		case cmsSig10colorData:
+		case cmsSig11colorData:
+		case cmsSig12colorData:
+                        /* Treat as forms of CMYK.
+                         */
+                        info = vips_icc_info( 
+                                cmsGetColorSpace( icc->in_profile ) );
+
+			code->input_format = 
+				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
+				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+			icc->in_icc_format = 
+				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
 		default:
-			vips_error( class->nickname, 
-				_( "unimplemented input color space 0x%x" ), 
-				cmsGetColorSpace( icc->in_profile ) );
+			g_assert_not_reached(); 
 			return( -1 );
 		}
 	}
 
-	if( icc->out_profile ) 
-		switch( cmsGetColorSpace( icc->out_profile ) ) {
-		case cmsSigRgbData:
-			colour->interpretation = 
-				icc->depth == 8 ? 
-				VIPS_INTERPRETATION_sRGB : 
-					VIPS_INTERPRETATION_RGB16;
-			colour->format = 
-				icc->depth == 8 ? 
-				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			colour->bands = 3;
-			icc->out_icc_format = 
-				icc->depth == 16 ? 
-				TYPE_RGB_16 : TYPE_RGB_8;
-			break;
+	if( icc->out_profile ) {
+                int signature;
+                VipsIccInfo *info;
 
+                signature = cmsGetColorSpace( icc->out_profile );
+                if( !(info = vips_icc_info( signature )) ) {
+			vips_error( class->nickname, 
+				_( "unimplemented output color space 0x%x" ), 
+				signature );
+			return( -1 );
+		}
+
+                colour->bands = info->bands;
+
+		switch( signature ) {
 		case cmsSigGrayData:
 			colour->interpretation = 
 				icc->depth == 8 ? 
@@ -309,43 +369,61 @@ vips_icc_build( VipsObject *object )
 			colour->format = 
 				icc->depth == 8 ? 
 				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			colour->bands = 1;
 			icc->out_icc_format = 
 				icc->depth == 16 ? 
-				TYPE_GRAY_16 : TYPE_GRAY_8;
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
-		case cmsSigCmykData:
-			colour->interpretation = VIPS_INTERPRETATION_CMYK;
+		case cmsSigRgbData:
+			colour->interpretation = 
+				icc->depth == 8 ? 
+				VIPS_INTERPRETATION_sRGB : 
+					VIPS_INTERPRETATION_RGB16;
 			colour->format = 
 				icc->depth == 8 ? 
 				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			colour->bands = 4;
 			icc->out_icc_format = 
 				icc->depth == 16 ? 
-				TYPE_CMYK_16 : TYPE_CMYK_8;
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
 		case cmsSigLabData:
 			colour->interpretation = VIPS_INTERPRETATION_LAB;
 			colour->format = VIPS_FORMAT_FLOAT;
-			colour->bands = 3;
-			icc->out_icc_format = TYPE_Lab_16;
+			icc->out_icc_format = info->lcms_type16;
 			break;
 
 		case cmsSigXYZData:
 			colour->interpretation = VIPS_INTERPRETATION_XYZ;
 			colour->format = VIPS_FORMAT_FLOAT;
-			colour->bands = 3;
-			icc->out_icc_format = TYPE_XYZ_16;
+			icc->out_icc_format = info->lcms_type16;
+			break;
+
+		case cmsSigCmykData:
+		case cmsSig5colorData:
+		case cmsSig6colorData:
+		case cmsSig7colorData:
+		case cmsSig8colorData:
+		case cmsSig9colorData:
+		case cmsSig10colorData:
+		case cmsSig11colorData:
+		case cmsSig12colorData:
+                        /* Treat as forms of CMYK.
+                         */
+			colour->interpretation = VIPS_INTERPRETATION_CMYK;
+			colour->format = 
+				icc->depth == 8 ? 
+				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
+			icc->out_icc_format = 
+				icc->depth == 16 ? 
+				info->lcms_type16 : info->lcms_type8;
 			break;
 
 		default:
-			vips_error( class->nickname, 
-				_( "unimplemented output color space 0x%x" ), 
-				cmsGetColorSpace( icc->out_profile ) );
+			g_assert_not_reached(); 
 			return( -1 );
 		}
+        }
 
 	/* At least one must be a device profile.
 	 */
@@ -467,166 +545,6 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 }
 #endif /*DEBUG*/
 
-/* How many bands we expect to see from an image after preprocessing by our
- * parent classes. This is a bit fragile :-( 
- *
- * FIXME ... split the _build() for colour into separate preprocess / process
- * / postprocess phases so we can load profiles after preprocess but before
- * actual processing takes place.
- */
-static int
-vips_image_expected_bands( VipsImage *image )
-{
-	int expected_bands;
-
-	switch( image->Type ) { 
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		expected_bands = 1;
-		break;
-
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_LABQ:
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-		expected_bands = 3;
-		break;
-
-	case VIPS_INTERPRETATION_CMYK:
-		expected_bands = 4;
-		break;
-
-	case VIPS_INTERPRETATION_MULTIBAND:
-	case VIPS_INTERPRETATION_HISTOGRAM:
-	case VIPS_INTERPRETATION_MATRIX:
-	case VIPS_INTERPRETATION_FOURIER:
-	default:
-		expected_bands = image->Bands;
-		break;
-	}
-
-	expected_bands = VIPS_MIN( expected_bands, image->Bands );
-
-	return( expected_bands );
-}
-
-static int
-vips_icc_profile_needs_bands( cmsHPROFILE profile )
-{
-	int needs_bands;
-
-	switch( cmsGetColorSpace( profile ) ) {
-	case cmsSigGrayData:
-		needs_bands = 1;
-		break;
-
-	case cmsSigRgbData:
-	case cmsSigLabData:
-	case cmsSigXYZData:
-		needs_bands = 3;
-		break;
-
-	case cmsSigCmykData:
-		needs_bands = 4;
-		break;
-
-	default:
-		needs_bands = -1;
-		break;
-	}
-
-	return( needs_bands );
-}
-
-/* What cmsColorSpaceSignature do we expect this image to be (roughly) after 
- * preprocessing. Again, fragile :( see the FIXME above.
- */
-static cmsColorSpaceSignature
-vips_image_expected_sig( VipsImage *image )
-{
-	cmsColorSpaceSignature expected_sig;
-
-	switch( image->Type ) { 
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		expected_sig = cmsSigGrayData;
-		break;
-
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_LABQ:
-	case VIPS_INTERPRETATION_LABS:
-		expected_sig = cmsSigLabData;
-		break;
-
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-		expected_sig = cmsSigRgbData;
-		break;
-
-	case VIPS_INTERPRETATION_XYZ:
-		expected_sig = cmsSigXYZData;
-		break;
-
-	case VIPS_INTERPRETATION_CMYK:
-		expected_sig = cmsSigCmykData;
-		break;
-
-	case VIPS_INTERPRETATION_HSV:
-		expected_sig = cmsSigHsvData;
-		break;
-
-	case VIPS_INTERPRETATION_YXY:
-		expected_sig = cmsSigYxyData;
-		break;
-
-	case VIPS_INTERPRETATION_MULTIBAND:
-		/* A generic many-band image. Try to guess from the number of 
-		 * image bands instead.
-		 */
-		switch( image->Bands ) {
-		case 1:
-		case 2:
-			expected_sig = cmsSigGrayData;
-			break;
-
-		case 3:
-			expected_sig = cmsSigRgbData;
-			break;
-
-		case 4:
-		case 5:
-			expected_sig = cmsSigCmykData;
-			break;
-
-		default:
-			expected_sig = -1;
-			break;
-		}
-		break;
-
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_HISTOGRAM:
-	case VIPS_INTERPRETATION_MATRIX:
-	case VIPS_INTERPRETATION_FOURIER:
-	default:
-		expected_sig = -1;
-		break;
-	}
-
-	return( expected_sig );
-}
-
 /* Load a profile from a blob and check compatibility with image, intent and
  * direction.
  *
@@ -639,6 +557,7 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 	const void *data;
 	size_t size;
 	cmsHPROFILE profile;
+        VipsIccInfo *info;
 
 #ifdef DEBUG
 	printf( "loading %s profile, intent %s, from blob %p\n", 
@@ -657,20 +576,16 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 	vips_icc_print_profile( "loaded from blob to make", profile );
 #endif /*DEBUG*/
 
-	if( image &&
-		vips_image_expected_bands( image ) != 
-			vips_icc_profile_needs_bands( profile ) ) {
+        if( !(info = vips_icc_info( cmsGetColorSpace( profile ) )) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", _( "profile incompatible with image" ) );
-		return( NULL );
-	}
+		g_warning( "%s", _( "unsupported profile" ) );
+                return( NULL );
+        }
 
 	if( image &&
-		vips_image_expected_sig( image ) != 
-			cmsGetColorSpace( profile ) ) {
+		image->Bands < info->bands ) { 
 		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", 
-			_( "profile colourspace differs from image" ) );
+		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
 	}
 
@@ -1385,6 +1300,7 @@ vips_icc_is_compatible_profile( VipsImage *image,
 	const void *data, size_t data_length )
 {
 	cmsHPROFILE profile;
+        VipsIccInfo *info;
 
 	if( !(profile = cmsOpenProfileFromMem( data, data_length )) ) 
 		/* Corrupt profile. 
@@ -1395,13 +1311,16 @@ vips_icc_is_compatible_profile( VipsImage *image,
 	vips_icc_print_profile( "from memory", profile );
 #endif /*DEBUG*/
 
-	if( vips_image_expected_bands( image ) != 
-		vips_icc_profile_needs_bands( profile ) ) {
+        if( !(info = vips_icc_info( cmsGetColorSpace( profile ) )) ) {
+                /* Unsupported profile.
+                 */
 		VIPS_FREEF( cmsCloseProfile, profile );
-		return( FALSE );
-	}
+                return( FALSE );
+        }
 
-	if( vips_image_expected_sig( image ) != cmsGetColorSpace( profile ) ) {
+	if( image->Bands < info->bands ) {
+                /* Too few bands,
+                 */
 		VIPS_FREEF( cmsCloseProfile, profile );
 		return( FALSE );
 	}

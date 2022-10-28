@@ -13,6 +13,19 @@ master
 - add ".pnm" save [ewelot]
 - threaded tiff jp2k and jpeg decompress
 - improve speed and efficiency of animated WebP write [dloebl]
+- add rgb mode to openslideload
+- new thread recycler
+- threadpools size dynamically with load
+- operations can hint threadpool size
+- support for N-colour ICC profiles
+
+11/10/22 started 8.13.3
+- improve rules for 16-bit heifsave [johntrunc]
+- improve libspng pallette write [kleisauke]
+- improve libspng pallette sort [DarthSim]
+- ensure EXIF has prefix before parsing [lovell]
+- fix low bit depth pallette spng save [DarthSim]
+- fix thumbnail of non-sRGB images with an export profile [kleisauke]
 
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
@@ -22,6 +35,7 @@ master
 - reduce latency on dzsave kill [kleisauke]
 - improve text too large check [kleisauke]
 - fix subifd writing for small images [ruven]
+- name ICC profiles in spngsave [lovell]
 
 24/7/22 started 8.13.1
 - fix im7 feature detection in meson

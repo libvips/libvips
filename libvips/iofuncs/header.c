@@ -952,6 +952,30 @@ vips_image_get_n_pages( VipsImage *image )
 }
 
 /**
+ * vips_image_get_concurrency:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check #VIPS_CONCURRENCY. Default to 1 if not present or
+ * crazy.
+ *
+ * Returns: the suggested concurrency for this image
+ */
+int
+vips_image_get_concurrency( VipsImage *image, int default_concurrency )
+{
+        int concurrency;
+
+	if( vips_image_get_typeof( image, VIPS_META_CONCURRENCY ) &&
+		!vips_image_get_int( image, 
+                        VIPS_META_CONCURRENCY, &concurrency ) &&
+		concurrency >= 1 &&
+		concurrency < 100 )
+		return( concurrency );
+
+	return(	default_concurrency );
+}
+
+/**
  * vips_image_get_n_subifds:
  * @image: image to get from
  *
@@ -1545,8 +1569,8 @@ vips_image_get_fields( VipsImage *image )
  * vips_image_set_area:
  * @image: image to attach the metadata to
  * @name: metadata name
- * @free_fn: (scope async): free function for @data
- * @data: pointer to area of memory
+ * @free_fn: (scope async) (nullable): free function for @data
+ * @data: (transfer full): pointer to area of memory
  *
  * Attaches @data as a metadata item on @image under the name @name. When
  * VIPS no longer needs the metadata, it will be freed with @free_fn.
@@ -1622,8 +1646,9 @@ vips_image_get_area( const VipsImage *image,
  * vips_image_set_blob:
  * @image: image to attach the metadata to
  * @name: metadata name
- * @free_fn: (scope async): free function for @data
- * @data: (array length=length) (element-type guint8): pointer to area of memory
+ * @free_fn: (scope async) (nullable): free function for @data
+ * @data: (array length=length) (element-type guint8) (transfer full): pointer to area of
+ * memory
  * @length: length of memory area
  *
  * Attaches @blob as a metadata item on @image under the name @name. A 

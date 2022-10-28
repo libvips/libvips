@@ -88,7 +88,8 @@ foreach _, section : build_summary
     foreach key, arr : section
         if key.contains('gtk-doc') or \
            key.contains('doxygen') or \
-           key.contains('introspection')
+           key.contains('introspection') or \
+           key.contains('examples')
            continue
         endif
 

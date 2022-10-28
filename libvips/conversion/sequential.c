@@ -126,7 +126,7 @@ vips_sequential_generate( VipsRegion *or,
 
 	VIPS_GATE_START( "vips_sequential_generate: wait" );
 
-	g_mutex_lock( sequential->lock );
+	vips__worker_lock( sequential->lock );
 
 	VIPS_GATE_STOP( "vips_sequential_generate: wait" );
 

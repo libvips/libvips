@@ -238,8 +238,8 @@ vips_area_unref( VipsArea *area )
 
 /**
  * vips_area_new:
- * @free_fn: (scope async): @data will be freed with this function
- * @data: data will be freed with this function
+ * @free_fn: (scope async) (nullable): @data will be freed with this function
+ * @data: (transfer full): data will be freed with this function
  *
  * A VipsArea wraps a chunk of memory. It adds reference counting and a free
  * function. It also keeps a count and a %GType, so the area can be an array.
@@ -1511,8 +1511,8 @@ vips_array_image_get_type( void )
 /**
  * vips_value_set_area:
  * @value: set this value
- * @free_fn: (scope async): data will be freed with this function
- * @data: set @value to track this pointer
+ * @free_fn: (scope async) (nullable): data will be freed with this function
+ * @data: (transfer full): set @value to track this pointer
  *
  * Set value to be a ref-counted area of memory with a free function.
  */
@@ -1646,8 +1646,9 @@ vips_value_set_ref_string( GValue *value, const char *str )
 /** 
  * vips_value_set_blob:
  * @value: (out): GValue to set
- * @free_fn: (scope async): free function for @data
- * @data: pointer to area of memory
+ * @free_fn: (scope async) (nullable): free function for @data
+ * @data: (array length=length) (element-type guint8) (transfer full): pointer to area of
+ * memory
  * @length: length of memory area
  *
  * Sets @value to hold a @data. When @value is freed, @data will be
@@ -1676,7 +1677,8 @@ vips_value_set_blob( GValue *value,
 /** 
  * vips_value_set_blob_free:
  * @value: GValue to set
- * @data: pointer to area of memory
+ * @data: (transfer full) (array length=length) (element-type guint8) : pointer to area of
+ * memory
  * @length: length of memory area
  *
  * Just like vips_value_set_blob(), but when 
@@ -1712,7 +1714,8 @@ vips_value_set_blob_free( GValue *value, void *data, size_t length )
  *
  * See also: vips_value_set_blob()
  *
- * Returns: (transfer none): The pointer held by @value.
+ * Returns: (transfer none) (array length=length) (element-type guint8): The pointer held
+ * by @value.
  */
 void *
 vips_value_get_blob( const GValue *value, size_t *length )

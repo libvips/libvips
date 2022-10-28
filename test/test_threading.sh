@@ -43,6 +43,15 @@ if [ $(echo "$max > 0" | bc) -eq 1 ]; then
 	echo error, max == $max
 	exit 1
 else
-	echo all threading tests passed
+	echo all benchmark threading tests passed
 fi
+
+# setting VIPS_MAX_THREADS low should force a small thread limit
+echo -n "checking threadset size limit ... "
+VIPS_MAX_THREADS=5 VIPS_CONCURRENCY=3 vips copy $image x.v || exit_code=$?
+if [ $exit_code -ne 0 ]; then
+  echo FAILED
+  exit 1
+fi
+echo ok
 

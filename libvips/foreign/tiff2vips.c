@@ -1937,13 +1937,15 @@ rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
                 bytes_per_pixel = 3;
                 break;
 
+        case PHOTOMETRIC_MINISWHITE:
         case PHOTOMETRIC_MINISBLACK:
                 cinfo->jpeg_color_space = JCS_GRAYSCALE;
                 bytes_per_pixel = 1;
                 break;
 
         default:
-                g_assert_not_reached();
+                cinfo->jpeg_color_space = JCS_UNKNOWN;
+                bytes_per_pixel = 1;
                 break;
         }
 
