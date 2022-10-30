@@ -146,8 +146,7 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 			if (lut->data[y][x] > 1.0 ||
 				lut->data[y][x] < 0.0) {
 				vips_error(class->nickname,
-					_("element (%d, %d) is %g, "
-					  "outside range [0,1]"),
+					_("element (%d, %d) is %g, outside range [0,1]"),
 					x, y, lut->data[y][x]);
 				return (-1);
 			}

@@ -283,9 +283,8 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 	/* In cache already?
 	 */
 	if ((tile = vips_tile_search(cache, x, y))) {
-		VIPS_DEBUG_MSG_RED("vips_tile_find: "
-						   "tile %d x %d in cache\n",
-			x, y);
+		VIPS_DEBUG_MSG_RED(
+			"vips_tile_find: tile %d x %d in cache\n", x, y);
 		return (tile);
 	}
 
@@ -293,9 +292,8 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 	 */
 	if (cache->max_tiles == -1 ||
 		cache->ntiles < cache->max_tiles) {
-		VIPS_DEBUG_MSG_RED("vips_tile_find: "
-						   "making new tile at %d x %d\n",
-			x, y);
+		VIPS_DEBUG_MSG_RED(
+			"vips_tile_find: making new tile at %d x %d\n", x, y);
 		if (!(tile = vips_tile_new(cache, x, y)))
 			return (NULL);
 
@@ -584,8 +582,8 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 			 */
 			work = g_slist_append(work, tile);
 
-			VIPS_DEBUG_MSG_RED("vips_tile_cache_ref: "
-							   "tile %d, %d (%p)\n",
+			VIPS_DEBUG_MSG_RED(
+				"vips_tile_cache_ref: tile %d, %d (%p)\n",
 				x, y, tile);
 		}
 
@@ -627,8 +625,9 @@ vips_tile_cache_gen(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_tile_cache_gen: wait1");
 
-	VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: "
-					   "left = %d, top = %d, width = %d, height = %d\n",
+	VIPS_DEBUG_MSG_RED(
+		"vips_tile_cache_gen: "
+		"left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
 	/* Ref all the tiles we will need.
@@ -649,8 +648,8 @@ vips_tile_cache_gen(VipsRegion * or,
 			if (!p)
 				break;
 
-			VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: "
-							   "pasting %p\n",
+			VIPS_DEBUG_MSG_RED(
+				"vips_tile_cache_gen: pasting %p\n",
 				tile);
 
 			vips_tile_paste(tile, or);
@@ -672,8 +671,8 @@ vips_tile_cache_gen(VipsRegion * or,
 			if (tile->state == VIPS_TILE_STATE_PEND) {
 				tile->state = VIPS_TILE_STATE_CALC;
 
-				VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: "
-								   "calc of %p\n",
+				VIPS_DEBUG_MSG_RED(
+					"vips_tile_cache_gen: calc of %p\n",
 					tile);
 
 				/* In threaded mode, we let other threads run
@@ -693,13 +692,11 @@ vips_tile_cache_gen(VipsRegion * or,
 						tile->pos.left, tile->pos.top);
 
 				if (cache->threaded) {
-					VIPS_GATE_START("vips_tile_cache_gen: "
-									"wait2");
+					VIPS_GATE_START("vips_tile_cache_gen: wait2");
 
 					g_mutex_lock(cache->lock);
 
-					VIPS_GATE_STOP("vips_tile_cache_gen: "
-								   "wait2");
+					VIPS_GATE_STOP("vips_tile_cache_gen: wait2");
 				}
 
 				/* If there was an error calculating this
@@ -711,8 +708,7 @@ vips_tile_cache_gen(VipsRegion * or,
 				 */
 				if (result) {
 					VIPS_DEBUG_MSG_RED(
-						"vips_tile_cache_gen: "
-						"error on tile %p\n",
+						"vips_tile_cache_gen: error on tile %p\n",
 						tile);
 
 					g_warning(_("error in tile %d x %d"),
@@ -905,7 +901,9 @@ vips_line_cache_gen(VipsRegion * or,
 
 	/* We size up the cache to the largest request.
 	 */
-	if (or->valid.height > block_cache->max_tiles * block_cache->tile_height) {
+	if (or->valid.height > /* clang-format off */
+			block_cache->max_tiles * block_cache->tile_height) {
+		/* clang-format on */
 		block_cache->max_tiles =
 			1 + (or->valid.height / block_cache->tile_height);
 		VIPS_DEBUG_MSG("vips_line_cache_gen: bumped max_tiles to %d\n",

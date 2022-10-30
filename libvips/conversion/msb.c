@@ -159,7 +159,9 @@ vips_msb_build(VipsObject *object)
 
 	/* Effective number of bands this image has.
 	 */
-	vbands = msb->in->Coding == VIPS_CODING_LABQ ? 3 : msb->in->Bands;
+	vbands = msb->in->Coding == VIPS_CODING_LABQ
+		? 3
+		: msb->in->Bands;
 
 	if (msb->band > vbands - 1) {
 		vips_error(class->nickname, "%s", _("bad band"));
@@ -172,7 +174,9 @@ vips_msb_build(VipsObject *object)
 
 	/* Offset into first band element of high order byte.
 	 */
-	msb->offset = vips_amiMSBfirst() ? 0 : VIPS_IMAGE_SIZEOF_ELEMENT(msb->in) - 1;
+	msb->offset = vips_amiMSBfirst()
+		? 0
+		: VIPS_IMAGE_SIZEOF_ELEMENT(msb->in) - 1;
 
 	/* If we're picking out a band, they need scaling up.
 	 */

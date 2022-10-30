@@ -16,9 +16,14 @@ main(int argc, char **argv)
 	if (argc != 3)
 		vips_error_exit("usage: %s infile outfile", argv[0]);
 
-	VImage in = VImage::new_from_file(argv[1], VImage::option()->set("access", "sequential"));
+	VImage in = VImage::new_from_file(argv[1],
+		VImage::option()
+			->set("access", "sequential"));
 
-	VImage out = in.resize(0.2, VImage::option()->set("kernel", "cubic")->set("vscale", 0.2));
+	VImage out = in.resize(0.2,
+		VImage::option()
+			->set("kernel", "cubic")
+			->set("vscale", 0.2));
 
 	out.write_to_file(argv[2]);
 

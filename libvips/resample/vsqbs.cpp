@@ -237,14 +237,11 @@ typedef struct _VipsInterpolateVsqbsClass {
 \
 		do { \
 			const double double_result = \
-				(( \
-					 ( \
-						 four_c_uno_two * in[uno_two_shift] + \
-						 four_c_dos_one * in[dos_one_shift]) + \
+				(((four_c_uno_two * in[uno_two_shift] + \
+					  four_c_dos_one * in[dos_one_shift]) + \
 					 (four_c_dos_two * in[dos_two_shift] + \
 						 four_c_dos_thr * in[dos_thr_shift])) + \
-					(( \
-						 four_c_tre_two * in[tre_two_shift] + \
+					((four_c_tre_two * in[tre_two_shift] + \
 						 four_c_tre_thr * in[tre_thr_shift]) + \
 						(four_c_uno_thr * in[uno_thr_shift] + \
 							four_c_tre_one * in[tre_one_shift]))) * \
@@ -313,8 +310,9 @@ vips_interpolate_vsqbs_interpolate(VipsInterpolate *restrict interpolate,
 	 * imaginary parts being computed independently:
 	 */
 	const int actual_bands = in->im->Bands;
-	const int bands =
-		vips_band_format_iscomplex(in->im->BandFmt) ? 2 * actual_bands : actual_bands;
+	const int bands = vips_band_format_iscomplex(in->im->BandFmt)
+		? 2 * actual_bands
+		: actual_bands;
 
 	g_assert(ix - 1 >= in->valid.left);
 	g_assert(iy - 1 >= in->valid.top);

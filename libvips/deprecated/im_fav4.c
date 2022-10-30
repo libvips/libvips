@@ -66,7 +66,8 @@ im_fav4(IMAGE **in, IMAGE *out)
 
 	/* BYTE images only!
 	 */
-	if ((in[0]->BandFmt != IM_BANDFMT_CHAR) && (in[0]->BandFmt != IM_BANDFMT_UCHAR))
+	if ((in[0]->BandFmt != IM_BANDFMT_CHAR) &&
+		(in[0]->BandFmt != IM_BANDFMT_UCHAR))
 		return (-1);
 
 	if (im_cp_desc(out, in[1]) == -1) /* copy image descriptors */

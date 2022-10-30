@@ -83,12 +83,16 @@ vips_mask_butterworth_band_point(VipsMask *mask,
 
 	/* Normalise the amplitude at (fcx, fcy) to 1.0.
 	 */
-	double cnsta = 1.0 / (1.0 + 1.0 / (1.0 + cnst * pow(4.0 * (fcx * fcx + fcy * fcy) / r2, order)));
+	/* clang-format off */
+	double cnsta = 1.0 / (1.0 + 1.0 / (1.0 +
+		cnst * pow(4.0 * (fcx * fcx + fcy * fcy) / r2, order)));
 
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
 
-	return (cnsta * (1.0 / (1.0 + cnst * pow(d1 / r2, order)) + 1.0 / (1.0 + cnst * pow(d2 / r2, order))));
+	return (cnsta * (1.0 / (1.0 + cnst * pow(d1 / r2, order)) +
+					1.0 / (1.0 + cnst * pow(d2 / r2, order))));
+	/* clang-format on */
 }
 
 static void

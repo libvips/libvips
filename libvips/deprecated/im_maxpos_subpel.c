@@ -141,7 +141,8 @@ im_maxpos_subpel(IMAGE *in, double *x, double *y)
 	TEST3(1, 2)
 	TEST3(2, 1)
 
-	if (MOST_OF(vals[1], vals[0]) && MOST_OF(vals[2], vals[0]) && MOST_OF(vals[3], vals[0]) && LITTLE_OF(vals[4], vals[0])) {
+	if (MOST_OF(vals[1], vals[0]) && MOST_OF(vals[2], vals[0]) &&
+		MOST_OF(vals[3], vals[0]) && LITTLE_OF(vals[4], vals[0])) {
 
 #define TEST4(A, B, C, D, E, F, G, H) \
 	if (xs[A] == xs[B] && xs[C] == xs[D] && ys[E] == ys[F] && ys[G] == ys[H]) { \

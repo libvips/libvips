@@ -275,11 +275,12 @@ vips__concurrency_get_default(void)
 	 */
 	if (vips__concurrency > 0)
 		nthr = vips__concurrency;
-	else if (((str = g_getenv("VIPS_CONCURRENCY"))
+	else if (
+		((str = g_getenv("VIPS_CONCURRENCY"))
 #if ENABLE_DEPRECATED
-				 || (str = g_getenv("IM_CONCURRENCY"))
+			|| (str = g_getenv("IM_CONCURRENCY"))
 #endif
-					 ) &&
+				) &&
 		(x = atoi(str)) > 0)
 		nthr = x;
 	else
@@ -400,7 +401,9 @@ vips_get_tile_size(VipsImage *im,
 		/* Only enable thinstrip height for very wide images -- the
 		 * overheads are too high to be worthwhile otherwise.
 		 */
-		*tile_height = im->Xsize > 10000 ? vips__thinstrip_height : vips__fatstrip_height;
+		*tile_height = im->Xsize > 10000
+			? vips__thinstrip_height
+			: vips__fatstrip_height;
 		break;
 
 	default:

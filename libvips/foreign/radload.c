@@ -169,7 +169,8 @@ vips_foreign_load_rad_source_build(VipsObject *object)
 		g_object_ref(rad->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_rad_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_rad_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

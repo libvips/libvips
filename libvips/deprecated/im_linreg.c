@@ -180,8 +180,9 @@ im_linreg(IMAGE **ins, IMAGE *out, double *xs)
 				return (-1);
 			}
 		}
-		if (n && (ins[n]->Xsize != ins[0]->Xsize || ins[n]->Ysize != ins[0]->Ysize)) {
-
+		if (n &&
+			(ins[n]->Xsize != ins[0]->Xsize ||
+				ins[n]->Ysize != ins[0]->Ysize)) {
 			im_error(FUNCTION_NAME, "image sizes differ");
 			return (-1);
 		}

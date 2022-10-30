@@ -699,8 +699,9 @@ vips_conva_decompose_boxes(VipsConva *conva)
 
 	/* Cluster to find groups of lines.
 	 */
-	VIPS_DEBUG_MSG("vips_conva_decompose_boxes: "
-				   "clustering hlines with thresh %d ...\n",
+	VIPS_DEBUG_MSG(
+		"vips_conva_decompose_boxes: "
+		"clustering hlines with thresh %d ...\n",
 		conva->cluster);
 	while (vips_conva_cluster2(conva))
 		;
@@ -883,7 +884,9 @@ vips_conva_hgenerate(VipsRegion * or, void *vseq,
 
 	/* Double the bands (notionally) for complex.
 	 */
-	int bands = vips_band_format_iscomplex(in->BandFmt) ? 2 * in->Bands : in->Bands;
+	int bands = vips_band_format_iscomplex(in->BandFmt)
+		? 2 * in->Bands
+		: in->Bands;
 
 	VipsRect s;
 	int x, y, z, i;
@@ -994,9 +997,13 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 	/* Short u?char lines can use u?short intermediate.
 	 */
 	if (vips_band_format_isuint(in->BandFmt))
-		(*out)->BandFmt = conva->max_line < 256 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UINT;
+		(*out)->BandFmt = conva->max_line < 256
+			? VIPS_FORMAT_USHORT
+			: VIPS_FORMAT_UINT;
 	else if (vips_band_format_isint(in->BandFmt))
-		(*out)->BandFmt = conva->max_line < 256 ? VIPS_FORMAT_SHORT : VIPS_FORMAT_INT;
+		(*out)->BandFmt = conva->max_line < 256
+			? VIPS_FORMAT_SHORT
+			: VIPS_FORMAT_INT;
 
 	if (vips_image_generate(*out,
 			vips_conva_start, vips_conva_hgenerate, vips_conva_stop,
@@ -1114,7 +1121,9 @@ vips_conva_vgenerate(VipsRegion * or, void *vseq,
 
 	/* Double the width (notionally) for complex.
 	 */
-	int sz = vips_band_format_iscomplex(in->BandFmt) ? 2 * VIPS_REGION_N_ELEMENTS(or) : VIPS_REGION_N_ELEMENTS(or);
+	int sz = vips_band_format_iscomplex(in->BandFmt)
+		? 2 * VIPS_REGION_N_ELEMENTS(or)
+		: VIPS_REGION_N_ELEMENTS(or);
 
 	VipsRect s;
 	int x, y, z, k;

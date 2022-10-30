@@ -297,8 +297,10 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	 * Not the correct behavior as loop=1 became gif-loop=0
 	 * but we want to keep the old behavior untouched!
 	 */
-	vips_image_set_int(image,
-		"gif-loop", gif->info->loop_max == 0 ? 0 : gif->info->loop_max - 1);
+	vips_image_set_int(image, "gif-loop",
+		gif->info->loop_max == 0
+			? 0
+			: gif->info->loop_max - 1);
 
 	/* The deprecated gif-delay field is in centiseconds.
 	 */
@@ -705,7 +707,8 @@ vips_foreign_load_gif_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -790,7 +793,8 @@ vips_foreign_load_nsgif_buffer_build(VipsObject *object)
 			  buffer->blob->length)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -866,7 +870,8 @@ vips_foreign_load_nsgif_source_build(VipsObject *object)
 		g_object_ref(gif->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

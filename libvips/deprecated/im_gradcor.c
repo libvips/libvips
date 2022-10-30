@@ -115,7 +115,18 @@ im_gradcor_raw(IMAGE *large, IMAGE *small, IMAGE *out)
 		IMAGE *ygrad = im_open_local(out, FUNCTION_NAME ": ygrad", "t");
 		IMAGE **grads = im_allocate_input_array(out, xgrad, ygrad, NULL);
 
-		return !xgrad || !ygrad || !grads || im_grad_x(small, xgrad) || im_grad_y(small, ygrad) || im_generate(out, gradcor_start, gradcor_gen, gradcor_stop, (void *) large, (void *) grads);
+		if (!xgrad ||
+			!ygrad ||
+			!grads ||
+			im_grad_x(small, xgrad) ||
+			im_grad_y(small, ygrad))
+			return (-1);
+
+		if (im_generate(out,
+				gradcor_start, gradcor_gen, gradcor_stop, (void *) large, (void *) grads))
+			return (-1);
+
+		return (0);
 	}
 #undef FUNCTION_NAME
 }

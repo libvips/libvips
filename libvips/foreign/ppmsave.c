@@ -394,9 +394,13 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		}
 
 	if (ppm->bitdepth)
-		ppm->fn = ppm->ascii ? vips_foreign_save_ppm_line_ascii_1bit : vips_foreign_save_ppm_line_binary_1bit;
+		ppm->fn = ppm->ascii
+			? vips_foreign_save_ppm_line_ascii_1bit
+			: vips_foreign_save_ppm_line_binary_1bit;
 	else
-		ppm->fn = ppm->ascii ? vips_foreign_save_ppm_line_ascii : vips_foreign_save_ppm_line_binary;
+		ppm->fn = ppm->ascii
+			? vips_foreign_save_ppm_line_ascii
+			: vips_foreign_save_ppm_line_binary;
 
 	/* 16 and 32-bit binary write might need byteswapping.
 	 */
@@ -525,7 +529,8 @@ vips_foreign_save_ppm_file_build(VipsObject *object)
 	else if (vips_iscasepostfix(file->filename, ".pnm"))
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PNM;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_file_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_file_parent_class)
+				->build(object));
 }
 
 static void
@@ -580,8 +585,7 @@ vips_foreign_save_ppm_target_build(VipsObject *object)
 		g_object_ref(ppm->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(
-		vips_foreign_save_ppm_target_parent_class)
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_target_parent_class)
 				->build(object));
 }
 

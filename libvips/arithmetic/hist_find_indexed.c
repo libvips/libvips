@@ -105,7 +105,9 @@ histogram_new(VipsHistFindIndexed *indexed)
 
 	hist->indexed = indexed;
 	hist->reg = NULL;
-	hist->size = indexed->index_ready->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536;
+	hist->size = indexed->index_ready->BandFmt == VIPS_FORMAT_UCHAR
+		? 256
+		: 65536;
 	hist->mx = 0;
 	hist->bins = NULL;
 	hist->init = NULL;

@@ -392,16 +392,22 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	case OPJ_CLRSPC_EYCC:
 		/* Map these to RGB.
 		 */
-		interpretation = vips_format_sizeof(format) == 1 ? VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
+		interpretation = vips_format_sizeof(format) == 1
+			? VIPS_INTERPRETATION_sRGB
+			: VIPS_INTERPRETATION_RGB16;
 		jp2k->ycc_to_rgb = TRUE;
 		break;
 
 	case OPJ_CLRSPC_GRAY:
-		interpretation = vips_format_sizeof(format) == 1 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_GREY16;
+		interpretation = vips_format_sizeof(format) == 1
+			? VIPS_INTERPRETATION_B_W
+			: VIPS_INTERPRETATION_GREY16;
 		break;
 
 	case OPJ_CLRSPC_SRGB:
-		interpretation = vips_format_sizeof(format) == 1 ? VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
+		interpretation = vips_format_sizeof(format) == 1
+			? VIPS_INTERPRETATION_sRGB
+			: VIPS_INTERPRETATION_RGB16;
 		break;
 
 	case OPJ_CLRSPC_CMYK:
@@ -412,9 +418,13 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 		/* Try to guess something sensible.
 		 */
 		if (jp2k->image->numcomps < 3)
-			interpretation = vips_format_sizeof(format) == 1 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_GREY16;
+			interpretation = vips_format_sizeof(format) == 1
+				? VIPS_INTERPRETATION_B_W
+				: VIPS_INTERPRETATION_GREY16;
 		else
-			interpretation = vips_format_sizeof(format) == 1 ? VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
+			interpretation = vips_format_sizeof(format) == 1
+				? VIPS_INTERPRETATION_sRGB
+				: VIPS_INTERPRETATION_RGB16;
 
 		/* Unspecified with three bands and subsampling on bands 2 and
 		 * 3 is usually YCC.
@@ -1087,13 +1097,16 @@ vips_foreign_load_jp2k_file_build(VipsObject *object)
 		!(jp2k->source = vips_source_new_from_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
 }
 
-const char *vips__jp2k_suffs[] = { ".j2k", ".jp2", ".jpt", ".j2c", ".jpc", NULL };
+const char *vips__jp2k_suffs[] = {
+	".j2k", ".jp2", ".jpt", ".j2c", ".jpc", NULL
+};
 
 static int
 vips_foreign_load_jp2k_is_a(const char *filename)
@@ -1168,7 +1181,8 @@ vips_foreign_load_jp2k_buffer_build(VipsObject *object)
 				  VIPS_AREA(buffer->buf)->length)))
 			return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1243,8 +1257,7 @@ vips_foreign_load_jp2k_source_build(VipsObject *object)
 		g_object_ref(jp2k->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(
-			vips_foreign_load_jp2k_source_parent_class)
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_source_parent_class)
 			->build(object))
 		return (-1);
 

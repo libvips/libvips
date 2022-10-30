@@ -315,9 +315,7 @@ sink_thread_state_build(VipsObject *object)
 		sink_call_start(sink, state))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(
-		sink_thread_state_parent_class)
-				->build(object));
+	return (VIPS_OBJECT_CLASS(sink_thread_state_parent_class)->build(object));
 }
 
 static void

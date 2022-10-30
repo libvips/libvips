@@ -350,8 +350,7 @@ vips_remainder_const_class_init(VipsRemainderConstClass *class)
 
 	object_class->nickname = "remainder_const";
 	object_class->description =
-		_("remainder after integer division of an image "
-		  "and a constant");
+		_("remainder after integer division of an image and a constant");
 	object_class->build = vips_remainder_const_build;
 
 	aclass->process_line = vips_remainder_const_buffer;

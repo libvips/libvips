@@ -82,7 +82,8 @@ vips_mask_gaussian_band_point(VipsMask *mask, double dx, double dy)
 
 	/* Normalise the amplitude at (fcx, fcy) to 1.0.
 	 */
-	double cnsta = 1.0 / (1.0 + exp(cnst * 4.0 * (fcx * fcx + fcy * fcy) / r2));
+	double cnsta = 1.0 /
+		(1.0 + exp(cnst * 4.0 * (fcx * fcx + fcy * fcy) / r2));
 
 	return (cnsta * (exp(cnst * d1 / r2) + exp(cnst * d2 / r2)));
 }

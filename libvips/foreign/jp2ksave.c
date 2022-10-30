@@ -868,9 +868,7 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	 * axis.
 	 */
 	jp2k->parameters.numresolution = VIPS_MAX(1,
-		log(VIPS_MIN(save->ready->Xsize, save->ready->Ysize)) /
-				log(2) -
-			5);
+		log(VIPS_MIN(save->ready->Xsize, save->ready->Ysize)) / log(2) - 5);
 #ifdef DEBUG
 	printf("vips_foreign_save_jp2k_build: numresolutions = %d\n",
 		jp2k->parameters.numresolution);
@@ -1039,7 +1037,8 @@ vips_foreign_save_jp2k_file_build(VipsObject *object)
 	if (!(jp2k->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1096,7 +1095,8 @@ vips_foreign_save_jp2k_buffer_build(VipsObject *object)
 	if (!(jp2k->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(jp2k->target, "blob", &blob, NULL);
@@ -1155,7 +1155,8 @@ vips_foreign_save_jp2k_target_build(VipsObject *object)
 		g_object_ref(jp2k->target);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

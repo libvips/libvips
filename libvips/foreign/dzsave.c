@@ -874,7 +874,9 @@ write_json(VipsForeignSaveDz *dz)
 
 	/* dz->file_suffix has a leading "." character.
 	 */
-	const char *suffix = dz->file_suffix[0] == '.' ? dz->file_suffix + 1 : dz->file_suffix;
+	const char *suffix = dz->file_suffix[0] == '.'
+		? dz->file_suffix + 1
+		: dz->file_suffix;
 
 	VipsDbuf dbuf;
 	char *filename;
@@ -1099,8 +1101,9 @@ build_scan_properties(VipsImage *image, size_t *len)
 
 	vips_dbuf_init(&dbuf);
 	vips_dbuf_writef(&dbuf, "<?xml version=\"1.0\"?>\n");
-	vips_dbuf_writef(&dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
-							" date=\"%s\" version=\"1.0\">\n",
+	vips_dbuf_writef(&dbuf,
+		"<image xmlns=\"http://www.pathozoom.com/szi\""
+		" date=\"%s\" version=\"1.0\">\n",
 		date);
 	vips_dbuf_writef(&dbuf, "  <properties>\n");
 
@@ -2141,7 +2144,9 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * we can.
 	 */
 	{
-		const char *filename = dz->filename ? dz->filename : vips_connection_filename(VIPS_CONNECTION(dz->target));
+		const char *filename = dz->filename
+			? dz->filename
+			: vips_connection_filename(VIPS_CONNECTION(dz->target));
 
 		if (!vips_object_argument_isset(object, "basename")) {
 			if (filename)
@@ -2540,7 +2545,8 @@ vips_foreign_save_dz_target_build(VipsObject *object)
 	dz->target = target->target;
 	g_object_ref(dz->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -2653,7 +2659,8 @@ vips_foreign_save_dz_buffer_build(VipsObject *object)
 	if (!(dz->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(dz->target, "blob", &blob, NULL);

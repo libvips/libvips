@@ -1087,7 +1087,9 @@ vips_image_open_output(VipsImage *image)
 		/* We always write in native mode, so we must overwrite the
 		 * magic we read from the file originally.
 		 */
-		image->magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+		image->magic = vips_amiMSBfirst()
+			? VIPS_MAGIC_SPARC
+			: VIPS_MAGIC_INTEL;
 
 		if (vips__write_header_bytes(image, header) ||
 			vips__write(image->fd, header, VIPS_SIZEOF_HEADER))

@@ -675,10 +675,7 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 				double g;
 
 				if (B[b] <= 0.25)
-					g = ((16 * B[b] - 12) *
-								B[b] +
-							4) *
-						B[b];
+					g = ((16 * B[b] - 12) * B[b] + 4) * B[b];
 				else
 					g = sqrt(B[b]);
 
@@ -870,7 +867,9 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 			break;
 
 		case VIPS_BLEND_MODE_OVERLAY:
-			f = B <= 0.5 ? 2 * A * B : 1 - 2 * (1 - A) * (1 - B);
+			f = B <= 0.5
+				? 2 * A * B
+				: 1 - 2 * (1 - A) * (1 - B);
 			break;
 
 		case VIPS_BLEND_MODE_DARKEN:
@@ -882,15 +881,21 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 			break;
 
 		case VIPS_BLEND_MODE_COLOUR_DODGE:
-			f = A < 1 ? VIPS_MIN(1, B / (1 - A)) : 1;
+			f = A < 1
+				? VIPS_MIN(1, B / (1 - A))
+				: 1;
 			break;
 
 		case VIPS_BLEND_MODE_COLOUR_BURN:
-			f = A > 0 ? 1 - VIPS_MIN(1, (1 - B) / A) : 0;
+			f = A > 0
+				? 1 - VIPS_MIN(1, (1 - B) / A)
+				: 0;
 			break;
 
 		case VIPS_BLEND_MODE_HARD_LIGHT:
-			f = A <= 0.5 ? 2 * A * B : 1 - 2 * (1 - A) * (1 - B);
+			f = A <= 0.5
+				? 2 * A * B
+				: 1 - 2 * (1 - A) * (1 - B);
 			break;
 
 		case VIPS_BLEND_MODE_SOFT_LIGHT:
@@ -1178,48 +1183,59 @@ vips_composite_base_gen(VipsRegion *output_region,
 			case VIPS_FORMAT_UCHAR:
 #ifdef HAVE_VECTOR_ARITH
 				if (composite->bands == 3)
-					vips_combine_pixels3<unsigned char, 0, UCHAR_MAX>(seq, q);
+					vips_combine_pixels3<unsigned char,
+						0, UCHAR_MAX>(seq, q);
 				else
 #endif
-					vips_combine_pixels<unsigned char, 0, UCHAR_MAX>(seq, q);
+					vips_combine_pixels<unsigned char,
+						0, UCHAR_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_CHAR:
-				vips_combine_pixels<signed char, SCHAR_MIN, SCHAR_MAX>(seq, q);
+				vips_combine_pixels<signed char,
+					SCHAR_MIN, SCHAR_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_USHORT:
 #ifdef HAVE_VECTOR_ARITH
 				if (composite->bands == 3)
-					vips_combine_pixels3<unsigned short, 0, USHRT_MAX>(seq, q);
+					vips_combine_pixels3<unsigned short,
+						0, USHRT_MAX>(seq, q);
 				else
 #endif
-					vips_combine_pixels<unsigned short, 0, USHRT_MAX>(seq, q);
+					vips_combine_pixels<unsigned short,
+						0, USHRT_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_SHORT:
-				vips_combine_pixels<signed short, SHRT_MIN, SHRT_MAX>(seq, q);
+				vips_combine_pixels<signed short,
+					SHRT_MIN, SHRT_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_UINT:
-				vips_combine_pixels<unsigned int, 0, UINT_MAX>(seq, q);
+				vips_combine_pixels<unsigned int,
+					0, UINT_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_INT:
-				vips_combine_pixels<signed int, INT_MIN, INT_MAX>(seq, q);
+				vips_combine_pixels<signed int,
+					INT_MIN, INT_MAX>(seq, q);
 				break;
 
 			case VIPS_FORMAT_FLOAT:
 #ifdef HAVE_VECTOR_ARITH
 				if (composite->bands == 3)
-					vips_combine_pixels3<float, 0, USHRT_MAX>(seq, q);
+					vips_combine_pixels3<float,
+						0, USHRT_MAX>(seq, q);
 				else
 #endif
-					vips_combine_pixels<float, 0, 0>(seq, q);
+					vips_combine_pixels<float,
+						0, 0>(seq, q);
 				break;
 
 			case VIPS_FORMAT_DOUBLE:
-				vips_combine_pixels<double, 0, 0>(seq, q);
+				vips_combine_pixels<double,
+					0, 0>(seq, q);
 				break;
 
 			default:
@@ -1374,7 +1390,13 @@ vips_composite_base_build(VipsObject *object)
 				break;
 			}
 
-		composite->compositing_space = any_16 ? (all_grey ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16) : (all_grey ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB);
+		composite->compositing_space = any_16
+			? (all_grey
+					  ? VIPS_INTERPRETATION_GREY16
+					  : VIPS_INTERPRETATION_RGB16)
+			: (all_grey
+					  ? VIPS_INTERPRETATION_B_W
+					  : VIPS_INTERPRETATION_sRGB);
 	}
 
 	compositing = (VipsImage **)

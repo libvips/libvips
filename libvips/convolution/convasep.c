@@ -177,8 +177,9 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	int layers_below;
 	int z, n, x;
 
-	VIPS_DEBUG_MSG("vips_convasep_decompose: "
-				   "breaking into %d layers ...\n",
+	VIPS_DEBUG_MSG(
+		"vips_convasep_decompose: "
+		"breaking into %d layers ...\n",
 		convasep->layers);
 
 	/* Find mask range. We must always include the zero axis in the mask.
@@ -557,7 +558,9 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 
 	/* Double the bands (notionally) for complex.
 	 */
-	int bands = vips_band_format_iscomplex(in->BandFmt) ? 2 * in->Bands : in->Bands;
+	int bands = vips_band_format_iscomplex(in->BandFmt)
+		? 2 * in->Bands
+		: in->Bands;
 
 	VipsRect s;
 	int x, y, z, i;
@@ -733,7 +736,9 @@ vips_convasep_generate_vertical(VipsRegion * or,
 
 	/* Double the width (notionally) for complex.
 	 */
-	int sz = vips_band_format_iscomplex(in->BandFmt) ? 2 * VIPS_REGION_N_ELEMENTS(or) : VIPS_REGION_N_ELEMENTS(or);
+	int sz = vips_band_format_iscomplex(in->BandFmt)
+		? 2 * VIPS_REGION_N_ELEMENTS(or)
+		: VIPS_REGION_N_ELEMENTS(or);
 
 	VipsRect s;
 	int x, y, z;

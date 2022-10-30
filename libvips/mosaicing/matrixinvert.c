@@ -340,9 +340,12 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 		double det;
 		double tmp;
 
-		det = ME(in, 0, 0) * (ME(in, 1, 1) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 1));
-		det -= ME(in, 0, 1) * (ME(in, 1, 0) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 0));
-		det += ME(in, 0, 2) * (ME(in, 1, 0) * ME(in, 2, 1) - ME(in, 1, 1) * ME(in, 2, 0));
+		det = ME(in, 0, 0) *
+			(ME(in, 1, 1) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 1));
+		det -= ME(in, 0, 1) *
+			(ME(in, 1, 0) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 0));
+		det += ME(in, 0, 2) *
+			(ME(in, 1, 0) * ME(in, 2, 1) - ME(in, 1, 1) * ME(in, 2, 0));
 
 		if (fabs(det) < TOO_SMALL) {
 			/* divisor is near zero */
@@ -353,17 +356,26 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 
 		tmp = 1.0 / det;
 
-		ME(out, 0, 0) = tmp * (ME(in, 1, 1) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 1));
-		ME(out, 1, 0) = tmp * (ME(in, 1, 2) * ME(in, 2, 0) - ME(in, 1, 0) * ME(in, 2, 2));
-		ME(out, 2, 0) = tmp * (ME(in, 1, 0) * ME(in, 2, 1) - ME(in, 1, 1) * ME(in, 2, 0));
+		ME(out, 0, 0) = tmp *
+			(ME(in, 1, 1) * ME(in, 2, 2) - ME(in, 1, 2) * ME(in, 2, 1));
+		ME(out, 1, 0) = tmp *
+			(ME(in, 1, 2) * ME(in, 2, 0) - ME(in, 1, 0) * ME(in, 2, 2));
+		ME(out, 2, 0) = tmp *
+			(ME(in, 1, 0) * ME(in, 2, 1) - ME(in, 1, 1) * ME(in, 2, 0));
 
-		ME(out, 0, 1) = tmp * (ME(in, 0, 2) * ME(in, 2, 1) - ME(in, 0, 1) * ME(in, 2, 2));
-		ME(out, 1, 1) = tmp * (ME(in, 0, 0) * ME(in, 2, 2) - ME(in, 0, 2) * ME(in, 2, 0));
-		ME(out, 2, 1) = tmp * (ME(in, 0, 1) * ME(in, 2, 0) - ME(in, 0, 0) * ME(in, 2, 1));
+		ME(out, 0, 1) = tmp *
+			(ME(in, 0, 2) * ME(in, 2, 1) - ME(in, 0, 1) * ME(in, 2, 2));
+		ME(out, 1, 1) = tmp *
+			(ME(in, 0, 0) * ME(in, 2, 2) - ME(in, 0, 2) * ME(in, 2, 0));
+		ME(out, 2, 1) = tmp *
+			(ME(in, 0, 1) * ME(in, 2, 0) - ME(in, 0, 0) * ME(in, 2, 1));
 
-		ME(out, 0, 2) = tmp * (ME(in, 0, 1) * ME(in, 1, 2) - ME(in, 0, 2) * ME(in, 1, 1));
-		ME(out, 1, 2) = tmp * (ME(in, 0, 2) * ME(in, 1, 0) - ME(in, 0, 0) * ME(in, 1, 2));
-		ME(out, 2, 2) = tmp * (ME(in, 0, 0) * ME(in, 1, 1) - ME(in, 0, 1) * ME(in, 1, 0));
+		ME(out, 0, 2) = tmp *
+			(ME(in, 0, 1) * ME(in, 1, 2) - ME(in, 0, 2) * ME(in, 1, 1));
+		ME(out, 1, 2) = tmp *
+			(ME(in, 0, 2) * ME(in, 1, 0) - ME(in, 0, 0) * ME(in, 1, 2));
+		ME(out, 2, 2) = tmp *
+			(ME(in, 0, 0) * ME(in, 1, 1) - ME(in, 0, 1) * ME(in, 1, 0));
 	} break;
 
 	/* TODO(kleisauke):

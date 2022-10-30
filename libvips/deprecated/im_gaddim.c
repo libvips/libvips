@@ -170,8 +170,10 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		return (-1);
 	}
 	/* Checks the arguments entered in in and prepares out */
-	if ((in1->Xsize != in2->Xsize) || (in1->Ysize != in2->Ysize) ||
-		(in1->Bands != in2->Bands) || (in1->Coding != in2->Coding)) {
+	if ((in1->Xsize != in2->Xsize) ||
+		(in1->Ysize != in2->Ysize) ||
+		(in1->Bands != in2->Bands) ||
+		(in1->Coding != in2->Coding)) {
 		im_error("im_gaddim", " Input images differ");
 		return (-1);
 	}
@@ -261,7 +263,8 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		for (y = 0; y < out->Ysize; y++) { \
 			OUT *cpline = (OUT *) line; \
 			for (x = 0; x < os; x++) \
-				*cpline++ = (OUT) (a * (*input1++) + b * (*input2++) + c + 0.5); \
+				*cpline++ = \
+					(OUT) (a * (*input1++) + b * (*input2++) + c + 0.5); \
 			if (im_writeline(y, out, line) == -1) { \
 				free(line); \
 				return (-1); \

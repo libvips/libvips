@@ -193,8 +193,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 			char *basename = g_path_get_basename(spng->profile);
 
 #ifdef DEBUG
-			printf("write_vips: attaching %zd bytes "
-				   "of ICC profile\n",
+			printf("write_vips: attaching %zd bytes of ICC profile\n",
 				length);
 #endif /*DEBUG*/
 
@@ -217,8 +216,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 			return (-1);
 
 #ifdef DEBUG
-		printf("write_vips: attaching %zd bytes "
-			   "of ICC profile\n",
+		printf("write_vips: attaching %zd bytes of ICC profile\n",
 			length);
 #endif /*DEBUG*/
 
@@ -517,7 +515,8 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	/* Low-bitdepth write needs an extra buffer for packing pixels.
 	 */
 	if (spng->bitdepth < 8) {
-		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE(in) / (8 / spng->bitdepth);
+		spng->sizeof_line =
+			1 + VIPS_IMAGE_SIZEOF_LINE(in) / (8 / spng->bitdepth);
 
 		if (!(spng->line =
 					vips_malloc(NULL, VIPS_IMAGE_SIZEOF_LINE(in))))
@@ -782,7 +781,8 @@ vips_foreign_save_spng_target_build(VipsObject *object)
 	spng->target = target->target;
 	g_object_ref(spng->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -834,7 +834,8 @@ vips_foreign_save_spng_file_build(VipsObject *object)
 	if (!(spng->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -889,7 +890,8 @@ vips_foreign_save_spng_buffer_build(VipsObject *object)
 	if (!(spng->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(spng->target, "blob", &blob, NULL);

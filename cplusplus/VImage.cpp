@@ -573,7 +573,9 @@ VImage::new_from_file(const char *name, VOption *options)
 	}
 
 	call_option_string(operation_name, option_string,
-		(options ? options : VImage::option())->set("filename", filename)->set("out", &out));
+		(options ? options : VImage::option())
+			->set("filename", filename)
+			->set("out", &out));
 
 	return (out);
 }
@@ -594,7 +596,9 @@ VImage::new_from_buffer(const void *buf, size_t len, const char *option_string,
 	/* We don't take a copy of the data or free it.
 	 */
 	blob = vips_blob_new(NULL, buf, len);
-	options = (options ? options : VImage::option())->set("buffer", blob)->set("out", &out);
+	options = (options ? options : VImage::option())
+				  ->set("buffer", blob)
+				  ->set("out", &out);
 	vips_area_unref(VIPS_AREA(blob));
 
 	call_option_string(operation_name, option_string, options);
@@ -623,7 +627,9 @@ VImage::new_from_source(VSource source, const char *option_string,
 		throw(VError());
 	}
 
-	options = (options ? options : VImage::option())->set("source", source)->set("out", &out);
+	options = (options ? options : VImage::option())
+				  ->set("source", source)
+				  ->set("out", &out);
 
 	call_option_string(operation_name, option_string, options);
 
@@ -693,7 +699,9 @@ VImage::write_to_file(const char *name, VOption *options) const
 	}
 
 	call_option_string(operation_name, option_string,
-		(options ? options : VImage::option())->set("in", *this)->set("filename", filename));
+		(options ? options : VImage::option())
+			->set("in", *this)
+			->set("filename", filename));
 }
 
 void
@@ -720,13 +728,17 @@ VImage::write_to_buffer(const char *suffix, void **buf, size_t *size,
 		VTarget target = VTarget::new_to_memory();
 
 		call_option_string(operation_name, option_string,
-			(options ? options : VImage::option())->set("in", *this)->set("target", target));
+			(options ? options : VImage::option())
+				->set("in", *this)
+				->set("target", target));
 
 		g_object_get(target.get_target(), "blob", &blob, (void *) NULL);
 	}
 	else if ((operation_name = vips_foreign_find_save_buffer(filename))) {
 		call_option_string(operation_name, option_string,
-			(options ? options : VImage::option())->set("in", *this)->set("buffer", &blob));
+			(options ? options : VImage::option())
+				->set("in", *this)
+				->set("buffer", &blob));
 	}
 	else {
 		delete options;
@@ -760,7 +772,9 @@ VImage::write_to_target(const char *suffix, VTarget target,
 	}
 
 	call_option_string(operation_name, option_string,
-		(options ? options : VImage::option())->set("in", *this)->set("target", target));
+		(options ? options : VImage::option())
+			->set("in", *this)
+			->set("target", target));
 }
 
 VImage
@@ -846,7 +860,9 @@ VImage::minpos(VOption *options) const
 	double x, y;
 
 	(void) min(
-		(options ? options : VImage::option())->set("x", &x)->set("y", &y));
+		(options ? options : VImage::option())
+			->set("x", &x)
+			->set("y", &y));
 
 	return (std::complex<double>(x, y));
 }
@@ -857,7 +873,9 @@ VImage::maxpos(VOption *options) const
 	double x, y;
 
 	(void) max(
-		(options ? options : VImage::option())->set("x", &x)->set("y", &y));
+		(options ? options : VImage::option())
+			->set("x", &x)
+			->set("y", &y));
 
 	return (std::complex<double>(x, y));
 }

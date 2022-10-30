@@ -795,10 +795,12 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		if (vips_foreign_load_heif_set_page(heif,
 				i, heif->thumbnail))
 			return (-1);
-		if (heif_image_handle_get_width(heif->handle) != heif->page_width ||
-			heif_image_handle_get_height(heif->handle) != heif->page_height ||
-			heif_image_handle_get_luma_bits_per_pixel(
-				heif->handle) != heif->bits_per_pixel) {
+		if (heif_image_handle_get_width(heif->handle) !=
+				heif->page_width ||
+			heif_image_handle_get_height(heif->handle) !=
+				heif->page_height ||
+			heif_image_handle_get_luma_bits_per_pixel(heif->handle) !=
+				heif->bits_per_pixel) {
 			vips_error(class->nickname, "%s",
 				_("not all pages are the same size"));
 			return (-1);
@@ -1211,7 +1213,8 @@ vips_foreign_load_heif_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1286,7 +1289,8 @@ vips_foreign_load_heif_buffer_build(VipsObject *object)
 				  VIPS_AREA(buffer->buf)->length)))
 			return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1353,7 +1357,8 @@ vips_foreign_load_heif_source_build(VipsObject *object)
 		g_object_ref(heif->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

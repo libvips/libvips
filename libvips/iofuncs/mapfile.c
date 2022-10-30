@@ -400,8 +400,8 @@ vips_remapfilerw(VipsImage *image)
 	image->dtype = VIPS_IMAGE_MMAPINRW;
 
 	if (baseaddr != image->baseaddr) {
-		vips_error("vips_mapfile", _("unable to mmap \"%s\" to same "
-									 "address"),
+		vips_error("vips_mapfile",
+			_("unable to mmap \"%s\" to same address"),
 			image->filename);
 		image->baseaddr = baseaddr;
 		return (-1);

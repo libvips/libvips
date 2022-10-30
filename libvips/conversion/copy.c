@@ -204,9 +204,7 @@ vips_copy_build(VipsObject *object)
 
 		if (argument_instance->assigned) {
 			GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
-			GValue value = {
-				0,
-			};
+			GValue value = { 0 };
 
 			g_value_init(&value, type);
 			g_object_get_property(G_OBJECT(object),

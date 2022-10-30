@@ -97,7 +97,9 @@ G_DEFINE_TYPE(VipsBandmean, vips_bandmean, VIPS_TYPE_BANDARY);
 			sum = 0; \
 			for (j = 0; j < bands; j++) \
 				sum += p[j]; \
-			q[i] = sum > 0 ? (sum + bands / 2) / bands : (sum - bands / 2) / bands; \
+			q[i] = sum > 0 \
+				? (sum + bands / 2) / bands \
+				: (sum - bands / 2) / bands; \
 			p += bands; \
 		} \
 	}

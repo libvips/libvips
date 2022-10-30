@@ -193,8 +193,7 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 					in[i] != reorder->input[i]) {
 					/* Should never happen.
 					 */
-					g_warning("vips__reorder_set_input: "
-							  "args differ\n");
+					g_warning("vips__reorder_set_input: args differ\n");
 					break;
 				}
 

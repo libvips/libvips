@@ -540,8 +540,7 @@ vips_source_new_from_memory(const void *data, size_t length)
 	VipsSource *source;
 	VipsBlob *blob;
 
-	VIPS_DEBUG_MSG("vips_source_new_from_buffer: "
-				   "%p, length = %zd\n",
+	VIPS_DEBUG_MSG("vips_source_new_from_buffer: %p, length = %zd\n",
 		data, length);
 
 	/* We don't take a copy of the data or free it.
@@ -1156,8 +1155,9 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 
 	gint64 new_pos;
 
-	VIPS_DEBUG_MSG("vips_source_seek: offset = %" G_GINT64_FORMAT
-				   ", whence = %d\n",
+	VIPS_DEBUG_MSG(
+		"vips_source_seek: offset = %" G_GINT64_FORMAT
+		", whence = %d\n",
 		offset, whence);
 
 	if (vips_source_unminimise(source) ||

@@ -245,7 +245,9 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 * libjpeg values.
 	 */
 	if (!vips_object_argument_isset(object, "distance"))
-		jxl->distance = jxl->Q >= 30 ? 0.1 + (100 - jxl->Q) * 0.09 : 53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
+		jxl->distance = jxl->Q >= 30
+			? 0.1 + (100 - jxl->Q) * 0.09
+			: 53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
 
 	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
 	 */
@@ -652,7 +654,8 @@ vips_foreign_save_jxl_buffer_build(VipsObject *object)
 	if (!(jxl->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(jxl->target, "blob", &blob, NULL);
@@ -711,7 +714,8 @@ vips_foreign_save_jxl_target_build(VipsObject *object)
 		g_object_ref(jxl->target);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

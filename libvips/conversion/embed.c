@@ -381,8 +381,12 @@ vips_embed_base_build(VipsObject *object)
 		/* Clock arithmetic: we want negative x/y to wrap around
 		 * nicely.
 		 */
-		const int nx = base->x < 0 ? -base->x % base->in->Xsize : base->in->Xsize - base->x % base->in->Xsize;
-		const int ny = base->y < 0 ? -base->y % base->in->Ysize : base->in->Ysize - base->y % base->in->Ysize;
+		const int nx = base->x < 0
+			? -base->x % base->in->Xsize
+			: base->in->Xsize - base->x % base->in->Xsize;
+		const int ny = base->y < 0
+			? -base->y % base->in->Ysize
+			: base->in->Ysize - base->y % base->in->Ysize;
 
 		if (vips_replicate(base->in, &t[0],
 				base->width / base->in->Xsize + 2,
@@ -391,7 +395,6 @@ vips_embed_base_build(VipsObject *object)
 				nx, ny, base->width, base->height, NULL) ||
 			vips_image_write(t[1], conversion->out))
 			return (-1);
-
 	} break;
 
 	case VIPS_EXTEND_MIRROR: {

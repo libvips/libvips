@@ -1277,8 +1277,7 @@ vips_set_value_from_pointer(GValue *value, void *data)
 	else if (fundamental == G_TYPE_STRING)
 		g_value_set_string(value, *((char **) data));
 	else
-		g_warning("%s: unimplemented vips_set_value_from_pointer() "
-				  "type %s",
+		g_warning("%s: unimplemented vips_set_value_from_pointer() type %s",
 			G_STRLOC,
 			g_type_name(type));
 }

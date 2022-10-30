@@ -287,17 +287,21 @@ vips_icc_build(VipsObject *object)
 
 		switch (signature) {
 		case cmsSigGrayData:
-			code->input_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? info->lcms_type16 : info->lcms_type8;
+			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
+				? VIPS_FORMAT_USHORT
+				: VIPS_FORMAT_UCHAR;
+			icc->in_icc_format = code->in->BandFmt == VIPS_FORMAT_USHORT
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		case cmsSigRgbData:
-			code->input_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-			icc->in_icc_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? info->lcms_type16 : info->lcms_type8;
+			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
+				? VIPS_FORMAT_USHORT
+				: VIPS_FORMAT_UCHAR;
+			icc->in_icc_format = code->in->BandFmt == VIPS_FORMAT_USHORT
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		case cmsSigLabData:
@@ -328,10 +332,13 @@ vips_icc_build(VipsObject *object)
 			info = vips_icc_info(
 				cmsGetColorSpace(icc->in_profile));
 
-			code->input_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
+				? VIPS_FORMAT_USHORT
+				: VIPS_FORMAT_UCHAR;
 			icc->in_icc_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT ? info->lcms_type16 : info->lcms_type8;
+				code->in->BandFmt == VIPS_FORMAT_USHORT
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		default:
@@ -356,21 +363,27 @@ vips_icc_build(VipsObject *object)
 
 		switch (signature) {
 		case cmsSigGrayData:
-			colour->interpretation =
-				icc->depth == 8 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_GREY16;
-			colour->format =
-				icc->depth == 8 ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				icc->depth == 16 ? info->lcms_type16 : info->lcms_type8;
+			colour->interpretation = icc->depth == 8
+				? VIPS_INTERPRETATION_B_W
+				: VIPS_INTERPRETATION_GREY16;
+			colour->format = icc->depth == 8
+				? VIPS_FORMAT_UCHAR
+				: VIPS_FORMAT_USHORT;
+			icc->out_icc_format = icc->depth == 16
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		case cmsSigRgbData:
-			colour->interpretation =
-				icc->depth == 8 ? VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
-			colour->format =
-				icc->depth == 8 ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				icc->depth == 16 ? info->lcms_type16 : info->lcms_type8;
+			colour->interpretation = icc->depth == 8
+				? VIPS_INTERPRETATION_sRGB
+				: VIPS_INTERPRETATION_RGB16;
+			colour->format = icc->depth == 8
+				? VIPS_FORMAT_UCHAR
+				: VIPS_FORMAT_USHORT;
+			icc->out_icc_format = icc->depth == 16
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		case cmsSigLabData:
@@ -397,10 +410,12 @@ vips_icc_build(VipsObject *object)
 			/* Treat as forms of CMYK.
 			 */
 			colour->interpretation = VIPS_INTERPRETATION_CMYK;
-			colour->format =
-				icc->depth == 8 ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				icc->depth == 16 ? info->lcms_type16 : info->lcms_type8;
+			colour->format = icc->depth == 8
+				? VIPS_FORMAT_UCHAR
+				: VIPS_FORMAT_USHORT;
+			icc->out_icc_format = icc->depth == 16
+				? info->lcms_type16
+				: info->lcms_type8;
 			break;
 
 		default:
@@ -729,8 +744,8 @@ vips_icc_set_import(VipsIcc *icc,
 	}
 
 	if (!icc->in_profile) {
-		vips_error(class->nickname, "%s", _("unable to load or "
-											"find any compatible input profile"));
+		vips_error(class->nickname, "%s",
+			_("unable to load or find any compatible input profile"));
 		return (-1);
 	}
 

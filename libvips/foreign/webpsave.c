@@ -343,7 +343,8 @@ vips_foreign_save_webp_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 	/* Write the new pixels into the frame.
 	 */
 	for (i = 0; i < area->height; i++) {
-		memcpy(webp->frame_bytes + area->width * webp->write_y * webp->image->Bands,
+		memcpy(webp->frame_bytes +
+				area->width * webp->write_y * webp->image->Bands,
 			VIPS_REGION_ADDR(region, 0, area->top + i),
 			area->width * webp->image->Bands);
 
@@ -899,7 +900,8 @@ vips_foreign_save_webp_target_build(VipsObject *object)
 	webp->target = target->target;
 	g_object_ref(webp->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -950,7 +952,8 @@ vips_foreign_save_webp_file_build(VipsObject *object)
 	if (!(webp->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1003,7 +1006,8 @@ vips_foreign_save_webp_buffer_build(VipsObject *object)
 	if (!(webp->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(webp->target, "blob", &blob, NULL);
@@ -1061,7 +1065,8 @@ vips_foreign_save_webp_mime_build(VipsObject *object)
 	if (!(webp->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_mime_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_webp_mime_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(webp->target, "blob", &blob, NULL);

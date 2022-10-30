@@ -484,18 +484,23 @@ vips_maplut_gen(VipsRegion * or, void *vseq, void *a, void *b,
 	if (vips_region_prepare(ir, r))
 		return (-1);
 
+	/* clang-format off */
 	if (maplut->nb == 1)
 		/* One band lut.
 		 */
-		outer_switch(loop1, loop1c, loop1g, loop1cg) else
-			/* Many band lut.
-			 */
-			if (in->Bands == 1)
+		outer_switch(loop1, loop1c, loop1g, loop1cg)
+	else
+		/* Many band lut.
+		 */
+		if (in->Bands == 1)
 			/* ... but 1 band input.
 			 */
-			outer_switch(loop1m, loop1cm, loop1gm, loop1cgm) else outer_switch(loop, loopc, loopg, loopcg)
+			outer_switch(loop1m, loop1cm, loop1gm, loop1cgm)
+		else
+			outer_switch(loop, loopc, loopg, loopcg)
 
-				return (0);
+	return (0);
+	/* clang-format on */
 }
 
 /* Destroy a sequence value.

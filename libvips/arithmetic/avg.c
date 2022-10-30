@@ -100,8 +100,7 @@ vips_avg_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_avg_parent_class)->build(object))
 		return (-1);
 
-	vals = (gint64)
-			   vips_image_get_width(statistic->in) *
+	vals = (gint64) vips_image_get_width(statistic->in) *
 		vips_image_get_height(statistic->in) *
 		vips_image_get_bands(statistic->in);
 	average = avg->sum / vals;

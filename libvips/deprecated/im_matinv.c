@@ -487,7 +487,9 @@ mat_inv_direct(
 		return 0;
 	}
 	case 3: {
-		double det = MAT(0, 0) * (MAT(1, 1) * MAT(2, 2) - MAT(1, 2) * MAT(2, 1)) - MAT(0, 1) * (MAT(1, 0) * MAT(2, 2) - MAT(1, 2) * MAT(2, 0)) + MAT(0, 2) * (MAT(1, 0) * MAT(2, 1) - MAT(1, 1) * MAT(2, 0));
+		double det = MAT(0, 0) * (MAT(1, 1) * MAT(2, 2) - MAT(1, 2) * MAT(2, 1)) -
+			MAT(0, 1) * (MAT(1, 0) * MAT(2, 2) - MAT(1, 2) * MAT(2, 0)) +
+			MAT(0, 2) * (MAT(1, 0) * MAT(2, 1) - MAT(1, 1) * MAT(2, 0));
 
 		if (fabs(det) < TOO_SMALL) {
 			im_error(function_name, "singular or near-singular matrix");

@@ -223,7 +223,8 @@ build_node(SymbolTable *st, char *name)
 
 	/* Fill fields.
 	 */
-	if (!node || !(node->name = vips_strdup(VIPS_OBJECT(st->im), name)))
+	if (!node ||
+		!(node->name = vips_strdup(VIPS_OBJECT(st->im), name)))
 		return (NULL);
 
 	node->type = JOIN_LEAF;
@@ -1350,7 +1351,9 @@ make_mos_image(SymbolTable *st, JoinNode *node, transform_fn tfn, void *a)
 			return (NULL);
 
 		if (vips_merge(im1, im2, &out,
-				node->type == JOIN_LR ? VIPS_DIRECTION_HORIZONTAL : VIPS_DIRECTION_VERTICAL,
+				node->type == JOIN_LR
+					? VIPS_DIRECTION_HORIZONTAL
+					: VIPS_DIRECTION_VERTICAL,
 				-node->dx, -node->dy,
 				"mblend", node->mwidth,
 				NULL))
@@ -1427,7 +1430,9 @@ vips__build_mosaic(SymbolTable *st, VipsImage *out, transform_fn tfn, void *a)
 			return (-1);
 
 		if (vips_merge(im1, im2, &x,
-				root->type == JOIN_LR ? VIPS_DIRECTION_HORIZONTAL : VIPS_DIRECTION_VERTICAL,
+				root->type == JOIN_LR
+					? VIPS_DIRECTION_HORIZONTAL
+					: VIPS_DIRECTION_VERTICAL,
 				-root->dx, -root->dy,
 				"mblend", root->mwidth,
 				NULL))
@@ -1892,7 +1897,9 @@ vips_globalbalance_build(VipsObject *object)
 		find_factors(st, globalbalance->gamma))
 		return (-1);
 
-	trn = globalbalance->int_output ? (transform_fn) transform : (transform_fn) transformf;
+	trn = globalbalance->int_output
+		? (transform_fn) transform
+		: (transform_fn) transformf;
 	if (vips__build_mosaic(st, globalbalance->out,
 			trn, &globalbalance->gamma))
 		return (-1);

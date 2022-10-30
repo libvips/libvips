@@ -223,10 +223,10 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 	 */
 	hscale = 32.0 / in->Xsize;
 	vscale = 32.0 / in->Ysize;
-	sigma = VIPS_MAX(sqrt(pow(smartcrop->width * hscale, 2) +
-						 pow(smartcrop->height * vscale, 2)) /
-			10,
-		1.0);
+	sigma = sqrt(pow(smartcrop->width * hscale, 2) +
+		pow(smartcrop->height * vscale, 2));
+	sigma = VIPS_MAX(sigma / 10, 1.0);
+
 	if (vips_resize(in, &t[17], hscale,
 			"vscale", vscale,
 			NULL))
@@ -372,7 +372,9 @@ vips_smartcrop_build(VipsObject *object)
 		break;
 
 	case VIPS_INTERESTING_ATTENTION:
-		if (vips_smartcrop_attention(smartcrop, in, &left, &top, &attention_x, &attention_y))
+		if (vips_smartcrop_attention(smartcrop, in,
+				&left, &top,
+				&attention_x, &attention_y))
 			return (-1);
 		break;
 

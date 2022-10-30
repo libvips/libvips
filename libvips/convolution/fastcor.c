@@ -139,7 +139,9 @@ vips_fastcor_correlation(VipsCorrelation *correlation,
 {
 	VipsRect *r = &out->valid;
 	VipsImage *ref = correlation->ref_ready;
-	int bands = vips_band_format_iscomplex(ref->BandFmt) ? ref->Bands * 2 : ref->Bands;
+	int bands = vips_band_format_iscomplex(ref->BandFmt)
+		? ref->Bands * 2
+		: ref->Bands;
 	int sz = ref->Xsize * bands;
 	int lsk = VIPS_REGION_LSKIP(in) / VIPS_IMAGE_SIZEOF_ELEMENT(in->im);
 

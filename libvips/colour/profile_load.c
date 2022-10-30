@@ -89,8 +89,7 @@ vips_profile_fallback_get(const char *name, size_t *length)
 			}
 			else {
 				g_free(data);
-				g_warning("fallback profile "
-						  "decompression failed");
+				g_warning("fallback profile decompression failed");
 			}
 		}
 

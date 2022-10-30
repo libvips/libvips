@@ -257,14 +257,12 @@ vips_canny_polar(VipsImage **args, VipsImage **out)
 				TYPE residual = theta - low_theta * 32; \
 				TYPE lowa = tp[offset[low_theta]]; \
 				TYPE lowb = tp[offset[high_theta]]; \
-				TYPE low = (lowa * (32 - residual) + \
-							   lowb * residual) / \
-					32; \
+				TYPE low = \
+					(lowa * (32 - residual) + lowb * residual) / 32; \
 				TYPE higha = tp[offset[(low_theta + 4) & 0x7]]; \
 				TYPE highb = tp[offset[(high_theta + 4) & 0x7]]; \
-				TYPE high = (higha * (32 - residual) + \
-								highb * residual) / \
-					32; \
+				TYPE high = \
+					(higha * (32 - residual) + highb * residual) / 32; \
 \
 				if (G <= low || \
 					G < high) \

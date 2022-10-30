@@ -204,7 +204,8 @@ vips_foreign_load_png_source_build(VipsObject *object)
 		g_object_ref(png->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -350,7 +351,8 @@ vips_foreign_load_png_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

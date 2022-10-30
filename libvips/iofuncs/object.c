@@ -711,8 +711,7 @@ vips_argument_init(VipsObject *object)
 			pspec, argument_class, argument_instance)
 		{
 #ifdef DEBUG
-			printf("vips_argument_init: "
-				   "adding instance argument for %s\n",
+			printf("vips_argument_init: adding instance argument for %s\n",
 				g_param_spec_get_name(pspec));
 #endif /*DEBUG*/
 
@@ -1769,8 +1768,7 @@ vips_object_class_install_argument(VipsObjectClass *object_class,
 	if (object_class->argument_table_traverse_gtype !=
 		G_TYPE_FROM_CLASS(object_class)) {
 #ifdef DEBUG
-		printf("vips_object_class_install_argument: "
-			   "cloning traverse\n");
+		printf("vips_object_class_install_argument: cloning traverse\n");
 #endif /*DEBUG*/
 
 		object_class->argument_table_traverse =
@@ -1988,7 +1986,9 @@ vips_object_set_argument_from_string(VipsObject *object,
 			flags = vips_operation_get_flags(
 				VIPS_OPERATION(object));
 
-		if (flags & (VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
+		if (flags &
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
+				VIPS_OPERATION_SEQUENTIAL))
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;
@@ -2174,9 +2174,7 @@ vips_object_print_arg(VipsObject *object, GParamSpec *pspec, VipsBuf *buf)
 {
 	GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
 	const char *name = g_param_spec_get_name(pspec);
-	GValue value = {
-		0,
-	};
+	GValue value = { 0 };
 	char *str_value;
 
 	g_value_init(&value, type);

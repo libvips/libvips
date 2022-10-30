@@ -254,7 +254,8 @@ vips_foreign_save_csv_file_build(VipsObject *object)
 		!(csv->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_file_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_file_parent_class)
+				->build(object));
 }
 
 static void
@@ -304,7 +305,8 @@ vips_foreign_save_csv_target_build(VipsObject *object)
 		g_object_ref(csv->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_target_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_target_parent_class)
+				->build(object));
 }
 
 static void

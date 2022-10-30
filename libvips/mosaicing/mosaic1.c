@@ -456,7 +456,9 @@ vips_mosaic1_build(VipsObject *object)
 	if (!mosaic1->interpolate)
 		mosaic1->interpolate = vips_interpolate_new("bilinear");
 
-	jfn = mosaic1->direction == VIPS_DIRECTION_HORIZONTAL ? vips__lrmerge1 : vips__tbmerge1;
+	jfn = mosaic1->direction == VIPS_DIRECTION_HORIZONTAL
+		? vips__lrmerge1
+		: vips__tbmerge1;
 
 	if (mosaic1->search) {
 		if (rotjoin_search(mosaic1->ref, mosaic1->sec, mosaic1->out,

@@ -241,8 +241,9 @@ vips_resize_build(VipsObject *object)
 		 * and right. Except if this is nearest, which is always
 		 * centre.
 		 */
-		const double id =
-			resize->kernel == VIPS_KERNEL_NEAREST ? 0.0 : 0.5;
+		const double id = resize->kernel == VIPS_KERNEL_NEAREST
+			? 0.0
+			: 0.5;
 
 		VipsInterpolate *interpolate;
 
