@@ -14,6 +14,7 @@ conversion_sources = files(
     'composite.cpp',
     'conversion.c',
     'copy.c',
+    'dither.c',
     'embed.c',
     'extract.c',
     'falsecolour.c',
