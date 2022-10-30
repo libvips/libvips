@@ -5,28 +5,28 @@
 
 /*
 
-    This file is part of VIPS.
+	This file is part of VIPS.
 
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -43,19 +43,19 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #define VIPS_TYPE_INTERPOLATE (vips_interpolate_get_type())
-#define VIPS_INTERPOLATE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE, VipsInterpolate ))
-#define VIPS_INTERPOLATE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE, VipsInterpolateClass))
-#define VIPS_IS_INTERPOLATE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE ))
-#define VIPS_IS_INTERPOLATE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE ))
-#define VIPS_INTERPOLATE_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE, VipsInterpolateClass ))
+#define VIPS_INTERPOLATE(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_INTERPOLATE, VipsInterpolate))
+#define VIPS_INTERPOLATE_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_INTERPOLATE, VipsInterpolateClass))
+#define VIPS_IS_INTERPOLATE(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_INTERPOLATE))
+#define VIPS_IS_INTERPOLATE_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_INTERPOLATE))
+#define VIPS_INTERPOLATE_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_INTERPOLATE, VipsInterpolateClass))
 
 typedef struct _VipsInterpolate {
 	VipsObject parent_object;
@@ -66,8 +66,8 @@ typedef struct _VipsInterpolate {
  * function for it to speed up dispatch. Write to the memory at "out",
  * interpolate the value at position (x, y) in "in".
  */
-typedef void (*VipsInterpolateMethod)( VipsInterpolate *interpolate,
-	void *out, VipsRegion *in, double x, double y );
+typedef void (*VipsInterpolateMethod)(VipsInterpolate *interpolate,
+	void *out, VipsRegion *in, double x, double y);
 
 typedef struct _VipsInterpolateClass {
 	VipsObjectClass parent_class;
@@ -79,7 +79,7 @@ typedef struct _VipsInterpolateClass {
 
 	/* This interpolator needs a window this many pixels across and down.
 	 */
-	int (*get_window_size)( VipsInterpolate *interpolate );
+	int (*get_window_size)(VipsInterpolate *interpolate);
 
 	/* Or just set this if you want a constant.
 	 */
@@ -88,7 +88,7 @@ typedef struct _VipsInterpolateClass {
 	/* Stencils are offset by this much. Default to window_size / 2 - 1
 	 * (centering) if get_window_offset is NULL and window_offset is -1.
 	 */
-	int (*get_window_offset)( VipsInterpolate *interpolate );
+	int (*get_window_offset)(VipsInterpolate *interpolate);
 	int window_offset;
 } VipsInterpolateClass;
 
@@ -97,14 +97,14 @@ typedef struct _VipsInterpolateClass {
 VIPS_API
 GType vips_interpolate_get_type(void);
 VIPS_API
-void vips_interpolate( VipsInterpolate *interpolate,
-	void *out, VipsRegion *in, double x, double y );
+void vips_interpolate(VipsInterpolate *interpolate,
+	void *out, VipsRegion *in, double x, double y);
 VIPS_API
-VipsInterpolateMethod vips_interpolate_get_method( VipsInterpolate *interpolate );
+VipsInterpolateMethod vips_interpolate_get_method(VipsInterpolate *interpolate);
 VIPS_API
-int vips_interpolate_get_window_size( VipsInterpolate *interpolate );
+int vips_interpolate_get_window_size(VipsInterpolate *interpolate);
 VIPS_API
-int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
+int vips_interpolate_get_window_offset(VipsInterpolate *interpolate);
 
 /* How many bits of precision we keep for transformations, ie. how many
  * pre-computed matricies we have.
@@ -123,19 +123,18 @@ int vips_interpolate_get_window_offset( VipsInterpolate *interpolate );
 /* Convenience: return static interpolators, no need to unref.
  */
 VIPS_API
-VipsInterpolate *vips_interpolate_nearest_static( void );
+VipsInterpolate *vips_interpolate_nearest_static(void);
 VIPS_API
-VipsInterpolate *vips_interpolate_bilinear_static( void );
+VipsInterpolate *vips_interpolate_bilinear_static(void);
 
 /* Convenience: make an interpolator from a nickname. g_object_unref() when
  * you're done with it.
  */
 VIPS_API
-VipsInterpolate *vips_interpolate_new( const char *nickname );
+VipsInterpolate *vips_interpolate_new(const char *nickname);
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
 #endif /*VIPS_INTERPOLATE_H*/
-

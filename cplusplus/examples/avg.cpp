@@ -1,4 +1,4 @@
-/* 
+/*
  * compile with:
  *
  *      g++ -g -Wall avg.cpp `pkg-config vips-cpp --cflags --libs`
@@ -12,20 +12,20 @@
 using namespace vips;
 
 int
-main( int argc, char **argv )
+main(int argc, char **argv)
 {
-	if( vips_init( argv[0] ) )
-		vips_error_exit( NULL ); 
+	if (vips_init(argv[0]))
+		vips_error_exit(NULL);
 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
+	VImage in = VImage::new_from_file(argv[1],
+		VImage::option()->set("access", VIPS_ACCESS_SEQUENTIAL));
 	double avg;
 
-	avg = in.avg(); 
+	avg = in.avg();
 
-	printf( "avg = %g\n", avg ); 
+	printf("avg = %g\n", avg);
 
 	vips_shutdown();
 
-        return( 0 );
+	return (0);
 }

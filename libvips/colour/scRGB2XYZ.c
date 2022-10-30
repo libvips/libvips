@@ -1,4 +1,4 @@
-/* Turn scRGB to XYZ colourspace. 
+/* Turn scRGB to XYZ colourspace.
  *
  * Modified:
  * 29/5/02 JC
@@ -12,28 +12,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -52,17 +52,17 @@
 typedef VipsColourTransform VipsscRGB2XYZ;
 typedef VipsColourTransformClass VipsscRGB2XYZClass;
 
-G_DEFINE_TYPE( VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
+G_DEFINE_TYPE(VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_TRANSFORM);
 
 static void
-vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_scRGB2XYZ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	float * restrict p = (float *) in[0];
-	float * restrict q = (float *) out;
+	float *restrict p = (float *) in[0];
+	float *restrict q = (float *) out;
 
 	int i;
 
-	for( i = 0; i < width; i++ ) {
+	for (i = 0; i < width; i++) {
 		float R = p[0] * VIPS_D65_Y0;
 		float G = p[1] * VIPS_D65_Y0;
 		float B = p[2] * VIPS_D65_Y0;
@@ -87,21 +87,21 @@ vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 static void
-vips_scRGB2XYZ_class_init( VipsscRGB2XYZClass *class )
+vips_scRGB2XYZ_class_init(VipsscRGB2XYZClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "scRGB2XYZ";
-	object_class->description = _( "transform scRGB to XYZ" );
+	object_class->description = _("transform scRGB to XYZ");
 
 	colour_class->process_line = vips_scRGB2XYZ_line;
 }
 
 static void
-vips_scRGB2XYZ_init( VipsscRGB2XYZ *scRGB2XYZ )
+vips_scRGB2XYZ_init(VipsscRGB2XYZ *scRGB2XYZ)
 {
-	VipsColour *colour = VIPS_COLOUR( scRGB2XYZ );
+	VipsColour *colour = VIPS_COLOUR(scRGB2XYZ);
 
 	colour->interpretation = VIPS_INTERPRETATION_XYZ;
 }
@@ -117,15 +117,14 @@ vips_scRGB2XYZ_init( VipsscRGB2XYZ *scRGB2XYZ )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_scRGB2XYZ( VipsImage *in, VipsImage **out, ... )
+vips_scRGB2XYZ(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "scRGB2XYZ", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("scRGB2XYZ", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return (result);
 }
-
