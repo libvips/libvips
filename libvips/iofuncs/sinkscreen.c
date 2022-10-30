@@ -341,8 +341,7 @@ render_tile_dirty_reuse(Render *render)
 		g_assert(tile->dirty);
 		tile->dirty = FALSE;
 
-		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: "
-					   "reusing dirty %p\n",
+		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: reusing dirty %p\n",
 			tile);
 	}
 
@@ -667,8 +666,7 @@ render_tile_add(Tile *tile, VipsRect *area)
 	 * them.
 	 */
 	if (vips_region_buffer(tile->region, &tile->area))
-		VIPS_DEBUG_MSG_RED("render_tile_add: "
-						   "buffer allocate failed\n");
+		VIPS_DEBUG_MSG_RED("render_tile_add: buffer allocate failed\n");
 
 	g_hash_table_insert(render->tiles, &tile->area, tile);
 }
@@ -729,8 +727,7 @@ tile_queue(Tile *tile, VipsRegion *reg)
 		 * sychronously. No need to notify the client since they'll
 		 * never see black tiles.
 		 */
-		VIPS_DEBUG_MSG("tile_queue: "
-					   "painting tile %p %dx%d synchronously\n",
+		VIPS_DEBUG_MSG("tile_queue: painting tile %p %dx%d synchronously\n",
 			tile, tile->area.left, tile->area.top);
 
 		/* While we're computing, let other threads use the cache.
@@ -769,8 +766,7 @@ render_tile_get_painted(Render *render)
 		(GHFunc) tile_test_clean_ticks, &tile);
 
 	if (tile) {
-		VIPS_DEBUG_MSG("render_tile_get_painted: "
-					   "reusing painted %p\n",
+		VIPS_DEBUG_MSG("render_tile_get_painted: reusing painted %p\n",
 			tile);
 	}
 
@@ -815,8 +811,7 @@ render_tile_request(Render *render, VipsRegion *reg, VipsRect *area)
 		 */
 		if (!(tile = render_tile_get_painted(render)) &&
 			!(tile = render_tile_dirty_reuse(render))) {
-			VIPS_DEBUG_MSG("render_tile_request: "
-						   "no tiles to reuse\n");
+			VIPS_DEBUG_MSG("render_tile_request: no tiles to reuse\n");
 			return (NULL);
 		}
 
@@ -848,8 +843,7 @@ tile_copy(Tile *tile, VipsRegion *to)
 
 		int y;
 
-		VIPS_DEBUG_MSG("tile_copy: "
-					   "copying calculated pixels for %p %dx%d\n",
+		VIPS_DEBUG_MSG("tile_copy: copying calculated pixels for %p %dx%d\n",
 			tile, tile->area.left, tile->area.top);
 
 		for (y = ovlap.top; y < VIPS_RECT_BOTTOM(&ovlap); y++) {
@@ -1011,8 +1005,7 @@ render_thread_main(void *client)
 	Render *render;
 
 	while (!render_kill) {
-		VIPS_DEBUG_MSG_GREEN("render_thread_main: "
-							 "threadpool start\n");
+		VIPS_DEBUG_MSG_GREEN("render_thread_main: threadpool start\n");
 
 		render_reschedule = FALSE;
 
@@ -1026,8 +1019,7 @@ render_thread_main(void *client)
 				VIPS_DEBUG_MSG_RED("render_thread_main: "
 								   "threadpool_run failed\n");
 
-			VIPS_DEBUG_MSG_GREEN("render_thread_main: "
-								 "threadpool return\n");
+			VIPS_DEBUG_MSG_GREEN("render_thread_main: threadpool return\n");
 
 			/* Add back to the jobs list, if we need to.
 			 */

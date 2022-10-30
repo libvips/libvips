@@ -716,8 +716,7 @@ rtiff_set_page(Rtiff *rtiff, int page)
 
 			if (rtiff->subifd >= subifd_count) {
 				vips_error("tiff2vips",
-					_("subifd %d out of range, "
-					  "only 0-%d available"),
+					_("subifd %d out of range, only 0-%d available"),
 					rtiff->subifd,
 					subifd_count - 1);
 				return (-1);
@@ -1757,7 +1756,9 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	 * outside the lock and THINSTRIP would prevent parallel tile decode.
 	 */
 	vips_image_pipelinev(out,
-		rtiff->header.tiled ? VIPS_DEMAND_STYLE_SMALLTILE : VIPS_DEMAND_STYLE_THINSTRIP,
+		rtiff->header.tiled
+			? VIPS_DEMAND_STYLE_SMALLTILE
+			: VIPS_DEMAND_STYLE_THINSTRIP,
 		NULL);
 
 	return (0);
@@ -1880,9 +1881,11 @@ rtiff_decompress_jpeg_set_memory(j_decompress_ptr cinfo,
 	void *data, size_t data_len)
 {
 	if (!cinfo->src)
-		cinfo->src = (struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
-			(j_common_ptr) cinfo, JPOOL_PERMANENT,
-			sizeof(struct jpeg_source_mgr));
+		cinfo->src =
+			(struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
+				(j_common_ptr) cinfo,
+				JPOOL_PERMANENT,
+				sizeof(struct jpeg_source_mgr));
 
 	/* Present the whole of data as one chunk.
 	 */
@@ -2548,8 +2551,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 	 */
 	if (r->top != rtiff->y_pos) {
 		vips_error("tiff2vips",
-			_("out of order read -- at line %d, "
-			  "but line %d requested"),
+			_("out of order read -- at line %d, but line %d requested"),
 			rtiff->y_pos, r->top);
 		return (-1);
 	}
@@ -2805,8 +2807,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 	for (i = 0; i < VIPS_NUMBER(rtiff_we_decompress); i++)
 		if (header->compression == rtiff_we_decompress[i]) {
 #ifdef DEBUG
-			printf("rtiff_header_read: "
-				   "compression %d handled by us\n",
+			printf("rtiff_header_read: compression %d handled by us\n",
 				header->compression);
 #endif /*DEBUG*/
 			header->we_decompress = TRUE;
@@ -2941,7 +2942,8 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 
 		/* Arbitrary sanity-checking limits.
 		 */
-		max_tile_dimension = VIPS_MIN(8192, VIPS_ROUND_UP(2 * VIPS_MAX(header->width, header->height), 256));
+		max_tile_dimension = VIPS_MIN(8192,
+			VIPS_ROUND_UP(2 * VIPS_MAX(header->width, header->height), 256));
 		if (header->tile_width <= 0 ||
 			header->tile_width > max_tile_dimension ||
 			header->tile_width % 16 != 0 ||
@@ -3071,8 +3073,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		for (i = 0; i < extra_samples_count; i++)
 			if (extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA) {
 				if (header->alpha_band != -1)
-					g_warning("%s", _("more than one "
-									  "alpha -- ignoring"));
+					g_warning("%s", _("more than one alpha -- ignoring"));
 
 				header->alpha_band = header->samples_per_pixel -
 					extra_samples_count + i;
@@ -3117,8 +3118,7 @@ static int
 rtiff_header_read_all(Rtiff *rtiff)
 {
 #ifdef DEBUG
-	printf("rtiff_header_read_all: "
-		   "reading header for page %d ...\n",
+	printf("rtiff_header_read_all: reading header for page %d ...\n",
 		rtiff->page);
 #endif /*DEBUG*/
 
@@ -3146,8 +3146,7 @@ rtiff_header_read_all(Rtiff *rtiff)
 			RtiffHeader header;
 
 #ifdef DEBUG
-			printf("rtiff_header_read_all: "
-				   "verifying header for page %d ...\n",
+			printf("rtiff_header_read_all: verifying header for page %d ...\n",
 				rtiff->page + i);
 #endif /*DEBUG*/
 

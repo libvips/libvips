@@ -207,7 +207,9 @@ vips_spcor_correlation(VipsCorrelation *correlation,
 	VipsSpcor *spcor = (VipsSpcor *) correlation;
 	VipsRect *r = &out->valid;
 	VipsImage *ref = correlation->ref_ready;
-	int bands = vips_band_format_iscomplex(ref->BandFmt) ? ref->Bands * 2 : ref->Bands;
+	int bands = vips_band_format_iscomplex(ref->BandFmt)
+		? ref->Bands * 2
+		: ref->Bands;
 	int sz = ref->Xsize * bands;
 	int lsk = VIPS_REGION_LSKIP(in);
 

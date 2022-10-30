@@ -353,39 +353,33 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 
 			switch (in->BandFmt) {
 			case VIPS_FORMAT_UCHAR:
-				reduceh_unsigned_int_tab<unsigned char, UCHAR_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_unsigned_int_tab<unsigned char,
+					UCHAR_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_CHAR:
-				reduceh_signed_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_signed_int_tab<signed char,
+					SCHAR_MIN, SCHAR_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				reduceh_unsigned_int_tab<unsigned short, USHRT_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_unsigned_int_tab<unsigned short,
+					USHRT_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_SHORT:
-				reduceh_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_signed_int_tab<signed short,
+					SHRT_MIN, SHRT_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_UINT:
-				reduceh_unsigned_int32_tab<unsigned int, UINT_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_unsigned_int32_tab<unsigned int,
+					UINT_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_INT:
-				reduceh_signed_int32_tab<signed int, INT_MIN, INT_MAX>(
-					reduceh,
-					q, p, bands, cxi);
+				reduceh_signed_int32_tab<signed int,
+					INT_MIN, INT_MAX>(reduceh, q, p, bands, cxi);
 				break;
 
 			case VIPS_FORMAT_FLOAT:
@@ -463,7 +457,8 @@ vips_reduceh_build(VipsObject *object)
 
 		/* The int part of our reduce.
 		 */
-		int_hshrink = VIPS_MAX(1, VIPS_FLOOR((double) in->Xsize / width / reduceh->gap));
+		int_hshrink = VIPS_MAX(1,
+			VIPS_FLOOR((double) in->Xsize / width / reduceh->gap));
 
 		if (int_hshrink > 1) {
 			g_info("shrinkh by %d", int_hshrink);

@@ -206,21 +206,22 @@ void vips_region_invalidate(VipsRegion *reg);
  */
 #ifdef DEBUG
 #define VIPS_REGION_ADDR(R, X, Y) \
-	((vips_rect_includespoint(&(R)->valid, (X), (Y))) ? ((R)->data + ((Y) - (R)->valid.top) * VIPS_REGION_LSKIP(R) + \
-															((X) - (R)->valid.left) * VIPS_REGION_SIZEOF_PEL(R)) \
-													  : (fprintf(stderr, \
-															 "VIPS_REGION_ADDR: point out of bounds, " \
-															 "file \"%s\", line %d\n" \
-															 "(point x=%d, y=%d\n" \
-															 " should have been within VipsRect left=%d, top=%d, " \
-															 "width=%d, height=%d)\n", \
-															 __FILE__, __LINE__, \
-															 (X), (Y), \
-															 (R)->valid.left, \
-															 (R)->valid.top, \
-															 (R)->valid.width, \
-															 (R)->valid.height), \
-															abort(), (VipsPel *) NULL))
+	((vips_rect_includespoint(&(R)->valid, (X), (Y))) \
+			? ((R)->data + ((Y) - (R)->valid.top) * VIPS_REGION_LSKIP(R) + \
+				  ((X) - (R)->valid.left) * VIPS_REGION_SIZEOF_PEL(R)) \
+			: (fprintf(stderr, \
+				   "VIPS_REGION_ADDR: point out of bounds, " \
+				   "file \"%s\", line %d\n" \
+				   "(point x=%d, y=%d\n" \
+				   " should have been within VipsRect left=%d, top=%d, " \
+				   "width=%d, height=%d)\n", \
+				   __FILE__, __LINE__, \
+				   (X), (Y), \
+				   (R)->valid.left, \
+				   (R)->valid.top, \
+				   (R)->valid.width, \
+				   (R)->valid.height), \
+				  abort(), (VipsPel *) NULL))
 #else /*DEBUG*/
 #define VIPS_REGION_ADDR(R, X, Y) \
 	((R)->data + \

@@ -782,8 +782,7 @@ vips_foreign_load_pdf_file_header(VipsForeignLoad *load)
 
 	VIPS_SETSTR(load->out->filename, file->filename);
 
-	return (VIPS_FOREIGN_LOAD_CLASS(
-		vips_foreign_load_pdf_file_parent_class)
+	return (VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
 				->header(load));
 }
 
@@ -806,7 +805,8 @@ vips_foreign_load_pdf_file_build(VipsObject *object)
 		!(pdf->source = vips_source_new_from_file(file->filename)))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
+				->build(object));
 }
 
 static gboolean
@@ -896,7 +896,8 @@ vips_foreign_load_pdf_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->buf)->length)))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
+				->build(object));
 }
 
 static void
@@ -952,7 +953,8 @@ vips_foreign_load_pdf_source_build(VipsObject *object)
 		g_object_ref(pdf->source);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)->build(object));
+	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)
+				->build(object));
 }
 
 static gboolean

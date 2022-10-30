@@ -282,7 +282,9 @@ print_dsr(struct dsr *d)
 			break;
 
 		case STRING:
-			printf("\"%s\"\n", getstr(dsr_header[i].len, &G_STRUCT_MEMBER(char, d, dsr_header[i].offset)));
+			printf("\"%s\"\n",
+				getstr(dsr_header[i].len,
+					&G_STRUCT_MEMBER(char, d, dsr_header[i].offset)));
 			break;
 
 		default:
@@ -539,7 +541,9 @@ vips__analyze_read_header(const char *filename, VipsImage *out)
 	vips_image_init_fields(out,
 		width, height, bands, fmt,
 		VIPS_CODING_NONE,
-		bands == 1 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB,
+		bands == 1
+			? VIPS_INTERPRETATION_B_W
+			: VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
 
 	attach_meta(out, d);

@@ -382,7 +382,9 @@ vips_operation_class_usage_arg(VipsObjectClass *object_class,
 			vips_buf_appendf(buf, "   %-12s - %s, %s %s\n",
 				g_param_spec_get_name(pspec),
 				g_param_spec_get_blurb(pspec),
-				(argument_class->flags & VIPS_ARGUMENT_INPUT) ? _("input") : _("output"),
+				(argument_class->flags & VIPS_ARGUMENT_INPUT)
+					? _("input")
+					: _("output"),
 				g_type_name(
 					G_PARAM_SPEC_VALUE_TYPE(pspec)));
 			vips_operation_pspec_usage(buf, pspec);
@@ -463,7 +465,8 @@ vips_operation_usage(VipsOperationClass *class, VipsBuf *buf)
 
 		vips_buf_appendf(buf, "operation flags: ");
 		flags = class->flags;
-		while (flags && (value = g_flags_get_first_value(flags_class, flags))) {
+		while (flags &&
+			(value = g_flags_get_first_value(flags_class, flags))) {
 			vips_buf_appendf(buf, "%s ", value->value_nick);
 			flags &= ~value->value;
 		}
@@ -529,9 +532,7 @@ vips_operation_vips_operation_print_summary_arg(VipsObject *object,
 		const char *name = g_param_spec_get_name(pspec);
 		GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
 
-		GValue gvalue = {
-			0,
-		};
+		GValue gvalue = { 0 };
 		char *str;
 
 		g_value_init(&gvalue, type);
@@ -1183,9 +1184,7 @@ vips_call_options_set(const gchar *option_name, const gchar *value,
 #ifdef VIPS_DEBUG
 		{
 			GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
-			GValue gvalue = {
-				0,
-			};
+			GValue gvalue = { 0 };
 			char *str;
 
 			g_value_init(&gvalue, type);

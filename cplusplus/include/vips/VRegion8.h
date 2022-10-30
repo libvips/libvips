@@ -44,7 +44,8 @@ public:
 	 * is STEAL, then this VRegion takes over ownership of the libvips
 	 * object and will automatically unref it.
 	 */
-	VRegion(VipsRegion *region, VSteal steal = STEAL) : VObject((VipsObject *) region, steal)
+	VRegion(VipsRegion *region, VSteal steal = STEAL)
+		: VObject((VipsObject *) region, steal)
 	{
 	}
 

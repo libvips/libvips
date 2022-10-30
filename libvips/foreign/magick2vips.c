@@ -567,7 +567,9 @@ parse_header(Read *read)
  * ImageMagick trying to represent a 16-bit image.
  */
 #define SCALE(MAX) \
-	(QuantumRange < (MAX) ? 1 : ((QuantumRange + 1) / ((MAX) + 1)))
+	(QuantumRange < (MAX) \
+			? 1 \
+			: ((QuantumRange + 1) / ((MAX) + 1)))
 
 #define GRAY_LOOP(TYPE, MAX) \
 	{ \

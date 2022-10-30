@@ -803,8 +803,9 @@ vips_interpolate_lbb_interpolate(VipsInterpolate *restrict interpolate,
 	 * imaginary parts being computed independently:
 	 */
 	const int actual_bands = in->im->Bands;
-	const int bands =
-		vips_band_format_iscomplex(in->im->BandFmt) ? 2 * actual_bands : actual_bands;
+	const int bands = vips_band_format_iscomplex(in->im->BandFmt)
+		? 2 * actual_bands
+		: actual_bands;
 
 	g_assert(ix - 1 >= in->valid.left);
 	g_assert(iy - 1 >= in->valid.top);

@@ -288,8 +288,7 @@ vips_quadratic_build(VipsObject *object)
 
 	default:
 		vips_error(class->nickname,
-			"%s", _("coefficient matrix must have height "
-					"1, 3, 4 or 6"));
+			"%s", _("coefficient matrix must have height 1, 3, 4 or 6"));
 		return (-1);
 	}
 

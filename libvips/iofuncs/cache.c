@@ -340,9 +340,7 @@ vips_object_hash_arg(VipsObject *object,
 		argument_instance->assigned) {
 		const char *name = g_param_spec_get_name(pspec);
 		GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
-		GValue value = {
-			0,
-		};
+		GValue value = { 0 };
 
 		g_value_init(&value, type);
 		g_object_get_property(G_OBJECT(object), name, &value);
@@ -389,12 +387,8 @@ vips_object_equal_arg(VipsObject *object,
 
 	const char *name = g_param_spec_get_name(pspec);
 	GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
-	GValue v1 = {
-		0,
-	};
-	GValue v2 = {
-		0,
-	};
+	GValue v1 = { 0 };
+	GValue v2 = { 0 };
 
 	gboolean equal;
 

@@ -458,8 +458,7 @@ vips_image_finalize(GObject *gobject)
 	 */
 	if (image->data) {
 		if (image->dtype == VIPS_IMAGE_SETBUF) {
-			VIPS_DEBUG_MSG("vips_image_finalize: "
-						   "freeing buffer\n");
+			VIPS_DEBUG_MSG("vips_image_finalize: freeing buffer\n");
 			vips_tracked_free(image->data);
 			image->dtype = VIPS_IMAGE_NONE;
 		}
@@ -1338,7 +1337,9 @@ vips_image_init(VipsImage *image)
 
 	/* Default to native order.
 	 */
-	image->magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+	image->magic = vips_amiMSBfirst()
+		? VIPS_MAGIC_SPARC
+		: VIPS_MAGIC_INTEL;
 
 	image->Xsize = 1;
 	image->Ysize = 1;
@@ -2060,8 +2061,7 @@ vips_image_new_from_memory(const void *data, size_t size,
 	if (size < VIPS_IMAGE_SIZEOF_IMAGE(image)) {
 		vips_error("VipsImage",
 			_("memory area too small --- "
-			  "should be %" G_GINT64_FORMAT " bytes, "
-			  "you passed %zd"),
+			  "should be %" G_GINT64_FORMAT " bytes, you passed %zd"),
 			VIPS_IMAGE_SIZEOF_IMAGE(image), size);
 		VIPS_UNREF(image);
 		return (NULL);
@@ -3147,8 +3147,7 @@ vips_image_write_prepare(VipsImage *image)
 	image->Bbits = vips_format_sizeof(image->BandFmt) << 3;
 
 	if (image->dtype == VIPS_IMAGE_PARTIAL) {
-		VIPS_DEBUG_MSG("vips_image_write_prepare: "
-					   "old-style output for %s\n",
+		VIPS_DEBUG_MSG("vips_image_write_prepare: old-style output for %s\n",
 			image->filename);
 
 		image->dtype = VIPS_IMAGE_SETBUF;
@@ -3429,8 +3428,7 @@ vips_image_wio_input(VipsImage *image)
 
 	case VIPS_IMAGE_PARTIAL:
 #ifdef DEBUG_IO
-		printf("vips_image_wio_input: "
-			   "converting partial image to WIO\n");
+		printf("vips_image_wio_input: converting partial image to WIO\n");
 #endif /*DEBUG_IO*/
 
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory

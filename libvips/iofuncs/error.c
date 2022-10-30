@@ -881,8 +881,7 @@ vips_check_8or16(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_CHAR &&
 		im->BandFmt != VIPS_FORMAT_SHORT) {
 		vips_error(domain, "%s",
-			_("image must be 8- or 16-bit integer, "
-			  "signed or unsigned"));
+			_("image must be 8- or 16-bit integer, signed or unsigned"));
 		return (-1);
 	}
 
@@ -934,8 +933,7 @@ vips_check_u8or16orf(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_USHORT &&
 		im->BandFmt != VIPS_FORMAT_FLOAT) {
 		vips_error(domain, "%s",
-			_("image must be 8- or 16-bit unsigned integer, "
-			  "or float"));
+			_("image must be 8- or 16-bit unsigned integer, or float"));
 		return (-1);
 	}
 
@@ -1212,8 +1210,7 @@ vips_check_hist(const char *domain, VipsImage *im)
 	}
 	if (VIPS_IMAGE_N_PELS(im) > 65536) {
 		vips_error(domain, "%s",
-			_("histograms must have not have more than "
-			  "65536 elements"));
+			_("histograms must have not have more than 65536 elements"));
 		return (-1);
 	}
 
@@ -1288,8 +1285,7 @@ vips_check_separable(const char *domain, VipsImage *im)
 	if (im->Xsize != 1 &&
 		im->Ysize != 1) {
 		vips_error(domain,
-			"%s", _("separable matrix images must have "
-					"width or height 1"));
+			"%s", _("separable matrix images must have width or height 1"));
 		return (-1);
 	}
 

@@ -746,8 +746,7 @@ vips_morph_build(VipsObject *object)
 			coeff[i] != 128 &&
 			coeff[i] != 255) {
 			vips_error(class->nickname,
-				_("bad mask element (%f "
-				  "should be 0, 128 or 255)"),
+				_("bad mask element (%f should be 0, 128 or 255)"),
 				coeff[i]);
 			return (-1);
 		}

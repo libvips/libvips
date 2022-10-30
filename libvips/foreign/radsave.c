@@ -180,7 +180,8 @@ vips_foreign_save_rad_target_build(VipsObject *object)
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveRadTarget *target = (VipsForeignSaveRadTarget *) object;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_target_parent_class)
+			->build(object))
 		return (-1);
 
 	if (vips__rad_save(save->ready, target->target))
@@ -234,7 +235,8 @@ vips_foreign_save_rad_buffer_build(VipsObject *object)
 	VipsTarget *target;
 	VipsBlob *blob;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!(target = vips_target_new_to_memory()))

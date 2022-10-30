@@ -336,7 +336,8 @@ vips_foreign_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 	VipsOperationClass *operation_class =
 		VIPS_OPERATION_CLASS(object_class);
 
-	VIPS_OBJECT_CLASS(vips_foreign_parent_class)->summary_class(object_class, buf);
+	VIPS_OBJECT_CLASS(vips_foreign_parent_class)
+		->summary_class(object_class, buf);
 
 	if (class->suffs) {
 		const char **p;
@@ -469,7 +470,8 @@ vips_foreign_load_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 {
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_CLASS(object_class);
 
-	VIPS_OBJECT_CLASS(vips_foreign_load_parent_class)->summary_class(object_class, buf);
+	VIPS_OBJECT_CLASS(vips_foreign_load_parent_class)
+		->summary_class(object_class, buf);
 
 	if (!G_TYPE_IS_ABSTRACT(G_TYPE_FROM_CLASS(class))) {
 		if (class->is_a)
@@ -1068,7 +1070,9 @@ vips_foreign_load_build(VipsObject *object)
 	 */
 	if (vips_object_argument_isset(object, "fail") &&
 		!vips_object_argument_isset(object, "fail_on"))
-		load->fail_on = load->fail ? VIPS_FAIL_ON_WARNING : VIPS_FAIL_ON_NONE;
+		load->fail_on = load->fail
+			? VIPS_FAIL_ON_WARNING
+			: VIPS_FAIL_ON_NONE;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_parent_class)->build(object))
 		return (-1);
@@ -1137,7 +1141,8 @@ vips_foreign_load_operation_get_flags(VipsOperation *operation)
 
 	VipsOperationFlags flags;
 
-	flags = VIPS_OPERATION_CLASS(vips_foreign_load_parent_class)->get_flags(operation);
+	flags = VIPS_OPERATION_CLASS(vips_foreign_load_parent_class)
+				->get_flags(operation);
 	if (load->nocache)
 		flags |= VIPS_OPERATION_NOCACHE;
 	if (load->revalidate)
@@ -1288,7 +1293,8 @@ vips_foreign_save_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 {
 	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_CLASS(object_class);
 
-	VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->summary_class(object_class, buf);
+	VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)
+		->summary_class(object_class, buf);
 
 	vips_buf_appendf(buf, ", %s",
 		vips_enum_nick(VIPS_TYPE_SAVEABLE, class->saveable));

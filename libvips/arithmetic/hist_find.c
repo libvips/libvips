@@ -221,7 +221,9 @@ vips_hist_find_start(VipsStatistic *statistic)
 		hist_find->hist = histogram_new(hist_find,
 			hist_find->band == -1 ? statistic->ready->Bands : 1,
 			hist_find->band,
-			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536);
+			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR
+				? 256
+				: 65536);
 
 	return ((void *) histogram_new(hist_find,
 		hist_find->hist->n_bands,

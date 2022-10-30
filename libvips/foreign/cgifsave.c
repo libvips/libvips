@@ -161,7 +161,8 @@ vips_foreign_save_cgif_dispose(GObject *gobject)
 	VIPS_FREEF(cgif_close, cgif->cgif_context);
 
 	VIPS_FREEF(vips__quantise_result_destroy, cgif->quantisation_result);
-	VIPS_FREEF(vips__quantise_result_destroy, cgif->free_quantisation_result);
+	VIPS_FREEF(vips__quantise_result_destroy,
+		cgif->free_quantisation_result);
 	VIPS_FREEF(vips__quantise_attr_destroy, cgif->attr);
 
 	VIPS_UNREF(cgif->target);
@@ -449,7 +450,9 @@ vips_foreign_save_cgif_pick_quantiser(VipsForeignSaveCgif *cgif,
 
 		double global_diff =
 			vips__cgif_compare_palettes(this, global);
-		double prev_diff = (prev == global) ? global_diff : vips__cgif_compare_palettes(this, prev);
+		double prev_diff = prev == global
+			? global_diff
+			: vips__cgif_compare_palettes(this, prev);
 
 #ifdef DEBUG_VERBOSE
 		printf("vips_foreign_save_cgif_write_frame: "
@@ -618,7 +621,9 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 		cgif->cgif_config.attrFlags =
 			CGIF_ATTR_IS_ANIMATED |
 			(cgif->loop == 1 ? CGIF_ATTR_NO_LOOP : 0);
-		cgif->cgif_config.numLoops = cgif->loop > 1 ? cgif->loop - 1 : cgif->loop;
+		cgif->cgif_config.numLoops = cgif->loop > 1
+			? cgif->loop - 1
+			: cgif->loop;
 #else  /*!HAVE_CGIF_ATTR_NO_LOOP*/
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 		cgif->cgif_config.numLoops = cgif->loop;
@@ -691,7 +696,8 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 #ifdef HAVE_CGIF_FRAME_ATTR_INTERLACED
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_INTERLACED;
 #else  /*!HAVE_CGIF_FRAME_ATTR_INTERLACED*/
-		g_warning("%s: cgif >= v0.3.0 required for interlaced GIF write", class->nickname);
+		g_warning("%s: cgif >= v0.3.0 required for interlaced GIF write",
+			class->nickname);
 #endif /*HAVE_CGIF_FRAME_ATTR_INTERLACED*/
 	}
 
@@ -998,7 +1004,8 @@ vips_foreign_save_cgif_target_build(VipsObject *object)
 	gif->target = target->target;
 	g_object_ref(gif->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1049,7 +1056,8 @@ vips_foreign_save_cgif_file_build(VipsObject *object)
 	if (!(gif->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1102,7 +1110,8 @@ vips_foreign_save_cgif_buffer_build(VipsObject *object)
 	if (!(gif->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(gif->target, "blob", &blob, NULL);

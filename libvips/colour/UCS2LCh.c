@@ -130,7 +130,9 @@ make_hI(void)
 			for (k = 1; k < 360 && hl[j][k] <= i; k++)
 				;
 
-			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / (hl[j][k] - hl[j][k - 1]);
+			hI[j][i] = k - 1 +
+				(i - hl[j][k - 1]) /
+					(hl[j][k] - hl[j][k - 1]);
 		}
 	}
 }

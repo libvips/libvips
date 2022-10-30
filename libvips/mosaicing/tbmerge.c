@@ -431,7 +431,8 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 			else { \
 				if (!ref_zero && !sec_zero) { \
 					const int bheight = last[x] - first[x]; \
-					const int inx = ((y - first[x]) << BLEND_SHIFT) / bheight; \
+					const int inx = \
+						((y - first[x]) << BLEND_SHIFT) / bheight; \
 					int c1 = vips__icoef1[inx]; \
 					int c2 = vips__icoef2[inx]; \
 \
@@ -491,7 +492,8 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 			else { \
 				if (!ref_zero && !sec_zero) { \
 					const int bheight = last[x] - first[x]; \
-					const int inx = ((y - first[x]) << BLEND_SHIFT) / bheight; \
+					const int inx = \
+						((y - first[x]) << BLEND_SHIFT) / bheight; \
 					double c1 = vips__coef1[inx]; \
 					double c2 = vips__coef2[inx]; \
 \

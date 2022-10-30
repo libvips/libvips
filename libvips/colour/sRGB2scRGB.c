@@ -230,7 +230,9 @@ vips_sRGB2scRGB_build(VipsObject *object)
 	if (vips_check_bands_atleast(class->nickname, in, 3))
 		return (-1);
 
-	format = in->Type == VIPS_INTERPRETATION_RGB16 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+	format = in->Type == VIPS_INTERPRETATION_RGB16
+		? VIPS_FORMAT_USHORT
+		: VIPS_FORMAT_UCHAR;
 	if (in->BandFmt != format) {
 		if (vips_cast(in, &t[0], format, NULL))
 			return (-1);

@@ -143,7 +143,9 @@ vips_system_build(VipsObject *object)
 	 * command needs a different format.
 	 */
 	if (system->in) {
-		char *in_format = system->in_format ? system->in_format : "%s.tif";
+		char *in_format = system->in_format
+			? system->in_format
+			: "%s.tif";
 		int n;
 		VipsImage **in = vips_array_image_get(system->in, &n);
 
@@ -180,8 +182,7 @@ vips_system_build(VipsObject *object)
 			if (vips__substitute(cmd, VIPS_PATH_MAX,
 					system->in_name[i])) {
 				vips_error(class->nickname, "%s",
-					_("unable to substitute "
-					  "input filename"));
+					_("unable to substitute input filename"));
 				return (-1);
 			}
 	if (system->out_name &&

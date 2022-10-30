@@ -308,8 +308,7 @@ vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 	/* Now set level_count. This signals that we've found a pyramid.
 	 */
 #ifdef DEBUG
-	printf("vips_thumbnail_get_pyramid_page: "
-		   "%d layer pyramid detected\n",
+	printf("vips_thumbnail_get_pyramid_page: %d layer pyramid detected\n",
 		thumbnail->n_pages);
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_pages;
@@ -406,8 +405,12 @@ vips_thumbnail_calculate_shrink(VipsThumbnail *thumbnail,
 	gboolean rotate =
 		thumbnail->swap &&
 		thumbnail->auto_rotate;
-	int target_width = rotate ? thumbnail->height : thumbnail->width;
-	int target_height = rotate ? thumbnail->width : thumbnail->height;
+	int target_width = rotate
+		? thumbnail->height
+		: thumbnail->width;
+	int target_height = rotate
+		? thumbnail->width
+		: thumbnail->height;
 
 	VipsDirection direction;
 

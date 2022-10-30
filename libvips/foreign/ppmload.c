@@ -420,7 +420,8 @@ vips_foreign_load_ppm_set_image_metadata(VipsForeignLoadPpm *ppm,
 		vips_image_set_double(image,
 			"ppm-max-value", VIPS_ABS(ppm->max_value));
 
-	VIPS_SETSTR(image->filename, vips_connection_filename(VIPS_CONNECTION(ppm->sbuf->source)));
+	VIPS_SETSTR(image->filename,
+		vips_connection_filename(VIPS_CONNECTION(ppm->sbuf->source)));
 
 #ifdef DEBUG
 	printf("vips_foreign_load_ppm_set_image: ");
@@ -863,7 +864,8 @@ vips_foreign_load_ppm_source_build(VipsObject *object)
 		g_object_ref(ppm->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

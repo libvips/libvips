@@ -505,7 +505,9 @@ char *vips_target_steal_text(VipsTarget *target);
 VIPS_API
 int vips_target_putc(VipsTarget *target, int ch);
 #define VIPS_TARGET_PUTC(S, C) ( \
-	(S)->write_point < VIPS_TARGET_BUFFER_SIZE ? ((S)->output_buffer[(S)->write_point++] = (C), 0) : vips_target_putc((S), (C)))
+	(S)->write_point < VIPS_TARGET_BUFFER_SIZE \
+		? ((S)->output_buffer[(S)->write_point++] = (C), 0) \
+		: vips_target_putc((S), (C)))
 VIPS_API
 int vips_target_writes(VipsTarget *target, const char *str);
 VIPS_API

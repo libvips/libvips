@@ -119,7 +119,9 @@ vips__threadpool_init(void)
 	/* 3 is the useful minimum, and huge values can crash the machine.
 	 */
 	const char *max_threads_env = g_getenv("VIPS_MAX_THREADS");
-	int max_threads = max_threads_env ? VIPS_CLIP(3, atoi(max_threads_env), MAX_THREADS) : 0;
+	int max_threads = max_threads_env
+		? VIPS_CLIP(3, atoi(max_threads_env), MAX_THREADS)
+		: 0;
 
 	worker_key = &private;
 
@@ -178,8 +180,7 @@ vips_thread_state_build(VipsObject *object)
 	if (!(state->reg = vips_region_new(state->im)))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(
-		vips_thread_state_parent_class)
+	return (VIPS_OBJECT_CLASS(vips_thread_state_parent_class)
 				->build(object));
 }
 
@@ -370,8 +371,7 @@ vips_worker_work_unit(VipsWorker *worker)
 		 */
 		g_usleep(500000);
 		worker->state->stall = FALSE;
-		printf("vips_worker_work_unit: stall done, "
-			   "releasing y = %d ...\n",
+		printf("vips_worker_work_unit: stall done, releasing y = %d ...\n",
 			worker->state->y);
 	}
 
@@ -527,8 +527,7 @@ vips_threadpool_new(VipsImage *im)
 	 */
 	pool->max_workers = vips_image_get_concurrency(im, pool->max_workers);
 
-	VIPS_DEBUG_MSG("vips_threadpool_new: "
-				   "\"%s\" (%p), with %d threads\n",
+	VIPS_DEBUG_MSG("vips_threadpool_new: \"%s\" (%p), with %d threads\n",
 		im->filename, pool, pool->max_workers);
 
 	return (pool);

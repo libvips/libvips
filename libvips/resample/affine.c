@@ -289,8 +289,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	vips_rect_intersectrect(&need, &image, &clipped);
 
 #ifdef DEBUG_VERBOSE
-	printf("vips_affine_gen: "
-		   "preparing left=%d, top=%d, width=%d, height=%d\n",
+	printf("vips_affine_gen: preparing left=%d, top=%d, width=%d, height=%d\n",
 		clipped.left,
 		clipped.top,
 		clipped.width,

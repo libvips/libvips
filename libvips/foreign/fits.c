@@ -272,8 +272,7 @@ vips_fits_get_header(VipsFits *fits, VipsImage *out)
 		for (i = fits->naxis; i > 3; i--)
 			if (fits->naxes[i - 1] != 1) {
 				vips_error("fits",
-					"%s", _("dimensions above 3 "
-							"must be size 1"));
+					"%s", _("dimensions above 3 must be size 1"));
 				return (-1);
 			}
 

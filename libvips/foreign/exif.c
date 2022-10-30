@@ -653,8 +653,7 @@ vips_exif_set_rational(ExifData *ed,
 	size_t offset;
 
 	if (entry->components <= component) {
-		VIPS_DEBUG_MSG("vips_exif_set_rational: "
-					   "too few components\n");
+		VIPS_DEBUG_MSG("vips_exif_set_rational: too few components\n");
 		return;
 	}
 
@@ -707,8 +706,7 @@ vips_exif_set_double(ExifData *ed,
 	double old_value;
 
 	if (entry->components <= component) {
-		VIPS_DEBUG_MSG("vips_exif_set_double: "
-					   "too few components\n");
+		VIPS_DEBUG_MSG("vips_exif_set_double: too few components\n");
 		return;
 	}
 
@@ -795,10 +793,30 @@ tag_is_ascii(ExifTag tag)
 		tag == EXIF_TAG_SUB_SEC_TIME_ORIGINAL ||
 		tag == EXIF_TAG_SUB_SEC_TIME_DIGITIZED
 #ifdef HAVE_EXIF_0_6_22
-		|| tag == EXIF_TAG_CAMERA_OWNER_NAME || tag == EXIF_TAG_BODY_SERIAL_NUMBER || tag == EXIF_TAG_LENS_MAKE || tag == EXIF_TAG_LENS_MODEL || tag == EXIF_TAG_LENS_SERIAL_NUMBER
+		|| tag == EXIF_TAG_CAMERA_OWNER_NAME ||
+		tag == EXIF_TAG_BODY_SERIAL_NUMBER ||
+		tag == EXIF_TAG_LENS_MAKE ||
+		tag == EXIF_TAG_LENS_MODEL ||
+		tag == EXIF_TAG_LENS_SERIAL_NUMBER
 #endif
 #ifdef HAVE_EXIF_0_6_23
-		|| tag == EXIF_TAG_OFFSET_TIME || tag == EXIF_TAG_OFFSET_TIME_ORIGINAL || tag == EXIF_TAG_OFFSET_TIME_DIGITIZED || tag == EXIF_TAG_GPS_LATITUDE_REF || tag == EXIF_TAG_GPS_LONGITUDE_REF || tag == EXIF_TAG_GPS_SATELLITES || tag == EXIF_TAG_GPS_STATUS || tag == EXIF_TAG_GPS_MEASURE_MODE || tag == EXIF_TAG_GPS_SPEED_REF || tag == EXIF_TAG_GPS_TRACK_REF || tag == EXIF_TAG_GPS_IMG_DIRECTION_REF || tag == EXIF_TAG_GPS_MAP_DATUM || tag == EXIF_TAG_GPS_DEST_LATITUDE_REF || tag == EXIF_TAG_GPS_DEST_LONGITUDE_REF || tag == EXIF_TAG_GPS_DEST_BEARING_REF || tag == EXIF_TAG_GPS_DEST_DISTANCE_REF || tag == EXIF_TAG_GPS_DATE_STAMP
+		|| tag == EXIF_TAG_OFFSET_TIME ||
+		tag == EXIF_TAG_OFFSET_TIME_ORIGINAL ||
+		tag == EXIF_TAG_OFFSET_TIME_DIGITIZED ||
+		tag == EXIF_TAG_GPS_LATITUDE_REF ||
+		tag == EXIF_TAG_GPS_LONGITUDE_REF ||
+		tag == EXIF_TAG_GPS_SATELLITES ||
+		tag == EXIF_TAG_GPS_STATUS ||
+		tag == EXIF_TAG_GPS_MEASURE_MODE ||
+		tag == EXIF_TAG_GPS_SPEED_REF ||
+		tag == EXIF_TAG_GPS_TRACK_REF ||
+		tag == EXIF_TAG_GPS_IMG_DIRECTION_REF ||
+		tag == EXIF_TAG_GPS_MAP_DATUM ||
+		tag == EXIF_TAG_GPS_DEST_LATITUDE_REF ||
+		tag == EXIF_TAG_GPS_DEST_LONGITUDE_REF ||
+		tag == EXIF_TAG_GPS_DEST_BEARING_REF ||
+		tag == EXIF_TAG_GPS_DEST_DISTANCE_REF ||
+		tag == EXIF_TAG_GPS_DATE_STAMP
 #endif
 	);
 }

@@ -402,7 +402,9 @@ vips_shrinkv_build(VipsObject *object)
 	 * example, vipsthumbnail knows the true shrink factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	t[2]->Ysize = shrink->ceil ? VIPS_CEIL((double) resample->in->Ysize / shrink->vshrink) : VIPS_ROUND_UINT((double) resample->in->Ysize / shrink->vshrink);
+	t[2]->Ysize = shrink->ceil
+		? VIPS_CEIL((double) resample->in->Ysize / shrink->vshrink)
+		: VIPS_ROUND_UINT((double) resample->in->Ysize / shrink->vshrink);
 	if (t[2]->Ysize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image has shrunk to nothing"));

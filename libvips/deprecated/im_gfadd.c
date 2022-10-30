@@ -206,8 +206,10 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		return (-1);
 	}
 	/* Checks the arguments entered in in and prepares out */
-	if ((in1->Xsize != in2->Xsize) || (in1->Ysize != in2->Ysize) ||
-		(in1->Bands != in2->Bands) || (in1->Coding != in2->Coding)) {
+	if ((in1->Xsize != in2->Xsize) ||
+		(in1->Ysize != in2->Ysize) ||
+		(in1->Bands != in2->Bands) ||
+		(in1->Coding != in2->Coding)) {
 		im_error("im_gfadd", " Input images differ");
 		return (-1);
 	}

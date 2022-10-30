@@ -113,8 +113,7 @@ vips_deviate_build(VipsObject *object)
 
 	/* Calculate and return deviation. Add a fabs to stop sqrt(<=0).
 	 */
-	vals = (gint64)
-			   vips_image_get_width(statistic->in) *
+	vals = (gint64) vips_image_get_width(statistic->in) *
 		vips_image_get_height(statistic->in) *
 		vips_image_get_bands(statistic->in);
 	s = deviate->sum;

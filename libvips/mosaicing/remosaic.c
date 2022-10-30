@@ -114,8 +114,7 @@ remosaic_fn(JoinNode *node, VipsRemosaic *remosaic)
 
 	if (out->Xsize != im->Xsize || out->Ysize != im->Ysize) {
 		vips_error("vips_remosaic",
-			_("substitute image \"%s\" is not "
-			  "the same size as \"%s\""),
+			_("substitute image \"%s\" is not the same size as \"%s\""),
 			filename, im->filename);
 		return (NULL);
 	}

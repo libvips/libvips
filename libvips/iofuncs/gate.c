@@ -83,7 +83,6 @@ gboolean vips__thread_profile = FALSE;
 static GPrivate *vips_thread_profile_key = NULL;
 
 static FILE *vips__thread_fp = NULL;
-;
 
 /**
  * vips_profile_set:

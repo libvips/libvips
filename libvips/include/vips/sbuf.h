@@ -107,7 +107,9 @@ void vips_sbuf_unbuffer(VipsSbuf *sbuf);
 VIPS_API
 int vips_sbuf_getc(VipsSbuf *sbuf);
 #define VIPS_SBUF_GETC(S) ( \
-	(S)->read_point < (S)->chars_in_buffer ? (S)->input_buffer[(S)->read_point++] : vips_sbuf_getc(S))
+	(S)->read_point < (S)->chars_in_buffer \
+		? (S)->input_buffer[(S)->read_point++] \
+		: vips_sbuf_getc(S))
 VIPS_API
 void vips_sbuf_ungetc(VipsSbuf *sbuf);
 #define VIPS_SBUF_UNGETC(S) \
@@ -119,7 +121,9 @@ void vips_sbuf_ungetc(VipsSbuf *sbuf);
 VIPS_API
 int vips_sbuf_require(VipsSbuf *sbuf, int require);
 #define VIPS_SBUF_REQUIRE(S, R) ( \
-	(S)->read_point + (R) <= (S)->chars_in_buffer ? 0 : vips_sbuf_require((S), (R)))
+	(S)->read_point + (R) <= (S)->chars_in_buffer \
+		? 0 \
+		: vips_sbuf_require((S), (R)))
 #define VIPS_SBUF_PEEK(S) ((S)->input_buffer + (S)->read_point)
 #define VIPS_SBUF_FETCH(S) ((S)->input_buffer[(S)->read_point++])
 

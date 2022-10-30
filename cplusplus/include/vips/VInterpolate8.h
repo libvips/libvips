@@ -49,7 +49,8 @@ public:
 	 * is STEAL, then this VInterpolate takes over ownership of the libvips
 	 * object and will automatically unref it.
 	 */
-	VInterpolate(VipsInterpolate *interpolate, VSteal steal = STEAL) : VObject((VipsObject *) interpolate, steal)
+	VInterpolate(VipsInterpolate *interpolate, VSteal steal = STEAL)
+		: VObject((VipsObject *) interpolate, steal)
 	{
 	}
 

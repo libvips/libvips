@@ -268,10 +268,9 @@ static char resolu_buf[RESOLU_BUFLEN]; /* resolution line buffer */
 
 typedef int gethfunc(char *s, void *p); /* callback to process header lines */
 
+/* convert resolution struct to line */
 static char *
-resolu2str(/* convert resolution struct to line */
-	char *buf,
-	register RESOLU *rp)
+resolu2str(char *buf, register RESOLU *rp)
 {
 	if (rp->rt & YMAJOR)
 		sprintf(buf, "%cY %d %cX %d\n",
@@ -284,10 +283,9 @@ resolu2str(/* convert resolution struct to line */
 	return (buf);
 }
 
+/* convert resolution line to struct */
 static int
-str2resolu(/* convert resolution line to struct */
-	register RESOLU *rp,
-	char *buf)
+str2resolu(register RESOLU *rp, char *buf)
 {
 	register char *xndx, *yndx;
 	register char *cp;
@@ -319,10 +317,9 @@ str2resolu(/* convert resolution line to struct */
 #define MAXFMTLEN 64
 static const char FMTSTR[] = "FORMAT="; /* format identifier */
 
+/* get format value (return true if format) */
 static int
-formatval(/* get format value (return true if format) */
-	char fmt[MAXFMTLEN],
-	const char *s)
+formatval(char fmt[MAXFMTLEN], const char *s)
 {
 	const char *cp = FMTSTR;
 	char *r = fmt;

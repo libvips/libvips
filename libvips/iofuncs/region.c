@@ -242,8 +242,7 @@ vips__region_start(VipsRegion *region)
 
 		if (!region->seq) {
 #ifdef DEBUG
-			printf("vips__region_start: "
-				   "start function failed for image %s",
+			printf("vips__region_start: start function failed for image %s",
 				image->filename);
 #endif /*DEBUG*/
 

@@ -459,7 +459,8 @@ vips_foreign_save_tiff_target_build(VipsObject *object)
 	tiff->target = target->target;
 	g_object_ref(tiff->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -512,7 +513,8 @@ vips_foreign_save_tiff_file_build(VipsObject *object)
 	if (!(tiff->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -567,7 +569,8 @@ vips_foreign_save_tiff_buffer_build(VipsObject *object)
 	if (!(tiff->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(tiff->target, "blob", &blob, NULL);

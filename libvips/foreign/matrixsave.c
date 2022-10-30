@@ -207,8 +207,7 @@ vips_foreign_save_matrix_file_build(VipsObject *object)
 		!(matrix->target = vips_target_new_to_file(file->filename)))
 		return (-1);
 
-	return (VIPS_OBJECT_CLASS(
-		vips_foreign_save_matrix_file_parent_class)
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_matrix_file_parent_class)
 				->build(object));
 }
 
@@ -261,8 +260,7 @@ vips_foreign_save_matrix_target_build(VipsObject *object)
 		g_object_ref(matrix->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(
-		vips_foreign_save_matrix_target_parent_class)
+	return (VIPS_OBJECT_CLASS(vips_foreign_save_matrix_target_parent_class)
 				->build(object));
 }
 

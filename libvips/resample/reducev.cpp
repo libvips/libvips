@@ -551,39 +551,33 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 
 		switch (in->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			reducev_unsigned_int_tab<unsigned char, UCHAR_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_unsigned_int_tab<unsigned char,
+				UCHAR_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_CHAR:
-			reducev_signed_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_signed_int_tab<signed char,
+				SCHAR_MIN, SCHAR_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			reducev_unsigned_int_tab<unsigned short, USHRT_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_unsigned_int_tab<unsigned short,
+				USHRT_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_SHORT:
-			reducev_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_signed_int_tab<signed short,
+				SHRT_MIN, SHRT_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_UINT:
-			reducev_unsigned_int32_tab<unsigned int, UINT_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_unsigned_int32_tab<unsigned int,
+				UINT_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_INT:
-			reducev_signed_int32_tab<signed int, INT_MIN, INT_MAX>(
-				reducev,
-				q, p, ne, lskip, cyi);
+			reducev_signed_int32_tab<signed int,
+				INT_MIN, INT_MAX>(reducev, q, p, ne, lskip, cyi);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -820,7 +814,8 @@ vips_reducev_build(VipsObject *object)
 
 		/* The int part of our reduce.
 		 */
-		int_vshrink = VIPS_MAX(1, VIPS_FLOOR((double) in->Ysize / height / reducev->gap));
+		int_vshrink = VIPS_MAX(1,
+			VIPS_FLOOR((double) in->Ysize / height / reducev->gap));
 
 		if (int_vshrink > 1) {
 			g_info("shrinkv by %d", int_vshrink);

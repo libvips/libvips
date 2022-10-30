@@ -54,7 +54,9 @@
 static void vips_g_input_stream_seekable_iface_init(GSeekableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE(VipsGInputStream, vips_g_input_stream,
-	G_TYPE_INPUT_STREAM, G_IMPLEMENT_INTERFACE(G_TYPE_SEEKABLE, vips_g_input_stream_seekable_iface_init))
+	G_TYPE_INPUT_STREAM,
+	G_IMPLEMENT_INTERFACE(G_TYPE_SEEKABLE,
+		vips_g_input_stream_seekable_iface_init))
 
 enum {
 	PROP_0,
@@ -150,8 +152,9 @@ vips_g_input_stream_seek(GSeekable *seekable, goffset offset,
 {
 	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM(seekable);
 
-	VIPS_DEBUG_MSG("vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
-				   ", type = %d\n",
+	VIPS_DEBUG_MSG(
+		"vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
+		", type = %d\n",
 		offset, type);
 
 	if (vips_source_seek(gstream->source, offset,
@@ -270,7 +273,9 @@ vips_g_input_stream_class_init(VipsGInputStreamClass *class)
 		g_param_spec_object("input",
 			_("Input"),
 			_("Stream to wrap"),
-			VIPS_TYPE_SOURCE, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+			VIPS_TYPE_SOURCE,
+			G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE |
+				G_PARAM_STATIC_STRINGS));
 }
 
 static void

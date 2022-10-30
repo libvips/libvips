@@ -134,7 +134,10 @@ typedef BYTE COLR[4]; /* red, green, blue (or X,Y,Z), exponent */
 typedef float COLORV;
 typedef COLORV COLOR[3]; /* red, green, blue (or X,Y,Z) */
 
-#define copycolor(c1, c2) ((c1)[0] = (c2)[0], (c1)[1] = (c2)[1], (c1)[2] = (c2)[2])
+#define copycolor(c1, c2) ( \
+	(c1)[0] = (c2)[0], \
+	(c1)[1] = (c2)[1], \
+	(c1)[2] = (c2)[2])
 
 static void
 colr_color(COLOR col, COLR clr) /* convert short to float color */

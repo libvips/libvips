@@ -573,8 +573,9 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 			}
 
 #ifdef DEBUG
-			printf("vips_foreign_load_jxl_header: "
-				   "%zd byte profile\n",
+			printf(
+				"vips_foreign_load_jxl_header: "
+				"%zd byte profile\n",
 				jxl->icc_size);
 #endif /*DEBUG*/
 			if (!(jxl->icc_data = vips_malloc(NULL,
@@ -907,8 +908,7 @@ vips_foreign_load_jxl_source_build(VipsObject *object)
 		g_object_ref(jxl->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(
-			vips_foreign_load_jxl_source_parent_class)
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_source_parent_class)
 			->build(object))
 		return (-1);
 

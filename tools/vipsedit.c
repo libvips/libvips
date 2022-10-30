@@ -212,8 +212,8 @@ main(int argc, char **argv)
 		else if (strcmp(endian, "big") == 0)
 			im->magic = VIPS_MAGIC_SPARC;
 		else
-			vips_error_exit(_("bad endian-ness %s, "
-							  "should be 'big' or 'little'"),
+			vips_error_exit(
+				_("bad endian-ness %s, should be 'big' or 'little'"),
 				endian);
 	}
 	if (xsize)

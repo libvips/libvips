@@ -310,7 +310,8 @@ vips_foreign_save_png_target_build(VipsObject *object)
 	png->target = target->target;
 	g_object_ref(png->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -416,7 +417,8 @@ vips_foreign_save_png_buffer_build(VipsObject *object)
 	if (!(png->target = vips_target_new_to_memory()))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	g_object_get(png->target, "blob", &blob, NULL);

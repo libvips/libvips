@@ -90,7 +90,9 @@ vips_merge_build(VipsObject *object)
 	vips__add_mosaic_name(merge->out);
 	if (vips_image_history_printf(merge->out,
 			"#%s <%s> <%s> <%s> <%d> <%d> <%d>",
-			merge->direction == VIPS_DIRECTION_HORIZONTAL ? "LRJOIN" : "TBJOIN",
+			merge->direction == VIPS_DIRECTION_HORIZONTAL
+				? "LRJOIN"
+				: "TBJOIN",
 			vips__get_mosaic_name(merge->ref),
 			vips__get_mosaic_name(merge->sec),
 			vips__get_mosaic_name(merge->out),

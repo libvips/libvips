@@ -378,8 +378,7 @@ vips_buffer_done(VipsBuffer *buffer)
 		cache->buffers = g_slist_prepend(cache->buffers, buffer);
 
 #ifdef DEBUG_VERBOSE
-		printf("vips_buffer_done: "
-			   "thread %p adding buffer %p to cache %p\n",
+		printf("vips_buffer_done: thread %p adding buffer %p to cache %p\n",
 			g_thread_self(), buffer, cache);
 		vips_buffer_print(buffer);
 #endif /*DEBUG_VERBOSE*/

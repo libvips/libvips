@@ -711,7 +711,8 @@ png2vips_generate(VipsRegion * or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert(r->height == VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
+	g_assert(r->height ==
+		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -736,8 +737,9 @@ png2vips_generate(VipsRegion * or,
 			vips_foreign_load_invalidate(read->out);
 
 #ifdef DEBUG
-			printf("png2vips_generate: png_read_row() failed, "
-				   "line %d\n",
+			printf(
+				"png2vips_generate: png_read_row() failed, "
+				"line %d\n",
 				r->top + y);
 			printf("png2vips_generate: file %s\n", read->name);
 			printf("png2vips_generate: thread %p\n",
@@ -1127,11 +1129,13 @@ write_vips(Write *write,
 				return (-1);
 			if (blob) {
 				size_t length;
-				const void *data = vips_blob_get(blob, &length);
+				const void *data =
+					vips_blob_get(blob, &length);
 
 #ifdef DEBUG
-				printf("write_vips: attaching %zd bytes "
-					   "of ICC profile\n",
+				printf(
+					"write_vips: attaching %zd bytes "
+					"of ICC profile\n",
 					length);
 #endif /*DEBUG*/
 
@@ -1151,8 +1155,7 @@ write_vips(Write *write,
 				return (-1);
 
 #ifdef DEBUG
-			printf("write_vips: attaching %zd bytes "
-				   "of ICC profile\n",
+			printf("write_vips: attaching %zd bytes of ICC profile\n",
 				length);
 #endif /*DEBUG*/
 

@@ -300,7 +300,9 @@ vips_rot_build(VipsObject *object)
 	if (vips_image_pio_input(rot->in))
 		return (-1);
 
-	hint = rot->angle == VIPS_ANGLE_D180 ? VIPS_DEMAND_STYLE_THINSTRIP : VIPS_DEMAND_STYLE_SMALLTILE;
+	hint = rot->angle == VIPS_ANGLE_D180
+		? VIPS_DEMAND_STYLE_THINSTRIP
+		: VIPS_DEMAND_STYLE_SMALLTILE;
 
 	if (vips_image_pipelinev(conversion->out, hint, rot->in, NULL))
 		return (-1);

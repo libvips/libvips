@@ -453,7 +453,9 @@ vips_ifthenelse_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsIfthenelse *ifthenelse = (VipsIfthenelse *) object;
-	VipsGenerateFn generate_fn = ifthenelse->blend ? vips_blend_gen : vips_ifthenelse_gen;
+	VipsGenerateFn generate_fn = ifthenelse->blend
+		? vips_blend_gen
+		: vips_ifthenelse_gen;
 
 	VipsImage **band = (VipsImage **) vips_object_local_array(object, 3);
 	VipsImage **size = (VipsImage **) vips_object_local_array(object, 3);

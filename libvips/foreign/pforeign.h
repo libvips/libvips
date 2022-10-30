@@ -39,7 +39,9 @@ extern "C" {
  */
 #if !GLIB_CHECK_VERSION(2, 48, 0)
 #define g_uint_checked_mul(dest, a, b) ( \
-	((guint64) a * b) > UINT_MAX ? (*dest = UINT_MAX, FALSE) : (*dest = a * b, TRUE))
+	((guint64) a * b) > UINT_MAX \
+		? (*dest = UINT_MAX, FALSE) \
+		: (*dest = a * b, TRUE))
 #endif /*!GLIB_CHECK_VERSION( 2, 48, 0 )*/
 
 /* We've seen real images with 28 chunks, so set 50.

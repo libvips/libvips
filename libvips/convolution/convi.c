@@ -528,7 +528,9 @@ vips_convi_gen_vector(VipsRegion * or,
 				r->left, r->top + y);
 			for (v = 0; v < M->Ysize; v++) {
 				for (h = 0; h < M->Xsize; h++)
-					printf("%3d ", *VIPS_REGION_ADDR(ir, r->left + h, r->top + y + v));
+					printf("%3d ",
+						*VIPS_REGION_ADDR(ir,
+							r->left + h, r->top + y + v));
 				printf("\n");
 			}
 		}

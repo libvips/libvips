@@ -482,8 +482,7 @@ write_profile_file(Write *write, const char *profile)
 		write_profile_data(&write->cinfo, (JOCTET *) data, length);
 
 #ifdef DEBUG
-		printf("write_profile_file: "
-			   "attached profile \"%s\"\n",
+		printf("write_profile_file: attached profile \"%s\"\n",
 			profile);
 #endif /*DEBUG*/
 
@@ -831,10 +830,12 @@ target_dest(j_compress_ptr cinfo, VipsTarget *target)
 {
 	Dest *dest;
 
-	if (!cinfo->dest) { /* first time for this JPEG object? */
-		cinfo->dest = (struct jpeg_destination_mgr *) (*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT,
-			sizeof(Dest));
-	}
+	if (!cinfo->dest) /* first time for this JPEG object? */
+		cinfo->dest =
+			(struct jpeg_destination_mgr *) (*cinfo->mem->alloc_small)(
+				(j_common_ptr) cinfo,
+				JPOOL_PERMANENT,
+				sizeof(Dest));
 
 	dest = (Dest *) cinfo->dest;
 	dest->pub.init_destination = init_destination;

@@ -71,7 +71,11 @@ im_align_bands(IMAGE *in, IMAGE *out)
 		double y = 0.0;
 		int i;
 
-		if (!bands || im_open_local_array(out, bands, in->Bands, FUNCTION_NAME ": bands", "p") || im_open_local_array(out, wrapped_bands + 1, in->Bands - 1, FUNCTION_NAME ": wrapped_bands", "p"))
+		if (!bands ||
+			im_open_local_array(out, bands, in->Bands,
+				FUNCTION_NAME ": bands", "p") ||
+			im_open_local_array(out, wrapped_bands + 1, in->Bands - 1,
+				FUNCTION_NAME ": wrapped_bands", "p"))
 			return -1;
 
 		for (i = 0; i < in->Bands; ++i)
@@ -84,7 +88,10 @@ im_align_bands(IMAGE *in, IMAGE *out)
 			IMAGE *temp = im_open(FUNCTION_NAME ": temp", "t");
 			double this_x, this_y, val;
 
-			if (!temp || im_phasecor_fft(bands[i - 1], bands[i], temp) || im_maxpos_avg(temp, &this_x, &this_y, &val) || im_close(temp))
+			if (!temp ||
+				im_phasecor_fft(bands[i - 1], bands[i], temp) ||
+				im_maxpos_avg(temp, &this_x, &this_y, &val) ||
+				im_close(temp))
 				return -1;
 
 			x += this_x;

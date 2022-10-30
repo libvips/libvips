@@ -350,9 +350,11 @@ readjpeg_open_input(ReadJpeg *jpeg)
 		if (vips_source_rewind(jpeg->source))
 			return (-1);
 
-		cinfo->src = (struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
-			(j_common_ptr) cinfo, JPOOL_PERMANENT,
-			sizeof(Source));
+		cinfo->src =
+			(struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
+				(j_common_ptr) cinfo,
+				JPOOL_PERMANENT,
+				sizeof(Source));
 
 		src = (Source *) cinfo->src;
 		src->jpeg = jpeg;
@@ -504,7 +506,9 @@ find_chroma_subsample(struct jpeg_decompress_struct *cinfo)
 		cinfo->max_v_samp_factor > 1;
 	gboolean is_cmyk = cinfo->num_components > 3;
 
-	return (is_cmyk ? (has_subsample ? "4:2:0:4" : "4:4:4:4") : (has_subsample ? "4:2:0" : "4:4:4"));
+	return (is_cmyk
+			? (has_subsample ? "4:2:0:4" : "4:4:4:4")
+			: (has_subsample ? "4:2:0" : "4:4:4"));
 }
 
 static int

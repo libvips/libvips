@@ -67,7 +67,10 @@ int x1, x2, y1, y2, pelval;
 	if (im_rwcheck(image))
 		return (-1);
 	/* check coordinates */
-	if ((x1 > image->Xsize) || (x1 < 0) || (y1 > image->Ysize) || (y1 < 0) || (x2 > image->Xsize) || (x2 < 0) || (y2 > image->Ysize) || (y2 < 0)) {
+	if ((x1 > image->Xsize) || (x1 < 0) ||
+		(y1 > image->Ysize) || (y1 < 0) ||
+		(x2 > image->Xsize) || (x2 < 0) ||
+		(y2 > image->Ysize) || (y2 < 0)) {
 		im_error("im_line", "%s", _("invalid line cooordinates"));
 		return (-1);
 	}

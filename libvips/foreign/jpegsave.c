@@ -135,7 +135,9 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 	 * new code should use subsample_mode
 	 */
 	if (vips_object_argument_isset(object, "no_subsample"))
-		jpeg->subsample_mode = jpeg->no_subsample ? VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
+		jpeg->subsample_mode = jpeg->no_subsample
+			? VIPS_FOREIGN_SUBSAMPLE_OFF
+			: VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
 	return (0);
 }
@@ -268,7 +270,8 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 	VipsForeignSaveJpegTarget *target =
 		(VipsForeignSaveJpegTarget *) object;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)
+			->build(object))
 		return (-1);
 
 	if (vips__jpeg_write_target(save->ready, target->target,
@@ -332,7 +335,8 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 
 	VipsTarget *target;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!(target = vips_target_new_to_file(file->filename)))
@@ -402,7 +406,8 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 	VipsTarget *target;
 	VipsBlob *blob;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!(target = vips_target_new_to_memory()))
@@ -475,7 +480,8 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 	const unsigned char *obuf;
 	size_t olen;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_mime_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_mime_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!(target = vips_target_new_to_memory()))

@@ -213,10 +213,10 @@ im_render(IMAGE *in, IMAGE *out, IMAGE *mask,
 	int width, int height, int max,
 	notify_fn notify, void *client)
 {
-	return (im_render_priority(in, out, mask,
+	return (im_render_priority(
+		in, out, mask,
 		width, height, max,
-		0,
-		notify, client));
+		0, notify, client));
 }
 
 int
@@ -370,10 +370,14 @@ im_copy_from(IMAGE *in, IMAGE *out, im_arch_type architecture)
 		return (im_copy_swap(in, out));
 
 	case IM_ARCH_LSB_FIRST:
-		return (im_amiMSBfirst() ? im_copy_swap(in, out) : im_copy(in, out));
+		return (im_amiMSBfirst()
+				? im_copy_swap(in, out)
+				: im_copy(in, out));
 
 	case IM_ARCH_MSB_FIRST:
-		return (im_amiMSBfirst() ? im_copy(in, out) : im_copy_swap(in, out));
+		return (im_amiMSBfirst()
+				? im_copy(in, out)
+				: im_copy_swap(in, out));
 
 	default:
 		im_error("im_copy_from",

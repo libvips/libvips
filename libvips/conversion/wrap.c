@@ -83,8 +83,12 @@ vips_wrap_build(VipsObject *object)
 	/* Clock arithmetic: we want negative x/y to wrap around
 	 * nicely.
 	 */
-	x = wrap->x < 0 ? -wrap->x % wrap->in->Xsize : wrap->in->Xsize - wrap->x % wrap->in->Xsize;
-	y = wrap->y < 0 ? -wrap->y % wrap->in->Ysize : wrap->in->Ysize - wrap->y % wrap->in->Ysize;
+	x = wrap->x < 0
+		? -wrap->x % wrap->in->Xsize
+		: wrap->in->Xsize - wrap->x % wrap->in->Xsize;
+	y = wrap->y < 0
+		? -wrap->y % wrap->in->Ysize
+		: wrap->in->Ysize - wrap->y % wrap->in->Ysize;
 
 	if (vips_replicate(wrap->in, &t[0], 2, 2, NULL) ||
 		vips_extract_area(t[0], &t[1],

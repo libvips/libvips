@@ -216,7 +216,9 @@ vips__link_mapp(VipsImage *image, LinkMap *map, void *b)
 	if ((res = map->fn(image, map->a, map->b)))
 		return (res);
 
-	return (vips_slist_map2(map->upstream ? image->upstream : image->downstream,
+	return (vips_slist_map2(map->upstream
+			? image->upstream
+			: image->downstream,
 		(VipsSListMap2Fn) vips__link_mapp, map, NULL));
 }
 

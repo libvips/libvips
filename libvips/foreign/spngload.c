@@ -219,8 +219,12 @@ vips_foreign_load_png_set_header(VipsForeignLoadPng *png, VipsImage *image)
 	if (!spng_get_phys(png->ctx, &phys)) {
 		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
-		xres = phys.unit_specifier == 1 ? phys.ppu_x / 1000.0 : phys.ppu_x;
-		yres = phys.unit_specifier == 1 ? phys.ppu_y / 1000.0 : phys.ppu_y;
+		xres = phys.unit_specifier == 1
+			? phys.ppu_x / 1000.0
+			: phys.ppu_x;
+		yres = phys.unit_specifier == 1
+			? phys.ppu_y / 1000.0
+			: phys.ppu_y;
 	}
 
 	vips_image_init_fields(image,
@@ -245,8 +249,7 @@ vips_foreign_load_png_set_header(VipsForeignLoadPng *png, VipsImage *image)
 		 * attacks.
 		 */
 		if (!png->unlimited && n_text > MAX_PNG_TEXT_CHUNKS) {
-			g_warning(_("%d text chunks, "
-						"only %d text chunks will be loaded"),
+			g_warning(_("%d text chunks, only %d text chunks will be loaded"),
 				n_text, MAX_PNG_TEXT_CHUNKS);
 			n_text = MAX_PNG_TEXT_CHUNKS;
 		}
@@ -283,10 +286,8 @@ vips_foreign_load_png_set_header(VipsForeignLoadPng *png, VipsImage *image)
 		vips_image_set_int(image, "interlaced", 1);
 
 	if (!spng_get_bkgd(png->ctx, &bkgd)) {
-		const int scale = image->BandFmt ==
-				VIPS_FORMAT_UCHAR
-			? 1
-			: 256;
+		const int scale =
+			image->BandFmt == VIPS_FORMAT_UCHAR ? 1 : 256;
 
 		double array[3];
 		int n;
@@ -514,7 +515,8 @@ vips_foreign_load_png_generate(VipsRegion * or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert(r->height == VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
+	g_assert(r->height ==
+		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -706,7 +708,8 @@ vips_foreign_load_png_source_build(VipsObject *object)
 		g_object_ref(png->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -862,7 +865,8 @@ vips_foreign_load_png_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

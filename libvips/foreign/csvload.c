@@ -622,7 +622,8 @@ vips_foreign_load_csv_source_build(VipsObject *object)
 		g_object_ref(csv->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

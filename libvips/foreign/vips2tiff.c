@@ -712,7 +712,9 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);
 		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, wtiff->bitdepth);
 		TIFFSetField(tif, TIFFTAG_PHOTOMETRIC,
-			wtiff->miniswhite ? PHOTOMETRIC_MINISWHITE : PHOTOMETRIC_MINISBLACK);
+			wtiff->miniswhite
+				? PHOTOMETRIC_MINISWHITE
+				: PHOTOMETRIC_MINISBLACK);
 	}
 	else {
 		int photometric;
@@ -734,7 +736,9 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			wtiff->ready->Bands < 3) {
 			/* Mono or mono + alpha.
 			 */
-			photometric = wtiff->miniswhite ? PHOTOMETRIC_MINISWHITE : PHOTOMETRIC_MINISBLACK;
+			photometric = wtiff->miniswhite
+				? PHOTOMETRIC_MINISWHITE
+				: PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
 		else if (wtiff->ready->Type == VIPS_INTERPRETATION_LAB ||
@@ -799,7 +803,9 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			 * we are premultiplying.
 			 */
 			for (i = 0; i < alpha_bands; i++)
-				v[i] = i == 0 && wtiff->premultiply ? EXTRASAMPLE_ASSOCALPHA : EXTRASAMPLE_UNASSALPHA;
+				v[i] = i == 0 && wtiff->premultiply
+					? EXTRASAMPLE_ASSOCALPHA
+					: EXTRASAMPLE_UNASSALPHA;
 			TIFFSetField(tif,
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v);
 		}
@@ -1144,8 +1150,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		wtiff->page_height < wtiff->ready->Ysize &&
 		wtiff->ready->Ysize % wtiff->page_height == 0) {
 #ifdef DEBUG
-		printf("wtiff_new: detected toilet roll image, "
-			   "page-height=%d\n",
+		printf("wtiff_new: detected toilet roll image, page-height=%d\n",
 			wtiff->page_height);
 		printf("wtiff_new: pages=%d\n",
 			wtiff->ready->Ysize / wtiff->page_height);
@@ -1179,8 +1184,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 			vips_band_format_iscomplex(wtiff->ready->BandFmt)) {
 			wtiff_free(wtiff);
 			vips_error("vips2tiff",
-				"%s", _("can only pyramid LABQ and "
-						"non-complex images"));
+				"%s", _("can only pyramid LABQ and non-complex images"));
 			return (NULL);
 		}
 	}

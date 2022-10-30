@@ -314,7 +314,8 @@ vips_foreign_load_matrix_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -406,7 +407,8 @@ vips_foreign_load_matrix_source_build(VipsObject *object)
 		g_object_ref(matrix->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_source_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_source_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);

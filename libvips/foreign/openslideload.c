@@ -247,16 +247,14 @@ readslide_new(const char *filename, VipsImage *out,
 	if (level &&
 		associated) {
 		vips_error("openslide2vips",
-			"%s", _("specify only one of level and "
-					"associated image"));
+			"%s", _("specify only one of level and associated image"));
 		return (NULL);
 	}
 
 	if (attach_associated &&
 		associated) {
-		vips_error("openslide2vips",
-			"%s", _("specify only one of attach_assicated and "
-					"associated image"));
+		vips_error("openslide2vips", "%s",
+			_("specify only one of attach_assicated and associated image"));
 		return (NULL);
 	}
 
@@ -602,7 +600,8 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		}
 	}
 
-	associated_names = g_strjoinv(", ", (char **) openslide_get_associated_image_names(rslide->osr));
+	associated_names = g_strjoinv(", ",
+		(char **) openslide_get_associated_image_names(rslide->osr));
 	vips_image_set_string(image,
 		"slide-associated-images", associated_names);
 	VIPS_FREE(associated_names);
@@ -759,8 +758,7 @@ vips__openslide_read(const char *filename, VipsImage *out,
 	if (vips_tilecache(raw, &t,
 			"tile_width", rslide->tile_width,
 			"tile_height", rslide->tile_height,
-			"max_tiles",
-			(int) (2.5 * (1 + raw->Xsize / rslide->tile_width)),
+			"max_tiles", (int) (2.5 * (1 + raw->Xsize / rslide->tile_width)),
 			"threaded", TRUE,
 			NULL))
 		return (-1);
@@ -875,7 +873,8 @@ vips_foreign_load_openslide_build(VipsObject *object)
 		openslide->filename = filename;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1064,7 +1063,8 @@ vips_foreign_load_openslide_file_build(VipsObject *object)
 				vips_source_new_from_file(file->filename)))
 		return (-1);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_file_parent_class)
+			->build(object))
 		return (-1);
 
 	return (0);
@@ -1142,8 +1142,7 @@ vips_foreign_load_openslide_source_build(VipsObject *object)
 		g_object_ref(openslide->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(
-			vips_foreign_load_openslide_source_parent_class)
+	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_source_parent_class)
 			->build(object))
 		return (-1);
 

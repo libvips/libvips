@@ -192,7 +192,10 @@ rfwfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 
 		/* Good grief.
 		 */
-		p = half_complex + 2 * (((*out)->Ysize - y + 1) * half_width - 2 + (in->Xsize & 1));
+		p = half_complex + 2 * /* clang-format off */
+				(((*out)->Ysize - y + 1) * half_width - 2 +
+					(in->Xsize & 1));
+		/* clang-format on */
 
 		for (x = half_width; x < (*out)->Xsize; x++) {
 			q[0] = p[0] / size;

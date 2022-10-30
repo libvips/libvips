@@ -547,7 +547,8 @@ vips_foreign_save_magick_file_build(VipsObject *object)
 
 	magick->filename = g_strdup(file->filename);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_file_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!WriteImages(magick->image_info, magick->images,
@@ -614,7 +615,8 @@ vips_foreign_save_magick_buffer_build(VipsObject *object)
 	size_t olen;
 	VipsBlob *blob;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_buffer_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_buffer_parent_class)
+			->build(object))
 		return (-1);
 
 	if (!(obuf = magick_images_to_blob(magick->image_info, magick->images,
