@@ -228,7 +228,7 @@ vips_dither_class_init( VipsDitherClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDither, in ) );
 
-	VIPS_ARG_IMAGE( class, "palette", 0, 
+	VIPS_ARG_IMAGE( class, "palette", 3, 
 		_( "Palette" ), 
 		_( "Palette image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
