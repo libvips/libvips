@@ -84,29 +84,24 @@ vips_dither_to_rgba( VipsDither *dither, VipsImage *in, VipsImage **out )
 	VipsImage *rgba;
 
 	rgba = in;
-	g_object_ref( rgba );
+
         if( vips_check_uncoded( class->nickname, rgba ) ||
                 vips_check_format( class->nickname, rgba, VIPS_FORMAT_UCHAR ) ||
-                vips_check_bands_atleast( class->nickname, rgba, 3 ) ) {
-		VIPS_UNREF( rgba );
+                vips_check_bands_atleast( class->nickname, rgba, 3 ) )
 		return( -1 );
-	}
 
 	if( rgba->Bands == 3 ) {
-		if( vips_addalpha( rgba, &t[0], NULL ) ) {
-			VIPS_UNREF( rgba );
+		if( vips_addalpha( rgba, &t[0], NULL ) ) 
 			return( -1 );
-		}
 		rgba = t[0];
 	}
 	else if( rgba->Bands > 4 ) {
-		if( vips_extract_band( rgba, &t[0], 0, "n", 4, NULL ) ) {
-			VIPS_UNREF( rgba );
+		if( vips_extract_band( rgba, &t[0], 0, "n", 4, NULL ) )
 			return( -1 );
-		}
 		rgba = t[0];
 	}
 
+	g_object_ref( rgba );
 	*out = rgba;
 
 	return( 0 );
@@ -189,8 +184,7 @@ vips_dither_build( VipsObject *object )
 	if( vips_image_write_prepare( conversion->out ) ) 
 		return( -1 );
 	dither->image = vips__quantise_image_create_rgba( dither->attr,
-		VIPS_IMAGE_ADDR( conversion->out, 0, 0 ), 
-		conversion->out->Xsize, conversion->out->Ysize, 0.0 );
+		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0.0 );
 
 	/* Now dither!
 	 */
