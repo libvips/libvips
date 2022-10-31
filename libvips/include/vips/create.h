@@ -38,6 +38,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef enum {
+	VIPS_TEXT_WRAP_WORD,
+	VIPS_TEXT_WRAP_CHAR,
+	VIPS_TEXT_WRAP_WORD_CHAR,
+	VIPS_TEXT_WRAP_LAST
+} VipsTextWrap;
+
 VIPS_API
 int vips_black( VipsImage **out, int width, int height, ... )
 	G_GNUC_NULL_TERMINATED;
