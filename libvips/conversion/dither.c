@@ -175,6 +175,19 @@ vips_dither_build( VipsObject *object )
 	}
 	VIPS_FREEF( vips__quantise_image_destroy, dither->image );
 
+{
+	const VipsQuantisePalette *lp = 
+		vips__quantise_get_palette( dither->result );
+
+	for( int i = 0; i < lp->count; i++ )
+		printf( "%d) r = %d, g = %d, b = %d, a = %d\n",
+			i,
+			lp->entries[i].r,
+			lp->entries[i].g,
+			lp->entries[i].b,
+			lp->entries[i].a );
+}
+
 	/* The frame index buffer.
 	 */
 	vips_image_init_fields( conversion->out,
