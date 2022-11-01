@@ -687,6 +687,7 @@ if get_option('examples')
   subdir('examples')
 endif
 subdir('cplusplus')
+subdir('completions')
 
 # these lines removed by a regexp for oss-fuzz builds, don't touch!
 subdir('man')
