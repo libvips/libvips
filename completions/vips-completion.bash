@@ -6,8 +6,10 @@
 
 _vips_completions()
 {
-  if [ "${#COMP_WORDS[@]}" == "2" ]; then
+  if [ ${#COMP_WORDS[@]} == "2" ]; then
     COMPREPLY=($(compgen -W "$(vips -c)" "${COMP_WORDS[1]}"))
+  else
+    COMPREPLY=($(compgen -f "${COMP_WORDS[-1]}"))
   fi
 }
 

@@ -192,15 +192,6 @@ list_operation( GType type, void *user_data )
 static void 
 list_operation_arg_types( VipsObjectClass *class )
 {
-	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
-
-	if( G_TYPE_IS_ABSTRACT( type ) )
-		return;
-	if( class->deprecated )
-		return;
-	if( VIPS_OPERATION_CLASS( class )->flags & VIPS_OPERATION_DEPRECATED )
-		return;
-
 }
 
 static gboolean
