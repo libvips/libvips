@@ -45,6 +45,8 @@
  * 18/6/20 kleisauke
  * 	- avoid using vips7 symbols
  * 	- remove deprecated vips7 C++ generator
+ * 1/11/22
+ * 	- add "-c" flag
  */
 
 /*
@@ -170,6 +172,51 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 	exit( 0 );
 }
 
+static void *
+list_operation( GType type, void *user_data )
+{
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
+
+	if( G_TYPE_IS_ABSTRACT( type ) )
+		return( NULL ); 
+	if( class->deprecated )
+		return( NULL );
+	if( VIPS_OPERATION_CLASS( class )->flags & VIPS_OPERATION_DEPRECATED )
+		return( NULL ); 
+
+	printf( "%s\n", class->nickname );
+
+	return( NULL );
+}
+
+static gboolean
+parse_main_option_completion( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	VipsObjectClass *class;
+
+	if( value &&
+		(class = (VipsObjectClass *) vips_type_map_all( 
+			g_type_from_name( "VipsOperation" ), 
+			test_nickname, (void *) value )) ) { 
+		//complete operation args
+	}
+	else if( value ) {
+		vips_error( g_get_prgname(), 
+			_( "'%s' is not the name of a vips operation" ), 
+			value );
+		vips_error_g( error );
+
+		return( FALSE );
+	}
+	else {
+		vips_type_map_all( g_type_from_name( "VipsOperation" ), 
+			list_operation, NULL );
+	}
+
+	exit( 0 );
+}
+
 static GOptionEntry main_option[] = {
 	{ "list", 'l', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, 
 		(GOptionArgFunc) parse_main_option_list, 
@@ -180,6 +227,10 @@ static GOptionEntry main_option[] = {
 		N_( "PLUGIN" ) },
 	{ "version", 'v', 0, G_OPTION_ARG_NONE, &main_option_version, 
 		N_( "print version" ), NULL },
+	{ "completion", 'c', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, 
+		(GOptionArgFunc) parse_main_option_completion, 
+		N_( "print completions" ), 
+		N_( "BASE-NAME" ) },
 	{ NULL }
 };
 
