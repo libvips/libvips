@@ -189,6 +189,20 @@ list_operation( GType type, void *user_data )
 	return( NULL );
 }
 
+static void 
+list_operation_arg_types( VipsObjectClass *class )
+{
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
+
+	if( G_TYPE_IS_ABSTRACT( type ) )
+		return;
+	if( class->deprecated )
+		return;
+	if( VIPS_OPERATION_CLASS( class )->flags & VIPS_OPERATION_DEPRECATED )
+		return;
+
+}
+
 static gboolean
 parse_main_option_completion( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
@@ -198,9 +212,8 @@ parse_main_option_completion( const gchar *option_name, const gchar *value,
 	if( value &&
 		(class = (VipsObjectClass *) vips_type_map_all( 
 			g_type_from_name( "VipsOperation" ), 
-			test_nickname, (void *) value )) ) { 
-		//complete operation args
-	}
+			test_nickname, (void *) value )) )  
+		list_operation_arg_types( class );
 	else if( value ) {
 		vips_error( g_get_prgname(), 
 			_( "'%s' is not the name of a vips operation" ), 
