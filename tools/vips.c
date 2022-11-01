@@ -189,9 +189,71 @@ list_operation( GType type, void *user_data )
 	return( NULL );
 }
 
-static void 
-list_operation_arg_types( VipsObjectClass *class )
+static void *
+list_operation_arg( VipsObjectClass *object_class, 
+	GParamSpec *pspec, VipsArgumentClass *argument_class,
+	void *_data1, void *_data2 )
 {
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+
+	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) )
+		return( NULL ); 
+
+	/* We don't try to complete options, though maybe we should.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) )
+		return( NULL ); 
+
+	/* These are the pspecs that vips uses that have interesting values.
+	 */
+	if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
+		GTypeClass *class = g_type_class_ref( type );
+
+		GEnumClass *genum;
+		int i; 
+
+		/* Should be impossible, no need to warn.
+		 */
+		if( !class )
+			return( NULL );
+
+		genum = G_ENUM_CLASS( class );
+
+		printf( "word:" );
+
+		/* -1 since we always have a "last" member.
+		 */
+		for( i = 0; i < genum->n_values - 1; i++ ) {
+			if( i > 0 )
+				printf( "|" );
+			printf( "%s", genum->values[i].value_nick );
+		}
+
+		printf( "\n" ); 
+	}
+	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
+		printf( "word:true|false\n" );
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
+		GParamSpecDouble *pspec_double = (GParamSpecDouble *) pspec;
+
+		printf( "word:%g\n", pspec_double->default_value ); 
+	}
+	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
+		GParamSpecInt *pspec_int = (GParamSpecInt *) pspec;
+
+		printf( "word:%d\n", pspec_int->default_value ); 
+	}
+	else if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) 
+		/* Eg. an image input or output.
+		 */
+		printf( "file\n" );
+	else
+		/* We can offer no useful suggestion for eg. array_int etc.
+		 */
+		printf( "none\n" );
+
+	return( NULL );	
 }
 
 static gboolean
@@ -204,7 +266,9 @@ parse_main_option_completion( const gchar *option_name, const gchar *value,
 		(class = (VipsObjectClass *) vips_type_map_all( 
 			g_type_from_name( "VipsOperation" ), 
 			test_nickname, (void *) value )) )  
-		list_operation_arg_types( class );
+		vips_argument_class_map( class,
+			(VipsArgumentClassMapFn) list_operation_arg, 
+			NULL, NULL );
 	else if( value ) {
 		vips_error( g_get_prgname(), 
 			_( "'%s' is not the name of a vips operation" ), 

@@ -360,7 +360,6 @@ vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )
 		vips_buf_appendf( buf, "%s", _( "max" ) );
 		vips_buf_appendf( buf, ": %d\n", pspec_int->maximum ); 
 	}
-
 }
 
 static void *
