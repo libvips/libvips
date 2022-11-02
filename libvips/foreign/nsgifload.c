@@ -116,8 +116,13 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	const nsgif_info_t *info;
 
+	/* The number of frames we will attempt to read from the GIF (changes
+	 * depending on whether we try to read truncated GIFs).
+	 */
+	int frame_count;
+
 	/* Delays between frames (in milliseconds). Array of length 
-	 * @info->frame_count.
+	 * @frame_count.
 	 */
 	int *delay;
 
@@ -229,12 +234,13 @@ print_animation( nsgif_t *anim, const nsgif_info_t *info )
 	printf( "  width = %d\n", info->width );
 	printf( "  height = %d\n", info->height );
 	printf( "  frame_count = %d\n", info->frame_count );
+	printf( "  frame_count_partial = %d\n", info->frame_count_partial );
 	printf( "  global_palette = %d\n", info->global_palette );
 	printf( "  loop_max = %d\n", info->loop_max );
 	printf( "  background = %d %d %d %d\n",
 		bg[0], bg[1], bg[2], bg[3] );
 
-	for( i = 0; i < info->frame_count; i++ ) {
+	for( i = 0; i < info->frame_count_partial; i++ ) {
 		printf( "%d ", i );
 		print_frame( nsgif_get_frame_info( anim, i ) );
 	}
@@ -267,13 +273,11 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	if( gif->n > 1 )
 		vips_image_set_int( image,
 			VIPS_META_PAGE_HEIGHT, gif->info->height );
-	vips_image_set_int( image, VIPS_META_N_PAGES, 
-		gif->info->frame_count );
+	vips_image_set_int( image, VIPS_META_N_PAGES, gif->frame_count );
 	vips_image_set_int( image, "loop", gif->info->loop_max );
 
-	vips_image_set_array_int( image, "delay", 
-		gif->delay, gif->info->frame_count );
-
+	vips_image_set_array_int( image, 
+		"delay", gif->delay, gif->frame_count );
 
 	bg = (uint8_t *) &gif->info->background;
 	array[0] = bg[0];
@@ -318,7 +322,7 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 			colours = entries;
 		}
 
-		for( i = 0; i < gif->info->frame_count; i++ ) {
+		for( i = 0; i < gif->frame_count; i++ ) {
 			if( nsgif_local_palette( gif->anim, i, table,
 				&entries ) ) 
 				colours = VIPS_MAX( colours, entries );
@@ -361,24 +365,30 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 
 	result = nsgif_data_scan( gif->anim, size, (void *) data );
 	VIPS_DEBUG_MSG( "nsgif_data_scan() = %s\n", nsgif_strerror( result ) );
-	gif->info = nsgif_get_info(gif->anim);
-#ifdef VERBOSE
-	print_animation( gif->anim, gif->info );
-#endif /*VERBOSE*/
 	if( result != NSGIF_OK &&
 		load->fail_on >= VIPS_FAIL_ON_WARNING ) {
 		vips_foreign_load_nsgif_error( gif, result ); 
 		return( -1 );
 	}
 
-	if( !gif->info->frame_count ) {
+	/* info->frame_count is the number of complete frames, 
+	 * info->frame_count_partial includes any frames in a truncated image.
+	 */
+	gif->info = nsgif_get_info( gif->anim );
+#ifdef VERBOSE
+	print_animation( gif->anim, gif->info );
+#endif /*VERBOSE*/
+	gif->frame_count = load->fail_on >= VIPS_FAIL_ON_TRUNCATED ?
+		gif->info->frame_count : 
+		gif->info->frame_count_partial;
+	if( !gif->frame_count ) {
 		vips_error( class->nickname, "%s", _( "no frames in GIF" ) );
 		return( -1 );
 	}
 
 	/* Check for any transparency.
 	 */
-	for( i = 0; i < gif->info->frame_count; i++ ) {
+	for( i = 0; i < gif->frame_count; i++ ) {
 		const nsgif_frame_info_t *frame_info;
 
 		if( (frame_info = nsgif_get_frame_info( gif->anim, i )) ) {
@@ -390,11 +400,11 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	}
 
 	if( gif->n == -1 )
-		gif->n = gif->info->frame_count - gif->page;
+		gif->n = gif->frame_count - gif->page;
 
 	if( gif->page < 0 ||
 		gif->n <= 0 ||
-		gif->page + gif->n > gif->info->frame_count ) {
+		gif->page + gif->n > gif->frame_count ) {
 		vips_error( class->nickname, "%s", _( "bad page number" ) );
 		return( -1 );
 	}
@@ -402,10 +412,9 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	/* In ms, frame_delay in cs.
 	 */
 	VIPS_FREE( gif->delay );
-	if( !(gif->delay = VIPS_ARRAY( NULL, 
-		gif->info->frame_count, int )) )
+	if( !(gif->delay = VIPS_ARRAY( NULL, gif->frame_count, int )) )
 		return( -1 );
-	for( i = 0; i < gif->info->frame_count; i++ ) {
+	for( i = 0; i < gif->frame_count; i++ ) {
 		const nsgif_frame_info_t *frame_info;
 
 		frame_info = nsgif_get_frame_info( gif->anim, i );
@@ -429,6 +438,7 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 {
 	VipsRect *r = &or->valid;
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) a;
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( gif );
 
 	int y;
 
@@ -447,14 +457,22 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 		VipsPel *p, *q;
 
 		g_assert( line >= 0 && line < gif->info->height );
-		g_assert( page >= 0 && page < gif->info->frame_count );
+		g_assert( page >= 0 && page < gif->frame_count );
 
 		if( gif->frame_number != page ) {
 			result = nsgif_frame_decode( gif->anim, 
 				page, &gif->bitmap );
 			VIPS_DEBUG_MSG( "  nsgif_frame_decode(%d) = %d\n",
 				page, result );
-			if( result != NSGIF_OK ) {
+
+			if( result == NSGIF_ERR_END_OF_DATA &&
+				load->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
+				vips_foreign_load_nsgif_error( gif, result );
+				return( -1 );
+			}
+
+			if( result != NSGIF_ERR_END_OF_DATA &&
+				result != NSGIF_OK ) {
 				vips_foreign_load_nsgif_error( gif, result );
 				return( -1 );
 			}

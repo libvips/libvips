@@ -87,9 +87,6 @@ struct nsgif {
 	/** number of animation loops so far */
 	int loop_count;
 
-	/** number of frames partially decoded */
-	uint32_t frame_count_partial;
-
 	/** pointer to GIF data */
 	const uint8_t *buf;
 	/** current index into GIF data */
@@ -565,7 +562,8 @@ static nsgif_error nsgif__decode_simple(
 		frame_data += written;
 		if (res != LZW_OK) {
 			/* Unexpected end of frame, try to recover */
-			if (res == LZW_OK_EOD || res == LZW_EOI_CODE) {
+			if (res == LZW_OK_EOD || res == LZW_EOI_CODE || 
+				res == LZW_NO_DATA) {
 				ret = NSGIF_OK;
 			} else {
 				ret = nsgif__error_from_lzw(res);
@@ -1182,7 +1180,7 @@ static nsgif_error nsgif__parse_image_data(
 	assert(frame != NULL);
 
 	if (!decode) {
-		gif->frame_count_partial = frame_idx + 1;
+		gif->info.frame_count_partial = frame_idx + 1;
 	}
 
 	/* Ensure sufficient data remains.  A gif trailer or a minimum lzw code
@@ -1301,12 +1299,12 @@ static nsgif_error nsgif__process_frame(
 		pos = gif->buf + frame->frame_offset;
 
 		/* Ensure this frame is supposed to be decoded */
-		if (frame->info.display == false) {
-			return NSGIF_OK;
-		}
+		//if (frame->info.display == false) {
+			//return NSGIF_OK;
+		//}
 
 		/* Ensure the frame is in range to decode */
-		if (frame_idx > gif->frame_count_partial) {
+		if (frame_idx > gif->info.frame_count_partial) {
 			return NSGIF_ERR_END_OF_DATA;
 		}
 
@@ -1611,7 +1609,7 @@ nsgif_error nsgif_data_scan(
 
 		/* The caller may have been lazy and not reset any values */
 		gif->info.frame_count = 0;
-		gif->frame_count_partial = 0;
+		gif->info.frame_count_partial = 0;
 		gif->decoded_frame = NSGIF_FRAME_INVALID;
 		gif->frame = NSGIF_FRAME_INVALID;
 
@@ -1762,7 +1760,7 @@ static uint32_t nsgif__frame_next(
 		uint32_t frame)
 {
 	uint32_t frames = partial ?
-			gif->frame_count_partial :
+			gif->info.frame_count_partial :
 			gif->info.frame_count;
 
 	if (frames == 0) {
@@ -1892,7 +1890,7 @@ nsgif_error nsgif_frame_decode(
 	uint32_t start_frame;
 	nsgif_error ret = NSGIF_OK;
 
-	if (frame >= gif->info.frame_count) {
+	if (frame >= gif->info.frame_count_partial) {
 		return NSGIF_ERR_BAD_FRAME;
 	}
 
@@ -1931,7 +1929,7 @@ const nsgif_frame_info_t *nsgif_get_frame_info(
 		const nsgif_t *gif,
 		uint32_t frame)
 {
-	if (frame >= gif->info.frame_count) {
+	if (frame >= gif->info.frame_count_partial) {
 		return NULL;
 	}
 
@@ -1959,7 +1957,7 @@ bool nsgif_local_palette(
 {
 	const nsgif_frame *f;
 
-	if (frame >= gif->frame_count_partial) {
+	if (frame >= gif->info.frame_count_partial) {
 		return false;
 	}
 
