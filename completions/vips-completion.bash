@@ -4,6 +4,26 @@
 
 # copy to /etc/bash_completion.d to install
 
+_vips_compgen_f()
+{
+  COMPREPLY=($(compgen -f -- "${COMP_WORDS[-1]}"))
+
+  if [ ${#COMPREPLY[@]} = 1 ]; then
+    local LASTCHAR=' '
+    if [ -d "$COMPREPLY" ]; then
+      LASTCHAR=/
+    fi
+
+    COMPREPLY=$(printf %q%s "$COMPREPLY" "$LASTCHAR")
+  else
+    for ((i=0; i < ${#COMPREPLY[@]}; i++)); do
+      if [ -d "${COMPREPLY[$i]}" ]; then
+        COMPREPLY[$i]=${COMPREPLY[$i]}/
+      fi
+    done
+  fi
+}
+
 _vips_completions()
 {
   if [ ${#COMP_WORDS[@]} == "2" ]; then
@@ -11,14 +31,12 @@ _vips_completions()
   else
     local args=($(vips -c ${COMP_WORDS[1]}))
     local arg_type=${args[${#COMP_WORDS[@]}-3]}
-    local suggestions
     if [ $arg_type == "file" ]; then
-      suggestions=($(compgen -f "${COMP_WORDS[-1]}"))
+      _vips_compgen_f
     elif [[ $arg_type = word:* ]]; then
       local options=$(echo $arg_type | sed 's/word://' | sed 's/|/ /g')
-      suggestions=($(compgen -W "${options[@]}" "${COMP_WORDS[-1]}"))
+      COMPREPLY=($(compgen -W "${options[@]}" "${COMP_WORDS[-1]}"))
     fi
-    COMPREPLY=(${suggestions[@]})
   fi
 }
 

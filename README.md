@@ -83,6 +83,8 @@ libvips must have `build-essential`, `pkg-config`, `libglib2.0-dev`,
 `libexpat1-dev`.  See the **Dependencies** section below for a full list
 of the libvips optional dependencies.
 
+There are basic bash completions in `completions/`, see the README in there.
+
 ## Cheatsheet 
 
 ```
