@@ -986,6 +986,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	 */
 	if( heif->bits_per_pixel > 8 ) {
 		int shift = 16 - heif->bits_per_pixel;
+		int fudge = heif->bits_per_pixel == 12 ? 17 : 14;
 		int ne = VIPS_REGION_N_ELEMENTS( or );
 
 		int i;
@@ -995,9 +996,9 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		for( i = 0; i < ne; i++ ) {
 			/* We've asked for big endian, we must write native.
 			 */
-			guint16 v = ((p[0] << 8) | p[1]) << shift;
+			int v = ((p[0] << 8) | p[1]) << shift;
 
-			*((guint16 *) p) = v;
+			*((guint16 *) p) = VIPS_MAX( 0, v - (fudge << 8) );
 			p += 2;
 		}
 	}
