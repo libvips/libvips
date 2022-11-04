@@ -361,6 +361,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 
 	result = nsgif_data_scan( gif->anim, size, (void *) data );
 	VIPS_DEBUG_MSG( "nsgif_data_scan() = %s\n", nsgif_strerror( result ) );
+	nsgif_data_complete( gif->anim );
 	gif->info = nsgif_get_info(gif->anim);
 #ifdef VERBOSE
 	print_animation( gif->anim, gif->info );
