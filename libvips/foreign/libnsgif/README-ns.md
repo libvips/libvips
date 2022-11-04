@@ -67,6 +67,10 @@ it has reached the end of the source data.
 > buffer. Just be sure to call `nsgif_data_scan()` again with the new pointer
 > before making any other calls against that nsgif object.
 
+When all the source data has been provided to `nsgif_data_scan()` it is
+advisable to call `nsgif_data_complete()` (see below), although this is not
+necessary to start decoding frames.
+
 To decode the frames, you can call `nsgif_get_info()` to get the frame_count,
 and then call `nsgif_frame_decode()` for each frame, and manage the animation,
 and non-displayable frames yourself, or you can use the helper function,
@@ -121,6 +125,20 @@ on-demand with:
 
 Note that this will be a no-op if the requested frame already happens to be
 the decoded frame.
+
+You can call `nsgif_frame_prepare()` and `nsgif_frame_decode()` before all
+of the GIF data has been provided using `nsgif_data_scan()` calls. For example
+if you want to make a start decoding and displaying the early frames of the GIF
+before the entire animation file has been downloaded.
+
+When you do this, `nsgif_frame_prepare()` will not loop the animation back to
+the start unless you call `nsgif_data_complete()` to indicate all of the data
+has been fetched. Calling `nsgif_data_complete()` also lets libnsgif display
+any trailing truncated frame.
+
+```c
+	nsgif_data_complete(gif);
+```
 
 Once you are done with the GIF, free up the nsgif object with:
 
