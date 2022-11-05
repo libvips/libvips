@@ -137,8 +137,7 @@ static uint8_t *load_file(const char *path, size_t *data_size)
 
 static void warning(const char *context, nsgif_error err)
 {
-	fprintf(stderr, "%s failed: %s\n",
-			context, nsgif_strerror(err));
+	fprintf(stderr, "%s: %s\n", context, nsgif_strerror(err));
 }
 
 static void print_gif_info(const nsgif_info_t *info)
@@ -384,6 +383,8 @@ int main(int argc, char *argv[])
 		 * any frames that were decoded successfully. */
 		warning("nsgif_data_scan", err);
 	}
+
+	nsgif_data_complete(gif);
 
 	if (nsgif_options.loops == 0) {
 		nsgif_options.loops = 1;

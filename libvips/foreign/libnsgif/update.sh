@@ -21,6 +21,7 @@ cp libnsgif/test/nsgif.c test/
 if [ -d patches ]; then
   echo applying patches ...
   for patch in patches/*.patch; do
+    [ -f "$patch" ] || continue
     patch -p0 <$patch
   done
 fi
