@@ -336,6 +336,8 @@ VIPS_API
 int vips_unpremultiply( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_palette( VipsImage *in, VipsImage **out, ... );
+VIPS_API
 int vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
