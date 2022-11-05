@@ -18,6 +18,7 @@ master
 - threadpools size dynamically with load
 - operations can hint threadpool size
 - support for N-colour ICC profiles
+- GIF load supports truncated frames [tlsa]
 
 11/10/22 started 8.13.3
 - improve rules for 16-bit heifsave [johntrunc]
