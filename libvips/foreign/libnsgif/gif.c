@@ -1234,7 +1234,7 @@ static nsgif_error nsgif__parse_image_data(
 			/* Check if the frame data runs off the end of the file */
 			if (block_size > len) {
 				frame->lzw_data_length += len;
-				return NSGIF_OK;
+				return NSGIF_ERR_END_OF_DATA;
 			}
 
 			len -= block_size;
