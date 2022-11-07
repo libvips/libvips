@@ -300,8 +300,6 @@ vips_foreign_save_cgif_get_rgb_palette( VipsForeignSaveCgif *cgif,
 	}
 }
 
-/* Pick a quantiser for LOCAL mode.
- */
 int
 vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif, 
 	VipsQuantiseImage *image,
@@ -317,7 +315,7 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 		return( -1 );
 	}
 
-	/* No global quantiser set up yet? Use this.
+	/* No global quantiser set up yet? Use this result.
 	 */
 	if( !cgif->quantisation_result ) {
 #ifdef DEBUG_VERBOSE
@@ -342,8 +340,9 @@ vips_foreign_save_cgif_pick_quantiser( VipsForeignSaveCgif *cgif,
 		const VipsQuantisePalette *prev = vips__quantise_get_palette( 
 			cgif->previous_quantisation_result );
 
-		double global_diff = vips__cgif_compare_palettes( this, global );
-		double prev_diff = ( prev == global ) ? global_diff :
+		double global_diff = 
+			vips__cgif_compare_palettes( this, global );
+		double prev_diff = (prev == global) ? global_diff :
 			vips__cgif_compare_palettes( this, prev );
 
 #ifdef DEBUG_VERBOSE
@@ -472,20 +471,17 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	image = vips__quantise_image_create_rgba( cgif->attr,
 		cgif->frame_bytes, cgif->frame_width, cgif->frame_height, 0 );
 
-	/* Quantise.
-	 */
-	if( cgif->mode == VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL ) {
-		/* Global mode: use the global palette.
-		 */
-		quantisation_result = cgif->quantisation_result;
-		use_local = FALSE;
-	}
-	else {
-		/* Local mode. Pick the global, this or previous palette.
+	if( cgif->mode == VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL ||
+		!cgif->quantisation_result ) {
+		/* Reoptimising each frame, or no global palette set up yet.
 		 */
 		if( vips_foreign_save_cgif_pick_quantiser( cgif, 
 			image, &quantisation_result, &use_local ) )
 			return( -1 );
+	}
+	else {
+		quantisation_result = cgif->quantisation_result;
+		use_local = FALSE;
 	}
 
 	lp = vips__quantise_get_palette( quantisation_result );
@@ -700,17 +696,19 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* Set up libimagequant.
 	 */
 	cgif->attr = vips__quantise_attr_create();
-	/* Limit the number of colours to 255, so there is always one index
-	 * free for the transparency optimization.
+	/* Limit the number of colours to 255 so there is always one index
+	 * free for transparency optimization.
 	 */
 	vips__quantise_set_max_colors( cgif->attr,
 		VIPS_MIN( 255, 1 << cgif->bitdepth ) );
 	vips__quantise_set_quality( cgif->attr, 0, 100 );
 	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
-	/* Read the palette on the input, if any.
+	/* Read the palette on the input if we've not been asked to
+	 * reoptimise.
 	 */
-	if( vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
+	if( !cgif->reoptimise &&
+		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
 		if( vips_image_get_array_int( cgif->in, "gif-palette",
 			&cgif->palette, &cgif->n_colours ) )
 			return( -1 );
@@ -722,17 +720,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		}
 	}
 
-	/* LOCAL mode if there's no input palette, or reoptimise is set.
-	 */
-	if( cgif->reoptimise ||
-		!cgif->palette ) 
-		cgif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL;
-
-	/* Set up GLOBAL mode. Init the quantisation_result we will
-	 * use to dither frames with a fixed palette taken from the input
-	 * image.
-	 */
-	if( cgif->mode == VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL ) {
+	if( cgif->palette ) { 
 		/* Make a fake image from the input palette, and quantise that. 
 		 * Add a zero pixel (transparent) in case the input image has
 		 * transparency.
@@ -757,6 +745,15 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 		VIPS_FREEF( vips__quantise_image_destroy, image );
 	}
+
+	/* Global mode if there's an input palette, or palette maxerror is
+	 * huge.
+	 */
+	if( cgif->palette ||
+		cgif->interpalette_maxerror > 255 )
+                cgif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL;
+	else
+                cgif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL;
 
 	if( vips_sink_disc( cgif->in, 
 		vips_foreign_save_cgif_sink_disc, cgif ) ) 
