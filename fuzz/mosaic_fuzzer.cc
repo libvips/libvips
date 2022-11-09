@@ -1,3 +1,4 @@
+#include <cstring>
 #include <vips/vips.h>
 
 struct mosaic_opt {
