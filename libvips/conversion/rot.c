@@ -28,6 +28,8 @@
  * 	- rewrite as a class
  * 7/3/17
  * 	- added 90/180/270 convenience functions
+ * 10/11/22 alantudyk 
+ * 	- swapped memcpy() in d180 for a loop
  */
 
 /*
@@ -170,7 +172,7 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
 
-	int x, y;
+	int x, y, i;
 
 	/* Pixel geometry.
 	 */
@@ -207,7 +209,9 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 		/* Blap across!
 		 */
 		for( x = le; x < ri; x++ ) {
-			memcpy( q, p, ps );
+			for( i = 0; i < ps; i++ )
+				q[i] = p[i];
+
 			q += ps;
 			p -= ps;
 		}
