@@ -18,6 +18,7 @@ master
 - threadpools size dynamically with load
 - operations can hint threadpool size
 - support for N-colour ICC profiles
+- add @wrap to vips_text()
 - GIF load supports truncated frames [tlsa]
 
 9/11/22 started 8.13.4
