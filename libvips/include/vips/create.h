@@ -39,9 +39,10 @@ extern "C" {
 #endif /*__cplusplus*/
 
 typedef enum {
-	VIPS_TEXT_WRAP_WORD,
+	VIPS_TEXT_WRAP_WORD = 0,
 	VIPS_TEXT_WRAP_CHAR,
 	VIPS_TEXT_WRAP_WORD_CHAR,
+	VIPS_TEXT_WRAP_NONE,
 	VIPS_TEXT_WRAP_LAST
 } VipsTextWrap;
 

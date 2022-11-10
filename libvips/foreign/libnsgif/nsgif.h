@@ -90,6 +90,11 @@ typedef enum {
 	NSGIF_ERR_END_OF_DATA,
 
 	/**
+	 * Can't supply more data after calling \ref nsgif_data_complete.
+	 */
+	NSGIF_ERR_DATA_COMPLETE,
+
+	/**
 	 * The current frame cannot be displayed.
 	 */
 	NSGIF_ERR_FRAME_DISPLAY,
@@ -277,6 +282,8 @@ void nsgif_destroy(nsgif_t *gif);
  * several times, as more data is available (e.g. slow network fetch) the data
  * already given to \ref nsgif_data_scan must be provided each time.
  *
+ * Once all the data has been provided, call \ref nsgif_data_complete.
+ *
  * For example, if you call \ref nsgif_data_scan with 25 bytes of data, and then
  * fetch another 10 bytes, you would need to call \ref nsgif_data_scan with a
  * size of 35 bytes, and the whole 35 bytes must be contiguous memory. It is
@@ -300,11 +307,33 @@ nsgif_error nsgif_data_scan(
 		const uint8_t *data);
 
 /**
+ * Tell libnsgif that all the gif data has been provided.
+ *
+ * Call this after calling \ref nsgif_data_scan with the the entire GIF
+ * source data. You can call \ref nsgif_data_scan multiple times up until
+ * this is called, and after this is called, \ref nsgif_data_scan will
+ * return an error.
+ *
+ * You can decode a GIF before this is called, however, it will fail to
+ * decode any truncated final frame data and will not perform loops when
+ * driven via \ref nsgif_frame_prepare (because it doesn't know if there
+ * will be more frames supplied in future data).
+ *
+ * \param[in]  gif     The \ref nsgif_t object.
+ */
+void nsgif_data_complete(
+		nsgif_t *gif);
+
+/**
  * Prepare to show a frame.
  *
  * If this is the last frame of an animation with a finite loop count, the
  * returned `delay_cs` will be \ref NSGIF_INFINITE, indicating that the frame
  * should be shown forever.
+ *
+ * Note that if \ref nsgif_data_complete has not been called on this gif,
+ * animated GIFs will not loop back to the start. Instead it will return
+ * \ref NSGIF_ERR_END_OF_DATA.
  *
  * \param[in]  gif        The \ref nsgif_t object.
  * \param[out] area       The area in pixels that must be redrawn.

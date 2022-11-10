@@ -148,6 +148,7 @@ text_layout_new( PangoContext *context,
 	PangoFontDescription *font_description;
 	PangoAlignment palign;
 	PangoWrapMode pwrap;
+	int pwidth;
 
 	layout = pango_layout_new( context );
 	pango_layout_set_markup( layout, text, -1 );
@@ -155,9 +156,7 @@ text_layout_new( PangoContext *context,
 	font_description = pango_font_description_from_string( font );
 	pango_layout_set_font_description( layout, font_description );
 	pango_font_description_free( font_description );
-
-	if( width > 0 )
-		pango_layout_set_width( layout, width * PANGO_SCALE );
+	pango_layout_set_justify( layout, justify );
 
 	if( spacing > 0 )
 		pango_layout_set_spacing( layout, spacing * PANGO_SCALE );
@@ -182,25 +181,32 @@ text_layout_new( PangoContext *context,
 	pango_layout_set_alignment( layout, palign );
 
 	switch( wrap ) {
-	case VIPS_TEXT_WRAP_WORD:
-		pwrap = PANGO_WRAP_WORD;
+	case VIPS_TEXT_WRAP_NONE:
+		pwrap = PANGO_WRAP_WORD_CHAR;
+		pwidth = -1;
 		break;
 
 	case VIPS_TEXT_WRAP_CHAR:
 		pwrap = PANGO_WRAP_CHAR;
+		pwidth = width * PANGO_SCALE;
+		break;
+
+	case VIPS_TEXT_WRAP_WORD:
+		pwrap = PANGO_WRAP_WORD;
+		pwidth = width * PANGO_SCALE;
 		break;
 
 	case VIPS_TEXT_WRAP_WORD_CHAR:
-		pwrap = PANGO_WRAP_WORD_CHAR;
-		break;
-
 	default:
-		pwrap = PANGO_WRAP_WORD;
+		pwrap = PANGO_WRAP_WORD_CHAR;
+		pwidth = width * PANGO_SCALE;
 		break;
 	}
+
 	pango_layout_set_wrap( layout, pwrap );
 
-	pango_layout_set_justify( layout, justify );
+	if( pwidth > 0 ) 
+		pango_layout_set_width( layout, width * PANGO_SCALE );
 
 	return( layout );
 }
@@ -670,7 +676,8 @@ vips_text_init( VipsText *text )
  *
  * @width is the number of pixels to word-wrap at. By default, lines of text 
  * wider than this will be broken at word boundaries. 
- * Use @wrap to set lines to wrap on word or character boundaries. 
+ * Use @wrap to set lines to wrap on word or character boundaries, or to
+ * disable line breaks. 
  *
  * Set @justify to turn on line justification.
  * @align can be used to set the alignment style for multi-line

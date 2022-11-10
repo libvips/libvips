@@ -40,6 +40,9 @@ typedef struct nsgif_frame {
 	/** whether a full image redraw is required */
 	bool redraw_required;
 
+	/** Amount of LZW data found in scan */
+	uint32_t lzw_data_length;
+
 	/** the index designating a transparent pixel */
 	uint32_t transparency_index;
 
@@ -89,6 +92,12 @@ struct nsgif {
 
 	/** number of frames partially decoded */
 	uint32_t frame_count_partial;
+
+	/**
+	 * Whether all the GIF data has been supplied, or if there may be
+	 * more to come.
+	 */
+	bool data_complete;
 
 	/** pointer to GIF data */
 	const uint8_t *buf;
@@ -611,6 +620,11 @@ static inline nsgif_error nsgif__decode(
 				offset_x, offset_y, interlace,
 				data, transparency_index,
 				frame_data, colour_table);
+	}
+
+	if (gif->data_complete && ret == NSGIF_ERR_END_OF_DATA) {
+		/* This is all the data there is, so make do. */
+		ret = NSGIF_OK;
 	}
 
 	return ret;
@@ -1213,16 +1227,19 @@ static nsgif_error nsgif__parse_image_data(
 		len--;
 
 		while (block_size != 1) {
-			if (len < 1) return NSGIF_ERR_END_OF_DATA;
+			if (len < 1) {
+				return NSGIF_ERR_END_OF_DATA;
+			}
 			block_size = data[0] + 1;
 			/* Check if the frame data runs off the end of the file */
 			if (block_size > len) {
-				block_size = len;
-				return NSGIF_OK;
+				frame->lzw_data_length += len;
+				return NSGIF_ERR_END_OF_DATA;
 			}
 
 			len -= block_size;
 			data += block_size;
+			frame->lzw_data_length += block_size;
 		}
 
 		*pos = data;
@@ -1258,14 +1275,16 @@ static struct nsgif_frame *nsgif__get_frame(
 
 		frame = &gif->frames[frame_idx];
 
-		frame->transparency_index = NSGIF_NO_TRANSPARENCY;
-		frame->frame_offset = gif->buf_pos;
 		frame->info.local_palette = false;
 		frame->info.transparency = false;
-		frame->redraw_required = false;
 		frame->info.display = false;
 		frame->info.disposal = 0;
 		frame->info.delay = 10;
+
+		frame->transparency_index = NSGIF_NO_TRANSPARENCY;
+		frame->frame_offset = gif->buf_pos;
+		frame->redraw_required = false;
+		frame->lzw_data_length = 0;
 		frame->decoded = false;
 	}
 
@@ -1593,6 +1612,10 @@ nsgif_error nsgif_data_scan(
 	nsgif_error ret;
 	uint32_t frames;
 
+	if (gif->data_complete) {
+		return NSGIF_ERR_DATA_COMPLETE;
+	}
+
 	/* Initialize values */
 	gif->buf_len = size;
 	gif->buf = data;
@@ -1734,6 +1757,32 @@ nsgif_error nsgif_data_scan(
 	return ret;
 }
 
+/* exported function documented in nsgif.h */
+void nsgif_data_complete(
+		nsgif_t *gif)
+{
+	if (gif->data_complete == false) {
+		uint32_t start = gif->info.frame_count;
+		uint32_t end = gif->frame_count_partial;
+
+		for (uint32_t f = start; f < end; f++) {
+			nsgif_frame *frame = &gif->frames[f];
+
+			if (frame->lzw_data_length > 0) {
+				frame->info.display = true;
+				gif->info.frame_count = f + 1;
+
+				if (f == 0) {
+					frame->info.transparency = true;
+				}
+				break;
+			}
+		}
+	}
+
+	gif->data_complete = true;
+}
+
 static void nsgif__redraw_rect_extend(
 		const nsgif_rect_t *frame,
 		nsgif_rect_t *redraw)
@@ -1757,7 +1806,7 @@ static void nsgif__redraw_rect_extend(
 }
 
 static uint32_t nsgif__frame_next(
-		nsgif_t *gif,
+		const nsgif_t *gif,
 		bool partial,
 		uint32_t frame)
 {
@@ -1774,7 +1823,7 @@ static uint32_t nsgif__frame_next(
 }
 
 static nsgif_error nsgif__next_displayable_frame(
-		nsgif_t *gif,
+		const nsgif_t *gif,
 		uint32_t *frame,
 		uint32_t *delay)
 {
@@ -1782,7 +1831,11 @@ static nsgif_error nsgif__next_displayable_frame(
 
 	do {
 		next = nsgif__frame_next(gif, false, next);
-		if (next == *frame || next == NSGIF_FRAME_INVALID) {
+		if (next <= *frame && *frame != NSGIF_FRAME_INVALID &&
+				gif->data_complete == false) {
+			return NSGIF_ERR_END_OF_DATA;
+
+		} else if (next == *frame || next == NSGIF_FRAME_INVALID) {
 			return NSGIF_ERR_FRAME_DISPLAY;
 		}
 
@@ -1850,21 +1903,26 @@ nsgif_error nsgif_frame_prepare(
 		gif->loop_count++;
 	}
 
-	if (gif->info.frame_count == 1) {
-		delay = NSGIF_INFINITE;
+	if (gif->data_complete) {
+		/* Check for last frame, which has infinite delay. */
 
-	} else if (gif->info.loop_max != 0) {
-		uint32_t frame_next = frame;
-		ret = nsgif__next_displayable_frame(gif, &frame_next, NULL);
-		if (ret != NSGIF_OK) {
-			return ret;
-		}
+		if (gif->info.frame_count == 1) {
+			delay = NSGIF_INFINITE;
+		} else if (gif->info.loop_max != 0) {
+			uint32_t frame_next = frame;
 
-		if (frame_next < frame) {
-			if (nsgif__animation_complete(
-					gif->loop_count + 1,
-					gif->info.loop_max)) {
-				delay = NSGIF_INFINITE;
+			ret = nsgif__next_displayable_frame(gif,
+					&frame_next, NULL);
+			if (ret != NSGIF_OK) {
+				return ret;
+			}
+
+			if (gif->data_complete && frame_next < frame) {
+				if (nsgif__animation_complete(
+						gif->loop_count + 1,
+						gif->info.loop_max)) {
+					delay = NSGIF_INFINITE;
+				}
 			}
 		}
 	}
@@ -1986,6 +2044,7 @@ const char *nsgif_strerror(nsgif_error err)
 		[NSGIF_ERR_DATA_FRAME]    = "Invalid frame data",
 		[NSGIF_ERR_FRAME_COUNT]   = "Excessive number of frames",
 		[NSGIF_ERR_END_OF_DATA]   = "Unexpected end of GIF source data",
+		[NSGIF_ERR_DATA_COMPLETE] = "Can't add data to completed GIF",
 		[NSGIF_ERR_FRAME_DISPLAY] = "Frame can't be displayed",
 		[NSGIF_ERR_ANIMATION_END] = "Animation complete",
 	};

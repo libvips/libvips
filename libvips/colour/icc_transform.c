@@ -478,16 +478,16 @@ static void
 vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 {
 	static const cmsInfoType info_types[] = {
-	     cmsInfoDescription,
-             cmsInfoManufacturer,
-             cmsInfoModel,
-             cmsInfoCopyright
+		cmsInfoDescription,
+		cmsInfoManufacturer,
+		cmsInfoModel,
+		cmsInfoCopyright
 	};
 	static const char *info_names[] = {
-	     "description",
-             "manufacturer",
-             "model",
-             "copyright"
+		"description",
+		"manufacturer",
+		"model",
+		"copyright"
 	};
 
 	int i;
@@ -584,6 +584,16 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 
 	if( image &&
 		image->Bands < info->bands ) { 
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( "%s", _( "profile incompatible with image" ) );
+		return( NULL );
+	}
+
+	/* Spot the common error of an RGB profile and a CMYK image.
+	 */
+	if( image &&
+		image->Type == VIPS_INTERPRETATION_CMYK &&
+		info->bands == 3 ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
