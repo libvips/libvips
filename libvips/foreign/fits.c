@@ -33,6 +33,9 @@
  *	  extended filename syntax 
  * 15/4/17
  * 	- skip HDUs with zero dimensions, thanks benepo
+ * 27/10/22
+ *      - band interleave ourselves on read
+ *      - don't duplicate metadata
  */
 
 /*
@@ -119,14 +122,9 @@ typedef struct {
 
 	GMutex *lock;		/* Lock fits_*() calls with this */
 
-	/* Set this to -1 to read all bands, or a +ve int to read a specific
-	 * band.
+	/* One line of pels ready for scatter/gather.
 	 */
-	int band_select;	
-
-	/* We split bands up for write into this buffer.
-	 */
-	VipsPel *buffer;
+	VipsPel *line;
 } VipsFits;
 
 const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
@@ -159,7 +157,7 @@ vips_fits_close( VipsFits *fits )
 		fits->fptr = NULL;
 	}
 
-	VIPS_FREE( fits->buffer );
+	VIPS_FREE( fits->line );
 }
 
 static void
@@ -169,7 +167,7 @@ vips_fits_close_cb( VipsImage *image, VipsFits *fits )
 }
 
 static VipsFits *
-vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
+vips_fits_new_read( const char *filename, VipsImage *out )
 {
 	VipsFits *fits;
 	int status;
@@ -181,8 +179,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 	fits->image = out;
 	fits->fptr = NULL;
 	fits->lock = NULL;
-	fits->band_select = band_select;
-	fits->buffer = NULL;
+	fits->line = NULL;
 	g_signal_connect( out, "close", 
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
@@ -299,11 +296,6 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		return( -1 );
 	}
 
-	/* Are we in one-band mode?
-	 */
-	if( fits->band_select != -1 )
-		bands = 1;
-
 	/* Get image format. This is the equivalent format, or the format
 	 * stored in the file.
 	 */
@@ -337,7 +329,17 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		 width, height, bands,
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
-	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+
+        /* We read in lines, so SMALLTILE ends up being too small.
+         */
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+		return( -1 );
+
+	/* We need to be able to hold one scanline of one band for
+	 * scatter/gather.
+	 */
+	if( !(fits->line = VIPS_ARRAY( NULL, 
+		VIPS_IMAGE_SIZEOF_ELEMENT( out ) * out->Xsize, VipsPel )) )
 		return( -1 );
 
 	/* Read all keys into meta.
@@ -378,9 +380,15 @@ vips__fits_read_header( const char *filename, VipsImage *out )
 
 	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
 
-	if( !(fits = vips_fits_new_read( filename, out, -1 )) || 
-		vips_fits_get_header( fits, out ) ) 
+	if( !(fits = vips_fits_new_read( filename, out )) )
 		return( -1 );
+
+	if( vips_fits_get_header( fits, out ) ) {
+		vips_fits_close( fits );
+		return( -1 );
+	}
+
+	vips_fits_close( fits );
 
 	return( 0 );
 }
@@ -409,113 +417,96 @@ vips_fits_read_subset( VipsFits *fits,
 	return( 0 );
 }
 
+#define SCATTER( TYPE ) { \
+	TYPE *tp = (TYPE *) p; \
+	TYPE *tq = ((TYPE *) q) + band; \
+	\
+	for( int x = 0; x < width; x++ ) { \
+		*tq = tp[x]; \
+		tq += bands; \
+	} \
+}
+
+static void
+vips_fits_scatter( VipsFits *fits, VipsPel *q, VipsPel *p, int width, int band )
+{
+	int bands = fits->image->Bands; 
+
+	switch( fits->image->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+		SCATTER( guchar );
+		break;
+
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_USHORT:
+		SCATTER( gushort );
+		break;
+
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_FLOAT:
+		SCATTER( guint );
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+		SCATTER( double );
+		break;
+
+	default:
+		g_assert_not_reached();
+	}
+}
+
 static int
-fits2vips_generate( VipsRegion *out, 
+vips_fits_generate( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsFits *fits = (VipsFits *) a;
 	VipsRect *r = &out->valid;
 
-	VipsPel *q;
-	int z;
-
-	long fpixel[MAX_DIMENSIONS];
-	long lpixel[MAX_DIMENSIONS];
-	long inc[MAX_DIMENSIONS];
-
 	VIPS_DEBUG_MSG( "fits2vips_generate: "
 		"generating left = %d, top = %d, width = %d, height = %d\n", 
 		r->left, r->top, r->width, r->height );
 
-	/* Special case: the region we are writing to is exactly the width we
-	 * need, ie. we can read a rectangular area into it.
-	 */
-	if( VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) ) {
-		VIPS_DEBUG_MSG( "fits2vips_generate: block read\n" );
+	vips__worker_lock( fits->lock );
 
-		for( z = 0; z < MAX_DIMENSIONS; z++ )
-			fpixel[z] = 1;
-		fpixel[0] = r->left + 1;
-		fpixel[1] = r->top + 1;
-		fpixel[2] = fits->band_select + 1;
+	for( int w = 0; w < out->im->Bands; w++ )  {
+		for( int y = r->top; y < VIPS_RECT_BOTTOM( r ); y++ ) {
+			long fpixel[MAX_DIMENSIONS];
+			long lpixel[MAX_DIMENSIONS];
+			long inc[MAX_DIMENSIONS];
 
-		for( z = 0; z < MAX_DIMENSIONS; z++ )
-			lpixel[z] = 1;
-		lpixel[0] = VIPS_RECT_RIGHT( r );
-		lpixel[1] = VIPS_RECT_BOTTOM( r );
-		lpixel[2] = fits->band_select + 1;
-
-		for( z = 0; z < MAX_DIMENSIONS; z++ )
-			inc[z] = 1;
-
-		q = VIPS_REGION_ADDR( out, r->left, r->top );
-
-		vips__worker_lock( fits->lock );
-
-		if( vips_fits_read_subset( fits, fpixel, lpixel, inc, q ) ) {
-			g_mutex_unlock( fits->lock );
-			return( -1 );
-		}
-
-		g_mutex_unlock( fits->lock );
-	}
-	else {
-		int y;
-
-		for( y = r->top; y < VIPS_RECT_BOTTOM( r ); y ++ ) {
-			for( z = 0; z < MAX_DIMENSIONS; z++ )
+			for( int z = 0; z < MAX_DIMENSIONS; z++ )
 				fpixel[z] = 1;
 			fpixel[0] = r->left + 1;
 			fpixel[1] = y + 1;
-			fpixel[2] = fits->band_select + 1;
+			fpixel[2] = w + 1;
 
-			for( z = 0; z < MAX_DIMENSIONS; z++ )
+			for( int z = 0; z < MAX_DIMENSIONS; z++ )
 				lpixel[z] = 1;
 			lpixel[0] = VIPS_RECT_RIGHT( r );
 			lpixel[1] = y + 1;
-			lpixel[2] = fits->band_select + 1;
+			lpixel[2] = w + 1;
 
-			for( z = 0; z < MAX_DIMENSIONS; z++ )
+			for( int z = 0; z < MAX_DIMENSIONS; z++ )
 				inc[z] = 1;
 
-			q = VIPS_REGION_ADDR( out, r->left, y );
-
-			vips__worker_lock( fits->lock );
-
+			/* We're inside a lock, so it's OK to write to ->line.
+			 */
 			if( vips_fits_read_subset( fits, 
-				fpixel, lpixel, inc, q ) ) { 
+				fpixel, lpixel, inc, fits->line ) ) { 
 				g_mutex_unlock( fits->lock );
 				return( -1 );
 			}
 
-			g_mutex_unlock( fits->lock );
+			vips_fits_scatter( fits, 
+				VIPS_REGION_ADDR( out, r->left, y ), fits->line,
+				r->width, w );
 		}
 	}
 
-	return( 0 );
-}
-
-static int
-fits2vips( const char *filename, VipsImage *out, int band_select )
-{
-	VipsFits *fits;
-
-	/* The -1 mode is just for reading the header.
-	 */
-	g_assert( band_select >= 0 );
-
-	if( !(fits = vips_fits_new_read( filename, out, band_select )) )
-		return( -1 );
-	if( vips_fits_get_header( fits, out ) ||
-		vips_image_generate( out, 
-			NULL, fits2vips_generate, NULL, fits, NULL ) ) {
-		vips_fits_close( fits );
-		return( -1 );
-	}
-
-	/* Don't vips_fits_close(), we need it to stick around for the
-	 * generate.
-	 */
+	g_mutex_unlock( fits->lock );
 
 	return( 0 );
 }
@@ -523,59 +514,15 @@ fits2vips( const char *filename, VipsImage *out, int band_select )
 int
 vips__fits_read( const char *filename, VipsImage *out )
 {
-	VipsImage *t;
-	int bands;
-	VipsInterpretation interpretation;
+	VipsFits *fits;
 
-	VIPS_DEBUG_MSG( "fits2vips: reading \"%s\"\n", filename );
-
-	/* fits is naturally a band-separated format. For single-band images
-	 * we can just read out. For many bands we read each band out
-	 * separately then join them.
-	 */
-
-	t = vips_image_new();
-	if( vips__fits_read_header( filename, t ) ) {
-		g_object_unref( t );
+	if( !(fits = vips_fits_new_read( filename, out )) )
 		return( -1 );
-	}
-	bands = t->Bands;
-	interpretation = t->Type;
-	g_object_unref( t );
-
-	if( bands == 1 ) {
-		if( fits2vips( filename, out, 0 ) )
-			return( -1 );
-	}
-	else {
-		VipsImage **x;
-		VipsImage **y;
-		int i;
-
-		t = vips_image_new();
-		x = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
-			bands );
-		y = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
-			3 );
-
-		for( i = 0; i < bands; i++ ) {
-			x[i] = vips_image_new();
-			if( fits2vips( filename, x[i], i ) ) {
-				g_object_unref( t );
-				return( -1 );
-			}
-		}
-
-		if( vips_bandjoin( x, &y[0], bands, NULL ) ||
-			vips_copy( y[0], &y[1], 
-				"interpretation", interpretation,
-				NULL ) ||
-			vips_image_write( y[1], out ) ) {
-			g_object_unref( t );
-			return( -1 );
-		}
-
-		g_object_unref( t );
+	if( vips_fits_get_header( fits, out ) ||
+		vips_image_generate( out, 
+			NULL, vips_fits_generate, NULL, fits, NULL ) ) {
+		vips_fits_close( fits );
+		return( -1 );
 	}
 
 	return( 0 );
@@ -619,8 +566,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	fits->image = in;
 	fits->fptr = NULL;
 	fits->lock = NULL;
-	fits->band_select = -1;
-	fits->buffer = NULL;
+	fits->line = NULL;
 	g_signal_connect( in, "close", 
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
@@ -629,7 +575,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 
 	/* We need to be able to hold one scanline of one band.
 	 */
-	if( !(fits->buffer = VIPS_ARRAY( NULL, 
+	if( !(fits->line = VIPS_ARRAY( NULL, 
 		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, VipsPel )) )
 		return( NULL );
 
@@ -651,6 +597,20 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	return( fits );
 }
 
+/* Header fields which cfitsio 4.1 writes for us start like this.
+ */
+const char *vips_fits_basic[] = {
+	"SIMPLE ",
+	"BITPIX ",
+	"NAXIS ",
+	"NAXIS1 ",
+	"NAXIS2 ",
+	"NAXIS3 ",
+	"EXTEND ",
+	"COMMENT   FITS (Fl",
+	"COMMENT   and Astro",
+};
+
 static void *
 vips_fits_write_meta( VipsImage *image, 
 	const char *field, GValue *value, void *a )
@@ -671,6 +631,12 @@ vips_fits_write_meta( VipsImage *image,
 	 * above ^^.
 	 */
 	value_str = vips_value_get_ref_string( value, NULL );
+
+	/* We don't want fields which cfitsio will have already written for us.
+	 */
+	for( int i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ ) 
+		if( vips_isprefix( vips_fits_basic[i], value_str ) )
+		       return( NULL );	
 
 	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
 	VIPS_DEBUG_MSG( " value == \"%s\"\n", value_str );
@@ -758,7 +724,7 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			long fpixel[3];
 
 			p1 = p + b * es;
-			q = fits->buffer;
+			q = fits->line;
 
 			for( x = 0; x < area->width; x++ ) {
 				for( k = 0; k < es; k++ ) 
@@ -776,7 +742,7 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			 */
 
 			if( fits_write_pix( fits->fptr, fits->datatype, 
-				fpixel, area->width, fits->buffer, 
+				fpixel, area->width, fits->line, 
 				&status ) ) {
 				vips_fits_error( status );
 				return( -1 );
