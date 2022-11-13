@@ -63,6 +63,20 @@
  * The im_benchmark() operations are for testing the VIPS SMP system.
  */
 
+/** 
+ * VipsTextWrap:
+ * @VIPS_TEXT_WRAP_WORD: wrap at word boundaries
+ * @VIPS_TEXT_WRAP_CHAR: wrap at character boundaries
+ * @VIPS_TEXT_WRAP_WORD_CHAR: wrap at word boundaries, but fall back to 
+ *     character boundaries if there is not enough space for a full word
+ * @VIPS_TEXT_WRAP_NONE: no wrapping
+ *
+ * Sets the word wrapping style for vips_text() when used with a maximum
+ * width.
+ *
+ * See also: vips_text().
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsCreate, vips_create, VIPS_TYPE_OPERATION );
 
 static int

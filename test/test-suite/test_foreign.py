@@ -7,7 +7,7 @@ import pytest
 
 import pyvips
 from helpers import \
-    JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
+    IMAGES, JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
     BMP_FILE, NIFTI_FILE, ICO_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
@@ -1011,6 +1011,32 @@ class TestForeign:
         x1 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
         x2 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE)
         assert (x1 - x2).abs().max() == 0
+
+    @skip_if_no("gifload")
+    def test_gifload_truncated(self):
+        # should load with just a warning
+        truncated_gif = os.path.join(IMAGES, "truncated.gif")
+        im = pyvips.Image.new_from_file(truncated_gif)
+        assert im.width == 575
+
+        # should fail on truncation and warning
+        with pytest.raises(Exception):
+            im = pyvips.Image.new_from_file(truncated_gif, fail_on="warning")
+        with pytest.raises(Exception):
+            im = pyvips.Image.new_from_file(truncated_gif, fail_on="truncated")
+
+    @skip_if_no("gifload")
+    def test_gifload_frame_error(self):
+        # should load with just a warning
+        truncated_gif = os.path.join(IMAGES, "garden.gif")
+        im = pyvips.Image.new_from_file(truncated_gif)
+        assert im.width == 800
+
+        # should fail on warning only
+        im = pyvips.Image.new_from_file(truncated_gif, fail_on="truncated")
+        assert im.width == 800
+        with pytest.raises(Exception):
+            im = pyvips.Image.new_from_file(truncated_gif, fail_on="warning")
 
     @skip_if_no("svgload")
     def test_svgload(self):

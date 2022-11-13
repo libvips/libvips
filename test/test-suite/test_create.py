@@ -417,6 +417,11 @@ class TestCreate:
         # text rendering systems
         assert abs(im.width - 500) < 50
 
+        # test wrap
+        im1 = pyvips.Image.text("helloworld", width=100, dpi=500)
+        im2 = pyvips.Image.text("helloworld", width=100, dpi=500, wrap="char")
+        assert im1.width > im2.width
+
     def test_tonelut(self):
         im = pyvips.Image.tonelut()
         assert im.bands == 1
