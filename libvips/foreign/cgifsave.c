@@ -770,8 +770,12 @@ vips_foreign_save_cgif_build( VipsObject *object )
 static const char *vips__save_cgif_suffs[] = { ".gif", NULL };
 
 #define UC VIPS_FORMAT_UCHAR
-static int bandfmt_gif[10] = {
-	UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+
+/* Type promotion for save ... just always go to uchar.
+ */
+static VipsBandFormat bandfmt_gif[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static void

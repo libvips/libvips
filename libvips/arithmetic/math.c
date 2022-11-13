@@ -206,8 +206,8 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 static const VipsBandFormat vips_math_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ F, F, F, F, F, F, F, X, D, DX
 };
 
 static void

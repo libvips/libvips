@@ -151,8 +151,8 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
 /* Format doesn't change with invert.
  */
 static const VipsBandFormat vips_invert_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void

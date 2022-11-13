@@ -724,9 +724,9 @@ static const char *vips__save_webp_suffs[] = { ".webp", NULL };
 
 /* Type promotion for save ... just always go to uchar.
  */
-static int bandfmt_webp[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+static VipsBandFormat bandfmt_webp[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static void

@@ -109,9 +109,9 @@ vips_foreign_save_fits_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int bandfmt_fits[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, UI, UI, F,  X,  D,  DX
+static VipsBandFormat bandfmt_fits[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F  X  D  DX */
+	/* Promotion: */ UC, UC, US, US, UI, UI, F, X, D, DX
 };
 
 static void

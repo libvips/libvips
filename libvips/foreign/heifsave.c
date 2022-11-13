@@ -577,9 +577,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 #define UC VIPS_FORMAT_UCHAR
 #define US VIPS_FORMAT_USHORT
 
-static int vips_heif_bandfmt[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, US, US, US, US, US, US
+/* Except for 8-bit inputs, we send everything else to 16. We decide on 8-bit
+ * vs. 12 bit save based on Type in_build(), see above.
+ */
+static VipsBandFormat vips_heif_bandfmt[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void

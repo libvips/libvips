@@ -134,8 +134,8 @@ vips_hist_cum_process( VipsHistogram *histogram,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 static const VipsBandFormat vips_hist_cum_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UI, I,  UI, I,  UI, I,  F,  F,  D,  D 
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UI, I, UI, I, UI, I, F, F, D, D
 };
 
 static void

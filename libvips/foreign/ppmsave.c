@@ -444,9 +444,9 @@ vips_foreign_save_ppm_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int bandfmt_ppm[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, UI, UI, F,  F,  F,  F
+static VipsBandFormat bandfmt_ppm[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F  X  D  DX */
+	/* Promotion: */ UC, UC, US, US, UI, UI, F, F, F, F
 };
 
 static void

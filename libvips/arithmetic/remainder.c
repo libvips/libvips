@@ -154,9 +154,9 @@ vips_remainder_buffer( VipsArithmetic *arithmetic,
 
 /* Type promotion for remainder. Keep in sync with remainder_buffer() above.
  */
-static int vips_remainder_format_table[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   UC, C,  US, S,  UI, I, F, X, D, DX
+static const VipsBandFormat vips_remainder_format_table[10] = {
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void

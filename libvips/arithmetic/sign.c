@@ -138,8 +138,8 @@ vips_sign_buffer( VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 static const VipsBandFormat vips_sign_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   C,  C,  C,  C,  C,  C,  C,  X,  C,  DX 
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ C, C, C, C, C, C, C, X, C, DX
 };
 
 static void
