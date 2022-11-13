@@ -8,7 +8,7 @@ but within the libvips build system.
 Run `./update.sh` to update this copy of libnsgif from the upstream repo. It
 will also patch libnsgif.c to prevent it modifying the input.
 
-Last updated 8 May 2022.
+Last updated 5 Nov 2022.
 
 # To do
 

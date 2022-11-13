@@ -35,6 +35,8 @@
  * 12/4/21
  * 	- switch to cairo for text rendering
  * 	- add rgba flag
+ * 31/10/22
+ * 	- add @wrap
  */
 
 /*
@@ -105,6 +107,7 @@ typedef struct _VipsText {
 	int dpi;
 	char *fontfile;
 	gboolean rgba;
+	VipsTextWrap wrap;
 
 	PangoFontMap *fontmap;
 	PangoContext *context;
@@ -139,11 +142,13 @@ vips_text_dispose( GObject *gobject )
 static PangoLayout *
 text_layout_new( PangoContext *context, 
 	const char *text, const char *font, int width, int spacing,
-	VipsAlign align, gboolean justify )
+	VipsAlign align, VipsTextWrap wrap, gboolean justify )
 {
 	PangoLayout *layout;
 	PangoFontDescription *font_description;
 	PangoAlignment palign;
+	PangoWrapMode pwrap;
+	int pwidth;
 
 	layout = pango_layout_new( context );
 	pango_layout_set_markup( layout, text, -1 );
@@ -151,9 +156,7 @@ text_layout_new( PangoContext *context,
 	font_description = pango_font_description_from_string( font );
 	pango_layout_set_font_description( layout, font_description );
 	pango_font_description_free( font_description );
-
-	if( width > 0 )
-		pango_layout_set_width( layout, width * PANGO_SCALE );
+	pango_layout_set_justify( layout, justify );
 
 	if( spacing > 0 )
 		pango_layout_set_spacing( layout, spacing * PANGO_SCALE );
@@ -177,7 +180,33 @@ text_layout_new( PangoContext *context,
 	}
 	pango_layout_set_alignment( layout, palign );
 
-	pango_layout_set_justify( layout, justify );
+	switch( wrap ) {
+	case VIPS_TEXT_WRAP_NONE:
+		pwrap = PANGO_WRAP_WORD_CHAR;
+		pwidth = -1;
+		break;
+
+	case VIPS_TEXT_WRAP_CHAR:
+		pwrap = PANGO_WRAP_CHAR;
+		pwidth = width * PANGO_SCALE;
+		break;
+
+	case VIPS_TEXT_WRAP_WORD:
+		pwrap = PANGO_WRAP_WORD;
+		pwidth = width * PANGO_SCALE;
+		break;
+
+	case VIPS_TEXT_WRAP_WORD_CHAR:
+	default:
+		pwrap = PANGO_WRAP_WORD_CHAR;
+		pwidth = width * PANGO_SCALE;
+		break;
+	}
+
+	pango_layout_set_wrap( layout, pwrap );
+
+	if( pwidth > 0 ) 
+		pango_layout_set_width( layout, width * PANGO_SCALE );
 
 	return( layout );
 }
@@ -194,7 +223,8 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
-		text->width, text->spacing, text->align, text->justify )) ) 
+		text->width, text->spacing, text->align, text->wrap, 
+		text->justify )) ) 
 		return( -1 );
 
 	pango_layout_get_pixel_extents( text->layout, 
@@ -552,40 +582,47 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, justify ),
 		FALSE );
 
-	VIPS_ARG_INT( class, "dpi", 9, 
+	VIPS_ARG_INT( class, "dpi", 10, 
 		_( "DPI" ), 
 		_( "DPI to render at" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
 
-	VIPS_ARG_INT( class, "autofit_dpi", 10, 
+	VIPS_ARG_INT( class, "autofit_dpi", 11, 
 		_( "Autofit DPI" ), 
 		_( "DPI selected by autofit" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
 
-	VIPS_ARG_INT( class, "spacing", 11, 
+	VIPS_ARG_INT( class, "spacing", 12, 
 		_( "Spacing" ), 
 		_( "Line spacing" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, spacing ),
 		0, 1000000, 0 );
 
-	VIPS_ARG_STRING( class, "fontfile", 12, 
+	VIPS_ARG_STRING( class, "fontfile", 13, 
 		_( "Font file" ), 
 		_( "Load this font file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, fontfile ),
 		NULL ); 
 
-	VIPS_ARG_BOOL( class, "rgba", 9, 
+	VIPS_ARG_BOOL( class, "rgba", 14, 
 		_( "RGBA" ), 
 		_( "Enable RGBA output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, rgba ),
 		FALSE );
+
+	VIPS_ARG_ENUM( class, "wrap", 15, 
+		_( "Wrap" ), 
+		_( "Wrap lines on word or character boundaries" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, wrap ),
+		VIPS_TYPE_TEXT_WRAP, VIPS_TEXT_WRAP_WORD );
 
 }
 
@@ -594,6 +631,7 @@ vips_text_init( VipsText *text )
 {
 	text->align = VIPS_ALIGN_LOW;
 	text->dpi = 72;
+	text->wrap = VIPS_TEXT_WRAP_WORD;
 	VIPS_SETSTR( text->font, "sans 12" ); 
 }
 
@@ -617,6 +655,7 @@ vips_text_init( VipsText *text )
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
  * * @rgba: %gboolean, enable RGBA output
  * * @spacing: %gint, space lines by this in points
+ * * @wrap: #VipsTextWrap, wrap lines on characters or words
  *
  * Draw the string @text to an image. @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
@@ -635,8 +674,10 @@ vips_text_init( VipsText *text )
  * You can specify a font to load with @fontfile. You'll need to also set the
  * name of the font with @font.
  *
- * @width is the number of pixels to word-wrap at. Lines of text wider than
- * this will be broken at word boundaries. 
+ * @width is the number of pixels to word-wrap at. By default, lines of text 
+ * wider than this will be broken at word boundaries. 
+ * Use @wrap to set lines to wrap on word or character boundaries, or to
+ * disable line breaks. 
  *
  * Set @justify to turn on line justification.
  * @align can be used to set the alignment style for multi-line

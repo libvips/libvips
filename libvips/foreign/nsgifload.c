@@ -359,18 +359,44 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		return( -1 );
 	vips_source_minimise( gif->source );
 
+	/* Treat errors from _scan() as warnings. If libnsgif really can't do
+	 * something it'll fail gracefully later when we try to read out 
+	 * frame data.
+	 */
 	result = nsgif_data_scan( gif->anim, size, (void *) data );
 	VIPS_DEBUG_MSG( "nsgif_data_scan() = %s\n", nsgif_strerror( result ) );
-	gif->info = nsgif_get_info(gif->anim);
+	switch( result ) {
+	case NSGIF_ERR_END_OF_DATA:
+		if( load->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
+			vips_foreign_load_nsgif_error( gif, result ); 
+			return( -1 );
+		}
+		else
+			g_warning( "%s", nsgif_strerror( result ) );
+		break;
+
+	case NSGIF_OK:
+		break;
+
+	default:
+		if( load->fail_on >= VIPS_FAIL_ON_WARNING ) {
+			vips_foreign_load_nsgif_error( gif, result ); 
+			return( -1 );
+		}
+		else
+			g_warning( "%s", nsgif_strerror( result ) );
+		break;
+	}
+
+	/* Tell libnsgif that that's all the data we have. This will let us
+	 * read out any truncated final frames.
+	 */
+	nsgif_data_complete( gif->anim );
+
+	gif->info = nsgif_get_info( gif->anim );
 #ifdef VERBOSE
 	print_animation( gif->anim, gif->info );
 #endif /*VERBOSE*/
-	if( result != NSGIF_OK &&
-		load->fail_on >= VIPS_FAIL_ON_WARNING ) {
-		vips_foreign_load_nsgif_error( gif, result ); 
-		return( -1 );
-	}
-
 	if( !gif->info->frame_count ) {
 		vips_error( class->nickname, "%s", _( "no frames in GIF" ) );
 		return( -1 );
@@ -531,7 +557,8 @@ vips_foreign_load_nsgif_load( VipsForeignLoad *load )
 	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_nsgif_generate, NULL, gif, NULL ) ||
 		vips_sequential( t[0], &t[1],
-			"tile_height", vips_foreign_load_nsgif_tile_height(gif),
+			"tile_height", 
+				vips_foreign_load_nsgif_tile_height( gif ),
 			NULL ) ||
 		vips_image_write( t[1], load->real ) )
 		return( -1 );
@@ -627,6 +654,7 @@ vips_foreign_load_nsgif_init( VipsForeignLoadNsgif *gif )
 		&gif->anim );
 	if (result != NSGIF_OK) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+
 		vips_error( class->nickname, "%s",
 			nsgif_strerror( result ) );
 		return;
