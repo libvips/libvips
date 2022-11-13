@@ -18,6 +18,7 @@ master
 - threadpools size dynamically with load
 - operations can hint threadpool size
 - support for N-colour ICC profiles
+- add bash completions for "vips"
 - fits load and allows many more bands
 - fits write doesn't duplicate header fields
 - add @wrap to vips_text()
