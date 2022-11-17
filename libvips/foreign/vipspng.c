@@ -645,16 +645,9 @@ png2vips_header( Read *read, VipsImage *out )
 	png_uint_32 num_exif;
 	png_bytep exif;
 
-	if( png_get_eXIf_1( read->pPng, read->pInfo, &num_exif, &exif ) ) {
-		/* Sometimes starts "Exif\0\0".
-		 */
-		if( num_exif >= 6 &&
-			vips_isprefix( "Exif", (char *) exif ) )
-			exif += 6;
-
+	if( png_get_eXIf_1( read->pPng, read->pInfo, &num_exif, &exif ) )
 		vips_image_set_blob_copy( out, VIPS_META_EXIF_NAME, 
 			exif, num_exif );
-	}
 }
 #endif /*PNG_eXIf_SUPPORTED*/
 
@@ -1197,26 +1190,22 @@ write_vips( Write *write,
 		if( vips_image_get_typeof( in, VIPS_META_EXIF_NAME ) ) {
 			const void *data;
 			size_t length;
-			void* data_with_prefix;
 
 			if( vips__exif_update( in ) ||
 				vips_image_get_blob( in, VIPS_META_EXIF_NAME, 
 					&data, &length ) )
 				return( -1 );
 
-			/* Ensure "Exif" prefix as loaders may not provide it.
+			/* libpng does not want the JFIF "Exif\0\0" prefix.
 			 */
-			data_with_prefix = g_malloc0( length + 6 );
-			memcpy( data_with_prefix, "Exif\0\0", 6 );
-			memcpy( data_with_prefix + 6, data, length );
+			if( length >= 6 &&
+				vips_isprefix( "Exif", (char *) data ) ) {
+				data += 6;
+				length -= 6;
+			}
 
-			/* From libpng 1.6.31, though it was renamed several 
-			 * times, unfortunately.
-			 */
 			png_set_eXIf_1( write->pPng, write->pInfo,
-				length, (png_bytep) data_with_prefix );
-
-			g_free( data_with_prefix );
+				length, (png_bytep) data );
 		}
 #endif /*PNG_eXIf_SUPPORTED*/
 
