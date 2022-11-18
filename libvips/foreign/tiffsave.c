@@ -637,7 +637,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
- * * @lossless: %gboolean, WebP losssless mode
+ * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
  * * @premultiply: %gboolean write premultiplied alpha
@@ -777,7 +777,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
- * * @lossless: %gboolean, WebP losssless mode
+ * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
  * * @premultiply: %gboolean write premultiplied alpha
@@ -845,7 +845,7 @@ vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
- * * @lossless: %gboolean, WebP losssless mode
+ * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
  * * @premultiply: %gboolean write premultiplied alpha
