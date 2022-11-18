@@ -23,6 +23,7 @@ master
 - fits write doesn't duplicate header fields
 - add @wrap to vips_text()
 - GIF load supports truncated frames [tlsa]
+- EXIF support for PNG load and save
 
 9/11/22 started 8.13.4
 - missing include in mosaic_fuzzer [ServOKio]

@@ -457,6 +457,25 @@ class TestForeign:
         # we can't test palette save since we can't be sure libimagequant is
         # available and there's no easy test for its presence
 
+        # see if we have exif parsing: our test jpg image has this field
+        x = pyvips.Image.new_from_file(JPEG_FILE)
+        if x.get_typeof("exif-ifd0-Orientation") != 0:
+            # we need a copy of the image to set the new metadata on
+            # otherwise we get caching problems
+
+            # can set, save and load new orientation
+            x = pyvips.Image.new_from_file(JPEG_FILE)
+            x = x.copy()
+
+            x.set("orientation", 2)
+
+            filename = temp_filename(self.tempdir, '.png')
+            x.write_to_file(filename)
+
+            x = pyvips.Image.new_from_file(filename)
+            y = x.get("orientation")
+            assert y == 2
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):

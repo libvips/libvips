@@ -12,6 +12,8 @@
  * 	- use libspng for save
  * 15/7/22 [lovell]
  * 	- default filter to none
+ * 17/11/22
+ * 	- add exif save
  */
 
 /*
@@ -56,6 +58,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 #include "quantise.h"
@@ -242,6 +245,25 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 		vips_strncpy( str, data, length + 1 );
 		vips_foreign_save_spng_text( spng, "XML:com.adobe.xmp", str );
 		g_free( str );
+	}
+
+	if( vips_image_get_typeof( in, VIPS_META_EXIF_NAME ) ) {
+		struct spng_exif exif;
+
+		if( vips__exif_update( in ) ||
+			vips_image_get_blob( in, VIPS_META_EXIF_NAME, 
+				(const void **) &exif.data, &exif.length ) )
+			return( -1 );
+
+		/* libspng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if( exif.length >= 6 &&
+			vips_isprefix( "Exif", exif.data ) ) {
+			exif.data += 6;
+			exif.length -= 6;
+		}
+
+		spng_set_exif( spng->ctx, &exif );
 	}
 
 	if( vips_image_map( in, vips_foreign_save_spng_comment, spng ) )

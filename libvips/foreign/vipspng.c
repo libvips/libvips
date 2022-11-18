@@ -85,6 +85,8 @@
  *	-  add "unlimited" flag to png load
  * 13/1/22
  * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
+ * 17/11/22
+ * 	- add exif read/write
  */
 
 /*
@@ -638,6 +640,17 @@ png2vips_header( Read *read, VipsImage *out )
 }
 #endif /*PNG_bKGD_SUPPORTED*/
 
+#ifdef PNG_eXIf_SUPPORTED
+{
+	png_uint_32 num_exif;
+	png_bytep exif;
+
+	if( png_get_eXIf_1( read->pPng, read->pInfo, &num_exif, &exif ) )
+		vips_image_set_blob_copy( out, VIPS_META_EXIF_NAME, 
+			exif, num_exif );
+}
+#endif /*PNG_eXIf_SUPPORTED*/
+
 	return( 0 );
 }
 
@@ -1173,8 +1186,30 @@ write_vips( Write *write,
 			g_free( str );
 		}
 
-		if( vips_image_map( in,
-			write_png_comment, write ) )
+#ifdef PNG_eXIf_SUPPORTED
+		if( vips_image_get_typeof( in, VIPS_META_EXIF_NAME ) ) {
+			const void *data;
+			size_t length;
+
+			if( vips__exif_update( in ) ||
+				vips_image_get_blob( in, VIPS_META_EXIF_NAME, 
+					&data, &length ) )
+				return( -1 );
+
+			/* libpng does not want the JFIF "Exif\0\0" prefix.
+			 */
+			if( length >= 6 &&
+				vips_isprefix( "Exif", (char *) data ) ) {
+				data += 6;
+				length -= 6;
+			}
+
+			png_set_eXIf_1( write->pPng, write->pInfo,
+				length, (png_bytep) data );
+		}
+#endif /*PNG_eXIf_SUPPORTED*/
+
+		if( vips_image_map( in, write_png_comment, write ) )
 			return( -1 );
 	}
 
