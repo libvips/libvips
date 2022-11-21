@@ -489,8 +489,7 @@ parse_header( Read *read )
 
         /* Something like "BMP".
          */
-        if( read->image->magick &&
-                strlen( read->image->magick ) > 0 )
+        if( strlen( read->image->magick ) > 0 )
                 vips_image_set_string( im, "magick-format", 
                         read->image->magick );
 
