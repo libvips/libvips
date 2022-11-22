@@ -53,7 +53,7 @@
 static gboolean
 vips_format_is_vips(VipsFormatClass *format)
 {
-	return (strcmp(VIPS_OBJECT_CLASS(format)->nickname, "vips") == 0);
+	return strcmp(VIPS_OBJECT_CLASS(format)->nickname, "vips") == 0;
 }
 
 /* Lazy open.
@@ -95,7 +95,7 @@ lazy_new(VipsImage *image,
 	lazy->real = NULL;
 	g_signal_connect(image, "close", G_CALLBACK(lazy_free_cb), lazy);
 
-	return (lazy);
+	return lazy;
 }
 
 static size_t
@@ -122,7 +122,7 @@ disc_threshold(void)
 		VIPS_DEBUG_MSG("disc_threshold: %zd bytes\n", threshold);
 	}
 
-	return (threshold);
+	return threshold;
 }
 
 /* Make the real underlying image: either a direct disc file, or a temp file
@@ -146,15 +146,15 @@ lazy_real_image(Lazy *lazy)
 			VIPS_FORMAT_PARTIAL) &&
 		VIPS_IMAGE_SIZEOF_IMAGE(lazy->image) > disc_threshold())
 		if (!(real = vips_image_new_temp_file("%s.v")))
-			return (NULL);
+			return NULL;
 
 	/* Otherwise, fall back to a "p".
 	 */
 	if (!real &&
 		!(real = vips_image_new()))
-		return (NULL);
+		return NULL;
 
-	return (real);
+	return real;
 }
 
 /* Our start function ... do the lazy open, if necessary, and return a region
@@ -170,11 +170,11 @@ open_lazy_start(VipsImage *out, void *a, void *dummy)
 			lazy->format->load(lazy->filename, lazy->real) ||
 			vips_image_pio_input(lazy->real)) {
 			VIPS_UNREF(lazy->real);
-			return (NULL);
+			return NULL;
 		}
 	}
 
-	return (vips_region_new(lazy->real));
+	return vips_region_new(lazy->real);
 }
 
 /* Just copy.
@@ -190,14 +190,14 @@ open_lazy_generate(VipsRegion * or,
 	/* Ask for input we need.
 	 */
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	/* Attach output region to that.
 	 */
 	if (vips_region_region(or, ir, r, r->left, r->top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Lazy open ... init the header with the first OpenLazyFn, delay actually
@@ -217,7 +217,7 @@ vips_image_open_lazy(VipsImage *image,
 		/* Read header fields to init the return image.
 		 */
 		if (format->header(filename, image))
-			return (-1);
+			return -1;
 
 		/* Then 'start' creates the real image and 'gen' paints 'image'
 		 * with pixels from the real image on demand.
@@ -226,16 +226,16 @@ vips_image_open_lazy(VipsImage *image,
 			vips_image_generate(image,
 				open_lazy_start, open_lazy_generate,
 				vips_stop_one, lazy, NULL))
-			return (-1);
+			return -1;
 	}
 	else if (format->load) {
 		if (format->load(filename, image))
-			return (-1);
+			return -1;
 	}
 	else
 		g_assert(0);
 
-	return (0);
+	return 0;
 }
 
 /* Lazy save.
@@ -283,12 +283,12 @@ vips__deprecated_open_read(const char *filename, gboolean sequential)
 	VipsFormatClass *format;
 
 	if (!(format = vips_format_for_file(filename)))
-		return (NULL);
+		return NULL;
 
 	if (vips_format_is_vips(format)) {
 		/* For vips format, we can just the main vips path.
 		 */
-		return (vips_image_new_mode(filename, "rd"));
+		return vips_image_new_mode(filename, "rd");
 	}
 	else {
 		/* For non-vips formats we must go via the old VipsFormat
@@ -301,7 +301,7 @@ vips__deprecated_open_read(const char *filename, gboolean sequential)
 		if (vips_image_open_lazy(image, format,
 				filename, sequential)) {
 			g_object_unref(image);
-			return (NULL);
+			return NULL;
 		}
 
 		/* Yuk. Can't g_object_set() filename since it's after
@@ -309,7 +309,7 @@ vips__deprecated_open_read(const char *filename, gboolean sequential)
 		 */
 		VIPS_SETSTR(image->filename, filename);
 
-		return (image);
+		return image;
 	}
 }
 
@@ -319,12 +319,12 @@ vips__deprecated_open_write(const char *filename)
 	VipsFormatClass *format;
 
 	if (!(format = vips_format_for_name(filename)))
-		return (NULL);
+		return NULL;
 
 	if (vips_format_is_vips(format))
 		/* For vips format, we can just the main vips path.
 		 */
-		return (vips_image_new_mode(filename, "w"));
+		return vips_image_new_mode(filename, "w");
 	else {
 		/* For non-vips formats we must go via the old VipsFormat
 		 * system to make sure we support the "filename:options"
@@ -333,9 +333,9 @@ vips__deprecated_open_write(const char *filename)
 		IMAGE *image;
 
 		if (!(image = vips_image_new()))
-			return (NULL);
+			return NULL;
 		vips_attach_save(image,
 			format->save, filename);
-		return (image);
+		return image;
 	}
 }

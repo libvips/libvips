@@ -69,7 +69,7 @@ vips_point_gen(VipsRegion * or, void *seq, void *a, void *b,
 			q[x] = class->point(point, r->left + x, ay);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -83,7 +83,7 @@ vips_point_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_point_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	t[0] = vips_image_new();
 	vips_image_init_fields(t[0],
@@ -93,7 +93,7 @@ vips_point_build(VipsObject *object)
 	if (vips_image_pipelinev(t[0], VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_generate(t[0],
 			NULL, vips_point_gen, NULL, point, NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (point->uchar) {
@@ -105,7 +105,7 @@ vips_point_build(VipsObject *object)
 				255.0 / range, -min * 255.0 / range,
 				"uchar", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[2];
 
 		/* We don't want FOURIER or whatever in this case.
@@ -114,9 +114,9 @@ vips_point_build(VipsObject *object)
 	}
 
 	if (vips_image_write(in, create->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

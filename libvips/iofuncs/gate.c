@@ -218,7 +218,7 @@ vips__thread_profile_init(void *data)
 
 	vips_thread_profile_key = &private;
 
-	return (NULL);
+	return NULL;
 }
 
 static VipsThreadGate *
@@ -231,7 +231,7 @@ vips_thread_gate_new(const char *gate_name)
 	gate->start = g_new0(VipsThreadGateBlock, 1);
 	gate->stop = g_new0(VipsThreadGateBlock, 1);
 
-	return (gate);
+	return gate;
 }
 
 void
@@ -257,7 +257,7 @@ vips__thread_profile_attach(const char *thread_name)
 static VipsThreadProfile *
 vips_thread_profile_get(void)
 {
-	return (g_private_get(vips_thread_profile_key));
+	return g_private_get(vips_thread_profile_key);
 }
 
 /* This usually happens automatically when a thread shuts down, see

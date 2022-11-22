@@ -75,16 +75,16 @@ vips_slist_equal(GSList *l1, GSList *l2)
 {
 	while (l1 && l2) {
 		if (l1->data != l2->data)
-			return (FALSE);
+			return FALSE;
 
 		l1 = l1->next;
 		l2 = l2->next;
 	}
 
 	if (l1 || l2)
-		return (FALSE);
+		return FALSE;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* Map over an slist. _copy() the list in case the callback changes it.
@@ -102,7 +102,7 @@ vips_slist_map2(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
 		;
 	g_slist_free(copy);
 
-	return (result);
+	return result;
 }
 
 /* Map backwards. We _reverse() rather than recurse and unwind to save stack.
@@ -121,7 +121,7 @@ vips_slist_map2_rev(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
 		;
 	g_slist_free(copy);
 
-	return (result);
+	return result;
 }
 
 void *
@@ -139,7 +139,7 @@ vips_slist_map4(GSList *list,
 		;
 	g_slist_free(copy);
 
-	return (result);
+	return result;
 }
 
 void *
@@ -153,10 +153,10 @@ vips_slist_fold2(GSList *list, void *start,
 		next = this->next;
 
 		if (!(c = fn(this->data, c, a, b)))
-			return (NULL);
+			return NULL;
 	}
 
-	return (c);
+	return c;
 }
 
 /* Remove all occurences of an item from a list.
@@ -189,7 +189,7 @@ vips_slist_filter(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
 		}
 	}
 
-	return (list);
+	return list;
 }
 
 static void
@@ -211,9 +211,9 @@ void *
 vips_map_equal(void *a, void *b)
 {
 	if (a == b)
-		return (a);
+		return a;
 
-	return (NULL);
+	return NULL;
 }
 
 typedef struct {
@@ -226,7 +226,7 @@ typedef struct {
 static gboolean
 vips_hash_table_predicate(const char *key, void *value, Pair *pair)
 {
-	return ((pair->result = pair->fn(value, pair->a, pair->b)) != NULL);
+	return (pair->result = pair->fn(value, pair->a, pair->b)) != NULL;
 }
 
 /* Like slist map, but for a hash table.
@@ -243,7 +243,7 @@ vips_hash_table_map(GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b)
 
 	g_hash_table_find(hash, (GHRFunc) vips_hash_table_predicate, &pair);
 
-	return (pair.result);
+	return pair.result;
 }
 
 /* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
@@ -262,7 +262,7 @@ vips_strncpy(char *dest, const char *src, int n)
 			break;
 	dest[i] = '\0';
 
-	return (dest);
+	return dest;
 }
 
 /* Find the rightmost occurrence of needle in haystack.
@@ -276,9 +276,9 @@ vips_strrstr(const char *haystack, const char *needle)
 
 	for (i = haystack_len - needle_len; i >= 0; i--)
 		if (strncmp(needle, haystack + i, needle_len) == 0)
-			return ((char *) haystack + i);
+			return (char *) haystack + i;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Test for string b ends string a.
@@ -290,9 +290,9 @@ vips_ispostfix(const char *a, const char *b)
 	int n = strlen(b);
 
 	if (n > m)
-		return (FALSE);
+		return FALSE;
 
-	return (strcmp(a + m - n, b) == 0);
+	return strcmp(a + m - n, b) == 0;
 }
 
 /* Case-insensitive test for string b ends string a. ASCII strings only.
@@ -304,9 +304,9 @@ vips_iscasepostfix(const char *a, const char *b)
 	int n = strlen(b);
 
 	if (n > m)
-		return (FALSE);
+		return FALSE;
 
-	return (g_ascii_strcasecmp(a + m - n, b) == 0);
+	return g_ascii_strcasecmp(a + m - n, b) == 0;
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
@@ -319,15 +319,15 @@ vips_isprefix(const char *a, const char *b)
 
 	for (i = 0; a[i] && b[i]; i++)
 		if (a[i] != b[i])
-			return (FALSE);
+			return FALSE;
 
 	/* If there's stuff left in a but b has finished, we must have a
 	 * mismatch.
 	 */
 	if (a[i] && !b[i])
-		return (FALSE);
+		return FALSE;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* Exactly like strcspn(), but allow \ as an escape character.
@@ -343,7 +343,7 @@ strcspne(const char *s, const char *reject)
 	/* If \ is one of the reject chars, no need for any looping.
 	 */
 	if (strchr(reject, '\\'))
-		return (strcspn(s, reject));
+		return strcspn(s, reject);
 
 	skip = 0;
 	for (;;) {
@@ -363,7 +363,7 @@ strcspne(const char *s, const char *reject)
 		skip += 1;
 	}
 
-	return (skip);
+	return skip;
 }
 
 /* Like strtok(). Give a string and a list of break characters. Then:
@@ -413,7 +413,7 @@ vips_break_token(char *str, const char *brk)
 	 */
 	if (!str ||
 		!*str)
-		return (NULL);
+		return NULL;
 
 	/* Skip initial break characters.
 	 */
@@ -422,7 +422,7 @@ vips_break_token(char *str, const char *brk)
 	/* No item?
 	 */
 	if (!*p)
-		return (NULL);
+		return NULL;
 
 	/* We have a token ... search for the first break character after the
 	 * token. strcspne() allows '\' to escape breaks, see above.
@@ -450,7 +450,7 @@ vips_break_token(char *str, const char *brk)
 		q += 1;
 	}
 
-	return (p);
+	return p;
 }
 
 /* Wrapper over (v)snprintf() ... missing on old systems.
@@ -459,7 +459,7 @@ int
 vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 {
 #ifdef HAVE_VSNPRINTF
-	return (vsnprintf(str, size, format, ap));
+	return vsnprintf(str, size, format, ap);
 #else  /*HAVE_VSNPRINTF*/
 	/* Bleurg!
 	 */
@@ -481,7 +481,7 @@ vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 
 	vips_strncpy(str, buf, size);
 
-	return (n);
+	return n;
 #endif /*HAVE_VSNPRINTF*/
 }
 
@@ -495,7 +495,7 @@ vips_snprintf(char *str, size_t size, const char *format, ...)
 	n = vips_vsnprintf(str, size, format, ap);
 	va_end(ap);
 
-	return (n);
+	return n;
 }
 
 /* Does a filename have one of a set of suffixes. Ignore case and any trailing
@@ -527,7 +527,7 @@ vips_filename_suffix_match(const char *path, const char *suffixes[])
 
 	g_free(basename);
 
-	return (result);
+	return result;
 }
 
 /* Get file length ... 64-bitally. -1 for error.
@@ -546,10 +546,10 @@ vips_file_length(int fd)
 #endif /*G_OS_WIN32*/
 		vips_error_system(errno, "vips_file_length",
 			"%s", _("unable to get file stats"));
-		return (-1);
+		return -1;
 	}
 
-	return (st.st_size);
+	return st.st_size;
 }
 
 /* Wrap write() up
@@ -563,14 +563,14 @@ vips__write(int fd, const void *buf, size_t count)
 		if (nwritten == (size_t) -1) {
 			vips_error_system(errno, "vips__write",
 				"%s", _("write failed"));
-			return (-1);
+			return -1;
 		}
 
 		buf = (void *) ((char *) buf + nwritten);
 		count -= nwritten;
 	} while (count > 0);
 
-	return (0);
+	return 0;
 }
 
 #ifdef G_OS_WIN32
@@ -612,7 +612,7 @@ vips__open(const char *filename, int flags, int mode)
 	 */
 	if (g_file_test(filename, G_FILE_TEST_IS_DIR)) {
 		errno = EISDIR;
-		return (-1);
+		return -1;
 	}
 
 	fd = g_open(filename, flags, mode);
@@ -623,13 +623,13 @@ vips__open(const char *filename, int flags, int mode)
 		vips__set_create_time(fd);
 #endif /*G_OS_WIN32*/
 
-	return (fd);
+	return fd;
 }
 
 int
 vips__open_read(const char *filename)
 {
-	return (vips__open(filename, MODE_READ, 0));
+	return vips__open(filename, MODE_READ, 0);
 }
 
 /* fopen() with utf8 filename and mode, setting errno.
@@ -647,7 +647,7 @@ vips__fopen(const char *filename, const char *mode)
 		vips__set_create_time(_fileno(fp));
 #endif /*G_OS_WIN32*/
 
-	return (fp);
+	return fp;
 }
 
 /* Does a filename contain a directory separator?
@@ -662,7 +662,7 @@ filename_hasdir(const char *filename)
 	hasdir = (strcmp(dirname, ".") != 0);
 	g_free(dirname);
 
-	return (hasdir);
+	return hasdir;
 }
 
 /* Open a file. We take an optional fallback dir as well and will try opening
@@ -689,7 +689,7 @@ vips__file_open_read(const char *filename, const char *fallback_dir,
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 	if ((fp = vips__fopen(filename, mode)))
-		return (fp);
+		return fp;
 
 	if (fallback_dir &&
 		!filename_hasdir(filename)) {
@@ -700,13 +700,13 @@ vips__file_open_read(const char *filename, const char *fallback_dir,
 		g_free(path);
 
 		if (fp)
-			return (fp);
+			return fp;
 	}
 
 	vips_error_system(errno, "vips__file_open_read",
 		_("unable to open file \"%s\" for reading"), filename);
 
-	return (NULL);
+	return NULL;
 }
 
 FILE *
@@ -728,10 +728,10 @@ vips__file_open_write(const char *filename, gboolean text_mode)
 		vips_error_system(errno, "vips__file_open_write",
 			_("unable to open file \"%s\" for writing"),
 			filename);
-		return (NULL);
+		return NULL;
 	}
 
-	return (fp);
+	return fp;
 }
 
 /* Load up a file as a string.
@@ -749,7 +749,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 		 */
 		vips_error("vips__file_read",
 			_("\"%s\" too long"), filename);
-		return (NULL);
+		return NULL;
 	}
 
 	if (len == -1) {
@@ -772,7 +772,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 				free(str);
 				vips_error("vips__file_read",
 					"%s", _("out of memory"));
-				return (NULL);
+				return NULL;
 			}
 			str = str2;
 
@@ -792,7 +792,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 		/* Allocate memory and fill.
 		 */
 		if (!(str = vips_malloc(NULL, len + 1)))
-			return (NULL);
+			return NULL;
 		rewind(fp);
 		read = fread(str, sizeof(char), (size_t) len, fp);
 		if (read != (size_t) len) {
@@ -800,7 +800,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 			vips_error("vips__file_read",
 				_("error reading from file \"%s\""),
 				filename);
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -809,7 +809,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 	if (length_out)
 		*length_out = len;
 
-	return (str);
+	return str;
 }
 
 /* Load from a filename as a string. Used for things like reading in ICC
@@ -823,14 +823,14 @@ vips__file_read_name(const char *filename, const char *fallback_dir,
 	char *buffer;
 
 	if (!(fp = vips__file_open_read(filename, fallback_dir, FALSE)))
-		return (NULL);
+		return NULL;
 	if (!(buffer = vips__file_read(fp, filename, length_out))) {
 		fclose(fp);
-		return (NULL);
+		return NULL;
 	}
 	fclose(fp);
 
-	return (buffer);
+	return buffer;
 }
 
 /* Like fwrite(), but returns non-zero on error and sets error message.
@@ -841,16 +841,16 @@ vips__file_write(void *data, size_t size, size_t nmemb, FILE *stream)
 	size_t n;
 
 	if (!data)
-		return (0);
+		return 0;
 
 	if ((n = fwrite(data, size, nmemb, stream)) != nmemb) {
 		vips_error_system(errno, "vips__file_write",
 			_("write error (%zd out of %zd blocks written)"),
 			n, nmemb);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read a few bytes from the start of a file. This is used for sniffing file
@@ -870,11 +870,11 @@ vips__get_bytes(const char *filename, unsigned char buf[], gint64 len)
 	 * on read either.
 	 */
 	if ((fd = vips__open_read(filename)) == -1)
-		return (0);
+		return 0;
 	bytes_read = read(fd, buf, len);
 	close(fd);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 /* We try to support stupid DOS files too. These have \r\n (13, 10) as line
@@ -897,7 +897,7 @@ vips__fgetc(FILE *fp)
 		}
 	}
 
-	return (ch);
+	return ch;
 }
 
 /* Alloc/free a GValue.
@@ -910,7 +910,7 @@ vips__gvalue_new(GType type)
 	value = g_new0(GValue, 1);
 	g_value_init(value, type);
 
-	return (value);
+	return value;
 }
 
 static GValue *
@@ -921,7 +921,7 @@ vips__gvalue_copy(GValue *value)
 	value_copy = vips__gvalue_new(G_VALUE_TYPE(value));
 	g_value_copy(value, value_copy);
 
-	return (value_copy);
+	return value_copy;
 }
 
 static void
@@ -939,7 +939,7 @@ vips__gvalue_ref_string_new(const char *text)
 	value = vips__gvalue_new(VIPS_TYPE_REF_STRING);
 	vips_value_set_ref_string(value, text);
 
-	return (value);
+	return value;
 }
 
 /* Free a GSList of GValue.
@@ -967,7 +967,7 @@ vips__gslist_gvalue_copy(const GSList *list)
 
 	copy = g_slist_reverse(copy);
 
-	return (copy);
+	return copy;
 }
 
 /* Merge two GSList of GValue ... append to a all elements in b which are not
@@ -1008,7 +1008,7 @@ vips__gslist_gvalue_merge(GSList *a, const GSList *b)
 
 	a = g_slist_concat(a, g_slist_reverse(tail));
 
-	return (a);
+	return a;
 }
 
 /* Make a char * from GSList of GValue. Each GValue should be a ref_string.
@@ -1038,7 +1038,7 @@ vips__gslist_gvalue_get(const GSList *list)
 	}
 
 	if (length == 0)
-		return (NULL);
+		return NULL;
 
 	/* More than 10MB of history? Madness!
 	 */
@@ -1047,7 +1047,7 @@ vips__gslist_gvalue_get(const GSList *list)
 	/* +1 for '\0'.
 	 */
 	if (!(all = vips_malloc(NULL, length + 1)))
-		return (NULL);
+		return NULL;
 
 	q = all;
 	for (p = list; p; p = p->next) {
@@ -1062,7 +1062,7 @@ vips__gslist_gvalue_get(const GSList *list)
 
 	g_assert((size_t) (q - all) == length);
 
-	return (all);
+	return all;
 }
 
 gint64
@@ -1080,7 +1080,7 @@ vips__seek_no_error(int fd, gint64 pos, int whence)
 	new_pos = lseek(fd, pos, whence);
 #endif /*G_OS_WIN32*/
 
-	return (new_pos);
+	return new_pos;
 }
 
 /* Need our own seek(), since lseek() on win32 can't do long files.
@@ -1093,10 +1093,10 @@ vips__seek(int fd, gint64 pos, int whence)
 	if ((new_pos = vips__seek_no_error(fd, pos, whence)) == -1) {
 		vips_error_system(errno, "vips__seek",
 			"%s", _("unable to seek"));
-		return (-1);
+		return -1;
 	}
 
-	return (new_pos);
+	return new_pos;
 }
 
 /* Need our own ftruncate(), since ftruncate() on win32 can't do long files.
@@ -1114,22 +1114,22 @@ vips__ftruncate(int fd, gint64 pos)
 		HANDLE hFile = (HANDLE) _get_osfhandle(fd);
 
 		if (vips__seek(fd, pos, SEEK_SET) == -1)
-			return (-1);
+			return -1;
 		if (!SetEndOfFile(hFile)) {
 			vips_error_system(GetLastError(), "vips__ftruncate",
 				"%s", _("unable to truncate"));
-			return (-1);
+			return -1;
 		}
 	}
 #else  /*!G_OS_WIN32*/
 	if (ftruncate(fd, pos)) {
 		vips_error_system(errno, "vips__ftruncate",
 			"%s", _("unable to truncate"));
-		return (-1);
+		return -1;
 	}
 #endif /*G_OS_WIN32*/
 
-	return (0);
+	return 0;
 }
 
 /* TRUE if file exists. True for directories as well.
@@ -1149,7 +1149,7 @@ vips_existsf(const char *name, ...)
 
 	g_free(path);
 
-	return (result);
+	return result;
 }
 
 /* TRUE if file exists and is a directory.
@@ -1169,7 +1169,7 @@ vips_isdirf(const char *name, ...)
 
 	g_free(path);
 
-	return (result);
+	return result;
 }
 
 /* Make a directory.
@@ -1189,11 +1189,11 @@ vips_mkdirf(const char *name, ...)
 			_("unable to create directory \"%s\", %s"),
 			path, strerror(errno));
 		g_free(path);
-		return (-1);
+		return -1;
 	}
 	g_free(path);
 
-	return (0);
+	return 0;
 }
 
 /* Remove a directory.
@@ -1213,11 +1213,11 @@ vips_rmdirf(const char *name, ...)
 			_("unable to remove directory \"%s\", %s"),
 			path, strerror(errno));
 		g_free(path);
-		return (-1);
+		return -1;
 	}
 	g_free(path);
 
-	return (0);
+	return 0;
 }
 
 /* Rename a file.
@@ -1229,10 +1229,10 @@ vips_rename(const char *old_name, const char *new_name)
 		vips_error("rename",
 			_("unable to rename file \"%s\" as \"%s\", %s"),
 			old_name, new_name, strerror(errno));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Chop off any trailing whitespace.
@@ -1265,13 +1265,13 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 	/* Parse this token with p.
 	 */
 	if (!p)
-		return (NULL);
+		return NULL;
 
 	/* Skip initial whitespace.
 	 */
 	p += strspn(p, " \t\n\r");
 	if (!p[0])
-		return (NULL);
+		return NULL;
 
 	switch ((ch = p[0])) {
 	case '[':
@@ -1356,7 +1356,7 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 		break;
 	}
 
-	return (p);
+	return p;
 }
 
 /* We expect a token.
@@ -1368,10 +1368,10 @@ vips__token_must(const char *p, VipsToken *token,
 	if (!(p = vips__token_get(p, token, string, size))) {
 		vips_error("get_token",
 			"%s", _("unexpected end of string"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (p);
+	return p;
 }
 
 /* We expect a certain token.
@@ -1383,15 +1383,15 @@ vips__token_need(const char *p, VipsToken need_token,
 	VipsToken token;
 
 	if (!(p = vips__token_must(p, &token, string, size)))
-		return (NULL);
+		return NULL;
 	if (token != need_token) {
 		vips_error("get_token", _("expected %s, saw %s"),
 			vips_enum_nick(VIPS_TYPE_TOKEN, need_token),
 			vips_enum_nick(VIPS_TYPE_TOKEN, token));
-		return (NULL);
+		return NULL;
 	}
 
-	return (p);
+	return p;
 }
 
 /* Fetch a token. If it's a string token terminated by a '[', fetch up to the
@@ -1406,7 +1406,7 @@ vips__token_segment(const char *p, VipsToken *token,
 	const char *q;
 
 	if (!(q = vips__token_must(p, token, string, size)))
-		return (NULL);
+		return NULL;
 
 	/* If we stopped on [, read up to the matching ].
 	 */
@@ -1421,7 +1421,7 @@ vips__token_segment(const char *p, VipsToken *token,
 		do {
 			if (!(q = vips__token_must(q, &sub_token,
 					  sub_string, VIPS_PATH_MAX)))
-				return (NULL);
+				return NULL;
 
 			switch (sub_token) {
 			case VIPS_TOKEN_LEFT:
@@ -1441,7 +1441,7 @@ vips__token_segment(const char *p, VipsToken *token,
 		vips_strncpy(string, p, i + 1);
 	}
 
-	return (q);
+	return q;
 }
 
 /* We expect a certain segment.
@@ -1453,15 +1453,15 @@ vips__token_segment_need(const char *p, VipsToken need_token,
 	VipsToken token;
 
 	if (!(p = vips__token_segment(p, &token, string, size)))
-		return (NULL);
+		return NULL;
 	if (token != need_token) {
 		vips_error("get_token", _("expected %s, saw %s"),
 			vips_enum_nick(VIPS_TYPE_TOKEN, need_token),
 			vips_enum_nick(VIPS_TYPE_TOKEN, token));
-		return (NULL);
+		return NULL;
 	}
 
-	return (p);
+	return p;
 }
 
 /* Maximum number of tokens we allow in a filename. Surely this will be
@@ -1504,13 +1504,13 @@ vips__find_rightmost_brackets(const char *p)
 	/* Too many tokens?
 	 */
 	if (n >= MAX_TOKENS)
-		return (NULL);
+		return NULL;
 
 	/* No rightmost close bracket?
 	 */
 	if (n == 0 ||
 		tokens[n - 1] != VIPS_TOKEN_RIGHT)
-		return (NULL);
+		return NULL;
 
 	nest = 0;
 	for (i = n - 1; i >= 0; i--) {
@@ -1526,11 +1526,11 @@ vips__find_rightmost_brackets(const char *p)
 	/* No matching left bracket?
 	 */
 	if (nest != 0)
-		return (NULL);
+		return NULL;
 
 	/* This should be the matching left.
 	 */
-	return (start[i]);
+	return start[i];
 }
 
 /* Split a vips8-style filename + options.
@@ -1573,9 +1573,9 @@ vips_ispoweroftwo(int p)
 	if (n == 1)
 		/* Return position of bit.
 		 */
-		return (i);
+		return i;
 	else
-		return (0);
+		return 0;
 }
 
 /* Test this processor for endianness. True for SPARC order.
@@ -1584,9 +1584,9 @@ int
 vips_amiMSBfirst(void)
 {
 #if G_BYTE_ORDER == G_BIG_ENDIAN
-	return (1);
+	return 1;
 #elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-	return (0);
+	return 0;
 #else
 #error "Byte order not recognised"
 #endif
@@ -1615,7 +1615,7 @@ vips__temp_dir(void)
 #endif /*!G_OS_WIN32*/
 	}
 
-	return (tmpd);
+	return tmpd;
 }
 
 /* Make a temporary file name. The format parameter is something like "%s.jpg"
@@ -1648,7 +1648,7 @@ vips__temp_name(const char *format)
 	 * actually use these filenames in the filesystem anyway.
 	 */
 
-	return (name);
+	return name;
 }
 
 /* Strip off any of a set of old suffixes (eg. [".v", ".jpg"]), add a single
@@ -1728,7 +1728,7 @@ vips__parse_size(const char *size_string)
 	VIPS_DEBUG_MSG("parse_size: parsed \"%s\" as %" G_GUINT64_FORMAT "\n",
 		size_string, size);
 
-	return (size);
+	return size;
 }
 
 /* Look up the const char * for an enum value.
@@ -1739,9 +1739,9 @@ vips_enum_string(GType enm, int v)
 	GEnumValue *value;
 
 	if (!(value = g_enum_get_value(g_type_class_ref(enm), v)))
-		return ("(null)");
+		return "(null)";
 
-	return (value->value_name);
+	return value->value_name;
 }
 
 const char *
@@ -1750,9 +1750,9 @@ vips_enum_nick(GType enm, int v)
 	GEnumValue *value;
 
 	if (!(value = g_enum_get_value(g_type_class_ref(enm), v)))
-		return ("(null)");
+		return "(null)";
 
-	return (value->value_nick);
+	return value->value_nick;
 }
 
 int
@@ -1767,14 +1767,14 @@ vips_enum_from_nick(const char *domain, GType type, const char *nick)
 
 	if (!(class = g_type_class_ref(type))) {
 		vips_error(domain, "%s", _("no such enum type"));
-		return (-1);
+		return -1;
 	}
 	genum = G_ENUM_CLASS(class);
 
 	if ((enum_value = g_enum_get_value_by_name(genum, nick)))
-		return (enum_value->value);
+		return enum_value->value;
 	if ((enum_value = g_enum_get_value_by_nick(genum, nick)))
-		return (enum_value->value);
+		return enum_value->value;
 
 	/* -1 since we always have a "last" member.
 	 */
@@ -1788,7 +1788,7 @@ vips_enum_from_nick(const char *domain, GType type, const char *nick)
 						 "should be one of: %s"),
 		g_type_name(type), nick, vips_buf_all(&buf));
 
-	return (-1);
+	return -1;
 }
 
 int
@@ -1803,14 +1803,14 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 
 	if (!(class = g_type_class_ref(type))) {
 		vips_error(domain, "%s", _("no such flag type"));
-		return (-1);
+		return -1;
 	}
 	gflags = G_FLAGS_CLASS(class);
 
 	if ((flags_value = g_flags_get_value_by_name(gflags, nick)))
-		return (flags_value->value);
+		return flags_value->value;
 	if ((flags_value = g_flags_get_value_by_nick(gflags, nick)))
-		return (flags_value->value);
+		return flags_value->value;
 
 	for (i = 0; i < gflags->n_values; i++) {
 		if (i > 0)
@@ -1822,7 +1822,7 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 						 "should be one of: %s"),
 		g_type_name(type), nick, vips_buf_all(&buf));
 
-	return (-1);
+	return -1;
 }
 
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the
@@ -1875,20 +1875,20 @@ vips__substitute(char *buf, size_t len, char *sub)
 			}
 
 	if (!sub_start)
-		return (-1);
+		return -1;
 
 	before_len = sub_start - buf;
 	marker_len = sub_end - sub_start;
 	after_len = buflen - (before_len + marker_len);
 	final_len = before_len + sublen + after_len + 1;
 	if (final_len > len)
-		return (-1);
+		return -1;
 
 	memmove(buf + before_len + sublen, buf + before_len + marker_len,
 		after_len + 1);
 	memmove(buf + before_len, sub, sublen);
 
-	return (0);
+	return 0;
 }
 
 /* Absoluteize a path. Free the result with g_free().
@@ -1912,7 +1912,7 @@ vips_realpath(const char *path)
 	else
 		real = g_strdup(path);
 
-	return (real);
+	return real;
 }
 
 /* A very simple random number generator. See:
@@ -1928,7 +1928,7 @@ vips__random_add(guint32 hash, int value)
 	hash = FNV_ADD(hash, (value >> 16) & 0xff);
 	hash = FNV_ADD(hash, (value >> 24) & 0xff);
 
-	return (hash);
+	return hash;
 }
 
 guint32
@@ -1939,7 +1939,7 @@ vips__random(guint32 seed)
 	hash = 2166136261u;
 	hash = vips__random_add(hash, seed);
 
-	return (hash);
+	return hash;
 }
 
 static void *
@@ -1964,12 +1964,12 @@ vips_icc_dir_once(void *null)
 				"system32", "spool", "drivers", "color", NULL);
 			g_free(windowsdir);
 
-			return ((void *) full_path);
+			return (void *) full_path;
 		}
 	}
 #endif /*G_OS_WIN32*/
 
-	return ((void *) VIPS_ICC_DIR);
+	return (void *) VIPS_ICC_DIR;
 }
 
 const char *
@@ -1977,8 +1977,8 @@ vips__icc_dir(void)
 {
 	static GOnce once = G_ONCE_INIT;
 
-	return ((const char *) g_once(&once,
-		vips_icc_dir_once, NULL));
+	return (const char *) g_once(&once,
+		vips_icc_dir_once, NULL);
 }
 
 #ifdef G_OS_WIN32
@@ -1990,7 +1990,7 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	if (fdwReason == DLL_PROCESS_ATTACH)
 		vips__dll = hinstDLL;
 
-	return (TRUE);
+	return TRUE;
 }
 #endif
 #endif /*G_OS_WIN32*/
@@ -2007,7 +2007,7 @@ vips__windows_prefix_once(void *null)
 	prefix = (char *) g_getenv("VIPSHOME");
 #endif /*G_OS_WIN32*/
 
-	return ((void *) prefix);
+	return (void *) prefix;
 }
 
 const char *
@@ -2015,8 +2015,8 @@ vips__windows_prefix(void)
 {
 	static GOnce once = G_ONCE_INIT;
 
-	return ((const char *) g_once(&once,
-		vips__windows_prefix_once, NULL));
+	return (const char *) g_once(&once,
+		vips__windows_prefix_once, NULL);
 }
 
 char *
@@ -2041,7 +2041,7 @@ vips__get_iso8601(void)
 	}
 #endif /*GLIB_CHECK_VERSION( 2, 62, 0 )*/
 
-	return (date);
+	return date;
 }
 
 /* Convert a string to a double in the ASCII locale (ie. decimal point is
@@ -2062,14 +2062,14 @@ vips_strtod(const char *str, double *out)
 		if (isdigit(*p))
 			break;
 	if (!*p)
-		return (-1);
+		return -1;
 
 	/* This will fail for out of range numbers, like 1e343434, but
 	 * is quite happy with eg. "banana".
 	 */
 	*out = g_ascii_strtod(str, NULL);
 	if (errno)
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

@@ -39,7 +39,7 @@ static T inline to_fptypes(const double val)
 {
 	const T newval = val;
 
-	return (newval);
+	return newval;
 }
 
 template <typename T>
@@ -49,7 +49,7 @@ static T inline to_withsign(const double val)
 	const int rounded_abs_val = .5 + sign_of_val * val;
 	const T newval = sign_of_val * rounded_abs_val;
 
-	return (newval);
+	return newval;
 }
 
 template <typename T>
@@ -57,7 +57,7 @@ static T inline to_nosign(const double val)
 {
 	const T newval = .5 + val;
 
-	return (newval);
+	return newval;
 }
 
 /*
@@ -88,7 +88,7 @@ static T inline bilinear_fptypes(
 		w_times_y * trequa_thr +
 		x_times_y * trequa_thrfou;
 
-	return (newval);
+	return newval;
 }
 
 /*
@@ -117,7 +117,7 @@ static T inline bilinear_withsign(
 
 	const T newval = sign_of_val * rounded_abs_val;
 
-	return (newval);
+	return newval;
 }
 
 /*
@@ -141,7 +141,7 @@ static T inline bilinear_nosign(
 		x_times_y * trequa_thrfou +
 		0.5;
 
-	return (newval);
+	return newval;
 }
 
 /*
@@ -153,7 +153,7 @@ static T inline unsigned_fixed_round(T v)
 {
 	const T round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
-	return ((v + round_by) >> VIPS_INTERPOLATE_SHIFT);
+	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
 
 /* Fixed-point integer bicubic, used for 8-bit types.
@@ -192,11 +192,11 @@ static int inline bicubic_unsigned_int(
 		c2 * qua_thr +
 		c3 * qua_fou);
 
-	return (unsigned_fixed_round(
+	return unsigned_fixed_round(
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3));
+		cy[3] * r3);
 }
 
 template <typename T>
@@ -205,7 +205,7 @@ static T inline signed_fixed_round(T v)
 	const T sign_of_v = 2 * (v >= 0) - 1;
 	const T round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
-	return ((v + round_by) >> VIPS_INTERPOLATE_SHIFT);
+	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
 
 /* Fixed-point integer bicubic, used for 8-bit types.
@@ -244,11 +244,11 @@ static int inline bicubic_signed_int(
 		c2 * qua_thr +
 		c3 * qua_fou);
 
-	return (signed_fixed_round(
+	return signed_fixed_round(
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3));
+		cy[3] * r3);
 }
 
 template <typename T>
@@ -256,10 +256,10 @@ static T inline cubic_float(
 	const T one, const T two, const T thr, const T fou,
 	const double *restrict cx)
 {
-	return (cx[0] * one +
+	return cx[0] * one +
 		cx[1] * two +
 		cx[2] * thr +
-		cx[3] * fou);
+		cx[3] * fou;
 }
 
 /* Floating-point bicubic, used for int/float/double types.
@@ -281,7 +281,7 @@ static T inline bicubic_float(
 	const double r3 = cubic_float<T>(
 		qua_one, qua_two, qua_thr, qua_fou, cx);
 
-	return (cubic_float<T>(r0, r1, r2, r3, cy));
+	return cubic_float<T>(r0, r1, r2, r3, cy);
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),
@@ -460,7 +460,7 @@ reduce_sum(const T *restrict in, int stride, const int *restrict c, int n)
 		in += stride;
 	}
 
-	return (sum);
+	return sum;
 }
 
 /* Same as above, but specialized for floating point types.
@@ -477,5 +477,5 @@ reduce_sum(const T *restrict in, int stride, const double *restrict c, int n)
 		in += stride;
 	}
 
-	return (sum);
+	return sum;
 }

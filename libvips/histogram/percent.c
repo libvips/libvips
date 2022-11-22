@@ -76,7 +76,7 @@ vips_percent_build(VipsObject *object)
 	double threshold;
 
 	if (VIPS_OBJECT_CLASS(vips_percent_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_hist_find(percent->in, &t[0], NULL) ||
 		vips_hist_cum(t[0], &t[1], NULL) ||
@@ -85,11 +85,11 @@ vips_percent_build(VipsObject *object)
 			(percent->percent / 100.0) * t[2]->Xsize, NULL) ||
 		vips_profile(t[3], &t[5], &t[6], NULL) ||
 		vips_avg(t[6], &threshold, NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(object, "threshold", (int) threshold, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -165,5 +165,5 @@ vips_percent(VipsImage *in, double percent, int *threshold, ...)
 	result = vips_call_split("percent", ap, in, percent, threshold);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

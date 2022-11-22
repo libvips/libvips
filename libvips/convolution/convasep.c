@@ -99,9 +99,9 @@ static int
 gcd(int a, int b)
 {
 	if (b == 0)
-		return (abs(a));
+		return abs(a);
 	else
-		return (gcd(b, a % b));
+		return gcd(b, a % b);
 }
 
 typedef struct {
@@ -150,11 +150,11 @@ vips_convasep_line_end(VipsConvasep *convasep, int x)
 
 	if (convasep->n_lines >= MAX_LINES - 1) {
 		vips_error(class->nickname, "%s", _("mask too complex"));
-		return (-1);
+		return -1;
 	}
 	convasep->n_lines += 1;
 
-	return (0);
+	return 0;
 }
 
 /* Break a mask into lines.
@@ -240,14 +240,14 @@ vips_convasep_decompose(VipsConvasep *convasep)
 			}
 			else if (inside) {
 				if (vips_convasep_line_end(convasep, x))
-					return (-1);
+					return -1;
 				inside = 0;
 			}
 		}
 
 		if (inside &&
 			vips_convasep_line_end(convasep, convasep->width))
-			return (-1);
+			return -1;
 	}
 
 	/* Can we common up any lines? Search for lines with identical
@@ -331,7 +331,7 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	printf("offset = %d\n", convasep->offset);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Our sequence value.
@@ -366,7 +366,7 @@ vips_convasep_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->isum);
 	VIPS_FREE(seq->dsum);
 
-	return (0);
+	return 0;
 }
 
 /* Convolution start function.
@@ -380,7 +380,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 	VipsConvasepSeq *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsConvasepSeq)))
-		return (NULL);
+		return NULL;
 
 	/* Init!
 	 */
@@ -401,10 +401,10 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 		!seq->end ||
 		(!seq->isum && !seq->dsum)) {
 		vips_convasep_stop(seq, in, convasep);
-		return (NULL);
+		return NULL;
 	}
 
-	return (seq);
+	return seq;
 }
 
 #define CLIP_UCHAR(V) \
@@ -573,7 +573,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 	s = *r;
 	s.width += convasep->width - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	/* Stride can be different for the vertical case, keep this here for
 	 * ease of direction change.
@@ -635,7 +635,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 #define VCONV_INT(TYPE, CLIP) \
@@ -751,7 +751,7 @@ vips_convasep_generate_vertical(VipsRegion * or,
 	s = *r;
 	s.height += convasep->width - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	/* Stride can be different for the vertical case, keep this here for
 	 * ease of direction change.
@@ -810,7 +810,7 @@ vips_convasep_generate_vertical(VipsRegion * or,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -824,7 +824,7 @@ vips_convasep_pass(VipsConvasep *convasep,
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	if (direction == VIPS_DIRECTION_HORIZONTAL) {
 		(*out)->Xsize -= convasep->width - 1;
@@ -839,14 +839,14 @@ vips_convasep_pass(VipsConvasep *convasep,
 		(*out)->Ysize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image too small for mask"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_generate(*out,
 			vips_convasep_start, gen, vips_convasep_stop, in, convasep))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -860,21 +860,21 @@ vips_convasep_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_convasep_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_separable(class->nickname, convolution->M))
-		return (-1);
+		return -1;
 
 	/* An int version of our mask.
 	 */
 	if (vips__image_intize(convolution->M, &t[3]))
-		return (-1);
+		return -1;
 	convasep->iM = t[3];
 	convasep->width = convasep->iM->Xsize * convasep->iM->Ysize;
 	in = convolution->in;
 
 	if (vips_convasep_decompose(convasep))
-		return (-1);
+		return -1;
 
 	g_object_set(convasep, "out", vips_image_new(), NULL);
 	if (
@@ -890,7 +890,7 @@ vips_convasep_build(VipsObject *object)
 		vips_convasep_pass(convasep,
 			t[1], &t[2], VIPS_DIRECTION_VERTICAL) ||
 		vips_image_write(t[2], convolution->out))
-		return (-1);
+		return -1;
 
 	convolution->out->Xoffset = 0;
 	convolution->out->Yoffset = 0;
@@ -898,7 +898,7 @@ vips_convasep_build(VipsObject *object)
 	vips_reorder_margin_hint(convolution->out,
 		convolution->M->Xsize * convolution->M->Ysize);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -973,5 +973,5 @@ vips_convasep(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("convasep", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

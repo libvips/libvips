@@ -81,7 +81,7 @@ vips_sines_point(VipsPoint *point, int x, int y)
 {
 	VipsSines *sines = (VipsSines *) point;
 
-	return (cos(sines->c * (x * sines->costheta - y * sines->sintheta)));
+	return cos(sines->c * (x * sines->costheta - y * sines->sintheta));
 }
 
 static int
@@ -94,7 +94,7 @@ vips_sines_build(VipsObject *object)
 	double factor;
 
 	if (VIPS_OBJECT_CLASS(vips_sines_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	theta = sines->hfreq == 0.0
 		? VIPS_PI / 2.0
@@ -105,7 +105,7 @@ vips_sines_build(VipsObject *object)
 	sines->sintheta = sin(theta);
 	sines->c = factor * VIPS_PI * 2.0 / point->width;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -186,5 +186,5 @@ vips_sines(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("sines", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

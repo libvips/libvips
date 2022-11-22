@@ -90,26 +90,26 @@ im_litecor0(IMAGE *in, IMAGE *white, IMAGE *out)
 	 */
 	if (xrat < 1.0 || xrat != xstep || yrat < 1.0 || yrat != ystep) {
 		im_error("im_litecor", "white not simple scale of image");
-		return (-1);
+		return -1;
 	}
 
 	/* Find the maximum of the white.
 	 */
 	if (im_max(white, &max))
-		return (-1);
+		return -1;
 	maxw = (int) max;
 
 	/* Set up the output header.
 	 */
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	/* Make buffer for outputting to.
 	 */
 	if (!(bu = (PEL *) im_malloc(out, out->Xsize)))
-		return (-1);
+		return -1;
 
 	/* Find largest value we might generate if factor == 1.0
 	 */
@@ -166,7 +166,7 @@ im_litecor0(IMAGE *in, IMAGE *white, IMAGE *out)
 			}
 			if (im_writeline(y, out, bu)) {
 				im_error("im_litecor", "im_writeline failed");
-				return (-1);
+				return -1;
 			}
 		}
 	}
@@ -192,12 +192,12 @@ im_litecor0(IMAGE *in, IMAGE *white, IMAGE *out)
 			}
 			if (im_writeline(y, out, bu)) {
 				im_error("im_litecor", "im_writeline failed");
-				return (-1);
+				return -1;
 			}
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Clip all corrected values above 255, if any.
@@ -221,26 +221,26 @@ im_litecor1(IMAGE *in, IMAGE *white, IMAGE *out, double factor)
 	 */
 	if (xrat < 1.0 || xrat != xstep || yrat < 1.0 || yrat != ystep) {
 		im_error("im_litecor", "white not simple scale of image");
-		return (-1);
+		return -1;
 	}
 
 	/* Find the maximum of the white.
 	 */
 	if (im_max(white, &max))
-		return (-1);
+		return -1;
 	maxw = max;
 
 	/* Set up the output header.
 	 */
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	/* Make buffer we write to.
 	 */
 	if (!(bu = (PEL *) im_malloc(out, out->Xsize)))
-		return (-1);
+		return -1;
 
 	/* Loop through sorting max output
 	 */
@@ -268,13 +268,13 @@ im_litecor1(IMAGE *in, IMAGE *white, IMAGE *out, double factor)
 		}
 
 		if (im_writeline(y, out, bu))
-			return (-1);
+			return -1;
 	}
 
 	if (nclipped)
 		im_warn("im_litecor", "%d pels over 255 clipped", nclipped);
 
-	return (0);
+	return 0;
 }
 
 /* Lighting correction. One band uchar images only.
@@ -287,27 +287,27 @@ im_litecor(IMAGE *in, IMAGE *white, IMAGE *out, int clip, double factor)
 { /* Check our args.
    */
 	if (im_iocheck(in, out))
-		return (-1);
+		return -1;
 	if (in->Bands != 1 ||
 		in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR) {
 		im_error("im_litecor", "bad input format");
-		return (-1);
+		return -1;
 	}
 	if (white->Bands != 1 ||
 		white->Coding != IM_CODING_NONE || white->BandFmt != IM_BANDFMT_UCHAR) {
 		im_error("im_litecor", "bad white format");
-		return (-1);
+		return -1;
 	}
 
 	switch (clip) {
 	case 1:
-		return (im_litecor1(in, white, out, factor));
+		return im_litecor1(in, white, out, factor);
 
 	case 0:
-		return (im_litecor0(in, white, out));
+		return im_litecor0(in, white, out);
 
 	default:
 		im_error("im_litecor", "unknown flag %d", clip);
-		return (-1);
+		return -1;
 	}
 }

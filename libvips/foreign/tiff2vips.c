@@ -433,9 +433,9 @@ tfexists(TIFF *tif, ttag_t tag)
 	guint32 a, b;
 
 	if (TIFFGetField(tif, tag, &a, &b))
-		return (1);
+		return 1;
 	else
-		return (0);
+		return 0;
 }
 
 /* Get a guint32 field.
@@ -448,12 +448,12 @@ tfget32(TIFF *tif, ttag_t tag, guint32 *out)
 	if (!TIFFGetFieldDefaulted(tif, tag, &fld)) {
 		vips_error("tiff2vips",
 			_("required field %d missing"), tag);
-		return (0);
+		return 0;
 	}
 
 	*out = fld;
 
-	return (1);
+	return 1;
 }
 
 /* Get a guint16 field.
@@ -466,12 +466,12 @@ tfget16(TIFF *tif, ttag_t tag, int *out)
 	if (!TIFFGetFieldDefaulted(tif, tag, &fld)) {
 		vips_error("tiff2vips",
 			_("required field %d missing"), tag);
-		return (0);
+		return 0;
 	}
 
 	*out = fld;
 
-	return (1);
+	return 1;
 }
 
 static int
@@ -508,7 +508,7 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		default:
 			vips_error("tiff2vips",
 				"%s", _("unknown resolution unit"));
-			return (-1);
+			return -1;
 		}
 	}
 	else {
@@ -522,7 +522,7 @@ get_resolution(TIFF *tiff, VipsImage *out)
 	out->Xres = x;
 	out->Yres = y;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -542,7 +542,7 @@ get_sample_format(TIFF *tiff)
 		sample_format = v;
 	}
 
-	return (sample_format);
+	return sample_format;
 }
 
 static int
@@ -558,7 +558,7 @@ get_orientation(TIFF *tiff)
 		 */
 		orientation = VIPS_CLIP(1, v, 8);
 
-	return (orientation);
+	return orientation;
 }
 
 /* Can be called many times.
@@ -595,7 +595,7 @@ rtiff_new(VipsSource *source, VipsImage *out,
 	Rtiff *rtiff;
 
 	if (!(rtiff = VIPS_NEW(out, Rtiff)))
-		return (NULL);
+		return NULL;
 
 	g_object_ref(source);
 	rtiff->source = source;
@@ -625,7 +625,7 @@ rtiff_new(VipsSource *source, VipsImage *out,
 		rtiff->page > 1000000) {
 		vips_error("tiff2vips", _("bad page number %d"),
 			rtiff->page);
-		return (NULL);
+		return NULL;
 	}
 
 	/* We allow n == -1, meaning all pages. It gets swapped for a real n
@@ -635,13 +635,13 @@ rtiff_new(VipsSource *source, VipsImage *out,
 		(rtiff->n < 1 || rtiff->n > 1000000)) {
 		vips_error("tiff2vips", _("bad number of pages %d"),
 			rtiff->n);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(rtiff->tiff = vips__tiff_openin_source(source)))
-		return (NULL);
+		return NULL;
 
-	return (rtiff);
+	return rtiff;
 }
 
 static int
@@ -663,10 +663,10 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 	if (length == -1) {
 		vips_foreign_load_invalidate(rtiff->out);
 		vips_error("tiff2vips", "%s", _("read error"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* We need to hint to libtiff what format we'd like pixels in.
@@ -700,7 +700,7 @@ rtiff_set_page(Rtiff *rtiff, int page)
 		if (!TIFFSetDirectory(rtiff->tiff, page)) {
 			vips_error("tiff2vips",
 				_("TIFF does not contain page %d"), page);
-			return (-1);
+			return -1;
 		}
 
 		if (rtiff->subifd >= 0) {
@@ -711,7 +711,7 @@ rtiff_set_page(Rtiff *rtiff, int page)
 					&subifd_count, &subifd_offsets)) {
 				vips_error("tiff2vips",
 					"%s", _("no SUBIFD tag"));
-				return (-1);
+				return -1;
 			}
 
 			if (rtiff->subifd >= subifd_count) {
@@ -719,14 +719,14 @@ rtiff_set_page(Rtiff *rtiff, int page)
 					_("subifd %d out of range, only 0-%d available"),
 					rtiff->subifd,
 					subifd_count - 1);
-				return (-1);
+				return -1;
 			}
 
 			if (!TIFFSetSubDirectory(rtiff->tiff,
 					subifd_offsets[rtiff->subifd])) {
 				vips_error("tiff2vips",
 					"%s", _("subdirectory unreadable"));
-				return (-1);
+				return -1;
 			}
 		}
 
@@ -738,7 +738,7 @@ rtiff_set_page(Rtiff *rtiff, int page)
 		rtiff_set_decode_format(rtiff);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -759,7 +759,7 @@ rtiff_n_pages(Rtiff *rtiff)
 	printf("rtiff_n_pages: found %d pages\n", n);
 #endif /*DEBUG*/
 
-	return (n);
+	return n;
 }
 
 static int
@@ -768,10 +768,10 @@ rtiff_check_samples(Rtiff *rtiff, int samples_per_pixel)
 	if (rtiff->header.samples_per_pixel != samples_per_pixel) {
 		vips_error("tiff2vips",
 			_("not %d bands"), samples_per_pixel);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Check n and n+1 so we can have an alpha.
@@ -783,10 +783,10 @@ rtiff_check_min_samples(Rtiff *rtiff, int samples_per_pixel)
 		vips_error("tiff2vips",
 			_("not at least %d samples per pixel"),
 			samples_per_pixel);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Only allow samples which are whole bytes in size.
@@ -798,10 +798,10 @@ rtiff_non_fractional(Rtiff *rtiff)
 		rtiff->header.bits_per_sample == 0) {
 		vips_error("tiff2vips", "%s", _("samples_per_pixel "
 										"not a whole number of bytes"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -812,10 +812,10 @@ rtiff_check_interpretation(Rtiff *rtiff, int photometric_interpretation)
 		vips_error("tiff2vips",
 			_("not photometric interpretation %d"),
 			photometric_interpretation);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -824,10 +824,10 @@ rtiff_check_bits(Rtiff *rtiff, int bits_per_sample)
 	if (rtiff->header.bits_per_sample != bits_per_sample) {
 		vips_error("tiff2vips",
 			_("not %d bits per sample"), bits_per_sample);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -841,10 +841,10 @@ rtiff_check_bits_palette(Rtiff *rtiff)
 		vips_error("tiff2vips",
 			_("%d bits per sample palette image not supported"),
 			rtiff->header.bits_per_sample);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static VipsBandFormat
@@ -859,37 +859,37 @@ rtiff_guess_format(Rtiff *rtiff)
 	case 4:
 	case 8:
 		if (sample_format == SAMPLEFORMAT_INT)
-			return (VIPS_FORMAT_CHAR);
+			return VIPS_FORMAT_CHAR;
 		if (sample_format == SAMPLEFORMAT_UINT)
-			return (VIPS_FORMAT_UCHAR);
+			return VIPS_FORMAT_UCHAR;
 		break;
 
 	case 16:
 		if (sample_format == SAMPLEFORMAT_INT)
-			return (VIPS_FORMAT_SHORT);
+			return VIPS_FORMAT_SHORT;
 		if (sample_format == SAMPLEFORMAT_UINT)
-			return (VIPS_FORMAT_USHORT);
+			return VIPS_FORMAT_USHORT;
 		break;
 
 	case 32:
 		if (sample_format == SAMPLEFORMAT_INT)
-			return (VIPS_FORMAT_INT);
+			return VIPS_FORMAT_INT;
 		if (sample_format == SAMPLEFORMAT_UINT)
-			return (VIPS_FORMAT_UINT);
+			return VIPS_FORMAT_UINT;
 		if (sample_format == SAMPLEFORMAT_IEEEFP)
-			return (VIPS_FORMAT_FLOAT);
+			return VIPS_FORMAT_FLOAT;
 		break;
 
 	case 64:
 		if (sample_format == SAMPLEFORMAT_IEEEFP)
-			return (VIPS_FORMAT_DOUBLE);
+			return VIPS_FORMAT_DOUBLE;
 		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return (VIPS_FORMAT_COMPLEX);
+			return VIPS_FORMAT_COMPLEX;
 		break;
 
 	case 128:
 		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return (VIPS_FORMAT_DPCOMPLEX);
+			return VIPS_FORMAT_DPCOMPLEX;
 		break;
 
 	default:
@@ -898,7 +898,7 @@ rtiff_guess_format(Rtiff *rtiff)
 
 	vips_error("tiff2vips", "%s", _("unsupported tiff image type\n"));
 
-	return (VIPS_FORMAT_NOTSET);
+	return VIPS_FORMAT_NOTSET;
 }
 
 /* Per-scanline process function for VIPS_CODING_LABQ.
@@ -929,7 +929,7 @@ rtiff_parse_labpack(Rtiff *rtiff, VipsImage *out)
 	if (rtiff_check_min_samples(rtiff, 3) ||
 		rtiff_check_bits(rtiff, 8) ||
 		rtiff_check_interpretation(rtiff, PHOTOMETRIC_CIELAB))
-		return (-1);
+		return -1;
 
 	out->Bands = 4;
 	out->BandFmt = VIPS_FORMAT_UCHAR;
@@ -938,7 +938,7 @@ rtiff_parse_labpack(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_labpack_line;
 
-	return (0);
+	return 0;
 }
 
 /* Per-scanline process function for 8-bit VIPS_CODING_LAB to 16-bit LabS with
@@ -979,7 +979,7 @@ rtiff_parse_lab_with_alpha(Rtiff *rtiff, VipsImage *out)
 	if (rtiff_check_min_samples(rtiff, 4) ||
 		rtiff_check_bits(rtiff, 8) ||
 		rtiff_check_interpretation(rtiff, PHOTOMETRIC_CIELAB))
-		return (-1);
+		return -1;
 
 	out->Bands = rtiff->header.samples_per_pixel;
 	out->BandFmt = VIPS_FORMAT_SHORT;
@@ -988,7 +988,7 @@ rtiff_parse_lab_with_alpha(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_lab_with_alpha_line;
 
-	return (0);
+	return 0;
 }
 
 /* Per-scanline process function for LABS.
@@ -1026,7 +1026,7 @@ rtiff_parse_labs(Rtiff *rtiff, VipsImage *out)
 	if (rtiff_check_min_samples(rtiff, 3) ||
 		rtiff_check_bits(rtiff, 16) ||
 		rtiff_check_interpretation(rtiff, PHOTOMETRIC_CIELAB))
-		return (-1);
+		return -1;
 
 	out->Bands = rtiff->header.samples_per_pixel;
 	out->BandFmt = VIPS_FORMAT_SHORT;
@@ -1035,7 +1035,7 @@ rtiff_parse_labs(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_labs_line;
 
-	return (0);
+	return 0;
 }
 
 /* libtiff delivers logluv as illuminant-free 0-1 XYZ in 3 x float.
@@ -1072,7 +1072,7 @@ rtiff_parse_logluv(Rtiff *rtiff, VipsImage *out)
 {
 	if (rtiff_check_min_samples(rtiff, 3) ||
 		rtiff_check_interpretation(rtiff, PHOTOMETRIC_LOGLUV))
-		return (-1);
+		return -1;
 
 	out->Bands = rtiff->header.samples_per_pixel;
 	out->BandFmt = VIPS_FORMAT_FLOAT;
@@ -1081,7 +1081,7 @@ rtiff_parse_logluv(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_logluv_line;
 
-	return (0);
+	return 0;
 }
 
 /* Make a N-bit scanline process function. We pass in the code to expand the
@@ -1156,7 +1156,7 @@ rtiff_parse_onebit(Rtiff *rtiff, VipsImage *out)
 {
 	if (rtiff_check_samples(rtiff, 1) ||
 		rtiff_check_bits(rtiff, 1))
-		return (-1);
+		return -1;
 
 	out->Bands = 1;
 	out->BandFmt = VIPS_FORMAT_UCHAR;
@@ -1165,7 +1165,7 @@ rtiff_parse_onebit(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_1bit_line;
 
-	return (0);
+	return 0;
 }
 
 /* Read a 2-bit TIFF image.
@@ -1175,7 +1175,7 @@ rtiff_parse_twobit(Rtiff *rtiff, VipsImage *out)
 {
 	if (rtiff_check_samples(rtiff, 1) ||
 		rtiff_check_bits(rtiff, 2))
-		return (-1);
+		return -1;
 
 	out->Bands = 1;
 	out->BandFmt = VIPS_FORMAT_UCHAR;
@@ -1184,7 +1184,7 @@ rtiff_parse_twobit(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_2bit_line;
 
-	return (0);
+	return 0;
 }
 
 /* Read a 4-bit TIFF image.
@@ -1194,7 +1194,7 @@ rtiff_parse_fourbit(Rtiff *rtiff, VipsImage *out)
 {
 	if (rtiff_check_samples(rtiff, 1) ||
 		rtiff_check_bits(rtiff, 4))
-		return (-1);
+		return -1;
 
 	out->Bands = 1;
 	out->BandFmt = VIPS_FORMAT_UCHAR;
@@ -1203,7 +1203,7 @@ rtiff_parse_fourbit(Rtiff *rtiff, VipsImage *out)
 
 	rtiff->sfn = rtiff_4bit_line;
 
-	return (0);
+	return 0;
 }
 
 /* Swap the sense of the first channel, if necessary.
@@ -1294,12 +1294,12 @@ rtiff_parse_greyscale(Rtiff *rtiff, VipsImage *out)
 {
 	if (rtiff_check_min_samples(rtiff, 1) ||
 		rtiff_non_fractional(rtiff))
-		return (-1);
+		return -1;
 
 	out->Bands = rtiff->header.samples_per_pixel;
 	out->BandFmt = rtiff_guess_format(rtiff);
 	if (out->BandFmt == VIPS_FORMAT_NOTSET)
-		return (-1);
+		return -1;
 	out->Coding = VIPS_CODING_NONE;
 
 	if (rtiff->header.bits_per_sample == 16)
@@ -1310,11 +1310,11 @@ rtiff_parse_greyscale(Rtiff *rtiff, VipsImage *out)
 	/* rtiff_greyscale_line() doesn't do complex.
 	 */
 	if (vips_check_noncomplex("tiff2vips", out))
-		return (-1);
+		return -1;
 
 	rtiff->sfn = rtiff_greyscale_line;
 
-	return (0);
+	return 0;
 }
 
 typedef struct {
@@ -1461,14 +1461,14 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 
 	if (rtiff_check_bits_palette(rtiff) ||
 		rtiff_check_min_samples(rtiff, 1))
-		return (-1);
+		return -1;
 	len = 1 << bits_per_sample;
 
 	if (!(read = VIPS_NEW(out, PaletteRead)) ||
 		!(read->red8 = VIPS_ARRAY(out, len, VipsPel)) ||
 		!(read->green8 = VIPS_ARRAY(out, len, VipsPel)) ||
 		!(read->blue8 = VIPS_ARRAY(out, len, VipsPel)))
-		return (-1);
+		return -1;
 
 	/* Get maps, convert to 8-bit data.
 	 */
@@ -1476,7 +1476,7 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 			TIFFTAG_COLORMAP,
 			&read->red16, &read->green16, &read->blue16)) {
 		vips_error("tiff2vips", "%s", _("bad colormap"));
-		return (-1);
+		return -1;
 	}
 
 	/* Old-style colourmaps were 8-bit. If all the top bytes are zero,
@@ -1551,7 +1551,7 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 	else
 		g_assert_not_reached();
 
-	return (0);
+	return 0;
 }
 
 /* Per-scanline process function when we just need to copy.
@@ -1577,12 +1577,12 @@ rtiff_parse_copy(Rtiff *rtiff, VipsImage *out)
 	int inkset = rtiff->header.inkset;
 
 	if (rtiff_non_fractional(rtiff))
-		return (-1);
+		return -1;
 
 	out->Bands = samples_per_pixel;
 	out->BandFmt = rtiff_guess_format(rtiff);
 	if (out->BandFmt == VIPS_FORMAT_NOTSET)
-		return (-1);
+		return -1;
 	out->Coding = VIPS_CODING_NONE;
 
 	if (samples_per_pixel >= 3 &&
@@ -1617,7 +1617,7 @@ rtiff_parse_copy(Rtiff *rtiff, VipsImage *out)
 	 */
 	rtiff->memcpy = photometric_interpretation != PHOTOMETRIC_YCBCR;
 
-	return (0);
+	return 0;
 }
 
 typedef int (*reader_fn)(Rtiff *rtiff, VipsImage *out);
@@ -1636,34 +1636,34 @@ rtiff_pick_reader(Rtiff *rtiff)
 	if (photometric_interpretation == PHOTOMETRIC_CIELAB) {
 		if (bits_per_sample == 8) {
 			if (samples_per_pixel > 3)
-				return (rtiff_parse_lab_with_alpha);
+				return rtiff_parse_lab_with_alpha;
 			else
-				return (rtiff_parse_labpack);
+				return rtiff_parse_labpack;
 		}
 		if (bits_per_sample == 16)
-			return (rtiff_parse_labs);
+			return rtiff_parse_labs;
 	}
 
 	if (photometric_interpretation == PHOTOMETRIC_LOGLUV)
-		return (rtiff_parse_logluv);
+		return rtiff_parse_logluv;
 
 	if (photometric_interpretation == PHOTOMETRIC_MINISWHITE ||
 		photometric_interpretation == PHOTOMETRIC_MINISBLACK) {
 
 		if (bits_per_sample == 1)
-			return (rtiff_parse_onebit);
+			return rtiff_parse_onebit;
 		else if (bits_per_sample == 2)
-			return (rtiff_parse_twobit);
+			return rtiff_parse_twobit;
 		else if (bits_per_sample == 4)
-			return (rtiff_parse_fourbit);
+			return rtiff_parse_fourbit;
 		else
-			return (rtiff_parse_greyscale);
+			return rtiff_parse_greyscale;
 	}
 
 	if (photometric_interpretation == PHOTOMETRIC_PALETTE)
-		return (rtiff_parse_palette);
+		return rtiff_parse_palette;
 
-	return (rtiff_parse_copy);
+	return rtiff_parse_copy;
 }
 
 /* Set the header on @out from our rtiff. rtiff_header_read() has already been
@@ -1700,7 +1700,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	 * route the input image to the best output path.
 	 */
 	if (rtiff_pick_reader(rtiff)(rtiff, out))
-		return (-1);
+		return -1;
 
 	/* Read any ICC profile.
 	 */
@@ -1741,7 +1741,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 			rtiff->header.image_description);
 
 	if (get_resolution(rtiff->tiff, out))
-		return (-1);
+		return -1;
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE,
 		rtiff->header.bits_per_sample);
@@ -1761,7 +1761,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 			: VIPS_DEMAND_STYLE_THINSTRIP,
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 /* Tilewise read sequence value.
@@ -1791,10 +1791,10 @@ rtiff_seq_start(VipsImage *out, void *a, void *b)
 	RtiffSeq *seq;
 
 	if (!(seq = VIPS_NEW(out, RtiffSeq)))
-		return (NULL);
+		return NULL;
 	seq->rtiff = rtiff;
 	if (!(seq->buf = vips_malloc(NULL, rtiff->header.tile_size)))
-		return (NULL);
+		return NULL;
 
 	/* If we will be decompressing, we need a buffer large enough to hold
 	 * the largest compressed tile in any page.
@@ -1807,10 +1807,10 @@ rtiff_seq_start(VipsImage *out, void *a, void *b)
 		seq->compressed_buf_length = 2 * rtiff->header.tile_size;
 		if (!(seq->compressed_buf = VIPS_MALLOC(NULL,
 				  seq->compressed_buf_length)))
-			return (NULL);
+			return NULL;
 	}
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 #ifdef HAVE_JPEG
@@ -1839,7 +1839,7 @@ rtiff_decompress_jpeg_fill_input_buffer(j_decompress_ptr cinfo)
 	cinfo->src->next_input_byte = mybuffer;
 	cinfo->src->bytes_in_buffer = 2;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* Skip data --- used to skip over a potentially large amount of
@@ -1924,13 +1924,13 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 		rtiff_decompress_jpeg_set_memory(cinfo, tables, tables_len);
 		if (jpeg_read_header(cinfo, FALSE) !=
 			JPEG_HEADER_TABLES_ONLY)
-			return (-1);
+			return -1;
 	}
 
 	rtiff_decompress_jpeg_set_memory(cinfo, data, data_len);
 
 	if (jpeg_read_header(cinfo, TRUE) != JPEG_HEADER_OK)
-		return (-1);
+		return -1;
 
 	/* This isn't stored in the tile -- we have to set it from the
 	 * enclosing TIFF.
@@ -1971,7 +1971,7 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 	if (cinfo->output_width > rtiff->header.tile_width ||
 		cinfo->output_height > rtiff->header.tile_height ||
 		bytes_per_scanline > rtiff->header.tile_row_size)
-		return (-1);
+		return -1;
 
 	jpeg_start_decompress(cinfo);
 
@@ -1984,7 +1984,7 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 		q += bytes_per_scanline;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -2030,7 +2030,7 @@ rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
 		if (rtiff_decompress_jpeg_run(rtiff, &cinfo,
 				data, data_len, out)) {
 			jpeg_destroy_decompress(&cinfo);
-			return (-1);
+			return -1;
 		}
 	}
 	else {
@@ -2039,12 +2039,12 @@ rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
 #endif /*DEBUG_VERBOSE*/
 
 		jpeg_destroy_decompress(&cinfo);
-		return (-1);
+		return -1;
 	}
 
 	jpeg_destroy_decompress(&cinfo);
 
-	return (0);
+	return 0;
 }
 #endif /*HAVE_JPEG*/
 
@@ -2064,13 +2064,13 @@ rtiff_decompress_tile(Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out)
 				TRUE,
 				in, size,
 				out, rtiff->header.tile_size))
-			return (-1);
+			return -1;
 		break;
 
 #ifdef HAVE_JPEG
 	case COMPRESSION_JPEG:
 		if (rtiff_decompress_jpeg(rtiff, in, size, out))
-			return (-1);
+			return -1;
 		break;
 #endif /*HAVE_JPEG*/
 
@@ -2079,7 +2079,7 @@ rtiff_decompress_tile(Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out)
 		break;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Select a page and decompress a tile. This has to be a single operation,
@@ -2107,7 +2107,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 
 		if (rtiff_set_page(rtiff, page)) {
 			g_rec_mutex_unlock(&rtiff->lock);
-			return (-1);
+			return -1;
 		}
 
 		tile_no = TIFFComputeTile(rtiff->tiff, x, y, 0, 0);
@@ -2117,7 +2117,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 		if (size <= 0) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
-			return (-1);
+			return -1;
 		}
 
 		g_rec_mutex_unlock(&rtiff->lock);
@@ -2128,7 +2128,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 				seq->compressed_buf, size, buf)) {
 			vips_error("tiff2vips",
 				_("decompress error tile %d x %d"), x, y);
-			return (-1);
+			return -1;
 		}
 	}
 	else {
@@ -2136,19 +2136,19 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 
 		if (rtiff_set_page(rtiff, page)) {
 			g_rec_mutex_unlock(&rtiff->lock);
-			return (-1);
+			return -1;
 		}
 
 		if (TIFFReadTile(rtiff->tiff, buf, x, y, 0, 0) < 0) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
-			return (-1);
+			return -1;
 		}
 
 		g_rec_mutex_unlock(&rtiff->lock);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Paint a tile from the file. This is a
@@ -2182,9 +2182,9 @@ rtiff_fill_region_aligned(VipsRegion *out,
 	if (rtiff_read_tile(seq,
 			(tdata_t *) VIPS_REGION_ADDR(out, r->left, r->top),
 			rtiff->page + page_no, r->left, page_y))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Loop over the output region, painting in tiles from the file.
@@ -2232,7 +2232,7 @@ rtiff_fill_region_unaligned(VipsRegion *out,
 
 			if (rtiff_read_tile(seq,
 					seq->buf, rtiff->page + page_no, xs, ys))
-				return (-1);
+				return -1;
 
 			/* Position of tile on the page.
 			 */
@@ -2287,7 +2287,7 @@ rtiff_fill_region_unaligned(VipsRegion *out,
 		y += hit.height;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Loop over the output region, painting in tiles from the file.
@@ -2336,12 +2336,12 @@ rtiff_fill_region(VipsRegion *out,
 
 	if (generate(out, vseq, a, b, stop)) {
 		VIPS_GATE_STOP("rtiff_fill_region: work");
-		return (-1);
+		return -1;
 	}
 
 	VIPS_GATE_STOP("rtiff_fill_region: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -2352,7 +2352,7 @@ rtiff_seq_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->buf);
 	VIPS_FREE(seq->compressed_buf);
 
-	return (0);
+	return 0;
 }
 
 /* Unpremultiply associative alpha, if any.
@@ -2369,7 +2369,7 @@ rtiff_unpremultiply(Rtiff *rtiff, VipsImage *in, VipsImage **out)
 				NULL) ||
 			vips_cast(x, out, in->BandFmt, NULL)) {
 			g_object_unref(x);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(x);
 	}
@@ -2378,7 +2378,7 @@ rtiff_unpremultiply(Rtiff *rtiff, VipsImage *in, VipsImage **out)
 		g_object_ref(in);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Tile-type TIFF reader core - pass in a per-tile transform. Generate into
@@ -2403,7 +2403,7 @@ rtiff_read_tilewise(Rtiff *rtiff, VipsImage *out)
 	if (rtiff->header.separate) {
 		vips_error("tiff2vips",
 			"%s", _("tiled separate planes not supported"));
-		return (-1);
+		return -1;
 	}
 
 	/* Read to this image, then cache to out, see below.
@@ -2411,7 +2411,7 @@ rtiff_read_tilewise(Rtiff *rtiff, VipsImage *out)
 	t[0] = vips_image_new();
 
 	if (rtiff_set_header(rtiff, t[0]))
-		return (-1);
+		return -1;
 
 	/* Double check: in memcpy mode, the vips tilesize should exactly
 	 * match the tifftile size.
@@ -2423,7 +2423,7 @@ rtiff_read_tilewise(Rtiff *rtiff, VipsImage *out)
 		if (rtiff->header.tile_size != vips_tile_size) {
 			vips_error("tiff2vips",
 				"%s", _("unsupported tiff image type"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -2442,7 +2442,7 @@ rtiff_read_tilewise(Rtiff *rtiff, VipsImage *out)
 			"threaded", TRUE,
 			NULL) ||
 		rtiff_unpremultiply(rtiff, t[1], &t[2]))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	/* Only do this if we have to.
@@ -2450,14 +2450,14 @@ rtiff_read_tilewise(Rtiff *rtiff, VipsImage *out)
 	if (rtiff->autorotate &&
 		vips_image_get_orientation(in) != 1) {
 		if (vips_autorot(in, &t[3], NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
 	if (vips_image_write(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Read a strip from a page. If the image is in separate planes, read each
@@ -2475,7 +2475,7 @@ rtiff_strip_read_interleaved(Rtiff *rtiff,
 	int strip_y = strip * read_height;
 
 	if (rtiff_set_page(rtiff, page))
-		return (-1);
+		return -1;
 
 	if (rtiff->header.separate) {
 		int page_width = rtiff->header.width;
@@ -2495,7 +2495,7 @@ rtiff_strip_read_interleaved(Rtiff *rtiff,
 			if (rtiff_strip_read(rtiff,
 					strips_per_plane * i + strip,
 					rtiff->plane_buf))
-				return (-1);
+				return -1;
 
 			p = (VipsPel *) rtiff->plane_buf;
 			q = i * bytes_per_sample + (VipsPel *) buf;
@@ -2510,10 +2510,10 @@ rtiff_strip_read_interleaved(Rtiff *rtiff,
 	}
 	else {
 		if (rtiff_strip_read(rtiff, strip, buf))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -2553,7 +2553,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 		vips_error("tiff2vips",
 			_("out of order read -- at line %d, but line %d requested"),
 			rtiff->y_pos, r->top);
-		return (-1);
+		return -1;
 	}
 
 	VIPS_GATE_START("rtiff_stripwise_generate: work");
@@ -2617,7 +2617,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 					VIPS_REGION_ADDR(or, 0, r->top + y))) {
 				VIPS_GATE_STOP(
 					"rtiff_stripwise_generate: work");
-				return (-1);
+				return -1;
 			}
 		}
 		else {
@@ -2632,7 +2632,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 					rtiff->contig_buf)) {
 				VIPS_GATE_STOP(
 					"rtiff_stripwise_generate: work");
-				return (-1);
+				return -1;
 			}
 
 			/* Do any repacking to generate pixels in vips layout.
@@ -2655,7 +2655,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 
 	VIPS_GATE_STOP("rtiff_stripwise_generate: work");
 
-	return (0);
+	return 0;
 }
 
 /* Stripwise reading.
@@ -2679,7 +2679,7 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 
 	t[0] = vips_image_new();
 	if (rtiff_set_header(rtiff, t[0]))
-		return (-1);
+		return -1;
 
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
@@ -2698,7 +2698,7 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 		if (vips_line_size != rtiff->header.scanline_size) {
 			vips_error("tiff2vips",
 				"%s", _("unsupported tiff image type"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -2711,7 +2711,7 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 	if (rtiff->header.separate) {
 		if (!(rtiff->plane_buf = VIPS_MALLOC(out,
 				  rtiff->header.read_size)))
-			return (-1);
+			return -1;
 	}
 
 	/* If we need to manipulate pixels, we must read to an interleaved
@@ -2732,7 +2732,7 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 			size *= rtiff->header.samples_per_pixel;
 
 		if (!(rtiff->contig_buf = VIPS_MALLOC(out, size)))
-			return (-1);
+			return -1;
 	}
 
 	/* rows_per_strip can be very large if this is a separate plane image,
@@ -2754,7 +2754,7 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 			"tile_height", tile_height,
 			NULL) ||
 		rtiff_unpremultiply(rtiff, t[1], &t[2]))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	/* Only do this if we have to.
@@ -2762,14 +2762,14 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 	if (rtiff->autorotate &&
 		vips_image_get_orientation(in) != 1) {
 		if (vips_autorot(in, &t[3], NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
 	if (vips_image_write(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Load from a tiff dir into one of our tiff header structs.
@@ -2797,7 +2797,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			&header->photometric_interpretation) ||
 		!tfget16(rtiff->tiff, TIFFTAG_INKSET,
 			&header->inkset))
-		return (-1);
+		return -1;
 
 	TIFFGetFieldDefaulted(rtiff->tiff,
 		TIFFTAG_COMPRESSION, &header->compression);
@@ -2838,7 +2838,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			vsub != 1) {
 			vips_error("tiff2vips",
 				"%s", _("subsampled images not supported"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -2847,7 +2847,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			header->compression != COMPRESSION_SGILOG24) {
 			vips_error("tiff2vips",
 				"%s", _("not SGI-compressed LOGLUV"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -2864,7 +2864,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		header->height >= VIPS_MAX_COORD) {
 		vips_error("tiff2vips",
 			"%s", _("width/height out of range"));
-		return (-1);
+		return -1;
 	}
 
 	if (header->samples_per_pixel <= 0 ||
@@ -2873,7 +2873,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		header->bits_per_sample > 32) {
 		vips_error("tiff2vips",
 			"%s", _("samples out of range"));
-		return (-1);
+		return -1;
 	}
 
 	header->sample_format = get_sample_format(rtiff->tiff);
@@ -2884,7 +2884,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		int v;
 
 		if (!tfget16(rtiff->tiff, TIFFTAG_PLANARCONFIG, &v))
-			return (-1);
+			return -1;
 		if (v == PLANARCONFIG_SEPARATE)
 			header->separate = TRUE;
 	}
@@ -2931,7 +2931,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 				TIFFTAG_TILEWIDTH, &header->tile_width) ||
 			!tfget32(rtiff->tiff,
 				TIFFTAG_TILELENGTH, &header->tile_height))
-			return (-1);
+			return -1;
 
 #ifdef DEBUG
 		printf("rtiff_header_read: header.tile_width = %d\n",
@@ -2952,7 +2952,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			header->tile_height % 16 != 0) {
 			vips_error("tiff2vips",
 				"%s", _("tile size out of range"));
-			return (-1);
+			return -1;
 		}
 
 		header->tile_size = TIFFTileSize(rtiff->tiff);
@@ -2974,7 +2974,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			header->tile_row_size > 100 * 1000 * 1000) {
 			vips_error("tiff2vips",
 				"%s", _("tile size out of range"));
-			return (-1);
+			return -1;
 		}
 
 		/* Stop some compiler warnings.
@@ -2988,7 +2988,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 	else {
 		if (!tfget32(rtiff->tiff,
 				TIFFTAG_ROWSPERSTRIP, &header->rows_per_strip))
-			return (-1);
+			return -1;
 		header->strip_size = TIFFStripSize(rtiff->tiff);
 		header->scanline_size = TIFFScanlineSize(rtiff->tiff);
 		header->number_of_strips = TIFFNumberOfStrips(rtiff->tiff);
@@ -3080,7 +3080,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -3097,21 +3097,21 @@ rtiff_header_equal(RtiffHeader *h1, RtiffHeader *h2)
 		h1->separate != h2->separate ||
 		h1->tiled != h2->tiled ||
 		h1->orientation != h2->orientation)
-		return (0);
+		return 0;
 
 	if (h1->tiled) {
 		if (h1->tile_width != h2->tile_width ||
 			h1->tile_height != h2->tile_height)
-			return (0);
+			return 0;
 	}
 	else {
 		if (h1->read_height != h2->read_height ||
 			h1->read_size != h2->read_size ||
 			h1->number_of_strips != h2->number_of_strips)
-			return (0);
+			return 0;
 	}
 
-	return (1);
+	return 1;
 }
 
 static int
@@ -3133,7 +3133,7 @@ rtiff_header_read_all(Rtiff *rtiff)
 
 	if (rtiff_set_page(rtiff, rtiff->page) ||
 		rtiff_header_read(rtiff, &rtiff->header))
-		return (-1);
+		return -1;
 
 	/* If we're to read many pages, verify that they are all identical.
 	 */
@@ -3152,13 +3152,13 @@ rtiff_header_read_all(Rtiff *rtiff)
 
 			if (rtiff_set_page(rtiff, rtiff->page + i) ||
 				rtiff_header_read(rtiff, &header))
-				return (-1);
+				return -1;
 
 			if (!rtiff_header_equal(&rtiff->header, &header)) {
 				vips_error("tiff2vips",
 					_("page %d differs from page %d"),
 					rtiff->page + i, rtiff->page);
-				return (-1);
+				return -1;
 			}
 		}
 
@@ -3167,7 +3167,7 @@ rtiff_header_read_all(Rtiff *rtiff)
 		rtiff->current_page = -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 typedef gboolean (*TiffPropertyFn)(TIFF *tif);
@@ -3182,26 +3182,26 @@ vips__testtiff_source(VipsSource *source, TiffPropertyFn fn)
 
 	if (!(tif = vips__tiff_openin_source(source))) {
 		vips_error_clear();
-		return (FALSE);
+		return FALSE;
 	}
 
 	property = fn ? fn(tif) : TRUE;
 
 	TIFFClose(tif);
 
-	return (property);
+	return property;
 }
 
 gboolean
 vips__istiff_source(VipsSource *source)
 {
-	return (vips__testtiff_source(source, NULL));
+	return vips__testtiff_source(source, NULL);
 }
 
 gboolean
 vips__istifftiled_source(VipsSource *source)
 {
-	return (vips__testtiff_source(source, TIFFIsTiled));
+	return vips__testtiff_source(source, TIFFIsTiled);
 }
 
 int
@@ -3215,10 +3215,10 @@ vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
 	if (!(rtiff = rtiff_new(source, out,
 			  page, n, autorotate, subifd, fail_on)) ||
 		rtiff_header_read_all(rtiff))
-		return (-1);
+		return -1;
 
 	if (rtiff_set_header(rtiff, out))
-		return (-1);
+		return -1;
 
 	if (rtiff->autorotate &&
 		vips_image_get_orientation_swap(out)) {
@@ -3231,7 +3231,7 @@ vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
 	 */
 	vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -3249,15 +3249,15 @@ vips__tiff_read_source(VipsSource *source, VipsImage *out,
 	if (!(rtiff = rtiff_new(source, out,
 			  page, n, autorotate, subifd, fail_on)) ||
 		rtiff_header_read_all(rtiff))
-		return (-1);
+		return -1;
 
 	if (rtiff->header.tiled) {
 		if (rtiff_read_tilewise(rtiff, out))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (rtiff_read_stripwise(rtiff, out))
-			return (-1);
+			return -1;
 	}
 
 	/* We never call vips_source_decode() since we need to be able to
@@ -3265,7 +3265,7 @@ vips__tiff_read_source(VipsSource *source, VipsImage *out,
 	 */
 	vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_TIFF*/

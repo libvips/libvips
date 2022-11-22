@@ -62,9 +62,9 @@ greyc_vec(im_object *argv)
 			alpha, sigma,
 			dl, da, gauss_prec,
 			interpolation, fast_approx))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc greyc_arg_types[] = {
@@ -117,9 +117,9 @@ greyc_mask_vec(im_object *argv)
 			alpha, sigma,
 			dl, da, gauss_prec,
 			interpolation, fast_approx))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc greyc_mask_arg_types[] = {

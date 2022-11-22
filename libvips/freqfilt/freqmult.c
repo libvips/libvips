@@ -75,14 +75,14 @@ vips_freqmult_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_freqmult_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = freqfilt->in;
 
 	if (vips_band_format_iscomplex(in->BandFmt)) {
 		if (vips_multiply(in, freqmult->mask, &t[0], NULL) ||
 			vips_invfft(t[0], &t[1], "real", TRUE, NULL))
-			return (-1);
+			return -1;
 
 		in = t[1];
 	}
@@ -102,15 +102,15 @@ vips_freqmult_build(VipsObject *object)
 			vips_invfft(t[1], &t[2], "real", TRUE, NULL) ||
 			vips_cast(t[2], &t[3], in->BandFmt, NULL) ||
 			vips_image_write(t[3], t[4]))
-			return (-1);
+			return -1;
 
 		in = t[4];
 	}
 
 	if (vips_image_write(in, freqfilt->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -165,5 +165,5 @@ vips_freqmult(VipsImage *in, VipsImage *mask, VipsImage **out, ...)
 	result = vips_call_split("freqmult", ap, in, mask, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

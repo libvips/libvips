@@ -164,14 +164,14 @@ vips_foreign_save_tiff_build(VipsObject *object)
 		if (vips__foreign_convert_saveable(save->in, &x,
 				VIPS_SAVEABLE_RGB_CMYK, bandfmt_jpeg, class->coding,
 				save->background))
-			return (-1);
+			return -1;
 
 		g_object_set(object, "in", x, NULL);
 		g_object_unref(x);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Default xres/yres to the values from the image. This is always
 	 * pixels/mm.
@@ -227,12 +227,12 @@ vips_foreign_save_tiff_build(VipsObject *object)
 			tiff->subifd,
 			tiff->premultiply,
 			save->page_height))
-		return (-1);
+		return -1;
 
 	if (vips_target_end(tiff->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -461,9 +461,9 @@ vips_foreign_save_tiff_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -511,13 +511,13 @@ vips_foreign_save_tiff_file_build(VipsObject *object)
 	VipsForeignSaveTiffFile *file = (VipsForeignSaveTiffFile *) object;
 
 	if (!(tiff->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -567,17 +567,17 @@ vips_foreign_save_tiff_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(tiff->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(tiff->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -745,7 +745,7 @@ vips_tiffsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("tiffsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -814,7 +814,7 @@ vips_tiffsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -863,5 +863,5 @@ vips_tiffsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("tiffsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

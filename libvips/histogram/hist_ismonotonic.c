@@ -76,10 +76,10 @@ vips_hist_ismonotonic_build(VipsObject *object)
 	double m;
 
 	if (VIPS_OBJECT_CLASS(vips_hist_ismonotonic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_hist(class->nickname, ismonotonic->in))
-		return (-1);
+		return -1;
 
 	if (ismonotonic->in->Xsize == 1)
 		t[0] = vips_image_new_matrixv(1, 2, -1.0, 1.0);
@@ -94,11 +94,11 @@ vips_hist_ismonotonic_build(VipsObject *object)
 			NULL) ||
 		vips_moreeq_const1(t[1], &t[2], 128, NULL) ||
 		vips_min(t[2], &m, NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(ismonotonic, "monotonic", (int) m == 255, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -153,5 +153,5 @@ vips_hist_ismonotonic(VipsImage *in, gboolean *out, ...)
 	result = vips_call_split("hist_ismonotonic", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

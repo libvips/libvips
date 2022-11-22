@@ -67,13 +67,13 @@ G_DEFINE_TYPE(VipsForeignLoadRaw, vips_foreign_load_raw,
 static VipsForeignFlags
 vips_foreign_load_raw_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_raw_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
@@ -88,7 +88,7 @@ vips_foreign_load_raw_header(VipsForeignLoad *load)
 			  raw->width, raw->height,
 			  vips_format_sizeof_unsafe(raw->format) * raw->bands,
 			  raw->offset)))
-		return (-1);
+		return -1;
 
 	if (vips_copy(out, &x,
 			"interpretation", raw->interpretation,
@@ -96,7 +96,7 @@ vips_foreign_load_raw_header(VipsForeignLoad *load)
 			"bands", raw->bands,
 			NULL)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(out);
 	out = x;
@@ -109,7 +109,7 @@ vips_foreign_load_raw_header(VipsForeignLoad *load)
 
 	g_object_set(load, "out", out, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -233,5 +233,5 @@ vips_rawload(const char *filename, VipsImage **out,
 		filename, out, width, height, bands);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

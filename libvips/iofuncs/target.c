@@ -106,13 +106,13 @@ vips_target_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_target_build: %p\n", connection);
 
 	if (VIPS_OBJECT_CLASS(vips_target_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_object_argument_isset(object, "filename") &&
 		vips_object_argument_isset(object, "descriptor")) {
 		vips_error(vips_connection_nick(connection),
 			"%s", _("don't set 'filename' and 'descriptor'"));
-		return (-1);
+		return -1;
 	}
 
 	if (connection->filename) {
@@ -127,7 +127,7 @@ vips_target_build(VipsObject *object)
 			vips_error_system(errno,
 				vips_connection_nick(connection),
 				"%s", _("unable to open for write"));
-			return (-1);
+			return -1;
 		}
 
 		connection->tracked_descriptor = fd;
@@ -148,7 +148,7 @@ vips_target_build(VipsObject *object)
 		target->memory_buffer =
 			g_string_sized_new(VIPS_TARGET_BUFFER_SIZE);
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -172,7 +172,7 @@ vips_target_write_real(VipsTarget *target, const void *data, size_t length)
 	else
 		result = write(connection->descriptor, data, length);
 
-	return (result);
+	return result;
 }
 
 static off_t
@@ -202,7 +202,7 @@ vips_target_seek_real(VipsTarget *target, off_t offset, int whence)
 
 		default:
 			vips_error(nick, "%s", _("bad 'whence'"));
-			return (-1);
+			return -1;
 		}
 
 		if (new_position > target->memory_buffer->len)
@@ -214,7 +214,7 @@ vips_target_seek_real(VipsTarget *target, off_t offset, int whence)
 	else
 		new_position = lseek(connection->descriptor, offset, whence);
 
-	return (new_position);
+	return new_position;
 }
 
 static gint64
@@ -246,7 +246,7 @@ vips_target_read_real(VipsTarget *target, void *data, size_t length)
 
 	VIPS_DEBUG_MSG("  read %zd bytes\n", bytes_read);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static int
@@ -254,7 +254,7 @@ vips_target_end_real(VipsTarget *target)
 {
 	VIPS_DEBUG_MSG("vips_target_finish_real:\n");
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -334,10 +334,10 @@ vips_target_new_to_descriptor(int descriptor)
 
 	if (vips_object_build(VIPS_OBJECT(target))) {
 		VIPS_UNREF(target);
-		return (NULL);
+		return NULL;
 	}
 
-	return (target);
+	return target;
 }
 
 /**
@@ -362,10 +362,10 @@ vips_target_new_to_file(const char *filename)
 
 	if (vips_object_build(VIPS_OBJECT(target))) {
 		VIPS_UNREF(target);
-		return (NULL);
+		return NULL;
 	}
 
-	return (target);
+	return target;
 }
 
 /**
@@ -391,10 +391,10 @@ vips_target_new_to_memory(void)
 
 	if (vips_object_build(VIPS_OBJECT(target))) {
 		VIPS_UNREF(target);
-		return (NULL);
+		return NULL;
 	}
 
-	return (target);
+	return target;
 }
 
 /**
@@ -420,16 +420,16 @@ vips_target_new_temp(VipsTarget *based_on)
 		char *filename;
 
 		if (!(filename = vips__temp_name("%s.target")))
-			return (NULL);
+			return NULL;
 		if ((descriptor =
 					vips__open_image_write(filename, TRUE)) < 0) {
 			g_free(filename);
-			return (NULL);
+			return NULL;
 		}
 		if (!(target = vips_target_new_to_descriptor(descriptor))) {
 			g_free(filename);
 			vips_tracked_close(descriptor);
-			return (NULL);
+			return NULL;
 		}
 		vips_tracked_close(descriptor);
 		target->delete_on_close = TRUE;
@@ -438,7 +438,7 @@ vips_target_new_temp(VipsTarget *based_on)
 	else
 		target = vips_target_new_to_memory();
 
-	return (target);
+	return target;
 }
 
 static int
@@ -450,7 +450,7 @@ vips_target_write_unbuffered(VipsTarget *target,
 	VIPS_DEBUG_MSG("vips_target_write_unbuffered:\n");
 
 	if (target->ended)
-		return (0);
+		return 0;
 
 	while (length > 0) {
 		gint64 bytes_written;
@@ -465,14 +465,14 @@ vips_target_write_unbuffered(VipsTarget *target,
 				vips_connection_nick(
 					VIPS_CONNECTION(target)),
 				"%s", _("write error"));
-			return (-1);
+			return -1;
 		}
 
 		length -= bytes_written;
 		data = (char *) data + bytes_written;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -486,11 +486,11 @@ vips_target_flush(VipsTarget *target)
 	if (target->write_point > 0) {
 		if (vips_target_write_unbuffered(target,
 				target->output_buffer, target->write_point))
-			return (-1);
+			return -1;
 		target->write_point = 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -510,13 +510,13 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
 
 	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point &&
 		vips_target_flush(target))
-		return (-1);
+		return -1;
 
 	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point) {
 		/* Still too large? Do an unbuffered write.
 		 */
 		if (vips_target_write_unbuffered(target, buffer, length))
-			return (-1);
+			return -1;
 	}
 	else {
 		memcpy(target->output_buffer + target->write_point,
@@ -524,7 +524,7 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
 		target->write_point += length;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -552,9 +552,9 @@ vips_target_read(VipsTarget *target, void *buffer, size_t length)
 	VIPS_DEBUG_MSG("vips_target_read: %zd bytes\n", length);
 
 	if (vips_target_flush(target))
-		return (-1);
+		return -1;
 
-	return (class->read(target, buffer, length));
+	return class->read(target, buffer, length);
 }
 
 /**
@@ -581,14 +581,14 @@ vips_target_seek(VipsTarget *target, off_t position, int whence)
 		position, whence);
 
 	if (vips_target_flush(target))
-		return (-1);
+		return -1;
 
 	new_position = class->seek(target, position, whence);
 
 	VIPS_DEBUG_MSG("vips_target_seek: new_position = %ld\n",
 		new_position);
 
-	return (new_position);
+	return new_position;
 }
 
 /**
@@ -612,10 +612,10 @@ vips_target_end(VipsTarget *target)
 	VIPS_DEBUG_MSG("vips_target_end:\n");
 
 	if (target->ended)
-		return (0);
+		return 0;
 
 	if (vips_target_flush(target))
-		return (-1);
+		return -1;
 
 	/* Move the target buffer into the blob so it can be read out.
 	 */
@@ -631,12 +631,12 @@ vips_target_end(VipsTarget *target)
 	}
 	else {
 		if (class->end(target))
-			return (-1);
+			return -1;
 	}
 
 	target->ended = TRUE;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -681,7 +681,7 @@ vips_target_steal(VipsTarget *target, size_t *length)
 		if (length)
 			*length = target->memory_buffer->len;
 
-		return (NULL);
+		return NULL;
 	}
 
 	if (length)
@@ -694,9 +694,9 @@ vips_target_steal(VipsTarget *target, size_t *length)
 	target->memory_buffer = g_string_sized_new(0);
 
 	if (vips_target_end(target))
-		return (NULL);
+		return NULL;
 
-	return ((unsigned char *) data);
+	return (unsigned char *) data;
 }
 
 /**
@@ -712,7 +712,7 @@ vips_target_steal_text(VipsTarget *target)
 {
 	vips_target_putc(target, '\0');
 
-	return ((char *) vips_target_steal(target, NULL));
+	return (char *) vips_target_steal(target, NULL);
 }
 
 /**
@@ -732,11 +732,11 @@ vips_target_putc(VipsTarget *target, int ch)
 
 	if (target->write_point >= VIPS_TARGET_BUFFER_SIZE &&
 		vips_target_flush(target))
-		return (-1);
+		return -1;
 
 	target->output_buffer[target->write_point++] = ch;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -751,8 +751,8 @@ vips_target_putc(VipsTarget *target, int ch)
 int
 vips_target_writes(VipsTarget *target, const char *str)
 {
-	return (vips_target_write(target,
-		(unsigned char *) str, strlen(str)));
+	return vips_target_write(target,
+		(unsigned char *) str, strlen(str));
 }
 
 /**
@@ -780,7 +780,7 @@ vips_target_writef(VipsTarget *target, const char *fmt, ...)
 
 	g_free(line);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -819,24 +819,24 @@ vips_target_write_amp(VipsTarget *target, const char *str)
 			 */
 			if (vips_target_writef(target,
 					"&#x%04x;", 0x2400 + *p))
-				return (-1);
+				return -1;
 		}
 		else if (*p == '<') {
 			if (vips_target_writes(target, "&lt;"))
-				return (-1);
+				return -1;
 		}
 		else if (*p == '>') {
 			if (vips_target_writes(target, "&gt;"))
-				return (-1);
+				return -1;
 		}
 		else if (*p == '&') {
 			if (vips_target_writes(target, "&amp;"))
-				return (-1);
+				return -1;
 		}
 		else {
 			if (VIPS_TARGET_PUTC(target, *p))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }

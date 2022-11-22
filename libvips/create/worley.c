@@ -174,7 +174,7 @@ vips_worley_stop(void *vseq, void *a, void *b)
 
 	VIPS_FREE(seq);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -185,13 +185,13 @@ vips_worley_start(VipsImage *out, void *a, void *b)
 	Sequence *seq;
 
 	if (!(seq = VIPS_NEW(NULL, Sequence)))
-		return (NULL);
+		return NULL;
 
 	seq->worley = worley;
 	seq->cell_x = -1;
 	seq->cell_y = -1;
 
-	return (seq);
+	return seq;
 }
 
 static float
@@ -199,7 +199,7 @@ vips_hypot(int x, int y)
 {
 	/* Faster than hypot() for int args.
 	 */
-	return (sqrt(x * x + y * y));
+	return sqrt(x * x + y * y);
 }
 
 static float
@@ -223,7 +223,7 @@ vips_worley_distance(VipsWorley *worley, Cell cells[9], int x, int y)
 		}
 	}
 
-	return (distance);
+	return distance;
 }
 
 static int
@@ -256,7 +256,7 @@ vips_worley_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -266,7 +266,7 @@ vips_worley_build(VipsObject *object)
 	VipsWorley *worley = (VipsWorley *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_worley_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
@@ -286,9 +286,9 @@ vips_worley_build(VipsObject *object)
 		vips_image_generate(create->out,
 			vips_worley_start, vips_worley_gen, vips_worley_stop,
 			worley, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -374,5 +374,5 @@ vips_worley(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("worley", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

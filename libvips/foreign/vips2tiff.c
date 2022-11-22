@@ -391,7 +391,7 @@ embed_profile_file(TIFF *tif, const char *profile)
 	VipsBlob *blob;
 
 	if (vips_profile_load(profile, &blob, NULL))
-		return (-1);
+		return -1;
 
 	if (blob) {
 		size_t length;
@@ -406,7 +406,7 @@ embed_profile_file(TIFF *tif, const char *profile)
 		vips_area_unref((VipsArea *) blob);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Embed an ICC profile from VipsImage metadata.
@@ -418,14 +418,14 @@ embed_profile_meta(TIFF *tif, VipsImage *im)
 	size_t length;
 
 	if (vips_image_get_blob(im, VIPS_META_ICC_NAME, &data, &length))
-		return (-1);
+		return -1;
 	TIFFSetField(tif, TIFFTAG_ICCPROFILE, length, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached profile from meta\n");
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -514,14 +514,14 @@ wtiff_embed_profile(Wtiff *wtiff, TIFF *tif)
 {
 	if (wtiff->profile &&
 		embed_profile_file(tif, wtiff->profile))
-		return (-1);
+		return -1;
 
 	if (!wtiff->profile &&
 		vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME) &&
 		embed_profile_meta(tif, wtiff->ready))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -531,17 +531,17 @@ wtiff_embed_xmp(Wtiff *wtiff, TIFF *tif)
 	size_t size;
 
 	if (!vips_image_get_typeof(wtiff->ready, VIPS_META_XMP_NAME))
-		return (0);
+		return 0;
 	if (vips_image_get_blob(wtiff->ready, VIPS_META_XMP_NAME,
 			&data, &size))
-		return (-1);
+		return -1;
 	TIFFSetField(tif, TIFFTAG_XMLPACKET, size, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached XMP from meta\n");
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -551,10 +551,10 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 	size_t size;
 
 	if (!vips_image_get_typeof(wtiff->ready, VIPS_META_IPTC_NAME))
-		return (0);
+		return 0;
 	if (vips_image_get_blob(wtiff->ready, VIPS_META_IPTC_NAME,
 			&data, &size))
-		return (-1);
+		return -1;
 
 	/* For no very good reason, libtiff stores IPTC as an array of
 	 * long, not byte.
@@ -573,7 +573,7 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 	printf("vips2tiff: attached IPTC from meta\n");
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -583,17 +583,17 @@ wtiff_embed_photoshop(Wtiff *wtiff, TIFF *tif)
 	size_t size;
 
 	if (!vips_image_get_typeof(wtiff->ready, VIPS_META_PHOTOSHOP_NAME))
-		return (0);
+		return 0;
 	if (vips_image_get_blob(wtiff->ready, VIPS_META_PHOTOSHOP_NAME,
 			&data, &size))
-		return (-1);
+		return -1;
 	TIFFSetField(tif, TIFFTAG_PHOTOSHOP, size, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached photoshop data from meta\n");
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Set IMAGEDESCRIPTION, if it's there.  If @properties is TRUE, set from
@@ -606,7 +606,7 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 		char *doc;
 
 		if (!(doc = vips__xml_properties(wtiff->ready)))
-			return (-1);
+			return -1;
 		TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, doc);
 		g_free(doc);
 	}
@@ -615,10 +615,10 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 
 		if (!vips_image_get_typeof(wtiff->ready,
 				VIPS_META_IMAGEDESCRIPTION))
-			return (0);
+			return 0;
 		if (vips_image_get_string(wtiff->ready,
 				VIPS_META_IMAGEDESCRIPTION, &imagedescription))
-			return (-1);
+			return -1;
 		TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription);
 	}
 
@@ -626,7 +626,7 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 	printf("vips2tiff: attached imagedescription from meta\n");
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Write a TIFF header for this layer.
@@ -693,7 +693,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			wtiff_embed_iptc(wtiff, tif) ||
 			wtiff_embed_photoshop(wtiff, tif) ||
 			wtiff_embed_imagedescription(wtiff, tif))
-			return (-1);
+			return -1;
 
 	if (vips_image_get_typeof(wtiff->ready, VIPS_META_ORIENTATION) &&
 		!vips_image_get_int(wtiff->ready,
@@ -854,7 +854,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, format);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -874,12 +874,12 @@ wtiff_layer_rewind(Wtiff *wtiff, Layer *layer)
 	if ((strip_size.height & 1) == 1)
 		strip_size.height += 1;
 	if (vips_region_buffer(layer->strip, &strip_size))
-		return (-1);
+		return -1;
 
 	layer->y = 0;
 	layer->write_y = 0;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -894,7 +894,7 @@ wtiff_allocate_layers(Wtiff *wtiff)
 			layer->image = vips_image_new();
 			if (vips_image_pipelinev(layer->image,
 					VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL))
-				return (-1);
+				return -1;
 			layer->image->Xsize = layer->width;
 			layer->image->Ysize = layer->height;
 
@@ -910,14 +910,14 @@ wtiff_allocate_layers(Wtiff *wtiff)
 			layer->tif = vips__tiff_openout_target(layer->target,
 				wtiff->bigtiff);
 			if (!layer->tif)
-				return (-1);
+				return -1;
 		}
 
 		if (wtiff_layer_rewind(wtiff, layer))
-			return (-1);
+			return -1;
 
 		if (wtiff_write_header(wtiff, layer))
-			return (-1);
+			return -1;
 	}
 
 	if (!wtiff->tbuf) {
@@ -928,10 +928,10 @@ wtiff_allocate_layers(Wtiff *wtiff)
 			wtiff->tbuf = vips_malloc(NULL,
 				TIFFScanlineSize(wtiff->layer->tif));
 		if (!wtiff->tbuf)
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Free a single pyramid layer.
@@ -969,28 +969,28 @@ get_compression(VipsForeignTiffCompression compression)
 {
 	switch (compression) {
 	case VIPS_FOREIGN_TIFF_COMPRESSION_NONE:
-		return (COMPRESSION_NONE);
+		return COMPRESSION_NONE;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_JPEG:
-		return (COMPRESSION_JPEG);
+		return COMPRESSION_JPEG;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE:
-		return (COMPRESSION_ADOBE_DEFLATE);
+		return COMPRESSION_ADOBE_DEFLATE;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS:
-		return (COMPRESSION_PACKBITS);
+		return COMPRESSION_PACKBITS;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4:
-		return (COMPRESSION_CCITTFAX4);
+		return COMPRESSION_CCITTFAX4;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_LZW:
-		return (COMPRESSION_LZW);
+		return COMPRESSION_LZW;
 #ifdef HAVE_TIFF_COMPRESSION_WEBP
 	case VIPS_FOREIGN_TIFF_COMPRESSION_WEBP:
-		return (COMPRESSION_WEBP);
+		return COMPRESSION_WEBP;
 	case VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD:
-		return (COMPRESSION_ZSTD);
+		return COMPRESSION_ZSTD;
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 	case VIPS_FOREIGN_TIFF_COMPRESSION_JP2K:
-		return (JP2K_LOSSY);
+		return JP2K_LOSSY;
 
 	default:
-		return (COMPRESSION_NONE);
+		return COMPRESSION_NONE;
 	}
 }
 
@@ -999,9 +999,9 @@ get_resunit(VipsForeignTiffResunit resunit)
 {
 	switch (resunit) {
 	case VIPS_FOREIGN_TIFF_RESUNIT_CM:
-		return (RESUNIT_CENTIMETER);
+		return RESUNIT_CENTIMETER;
 	case VIPS_FOREIGN_TIFF_RESUNIT_INCH:
-		return (RESUNIT_INCH);
+		return RESUNIT_INCH;
 
 	default:
 		g_assert_not_reached();
@@ -1009,7 +1009,7 @@ get_resunit(VipsForeignTiffResunit resunit)
 
 	/* Keep -Wall happy.
 	 */
-	return (-1);
+	return -1;
 }
 
 /* Get the image ready to be written.
@@ -1025,7 +1025,7 @@ ready_to_write(Wtiff *wtiff)
 
 	if (vips_check_coding_known("vips2tiff", input)) {
 		VIPS_UNREF(input);
-		return (-1);
+		return -1;
 	}
 
 	/* Premultiply any alpha, if necessary.
@@ -1036,7 +1036,7 @@ ready_to_write(Wtiff *wtiff)
 
 		if (vips_premultiply(input, &x, NULL)) {
 			VIPS_UNREF(input);
-			return (-1);
+			return -1;
 		}
 		VIPS_UNREF(input);
 		input = x;
@@ -1045,7 +1045,7 @@ ready_to_write(Wtiff *wtiff)
 		 */
 		if (vips_cast(input, &x, start_format, NULL)) {
 			VIPS_UNREF(input);
-			return (-1);
+			return -1;
 		}
 		VIPS_UNREF(input);
 		input = x;
@@ -1059,7 +1059,7 @@ ready_to_write(Wtiff *wtiff)
 		input->Type == VIPS_INTERPRETATION_LAB) {
 		if (vips_Lab2LabQ(input, &x, NULL)) {
 			VIPS_UNREF(input);
-			return (-1);
+			return -1;
 		}
 		VIPS_UNREF(input);
 		input = x;
@@ -1067,7 +1067,7 @@ ready_to_write(Wtiff *wtiff)
 
 	wtiff->ready = input;
 
-	return (0);
+	return 0;
 }
 
 static Wtiff *
@@ -1095,7 +1095,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	Wtiff *wtiff;
 
 	if (!(wtiff = VIPS_NEW(NULL, Wtiff)))
-		return (NULL);
+		return NULL;
 	wtiff->input = input;
 	wtiff->ready = NULL;
 	wtiff->target = target;
@@ -1134,7 +1134,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	 */
 	if (ready_to_write(wtiff)) {
 		wtiff_free(wtiff);
-		return (NULL);
+		return NULL;
 	}
 
 	/* XYZ images are written as libtiff LOGLUV.
@@ -1185,7 +1185,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 			wtiff_free(wtiff);
 			vips_error("vips2tiff",
 				"%s", _("can only pyramid LABQ and non-complex images"));
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -1208,7 +1208,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 			wtiff_free(wtiff);
 			vips_error("vips2tiff",
 				"%s", _("tile size not a multiple of 16"));
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -1269,7 +1269,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL(wtiff->ready) *
 			wtiff->tilew;
 
-	return (wtiff);
+	return wtiff;
 }
 
 /* Convert VIPS LabQ to TIFF LAB. Just take the first three bands.
@@ -1567,7 +1567,7 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 
 			if (result) {
 				g_object_unref(target);
-				return (-1);
+				return -1;
 			}
 
 			buffer = vips_target_steal(target, &length);
@@ -1582,7 +1582,7 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 			if (result < 0) {
 				vips_error("vips2tiff",
 					"%s", _("TIFF write tile failed"));
-				return (-1);
+				return -1;
 			}
 		}
 		else {
@@ -1595,12 +1595,12 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 					tile.left, tile.top, 0, 0) < 0) {
 				vips_error("vips2tiff",
 					"%s", _("TIFF write tile failed"));
-				return (-1);
+				return -1;
 			}
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Write tileh scanlines, less for the last strip.
@@ -1648,10 +1648,10 @@ wtiff_layer_write_strip(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 		}
 
 		if (TIFFWriteScanline(layer->tif, p, area->top + y, 0) < 0)
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int layer_strip_arrived(Layer *layer);
@@ -1717,11 +1717,11 @@ layer_strip_shrink(Layer *layer)
 		if (below->write_y == VIPS_RECT_BOTTOM(&to->valid) ||
 			below->write_y == below->height) {
 			if (layer_strip_arrived(below))
-				return (-1);
+				return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* A new strip has arrived! The strip has at least enough pixels in to
@@ -1747,11 +1747,11 @@ layer_strip_arrived(Layer *layer)
 	else
 		result = wtiff_layer_write_strip(wtiff, layer, layer->strip);
 	if (result)
-		return (-1);
+		return -1;
 
 	if (layer->below &&
 		layer_strip_shrink(layer))
-		return (-1);
+		return -1;
 
 	/* Position our strip down the image.
 	 *
@@ -1779,14 +1779,14 @@ layer_strip_arrived(Layer *layer)
 	vips_rect_intersectrect(&new_strip, &layer->strip->valid, &overlap);
 	if (!vips_rect_isempty(&overlap)) {
 		if (vips_region_buffer(layer->copy, &overlap))
-			return (-1);
+			return -1;
 		vips_region_copy(layer->strip, layer->copy,
 			&overlap, overlap.left, overlap.top);
 	}
 
 	if (!vips_rect_isempty(&new_strip)) {
 		if (vips_region_buffer(layer->strip, &new_strip))
-			return (-1);
+			return -1;
 
 		/* And copy back again.
 		 */
@@ -1795,7 +1795,7 @@ layer_strip_arrived(Layer *layer)
 				&overlap, overlap.left, overlap.top);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Another few scanlines of pixels. We know the scanlines are all within the
@@ -1864,11 +1864,11 @@ wtiff_write_lines(Wtiff *wtiff, VipsRegion *region, VipsRect *lines)
 		if (layer->write_y == VIPS_RECT_BOTTOM(to) ||
 			layer->write_y == layer->height) {
 			if (layer_strip_arrived(layer))
-				return (-1);
+				return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Copy fields.
@@ -1915,7 +1915,7 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 			if (len <= 0 ||
 				TIFFWriteEncodedTile(out, i, buf, len) < 0) {
 				g_free(buf);
-				return (-1);
+				return -1;
 			}
 		}
 		else {
@@ -1923,14 +1923,14 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 			if (len <= 0 ||
 				TIFFWriteRawTile(out, i, buf, len) < 0) {
 				g_free(buf);
-				return (-1);
+				return -1;
 			}
 		}
 	}
 
 	g_free(buf);
 
-	return (0);
+	return 0;
 }
 
 /* Copy a TIFF file ... we know we wrote it, so just copy the tags we know
@@ -2025,12 +2025,12 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 			wtiff_embed_iptc(wtiff, out) ||
 			wtiff_embed_photoshop(wtiff, out) ||
 			wtiff_embed_imagedescription(wtiff, out))
-			return (-1);
+			return -1;
 
 	if (wtiff_copy_tiles(wtiff, out, in))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Append all of the layers we wrote to the output.
@@ -2057,27 +2057,27 @@ wtiff_gather(Wtiff *wtiff)
 
 			if (!(source =
 						vips_source_new_from_target(layer->target)))
-				return (-1);
+				return -1;
 
 			if (!(in = vips__tiff_openin_source(source))) {
 				VIPS_UNREF(source);
-				return (-1);
+				return -1;
 			}
 
 			VIPS_UNREF(source);
 
 			if (wtiff_copy_tiff(wtiff, wtiff->layer->tif, in)) {
 				TIFFClose(in);
-				return (-1);
+				return -1;
 			}
 
 			TIFFClose(in);
 
 			if (!TIFFWriteDirectory(wtiff->layer->tif))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -2096,7 +2096,7 @@ wtiff_page_start(Wtiff *wtiff)
 	/* Fill all the layers and write the TIFF headers.
 	 */
 	if (wtiff_allocate_layers(wtiff))
-		return (-1);
+		return -1;
 
 	/* In ifd mode, we write the pyramid layers as subdirectories of this
 	 * page.
@@ -2129,7 +2129,7 @@ wtiff_page_start(Wtiff *wtiff)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -2140,7 +2140,7 @@ wtiff_page_end(Wtiff *wtiff)
 #endif /*DEBUG*/
 
 	if (!TIFFWriteDirectory(wtiff->layer->tif))
-		return (-1);
+		return -1;
 
 	/* Append any pyr layers, if necessary.
 	 */
@@ -2157,7 +2157,7 @@ wtiff_page_end(Wtiff *wtiff)
 		/* Append smaller layers to the main file.
 		 */
 		if (wtiff_gather(wtiff))
-			return (-1);
+			return -1;
 
 		/* unref all the lower targets.
 		 */
@@ -2171,7 +2171,7 @@ wtiff_page_end(Wtiff *wtiff)
 
 	wtiff->page_number += 1;
 
-	return (0);
+	return 0;
 }
 
 /* A strip of pixels has come in from libvips. Split these strips into pages,
@@ -2214,18 +2214,18 @@ wtiff_sink_disc_strip(VipsRegion *region, VipsRect *area, void *a)
 		 */
 		if (lines.top == page.top &&
 			wtiff_page_start(wtiff))
-			return (-1);
+			return -1;
 
 		/* Write the scanlines into the page.
 		 */
 		if (wtiff_write_lines(wtiff, region, &lines))
-			return (-1);
+			return -1;
 
 		/* Hit the end of the page? Run the page end code.
 		 */
 		if (VIPS_RECT_BOTTOM(&page) == VIPS_RECT_BOTTOM(&lines) &&
 			wtiff_page_end(wtiff))
-			return (-1);
+			return -1;
 
 		/* Remove the pixels we've written and loop if we have some
 		 * still to write.
@@ -2234,7 +2234,7 @@ wtiff_sink_disc_strip(VipsRegion *region, VipsRect *area, void *a)
 		pixels.height -= lines.height;
 	} while (!vips_rect_isempty(&pixels));
 
-	return (0);
+	return 0;
 }
 
 int
@@ -2268,16 +2268,16 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 			  miniswhite, resunit, xres, yres, bigtiff, rgbjpeg,
 			  properties, strip, region_shrink, level, lossless, depth,
 			  subifd, premultiply, page_height)))
-		return (-1);
+		return -1;
 
 	if (vips_sink_disc(wtiff->ready, wtiff_sink_disc_strip, wtiff)) {
 		wtiff_free(wtiff);
-		return (-1);
+		return -1;
 	}
 
 	wtiff_free(wtiff);
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_TIFF*/

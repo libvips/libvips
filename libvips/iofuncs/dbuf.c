@@ -76,14 +76,14 @@ vips_dbuf_minimum_size(VipsDbuf *dbuf, size_t size)
 		if (!(new_data =
 					g_try_realloc(dbuf->data, new_allocated_size))) {
 			vips_error("VipsDbuf", "%s", _("out of memory"));
-			return (FALSE);
+			return FALSE;
 		}
 
 		dbuf->data = new_data;
 		dbuf->allocated_size = new_allocated_size;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -98,7 +98,7 @@ vips_dbuf_minimum_size(VipsDbuf *dbuf, size_t size)
 gboolean
 vips_dbuf_allocate(VipsDbuf *dbuf, size_t size)
 {
-	return (vips_dbuf_minimum_size(dbuf, dbuf->write_point + size));
+	return vips_dbuf_minimum_size(dbuf, dbuf->write_point + size);
 }
 
 /**
@@ -121,7 +121,7 @@ vips_dbuf_read(VipsDbuf *dbuf, unsigned char *data, size_t size)
 	memcpy(data, dbuf->data + dbuf->write_point, copied);
 	dbuf->write_point += copied;
 
-	return (copied);
+	return copied;
 }
 
 /**
@@ -151,7 +151,7 @@ vips_dbuf_get_write(VipsDbuf *dbuf, size_t *size)
 	if (size)
 		*size = available;
 
-	return (write);
+	return write;
 }
 
 /**
@@ -168,13 +168,13 @@ gboolean
 vips_dbuf_write(VipsDbuf *dbuf, const unsigned char *data, size_t size)
 {
 	if (!vips_dbuf_allocate(dbuf, size))
-		return (FALSE);
+		return FALSE;
 
 	memcpy(dbuf->data + dbuf->write_point, data, size);
 	dbuf->write_point += size;
 	dbuf->data_size = VIPS_MAX(dbuf->data_size, dbuf->write_point);
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -199,11 +199,11 @@ vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
 
 	if (vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line))) {
 		g_free(line);
-		return (FALSE);
+		return FALSE;
 	}
 	g_free(line);
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -241,26 +241,26 @@ vips_dbuf_write_amp(VipsDbuf *dbuf, const char *str)
 			 * electroly.
 			 */
 			if (!vips_dbuf_writef(dbuf, "&#x%04x;", 0x2400 + *p))
-				return (FALSE);
+				return FALSE;
 		}
 		else if (*p == '<') {
 			if (!vips_dbuf_write(dbuf, (guchar *) "&lt;", 4))
-				return (FALSE);
+				return FALSE;
 		}
 		else if (*p == '>') {
 			if (!vips_dbuf_write(dbuf, (guchar *) "&gt;", 4))
-				return (FALSE);
+				return FALSE;
 		}
 		else if (*p == '&') {
 			if (!vips_dbuf_write(dbuf, (guchar *) "&amp;", 5))
-				return (FALSE);
+				return FALSE;
 		}
 		else {
 			if (!vips_dbuf_write(dbuf, (guchar *) p, 1))
-				return (FALSE);
+				return FALSE;
 		}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -327,13 +327,13 @@ vips_dbuf_seek(VipsDbuf *dbuf, off_t offset, int whence)
 
 	if (new_write_point < 0) {
 		vips_error("VipsDbuf", "%s", "negative seek");
-		return (FALSE);
+		return FALSE;
 	}
 
 	/* Possibly need to grow the buffer
 	 */
 	if (!vips_dbuf_minimum_size(dbuf, new_write_point))
-		return (FALSE);
+		return FALSE;
 	dbuf->write_point = new_write_point;
 	if (dbuf->data_size < dbuf->write_point) {
 		memset(dbuf->data + dbuf->data_size, 0,
@@ -341,7 +341,7 @@ vips_dbuf_seek(VipsDbuf *dbuf, off_t offset, int whence)
 		dbuf->data_size = dbuf->write_point;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -365,7 +365,7 @@ vips_dbuf_truncate(VipsDbuf *dbuf)
 off_t
 vips_dbuf_tell(VipsDbuf *dbuf)
 {
-	return (dbuf->write_point);
+	return dbuf->write_point;
 }
 
 /**
@@ -383,11 +383,11 @@ static gboolean
 vips_dbuf_null_terminate(VipsDbuf *dbuf)
 {
 	if (!vips_dbuf_minimum_size(dbuf, dbuf->data_size + 1))
-		return (FALSE);
+		return FALSE;
 
 	dbuf->data[dbuf->data_size] = 0;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -418,7 +418,7 @@ vips_dbuf_steal(VipsDbuf *dbuf, size_t *size)
 	dbuf->data = NULL;
 	vips_dbuf_destroy(dbuf);
 
-	return (data);
+	return data;
 }
 
 /**
@@ -441,5 +441,5 @@ vips_dbuf_string(VipsDbuf *dbuf, size_t *size)
 	if (size)
 		*size = dbuf->data_size;
 
-	return (dbuf->data);
+	return dbuf->data;
 }

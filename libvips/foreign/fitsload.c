@@ -99,28 +99,28 @@ vips_foreign_load_fits_build(VipsObject *object)
 			!(filename = vips_connection_filename(connection))) {
 			vips_error(class->nickname, "%s",
 				_("no filename available"));
-			return (-1);
+			return -1;
 		}
 
 		fits->filename = filename;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_fits_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
 vips_foreign_load_fits_get_flags_source(VipsSource *source)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_fits_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
@@ -130,11 +130,11 @@ vips_foreign_load_fits_get_flags_filename(const char *filename)
 	VipsForeignFlags flags;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (0);
+		return 0;
 	flags = vips_foreign_load_fits_get_flags_source(source);
 	VIPS_UNREF(source);
 
-	return (flags);
+	return flags;
 }
 
 static int
@@ -143,11 +143,11 @@ vips_foreign_load_fits_header(VipsForeignLoad *load)
 	VipsForeignLoadFits *fits = (VipsForeignLoadFits *) load;
 
 	if (vips__fits_read_header(fits->filename, load->out))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, fits->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -161,9 +161,9 @@ vips_foreign_load_fits_load(VipsForeignLoad *load)
 	if (vips__fits_read(fits->filename, t[0]) ||
 		vips_flip(t[0], &t[1], VIPS_DIRECTION_VERTICAL, NULL) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -227,13 +227,13 @@ vips_foreign_load_fits_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(fits->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_fits_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -296,9 +296,9 @@ vips_foreign_load_fits_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_fits_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -308,9 +308,9 @@ vips_foreign_load_fits_source_is_a_source(VipsSource *source)
 
 	const char *filename;
 
-	return (vips_source_is_file(source) &&
+	return vips_source_is_file(source) &&
 		(filename = vips_connection_filename(connection)) &&
-		vips__fits_isfits(filename));
+		vips__fits_isfits(filename);
 }
 
 static void
@@ -379,7 +379,7 @@ vips_fitsload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("fitsload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -402,5 +402,5 @@ vips_fitsload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("fitsload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

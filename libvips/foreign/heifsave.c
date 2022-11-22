@@ -187,7 +187,7 @@ vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
 	if (vips__exif_update(heif->image))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < VIPS_NUMBER(libheif_metadata); i++)
 		if (vips_image_get_typeof(heif->image,
@@ -202,17 +202,17 @@ vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
 
 			if (vips_image_get_blob(heif->image,
 					libheif_metadata[i].name, &data, &length))
-				return (-1);
+				return -1;
 
 			error = libheif_metadata[i].saver(heif->ctx,
 				heif->handle, data, length);
 			if (error.code) {
 				vips__heif_error(&error);
-				return (-1);
+				return -1;
 			}
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -235,7 +235,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 		if (vips_image_get_blob(heif->image,
 				VIPS_META_ICC_NAME, &data, &length))
-			return (-1);
+			return -1;
 
 		/* FIXME .. also see heif_image_set_nclx_color_profile()
 		 */
@@ -243,7 +243,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			"rICC", data, length);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
@@ -273,7 +273,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_get_typeof(heif->image, "heif-primary")) {
@@ -281,25 +281,25 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 		if (vips_image_get_int(heif->image,
 				"heif-primary", &primary))
-			return (-1);
+			return -1;
 
 		if (page == primary) {
 			error = heif_context_set_primary_image(heif->ctx,
 				heif->handle);
 			if (error.code) {
 				vips__heif_error(&error);
-				return (-1);
+				return -1;
 			}
 		}
 	}
 
 	if (!save->strip &&
 		vips_foreign_save_heif_write_metadata(heif))
-		return (-1);
+		return -1;
 
 	VIPS_FREEF(heif_image_handle_release, heif->handle);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -375,10 +375,10 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 
 		vips_error(class->nickname,
 			"%s", _("unimplemeted format conversion"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -406,17 +406,17 @@ vips_foreign_save_heif_write_block(VipsRegion *region, VipsRect *area,
 
 		if (vips_foreign_save_heif_pack(heif,
 				q, p, VIPS_REGION_N_ELEMENTS(region)))
-			return (-1);
+			return -1;
 
 		/* Did we just write the final line? Write as a new page
 		 * into the output.
 		 */
 		if (line == heif->page_height - 1)
 			if (vips_foreign_save_heif_write_page(heif, page))
-				return (-1);
+				return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 struct heif_error
@@ -431,7 +431,7 @@ vips_foreign_save_heif_write(struct heif_context *ctx,
 	if (vips_target_write(heif->target, data, length))
 		error.code = -1;
 
-	return (error);
+	return error;
 }
 
 static int
@@ -446,13 +446,13 @@ vips_foreign_save_heif_build(VipsObject *object)
 	const struct heif_encoder_descriptor *out_encoder;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Make a copy of the image in case we modify the metadata eg. for
 	 * exif_update.
 	 */
 	if (vips_copy(save->ready, &heif->image, NULL))
-		return (-1);
+		return -1;
 
 	/* If the old, deprecated "speed" param is being used and the new
 	 * "effort" param is not, use speed to init effort.
@@ -504,19 +504,19 @@ vips_foreign_save_heif_build(VipsObject *object)
 		else
 			vips__heif_error(&error);
 
-		return (-1);
+		return -1;
 	}
 
 	error = heif_encoder_set_lossy_quality(heif->encoder, heif->Q);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	error = heif_encoder_set_lossless(heif->encoder, heif->lossless);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	error = heif_encoder_set_parameter_integer(heif->encoder,
@@ -524,7 +524,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	chroma = heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
@@ -537,7 +537,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	/* TODO .. support extra per-encoder params with
@@ -550,7 +550,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 
 	if (heif->page_width > 16384 || heif->page_height > 16384) {
 		vips_error("heifsave", _("image too large"));
-		return (-1);
+		return -1;
 	}
 
 	/* Make a heif image the size of a page. We send sink_disc() output
@@ -569,7 +569,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		&heif->img);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	error = heif_image_add_plane(heif->img, heif_channel_interleaved,
@@ -577,7 +577,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		heif->bitdepth);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -591,7 +591,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 */
 	if (vips_sink_disc(heif->image,
 			vips_foreign_save_heif_write_block, heif))
-		return (-1);
+		return -1;
 
 	/* This has to come right at the end :-( so there's no support for
 	 * incremental writes.
@@ -601,13 +601,13 @@ vips_foreign_save_heif_build(VipsObject *object)
 	error = heif_context_write(heif->ctx, &writer, heif);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_target_end(heif->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define UC VIPS_FORMAT_UCHAR
@@ -735,16 +735,16 @@ vips_foreign_save_heif_file_build(VipsObject *object)
 	VipsForeignSaveHeifFile *file = (VipsForeignSaveHeifFile *) object;
 
 	if (!(heif->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (vips_iscasepostfix(file->filename, ".avif"))
 		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -799,17 +799,17 @@ vips_foreign_save_heif_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(heif->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(heif->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -866,9 +866,9 @@ vips_foreign_save_heif_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

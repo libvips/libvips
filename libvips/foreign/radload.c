@@ -79,13 +79,13 @@ vips_foreign_load_rad_dispose(GObject *gobject)
 static VipsForeignFlags
 vips_foreign_load_rad_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_SEQUENTIAL);
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_rad_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_SEQUENTIAL);
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static int
@@ -94,9 +94,9 @@ vips_foreign_load_rad_header(VipsForeignLoad *load)
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
 	if (vips__rad_header(rad->source, load->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -105,9 +105,9 @@ vips_foreign_load_rad_load(VipsForeignLoad *load)
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
 	if (vips__rad_load(rad->source, load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -171,15 +171,15 @@ vips_foreign_load_rad_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_rad_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
 vips_foreign_load_rad_source_is_a_source(VipsSource *source)
 {
-	return (vips__rad_israd(source));
+	return vips__rad_israd(source);
 }
 
 static void
@@ -236,12 +236,12 @@ vips_foreign_load_rad_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(rad->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_rad_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -251,11 +251,11 @@ vips_foreign_load_rad_file_is_a(const char *filename)
 	int result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (-1);
+		return -1;
 	result = vips_foreign_load_rad_source_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -314,12 +314,12 @@ vips_foreign_load_rad_buffer_build(VipsObject *object)
 		!(rad->source = vips_source_new_from_memory(
 			  VIPS_AREA(buffer->blob)->data,
 			  VIPS_AREA(buffer->blob)->length)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_rad_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -329,11 +329,11 @@ vips_foreign_load_rad_buffer_is_a_buffer(const void *buf, size_t len)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_memory(buf, len)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_rad_source_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -401,7 +401,7 @@ vips_radload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("radload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -437,7 +437,7 @@ vips_radload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -462,5 +462,5 @@ vips_radload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("radload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

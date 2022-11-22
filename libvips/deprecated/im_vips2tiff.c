@@ -90,7 +90,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 					im_error("im_vips2tiff",
 						"%s", _("bad predictor "
 								"parameter"));
-					return (-1);
+					return -1;
 				}
 				predictor = i;
 			}
@@ -105,7 +105,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 					im_error("im_vips2tiff",
 						"%s", _("bad predictor "
 								"parameter"));
-					return (-1);
+					return -1;
 				}
 				predictor = i;
 			}
@@ -118,7 +118,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 					im_error("im_vips2tiff",
 						"%s", _("bad JPEG quality "
 								"parameter"));
-					return (-1);
+					return -1;
 				}
 		}
 		else {
@@ -127,7 +127,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 									   "\"packbits\", \"ccittfax4\", \"lzw\", "
 									   "\"deflate\" or \"jpeg\""),
 				q);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -140,7 +140,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 						&tile_width, &tile_height) != 2) {
 					im_error("im_vips2tiff", "%s",
 						_("bad tile sizes"));
-					return (-1);
+					return -1;
 				}
 			}
 		}
@@ -151,7 +151,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 									   "\"%s\"\nshould be one of \"tile\" or "
 									   "\"strip\""),
 				q);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -165,7 +165,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 									   "\"%s\"\nshould be one of \"flat\" or "
 									   "\"pyramid\""),
 				q);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -179,7 +179,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 									   "\"%s\"\nshould be one of \"onebit\" or "
 									   "\"manybit\""),
 				q);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -193,7 +193,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 									   "\"%s\"\nshould be one of \"res_cm\" or "
 									   "\"res_inch\""),
 				q);
-			return (-1);
+			return -1;
 		}
 
 		if ((r = im_getsuboption(q))) {
@@ -201,7 +201,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 				if (sscanf(r, "%lf", &xres) != 1) {
 					im_error("im_vips2tiff", "%s",
 						_("bad resolution values"));
-					return (-1);
+					return -1;
 				}
 
 				yres = xres;
@@ -227,7 +227,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p))) {
 		im_error("im_vips2tiff",
 			_("unknown extra options \"%s\""), q);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_tiffsave(in, name,
@@ -245,7 +245,7 @@ im_vips2tiff(IMAGE *in, const char *filename)
 			"yres", yres,
 			"bigtiff", bigtiff,
 			NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

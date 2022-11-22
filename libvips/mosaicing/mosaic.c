@@ -90,7 +90,7 @@ vips_mosaic_build(VipsObject *object)
 	g_object_set(mosaic, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_mosaic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* A placeholder used to ensure that memory used by the analysis
 	 * phase is freed as soon as possible.
@@ -107,7 +107,7 @@ vips_mosaic_build(VipsObject *object)
 				&scale1, &angle1,
 				&dx1, &dy1)) {
 			g_object_unref(x);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(x);
 		break;
@@ -121,7 +121,7 @@ vips_mosaic_build(VipsObject *object)
 				&scale1, &angle1,
 				&dx1, &dy1)) {
 			g_object_unref(x);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(x);
 		break;
@@ -152,14 +152,14 @@ vips_mosaic_build(VipsObject *object)
 			mosaic->direction, mosaic->dx0, mosaic->dy0,
 			"mblend", mosaic->mblend,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(x, mosaic->out)) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(x);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -368,5 +368,5 @@ vips_mosaic(VipsImage *ref, VipsImage *sec, VipsImage **out,
 		direction, xref, yref, xsec, ysec);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -115,40 +115,40 @@ vips_spcor_pre_generate(VipsCorrelation *correlation)
 	double *scale;
 
 	if (vips_check_noncomplex(class->nickname, ref))
-		return (-1);
+		return -1;
 
 	/* Per-band mean.
 	 */
 	if (!(spcor->rmean = VIPS_ARRAY(spcor, bands, double)) ||
 		!(spcor->c1 = VIPS_ARRAY(spcor, bands, double)))
-		return (-1);
+		return -1;
 	for (i = 0; i < bands; i++)
 		if (vips_extract_band(ref, &b[i], i, NULL) ||
 			vips_avg(b[i], &spcor->rmean[i], NULL))
-			return (-1);
+			return -1;
 
 	/* Per band sqrt(sumij (ref(i,j)-mean(ref))^2)
 	 */
 	if (!(offset = VIPS_ARRAY(spcor, bands, double)) ||
 		!(scale = VIPS_ARRAY(spcor, bands, double)))
-		return (-1);
+		return -1;
 	for (i = 0; i < bands; i++) {
 		offset[i] = -spcor->rmean[i];
 		scale[i] = 1.0;
 	}
 	if (vips_linear(ref, &t[0], scale, offset, bands, NULL) ||
 		vips_multiply(t[0], t[0], &t[1], NULL))
-		return (-1);
+		return -1;
 	for (i = 0; i < bands; i++)
 		if (vips_extract_band(t[1], &b2[i], i, NULL) ||
 			vips_avg(b2[i], &spcor->c1[i], NULL))
-			return (-1);
+			return -1;
 	for (i = 0; i < bands; i++) {
 		spcor->c1[i] *= ref->Xsize * ref->Ysize;
 		spcor->c1[i] = sqrt(spcor->c1[i]);
 	}
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(IN) \
@@ -379,5 +379,5 @@ vips_spcor(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
 	result = vips_call_split("spcor", ap, in, ref, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

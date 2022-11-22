@@ -223,10 +223,10 @@ vips_fill_nearest_build(VipsObject *object)
 	int x, y, i;
 
 	if (VIPS_OBJECT_CLASS(vips_fill_nearest_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_wio_input(morphology->in))
-		return (-1);
+		return -1;
 	nearest->width = morphology->in->Xsize;
 	nearest->height = morphology->in->Ysize;
 
@@ -264,11 +264,11 @@ vips_fill_nearest_build(VipsObject *object)
 	if (vips_black(&t[1], nearest->width, nearest->height, NULL) ||
 		vips_cast(t[1], &t[2], VIPS_FORMAT_FLOAT, NULL) ||
 		vips_image_write(t[2], nearest->distance))
-		return (-1);
+		return -1;
 
 	g_object_set(object, "out", vips_image_new_memory(), NULL);
 	if (vips_image_write(morphology->in, nearest->out))
-		return (-1);
+		return -1;
 
 	while (nearest->seeds->len > 0) {
 #ifdef DEBUG
@@ -294,7 +294,7 @@ vips_fill_nearest_build(VipsObject *object)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -364,5 +364,5 @@ vips_fill_nearest(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("fill_nearest", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

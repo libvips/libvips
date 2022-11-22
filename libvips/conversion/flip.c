@@ -107,7 +107,7 @@ vips_flip_vertical_gen(VipsRegion * or, void *seq, void *a, void *b,
 	/* Ask for input we need.
 	 */
 	if (vips_region_prepare(ir, &in))
-		return (-1);
+		return -1;
 
 	/* Loop, copying and reversing lines.
 	 */
@@ -124,7 +124,7 @@ vips_flip_vertical_gen(VipsRegion * or, void *seq, void *a, void *b,
 		q += qsk;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -160,7 +160,7 @@ vips_flip_horizontal_gen(VipsRegion * or, void *seq, void *a, void *b,
 	/* Ask for input we need.
 	 */
 	if (vips_region_prepare(ir, &in))
-		return (-1);
+		return -1;
 
 	/* Loop, copying and reversing lines.
 	 */
@@ -181,7 +181,7 @@ vips_flip_horizontal_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -193,14 +193,14 @@ vips_flip_build(VipsObject *object)
 	VipsGenerateFn generate_fn;
 
 	if (VIPS_OBJECT_CLASS(vips_flip_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(flip->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL))
-		return (-1);
+		return -1;
 
 	if (flip->direction == VIPS_DIRECTION_HORIZONTAL) {
 		generate_fn = vips_flip_horizontal_gen;
@@ -216,9 +216,9 @@ vips_flip_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, generate_fn, vips_stop_one,
 			flip->in, flip))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -278,5 +278,5 @@ vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction, ...)
 	result = vips_call_split("flip", ap, in, out, direction);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

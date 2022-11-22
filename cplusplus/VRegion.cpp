@@ -21,7 +21,7 @@ VRegion::new_from_image(VImage image)
 
 	VRegion out(region);
 
-	return (out);
+	return out;
 }
 
 VIPS_NAMESPACE_END

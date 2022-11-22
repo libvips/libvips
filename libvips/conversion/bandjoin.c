@@ -161,7 +161,7 @@ vips_bandjoin_build(VipsObject *object)
 		bandary->in = vips_array_image_get(bandjoin->in, &bandary->n);
 
 		if (bandary->n == 1)
-			return (vips_bandary_copy(bandary));
+			return vips_bandary_copy(bandary);
 		else {
 			int i;
 
@@ -174,9 +174,9 @@ vips_bandjoin_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_bandjoin_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -222,7 +222,7 @@ vips_bandjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
 	result = vips_call_split("bandjoin", ap, array, out);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -260,7 +260,7 @@ vips_bandjoin(VipsImage **in, VipsImage **out, int n, ...)
 	result = vips_bandjoinv(in, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -288,7 +288,7 @@ vips_bandjoin2(VipsImage *in1, VipsImage *in2, VipsImage **out, ...)
 	result = vips_bandjoinv(in, out, 2, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsBandjoinConst {
@@ -394,7 +394,7 @@ vips_bandjoin_const_build(VipsObject *object)
 		c = vips_array_double_get(bandjoin->c, &n);
 
 		if (n == 0)
-			return (vips_bandary_copy(bandary));
+			return vips_bandary_copy(bandary);
 		else
 			bandary->out_bands = bandjoin->in->Bands + n;
 
@@ -404,13 +404,13 @@ vips_bandjoin_const_build(VipsObject *object)
 		if (!(bandjoin->c_ready = vips__vector_to_pels(class->nickname,
 				  n, bandjoin->in->BandFmt, bandjoin->in->Coding,
 				  c, NULL, n)))
-			return (-1);
+			return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_bandjoin_const_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -464,7 +464,7 @@ vips_bandjoin_constv(VipsImage *in, VipsImage **out,
 	result = vips_call_split("bandjoin_const", ap, in, out, array);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -491,7 +491,7 @@ vips_bandjoin_const(VipsImage *in, VipsImage **out, double *c, int n, ...)
 	result = vips_bandjoin_constv(in, out, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -515,7 +515,7 @@ vips_bandjoin_const1(VipsImage *in, VipsImage **out, double c, ...)
 	result = vips_bandjoin_constv(in, out, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -541,7 +541,7 @@ vips_addalpha(VipsImage *in, VipsImage **out, ...)
 		max_alpha = 65535;
 
 	if (vips_bandjoin_const1(in, out, max_alpha, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

@@ -298,10 +298,10 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	if (vips_rect_isempty(&clipped)) {
 		vips_region_paint_pel(or, r, affine->ink);
-		return (0);
+		return 0;
 	}
 	if (vips_region_prepare(ir, &clipped))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_affine_gen: work");
 
@@ -392,7 +392,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	VIPS_COUNT_PIXELS(or, "vips_affine_gen");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -415,17 +415,17 @@ vips_affine_build(VipsObject *object)
 	VipsBandFormat unpremultiplied_format;
 
 	if (VIPS_OBJECT_CLASS(vips_affine_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_known(class->nickname, resample->in))
-		return (-1);
+		return -1;
 	if (vips_check_vector_length(class->nickname,
 			affine->matrix->n, 4))
-		return (-1);
+		return -1;
 	if (vips_object_argument_isset(object, "oarea") &&
 		vips_check_vector_length(class->nickname,
 			affine->oarea->n, 4))
-		return (-1);
+		return -1;
 
 	/* Can be set explicitly to NULL to mean default setting.
 	 */
@@ -455,7 +455,7 @@ vips_affine_build(VipsObject *object)
 	affine->trn.ody = 0;
 
 	if (vips__transform_calc_inverse(&affine->trn))
-		return (-1);
+		return -1;
 
 	/* Set the default value for oarea.
 	 */
@@ -486,7 +486,7 @@ vips_affine_build(VipsObject *object)
 		affine->trn.oarea.top == 0 &&
 		affine->trn.oarea.width == in->Xsize &&
 		affine->trn.oarea.height == in->Ysize)
-		return (vips_image_write(in, resample->out));
+		return vips_image_write(in, resample->out);
 #endif /*!DEBUG*/
 
 	/* Check for coordinate overflow ... we want to be able to hold the
@@ -499,11 +499,11 @@ vips_affine_build(VipsObject *object)
 		VIPS_RECT_BOTTOM(&affine->trn.oarea) > edge) {
 		vips_error(class->nickname,
 			"%s", _("output coordinates out of range"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
@@ -519,7 +519,7 @@ vips_affine_build(VipsObject *object)
 			"extend", affine->extend,
 			"background", affine->background,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	/* We've added a one-pixel border to the input: displace the transform
@@ -536,7 +536,7 @@ vips_affine_build(VipsObject *object)
 	if (vips_image_hasalpha(in) &&
 		!affine->premultiplied) {
 		if (vips_premultiply(in, &t[3], NULL))
-			return (-1);
+			return -1;
 		have_premultiplied = TRUE;
 
 		/* vips_premultiply() makes a float image. When we
@@ -553,7 +553,7 @@ vips_affine_build(VipsObject *object)
 			  in,
 			  VIPS_AREA(affine->background)->data, NULL,
 			  VIPS_AREA(affine->background)->n)))
-		return (-1);
+		return -1;
 
 	/* Normally SMALLTILE ... except if this is strictly a size
 	 * up/down affine.
@@ -566,7 +566,7 @@ vips_affine_build(VipsObject *object)
 
 	t[4] = vips_image_new();
 	if (vips_image_pipelinev(t[4], hint, in, NULL))
-		return (-1);
+		return -1;
 
 	t[4]->Xsize = affine->trn.oarea.width;
 	t[4]->Ysize = affine->trn.oarea.height;
@@ -587,7 +587,7 @@ vips_affine_build(VipsObject *object)
 	if (vips_image_generate(t[4],
 			vips_start_one, vips_affine_gen, vips_stop_one,
 			in, affine))
-		return (-1);
+		return -1;
 
 	/* Finally: can now set Xoffset/Yoffset.
 	 */
@@ -599,14 +599,14 @@ vips_affine_build(VipsObject *object)
 	if (have_premultiplied) {
 		if (vips_unpremultiply(in, &t[5], NULL) ||
 			vips_cast(t[5], &t[6], unpremultiplied_format, NULL))
-			return (-1);
+			return -1;
 		in = t[6];
 	}
 
 	if (vips_image_write(in, resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -777,5 +777,5 @@ vips_affine(VipsImage *in, VipsImage **out,
 
 	vips_area_unref(matrix);
 
-	return (result);
+	return result;
 }

@@ -71,10 +71,10 @@ vips_convsep_build(VipsObject *object)
 	g_object_set(convsep, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_convsep_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_separable(class->nickname, convolution->M))
-		return (-1);
+		return -1;
 
 	in = convolution->in;
 
@@ -82,7 +82,7 @@ vips_convsep_build(VipsObject *object)
 		if (vips_convasep(in, &t[0], convolution->M,
 				"layers", convsep->layers,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 	else {
@@ -90,7 +90,7 @@ vips_convsep_build(VipsObject *object)
 		 */
 		if (vips_rot(convolution->M, &t[0], VIPS_ANGLE_D90, NULL) ||
 			vips_copy(t[0], &t[3], NULL))
-			return (-1);
+			return -1;
 		vips_image_set_double(t[3], "offset", 0);
 
 		if (vips_conv(in, &t[1], convolution->M,
@@ -103,14 +103,14 @@ vips_convsep_build(VipsObject *object)
 				"layers", convsep->layers,
 				"cluster", convsep->cluster,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[2];
 	}
 
 	if (vips_image_write(in, convolution->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -192,5 +192,5 @@ vips_convsep(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("convsep", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

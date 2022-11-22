@@ -147,7 +147,7 @@ vips_buffer_dump(VipsBuffer *buffer, size_t *reserve, size_t *alive)
 	else
 		printf("buffer craziness!\n");
 
-	return (NULL);
+	return NULL;
 }
 #endif /*DEBUG*/
 
@@ -162,7 +162,7 @@ vips_buffer_cache_dump(VipsBufferCache *cache, void *a, void *b)
 	printf("\tbuffer_thread %p\n", cache->buffer_thread);
 	printf("\t%d in reserve\n", g_slist_length(cache->reserve));
 
-	return (NULL);
+	return NULL;
 }
 #endif /*DEBUG_CREATE*/
 
@@ -292,7 +292,7 @@ buffer_cache_new(VipsBufferThread *buffer_thread, VipsImage *im)
 		g_slist_length(vips__buffer_cache_all));
 #endif /*DEBUG_CREATE*/
 
-	return (cache);
+	return cache;
 }
 
 static VipsBufferThread *
@@ -306,7 +306,7 @@ buffer_thread_new(void)
 		NULL, (GDestroyNotify) buffer_cache_free);
 	buffer_thread->thread = g_thread_self();
 
-	return (buffer_thread);
+	return buffer_thread;
 }
 
 /* Get our private VipsBufferThread. NULL for non-worker threads.
@@ -333,7 +333,7 @@ buffer_thread_get(void)
 		 */
 		buffer_thread = NULL;
 
-	return (buffer_thread);
+	return buffer_thread;
 }
 
 /* Get the VipsBufferCache for this image, or NULL for a non-worker.
@@ -356,7 +356,7 @@ buffer_cache_get(VipsImage *im)
 	else
 		cache = NULL;
 
-	return (cache);
+	return cache;
 }
 
 /* Pixels have been calculated: publish for other parts of this thread to see.
@@ -483,10 +483,10 @@ buffer_move(VipsBuffer *buffer, VipsRect *area)
 		buffer->bsize = new_bsize;
 		VIPS_FREEF(vips_tracked_free, buffer->buf);
 		if (!(buffer->buf = vips_tracked_malloc(buffer->bsize)))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Make a new buffer.
@@ -530,10 +530,10 @@ vips_buffer_new(VipsImage *im, VipsRect *area)
 
 	if (buffer_move(buffer, area)) {
 		vips_buffer_free(buffer);
-		return (NULL);
+		return NULL;
 	}
 
-	return (buffer);
+	return buffer;
 }
 
 /* Find an existing buffer that encloses area and return a ref. Or NULL for no
@@ -548,7 +548,7 @@ buffer_find(VipsImage *im, VipsRect *r)
 	VipsRect *area;
 
 	if (!(cache = buffer_cache_get(im)))
-		return (NULL);
+		return NULL;
 
 	/* This needs to be quick :-( don't use
 	 * vips_slist_map2()/vips_rect_includesrect(), do the search
@@ -576,11 +576,11 @@ buffer_find(VipsImage *im, VipsRect *r)
 				buffer);
 #endif /*DEBUG_VERBOSE*/
 
-			return (buffer);
+			return buffer;
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Return a ref to a buffer that encloses area. The buffer we return might be
@@ -592,9 +592,9 @@ vips_buffer_ref(VipsImage *im, VipsRect *area)
 	VipsBuffer *buffer;
 
 	if ((buffer = buffer_find(im, area)))
-		return (buffer);
+		return buffer;
 	else
-		return (vips_buffer_new(im, area));
+		return vips_buffer_new(im, area);
 }
 
 /* Unref old, ref new, in a single operation. Reuse stuff if we can. The
@@ -612,13 +612,13 @@ vips_buffer_unref_ref(VipsBuffer *old_buffer, VipsImage *im, VipsRect *area)
 	 */
 	if (old_buffer &&
 		vips_rect_includesrect(&old_buffer->area, area))
-		return (old_buffer);
+		return old_buffer;
 
 	/* Does the new area already have a buffer?
 	 */
 	if ((buffer = buffer_find(im, area))) {
 		VIPS_FREEF(vips_buffer_unref, old_buffer);
-		return (buffer);
+		return buffer;
 	}
 
 	/* Is the current buffer unshared? We can just move it.
@@ -627,19 +627,19 @@ vips_buffer_unref_ref(VipsBuffer *old_buffer, VipsImage *im, VipsRect *area)
 		old_buffer->ref_count == 1) {
 		if (buffer_move(old_buffer, area)) {
 			vips_buffer_unref(old_buffer);
-			return (NULL);
+			return NULL;
 		}
 
-		return (old_buffer);
+		return old_buffer;
 	}
 
 	/* Fallback ... unref the old one, make a new one.
 	 */
 	VIPS_FREEF(vips_buffer_unref, old_buffer);
 	if (!(buffer = vips_buffer_new(im, area)))
-		return (NULL);
+		return NULL;
 
-	return (buffer);
+	return buffer;
 }
 
 static void

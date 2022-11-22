@@ -89,12 +89,12 @@ apply_similarity(VipsTransformation *trn, VipsImage *in, VipsImage *out,
 	trn->ody = dy;
 	vips__transform_set_area(trn);
 	if (vips__transform_calc_inverse(trn))
-		return (-1);
+		return -1;
 
 	if (vips__affinei(in, out, trn))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* A join function ... either left-right or top-bottom rotscalemerge.
@@ -119,13 +119,13 @@ vips__lrmerge1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	/* Scale, rotate and displace sec.
 	 */
 	if (apply_similarity(&trn, sec, t[0], a, b, dx, dy))
-		return (-1);
+		return -1;
 
 	/* And join to ref.
 	 */
 	if (vips__lrmerge(ref, t[0], out,
 			-trn.oarea.left, -trn.oarea.top, mwidth))
-		return (-1);
+		return -1;
 
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
@@ -145,9 +145,9 @@ vips__lrmerge1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	vips_buf_appendg(&buf, dy);
 	vips_buf_appendf(&buf, "> <%d>", mwidth);
 	if (vips_image_history_printf(out, "%s", vips_buf_all(&buf)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* similarity+tbmerge.
@@ -167,13 +167,13 @@ vips__tbmerge1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	/* Scale, rotate and displace sec.
 	 */
 	if (apply_similarity(&trn, sec, t[0], a, b, dx, dy))
-		return (-1);
+		return -1;
 
 	/* And join to ref.
 	 */
 	if (vips__tbmerge(ref, t[0], out,
 			-trn.oarea.left, -trn.oarea.top, mwidth))
-		return (-1);
+		return -1;
 
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
@@ -193,9 +193,9 @@ vips__tbmerge1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	vips_buf_appendg(&buf, dy);
 	vips_buf_appendf(&buf, "> <%d>", mwidth);
 	if (vips_image_history_printf(out, "%s", vips_buf_all(&buf)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Join two images, using a pair of tie-points as parameters.
@@ -212,14 +212,14 @@ rotjoin(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	 */
 	if (vips__coeff(xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 			&a, &b, &dx, &dy))
-		return (-1);
+		return -1;
 
 	/* Scale, rotate and displace sec.
 	 */
 	if (jfn(ref, sec, out, a, b, dx, dy, mwidth))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Like rotjoin, but do a search to refine the tie-points.
@@ -250,7 +250,7 @@ rotjoin_search(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	 */
 	if (ref->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2LabS(ref, &t[0], NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[0] = ref;
@@ -258,7 +258,7 @@ rotjoin_search(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	}
 	if (sec->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2LabS(sec, &t[1], NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[1] = sec;
@@ -272,7 +272,7 @@ rotjoin_search(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	if (vips__coeff(xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 			&a, &b, &dx, &dy) ||
 		apply_similarity(&trn, t[1], t[2], a, b, dx, dy))
-		return (-1);
+		return -1;
 
 	/* Map points on sec to rotated image.
 	 */
@@ -286,11 +286,11 @@ rotjoin_search(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	if (vips__correl(t[0], t[2], xr1, yr1,
 			xs3 - trn.oarea.left, ys3 - trn.oarea.top,
 			halfcorrelation, halfarea, &cor1, &xs5, &ys5))
-		return (-1);
+		return -1;
 	if (vips__correl(t[0], t[2], xr2, yr2,
 			xs4 - trn.oarea.left, ys4 - trn.oarea.top,
 			halfcorrelation, halfarea, &cor2, &xs6, &ys6))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("rotjoin_search: nudged pair 1 from %d, %d to %d, %d\n",
@@ -317,14 +317,14 @@ rotjoin_search(VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	 */
 	if (vips__coeff(xr1, yr1, xs7, ys7, xr2, yr2, xs8, ys8,
 			&a, &b, &dx, &dy))
-		return (-1);
+		return -1;
 
 	/* Scale and rotate final.
 	 */
 	if (jfn(ref, sec, out, a, b, dx, dy, mwidth))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #ifdef OLD
@@ -360,7 +360,7 @@ old_lrmosaic1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	if (vips__coeff(xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 			&a, &b, &dx, &dy) ||
 		apply_similarity(&trn1, sec, t[0], a, b, dx, dy))
-		return (-1);
+		return -1;
 
 	/* Correct tie-points. dummy is just a placeholder used to ensure that
 	 * memory used by the analysis phase is freed as soon as possible.
@@ -373,7 +373,7 @@ old_lrmosaic1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 			&dx0, &dy0,
 			&a1, &b1, &dx1, &dy1)) {
 		g_object_unref(dummy);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(dummy);
 
@@ -396,7 +396,7 @@ old_lrmosaic1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	/* Scale and rotate final.
 	 */
 	if (apply_similarity(&trn2, sec, t[1], af, bf, dxf, dyf))
-		return (-1);
+		return -1;
 
 	printf("disp: trn1 left = %d, top = %d\n",
 		trn1.area.left, trn1.area.top);
@@ -407,9 +407,9 @@ old_lrmosaic1(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	 */
 	if (vips_merge(ref, t[1], out, VIPS_DIRECTION_HORIZONTAL,
 			-trn2.area.left, -trn2.area.top, mwidth))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 #endif /*OLD*/
 
@@ -451,7 +451,7 @@ vips_mosaic1_build(VipsObject *object)
 	g_object_set(mosaic1, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_mosaic1_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!mosaic1->interpolate)
 		mosaic1->interpolate = vips_interpolate_new("bilinear");
@@ -467,7 +467,7 @@ vips_mosaic1_build(VipsObject *object)
 				mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
 				mosaic1->hwindow, mosaic1->harea,
 				mosaic1->mblend))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (rotjoin(mosaic1->ref, mosaic1->sec, mosaic1->out,
@@ -475,10 +475,10 @@ vips_mosaic1_build(VipsObject *object)
 				mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1,
 				mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
 				mosaic1->mblend))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -693,5 +693,5 @@ vips_mosaic1(VipsImage *ref, VipsImage *sec, VipsImage **out,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

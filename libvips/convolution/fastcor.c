@@ -266,5 +266,5 @@ vips_fastcor(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
 	result = vips_call_split("fastcor", ap, in, ref, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

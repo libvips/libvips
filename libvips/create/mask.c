@@ -97,7 +97,7 @@ vips_mask_point(VipsPoint *point, int x, int y)
 			result = 1.0 - result;
 	}
 
-	return (result);
+	return result;
 }
 
 static void

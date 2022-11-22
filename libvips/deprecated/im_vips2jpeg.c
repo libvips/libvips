@@ -81,11 +81,11 @@ im_vips2jpeg(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p))) {
 		im_error("im_vips2jpeg",
 			_("unknown extra options \"%s\""), q);
-		return (-1);
+		return -1;
 	}
 
-	return (vips_jpegsave(in, name,
-		"Q", qfac, "profile", profile, NULL));
+	return vips_jpegsave(in, name,
+		"Q", qfac, "profile", profile, NULL);
 }
 
 int
@@ -94,7 +94,7 @@ im_vips2bufjpeg(IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen)
 	size_t len;
 
 	if (vips_jpegsave_buffer(in, (void **) obuf, &len, "Q", qfac, NULL))
-		return (-1);
+		return -1;
 	if (out)
 		im_add_callback(out, "close",
 			(im_callback_fn) vips_free, obuf, NULL);
@@ -102,11 +102,11 @@ im_vips2bufjpeg(IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen)
 	if (olen)
 		*olen = len;
 
-	return (0);
+	return 0;
 }
 
 int
 im_vips2mimejpeg(IMAGE *in, int qfac)
 {
-	return (vips_jpegsave_mime(in, "Q", qfac, NULL));
+	return vips_jpegsave_mime(in, "Q", qfac, NULL);
 }

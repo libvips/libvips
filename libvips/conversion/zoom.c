@@ -262,7 +262,7 @@ vips_zoom_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	s.width = width / zoom->xfac;
 	s.height = height / zoom->yfac;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	/* Find the part of the output (if any) which uses only whole pels.
 	 */
@@ -303,7 +303,7 @@ vips_zoom_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		vips_zoom_paint_part(or, ir, zoom,
 			r->left, ri, VIPS_MAX(bottom, r->top), bo);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -314,7 +314,7 @@ vips_zoom_build(VipsObject *object)
 	VipsZoom *zoom = (VipsZoom *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_zoom_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_assert(zoom->xfac > 0);
 	g_assert(zoom->yfac > 0);
@@ -325,31 +325,31 @@ vips_zoom_build(VipsObject *object)
 		(double) zoom->in->Ysize * zoom->yfac > (double) INT_MAX / 2) {
 		vips_error(class->nickname,
 			"%s", _("zoom factors too large"));
-		return (-1);
+		return -1;
 	}
 	if (zoom->xfac == 1 &&
 		zoom->yfac == 1)
-		return (vips_image_write(zoom->in, conversion->out));
+		return vips_image_write(zoom->in, conversion->out);
 
 	if (vips_image_pio_input(zoom->in) ||
 		vips_check_coding_known(class->nickname, zoom->in))
-		return (-1);
+		return -1;
 
 	/* Set demand hints. THINSTRIP will prevent us from using
 	 * vips_zoom_paint_whole() much ... so go for FATSTRIP.
 	 */
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, zoom->in, NULL))
-		return (-1);
+		return -1;
 	conversion->out->Xsize = zoom->in->Xsize * zoom->xfac;
 	conversion->out->Ysize = zoom->in->Ysize * zoom->yfac;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_zoom_gen, vips_stop_one,
 			zoom->in, zoom))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -419,5 +419,5 @@ vips_zoom(VipsImage *in, VipsImage **out, int xfac, int yfac, ...)
 	result = vips_call_split("zoom", ap, in, out, xfac, yfac);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

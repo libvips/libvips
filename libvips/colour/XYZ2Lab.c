@@ -106,7 +106,7 @@ table_init(void *client)
 			cbrt_table[i] = cbrt(Y);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -208,16 +208,16 @@ vips_XYZ2Lab_build(VipsObject *object)
 	if (XYZ2Lab->temp) {
 		if (vips_check_vector_length(class->nickname,
 				XYZ2Lab->temp->n, 3))
-			return (-1);
+			return -1;
 		XYZ2Lab->X0 = ((double *) XYZ2Lab->temp->data)[0];
 		XYZ2Lab->Y0 = ((double *) XYZ2Lab->temp->data)[1];
 		XYZ2Lab->Z0 = ((double *) XYZ2Lab->temp->data)[2];
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_XYZ2Lab_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -281,5 +281,5 @@ vips_XYZ2Lab(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("XYZ2Lab", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

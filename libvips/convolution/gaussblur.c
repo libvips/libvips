@@ -74,14 +74,14 @@ vips_gaussblur_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	if (VIPS_OBJECT_CLASS(vips_gaussblur_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* vips_gaussmat() will make a 1x1 pixel mask for anything smaller than
 	 * this.
 	 */
 	if (gaussblur->sigma < 0.2) {
 		if (vips_copy(gaussblur->in, &t[1], NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_gaussmat(&t[0],
@@ -89,7 +89,7 @@ vips_gaussblur_build(VipsObject *object)
 				"separable", TRUE,
 				"precision", gaussblur->precision,
 				NULL))
-			return (-1);
+			return -1;
 
 #ifdef DEBUG
 		printf("gaussblur: blurring with:\n");
@@ -101,15 +101,15 @@ vips_gaussblur_build(VipsObject *object)
 		if (vips_convsep(gaussblur->in, &t[1], t[0],
 				"precision", gaussblur->precision,
 				NULL))
-			return (-1);
+			return -1;
 	}
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (vips_image_write(t[1], gaussblur->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -200,5 +200,5 @@ vips_gaussblur(VipsImage *in, VipsImage **out, double sigma, ...)
 	result = vips_call_split("gaussblur", ap, in, out, sigma);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

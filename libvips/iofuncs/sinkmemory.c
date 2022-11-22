@@ -117,9 +117,9 @@ sink_memory_thread_state_init(SinkMemoryThreadState *state)
 static VipsThreadState *
 sink_memory_thread_state_new(VipsImage *image, void *a)
 {
-	return (VIPS_THREAD_STATE(vips_object_new(
+	return VIPS_THREAD_STATE(vips_object_new(
 		sink_memory_thread_state_get_type(),
-		vips_thread_state_set, image, a)));
+		vips_thread_state_set, image, a));
 }
 
 static void
@@ -135,11 +135,11 @@ sink_memory_area_new(SinkMemory *memory)
 	SinkMemoryArea *area;
 
 	if (!(area = VIPS_NEW(NULL, SinkMemoryArea)))
-		return (NULL);
+		return NULL;
 	area->memory = memory;
 	vips_semaphore_init(&area->nwrite, 0, "nwrite");
 
-	return (area);
+	return area;
 }
 
 /* Move an area to a position.
@@ -200,7 +200,7 @@ sink_memory_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
 				*stop = TRUE;
-				return (0);
+				return 0;
 			}
 
 			/* Swap buffers.
@@ -246,7 +246,7 @@ sink_memory_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 	 */
 	sink_base->processed += state->pos.width * state->pos.height;
 
-	return (0);
+	return 0;
 }
 
 /* Our VipsThreadpoolWork function ... generate a tile!
@@ -273,7 +273,7 @@ sink_memory_area_work_fn(VipsThreadState *state, void *a)
 	 */
 	vips_semaphore_upn(&area->nwrite, 1);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -303,10 +303,10 @@ sink_memory_init(SinkMemory *memory, VipsImage *image)
 		!(memory->area = sink_memory_area_new(memory)) ||
 		!(memory->old_area = sink_memory_area_new(memory))) {
 		sink_memory_free(memory);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -327,7 +327,7 @@ vips_sink_memory(VipsImage *image)
 	int result;
 
 	if (sink_memory_init(&memory, image))
-		return (-1);
+		return -1;
 
 	vips_image_preeval(image);
 
@@ -349,5 +349,5 @@ vips_sink_memory(VipsImage *image)
 
 	VIPS_DEBUG_MSG("vips_sink_memory: done\n");
 
-	return (result);
+	return result;
 }

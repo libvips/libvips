@@ -97,7 +97,7 @@ vips_msb_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	int x, y, i;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
@@ -138,7 +138,7 @@ vips_msb_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -151,11 +151,11 @@ vips_msb_build(VipsObject *object)
 	int vbands;
 
 	if (VIPS_OBJECT_CLASS(vips_msb_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_noneorlabq(class->nickname, msb->in) ||
 		vips_check_int(class->nickname, msb->in))
-		return (-1);
+		return -1;
 
 	/* Effective number of bands this image has.
 	 */
@@ -165,7 +165,7 @@ vips_msb_build(VipsObject *object)
 
 	if (msb->band > vbands - 1) {
 		vips_error(class->nickname, "%s", _("bad band"));
-		return (-1);
+		return -1;
 	}
 
 	/* Step to next input element.
@@ -197,15 +197,15 @@ vips_msb_build(VipsObject *object)
 
 	if (msb->band == -1 &&
 		msb->in->BandFmt == VIPS_FORMAT_UCHAR)
-		return (vips_image_write(msb->in, conversion->out));
+		return vips_image_write(msb->in, conversion->out);
 	if (msb->band == 0 &&
 		msb->in->Bands == 1 &&
 		msb->in->BandFmt == VIPS_FORMAT_UCHAR)
-		return (vips_image_write(msb->in, conversion->out));
+		return vips_image_write(msb->in, conversion->out);
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, msb->in, NULL))
-		return (-1);
+		return -1;
 
 	if (msb->band != -1)
 		conversion->out->Bands = 1;
@@ -220,9 +220,9 @@ vips_msb_build(VipsObject *object)
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_msb_gen, vips_stop_one, msb->in, msb))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -293,5 +293,5 @@ vips_msb(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("msb", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

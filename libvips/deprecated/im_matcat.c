@@ -69,7 +69,7 @@ im_matcat(DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename)
 	if (top->xsize != bottom->xsize) {
 		im_error("im_matcat", "%s",
 			_("matrices must be same width"));
-		return (NULL);
+		return NULL;
 	}
 
 	newxsize = top->xsize;
@@ -78,7 +78,7 @@ im_matcat(DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename)
 	/* Allocate output matrix.
 	 */
 	if (!(mat = im_create_dmask(filename, newxsize, newysize)))
-		return (NULL);
+		return NULL;
 
 	/* copy first matrix then add second on the end
 	 */
@@ -88,5 +88,5 @@ im_matcat(DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename)
 	memcpy(out, bottom->coeff,
 		bottom->xsize * bottom->ysize * sizeof(double));
 
-	return (mat);
+	return mat;
 }

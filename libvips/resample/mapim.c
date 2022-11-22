@@ -337,7 +337,7 @@ vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	 * x and y.
 	 */
 	if (vips_region_prepare(ir[1], r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_mapim_gen: work");
 
@@ -373,10 +373,10 @@ vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	if (vips_rect_isempty(&clipped)) {
 		vips_region_paint_pel(or, r, mapim->ink);
-		return (0);
+		return 0;
 	}
 	if (vips_region_prepare(ir[0], &clipped))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_mapim_gen: work");
 
@@ -423,7 +423,7 @@ vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	VIPS_GATE_STOP("vips_mapim_gen: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -444,16 +444,16 @@ vips_mapim_build(VipsObject *object)
 	VipsBandFormat unpremultiplied_format;
 
 	if (VIPS_OBJECT_CLASS(vips_mapim_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_known(class->nickname, resample->in) ||
 		vips_check_twocomponents(class->nickname, mapim->index))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	window_size = vips_interpolate_get_window_size(mapim->interpolate);
@@ -475,7 +475,7 @@ vips_mapim_build(VipsObject *object)
 			"extend", mapim->extend,
 			"background", mapim->background,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	/* If there's an alpha and we've not premultiplied, we have to
@@ -485,7 +485,7 @@ vips_mapim_build(VipsObject *object)
 	if (vips_image_hasalpha(in) &&
 		!mapim->premultiplied) {
 		if (vips_premultiply(in, &t[2], NULL))
-			return (-1);
+			return -1;
 		have_premultiplied = TRUE;
 
 		/* vips_premultiply() makes a float image. When we
@@ -502,12 +502,12 @@ vips_mapim_build(VipsObject *object)
 			  in,
 			  VIPS_AREA(mapim->background)->data, NULL,
 			  VIPS_AREA(mapim->background)->n)))
-		return (-1);
+		return -1;
 
 	t[3] = vips_image_new();
 	if (vips_image_pipelinev(t[3], VIPS_DEMAND_STYLE_SMALLTILE,
 			in, NULL))
-		return (-1);
+		return -1;
 
 	t[3]->Xsize = mapim->index->Xsize;
 	t[3]->Ysize = mapim->index->Ysize;
@@ -518,21 +518,21 @@ vips_mapim_build(VipsObject *object)
 	if (vips_image_generate(t[3],
 			vips_start_many, vips_mapim_gen, vips_stop_many,
 			mapim->in_array, mapim))
-		return (-1);
+		return -1;
 
 	in = t[3];
 
 	if (have_premultiplied) {
 		if (vips_unpremultiply(in, &t[4], NULL) ||
 			vips_cast(t[4], &t[5], unpremultiplied_format, NULL))
-			return (-1);
+			return -1;
 		in = t[5];
 	}
 
 	if (vips_image_write(in, resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -651,5 +651,5 @@ vips_mapim(VipsImage *in, VipsImage **out, VipsImage *index, ...)
 	result = vips_call_split("mapim", ap, in, out, index);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

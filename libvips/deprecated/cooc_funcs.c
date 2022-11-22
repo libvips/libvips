@@ -90,29 +90,29 @@ im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int d
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		return (-1);
+		return -1;
 	if ((im->Bands != 1) || (im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error("im_cooc_sym", "%s", _("Unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	if ((xpos + xsize + dx > im->Xsize) || (ypos + ysize + dy > im->Ysize)) {
 		im_error("im_cooc_sym", "%s", _("wrong args"));
-		return (-1);
+		return -1;
 	}
 	if (im_cp_desc(m, im) == -1)
-		return (-1);
+		return -1;
 	m->Xsize = 256;
 	m->Ysize = 256;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 	if (im_setupout(m) == -1)
-		return (-1);
+		return -1;
 	/* malloc space to keep the read values */
 	buf = (int *) calloc((unsigned) m->Xsize * m->Ysize, sizeof(int));
 	line = (double *) calloc((unsigned) m->Xsize * m->Bands, sizeof(double));
 	if ((buf == NULL) || (line == NULL)) {
 		im_error("im_cooc_sym", "%s", _("calloc failed"));
-		return (-1);
+		return -1;
 	}
 	input = im->data;
 	input += (ypos * im->Xsize + xpos);
@@ -141,12 +141,12 @@ im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int d
 			*cpline++ = (double) (*cpnt++) / (double) norm;
 		if (im_writeline(y, m, (VipsPel *) line) == -1) {
 			im_error("im_cooc_sym", "%s", _("unable to im_writeline"));
-			return (-1);
+			return -1;
 		}
 	}
 	free((char *) buf);
 	free((char *) line);
-	return (0);
+	return 0;
 }
 
 static int
@@ -162,28 +162,28 @@ im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int d
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		return (-1);
+		return -1;
 	if ((im->Bands != 1) || (im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error("im_cooc_ord", "%s", _("Unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	if ((xpos + xsize + dx > im->Xsize) || (ypos + ysize + dy > im->Ysize)) {
 		im_error("im_cooc_ord", "%s", _("wrong args"));
-		return (-1);
+		return -1;
 	}
 	if (im_cp_desc(m, im) == -1)
-		return (-1);
+		return -1;
 	m->Xsize = 256;
 	m->Ysize = 256;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	if (im_setupout(m) == -1)
-		return (-1);
+		return -1;
 	/* malloc space to keep the read values */
 	buf = (int *) calloc((unsigned) m->Xsize * m->Ysize, sizeof(int));
 	line = (double *) calloc((unsigned) m->Xsize * m->Bands, sizeof(double));
 	if ((buf == NULL) || (line == NULL)) {
 		im_error("im_cooc_ord", "%s", _("calloc failed"));
-		return (-1);
+		return -1;
 	}
 	input = im->data;
 	input += (ypos * im->Xsize + xpos);
@@ -210,12 +210,12 @@ im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int d
 			*cpline++ = (double) (*cpnt++) / (double) norm;
 		if (im_writeline(y, m, (PEL *) line) == -1) {
 			im_error("im_cooc_ord", "%s", _("unable to im_writeline"));
-			return (-1);
+			return -1;
 		}
 	}
 	free((char *) buf);
 	free((char *) line);
-	return (0);
+	return 0;
 }
 
 /* Keep the coocurrence matrix as a 256x256x1 double image */
@@ -225,12 +225,12 @@ im_cooc_matrix(IMAGE *im, IMAGE *m,
 	int xp, int yp, int xs, int ys, int dx, int dy, int flag)
 {
 	if (flag == 0)
-		return (im_cooc_ord(im, m, xp, yp, xs, ys, dx, dy));
+		return im_cooc_ord(im, m, xp, yp, xs, ys, dx, dy);
 	else if (flag == 1) /* symmetrical cooc */
-		return (im_cooc_sym(im, m, xp, yp, xs, ys, dx, dy));
+		return im_cooc_sym(im, m, xp, yp, xs, ys, dx, dy);
 	else {
 		im_error("im_cooc_matrix", "%s", _("wrong flag!"));
-		return (-1);
+		return -1;
 	}
 }
 
@@ -243,12 +243,12 @@ im_cooc_asm(IMAGE *m, double *asmoment)
 	int i;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_cooc_asm", "%s", _("unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	tmpasm = 0.0;
 	pnt = (double *) m->data;
@@ -257,7 +257,7 @@ im_cooc_asm(IMAGE *m, double *asmoment)
 		tmpasm += temp * temp;
 	}
 	*asmoment = tmpasm;
-	return (0);
+	return 0;
 }
 
 int
@@ -267,12 +267,12 @@ im_cooc_contrast(IMAGE *m, double *contrast)
 	int x, y;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_cooc_contrast", "%s", _("unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	tmpcon = 0.0;
 	pnt = (double *) m->data;
@@ -287,7 +287,7 @@ im_cooc_contrast(IMAGE *m, double *contrast)
 	}
 
 	*contrast = tmpcon;
-	return (0);
+	return 0;
 }
 
 /* buffer contains the frequency distributions f[i] */
@@ -337,18 +337,18 @@ im_cooc_correlation(IMAGE *m, double *correlation)
 	double sum = 0.0;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_cooc_correlation", "%s", _("unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	row = (double *) calloc((unsigned) m->Ysize, sizeof(double));
 	col = (double *) calloc((unsigned) m->Xsize, sizeof(double));
 	if (row == NULL || col == NULL) {
 		im_error("im_cooc_correlation", "%s", _("unable to calloc"));
-		return (-1);
+		return -1;
 	}
 	pbuf = (double *) m->data;
 	for (j = 0; j < m->Ysize; j++) {
@@ -395,13 +395,13 @@ im_cooc_correlation(IMAGE *m, double *correlation)
 #endif
 	if ((stdcol == 0.0) || (stdrow == 0)) {
 		im_error("im_cooc_correlation", "%s", _("zero std"));
-		return (-1);
+		return -1;
 	}
 	tmpcor = (tmpcor - (mcol * mrow)) / (stdcol * stdrow);
 	*correlation = tmpcor;
 	free((char *) row);
 	free((char *) col);
-	return (0);
+	return 0;
 }
 
 int
@@ -414,12 +414,12 @@ im_cooc_entropy(IMAGE *m, double *entropy)
 	double val;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 256 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_cooc_entropy", "%s", _("unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	pbufstart = (double *) m->data;
 
@@ -442,5 +442,5 @@ im_cooc_entropy(IMAGE *m, double *entropy)
 	fprintf(stderr, "ENT=%f\nwhich is %f bits\n", val, val / log10(2.0));
 #endif
 	*entropy = (val / log10(2.0));
-	return (0);
+	return 0;
 }

@@ -84,7 +84,7 @@ im_vips2dz(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p))) {
 		if ((i = vips_enum_from_nick("im_vips2dz",
 				 VIPS_TYPE_FOREIGN_DZ_LAYOUT, q)) < 0)
-			return (-1);
+			return -1;
 		layout = i;
 	}
 
@@ -98,7 +98,7 @@ im_vips2dz(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p))) {
 		if ((i = vips_enum_from_nick("im_vips2dz",
 				 VIPS_TYPE_FOREIGN_DZ_DEPTH, q)) < 0)
-			return (-1);
+			return -1;
 		depth = i;
 	}
 
@@ -110,7 +110,7 @@ im_vips2dz(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p))) {
 		if ((i = vips_enum_from_nick("im_vips2dz",
 				 VIPS_TYPE_ANGLE, q)) < 0)
-			return (-1);
+			return -1;
 		angle = i;
 	}
 
@@ -123,7 +123,7 @@ im_vips2dz(IMAGE *in, const char *filename)
 			"centre", centre,
 			"angle", angle,
 			NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

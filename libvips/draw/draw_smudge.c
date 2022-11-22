@@ -103,7 +103,7 @@ vips_draw_smudge_build(VipsObject *object)
 	int x, y, i, j, b;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_smudge_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	area.left = left;
 	area.top = top;
@@ -120,10 +120,10 @@ vips_draw_smudge_build(VipsObject *object)
 
 	vips_rect_intersectrect(&area, &image, &clipped);
 	if (vips_rect_isempty(&clipped))
-		return (0);
+		return 0;
 
 	if (!(total = VIPS_ARRAY(im, bands, double)))
-		return (-1);
+		return -1;
 
 /* What we do for each type.
  */
@@ -195,7 +195,7 @@ vips_draw_smudge_build(VipsObject *object)
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -273,5 +273,5 @@ vips_draw_smudge(VipsImage *image,
 		image, left, top, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

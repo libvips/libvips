@@ -83,7 +83,7 @@ vips_edge_uchar_gen(VipsRegion * or,
 	int x, y;
 
 	if (vips_reorder_prepare_many(or->im, in, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p1 = (VipsPel *restrict)
@@ -104,7 +104,7 @@ vips_edge_uchar_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Fast uchar path.
@@ -121,19 +121,19 @@ vips_edge_build_uchar(VipsEdge *edge)
 	 * prevent overflow.
 	 */
 	if (vips_copy(edge->mask, &t[1], NULL))
-		return (-1);
+		return -1;
 	vips_image_set_double(t[1], "offset", 128.0);
 	vips_image_set_double(t[1], "scale", 2.0);
 	if (vips_conv(edge->in, &t[3], t[1],
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL))
-		return (-1);
+		return -1;
 
 	if (vips_rot90(t[1], &t[5], NULL) ||
 		vips_conv(edge->in, &t[7], t[5],
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(edge, "out", vips_image_new(), NULL);
 
@@ -142,14 +142,14 @@ vips_edge_build_uchar(VipsEdge *edge)
 	edge->args[2] = NULL;
 	if (vips_image_pipeline_array(edge->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, edge->args))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(edge->out,
 			vips_start_many, vips_edge_uchar_gen, vips_stop_many,
 			edge->args, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Accurate but slow path.
@@ -165,21 +165,21 @@ vips_edge_build_float(VipsEdge *edge)
 	if (vips_rot90(edge->mask, &t[0], NULL) ||
 		vips_conv(edge->in, &t[1], edge->mask, NULL) ||
 		vips_conv(edge->in, &t[2], t[0], NULL))
-		return (-1);
+		return -1;
 
 	if (vips_multiply(t[1], t[1], &t[3], NULL) ||
 		vips_multiply(t[2], t[2], &t[4], NULL) ||
 		vips_add(t[3], t[4], &t[5], NULL) ||
 		vips_pow_const1(t[5], &t[6], 0.5, NULL) ||
 		vips_cast_uchar(t[6], &t[7], NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(edge, "out", vips_image_new(), NULL);
 
 	if (vips_image_write(t[7], edge->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -189,14 +189,14 @@ vips_edge_build(VipsObject *object)
 
 	if (edge->in->BandFmt == VIPS_FORMAT_UCHAR) {
 		if (vips_edge_build_uchar(edge))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_edge_build_float(edge))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -246,7 +246,7 @@ vips_sobel_build(VipsObject *object)
 		0.0, 0.0, 0.0,
 		-1.0, -2.0, -1.0);
 
-	return (VIPS_OBJECT_CLASS(vips_sobel_parent_class)->build(object));
+	return VIPS_OBJECT_CLASS(vips_sobel_parent_class)->build(object);
 }
 
 static void
@@ -279,7 +279,7 @@ vips_scharr_build(VipsObject *object)
 		-10.0, 0.0, 10.0,
 		-3.0, 0.0, 3.0);
 
-	return (VIPS_OBJECT_CLASS(vips_scharr_parent_class)->build(object));
+	return VIPS_OBJECT_CLASS(vips_scharr_parent_class)->build(object);
 }
 
 static void
@@ -312,7 +312,7 @@ vips_prewitt_build(VipsObject *object)
 		-1.0, 0.0, 1.0,
 		-1.0, 0.0, 1.0);
 
-	return (VIPS_OBJECT_CLASS(vips_prewitt_parent_class)->build(object));
+	return VIPS_OBJECT_CLASS(vips_prewitt_parent_class)->build(object);
 }
 
 static void
@@ -355,7 +355,7 @@ vips_sobel(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("sobel", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -383,7 +383,7 @@ vips_scharr(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("scharr", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -411,5 +411,5 @@ vips_prewitt(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("prewitt", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

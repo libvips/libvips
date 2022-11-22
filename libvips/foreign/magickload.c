@@ -108,7 +108,7 @@ vips_magickload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("magickload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -151,5 +151,5 @@ vips_magickload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }

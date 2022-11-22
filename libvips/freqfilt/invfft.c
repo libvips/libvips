@@ -96,21 +96,21 @@ cinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 
 	if (vips_check_mono(class->nickname, in) ||
 		vips_check_uncoded(class->nickname, in))
-		return (-1);
+		return -1;
 
 	/* Convert input to a complex double membuffer.
 	 */
 	*out = vips_image_new_memory();
 	if (vips_cast_dpcomplex(in, &t[0], NULL) ||
 		vips_image_write(t[0], *out))
-		return (-1);
+		return -1;
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
 	if (!(planner_scratch = VIPS_ARRAY(invfft,
 			  VIPS_IMAGE_N_PELS(in) * 2, double)))
-		return (-1);
+		return -1;
 	if (!(plan = fftw_plan_dft_2d(in->Ysize, in->Xsize,
 			  (fftw_complex *) planner_scratch,
 			  (fftw_complex *) planner_scratch,
@@ -118,7 +118,7 @@ cinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 			  0))) {
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
-		return (-1);
+		return -1;
 	}
 
 	fftw_execute_dft(plan,
@@ -128,7 +128,7 @@ cinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 
 	(*out)->Type = VIPS_INTERPRETATION_B_W;
 
-	return (0);
+	return 0;
 }
 
 /* Complex to real inverse transform.
@@ -152,13 +152,13 @@ rinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 	t[1] = vips_image_new_memory();
 	if (vips_cast_dpcomplex(in, &t[0], NULL) ||
 		vips_image_write(t[0], t[1]))
-		return (-1);
+		return -1;
 
 	/* Build half-complex image.
 	 */
 	if (!(half_complex = VIPS_ARRAY(invfft,
 			  t[1]->Ysize * half_width * 2, double)))
-		return (-1);
+		return -1;
 	q = half_complex;
 	for (y = 0; y < t[1]->Ysize; y++) {
 		p = ((double *) t[1]->data) + (guint64) y * t[1]->Xsize * 2;
@@ -175,24 +175,24 @@ rinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 	 */
 	*out = vips_image_new_memory();
 	if (vips_image_pipelinev(*out, VIPS_DEMAND_STYLE_ANY, t[1], NULL))
-		return (-1);
+		return -1;
 	(*out)->BandFmt = VIPS_FORMAT_DOUBLE;
 	(*out)->Type = VIPS_INTERPRETATION_B_W;
 	if (vips_image_write_prepare(*out))
-		return (-1);
+		return -1;
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width.
 	 */
 	if (!(planner_scratch = VIPS_ARRAY(invfft,
 			  t[1]->Ysize * half_width * 2, double)))
-		return (-1);
+		return -1;
 	if (!(plan = fftw_plan_dft_c2r_2d(t[1]->Ysize, t[1]->Xsize,
 			  (fftw_complex *) planner_scratch, (double *) (*out)->data,
 			  0))) {
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
-		return (-1);
+		return -1;
 	}
 
 	fftw_execute_dft_c2r(plan,
@@ -200,7 +200,7 @@ rinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 
 	fftw_destroy_plan(plan);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -213,29 +213,29 @@ vips_invfft_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_invfft_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = freqfilt->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (invfft->real) {
 		if (vips__fftproc(VIPS_OBJECT(invfft),
 				in, &t[1], rinvfft1))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips__fftproc(VIPS_OBJECT(invfft),
 				in, &t[1], cinvfft1))
-			return (-1);
+			return -1;
 	}
 
 	if (vips_image_write(t[1], freqfilt->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -296,5 +296,5 @@ vips_invfft(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("invfft", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

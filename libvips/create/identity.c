@@ -99,7 +99,7 @@ vips_identity_gen(VipsRegion * or, void *seq, void *a, void *b,
 		IDENTITY(unsigned char);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -109,7 +109,7 @@ vips_identity_build(VipsObject *object)
 	VipsIdentity *identity = (VipsIdentity *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_identity_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vips_image_init_fields(create->out,
 		identity->ushort ? identity->size : 256, 1, identity->bands,
@@ -120,9 +120,9 @@ vips_identity_build(VipsObject *object)
 	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_generate(create->out,
 			NULL, vips_identity_gen, NULL, identity, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -206,5 +206,5 @@ vips_identity(VipsImage **out, ...)
 	result = vips_call_split("identity", ap, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

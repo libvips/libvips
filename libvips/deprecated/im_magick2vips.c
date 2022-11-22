@@ -51,19 +51,19 @@ im_magick2vips(const char *filename, IMAGE *out)
 #ifdef HAVE_MAGICK
 	/* Old behaviour was always to read all frames.
 	 */
-	return (vips__magick_read(filename, out, NULL, 0, -1));
+	return vips__magick_read(filename, out, NULL, 0, -1);
 #else
 	vips_error("im_magick2vips",
 		"%s", _("no libMagick support in your libvips"));
 
-	return (-1);
+	return -1;
 #endif /*HAVE_MAGICK*/
 }
 
 static int
 ismagick(const char *filename)
 {
-	return (vips_foreign_is_a("magickload", filename));
+	return vips_foreign_is_a("magickload", filename);
 }
 
 static const char *magick_suffs[] = { NULL };
@@ -109,12 +109,12 @@ im_bufmagick2vips(void *buf, size_t len, IMAGE *out, gboolean header_only)
 	 */
 
 	if (vips_magickload_buffer(buf, len, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }

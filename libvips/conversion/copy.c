@@ -138,9 +138,9 @@ vips_copy_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	if (vips_region_prepare(ir, r) ||
 		vips_region_region(or, ir, r, r->left, r->top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* The props we copy, if set, from the operation to the image.
@@ -171,10 +171,10 @@ vips_copy_build(VipsObject *object)
 	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_copy_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(copy->in))
-		return (-1);
+		return -1;
 
 	if (copy->swap)
 		g_warning("%s",
@@ -182,7 +182,7 @@ vips_copy_build(VipsObject *object)
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL))
-		return (-1);
+		return -1;
 
 	/* Take a copy of all the basic header fields. We use this for
 	 * sanity-checking the changes our caller has made.
@@ -200,7 +200,7 @@ vips_copy_build(VipsObject *object)
 
 		if (vips_object_get_argument(object, name,
 				&pspec, &argument_class, &argument_instance))
-			return (-1);
+			return -1;
 
 		if (argument_instance->assigned) {
 			GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
@@ -233,15 +233,15 @@ vips_copy_build(VipsObject *object)
 	if (pel_size_after != pel_size_before) {
 		vips_error(class->nickname,
 			"%s", _("must not change pel size"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_copy_gen, vips_stop_one,
 			copy->in, copy))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -399,7 +399,7 @@ vips_copy(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("copy", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -426,16 +426,16 @@ vips_copy_file(VipsImage *in, VipsImage **out, ...)
 	VipsImage *file;
 
 	if (vips_image_isfile(in))
-		return (vips_copy(in, out, NULL));
+		return vips_copy(in, out, NULL);
 
 	if (!(file = vips_image_new_temp_file("%s.v")))
-		return (-1);
+		return -1;
 	if (vips_image_write(in, file) ||
 		vips_image_pio_input(file)) {
 		g_object_unref(file);
-		return (-1);
+		return -1;
 	}
 	*out = file;
 
-	return (0);
+	return 0;
 }

@@ -122,11 +122,11 @@ lrmosaic_vec(im_object *argv)
 	int halfarea = *((int *) argv[9]);
 	int mwidth = *((int *) argv[11]);
 
-	return (vips__lrmosaic(argv[0], argv[1], argv[2],
+	return vips__lrmosaic(argv[0], argv[1], argv[2],
 		bandno,
 		xr, yr, xs, ys,
 		halfcorrelation, halfarea,
-		mwidth));
+		mwidth);
 }
 
 /* Call im_lrmosaic1 via arg vector.
@@ -146,12 +146,12 @@ lrmosaic1_vec(im_object *argv)
 	int halfarea = *((int *) argv[13]);
 	int mwidth = *((int *) argv[15]);
 
-	return (im_lrmosaic1(argv[0], argv[1], argv[2],
+	return im_lrmosaic1(argv[0], argv[1], argv[2],
 		0,
 		xr1, yr1, xs1, ys1,
 		xr2, yr2, xs2, ys2,
 		halfcorrelation, halfarea,
-		0, mwidth));
+		0, mwidth);
 }
 
 /* Description of im_lrmosaic.
@@ -206,7 +206,7 @@ find_lroverlap_vec(im_object *argv)
 	int result;
 
 	if (!(t = im_open("find_lroverlap_vec", "p")))
-		return (-1);
+		return -1;
 	result = vips__find_lroverlap(argv[0], argv[1], t,
 		bandno,
 		xr, yr, xs, ys,
@@ -214,7 +214,7 @@ find_lroverlap_vec(im_object *argv)
 		dx0, dy0, scale1, angle1, dx1, dy1);
 	im_close(t);
 
-	return (result);
+	return result;
 }
 
 /* Description of im__find_lroverlap.
@@ -253,11 +253,11 @@ tbmosaic_vec(im_object *argv)
 	int halfarea = *((int *) argv[9]);
 	int mwidth = *((int *) argv[11]);
 
-	return (vips__tbmosaic(argv[0], argv[1], argv[2],
+	return vips__tbmosaic(argv[0], argv[1], argv[2],
 		bandno,
 		x1, y1, x2, y2,
 		halfcorrelation, halfarea,
-		mwidth));
+		mwidth);
 }
 
 /* Call im_tbmosaic1 via arg vector.
@@ -277,12 +277,12 @@ tbmosaic1_vec(im_object *argv)
 	int halfarea = *((int *) argv[13]);
 	int mwidth = *((int *) argv[15]);
 
-	return (im_tbmosaic1(argv[0], argv[1], argv[2],
+	return im_tbmosaic1(argv[0], argv[1], argv[2],
 		0,
 		xr1, yr1, xs1, ys1,
 		xr2, yr2, xs2, ys2,
 		halfcorrelation, halfarea,
-		0, mwidth));
+		0, mwidth);
 }
 
 /* Call im__find_tboverlap via arg vector.
@@ -308,7 +308,7 @@ find_tboverlap_vec(im_object *argv)
 	int result;
 
 	if (!(t = im_open("find_tboverlap_vec", "p")))
-		return (-1);
+		return -1;
 	result = vips__find_tboverlap(argv[0], argv[1], t,
 		bandno,
 		xr, yr, xs, ys,
@@ -316,7 +316,7 @@ find_tboverlap_vec(im_object *argv)
 		dx0, dy0, scale1, angle1, dx1, dy1);
 	im_close(t);
 
-	return (result);
+	return result;
 }
 
 /* Description of im__find_tboverlap.
@@ -361,7 +361,7 @@ lrmerge_vec(im_object *argv)
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return (im_lrmerge(argv[0], argv[1], argv[2], dx, dy, mwidth));
+	return im_lrmerge(argv[0], argv[1], argv[2], dx, dy, mwidth);
 }
 
 /* Call im_lrmerge1 via arg vector.
@@ -379,9 +379,9 @@ lrmerge1_vec(im_object *argv)
 	int ys2 = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return (im_lrmerge1(argv[0], argv[1], argv[2],
+	return im_lrmerge1(argv[0], argv[1], argv[2],
 		xr1, yr1, xs1, ys1,
-		xr2, yr2, xs2, ys2, mwidth));
+		xr2, yr2, xs2, ys2, mwidth);
 }
 
 /* Description of im_lrmerge.
@@ -415,7 +415,7 @@ tbmerge_vec(im_object *argv)
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return (im_tbmerge(argv[0], argv[1], argv[2], dx, dy, mwidth));
+	return im_tbmerge(argv[0], argv[1], argv[2], dx, dy, mwidth);
 }
 
 /* Call im_tbmerge1 via arg vector.
@@ -433,9 +433,9 @@ tbmerge1_vec(im_object *argv)
 	int ys2 = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return (im_tbmerge1(argv[0], argv[1], argv[2],
+	return im_tbmerge1(argv[0], argv[1], argv[2],
 		xr1, yr1, xs1, ys1,
-		xr2, yr2, xs2, ys2, mwidth));
+		xr2, yr2, xs2, ys2, mwidth);
 }
 
 /* Description of im_tbmerge.
@@ -490,9 +490,9 @@ match_linear_vec(im_object *argv)
 	int xsec2 = *((int *) argv[9]);
 	int ysec2 = *((int *) argv[10]);
 
-	return (im_match_linear(argv[0], argv[1], argv[2],
+	return im_match_linear(argv[0], argv[1], argv[2],
 		xref1, yref1, xsec1, ysec1,
-		xref2, yref2, xsec2, ysec2));
+		xref2, yref2, xsec2, ysec2);
 }
 
 /* Description of im_match_linear.
@@ -540,10 +540,10 @@ match_linear_search_vec(im_object *argv)
 	int hwin = *((int *) argv[11]);
 	int hsrch = *((int *) argv[12]);
 
-	return (im_match_linear_search(argv[0], argv[1], argv[2],
+	return im_match_linear_search(argv[0], argv[1], argv[2],
 		xref1, yref1, xsec1, ysec1,
 		xref2, yref2, xsec2, ysec2,
-		hwin, hsrch));
+		hwin, hsrch);
 }
 
 /* Description of im_match_linear_search.
@@ -588,8 +588,8 @@ correl_vec(im_object *argv)
 	int *y = (int *) argv[9];
 	double *correlation = (double *) argv[10];
 
-	return (vips__correl(argv[0], argv[1],
-		xref, yref, xsec, ysec, cor, area, correlation, x, y));
+	return vips__correl(argv[0], argv[1],
+		xref, yref, xsec, ysec, cor, area, correlation, x, y);
 }
 
 /* Description of im_correl.
@@ -618,7 +618,7 @@ global_balance_vec(im_object *argv)
 {
 	double gamma = *((double *) argv[2]);
 
-	return (im_global_balance(argv[0], argv[1], gamma));
+	return im_global_balance(argv[0], argv[1], gamma);
 }
 
 /* Description of im_global_balance.
@@ -639,7 +639,7 @@ global_balancef_vec(im_object *argv)
 {
 	double gamma = *((double *) argv[2]);
 
-	return (im_global_balancef(argv[0], argv[1], gamma));
+	return im_global_balancef(argv[0], argv[1], gamma);
 }
 
 /* Description of im_global_balancef.
@@ -667,7 +667,7 @@ static im_arg_desc remosaic_args[] = {
 static int
 remosaic_vec(im_object *argv)
 {
-	return (im_remosaic(argv[0], argv[1], argv[2], argv[3]));
+	return im_remosaic(argv[0], argv[1], argv[2], argv[3]);
 }
 
 /* Description of im_remosaic.

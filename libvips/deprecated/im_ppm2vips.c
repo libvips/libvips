@@ -45,27 +45,26 @@ im_ppm2vips(const char *filename, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_ppmload(filename, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static int
 isppm(const char *filename)
 {
-	return (vips_foreign_is_a("ppmload", filename));
+	return vips_foreign_is_a("ppmload", filename);
 }
 
 static VipsFormatFlags
 ppm_flags(const char *filename)
 {
-	return ((VipsFormatFlags)
-			vips_foreign_flags("ppmload", filename));
+	return (VipsFormatFlags) vips_foreign_flags("ppmload", filename);
 }
 
 static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };

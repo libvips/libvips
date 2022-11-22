@@ -77,7 +77,7 @@ im__create_int_luts(int *buffer, int buffersize,
 	buf2 = (int *) calloc((unsigned) buffersize, sizeof(int));
 	if ((buf1 == NULL) || (buf2 == NULL)) {
 		im_error("im_create_int_luts", "%s", _("calloc failed (1)"));
-		return (-1);
+		return -1;
 	}
 
 	pbuffer = buffer;
@@ -125,7 +125,7 @@ im__create_int_luts(int *buffer, int buffersize,
 		orig_luts[i] = (int *) calloc((unsigned) 256, sizeof(int));
 		if (orig_luts[i] == NULL) {
 			im_error("im_create_int_luts", "%s", _("calloc failed (2)"));
-			return (-1);
+			return -1;
 		}
 		for (j = 0; j < 256; j++)
 			*(orig_luts[i] + j) = j * (*pbuf2);
@@ -148,7 +148,7 @@ im__create_int_luts(int *buffer, int buffersize,
 	free((char *) buf1);
 	free((char *) buf2);
 	*cnt = counter;
-	return (0);
+	return 0;
 }
 
 int
@@ -175,20 +175,20 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 	/* Check input, output and vars */
 	if ((xskip < 1) || (yskip < 1)) {
 		im_error("im_convsub", "%s", _("xskip and yskip must be >= 1"));
-		return (-1);
+		return -1;
 	}
 	if (im_iocheck(in, out) == -1)
-		return (-1);
+		return -1;
 
 	if ((in->Coding != IM_CODING_NONE) ||
 		(in->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error("im_convsub", "%s", _("nput should be unsigned char uncoded"));
-		return (-1);
+		return -1;
 	}
 
 	/* Prepare output */
 	if (im_cp_desc(out, in) == -1)
-		return (-1);
+		return -1;
 	tempsize = in->Xsize / xskip;
 	while (1) {
 		if (tempsize * xskip + m->xsize < in->Xsize)
@@ -211,17 +211,17 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 	out->Ysize = tempsize;
 	if ((out->Xsize < 2) || (out->Ysize < 2)) {
 		im_error("im_convsub", "%s", _("too small output sizes"));
-		return (-1);
+		return -1;
 	}
 
 	if (im_setupout(out) == -1)
-		return (-1);
+		return -1;
 
 	/* Malloc one line of output data */
 	os = out->Xsize * out->Bands;
 	if ((line = (PEL *) calloc((unsigned) os, sizeof(char))) == NULL) {
 		im_error("im_convsub", "%s", _("unable to calloc(1)"));
-		return (-1);
+		return -1;
 	}
 
 	/* Malloc pointers and put them at correct location */
@@ -238,7 +238,7 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 		((cpnt1s = (PEL **) calloc((unsigned) count, sizeof(char *))) == NULL) ||
 		((cpnt2s = (PEL **) calloc((unsigned) count, sizeof(char *))) == NULL)) {
 		im_error("im_convsub", "%s", _("unable to calloc(2)"));
-		return (-1);
+		return -1;
 	}
 
 	pnt = pnts;
@@ -263,7 +263,7 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 
 	if (i != count) {
 		im_error("im_convsub", "%s", _("impossible state"));
-		return (-1);
+		return -1;
 	}
 
 	/* Malloc pointers; not all lut_orig are used necessarily */
@@ -271,7 +271,7 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 	lut = (int **) calloc((unsigned) count, sizeof(int **));
 	if ((lut == NULL) || (lut_orig == NULL)) {
 		im_error("im_conv", "%s", _("unable to calloc(1)"));
-		return (-1);
+		return -1;
 	}
 
 	/* Create luts; count is needed for freeing pointers. Not all lut_orig are used
@@ -279,7 +279,7 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 	 */
 	if (im__create_int_luts(newm, count, lut_orig, lut, &lutcnt) == -1) {
 		im_error("im_convsub", "%s", _("im_create_int_luts failed"));
-		return (-1);
+		return -1;
 	}
 
 	rounding = m->scale / 2;
@@ -330,7 +330,7 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 				free((char *) lut_orig[i]);
 			free((char *) lut_orig);
 			free((char *) lut);
-			return (-1);
+			return -1;
 		}
 	} /* end of the for (..y..) loop */
 
@@ -349,5 +349,5 @@ im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 	free((char *) lut_orig);
 	free((char *) lut);
 
-	return (0);
+	return 0;
 }

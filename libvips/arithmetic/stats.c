@@ -117,7 +117,7 @@ vips_stats_build(VipsObject *object)
 		int bands = vips_image_get_bands(statistic->in);
 
 		if (vips_check_noncomplex(class->nickname, statistic->in))
-			return (-1);
+			return -1;
 
 		g_object_set(object,
 			"out", vips_image_new_matrix(COL_LAST, bands + 1),
@@ -125,7 +125,7 @@ vips_stats_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_stats_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	pels = (gint64) vips_image_get_width(statistic->in) *
 		vips_image_get_height(statistic->in);
@@ -171,7 +171,7 @@ vips_stats_build(VipsObject *object)
 			(row0[COL_SUM] * row0[COL_SUM] / vals)) /
 		(vals - 1));
 
-	return (0);
+	return 0;
 }
 
 /* Stop function. Add these little stats to the main set of stats.
@@ -223,7 +223,7 @@ vips_stats_stop(VipsStatistic *statistic, void *seq)
 	VIPS_FREEF(g_object_unref, local->out);
 	VIPS_FREEF(g_free, seq);
 
-	return (0);
+	return 0;
 }
 
 /* Start function: make a dummy local stats for the private use of this thread.
@@ -238,11 +238,11 @@ vips_stats_start(VipsStatistic *statistic)
 	stats = g_new(VipsStats, 1);
 	if (!(stats->out = vips_image_new_matrix(COL_LAST, bands + 1))) {
 		g_free(stats);
-		return (NULL);
+		return NULL;
 	}
 	stats->set = FALSE;
 
-	return ((void *) stats);
+	return (void *) stats;
 }
 
 /* We scan lines bands times to avoid repeating band loops.
@@ -417,7 +417,7 @@ vips_stats_scan(VipsStatistic *statistic, void *seq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -484,5 +484,5 @@ vips_stats(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("stats", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -92,18 +92,18 @@ vips_foreign_load_matrix_build(VipsObject *object)
 	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
 
 	if (!(matrix->sbuf = vips_sbuf_new_from_source(matrix->source)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
 vips_foreign_load_matrix_get_flags(VipsForeignLoad *load)
 {
-	return (0);
+	return 0;
 }
 
 /* Parse a header line. Two numbers for width and height, and two optional
@@ -126,7 +126,7 @@ parse_matrix_header(char *line,
 		if (vips_strtod(p, &header[i])) {
 			vips_error("matload",
 				_("bad number \"%s\""), p);
-			return (-1);
+			return -1;
 		}
 
 	if (i < 4)
@@ -135,13 +135,13 @@ parse_matrix_header(char *line,
 		header[2] = 1.0;
 	if (i < 2) {
 		vips_error("matload", "%s", _("no width / height"));
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_FLOOR(header[0]) != header[0] ||
 		VIPS_FLOOR(header[1]) != header[1]) {
 		vips_error("mask2vips", "%s", _("width / height not int"));
-		return (-1);
+		return -1;
 	}
 
 	/* Width / height can be 65536 for a 16-bit LUT, for example.
@@ -154,17 +154,17 @@ parse_matrix_header(char *line,
 		*height > 100000) {
 		vips_error("mask2vips",
 			"%s", _("width / height out of range"));
-		return (-1);
+		return -1;
 	}
 	if (header[2] == 0.0) {
 		vips_error("mask2vips", "%s", _("zero scale"));
-		return (-1);
+		return -1;
 	}
 
 	*scale = header[2];
 	*offset = header[3];
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -183,17 +183,17 @@ vips_foreign_load_matrix_header(VipsForeignLoad *load)
 	 */
 	vips_sbuf_unbuffer(matrix->sbuf);
 	if (vips_source_rewind(matrix->source))
-		return (-1);
+		return -1;
 
 	line = vips_sbuf_get_line_copy(matrix->sbuf);
 	result = parse_matrix_header(line, &width, &height, &scale, &offset);
 	g_free(line);
 	if (result)
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(load->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(load->out,
 		width, height, 1,
 		VIPS_FORMAT_DOUBLE,
@@ -206,9 +206,9 @@ vips_foreign_load_matrix_header(VipsForeignLoad *load)
 		vips_connection_filename(VIPS_CONNECTION(matrix->source)));
 
 	if (!(matrix->linebuf = VIPS_ARRAY(NULL, width, double)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -221,7 +221,7 @@ vips_foreign_load_matrix_load(VipsForeignLoad *load)
 
 	if (vips_image_pipelinev(load->real,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(load->real,
 		load->out->Xsize, load->out->Ysize, 1,
 		VIPS_FORMAT_DOUBLE,
@@ -241,7 +241,7 @@ vips_foreign_load_matrix_load(VipsForeignLoad *load)
 				vips_error(class->nickname,
 					_("bad number \"%s\""), p);
 				g_free(line);
-				return (-1);
+				return -1;
 			}
 
 		g_free(line);
@@ -249,15 +249,15 @@ vips_foreign_load_matrix_load(VipsForeignLoad *load)
 		if (x != load->out->Xsize) {
 			vips_error(class->nickname,
 				_("line %d too short"), y);
-			return (-1);
+			return -1;
 		}
 
 		if (vips_image_write_line(load->real, y,
 				(VipsPel *) matrix->linebuf))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -300,7 +300,7 @@ G_DEFINE_TYPE(VipsForeignLoadMatrixFile, vips_foreign_load_matrix_file,
 static VipsForeignFlags
 vips_foreign_load_matrix_file_get_flags_filename(const char *filename)
 {
-	return (0);
+	return 0;
 }
 
 static int
@@ -312,13 +312,13 @@ vips_foreign_load_matrix_file_build(VipsObject *object)
 	if (file->filename)
 		if (!(matrix->source =
 					vips_source_new_from_file(file->filename)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_load_matrix_suffs[] = {
@@ -338,7 +338,7 @@ vips_foreign_load_matrix_file_is_a(const char *filename)
 	int result;
 
 	if ((bytes = vips__get_bytes(filename, line, 79)) <= 0)
-		return (FALSE);
+		return FALSE;
 	line[bytes] = '\0';
 
 	vips_error_freeze();
@@ -346,7 +346,7 @@ vips_foreign_load_matrix_file_is_a(const char *filename)
 		&width, &height, &scale, &offset);
 	vips_error_thaw();
 
-	return (result == 0);
+	return result == 0;
 }
 
 static void
@@ -409,9 +409,9 @@ vips_foreign_load_matrix_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -428,7 +428,7 @@ vips_foreign_load_matrix_source_is_a_source(VipsSource *source)
 
 	if ((bytes_read = vips_source_sniff_at_most(source,
 			 &data, 79)) <= 0)
-		return (FALSE);
+		return FALSE;
 	vips_strncpy(line, (const char *) data, 80);
 
 	vips_error_freeze();
@@ -436,7 +436,7 @@ vips_foreign_load_matrix_source_is_a_source(VipsSource *source)
 		&width, &height, &scale, &offset);
 	vips_error_thaw();
 
-	return (result == 0);
+	return result == 0;
 }
 
 static void
@@ -513,7 +513,7 @@ vips_matrixload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("matrixload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -538,5 +538,5 @@ vips_matrixload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("matrixload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

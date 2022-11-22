@@ -197,7 +197,7 @@ vips_unpremultiply_gen(VipsRegion * or, void *vseq, void *a, void *b,
 	int x, y, i;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
@@ -243,7 +243,7 @@ vips_unpremultiply_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -257,25 +257,25 @@ vips_unpremultiply_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_unpremultiply_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = unpremultiply->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* Trivial case: fall back to copy().
 	 */
 	if (in->Bands == 1)
-		return (vips_image_write(in, conversion->out));
+		return vips_image_write(in, conversion->out);
 
 	if (vips_check_noncomplex(class->nickname, in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 
 	/* Is max-alpha unset? Default to the correct value for this
 	 * interpretation.
@@ -298,9 +298,9 @@ vips_unpremultiply_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_unpremultiply_gen, vips_stop_one,
 			in, unpremultiply))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -400,5 +400,5 @@ vips_unpremultiply(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("unpremultiply", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -148,7 +148,7 @@ vips_linear_build(VipsObject *object)
 				linear->a->n, unary->in) ||
 			vips_check_vector(class->nickname,
 				linear->b->n, unary->in))
-			return (-1);
+			return -1;
 	}
 
 	/* If all elements of the constants are equal, we can shrink them down
@@ -208,9 +208,9 @@ vips_linear_build(VipsObject *object)
 		arithmetic->format = VIPS_FORMAT_UCHAR;
 
 	if (VIPS_OBJECT_CLASS(vips_linear_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Non-complex input, any output, all bands of the constant equal.
@@ -493,7 +493,7 @@ vips_linearv(VipsImage *in, VipsImage **out,
 	vips_area_unref(area_a);
 	vips_area_unref(area_b);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -536,7 +536,7 @@ vips_linear(VipsImage *in, VipsImage **out,
 	result = vips_linearv(in, out, a, b, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -567,5 +567,5 @@ vips_linear1(VipsImage *in, VipsImage **out, double a, double b, ...)
 	result = vips_linearv(in, out, &a, &b, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

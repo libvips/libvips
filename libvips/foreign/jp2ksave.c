@@ -145,9 +145,9 @@ vips_foreign_save_jp2k_target_write(void *buffer, size_t length, void *client)
 	VipsTarget *target = VIPS_TARGET(client);
 
 	if (vips_target_write(target, buffer, length))
-		return (0);
+		return 0;
 
-	return (length);
+	return length;
 }
 
 static OPJ_BOOL
@@ -156,9 +156,9 @@ vips_foreign_save_jp2k_target_seek(off_t position, void *client)
 	VipsTarget *target = VIPS_TARGET(client);
 
 	if (vips_target_seek(target, position, SEEK_SET) < 0)
-		return (FALSE);
+		return FALSE;
 
-	return (TRUE);
+	return TRUE;
 }
 
 static OPJ_OFF_T
@@ -167,9 +167,9 @@ vips_foreign_save_jp2k_target_skip(off_t offset, void *client)
 	VipsTarget *target = VIPS_TARGET(client);
 
 	if (vips_target_seek(target, offset, SEEK_CUR) < 0)
-		return (-1);
+		return -1;
 
-	return (offset);
+	return offset;
 }
 
 /* Make a libopenjp2 output stream that wraps a VipsTarget.
@@ -182,7 +182,7 @@ vips_foreign_save_jp2k_target(VipsTarget *target)
 	/* FALSE means a write stream.
 	 */
 	if (!(stream = opj_stream_create(OPJ_J2K_STREAM_CHUNK_SIZE, FALSE)))
-		return (NULL);
+		return NULL;
 
 	opj_stream_set_user_data(stream, target, NULL);
 	opj_stream_set_write_function(stream,
@@ -192,7 +192,7 @@ vips_foreign_save_jp2k_target(VipsTarget *target)
 	opj_stream_set_skip_function(stream,
 		vips_foreign_save_jp2k_target_skip);
 
-	return (stream);
+	return stream;
 }
 
 static void
@@ -485,7 +485,7 @@ vips_foreign_save_jp2k_sizeof_tile(VipsForeignSaveJp2k *jp2k, VipsRect *tile)
 		size += output_width * output_height * sizeof_element;
 	}
 
-	return (size);
+	return size;
 }
 
 static int
@@ -529,10 +529,10 @@ vips_foreign_save_jp2k_write_tiles(VipsForeignSaveJp2k *jp2k)
 		if (!opj_write_tile(jp2k->codec, tile_index,
 				(VipsPel *) jp2k->tile_buffer, sizeof_tile,
 				jp2k->stream))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -575,7 +575,7 @@ vips_foreign_save_jp2k_write_block(VipsRegion *region, VipsRect *area,
 		 * pixels and move the strip down.
 		 */
 		if (vips_foreign_save_jp2k_write_tiles(jp2k))
-			return (-1);
+			return -1;
 
 		new.left = 0;
 		new.top = jp2k->strip->valid.top + jp2k->tile_height;
@@ -593,10 +593,10 @@ vips_foreign_save_jp2k_write_block(VipsRegion *region, VipsRect *area,
 			break;
 
 		if (vips_region_buffer(jp2k->strip, &new))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* We can't call opj_calloc on win, sadly.
@@ -617,14 +617,14 @@ vips_opj_image_create(OPJ_UINT32 numcmpts,
 	opj_image_t *image = NULL;
 
 	if (!(image = VIPS_OPJ_CALLOC(1, opj_image_t)))
-		return (NULL);
+		return NULL;
 
 	image->color_space = clrspc;
 	image->numcomps = numcmpts;
 	image->comps = VIPS_OPJ_CALLOC(image->numcomps, opj_image_comp_t);
 	if (!image->comps) {
 		opj_image_destroy(image);
-		return (NULL);
+		return NULL;
 	}
 
 	for (compno = 0; compno < numcmpts; compno++) {
@@ -643,7 +643,7 @@ vips_opj_image_create(OPJ_UINT32 numcmpts,
 			(OPJ_SIZE_T) comp->w > SIZE_MAX / comp->h /
 					sizeof(OPJ_INT32)) {
 			opj_image_destroy(image);
-			return (NULL);
+			return NULL;
 		}
 
 		/* Allocation is optional.
@@ -661,7 +661,7 @@ vips_opj_image_create(OPJ_UINT32 numcmpts,
 		}
 	}
 
-	return (image);
+	return image;
 }
 
 static opj_image_t *
@@ -677,7 +677,7 @@ vips_foreign_save_jp2k_new_image(VipsImage *im,
 	int i;
 
 	if (im->Bands > MAX_BANDS)
-		return (NULL);
+		return NULL;
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
@@ -749,7 +749,7 @@ vips_foreign_save_jp2k_new_image(VipsImage *im,
 	for (i = 0; i < im->Bands; i++)
 		image->comps[i].alpha = i >= expected_bands;
 
-	return (image);
+	return image;
 }
 
 /* Compression profile derived from the BM's recommendations, see:
@@ -808,7 +808,7 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	VipsRect strip_position;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Analyze our arguments.
 	 */
@@ -816,7 +816,7 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	if (!vips_band_format_isint(save->ready->BandFmt)) {
 		vips_error(class->nickname,
 			"%s", _("not an integer format"));
-		return (-1);
+		return -1;
 	}
 
 	switch (jp2k->subsample_mode) {
@@ -888,17 +888,17 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	if (!(jp2k->image = vips_foreign_save_jp2k_new_image(save->ready,
 			  save->ready->Xsize, save->ready->Ysize,
 			  jp2k->subsample, jp2k->save_as_ycc, FALSE)))
-		return (-1);
+		return -1;
 	if (!opj_setup_encoder(jp2k->codec, &jp2k->parameters, jp2k->image))
-		return (-1);
+		return -1;
 
 	opj_codec_set_threads(jp2k->codec, vips_concurrency_get());
 
 	if (!(jp2k->stream = vips_foreign_save_jp2k_target(jp2k->target)))
-		return (-1);
+		return -1;
 
 	if (!opj_start_compress(jp2k->codec, jp2k->image, jp2k->stream))
-		return (-1);
+		return -1;
 
 	/* The buffer we repack tiles to for write. Large enough for one
 	 * complete tile.
@@ -906,13 +906,13 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	sizeof_tile = VIPS_IMAGE_SIZEOF_PEL(save->ready) *
 		jp2k->tile_width * jp2k->tile_height;
 	if (!(jp2k->tile_buffer = VIPS_ARRAY(NULL, sizeof_tile, VipsPel)))
-		return (-1);
+		return -1;
 
 	/* We need a line of sums for chroma subsample. At worst, gint64.
 	 */
 	sizeof_line = sizeof(gint64) * jp2k->tile_width;
 	if (!(jp2k->accumulate = VIPS_ARRAY(NULL, sizeof_line, VipsPel)))
-		return (-1);
+		return -1;
 
 	/* The line of tiles we are building. It's used by the bg thread, so
 	 * no ownership.
@@ -928,20 +928,20 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	strip_position.width = save->ready->Xsize;
 	strip_position.height = jp2k->tile_height;
 	if (vips_region_buffer(jp2k->strip, &strip_position))
-		return (-1);
+		return -1;
 
 	/* Write data.
 	 */
 	if (vips_sink_disc(save->ready,
 			vips_foreign_save_jp2k_write_block, jp2k))
-		return (-1);
+		return -1;
 
 	opj_end_compress(jp2k->codec, jp2k->stream);
 
 	if (vips_target_end(jp2k->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1035,13 +1035,13 @@ vips_foreign_save_jp2k_file_build(VipsObject *object)
 	VipsForeignSaveJp2kFile *file = (VipsForeignSaveJp2kFile *) object;
 
 	if (!(jp2k->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1093,17 +1093,17 @@ vips_foreign_save_jp2k_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(jp2k->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(jp2k->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1157,9 +1157,9 @@ vips_foreign_save_jp2k_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1358,7 +1358,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	if (!(compress.image = vips_foreign_save_jp2k_new_image(region->im,
 			  tile_width, tile_height, subsample, save_as_ycc, TRUE))) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	/* We need a line of sums for chroma subsample. At worst, gint64.
@@ -1367,7 +1367,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	if (!(compress.accumulate =
 				VIPS_ARRAY(NULL, sizeof_line, VipsPel))) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	/* tiff needs a jpeg2000 codestream, not a jp2 file.
@@ -1377,7 +1377,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	if (!opj_setup_encoder(compress.codec,
 			&parameters, compress.image)) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	opj_codec_set_threads(compress.codec, vips_concurrency_get());
@@ -1398,25 +1398,25 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 
 	if (!(compress.stream = vips_foreign_save_jp2k_target(target))) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	if (!opj_start_compress(compress.codec,
 			compress.image, compress.stream)) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	if (!opj_encode(compress.codec, compress.stream)) {
 		vips__foreign_load_jp2k_compress_free(&compress);
-		return (-1);
+		return -1;
 	}
 
 	opj_end_compress(compress.codec, compress.stream);
 
 	vips__foreign_load_jp2k_compress_free(&compress);
 
-	return (0);
+	return 0;
 }
 
 #else /*!HAVE_LIBOPENJP2*/
@@ -1429,7 +1429,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 {
 	vips_error("jp2k",
 		"%s", _("libvips built without JPEG2000 support"));
-	return (-1);
+	return -1;
 }
 
 #endif /*HAVE_LIBOPENJP2*/
@@ -1481,7 +1481,7 @@ vips_jp2ksave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("jp2ksave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1530,7 +1530,7 @@ vips_jp2ksave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1563,5 +1563,5 @@ vips_jp2ksave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("jp2ksave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

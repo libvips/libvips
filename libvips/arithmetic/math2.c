@@ -92,15 +92,15 @@ vips_math2_build(VipsObject *object)
 
 	if (binary->left &&
 		vips_check_noncomplex(class->nickname, binary->left))
-		return (-1);
+		return -1;
 	if (binary->right &&
 		vips_check_noncomplex(class->nickname, binary->right))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_math2_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(IN, OUT, OP) \
@@ -264,7 +264,7 @@ static int
 vips_math2v(VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationMath2 math2, va_list ap)
 {
-	return (vips_call_split("math2", ap, left, right, out, math2));
+	return vips_call_split("math2", ap, left, right, out, math2);
 }
 
 /**
@@ -311,7 +311,7 @@ vips_math2(VipsImage *left, VipsImage *right, VipsImage **out,
 	result = vips_math2v(left, right, out, math2, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -336,7 +336,7 @@ vips_pow(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_math2v(left, right, out, VIPS_OPERATION_MATH2_POW, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -361,7 +361,7 @@ vips_wop(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_math2v(left, right, out, VIPS_OPERATION_MATH2_WOP, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -386,7 +386,7 @@ vips_atan2(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_math2v(left, right, out, VIPS_OPERATION_MATH2_ATAN2, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsMath2Const {
@@ -409,12 +409,12 @@ vips_math2_const_build(VipsObject *object)
 
 	if (unary->in &&
 		vips_check_noncomplex(class->nickname, unary->in))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_math2_const_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOPC(IN, OUT, OP) \
@@ -508,7 +508,7 @@ vips_math2_constv(VipsImage *in, VipsImage **out,
 
 	vips_area_unref(area_c);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -551,7 +551,7 @@ vips_math2_const(VipsImage *in, VipsImage **out,
 	result = vips_math2_constv(in, out, math2, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -578,7 +578,7 @@ vips_pow_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_MATH2_POW, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -605,7 +605,7 @@ vips_wop_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_MATH2_WOP, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -632,7 +632,7 @@ vips_atan2_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_MATH2_ATAN2, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -659,7 +659,7 @@ vips_math2_const1(VipsImage *in, VipsImage **out,
 	result = vips_math2_constv(in, out, math2, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -685,7 +685,7 @@ vips_pow_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_MATH2_POW, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -711,7 +711,7 @@ vips_wop_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_MATH2_WOP, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -737,5 +737,5 @@ vips_atan2_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_MATH2_ATAN2, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

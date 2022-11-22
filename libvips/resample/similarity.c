@@ -92,7 +92,7 @@ vips_similarity_base_build(VipsObject *object)
 	double d = a;
 
 	if (VIPS_OBJECT_CLASS(vips_similarity_base_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_affine(resample->in, &t[0], a, b, c, d,
 			"interpolate", base->interpolate,
@@ -102,12 +102,12 @@ vips_similarity_base_build(VipsObject *object)
 			"idy", base->idy,
 			"background", base->background,
 			NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_write(t[0], resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -251,7 +251,7 @@ vips_similarity(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("similarity", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef VipsSimilarityBase VipsRotate;
@@ -319,5 +319,5 @@ vips_rotate(VipsImage *in, VipsImage **out, double angle, ...)
 	result = vips_call_split("rotate", ap, in, out, angle);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

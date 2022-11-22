@@ -105,7 +105,7 @@ vips_thing_new(int i)
 
 	printf("vips_thing_new: %d %p\n", i, thing);
 
-	return (thing);
+	return thing;
 }
 
 static VipsThing *
@@ -117,7 +117,7 @@ vips_thing_copy(VipsThing *thing)
 
 	printf("vips_thing_copy: %d %p = %p\n", thing->i, thing2, thing);
 
-	return (thing2);
+	return thing2;
 }
 
 static void
@@ -149,7 +149,7 @@ vips_area_copy(VipsArea *area)
 
 	g_mutex_unlock(area->lock);
 
-	return (area);
+	return area;
 }
 
 int
@@ -157,7 +157,7 @@ vips_area_free_cb(void *mem, VipsArea *area)
 {
 	g_free(mem);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -263,7 +263,7 @@ vips_area_new(VipsCallbackFn free_fn, void *data)
 	g_mutex_unlock(vips__global_lock);
 #endif /*DEBUG*/
 
-	return (area);
+	return area;
 }
 
 int
@@ -288,7 +288,7 @@ vips__type_leak(void)
 		}
 	}
 
-	return (n_leaks);
+	return n_leaks;
 }
 
 /**
@@ -317,7 +317,7 @@ vips_area_new_array(GType type, size_t sizeof_type, int n)
 	area->type = type;
 	area->sizeof_type = sizeof_type;
 
-	return (area);
+	return area;
 }
 
 static int
@@ -331,7 +331,7 @@ vips_area_free_array_object(GObject **array, VipsArea *area)
 
 	area->n = 0;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -362,7 +362,7 @@ vips_area_new_array_object(int n)
 	area->type = G_TYPE_OBJECT;
 	area->sizeof_type = sizeof(GObject *);
 
-	return (area);
+	return area;
 }
 
 /**
@@ -384,7 +384,7 @@ vips_area_get_data(VipsArea *area,
 	size_t *length, int *n, GType *type, size_t *sizeof_type)
 {
 	if (!area)
-		return (NULL);
+		return NULL;
 
 	if (length)
 		*length = area->length;
@@ -395,7 +395,7 @@ vips_area_get_data(VipsArea *area,
 	if (sizeof_type)
 		*sizeof_type = area->sizeof_type;
 
-	return (area->data);
+	return area->data;
 }
 
 /* Transform an area to a G_TYPE_STRING.
@@ -572,7 +572,7 @@ vips_ref_string_new(const char *str)
 	 */
 	area->length = strlen(str);
 
-	return ((VipsRefString *) area);
+	return (VipsRefString *) area;
 }
 
 /**
@@ -592,7 +592,7 @@ vips_ref_string_get(VipsRefString *refstr, size_t *length)
 {
 	VipsArea *area = VIPS_AREA(refstr);
 
-	return (vips_area_get_data(area, length, NULL, NULL, NULL));
+	return vips_area_get_data(area, length, NULL, NULL, NULL);
 }
 
 G_DEFINE_BOXED_TYPE_WITH_CODE(VipsRefString, vips_ref_string,
@@ -643,7 +643,7 @@ vips_blob_new(VipsCallbackFn free_fn, const void *data, size_t length)
 	area = vips_area_new(free_fn, (void *) data);
 	area->length = length;
 
-	return ((VipsBlob *) area);
+	return (VipsBlob *) area;
 }
 
 /**
@@ -669,7 +669,7 @@ vips_blob_copy(const void *data, size_t length)
 	area = vips_area_new((VipsCallbackFn) vips_area_free_cb, data_copy);
 	area->length = length;
 
-	return ((VipsBlob *) area);
+	return (VipsBlob *) area;
 }
 
 /**
@@ -687,8 +687,8 @@ vips_blob_copy(const void *data, size_t length)
 const void *
 vips_blob_get(VipsBlob *blob, size_t *length)
 {
-	return (vips_area_get_data(VIPS_AREA(blob),
-		length, NULL, NULL, NULL));
+	return vips_area_get_data(VIPS_AREA(blob),
+		length, NULL, NULL, NULL);
 }
 
 /**
@@ -816,7 +816,7 @@ vips_array_int_new(const int *array, int n)
 	array_copy = vips_area_get_data(area, NULL, NULL, NULL, NULL);
 	memcpy(array_copy, array, n * sizeof(int));
 
-	return ((VipsArrayInt *) area);
+	return (VipsArrayInt *) area;
 }
 
 /**
@@ -847,7 +847,7 @@ vips_array_int_newv(int n, ...)
 		array[i] = va_arg(ap, int);
 	va_end(ap);
 
-	return ((VipsArrayInt *) area);
+	return (VipsArrayInt *) area;
 }
 
 /**
@@ -869,7 +869,7 @@ vips_array_int_get(VipsArrayInt *array, int *n)
 	if (n)
 		*n = area->n;
 
-	return ((int *) VIPS_ARRAY_ADDR(array, 0));
+	return (int *) VIPS_ARRAY_ADDR(array, 0);
 }
 
 static void
@@ -1061,7 +1061,7 @@ vips_array_double_new(const double *array, int n)
 	array_copy = vips_area_get_data(area, NULL, NULL, NULL, NULL);
 	memcpy(array_copy, array, n * sizeof(double));
 
-	return ((VipsArrayDouble *) area);
+	return (VipsArrayDouble *) area;
 }
 
 /**
@@ -1092,7 +1092,7 @@ vips_array_double_newv(int n, ...)
 		array[i] = va_arg(ap, double);
 	va_end(ap);
 
-	return ((VipsArrayDouble *) area);
+	return (VipsArrayDouble *) area;
 }
 
 /**
@@ -1114,7 +1114,7 @@ vips_array_double_get(VipsArrayDouble *array, int *n)
 	if (n)
 		*n = area->n;
 
-	return (VIPS_ARRAY_ADDR(array, 0));
+	return VIPS_ARRAY_ADDR(array, 0);
 }
 
 static void
@@ -1288,7 +1288,7 @@ vips_array_image_new(VipsImage **array, int n)
 		g_object_ref(array_copy[i]);
 	}
 
-	return ((VipsArrayImage *) area);
+	return (VipsArrayImage *) area;
 }
 
 /**
@@ -1329,7 +1329,7 @@ vips_array_image_newv(int n, ...)
 	}
 	va_end(ap);
 
-	return ((VipsArrayImage *) area);
+	return (VipsArrayImage *) area;
 }
 
 VipsArrayImage *
@@ -1367,7 +1367,7 @@ vips_array_image_new_from_string(const char *string, VipsAccess access)
 				  NULL))) {
 			vips_area_unref(area);
 			g_free(str);
-			return (NULL);
+			return NULL;
 		}
 
 		i += 1;
@@ -1375,7 +1375,7 @@ vips_array_image_new_from_string(const char *string, VipsAccess access)
 
 	g_free(str);
 
-	return ((VipsArrayImage *) area);
+	return (VipsArrayImage *) area;
 }
 
 /**
@@ -1392,7 +1392,7 @@ vips_array_image_new_from_string(const char *string, VipsAccess access)
 VipsArrayImage *
 vips_array_image_empty(void)
 {
-	return (vips_array_image_new(NULL, 0));
+	return vips_array_image_new(NULL, 0);
 }
 
 /**
@@ -1432,7 +1432,7 @@ vips_array_image_append(VipsArrayImage *array, VipsImage *image)
 	new_vector[i] = image;
 	g_object_ref(new_vector[i]);
 
-	return ((VipsArrayImage *) new_area);
+	return (VipsArrayImage *) new_area;
 }
 
 /**
@@ -1454,7 +1454,7 @@ vips_array_image_get(VipsArrayImage *array, int *n)
 	if (n)
 		*n = area->n;
 
-	return ((VipsImage **) VIPS_ARRAY_ADDR(array, 0));
+	return (VipsImage **) VIPS_ARRAY_ADDR(array, 0);
 }
 
 static void
@@ -1525,7 +1525,7 @@ vips_value_get_area(const GValue *value, size_t *length)
 
 	area = g_value_get_boxed(value);
 
-	return (vips_area_get_data(area, length, NULL, NULL, NULL));
+	return vips_area_get_data(area, length, NULL, NULL, NULL);
 }
 
 /**
@@ -1539,7 +1539,7 @@ vips_value_get_area(const GValue *value, size_t *length)
 const char *
 vips_value_get_save_string(const GValue *value)
 {
-	return ((char *) g_value_get_boxed(value));
+	return (char *) g_value_get_boxed(value);
 }
 
 /**
@@ -1597,7 +1597,7 @@ vips_value_set_save_stringf(GValue *value, const char *fmt, ...)
 const char *
 vips_value_get_ref_string(const GValue *value, size_t *length)
 {
-	return (vips_value_get_area(value, length));
+	return vips_value_get_area(value, length);
 }
 
 /**
@@ -1702,7 +1702,7 @@ vips_value_set_blob_free(GValue *value, void *data, size_t length)
 void *
 vips_value_get_blob(const GValue *value, size_t *length)
 {
-	return (vips_value_get_area(value, length));
+	return vips_value_get_area(value, length);
 }
 
 /**
@@ -1753,7 +1753,7 @@ vips_value_get_array(const GValue *value,
 	 */
 
 	if (!(area = g_value_get_boxed(value)))
-		return (NULL);
+		return NULL;
 	if (n)
 		*n = area->n;
 	if (type)
@@ -1761,7 +1761,7 @@ vips_value_get_array(const GValue *value,
 	if (sizeof_type)
 		*sizeof_type = area->sizeof_type;
 
-	return (area->data);
+	return area->data;
 }
 
 /**
@@ -1779,7 +1779,7 @@ vips_value_get_array(const GValue *value,
 int *
 vips_value_get_array_int(const GValue *value, int *n)
 {
-	return (vips_value_get_array(value, n, NULL, NULL));
+	return vips_value_get_array(value, n, NULL, NULL);
 }
 
 /**
@@ -1820,7 +1820,7 @@ vips_value_set_array_int(GValue *value, const int *array, int n)
 double *
 vips_value_get_array_double(const GValue *value, int *n)
 {
-	return (vips_value_get_array(value, n, NULL, NULL));
+	return vips_value_get_array(value, n, NULL, NULL);
 }
 
 /**
@@ -1861,7 +1861,7 @@ vips_value_set_array_double(GValue *value, const double *array, int n)
 VipsImage **
 vips_value_get_array_image(const GValue *value, int *n)
 {
-	return (vips_value_get_array(value, n, NULL, NULL));
+	return vips_value_get_array(value, n, NULL, NULL);
 }
 
 /**
@@ -1899,7 +1899,7 @@ vips_value_set_array_image(GValue *value, int n)
 GObject **
 vips_value_get_array_object(const GValue *value, int *n)
 {
-	return (vips_value_get_array(value, n, NULL, NULL));
+	return vips_value_get_array(value, n, NULL, NULL);
 }
 
 /**

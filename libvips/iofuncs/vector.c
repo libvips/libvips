@@ -116,9 +116,9 @@ gboolean
 vips_vector_isenabled(void)
 {
 #ifdef HAVE_ORC
-	return (vips__vector_enabled);
+	return vips__vector_enabled;
 #else  /*!HAVE_ORC*/
-	return (FALSE);
+	return FALSE;
 #endif /*HAVE_ORC*/
 }
 
@@ -159,7 +159,7 @@ vips_vector_new(const char *name, int dsize)
 	int i;
 
 	if (!(vector = VIPS_NEW(NULL, VipsVector)))
-		return (NULL);
+		return NULL;
 	vector->name = name;
 	vector->unique_name = g_strdup_printf("p[%d]", vector_number++);
 	vector->n_temp = 0;
@@ -195,7 +195,7 @@ vips_vector_new(const char *name, int dsize)
 	 */
 	vector->d1 = vips_vector_destination(vector, "d1", dsize);
 
-	return (vector);
+	return vector;
 }
 
 void
@@ -319,7 +319,7 @@ vips_vector_source_name(VipsVector *vector, const char *name, int size)
 	var = -1;
 #endif /*HAVE_ORC*/
 
-	return (var);
+	return var;
 }
 
 void
@@ -360,7 +360,7 @@ vips_vector_parameter(VipsVector *vector, const char *name, int size)
 	var = -1;
 #endif /*HAVE_ORC*/
 
-	return (var);
+	return var;
 }
 
 int
@@ -381,7 +381,7 @@ vips_vector_destination(VipsVector *vector, const char *name, int size)
 	var = -1;
 #endif /*HAVE_ORC*/
 
-	return (var);
+	return var;
 }
 
 gboolean
@@ -395,26 +395,26 @@ vips_vector_full(VipsVector *vector)
 	 * coefficient, so stop if we're sure we don't have enough.
 	 */
 	if (vector->n_constant + 2 > 8 /*ORC_MAX_CONST_VARS*/)
-		return (TRUE);
+		return TRUE;
 
 	/* You can have 8 source, and d1 counts as one of them, so +1
 	 * there.
 	 */
 	if (vector->n_source + vector->n_scanline + 1 > 7 /*ORC_MAX_SRC_VARS - 1*/)
-		return (TRUE);
+		return TRUE;
 
 	/* Need to leave some space, so 1 spare.
 	 */
 	if (vector->n_parameter > 7 /*ORC_MAX_PARAM_VARS - 1*/)
-		return (TRUE);
+		return TRUE;
 
 	/* After signalling full, some operations will add up to 4 more
 	 * instructions as they finish up. Leave a margin.
 	 */
 	if (vector->n_instruction + 10 > 50 /*ORC_N_INSNS / 2*/)
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 gboolean
@@ -437,13 +437,13 @@ vips_vector_compile(VipsVector *vector)
 		printf("*** error compiling %s\n", vector->name);
 #endif /*DEBUG*/
 
-		return (FALSE);
+		return FALSE;
 	}
 
 	vector->compiled = TRUE;
 #endif /*HAVE_ORC*/
 
-	return (TRUE);
+	return TRUE;
 }
 
 void

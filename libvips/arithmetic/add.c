@@ -285,5 +285,5 @@ vips_add(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("add", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

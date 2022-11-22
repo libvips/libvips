@@ -51,8 +51,8 @@ im_video_test(IMAGE *im, int brightness, int error)
 {
 	if (error) {
 		im_error("im_video_test", "%s", _("error requested"));
-		return (-1);
+		return -1;
 	}
 	else
-		return (im_gaussnoise(im, 720, 576, brightness, 20));
+		return im_gaussnoise(im, 720, 576, brightness, 20);
 }

@@ -246,5 +246,5 @@ vips_float2rad(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("float2rad", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

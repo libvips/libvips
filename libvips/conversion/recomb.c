@@ -110,7 +110,7 @@ vips_recomb_gen(VipsRegion * or,
 	int y, x, u, v;
 
 	if (vips_region_prepare(ir, & or->valid))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < or->valid.height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir,
@@ -149,7 +149,7 @@ vips_recomb_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -163,34 +163,34 @@ vips_recomb_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_recomb_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = recomb->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_noncomplex(class->nickname, in))
-		return (-1);
+		return -1;
 	if (vips_image_pio_input(recomb->m) ||
 		vips_check_uncoded(class->nickname, recomb->m) ||
 		vips_check_noncomplex(class->nickname, recomb->m) ||
 		vips_check_mono(class->nickname, recomb->m))
-		return (-1);
+		return -1;
 	if (in->Bands != recomb->m->Xsize) {
 		vips_error(class->nickname,
 			"%s", _("bands in must equal matrix width"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_check_matrix(class->nickname, recomb->m, &t[1]))
-		return (-1);
+		return -1;
 	recomb->coeff = t[1];
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 
 	conversion->out->Bands = recomb->m->Ysize;
 	if (vips_band_format_isint(in->BandFmt))
@@ -199,9 +199,9 @@ vips_recomb_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_recomb_gen, vips_stop_one,
 			in, recomb))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -268,5 +268,5 @@ vips_recomb(VipsImage *in, VipsImage **out, VipsImage *m, ...)
 	result = vips_call_split("recomb", ap, in, out, m);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

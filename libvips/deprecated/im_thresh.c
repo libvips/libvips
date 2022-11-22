@@ -92,24 +92,24 @@ im_thresh(IMAGE *in, IMAGE *out, double threshold)
 
 	/* Check our args. */
 	if (im_iocheck(in, out))
-		return (-1);
+		return -1;
 	if (in->Coding != IM_CODING_NONE) {
 		im_error("im_thresh", "%s", _("input should be uncoded"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set up the output header.  */
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	/* Make buffer for building o/p in.  */
 	epl = in->Xsize * in->Bands;
 	s = epl * sizeof(PEL);
 	if ((bu = (PEL *) im_malloc(out, (unsigned) s)) == NULL)
-		return (-1);
+		return -1;
 
 /* Define what we do for each band element type.  */
 #define im_thresh_loop(TYPE) \
@@ -128,7 +128,7 @@ im_thresh(IMAGE *in, IMAGE *out, double threshold)
 			} \
 \
 			if (im_writeline(y, out, bu)) \
-				return (-1); \
+				return -1; \
 		} \
 	}
 
@@ -138,8 +138,8 @@ im_thresh(IMAGE *in, IMAGE *out, double threshold)
 
 	default:
 		im_error("im_thresh", "%s", _("Unknown input format"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }

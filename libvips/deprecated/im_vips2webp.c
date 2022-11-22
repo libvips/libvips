@@ -65,6 +65,6 @@ im_vips2webp(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p)))
 		lossless = atoi(q);
 
-	return (vips_webpsave(in, name,
-		"Q", compression, "lossless", lossless, NULL));
+	return vips_webpsave(in, name,
+		"Q", compression, "lossless", lossless, NULL);
 }

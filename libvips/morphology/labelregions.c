@@ -69,7 +69,7 @@ vips_labelregions_build(VipsObject *object)
 	int x, y;
 
 	if (VIPS_OBJECT_CLASS(vips_labelregions_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Create the zero mask image in memory.
 	 */
@@ -80,7 +80,7 @@ vips_labelregions_build(VipsObject *object)
 	if (vips_black(&t[0], in->Xsize, in->Ysize, NULL) ||
 		vips_cast(t[0], &t[1], VIPS_FORMAT_INT, NULL) ||
 		vips_image_write(t[1], mask))
-		return (-1);
+		return -1;
 
 	segments = 1;
 	m = (int *) mask->data;
@@ -91,7 +91,7 @@ vips_labelregions_build(VipsObject *object)
 				 */
 				if (vips__draw_flood_direct(mask, in,
 						segments, x, y))
-					return (-1);
+					return -1;
 
 				segments += 1;
 			}
@@ -104,7 +104,7 @@ vips_labelregions_build(VipsObject *object)
 		"segments", segments,
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -178,5 +178,5 @@ vips_labelregions(VipsImage *in, VipsImage **mask, ...)
 	result = vips_call_split("labelregions", ap, in, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

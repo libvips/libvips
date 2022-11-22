@@ -104,29 +104,29 @@ histogram_new(VipsHistFindNDim *ndim)
 	Histogram *hist;
 
 	if (!(hist = VIPS_NEW(ndim, Histogram)))
-		return (NULL);
+		return NULL;
 
 	hist->ndim = ndim;
 
 	if (!(hist->data = VIPS_ARRAY(ndim, bins, unsigned int **)))
-		return (NULL);
+		return NULL;
 	memset(hist->data, 0, bins * sizeof(unsigned int **));
 
 	for (i = 0; i < ilimit; i++) {
 		if (!(hist->data[i] =
 					VIPS_ARRAY(ndim, bins, unsigned int *)))
-			return (NULL);
+			return NULL;
 		memset(hist->data[i], 0, bins * sizeof(unsigned int *));
 		for (j = 0; j < jlimit; j++) {
 			if (!(hist->data[i][j] =
 						VIPS_ARRAY(ndim, bins, unsigned int)))
-				return (NULL);
+				return NULL;
 			memset(hist->data[i][j],
 				0, bins * sizeof(unsigned int));
 		}
 	}
 
-	return (hist);
+	return hist;
 }
 
 static int
@@ -148,7 +148,7 @@ vips_hist_find_ndim_build(VipsObject *object)
 		if (statistic->in->Bands > 3) {
 			vips_error(class->nickname,
 				"%s", _("image is not 1 - 3 bands"));
-			return (-1);
+			return -1;
 		}
 
 		ndim->max_val =
@@ -157,7 +157,7 @@ vips_hist_find_ndim_build(VipsObject *object)
 			ndim->bins > ndim->max_val) {
 			vips_error(class->nickname,
 				_("bins out of range [1,%d]"), ndim->max_val);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -165,11 +165,11 @@ vips_hist_find_ndim_build(VipsObject *object)
 	 */
 
 	if (VIPS_OBJECT_CLASS(vips_hist_find_ndim_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(ndim->out,
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(ndim->out,
 		ndim->bins,
 		statistic->ready->Bands > 1 ? ndim->bins : 1,
@@ -179,7 +179,7 @@ vips_hist_find_ndim_build(VipsObject *object)
 
 	if (!(obuffer = VIPS_ARRAY(ndim,
 			  VIPS_IMAGE_N_ELEMENTS(ndim->out), unsigned int)))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < ndim->out->Ysize; y++) {
 		for (i = 0, x = 0; x < ndim->out->Xsize; x++)
@@ -187,10 +187,10 @@ vips_hist_find_ndim_build(VipsObject *object)
 				obuffer[i] = ndim->hist->data[z][y][x];
 
 		if (vips_image_write_line(ndim->out, y, (VipsPel *) obuffer))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -203,7 +203,7 @@ vips_hist_find_ndim_start(VipsStatistic *statistic)
 	if (!ndim->hist)
 		ndim->hist = histogram_new(ndim);
 
-	return ((void *) histogram_new(ndim));
+	return (void *) histogram_new(ndim);
 }
 
 /* Join a sub-hist onto the main hist.
@@ -230,7 +230,7 @@ vips_hist_find_ndim_stop(VipsStatistic *statistic, void *seq)
 					sub_hist->data[i][j][k] = 0;
 				}
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(TYPE) \
@@ -274,7 +274,7 @@ vips_hist_find_ndim_scan(VipsStatistic *statistic, void *seq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -361,5 +361,5 @@ vips_hist_find_ndim(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_find_ndim", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -101,7 +101,7 @@ read_new(const char *filename, VipsImage *out)
 	Read *read;
 
 	if (!(read = VIPS_NEW(NULL, Read)))
-		return (NULL);
+		return NULL;
 
 	read->filename = vips_strdup(NULL, filename);
 	read->out = out;
@@ -112,7 +112,7 @@ read_new(const char *filename, VipsImage *out)
 		vips_error("mat2vips",
 			_("unable to open \"%s\""), filename);
 		read_destroy(read);
-		return (NULL);
+		return NULL;
 	}
 
 	for (;;) {
@@ -121,7 +121,7 @@ read_new(const char *filename, VipsImage *out)
 				_("no matrix variables in \"%s\""),
 				filename);
 			read_destroy(read);
-			return (NULL);
+			return NULL;
 		}
 
 #ifdef DEBUG
@@ -139,7 +139,7 @@ read_new(const char *filename, VipsImage *out)
 		VIPS_FREEF(Mat_VarFree, read->var);
 	}
 
-	return (read);
+	return read;
 }
 
 /* Matlab classes -> VIPS band formats.
@@ -162,19 +162,19 @@ mat2vips_pick_interpretation(int bands, VipsBandFormat format)
 {
 	if (bands == 3 &&
 		vips_band_format_is8bit(format))
-		return (VIPS_INTERPRETATION_sRGB);
+		return VIPS_INTERPRETATION_sRGB;
 	if (bands == 3 &&
 		(format == VIPS_FORMAT_USHORT ||
 			format == VIPS_FORMAT_SHORT))
-		return (VIPS_INTERPRETATION_RGB16);
+		return VIPS_INTERPRETATION_RGB16;
 	if (bands == 1 &&
 		(format == VIPS_FORMAT_USHORT ||
 			format == VIPS_FORMAT_SHORT))
-		return (VIPS_INTERPRETATION_GREY16);
+		return VIPS_INTERPRETATION_GREY16;
 	if (bands > 1)
-		return (VIPS_INTERPRETATION_MULTIBAND);
+		return VIPS_INTERPRETATION_MULTIBAND;
 
-	return (VIPS_INTERPRETATION_MULTIBAND);
+	return VIPS_INTERPRETATION_MULTIBAND;
 }
 
 static int
@@ -201,7 +201,7 @@ mat2vips_get_header(matvar_t *var, VipsImage *im)
 	default:
 		vips_error("mat2vips",
 			_("unsupported rank %d\n"), var->rank);
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < VIPS_NUMBER(mat2vips_formats); i++)
@@ -210,7 +210,7 @@ mat2vips_get_header(matvar_t *var, VipsImage *im)
 	if (i == VIPS_NUMBER(mat2vips_formats)) {
 		vips_error("mat2vips", _("unsupported class type %d\n"),
 			var->class_type);
-		return (-1);
+		return -1;
 	}
 	format = mat2vips_formats[i][1];
 	interpretation = mat2vips_pick_interpretation(bands, format);
@@ -223,9 +223,9 @@ mat2vips_get_header(matvar_t *var, VipsImage *im)
 	/* We read to a huge memory area.
 	 */
 	if (vips_image_pipelinev(im, VIPS_DEMAND_STYLE_ANY, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -238,14 +238,14 @@ vips__mat_header(const char *filename, VipsImage *out)
 #endif /*DEBUG*/
 
 	if (!(read = read_new(filename, out)))
-		return (-1);
+		return -1;
 	if (mat2vips_get_header(read->var, read->out)) {
 		read_destroy(read);
-		return (-1);
+		return -1;
 	}
 	read_destroy(read);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -263,7 +263,7 @@ mat2vips_get_data(mat_t *mat, matvar_t *var, VipsImage *im)
 	if (Mat_VarReadDataAll(mat, var)) {
 		vips_error("mat2vips", "%s",
 			_("Mat_VarReadDataAll failed"));
-		return (-1);
+		return -1;
 	}
 
 	/* Matlab images are in columns, so we have to transpose into
@@ -271,7 +271,7 @@ mat2vips_get_data(mat_t *mat, matvar_t *var, VipsImage *im)
 	 */
 	if (!(buffer = VIPS_ARRAY(im,
 			  VIPS_IMAGE_SIZEOF_LINE(im), VipsPel)))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < im->Ysize; y++) {
 		const VipsPel *p = (VipsPel *) var->data + y * es;
@@ -296,10 +296,10 @@ mat2vips_get_data(mat_t *mat, matvar_t *var, VipsImage *im)
 		}
 
 		if (vips_image_write_line(im, y, buffer))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -312,15 +312,15 @@ vips__mat_load(const char *filename, VipsImage *out)
 #endif /*DEBUG*/
 
 	if (!(read = read_new(filename, out)))
-		return (-1);
+		return -1;
 	if (mat2vips_get_header(read->var, read->out) ||
 		mat2vips_get_data(read->mat, read->var, read->out)) {
 		read_destroy(read);
-		return (-1);
+		return -1;
 	}
 	read_destroy(read);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -330,9 +330,9 @@ vips__mat_ismat(const char *filename)
 
 	if (vips__get_bytes(filename, buf, 10) == 10 &&
 		vips_isprefix("MATLAB 5.0", (char *) buf))
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 const char *vips__mat_suffs[] = { ".mat", NULL };

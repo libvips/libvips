@@ -72,7 +72,7 @@ vips_fractsurf_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
 
 	if (VIPS_OBJECT_CLASS(vips_fractsurf_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_gaussnoise(&t[0], fractsurf->width, fractsurf->height,
 			"mean", 0.0,
@@ -82,9 +82,9 @@ vips_fractsurf_build(VipsObject *object)
 			fractsurf->fractal_dimension, NULL) ||
 		vips_freqmult(t[0], t[1], &t[2], NULL) ||
 		vips_image_write(t[2], create->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -157,5 +157,5 @@ vips_fractsurf(VipsImage **out,
 		out, width, height, fractal_dimension);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

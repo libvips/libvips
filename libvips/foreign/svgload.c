@@ -132,13 +132,13 @@ G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadSvg, vips_foreign_load_svg,
 static void *
 vips_foreign_load_svg_zalloc(void *opaque, unsigned items, unsigned size)
 {
-	return (g_malloc0_n(items, size));
+	return g_malloc0_n(items, size);
 }
 
 static void
 vips_foreign_load_svg_zfree(void *opaque, void *ptr)
 {
-	return (g_free(ptr));
+	return g_free(ptr);
 }
 #endif /*HANDLE_SVGZ*/
 
@@ -189,13 +189,13 @@ vips_utf8_strcasestr(const char *haystack_start, const char *needle_start,
 				a == (gunichar) -2 ||
 				b == (gunichar) -1 ||
 				b == (gunichar) -2)
-				return (NULL);
+				return NULL;
 
 			/* End of haystack. There can't be a complete needle
 			 * anywhere.
 			 */
 			if (a == (gunichar) 0)
-				return (NULL);
+				return NULL;
 
 			/* Mismatch.
 			 */
@@ -213,12 +213,12 @@ vips_utf8_strcasestr(const char *haystack_start, const char *needle_start,
 			/* Walked the whole of needle, so we must have found a
 			 * complete match.
 			 */
-			return (haystack);
+			return haystack;
 	}
 
 	/* Walked the whole of haystack without finding a match.
 	 */
-	return (NULL);
+	return NULL;
 }
 
 /* This is used by both the file and buffer subclasses.
@@ -260,7 +260,7 @@ vips_foreign_load_svg_is_a(const void *buf, size_t len)
 		/* There isn't really an error return from is_a_buffer()
 		 */
 		if (inflateInit2(&zs, 15 | 32) != Z_OK)
-			return (FALSE);
+			return FALSE;
 
 		opos = 0;
 		do {
@@ -268,7 +268,7 @@ vips_foreign_load_svg_is_a(const void *buf, size_t len)
 			zs.next_out = (unsigned char *) obuf + opos;
 			if (inflate(&zs, Z_NO_FLUSH) < Z_OK) {
 				inflateEnd(&zs);
-				return (FALSE);
+				return FALSE;
 			}
 			opos = sizeof(obuf) - zs.avail_out;
 		} while (opos < sizeof(obuf) &&
@@ -298,9 +298,9 @@ vips_foreign_load_svg_is_a(const void *buf, size_t len)
 	 * horribly slow for large documents.
 	 */
 	if (vips_utf8_strcasestr(str, "<svg", len))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 static void
@@ -318,13 +318,13 @@ vips_foreign_load_svg_get_flags_filename(const char *filename)
 {
 	/* We can render any part of the page on demand.
 	 */
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 #if LIBRSVG_CHECK_VERSION(2, 52, 0)
@@ -488,13 +488,13 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 	if (width < 0.5 ||
 		height < 0.5) {
 		vips_error(class->nickname, "%s", _("bad dimensions"));
-		return (-1);
+		return -1;
 	}
 
 	*out_width = width;
 	*out_height = height;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -508,7 +508,7 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	 */
 	rsvg_handle_set_dpi(svg->page, 72.0);
 	if (vips_foreign_load_svg_get_natural_size(svg, &width, &height))
-		return (-1);
+		return -1;
 
 	/* We scale up with cairo --- scaling with rsvg_handle_set_dpi() will
 	 * fail for SVGs with absolute sizes.
@@ -520,7 +520,7 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	*out_width = VIPS_ROUND_UINT(width);
 	*out_height = VIPS_ROUND_UINT(height);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -531,7 +531,7 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 	double res;
 
 	if (vips_foreign_load_svg_get_scaled_size(svg, &width, &height))
-		return (-1);
+		return -1;
 
 	/* We need pixels/mm for vips.
 	 */
@@ -545,9 +545,9 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 	/* We use a tilecache, so it's smalltile.
 	 */
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -613,7 +613,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 			vips_error(class->nickname,
 				"%s", _("SVG rendering failed"));
 			vips_g_error(&error);
-			return (-1);
+			return -1;
 		}
 
 		cairo_destroy(cr);
@@ -630,7 +630,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 		vips_operation_invalidate(VIPS_OPERATION(svg));
 		vips_error(class->nickname,
 			"%s", _("SVG rendering failed"));
-		return (-1);
+		return -1;
 	}
 
 	cairo_destroy(cr);
@@ -644,7 +644,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
 			r->width);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -666,9 +666,9 @@ vips_foreign_load_svg_load(VipsForeignLoad *load)
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
 			NULL) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -753,9 +753,9 @@ vips_foreign_load_svg_source_is_a_source(VipsSource *source)
 
 	if ((bytes_read = vips_source_sniff_at_most(source,
 			 &data, SVG_HEADER_SIZE)) <= 0)
-		return (FALSE);
+		return FALSE;
 
-	return (vips_foreign_load_svg_is_a(data, bytes_read));
+	return vips_foreign_load_svg_is_a(data, bytes_read);
 }
 
 static int
@@ -771,18 +771,18 @@ vips_foreign_load_svg_source_header(VipsForeignLoad *load)
 	GInputStream *gstream;
 
 	if (vips_source_rewind(source->source))
-		return (-1);
+		return -1;
 
 	gstream = vips_g_input_stream_new_from_source(source->source);
 	if (!(svg->page = rsvg_handle_new_from_stream_sync(
 			  gstream, NULL, flags, NULL, &error))) {
 		g_object_unref(gstream);
 		vips_g_error(&error);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(gstream);
 
-	return (vips_foreign_load_svg_header(load));
+	return vips_foreign_load_svg_header(load);
 }
 
 static int
@@ -793,9 +793,9 @@ vips_foreign_load_svg_source_load(VipsForeignLoad *load)
 	if (vips_source_rewind(source->source) ||
 		vips_foreign_load_svg_load(load) ||
 		vips_source_decode(source->source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -851,9 +851,9 @@ vips_foreign_load_svg_file_is_a(const char *filename)
 	unsigned char buf[SVG_HEADER_SIZE];
 	guint64 bytes;
 
-	return ((bytes = vips__get_bytes(filename,
-				 buf, SVG_HEADER_SIZE)) > 0 &&
-		vips_foreign_load_svg_is_a(buf, bytes));
+	return (bytes = vips__get_bytes(filename, buf,
+				SVG_HEADER_SIZE)) > 0 &&
+		vips_foreign_load_svg_is_a(buf, bytes);
 }
 
 static int
@@ -872,13 +872,13 @@ vips_foreign_load_svg_file_header(VipsForeignLoad *load)
 			  gfile, flags, NULL, &error))) {
 		g_object_unref(gfile);
 		vips_g_error(&error);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(gfile);
 
 	VIPS_SETSTR(load->out->filename, file->filename);
 
-	return (vips_foreign_load_svg_header(load));
+	return vips_foreign_load_svg_header(load);
 }
 
 static const char *vips_foreign_svg_suffs[] = {
@@ -956,11 +956,11 @@ vips_foreign_load_svg_buffer_header(VipsForeignLoad *load)
 			  gstream, NULL, flags, NULL, &error))) {
 		g_object_unref(gstream);
 		vips_g_error(&error);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(gstream);
 
-	return (vips_foreign_load_svg_header(load));
+	return vips_foreign_load_svg_header(load);
 }
 
 static void
@@ -1032,7 +1032,7 @@ vips_svgload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("svgload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1075,7 +1075,7 @@ vips_svgload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1114,7 +1114,7 @@ vips_svgload_string(const char *str, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1139,5 +1139,5 @@ vips_svgload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("svgload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

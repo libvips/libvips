@@ -98,7 +98,7 @@ vips_semaphore_upn(VipsSemaphore *s, int n)
 		vips_error("vips_semaphore_upn", "up over 1!");
 #endif /*DEBUG_IO*/
 
-	return (value_after_op);
+	return value_after_op;
 }
 
 /* Increment the semaphore.
@@ -106,7 +106,7 @@ vips_semaphore_upn(VipsSemaphore *s, int n)
 int
 vips_semaphore_up(VipsSemaphore *s)
 {
-	return (vips_semaphore_upn(s, 1));
+	return vips_semaphore_upn(s, 1);
 }
 
 /* Wait for sem>n, then subtract n.
@@ -130,7 +130,7 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 			g_mutex_unlock(s->mutex);
 
 			VIPS_GATE_STOP("vips__semaphore_downn_until: wait");
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -146,7 +146,7 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 
 	VIPS_GATE_STOP("vips__semaphore_downn_until: wait");
 
-	return (value_after_op);
+	return value_after_op;
 }
 
 /* Wait for sem>n, then subtract n. n must be >= 0. Returns the new semaphore
@@ -157,7 +157,7 @@ vips_semaphore_downn(VipsSemaphore *s, int n)
 {
 	g_assert(n >= 0);
 
-	return (vips__semaphore_downn_until(s, n, -1));
+	return vips__semaphore_downn_until(s, n, -1);
 }
 
 /* Wait for sem > 0, then decrement. Returns the new semaphore value.
@@ -165,7 +165,7 @@ vips_semaphore_downn(VipsSemaphore *s, int n)
 int
 vips_semaphore_down(VipsSemaphore *s)
 {
-	return (vips__semaphore_downn_until(s, 1, -1));
+	return vips__semaphore_downn_until(s, 1, -1);
 }
 
 /* Wait for sem > 0, then decrement.
@@ -177,5 +177,5 @@ vips_semaphore_down_timeout(VipsSemaphore *s, gint64 timeout)
 {
 	gint64 end_time = g_get_monotonic_time() + timeout;
 
-	return (vips__semaphore_downn_until(s, 1, end_time));
+	return vips__semaphore_downn_until(s, 1, end_time);
 }

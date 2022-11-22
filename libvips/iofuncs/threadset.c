@@ -165,7 +165,7 @@ vips_threadset_work(void *pointer)
 
 	VIPS_FREE(member);
 
-	return (NULL);
+	return NULL;
 }
 
 /* Create a new idle member for the set.
@@ -179,7 +179,7 @@ vips_threadset_add(VipsThreadset *set)
 		set->n_threads >= set->max_threads) {
 		vips_error("VipsThreadset",
 			"%s", _("threadset is exhausted"));
-		return (NULL);
+		return NULL;
 	}
 
 	member = g_new0(VipsThreadsetMember, 1);
@@ -192,7 +192,7 @@ vips_threadset_add(VipsThreadset *set)
 		vips_semaphore_destroy(&member->idle);
 		VIPS_FREE(member);
 
-		return (NULL);
+		return NULL;
 	}
 
 	/* Ensure idle threads are freed on exit, this
@@ -207,7 +207,7 @@ vips_threadset_add(VipsThreadset *set)
 		VIPS_MAX(set->n_threads_highwater, set->n_threads);
 	g_mutex_unlock(set->lock);
 
-	return (member);
+	return member;
 }
 
 /**
@@ -240,13 +240,13 @@ vips_threadset_new(int max_threads)
 
 			if (!(member = vips_threadset_add(set))) {
 				vips_threadset_free(set);
-				return (NULL);
+				return NULL;
 			}
 
 			set->free = g_slist_prepend(set->free, member);
 		}
 
-	return (set);
+	return set;
 }
 
 /**
@@ -288,7 +288,7 @@ vips_threadset_run(VipsThreadset *set,
 	/* Still nothing? Thread create has failed.
 	 */
 	if (!member)
-		return (-1);
+		return -1;
 
 	/* Allocate the task and set it going.
 	 */
@@ -298,7 +298,7 @@ vips_threadset_run(VipsThreadset *set,
 	member->user_data = NULL;
 	vips_semaphore_up(&member->idle);
 
-	return (0);
+	return 0;
 }
 
 /* Kill a member.

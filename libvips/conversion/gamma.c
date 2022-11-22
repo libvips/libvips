@@ -91,7 +91,7 @@ vips_gamma_build(VipsObject *object)
 	double scale;
 
 	if (VIPS_OBJECT_CLASS(vips_gamma_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	scale = pow(vips_gamma_maxval[in->BandFmt],
 				1.0 / gamma->exponent) /
@@ -108,7 +108,7 @@ vips_gamma_build(VipsObject *object)
 			vips_cast(t[2], &t[3], in->BandFmt, NULL) ||
 			vips_maplut(in, &t[4], t[3], NULL) ||
 			vips_image_write(t[4], conversion->out))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_pow_const1(in, &t[1],
@@ -116,10 +116,10 @@ vips_gamma_build(VipsObject *object)
 			vips_linear1(t[1], &t[2], 1.0 / scale, 0, NULL) ||
 			vips_cast(t[2], &t[3], in->BandFmt, NULL) ||
 			vips_image_write(t[3], conversion->out))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -185,5 +185,5 @@ vips_gamma(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("gamma", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

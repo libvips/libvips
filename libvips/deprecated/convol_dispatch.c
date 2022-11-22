@@ -70,7 +70,7 @@ addgnoise_vec(im_object *argv)
 {
 	double sigma = *((double *) argv[2]);
 
-	return (im_addgnoise(argv[0], argv[1], sigma));
+	return im_addgnoise(argv[0], argv[1], sigma);
 }
 
 /* Description of im_addgnoise.
@@ -101,8 +101,8 @@ contrast_surface_vec(im_object *argv)
 	int half_win_size = *((int *) argv[2]);
 	int spacing = *((int *) argv[3]);
 
-	return (im_contrast_surface(argv[0], argv[1],
-		half_win_size, spacing));
+	return im_contrast_surface(argv[0], argv[1],
+		half_win_size, spacing);
 }
 
 /* Description of im_contrast_surface.
@@ -141,7 +141,7 @@ sharpen_vec(im_object *argv)
 	double m1 = *((double *) argv[6]);
 	double m2 = *((double *) argv[7]);
 
-	return (im_sharpen(argv[0], argv[1], mask_size, x1, x2, x3, m1, m2));
+	return im_sharpen(argv[0], argv[1], mask_size, x1, x2, x3, m1, m2);
 }
 
 /* Description of im_sharpen.
@@ -178,7 +178,7 @@ compass_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_compass(argv[0], argv[1], mo->mask));
+	return im_compass(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_compass.
@@ -199,7 +199,7 @@ conv_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_conv(argv[0], argv[1], mo->mask));
+	return im_conv(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_conv.
@@ -220,7 +220,7 @@ conv_f_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_conv_f(argv[0], argv[1], mo->mask));
+	return im_conv_f(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_conv_f.
@@ -241,7 +241,7 @@ convsep_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convsep(argv[0], argv[1], mo->mask));
+	return im_convsep(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convsep.
@@ -262,7 +262,7 @@ convsep_f_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convsep_f(argv[0], argv[1], mo->mask));
+	return im_convsep_f(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convsep_f.
@@ -281,7 +281,7 @@ static im_function convsep_f_desc = {
 static int
 fastcor_vec(im_object *argv)
 {
-	return (im_fastcor(argv[0], argv[1], argv[2]));
+	return im_fastcor(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_fastcor.
@@ -300,7 +300,7 @@ static im_function fastcor_desc = {
 static int
 grad_x_vec(im_object *argv)
 {
-	return (im_grad_x(argv[0], argv[1]));
+	return im_grad_x(argv[0], argv[1]);
 }
 
 /* Description of im_grad_x.
@@ -319,7 +319,7 @@ static im_function grad_x_desc = {
 static int
 grad_y_vec(im_object *argv)
 {
-	return (im_grad_y(argv[0], argv[1]));
+	return im_grad_y(argv[0], argv[1]);
 }
 
 /* Description of im_grad_y.
@@ -338,7 +338,7 @@ static im_function grad_y_desc = {
 static int
 gradcor_vec(im_object *argv)
 {
-	return (im_gradcor(argv[0], argv[1], argv[2]));
+	return im_gradcor(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_gradcor.
@@ -359,7 +359,7 @@ gradient_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_gradient(argv[0], argv[1], mo->mask));
+	return im_gradient(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_gradient.
@@ -380,7 +380,7 @@ lindetect_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_lindetect(argv[0], argv[1], mo->mask));
+	return im_lindetect(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_lindetect.
@@ -399,7 +399,7 @@ static im_function lindetect_desc = {
 static int
 spcor_vec(im_object *argv)
 {
-	return (im_spcor(argv[0], argv[1], argv[2]));
+	return im_spcor(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_spcor.
@@ -432,7 +432,7 @@ aconv_vec(im_object *argv)
 	int n_layers = *((int *) argv[3]);
 	int cluster = *((int *) argv[4]);
 
-	return (im_aconv(argv[0], argv[1], mo->mask, n_layers, cluster));
+	return im_aconv(argv[0], argv[1], mo->mask, n_layers, cluster);
 }
 
 /* Description of im_aconv.
@@ -463,7 +463,7 @@ aconvsep_vec(im_object *argv)
 	im_mask_object *mo = argv[2];
 	int n_layers = *((int *) argv[3]);
 
-	return (im_aconvsep(argv[0], argv[1], mo->mask, n_layers));
+	return im_aconvsep(argv[0], argv[1], mo->mask, n_layers);
 }
 
 /* Description of im_aconvsep.

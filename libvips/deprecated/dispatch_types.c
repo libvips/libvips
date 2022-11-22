@@ -62,7 +62,7 @@ input_display_init(im_object *obj, char *str)
 {
 	*obj = NULL;
 
-	return (0);
+	return 0;
 }
 
 /* Input display type.
@@ -92,7 +92,7 @@ input_image_init(im_object *obj, char *str)
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return (!(*im = vips__deprecated_open_read(str, FALSE)));
+	return !(*im = vips__deprecated_open_read(str, FALSE));
 }
 
 /* Input image type.
@@ -112,7 +112,7 @@ output_image_init(im_object *obj, char *str)
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return (!(*im = vips__deprecated_open_write(str)));
+	return !(*im = vips__deprecated_open_write(str));
 }
 
 /* Output image type.
@@ -132,7 +132,7 @@ rw_image_init(im_object *obj, char *str)
 {
 	IMAGE **im = (IMAGE **) obj;
 
-	return (!(*im = im_open(str, "rw")));
+	return !(*im = im_open(str, "rw"));
 }
 
 /* RW image type.
@@ -166,7 +166,7 @@ imagevec_dest(im_object obj)
 		iv->n = 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Init function for imagevec input.
@@ -184,7 +184,7 @@ input_imagevec_init(im_object *obj, char *str)
 
 	if (!(iv->vec = VIPS_ARRAY(NULL, nargs, IMAGE *))) {
 		g_strfreev(strv);
-		return (-1);
+		return -1;
 	}
 	iv->n = nargs;
 
@@ -196,12 +196,12 @@ input_imagevec_init(im_object *obj, char *str)
 	for (i = 0; i < nargs; i++)
 		if (!(iv->vec[i] = im_open(strv[i], "rd"))) {
 			g_strfreev(strv);
-			return (-1);
+			return -1;
 		}
 
 	g_strfreev(strv);
 
-	return (0);
+	return 0;
 }
 
 /* Input image vector type.
@@ -224,10 +224,10 @@ mask_init(im_object *obj, char *str)
 	/* Install string, clear mask.
 	 */
 	if (str && !(mo->name = im_strdup(NULL, str)))
-		return (-1);
+		return -1;
 	mo->mask = NULL;
 
-	return (0);
+	return 0;
 }
 
 /* Init function for input dmasks. As above, but read in the mask.
@@ -238,11 +238,11 @@ dmask_init(im_object *obj, char *str)
 	im_mask_object *mo = *obj;
 
 	if (mask_init(obj, str))
-		return (-1);
+		return -1;
 	if (!(mo->mask = im_read_dmask(str)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Init function for input imasks.
@@ -253,11 +253,11 @@ imask_init(im_object *obj, char *str)
 	im_mask_object *mo = *obj;
 
 	if (mask_init(obj, str))
-		return (-1);
+		return -1;
 	if (!(mo->mask = im_read_imask(str)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* DOUBLEMASK destroy function.
@@ -270,7 +270,7 @@ dmask_dest(im_object obj)
 	VIPS_FREE(mo->name);
 	VIPS_FREEF(im_free_dmask, mo->mask);
 
-	return (0);
+	return 0;
 }
 
 /* INTMASK destroy function.
@@ -283,7 +283,7 @@ imask_dest(im_object obj)
 	VIPS_FREE(mo->name);
 	VIPS_FREEF(im_free_imask, mo->mask);
 
-	return (0);
+	return 0;
 }
 
 /* As above, but save the mask first.
@@ -294,8 +294,8 @@ save_dmask_dest(im_object obj)
 	im_mask_object *mo = obj;
 
 	if (mo->mask && im_write_dmask(mo->mask))
-		return (-1);
-	return (dmask_dest(obj));
+		return -1;
+	return dmask_dest(obj);
 }
 
 /* As above, but save the mask first.
@@ -306,8 +306,8 @@ save_imask_dest(im_object obj)
 	im_mask_object *mo = obj;
 
 	if (mo->mask && im_write_imask(mo->mask))
-		return (-1);
-	return (imask_dest(obj));
+		return -1;
+	return imask_dest(obj);
 }
 
 /* Output dmask type.
@@ -370,7 +370,7 @@ input_double_init(im_object *obj, char *str)
 
 	*d = g_ascii_strtod(str, NULL);
 
-	return (0);
+	return 0;
 }
 
 /* Input double type.
@@ -396,7 +396,7 @@ doublevec_dest(im_object obj)
 		dv->n = 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Init function for doublevec input.
@@ -414,7 +414,7 @@ input_doublevec_init(im_object *obj, char *str)
 
 	if (!(dv->vec = VIPS_ARRAY(NULL, nargs, double))) {
 		g_strfreev(strv);
-		return (-1);
+		return -1;
 	}
 	dv->n = nargs;
 
@@ -424,13 +424,13 @@ input_doublevec_init(im_object *obj, char *str)
 			vips_error_system(errno, "input_doublevec_init",
 				_("bad double \"%s\""), strv[i]);
 			g_strfreev(strv);
-			return (-1);
+			return -1;
 		}
 	}
 
 	g_strfreev(strv);
 
-	return (0);
+	return 0;
 }
 
 /* Input double vector type.
@@ -455,7 +455,7 @@ im__dvprint(im_object obj)
 		printf("%G ", dv->vec[i]);
 	printf("\n");
 
-	return (0);
+	return 0;
 }
 
 /* Output double vector type.
@@ -481,7 +481,7 @@ intvec_dest(im_object obj)
 		iv->n = 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Init function for intvec input.
@@ -499,7 +499,7 @@ input_intvec_init(im_object *obj, char *str)
 
 	if (!(iv->vec = VIPS_ARRAY(NULL, nargs, int))) {
 		g_strfreev(strv);
-		return (-1);
+		return -1;
 	}
 	iv->n = nargs;
 
@@ -510,7 +510,7 @@ input_intvec_init(im_object *obj, char *str)
 			vips_error_system(errno, "input_intvec_init",
 				_("bad integer \"%s\""), strv[i]);
 			g_strfreev(strv);
-			return (-1);
+			return -1;
 		}
 		if (INT_MAX < val || INT_MIN > val) {
 			vips_error("input_intvec_init",
@@ -521,7 +521,7 @@ input_intvec_init(im_object *obj, char *str)
 
 	g_strfreev(strv);
 
-	return (0);
+	return 0;
 }
 
 /* Input int vector type.
@@ -546,7 +546,7 @@ im__ivprint(im_object obj)
 		printf("%d ", iv->vec[i]);
 	printf("\n");
 
-	return (0);
+	return 0;
 }
 
 /* Output int vector type.
@@ -568,10 +568,10 @@ input_int_init(im_object *obj, char *str)
 
 	if (sscanf(str, "%d", i) != 1) {
 		vips_error("input_int", "%s", _("bad format"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Input int type.
@@ -590,9 +590,9 @@ static int
 input_string_init(im_object *obj, char *str)
 {
 	if (!(*obj = (im_object) im_strdup(NULL, str)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Input string type.
@@ -654,7 +654,7 @@ im__iprint(im_object obj)
 
 	printf("%d\n", *i);
 
-	return (0);
+	return 0;
 }
 
 /* Print function for string output.
@@ -666,7 +666,7 @@ im__sprint(im_object obj)
 
 	printf("%s\n", s);
 
-	return (0);
+	return 0;
 }
 
 /* Print function for double output.
@@ -678,7 +678,7 @@ im__dprint(im_object obj)
 
 	printf("%G\n", *d);
 
-	return (0);
+	return 0;
 }
 
 /* Print function for complex output.
@@ -690,7 +690,7 @@ im__cprint(im_object obj)
 
 	printf("%G %G\n", d[0], d[1]);
 
-	return (0);
+	return 0;
 }
 
 /* Statistics to stdout.
@@ -718,7 +718,7 @@ im__dmsprint(im_object obj)
 		printf("\n");
 	}
 
-	return (0);
+	return 0;
 }
 
 /* GValue
@@ -735,7 +735,7 @@ input_gvalue_init(im_object *obj, char *str)
 	g_value_init(value, G_TYPE_STRING);
 	g_value_set_string(value, str);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -749,7 +749,7 @@ gvalue_free(im_object obj)
 	if (G_IS_VALUE(value))
 		g_value_unset(value);
 
-	return (0);
+	return 0;
 }
 
 /* Input GValue type.
@@ -772,7 +772,7 @@ im__gprint(im_object obj)
 	printf("%s\n", str_value);
 	g_free(str_value);
 
-	return (0);
+	return 0;
 }
 
 /* Init function for output gvalue. Just init to zero.
@@ -784,7 +784,7 @@ output_gvalue_init(im_object *obj)
 
 	memset(value, 0, sizeof(GValue));
 
-	return (0);
+	return 0;
 }
 
 im_type_desc im__output_gvalue = {
@@ -809,14 +809,14 @@ vips__input_interpolate_init(im_object *obj, char *str)
 	g_assert(class);
 
 	if (!(object = vips_object_new_from_string(class, str)))
-		return (-1);
+		return -1;
 	if (vips_object_build(object)) {
 		g_object_unref(object);
-		return (-1);
+		return -1;
 	}
 	*obj = object;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -824,7 +824,7 @@ input_interpolate_dest(im_object obj)
 {
 	g_object_unref((GObject *) obj);
 
-	return (0);
+	return 0;
 }
 
 im_type_desc im__input_interpolate = {

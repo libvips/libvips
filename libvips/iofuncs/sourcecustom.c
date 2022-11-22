@@ -87,7 +87,7 @@ vips_source_custom_read_real(VipsSource *source,
 	VIPS_DEBUG_MSG("  vips_source_custom_read_real, seen %zd bytes\n",
 		bytes_read);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static gint64
@@ -130,7 +130,7 @@ vips_source_custom_seek_real(VipsSource *source,
 	VIPS_DEBUG_MSG("  vips_source_custom_seek_real, seen new pos %zd\n",
 		new_position);
 
-	return (new_position);
+	return new_position;
 }
 
 static gint64
@@ -139,7 +139,7 @@ vips_source_custom_read_signal_real(VipsSourceCustom *source_custom,
 {
 	VIPS_DEBUG_MSG("vips_source_custom_read_signal_real:\n");
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -148,7 +148,7 @@ vips_source_custom_seek_signal_real(VipsSourceCustom *source_custom,
 {
 	VIPS_DEBUG_MSG("vips_source_custom_seek_signal_real:\n");
 
-	return (-1);
+	return -1;
 }
 
 static void
@@ -232,8 +232,8 @@ vips_source_custom_new(void)
 
 	if (vips_object_build(VIPS_OBJECT(source_custom))) {
 		VIPS_UNREF(source_custom);
-		return (NULL);
+		return NULL;
 	}
 
-	return (source_custom);
+	return source_custom;
 }

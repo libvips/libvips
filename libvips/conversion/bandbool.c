@@ -75,26 +75,26 @@ vips_bandbool_build(VipsObject *object)
 			_("operator %s not supported across image bands"),
 			vips_enum_nick(VIPS_TYPE_OPERATION_BOOLEAN,
 				bandbool->operation));
-		return (-1);
+		return -1;
 	}
 
 	if (bandbool->in) {
 		if (vips_check_noncomplex(class->nickname, bandbool->in))
-			return (-1);
+			return -1;
 
 		bandary->n = 1;
 		bandary->in = &bandbool->in;
 
 		if (bandbool->in->Bands == 1)
-			return (vips_bandary_copy(bandary));
+			return vips_bandary_copy(bandary);
 	}
 
 	bandary->out_bands = 1;
 
 	if (VIPS_OBJECT_CLASS(vips_bandbool_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define SWITCH(I, F, OP) \
@@ -253,7 +253,7 @@ static int
 vips_bandboolv(VipsImage *in, VipsImage **out,
 	VipsOperationBoolean operation, va_list ap)
 {
-	return (vips_call_split("bandbool", ap, in, out, operation));
+	return vips_call_split("bandbool", ap, in, out, operation);
 }
 
 /**
@@ -293,7 +293,7 @@ vips_bandbool(VipsImage *in, VipsImage **out,
 	result = vips_bandboolv(in, out, boolean, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -317,7 +317,7 @@ vips_bandand(VipsImage *in, VipsImage **out, ...)
 	result = vips_bandboolv(in, out, VIPS_OPERATION_BOOLEAN_AND, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -341,7 +341,7 @@ vips_bandor(VipsImage *in, VipsImage **out, ...)
 	result = vips_bandboolv(in, out, VIPS_OPERATION_BOOLEAN_OR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -365,5 +365,5 @@ vips_bandeor(VipsImage *in, VipsImage **out, ...)
 	result = vips_bandboolv(in, out, VIPS_OPERATION_BOOLEAN_EOR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

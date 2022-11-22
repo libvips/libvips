@@ -323,9 +323,9 @@ vips_conversion_build(VipsObject *object)
 	g_object_set(conversion, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_conversion_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

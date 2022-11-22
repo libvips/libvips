@@ -62,18 +62,18 @@ im_fav4(IMAGE **in, IMAGE *out)
 	/* check IMAGEs parameters
 	 */
 	if (im_iocheck(in[1], out))
-		return (-1);
+		return -1;
 
 	/* BYTE images only!
 	 */
 	if ((in[0]->BandFmt != IM_BANDFMT_CHAR) &&
 		(in[0]->BandFmt != IM_BANDFMT_UCHAR))
-		return (-1);
+		return -1;
 
 	if (im_cp_desc(out, in[1]) == -1) /* copy image descriptors */
-		return (-1);
+		return -1;
 	if (im_setupout(out) == -1)
-		return (-1);
+		return -1;
 
 	linebytes = in[0]->Xsize * in[0]->Bands;
 	PICY = in[0]->Ysize;
@@ -94,5 +94,5 @@ im_fav4(IMAGE **in, IMAGE *out)
 		im_writeline(y, out, buffer);
 	}
 	im_free(buffer);
-	return (0);
+	return 0;
 }

@@ -65,9 +65,9 @@ matinv_vec(im_object *argv)
 
 	if (!(out->mask =
 				im_matinv(in->mask, out->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_matinv.
@@ -91,9 +91,9 @@ mattrn_vec(im_object *argv)
 
 	if (!(out->mask =
 				im_mattrn(in->mask, out->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_mattrn.
@@ -118,9 +118,9 @@ matcat_vec(im_object *argv)
 
 	if (!(out->mask =
 				im_matcat(in1->mask, in2->mask, out->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_matcat.
@@ -145,9 +145,9 @@ matmul_vec(im_object *argv)
 
 	if (!(out->mask =
 				im_matmul(in1->mask, in2->mask, out->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_matmul.
@@ -176,9 +176,9 @@ read_dmask_vec(im_object *argv)
 	im_mask_object *mo = argv[1];
 
 	if (!(mo->mask = im_read_dmask(argv[0])))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_read_dmask().
@@ -211,9 +211,9 @@ gauss_dmask_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_gauss_dmask(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_gauss_dmask.
@@ -238,9 +238,9 @@ gauss_dmask_sep_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_gauss_dmask_sep(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_gauss_dmask_sep.
@@ -273,9 +273,9 @@ gauss_imask_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_gauss_imask(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_gauss_imask.
@@ -300,9 +300,9 @@ gauss_imask_sep_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_gauss_imask_sep(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_gauss_imask_sep.
@@ -335,9 +335,9 @@ log_imask_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_log_imask(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_log_imask.
@@ -370,9 +370,9 @@ log_dmask_vec(im_object *argv)
 
 	if (!(mo->mask =
 				im_log_dmask(mo->name, sigma, min_amp)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_log_dmask.
@@ -405,9 +405,9 @@ rotate_imask45_vec(im_object *argv)
 	im_mask_object *mout = argv[1];
 
 	if (!(mout->mask = im_rotate_imask45(min->mask, mout->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_rotate_imask45.
@@ -430,9 +430,9 @@ rotate_imask90_vec(im_object *argv)
 	im_mask_object *mout = argv[1];
 
 	if (!(mout->mask = im_rotate_imask90(min->mask, mout->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_rotate_imask90.
@@ -455,9 +455,9 @@ rotate_dmask45_vec(im_object *argv)
 	im_mask_object *mout = argv[1];
 
 	if (!(mout->mask = im_rotate_dmask45(min->mask, mout->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_rotate_dmask45.
@@ -480,9 +480,9 @@ rotate_dmask90_vec(im_object *argv)
 	im_mask_object *mout = argv[1];
 
 	if (!(mout->mask = im_rotate_dmask90(min->mask, mout->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_rotate_dmask90.

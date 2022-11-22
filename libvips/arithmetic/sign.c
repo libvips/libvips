@@ -208,5 +208,5 @@ vips_sign(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("sign", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

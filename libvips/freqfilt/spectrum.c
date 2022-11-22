@@ -70,25 +70,25 @@ vips_spectrum_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_spectrum_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = freqfilt->in;
 
 	if (in->BandFmt != VIPS_FORMAT_COMPLEX) {
 		if (vips_fwfft(in, &t[0], NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 
 	if (vips_abs(in, &t[1], NULL) ||
 		vips_scale(t[1], &t[2], "log", TRUE, NULL) ||
 		vips_wrap(t[2], &t[3], NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_write(t[3], freqfilt->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -131,5 +131,5 @@ vips_spectrum(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("spectrum", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

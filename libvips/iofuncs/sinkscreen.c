@@ -205,9 +205,9 @@ render_thread_state_init(RenderThreadState *state)
 static VipsThreadState *
 render_thread_state_new(VipsImage *im, void *a)
 {
-	return (VIPS_THREAD_STATE(vips_object_new(
+	return VIPS_THREAD_STATE(vips_object_new(
 		render_thread_state_get_type(),
-		vips_thread_state_set, im, a)));
+		vips_thread_state_set, im, a));
 }
 
 static void *
@@ -218,7 +218,7 @@ tile_free(Tile *tile, void *a, void *b)
 	VIPS_UNREF(tile->region);
 	g_free(tile);
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -262,7 +262,7 @@ render_free(Render *render)
 	render_num_renders -= 1;
 #endif /*VIPS_DEBUG_AMBER*/
 
-	return (0);
+	return 0;
 }
 
 /* Ref and unref a Render ... free on last unref.
@@ -280,7 +280,7 @@ render_ref(Render *render)
 	g_mutex_unlock(render->ref_count_lock);
 #endif
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -302,7 +302,7 @@ render_unref(Render *render)
 	if (kill)
 		render_free(render);
 
-	return (0);
+	return 0;
 }
 
 /* Get the next tile to paint off the dirty list.
@@ -321,7 +321,7 @@ render_tile_dirty_get(Render *render)
 		tile->dirty = FALSE;
 	}
 
-	return (tile);
+	return tile;
 }
 
 /* Pick a dirty tile to reuse. We could potentially get the tile that
@@ -345,7 +345,7 @@ render_tile_dirty_reuse(Render *render)
 			tile);
 	}
 
-	return (tile);
+	return tile;
 }
 
 /* Add a tile to the dirty list.
@@ -402,7 +402,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 
 	g_mutex_unlock(render->lock);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -422,7 +422,7 @@ render_work(VipsThreadState *state, void *a)
 		VIPS_DEBUG_MSG_RED("render_work: "
 						   "vips_region_prepare_to() failed: %s\n",
 			vips_error_buffer());
-		return (-1);
+		return -1;
 	}
 	tile->painted = TRUE;
 
@@ -430,7 +430,7 @@ render_work(VipsThreadState *state, void *a)
 		render->notify)
 		render->notify(render->out, &tile->area, render->a);
 
-	return (0);
+	return 0;
 }
 
 static void render_dirty_put(Render *render);
@@ -469,7 +469,7 @@ vips__render_shutdown(void)
 static int
 render_dirty_sort(Render *a, Render *b, void *user_data)
 {
-	return (b->priority - a->priority);
+	return b->priority - a->priority;
 }
 
 /* Add to the jobs list, if it has work to be done.
@@ -504,7 +504,7 @@ tile_hash(gconstpointer key)
 	int x = rect->left / rect->width;
 	int y = rect->top / rect->height;
 
-	return (x << 16 ^ y);
+	return x << 16 ^ y;
 }
 
 static gboolean
@@ -513,8 +513,8 @@ tile_equal(gconstpointer a, gconstpointer b)
 	VipsRect *rect1 = (VipsRect *) a;
 	VipsRect *rect2 = (VipsRect *) b;
 
-	return (rect1->left == rect2->left &&
-		rect1->top == rect2->top);
+	return rect1->left == rect2->left &&
+		rect1->top == rect2->top;
 }
 
 static void
@@ -551,7 +551,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	 * with _ref() and _unref().
 	 */
 	if (!(render = VIPS_NEW(NULL, Render)))
-		return (NULL);
+		return NULL;
 
 	/* render must hold a ref to in. This is dropped in render_free().
 	 */
@@ -603,7 +603,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	render_num_renders += 1;
 #endif /*VIPS_DEBUG_AMBER*/
 
-	return (render);
+	return render;
 }
 
 /* Make a Tile.
@@ -619,7 +619,7 @@ tile_new(Render *render)
 	 * Render.
 	 */
 	if (!(tile = VIPS_NEW(NULL, Tile)))
-		return (NULL);
+		return NULL;
 
 	tile->render = render;
 	tile->area.left = 0;
@@ -633,13 +633,13 @@ tile_new(Render *render)
 
 	if (!(tile->region = vips_region_new(render->in))) {
 		(void) tile_free(tile, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
 	render->all = g_slist_prepend(render->all, tile);
 	render->ntiles += 1;
 
-	return (tile);
+	return tile;
 }
 
 /* Search the cache for a tile by position.
@@ -647,7 +647,7 @@ tile_new(Render *render)
 static Tile *
 render_tile_lookup(Render *render, VipsRect *area)
 {
-	return ((Tile *) g_hash_table_lookup(render->tiles, area));
+	return (Tile *) g_hash_table_lookup(render->tiles, area);
 }
 
 /* Add a new tile to the table.
@@ -770,7 +770,7 @@ render_tile_get_painted(Render *render)
 			tile);
 	}
 
-	return (tile);
+	return tile;
 }
 
 /* Ask for an area of calculated pixels. Get from cache, request calculation,
@@ -799,7 +799,7 @@ render_tile_request(Render *render, VipsRegion *reg, VipsRect *area)
 		 * tile.
 		 */
 		if (!(tile = tile_new(render)))
-			return (NULL);
+			return NULL;
 
 		render_tile_add(tile, area);
 
@@ -812,7 +812,7 @@ render_tile_request(Render *render, VipsRegion *reg, VipsRect *area)
 		if (!(tile = render_tile_get_painted(render)) &&
 			!(tile = render_tile_dirty_reuse(render))) {
 			VIPS_DEBUG_MSG("render_tile_request: no tiles to reuse\n");
-			return (NULL);
+			return NULL;
 		}
 
 		render_tile_move(tile, area);
@@ -820,7 +820,7 @@ render_tile_request(Render *render, VipsRegion *reg, VipsRect *area)
 		tile_queue(tile, reg);
 	}
 
-	return (tile);
+	return tile;
 }
 
 /* Copy what we can from the tile into the region.
@@ -911,7 +911,7 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 
 	g_mutex_unlock(render->lock);
 
-	return (0);
+	return 0;
 }
 
 /* The mask image is 255 / 0 for the state of painted for each tile.
@@ -962,7 +962,7 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 
 	g_mutex_unlock(render->lock);
 
-	return (0);
+	return 0;
 }
 
 /* Get the first render with dirty tiles.
@@ -994,7 +994,7 @@ render_dirty_get(void)
 
 	g_mutex_unlock(render_dirty_lock);
 
-	return (render);
+	return render;
 }
 
 /* Loop for the background render manager thread.
@@ -1037,7 +1037,7 @@ render_thread_main(void *client)
 	 */
 	render_thread = NULL;
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -1055,7 +1055,7 @@ vips__sink_screen_once(void *data)
 	render_thread = vips_g_thread_new("sink_screen",
 		render_thread_main, NULL);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -1124,18 +1124,18 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 	if (tile_width <= 0 || tile_height <= 0 ||
 		max_tiles < -1) {
 		vips_error("vips_sink_screen", "%s", _("bad parameters"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_pio_input(in) ||
 		vips_image_pipelinev(out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	if (mask) {
 		if (vips_image_pipelinev(mask,
 				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-			return (-1);
+			return -1;
 
 		mask->Bands = 1;
 		mask->BandFmt = VIPS_FORMAT_UCHAR;
@@ -1145,19 +1145,19 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	if (!(render = render_new(in, out, mask,
 			  tile_width, tile_height, max_tiles, priority, notify_fn, a)))
-		return (-1);
+		return -1;
 
 	VIPS_DEBUG_MSG("vips_sink_screen: max = %d, %p\n", max_tiles, render);
 
 	if (vips_image_generate(out,
 			vips_start_one, image_fill, vips_stop_one, in, render))
-		return (-1);
+		return -1;
 	if (mask &&
 		vips_image_generate(mask,
 			NULL, mask_fill, NULL, render, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1184,5 +1184,5 @@ vips__print_renders(void)
 		g_mutex_unlock(render_dirty_lock);
 	}
 
-	return (n_leaks);
+	return n_leaks;
 }

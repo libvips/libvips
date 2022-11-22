@@ -55,7 +55,7 @@ profile_vec(im_object *argv)
 {
 	int dir = *((int *) argv[2]);
 
-	return (im_profile(argv[0], argv[1], dir));
+	return im_profile(argv[0], argv[1], dir);
 }
 
 /* Description of im_profile.
@@ -84,7 +84,7 @@ dilate_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_dilate(argv[0], argv[1], mo->mask));
+	return im_dilate(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_dilate.
@@ -105,7 +105,7 @@ erode_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_erode(argv[0], argv[1], mo->mask));
+	return im_erode(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_erode.
@@ -135,7 +135,7 @@ cntlines_vec(im_object *argv)
 	double *out = (double *) argv[1];
 	int dir = *((int *) argv[2]);
 
-	return (im_cntlines(argv[0], out, dir));
+	return im_cntlines(argv[0], out, dir);
 }
 
 /* Description of im_cntlines.
@@ -168,7 +168,7 @@ rank_vec(im_object *argv)
 	int ysize = *((int *) argv[3]);
 	int n = *((int *) argv[4]);
 
-	return (im_rank(argv[0], argv[1], xsize, ysize, n));
+	return im_rank(argv[0], argv[1], xsize, ysize, n);
 }
 
 /* Description of im_rank.
@@ -197,7 +197,7 @@ zerox_vec(im_object *argv)
 {
 	int flag = *((int *) argv[2]);
 
-	return (im_zerox(argv[0], argv[1], flag));
+	return im_zerox(argv[0], argv[1], flag);
 }
 
 /* Description of im_zerox.
@@ -221,7 +221,7 @@ maxvalue_vec(im_object *argv)
 {
 	im_imagevec_object *iv = (im_imagevec_object *) argv[0];
 
-	return (im_maxvalue(iv->vec, argv[1], iv->n));
+	return im_maxvalue(iv->vec, argv[1], iv->n);
 }
 
 static im_function maxvalue_desc = {
@@ -245,7 +245,7 @@ rank_image_vec(im_object *argv)
 	im_imagevec_object *iv = (im_imagevec_object *) argv[0];
 	int index = *((int *) argv[2]);
 
-	return (im_rank_image(iv->vec, argv[1], iv->n, index));
+	return im_rank_image(iv->vec, argv[1], iv->n, index);
 }
 
 static im_function rank_image_desc = {
@@ -274,7 +274,7 @@ label_regions_vec(im_object *argv)
 	IMAGE *mask = argv[1];
 	int *serial = (int *) argv[2];
 
-	return (im_label_regions(test, mask, serial));
+	return im_label_regions(test, mask, serial);
 }
 
 /* Description of im_label_regions().

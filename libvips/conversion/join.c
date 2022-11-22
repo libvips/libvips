@@ -99,7 +99,7 @@ vips_join_build(VipsObject *object)
 	VipsImage *t;
 
 	if (VIPS_OBJECT_CLASS(vips_join_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Stop compiler warnings.
 	 */
@@ -159,7 +159,7 @@ vips_join_build(VipsObject *object)
 			"expand", TRUE,
 			"background", join->background,
 			NULL))
-		return (-1);
+		return -1;
 
 	if (!join->expand) {
 		VipsImage *t2;
@@ -198,7 +198,7 @@ vips_join_build(VipsObject *object)
 			if (vips_extract_area(t, &t2,
 					left, top, width, height, NULL)) {
 				g_object_unref(t);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(t);
 
@@ -208,11 +208,11 @@ vips_join_build(VipsObject *object)
 
 	if (vips_image_write(t, conversion->out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -348,5 +348,5 @@ vips_join(VipsImage *in1, VipsImage *in2, VipsImage **out,
 	result = vips_call_split("join", ap, in1, in2, out, direction);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

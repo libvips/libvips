@@ -58,7 +58,7 @@ vips__transform_calc_inverse(VipsTransformation *trn)
 		/* divisor is near zero */
 		vips_error("vips__transform_calc_inverse",
 			"%s", _("singular or near-singular matrix"));
-		return (-1);
+		return -1;
 	}
 
 	double tmp = 1.0 / det;
@@ -68,7 +68,7 @@ vips__transform_calc_inverse(VipsTransformation *trn)
 	trn->ic = -tmp * trn->c;
 	trn->id = tmp * trn->a;
 
-	return (0);
+	return 0;
 }
 
 /* Init a VipsTransform.
@@ -105,9 +105,9 @@ vips__transform_isidentity(const VipsTransformation *trn)
 		trn->c == 0.0 && trn->d == 1.0 &&
 		trn->idx == 0.0 && trn->idy == 0.0 &&
 		trn->odx == 0.0 && trn->ody == 0.0)
-		return (1);
+		return 1;
 	else
-		return (0);
+		return 0;
 }
 
 /* Combine two transformations. out can be one of the ins.
@@ -127,9 +127,9 @@ vips__transform_add(const VipsTransformation *in1,
 	out->ody = in1->odx * in2->c + in1->ody * in2->d + in2->ody;
 
 	if (vips__transform_calc_inverse(out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 void

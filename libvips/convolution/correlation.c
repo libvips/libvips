@@ -68,11 +68,11 @@ vips_correlation_gen(VipsRegion * or,
 	irect.height = r->height + correlation->ref_ready->Ysize - 1;
 
 	if (vips_region_prepare(ir, &irect))
-		return (-1);
+		return -1;
 
 	cclass->correlation(correlation, ir, or);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -84,7 +84,7 @@ vips_correlation_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	if (VIPS_OBJECT_CLASS(vips_correlation_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Stretch input out.
 	 */
@@ -94,11 +94,11 @@ vips_correlation_build(VipsObject *object)
 			correlation->in->Ysize + correlation->ref->Ysize - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips__formatalike(t[0], correlation->ref, &t[1], &t[2]) ||
 		vips__bandalike(class->nickname, t[1], t[2], &t[3], &t[4]) ||
 		!(t[5] = vips_image_copy_memory(t[4])))
-		return (-1);
+		return -1;
 
 	correlation->in_ready = t[3];
 	correlation->ref_ready = t[5];
@@ -111,23 +111,23 @@ vips_correlation_build(VipsObject *object)
 	if (vips_image_pipelinev(correlation->out,
 			VIPS_DEMAND_STYLE_FATSTRIP,
 			correlation->in_ready, correlation->ref_ready, NULL))
-		return (-1);
+		return -1;
 	correlation->out->Xsize = correlation->in->Xsize;
 	correlation->out->Ysize = correlation->in->Ysize;
 	correlation->out->BandFmt =
 		cclass->format_table[correlation->in_ready->BandFmt];
 	if (cclass->pre_generate &&
 		cclass->pre_generate(correlation))
-		return (-1);
+		return -1;
 	if (vips_image_generate(correlation->out,
 			vips_start_one, vips_correlation_gen, vips_stop_one,
 			correlation->in_ready, correlation))
-		return (-1);
+		return -1;
 
 	vips_reorder_margin_hint(correlation->out,
 		correlation->ref->Xsize * correlation->ref->Ysize);
 
-	return (0);
+	return 0;
 }
 
 static void

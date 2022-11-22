@@ -45,20 +45,20 @@ im_mat2vips(const char *filename, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_matload(filename, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static int
 ismat(const char *filename)
 {
-	return (vips_foreign_is_a("matload", filename));
+	return vips_foreign_is_a("matload", filename);
 }
 
 static const char *mat_suffs[] = { ".mat", NULL };

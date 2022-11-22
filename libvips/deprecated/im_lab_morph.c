@@ -59,17 +59,17 @@ im__colour_unary(const char *domain,
 		im_check_bands(domain, in, 3) ||
 		im_open_local_array(out, t, 1, domain, "p") ||
 		im_clip2fmt(in, t[0], IM_BANDFMT_FLOAT))
-		return (-1);
+		return -1;
 
 	if (im_cp_desc(out, t[0]))
-		return (-1);
+		return -1;
 	out->Type = type;
 
 	if (im_wrapone(t[0], out,
 			(im_wrapone_fn) buffer_fn, a, b))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 typedef struct {
@@ -99,7 +99,7 @@ morph_init(Params *parm,
 	if (mask->xsize != 3 || mask->ysize < 1 || mask->ysize > 100) {
 		im_error("im_lab_morph", "%s",
 			_("bad greyscale mask size"));
-		return (-1);
+		return -1;
 	}
 	for (i = 0; i < mask->ysize; i++) {
 		double L = mask->coeff[i * 3];
@@ -110,7 +110,7 @@ morph_init(Params *parm,
 			b < -120 || b > 120) {
 			im_error("im_lab_morph",
 				_("bad greyscale mask value, row %d"), i);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -162,7 +162,7 @@ morph_init(Params *parm,
 			(b_high - b_low) * ((i - L_low) / (L_high - L_low));
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -294,16 +294,16 @@ im_lab_morph(IMAGE *in, IMAGE *out,
 			im_lab_morph(t[0], t[1],
 				mask, L_offset, L_scale, a_scale, b_scale) ||
 			im_Lab2LabQ(t[1], out))
-			return (-1);
+			return -1;
 
-		return (0);
+		return 0;
 	}
 
 	if (!(parm = IM_NEW(out, Params)) ||
 		morph_init(parm,
 			in, out, L_scale, L_offset, mask, a_scale, b_scale))
-		return (-1);
+		return -1;
 
-	return (im__colour_unary("im_lab_morph", in, out, IM_TYPE_LAB,
-		(im_wrapone_fn) morph_buffer, parm, NULL));
+	return im__colour_unary("im_lab_morph", in, out, IM_TYPE_LAB,
+		(im_wrapone_fn) morph_buffer, parm, NULL);
 }

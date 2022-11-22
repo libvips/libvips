@@ -118,12 +118,12 @@ histogram_new(VipsHistFind *hist_find, int n_bands, int band, int size)
 
 	if (!(hist = VIPS_NEW(hist_find, Histogram)) ||
 		!(hist->bins = VIPS_ARRAY(hist_find, n_bands, VipsPel *)))
-		return (NULL);
+		return NULL;
 
 	for (i = 0; i < n_bands; i++) {
 		if (!(hist->bins[i] = VIPS_ARRAY(hist_find,
 				  n_bytes, VipsPel)))
-			return (NULL);
+			return NULL;
 		memset(hist->bins[i], 0, n_bytes);
 	}
 
@@ -132,7 +132,7 @@ histogram_new(VipsHistFind *hist_find, int n_bands, int band, int size)
 	hist->size = size;
 	hist->mx = 0;
 
-	return (hist);
+	return hist;
 }
 
 static int
@@ -151,7 +151,7 @@ vips_hist_find_build(VipsObject *object)
 
 	if (in &&
 		vips_check_bandno(class->nickname, in, hist_find->band))
-		return (-1);
+		return -1;
 
 	/* Is this a large histogram? We want to avoid overflow of the uint
 	 * accumulators.
@@ -165,13 +165,13 @@ vips_hist_find_build(VipsObject *object)
 	 */
 
 	if (VIPS_OBJECT_CLASS(vips_hist_find_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Make the output image.
 	 */
 	if (vips_image_pipelinev(hist_find->out,
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(hist_find->out,
 		hist_find->hist->mx + 1, 1, hist_find->hist->n_bands,
 		hist_find->large ? VIPS_FORMAT_DOUBLE : VIPS_FORMAT_UINT,
@@ -181,7 +181,7 @@ vips_hist_find_build(VipsObject *object)
 	 */
 	if (!(obuffer = VIPS_ARRAY(object,
 			  VIPS_IMAGE_SIZEOF_LINE(hist_find->out), VipsPel)))
-		return (-1);
+		return -1;
 
 #define INTERLEAVE(TYPE) \
 	G_STMT_START \
@@ -203,9 +203,9 @@ vips_hist_find_build(VipsObject *object)
 		INTERLEAVE(unsigned int);
 
 	if (vips_image_write_line(hist_find->out, 0, obuffer))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Build a sub-hist, based on the main hist.
@@ -225,10 +225,10 @@ vips_hist_find_start(VipsStatistic *statistic)
 				? 256
 				: 65536);
 
-	return ((void *) histogram_new(hist_find,
+	return (void *) histogram_new(hist_find,
 		hist_find->hist->n_bands,
 		hist_find->hist->band,
-		hist_find->hist->size));
+		hist_find->hist->size);
 }
 
 /* Join a sub-hist onto the main hist.
@@ -272,7 +272,7 @@ vips_hist_find_stop(VipsStatistic *statistic, void *seq)
 	for (i = 0; i < sub_hist->n_bands; i++)
 		sub_hist->bins[i] = NULL;
 
-	return (0);
+	return 0;
 }
 
 #define SCANOP \
@@ -393,7 +393,7 @@ vips_hist_find_scan(VipsStatistic *statistic, void *seq,
 
 	hist->mx = mx;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -478,5 +478,5 @@ vips_hist_find(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_find", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

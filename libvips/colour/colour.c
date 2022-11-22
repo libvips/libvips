@@ -242,7 +242,7 @@ vips_colour_gen(VipsRegion * or,
 	 */
 
 	if (vips_reorder_prepare_many(or->im, ir, r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_colour_gen: work");
 
@@ -259,7 +259,7 @@ vips_colour_gen(VipsRegion * or,
 
 	VIPS_COUNT_PIXELS(or, VIPS_OBJECT_GET_CLASS(colour)->nickname);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -281,16 +281,16 @@ vips_colour_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_colour_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (colour->n > MAX_INPUT_IMAGES) {
 		vips_error(class->nickname,
 			"%s", _("too many input images"));
-		return (-1);
+		return -1;
 	}
 	for (i = 0; i < colour->n; i++)
 		if (vips_image_pio_input(colour->in[i]))
-			return (-1);
+			return -1;
 
 	/* colour->in[] must be NULL-terminated, we can use it as an arg to
 	 * vips_start_many().
@@ -311,13 +311,13 @@ vips_colour_build(VipsObject *object)
 		for (i = 0; i < colour->n; i++) {
 			if (vips_check_bands_atleast(class->nickname,
 					in[i], colour->input_bands))
-				return (-1);
+				return -1;
 
 			if (in[i]->Bands > colour->input_bands) {
 				if (vips_extract_band(in[i], &new_in[i], 0,
 						"n", colour->input_bands,
 						NULL))
-					return (-1);
+					return -1;
 			}
 			else {
 				new_in[i] = in[i];
@@ -329,7 +329,7 @@ vips_colour_build(VipsObject *object)
 						colour->input_bands,
 						"n", in[i]->Bands - colour->input_bands,
 						NULL))
-					return (-1);
+					return -1;
 		}
 
 		in = new_in;
@@ -339,7 +339,7 @@ vips_colour_build(VipsObject *object)
 	if (vips_image_pipeline_array(out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 	out->Coding = colour->coding;
 	out->Type = colour->interpretation;
@@ -348,13 +348,13 @@ vips_colour_build(VipsObject *object)
 
 	if (colour->profile_filename &&
 		vips__profile_set(out, colour->profile_filename))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(out,
 			vips_start_many, vips_colour_gen, vips_stop_many,
 			in, colour)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 
 	/* Reattach higher bands, if necessary. If we have more than one input
@@ -373,14 +373,14 @@ vips_colour_build(VipsObject *object)
 			if (vips_cast(extra_bands[i], &t1, out->BandFmt,
 					NULL)) {
 				g_object_unref(out);
-				return (-1);
+				return -1;
 			}
 
 			if (vips_bandjoin2(out, t1, &t2,
 					NULL)) {
 				g_object_unref(t1);
 				g_object_unref(out);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(out);
 			g_object_unref(t1);
@@ -391,7 +391,7 @@ vips_colour_build(VipsObject *object)
 
 	g_object_set(colour, "out", out, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -442,7 +442,7 @@ vips_colour_transform_build(VipsObject *object)
 	if (transform->in &&
 		transform->in->BandFmt != VIPS_FORMAT_FLOAT) {
 		if (vips_cast_float(transform->in, &t[0], NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[0] = transform->in;
@@ -457,9 +457,9 @@ vips_colour_transform_build(VipsObject *object)
 	colour->in = t;
 
 	if (VIPS_OBJECT_CLASS(vips_colour_transform_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -516,21 +516,21 @@ vips_colour_code_build(VipsObject *object)
 		in->Coding == VIPS_CODING_LABQ &&
 		code->input_coding == VIPS_CODING_NONE) {
 		if (vips_LabQ2Lab(in, &t[0], NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 
 	if (in &&
 		vips_check_coding(VIPS_OBJECT_CLASS(class)->nickname,
 			in, code->input_coding))
-		return (-1);
+		return -1;
 
 	if (in &&
 		code->input_coding == VIPS_CODING_NONE &&
 		code->input_format != VIPS_FORMAT_NOTSET &&
 		in->BandFmt != code->input_format) {
 		if (vips_cast(in, &t[3], code->input_format, NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
@@ -540,7 +540,7 @@ vips_colour_code_build(VipsObject *object)
 		in->Type != code->input_interpretation) {
 		if (vips_colourspace(in, &t[4],
 				code->input_interpretation, NULL))
-			return (-1);
+			return -1;
 		in = t[4];
 	}
 
@@ -550,9 +550,9 @@ vips_colour_code_build(VipsObject *object)
 	colour->in[1] = NULL;
 
 	if (VIPS_OBJECT_CLASS(vips_colour_code_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -603,13 +603,13 @@ vips_colour_difference_build(VipsObject *object)
 
 	if (left) {
 		if (vips_image_decode(left, &t[0]))
-			return (-1);
+			return -1;
 		left = t[0];
 	}
 
 	if (right) {
 		if (vips_image_decode(right, &t[1]))
-			return (-1);
+			return -1;
 		right = t[1];
 	}
 
@@ -621,7 +621,7 @@ vips_colour_difference_build(VipsObject *object)
 		left->Type != difference->interpretation) {
 		if (vips_colourspace(left, &t[6],
 				difference->interpretation, NULL))
-			return (-1);
+			return -1;
 		left = t[6];
 	}
 
@@ -629,7 +629,7 @@ vips_colour_difference_build(VipsObject *object)
 		right->Type != difference->interpretation) {
 		if (vips_colourspace(right, &t[7],
 				difference->interpretation, NULL))
-			return (-1);
+			return -1;
 		right = t[7];
 	}
 
@@ -638,19 +638,19 @@ vips_colour_difference_build(VipsObject *object)
 	if (left &&
 		left->BandFmt != VIPS_FORMAT_FLOAT) {
 		if (vips_cast_float(left, &t[8], NULL))
-			return (-1);
+			return -1;
 		left = t[8];
 	}
 
 	if (right &&
 		right->BandFmt != VIPS_FORMAT_FLOAT) {
 		if (vips_cast_float(right, &t[9], NULL))
-			return (-1);
+			return -1;
 		right = t[9];
 	}
 
 	if (vips__sizealike(left, right, &t[10], &t[11]))
-		return (-1);
+		return -1;
 	left = t[10];
 	right = t[11];
 
@@ -661,9 +661,9 @@ vips_colour_difference_build(VipsObject *object)
 	colour->in[2] = NULL;
 
 	if (VIPS_OBJECT_CLASS(vips_colour_difference_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

@@ -84,7 +84,7 @@ static GPrivate *is_vips_thread_key = NULL;
 gboolean
 vips_thread_isvips(void)
 {
-	return (g_private_get(is_vips_thread_key) != NULL);
+	return g_private_get(is_vips_thread_key) != NULL;
 }
 
 /* Glib 2.32 revised the thread API. We need some compat functions.
@@ -98,7 +98,7 @@ vips_g_mutex_new(void)
 	mutex = g_new(GMutex, 1);
 	g_mutex_init(mutex);
 
-	return (mutex);
+	return mutex;
 }
 
 void
@@ -116,7 +116,7 @@ vips_g_cond_new(void)
 	cond = g_new(GCond, 1);
 	g_cond_init(cond);
 
-	return (cond);
+	return cond;
 }
 
 void
@@ -151,7 +151,7 @@ vips_thread_run(gpointer data)
 
 	vips_thread_shutdown();
 
-	return (result);
+	return result;
 }
 
 GThread *
@@ -179,7 +179,7 @@ vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
 				"%s", _("unable to create thread"));
 	}
 
-	return (thread);
+	return thread;
 }
 
 static int
@@ -190,7 +190,7 @@ get_num_processors(void)
 	 * https://gitlab.gnome.org/GNOME/glib/commit/999711abc82ea3a698d05977f9f91c0b73957f7f
 	 * https://gitlab.gnome.org/GNOME/glib/commit/2149b29468bb99af3c29d5de61f75aad735082dc
 	 */
-	return (g_get_num_processors());
+	return g_get_num_processors();
 #else
 	int nproc;
 
@@ -257,7 +257,7 @@ get_num_processors(void)
 	}
 #endif /*G_OS_WIN32*/
 
-	return (nproc);
+	return nproc;
 #endif /*!GLIB_CHECK_VERSION( 2, 48, 1 )*/
 }
 
@@ -293,7 +293,7 @@ vips__concurrency_get_default(void)
 		g_warning(_("threads clipped to %d"), nthr);
 	}
 
-	return (nthr);
+	return nthr;
 }
 
 /**
@@ -352,7 +352,7 @@ vips_concurrency_set(int concurrency)
 int
 vips_concurrency_get(void)
 {
-	return (vips__concurrency);
+	return vips__concurrency;
 }
 
 /**

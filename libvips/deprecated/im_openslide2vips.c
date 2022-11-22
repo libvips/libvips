@@ -74,7 +74,7 @@ im_openslide2vips(const char *name, IMAGE *out)
 		if (*endptr) {
 			vips_error("openslide2vips", "%s",
 				_("level must be a number"));
-			return (-1);
+			return -1;
 		}
 	}
 	if ((q = im_getnextoption(&p)))
@@ -84,14 +84,14 @@ im_openslide2vips(const char *name, IMAGE *out)
 			"level", level,
 			"associated", associated,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static const char *openslide_suffs[] = {
@@ -113,8 +113,7 @@ openslide_flags(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return ((VipsFormatFlags)
-			vips_foreign_flags("openslideload", filename));
+	return (VipsFormatFlags) vips_foreign_flags("openslideload", filename);
 }
 
 static int
@@ -125,7 +124,7 @@ isopenslide(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return (vips_foreign_is_a("openslideload", filename));
+	return vips_foreign_is_a("openslideload", filename);
 }
 
 /* openslide format adds no new members.

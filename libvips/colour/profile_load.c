@@ -85,7 +85,7 @@ vips_profile_fallback_get(const char *name, size_t *length)
 
 			if (res == G_CONVERTER_FINISHED) {
 				*length = fallback->length;
-				return (data);
+				return data;
 			}
 			else {
 				g_free(data);
@@ -93,7 +93,7 @@ vips_profile_fallback_get(const char *name, size_t *length)
 			}
 		}
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -107,7 +107,7 @@ vips_profile_load_build(VipsObject *object)
 	VipsBlob *profile;
 
 	if (VIPS_OBJECT_CLASS(vips_profile_load_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (g_ascii_strcasecmp(load->name, "none") == 0)
 		profile = NULL;
@@ -121,7 +121,7 @@ vips_profile_load_build(VipsObject *object)
 	else {
 		vips_error(class->nickname,
 			_("unable to load profile \"%s\""), load->name);
-		return (-1);
+		return -1;
 	}
 
 	g_object_set(object, "profile", profile, NULL);
@@ -131,7 +131,7 @@ vips_profile_load_build(VipsObject *object)
 		profile = NULL;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -200,7 +200,7 @@ vips_profile_load(const char *name, VipsBlob **profile, ...)
 	result = vips_call_split("profile_load", ap, name, profile);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Set (or remove) a named profile on an image.
@@ -211,7 +211,7 @@ vips__profile_set(VipsImage *image, const char *name)
 	VipsBlob *profile;
 
 	if (vips_profile_load(name, &profile, NULL))
-		return (-1);
+		return -1;
 
 	if (profile) {
 		GValue value = { 0 };
@@ -229,5 +229,5 @@ vips__profile_set(VipsImage *image, const char *name)
 		profile = NULL;
 	}
 
-	return (0);
+	return 0;
 }

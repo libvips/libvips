@@ -101,10 +101,10 @@ vips_foreign_save_raw_write(VipsRegion *region, VipsRect *area, void *a)
 
 		if (vips__write(raw->fd, p,
 				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -114,14 +114,14 @@ vips_foreign_save_raw_build(VipsObject *object)
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_raw_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if ((raw->fd = vips__open_image_write(raw->filename, FALSE)) < 0 ||
 		vips_image_pio_input(save->in) ||
 		vips_sink_disc(save->in, vips_foreign_save_raw_write, raw))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_save_raw_suffs[] = {
@@ -185,7 +185,7 @@ vips_rawsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("rawsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* And with an fd rather than a filename.
@@ -215,10 +215,10 @@ vips_foreign_save_raw_fd_write(VipsRegion *region, VipsRect *area, void *a)
 
 		if (vips__write(fd->fd, p,
 				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -228,14 +228,14 @@ vips_foreign_save_raw_fd_build(VipsObject *object)
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_raw_fd_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(save->in) ||
 		vips_sink_disc(save->in,
 			vips_foreign_save_raw_fd_write, fd))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -293,5 +293,5 @@ vips_rawsave_fd(VipsImage *in, int fd, ...)
 	result = vips_call_split("rawsave_fd", ap, in, fd);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

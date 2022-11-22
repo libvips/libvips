@@ -91,10 +91,10 @@ vips_scale_build(VipsObject *object)
 	double mn;
 
 	if (VIPS_OBJECT_CLASS(vips_scale_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_stats(scale->in, &t[0], NULL))
-		return (-1);
+		return -1;
 	mn = *VIPS_MATRIX(t[0], 0, 0);
 	mx = *VIPS_MATRIX(t[0], 1, 0);
 
@@ -105,7 +105,7 @@ vips_scale_build(VipsObject *object)
 				"bands", scale->in->Bands,
 				NULL) ||
 			vips_image_write(t[1], conversion->out))
-			return (-1);
+			return -1;
 	}
 	else if (scale->log) {
 		double f = 255.0 / log10(1.0 + pow(mx, scale->exp));
@@ -119,7 +119,7 @@ vips_scale_build(VipsObject *object)
 				"uchar", TRUE,
 				NULL) ||
 			vips_image_write(t[5], conversion->out))
-			return (-1);
+			return -1;
 	}
 	else {
 		double f = 255.0 / (mx - mn);
@@ -132,10 +132,10 @@ vips_scale_build(VipsObject *object)
 				"uchar", TRUE,
 				NULL) ||
 			vips_image_write(t[2], conversion->out))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -210,5 +210,5 @@ vips_scale(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("scale", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

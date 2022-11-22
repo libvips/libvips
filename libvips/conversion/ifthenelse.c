@@ -292,7 +292,7 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 	int all0, all255;
 
 	if (vips_region_prepare(ir[2], r))
-		return (-1);
+		return -1;
 
 	/* Is the conditional all zero or all 255? We can avoid asking
 	 * for one of the inputs to be calculated.
@@ -317,14 +317,14 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		 */
 		if (vips_region_prepare(ir[0], r) ||
 			vips_region_region(or, ir[0], r, r->left, r->top))
-			return (-1);
+			return -1;
 	}
 	else if (all0) {
 		/* All zero. Point or at the else image.
 		 */
 		if (vips_region_prepare(ir[1], r) ||
 			vips_region_region(or, ir[1], r, r->left, r->top))
-			return (-1);
+			return -1;
 	}
 	else {
 		/* Mix of set and clear ... ask for both then and else parts
@@ -335,7 +335,7 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		 */
 		if (vips_region_prepare(ir[0], r) ||
 			vips_region_prepare(ir[1], r))
-			return (-1);
+			return -1;
 
 		for (y = to; y < bo; y++) {
 			VipsPel *ap = VIPS_REGION_ADDR(ir[0], le, y);
@@ -352,7 +352,7 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -387,7 +387,7 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 	}
 
 	if (vips_region_prepare(ir[2], r))
-		return (-1);
+		return -1;
 
 	/* Is the conditional all zero or all non-zero? We can avoid asking
 	 * for one of the inputs to be calculated.
@@ -411,14 +411,14 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		 */
 		if (vips_region_prepare(ir[0], r) ||
 			vips_region_region(or, ir[0], r, r->left, r->top))
-			return (-1);
+			return -1;
 	}
 	else if (all0) {
 		/* All zero. Point or at the else image.
 		 */
 		if (vips_region_prepare(ir[1], r) ||
 			vips_region_region(or, ir[1], r, r->left, r->top))
-			return (-1);
+			return -1;
 	}
 	else {
 		/* Mix of set and clear ... ask for both then and else parts
@@ -426,7 +426,7 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		 */
 		if (vips_region_prepare(ir[0], r) ||
 			vips_region_prepare(ir[1], r))
-			return (-1);
+			return -1;
 
 		for (y = to; y < bo; y++) {
 			VipsPel *ap = VIPS_REGION_ADDR(ir[0], le, y);
@@ -444,7 +444,7 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -465,7 +465,7 @@ vips_ifthenelse_build(VipsObject *object)
 	VipsImage *all[3];
 
 	if (VIPS_OBJECT_CLASS(vips_ifthenelse_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* We have to have the condition image last since we want the output
 	 * image to inherit its properties from the then/else parts.
@@ -482,13 +482,13 @@ vips_ifthenelse_build(VipsObject *object)
 	 */
 	if (vips__bandalike_vec(class->nickname, all, band, 3, 0) ||
 		vips__sizealike_vec(band, size, 3))
-		return (-1);
+		return -1;
 
 	/* Condition is cast to uchar, then/else to a common type.
 	 */
 	if (size[2]->BandFmt != VIPS_FORMAT_UCHAR) {
 		if (vips_cast(size[2], &format[2], VIPS_FORMAT_UCHAR, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		format[2] = size[2];
@@ -496,18 +496,18 @@ vips_ifthenelse_build(VipsObject *object)
 	}
 
 	if (vips__formatalike_vec(size, format, 2))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipeline_array(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, format))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_many, generate_fn, vips_stop_many,
 			format, ifthenelse))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -602,5 +602,5 @@ vips_ifthenelse(VipsImage *cond, VipsImage *in1, VipsImage *in2,
 	result = vips_call_split("ifthenelse", ap, cond, in1, in2, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

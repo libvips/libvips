@@ -142,7 +142,7 @@ vips_byteswap_gen(VipsRegion * or,
 	g_assert(swap);
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
@@ -151,7 +151,7 @@ vips_byteswap_gen(VipsRegion * or,
 		swap(p, q, r->width, im);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -161,27 +161,27 @@ vips_byteswap_build(VipsObject *object)
 	VipsByteswap *byteswap = (VipsByteswap *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_byteswap_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Lots of images don't need swapping.
 	 */
 	if (byteswap->in->Coding != VIPS_CODING_NONE ||
 		!vips_byteswap_swap_fn[byteswap->in->BandFmt])
-		return (vips_image_write(byteswap->in, conversion->out));
+		return vips_image_write(byteswap->in, conversion->out);
 
 	if (vips_image_pio_input(byteswap->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, byteswap->in, NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_byteswap_gen, vips_stop_one,
 			byteswap->in, byteswap))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -236,7 +236,7 @@ vips_byteswap(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("byteswap", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Convenience function: swap if @swap is %TRUE, otherwise copy.
@@ -245,7 +245,7 @@ int
 vips__byteswap_bool(VipsImage *in, VipsImage **out, gboolean swap)
 {
 	if (swap)
-		return (vips_byteswap(in, out, NULL));
+		return vips_byteswap(in, out, NULL);
 	else
-		return (vips_copy(in, out, NULL));
+		return vips_copy(in, out, NULL);
 }

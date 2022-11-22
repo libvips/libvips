@@ -280,7 +280,7 @@ resolu2str(char *buf, register RESOLU *rp)
 		sprintf(buf, "%cX %d %cY %d\n",
 			rp->rt & XDECR ? '-' : '+', rp->xr,
 			rp->rt & YDECR ? '-' : '+', rp->yr);
-	return (buf);
+	return buf;
 }
 
 /* convert resolution line to struct */
@@ -291,7 +291,7 @@ str2resolu(register RESOLU *rp, char *buf)
 	register char *cp;
 
 	if (buf == NULL)
-		return (0);
+		return 0;
 	xndx = yndx = NULL;
 	for (cp = buf; *cp; cp++)
 		if (*cp == 'X')
@@ -299,7 +299,7 @@ str2resolu(register RESOLU *rp, char *buf)
 		else if (*cp == 'Y')
 			yndx = cp;
 	if (xndx == NULL || yndx == NULL)
-		return (0);
+		return 0;
 	rp->rt = 0;
 	if (xndx > yndx)
 		rp->rt |= YMAJOR;
@@ -308,10 +308,10 @@ str2resolu(register RESOLU *rp, char *buf)
 	if (yndx[-1] == '-')
 		rp->rt |= YDECR;
 	if ((rp->xr = atoi(xndx + 1)) <= 0)
-		return (0);
+		return 0;
 	if ((rp->yr = atoi(yndx + 1)) <= 0)
-		return (0);
-	return (1);
+		return 0;
+	return 1;
 }
 
 #define MAXFMTLEN 64
@@ -326,18 +326,18 @@ formatval(char fmt[MAXFMTLEN], const char *s)
 
 	while (*cp)
 		if (*cp++ != *s++)
-			return (0);
+			return 0;
 	while (isspace(*s))
 		s++;
 	if (!*s)
-		return (0);
+		return 0;
 	if (r == NULL)
-		return (1);
+		return 1;
 	do
 		*r++ = *s++;
 	while (*s && !isspace(*s) && r - fmt < MAXFMTLEN - 1);
 	*r = '\0';
-	return (1);
+	return 1;
 }
 
 /* Get header from source.
@@ -349,7 +349,7 @@ getheader(VipsSbuf *sbuf, gethfunc *f, void *p)
 		const char *line;
 
 		if (!(line = vips_sbuf_get_line(sbuf)))
-			return (-1);
+			return -1;
 		if (strcmp(line, "") == 0)
 			/* Blank line. We've parsed the header successfully.
 			 */
@@ -357,10 +357,10 @@ getheader(VipsSbuf *sbuf, gethfunc *f, void *p)
 
 		if (f != NULL &&
 			(*f)((char *) line, p) < 0)
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read a single scanline, encoded in the old style.
@@ -374,7 +374,7 @@ scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 
 	while (width > 0) {
 		if (VIPS_SBUF_REQUIRE(sbuf, 4))
-			return (-1);
+			return -1;
 
 		scanline[0][RED] = VIPS_SBUF_FETCH(sbuf);
 		scanline[0][GRN] = VIPS_SBUF_FETCH(sbuf);
@@ -398,7 +398,7 @@ scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 			/* This can happen with badly-formed input files.
 			 */
 			if (rshift > 24)
-				return (-1);
+				return -1;
 		}
 		else {
 			scanline += 1;
@@ -407,7 +407,7 @@ scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read a single encoded scanline.
@@ -421,13 +421,13 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 	 */
 	if (width < MINELEN ||
 		width > MAXELEN)
-		return (scanline_read_old(sbuf, scanline, width));
+		return scanline_read_old(sbuf, scanline, width);
 
 	if (VIPS_SBUF_REQUIRE(sbuf, 4))
-		return (-1);
+		return -1;
 
 	if (VIPS_SBUF_PEEK(sbuf)[0] != 2)
-		return (scanline_read_old(sbuf, scanline, width));
+		return scanline_read_old(sbuf, scanline, width);
 
 	scanline[0][RED] = VIPS_SBUF_FETCH(sbuf);
 	scanline[0][GRN] = VIPS_SBUF_FETCH(sbuf);
@@ -435,12 +435,12 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 	scanline[0][EXP] = VIPS_SBUF_FETCH(sbuf);
 	if (scanline[0][GRN] != 2 ||
 		scanline[0][BLU] & 128)
-		return (scanline_read_old(sbuf,
-			scanline + 1, width - 1));
+		return scanline_read_old(sbuf,
+			scanline + 1, width - 1);
 
 	if (((scanline[0][BLU] << 8) | scanline[0][EXP]) != width) {
 		vips_error("rad2vips", "%s", _("scanline length mismatch"));
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < 4; i++)
@@ -449,7 +449,7 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 			gboolean run;
 
 			if (VIPS_SBUF_REQUIRE(sbuf, 2))
-				return (-1);
+				return -1;
 
 			code = VIPS_SBUF_FETCH(sbuf);
 			run = code > 128;
@@ -457,7 +457,7 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 
 			if (j + len > width) {
 				vips_error("rad2vips", "%s", _("overrun"));
-				return (-1);
+				return -1;
 			}
 
 			if (run) {
@@ -469,14 +469,14 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 			}
 			else {
 				if (VIPS_SBUF_REQUIRE(sbuf, len))
-					return (-1);
+					return -1;
 				while (len--)
 					scanline[j++][i] =
 						VIPS_SBUF_FETCH(sbuf);
 			}
 		}
 
-	return (0);
+	return 0;
 }
 
 /* An encoded scanline can't be larger than this.
@@ -581,7 +581,7 @@ vips__rad_israd(VipsSource *source)
 		strcmp(line, "#?RADIANCE") == 0;
 	VIPS_UNREF(sbuf);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -604,10 +604,10 @@ read_new(VipsSource *source, VipsImage *out)
 	int i;
 
 	if (vips_source_rewind(source))
-		return (NULL);
+		return NULL;
 
 	if (!(read = VIPS_NEW(out, Read)))
-		return (NULL);
+		return NULL;
 
 	read->sbuf = vips_sbuf_new_from_source(source);
 	read->out = out;
@@ -630,7 +630,7 @@ read_new(VipsSource *source, VipsImage *out)
 	g_signal_connect(out, "minimise",
 		G_CALLBACK(read_minimise_cb), read);
 
-	return (read);
+	return read;
 }
 
 static int
@@ -638,7 +638,7 @@ rad2vips_process_line(char *line, Read *read)
 {
 	if (isformat(line)) {
 		if (formatval(line, read->format))
-			return (-1);
+			return -1;
 	}
 	else if (isexpos(line)) {
 		read->expos *= exposval(line);
@@ -658,7 +658,7 @@ rad2vips_process_line(char *line, Read *read)
 		(void) primsval(read->prims, line);
 	}
 
-	return (0);
+	return 0;
 }
 
 static const char *prims_name[4][2] = {
@@ -689,7 +689,7 @@ rad2vips_get_header(Read *read, VipsImage *out)
 		!str2resolu(&read->rs, (char *) line)) {
 		vips_error("rad2vips", "%s",
 			_("error reading radiance header"));
-		return (-1);
+		return -1;
 	}
 
 	if (strcmp(read->format, COLRFMT) == 0)
@@ -706,7 +706,7 @@ rad2vips_get_header(Read *read, VipsImage *out)
 		height <= 0 ||
 		height >= VIPS_MAX_COORD) {
 		vips_error("rad2vips", "%s", _("image size out of bounds"));
-		return (-1);
+		return -1;
 	}
 
 	vips_image_init_fields(out, width, height, 4,
@@ -719,7 +719,7 @@ rad2vips_get_header(Read *read, VipsImage *out)
 			VIPS_CONNECTION(read->sbuf->source)));
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	vips_image_set_string(out, "rad-format", read->format);
 
@@ -736,7 +736,7 @@ rad2vips_get_header(Read *read, VipsImage *out)
 			vips_image_set_double(out,
 				prims_name[i][j], read->prims[i][j]);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -745,12 +745,12 @@ vips__rad_header(VipsSource *source, VipsImage *out)
 	Read *read;
 
 	if (!(read = read_new(source, out)))
-		return (-1);
+		return -1;
 	if (rad2vips_get_header(read, read->out))
-		return (-1);
+		return -1;
 	vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -777,13 +777,13 @@ rad2vips_generate(VipsRegion * or,
 			vips_error("rad2vips",
 				_("read error line %d"), r->top + y);
 			VIPS_GATE_STOP("rad2vips_generate: work");
-			return (-1);
+			return -1;
 		}
 	}
 
 	VIPS_GATE_STOP("rad2vips_generate: work");
 
-	return (0);
+	return 0;
 }
 
 int
@@ -800,11 +800,11 @@ vips__rad_load(VipsSource *source, VipsImage *out)
 #endif /*DEBUG*/
 
 	if (!(read = read_new(source, out)))
-		return (-1);
+		return -1;
 
 	t[0] = vips_image_new();
 	if (rad2vips_get_header(read, t[0]))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(t[0],
 			NULL, rad2vips_generate, NULL, read, NULL) ||
@@ -812,12 +812,12 @@ vips__rad_load(VipsSource *source, VipsImage *out)
 			"tile_height", VIPS__FATSTRIP_HEIGHT,
 			NULL) ||
 		vips_image_write(t[1], out))
-		return (-1);
+		return -1;
 
 	if (vips_source_decode(source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* What we track during a radiance write.
@@ -851,7 +851,7 @@ write_new(VipsImage *in, VipsTarget *target)
 	int i;
 
 	if (!(write = VIPS_NEW(NULL, Write)))
-		return (NULL);
+		return NULL;
 
 	write->in = in;
 	write->target = target;
@@ -873,10 +873,10 @@ write_new(VipsImage *in, VipsTarget *target)
 
 	if (!(write->line = VIPS_ARRAY(NULL, MAX_LINE, unsigned char))) {
 		write_destroy(write);
-		return (NULL);
+		return NULL;
 	}
 
-	return (write);
+	return write;
 }
 
 static void
@@ -950,7 +950,7 @@ vips2rad_put_header(Write *write)
 	vips_target_writes(write->target,
 		resolu2str(resolu_buf, &write->rs));
 
-	return (0);
+	return 0;
 }
 
 /* Write a single scanline to buffer.
@@ -964,7 +964,7 @@ scanline_write(Write *write, COLR *scanline, int width)
 		 */
 		if (vips_target_write(write->target,
 				scanline, sizeof(COLR) * width))
-			return (-1);
+			return -1;
 	}
 	else {
 		int length;
@@ -974,10 +974,10 @@ scanline_write(Write *write, COLR *scanline, int width)
 		rle_scanline_write(scanline, width, write->line, &length);
 
 		if (vips_target_write(write->target, write->line, length))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -990,19 +990,19 @@ vips2rad_put_data_block(VipsRegion *region, VipsRect *area, void *a)
 		VipsPel *p = VIPS_REGION_ADDR(region, 0, area->top + i);
 
 		if (scanline_write(write, (COLR *) p, area->width))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
 vips2rad_put_data(Write *write)
 {
 	if (vips_sink_disc(write->in, vips2rad_put_data_block, write))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1016,22 +1016,22 @@ vips__rad_save(VipsImage *in, VipsTarget *target)
 
 	if (vips_image_pio_input(in) ||
 		vips_check_coding("vips2rad", in, VIPS_CODING_RAD))
-		return (-1);
+		return -1;
 	if (!(write = write_new(in, target)))
-		return (-1);
+		return -1;
 
 	if (vips2rad_put_header(write) ||
 		vips2rad_put_data(write)) {
 		write_destroy(write);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_target_end(target))
-		return (-1);
+		return -1;
 
 	write_destroy(write);
 
-	return (0);
+	return 0;
 }
 
 const char *vips__rad_suffs[] = { ".hdr", NULL };

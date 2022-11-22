@@ -145,7 +145,7 @@ vips_interpolate_real_get_window_size(VipsInterpolate *interpolate)
 
 	g_assert(class->window_size != -1);
 
-	return (class->window_size);
+	return class->window_size;
 }
 
 static int
@@ -157,14 +157,14 @@ vips_interpolate_real_get_window_offset(VipsInterpolate *interpolate)
 	 * stencil and needs an offset of 1.
 	 */
 	if (class->window_offset != -1)
-		return (class->window_offset);
+		return class->window_offset;
 	else {
 		int window_size =
 			vips_interpolate_get_window_size(interpolate);
 
 		/* Don't go -ve, of course, for window_size 1.
 		 */
-		return (VIPS_MAX(0, window_size / 2 - 1));
+		return VIPS_MAX(0, window_size / 2 - 1);
 	}
 }
 
@@ -241,7 +241,7 @@ vips_interpolate_get_method(VipsInterpolate *interpolate)
 
 	g_assert(class->interpolate);
 
-	return (class->interpolate);
+	return class->interpolate;
 }
 
 /**
@@ -259,7 +259,7 @@ vips_interpolate_get_window_size(VipsInterpolate *interpolate)
 
 	g_assert(class->get_window_size);
 
-	return (class->get_window_size(interpolate));
+	return class->get_window_size(interpolate);
 }
 
 /**
@@ -277,7 +277,7 @@ vips_interpolate_get_window_offset(VipsInterpolate *interpolate)
 
 	g_assert(class->get_window_offset);
 
-	return (class->get_window_offset(interpolate));
+	return class->get_window_offset(interpolate);
 }
 
 /**
@@ -376,8 +376,8 @@ vips_interpolate_nearest_init(VipsInterpolateNearest *nearest)
 static VipsInterpolate *
 vips_interpolate_nearest_new(void)
 {
-	return (VIPS_INTERPOLATE(vips_object_new(
-		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL)));
+	return VIPS_INTERPOLATE(vips_object_new(
+		VIPS_TYPE_INTERPOLATE_NEAREST, NULL, NULL, NULL));
 }
 
 /**
@@ -398,7 +398,7 @@ vips_interpolate_nearest_static(void)
 		vips_object_set_static(VIPS_OBJECT(interpolate), TRUE);
 	}
 
-	return (interpolate);
+	return interpolate;
 }
 
 /* VipsInterpolateBilinear class
@@ -594,8 +594,8 @@ vips_interpolate_bilinear_init(VipsInterpolateBilinear *bilinear)
 VipsInterpolate *
 vips_interpolate_bilinear_new(void)
 {
-	return (VIPS_INTERPOLATE(vips_object_new(
-		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL, NULL, NULL)));
+	return VIPS_INTERPOLATE(vips_object_new(
+		VIPS_TYPE_INTERPOLATE_BILINEAR, NULL, NULL, NULL));
 }
 
 /**
@@ -616,7 +616,7 @@ vips_interpolate_bilinear_static(void)
 		vips_object_set_static(VIPS_OBJECT(interpolate), TRUE);
 	}
 
-	return (interpolate);
+	return interpolate;
 }
 
 /* Called on startup: register the base vips interpolators.
@@ -657,8 +657,8 @@ vips_interpolate_new(const char *nickname)
 	if (!(type = vips_type_find("VipsInterpolate", nickname))) {
 		vips_error("VipsInterpolate",
 			_("class \"%s\" not found"), nickname);
-		return (NULL);
+		return NULL;
 	}
 
-	return (VIPS_INTERPOLATE(vips_object_new(type, NULL, NULL, NULL)));
+	return VIPS_INTERPOLATE(vips_object_new(type, NULL, NULL, NULL));
 }

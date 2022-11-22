@@ -138,7 +138,7 @@ vips_reorder_get(VipsImage *image)
 
 	if ((reorder = g_object_get_qdata(G_OBJECT(image),
 			 vips__image_reorder_quark)))
-		return (reorder);
+		return reorder;
 
 	reorder = VIPS_NEW(NULL, VipsReorder);
 	reorder->image = image;
@@ -153,7 +153,7 @@ vips_reorder_get(VipsImage *image)
 	g_object_set_qdata_full(G_OBJECT(image), vips__image_reorder_quark,
 		reorder, (GDestroyNotify) vips_reorder_destroy);
 
-	return (reorder);
+	return reorder;
 }
 
 static int
@@ -163,7 +163,7 @@ vips_reorder_compare_score(const void *a, const void *b, void *arg)
 	int i2 = *((int *) b);
 	VipsReorder *reorder = (VipsReorder *) arg;
 
-	return (reorder->score[i2] - reorder->score[i1]);
+	return reorder->score[i2] - reorder->score[i1];
 }
 
 int
@@ -197,7 +197,7 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 					break;
 				}
 
-			return (0);
+			return 0;
 		}
 	}
 
@@ -210,11 +210,11 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 	reorder->score = VIPS_ARRAY(NULL, reorder->n_inputs, int);
 	reorder->recomp_order = VIPS_ARRAY(NULL, reorder->n_inputs, int);
 	if (!reorder->input)
-		return (-1);
+		return -1;
 	if (reorder->n_inputs &&
 		(!reorder->score ||
 			!reorder->recomp_order))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < reorder->n_inputs; i++) {
 		reorder->input[i] = in[i];
@@ -239,7 +239,7 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 	reorder->cumulative_margin = VIPS_ARRAY(NULL, total, int);
 	if (!reorder->source ||
 		!reorder->cumulative_margin)
-		return (-1);
+		return -1;
 
 	/* Copy source images over, removing duplicates. If we find a
 	 * duplicate, we have a reordering opportunity, and we adjust the
@@ -306,7 +306,7 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 	vips_reorder_print(reorder);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -337,10 +337,10 @@ vips_reorder_prepare_many(VipsImage *image, VipsRegion **regions, VipsRect *r)
 
 		if (vips_region_prepare(
 				regions[reorder->recomp_order[i]], r))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**

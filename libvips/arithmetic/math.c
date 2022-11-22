@@ -90,12 +90,12 @@ vips_math_build(VipsObject *object)
 
 	if (unary->in &&
 		vips_check_noncomplex(class->nickname, unary->in))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_math_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(IN, OUT, OP) \
@@ -285,7 +285,7 @@ vips_math_init(VipsMath *math)
 static int
 vips_mathv(VipsImage *in, VipsImage **out, VipsOperationMath math, va_list ap)
 {
-	return (vips_call_split("math", ap, in, out, math));
+	return vips_call_split("math", ap, in, out, math);
 }
 
 /**
@@ -316,7 +316,7 @@ vips_math(VipsImage *in, VipsImage **out, VipsOperationMath math, ...)
 	result = vips_mathv(in, out, math, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -339,7 +339,7 @@ vips_sin(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_SIN, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -362,7 +362,7 @@ vips_cos(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_COS, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -385,7 +385,7 @@ vips_tan(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_TAN, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -408,7 +408,7 @@ vips_asin(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ASIN, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -431,7 +431,7 @@ vips_acos(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ACOS, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -454,7 +454,7 @@ vips_atan(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ATAN, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -477,7 +477,7 @@ vips_sinh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_SINH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -500,7 +500,7 @@ vips_cosh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_COSH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -523,7 +523,7 @@ vips_tanh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_TANH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -546,7 +546,7 @@ vips_asinh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ASINH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -569,7 +569,7 @@ vips_acosh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ACOSH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -592,7 +592,7 @@ vips_atanh(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_ATANH, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -615,7 +615,7 @@ vips_log(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_LOG, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -638,7 +638,7 @@ vips_log10(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_LOG10, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -661,7 +661,7 @@ vips_exp(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_EXP, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -684,5 +684,5 @@ vips_exp10(VipsImage *in, VipsImage **out, ...)
 	result = vips_mathv(in, out, VIPS_OPERATION_MATH_EXP10, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

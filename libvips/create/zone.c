@@ -77,7 +77,7 @@ vips_zone_point(VipsPoint *point, int x, int y)
 	int v2 = (y - hheight) * (y - hheight);
 	double c = VIPS_PI / zone->width;
 
-	return (cos(c * (v2 + h2)));
+	return cos(c * (v2 + h2));
 }
 
 static void
@@ -126,5 +126,5 @@ vips_zone(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("zone", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

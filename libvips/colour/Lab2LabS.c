@@ -119,5 +119,5 @@ vips_Lab2LabS(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("Lab2LabS", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

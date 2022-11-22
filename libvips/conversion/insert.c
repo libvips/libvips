@@ -130,14 +130,14 @@ vips__insert_just_one(VipsRegion * or, VipsRegion *ir, int x, int y)
 	need.left -= x;
 	need.top -= y;
 	if (vips_region_prepare(ir, &need))
-		return (-1);
+		return -1;
 
 	/* Attach our output to it.
 	 */
 	if (vips_region_region(or, ir, & or->valid, need.left, need.top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Paste in parts of ir that fall within or --- ir is an input REGION for an
@@ -164,10 +164,10 @@ vips__insert_paste_region(VipsRegion * or, VipsRegion *ir, VipsRect *pos)
 		 */
 		if (vips_region_prepare_to(ir, or, &ovl,
 				ovl.left + pos->left, ovl.top + pos->top))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -192,7 +192,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		 */
 		if (vips__insert_just_one(or, ir[1],
 				insert->rimage[1].left, insert->rimage[1].top))
-			return (-1);
+			return -1;
 	}
 	else if (vips_rect_includesrect(&insert->rimage[0], r) &&
 		!vips_rect_overlapsrect(&insert->rimage[1], r)) {
@@ -200,7 +200,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		 */
 		if (vips__insert_just_one(or, ir[0],
 				insert->rimage[0].left, insert->rimage[0].top))
-			return (-1);
+			return -1;
 	}
 	else {
 		/* Output requires both (or neither) input. If it is not
@@ -214,7 +214,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		for (i = 0; i < 2; i++)
 			if (vips__insert_paste_region(or, ir[i],
 					&insert->rimage[i]))
-				return (-1);
+				return -1;
 	}
 
 	/* See arrayjoin for almost this code again. Move into conversion.c?
@@ -233,7 +233,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 			}
 		}
 
-	return (0);
+	return 0;
 }
 
 /* Make a pair of vector constants into a set of formatted pixels. bands can
@@ -270,7 +270,7 @@ vips__vector_to_pels(const char *domain,
 	if (vips_black(&t[0], 1, 1, "bands", bands, NULL) ||
 		vips_linear(t[0], &t[1], ones, real, n, NULL)) {
 		g_object_unref(context);
-		return (NULL);
+		return NULL;
 	}
 	in = t[1];
 
@@ -279,7 +279,7 @@ vips__vector_to_pels(const char *domain,
 			vips_linear(t[2], &t[3], ones, imag, n, NULL) ||
 			vips_complexform(in, t[3], &t[4], NULL)) {
 			g_object_unref(context);
-			return (NULL);
+			return NULL;
 		}
 		in = t[4];
 	}
@@ -289,7 +289,7 @@ vips__vector_to_pels(const char *domain,
 	if (vips_cast(in, &t[5], format, NULL) ||
 		vips_image_encode(t[5], &t[6], coding)) {
 		g_object_unref(context);
-		return (NULL);
+		return NULL;
 	}
 	in = t[6];
 
@@ -299,14 +299,14 @@ vips__vector_to_pels(const char *domain,
 	if (!(t[7] = vips_image_new_memory()) ||
 		vips_image_write(in, t[7])) {
 		g_object_unref(context);
-		return (NULL);
+		return NULL;
 	}
 	in = t[7];
 
 	if (!(result =
 				VIPS_ARRAY(NULL, VIPS_IMAGE_SIZEOF_PEL(in), VipsPel))) {
 		g_object_unref(context);
-		return (NULL);
+		return NULL;
 	}
 
 	memcpy(result, in->data, VIPS_IMAGE_SIZEOF_PEL(in));
@@ -329,7 +329,7 @@ vips__vector_to_pels(const char *domain,
 
 	g_object_unref(context);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -353,12 +353,12 @@ vips__vector_to_ink(const char *domain,
 
 	if (!(result = vips__vector_to_pels(domain,
 			  bands, format, im->Coding, real, imag, n)))
-		return (NULL);
+		return NULL;
 
 	g_signal_connect(im, "postclose",
 		G_CALLBACK(vips__vector_to_ink_cb), result);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -370,7 +370,7 @@ vips_insert_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	if (VIPS_OBJECT_CLASS(vips_insert_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(insert->main) ||
 		vips_image_pio_input(insert->sub) ||
@@ -379,13 +379,13 @@ vips_insert_build(VipsObject *object)
 		vips_check_coding_known(class->nickname, insert->main) ||
 		vips_check_coding_same(class->nickname,
 			insert->main, insert->sub))
-		return (-1);
+		return -1;
 
 	/* Cast our input images up to a common format and bands.
 	 */
 	if (vips__formatalike(insert->main, insert->sub, &t[0], &t[1]) ||
 		vips__bandalike(class->nickname, t[0], t[1], &t[2], &t[3]))
-		return (-1);
+		return -1;
 	insert->processed[0] = t[2];
 	insert->processed[1] = t[3];
 
@@ -395,7 +395,7 @@ vips_insert_build(VipsObject *object)
 	 */
 	if (vips_image_pipeline_array(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, insert->processed))
-		return (-1);
+		return -1;
 
 	/* Calculate geometry.
 	 */
@@ -434,14 +434,14 @@ vips_insert_build(VipsObject *object)
 			  class->nickname, conversion->out,
 			  (double *) VIPS_ARRAY_ADDR(insert->background, 0), NULL,
 			  VIPS_AREA(insert->background)->n)))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_many, vips_insert_gen, vips_stop_many,
 			insert->processed, insert))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -560,5 +560,5 @@ vips_insert(VipsImage *main, VipsImage *sub, VipsImage **out,
 	result = vips_call_split("insert", ap, main, sub, out, x, y);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

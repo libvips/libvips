@@ -97,15 +97,15 @@ vips_boolean_build(VipsObject *object)
 
 	if (binary->left &&
 		vips_check_noncomplex(class->nickname, binary->left))
-		return (-1);
+		return -1;
 	if (binary->right &&
 		vips_check_noncomplex(class->nickname, binary->right))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_boolean_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(TYPE, OP) \
@@ -291,8 +291,7 @@ static int
 vips_booleanv(VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationBoolean operation, va_list ap)
 {
-	return (vips_call_split("boolean", ap, left, right, out,
-		operation));
+	return vips_call_split("boolean", ap, left, right, out, operation);
 }
 
 /**
@@ -336,7 +335,7 @@ vips_boolean(VipsImage *left, VipsImage *right, VipsImage **out,
 	result = vips_booleanv(left, right, out, boolean, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -362,7 +361,7 @@ vips_andimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_BOOLEAN_AND, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -388,7 +387,7 @@ vips_orimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_BOOLEAN_OR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -414,7 +413,7 @@ vips_eorimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_BOOLEAN_EOR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -440,7 +439,7 @@ vips_lshift(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_BOOLEAN_LSHIFT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -466,7 +465,7 @@ vips_rshift(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_BOOLEAN_RSHIFT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsBooleanConst {
@@ -488,12 +487,12 @@ vips_boolean_const_build(VipsObject *object)
 
 	if (unary->in &&
 		vips_check_noncomplex(class->nickname, unary->in))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_boolean_const_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOPC(TYPE, OP) \
@@ -607,7 +606,7 @@ vips_boolean_constv(VipsImage *in, VipsImage **out,
 
 	vips_area_unref(area_c);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -646,7 +645,7 @@ vips_boolean_const(VipsImage *in, VipsImage **out,
 	result = vips_boolean_constv(in, out, boolean, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -676,7 +675,7 @@ vips_andimage_const(VipsImage *in, VipsImage **out,
 		VIPS_OPERATION_BOOLEAN_AND, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -706,7 +705,7 @@ vips_orimage_const(VipsImage *in, VipsImage **out,
 		VIPS_OPERATION_BOOLEAN_OR, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -736,7 +735,7 @@ vips_eorimage_const(VipsImage *in, VipsImage **out,
 		VIPS_OPERATION_BOOLEAN_EOR, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -765,7 +764,7 @@ vips_lshift_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_BOOLEAN_LSHIFT, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -794,7 +793,7 @@ vips_rshift_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_BOOLEAN_RSHIFT, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -823,7 +822,7 @@ vips_boolean_const1(VipsImage *in, VipsImage **out,
 	result = vips_boolean_constv(in, out, boolean, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -851,7 +850,7 @@ vips_andimage_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_BOOLEAN_AND, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -879,7 +878,7 @@ vips_orimage_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_BOOLEAN_OR, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -907,7 +906,7 @@ vips_eorimage_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_BOOLEAN_EOR, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -935,7 +934,7 @@ vips_lshift_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_BOOLEAN_LSHIFT, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -963,5 +962,5 @@ vips_rshift_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_BOOLEAN_RSHIFT, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

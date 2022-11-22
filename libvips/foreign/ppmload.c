@@ -160,10 +160,10 @@ vips_foreign_load_ppm_is_a_source(VipsSource *source)
 
 		for (i = 0; i < VIPS_NUMBER(magic_names); i++)
 			if (vips_isprefix(magic_names[i], (char *) data))
-				return (TRUE);
+				return TRUE;
 	}
 
-	return (FALSE);
+	return FALSE;
 }
 
 static int
@@ -173,11 +173,11 @@ get_int(VipsSbuf *sbuf, int *i)
 
 	if (vips_sbuf_skip_whitespace(sbuf) ||
 		!(txt = vips_sbuf_get_non_whitespace(sbuf)))
-		return (-1);
+		return -1;
 
 	*i = atoi(txt);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -187,13 +187,13 @@ get_float(VipsSbuf *sbuf, float *f)
 
 	if (vips_sbuf_skip_whitespace(sbuf) ||
 		!(txt = vips_sbuf_get_non_whitespace(sbuf)))
-		return (-1);
+		return -1;
 
 	/* We don't want the locale str -> float conversion.
 	 */
 	*f = g_ascii_strtod(txt, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -220,9 +220,9 @@ vips_foreign_load_ppm_build(VipsObject *object)
 		ppm->sbuf = vips_sbuf_new_from_source(ppm->source);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Scan the header into our class.
@@ -248,7 +248,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	};
 
 	if (vips_source_rewind(ppm->source))
-		return (-1);
+		return -1;
 
 	/* Read in the magic number.
 	 */
@@ -260,7 +260,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 			break;
 	if (i == VIPS_NUMBER(magic_names)) {
 		vips_error(class->nickname, "%s", _("bad magic number"));
-		return (-1);
+		return -1;
 	}
 	ppm->index = i;
 	ppm->bits = lookup_bits[i];
@@ -275,7 +275,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	 */
 	if (get_int(ppm->sbuf, &ppm->width) ||
 		get_int(ppm->sbuf, &ppm->height))
-		return (-1);
+		return -1;
 
 	/* Read in max value / scale for >1 bit images.
 	 */
@@ -283,7 +283,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 		if (ppm->index == 6 ||
 			ppm->index == 7) {
 			if (get_float(ppm->sbuf, &ppm->scale))
-				return (-1);
+				return -1;
 
 			/* Scale > 0 means big-endian.
 			 */
@@ -291,7 +291,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 		}
 		else {
 			if (get_int(ppm->sbuf, &ppm->max_value))
-				return (-1);
+				return -1;
 
 			/* max_value must be > 0 and <= 65535, according to
 			 * the spec, but we allow up to 32 bits per pixel.
@@ -313,7 +313,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 		!isspace(VIPS_SBUF_GETC(ppm->sbuf))) {
 		vips_error(class->nickname, "%s",
 			_("no whitespace before start of binary data"));
-		return (-1);
+		return -1;
 	}
 
 	/* Choose a VIPS bandfmt.
@@ -377,7 +377,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	printf("\tmsb_first = %d\n", ppm->msb_first);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -395,7 +395,7 @@ vips_foreign_load_ppm_get_flags(VipsForeignLoad *load)
 	 */
 	if (!ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header(ppm))
-		return (0);
+		return 0;
 	if (vips_source_is_mappable(ppm->source) &&
 		!ppm->ascii &&
 		ppm->bits >= 8)
@@ -403,7 +403,7 @@ vips_foreign_load_ppm_get_flags(VipsForeignLoad *load)
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
-	return (flags);
+	return flags;
 }
 
 static void
@@ -453,13 +453,13 @@ vips_foreign_load_ppm_header(VipsForeignLoad *load)
 
 	if (!ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header(ppm))
-		return (0);
+		return 0;
 
 	vips_foreign_load_ppm_set_image(ppm, load->out);
 
 	vips_source_minimise(ppm->source);
 
-	return (0);
+	return 0;
 }
 
 /* Read a ppm/pgm file using mmap().
@@ -481,17 +481,17 @@ vips_foreign_load_ppm_map(VipsForeignLoadPpm *ppm)
 	data = vips_source_map(ppm->source, &length);
 	if (header_offset < 0 ||
 		!data)
-		return (NULL);
+		return NULL;
 	data = (char *) data + header_offset;
 	length -= header_offset;
 
 	if (!(out = vips_image_new_from_memory(data, length,
 			  ppm->width, ppm->height, ppm->bands, ppm->format)))
-		return (NULL);
+		return NULL;
 
 	vips_foreign_load_ppm_set_image_metadata(ppm, out);
 
-	return (out);
+	return out;
 }
 
 static int
@@ -518,11 +518,11 @@ vips_foreign_load_ppm_generate_binary(VipsRegion * or,
 			bytes_read =
 				vips_source_read(ppm->source, q, n_bytes);
 			if (bytes_read < 0)
-				return (-1);
+				return -1;
 			if (bytes_read == 0) {
 				vips_error(class->nickname,
 					"%s", _("file truncated"));
-				return (-1);
+				return -1;
 			}
 
 			q += bytes_read;
@@ -530,7 +530,7 @@ vips_foreign_load_ppm_generate_binary(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -550,7 +550,7 @@ vips_foreign_load_ppm_generate_1bit_ascii(VipsRegion * or,
 			int val;
 
 			if (get_int(ppm->sbuf, &val))
-				return (-1);
+				return -1;
 
 			if (val)
 				q[x] = 0;
@@ -559,7 +559,7 @@ vips_foreign_load_ppm_generate_1bit_ascii(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -589,7 +589,7 @@ vips_foreign_load_ppm_generate_1bit_binary(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -610,7 +610,7 @@ vips_foreign_load_ppm_generate_ascii_int(VipsRegion * or,
 			int val;
 
 			if (get_int(ppm->sbuf, &val))
-				return (-1);
+				return -1;
 
 			switch (image->BandFmt) {
 			case VIPS_FORMAT_UCHAR:
@@ -632,7 +632,7 @@ vips_foreign_load_ppm_generate_ascii_int(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static VipsImage *
@@ -684,9 +684,9 @@ vips_foreign_load_ppm_scan(VipsForeignLoadPpm *ppm)
 	vips_foreign_load_ppm_set_image(ppm, t[0]);
 	if (vips_image_generate(t[0], NULL, generate, NULL, ppm, NULL) ||
 		vips_sequential(t[0], &out, NULL))
-		return (NULL);
+		return NULL;
 
-	return (out);
+	return out;
 }
 
 static int
@@ -698,7 +698,7 @@ vips_foreign_load_ppm_load(VipsForeignLoad *load)
 
 	if (!ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header(ppm))
-		return (0);
+		return 0;
 
 	/* If the source is mappable and this is a binary file, we can map it.
 	 */
@@ -706,11 +706,11 @@ vips_foreign_load_ppm_load(VipsForeignLoad *load)
 		!ppm->ascii &&
 		ppm->bits >= 8) {
 		if (!(t[0] = vips_foreign_load_ppm_map(ppm)))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (!(t[0] = vips_foreign_load_ppm_scan(ppm)))
-			return (-1);
+			return -1;
 	}
 
 #ifdef DEBUG
@@ -724,12 +724,12 @@ vips_foreign_load_ppm_load(VipsForeignLoad *load)
 			!ppm->ascii &&
 				vips_amiMSBfirst() != ppm->msb_first) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
 	if (vips_source_decode(ppm->source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -789,11 +789,11 @@ vips_foreign_load_ppm_file_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_ppm_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -804,12 +804,12 @@ vips_foreign_load_ppm_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(ppm->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -866,9 +866,9 @@ vips_foreign_load_ppm_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -930,7 +930,7 @@ vips_ppmload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("ppmload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -955,5 +955,5 @@ vips_ppmload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("ppmload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

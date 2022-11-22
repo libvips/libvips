@@ -62,23 +62,23 @@ im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)
 	double signx, signy;
 
 	if (im_rwcheck(image))
-		return (-1);
+		return -1;
 	/* check coordinates */
 	if ((x1 > image->Xsize) || (x1 < 0) ||
 		(y1 > image->Ysize) || (y1 < 0) ||
 		(x2 > image->Xsize) || (x2 < 0) ||
 		(y2 > image->Ysize) || (y2 < 0)) {
 		im_error("im_line", "%s", _("invalid line cooordinates"));
-		return (-1);
+		return -1;
 	}
 	if ((pelval > 255) || (pelval < 0)) {
 		im_error("im_line", "%s", _("line intensity between 0 and 255"));
-		return (-1);
+		return -1;
 	}
 
 	if (image->Bands != 1) {
 		im_error("im_line", "%s", _("image should have one band only"));
-		return (-1);
+		return -1;
 	}
 
 	dx = (double) (x2 - x1);
@@ -105,7 +105,7 @@ im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)
 		/* Draw point (x2, y2) */
 		offset = x2 + y2 * image->Xsize;
 		*(image->data + offset) = (PEL) pelval;
-		return (0);
+		return 0;
 	}
 
 	if (dy == 0.0) {
@@ -119,7 +119,7 @@ im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)
 		/* Draw point (x2, y2) */
 		offset = x2 + y2 * image->Xsize;
 		*(image->data + offset) = (PEL) pelval;
-		return (0);
+		return 0;
 	}
 
 	if (fabs(dy) < fabs(dx)) {
@@ -148,5 +148,5 @@ im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)
 	offset = x2 + y2 * image->Xsize;
 	*(image->data + offset) = (PEL) pelval;
 	im_invalidate(image);
-	return (0);
+	return 0;
 }

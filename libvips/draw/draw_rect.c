@@ -99,16 +99,16 @@ vips_draw_rect_build(VipsObject *object)
 	VipsRect clip;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_rect_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Also use a solid fill for very narrow unfilled rects.
 	 */
 	if (!draw_rect->fill &&
 		width > 2 &&
 		height > 2)
-		return (vips_draw_rect(draw->image,
-					ink->data, ink->n,
-					left, top, width, 1, NULL) ||
+		return vips_draw_rect(draw->image,
+				   ink->data, ink->n,
+				   left, top, width, 1, NULL) ||
 			vips_draw_rect(draw->image,
 				ink->data, ink->n,
 				left + width - 1, top, 1, height, NULL) ||
@@ -117,7 +117,7 @@ vips_draw_rect_build(VipsObject *object)
 				left, top + height - 1, width, 1, NULL) ||
 			vips_draw_rect(draw->image,
 				ink->data, ink->n,
-				left, top, 1, height, NULL));
+				left, top, 1, height, NULL);
 
 	image.left = 0;
 	image.top = 0;
@@ -153,7 +153,7 @@ vips_draw_rect_build(VipsObject *object)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -223,7 +223,7 @@ vips_draw_rectv(VipsImage *image,
 		image, area_ink, left, top, width, height);
 	vips_area_unref(area_ink);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -260,7 +260,7 @@ vips_draw_rect(VipsImage *image,
 		ink, n, left, top, width, height, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -298,7 +298,7 @@ vips_draw_rect1(VipsImage *image,
 		array_ink, 1, left, top, width, height, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -326,7 +326,7 @@ vips_draw_point(VipsImage *image, double *ink, int n, int x, int y, ...)
 	result = vips_draw_rectv(image, ink, n, x, y, 1, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -356,5 +356,5 @@ vips_draw_point1(VipsImage *image, double ink, int x, int y, ...)
 	result = vips_draw_rectv(image, array_ink, 1, x, y, 1, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

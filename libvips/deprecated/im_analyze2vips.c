@@ -46,14 +46,13 @@
 static VipsFormatFlags
 analyze_flags(const char *filename)
 {
-	return ((VipsFormatFlags)
-			vips_foreign_flags("analyzeload", filename));
+	return (VipsFormatFlags) vips_foreign_flags("analyzeload", filename);
 }
 
 static int
 isanalyze(const char *filename)
 {
-	return (vips_foreign_is_a("analyzeload", filename));
+	return vips_foreign_is_a("analyzeload", filename);
 }
 
 int
@@ -62,14 +61,14 @@ im_analyze2vips(const char *filename, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_analyzeload(filename, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static const char *analyze_suffs[] = { ".img", ".hdr", NULL };

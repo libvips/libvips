@@ -125,7 +125,7 @@ vips_rot90_gen(VipsRegion * or, void *seq, void *a, void *b,
 	need.width = r->height;
 	need.height = r->width;
 	if (vips_region_prepare(ir, &need))
-		return (-1);
+		return -1;
 
 	/* Find PEL size and line skip for ir.
 	 */
@@ -154,7 +154,7 @@ vips_rot90_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -187,7 +187,7 @@ vips_rot180_gen(VipsRegion * or, void *seq, void *a, void *b,
 	need.width = r->width;
 	need.height = r->height;
 	if (vips_region_prepare(ir, &need))
-		return (-1);
+		return -1;
 
 	/* Find PEL size and line skip for ir.
 	 */
@@ -217,7 +217,7 @@ vips_rot180_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -250,7 +250,7 @@ vips_rot270_gen(VipsRegion * or, void *seq, void *a, void *b,
 	need.width = r->height;
 	need.height = r->width;
 	if (vips_region_prepare(ir, &need))
-		return (-1);
+		return -1;
 
 	/* Find PEL size and line skip for ir.
 	 */
@@ -279,7 +279,7 @@ vips_rot270_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -292,20 +292,20 @@ vips_rot_build(VipsObject *object)
 	VipsDemandStyle hint;
 
 	if (VIPS_OBJECT_CLASS(vips_rot_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (rot->angle == VIPS_ANGLE_D0)
-		return (vips_image_write(rot->in, conversion->out));
+		return vips_image_write(rot->in, conversion->out);
 
 	if (vips_image_pio_input(rot->in))
-		return (-1);
+		return -1;
 
 	hint = rot->angle == VIPS_ANGLE_D180
 		? VIPS_DEMAND_STYLE_THINSTRIP
 		: VIPS_DEMAND_STYLE_SMALLTILE;
 
 	if (vips_image_pipelinev(conversion->out, hint, rot->in, NULL))
-		return (-1);
+		return -1;
 
 	switch (rot->angle) {
 	case VIPS_ANGLE_D90:
@@ -341,9 +341,9 @@ vips_rot_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, generate_fn, vips_stop_one,
 			rot->in, rot))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -383,7 +383,7 @@ vips_rot_init(VipsRot *rot)
 static int
 vips_rotv(VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap)
 {
-	return (vips_call_split("rot", ap, in, out, angle));
+	return vips_call_split("rot", ap, in, out, angle);
 }
 
 /**
@@ -412,7 +412,7 @@ vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle, ...)
 	result = vips_rotv(in, out, angle, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -437,7 +437,7 @@ vips_rot90(VipsImage *in, VipsImage **out, ...)
 	result = vips_rotv(in, out, VIPS_ANGLE_D90, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -462,7 +462,7 @@ vips_rot180(VipsImage *in, VipsImage **out, ...)
 	result = vips_rotv(in, out, VIPS_ANGLE_D180, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -487,5 +487,5 @@ vips_rot270(VipsImage *in, VipsImage **out, ...)
 	result = vips_rotv(in, out, VIPS_ANGLE_D270, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

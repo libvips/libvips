@@ -248,9 +248,9 @@ vips_embed_base_gen(VipsRegion * or,
 		need.top -= base->y;
 		if (vips_region_prepare(ir, &need) ||
 			vips_region_region(or, ir, r, need.left, need.top))
-			return (-1);
+			return -1;
 
-		return (0);
+		return 0;
 	}
 
 	/* Does any of the input image appear in the area we have been asked
@@ -264,7 +264,7 @@ vips_embed_base_gen(VipsRegion * or,
 		ovl.top -= base->y;
 		if (vips_region_prepare_to(ir, or, &ovl,
 				ovl.left + base->x, ovl.top + base->y))
-			return (-1);
+			return -1;
 		ovl.left += base->x;
 		ovl.top += base->y;
 	}
@@ -324,7 +324,7 @@ vips_embed_base_gen(VipsRegion * or,
 					edge.left -= base->x;
 					edge.top -= base->y;
 					if (vips_region_prepare(ir, &edge))
-						return (-1);
+						return -1;
 					p = VIPS_REGION_ADDR(ir,
 						edge.left, edge.top);
 					plsk = VIPS_REGION_LSKIP(ir);
@@ -341,7 +341,7 @@ vips_embed_base_gen(VipsRegion * or,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -355,7 +355,7 @@ vips_embed_base_build(VipsObject *object)
 	VipsRect want;
 
 	if (VIPS_OBJECT_CLASS(vips_embed_base_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* nip2 can generate this quite often ... just copy.
 	 */
@@ -363,7 +363,7 @@ vips_embed_base_build(VipsObject *object)
 		base->y == 0 &&
 		base->width == base->in->Xsize &&
 		base->height == base->in->Ysize)
-		return (vips_image_write(base->in, conversion->out));
+		return vips_image_write(base->in, conversion->out);
 
 	if (!vips_object_argument_isset(object, "extend") &&
 		vips_object_argument_isset(object, "background"))
@@ -374,7 +374,7 @@ vips_embed_base_build(VipsObject *object)
 				  class->nickname, base->in,
 				  VIPS_AREA(base->background)->data, NULL,
 				  VIPS_AREA(base->background)->n)))
-			return (-1);
+			return -1;
 
 	switch (base->extend) {
 	case VIPS_EXTEND_REPEAT: {
@@ -394,7 +394,7 @@ vips_embed_base_build(VipsObject *object)
 			vips_extract_area(t[0], &t[1],
 				nx, ny, base->width, base->height, NULL) ||
 			vips_image_write(t[1], conversion->out))
-			return (-1);
+			return -1;
 	} break;
 
 	case VIPS_EXTEND_MIRROR: {
@@ -434,7 +434,7 @@ vips_embed_base_build(VipsObject *object)
 				base->x, base->y, NULL) ||
 
 			vips_image_write(t[6], conversion->out))
-			return (-1);
+			return -1;
 	} break;
 
 	case VIPS_EXTEND_BLACK:
@@ -446,7 +446,7 @@ vips_embed_base_build(VipsObject *object)
 		 */
 		if (vips_image_pipelinev(conversion->out,
 				VIPS_DEMAND_STYLE_ANY, base->in, NULL))
-			return (-1);
+			return -1;
 
 		conversion->out->Xsize = base->width;
 		conversion->out->Ysize = base->height;
@@ -473,7 +473,7 @@ vips_embed_base_build(VipsObject *object)
 		if (vips_rect_isempty(&base->rsub)) {
 			vips_error(class->nickname,
 				"%s", _("bad dimensions"));
-			return (-1);
+			return -1;
 		}
 
 		/* Edge rects of new pixels ... top, right, bottom, left. Order
@@ -531,7 +531,7 @@ vips_embed_base_build(VipsObject *object)
 		if (vips_image_generate(conversion->out,
 				vips_start_one, vips_embed_base_gen, vips_stop_one,
 				base->in, base))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -539,7 +539,7 @@ vips_embed_base_build(VipsObject *object)
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -628,9 +628,9 @@ vips_embed_build(VipsObject *object)
 	base->y = embed->y;
 
 	if (VIPS_OBJECT_CLASS(vips_embed_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -704,7 +704,7 @@ vips_embed(VipsImage *in, VipsImage **out,
 	result = vips_call_split("embed", ap, in, out, x, y, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Embed with a general direction.
@@ -782,9 +782,9 @@ vips_gravity_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_gravity_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -853,5 +853,5 @@ vips_gravity(VipsImage *in, VipsImage **out,
 		direction, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

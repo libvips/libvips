@@ -82,8 +82,8 @@ vips_mask_butterworth_ring_point(VipsMask *mask,
 	double df2 = df * df;
 	double dist = sqrt(dx * dx + dy * dy);
 
-	return (1.0 /
-		(1.0 + cnst * pow((dist - fc) * (dist - fc) / df2, order)));
+	return 1.0 /
+		(1.0 + cnst * pow((dist - fc) * (dist - fc) / df2, order));
 }
 
 static void
@@ -161,5 +161,5 @@ vips_mask_butterworth_ring(VipsImage **out, int width, int height,
 		order, frequency_cutoff, amplitude_cutoff, ringwidth);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

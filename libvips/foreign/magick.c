@@ -80,7 +80,7 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		bytes[1] == 0 &&
 		bytes[2] == 1 &&
 		bytes[3] == 0)
-		return ("ICO");
+		return "ICO";
 
 	if (length >= 5 &&
 		bytes[0] == 0 &&
@@ -88,7 +88,7 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		bytes[2] == 0 &&
 		bytes[3] == 0 &&
 		bytes[4] == 0)
-		return ("TTF");
+		return "TTF";
 
 	if (length >= 18 &&
 		(bytes[1] == 0 ||
@@ -100,9 +100,9 @@ magick_sniff(const unsigned char *bytes, size_t length)
 			bytes[2] == 9 ||
 			bytes[2] == 10 ||
 			bytes[2] == 11))
-		return ("TGA");
+		return "TGA";
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -132,7 +132,7 @@ magick_sniff_file(ImageInfo *image_info, const char *filename)
 Image *
 magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
 {
-	return (AcquireImage(image_info, exception));
+	return AcquireImage(image_info, exception);
 }
 
 void
@@ -146,7 +146,7 @@ int
 magick_set_image_size(Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception)
 {
-	return (SetImageExtent(image, width, height, exception));
+	return SetImageExtent(image, width, height, exception);
 }
 
 int
@@ -154,15 +154,15 @@ magick_import_pixels(Image *image, const gssize x, const gssize y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type, const void *pixels, ExceptionInfo *exception)
 {
-	return (ImportImagePixels(image, x, y, width, height, map,
-		type, pixels, exception));
+	return ImportImagePixels(image, x, y, width, height, map,
+		type, pixels, exception);
 }
 
 void *
 magick_images_to_blob(const ImageInfo *image_info, Image *images,
 	size_t *length, ExceptionInfo *exception)
 {
-	return (ImagesToBlob(image_info, images, length, exception));
+	return ImagesToBlob(image_info, images, length, exception);
 }
 
 void
@@ -184,7 +184,7 @@ magick_set_profile(Image *image,
 	result = SetImageProfile(image, name, string, exception);
 	DestroyStringInfo(string);
 
-	return (result);
+	return result;
 }
 
 void *
@@ -203,16 +203,16 @@ magick_profile_map(Image *image, MagickMapProfileFn fn, void *a)
 		data = GetStringInfoDatum(profile);
 		length = GetStringInfoLength(profile);
 		if ((result = fn(image, name, data, length, a)))
-			return (result);
+			return result;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 ExceptionInfo *
 magick_acquire_exception(void)
 {
-	return (AcquireExceptionInfo());
+	return AcquireExceptionInfo();
 }
 
 void
@@ -268,7 +268,7 @@ magick_optimize_image_transparency(const Image *images,
 {
 	OptimizeImageTransparency(images, exception);
 
-	return (exception->severity == UndefinedException);
+	return exception->severity == UndefinedException;
 }
 
 /* Does a few bytes look like a file IM can handle?
@@ -282,8 +282,8 @@ magick_ismagick(const unsigned char *bytes, size_t length)
 
 	/* Try with our custom sniffers first.
 	 */
-	return (magick_sniff(bytes, length) ||
-		GetImageMagick(bytes, length, format));
+	return magick_sniff(bytes, length) ||
+		GetImageMagick(bytes, length, format);
 }
 
 int
@@ -296,7 +296,7 @@ magick_quantize_images(Image *images,
 	info.number_colors = 1 << depth;
 	QuantizeImages(&info, images, exception);
 
-	return (exception->severity == UndefinedException);
+	return exception->severity == UndefinedException;
 }
 
 #endif /*HAVE_MAGICK7*/
@@ -309,11 +309,11 @@ magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
 	(void) exception;
 
 #ifdef HAVE_ACQUIREIMAGE
-	return (AcquireImage(image_info));
+	return AcquireImage(image_info);
 #else /*!HAVE_ACQUIREIMAGE*/
 	/* IM5-ish and GraphicsMagick use AllocateImage().
 	 */
-	return (AllocateImage(image_info));
+	return AllocateImage(image_info);
 #endif
 }
 
@@ -343,7 +343,7 @@ magick_set_image_size(Image *image, const size_t width, const size_t height,
 	if (!result)
 		magick_inherit_exception(exception, image);
 
-	return (result);
+	return result;
 #else  /*!HAVE_SETIMAGEEXTENT*/
 	(void) exception;
 	image->columns = width;
@@ -353,7 +353,7 @@ magick_set_image_size(Image *image, const size_t width, const size_t height,
 	 * SetImageExtent(), but GM does not really have an equivalent. Just
 	 * always return True.
 	 */
-	return (MagickTrue);
+	return MagickTrue;
 #endif /*HAVE_SETIMAGEEXTENT*/
 }
 
@@ -363,8 +363,8 @@ magick_import_pixels(Image *image, const gssize x, const gssize y,
 	const StorageType type, const void *pixels, ExceptionInfo *exception)
 {
 #ifdef HAVE_IMPORTIMAGEPIXELS
-	return (ImportImagePixels(image, x, y, width, height, map,
-		type, pixels));
+	return ImportImagePixels(image, x, y, width, height, map,
+		type, pixels);
 #else  /*!HAVE_IMPORTIMAGEPIXELS*/
 	Image *constitute_image;
 	unsigned int storage_type_depth;
@@ -375,7 +375,7 @@ magick_import_pixels(Image *image, const gssize x, const gssize y,
 	constitute_image = ConstituteImage(width, height, map, type,
 		pixels, &image->exception);
 	if (!constitute_image)
-		return (MagickFalse);
+		return MagickFalse;
 
 	/* image needs to inherit these fields from constitute_image.
 	 */
@@ -415,7 +415,7 @@ magick_import_pixels(Image *image, const gssize x, const gssize y,
 
 	DestroyImage(constitute_image);
 
-	return (image->exception.severity == UndefinedException);
+	return image->exception.severity == UndefinedException;
 #endif /*HAVE_IMPORTIMAGEPIXELS*/
 }
 
@@ -424,9 +424,9 @@ magick_images_to_blob(const ImageInfo *image_info, Image *images,
 	size_t *length, ExceptionInfo *exception)
 {
 #ifdef HAVE_IMAGESTOBLOB
-	return (ImagesToBlob(image_info, images, length, exception));
+	return ImagesToBlob(image_info, images, length, exception);
 #else
-	return (ImageToBlob(image_info, images, length, exception));
+	return ImageToBlob(image_info, images, length, exception);
 #endif /*HAVE_IMAGESTOBLOB*/
 }
 
@@ -459,7 +459,7 @@ magick_set_profile(Image *image,
 	result = SetImageProfile(image, name, data, length);
 #endif /*HAVE_BLOBTOSTRINGINFO*/
 
-	return (result);
+	return result;
 }
 
 void *
@@ -479,7 +479,7 @@ magick_profile_map(Image *image, MagickMapProfileFn fn, void *a)
 		data = GetStringInfoDatum(profile);
 		length = GetStringInfoLength(profile);
 		if ((result = fn(image, name, data, length, a)))
-			return (result);
+			return result;
 	}
 #else  /*!HAVE_RESETIMAGEPROFILEITERATOR*/
 	{
@@ -490,14 +490,14 @@ magick_profile_map(Image *image, MagickMapProfileFn fn, void *a)
 			&name, (const unsigned char **) &data, &length)) {
 			if ((result = fn(image, name, data, length, a))) {
 				DeallocateImageProfileIterator(iter);
-				return (result);
+				return result;
 			}
 		}
 		DeallocateImageProfileIterator(iter);
 	}
 #endif /*HAVE_RESETIMAGEPROFILEITERATOR*/
 
-	return (NULL);
+	return NULL;
 }
 
 ExceptionInfo *
@@ -516,7 +516,7 @@ magick_acquire_exception(void)
 	GetExceptionInfo(exception);
 #endif /*HAVE_ACQUIREEXCEPTIONINFO*/
 
-	return (exception);
+	return exception;
 }
 
 void
@@ -596,7 +596,7 @@ magick_optimize_image_transparency(const Image *images,
 {
 #ifdef HAVE_OPTIMIZEIMAGETRANSPARENCY
 	OptimizeImageTransparency(images, exception);
-	return (exception->severity == UndefinedException);
+	return exception->severity == UndefinedException;
 #else  /*!HAVE_OPTIMIZEIMAGETRANSPARENCY*/
 	g_warning("%s", _("transparency optimization is not supported by "
 					  "your version of libMagick"));
@@ -617,14 +617,14 @@ magick_ismagick(const unsigned char *bytes, size_t length)
 	{
 		char format[MaxTextExtent];
 
-		return (magick_sniff(bytes, length) ||
-			GetImageMagick(bytes, length, format));
+		return magick_sniff(bytes, length) ||
+			GetImageMagick(bytes, length, format);
 	}
 #else /*!HAVE_GETIMAGEMAGICK3*/
 	/* The GM one returns a static string.
 	 */
-	return (magick_sniff(bytes, length) ||
-		GetImageMagick(bytes, length));
+	return magick_sniff(bytes, length) ||
+		GetImageMagick(bytes, length);
 #endif
 }
 
@@ -714,9 +714,9 @@ magick_ColorspaceType2str(ColorspaceType colorspace)
 
 	for (i = 0; i < VIPS_NUMBER(magick_colorspace_names); i++)
 		if (magick_colorspace_names[i].colorspace == colorspace)
-			return (magick_colorspace_names[i].name);
+			return magick_colorspace_names[i].name;
 
-	return ("<unknown ColorspaceType>");
+	return "<unknown ColorspaceType>";
 }
 
 void
@@ -759,7 +759,7 @@ magick_genesis_cb(void *client)
 	(void) GetMagickInfo("*", exception);
 	magick_destroy_exception(exception);
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -798,7 +798,7 @@ magick_set_vips_profile_cb(Image *image,
 	if (strcmp(name, "exif") == 0)
 		(void) vips__exif_parse(im);
 
-	return (NULL);
+	return NULL;
 }
 
 /* Set vips metadata from ImageMagick profiles.
@@ -807,9 +807,9 @@ int
 magick_set_vips_profile(VipsImage *im, Image *image)
 {
 	if (magick_profile_map(image, magick_set_vips_profile_cb, im))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 typedef struct {
@@ -839,17 +839,17 @@ magick_set_magick_profile_cb(VipsImage *im,
 			"%s", name + strlen("magickprofile-"));
 
 	if (vips_buf_is_empty(&buf))
-		return (NULL);
+		return NULL;
 	if (!vips_image_get_typeof(im, name))
-		return (NULL);
+		return NULL;
 	if (vips_image_get_blob(im, name, &data, &length))
-		return (im);
+		return im;
 
 	if (!magick_set_profile(info->image,
 			vips_buf_all(&buf), data, length, info->exception))
-		return (im);
+		return im;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Set magick metadata from a VipsImage.
@@ -864,9 +864,9 @@ magick_set_magick_profile(Image *image,
 	info.exception = exception;
 	if (vips_image_map(im,
 			(VipsImageMapFn) magick_set_magick_profile_cb, &info))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/

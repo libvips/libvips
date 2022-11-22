@@ -107,21 +107,21 @@ vips_foreign_load_webp_build(VipsObject *object)
 		webp->scale = 1.0 / webp->shrink;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
 vips_foreign_load_webp_get_flags(VipsForeignLoad *load)
 {
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
 vips_foreign_load_webp_get_flags_filename(const char *filename)
 {
-	return (0);
+	return 0;
 }
 
 static int
@@ -131,9 +131,9 @@ vips_foreign_load_webp_header(VipsForeignLoad *load)
 
 	if (vips__webp_read_header_source(webp->source, load->out,
 			webp->page, webp->n, webp->scale))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -143,9 +143,9 @@ vips_foreign_load_webp_load(VipsForeignLoad *load)
 
 	if (vips__webp_read_source(webp->source, load->real,
 			webp->page, webp->n, webp->scale))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -237,9 +237,9 @@ vips_foreign_load_webp_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -298,13 +298,13 @@ vips_foreign_load_webp_file_build(VipsObject *object)
 	if (file->filename &&
 		!(webp->source =
 				vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -314,11 +314,11 @@ vips_foreign_load_webp_file_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips__iswebp_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 const char *vips__webp_suffs[] = { ".webp", NULL };
@@ -380,13 +380,13 @@ vips_foreign_load_webp_buffer_build(VipsObject *object)
 		!(webp->source = vips_source_new_from_memory(
 			  VIPS_AREA(buffer->blob)->data,
 			  VIPS_AREA(buffer->blob)->length)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -396,11 +396,11 @@ vips_foreign_load_webp_buffer_is_a_buffer(const void *buf, size_t len)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_memory(buf, len)))
-		return (FALSE);
+		return FALSE;
 	result = vips__iswebp_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -476,7 +476,7 @@ vips_webpload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("webpload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -519,7 +519,7 @@ vips_webpload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -550,5 +550,5 @@ vips_webpload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("webpload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

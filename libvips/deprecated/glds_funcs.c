@@ -89,33 +89,33 @@ im_glds_matrix(IMAGE *im, IMAGE *m,
 	int norm;
 
 	if (im_iocheck(im, m) == -1)
-		return (-1);
+		return -1;
 
 	if ((im->Bands != 1) || (im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error("im_glds_matrix", "%s", _("Wrong input"));
-		return (-1);
+		return -1;
 	}
 
 	if ((xpos + xsize + dx > im->Xsize) || (ypos + ysize + dy > im->Ysize)) {
 		im_error("im_glds_matrix", "%s", _("wrong args"));
-		return (-1);
+		return -1;
 	}
 
 	if (im_cp_desc(m, im) == -1)
-		return (-1);
+		return -1;
 	m->Xsize = 256;
 	m->Ysize = 1;
 	m->BandFmt = IM_BANDFMT_DOUBLE;
 	m->Type = IM_TYPE_B_W;
 
 	if (im_setupout(m) == -1)
-		return (-1);
+		return -1;
 
 	b = (int *) calloc((unsigned) m->Xsize, sizeof(int));
 	l = (double *) calloc((unsigned) m->Xsize, sizeof(double));
 	if ((b == NULL) || (l == NULL)) {
 		im_error("im_glds_matrix", "%s", _("calloc failed"));
-		return (-1);
+		return -1;
 	}
 
 	in = (PEL *) im->data;
@@ -138,11 +138,11 @@ im_glds_matrix(IMAGE *im, IMAGE *m,
 	for (x = 0; x < m->Xsize; x++)
 		*pl++ = ((double) (*pb++)) / (double) norm;
 	if (im_writeline(0, m, (PEL *) l) == -1)
-		return (-1);
+		return -1;
 
 	free((char *) b);
 	free((char *) l);
-	return (0);
+	return 0;
 }
 
 /* @(#)  Calculates the asmoment of the sglds matrix held by m
@@ -154,12 +154,12 @@ im_glds_asm(IMAGE *m, double *asmoment)
 	int i;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 1 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_glds_asm", "%s", _("unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	tmpasm = 0.0;
 	in = (double *) m->data;
@@ -168,7 +168,7 @@ im_glds_asm(IMAGE *m, double *asmoment)
 		tmpasm += (temp * temp);
 	}
 	*asmoment = tmpasm;
-	return (0);
+	return 0;
 }
 
 /* @(#)     Calculates the contrast of the coocurence matrix passed in buffer
@@ -180,12 +180,12 @@ im_glds_contrast(IMAGE *m, double *contrast)
 	int i;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 1 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_glds_contrast", "%s", _("wrong input"));
-		return (-1);
+		return -1;
 	}
 	tmpcon = 0.0;
 	in = (double *) m->data;
@@ -194,7 +194,7 @@ im_glds_contrast(IMAGE *m, double *contrast)
 		in++;
 	}
 	*contrast = tmpcon;
-	return (0);
+	return 0;
 }
 
 /* @(#)     Calculates the entropy of the glds vector passed in buffer
@@ -207,12 +207,12 @@ im_glds_entropy(IMAGE *m, double *entropy)
 	int i;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 1 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_glds_entropy", "%s", _("wrong input"));
-		return (-1);
+		return -1;
 	}
 	tmpent = 0.0;
 	in = (double *) m->data;
@@ -224,7 +224,7 @@ im_glds_entropy(IMAGE *m, double *entropy)
 		in++;
 	}
 	*entropy = ((-1) * tmpent / log10(2.0));
-	return (0);
+	return 0;
 }
 
 /* @(#)     Calculates the mean of the sglds matrix passed in m
@@ -236,12 +236,12 @@ im_glds_mean(IMAGE *m, double *mean)
 	int i;
 
 	if (im_incheck(m))
-		return (-1);
+		return -1;
 
 	if (m->Xsize != 256 || m->Ysize != 1 ||
 		m->Bands != 1 || m->BandFmt != IM_BANDFMT_DOUBLE) {
 		im_error("im_glds_mean", "%s", _("wrong input"));
-		return (-1);
+		return -1;
 	}
 	tmpmean = 0.0;
 	in = (double *) m->data;
@@ -251,5 +251,5 @@ im_glds_mean(IMAGE *m, double *mean)
 	}
 	tmpmean = tmpmean / ((double) m->Xsize);
 	*mean = tmpmean;
-	return (0);
+	return 0;
 }

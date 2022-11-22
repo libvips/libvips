@@ -61,16 +61,16 @@ vips_drawink_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_drawink_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (drawink->ink &&
 		!(drawink->pixel_ink = vips__vector_to_ink(class->nickname,
 			  draw->image,
 			  VIPS_ARRAY_ADDR(drawink->ink, 0), NULL,
 			  VIPS_AREA(drawink->ink)->n)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -115,13 +115,13 @@ vips__drawink_scanline(VipsDrawink *drawink, int y, int x1, int x2)
 
 	if (y < 0 ||
 		y >= draw->image->Ysize)
-		return (0);
+		return 0;
 	if (x1 < 0 &&
 		x2 < 0)
-		return (0);
+		return 0;
 	if (x1 >= draw->image->Xsize &&
 		x2 >= draw->image->Xsize)
-		return (0);
+		return 0;
 	x1 = VIPS_CLIP(0, x1, draw->image->Xsize - 1);
 	x2 = VIPS_CLIP(0, x2, draw->image->Xsize - 1);
 
@@ -133,5 +133,5 @@ vips__drawink_scanline(VipsDrawink *drawink, int y, int x1, int x2)
 		mp += draw->psize;
 	}
 
-	return (0);
+	return 0;
 }

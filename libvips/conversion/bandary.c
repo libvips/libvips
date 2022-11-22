@@ -97,7 +97,7 @@ vips_bandary_stop(void *vseq, void *a, void *b)
 
 	VIPS_FREE(seq);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -110,7 +110,7 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 	int i, n;
 
 	if (!(seq = VIPS_NEW(NULL, VipsBandarySequence)))
-		return (NULL);
+		return NULL;
 
 	seq->bandary = bandary;
 	seq->ir = NULL;
@@ -126,7 +126,7 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 	 */
 	if (!(seq->ir = VIPS_ARRAY(NULL, n + 1, VipsRegion *))) {
 		vips_bandary_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Create a set of regions.
@@ -134,7 +134,7 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 	for (i = 0; i < n; i++)
 		if (!(seq->ir[i] = vips_region_new(in[i]))) {
 			vips_bandary_stop(seq, NULL, NULL);
-			return (NULL);
+			return NULL;
 		}
 	seq->ir[n] = NULL;
 
@@ -142,7 +142,7 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 	 */
 	if (!(seq->p = VIPS_ARRAY(NULL, n + 1, VipsPel *))) {
 		vips_bandary_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Pixel buffer. This is used as working space by some subclasses.
@@ -150,10 +150,10 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 	if (!(seq->pixels = VIPS_ARRAY(NULL,
 			  n * VIPS_IMAGE_SIZEOF_PEL(bandary->ready[0]), VipsPel))) {
 		vips_bandary_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
-	return (seq);
+	return seq;
 }
 
 static int
@@ -168,7 +168,7 @@ vips_bandary_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 	int y, i;
 
 	if (vips_reorder_prepare_many(or->im, seq->ir, r))
-		return (-1);
+		return -1;
 	for (i = 0; i < bandary->n; i++)
 		seq->p[i] = VIPS_REGION_ADDR(seq->ir[i], r->left, r->top);
 	seq->p[i] = NULL;
@@ -186,7 +186,7 @@ vips_bandary_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 	VIPS_GATE_STOP("vips_bandary_gen: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -203,12 +203,12 @@ vips_bandary_build(VipsObject *object)
 	VipsImage **size;
 
 	if (VIPS_OBJECT_CLASS(vips_bandary_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (bandary->n <= 0) {
 		vips_error(object_class->nickname,
 			"%s", _("no input images"));
-		return (-1);
+		return -1;
 	}
 
 	decode = (VipsImage **) vips_object_local_array(object, bandary->n);
@@ -217,15 +217,15 @@ vips_bandary_build(VipsObject *object)
 
 	for (i = 0; i < bandary->n; i++)
 		if (vips_image_decode(bandary->in[i], &decode[i]))
-			return (-1);
+			return -1;
 	if (vips__formatalike_vec(decode, format, bandary->n) ||
 		vips__sizealike_vec(format, size, bandary->n))
-		return (-1);
+		return -1;
 	bandary->ready = size;
 
 	if (vips_image_pipeline_array(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, bandary->ready))
-		return (-1);
+		return -1;
 
 	conversion->out->Bands = bandary->out_bands;
 	if (class->format_table)
@@ -235,9 +235,9 @@ vips_bandary_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_bandary_start, vips_bandary_gen, vips_bandary_stop,
 			bandary->ready, bandary))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -277,7 +277,7 @@ vips_bandary_copy(VipsBandary *bandary)
 	if (!bandary->in) {
 		vips_error(object_class->nickname,
 			"%s", _("no input images"));
-		return (-1);
+		return -1;
 	}
 
 	/* This isn't set by arith until build(), so we have to set
@@ -287,5 +287,5 @@ vips_bandary_copy(VipsBandary *bandary)
 	 */
 	g_object_set(bandary, "out", vips_image_new(), NULL);
 
-	return (vips_image_write(bandary->in[0], conversion->out));
+	return vips_image_write(bandary->in[0], conversion->out);
 }

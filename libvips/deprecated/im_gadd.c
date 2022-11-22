@@ -92,7 +92,7 @@ im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gadd", "%s", _("Unable to accept image1"));
-		return (-1);
+		return -1;
 	}
 	switch (in2->BandFmt) {
 	case IM_BANDFMT_UCHAR:
@@ -109,21 +109,21 @@ im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gadd", "%s", _("Unable to accept image1"));
-		return (-1);
+		return -1;
 	}
 	/* Select output routines */
 	if (flagfloat == 1) {
 		value = im_gfadd(a, in1, b, in2, c, out);
 		if (value == -1)
-			return (-1);
+			return -1;
 	}
 	else if (flagint == 1) {
 		value = im_gaddim(a, in1, b, in2, c, out);
 		if (value == -1)
-			return (-1);
+			return -1;
 	}
 	else
 		assert(0);
 
-	return (0);
+	return 0;
 }

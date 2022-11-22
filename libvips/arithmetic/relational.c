@@ -260,8 +260,8 @@ static int
 vips_relationalv(VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationRelational relational, va_list ap)
 {
-	return (vips_call_split("relational", ap, left, right, out,
-		relational));
+	return vips_call_split("relational", ap, left, right, out,
+		relational);
 }
 
 /**
@@ -309,7 +309,7 @@ vips_relational(VipsImage *left, VipsImage *right, VipsImage **out,
 	result = vips_relationalv(left, right, out, relational, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -335,7 +335,7 @@ vips_equal(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_EQUAL, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -361,7 +361,7 @@ vips_notequal(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_NOTEQ, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -387,7 +387,7 @@ vips_more(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_MORE, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -413,7 +413,7 @@ vips_moreeq(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_MOREEQ, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -439,7 +439,7 @@ vips_less(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_LESS, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -465,7 +465,7 @@ vips_lesseq(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_RELATIONAL_LESSEQ, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsRelationalConst {
@@ -640,7 +640,7 @@ vips_relational_constv(VipsImage *in, VipsImage **out,
 
 	vips_area_unref(area_c);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -679,7 +679,7 @@ vips_relational_const(VipsImage *in, VipsImage **out,
 	result = vips_relational_constv(in, out, relational, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -706,7 +706,7 @@ vips_equal_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_RELATIONAL_EQUAL, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -734,7 +734,7 @@ vips_notequal_const(VipsImage *in, VipsImage **out,
 		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -761,7 +761,7 @@ vips_less_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_RELATIONAL_LESS, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -788,7 +788,7 @@ vips_lesseq_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_RELATIONAL_LESSEQ, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -815,7 +815,7 @@ vips_more_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_RELATIONAL_MORE, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -842,7 +842,7 @@ vips_moreeq_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 		VIPS_OPERATION_RELATIONAL_MOREEQ, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -871,7 +871,7 @@ vips_relational_const1(VipsImage *in, VipsImage **out,
 	result = vips_relational_constv(in, out, relational, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -897,7 +897,7 @@ vips_equal_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_EQUAL, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -923,7 +923,7 @@ vips_notequal_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_NOTEQ, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -949,7 +949,7 @@ vips_less_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_LESS, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -975,7 +975,7 @@ vips_lesseq_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_LESSEQ, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1001,7 +1001,7 @@ vips_more_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_MORE, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1027,5 +1027,5 @@ vips_moreeq_const1(VipsImage *in, VipsImage **out, double c, ...)
 		VIPS_OPERATION_RELATIONAL_MOREEQ, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

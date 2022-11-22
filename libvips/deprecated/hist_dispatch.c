@@ -62,7 +62,7 @@ gammacorrect_vec(im_object *argv)
 {
 	double exp = *((double *) argv[2]);
 
-	return (im_gammacorrect(argv[0], argv[1], exp));
+	return im_gammacorrect(argv[0], argv[1], exp);
 }
 
 /* Description of im_gammacorrect.
@@ -91,7 +91,7 @@ heq_vec(im_object *argv)
 {
 	int bn = *((int *) argv[2]);
 
-	return (im_heq(argv[0], argv[1], bn));
+	return im_heq(argv[0], argv[1], bn);
 }
 
 /* Description of im_heq.
@@ -116,7 +116,7 @@ static im_arg_desc histindexed_args[] = {
 static int
 histindexed_vec(im_object *argv)
 {
-	return (im_hist_indexed(argv[0], argv[1], argv[2]));
+	return im_hist_indexed(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_histindexed.
@@ -137,7 +137,7 @@ hist_vec(im_object *argv)
 {
 	int bn = *((int *) argv[2]);
 
-	return (im_hist(argv[0], argv[1], bn));
+	return im_hist(argv[0], argv[1], bn);
 }
 
 /* Description of im_hist.
@@ -156,7 +156,7 @@ static im_function hist_desc = {
 static int
 histcum_vec(im_object *argv)
 {
-	return (im_histcum(argv[0], argv[1]));
+	return im_histcum(argv[0], argv[1]);
 }
 
 /* Description of im_histcum.
@@ -175,7 +175,7 @@ static im_function histcum_desc = {
 static int
 histnorm_vec(im_object *argv)
 {
-	return (im_histnorm(argv[0], argv[1]));
+	return im_histnorm(argv[0], argv[1]);
 }
 
 /* Description of im_histcum.
@@ -194,7 +194,7 @@ static im_function histnorm_desc = {
 static int
 histeq_vec(im_object *argv)
 {
-	return (im_histeq(argv[0], argv[1]));
+	return im_histeq(argv[0], argv[1]);
 }
 
 /* Description of im_histeq.
@@ -215,7 +215,7 @@ histgr_vec(im_object *argv)
 {
 	int bn = *((int *) argv[2]);
 
-	return (im_histgr(argv[0], argv[1], bn));
+	return im_histgr(argv[0], argv[1], bn);
 }
 
 /* Description of im_histgr.
@@ -236,7 +236,7 @@ histnD_vec(im_object *argv)
 {
 	int bins = *((int *) argv[2]);
 
-	return (im_histnD(argv[0], argv[1], bins));
+	return im_histnD(argv[0], argv[1], bins);
 }
 
 /* Args for im_histnD().
@@ -263,7 +263,7 @@ static im_function histnD_desc = {
 static int
 histplot_vec(im_object *argv)
 {
-	return (im_histplot(argv[0], argv[1]));
+	return im_histplot(argv[0], argv[1]);
 }
 
 /* Description of im_histplot.
@@ -290,7 +290,7 @@ static im_arg_desc histspec_args[] = {
 static int
 histspec_vec(im_object *argv)
 {
-	return (im_histspec(argv[0], argv[1], argv[2]));
+	return im_histspec(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_histspec.
@@ -309,7 +309,7 @@ static im_function histspec_desc = {
 static int
 hsp_vec(im_object *argv)
 {
-	return (im_hsp(argv[0], argv[1], argv[2]));
+	return im_hsp(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_hsp.
@@ -337,7 +337,7 @@ identity_vec(im_object *argv)
 {
 	int nb = *((int *) argv[1]);
 
-	return (im_identity(argv[0], nb));
+	return im_identity(argv[0], nb);
 }
 
 /* Description of im_identity.
@@ -367,7 +367,7 @@ identity_ushort_vec(im_object *argv)
 	int nb = *((int *) argv[1]);
 	int sz = *((int *) argv[2]);
 
-	return (im_identity_ushort(argv[0], nb, sz));
+	return im_identity_ushort(argv[0], nb, sz);
 }
 
 /* Description of im_identity_ushort.
@@ -398,7 +398,7 @@ lhisteq_vec(im_object *argv)
 	int xw = *((int *) argv[2]);
 	int yw = *((int *) argv[3]);
 
-	return (im_lhisteq(argv[0], argv[1], xw, yw));
+	return im_lhisteq(argv[0], argv[1], xw, yw);
 }
 
 /* Description of im_lhisteq.
@@ -425,7 +425,7 @@ static im_arg_desc maplut_args[] = {
 static int
 maplut_vec(im_object *argv)
 {
-	return (im_maplut(argv[0], argv[1], argv[2]));
+	return im_maplut(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_maplut.
@@ -444,7 +444,7 @@ static im_function maplut_desc = {
 static int
 project_vec(im_object *argv)
 {
-	return (im_project(argv[0], argv[1], argv[2]));
+	return im_project(argv[0], argv[1], argv[2]);
 }
 
 /* Args for im_project().
@@ -491,7 +491,7 @@ stdif_vec(im_object *argv)
 	int xw = *((int *) argv[6]);
 	int yw = *((int *) argv[7]);
 
-	return (im_stdif(argv[0], argv[1], a, m0, b, s0, xw, yw));
+	return im_stdif(argv[0], argv[1], a, m0, b, s0, xw, yw);
 }
 
 /* Description of im_stdif.
@@ -519,7 +519,7 @@ buildlut_vec(im_object *argv)
 {
 	im_mask_object *mi = argv[0];
 
-	return (im_buildlut(mi->mask, argv[1]));
+	return im_buildlut(mi->mask, argv[1]);
 }
 
 /* Description of im_buildlut.
@@ -549,7 +549,7 @@ invertlut_vec(im_object *argv)
 	im_mask_object *mi = argv[0];
 	int lut_size = *((int *) argv[2]);
 
-	return (im_invertlut(mi->mask, argv[1], lut_size));
+	return im_invertlut(mi->mask, argv[1], lut_size);
 }
 
 /* Description of im_invertlut.
@@ -591,7 +591,7 @@ tone_build_vec(im_object *argv)
 	double M = *((double *) argv[7]);
 	double H = *((double *) argv[8]);
 
-	return (im_tone_build(argv[0], Lb, Lw, Ps, Pm, Ph, S, M, H));
+	return im_tone_build(argv[0], Lb, Lw, Ps, Pm, Ph, S, M, H);
 }
 
 /* Description of im_tone_build.
@@ -637,8 +637,8 @@ tone_build_range_vec(im_object *argv)
 	double M = *((double *) argv[9]);
 	double H = *((double *) argv[10]);
 
-	return (im_tone_build_range(argv[0], in_max, out_max,
-		Lb, Lw, Ps, Pm, Ph, S, M, H));
+	return im_tone_build_range(argv[0], in_max, out_max,
+		Lb, Lw, Ps, Pm, Ph, S, M, H);
 }
 
 /* Description of im_tone_build_range.
@@ -677,7 +677,7 @@ tone_analyse_vec(im_object *argv)
 	double M = *((double *) argv[6]);
 	double H = *((double *) argv[7]);
 
-	return (im_tone_analyse(argv[0], argv[1], Ps, Pm, Ph, S, M, H));
+	return im_tone_analyse(argv[0], argv[1], Ps, Pm, Ph, S, M, H);
 }
 
 /* Description of im_tone_analyse.
@@ -705,7 +705,7 @@ ismonotonic_vec(im_object *argv)
 {
 	int *res = (int *) argv[1];
 
-	return (im_ismonotonic(argv[0], res));
+	return im_ismonotonic(argv[0], res);
 }
 
 /* Description of im_ismonotonic.
@@ -732,7 +732,7 @@ static im_arg_desc tone_map_args[] = {
 static int
 tone_map_vec(im_object *argv)
 {
-	return (im_tone_map(argv[0], argv[1], argv[2]));
+	return im_tone_map(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_tone_map.
@@ -761,7 +761,7 @@ mpercent_vec(im_object *argv)
 {
 	double percent = *((double *) argv[1]);
 
-	return (im_mpercent(argv[0], percent, argv[2]));
+	return im_mpercent(argv[0], percent, argv[2]);
 }
 
 /* Description of im_mpercent.

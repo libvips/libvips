@@ -244,7 +244,7 @@ vips_argument_get_id(void)
 	 */
 	id = _vips__argument_id++;
 
-	return (id);
+	return id;
 }
 
 /* Don't call this directly, see vips_object_build().
@@ -262,7 +262,7 @@ vips_object_postbuild(VipsObject *object)
 
 	g_signal_emit(object, vips_object_signals[SIG_POSTBUILD], 0, &result);
 
-	return (result);
+	return result;
 }
 
 void
@@ -348,7 +348,7 @@ vips_object_check_required(VipsObject *object, GParamSpec *pspec,
 		*result = -1;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 int
@@ -370,7 +370,7 @@ vips_object_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (object_class->build(object))
-		return (-1);
+		return -1;
 
 	/* Check all required arguments have been supplied, don't stop on 1st
 	 * error.
@@ -388,7 +388,7 @@ vips_object_build(VipsObject *object)
 	if (!result)
 		result = vips_object_postbuild(object);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -480,7 +480,7 @@ vips_object_sanity(VipsObject *object)
 	if (!object) {
 		printf("vips_object_sanity: null object\n");
 
-		return (FALSE);
+		return FALSE;
 	}
 
 	class = VIPS_OBJECT_GET_CLASS(object);
@@ -490,10 +490,10 @@ vips_object_sanity(VipsObject *object)
 		vips_object_print_name(object);
 		printf(" %s\n", vips_buf_all(&buf));
 
-		return (FALSE);
+		return FALSE;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* On a rewind, we dispose the old contents of the object and
@@ -563,7 +563,7 @@ vips__argument_table_lookup(VipsArgumentTable *table, GParamSpec *pspec)
 	argument = (VipsArgument *) g_hash_table_lookup(table, pspec);
 	g_mutex_unlock(vips__global_lock);
 
-	return (argument);
+	return argument;
 }
 
 static void
@@ -612,14 +612,14 @@ vips_argument_map(VipsObject *object,
 		if ((result = fn(object, pspec,
 				 argument_class, argument_instance, a, b))) {
 			g_object_unref(object);
-			return (result);
+			return result;
 		}
 	}
 	VIPS_ARGUMENT_FOR_ALL_END
 
 	g_object_unref(object);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -643,10 +643,10 @@ vips_argument_class_map(VipsObjectClass *object_class,
 
 		if ((result =
 					fn(object_class, pspec, arg_class, a, b)))
-			return (result);
+			return result;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Does an vipsargument need an argument to write to? For example, an image
@@ -663,12 +663,12 @@ vips_argument_class_needsstring(VipsArgumentClass *argument_class)
 	if (G_IS_PARAM_SPEC_BOOLEAN(pspec))
 		/* Bools, input or output, don't need args.
 		 */
-		return (FALSE);
+		return FALSE;
 
 	if (argument_class->flags & VIPS_ARGUMENT_INPUT)
 		/* All other inputs need something.
 		 */
-		return (TRUE);
+		return TRUE;
 
 	/* Just output objects.
 	 */
@@ -678,9 +678,9 @@ vips_argument_class_needsstring(VipsArgumentClass *argument_class)
 		(oclass = g_type_class_ref(otype)))
 		/* For now, only vipsobject subclasses can ask for args.
 		 */
-		return (oclass->output_needs_arg);
+		return oclass->output_needs_arg;
 	else
-		return (FALSE);
+		return FALSE;
 }
 
 /* Create a VipsArgumentInstance for each installed argument property. Ideally
@@ -753,9 +753,9 @@ vips__argument_get_instance(VipsArgumentClass *argument_class,
 	 */
 	vips_argument_init(object);
 
-	return ((VipsArgumentInstance *)
-			vips__argument_table_lookup(object->argument_table,
-				((VipsArgument *) argument_class)->pspec));
+	return (VipsArgumentInstance *)
+		vips__argument_table_lookup(object->argument_table,
+			((VipsArgument *) argument_class)->pspec);
 }
 
 /**
@@ -782,7 +782,7 @@ vips_object_get_argument(VipsObject *object, const char *name,
 			  G_OBJECT_CLASS(class), name))) {
 		vips_error(class->nickname,
 			_("no property named `%s'"), name);
-		return (-1);
+		return -1;
 	}
 
 	if (!(*argument_class = (VipsArgumentClass *)
@@ -790,17 +790,17 @@ vips_object_get_argument(VipsObject *object, const char *name,
 					*pspec))) {
 		vips_error(class->nickname,
 			_("no vips argument named `%s'"), name);
-		return (-1);
+		return -1;
 	}
 
 	if (!(*argument_instance = vips__argument_get_instance(
 			  *argument_class, object))) {
 		vips_error(class->nickname,
 			_("argument `%s' has no instance"), name);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -821,9 +821,9 @@ vips_object_argument_isset(VipsObject *object, const char *name)
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (FALSE);
+		return FALSE;
 
-	return (argument_instance->assigned);
+	return argument_instance->assigned;
 }
 
 /**
@@ -844,9 +844,9 @@ vips_object_get_argument_flags(VipsObject *object, const char *name)
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (0);
+		return 0;
 
-	return (argument_class->flags);
+	return argument_class->flags;
 }
 
 /**
@@ -867,9 +867,9 @@ vips_object_get_argument_priority(VipsObject *object, const char *name)
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (0);
+		return 0;
 
-	return (argument_class->priority);
+	return argument_class->priority;
 }
 
 static void
@@ -938,7 +938,7 @@ vips_object_dispose_argument(VipsObject *object, GParamSpec *pspec,
 			NULL);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Free all args on this object which may be holding resources.
@@ -985,7 +985,7 @@ vips_object_free_argument(VipsObject *object, GParamSpec *pspec,
 			NULL);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Free args which hold memory. Things like strings need to be freed right at
@@ -1171,18 +1171,18 @@ vips_value_is_null(GParamSpec *pspec, const GValue *value)
 {
 	if (G_IS_PARAM_SPEC_STRING(pspec) &&
 		!g_value_get_string(value))
-		return (TRUE);
+		return TRUE;
 	if (G_IS_PARAM_SPEC_OBJECT(pspec) &&
 		!g_value_get_object(value))
-		return (TRUE);
+		return TRUE;
 	if (G_IS_PARAM_SPEC_POINTER(pspec) &&
 		!g_value_get_pointer(value))
-		return (TRUE);
+		return TRUE;
 	if (G_IS_PARAM_SPEC_BOXED(pspec) &&
 		!g_value_get_boxed(value))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 /* Also used by subclasses, so not static.
@@ -1465,7 +1465,7 @@ vips_object_real_build(VipsObject *object)
 	(void) vips_argument_map(object,
 		vips_object_check_required, &result, &iomask);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -1479,7 +1479,7 @@ vips_object_real_postbuild(VipsObject *object, void *data)
 
 	g_assert(object->constructed);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1543,10 +1543,10 @@ vips_object_real_new_from_string(const char *string)
 	if (!(type = vips_type_find(NULL, string))) {
 		vips_error("VipsObject",
 			_("class \"%s\" not found"), string);
-		return (NULL);
+		return NULL;
 	}
 
-	return (VIPS_OBJECT(g_object_new(type, NULL)));
+	return VIPS_OBJECT(g_object_new(type, NULL));
 }
 
 static void
@@ -1707,9 +1707,9 @@ traverse_find_required_priority(void *data, void *a, void *b)
 	if ((argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) &&
 		argument_class->priority == priority)
-		return (argument_class);
+		return argument_class;
 
-	return (NULL);
+	return NULL;
 }
 
 static gint
@@ -1718,7 +1718,7 @@ traverse_sort(gconstpointer a, gconstpointer b, void *user_data)
 	VipsArgumentClass *class1 = (VipsArgumentClass *) a;
 	VipsArgumentClass *class2 = (VipsArgumentClass *) b;
 
-	return (class1->priority - class2->priority);
+	return class1->priority - class2->priority;
 }
 
 /* Add a vipsargument ... automate some stuff with this.
@@ -1887,7 +1887,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (-1);
+		return -1;
 
 	otype = G_PARAM_SPEC_VALUE_TYPE(pspec);
 
@@ -1914,7 +1914,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 		vips__filename_split8(value, filename, option_string);
 
@@ -1923,13 +1923,13 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 			if (!(source =
 						vips_source_new_from_descriptor(0)))
-				return (-1);
+				return -1;
 			if (!(out = vips_image_new_from_source(source,
 					  option_string,
 					  "access", access,
 					  NULL))) {
 				VIPS_UNREF(source);
-				return (-1);
+				return -1;
 			}
 			VIPS_UNREF(source);
 		}
@@ -1937,7 +1937,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 			if (!(out = vips_image_new_from_file(value,
 					  "access", access,
 					  NULL)))
-				return (-1);
+				return -1;
 		}
 
 		g_value_init(&gvalue, VIPS_TYPE_IMAGE);
@@ -1953,11 +1953,11 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (!(source = vips_source_new_from_options(value)))
-			return (-1);
+			return -1;
 
 		g_value_init(&gvalue, VIPS_TYPE_SOURCE);
 		g_value_set_object(&gvalue, source);
@@ -1978,7 +1978,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		flags = 0;
@@ -1995,7 +1995,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!(array_image =
 					vips_array_image_new_from_string(value, access)))
-			return (-1);
+			return -1;
 
 		g_value_init(&gvalue, VIPS_TYPE_ARRAY_IMAGE);
 		g_value_set_boxed(&gvalue, array_image);
@@ -2011,19 +2011,19 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (!(new_object =
 					vips_object_new_from_string(oclass, value)))
-			return (-1);
+			return -1;
 
 		/* Not necessarily a VipsOperation subclass so we don't use
 		 * the cache. We could have a separate case for this.
 		 */
 		if (vips_object_build(new_object)) {
 			g_object_unref(new_object);
-			return (-1);
+			return -1;
 		}
 
 		g_value_init(&gvalue, G_TYPE_OBJECT);
@@ -2051,13 +2051,13 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (sscanf(value, "%d", &i) != 1) {
 			vips_error(class->nickname,
 				_("'%s' is not an integer"), value);
-			return (-1);
+			return -1;
 		}
 
 		g_value_init(&gvalue, G_TYPE_INT);
@@ -2070,13 +2070,13 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (sscanf(value, "%lld", &l) != 1) {
 			vips_error(class->nickname,
 				_("'%s' is not an integer"), value);
-			return (-1);
+			return -1;
 		}
 
 		g_value_init(&gvalue, G_TYPE_UINT64);
@@ -2087,11 +2087,11 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (vips_strtod(value, &d))
-			return (-1);
+			return -1;
 
 		g_value_init(&gvalue, G_TYPE_DOUBLE);
 		g_value_set_double(&gvalue, d);
@@ -2101,12 +2101,12 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if ((i = vips_enum_from_nick(class->nickname,
 				 otype, value)) < 0)
-			return (-1);
+			return -1;
 
 		g_value_init(&gvalue, otype);
 		g_value_set_enum(&gvalue, i);
@@ -2118,7 +2118,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		if (sscanf(value, "%d", &i) != 1 &&
@@ -2126,7 +2126,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 				 otype, value)) < 0) {
 			vips_error(class->nickname,
 				_("'%s' is not an integer"), value);
-			return (-1);
+			return -1;
 		}
 
 		g_value_init(&gvalue, otype);
@@ -2135,7 +2135,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 	else {
 		if (!value) {
 			vips_object_no_value(object, name);
-			return (-1);
+			return -1;
 		}
 
 		g_value_init(&gvalue, G_TYPE_STRING);
@@ -2145,7 +2145,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 	g_object_set_property(G_OBJECT(object), name, &gvalue);
 	g_value_unset(&gvalue);
 
-	return (0);
+	return 0;
 }
 
 /* Does an vipsargument need an argument to write to? For example, an image
@@ -2164,9 +2164,9 @@ vips_object_argument_needsstring(VipsObject *object, const char *name)
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (-1);
+		return -1;
 
-	return (vips_argument_class_needsstring(argument_class));
+	return vips_argument_class_needsstring(argument_class);
 }
 
 static void
@@ -2193,7 +2193,7 @@ vips_filename_istarget(const char *filename)
 {
 	const char *p;
 
-	return ((p = strrchr(filename, '.')) && p == filename);
+	return (p = strrchr(filename, '.')) && p == filename;
 }
 
 /* Write a named arg to the string. If the arg does not need a string (see
@@ -2216,7 +2216,7 @@ vips_object_get_argument_to_string(VipsObject *object,
 
 	if (vips_object_get_argument(object, name,
 			&pspec, &argument_class, &argument_instance))
-		return (-1);
+		return -1;
 
 	otype = G_PARAM_SPEC_VALUE_TYPE(pspec);
 
@@ -2233,13 +2233,13 @@ vips_object_get_argument_to_string(VipsObject *object,
 			VipsTarget *target;
 
 			if (!(target = vips_target_new_to_descriptor(1)))
-				return (-1);
+				return -1;
 			g_object_get(object, name, &in, NULL);
 			if (vips_image_write_to_target(in,
 					arg, target, NULL)) {
 				VIPS_UNREF(in);
 				VIPS_UNREF(target);
-				return (-1);
+				return -1;
 			}
 			VIPS_UNREF(in);
 			VIPS_UNREF(target);
@@ -2250,7 +2250,7 @@ vips_object_get_argument_to_string(VipsObject *object,
 			g_object_get(object, name, &in, NULL);
 			if (vips_image_write_to_file(in, arg, NULL)) {
 				VIPS_UNREF(in);
-				return (-1);
+				return -1;
 			}
 			VIPS_UNREF(in);
 		}
@@ -2263,7 +2263,7 @@ vips_object_get_argument_to_string(VipsObject *object,
 		g_object_get(object, name, &value, NULL);
 		if (oclass->output_to_arg(value, arg)) {
 			g_object_unref(value);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(value);
 	}
@@ -2275,7 +2275,7 @@ vips_object_get_argument_to_string(VipsObject *object,
 		printf("%s\n", vips_buf_all(&buf));
 	}
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -2289,9 +2289,9 @@ vips_argument_is_required(VipsObject *object,
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		!argument_instance->assigned)
-		return (pspec);
+		return pspec;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Find the first unassigned required input arg.
@@ -2299,8 +2299,8 @@ vips_argument_is_required(VipsObject *object,
 static GParamSpec *
 vips_object_find_required(VipsObject *object)
 {
-	return ((GParamSpec *) vips_argument_map(object,
-		vips_argument_is_required, NULL, NULL));
+	return (GParamSpec *) vips_argument_map(object,
+		vips_argument_is_required, NULL, NULL);
 }
 
 typedef struct _VipsNameFlagsPair {
@@ -2323,7 +2323,7 @@ vips_object_find_args(VipsObject *object,
 
 	*i += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -2354,7 +2354,7 @@ vips_object_get_args(VipsObject *object,
 	pair.flags = VIPS_ARRAY(object, n, int);
 	if (!pair.names ||
 		!pair.flags)
-		return (-1);
+		return -1;
 
 	i = 0;
 	(void) vips_argument_map(object,
@@ -2367,7 +2367,7 @@ vips_object_get_args(VipsObject *object,
 	if (n_args)
 		*n_args = n;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2393,15 +2393,15 @@ vips_object_new(GType type, VipsObjectSetArguments set, void *a, void *b)
 
 	if (set && set(object, a, b)) {
 		g_object_unref(object);
-		return (NULL);
+		return NULL;
 	}
 
 	if (vips_object_build(object)) {
 		g_object_unref(object);
-		return (NULL);
+		return NULL;
 	}
 
-	return (object);
+	return object;
 }
 
 /**
@@ -2429,7 +2429,7 @@ vips_object_set_valist(VipsObject *object, va_list ap)
 
 		if (vips_object_get_argument(VIPS_OBJECT(object), name,
 				&pspec, &argument_class, &argument_instance))
-			return (-1);
+			return -1;
 
 		VIPS_ARGUMENT_COLLECT_SET(pspec, argument_class, ap);
 
@@ -2440,7 +2440,7 @@ vips_object_set_valist(VipsObject *object, va_list ap)
 		VIPS_ARGUMENT_COLLECT_END
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2474,7 +2474,7 @@ vips_object_set(VipsObject *object, ...)
 	result = vips_object_set_valist(object, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Set object args from a string. @p should be the initial left bracket and
@@ -2494,10 +2494,10 @@ vips_object_set_args(VipsObject *object, const char *p)
 
 	if (!(p = vips__token_need(p, VIPS_TOKEN_LEFT,
 			  string, VIPS_PATH_MAX)))
-		return (-1);
+		return -1;
 
 	if (!(p = vips__token_segment(p, &token, string, VIPS_PATH_MAX)))
-		return (-1);
+		return -1;
 
 	for (;;) {
 		if (token == VIPS_TOKEN_RIGHT)
@@ -2506,7 +2506,7 @@ vips_object_set_args(VipsObject *object, const char *p)
 			vips_error(class->nickname,
 				_("expected string or ), saw %s"),
 				vips_enum_nick(VIPS_TYPE_TOKEN, token));
-			return (-1);
+			return -1;
 		}
 
 		/* We have to look for a '=', ']' or a ',' to see if string is
@@ -2514,18 +2514,18 @@ vips_object_set_args(VipsObject *object, const char *p)
 		 */
 		if (!(p = vips__token_segment(p, &token,
 				  string2, VIPS_PATH_MAX)))
-			return (-1);
+			return -1;
 		if (token == VIPS_TOKEN_EQUALS) {
 			if (!(p = vips__token_segment_need(p, VIPS_TOKEN_STRING,
 					  string2, VIPS_PATH_MAX)))
-				return (-1);
+				return -1;
 			if (vips_object_set_argument_from_string(object,
 					string, string2))
-				return (-1);
+				return -1;
 
 			if (!(p = vips__token_must(p, &token,
 					  string2, VIPS_PATH_MAX)))
-				return (-1);
+				return -1;
 		}
 		else if (g_object_class_find_property(
 					 G_OBJECT_GET_CLASS(object), string) &&
@@ -2543,12 +2543,12 @@ vips_object_set_args(VipsObject *object, const char *p)
 		else if ((pspec = vips_object_find_required(object))) {
 			if (vips_object_set_argument_from_string(object,
 					g_param_spec_get_name(pspec), string))
-				return (-1);
+				return -1;
 		}
 		else {
 			vips_error(class->nickname,
 				_("unable to set '%s'"), string);
-			return (-1);
+			return -1;
 		}
 
 		/* Now must be a , or a ).
@@ -2556,22 +2556,22 @@ vips_object_set_args(VipsObject *object, const char *p)
 		if (token == VIPS_TOKEN_COMMA) {
 			if (!(p = vips__token_must(p, &token,
 					  string, VIPS_PATH_MAX)))
-				return (-1);
+				return -1;
 		}
 		else if (token != VIPS_TOKEN_RIGHT) {
 			vips_error(class->nickname,
 				"%s", _("not , or ) after parameter"));
-			return (-1);
+			return -1;
 		}
 	}
 
 	if ((p = vips__token_get(p, &token, string, VIPS_PATH_MAX))) {
 		vips_error(class->nickname,
 			"%s", _("extra tokens after ')'"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2609,7 +2609,7 @@ vips_object_set_from_string(VipsObject *object, const char *string)
 	else
 		vips_strncpy(buffer, string, VIPS_PATH_MAX);
 
-	return (vips_object_set_args(object, buffer));
+	return vips_object_set_args(object, buffer);
 }
 
 VipsObject *
@@ -2630,17 +2630,17 @@ vips_object_new_from_string(VipsObjectClass *object_class, const char *p)
 	else
 		vips_strncpy(str, p, VIPS_PATH_MAX);
 	if (!(object = object_class->new_from_string(str)))
-		return (NULL);
+		return NULL;
 
 	/* More tokens there? Set any other args.
 	 */
 	if (q &&
 		vips_object_set_from_string(object, q)) {
 		g_object_unref(object);
-		return (NULL);
+		return NULL;
 	}
 
-	return (object);
+	return object;
 }
 
 static void *
@@ -2665,7 +2665,7 @@ vips_object_to_string_required(VipsObject *object,
 		vips_object_print_arg(object, pspec, buf);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -2693,7 +2693,7 @@ vips_object_to_string_optional(VipsObject *object,
 		vips_object_print_arg(object, pspec, buf);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -2773,7 +2773,7 @@ vips_object_map(VipsSListMap2Fn fn, void *a, void *b)
 		g_mutex_unlock(vips__object_all_lock);
 	}
 
-	return (args.result);
+	return args.result;
 }
 
 /**
@@ -2803,7 +2803,7 @@ vips_type_map(GType base, VipsTypeMap2Fn fn, void *a, void *b)
 		result = fn(child[i], a, b);
 	g_free(child);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2827,7 +2827,7 @@ vips_type_map_all(GType base, VipsTypeMapFn fn, void *a)
 		result = vips_type_map(base,
 			(VipsTypeMap2Fn) vips_type_map_all, fn, a);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2856,14 +2856,14 @@ vips_class_map_all(GType type, VipsClassMapFn fn, void *a)
 		 */
 		if ((result = fn(
 				 VIPS_OBJECT_CLASS(g_type_class_ref(type)), a)))
-			return (result);
+			return result;
 	}
 
 	if ((result = vips_type_map(type,
 			 (VipsTypeMap2Fn) vips_class_map_all, fn, a)))
-		return (result);
+		return result;
 
-	return (NULL);
+	return NULL;
 }
 
 /* How deeply nested is a class ... used to indent class lists.
@@ -2878,21 +2878,21 @@ vips_type_depth(GType type)
 		(type = g_type_parent(type)))
 		depth += 1;
 
-	return (depth);
+	return depth;
 }
 
 static void *
 test_name(VipsObjectClass *class, const char *nickname)
 {
 	if (g_ascii_strcasecmp(class->nickname, nickname) == 0)
-		return (class);
+		return class;
 
 	/* Check the class name too, why not.
 	 */
 	if (g_ascii_strcasecmp(G_OBJECT_CLASS_NAME(class), nickname) == 0)
-		return (class);
+		return class;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -2916,11 +2916,11 @@ vips_class_find(const char *basename, const char *nickname)
 	GType base;
 
 	if (!(base = g_type_from_name(classname)))
-		return (NULL);
+		return NULL;
 	class = vips_class_map_all(base,
 		(VipsClassMapFn) test_name, (void *) nickname);
 
-	return (class);
+	return class;
 }
 
 /* What we store for each nickname. We can't just store the type with
@@ -2954,7 +2954,7 @@ vips_class_add_hash(VipsObjectClass *class, GHashTable *table)
 		g_hash_table_insert(table, (void *) hit->nickname, hit);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -2972,7 +2972,7 @@ vips_class_build_hash_cb(void *dummy)
 		(VipsClassMapFn) vips_class_add_hash,
 		(void *) vips__object_nickname_table);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -3011,7 +3011,7 @@ vips_type_find(const char *basename, const char *nickname)
 	 * in the right part of the tree.
 	 */
 	if (!(base = g_type_from_name(classname)))
-		return (0);
+		return 0;
 	if (hit &&
 		!hit->duplicate &&
 		g_type_is_a(hit->type, base))
@@ -3020,12 +3020,12 @@ vips_type_find(const char *basename, const char *nickname)
 		const VipsObjectClass *class;
 
 		if (!(class = vips_class_find(basename, nickname)))
-			return (0);
+			return 0;
 
 		type = G_OBJECT_CLASS_TYPE(class);
 	}
 
-	return (type);
+	return type;
 }
 
 /**
@@ -3046,9 +3046,9 @@ vips_nickname_find(GType type)
 		(p = g_type_class_ref(type)) &&
 		VIPS_IS_OBJECT_CLASS(p) &&
 		(class = VIPS_OBJECT_CLASS(p)))
-		return (class->nickname);
+		return class->nickname;
 
-	return (NULL);
+	return NULL;
 }
 
 /* The vips_object_local() macro uses this as its callback.
@@ -3121,7 +3121,7 @@ vips_object_local_array(VipsObject *parent, int n)
 	g_signal_connect(parent, "close",
 		G_CALLBACK(vips_object_local_array_cb), local);
 
-	return (local->array);
+	return local->array;
 }
 
 void
@@ -3136,7 +3136,7 @@ vips_object_n_static_cb(VipsObject *object, int *n, void *b)
 	if (object->static_object)
 		*n += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -3148,7 +3148,7 @@ vips_object_n_static(void)
 	vips_object_map(
 		(VipsSListMap2Fn) vips_object_n_static_cb, &n, NULL);
 
-	return (n);
+	return n;
 }
 
 static void *
@@ -3173,7 +3173,7 @@ vips_object_print_all_cb(VipsObject *object, int *n, void *b)
 
 	*n += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 int
@@ -3196,7 +3196,7 @@ vips__object_leak(void)
 			&n_leaks, NULL);
 	}
 
-	return (n_leaks);
+	return n_leaks;
 }
 
 void
@@ -3211,7 +3211,7 @@ vips_object_sanity_all_cb(VipsObject *object, void *a, void *b)
 {
 	(void) vips_object_sanity(object);
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -3243,7 +3243,7 @@ vips_object_unref_outputs_sub(VipsObject *object,
 		g_object_unref(value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -3284,7 +3284,7 @@ vips_object_get_description(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 
 	if (object->description)
-		return (object->description);
+		return object->description;
 	else
-		return (class->description);
+		return class->description;
 }

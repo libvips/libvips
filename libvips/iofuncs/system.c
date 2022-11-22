@@ -136,7 +136,7 @@ vips_system_build(VipsObject *object)
 	GError *error = NULL;
 
 	if (VIPS_OBJECT_CLASS(vips_system_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Write the input images to files. We must always make copies of the
 	 * files, even if this image is a disc file already, in case the
@@ -150,15 +150,15 @@ vips_system_build(VipsObject *object)
 		VipsImage **in = vips_array_image_get(system->in, &n);
 
 		if (!(system->in_name = VIPS_ARRAY(object, n, char *)))
-			return (-1);
+			return -1;
 		memset(system->in_name, 0, n * sizeof(char *));
 		for (i = 0; i < n; i++) {
 			if (!(system->in_name[i] =
 						vips__temp_name(in_format)))
-				return (-1);
+				return -1;
 			if (vips_image_write_to_file(in[i],
 					system->in_name[i], NULL))
-				return (-1);
+				return -1;
 		}
 	}
 
@@ -171,7 +171,7 @@ vips_system_build(VipsObject *object)
 		vips__filename_split8(system->out_format,
 			filename, option_string);
 		if (!(system->out_name = vips__temp_name(filename)))
-			return (-1);
+			return -1;
 		system->out_name_options =
 			g_strconcat(system->out_name, option_string, NULL);
 	}
@@ -183,13 +183,13 @@ vips_system_build(VipsObject *object)
 					system->in_name[i])) {
 				vips_error(class->nickname, "%s",
 					_("unable to substitute input filename"));
-				return (-1);
+				return -1;
 			}
 	if (system->out_name &&
 		vips__substitute(cmd, VIPS_PATH_MAX, system->out_name)) {
 		vips_error(class->nickname, "%s",
 			_("unable to substitute output filename"));
-		return (-1);
+		return -1;
 	}
 
 	/* Swap all "%%" in the string for a single "%". We need this for
@@ -225,7 +225,7 @@ vips_system_build(VipsObject *object)
 		vips_error_system(result, class->nickname,
 			_("command \"%s\" failed"), cmd);
 
-		return (-1);
+		return -1;
 	}
 
 	if (std_error) {
@@ -246,12 +246,12 @@ vips_system_build(VipsObject *object)
 
 		if (!(out = vips_image_new_from_file(system->out_name_options,
 				  NULL)))
-			return (-1);
+			return -1;
 		vips_image_set_delete_on_close(out, TRUE);
 		g_object_set(system, "out", out, NULL);
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -390,5 +390,5 @@ vips_system(const char *cmd_format, ...)
 	result = vips_call_split("system", ap, cmd_format);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

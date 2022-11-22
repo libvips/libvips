@@ -96,7 +96,7 @@ vips_col_L2Lcmc(float L)
 	else
 		Lcmc = 21.75 * log(L) + 0.3838 * L - 38.54;
 
-	return (Lcmc);
+	return Lcmc;
 }
 
 /**
@@ -116,7 +116,7 @@ vips_col_C2Ccmc(float C)
 	if (Ccmc < 0)
 		Ccmc = 0;
 
-	return (Ccmc);
+	return Ccmc;
 }
 
 /**
@@ -170,7 +170,7 @@ vips_col_Ch2hcmc(float C, float h)
 	f = sqrt(g / (g + 1900.0));
 	hcmc = h + D * f;
 
-	return (hcmc);
+	return hcmc;
 }
 
 static void
@@ -247,5 +247,5 @@ vips_LCh2CMC(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("LCh2CMC", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

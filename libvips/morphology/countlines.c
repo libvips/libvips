@@ -82,7 +82,7 @@ vips_countlines_build(VipsObject *object)
 	double nolines;
 
 	if (VIPS_OBJECT_CLASS(vips_countlines_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Compiler warnings.
 	 */
@@ -97,7 +97,7 @@ vips_countlines_build(VipsObject *object)
 				NULL) ||
 			vips_project(t[2], &t[3], &t[4], NULL) ||
 			vips_avg(t[3], &nolines, NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
@@ -108,7 +108,7 @@ vips_countlines_build(VipsObject *object)
 				NULL) ||
 			vips_project(t[2], &t[3], &t[4], NULL) ||
 			vips_avg(t[4], &nolines, NULL))
-			return (-1);
+			return -1;
 		break;
 
 	default:
@@ -117,7 +117,7 @@ vips_countlines_build(VipsObject *object)
 
 	g_object_set(object, "nolines", nolines / 255.0, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -184,5 +184,5 @@ vips_countlines(VipsImage *in, double *nolines,
 	result = vips_call_split("countlines", ap, in, nolines, direction);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

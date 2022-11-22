@@ -45,10 +45,10 @@ equal_vector(std::vector<double> a, std::vector<double> b)
 			}
 			printf("]\n");
 
-			return (false);
+			return false;
 		}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -56,10 +56,10 @@ equal_double(double a, double b)
 {
 	if (fabs(a - b) > 0.001) {
 		printf("doubles differ: should be %g, is %g\n", a, b);
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 /* We can't do this with a template, I think we'd need partially-parameterised
@@ -167,7 +167,7 @@ template <typename A, typename B, typename C>
 A
 test_add(B left, C right)
 {
-	return (left + right);
+	return left + right;
 }
 
 template <typename T>
@@ -179,7 +179,7 @@ operator+(std::vector<T> &v1, const std::vector<T> &v2)
 	for (unsigned int i = 0; i < v1.size(); i++)
 		result[i] = v1[i] + v2[i];
 
-	return (result);
+	return result;
 }
 
 TEST_BINARY(test_add);
@@ -188,7 +188,7 @@ template <typename A, typename B, typename C>
 A
 test_subtract(B left, C right)
 {
-	return (left - right);
+	return left - right;
 }
 
 template <typename T>
@@ -200,7 +200,7 @@ operator-(std::vector<T> &v1, const std::vector<T> &v2)
 	for (unsigned int i = 0; i < v1.size(); i++)
 		result[i] = v1[i] - v2[i];
 
-	return (result);
+	return result;
 }
 
 TEST_BINARY(test_subtract);
@@ -209,7 +209,7 @@ template <typename A, typename B, typename C>
 A
 test_multiply(B left, C right)
 {
-	return (left * right);
+	return left * right;
 }
 
 template <typename T>
@@ -221,7 +221,7 @@ operator*(std::vector<T> &v1, const std::vector<T> &v2)
 	for (unsigned int i = 0; i < v1.size(); i++)
 		result[i] = v1[i] * v2[i];
 
-	return (result);
+	return result;
 }
 
 TEST_BINARY(test_multiply);
@@ -230,7 +230,7 @@ template <typename A, typename B, typename C>
 A
 test_divide(B left, C right)
 {
-	return (left / right);
+	return left / right;
 }
 
 template <typename T>
@@ -242,7 +242,7 @@ operator/(std::vector<T> &v1, const std::vector<T> &v2)
 	for (unsigned int i = 0; i < v1.size(); i++)
 		result[i] = v1[i] / v2[i];
 
-	return (result);
+	return result;
 }
 
 TEST_BINARY(test_divide);
@@ -398,5 +398,5 @@ main(int argc, char **argv)
 
 	printf("all tests passed\n");
 
-	return (0);
+	return 0;
 }

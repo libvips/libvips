@@ -229,7 +229,7 @@ vips_pdfium_init_cb(void *dummy)
 
 	FPDF_InitLibraryWithConfig(&config);
 
-	return (NULL);
+	return NULL;
 }
 
 /* This is the m_GetBlock function for FPDF_FILEACCESS.
@@ -247,19 +247,19 @@ vips_pdfium_GetBlock(void *param,
 	g_assert(position + size <= pdf->file_access.m_FileLen);
 
 	if (vips_source_seek(pdf->source, position, SEEK_SET) < 0)
-		return (FALSE);
+		return FALSE;
 
 	while (size > 0) {
 		gint64 bytes_read;
 
 		if ((bytes_read =
 					vips_source_read(pdf->source, pBuf, size)) < 0)
-			return (FALSE);
+			return FALSE;
 		pBuf += bytes_read;
 		size -= bytes_read;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 static int
@@ -283,13 +283,13 @@ vips_foreign_load_pdf_build(VipsObject *object)
 	 */
 	if (pdf->source) {
 		if ((length = vips_source_length(pdf->source)) <= 0)
-			return (-1);
+			return -1;
 		if (length > 1 << 30) {
 			vips_error(class->nickname,
 				_("%s: too large for pdfium"),
 				vips_connection_nick(
 					VIPS_CONNECTION(pdf->source)));
-			return (-1);
+			return -1;
 		}
 		pdf->file_access.m_FileLen = length;
 		pdf->file_access.m_GetBlock = vips_pdfium_GetBlock;
@@ -305,7 +305,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 				_("%s: unable to load"),
 				vips_connection_nick(
 					VIPS_CONNECTION(pdf->source)));
-			return (-1);
+			return -1;
 		}
 
 		if (!(pdf->form = FPDFDOC_InitFormFillEnvironment(pdf->doc,
@@ -316,16 +316,16 @@ vips_foreign_load_pdf_build(VipsObject *object)
 				_("%s: unable to initialize form fill environment"),
 				vips_connection_nick(
 					VIPS_CONNECTION(pdf->source)));
-			return (-1);
+			return -1;
 		}
 
 		g_mutex_unlock(vips_pdfium_mutex);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -334,13 +334,13 @@ vips_foreign_load_pdf_get_flags_filename(const char *filename)
 	/* We can't render any part of the page on demand, but we can render
 	 * separate pages. Might as well call ourselves partial.
 	 */
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_pdf_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
@@ -363,14 +363,14 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 			vips_pdfium_error();
 			vips_error(class->nickname,
 				_("unable to load page %d"), page_no);
-			return (-1);
+			return -1;
 		}
 		pdf->current_page = page_no;
 
 		g_mutex_unlock(vips_pdfium_mutex);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* String-based metadata fields we extract.
@@ -404,7 +404,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 	/* We render to a linecache, so fat strips work well.
 	 */
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	/* Extract and attach metadata. Set the old name too for compat.
 	 */
@@ -446,7 +446,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -475,13 +475,13 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		pdf->page_no < 0 ||
 		pdf->n <= 0) {
 		vips_error(class->nickname, "%s", _("pages out of range"));
-		return (-1);
+		return -1;
 	}
 
 	/* Lay out the pages in our output image.
 	 */
 	if (!(pdf->pages = VIPS_ARRAY(pdf, pdf->n, VipsRect)))
-		return (-1);
+		return -1;
 
 	top = 0;
 	pdf->image.left = 0;
@@ -490,7 +490,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	pdf->image.height = 0;
 	for (i = 0; i < pdf->n; i++) {
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
-			return (-1);
+			return -1;
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
 		/* We do round to nearest, in the same way that vips_resize()
@@ -510,7 +510,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			pdf->pages[i].height > VIPS_MAX_COORD) {
 			vips_error(class->nickname,
 				"%s", _("page size out of range"));
-			return (-1);
+			return -1;
 		}
 
 		if (pdf->pages[i].width > pdf->image.width)
@@ -542,10 +542,10 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			  load->out,
 			  VIPS_AREA(pdf->background)->data, NULL,
 			  VIPS_AREA(pdf->background)->n)))
-		return (-1);
+		return -1;
 	vips__bgra2rgba((guint32 *) pdf->ink, 1);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -587,7 +587,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 		vips_rect_intersectrect(r, &pdf->pages[i], &rect);
 
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
-			return (-1);
+			return -1;
 
 		vips__worker_lock(vips_pdfium_mutex);
 
@@ -629,7 +629,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
 			r->width);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -655,7 +655,7 @@ vips_foreign_load_pdf_load(VipsForeignLoad *load)
 	vips_foreign_load_pdf_set_image(pdf, t[0]);
 	if (vips_image_generate(t[0],
 			NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL))
-		return (-1);
+		return -1;
 
 	/* PDFium does not like rendering parts of pages :-( always render
 	 * complete pages.
@@ -665,11 +665,11 @@ vips_foreign_load_pdf_load(VipsForeignLoad *load)
 			"tile_height", pdf->pages[0].height,
 			"max_tiles", 1,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -680,7 +680,7 @@ vips_foreign_load_pdf_once_init(void *client)
 	 */
 	vips_pdfium_mutex = vips_g_mutex_new();
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -782,8 +782,8 @@ vips_foreign_load_pdf_file_header(VipsForeignLoad *load)
 
 	VIPS_SETSTR(load->out->filename, file->filename);
 
-	return (VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
-				->header(load));
+	return VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
+		->header(load);
 }
 
 static const char *vips_foreign_pdf_suffs[] = {
@@ -803,10 +803,10 @@ vips_foreign_load_pdf_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(pdf->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -819,9 +819,9 @@ vips_foreign_load_pdf_is_a_buffer(const void *buf, size_t len)
 		str[1] == 'P' &&
 		str[2] == 'D' &&
 		str[3] == 'F')
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -831,9 +831,9 @@ vips_foreign_load_pdf_is_a(const char *filename)
 
 	if (vips__get_bytes(filename, buf, 4) == 4 &&
 		vips_foreign_load_pdf_is_a_buffer(buf, 4))
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -894,10 +894,10 @@ vips_foreign_load_pdf_buffer_build(VipsObject *object)
 		!(pdf->source = vips_source_new_from_memory(
 			  VIPS_AREA(buffer->buf)->data,
 			  VIPS_AREA(buffer->buf)->length)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
+		->build(object);
 }
 
 static void
@@ -953,8 +953,8 @@ vips_foreign_load_pdf_source_build(VipsObject *object)
 		g_object_ref(pdf->source);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -962,11 +962,11 @@ vips_foreign_load_pdf_source_is_a_source(VipsSource *source)
 {
 	const unsigned char *p;
 
-	return ((p = vips_source_sniff(source, 4)) &&
+	return (p = vips_source_sniff(source, 4)) &&
 		p[0] == '%' &&
 		p[1] == 'P' &&
 		p[2] == 'D' &&
-		p[3] == 'F');
+		p[3] == 'F';
 }
 
 static void

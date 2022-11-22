@@ -63,7 +63,7 @@ im_mattrn(DOUBLEMASK *in, const char *name)
 	/* Allocate output matrix.
 	 */
 	if (!(mat = im_create_dmask(name, in->ysize, in->xsize)))
-		return (NULL);
+		return NULL;
 	mat->scale = in->scale;
 	mat->offset = in->offset;
 
@@ -83,5 +83,5 @@ im_mattrn(DOUBLEMASK *in, const char *name)
 		a++;
 	}
 
-	return (mat);
+	return mat;
 }

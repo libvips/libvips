@@ -140,62 +140,62 @@ vips_value_hash(GParamSpec *pspec, GValue *value)
 	 */
 
 	if (generic == G_TYPE_PARAM_BOOLEAN)
-		return ((unsigned int) g_value_get_boolean(value));
+		return (unsigned int) g_value_get_boolean(value);
 	else if (generic == G_TYPE_PARAM_CHAR)
-		return ((unsigned int) g_value_get_schar(value));
+		return (unsigned int) g_value_get_schar(value);
 	else if (generic == G_TYPE_PARAM_UCHAR)
-		return ((unsigned int) g_value_get_uchar(value));
+		return (unsigned int) g_value_get_uchar(value);
 	else if (generic == G_TYPE_PARAM_INT)
-		return ((unsigned int) g_value_get_int(value));
+		return (unsigned int) g_value_get_int(value);
 	else if (generic == G_TYPE_PARAM_UINT)
-		return ((unsigned int) g_value_get_uint(value));
+		return (unsigned int) g_value_get_uint(value);
 	else if (generic == G_TYPE_PARAM_LONG)
-		return ((unsigned int) g_value_get_long(value));
+		return (unsigned int) g_value_get_long(value);
 	else if (generic == G_TYPE_PARAM_ULONG)
-		return ((unsigned int) g_value_get_ulong(value));
+		return (unsigned int) g_value_get_ulong(value);
 	else if (generic == G_TYPE_PARAM_ENUM)
-		return ((unsigned int) g_value_get_enum(value));
+		return (unsigned int) g_value_get_enum(value);
 	else if (generic == G_TYPE_PARAM_FLAGS)
-		return ((unsigned int) g_value_get_flags(value));
+		return (unsigned int) g_value_get_flags(value);
 	else if (generic == G_TYPE_PARAM_UINT64) {
 		guint64 i = g_value_get_uint64(value);
 
-		return (g_int64_hash((gint64 *) &i));
+		return g_int64_hash((gint64 *) &i);
 	}
 	else if (generic == G_TYPE_PARAM_INT64) {
 		gint64 i = g_value_get_int64(value);
 
-		return (g_int64_hash(&i));
+		return g_int64_hash(&i);
 	}
 	else if (generic == G_TYPE_PARAM_FLOAT) {
 		float f = g_value_get_float(value);
 
-		return (g_direct_hash((void *) &f));
+		return g_direct_hash((void *) &f);
 	}
 	else if (generic == G_TYPE_PARAM_DOUBLE) {
 		double d = g_value_get_double(value);
 
-		return (g_double_hash(&d));
+		return g_double_hash(&d);
 	}
 	else if (generic == G_TYPE_PARAM_STRING) {
 		const char *s = g_value_get_string(value);
 
-		return (s ? g_str_hash(s) : 0);
+		return s ? g_str_hash(s) : 0;
 	}
 	else if (generic == G_TYPE_PARAM_BOXED) {
 		void *p = g_value_get_boxed(value);
 
-		return (p ? g_direct_hash(p) : 0);
+		return p ? g_direct_hash(p) : 0;
 	}
 	else if (generic == G_TYPE_PARAM_POINTER) {
 		void *p = g_value_get_pointer(value);
 
-		return (p ? g_direct_hash(p) : 0);
+		return p ? g_direct_hash(p) : 0;
 	}
 	else if (generic == G_TYPE_PARAM_OBJECT) {
 		void *p = g_value_get_object(value);
 
-		return (p ? g_direct_hash(p) : 0);
+		return p ? g_direct_hash(p) : 0;
 	}
 	else {
 		/* Fallback: convert to a string and hash that.
@@ -218,7 +218,7 @@ vips_value_hash(GParamSpec *pspec, GValue *value)
 
 		g_free(s);
 
-		return (hash);
+		return hash;
 	}
 }
 
@@ -234,69 +234,53 @@ vips_value_equal(GParamSpec *pspec, GValue *v1, GValue *v2)
 	GType t2 = G_VALUE_TYPE(v2);
 
 	if (t1 != t2)
-		return (FALSE);
+		return FALSE;
 
 	/* Not compile-time constants, so we have to use a set of if()s. Could
 	 * make a table at run time I guess.
 	 */
 
 	if (generic == G_TYPE_PARAM_BOOLEAN)
-		return (g_value_get_boolean(v1) ==
-			g_value_get_boolean(v2));
+		return g_value_get_boolean(v1) == g_value_get_boolean(v2);
 	else if (generic == G_TYPE_PARAM_CHAR)
-		return (g_value_get_schar(v1) ==
-			g_value_get_schar(v2));
+		return g_value_get_schar(v1) == g_value_get_schar(v2);
 	if (generic == G_TYPE_PARAM_UCHAR)
-		return (g_value_get_uchar(v1) ==
-			g_value_get_uchar(v2));
+		return g_value_get_uchar(v1) == g_value_get_uchar(v2);
 	if (generic == G_TYPE_PARAM_INT)
-		return (g_value_get_int(v1) ==
-			g_value_get_int(v2));
+		return g_value_get_int(v1) == g_value_get_int(v2);
 	if (generic == G_TYPE_PARAM_UINT)
-		return (g_value_get_uint(v1) ==
-			g_value_get_uint(v2));
+		return g_value_get_uint(v1) == g_value_get_uint(v2);
 	if (generic == G_TYPE_PARAM_LONG)
-		return (g_value_get_long(v1) ==
-			g_value_get_long(v2));
+		return g_value_get_long(v1) == g_value_get_long(v2);
 	if (generic == G_TYPE_PARAM_ULONG)
-		return (g_value_get_ulong(v1) ==
-			g_value_get_ulong(v2));
+		return g_value_get_ulong(v1) == g_value_get_ulong(v2);
 	if (generic == G_TYPE_PARAM_ENUM)
-		return (g_value_get_enum(v1) ==
-			g_value_get_enum(v2));
+		return g_value_get_enum(v1) == g_value_get_enum(v2);
 	if (generic == G_TYPE_PARAM_FLAGS)
-		return (g_value_get_flags(v1) ==
-			g_value_get_flags(v2));
+		return g_value_get_flags(v1) == g_value_get_flags(v2);
 	if (generic == G_TYPE_PARAM_UINT64)
-		return (g_value_get_uint64(v1) ==
-			g_value_get_uint64(v2));
+		return g_value_get_uint64(v1) == g_value_get_uint64(v2);
 	if (generic == G_TYPE_PARAM_INT64)
-		return (g_value_get_int64(v1) ==
-			g_value_get_int64(v2));
+		return g_value_get_int64(v1) == g_value_get_int64(v2);
 	if (generic == G_TYPE_PARAM_FLOAT)
-		return (g_value_get_float(v1) ==
-			g_value_get_float(v2));
+		return g_value_get_float(v1) == g_value_get_float(v2);
 	if (generic == G_TYPE_PARAM_DOUBLE)
-		return (g_value_get_double(v1) ==
-			g_value_get_double(v2));
+		return g_value_get_double(v1) == g_value_get_double(v2);
 	if (generic == G_TYPE_PARAM_STRING) {
 		const char *s1 = g_value_get_string(v1);
 		const char *s2 = g_value_get_string(v2);
 
 		if (s1 == s2)
-			return (TRUE);
+			return TRUE;
 		else
-			return (s1 && s2 && strcmp(s1, s2) == 0);
+			return s1 && s2 && strcmp(s1, s2) == 0;
 	}
 	if (generic == G_TYPE_PARAM_BOXED)
-		return (g_value_get_boxed(v1) ==
-			g_value_get_boxed(v2));
+		return g_value_get_boxed(v1) == g_value_get_boxed(v2);
 	if (generic == G_TYPE_PARAM_POINTER)
-		return (g_value_get_pointer(v1) ==
-			g_value_get_pointer(v2));
+		return g_value_get_pointer(v1) == g_value_get_pointer(v2);
 	if (generic == G_TYPE_PARAM_OBJECT)
-		return (g_value_get_object(v1) ==
-			g_value_get_object(v2));
+		return g_value_get_object(v1) == g_value_get_object(v2);
 	else {
 		/* Fallback: convert to a string and compare that.
 		 * This is very slow, print a warning if we use it
@@ -321,7 +305,7 @@ vips_value_equal(GParamSpec *pspec, GValue *v1, GValue *v2)
 		g_free(s1);
 		g_free(s2);
 
-		return (equal);
+		return equal;
 	}
 }
 
@@ -348,7 +332,7 @@ vips_object_hash_arg(VipsObject *object,
 		g_value_unset(&value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Find a hash from the input arguments to a VipsOperstion.
@@ -373,7 +357,7 @@ vips_operation_hash(VipsOperation *operation)
 		operation->found_hash = TRUE;
 	}
 
-	return (operation->hash);
+	return operation->hash;
 }
 
 static void *
@@ -399,7 +383,7 @@ vips_object_equal_arg(VipsObject *object,
 		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
 		(argument_class->flags & VIPS_ARGUMENT_NON_HASHABLE) ||
 		!argument_instance->assigned)
-		return (NULL);
+		return NULL;
 
 	/* If this is an optional arg, we need to check that this was
 	 * assigned on @other as well.
@@ -409,7 +393,7 @@ vips_object_equal_arg(VipsObject *object,
 		/* Optional and was not set on other ... we've found a
 		 * difference!
 		 */
-		return (object);
+		return object;
 
 	g_value_init(&v1, type);
 	g_value_init(&v2, type);
@@ -421,7 +405,7 @@ vips_object_equal_arg(VipsObject *object,
 
 	/* Stop (return non-NULL) if we've found a difference.
 	 */
-	return (!equal ? object : NULL);
+	return !equal ? object : NULL;
 }
 
 /* Are two objects equal, ie. have the same inputs.
@@ -430,15 +414,15 @@ static gboolean
 vips_operation_equal(VipsOperation *a, VipsOperation *b)
 {
 	if (a == b)
-		return (TRUE);
+		return TRUE;
 
 	if (G_OBJECT_TYPE(a) == G_OBJECT_TYPE(b) &&
 		vips_operation_hash(a) == vips_operation_hash(b) &&
 		!vips_argument_map(VIPS_OBJECT(a),
 			vips_object_equal_arg, b, NULL))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 void *
@@ -450,7 +434,7 @@ vips__cache_once_init(void *data)
 		(GHashFunc) vips_operation_hash,
 		(GEqualFunc) vips_operation_equal);
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -473,7 +457,7 @@ vips_cache_print_fn(void *value, void *a, void *b)
 
 	printf("%p - %s\n", value, vips_buf_all(&buf));
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -526,7 +510,7 @@ vips_object_unref_arg(VipsObject *object,
 		g_object_unref(value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -545,7 +529,7 @@ vips_cache_unref(VipsOperation *operation)
 static VipsOperationCacheEntry *
 vips_cache_operation_get(VipsOperation *operation)
 {
-	return (g_hash_table_lookup(vips_cache_table, operation));
+	return g_hash_table_lookup(vips_cache_table, operation);
 }
 
 /* Remove an operation from the cache.
@@ -592,7 +576,7 @@ vips_object_ref_arg(VipsObject *object,
 			g_param_spec_get_name(pspec), &value, NULL);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -666,7 +650,7 @@ vips_cache_insert(VipsOperation *operation)
 static void *
 vips_cache_get_first_fn(void *value, void *a, void *b)
 {
-	return (value);
+	return value;
 }
 
 /* Return the first item.
@@ -679,9 +663,9 @@ vips_cache_get_first(void)
 	if (vips_cache_table &&
 		(entry = vips_hash_table_map(vips_cache_table,
 			 vips_cache_get_first_fn, NULL, NULL)))
-		return (VIPS_OPERATION(entry->operation));
+		return VIPS_OPERATION(entry->operation);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -741,9 +725,9 @@ vips_cache_get_lru(void)
 		(GHFunc) vips_cache_get_lru_cb, &entry);
 
 	if (entry)
-		return (entry->operation);
+		return entry->operation;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Is the cache full? Drop until it's not.
@@ -848,7 +832,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	 */
 	if (!hit) {
 		if (vips_object_build(VIPS_OBJECT(*operation)))
-			return (-1);
+			return -1;
 
 		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
@@ -882,7 +866,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 	vips_cache_trim();
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -909,10 +893,10 @@ vips_cache_operation_build(VipsOperation *operation)
 	if (vips_cache_operation_buildp(&operation)) {
 		g_object_unref(orig_operation);
 
-		return (NULL);
+		return NULL;
 	}
 
-	return (operation);
+	return operation;
 }
 
 /**
@@ -958,7 +942,7 @@ vips_cache_set_max_mem(size_t max_mem)
 int
 vips_cache_get_max(void)
 {
-	return (vips_cache_max);
+	return vips_cache_max;
 }
 
 /**
@@ -981,7 +965,7 @@ vips_cache_get_size(void)
 
 	g_mutex_unlock(vips_cache_lock);
 
-	return (size);
+	return size;
 }
 
 /**
@@ -997,7 +981,7 @@ vips_cache_get_size(void)
 size_t
 vips_cache_get_max_mem(void)
 {
-	return (vips_cache_max_mem);
+	return vips_cache_max_mem;
 }
 
 /**
@@ -1017,7 +1001,7 @@ vips_cache_get_max_mem(void)
 int
 vips_cache_get_max_files(void)
 {
-	return (vips_cache_max_files);
+	return vips_cache_max_files;
 }
 
 /**
@@ -1085,5 +1069,5 @@ vips_cache_operation_add(VipsOperation *operation)
 VipsOperation *
 vips_cache_operation_lookup(VipsOperation *operation)
 {
-	return (NULL);
+	return NULL;
 }

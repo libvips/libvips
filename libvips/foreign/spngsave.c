@@ -142,7 +142,7 @@ vips_foreign_save_spng_text(VipsForeignSaveSpng *spng,
 
 	spng->text_chunks = g_slist_prepend(spng->text_chunks, text);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -157,19 +157,19 @@ vips_foreign_save_spng_comment(VipsImage *image,
 		char key[256];
 
 		if (vips_image_get_string(image, field, &value))
-			return (image);
+			return image;
 
 		if (strlen(field) > 256 ||
 			sscanf(field, "png-comment-%d-%80s", &i, key) != 2) {
 			vips_error("vips2png",
 				"%s", _("bad png comment key"));
-			return (image);
+			return image;
 		}
 
 		vips_foreign_save_spng_text(spng, key, value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -186,7 +186,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		VipsBlob *blob;
 
 		if (vips_profile_load(spng->profile, &blob, NULL))
-			return (-1);
+			return -1;
 		if (blob) {
 			size_t length;
 			const void *data = vips_blob_get(blob, &length);
@@ -213,7 +213,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 
 		if (vips_image_get_blob(in, VIPS_META_ICC_NAME,
 				&data, &length))
-			return (-1);
+			return -1;
 
 #ifdef DEBUG
 		printf("write_vips: attaching %zd bytes of ICC profile\n",
@@ -235,7 +235,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 
 		if (vips_image_get_blob(in,
 				VIPS_META_XMP_NAME, &data, &length))
-			return (-1);
+			return -1;
 
 		/* The blob form of the XMP metadata is missing the
 		 * terminating \0 bytes, we have to paste it back,
@@ -250,7 +250,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 	if (vips__exif_update(in) ||
 		vips_image_get_blob(in, VIPS_META_EXIF_NAME,
 			(const void **) &exif.data, &exif.length))
-		return (-1);
+		return -1;
 
 	/* libspng does not want the JFIF "Exif\0\0" prefix.
 	 */
@@ -262,7 +262,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 	spng_set_exif(spng->ctx, &exif);
 
 	if (vips_image_map(in, vips_foreign_save_spng_comment, spng))
-		return (-1);
+		return -1;
 
 	n_text = g_slist_length(spng->text_chunks);
 	text_chunk_array = VIPS_ARRAY(NULL, n_text, struct spng_text);
@@ -277,7 +277,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 	spng_set_text(spng->ctx, text_chunk_array, n_text);
 	VIPS_FREE(text_chunk_array);
 
-	return (0);
+	return 0;
 }
 
 /* Pack a line of 1/2/4 bit index values.
@@ -320,9 +320,9 @@ vips_foreign_save_spng_write_fn(spng_ctx *ctx, void *user,
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user;
 
 	if (vips_target_write(spng->target, data, n))
-		return (SPNG_IO_ERROR);
+		return SPNG_IO_ERROR;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -364,10 +364,10 @@ vips_foreign_save_spng_write_block(VipsRegion *region, VipsRect *area,
 	if (error &&
 		error != SPNG_EOI) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -387,7 +387,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	if ((error = spng_set_png_stream(spng->ctx,
 			 vips_foreign_save_spng_write_fn, spng))) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
 	ihdr.width = in->Xsize;
@@ -413,7 +413,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	default:
 		vips_error(class->nickname, "%s", _("bad bands"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef HAVE_QUANTIZATION
@@ -432,7 +432,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	ihdr.interlace_method = spng->interlace ? 1 : 0;
 	if ((error = spng_set_ihdr(spng->ctx, &ihdr))) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
 	spng_set_option(spng->ctx,
@@ -453,7 +453,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	 */
 	if (!save->strip &&
 		vips_foreign_save_spng_metadata(spng, in))
-		return (-1);
+		return -1;
 
 #ifdef HAVE_QUANTIZATION
 	if (spng->palette) {
@@ -471,7 +471,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 				spng->dither,
 				spng->effort,
 				FALSE))
-			return (-1);
+			return -1;
 
 		/* PNG is 8-bit index only.
 		 */
@@ -520,7 +520,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 		if (!(spng->line =
 					vips_malloc(NULL, VIPS_IMAGE_SIZEOF_LINE(in))))
-			return (-1);
+			return -1;
 	}
 
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr
@@ -530,7 +530,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	if ((error = spng_encode_image(spng->ctx,
 			 NULL, -1, fmt, encode_flags))) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
 	if (spng->interlace) {
@@ -538,7 +538,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		 */
 		if (!spng->memory) {
 			if (!(spng->memory = vips_image_copy_memory(in)))
-				return (-1);
+				return -1;
 			in = spng->memory;
 		}
 
@@ -567,19 +567,19 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		if (error != SPNG_EOI) {
 			vips_error(class->nickname,
 				"%s", spng_strerror(error));
-			return (-1);
+			return -1;
 		}
 	}
 	else {
 		if (vips_sink_disc(in,
 				vips_foreign_save_spng_write_block, spng))
-			return (-1);
+			return -1;
 	}
 
 	if (vips_target_end(spng->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -591,7 +591,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = save->ready;
 	g_object_ref(in);
@@ -618,7 +618,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 
 		if (vips_cast(in, &x, VIPS_FORMAT_UCHAR, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 		in = x;
@@ -638,12 +638,12 @@ vips_foreign_save_spng_build(VipsObject *object)
 
 	if (vips_foreign_save_spng_write(spng, in)) {
 		g_object_unref(in);
-		return (-1);
+		return -1;
 	}
 
 	g_object_unref(in);
 
-	return (0);
+	return 0;
 }
 
 #define UC VIPS_FORMAT_UCHAR
@@ -783,9 +783,9 @@ vips_foreign_save_spng_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -832,13 +832,13 @@ vips_foreign_save_spng_file_build(VipsObject *object)
 	VipsForeignSaveSpngFile *file = (VipsForeignSaveSpngFile *) object;
 
 	if (!(spng->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -888,17 +888,17 @@ vips_foreign_save_spng_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(spng->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(spng->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void

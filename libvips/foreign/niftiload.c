@@ -128,16 +128,16 @@ vips_foreign_load_nifti_build(VipsObject *object)
 			!(filename = vips_connection_filename(connection))) {
 			vips_error(class->nickname,
 				"%s", _("no filename available"));
-			return (-1);
+			return -1;
 		}
 
 		nifti->filename = filename;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nifti_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Map DT_* datatype values to VipsBandFormat.
@@ -169,9 +169,9 @@ vips__foreign_nifti_datatype2BandFmt(int datatype)
 
 	for (i = 0; i < VIPS_NUMBER(vips_foreign_nifti_DT2Vips); i++)
 		if (vips_foreign_nifti_DT2Vips[i].datatype == datatype)
-			return (vips_foreign_nifti_DT2Vips[i].fmt);
+			return vips_foreign_nifti_DT2Vips[i].fmt;
 
-	return (VIPS_FORMAT_NOTSET);
+	return VIPS_FORMAT_NOTSET;
 }
 
 int
@@ -181,9 +181,9 @@ vips__foreign_nifti_BandFmt2datatype(VipsBandFormat fmt)
 
 	for (i = 0; i < VIPS_NUMBER(vips_foreign_nifti_DT2Vips); i++)
 		if (vips_foreign_nifti_DT2Vips[i].fmt == fmt)
-			return (vips_foreign_nifti_DT2Vips[i].datatype);
+			return vips_foreign_nifti_DT2Vips[i].datatype;
 
-	return (-1);
+	return -1;
 }
 
 /* All the header fields we attach as metadata.
@@ -332,10 +332,10 @@ vips__foreign_nifti_map(VipsNiftiMapFn fn, void *a, void *b)
 		g_value_unset(&value);
 
 		if (result)
-			return (result);
+			return result;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* How I wish glib had something like this :( Just implement the ones we need
@@ -375,7 +375,7 @@ vips_foreign_load_nifti_set(const char *name, GValue *value, glong offset,
 	vips_snprintf(vips_name, 256, "nifti-%s", name);
 	vips_image_set(out, vips_name, value);
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -398,13 +398,13 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 		vips_error(class->nickname,
 			_("%d-dimensional images not supported"),
 			nim->ndim);
-		return (0);
+		return 0;
 	}
 	for (i = 1; i < 8 && i < nim->ndim + 1; i++) {
 		if (nim->dim[i] <= 0) {
 			vips_error(class->nickname,
 				"%s", _("invalid dimension"));
-			return (0);
+			return 0;
 		}
 
 		/* If we have several images in a dimension, the spacing must
@@ -415,7 +415,7 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 			nim->pixdim[i] == 0) {
 			vips_error(class->nickname,
 				"%s", _("invalid resolution"));
-			return (0);
+			return 0;
 		}
 	}
 
@@ -429,18 +429,18 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 		if (!g_uint_checked_mul(&height, height, nim->dim[i])) {
 			vips_error(class->nickname,
 				"%s", _("dimension overflow"));
-			return (0);
+			return 0;
 		}
 	if (height > INT_MAX) {
 		vips_error(class->nickname, "%s", _("dimension overflow"));
-		return (0);
+		return 0;
 	}
 
 	fmt = vips__foreign_nifti_datatype2BandFmt(nim->datatype);
 	if (fmt == VIPS_FORMAT_NOTSET) {
 		vips_error(class->nickname,
 			_("datatype %d not supported"), nim->datatype);
-		return (-1);
+		return -1;
 	}
 
 	if (nim->datatype == DT_RGB)
@@ -495,7 +495,7 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 	/* Set some vips metadata for every nifti header field.
 	 */
 	if (vips__foreign_nifti_map(vips_foreign_load_nifti_set, nim, out))
-		return (-1);
+		return -1;
 
 	/* One byte longer than the spec to leave space for any extra
 	 * '\0' termination.
@@ -514,7 +514,7 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 
 	vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, nim->ny);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -534,17 +534,17 @@ vips_foreign_load_nifti_header(VipsForeignLoad *load)
 	if (!(nifti->nim = nifti_image_read(nifti->filename, FALSE))) {
 		vips_error(class->nickname,
 			"%s", _("unable to read NIFTI header"));
-		return (0);
+		return 0;
 	}
 
 	if (vips_foreign_load_nifti_set_header(nifti,
 			nifti->nim, load->out)) {
-		return (-1);
+		return -1;
 	}
 
 	VIPS_SETSTR(load->out->filename, nifti->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -562,19 +562,19 @@ vips_foreign_load_nifti_load(VipsForeignLoad *load)
 	if (nifti_image_load(nifti->nim)) {
 		vips_error(class->nickname,
 			"%s", _("unable to load NIFTI file"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(nifti->memory = vips_image_new_from_memory(
 			  nifti->nim->data, VIPS_IMAGE_SIZEOF_IMAGE(load->out),
 			  load->out->Xsize, load->out->Ysize,
 			  load->out->Bands, load->out->BandFmt)))
-		return (-1);
+		return -1;
 
 	if (vips_image_write(nifti->memory, load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -635,13 +635,13 @@ vips_foreign_load_nifti_file_build(VipsObject *object)
 	if (file->filename &&
 		!(nifti->source =
 				vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nifti_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 const char *vips_foreign_nifti_suffs[] = {
@@ -664,12 +664,12 @@ vips_foreign_load_nifti_is_a(const char *filename)
 	 */
 
 	if (!(hfile = nifti_findhdrname(filename)))
-		return (0);
+		return 0;
 
 	fp = znzopen(hfile, "rb", nifti_is_gzfile(hfile));
 	if (znz_isnull(fp)) {
 		free(hfile);
-		return (0);
+		return 0;
 	}
 	free(hfile);
 
@@ -681,12 +681,12 @@ vips_foreign_load_nifti_is_a(const char *filename)
 	 * order in niftilib, but it's static :(
 	 */
 	if (nifti_hdr_looks_good(&nhdr))
-		return (1);
+		return 1;
 	swap_nifti_header(&nhdr, FALSE);
 	if (nifti_hdr_looks_good(&nhdr))
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -750,9 +750,9 @@ vips_foreign_load_nifti_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nifti_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -762,9 +762,9 @@ vips_foreign_load_nifti_source_is_a_source(VipsSource *source)
 
 	const char *filename;
 
-	return (vips_source_is_file(source) &&
+	return vips_source_is_file(source) &&
 		(filename = vips_connection_filename(connection)) &&
-		vips_foreign_load_nifti_is_a(filename));
+		vips_foreign_load_nifti_is_a(filename);
 }
 
 static void
@@ -828,7 +828,7 @@ vips_niftiload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("niftiload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -851,5 +851,5 @@ vips_niftiload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("niftiload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

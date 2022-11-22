@@ -77,13 +77,13 @@ im_tone_map(IMAGE *in, IMAGE *out, IMAGE *lut)
 
 	if (im_check_hist("im_tone_map", lut) ||
 		im_open_local_array(out, t, 8, "im_tone_map", "p"))
-		return (-1);
+		return -1;
 
 	/* If in is IM_CODING_LABQ, unpack.
 	 */
 	if (in->Coding == IM_CODING_LABQ) {
 		if (im_LabQ2LabS(in, t[0]))
-			return (-1);
+			return -1;
 	}
 	else
 		t[0] = in;
@@ -91,22 +91,22 @@ im_tone_map(IMAGE *in, IMAGE *out, IMAGE *lut)
 	/* Split into bands.
 	 */
 	if (im_extract_band(t[0], t[1], 0))
-		return (-1);
+		return -1;
 	if (t[0]->Bands > 1) {
 		if (im_extract_bands(t[0], t[2], 1, t[0]->Bands - 1))
-			return (-1);
+			return -1;
 	}
 
 	/* Map L.
 	 */
 	if (im_maplut(t[1], t[3], lut))
-		return (-1);
+		return -1;
 
 	/* Recombine bands.
 	 */
 	if (t[0]->Bands > 1) {
 		if (im_bandjoin(t[3], t[2], t[4]))
-			return (-1);
+			return -1;
 	}
 	else
 		t[4] = t[3];
@@ -115,12 +115,12 @@ im_tone_map(IMAGE *in, IMAGE *out, IMAGE *lut)
 	 */
 	if (in->Coding == IM_CODING_LABQ) {
 		if (im_LabS2LabQ(t[4], t[5]))
-			return (-1);
+			return -1;
 	}
 	else
 		t[5] = t[4];
 
-	return (im_copy(t[4], out));
+	return im_copy(t[4], out);
 }
 
 /**
@@ -153,13 +153,13 @@ im_tone_analyse(
 	double Lb, Lw;
 
 	if (im_open_local_array(out, t, 4, "im_tone_map", "p"))
-		return (-1);
+		return -1;
 
 	/* If in is IM_CODING_LABQ, unpack.
 	 */
 	if (in->Coding == IM_CODING_LABQ) {
 		if (im_LabQ2LabS(in, t[0]))
-			return (-1);
+			return -1;
 	}
 	else
 		t[0] = in;
@@ -169,20 +169,20 @@ im_tone_analyse(
 	if (im_check_uncoded("im_tone_analyse", t[0]) ||
 		im_check_bands("im_tone_analyse", t[0], 3) ||
 		im_check_format("im_tone_analyse", t[0], IM_BANDFMT_SHORT))
-		return (-1);
+		return -1;
 
 	if (im_extract_band(t[0], t[1], 0) ||
 		im_clip2fmt(t[1], t[2], IM_BANDFMT_USHORT))
-		return (-1);
+		return -1;
 
 	if (im_mpercent(t[2], 0.1 / 100.0, &high) ||
 		im_mpercent(t[2], 99.9 / 100.0, &low))
-		return (-1);
+		return -1;
 
 	Lb = 100 * low / 32768;
 	Lw = 100 * high / 32768;
 
 	im_diag("im_tone_analyse", "set Lb = %g, Lw = %g", Lb, Lw);
 
-	return (im_tone_build(out, Lb, Lw, Ps, Pm, Ph, S, M, H));
+	return im_tone_build(out, Lb, Lw, Ps, Pm, Ph, S, M, H);
 }

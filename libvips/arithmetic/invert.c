@@ -213,5 +213,5 @@ vips_invert(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("invert", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

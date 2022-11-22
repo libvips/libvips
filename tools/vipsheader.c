@@ -123,7 +123,7 @@ print_field_fn(VipsImage *image, const char *field, GValue *value, void *a)
 	vips_buf_appendgv(&buf, value);
 	printf("%s\n", vips_buf_all(&buf));
 
-	return (NULL);
+	return NULL;
 }
 
 /* Print header, or parts of header.
@@ -147,7 +147,7 @@ print_header(VipsImage *image, gboolean many)
 
 			if (!(buf =
 						vips__read_extension_block(image, &size)))
-				return (-1);
+				return -1;
 			printf("%s", (char *) buf);
 			g_free(buf);
 		}
@@ -158,12 +158,12 @@ print_header(VipsImage *image, gboolean many)
 		char *str;
 
 		if (vips_image_get_as_string(image, main_option_field, &str))
-			return (-1);
+			return -1;
 		printf("%s\n", str);
 		g_free(str);
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -236,11 +236,11 @@ main(int argc, char *argv[])
 			VipsSource *source;
 
 			if (!(source = vips_source_new_from_descriptor(0)))
-				return (-1);
+				return -1;
 			if (!(image = vips_image_new_from_source(source,
 					  option_string, NULL))) {
 				VIPS_UNREF(source);
-				return (-1);
+				return -1;
 			}
 			VIPS_UNREF(source);
 		}
@@ -270,5 +270,5 @@ main(int argc, char *argv[])
 
 	vips_shutdown();
 
-	return (result);
+	return result;
 }

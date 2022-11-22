@@ -72,7 +72,7 @@ vapplyimask(INTMASK *in, const char *name, vips_fn fn)
 	INTMASK *out;
 
 	if (!(x = im_open(name, "p")))
-		return (NULL);
+		return NULL;
 	if (!(d[0] = im_local_dmask(x, im_imask2dmask(in, name))) ||
 		im_open_local_array(x, t, 2, name, "p") ||
 		im_mask2vips(d[0], t[0]) ||
@@ -80,14 +80,14 @@ vapplyimask(INTMASK *in, const char *name, vips_fn fn)
 		!(d[1] = im_local_dmask(x, im_vips2mask(t[1], name))) ||
 		!(out = im_dmask2imask(d[1], name))) {
 		im_close(x);
-		return (NULL);
+		return NULL;
 	}
 	im_close(x);
 
 	out->scale = in->scale;
 	out->offset = in->offset;
 
-	return (out);
+	return out;
 }
 
 static DOUBLEMASK *
@@ -98,32 +98,32 @@ vapplydmask(DOUBLEMASK *in, const char *name, vips_fn fn)
 	DOUBLEMASK *out;
 
 	if (!(x = im_open(name, "p")))
-		return (NULL);
+		return NULL;
 	if (im_open_local_array(x, t, 2, name, "p") ||
 		im_mask2vips(in, t[0]) ||
 		fn(t[0], t[1]) ||
 		!(out = im_vips2mask(t[1], name))) {
 		im_close(x);
-		return (NULL);
+		return NULL;
 	}
 	im_close(x);
 
 	out->scale = in->scale;
 	out->offset = in->offset;
 
-	return (out);
+	return out;
 }
 
 INTMASK *
 im_rotate_imask90(INTMASK *in, const char *filename)
 {
-	return (vapplyimask(in, filename, im_rot90));
+	return vapplyimask(in, filename, im_rot90);
 }
 
 DOUBLEMASK *
 im_rotate_dmask90(DOUBLEMASK *in, const char *filename)
 {
-	return (vapplydmask(in, filename, im_rot90));
+	return vapplydmask(in, filename, im_rot90);
 }
 
 static int
@@ -132,24 +132,24 @@ im_rot45(IMAGE *in, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_rot45(in, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 INTMASK *
 im_rotate_imask45(INTMASK *in, const char *filename)
 {
-	return (vapplyimask(in, filename, im_rot45));
+	return vapplyimask(in, filename, im_rot45);
 }
 
 DOUBLEMASK *
 im_rotate_dmask45(DOUBLEMASK *in, const char *filename)
 {
-	return (vapplydmask(in, filename, im_rot45));
+	return vapplydmask(in, filename, im_rot45);
 }

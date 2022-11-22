@@ -81,7 +81,7 @@ vips_foreign_load_vips_get_flags_source(VipsSource *source)
 		*((guint32 *) data) == VIPS_MAGIC_SPARC)
 		flags |= VIPS_FOREIGN_BIGENDIAN;
 
-	return (flags);
+	return flags;
 }
 
 static VipsForeignFlags
@@ -89,7 +89,7 @@ vips_foreign_load_vips_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
 
-	return (vips_foreign_load_vips_get_flags_source(vips->source));
+	return vips_foreign_load_vips_get_flags_source(vips->source);
 }
 
 static VipsForeignFlags
@@ -99,11 +99,11 @@ vips_foreign_load_vips_get_flags_filename(const char *filename)
 	VipsForeignFlags flags;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (0);
+		return 0;
 	flags = vips_foreign_load_vips_get_flags_source(source);
 	VIPS_UNREF(source);
 
-	return (flags);
+	return flags;
 }
 
 static int
@@ -121,11 +121,11 @@ vips_foreign_load_vips_header(VipsForeignLoad *load)
 		!(filename = vips_connection_filename(connection))) {
 		vips_error(class->nickname,
 			"%s", _("no filename associated with source"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(image = vips_image_new_mode(filename, "r")))
-		return (-1);
+		return -1;
 
 	/* What a hack. Remove the @out that's there now and replace it with
 	 * our image.
@@ -136,7 +136,7 @@ vips_foreign_load_vips_header(VipsForeignLoad *load)
 
 	g_object_set(load, "out", image, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -193,13 +193,13 @@ vips_foreign_load_vips_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(vips->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_vips_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 const char *vips__suffs[] = { ".v", ".vips", NULL };
@@ -207,7 +207,7 @@ const char *vips__suffs[] = { ".v", ".vips", NULL };
 static gboolean
 vips_foreign_load_vips_file_is_a(const char *filename)
 {
-	return (vips__file_magic(filename));
+	return vips__file_magic(filename);
 }
 
 static void
@@ -268,9 +268,9 @@ vips_foreign_load_vips_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_vips_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -280,9 +280,9 @@ vips_foreign_load_vips_source_is_a_source(VipsSource *source)
 
 	const char *filename;
 
-	return (vips_source_is_file(source) &&
+	return vips_source_is_file(source) &&
 		(filename = vips_connection_filename(connection)) &&
-		vips__file_magic(filename));
+		vips__file_magic(filename);
 }
 
 static void
@@ -340,7 +340,7 @@ vips_vipsload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("vipsload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -363,5 +363,5 @@ vips_vipsload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("vipsload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

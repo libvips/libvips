@@ -133,7 +133,7 @@
 int
 vips_icc_present(void)
 {
-	return (1);
+	return 1;
 }
 
 #define VIPS_TYPE_ICC (vips_icc_get_type())
@@ -209,8 +209,8 @@ vips_icc_dispose(GObject *gobject)
 static gboolean
 is_pcs(cmsHPROFILE profile)
 {
-	return (cmsGetColorSpace(profile) == cmsSigLabData ||
-		cmsGetColorSpace(profile) == cmsSigXYZData);
+	return cmsGetColorSpace(profile) == cmsSigLabData ||
+		cmsGetColorSpace(profile) == cmsSigXYZData;
 }
 
 /* Info for all supported lcms profile signatures.
@@ -248,9 +248,9 @@ vips_icc_info(int signature)
 
 	for (i = 0; i < VIPS_NUMBER(vips_icc_info_table); i++)
 		if (vips_icc_info_table[i].signature == signature)
-			return (&vips_icc_info_table[i]);
+			return &vips_icc_info_table[i];
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -267,7 +267,7 @@ vips_icc_build(VipsObject *object)
 		icc->depth != 16) {
 		vips_error(class->nickname,
 			"%s", _("depth must be 8 or 16"));
-		return (-1);
+		return -1;
 	}
 
 	if (icc->in_profile &&
@@ -280,7 +280,7 @@ vips_icc_build(VipsObject *object)
 			vips_error(class->nickname,
 				_("unimplemented input color space 0x%x"),
 				signature);
-			return (-1);
+			return -1;
 		}
 
 		colour->input_bands = info->bands;
@@ -343,7 +343,7 @@ vips_icc_build(VipsObject *object)
 
 		default:
 			g_assert_not_reached();
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -356,7 +356,7 @@ vips_icc_build(VipsObject *object)
 			vips_error(class->nickname,
 				_("unimplemented output color space 0x%x"),
 				signature);
-			return (-1);
+			return -1;
 		}
 
 		colour->bands = info->bands;
@@ -420,7 +420,7 @@ vips_icc_build(VipsObject *object)
 
 		default:
 			g_assert_not_reached();
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -432,7 +432,7 @@ vips_icc_build(VipsObject *object)
 		is_pcs(icc->out_profile)) {
 		vips_error(class->nickname,
 			"%s", _("no device profile"));
-		return (-1);
+		return -1;
 	}
 
 	/* Use cmsFLAGS_NOCACHE to disable the 1-pixel cache and make
@@ -447,12 +447,12 @@ vips_icc_build(VipsObject *object)
 			  icc->in_profile, icc->in_icc_format,
 			  icc->out_profile, icc->out_icc_format,
 			  icc->intent, flags)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_icc_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Get from an image.
@@ -464,11 +464,11 @@ vips_icc_get_profile_image(VipsImage *image)
 	size_t size;
 
 	if (!vips_image_get_typeof(image, VIPS_META_ICC_NAME))
-		return (NULL);
+		return NULL;
 	if (vips_image_get_blob(image, VIPS_META_ICC_NAME, &data, &size))
-		return (NULL);
+		return NULL;
 
-	return (vips_blob_new(NULL, data, size));
+	return vips_blob_new(NULL, data, size);
 }
 
 #ifdef DEBUG
@@ -590,7 +590,7 @@ vips_image_expected_bands(VipsImage *image)
 
 	expected_bands = VIPS_MIN(expected_bands, image->Bands);
 
-	return (expected_bands);
+	return expected_bands;
 }
 
 /* Load a profile from a blob and check compatibility with image, intent and
@@ -617,7 +617,7 @@ vips_icc_load_profile_blob(VipsBlob *blob,
 	data = vips_blob_get(blob, &size);
 	if (!(profile = cmsOpenProfileFromMem(data, size))) {
 		g_warning("%s", _("corrupt profile"));
-		return (NULL);
+		return NULL;
 	}
 
 #ifdef DEBUG
@@ -627,14 +627,14 @@ vips_icc_load_profile_blob(VipsBlob *blob,
 	if (!(info = vips_icc_info(cmsGetColorSpace(profile)))) {
 		VIPS_FREEF(cmsCloseProfile, profile);
 		g_warning("%s", _("unsupported profile"));
-		return (NULL);
+		return NULL;
 	}
 
 	if (image &&
 		vips_image_expected_bands(image) != info->bands) {
 		VIPS_FREEF(cmsCloseProfile, profile);
 		g_warning("%s", _("profile incompatible with image"));
-		return (NULL);
+		return NULL;
 	}
 
 	if (!cmsIsIntentSupported(profile, intent, direction)) {
@@ -642,10 +642,10 @@ vips_icc_load_profile_blob(VipsBlob *blob,
 		g_warning(_("profile does not support %s %s intent"),
 			vips_enum_nick(VIPS_TYPE_INTENT, intent),
 			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (profile);
+	return profile;
 }
 
 /* Verify that a blob is not corrupt and is compatible with this image.
@@ -664,10 +664,10 @@ vips_icc_verify_blob(VipsBlob **blob, VipsImage *image, VipsIntent intent)
 			*blob = NULL;
 		}
 
-		return (profile);
+		return profile;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Try to set the inport profile. We read the input profile like this:
@@ -746,10 +746,10 @@ vips_icc_set_import(VipsIcc *icc,
 	if (!icc->in_profile) {
 		vips_error(class->nickname, "%s",
 			_("unable to load or find any compatible input profile"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -819,7 +819,7 @@ vips_icc_import_build(VipsObject *object)
 
 	if (vips_icc_set_import(icc,
 			import->embedded, import->input_profile_filename))
-		return (-1);
+		return -1;
 
 	if (icc->pcs == VIPS_PCS_LAB) {
 		cmsCIExyY white;
@@ -831,7 +831,7 @@ vips_icc_import_build(VipsObject *object)
 		icc->out_profile = cmsCreateXYZProfile();
 
 	if (VIPS_OBJECT_CLASS(vips_icc_import_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* If we used the fallback profile, we need to attach it to the PCS
 	 * image, since the PCS image needs a route back to device space.
@@ -849,7 +849,7 @@ vips_icc_import_build(VipsObject *object)
 			NULL, data, size);
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1023,7 +1023,7 @@ vips_icc_export_build(VipsObject *object)
 		export->output_profile_filename) {
 		if (vips_profile_load(export->output_profile_filename,
 				&icc->out_blob, NULL))
-			return (-1);
+			return -1;
 		colour->profile_filename = export->output_profile_filename;
 	}
 
@@ -1031,13 +1031,13 @@ vips_icc_export_build(VipsObject *object)
 		!(icc->out_profile = vips_icc_load_profile_blob(icc->out_blob,
 			  NULL, icc->intent, LCMS_USED_AS_OUTPUT))) {
 		vips_error(class->nickname, "%s", _("no output profile"));
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_icc_export_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1178,12 +1178,12 @@ vips_icc_transform_build(VipsObject *object)
 
 	if (vips_icc_set_import(icc,
 			transform->embedded, transform->input_profile_filename))
-		return (-1);
+		return -1;
 
 	if (transform->output_profile_filename) {
 		if (vips_profile_load(transform->output_profile_filename,
 				&icc->out_blob, NULL))
-			return (-1);
+			return -1;
 		colour->profile_filename = transform->output_profile_filename;
 	}
 
@@ -1193,13 +1193,13 @@ vips_icc_transform_build(VipsObject *object)
 
 	if (!icc->out_profile) {
 		vips_error(class->nickname, "%s", _("no output profile"));
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_icc_transform_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Process a buffer of data.
@@ -1293,7 +1293,7 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 #else  /*!G_OS_WIN32*/
 	if (!(profile = cmsOpenProfileFromFile(profile_filename, "re")))
 #endif /*G_OS_WIN32*/
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	vips_icc_print_profile(profile_filename, profile);
@@ -1302,7 +1302,7 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 	if (!(media = cmsReadTag(profile, cmsSigMediaWhitePointTag))) {
 		vips_error("vips_icc_ac2rc",
 			"%s", _("unable to get media white point"));
-		return (-1);
+		return -1;
 	}
 
 	X = media->X;
@@ -1314,12 +1314,12 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 	/* We need XYZ so we can adjust the white balance.
 	 */
 	if (vips_colourspace(in, &t, VIPS_INTERPRETATION_XYZ, NULL))
-		return (-1);
+		return -1;
 	in = t;
 
 	if (!(add = VIPS_ARRAY(in, in->Bands, double)) ||
 		!(mul = VIPS_ARRAY(in, in->Bands, double)))
-		return (-1);
+		return -1;
 
 	/* There might be extra bands off to the right somewhere.
 	 */
@@ -1335,14 +1335,14 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 
 	if (vips_linear(in, &t, add, mul, in->Bands, NULL)) {
 		g_object_unref(in);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(in);
 	in = t;
 
 	*out = in;
 
-	return (0);
+	return 0;
 }
 
 /* TRUE if a profile is sane and is compatible with an image.
@@ -1357,7 +1357,7 @@ vips_icc_is_compatible_profile(VipsImage *image,
 	if (!(profile = cmsOpenProfileFromMem(data, data_length)))
 		/* Corrupt profile.
 		 */
-		return (FALSE);
+		return FALSE;
 
 #ifdef DEBUG
 	vips_icc_print_profile("from memory", profile);
@@ -1367,19 +1367,19 @@ vips_icc_is_compatible_profile(VipsImage *image,
 		/* Unsupported profile.
 		 */
 		VIPS_FREEF(cmsCloseProfile, profile);
-		return (FALSE);
+		return FALSE;
 	}
 
 	if (vips_image_expected_bands(image) != info->bands) {
 		/* Bands mismatch.
 		 */
 		VIPS_FREEF(cmsCloseProfile, profile);
-		return (FALSE);
+		return FALSE;
 	}
 
 	VIPS_FREEF(cmsCloseProfile, profile);
 
-	return (TRUE);
+	return TRUE;
 }
 
 #else /*!HAVE_LCMS2*/
@@ -1389,7 +1389,7 @@ vips_icc_is_compatible_profile(VipsImage *image,
 int
 vips_icc_present(void)
 {
-	return (0);
+	return 0;
 }
 
 int
@@ -1398,14 +1398,14 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 	vips_error("VipsIcc", "%s",
 		_("libvips configured without lcms support"));
 
-	return (-1);
+	return -1;
 }
 
 gboolean
 vips_icc_is_compatible_profile(VipsImage *image,
 	const void *data, size_t data_length)
 {
-	return (TRUE);
+	return TRUE;
 }
 
 #endif /*HAVE_LCMS2*/
@@ -1454,7 +1454,7 @@ vips_icc_import(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("icc_import", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1493,7 +1493,7 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("icc_export", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1553,5 +1553,5 @@ vips_icc_transform(VipsImage *in, VipsImage **out,
 		in, out, output_profile);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

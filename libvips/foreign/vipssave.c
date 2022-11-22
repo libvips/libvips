@@ -78,7 +78,7 @@ vips_foreign_save_vips_build(VipsObject *object)
 	const char *filename;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_vips_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if ((filename =
 				vips_connection_filename(VIPS_CONNECTION(vips->target)))) {
@@ -91,10 +91,10 @@ vips_foreign_save_vips_build(VipsObject *object)
 		 * saver built into iofuncs.
 		 */
 		if (!(x = vips_image_new_mode(filename, "w")))
-			return (-1);
+			return -1;
 		if (vips_image_write(save->ready, x)) {
 			g_object_unref(x);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(x);
 	}
@@ -109,13 +109,13 @@ vips_foreign_save_vips_build(VipsObject *object)
 		 */
 		vips_error(class->nickname,
 			"%s", _("no filename associated with target"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_target_end(vips->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* From vipsload.c.
@@ -168,13 +168,13 @@ vips_foreign_save_vips_file_build(VipsObject *object)
 	VipsForeignSaveVipsFile *file = (VipsForeignSaveVipsFile *) object;
 
 	if (!(vips->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_vips_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -227,9 +227,9 @@ vips_foreign_save_vips_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_vips_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -281,7 +281,7 @@ vips_vipssave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("vipssave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -304,5 +304,5 @@ vips_vipssave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("vipssave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

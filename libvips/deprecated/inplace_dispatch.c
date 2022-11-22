@@ -51,19 +51,19 @@ im__vector_to_ink(const char *domain, IMAGE *im, int n, double *vec)
 	int i;
 
 	if (im_check_vector(domain, n, im))
-		return (NULL);
+		return NULL;
 	if (im_open_local_array(im, t, 3, domain, "t") ||
 		!(zeros = IM_ARRAY(im, n, double)))
-		return (NULL);
+		return NULL;
 	for (i = 0; i < n; i++)
 		zeros[i] = 0.0;
 
 	if (im_black(t[0], 1, 1, im->Bands) ||
 		im_lintra_vec(n, zeros, t[0], vec, t[1]) ||
 		im_clip2fmt(t[1], t[2], im->BandFmt))
-		return (NULL);
+		return NULL;
 
-	return (t[2]->data);
+	return t[2]->data;
 }
 
 double *
@@ -74,9 +74,9 @@ im__ink_to_vector(const char *domain, IMAGE *im, VipsPel *ink)
 
 	if (im_check_uncoded("im__ink_to_vector", im) ||
 		im_check_noncomplex("im__ink_to_vector", im))
-		return (NULL);
+		return NULL;
 	if (!(vec = IM_ARRAY(NULL, im->Bands, double)))
-		return (NULL);
+		return NULL;
 
 #define READ(TYPE) \
 	vec[i] = ((TYPE *) ink)[i];
@@ -112,7 +112,7 @@ im__ink_to_vector(const char *domain, IMAGE *im, VipsPel *ink)
 			g_assert(0);
 		}
 
-	return (vec);
+	return vec;
 }
 
 /* Args for im_draw_image.
@@ -132,7 +132,7 @@ draw_image_vec(im_object *argv)
 	int x = *((int *) argv[2]);
 	int y = *((int *) argv[3]);
 
-	return (im_draw_image(argv[0], argv[1], x, y));
+	return im_draw_image(argv[0], argv[1], x, y);
 }
 
 /* Description of im_draw_image.
@@ -171,11 +171,11 @@ lineset_vec(im_object *argv)
 
 	if (x1v->n != y1v->n || x1v->n != x2v->n || x1v->n != y2v->n) {
 		im_error("im_lineset", "%s", _("vectors not same length"));
-		return (-1);
+		return -1;
 	}
 
-	return (im_lineset(argv[0], argv[1], argv[2], argv[3],
-		x1v->n, x1v->vec, y1v->vec, x2v->vec, y2v->vec));
+	return im_lineset(argv[0], argv[1], argv[2], argv[3],
+		x1v->n, x1v->vec, y1v->vec, x2v->vec, y2v->vec);
 }
 
 /* Description of im_lineset.
@@ -214,9 +214,9 @@ draw_mask_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_mask",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_mask(image, mask, x, y, ink));
+	return im_draw_mask(image, mask, x, y, ink);
 }
 
 /* Description of im_draw_mask.
@@ -253,9 +253,9 @@ draw_flood_blob_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_flood_blob",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_flood_blob(image, x, y, ink, NULL));
+	return im_draw_flood_blob(image, x, y, ink, NULL);
 }
 
 /* Description of im_draw_flood_blob().
@@ -292,9 +292,9 @@ draw_flood_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_flood",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_flood(image, x, y, ink, NULL));
+	return im_draw_flood(image, x, y, ink, NULL);
 }
 
 /* Description of im_draw_flood().
@@ -329,7 +329,7 @@ draw_flood_other_vec(im_object *argv)
 	int y = *((int *) argv[3]);
 	int serial = *((int *) argv[4]);
 
-	return (im_draw_flood_other(image, test, x, y, serial, NULL));
+	return im_draw_flood_other(image, test, x, y, serial, NULL);
 }
 
 /* Description of im_draw_flood_other().
@@ -366,9 +366,9 @@ draw_point_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_point",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_point(image, x, y, ink));
+	return im_draw_point(image, x, y, ink);
 }
 
 /* Description of im_draw_point.
@@ -406,10 +406,10 @@ read_point_vec(im_object *argv)
 	if (!(ink = IM_ARRAY(image, IM_IMAGE_SIZEOF_PEL(image), VipsPel)) ||
 		im_read_point(image, x, y, ink) ||
 		!(dv->vec = im__ink_to_vector("im_read_point", image, ink)))
-		return (-1);
+		return -1;
 	dv->n = image->Bands;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_read_point.
@@ -450,9 +450,9 @@ draw_line_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_line",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_line(image, x1, y1, x2, y2, ink));
+	return im_draw_line(image, x1, y1, x2, y2, ink);
 }
 
 /* Description of im_draw_line.
@@ -487,7 +487,7 @@ draw_smudge_vec(im_object *argv)
 	int width = *((int *) argv[3]);
 	int height = *((int *) argv[4]);
 
-	return (im_draw_smudge(image, left, top, width, height));
+	return im_draw_smudge(image, left, top, width, height);
 }
 
 /* Description of im_draw_smudge.
@@ -530,9 +530,9 @@ draw_rect_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_rect",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_rect(image, left, top, width, height, fill, ink));
+	return im_draw_rect(image, left, top, width, height, fill, ink);
 }
 
 /* Description of im_draw_rect.
@@ -573,9 +573,9 @@ draw_circle_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_draw_circle",
 			  image, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_draw_circle(image, cx, cy, radius, fill, ink));
+	return im_draw_circle(image, cx, cy, radius, fill, ink);
 }
 
 /* Description of im_draw_circle.

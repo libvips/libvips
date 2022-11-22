@@ -78,15 +78,15 @@ vips_remainder_build(VipsObject *object)
 
 	if (binary->left &&
 		vips_check_noncomplex(class->nickname, binary->left))
-		return (-1);
+		return -1;
 	if (binary->right &&
 		vips_check_noncomplex(class->nickname, binary->right))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_remainder_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Integer remainder-after-division.
@@ -242,7 +242,7 @@ vips_remainder(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("remainder", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef VipsUnaryConst VipsRemainderConst;
@@ -259,12 +259,12 @@ vips_remainder_const_build(VipsObject *object)
 
 	if (unary->in &&
 		vips_check_noncomplex(class->nickname, unary->in))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_remainder_const_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Integer remainder-after-divide, per-band constant.
@@ -381,7 +381,7 @@ vips_remainder_constv(VipsImage *in, VipsImage **out,
 
 	vips_area_unref(area_c);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -421,7 +421,7 @@ vips_remainder_const(VipsImage *in, VipsImage **out,
 	result = vips_remainder_constv(in, out, c, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -459,5 +459,5 @@ vips_remainder_const1(VipsImage *in, VipsImage **out, double c, ...)
 	result = vips_remainder_constv(in, out, &c, 1, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -122,14 +122,14 @@ vips_extract_area_gen(VipsRegion * or, void *seq, void *a, void *b,
 	iarea.left += extract->left;
 	iarea.top += extract->top;
 	if (vips_region_prepare(ir, &iarea))
-		return (-1);
+		return -1;
 
 	/* Attach or to ir.
 	 */
 	if (vips_region_region(or, ir, & or->valid, iarea.left, iarea.top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -140,23 +140,23 @@ vips_extract_area_build(VipsObject *object)
 	VipsExtractArea *extract = (VipsExtractArea *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_extract_area_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (extract->left + extract->width > extract->in->Xsize ||
 		extract->top + extract->height > extract->in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0) {
 		vips_error(class->nickname, "%s", _("bad extract area"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_pio_input(extract->in) ||
 		vips_check_coding_known(class->nickname, extract->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL))
-		return (-1);
+		return -1;
 
 	conversion->out->Xsize = extract->width;
 	conversion->out->Ysize = extract->height;
@@ -166,9 +166,9 @@ vips_extract_area_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_extract_area_gen, vips_stop_one,
 			extract->in, extract))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -265,7 +265,7 @@ vips_extract_area(VipsImage *in, VipsImage **out,
 		left, top, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* A synonym for extract_area.
@@ -292,7 +292,7 @@ vips_crop_get_type(void)
 		g_once_init_leave(&gtype_id, new_type);
 	}
 
-	return ((GType) gtype_id);
+	return (GType) gtype_id;
 }
 
 /**
@@ -323,7 +323,7 @@ vips_crop(VipsImage *in, VipsImage **out,
 		left, top, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsExtractBand {
@@ -395,18 +395,18 @@ vips_extract_band_build(VipsObject *object)
 		if (extract->band + extract->n > bands) {
 			vips_error(class->nickname,
 				"%s", _("bad extract band"));
-			return (-1);
+			return -1;
 		}
 
 		if (extract->band == 0 &&
 			extract->n == bands)
-			return (vips_bandary_copy(bandary));
+			return vips_bandary_copy(bandary);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_extract_band_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -481,5 +481,5 @@ vips_extract_band(VipsImage *in, VipsImage **out, int band, ...)
 	result = vips_call_split("extract_band", ap, in, out, band);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

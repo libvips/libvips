@@ -37,7 +37,7 @@ read_cb(VipsSourceCustom *source_custom,
 		my_input->contents + my_input->read_position, bytes_read);
 	my_input->read_position += bytes_read;
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static gint64
@@ -65,12 +65,12 @@ seek_cb(VipsSourceCustom *source_custom,
 
 	default:
 		vips_error("demo", "%s", "bad 'whence'");
-		return (-1);
+		return -1;
 	}
 
 	my_input->read_position = VIPS_CLIP(0, new_pos, my_input->length);
 
-	return (my_input->read_position);
+	return my_input->read_position;
 }
 
 static gint64
@@ -85,7 +85,7 @@ write_cb(VipsTargetCustom *target_custom,
 
 	bytes_written = write(my_output->fd, data, length);
 
-	return (bytes_written);
+	return bytes_written;
 }
 
 static void
@@ -109,7 +109,7 @@ main(int argc, char **argv)
 	VipsImage *image;
 
 	if (VIPS_INIT(argv[0]))
-		return (-1);
+		return -1;
 
 	if (argc != 3)
 		vips_error_exit("usage: %s in-file out-file.png", argv[0]);
@@ -157,5 +157,5 @@ main(int argc, char **argv)
 	VIPS_UNREF(target_custom);
 	g_free(my_input.contents);
 
-	return (0);
+	return 0;
 }

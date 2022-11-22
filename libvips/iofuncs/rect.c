@@ -78,10 +78,10 @@
 gboolean
 vips_rect_includespoint(const VipsRect *r, int x, int y)
 {
-	return (r->left <= x &&
+	return r->left <= x &&
 		r->top <= y &&
 		r->left + r->width > x &&
-		r->top + r->height > y);
+		r->top + r->height > y;
 }
 
 /**
@@ -95,7 +95,7 @@ vips_rect_includespoint(const VipsRect *r, int x, int y)
 gboolean
 vips_rect_isempty(const VipsRect *r)
 {
-	return (r->width <= 0 || r->height <= 0);
+	return r->width <= 0 || r->height <= 0;
 }
 
 /**
@@ -110,10 +110,10 @@ vips_rect_isempty(const VipsRect *r)
 gboolean
 vips_rect_includesrect(const VipsRect *r1, const VipsRect *r2)
 {
-	return (r1->left <= r2->left &&
+	return r1->left <= r2->left &&
 		r1->top <= r2->top &&
 		r1->left + r1->width >= r2->left + r2->width &&
-		r1->top + r1->height >= r2->top + r2->height);
+		r1->top + r1->height >= r2->top + r2->height;
 }
 
 /**
@@ -128,8 +128,8 @@ vips_rect_includesrect(const VipsRect *r1, const VipsRect *r2)
 gboolean
 vips_rect_equalsrect(const VipsRect *r1, const VipsRect *r2)
 {
-	return (r1->left == r2->left && r1->top == r2->top &&
-		r1->width == r2->width && r1->height == r2->height);
+	return r1->left == r2->left && r1->top == r2->top &&
+		r1->width == r2->width && r1->height == r2->height;
 }
 
 /**
@@ -148,7 +148,7 @@ vips_rect_overlapsrect(const VipsRect *r1, const VipsRect *r2)
 
 	vips_rect_intersectrect(r1, r2, &intersection);
 
-	return (!vips_rect_isempty(&intersection));
+	return !vips_rect_isempty(&intersection);
 }
 
 /**
@@ -237,10 +237,10 @@ vips_rect_dup(const VipsRect *r)
 	VipsRect *out;
 
 	if (!(out = VIPS_NEW(NULL, VipsRect)))
-		return (NULL);
+		return NULL;
 	*out = *r;
 
-	return (out);
+	return out;
 }
 
 /**

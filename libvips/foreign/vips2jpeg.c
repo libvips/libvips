@@ -228,7 +228,7 @@ write_new(VipsImage *in)
 	Write *write;
 
 	if (!(write = g_new0(Write, 1)))
-		return (NULL);
+		return NULL;
 
 	write->in = NULL;
 	write->row_pointer = NULL;
@@ -244,10 +244,10 @@ write_new(VipsImage *in)
 	 */
 	if (vips_copy(in, &write->in, NULL)) {
 		write_destroy(write);
-		return (NULL);
+		return NULL;
 	}
 
-	return (write);
+	return write;
 }
 
 static int
@@ -259,7 +259,7 @@ write_blob(Write *write, const char *field, int app)
 	if (vips_image_get_typeof(write->in, field)) {
 		if (vips_image_get_blob(write->in, field,
 				(void *) &data, &data_length))
-			return (-1);
+			return -1;
 
 		/* Single jpeg markers can only hold 64kb, large objects must
 		 * be split into multiple markers.
@@ -285,7 +285,7 @@ write_blob(Write *write, const char *field, int app)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 #define XML_URL "http://ns.adobe.com/xap/1.0/"
@@ -298,10 +298,10 @@ write_xmp(Write *write)
 	char *p;
 
 	if (!vips_image_get_typeof(write->in, VIPS_META_XMP_NAME))
-		return (0);
+		return 0;
 	if (vips_image_get_blob(write->in, VIPS_META_XMP_NAME,
 			(void *) &data, &data_length))
-		return (-1);
+		return -1;
 
 	/* To write >64kb XMP it you need to parse the whole XMP object,
 	 * pull out the most important fields, code just them into the main
@@ -316,7 +316,7 @@ write_xmp(Write *write)
 	 */
 	if (data_length > 60000) {
 		g_warning("%s", _("VipsJpeg: large XMP not saved"));
-		return (0);
+		return 0;
 	}
 
 	/* We need to add the magic XML URL to the start, then a null
@@ -331,16 +331,16 @@ write_xmp(Write *write)
 
 	g_free(p);
 
-	return (0);
+	return 0;
 }
 
 static int
 write_exif(Write *write)
 {
 	if (write_blob(write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* ICC writer from lcms, slight tweaks.
@@ -473,7 +473,7 @@ write_profile_file(Write *write, const char *profile)
 	VipsBlob *blob;
 
 	if (vips_profile_load(profile, &blob, NULL))
-		return (-1);
+		return -1;
 
 	if (blob) {
 		size_t length;
@@ -489,7 +489,7 @@ write_profile_file(Write *write, const char *profile)
 		vips_area_unref((VipsArea *) blob);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -500,7 +500,7 @@ write_profile_meta(Write *write)
 
 	if (vips_image_get_blob(write->in,
 			VIPS_META_ICC_NAME, &data, &length))
-		return (-1);
+		return -1;
 	write_profile_data(&write->cinfo, data, length);
 
 #ifdef DEBUG
@@ -508,7 +508,7 @@ write_profile_meta(Write *write)
 		length);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -524,11 +524,11 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 	/* Catch any longjmp()s from jpeg_write_scanlines() here.
 	 */
 	if (setjmp(write->eman.jmp))
-		return (-1);
+		return -1;
 
 	jpeg_write_scanlines(&write->cinfo, write->row_pointer, area->height);
 
-	return (0);
+	return 0;
 }
 
 /* Write a VIPS image to a JPEG compress struct.
@@ -558,7 +558,7 @@ write_vips(Write *write, int qfac, const char *profile,
 	/* Check input image.
 	 */
 	if (vips_image_pio_input(in))
-		return (-1);
+		return -1;
 
 	/* Set compression parameters.
 	 */
@@ -571,7 +571,7 @@ write_vips(Write *write, int qfac, const char *profile,
 		/* IJG always sets an Adobe marker, so we should invert CMYK.
 		 */
 		if (vips_invert(in, &write->inverted, NULL))
-			return (-1);
+			return -1;
 		in = write->inverted;
 	}
 	else if (in->Bands == 3)
@@ -587,7 +587,7 @@ write_vips(Write *write, int qfac, const char *profile,
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
 	if (!(write->row_pointer = VIPS_ARRAY(NULL, in->Ysize, JSAMPROW)))
-		return (-1);
+		return -1;
 
 #ifdef HAVE_JPEG_EXT_PARAMS
 	/* Reset compression profile to libjpeg defaults
@@ -727,37 +727,37 @@ write_vips(Write *write, int qfac, const char *profile,
 			write_xmp(write) ||
 			write_blob(write,
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
-			return (-1);
+			return -1;
 
 		/* A profile supplied as an argument overrides an embedded
 		 * profile.
 		 */
 		if (profile) {
 			if (write_profile_file(write, profile))
-				return (-1);
+				return -1;
 		}
 		else {
 			if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) &&
 				write_profile_meta(write))
-				return (-1);
+				return -1;
 		}
 	}
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
 	if (vips_sink_disc(in, write_jpeg_block, write))
-		return (-1);
+		return -1;
 
 	/* We have to reinstate the setjmp() before we jpeg_finish_compress().
 	 */
 	if (setjmp(write->eman.jmp))
-		return (-1);
+		return -1;
 
 	/* This should only be called on a successful write.
 	 */
 	jpeg_finish_compress(&write->cinfo);
 
-	return (0);
+	return 0;
 }
 
 #define TARGET_BUFFER_SIZE (4096)
@@ -794,7 +794,7 @@ empty_output_buffer(j_compress_ptr cinfo)
 	dest->pub.next_output_byte = dest->buf;
 	dest->pub.free_in_buffer = TARGET_BUFFER_SIZE;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* Init dest method.
@@ -856,7 +856,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	Write *write;
 
 	if (!(write = write_new(in)))
-		return (-1);
+		return -1;
 
 	/* Make jpeg compression object.
 	 */
@@ -865,7 +865,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 		 */
 		write_destroy(write);
 
-		return (-1);
+		return -1;
 	}
 	jpeg_create_compress(&write->cinfo);
 
@@ -880,11 +880,11 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);
-		return (-1);
+		return -1;
 	}
 	write_destroy(write);
 
-	return (0);
+	return 0;
 }
 
 const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };

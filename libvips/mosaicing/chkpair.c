@@ -135,7 +135,7 @@ vips__correl(VipsImage *ref, VipsImage *sec,
 			srhcr.left, srhcr.top, srhcr.width, srhcr.height,
 			NULL)) {
 		g_object_unref(surface);
-		return (-1);
+		return -1;
 	}
 	ref = t[0];
 	sec = t[1];
@@ -146,14 +146,14 @@ vips__correl(VipsImage *ref, VipsImage *sec,
 	if (ref->Bands != 1) {
 		if (vips_extract_band(ref, &t[2], 0, NULL)) {
 			g_object_unref(surface);
-			return (-1);
+			return -1;
 		}
 		ref = t[2];
 	}
 	if (sec->Bands != 1) {
 		if (vips_extract_band(sec, &t[3], 0, NULL)) {
 			g_object_unref(surface);
-			return (-1);
+			return -1;
 		}
 		sec = t[3];
 	}
@@ -162,14 +162,14 @@ vips__correl(VipsImage *ref, VipsImage *sec,
 	 */
 	if (vips_spcor(sec, ref, &t[4], NULL)) {
 		g_object_unref(surface);
-		return (-1);
+		return -1;
 	}
 
 	/* Find maximum of correlation surface.
 	 */
 	if (vips_max(t[4], correlation, "x", x, "y", y, NULL)) {
 		g_object_unref(surface);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(surface);
 
@@ -178,7 +178,7 @@ vips__correl(VipsImage *ref, VipsImage *sec,
 	*x += srhcr.left;
 	*y += srhcr.top;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -194,15 +194,15 @@ vips__chkpair(VipsImage *ref, VipsImage *sec, TiePoints *points)
 	/* Check images.
 	 */
 	if (vips_image_wio_input(ref) || vips_image_wio_input(sec))
-		return (-1);
+		return -1;
 	if (ref->Bands != sec->Bands || ref->BandFmt != sec->BandFmt ||
 		ref->Coding != sec->Coding) {
 		vips_error("vips_chkpair", "%s", _("inputs incompatible"));
-		return (-1);
+		return -1;
 	}
 	if (ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR) {
 		vips_error("vips_chkpair", "%s", _("help!"));
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < points->nopoints; i++) {
@@ -213,7 +213,7 @@ vips__chkpair(VipsImage *ref, VipsImage *sec, TiePoints *points)
 				points->x_reference[i], points->y_reference[i],
 				hcor, harea,
 				&correlation, &x, &y))
-			return (-1);
+			return -1;
 
 		/* And note in x_secondary.
 		 */
@@ -229,5 +229,5 @@ vips__chkpair(VipsImage *ref, VipsImage *sec, TiePoints *points)
 			points->y_secondary[i] - points->y_reference[i];
 	}
 
-	return (0);
+	return 0;
 }

@@ -76,9 +76,9 @@ vips_freqfilt_build(VipsObject *object)
 	g_object_set(freqfilt, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_freqfilt_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -142,17 +142,17 @@ vips__fftproc(VipsObject *context,
 	int b;
 
 	if (in->Bands == 1)
-		return (fn(context, in, out));
+		return fn(context, in, out);
 
 	for (b = 0; b < in->Bands; b++)
 		if (vips_extract_band(in, &bands[b], b, NULL) ||
 			fn(context, bands[b], &fft[b]))
-			return (-1);
+			return -1;
 
 	if (vips_bandjoin(fft, out, in->Bands, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

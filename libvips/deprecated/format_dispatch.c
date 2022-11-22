@@ -45,9 +45,9 @@ jpeg2vips_vec(im_object *argv)
 	IMAGE *out = argv[1];
 
 	if (im_jpeg2vips(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc jpeg2vips_args[] = {
@@ -71,9 +71,9 @@ vips2dz_vec(im_object *argv)
 	char *out = argv[1];
 
 	if (im_vips2dz(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc vips2dz_args[] = {
@@ -97,9 +97,9 @@ vips2jpeg_vec(im_object *argv)
 	char *out = argv[1];
 
 	if (im_vips2jpeg(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc vips2jpeg_args[] = {
@@ -123,9 +123,9 @@ vips2mimejpeg_vec(im_object *argv)
 	int qfac = *((int *) argv[1]);
 
 	if (im_vips2mimejpeg(in, qfac))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc vips2mimejpeg_args[] = {
@@ -154,7 +154,7 @@ static im_arg_desc vips2png_args[] = {
 static int
 vips2png_vec(im_object *argv)
 {
-	return (im_vips2png(argv[0], argv[1]));
+	return im_vips2png(argv[0], argv[1]);
 }
 
 /* Description of im_vips2png.
@@ -180,7 +180,7 @@ static im_arg_desc png2vips_args[] = {
 static int
 png2vips_vec(im_object *argv)
 {
-	return (im_png2vips(argv[0], argv[1]));
+	return im_png2vips(argv[0], argv[1]);
 }
 
 /* Description of im_png2vips.
@@ -206,7 +206,7 @@ static im_arg_desc exr2vips_args[] = {
 static int
 exr2vips_vec(im_object *argv)
 {
-	return (im_exr2vips(argv[0], argv[1]));
+	return im_exr2vips(argv[0], argv[1]);
 }
 
 /* Description of im_exr2vips.
@@ -232,7 +232,7 @@ static im_arg_desc vips2tiff_args[] = {
 static int
 vips2tiff_vec(im_object *argv)
 {
-	return (im_vips2tiff(argv[0], argv[1]));
+	return im_vips2tiff(argv[0], argv[1]);
 }
 
 /* Description of im_vips2tiff.
@@ -258,7 +258,7 @@ static im_arg_desc magick2vips_args[] = {
 static int
 magick2vips_vec(im_object *argv)
 {
-	return (im_magick2vips(argv[0], argv[1]));
+	return im_magick2vips(argv[0], argv[1]);
 }
 
 /* Description of im_magick2vips.
@@ -284,7 +284,7 @@ static im_arg_desc tiff2vips_args[] = {
 static int
 tiff2vips_vec(im_object *argv)
 {
-	return (im_tiff2vips(argv[0], argv[1]));
+	return im_tiff2vips(argv[0], argv[1]);
 }
 
 /* Description of im_tiff2vips.
@@ -304,7 +304,7 @@ analyze2vips_vec(im_object *argv)
 	const char *in = argv[0];
 	IMAGE *out = argv[1];
 
-	return (im_analyze2vips(in, out));
+	return im_analyze2vips(in, out);
 }
 
 static im_arg_desc analyze2vips_arg_types[] = {
@@ -327,7 +327,7 @@ csv2vips_vec(im_object *argv)
 	const char *in = argv[0];
 	IMAGE *out = argv[1];
 
-	return (im_csv2vips(in, out));
+	return im_csv2vips(in, out);
 }
 
 static im_arg_desc csv2vips_arg_types[] = {
@@ -350,7 +350,7 @@ vips2csv_vec(im_object *argv)
 	IMAGE *in = argv[0];
 	const char *filename = argv[1];
 
-	return (im_vips2csv(in, filename));
+	return im_vips2csv(in, filename);
 }
 
 static im_arg_desc vips2csv_arg_types[] = {
@@ -373,7 +373,7 @@ ppm2vips_vec(im_object *argv)
 	const char *in = argv[0];
 	IMAGE *out = argv[1];
 
-	return (im_ppm2vips(in, out));
+	return im_ppm2vips(in, out);
 }
 
 static im_arg_desc ppm2vips_arg_types[] = {
@@ -396,7 +396,7 @@ vips2ppm_vec(im_object *argv)
 	IMAGE *im = argv[0];
 	const char *filename = argv[1];
 
-	return (im_vips2ppm(im, filename));
+	return im_vips2ppm(im, filename);
 }
 
 static im_arg_desc vips2ppm_arg_types[] = {
@@ -420,9 +420,9 @@ fits2vips_vec(im_object *argv)
 	IMAGE *out = argv[1];
 
 	if (im_fits2vips(in, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc fits2vips_args[] = {

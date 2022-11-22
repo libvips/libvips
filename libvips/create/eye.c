@@ -85,7 +85,7 @@ vips_eye_point(VipsPoint *point, int x, int y)
 	double c = eye->factor * VIPS_PI / (2 * max_x);
 	double h = max_y * max_y;
 
-	return (y * y * cos(c * x * x) / h);
+	return y * y * cos(c * x * x) / h;
 }
 
 static void
@@ -150,5 +150,5 @@ vips_eye(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("eye", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

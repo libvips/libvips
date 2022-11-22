@@ -182,7 +182,7 @@ vips_malloc(VipsObject *object, size_t size)
 		object->local_memory += size;
 	}
 
-	return (buf);
+	return buf;
 }
 
 /**
@@ -213,7 +213,7 @@ vips_strdup(VipsObject *object, const char *str)
 		object->local_memory += strlen(str);
 	}
 
-	return (str_dup);
+	return str_dup;
 }
 
 /**
@@ -261,7 +261,7 @@ vips_tracked_init_mutex(void *data)
 {
 	vips_tracked_mutex = vips_g_mutex_new();
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -313,7 +313,7 @@ vips_tracked_malloc(size_t size)
 		g_warning(_("out of memory --- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
 
-		return (NULL);
+		return NULL;
 	}
 
 	g_mutex_lock(vips_tracked_mutex);
@@ -334,7 +334,7 @@ vips_tracked_malloc(size_t size)
 
 	VIPS_GATE_MALLOC(size);
 
-	return (buf);
+	return buf;
 }
 
 /**
@@ -362,7 +362,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 	int fd;
 
 	if ((fd = vips__open(pathname, flags, mode)) == -1)
-		return (-1);
+		return -1;
 
 	vips_tracked_init();
 
@@ -376,7 +376,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 
 	g_mutex_unlock(vips_tracked_mutex);
 
-	return (fd);
+	return fd;
 }
 
 /**
@@ -416,7 +416,7 @@ vips_tracked_close(int fd)
 
 	result = close(fd);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -441,7 +441,7 @@ vips_tracked_get_mem(void)
 
 	g_mutex_unlock(vips_tracked_mutex);
 
-	return (mem);
+	return mem;
 }
 
 /**
@@ -466,7 +466,7 @@ vips_tracked_get_mem_highwater(void)
 
 	g_mutex_unlock(vips_tracked_mutex);
 
-	return (mx);
+	return mx;
 }
 
 /**
@@ -489,7 +489,7 @@ vips_tracked_get_allocs(void)
 
 	g_mutex_unlock(vips_tracked_mutex);
 
-	return (n);
+	return n;
 }
 
 /**
@@ -512,5 +512,5 @@ vips_tracked_get_files(void)
 
 	g_mutex_unlock(vips_tracked_mutex);
 
-	return (n);
+	return n;
 }

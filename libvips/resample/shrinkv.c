@@ -130,7 +130,7 @@ vips_shrinkv_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->sum);
 	VIPS_FREE(seq);
 
-	return (0);
+	return 0;
 }
 
 /* Make a sequence value.
@@ -143,7 +143,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
 	VipsShrinkvSequence *seq;
 
 	if (!(seq = VIPS_NEW(NULL, VipsShrinkvSequence)))
-		return (NULL);
+		return NULL;
 
 	seq->ir = vips_region_new(in);
 
@@ -151,7 +151,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
 	 */
 	seq->sum = VIPS_ARRAY(NULL, shrink->sizeof_line_buffer, VipsPel);
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 #define ADD(ACC_TYPE, TYPE) \
@@ -323,7 +323,7 @@ vips_shrinkv_gen(VipsRegion * or, void *vseq,
 			printf("shrink_gen: requesting line %d\n", s.top);
 #endif /*DEBUG*/
 			if (vips_region_prepare(ir, &s))
-				return (-1);
+				return -1;
 
 			VIPS_GATE_START("vips_shrinkv_gen: work");
 
@@ -343,7 +343,7 @@ vips_shrinkv_gen(VipsRegion * or, void *vseq,
 
 	VIPS_COUNT_PIXELS(or, "vips_shrinkv_gen");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -358,18 +358,18 @@ vips_shrinkv_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_shrinkv_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
 	if (shrink->vshrink < 1) {
 		vips_error(class->nickname,
 			"%s", _("shrink factors should be >= 1"));
-		return (-1);
+		return -1;
 	}
 
 	if (shrink->vshrink == 1)
-		return (vips_image_write(in, resample->out));
+		return vips_image_write(in, resample->out);
 
 	/* Make the height a multiple of the shrink factor so we don't need to
 	 * average half pixels.
@@ -379,7 +379,7 @@ vips_shrinkv_build(VipsObject *object)
 			in->Xsize, VIPS_ROUND_UP(in->Ysize, shrink->vshrink),
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	/* We have to keep a line buffer as we sum columns.
@@ -394,7 +394,7 @@ vips_shrinkv_build(VipsObject *object)
 	t[2] = vips_image_new();
 	if (vips_image_pipelinev(t[2],
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	/* Size output.
 	 *
@@ -408,7 +408,7 @@ vips_shrinkv_build(VipsObject *object)
 	if (t[2]->Ysize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image has shrunk to nothing"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -420,7 +420,7 @@ vips_shrinkv_build(VipsObject *object)
 	if (vips_image_generate(t[2],
 			vips_shrinkv_start, vips_shrinkv_gen, vips_shrinkv_stop,
 			in, shrink))
-		return (-1);
+		return -1;
 
 	in = t[2];
 
@@ -440,14 +440,14 @@ vips_shrinkv_build(VipsObject *object)
 		if (vips_sequential(in, &t[3],
 				"tile_height", 10,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
 	if (vips_image_write(in, resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -531,5 +531,5 @@ vips_shrinkv(VipsImage *in, VipsImage **out, int vshrink, ...)
 	result = vips_call_split("shrinkv", ap, in, out, vshrink);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

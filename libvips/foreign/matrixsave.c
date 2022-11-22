@@ -96,10 +96,10 @@ vips_foreign_save_matrix_block(VipsRegion *region, VipsRect *area, void *a)
 		}
 
 		if (vips_target_writes(matrix->target, "\n"))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -113,11 +113,11 @@ vips_foreign_save_matrix_build(VipsObject *object)
 	double offset;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_matrix_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_mono(class->nickname, save->ready) ||
 		vips_check_uncoded(class->nickname, save->ready))
-		return (-1);
+		return -1;
 
 	vips_target_writef(matrix->target, "%d %d",
 		save->ready->Xsize, save->ready->Ysize);
@@ -126,16 +126,16 @@ vips_foreign_save_matrix_build(VipsObject *object)
 	if (scale != 1.0 || offset != 0.0)
 		vips_target_writef(matrix->target, " %g %g", scale, offset);
 	if (vips_target_writes(matrix->target, "\n"))
-		return (-1);
+		return -1;
 
 	if (vips_sink_disc(save->ready,
 			vips_foreign_save_matrix_block, matrix))
-		return (-1);
+		return -1;
 
 	if (vips_target_end(matrix->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -205,10 +205,10 @@ vips_foreign_save_matrix_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(matrix->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_matrix_file_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_matrix_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -260,8 +260,8 @@ vips_foreign_save_matrix_target_build(VipsObject *object)
 		g_object_ref(matrix->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_matrix_target_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_matrix_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -306,12 +306,12 @@ vips_foreign_print_matrix_build(VipsObject *object)
 	VipsForeignSaveMatrix *matrix = (VipsForeignSaveMatrix *) object;
 
 	if (!(matrix->target = vips_target_new_to_descriptor(0)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_print_matrix_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -352,7 +352,7 @@ vips_matrixsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("matrixsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -377,7 +377,7 @@ vips_matrixsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("matrixsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -402,5 +402,5 @@ vips_matrixprint(VipsImage *in, ...)
 	result = vips_call_split("matrixprint", ap, in);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

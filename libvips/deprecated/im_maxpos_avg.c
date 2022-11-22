@@ -86,10 +86,10 @@ maxposavg_start(IMAGE *in, void *a, void *b)
 	Maxposavg *maxposavg;
 
 	if (!(maxposavg = IM_NEW(NULL, Maxposavg)))
-		return (NULL);
+		return NULL;
 	*maxposavg = *global_maxposavg;
 
-	return ((void *) maxposavg);
+	return (void *) maxposavg;
 }
 
 /* Merge the sequence value back into the per-call state.
@@ -114,7 +114,7 @@ maxposavg_stop(void *seq, void *a, void *b)
 
 	im_free(seq);
 
-	return (0);
+	return 0;
 }
 
 /* int loop.
@@ -268,7 +268,7 @@ maxposavg_scan(REGION *reg, void *seq, void *a, void *b, gboolean *stop)
 	maxposavg->max = max;
 	maxposavg->occurences = occurences;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -293,15 +293,15 @@ im_maxpos_avg(IMAGE *in, double *xpos, double *ypos, double *out)
 
 	if (im_pincheck(in) ||
 		im_check_uncoded("im_maxpos_avg", in))
-		return (-1);
+		return -1;
 
 	if (!(global_maxposavg = IM_NEW(in, Maxposavg)))
-		return (-1);
+		return -1;
 	global_maxposavg->occurences = 0;
 
 	if (vips_sink(in, maxposavg_start, maxposavg_scan, maxposavg_stop,
 			in, global_maxposavg))
-		return (-1);
+		return -1;
 
 	if (global_maxposavg->occurences == 0) {
 		*xpos = nan("");
@@ -324,5 +324,5 @@ im_maxpos_avg(IMAGE *in, double *xpos, double *ypos, double *out)
 			*out = global_maxposavg->max;
 	}
 
-	return (0);
+	return 0;
 }

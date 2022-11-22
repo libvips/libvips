@@ -124,17 +124,17 @@ vips_foreign_save_rad_file_build(VipsObject *object)
 	VipsTarget *target;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!(target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 	if (vips__rad_save(save->ready, target)) {
 		VIPS_UNREF(target);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(target);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -182,12 +182,12 @@ vips_foreign_save_rad_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (vips__rad_save(save->ready, target->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -237,14 +237,14 @@ vips_foreign_save_rad_buffer_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!(target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (vips__rad_save(save->ready, target)) {
 		VIPS_UNREF(target);
-		return (-1);
+		return -1;
 	}
 
 	g_object_get(target, "blob", &blob, NULL);
@@ -253,7 +253,7 @@ vips_foreign_save_rad_buffer_build(VipsObject *object)
 
 	VIPS_UNREF(target);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -308,7 +308,7 @@ vips_radsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("radsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -353,7 +353,7 @@ vips_radsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -378,5 +378,5 @@ vips_radsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("radsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

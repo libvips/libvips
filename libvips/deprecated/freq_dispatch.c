@@ -86,8 +86,8 @@ create_fmask_vec(im_object *argv)
 	double p4 = *((double *) argv[7]);
 	double p5 = *((double *) argv[8]);
 
-	return (im_create_fmask(argv[0], width, height,
-		type, p1, p2, p3, p4, p5));
+	return im_create_fmask(argv[0], width, height,
+		type, p1, p2, p3, p4, p5);
 }
 
 /* Description of im_create_fmask.
@@ -126,8 +126,8 @@ flt_image_freq_vec(im_object *argv)
 	double p4 = *((double *) argv[6]);
 	double p5 = *((double *) argv[7]);
 
-	return (im_flt_image_freq(argv[0], argv[1],
-		type, p1, p2, p3, p4, p5));
+	return im_flt_image_freq(argv[0], argv[1],
+		type, p1, p2, p3, p4, p5);
 }
 
 /* Description of im_flt_image_freq.
@@ -157,7 +157,7 @@ fractsurf_vec(im_object *argv)
 	int size = *((int *) argv[1]);
 	double dim = *((double *) argv[2]);
 
-	return (im_fractsurf(argv[0], size, dim));
+	return im_fractsurf(argv[0], size, dim);
 }
 
 /* Description of im_fractsurf.
@@ -184,7 +184,7 @@ static im_arg_desc freqflt_args[] = {
 static int
 freqflt_vec(im_object *argv)
 {
-	return (im_freqflt(argv[0], argv[1], argv[2]));
+	return im_freqflt(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_freqflt.
@@ -203,7 +203,7 @@ static im_function freqflt_desc = {
 static int
 disp_ps_vec(im_object *argv)
 {
-	return (im_disp_ps(argv[0], argv[1]));
+	return im_disp_ps(argv[0], argv[1]);
 }
 
 /* Description of im_disp_ps.
@@ -222,7 +222,7 @@ static im_function disp_ps_desc = {
 static int
 rotquad_vec(im_object *argv)
 {
-	return (im_rotquad(argv[0], argv[1]));
+	return im_rotquad(argv[0], argv[1]);
 }
 
 /* Description of im_rotquad.
@@ -241,7 +241,7 @@ static im_function rotquad_desc = {
 static int
 fwfft_vec(im_object *argv)
 {
-	return (im_fwfft(argv[0], argv[1]));
+	return im_fwfft(argv[0], argv[1]);
 }
 
 /* Description of im_fwfft.
@@ -260,7 +260,7 @@ static im_function fwfft_desc = {
 static int
 invfft_vec(im_object *argv)
 {
-	return (im_invfft(argv[0], argv[1]));
+	return im_invfft(argv[0], argv[1]);
 }
 
 /* Description of im_invfft.
@@ -279,7 +279,7 @@ static im_function invfft_desc = {
 static int
 invfftr_vec(im_object *argv)
 {
-	return (im_invfftr(argv[0], argv[1]));
+	return im_invfftr(argv[0], argv[1]);
 }
 
 /* Description of im_invfftr.
@@ -298,7 +298,7 @@ static im_function invfftr_desc = {
 static int
 phasecor_fft_vec(im_object *argv)
 {
-	return (im_phasecor_fft(argv[0], argv[1], argv[2]));
+	return im_phasecor_fft(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_phasecor_fft.

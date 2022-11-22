@@ -76,7 +76,7 @@ vips_foreign_save_fits_build(VipsObject *object)
 		vips_object_local_array(VIPS_OBJECT(fits), 2);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_fits_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* FITS is written bottom-to-top, so we must flip.
 	 *
@@ -90,9 +90,9 @@ vips_foreign_save_fits_build(VipsObject *object)
 	if (vips_image_write(save->ready, t[0]) ||
 		vips_flip(t[0], &t[1], VIPS_DIRECTION_VERTICAL, NULL) ||
 		vips__fits_write(t[1], fits->filename))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -176,5 +176,5 @@ vips_fitssave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("fitssave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -129,11 +129,11 @@ sink_area_new(Sink *sink)
 	SinkArea *area;
 
 	if (!(area = VIPS_NEW(NULL, SinkArea)))
-		return (NULL);
+		return NULL;
 	area->sink = sink;
 	vips_semaphore_init(&area->n_thread, 0, "n_thread");
 
-	return (area);
+	return area;
 }
 
 /* Move an area to a position.
@@ -194,7 +194,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
 				*stop = TRUE;
-				return (0);
+				return 0;
 			}
 
 			/* Swap buffers.
@@ -240,7 +240,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 	 */
 	sink_base->processed += state->pos.width * state->pos.height;
 
-	return (0);
+	return 0;
 }
 
 /* Call a thread's stop function.
@@ -261,13 +261,13 @@ sink_call_stop(Sink *sink, SinkThreadState *state)
 			vips_error("vips_sink",
 				_("stop function failed for image \"%s\""),
 				sink_base->im->filename);
-			return (-1);
+			return -1;
 		}
 
 		state->seq = NULL;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -298,11 +298,11 @@ sink_call_start(Sink *sink, SinkThreadState *state)
 			vips_error("vips_sink",
 				_("start function failed for image \"%s\""),
 				sink_base->im->filename);
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -313,9 +313,9 @@ sink_thread_state_build(VipsObject *object)
 
 	if (!(state->reg = vips_region_new(sink->t)) ||
 		sink_call_start(sink, state))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(sink_thread_state_parent_class)->build(object));
+	return VIPS_OBJECT_CLASS(sink_thread_state_parent_class)->build(object);
 }
 
 static void
@@ -341,9 +341,9 @@ sink_thread_state_init(SinkThreadState *state)
 VipsThreadState *
 vips_sink_thread_state_new(VipsImage *im, void *a)
 {
-	return (VIPS_THREAD_STATE(vips_object_new(
+	return VIPS_THREAD_STATE(vips_object_new(
 		sink_thread_state_get_type(),
-		vips_thread_state_set, im, a)));
+		vips_thread_state_set, im, a));
 }
 
 static void
@@ -398,10 +398,10 @@ sink_init(Sink *sink,
 		!(sink->old_area = sink_area_new(sink)) ||
 		vips_image_write(sink->sink_base.im, sink->t)) {
 		sink_free(sink);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -422,7 +422,7 @@ sink_work(VipsThreadState *state, void *a)
 	 */
 	vips_semaphore_upn(&area->n_thread, 1);
 
-	return (result);
+	return result;
 }
 
 int
@@ -437,9 +437,9 @@ vips_sink_base_progress(void *a)
 	 */
 	vips_image_eval(sink_base->im, sink_base->processed);
 	if (vips_image_iskilled(sink_base->im))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -482,7 +482,7 @@ vips_sink_tile(VipsImage *im,
 	im->Bbits = vips_format_sizeof(im->BandFmt) << 3;
 
 	if (sink_init(&sink, im, start_fn, generate_fn, stop_fn, a, b))
-		return (-1);
+		return -1;
 
 	if (tile_width > 0) {
 		sink.sink_base.tile_width = tile_width;
@@ -508,7 +508,7 @@ vips_sink_tile(VipsImage *im,
 
 	vips_image_minimise_all(im);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -537,6 +537,5 @@ vips_sink(VipsImage *im,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b)
 {
-	return (vips_sink_tile(im, -1, -1,
-		start_fn, generate_fn, stop_fn, a, b));
+	return vips_sink_tile(im, -1, -1, start_fn, generate_fn, stop_fn, a, b);
 }

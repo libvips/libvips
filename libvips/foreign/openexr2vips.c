@@ -114,9 +114,9 @@ vips__openexr_isexr(const char *filename)
 	if (vips__get_bytes(filename, buf, 4) == 4)
 		if (buf[0] == 0x76 && buf[1] == 0x2f &&
 			buf[2] == 0x31 && buf[3] == 0x01)
-			return (TRUE);
+			return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 static void
@@ -150,7 +150,7 @@ read_new(const char *filename, VipsImage *out)
 	int xmax, ymax;
 
 	if (!(read = VIPS_NEW(NULL, Read)))
-		return (NULL);
+		return NULL;
 	read->filename = vips_strdup(NULL, filename);
 	read->out = out;
 	read->tiles = NULL;
@@ -168,7 +168,7 @@ read_new(const char *filename, VipsImage *out)
 	if (!(read->tiles = ImfOpenTiledInputFile(read->filename))) {
 		if (!(read->lines = ImfOpenInputFile(read->filename))) {
 			get_imf_error();
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -193,7 +193,7 @@ read_new(const char *filename, VipsImage *out)
 	read->window.width = xmax - xmin + 1;
 	read->window.height = ymax - ymin + 1;
 
-	return (read);
+	return read;
 }
 
 gboolean
@@ -203,11 +203,11 @@ vips__openexr_istiled(const char *filename)
 	gboolean tiled;
 
 	if (!(read = read_new(filename, NULL)))
-		return (FALSE);
+		return FALSE;
 	tiled = read->tiles != NULL;
 	read_destroy(NULL, read);
 
-	return (tiled);
+	return tiled;
 }
 
 /* Read a OpenEXR file (header) into a VIPS (header).
@@ -245,11 +245,11 @@ vips__openexr_read_header(const char *filename, VipsImage *out)
 	Read *read;
 
 	if (!(read = read_new(filename, out)))
-		return (-1);
+		return -1;
 	read_header(read, out);
 	read_close(read);
 
-	return (0);
+	return 0;
 }
 
 /* Allocate a tile buffer.
@@ -262,9 +262,9 @@ vips__openexr_start(VipsImage *out, void *a, void *b)
 
 	if (!(imf_buffer = VIPS_ARRAY(out,
 			  read->tile_width * read->tile_height, ImfRgba)))
-		return (NULL);
+		return NULL;
 
-	return (imf_buffer);
+	return imf_buffer;
 }
 
 static int
@@ -306,7 +306,7 @@ vips__openexr_generate(VipsRegion *out,
 					1, tw)) {
 				vips_foreign_load_invalidate(read->out);
 				get_imf_error();
-				return (-1);
+				return -1;
 			}
 
 #ifdef DEBUG
@@ -319,7 +319,7 @@ vips__openexr_generate(VipsRegion *out,
 
 			if (!result) {
 				get_imf_error();
-				return (-1);
+				return -1;
 			}
 
 			/* The tile in the file, in VIPS coordinates.
@@ -356,7 +356,7 @@ vips__openexr_generate(VipsRegion *out,
 			}
 		}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -365,7 +365,7 @@ vips__openexr_read(const char *filename, VipsImage *out)
 	Read *read;
 
 	if (!(read = read_new(filename, out)))
-		return (-1);
+		return -1;
 
 	if (read->tiles) {
 		VipsImage *raw;
@@ -382,17 +382,17 @@ vips__openexr_read(const char *filename, VipsImage *out)
 		if (vips_image_generate(raw,
 				vips__openexr_start, vips__openexr_generate, NULL,
 				read, NULL))
-			return (-1);
+			return -1;
 
 		if (vips_tilecache(raw, &t,
 				"tile_width", read->tile_width,
 				"tile_height", read->tile_height,
 				"max_tiles", (int) (2.5 * (1 + raw->Xsize / read->tile_width)),
 				NULL))
-			return (-1);
+			return -1;
 		if (vips_image_write(t, out)) {
 			g_object_unref(t);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(t);
 	}
@@ -408,7 +408,7 @@ vips__openexr_read(const char *filename, VipsImage *out)
 
 		if (!(imf_buffer = VIPS_ARRAY(out, width, ImfRgba)) ||
 			!(vips_buffer = VIPS_ARRAY(out, 4 * width, float)))
-			return (-1);
+			return -1;
 
 		read_header(read, out);
 
@@ -419,12 +419,12 @@ vips__openexr_read(const char *filename, VipsImage *out)
 					imf_buffer - left - (top + y) * width,
 					1, width)) {
 				get_imf_error();
-				return (-1);
+				return -1;
 			}
 			if (!ImfInputReadPixels(read->lines,
 					top + y, top + y)) {
 				get_imf_error();
-				return (-1);
+				return -1;
 			}
 
 			ImfHalfToFloatArray(4 * width,
@@ -438,13 +438,13 @@ vips__openexr_read(const char *filename, VipsImage *out)
 
 			if (vips_image_write_line(out, y,
 					(VipsPel *) vips_buffer))
-				return (-1);
+				return -1;
 		}
 
 		read_close(read);
 	}
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_OPENEXR*/

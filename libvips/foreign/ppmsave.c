@@ -131,9 +131,9 @@ vips_foreign_save_ppm_line_ascii(VipsForeignSavePpm *ppm,
 	}
 
 	if (vips_target_writes(ppm->target, "\n"))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -146,9 +146,9 @@ vips_foreign_save_ppm_line_ascii_1bit(VipsForeignSavePpm *ppm,
 		vips_target_writef(ppm->target, "%d ", p[x] ? 0 : 1);
 
 	if (vips_target_writes(ppm->target, "\n"))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -157,9 +157,9 @@ vips_foreign_save_ppm_line_binary(VipsForeignSavePpm *ppm,
 {
 	if (vips_target_write(ppm->target,
 			p, VIPS_IMAGE_SIZEOF_LINE(image)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -179,7 +179,7 @@ vips_foreign_save_ppm_line_binary_1bit(VipsForeignSavePpm *ppm,
 
 		if (n_bits == 8) {
 			if (VIPS_TARGET_PUTC(ppm->target, bits))
-				return (-1);
+				return -1;
 
 			bits = 0;
 			n_bits = 0;
@@ -190,9 +190,9 @@ vips_foreign_save_ppm_line_binary_1bit(VipsForeignSavePpm *ppm,
 	 */
 	if (n_bits &&
 		VIPS_TARGET_PUTC(ppm->target, bits))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -207,10 +207,10 @@ vips_foreign_save_ppm_block(VipsRegion *region, VipsRect *area, void *a)
 		VipsPel *p = VIPS_REGION_ADDR(region, 0, area->top + y);
 
 		if (ppm->fn(ppm, image, p))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -227,7 +227,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	VipsInterpretation target_interpretation;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	image = save->ready;
 	target_format = image->BandFmt;
@@ -274,13 +274,13 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	}
 
 	if (vips_cast(image, &t[0], target_format, NULL))
-		return (-1);
+		return -1;
 	image = t[0];
 
 	if (image->Type != target_interpretation) {
 		if (vips_colourspace(image, &t[1],
 				target_interpretation, NULL))
-			return (-1);
+			return -1;
 		image = t[1];
 	}
 
@@ -293,7 +293,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		vips_check_bands_1or3("vips2ppm", image) ||
 		vips_check_uncoded("vips2ppm", image) ||
 		vips_image_pio_input(image))
-		return (-1);
+		return -1;
 
 	if (ppm->ascii &&
 		image->BandFmt == VIPS_FORMAT_FLOAT) {
@@ -410,7 +410,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		VipsImage *x;
 
 		if (vips__byteswap_bool(image, &x, !vips_amiMSBfirst()))
-			return (-1);
+			return -1;
 		image = x;
 
 		/* image must now be unreffed on exit.
@@ -419,12 +419,12 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	}
 
 	if (vips_sink_disc(image, vips_foreign_save_ppm_block, ppm))
-		return (-1);
+		return -1;
 
 	if (vips_target_end(ppm->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -518,7 +518,7 @@ vips_foreign_save_ppm_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(ppm->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (vips_iscasepostfix(file->filename, ".pbm"))
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PBM;
@@ -529,8 +529,8 @@ vips_foreign_save_ppm_file_build(VipsObject *object)
 	else if (vips_iscasepostfix(file->filename, ".pnm"))
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PNM;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_file_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_ppm_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -585,8 +585,8 @@ vips_foreign_save_ppm_target_build(VipsObject *object)
 		g_object_ref(ppm->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_ppm_target_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_ppm_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -789,7 +789,7 @@ vips_ppmsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("ppmsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -820,5 +820,5 @@ vips_ppmsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("ppmsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

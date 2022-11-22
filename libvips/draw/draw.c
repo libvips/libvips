@@ -104,17 +104,17 @@ vips_draw_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_draw_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_known(class->nickname, draw->image) ||
 		vips_image_inplace(draw->image))
-		return (-1);
+		return -1;
 
 	draw->lsize = VIPS_IMAGE_SIZEOF_LINE(draw->image);
 	draw->psize = VIPS_IMAGE_SIZEOF_PEL(draw->image);
 	draw->noclip = FALSE;
 
-	return (0);
+	return 0;
 }
 
 static void

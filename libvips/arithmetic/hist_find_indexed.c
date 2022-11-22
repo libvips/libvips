@@ -101,7 +101,7 @@ histogram_new(VipsHistFindIndexed *indexed)
 	Histogram *hist;
 
 	if (!(hist = VIPS_NEW(indexed, Histogram)))
-		return (NULL);
+		return NULL;
 
 	hist->indexed = indexed;
 	hist->reg = NULL;
@@ -115,12 +115,12 @@ histogram_new(VipsHistFindIndexed *indexed)
 	if (!(hist->bins = VIPS_ARRAY(indexed, bands * hist->size, double)) ||
 		!(hist->init = VIPS_ARRAY(indexed, hist->size, int)) ||
 		!(hist->reg = vips_region_new(indexed->index_ready)))
-		return (NULL);
+		return NULL;
 
 	memset(hist->bins, 0, bands * hist->size * sizeof(double));
 	memset(hist->init, 0, hist->size * sizeof(int));
 
-	return (hist);
+	return hist;
 }
 
 /* Save a bit of typing.
@@ -158,29 +158,29 @@ vips_hist_find_indexed_build(VipsObject *object)
 			vips_check_size_same(class->nickname,
 				indexed->index, statistic->in) ||
 			vips_check_mono(class->nickname, indexed->index))
-			return (-1);
+			return -1;
 
 		if (vips_cast(indexed->index, &t[0],
 				vips_hist_find_indexed_format[indexed->index->BandFmt],
 				NULL))
-			return (-1);
+			return -1;
 
 		indexed->index_ready = t[0];
 	}
 
 	if (statistic->in)
 		if (vips_check_noncomplex(class->nickname, statistic->in))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_hist_find_indexed_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	VIPS_UNREF(indexed->hist->reg);
 
 	if (vips_image_pipelinev(indexed->out,
 			VIPS_DEMAND_STYLE_ANY,
 			statistic->ready, indexed->index_ready, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(indexed->out,
 		indexed->hist->mx + 1, 1, statistic->ready->Bands,
 		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
@@ -188,9 +188,9 @@ vips_hist_find_indexed_build(VipsObject *object)
 
 	if (vips_image_write_line(indexed->out, 0,
 			(VipsPel *) indexed->hist->bins))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -203,7 +203,7 @@ vips_hist_find_indexed_start(VipsStatistic *statistic)
 	if (!indexed->hist)
 		indexed->hist = histogram_new(indexed);
 
-	return ((void *) histogram_new(indexed));
+	return (void *) histogram_new(indexed);
 }
 
 /* Combine B with A according to mode.
@@ -271,7 +271,7 @@ vips_hist_find_indexed_stop(VipsStatistic *statistic, void *seq)
 
 	VIPS_UNREF(sub_hist->reg);
 
-	return (0);
+	return 0;
 }
 
 /* Accumulate a buffer of pels, uchar index.
@@ -435,7 +435,7 @@ vips_hist_find_indexed_scan(VipsStatistic *statistic, void *seq,
 	/* Need the corresponding area of the index image.
 	 */
 	if (vips_region_prepare(hist->reg, &r))
-		return (-1);
+		return -1;
 
 	if (indexed->index_ready->BandFmt == VIPS_FORMAT_UCHAR)
 		scan = vips_hist_find_indexed_uchar_scan;
@@ -444,7 +444,7 @@ vips_hist_find_indexed_scan(VipsStatistic *statistic, void *seq,
 
 	scan(indexed, hist, in, VIPS_REGION_ADDR(hist->reg, x, y), n);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -533,5 +533,5 @@ vips_hist_find_indexed(VipsImage *in, VipsImage *index, VipsImage **out, ...)
 	result = vips_call_split("hist_find_indexed", ap, in, index, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

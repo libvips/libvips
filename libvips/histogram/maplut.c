@@ -126,7 +126,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 	VipsMaplutSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsMaplutSequence)))
-		return (NULL);
+		return NULL;
 
 	/* Init!
 	 */
@@ -134,9 +134,9 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 	seq->overflow = 0;
 
 	if (!(seq->ir = vips_region_new(in)))
-		return (NULL);
+		return NULL;
 
-	return (seq);
+	return seq;
 }
 
 /* Map through n non-complex luts.
@@ -482,7 +482,7 @@ vips_maplut_gen(VipsRegion * or, void *vseq, void *a, void *b,
 	int x, y, z, i;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	/* clang-format off */
 	if (maplut->nb == 1)
@@ -499,7 +499,7 @@ vips_maplut_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		else
 			outer_switch(loop, loopc, loopg, loopcg)
 
-	return (0);
+	return 0;
 	/* clang-format on */
 }
 
@@ -517,7 +517,7 @@ vips_maplut_stop(void *vseq, void *a, void *b)
 
 	VIPS_UNREF(seq->ir);
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -599,29 +599,29 @@ vips_maplut_build(VipsObject *object)
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_maplut_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = maplut->in;
 	lut = maplut->lut;
 
 	if (vips_check_hist(class->nickname, lut) ||
 		vips_check_uncoded(class->nickname, lut))
-		return (-1);
+		return -1;
 
 	/* Cast @in to u8/u16/u32 to make the index image.
 	 */
 	if (vips_cast(in, &t[0], bandfmt_maplut[in->BandFmt], NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_uncoded(class->nickname, in) ||
 		vips_check_bands_1orn(class->nickname, in, lut) ||
 		vips_image_pio_input(in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(maplut->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, lut, NULL))
-		return (-1);
+		return -1;
 	maplut->out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in
@@ -646,7 +646,7 @@ vips_maplut_build(VipsObject *object)
 	 * processing.
 	 */
 	if (!(t[1] = vips_image_copy_memory(lut)))
-		return (-1);
+		return -1;
 	lut = t[1];
 	maplut->fmt = lut->BandFmt;
 	maplut->es = VIPS_IMAGE_SIZEOF_ELEMENT(lut);
@@ -665,11 +665,11 @@ vips_maplut_build(VipsObject *object)
 	/* Attach tables.
 	 */
 	if (!(maplut->table = VIPS_ARRAY(maplut, maplut->nb, VipsPel *)))
-		return (-1);
+		return -1;
 	for (i = 0; i < maplut->nb; i++)
 		if (!(maplut->table[i] = VIPS_ARRAY(maplut,
 				  maplut->sz * maplut->es, VipsPel)))
-			return (-1);
+			return -1;
 
 	/* Scan LUT and fill table.
 	 */
@@ -711,9 +711,9 @@ vips_maplut_build(VipsObject *object)
 	if (vips_image_generate(maplut->out,
 			vips_maplut_start, vips_maplut_gen, vips_maplut_stop,
 			in, maplut))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -810,5 +810,5 @@ vips_maplut(VipsImage *in, VipsImage **out, VipsImage *lut, ...)
 	result = vips_call_split("maplut", ap, in, out, lut);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

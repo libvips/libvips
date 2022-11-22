@@ -56,7 +56,7 @@ VInterpolate::new_from_name(const char *name, VOption *options)
 
 	VInterpolate out(interp);
 
-	return (out);
+	return out;
 }
 
 VIPS_NAMESPACE_END

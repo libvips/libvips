@@ -105,7 +105,7 @@ vips_foreign_save_png_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = save->ready;
 	g_object_ref(in);
@@ -132,7 +132,7 @@ vips_foreign_save_png_build(VipsObject *object)
 
 		if (vips_cast(in, &x, VIPS_FORMAT_UCHAR, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 		in = x;
@@ -155,15 +155,15 @@ vips_foreign_save_png_build(VipsObject *object)
 			save->strip, png->palette, png->Q, png->dither,
 			png->bitdepth, png->effort)) {
 		g_object_unref(in);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_target_end(png->target))
-		return (-1);
+		return -1;
 
 	g_object_unref(in);
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -312,9 +312,9 @@ vips_foreign_save_png_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -361,12 +361,12 @@ vips_foreign_save_png_file_build(VipsObject *object)
 	VipsForeignSavePngFile *file = (VipsForeignSavePngFile *) object;
 
 	if (!(png->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -415,17 +415,17 @@ vips_foreign_save_png_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(png->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(png->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -526,7 +526,7 @@ vips_pngsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("pngsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -583,7 +583,7 @@ vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -620,5 +620,5 @@ vips_pngsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("pngsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -113,14 +113,14 @@ vips_foreign_save_nifti_header_vips(VipsForeignSaveNifti *nifti,
 	if (datatype == -1) {
 		vips_error(class->nickname,
 			"%s", _("unsupported libvips image type"));
-		return (-1);
+		return -1;
 	}
 
 	if (image->Bands > 1) {
 		if (image->BandFmt != VIPS_FORMAT_UCHAR) {
 			vips_error(class->nickname,
 				"%s", _("8-bit colour images only"));
-			return (-1);
+			return -1;
 		}
 
 		if (image->Bands == 3)
@@ -130,12 +130,12 @@ vips_foreign_save_nifti_header_vips(VipsForeignSaveNifti *nifti,
 		else {
 			vips_error(class->nickname,
 				"%s", _("3 or 4 band colour images only"));
-			return (-1);
+			return -1;
 		}
 	}
 
 	if (!(nifti->nim = nifti_make_new_nim(dims, datatype, FALSE)))
-		return (-1);
+		return -1;
 
 	nifti->nim->dx = 1.0 / image->Xres;
 	nifti->nim->dy = 1.0 / image->Yres;
@@ -148,7 +148,7 @@ vips_foreign_save_nifti_header_vips(VipsForeignSaveNifti *nifti,
 	/* All other fields can stay at their default value.
 	 */
 
-	return (0);
+	return 0;
 }
 
 typedef struct _VipsNdimInfo {
@@ -174,13 +174,13 @@ vips_foreign_save_nifti_set_dims(const char *name,
 		if (vips_image_get_int(info->image, vips_name, &i) ||
 			i <= 0 ||
 			i >= VIPS_MAX_COORD)
-			return (info);
+			return info;
 		info->dims[info->n] = i;
 	}
 
 	info->n += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 /* How I wish glib had something like this :( Just implement the ones we need
@@ -219,14 +219,14 @@ vips_foreign_save_nifti_set_fields(const char *name,
 
 		vips_snprintf(vips_name, 256, "nifti-%s", name);
 		if (vips_image_get(info->image, vips_name, &value_copy))
-			return (info);
+			return info;
 		vips_gvalue_write(&value_copy, (char *) info->nim + offset);
 		g_value_unset(&value_copy);
 	}
 
 	info->n += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -241,7 +241,7 @@ vips_foreign_save_nifti_ext(VipsImage *image,
 	size_t length;
 
 	if (!vips_isprefix("nifti-ext-", field))
-		return (NULL);
+		return NULL;
 
 	/* The name is "nifti-ext-N-XX" where N is the index (discard this)
 	 * and XX is the nifti ext ecode.
@@ -249,19 +249,19 @@ vips_foreign_save_nifti_ext(VipsImage *image,
 	if (sscanf(field, "nifti-ext-%d-%d", &i, &ecode) != 2) {
 		vips_error("niftisave",
 			"%s", _("bad nifti-ext- field name"));
-		return (image);
+		return image;
 	}
 
 	if (vips_image_get_blob(image, field, (void *) &data, &length))
-		return (image);
+		return image;
 
 	if (nifti_add_extension(nim, data, length, ecode)) {
 		vips_error("niftisave",
 			"%s", _("unable to attach nifti ext"));
-		return (image);
+		return image;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Make ->nim from the nifti- fields.
@@ -288,7 +288,7 @@ vips_foreign_save_nifti_header_nifti(VipsForeignSaveNifti *nifti,
 	info.n = 0;
 	if (vips__foreign_nifti_map(
 			vips_foreign_save_nifti_set_dims, &info, NULL))
-		return (-1);
+		return -1;
 
 	/* page-height overrides ny if it makes sense. This might not be
 	 * correct :(
@@ -307,39 +307,39 @@ vips_foreign_save_nifti_header_nifti(VipsForeignSaveNifti *nifti,
 		if (!g_uint_checked_mul(&height, height, dims[i])) {
 			vips_error(class->nickname,
 				"%s", _("dimension overflow"));
-			return (0);
+			return 0;
 		}
 	if (image->Xsize != dims[1] ||
 		image->Ysize != height) {
 		vips_error(class->nickname,
 			"%s", _("bad image dimensions"));
-		return (-1);
+		return -1;
 	}
 
 	datatype = vips__foreign_nifti_BandFmt2datatype(image->BandFmt);
 	if (datatype == -1) {
 		vips_error(class->nickname,
 			"%s", _("unsupported libvips image type"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(nifti->nim = nifti_make_new_nim(dims, datatype, FALSE)))
-		return (-1);
+		return -1;
 
 	info.image = image;
 	info.nim = nifti->nim;
 	info.n = 0;
 	if (vips__foreign_nifti_map(
 			vips_foreign_save_nifti_set_fields, &info, NULL))
-		return (-1);
+		return -1;
 
 	/* Attach any ext blocks.
 	 */
 	if (vips_image_map(image,
 			(VipsImageMapFn) vips_foreign_save_nifti_ext, nifti->nim))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -350,7 +350,7 @@ vips_foreign_save_nifti_build(VipsObject *object)
 	VipsForeignSaveNifti *nifti = (VipsForeignSaveNifti *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_nifti_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* This could be an image (indirectly) from niftiload, or something
 	 * like OME_TIFF, which does not have all the "nifti-ndim" fields.
@@ -360,11 +360,11 @@ vips_foreign_save_nifti_build(VipsObject *object)
 	 */
 	if (vips_image_get_typeof(save->ready, "nifti-ndim")) {
 		if (vips_foreign_save_nifti_header_nifti(nifti, save->ready))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_foreign_save_nifti_header_vips(nifti, save->ready))
-			return (-1);
+			return -1;
 	}
 
 	/* set ext, plus other stuff
@@ -373,12 +373,12 @@ vips_foreign_save_nifti_build(VipsObject *object)
 	if (nifti_set_filenames(nifti->nim, nifti->filename, FALSE, TRUE)) {
 		vips_error(class->nickname,
 			"%s", _("unable to set nifti filename"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(nifti->nim->data =
 				vips_image_write_to_memory(save->ready, NULL)))
-		return (-1);
+		return -1;
 
 	/* No return code!??!?!!
 	 */
@@ -389,7 +389,7 @@ vips_foreign_save_nifti_build(VipsObject *object)
 	 */
 	VIPS_FREE(nifti->nim->data);
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -476,5 +476,5 @@ vips_niftisave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("niftisave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

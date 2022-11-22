@@ -185,12 +185,12 @@ find_top(VipsRegion *ir, int *pos, int x, int y, int h)
 
 	default:
 		vips_error("vips_tbmerge", "%s", _("internal error"));
-		return (-1);
+		return -1;
 	}
 
 	*pos = y + i;
 
-	return (0);
+	return 0;
 }
 
 /* Return the position of the first non-zero pel from the bottom.
@@ -260,12 +260,12 @@ find_bot(VipsRegion *ir, int *pos, int x, int y, int h)
 
 	default:
 		vips_error("vips_tbmerge", "%s", _("internal error"));
-		return (-1);
+		return -1;
 	}
 
 	*pos = y + i;
 
-	return (0);
+	return 0;
 }
 
 /* Make first/last for oreg.
@@ -301,7 +301,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 		/* No work to do!
 		 */
 		g_mutex_unlock(ovlap->fl_lock);
-		return (0);
+		return 0;
 	}
 
 	/* Entire height of overlap in ref for oreg ... we know oreg is inside
@@ -328,7 +328,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	if (vips_region_prepare(rir, &rr) ||
 		vips_region_prepare(sir, &sr)) {
 		g_mutex_unlock(ovlap->fl_lock);
-		return (-1);
+		return -1;
 	}
 
 	/* Make first/last cache.
@@ -348,7 +348,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 				find_bot(rir, last,
 					x + rr.left, rr.top, rr.height)) {
 				g_mutex_unlock(ovlap->fl_lock);
-				return (-1);
+				return -1;
 			}
 
 			/* Translate to output space.
@@ -370,7 +370,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 
 	g_mutex_unlock(ovlap->fl_lock);
 
-	return (0);
+	return 0;
 }
 
 /* Test pixel == 0.
@@ -525,7 +525,7 @@ tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	/* Make sure we have a complete first/last set for this area.
 	 */
 	if (make_firstlast(inf, ovlap, oreg))
-		return (-1);
+		return -1;
 
 	/* Part of rr which we will output.
 	 */
@@ -543,7 +543,7 @@ tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	 */
 	if (vips_region_prepare(rir, &prr) ||
 		vips_region_prepare(sir, &psr))
-		return (-1);
+		return -1;
 
 	/* Loop down overlap area.
 	 */
@@ -591,11 +591,11 @@ tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 
 		default:
 			vips_error("vips_tbmerge", "%s", _("internal error"));
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Top-bottom blend function for VIPS_CODING_LABQ images.
@@ -612,7 +612,7 @@ tb_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *
 	 * will just look at the top 8 bits of L, not all 10, but should be OK.
 	 */
 	if (make_firstlast(inf, ovlap, oreg))
-		return (-1);
+		return -1;
 
 	/* Part of rr which we will output.
 	 */
@@ -630,7 +630,7 @@ tb_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *
 	 */
 	if (vips_region_prepare(rir, &prr) ||
 		vips_region_prepare(sir, &psr))
-		return (-1);
+		return -1;
 
 	/* Loop down overlap area.
 	 */
@@ -662,7 +662,7 @@ tb_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *
 		vips__Lab2LabQ_vec(q, inf->merge, oreg->width);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Build per-call state.
@@ -674,7 +674,7 @@ build_tbstate(VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, in
 
 	if (!(ovlap = vips__build_mergestate("vips_tbmerge",
 			  ref, sec, out, dx, dy, mwidth)))
-		return (NULL);
+		return NULL;
 
 	/* Select blender.
 	 */
@@ -689,7 +689,7 @@ build_tbstate(VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, in
 
 	default:
 		vips_error("vips_tbmerge", "%s", _("unknown coding type"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Find the parts of output which come just from ref and just from sec.
@@ -707,14 +707,14 @@ build_tbstate(VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, in
 	if (VIPS_RECT_BOTTOM(&ovlap->rarea) > VIPS_RECT_BOTTOM(&ovlap->sarea) ||
 		ovlap->rarea.top > ovlap->sarea.top) {
 		vips_error("vips_tbmerge", "%s", _("too much overlap"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Max number of pixels we may have to blend together.
 	 */
 	ovlap->blsize = ovlap->overlap.width;
 
-	return (ovlap);
+	return ovlap;
 }
 
 int
@@ -735,25 +735,25 @@ vips__tbmerge(VipsImage *ref, VipsImage *sec, VipsImage *out,
 		if (vips_insert(ref, sec, &x, -dx, -dy,
 				"expand", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		if (vips_image_write(x, out)) {
 			g_object_unref(x);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(x);
 
 		out->Xoffset = -dx;
 		out->Yoffset = -dy;
 
-		return (0);
+		return 0;
 	}
 
 	if (!(ovlap = build_tbstate(ref, sec, out, dx, dy, mwidth)))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(out,
 			VIPS_DEMAND_STYLE_THINSTRIP, ovlap->ref, ovlap->sec, NULL))
-		return (-1);
+		return -1;
 
 	out->Xsize = ovlap->oarea.width;
 	out->Ysize = ovlap->oarea.height;
@@ -762,7 +762,7 @@ vips__tbmerge(VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	if (vips_image_generate(out,
 			vips__start_merge, vips__merge_gen, vips__stop_merge, ovlap, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

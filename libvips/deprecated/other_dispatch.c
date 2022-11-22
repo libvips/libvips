@@ -60,7 +60,7 @@ sines_vec(im_object *argv)
 	double horfreq = *((double *) argv[3]);
 	double verfreq = *((double *) argv[4]);
 
-	return (im_sines(argv[0], xsize, ysize, horfreq, verfreq));
+	return im_sines(argv[0], xsize, ysize, horfreq, verfreq);
 }
 
 /* Description of im_sines.
@@ -92,7 +92,7 @@ eye_vec(im_object *argv)
 	int ysize = *((int *) argv[2]);
 	double factor = *((double *) argv[3]);
 
-	return (im_eye(argv[0], xsize, ysize, factor));
+	return im_eye(argv[0], xsize, ysize, factor);
 }
 
 /* Description of im_eye.
@@ -115,7 +115,7 @@ feye_vec(im_object *argv)
 	int ysize = *((int *) argv[2]);
 	double factor = *((double *) argv[3]);
 
-	return (im_feye(argv[0], xsize, ysize, factor));
+	return im_feye(argv[0], xsize, ysize, factor);
 }
 
 /* Description of im_feye.
@@ -143,7 +143,7 @@ zone_vec(im_object *argv)
 {
 	int size = *((int *) argv[1]);
 
-	return (im_zone(argv[0], size));
+	return im_zone(argv[0], size);
 }
 
 /* Description of im_zone.
@@ -164,7 +164,7 @@ fzone_vec(im_object *argv)
 {
 	int size = *((int *) argv[1]);
 
-	return (im_fzone(argv[0], size));
+	return im_fzone(argv[0], size);
 }
 
 /* Description of im_fzone.
@@ -190,7 +190,7 @@ static im_arg_desc benchmark_args[] = {
 static int
 benchmark_vec(im_object *argv)
 {
-	return (im_benchmarkn(argv[0], argv[1], 1));
+	return im_benchmarkn(argv[0], argv[1], 1);
 }
 
 /* Description of im_benchmark.
@@ -219,11 +219,11 @@ benchmark2_vec(im_object *argv)
 	double f;
 
 	if (im_benchmark2(argv[0], &f))
-		return (-1);
+		return -1;
 
 	*((double *) argv[1]) = f;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_benchmark2.
@@ -252,7 +252,7 @@ benchmarkn_vec(im_object *argv)
 {
 	int n = *((int *) argv[2]);
 
-	return (im_benchmarkn(argv[0], argv[1], n));
+	return im_benchmarkn(argv[0], argv[1], n);
 }
 
 /* Description of im_benchmarkn.
@@ -282,7 +282,7 @@ grey_vec(im_object *argv)
 	int xsize = *((int *) argv[1]);
 	int ysize = *((int *) argv[2]);
 
-	return (im_grey(argv[0], xsize, ysize));
+	return im_grey(argv[0], xsize, ysize);
 }
 
 /* Description of im_grey.
@@ -304,7 +304,7 @@ fgrey_vec(im_object *argv)
 	int xsize = *((int *) argv[1]);
 	int ysize = *((int *) argv[2]);
 
-	return (im_fgrey(argv[0], xsize, ysize));
+	return im_fgrey(argv[0], xsize, ysize);
 }
 
 /* Description of im_fgrey.
@@ -326,7 +326,7 @@ make_xy_vec(im_object *argv)
 	int xsize = *((int *) argv[1]);
 	int ysize = *((int *) argv[2]);
 
-	return (im_make_xy(argv[0], xsize, ysize));
+	return im_make_xy(argv[0], xsize, ysize);
 }
 
 /* Description of im_make_xy.

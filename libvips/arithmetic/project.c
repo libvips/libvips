@@ -102,17 +102,17 @@ histogram_new(VipsProject *project)
 	Histogram *hist;
 
 	if (!(hist = VIPS_NEW(project, Histogram)))
-		return (NULL);
+		return NULL;
 	hist->column_sums = VIPS_ARRAY(project, psize * in->Xsize, guchar);
 	hist->row_sums = VIPS_ARRAY(project, psize * in->Ysize, guchar);
 	if (!hist->column_sums ||
 		!hist->row_sums)
-		return (NULL);
+		return NULL;
 
 	memset(hist->column_sums, 0, psize * in->Xsize);
 	memset(hist->row_sums, 0, psize * in->Ysize);
 
-	return (hist);
+	return hist;
 }
 
 static int
@@ -126,7 +126,7 @@ vips_project_build(VipsObject *object)
 
 	if (statistic->in &&
 		vips_check_noncomplex(class->nickname, statistic->in))
-		return (-1);
+		return -1;
 
 	g_object_set(object,
 		"columns", vips_image_new(),
@@ -137,7 +137,7 @@ vips_project_build(VipsObject *object)
 	 */
 
 	if (VIPS_OBJECT_CLASS(vips_project_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Make the output image.
 	 */
@@ -145,7 +145,7 @@ vips_project_build(VipsObject *object)
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL) ||
 		vips_image_pipelinev(project->rows,
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL))
-		return (-1);
+		return -1;
 	project->columns->Ysize = 1;
 	project->columns->BandFmt =
 		vips_project_format_table[statistic->ready->BandFmt];
@@ -157,14 +157,14 @@ vips_project_build(VipsObject *object)
 
 	if (vips_image_write_line(project->columns, 0,
 			(VipsPel *) project->hist->column_sums))
-		return (-1);
+		return -1;
 	for (y = 0; y < project->rows->Ysize; y++)
 		if (vips_image_write_line(project->rows, y,
 				(VipsPel *) project->hist->row_sums +
 					y * VIPS_IMAGE_SIZEOF_PEL(project->rows)))
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Build a sub-hist, based on the main hist.
@@ -179,7 +179,7 @@ vips_project_start(VipsStatistic *statistic)
 	if (!project->hist)
 		project->hist = histogram_new(project);
 
-	return ((void *) histogram_new(project));
+	return (void *) histogram_new(project);
 }
 
 /* Add a line of pixels.
@@ -250,7 +250,7 @@ vips_project_scan(VipsStatistic *statistic, void *seq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 #define ADD_BUFFER(TYPE, Q, P, N) \
@@ -307,7 +307,7 @@ vips_project_stop(VipsStatistic *statistic, void *seq)
 	sub_hist->column_sums = NULL;
 	sub_hist->row_sums = NULL;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -373,5 +373,5 @@ vips_project(VipsImage *in, VipsImage **columns, VipsImage **rows, ...)
 	result = vips_call_split("project", ap, in, columns, rows);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

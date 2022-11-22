@@ -328,7 +328,7 @@ vips__quantise_new(VipsImage *in,
 	for (i = 0; i < VIPS_NUMBER(quantise->t); i++)
 		quantise->t[i] = NULL;
 
-	return (quantise);
+	return quantise;
 }
 
 int
@@ -354,7 +354,7 @@ vips__quantise_image(VipsImage *in,
 		if (vips_colourspace(in, &quantise->t[0],
 				VIPS_INTERPRETATION_sRGB, NULL)) {
 			vips__quantise_free(quantise);
-			return (-1);
+			return -1;
 		}
 		in = quantise->t[0];
 	}
@@ -365,7 +365,7 @@ vips__quantise_image(VipsImage *in,
 	if (!vips_image_hasalpha(in)) {
 		if (vips_bandjoin_const1(in, &quantise->t[1], 255, NULL)) {
 			vips__quantise_free(quantise);
-			return (-1);
+			return -1;
 		}
 		added_alpha = TRUE;
 		in = quantise->t[1];
@@ -373,7 +373,7 @@ vips__quantise_image(VipsImage *in,
 
 	if (!(quantise->t[2] = vips_image_copy_memory(in))) {
 		vips__quantise_free(quantise);
-		return (-1);
+		return -1;
 	}
 	in = quantise->t[2];
 
@@ -402,7 +402,7 @@ vips__quantise_image(VipsImage *in,
 			&quantise->quantisation_result)) {
 		vips_error("quantise", "%s", _("quantisation failed"));
 		vips__quantise_free(quantise);
-		return (-1);
+		return -1;
 	}
 
 	vips__quantise_set_dithering_level(quantise->quantisation_result, dither);
@@ -414,7 +414,7 @@ vips__quantise_image(VipsImage *in,
 
 	if (vips_image_write_prepare(index)) {
 		vips__quantise_free(quantise);
-		return (-1);
+		return -1;
 	}
 
 	if (vips__quantise_write_remapped_image(quantise->quantisation_result,
@@ -422,7 +422,7 @@ vips__quantise_image(VipsImage *in,
 			VIPS_IMAGE_ADDR(index, 0, 0), VIPS_IMAGE_N_PELS(index))) {
 		vips_error("quantise", "%s", _("quantisation failed"));
 		vips__quantise_free(quantise);
-		return (-1);
+		return -1;
 	}
 
 	lp = vips__quantise_get_palette(quantise->quantisation_result);
@@ -434,7 +434,7 @@ vips__quantise_image(VipsImage *in,
 
 	if (vips_image_write_prepare(palette)) {
 		vips__quantise_free(quantise);
-		return (-1);
+		return -1;
 	}
 
 	p = VIPS_IMAGE_ADDR(palette, 0, 0);
@@ -454,7 +454,7 @@ vips__quantise_image(VipsImage *in,
 
 	vips__quantise_free(quantise);
 
-	return (0);
+	return 0;
 }
 
 #else /*!HAVE_QUANTIZATION*/
@@ -468,7 +468,7 @@ vips__quantise_image(VipsImage *in,
 	vips_error("vips__quantise_image",
 		"%s", _("libvips not built with quantisation support"));
 
-	return (-1);
+	return -1;
 }
 
 #endif /*HAVE_QUANTIZATION*/

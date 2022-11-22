@@ -51,13 +51,13 @@ format_add_class(VipsFormatClass *format, GSList **formats)
 		 */
 		*formats = g_slist_append(*formats, format);
 
-	return (NULL);
+	return NULL;
 }
 
 static gint
 format_compare(VipsFormatClass *a, VipsFormatClass *b)
 {
-	return (b->priority - a->priority);
+	return b->priority - a->priority;
 }
 
 /**
@@ -91,7 +91,7 @@ vips_format_map(VSListMap2Fn fn, void *a, void *b)
 	result = im_slist_map2(formats, fn, a, b);
 	g_slist_free(formats);
 
-	return (result);
+	return result;
 }
 
 /* Abstract base class for image formats.
@@ -163,7 +163,7 @@ vips_format_init(VipsFormat *object)
 VipsFormatFlags
 vips_format_get_flags(VipsFormatClass *format, const char *filename)
 {
-	return (format->get_flags ? format->get_flags(filename) : 0);
+	return format->get_flags ? format->get_flags(filename) : 0;
 }
 
 /* VIPS format class.
@@ -181,15 +181,15 @@ im_isvips(const char *filename)
 			buf[2] == 0xa6 && buf[3] == 0xb6)
 			/* SPARC-order VIPS image.
 			 */
-			return (1);
+			return 1;
 		else if (buf[3] == 0x08 && buf[2] == 0xf2 &&
 			buf[1] == 0xa6 && buf[0] == 0xb6)
 			/* INTEL-order VIPS image.
 			 */
-			return (1);
+			return 1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -199,9 +199,9 @@ file2vips(const char *filename, IMAGE *out)
 
 	if (!(im = im_open_local(out, filename, "r")) ||
 		im_copy(im, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsFormatFlags
@@ -219,7 +219,7 @@ vips_flags(const char *filename)
 		buf[3] == 0xb6)
 		flags |= VIPS_FORMAT_BIGENDIAN;
 
-	return (flags);
+	return flags;
 }
 
 /* Vips format adds no new members.
@@ -230,7 +230,7 @@ typedef VipsFormatClass VipsFormatVipsClass;
 static int
 vips_format_vips_save(VipsImage *image, const char *filename)
 {
-	return (vips_image_write_to_file(image, filename, NULL));
+	return vips_image_write_to_file(image, filename, NULL);
 }
 
 static void
@@ -319,12 +319,12 @@ format_for_file_sub(VipsFormatClass *format,
 {
 	if (format->is_a) {
 		if (format->is_a(filename))
-			return (format);
+			return format;
 	}
 	else if (im_filename_suffix_match(filename, format->suffs))
-		return (format);
+		return format;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -351,7 +351,7 @@ vips_format_for_file(const char *filename)
 
 	if (!im_existsf("%s", name)) {
 		im_error("VipsFormat", _("file \"%s\" not found"), name);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(format = (VipsFormatClass *) vips_format_map(
@@ -359,10 +359,10 @@ vips_format_for_file(const char *filename)
 			  (void *) filename, (void *) name))) {
 		im_error("VipsFormat",
 			_("file \"%s\" not a known format"), name);
-		return (NULL);
+		return NULL;
 	}
 
-	return (format);
+	return format;
 }
 
 /* Can we write this filename with this format? Ignore formats without a save
@@ -373,9 +373,9 @@ format_for_name_sub(VipsFormatClass *format, const char *name)
 {
 	if (format->save &&
 		im_filename_suffix_match(name, format->suffs))
-		return (format);
+		return format;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -400,10 +400,10 @@ vips_format_for_name(const char *filename)
 			_("\"%s\" is not a supported image format."),
 			filename);
 
-		return (NULL);
+		return NULL;
 	}
 
-	return (format);
+	return format;
 }
 
 /**
@@ -424,9 +424,9 @@ vips_format_read(const char *filename, IMAGE *out)
 
 	if (!(format = vips_format_for_file(filename)) ||
 		format->load(filename, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -447,7 +447,7 @@ vips_format_write(IMAGE *in, const char *filename)
 
 	if (!(format = vips_format_for_name(filename)) ||
 		format->save(in, filename))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

@@ -94,14 +94,14 @@ int
 im_printlines(IMAGE *in)
 {
 	if (im_incheck(in))
-		return (-1);
+		return -1;
 	if (in->Coding != IM_CODING_NONE) {
 		im_error("im_printlines", "%s", _("input must be uncoded"));
-		return (-1);
+		return -1;
 	}
 	if (!in->data) {
 		im_error("im_debugim", "%s", _("unsuitable image type"));
-		return (-1);
+		return -1;
 	}
 
 /* What type? First define the loop we want to perform for all types. */
@@ -163,9 +163,9 @@ im_printlines(IMAGE *in)
 	default: {
 		im_error("im_printlines", "%s",
 			_("unknown input format"));
-		return (-1);
+		return -1;
 	}
 	}
 
-	return (0);
+	return 0;
 }

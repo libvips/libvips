@@ -85,7 +85,7 @@ vips_mask_gaussian_band_point(VipsMask *mask, double dx, double dy)
 	double cnsta = 1.0 /
 		(1.0 + exp(cnst * 4.0 * (fcx * fcx + fcy * fcy) / r2));
 
-	return (cnsta * (exp(cnst * d1 / r2) + exp(cnst * d2 / r2)));
+	return cnsta * (exp(cnst * d1 / r2) + exp(cnst * d2 / r2));
 }
 
 static void
@@ -181,5 +181,5 @@ vips_mask_gaussian_band(VipsImage **out, int width, int height,
 		amplitude_cutoff);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

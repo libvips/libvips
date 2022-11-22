@@ -142,7 +142,7 @@ public:
 			g_object_unref(vobject);
 		vobject = a.vobject;
 
-		return (*this);
+		return *this;
 	}
 
 	// this mustn't be virtual: we want this class to only be a pointer,
@@ -172,7 +172,7 @@ public:
 		g_assert(!vobject ||
 			VIPS_IS_OBJECT(vobject));
 
-		return (vobject);
+		return vobject;
 	}
 
 	/**
@@ -428,7 +428,7 @@ public:
 	VipsImage *
 	get_image() const
 	{
-		return ((VipsImage *) VObject::get_object());
+		return (VipsImage *) VObject::get_object();
 	}
 
 	/**
@@ -437,7 +437,7 @@ public:
 	int
 	width() const
 	{
-		return (vips_image_get_width(get_image()));
+		return vips_image_get_width(get_image());
 	}
 
 	/**
@@ -446,7 +446,7 @@ public:
 	int
 	height() const
 	{
-		return (vips_image_get_height(get_image()));
+		return vips_image_get_height(get_image());
 	}
 
 	/**
@@ -455,7 +455,7 @@ public:
 	int
 	bands() const
 	{
-		return (vips_image_get_bands(get_image()));
+		return vips_image_get_bands(get_image());
 	}
 
 	/**
@@ -464,7 +464,7 @@ public:
 	VipsBandFormat
 	format() const
 	{
-		return (vips_image_get_format(get_image()));
+		return vips_image_get_format(get_image());
 	}
 
 	/**
@@ -473,7 +473,7 @@ public:
 	VipsCoding
 	coding() const
 	{
-		return (vips_image_get_coding(get_image()));
+		return vips_image_get_coding(get_image());
 	}
 
 	/**
@@ -483,7 +483,7 @@ public:
 	VipsInterpretation
 	interpretation() const
 	{
-		return (vips_image_get_interpretation(get_image()));
+		return vips_image_get_interpretation(get_image());
 	}
 
 	/**
@@ -493,7 +493,7 @@ public:
 	VipsInterpretation
 	guess_interpretation() const
 	{
-		return (vips_image_guess_interpretation(get_image()));
+		return vips_image_guess_interpretation(get_image());
 	}
 
 	/**
@@ -502,7 +502,7 @@ public:
 	double
 	xres() const
 	{
-		return (vips_image_get_xres(get_image()));
+		return vips_image_get_xres(get_image());
 	}
 
 	/**
@@ -511,7 +511,7 @@ public:
 	double
 	yres() const
 	{
-		return (vips_image_get_yres(get_image()));
+		return vips_image_get_yres(get_image());
 	}
 
 	/**
@@ -520,7 +520,7 @@ public:
 	int
 	xoffset() const
 	{
-		return (vips_image_get_xoffset(get_image()));
+		return vips_image_get_xoffset(get_image());
 	}
 
 	/**
@@ -529,7 +529,7 @@ public:
 	int
 	yoffset() const
 	{
-		return (vips_image_get_yoffset(get_image()));
+		return vips_image_get_yoffset(get_image());
 	}
 
 	/**
@@ -538,7 +538,7 @@ public:
 	bool
 	has_alpha() const
 	{
-		return (vips_image_hasalpha(get_image()));
+		return vips_image_hasalpha(get_image());
 	}
 
 	/**
@@ -548,7 +548,7 @@ public:
 	const char *
 	filename() const
 	{
-		return (vips_image_get_filename(get_image()));
+		return vips_image_get_filename(get_image());
 	}
 
 	/**
@@ -580,7 +580,7 @@ public:
 	const void *
 	data() const
 	{
-		return (vips_image_get_data(get_image()));
+		return vips_image_get_data(get_image());
 	}
 
 	/**
@@ -680,7 +680,7 @@ public:
 	GType
 	get_typeof(const char *field) const
 	{
-		return (vips_image_get_typeof(this->get_image(), field));
+		return vips_image_get_typeof(this->get_image(), field);
 	}
 
 	/**
@@ -696,7 +696,7 @@ public:
 		if (vips_image_get_int(this->get_image(), field, &value))
 			throw(VError());
 
-		return (value);
+		return value;
 	}
 
 	/**
@@ -730,7 +730,7 @@ public:
 
 		std::vector<int> vector(array, array + length);
 
-		return (vector);
+		return vector;
 	}
 
 	/**
@@ -764,7 +764,7 @@ public:
 
 		std::vector<double> vector(array, array + length);
 
-		return (vector);
+		return vector;
 	}
 
 	/**
@@ -780,7 +780,7 @@ public:
 		if (vips_image_get_double(this->get_image(), field, &value))
 			throw(VError());
 
-		return (value);
+		return value;
 	}
 
 	/**
@@ -797,7 +797,7 @@ public:
 		if (vips_image_get_string(this->get_image(), field, &value))
 			throw(VError());
 
-		return (value);
+		return value;
 	}
 
 	/**
@@ -815,7 +815,7 @@ public:
 				&value, length))
 			throw(VError());
 
-		return (value);
+		return value;
 	}
 
 	/**
@@ -825,7 +825,7 @@ public:
 	bool
 	remove(const char *name) const
 	{
-		return (vips_image_remove(get_image(), name));
+		return vips_image_remove(get_image(), name);
 	}
 
 	/**
@@ -834,7 +834,7 @@ public:
 	static VOption *
 	option()
 	{
-		return (new VOption());
+		return new VOption();
 	}
 
 	/**
@@ -858,7 +858,7 @@ public:
 	static VImage
 	new_memory()
 	{
-		return (VImage(vips_image_new_memory()));
+		return VImage(vips_image_new_memory());
 	}
 
 	/**
@@ -873,7 +873,7 @@ public:
 		if (!(image = vips_image_new_temp_file(file_format)))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -931,7 +931,7 @@ public:
 				  width, height, bands, format)))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -949,7 +949,7 @@ public:
 				  width, height, bands, format)))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -983,7 +983,7 @@ public:
 				  array, size)))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -1006,7 +1006,7 @@ public:
 				  &pixel[0], static_cast<int>(pixel.size()))))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -1016,7 +1016,7 @@ public:
 	VImage
 	new_from_image(double pixel) const
 	{
-		return (new_from_image(to_vectorv(1, pixel)));
+		return new_from_image(to_vectorv(1, pixel));
 	}
 
 	/**
@@ -1039,7 +1039,7 @@ public:
 		if (!(image = vips_image_copy_memory(this->get_image())))
 			throw(VError());
 
-		return (VImage(image));
+		return VImage(image);
 	}
 
 	/**
@@ -1092,7 +1092,7 @@ public:
 				  size)))
 			throw(VError());
 
-		return (result);
+		return result;
 	}
 
 	/**
@@ -1121,8 +1121,8 @@ public:
 	VImage
 	linear(double a, double b, VOption *options = 0) const
 	{
-		return (this->linear(to_vector(a), to_vector(b),
-			options));
+		return this->linear(to_vector(a), to_vector(b),
+			options);
 	}
 
 	/**
@@ -1133,7 +1133,7 @@ public:
 	VImage
 	linear(std::vector<double> a, double b, VOption *options = 0) const
 	{
-		return (this->linear(a, to_vector(b), options));
+		return this->linear(a, to_vector(b), options);
 	}
 
 	/**
@@ -1144,7 +1144,7 @@ public:
 	VImage
 	linear(double a, std::vector<double> b, VOption *options = 0) const
 	{
-		return (this->linear(to_vector(a), b, options));
+		return this->linear(to_vector(a), b, options);
 	}
 
 	/**
@@ -1164,7 +1164,7 @@ public:
 	VImage
 	bandjoin(double other, VOption *options = 0) const
 	{
-		return (bandjoin(to_vector(other), options));
+		return bandjoin(to_vector(other), options);
 	}
 
 	/**
@@ -1174,7 +1174,7 @@ public:
 	VImage
 	bandjoin(std::vector<double> other, VOption *options = 0) const
 	{
-		return (bandjoin_const(other, options));
+		return bandjoin_const(other, options);
 	}
 
 	/**
@@ -1199,7 +1199,7 @@ public:
 	VImage
 	fliphor(VOption *options = 0) const
 	{
-		return (flip(VIPS_DIRECTION_HORIZONTAL, options));
+		return flip(VIPS_DIRECTION_HORIZONTAL, options);
 	}
 
 	/**
@@ -1208,7 +1208,7 @@ public:
 	VImage
 	flipver(VOption *options = 0) const
 	{
-		return (flip(VIPS_DIRECTION_VERTICAL, options));
+		return flip(VIPS_DIRECTION_VERTICAL, options);
 	}
 
 	/**
@@ -1217,7 +1217,7 @@ public:
 	VImage
 	rot90(VOption *options = 0) const
 	{
-		return (rot(VIPS_ANGLE_D90, options));
+		return rot(VIPS_ANGLE_D90, options);
 	}
 
 	/**
@@ -1226,7 +1226,7 @@ public:
 	VImage
 	rot180(VOption *options = 0) const
 	{
-		return (rot(VIPS_ANGLE_D180, options));
+		return rot(VIPS_ANGLE_D180, options);
 	}
 
 	/**
@@ -1235,7 +1235,7 @@ public:
 	VImage
 	rot270(VOption *options = 0) const
 	{
-		return (rot(VIPS_ANGLE_D270, options));
+		return rot(VIPS_ANGLE_D270, options);
 	}
 
 	/**
@@ -1246,8 +1246,8 @@ public:
 	VImage
 	dilate(VImage mask, VOption *options = 0) const
 	{
-		return (morph(mask, VIPS_OPERATION_MORPHOLOGY_DILATE,
-			options));
+		return morph(mask, VIPS_OPERATION_MORPHOLOGY_DILATE,
+			options);
 	}
 
 	/**
@@ -1258,8 +1258,8 @@ public:
 	VImage
 	erode(VImage mask, VOption *options = 0) const
 	{
-		return (morph(mask, VIPS_OPERATION_MORPHOLOGY_ERODE,
-			options));
+		return morph(mask, VIPS_OPERATION_MORPHOLOGY_ERODE,
+			options);
 	}
 
 	/**
@@ -1268,7 +1268,7 @@ public:
 	VImage
 	median(int size = 3, VOption *options = 0) const
 	{
-		return (rank(size, size, (size * size) / 2, options));
+		return rank(size, size, (size * size) / 2, options);
 	}
 
 	/**
@@ -1277,7 +1277,7 @@ public:
 	VImage
 	floor(VOption *options = 0) const
 	{
-		return (round(VIPS_OPERATION_ROUND_FLOOR, options));
+		return round(VIPS_OPERATION_ROUND_FLOOR, options);
 	}
 
 	/**
@@ -1286,7 +1286,7 @@ public:
 	VImage
 	ceil(VOption *options = 0) const
 	{
-		return (round(VIPS_OPERATION_ROUND_CEIL, options));
+		return round(VIPS_OPERATION_ROUND_CEIL, options);
 	}
 
 	/**
@@ -1295,7 +1295,7 @@ public:
 	VImage
 	rint(VOption *options = 0) const
 	{
-		return (round(VIPS_OPERATION_ROUND_RINT, options));
+		return round(VIPS_OPERATION_ROUND_RINT, options);
 	}
 
 	/**
@@ -1307,7 +1307,7 @@ public:
 	VImage
 	bandand(VOption *options = 0) const
 	{
-		return (bandbool(VIPS_OPERATION_BOOLEAN_AND, options));
+		return bandbool(VIPS_OPERATION_BOOLEAN_AND, options);
 	}
 
 	/**
@@ -1319,7 +1319,7 @@ public:
 	VImage
 	bandor(VOption *options = 0) const
 	{
-		return (bandbool(VIPS_OPERATION_BOOLEAN_OR, options));
+		return bandbool(VIPS_OPERATION_BOOLEAN_OR, options);
 	}
 
 	/**
@@ -1331,7 +1331,7 @@ public:
 	VImage
 	bandeor(VOption *options = 0) const
 	{
-		return (bandbool(VIPS_OPERATION_BOOLEAN_EOR, options));
+		return bandbool(VIPS_OPERATION_BOOLEAN_EOR, options);
 	}
 
 	/**
@@ -1340,7 +1340,7 @@ public:
 	VImage
 	real(VOption *options = 0) const
 	{
-		return (complexget(VIPS_OPERATION_COMPLEXGET_REAL, options));
+		return complexget(VIPS_OPERATION_COMPLEXGET_REAL, options);
 	}
 
 	/**
@@ -1349,7 +1349,7 @@ public:
 	VImage
 	imag(VOption *options = 0) const
 	{
-		return (complexget(VIPS_OPERATION_COMPLEXGET_IMAG, options));
+		return complexget(VIPS_OPERATION_COMPLEXGET_IMAG, options);
 	}
 
 	/**
@@ -1358,7 +1358,7 @@ public:
 	VImage
 	polar(VOption *options = 0) const
 	{
-		return (complex(VIPS_OPERATION_COMPLEX_POLAR, options));
+		return complex(VIPS_OPERATION_COMPLEX_POLAR, options);
 	}
 
 	/**
@@ -1367,7 +1367,7 @@ public:
 	VImage
 	rect(VOption *options = 0) const
 	{
-		return (complex(VIPS_OPERATION_COMPLEX_RECT, options));
+		return complex(VIPS_OPERATION_COMPLEX_RECT, options);
 	}
 
 	/**
@@ -1376,7 +1376,7 @@ public:
 	VImage
 	conj(VOption *options = 0) const
 	{
-		return (complex(VIPS_OPERATION_COMPLEX_CONJ, options));
+		return complex(VIPS_OPERATION_COMPLEX_CONJ, options);
 	}
 
 	/**
@@ -1385,7 +1385,7 @@ public:
 	VImage
 	sin(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_SIN, options));
+		return math(VIPS_OPERATION_MATH_SIN, options);
 	}
 
 	/**
@@ -1394,7 +1394,7 @@ public:
 	VImage
 	cos(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_COS, options));
+		return math(VIPS_OPERATION_MATH_COS, options);
 	}
 
 	/**
@@ -1403,7 +1403,7 @@ public:
 	VImage
 	tan(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_TAN, options));
+		return math(VIPS_OPERATION_MATH_TAN, options);
 	}
 
 	/**
@@ -1412,7 +1412,7 @@ public:
 	VImage
 	asin(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ASIN, options));
+		return math(VIPS_OPERATION_MATH_ASIN, options);
 	}
 
 	/**
@@ -1421,7 +1421,7 @@ public:
 	VImage
 	acos(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ACOS, options));
+		return math(VIPS_OPERATION_MATH_ACOS, options);
 	}
 
 	/**
@@ -1430,7 +1430,7 @@ public:
 	VImage
 	atan(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ATAN, options));
+		return math(VIPS_OPERATION_MATH_ATAN, options);
 	}
 
 	/**
@@ -1439,7 +1439,7 @@ public:
 	VImage
 	sinh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_SINH, options));
+		return math(VIPS_OPERATION_MATH_SINH, options);
 	}
 
 	/**
@@ -1448,7 +1448,7 @@ public:
 	VImage
 	cosh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_COSH, options));
+		return math(VIPS_OPERATION_MATH_COSH, options);
 	}
 
 	/**
@@ -1457,7 +1457,7 @@ public:
 	VImage
 	tanh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_TANH, options));
+		return math(VIPS_OPERATION_MATH_TANH, options);
 	}
 
 	/**
@@ -1466,7 +1466,7 @@ public:
 	VImage
 	asinh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ASINH, options));
+		return math(VIPS_OPERATION_MATH_ASINH, options);
 	}
 
 	/**
@@ -1475,7 +1475,7 @@ public:
 	VImage
 	acosh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ACOSH, options));
+		return math(VIPS_OPERATION_MATH_ACOSH, options);
 	}
 
 	/**
@@ -1484,7 +1484,7 @@ public:
 	VImage
 	atanh(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_ATANH, options));
+		return math(VIPS_OPERATION_MATH_ATANH, options);
 	}
 
 	/**
@@ -1493,7 +1493,7 @@ public:
 	VImage
 	log(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_LOG, options));
+		return math(VIPS_OPERATION_MATH_LOG, options);
 	}
 
 	/**
@@ -1502,7 +1502,7 @@ public:
 	VImage
 	log10(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_LOG10, options));
+		return math(VIPS_OPERATION_MATH_LOG10, options);
 	}
 
 	/**
@@ -1511,7 +1511,7 @@ public:
 	VImage
 	exp(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_EXP, options));
+		return math(VIPS_OPERATION_MATH_EXP, options);
 	}
 
 	/**
@@ -1520,7 +1520,7 @@ public:
 	VImage
 	exp10(VOption *options = 0) const
 	{
-		return (math(VIPS_OPERATION_MATH_EXP10, options));
+		return math(VIPS_OPERATION_MATH_EXP10, options);
 	}
 
 	/**
@@ -1529,7 +1529,7 @@ public:
 	VImage
 	pow(VImage other, VOption *options = 0) const
 	{
-		return (math2(other, VIPS_OPERATION_MATH2_POW, options));
+		return math2(other, VIPS_OPERATION_MATH2_POW, options);
 	}
 
 	/**
@@ -1538,8 +1538,8 @@ public:
 	VImage
 	pow(double other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_POW,
-			to_vector(other), options));
+		return math2_const(VIPS_OPERATION_MATH2_POW,
+			to_vector(other), options);
 	}
 
 	/**
@@ -1548,8 +1548,8 @@ public:
 	VImage
 	pow(std::vector<double> other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_POW,
-			other, options));
+		return math2_const(VIPS_OPERATION_MATH2_POW,
+			other, options);
 	}
 
 	/**
@@ -1558,7 +1558,7 @@ public:
 	VImage
 	wop(VImage other, VOption *options = 0) const
 	{
-		return (math2(other, VIPS_OPERATION_MATH2_WOP, options));
+		return math2(other, VIPS_OPERATION_MATH2_WOP, options);
 	}
 
 	/**
@@ -1567,8 +1567,8 @@ public:
 	VImage
 	wop(double other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_WOP,
-			to_vector(other), options));
+		return math2_const(VIPS_OPERATION_MATH2_WOP,
+			to_vector(other), options);
 	}
 
 	/**
@@ -1577,8 +1577,8 @@ public:
 	VImage
 	wop(std::vector<double> other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_WOP,
-			other, options));
+		return math2_const(VIPS_OPERATION_MATH2_WOP,
+			other, options);
 	}
 
 	/**
@@ -1587,7 +1587,7 @@ public:
 	VImage
 	atan2(VImage other, VOption *options = 0) const
 	{
-		return (math2(other, VIPS_OPERATION_MATH2_ATAN2, options));
+		return math2(other, VIPS_OPERATION_MATH2_ATAN2, options);
 	}
 
 	/**
@@ -1596,8 +1596,8 @@ public:
 	VImage
 	atan2(double other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_ATAN2,
-			to_vector(other), options));
+		return math2_const(VIPS_OPERATION_MATH2_ATAN2,
+			to_vector(other), options);
 	}
 
 	/**
@@ -1606,8 +1606,8 @@ public:
 	VImage
 	atan2(std::vector<double> other, VOption *options = 0) const
 	{
-		return (math2_const(VIPS_OPERATION_MATH2_ATAN2,
-			other, options));
+		return math2_const(VIPS_OPERATION_MATH2_ATAN2,
+			other, options);
 	}
 
 	/**
@@ -1618,7 +1618,7 @@ public:
 	ifthenelse(std::vector<double> th, VImage el,
 		VOption *options = 0) const
 	{
-		return (ifthenelse(el.new_from_image(th), el, options));
+		return ifthenelse(el.new_from_image(th), el, options);
 	}
 
 	/**
@@ -1629,7 +1629,7 @@ public:
 	ifthenelse(VImage th, std::vector<double> el,
 		VOption *options = 0) const
 	{
-		return (ifthenelse(th, th.new_from_image(el), options));
+		return ifthenelse(th, th.new_from_image(el), options);
 	}
 
 	/**
@@ -1640,8 +1640,8 @@ public:
 	ifthenelse(std::vector<double> th, std::vector<double> el,
 		VOption *options = 0) const
 	{
-		return (ifthenelse(new_from_image(th), new_from_image(el),
-			options));
+		return ifthenelse(new_from_image(th), new_from_image(el),
+			options);
 	}
 
 	/**
@@ -1651,7 +1651,7 @@ public:
 	VImage
 	ifthenelse(double th, VImage el, VOption *options = 0) const
 	{
-		return (ifthenelse(to_vector(th), el, options));
+		return ifthenelse(to_vector(th), el, options);
 	}
 
 	/**
@@ -1661,7 +1661,7 @@ public:
 	VImage
 	ifthenelse(VImage th, double el, VOption *options = 0) const
 	{
-		return (ifthenelse(th, to_vector(el), options));
+		return ifthenelse(th, to_vector(el), options);
 	}
 
 	/**
@@ -1671,8 +1671,8 @@ public:
 	VImage
 	ifthenelse(double th, double el, VOption *options = 0) const
 	{
-		return (ifthenelse(to_vector(th), to_vector(el),
-			options));
+		return ifthenelse(to_vector(th), to_vector(el),
+			options);
 	}
 
 	/**
@@ -1690,7 +1690,7 @@ public:
 	void
 	draw_circle(double ink, int cx, int cy, int radius, VOption *options = 0) const
 	{
-		return (draw_circle(to_vector(ink), cx, cy, radius, options));
+		return draw_circle(to_vector(ink), cx, cy, radius, options);
 	}
 
 	/**
@@ -1705,7 +1705,7 @@ public:
 	void
 	draw_line(double ink, int x1, int y1, int x2, int y2, VOption *options = 0) const
 	{
-		return (draw_line(to_vector(ink), x1, y1, x2, y2, options));
+		return draw_line(to_vector(ink), x1, y1, x2, y2, options);
 	}
 
 	/**
@@ -1724,7 +1724,7 @@ public:
 	void
 	draw_rect(double ink, int left, int top, int width, int height, VOption *options = 0) const
 	{
-		return (draw_rect(to_vector(ink), left, top, width, height, options));
+		return draw_rect(to_vector(ink), left, top, width, height, options);
 	}
 
 	/**
@@ -1737,7 +1737,7 @@ public:
 	void
 	draw_point(double ink, int x, int y, VOption *options = 0) const
 	{
-		return (draw_rect(ink, x, y, 1, 1, options));
+		return draw_rect(ink, x, y, 1, 1, options);
 	}
 
 	/**
@@ -1750,7 +1750,7 @@ public:
 	void
 	draw_point(std::vector<double> ink, int x, int y, VOption *options = 0) const
 	{
-		return (draw_rect(ink, x, y, 1, 1, options));
+		return draw_rect(ink, x, y, 1, 1, options);
 	}
 
 	/**
@@ -1768,7 +1768,7 @@ public:
 	void
 	draw_flood(double ink, int x, int y, VOption *options = 0) const
 	{
-		return (draw_flood(to_vector(ink), x, y, options));
+		return draw_flood(to_vector(ink), x, y, options);
 	}
 
 	/**
@@ -1782,7 +1782,7 @@ public:
 	void
 	draw_mask(double ink, VImage mask, int x, int y, VOption *options = 0) const
 	{
-		return (draw_mask(to_vector(ink), mask, x, y, options));
+		return draw_mask(to_vector(ink), mask, x, y, options);
 	}
 
 	/**

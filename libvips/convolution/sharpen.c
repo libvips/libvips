@@ -124,7 +124,7 @@ vips_sharpen_generate(VipsRegion * or,
 	int x, y;
 
 	if (vips_reorder_prepare_many(or->im, in, r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_sharpen_generate: work");
 
@@ -164,7 +164,7 @@ vips_sharpen_generate(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_sharpen_generate: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -182,7 +182,7 @@ vips_sharpen_build(VipsObject *object)
 	VIPS_GATE_START("vips_sharpen_build: build");
 
 	if (VIPS_OBJECT_CLASS(vips_sharpen_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* We used to have a radius control. If that's set but sigma isn't,
 	 * use it to set a reasonable value for sigma.
@@ -195,13 +195,13 @@ vips_sharpen_build(VipsObject *object)
 
 	old_interpretation = in->Type;
 	if (vips_colourspace(in, &t[0], VIPS_INTERPRETATION_LABS, NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_uncoded(class->nickname, in) ||
 		vips_check_bands_atleast(class->nickname, in, 3) ||
 		vips_check_format(class->nickname, in, VIPS_FORMAT_SHORT))
-		return (-1);
+		return -1;
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short,
 	 * so there's no point using a float mask.
@@ -210,7 +210,7 @@ vips_sharpen_build(VipsObject *object)
 			"separable", TRUE,
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("sharpen: blurring with:\n");
@@ -220,7 +220,7 @@ vips_sharpen_build(VipsObject *object)
 	/* Index with the signed difference between two 0 - 32767 images.
 	 */
 	if (!(sharpen->lut = VIPS_ARRAY(object, 65536, int)))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < 65536; i++) {
 		/* Rescale to +/- 100.
@@ -271,17 +271,17 @@ vips_sharpen_build(VipsObject *object)
 		vips_convsep(args[0], &args[1], t[1],
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL))
-		return (-1);
+		return -1;
 
 	t[5] = vips_image_new();
 	if (vips_image_pipeline_array(t[5],
 			VIPS_DEMAND_STYLE_FATSTRIP, args))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(t[5],
 			vips_start_many, vips_sharpen_generate, vips_stop_many,
 			args, sharpen))
-		return (-1);
+		return -1;
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 
@@ -290,11 +290,11 @@ vips_sharpen_build(VipsObject *object)
 	if (vips_bandjoin2(t[5], t[3], &t[6], NULL) ||
 		vips_colourspace(t[6], &t[7], old_interpretation, NULL) ||
 		vips_image_write(t[7], sharpen->out))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_STOP("vips_sharpen_build: build");
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -467,5 +467,5 @@ vips_sharpen(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("sharpen", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

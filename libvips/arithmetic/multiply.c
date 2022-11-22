@@ -297,5 +297,5 @@ vips_multiply(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("multiply", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

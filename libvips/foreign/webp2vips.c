@@ -164,31 +164,31 @@ vips__error_webp(VP8StatusCode code)
 {
 	switch (code) {
 	case VP8_STATUS_OK:
-		return ("VP8_STATUS_OK");
+		return "VP8_STATUS_OK";
 
 	case VP8_STATUS_OUT_OF_MEMORY:
-		return ("VP8_STATUS_OUT_OF_MEMORY");
+		return "VP8_STATUS_OUT_OF_MEMORY";
 
 	case VP8_STATUS_INVALID_PARAM:
-		return ("VP8_STATUS_INVALID_PARAM");
+		return "VP8_STATUS_INVALID_PARAM";
 
 	case VP8_STATUS_BITSTREAM_ERROR:
-		return ("VP8_STATUS_BITSTREAM_ERROR");
+		return "VP8_STATUS_BITSTREAM_ERROR";
 
 	case VP8_STATUS_UNSUPPORTED_FEATURE:
-		return ("VP8_STATUS_UNSUPPORTED_FEATURE");
+		return "VP8_STATUS_UNSUPPORTED_FEATURE";
 
 	case VP8_STATUS_SUSPENDED:
-		return ("VP8_STATUS_SUSPENDED");
+		return "VP8_STATUS_SUSPENDED";
 
 	case VP8_STATUS_USER_ABORT:
-		return ("VP8_STATUS_USER_ABORT");
+		return "VP8_STATUS_USER_ABORT";
 
 	case VP8_STATUS_NOT_ENOUGH_DATA:
-		return ("VP8_STATUS_NOT_ENOUGH_DATA");
+		return "VP8_STATUS_NOT_ENOUGH_DATA";
 
 	default:
-		return ("<unkown>");
+		return "<unkown>";
 	}
 }
 
@@ -258,7 +258,7 @@ blend_pixel(guint32 A, guint32 B)
 	guint8 aA = getA(A);
 
 	if (aA == 0)
-		return (B);
+		return B;
 
 	guint8 aB = getA(B);
 
@@ -270,7 +270,7 @@ blend_pixel(guint32 A, guint32 B)
 	guint8 gR = BLEND(getG(A), aA, getG(B), fac, scale);
 	guint8 bR = BLEND(getB(A), aA, getB(B), fac, scale);
 
-	return (setRGBA(rR, gR, bR, aR));
+	return setRGBA(rR, gR, bR, aR);
 }
 
 /* Blend sub into frame at left, top.
@@ -323,9 +323,9 @@ vips__iswebp_source(VipsSource *source)
 	if ((p = vips_source_sniff(source, 12)) &&
 		vips_isprefix("RIFF", (char *) p) &&
 		vips_isprefix("WEBP", (char *) p + 8))
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -340,7 +340,7 @@ read_free(Read *read)
 	VIPS_FREE(read->delays);
 	VIPS_FREE(read);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -355,7 +355,7 @@ read_new(VipsImage *out, VipsSource *source, int page, int n, double scale)
 	Read *read;
 
 	if (!(read = VIPS_NEW(NULL, Read)))
-		return (NULL);
+		return NULL;
 
 	read->out = out;
 	read->source = source;
@@ -383,9 +383,9 @@ read_new(VipsImage *out, VipsSource *source, int page, int n, double scale)
 	 */
 	if (!(read->data.bytes =
 				vips_source_map(source, &read->data.size)))
-		return (NULL);
+		return NULL;
 
-	return (read);
+	return read;
 }
 
 /* Map vips metadata names to webp names.
@@ -405,7 +405,7 @@ read_header(Read *read, VipsImage *out)
 
 	if (!(read->demux = WebPDemux(&read->data))) {
 		vips_error("webp", "%s", _("unable to parse image"));
-		return (-1);
+		return -1;
 	}
 
 	flags = WebPDemuxGetI(read->demux, WEBP_FF_FORMAT_FLAGS);
@@ -499,7 +499,7 @@ read_header(Read *read, VipsImage *out)
 			read->page + read->n > read->frame_count) {
 			vips_error("webp",
 				"%s", _("bad page number"));
-			return (-1);
+			return -1;
 		}
 
 		/* Note that n-pages is the number of pages in the original,
@@ -548,7 +548,7 @@ read_header(Read *read, VipsImage *out)
 		read->frame_width > 0x3FFF ||
 		read->frame_height > 0x3FFF) {
 		vips_error("webp", "%s", _("bad image dimensions"));
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < vips__n_webp_names; i++) {
@@ -577,7 +577,7 @@ read_header(Read *read, VipsImage *out)
 	if (vips_image_pipelinev(read->frame,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 		vips_image_write_prepare(read->frame))
-		return (-1);
+		return -1;
 
 	vips_image_init_fields(out,
 		read->width, read->height,
@@ -586,17 +586,17 @@ read_header(Read *read, VipsImage *out)
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 	VIPS_SETSTR(out->filename,
 		vips_connection_filename(VIPS_CONNECTION(read->source)));
 
 	if (!WebPDemuxGetFrame(read->demux, 1, &read->iter)) {
 		vips_error("webp",
 			"%s", _("unable to loop through frames"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read a single frame -- a width * height block of pixels. This will get
@@ -621,7 +621,7 @@ read_frame(Read *read,
 	if (vips_image_pipelinev(frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 		vips_image_write_prepare(frame)) {
 		g_object_unref(frame);
-		return (NULL);
+		return NULL;
 	}
 
 	read->config.output.u.RGBA.rgba = VIPS_IMAGE_ADDR(frame, 0, 0);
@@ -636,10 +636,10 @@ read_frame(Read *read,
 	if (WebPDecode(data, length, &read->config) != VP8_STATUS_OK) {
 		g_object_unref(frame);
 		vips_error("webp2vips", "%s", _("unable to read pixels"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (frame);
+	return frame;
 }
 
 static int
@@ -705,7 +705,7 @@ read_next_frame(Read *read)
 	if (!(frame = read_frame(read,
 			  area.width, area.height,
 			  read->iter.fragment.bytes, read->iter.fragment.size)))
-		return (-1);
+		return -1;
 
 	/* Now blend or copy the new pixels into our accumulator.
 	 */
@@ -722,11 +722,11 @@ read_next_frame(Read *read)
 		if (!WebPDemuxNextFrame(&read->iter)) {
 			vips_error("webp2vips",
 				"%s", _("not enough frames"));
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -749,7 +749,7 @@ read_webp_generate(VipsRegion * or,
 
 	while (read->frame_no < frame) {
 		if (read_next_frame(read))
-			return (-1);
+			return -1;
 
 		read->frame_no += 1;
 	}
@@ -778,7 +778,7 @@ read_webp_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -791,15 +791,15 @@ read_image(Read *read, VipsImage *out)
 	 */
 	t[0] = vips_image_new();
 	if (read_header(read, t[0]))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(t[0],
 			NULL, read_webp_generate, NULL, read, NULL) ||
 		vips_sequential(t[0], &t[1], NULL) ||
 		vips_image_write(t[1], out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -810,9 +810,9 @@ vips__webp_read_header_source(VipsSource *source, VipsImage *out,
 
 	if (!(read = read_new(out, source, page, n, scale)) ||
 		read_header(read, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -823,9 +823,9 @@ vips__webp_read_source(VipsSource *source, VipsImage *out,
 
 	if (!(read = read_new(out, source, page, n, scale)) ||
 		read_image(read, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_LIBWEBP*/

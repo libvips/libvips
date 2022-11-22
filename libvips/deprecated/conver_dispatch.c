@@ -46,9 +46,9 @@ system_vec(im_object *argv)
 	char **out = (char **) &argv[2];
 
 	if (im_system(in, cmd, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc system_args[] = {
@@ -81,17 +81,17 @@ system_image_vec(im_object *argv)
 	if (!(out_image = im_system_image(in,
 			  in_format, out_format, cmd, log))) {
 		im_error("im_system_image", "%s", *log);
-		return (-1);
+		return -1;
 	}
 
 	if (im_copy(out_image, out) ||
 		im_add_close_callback(out,
 			(im_callback_fn) im_close, out_image, NULL)) {
 		im_close(out_image);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc system_image_args[] = {
@@ -121,9 +121,9 @@ subsample_vec(im_object *argv)
 	int ysh = *((int *) argv[3]);
 
 	if (im_subsample(in, out, xsh, ysh))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc subsample_args[] = {
@@ -163,9 +163,9 @@ gaussnoise_vec(im_object *argv)
 	double sigma = *((double *) argv[4]);
 
 	if (im_gaussnoise(argv[0], xsize, ysize, mean, sigma))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_gaussnoise.
@@ -202,8 +202,8 @@ extract_vec(im_object *argv)
 	int height = *((int *) argv[5]);
 	int band = *((int *) argv[6]);
 
-	return (im_extract_areabands(argv[0], argv[1],
-		left, top, width, height, band, 1));
+	return im_extract_areabands(argv[0], argv[1],
+		left, top, width, height, band, 1);
 }
 
 /* Description of im_extract.
@@ -238,7 +238,7 @@ extract_area_vec(im_object *argv)
 	int w = *((int *) argv[4]);
 	int h = *((int *) argv[5]);
 
-	return (im_extract_area(argv[0], argv[1], x, y, w, h));
+	return im_extract_area(argv[0], argv[1], x, y, w, h);
 }
 
 /* Description of im_extract_area.
@@ -269,7 +269,7 @@ extract_bands_vec(im_object *argv)
 	int chsel = *((int *) argv[2]);
 	int nbands = *((int *) argv[3]);
 
-	return (im_extract_bands(argv[0], argv[1], chsel, nbands));
+	return im_extract_bands(argv[0], argv[1], chsel, nbands);
 }
 
 /* Description of im_extract_bands.
@@ -298,7 +298,7 @@ extract_band_vec(im_object *argv)
 {
 	int chsel = *((int *) argv[2]);
 
-	return (im_extract_band(argv[0], argv[1], chsel));
+	return im_extract_band(argv[0], argv[1], chsel);
 }
 
 /* Description of im_extract_band.
@@ -337,8 +337,8 @@ extract_areabands_vec(im_object *argv)
 	int band = *((int *) argv[6]);
 	int nbands = *((int *) argv[7]);
 
-	return (im_extract_areabands(argv[0], argv[1],
-		left, top, width, height, band, nbands));
+	return im_extract_areabands(argv[0], argv[1],
+		left, top, width, height, band, nbands);
 }
 
 /* Description of im_extract_areabands.
@@ -372,7 +372,7 @@ static im_arg_desc two_in_one_out[] = {
 static int
 bandjoin_vec(im_object *argv)
 {
-	return (im_bandjoin(argv[0], argv[1], argv[2]));
+	return im_bandjoin(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_bandjoin.
@@ -396,7 +396,7 @@ gbandjoin_vec(im_object *argv)
 {
 	im_imagevec_object *iv = (im_imagevec_object *) argv[0];
 
-	return (im_gbandjoin(iv->vec, argv[1], iv->n));
+	return im_gbandjoin(iv->vec, argv[1], iv->n);
 }
 
 static im_function gbandjoin_desc = {
@@ -428,7 +428,7 @@ text_vec(im_object *argv)
 	int alignment = *((int *) argv[4]);
 	int dpi = *((int *) argv[5]);
 
-	return (im_text(argv[0], argv[1], argv[2], width, alignment, dpi));
+	return im_text(argv[0], argv[1], argv[2], width, alignment, dpi);
 }
 
 /* Description of im_text.
@@ -460,7 +460,7 @@ black_vec(im_object *argv)
 	int ys = *((int *) argv[2]);
 	int bands = *((int *) argv[3]);
 
-	return (im_black(argv[0], xs, ys, bands));
+	return im_black(argv[0], xs, ys, bands);
 }
 
 /* Description of im_black.
@@ -489,7 +489,7 @@ clip2fmt_vec(im_object *argv)
 {
 	int ofmt = *((int *) argv[2]);
 
-	return (im_clip2fmt(argv[0], argv[1], ofmt));
+	return im_clip2fmt(argv[0], argv[1], ofmt);
 }
 
 /* Description of im_clip2fmt.
@@ -508,7 +508,7 @@ static im_function clip2fmt_desc = {
 static int
 c2rect_vec(im_object *argv)
 {
-	return (im_c2rect(argv[0], argv[1]));
+	return im_c2rect(argv[0], argv[1]);
 }
 
 /* Description of im_c2rect.
@@ -527,7 +527,7 @@ static im_function c2rect_desc = {
 static int
 c2amph_vec(im_object *argv)
 {
-	return (im_c2amph(argv[0], argv[1]));
+	return im_c2amph(argv[0], argv[1]);
 }
 
 /* Description of im_c2amph.
@@ -546,7 +546,7 @@ static im_function c2amph_desc = {
 static int
 ri2c_vec(im_object *argv)
 {
-	return (im_ri2c(argv[0], argv[1], argv[2]));
+	return im_ri2c(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_ri2c.
@@ -565,7 +565,7 @@ static im_function ri2c_desc = {
 static int
 c2imag_vec(im_object *argv)
 {
-	return (im_c2imag(argv[0], argv[1]));
+	return im_c2imag(argv[0], argv[1]);
 }
 
 /* Description of im_c2imag.
@@ -584,7 +584,7 @@ static im_function c2imag_desc = {
 static int
 c2real_vec(im_object *argv)
 {
-	return (im_c2real(argv[0], argv[1]));
+	return im_c2real(argv[0], argv[1]);
 }
 
 /* Description of im_c2real.
@@ -621,8 +621,8 @@ copy_set_vec(im_object *argv)
 	int Xoffset = *((int *) argv[5]);
 	int Yoffset = *((int *) argv[6]);
 
-	return (im_copy_set(argv[0], argv[1],
-		Type, Xres, Yres, Xoffset, Yoffset));
+	return im_copy_set(argv[0], argv[1],
+		Type, Xres, Yres, Xoffset, Yoffset);
 }
 
 /* Description of im_copy_set.
@@ -658,7 +658,7 @@ copy_set_meta_vec(im_object *argv)
 	const char *field = argv[2];
 	GValue *value = argv[3];
 
-	return (im_copy_set_meta(argv[0], argv[1], field, value));
+	return im_copy_set_meta(argv[0], argv[1], field, value);
 }
 
 /* Description of im_copy_set_meta.
@@ -696,8 +696,8 @@ copy_morph_vec(im_object *argv)
 	int BandFmt = *((int *) argv[3]);
 	int Coding = *((int *) argv[4]);
 
-	return (im_copy_morph(argv[0], argv[1],
-		Bands, BandFmt, Coding));
+	return im_copy_morph(argv[0], argv[1],
+		Bands, BandFmt, Coding);
 }
 
 /* Description of im_copy_morph.
@@ -721,7 +721,7 @@ static im_function copy_morph_desc = {
 static int
 copy_vec(im_object *argv)
 {
-	return (im_copy(argv[0], argv[1]));
+	return im_copy(argv[0], argv[1]);
 }
 
 /* Description of im_copy.
@@ -747,7 +747,7 @@ static im_function copy_desc = {
 static int
 copy_file_vec(im_object *argv)
 {
-	return (im_copy_file(argv[0], argv[1]));
+	return im_copy_file(argv[0], argv[1]);
 }
 
 /* Description of im_copy_file.
@@ -771,7 +771,7 @@ static im_function copy_file_desc = {
 static int
 copy_swap_vec(im_object *argv)
 {
-	return (im_copy_swap(argv[0], argv[1]));
+	return im_copy_swap(argv[0], argv[1]);
 }
 
 /* Description of im_copy_swap.
@@ -795,7 +795,7 @@ static im_function copy_swap_desc = {
 static int
 fliphor_vec(im_object *argv)
 {
-	return (im_fliphor(argv[0], argv[1]));
+	return im_fliphor(argv[0], argv[1]);
 }
 
 /* Description of im_fliphor.
@@ -814,7 +814,7 @@ static im_function fliphor_desc = {
 static int
 flipver_vec(im_object *argv)
 {
-	return (im_flipver(argv[0], argv[1]));
+	return im_flipver(argv[0], argv[1]);
 }
 
 /* Description of im_flipver.
@@ -833,7 +833,7 @@ static im_function flipver_desc = {
 static int
 falsecolour_vec(im_object *argv)
 {
-	return (im_falsecolour(argv[0], argv[1]));
+	return im_falsecolour(argv[0], argv[1]);
 }
 
 /* Description of im_falsecolour.
@@ -865,7 +865,7 @@ insert_vec(im_object *argv)
 	int x = *((int *) argv[3]);
 	int y = *((int *) argv[4]);
 
-	return (im_insert(argv[0], argv[1], argv[2], x, y));
+	return im_insert(argv[0], argv[1], argv[2], x, y);
 }
 
 /* Description of im_insert.
@@ -900,13 +900,13 @@ insertset_vec(im_object *argv)
 	if (xv->n != yv->n) {
 		im_error("im_insertset", "%s",
 			_("vectors not same length"));
-		return (-1);
+		return -1;
 	}
 
 	if (im_insertset(argv[0], argv[1], argv[2], xv->n, xv->vec, yv->vec))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_insertset.
@@ -928,7 +928,7 @@ insert_noexpand_vec(im_object *argv)
 	int x = *((int *) argv[3]);
 	int y = *((int *) argv[4]);
 
-	return (im_insert_noexpand(argv[0], argv[1], argv[2], x, y));
+	return im_insert_noexpand(argv[0], argv[1], argv[2], x, y);
 }
 
 /* Description of im_insert_noexpand.
@@ -947,7 +947,7 @@ static im_function insert_noexpand_desc = {
 static int
 rot180_vec(im_object *argv)
 {
-	return (im_rot180(argv[0], argv[1]));
+	return im_rot180(argv[0], argv[1]);
 }
 
 /* Description of im_rot180.
@@ -966,7 +966,7 @@ static im_function rot180_desc = {
 static int
 rot90_vec(im_object *argv)
 {
-	return (im_rot90(argv[0], argv[1]));
+	return im_rot90(argv[0], argv[1]);
 }
 
 /* Description of im_rot90.
@@ -985,7 +985,7 @@ static im_function rot90_desc = {
 static int
 rot270_vec(im_object *argv)
 {
-	return (im_rot270(argv[0], argv[1]));
+	return im_rot270(argv[0], argv[1]);
 }
 
 /* Description of im_rot270.
@@ -1004,7 +1004,7 @@ static im_function rot270_desc = {
 static int
 lrjoin_vec(im_object *argv)
 {
-	return (im_lrjoin(argv[0], argv[1], argv[2]));
+	return im_lrjoin(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_lrjoin.
@@ -1023,7 +1023,7 @@ static im_function lrjoin_desc = {
 static int
 tbjoin_vec(im_object *argv)
 {
-	return (im_tbjoin(argv[0], argv[1], argv[2]));
+	return im_tbjoin(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_tbjoin.
@@ -1042,7 +1042,7 @@ static im_function tbjoin_desc = {
 static int
 scale_vec(im_object *argv)
 {
-	return (im_scale(argv[0], argv[1]));
+	return im_scale(argv[0], argv[1]);
 }
 
 /* Description of im_scale.
@@ -1061,7 +1061,7 @@ static im_function scale_desc = {
 static int
 scaleps_vec(im_object *argv)
 {
-	return (im_scaleps(argv[0], argv[1]));
+	return im_scaleps(argv[0], argv[1]);
 }
 
 /* Description of im_scaleps.
@@ -1094,7 +1094,7 @@ grid_vec(im_object *argv)
 	int across = *((int *) argv[3]);
 	int down = *((int *) argv[4]);
 
-	return (im_grid(argv[0], argv[1], tile_height, across, down));
+	return im_grid(argv[0], argv[1], tile_height, across, down);
 }
 
 /* Description of im_grid.
@@ -1125,7 +1125,7 @@ replicate_vec(im_object *argv)
 	int across = *((int *) argv[2]);
 	int down = *((int *) argv[3]);
 
-	return (im_replicate(argv[0], argv[1], across, down));
+	return im_replicate(argv[0], argv[1], across, down);
 }
 
 /* Description of im_replicate.
@@ -1156,7 +1156,7 @@ zoom_vec(im_object *argv)
 	int xfac = *((int *) argv[2]);
 	int yfac = *((int *) argv[3]);
 
-	return (im_zoom(argv[0], argv[1], xfac, yfac));
+	return im_zoom(argv[0], argv[1], xfac, yfac);
 }
 
 /* Description of im_zoom.
@@ -1271,7 +1271,7 @@ embed_vec(im_object *argv)
 	int width = *((int *) argv[5]);
 	int height = *((int *) argv[6]);
 
-	return (im_embed(argv[0], argv[1], type, x, y, width, height));
+	return im_embed(argv[0], argv[1], type, x, y, width, height);
 }
 
 /* Description of im_embed.

@@ -149,7 +149,7 @@ static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
 const char *
 vips_get_argv0(void)
 {
-	return (vips__argv0);
+	return vips__argv0;
 }
 
 /**
@@ -168,9 +168,9 @@ vips_get_prgname(void)
 	const char *prgname;
 
 	if ((prgname = g_get_prgname()))
-		return (prgname);
+		return prgname;
 	else
-		return (vips__prgname);
+		return vips__prgname;
 }
 
 /**
@@ -394,7 +394,7 @@ vips_leak(void)
 	vips_buffer_dump_all();
 #endif /*DEBUG*/
 
-	return (n_leaks);
+	return n_leaks;
 }
 
 /**
@@ -440,12 +440,12 @@ vips_init(const char *argv0)
 	if (done)
 		/* Called more than once, we succeeded, just return OK.
 		 */
-		return (0);
+		return 0;
 	if (started)
 		/* Recursive invocation, something has broken horribly.
 		 * Hopefully the first init will handle it.
 		 */
-		return (0);
+		return 0;
 	started = TRUE;
 
 	/* Try to set a minimum stacksize, default 2mb. We need to do this
@@ -521,7 +521,7 @@ vips_init(const char *argv0)
 		g_info("VIPSHOME = %s", prefix);
 	if (!(prefix = vips_guess_prefix(argv0, "VIPSHOME")) ||
 		!(libdir = vips_guess_libdir(argv0, "VIPSHOME")))
-		return (-1);
+		return -1;
 
 	g_info("VIPS_PREFIX = %s", VIPS_PREFIX);
 	g_info("VIPS_LIBDIR = %s", VIPS_LIBDIR);
@@ -652,7 +652,7 @@ vips_init(const char *argv0)
 
 	vips__thread_gate_stop("init: startup");
 
-	return (0);
+	return 0;
 }
 
 /* Call this before vips stuff that uses stuff we need to have inited.
@@ -765,7 +765,7 @@ vips_lib_info_cb(const gchar *option_name, const gchar *value,
 {
 	vips_verbose();
 
-	return (TRUE);
+	return TRUE;
 }
 
 static gboolean
@@ -783,7 +783,7 @@ vips_set_fatal_cb(const gchar *option_name, const gchar *value,
 		G_LOG_LEVEL_CRITICAL |
 		G_LOG_LEVEL_WARNING);
 
-	return (TRUE);
+	return TRUE;
 }
 
 static gboolean
@@ -810,7 +810,7 @@ vips_cache_max_cb(const gchar *option_name, const gchar *value,
 {
 	vips_cache_set_max(vips__parse_size(value));
 
-	return (TRUE);
+	return TRUE;
 }
 
 static gboolean
@@ -819,7 +819,7 @@ vips_cache_max_memory_cb(const gchar *option_name, const gchar *value,
 {
 	vips_cache_set_max_mem(vips__parse_size(value));
 
-	return (TRUE);
+	return TRUE;
 }
 
 static gboolean
@@ -828,7 +828,7 @@ vips_cache_max_files_cb(const gchar *option_name, const gchar *value,
 {
 	vips_cache_set_max_files(vips__parse_size(value));
 
-	return (TRUE);
+	return TRUE;
 }
 
 static GOptionEntry option_entries[] = {
@@ -945,7 +945,7 @@ extract_prefix(const char *dir, const char *name)
 	 * G_DIR_SEPARATOR_S.
 	 */
 	if (!vips_ispostfix(edir, name))
-		return (NULL);
+		return NULL;
 	vips_strncpy(vname, edir, VIPS_PATH_MAX);
 	vname[strlen(edir) - strlen(name) - 1] = '\0';
 
@@ -966,12 +966,12 @@ extract_prefix(const char *dir, const char *name)
 	/* Ought to be a "/bin" at the end now.
 	 */
 	if (!vips_ispostfix(vname, G_DIR_SEPARATOR_S "bin"))
-		return (NULL);
+		return NULL;
 	vname[strlen(vname) - strlen(G_DIR_SEPARATOR_S "bin")] = '\0';
 
 	g_info("found \"%s\"", vname);
 
-	return (vname);
+	return vname;
 }
 
 /* Search a path for a file ... we overwrite the PATH string passed in.
@@ -996,11 +996,11 @@ scan_path(char *path, const char *name)
 
 		if (vips_existsf("%s", str) &&
 			(prefix = extract_prefix(str, name))) {
-			return (prefix);
+			return prefix;
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Look for a file along PATH. If we find it, look for an enclosing prefix.
@@ -1013,7 +1013,7 @@ find_file(const char *name)
 	char full_path[VIPS_PATH_MAX];
 
 	if (!path)
-		return (NULL);
+		return NULL;
 
 	g_info("g_getenv( \"PATH\" ) == \"%s\"", path);
 
@@ -1033,9 +1033,9 @@ find_file(const char *name)
 #endif /*G_OS_WIN32*/
 
 	if ((prefix = scan_path(full_path, name)))
-		return (prefix);
+		return prefix;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Guess a value for the install PREFIX.
@@ -1053,7 +1053,7 @@ guess_prefix(const char *argv0, const char *name)
 		g_info("found %s/vips-modules-%d.%d",
 			VIPS_LIBDIR, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION);
 		g_info("using configure-time prefix");
-		return (VIPS_PREFIX);
+		return VIPS_PREFIX;
 	}
 
 	/* Try to guess from argv0.
@@ -1064,7 +1064,7 @@ guess_prefix(const char *argv0, const char *name)
 			 */
 			if ((prefix = extract_prefix(argv0, name))) {
 				g_info("found \"%s\" from argv0", prefix);
-				return (prefix);
+				return prefix;
 			}
 		}
 
@@ -1072,7 +1072,7 @@ guess_prefix(const char *argv0, const char *name)
 		 */
 		if ((prefix = find_file(name))) {
 			g_info("found \"%s\" from PATH", prefix);
-			return (prefix);
+			return prefix;
 		}
 	}
 
@@ -1095,14 +1095,14 @@ guess_prefix(const char *argv0, const char *name)
 
 			if (prefix) {
 				g_info("found \"%s\" from cwd", prefix);
-				return (prefix);
+				return prefix;
 			}
 		}
 	}
 
 	/* Fall back to the configure-time prefix.
 	 */
-	return (VIPS_PREFIX);
+	return VIPS_PREFIX;
 }
 
 /**
@@ -1132,7 +1132,7 @@ vips_guess_prefix(const char *argv0, const char *env_name)
 	/* Already set?
 	 */
 	if ((prefix = g_getenv(env_name)))
-		return (prefix);
+		return prefix;
 
 #ifdef G_OS_WIN32
 	prefix = vips__windows_prefix();
@@ -1148,7 +1148,7 @@ vips_guess_prefix(const char *argv0, const char *env_name)
 
 	g_setenv(env_name, prefix, TRUE);
 
-	return (prefix);
+	return prefix;
 }
 
 /**
@@ -1180,7 +1180,7 @@ vips_guess_libdir(const char *argv0, const char *env_name)
 	char *suffix;
 
 	if (libdir)
-		return (libdir);
+		return libdir;
 
 	/* Have we been moved since configure? If not, use the configure-time
 	 * libdir.
@@ -1197,7 +1197,7 @@ vips_guess_libdir(const char *argv0, const char *env_name)
 	else
 		libdir = g_strdup_printf("%s/lib", prefix);
 
-	return (libdir);
+	return libdir;
 }
 
 /**
@@ -1211,7 +1211,7 @@ vips_guess_libdir(const char *argv0, const char *env_name)
 const char *
 vips_version_string(void)
 {
-	return (VIPS_VERSION_STRING);
+	return VIPS_VERSION_STRING;
 }
 
 /**
@@ -1231,26 +1231,26 @@ vips_version(int flag)
 {
 	switch (flag) {
 	case 0:
-		return (VIPS_MAJOR_VERSION);
+		return VIPS_MAJOR_VERSION;
 
 	case 1:
-		return (VIPS_MINOR_VERSION);
+		return VIPS_MINOR_VERSION;
 
 	case 2:
-		return (VIPS_MICRO_VERSION);
+		return VIPS_MICRO_VERSION;
 
 	case 3:
-		return (VIPS_LIBRARY_CURRENT);
+		return VIPS_LIBRARY_CURRENT;
 
 	case 4:
-		return (VIPS_LIBRARY_REVISION);
+		return VIPS_LIBRARY_REVISION;
 
 	case 5:
-		return (VIPS_LIBRARY_AGE);
+		return VIPS_LIBRARY_AGE;
 
 	default:
 		vips_error("vips_version", "%s", _("flag not in [0, 5]"));
-		return (-1);
+		return -1;
 	}
 }
 
@@ -1278,7 +1278,7 @@ vips_block_untrusted_set_operation(VipsOperationClass *class, gboolean *state)
 		vips_operation_block_set(G_OBJECT_CLASS_NAME(class),
 			*state);
 
-	return (NULL);
+	return NULL;
 }
 
 /**

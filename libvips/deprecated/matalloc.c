@@ -60,9 +60,9 @@ im_ivector(int nl, int nh)
 
 	v = (int *) im_malloc(NULL, (unsigned) (nh - nl + 1) * sizeof(int));
 	if (v == NULL)
-		return (NULL);
+		return NULL;
 	else
-		return (v - nl);
+		return v - nl;
 }
 
 float *
@@ -72,9 +72,9 @@ im_fvector(int nl, int nh)
 
 	v = (float *) im_malloc(NULL, (unsigned) (nh - nl + 1) * sizeof(float));
 	if (v == NULL)
-		return (NULL);
+		return NULL;
 	else
-		return (v - nl);
+		return v - nl;
 }
 
 double *
@@ -84,9 +84,9 @@ im_dvector(int nl, int nh)
 
 	v = (double *) im_malloc(NULL, (unsigned) (nh - nl + 1) * sizeof(double));
 	if (v == NULL)
-		return (NULL);
+		return NULL;
 	else
-		return (v - nl);
+		return v - nl;
 }
 
 void
@@ -145,16 +145,16 @@ im_imat_alloc(int nrl, int nrh, int ncl, int nch)
 
 	m = (int **) im_malloc(NULL, (unsigned) (nrh - nrl + 1) * sizeof(int *));
 	if (m == NULL)
-		return (NULL);
+		return NULL;
 	m -= nrl;
 
 	for (i = nrl; i <= nrh; i++) {
 		m[i] = (int *) im_malloc(NULL, (unsigned) (nch - ncl + 1) * sizeof(int));
 		if (m[i] == NULL)
-			return (NULL);
+			return NULL;
 		m[i] -= ncl;
 	}
-	return (m);
+	return m;
 }
 
 void
@@ -175,16 +175,16 @@ im_fmat_alloc(int nrl, int nrh, int ncl, int nch)
 
 	m = (float **) im_malloc(NULL, (unsigned) (nrh - nrl + 1) * sizeof(float *));
 	if (m == NULL)
-		return (NULL);
+		return NULL;
 	m -= nrl;
 
 	for (i = nrl; i <= nrh; i++) {
 		m[i] = (float *) im_malloc(NULL, (unsigned) (nch - ncl + 1) * sizeof(float));
 		if (m[i] == NULL)
-			return (NULL);
+			return NULL;
 		m[i] -= ncl;
 	}
-	return (m);
+	return m;
 }
 
 void
@@ -205,16 +205,16 @@ im_dmat_alloc(int nrl, int nrh, int ncl, int nch)
 
 	m = (double **) im_malloc(NULL, (unsigned) (nrh - nrl + 1) * sizeof(double *));
 	if (m == NULL)
-		return (NULL);
+		return NULL;
 	m -= nrl;
 
 	for (i = nrl; i <= nrh; i++) {
 		m[i] = (double *) im_malloc(NULL, (unsigned) (nch - ncl + 1) * sizeof(double));
 		if (m[i] == NULL)
-			return (NULL);
+			return NULL;
 		m[i] -= ncl;
 	}
-	return (m);
+	return m;
 }
 
 void

@@ -148,63 +148,63 @@ im_linreg(IMAGE **ins, IMAGE *out, double *xs)
 	x_set *x_vals;
 
 	if (im_poutcheck(out))
-		return (-1);
+		return -1;
 
 	for (n = 0; ins[n]; ++n) {
 		/*
 			if( ! isfinite( xs[ n ] ) ){
 			  im_error( FUNCTION_NAME, "invalid argument" );
-			  return( -1 );
+			  return -1;
 			}
 		*/
 		if (im_pincheck(ins[n]))
-			return (-1);
+			return -1;
 
 		if (1 != ins[n]->Bands) {
 			im_error(FUNCTION_NAME, "image is not single band");
-			return (-1);
+			return -1;
 		}
 		if (ins[n]->Coding) {
 			im_error(FUNCTION_NAME, "image is not uncoded");
-			return (-1);
+			return -1;
 		}
 		if (n) {
 			if (ins[n]->BandFmt != ins[0]->BandFmt) {
 				im_error(FUNCTION_NAME, "image band formats differ");
-				return (-1);
+				return -1;
 			}
 		}
 		else {
 			if (vips_band_format_iscomplex(ins[0]->BandFmt)) {
 				im_error(FUNCTION_NAME, "image has non-scalar band format");
-				return (-1);
+				return -1;
 			}
 		}
 		if (n &&
 			(ins[n]->Xsize != ins[0]->Xsize ||
 				ins[n]->Ysize != ins[0]->Ysize)) {
 			im_error(FUNCTION_NAME, "image sizes differ");
-			return (-1);
+			return -1;
 		}
 	}
 	if (n < 3) {
 		im_error(FUNCTION_NAME, "not enough input images");
-		return (-1);
+		return -1;
 	}
 	if (im_cp_desc_array(out, ins))
-		return (-1);
+		return -1;
 
 	out->Bands = 7;
 	out->BandFmt = IM_BANDFMT_DOUBLE;
 	out->Type = 0;
 
 	if (im_demand_hint_array(out, IM_THINSTRIP, ins))
-		return (-1);
+		return -1;
 
 	x_vals = x_anal(out, xs, n);
 
 	if (!x_vals)
-		return (-1);
+		return -1;
 
 	switch (ins[0]->BandFmt) {
 #define LINREG_RET(TYPE) return im_generate(out, linreg_start_##TYPE, linreg_gen_##TYPE, linreg_stop_##TYPE, ins, x_vals)
@@ -234,7 +234,7 @@ im_linreg(IMAGE **ins, IMAGE *out, double *xs)
 		LINREG_RET(double);
 
 	default: /* keep -Wall happy */
-		return (-1);
+		return -1;
 	}
 #undef FUNCTION_NAME
 }
@@ -247,12 +247,12 @@ x_anal(IMAGE *im, double *xs, unsigned int n)
 	x_set *x_vals = IM_NEW(im, x_set);
 
 	if (!x_vals)
-		return (NULL);
+		return NULL;
 
 	x_vals->xs = IM_ARRAY(im, 2 * n, double);
 
 	if (!x_vals->xs)
-		return (NULL);
+		return NULL;
 
 	x_vals->difs = x_vals->xs + n;
 	x_vals->n = n;
@@ -271,7 +271,7 @@ x_anal(IMAGE *im, double *xs, unsigned int n)
 	}
 	x_vals->err_term = (1.0 / (double) n) + ((x_vals->mean * x_vals->mean) / x_vals->nsig2);
 
-	return (x_vals);
+	return x_vals;
 }
 
 #define LINREG_START_DEFN(TYPE) \

@@ -89,7 +89,7 @@ public:
 	VipsSource *
 	get_source() const
 	{
-		return ((VipsSource *) VObject::get_object());
+		return (VipsSource *) VObject::get_object();
 	}
 };
 
@@ -135,7 +135,7 @@ public:
 	VipsTarget *
 	get_target() const
 	{
-		return ((VipsTarget *) VObject::get_object());
+		return (VipsTarget *) VObject::get_object();
 	}
 };
 
