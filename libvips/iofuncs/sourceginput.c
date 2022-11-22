@@ -81,7 +81,7 @@ vips_source_g_input_stream_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_source_g_input_stream_build: %p\n", source);
 
 	if (VIPS_OBJECT_CLASS(vips_source_g_input_stream_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (G_IS_FILE_INPUT_STREAM(source_ginput->stream)) {
 		const char *name;
@@ -93,7 +93,7 @@ vips_source_g_input_stream_build(VipsObject *object)
 				  G_FILE_ATTRIBUTE_STANDARD_NAME,
 				  NULL, &error))) {
 			vips_g_error(&error);
-			return (-1);
+			return -1;
 		}
 
 #ifdef VIPS_DEBUG
@@ -130,7 +130,7 @@ vips_source_g_input_stream_build(VipsObject *object)
 		g_seekable_can_seek(G_SEEKABLE(source_ginput->stream)))
 		source_ginput->seekable = G_SEEKABLE(source_ginput->stream);
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -152,12 +152,12 @@ vips_source_g_input_stream_read(VipsSource *source,
 			 buffer, length, NULL, &error)) < 0) {
 		VIPS_DEBUG_MSG("    %s\n", error->message);
 		vips_g_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	VIPS_DEBUG_MSG("    (returned %zd bytes)\n", bytes_read);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static GSeekType
@@ -166,11 +166,11 @@ lseek_to_seek_type(int whence)
 	switch (whence) {
 	default:
 	case SEEK_CUR:
-		return (G_SEEK_CUR);
+		return G_SEEK_CUR;
 	case SEEK_SET:
-		return (G_SEEK_SET);
+		return G_SEEK_SET;
 	case SEEK_END:
-		return (G_SEEK_END);
+		return G_SEEK_END;
 	}
 }
 
@@ -192,7 +192,7 @@ vips_source_g_input_stream_seek(VipsSource *source, gint64 offset, int whence)
 		if (!g_seekable_seek(source_ginput->seekable,
 				offset, type, NULL, &error)) {
 			vips_g_error(&error);
-			return (-1);
+			return -1;
 		}
 
 		new_position = g_seekable_tell(source_ginput->seekable);
@@ -202,7 +202,7 @@ vips_source_g_input_stream_seek(VipsSource *source, gint64 offset, int whence)
 
 	VIPS_DEBUG_MSG("  (new position = %zd)\n", new_position);
 
-	return (new_position);
+	return new_position;
 }
 
 static void
@@ -258,8 +258,8 @@ vips_source_g_input_stream_new(GInputStream *stream)
 
 	if (vips_object_build(VIPS_OBJECT(source))) {
 		VIPS_UNREF(source);
-		return (NULL);
+		return NULL;
 	}
 
-	return (source);
+	return source;
 }

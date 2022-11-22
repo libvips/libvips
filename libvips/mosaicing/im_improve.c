@@ -148,9 +148,9 @@ copydevpoints(TiePoints *pnew, TiePoints *pold)
 	/* Return non-zero if we changed something.
 	 */
 	if (j != pold->nopoints)
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -173,7 +173,7 @@ vips__improve(TiePoints *inpoints, TiePoints *outpoints)
 		/* Fit the model to the new set of points.
 		 */
 		if (vips__clinear(q))
-			return (-1);
+			return -1;
 
 		/* And loop.
 		 */
@@ -184,5 +184,5 @@ vips__improve(TiePoints *inpoints, TiePoints *outpoints)
 	 */
 	copypoints(outpoints, q);
 
-	return (0);
+	return 0;
 }

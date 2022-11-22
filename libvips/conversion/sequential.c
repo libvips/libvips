@@ -134,7 +134,7 @@ vips_sequential_generate(VipsRegion * or,
 	 */
 	if (sequential->error) {
 		g_mutex_unlock(sequential->lock);
-		return (-1);
+		return -1;
 	}
 
 	if (r->top > sequential->y_pos) {
@@ -157,7 +157,7 @@ vips_sequential_generate(VipsRegion * or,
 		if (vips_region_prepare(ir, &area)) {
 			sequential->error = -1;
 			g_mutex_unlock(sequential->lock);
-			return (-1);
+			return -1;
 		}
 
 		sequential->y_pos = VIPS_RECT_BOTTOM(&area);
@@ -170,7 +170,7 @@ vips_sequential_generate(VipsRegion * or,
 		vips_region_region(or, ir, r, r->left, r->top)) {
 		sequential->error = -1;
 		g_mutex_unlock(sequential->lock);
-		return (-1);
+		return -1;
 	}
 
 	sequential->y_pos =
@@ -178,7 +178,7 @@ vips_sequential_generate(VipsRegion * or,
 
 	g_mutex_unlock(sequential->lock);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -192,7 +192,7 @@ vips_sequential_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_sequential_build\n");
 
 	if (VIPS_OBJECT_CLASS(vips_sequential_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* We've gone forwards and backwards on sequential caches being
 	 * persistent. Persistent caches can be useful if you want to eg.
@@ -206,19 +206,19 @@ vips_sequential_build(VipsObject *object)
 			"tile_height", sequential->tile_height,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL))
-		return (-1);
+		return -1;
 
 	vips_object_local(object, t);
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_sequential_generate, vips_stop_one,
 			t, sequential))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -306,5 +306,5 @@ vips_sequential(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("sequential", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

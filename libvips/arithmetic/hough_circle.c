@@ -113,7 +113,7 @@ vips_hough_circle_build(VipsObject *object)
 	if (range <= 0) {
 		vips_error(class->nickname,
 			"%s", _("parameters out of range"));
-		return (-1);
+		return -1;
 	}
 
 	hough_circle->width = statistic->in->Xsize / hough_circle->scale;
@@ -121,11 +121,11 @@ vips_hough_circle_build(VipsObject *object)
 	hough_circle->bands = 1 + range / hough_circle->scale;
 
 	if (VIPS_OBJECT_CLASS(vips_hough_circle_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vips_hough_circle_normalise(hough_circle);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -139,7 +139,7 @@ vips_hough_circle_init_accumulator(VipsHough *hough, VipsImage *accumulator)
 		VIPS_INTERPRETATION_MATRIX,
 		1.0, 1.0);
 
-	return (0);
+	return 0;
 }
 
 /* Vote endpoints, with clip.
@@ -301,5 +301,5 @@ vips_hough_circle(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hough_circle", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

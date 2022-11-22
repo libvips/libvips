@@ -87,7 +87,7 @@ vips_find_trim_build(VipsObject *object)
 	double bottom;
 
 	if (VIPS_OBJECT_CLASS(vips_find_trim_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Is "background" unset? Default to the correct value
 	 * for this interpretation.
@@ -107,7 +107,7 @@ vips_find_trim_build(VipsObject *object)
 		if (vips_flatten(in, &t[0],
 				"background", find_trim->background,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 
@@ -116,7 +116,7 @@ vips_find_trim_build(VipsObject *object)
 	background = vips_array_double_get(find_trim->background, &n);
 	if (!(neg_bg = VIPS_ARRAY(find_trim, n, double)) ||
 		!(ones = VIPS_ARRAY(find_trim, n, double)))
-		return (-1);
+		return -1;
 	for (i = 0; i < n; i++) {
 		neg_bg[i] = -1 * background[i];
 		ones[i] = 1.0;
@@ -126,7 +126,7 @@ vips_find_trim_build(VipsObject *object)
 	 */
 	if (!find_trim->line_art) {
 		if (vips_median(in, &t[1], 3, NULL))
-			return (-1);
+			return -1;
 	}
 	in = t[1];
 
@@ -136,33 +136,33 @@ vips_find_trim_build(VipsObject *object)
 		vips_abs(t[2], &t[3], NULL) ||
 		vips_more_const1(t[3], &t[4], find_trim->threshold, NULL) ||
 		vips_bandor(t[4], &t[5], NULL))
-		return (-1);
+		return -1;
 	in = t[5];
 
 	/* t[6] == column sums, t[7] == row sums.
 	 */
 	if (vips_project(in, &t[6], &t[7], NULL))
-		return (-1);
+		return -1;
 
 	/* t[8] == search column sums in from left.
 	 */
 	if (vips_profile(t[6], &t[8], &t[9], NULL) ||
 		vips_avg(t[9], &left, NULL))
-		return (-1);
+		return -1;
 	if (vips_flip(t[6], &t[10], VIPS_DIRECTION_HORIZONTAL, NULL) ||
 		vips_profile(t[10], &t[11], &t[12], NULL) ||
 		vips_avg(t[12], &right, NULL))
-		return (-1);
+		return -1;
 
 	/* t[8] == search column sums in from left.
 	 */
 	if (vips_profile(t[7], &t[13], &t[14], NULL) ||
 		vips_avg(t[13], &top, NULL))
-		return (-1);
+		return -1;
 	if (vips_flip(t[7], &t[15], VIPS_DIRECTION_VERTICAL, NULL) ||
 		vips_profile(t[15], &t[16], &t[17], NULL) ||
 		vips_avg(t[16], &bottom, NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(find_trim,
 		"left", (int) left,
@@ -171,7 +171,7 @@ vips_find_trim_build(VipsObject *object)
 		"height", (int) VIPS_MAX(0, (t[7]->Ysize - bottom) - top),
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -309,5 +309,5 @@ vips_find_trim(VipsImage *in,
 		left, top, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

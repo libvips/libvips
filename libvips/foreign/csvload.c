@@ -122,7 +122,7 @@ vips_foreign_load_csv_build(VipsObject *object)
 	const char *p;
 
 	if (!(csv->sbuf = vips_sbuf_new_from_source(csv->source)))
-		return (-1);
+		return -1;
 
 	/* Make our char maps.
 	 */
@@ -141,15 +141,15 @@ vips_foreign_load_csv_build(VipsObject *object)
 	csv->whitemap[(int) '\n'] = 0;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
 vips_foreign_load_csv_get_flags(VipsForeignLoad *load)
 {
-	return (0);
+	return 0;
 }
 
 /* Skip to the start of the next block of non-whitespace.
@@ -169,7 +169,7 @@ vips_foreign_load_csv_skip_white(VipsForeignLoadCsv *csv)
 
 	VIPS_SBUF_UNGETC(csv->sbuf);
 
-	return (ch);
+	return ch;
 }
 
 /* We have just seen " (open quotes). Skip to just after the matching close
@@ -200,7 +200,7 @@ vips_foreign_load_csv_skip_quoted(VipsForeignLoadCsv *csv)
 	if (ch == '\n')
 		VIPS_SBUF_UNGETC(csv->sbuf);
 
-	return (ch);
+	return ch;
 }
 
 /* Fetch the next item (not whitespace, separator or \n), as a string. The
@@ -233,7 +233,7 @@ vips_foreign_load_csv_fetch_item(VipsForeignLoadCsv *csv)
 	 */
 	if (ch == -1 &&
 		write_point == 0)
-		return (NULL);
+		return NULL;
 
 	/* If we filled the item buffer without seeing the end of the item,
 	 * read up to the item end.
@@ -251,7 +251,7 @@ vips_foreign_load_csv_fetch_item(VipsForeignLoadCsv *csv)
 		csv->sepmap[ch])
 		VIPS_SBUF_UNGETC(csv->sbuf);
 
-	return (csv->item);
+	return csv->item;
 }
 
 /* Read a single item. The syntax is:
@@ -281,7 +281,7 @@ vips_foreign_load_csv_read_double(VipsForeignLoadCsv *csv, double *out)
 	ch = vips_foreign_load_csv_skip_white(csv);
 	if (ch == EOF ||
 		ch == '\n')
-		return (ch);
+		return ch;
 
 	if (ch == '"') {
 		(void) VIPS_SBUF_GETC(csv->sbuf);
@@ -292,7 +292,7 @@ vips_foreign_load_csv_read_double(VipsForeignLoadCsv *csv, double *out)
 
 		item = vips_foreign_load_csv_fetch_item(csv);
 		if (!item)
-			return (EOF);
+			return EOF;
 
 		if (vips_strtod(item, out))
 			/* Only a warning, since (for example) exported
@@ -305,14 +305,14 @@ vips_foreign_load_csv_read_double(VipsForeignLoadCsv *csv, double *out)
 	ch = vips_foreign_load_csv_skip_white(csv);
 	if (ch == EOF ||
 		ch == '\n')
-		return (ch);
+		return ch;
 
 	/* If it's a separator, we have to step over it.
 	 */
 	if (csv->sepmap[ch])
 		(void) VIPS_SBUF_GETC(csv->sbuf);
 
-	return (ch);
+	return ch;
 }
 
 static int
@@ -331,7 +331,7 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 	 */
 	vips_sbuf_unbuffer(csv->sbuf);
 	if (vips_source_rewind(csv->source))
-		return (-1);
+		return -1;
 
 	/* Skip the first few lines.
 	 */
@@ -339,7 +339,7 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 		if (!vips_sbuf_get_line(csv->sbuf)) {
 			vips_error(class->nickname,
 				"%s", _("unexpected end of file"));
-			return (-1);
+			return -1;
 		}
 
 	/* Parse the first line to get the number of columns.
@@ -354,7 +354,7 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 	width = csv->colno;
 
 	if (!(csv->linebuf = VIPS_ARRAY(NULL, width, double)))
-		return (-1);
+		return -1;
 
 	/* If @lines is -1, we must scan the whole file to get the height.
 	 */
@@ -370,12 +370,12 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0);
 	if (vips_image_pipelinev(load->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename,
 		vips_connection_filename(VIPS_CONNECTION(csv->source)));
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -392,7 +392,7 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 	 */
 	vips_sbuf_unbuffer(csv->sbuf);
 	if (vips_source_rewind(csv->source))
-		return (-1);
+		return -1;
 
 	/* Skip the first few lines.
 	 */
@@ -400,7 +400,7 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 		if (!vips_sbuf_get_line(csv->sbuf)) {
 			vips_error(class->nickname,
 				"%s", _("unexpected end of file"));
-			return (-1);
+			return -1;
 		}
 
 	vips_image_init_fields(load->real,
@@ -409,7 +409,7 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0);
 	if (vips_image_pipelinev(load->real,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	csv->lineno = csv->skip + 1;
 	for (y = 0; y < load->real->Ysize; y++) {
@@ -432,7 +432,7 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 				load->fail_on >= VIPS_FAIL_ON_TRUNCATED) {
 				vips_error(class->nickname,
 					"%s", _("unexpected end of file"));
-				return (-1);
+				return -1;
 			}
 			if (ch == '\n' &&
 				x != load->real->Xsize - 1) {
@@ -442,7 +442,7 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 				/* Unequal length lines, but no EOF.
 				 */
 				if (load->fail_on >= VIPS_FAIL_ON_ERROR)
-					return (-1);
+					return -1;
 			}
 
 			csv->linebuf[x] = value;
@@ -457,10 +457,10 @@ vips_foreign_load_csv_load(VipsForeignLoad *load)
 
 		if (vips_image_write_line(load->real, y,
 				(VipsPel *) csv->linebuf))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -542,7 +542,7 @@ G_DEFINE_TYPE(VipsForeignLoadCsvFile, vips_foreign_load_csv_file,
 static VipsForeignFlags
 vips_foreign_load_csv_file_get_flags_filename(const char *filename)
 {
-	return (0);
+	return 0;
 }
 
 static int
@@ -554,12 +554,12 @@ vips_foreign_load_csv_file_build(VipsObject *object)
 	if (file->filename)
 		if (!(csv->source =
 					vips_source_new_from_file(file->filename)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_load_csv_suffs[] = {
@@ -624,9 +624,9 @@ vips_foreign_load_csv_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -636,7 +636,7 @@ vips_foreign_load_csv_source_is_a_source(VipsSource *source)
 	 * prevent a warning, but users will need to run the csv loader
 	 * explicitly.
 	 */
-	return (FALSE);
+	return FALSE;
 }
 
 static void
@@ -723,7 +723,7 @@ vips_csvload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("csvload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -756,5 +756,5 @@ vips_csvload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("csvload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

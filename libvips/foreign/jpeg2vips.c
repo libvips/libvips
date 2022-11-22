@@ -276,7 +276,7 @@ source_fill_input_buffer(j_decompress_ptr cinfo)
 		src->pub.bytes_in_buffer = 2;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 static boolean
@@ -300,7 +300,7 @@ source_fill_input_buffer_mappable(j_decompress_ptr cinfo)
 	src->pub.next_input_byte = eoi_buffer;
 	src->pub.bytes_in_buffer = 2;
 
-	return (TRUE);
+	return TRUE;
 }
 
 static void
@@ -348,7 +348,7 @@ readjpeg_open_input(ReadJpeg *jpeg)
 		Source *src;
 
 		if (vips_source_rewind(jpeg->source))
-			return (-1);
+			return -1;
 
 		cinfo->src =
 			(struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
@@ -382,7 +382,7 @@ readjpeg_open_input(ReadJpeg *jpeg)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -439,7 +439,7 @@ readjpeg_free(ReadJpeg *jpeg)
 
 	VIPS_UNREF(jpeg->source);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -462,7 +462,7 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 	ReadJpeg *jpeg;
 
 	if (!(jpeg = VIPS_NEW(out, ReadJpeg)))
-		return (NULL);
+		return NULL;
 
 	jpeg->out = out;
 	jpeg->source = source;
@@ -483,7 +483,7 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
 	 */
 	if (setjmp(jpeg->eman.jmp))
-		return (NULL);
+		return NULL;
 
 	jpeg_create_decompress(&jpeg->cinfo);
 
@@ -492,7 +492,7 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 	g_signal_connect(out, "minimise",
 		G_CALLBACK(readjpeg_minimise_cb), jpeg);
 
-	return (jpeg);
+	return jpeg;
 }
 
 static const char *
@@ -506,9 +506,8 @@ find_chroma_subsample(struct jpeg_decompress_struct *cinfo)
 		cinfo->max_v_samp_factor > 1;
 	gboolean is_cmyk = cinfo->num_components > 3;
 
-	return (is_cmyk
-			? (has_subsample ? "4:2:0:4" : "4:4:4:4")
-			: (has_subsample ? "4:2:0" : "4:4:4"));
+	return is_cmyk ? (has_subsample ? "4:2:0:4" : "4:4:4:4")
+				   : (has_subsample ? "4:2:0" : "4:4:4");
 }
 
 static int
@@ -521,7 +520,7 @@ attach_blob(VipsImage *im, const char *field, void *data, size_t data_length)
 		printf("attach_blob: second %s block, ignoring\n", field);
 #endif /*DEBUG*/
 
-		return (0);
+		return 0;
 	}
 
 #ifdef DEBUG
@@ -531,7 +530,7 @@ attach_blob(VipsImage *im, const char *field, void *data, size_t data_length)
 
 	vips_image_set_blob_copy(im, field, data, data_length);
 
-	return (0);
+	return 0;
 }
 
 /* data is the XMP string ... it'll have something like
@@ -546,7 +545,7 @@ attach_xmp_blob(VipsImage *im, void *data, size_t data_length)
 
 	if (data_length < 4 ||
 		!vips_isprefix("http", p))
-		return (0);
+		return 0;
 
 	/* Search for a null char within the first few characters. 80
 	 * should be plenty for a basic URL.
@@ -557,10 +556,10 @@ attach_xmp_blob(VipsImage *im, void *data, size_t data_length)
 		if (!p[i])
 			break;
 	if (p[i])
-		return (0);
+		return 0;
 
-	return (attach_blob(im, VIPS_META_XMP_NAME,
-		p + i + 1, data_length - i - 1));
+	return attach_blob(im, VIPS_META_XMP_NAME,
+		p + i + 1, data_length - i - 1);
 }
 
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
@@ -682,7 +681,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 		vips_connection_filename(VIPS_CONNECTION(jpeg->source)));
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	/* cinfo->output_width and cinfo->output_height round up with
 	 * shrink-on-load. For example, if the image is 1801 pixels across and
@@ -733,13 +732,13 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 				vips_isprefix("Exif", (char *) p->data) &&
 				attach_blob(out, VIPS_META_EXIF_NAME,
 					p->data, p->data_length))
-				return (-1);
+				return -1;
 
 			if (p->data_length > 4 &&
 				vips_isprefix("http", (char *) p->data) &&
 				attach_xmp_blob(out,
 					p->data, p->data_length))
-				return (-1);
+				return -1;
 
 			break;
 
@@ -770,7 +769,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 				vips_isprefix("Photo", (char *) p->data)) {
 				if (attach_blob(out, VIPS_META_IPTC_NAME,
 						p->data, p->data_length))
-					return (-1);
+					return -1;
 
 				/* Older versions of libvips used this misspelt
 				 * name :-( attach under this name too for
@@ -778,7 +777,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 				 */
 				if (attach_blob(out, "ipct-data",
 						p->data, p->data_length))
-					return (-1);
+					return -1;
 			}
 			break;
 
@@ -834,7 +833,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 #endif /*DEBUG*/
 
 		if (!(data = vips_malloc(NULL, data_length)))
-			return (-1);
+			return -1;
 
 		p = 0;
 		for (i = 0; i < MAX_APP2_SECTIONS && app2_data[i]; i++) {
@@ -846,7 +845,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			(VipsCallbackFn) vips_area_free_cb, data, data_length);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -891,7 +890,7 @@ read_jpeg_generate(VipsRegion * or,
 		vips_error("VipsJpeg",
 			_("out of order read at line %d"), jpeg->y_pos);
 
-		return (-1);
+		return -1;
 	}
 
 	/* Here for longjmp() from vips__new_error_exit() during
@@ -904,7 +903,7 @@ read_jpeg_generate(VipsRegion * or,
 		printf("read_jpeg_generate: longjmp() exit\n");
 #endif /*DEBUG*/
 
-		return (-1);
+		return -1;
 	}
 
 	if (jpeg->eman.pub.num_warnings > 0 &&
@@ -915,7 +914,7 @@ read_jpeg_generate(VipsRegion * or,
 		 */
 		jpeg->eman.pub.num_warnings = 0;
 
-		return (-1);
+		return -1;
 	}
 
 	for (y = 0; y < r->height; y++) {
@@ -938,7 +937,7 @@ read_jpeg_generate(VipsRegion * or,
 
 	VIPS_GATE_STOP("read_jpeg_generate: work");
 
-	return (0);
+	return 0;
 }
 
 /* Read a cinfo to a VIPS image.
@@ -956,16 +955,16 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 	 * jpeg_read_header() or jpeg_start_decompress().
 	 */
 	if (setjmp(jpeg->eman.jmp))
-		return (-1);
+		return -1;
 
 	t[0] = vips_image_new();
 	if (read_jpeg_header(jpeg, t[0]))
-		return (-1);
+		return -1;
 
 	/* Switch to pixel decode.
 	 */
 	if (vips_source_decode(jpeg->source))
-		return (-1);
+		return -1;
 
 	jpeg_start_decompress(cinfo);
 
@@ -984,7 +983,7 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 			NULL) ||
 		vips_extract_area(t[1], &t[2],
 			0, 0, jpeg->output_width, jpeg->output_height, NULL))
-		return (-1);
+		return -1;
 	im = t[2];
 
 	if (jpeg->autorotate &&
@@ -994,14 +993,14 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 		 */
 		if (!(t[3] = vips_image_copy_memory(im)) ||
 			vips_autorot(t[3], &t[4], NULL))
-			return (-1);
+			return -1;
 		im = t[4];
 	}
 
 	if (vips_image_write(im, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1030,7 +1029,7 @@ vips__jpeg_read(ReadJpeg *jpeg, VipsImage *out, gboolean header_only)
 	 */
 	if (header_only) {
 		if (read_jpeg_header(jpeg, out))
-			return (-1);
+			return -1;
 
 		/* Patch in the correct size.
 		 */
@@ -1048,10 +1047,10 @@ vips__jpeg_read(ReadJpeg *jpeg, VipsImage *out, gboolean header_only)
 	}
 	else {
 		if (read_jpeg_image(jpeg, out))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1063,22 +1062,22 @@ vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 
 	if (!(jpeg = readjpeg_new(source, out, shrink, fail_on,
 			  autorotate, unlimited)))
-		return (-1);
+		return -1;
 
 	/* Here for longjmp() from vips__new_error_exit() during
 	 * cinfo->mem->alloc_small() or jpeg_read_header().
 	 */
 	if (setjmp(jpeg->eman.jmp))
-		return (-1);
+		return -1;
 
 	if (readjpeg_open_input(jpeg) ||
 		vips__jpeg_read(jpeg, out, header_only))
-		return (-1);
+		return -1;
 
 	if (header_only)
 		vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1089,9 +1088,9 @@ vips__isjpeg_source(VipsSource *source)
 	if ((p = vips_source_sniff(source, 2)) &&
 		p[0] == 0xff &&
 		p[1] == 0xd8)
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_JPEG*/

@@ -141,5 +141,5 @@ vips_LCh2Lab(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("LCh2Lab", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

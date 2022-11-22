@@ -116,9 +116,9 @@ vips_g_input_stream_tell(GSeekable *seekable)
 
 	pos = vips_source_seek(gstream->source, 0, SEEK_CUR);
 	if (pos == -1)
-		return (0);
+		return 0;
 
-	return (pos);
+	return pos;
 }
 
 static gboolean
@@ -129,7 +129,7 @@ vips_g_input_stream_can_seek(GSeekable *seekable)
 	VIPS_DEBUG_MSG("vips_g_input_stream_can_seek: %d\n",
 		!gstream->source->is_pipe);
 
-	return (!gstream->source->is_pipe);
+	return !gstream->source->is_pipe;
 }
 
 static int
@@ -138,11 +138,11 @@ seek_type_to_lseek(GSeekType type)
 	switch (type) {
 	default:
 	case G_SEEK_CUR:
-		return (SEEK_CUR);
+		return SEEK_CUR;
 	case G_SEEK_SET:
-		return (SEEK_SET);
+		return SEEK_SET;
 	case G_SEEK_END:
-		return (SEEK_END);
+		return SEEK_END;
 	}
 }
 
@@ -163,16 +163,16 @@ vips_g_input_stream_seek(GSeekable *seekable, goffset offset,
 			G_IO_ERROR_FAILED,
 			_("Error while seeking: %s"),
 			vips_error_buffer());
-		return (FALSE);
+		return FALSE;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 static gboolean
 vips_g_input_stream_can_truncate(GSeekable *seekable)
 {
-	return (FALSE);
+	return FALSE;
 }
 
 static gboolean
@@ -184,7 +184,7 @@ vips_g_input_stream_truncate(GSeekable *seekable, goffset offset,
 		G_IO_ERROR_NOT_SUPPORTED,
 		_("Cannot truncate VipsGInputStream"));
 
-	return (FALSE);
+	return FALSE;
 }
 
 static gssize
@@ -198,7 +198,7 @@ vips_g_input_stream_read(GInputStream *stream, void *buffer, gsize count,
 	VIPS_DEBUG_MSG("vips_g_input_stream_read: count: %zd\n", count);
 
 	if (g_cancellable_set_error_if_cancelled(cancellable, error))
-		return (-1);
+		return -1;
 
 	if ((res = vips_source_read(gstream->source, buffer, count)) == -1)
 		g_set_error(error, G_IO_ERROR,
@@ -206,7 +206,7 @@ vips_g_input_stream_read(GInputStream *stream, void *buffer, gsize count,
 			_("Error while reading: %s"),
 			vips_error_buffer());
 
-	return (res);
+	return res;
 }
 
 static gssize
@@ -220,7 +220,7 @@ vips_g_input_stream_skip(GInputStream *stream, gsize count,
 	VIPS_DEBUG_MSG("vips_g_input_stream_skip: count: %zd\n", count);
 
 	if (g_cancellable_set_error_if_cancelled(cancellable, error))
-		return (-1);
+		return -1;
 
 	position = vips_source_seek(gstream->source, count, SEEK_CUR);
 	if (position == -1) {
@@ -228,10 +228,10 @@ vips_g_input_stream_skip(GInputStream *stream, gsize count,
 			G_IO_ERROR_FAILED,
 			_("Error while seeking: %s"),
 			vips_error_buffer());
-		return (-1);
+		return -1;
 	}
 
-	return (position);
+	return position;
 }
 
 static gboolean
@@ -242,7 +242,7 @@ vips_g_input_stream_close(GInputStream *stream,
 
 	vips_source_minimise(gstream->source);
 
-	return (TRUE);
+	return TRUE;
 }
 
 static void
@@ -295,7 +295,7 @@ vips_g_input_stream_init(VipsGInputStream *gstream)
 GInputStream *
 vips_g_input_stream_new_from_source(VipsSource *source)
 {
-	return (g_object_new(VIPS_TYPE_G_INPUT_STREAM,
+	return g_object_new(VIPS_TYPE_G_INPUT_STREAM,
 		"input", source,
-		NULL));
+		NULL);
 }

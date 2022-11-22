@@ -88,10 +88,10 @@ vips__clinear(TiePoints *points)
 	elms = points->nopoints;
 
 	if (!(mat = vips_image_new_matrix(4, 4)))
-		return (-1);
+		return -1;
 	if (!(g = VIPS_ARRAY(NULL, 4, double))) {
 		g_object_unref(mat);
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < points->nopoints; i++) {
@@ -136,7 +136,7 @@ vips__clinear(TiePoints *points)
 		g_object_unref(mat);
 		g_free(g);
 		vips_error("vips_clinear", "%s", _("vips_invmat failed"));
-		return (-1);
+		return -1;
 	}
 
 	scale = 0.0;
@@ -175,5 +175,5 @@ vips__clinear(TiePoints *points)
 	points->l_deltax = xdelta;
 	points->l_deltay = ydelta;
 
-	return (0);
+	return 0;
 }

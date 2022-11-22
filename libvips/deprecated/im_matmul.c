@@ -71,13 +71,13 @@ im_matmul(DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name)
 	 */
 	if (in1->xsize != in2->ysize) {
 		im_error("im_matmul", "%s", _("bad sizes"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Allocate output matrix.
 	 */
 	if (!(mat = im_create_dmask(name, in2->xsize, in1->ysize)))
-		return (NULL);
+		return NULL;
 
 	/* Multiply.
 	 */
@@ -106,5 +106,5 @@ im_matmul(DOUBLEMASK *in1, DOUBLEMASK *in2, const char *name)
 		s1 += in1->xsize;
 	}
 
-	return (mat);
+	return mat;
 }

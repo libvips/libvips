@@ -68,30 +68,30 @@ vips_hist_entropy_build(VipsObject *object)
 	double sum;
 
 	if (VIPS_OBJECT_CLASS(vips_hist_entropy_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_hist(class->nickname, entropy->in))
-		return (-1);
+		return -1;
 
 	/* Compute:
 	 *   norm_hist = hist / sum( hist )
 	 *   entropy = -sum( norm_hist * log2( norm_hist ) )
 	 */
 	if (vips_avg(entropy->in, &avg, NULL))
-		return (-1);
+		return -1;
 	sum = avg * VIPS_IMAGE_N_PELS(entropy->in) * entropy->in->Bands;
 	if (vips_linear1(entropy->in, &t[0], 1.0 / sum, 0, NULL) ||
 		vips_log(t[0], &t[1], NULL) ||
 		vips_linear1(t[1], &t[2], 1.0 / log(2.0), 0, NULL) ||
 		vips_multiply(t[0], t[2], &t[3], NULL) ||
 		vips_avg(t[3], &avg, NULL))
-		return (-1);
+		return -1;
 
 	g_object_set(entropy,
 		"out", -avg * VIPS_IMAGE_N_PELS(entropy->in) * entropy->in->Bands,
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -152,5 +152,5 @@ vips_hist_entropy(VipsImage *in, double *out, ...)
 	result = vips_call_split("hist_entropy", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

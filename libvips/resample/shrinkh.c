@@ -229,7 +229,7 @@ vips_shrinkh_gen(VipsRegion * or, void *seq,
 		printf("shrinkh_gen: requesting line %d\n", s.top);
 #endif /*DEBUG*/
 		if (vips_region_prepare(ir, &s))
-			return (-1);
+			return -1;
 
 		VIPS_GATE_START("vips_shrinkh_gen: work");
 
@@ -241,7 +241,7 @@ vips_shrinkh_gen(VipsRegion * or, void *seq,
 
 	VIPS_COUNT_PIXELS(or, "vips_shrinkh_gen");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -256,18 +256,18 @@ vips_shrinkh_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_shrinkh_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
 	if (shrink->hshrink < 1) {
 		vips_error(class->nickname,
 			"%s", _("shrink factors should be >= 1"));
-		return (-1);
+		return -1;
 	}
 
 	if (shrink->hshrink == 1)
-		return (vips_image_write(in, resample->out));
+		return vips_image_write(in, resample->out);
 
 	/* We need new pixels at the right so that we don't have small chunks
 	 * to average down the right edge.
@@ -277,12 +277,12 @@ vips_shrinkh_build(VipsObject *object)
 			in->Xsize + shrink->hshrink, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	if (vips_image_pipelinev(resample->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 
 	/* Size output.
 	 *
@@ -296,7 +296,7 @@ vips_shrinkh_build(VipsObject *object)
 	if (resample->out->Xsize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image has shrunk to nothing"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -308,9 +308,9 @@ vips_shrinkh_build(VipsObject *object)
 	if (vips_image_generate(resample->out,
 			vips_start_one, vips_shrinkh_gen, vips_stop_one,
 			in, shrink))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -394,5 +394,5 @@ vips_shrinkh(VipsImage *in, VipsImage **out, int hshrink, ...)
 	result = vips_call_split("shrinkh", ap, in, out, hshrink);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

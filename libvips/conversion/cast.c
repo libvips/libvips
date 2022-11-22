@@ -366,7 +366,7 @@ vips_cast_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 	int x, y;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_cast_gen: work");
 
@@ -452,7 +452,7 @@ vips_cast_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 	VIPS_GATE_STOP("vips_cast_gen: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -466,17 +466,17 @@ vips_cast_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_cast_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = cast->in;
 
 	/* Trivial case: fall back to copy().
 	 */
 	if (in->BandFmt == cast->format)
-		return (vips_image_write(in, conversion->out));
+		return vips_image_write(in, conversion->out);
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* If @shift is on but we're not in an int format and we're going to
@@ -489,22 +489,22 @@ vips_cast_build(VipsObject *object)
 		vips_band_format_isint(cast->format)) {
 		if (vips_cast(in, &t[1],
 				vips_image_guess_format(in), NULL))
-			return (-1);
+			return -1;
 		in = t[1];
 	}
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 
 	conversion->out->BandFmt = cast->format;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_cast_gen, vips_stop_one,
 			in, cast))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -554,7 +554,7 @@ vips_cast_init(VipsCast *cast)
 static int
 vips_castv(VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap)
 {
-	return (vips_call_split("cast", ap, in, out, format));
+	return vips_call_split("cast", ap, in, out, format);
 }
 
 /**
@@ -593,7 +593,7 @@ vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format, ...)
 	result = vips_castv(in, out, format, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -616,7 +616,7 @@ vips_cast_uchar(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_UCHAR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -639,7 +639,7 @@ vips_cast_char(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_CHAR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -662,7 +662,7 @@ vips_cast_ushort(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_USHORT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -685,7 +685,7 @@ vips_cast_short(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_SHORT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -708,7 +708,7 @@ vips_cast_uint(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_UINT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -731,7 +731,7 @@ vips_cast_int(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_INT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -754,7 +754,7 @@ vips_cast_float(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_FLOAT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -777,7 +777,7 @@ vips_cast_double(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_DOUBLE, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -800,7 +800,7 @@ vips_cast_complex(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_COMPLEX, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -823,5 +823,5 @@ vips_cast_dpcomplex(VipsImage *in, VipsImage **out, ...)
 	result = vips_castv(in, out, VIPS_FORMAT_DPCOMPLEX, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

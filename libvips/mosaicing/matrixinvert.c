@@ -119,12 +119,12 @@ lu_decomp(VipsImage *mat)
 	VipsImage *lu;
 
 	if (!(row_scale = VIPS_ARRAY(NULL, mat->Xsize, double))) {
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(lu = vips_image_new_matrix(mat->Xsize, mat->Xsize + 1))) {
 		g_free(row_scale);
-		return (NULL);
+		return NULL;
 	}
 
 	/* copy all coefficients and then perform decomposition in-place */
@@ -146,7 +146,7 @@ lu_decomp(VipsImage *mat)
 			vips_error("matrixinvert", "singular matrix");
 			g_object_unref(lu);
 			g_free(row_scale);
-			return (NULL);
+			return NULL;
 		}
 
 		/* fill array with scaling factors for each ROW */
@@ -187,7 +187,7 @@ lu_decomp(VipsImage *mat)
 			vips_error("matrixinvert", "singular or near-singular matrix");
 			g_object_unref(lu);
 			g_free(row_scale);
-			return (NULL);
+			return NULL;
 		}
 
 		if (i_of_max != j) {
@@ -211,7 +211,7 @@ lu_decomp(VipsImage *mat)
 	}
 	g_free(row_scale);
 
-	return (lu);
+	return lu;
 }
 
 /**
@@ -239,7 +239,7 @@ lu_solve(VipsImage *lu, double *vec)
 
 	if (lu->Xsize + 1 != lu->Ysize) {
 		vips_error("matrixinvert", "not an LU decomposed matrix");
-		return (-1);
+		return -1;
 	}
 
 	for (i = 0; i < lu->Xsize; ++i) {
@@ -262,7 +262,7 @@ lu_solve(VipsImage *lu, double *vec)
 		vec[i] /= ME(lu, i, i);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -274,10 +274,10 @@ vips_matrixinvert_solve(VipsMatrixinvert *matrix)
 	double *vec;
 
 	if (!(matrix->lu = lu_decomp(matrix->mat)))
-		return (-1);
+		return -1;
 
 	if (!(vec = VIPS_ARRAY(matrix, matrix->lu->Xsize, double)))
-		return (-1);
+		return -1;
 
 	for (j = 0; j < matrix->lu->Xsize; ++j) {
 		for (i = 0; i < matrix->lu->Xsize; ++i)
@@ -286,13 +286,13 @@ vips_matrixinvert_solve(VipsMatrixinvert *matrix)
 		vec[j] = 1.0;
 
 		if (lu_solve(matrix->lu, vec))
-			return (-1);
+			return -1;
 
 		for (i = 0; i < matrix->lu->Xsize; ++i)
 			ME(out, i, j) = vec[i];
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -310,7 +310,7 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 			/* divisor is near zero */
 			vips_error(class->nickname,
 				"%s", _("singular or near-singular matrix"));
-			return (-1);
+			return -1;
 		}
 
 		ME(out, 0, 0) = 1.0 / det;
@@ -326,7 +326,7 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 			/* divisor is near zero */
 			vips_error(class->nickname,
 				"%s", _("singular or near-singular matrix"));
-			return (-1);
+			return -1;
 		}
 
 		tmp = 1.0 / det;
@@ -351,7 +351,7 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 			/* divisor is near zero */
 			vips_error(class->nickname,
 				"%s", _("singular or near-singular matrix"));
-			return (-1);
+			return -1;
 		}
 
 		tmp = 1.0 / det;
@@ -384,10 +384,10 @@ vips_matrixinvert_direct(VipsMatrixinvert *matrix)
 	 * https://stackoverflow.com/a/1148405/10952119 */
 	default:
 		g_assert(0);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -397,14 +397,14 @@ vips_matrixinvert_build(VipsObject *object)
 	VipsMatrixinvert *matrix = (VipsMatrixinvert *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_matrixinvert_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_matrix(class->nickname, matrix->in, &matrix->mat))
-		return (-1);
+		return -1;
 
 	if (matrix->mat->Xsize != matrix->mat->Ysize) {
 		vips_error(class->nickname, "%s", _("non-square matrix"));
-		return (-1);
+		return -1;
 	}
 
 	g_object_set(matrix,
@@ -415,14 +415,14 @@ vips_matrixinvert_build(VipsObject *object)
 	 */
 	if (matrix->mat->Xsize >= 4) {
 		if (vips_matrixinvert_solve(matrix))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_matrixinvert_direct(matrix))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -480,5 +480,5 @@ vips_matrixinvert(VipsImage *m, VipsImage **out, ...)
 	result = vips_call_split("matrixinvert", ap, m, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

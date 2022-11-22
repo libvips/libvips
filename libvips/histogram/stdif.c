@@ -113,7 +113,7 @@ vips_stdif_generate(VipsRegion * or,
 	irect.width = or->valid.width + stdif->width;
 	irect.height = or->valid.height + stdif->height;
 	if (vips_region_prepare(ir, &irect))
-		return (-1);
+		return -1;
 
 	lsk = VIPS_REGION_LSKIP(ir);
 	centre = lsk * (stdif->height / 2) + stdif->width / 2;
@@ -207,7 +207,7 @@ vips_stdif_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -220,25 +220,25 @@ vips_stdif_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_stdif_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = stdif->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_format(class->nickname, in, VIPS_FORMAT_UCHAR))
-		return (-1);
+		return -1;
 
 	if (stdif->width > in->Xsize ||
 		stdif->height > in->Ysize) {
 		vips_error(class->nickname, "%s", _("window too large"));
-		return (-1);
+		return -1;
 	}
 	if (in->Bands > MAX_BANDS) {
 		vips_error(class->nickname, "%s", _("too many bands"));
-		return (-1);
+		return -1;
 	}
 
 	/* Expand the input.
@@ -248,7 +248,7 @@ vips_stdif_build(VipsObject *object)
 			in->Xsize + stdif->width - 1, in->Ysize + stdif->height - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	g_object_set(object, "out", vips_image_new(), NULL);
@@ -258,7 +258,7 @@ vips_stdif_build(VipsObject *object)
 	 */
 	if (vips_image_pipelinev(stdif->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
-		return (-1);
+		return -1;
 	stdif->out->Xsize -= stdif->width - 1;
 	stdif->out->Ysize -= stdif->height - 1;
 
@@ -267,14 +267,14 @@ vips_stdif_build(VipsObject *object)
 			vips_stdif_generate,
 			vips_stop_one,
 			in, stdif))
-		return (-1);
+		return -1;
 
 	stdif->out->Xoffset = 0;
 	stdif->out->Yoffset = 0;
 
 	vips_reorder_margin_hint(stdif->out, stdif->width * stdif->height);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -415,5 +415,5 @@ vips_stdif(VipsImage *in, VipsImage **out, int width, int height, ...)
 	result = vips_call_split("stdif", ap, in, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

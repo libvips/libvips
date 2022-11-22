@@ -76,7 +76,7 @@ vips_mask_ideal_ring_point(VipsMask *mask, double dx, double dy)
 	double fc2_1 = (fc - df) * (fc - df);
 	double fc2_2 = (fc + df) * (fc + df);
 
-	return (dist2 > fc2_1 && dist2 < fc2_2 ? 1.0 : 0.0);
+	return dist2 > fc2_1 && dist2 < fc2_2 ? 1.0 : 0.0;
 }
 
 static void
@@ -144,5 +144,5 @@ vips_mask_ideal_ring(VipsImage **out, int width, int height,
 		frequency_cutoff, ringwidth);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

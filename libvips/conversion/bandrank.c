@@ -206,17 +206,17 @@ vips_bandrank_build(VipsObject *object)
 
 		for (i = 0; i < n; i++)
 			if (vips_check_noncomplex(class->nickname, in[i]))
-				return (-1);
+				return -1;
 
 		if (n == 1) {
 			bandary->in = in;
 			bandary->n = 1;
 
-			return (vips_bandary_copy(bandary));
+			return vips_bandary_copy(bandary);
 		}
 
 		if (vips__bandalike_vec(class->nickname, in, band, n, 0))
-			return (-1);
+			return -1;
 
 		bandary->in = band;
 		bandary->n = n;
@@ -227,9 +227,9 @@ vips_bandrank_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_bandrank_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -283,7 +283,7 @@ vips_bandrankv(VipsImage **in, VipsImage **out, int n, va_list ap)
 	result = vips_call_split("bandrank", ap, array, out);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -328,5 +328,5 @@ vips_bandrank(VipsImage **in, VipsImage **out, int n, ...)
 	result = vips_bandrankv(in, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

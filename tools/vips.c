@@ -116,18 +116,18 @@ list_class(GType type, void *user_data)
 	int i;
 
 	if (class->deprecated)
-		return (NULL);
+		return NULL;
 	if (VIPS_IS_OPERATION_CLASS(class) &&
 		(VIPS_OPERATION_CLASS(class)->flags &
 			VIPS_OPERATION_DEPRECATED))
-		return (NULL);
+		return NULL;
 
 	for (i = 0; i < depth * 2; i++)
 		printf(" ");
 	vips_object_print_summary_class(
 		VIPS_OBJECT_CLASS(g_type_class_ref(type)));
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -141,11 +141,11 @@ test_class_name(GType type, void *data)
 	 */
 	if ((class = VIPS_OBJECT_CLASS(g_type_class_ref(type))) &&
 		strcmp(class->nickname, name) == 0)
-		return (class);
+		return class;
 	if (strcmp(G_OBJECT_CLASS_NAME(class), name) == 0)
-		return (class);
+		return class;
 
-	return (NULL);
+	return NULL;
 }
 
 static gboolean
@@ -166,7 +166,7 @@ parse_main_option_list(const gchar *option_name, const gchar *value,
 			_("'%s' is not the name of a vips class"), value);
 		vips_error_g(error);
 
-		return (FALSE);
+		return FALSE;
 	}
 	else {
 		vips_type_map_all(g_type_from_name("VipsOperation"),
@@ -182,11 +182,11 @@ list_operation(GType type, void *user_data)
 	VipsObjectClass *class = VIPS_OBJECT_CLASS(g_type_class_ref(type));
 
 	if (G_TYPE_IS_ABSTRACT(type))
-		return (NULL);
+		return NULL;
 	if (class->deprecated)
-		return (NULL);
+		return NULL;
 	if (VIPS_OPERATION_CLASS(class)->flags & VIPS_OPERATION_DEPRECATED)
-		return (NULL);
+		return NULL;
 
 	/* Complete on class names as well as nicknames -- "crop", for
 	 * example, is a class name.
@@ -194,7 +194,7 @@ list_operation(GType type, void *user_data)
 	printf("%s\n", class->nickname);
 	printf("%s\n", G_OBJECT_CLASS_NAME(class));
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -206,12 +206,12 @@ list_operation_arg(VipsObjectClass *object_class,
 
 	if (!(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
 		(argument_class->flags & VIPS_ARGUMENT_DEPRECATED))
-		return (NULL);
+		return NULL;
 
 	/* We don't try to complete options, though maybe we should.
 	 */
 	if (!(argument_class->flags & VIPS_ARGUMENT_REQUIRED))
-		return (NULL);
+		return NULL;
 
 	/* These are the pspecs that vips uses that have interesting values.
 	 */
@@ -224,7 +224,7 @@ list_operation_arg(VipsObjectClass *object_class,
 		/* Should be impossible, no need to warn.
 		 */
 		if (!class)
-			return (NULL);
+			return NULL;
 
 		genum = G_ENUM_CLASS(class);
 
@@ -261,7 +261,7 @@ list_operation_arg(VipsObjectClass *object_class,
 		 */
 		printf("none\n");
 
-	return (NULL);
+	return NULL;
 }
 
 static gboolean
@@ -283,7 +283,7 @@ parse_main_option_completion(const gchar *option_name, const gchar *value,
 			value);
 		vips_error_g(error);
 
-		return (FALSE);
+		return FALSE;
 	}
 	else {
 		vips_type_map_all(g_type_from_name("VipsOperation"),
@@ -323,9 +323,9 @@ map_package(im_package *pack, map_name_fn fn)
 
 	for (i = 0; i < pack->nfuncs; i++)
 		if ((result = fn(pack->table[i])))
-			return (result);
+			return result;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Apply a function to a vips operation, or map over a package of operations.
@@ -351,10 +351,10 @@ map_name(const char *name, map_name_fn fn)
 	else {
 		vips_error("map_name",
 			_("no package or function \"%s\""), name);
-		return (fn);
+		return fn;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -362,7 +362,7 @@ list_package(im_package *pack)
 {
 	printf("%-20s - %d operations\n", pack->name, pack->nfuncs);
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -370,7 +370,7 @@ list_function(im_function *func)
 {
 	printf("%-20s - %s\n", func->name, _(func->desc));
 
-	return (NULL);
+	return NULL;
 }
 #endif
 
@@ -400,7 +400,7 @@ print_list(int argc, char **argv)
 #endif
 	}
 
-	return (0);
+	return 0;
 }
 
 #if ENABLE_DEPRECATED
@@ -416,7 +416,7 @@ print_links_package(im_package *pack)
 			   "ln -s vips" IM_EXEEXT " %s" IM_EXEEXT "\n",
 			pack->table[i]->name, pack->table[i]->name);
 
-	return (NULL);
+	return NULL;
 }
 
 /* Print "ln -s" lines for this package.
@@ -426,7 +426,7 @@ print_links(int argc, char **argv)
 {
 	im_map_packages((VSListMap2Fn) print_links_package, NULL);
 
-	return (0);
+	return 0;
 }
 
 /* Does a function have any printing output?
@@ -438,9 +438,9 @@ has_print(im_function *fn)
 
 	for (i = 0; i < fn->argc; i++)
 		if (fn->argv[i].print)
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }
 #endif
 
@@ -452,7 +452,7 @@ isvips(const char *name)
 	if (vips_isprefix("lt-", name))
 		name += 3;
 
-	return (vips_isprefix("vips", name));
+	return vips_isprefix("vips", name);
 }
 
 #if ENABLE_DEPRECATED
@@ -530,7 +530,7 @@ usage(im_function *fn)
 static int
 print_help(int argc, char **argv)
 {
-	return (0);
+	return 0;
 }
 
 /* All our built-in actions.
@@ -626,7 +626,7 @@ add_operation_group(GOptionContext *context, VipsOperation *user_data)
 	g_option_group_set_translation_domain(group, GETTEXT_PACKAGE);
 	g_option_context_add_group(context, group);
 
-	return (group);
+	return group;
 }
 
 /* VIPS universal main program.
@@ -899,5 +899,5 @@ main(int argc, char **argv)
 
 	vips_shutdown();
 
-	return (0);
+	return 0;
 }

@@ -82,7 +82,7 @@ vips_autorot_remove_angle_sub(VipsImage *image,
 		(void) vips_image_remove(image, field);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -108,7 +108,7 @@ vips_autorot_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
 	if (VIPS_OBJECT_CLASS(vips_autorot_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	VipsAngle angle;
 	gboolean flip;
@@ -166,28 +166,28 @@ vips_autorot_build(VipsObject *object)
 
 	if (angle != VIPS_ANGLE_D0) {
 		if (vips_rot(in, &t[0], angle, NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 
 	if (flip) {
 		if (vips_flip(in, &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
-			return (-1);
+			return -1;
 		in = t[1];
 	}
 
 	/* We must copy before modifying metadata.
 	 */
 	if (vips_copy(in, &t[2], NULL))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	vips_autorot_remove_angle(in);
 
 	if (vips_image_write(in, conversion->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -261,5 +261,5 @@ vips_autorot(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("autorot", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

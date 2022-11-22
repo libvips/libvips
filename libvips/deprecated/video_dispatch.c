@@ -60,8 +60,8 @@ video_v4l1_vec(im_object *argv)
 	int hue = *((int *) argv[6]);
 	int ngrabs = *((int *) argv[7]);
 
-	return (im_video_v4l1(out, device,
-		channel, brightness, colour, contrast, hue, ngrabs));
+	return im_video_v4l1(out, device,
+		channel, brightness, colour, contrast, hue, ngrabs);
 }
 
 static im_arg_desc video_v4l1_arg_types[] = {
@@ -91,7 +91,7 @@ video_test_vec(im_object *argv)
 	int brightness = *((int *) argv[1]);
 	int error = *((int *) argv[2]);
 
-	return (im_video_test(out, brightness, error));
+	return im_video_test(out, brightness, error);
 }
 
 static im_arg_desc video_test_arg_types[] = {

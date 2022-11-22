@@ -60,10 +60,10 @@ vips_hough_new_accumulator(VipsHough *hough)
 		class->init_accumulator(hough, accumulator) ||
 		vips_image_write_prepare(accumulator)) {
 		g_object_unref(accumulator);
-		return (NULL);
+		return NULL;
 	}
 
-	return (accumulator);
+	return accumulator;
 }
 
 static int
@@ -80,18 +80,18 @@ vips_hough_build(VipsObject *object)
 	 */
 	if (statistic->in)
 		if (vips_check_mono(class->nickname, statistic->in))
-			return (-1);
+			return -1;
 
 	if (!(out = vips_hough_new_accumulator(hough)))
-		return (-1);
+		return -1;
 	g_object_set(object,
 		"out", out,
 		NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_hough_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Build a new accumulator.
@@ -104,9 +104,9 @@ vips_hough_start(VipsStatistic *statistic)
 	VipsImage *accumulator;
 
 	if (!(accumulator = vips_hough_new_accumulator(hough)))
-		return (NULL);
+		return NULL;
 
-	return ((void *) accumulator);
+	return (void *) accumulator;
 }
 
 /* Add our finished accumulator to the main area.
@@ -121,12 +121,12 @@ vips_hough_stop(VipsStatistic *statistic, void *seq)
 			"mode", VIPS_COMBINE_MODE_ADD,
 			NULL)) {
 		g_object_unref(accumulator);
-		return (-1);
+		return -1;
 	}
 
 	g_object_unref(accumulator);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -144,7 +144,7 @@ vips_hough_scan(VipsStatistic *statistic,
 		if (p[i])
 			class->vote(hough, accumulator, x + i, y);
 
-	return (0);
+	return 0;
 }
 
 #define UC VIPS_FORMAT_UCHAR

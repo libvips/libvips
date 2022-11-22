@@ -98,7 +98,7 @@ vips_avg_build(VipsObject *object)
 	double average;
 
 	if (VIPS_OBJECT_CLASS(vips_avg_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vals = (gint64) vips_image_get_width(statistic->in) *
 		vips_image_get_height(statistic->in) *
@@ -106,7 +106,7 @@ vips_avg_build(VipsObject *object)
 	average = avg->sum / vals;
 	g_object_set(object, "out", average, NULL);
 
-	return (0);
+	return 0;
 }
 
 /* Start function: allocate space for a double in which we can accumulate the
@@ -115,7 +115,7 @@ vips_avg_build(VipsObject *object)
 static void *
 vips_avg_start(VipsStatistic *statistic)
 {
-	return ((void *) g_new0(double, 1));
+	return (void *) g_new0(double, 1);
 }
 
 /* Stop function. Add this little sum to the main sum.
@@ -130,7 +130,7 @@ vips_avg_stop(VipsStatistic *statistic, void *seq)
 
 	g_free(seq);
 
-	return (0);
+	return 0;
 }
 
 /* Sum pels in this section.
@@ -210,7 +210,7 @@ vips_avg_scan(VipsStatistic *statistic, void *seq,
 
 	*sum = m;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -268,5 +268,5 @@ vips_avg(VipsImage *in, double *out, ...)
 	result = vips_call_split("avg", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

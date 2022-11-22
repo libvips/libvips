@@ -89,12 +89,12 @@ vips_canny_gradient(VipsImage *in, VipsImage **Gx, VipsImage **Gy)
 		vips_rot90(t[0], &t[1], NULL) ||
 		vips_conv(in, Gy, t[1], "precision", precision, NULL)) {
 		g_object_unref(scope);
-		return (-1);
+		return -1;
 	}
 
 	g_object_unref(scope);
 
-	return (0);
+	return 0;
 }
 
 /* LUT for calculating atan2() with +/- 4 bits of precision in each axis.
@@ -165,7 +165,7 @@ vips_canny_polar_generate(VipsRegion * or,
 	int x, y, band;
 
 	if (vips_reorder_prepare_many(or->im, in, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p1 = (VipsPel *restrict)
@@ -193,7 +193,7 @@ vips_canny_polar_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -213,7 +213,7 @@ vips_atan2_init(void *null)
 		vips_canny_polar_atan2[i] = 256 * theta / 360;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Calculate G/theta from Gx/Gy. We code theta as 0-256 for 0-360
@@ -232,15 +232,15 @@ vips_canny_polar(VipsImage **args, VipsImage **out)
 	*out = vips_image_new();
 	if (vips_image_pipeline_array(*out,
 			VIPS_DEMAND_STYLE_THINSTRIP, args))
-		return (-1);
+		return -1;
 	(*out)->Bands *= 2;
 
 	if (vips_image_generate(*out,
 			vips_start_many, vips_canny_polar_generate, vips_stop_many,
 			args, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define THIN(TYPE) \
@@ -297,7 +297,7 @@ vips_canny_thin_generate(VipsRegion * or,
 	rect.width += 2;
 	rect.height += 2;
 	if (vips_region_prepare(in, &rect))
-		return (-1);
+		return -1;
 
 	/* These are in typed units.
 	 */
@@ -346,7 +346,7 @@ vips_canny_thin_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Remove non-maximal edges. At each point, compare the G to the G in either
@@ -358,7 +358,7 @@ vips_canny_thin(VipsImage *in, VipsImage **out)
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 	(*out)->Bands /= 2;
 	(*out)->Xsize -= 2;
 	(*out)->Ysize -= 2;
@@ -366,9 +366,9 @@ vips_canny_thin(VipsImage *in, VipsImage **out)
 	if (vips_image_generate(*out,
 			vips_start_one, vips_canny_thin_generate, vips_stop_one,
 			in, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -380,18 +380,18 @@ vips_canny_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_canny_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = canny->in;
 
 	if (vips_gaussblur(in, &t[0], canny->sigma,
 			"precision", canny->precision,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_canny_gradient(in, &t[1], &t[2]))
-		return (-1);
+		return -1;
 
 	/* Form (G, theta).
 	 */
@@ -399,7 +399,7 @@ vips_canny_build(VipsObject *object)
 	canny->args[1] = t[2];
 	canny->args[2] = NULL;
 	if (vips_canny_polar(canny->args, &t[3]))
-		return (-1);
+		return -1;
 	in = t[3];
 
 	/* Expand by two pixels all around, then thin in the direction of the
@@ -408,18 +408,18 @@ vips_canny_build(VipsObject *object)
 	if (vips_embed(in, &t[4], 1, 1, in->Xsize + 2, in->Ysize + 2,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 
 	if (vips_canny_thin(t[4], &t[5]))
-		return (-1);
+		return -1;
 	in = t[5];
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (vips_image_write(in, canny->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -512,5 +512,5 @@ vips_canny(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("canny", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

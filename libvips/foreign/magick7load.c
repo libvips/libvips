@@ -258,13 +258,13 @@ vips_magick7_print_image_type(Image *image)
 static VipsForeignFlags
 vips_foreign_load_magick7_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_magick7_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static void
@@ -307,7 +307,7 @@ vips_foreign_load_magick7_build(VipsObject *object)
 	magick7->lock = vips_g_mutex_new();
 
 	if (!magick7->image_info)
-		return (-1);
+		return -1;
 
 	if (magick7->all_frames)
 		magick7->n = -1;
@@ -331,9 +331,9 @@ vips_foreign_load_magick7_build(VipsObject *object)
 			magick7->page, magick7->n);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -433,7 +433,7 @@ magick7_get_bands(Image *image)
 			bands += 1;
 	}
 
-	return (bands);
+	return bands;
 }
 
 static int
@@ -469,7 +469,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		vips_error(class->nickname,
 			_("bad image dimensions %d x %d pixels, %d bands"),
 			out->Xsize, out->Ysize, out->Bands);
-		return (-1);
+		return -1;
 	}
 
 	/* Depth can be 'fractional'. You'd think we should use
@@ -488,7 +488,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	if (out->BandFmt == -1) {
 		vips_error(class->nickname,
 			_("unsupported bit depth %zd"), image->depth);
-		return (-1);
+		return -1;
 	}
 
 	switch (image->colorspace) {
@@ -515,7 +515,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		vips_error(class->nickname,
 			_("unsupported colorspace %s"),
 			magick_ColorspaceType2str(image->colorspace));
-		return (-1);
+		return -1;
 	}
 
 	switch (image->units) {
@@ -544,7 +544,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	out->Coding = VIPS_CODING_NONE;
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-		return (-1);
+		return -1;
 
 	/* Get all the string metadata.
 	 */
@@ -557,7 +557,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		value = GetImageProperty(image, key, magick7->exception);
 		if (!value) {
 			vips_foreign_load_magick7_error(magick7);
-			return (-1);
+			return -1;
 		}
 		vips_buf_appendf(&name, "magick-%s", key);
 		vips_image_set_string(out, vips_buf_all(&name), value);
@@ -566,7 +566,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	/* Set vips metadata from ImageMagick profiles.
 	 */
 	if (magick_set_vips_profile(out, image))
-		return (-1);
+		return -1;
 
 	/* Something like "BMP".
 	 */
@@ -631,7 +631,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE, image->depth);
 
-	return (0);
+	return 0;
 }
 
 /* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
@@ -717,7 +717,7 @@ vips_foreign_load_magick7_fill_region(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -734,14 +734,14 @@ vips_foreign_load_magick7_load(VipsForeignLoadMagick7 *magick7)
 
 	if (vips_foreign_load_magick7_parse(magick7,
 			magick7->image, load->out))
-		return (-1);
+		return -1;
 
 	/* Record frame pointers.
 	 */
 	g_assert(!magick7->frames);
 	if (!(magick7->frames =
 				VIPS_ARRAY(NULL, magick7->n_frames, Image *)))
-		return (-1);
+		return -1;
 	p = magick7->image;
 	for (i = 0; i < magick7->n_frames; i++) {
 		magick7->frames[i] = p;
@@ -753,7 +753,7 @@ vips_foreign_load_magick7_load(VipsForeignLoadMagick7 *magick7)
 	g_assert(!magick7->cache_view);
 	if (!(magick7->cache_view = VIPS_ARRAY(NULL,
 			  magick7->n_frames, CacheView *)))
-		return (-1);
+		return -1;
 	for (i = 0; i < magick7->n_frames; i++) {
 		magick7->cache_view[i] = AcquireAuthenticCacheView(
 			magick7->frames[i], magick7->exception);
@@ -769,9 +769,9 @@ vips_foreign_load_magick7_load(VipsForeignLoadMagick7 *magick7)
 	if (vips_image_generate(load->out,
 			NULL, vips_foreign_load_magick7_fill_region, NULL,
 			magick7, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 typedef struct _VipsForeignLoadMagick7File {
@@ -794,8 +794,8 @@ ismagick7(const char *filename)
 	unsigned char buf[100];
 	int len;
 
-	return ((len = vips__get_bytes(filename, buf, 100)) > 10 &&
-		magick_ismagick(buf, len));
+	return (len = vips__get_bytes(filename, buf, 100)) > 10 &&
+		magick_ismagick(buf, len);
 }
 
 static int
@@ -822,15 +822,15 @@ vips_foreign_load_magick7_file_header(VipsForeignLoad *load)
 	magick7->image = ReadImage(magick7->image_info, magick7->exception);
 	if (!magick7->image) {
 		vips_foreign_load_magick7_error(magick7);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_foreign_load_magick7_load(magick7))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, file->filename);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -878,8 +878,7 @@ G_DEFINE_TYPE(VipsForeignLoadMagick7Buffer, vips_foreign_load_magick7_buffer,
 static gboolean
 vips_foreign_load_magick7_buffer_is_a_buffer(const void *buf, size_t len)
 {
-	return (len > 10 &&
-		magick_ismagick((const unsigned char *) buf, len));
+	return len > 10 && magick_ismagick((const unsigned char *) buf, len);
 }
 
 static int
@@ -906,13 +905,13 @@ vips_foreign_load_magick7_buffer_header(VipsForeignLoad *load)
 		magick7->exception);
 	if (!magick7->image) {
 		vips_foreign_load_magick7_error(magick7);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_foreign_load_magick7_load(magick7))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

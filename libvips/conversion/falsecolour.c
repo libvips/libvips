@@ -337,14 +337,14 @@ vips_falsecolour_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
 
 	if (VIPS_OBJECT_CLASS(vips_falsecolour_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!(t[0] = vips_image_new_from_memory(
 			  (void *) vips_falsecolour_pet,
 			  sizeof(vips_falsecolour_pet),
 			  1, VIPS_NUMBER(vips_falsecolour_pet), 3,
 			  VIPS_FORMAT_UCHAR)))
-		return (-1);
+		return -1;
 
 	/* Force to mono 8-bit. Don't use vips_colourspace() to go to B_W, we
 	 * want to work for images which aren't in a recognised space, like
@@ -355,9 +355,9 @@ vips_falsecolour_build(VipsObject *object)
 		vips_cast(t[2], &t[3], VIPS_FORMAT_UCHAR, NULL) ||
 		vips_maplut(t[3], &t[4], t[0], NULL) ||
 		vips_image_write(t[4], conversion->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -413,5 +413,5 @@ vips_falsecolour(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("falsecolour", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

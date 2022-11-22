@@ -191,7 +191,7 @@ read_close(VipsImage *im, Read *read)
 {
 	read_free(read);
 
-	return (0);
+	return 0;
 }
 
 static Read *
@@ -210,7 +210,7 @@ read_new(const char *filename, VipsImage *im,
 		n = 10000000;
 
 	if (!(read = VIPS_NEW(im, Read)))
-		return (NULL);
+		return NULL;
 	read->filename = filename ? g_strdup(filename) : NULL;
 	read->buf = buf;
 	read->len = len;
@@ -229,7 +229,7 @@ read_new(const char *filename, VipsImage *im,
 	g_signal_connect(im, "close", G_CALLBACK(read_close), read);
 
 	if (!read->image_info)
-		return (NULL);
+		return NULL;
 
 	if (filename)
 		vips_strncpy(read->image_info->filename,
@@ -264,7 +264,7 @@ read_new(const char *filename, VipsImage *im,
 	printf("magick2vips: read_new: %s\n", read->filename);
 #endif /*DEBUG*/
 
-	return (read);
+	return read;
 }
 
 static int
@@ -304,10 +304,10 @@ get_bands(Image *image)
 	default:
 		vips_error("magick2vips", _("unsupported image type %d"),
 			(int) type);
-		return (-1);
+		return -1;
 	}
 
-	return (bands);
+	return bands;
 }
 
 static int
@@ -352,7 +352,7 @@ parse_header(Read *read)
 		vips_error("magick2vips",
 			_("bad image dimensions %d x %d pixels, %d bands"),
 			im->Xsize, im->Ysize, im->Bands);
-		return (-1);
+		return -1;
 	}
 
 	/* Depth can be 'fractional'.
@@ -382,7 +382,7 @@ parse_header(Read *read)
 	if (im->BandFmt == -1) {
 		vips_error("magick2vips", _("unsupported bit depth %d"),
 			(int) depth);
-		return (-1);
+		return -1;
 	}
 
 	switch (image->colorspace) {
@@ -408,7 +408,7 @@ parse_header(Read *read)
 	default:
 		vips_error("magick2vips", _("unsupported colorspace %d"),
 			(int) image->colorspace);
-		return (-1);
+		return -1;
 	}
 
 	switch (image->units) {
@@ -433,12 +433,12 @@ parse_header(Read *read)
 	im->Coding = VIPS_CODING_NONE;
 
 	if (vips_image_pipelinev(im, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-		return (-1);
+		return -1;
 
 	/* Set vips metadata from ImageMagick profiles.
 	 */
 	if (magick_set_vips_profile(im, image))
-		return (-1);
+		return -1;
 
 #ifdef HAVE_RESETIMAGEPROPERTYITERATOR
 	{
@@ -539,7 +539,7 @@ parse_header(Read *read)
 	/* Record frame pointers.
 	 */
 	if (!(read->frames = VIPS_ARRAY(NULL, read->n_frames, Image *)))
-		return (-1);
+		return -1;
 	p = image;
 	for (i = 0; i < read->n_frames; i++) {
 		read->frames[i] = p;
@@ -558,7 +558,7 @@ parse_header(Read *read)
 
 	vips_image_set_int(im, VIPS_META_BITS_PER_SAMPLE, depth);
 
-	return (0);
+	return 0;
 }
 
 /* Divide by this to get 0 - MAX from a Quantum. Eg. consider QuantumRange ==
@@ -728,7 +728,7 @@ get_pixels(Image *image, int left, int top, int width, int height)
 #else
 	if (!(pixels = GetImagePixels(image, left, top, width, height)))
 #endif
-		return (NULL);
+		return NULL;
 
 /* Can't happen if red/green/blue are doubles.
  */
@@ -759,7 +759,7 @@ get_pixels(Image *image, int left, int top, int width, int height)
 	}
 #endif /*UseHDRI*/
 
-	return (pixels);
+	return pixels;
 }
 
 static int
@@ -788,14 +788,14 @@ magick_fill_region(VipsRegion *out,
 			vips_foreign_load_invalidate(read->im);
 			vips_error("magick2vips",
 				"%s", _("unable to read pixels"));
-			return (-1);
+			return -1;
 		}
 
 		unpack_pixels(read->im, VIPS_REGION_ADDR(out, r->left, top),
 			pixels, r->width);
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -809,7 +809,7 @@ vips__magick_read(const char *filename,
 #endif /*DEBUG*/
 
 	if (!(read = read_new(filename, out, NULL, n, density, page, n)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("magick2vips: calling ReadImage() ...\n");
@@ -820,16 +820,16 @@ vips__magick_read(const char *filename,
 		magick_vips_error("magick2vips", read->exception);
 		vips_error("magick2vips",
 			_("unable to read file \"%s\""), filename);
-		return (-1);
+		return -1;
 	}
 
 	if (parse_header(read))
-		return (-1);
+		return -1;
 	if (vips_image_generate(out,
 			NULL, magick_fill_region, NULL, read, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -843,7 +843,7 @@ vips__magick_read_header(const char *filename,
 #endif /*DEBUG*/
 
 	if (!(read = read_new(filename, out, NULL, 0, density, page, n)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("vips__magick_read_header: reading image ...\n");
@@ -858,23 +858,23 @@ vips__magick_read_header(const char *filename,
 		magick_vips_error("magick2vips", read->exception);
 		vips_error("magick2vips",
 			_("unable to read file \"%s\""), filename);
-		return (-1);
+		return -1;
 	}
 
 	if (parse_header(read))
-		return (-1);
+		return -1;
 
 	if (out->Xsize <= 0 ||
 		out->Ysize <= 0) {
 		vips_error("magick2vips", "%s", _("bad image size"));
-		return (-1);
+		return -1;
 	}
 
 	/* Just a header read: we can free the read early and save an fd.
 	 */
 	read_free(read);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -888,7 +888,7 @@ vips__magick_read_buffer(const void *buf, const size_t len,
 #endif /*DEBUG*/
 
 	if (!(read = read_new(NULL, out, buf, len, density, page, n)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("magick2vips: calling BlobToImage() ...\n");
@@ -899,16 +899,16 @@ vips__magick_read_buffer(const void *buf, const size_t len,
 	if (!read->image) {
 		magick_vips_error("magick2vips", read->exception);
 		vips_error("magick2vips", "%s", _("unable to read buffer"));
-		return (-1);
+		return -1;
 	}
 
 	if (parse_header(read))
-		return (-1);
+		return -1;
 	if (vips_image_generate(out,
 			NULL, magick_fill_region, NULL, read, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -922,7 +922,7 @@ vips__magick_read_buffer_header(const void *buf, const size_t len,
 #endif /*DEBUG*/
 
 	if (!(read = read_new(NULL, out, buf, len, density, page, n)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("vips__magick_read_buffer_header: pinging blob ...\n");
@@ -937,19 +937,19 @@ vips__magick_read_buffer_header(const void *buf, const size_t len,
 	if (!read->image) {
 		magick_vips_error("magick2vips", read->exception);
 		vips_error("magick2vips", "%s", _("unable to ping blob"));
-		return (-1);
+		return -1;
 	}
 
 	if (parse_header(read))
-		return (-1);
+		return -1;
 
 	if (out->Xsize <= 0 ||
 		out->Ysize <= 0) {
 		vips_error("magick2vips", "%s", _("bad image size"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_MAGICK6*/

@@ -90,8 +90,8 @@ vips_mask_butterworth_band_point(VipsMask *mask,
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
 
-	return (cnsta * (1.0 / (1.0 + cnst * pow(d1 / r2, order)) +
-					1.0 / (1.0 + cnst * pow(d2 / r2, order))));
+	return cnsta * (1.0 / (1.0 + cnst * pow(d1 / r2, order)) +
+					1.0 / (1.0 + cnst * pow(d2 / r2, order)));
 	/* clang-format on */
 }
 
@@ -203,5 +203,5 @@ vips_mask_butterworth_band(VipsImage **out, int width, int height,
 		amplitude_cutoff);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

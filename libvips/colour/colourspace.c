@@ -71,13 +71,13 @@
 static int
 vips_scRGB2RGB16(VipsImage *in, VipsImage **out, ...)
 {
-	return (vips_scRGB2sRGB(in, out, "depth", 16, NULL));
+	return vips_scRGB2sRGB(in, out, "depth", 16, NULL);
 }
 
 static int
 vips_scRGB2BW16(VipsImage *in, VipsImage **out, ...)
 {
-	return (vips_scRGB2BW(in, out, "depth", 16, NULL));
+	return vips_scRGB2BW(in, out, "depth", 16, NULL);
 }
 
 /* Do these two with a simple cast ... since we're just cast shifting, we can
@@ -90,10 +90,10 @@ vips_RGB162sRGB(VipsImage *in, VipsImage **out, ...)
 	if (vips_cast(in, out, VIPS_FORMAT_UCHAR,
 			"shift", TRUE,
 			NULL))
-		return (-1);
+		return -1;
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -102,10 +102,10 @@ vips_sRGB2RGB16(VipsImage *in, VipsImage **out, ...)
 	if (vips_cast(in, out, VIPS_FORMAT_USHORT,
 			"shift", TRUE,
 			NULL))
-		return (-1);
+		return -1;
 	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 
-	return (0);
+	return 0;
 }
 
 /* Process the first @n bands with @fn, detach and reattach remaining bands.
@@ -132,21 +132,21 @@ vips__colourspace_process_n(const char *domain,
 				NULL) ||
 			vips_bandjoin2(t[2], t[3], out, NULL)) {
 			g_object_unref(scope);
-			return (-1);
+			return -1;
 		}
 
 		g_object_unref(scope);
 	}
 	else if (in->Bands == n) {
 		if (fn(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		vips_error(domain, "%s", _("too few bands for operation"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -158,9 +158,9 @@ vips_BW2sRGB_op(VipsImage *in, VipsImage **out, ...)
 	t[1] = in;
 	t[2] = in;
 	if (vips_bandjoin(t, out, 3, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -168,10 +168,10 @@ vips_BW2sRGB(VipsImage *in, VipsImage **out, ...)
 {
 	if (vips__colourspace_process_n("BW2sRGB",
 			in, out, 1, vips_BW2sRGB_op))
-		return (-1);
+		return -1;
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -179,10 +179,10 @@ vips_GREY162RGB16(VipsImage *in, VipsImage **out, ...)
 {
 	if (vips__colourspace_process_n("GREY162RGB16",
 			in, out, 1, vips_BW2sRGB_op))
-		return (-1);
+		return -1;
 	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 
-	return (0);
+	return 0;
 }
 
 /* Maximum number of steps we allow in a route. 10 steps should be enough
@@ -443,9 +443,9 @@ vips_colourspace_issupported(const VipsImage *image)
 
 	for (i = 0; i < VIPS_NUMBER(vips_colour_routes); i++)
 		if (vips_colour_routes[i].from == interpretation)
-			return (TRUE);
+			return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 typedef struct _VipsColourspace {
@@ -478,7 +478,7 @@ vips_colourspace_build(VipsObject *object)
 	/* Verify that all input args have been set.
 	 */
 	if (VIPS_OBJECT_CLASS(vips_colourspace_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	x = colourspace->in;
 
@@ -487,7 +487,7 @@ vips_colourspace_build(VipsObject *object)
 	 */
 	if (x->Coding == VIPS_CODING_RAD) {
 		if (vips_rad2float(x, &t[0], NULL))
-			return (-1);
+			return -1;
 		x = t[0];
 	}
 
@@ -507,7 +507,7 @@ vips_colourspace_build(VipsObject *object)
 	if (interpretation == colourspace->space) {
 		g_object_set(colourspace, "out", vips_image_new(), NULL);
 
-		return (vips_image_write(colourspace->in, colourspace->out));
+		return vips_image_write(colourspace->in, colourspace->out);
 	}
 
 	for (i = 0; i < VIPS_NUMBER(vips_colour_routes); i++)
@@ -521,20 +521,20 @@ vips_colourspace_build(VipsObject *object)
 				interpretation),
 			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
 				colourspace->space));
-		return (-1);
+		return -1;
 	}
 
 	for (j = 0; vips_colour_routes[i].route[j]; j++) {
 		if (vips_colour_routes[i].route[j](x, &pipe[j], NULL))
-			return (-1);
+			return -1;
 		x = pipe[j];
 	}
 
 	g_object_set(colourspace, "out", vips_image_new(), NULL);
 	if (vips_image_write(x, colourspace->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -621,5 +621,5 @@ vips_colourspace(VipsImage *in, VipsImage **out,
 	result = vips_call_split("colourspace", ap, in, out, space);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

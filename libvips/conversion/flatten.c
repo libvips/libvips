@@ -178,7 +178,7 @@ vips_flatten_black_gen(VipsRegion * or, void *vseq, void *a, void *b,
 	int x, y;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
@@ -224,7 +224,7 @@ vips_flatten_black_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Any background.
@@ -243,7 +243,7 @@ vips_flatten_gen(VipsRegion * or, void *vseq, void *a, void *b,
 	int x, y;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
@@ -289,7 +289,7 @@ vips_flatten_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -306,21 +306,21 @@ vips_flatten_build(VipsObject *object)
 	VipsBandFormat original_format;
 
 	if (VIPS_OBJECT_CLASS(vips_flatten_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = flatten->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* Trivial case: fall back to copy().
 	 */
 	if (in->Bands == 1)
-		return (vips_image_write(in, conversion->out));
+		return vips_image_write(in, conversion->out);
 
 	if (vips_check_noncomplex(class->nickname, in))
-		return (-1);
+		return -1;
 
 	/* Is max-alpha unset? Default to the correct value for this
 	 * interpretation.
@@ -342,14 +342,14 @@ vips_flatten_build(VipsObject *object)
 			vips_image_get_format_max(in->BandFmt)) {
 		original_format = in->BandFmt;
 		if (vips_cast(in, &t[1], VIPS_FORMAT_DOUBLE, NULL))
-			return (-1);
+			return -1;
 		in = t[1];
 	}
 
 	t[2] = vips_image_new();
 	if (vips_image_pipelinev(t[2],
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
-		return (-1);
+		return -1;
 	t[2]->Bands -= 1;
 
 	/* Is the background black? We have a special path for this.
@@ -369,7 +369,7 @@ vips_flatten_build(VipsObject *object)
 		if (vips_image_generate(t[2],
 				vips_start_one, vips_flatten_black_gen, vips_stop_one,
 				in, flatten))
-			return (-1);
+			return -1;
 		in = t[2];
 	}
 	else {
@@ -378,25 +378,25 @@ vips_flatten_build(VipsObject *object)
 		if (!(flatten->ink = vips__vector_to_ink(class->nickname, t[2],
 				  VIPS_AREA(flatten->background)->data, NULL,
 				  VIPS_AREA(flatten->background)->n)))
-			return (-1);
+			return -1;
 
 		if (vips_image_generate(t[2],
 				vips_start_one, vips_flatten_gen, vips_stop_one,
 				in, flatten))
-			return (-1);
+			return -1;
 		in = t[2];
 	}
 
 	if (original_format != VIPS_FORMAT_NOTSET) {
 		if (vips_cast(in, &t[3], original_format, NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
 	if (vips_image_write(in, conversion->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -484,5 +484,5 @@ vips_flatten(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("flatten", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

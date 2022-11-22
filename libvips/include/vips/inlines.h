@@ -55,12 +55,12 @@ vips__hypot(double a, double b)
 	if (ta > tb) {
 		tb = b / a;
 
-		return (ta * sqrt(1.0 + tb * tb));
+		return ta * sqrt(1.0 + tb * tb);
 	}
 	else {
 		ta = a / b;
 
-		return (tb * sqrt(1.0 + ta * ta));
+		return tb * sqrt(1.0 + ta * ta);
 	}
 }
 

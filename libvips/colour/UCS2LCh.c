@@ -154,8 +154,8 @@ vips_col_Lcmc2L(float Lcmc)
 	known = VIPS_FLOOR(Lcmc * 10.0);
 	known = VIPS_CLIP(0, known, 999);
 
-	return (LI[known] +
-		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known));
+	return LI[known] +
+		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known);
 }
 
 /**
@@ -176,8 +176,8 @@ vips_col_Ccmc2C(float Ccmc)
 	known = VIPS_FLOOR(Ccmc * 10.0);
 	known = VIPS_CLIP(0, known, 2999);
 
-	return (CI[known] +
-		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known));
+	return CI[known] +
+		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known);
 }
 
 /**
@@ -205,8 +205,8 @@ vips_col_Chcmc2h(float C, float hcmc)
 	known = VIPS_FLOOR(hcmc);
 	known = VIPS_CLIP(0, known, 359);
 
-	return (hI[r][known] +
-		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known));
+	return hI[r][known] +
+		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known);
 }
 
 static void *
@@ -216,7 +216,7 @@ tables_init(void *client)
 	make_CI();
 	make_hI();
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -306,5 +306,5 @@ vips_CMC2LCh(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("CMC2LCh", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

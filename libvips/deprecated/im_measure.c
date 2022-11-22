@@ -95,7 +95,7 @@ measure_patches(IMAGE *im, double *coeff,
 			im_error("im_measure",
 				_("patch %d is out of range"),
 				sel[patch]);
-			return (1);
+			return 1;
 		}
 
 		/* Patch coordinates.
@@ -114,7 +114,7 @@ measure_patches(IMAGE *im, double *coeff,
 			/* Make temp buffer to extract to.
 			 */
 			if (!(tmp = im_open("patch", "t")))
-				return (-1);
+				return -1;
 
 			/* Extract and measure.
 			 */
@@ -122,7 +122,7 @@ measure_patches(IMAGE *im, double *coeff,
 				im_avg(tmp, &avg) ||
 				im_deviate(tmp, &dev)) {
 				im_close(tmp);
-				return (-1);
+				return -1;
 			}
 			im_close(tmp);
 
@@ -144,7 +144,7 @@ measure_patches(IMAGE *im, double *coeff,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static DOUBLEMASK *
@@ -157,7 +157,7 @@ internal_im_measure_area(IMAGE *im,
 
 	if (im_check_uncoded("im_measure", im) ||
 		im_check_noncomplex("im_measure", im))
-		return (NULL);
+		return NULL;
 
 	/* Default to all patches if sel == NULL.
 	 */
@@ -166,7 +166,7 @@ internal_im_measure_area(IMAGE *im,
 
 		nsel = u * v;
 		if (!(sel = IM_ARRAY(im, nsel, int)))
-			return (NULL);
+			return NULL;
 		for (i = 0; i < nsel; i++)
 			sel[i] = i + 1;
 	}
@@ -174,17 +174,17 @@ internal_im_measure_area(IMAGE *im,
 	/* What size mask do we need?
 	 */
 	if (!(mask = im_create_dmask(name, im->Bands, nsel)))
-		return (NULL);
+		return NULL;
 
 	/* Perform measure and return.
 	 */
 	if (measure_patches(im, mask->coeff, left, top, width, height,
 			u, v, sel, nsel)) {
 		im_free_dmask(mask);
-		return (NULL);
+		return NULL;
 	}
 
-	return (mask);
+	return mask;
 }
 
 DOUBLEMASK *
@@ -200,23 +200,23 @@ im_measure_area(IMAGE *im,
 	 */
 	if (im->Coding == IM_CODING_LABQ) {
 		if (!(t = im_open("measure-temp", "p")))
-			return (NULL);
+			return NULL;
 		if (im_LabQ2Lab(im, t) ||
 			!(mask = im_measure_area(t,
 				  left, top, width, height,
 				  u, v,
 				  sel, nsel, name))) {
 			g_object_unref(t);
-			return (NULL);
+			return NULL;
 		}
 		g_object_unref(t);
 
-		return (mask);
+		return mask;
 	}
 
 	if (sel)
-		return (internal_im_measure_area(im,
-			left, top, width, height, u, v, sel, nsel, name));
+		return internal_im_measure_area(im,
+			left, top, width, height, u, v, sel, nsel, name);
 	else {
 		if (vips_measure(im, &t, u, v,
 				"left", left,
@@ -224,13 +224,13 @@ im_measure_area(IMAGE *im,
 				"width", width,
 				"height", height,
 				NULL))
-			return (NULL);
+			return NULL;
 		if (!(mask = im_vips2mask(t, name))) {
 			g_object_unref(t);
-			return (NULL);
+			return NULL;
 		}
 		g_object_unref(t);
 
-		return (mask);
+		return mask;
 	}
 }

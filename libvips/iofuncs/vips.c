@@ -157,10 +157,10 @@ vips__open_image_read(const char *filename)
 	if (fd == -1) {
 		vips_error_system(errno, "VipsImage",
 			_("unable to open \"%s\""), filename);
-		return (-1);
+		return -1;
 	}
 
-	return (fd);
+	return fd;
 }
 
 /* Open for write for image files.
@@ -220,10 +220,10 @@ vips__open_image_write(const char *filename, gboolean temp)
 		g_info("vips__open_image_write: failed!");
 		vips_error_system(errno, "VipsImage",
 			_("unable to write to \"%s\""), filename);
-		return (-1);
+		return -1;
 	}
 
-	return (fd);
+	return fd;
 }
 
 /* Predict the size of the header plus pixel data. Don't use off_t,
@@ -247,7 +247,7 @@ image_pixel_length(VipsImage *image)
 		break;
 	}
 
-	return (psize + image->sizeof_header);
+	return psize + image->sizeof_header;
 }
 
 /* Copy 2 and 4 bytes, optionally swapping byte order.
@@ -284,9 +284,9 @@ vips__file_magic(const char *filename)
 	if (vips__get_bytes(filename, (unsigned char *) &magic, 4) == 4 &&
 		(magic == VIPS_MAGIC_INTEL ||
 			magic == VIPS_MAGIC_SPARC))
-		return (magic);
+		return magic;
 
-	return (0);
+	return 0;
 }
 
 /* offset, read, write functions.
@@ -336,7 +336,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 		im->magic != VIPS_MAGIC_SPARC) {
 		vips_error("VipsImage",
 			_("\"%s\" is not a VIPS image"), im->filename);
-		return (-1);
+		return -1;
 	}
 
 	/* We need to swap for other fields if the file byte order is
@@ -393,7 +393,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 	case VIPS_CODING_ERROR:
 		vips_error("VipsImage",
 			"%s", _("unknown coding"));
-		return (-1);
+		return -1;
 
 	case VIPS_CODING_NONE:
 		break;
@@ -403,7 +403,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 			im->BandFmt != VIPS_FORMAT_UCHAR) {
 			vips_error("VipsImage",
 				"%s", _("malformed LABQ image"));
-			return (-1);
+			return -1;
 		}
 		break;
 
@@ -412,7 +412,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 			im->BandFmt != VIPS_FORMAT_UCHAR) {
 			vips_error("VipsImage",
 				"%s", _("malformed RAD image"));
-			return (-1);
+			return -1;
 		}
 		break;
 
@@ -421,7 +421,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 		break;
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -466,7 +466,7 @@ vips__write_header_bytes(VipsImage *im, unsigned char *to)
 		printf("%2d - 0x%02x\n", i, to[i]);
 #endif /*SHOW_HEADER*/
 
-	return (0);
+	return 0;
 }
 
 /* Read a chunk of an fd into memory. Add a '\0' at the end.
@@ -477,17 +477,17 @@ read_chunk(int fd, gint64 offset, size_t length)
 	char *buf;
 
 	if (vips__seek(fd, offset, SEEK_SET) == -1)
-		return (NULL);
+		return NULL;
 	if (!(buf = vips_malloc(NULL, length + 1)))
-		return (NULL);
+		return NULL;
 	if (read(fd, buf, length) != (gssize) length) {
 		g_free(buf);
 		vips_error("VipsImage", "%s", _("unable to read history"));
-		return (NULL);
+		return NULL;
 	}
 	buf[length] = '\0';
 
-	return (buf);
+	return buf;
 }
 
 /* Does it look like an image has an extension block?
@@ -500,7 +500,7 @@ vips__has_extension_block(VipsImage *im)
 	psize = image_pixel_length(im);
 	g_assert(im->file_length > 0);
 
-	return (im->file_length - psize > 0);
+	return im->file_length - psize > 0;
 }
 
 /* Read everything after the pixels into memory.
@@ -517,12 +517,12 @@ vips__read_extension_block(VipsImage *im, int *size)
 		vips_error("VipsImage",
 			"%s", _("more than 100 megabytes of XML? "
 					"sufferin' succotash!"));
-		return (NULL);
+		return NULL;
 	}
 	if (im->file_length - psize == 0)
-		return (NULL);
+		return NULL;
 	if (!(buf = read_chunk(im->fd, psize, im->file_length - psize)))
-		return (NULL);
+		return NULL;
 	if (size)
 		*size = im->file_length - psize;
 
@@ -532,7 +532,7 @@ vips__read_extension_block(VipsImage *im, int *size)
 	printf("data: \"%s\"\n", (char *) buf);
 #endif /*DEBUG*/
 
-	return (buf);
+	return buf;
 }
 
 static int
@@ -551,13 +551,13 @@ parser_read_fd(XML_Parser parser, int fd)
 		if (!(buf = XML_GetBuffer(parser, chunk_size))) {
 			vips_error("VipsImage",
 				"%s", _("unable to allocate read buffer"));
-			return (-1);
+			return -1;
 		}
 		len = read(fd, buf, chunk_size);
 		if (len == -1) {
 			vips_error("VipsImage",
 				"%s", _("read error while fetching XML"));
-			return (-1);
+			return -1;
 		}
 
 		/* Allow missing XML block.
@@ -569,11 +569,11 @@ parser_read_fd(XML_Parser parser, int fd)
 
 		if (!XML_ParseBuffer(parser, len, len == 0)) {
 			vips_error("VipsImage", "%s", _("XML parse error"));
-			return (-1);
+			return -1;
 		}
 	} while (len > 0);
 
-	return (0);
+	return 0;
 }
 
 #define MAX_PARSE_ATTR (256)
@@ -682,14 +682,14 @@ set_meta(VipsImage *image, GType gtype, const char *name, const char *data)
 		g_value_unset(&save_value);
 		vips_error("VipsImage", "%s",
 			_("error transforming from save format"));
-		return (-1);
+		return -1;
 	}
 
 	vips_image_set(image, name, &value);
 	g_value_unset(&save_value);
 	g_value_unset(&value);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -747,7 +747,7 @@ readhist(VipsImage *im)
 	VipsExpatParse vep;
 
 	if (vips__seek(im->fd, image_pixel_length(im), SEEK_SET) == -1)
-		return (-1);
+		return -1;
 
 	parser = XML_ParserCreate("UTF-8");
 
@@ -764,13 +764,13 @@ readhist(VipsImage *im)
 		vep.error) {
 		vips_dbuf_destroy(&vep.dbuf);
 		XML_ParserFree(parser);
-		return (-1);
+		return -1;
 	}
 
 	vips_dbuf_destroy(&vep.dbuf);
 	XML_ParserFree(parser);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -781,24 +781,24 @@ vips__write_extension_block(VipsImage *im, void *buf, int size)
 
 	psize = image_pixel_length(im);
 	if ((length = vips_file_length(im->fd)) == -1)
-		return (-1);
+		return -1;
 	if (length < psize) {
 		vips_error("VipsImage", "%s", _("file has been truncated"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips__ftruncate(im->fd, psize) ||
 		vips__seek(im->fd, psize, SEEK_SET) == -1)
-		return (-1);
+		return -1;
 	if (vips__write(im->fd, buf, size))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("vips__write_extension_block: written %d bytes of XML to %s\n",
 		size, im->filename);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Append a string to a buffer, but escape " as \".
@@ -836,7 +836,7 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 		if (!g_value_transform(&meta->value, &save_value)) {
 			vips_error("VipsImage", "%s",
 				_("error transforming to save format"));
-			return (meta);
+			return meta;
 		}
 
 		/* We need to validate the str to make sure we'll be able to
@@ -856,7 +856,7 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 		g_value_unset(&save_value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Make the xml we append to vips images after the pixel data.
@@ -891,7 +891,7 @@ build_xml(VipsImage *image)
 	if (vips_slist_map2(image->meta_traverse,
 			(VipsSListMap2Fn) build_xml_meta, target, NULL)) {
 		VIPS_UNREF(target);
-		return (NULL);
+		return NULL;
 	}
 
 	vips_target_writef(target, "  </meta>\n");
@@ -901,7 +901,7 @@ build_xml(VipsImage *image)
 
 	VIPS_UNREF(target);
 
-	return (result);
+	return result;
 }
 
 static void *
@@ -924,7 +924,7 @@ vips__xml_properties_meta(VipsImage *image,
 		if (!g_value_transform(value, &save_value)) {
 			vips_error("VipsImage", "%s",
 				_("error transforming to save format"));
-			return (target);
+			return target;
 		}
 		str = vips_value_get_save_string(&save_value);
 
@@ -941,7 +941,7 @@ vips__xml_properties_meta(VipsImage *image,
 		g_value_unset(&save_value);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Make the xml we write to vips-properties in dzsave, or to TIFF. A simple
@@ -969,7 +969,7 @@ vips__xml_properties(VipsImage *image)
 
 	if (vips_image_map(image, vips__xml_properties_meta, target)) {
 		VIPS_UNREF(target);
-		return (NULL);
+		return NULL;
 	}
 
 	vips_target_writef(target, "  </properties>\n");
@@ -979,7 +979,7 @@ vips__xml_properties(VipsImage *image)
 
 	VIPS_UNREF(target);
 
-	return (result);
+	return result;
 }
 
 /* Append XML to output fd.
@@ -993,11 +993,11 @@ vips__writehist(VipsImage *image)
 	assert(image->fd != -1);
 
 	if (!(xml = build_xml(image)))
-		return (-1);
+		return -1;
 
 	if (vips__write_extension_block(image, xml, strlen(xml))) {
 		g_free(xml);
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -1006,7 +1006,7 @@ vips__writehist(VipsImage *image)
 
 	g_free(xml);
 
-	return (0);
+	return 0;
 }
 
 /* Open the filename, read the header, some sanity checking.
@@ -1029,7 +1029,7 @@ vips_image_open_input(VipsImage *image)
 	if (image->fd == -1) {
 		image->fd = vips__open_image_read(image->filename);
 		if (image->fd == -1)
-			return (-1);
+			return -1;
 	}
 
 	vips__seek(image->fd, 0, SEEK_SET);
@@ -1039,7 +1039,7 @@ vips_image_open_input(VipsImage *image)
 		vips_error_system(errno, "VipsImage",
 			_("unable to read header for \"%s\""),
 			image->filename);
-		return (-1);
+		return -1;
 	}
 
 	/* Predict and check the file size. Only issue a warning, we want to be
@@ -1048,7 +1048,7 @@ vips_image_open_input(VipsImage *image)
 	 */
 	psize = image_pixel_length(image);
 	if ((rsize = vips_file_length(image->fd)) == -1)
-		return (-1);
+		return -1;
 	image->file_length = rsize;
 	if (psize > rsize)
 		g_warning(_("unable to read data for \"%s\", %s"),
@@ -1068,7 +1068,7 @@ vips_image_open_input(VipsImage *image)
 		vips_error_clear();
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1082,7 +1082,7 @@ vips_image_open_output(VipsImage *image)
 
 		if ((image->fd = vips__open_image_write(image->filename,
 				 image->delete_on_close)) < 0)
-			return (-1);
+			return -1;
 
 		/* We always write in native mode, so we must overwrite the
 		 * magic we read from the file originally.
@@ -1093,8 +1093,8 @@ vips_image_open_output(VipsImage *image)
 
 		if (vips__write_header_bytes(image, header) ||
 			vips__write(image->fd, header, VIPS_SIZEOF_HEADER))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }

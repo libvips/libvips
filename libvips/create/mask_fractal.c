@@ -71,7 +71,7 @@ vips_mask_fractal_point(VipsMask *mask, double dx, double dy)
 
 	double d2 = dx * dx + dy * dy;
 
-	return (pow(d2, fd));
+	return pow(d2, fd);
 }
 
 static void
@@ -137,5 +137,5 @@ vips_mask_fractal(VipsImage **out, int width, int height,
 		fractal_dimension);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

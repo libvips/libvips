@@ -93,7 +93,7 @@ vips_black_gen(VipsRegion * or, void *seq, void *a, void *b,
 
 	vips_region_black(or);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -103,7 +103,7 @@ vips_black_build(VipsObject *object)
 	VipsBlack *black = (VipsBlack *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_black_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vips_image_init_fields(create->out,
 		black->width, black->height, black->bands,
@@ -112,13 +112,13 @@ vips_black_build(VipsObject *object)
 		1.0, 1.0);
 	if (vips_image_pipelinev(create->out,
 			VIPS_DEMAND_STYLE_ANY, NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(create->out,
 			NULL, vips_black_gen, NULL, NULL, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -191,5 +191,5 @@ vips_black(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("black", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

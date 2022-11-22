@@ -118,9 +118,9 @@ vips_resample_build(VipsObject *object)
 	g_object_set(resample, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_resample_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

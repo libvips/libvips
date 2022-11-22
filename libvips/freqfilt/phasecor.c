@@ -69,29 +69,29 @@ vips_phasecor_build(VipsObject *object)
 	VipsImage *in1, *in2;
 
 	if (VIPS_OBJECT_CLASS(vips_phasecor_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in1 = freqfilt->in;
 	in2 = phasecor->in2;
 
 	if (in1->BandFmt != VIPS_FORMAT_COMPLEX) {
 		if (vips_fwfft(in1, &t[0], NULL))
-			return (-1);
+			return -1;
 		in1 = t[0];
 	}
 
 	if (in2->BandFmt != VIPS_FORMAT_COMPLEX) {
 		if (vips_fwfft(in2, &t[1], NULL))
-			return (-1);
+			return -1;
 		in2 = t[1];
 	}
 
 	if (vips_cross_phase(in1, in2, &t[2], NULL) ||
 		vips_invfft(t[2], &t[3], "real", TRUE, NULL) ||
 		vips_image_write(t[3], freqfilt->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -143,5 +143,5 @@ vips_phasecor(VipsImage *in1, VipsImage *in2, VipsImage **out, ...)
 	result = vips_call_split("phasecor", ap, in1, in2, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

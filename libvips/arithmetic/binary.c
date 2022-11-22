@@ -71,9 +71,9 @@ vips_binary_build(VipsObject *object)
 		g_object_ref(arithmetic->in[1]);
 
 	if (VIPS_OBJECT_CLASS(vips_binary_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

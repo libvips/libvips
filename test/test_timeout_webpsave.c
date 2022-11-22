@@ -25,7 +25,7 @@ main(int argc, char **argv)
 	if (!vips_type_find("VipsOperation", "webpsave"))
 		/* webpsave not available, skip test with return code 77.
 		 */
-		return (77);
+		return 77;
 
 	if (vips_black(&im, 16383, 16383, NULL))
 		vips_error_exit(NULL);
@@ -43,5 +43,5 @@ main(int argc, char **argv)
 		g_free(buf);
 	g_assert(is_killed);
 
-	return (0);
+	return 0;
 }

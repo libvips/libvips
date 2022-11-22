@@ -273,7 +273,7 @@ read_new(VipsSource *source, VipsImage *out,
 	Read *read;
 
 	if (!(read = VIPS_NEW(out, Read)))
-		return (NULL);
+		return NULL;
 
 	read->name = NULL;
 	read->fail_on = fail_on;
@@ -295,7 +295,7 @@ read_new(VipsSource *source, VipsImage *out,
 	if (!(read->pPng = png_create_read_struct(
 			  PNG_LIBPNG_VER_STRING, NULL,
 			  user_error_function, user_warning_function)))
-		return (NULL);
+		return NULL;
 
 		/* Prevent libpng (>=1.6.11) verifying sRGB profiles. Many PNGs have
 		 * broken profiles, but we still want to be able to open them.
@@ -325,16 +325,16 @@ read_new(VipsSource *source, VipsImage *out,
 	png_set_user_limits(read->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
 
 	if (vips_source_rewind(source))
-		return (NULL);
+		return NULL;
 	png_set_read_fn(read->pPng, read, vips_png_read_source);
 
 	/* Catch PNG errors from png_read_info() etc.
 	 */
 	if (setjmp(png_jmpbuf(read->pPng)))
-		return (NULL);
+		return NULL;
 
 	if (!(read->pInfo = png_create_info_struct(read->pPng)))
-		return (NULL);
+		return NULL;
 
 #ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 
@@ -355,7 +355,7 @@ read_new(VipsSource *source, VipsImage *out,
 
 	png_read_info(read->pPng, read->pInfo);
 
-	return (read);
+	return read;
 }
 
 /* Set the png text data as metadata on the vips image. These are always
@@ -386,7 +386,7 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 		vips_image_set_string(out, name, text);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read a png header.
@@ -422,7 +422,7 @@ png2vips_header(Read *read, VipsImage *out)
 	double Xres, Yres;
 
 	if (setjmp(png_jmpbuf(read->pPng)))
-		return (-1);
+		return -1;
 
 	png_get_IHDR(read->pPng, read->pInfo,
 		&width, &height, &bitdepth, &color_type,
@@ -450,7 +450,7 @@ png2vips_header(Read *read, VipsImage *out)
 
 	default:
 		vips_error("png2vips", "%s", _("unsupported color type"));
-		return (-1);
+		return -1;
 	}
 
 	if (bitdepth > 8) {
@@ -528,7 +528,7 @@ png2vips_header(Read *read, VipsImage *out)
 		vips_connection_filename(VIPS_CONNECTION(read->source)));
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc. Ignore it.
@@ -564,7 +564,7 @@ png2vips_header(Read *read, VipsImage *out)
 		VIPS_IMAGE_SIZEOF_LINE(out)) {
 		vips_error("vipspng",
 			"%s", _("unable to read PNG header"));
-		return (-1);
+		return -1;
 	}
 
 	/* Let our caller know. These are very expensive to decode.
@@ -591,7 +591,7 @@ png2vips_header(Read *read, VipsImage *out)
 			 */
 			if (vips__set_text(out, i,
 					text_ptr[i].key, text_ptr[i].text))
-				return (-1);
+				return -1;
 	}
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE, bitdepth);
@@ -655,7 +655,7 @@ png2vips_header(Read *read, VipsImage *out)
 	}
 #endif /*PNG_eXIf_SUPPORTED*/
 
-	return (0);
+	return 0;
 }
 
 /* Out is a huge "t" buffer we decompress to.
@@ -670,13 +670,13 @@ png2vips_interlace(Read *read, VipsImage *out)
 #endif /*DEBUG*/
 
 	if (vips_image_write_prepare(out))
-		return (-1);
+		return -1;
 
 	if (setjmp(png_jmpbuf(read->pPng)))
-		return (-1);
+		return -1;
 
 	if (!(read->row_pointer = VIPS_ARRAY(NULL, out->Ysize, png_bytep)))
-		return (-1);
+		return -1;
 	for (y = 0; y < out->Ysize; y++)
 		read->row_pointer[y] = VIPS_IMAGE_ADDR(out, 0, y);
 
@@ -684,7 +684,7 @@ png2vips_interlace(Read *read, VipsImage *out)
 
 	read_destroy(read);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -720,7 +720,7 @@ png2vips_generate(VipsRegion * or,
 	if (r->top != read->y_pos) {
 		vips_error("vipspng",
 			_("out of order read at line %d"), read->y_pos);
-		return (-1);
+		return -1;
 	}
 
 	for (y = 0; y < r->height; y++) {
@@ -753,14 +753,14 @@ png2vips_generate(VipsRegion * or,
 			if (read->fail_on >= VIPS_FAIL_ON_TRUNCATED) {
 				vips_error("vipspng",
 					"%s", _("libpng read error"));
-				return (-1);
+				return -1;
 			}
 		}
 
 		read->y_pos += 1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -778,7 +778,7 @@ png2vips_image(Read *read, VipsImage *out)
 		if (png2vips_header(read, t[0]) ||
 			png2vips_interlace(read, t[0]) ||
 			vips_image_write(t[0], out))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[0] = vips_image_new();
@@ -790,10 +790,10 @@ png2vips_image(Read *read, VipsImage *out)
 				"tile_height", VIPS__FATSTRIP_HEIGHT,
 				NULL) ||
 			vips_image_write(t[1], out))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 gboolean
@@ -803,9 +803,9 @@ vips__png_ispng_source(VipsSource *source)
 
 	if ((p = vips_source_sniff(source, 8)) &&
 		!png_sig_cmp((png_bytep) p, 0, 8))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 int
@@ -816,11 +816,11 @@ vips__png_header_source(VipsSource *source, VipsImage *out,
 
 	if (!(read = read_new(source, out, TRUE, unlimited)) ||
 		png2vips_header(read, out))
-		return (-1);
+		return -1;
 
 	vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -832,9 +832,9 @@ vips__png_read_source(VipsSource *source, VipsImage *out,
 	if (!(read = read_new(source, out, fail_on, unlimited)) ||
 		png2vips_image(read, out) ||
 		vips_source_decode(source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Interlaced PNGs need to be entirely decompressed into memory then can be
@@ -851,12 +851,12 @@ vips__png_isinterlaced_source(VipsSource *source)
 
 	if (!(read = read_new(source, image, TRUE, FALSE))) {
 		g_object_unref(image);
-		return (-1);
+		return -1;
 	}
 	interlace_type = png_get_interlace_type(read->pPng, read->pInfo);
 	g_object_unref(image);
 
-	return (interlace_type != PNG_INTERLACE_NONE);
+	return interlace_type != PNG_INTERLACE_NONE;
 }
 
 /* What we track during a PNG write.
@@ -901,7 +901,7 @@ write_new(VipsImage *in, VipsTarget *target)
 	Write *write;
 
 	if (!(write = VIPS_NEW(NULL, Write)))
-		return (NULL);
+		return NULL;
 	write->in = in;
 	write->target = target;
 
@@ -910,12 +910,12 @@ write_new(VipsImage *in, VipsTarget *target)
 #endif /*DEBUG*/
 
 	if (!(write->row_pointer = VIPS_ARRAY(NULL, in->Ysize, png_bytep)))
-		return (NULL);
+		return NULL;
 	if (!(write->pPng = png_create_write_struct(
 			  PNG_LIBPNG_VER_STRING, NULL,
 			  user_error_function, user_warning_function))) {
 		write_destroy(write);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. We are often
@@ -933,15 +933,15 @@ write_new(VipsImage *in, VipsTarget *target)
 	 */
 	if (setjmp(png_jmpbuf(write->pPng))) {
 		write_destroy(write);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(write->pInfo = png_create_info_struct(write->pPng))) {
 		write_destroy(write);
-		return (NULL);
+		return NULL;
 	}
 
-	return (write);
+	return write;
 }
 
 static int
@@ -960,7 +960,7 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 	/* Catch PNG errors.
 	 */
 	if (setjmp(png_jmpbuf(write->pPng)))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < area->height; i++)
 		write->row_pointer[i] = (png_bytep)
@@ -968,7 +968,7 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 
 	png_write_rows(write->pPng, write->row_pointer, area->height);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1004,19 +1004,19 @@ write_png_comment(VipsImage *image,
 		char key[256];
 
 		if (vips_image_get_string(write->in, field, &str))
-			return (image);
+			return image;
 
 		if (strlen(field) > 256 ||
 			sscanf(field, "png-comment-%d-%80s", &i, key) != 2) {
 			vips_error("vips2png",
 				"%s", _("bad png comment key"));
-			return (image);
+			return image;
 		}
 
 		vips__png_set_text(write->pPng, write->pInfo, key, str);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Write a VIPS image to PNG.
@@ -1042,7 +1042,7 @@ write_vips(Write *write,
 	/* Catch PNG errors.
 	 */
 	if (setjmp(png_jmpbuf(write->pPng)))
-		return (-1);
+		return -1;
 
 	/* Check input image. If we are writing interlaced, we need to make 7
 	 * passes over the image. We advertise ourselves as seq, so to ensure
@@ -1050,18 +1050,18 @@ write_vips(Write *write,
 	 */
 	if (interlace) {
 		if (!(write->memory = vips_image_copy_memory(in)))
-			return (-1);
+			return -1;
 		in = write->memory;
 	}
 	else {
 		if (vips_image_pio_input(in))
-			return (-1);
+			return -1;
 	}
 	if (compress < 0 ||
 		compress > 9) {
 		vips_error("vips2png",
 			"%s", _("compress should be in [0,9]"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set compression parameters.
@@ -1089,7 +1089,7 @@ write_vips(Write *write,
 	default:
 		vips_error("vips2png",
 			_("can't save %d band image as png"), in->Bands);
-		return (-1);
+		return -1;
 	}
 
 #ifdef HAVE_QUANTIZATION
@@ -1126,7 +1126,7 @@ write_vips(Write *write,
 			VipsBlob *blob;
 
 			if (vips_profile_load(profile, &blob, NULL))
-				return (-1);
+				return -1;
 			if (blob) {
 				size_t length;
 				const void *data =
@@ -1152,7 +1152,7 @@ write_vips(Write *write,
 
 			if (vips_image_get_blob(in, VIPS_META_ICC_NAME,
 					&data, &length))
-				return (-1);
+				return -1;
 
 #ifdef DEBUG
 			printf("write_vips: attaching %zd bytes of ICC profile\n",
@@ -1180,7 +1180,7 @@ write_vips(Write *write,
 			/* And restore the setjmp.
 			 */
 			if (setjmp(png_jmpbuf(write->pPng)))
-				return (-1);
+				return -1;
 		}
 
 		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
@@ -1193,7 +1193,7 @@ write_vips(Write *write,
 			 */
 			if (vips_image_get_blob(in,
 					VIPS_META_XMP_NAME, &data, &length))
-				return (-1);
+				return -1;
 
 			str = g_malloc(length + 1);
 			vips_strncpy(str, data, length + 1);
@@ -1210,7 +1210,7 @@ write_vips(Write *write,
 			if (vips__exif_update(in) ||
 				vips_image_get_blob(in, VIPS_META_EXIF_NAME,
 					&data, &length))
-				return (-1);
+				return -1;
 
 			/* libpng does not want the JFIF "Exif\0\0" prefix.
 			 */
@@ -1226,7 +1226,7 @@ write_vips(Write *write,
 #endif /*PNG_eXIf_SUPPORTED*/
 
 		if (vips_image_map(in, write_png_comment, write))
-			return (-1);
+			return -1;
 	}
 
 #ifdef HAVE_QUANTIZATION
@@ -1240,7 +1240,7 @@ write_vips(Write *write,
 
 		if (vips__quantise_image(in, &im_index, &im_palette,
 				1 << bitdepth, Q, dither, effort, FALSE))
-			return (-1);
+			return -1;
 
 		palette_count = im_palette->Xsize;
 
@@ -1316,16 +1316,16 @@ write_vips(Write *write,
 	 */
 	for (i = 0; i < nb_passes; i++)
 		if (vips_sink_disc(in, write_png_block, write))
-			return (-1);
+			return -1;
 
 	/* The setjmp() was held by our background writer: reset it.
 	 */
 	if (setjmp(png_jmpbuf(write->pPng)))
-		return (-1);
+		return -1;
 
 	png_write_end(write->pPng, write->pInfo);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -1338,7 +1338,7 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 	Write *write;
 
 	if (!(write = write_new(in, target)))
-		return (-1);
+		return -1;
 
 	if (write_vips(write,
 			compression, interlace, profile, filter, strip, palette,
@@ -1346,15 +1346,15 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 		write_destroy(write);
 		vips_error("vips2png", _("unable to write to target %s"),
 			vips_connection_nick(VIPS_CONNECTION(target)));
-		return (-1);
+		return -1;
 	}
 
 	write_destroy(write);
 
 	if (vips_target_end(target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_PNG*/

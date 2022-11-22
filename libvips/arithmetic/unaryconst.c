@@ -74,7 +74,7 @@ vips_unary_const_build(VipsObject *object)
 		uconst->c) {
 		if (vips_check_vector(class->nickname,
 				uconst->c->n, unary->in))
-			return (-1);
+			return -1;
 	}
 
 	/* Some operations need int constants, for example boolean AND, SHIFT
@@ -100,7 +100,7 @@ vips_unary_const_build(VipsObject *object)
 		uconst->c_double = VIPS_ARRAY(object, n, double);
 		if (!uconst->c_int ||
 			!uconst->c_double)
-			return (-1);
+			return -1;
 		memset(uconst->c_int, 0, n * sizeof(int));
 		memset(uconst->c_double, 0, n * sizeof(double));
 
@@ -120,9 +120,9 @@ vips_unary_const_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_unary_const_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

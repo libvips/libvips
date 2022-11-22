@@ -167,13 +167,13 @@ vips__link_break(VipsImage *image_up, VipsImage *image_down, void *b)
 		image_down->progress_signal == image_up->progress_signal)
 		image_down->progress_signal = NULL;
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
 vips__link_break_rev(VipsImage *image_down, VipsImage *image_up, void *b)
 {
-	return (vips__link_break(image_up, image_down, b));
+	return vips__link_break(image_up, image_down, b);
 }
 
 /* A VipsImage is going ... break all links.
@@ -210,16 +210,16 @@ vips__link_mapp(VipsImage *image, LinkMap *map, void *b)
 	/* Loop?
 	 */
 	if (image->serial == map->serial)
-		return (NULL);
+		return NULL;
 	image->serial = map->serial;
 
 	if ((res = map->fn(image, map->a, map->b)))
-		return (res);
+		return res;
 
-	return (vips_slist_map2(map->upstream
+	return vips_slist_map2(map->upstream
 			? image->upstream
 			: image->downstream,
-		(VipsSListMap2Fn) vips__link_mapp, map, NULL));
+		(VipsSListMap2Fn) vips__link_mapp, map, NULL);
 }
 
 static void *
@@ -227,7 +227,7 @@ vips__link_map_cb(VipsImage *image, GSList **images, void *b)
 {
 	*images = g_slist_prepend(*images, image);
 
-	return (NULL);
+	return NULL;
 }
 
 /* Apply a function to an image and all upstream or downstream images,
@@ -279,7 +279,7 @@ vips__link_map(VipsImage *image, gboolean upstream,
 		g_object_unref(p->data);
 	g_slist_free(images);
 
-	return (result);
+	return result;
 }
 
 /* We have to have this as a separate entry point so we can support the old
@@ -387,12 +387,12 @@ vips_image_pipeline_array(VipsImage *image,
 
 	if (in[0] &&
 		vips__image_copy_fields_array(image, in))
-		return (-1);
+		return -1;
 
 	if (vips__reorder_set_input(image, in))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -426,7 +426,7 @@ vips_image_pipelinev(VipsImage *image, VipsDemandStyle hint, ...)
 		ar[i - 1] = NULL;
 	}
 
-	return (vips_image_pipeline_array(image, hint, ar));
+	return vips_image_pipeline_array(image, hint, ar);
 }
 
 /**
@@ -444,7 +444,7 @@ vips_start_one(VipsImage *out, void *a, void *b)
 {
 	VipsImage *in = (VipsImage *) a;
 
-	return (vips_region_new(in));
+	return vips_region_new(in);
 }
 
 /**
@@ -464,7 +464,7 @@ vips_stop_one(void *seq, void *a, void *b)
 
 	g_object_unref(reg);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -491,7 +491,7 @@ vips_stop_many(void *seq, void *a, void *b)
 		g_free((char *) ar);
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -521,18 +521,18 @@ vips_start_many(VipsImage *out, void *a, void *b)
 	/* Alocate space for region array.
 	 */
 	if (!(ar = VIPS_ARRAY(NULL, n + 1, VipsRegion *)))
-		return (NULL);
+		return NULL;
 
 	/* Create a set of regions.
 	 */
 	for (i = 0; i < n; i++)
 		if (!(ar[i] = vips_region_new(in[i]))) {
 			vips_stop_many(ar, NULL, NULL);
-			return (NULL);
+			return NULL;
 		}
 	ar[n] = NULL;
 
-	return (ar);
+	return ar;
 }
 
 /**
@@ -564,7 +564,7 @@ vips_allocate_input_array(VipsImage *out, ...)
 	/* Allocate array.
 	 */
 	if (!(ar = VIPS_ARRAY(out, n + 1, VipsImage *)))
-		return (NULL);
+		return NULL;
 
 	/* Fill array.
 	 */
@@ -574,7 +574,7 @@ vips_allocate_input_array(VipsImage *out, ...)
 	va_end(ap);
 	ar[n] = NULL;
 
-	return (ar);
+	return ar;
 }
 
 /**
@@ -635,13 +635,13 @@ write_vips(VipsRegion *region, VipsRect *area, void *a)
 	do {
 		nwritten = write(region->im->fd, buf, count);
 		if (nwritten == (size_t) -1)
-			return (errno);
+			return errno;
 
 		buf = (void *) ((char *) buf + nwritten);
 		count -= nwritten;
 	} while (count > 0);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -685,7 +685,7 @@ vips_image_generate(VipsImage *image,
 	if (!image->hint_set) {
 		vips_error("vips_image_generate",
 			"%s", _("demand hint not set"));
-		return (-1);
+		return -1;
 	}
 
 	/* We don't use this, but make sure it's set in case any old binaries
@@ -704,7 +704,7 @@ vips_image_generate(VipsImage *image,
 			image->stop_fn) {
 			vips_error("VipsImage",
 				"%s", _("generate() called twice"));
-			return (-1);
+			return -1;
 		}
 
 		image->start_fn = start_fn;
@@ -717,7 +717,7 @@ vips_image_generate(VipsImage *image,
 					   "attaching partial callbacks\n");
 
 		if (vips_image_written(image))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -732,7 +732,7 @@ vips_image_generate(VipsImage *image,
 			image->stop_fn) {
 			vips_error("VipsImage",
 				"%s", _("generate() called twice"));
-			return (-1);
+			return -1;
 		}
 
 		/* Attach callbacks.
@@ -744,7 +744,7 @@ vips_image_generate(VipsImage *image,
 		image->client2 = b;
 
 		if (vips_image_write_prepare(image))
-			return (-1);
+			return -1;
 
 		if (image->dtype == VIPS_IMAGE_OPENOUT)
 			res = vips_sink_disc(image, write_vips, NULL);
@@ -754,17 +754,17 @@ vips_image_generate(VipsImage *image,
 		/* Error?
 		 */
 		if (res)
-			return (-1);
+			return -1;
 
 		/* Must come before we rewind.
 		 */
 		if (vips_image_written(image))
-			return (-1);
+			return -1;
 
 		/* We've written to image ... rewind it ready for reading.
 		 */
 		if (vips_image_pio_input(image))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -775,8 +775,8 @@ vips_image_generate(VipsImage *image,
 			_("unable to output to a %s image"),
 			vips_enum_nick(VIPS_TYPE_IMAGE_TYPE,
 				image->dtype));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }

@@ -168,7 +168,7 @@ vips_sumv(VipsImage **in, VipsImage **out, int n, va_list ap)
 	result = vips_call_split("sum", ap, array, out);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -264,5 +264,5 @@ vips_sum(VipsImage **in, VipsImage **out, int n, ...)
 	result = vips_sumv(in, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

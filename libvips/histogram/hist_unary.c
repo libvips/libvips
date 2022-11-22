@@ -66,9 +66,9 @@ vips_hist_unary_build(VipsObject *object)
 		g_object_ref(histogram->in[0]);
 
 	if (VIPS_OBJECT_CLASS(vips_hist_unary_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

@@ -165,7 +165,7 @@ vips_reduce_build(VipsObject *object)
 		vips_object_local_array(object, 2);
 
 	if (VIPS_OBJECT_CLASS(vips_reduce_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_reducev(resample->in, &t[0], reduce->vshrink,
 			"kernel", reduce->kernel,
@@ -176,9 +176,9 @@ vips_reduce_build(VipsObject *object)
 			"gap", reduce->gap,
 			NULL) ||
 		vips_image_write(t[1], resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -302,5 +302,5 @@ vips_reduce(VipsImage *in, VipsImage **out,
 	result = vips_call_split("reduce", ap, in, out, hshrink, vshrink);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

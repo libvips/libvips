@@ -151,7 +151,7 @@ vips_draw_mask_draw_labq(VipsImage *image, VipsImage *mask, VipsPel *ink,
 	int y;
 
 	if (!(lab_buffer = VIPS_ARRAY(NULL, width * 3, float)))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < height; y++) {
 		VipsPel *to = VIPS_IMAGE_ADDR(image,
@@ -168,7 +168,7 @@ vips_draw_mask_draw_labq(VipsImage *image, VipsImage *mask, VipsPel *ink,
 
 	g_free(lab_buffer);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -233,7 +233,7 @@ vips_draw_mask_draw(VipsImage *image, VipsImage *mask, VipsPel *ink,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Direct path for draw-mask-along-line or draw-mask-along-circle. We want to
@@ -257,7 +257,7 @@ vips__draw_mask_direct(VipsImage *image, VipsImage *mask,
 		vips_check_uncoded("draw_mask_direct", mask) ||
 		vips_check_format("draw_mask_direct",
 			mask, VIPS_FORMAT_UCHAR))
-		return (-1);
+		return -1;
 
 	/* Find the area we draw on the image.
 	 */
@@ -282,20 +282,20 @@ vips__draw_mask_direct(VipsImage *image, VipsImage *mask,
 		case VIPS_CODING_LABQ:
 			if (vips_draw_mask_draw_labq(image, mask, ink,
 					&image_clip, &mask_clip))
-				return (-1);
+				return -1;
 			break;
 
 		case VIPS_CODING_NONE:
 			if (vips_draw_mask_draw(image, mask, ink,
 					&image_clip, &mask_clip))
-				return (-1);
+				return -1;
 			break;
 
 		default:
 			g_assert_not_reached();
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -306,13 +306,13 @@ vips_draw_mask_build(VipsObject *object)
 	VipsDrawMask *mask = (VipsDrawMask *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_mask_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips__draw_mask_direct(draw->image, mask->mask, drawink->pixel_ink,
 			mask->x, mask->y))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -366,7 +366,7 @@ vips_draw_maskv(VipsImage *image,
 		image, area_ink, mask, x, y);
 	vips_area_unref(area_ink);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -401,7 +401,7 @@ vips_draw_mask(VipsImage *image,
 	result = vips_draw_maskv(image, ink, n, mask, x, y, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -433,5 +433,5 @@ vips_draw_mask1(VipsImage *image,
 	result = vips_draw_maskv(image, array_ink, 1, mask, x, y, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

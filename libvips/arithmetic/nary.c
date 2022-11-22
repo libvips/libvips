@@ -62,9 +62,9 @@ vips_nary_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_nary_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

@@ -100,22 +100,22 @@ double t1, t2;
 	/* Check our args. */
 	if (im_iocheck(in, out)) {
 		im_error("im_slice", "%s", _("im_iocheck failed"));
-		return (-1);
+		return -1;
 	}
 	if (in->Coding != IM_CODING_NONE) {
 		im_error("im_slice", "%s", _("input should be uncoded"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set up the output header.  */
 	if (im_cp_desc(out, in)) {
 		im_error("im_slice", "%s", _("im_cp_desc failed"));
-		return (-1);
+		return -1;
 	}
 	out->BandFmt = IM_BANDFMT_UCHAR;
 	if (im_setupout(out)) {
 		im_error("im_slice", "%s", _("im_setupout failed"));
-		return (-1);
+		return -1;
 	}
 
 	if (t1 <= t2) {
@@ -130,7 +130,7 @@ double t1, t2;
 	epl = in->Xsize * in->Bands;
 	s = epl * sizeof(PEL);
 	if ((bu = (PEL *) im_malloc(out, (unsigned) s)) == NULL)
-		return (-1);
+		return -1;
 
 /* Define what we do for each band element type.  */
 #define im_slice_loop(TYPE) \
@@ -152,7 +152,7 @@ double t1, t2;
 				} \
 \
 			if (im_writeline(y, out, bu)) \
-				return (-1); \
+				return -1; \
 		} \
 	}
 
@@ -162,8 +162,8 @@ double t1, t2;
 
 	default:
 		im_error("im_slice", "%s", _("Unknown input format"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }

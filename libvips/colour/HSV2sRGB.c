@@ -156,5 +156,5 @@ vips_HSV2sRGB(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("HSV2sRGB", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

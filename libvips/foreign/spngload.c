@@ -107,15 +107,15 @@ vips_foreign_load_png_stream(spng_ctx *ctx, void *user,
 
 		bytes_read = vips_source_read(source, dest, length);
 		if (bytes_read < 0)
-			return (SPNG_IO_ERROR);
+			return SPNG_IO_ERROR;
 		if (bytes_read == 0)
-			return (SPNG_IO_EOF);
+			return SPNG_IO_EOF;
 
 		dest = (char *) dest + bytes_read;
 		length -= bytes_read;
 	}
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -128,12 +128,12 @@ vips_foreign_load_png_get_flags_source(VipsSource *source)
 	ctx = spng_ctx_new(SPNG_CTX_IGNORE_ADLER32);
 	spng_set_crc_action(ctx, SPNG_CRC_USE, SPNG_CRC_USE);
 	if (vips_source_rewind(source))
-		return (0);
+		return 0;
 	spng_set_png_stream(ctx,
 		vips_foreign_load_png_stream, source);
 	if (spng_get_ihdr(ctx, &ihdr)) {
 		spng_ctx_free(ctx);
-		return (0);
+		return 0;
 	}
 	spng_ctx_free(ctx);
 
@@ -143,7 +143,7 @@ vips_foreign_load_png_get_flags_source(VipsSource *source)
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
-	return (flags);
+	return flags;
 }
 
 static VipsForeignFlags
@@ -151,7 +151,7 @@ vips_foreign_load_png_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	return (vips_foreign_load_png_get_flags_source(png->source));
+	return vips_foreign_load_png_get_flags_source(png->source);
 }
 
 static VipsForeignFlags
@@ -161,11 +161,11 @@ vips_foreign_load_png_get_flags_filename(const char *filename)
 	VipsForeignFlags flags;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (0);
+		return 0;
 	flags = vips_foreign_load_png_get_flags_source(source);
 	VIPS_UNREF(source);
 
-	return (flags);
+	return flags;
 }
 
 /* Set the png text data as metadata on the vips image. These are always
@@ -236,7 +236,7 @@ vips_foreign_load_png_set_header(VipsForeignLoadPng *png, VipsImage *image)
 		vips_connection_filename(VIPS_CONNECTION(png->source)));
 
 	if (vips_image_pipelinev(image, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	if (!spng_get_iccp(png->ctx, &iccp))
 		vips_image_set_blob_copy(image,
@@ -321,7 +321,7 @@ vips_foreign_load_png_set_header(VipsForeignLoadPng *png, VipsImage *image)
 				array, n);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -359,12 +359,12 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 	}
 
 	if (vips_source_rewind(png->source))
-		return (-1);
+		return -1;
 	spng_set_png_stream(png->ctx,
 		vips_foreign_load_png_stream, png->source);
 	if ((error = spng_get_ihdr(png->ctx, &png->ihdr))) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -398,7 +398,7 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 
 	default:
 		vips_error(class->nickname, "%s", _("unknown color type"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set libvips format and interpretation.
@@ -439,7 +439,7 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 	if (error &&
 		error != SPNG_ECHUNKAVAIL) {
 		vips_error(class->nickname, "%s", spng_strerror(error));
-		return (-1);
+		return -1;
 	}
 
 	/* Expand transparency.
@@ -476,9 +476,9 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 	vips_source_minimise(png->source);
 
 	if (vips_foreign_load_png_set_header(png, load->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -524,7 +524,7 @@ vips_foreign_load_png_generate(VipsRegion * or,
 	if (r->top != png->y_pos) {
 		vips_error(class->nickname,
 			_("out of order read at line %d"), png->y_pos);
-		return (-1);
+		return -1;
 	}
 
 	for (y = 0; y < r->height; y++) {
@@ -557,14 +557,14 @@ vips_foreign_load_png_generate(VipsRegion * or,
 			if (load->fail_on >= VIPS_FAIL_ON_TRUNCATED) {
 				vips_error(class->nickname,
 					"%s", _("libspng read error"));
-				return (-1);
+				return -1;
 			}
 		}
 
 		png->y_pos += 1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -579,7 +579,7 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 	int error;
 
 	if (vips_source_decode(png->source))
-		return (-1);
+		return -1;
 
 	/* Decode transparency, if available.
 	 */
@@ -592,7 +592,7 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 		t[0] = vips_image_new_memory();
 		if (vips_foreign_load_png_set_header(png, t[0]) ||
 			vips_image_write_prepare(t[0]))
-			return (-1);
+			return -1;
 
 		if ((error = spng_decode_image(png->ctx,
 				 VIPS_IMAGE_ADDR(t[0], 0, 0),
@@ -600,7 +600,7 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 				 png->fmt, flags))) {
 			vips_error(class->nickname,
 				"%s", spng_strerror(error));
-			return (-1);
+			return -1;
 		}
 
 		/* We've now finished reading the file.
@@ -608,13 +608,13 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 		vips_source_minimise(png->source);
 
 		if (vips_image_write(t[0], load->real))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[0] = vips_image_new();
 
 		if (vips_foreign_load_png_set_header(png, t[0]))
-			return (-1);
+			return -1;
 
 		/* We can decode these progressively.
 		 */
@@ -624,7 +624,7 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 				 png->fmt, flags))) {
 			vips_error(class->nickname,
 				"%s", spng_strerror(error));
-			return (-1);
+			return -1;
 		}
 
 		/* Close input immediately at end of read.
@@ -639,10 +639,10 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 				"tile_height", VIPS__FATSTRIP_HEIGHT,
 				NULL) ||
 			vips_image_write(t[1], load->real))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -710,9 +710,9 @@ vips_foreign_load_png_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -724,9 +724,9 @@ vips_foreign_load_png_source_is_a_source(VipsSource *source)
 
 	if ((p = vips_source_sniff(source, 8)) &&
 		memcmp(p, signature, 8) == 0)
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 static void
@@ -783,12 +783,12 @@ vips_foreign_load_png_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(png->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -798,11 +798,11 @@ vips_foreign_load_png_file_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_png_source_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 const char *vips_foreign_load_png_file_suffs[] = { ".png", NULL };
@@ -863,13 +863,13 @@ vips_foreign_load_png_buffer_build(VipsObject *object)
 		!(png->source = vips_source_new_from_memory(
 			  VIPS_AREA(buffer->blob)->data,
 			  VIPS_AREA(buffer->blob)->length)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -879,11 +879,11 @@ vips_foreign_load_png_buffer_is_a_buffer(const void *buf, size_t len)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_memory(buf, len)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_png_source_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void

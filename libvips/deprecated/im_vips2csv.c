@@ -58,7 +58,7 @@ im_vips2csv(IMAGE *in, const char *filename)
 	}
 
 	if (vips_csvsave(in, name, "separator", separator, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

@@ -149,7 +149,7 @@ vips__openslide_isslide(const char *filename)
 
 	VIPS_DEBUG_MSG("vips__openslide_isslide: %s - %d\n", filename, ok);
 
-	return (ok);
+	return ok;
 #else
 	openslide_t *osr;
 	int ok;
@@ -178,7 +178,7 @@ vips__openslide_isslide(const char *filename)
 
 	VIPS_DEBUG_MSG("vips__openslide_isslide: %s - %d\n", filename, ok);
 
-	return (ok);
+	return ok;
 #endif
 }
 
@@ -199,12 +199,12 @@ check_associated_image(openslide_t *osr, const char *name)
 	for (associated = openslide_get_associated_image_names(osr);
 		 *associated != NULL; associated++)
 		if (strcmp(*associated, name) == 0)
-			return (0);
+			return 0;
 
 	vips_error("openslide2vips",
 		"%s", _("invalid associated image name"));
 
-	return (-1);
+	return -1;
 }
 
 static gboolean
@@ -229,12 +229,12 @@ get_bounds(openslide_t *osr, VipsRect *rect)
 	for (i = 0; i < 4; i++) {
 		if (!(value = openslide_get_property_value(osr,
 				  openslide_names[i])))
-			return (FALSE);
+			return FALSE;
 		G_STRUCT_MEMBER(int, rect, vips_offsets[i]) =
 			atoi(value);
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 static ReadSlide *
@@ -248,14 +248,14 @@ readslide_new(const char *filename, VipsImage *out,
 		associated) {
 		vips_error("openslide2vips",
 			"%s", _("specify only one of level and associated image"));
-		return (NULL);
+		return NULL;
 	}
 
 	if (attach_associated &&
 		associated) {
 		vips_error("openslide2vips", "%s",
 			_("specify only one of attach_assicated and associated image"));
-		return (NULL);
+		return NULL;
 	}
 
 	rslide = VIPS_NEW(NULL, ReadSlide);
@@ -276,7 +276,7 @@ readslide_new(const char *filename, VipsImage *out,
 	rslide->tile_width = 256;
 	rslide->tile_height = 256;
 
-	return (rslide);
+	return rslide;
 }
 
 /* Convert from ARGB to RGBA and undo premultiplication.
@@ -358,7 +358,7 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 		vips_image_write_prepare(associated)) {
 		g_object_unref(associated);
-		return (NULL);
+		return NULL;
 	}
 
 	openslide_read_associated_image(rslide->osr,
@@ -369,7 +369,7 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 		vips_error("openslide2vips",
 			_("reading associated image: %s"), error);
 		g_object_unref(associated);
-		return (NULL);
+		return NULL;
 	}
 
 	/* In RGB mode we make a second RGB image and repack to that.
@@ -387,7 +387,7 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 				VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 			vips_image_write_prepare(rgb)) {
 			g_object_unref(rgb);
-			return (NULL);
+			return NULL;
 		}
 
 		argb2rgb((uint32_t *) VIPS_IMAGE_ADDR(associated, 0, 0),
@@ -401,7 +401,7 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 		argb2rgba((uint32_t *) VIPS_IMAGE_ADDR(associated, 0, 0),
 			w * h, rslide->bg);
 
-	return (associated);
+	return associated;
 }
 
 static int
@@ -417,7 +417,7 @@ readslide_attach_associated(ReadSlide *rslide, VipsImage *image)
 
 		if (!(associated = vips__openslide_get_associated(rslide,
 				  *associated_name)))
-			return (-1);
+			return -1;
 
 		vips_snprintf(buf, 256,
 			"openslide.associated.%s", *associated_name);
@@ -426,7 +426,7 @@ readslide_attach_associated(ReadSlide *rslide, VipsImage *image)
 		g_object_unref(associated);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Read out a resolution field, converting to pixels per mm.
@@ -437,7 +437,7 @@ readslice_parse_res(ReadSlide *rslide, const char *name)
 	const char *value = openslide_get_property_value(rslide->osr, name);
 	double mpp = g_ascii_strtod(value, NULL);
 
-	return (mpp == 0 ? 1.0 : 1000.0 / mpp);
+	return mpp == 0 ? 1.0 : 1000.0 / mpp;
 }
 
 static int
@@ -455,25 +455,25 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 	if (!rslide->osr) {
 		vips_error("openslide2vips",
 			"%s", _("unsupported slide format"));
-		return (-1);
+		return -1;
 	}
 	error = openslide_get_error(rslide->osr);
 	if (error) {
 		vips_error("openslide2vips",
 			_("opening slide: %s"), error);
-		return (-1);
+		return -1;
 	}
 
 	if (rslide->level < 0 ||
 		rslide->level >= openslide_get_level_count(rslide->osr)) {
 		vips_error("openslide2vips",
 			"%s", _("invalid slide level"));
-		return (-1);
+		return -1;
 	}
 
 	if (rslide->associated &&
 		check_associated_image(rslide->osr, rslide->associated))
-		return (-1);
+		return -1;
 
 	if (rslide->associated) {
 		openslide_get_associated_image_dimensions(rslide->osr,
@@ -482,7 +482,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 			rslide->associated);
 		if (vips_image_pipelinev(image,
 				VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		char buf[256];
@@ -495,7 +495,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		vips_image_set_int(image, "slide-level", rslide->level);
 		if (vips_image_pipelinev(image,
 				VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-			return (-1);
+			return -1;
 
 		/* Try to get tile width/height. An undocumented, experimental
 		 * feature.
@@ -548,7 +548,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		 */
 		if (rslide->attach_associated &&
 			readslide_attach_associated(rslide, image))
-			return (-1);
+			return -1;
 	}
 
 	rslide->bg = 0xffffff;
@@ -561,13 +561,13 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		rslide->downsample < 0) {
 		vips_error("openslide2vips", _("getting dimensions: %s"),
 			openslide_get_error(rslide->osr));
-		return (-1);
+		return -1;
 	}
 	if (w > INT_MAX ||
 		h > INT_MAX) {
 		vips_error("openslide2vips",
 			"%s", _("image dimensions overflow int"));
-		return (-1);
+		return -1;
 	}
 
 	if (!rslide->autocrop) {
@@ -610,7 +610,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, xres, yres);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -623,9 +623,9 @@ vips__openslide_read_header(const char *filename, VipsImage *out,
 	if (!(rslide = readslide_new(filename,
 			  out, level, autocrop, associated, attach_associated, rgb)) ||
 		readslide_parse(rslide, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Allocate a tile buffer. Have one of these for each thread so we can unpack
@@ -640,9 +640,9 @@ vips__openslide_start(VipsImage *out, void *a, void *b)
 
 	if (!(tile_buffer = VIPS_MALLOC(NULL,
 			  (size_t) rslide->tile_width * rslide->tile_height * 4)))
-		return (NULL);
+		return NULL;
 
-	return ((void *) tile_buffer);
+	return (void *) tile_buffer;
 }
 
 static int
@@ -703,7 +703,7 @@ vips__openslide_generate(VipsRegion *out,
 	if (error) {
 		vips_error("openslide2vips",
 			_("reading region: %s"), error);
-		return (-1);
+		return -1;
 	}
 
 	if (rslide->rgb)
@@ -712,7 +712,7 @@ vips__openslide_generate(VipsRegion *out,
 	else
 		argb2rgba(buf, n, bg);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -722,7 +722,7 @@ vips__openslide_stop(void *_seq, void *a, void *b)
 
 	VIPS_FREE(tile_buffer);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -739,7 +739,7 @@ vips__openslide_read(const char *filename, VipsImage *out,
 
 	if (!(rslide = readslide_new(filename, out, level, autocrop,
 			  NULL, attach_associated, rgb)))
-		return (-1);
+		return -1;
 
 	raw = vips_image_new();
 	vips_object_local(out, raw);
@@ -749,7 +749,7 @@ vips__openslide_read(const char *filename, VipsImage *out,
 			vips__openslide_start,
 			vips__openslide_generate,
 			vips__openslide_stop, rslide, NULL))
-		return (-1);
+		return -1;
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows,
 	 * plus 50%. We need at least two rows, or we'll constantly reload
@@ -761,14 +761,14 @@ vips__openslide_read(const char *filename, VipsImage *out,
 			"max_tiles", (int) (2.5 * (1 + raw->Xsize / rslide->tile_width)),
 			"threaded", TRUE,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -783,19 +783,19 @@ vips__openslide_read_associated(const char *filename, VipsImage *out,
 
 	if (!(rslide = readslide_new(filename,
 			  out, 0, FALSE, associated_name, FALSE, rgb)))
-		return (-1);
+		return -1;
 	rslide->osr = openslide_open(rslide->filename);
 	if (!(associated = vips__openslide_get_associated(rslide,
 			  associated_name)))
-		return (-1);
+		return -1;
 
 	if (vips_image_write(associated, out)) {
 		VIPS_UNREF(associated);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(associated);
 
-	return (0);
+	return 0;
 }
 
 typedef struct _VipsForeignLoadOpenslide {
@@ -867,7 +867,7 @@ vips_foreign_load_openslide_build(VipsObject *object)
 			!(filename = vips_connection_filename(connection))) {
 			vips_error(class->nickname, "%s",
 				_("no filename available"));
-			return (-1);
+			return -1;
 		}
 
 		openslide->filename = filename;
@@ -875,9 +875,9 @@ vips_foreign_load_openslide_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -886,7 +886,7 @@ vips_foreign_load_openslide_get_flags_source(VipsSource *source)
 	/* We can't tell from just the source, we need to know what part of
 	 * the file the user wants. But it'll usually be partial.
 	 */
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
@@ -899,7 +899,7 @@ vips_foreign_load_openslide_get_flags(VipsForeignLoad *load)
 	if (!openslide->associated)
 		flags |= VIPS_FOREIGN_PARTIAL;
 
-	return (flags);
+	return flags;
 }
 
 static VipsForeignFlags
@@ -909,11 +909,11 @@ vips_foreign_load_openslide_get_flags_filename(const char *filename)
 	VipsForeignFlags flags;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (0);
+		return 0;
 	flags = vips_foreign_load_openslide_get_flags_source(source);
 	VIPS_UNREF(source);
 
-	return (flags);
+	return flags;
 }
 
 static int
@@ -925,11 +925,11 @@ vips_foreign_load_openslide_header(VipsForeignLoad *load)
 			openslide->level, openslide->autocrop,
 			openslide->associated, openslide->attach_associated,
 			openslide->rgb))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, openslide->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -942,15 +942,15 @@ vips_foreign_load_openslide_load(VipsForeignLoad *load)
 				openslide->level, openslide->autocrop,
 				openslide->attach_associated,
 				openslide->rgb))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips__openslide_read_associated(openslide->filename,
 				load->real, openslide->associated, openslide->rgb))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1061,13 +1061,13 @@ vips_foreign_load_openslide_file_build(VipsObject *object)
 	if (file->filename &&
 		!(openslide->source =
 				vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_openslide_suffs[] = {
@@ -1144,9 +1144,9 @@ vips_foreign_load_openslide_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -1156,9 +1156,9 @@ vips_foreign_load_openslide_source_is_a_source(VipsSource *source)
 
 	const char *filename;
 
-	return (vips_source_is_file(source) &&
+	return vips_source_is_file(source) &&
 		(filename = vips_connection_filename(connection)) &&
-		vips__openslide_isslide(filename));
+		vips__openslide_isslide(filename);
 }
 
 static void

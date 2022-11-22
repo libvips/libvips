@@ -52,18 +52,18 @@ im_raw2vips(const char *filename, IMAGE *out,
 	if (vips_rawload(filename, &t, width, height, bpp,
 			"offset", offset,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 int
 im_vips2raw(IMAGE *in, int fd)
 {
-	return (vips_rawsave_fd(in, fd, NULL));
+	return vips_rawsave_fd(in, fd, NULL);
 }

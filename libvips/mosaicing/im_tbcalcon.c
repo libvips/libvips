@@ -100,10 +100,10 @@ vips__tbcalcon(VipsImage *ref, TiePoints *points)
 	/* Make sure we can read image.
 	 */
 	if (vips_image_wio_input(ref))
-		return (-1);
+		return -1;
 	if (ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR) {
 		vips_error("vips__tbcalcon", "%s", _("help!"));
-		return (-1);
+		return -1;
 	}
 
 	/* Define bits to search for high-contrast areas.
@@ -117,7 +117,7 @@ vips__tbcalcon(VipsImage *ref, TiePoints *points)
 	area.height--;
 	if (area.width < 0 || area.height < 0) {
 		vips_error("vips__tbcalcon", "%s", _("overlap too small"));
-		return (-1);
+		return -1;
 	}
 
 	/* Loop over areas, finding points.
@@ -130,7 +130,7 @@ vips__tbcalcon(VipsImage *ref, TiePoints *points)
 				points->contrast + i * len,
 				len,
 				points->halfcorsize))
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }

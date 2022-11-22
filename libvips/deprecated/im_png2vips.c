@@ -58,20 +58,20 @@ im_png2vips(const char *name, IMAGE *out)
 	im_filename_split(name, filename, mode);
 
 	if (vips_pngload(filename, &x, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(x, out)) {
 		VIPS_UNREF(x);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(x);
 
-	return (0);
+	return 0;
 }
 
 static int
 ispng(const char *filename)
 {
-	return (vips_foreign_is_a("pngload", filename));
+	return vips_foreign_is_a("pngload", filename);
 }
 
 static const char *png_suffs[] = { ".png", NULL };

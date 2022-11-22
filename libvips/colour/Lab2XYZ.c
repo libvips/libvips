@@ -151,16 +151,16 @@ vips_Lab2XYZ_build(VipsObject *object)
 	if (Lab2XYZ->temp) {
 		if (vips_check_vector_length(class->nickname,
 				Lab2XYZ->temp->n, 3))
-			return (-1);
+			return -1;
 		Lab2XYZ->X0 = ((double *) Lab2XYZ->temp->data)[0];
 		Lab2XYZ->Y0 = ((double *) Lab2XYZ->temp->data)[1];
 		Lab2XYZ->Z0 = ((double *) Lab2XYZ->temp->data)[2];
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_Lab2XYZ_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -224,7 +224,7 @@ vips_Lab2XYZ(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("Lab2XYZ", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**

@@ -72,14 +72,14 @@ vips_cache_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_cache_build\n");
 
 	if (VIPS_OBJECT_CLASS(vips_cache_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_sink_screen(cache->in, conversion->out, NULL,
 			cache->tile_width, cache->tile_height, cache->max_tiles,
 			0, NULL, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -177,5 +177,5 @@ vips_cache(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("cache", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

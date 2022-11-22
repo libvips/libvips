@@ -96,7 +96,7 @@ zerox_gen(REGION * or, void *seq, void *a, void *b)
 	irect.width = r->width + 1;
 	irect.height = r->height;
 	if (im_prepare(ir, &irect))
-		return (-1);
+		return -1;
 
 	for (y = to; y < bo; y++) {
 		VipsPel *p = IM_REGION_ADDR(ir, le, y);
@@ -124,7 +124,7 @@ zerox_gen(REGION * or, void *seq, void *a, void *b)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -152,44 +152,44 @@ im_zerox(IMAGE *in, IMAGE *out, int sign)
 
 	if (sign != -1 && sign != 1) {
 		im_error("im_zerox", "%s", _("flag not -1 or 1"));
-		return (-1);
+		return -1;
 	}
 	if (in->Xsize < 2) {
 		im_error("im_zerox", "%s", _("image too narrow"));
-		return (-1);
+		return -1;
 	}
 	if (!(t1 = im_open_local(out, "im_zerox", "p")) ||
 		im_piocheck(in, t1) ||
 		im_check_uncoded("im_zerox", in) ||
 		im_check_noncomplex("im_zerox", in))
-		return (-1);
+		return -1;
 	if (vips_bandfmt_isuint(in->BandFmt))
 		/* Unsigned type, therefore there will be no zero-crossings.
 		 */
-		return (im_black(out, in->Xsize, in->Ysize, in->Bands));
+		return im_black(out, in->Xsize, in->Ysize, in->Bands);
 
 	/* Force output to be BYTE. Output is narrower than input by 1 pixel.
 	 */
 	if (im_cp_desc(t1, in))
-		return (-1);
+		return -1;
 	t1->BandFmt = IM_BANDFMT_UCHAR;
 	t1->Xsize -= 1;
 
 	/* Set hints - THINSTRIP is ok with us.
 	 */
 	if (im_demand_hint(t1, IM_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	/* Generate image.
 	 */
 	if (im_generate(t1, im_start_one, zerox_gen, im_stop_one,
 			in, GINT_TO_POINTER(sign)))
-		return (-1);
+		return -1;
 
 	/* Now embed it in a larger image.
 	 */
 	if (im_embed(t1, out, 0, 0, 0, in->Xsize, in->Ysize))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

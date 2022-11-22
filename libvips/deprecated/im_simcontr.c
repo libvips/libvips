@@ -71,7 +71,7 @@ im_simcontr(IMAGE *out, int xsize, int ysize)
 
 	/* Check input args */
 	if (im_outcheck(out))
-		return (-1);
+		return -1;
 
 	/* Set now image properly */
 	im_initdesc(out, xsize, ysize, 1, IM_BBITS_BYTE, IM_BANDFMT_UCHAR,
@@ -79,13 +79,13 @@ im_simcontr(IMAGE *out, int xsize, int ysize)
 
 	/* Set up image checking whether the output is a buffer or a file */
 	if (im_setupout(out) == -1)
-		return (-1);
+		return -1;
 	/* Create data */
 	line1 = (unsigned char *) calloc((unsigned) xsize, sizeof(char));
 	line2 = (unsigned char *) calloc((unsigned) xsize, sizeof(char));
 	if ((line1 == NULL) || (line2 == NULL)) {
 		im_error("im_simcontr", "%s", _("calloc failed"));
-		return (-1);
+		return -1;
 	}
 
 	cpline = line1;
@@ -114,24 +114,24 @@ im_simcontr(IMAGE *out, int xsize, int ysize)
 		if (im_writeline(y, out, (PEL *) line1) == -1) {
 			free((char *) line1);
 			free((char *) line2);
-			return (-1);
+			return -1;
 		}
 	}
 	for (y = ysize / 4; y < (ysize / 4 + ysize / 2); y++) {
 		if (im_writeline(y, out, (PEL *) line2) == -1) {
 			free((char *) line1);
 			free((char *) line2);
-			return (-1);
+			return -1;
 		}
 	}
 	for (y = (ysize / 4 + ysize / 2); y < ysize; y++) {
 		if (im_writeline(y, out, (PEL *) line1) == -1) {
 			free((char *) line1);
 			free((char *) line2);
-			return (-1);
+			return -1;
 		}
 	}
 	free((char *) line1);
 	free((char *) line2);
-	return (0);
+	return 0;
 }

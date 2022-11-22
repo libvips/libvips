@@ -94,7 +94,7 @@ im_gradcor_raw(IMAGE *large, IMAGE *small, IMAGE *out)
 		im_check_mono("im_gradcor", small) ||
 		im_check_format_same("im_gradcor", large, small) ||
 		im_check_int("im_gradcor", large))
-		return (-1);
+		return -1;
 
 	if (large->Xsize < small->Xsize || large->Ysize < small->Ysize) {
 		im_error(FUNCTION_NAME, "second image must be smaller than first");
@@ -120,13 +120,13 @@ im_gradcor_raw(IMAGE *large, IMAGE *small, IMAGE *out)
 			!grads ||
 			im_grad_x(small, xgrad) ||
 			im_grad_y(small, ygrad))
-			return (-1);
+			return -1;
 
 		if (im_generate(out,
 				gradcor_start, gradcor_gen, gradcor_stop, (void *) large, (void *) grads))
-			return (-1);
+			return -1;
 
-		return (0);
+		return 0;
 	}
 #undef FUNCTION_NAME
 }
@@ -169,12 +169,12 @@ im_gradcor(IMAGE *in, IMAGE *ref, IMAGE *out)
 			in->Xsize + ref->Xsize - 1,
 			in->Ysize + ref->Ysize - 1) ||
 		im_gradcor_raw(t1, ref, out))
-		return (-1);
+		return -1;
 
 	out->Xoffset = 0;
 	out->Yoffset = 0;
 
-	return (0);
+	return 0;
 #undef FUNCTION_NAME
 }
 
@@ -208,7 +208,7 @@ im_grad_x(IMAGE *in, IMAGE *out)
 	if (im_check_uncoded("im_grad_x", in) ||
 		im_check_mono("im_grad_x", in) ||
 		im_check_int("im_grad_x", in))
-		return (-1);
+		return -1;
 	if (im_cp_desc(out, in))
 		return -1;
 
@@ -286,7 +286,7 @@ im_grad_y(IMAGE *in, IMAGE *out)
 	if (im_check_uncoded("im_grad_y", in) ||
 		im_check_mono("im_grad_y", in) ||
 		im_check_int("im_grad_y", in))
-		return (-1);
+		return -1;
 
 	if (im_cp_desc(out, in))
 		return -1;

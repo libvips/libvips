@@ -120,7 +120,7 @@ vips_gaussnoise_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -130,7 +130,7 @@ vips_gaussnoise_build(VipsObject *object)
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_gaussnoise_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vips_image_init_fields(create->out,
 		gaussnoise->width, gaussnoise->height, 1,
@@ -140,9 +140,9 @@ vips_gaussnoise_build(VipsObject *object)
 	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_generate(create->out,
 			NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -237,5 +237,5 @@ vips_gaussnoise(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("gaussnoise", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

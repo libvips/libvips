@@ -169,16 +169,16 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 	 */
 	if (length < 4) {
 		vips_error("exif", "%s", _("exif too small"));
-		return (NULL);
+		return NULL;
 	}
 	if (length > 1 << 20) {
 		vips_error("exif", "%s", _("exif too large"));
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(ed = exif_data_new())) {
 		vips_error("exif", "%s", _("unable to init exif"));
-		return (NULL);
+		return NULL;
 	}
 
 	exif_data_unset_option(ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
@@ -195,7 +195,7 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 	else
 		exif_data_load_data(ed, data, length);
 
-	return (ed);
+	return ed;
 }
 
 static int
@@ -217,9 +217,9 @@ vips_exif_get_int(ExifData *ed,
 	else if (entry->format == EXIF_FORMAT_SLONG)
 		*out = exif_get_slong(entry->data + offset, bo);
 	else
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -234,9 +234,9 @@ vips_exif_get_rational(ExifData *ed,
 		*out = exif_get_rational(entry->data + offset, bo);
 	}
 	else
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -251,9 +251,9 @@ vips_exif_get_srational(ExifData *ed,
 		*out = exif_get_srational(entry->data + offset, bo);
 	}
 	else
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -277,11 +277,11 @@ vips_exif_get_double(ExifData *ed,
 			value = (double) srv.numerator / srv.denominator;
 	}
 	else
-		return (-1);
+		return -1;
 
 	*out = value;
 
-	return (0);
+	return 0;
 }
 
 /* Save an exif value to a string in a way that we can restore. We only bother
@@ -356,10 +356,10 @@ static const char *
 vips_exif_entry_get_name(ExifEntry *entry)
 {
 	if (!entry->parent)
-		return (NULL);
+		return NULL;
 
-	return (exif_tag_get_name_in_ifd(entry->tag,
-		exif_entry_get_ifd(entry)));
+	return exif_tag_get_name_in_ifd(entry->tag,
+		exif_entry_get_ifd(entry));
 }
 
 static void
@@ -398,9 +398,9 @@ vips_exif_entry_get_double(ExifData *ed, int ifd, ExifTag tag, double *out)
 
 	if (!(entry = exif_content_get_entry(ed->ifd[ifd], tag)) ||
 		entry->components != 1)
-		return (-1);
+		return -1;
 
-	return (vips_exif_get_double(ed, entry, 0, out));
+	return vips_exif_get_double(ed, entry, 0, out);
 }
 
 static int
@@ -410,9 +410,9 @@ vips_exif_entry_get_int(ExifData *ed, int ifd, ExifTag tag, int *out)
 
 	if (!(entry = exif_content_get_entry(ed->ifd[ifd], tag)) ||
 		entry->components != 1)
-		return (-1);
+		return -1;
 
-	return (vips_exif_get_int(ed, entry, 0, out));
+	return vips_exif_get_int(ed, entry, 0, out);
 }
 
 /* Set the image resolution from the EXIF tags.
@@ -432,7 +432,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 	if (vips_exif_entry_get_double(ed, 0, EXIF_TAG_X_RESOLUTION, &xres) ||
 		vips_exif_entry_get_double(ed,
 			0, EXIF_TAG_Y_RESOLUTION, &yres))
-		return (-1);
+		return -1;
 
 	/* resuint is optional and defaults to inch.
 	 */
@@ -472,7 +472,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 
 	default:
 		g_warning("%s", _("unknown EXIF resolution unit"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -486,7 +486,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 	image->Xres = VIPS_MAX(0, xres);
 	image->Yres = VIPS_MAX(0, yres);
 
-	return (0);
+	return 0;
 }
 
 /* Need to fwd ref this.
@@ -507,11 +507,11 @@ vips__exif_parse(VipsImage *image)
 	const char *str;
 
 	if (!vips_image_get_typeof(image, VIPS_META_EXIF_NAME))
-		return (0);
+		return 0;
 	if (vips_image_get_blob(image, VIPS_META_EXIF_NAME, &data, &size))
-		return (-1);
+		return -1;
 	if (!(ed = vips_exif_load_data_without_fix(data, size)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG_VERBOSE
 	show_tags(ed);
@@ -527,7 +527,7 @@ vips__exif_parse(VipsImage *image)
 	if (vips_image_resolution_from_exif(image, ed) &&
 		vips_exif_resolution_from_image(ed, image)) {
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 
 	/* Make sure all required fields are there before we attach the vips
@@ -562,7 +562,7 @@ vips__exif_parse(VipsImage *image)
 		vips_image_set_int(image, VIPS_META_ORIENTATION, orientation);
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -774,13 +774,13 @@ typedef void (*write_fn)(ExifData *ed,
 static gboolean
 tag_is_encoding(ExifTag tag)
 {
-	return (tag == EXIF_TAG_USER_COMMENT);
+	return tag == EXIF_TAG_USER_COMMENT;
 }
 
 static gboolean
 tag_is_ascii(ExifTag tag)
 {
-	return (tag == EXIF_TAG_MAKE ||
+	return tag == EXIF_TAG_MAKE ||
 		tag == EXIF_TAG_MODEL ||
 		tag == EXIF_TAG_IMAGE_DESCRIPTION ||
 		tag == EXIF_TAG_ARTIST ||
@@ -818,17 +818,17 @@ tag_is_ascii(ExifTag tag)
 		tag == EXIF_TAG_GPS_DEST_DISTANCE_REF ||
 		tag == EXIF_TAG_GPS_DATE_STAMP
 #endif
-	);
+		;
 }
 
 static gboolean
 tag_is_utf16(ExifTag tag)
 {
-	return (tag == EXIF_TAG_XP_TITLE ||
+	return tag == EXIF_TAG_XP_TITLE ||
 		tag == EXIF_TAG_XP_COMMENT ||
 		tag == EXIF_TAG_XP_AUTHOR ||
 		tag == EXIF_TAG_XP_KEYWORDS ||
-		tag == EXIF_TAG_XP_SUBJECT);
+		tag == EXIF_TAG_XP_SUBJECT;
 }
 
 /* Set a libexif-formatted string entry.
@@ -880,7 +880,7 @@ drop_tail(const char *data)
 		*(p = g_utf8_prev_char(p)) == ' ')
 		*p = '\0';
 
-	return (str);
+	return str;
 }
 
 /* special header required for EXIF_TAG_USER_COMMENT.
@@ -1047,7 +1047,7 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 
 	default:
 		g_warning("%s", _("unknown EXIF resolution unit"));
-		return (0);
+		return 0;
 	}
 
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
@@ -1060,7 +1060,7 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 	vips_exif_set_tag(ed, 0, EXIF_TAG_RESOLUTION_UNIT,
 		vips_exif_set_int, (void *) &unit);
 
-	return (0);
+	return 0;
 }
 
 /* Exif also tracks image dimensions.
@@ -1076,7 +1076,7 @@ vips_exif_set_dimensions(ExifData *ed, VipsImage *im)
 	vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION,
 		vips_exif_set_int, (void *) &im->Ysize);
 
-	return (0);
+	return 0;
 }
 
 /* And orientation.
@@ -1098,7 +1098,7 @@ vips_exif_set_orientation(ExifData *ed, VipsImage *im)
 	vips_exif_set_tag(ed, 0, EXIF_TAG_ORIENTATION,
 		vips_exif_set_int, (void *) &orientation);
 
-	return (0);
+	return 0;
 }
 
 /* And thumbnail.
@@ -1127,7 +1127,7 @@ vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 
 		if (vips_image_get_blob(im, "jpeg-thumbnail-data",
 				&data, &size))
-			return (-1);
+			return -1;
 
 		/* Again, we should use the exif allocator attached to this
 		 * entry, but it is not exposed!
@@ -1140,7 +1140,7 @@ vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Skip any spaces.
@@ -1151,7 +1151,7 @@ skip_space(const char *p)
 	while (p && *p == ' ')
 		p += 1;
 
-	return (p);
+	return p;
 }
 
 /* Skip to the end of this non-space sequence.
@@ -1162,7 +1162,7 @@ skip_nonspace(const char *p)
 	while (p && *p && *p != ' ')
 		p += 1;
 
-	return (p);
+	return p;
 }
 
 /* See also vips_exif_to_s() ... keep in sync. Only the numeric types are
@@ -1232,13 +1232,13 @@ vips_exif_image_field(VipsImage *image,
 	ExifTag tag;
 
 	if (!vips_isprefix("exif-ifd", field))
-		return (NULL);
+		return NULL;
 
 	/* value must be a string.
 	 */
 	if (vips_image_get_string(image, field, &string)) {
 		g_warning(_("bad exif meta \"%s\""), field);
-		return (NULL);
+		return NULL;
 	}
 
 	p = field + strlen("exif-ifd");
@@ -1248,7 +1248,7 @@ vips_exif_image_field(VipsImage *image,
 		;
 	if (*p != '-') {
 		g_warning(_("bad exif meta \"%s\""), field);
-		return (NULL);
+		return NULL;
 	}
 
 	/* GPSVersionID is tag 0 (the error return) so we have to
@@ -1257,12 +1257,12 @@ vips_exif_image_field(VipsImage *image,
 	if (!(tag = exif_tag_from_name(p + 1)) &&
 		strcmp(p + 1, "GPSVersionID") != 0) {
 		g_warning(_("bad exif meta \"%s\""), field);
-		return (NULL);
+		return NULL;
 	}
 
 	vips_exif_set_tag(ed, ifd, tag, vips_exif_set_entry, (void *) string);
 
-	return (NULL);
+	return NULL;
 }
 
 typedef struct _VipsExifRemove {
@@ -1354,7 +1354,7 @@ vips_exif_exif_remove(ExifEntry *entry, VipsExifRemove *ve, void *b)
 
 	exif_content_remove_entry(ve->content, entry);
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -1417,10 +1417,10 @@ vips__exif_update(VipsImage *image)
 	if (vips_image_get_typeof(image, VIPS_META_EXIF_NAME)) {
 		if (vips_image_get_blob(image, VIPS_META_EXIF_NAME,
 				(void *) &data, &length))
-			return (-1);
+			return -1;
 
 		if (!(ed = vips_exif_load_data_without_fix(data, length)))
-			return (-1);
+			return -1;
 	}
 	else {
 		ed = exif_data_new();
@@ -1444,28 +1444,28 @@ vips__exif_update(VipsImage *image)
 	 */
 	if (vips_exif_resolution_from_image(ed, image)) {
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 
 	/* Update EXIF image dimensions from the vips image header.
 	 */
 	if (vips_exif_set_dimensions(ed, image)) {
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 
 	/* Update EXIF orientation from the vips image header.
 	 */
 	if (vips_exif_set_orientation(ed, image)) {
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 
 	/* Update the thumbnail.
 	 */
 	if (vips_exif_set_thumbnail(ed, image)) {
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 
 	/* Reserialise and write. exif_data_save_data() returns an int for some
@@ -1475,7 +1475,7 @@ vips__exif_update(VipsImage *image)
 	if (!idl) {
 		vips_error("exif", "%s", _("error saving EXIF"));
 		exif_data_free(ed);
-		return (-1);
+		return -1;
 	}
 	length = idl;
 
@@ -1488,7 +1488,7 @@ vips__exif_update(VipsImage *image)
 
 	exif_data_free(ed);
 
-	return (0);
+	return 0;
 }
 
 #else /*!HAVE_EXIF*/
@@ -1496,13 +1496,13 @@ vips__exif_update(VipsImage *image)
 int
 vips__exif_parse(VipsImage *image)
 {
-	return (0);
+	return 0;
 }
 
 int
 vips__exif_update(VipsImage *image)
 {
-	return (0);
+	return 0;
 }
 
 #endif /*!HAVE_EXIF*/

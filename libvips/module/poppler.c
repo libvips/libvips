@@ -66,7 +66,7 @@ g_module_check_init(GModule *module)
 	vips_foreign_load_pdf_buffer_get_type();
 	vips_foreign_load_pdf_source_get_type();
 
-	return (NULL);
+	return NULL;
 }
 
 #endif /*defined(HAVE_POPPLER) && defined(POPPLER_MODULE)*/

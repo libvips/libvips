@@ -178,7 +178,7 @@ vips_sRGB2scRGB_gen(VipsRegion * or,
 	int y;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_sRGB2scRGB_gen: work");
 
@@ -208,7 +208,7 @@ vips_sRGB2scRGB_gen(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_sRGB2scRGB_gen: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -224,18 +224,18 @@ vips_sRGB2scRGB_build(VipsObject *object)
 	VipsBandFormat format;
 
 	if (VIPS_OBJECT_CLASS(vips_sRGB2scRGB_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = sRGB2scRGB->in;
 	if (vips_check_bands_atleast(class->nickname, in, 3))
-		return (-1);
+		return -1;
 
 	format = in->Type == VIPS_INTERPRETATION_RGB16
 		? VIPS_FORMAT_USHORT
 		: VIPS_FORMAT_UCHAR;
 	if (in->BandFmt != format) {
 		if (vips_cast(in, &t[0], format, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		t[0] = in;
@@ -247,7 +247,7 @@ vips_sRGB2scRGB_build(VipsObject *object)
 	if (vips_image_pipelinev(out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 	out->Type = VIPS_INTERPRETATION_scRGB;
 	out->BandFmt = VIPS_FORMAT_FLOAT;
@@ -256,12 +256,12 @@ vips_sRGB2scRGB_build(VipsObject *object)
 			vips_start_one, vips_sRGB2scRGB_gen, vips_stop_one,
 			in, sRGB2scRGB)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 
 	g_object_set(object, "out", out, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -324,5 +324,5 @@ vips_sRGB2scRGB(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("sRGB2scRGB", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

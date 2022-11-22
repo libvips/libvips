@@ -64,9 +64,9 @@ im_vips2ppm(IMAGE *in, const char *filename)
 			im_error("im_vips2ppm",
 				"%s", _("bad mode string, "
 						"should be \"binary\" or \"ascii\""));
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (vips_ppmsave(in, name, "ascii", ascii, NULL));
+	return vips_ppmsave(in, name, "ascii", ascii, NULL);
 }

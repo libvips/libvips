@@ -129,7 +129,7 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* no_subsample is deprecated, but we retain backwards compatibility
 	 * new code should use subsample_mode
@@ -139,7 +139,7 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 			? VIPS_FOREIGN_SUBSAMPLE_OFF
 			: VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -272,7 +272,7 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target->target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
@@ -280,9 +280,9 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 			jpeg->overshoot_deringing, jpeg->optimize_scans,
 			jpeg->quant_table, jpeg->subsample_mode,
 			jpeg->restart_interval))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -337,10 +337,10 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!(target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
 			jpeg->interlace, save->strip, jpeg->trellis_quant,
@@ -348,11 +348,11 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 			jpeg->quant_table, jpeg->subsample_mode,
 			jpeg->restart_interval)) {
 		VIPS_UNREF(target);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(target);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -408,10 +408,10 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!(target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
@@ -420,7 +420,7 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 			jpeg->quant_table, jpeg->subsample_mode,
 			jpeg->restart_interval)) {
 		VIPS_UNREF(target);
-		return (-1);
+		return -1;
 	}
 
 	g_object_get(target, "blob", &blob, NULL);
@@ -429,7 +429,7 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 
 	VIPS_UNREF(target);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -482,10 +482,10 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_mime_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!(target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
@@ -494,7 +494,7 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 			jpeg->quant_table, jpeg->subsample_mode,
 			jpeg->restart_interval)) {
 		VIPS_UNREF(target);
-		return (-1);
+		return -1;
 	}
 
 	g_object_get(target, "blob", &blob, NULL);
@@ -510,7 +510,7 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 
 	VIPS_UNREF(target);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -650,7 +650,7 @@ vips_jpegsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("jpegsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -689,7 +689,7 @@ vips_jpegsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("jpegsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -748,7 +748,7 @@ vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -786,5 +786,5 @@ vips_jpegsave_mime(VipsImage *in, ...)
 	result = vips_call_split("jpegsave_mime", ap, in);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -246,7 +246,7 @@ vips_draw_line_build(VipsObject *object)
 	VipsDrawPoint draw_point;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_line_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (line->x1 < draw->image->Xsize &&
 		line->x1 >= 0 &&
@@ -264,7 +264,7 @@ vips_draw_line_build(VipsObject *object)
 		line->x1, line->y1, line->x2, line->y2,
 		draw_point, drawink->pixel_ink);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -326,7 +326,7 @@ vips_draw_linev(VipsImage *image,
 		image, area_ink, x1, y1, x2, y2);
 	vips_area_unref(area_ink);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -359,7 +359,7 @@ vips_draw_line(VipsImage *image,
 	result = vips_draw_linev(image, ink, n, x1, y1, x2, y2, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -392,5 +392,5 @@ vips_draw_line1(VipsImage *image,
 	result = vips_draw_linev(image, array_ink, 1, x1, y1, x2, y2, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

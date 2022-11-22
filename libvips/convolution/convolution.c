@@ -96,13 +96,13 @@ vips_convolution_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_convolution_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_matrix(class->nickname, convolution->mask, &t[0]))
-		return (-1);
+		return -1;
 	convolution->M = t[0];
 
-	return (0);
+	return 0;
 }
 
 static void

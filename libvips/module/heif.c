@@ -74,7 +74,7 @@ g_module_check_init(GModule *module)
 	vips_foreign_save_heif_target_get_type();
 	vips_foreign_save_avif_target_get_type();
 
-	return (NULL);
+	return NULL;
 }
 
 #endif /*defined(HAVE_HEIF) && defined(HEIF_MODULE)*/

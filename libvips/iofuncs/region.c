@@ -246,11 +246,11 @@ vips__region_start(VipsRegion *region)
 				image->filename);
 #endif /*DEBUG*/
 
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Call a stop function if a sequence is running in this VipsRegion.
@@ -444,7 +444,7 @@ vips_region_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_region_build: %p\n", region);
 
 	if (VIPS_OBJECT_CLASS(vips_region_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	vips__region_take_ownership(region);
 
@@ -460,7 +460,7 @@ vips_region_build(VipsObject *object)
 
 	g_mutex_unlock(image->sslock);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -517,12 +517,12 @@ vips_region_new(VipsImage *image)
 
 	if (vips_object_build(VIPS_OBJECT(region))) {
 		VIPS_UNREF(region);
-		return (NULL);
+		return NULL;
 	}
 
 	g_assert(vips_object_sanity(VIPS_OBJECT(region)));
 
-	return (region);
+	return region;
 }
 
 /* Region should be a pixel buffer. On return, check
@@ -563,7 +563,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 	if (vips_rect_isempty(&clipped)) {
 		vips_error("VipsRegion",
 			"%s", _("valid clipped to nothing"));
-		return (-1);
+		return -1;
 	}
 
 	VIPS_FREEF(vips_window_unref, reg->window);
@@ -578,7 +578,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 		reg->invalid = FALSE;
 
 		if (!(reg->buffer = vips_buffer_new(im, &clipped)))
-			return (-1);
+			return -1;
 	}
 	else {
 		/* We combine buffer unref and new buffer ref in one call
@@ -586,7 +586,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 		 */
 		if (!(reg->buffer =
 					vips_buffer_unref_ref(reg->buffer, im, &clipped)))
-			return (-1);
+			return -1;
 	}
 
 	/* Init new stuff.
@@ -596,7 +596,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 	reg->type = VIPS_REGION_BUFFER;
 	reg->data = reg->buffer->buf;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -633,7 +633,7 @@ vips_region_image(VipsRegion *reg, const VipsRect *r)
 	if (vips_rect_isempty(&clipped)) {
 		vips_error("VipsRegion",
 			"%s", _("valid clipped to nothing"));
-		return (-1);
+		return -1;
 	}
 
 	reg->invalid = FALSE;
@@ -658,7 +658,7 @@ vips_region_image(VipsRegion *reg, const VipsRect *r)
 		reg->type = VIPS_REGION_WINDOW;
 		if (!(reg->window = vips_window_take(reg->window, image,
 				  clipped.top, clipped.height)))
-			return (-1);
+			return -1;
 
 		/* Note the area the window actually represents.
 		 */
@@ -673,10 +673,10 @@ vips_region_image(VipsRegion *reg, const VipsRect *r)
 		VIPS_FREEF(vips_window_unref, reg->window);
 
 		vips_error("VipsRegion", "%s", _("bad image type"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -717,13 +717,13 @@ vips_region_region(VipsRegion *reg,
 	if (!dest->data) {
 		vips_error("VipsRegion",
 			"%s", _("no pixel data on attached image"));
-		return (-1);
+		return -1;
 	}
 	if (VIPS_IMAGE_SIZEOF_PEL(dest->im) !=
 		VIPS_IMAGE_SIZEOF_PEL(reg->im)) {
 		vips_error("VipsRegion",
 			"%s", _("images do not match in pixel size"));
-		return (-1);
+		return -1;
 	}
 	vips__region_check_ownership(reg);
 
@@ -756,7 +756,7 @@ vips_region_region(VipsRegion *reg,
 	if (!vips_rect_includesrect(&dest->valid, &wanted)) {
 		vips_error("VipsRegion",
 			"%s", _("dest too small"));
-		return (-1);
+		return -1;
 	}
 
 	/* Clip against the available pixels.
@@ -775,7 +775,7 @@ vips_region_region(VipsRegion *reg,
 	if (vips_rect_isempty(&final)) {
 		vips_error("VipsRegion",
 			"%s", _("valid clipped to nothing"));
-		return (-1);
+		return -1;
 	}
 
 	/* Init new stuff.
@@ -788,7 +788,7 @@ vips_region_region(VipsRegion *reg,
 	reg->data = VIPS_REGION_ADDR(dest, clipped2.left, clipped2.top);
 	reg->type = VIPS_REGION_OTHER_REGION;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -809,9 +809,9 @@ vips_region_region(VipsRegion *reg,
 int
 vips_region_equalsregion(VipsRegion *reg1, VipsRegion *reg2)
 {
-	return (reg1->im == reg2->im &&
+	return reg1->im == reg2->im &&
 		vips_rect_equalsrect(&reg1->valid, &reg2->valid) &&
-		reg1->data == reg2->data);
+		reg1->data == reg2->data;
 }
 
 /**
@@ -845,13 +845,13 @@ vips_region_position(VipsRegion *reg, int x, int y)
 	vips_rect_intersectrect(&image, &req, &clipped);
 	if (x < 0 || y < 0 || vips_rect_isempty(&clipped)) {
 		vips_error("VipsRegion", "%s", _("bad position"));
-		return (-1);
+		return -1;
 	}
 
 	reg->valid = clipped;
 	reg->invalid = FALSE;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -873,13 +873,13 @@ vips_region_fill(VipsRegion *reg,
 	/* Should have local memory.
 	 */
 	if (vips_region_buffer(reg, r))
-		return (-1);
+		return -1;
 
 	/* Evaluate into or, if we've not got calculated pixels.
 	 */
 	if (!reg->buffer->done) {
 		if (fn(reg, a))
-			return (-1);
+			return -1;
 
 		/* Publish our results.
 		 */
@@ -887,7 +887,7 @@ vips_region_fill(VipsRegion *reg,
 			vips_buffer_done(reg->buffer);
 	}
 
-	return (0);
+	return 0;
 }
 
 #define FILL_LINE(TYPE, Q, N, V) \
@@ -1565,12 +1565,12 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 	VipsImage *image = from->im;
 
 	if (vips_check_coding_noneorlabq("vips_region_shrink_method", image))
-		return (-1);
+		return -1;
 
 	if (from->im->Coding == VIPS_CODING_NONE) {
 		if (vips_check_noncomplex("vips_region_shrink_method",
 				image))
-			return (-1);
+			return -1;
 
 		if (vips_image_hasalpha(image))
 			vips_region_shrink_alpha(from, to, target);
@@ -1580,7 +1580,7 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 	else
 		vips_region_shrink_labpack(from, to, target);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1600,8 +1600,8 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 int
 vips_region_shrink(VipsRegion *from, VipsRegion *to, const VipsRect *target)
 {
-	return (vips_region_shrink_method(from, to, target,
-		VIPS_REGION_SHRINK_MEAN));
+	return vips_region_shrink_method(from, to, target,
+		VIPS_REGION_SHRINK_MEAN);
 }
 
 /* Generate into a region.
@@ -1616,20 +1616,20 @@ vips_region_generate(VipsRegion *reg, void *a)
 	/* Start new sequence, if necessary.
 	 */
 	if (vips__region_start(reg))
-		return (-1);
+		return -1;
 
 	/* Ask for evaluation.
 	 */
 	stop = FALSE;
 	if (im->generate_fn(reg, reg->seq, im->client1, im->client2, &stop))
-		return (-1);
+		return -1;
 	if (stop) {
 		vips_error("vips_region_generate",
 			"%s", _("stop requested"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1662,7 +1662,7 @@ vips_region_prepare(VipsRegion *reg, const VipsRect *r)
 	vips__region_check_ownership(reg);
 
 	if (vips_image_iskilled(im))
-		return (-1);
+		return -1;
 
 	/* We use save for sanity checking valid: we test at the end that the
 	 * pixels we have generated are indeed all the ones that were asked
@@ -1690,7 +1690,7 @@ vips_region_prepare(VipsRegion *reg, const VipsRect *r)
 	switch (im->dtype) {
 	case VIPS_IMAGE_PARTIAL:
 		if (vips_region_fill(reg, r, vips_region_generate, NULL))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -1702,7 +1702,7 @@ vips_region_prepare(VipsRegion *reg, const VipsRect *r)
 		/* Attach to existing buffer.
 		 */
 		if (vips_region_image(reg, r))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -1710,14 +1710,14 @@ vips_region_prepare(VipsRegion *reg, const VipsRect *r)
 		vips_error("vips_region_prepare",
 			_("unable to input from a %s image"),
 			vips_enum_string(VIPS_TYPE_DEMAND_STYLE, im->dtype));
-		return (-1);
+		return -1;
 	}
 
 	/* valid should now include all the pixels that were asked for.
 	 */
 	g_assert(vips_rect_includesrect(&reg->valid, &save));
 
-	return (0);
+	return 0;
 }
 
 /* We need to make pixels using reg's generate function, and write the result
@@ -1733,11 +1733,11 @@ vips_region_prepare_to_generate(VipsRegion *reg,
 	if (!im->generate_fn) {
 		vips_error("vips_region_prepare_to",
 			"%s", _("incomplete header"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_region_region(reg, dest, r, x, y))
-		return (-1);
+		return -1;
 
 	/* Remember where reg is pointing now.
 	 */
@@ -1746,7 +1746,7 @@ vips_region_prepare_to_generate(VipsRegion *reg,
 	/* Run sequence into reg.
 	 */
 	if (vips_region_generate(reg, NULL))
-		return (-1);
+		return -1;
 
 	/* The generate function may not have actually made any pixels ... it
 	 * might just have redirected reg to point somewhere else. If it has,
@@ -1755,7 +1755,7 @@ vips_region_prepare_to_generate(VipsRegion *reg,
 	if (VIPS_REGION_ADDR(reg, reg->valid.left, reg->valid.top) != p)
 		vips_region_copy(reg, dest, r, x, y);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1793,7 +1793,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	VipsRect final;
 
 	if (vips_image_iskilled(im))
-		return (-1);
+		return -1;
 
 	/* Sanity check.
 	 */
@@ -1802,7 +1802,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		dest->im->Bands != reg->im->Bands) {
 		vips_error("vips_region_prepare_to",
 			"%s", _("inappropriate region type"));
-		return (-1);
+		return -1;
 	}
 
 	/* clip r first against the size of reg->im, then again against the
@@ -1828,7 +1828,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	if (!vips_rect_includesrect(&dest->valid, &wanted)) {
 		vips_error("vips_region_prepare_to",
 			"%s", _("dest too small"));
-		return (-1);
+		return -1;
 	}
 
 	vips_rect_intersectrect(&wanted, &dest->valid, &clipped2);
@@ -1846,7 +1846,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	if (vips_rect_isempty(&final)) {
 		vips_error("vips_region_prepare_to",
 			"%s", _("valid clipped to nothing"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -1863,7 +1863,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		/* We are generating with a sequence.
 		 */
 		if (vips_region_prepare_to_generate(reg, dest, &final, x, y))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -1873,7 +1873,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		/* Attach to existing buffer and copy to dest.
 		 */
 		if (vips_region_image(reg, &final))
-			return (-1);
+			return -1;
 		vips_region_copy(reg, dest, &final, x, y);
 
 		break;
@@ -1886,11 +1886,11 @@ vips_region_prepare_to(VipsRegion *reg,
 		if (im->generate_fn) {
 			if (vips_region_prepare_to_generate(reg,
 					dest, &final, x, y))
-				return (-1);
+				return -1;
 		}
 		else {
 			if (vips_region_image(reg, &final))
-				return (-1);
+				return -1;
 			vips_region_copy(reg, dest, &final, x, y);
 		}
 
@@ -1900,7 +1900,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		vips_error("vips_region_prepare_to",
 			_("unable to input from a %s image"),
 			vips_enum_nick(VIPS_TYPE_DEMAND_STYLE, im->dtype));
-		return (-1);
+		return -1;
 	}
 
 	/* We've written fresh pixels to dest, it's no longer invalid (if it
@@ -1912,7 +1912,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	 */
 	dest->invalid = FALSE;
 
-	return (0);
+	return 0;
 }
 
 /* Don't use this, use vips_reorder_prepare_many() instead.
@@ -1922,9 +1922,9 @@ vips_region_prepare_many(VipsRegion **reg, const VipsRect *r)
 {
 	for (; *reg; ++reg)
 		if (vips_region_prepare(*reg, r))
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1967,14 +1967,14 @@ vips_region_fetch(VipsRegion *region,
 	request.width = width;
 	request.height = height;
 	if (!vips_rect_includesrect(&image, &request))
-		return (NULL);
+		return NULL;
 	if (vips_region_prepare(region, &request))
-		return (NULL);
+		return NULL;
 
 	skip = VIPS_REGION_LSKIP(region);
 	line = VIPS_IMAGE_SIZEOF_PEL(region->im) * request.width;
 	if (!(result = (VipsPel *) vips_malloc(NULL, line * request.height)))
-		return (NULL);
+		return NULL;
 
 	p = VIPS_REGION_ADDR(region, request.left, request.top);
 	q = result;
@@ -1988,7 +1988,7 @@ vips_region_fetch(VipsRegion *region,
 	if (len)
 		*len = request.height * line;
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2000,7 +2000,7 @@ vips_region_fetch(VipsRegion *region,
 int
 vips_region_width(VipsRegion *region)
 {
-	return (region->valid.width);
+	return region->valid.width;
 }
 
 /**
@@ -2012,7 +2012,7 @@ vips_region_width(VipsRegion *region)
 int
 vips_region_height(VipsRegion *region)
 {
-	return (region->valid.height);
+	return region->valid.height;
 }
 
 /**
@@ -2047,7 +2047,7 @@ vips_region_dump_all_cb(VipsRegion *region, size_t *alive, void *b)
 	if (region->buffer && region->buffer->buf)
 		*alive += region->buffer->bsize;
 
-	return (NULL);
+	return NULL;
 }
 
 void

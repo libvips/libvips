@@ -61,33 +61,33 @@ im_clamp(IMAGE *in, IMAGE *out, IMAGE *black, int hstep, int vstep)
 	int temp, blacky, newblacky;
 
 	if (im_iocheck(in, out))
-		return (-1);
+		return -1;
 	if (in->Bbits != 8 ||
 		in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR) {
 		im_error("im_clamp", "%s", _("bad input format"));
-		return (-1);
+		return -1;
 	}
 	if (black->Bbits != 8 ||
 		black->Coding != IM_CODING_NONE || black->BandFmt != IM_BANDFMT_UCHAR) {
 		im_error("im_clamp", "%s", _("bad black format"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set up the output header.
 	 */
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	/* Make buffer for expanded black line
 	 */
 	if (!(bline = (PEL *) im_malloc(out, black->Bands * hstep * in->Xsize)))
-		return (-1);
+		return -1;
 	/* Make buffer we write to.
 	 */
 	if (!(outbuf = (PEL *) im_malloc(out, out->Bands * out->Xsize)))
-		return (-1);
+		return -1;
 	blacky = -1;
 	p = (PEL *) in->data;
 
@@ -118,8 +118,8 @@ im_clamp(IMAGE *in, IMAGE *out, IMAGE *black, int hstep, int vstep)
 		}
 
 		if (im_writeline(y, out, outbuf))
-			return (-1);
+			return -1;
 	} /* end of a line */
 
-	return (0);
+	return 0;
 }

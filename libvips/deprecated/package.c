@@ -98,12 +98,12 @@ guess_prefix_vec(im_object *argv)
 
 	if (!prefix) {
 		argv[2] = NULL;
-		return (-1);
+		return -1;
 	}
 
 	argv[2] = im_strdup(NULL, prefix);
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_guess_prefix.
@@ -134,12 +134,12 @@ guess_libdir_vec(im_object *argv)
 
 	if (!libdir) {
 		argv[2] = NULL;
-		return (-1);
+		return -1;
 	}
 
 	argv[2] = im_strdup(NULL, libdir);
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_guess_libdir.
@@ -166,8 +166,8 @@ static im_arg_desc header_int_args[] = {
 static int
 header_int_vec(im_object *argv)
 {
-	return (im_header_int((IMAGE *) argv[1], (const char *) argv[0],
-		(int *) argv[2]));
+	return im_header_int((IMAGE *) argv[1], (const char *) argv[0],
+		(int *) argv[2]);
 }
 
 /* Description of im_header_int().
@@ -199,7 +199,7 @@ header_get_typeof_vec(im_object *argv)
 	*out = im_header_get_typeof((IMAGE *) argv[1],
 		(const char *) argv[0]);
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_header_get_typeof().
@@ -226,8 +226,8 @@ static im_arg_desc header_double_args[] = {
 static int
 header_double_vec(im_object *argv)
 {
-	return (im_header_double((IMAGE *) argv[1], (const char *) argv[0],
-		(double *) argv[2]));
+	return im_header_double((IMAGE *) argv[1], (const char *) argv[0],
+		(double *) argv[2]);
 }
 
 /* Description of im_header_double().
@@ -261,9 +261,9 @@ header_string_vec(im_object *argv)
 	 */
 	if (im_header_as_string((IMAGE *) argv[1],
 			(const char *) argv[0], out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_header_string().
@@ -294,9 +294,9 @@ history_get_vec(im_object *argv)
 
 	if (!(str = im_history_get((IMAGE *) argv[0])) ||
 		!(*out = im_strdup(NULL, str)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_history_get().
@@ -328,9 +328,9 @@ getext_vec(im_object *argv)
 	/* void/char confusion is fine.
 	 */
 	if (!(*out = im__read_extension_block((IMAGE *) argv[0], &size)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_getext().
@@ -357,7 +357,7 @@ printdesc_vec(im_object *argv)
 {
 	vips_object_print_dump(VIPS_OBJECT(argv[0]));
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_printdesc().
@@ -383,9 +383,9 @@ static int
 version_string_vec(im_object *argv)
 {
 	if (!(argv[0] = im_strdup(NULL, vips_version_string())))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_version_string.
@@ -417,11 +417,11 @@ version_vec(im_object *argv)
 	int version = vips_version(flag);
 
 	if (version < 0)
-		return (-1);
+		return -1;
 
 	*out = version;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_version.
@@ -450,7 +450,7 @@ concurrency_get_vec(im_object *argv)
 
 	*out = vips_concurrency_get();
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_concurrency_get.
@@ -483,8 +483,8 @@ cache_vec(im_object *argv)
 	int tile_height = *((int *) argv[3]);
 	int max_tiles = *((int *) argv[4]);
 
-	return (im_cache(argv[0], argv[1],
-		tile_width, tile_height, max_tiles));
+	return im_cache(argv[0], argv[1],
+		tile_width, tile_height, max_tiles);
 }
 
 /* Description of im_cache.
@@ -505,8 +505,8 @@ tile_cache_random_vec(im_object *argv)
 	int tile_height = *((int *) argv[3]);
 	int max_tiles = *((int *) argv[4]);
 
-	return (im_tile_cache_random(argv[0], argv[1],
-		tile_width, tile_height, max_tiles));
+	return im_tile_cache_random(argv[0], argv[1],
+		tile_width, tile_height, max_tiles);
 }
 
 /* Description of im_cache.
@@ -544,13 +544,13 @@ binfile_vec(im_object *argv)
 
 	if (!(im = vips_image_new_from_file_raw(argv[0],
 			  width, height, bands, offset)))
-		return (-1);
+		return -1;
 	vips_object_local(argv[1], im);
 
 	if (im_copy(im, argv[1]))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_binfile.
@@ -639,7 +639,7 @@ plugin_free(Plugin *plug)
 			vips_error("plugin",
 				_("unable to close plugin \"%s\""), name);
 			vips_error("plugin", "%s", g_module_error());
-			return (-1);
+			return -1;
 		}
 
 		plug->module = NULL;
@@ -650,7 +650,7 @@ plugin_free(Plugin *plug)
 
 	plugin_list = g_slist_remove(plugin_list, plug);
 
-	return (0);
+	return 0;
 }
 #endif /*ENABLE_MODULES*/
 
@@ -669,7 +669,7 @@ im_load_plugin(const char *name)
 	if (!g_module_supported()) {
 		vips_error("plugin",
 			"%s", _("plugins not supported on this platform"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Build a new plugin.
@@ -688,7 +688,7 @@ im_load_plugin(const char *name)
 		vips_error("plugin", "%s", g_module_error());
 		plugin_free(plug);
 
-		return (NULL);
+		return NULL;
 	}
 
 	/* Find package.
@@ -704,7 +704,7 @@ im_load_plugin(const char *name)
 		vips_error("plugin", "%s", g_module_error());
 		plugin_free(plug);
 
-		return (NULL);
+		return NULL;
 	}
 
 	/* Sanity check.
@@ -715,19 +715,19 @@ im_load_plugin(const char *name)
 			_("corrupted package table in plugin \"%s\""), name);
 		plugin_free(plug);
 
-		return (NULL);
+		return NULL;
 	}
 
 #ifdef DEBUG
 	printf("added package \"%s\"\n", plug->pack->name);
 #endif /*DEBUG*/
 
-	return (plug->pack);
+	return plug->pack;
 #else  /*!ENABLE_MODULES*/
 	vips_error("plugin",
 		"%s", _("libvips built without modules support"));
 
-	return (NULL);
+	return NULL;
 #endif /*ENABLE_MODULES*/
 }
 
@@ -747,7 +747,7 @@ im_load_plugins(const char *fmt, ...)
 	/* Silently succeed if we can't do modules.
 	 */
 	if (!g_module_supported())
-		return (0);
+		return 0;
 
 	va_start(ap, fmt);
 	(void) im_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
@@ -760,7 +760,7 @@ im_load_plugins(const char *fmt, ...)
 	if (!(dir = g_dir_open(dir_name, 0, NULL)))
 		/* Silent success for dir not there.
 		 */
-		return (0);
+		return 0;
 
 	result = 0;
 	while ((name = g_dir_read_name(dir)))
@@ -774,11 +774,11 @@ im_load_plugins(const char *fmt, ...)
 		}
 	g_dir_close(dir);
 
-	return (result);
+	return result;
 #else  /*!ENABLE_MODULES*/
 	/* Silently succeed if we can't do modules.
 	 */
-	return (0);
+	return 0;
 #endif /*ENABLE_MODULES*/
 }
 
@@ -790,10 +790,10 @@ im_close_plugins(void)
 #ifdef ENABLE_MODULES
 	while (plugin_list)
 		if (plugin_free((Plugin *) plugin_list->data))
-			return (-1);
+			return -1;
 #endif /*ENABLE_MODULES*/
 
-	return (0);
+	return 0;
 }
 
 #ifdef ENABLE_MODULES
@@ -803,9 +803,9 @@ static void *
 apply_plugin(Plugin *plug, VSListMap2Fn fn, void *a)
 {
 	if (!plug->pack)
-		return (NULL);
+		return NULL;
 	else
-		return (fn(plug->pack, a, NULL));
+		return fn(plug->pack, a, NULL);
 }
 #endif /*ENABLE_MODULES*/
 
@@ -829,10 +829,10 @@ im_map_packages(VSListMap2Fn fn, void *a)
 
 		for (i = 0; i < VIPS_NUMBER(built_in); i++)
 			if ((r = fn(built_in[i], a, NULL)))
-				return (r);
+				return r;
 	}
 
-	return (r);
+	return r;
 }
 
 /* Search a package for a function.
@@ -844,9 +844,9 @@ search_package(im_package *pack, const char *name)
 
 	for (i = 0; i < pack->nfuncs; i++)
 		if (strcmp(pack->table[i]->name, name) == 0)
-			return (pack->table[i]);
+			return pack->table[i];
 
-	return (NULL);
+	return NULL;
 }
 
 /* Search all packages for a function.
@@ -859,10 +859,10 @@ im_find_function(const char *name)
 
 	if (!fn) {
 		vips_error("im_find_function", _("\"%s\" not found"), name);
-		return (NULL);
+		return NULL;
 	}
 
-	return (fn);
+	return fn;
 }
 
 /* Test for package is of name.
@@ -871,9 +871,9 @@ static im_package *
 package_name(im_package *pack, const char *name)
 {
 	if (strcmp(pack->name, name) == 0)
-		return (pack);
+		return pack;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Find a package.
@@ -886,10 +886,10 @@ im_find_package(const char *name)
 
 	if (!pack) {
 		vips_error("im_find_package", _("\"%s\" not found"), name);
-		return (NULL);
+		return NULL;
 	}
 
-	return (pack);
+	return pack;
 }
 
 /* Test for package contains a function.
@@ -898,9 +898,9 @@ static im_package *
 package_function(im_package *pack, const char *name)
 {
 	if (search_package(pack, name))
-		return (pack);
+		return pack;
 	else
-		return (NULL);
+		return NULL;
 }
 
 /* Find a function's package by name.
@@ -914,10 +914,10 @@ im_package_of_function(const char *name)
 	if (!pack) {
 		vips_error("im_package_of_function",
 			_("\"%s\" not found"), name);
-		return (NULL);
+		return NULL;
 	}
 
-	return (pack);
+	return pack;
 }
 
 /* Free any store we allocated for the argument list.
@@ -942,7 +942,7 @@ im_free_vargv(im_function *fn, im_object *vargv)
 			vargv[i] = NULL;
 		}
 
-	return (0);
+	return 0;
 }
 
 /* Allocate any local store the args will need; NULL out all others.
@@ -968,7 +968,7 @@ im_allocate_vargv(im_function *fn, im_object *vargv)
 				/* Free anything we did allocate.
 				 */
 				(void) im_free_vargv(fn, vargv);
-				return (-1);
+				return -1;
 			}
 
 		/* Zero memory.
@@ -976,7 +976,7 @@ im_allocate_vargv(im_function *fn, im_object *vargv)
 		memset(vargv[i], 0, sz);
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Destroy the objects in the arg list.
@@ -996,9 +996,9 @@ destroy_args(im_function *fn, im_object *vargv)
 			 */
 			if (fn->argv[i].desc->dest &&
 				fn->argv[i].desc->dest(vargv[i]))
-				return (-1);
+				return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Init an im_object array from a set of command-line arguments.
@@ -1024,20 +1024,20 @@ build_args(im_function *fn, im_object *vargv, int argc, char **argv)
 			if (!argv[j]) {
 				vips_error("im_run_command",
 					"%s", _("too few arguments"));
-				return (-1);
+				return -1;
 			}
 			str = argv[j++];
 
 			/* Init object.
 			 */
 			if (type->init && type->init(&vargv[i], str))
-				return (-1);
+				return -1;
 		}
 		else {
 			/* Init object with no arg.
 			 */
 			if (type->init && type->init(&vargv[i], "no arg"))
-				return (-1);
+				return -1;
 		}
 	}
 
@@ -1045,10 +1045,10 @@ build_args(im_function *fn, im_object *vargv, int argc, char **argv)
 	 */
 	if (argv[j]) {
 		vips_error("im_run_command", "%s", _("too many arguments"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Make a region on sub, closed by callback on main.
@@ -1059,10 +1059,10 @@ region_local_image(IMAGE *main, IMAGE *sub)
 	VipsRegion *reg;
 
 	if (!(reg = vips_region_new(sub)))
-		return (-1);
+		return -1;
 	vips_object_local(main, reg);
 
-	return (0);
+	return 0;
 }
 
 /* vargv[i] is an output image on a PIO function ... make all input images
@@ -1079,7 +1079,7 @@ note_dependencies(im_function *fn, im_object *vargv, int i)
 		if (!(type->flags & IM_TYPE_OUTPUT)) {
 			if (strcmp(type->type, IM_TYPE_IMAGE) == 0) {
 				if (region_local_image(vargv[i], vargv[j]))
-					return (-1);
+					return -1;
 			}
 			else if (strcmp(type->type, IM_TYPE_IMAGEVEC) == 0) {
 				im_imagevec_object *iv = vargv[j];
@@ -1088,12 +1088,12 @@ note_dependencies(im_function *fn, im_object *vargv, int i)
 				for (k = 0; k < iv->n; k++)
 					if (region_local_image(vargv[i],
 							iv->vec[k]))
-						return (-1);
+						return -1;
 			}
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Call all defined print functions.
@@ -1109,9 +1109,9 @@ print_args(im_function *fn, im_object *vargv)
 	for (i = 0; i < vargc; i++)
 		if (fn->argv[i].print && vargv[i])
 			if (fn->argv[i].print(vargv[i]))
-				return (-1);
+				return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Add to the hist of all output images.
@@ -1128,9 +1128,9 @@ add_hist(im_function *fn, im_object *vargv, int argc, char **argv)
 		if (strcmp(fn->argv[i].desc->type, IM_TYPE_IMAGE) == 0 &&
 			(fn->argv[i].desc->flags & IM_TYPE_OUTPUT))
 			if (im_updatehist(vargv[i], fn->name, argc, argv))
-				return (-1);
+				return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Call a VIPS function.
@@ -1141,7 +1141,7 @@ dispatch_function(im_function *fn, im_object *vargv, int argc, char **argv)
 	/* Init memory from command line arguments.
 	 */
 	if (build_args(fn, vargv, argc, argv))
-		return (-1);
+		return -1;
 
 	/* If this is a PIO function, we need to make sure that we close
 	 * the input images after the output images, since the output image
@@ -1163,28 +1163,28 @@ dispatch_function(im_function *fn, im_object *vargv, int argc, char **argv)
 			if (type->flags & IM_TYPE_OUTPUT &&
 				strcmp(type->type, IM_TYPE_IMAGE) == 0)
 				if (note_dependencies(fn, vargv, i))
-					return (-1);
+					return -1;
 		}
 	}
 
 	/* Call function.
 	 */
 	if (fn->disp(vargv))
-		return (-1);
+		return -1;
 
 	/* Print output.
 	 */
 	if (print_args(fn, vargv))
-		return (-1);
+		return -1;
 
 	/* Add to history of all output images.
 	 */
 	if (add_hist(fn, vargv, argc, argv))
-		return (-1);
+		return -1;
 
 	/* All ok!
 	 */
-	return (0);
+	return 0;
 }
 
 /* Run a command.
@@ -1199,26 +1199,26 @@ im_run_command(char *name, int argc, char **argv)
 	/* Search packages for a matching function.
 	 */
 	if (!(fn = im_find_function(name)))
-		return (-1);
+		return -1;
 
 	/* Allocate space for arguments.
 	 */
 	if (im_allocate_vargv(fn, vargv))
-		return (-1);
+		return -1;
 
 	/* Call it.
 	 */
 	if (dispatch_function(fn, vargv, argc, argv)) {
 		destroy_args(fn, vargv);
 		im_free_vargv(fn, vargv);
-		return (-1);
+		return -1;
 	}
 
 	/* Clean up and exit.
 	 */
 	if (destroy_args(fn, vargv))
-		return (-1);
+		return -1;
 	im_free_vargv(fn, vargv);
 
-	return (0);
+	return 0;
 }

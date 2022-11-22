@@ -64,10 +64,10 @@ im_debugim(IMAGE *in)
 {
 	/* Check our args. */
 	if (im_incheck(in))
-		return (-1);
+		return -1;
 	if (in->Coding != IM_CODING_NONE) {
 		im_error("im_debugim", "%s", _("input must be uncoded"));
-		return (-1);
+		return -1;
 	}
 
 /* What type? First define the loop we want to perform for all types. */
@@ -152,8 +152,8 @@ im_debugim(IMAGE *in)
 
 	default:
 		im_error("im_debugim", "%s", _("unknown input format"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }

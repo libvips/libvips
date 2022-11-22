@@ -135,7 +135,7 @@ vips_source_test_seek(VipsSource *source)
 			 * objects.
 			 */
 			if ((length = vips_source_length(source)) == -1)
-				return (-1);
+				return -1;
 
 			source->length = length;
 
@@ -151,7 +151,7 @@ vips_source_test_seek(VipsSource *source)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* We can't test for seekability or length during _build, since the read and
@@ -163,9 +163,9 @@ vips_source_test_features(VipsSource *source)
 {
 	if (vips_source_unminimise(source) ||
 		vips_source_test_seek(source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #ifdef TEST_SANITY
@@ -277,20 +277,20 @@ vips_source_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_source_build: %p\n", source);
 
 	if (VIPS_OBJECT_CLASS(vips_source_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_object_argument_isset(object, "filename") &&
 		vips_object_argument_isset(object, "descriptor")) {
 		vips_error(vips_connection_nick(connection),
 			"%s", _("don't set 'filename' and 'descriptor'"));
-		return (-1);
+		return -1;
 	}
 
 	/* unminimise will open the filename.
 	 */
 	if (vips_object_argument_isset(object, "filename") &&
 		vips_source_unminimise(source))
-		return (-1);
+		return -1;
 
 	if (vips_object_argument_isset(object, "descriptor")) {
 		connection->descriptor = dup(connection->descriptor);
@@ -308,12 +308,12 @@ vips_source_build(VipsObject *object)
 		size_t length;
 
 		if (!(source->data = vips_blob_get(source->blob, &length)))
-			return (-1);
+			return -1;
 
 		source->length = VIPS_MIN(length, G_MAXSSIZE);
 	}
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -329,7 +329,7 @@ vips_source_read_real(VipsSource *source, void *data, size_t length)
 		bytes_read = read(connection->descriptor, data, length);
 	} while (bytes_read < 0 && errno == EINTR);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static gint64
@@ -343,10 +343,10 @@ vips_source_seek_real(VipsSource *source, gint64 offset, int whence)
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
 	if (connection->descriptor != -1)
-		return (vips__seek_no_error(connection->descriptor,
-			offset, whence));
+		return vips__seek_no_error(connection->descriptor,
+			offset, whence);
 
-	return (-1);
+	return -1;
 }
 
 static void
@@ -406,12 +406,12 @@ vips_source_new_from_descriptor(int descriptor)
 
 	if (vips_object_build(VIPS_OBJECT(source))) {
 		VIPS_UNREF(source);
-		return (NULL);
+		return NULL;
 	}
 
 	SANITY(source);
 
-	return (source);
+	return source;
 }
 
 /**
@@ -444,12 +444,12 @@ vips_source_new_from_file(const char *filename)
 
 	if (vips_object_build(VIPS_OBJECT(source))) {
 		VIPS_UNREF(source);
-		return (NULL);
+		return NULL;
 	}
 
 	SANITY(source);
 
-	return (source);
+	return source;
 }
 
 /**
@@ -473,12 +473,12 @@ vips_source_new_from_blob(VipsBlob *blob)
 
 	if (vips_object_build(VIPS_OBJECT(source))) {
 		VIPS_UNREF(source);
-		return (NULL);
+		return NULL;
 	}
 
 	SANITY(source);
 
-	return (source);
+	return source;
 }
 
 /**
@@ -501,7 +501,7 @@ vips_source_new_from_target(VipsTarget *target)
 	/* Flush output buffer, move memory into the blob, etc.
 	 */
 	if (vips_target_end(target))
-		return (NULL);
+		return NULL;
 
 	if (connection->descriptor > 0) {
 		source = vips_source_new_from_descriptor(
@@ -517,10 +517,10 @@ vips_source_new_from_target(VipsTarget *target)
 	else {
 		vips_error(vips_connection_nick(connection),
 			"%s", _("unimplemented target"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (source);
+	return source;
 }
 
 /**
@@ -553,7 +553,7 @@ vips_source_new_from_memory(const void *data, size_t length)
 
 	SANITY(source);
 
-	return (source);
+	return source;
 }
 
 /**
@@ -576,12 +576,12 @@ vips_source_new_from_options(const char *options)
 	if (vips_object_set_from_string(VIPS_OBJECT(source), options) ||
 		vips_object_build(VIPS_OBJECT(source))) {
 		VIPS_UNREF(source);
-		return (NULL);
+		return NULL;
 	}
 
 	SANITY(source);
 
-	return (source);
+	return source;
 }
 
 /**
@@ -654,14 +654,14 @@ vips_source_unminimise(VipsSource *source)
 			vips_error_system(errno,
 				vips_connection_nick(connection),
 				"%s", _("unable to open for read"));
-			return (-1);
+			return -1;
 		}
 
 		connection->tracked_descriptor = fd;
 		connection->descriptor = fd;
 
 		if (vips_source_test_seek(source))
-			return (-1);
+			return -1;
 
 		/* It might be a named pipe.
 		 */
@@ -671,11 +671,11 @@ vips_source_unminimise(VipsSource *source)
 				source->read_position);
 			if (vips__seek(connection->descriptor,
 					source->read_position, SEEK_SET) == -1)
-				return (-1);
+				return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -712,7 +712,7 @@ vips_source_decode(VipsSource *source)
 
 	SANITY(source);
 
-	return (0);
+	return 0;
 }
 
 #ifdef VIPS_DEBUG
@@ -761,7 +761,7 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 
 	if (vips_source_unminimise(source) ||
 		vips_source_test_features(source))
-		return (-1);
+		return -1;
 
 	total_read = 0;
 
@@ -823,7 +823,7 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 					vips_connection_nick(
 						VIPS_CONNECTION(source)),
 					"%s", _("read error"));
-				return (-1);
+				return -1;
 			}
 
 			/* We need to save bytes if we're in header mode and
@@ -845,7 +845,7 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 
 	SANITY(source);
 
-	return (total_read);
+	return total_read;
 }
 
 /* Read to a position.
@@ -877,7 +877,7 @@ vips_source_pipe_read_to_position(VipsSource *source, gint64 target)
 
 		bytes_read = vips_source_read(source, buffer, 4096);
 		if (bytes_read == -1)
-			return (-1);
+			return -1;
 
 		if (bytes_read == 0) {
 			/* No more bytes available, we must be at EOF.
@@ -903,11 +903,11 @@ vips_source_pipe_read_to_position(VipsSource *source, gint64 target)
 			vips__pipe_read_limit != -1 &&
 			source->read_position > vips__pipe_read_limit) {
 			vips_error(nick, "%s", _("pipe too long"));
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Convert a seekable source that can't be mapped (eg. a custom input with a
@@ -928,7 +928,7 @@ vips_source_read_to_memory(VipsSource *source)
 	g_assert(source->length >= 0);
 
 	if (vips_source_rewind(source))
-		return (-1);
+		return -1;
 
 	/* We know the length, so we can size the buffer correctly and read
 	 * directly to it.
@@ -945,7 +945,7 @@ vips_source_read_to_memory(VipsSource *source)
 			VIPS_MAX(4096, source->length - read_position));
 		if (bytes_read == -1) {
 			VIPS_FREEF(g_byte_array_unref, byte_array);
-			return (-1);
+			return -1;
 		}
 		if (bytes_read == 0)
 			break;
@@ -965,7 +965,7 @@ vips_source_read_to_memory(VipsSource *source)
 
 	vips_source_minimise(source);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -980,14 +980,14 @@ vips_source_descriptor_to_memory(VipsSource *source)
 
 	if (!(source->mmap_baseaddr = vips__mmap(connection->descriptor,
 			  FALSE, source->length, 0)))
-		return (-1);
+		return -1;
 
 	/* And it's now a memory source.
 	 */
 	source->data = source->mmap_baseaddr;
 	source->mmap_length = source->length;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1005,15 +1005,15 @@ vips_source_is_mappable(VipsSource *source)
 {
 	if (vips_source_unminimise(source) ||
 		vips_source_test_features(source))
-		return (-1);
+		return -1;
 
 	/* Already a memory object, or there's a filename we can map, or
 	 * there's a seekable descriptor.
 	 */
-	return (source->data ||
+	return source->data ||
 		VIPS_CONNECTION(source)->filename ||
 		(!source->is_pipe &&
-			VIPS_CONNECTION(source)->descriptor != -1));
+			VIPS_CONNECTION(source)->descriptor != -1);
 }
 
 /**
@@ -1034,12 +1034,12 @@ vips_source_is_file(VipsSource *source)
 {
 	if (vips_source_unminimise(source) ||
 		vips_source_test_features(source))
-		return (-1);
+		return -1;
 
 	/* There's a filename, and it supports seek.
 	 */
-	return (VIPS_CONNECTION(source)->filename &&
-		!source->is_pipe);
+	return VIPS_CONNECTION(source)->filename &&
+		!source->is_pipe;
 }
 
 /**
@@ -1066,7 +1066,7 @@ vips_source_map(VipsSource *source, size_t *length_out)
 
 	if (vips_source_unminimise(source) ||
 		vips_source_test_features(source))
-		return (NULL);
+		return NULL;
 
 	/* Try to map the file into memory, if possible. Some filesystems have
 	 * mmap disabled, so we don't give up if this fails.
@@ -1081,20 +1081,20 @@ vips_source_map(VipsSource *source, size_t *length_out)
 	if (!source->data &&
 		!source->is_pipe &&
 		vips_source_read_to_memory(source))
-		return (NULL);
+		return NULL;
 
 	/* We don't know the length and must read and assemble in chunks.
 	 */
 	if (!source->data &&
 		vips_source_pipe_read_to_position(source, -1))
-		return (NULL);
+		return NULL;
 
 	if (length_out)
 		*length_out = source->length;
 
 	SANITY(source);
 
-	return (source->data);
+	return source->data;
 }
 
 static int
@@ -1104,7 +1104,7 @@ vips_source_map_cb(void *a, VipsArea *area)
 
 	VIPS_UNREF(gobject);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1126,14 +1126,14 @@ vips_source_map_blob(VipsSource *source)
 	if (!(buf = vips_source_map(source, &len)) ||
 		!(blob = vips_blob_new((VipsCallbackFn) vips_source_map_cb,
 			  buf, len)))
-		return (NULL);
+		return NULL;
 
 	/* The source must stay alive until the blob is done.
 	 */
 	g_object_ref(source);
 	VIPS_AREA(blob)->client = source;
 
-	return (blob);
+	return blob;
 }
 
 /**
@@ -1162,7 +1162,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 
 	if (vips_source_unminimise(source) ||
 		vips_source_test_features(source))
-		return (-1);
+		return -1;
 
 	if (source->data) {
 		switch (whence) {
@@ -1180,7 +1180,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 
 		default:
 			vips_error(nick, "%s", _("bad 'whence'"));
-			return (-1);
+			return -1;
 		}
 	}
 	else if (source->is_pipe) {
@@ -1198,19 +1198,19 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 			 * the length.
 			 */
 			if (vips_source_pipe_read_to_position(source, -1))
-				return (-1);
+				return -1;
 
 			new_pos = source->length + offset;
 			break;
 
 		default:
 			vips_error(nick, "%s", _("bad 'whence'"));
-			return (-1);
+			return -1;
 		}
 	}
 	else {
 		if ((new_pos = class->seek(source, offset, whence)) == -1)
-			return (-1);
+			return -1;
 	}
 
 	/* For pipes, we have to fake seek by reading to that point. This
@@ -1218,7 +1218,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 	 */
 	if (source->is_pipe &&
 		vips_source_pipe_read_to_position(source, new_pos))
-		return (-1);
+		return -1;
 
 	/* Don't allow out of range seeks.
 	 */
@@ -1227,14 +1227,14 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 			new_pos > source->length)) {
 		vips_error(nick,
 			_("bad seek to %" G_GINT64_FORMAT), new_pos);
-		return (-1);
+		return -1;
 	}
 
 	source->read_position = new_pos;
 
 	VIPS_DEBUG_MSG("    new_pos = %" G_GINT64_FORMAT "\n", new_pos);
 
-	return (new_pos);
+	return new_pos;
 }
 
 /**
@@ -1257,7 +1257,7 @@ vips_source_rewind(VipsSource *source)
 
 	if (vips_source_test_features(source) ||
 		vips_source_seek(source, 0, SEEK_SET) != 0)
-		return (-1);
+		return -1;
 
 	/* Back into sniff + header decode state.
 	 */
@@ -1267,7 +1267,7 @@ vips_source_rewind(VipsSource *source)
 
 	SANITY(source);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1289,13 +1289,13 @@ vips_source_length(VipsSource *source)
 	VIPS_DEBUG_MSG("vips_source_length:\n");
 
 	if (vips_source_test_features(source))
-		return (-1);
+		return -1;
 
 	read_position = vips_source_seek(source, 0, SEEK_CUR);
 	length = vips_source_seek(source, 0, SEEK_END);
 	vips_source_seek(source, read_position, SEEK_SET);
 
-	return (length);
+	return length;
 }
 
 /**
@@ -1324,7 +1324,7 @@ vips_source_sniff_at_most(VipsSource *source,
 
 	if (vips_source_test_features(source) ||
 		vips_source_rewind(source))
-		return (-1);
+		return -1;
 
 	g_byte_array_set_size(source->sniff, length);
 
@@ -1336,7 +1336,7 @@ vips_source_sniff_at_most(VipsSource *source,
 		bytes_read = vips_source_read(source, q,
 			length - read_position);
 		if (bytes_read == -1)
-			return (-1);
+			return -1;
 		if (bytes_read == 0)
 			break;
 
@@ -1348,7 +1348,7 @@ vips_source_sniff_at_most(VipsSource *source,
 
 	*data = source->sniff->data;
 
-	return (read_position);
+	return read_position;
 }
 
 /**
@@ -1368,13 +1368,13 @@ vips_source_sniff(VipsSource *source, size_t length)
 	gint64 bytes_read;
 
 	if (vips_source_test_features(source))
-		return (NULL);
+		return NULL;
 
 	bytes_read = vips_source_sniff_at_most(source, &data, length);
 	if (bytes_read == -1)
-		return (NULL);
+		return NULL;
 	if (bytes_read < length)
-		return (NULL);
+		return NULL;
 
-	return (data);
+	return data;
 }

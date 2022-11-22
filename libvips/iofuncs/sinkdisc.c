@@ -132,9 +132,9 @@ write_thread_state_init(WriteThreadState *state)
 static VipsThreadState *
 write_thread_state_new(VipsImage *im, void *a)
 {
-	return (VIPS_THREAD_STATE(vips_object_new(
+	return VIPS_THREAD_STATE(vips_object_new(
 		write_thread_state_get_type(),
-		vips_thread_state_set, im, a)));
+		vips_thread_state_set, im, a));
 }
 
 static void
@@ -214,7 +214,7 @@ wbuffer_new(Write *write)
 	WriteBuffer *wbuffer;
 
 	if (!(wbuffer = VIPS_NEW(NULL, WriteBuffer)))
-		return (NULL);
+		return NULL;
 	wbuffer->write = write;
 	wbuffer->region = NULL;
 	vips_semaphore_init(&wbuffer->go, 0, "go");
@@ -227,7 +227,7 @@ wbuffer_new(Write *write)
 
 	if (!(wbuffer->region = vips_region_new(write->sink_base.im))) {
 		wbuffer_free(wbuffer);
-		return (NULL);
+		return NULL;
 	}
 
 	/* The worker threads need to be able to move the buffers around.
@@ -239,12 +239,12 @@ wbuffer_new(Write *write)
 	if (vips__thread_execute("wbuffer", wbuffer_write_thread,
 			wbuffer)) {
 		wbuffer_free(wbuffer);
-		return (NULL);
+		return NULL;
 	}
 
 	wbuffer->running = TRUE;
 
-	return (wbuffer);
+	return wbuffer;
 }
 
 /* Block until the previous write completes, then write the front buffer.
@@ -265,7 +265,7 @@ wbuffer_flush(Write *write)
 		if (write->buf_back->write_errno) {
 			vips_error_system(write->buf_back->write_errno,
 				"wbuffer_write", "%s", _("write failed"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -273,7 +273,7 @@ wbuffer_flush(Write *write)
 	 */
 	vips_semaphore_up(&write->buf->go);
 
-	return (0);
+	return 0;
 }
 
 /* Move a wbuffer to a position.
@@ -309,7 +309,7 @@ wbuffer_position(WriteBuffer *wbuffer, int top, int height)
 	if (!result)
 		g_assert(!wbuffer->region->buffer->done);
 
-	return (result);
+	return result;
 }
 
 /* Our VipsThreadpoolAllocate function ... move the thread to the next tile
@@ -346,14 +346,14 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 */
 			if (wbuffer_flush(write)) {
 				*stop = TRUE;
-				return (-1);
+				return -1;
 			}
 
 			/* End of image?
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
 				*stop = TRUE;
-				return (0);
+				return 0;
 			}
 
 			VIPS_DEBUG_MSG("wbuffer_allocate_fn: "
@@ -369,7 +369,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			if (wbuffer_position(write->buf,
 					sink_base->y, sink_base->n_lines)) {
 				*stop = TRUE;
-				return (-1);
+				return -1;
 			}
 
 			/* This will be the first tile of a new buffer ...
@@ -412,7 +412,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 	 */
 	sink_base->processed += state->pos.width * state->pos.height;
 
-	return (0);
+	return 0;
 }
 
 /* Our VipsThreadpoolWork function ... generate a tile!
@@ -438,7 +438,7 @@ wbuffer_work_fn(VipsThreadState *state, void *a)
 	 */
 	vips_semaphore_upn(&wstate->buf->nwrite, 1);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -537,5 +537,5 @@ vips_sink_disc(VipsImage *im, VipsRegionWrite write_fn, void *a)
 
 	vips_image_minimise_all(im);
 
-	return (result);
+	return result;
 }

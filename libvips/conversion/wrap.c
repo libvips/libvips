@@ -73,7 +73,7 @@ vips_wrap_build(VipsObject *object)
 	int y;
 
 	if (VIPS_OBJECT_CLASS(vips_wrap_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!vips_object_argument_isset(object, "x"))
 		wrap->x = wrap->in->Xsize / 2;
@@ -94,12 +94,12 @@ vips_wrap_build(VipsObject *object)
 		vips_extract_area(t[0], &t[1],
 			x, y, wrap->in->Xsize, wrap->in->Ysize, NULL) ||
 		vips_image_write(t[1], conversion->out))
-		return (-1);
+		return -1;
 
 	conversion->out->Xoffset = x;
 	conversion->out->Yoffset = y;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -170,5 +170,5 @@ vips_wrap(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("wrap", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

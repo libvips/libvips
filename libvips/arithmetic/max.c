@@ -205,7 +205,7 @@ vips_max_build(VipsObject *object)
 	vips_values_init(values, max);
 
 	if (VIPS_OBJECT_CLASS(vips_max_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* For speed we accumulate max ** 2 for complex.
 	 */
@@ -259,7 +259,7 @@ vips_max_build(VipsObject *object)
 	}
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* New sequence value. Make a private VipsValues for this thread.
@@ -272,7 +272,7 @@ vips_max_start(VipsStatistic *statistic)
 	values = g_new(VipsValues, 1);
 	vips_values_init(values, (VipsMax *) statistic);
 
-	return ((void *) values);
+	return (void *) values;
 }
 
 /* Merge the sequence value back into the per-call state.
@@ -291,7 +291,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 
 	g_free(values);
 
-	return (0);
+	return 0;
 }
 
 /* Real max with an upper bound.
@@ -427,7 +427,7 @@ vips_max_scan(VipsStatistic *statistic, void *seq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -554,5 +554,5 @@ vips_max(VipsImage *in, double *out, ...)
 	result = vips_call_split("max", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -135,5 +135,5 @@ vips_XYZ2scRGB(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("XYZ2scRGB", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

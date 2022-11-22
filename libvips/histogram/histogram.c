@@ -96,16 +96,16 @@ vips__hist_sizealike_vec(VipsImage **in, VipsImage **out, int n)
 			if (vips_embed(in[i], &out[i], 0, 0, max_size, 1,
 					"extend", VIPS_EXTEND_COPY,
 					NULL))
-				return (-1);
+				return -1;
 		}
 		else {
 			if (vips_embed(in[i], &out[i], 0, 0, 1, max_size,
 					"extend", VIPS_EXTEND_COPY,
 					NULL))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -132,7 +132,7 @@ vips_histogram_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_histogram_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_assert(histogram->n > 0);
 
@@ -151,7 +151,7 @@ vips_histogram_build(VipsObject *object)
 	for (i = 0; i < histogram->n; i++)
 		if (vips_image_decode(histogram->in[i], &decode[i]) ||
 			vips_check_hist(class->nickname, decode[i]))
-			return (-1);
+			return -1;
 
 	/* Cast our input images up to a common format, bands and size. If
 	 * input_format is set, cast to a fixed input type.
@@ -160,29 +160,29 @@ vips_histogram_build(VipsObject *object)
 		for (i = 0; i < histogram->n; i++)
 			if (vips_cast(decode[i], &format[i],
 					hclass->input_format, NULL))
-				return (-1);
+				return -1;
 	}
 	else {
 		if (vips__formatalike_vec(decode, format, histogram->n))
-			return (-1);
+			return -1;
 	}
 
 	if (vips__bandalike_vec(class->nickname,
 			format, band, histogram->n, 1) ||
 		vips__hist_sizealike_vec(band, size, histogram->n))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipeline_array(histogram->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, size))
-		return (-1);
+		return -1;
 
 	/* Need a copy of the inputs in memory.
 	 */
 	if (!(inbuf = VIPS_ARRAY(object, histogram->n + 1, VipsPel *)))
-		return (-1);
+		return -1;
 	for (i = 0; i < histogram->n; i++) {
 		if (!(memory[i] = vips_image_copy_memory(size[i])))
-			return (-1);
+			return -1;
 		inbuf[i] = VIPS_IMAGE_ADDR(memory[i], 0, 0);
 	}
 	inbuf[i] = NULL;
@@ -200,14 +200,14 @@ vips_histogram_build(VipsObject *object)
 
 	if (!(outbuf = vips_malloc(object,
 			  VIPS_IMAGE_SIZEOF_LINE(histogram->out))))
-		return (-1);
+		return -1;
 
 	hclass->process(histogram, outbuf, inbuf, histogram->ready[0]->Xsize);
 
 	if (vips_image_write_line(histogram->out, 0, outbuf))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

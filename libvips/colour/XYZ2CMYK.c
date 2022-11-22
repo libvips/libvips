@@ -67,10 +67,10 @@ G_DEFINE_TYPE(VipsXYZ2CMYK, vips_XYZ2CMYK, VIPS_TYPE_OPERATION);
 static int
 vips_XYZ2CMYK_process(VipsImage *in, VipsImage **out, ...)
 {
-	return (vips_icc_export(in, out,
+	return vips_icc_export(in, out,
 		"output_profile", "cmyk",
 		"pcs", VIPS_PCS_XYZ,
-		NULL));
+		NULL);
 }
 
 static int
@@ -82,21 +82,21 @@ vips_XYZ2CMYK_build(VipsObject *object)
 	VipsImage *t;
 
 	if (VIPS_OBJECT_CLASS(vips_XYZ2CMYK_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	out = vips_image_new();
 	g_object_set(object, "out", out, NULL);
 
 	if (vips__colourspace_process_n("XYZ2CMYK",
 			XYZ2CMYK->in, &t, 3, vips_XYZ2CMYK_process))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -236,5 +236,5 @@ vips_XYZ2CMYK(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("XYZ2CMYK", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

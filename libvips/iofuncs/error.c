@@ -183,7 +183,7 @@ vips_error_buffer(void)
 	msg = vips_buf_all(&vips_error_buf);
 	g_mutex_unlock(vips__global_lock);
 
-	return (msg);
+	return msg;
 }
 
 /**
@@ -203,7 +203,7 @@ vips_error_buffer_copy(void)
 	vips_buf_rewind(&vips_error_buf);
 	g_mutex_unlock(vips__global_lock);
 
-	return (msg);
+	return msg;
 }
 
 /* Some systems do not have va_copy() ... this might work (it does on MSVC,
@@ -466,10 +466,10 @@ vips_check_uncoded(const char *domain, VipsImage *im)
 {
 	if (im->Coding != VIPS_CODING_NONE) {
 		vips_error(domain, "%s", _("image must be uncoded"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -494,10 +494,10 @@ vips_check_coding_noneorlabq(const char *domain, VipsImage *im)
 		im->Coding != VIPS_CODING_LABQ) {
 		vips_error(domain,
 			"%s", _("image coding must be 'none' or 'labq'"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -522,10 +522,10 @@ vips_check_coding_known(const char *domain, VipsImage *im)
 		im->Coding != VIPS_CODING_LABQ &&
 		im->Coding != VIPS_CODING_RAD) {
 		vips_error(domain, "%s", _("unknown image coding"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -548,10 +548,10 @@ vips_check_coding(const char *domain, VipsImage *im, VipsCoding coding)
 	if (im->Coding != coding) {
 		vips_error(domain, _("coding '%s' only"),
 			vips_enum_nick(VIPS_TYPE_CODING, coding));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -572,10 +572,10 @@ vips_check_mono(const char *domain, VipsImage *im)
 {
 	if (im->Bands != 1) {
 		vips_error(domain, "%s", _("image must one band"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -597,10 +597,10 @@ vips_check_bands(const char *domain, VipsImage *im, int bands)
 {
 	if (im->Bands != bands) {
 		vips_error(domain, _("image must have %d bands"), bands);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -622,10 +622,10 @@ vips_check_bands_1or3(const char *domain, VipsImage *im)
 	if (im->Bands != 1 && im->Bands != 3) {
 		vips_error(domain, "%s",
 			_("image must have one or three bands"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -648,10 +648,10 @@ vips_check_bands_atleast(const char *domain, VipsImage *im, int bands)
 	if (im->Bands < bands) {
 		vips_error(domain,
 			_("image must have at least %d bands"), bands);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -677,10 +677,10 @@ vips_check_bands_1orn(const char *domain, VipsImage *im1, VipsImage *im2)
 		vips_error(domain, "%s",
 			_("images must have the same number of bands, "
 			  "or one must be single-band"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -703,10 +703,10 @@ vips_check_bands_1orn_unary(const char *domain, VipsImage *im, int n)
 {
 	if (im->Bands != 1 && im->Bands != n) {
 		vips_error(domain, _("image must have 1 or %d bands"), n);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -727,10 +727,10 @@ vips_check_noncomplex(const char *domain, VipsImage *im)
 {
 	if (vips_band_format_iscomplex(im->BandFmt)) {
 		vips_error(domain, "%s", _("image must be non-complex"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -751,10 +751,10 @@ vips_check_complex(const char *domain, VipsImage *im)
 {
 	if (!vips_band_format_iscomplex(im->BandFmt)) {
 		vips_error(domain, "%s", _("image must be complex"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -778,10 +778,10 @@ vips_check_twocomponents(const char *domain, VipsImage *im)
 		im->Bands != 2) {
 		vips_error(domain,
 			"%s", _("image must be two-band or complex"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -805,10 +805,10 @@ vips_check_format(const char *domain, VipsImage *im, VipsBandFormat fmt)
 		vips_error(domain,
 			_("image must be %s"),
 			vips_enum_string(VIPS_TYPE_BAND_FORMAT, fmt));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -829,10 +829,10 @@ vips_check_int(const char *domain, VipsImage *im)
 {
 	if (!vips_band_format_isint(im->BandFmt)) {
 		vips_error(domain, "%s", _("image must be integer"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -854,10 +854,10 @@ vips_check_uint(const char *domain, VipsImage *im)
 	if (!vips_band_format_isuint(im->BandFmt)) {
 		vips_error(domain,
 			"%s", _("image must be unsigned integer"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -882,10 +882,10 @@ vips_check_8or16(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_SHORT) {
 		vips_error(domain, "%s",
 			_("image must be 8- or 16-bit integer, signed or unsigned"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -908,10 +908,10 @@ vips_check_u8or16(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_USHORT) {
 		vips_error(domain, "%s",
 			_("image must be 8- or 16-bit unsigned integer"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -934,10 +934,10 @@ vips_check_u8or16orf(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_FLOAT) {
 		vips_error(domain, "%s",
 			_("image must be 8- or 16-bit unsigned integer, or float"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -961,10 +961,10 @@ vips_check_uintorf(const char *domain, VipsImage *im)
 		im->BandFmt != VIPS_FORMAT_FLOAT) {
 		vips_error(domain, "%s",
 			_("image must be unsigned int or float"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -987,10 +987,10 @@ vips_check_size_same(const char *domain, VipsImage *im1, VipsImage *im2)
 	if (im1->Xsize != im2->Xsize ||
 		im1->Ysize != im2->Ysize) {
 		vips_error(domain, "%s", _("images must match in size"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1013,10 +1013,10 @@ vips_check_oddsquare(const char *domain, VipsImage *im)
 		im->Xsize % 2 == 0) {
 		vips_error(domain,
 			"%s", _("images must be odd and square"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1039,10 +1039,10 @@ vips_check_bands_same(const char *domain, VipsImage *im1, VipsImage *im2)
 	if (im1->Bands != im2->Bands) {
 		vips_error(domain, "%s",
 			_("images must have the same number of bands"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1067,10 +1067,10 @@ vips_check_bandno(const char *domain, VipsImage *im, int bandno)
 		bandno > im->Bands - 1) {
 		vips_error(domain, "bandno must be -1, or less than %d",
 			im->Bands);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1093,10 +1093,10 @@ vips_check_format_same(const char *domain, VipsImage *im1, VipsImage *im2)
 	if (im1->BandFmt != im2->BandFmt) {
 		vips_error(domain, "%s",
 			_("images must have the same band format"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1119,10 +1119,10 @@ vips_check_coding_same(const char *domain, VipsImage *im1, VipsImage *im2)
 	if (im1->Coding != im2->Coding) {
 		vips_error(domain, "%s",
 			_("images must have the same coding"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1142,10 +1142,10 @@ vips_check_vector_length(const char *domain, int n, int len)
 {
 	if (n != len) {
 		vips_error(domain, _("vector must have %d elements"), len);
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1168,12 +1168,12 @@ vips_check_vector(const char *domain, int n, VipsImage *im)
 	/* Here it's clearer to list the cases that are OK.
 	 */
 	if (n == im->Bands)
-		return (0);
+		return 0;
 	if (n == 1)
-		return (0);
+		return 0;
 	if (im->Bands == 1 &&
 		n > 1)
-		return (0);
+		return 0;
 
 	if (im->Bands == 1)
 		vips_error(domain,
@@ -1183,7 +1183,7 @@ vips_check_vector(const char *domain, int n, VipsImage *im)
 			_("vector must have 1 or %d elements"),
 			im->Bands);
 
-	return (-1);
+	return -1;
 }
 
 /**
@@ -1206,15 +1206,15 @@ vips_check_hist(const char *domain, VipsImage *im)
 		im->Ysize != 1) {
 		vips_error(domain, "%s",
 			_("histograms must have width or height 1"));
-		return (-1);
+		return -1;
 	}
 	if (VIPS_IMAGE_N_PELS(im) > 65536) {
 		vips_error(domain, "%s",
 			_("histograms must have not have more than 65536 elements"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1247,23 +1247,23 @@ vips_check_matrix(const char *domain, VipsImage *im, VipsImage **out)
 	if (im->Xsize > 100000 ||
 		im->Ysize > 100000) {
 		vips_error(domain, "%s", _("matrix image too large"));
-		return (-1);
+		return -1;
 	}
 	if (im->Bands != 1) {
 		vips_error(domain,
 			"%s", _("matrix image must have one band"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_cast(im, &t, VIPS_FORMAT_DOUBLE, NULL))
-		return (-1);
+		return -1;
 	if (!(*out = vips_image_copy_memory(t))) {
 		VIPS_UNREF(t);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(t);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1286,10 +1286,10 @@ vips_check_separable(const char *domain, VipsImage *im)
 		im->Ysize != 1) {
 		vips_error(domain,
 			"%s", _("separable matrix images must have width or height 1"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -1312,8 +1312,8 @@ vips_check_precision_intfloat(const char *domain, VipsPrecision precision)
 		precision != VIPS_PRECISION_FLOAT) {
 		vips_error(domain,
 			"%s", _("precision must be int or float"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }

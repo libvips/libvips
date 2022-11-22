@@ -558,7 +558,7 @@ vips_image_new_from_file_object(const char *string)
 		"mode", "r",
 		NULL);
 
-	return (VIPS_OBJECT(image));
+	return VIPS_OBJECT(image);
 }
 
 static void
@@ -572,8 +572,7 @@ vips_image_to_string(VipsObject *object, VipsBuf *buf)
 static int
 vips_image_write_object(VipsObject *object, const char *string)
 {
-	return (vips_image_write_to_file(VIPS_IMAGE(object), string,
-		NULL));
+	return vips_image_write_to_file(VIPS_IMAGE(object), string, NULL);
 }
 
 static void *
@@ -585,7 +584,7 @@ print_field_fn(VipsImage *image, const char *field, GValue *value, void *a)
 	vips_buf_appendgv(buf, value);
 	vips_buf_appendf(buf, "\n");
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -656,15 +655,15 @@ vips_image_sanity_upstream(VipsImage *up, VipsImage *down, void *b)
 {
 	if (!g_slist_find(up->downstream, down) ||
 		!g_slist_find(down->upstream, up))
-		return (up);
+		return up;
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
 vips_image_sanity_downstream(VipsImage *down, VipsImage *up, void *b)
 {
-	return (vips_image_sanity_upstream(up, down, b));
+	return vips_image_sanity_upstream(up, down, b);
 }
 
 static void
@@ -841,7 +840,7 @@ vips_image_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_image_build: %p\n", image);
 
 	if (VIPS_OBJECT_CLASS(vips_image_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Parse the mode string.
 	 */
@@ -851,7 +850,7 @@ vips_image_build(VipsObject *object)
 		 * vips_image_rewind_output().
 		 */
 		if (vips_image_open_input(image))
-			return (-1);
+			return -1;
 
 		break;
 
@@ -863,7 +862,7 @@ vips_image_build(VipsObject *object)
 				/* Native open.
 				 */
 				if (vips_image_open_input(image))
-					return (-1);
+					return -1;
 			}
 			else {
 				VipsImage *t;
@@ -874,18 +873,18 @@ vips_image_build(VipsObject *object)
 				 */
 				if (!(t = vips_image_new_mode(filename,
 						  "v")))
-					return (-1);
+					return -1;
 
 				if (vips_byteswap(t, &t2, NULL)) {
 					g_object_unref(t);
-					return (-1);
+					return -1;
 				}
 				g_object_unref(t);
 
 				image->dtype = VIPS_IMAGE_PARTIAL;
 				if (vips_image_write(t2, image)) {
 					g_object_unref(t2);
-					return (-1);
+					return -1;
 				}
 				g_object_unref(t2);
 			}
@@ -897,17 +896,17 @@ vips_image_build(VipsObject *object)
 				if (vips_foreign_load(filename, &t,
 						"access", VIPS_ACCESS_SEQUENTIAL,
 						NULL))
-					return (-1);
+					return -1;
 			}
 			else {
 				if (vips_foreign_load(filename, &t, NULL))
-					return (-1);
+					return -1;
 			}
 
 			image->dtype = VIPS_IMAGE_PARTIAL;
 			if (vips_image_write(t, image)) {
 				g_object_unref(t);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(t);
 		}
@@ -923,7 +922,7 @@ vips_image_build(VipsObject *object)
 		g_assert(g_type_from_name("VipsForeignSaveVips"));
 
 		if (!(file_op = vips_foreign_find_save(filename)))
-			return (-1);
+			return -1;
 
 		/* If this is the vips saver, just save directly ourselves.
 		 * Otherwise save with VipsForeign when the image has been
@@ -950,7 +949,7 @@ vips_image_build(VipsObject *object)
 
 	case 'a':
 		if ((image->fd = vips__open_image_read(filename)) == -1)
-			return (-1);
+			return -1;
 		image->dtype = VIPS_IMAGE_OPENIN;
 		image->dhint = VIPS_DEMAND_STYLE_THINSTRIP;
 
@@ -965,7 +964,7 @@ vips_image_build(VipsObject *object)
 		 * the size should be.
 		 */
 		if ((image->file_length = vips_file_length(image->fd)) == -1)
-			return (-1);
+			return -1;
 
 		/* Very common, so a special message.
 		 */
@@ -975,7 +974,7 @@ vips_image_build(VipsObject *object)
 			vips_error("VipsImage",
 				_("unable to open \"%s\", file too short"),
 				image->filename);
-			return (-1);
+			return -1;
 		}
 
 		/* Just weird. Only print a warning for this, since we should
@@ -1002,12 +1001,12 @@ vips_image_build(VipsObject *object)
 	default:
 		vips_error("VipsImage", _("bad mode \"%s\""), mode);
 
-		return (-1);
+		return -1;
 	}
 
 	vips_image_add_progress(image);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -1015,7 +1014,7 @@ vips_image_real_invalidate_cb(VipsRegion *reg, void *a, void *b)
 {
 	vips_region_invalidate(reg);
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -1371,7 +1370,7 @@ vips_image_written(VipsImage *image)
 	result = 0;
 	g_signal_emit(image, vips_image_signals[SIG_WRITTEN], 0, &result);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -1387,7 +1386,7 @@ vips_image_invalidate_all_cb(VipsImage *image, void *a, void *b)
 {
 	vips_image_invalidate(image);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -1427,7 +1426,7 @@ vips_image_minimise_all_cb(VipsImage *image, void *a, void *b)
 {
 	vips_image_minimise(image);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -1467,7 +1466,7 @@ vips_image_minimise_all(VipsImage *image)
 gboolean
 vips_image_is_sequential(VipsImage *image)
 {
-	return (vips_image_get_typeof(image, VIPS_META_SEQUENTIAL));
+	return vips_image_get_typeof(image, VIPS_META_SEQUENTIAL);
 }
 
 /* Attach a new time struct, if necessary, and reset it.
@@ -1481,7 +1480,7 @@ vips_progress_add(VipsImage *image)
 
 	if (!(progress = image->time)) {
 		if (!(image->time = VIPS_NEW(NULL, VipsProgress)))
-			return (-1);
+			return -1;
 		progress = image->time;
 
 		progress->im = image;
@@ -1498,7 +1497,7 @@ vips_progress_add(VipsImage *image)
 	progress->npels = 0;
 	progress->percent = 0;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1663,7 +1662,7 @@ vips_image_iskilled(VipsImage *image)
 		vips_image_set_kill(image, FALSE);
 	}
 
-	return (kill);
+	return kill;
 }
 
 /**
@@ -1729,10 +1728,10 @@ vips_image_new(void)
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
-	return (image);
+	return image;
 }
 
 VipsImage *
@@ -1752,10 +1751,10 @@ vips_image_new_mode(const char *filename, const char *mode)
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
-	return (image);
+	return image;
 }
 
 /**
@@ -1774,7 +1773,7 @@ vips_image_new_memory(void)
 	char filename[26];
 
 	vips_image_temp_name(filename, sizeof(filename));
-	return (vips_image_new_mode(filename, "t"));
+	return vips_image_new_mode(filename, "t");
 }
 
 /**
@@ -1790,7 +1789,7 @@ vips_image_new_memory(void)
 VipsImage *
 vips_image_memory(void)
 {
-	return (vips_image_new_memory());
+	return vips_image_new_memory();
 }
 
 /**
@@ -1814,7 +1813,7 @@ vips_filename_get_filename(const char *vips_filename)
 
 	vips__filename_split8(vips_filename, filename, options);
 
-	return (g_strdup(filename));
+	return g_strdup(filename);
 }
 
 /**
@@ -1838,7 +1837,7 @@ vips_filename_get_options(const char *vips_filename)
 
 	vips__filename_split8(vips_filename, filename, options);
 
-	return (g_strdup(options));
+	return g_strdup(options);
 }
 
 /**
@@ -1929,7 +1928,7 @@ vips_image_new_from_file(const char *name, ...)
 	vips__filename_split8(name, filename, option_string);
 
 	if (!(operation_name = vips_foreign_find_load(filename)))
-		return (NULL);
+		return NULL;
 
 	va_start(ap, name);
 	result = vips_call_split_option_string(operation_name,
@@ -1937,9 +1936,9 @@ vips_image_new_from_file(const char *name, ...)
 	va_end(ap);
 
 	if (result)
-		return (NULL);
+		return NULL;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -1957,7 +1956,7 @@ vips_image_new_from_file(const char *name, ...)
 VipsImage *
 vips_image_new_from_file_RW(const char *filename)
 {
-	return (vips_image_new_mode(filename, "rw"));
+	return vips_image_new_mode(filename, "rw");
 }
 
 /**
@@ -1997,10 +1996,10 @@ vips_image_new_from_file_raw(const char *filename,
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
-	return (image);
+	return image;
 }
 
 /**
@@ -2055,7 +2054,7 @@ vips_image_new_from_memory(const void *data, size_t size,
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
 	if (size < VIPS_IMAGE_SIZEOF_IMAGE(image)) {
@@ -2064,10 +2063,10 @@ vips_image_new_from_memory(const void *data, size_t size,
 			  "should be %" G_GINT64_FORMAT " bytes, you passed %zd"),
 			VIPS_IMAGE_SIZEOF_IMAGE(image), size);
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
-	return (image);
+	return image;
 }
 
 static void
@@ -2103,18 +2102,18 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
 	vips_check_init();
 
 	if (!(data_copy = vips_tracked_malloc(size)))
-		return (NULL);
+		return NULL;
 	memcpy(data_copy, data, size);
 	if (!(image = vips_image_new_from_memory(data_copy, size,
 			  width, height, bands, format))) {
 		vips_tracked_free(data_copy);
-		return (NULL);
+		return NULL;
 	}
 
 	g_signal_connect(image, "close",
 		G_CALLBACK(vips_image_new_from_memory_copy_cb), data_copy);
 
-	return (image);
+	return image;
 }
 
 /**
@@ -2155,7 +2154,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
 
 	if (!(operation_name =
 				vips_foreign_find_load_buffer(buf, len)))
-		return (NULL);
+		return NULL;
 
 	/* We don't take a copy of the data or free it.
 	 */
@@ -2169,9 +2168,9 @@ vips_image_new_from_buffer(const void *buf, size_t len,
 	vips_area_unref(VIPS_AREA(blob));
 
 	if (result)
-		return (NULL);
+		return NULL;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -2219,7 +2218,7 @@ vips_image_new_from_source(VipsSource *source,
 		/* Try with the old file-based loaders.
 		 */
 		if (!(operation_name = vips_foreign_find_load(filename)))
-			return (NULL);
+			return NULL;
 
 		va_start(ap, option_string);
 		result = vips_call_split_option_string(operation_name,
@@ -2234,13 +2233,13 @@ vips_image_new_from_source(VipsSource *source,
 		size_t len;
 
 		if (!(blob = vips_source_map_blob(source)))
-			return (NULL);
+			return NULL;
 
 		buf = vips_blob_get(blob, &len);
 		if (!(operation_name =
 					vips_foreign_find_load_buffer(buf, len))) {
 			vips_area_unref(VIPS_AREA(blob));
-			return (NULL);
+			return NULL;
 		}
 
 		va_start(ap, option_string);
@@ -2257,9 +2256,9 @@ vips_image_new_from_source(VipsSource *source,
 	}
 
 	if (result)
-		return (NULL);
+		return NULL;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -2297,15 +2296,15 @@ vips_image_new_matrix(int width, int height)
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		VIPS_UNREF(image);
-		return (NULL);
+		return NULL;
 	}
 
 	if (vips_image_write_prepare(image)) {
 		g_object_unref(image);
-		return (NULL);
+		return NULL;
 	}
 
-	return (image);
+	return image;
 }
 
 /**
@@ -2339,7 +2338,7 @@ vips_image_new_matrixv(int width, int height, ...)
 			*VIPS_MATRIX(matrix, x, y) = va_arg(ap, double);
 	va_end(ap);
 
-	return (matrix);
+	return matrix;
 }
 
 /**
@@ -2365,7 +2364,7 @@ vips_image_new_matrix_from_array(int width, int height,
 		vips_error("VipsImage",
 			_("bad array length --- should be %d, you passed %d"),
 			width * height, size);
-		return (NULL);
+		return NULL;
 	}
 
 	vips_check_init();
@@ -2377,7 +2376,7 @@ vips_image_new_matrix_from_array(int width, int height,
 		for (x = 0; x < width; x++)
 			*VIPS_MATRIX(matrix, x, y) = array[i++];
 
-	return (matrix);
+	return matrix;
 }
 
 /**
@@ -2396,8 +2395,8 @@ VipsImage *
 vips_image_matrix_from_array(int width, int height,
 	const double *array, int size)
 {
-	return (vips_image_new_matrix_from_array(width, height,
-		array, size));
+	return vips_image_new_matrix_from_array(width, height,
+		array, size);
 }
 
 /**
@@ -2426,7 +2425,7 @@ vips_image_new_from_image(VipsImage *image, const double *c, int n)
 
 	if (!(ones = VIPS_ARRAY(scope, n, double))) {
 		g_object_unref(scope);
-		return (NULL);
+		return NULL;
 	}
 	for (i = 0; i < n; i++)
 		ones[i] = 1.0;
@@ -2444,7 +2443,7 @@ vips_image_new_from_image(VipsImage *image, const double *c, int n)
 			"yoffset", image->Yoffset,
 			NULL)) {
 		g_object_unref(scope);
-		return (NULL);
+		return NULL;
 	}
 
 	result = t[4];
@@ -2452,7 +2451,7 @@ vips_image_new_from_image(VipsImage *image, const double *c, int n)
 
 	g_object_unref(scope);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2471,7 +2470,7 @@ vips_image_new_from_image(VipsImage *image, const double *c, int n)
 VipsImage *
 vips_image_new_from_image1(VipsImage *image, double c)
 {
-	return (vips_image_new_from_image(image, (const double *) &c, 1));
+	return vips_image_new_from_image(image, (const double *) &c, 1);
 }
 
 /**
@@ -2539,7 +2538,7 @@ vips_get_disc_threshold(void)
 #endif /*DEBUG*/
 	}
 
-	return (threshold);
+	return threshold;
 }
 
 /**
@@ -2568,18 +2567,18 @@ vips_image_new_temp_file(const char *format)
 	vips_check_init();
 
 	if (!(name = vips__temp_name(format)))
-		return (NULL);
+		return NULL;
 
 	if (!(image = vips_image_new_mode(name, "w"))) {
 		g_free(name);
-		return (NULL);
+		return NULL;
 	}
 
 	g_free(name);
 
 	vips_image_set_delete_on_close(image, TRUE);
 
-	return (image);
+	return image;
 }
 
 static int
@@ -2600,9 +2599,9 @@ vips_image_write_gen(VipsRegion * or,
 	 */
 	if (vips_region_prepare(ir, r) ||
 		vips_region_region(or, ir, r, r->left, r->top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2629,14 +2628,14 @@ vips_image_write(VipsImage *image, VipsImage *out)
 		vips_image_pipelinev(out,
 			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL)) {
 		g_object_unref(image);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_generate(out,
 			vips_start_one, vips_image_write_gen, vips_stop_one,
 			image, NULL)) {
 		g_object_unref(image);
-		return (-1);
+		return -1;
 	}
 
 	/* If @out is a partial image, we need to unref @image when out is
@@ -2655,7 +2654,7 @@ vips_image_write(VipsImage *image, VipsImage *out)
 		g_object_unref(image);
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2699,7 +2698,7 @@ vips_image_write_to_file(VipsImage *image, const char *name, ...)
 		VipsTarget *target;
 
 		if (!(target = vips_target_new_to_file(filename)))
-			return (-1);
+			return -1;
 
 		va_start(ap, name);
 		result = vips_call_split_option_string(operation_name,
@@ -2715,9 +2714,9 @@ vips_image_write_to_file(VipsImage *image, const char *name, ...)
 		va_end(ap);
 	}
 	else
-		return (-1);
+		return -1;
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2765,7 +2764,7 @@ vips_image_write_to_buffer(VipsImage *in,
 		VipsTarget *target;
 
 		if (!(target = vips_target_new_to_memory()))
-			return (-1);
+			return -1;
 
 		va_start(ap, size);
 		result = vips_call_split_option_string(operation_name,
@@ -2774,7 +2773,7 @@ vips_image_write_to_buffer(VipsImage *in,
 
 		if (result) {
 			VIPS_UNREF(target);
-			return (-1);
+			return -1;
 		}
 
 		g_object_get(target, "blob", &blob, NULL);
@@ -2789,10 +2788,10 @@ vips_image_write_to_buffer(VipsImage *in,
 		va_end(ap);
 
 		if (result)
-			return (-1);
+			return -1;
 	}
 	else
-		return (-1);
+		return -1;
 
 	*buf = NULL;
 	if (size)
@@ -2809,7 +2808,7 @@ vips_image_write_to_buffer(VipsImage *in,
 		vips_area_unref(VIPS_AREA(blob));
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2844,7 +2843,7 @@ vips_image_write_to_target(VipsImage *in,
 
 	vips__filename_split8(suffix, filename, option_string);
 	if (!(operation_name = vips_foreign_find_save_target(filename)))
-		return (-1);
+		return -1;
 
 	va_start(ap, target);
 	result = vips_call_split_option_string(operation_name, option_string,
@@ -2852,9 +2851,9 @@ vips_image_write_to_target(VipsImage *in,
 	va_end(ap);
 
 	if (result)
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2884,7 +2883,7 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 			(int) (size / (1024.0 * 1024.0)));
 		g_warning(_("out of memory --- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
-		return (NULL);
+		return NULL;
 	}
 
 	x = vips_image_new_from_memory(buf, size,
@@ -2892,14 +2891,14 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 	if (vips_image_write(in, x)) {
 		g_object_unref(x);
 		g_free(buf);
-		return (NULL);
+		return NULL;
 	}
 	g_object_unref(x);
 
 	if (size_out)
 		*size_out = size;
 
-	return (buf);
+	return buf;
 }
 
 /**
@@ -2924,18 +2923,18 @@ vips_image_decode(VipsImage *in, VipsImage **out)
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2Lab(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 	else if (in->Coding == VIPS_CODING_RAD) {
 		if (vips_rad2float(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_copy(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2974,7 +2973,7 @@ vips_image_decode_predict(VipsImage *in,
 	if (out_format)
 		*out_format = format;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -2995,18 +2994,18 @@ vips_image_encode(VipsImage *in, VipsImage **out, VipsCoding coding)
 {
 	if (coding == VIPS_CODING_LABQ) {
 		if (vips_Lab2LabQ(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 	else if (coding == VIPS_CODING_RAD) {
 		if (vips_float2rad(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_copy(in, out, NULL))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3021,9 +3020,9 @@ gboolean
 vips_image_isMSBfirst(VipsImage *image)
 {
 	if (image->magic == VIPS_MAGIC_SPARC)
-		return (1);
+		return 1;
 	else
-		return (0);
+		return 0;
 }
 
 /**
@@ -3040,17 +3039,17 @@ vips_image_isfile(VipsImage *image)
 	case VIPS_IMAGE_MMAPINRW:
 	case VIPS_IMAGE_OPENOUT:
 	case VIPS_IMAGE_OPENIN:
-		return (1);
+		return 1;
 
 	case VIPS_IMAGE_PARTIAL:
 	case VIPS_IMAGE_SETBUF:
 	case VIPS_IMAGE_SETBUF_FOREIGN:
 	case VIPS_IMAGE_NONE:
-		return (0);
+		return 0;
 
 	default:
 		g_assert(FALSE);
-		return (0);
+		return 0;
 	}
 }
 
@@ -3064,9 +3063,9 @@ gboolean
 vips_image_ispartial(VipsImage *image)
 {
 	if (image->dtype == VIPS_IMAGE_PARTIAL)
-		return (1);
+		return 1;
 	else
-		return (0);
+		return 0;
 }
 
 /**
@@ -3090,7 +3089,7 @@ vips_image_hasalpha(VipsImage *image)
 	switch (image->Type) {
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
-		return (image->Bands > 1);
+		return image->Bands > 1;
 
 	case VIPS_INTERPRETATION_RGB:
 	case VIPS_INTERPRETATION_CMC:
@@ -3103,16 +3102,16 @@ vips_image_hasalpha(VipsImage *image)
 	case VIPS_INTERPRETATION_RGB16:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_HSV:
-		return (image->Bands > 3);
+		return image->Bands > 3;
 
 	case VIPS_INTERPRETATION_CMYK:
-		return (image->Bands > 4);
+		return image->Bands > 4;
 
 	default:
 		/* We can't really infer anything about bands from things like
 		 * HISTOGRAM or FOURIER.
 		 */
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3138,7 +3137,7 @@ vips_image_write_prepare(VipsImage *image)
 		image->Ysize <= 0 ||
 		image->Bands <= 0) {
 		vips_error("VipsImage", "%s", _("bad dimensions"));
-		return (-1);
+		return -1;
 	}
 
 	/* We don't use this, but make sure it's set in case any old programs
@@ -3162,22 +3161,22 @@ vips_image_write_prepare(VipsImage *image)
 		if (!image->data &&
 			!(image->data = vips_tracked_malloc(
 				  VIPS_IMAGE_SIZEOF_IMAGE(image))))
-			return (-1);
+			return -1;
 
 		break;
 
 	case VIPS_IMAGE_OPENOUT:
 		if (vips_image_open_output(image))
-			return (-1);
+			return -1;
 
 		break;
 
 	default:
 		vips_error("VipsImage", "%s", _("bad image descriptor"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3203,7 +3202,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 	 */
 	if (ypos == 0) {
 		if (vips__image_wio_output(image))
-			return (-1);
+			return -1;
 
 		/* Always clear kill before we start looping. See the
 		 * call to vips_image_iskilled() below.
@@ -3226,7 +3225,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 		/* Don't use ypos for this.
 		 */
 		if (vips__write(image->fd, linebuffer, linesize))
-			return (-1);
+			return -1;
 		break;
 
 	default:
@@ -3234,24 +3233,24 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 			_("unable to output to a %s image"),
 			vips_enum_string(VIPS_TYPE_IMAGE_TYPE,
 				image->dtype));
-		return (-1);
+		return -1;
 	}
 
 	/* Trigger evaluation callbacks for this image.
 	 */
 	vips_image_eval(image, ypos * image->Xsize);
 	if (vips_image_iskilled(image))
-		return (-1);
+		return -1;
 
 	/* Is this the end of eval?
 	 */
 	if (ypos == image->Ysize - 1) {
 		vips_image_posteval(image);
 		if (vips_image_written(image))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Rewind an output file. VIPS images only.
@@ -3297,7 +3296,7 @@ vips_image_rewind_output(VipsImage *image)
 		vips_error("VipsImage",
 			_("auto-rewind for %s failed"),
 			image->filename);
-		return (-1);
+		return -1;
 	}
 
 	/* Now we've finished writing and reopened as read, we can
@@ -3313,7 +3312,7 @@ vips_image_rewind_output(VipsImage *image)
 	 */
 	vips_image_delete(image);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3363,17 +3362,17 @@ vips_image_copy_memory(VipsImage *image)
 		new = vips_image_new_memory();
 		if (vips_image_write(image, new)) {
 			g_object_unref(new);
-			return (NULL);
+			return NULL;
 		}
 		break;
 
 	default:
 		vips_error("vips_image_copy_memory",
 			"%s", _("image not readable"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (new);
+	return new;
 }
 
 /**
@@ -3415,7 +3414,7 @@ vips_image_wio_input(VipsImage *image)
 		if (!image->data) {
 			vips_error("vips_image_wio_input",
 				"%s", _("no image data"));
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -3437,7 +3436,7 @@ vips_image_wio_input(VipsImage *image)
 		t1 = vips_image_new_memory();
 		if (vips_image_write(image, t1)) {
 			g_object_unref(t1);
-			return (-1);
+			return -1;
 		}
 
 		/* Copy new stuff in. We can't unref and free stuff, as this
@@ -3480,7 +3479,7 @@ vips_image_wio_input(VipsImage *image)
 		/* just mmap() the whole thing.
 		 */
 		if (vips_mapfile(image))
-			return (-1);
+			return -1;
 		image->data = (VipsPel *) image->baseaddr +
 			image->sizeof_header;
 		image->dtype = VIPS_IMAGE_MMAPIN;
@@ -3493,17 +3492,17 @@ vips_image_wio_input(VipsImage *image)
 		 */
 		if (vips_image_rewind_output(image) ||
 			vips_image_wio_input(image))
-			return (-1);
+			return -1;
 
 		break;
 
 	default:
 		vips_error("vips_image_wio_input",
 			"%s", _("image not readable"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -3521,7 +3520,7 @@ vips__image_wio_output(VipsImage *image)
 		if (image->generate_fn) {
 			vips_error("vips__image_wio_output",
 				"%s", _("image already written"));
-			return (-1);
+			return -1;
 		}
 
 		/* Cannot do old-style write to PARTIAL. Turn to SETBUF.
@@ -3545,10 +3544,10 @@ vips__image_wio_output(VipsImage *image)
 	default:
 		vips_error("vips__image_wio_output",
 			"%s", _("image not writeable"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3577,7 +3576,7 @@ vips_image_inplace(VipsImage *image)
 	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
 	 */
 	if (vips_image_wio_input(image))
-		return (-1);
+		return -1;
 
 	/* Look at the type.
 	 */
@@ -3593,14 +3592,14 @@ vips_image_inplace(VipsImage *image)
 		/* Try to remap read-write.
 		 */
 		if (vips_remapfilerw(image))
-			return (-1);
+			return -1;
 
 		break;
 
 	default:
 		vips_error("vips_image_inplace",
 			"%s", _("bad file type"));
-		return (-1);
+		return -1;
 	}
 
 	/* This image is about to be changed (probably). Make sure it's not
@@ -3608,7 +3607,7 @@ vips_image_inplace(VipsImage *image)
 	 */
 	vips_image_invalidate_all(image);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3641,7 +3640,7 @@ vips_image_pio_input(VipsImage *image)
 		if (!image->data) {
 			vips_error("vips_image_pio_input",
 				"%s", _("no image data"));
-			return (-1);
+			return -1;
 		}
 
 		/* Should be no generate functions now.
@@ -3658,7 +3657,7 @@ vips_image_pio_input(VipsImage *image)
 		if (!image->generate_fn) {
 			vips_error("vips_image_pio_input",
 				"%s", _("no image data"));
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -3674,17 +3673,17 @@ vips_image_pio_input(VipsImage *image)
 		 * state.
 		 */
 		if (vips_image_rewind_output(image))
-			return (-1);
+			return -1;
 
 		break;
 
 	default:
 		vips_error("vips_image_pio_input",
 			"%s", _("image not readable"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3711,7 +3710,7 @@ vips_image_pio_output(VipsImage *image)
 		if (image->data) {
 			vips_error("vips_image_pio_output",
 				"%s", _("image already written"));
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -3720,7 +3719,7 @@ vips_image_pio_output(VipsImage *image)
 		if (image->generate_fn) {
 			vips_error("vips_image_pio_output",
 				"%s", _("image already written"));
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -3732,10 +3731,10 @@ vips_image_pio_output(VipsImage *image)
 	default:
 		vips_error("vips_image_pio_output",
 			"%s", _("image not writeable"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -3754,17 +3753,17 @@ vips_band_format_isint(VipsBandFormat format)
 	case VIPS_FORMAT_SHORT:
 	case VIPS_FORMAT_UINT:
 	case VIPS_FORMAT_INT:
-		return (TRUE);
+		return TRUE;
 
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:
-		return (FALSE);
+		return FALSE;
 
 	default:
 		g_assert_not_reached();
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3781,7 +3780,7 @@ vips_band_format_isuint(VipsBandFormat format)
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_USHORT:
 	case VIPS_FORMAT_UINT:
-		return (TRUE);
+		return TRUE;
 
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_SHORT:
@@ -3790,11 +3789,11 @@ vips_band_format_isuint(VipsBandFormat format)
 	case VIPS_FORMAT_DOUBLE:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:
-		return (FALSE);
+		return FALSE;
 
 	default:
 		g_assert_not_reached();
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3810,7 +3809,7 @@ vips_band_format_is8bit(VipsBandFormat format)
 	switch (format) {
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
-		return (TRUE);
+		return TRUE;
 
 	case VIPS_FORMAT_USHORT:
 	case VIPS_FORMAT_SHORT:
@@ -3820,11 +3819,11 @@ vips_band_format_is8bit(VipsBandFormat format)
 	case VIPS_FORMAT_DOUBLE:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:
-		return (FALSE);
+		return FALSE;
 
 	default:
 		g_assert_not_reached();
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3840,7 +3839,7 @@ vips_band_format_isfloat(VipsBandFormat format)
 	switch (format) {
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:
-		return (TRUE);
+		return TRUE;
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3850,11 +3849,11 @@ vips_band_format_isfloat(VipsBandFormat format)
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:
-		return (FALSE);
+		return FALSE;
 
 	default:
 		g_assert_not_reached();
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3870,7 +3869,7 @@ vips_band_format_iscomplex(VipsBandFormat format)
 	switch (format) {
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:
-		return (TRUE);
+		return TRUE;
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3880,11 +3879,11 @@ vips_band_format_iscomplex(VipsBandFormat format)
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:
-		return (FALSE);
+		return FALSE;
 
 	default:
 		g_assert_not_reached();
-		return (FALSE);
+		return FALSE;
 	}
 }
 
@@ -3917,5 +3916,5 @@ vips__view_image(VipsImage *image)
 		NULL);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }

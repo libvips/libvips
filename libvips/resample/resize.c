@@ -118,16 +118,16 @@ vips_resize_interpolate(VipsKernel kernel)
 {
 	switch (kernel) {
 	case VIPS_KERNEL_NEAREST:
-		return ("nearest");
+		return "nearest";
 
 	case VIPS_KERNEL_LINEAR:
-		return ("bilinear");
+		return "bilinear";
 
 	/* Use cubic for everything else. There are other interpolators, like
 	 * nohalo, but they don't really correspond well to any kernel.
 	 */
 	default:
-		return ("bicubic");
+		return "bicubic";
 	}
 }
 
@@ -146,7 +146,7 @@ vips_resize_build(VipsObject *object)
 	int int_vshrink;
 
 	if (VIPS_OBJECT_CLASS(vips_resize_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
@@ -161,7 +161,7 @@ vips_resize_build(VipsObject *object)
 	/* Unpack for processing.
 	 */
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (resize->kernel == VIPS_KERNEL_NEAREST) {
@@ -195,7 +195,7 @@ vips_resize_build(VipsObject *object)
 				int_hshrink, int_vshrink);
 			if (vips_subsample(in, &t[1],
 					int_hshrink, int_vshrink, NULL))
-				return (-1);
+				return -1;
 			in = t[1];
 
 			hscale *= int_hshrink;
@@ -216,7 +216,7 @@ vips_resize_build(VipsObject *object)
 				"kernel", resize->kernel,
 				"gap", resize->gap,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[2];
 	}
 
@@ -226,7 +226,7 @@ vips_resize_build(VipsObject *object)
 				"kernel", resize->kernel,
 				"gap", resize->gap,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
@@ -248,7 +248,7 @@ vips_resize_build(VipsObject *object)
 		VipsInterpolate *interpolate;
 
 		if (!(interpolate = vips_interpolate_new(nickname)))
-			return (-1);
+			return -1;
 		vips_object_local(object, interpolate);
 
 		if (resize->kernel == VIPS_KERNEL_NEAREST &&
@@ -258,7 +258,7 @@ vips_resize_build(VipsObject *object)
 			 */
 			if (vips_zoom(in, &t[4], VIPS_FLOOR(hscale),
 					VIPS_FLOOR(vscale), NULL))
-				return (-1);
+				return -1;
 			in = t[4];
 		}
 		else if (hscale > 1.0 &&
@@ -272,7 +272,7 @@ vips_resize_build(VipsObject *object)
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[4];
 		}
 		else if (hscale > 1.0) {
@@ -284,7 +284,7 @@ vips_resize_build(VipsObject *object)
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[4];
 		}
 		else {
@@ -296,15 +296,15 @@ vips_resize_build(VipsObject *object)
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[4];
 		}
 	}
 
 	if (vips_image_write(in, resample->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -453,5 +453,5 @@ vips_resize(VipsImage *in, VipsImage **out,
 	result = vips_call_split("resize", ap, in, out, scale);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

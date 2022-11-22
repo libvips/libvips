@@ -77,7 +77,7 @@ im_cmulnorm(IMAGE *in1, IMAGE *in2, IMAGE *out)
 	if (!(t1 = im_open_local(out, "im_cmulnorm:1", "p")) ||
 		im_multiply(in1, in2, t1) ||
 		im_sign(t1, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

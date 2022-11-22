@@ -122,5 +122,5 @@ vips_XYZ2Yxy(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("XYZ2Yxy", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

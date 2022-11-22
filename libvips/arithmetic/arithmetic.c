@@ -299,20 +299,20 @@ vips_format_common(VipsBandFormat a, VipsBandFormat b)
 		vips_band_format_iscomplex(b)) {
 		if (a == VIPS_FORMAT_DPCOMPLEX ||
 			b == VIPS_FORMAT_DPCOMPLEX)
-			return (VIPS_FORMAT_DPCOMPLEX);
+			return VIPS_FORMAT_DPCOMPLEX;
 		else
-			return (VIPS_FORMAT_COMPLEX);
+			return VIPS_FORMAT_COMPLEX;
 	}
 	else if (vips_band_format_isfloat(a) ||
 		vips_band_format_isfloat(b)) {
 		if (a == VIPS_FORMAT_DOUBLE ||
 			b == VIPS_FORMAT_DOUBLE)
-			return (VIPS_FORMAT_DOUBLE);
+			return VIPS_FORMAT_DOUBLE;
 		else
-			return (VIPS_FORMAT_FLOAT);
+			return VIPS_FORMAT_FLOAT;
 	}
 	else
-		return (format_largest[a][b]);
+		return format_largest[a][b];
 }
 
 int
@@ -337,10 +337,10 @@ vips__formatalike_vec(VipsImage **in, VipsImage **out, int n)
 		}
 		else {
 			if (vips_cast(in[i], &out[i], format, NULL))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -371,10 +371,10 @@ vips__sizealike_vec(VipsImage **in, VipsImage **out, int n)
 		else {
 			if (vips_embed(in[i], &out[i],
 					0, 0, width_max, height_max, NULL))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 /* Make an n-band image. Input 1 or n bands.
@@ -387,25 +387,25 @@ vips__bandup(const char *domain, VipsImage *in, VipsImage **out, int n)
 	int result;
 
 	if (in->Bands == n)
-		return (vips_copy(in, out, NULL));
+		return vips_copy(in, out, NULL);
 	if (in->Bands != 1) {
 		vips_error(domain, _("not one band or %d bands"), n);
-		return (-1);
+		return -1;
 	}
 	if (n > VIPS_MAX_COORD ||
 		n < 1) {
 		vips_error(domain, "%s", _("bad bands"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(bands = VIPS_ARRAY(NULL, n, VipsImage *)))
-		return (-1);
+		return -1;
 	for (i = 0; i < n; i++)
 		bands[i] = in;
 	result = vips_bandjoin(bands, out, n, NULL);
 	VIPS_FREE(bands);
 
-	return (result);
+	return result;
 }
 
 /* base_bands is the default minimum.
@@ -451,13 +451,13 @@ vips__bandalike_vec(const char *domain,
 		}
 		else {
 			if (vips__bandup(domain, in[i], &out[i], max_bands))
-				return (-1);
+				return -1;
 
 			if (interpretation != VIPS_INTERPRETATION_ERROR)
 				out[i]->Type = interpretation;
 		}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -471,12 +471,12 @@ vips__formatalike(VipsImage *in1, VipsImage *in2,
 	in[1] = in2;
 
 	if (vips__formatalike_vec(in, out, 2))
-		return (-1);
+		return -1;
 
 	*out1 = out[0];
 	*out2 = out[1];
 
-	return (0);
+	return 0;
 }
 
 int
@@ -490,12 +490,12 @@ vips__sizealike(VipsImage *in1, VipsImage *in2,
 	in[1] = in2;
 
 	if (vips__sizealike_vec(in, out, 2))
-		return (-1);
+		return -1;
 
 	*out1 = out[0];
 	*out2 = out[1];
 
-	return (0);
+	return 0;
 }
 
 int
@@ -509,12 +509,12 @@ vips__bandalike(const char *domain,
 	in[1] = in2;
 
 	if (vips__bandalike_vec(domain, in, out, 2, 1))
-		return (-1);
+		return -1;
 
 	*out1 = out[0];
 	*out2 = out[1];
 
-	return (0);
+	return 0;
 }
 
 /* Our sequence value.
@@ -549,7 +549,7 @@ vips_arithmetic_stop(void *vseq, void *a, void *b)
 
 	VIPS_FREE(seq);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -562,7 +562,7 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 	int i, n;
 
 	if (!(seq = VIPS_NEW(NULL, VipsArithmeticSequence)))
-		return (NULL);
+		return NULL;
 
 	seq->arithmetic = arithmetic;
 	seq->ir = NULL;
@@ -577,7 +577,7 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 	 */
 	if (!(seq->ir = VIPS_ARRAY(NULL, n + 1, VipsRegion *))) {
 		vips_arithmetic_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Create a set of regions.
@@ -585,7 +585,7 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 	for (i = 0; i < n; i++)
 		if (!(seq->ir[i] = vips_region_new(in[i]))) {
 			vips_arithmetic_stop(seq, NULL, NULL);
-			return (NULL);
+			return NULL;
 		}
 	seq->ir[n] = NULL;
 
@@ -593,10 +593,10 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 	 */
 	if (!(seq->p = VIPS_ARRAY(NULL, n + 1, VipsPel *))) {
 		vips_arithmetic_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
-	return (seq);
+	return seq;
 }
 
 static int
@@ -615,7 +615,7 @@ vips_arithmetic_gen(VipsRegion * or,
 	/* Prepare all input regions and make buffer pointers.
 	 */
 	if (vips_reorder_prepare_many(or->im, ir, r))
-		return (-1);
+		return -1;
 	for (i = 0; ir[i]; i++)
 		seq->p[i] = (VipsPel *)
 			VIPS_REGION_ADDR(ir[i], r->left, r->top);
@@ -636,7 +636,7 @@ vips_arithmetic_gen(VipsRegion * or,
 
 	VIPS_COUNT_PIXELS(or, VIPS_OBJECT_CLASS(class)->nickname);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -659,7 +659,7 @@ vips_arithmetic_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_arithmetic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_object_set(arithmetic, "out", vips_image_new(), NULL);
 
@@ -676,7 +676,7 @@ vips_arithmetic_build(VipsObject *object)
 	 */
 	for (i = 0; i < arithmetic->n; i++)
 		if (vips_image_decode(arithmetic->in[i], &decode[i]))
-			return (-1);
+			return -1;
 
 	/* Cast our input images up to a common format, bands and size.
 	 */
@@ -684,7 +684,7 @@ vips_arithmetic_build(VipsObject *object)
 		vips__bandalike_vec(class->nickname,
 			format, band, arithmetic->n, arithmetic->base_bands) ||
 		vips__sizealike_vec(band, size, arithmetic->n))
-		return (-1);
+		return -1;
 
 	/* Keep a copy of the processed images here for subclasses.
 	 */
@@ -692,7 +692,7 @@ vips_arithmetic_build(VipsObject *object)
 
 	if (vips_image_pipeline_array(arithmetic->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, arithmetic->ready))
-		return (-1);
+		return -1;
 
 	arithmetic->out->Bands = arithmetic->ready[0]->Bands;
 	if (arithmetic->format != VIPS_FORMAT_NOTSET)
@@ -706,9 +706,9 @@ vips_arithmetic_build(VipsObject *object)
 			vips_arithmetic_gen,
 			vips_arithmetic_stop,
 			arithmetic->ready, arithmetic))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -785,7 +785,7 @@ vips_arithmetic_get_program(VipsArithmeticClass *class, VipsBandFormat fmt)
 
 	class->vector_program[fmt] = TRUE;
 
-	return (class->vectors[fmt]);
+	return class->vectors[fmt];
 }
 
 /* Get the compiled code for this type, if available.
@@ -797,9 +797,9 @@ vips_arithmetic_get_vector(VipsArithmeticClass *class, VipsBandFormat fmt)
 
 	if (!vips_vector_isenabled() ||
 		!class->vector_program[fmt])
-		return (NULL);
+		return NULL;
 
-	return (class->vectors[fmt]);
+	return class->vectors[fmt];
 }
 
 void

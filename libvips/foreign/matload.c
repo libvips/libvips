@@ -71,7 +71,7 @@ G_DEFINE_TYPE(VipsForeignLoadMat, vips_foreign_load_mat,
 static VipsForeignFlags
 vips_foreign_load_mat_get_flags_filename(const char *filename)
 {
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -79,7 +79,7 @@ vips_foreign_load_mat_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadMat *mat = (VipsForeignLoadMat *) load;
 
-	return (vips_foreign_load_mat_get_flags_filename(mat->filename));
+	return vips_foreign_load_mat_get_flags_filename(mat->filename);
 }
 
 static int
@@ -88,11 +88,11 @@ vips_foreign_load_mat_header(VipsForeignLoad *load)
 	VipsForeignLoadMat *mat = (VipsForeignLoadMat *) load;
 
 	if (vips__mat_header(mat->filename, load->out))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, mat->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -101,9 +101,9 @@ vips_foreign_load_mat_load(VipsForeignLoad *load)
 	VipsForeignLoadMat *mat = (VipsForeignLoadMat *) load;
 
 	if (vips__mat_load(mat->filename, load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -176,5 +176,5 @@ vips_matload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("matload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

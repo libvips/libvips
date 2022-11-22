@@ -165,13 +165,13 @@ vips_foreign_load_jxl_build(VipsObject *object)
 			JxlThreadParallelRunner, jxl->runner)) {
 		vips_foreign_load_jxl_error(jxl,
 			"JxlDecoderSetParallelRunner");
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -180,15 +180,15 @@ vips_foreign_load_jxl_is_a_source(VipsSource *source)
 	const unsigned char *p;
 	JxlSignature sig;
 
-	return ((p = vips_source_sniff(source, 12)) &&
+	return (p = vips_source_sniff(source, 12)) &&
 		(sig = JxlSignatureCheck(p, 12)) != JXL_SIG_INVALID &&
-		sig != JXL_SIG_NOT_ENOUGH_BYTES);
+		sig != JXL_SIG_NOT_ENOUGH_BYTES;
 }
 
 static VipsForeignFlags
 vips_foreign_load_jxl_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
@@ -211,7 +211,7 @@ vips_foreign_load_jxl_fill_input(VipsForeignLoadJxl *jxl,
 	/* Read error, or unexpected end of input.
 	 */
 	if (bytes_read <= 0)
-		return (-1);
+		return -1;
 	jxl->bytes_in_buffer = bytes_read + bytes_remaining;
 
 #ifdef DEBUG_VERBOSE
@@ -219,7 +219,7 @@ vips_foreign_load_jxl_fill_input(VipsForeignLoadJxl *jxl,
 		bytes_read);
 #endif /*DEBUG_VERBOSE*/
 
-	return (0);
+	return 0;
 }
 
 #ifdef DEBUG
@@ -377,7 +377,7 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 
 		bytes_remaining = JxlDecoderReleaseInput(jxl->decoder);
 		if (vips_foreign_load_jxl_fill_input(jxl, bytes_remaining))
-			return (JXL_DEC_ERROR);
+			return JXL_DEC_ERROR;
 		JxlDecoderSetInput(jxl->decoder,
 			jxl->input_buffer, jxl->bytes_in_buffer);
 	}
@@ -387,7 +387,7 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 	vips_foreign_load_jxl_print_status(status);
 #endif /*DEBUG*/
 
-	return (status);
+	return status;
 }
 
 static int
@@ -402,7 +402,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		jxl->info.ysize >= VIPS_MAX_COORD) {
 		vips_error(class->nickname,
 			"%s", _("image size out of bounds"));
-		return (-1);
+		return -1;
 	}
 
 	switch (jxl->format.data_type) {
@@ -473,7 +473,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 	 * would like it.
 	 */
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
 	if (jxl->icc_data &&
 		jxl->icc_size > 0) {
@@ -490,7 +490,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE,
 		jxl->info.bits_per_sample);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -505,7 +505,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 #endif /*DEBUG*/
 
 	if (vips_source_rewind(jxl->source))
-		return (-1);
+		return -1;
 
 	JxlDecoderRewind(jxl->decoder);
 	if (JxlDecoderSubscribeEvents(jxl->decoder,
@@ -513,11 +513,11 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				JXL_DEC_BASIC_INFO)) {
 		vips_foreign_load_jxl_error(jxl,
 			"JxlDecoderSubscribeEvents");
-		return (-1);
+		return -1;
 	}
 
 	if (vips_foreign_load_jxl_fill_input(jxl, 0))
-		return (-1);
+		return -1;
 	JxlDecoderSetInput(jxl->decoder,
 		jxl->input_buffer, jxl->bytes_in_buffer);
 
@@ -528,14 +528,14 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 		case JXL_DEC_ERROR:
 			vips_foreign_load_jxl_error(jxl,
 				"JxlDecoderProcessInput");
-			return (-1);
+			return -1;
 
 		case JXL_DEC_BASIC_INFO:
 			if (JxlDecoderGetBasicInfo(jxl->decoder,
 					&jxl->info)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderGetBasicInfo");
-				return (-1);
+				return -1;
 			}
 #ifdef DEBUG
 			vips_foreign_load_jxl_print_info(&jxl->info);
@@ -569,7 +569,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 					&jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderGetICCProfileSize");
-				return (-1);
+				return -1;
 			}
 
 #ifdef DEBUG
@@ -580,7 +580,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 #endif /*DEBUG*/
 			if (!(jxl->icc_data = vips_malloc(NULL,
 					  jxl->icc_size)))
-				return (-1);
+				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
 					&jxl->format,
@@ -588,7 +588,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 					jxl->icc_data, jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderGetColorAsICCProfile");
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -601,12 +601,12 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 	} while (status != JXL_DEC_COLOR_ENCODING);
 
 	if (vips_foreign_load_jxl_set_header(jxl, load->out))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename,
 		vips_connection_filename(VIPS_CONNECTION(jxl->source)));
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -626,24 +626,24 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 
 	t[0] = vips_image_new();
 	if (vips_foreign_load_jxl_set_header(jxl, t[0]))
-		return (-1);
+		return -1;
 
 	/* We have to rewind ... we can't be certain the header
 	 * decoder left the input in the correct place.
 	 */
 	if (vips_source_rewind(jxl->source))
-		return (-1);
+		return -1;
 
 	JxlDecoderRewind(jxl->decoder);
 	if (JxlDecoderSubscribeEvents(jxl->decoder,
 			JXL_DEC_FULL_IMAGE)) {
 		vips_foreign_load_jxl_error(jxl,
 			"JxlDecoderSubscribeEvents");
-		return (-1);
+		return -1;
 	}
 
 	if (vips_foreign_load_jxl_fill_input(jxl, 0))
-		return (-1);
+		return -1;
 	JxlDecoderSetInput(jxl->decoder,
 		jxl->input_buffer, jxl->bytes_in_buffer);
 
@@ -654,24 +654,24 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 		case JXL_DEC_ERROR:
 			vips_foreign_load_jxl_error(jxl,
 				"JxlDecoderProcessInput");
-			return (-1);
+			return -1;
 
 		case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
 			if (vips_image_write_prepare(t[0]))
-				return (-1);
+				return -1;
 
 			if (JxlDecoderImageOutBufferSize(jxl->decoder,
 					&jxl->format,
 					&buffer_size)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderImageOutBufferSize");
-				return (-1);
+				return -1;
 			}
 			if (buffer_size !=
 				VIPS_IMAGE_SIZEOF_IMAGE(t[0])) {
 				vips_error(class->nickname,
 					"%s", _("bad buffer size"));
-				return (-1);
+				return -1;
 			}
 			if (JxlDecoderSetImageOutBuffer(jxl->decoder,
 					&jxl->format,
@@ -679,7 +679,7 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 					VIPS_IMAGE_SIZEOF_IMAGE(t[0]))) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderSetImageOutBuffer");
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -694,9 +694,9 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 	} while (status != JXL_DEC_SUCCESS);
 
 	if (vips_image_write(t[0], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -752,12 +752,12 @@ vips_foreign_load_jxl_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(jxl->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 const char *vips__jxl_suffs[] = { ".jxl", NULL };
@@ -769,11 +769,11 @@ vips_foreign_load_jxl_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_jxl_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -832,12 +832,12 @@ vips_foreign_load_jxl_buffer_build(VipsObject *object)
 		if (!(jxl->source = vips_source_new_from_memory(
 				  VIPS_AREA(buffer->buf)->data,
 				  VIPS_AREA(buffer->buf)->length)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -847,11 +847,11 @@ vips_foreign_load_jxl_buffer_is_a(const void *buf, size_t len)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_memory(buf, len)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_jxl_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -910,9 +910,9 @@ vips_foreign_load_jxl_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

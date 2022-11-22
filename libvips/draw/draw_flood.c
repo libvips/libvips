@@ -166,7 +166,7 @@ buffer_build(void)
 	buf->next = NULL;
 	buf->n = 0;
 
-	return (buf);
+	return buf;
 }
 
 /* Free a chain of buffers.
@@ -193,11 +193,11 @@ buffer_add(Buffer *buf, Flood *flood, int x1, int x2, int y, int dir)
 	 */
 	if (y < 0 ||
 		y >= flood->test->Ysize)
-		return (buf);
+		return buf;
 	x1 = VIPS_CLIP(0, x1, flood->test->Xsize - 1);
 	x2 = VIPS_CLIP(0, x2, flood->test->Xsize - 1);
 	if (x2 - x1 < 0)
-		return (buf);
+		return buf;
 
 	if (buf->n == PBUFSIZE) {
 		Buffer *new;
@@ -213,7 +213,7 @@ buffer_add(Buffer *buf, Flood *flood, int x1, int x2, int y, int dir)
 	buf->scan[buf->n].dir = dir;
 	buf->n += 1;
 
-	return (buf);
+	return buf;
 }
 
 /* Is p "connected"? ie. is equal to or not equal to flood->edge, depending on
@@ -231,7 +231,7 @@ flood_connected(Flood *flood, VipsPel *p)
 
 	/* If flood->equal, true if point == edge.
 	 */
-	return (flood->equal ^ (j < flood->tsize));
+	return flood->equal ^ (j < flood->tsize);
 }
 
 /* Is p painted? p is a pel in @image.
@@ -245,7 +245,7 @@ flood_painted(Flood *flood, VipsPel *p)
 		if (p[j] != flood->ink[j])
 			break;
 
-	return (j == flood->psize);
+	return j == flood->psize;
 }
 
 static void
@@ -474,7 +474,7 @@ vips_draw_flood_build(VipsObject *object)
 	int j;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_flood_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* @test defaults to @image.
 	 */
@@ -488,7 +488,7 @@ vips_draw_flood_build(VipsObject *object)
 		vips_check_coding_known(class->nickname, drawflood->test) ||
 		vips_check_size_same(class->nickname,
 			drawflood->test, draw->image))
-		return (-1);
+		return -1;
 
 	flood.test = drawflood->test;
 	flood.image = draw->image;
@@ -506,7 +506,7 @@ vips_draw_flood_build(VipsObject *object)
 		/* Edge is set by colour of the start pixel in @test.
 		 */
 		if (!(flood.edge = VIPS_ARRAY(object, flood.tsize, VipsPel)))
-			return (-1);
+			return -1;
 		memcpy(flood.edge,
 			VIPS_IMAGE_ADDR(flood.test,
 				drawflood->x, drawflood->y),
@@ -534,7 +534,7 @@ vips_draw_flood_build(VipsObject *object)
 				  flood.test,
 				  VIPS_ARRAY_ADDR(drawink->ink, 0), NULL,
 				  VIPS_AREA(drawink->ink)->n)))
-			return (-1);
+			return -1;
 
 		flood_all(&flood, drawflood->x, drawflood->y);
 	}
@@ -546,7 +546,7 @@ vips_draw_flood_build(VipsObject *object)
 		"height", flood.bottom - flood.top + 1,
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -649,7 +649,7 @@ vips__draw_flood_direct(VipsImage *image, VipsImage *test,
 			test, image) ||
 		vips_image_wio_input(test) ||
 		vips_image_inplace(image))
-		return (-1);
+		return -1;
 
 	flood.test = test;
 	flood.image = image;
@@ -664,13 +664,13 @@ vips__draw_flood_direct(VipsImage *image, VipsImage *test,
 	flood.bottom = y;
 
 	if (!(flood.edge = VIPS_ARRAY(image, flood.tsize, VipsPel)))
-		return (-1);
+		return -1;
 	memcpy(flood.edge,
 		VIPS_IMAGE_ADDR(test, x, y), flood.tsize);
 
 	flood_all(&flood, x, y);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -684,7 +684,7 @@ vips_draw_floodv(VipsImage *image,
 	result = vips_call_split("draw_flood", ap, image, area_ink, x, y);
 	vips_area_unref(area_ink);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -736,7 +736,7 @@ vips_draw_flood(VipsImage *image,
 	result = vips_draw_floodv(image, ink, n, x, y, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -775,5 +775,5 @@ vips_draw_flood1(VipsImage *image, double ink, int x, int y, ...)
 	result = vips_draw_floodv(image, array_ink, 1, x, y, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

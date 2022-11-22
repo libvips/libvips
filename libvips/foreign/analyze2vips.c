@@ -252,7 +252,7 @@ getstr(int mx, const char *str)
 		if (!isascii(buf[i]) || buf[i] < 32)
 			buf[i] = '@';
 
-	return (buf);
+	return buf;
 }
 
 #ifdef DEBUG
@@ -301,13 +301,13 @@ read_header(const char *header)
 	size_t len;
 
 	if (!(d = (struct dsr *) vips__file_read_name(header, NULL, &len)))
-		return (NULL);
+		return NULL;
 
 	if (len != sizeof(struct dsr)) {
 		vips_error("analyze2vips",
 			"%s", _("header file size incorrect"));
 		g_free(d);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Ouch! Should check at configure time I guess.
@@ -351,10 +351,10 @@ read_header(const char *header)
 		vips_error("analyze2vips",
 			"%s", _("header size incorrect"));
 		g_free(d);
-		return (NULL);
+		return NULL;
 	}
 
-	return (d);
+	return d;
 }
 
 /* Try to get VIPS header properties from a dsr.
@@ -369,7 +369,7 @@ get_vips_properties(struct dsr *d,
 		vips_error("analyze2vips",
 			_("%d-dimensional images not supported"),
 			d->dime.dim[0]);
-		return (-1);
+		return -1;
 	}
 
 	/* Size of base 2d images.
@@ -421,7 +421,7 @@ get_vips_properties(struct dsr *d,
 	default:
 		vips_error("analyze2vips",
 			_("datatype %d not supported"), d->dime.datatype);
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -431,7 +431,7 @@ get_vips_properties(struct dsr *d,
 	printf("get_vips_properties: fmt = %d\n", *fmt);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -494,13 +494,13 @@ vips__isanalyze(const char *filename)
 
 	generate_filenames(filename, header, image);
 	if (!vips_existsf("%s", header))
-		return (0);
+		return 0;
 
 	vips_error_freeze();
 	d = read_header(header);
 	vips_error_thaw();
 	if (!d)
-		return (0);
+		return 0;
 
 #ifdef DEBUG
 	print_dsr(d);
@@ -512,7 +512,7 @@ vips__isanalyze(const char *filename)
 
 	g_free(d);
 
-	return (result == 0);
+	return result == 0;
 }
 
 int
@@ -527,7 +527,7 @@ vips__analyze_read_header(const char *filename, VipsImage *out)
 
 	generate_filenames(filename, header, image);
 	if (!(d = read_header(header)))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	print_dsr(d);
@@ -535,7 +535,7 @@ vips__analyze_read_header(const char *filename, VipsImage *out)
 
 	if (get_vips_properties(d, &width, &height, &bands, &fmt)) {
 		g_free(d);
-		return (-1);
+		return -1;
 	}
 
 	vips_image_init_fields(out,
@@ -549,9 +549,9 @@ vips__analyze_read_header(const char *filename, VipsImage *out)
 	attach_meta(out, d);
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -570,7 +570,7 @@ vips__analyze_read(const char *filename, VipsImage *out)
 	generate_filenames(filename, header, image);
 	if (!(d = read_header(header))) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	attach_meta(out, d);
 
@@ -582,18 +582,18 @@ vips__analyze_read(const char *filename, VipsImage *out)
 		!(t[0] = vips_image_new_from_file_raw(image, width, height,
 			  bands * vips_format_sizeof(fmt), 0))) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_copy(t[0], &t[1], "bands", bands, "format", fmt, NULL) ||
 		vips__byteswap_bool(t[1], &t[2], !vips_amiMSBfirst()) ||
 		vips_image_write(t[2], out)) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(x);
 
-	return (0);
+	return 0;
 }
 
 #endif /*HAVE_ANALYZE*/

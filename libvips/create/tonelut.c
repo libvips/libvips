@@ -99,7 +99,7 @@ shad(VipsTonelut *lut, double x)
 	else
 		out = 0;
 
-	return (out);
+	return out;
 }
 
 /* Calculate mid-tone curve.
@@ -121,7 +121,7 @@ mid(VipsTonelut *lut, double x)
 	else
 		out = 0;
 
-	return (out);
+	return out;
 }
 
 /* Calculate highlight curve.
@@ -143,7 +143,7 @@ high(VipsTonelut *lut, double x)
 	else
 		out = 0;
 
-	return (out);
+	return out;
 }
 
 /* Generate a point on the tone curve. Everything is 0-100.
@@ -158,7 +158,7 @@ tone_curve(VipsTonelut *lut, double x)
 		lut->M * mid(lut, x) +
 		lut->H * high(lut, x);
 
-	return (out);
+	return out;
 }
 
 static int
@@ -171,7 +171,7 @@ vips_tonelut_build(VipsObject *object)
 	unsigned short buf[65536];
 
 	if (VIPS_OBJECT_CLASS(vips_tonelut_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_assert(lut->in_max > 0 && lut->in_max < 65536);
 	g_assert(lut->out_max > 0 && lut->out_max < 65536);
@@ -203,9 +203,9 @@ vips_tonelut_build(VipsObject *object)
 		VIPS_FORMAT_USHORT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0);
 	if (vips_image_write_line(create->out, 0, (VipsPel *) buf))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -348,5 +348,5 @@ vips_tonelut(VipsImage **out, ...)
 	result = vips_call_split("tonelut", ap, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -79,7 +79,7 @@ vips_mask_gaussian_ring_point(VipsMask *mask, double dx, double dy)
 	double cnst = log(ac);
 	double dist = sqrt(dx * dx + dy * dy);
 
-	return (exp(cnst * (dist - fc) * (dist - fc) / df2));
+	return exp(cnst * (dist - fc) * (dist - fc) / df2);
 }
 
 static void
@@ -150,5 +150,5 @@ vips_mask_gaussian_ring(VipsImage **out, int width, int height,
 		frequency_cutoff, amplitude_cutoff, ringwidth);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

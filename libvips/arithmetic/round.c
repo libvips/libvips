@@ -76,12 +76,12 @@ vips_round_build(VipsObject *object)
 	 */
 	if (unary->in &&
 		vips_band_format_isint(unary->in->BandFmt))
-		return (vips_unary_copy(unary));
+		return vips_unary_copy(unary);
 
 	if (VIPS_OBJECT_CLASS(vips_round_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(TYPE, OP) \
@@ -194,7 +194,7 @@ static int
 vips_roundv(VipsImage *in, VipsImage **out,
 	VipsOperationRound round, va_list ap)
 {
-	return (vips_call_split("round", ap, in, out, round));
+	return vips_call_split("round", ap, in, out, round);
 }
 
 /**
@@ -226,7 +226,7 @@ vips_round(VipsImage *in, VipsImage **out, VipsOperationRound round, ...)
 	result = vips_roundv(in, out, round, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -250,7 +250,7 @@ vips_floor(VipsImage *in, VipsImage **out, ...)
 	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_FLOOR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -274,7 +274,7 @@ vips_ceil(VipsImage *in, VipsImage **out, ...)
 	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_CEIL, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -298,5 +298,5 @@ vips_rint(VipsImage *in, VipsImage **out, ...)
 	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_RINT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -121,10 +121,10 @@ vips_sbuf_new_from_source(VipsSource *source)
 
 	if (vips_object_build(VIPS_OBJECT(sbuf))) {
 		VIPS_UNREF(sbuf);
-		return (NULL);
+		return NULL;
 	}
 
-	return (sbuf);
+	return sbuf;
 }
 
 /**
@@ -161,7 +161,7 @@ vips_sbuf_refill(VipsSbuf *sbuf)
 	bytes_read = vips_source_read(sbuf->source,
 		sbuf->input_buffer, VIPS_SBUF_BUFFER_SIZE);
 	if (bytes_read == -1)
-		return (-1);
+		return -1;
 
 	sbuf->read_point = 0;
 	sbuf->chars_in_buffer = bytes_read;
@@ -171,7 +171,7 @@ vips_sbuf_refill(VipsSbuf *sbuf)
 	 */
 	sbuf->input_buffer[bytes_read] = '\0';
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 /**
@@ -189,11 +189,11 @@ vips_sbuf_getc(VipsSbuf *sbuf)
 {
 	if (sbuf->read_point == sbuf->chars_in_buffer &&
 		vips_sbuf_refill(sbuf) <= 0)
-		return (-1);
+		return -1;
 
 	g_assert(sbuf->read_point < sbuf->chars_in_buffer);
 
-	return (sbuf->input_buffer[sbuf->read_point++]);
+	return sbuf->input_buffer[sbuf->read_point++];
 }
 
 /**
@@ -272,13 +272,13 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
 
 			if ((bytes_read = vips_source_read(sbuf->source,
 					 to, space_available)) < 0)
-				return (-1);
+				return -1;
 			if (bytes_read == 0) {
 				vips_error(
 					vips_connection_nick(VIPS_CONNECTION(
 						sbuf->source)),
 					"%s", _("end of file"));
-				return (-1);
+				return -1;
 			}
 
 			to[bytes_read] = '\0';
@@ -286,7 +286,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -364,7 +364,7 @@ vips_sbuf_get_line(VipsSbuf *sbuf)
 	 */
 	if (ch == -1 &&
 		write_point == 0)
-		return (NULL);
+		return NULL;
 
 	/* If the final char in the buffer is \r, this is probably a DOS file
 	 * and we should remove that too.
@@ -387,7 +387,7 @@ vips_sbuf_get_line(VipsSbuf *sbuf)
 
 	VIPS_DEBUG_MSG("    %s\n", sbuf->line);
 
-	return ((const char *) sbuf->line);
+	return (const char *) sbuf->line;
 }
 
 /**
@@ -430,7 +430,7 @@ vips_sbuf_get_line_copy(VipsSbuf *sbuf)
 	if (ch == -1 &&
 		buffer->len == 0) {
 		VIPS_FREEF(g_byte_array_unref, buffer);
-		return (NULL);
+		return NULL;
 	}
 
 	/* If the character before the \n was \r, this is probably a DOS file
@@ -447,7 +447,7 @@ vips_sbuf_get_line_copy(VipsSbuf *sbuf)
 
 	VIPS_DEBUG_MSG("    %s\n", result);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -498,7 +498,7 @@ vips_sbuf_get_non_whitespace(VipsSbuf *sbuf)
 	if (isspace(ch))
 		VIPS_SBUF_UNGETC(sbuf);
 
-	return ((const char *) sbuf->line);
+	return (const char *) sbuf->line;
 }
 
 /**
@@ -526,12 +526,12 @@ vips_sbuf_skip_whitespace(VipsSbuf *sbuf)
 			/* Probably EOF.
 			 */
 			if (!vips_sbuf_get_line(sbuf))
-				return (-1);
+				return -1;
 			ch = VIPS_SBUF_GETC(sbuf);
 		}
 	} while (isspace(ch));
 
 	VIPS_SBUF_UNGETC(sbuf);
 
-	return (0);
+	return 0;
 }

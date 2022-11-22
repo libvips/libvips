@@ -268,11 +268,11 @@ thumbnail_write_file(VipsObject *process, VipsImage *im, const char *filename)
 
 	if (vips_image_write_to_file(im, output_name, NULL)) {
 		g_free(output_name);
-		return (-1);
+		return -1;
 	}
 	g_free(output_name);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -292,7 +292,7 @@ thumbnail_process(VipsObject *process, const char *name)
 
 		if ((n = vips_enum_from_nick("vipsthumbnail",
 				 VIPS_TYPE_INTERESTING, smartcrop_image)) < 0)
-			return (-1);
+			return -1;
 		interesting = n;
 	}
 
@@ -302,7 +302,7 @@ thumbnail_process(VipsObject *process, const char *name)
 
 		if ((n = vips_enum_from_nick("vipsthumbnail",
 				 VIPS_TYPE_INTENT, thumbnail_intent)) < 0)
-			return (-1);
+			return -1;
 		intent = n;
 	}
 
@@ -312,7 +312,7 @@ thumbnail_process(VipsObject *process, const char *name)
 
 		if (!(source =
 					vips_source_new_from_descriptor(0)))
-			return (-1);
+			return -1;
 
 		if (vips_thumbnail_source(source, &image, thumbnail_width,
 				"option-string", option_string,
@@ -326,7 +326,7 @@ thumbnail_process(VipsObject *process, const char *name)
 				"intent", intent,
 				NULL)) {
 			VIPS_UNREF(source);
-			return (-1);
+			return -1;
 		}
 		VIPS_UNREF(source);
 	}
@@ -341,7 +341,7 @@ thumbnail_process(VipsObject *process, const char *name)
 				"export-profile", export_profile,
 				"intent", intent,
 				NULL))
-			return (-1);
+			return -1;
 	}
 
 	/* If the output format is something like ".jpg", we write to stdout
@@ -354,13 +354,13 @@ thumbnail_process(VipsObject *process, const char *name)
 		VipsTarget *target;
 
 		if (!(target = vips_target_new_to_descriptor(1)))
-			return (-1);
+			return -1;
 
 		if (vips_image_write_to_target(image,
 				output_format, target, NULL)) {
 			VIPS_UNREF(image);
 			VIPS_UNREF(target);
-			return (-1);
+			return -1;
 		}
 
 		VIPS_UNREF(target);
@@ -368,13 +368,13 @@ thumbnail_process(VipsObject *process, const char *name)
 	else {
 		if (thumbnail_write_file(process, image, name)) {
 			VIPS_UNREF(image);
-			return (-1);
+			return -1;
 		}
 	}
 
 	VIPS_UNREF(image);
 
-	return (0);
+	return 0;
 }
 
 /* Parse a geometry string and set thumbnail_width and thumbnail_height.
@@ -446,7 +446,7 @@ thumbnail_parse_geometry(const char *geometry)
 		(thumbnail_width == VIPS_MAX_COORD &&
 			thumbnail_height == VIPS_MAX_COORD)) {
 		vips_error("thumbnail", "%s", _("bad geometry spec"));
-		return (-1);
+		return -1;
 	}
 
 	/* If there was no 'x' we have just width. vipsthumbnail history means
@@ -476,10 +476,10 @@ thumbnail_parse_geometry(const char *geometry)
 			vips_error("thumbnail",
 				"both width and height must be given if "
 				"crop is enabled");
-			return (-1);
+			return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -582,5 +582,5 @@ main(int argc, char **argv)
 
 	vips_shutdown();
 
-	return (result);
+	return result;
 }

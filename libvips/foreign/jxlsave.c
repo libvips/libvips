@@ -238,7 +238,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	VipsBandFormat format;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* If Q is set and distance is not, use Q to set a rough distance
 	 * value. Formula stolen from cjxl.c and very roughly approximates
@@ -262,7 +262,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			JxlThreadParallelRunner, jxl->runner)) {
 		vips_foreign_save_jxl_error(jxl,
 			"JxlDecoderSetParallelRunner");
-		return (-1);
+		return -1;
 	}
 
 	in = save->ready;
@@ -279,7 +279,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		format = VIPS_FORMAT_UCHAR;
 
 	if (vips_cast(in, &t[0], format, NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	JxlEncoderInitBasicInfo(&jxl->info);
@@ -346,7 +346,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		double stonits;
 
 		if (vips_image_get_double(in, "stonits", &stonits))
-			return (-1);
+			return -1;
 		jxl->info.intensity_target = stonits;
 	}
 
@@ -357,7 +357,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	if (JxlEncoderSetBasicInfo(jxl->encoder, &jxl->info)) {
 		vips_foreign_save_jxl_error(jxl, "JxlEncoderSetBasicInfo");
-		return (-1);
+		return -1;
 	}
 
 	/* Set any ICC profile.
@@ -368,7 +368,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 		if (vips_image_get_blob(in,
 				VIPS_META_ICC_NAME, &data, &length))
-			return (-1);
+			return -1;
 
 #ifdef DEBUG
 		printf("attaching %zd bytes of ICC\n", length);
@@ -377,7 +377,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 				(guint8 *) data, length)) {
 			vips_foreign_save_jxl_error(jxl,
 				"JxlEncoderSetColorEncoding");
-			return (-1);
+			return -1;
 		}
 	}
 	else {
@@ -405,7 +405,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 				&jxl->color_encoding)) {
 			vips_foreign_save_jxl_error(jxl,
 				"JxlEncoderSetColorEncoding");
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -413,7 +413,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 * tile-based write at the moment.
 	 */
 	if (vips_image_wio_input(in))
-		return (-1);
+		return -1;
 
 #ifdef HAVE_LIBJXL_0_7
 	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
@@ -445,7 +445,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			VIPS_IMAGE_ADDR(in, 0, 0),
 			VIPS_IMAGE_SIZEOF_IMAGE(in))) {
 		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
-		return (-1);
+		return -1;
 	}
 
 	/* This function must be called after the final frame and/or box,
@@ -467,7 +467,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			if (vips_target_write(jxl->target,
 					jxl->output_buffer,
 					OUTPUT_BUFFER_SIZE - avail_out))
-				return (-1);
+				return -1;
 			break;
 
 		default:
@@ -476,14 +476,14 @@ vips_foreign_save_jxl_build(VipsObject *object)
 #ifdef DEBUG
 			vips_foreign_save_jxl_print_status(status);
 #endif /*DEBUG*/
-			return (-1);
+			return -1;
 		}
 	} while (status != JXL_ENC_SUCCESS);
 
 	if (vips_target_end(jxl->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -595,12 +595,12 @@ vips_foreign_save_jxl_file_build(VipsObject *object)
 	VipsForeignSaveJxlFile *file = (VipsForeignSaveJxlFile *) object;
 
 	if (!(jxl->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -652,17 +652,17 @@ vips_foreign_save_jxl_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(jxl->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(jxl->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -716,9 +716,9 @@ vips_foreign_save_jxl_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

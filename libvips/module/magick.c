@@ -86,7 +86,7 @@ g_module_check_init(GModule *module)
 	vips_foreign_save_magick_bmp_buffer_get_type();
 #endif /*ENABLE_MAGICKSAVE*/
 
-	return (NULL);
+	return NULL;
 }
 
 #endif /*(defined(HAVE_MAGICK6) || defined (HAVE_MAGICK7)) && defined(MAGICK_MODULE)*/

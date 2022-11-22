@@ -120,12 +120,12 @@ all_black(VipsImage *im, int xpos, int ypos, int winsize)
 			if (line[x])
 				/* Not all black.
 				 */
-				return (0);
+				return 0;
 
 		line += ls;
 	}
 
-	return (-1);
+	return -1;
 }
 
 /* Calculate a value for 'contrast' within a window
@@ -159,7 +159,7 @@ calculate_contrast(VipsImage *im, int xpos, int ypos, int winsize)
 		line += ls;
 	}
 
-	return (total);
+	return total;
 }
 
 /* Compare two PosConts for qsort.
@@ -170,7 +170,7 @@ pos_compare(const void *vl, const void *vr)
 	PosCont *l = (PosCont *) vl;
 	PosCont *r = (PosCont *) vr;
 
-	return (r->cont - l->cont);
+	return r->cont - l->cont;
 }
 
 /* Search an area for the n best contrast areas.
@@ -204,14 +204,14 @@ vips__find_best_contrast(VipsImage *im,
 	if (nacross <= 0 || ndown <= 0) {
 		vips_error("vips__lrcalcon", "%s",
 			_("overlap too small for your search size"));
-		return (-1);
+		return -1;
 	}
 
 	/* Malloc space for 3 int arrays, to keep the int coordinates and
 	 * the contrast.
 	 */
 	if (!(pc = VIPS_ARRAY(NULL, nacross * ndown, PosCont)))
-		return (-1);
+		return -1;
 
 	/* Find contrast for each area.
 	 */
@@ -245,7 +245,7 @@ vips__find_best_contrast(VipsImage *im,
 			_("found %d tie-points, need at least %d"),
 			elms, nbest);
 		g_free(pc);
-		return (-1);
+		return -1;
 	}
 
 	/* Sort areas by contrast.
@@ -261,7 +261,7 @@ vips__find_best_contrast(VipsImage *im,
 	}
 	g_free(pc);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -285,10 +285,10 @@ vips__lrcalcon(VipsImage *ref, TiePoints *points)
 	/* Make sure we can read image.
 	 */
 	if (vips_image_wio_input(ref))
-		return (-1);
+		return -1;
 	if (ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR) {
 		vips_error("vips__lrcalcon", "%s", _("not 1-band uchar image"));
-		return (-1);
+		return -1;
 	}
 
 	/* Define bits to search for high-contrast areas. Need to be able to
@@ -312,7 +312,7 @@ vips__lrcalcon(VipsImage *ref, TiePoints *points)
 				points->contrast + i * len,
 				len,
 				points->halfcorsize))
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }

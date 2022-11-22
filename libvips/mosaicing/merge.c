@@ -68,19 +68,19 @@ vips_merge_build(VipsObject *object)
 	g_object_set(merge, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_merge_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	switch (merge->direction) {
 	case VIPS_DIRECTION_HORIZONTAL:
 		if (vips__lrmerge(merge->ref, merge->sec, merge->out,
 				merge->dx, merge->dy, merge->mblend))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
 		if (vips__tbmerge(merge->ref, merge->sec, merge->out,
 				merge->dx, merge->dy, merge->mblend))
-			return (-1);
+			return -1;
 		break;
 
 	default:
@@ -97,9 +97,9 @@ vips_merge_build(VipsObject *object)
 			vips__get_mosaic_name(merge->sec),
 			vips__get_mosaic_name(merge->out),
 			-merge->dx, -merge->dy, merge->mblend))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -225,5 +225,5 @@ vips_merge(VipsImage *ref, VipsImage *sec, VipsImage **out,
 		ref, sec, out, direction, dx, dy);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

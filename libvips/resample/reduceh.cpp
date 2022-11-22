@@ -109,26 +109,26 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 {
 	switch (kernel) {
 	case VIPS_KERNEL_NEAREST:
-		return (1);
+		return 1;
 
 	case VIPS_KERNEL_LINEAR:
-		return (2 * rint(shrink) + 1);
+		return 2 * rint(shrink) + 1;
 
 	case VIPS_KERNEL_CUBIC:
 	case VIPS_KERNEL_MITCHELL:
-		return (2 * rint(2 * shrink) + 1);
+		return 2 * rint(2 * shrink) + 1;
 
 	case VIPS_KERNEL_LANCZOS2:
 		/* Needs to be in sync with calculate_coefficients_lanczos().
 		 */
-		return (2 * rint(2 * shrink) + 1);
+		return 2 * rint(2 * shrink) + 1;
 
 	case VIPS_KERNEL_LANCZOS3:
-		return (2 * rint(3 * shrink) + 1);
+		return 2 * rint(3 * shrink) + 1;
 
 	default:
 		g_assert_not_reached();
-		return (0);
+		return 0;
 	}
 }
 
@@ -315,7 +315,7 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 	s.width = r->width * reduceh->hshrink + reduceh->n_point;
 	s.height = r->height;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_reduceh_gen: work");
 
@@ -408,7 +408,7 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 
 	VIPS_COUNT_PIXELS(out_region, "vips_reduceh_gen");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -426,14 +426,14 @@ vips_reduceh_build(VipsObject *object)
 	double extra_pixels;
 
 	if (VIPS_OBJECT_CLASS(vips_reduceh_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
 	if (reduceh->hshrink < 1.0) {
 		vips_error(object_class->nickname,
 			"%s", _("reduce factor should be >= 1.0"));
-		return (-1);
+		return -1;
 	}
 
 	/* Output size. We need to always round to nearest, so round(), not
@@ -452,7 +452,7 @@ vips_reduceh_build(VipsObject *object)
 		if (reduceh->gap < 1.0) {
 			vips_error(object_class->nickname,
 				"%s", _("reduce gap should be >= 1.0"));
-			return (-1);
+			return -1;
 		}
 
 		/* The int part of our reduce.
@@ -465,7 +465,7 @@ vips_reduceh_build(VipsObject *object)
 			if (vips_shrinkh(in, &t[0], int_hshrink,
 					"ceil", TRUE,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[0];
 
 			reduceh->hshrink /= int_hshrink;
@@ -474,7 +474,7 @@ vips_reduceh_build(VipsObject *object)
 	}
 
 	if (reduceh->hshrink == 1.0)
-		return (vips_image_write(in, resample->out));
+		return vips_image_write(in, resample->out);
 
 	reduceh->n_point =
 		vips_reduce_get_points(reduceh->kernel, reduceh->hshrink);
@@ -482,7 +482,7 @@ vips_reduceh_build(VipsObject *object)
 	if (reduceh->n_point > MAX_POINT) {
 		vips_error(object_class->nickname,
 			"%s", _("reduce factor too large"));
-		return (-1);
+		return -1;
 	}
 
 	/* If we are rounding down, we are not using some input
@@ -501,7 +501,7 @@ vips_reduceh_build(VipsObject *object)
 			VIPS_ARRAY(object, reduceh->n_point, int);
 		if (!reduceh->matrixf[x] ||
 			!reduceh->matrixi[x])
-			return (-1);
+			return -1;
 
 		vips_reduce_make_mask(reduceh->matrixf[x],
 			reduceh->kernel, reduceh->hshrink,
@@ -522,7 +522,7 @@ vips_reduceh_build(VipsObject *object)
 	/* Unpack for processing.
 	 */
 	if (vips_image_decode(in, &t[1]))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
@@ -532,12 +532,12 @@ vips_reduceh_build(VipsObject *object)
 			in->Xsize + reduceh->n_point, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
 			(void *) NULL))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	if (vips_image_pipelinev(resample->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
-		return (-1);
+		return -1;
 
 	/* Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
@@ -547,7 +547,7 @@ vips_reduceh_build(VipsObject *object)
 	if (resample->out->Xsize <= 0) {
 		vips_error(object_class->nickname,
 			"%s", _("image has shrunk to nothing"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -559,11 +559,11 @@ vips_reduceh_build(VipsObject *object)
 	if (vips_image_generate(resample->out,
 			vips_start_one, vips_reduceh_gen, vips_stop_one,
 			in, reduceh))
-		return (-1);
+		return -1;
 
 	vips_reorder_margin_hint(resample->out, reduceh->n_point);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -645,5 +645,5 @@ vips_reduceh(VipsImage *in, VipsImage **out, double hshrink, ...)
 	result = vips_call_split("reduceh", ap, in, out, hshrink);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

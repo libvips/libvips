@@ -78,7 +78,7 @@ vips_compass_build(VipsObject *object)
 	g_object_set(compass, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_compass_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	masks = (VipsImage **)
 		vips_object_local_array(object, compass->times);
@@ -96,25 +96,25 @@ vips_compass_build(VipsObject *object)
 				"layers", compass->layers,
 				"cluster", compass->cluster,
 				NULL))
-			return (-1);
+			return -1;
 		if (vips_rot45(mask, &masks[i],
 				"angle", compass->angle,
 				NULL))
-			return (-1);
+			return -1;
 
 		mask = masks[i];
 	}
 
 	for (i = 0; i < compass->times; i++)
 		if (vips_abs(images[i], &abs[i], NULL))
-			return (-1);
+			return -1;
 
 	switch (compass->combine) {
 	case VIPS_COMBINE_MAX:
 		if (vips_bandrank(abs, &combine[0], compass->times,
 				"index", compass->times - 1,
 				NULL))
-			return (-1);
+			return -1;
 		x = combine[0];
 		break;
 
@@ -122,13 +122,13 @@ vips_compass_build(VipsObject *object)
 		if (vips_bandrank(abs, &combine[0], compass->times,
 				"index", 0,
 				NULL))
-			return (-1);
+			return -1;
 		x = combine[0];
 		break;
 
 	case VIPS_COMBINE_SUM:
 		if (vips_sum(abs, &combine[0], compass->times, NULL))
-			return (-1);
+			return -1;
 		x = combine[0];
 		break;
 
@@ -141,9 +141,9 @@ vips_compass_build(VipsObject *object)
 	}
 
 	if (vips_image_write(x, convolution->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -247,5 +247,5 @@ vips_compass(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("compass", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

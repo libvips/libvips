@@ -383,7 +383,7 @@ int vips_object_get_argument_priority(VipsObject *object, const char *name);
 
 	if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
 		&pspec, &argument_class, &argument_instance ) )
-		return( -1 );
+		return -1;
 
 	VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
 

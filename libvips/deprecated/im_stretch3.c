@@ -90,7 +90,7 @@ stretch_stop(void *vseq, void *a, void *b)
 
 	IM_FREEF(im_region_free, seq->ir);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -101,7 +101,7 @@ stretch_start(IMAGE *out, void *a, void *b)
 	SeqInfo *seq;
 
 	if (!(seq = IM_NEW(out, SeqInfo)))
-		return (NULL);
+		return NULL;
 
 	seq->sin = sin;
 	seq->ir = im_region_create(in);
@@ -110,10 +110,10 @@ stretch_start(IMAGE *out, void *a, void *b)
 
 	if (!seq->buf || !seq->ir) {
 		stretch_stop(seq, NULL, NULL);
-		return (NULL);
+		return NULL;
 	}
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 /* Stretch a line of pels into a line in the buffer.
@@ -212,7 +212,7 @@ stretch_gen(REGION * or, void *vseq, void *a, void *b)
 	r1.width = x - r1.left;
 	r1.height = r->height + 3;
 	if (im_prepare(ir, &r1))
-		return (-1);
+		return -1;
 
 	/* Fill the first three lines of the buffer.
 	 */
@@ -254,7 +254,7 @@ stretch_gen(REGION * or, void *vseq, void *a, void *b)
 			seq->buf, q1, r->width, sin->yoff);
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -268,28 +268,28 @@ im_stretch3(IMAGE *in, IMAGE *out, double dx, double dy)
 	if (in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_USHORT) {
 		im_error("im_stretch3",
 			"%s", _("not uncoded unsigned short"));
-		return (-1);
+		return -1;
 	}
 	if (dx < 0 || dx >= 1.0 || dy < 0 || dy >= 1.0) {
 		im_error("im_stretch3",
 			"%s", _("displacements out of range [0,1)"));
-		return (-1);
+		return -1;
 	}
 	if (im_piocheck(in, out))
-		return (-1);
+		return -1;
 
 	/* Prepare the output image.
 	 */
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 	out->Xsize = 34 * (in->Xsize / 33) + in->Xsize % 33 - 3;
 	out->Ysize = in->Ysize - 3;
 
 	if (im_demand_hint(out, IM_FATSTRIP, in, NULL))
-		return (-1);
+		return -1;
 
 	if (!(sin = IM_NEW(out, StretchInfo)))
-		return (-1);
+		return -1;
 
 	/* Save parameters.
 	 */
@@ -320,7 +320,7 @@ im_stretch3(IMAGE *in, IMAGE *out, double dx, double dy)
 
 	if (im_generate(out,
 			stretch_start, stretch_gen, stretch_stop, in, sin))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }

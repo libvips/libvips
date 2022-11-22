@@ -76,7 +76,7 @@ vips_pythagoras(float L1, float a1, float b1, float L2, float a2, float b2)
 	float da = a1 - a2;
 	float db = b1 - b2;
 
-	return (sqrt(dL * dL + da * da + db * db));
+	return sqrt(dL * dL + da * da + db * db);
 }
 
 /* Find the difference between two buffers of LAB data.
@@ -144,5 +144,5 @@ vips_dE76(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("dE76", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

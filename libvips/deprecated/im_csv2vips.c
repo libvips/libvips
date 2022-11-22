@@ -84,14 +84,14 @@ im_csv2vips(const char *filename, IMAGE *out)
 			"whitespace", whitespace,
 			"separator", separator,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(x, out)) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(x);
 
-	return (0);
+	return 0;
 }
 
 static const char *csv_suffs[] = { ".csv", NULL };

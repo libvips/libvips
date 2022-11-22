@@ -118,23 +118,23 @@ im_resize_linear(IMAGE *in, IMAGE *out, int X, int Y)
 	int ols, oes;	   /* element sizes */
 
 	if (im_iocheck(in, out))
-		return (-1);
+		return -1;
 	if (vips_band_format_iscomplex(in->BandFmt)) {
 		im_error("im_lowpass", "%s", _("non-complex input only"));
-		return (-1);
+		return -1;
 	}
 	if (in->Coding != IM_CODING_NONE) {
 		im_error("im_lowpass: ", "%s", _("put should be uncoded"));
-		return (-1);
+		return -1;
 	}
 	if (im_cp_desc(out, in))
-		return (-1);
+		return -1;
 
 	out->Xsize = X;
 	out->Ysize = Y;
 
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	ils = IM_IMAGE_SIZEOF_LINE(in);
 	ips = IM_IMAGE_SIZEOF_PEL(in);
@@ -146,7 +146,7 @@ im_resize_linear(IMAGE *in, IMAGE *out, int X, int Y)
 	/* buffer lines
 	***************/
 	if (!(opline = IM_ARRAY(out, ols, PEL)))
-		return (-1);
+		return -1;
 
 	/* Resampling
 	*************/
@@ -193,13 +193,13 @@ im_resize_linear(IMAGE *in, IMAGE *out, int X, int Y)
 
 			default:
 				im_error("im_lowpass", "%s", _("unsupported image type"));
-				return (-1);
+				return -1;
 				/*NOTREACHED*/
 			}
 		}
 
 		if (im_writeline(y, out, opline))
-			return (-1);
+			return -1;
 	}
-	return (0);
+	return 0;
 }

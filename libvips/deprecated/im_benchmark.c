@@ -260,9 +260,9 @@ im_benchmarkn(IMAGE *in, IMAGE *out, int n)
 	if (n == 0)
 		/* To sRGB.
 		 */
-		return (im_LabQ2disp(in, out, im_col_displays(7)));
+		return im_LabQ2disp(in, out, im_col_displays(7));
 	else
-		return (im_open_local_array(out, t, 2, "benchmarkn", "p") ||
+		return im_open_local_array(out, t, 2, "benchmarkn", "p") ||
 			benchmark(in, t[0]) ||
 
 			/* Expand back to the original size again ...
@@ -276,7 +276,7 @@ im_benchmarkn(IMAGE *in, IMAGE *out, int n)
 				(double) in->Ysize / t[0]->Ysize,
 				0, 0) ||
 
-			im_benchmarkn(t[1], out, n - 1));
+			im_benchmarkn(t[1], out, n - 1);
 }
 
 /**
@@ -296,8 +296,7 @@ im_benchmark2(IMAGE *in, double *out)
 {
 	IMAGE *t;
 
-	return (
-		!(t = im_open_local(in, "benchmarkn", "p")) ||
+	return !(t = im_open_local(in, "benchmarkn", "p")) ||
 		im_benchmarkn(in, t, 1) ||
-		im_avg(t, out));
+		im_avg(t, out);
 }

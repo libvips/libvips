@@ -46,5 +46,5 @@ im_print(const char *message)
 {
 	printf("%s\n", message);
 
-	return (0);
+	return 0;
 }

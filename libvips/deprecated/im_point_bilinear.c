@@ -75,11 +75,11 @@ im_point(IMAGE *im, VipsInterpolate *interpolate,
 		x > im->Xsize || y > im->Ysize) {
 		im_error("im_point_bilinear", "%s",
 			_("coords outside image"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(mem = im_open("im_point", "p")))
-		return (-1);
+		return -1;
 	if (im_open_local_array(mem, t, 2, "im_point", "p") ||
 		im_extract_band(im, t[0], band) ||
 		im_affinei(t[0], t[1],
@@ -89,11 +89,11 @@ im_point(IMAGE *im, VipsInterpolate *interpolate,
 			floor(x), floor(y), 1, 1) ||
 		im_avg(t[1], out)) {
 		im_close(mem);
-		return (-1);
+		return -1;
 	}
 	im_close(mem);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -114,6 +114,6 @@ im_point(IMAGE *im, VipsInterpolate *interpolate,
 int
 im_point_bilinear(IMAGE *im, double x, double y, int band, double *out)
 {
-	return (im_point(im, vips_interpolate_bilinear_static(),
-		x, y, band, out));
+	return im_point(im, vips_interpolate_bilinear_static(),
+		x, y, band, out);
 }

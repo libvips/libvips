@@ -140,7 +140,7 @@ vips_perlin_stop(void *vseq, void *a, void *b)
 
 	VIPS_FREE(seq);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -151,13 +151,13 @@ vips_perlin_start(VipsImage *out, void *a, void *b)
 	Sequence *seq;
 
 	if (!(seq = VIPS_NEW(NULL, Sequence)))
-		return (NULL);
+		return NULL;
 
 	seq->perlin = perlin;
 	seq->cell_x = -1;
 	seq->cell_y = -1;
 
-	return (seq);
+	return seq;
 }
 
 /* Smooth linear interpolation, 0 <= x <= 1.
@@ -167,7 +167,7 @@ vips_perlin_start(VipsImage *out, void *a, void *b)
 static float
 smootherstep(float x)
 {
-	return (x * x * x * (x * (x * 6 - 15) + 10));
+	return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
 static int
@@ -223,7 +223,7 @@ vips_perlin_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -233,7 +233,7 @@ vips_perlin_build(VipsObject *object)
 	VipsPerlin *perlin = (VipsPerlin *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_perlin_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
@@ -253,9 +253,9 @@ vips_perlin_build(VipsObject *object)
 		vips_image_generate(create->out,
 			vips_perlin_start, vips_perlin_gen, vips_perlin_stop,
 			perlin, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -270,7 +270,7 @@ vips_perlin_make_tables(void *client)
 		vips_perlin_sin[i] = sin(angle);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -371,5 +371,5 @@ vips_perlin(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("perlin", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

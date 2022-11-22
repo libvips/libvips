@@ -57,13 +57,13 @@ vips__coeff(int xr1, int yr1, int xs1, int ys1,
 			  (double) xs2, (double) -ys2, 1.0, 0.0,
 			  (double) ys2, (double) xs2, 0.0, 1.0))) {
 		g_free(t);
-		return (-1);
+		return -1;
 	}
 
 	if (vips_matrixinvert(t[0], &t[1], NULL)) {
 		g_object_unref(t[0]);
 		g_free(t);
-		return (-1);
+		return -1;
 	}
 
 	*a = *VIPS_MATRIX(t[1], 0, 0) * xr1 + *VIPS_MATRIX(t[1], 1, 0) * yr1 +
@@ -79,7 +79,7 @@ vips__coeff(int xr1, int yr1, int xs1, int ys1,
 	g_object_unref(t[1]);
 	g_free(t);
 
-	return (0);
+	return 0;
 }
 
 typedef struct {
@@ -119,7 +119,7 @@ vips_match_build(VipsObject *object)
 	g_object_set(match, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_match_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!match->interpolate)
 		match->interpolate = vips_interpolate_new("bilinear");
@@ -132,7 +132,7 @@ vips_match_build(VipsObject *object)
 				match->xr1, match->yr1, match->xs1, match->ys1,
 				match->hwindow, match->harea,
 				&cor, &xs, &ys))
-			return (-1);
+			return -1;
 		match->xs1 = xs;
 		match->ys1 = ys;
 
@@ -140,7 +140,7 @@ vips_match_build(VipsObject *object)
 				match->xr2, match->yr2, match->xs2, match->ys2,
 				match->hwindow, match->harea,
 				&cor, &xs, &ys))
-			return (-1);
+			return -1;
 
 		match->xs2 = xs;
 		match->ys2 = ys;
@@ -151,7 +151,7 @@ vips_match_build(VipsObject *object)
 	if (vips__coeff(match->xr1, match->yr1, match->xs1, match->ys1,
 			match->xr2, match->yr2, match->xs2, match->ys2,
 			&a, &b, &dx, &dy))
-		return (-1);
+		return -1;
 
 	/* Output area of ref image.
 	 */
@@ -166,17 +166,17 @@ vips_match_build(VipsObject *object)
 			"oarea", oarea,
 			NULL)) {
 		vips_area_unref(VIPS_AREA(oarea));
-		return (-1);
+		return -1;
 	}
 	vips_area_unref(VIPS_AREA(oarea));
 
 	if (vips_image_write(x, match->out)) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(x);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -347,5 +347,5 @@ vips_match(VipsImage *ref, VipsImage *sec, VipsImage **out,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

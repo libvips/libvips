@@ -189,7 +189,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 	GError *error = NULL;
 
 	if (vips_source_rewind(pdf->source))
-		return (-1);
+		return -1;
 
 	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
@@ -198,13 +198,13 @@ vips_foreign_load_pdf_build(VipsObject *object)
 			  vips_source_length(pdf->source), pdf->password,
 			  NULL, &error))) {
 		vips_g_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -212,13 +212,13 @@ vips_foreign_load_pdf_get_flags_filename(const char *filename)
 {
 	/* We can render any part of the page on demand.
 	 */
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_pdf_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
@@ -239,12 +239,12 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 					poppler_document_get_page(pdf->doc, page_no))) {
 			vips_error(class->nickname,
 				_("unable to load page %d"), page_no);
-			return (-1);
+			return -1;
 		}
 		pdf->current_page = page_no;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* String-based metadata fields we extract.
@@ -304,9 +304,9 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 	/* We render to a tilecache, so it has to be SMALLTILE.
 	 */
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -333,13 +333,13 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		pdf->page_no < 0 ||
 		pdf->n <= 0) {
 		vips_error(class->nickname, "%s", _("pages out of range"));
-		return (-1);
+		return -1;
 	}
 
 	/* Lay out the pages in our output image.
 	 */
 	if (!(pdf->pages = VIPS_ARRAY(pdf, pdf->n, VipsRect)))
-		return (-1);
+		return -1;
 
 	top = 0;
 	pdf->image.left = 0;
@@ -351,7 +351,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		double height;
 
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
-			return (-1);
+			return -1;
 		poppler_page_get_size(pdf->page, &width, &height);
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
@@ -391,7 +391,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			  load->out,
 			  VIPS_AREA(pdf->background)->data, NULL,
 			  VIPS_AREA(pdf->background)->n)))
-		return (-1);
+		return -1;
 
 	/* Swap to cairo-style premultiplied bgra.
 	 */
@@ -399,7 +399,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 
 	vips_source_minimise(pdf->source);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -462,7 +462,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 		 * we're running inside a non-threaded tilecache.
 		 */
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
-			return (-1);
+			return -1;
 		poppler_page_render(pdf->page, cr);
 
 		cairo_destroy(cr);
@@ -478,7 +478,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
 			r->width);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -510,9 +510,9 @@ vips_foreign_load_pdf_load(VipsForeignLoad *load)
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
 			NULL) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -628,8 +628,8 @@ vips_foreign_load_pdf_file_header(VipsForeignLoad *load)
 
 	VIPS_SETSTR(load->out->filename, file->filename);
 
-	return (VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
-				->header(load));
+	return VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
+		->header(load);
 }
 
 static const char *vips_foreign_pdf_suffs[] = {
@@ -657,17 +657,17 @@ vips_foreign_load_pdf_file_build(VipsObject *object)
 		if (!(file->uri = g_filename_to_uri(path, NULL, &error))) {
 			g_free(path);
 			vips_g_error(&error);
-			return (-1);
+			return -1;
 		}
 		g_free(path);
 
 		if (!(pdf->source =
 					vips_source_new_from_file(file->filename)))
-			return (-1);
+			return -1;
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -680,9 +680,9 @@ vips_foreign_load_pdf_is_a_buffer(const void *buf, size_t len)
 		str[1] == 'P' &&
 		str[2] == 'D' &&
 		str[3] == 'F')
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -692,9 +692,9 @@ vips_foreign_load_pdf_is_a(const char *filename)
 
 	if (vips__get_bytes(filename, buf, 4) == 4 &&
 		vips_foreign_load_pdf_is_a_buffer(buf, 4))
-		return (1);
+		return 1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -756,10 +756,10 @@ vips_foreign_load_pdf_buffer_build(VipsObject *object)
 		!(pdf->source = vips_source_new_from_memory(
 			  VIPS_AREA(buffer->buf)->data,
 			  VIPS_AREA(buffer->buf)->length)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
+		->build(object);
 }
 
 static void
@@ -815,8 +815,8 @@ vips_foreign_load_pdf_source_build(VipsObject *object)
 		g_object_ref(pdf->source);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_source_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -824,11 +824,11 @@ vips_foreign_load_pdf_source_is_a_source(VipsSource *source)
 {
 	const unsigned char *p;
 
-	return ((p = vips_source_sniff(source, 4)) &&
+	return (p = vips_source_sniff(source, 4)) &&
 		p[0] == '%' &&
 		p[1] == 'P' &&
 		p[2] == 'D' &&
-		p[3] == 'F');
+		p[3] == 'F';
 }
 
 static void

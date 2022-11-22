@@ -393,13 +393,13 @@ file_add_class(VipsForeignClass *class, GSList **files)
 		 */
 		*files = g_slist_append(*files, class);
 
-	return (NULL);
+	return NULL;
 }
 
 static gint
 file_compare(VipsForeignClass *a, VipsForeignClass *b, void *user_data)
 {
-	return (b->priority - a->priority);
+	return b->priority - a->priority;
 }
 
 /**
@@ -447,7 +447,7 @@ vips_foreign_map(const char *base, VipsSListMap2Fn fn, void *a, void *b)
 
 	g_slist_free(files);
 
-	return (result);
+	return result;
 }
 
 /* Abstract base class for image load.
@@ -508,7 +508,7 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
 	 */
 	if (vips_ispostfix(object_class->nickname, "_buffer") ||
 		vips_ispostfix(object_class->nickname, "_source"))
-		return (NULL);
+		return NULL;
 
 #ifdef DEBUG
 	printf("vips_foreign_find_load_sub: %s\n",
@@ -520,7 +520,7 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
 	 */
 	if (load_class->is_a) {
 		if (load_class->is_a(filename))
-			return (load_class);
+			return load_class;
 
 #ifdef DEBUG
 		printf("vips_foreign_find_load_sub: is_a failed\n");
@@ -528,13 +528,13 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
 	}
 	else if (class->suffs) {
 		if (vips_filename_suffix_match(filename, class->suffs))
-			return (load_class);
+			return load_class;
 	}
 	else
 		g_warning("loader %s has no is_a method and no suffix list",
 			object_class->nickname);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -562,12 +562,12 @@ vips_foreign_find_load(const char *name)
 	if (!vips_existsf("%s", filename)) {
 		vips_error("VipsForeignLoad",
 			_("file \"%s\" does not exist"), name);
-		return (NULL);
+		return NULL;
 	}
 	if (vips_isdirf("%s", filename)) {
 		vips_error("VipsForeignLoad",
 			_("\"%s\" is a directory"), name);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(load_class = (VipsForeignLoadClass *) vips_foreign_map(
@@ -576,7 +576,7 @@ vips_foreign_find_load(const char *name)
 			  (void *) filename, NULL))) {
 		vips_error("VipsForeignLoad",
 			_("\"%s\" is not a known file format"), name);
-		return (NULL);
+		return NULL;
 	}
 
 #ifdef DEBUG
@@ -584,7 +584,7 @@ vips_foreign_find_load(const char *name)
 		VIPS_OBJECT_CLASS(load_class)->nickname);
 #endif /*DEBUG*/
 
-	return (G_OBJECT_CLASS_NAME(load_class));
+	return G_OBJECT_CLASS_NAME(load_class);
 }
 
 /* Kept for compat with earlier version of the vip8 API. Use
@@ -602,14 +602,14 @@ vips_foreign_load(const char *name, VipsImage **out, ...)
 
 	vips__filename_split8(name, filename, option_string);
 	if (!(operation_name = vips_foreign_find_load(filename)))
-		return (-1);
+		return -1;
 
 	va_start(ap, out);
 	result = vips_call_split_option_string(operation_name, option_string,
 		ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Can this VipsForeign open this buffer?
@@ -623,17 +623,17 @@ vips_foreign_find_load_buffer_sub(VipsForeignLoadClass *load_class,
 	/* Skip non-buffer loaders.
 	 */
 	if (!vips_ispostfix(object_class->nickname, "_buffer"))
-		return (NULL);
+		return NULL;
 
 	if (load_class->is_a_buffer) {
 		if (load_class->is_a_buffer(*buf, *len))
-			return (load_class);
+			return load_class;
 	}
 	else
 		g_warning("loader %s has no is_a_buffer method",
 			object_class->nickname);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -663,10 +663,10 @@ vips_foreign_find_load_buffer(const void *data, size_t size)
 			  &data, &size))) {
 		vips_error("VipsForeignLoad",
 			"%s", _("buffer is not in a known format"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (G_OBJECT_CLASS_NAME(load_class));
+	return G_OBJECT_CLASS_NAME(load_class);
 }
 
 /* Can this VipsForeign open this source?
@@ -681,7 +681,7 @@ vips_foreign_find_load_source_sub(void *item, void *a, void *b)
 	/* Skip non-source loaders.
 	 */
 	if (!vips_ispostfix(object_class->nickname, "_source"))
-		return (NULL);
+		return NULL;
 
 	if (load_class->is_a_source) {
 		/* We may have done a _read() rather than a _sniff() in one of
@@ -690,13 +690,13 @@ vips_foreign_find_load_source_sub(void *item, void *a, void *b)
 		(void) vips_source_rewind(source);
 
 		if (load_class->is_a_source(source))
-			return (load_class);
+			return load_class;
 	}
 	else
 		g_warning("loader %s has no is_a_source method",
 			object_class->nickname);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -724,7 +724,7 @@ vips_foreign_find_load_source(VipsSource *source)
 			  source, NULL))) {
 		vips_error("VipsForeignLoad",
 			"%s", _("source is not in a known format"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* All source loaders should be NOCACHE.
@@ -732,7 +732,7 @@ vips_foreign_find_load_source(VipsSource *source)
 	g_assert(VIPS_OPERATION_CLASS(load_class)->flags &
 		VIPS_OPERATION_NOCACHE);
 
-	return (G_OBJECT_CLASS_NAME(load_class));
+	return G_OBJECT_CLASS_NAME(load_class);
 }
 
 /**
@@ -752,13 +752,13 @@ vips_foreign_is_a(const char *loader, const char *filename)
 	VipsForeignLoadClass *load_class;
 
 	if (!(class = vips_class_find("VipsForeignLoad", loader)))
-		return (FALSE);
+		return FALSE;
 	load_class = VIPS_FOREIGN_LOAD_CLASS(class);
 	if (load_class->is_a &&
 		load_class->is_a(filename))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 /**
@@ -779,13 +779,13 @@ vips_foreign_is_a_buffer(const char *loader, const void *data, size_t size)
 	VipsForeignLoadClass *load_class;
 
 	if (!(class = vips_class_find("VipsForeignLoad", loader)))
-		return (FALSE);
+		return FALSE;
 	load_class = VIPS_FOREIGN_LOAD_CLASS(class);
 	if (load_class->is_a_buffer &&
 		load_class->is_a_buffer(data, size))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 /**
@@ -805,13 +805,13 @@ vips_foreign_is_a_source(const char *loader, VipsSource *source)
 	VipsForeignLoadClass *load_class;
 
 	if (!(class = vips_class_find("VipsForeignLoad", loader)))
-		return (FALSE);
+		return FALSE;
 	load_class = VIPS_FOREIGN_LOAD_CLASS(class);
 	if (load_class->is_a_source &&
 		load_class->is_a_source(source))
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 /**
@@ -834,10 +834,10 @@ vips_foreign_flags(const char *loader, const char *filename)
 			VIPS_FOREIGN_LOAD_CLASS(class);
 
 		if (load_class->get_flags_filename)
-			return (load_class->get_flags_filename(filename));
+			return load_class->get_flags_filename(filename);
 	}
 
-	return (0);
+	return 0;
 }
 
 static VipsObject *
@@ -848,7 +848,7 @@ vips_foreign_load_new_from_string(const char *string)
 	VipsForeignLoad *load;
 
 	if (!(file_op = vips_foreign_find_load(string)))
-		return (NULL);
+		return NULL;
 	type = g_type_from_name(file_op);
 	g_assert(type);
 
@@ -857,7 +857,7 @@ vips_foreign_load_new_from_string(const char *string)
 		"filename", string,
 		NULL);
 
-	return (VIPS_OBJECT(load));
+	return VIPS_OBJECT(load);
 }
 
 static VipsImage *
@@ -877,7 +877,7 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 		printf("vips_foreign_load_temp: forced memory temp\n");
 #endif /*DEBUG*/
 
-		return (vips_image_new_memory());
+		return vips_image_new_memory();
 	}
 
 	/* If this is a partial operation, we can open directly.
@@ -887,7 +887,7 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 		printf("vips_foreign_load_temp: partial temp\n");
 #endif /*DEBUG*/
 
-		return (vips_image_new());
+		return vips_image_new();
 	}
 
 	/* If it can do sequential access and it's been requested, we can open
@@ -899,7 +899,7 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 		printf("vips_foreign_load_temp: partial sequential temp\n");
 #endif /*DEBUG*/
 
-		return (vips_image_new());
+		return vips_image_new();
 	}
 
 	/* We open via disc if the uncompressed image will be larger than
@@ -910,7 +910,7 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 		printf("vips_foreign_load_temp: disc temp\n");
 #endif /*DEBUG*/
 
-		return (vips_image_new_temp_file("%s.v"));
+		return vips_image_new_temp_file("%s.v");
 	}
 
 #ifdef DEBUG
@@ -919,7 +919,7 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 
 	/* Otherwise, fall back to a memory buffer.
 	 */
-	return (vips_image_new_memory());
+	return vips_image_new_memory();
 }
 
 /* Check two images for compatibility: their geometries need to match.
@@ -934,10 +934,10 @@ vips_foreign_load_iscompat(VipsImage *a, VipsImage *b)
 		a->BandFmt != b->BandFmt) {
 		vips_error("VipsForeignLoad", "%s",
 			_("images do not match between header and load"));
-		return (FALSE);
+		return FALSE;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /* Our start function ... do the lazy open, if necessary, and return a region
@@ -952,11 +952,11 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 	/* If this start has failed before in another thread, we can fail now.
 	 */
 	if (load->error)
-		return (NULL);
+		return NULL;
 
 	if (!load->real) {
 		if (!(load->real = vips_foreign_load_temp(load)))
-			return (NULL);
+			return NULL;
 
 #ifdef DEBUG
 		printf("vips_foreign_load_start: triggering ->load()\n");
@@ -994,7 +994,7 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 			vips_operation_invalidate(VIPS_OPERATION(load));
 			load->error = TRUE;
 
-			return (NULL);
+			return NULL;
 		}
 
 		/* We have to tell vips that out depends on real. We've set
@@ -1002,10 +1002,10 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 		 */
 		if (vips_image_pipelinev(load->out, load->out->dhint,
 				load->real, NULL))
-			return (NULL);
+			return NULL;
 	}
 
-	return (vips_region_new(load->real));
+	return vips_region_new(load->real);
 }
 
 /* Just pointer-copy.
@@ -1021,14 +1021,14 @@ vips_foreign_load_generate(VipsRegion * or,
 	/* Ask for input we need.
 	 */
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	/* Attach output region to that.
 	 */
 	if (vips_region_region(or, ir, r, r->left, r->top))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1075,7 +1075,7 @@ vips_foreign_load_build(VipsObject *object)
 			: VIPS_FAIL_ON_NONE;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (load->sequential)
 		g_warning("%s",
@@ -1095,7 +1095,7 @@ vips_foreign_load_build(VipsObject *object)
 	 */
 	if (fclass->header &&
 		fclass->header(load))
-		return (-1);
+		return -1;
 
 	/* If there's no ->load() method then the header read has done
 	 * everything. Otherwise, it's just set fields and we must also
@@ -1113,7 +1113,7 @@ vips_foreign_load_build(VipsObject *object)
 		 * SMALLTILE if header() did not set it.
 		 */
 		if (vips_image_pipelinev(load->out, load->out->dhint, NULL))
-			return (-1);
+			return -1;
 
 		/* Then 'start' creates the real image and 'gen' fetches
 		 * pixels for @out from @real on demand.
@@ -1123,7 +1123,7 @@ vips_foreign_load_build(VipsObject *object)
 				vips_foreign_load_generate,
 				vips_stop_one,
 				NULL, load))
-			return (-1);
+			return -1;
 	}
 
 	/* Tell downstream if seq mode was requested.
@@ -1131,7 +1131,7 @@ vips_foreign_load_build(VipsObject *object)
 	if (load->access != VIPS_ACCESS_RANDOM)
 		vips_image_set_int(load->out, VIPS_META_SEQUENTIAL, 1);
 
-	return (0);
+	return 0;
 }
 
 static VipsOperationFlags
@@ -1148,7 +1148,7 @@ vips_foreign_load_operation_get_flags(VipsOperation *operation)
 	if (load->revalidate)
 		flags |= VIPS_OPERATION_REVALIDATE;
 
-	return (flags);
+	return flags;
 }
 
 static void
@@ -1308,7 +1308,7 @@ vips_foreign_save_new_from_string(const char *string)
 	VipsForeignSave *save;
 
 	if (!(file_op = vips_foreign_find_save(string)))
-		return (NULL);
+		return NULL;
 	type = g_type_from_name(file_op);
 	g_assert(type);
 
@@ -1317,7 +1317,7 @@ vips_foreign_save_new_from_string(const char *string)
 		"filename", string,
 		NULL);
 
-	return (VIPS_OBJECT(save));
+	return VIPS_OBJECT(save);
 }
 
 /* Convert an image for saving.
@@ -1337,7 +1337,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	if (in->Coding != VIPS_CODING_NONE &&
 		coding[in->Coding]) {
 		*ready = in;
-		return (0);
+		return 0;
 	}
 
 	/* For uncoded images, if this saver supports ANY bands and this
@@ -1347,7 +1347,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		saveable == VIPS_SAVEABLE_ANY &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
-		return (0);
+		return 0;
 	}
 
 	/* Otherwise ... we need to decode and then (possibly) recode at the
@@ -1361,7 +1361,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_LabQ2sRGB(in, &out, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1376,7 +1376,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_rad2float(in, &out, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1393,7 +1393,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			if (vips_colourspace(in, &out,
 					VIPS_INTERPRETATION_scRGB, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1417,7 +1417,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 				"input_profile", "cmyk",
 				NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1452,7 +1452,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1478,7 +1478,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1505,7 +1505,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 					"background", background,
 					NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1533,7 +1533,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 					"n", 3,
 					NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1550,7 +1550,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 					"n", 4,
 					NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1562,7 +1562,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 			if (vips_extract_band(in, &out, 0, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1595,7 +1595,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 			if (vips_cast(in, &out, VIPS_FORMAT_USHORT, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1606,7 +1606,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 			if (vips_rshift_const1(in, &out, 8, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1617,7 +1617,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			 */
 			if (vips_cast(in, &out, VIPS_FORMAT_UCHAR, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1632,7 +1632,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1651,7 +1651,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_Lab2LabQ(in, &out, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1662,7 +1662,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_float2rad(in, &out, NULL)) {
 			g_object_unref(in);
-			return (-1);
+			return -1;
 		}
 		g_object_unref(in);
 
@@ -1685,7 +1685,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 			if (vips_copy(in, &out, NULL)) {
 				g_object_unref(in);
-				return (-1);
+				return -1;
 			}
 			g_object_unref(in);
 
@@ -1697,7 +1697,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 	*ready = in;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1713,14 +1713,14 @@ vips_foreign_save_build(VipsObject *object)
 		if (vips__foreign_convert_saveable(save->in, &ready,
 				class->saveable, class->format_table, class->coding,
 				save->background))
-			return (-1);
+			return -1;
 
 		if (save->page_height) {
 			VipsImage *x;
 
 			if (vips_copy(ready, &x, NULL)) {
 				VIPS_UNREF(ready);
-				return (-1);
+				return -1;
 			}
 			VIPS_UNREF(ready);
 			ready = x;
@@ -1734,9 +1734,9 @@ vips_foreign_save_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define UC VIPS_FORMAT_UCHAR
@@ -1849,16 +1849,16 @@ vips_foreign_find_save_sub(VipsForeignSaveClass *save_class,
 	 */
 	if (vips_ispostfix(object_class->nickname, "_buffer") ||
 		vips_ispostfix(object_class->nickname, "_target"))
-		return (NULL);
+		return NULL;
 
 	/* vips_foreign_find_save() has already removed any options from the
 	 * end of the filename, so we can test directly against the suffix.
 	 */
 	for (p = class->suffs; *p; p++)
 		if (vips_iscasepostfix(filename, *p))
-			return (save_class);
+			return save_class;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -1888,10 +1888,10 @@ vips_foreign_find_save(const char *name)
 		vips_error("VipsForeignSave",
 			_("\"%s\" is not a known file format"), name);
 
-		return (NULL);
+		return NULL;
 	}
 
-	return (G_OBJECT_CLASS_NAME(save_class));
+	return G_OBJECT_CLASS_NAME(save_class);
 }
 
 static void *
@@ -1907,7 +1907,7 @@ vips_foreign_get_suffixes_count_cb(VipsForeignSaveClass *save_class,
 		for (i = 0; foreign_class->suffs[i]; i++)
 			*n_fields += 1;
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -1925,7 +1925,7 @@ vips_foreign_get_suffixes_add_cb(VipsForeignSaveClass *save_class,
 			*p += 1;
 		}
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -1963,7 +1963,7 @@ vips_foreign_get_suffixes(void)
 		(VipsSListMap2Fn) vips_foreign_get_suffixes_add_cb,
 		&p, NULL);
 
-	return (suffs);
+	return suffs;
 }
 
 /* Kept for early vips8 API compat.
@@ -1981,14 +1981,14 @@ vips_foreign_save(VipsImage *in, const char *name, ...)
 	vips__filename_split8(name, filename, option_string);
 
 	if (!(operation_name = vips_foreign_find_save(filename)))
-		return (-1);
+		return -1;
 
 	va_start(ap, name);
 	result = vips_call_split_option_string(operation_name, option_string,
 		ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Can this class write this filetype to a target?
@@ -2011,9 +2011,9 @@ vips_foreign_find_save_target_sub(VipsForeignSaveClass *save_class,
 		class->suffs &&
 		vips_ispostfix(object_class->nickname, "_target") &&
 		vips_filename_suffix_match(suffix, class->suffs))
-		return (save_class);
+		return save_class;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -2043,10 +2043,10 @@ vips_foreign_find_save_target(const char *name)
 		vips_error("VipsForeignSave",
 			_("\"%s\" is not a known target format"), name);
 
-		return (NULL);
+		return NULL;
 	}
 
-	return (G_OBJECT_CLASS_NAME(save_class));
+	return G_OBJECT_CLASS_NAME(save_class);
 }
 
 /* Can we write this buffer with this file type?
@@ -2069,9 +2069,9 @@ vips_foreign_find_save_buffer_sub(VipsForeignSaveClass *save_class,
 		class->suffs &&
 		vips_ispostfix(object_class->nickname, "_buffer") &&
 		vips_filename_suffix_match(suffix, class->suffs))
-		return (save_class);
+		return save_class;
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -2101,10 +2101,10 @@ vips_foreign_find_save_buffer(const char *name)
 		vips_error("VipsForeignSave",
 			_("\"%s\" is not a known buffer format"), name);
 
-		return (NULL);
+		return NULL;
 	}
 
-	return (G_OBJECT_CLASS_NAME(save_class));
+	return G_OBJECT_CLASS_NAME(save_class);
 }
 
 /* C API wrappers for loadable modules go here.
@@ -2158,7 +2158,7 @@ vips_heifload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("heifload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2202,7 +2202,7 @@ vips_heifload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2234,7 +2234,7 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("heifload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2289,7 +2289,7 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("heifsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2344,7 +2344,7 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2379,7 +2379,7 @@ vips_heifsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("heifsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2407,7 +2407,7 @@ vips_jxlload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("jxlload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2438,7 +2438,7 @@ vips_jxlload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2461,7 +2461,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("jxlload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2507,7 +2507,7 @@ vips_jxlsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("jxlsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2556,7 +2556,7 @@ vips_jxlsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2589,7 +2589,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("jxlsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2648,7 +2648,7 @@ vips_pdfload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("pdfload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2693,7 +2693,7 @@ vips_pdfload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2726,7 +2726,7 @@ vips_pdfload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("pdfload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2781,7 +2781,7 @@ vips_openslideload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("openslideload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -2812,7 +2812,7 @@ vips_openslideload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("openslideload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

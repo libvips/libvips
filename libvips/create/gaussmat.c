@@ -105,7 +105,7 @@ vips_gaussmat_build(VipsObject *object)
 	double sum;
 
 	if (VIPS_OBJECT_CLASS(vips_gaussmat_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* The old, deprecated @integer property has been deliberately set to
 	 * FALSE and they've not used the new @precision property ... switch
@@ -127,7 +127,7 @@ vips_gaussmat_build(VipsObject *object)
 	}
 	if (x >= MASK_SANITY) {
 		vips_error(class->nickname, "%s", _("mask too large"));
-		return (-1);
+		return -1;
 	}
 	width = 2 * VIPS_MAX(x - 1, 0) + 1;
 	height = gaussmat->separable ? 1 : width;
@@ -139,7 +139,7 @@ vips_gaussmat_build(VipsObject *object)
 		1.0, 1.0);
 	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_write_prepare(create->out))
-		return (-1);
+		return -1;
 
 	sum = 0.0;
 	for (y = 0; y < height; y++) {
@@ -165,7 +165,7 @@ vips_gaussmat_build(VipsObject *object)
 	vips_image_set_double(create->out, "scale", sum);
 	vips_image_set_double(create->out, "offset", 0.0);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -271,5 +271,5 @@ vips_gaussmat(VipsImage **out, double sigma, double min_ampl, ...)
 	result = vips_call_split("gaussmat", ap, out, sigma, min_ampl);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

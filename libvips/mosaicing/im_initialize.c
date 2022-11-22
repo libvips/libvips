@@ -76,7 +76,7 @@ vips__initialize(TiePoints *points)
 
 		if (j == 0) {
 			vips_error("vips_initialize", "no tie points");
-			return (-1);
+			return -1;
 		}
 
 		xdelta = xdelta / j;
@@ -98,5 +98,5 @@ vips__initialize(TiePoints *points)
 		points->l_deltay = ydelta;
 	}
 
-	return (0);
+	return 0;
 }

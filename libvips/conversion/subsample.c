@@ -121,7 +121,7 @@ vips_subsample_line_gen(VipsRegion * or,
 			s.width = iw;
 			s.height = 1;
 			if (vips_region_prepare(ir, &s))
-				return (-1);
+				return -1;
 
 			/* Append new pels to output.
 			 */
@@ -136,7 +136,7 @@ vips_subsample_line_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Fetch one pixel at a time ... good for very large shrinks.
@@ -175,7 +175,7 @@ vips_subsample_point_gen(VipsRegion * or,
 			s.width = 1;
 			s.height = 1;
 			if (vips_region_prepare(ir, &s))
-				return (-1);
+				return -1;
 
 			/* Append new pels to output.
 			 */
@@ -186,7 +186,7 @@ vips_subsample_point_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -199,24 +199,24 @@ vips_subsample_build(VipsObject *object)
 	VipsGenerateFn subsample_fn;
 
 	if (VIPS_OBJECT_CLASS(vips_subsample_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_assert(subsample->xfac > 0);
 	g_assert(subsample->yfac > 0);
 
 	if (subsample->xfac == 1 &&
 		subsample->yfac == 1)
-		return (vips_image_write(subsample->in, conversion->out));
+		return vips_image_write(subsample->in, conversion->out);
 	if (vips_image_pio_input(subsample->in) ||
 		vips_check_coding_known(class->nickname, subsample->in))
-		return (-1);
+		return -1;
 
 	/* Set demand hints. We want THINSTRIP, as we will be demanding a
 	 * large area of input for each output line.
 	 */
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, subsample->in, NULL))
-		return (-1);
+		return -1;
 
 	/* Prepare output. Note: we round the output width down!
 	 */
@@ -228,7 +228,7 @@ vips_subsample_build(VipsObject *object)
 		conversion->out->Ysize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image has shrunk to nothing"));
-		return (-1);
+		return -1;
 	}
 
 	/* Generate! If this is a very large shrink, then it's probably faster
@@ -243,9 +243,9 @@ vips_subsample_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, subsample_fn, vips_stop_one,
 			subsample->in, subsample))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -334,5 +334,5 @@ vips_subsample(VipsImage *in, VipsImage **out, int xfac, int yfac, ...)
 	result = vips_call_split("subsample", ap, in, out, xfac, yfac);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

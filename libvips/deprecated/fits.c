@@ -51,29 +51,29 @@ im_fits2vips(const char *filename, VipsImage *out)
 	VipsImage *t;
 
 	if (vips_fitsload(filename, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 int
 im_vips2fits(VipsImage *in, const char *filename)
 {
 	if (vips_fitssave(in, filename, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
 isfits(const char *name)
 {
-	return (vips_foreign_is_a("fitsload", name));
+	return vips_foreign_is_a("fitsload", name);
 }
 
 static const char *fits_suffs[] = { ".fits", NULL };

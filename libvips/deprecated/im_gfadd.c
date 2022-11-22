@@ -83,7 +83,7 @@ static int array[8][8] = {
 	default: \
 		im_error("im_gfadd", "Wrong tmp1 format(d)"); \
 		free(line); \
-		return (-1); \
+		return -1; \
 	}
 
 #define outfloat_2uchar(IN2, OUT) \
@@ -203,7 +203,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	 * Check whether they are set properly */
 	if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1)) {
 		im_error("im_gfadd", " im_iocheck failed");
-		return (-1);
+		return -1;
 	}
 	/* Checks the arguments entered in in and prepares out */
 	if ((in1->Xsize != in2->Xsize) ||
@@ -211,11 +211,11 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		(in1->Bands != in2->Bands) ||
 		(in1->Coding != in2->Coding)) {
 		im_error("im_gfadd", " Input images differ");
-		return (-1);
+		return -1;
 	}
 	if (in1->Coding != IM_CODING_NONE) {
 		im_error("im_gfadd", " images are coded");
-		return (-1);
+		return -1;
 	}
 
 	switch (in1->BandFmt) {
@@ -245,7 +245,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gfadd", " unable to accept image1");
-		return (-1);
+		return -1;
 	}
 	switch (in2->BandFmt) {
 	case IM_BANDFMT_UCHAR:
@@ -274,19 +274,19 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gfadd", " unable to accept image2");
-		return (-1);
+		return -1;
 	}
 	/* Define the output */
 	result = array[first][second];
 	/* Prepare output */
 	if (im_cp_desc(out, in1) == -1) {
 		im_error("im_gfadd", " im_cp_desc failed");
-		return (-1);
+		return -1;
 	}
 	out->BandFmt = fmt[result];
 	if (im_setupout(out) == -1) {
 		im_error("im_gfadd", " im_setupout failed");
-		return (-1);
+		return -1;
 	}
 
 	/* Order in1 and in2 */
@@ -314,7 +314,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			if (im_writeline(y, out, line)) { \
 				im_error("im_gfadd", " im_writeline failed"); \
 				free(line); \
-				return (-1); \
+				return -1; \
 			} \
 		} \
 	}
@@ -323,7 +323,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	line = (PEL *) calloc((unsigned) os, sizeof(double));
 	if (line == NULL) {
 		im_error("im_gfadd", " unable to calloc");
-		return (-1);
+		return -1;
 	}
 
 	switch (out->BandFmt) {
@@ -364,7 +364,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		default:
 			im_error("im_gfadd", "Wrong tmp2 format(d)");
 			free(line);
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -378,7 +378,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (a)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -389,7 +389,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (b)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -400,7 +400,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (c)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -411,7 +411,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (d)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -422,7 +422,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (e)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -433,7 +433,7 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (f)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
@@ -444,14 +444,14 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 			default:
 				im_error("im_gfadd", " Error (g)");
 				free(line);
-				return (-1);
+				return -1;
 			}
 			break;
 
 		default:
 			im_error("im_gfadd", " Wrong tmp2 format(f)");
 			free(line);
-			return (-1);
+			return -1;
 		}
 
 		break;
@@ -459,10 +459,10 @@ im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	default:
 		im_error("im_gfadd", " Impossible output state");
 		free(line);
-		return (-1);
+		return -1;
 	}
 
 	free(line);
 
-	return (0);
+	return 0;
 }

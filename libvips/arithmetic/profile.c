@@ -95,19 +95,19 @@ edges_new(VipsProfile *profile)
 	int i;
 
 	if (!(edges = VIPS_NEW(profile, Edges)))
-		return (NULL);
+		return NULL;
 	edges->column_edges = VIPS_ARRAY(profile, in->Xsize * in->Bands, int);
 	edges->row_edges = VIPS_ARRAY(profile, in->Ysize * in->Bands, int);
 	if (!edges->column_edges ||
 		!edges->row_edges)
-		return (NULL);
+		return NULL;
 
 	for (i = 0; i < in->Xsize * in->Bands; i++)
 		edges->column_edges[i] = in->Ysize;
 	for (i = 0; i < in->Ysize * in->Bands; i++)
 		edges->row_edges[i] = in->Xsize;
 
-	return (edges);
+	return edges;
 }
 
 static int
@@ -121,7 +121,7 @@ vips_profile_build(VipsObject *object)
 
 	if (statistic->in &&
 		vips_check_noncomplex(class->nickname, statistic->in))
-		return (-1);
+		return -1;
 
 	g_object_set(object,
 		"columns", vips_image_new(),
@@ -132,7 +132,7 @@ vips_profile_build(VipsObject *object)
 	 */
 
 	if (VIPS_OBJECT_CLASS(vips_profile_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Make the output image.
 	 */
@@ -140,7 +140,7 @@ vips_profile_build(VipsObject *object)
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL) ||
 		vips_image_pipelinev(profile->rows,
 			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL))
-		return (-1);
+		return -1;
 	profile->columns->Ysize = 1;
 	profile->columns->BandFmt = VIPS_FORMAT_INT;
 	profile->columns->Type = VIPS_INTERPRETATION_HISTOGRAM;
@@ -150,14 +150,14 @@ vips_profile_build(VipsObject *object)
 
 	if (vips_image_write_line(profile->columns, 0,
 			(VipsPel *) profile->edges->column_edges))
-		return (-1);
+		return -1;
 	for (y = 0; y < profile->rows->Ysize; y++)
 		if (vips_image_write_line(profile->rows, y,
 				(VipsPel *) profile->edges->row_edges +
 					y * VIPS_IMAGE_SIZEOF_PEL(profile->rows)))
-			return (-1);
+			return -1;
 
-	return (0);
+	return 0;
 }
 
 /* New edge accumulator.
@@ -172,7 +172,7 @@ vips_profile_start(VipsStatistic *statistic)
 	if (!profile->edges)
 		profile->edges = edges_new(profile);
 
-	return ((void *) edges_new(profile));
+	return (void *) edges_new(profile);
 }
 
 /* We do this a lot.
@@ -250,7 +250,7 @@ vips_profile_scan(VipsStatistic *statistic, void *seq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Join a sub-profile onto the main profile.
@@ -276,7 +276,7 @@ vips_profile_stop(VipsStatistic *statistic, void *seq)
 	sub_edges->row_edges = NULL;
 	sub_edges->column_edges = NULL;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -341,5 +341,5 @@ vips_profile(VipsImage *in, VipsImage **columns, VipsImage **rows, ...)
 	result = vips_call_split("profile", ap, in, columns, rows);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

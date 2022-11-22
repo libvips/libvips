@@ -38,5 +38,5 @@ main(int argc, char **argv)
 	im.write_to_file(argv[2]);
 	printf("written back to  %s\n", argv[2]);
 
-	return (0);
+	return 0;
 }

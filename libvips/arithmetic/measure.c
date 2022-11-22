@@ -102,10 +102,10 @@ vips_measure_build(VipsObject *object)
 	int b;
 
 	if (VIPS_OBJECT_CLASS(vips_measure_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_decode(measure->in, &ready))
-		return (-1);
+		return -1;
 	vips_object_local(measure, ready);
 
 	bands = vips_image_get_bands(ready);
@@ -150,7 +150,7 @@ vips_measure_build(VipsObject *object)
 						b, NULL) ||
 					vips_avg(t[1], &avg, NULL) ||
 					vips_deviate(t[1], &dev, NULL))
-					return (-1);
+					return -1;
 
 				/* Is the deviation large compared with the
 				 * average? This could be a clue that our
@@ -174,7 +174,7 @@ vips_measure_build(VipsObject *object)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -290,5 +290,5 @@ vips_measure(VipsImage *in, VipsImage **out, int h, int v, ...)
 	result = vips_call_split("measure", ap, in, out, h, v);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

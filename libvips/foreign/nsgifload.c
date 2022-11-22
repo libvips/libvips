@@ -180,13 +180,13 @@ vips_foreign_load_nsgif_dispose(GObject *gobject)
 static VipsForeignFlags
 vips_foreign_load_nsgif_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_SEQUENTIAL);
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_nsgif_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_SEQUENTIAL);
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static gboolean
@@ -199,9 +199,9 @@ vips_foreign_load_nsgif_is_a_source(VipsSource *source)
 		data[1] == 'I' &&
 		data[2] == 'F' &&
 		data[3] == '8')
-		return (TRUE);
+		return TRUE;
 
-	return (FALSE);
+	return FALSE;
 }
 
 #ifdef VERBOSE
@@ -346,7 +346,7 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	if (gif->interlaced)
 		vips_image_set_int(image, "interlaced", 1);
 
-	return (0);
+	return 0;
 }
 
 /* Scan the GIF as quickly as we can and extract transparency, bands, pages,
@@ -371,7 +371,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	/* Map the whole source into memory.
 	 */
 	if (!(data = vips_source_map(gif->source, &size)))
-		return (-1);
+		return -1;
 
 	/* Treat errors from _scan() as warnings. If libnsgif really can't do
 	 * something it'll fail gracefully later when we try to read out
@@ -383,7 +383,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	case NSGIF_ERR_END_OF_DATA:
 		if (load->fail_on >= VIPS_FAIL_ON_TRUNCATED) {
 			vips_foreign_load_nsgif_error(gif, result);
-			return (-1);
+			return -1;
 		}
 		else
 			g_warning("%s", nsgif_strerror(result));
@@ -395,7 +395,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	default:
 		if (load->fail_on >= VIPS_FAIL_ON_WARNING) {
 			vips_foreign_load_nsgif_error(gif, result);
-			return (-1);
+			return -1;
 		}
 		else
 			g_warning("%s", nsgif_strerror(result));
@@ -413,7 +413,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 #endif /*VERBOSE*/
 	if (!gif->info->frame_count) {
 		vips_error(class->nickname, "%s", _("no frames in GIF"));
-		return (-1);
+		return -1;
 	}
 
 	/* Update our global struct based on the information in the
@@ -439,7 +439,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 		gif->n <= 0 ||
 		gif->page + gif->n > gif->info->frame_count) {
 		vips_error(class->nickname, "%s", _("bad page number"));
-		return (-1);
+		return -1;
 	}
 
 	/* In ms, frame_delay in cs.
@@ -447,14 +447,14 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	VIPS_FREE(gif->delay);
 	if (!(gif->delay = VIPS_ARRAY(NULL,
 			  gif->info->frame_count, int)))
-		return (-1);
+		return -1;
 	for (i = 0; i < gif->info->frame_count; i++) {
 		const nsgif_frame_info_t *frame_info;
 
 		frame_info = nsgif_get_frame_info(gif->anim, i);
 		if (frame_info == NULL) {
 			vips_error(class->nickname, "%s", _("bad frame"));
-			return (-1);
+			return -1;
 		}
 		gif->delay[i] = 10 * frame_info->delay;
 	}
@@ -463,7 +463,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 
 	vips_foreign_load_nsgif_set_header(gif, load->out);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -500,7 +500,7 @@ vips_foreign_load_nsgif_generate(VipsRegion * or,
 				page, result);
 			if (result != NSGIF_OK) {
 				vips_foreign_load_nsgif_error(gif, result);
-				return (-1);
+				return -1;
 			}
 
 #ifdef VERBOSE
@@ -528,7 +528,7 @@ vips_foreign_load_nsgif_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -541,18 +541,18 @@ vips_foreign_load_nsgif_tile_height(VipsForeignLoadNsgif *gif)
 	/* First, check the perfect size.
 	 */
 	if (height % 16 == 0)
-		return (16);
+		return 16;
 
 	/* Next, check larger and smaller sizes.
 	 */
 	for (i = 1; i < 16; i++) {
 		if (height % (16 + i) == 0)
-			return (16 + i);
+			return 16 + i;
 		if (height % (16 - i) == 0)
-			return (16 - i);
+			return 16 - i;
 	}
 
-	return (1);
+	return 1;
 }
 
 static int
@@ -568,7 +568,7 @@ vips_foreign_load_nsgif_load(VipsForeignLoad *load)
 	 */
 	t[0] = vips_image_new();
 	if (vips_foreign_load_nsgif_set_header(gif, t[0]))
-		return (-1);
+		return -1;
 
 	/* Strips 8 pixels high to avoid too many tiny regions.
 	 */
@@ -579,9 +579,9 @@ vips_foreign_load_nsgif_load(VipsForeignLoad *load)
 			vips_foreign_load_nsgif_tile_height(gif),
 			NULL) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -635,7 +635,7 @@ vips_foreign_load_nsgif_bitmap_create(int width, int height)
 		height > 65536) {
 		vips_error("gifload",
 			"%s", _("bad image dimensions"));
-		return (NULL);
+		return NULL;
 	}
 
 	return g_malloc0((gsize) width * height * 4);
@@ -646,7 +646,7 @@ vips_foreign_load_nsgif_bitmap_get_buffer(void *bitmap)
 {
 	g_assert(bitmap);
 
-	return (bitmap);
+	return bitmap;
 }
 
 static void
@@ -705,13 +705,13 @@ vips_foreign_load_gif_file_build(VipsObject *object)
 	if (file->filename)
 		if (!(gif->source =
 					vips_source_new_from_file(file->filename)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_nsgif_suffs[] = {
@@ -726,11 +726,11 @@ vips_foreign_load_nsgif_file_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_nsgif_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -791,13 +791,13 @@ vips_foreign_load_nsgif_buffer_build(VipsObject *object)
 		!(gif->source = vips_source_new_from_memory(
 			  buffer->blob->data,
 			  buffer->blob->length)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -807,11 +807,11 @@ vips_foreign_load_nsgif_buffer_is_a_buffer(const void *buf, size_t len)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_memory(buf, len)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_nsgif_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -872,9 +872,9 @@ vips_foreign_load_nsgif_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -952,7 +952,7 @@ vips_gifload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("gifload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -994,7 +994,7 @@ vips_gifload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1025,5 +1025,5 @@ vips_gifload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("gifload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -123,7 +123,7 @@ vips_rank_stop(void *vseq, void *a, void *b)
 	}
 	VIPS_FREE(seq->hist);
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -134,7 +134,7 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 	VipsRankSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsRankSequence)))
-		return (NULL);
+		return NULL;
 	seq->ir = NULL;
 	seq->sort = NULL;
 	seq->hist = NULL;
@@ -143,7 +143,7 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 	if (!(seq->sort = VIPS_ARRAY(NULL,
 			  VIPS_IMAGE_SIZEOF_ELEMENT(in) * rank->n, VipsPel))) {
 		vips_rank_stop(seq, in, rank);
-		return (NULL);
+		return NULL;
 	}
 
 	if (rank->hist_path) {
@@ -152,18 +152,18 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 		if (!(seq->hist =
 					VIPS_ARRAY(NULL, in->Bands, unsigned int *))) {
 			vips_rank_stop(seq, in, rank);
-			return (NULL);
+			return NULL;
 		}
 
 		for (i = 0; i < in->Bands; i++)
 			if (!(seq->hist[i] =
 						VIPS_ARRAY(NULL, 256, unsigned int))) {
 				vips_rank_stop(seq, in, rank);
-				return (NULL);
+				return NULL;
 			}
 	}
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 /* Histogram path for large uchar ranks.
@@ -448,7 +448,7 @@ vips_rank_generate(VipsRegion * or,
 	s.width += rank->width - 1;
 	s.height += rank->height - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 	ls = VIPS_REGION_LSKIP(ir) / VIPS_IMAGE_SIZEOF_ELEMENT(in);
 
 	for (y = 0; y < r->height; y++) {
@@ -462,7 +462,7 @@ vips_rank_generate(VipsRegion * or,
 			SWITCH(LOOP_SELECT)
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -476,25 +476,25 @@ vips_rank_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_rank_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = morphology->in;
 
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_noncomplex(class->nickname, in))
-		return (-1);
+		return -1;
 	if (rank->width > in->Xsize ||
 		rank->height > in->Ysize) {
 		vips_error(class->nickname, "%s", _("window too large"));
-		return (-1);
+		return -1;
 	}
 	rank->n = rank->width * rank->height;
 	if (rank->index < 0 || rank->index > rank->n - 1) {
 		vips_error(class->nickname, "%s", _("index out of range"));
-		return (-1);
+		return -1;
 	}
 
 	/* Enable the hist path if it'll probably help.
@@ -518,7 +518,7 @@ vips_rank_build(VipsObject *object)
 			in->Xsize + rank->width - 1, in->Ysize + rank->height - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	g_object_set(object, "out", vips_image_new(), NULL);
@@ -528,7 +528,7 @@ vips_rank_build(VipsObject *object)
 	 */
 	if (vips_image_pipelinev(rank->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
-		return (-1);
+		return -1;
 	rank->out->Xsize -= rank->width - 1;
 	rank->out->Ysize -= rank->height - 1;
 
@@ -537,14 +537,14 @@ vips_rank_build(VipsObject *object)
 			vips_rank_generate,
 			vips_rank_stop,
 			in, rank))
-		return (-1);
+		return -1;
 
 	rank->out->Xoffset = 0;
 	rank->out->Yoffset = 0;
 
 	vips_reorder_margin_hint(rank->out, rank->width * rank->height);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -637,7 +637,7 @@ vips_rank(VipsImage *in, VipsImage **out,
 	result = vips_call_split("rank", ap, in, out, width, height, index);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -666,5 +666,5 @@ vips_median(VipsImage *in, VipsImage **out, int size, ...)
 		size, size, (size * size) / 2);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

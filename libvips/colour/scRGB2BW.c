@@ -131,7 +131,7 @@ vips_scRGB2BW_gen(VipsRegion * or,
 	int y;
 
 	if (vips_region_prepare(ir, r))
-		return (-1);
+		return -1;
 
 	VIPS_GATE_START("vips_scRGB2BW_gen: work");
 
@@ -151,7 +151,7 @@ vips_scRGB2BW_gen(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_scRGB2BW_gen: work");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -168,11 +168,11 @@ vips_scRGB2BW_build(VipsObject *object)
 	VipsImage *out;
 
 	if (VIPS_OBJECT_CLASS(vips_scRGB2BW_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = scRGB2BW->in;
 	if (vips_check_bands_atleast(class->nickname, in, 3))
-		return (-1);
+		return -1;
 
 	switch (scRGB2BW->depth) {
 	case 16:
@@ -188,18 +188,18 @@ vips_scRGB2BW_build(VipsObject *object)
 	default:
 		vips_error(class->nickname,
 			"%s", _("depth must be 8 or 16"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_cast_float(in, &t[0], NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	out = vips_image_new();
 	if (vips_image_pipelinev(out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 	out->Type = interpretation;
 	out->BandFmt = format;
@@ -209,12 +209,12 @@ vips_scRGB2BW_build(VipsObject *object)
 			vips_start_one, vips_scRGB2BW_gen, vips_stop_one,
 			in, scRGB2BW)) {
 		g_object_unref(out);
-		return (-1);
+		return -1;
 	}
 
 	g_object_set(object, "out", out, NULL);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -288,5 +288,5 @@ vips_scRGB2BW(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("scRGB2BW", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

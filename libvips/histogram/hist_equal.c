@@ -79,7 +79,7 @@ vips_hist_equal_build(VipsObject *object)
 	g_object_set(equal, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_hist_equal_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* norm can return a uchar output for a ushort input if the range is
 	 * small, so make sure we cast back to the input type again.
@@ -92,9 +92,9 @@ vips_hist_equal_build(VipsObject *object)
 		vips_cast(t[2], &t[3], equal->in->BandFmt, NULL) ||
 		vips_maplut(equal->in, &t[4], t[3], NULL) ||
 		vips_image_write(t[4], equal->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -164,5 +164,5 @@ vips_hist_equal(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_equal", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

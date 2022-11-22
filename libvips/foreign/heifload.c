@@ -254,7 +254,7 @@ vips_foreign_load_heif_build(VipsObject *object)
 
 	if (heif->source &&
 		vips_source_rewind(heif->source))
-		return (-1);
+		return -1;
 
 	if (!heif->ctx) {
 		struct heif_error error;
@@ -268,14 +268,14 @@ vips_foreign_load_heif_build(VipsObject *object)
 			heif->reader, heif, NULL);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *heif_magic[] = {
@@ -315,14 +315,14 @@ vips_foreign_load_heif_is_a(const char *buf, int len)
 		 */
 		if (chunk_len > 2048 ||
 			chunk_len % 4 != 0)
-			return (0);
+			return 0;
 
 		for (i = 0; i < VIPS_NUMBER(heif_magic); i++)
 			if (strncmp(buf + 4, heif_magic[i], 8) == 0)
-				return (1);
+				return 1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -330,7 +330,7 @@ vips_foreign_load_heif_get_flags(VipsForeignLoad *load)
 {
 	/* FIXME .. could support random access for grid images.
 	 */
-	return (VIPS_FOREIGN_SEQUENTIAL);
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 /* We've selected the page. Try to select the associated thumbnail instead,
@@ -354,13 +354,13 @@ vips_foreign_load_heif_set_thumbnail(VipsForeignLoadHeif *heif)
 	n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs(
 		heif->handle, thumb_ids, 1);
 	if (n_thumbs == 0)
-		return (0);
+		return 0;
 
 	error = heif_image_handle_get_thumbnail(heif->handle,
 		thumb_ids[0], &thumb_handle);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	/* Just checking the width and height of the handle isn't
@@ -374,7 +374,7 @@ vips_foreign_load_heif_set_thumbnail(VipsForeignLoadHeif *heif)
 	if (error.code) {
 		VIPS_FREEF(heif_image_handle_release, thumb_handle);
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 
 	thumb_aspect = (double)
@@ -393,13 +393,13 @@ vips_foreign_load_heif_set_thumbnail(VipsForeignLoadHeif *heif)
 	 */
 	if (fabs(main_aspect - thumb_aspect) > 0.1) {
 		VIPS_FREEF(heif_image_handle_release, thumb_handle);
-		return (0);
+		return 0;
 	}
 
 	VIPS_FREEF(heif_image_handle_release, heif->handle);
 	heif->handle = thumb_handle;
 
-	return (0);
+	return 0;
 }
 
 /* Select a page. If thumbnail is set, select the thumbnail for that page, if
@@ -428,12 +428,12 @@ vips_foreign_load_heif_set_page(VipsForeignLoadHeif *heif,
 			heif->id[page_no], &heif->handle);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 
 		if (thumbnail) {
 			if (vips_foreign_load_heif_set_thumbnail(heif))
-				return (-1);
+				return -1;
 
 			/* If we were asked to select the thumbnail, say we
 			 * did, even if there are no thumbnails and we just
@@ -449,7 +449,7 @@ vips_foreign_load_heif_set_page(VipsForeignLoadHeif *heif,
 		heif->page_no = page_no;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -472,14 +472,14 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	 * thumbnails don't have metadata.
 	 */
 	if (vips_foreign_load_heif_set_page(heif, heif->page, FALSE))
-		return (-1);
+		return -1;
 
 	/* Verify dimensions
 	 */
 	if (heif->page_width < 1 ||
 		heif->page_height < 1) {
 		vips_error("heifload", "%s", _("bad dimensions"));
-		return (-1);
+		return -1;
 	}
 
 	heif->has_alpha = heif_image_handle_has_alpha_channel(heif->handle);
@@ -514,12 +514,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		if (!length)
 			continue;
 		if (!(data = VIPS_ARRAY(out, length, unsigned char)))
-			return (-1);
+			return -1;
 		error = heif_image_handle_get_metadata(
 			heif->handle, id[i], data);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 
 		/* We need to skip the first four bytes of EXIF, they just
@@ -604,12 +604,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		unsigned char *data;
 
 		if (!(data = VIPS_ARRAY(out, length, unsigned char)))
-			return (-1);
+			return -1;
 		error = heif_image_handle_get_raw_color_profile(
 			heif->handle, data);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 
 #ifdef DEBUG
@@ -677,7 +677,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	 * all grey images, perhaps.
 	 */
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
-		return (-1);
+		return -1;
 	vips_image_init_fields(out,
 		heif->page_width, heif->page_height * heif->n, bands,
 		format, VIPS_CODING_NONE, interpretation,
@@ -686,7 +686,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	VIPS_SETSTR(load->out->filename,
 		vips_connection_filename(VIPS_CONNECTION(heif->source)));
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -713,7 +713,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	error = heif_context_get_primary_image_ID(heif->ctx, &primary_id);
 	if (error.code) {
 		vips__heif_error(&error);
-		return (-1);
+		return -1;
 	}
 	for (i = 0; i < heif->n_top; i++)
 		if (heif->id[i] == primary_id)
@@ -732,7 +732,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		heif->n <= 0 ||
 		heif->page + heif->n > heif->n_top) {
 		vips_error(class->nickname, "%s", _("bad page number"));
-		return (-1);
+		return -1;
 	}
 
 #ifdef DEBUG
@@ -743,7 +743,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		int j;
 
 		if (vips_foreign_load_heif_set_page(heif, i, FALSE))
-			return (-1);
+			return -1;
 
 		n_thumbs = heif_image_handle_get_number_of_thumbnails(
 			heif->handle);
@@ -761,7 +761,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 				thumb_ids[j], &thumb_handle);
 			if (error.code) {
 				vips__heif_error(&error);
-				return (-1);
+				return -1;
 			}
 
 			printf("  thumb %d\n", j);
@@ -780,7 +780,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	 */
 	if (vips_foreign_load_heif_set_page(heif,
 			heif->page, heif->thumbnail))
-		return (-1);
+		return -1;
 	heif->page_width = heif_image_handle_get_width(heif->handle);
 	heif->page_height = heif_image_handle_get_height(heif->handle);
 	heif->bits_per_pixel =
@@ -788,13 +788,13 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	if (heif->bits_per_pixel < 0) {
 		vips_error(class->nickname,
 			"%s", _("undefined bits per pixel"));
-		return (-1);
+		return -1;
 	}
 
 	for (i = heif->page + 1; i < heif->page + heif->n; i++) {
 		if (vips_foreign_load_heif_set_page(heif,
 				i, heif->thumbnail))
-			return (-1);
+			return -1;
 		if (heif_image_handle_get_width(heif->handle) !=
 				heif->page_width ||
 			heif_image_handle_get_height(heif->handle) !=
@@ -803,7 +803,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 				heif->bits_per_pixel) {
 			vips_error(class->nickname, "%s",
 				_("not all pages are the same size"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -816,7 +816,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	for (i = 0; i < heif->n_top; i++) {
 		printf("  id[%d] = %d\n", i, heif->id[i]);
 		if (vips_foreign_load_heif_set_page(heif, i, FALSE))
-			return (-1);
+			return -1;
 		printf("    width = %d\n",
 			heif_image_handle_get_width(heif->handle));
 		printf("    height = %d\n",
@@ -839,11 +839,11 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 #endif /*DEBUG*/
 
 	if (vips_foreign_load_heif_set_header(heif, load->out))
-		return (-1);
+		return -1;
 
 	vips_source_minimise(heif->source);
 
-	return (0);
+	return 0;
 }
 
 #ifdef DEBUG
@@ -897,15 +897,15 @@ vips__heif_chroma(int bits_per_pixel, gboolean has_alpha)
 {
 	if (bits_per_pixel == 8) {
 		if (has_alpha)
-			return (heif_chroma_interleaved_RGBA);
+			return heif_chroma_interleaved_RGBA;
 		else
-			return (heif_chroma_interleaved_RGB);
+			return heif_chroma_interleaved_RGB;
 	}
 	else {
 		if (has_alpha)
-			return (heif_chroma_interleaved_RRGGBBAA_BE);
+			return heif_chroma_interleaved_RRGGBBAA_BE;
 		else
-			return (heif_chroma_interleaved_RRGGBB_BE);
+			return heif_chroma_interleaved_RRGGBB_BE;
 	}
 }
 
@@ -927,7 +927,7 @@ vips_foreign_load_heif_generate(VipsRegion * or,
 	g_assert(r->height == 1);
 
 	if (vips_foreign_load_heif_set_page(heif, page, heif->thumbnail))
-		return (-1);
+		return -1;
 
 	if (!heif->img) {
 		struct heif_error error;
@@ -944,7 +944,7 @@ vips_foreign_load_heif_generate(VipsRegion * or,
 		heif_decoding_options_free(options);
 		if (error.code) {
 			vips__heif_error(&error);
-			return (-1);
+			return -1;
 		}
 
 #ifdef DEBUG
@@ -966,14 +966,14 @@ vips_foreign_load_heif_generate(VipsRegion * or,
 			image_height != heif->page_height) {
 			vips_error(class->nickname,
 				"%s", _("bad image dimensions on decode"));
-			return (-1);
+			return -1;
 		}
 
 		if (!(heif->data = heif_image_get_plane_readonly(heif->img,
 				  heif_channel_interleaved, &heif->stride))) {
 			vips_error(class->nickname,
 				"%s", _("unable to get image data"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -1001,7 +1001,7 @@ vips_foreign_load_heif_generate(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1024,7 +1024,7 @@ vips_foreign_load_heif_load(VipsForeignLoad *load)
 
 	t[0] = vips_image_new();
 	if (vips_foreign_load_heif_set_header(heif, t[0]))
-		return (-1);
+		return -1;
 
 	/* Close input immediately at end of read.
 	 */
@@ -1035,12 +1035,12 @@ vips_foreign_load_heif_load(VipsForeignLoad *load)
 			NULL, vips_foreign_load_heif_generate, NULL, heif, NULL) ||
 		vips_sequential(t[0], &t[1], NULL) ||
 		vips_image_write(t[1], load->real))
-		return (-1);
+		return -1;
 
 	if (vips_source_decode(heif->source))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1103,7 +1103,7 @@ vips_foreign_load_heif_get_position(void *userdata)
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
-	return (vips_source_seek(heif->source, 0L, SEEK_CUR));
+	return vips_source_seek(heif->source, 0L, SEEK_CUR);
 }
 
 /* libheif read() does not work like unix read().
@@ -1121,13 +1121,13 @@ vips_foreign_load_heif_read(void *data, size_t size, void *userdata)
 
 		bytes_read = vips_source_read(heif->source, data, size);
 		if (bytes_read <= 0)
-			return (-1);
+			return -1;
 
 		size -= bytes_read;
 		data = (char *) data + bytes_read;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1137,7 +1137,7 @@ vips_foreign_load_heif_seek(gint64 position, void *userdata)
 
 	/* Return 0 on success.
 	 */
-	return (vips_source_seek(heif->source, position, SEEK_SET) == -1);
+	return vips_source_seek(heif->source, position, SEEK_SET) == -1;
 }
 
 /* libheif calls this to mean "I intend to read() to this position, please
@@ -1168,7 +1168,7 @@ vips_foreign_load_heif_wait_for_file_size(gint64 target_size, void *userdata)
 		 */
 		status = heif_reader_grow_status_size_reached;
 
-	return (status);
+	return status;
 }
 
 static void
@@ -1211,13 +1211,13 @@ vips_foreign_load_heif_file_build(VipsObject *object)
 	if (file->filename)
 		if (!(heif->source =
 					vips_source_new_from_file(file->filename)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1226,9 +1226,9 @@ vips_foreign_load_heif_file_is_a(const char *filename)
 	char buf[12];
 
 	if (vips__get_bytes(filename, (unsigned char *) buf, 12) != 12)
-		return (0);
+		return 0;
 
-	return (vips_foreign_load_heif_is_a(buf, 12));
+	return vips_foreign_load_heif_is_a(buf, 12);
 }
 
 static void
@@ -1287,19 +1287,19 @@ vips_foreign_load_heif_buffer_build(VipsObject *object)
 		if (!(heif->source = vips_source_new_from_memory(
 				  VIPS_AREA(buffer->buf)->data,
 				  VIPS_AREA(buffer->buf)->length)))
-			return (-1);
+			return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
 vips_foreign_load_heif_buffer_is_a(const void *buf, size_t len)
 {
-	return (vips_foreign_load_heif_is_a(buf, len));
+	return vips_foreign_load_heif_is_a(buf, len);
 }
 
 static void
@@ -1359,9 +1359,9 @@ vips_foreign_load_heif_source_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_source_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static gboolean
@@ -1369,8 +1369,8 @@ vips_foreign_load_heif_source_is_a_source(VipsSource *source)
 {
 	const char *p;
 
-	return ((p = (const char *) vips_source_sniff(source, 12)) &&
-		vips_foreign_load_heif_is_a(p, 12));
+	return (p = (const char *) vips_source_sniff(source, 12)) &&
+		vips_foreign_load_heif_is_a(p, 12);
 }
 
 static void

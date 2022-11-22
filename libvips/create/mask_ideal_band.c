@@ -76,7 +76,7 @@ vips_mask_ideal_band_point(VipsMask *mask, double dx, double dy)
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
 
-	return ((d1 < r2 || d2 < r2) ? 1.0 : 0.0);
+	return (d1 < r2 || d2 < r2) ? 1.0 : 0.0;
 }
 
 static void
@@ -162,5 +162,5 @@ vips_mask_ideal_band(VipsImage **out, int width, int height,
 		frequency_cutoff_x, frequency_cutoff_y, radius);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -69,138 +69,138 @@ build_freq_mask(IMAGE *out, int xs, int ys, ImMaskType flag, va_list ap)
 	case IM_MASK_IDEAL_HIGHPASS:
 		if (vips_mask_ideal(&t, xs, ys, p0,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_IDEAL_LOWPASS:
 		if (vips_mask_ideal(&t, xs, ys, p0,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_HIGHPASS:
 		if (vips_mask_butterworth(&t, xs, ys, p0, p1, p2,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_LOWPASS:
 		if (vips_mask_butterworth(&t, xs, ys, p0, p1, p2,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_HIGHPASS:
 		if (vips_mask_gaussian(&t, xs, ys, p0, p1,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_LOWPASS:
 		if (vips_mask_gaussian(&t, xs, ys, p0, p1,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_IDEAL_RINGPASS:
 		if (vips_mask_ideal_ring(&t, xs, ys, p0, p1,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_IDEAL_RINGREJECT:
 		if (vips_mask_ideal_ring(&t, xs, ys, p0, p1,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_RINGPASS:
 		if (vips_mask_butterworth_ring(&t, xs, ys, p0, p1, p2, p3,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_RINGREJECT:
 		if (vips_mask_butterworth_ring(&t, xs, ys, p0, p1, p2, p3,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_RINGPASS:
 		if (vips_mask_gaussian_ring(&t, xs, ys, p0, p1, p2,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_RINGREJECT:
 		if (vips_mask_gaussian_ring(&t, xs, ys, p0, p1, p2,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_FRACTAL_FLT:
 		if (vips_mask_fractal(&t, xs, ys, p0,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_IDEAL_BANDPASS:
 		if (vips_mask_ideal_band(&t, xs, ys, p0, p1, p2,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_IDEAL_BANDREJECT:
 		if (vips_mask_ideal_band(&t, xs, ys, p0, p1, p2,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_BANDPASS:
 		if (vips_mask_butterworth_band(&t, xs, ys, p0, p1, p2, p3, p4,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_BUTTERWORTH_BANDREJECT:
 		if (vips_mask_butterworth_band(&t, xs, ys, p0, p1, p2, p3, p4,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_BANDPASS:
 		if (vips_mask_gaussian_band(&t, xs, ys, p0, p1, p2, p3,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	case IM_MASK_GAUSS_BANDREJECT:
 		if (vips_mask_gaussian_band(&t, xs, ys, p0, p1, p2, p3,
 				"reject", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 		break;
 
 	default:
 		im_error("im_freq_mask", "%s", _("unimplemented mask type"));
-		return (-1);
+		return -1;
 	}
 
 	if (im_copy(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -210,19 +210,19 @@ im_flt_image_freq(IMAGE *in, IMAGE *out, ImMaskType flag, ...)
 	va_list ap;
 
 	if (!mask)
-		return (-1);
+		return -1;
 
 	/* Generate mask.
 	 */
 	va_start(ap, flag);
 	if (build_freq_mask(mask, in->Xsize, in->Ysize, flag, ap))
-		return (-1);
+		return -1;
 	va_end(ap);
 
 	if (im_freqflt(in, mask, out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -232,8 +232,8 @@ im_create_fmask(IMAGE *out, int xsize, int ysize, ImMaskType flag, ...)
 
 	va_start(ap, flag);
 	if (build_freq_mask(out, xsize, ysize, flag, ap))
-		return (-1);
+		return -1;
 	va_end(ap);
 
-	return (0);
+	return 0;
 }

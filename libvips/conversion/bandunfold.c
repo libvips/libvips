@@ -88,7 +88,7 @@ vips_bandunfold_gen(VipsRegion * or,
 	need.width = (1 + r->width) / bandunfold->factor;
 	need.height = r->height;
 	if (vips_region_prepare(ir, &need))
-		return (-1);
+		return -1;
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir,
@@ -102,7 +102,7 @@ vips_bandunfold_gen(VipsRegion * or,
 		memcpy(q, p, r->width * psize);
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -113,22 +113,22 @@ vips_bandunfold_build(VipsObject *object)
 	VipsBandunfold *bandunfold = (VipsBandunfold *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_bandunfold_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(bandunfold->in))
-		return (-1);
+		return -1;
 
 	if (bandunfold->factor == 0)
 		bandunfold->factor = bandunfold->in->Bands;
 	if (bandunfold->in->Bands % bandunfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image bands"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, bandunfold->in, NULL))
-		return (-1);
+		return -1;
 
 	conversion->out->Xsize *= bandunfold->factor;
 	conversion->out->Bands /= bandunfold->factor;
@@ -136,9 +136,9 @@ vips_bandunfold_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_bandunfold_gen, vips_stop_one,
 			bandunfold->in, bandunfold))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -210,5 +210,5 @@ vips_bandunfold(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("bandunfold", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

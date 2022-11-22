@@ -190,24 +190,24 @@ vips_rot45_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_rot45_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_oddsquare(class->nickname, rot45->in))
-		return (-1);
+		return -1;
 
 	if (rot45->angle == VIPS_ANGLE45_D0)
-		return (vips_image_write(rot45->in, conversion->out));
+		return vips_image_write(rot45->in, conversion->out);
 
 	if (!(t[1] = vips_image_copy_memory(rot45->in)))
-		return (-1);
+		return -1;
 	in = t[1];
 
 	t[0] = vips_image_new_memory();
 	if (vips_image_pipelinev(t[0],
 			VIPS_DEMAND_STYLE_ANY, rot45->in, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write_prepare(t[0]))
-		return (-1);
+		return -1;
 
 	switch (rot45->angle) {
 	case VIPS_ANGLE45_D315:
@@ -244,9 +244,9 @@ vips_rot45_build(VipsObject *object)
 	}
 
 	if (vips_image_write(in, conversion->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -314,5 +314,5 @@ vips_rot45(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("rot45", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

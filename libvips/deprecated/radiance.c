@@ -45,26 +45,26 @@ im_rad2vips(const char *filename, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_radload(filename, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static int
 israd(const char *filename)
 {
-	return (vips_foreign_is_a("radload", filename));
+	return vips_foreign_is_a("radload", filename);
 }
 
 int
 im_vips2rad(IMAGE *in, const char *filename)
 {
-	return (vips_radsave(in, filename, NULL));
+	return vips_radsave(in, filename, NULL);
 }
 
 static const char *rad_suffs[] = { ".hdr", NULL };

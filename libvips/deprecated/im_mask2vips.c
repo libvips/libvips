@@ -69,7 +69,7 @@ im_mask2vips(DOUBLEMASK *in, IMAGE *out)
 	if (!in ||
 		!in->coeff) {
 		im_error("im_mask2vips", "%s", _("bad input mask"));
-		return (-1);
+		return -1;
 	}
 
 	/* Make the output image.
@@ -81,12 +81,12 @@ im_mask2vips(DOUBLEMASK *in, IMAGE *out)
 		1.0, 1.0,
 		0, 0);
 	if (im_setupout(out))
-		return (-1);
+		return -1;
 
 	/* Make an output buffer.
 	 */
 	if (!(buf = IM_ARRAY(out, in->xsize, double)))
-		return (-1);
+		return -1;
 
 	/* Write!
 	 */
@@ -97,13 +97,13 @@ im_mask2vips(DOUBLEMASK *in, IMAGE *out)
 			*q++ = *p++;
 
 		if (im_writeline(y, out, (void *) buf))
-			return (-1);
+			return -1;
 	}
 
 	vips_image_set_double(out, "scale", in->scale);
 	vips_image_set_double(out, "offset", in->offset);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -113,9 +113,9 @@ im_imask2vips(INTMASK *in, IMAGE *out)
 	int result;
 
 	if (!(d = im_imask2dmask(in, in->filename)))
-		return (-1);
+		return -1;
 	result = im_mask2vips(d, out);
 	im_free_dmask(d);
 
-	return (result);
+	return result;
 }

@@ -39,7 +39,7 @@ std::ostream &
 operator<<(std::ostream &file, const VError &err)
 {
 	err.ostream_print(file);
-	return (file);
+	return file;
 }
 
 void

@@ -29,5 +29,5 @@ main(int argc, char **argv)
 
 	vips_shutdown();
 
-	return (0);
+	return 0;
 }

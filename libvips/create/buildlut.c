@@ -106,11 +106,11 @@ vips_buildlut_compare(const void *a, const void *b)
 	double diff = r1[0][0] - r2[0][0];
 
 	if (diff > 0)
-		return (1);
+		return 1;
 	else if (diff == 0)
-		return (0);
+		return 0;
 	else
-		return (-1);
+		return -1;
 }
 
 static int
@@ -132,7 +132,7 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 		if (VIPS_FABS(v - VIPS_RINT(v)) > 0.001) {
 			vips_error(class->nickname,
 				_("x value row %d not an int"), y);
-			return (-1);
+			return -1;
 		}
 
 		v = VIPS_RINT(v);
@@ -147,17 +147,17 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 
 	if (lut->lut_size < 1) {
 		vips_error(class->nickname, "%s", _("x range too small"));
-		return (-1);
+		return -1;
 	}
 
 	if (!(lut->data = VIPS_ARRAY(NULL, lut->mat->Ysize, double *)))
-		return (-1);
+		return -1;
 	for (y = 0; y < lut->mat->Ysize; y++)
 		lut->data[y] = VIPS_MATRIX(lut->mat, 0, y);
 
 	if (!(lut->buf = VIPS_ARRAY(NULL,
 			  lut->lut_size * (lut->mat->Xsize - 1), double)))
-		return (-1);
+		return -1;
 
 	/* Sort by 1st column in input.
 	 */
@@ -178,7 +178,7 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 	}
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -215,7 +215,7 @@ vips_buildlut_build_create(VipsBuildlut *lut)
 			lut->data[ysize - 1][b + 1];
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -226,23 +226,23 @@ vips_buildlut_build(VipsObject *object)
 	VipsBuildlut *lut = (VipsBuildlut *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_buildlut_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_matrix(class->nickname, lut->in, &lut->mat))
-		return (-1);
+		return -1;
 
 	if (vips_buildlut_build_init(lut) ||
 		vips_buildlut_build_create(lut))
-		return (-1);
+		return -1;
 
 	vips_image_init_fields(create->out,
 		lut->lut_size, 1, lut->mat->Xsize - 1,
 		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0);
 	if (vips_image_write_line(create->out, 0, (VipsPel *) lut->buf))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -329,5 +329,5 @@ vips_buildlut(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("buildlut", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

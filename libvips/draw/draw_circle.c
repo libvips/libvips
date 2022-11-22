@@ -198,7 +198,7 @@ vips_draw_circle_build(VipsObject *object)
 	VipsDrawScanline draw_scanline;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_circle_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (circle->fill)
 		draw_scanline = vips_draw_circle_draw_scanline;
@@ -214,7 +214,7 @@ vips_draw_circle_build(VipsObject *object)
 		circle->cx, circle->cy, circle->radius,
 		draw_scanline, drawink->pixel_ink);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -277,7 +277,7 @@ vips_draw_circlev(VipsImage *image,
 		image, area_ink, cx, cy, radius);
 	vips_area_unref(area_ink);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -314,7 +314,7 @@ vips_draw_circle(VipsImage *image,
 	result = vips_draw_circlev(image, ink, n, cx, cy, radius, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -350,5 +350,5 @@ vips_draw_circle1(VipsImage *image,
 	result = vips_draw_circlev(image, array_ink, 1, cx, cy, radius, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

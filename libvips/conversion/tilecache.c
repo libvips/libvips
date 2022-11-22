@@ -186,13 +186,13 @@ vips_tile_move(VipsTile *tile, int x, int y)
 	g_hash_table_insert(tile->cache->tiles, &tile->pos, tile);
 
 	if (vips_region_buffer(tile->region, &tile->pos))
-		return (-1);
+		return -1;
 
 	/* No data yet, but someone must want it.
 	 */
 	tile->state = VIPS_TILE_STATE_PEND;
 
-	return (0);
+	return 0;
 }
 
 static VipsTile *
@@ -201,7 +201,7 @@ vips_tile_new(VipsBlockCache *cache, int x, int y)
 	VipsTile *tile;
 
 	if (!(tile = VIPS_NEW(NULL, VipsTile)))
-		return (NULL);
+		return NULL;
 
 	tile->cache = cache;
 	tile->state = VIPS_TILE_STATE_PEND;
@@ -218,17 +218,17 @@ vips_tile_new(VipsBlockCache *cache, int x, int y)
 
 	if (!(tile->region = vips_region_new(cache->in))) {
 		g_hash_table_remove(cache->tiles, &tile->pos);
-		return (NULL);
+		return NULL;
 	}
 
 	vips__region_no_ownership(tile->region);
 
 	if (vips_tile_move(tile, x, y)) {
 		g_hash_table_remove(cache->tiles, &tile->pos);
-		return (NULL);
+		return NULL;
 	}
 
-	return (tile);
+	return tile;
 }
 
 /* Do we have a tile in the cache?
@@ -245,7 +245,7 @@ vips_tile_search(VipsBlockCache *cache, int x, int y)
 	pos.height = cache->tile_height;
 	tile = (VipsTile *) g_hash_table_lookup(cache->tiles, &pos);
 
-	return (tile);
+	return tile;
 }
 
 static void
@@ -269,7 +269,7 @@ vips_tile_find_topmost(GQueue *recycle)
 	tile = NULL;
 	g_queue_foreach(recycle, vips_tile_find_is_topper, &tile);
 
-	return (tile);
+	return tile;
 }
 
 /* Find existing tile, make a new tile, or if we have a full set of tiles,
@@ -285,7 +285,7 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 	if ((tile = vips_tile_search(cache, x, y))) {
 		VIPS_DEBUG_MSG_RED(
 			"vips_tile_find: tile %d x %d in cache\n", x, y);
-		return (tile);
+		return tile;
 	}
 
 	/* VipsBlockCache not full?
@@ -295,9 +295,9 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 		VIPS_DEBUG_MSG_RED(
 			"vips_tile_find: making new tile at %d x %d\n", x, y);
 		if (!(tile = vips_tile_new(cache, x, y)))
-			return (NULL);
+			return NULL;
 
-		return (tile);
+		return tile;
 	}
 
 	/* Reuse an old one, if there are any. We just peek the tile pointer,
@@ -318,18 +318,18 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 		 * for now. They will get culled down again next time around.
 		 */
 		if (!(tile = vips_tile_new(cache, x, y)))
-			return (NULL);
+			return NULL;
 
-		return (tile);
+		return tile;
 	}
 
 	VIPS_DEBUG_MSG_RED("vips_tile_find: reusing tile %d x %d\n",
 		tile->pos.left, tile->pos.top);
 
 	if (vips_tile_move(tile, x, y))
-		return (NULL);
+		return NULL;
 
-	return (tile);
+	return tile;
 }
 
 static gboolean
@@ -337,7 +337,7 @@ vips_tile_unlocked(gpointer key, gpointer value, gpointer user_data)
 {
 	VipsTile *tile = (VipsTile *) value;
 
-	return (!tile->ref_count);
+	return !tile->ref_count;
 }
 
 static void
@@ -364,7 +364,7 @@ vips_block_cache_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_block_cache_build:\n");
 
 	if (VIPS_OBJECT_CLASS(vips_block_cache_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	VIPS_DEBUG_MSG("vips_block_cache_build: max size = %g MB\n",
 		(cache->max_tiles * cache->tile_width * cache->tile_height *
@@ -375,7 +375,7 @@ vips_block_cache_build(VipsObject *object)
 		g_signal_connect(conversion->out, "minimise",
 			G_CALLBACK(vips_block_cache_minimise), cache);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -444,13 +444,13 @@ vips_rect_hash(VipsRect *pos)
 	 */
 	hash = (guint) pos->left ^ ((guint) pos->top << 16);
 
-	return (hash);
+	return hash;
 }
 
 static gboolean
 vips_rect_equal(VipsRect *a, VipsRect *b)
 {
-	return (a->left == b->left && a->top == b->top);
+	return a->left == b->left && a->top == b->top;
 }
 
 static void
@@ -572,7 +572,7 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 		for (x = xs; x < VIPS_RECT_RIGHT(r); x += tw) {
 			if (!(tile = vips_tile_find(cache, x, y))) {
 				vips_tile_cache_unref(work);
-				return (NULL);
+				return NULL;
 			}
 
 			vips_tile_ref(tile);
@@ -587,7 +587,7 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 				x, y, tile);
 		}
 
-	return (work);
+	return work;
 }
 
 static void
@@ -757,7 +757,7 @@ vips_tile_cache_gen(VipsRegion * or,
 
 	g_mutex_unlock(cache->lock);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -770,21 +770,21 @@ vips_tile_cache_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_tile_cache_build\n");
 
 	if (VIPS_OBJECT_CLASS(vips_tile_cache_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(block_cache->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, block_cache->in, NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_tile_cache_gen, vips_stop_one,
 			block_cache->in, cache))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -875,7 +875,7 @@ vips_tilecache(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("tilecache", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsLineCache {
@@ -912,7 +912,7 @@ vips_line_cache_gen(VipsRegion * or,
 
 	g_mutex_unlock(block_cache->lock);
 
-	return (vips_tile_cache_gen(or, seq, a, b, stop));
+	return vips_tile_cache_gen(or, seq, a, b, stop);
 }
 
 static int
@@ -932,7 +932,7 @@ vips_line_cache_build(VipsObject *object)
 		block_cache->access = VIPS_ACCESS_SEQUENTIAL;
 
 	if (VIPS_OBJECT_CLASS(vips_line_cache_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* This can go up with request size, see vips_line_cache_gen().
 	 */
@@ -965,18 +965,18 @@ vips_line_cache_build(VipsObject *object)
 			(1024 * 1024.0));
 
 	if (vips_image_pio_input(block_cache->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, block_cache->in, NULL))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_line_cache_gen, vips_stop_one,
 			block_cache->in, cache))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1043,5 +1043,5 @@ vips_linecache(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("linecache", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

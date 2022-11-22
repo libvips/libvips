@@ -156,7 +156,7 @@ vips_complex_hypot(double a, double b)
 	d = sqrt(a * a + b * b);
 #endif
 
-	return (d);
+	return d;
 }
 
 static double
@@ -175,7 +175,7 @@ vips_complex_atan2(double a, double b)
 	h = vips_col_ab2h(a, b);
 #endif
 
-	return (h);
+	return h;
 }
 
 #define POLAR(Q, X, Y) \
@@ -294,7 +294,7 @@ static int
 vips_complexv(VipsImage *in, VipsImage **out,
 	VipsOperationComplex cmplx, va_list ap)
 {
-	return (vips_call_split("complex", ap, in, out, cmplx));
+	return vips_call_split("complex", ap, in, out, cmplx);
 }
 
 /**
@@ -321,7 +321,7 @@ vips_complex(VipsImage *in, VipsImage **out, VipsOperationComplex cmplx, ...)
 	result = vips_complexv(in, out, cmplx, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -344,7 +344,7 @@ vips_polar(VipsImage *in, VipsImage **out, ...)
 	result = vips_complexv(in, out, VIPS_OPERATION_COMPLEX_POLAR, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -367,7 +367,7 @@ vips_rect(VipsImage *in, VipsImage **out, ...)
 	result = vips_complexv(in, out, VIPS_OPERATION_COMPLEX_RECT, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -390,7 +390,7 @@ vips_conj(VipsImage *in, VipsImage **out, ...)
 	result = vips_complexv(in, out, VIPS_OPERATION_COMPLEX_CONJ, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsComplex2 {
@@ -602,7 +602,7 @@ static int
 vips_complex2v(VipsImage *left, VipsImage *right, VipsImage **out,
 	VipsOperationComplex2 cmplx, va_list ap)
 {
-	return (vips_call_split("complex2", ap, left, right, out, cmplx));
+	return vips_call_split("complex2", ap, left, right, out, cmplx);
 }
 
 /**
@@ -631,7 +631,7 @@ vips_complex2(VipsImage *left, VipsImage *right, VipsImage **out,
 	result = vips_complex2v(left, right, out, cmplx, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -657,7 +657,7 @@ vips_cross_phase(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 		VIPS_OPERATION_COMPLEX2_CROSS_PHASE, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsComplexget {
@@ -680,12 +680,12 @@ vips_complexget_build(VipsObject *object)
 	if (unary->in &&
 		!vips_band_format_iscomplex(unary->in->BandFmt) &&
 		complexget->get == VIPS_OPERATION_COMPLEXGET_REAL)
-		return (vips_unary_copy(unary));
+		return vips_unary_copy(unary);
 
 	if (VIPS_OBJECT_CLASS(vips_complexget_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define GETLOOP(TYPE, OP) \
@@ -835,7 +835,7 @@ static int
 vips_complexgetv(VipsImage *in, VipsImage **out,
 	VipsOperationComplexget get, va_list ap)
 {
-	return (vips_call_split("complexget", ap, in, out, get));
+	return vips_call_split("complexget", ap, in, out, get);
 }
 
 /**
@@ -864,7 +864,7 @@ vips_complexget(VipsImage *in, VipsImage **out,
 	result = vips_complexgetv(in, out, get, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -888,7 +888,7 @@ vips_real(VipsImage *in, VipsImage **out, ...)
 		VIPS_OPERATION_COMPLEXGET_REAL, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -912,7 +912,7 @@ vips_imag(VipsImage *in, VipsImage **out, ...)
 		VIPS_OPERATION_COMPLEXGET_IMAG, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef VipsBinary VipsComplexform;
@@ -928,15 +928,15 @@ vips_complexform_build(VipsObject *object)
 
 	if (binary->left &&
 		vips_check_noncomplex(class->nickname, binary->left))
-		return (-1);
+		return -1;
 	if (binary->right &&
 		vips_check_noncomplex(class->nickname, binary->right))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_complexform_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define CFORM(IN, OUT) \
@@ -1070,5 +1070,5 @@ vips_complexform(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("complexform", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

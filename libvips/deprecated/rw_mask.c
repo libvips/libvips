@@ -159,13 +159,13 @@ int
 im_free_imask(INTMASK *in)
 {
 	if (!in)
-		return (0);
+		return 0;
 
 	IM_FREE(in->coeff);
 	IM_FREE(in->filename);
 	IM_FREE(in);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -183,13 +183,13 @@ int
 im_free_dmask(DOUBLEMASK *in)
 {
 	if (!in)
-		return (0);
+		return 0;
 
 	IM_FREE(in->coeff);
 	IM_FREE(in->filename);
 	IM_FREE(in);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -214,13 +214,13 @@ im_create_imask(const char *filename, int xsize, int ysize)
 	 */
 	if (xsize <= 0 || ysize <= 0 || filename == NULL) {
 		im_error("im_create_imask", "%s", _("bad arguments"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Allocate and initialise structure.
 	 */
 	if (!(out = IM_NEW(NULL, INTMASK)))
-		return (NULL);
+		return NULL;
 	out->coeff = NULL;
 	out->filename = NULL;
 	out->scale = 1;
@@ -230,17 +230,17 @@ im_create_imask(const char *filename, int xsize, int ysize)
 
 	if (!(out->coeff = IM_ARRAY(NULL, size, int))) {
 		im_free_imask(out);
-		return (NULL);
+		return NULL;
 	}
 	(void) memset((char *) out->coeff, 0, size * sizeof(int));
 	if (!(out->filename = im_strdup(NULL, filename))) {
 		im_free_imask(out);
-		return (NULL);
+		return NULL;
 	}
 	out->xsize = xsize;
 	out->ysize = ysize;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -265,14 +265,14 @@ im_create_imaskv(const char *filename, int xsize, int ysize, ...)
 	int i;
 
 	if (!(out = im_create_imask(filename, xsize, ysize)))
-		return (NULL);
+		return NULL;
 
 	va_start(ap, ysize);
 	for (i = 0; i < xsize * ysize; i++)
 		out->coeff[i] = va_arg(ap, int);
 	va_end(ap);
 
-	return (out);
+	return out;
 }
 
 /**
@@ -297,13 +297,13 @@ im_create_dmask(const char *filename, int xsize, int ysize)
 	 */
 	if (xsize <= 0 || ysize <= 0 || filename == NULL) {
 		im_error("im_create_dmask", "%s", _("bad arguments"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Allocate and initialise structure.
 	 */
 	if (!(out = IM_NEW(NULL, DOUBLEMASK)))
-		return (NULL);
+		return NULL;
 	out->coeff = NULL;
 	out->filename = NULL;
 	out->scale = 1.0;
@@ -313,17 +313,17 @@ im_create_dmask(const char *filename, int xsize, int ysize)
 
 	if (!(out->coeff = IM_ARRAY(NULL, size, double))) {
 		im_free_dmask(out);
-		return (NULL);
+		return NULL;
 	}
 	(void) memset((char *) out->coeff, 0, size * sizeof(double));
 	if (!(out->filename = im_strdup(NULL, filename))) {
 		im_free_dmask(out);
-		return (NULL);
+		return NULL;
 	}
 	out->xsize = xsize;
 	out->ysize = ysize;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -348,14 +348,14 @@ im_create_dmaskv(const char *filename, int xsize, int ysize, ...)
 	int i;
 
 	if (!(out = im_create_dmask(filename, xsize, ysize)))
-		return (NULL);
+		return NULL;
 
 	va_start(ap, ysize);
 	for (i = 0; i < xsize * ysize; i++)
 		out->coeff[i] = va_arg(ap, double);
 	va_end(ap);
 
-	return (out);
+	return out;
 }
 
 /* Read a line from a file!
@@ -365,10 +365,10 @@ get_line(FILE *fp, char *buf)
 {
 	if (!fgets(buf, MAX_LINE, fp)) {
 		im_error("read_mask", "%s", _("unexpected EOF"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* width, height, optional scale, optional offset.
@@ -385,7 +385,7 @@ read_header(FILE *fp, int *xs, int *ys, double *scale, double *offset)
 	 * scale + offset.
 	 */
 	if (get_line(fp, buf))
-		return (-1);
+		return -1;
 
 	/* Read as space separated doubles. \n is in the break list because
 	 * our line will (usually) have a trailing \n which we want to count
@@ -404,12 +404,12 @@ read_header(FILE *fp, int *xs, int *ys, double *scale, double *offset)
 		v[1] <= 0) {
 		im_error("read_header",
 			"%s", _("error reading matrix header"));
-		return (-1);
+		return -1;
 	}
 	if (i == 4 && v[2] == 0) {
 		im_error("read_header",
 			"%s", _("scale should be non-zero"));
-		return (-1);
+		return -1;
 	}
 
 	*xs = v[0];
@@ -423,7 +423,7 @@ read_header(FILE *fp, int *xs, int *ys, double *scale, double *offset)
 		*offset = v[3];
 	}
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -467,16 +467,16 @@ im_read_dmask(const char *filename)
 	char buf[MAX_LINE];
 
 	if (!(fp = im__file_open_read(filename, NULL, TRUE)))
-		return (NULL);
+		return NULL;
 
 	if (read_header(fp, &xs, &ys, &sc, &off)) {
 		fclose(fp);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(out = im_create_dmask(filename, xs, ys))) {
 		fclose(fp);
-		return (NULL);
+		return NULL;
 	}
 	out->scale = sc;
 	out->offset = off;
@@ -487,7 +487,7 @@ im_read_dmask(const char *filename)
 		if (get_line(fp, buf)) {
 			im_free_dmask(out);
 			fclose(fp);
-			return (NULL);
+			return NULL;
 		}
 
 		for (p = buf, x = 0; p && x < xs;
@@ -496,7 +496,7 @@ im_read_dmask(const char *filename)
 	}
 	fclose(fp);
 
-	return (out);
+	return out;
 }
 
 /**
@@ -521,7 +521,7 @@ im_read_imask(const char *filename)
 	int i;
 
 	if (!(dmask = im_read_dmask(filename)))
-		return (NULL);
+		return NULL;
 
 	if (ceil(dmask->scale) != dmask->scale ||
 		ceil(dmask->offset) != dmask->offset) {
@@ -529,7 +529,7 @@ im_read_imask(const char *filename)
 			"%s", _("scale and offset should be int"));
 		im_free_dmask(dmask);
 
-		return (NULL);
+		return NULL;
 	}
 
 	for (i = 0; i < dmask->xsize * dmask->ysize; i++)
@@ -540,13 +540,13 @@ im_read_imask(const char *filename)
 				i / dmask->xsize);
 			im_free_dmask(dmask);
 
-			return (NULL);
+			return NULL;
 		}
 
 	if (!(imask = im_create_imask(filename,
 			  dmask->xsize, dmask->ysize))) {
 		im_free_dmask(dmask);
-		return (NULL);
+		return NULL;
 	}
 	imask->scale = dmask->scale;
 	imask->offset = dmask->offset;
@@ -555,7 +555,7 @@ im_read_imask(const char *filename)
 
 	im_free_dmask(dmask);
 
-	return (imask);
+	return imask;
 }
 
 /**
@@ -581,7 +581,7 @@ im_scale_dmask(DOUBLEMASK *in, const char *filename)
 
 	if (im_check_dmask("im_scale_dmask", in) ||
 		!(out = im_create_imask(filename, in->xsize, in->ysize)))
-		return (NULL);
+		return NULL;
 
 	/* Find mask max.
 	 */
@@ -612,7 +612,7 @@ im_scale_dmask(DOUBLEMASK *in, const char *filename)
 	else
 		out->scale = IM_RINT(in->scale * isum / dsum);
 
-	return (out);
+	return out;
 }
 
 /**
@@ -636,14 +636,14 @@ im_dmask2imask(DOUBLEMASK *in, const char *filename)
 
 	if (im_check_dmask("im_dmask2imask", in) ||
 		!(out = im_create_imask(filename, in->xsize, in->ysize)))
-		return (NULL);
+		return NULL;
 
 	for (i = 0; i < size; i++)
 		out->coeff[i] = IM_RINT(in->coeff[i]);
 	out->offset = IM_RINT(in->offset);
 	out->scale = IM_RINT(in->scale);
 
-	return (out);
+	return out;
 }
 
 /**
@@ -667,14 +667,14 @@ im_imask2dmask(INTMASK *in, const char *filename)
 
 	if (im_check_imask("im_imask2dmask", in) ||
 		!(out = im_create_dmask(filename, in->xsize, in->ysize)))
-		return (NULL);
+		return NULL;
 
 	for (i = 0; i < size; i++)
 		out->coeff[i] = in->coeff[i];
 	out->offset = in->offset;
 	out->scale = in->scale;
 
-	return (out);
+	return out;
 }
 
 /**
@@ -726,7 +726,7 @@ im_dup_imask(INTMASK *in, const char *filename)
 
 	if (im_check_imask("im_dup_imask", in) ||
 		!(out = im_create_imask(filename, in->xsize, in->ysize)))
-		return (NULL);
+		return NULL;
 
 	out->offset = in->offset;
 	out->scale = in->scale;
@@ -734,7 +734,7 @@ im_dup_imask(INTMASK *in, const char *filename)
 	for (i = 0; i < in->xsize * in->ysize; i++)
 		out->coeff[i] = in->coeff[i];
 
-	return (out);
+	return out;
 }
 
 /**
@@ -756,7 +756,7 @@ im_dup_dmask(DOUBLEMASK *in, const char *filename)
 
 	if (im_check_dmask("im_dup_dmask", in) ||
 		!(out = im_create_dmask(filename, in->xsize, in->ysize)))
-		return (NULL);
+		return NULL;
 
 	out->offset = in->offset;
 	out->scale = in->scale;
@@ -764,7 +764,7 @@ im_dup_dmask(DOUBLEMASK *in, const char *filename)
 	for (i = 0; i < in->xsize * in->ysize; i++)
 		out->coeff[i] = in->coeff[i];
 
-	return (out);
+	return out;
 }
 
 /* Write to file.
@@ -777,11 +777,11 @@ write_line(FILE *fp, const char *fmt, ...)
 	va_start(ap, fmt);
 	if (!vfprintf(fp, fmt, ap)) {
 		im_error("write_mask", "%s", _("write error, disc full?"));
-		return (-1);
+		return -1;
 	}
 	va_end(ap);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -791,7 +791,7 @@ write_double(FILE *fp, double d)
 
 	fprintf(fp, "%s", g_ascii_dtostr(buf, sizeof(buf), d));
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -814,11 +814,11 @@ im_write_imask_name(INTMASK *in, const char *filename)
 
 	if (im_check_imask("im_write_imask_name", in) ||
 		!(fp = im__file_open_write(filename, TRUE)))
-		return (-1);
+		return -1;
 
 	if (write_line(fp, "%d %d", in->xsize, in->ysize)) {
 		fclose(fp);
-		return (-1);
+		return -1;
 	}
 	if (in->scale != 1 || in->offset != 0)
 		write_line(fp, " %d %d", in->scale, in->offset);
@@ -830,12 +830,12 @@ im_write_imask_name(INTMASK *in, const char *filename)
 
 		if (write_line(fp, "\n")) {
 			fclose(fp);
-			return (-1);
+			return -1;
 		}
 	}
 	fclose(fp);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -853,10 +853,10 @@ im_write_imask(INTMASK *in)
 {
 	if (!in->filename) {
 		im_error("im_write_imask", "%s", _("filename not set"));
-		return (-1);
+		return -1;
 	}
 
-	return (im_write_imask_name(in, in->filename));
+	return im_write_imask_name(in, in->filename);
 }
 
 /**
@@ -879,11 +879,11 @@ im_write_dmask_name(DOUBLEMASK *in, const char *filename)
 
 	if (im_check_dmask("im_write_dmask_name", in) ||
 		!(fp = im__file_open_write(filename, TRUE)))
-		return (-1);
+		return -1;
 
 	if (write_line(fp, "%d %d", in->xsize, in->ysize)) {
 		fclose(fp);
-		return (-1);
+		return -1;
 	}
 	if (in->scale != 1.0 || in->offset != 0.0) {
 		write_line(fp, " ");
@@ -901,12 +901,12 @@ im_write_dmask_name(DOUBLEMASK *in, const char *filename)
 
 		if (write_line(fp, "\n")) {
 			fclose(fp);
-			return (-1);
+			return -1;
 		}
 	}
 	fclose(fp);
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -925,10 +925,10 @@ im_write_dmask(DOUBLEMASK *in)
 {
 	if (!in->filename) {
 		im_error("im_write_dmask", "%s", _("filename not set"));
-		return (-1);
+		return -1;
 	}
 
-	return (im_write_dmask_name(in, in->filename));
+	return im_write_dmask_name(in, in->filename);
 }
 
 /* Copy an imask into a matrix. Only used internally by matrix package for
@@ -1048,15 +1048,15 @@ DOUBLEMASK *
 im_local_dmask(VipsImage *out, DOUBLEMASK *mask)
 {
 	if (im_check_dmask("im_local_dmask", mask))
-		return (NULL);
+		return NULL;
 
 	if (im_add_close_callback(out,
 			(im_callback_fn) im_free_dmask, mask, NULL)) {
 		im_free_dmask(mask);
-		return (NULL);
+		return NULL;
 	}
 
-	return (mask);
+	return mask;
 }
 
 /**
@@ -1075,13 +1075,13 @@ INTMASK *
 im_local_imask(VipsImage *out, INTMASK *mask)
 {
 	if (im_check_imask("im_local_dmask", mask))
-		return (NULL);
+		return NULL;
 
 	if (im_add_close_callback(out,
 			(im_callback_fn) im_free_imask, mask, NULL)) {
 		im_free_imask(mask);
-		return (NULL);
+		return NULL;
 	}
 
-	return (mask);
+	return mask;
 }

@@ -206,9 +206,9 @@ get_int(VipsImage *image, const char *field, int default_value)
 
 	if (vips_image_get_typeof(image, field) &&
 		!vips_image_get_string(image, field, &str))
-		return (atoi(str));
+		return atoi(str);
 
-	return (default_value);
+	return default_value;
 }
 
 static void
@@ -377,7 +377,7 @@ vips_thumbnail_get_heif_thumb_info(VipsThumbnail *thumbnail)
 	VipsImage *thumb;
 
 	if (!(thumb = class->open(thumbnail, 1)))
-		return (-1);
+		return -1;
 
 	if (thumb->Xsize < thumbnail->input_width) {
 		thumbnail->heif_thumbnail_width = thumb->Xsize;
@@ -386,7 +386,7 @@ vips_thumbnail_get_heif_thumb_info(VipsThumbnail *thumbnail)
 
 	VIPS_UNREF(thumb);
 
-	return (0);
+	return 0;
 }
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
@@ -474,7 +474,7 @@ vips_thumbnail_calculate_common_shrink(VipsThumbnail *thumbnail,
 
 	shrink = VIPS_MIN(hshrink, vshrink);
 
-	return (shrink);
+	return shrink;
 }
 
 /* Find the best jpeg preload shrink.
@@ -490,7 +490,7 @@ vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail,
 	 * (of YCbCR), not linear space.
 	 */
 	if (thumbnail->linear)
-		return (1);
+		return 1;
 
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
 	 * extra sharpness to the image. We want to block shrink to a
@@ -500,13 +500,13 @@ vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail,
 	 * Leave at least a factor of two for the final resize step.
 	 */
 	if (shrink >= 16)
-		return (8);
+		return 8;
 	else if (shrink >= 8)
-		return (4);
+		return 4;
 	else if (shrink >= 4)
-		return (2);
+		return 2;
 	else
-		return (1);
+		return 1;
 }
 
 /* Find the best pyramid (openslide, tiff, etc.) level.
@@ -524,9 +524,9 @@ vips_thumbnail_find_pyrlevel(VipsThumbnail *thumbnail,
 		if (vips_thumbnail_calculate_common_shrink(thumbnail,
 				thumbnail->level_width[level],
 				thumbnail->level_height[level]) >= 1.0)
-			return (level);
+			return level;
 
-	return (0);
+	return 0;
 }
 
 /* Open the image, returning the best version for thumbnailing.
@@ -543,7 +543,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	double factor;
 
 	if (class->get_info(thumbnail))
-		return (NULL);
+		return NULL;
 	g_info("selected loader is %s", thumbnail->loader);
 	g_info("input size is %d x %d",
 		thumbnail->input_width, thumbnail->input_height);
@@ -642,11 +642,11 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	g_info("loading with factor %g pre-shrink", factor);
 
 	if (!(im = class->open(thumbnail, factor)))
-		return (NULL);
+		return NULL;
 
 	g_info("pre-shrunk size is %d x %d", im->Xsize, im->Ysize);
 
-	return (im);
+	return im;
 }
 
 static int
@@ -680,7 +680,7 @@ vips_thumbnail_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_thumbnail_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* We have to support both no_rotate and auto_rotate optional args,
 	 * with no_rotate being the new and not-deprecated one.
@@ -697,7 +697,7 @@ vips_thumbnail_build(VipsObject *object)
 	/* Open and do any pre-shrinking.
 	 */
 	if (!(t[0] = vips_thumbnail_open(thumbnail)))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* After pre-shrink, but before the main shrink stage.
@@ -716,7 +716,7 @@ vips_thumbnail_build(VipsObject *object)
 		/* rad is scrgb.
 		 */
 		if (vips_rad2float(in, &t[12], NULL))
-			return (-1);
+			return -1;
 		in = t[12];
 	}
 
@@ -744,7 +744,7 @@ vips_thumbnail_build(VipsObject *object)
 					"intent", thumbnail->intent,
 					"pcs", VIPS_PCS_XYZ,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[1];
 
 			have_imported = TRUE;
@@ -764,7 +764,7 @@ vips_thumbnail_build(VipsObject *object)
 					interpretation));
 			if (vips_colourspace(in, &t[2], interpretation,
 					NULL))
-				return (-1);
+				return -1;
 			in = t[2];
 		}
 	}
@@ -784,7 +784,7 @@ vips_thumbnail_build(VipsObject *object)
 				interpretation));
 		if (vips_colourspace(in, &t[2], interpretation,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[2];
 	}
 
@@ -821,21 +821,21 @@ vips_thumbnail_build(VipsObject *object)
 		unpremultiplied_format = in->BandFmt;
 
 		if (vips_premultiply(in, &t[3], NULL))
-			return (-1);
+			return -1;
 		in = t[3];
 	}
 
 	if (vips_resize(in, &t[4], 1.0 / hshrink,
 			"vscale", 1.0 / vshrink,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[4];
 
 	if (unpremultiplied_format != VIPS_FORMAT_NOTSET) {
 		g_info("unpremultiplying alpha");
 		if (vips_unpremultiply(in, &t[5], NULL) ||
 			vips_cast(t[5], &t[6], unpremultiplied_format, NULL))
-			return (-1);
+			return -1;
 		in = t[6];
 	}
 
@@ -847,7 +847,7 @@ vips_thumbnail_build(VipsObject *object)
 			VIPS_RINT(preshrunk_page_height / vshrink);
 
 		if (vips_copy(in, &t[13], NULL))
-			return (-1);
+			return -1;
 		in = t[13];
 
 		vips_image_set_int(in,
@@ -866,7 +866,7 @@ vips_thumbnail_build(VipsObject *object)
 				"output_profile", thumbnail->export_profile,
 				"intent", thumbnail->intent,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[7];
 	}
 	else if (needs_icc_transform) {
@@ -879,7 +879,7 @@ vips_thumbnail_build(VipsObject *object)
 				"intent", thumbnail->intent,
 				"embedded", TRUE,
 				NULL))
-			return (-1);
+			return -1;
 
 		in = t[7];
 	}
@@ -894,7 +894,7 @@ vips_thumbnail_build(VipsObject *object)
 				"output_profile", thumbnail->export_profile,
 				"intent", thumbnail->intent,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[10];
 	}
 	else if (thumbnail->linear) {
@@ -913,7 +913,7 @@ vips_thumbnail_build(VipsObject *object)
 				interpretation));
 		if (vips_colourspace(in, &t[7], interpretation,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[7];
 	}
 
@@ -925,7 +925,7 @@ vips_thumbnail_build(VipsObject *object)
 		 */
 		if (!(t[9] = vips_image_copy_memory(in)) ||
 			vips_autorot(t[9], &t[14], NULL))
-			return (-1);
+			return -1;
 		in = t[14];
 	}
 
@@ -949,16 +949,16 @@ vips_thumbnail_build(VipsObject *object)
 				crop_width, crop_height,
 				"interesting", thumbnail->crop,
 				NULL))
-			return (-1);
+			return -1;
 		in = t[11];
 	}
 
 	g_object_set(thumbnail, "out", vips_image_new(), NULL);
 
 	if (vips_image_write(in, thumbnail->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1106,13 +1106,13 @@ vips_thumbnail_file_get_info(VipsThumbnail *thumbnail)
 
 	if (!(thumbnail->loader = vips_foreign_find_load(file->filename)) ||
 		!(image = vips_image_new_from_file(file->filename, NULL)))
-		return (-1);
+		return -1;
 
 	vips_thumbnail_read_header(thumbnail, image);
 
 	g_object_unref(image);
 
-	return (0);
+	return 0;
 }
 
 /* Open an image, pre-shrinking as appropriate.
@@ -1123,77 +1123,77 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
-		return (vips_image_new_from_file(file->filename,
+		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
-		return (vips_image_new_from_file(file->filename,
+		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
-		return (vips_image_new_from_file(file->filename,
+		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* jp2k optionally uses page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
-			return (vips_image_new_from_file(file->filename,
+			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_file(file->filename,
+			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
 		if (thumbnail->subifd_pyramid)
-			return (vips_image_new_from_file(file->filename,
+			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
-				NULL));
+				NULL);
 		else if (thumbnail->page_pyramid)
-			return (vips_image_new_from_file(file->filename,
+			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_file(file->filename,
+			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
-		return (vips_image_new_from_file(file->filename,
+		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
-			NULL));
+			NULL);
 	}
 	else {
-		return (vips_image_new_from_file(file->filename,
+		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
-			NULL));
+			NULL);
 	}
 }
 
@@ -1305,7 +1305,7 @@ vips_thumbnail(const char *filename, VipsImage **out, int width, ...)
 	result = vips_call_split("thumbnail", ap, filename, out, width);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsThumbnailBuffer {
@@ -1336,13 +1336,13 @@ vips_thumbnail_buffer_get_info(VipsThumbnail *thumbnail)
 		!(image = vips_image_new_from_buffer(
 			  buffer->buf->data, buffer->buf->length,
 			  buffer->option_string, NULL)))
-		return (-1);
+		return -1;
 
 	vips_thumbnail_read_header(thumbnail, image);
 
 	g_object_unref(image);
 
-	return (0);
+	return 0;
 }
 
 /* Open an image, scaling as appropriate.
@@ -1353,88 +1353,88 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
-		return (vips_image_new_from_buffer(
+		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
-		return (vips_image_new_from_buffer(
+		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
-		return (vips_image_new_from_buffer(
+		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", 1.0 / factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
-			return (vips_image_new_from_buffer(
+			return vips_image_new_from_buffer(
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_buffer(
+			return vips_image_new_from_buffer(
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
 		if (thumbnail->subifd_pyramid)
-			return (vips_image_new_from_buffer(
+			return vips_image_new_from_buffer(
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"subifd", (int) factor,
-				NULL));
+				NULL);
 		else if (thumbnail->page_pyramid)
-			return (vips_image_new_from_buffer(
+			return vips_image_new_from_buffer(
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_buffer(
+			return vips_image_new_from_buffer(
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
-		return (vips_image_new_from_buffer(
+		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
-			NULL));
+			NULL);
 	}
 	else {
-		return (vips_image_new_from_buffer(
+		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			NULL));
+			NULL);
 	}
 }
 
@@ -1520,7 +1520,7 @@ vips_thumbnail_buffer(void *buf, size_t len, VipsImage **out, int width, ...)
 
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsThumbnailSource {
@@ -1550,13 +1550,13 @@ vips_thumbnail_source_get_info(VipsThumbnail *thumbnail)
 			  source->source)) ||
 		!(image = vips_image_new_from_source(source->source,
 			  source->option_string, NULL)))
-		return (-1);
+		return -1;
 
 	vips_thumbnail_read_header(thumbnail, image);
 
 	g_object_unref(image);
 
-	return (0);
+	return 0;
 }
 
 /* Open an image, scaling as appropriate.
@@ -1567,88 +1567,88 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
-		return (vips_image_new_from_source(
+		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
-		return (vips_image_new_from_source(
+		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
-		return (vips_image_new_from_source(
+		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", 1.0 / factor,
-			NULL));
+			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
-			return (vips_image_new_from_source(
+			return vips_image_new_from_source(
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_source(
+			return vips_image_new_from_source(
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
 		if (thumbnail->subifd_pyramid)
-			return (vips_image_new_from_source(
+			return vips_image_new_from_source(
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"subifd", (int) factor,
-				NULL));
+				NULL);
 		else if (thumbnail->page_pyramid)
-			return (vips_image_new_from_source(
+			return vips_image_new_from_source(
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
-				NULL));
+				NULL);
 		else
-			return (vips_image_new_from_source(
+			return vips_image_new_from_source(
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
-				NULL));
+				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
-		return (vips_image_new_from_source(
+		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
-			NULL));
+			NULL);
 	}
 	else {
-		return (vips_image_new_from_source(
+		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			NULL));
+			NULL);
 	}
 }
 
@@ -1726,7 +1726,7 @@ vips_thumbnail_source(VipsSource *source, VipsImage **out, int width, ...)
 	result = vips_call_split("thumbnail_source", ap, source, out, width);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 typedef struct _VipsThumbnailImage {
@@ -1753,7 +1753,7 @@ vips_thumbnail_image_get_info(VipsThumbnail *thumbnail)
 
 	vips_thumbnail_read_header(thumbnail, image->in);
 
-	return (0);
+	return 0;
 }
 
 /* Open an image. We can't pre-shrink with an image source, sadly.
@@ -1769,11 +1769,11 @@ vips_thumbnail_image_open(VipsThumbnail *thumbnail, double factor)
 	 * may get horrible cache thrashing.
 	 */
 	if (vips_sequential(image->in, &t[0], "tile-height", 16, NULL))
-		return (NULL);
+		return NULL;
 
 	g_object_ref(t[0]);
 
-	return (t[0]);
+	return t[0];
 }
 
 static void
@@ -1844,5 +1844,5 @@ vips_thumbnail_image(VipsImage *in, VipsImage **out, int width, ...)
 	result = vips_call_split("thumbnail_image", ap, in, out, width);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

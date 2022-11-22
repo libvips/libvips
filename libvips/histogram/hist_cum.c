@@ -188,5 +188,5 @@ vips_hist_cum(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_cum", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

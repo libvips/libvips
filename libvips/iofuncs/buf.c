@@ -261,9 +261,9 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 	int cpy;
 
 	if (buf->full)
-		return (FALSE);
+		return FALSE;
 	if (!str)
-		return (TRUE);
+		return TRUE;
 
 	/* Amount we want to copy.
 	 */
@@ -294,10 +294,10 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 		buf->full = TRUE;
 		strcpy(buf->base + buf->mx - 4, "...");
 		buf->i = buf->mx - 1;
-		return (FALSE);
+		return FALSE;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -312,7 +312,7 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 gboolean
 vips_buf_appends(VipsBuf *buf, const char *str)
 {
-	return (vips_buf_appendns(buf, str, -1));
+	return vips_buf_appendns(buf, str, -1);
 }
 
 /**
@@ -332,7 +332,7 @@ vips_buf_appendc(VipsBuf *buf, char ch)
 	tiny[0] = ch;
 	tiny[1] = '\0';
 
-	return (vips_buf_appendns(buf, tiny, 1));
+	return vips_buf_appendns(buf, tiny, 1);
 }
 
 /**
@@ -353,10 +353,10 @@ vips_buf_change(VipsBuf *buf, const char *old, const char *new)
 	int i;
 
 	if (buf->full)
-		return (FALSE);
+		return FALSE;
 	if (buf->i - olen + nlen > buf->mx - 4) {
 		buf->full = TRUE;
-		return (FALSE);
+		return FALSE;
 	}
 
 	/* Find pos of old.
@@ -376,7 +376,7 @@ vips_buf_change(VipsBuf *buf, const char *old, const char *new)
 	memcpy(buf->base + i, new, nlen);
 	buf->i = i + nlen + (buf->i - i - olen);
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -392,13 +392,13 @@ gboolean
 vips_buf_removec(VipsBuf *buf, char ch)
 {
 	if (buf->full)
-		return (FALSE);
+		return FALSE;
 	if (buf->i <= 0)
-		return (FALSE);
+		return FALSE;
 	if (buf->base[buf->i - 1] == ch)
 		buf->i -= 1;
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -418,7 +418,7 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 	char *p;
 
 	if (buf->full)
-		return (FALSE);
+		return FALSE;
 
 	avail = buf->mx - buf->i - 4;
 	p = buf->base + buf->i;
@@ -429,10 +429,10 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 		buf->full = TRUE;
 		strcpy(buf->base + buf->mx - 4, "...");
 		buf->i = buf->mx - 1;
-		return (FALSE);
+		return FALSE;
 	}
 
-	return (TRUE);
+	return TRUE;
 }
 
 /**
@@ -455,7 +455,7 @@ vips_buf_appendf(VipsBuf *buf, const char *fmt, ...)
 	result = vips_buf_vappendf(buf, fmt, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -474,7 +474,7 @@ vips_buf_appendg(VipsBuf *buf, double g)
 
 	g_ascii_dtostr(text, sizeof(text), g);
 
-	return (vips_buf_appends(buf, text));
+	return vips_buf_appends(buf, text);
 }
 
 /**
@@ -491,9 +491,9 @@ gboolean
 vips_buf_appendd(VipsBuf *buf, int d)
 {
 	if (d < 0)
-		return (vips_buf_appendf(buf, " (%d)", d));
+		return vips_buf_appendf(buf, " (%d)", d);
 	else
-		return (vips_buf_appendf(buf, " %d", d));
+		return vips_buf_appendf(buf, " %d", d);
 }
 
 /**
@@ -659,7 +659,7 @@ vips_buf_appendgv(VipsBuf *buf, GValue *value)
 		g_free(str_value);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -708,9 +708,9 @@ vips_buf_append_size(VipsBuf *buf, size_t n)
 	if (i == 0)
 		/* No decimal places for bytes.
 		 */
-		return (vips_buf_appendf(buf, "%g %s", sz, _(names[i])));
+		return vips_buf_appendf(buf, "%g %s", sz, _(names[i]));
 	else
-		return (vips_buf_appendf(buf, "%.2f %s", sz, _(names[i])));
+		return vips_buf_appendf(buf, "%.2f %s", sz, _(names[i]));
 }
 
 /**
@@ -727,7 +727,7 @@ vips_buf_all(VipsBuf *buf)
 {
 	buf->base[buf->i] = '\0';
 
-	return (buf->base);
+	return buf->base;
 }
 
 /**
@@ -747,7 +747,7 @@ vips_buf_firstline(VipsBuf *buf)
 	if ((p = strchr(vips_buf_all(buf), '\n')))
 		*p = '\0';
 
-	return (vips_buf_all(buf));
+	return vips_buf_all(buf);
 }
 
 /**
@@ -759,7 +759,7 @@ vips_buf_firstline(VipsBuf *buf)
 gboolean
 vips_buf_is_empty(VipsBuf *buf)
 {
-	return (buf->i == 0);
+	return buf->i == 0;
 }
 
 /**
@@ -771,7 +771,7 @@ vips_buf_is_empty(VipsBuf *buf)
 gboolean
 vips_buf_is_full(VipsBuf *buf)
 {
-	return (buf->full);
+	return buf->full;
 }
 
 /**
@@ -783,5 +783,5 @@ vips_buf_is_full(VipsBuf *buf)
 int
 vips_buf_len(VipsBuf *buf)
 {
-	return (buf->i);
+	return buf->i;
 }

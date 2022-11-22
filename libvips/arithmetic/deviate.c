@@ -98,10 +98,10 @@ vips_deviate_build(VipsObject *object)
 
 	if (statistic->in &&
 		vips_check_noncomplex(class->nickname, statistic->in))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_deviate_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/*
 
@@ -123,7 +123,7 @@ vips_deviate_build(VipsObject *object)
 		"out", sqrt(VIPS_FABS(s2 - (s * s / vals)) / (vals - 1)),
 		NULL);
 
-	return (0);
+	return 0;
 }
 
 /* Start function: allocate space for an array in which we can accumulate the
@@ -132,7 +132,7 @@ vips_deviate_build(VipsObject *object)
 static void *
 vips_deviate_start(VipsStatistic *statistic)
 {
-	return ((void *) g_new0(double, 2));
+	return (void *) g_new0(double, 2);
 }
 
 /* Stop function. Add this little sum to the main sum.
@@ -148,7 +148,7 @@ vips_deviate_stop(VipsStatistic *statistic, void *seq)
 
 	g_free(ss2);
 
-	return (0);
+	return 0;
 }
 
 #define LOOP(TYPE) \
@@ -212,7 +212,7 @@ vips_deviate_scan(VipsStatistic *statistic, void *seq,
 	ss2[0] = sum;
 	ss2[1] = sum2;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -272,5 +272,5 @@ vips_deviate(VipsImage *in, double *out, ...)
 	result = vips_call_split("deviate", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

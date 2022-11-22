@@ -55,7 +55,7 @@ static im_arg_desc quadratic_args[] = {
 static int
 quadratic_vec(im_object *argv)
 {
-	return (im_quadratic(argv[0], argv[1], argv[2]));
+	return im_quadratic(argv[0], argv[1], argv[2]);
 }
 
 static im_function quadratic_desc = {
@@ -80,7 +80,7 @@ static im_arg_desc two_in_one_out[] = {
 static int
 clip_vec(im_object *argv)
 {
-	return (im_clip(argv[0], argv[1]));
+	return im_clip(argv[0], argv[1]);
 }
 
 /* Description of im_clip.
@@ -99,7 +99,7 @@ static im_function clip_desc = {
 static int
 c2ps_vec(im_object *argv)
 {
-	return (im_c2ps(argv[0], argv[1]));
+	return im_c2ps(argv[0], argv[1]);
 }
 
 /* Description of im_c2ps.
@@ -174,7 +174,7 @@ static im_arg_desc conv_dmask[] = {
 static int
 cmulnorm_vec(im_object *argv)
 {
-	return (im_cmulnorm(argv[0], argv[1], argv[2]));
+	return im_cmulnorm(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_cmulnorm.
@@ -210,7 +210,7 @@ fav4_vec(im_object *argv)
 	buf[2] = argv[2];
 	buf[3] = argv[3];
 
-	return (im_fav4(&buf[0], argv[4]));
+	return im_fav4(&buf[0], argv[4]);
 }
 
 /* Description of im_fav4.
@@ -244,7 +244,7 @@ gadd_vec(im_object *argv)
 	double b = *((double *) argv[2]);
 	double c = *((double *) argv[4]);
 
-	return (im_gadd(a, argv[1], b, argv[3], c, argv[5]));
+	return im_gadd(a, argv[1], b, argv[3], c, argv[5]);
 }
 
 /* Description of im_gadd().
@@ -276,7 +276,7 @@ litecor_vec(im_object *argv)
 	int clip = *((int *) argv[3]);
 	double factor = *((double *) argv[4]);
 
-	return (im_litecor(argv[0], argv[1], argv[2], clip, factor));
+	return im_litecor(argv[0], argv[1], argv[2], clip, factor);
 }
 
 /* Description of im_litecor().
@@ -323,7 +323,7 @@ affine_vec(im_object *argv)
 	int w = *((int *) argv[10]);
 	int h = *((int *) argv[11]);
 
-	return (im_affine(argv[0], argv[1], a, b, c, d, dx, dy, x, y, w, h));
+	return im_affine(argv[0], argv[1], a, b, c, d, dx, dy, x, y, w, h);
 }
 
 /* Description of im_affine.
@@ -358,7 +358,7 @@ similarity_vec(im_object *argv)
 	double dx = *((double *) argv[4]);
 	double dy = *((double *) argv[5]);
 
-	return (im_similarity(argv[0], argv[1], a, b, dx, dy));
+	return im_similarity(argv[0], argv[1], a, b, dx, dy);
 }
 
 /* Description of im_similarity.
@@ -401,8 +401,8 @@ similarity_area_vec(im_object *argv)
 	int w = *((int *) argv[8]);
 	int h = *((int *) argv[9]);
 
-	return (im_similarity_area(argv[0], argv[1], a, b, dx, dy,
-		x, y, w, h));
+	return im_similarity_area(argv[0], argv[1], a, b, dx, dy,
+		x, y, w, h);
 }
 
 /* Description of im_similarity_area.
@@ -421,8 +421,8 @@ icc_export_vec(im_object *argv)
 {
 	int intent = *((int *) argv[3]);
 
-	return (im_icc_export(argv[0], argv[1],
-		argv[2], intent));
+	return im_icc_export(argv[0], argv[1],
+		argv[2], intent);
 }
 
 static im_arg_desc icc_export_args[] = {
@@ -461,7 +461,7 @@ segment_vec(im_object *argv)
 	IMAGE *mask = argv[1];
 	int *serial = (int *) argv[2];
 
-	return (im_segment(test, mask, serial));
+	return im_segment(test, mask, serial);
 }
 
 /* Description of im_segment().
@@ -482,10 +482,10 @@ print_vec(im_object *argv)
 	char **out = (char **) &argv[1];
 
 	if (im_print(message))
-		return (-1);
+		return -1;
 	*out = im_strdup(NULL, "printed");
 
-	return (0);
+	return 0;
 }
 
 static im_arg_desc print_arg_types[] = {
@@ -507,7 +507,7 @@ static im_function print_desc = {
 static int
 clip2dcm_vec(im_object *argv)
 {
-	return (im_clip2dcm(argv[0], argv[1]));
+	return im_clip2dcm(argv[0], argv[1]);
 }
 
 /* Description of im_clip2dcm.
@@ -526,7 +526,7 @@ static im_function clip2dcm_desc = {
 static int
 clip2cm_vec(im_object *argv)
 {
-	return (im_clip2cm(argv[0], argv[1]));
+	return im_clip2cm(argv[0], argv[1]);
 }
 
 /* Description of im_clip2cm.
@@ -545,7 +545,7 @@ static im_function clip2cm_desc = {
 static int
 clip2us_vec(im_object *argv)
 {
-	return (im_clip2us(argv[0], argv[1]));
+	return im_clip2us(argv[0], argv[1]);
 }
 
 /* Description of im_clip2us.
@@ -564,7 +564,7 @@ static im_function clip2us_desc = {
 static int
 clip2ui_vec(im_object *argv)
 {
-	return (im_clip2ui(argv[0], argv[1]));
+	return im_clip2ui(argv[0], argv[1]);
 }
 
 /* Description of im_clip2ui.
@@ -583,7 +583,7 @@ static im_function clip2ui_desc = {
 static int
 clip2s_vec(im_object *argv)
 {
-	return (im_clip2s(argv[0], argv[1]));
+	return im_clip2s(argv[0], argv[1]);
 }
 
 /* Description of im_clip2s.
@@ -602,7 +602,7 @@ static im_function clip2s_desc = {
 static int
 clip2i_vec(im_object *argv)
 {
-	return (im_clip2i(argv[0], argv[1]));
+	return im_clip2i(argv[0], argv[1]);
 }
 
 /* Description of im_clip2i.
@@ -621,7 +621,7 @@ static im_function clip2i_desc = {
 static int
 clip2d_vec(im_object *argv)
 {
-	return (im_clip2d(argv[0], argv[1]));
+	return im_clip2d(argv[0], argv[1]);
 }
 
 /* Description of im_clip2d.
@@ -640,7 +640,7 @@ static im_function clip2d_desc = {
 static int
 clip2f_vec(im_object *argv)
 {
-	return (im_clip2f(argv[0], argv[1]));
+	return im_clip2f(argv[0], argv[1]);
 }
 
 /* Description of im_clip2f.
@@ -659,7 +659,7 @@ static im_function clip2f_desc = {
 static int
 clip2c_vec(im_object *argv)
 {
-	return (im_clip2c(argv[0], argv[1]));
+	return im_clip2c(argv[0], argv[1]);
 }
 
 /* Description of im_clip2c.
@@ -688,7 +688,7 @@ thresh_vec(im_object *argv)
 {
 	double t1 = *((double *) argv[2]);
 
-	return (im_thresh(argv[0], argv[1], t1));
+	return im_thresh(argv[0], argv[1], t1);
 }
 
 /* Description of im_thresh.
@@ -719,7 +719,7 @@ slice_vec(im_object *argv)
 	double t1 = *((double *) argv[2]);
 	double t2 = *((double *) argv[3]);
 
-	return (im_slice(argv[0], argv[1], t1, t2));
+	return im_slice(argv[0], argv[1], t1, t2);
 }
 
 /* Description of im_slice.
@@ -752,7 +752,7 @@ convsub_vec(im_object *argv)
 	int xskip = *((int *) argv[3]);
 	int yskip = *((int *) argv[4]);
 
-	return (im_convsub(argv[0], argv[1], mo->mask, xskip, yskip));
+	return im_convsub(argv[0], argv[1], mo->mask, xskip, yskip);
 }
 
 /* Description of im_convsub.
@@ -787,7 +787,7 @@ bernd_vec(im_object *argv)
 	int width = *((int *) argv[3]);
 	int height = *((int *) argv[4]);
 
-	return (im_bernd(name, left, top, width, height));
+	return im_bernd(name, left, top, width, height);
 }
 
 /* Description of im_bernd.
@@ -823,7 +823,7 @@ line_vec(im_object *argv)
 	int y2 = *((int *) argv[4]);
 	int pel = *((int *) argv[5]);
 
-	return (im_line(argv[0], x1, y1, x2, y2, pel));
+	return im_line(argv[0], x1, y1, x2, y2, pel);
 }
 
 /* Description of im_line.
@@ -854,7 +854,7 @@ resize_linear_vec(im_object *argv)
 	int X = *((int *) argv[2]);
 	int Y = *((int *) argv[3]);
 
-	return (im_resize_linear(argv[0], argv[1], X, Y));
+	return im_resize_linear(argv[0], argv[1], X, Y);
 }
 
 /* Description of im_resize_linear.
@@ -889,13 +889,13 @@ insertplaceset_vec(im_object *argv)
 	if (xv->n != yv->n) {
 		im_error("im_insertplaceset", "%s",
 			_("vectors not same length"));
-		return (-1);
+		return -1;
 	}
 
 	if (im_insertset(argv[0], argv[1], argv[2], xv->n, xv->vec, yv->vec))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_insertplaceset.
@@ -914,7 +914,7 @@ static im_function insertplaceset_desc = {
 static int
 spcor_raw_vec(im_object *argv)
 {
-	return (im_spcor_raw(argv[0], argv[1], argv[2]));
+	return im_spcor_raw(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_spcor_raw.
@@ -933,7 +933,7 @@ static im_function spcor_raw_desc = {
 static int
 gradcor_raw_vec(im_object *argv)
 {
-	return (im_gradcor_raw(argv[0], argv[1], argv[2]));
+	return im_gradcor_raw(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_gradcor_raw.
@@ -952,7 +952,7 @@ static im_function gradcor_raw_desc = {
 static int
 fastcor_raw_vec(im_object *argv)
 {
-	return (im_fastcor_raw(argv[0], argv[1], argv[2]));
+	return im_fastcor_raw(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_fastcor_raw.
@@ -973,7 +973,7 @@ convsepf_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convsepf_raw(argv[0], argv[1], mo->mask));
+	return im_convsepf_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convsepf_raw.
@@ -994,7 +994,7 @@ convsep_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convsep_raw(argv[0], argv[1], mo->mask));
+	return im_convsep_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convsep_raw.
@@ -1015,7 +1015,7 @@ convf_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convf_raw(argv[0], argv[1], mo->mask));
+	return im_convf_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convf_raw.
@@ -1036,7 +1036,7 @@ conv_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_conv_raw(argv[0], argv[1], mo->mask));
+	return im_conv_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_conv_raw.
@@ -1067,8 +1067,8 @@ contrast_surface_raw_vec(im_object *argv)
 	int half_win_size = *((int *) argv[2]);
 	int spacing = *((int *) argv[3]);
 
-	return (im_contrast_surface_raw(argv[0], argv[1],
-		half_win_size, spacing));
+	return im_contrast_surface_raw(argv[0], argv[1],
+		half_win_size, spacing);
 }
 
 /* Description of im_contrast_surface_raw.
@@ -1094,7 +1094,7 @@ stdif_raw_vec(im_object *argv)
 	int xw = *((int *) argv[6]);
 	int yw = *((int *) argv[7]);
 
-	return (im_stdif_raw(argv[0], argv[1], a, m0, b, s0, xw, yw));
+	return im_stdif_raw(argv[0], argv[1], a, m0, b, s0, xw, yw);
 }
 
 /* Description of im_stdif.
@@ -1116,7 +1116,7 @@ lhisteq_raw_vec(im_object *argv)
 	int xw = *((int *) argv[2]);
 	int yw = *((int *) argv[3]);
 
-	return (im_lhisteq_raw(argv[0], argv[1], xw, yw));
+	return im_lhisteq_raw(argv[0], argv[1], xw, yw);
 }
 
 /* Description of im_lhisteq_raw.
@@ -1139,7 +1139,7 @@ rank_raw_vec(im_object *argv)
 	int ysize = *((int *) argv[3]);
 	int n = *((int *) argv[4]);
 
-	return (im_rank_raw(argv[0], argv[1], xsize, ysize, n));
+	return im_rank_raw(argv[0], argv[1], xsize, ysize, n);
 }
 
 /* Description of im_rank_raw.
@@ -1160,7 +1160,7 @@ erode_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_erode_raw(argv[0], argv[1], mo->mask));
+	return im_erode_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_erode_raw.
@@ -1181,7 +1181,7 @@ dilate_raw_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_dilate_raw(argv[0], argv[1], mo->mask));
+	return im_dilate_raw(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_dilate_raw.
@@ -1202,7 +1202,7 @@ convsepf_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convsepf(argv[0], argv[1], mo->mask));
+	return im_convsepf(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convsepf.
@@ -1223,7 +1223,7 @@ convf_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_convf(argv[0], argv[1], mo->mask));
+	return im_convf(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_convf.
@@ -1257,7 +1257,7 @@ circle_vec(im_object *argv)
 	int radius = *((int *) argv[3]);
 	int intensity = *((int *) argv[4]);
 
-	return (im_circle(argv[0], cx, cy, radius, intensity));
+	return im_circle(argv[0], cx, cy, radius, intensity);
 }
 
 /* Description of im_circle.
@@ -1296,9 +1296,9 @@ flood_blob_copy_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_flood_blob_copy",
 			  in, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_flood_blob_copy(in, out, start_x, start_y, ink));
+	return im_flood_blob_copy(in, out, start_x, start_y, ink);
 }
 
 /* Description of im_flood_blob_copy().
@@ -1337,9 +1337,9 @@ flood_copy_vec(im_object *argv)
 
 	if (!(ink = im__vector_to_ink("im_flood_copy",
 			  in, dv->n, dv->vec)))
-		return (-1);
+		return -1;
 
-	return (im_flood_copy(in, out, start_x, start_y, ink));
+	return im_flood_copy(in, out, start_x, start_y, ink);
 }
 
 /* Description of im_flood_copy().
@@ -1376,8 +1376,8 @@ flood_other_copy_vec(im_object *argv)
 	int start_y = *((int *) argv[4]);
 	int serial = *((int *) argv[5]);
 
-	return (im_flood_other_copy(test, mark, out,
-		start_x, start_y, serial));
+	return im_flood_other_copy(test, mark, out,
+		start_x, start_y, serial);
 }
 
 /* Description of im_flood_other_copy().
@@ -1408,7 +1408,7 @@ insertplace_vec(im_object *argv)
 	int x = *((int *) argv[2]);
 	int y = *((int *) argv[3]);
 
-	return (im_insertplace(argv[0], argv[1], x, y));
+	return im_insertplace(argv[0], argv[1], x, y);
 }
 
 /* Description of im_insertplace.
@@ -1429,7 +1429,7 @@ remainderconst_vec_vec(im_object *argv)
 {
 	im_doublevec_object *dv = (im_doublevec_object *) argv[2];
 
-	return (im_remainder_vec(argv[0], argv[1], dv->n, dv->vec));
+	return im_remainder_vec(argv[0], argv[1], dv->n, dv->vec);
 }
 
 static im_arg_desc remainderconst_vec_args[] = {
@@ -1462,7 +1462,7 @@ mask2vips_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[0];
 
-	return (im_mask2vips(mo->mask, argv[1]));
+	return im_mask2vips(mo->mask, argv[1]);
 }
 
 /* Description of im_mask2vips.
@@ -1491,9 +1491,9 @@ vips2mask_vec(im_object *argv)
 	im_mask_object *mo = argv[1];
 
 	if (!(mo->mask = im_vips2mask(argv[0], mo->name)))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_vips2mask.
@@ -1536,7 +1536,7 @@ static im_arg_desc vec_in_one_out[] = {
 static int
 andimage_vec(im_object *argv)
 {
-	return (im_andimage(argv[0], argv[1], argv[2]));
+	return im_andimage(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_andimage.
@@ -1557,7 +1557,7 @@ andimageconst_vec(im_object *argv)
 {
 	int c = *((int *) argv[2]);
 
-	return (im_andimageconst(argv[0], argv[1], c));
+	return im_andimageconst(argv[0], argv[1], c);
 }
 
 /* Description of im_andconst.
@@ -1578,7 +1578,7 @@ andimage_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_andimage_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_andimage_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_andimageconst.
@@ -1597,7 +1597,7 @@ static im_function andimage_vec_desc = {
 static int
 orimage_vec(im_object *argv)
 {
-	return (im_orimage(argv[0], argv[1], argv[2]));
+	return im_orimage(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_orimage.
@@ -1618,7 +1618,7 @@ orimageconst_vec(im_object *argv)
 {
 	int c = *((int *) argv[2]);
 
-	return (im_orimageconst(argv[0], argv[1], c));
+	return im_orimageconst(argv[0], argv[1], c);
 }
 
 /* Description of im_orimageconst.
@@ -1639,7 +1639,7 @@ orimage_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_orimage_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_orimage_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_orimage_vec.
@@ -1658,7 +1658,7 @@ static im_function orimage_vec_desc = {
 static int
 eorimage_vec(im_object *argv)
 {
-	return (im_eorimage(argv[0], argv[1], argv[2]));
+	return im_eorimage(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_eorimage.
@@ -1679,7 +1679,7 @@ eorimageconst_vec(im_object *argv)
 {
 	int c = *((int *) argv[2]);
 
-	return (im_eorimageconst(argv[0], argv[1], c));
+	return im_eorimageconst(argv[0], argv[1], c);
 }
 
 /* Description of im_eorimageconst.
@@ -1700,7 +1700,7 @@ eorimage_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_eorimage_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_eorimage_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_eorimage_vec.
@@ -1721,7 +1721,7 @@ shiftleft_vec(im_object *argv)
 {
 	int n = *((int *) argv[2]);
 
-	return (im_shiftleft(argv[0], argv[1], n));
+	return im_shiftleft(argv[0], argv[1], n);
 }
 
 /* Description of im_shiftleft.
@@ -1742,7 +1742,7 @@ shiftleft_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_shiftleft_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_shiftleft_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_shiftleft_vec.
@@ -1763,7 +1763,7 @@ shiftright_vec(im_object *argv)
 {
 	int n = *((int *) argv[2]);
 
-	return (im_shiftright(argv[0], argv[1], n));
+	return im_shiftright(argv[0], argv[1], n);
 }
 
 /* Description of im_shiftright.
@@ -1784,7 +1784,7 @@ shiftright_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_shiftright_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_shiftright_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_shiftright_vec.
@@ -1803,7 +1803,7 @@ static im_function shiftright_vec_desc = {
 static int
 equal_vec(im_object *argv)
 {
-	return (im_equal(argv[0], argv[1], argv[2]));
+	return im_equal(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_equal.
@@ -1824,7 +1824,7 @@ equalconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_equalconst(argv[0], argv[1], c));
+	return im_equalconst(argv[0], argv[1], c);
 }
 
 /* Description of im_equalconst.
@@ -1845,7 +1845,7 @@ equal_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_equal_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_equal_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_equal_vec.
@@ -1864,7 +1864,7 @@ static im_function equal_vec_desc = {
 static int
 notequal_vec(im_object *argv)
 {
-	return (im_notequal(argv[0], argv[1], argv[2]));
+	return im_notequal(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_notequal.
@@ -1885,7 +1885,7 @@ notequalconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_notequalconst(argv[0], argv[1], c));
+	return im_notequalconst(argv[0], argv[1], c);
 }
 
 /* Description of im_notequalconst.
@@ -1906,7 +1906,7 @@ notequal_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_notequal_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_notequal_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_notequal_vec.
@@ -1925,7 +1925,7 @@ static im_function notequal_vec_desc = {
 static int
 less_vec(im_object *argv)
 {
-	return (im_less(argv[0], argv[1], argv[2]));
+	return im_less(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_less.
@@ -1946,7 +1946,7 @@ lessconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_lessconst(argv[0], argv[1], c));
+	return im_lessconst(argv[0], argv[1], c);
 }
 
 /* Description of im_lessconst.
@@ -1967,7 +1967,7 @@ less_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_less_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_less_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_less_vec.
@@ -1986,7 +1986,7 @@ static im_function less_vec_desc = {
 static int
 more_vec(im_object *argv)
 {
-	return (im_more(argv[0], argv[1], argv[2]));
+	return im_more(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_more.
@@ -2007,7 +2007,7 @@ moreconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_moreconst(argv[0], argv[1], c));
+	return im_moreconst(argv[0], argv[1], c);
 }
 
 /* Description of im_moreconst.
@@ -2028,7 +2028,7 @@ more_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_more_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_more_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_more_vec.
@@ -2047,7 +2047,7 @@ static im_function more_vec_desc = {
 static int
 moreeq_vec(im_object *argv)
 {
-	return (im_moreeq(argv[0], argv[1], argv[2]));
+	return im_moreeq(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_moreeq.
@@ -2068,7 +2068,7 @@ moreeqconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_moreeqconst(argv[0], argv[1], c));
+	return im_moreeqconst(argv[0], argv[1], c);
 }
 
 /* Description of im_moreeqconst.
@@ -2089,7 +2089,7 @@ moreeq_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_moreeq_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_moreeq_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_moreeq_vec.
@@ -2108,7 +2108,7 @@ static im_function moreeq_vec_desc = {
 static int
 lesseq_vec(im_object *argv)
 {
-	return (im_lesseq(argv[0], argv[1], argv[2]));
+	return im_lesseq(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_lesseq.
@@ -2129,7 +2129,7 @@ lesseqconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_lesseqconst(argv[0], argv[1], c));
+	return im_lesseqconst(argv[0], argv[1], c);
 }
 
 /* Description of im_lesseqconst.
@@ -2150,7 +2150,7 @@ lesseq_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_lesseq_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_lesseq_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_lesseq_vec.
@@ -2178,7 +2178,7 @@ static im_arg_desc ifthenelse_args[] = {
 static int
 blend_vec(im_object *argv)
 {
-	return (im_blend(argv[0], argv[1], argv[2], argv[3]));
+	return im_blend(argv[0], argv[1], argv[2], argv[3]);
 }
 
 /* Description of im_blend.
@@ -2197,7 +2197,7 @@ static im_function blend_desc = {
 static int
 ifthenelse_vec(im_object *argv)
 {
-	return (im_ifthenelse(argv[0], argv[1], argv[2], argv[3]));
+	return im_ifthenelse(argv[0], argv[1], argv[2], argv[3]);
 }
 
 /* Description of im_ifthenelse.
@@ -2216,7 +2216,7 @@ static im_function ifthenelse_desc = {
 static int
 argb2rgba_vec(im_object *argv)
 {
-	return (im_argb2rgba(argv[0], argv[1]));
+	return im_argb2rgba(argv[0], argv[1]);
 }
 
 /* Description of im_argb2rgba.

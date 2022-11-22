@@ -127,7 +127,7 @@ vips_convf_stop(void *vseq, void *a, void *b)
 
 	VIPS_UNREF(seq->ir);
 
-	return (0);
+	return 0;
 }
 
 /* Convolution start function.
@@ -140,7 +140,7 @@ vips_convf_start(VipsImage *out, void *a, void *b)
 	VipsConvfSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsConvfSequence)))
-		return (NULL);
+		return NULL;
 
 	seq->convf = convf;
 	seq->ir = NULL;
@@ -149,10 +149,10 @@ vips_convf_start(VipsImage *out, void *a, void *b)
 	seq->ir = vips_region_new(in);
 	if (!(seq->offsets = VIPS_ARRAY(out, convf->nnz, int))) {
 		vips_convf_stop(seq, in, convf);
-		return (NULL);
+		return NULL;
 	}
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 #define CONV_FLOAT(ITYPE, OTYPE) \
@@ -205,7 +205,7 @@ vips_convf_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	/* Fill offset array. Only do this if the bpl has changed since the
 	 * previous vips_region_prepare().
@@ -272,7 +272,7 @@ vips_convf_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 	VIPS_COUNT_PIXELS(or, "vips_convf_gen");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -290,7 +290,7 @@ vips_convf_build(VipsObject *object)
 	double scale;
 
 	if (VIPS_OBJECT_CLASS(vips_convf_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	M = convolution->M;
 	coeff = (double *) VIPS_IMAGE_ADDR(M, 0, 0);
@@ -304,7 +304,7 @@ vips_convf_build(VipsObject *object)
 
 	if (!(convf->coeff = VIPS_ARRAY(object, ne, double)) ||
 		!(convf->coeff_pos = VIPS_ARRAY(object, ne, int)))
-		return (-1);
+		return -1;
 
 	/* Find non-zero mask elements.
 	 */
@@ -331,13 +331,13 @@ vips_convf_build(VipsObject *object)
 			in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	g_object_set(convf, "out", vips_image_new(), NULL);
 	if (vips_image_pipelinev(convolution->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	convolution->out->Xoffset = 0;
 	convolution->out->Yoffset = 0;
@@ -352,12 +352,12 @@ vips_convf_build(VipsObject *object)
 
 	if (vips_image_generate(convolution->out,
 			vips_convf_start, vips_convf_gen, vips_convf_stop, in, convf))
-		return (-1);
+		return -1;
 
 	convolution->out->Xoffset = -M->Xsize / 2;
 	convolution->out->Yoffset = -M->Ysize / 2;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -411,5 +411,5 @@ vips_convf(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("convf", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

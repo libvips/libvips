@@ -80,22 +80,22 @@ im_vips2mask(IMAGE *in, const char *filename)
 		IMAGE *t;
 
 		if (!(t = im_open("im_vips2mask", "p")))
-			return (NULL);
+			return NULL;
 		if (im_clip2fmt(in, t, IM_BANDFMT_DOUBLE) ||
 			!(out = im_vips2mask(t, filename))) {
 			im_close(t);
-			return (NULL);
+			return NULL;
 		}
 		im_close(t);
 
-		return (out);
+		return out;
 	}
 
 	/* Check the image.
 	 */
 	if (im_incheck(in) ||
 		im_check_uncoded("im_vips2mask", in))
-		return (NULL);
+		return NULL;
 
 	if (in->Bands == 1) {
 		width = in->Xsize;
@@ -112,11 +112,11 @@ im_vips2mask(IMAGE *in, const char *filename)
 	else {
 		im_error("im_vips2mask",
 			"%s", _("one band, nx1, or 1xn images only"));
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(out = im_create_dmask(filename, width, height)))
-		return (NULL);
+		return NULL;
 	if (in->Bands > 1 && in->Ysize == 1) {
 		double *data = (double *) in->data;
 		int x, y;
@@ -135,7 +135,7 @@ im_vips2mask(IMAGE *in, const char *filename)
 	out->scale = vips_image_get_scale(in);
 	out->offset = vips_image_get_offset(in);
 
-	return (out);
+	return out;
 }
 
 INTMASK *
@@ -155,22 +155,22 @@ im_vips2imask(IMAGE *in, const char *filename)
 		IMAGE *t;
 
 		if (!(t = im_open("im_vips2imask", "p")))
-			return (NULL);
+			return NULL;
 		if (im_clip2fmt(in, t, IM_BANDFMT_DOUBLE) ||
 			!(out = im_vips2imask(t, filename))) {
 			im_close(t);
-			return (NULL);
+			return NULL;
 		}
 		im_close(t);
 
-		return (out);
+		return out;
 	}
 
 	/* Check the image.
 	 */
 	if (im_incheck(in) ||
 		im_check_uncoded("im_vips2imask", in))
-		return (NULL);
+		return NULL;
 
 	if (in->Bands == 1) {
 		width = in->Xsize;
@@ -187,12 +187,12 @@ im_vips2imask(IMAGE *in, const char *filename)
 	else {
 		im_error("im_vips2imask",
 			"%s", _("one band, nx1, or 1xn images only"));
-		return (NULL);
+		return NULL;
 	}
 
 	data = (double *) in->data;
 	if (!(out = im_create_imask(filename, width, height)))
-		return (NULL);
+		return NULL;
 
 	/* We want to make an intmask which has the same input to output ratio
 	 * as the double image.
@@ -242,5 +242,5 @@ im_vips2imask(IMAGE *in, const char *filename)
 	if (out->scale == 0)
 		out->scale = 1;
 
-	return (out);
+	return out;
 }

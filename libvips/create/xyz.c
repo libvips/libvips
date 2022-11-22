@@ -115,7 +115,7 @@ vips_xyz_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -129,7 +129,7 @@ vips_xyz_build(VipsObject *object)
 	int ysize;
 
 	if (VIPS_OBJECT_CLASS(vips_xyz_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if ((vips_object_argument_isset(object, "dsize") &&
 			!vips_object_argument_isset(object, "csize")) ||
@@ -137,7 +137,7 @@ vips_xyz_build(VipsObject *object)
 			!vips_object_argument_isset(object, "dsize"))) {
 		vips_error(class->nickname, "%s",
 			_("lower dimensions not set"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_object_argument_isset(object, "csize")) {
@@ -154,7 +154,7 @@ vips_xyz_build(VipsObject *object)
 	d = (double) xyz->height * xyz->csize * xyz->dsize * xyz->esize;
 	if (d > INT_MAX) {
 		vips_error(class->nickname, "%s", _("image too large"));
-		return (-1);
+		return -1;
 	}
 	ysize = d;
 
@@ -166,9 +166,9 @@ vips_xyz_build(VipsObject *object)
 	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_generate(create->out,
 			NULL, vips_xyz_gen, NULL, xyz, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -272,5 +272,5 @@ vips_xyz(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("xyz", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

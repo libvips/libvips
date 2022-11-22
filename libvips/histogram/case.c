@@ -77,7 +77,7 @@ vips_case_gen(VipsRegion * or, void *seq, void *a, void *b,
 	size_t ps;
 
 	if (vips_region_prepare(index, r))
-		return (-1);
+		return -1;
 
 	g_assert(index->im->BandFmt == VIPS_FORMAT_UCHAR);
 	g_assert(index->im->Bands == 1);
@@ -101,7 +101,7 @@ vips_case_gen(VipsRegion * or, void *seq, void *a, void *b,
 	for (i = 0; i < cas->n; i++)
 		if (hist[i]) {
 			if (vips_region_prepare(ar[i], r))
-				return (-1);
+				return -1;
 			p[i] = VIPS_REGION_ADDR(ar[i], r->left, r->top);
 			ls[i] = VIPS_REGION_LSKIP(ar[i]);
 		}
@@ -133,7 +133,7 @@ vips_case_gen(VipsRegion * or, void *seq, void *a, void *b,
 				p[i] += ls[i];
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -154,7 +154,7 @@ vips_case_build(VipsObject *object)
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_case_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	index = cas->index;
 	cases = vips_area_get_data(&cas->cases->area,
@@ -162,18 +162,18 @@ vips_case_build(VipsObject *object)
 	if (cas->n > 256 ||
 		cas->n < 1) {
 		vips_error(class->nickname, "%s", _("bad number of cases"));
-		return (-1);
+		return -1;
 	}
 	if (index->Bands > 1) {
 		vips_error(class->nickname,
 			"%s", _("index image not 1-band"));
-		return (-1);
+		return -1;
 	}
 
 	/* Cast @index to u8 to make the index image.
 	 */
 	if (vips_cast(index, &t[0], VIPS_FORMAT_UCHAR, NULL))
-		return (-1);
+		return -1;
 	index = t[0];
 
 	decode = (VipsImage **) vips_object_local_array(object, cas->n);
@@ -185,7 +185,7 @@ vips_case_build(VipsObject *object)
 	 */
 	for (i = 0; i < cas->n; i++)
 		if (vips_image_decode(cases[i], &decode[i]))
-			return (-1);
+			return -1;
 	cases = decode;
 
 	/* case images must match in format, size and bands.
@@ -199,12 +199,12 @@ vips_case_build(VipsObject *object)
 		vips__bandalike_vec(class->nickname,
 			format, band, cas->n, 1) ||
 		vips__sizealike_vec(band, size, cas->n + 1))
-		return (-1);
+		return -1;
 	cases = size;
 
 	if (vips_image_pipeline_array(cas->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, cases))
-		return (-1);
+		return -1;
 
 	cas->out->BandFmt = cases[0]->BandFmt;
 	cas->out->Bands = cases[0]->Bands;
@@ -213,9 +213,9 @@ vips_case_build(VipsObject *object)
 	if (vips_image_generate(cas->out,
 			vips_start_many, vips_case_gen, vips_stop_many,
 			cases, cas))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -271,7 +271,7 @@ vips_casev(VipsImage *index, VipsImage **cases, VipsImage **out, int n,
 	result = vips_call_split("case", ap, index, array, out);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -307,5 +307,5 @@ vips_case(VipsImage *index, VipsImage **cases, VipsImage **out, int n, ...)
 	result = vips_casev(index, cases, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

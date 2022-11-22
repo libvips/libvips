@@ -73,7 +73,7 @@ vips_hough_line_build(VipsObject *object)
 	int i;
 
 	if (!(hough_line->sin = VIPS_ARRAY(object, 2 * width, double)))
-		return (-1);
+		return -1;
 
 	/* Map width to 180 degrees, width * 2 to 360.
 	 */
@@ -81,9 +81,9 @@ vips_hough_line_build(VipsObject *object)
 		hough_line->sin[i] = sin(2 * VIPS_PI * i / (2 * width));
 
 	if (VIPS_OBJECT_CLASS(vips_hough_line_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -97,7 +97,7 @@ vips_hough_line_init_accumulator(VipsHough *hough, VipsImage *accumulator)
 		VIPS_INTERPRETATION_MATRIX,
 		1.0, 1.0);
 
-	return (0);
+	return 0;
 }
 
 /* Cast votes for all lines passing through x, y.
@@ -198,5 +198,5 @@ vips_hough_line(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hough_line", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

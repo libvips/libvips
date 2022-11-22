@@ -100,10 +100,10 @@ vips_transpose3d_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		/* Render into or.
 		 */
 		if (vips_region_prepare_to(ir, or, &tile, tile.left, yo))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -116,38 +116,38 @@ vips_transpose3d_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_transpose3d_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = transpose3d->in;
 
 	if (vips_check_coding_known(class->nickname, in) ||
 		vips_image_pio_input(in))
-		return (-1);
+		return -1;
 
 	if (!vips_object_argument_isset(object, "page_height")) {
 		if (vips_image_get_int(in,
 				VIPS_META_PAGE_HEIGHT, &transpose3d->page_height))
-			return (-1);
+			return -1;
 	}
 
 	if (transpose3d->page_height <= 0 ||
 		in->Ysize % transpose3d->page_height != 0) {
 		vips_error(class->nickname, "%s", _("bad page_height"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 	vips_image_set_int(conversion->out,
 		VIPS_META_PAGE_HEIGHT, in->Ysize / transpose3d->page_height);
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_transpose3d_gen, vips_stop_one,
 			in, transpose3d))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -220,5 +220,5 @@ vips_transpose3d(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("transpose3d", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

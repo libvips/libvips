@@ -63,7 +63,7 @@ vips__avgdxdy(TiePoints *points, int *dx, int *dy)
 
 	if (points->nopoints == 0) {
 		vips_error("vips__avgdxdy", "%s", _("no points to average"));
-		return (-1);
+		return -1;
 	}
 
 	/* Lots of points.
@@ -78,5 +78,5 @@ vips__avgdxdy(TiePoints *points, int *dx, int *dy)
 	*dx = VIPS_RINT((double) sumdx / (double) points->nopoints);
 	*dy = VIPS_RINT((double) sumdy / (double) points->nopoints);
 
-	return (0);
+	return 0;
 }

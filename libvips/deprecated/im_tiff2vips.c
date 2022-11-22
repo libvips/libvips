@@ -60,11 +60,11 @@ im_istifftiled(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips__istiff_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -74,15 +74,15 @@ im_tiff_read_header(const char *filename, VipsImage *out,
 	VipsSource *source;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (-1);
+		return -1;
 	if (vips__tiff_read_header_source(source, out,
 			page, n, autorotate, -1, VIPS_FAIL_ON_ERROR)) {
 		VIPS_UNREF(source);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(source);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -92,15 +92,15 @@ im_tiff_read(const char *filename, VipsImage *out,
 	VipsSource *source;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (-1);
+		return -1;
 	if (vips__tiff_read_source(source, out,
 			page, n, autorotate, -1, VIPS_FAIL_ON_ERROR)) {
 		VIPS_UNREF(source);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(source);
 
-	return (0);
+	return 0;
 }
 #endif /*HAVE_TIFF*/
 
@@ -143,31 +143,31 @@ tiff2vips(const char *name, IMAGE *out, gboolean header_only)
 		!im_istifftiled(filename) &&
 		out->dtype == VIPS_IMAGE_PARTIAL) {
 		if (vips__image_wio_output(out))
-			return (-1);
+			return -1;
 	}
 
 	if (header_only) {
 		if (im_tiff_read_header(filename, out, page, 1, FALSE))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (im_tiff_read(filename, out, page, 1, FALSE))
-			return (-1);
+			return -1;
 	}
 #else
 	vips_error("im_tiff2vips",
 		"%s", _("no TIFF support in your libvips"));
 
-	return (-1);
+	return -1;
 #endif /*HAVE_TIFF*/
 
-	return (0);
+	return 0;
 }
 
 int
 im_tiff2vips(const char *name, IMAGE *out)
 {
-	return (tiff2vips(name, out, FALSE));
+	return tiff2vips(name, out, FALSE);
 }
 
 /* By having a separate header func, we get lazy.c to open via disc/mem.
@@ -175,7 +175,7 @@ im_tiff2vips(const char *name, IMAGE *out)
 static int
 im_tiff2vips_header(const char *name, IMAGE *out)
 {
-	return (tiff2vips(name, out, TRUE));
+	return tiff2vips(name, out, TRUE);
 }
 
 static VipsFormatFlags
@@ -186,8 +186,7 @@ tiff_flags(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return ((VipsFormatFlags)
-			vips_foreign_flags("tiffload", filename));
+	return (VipsFormatFlags) vips_foreign_flags("tiffload", filename);
 }
 
 static int
@@ -198,7 +197,7 @@ istiff(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return (vips_foreign_is_a("tiffload", filename));
+	return vips_foreign_is_a("tiffload", filename);
 }
 
 static const char *tiff_suffs[] = { ".tif", ".tiff", NULL };

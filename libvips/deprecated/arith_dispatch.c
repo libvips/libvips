@@ -77,7 +77,7 @@ recomb_vec(im_object *argv)
 {
 	im_mask_object *mo = argv[2];
 
-	return (im_recomb(argv[0], argv[1], mo->mask));
+	return im_recomb(argv[0], argv[1], mo->mask);
 }
 
 /* Description of im_recomb.
@@ -96,7 +96,7 @@ static im_function recomb_desc = {
 static int
 abs_vec(im_object *argv)
 {
-	return (im_abs(argv[0], argv[1]));
+	return im_abs(argv[0], argv[1]);
 }
 
 /* Description of im_abs.
@@ -115,7 +115,7 @@ static im_function abs_desc = {
 static int
 add_vec(im_object *argv)
 {
-	return (im_add(argv[0], argv[1], argv[2]));
+	return im_add(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_add.
@@ -137,10 +137,10 @@ avg_vec(im_object *argv)
 	double f;
 
 	if (im_avg(argv[0], &f))
-		return (-1);
+		return -1;
 
 	*((double *) argv[1]) = f;
-	return (0);
+	return 0;
 }
 
 /* Description of im_avg.
@@ -175,7 +175,7 @@ point_vec(im_object *argv)
 	double y = *((double *) argv[3]);
 	int band = *((int *) argv[4]);
 
-	return (im_point(argv[0], interpolate, x, y, band, argv[5]));
+	return im_point(argv[0], interpolate, x, y, band, argv[5]);
 }
 
 /* Description of im_point.
@@ -226,10 +226,10 @@ deviate_vec(im_object *argv)
 	double f;
 
 	if (im_deviate(argv[0], &f))
-		return (-1);
+		return -1;
 
 	*((double *) argv[1]) = f;
-	return (0);
+	return 0;
 }
 
 /* Description of im_deviate.
@@ -248,7 +248,7 @@ static im_function deviate_desc = {
 static int
 exp10tra_vec(im_object *argv)
 {
-	return (im_exp10tra(argv[0], argv[1]));
+	return im_exp10tra(argv[0], argv[1]);
 }
 
 /* Description of im_exp10tra.
@@ -267,7 +267,7 @@ static im_function exp10tra_desc = {
 static int
 exptra_vec(im_object *argv)
 {
-	return (im_exptra(argv[0], argv[1]));
+	return im_exptra(argv[0], argv[1]);
 }
 
 /* Description of im_exptra.
@@ -296,7 +296,7 @@ expntra_vec(im_object *argv)
 {
 	double a = *((double *) argv[2]);
 
-	return (im_expntra(argv[0], argv[1], a));
+	return im_expntra(argv[0], argv[1], a);
 }
 
 /* Description of im_expntra.
@@ -325,7 +325,7 @@ expntra_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_expntra_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_expntra_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_expntra_vec.
@@ -344,7 +344,7 @@ static im_function expntra_vec_desc = {
 static int
 divide_vec(im_object *argv)
 {
-	return (im_divide(argv[0], argv[1], argv[2]));
+	return im_divide(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_divide.
@@ -363,7 +363,7 @@ static im_function divide_desc = {
 static int
 invert_vec(im_object *argv)
 {
-	return (im_invert(argv[0], argv[1]));
+	return im_invert(argv[0], argv[1]);
 }
 
 /* Description of im_invert.
@@ -394,7 +394,7 @@ lintra_vec(im_object *argv)
 	double a = *((double *) argv[0]);
 	double b = *((double *) argv[2]);
 
-	return (im_lintra(a, argv[1], b, argv[3]));
+	return im_lintra(a, argv[1], b, argv[3]);
 }
 
 /* Description of im_lintra().
@@ -428,10 +428,10 @@ lintra_vec_vec(im_object *argv)
 	if (dva->n != dvb->n) {
 		im_error("im_lintra_vec",
 			"%s", _("vectors not equal length"));
-		return (-1);
+		return -1;
 	}
 
-	return (im_lintra_vec(dva->n, dva->vec, argv[1], dvb->vec, argv[3]));
+	return im_lintra_vec(dva->n, dva->vec, argv[1], dvb->vec, argv[3]);
 }
 
 /* Description of im_lintra_vec().
@@ -450,7 +450,7 @@ static im_function lintra_vec_desc = {
 static int
 log10tra_vec(im_object *argv)
 {
-	return (im_log10tra(argv[0], argv[1]));
+	return im_log10tra(argv[0], argv[1]);
 }
 
 /* Description of im_log10tra.
@@ -469,7 +469,7 @@ static im_function log10tra_desc = {
 static int
 logtra_vec(im_object *argv)
 {
-	return (im_logtra(argv[0], argv[1]));
+	return im_logtra(argv[0], argv[1]);
 }
 
 /* Description of im_logtra.
@@ -488,7 +488,7 @@ static im_function logtra_desc = {
 static int
 tantra_vec(im_object *argv)
 {
-	return (im_tantra(argv[0], argv[1]));
+	return im_tantra(argv[0], argv[1]);
 }
 
 /* Description of im_tantra.
@@ -507,7 +507,7 @@ static im_function tantra_desc = {
 static int
 atantra_vec(im_object *argv)
 {
-	return (im_atantra(argv[0], argv[1]));
+	return im_atantra(argv[0], argv[1]);
 }
 
 /* Description of im_atantra.
@@ -526,7 +526,7 @@ static im_function atantra_desc = {
 static int
 costra_vec(im_object *argv)
 {
-	return (im_costra(argv[0], argv[1]));
+	return im_costra(argv[0], argv[1]);
 }
 
 /* Description of im_costra.
@@ -545,7 +545,7 @@ static im_function costra_desc = {
 static int
 acostra_vec(im_object *argv)
 {
-	return (im_acostra(argv[0], argv[1]));
+	return im_acostra(argv[0], argv[1]);
 }
 
 /* Description of im_acostra.
@@ -564,7 +564,7 @@ static im_function acostra_desc = {
 static int
 ceil_vec(im_object *argv)
 {
-	return (im_ceil(argv[0], argv[1]));
+	return im_ceil(argv[0], argv[1]);
 }
 
 /* Description of im_ceil.
@@ -583,7 +583,7 @@ static im_function ceil_desc = {
 static int
 floor_vec(im_object *argv)
 {
-	return (im_floor(argv[0], argv[1]));
+	return im_floor(argv[0], argv[1]);
 }
 
 /* Description of im_floor.
@@ -602,7 +602,7 @@ static im_function floor_desc = {
 static int
 rint_vec(im_object *argv)
 {
-	return (im_rint(argv[0], argv[1]));
+	return im_rint(argv[0], argv[1]);
 }
 
 /* Description of im_rint.
@@ -621,7 +621,7 @@ static im_function rint_desc = {
 static int
 sintra_vec(im_object *argv)
 {
-	return (im_sintra(argv[0], argv[1]));
+	return im_sintra(argv[0], argv[1]);
 }
 
 /* Description of im_sintra.
@@ -640,7 +640,7 @@ static im_function sintra_desc = {
 static int
 bandmean_vec(im_object *argv)
 {
-	return (im_bandmean(argv[0], argv[1]));
+	return im_bandmean(argv[0], argv[1]);
 }
 
 /* Description of im_bandmean.
@@ -659,7 +659,7 @@ static im_function bandmean_desc = {
 static int
 sign_vec(im_object *argv)
 {
-	return (im_sign(argv[0], argv[1]));
+	return im_sign(argv[0], argv[1]);
 }
 
 /* Description of im_sign.
@@ -678,7 +678,7 @@ static im_function sign_desc = {
 static int
 asintra_vec(im_object *argv)
 {
-	return (im_asintra(argv[0], argv[1]));
+	return im_asintra(argv[0], argv[1]);
 }
 
 /* Description of im_asintra.
@@ -700,10 +700,10 @@ max_vec(im_object *argv)
 	double f;
 
 	if (im_max(argv[0], &f))
-		return (-1);
+		return -1;
 	*((double *) argv[1]) = f;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_max.
@@ -733,12 +733,12 @@ maxpos_vec(im_object *argv)
 	int x, y;
 
 	if (im_maxpos(argv[0], &x, &y, &f))
-		return (-1);
+		return -1;
 
 	((double *) argv[1])[0] = x;
 	((double *) argv[1])[1] = y;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_maxpos.
@@ -889,10 +889,10 @@ measure_vec(im_object *argv)
 	if (!(mo->mask =
 				im_measure_area(argv[0],
 					x, y, w, h, u, v, NULL, 0, mo->name))) {
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_measure.
@@ -914,10 +914,10 @@ min_vec(im_object *argv)
 	double f;
 
 	if (im_min(argv[0], &f))
-		return (-1);
+		return -1;
 	*((double *) argv[1]) = f;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_min.
@@ -940,12 +940,12 @@ minpos_vec(im_object *argv)
 	int x, y;
 
 	if (im_minpos(argv[0], &x, &y, &f))
-		return (-1);
+		return -1;
 
 	((double *) argv[1])[0] = x;
 	((double *) argv[1])[1] = y;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_minpos.
@@ -964,7 +964,7 @@ static im_function minpos_desc = {
 static int
 remainder_vec(im_object *argv)
 {
-	return (im_remainder(argv[0], argv[1], argv[2]));
+	return im_remainder(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_remainder.
@@ -985,7 +985,7 @@ remainderconst_vec(im_object *argv)
 {
 	double c = *((double *) argv[2]);
 
-	return (im_remainderconst(argv[0], argv[1], c));
+	return im_remainderconst(argv[0], argv[1], c);
 }
 
 /* Args for im_remainderconst().
@@ -1014,7 +1014,7 @@ remainder_vec_vec(im_object *argv)
 {
 	im_doublevec_object *dv = (im_doublevec_object *) argv[2];
 
-	return (im_remainder_vec(argv[0], argv[1], dv->n, dv->vec));
+	return im_remainder_vec(argv[0], argv[1], dv->n, dv->vec);
 }
 
 /* Args for im_remainder_vec().
@@ -1042,7 +1042,7 @@ static im_function remainder_vec_desc = {
 static int
 multiply_vec(im_object *argv)
 {
-	return (im_multiply(argv[0], argv[1], argv[2]));
+	return im_multiply(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_multiply.
@@ -1063,7 +1063,7 @@ powtra_vec(im_object *argv)
 {
 	double a = *((double *) argv[2]);
 
-	return (im_powtra(argv[0], argv[1], a));
+	return im_powtra(argv[0], argv[1], a);
 }
 
 /* Description of im_powtra().
@@ -1084,7 +1084,7 @@ powtra_vec_vec(im_object *argv)
 {
 	im_doublevec_object *rv = (im_doublevec_object *) argv[2];
 
-	return (im_powtra_vec(argv[0], argv[1], rv->n, rv->vec));
+	return im_powtra_vec(argv[0], argv[1], rv->n, rv->vec);
 }
 
 /* Description of im_powtra_vec().
@@ -1113,9 +1113,9 @@ stats_vec(im_object *argv)
 	im_mask_object *mo = argv[1];
 
 	if (!(mo->mask = im_stats(argv[0])))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Description of im_stats().
@@ -1134,7 +1134,7 @@ static im_function stats_desc = {
 static int
 subtract_vec(im_object *argv)
 {
-	return (im_subtract(argv[0], argv[1], argv[2]));
+	return im_subtract(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_subtract.
@@ -1201,7 +1201,7 @@ static im_function linreg_desc = {
 static int
 cross_phase_vec(im_object *argv)
 {
-	return (im_cross_phase(argv[0], argv[1], argv[2]));
+	return im_cross_phase(argv[0], argv[1], argv[2]);
 }
 
 /* Description of im_cross_phase.

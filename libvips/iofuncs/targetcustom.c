@@ -89,7 +89,7 @@ vips_target_custom_write_real(VipsTarget *target,
 
 	VIPS_DEBUG_MSG("  %zd\n", bytes_written);
 
-	return (bytes_written);
+	return bytes_written;
 }
 
 static gint64
@@ -109,7 +109,7 @@ vips_target_custom_read_real(VipsTarget *target, void *buffer, size_t length)
 	VIPS_DEBUG_MSG("  vips_target_custom_read_real, seen %zd bytes\n",
 		bytes_read);
 
-	return (bytes_read);
+	return bytes_read;
 }
 
 static gint64
@@ -151,7 +151,7 @@ vips_target_custom_seek_real(VipsTarget *target, gint64 offset, int whence)
 	VIPS_DEBUG_MSG("  vips_target_custom_seek_real, seen new pos %zd\n",
 		new_position);
 
-	return (new_position);
+	return new_position;
 }
 
 static int
@@ -173,7 +173,7 @@ vips_target_custom_end_real(VipsTarget *target)
 	g_signal_emit(target, vips_target_custom_signals[SIG_END], 0,
 		&result);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -190,7 +190,7 @@ vips_target_custom_write_signal_real(VipsTargetCustom *target_custom,
 {
 	VIPS_DEBUG_MSG("vips_target_custom_write_signal_real:\n");
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -199,7 +199,7 @@ vips_target_custom_read_signal_real(VipsTargetCustom *target_custom,
 {
 	VIPS_DEBUG_MSG("vips_target_custom_read_signal_real:\n");
 
-	return (0);
+	return 0;
 }
 
 static gint64
@@ -208,7 +208,7 @@ vips_target_custom_seek_signal_real(VipsTargetCustom *target_custom,
 {
 	VIPS_DEBUG_MSG("vips_target_custom_seek_signal_real:\n");
 
-	return (-1);
+	return -1;
 }
 
 static int
@@ -216,7 +216,7 @@ vips_target_custom_end_signal_real(VipsTargetCustom *target_custom)
 {
 	VIPS_DEBUG_MSG("vips_target_custom_end_signal_real:\n");
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -364,8 +364,8 @@ vips_target_custom_new(void)
 
 	if (vips_object_build(VIPS_OBJECT(target_custom))) {
 		VIPS_UNREF(target_custom);
-		return (NULL);
+		return NULL;
 	}
 
-	return (target_custom);
+	return target_custom;
 }

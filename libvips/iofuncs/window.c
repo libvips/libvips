@@ -90,7 +90,7 @@ vips_window_unmap(VipsWindow *window)
 	 */
 	if (window->baseaddr) {
 		if (vips__munmap(window->baseaddr, window->length))
-			return (-1);
+			return -1;
 
 #ifdef DEBUG_TOTAL
 		g_mutex_lock(vips__global_lock);
@@ -104,7 +104,7 @@ vips_window_unmap(VipsWindow *window)
 		window->length = 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -125,13 +125,13 @@ vips_window_free(VipsWindow *window)
 	im->windows = g_slist_remove(im->windows, window);
 
 	if (vips_window_unmap(window))
-		return (-1);
+		return -1;
 
 	window->im = NULL;
 
 	g_free(window);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -153,13 +153,13 @@ vips_window_unref(VipsWindow *window)
 	if (window->ref_count == 0) {
 		if (vips_window_free(window)) {
 			g_mutex_unlock(im->sslock);
-			return (-1);
+			return -1;
 		}
 	}
 
 	g_mutex_unlock(im->sslock);
 
-	return (0);
+	return 0;
 }
 
 #ifdef DEBUG_TOTAL
@@ -204,7 +204,7 @@ vips_getpagesize(void)
 #endif /*DEBUG_TOTAL*/
 	}
 
-	return (pagesize);
+	return pagesize;
 }
 
 /* Map a window into a file.
@@ -234,15 +234,15 @@ vips_window_set(VipsWindow *window, int top, int height)
 		vips_error("vips_window_set",
 			_("unable to read data for \"%s\", %s"),
 			window->im->filename, _("file has been truncated"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_window_unmap(window))
-		return (-1);
+		return -1;
 
 	if (!(baseaddr = vips__mmap(window->im->fd,
 			  0, pagelength, pagestart)))
-		return (-1);
+		return -1;
 
 	window->baseaddr = baseaddr;
 	window->length = pagelength;
@@ -264,7 +264,7 @@ vips_window_set(VipsWindow *window, int top, int height)
 	trace_mmap_usage();
 #endif /*DEBUG_TOTAL*/
 
-	return (0);
+	return 0;
 }
 
 /* Make a new window.
@@ -275,7 +275,7 @@ vips_window_new(VipsImage *im, int top, int height)
 	VipsWindow *window;
 
 	if (!(window = VIPS_NEW(NULL, VipsWindow)))
-		return (NULL);
+		return NULL;
 
 	window->ref_count = 0;
 	window->im = im;
@@ -288,7 +288,7 @@ vips_window_new(VipsImage *im, int top, int height)
 
 	if (vips_window_set(window, top, height)) {
 		vips_window_free(window);
-		return (NULL);
+		return NULL;
 	}
 	window->ref_count = 1;
 
@@ -297,7 +297,7 @@ vips_window_new(VipsImage *im, int top, int height)
 		window->top, window->height, window);
 #endif /*DEBUG*/
 
-	return (window);
+	return window;
 }
 
 /* A request for an area of pixels.
@@ -312,9 +312,9 @@ vips_window_fits(VipsWindow *window, request_t *req, void *b)
 {
 	if (window->top <= req->top &&
 		window->top + window->height >= req->top + req->height)
-		return (window);
+		return window;
 
-	return (NULL);
+	return NULL;
 }
 
 /* Find an existing window that fits within top/height and return a ref.
@@ -340,7 +340,7 @@ vips_window_find(VipsImage *im, int top, int height)
 #endif /*DEBUG*/
 	}
 
-	return (window);
+	return window;
 }
 
 /* Update a window to make it enclose top/height.
@@ -355,7 +355,7 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	if (window &&
 		window->top <= top &&
 		window->top + window->height >= top + height)
-		return (window);
+		return window;
 
 	g_mutex_lock(im->sslock);
 
@@ -367,12 +367,12 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 			g_mutex_unlock(im->sslock);
 			vips_window_unref(window);
 
-			return (NULL);
+			return NULL;
 		}
 
 		g_mutex_unlock(im->sslock);
 
-		return (window);
+		return window;
 	}
 
 	/* There's more than one ref to the window. We can just decrement.
@@ -386,7 +386,7 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	if ((window = vips_window_find(im, top, height))) {
 		g_mutex_unlock(im->sslock);
 
-		return (window);
+		return window;
 	}
 
 	/* We have to make a new window. Make it a bit bigger than strictly
@@ -401,12 +401,12 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 
 	if (!(window = vips_window_new(im, top, height))) {
 		g_mutex_unlock(im->sslock);
-		return (NULL);
+		return NULL;
 	}
 
 	g_mutex_unlock(im->sslock);
 
-	return (window);
+	return window;
 }
 
 void

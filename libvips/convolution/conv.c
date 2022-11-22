@@ -68,7 +68,7 @@ vips_conv_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_conv_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	g_object_set(conv, "out", vips_image_new(), NULL);
 
@@ -82,20 +82,20 @@ vips_conv_build(VipsObject *object)
 	/* Unpack for processing.
 	 */
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	switch (conv->precision) {
 	case VIPS_PRECISION_FLOAT:
 		if (vips_convf(in, &t[1], convolution->M, NULL) ||
 			vips_image_write(t[1], convolution->out))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_PRECISION_INTEGER:
 		if (vips_convi(in, &t[1], convolution->M, NULL) ||
 			vips_image_write(t[1], convolution->out))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
@@ -104,7 +104,7 @@ vips_conv_build(VipsObject *object)
 				"cluster", conv->cluster,
 				NULL) ||
 			vips_image_write(t[1], convolution->out))
-			return (-1);
+			return -1;
 		break;
 
 	default:
@@ -114,7 +114,7 @@ vips_conv_build(VipsObject *object)
 	vips_reorder_margin_hint(convolution->out,
 		convolution->M->Xsize * convolution->M->Ysize);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -229,5 +229,5 @@ vips_conv(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("conv", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

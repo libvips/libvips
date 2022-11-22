@@ -112,8 +112,8 @@ affinei_vec(im_object *argv)
 	int w = *((int *) argv[11]);
 	int h = *((int *) argv[12]);
 
-	return (im_affinei(argv[0], argv[1], interpolate,
-		a, b, c, d, dx, dy, x, y, w, h));
+	return im_affinei(argv[0], argv[1], interpolate,
+		a, b, c, d, dx, dy, x, y, w, h);
 }
 
 /* Description of im_affinei.
@@ -154,8 +154,8 @@ affinei_all_vec(im_object *argv)
 	double dx = *((double *) argv[7]);
 	double dy = *((double *) argv[8]);
 
-	return (im_affinei_all(argv[0], argv[1], interpolate,
-		a, b, c, d, dx, dy));
+	return im_affinei_all(argv[0], argv[1], interpolate,
+		a, b, c, d, dx, dy);
 }
 
 /* Description of im_affinei_all.
@@ -186,7 +186,7 @@ shrink_vec(im_object *argv)
 	double xshrink = *((double *) argv[2]);
 	double yshrink = *((double *) argv[3]);
 
-	return (im_shrink(argv[0], argv[1], xshrink, yshrink));
+	return im_shrink(argv[0], argv[1], xshrink, yshrink);
 }
 
 /* Description of im_shrink.
@@ -217,7 +217,7 @@ stretch3_vec(im_object *argv)
 	double xdisp = *((int *) argv[2]);
 	double ydisp = *((int *) argv[3]);
 
-	return (im_stretch3(argv[0], argv[1], xdisp, ydisp));
+	return im_stretch3(argv[0], argv[1], xdisp, ydisp);
 }
 
 /* Description of im_stretch3.

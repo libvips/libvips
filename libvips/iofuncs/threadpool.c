@@ -155,7 +155,7 @@ vips__threadpool_shutdown(void)
 int
 vips__thread_execute(const char *domain, GFunc func, gpointer data)
 {
-	return (vips_threadset_run(vips__threadset, domain, func, data));
+	return vips_threadset_run(vips__threadset, domain, func, data);
 }
 
 G_DEFINE_TYPE(VipsThreadState, vips_thread_state, VIPS_TYPE_OBJECT);
@@ -178,10 +178,10 @@ vips_thread_state_build(VipsObject *object)
 	VipsThreadState *state = (VipsThreadState *) object;
 
 	if (!(state->reg = vips_region_new(state->im)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_thread_state_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_thread_state_parent_class)
+		->build(object);
 }
 
 static void
@@ -218,7 +218,7 @@ vips_thread_state_set(VipsObject *object, void *a, void *b)
 	state->im = im;
 	state->a = b;
 
-	return (NULL);
+	return NULL;
 }
 
 VipsThreadState *
@@ -226,8 +226,8 @@ vips_thread_state_new(VipsImage *im, void *a)
 {
 	VIPS_DEBUG_MSG("vips_thread_state_new: image %p\n", im);
 
-	return (VIPS_THREAD_STATE(vips_object_new(
-		VIPS_TYPE_THREAD_STATE, vips_thread_state_set, im, a)));
+	return VIPS_THREAD_STATE(vips_object_new(
+		VIPS_TYPE_THREAD_STATE, vips_thread_state_set, im, a));
 }
 
 /* What we track for each thread in the pool.
@@ -297,12 +297,12 @@ vips_worker_allocate(VipsWorker *worker)
 
 	if (!worker->state &&
 		!(worker->state = pool->start(pool->im, pool->a)))
-		return (-1);
+		return -1;
 
 	if (pool->allocate(worker->state, pool->a, &pool->stop))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Run this once per main loop. Get some work (single-threaded), then do it
@@ -436,7 +436,7 @@ vips_worker_new(VipsThreadpool *pool)
 	VipsWorker *worker;
 
 	if (!(worker = VIPS_NEW(NULL, VipsWorker)))
-		return (-1);
+		return -1;
 	worker->pool = pool;
 	worker->state = NULL;
 
@@ -448,14 +448,14 @@ vips_worker_new(VipsThreadpool *pool)
 	if (vips__thread_execute("worker",
 			vips_thread_main_loop, worker)) {
 		g_free(worker);
-		return (-1);
+		return -1;
 	}
 
 	/* One more worker in the pool.
 	 */
 	vips_semaphore_upn(&pool->n_workers, -1);
 
-	return (0);
+	return 0;
 }
 
 void
@@ -499,7 +499,7 @@ vips_threadpool_new(VipsImage *im)
 	/* Allocate and init new thread block.
 	 */
 	if (!(pool = VIPS_NEW(NULL, VipsThreadpool)))
-		return (NULL);
+		return NULL;
 	pool->im = im;
 	pool->allocate = NULL;
 	pool->work = NULL;
@@ -530,7 +530,7 @@ vips_threadpool_new(VipsImage *im)
 	VIPS_DEBUG_MSG("vips_threadpool_new: \"%s\" (%p), with %d threads\n",
 		im->filename, pool, pool->max_workers);
 
-	return (pool);
+	return pool;
 }
 
 /**
@@ -649,7 +649,7 @@ vips_threadpool_run(VipsImage *im,
 	int n_working;
 
 	if (!(pool = vips_threadpool_new(im)))
-		return (-1);
+		return -1;
 
 	pool->start = start;
 	pool->allocate = allocate;
@@ -662,7 +662,7 @@ vips_threadpool_run(VipsImage *im,
 	for (n_working = 0; n_working < 1 + pool->max_workers / 2; n_working++)
 		if (vips_worker_new(pool)) {
 			vips_threadpool_free(pool);
-			return (-1);
+			return -1;
 		}
 
 	for (;;) {
@@ -700,7 +700,7 @@ vips_threadpool_run(VipsImage *im,
 			VIPS_DEBUG_MSG("expanding thread pool\n");
 			if (vips_worker_new(pool)) {
 				vips_threadpool_free(pool);
-				return (-1);
+				return -1;
 			}
 			n_working += 1;
 		}
@@ -719,5 +719,5 @@ vips_threadpool_run(VipsImage *im,
 
 	vips_image_minimise_all(im);
 
-	return (result);
+	return result;
 }

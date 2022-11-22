@@ -121,7 +121,7 @@ vips_col_sRGB2scRGB(int range, float *lut,
 	i = VIPS_CLIP(0, b, maxval);
 	*B = lut[i];
 
-	return (0);
+	return 0;
 }
 
 /* Create the sRGB linear and unlinear luts. @range is eg. 256 for 8-bit luts.
@@ -163,7 +163,7 @@ calcul_tables_8(void *client)
 {
 	calcul_tables(256, vips_Y2v_8, vips_v2Y_8);
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -179,7 +179,7 @@ vips_col_sRGB2scRGB_8(int r, int g, int b, float *R, float *G, float *B)
 {
 	vips_col_make_tables_RGB_8();
 
-	return (vips_col_sRGB2scRGB(256, vips_v2Y_8, r, g, b, R, G, B));
+	return vips_col_sRGB2scRGB(256, vips_v2Y_8, r, g, b, R, G, B);
 }
 
 static void *
@@ -187,7 +187,7 @@ calcul_tables_16(void *client)
 {
 	calcul_tables(65536, vips_Y2v_16, vips_v2Y_16);
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -203,7 +203,7 @@ vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B)
 {
 	vips_col_make_tables_RGB_16();
 
-	return (vips_col_sRGB2scRGB(65536, vips_v2Y_16, r, g, b, R, G, B));
+	return vips_col_sRGB2scRGB(65536, vips_v2Y_16, r, g, b, R, G, B);
 }
 
 /* The matrix already includes the D65 channel weighting, so we just scale by
@@ -241,7 +241,7 @@ vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
 		0.1192 * G +
 		0.9505 * B;
 
-	return (0);
+	return 0;
 }
 
 /**
@@ -276,7 +276,7 @@ vips_col_XYZ2scRGB(float X, float Y, float Z, float *R, float *G, float *B)
 		-0.204021 * Y +
 		1.056996 * Z;
 
-	return (0);
+	return 0;
 }
 
 /* Turn scRGB into sRGB. Return og=1 for out of gamut - rgb will contain an
@@ -308,7 +308,7 @@ vips_col_scRGB2sRGB(int range, int *lut,
 		*g = 0;
 		*b = 0;
 
-		return (-1);
+		return -1;
 	}
 
 	/* Clip range, set the out-of-gamut flag.
@@ -354,7 +354,7 @@ vips_col_scRGB2sRGB(int range, int *lut,
 	if (og_ret)
 		*og_ret = og;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -363,7 +363,7 @@ vips_col_scRGB2sRGB_8(float R, float G, float B,
 {
 	vips_col_make_tables_RGB_8();
 
-	return (vips_col_scRGB2sRGB(256, vips_Y2v_8, R, G, B, r, g, b, og));
+	return vips_col_scRGB2sRGB(256, vips_Y2v_8, R, G, B, r, g, b, og);
 }
 
 int
@@ -372,8 +372,8 @@ vips_col_scRGB2sRGB_16(float R, float G, float B,
 {
 	vips_col_make_tables_RGB_16();
 
-	return (vips_col_scRGB2sRGB(65536, vips_Y2v_16,
-		R, G, B, r, g, b, og));
+	return vips_col_scRGB2sRGB(65536, vips_Y2v_16,
+		R, G, B, r, g, b, og);
 }
 
 /* Turn scRGB into BW. Return or=1 for out of gamut - g will contain an
@@ -403,7 +403,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	if (VIPS_ISNAN(Y)) {
 		*g = 0;
 
-		return (-1);
+		return -1;
 	}
 
 	/* Look up with a float index: interpolate between the nearest two
@@ -423,7 +423,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	if (og_ret)
 		*og_ret = og;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -431,7 +431,7 @@ vips_col_scRGB2BW_16(float R, float G, float B, int *g, int *og)
 {
 	vips_col_make_tables_RGB_16();
 
-	return (vips_col_scRGB2BW(65536, vips_Y2v_16, R, G, B, g, og));
+	return vips_col_scRGB2BW(65536, vips_Y2v_16, R, G, B, g, og);
 }
 
 int
@@ -439,7 +439,7 @@ vips_col_scRGB2BW_8(float R, float G, float B, int *g, int *og)
 {
 	vips_col_make_tables_RGB_8();
 
-	return (vips_col_scRGB2BW(256, vips_Y2v_8, R, G, B, g, og));
+	return vips_col_scRGB2BW(256, vips_Y2v_8, R, G, B, g, og);
 }
 
 /* Build Lab->disp dither tables.
@@ -475,7 +475,7 @@ build_tables(void *client)
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -589,5 +589,5 @@ vips_LabQ2sRGB(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("LabQ2sRGB", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

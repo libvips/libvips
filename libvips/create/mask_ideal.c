@@ -62,7 +62,7 @@ vips_mask_ideal_point(VipsMask *mask, double dx, double dy)
 	double dist2 = dx * dx + dy * dy;
 	double fc2 = fc * fc;
 
-	return (dist2 <= fc2 ? 0.0 : 1.0);
+	return dist2 <= fc2 ? 0.0 : 1.0;
 }
 
 static void
@@ -152,5 +152,5 @@ vips_mask_ideal(VipsImage **out, int width, int height,
 		frequency_cutoff);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -27,14 +27,14 @@ get_open_files()
 #ifdef G_OS_WIN32
 	/* realpath() and /proc/self/fd is not available on Windows.
 	 */
-	return (NULL);
+	return NULL;
 #else
 	GSList *list = NULL;
 	GDir *dir;
 	const char *name;
 
 	if (!(dir = g_dir_open("/proc/self/fd", 0, NULL)))
-		return (NULL);
+		return NULL;
 
 	while ((name = g_dir_read_name(dir))) {
 		char *fullname = g_build_filename("/proc/self/fd", name, NULL);
@@ -46,7 +46,7 @@ get_open_files()
 
 	g_dir_close(dir);
 
-	return (list);
+	return list;
 #endif
 }
 
@@ -77,7 +77,7 @@ fd_check(const char *stage, GSList *fds)
 
 	if (unique_list == NULL) {
 		g_slist_free_full(list, g_free);
-		return (TRUE);
+		return TRUE;
 	}
 
 	fprintf(stderr, "%s: file descriptors not closed after %s:\n",
@@ -88,7 +88,7 @@ fd_check(const char *stage, GSList *fds)
 	g_slist_free(unique_list);
 	g_slist_free_full(list, g_free);
 
-	return (FALSE);
+	return FALSE;
 }
 
 int
@@ -109,7 +109,7 @@ main(int argc, char **argv)
 	if (list == NULL)
 		/* Probably not *nix, skip test with return code 77.
 		 */
-		return (77);
+		return 77;
 
 	/* This is usually a list of 4 files. stdout / stdin / stderr plus one
 	 * more made for us by glib, I think, doing what I don't know.
@@ -163,9 +163,9 @@ main(int argc, char **argv)
 		goto error;
 
 	g_slist_free_full(list, g_free);
-	return (0);
+	return 0;
 
 error:
 	g_slist_free_full(list, g_free);
-	return (1);
+	return 1;
 }

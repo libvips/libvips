@@ -56,14 +56,14 @@ im_nifti2vips(const char *name, IMAGE *out)
 	VipsImage *t;
 
 	if (vips_niftiload(name, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static const char *nifti_suffs[] = {
@@ -82,8 +82,7 @@ nifti_flags(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return ((VipsFormatFlags)
-			vips_foreign_flags("niftiload", filename));
+	return (VipsFormatFlags) vips_foreign_flags("niftiload", filename);
 }
 
 static int
@@ -94,7 +93,7 @@ isnifti(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return (vips_foreign_is_a("niftiload", filename));
+	return vips_foreign_is_a("niftiload", filename);
 }
 
 /* nifti format adds no new members.

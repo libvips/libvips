@@ -75,7 +75,7 @@ vips_foreign_load_openexr_get_flags_filename(const char *filename)
 	if (vips__openexr_istiled(filename))
 		flags |= VIPS_FOREIGN_PARTIAL;
 
-	return (flags);
+	return flags;
 }
 
 static VipsForeignFlags
@@ -83,8 +83,8 @@ vips_foreign_load_openexr_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
-	return (vips_foreign_load_openexr_get_flags_filename(
-		openexr->filename));
+	return vips_foreign_load_openexr_get_flags_filename(
+		openexr->filename);
 }
 
 static int
@@ -93,11 +93,11 @@ vips_foreign_load_openexr_header(VipsForeignLoad *load)
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
 	if (vips__openexr_read_header(openexr->filename, load->out))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, openexr->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -106,9 +106,9 @@ vips_foreign_load_openexr_load(VipsForeignLoad *load)
 	VipsForeignLoadOpenexr *openexr = (VipsForeignLoadOpenexr *) load;
 
 	if (vips__openexr_read(openexr->filename, load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_openexr_suffs[] = { ".exr", NULL };
@@ -189,5 +189,5 @@ vips_openexrload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("openexrload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

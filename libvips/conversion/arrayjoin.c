@@ -119,7 +119,7 @@ vips_arrayjoin_gen(VipsRegion * or, void *seq,
 		if (vips__insert_just_one(or, reg,
 				join->rects[i].left, join->rects[i].top)) {
 			g_object_unref(reg);
-			return (-1);
+			return -1;
 		}
 
 		g_object_unref(reg);
@@ -140,7 +140,7 @@ vips_arrayjoin_gen(VipsRegion * or, void *seq,
 				if (vips__insert_paste_region(or, reg,
 						&join->rects[i])) {
 					g_object_unref(reg);
-					return (-1);
+					return -1;
 				}
 
 				g_object_unref(reg);
@@ -167,7 +167,7 @@ vips_arrayjoin_gen(VipsRegion * or, void *seq,
 			}
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -191,19 +191,19 @@ vips_arrayjoin_build(VipsObject *object)
 	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_arrayjoin_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = vips_array_image_get(join->in, &n);
 	/* Array length zero means error.
 	 */
 	if (n == 0)
-		return (-1);
+		return -1;
 
 	/* Move all input images to a common format and number of bands.
 	 */
 	format = (VipsImage **) vips_object_local_array(object, n);
 	if (vips__formatalike_vec(in, format, n))
-		return (-1);
+		return -1;
 	in = format;
 
 	/* We have to include the number of bands in @background in our
@@ -212,7 +212,7 @@ vips_arrayjoin_build(VipsObject *object)
 	band = (VipsImage **) vips_object_local_array(object, n);
 	if (vips__bandalike_vec(class->nickname,
 			in, band, n, join->background->n))
-		return (-1);
+		return -1;
 	in = band;
 
 	/* Now sizealike: search for the largest image.
@@ -338,12 +338,12 @@ vips_arrayjoin_build(VipsObject *object)
 				"extend", VIPS_EXTEND_BACKGROUND,
 				"background", join->background,
 				NULL))
-			return (-1);
+			return -1;
 	}
 
 	if (vips_image_pipeline_array(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, size))
-		return (-1);
+		return -1;
 
 	conversion->out->Xsize = output_width;
 	conversion->out->Ysize = output_height;
@@ -354,9 +354,9 @@ vips_arrayjoin_build(VipsObject *object)
 	 */
 	if (vips_image_generate(conversion->out,
 			NULL, vips_arrayjoin_gen, NULL, size, join))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -454,7 +454,7 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
 	result = vips_call_split("arrayjoin", ap, array, out);
 	vips_area_unref(VIPS_AREA(array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -517,5 +517,5 @@ vips_arrayjoin(VipsImage **in, VipsImage **out, int n, ...)
 	result = vips_arrayjoinv(in, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

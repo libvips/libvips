@@ -63,7 +63,7 @@ im__mean_std_int_buffer(int *buffer, int size,
 
 	if (size <= 0) {
 		im_error("im_mean_std_int_buffer", "%s", _("wrong args"));
-		return (-1);
+		return -1;
 	}
 
 	mean = 0.0;
@@ -84,7 +84,7 @@ im__mean_std_int_buffer(int *buffer, int size,
 	*pmean = mean;
 	*pstd = std;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -97,22 +97,22 @@ im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, 
 	int ofst, bufsize;
 
 	if (im_incheck(im))
-		return (-1);
+		return -1;
 
 	if ((im->Bands != 1) || (im->BandFmt != IM_BANDFMT_UCHAR)) {
 		im_error("im_dif_std", "%s", _("Unable to accept input"));
-		return (-1);
+		return -1;
 	}
 	if ((xpos + xsize + dx > im->Xsize) || (ypos + ysize + dy > im->Ysize)) {
 		im_error("im_dif_std", "%s", _("wrong args"));
-		return (-1);
+		return -1;
 	}
 
 	bufsize = xsize * ysize;
 	buf = (int *) calloc((unsigned) bufsize, sizeof(int));
 	if (buf == NULL) {
 		im_error("im_dif_std", "%s", _("calloc failed"));
-		return (-1);
+		return -1;
 	}
 	input = (PEL *) im->data;
 	input += (ypos * im->Xsize + xpos);
@@ -130,10 +130,10 @@ im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, 
 	m = 0.0;
 	s = 0.0;
 	if (im__mean_std_int_buffer(buf, bufsize, &m, &s))
-		return (-1);
+		return -1;
 	*pmean = m;
 	*pstd = s;
 	free((char *) buf);
 
-	return (0);
+	return 0;
 }

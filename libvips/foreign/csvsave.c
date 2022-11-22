@@ -165,10 +165,10 @@ vips_foreign_save_csv_block(VipsRegion *region, VipsRect *area, void *a)
 		}
 
 		if (vips_target_writes(csv->target, "\n"))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -179,19 +179,19 @@ vips_foreign_save_csv_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_csv_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_mono(class->nickname, save->ready) ||
 		vips_check_uncoded(class->nickname, save->ready))
-		return (-1);
+		return -1;
 
 	if (vips_sink_disc(save->ready, vips_foreign_save_csv_block, csv))
-		return (-1);
+		return -1;
 
 	if (vips_target_end(csv->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_save_csv_suffs[] = {
@@ -252,10 +252,10 @@ vips_foreign_save_csv_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(csv->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_file_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_csv_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -305,8 +305,8 @@ vips_foreign_save_csv_target_build(VipsObject *object)
 		g_object_ref(csv->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_csv_target_parent_class)
-				->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_csv_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -367,7 +367,7 @@ vips_csvsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("csvsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -396,5 +396,5 @@ vips_csvsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("csvsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

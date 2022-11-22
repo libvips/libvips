@@ -79,7 +79,7 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 			shrink != 4 && shrink != 8) {
 			im_error("im_jpeg2vips",
 				_("bad shrink factor %d"), shrink);
-			return (-1);
+			return -1;
 		}
 	}
 	if ((q = im_getnextoption(&p))) {
@@ -107,7 +107,7 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 		!seq &&
 		out->dtype == VIPS_IMAGE_PARTIAL) {
 		if (vips__image_wio_output(out))
-			return (-1);
+			return -1;
 	}
 
 #ifdef HAVE_JPEG
@@ -115,11 +115,11 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 		VipsSource *source;
 
 		if (!(source = vips_source_new_from_file(filename)))
-			return (-1);
+			return -1;
 		if (vips__jpeg_read_source(source, out,
 				header_only, shrink, fail_on_warn, FALSE, FALSE)) {
 			VIPS_UNREF(source);
-			return (-1);
+			return -1;
 		}
 		VIPS_UNREF(source);
 	}
@@ -127,16 +127,16 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 	vips_error("im_jpeg2vips",
 		"%s", _("no JPEG support in your libvips"));
 
-	return (-1);
+	return -1;
 #endif /*HAVE_JPEG*/
 
-	return (0);
+	return 0;
 }
 
 int
 im_jpeg2vips(const char *name, IMAGE *out)
 {
-	return (jpeg2vips(name, out, FALSE));
+	return jpeg2vips(name, out, FALSE);
 }
 
 /* By having a separate header func, we get lazy.c to open via disc/mem.
@@ -144,7 +144,7 @@ im_jpeg2vips(const char *name, IMAGE *out)
 static int
 im_jpeg2vips_header(const char *name, IMAGE *out)
 {
-	return (jpeg2vips(name, out, TRUE));
+	return jpeg2vips(name, out, TRUE);
 }
 
 int
@@ -157,14 +157,14 @@ im_bufjpeg2vips(void *buf, size_t len, IMAGE *out, gboolean header_only)
 	 */
 
 	if (vips_jpegload_buffer(buf, len, &t, NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(t, out)) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -175,7 +175,7 @@ isjpeg(const char *name)
 
 	im_filename_split(name, filename, mode);
 
-	return (vips_foreign_is_a("jpegload", filename));
+	return vips_foreign_is_a("jpegload", filename);
 }
 
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };

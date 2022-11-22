@@ -156,7 +156,7 @@ vips_quadratic_gen(VipsRegion * or, void *vseq,
 	image.width = in->Xsize;
 	image.height = in->Ysize;
 	if (vips_region_image(ir, &image))
-		return (-1);
+		return -1;
 
 	for (yo = ylow; yo < yhigh; yo++) {
 		fxi = 0.0;
@@ -231,7 +231,7 @@ vips_quadratic_gen(VipsRegion * or, void *vseq,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -247,14 +247,14 @@ vips_quadratic_build(VipsObject *object)
 	VipsImage *t;
 
 	if (VIPS_OBJECT_CLASS(vips_quadratic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* We have the whole of the input in memory, so we can generate any
 	 * output.
 	 */
 	if (vips_image_pipelinev(resample->out,
 			VIPS_DEMAND_STYLE_ANY, resample->in, NULL))
-		return (-1);
+		return -1;
 
 	in = resample->in;
 
@@ -262,12 +262,12 @@ vips_quadratic_build(VipsObject *object)
 		vips_check_noncomplex(class->nickname, in) ||
 		vips_check_matrix(class->nickname,
 			quadratic->coeff, &quadratic->mat))
-		return (-1);
+		return -1;
 
 	if (quadratic->mat->Xsize != 2) {
 		vips_error(class->nickname,
 			"%s", _("coefficient matrix must have width 2"));
-		return (-1);
+		return -1;
 	}
 	switch (quadratic->mat->Ysize) {
 	case 1:
@@ -289,7 +289,7 @@ vips_quadratic_build(VipsObject *object)
 	default:
 		vips_error(class->nickname,
 			"%s", _("coefficient matrix must have height 1, 3, 4 or 6"));
-		return (-1);
+		return -1;
 	}
 
 	if (!quadratic->interpolate)
@@ -305,23 +305,23 @@ vips_quadratic_build(VipsObject *object)
 			in->Xsize + window_size, in->Ysize + window_size,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	vips_object_local(object, t);
 	in = t;
 
 	/* We need random access to our input.
 	 */
 	if (!(t = vips_image_copy_memory(in)))
-		return (-1);
+		return -1;
 	vips_object_local(object, t);
 	in = t;
 
 	if (vips_image_generate(resample->out,
 			vips_start_one, vips_quadratic_gen, vips_stop_one,
 			in, quadratic))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -386,5 +386,5 @@ vips_quadratic(VipsImage *in, VipsImage **out, VipsImage *coeff, ...)
 	result = vips_call_split("quadratic", ap, in, out, coeff);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

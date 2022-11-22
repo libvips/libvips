@@ -104,9 +104,9 @@ vips_grid_gen(VipsRegion * or, void *vseq, void *a, void *b,
 
 		if (vips_region_prepare(ir, &irect) ||
 			vips_region_region(or, ir, r, irect.left, irect.top))
-			return (-1);
+			return -1;
 
-		return (0);
+		return 0;
 	}
 
 	for (y = ys; y < VIPS_RECT_BOTTOM(r); y += theight)
@@ -139,10 +139,10 @@ vips_grid_gen(VipsRegion * or, void *vseq, void *a, void *b,
 			 */
 			if (vips_region_prepare_to(ir, or, &input,
 					paint.left, paint.top))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -153,33 +153,33 @@ vips_grid_build(VipsObject *object)
 	VipsGrid *grid = (VipsGrid *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_grid_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_known(class->nickname, grid->in) ||
 		vips_image_pio_input(grid->in))
-		return (-1);
+		return -1;
 
 	if (grid->in->Ysize % grid->tile_height != 0 ||
 		grid->in->Ysize / grid->tile_height !=
 			grid->across * grid->down) {
 		vips_error(class->nickname, "%s", _("bad grid geometry"));
-		return (-1);
+		return -1;
 	}
 
 	/* We can render small tiles with pointer copies.
 	 */
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, grid->in, NULL))
-		return (-1);
+		return -1;
 	conversion->out->Xsize = grid->in->Xsize * grid->across;
 	conversion->out->Ysize = grid->tile_height * grid->down;
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_grid_gen, vips_stop_one,
 			grid->in, grid))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -268,5 +268,5 @@ vips_grid(VipsImage *in, VipsImage **out,
 		in, out, tile_height, across, down);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

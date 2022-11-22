@@ -65,7 +65,7 @@ public:
 	VipsInterpolate *
 	get_interpolate() const
 	{
-		return ((VipsInterpolate *) VObject::get_object());
+		return (VipsInterpolate *) VObject::get_object();
 	}
 };
 

@@ -88,13 +88,13 @@ G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadMagick, vips_foreign_load_magick,
 static VipsForeignFlags
 vips_foreign_load_magick_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_magick_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static void
@@ -185,8 +185,8 @@ ismagick(const char *filename)
 	unsigned char buf[100];
 	int len;
 
-	return ((len = vips__get_bytes(filename, buf, 100)) > 10 &&
-		magick_ismagick(buf, len));
+	return (len = vips__get_bytes(filename, buf, 100)) > 10 &&
+		magick_ismagick(buf, len);
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See
@@ -209,11 +209,11 @@ vips_foreign_load_magick_file_header(VipsForeignLoad *load)
 	if (vips__magick_read(magick_file->filename,
 			load->out, magick->density,
 			magick->page, magick->n))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, magick_file->filename);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -262,7 +262,7 @@ G_DEFINE_TYPE(VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer,
 static gboolean
 vips_foreign_load_magick_buffer_is_a_buffer(const void *buf, size_t len)
 {
-	return (len > 10 && magick_ismagick((const unsigned char *) buf, len));
+	return len > 10 && magick_ismagick((const unsigned char *) buf, len);
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See
@@ -286,9 +286,9 @@ vips_foreign_load_magick_buffer_header(VipsForeignLoad *load)
 			magick_buffer->buf->data, magick_buffer->buf->length,
 			load->out, magick->density, magick->page,
 			magick->n))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

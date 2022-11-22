@@ -182,7 +182,7 @@ vips_morph_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->t1);
 	VIPS_FREE(seq->t2);
 
-	return (0);
+	return 0;
 }
 
 /* Morph start function.
@@ -196,7 +196,7 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	VipsMorphSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsMorphSequence)))
-		return (NULL);
+		return NULL;
 
 	/* Init!
 	 */
@@ -220,7 +220,7 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	if (!seq->soff ||
 		!seq->coff) {
 		vips_morph_stop(seq, in, morph);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Vector mode.
@@ -234,11 +234,11 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 		if (!seq->t1 ||
 			!seq->t2) {
 			vips_morph_stop(seq, in, morph);
-			return (NULL);
+			return NULL;
 		}
 	}
 
-	return (seq);
+	return seq;
 }
 
 #define TEMP(N, S) vips_vector_temporary(v, N, S)
@@ -346,14 +346,14 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 	ASM2("copyb", "d1", "sum");
 
 	if (!vips_vector_compile(v))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG
 	printf("done matrix coeffs %d to %d\n", pass->first, pass->last);
 	vips_vector_print(v);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Generate a set of passes.
@@ -382,7 +382,7 @@ vips_morph_compile(VipsMorph *morph)
 		/* Allocate space for another pass.
 		 */
 		if (morph->n_pass == MAX_PASS)
-			return (-1);
+			return -1;
 		pass = &morph->pass[morph->n_pass];
 		morph->n_pass += 1;
 
@@ -391,14 +391,14 @@ vips_morph_compile(VipsMorph *morph)
 		pass->r = -1;
 
 		if (vips_morph_compile_section(morph, pass, morph->n_pass == 1))
-			return (-1);
+			return -1;
 		i = pass->last + 1;
 
 		if (i >= morph->n_point)
 			break;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Dilate!
@@ -433,7 +433,7 @@ vips_dilate_gen(VipsRegion * or,
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_dilate_gen: preparing %dx%d@%dx%d pixels\n",
@@ -509,7 +509,7 @@ vips_dilate_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Erode!
@@ -544,7 +544,7 @@ vips_erode_gen(VipsRegion * or,
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_erode_gen: preparing %dx%d@%dx%d pixels\n",
@@ -617,7 +617,7 @@ vips_erode_gen(VipsRegion * or,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* The vector codepath.
@@ -644,7 +644,7 @@ vips_morph_gen_vector(VipsRegion * or,
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_morph_gen_vector: preparing %dx%d@%dx%d pixels\n",
@@ -684,7 +684,7 @@ vips_morph_gen_vector(VipsRegion * or,
 
 	VIPS_COUNT_PIXELS(or, "vips_morph_gen_vector");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -702,18 +702,18 @@ vips_morph_build(VipsObject *object)
 	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_morph_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = morphology->in;
 
 	/* Unpack for processing.
 	 */
 	if (vips_image_decode(in, &t[0]))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	if (vips_check_matrix(class->nickname, morph->mask, &t[1]))
-		return (-1);
+		return -1;
 	morph->M = M = t[1];
 	morph->n_point = M->Xsize * M->Ysize;
 
@@ -722,24 +722,24 @@ vips_morph_build(VipsObject *object)
 			in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[2];
 
 	/* Make sure we are uchar.
 	 */
 	if (vips_cast(in, &t[3], VIPS_FORMAT_UCHAR, NULL))
-		return (-1);
+		return -1;
 	in = t[3];
 
 	/* Make an int version of our mask.
 	 */
 	if (vips__image_intize(M, &t[4]))
-		return (-1);
+		return -1;
 	M = t[4];
 
 	coeff = VIPS_MATRIX(M, 0, 0);
 	if (!(morph->coeff = VIPS_ARRAY(object, morph->n_point, int)))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < morph->n_point; i++) {
 		if (coeff[i] != 0 &&
@@ -748,7 +748,7 @@ vips_morph_build(VipsObject *object)
 			vips_error(class->nickname,
 				_("bad mask element (%f should be 0, 128 or 255)"),
 				coeff[i]);
-			return (-1);
+			return -1;
 		}
 		morph->coeff[i] = coeff[i];
 	}
@@ -773,7 +773,7 @@ vips_morph_build(VipsObject *object)
 	g_object_set(morph, "out", vips_image_new(), NULL);
 	if (vips_image_pipelinev(morph->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
@@ -783,14 +783,14 @@ vips_morph_build(VipsObject *object)
 
 	if (vips_image_generate(morph->out,
 			vips_morph_start, generate, vips_morph_stop, in, morph))
-		return (-1);
+		return -1;
 
 	morph->out->Xoffset = -M->Xsize / 2;
 	morph->out->Yoffset = -M->Ysize / 2;
 
 	vips_reorder_margin_hint(morph->out, morph->n_point);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -888,5 +888,5 @@ vips_morph(VipsImage *in, VipsImage **out, VipsImage *mask,
 	result = vips_call_split("morph", ap, in, out, mask, morph);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

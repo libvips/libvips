@@ -101,7 +101,7 @@ vips_magicksave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("magicksave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -154,5 +154,5 @@ vips_magicksave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }

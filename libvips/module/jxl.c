@@ -72,7 +72,7 @@ g_module_check_init(GModule *module)
 	vips_foreign_save_jxl_buffer_get_type();
 	vips_foreign_save_jxl_target_get_type();
 
-	return (NULL);
+	return NULL;
 }
 
 #endif /*defined(HAVE_LIBJXL) && defined(LIBJXL_MODULE)*/

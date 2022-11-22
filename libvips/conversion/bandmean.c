@@ -182,14 +182,14 @@ vips_bandmean_build(VipsObject *object)
 
 	if (bandmean->in &&
 		bandmean->in->Bands == 1)
-		return (vips_bandary_copy(bandary));
+		return vips_bandary_copy(bandary);
 
 	bandary->out_bands = 1;
 
 	if (VIPS_OBJECT_CLASS(vips_bandmean_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -245,5 +245,5 @@ vips_bandmean(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("bandmean", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

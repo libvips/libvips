@@ -88,7 +88,7 @@ remosaic_fn(JoinNode *node, VipsRemosaic *remosaic)
 	if (!im) {
 		vips_error("vips_remosaic", _("file \"%s\" not found"),
 			node->name);
-		return (NULL);
+		return NULL;
 	}
 
 	/* Remove substring remosaic->old_str from in->filename, replace with
@@ -110,16 +110,16 @@ remosaic_fn(JoinNode *node, VipsRemosaic *remosaic)
 #endif /*DEBUG*/
 
 	if (!(out = vips__global_open_image(st, filename)))
-		return (NULL);
+		return NULL;
 
 	if (out->Xsize != im->Xsize || out->Ysize != im->Ysize) {
 		vips_error("vips_remosaic",
 			_("substitute image \"%s\" is not the same size as \"%s\""),
 			filename, im->filename);
-		return (NULL);
+		return NULL;
 	}
 
-	return (out);
+	return out;
 }
 
 static int
@@ -132,19 +132,19 @@ vips_remosaic_build(VipsObject *object)
 	g_object_set(remosaic, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_remosaic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!(st = vips__build_symtab(remosaic->out, SYM_TAB_SIZE)) ||
 		vips__parse_desc(st, remosaic->in))
-		return (-1);
+		return -1;
 
 	remosaic->old_len = strlen(remosaic->old_str);
 	remosaic->new_len = strlen(remosaic->new_str);
 	if (vips__build_mosaic(st, remosaic->out,
 			(transform_fn) remosaic_fn, remosaic))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -226,5 +226,5 @@ vips_remosaic(VipsImage *in, VipsImage **out,
 	result = vips_call_split("remosaic", ap, in, out, old_str, new_str);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

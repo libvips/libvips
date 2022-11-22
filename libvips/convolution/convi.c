@@ -235,7 +235,7 @@ vips_convi_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->t1);
 	VIPS_FREE(seq->t2);
 
-	return (0);
+	return 0;
 }
 
 /* Convolution start function.
@@ -248,7 +248,7 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 	VipsConviSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsConviSequence)))
-		return (NULL);
+		return NULL;
 
 	seq->convi = convi;
 	seq->ir = NULL;
@@ -264,7 +264,7 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 	if (convi->nnz) {
 		if (!(seq->offsets = VIPS_ARRAY(NULL, convi->nnz, int))) {
 			vips_convi_stop(seq, in, convi);
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -277,11 +277,11 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 		if (!seq->t1 ||
 			!seq->t2) {
 			vips_convi_stop(seq, in, convi);
-			return (NULL);
+			return NULL;
 		}
 	}
 
-	return ((void *) seq);
+	return (void *) seq;
 }
 
 #define TEMP(N, S) vips_vector_temporary(v, (char *) N, S)
@@ -396,14 +396,14 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 	ASM2("copyw", "d1", "sum");
 
 	if (!vips_vector_compile(v))
-		return (-1);
+		return -1;
 
 #ifdef DEBUG_COMPILE
 	printf("done coeffs %d to %d\n", pass->first, pass->last);
 	vips_vector_print(v);
 #endif /*DEBUG_COMPILE*/
 
-	return (0);
+	return 0;
 }
 
 /* Generate code for the final 16->8 conversion.
@@ -440,9 +440,9 @@ vips_convi_compile_clip(VipsConvi *convi)
 	ASM2("convsuswb", "d1", "value");
 
 	if (!vips_vector_compile(v))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -457,7 +457,7 @@ vips_convi_compile(VipsConvi *convi, VipsImage *in)
 		/* Allocate space for another pass.
 		 */
 		if (convi->n_pass == MAX_PASS)
-			return (-1);
+			return -1;
 		pass = &convi->pass[convi->n_pass];
 		convi->n_pass += 1;
 
@@ -465,7 +465,7 @@ vips_convi_compile(VipsConvi *convi, VipsImage *in)
 		pass->r = -1;
 
 		if (vips_convi_compile_section(convi, in, pass))
-			return (-1);
+			return -1;
 		i = pass->last + 1;
 
 		if (i >= convi->n_point)
@@ -473,9 +473,9 @@ vips_convi_compile(VipsConvi *convi, VipsImage *in)
 	}
 
 	if (vips_convi_compile_clip(convi))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -508,7 +508,7 @@ vips_convi_gen_vector(VipsRegion * or,
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	for (i = 0; i < convi->n_pass; i++)
 		vips_executor_set_program(&executor[i],
@@ -569,7 +569,7 @@ vips_convi_gen_vector(VipsRegion * or,
 
 	VIPS_COUNT_PIXELS(or, "vips_convi_gen_vector");
 
-	return (0);
+	return 0;
 }
 
 /* INT inner loops.
@@ -700,7 +700,7 @@ vips_convi_gen(VipsRegion * or,
 	s.width += M->Xsize - 1;
 	s.height += M->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	/* Fill offset array. Only do this if the bpl has changed since the
 	 * previous vips_region_prepare().
@@ -767,7 +767,7 @@ vips_convi_gen(VipsRegion * or,
 
 	VIPS_COUNT_PIXELS(or, "vips_convi_gen");
 
-	return (0);
+	return 0;
 }
 
 /* Make an int version of a mask.
@@ -786,10 +786,10 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 	int int_result;
 
 	if (vips_check_matrix("vips2imask", in, &t))
-		return (-1);
+		return -1;
 	if (!(*out = vips_image_new_matrix(t->Xsize, t->Ysize))) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 
 	/* We want to make an intmask which has the same input to output ratio
@@ -838,7 +838,7 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 
 	g_object_unref(t);
 
-	return (0);
+	return 0;
 }
 
 /* Make an int version of a mask. Each element is 8.8 float, with the same
@@ -858,14 +858,14 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	int i;
 
 	if (vips_check_matrix("vips2imask", M, &t))
-		return (-1);
+		return -1;
 
 	/* Bake the scale into the mask to make a double version.
 	 */
 	scale = vips_image_get_scale(t);
 	if (!(scaled = VIPS_ARRAY(convi, convi->n_point, double))) {
 		g_object_unref(t);
-		return (-1);
+		return -1;
 	}
 	for (i = 0; i < convi->n_point; i++)
 		scaled[i] = VIPS_MATRIX(t, 0, 0)[i] / scale;
@@ -909,7 +909,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	convi->sexp = ceil(log2(convi->n_point));
 	if (convi->sexp > 10) {
 		g_info("vips_convi_intize: mask too large");
-		return (-1);
+		return -1;
 	}
 
 	/* With that already done, the final shift must be ...
@@ -917,7 +917,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	convi->exp = 7 - shift - convi->sexp;
 
 	if (!(convi->mant = VIPS_ARRAY(convi, convi->n_point, int)))
-		return (-1);
+		return -1;
 	for (i = 0; i < convi->n_point; i++) {
 		/* 128 since this is signed.
 		 */
@@ -926,7 +926,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 		if (convi->mant[i] < -128 ||
 			convi->mant[i] > 127) {
 			g_info("vips_convi_intize: mask range too large");
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -976,11 +976,11 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 
 		if (VIPS_ABS(true_value - int_value) > 2) {
 			g_info("vips_convi_intize: too inaccurate");
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -997,7 +997,7 @@ vips_convi_build(VipsObject *object)
 	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_convi_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = convolution->in;
 	M = convolution->M;
@@ -1008,7 +1008,7 @@ vips_convi_build(VipsObject *object)
 			in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
-		return (-1);
+		return -1;
 	in = t[0];
 
 	/* Default to the C path.
@@ -1036,14 +1036,14 @@ vips_convi_build(VipsObject *object)
 		/* Make an int version of our mask.
 		 */
 		if (vips__image_intize(M, &t[1]))
-			return (-1);
+			return -1;
 		M = t[1];
 
 		coeff = VIPS_MATRIX(M, 0, 0);
 		if (!(convi->coeff = VIPS_ARRAY(object, convi->n_point, int)) ||
 			!(convi->coeff_pos =
 					VIPS_ARRAY(object, convi->n_point, int)))
-			return (-1);
+			return -1;
 
 		/* Squeeze out zero mask elements.
 		 */
@@ -1068,7 +1068,7 @@ vips_convi_build(VipsObject *object)
 	g_object_set(convi, "out", vips_image_new(), NULL);
 	if (vips_image_pipelinev(convolution->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
@@ -1078,12 +1078,12 @@ vips_convi_build(VipsObject *object)
 
 	if (vips_image_generate(convolution->out,
 			vips_convi_start, generate, vips_convi_stop, in, convi))
-		return (-1);
+		return -1;
 
 	convolution->out->Xoffset = -M->Xsize / 2;
 	convolution->out->Yoffset = -M->Ysize / 2;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1145,5 +1145,5 @@ vips_convi(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("convi", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

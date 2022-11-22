@@ -85,7 +85,7 @@ vips_col_ab2h(double a, double b)
 			h = VIPS_DEG(t + VIPS_PI);
 	}
 
-	return (h);
+	return h;
 }
 
 void
@@ -167,5 +167,5 @@ vips_Lab2LCh(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("Lab2LCh", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

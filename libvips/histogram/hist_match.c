@@ -135,9 +135,9 @@ vips_hist_match_build(VipsObject *object)
 		g_object_ref(histogram->in[1]);
 
 	if (VIPS_OBJECT_CLASS(vips_hist_match_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -201,5 +201,5 @@ vips_hist_match(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
 	result = vips_call_split("hist_match", ap, in, ref, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -201,7 +201,7 @@ vips_col_dE00(float L1, float a1, float b1,
 	printf( "dE00 = %g\n", dE00 );
 	 */
 
-	return (dE00);
+	return dE00;
 }
 
 /* Find the difference between two buffers of LAB data.
@@ -266,5 +266,5 @@ vips_dE00(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 	result = vips_call_split("dE00", ap, left, right, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

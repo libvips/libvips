@@ -134,7 +134,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 	if (magick->images == NULL) {
 		if (!(image = magick_acquire_image(magick->image_info,
 				  magick->exception)))
-			return (-1);
+			return -1;
 
 		magick->images = image;
 		magick->position.top = 0;
@@ -147,7 +147,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 		magick_acquire_next_image(magick->image_info, image,
 			magick->exception);
 		if (GetNextImageInList(image) == NULL)
-			return (-1);
+			return -1;
 
 		image = SyncNextImageInList(image);
 		magick->position.top += magick->page_height;
@@ -156,7 +156,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 	if (!magick_set_image_size(image,
 			im->Xsize, magick->page_height, magick->exception)) {
 		magick_vips_error(class->nickname, magick->exception);
-		return (-1);
+		return -1;
 	}
 
 	/* Delay must be converted from milliseconds into centiseconds
@@ -202,12 +202,12 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 	if (!save->strip &&
 		magick_set_magick_profile(image, im, magick->exception)) {
 		magick_vips_error(class->nickname, magick->exception);
-		return (-1);
+		return -1;
 	}
 
 	magick->current_image = image;
 
-	return (0);
+	return 0;
 }
 
 /* We've written all the pixels to current_image ... finish it off ready to
@@ -241,7 +241,7 @@ vips_foreign_save_magick_write_block(VipsRegion *region, VipsRect *area,
 
 		if (!magick->current_image &&
 			vips_foreign_save_magick_next_image(magick))
-			return (-1);
+			return -1;
 
 		vips_rect_intersectrect(&pixels, &magick->position, &hit);
 		p = VIPS_REGION_ADDR(region, hit.left, hit.top);
@@ -253,7 +253,7 @@ vips_foreign_save_magick_write_block(VipsRegion *region, VipsRect *area,
 				magick->exception)) {
 			magick_vips_error(class->nickname,
 				magick->exception);
-			return (-1);
+			return -1;
 		}
 
 		/* Have we filled the page.
@@ -266,7 +266,7 @@ vips_foreign_save_magick_write_block(VipsRegion *region, VipsRect *area,
 		pixels.height -= hit.height;
 	} while (pixels.height > 0);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -283,7 +283,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	magick_genesis();
 
@@ -318,7 +318,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 	default:
 		vips_error(class->nickname,
 			"%s", _("unsupported image format"));
-		return (-1);
+		return -1;
 	}
 
 	switch (im->Bands) {
@@ -348,7 +348,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 	default:
 		vips_error(class->nickname,
 			"%s", _("unsupported number of image bands"));
-		return (-1);
+		return -1;
 	}
 
 	if (magick->format) {
@@ -375,14 +375,14 @@ vips_foreign_save_magick_build(VipsObject *object)
 	if (vips_image_get_typeof(im, "delay")) {
 		g_value_unset(&magick->delay_gvalue);
 		if (vips_image_get(im, "delay", &magick->delay_gvalue))
-			return (-1);
+			return -1;
 		magick->delays = vips_value_get_array_int(
 			&magick->delay_gvalue, &magick->delays_length);
 	}
 
 	if (vips_sink_disc(im,
 			vips_foreign_save_magick_write_block, magick))
-		return (-1);
+		return -1;
 
 	if (magick->optimize_gif_frames) {
 		if (!magick_optimize_image_layers(&magick->images,
@@ -391,7 +391,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 				magick->images);
 			magick_vips_error(class->nickname, magick->exception);
 
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -402,7 +402,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 				magick->images);
 			magick_vips_error(class->nickname, magick->exception);
 
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -417,11 +417,11 @@ vips_foreign_save_magick_build(VipsObject *object)
 				magick->images);
 			magick_vips_error(class->nickname, magick->exception);
 
-			return (-1);
+			return -1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* We could call into libMagick and discover what save formats it supports, but
@@ -549,17 +549,17 @@ vips_foreign_save_magick_file_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!WriteImages(magick->image_info, magick->images,
 			magick->image_info->filename, magick->exception)) {
 		magick_inherit_exception(magick->exception, magick->images);
 		magick_vips_error(class->nickname, magick->exception);
 
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -617,21 +617,21 @@ vips_foreign_save_magick_buffer_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_magick_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	if (!(obuf = magick_images_to_blob(magick->image_info, magick->images,
 			  &olen, magick->exception))) {
 		magick_inherit_exception(magick->exception, magick->images);
 		magick_vips_error(class->nickname, magick->exception);
 
-		return (-1);
+		return -1;
 	}
 
 	blob = vips_blob_new((VipsCallbackFn) vips_area_free_cb, obuf, olen);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void

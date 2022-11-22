@@ -101,7 +101,7 @@ vips_abs_orc_init_cb(void *a)
 
 	vips_arithmetic_compile(aclass);
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -115,12 +115,12 @@ vips_abs_build(VipsObject *object)
 
 	if (unary->in &&
 		vips_band_format_isuint(unary->in->BandFmt))
-		return (vips_unary_copy(unary));
+		return vips_unary_copy(unary);
 
 	if (VIPS_OBJECT_CLASS(vips_abs_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Integer abs operation: just test and negate.
@@ -312,5 +312,5 @@ vips_abs(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("abs", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

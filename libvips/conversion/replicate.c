@@ -108,12 +108,12 @@ vips_replicate_gen(VipsRegion * or, void *seq, void *a, void *b,
 		irect.left -= xs;
 		irect.top -= ys;
 		if (vips_region_prepare(ir, &irect))
-			return (-1);
+			return -1;
 
 		if (vips_region_region(or, ir, r, irect.left, irect.top))
-			return (-1);
+			return -1;
 
-		return (0);
+		return 0;
 	}
 
 	for (y = ys; y < VIPS_RECT_BOTTOM(r); y += theight)
@@ -144,10 +144,10 @@ vips_replicate_gen(VipsRegion * or, void *seq, void *a, void *b,
 			if (vips_region_prepare_to(ir, or, &paint,
 					paint.left + x,
 					paint.top + y))
-				return (-1);
+				return -1;
 		}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -157,14 +157,14 @@ vips_replicate_build(VipsObject *object)
 	VipsReplicate *replicate = (VipsReplicate *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_replicate_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_image_pio_input(replicate->in))
-		return (-1);
+		return -1;
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_SMALLTILE, replicate->in, NULL))
-		return (-1);
+		return -1;
 
 	conversion->out->Xsize *= replicate->across;
 	conversion->out->Ysize *= replicate->down;
@@ -172,9 +172,9 @@ vips_replicate_build(VipsObject *object)
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_replicate_gen, vips_stop_one,
 			replicate->in, replicate))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -242,5 +242,5 @@ vips_replicate(VipsImage *in, VipsImage **out, int across, int down, ...)
 	result = vips_call_split("replicate", ap, in, out, across, down);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -93,9 +93,9 @@ vips_smartcrop_score(VipsSmartcrop *smartcrop, VipsImage *in,
 	if (vips_extract_area(in, &t[0], left, top, width, height, NULL) ||
 		vips_hist_find(t[0], &t[1], NULL) ||
 		vips_hist_entropy(t[1], score, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Entropy-style smartcrop. Repeatedly discard low interest areas. This should
@@ -138,12 +138,12 @@ vips_smartcrop_entropy(VipsSmartcrop *smartcrop,
 			if (vips_smartcrop_score(smartcrop, in,
 					*left, *top,
 					slice_width, height, &left_score))
-				return (-1);
+				return -1;
 
 			if (vips_smartcrop_score(smartcrop, in,
 					*left + width - slice_width, *top,
 					slice_width, height, &right_score))
-				return (-1);
+				return -1;
 
 			width -= slice_width;
 			if (left_score < right_score)
@@ -157,12 +157,12 @@ vips_smartcrop_entropy(VipsSmartcrop *smartcrop,
 			if (vips_smartcrop_score(smartcrop, in,
 					*left, *top,
 					width, slice_height, &top_score))
-				return (-1);
+				return -1;
 
 			if (vips_smartcrop_score(smartcrop, in,
 					*left, *top + height - slice_height,
 					width, slice_height, &bottom_score))
-				return (-1);
+				return -1;
 
 			height -= slice_height;
 			if (top_score < bottom_score)
@@ -170,7 +170,7 @@ vips_smartcrop_entropy(VipsSmartcrop *smartcrop,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Calculate sqrt(b1^2 + b2^2 ...)
@@ -186,17 +186,17 @@ pythagoras(VipsSmartcrop *smartcrop, VipsImage *in, VipsImage **out)
 
 	for (i = 0; i < in->Bands; i++)
 		if (vips_extract_band(in, &t[i], i, NULL))
-			return (-1);
+			return -1;
 
 	for (i = 0; i < in->Bands; i++)
 		if (vips_multiply(t[i], t[i], &t[i + in->Bands], NULL))
-			return (-1);
+			return -1;
 
 	if (vips_sum(&t[in->Bands], &t[2 * in->Bands], in->Bands, NULL) ||
 		vips_pow_const1(t[2 * in->Bands], out, 0.5, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -230,7 +230,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 	if (vips_resize(in, &t[17], hscale,
 			"vscale", vscale,
 			NULL))
-		return (-1);
+		return -1;
 
 	/* Simple edge detect.
 	 */
@@ -238,13 +238,13 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 			  0.0, -1.0, 0.0,
 			  -1.0, 4.0, -1.0,
 			  0.0, -1.0, 0.0)))
-		return (-1);
+		return -1;
 
 	/* Convert to XYZ and just use the first three bands.
 	 */
 	if (vips_colourspace(t[17], &t[0], VIPS_INTERPRETATION_XYZ, NULL) ||
 		vips_extract_band(t[0], &t[1], 0, "n", 3, NULL))
-		return (-1);
+		return -1;
 
 	/* Edge detect on Y.
 	 */
@@ -254,7 +254,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 			NULL) ||
 		vips_linear1(t[3], &t[4], 5.0, 0.0, NULL) ||
 		vips_abs(t[4], &t[14], NULL))
-		return (-1);
+		return -1;
 
 	/* Look for skin colours. Taken from smartcrop.js.
 	 */
@@ -278,7 +278,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 		vips_more_const1(t[2], &t[10], 5.0, NULL) ||
 		!(t[11] = vips_image_new_from_image1(t[10], 0.0)) ||
 		vips_ifthenelse(t[10], t[9], t[11], &t[15], NULL))
-		return (-1);
+		return -1;
 
 	/* Look for saturated areas.
 	 */
@@ -286,7 +286,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 			VIPS_INTERPRETATION_LAB, NULL) ||
 		vips_extract_band(t[12], &t[13], 1, NULL) ||
 		vips_ifthenelse(t[10], t[13], t[11], &t[16], NULL))
-		return (-1);
+		return -1;
 
 	/* Sum, blur and find maxpos.
 	 *
@@ -298,7 +298,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 	if (vips_sum(&t[14], &t[18], 3, NULL) ||
 		vips_gaussblur(t[18], &t[19], sigma, NULL) ||
 		vips_max(t[19], &max, "x", &x_pos, "y", &y_pos, NULL))
-		return (-1);
+		return -1;
 
 	/* Transform back into image coordinates.
 	 */
@@ -314,7 +314,7 @@ vips_smartcrop_attention(VipsSmartcrop *smartcrop,
 		*attention_y - smartcrop->height / 2,
 		in->Ysize - smartcrop->height);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -333,13 +333,13 @@ vips_smartcrop_build(VipsObject *object)
 	int attention_y = 0;
 
 	if (VIPS_OBJECT_CLASS(vips_smartcrop_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (smartcrop->width > smartcrop->in->Xsize ||
 		smartcrop->height > smartcrop->in->Ysize ||
 		smartcrop->width <= 0 || smartcrop->height <= 0) {
 		vips_error(class->nickname, "%s", _("bad extract area"));
-		return (-1);
+		return -1;
 	}
 
 	in = smartcrop->in;
@@ -350,7 +350,7 @@ vips_smartcrop_build(VipsObject *object)
 	 */
 	if (vips_image_hasalpha(in) && !smartcrop->premultiplied) {
 		if (vips_premultiply(in, &t[0], NULL))
-			return (-1);
+			return -1;
 		in = t[0];
 	}
 
@@ -368,14 +368,14 @@ vips_smartcrop_build(VipsObject *object)
 
 	case VIPS_INTERESTING_ENTROPY:
 		if (vips_smartcrop_entropy(smartcrop, in, &left, &top))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_INTERESTING_ATTENTION:
 		if (vips_smartcrop_attention(smartcrop, in,
 				&left, &top,
 				&attention_x, &attention_y))
-			return (-1);
+			return -1;
 		break;
 
 	case VIPS_INTERESTING_HIGH:
@@ -409,9 +409,9 @@ vips_smartcrop_build(VipsObject *object)
 			left, top,
 			smartcrop->width, smartcrop->height, NULL) ||
 		vips_image_write(t[1], conversion->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -522,5 +522,5 @@ vips_smartcrop(VipsImage *in, VipsImage **out, int width, int height, ...)
 	result = vips_call_split("smartcrop", ap, in, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -85,7 +85,7 @@ vips_shrink_build(VipsObject *object)
 	int vshrink_int;
 
 	if (VIPS_OBJECT_CLASS(vips_shrink_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	hshrink_int = (int) shrink->hshrink;
 	vshrink_int = (int) shrink->vshrink;
@@ -101,7 +101,7 @@ vips_shrink_build(VipsObject *object)
 				"gap", 1.0,
 				NULL) ||
 			vips_image_write(t[1], resample->out))
-			return (-1);
+			return -1;
 	}
 	else {
 		if (vips_shrinkv(resample->in, &t[0], shrink->vshrink,
@@ -111,10 +111,10 @@ vips_shrink_build(VipsObject *object)
 				"ceil", shrink->ceil,
 				NULL) ||
 			vips_image_write(t[1], resample->out))
-			return (-1);
+			return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -219,5 +219,5 @@ vips_shrink(VipsImage *in, VipsImage **out,
 	result = vips_call_split("shrink", ap, in, out, hshrink, vshrink);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

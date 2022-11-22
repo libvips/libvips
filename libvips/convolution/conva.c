@@ -210,9 +210,9 @@ static int
 gcd(int a, int b)
 {
 	if (b == 0)
-		return (abs(a));
+		return abs(a);
 	else
-		return (gcd(b, a % b));
+		return gcd(b, a % b);
 }
 
 static void
@@ -235,17 +235,17 @@ vips_conva_hline_end(VipsConva *conva, int x, int y, int factor)
 
 	if (conva->n_hline >= MAX_LINES - 1) {
 		vips_error(class->nickname, "%s", _("mask too complex"));
-		return (-1);
+		return -1;
 	}
 	conva->n_hline += 1;
 
 	if (conva->n_velement >= MAX_LINES - 1) {
 		vips_error(class->nickname, "%s", _("mask too complex"));
-		return (-1);
+		return -1;
 	}
 	conva->n_velement += 1;
 
-	return (0);
+	return 0;
 }
 
 #ifdef DEBUG
@@ -382,7 +382,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 						if (vips_conva_hline_end(conva,
 								x, y,
 								z_positive ? 1 : -1))
-							return (-1);
+							return -1;
 						inside = 0;
 					}
 				}
@@ -391,7 +391,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 			if (inside &&
 				vips_conva_hline_end(conva,
 					iM->Xsize, y, z_positive ? 1 : -1))
-				return (-1);
+				return -1;
 		}
 	}
 
@@ -401,7 +401,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	vips_conva_hprint(conva);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* The 'distance' between a pair of hlines.
@@ -411,8 +411,8 @@ vips_conva_distance(VipsConva *conva, int a, int b)
 {
 	g_assert(conva->hline[a].weight > 0 && conva->hline[b].weight > 0);
 
-	return (abs(conva->hline[a].start - conva->hline[b].start) +
-		abs(conva->hline[a].end - conva->hline[b].end));
+	return abs(conva->hline[a].start - conva->hline[b].start) +
+		abs(conva->hline[a].end - conva->hline[b].end);
 }
 
 /* Merge two hlines. Line b is deleted, and any refs to b in vlines updated to
@@ -454,7 +454,7 @@ edge_sortfn(const void *p1, const void *p2)
 	Edge *a = (Edge *) p1;
 	Edge *b = (Edge *) p2;
 
-	return (a->d - b->d);
+	return a->d - b->d;
 }
 
 /* Cluster in batches. Return non-zero if we merged some lines.
@@ -548,7 +548,7 @@ vips_conva_cluster2(VipsConva *conva)
 		}
 	}
 
-	return (merged);
+	return merged;
 }
 
 /* Renumber after clustering. We will have removed a lot of hlines ... shuffle
@@ -594,12 +594,12 @@ velement_sortfn(const void *p1, const void *p2)
 	VElement *b = (VElement *) p2;
 
 	if (a->band != b->band)
-		return (a->band - b->band);
+		return a->band - b->band;
 
 	if (a->factor != b->factor)
-		return (a->factor - b->factor);
+		return a->factor - b->factor;
 
-	return (a->row - b->row);
+	return a->row - b->row;
 }
 
 static void
@@ -695,7 +695,7 @@ vips_conva_decompose_boxes(VipsConva *conva)
 	int x, y, z;
 
 	if (vips_conva_decompose_hlines(conva))
-		return (-1);
+		return -1;
 
 	/* Cluster to find groups of lines.
 	 */
@@ -759,10 +759,10 @@ vips_conva_decompose_boxes(VipsConva *conva)
 	 */
 	if (conva->n_hline > 150) {
 		vips_error(class->nickname, "%s", _("mask too complex"));
-		return (-1);
+		return -1;
 	}
 
-	return (0);
+	return 0;
 }
 
 /* Our sequence value.
@@ -794,7 +794,7 @@ vips_conva_stop(void *vseq, void *a, void *b)
 
 	VIPS_UNREF(seq->ir);
 
-	return (0);
+	return 0;
 }
 
 /* Convolution start function.
@@ -825,7 +825,7 @@ vips_conva_start(VipsImage *out, void *a, void *b)
 		seq->sum = VIPS_ARRAY(out, conva->n_velement, double);
 	seq->last_stride = -1;
 
-	return (seq);
+	return seq;
 }
 
 /* The h and v loops are very similar, but also annoyingly different. Keep
@@ -899,7 +899,7 @@ vips_conva_hgenerate(VipsRegion * or, void *vseq,
 	s = *r;
 	s.width += iM->Xsize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	istride = VIPS_IMAGE_SIZEOF_PEL(in) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(in);
@@ -970,7 +970,7 @@ vips_conva_hgenerate(VipsRegion * or, void *vseq,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -984,13 +984,13 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	(*out)->Xsize -= conva->iM->Xsize - 1;
 	if ((*out)->Xsize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image too small for mask"));
-		return (-1);
+		return -1;
 	}
 	(*out)->Bands *= conva->n_hline;
 
@@ -1008,9 +1008,9 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 	if (vips_image_generate(*out,
 			vips_conva_start, vips_conva_hgenerate, vips_conva_stop,
 			in, conva))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 #define CLIP_UCHAR(V) \
@@ -1136,7 +1136,7 @@ vips_conva_vgenerate(VipsRegion * or, void *vseq,
 	s = *r;
 	s.height += iM->Ysize - 1;
 	if (vips_region_prepare(ir, &s))
-		return (-1);
+		return -1;
 
 	istride = VIPS_REGION_LSKIP(ir) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(in);
@@ -1212,7 +1212,7 @@ vips_conva_vgenerate(VipsRegion * or, void *vseq,
 		g_assert_not_reached();
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1227,13 +1227,13 @@ vips_conva_vertical(VipsConva *conva, VipsImage *in, VipsImage **out)
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
-		return (-1);
+		return -1;
 
 	(*out)->Ysize -= conva->iM->Ysize - 1;
 	if ((*out)->Ysize <= 0) {
 		vips_error(class->nickname,
 			"%s", _("image too small for mask"));
-		return (-1);
+		return -1;
 	}
 	(*out)->Bands = convolution->in->Bands;
 	(*out)->BandFmt = convolution->in->BandFmt;
@@ -1241,9 +1241,9 @@ vips_conva_vertical(VipsConva *conva, VipsImage *in, VipsImage **out)
 	if (vips_image_generate(*out,
 			vips_conva_start, vips_conva_vgenerate, vips_conva_stop,
 			in, conva))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -1256,12 +1256,12 @@ vips_conva_build(VipsObject *object)
 	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_conva_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* An int version of our mask.
 	 */
 	if (vips__image_intize(convolution->M, &t[0]))
-		return (-1);
+		return -1;
 	conva->iM = t[0];
 
 #ifdef DEBUG
@@ -1272,7 +1272,7 @@ vips_conva_build(VipsObject *object)
 	in = convolution->in;
 
 	if (vips_conva_decompose_boxes(conva))
-		return (-1);
+		return -1;
 
 	g_object_set(conva, "out", vips_image_new(), NULL);
 	if (
@@ -1286,12 +1286,12 @@ vips_conva_build(VipsObject *object)
 		vips_conva_horizontal(conva, t[1], &t[2]) ||
 		vips_conva_vertical(conva, t[2], &t[3]) ||
 		vips_image_write(t[3], convolution->out))
-		return (-1);
+		return -1;
 
 	convolution->out->Xoffset = 0;
 	convolution->out->Yoffset = 0;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1373,5 +1373,5 @@ vips_conva(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	result = vips_call_split("conva", ap, in, out, mask);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

@@ -63,9 +63,9 @@ vips_unary_build(VipsObject *object)
 		g_object_ref(arithmetic->in[0]);
 
 	if (VIPS_OBJECT_CLASS(vips_unary_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -113,5 +113,5 @@ vips_unary_copy(VipsUnary *unary)
 	 */
 	g_object_set(unary, "out", vips_image_new(), NULL);
 
-	return (vips_image_write(unary->in, arithmetic->out));
+	return vips_image_write(unary->in, arithmetic->out);
 }

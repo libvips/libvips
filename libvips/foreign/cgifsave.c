@@ -383,7 +383,7 @@ vips__cgif_compare_palettes(const VipsQuantisePalette *new,
 		total_dist += best_dist;
 	}
 
-	return (sqrt(total_dist / (3 * new->count)));
+	return sqrt(total_dist / (3 * new->count));
 }
 
 /* Extract the generated palette as RGB.
@@ -420,7 +420,7 @@ vips_foreign_save_cgif_pick_quantiser(VipsForeignSaveCgif *cgif,
 	if (vips__quantise_image_quantize_fixed(image, cgif->attr,
 			&this_result)) {
 		vips_error(class->nickname, "%s", _("quantisation failed"));
-		return (-1);
+		return -1;
 	}
 
 	/* No global quantiser set up yet? Use this result.
@@ -518,7 +518,7 @@ vips_foreign_save_cgif_pick_quantiser(VipsForeignSaveCgif *cgif,
 
 	cgif->previous_quantisation_result = *result;
 
-	return (0);
+	return 0;
 }
 
 /* We have a complete frame --- write!
@@ -587,7 +587,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 		 */
 		if (vips_foreign_save_cgif_pick_quantiser(cgif,
 				image, &quantisation_result, &use_local))
-			return (-1);
+			return -1;
 	}
 	else {
 		quantisation_result = cgif->quantisation_result;
@@ -609,7 +609,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 			image, cgif->index, n_pels)) {
 		vips_error(class->nickname, "%s", _("dither failed"));
 		VIPS_FREEF(vips__quantise_image_destroy, image);
-		return (-1);
+		return -1;
 	}
 
 	VIPS_FREEF(vips__quantise_image_destroy, image);
@@ -706,7 +706,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 	frame_config.pImageData = cgif->index;
 	cgif_addframe(cgif->cgif_context, &frame_config);
 
-	return (0);
+	return 0;
 }
 
 /* Another chunk of pixels have arrived from the pipeline. Add to frame, and
@@ -733,14 +733,14 @@ vips_foreign_save_cgif_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 
 		if (cgif->write_y >= cgif->frame_height) {
 			if (vips_foreign_save_cgif_write_frame(cgif))
-				return (-1);
+				return -1;
 
 			cgif->write_y = 0;
 			cgif->page_number += 1;
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -753,7 +753,7 @@ vips_foreign_save_cgif_build(VipsObject *object)
 		vips_object_local_array(VIPS_OBJECT(cgif), 2);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	cgif->in = save->ready;
 
@@ -761,7 +761,7 @@ vips_foreign_save_cgif_build(VipsObject *object)
 	 */
 	if (!vips_image_hasalpha(cgif->in)) {
 		if (vips_addalpha(cgif->in, &t[1], NULL))
-			return (-1);
+			return -1;
 		cgif->in = t[1];
 	}
 
@@ -786,7 +786,7 @@ vips_foreign_save_cgif_build(VipsObject *object)
 		cgif->frame_width > 65535 ||
 		cgif->frame_height > 65535) {
 		vips_error(class->nickname, "%s", _("frame too large"));
-		return (-1);
+		return -1;
 	}
 
 	/* This RGBA frame as a contiguous buffer.
@@ -822,12 +822,12 @@ vips_foreign_save_cgif_build(VipsObject *object)
 		vips_image_get_typeof(cgif->in, "gif-palette")) {
 		if (vips_image_get_array_int(cgif->in, "gif-palette",
 				&cgif->palette, &cgif->n_colours))
-			return (-1);
+			return -1;
 
 		if (cgif->n_colours > 256) {
 			vips_error(class->nickname,
 				"%s", _("gif-palette too large"));
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -851,7 +851,7 @@ vips_foreign_save_cgif_build(VipsObject *object)
 				cgif->attr, &cgif->quantisation_result)) {
 			vips_error(class->nickname,
 				"%s", _("quantisation failed"));
-			return (-1);
+			return -1;
 		}
 
 		VIPS_FREEF(vips__quantise_image_destroy, image);
@@ -868,14 +868,14 @@ vips_foreign_save_cgif_build(VipsObject *object)
 
 	if (vips_sink_disc(cgif->in,
 			vips_foreign_save_cgif_sink_disc, cgif))
-		return (-1);
+		return -1;
 
 	VIPS_FREEF(cgif_close, cgif->cgif_context);
 
 	if (vips_target_end(cgif->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips__save_cgif_suffs[] = { ".gif", NULL };
@@ -1006,9 +1006,9 @@ vips_foreign_save_cgif_target_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_target_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1054,13 +1054,13 @@ vips_foreign_save_cgif_file_build(VipsObject *object)
 	VipsForeignSaveCgifFile *file = (VipsForeignSaveCgifFile *) object;
 
 	if (!(gif->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_file_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1108,17 +1108,17 @@ vips_foreign_save_cgif_buffer_build(VipsObject *object)
 	VipsBlob *blob;
 
 	if (!(gif->target = vips_target_new_to_memory()))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_cgif_buffer_parent_class)
 			->build(object))
-		return (-1);
+		return -1;
 
 	g_object_get(gif->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -1207,7 +1207,7 @@ vips_gifsave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("gifsave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1263,7 +1263,7 @@ vips_gifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 		vips_area_unref(area);
 	}
 
-	return (result);
+	return result;
 }
 
 /**
@@ -1299,5 +1299,5 @@ vips_gifsave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("gifsave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

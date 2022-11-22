@@ -91,7 +91,7 @@ vips__find_tboverlap(VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	if (halfcorrelation < 0 || halfarea < 0 ||
 		halfarea < halfcorrelation) {
 		vips_error("vips__tbmosaic", "%s", _("bad area parameters"));
-		return (-1);
+		return -1;
 	}
 
 	/* Set positions of top and bottom.
@@ -112,7 +112,7 @@ vips__find_tboverlap(VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 		overlap.height < 2 * halfarea + 1) {
 		vips_error("vips__tbmosaic", "%s",
 			_("overlap too small for search"));
-		return (-1);
+		return -1;
 	}
 
 	/* Extract overlaps as 8-bit, 1 band.
@@ -123,24 +123,24 @@ vips__find_tboverlap(VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 		vips_extract_area(sec_in, &t[1],
 			overlap.left - bottom.left, overlap.top - bottom.top,
 			overlap.width, overlap.height, NULL))
-		return (-1);
+		return -1;
 	if (ref_in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2sRGB(t[0], &t[2], NULL) ||
 			vips_LabQ2sRGB(t[1], &t[3], NULL) ||
 			vips_extract_band(t[2], &t[4], 1, NULL) ||
 			vips_extract_band(t[3], &t[5], 1, NULL))
-			return (-1);
+			return -1;
 	}
 	else if (ref_in->Coding == VIPS_CODING_NONE) {
 		if (vips_extract_band(t[0], &t[2], bandno_in, NULL) ||
 			vips_extract_band(t[1], &t[3], bandno_in, NULL) ||
 			vips_scale(t[2], &t[4], NULL) ||
 			vips_scale(t[3], &t[5], NULL))
-			return (-1);
+			return -1;
 	}
 	else {
 		vips_error("vips__tbmosaic", "%s", _("unknown Coding type"));
-		return (-1);
+		return -1;
 	}
 
 	/* Initialise and fill TiePoints
@@ -173,29 +173,29 @@ vips__find_tboverlap(VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	 * p_points->x,y_reference.
 	 */
 	if (vips__tbcalcon(t[4], p_points))
-		return (-1);
+		return -1;
 
 	/* For each candidate point, correlate against corresponding part of
 	 * sec. Sets x,y_secondary and fills correlation and dx, dy.
 	 */
 	if (vips__chkpair(t[4], t[5], p_points))
-		return (-1);
+		return -1;
 
 	/* First call to vips_clinear().
 	 */
 	if (vips__initialize(p_points))
-		return (-1);
+		return -1;
 
 	/* Improve the selection of tiepoints until all abs(deviations) are
 	 * < 1.0 by deleting all wrong points.
 	 */
 	if (vips__improve(p_points, p_newpoints))
-		return (-1);
+		return -1;
 
 	/* Average remaining offsets.
 	 */
 	if (vips__avgdxdy(p_newpoints, &dx, &dy))
-		return (-1);
+		return -1;
 
 	/* Offset with overlap position.
 	 */
@@ -209,7 +209,7 @@ vips__find_tboverlap(VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	*dx1 = newpoints.l_deltax;
 	*dy1 = newpoints.l_deltay;
 
-	return (0);
+	return 0;
 }
 
 int
@@ -235,7 +235,7 @@ vips__tbmosaic(VipsImage *ref, VipsImage *sec, VipsImage *out,
 			&dx0, &dy0,
 			&scale1, &angle1, &dx1, &dy1)) {
 		g_object_unref(dummy);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(dummy);
 
@@ -244,12 +244,12 @@ vips__tbmosaic(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	if (vips_merge(ref, sec, &x, VIPS_DIRECTION_VERTICAL, dx0, dy0,
 			"mblend", mwidth,
 			NULL))
-		return (-1);
+		return -1;
 	if (vips_image_write(x, out)) {
 		g_object_unref(x);
-		return (-1);
+		return -1;
 	}
 	g_object_unref(x);
 
-	return (0);
+	return 0;
 }

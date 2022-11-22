@@ -73,8 +73,8 @@ im_vips2png(IMAGE *in, const char *filename)
 	if ((q = im_getnextoption(&p)))
 		interlace = atoi(q);
 
-	return (vips_pngsave(in, name,
-		"compression", compression, "interlace", interlace, NULL));
+	return vips_pngsave(in, name,
+		"compression", compression, "interlace", interlace, NULL);
 }
 
 int
@@ -85,11 +85,11 @@ im_vips2bufpng(IMAGE *in, IMAGE *out,
 			"compression", compression,
 			"interlace", interlace,
 			NULL))
-		return (-1);
+		return -1;
 
 	if (out)
 		im_add_callback(out, "close",
 			(im_callback_fn) vips_free, obuf, NULL);
 
-	return (0);
+	return 0;
 }

@@ -69,13 +69,13 @@ G_DEFINE_TYPE(VipsForeignLoadAnalyze, vips_foreign_load_analyze,
 static VipsForeignFlags
 vips_foreign_load_analyze_get_flags_filename(const char *filename)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
 vips_foreign_load_analyze_get_flags(VipsForeignLoad *load)
 {
-	return (VIPS_FOREIGN_PARTIAL);
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
@@ -84,11 +84,11 @@ vips_foreign_load_analyze_header(VipsForeignLoad *load)
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
 	if (vips__analyze_read_header(analyze->filename, load->out))
-		return (-1);
+		return -1;
 
 	VIPS_SETSTR(load->out->filename, analyze->filename);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -97,9 +97,9 @@ vips_foreign_load_analyze_load(VipsForeignLoad *load)
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
 	if (vips__analyze_read(analyze->filename, load->real))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static const char *vips_foreign_analyze_suffs[] = { ".img", ".hdr", NULL };
@@ -180,5 +180,5 @@ vips_analyzeload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("analyzeload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

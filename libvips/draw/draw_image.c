@@ -174,21 +174,21 @@ vips_draw_image_build(VipsObject *object)
 	VipsRect clip_rect;
 
 	if (VIPS_OBJECT_CLASS(vips_draw_image_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (vips_check_coding_known(class->nickname, draw->image) ||
 		vips_check_coding_same(class->nickname,
 			draw->image, draw_image->sub) ||
 		vips_check_bands_1orn_unary(class->nickname,
 			draw_image->sub, draw->image->Bands))
-		return (-1);
+		return -1;
 
 	/* SET will work for any matching coding, but every other mode needs
 	 * uncoded images.
 	 */
 	if (draw_image->mode != VIPS_COMBINE_MODE_SET &&
 		vips_check_uncoded(class->nickname, draw->image))
-		return (-1);
+		return -1;
 
 	/* Cast sub to match main in bands and format.
 	 */
@@ -197,7 +197,7 @@ vips_draw_image_build(VipsObject *object)
 		if (vips__bandup(class->nickname,
 				im, &t[0], draw->image->Bands) ||
 			vips_cast(t[0], &t[1], draw->image->BandFmt, NULL))
-			return (-1);
+			return -1;
 
 		im = t[1];
 	}
@@ -219,7 +219,7 @@ vips_draw_image_build(VipsObject *object)
 		int y;
 
 		if (vips_image_wio_input(im))
-			return (-1);
+			return -1;
 
 		p = VIPS_IMAGE_ADDR(im,
 			clip_rect.left - draw_image->x,
@@ -249,7 +249,7 @@ vips_draw_image_build(VipsObject *object)
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -333,5 +333,5 @@ vips_draw_image(VipsImage *image, VipsImage *sub, int x, int y, ...)
 	result = vips_call_split("draw_image", ap, image, sub, x, y);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

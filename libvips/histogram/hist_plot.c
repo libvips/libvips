@@ -144,7 +144,7 @@ vips_hist_plot_vert_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 #define HORZ(TYPE) \
@@ -212,7 +212,7 @@ vips_hist_plot_horz_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -230,14 +230,14 @@ vips_hist_plot_build(VipsObject *object)
 	g_object_set(plot, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_hist_plot_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	in = plot->in;
 
 	if (vips_check_uncoded(class->nickname, in) ||
 		vips_check_noncomplex(class->nickname, in) ||
 		vips_check_hist(class->nickname, in))
-		return (-1);
+		return -1;
 
 	if (!vips_band_format_isuint(in->BandFmt) &&
 		vips_band_format_isint(in->BandFmt)) {
@@ -247,7 +247,7 @@ vips_hist_plot_build(VipsObject *object)
 
 		if (vips_min(in, &min, NULL) ||
 			vips_linear1(in, &t[0], 1.0, -min, NULL))
-			return (-1);
+			return -1;
 
 		in = t[0];
 	}
@@ -258,24 +258,24 @@ vips_hist_plot_build(VipsObject *object)
 		int any = in->Xsize * in->Ysize;
 
 		if (vips_stats(in, &t[0], NULL))
-			return (-1);
+			return -1;
 		min = *VIPS_MATRIX(t[0], 0, 0);
 		max = *VIPS_MATRIX(t[0], 1, 0);
 
 		if (vips_linear1(in, &t[1],
 				any / (max - min), -min * any / (max - min), NULL))
-			return (-1);
+			return -1;
 
 		in = t[1];
 	}
 
 	if (vips_image_wio_input(in))
-		return (-1);
+		return -1;
 
 	/* Find range we will plot.
 	 */
 	if (vips_max(in, &max, NULL))
-		return (-1);
+		return -1;
 	g_assert(max >= 0);
 	if (in->BandFmt == VIPS_FORMAT_UCHAR)
 		tsize = 256;
@@ -311,9 +311,9 @@ vips_hist_plot_build(VipsObject *object)
 	if (vips_image_pipelinev(plot->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_generate(plot->out,
 			NULL, generate_fn, NULL, in, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -378,5 +378,5 @@ vips_hist_plot(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_plot", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

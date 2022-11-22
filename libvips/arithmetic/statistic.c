@@ -62,7 +62,7 @@ vips_statistic_scan_start(VipsImage *in, void *a, void *b)
 	VipsStatistic *statistic = VIPS_STATISTIC(a);
 	VipsStatisticClass *class = VIPS_STATISTIC_GET_CLASS(statistic);
 
-	return (class->start(statistic));
+	return class->start(statistic);
 }
 
 static int
@@ -85,7 +85,7 @@ vips_statistic_scan(VipsRegion *region,
 	for (y = 0; y < r->height; y++) {
 		if (class->scan(statistic,
 				seq, r->left, r->top + y, p, r->width))
-			return (-1);
+			return -1;
 		p += lsk;
 	}
 
@@ -94,7 +94,7 @@ vips_statistic_scan(VipsRegion *region,
 	if (statistic->stop)
 		*stop = TRUE;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -103,7 +103,7 @@ vips_statistic_scan_stop(void *seq, void *a, void *b)
 	VipsStatistic *statistic = VIPS_STATISTIC(a);
 	VipsStatisticClass *class = VIPS_STATISTIC_GET_CLASS(statistic);
 
-	return (class->stop(statistic, seq));
+	return class->stop(statistic, seq);
 }
 
 static int
@@ -120,12 +120,12 @@ vips_statistic_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (VIPS_OBJECT_CLASS(vips_statistic_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	statistic->ready = statistic->in;
 
 	if (vips_image_decode(statistic->ready, &t[0]))
-		return (-1);
+		return -1;
 	statistic->ready = t[0];
 
 	/* If there's a format table, cast the input.
@@ -133,7 +133,7 @@ vips_statistic_build(VipsObject *object)
 	if (sclass->format_table) {
 		if (vips_cast(statistic->ready, &t[1],
 				sclass->format_table[statistic->in->BandFmt], NULL))
-			return (-1);
+			return -1;
 		statistic->ready = t[1];
 	}
 
@@ -142,9 +142,9 @@ vips_statistic_build(VipsObject *object)
 			vips_statistic_scan,
 			vips_statistic_scan_stop,
 			statistic, NULL))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void

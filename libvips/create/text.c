@@ -216,7 +216,7 @@ text_layout_new(PangoContext *context,
 	if (pwidth > 0)
 		pango_layout_set_width(layout, width * PANGO_SCALE);
 
-	return (layout);
+	return layout;
 }
 
 static int
@@ -233,7 +233,7 @@ vips_text_get_extents(VipsText *text, VipsRect *extents)
 			  text->text, text->font,
 			  text->width, text->spacing, text->align, text->wrap,
 			  text->justify)))
-		return (-1);
+		return -1;
 
 	pango_layout_get_pixel_extents(text->layout,
 		&ink_rect, &logical_rect);
@@ -251,7 +251,7 @@ vips_text_get_extents(VipsText *text, VipsRect *extents)
 		logical_rect.width, logical_rect.height);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 /* Return -ve for extents too small, +ve for extents too large.
@@ -260,9 +260,9 @@ static int
 vips_text_rect_difference(VipsRect *target, VipsRect *extents)
 {
 	if (vips_rect_includesrect(target, extents))
-		return (-1);
+		return -1;
 	else
-		return (1);
+		return 1;
 }
 
 /* Adjust text->dpi to try to fit to the bounding box.
@@ -297,7 +297,7 @@ vips_text_autofit(VipsText *text)
 
 	for (;;) {
 		if (vips_text_get_extents(text, &extents))
-			return (-1);
+			return -1;
 		target.left = extents.left;
 		target.top = extents.top;
 		difference = vips_text_rect_difference(&target, &extents);
@@ -346,7 +346,7 @@ vips_text_autofit(VipsText *text)
 		difference != 0) {
 		text->dpi = (upper_dpi + lower_dpi) / 2;
 		if (vips_text_get_extents(text, &extents))
-			return (-1);
+			return -1;
 		target.left = extents.left;
 		target.top = extents.top;
 		difference = vips_text_rect_difference(&target, &extents);
@@ -371,7 +371,7 @@ vips_text_autofit(VipsText *text)
 	printf("vips_text_autofit: final dpi = %d\n", text->dpi);
 #endif /*DEBUG*/
 
-	return (0);
+	return 0;
 }
 
 static void *
@@ -381,7 +381,7 @@ vips_text_init_once(void *client)
 	vips_text_fontmap = pango_cairo_font_map_new();
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
-	return (NULL);
+	return NULL;
 }
 
 static int
@@ -401,12 +401,12 @@ vips_text_build(VipsObject *object)
 	cairo_status_t status;
 
 	if (VIPS_OBJECT_CLASS(vips_text_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	if (!pango_parse_markup(text->text, -1, 0, NULL, NULL, NULL, NULL)) {
 		vips_error(class->nickname,
 			"%s", _("invalid markup in text"));
-		return (-1);
+		return -1;
 	}
 
 	VIPS_ONCE(&once, vips_text_init_once, NULL);
@@ -453,7 +453,7 @@ vips_text_build(VipsObject *object)
 		!vips_object_argument_isset(object, "dpi")) {
 		if (vips_text_autofit(text)) {
 			g_mutex_unlock(vips_text_lock);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -461,14 +461,14 @@ vips_text_build(VipsObject *object)
 	 */
 	if (vips_text_get_extents(text, &extents)) {
 		g_mutex_unlock(vips_text_lock);
-		return (-1);
+		return -1;
 	}
 
 	if (extents.width == 0 ||
 		extents.height == 0) {
 		g_mutex_unlock(vips_text_lock);
 		vips_error(class->nickname, "%s", _("no text to render"));
-		return (-1);
+		return -1;
 	}
 
 	image = t[0] = vips_image_new_memory();
@@ -483,7 +483,7 @@ vips_text_build(VipsObject *object)
 	if (vips_image_pipelinev(image, VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_write_prepare(image)) {
 		g_mutex_unlock(vips_text_lock);
-		return (-1);
+		return -1;
 	}
 
 	surface = cairo_image_surface_create_for_data(
@@ -498,7 +498,7 @@ vips_text_build(VipsObject *object)
 		g_mutex_unlock(vips_text_lock);
 		vips_error(class->nickname,
 			"%s", cairo_status_to_string(status));
-		return (-1);
+		return -1;
 	}
 
 	cr = cairo_create(surface);
@@ -531,14 +531,14 @@ vips_text_build(VipsObject *object)
 			vips_copy(t[1], &t[2],
 				"interpretation", VIPS_INTERPRETATION_MULTIBAND,
 				NULL))
-			return (-1);
+			return -1;
 		image = t[2];
 	}
 
 	if (vips_image_write(image, create->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -730,5 +730,5 @@ vips_text(VipsImage **out, const char *text, ...)
 	result = vips_call_split("text", ap, out, text);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

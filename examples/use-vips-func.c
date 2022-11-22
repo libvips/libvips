@@ -39,5 +39,5 @@ main(int argc, char **argv)
 
 	g_object_unref(out);
 
-	return (0);
+	return 0;
 }

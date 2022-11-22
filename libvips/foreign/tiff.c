@@ -98,7 +98,7 @@ openin_source_read(thandle_t st, tdata_t data, tsize_t size)
 {
 	VipsSource *source = VIPS_SOURCE(st);
 
-	return (vips_source_read(source, data, size));
+	return vips_source_read(source, data, size);
 }
 
 static tsize_t
@@ -106,7 +106,7 @@ openin_source_write(thandle_t st, tdata_t buffer, tsize_t size)
 {
 	g_assert_not_reached();
 
-	return (0);
+	return 0;
 }
 
 static toff_t
@@ -114,7 +114,7 @@ openin_source_seek(thandle_t st, toff_t offset, int whence)
 {
 	VipsSource *source = VIPS_SOURCE(st);
 
-	return ((toff_t) vips_source_seek(source, offset, whence));
+	return (toff_t) vips_source_seek(source, offset, whence);
 }
 
 static int
@@ -124,7 +124,7 @@ openin_source_close(thandle_t st)
 
 	VIPS_UNREF(source);
 
-	return (0);
+	return 0;
 }
 
 static toff_t
@@ -137,7 +137,7 @@ openin_source_length(thandle_t st)
 	 *
 	 * toff_t is usually uint64, with -1 cast to uint64 to indicate error.
 	 */
-	return ((toff_t) vips_source_length(source));
+	return (toff_t) vips_source_length(source);
 }
 
 static int
@@ -145,7 +145,7 @@ openin_source_map(thandle_t st, tdata_t *start, toff_t *len)
 {
 	g_assert_not_reached();
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -166,7 +166,7 @@ vips__tiff_openin_source(VipsSource *source)
 #endif /*DEBUG*/
 
 	if (vips_source_rewind(source))
-		return (NULL);
+		return NULL;
 
 	/* Disable memory mapped input -- it chews up VM and the performance
 	 * gain is very small.
@@ -186,14 +186,14 @@ vips__tiff_openin_source(VipsSource *source)
 			  openin_source_unmap))) {
 		vips_error("vips__tiff_openin_source", "%s",
 			_("unable to open source for input"));
-		return (NULL);
+		return NULL;
 	}
 
 	/* Unreffed on close(), see above.
 	 */
 	g_object_ref(source);
 
-	return (tiff);
+	return tiff;
 }
 
 /* TIFF output to a target.
@@ -206,7 +206,7 @@ openout_target_read(thandle_t st, tdata_t data, tsize_t size)
 {
 	VipsTarget *target = (VipsTarget *) st;
 
-	return (vips_target_read(target, data, size));
+	return vips_target_read(target, data, size);
 }
 
 static tsize_t
@@ -215,9 +215,9 @@ openout_target_write(thandle_t st, tdata_t data, tsize_t size)
 	VipsTarget *target = (VipsTarget *) st;
 
 	if (vips_target_write(target, data, size))
-		return ((tsize_t) -1);
+		return (tsize_t) -1;
 
-	return (size);
+	return size;
 }
 
 static toff_t
@@ -225,7 +225,7 @@ openout_target_seek(thandle_t st, toff_t offset, int whence)
 {
 	VipsTarget *target = (VipsTarget *) st;
 
-	return (vips_target_seek(target, offset, whence));
+	return vips_target_seek(target, offset, whence);
 }
 
 static int
@@ -234,9 +234,9 @@ openout_target_close(thandle_t st)
 	VipsTarget *target = (VipsTarget *) st;
 
 	if (vips_target_end(target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static toff_t
@@ -244,7 +244,7 @@ openout_target_length(thandle_t st)
 {
 	g_assert_not_reached();
 
-	return ((toff_t) -1);
+	return (toff_t) -1;
 }
 
 static int
@@ -252,7 +252,7 @@ openout_target_map(thandle_t st, tdata_t *start, toff_t *len)
 {
 	g_assert_not_reached();
 
-	return (-1);
+	return -1;
 }
 
 static void
@@ -285,10 +285,10 @@ vips__tiff_openout_target(VipsTarget *target, gboolean bigtiff)
 			  openout_target_unmap))) {
 		vips_error("vips__tiff_openout_target", "%s",
 			_("unable to open target for output"));
-		return (NULL);
+		return NULL;
 	}
 
-	return (tiff);
+	return tiff;
 }
 
 #endif /*HAVE_TIFF*/

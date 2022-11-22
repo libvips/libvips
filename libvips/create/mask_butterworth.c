@@ -67,9 +67,9 @@ vips_mask_butterworth_point(VipsMask *mask, double dx, double dy)
 	double d = dx * dx + dy * dy;
 
 	if (d == 0)
-		return (0);
+		return 0;
 	else
-		return (1.0 / (1.0 + cnst * pow(fc2 / d, order)));
+		return 1.0 / (1.0 + cnst * pow(fc2 / d, order));
 }
 
 static void
@@ -158,5 +158,5 @@ vips_mask_butterworth(VipsImage **out, int width, int height,
 		order, frequency_cutoff, amplitude_cutoff);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

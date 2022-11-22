@@ -86,12 +86,12 @@ vips_hist_norm_build(VipsObject *object)
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_hist_norm_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* Need max for each channel.
 	 */
 	if (vips_stats(norm->in, &t[0], NULL))
-		return (-1);
+		return -1;
 
 	/* Scale each channel by px / channel max
 	 */
@@ -99,14 +99,14 @@ vips_hist_norm_build(VipsObject *object)
 	bands = norm->in->Bands;
 	if (!(a = VIPS_ARRAY(object, bands, double)) ||
 		!(b = VIPS_ARRAY(object, bands, double)))
-		return (-1);
+		return -1;
 	for (y = 0; y < bands; y++) {
 		a[y] = new_max / *VIPS_MATRIX(t[0], 1, y + 1);
 		b[y] = 0;
 	}
 
 	if (vips_linear(norm->in, &t[1], a, b, bands, NULL))
-		return (-1);
+		return -1;
 
 	/* Make output format as small as we can.
 	 */
@@ -119,9 +119,9 @@ vips_hist_norm_build(VipsObject *object)
 
 	if (vips_cast(t[1], &t[2], fmt, NULL) ||
 		vips_image_write(t[2], norm->out))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -179,5 +179,5 @@ vips_hist_norm(VipsImage *in, VipsImage **out, ...)
 	result = vips_call_split("hist_norm", ap, in, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

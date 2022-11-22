@@ -154,7 +154,7 @@ vips_connection_init(VipsConnection *connection)
 const char *
 vips_connection_filename(VipsConnection *connection)
 {
-	return (connection->filename);
+	return connection->filename;
 }
 
 /**
@@ -167,7 +167,6 @@ vips_connection_filename(VipsConnection *connection)
 const char *
 vips_connection_nick(VipsConnection *connection)
 {
-	return (connection->filename
-			? connection->filename
-			: VIPS_OBJECT(connection)->nickname);
+	return connection->filename ? connection->filename
+								: VIPS_OBJECT(connection)->nickname;
 }

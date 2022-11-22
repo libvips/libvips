@@ -76,7 +76,7 @@ G_DEFINE_TYPE(VipsGrey, vips_grey, VIPS_TYPE_POINT);
 static float
 vips_grey_point(VipsPoint *point, int x, int y)
 {
-	return ((double) x / (point->width - 1));
+	return (double) x / (point->width - 1);
 }
 
 static void
@@ -129,5 +129,5 @@ vips_grey(VipsImage **out, int width, int height, ...)
 	result = vips_call_split("grey", ap, out, width, height);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

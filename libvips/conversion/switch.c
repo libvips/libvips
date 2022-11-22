@@ -72,7 +72,7 @@ vips_switch_gen(VipsRegion * or, void *seq, void *a, void *b,
 	size_t ls[256];
 
 	if (vips_reorder_prepare_many(or->im, ar, r))
-		return (-1);
+		return -1;
 
 	g_assert(ar[0]->im->BandFmt == VIPS_FORMAT_UCHAR);
 	g_assert(ar[0]->im->Bands == 1);
@@ -98,7 +98,7 @@ vips_switch_gen(VipsRegion * or, void *seq, void *a, void *b,
 			p[i] += ls[i];
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -117,7 +117,7 @@ vips_switch_build(VipsObject *object)
 	g_object_set(object, "out", vips_image_new(), NULL);
 
 	if (VIPS_OBJECT_CLASS(vips_switch_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* 255 rather than 256, since we want to reserve +1 as the no
 	 * match value.
@@ -127,7 +127,7 @@ vips_switch_build(VipsObject *object)
 	if (swit->n > 255 ||
 		swit->n < 1) {
 		vips_error(class->nickname, "%s", _("bad number of tests"));
-		return (-1);
+		return -1;
 	}
 
 	decode = (VipsImage **) vips_object_local_array(object, swit->n);
@@ -139,39 +139,39 @@ vips_switch_build(VipsObject *object)
 	 */
 	for (i = 0; i < swit->n; i++)
 		if (vips_image_decode(tests[i], &decode[i]))
-			return (-1);
+			return -1;
 	tests = decode;
 
 	/* Must be uchar.
 	 */
 	for (i = 0; i < swit->n; i++)
 		if (vips_cast_uchar(tests[i], &format[i], NULL))
-			return (-1);
+			return -1;
 	tests = format;
 
 	/* Images must match in size and bands.
 	 */
 	if (vips__bandalike_vec(class->nickname, tests, band, swit->n, 1) ||
 		vips__sizealike_vec(band, size, swit->n))
-		return (-1);
+		return -1;
 	tests = size;
 
 	if (tests[0]->Bands > 1) {
 		vips_error(class->nickname,
 			"%s", _("test images not 1-band"));
-		return (-1);
+		return -1;
 	}
 
 	if (vips_image_pipeline_array(swit->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, tests))
-		return (-1);
+		return -1;
 
 	if (vips_image_generate(swit->out,
 			vips_start_many, vips_switch_gen, vips_stop_many,
 			tests, swit))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -220,7 +220,7 @@ vips_switchv(VipsImage **tests, VipsImage **out, int n, va_list ap)
 	result = vips_call_split("switch", ap, tests_array, out);
 	vips_area_unref(VIPS_AREA(tests_array));
 
-	return (result);
+	return result;
 }
 
 /**
@@ -254,5 +254,5 @@ vips_switch(VipsImage **tests, VipsImage **out, int n, ...)
 	result = vips_switchv(tests, out, n, ap);
 	va_end(ap);
 
-	return (result);
+	return result;
 }

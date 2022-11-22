@@ -53,7 +53,7 @@ VSource::new_from_descriptor(int descriptor)
 
 	VSource out(input);
 
-	return (out);
+	return out;
 }
 
 VSource
@@ -66,7 +66,7 @@ VSource::new_from_file(const char *filename)
 
 	VSource out(input);
 
-	return (out);
+	return out;
 }
 
 VSource
@@ -79,7 +79,7 @@ VSource::new_from_blob(VipsBlob *blob)
 
 	VSource out(input);
 
-	return (out);
+	return out;
 }
 
 VSource
@@ -93,7 +93,7 @@ VSource::new_from_memory(const void *data,
 
 	VSource out(input);
 
-	return (out);
+	return out;
 }
 
 VSource
@@ -106,7 +106,7 @@ VSource::new_from_options(const char *options)
 
 	VSource out(input);
 
-	return (out);
+	return out;
 }
 
 VTarget
@@ -119,7 +119,7 @@ VTarget::new_to_descriptor(int descriptor)
 
 	VTarget out(output);
 
-	return (out);
+	return out;
 }
 
 VTarget
@@ -132,7 +132,7 @@ VTarget::new_to_file(const char *filename)
 
 	VTarget out(output);
 
-	return (out);
+	return out;
 }
 
 VTarget
@@ -145,7 +145,7 @@ VTarget::new_to_memory()
 
 	VTarget out(output);
 
-	return (out);
+	return out;
 }
 
 VIPS_NAMESPACE_END

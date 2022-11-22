@@ -96,7 +96,7 @@ static int array[6][6] = {
 	default: \
 		im_error("im_gaddim", "Wrong tmp2 format(1)"); \
 		free(line); \
-		return (-1);
+		return -1;
 
 #define select_tmp1_for_out_int(IN2, OUT) \
 	switch (tmp1->BandFmt) { \
@@ -109,7 +109,7 @@ static int array[6][6] = {
 	default: \
 		im_error("im_gaddim", "Wrong tmp2 format(2)"); \
 		free(line); \
-		return (-1); \
+		return -1; \
 	}
 
 #define select_tmp2_for_out_short(OUT) \
@@ -144,7 +144,7 @@ static int array[6][6] = {
 	default: \
 		im_error("im_gaddim", "Wrong image1 format(4)"); \
 		free(line); \
-		return (-1); \
+		return -1; \
 	}
 
 /**
@@ -167,7 +167,7 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	/* fd, data filename must have been set before the function is called
 	 * Check whether they are set properly */
 	if ((im_iocheck(in1, out) == -1) || (im_iocheck(in2, out) == -1)) {
-		return (-1);
+		return -1;
 	}
 	/* Checks the arguments entered in in and prepares out */
 	if ((in1->Xsize != in2->Xsize) ||
@@ -175,11 +175,11 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		(in1->Bands != in2->Bands) ||
 		(in1->Coding != in2->Coding)) {
 		im_error("im_gaddim", " Input images differ");
-		return (-1);
+		return -1;
 	}
 	if (in1->Coding != IM_CODING_NONE) {
 		im_error("im_gaddim", " images must be uncoded");
-		return (-1);
+		return -1;
 	}
 
 	switch (in1->BandFmt) {
@@ -203,7 +203,7 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gaddim", " Unable to accept image1");
-		return (-1);
+		return -1;
 	}
 	switch (in2->BandFmt) {
 	case IM_BANDFMT_UCHAR:
@@ -226,7 +226,7 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 		break;
 	default:
 		im_error("im_gaddim", " Unable to accept image2");
-		return (-1);
+		return -1;
 	}
 	/* Define the output */
 	result = array[first][second];
@@ -234,13 +234,13 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	/* Prepare the output header */
 	if (im_cp_desc(out, in1) == -1) {
 		im_error("im_gaddim", " im_cp_desc failed");
-		return (-1);
+		return -1;
 	}
 	out->BandFmt = fmt[result];
 
 	if (im_setupout(out) == -1) {
 		im_error("im_gaddim", " im_setupout failed");
-		return (-1);
+		return -1;
 	}
 
 	/* Order in1 and in2 */
@@ -267,7 +267,7 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 					(OUT) (a * (*input1++) + b * (*input2++) + c + 0.5); \
 			if (im_writeline(y, out, line) == -1) { \
 				free(line); \
-				return (-1); \
+				return -1; \
 			} \
 		} \
 	}
@@ -276,7 +276,7 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	line = (PEL *) calloc((unsigned) os, sizeof(double));
 	if (line == NULL) {
 		im_error("im_gaddim", " Unable to calloc");
-		return (-1);
+		return -1;
 	}
 
 	switch (out->BandFmt) {
@@ -304,10 +304,10 @@ im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 	default:
 		im_error("im_gaddim", " Impossible output state");
 		free(line);
-		return (-1);
+		return -1;
 	}
 
 	free(line);
 
-	return (0);
+	return 0;
 }
