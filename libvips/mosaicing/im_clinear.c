@@ -7,7 +7,7 @@
  * @(#) No images are involved in this function and the calculated parameters
  * @(#) are returned in scale angle deltax and deltay of the TiePoints struct.
  * @(#)
- * @(#) int vips_clinear( points )
+ * @(#) int vips_clinear(points)
  * @(#) TiePoints *points;
  * @(#)
  * @(#) Returns 0 on sucess  and -1 on error.

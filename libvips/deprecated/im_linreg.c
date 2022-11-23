@@ -152,8 +152,8 @@ im_linreg(IMAGE **ins, IMAGE *out, double *xs)
 
 	for (n = 0; ins[n]; ++n) {
 		/*
-			if( ! isfinite( xs[ n ] ) ){
-			  im_error( FUNCTION_NAME, "invalid argument" );
+			if (!isfinite(xs[n])) {
+			  im_error(FUNCTION_NAME, "invalid argument");
 			  return -1;
 			}
 		*/

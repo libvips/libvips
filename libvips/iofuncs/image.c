@@ -1889,16 +1889,16 @@ vips_filename_get_options(const char *vips_filename)
  * For example:
  *
  * |[
- * VipsImage *image = vips_image_new_from_file ("fred.tif",
- * 	"page", 12,
- * 	NULL);
+ * VipsImage *image = vips_image_new_from_file("fred.tif",
+ *     "page", 12,
+ *     NULL);
  * ]|
  *
  * Will open "fred.tif", reading page 12.
  *
  * |[
- * VipsImage *image = vips_image_new_from_file ("fred.jpg[shrink=2]",
- * 	NULL);
+ * VipsImage *image = vips_image_new_from_file("fred.jpg[shrink=2]",
+ *     NULL);
  * ]|
  *
  * Will open "fred.jpg", downsampling by a factor of two.
@@ -2589,10 +2589,10 @@ vips_image_write_gen(VipsRegion * or,
 	VipsRect *r = & or->valid;
 
 	/*
-	printf( "vips_image_write_gen: %p "
-		"left = %d, top = %d, width = %d, height = %d\n",
+	printf("vips_image_write_gen: %p "
+		   "left = %d, top = %d, width = %d, height = %d\n",
 		or->im,
-		r->left, r->top, r->width, r->height );
+		r->left, r->top, r->width, r->height);
 	 */
 
 	/* Copy with pointers.

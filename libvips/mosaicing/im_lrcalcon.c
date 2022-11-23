@@ -20,7 +20,7 @@
  * @(#)  The calculation of the contrast is carried out based on bandno only.
  * @(#) The variable bandno should be between 1 and ref->Bands
  * @(#)
- * @(#) int vips_lrcalcon( ref, sec, bandno, points )
+ * @(#) int vips_lrcalcon(ref, sec, bandno, points)
  * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
  * @(#) TiePoints *points; 	see mosaic.h

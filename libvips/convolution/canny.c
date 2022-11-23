@@ -104,7 +104,7 @@ static VipsPel vips_canny_polar_atan2[256];
 /* For the uchar path, gx/gy are -128 to +127, and we need -8 to +7 for the
  * atan2 LUT.
  *
- * For G, we should calculate sqrt( gx * gx + gy * gy ), however we are only
+ * For G, we should calculate sqrt(gx * gx + gy * gy), however we are only
  * interested in relative magnitude (max of sqrt), so we can skip the sqrt
  * itself. We need a result that will fit in 0 - 255, so shift down.
  */

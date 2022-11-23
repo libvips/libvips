@@ -1214,10 +1214,10 @@ vips__image_copy_fields_array(VipsImage *out, VipsImage *in[])
  * |[
  * GValue value = { 0 };
  *
- * g_value_init (&value, G_TYPE_INT);
- * g_value_set_int (&value, 42);
- * vips_image_set (image, name, &value);
- * g_value_unset (&value);
+ * g_value_init(&value, G_TYPE_INT);
+ * g_value_set_int(&value, 42);
+ * vips_image_set(image, name, &value);
+ * g_value_unset(&value);
  * ]|
  *
  * See also: vips_image_get().
@@ -1302,20 +1302,20 @@ vips_set_value_from_pointer(GValue *value, void *data)
  * GValue value = { 0 };
  * double d;
  *
- * if (vips_image_get (image, name, &value))
- *   return -1;
+ * if (vips_image_get(image, name, &value))
+ *     return -1;
  *
- * if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
- *   vips_error( "mydomain",
- *     _("field \"%s\" is of type %s, not double"),
- *     name,
- *     g_type_name (G_VALUE_TYPE (&value)));
- *   g_value_unset (&value);
- *   return -1;
+ * if (G_VALUE_TYPE(&value) != G_TYPE_DOUBLE) {
+ *     vips_error("mydomain",
+ *         _("field \"%s\" is of type %s, not double"),
+ *         name,
+ *         g_type_name(G_VALUE_TYPE(&value)));
+ *     g_value_unset(&value);
+ *     return -1;
  * }
  *
- * d = g_value_get_double (&value);
- * g_value_unset (&value);
+ * d = g_value_get_double(&value);
+ * g_value_unset(&value);
  * ]|
  *
  * See also: vips_image_get_typeof(), vips_image_get_double().
@@ -2166,8 +2166,8 @@ vips_image_set_array_double(VipsImage *image, const char *name,
  * For example:
  *
  * |[
- * vips_image_history_printf (image, "vips invert %s %s",
- *   in->filename, out->filename);
+ * vips_image_history_printf(image, "vips invert %s %s",
+ *     in->filename, out->filename);
  * ]|
  *
  * Might add the string

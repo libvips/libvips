@@ -293,7 +293,7 @@ static const char *heif_magic[] = {
 
 /* The API has:
  *
- *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
+ *	enum heif_filetype_result result = heif_check_filetype(buf, 12);
  *
  * but it's very conservative and seems to be missing some of the Nokia heif
  * types.

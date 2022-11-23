@@ -2451,10 +2451,10 @@ vips_object_set_valist(VipsObject *object, va_list ap)
  * Set a list of vips object arguments. For example:
  *
  * |[
- * vips_object_set (operation,
- *   "input", in,
- *   "output", &out,
- *   NULL);
+ * vips_object_set(operation,
+ *     "input", in,
+ *     "output", &out,
+ *     NULL);
  * ]|
  *
  * Input arguments are given in-line, output arguments are given as pointers
@@ -3093,13 +3093,12 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  * |[
  * VipsObject **t;
  *
- * t = vips_object_local_array( parent, 5 );
- * if(
- *   vips_add( a, b, &t[0], NULL ) ||
- *   vips_invert( t[0], &t[1], NULL ) ||
- *   vips_add( t[1], t[0], &t[2], NULL ) ||
- *   vips_costra( t[2], out, NULL ) )
- *   return( -1 );
+ * t = vips_object_local_array(parent, 5);
+ * if (vips_add(a, b, &t[0], NULL) ||
+ *     vips_invert(t[0], &t[1], NULL) ||
+ *     vips_add(t[1], t[0], &t[2], NULL) ||
+ *     vips_costra(t[2], out, NULL))
+ *   return -1;
  * ]|
  *
  * See also: vips_object_local().

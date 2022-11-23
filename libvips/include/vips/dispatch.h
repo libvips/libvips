@@ -94,7 +94,7 @@ typedef int (*im_dest_obj_fn)(im_object obj);
  */
 typedef struct {
 	im_arg_type type;	 /* Type of argument */
-	int size;			 /* sizeof( im_object repres. ) */
+	int size;			 /* sizeof(im_object repres.) */
 	im_type_flags flags; /* Flags */
 	im_init_obj_fn init; /* Operation functions */
 	im_dest_obj_fn dest; /* Destroy object */

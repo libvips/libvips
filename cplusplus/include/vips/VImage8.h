@@ -196,9 +196,9 @@ class VIPS_CPLUSPLUS_API VOption;
  * A list of name-value pairs. Pass these to libvips operations to set
  * options. For example:
  *
- *     VImage out = in.embed( 10, 10, 1000, 1000, VImage::option()
- *         ->set( "extend", "background" )
- *         ->set( "background", 128 ) );
+ *     VImage out = in.embed(10, 10, 1000, 1000, VImage::option()
+ *         ->set("extend", "background")
+ *         ->set("background", 128));
  *
  * The `set` member functions will take copies (or hold references to)
  * compound objects, so you can free them immediately afterwards if necessary.
@@ -206,11 +206,11 @@ class VIPS_CPLUSPLUS_API VOption;
  * You can get values back from operations by using the * form of the set
  * member functions. For example:
  *
- *     VImage in = VImage::new_from_file( argv[1] );
+ *     VImage in = VImage::new_from_file(argv[1]);
  *     int x, y;
- *     double value = in.max( VImage::option()
- *         set( "x", &x )
- *         set( "y", &y ) );
+ *     double value = in.max(VImage::option()
+ *         ->set("x", &x)
+ *         ->set("y", &y));
  *
  */
 class VOption {
@@ -389,11 +389,11 @@ public:
  * Image processing operations on images are member functions of VImage. For
  * example:
  *
- *     VImage in = VImage::new_from_file( argv[1], VImage::option()
- *         ->set( "access", "sequential" ) );
- *     VImage out = in.embed( 10, 10, 1000, 1000, VImage::option()
- *         ->set( "extend", "copy" ) );
- *     out.write_to_file( argv[2] );
+ *     VImage in = VImage::new_from_file(argv[1], VImage::option()
+ *         ->set("access", "sequential"));
+ *     VImage out = in.embed(10, 10, 1000, 1000, VImage::option()
+ *         ->set("extend", "copy"));
+ *     out.write_to_file(argv[2]);
  *
  * VImage objects are smart pointers over the underlying VipsImage objects.
  * They manage the complications of GLib's ref and unref system for you.
@@ -1063,7 +1063,7 @@ public:
 	 *
 	 *     void *buf;
 	 *     size_t size;
-	 *     image.write_to_buffer( ".jpg", &buf, &size );
+	 *     image.write_to_buffer(".jpg", &buf, &size);
 	 *
 	 * The available options depends on the file format. See
 	 * VImage::jpegsave(), for example.

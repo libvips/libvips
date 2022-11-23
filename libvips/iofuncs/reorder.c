@@ -113,7 +113,7 @@ vips_reorder_print(VipsReorder *reorder)
 static void
 vips_reorder_free(VipsReorder *reorder)
 {
-	/* We free explicitly, rather than using VIPS_ARRAY( image ... ), since
+	/* We free explicitly, rather than using VIPS_ARRAY(image, ...), since
 	 * we need to make sure these pointers are valid to this point in the
 	 * close cycle.
 	 */

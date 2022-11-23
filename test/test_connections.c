@@ -30,7 +30,7 @@ read_cb(VipsSourceCustom *source_custom,
 		my_input->length - my_input->read_position);
 
 	/*
-	printf( "read_cb: buffer = 0x%p, length = %zd\n", buffer, length );
+	printf("read_cb: buffer = 0x%p, length = %zd\n", buffer, length);
 	 */
 
 	memcpy(buffer,
@@ -47,7 +47,7 @@ seek_cb(VipsSourceCustom *source_custom,
 	gint64 new_pos;
 
 	/*
-	printf( "seek_cb: offset = %zd, whence = %d\n", offset, whence );
+	printf("seek_cb: offset = %zd, whence = %d\n", offset, whence);
 	 */
 
 	switch (whence) {
@@ -80,7 +80,7 @@ write_cb(VipsTargetCustom *target_custom,
 	gint64 bytes_written;
 
 	/*
-	printf( "write_cb: data = 0x%p, length = %zd\n", data, length );
+	printf("write_cb: data = 0x%p, length = %zd\n", data, length);
 	 */
 
 	bytes_written = write(my_output->fd, data, length);
@@ -92,7 +92,7 @@ static void
 finish_cb(VipsTargetCustom *target_custom, MyOutput *my_output)
 {
 	/*
-	printf( "finish_cb:\n" );
+	printf("finish_cb:\n");
 	 */
 
 	close(my_output->fd);

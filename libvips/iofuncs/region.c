@@ -698,7 +698,7 @@ vips_region_image(VipsRegion *reg, const VipsRect *r)
  *
  * If the region we attach to is moved or destroyed, we can be left with
  * dangling pointers! If the region we attach to is on another image, the
- * two images must have the same sizeof( pel ).
+ * two images must have the same sizeof(pel).
  *
  * Returns: 0 on success, or -1 for error.
  */
@@ -729,7 +729,7 @@ vips_region_region(VipsRegion *reg,
 
 	/* We can't test
 
-		g_assert( dest->thread == g_thread_self() );
+		g_assert(dest->thread == g_thread_self());
 
 	 * since we can have several threads writing to the same region in
 	 * threadgroup.
@@ -799,9 +799,9 @@ vips_region_region(VipsRegion *reg,
  * Do two regions point to the same piece of image? ie.
  *
  * |[
- * 	VIPS_REGION_ADDR( reg1, x, y ) == VIPS_REGION_ADDR( reg2, x, y ) &&
- * 	*VIPS_REGION_ADDR( reg1, x, y ) ==
- * 		*VIPS_REGION_ADDR( reg2, x, y ) for all x, y, reg1, reg2.
+ * 	VIPS_REGION_ADDR(reg1, x, y) == VIPS_REGION_ADDR(reg2, x, y) &&
+ * 	*VIPS_REGION_ADDR(reg1, x, y) ==
+ * 		*VIPS_REGION_ADDR(reg2, x, y) for all x, y, reg1, reg2.
  * ]|
  *
  * Returns: non-zero on equality.

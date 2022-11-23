@@ -294,7 +294,7 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * and the bands are transformed as:
  *
  * |[
- *   alpha = clip( 0, in[in.bands - 1], @max_alpha );
+ *   alpha = clip(0, in[in.bands - 1], @max_alpha);
  *   norm = alpha / @max_alpha;
  *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha];
  * ]|

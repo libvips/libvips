@@ -475,10 +475,10 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * Example:
  *
  * |[
- * vips_jpegload( "fred.jpg", &amp;out,
- * 	"shrink", 8,
- * 	"fail_on", VIPS_FAIL_ON_TRUNCATED,
- * 	NULL );
+ * vips_jpegload("fred.jpg", &amp;out,
+ *     "shrink", 8,
+ *     "fail_on", VIPS_FAIL_ON_TRUNCATED,
+ *     NULL);
  * ]|
  *
  * Any embedded ICC profiles are ignored: you always just get the RGB from

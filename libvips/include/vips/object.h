@@ -77,18 +77,17 @@ typedef enum /*< flags >*/ {
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
-
-VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
-
-VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
-
-VIPS_ARGUMENT_REQUIRED_OUTPUT  	Eg. the "result" of an add operation
-
-VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
-
-   Other combinations are used internally, eg. supplying the cast-table for an
-   arithmetic operation
-
+ *
+ * VIPS_ARGUMENT_REQUIRED_INPUT 	Eg. the "left" argument for an add operation
+ *
+ * VIPS_ARGUMENT_OPTIONAL_INPUT 	Eg. the "caption" for an object
+ *
+ * VIPS_ARGUMENT_REQUIRED_OUTPUT  	Eg. the "result" of an add operation
+ *
+ * VIPS_ARGUMENT_OPTIONAL_OUTPUT  	Eg. the x pos of the image minimum
+ *
+ * Other combinations are used internally, eg. supplying the cast-table for an
+ * arithmetic operation
  */
 
 #define VIPS_ARGUMENT_REQUIRED_INPUT \
@@ -376,26 +375,25 @@ int vips_object_get_argument_priority(VipsObject *object, const char *name);
 /* And some macros to collect args from a va list.
  *
  * Use something like this:
-
-	GParamSpec *pspec;
-	VipsArgumentClass *argument_class;
-	VipsArgumentInstance *argument_instance;
-
-	if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
-		&pspec, &argument_class, &argument_instance ) )
-		return -1;
-
-	VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
-
-		GValue value holds the value of an input argument, do
-		something with it
-
-	VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
-
-		void **arg points to where to write an output argument
-
-	VIPS_ARGUMENT_COLLECT_END
-
+ *
+ *    GParamSpec *pspec;
+ *    VipsArgumentClass *argument_class;
+ *    VipsArgumentInstance *argument_instance;
+ *
+ *    if (vips_object_get_argument(VIPS_OBJECT(operation), name,
+ * 		   &pspec, &argument_class, &argument_instance))
+ * 	   return -1;
+ *
+ *    VIPS_ARGUMENT_COLLECT_SET(pspec, argument_class, ap);
+ *
+ * 	   GValue value holds the value of an input argument, do
+ * 	   something with it
+ *
+ *    VIPS_ARGUMENT_COLLECT_GET(pspec, argument_class, ap);
+ *
+ * 	   void **arg points to where to write an output argument
+ *
+ *    VIPS_ARGUMENT_COLLECT_END
  */
 #define VIPS_ARGUMENT_COLLECT_SET(PSPEC, ARG_CLASS, AP) \
 	if ((ARG_CLASS->flags & VIPS_ARGUMENT_INPUT)) { \

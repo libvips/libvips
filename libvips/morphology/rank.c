@@ -617,7 +617,7 @@ vips_rank_init(VipsRank *rank)
  *
  * For a median filter with mask size m (3 for 3x3, 5 for 5x5, etc.) use
  *
- *  vips_rank( in, out, m, m, m * m / 2 );
+ *  vips_rank(in, out, m, m, m * m / 2);
  *
  * The special cases n == 0 and n == m * m - 1 are useful dilate and
  * expand operators.
@@ -649,7 +649,7 @@ vips_rank(VipsImage *in, VipsImage **out,
  *
  * A convenience function equivalent to:
  *
- *  vips_rank( in, out, size, size, (size * size) / 2 );
+ *  vips_rank(in, out, size, size, (size * size) / 2);
  *
  * See also: vips_rank().
  *

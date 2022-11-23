@@ -235,14 +235,14 @@ vips_get_prgname(void)
  * Example:
  *
  * |[
- * int main (int argc, char **argv)
+ * int main(int argc, char **argv)
  * {
- *   if (VIPS_INIT (argv[0]))
- *     vips_error_exit ("unable to start VIPS");
+ *     if (VIPS_INIT(argv[0]))
+ *         vips_error_exit("unable to start VIPS");
  *
- *   vips_shutdown ();
+ *     vips_shutdown();
  *
- *   return 0;
+ *     return 0;
  * }
  * ]|
  *
@@ -1040,7 +1040,7 @@ find_file(const char *name)
 	if (!path)
 		return NULL;
 
-	g_info("g_getenv( \"PATH\" ) == \"%s\"", path);
+	g_info("g_getenv(\"PATH\") == \"%s\"", path);
 
 #ifdef G_OS_WIN32
 	{
@@ -1313,7 +1313,7 @@ vips_block_untrusted_set_operation(VipsOperationClass *class, gboolean *state)
  * Set the block state on all untrusted operations.
  *
  * |[
- * vips_block_untrusted_set( TRUE );
+ * vips_block_untrusted_set(TRUE);
  * ]|
  *
  * Will block all untrusted operations from running.

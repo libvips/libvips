@@ -131,9 +131,9 @@ vips_thing_free(VipsThing *thing)
 /*
  * glib-2.26+ only
 
-G_DEFINE_BOXED_TYPE( VipsThing, vips_thing,
+G_DEFINE_BOXED_TYPE(VipsThing, vips_thing,
 	(GBoxedCopyFunc) vips_thing_copy,
-	(GBoxedFreeFunc) vips_thing_free );
+	(GBoxedFreeFunc) vips_thing_free);
 
  */
 

@@ -285,7 +285,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * each other), or chips with good branch prediction, the following
  * version of the minmod function may work well:
  *
- * ( (a_times_b)>=0. ? ( (a_times_b)<(a_times_a) ? (b) : (a) ) : 0. )
+ * ((a_times_b) >= 0. ? ((a_times_b) < (a_times_a) ? (b) : (a)) : 0.)
  *
  * In this version, the forward branch of the second conditional move
  * is taken when |b|>|a| and when a*b<0. However, the "else" branch is
@@ -300,7 +300,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * may be preferable if "branch flag look ahead" does not work so
  * well.
  *
- * ( (a_times_b)>=0. ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
+ * ((a_times_b) >=0. ? ((a_times_a) <= (a_times_b) ? (a) : (b)) : 0.)
  *
  * This last version appears to be slightly better than the former in
  * speed tests performed on a recent multicore Intel chip, especially
@@ -914,8 +914,8 @@ lbbicubic(const double c00,
 	 * lines can be replaced by the above, simpler, two lines without
 	 * changing the results.
 	 *
-	 * const double m13   = NOHALO_MIN(               m7,       qua_fou );
-	 * const double M13   = NOHALO_MAX(               M7,       qua_fou );
+	 * const double m13 = NOHALO_MIN(m7, qua_fou);
+	 * const double M13 = NOHALO_MAX(M7, qua_fou);
 	 *
 	 * This also allows reodering the comparisons to put space between
 	 * the computation of a result and its use.

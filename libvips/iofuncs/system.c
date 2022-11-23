@@ -368,14 +368,14 @@ vips_system_init(VipsSystem *system)
  * VipsImage *out;
  * char *log;
  *
- * if (vips_system ("convert %s -swirl 45 %s",
- * 	"in", in,
- * 	"out", &out,
- *   	"in_format", "%s.jpg",
- *   	"out_format", "%s.jpg",
- *   	"log", &log,
- *   	NULL))
- *   	error ...
+ * if (vips_system("convert %s -swirl 45 %s",
+ *         "in", in,
+ *         "out", &out,
+ *         "in_format", "%s.jpg",
+ *         "out_format", "%s.jpg",
+ *         "log", &log,
+ *         NULL))
+ *     error ...
  * ]|
  *
  * Returns: 0 on success, -1 on failure.

@@ -3,7 +3,7 @@
  * @(#) For debuging only
  * @(#) is either memory mapped or in a buffer.
  * @(#)
- * @(#) void im_printlines( in )
+ * @(#) void im_printlines(in)
  * @(#) IMAGE *in;
  * @(#)
  *

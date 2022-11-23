@@ -17,7 +17,7 @@
  * @(#)  The function uses functions vips__find_best_contrast()
  * @(#) which is in vips_lrcalcon()
  * @(#)
- * @(#) int vips_tbcalcon( ref, sec, bandno, points )
+ * @(#) int vips_tbcalcon(ref, sec, bandno, points)
  * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
  * @(#) TiePoints *points; 	see mosaic.h

@@ -420,9 +420,9 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 	int y;
 
 	/*
-	printf( "vips_foreign_load_pdf_generate: "
-		"left = %d, top = %d, width = %d, height = %d\n",
-		r->left, r->top, r->width, r->height );
+	printf("vips_foreign_load_pdf_generate: "
+		   "left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height);
 	 */
 
 	/* Poppler won't always paint the background.

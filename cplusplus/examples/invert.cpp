@@ -18,8 +18,8 @@ main(int argc, char **argv)
 		vips_error_exit(NULL);
 
 	printf("these should match if VImage is compile-time-only\n");
-	printf("sizeof( VipsImage *) = %zd\n", sizeof(VipsImage *));
-	printf("sizeof( VImage ) = %zd\n", sizeof(VImage));
+	printf("sizeof(VipsImage *) = %zd\n", sizeof(VipsImage *));
+	printf("sizeof(VImage) = %zd\n", sizeof(VImage));
 
 	VImage in = VImage::new_from_file(argv[1],
 		VImage::option()->set("access", VIPS_ACCESS_SEQUENTIAL));

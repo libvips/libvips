@@ -4,7 +4,7 @@
  * @(#) is either memory mapped or in a buffer.
  * @(#)
  * @(#) void
- * @(#) im_debugim( in )
+ * @(#) im_debugim(in)
  * @(#) IMAGE *in;
  * @(#)
  *

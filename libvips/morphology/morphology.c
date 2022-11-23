@@ -80,10 +80,10 @@
  * mask must have odd length sides --- the origin of the mask is taken to be
  * the centre value. For example, the mask:
  *
- *     VipsImage *mask = vips_image_new_matrixv( 3, 3,
+ *     VipsImage *mask = vips_image_new_matrixv(3, 3,
  *         128.0, 255.0, 128.0,
  *         255.0, 255.0, 255.0,
- *         128.0, 255.0, 128.0 );
+ *         128.0, 255.0, 128.0);
  *
  * applied to an image with vips_morph() #VIPS_OPERATION_MORPHOLOGY_DILATE will
  * do a 4-connected dilation.

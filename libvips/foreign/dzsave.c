@@ -589,7 +589,7 @@ vips_gsf_dir_new(VipsGsfDirectory *parent, const char *name)
 /* Return a GsfOutput or %NULL for writing to a path. Paths are object name first,
  * then path components with least-specific first, NULL-terminated. For example:
  *
- * GsfOutput *obj = vips_gsf_path( tree, "fred.jpg", "a", "b", NULL );
+ * GsfOutput *obj = vips_gsf_path(tree, "fred.jpg", "a", "b", NULL);
  *
  * Returns an obj you can use to write to a/b/fred.jpg, or %NULL when it exceeds
  * the path limits.
@@ -1284,23 +1284,23 @@ write_json(VipsForeignSaveDz *dz)
 	/* "sizes" is needed for the full/ set of untiled images, which we
 	 * don't yet support. Leave this commented out for now.
 
-	gsf_output_printf( out,
-		"  \"sizes\": [\n" );
+	gsf_output_printf(out,
+		"  \"sizes\": [\n");
 
-	for( i = 0; i < dz->layer->n + 5; i++ ) {
-		gsf_output_printf( out,
+	for (i = 0; i < dz->layer->n + 5; i++) {
+		gsf_output_printf(out,
 			"    {\n"
 			"      \"width\": %d,\n"
 			"      \"height\": \"full\"\n"
 			"    }",
-				1 << (i + 4) );
-		if( i != dz->layer->n - 4 )
-			gsf_output_printf( out, "," );
-		gsf_output_printf( out, "\n" );
+				1 << (i + 4));
+		if (i != dz->layer->n - 4)
+			gsf_output_printf(out, ",");
+		gsf_output_printf(out, "\n");
 	}
 
-	gsf_output_printf( out,
-		"  ],\n" );
+	gsf_output_printf(out,
+		"  ],\n");
 
 	 */
 

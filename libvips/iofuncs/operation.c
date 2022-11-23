@@ -75,17 +75,17 @@
  *
  * |[
  * int
- * vips_embed( VipsImage *in, VipsImage **out,
- *   int x, int y, int width, int height, ... )
+ * vips_embed(VipsImage *in, VipsImage **out,
+ *     int x, int y, int width, int height, ...)
  * {
- *   va_list ap;
- *   int result;
+ *     va_list ap;
+ *     int result;
  *
- *   va_start( ap, height );
- *   result = vips_call_split( "embed", ap, in, out, x, y, width, height );
- *   va_end( ap );
+ *     va_start(ap, height);
+ *     result = vips_call_split("embed", ap, in, out, x, y, width, height);
+ *     va_end(ap);
  *
- *   return( result );
+ *     return result;
  * }
  * ]|
  *
@@ -102,7 +102,7 @@
  * VipsImage *im = ...;
  * VipsImage *t1;
  *
- * if (vips_invert (im, &t1, NULL))
+ * if (vips_invert(im, &t1, NULL))
  *   error ..
  * ]|
  *
@@ -122,17 +122,17 @@
  * VipsImage *im = ...;
  * VipsImage *t1, *t2;
  *
- * if (vips_invert (im, &t1, NULL)) {
- *   g_object_unref (im);
- *   return -1;
+ * if (vips_invert(im, &t1, NULL)) {
+ *     g_object_unref(im);
+ *     return -1;
  * }
- * g_object_unref (im);
+ * g_object_unref(im);
  *
- * if (vips_flip (t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
- *   g_object_unref (t1);
- *   return -1;
+ * if (vips_flip(t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
+ *     g_object_unref(t1);
+ *     return -1;
  * }
- * g_object_unref (t1);
+ * g_object_unref(t1);
  * ]|
  *
  * This is correct, but rather long-winded. libvips provides a handy thing to
@@ -141,10 +141,10 @@
  * |[
  * VipsObject *parent = ...;
  * VipsImage *im = ...;
- * VipsImage *t = (VipsImage **) vips_object_local_array (parent, 2);
+ * VipsImage *t = (VipsImage **) vips_object_local_array(parent, 2);
  *
- * if (vips_invert (im, &t[0], NULL) ||
- *   vips_flip (t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+ * if (vips_invert(im, &t[0], NULL) ||
+ *     vips_flip(t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
  *   return -1;
  * ]|
  *
@@ -994,10 +994,10 @@ vips_call_by_name(const char *operation_name,
  * VipsImage *in = ...
  * VipsImage *out;
  *
- * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
- * 	"extend", VIPS_EXTEND_COPY,
- * 	NULL ) )
- * 	... error
+ * if (vips_call("embed", in, &out, 10, 10, 100, 100,
+ *         "extend", VIPS_EXTEND_COPY,
+ *         NULL))
+ *     ... error
  * ]|
  *
  * Normally of course you'd just use the vips_embed() wrapper function and get
@@ -1468,8 +1468,8 @@ vips_operation_block_set_operation(VipsOperationClass *class, gboolean *state)
  * For example:
  *
  * |[
- * vips_operation_block_set( "VipsForeignLoad", TRUE );
- * vips_operation_block_set( "VipsForeignLoadJpeg", FALSE );
+ * vips_operation_block_set("VipsForeignLoad", TRUE);
+ * vips_operation_block_set("VipsForeignLoadJpeg", FALSE);
  * ]|
  *
  * Will block all load operations, except JPEG.
