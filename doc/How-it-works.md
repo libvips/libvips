@@ -36,7 +36,7 @@ VipsImage *image = vips_image_new_from_file( filename, NULL );
 VipsRegion *region = vips_region_new( image );
 
 // ask for a 100x100 pixel region at 0x0 (top left)
-VipsRect r = { left: 0, top: 0, width: 100, height: 100 };
+VipsRect r = { .left = 0, .top = 0, .width = 100, .height = 100 };
 if( vips_region_prepare( region, &r ) ) 
   vips_error( ... );
 
