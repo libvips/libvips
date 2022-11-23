@@ -206,19 +206,19 @@ You can generate searchable docs from a <code>.gir</code> (the thing that
 is built from scanning libvips and which in turn turn the typelib is 
 made from) with <command>g-ir-doc-tool</command>, for example:
 
-```
+```bash
 $ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
 ```
 
 Then to view them, either:
 
-```
+```bash
 $ yelp ~/mydocs 
 ```
 
 Or perhaps:
 
-```
+```bash
 $ cd ~/mydocs 
 $ yelp-build html .
 ```

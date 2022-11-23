@@ -121,20 +121,20 @@ vi.write_to_file(sys.argv[2])
   <para>
     To test it, first make a large 1-bit image. This command will take the green channel and write as a 1-bit fax image. <literal>wtc.jpg</literal> is a test 10,000 x 10,000 jpeg:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
 </programlisting>
   <para>
     Now make 1,000 copies of that image in a subdirectory:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ mkdir test
 $ for i in {1..1000}; do cp x.tif test/$i.tif; done
 </programlisting>
   <para>
     And run this Python program on them:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ time python try255.py x.tif[squash,compression=ccittfax4,strip,bigtiff] test/*
 real    1m59.924s
 user    4m5.388s
