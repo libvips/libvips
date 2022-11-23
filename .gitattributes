@@ -1,2 +1,5 @@
 # Shell scripts sources can't have CRLF line endings
-*.sh 		eol=lf
+*.sh eol=lf
+
+# Ignore repository language statistics and hide diffs for generated files
+libvips/colour/profiles.c linguist-generated=true
