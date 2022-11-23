@@ -3,7 +3,7 @@
  * @(#)  The rounded integer result is returned into dx, dy
  * @(#) No images are involved in this function.
  * @(#)
- * @(#) int vips__avgdxdy( points, dx, dy )
+ * @(#) int vips__avgdxdy(points, dx, dy)
  * @(#) TiePoints *points;
  * @(#) int *dx, *dy;
  * @(#)

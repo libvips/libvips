@@ -628,10 +628,10 @@ vips_draw_flood_init(VipsDrawFlood *draw_flood)
  *
  * Equivalent to:
  *
- * vips_draw_flood1( image, serial, x, y,
- *       "test", test,
- *       "equal", TRUE,
- *       NULL )
+ * vips_draw_flood1(image, serial, x, y,
+ *     "test", test,
+ *     "equal", TRUE,
+ *     NULL);
  *
  * image must be 1-band int.
  */

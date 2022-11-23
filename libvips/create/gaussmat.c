@@ -244,7 +244,7 @@ vips_gaussmat_init(VipsGaussmat *gaussmat)
  *
  * The program uses the following equation:
  *
- *   H(r) = exp( -(r * r) / (2 * @sigma * @sigma) )
+ *   H(r) = exp(-(r * r) / (2 * @sigma * @sigma))
  *
  * The generated image has odd size and its maximum value is normalised to
  * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.

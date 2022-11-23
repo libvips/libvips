@@ -7,7 +7,7 @@
  * @(#) calling routine. Space for outpoints should be allocated in the calling
  * @(#) routine
  * @(#)
- * @(#) int vips__improve( inpoints, outpoints )
+ * @(#) int vips__improve(inpoints, outpoints)
  * @(#) TiePoints *inpoints, *outpoints;
  * @(#)
  * @(#) Returns 0 on success  and -1 on error.

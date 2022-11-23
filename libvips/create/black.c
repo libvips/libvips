@@ -86,9 +86,9 @@ vips_black_gen(VipsRegion * or, void *seq, void *a, void *b,
 	/*
 	VipsRect *r = &or->valid;
 
-	printf( "vips_black_gen: "
-			"left = %d, top = %d, width = %d, height = %d\n",
-			r->left, r->top, r->width, r->height );
+	printf("vips_black_gen: "
+		   "left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height);
 	 */
 
 	vips_region_black(or);

@@ -75,8 +75,8 @@ vips_conv_build(VipsObject *object)
 	in = convolution->in;
 
 	/*
-	printf( "vips_conv_build: convolving with:\n" );
-	vips_matrixprint( convolution->M, NULL );
+	printf("vips_conv_build: convolving with:\n");
+	vips_matrixprint(convolution->M, NULL);
 	 */
 
 	/* Unpack for processing.

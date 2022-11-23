@@ -168,7 +168,7 @@ vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
 
 	thread = g_thread_try_new(domain, vips_thread_run, info, &error);
 
-	VIPS_DEBUG_MSG_RED("vips_g_thread_new: g_thread_create( %s ) = %p\n",
+	VIPS_DEBUG_MSG_RED("vips_g_thread_new: g_thread_create(%s) = %p\n",
 		domain, thread);
 
 	if (!thread) {
@@ -258,7 +258,7 @@ get_num_processors(void)
 #endif /*G_OS_WIN32*/
 
 	return nproc;
-#endif /*!GLIB_CHECK_VERSION( 2, 48, 1 )*/
+#endif /*!GLIB_CHECK_VERSION(2, 48, 1)*/
 }
 
 /* The default concurrency, set by the environment variable VIPS_CONCURRENCY,

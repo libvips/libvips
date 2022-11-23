@@ -510,11 +510,11 @@ vips_conva_cluster2(VipsConva *conva)
 	qsort(conva->edge, MAX_EDGES, sizeof(Edge), edge_sortfn);
 
 	/*
-	printf( "edges:\n" );
-	printf( "  n   a   b  d:\n" );
-	for( i = 0; i < MAX_EDGES; i++ )
-		printf( "%2i) %3d %3d %3d\n", i,
-			conva->edge[i].a, conva->edge[i].b, conva->edge[i].d );
+	printf("edges:\n");
+	printf("  n   a   b  d:\n");
+	for (i = 0; i < MAX_EDGES; i++)
+		printf("%2i) %3d %3d %3d\n", i,
+			conva->edge[i].a, conva->edge[i].b, conva->edge[i].d);
 	 */
 
 	/* Merge from the top down.

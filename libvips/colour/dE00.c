@@ -76,27 +76,28 @@ vips_col_dE00(float L1, float a1, float b1,
 	/* Code if you want XYZ params and the colour temp used in the reference
 
 		float
-		vips_col_dE00( float X1, float Y1, float Z1,
-			float X2, float Y2, float Z2 )
+		vips_col_dE00(float X1, float Y1, float Z1,
+			float X2, float Y2, float Z2)
 		{
 			const double X0 = 94.811;
 			const double Y0 = 100.0;
 			const double Z0 = 107.304;
 
-	#define f(I) ((I) > 0.008856 ? \
-		cbrt( (I), 1.0 / 3.0 ) : 7.7871 * (I) + (16.0 / 116.0))
+		#define f(I) ((I) > 0.008856 \
+				? cbrt((I), 1.0 / 3.0) \
+				: 7.7871 * (I) + (16.0 / 116.0))
 
-			double nX1 = f( X1 / X0 );
-			double nY1 = f( Y1 / Y0 );
-			double nZ1 = f( Z1 / Z0 );
+			double nX1 = f(X1 / X0);
+			double nY1 = f(Y1 / Y0);
+			double nZ1 = f(Z1 / Z0);
 
 			double L1 = 116 * nY1 - 16;
 			double a1 = 500 * (nX1 - nY1);
 			double b1 = 200 * (nY1 - nZ1);
 
-			double nX2 = f( X2 / X0 );
-			double nY2 = f( Y2 / Y0 );
-			double nZ2 = f( Z2 / Z0 );
+			double nX2 = f(X2 / X0);
+			double nY2 = f(Y2 / Y0);
+			double nZ2 = f(Z2 / Z0);
 
 			double L2 = 116 * nY2 - 16;
 			double a2 = 500 * (nX2 - nY2);
@@ -188,17 +189,17 @@ vips_col_dE00(float L1, float a1, float b1,
 	double dE00 = sqrt(nL * nL + nC * nC + nH * nH + RT * nC * nH);
 
 	/*
-	printf( "X1 = %g, Y1 = %g, Z1 = %g\n", X1, Y1, Z1 );
-	printf( "X2 = %g, Y2 = %g, Z2 = %g\n", X2, Y2, Z2 );
-	printf( "L1 = %g, a1 = %g, b1 = %g\n", L1, a1, b1 );
-	printf( "L2 = %g, a2 = %g, b2 = %g\n", L2, a2, b2 );
-	printf( "L1d = %g, a1d = %g, b1d = %g, C1d = %g, h1d = %g\n",
-		L1d, a1d, b1d, C1d, h1d );
-	printf( "L2d = %g, a2d = %g, b2d = %g, C2d = %g, h2d = %g\n",
-		L2d, a2d, b2d, C2d, h2d );
-	printf( "G = %g, T = %g, SL = %g, SC = %g, SH = %g, RT = %g\n",
-		G, T, SL, SC, SH, RT );
-	printf( "dE00 = %g\n", dE00 );
+	printf("X1 = %g, Y1 = %g, Z1 = %g\n", X1, Y1, Z1);
+	printf("X2 = %g, Y2 = %g, Z2 = %g\n", X2, Y2, Z2);
+	printf("L1 = %g, a1 = %g, b1 = %g\n", L1, a1, b1);
+	printf("L2 = %g, a2 = %g, b2 = %g\n", L2, a2, b2);
+	printf("L1d = %g, a1d = %g, b1d = %g, C1d = %g, h1d = %g\n",
+		L1d, a1d, b1d, C1d, h1d);
+	printf("L2d = %g, a2d = %g, b2d = %g, C2d = %g, h2d = %g\n",
+		L2d, a2d, b2d, C2d, h2d);
+	printf("G = %g, T = %g, SL = %g, SC = %g, SH = %g, RT = %g\n",
+		G, T, SL, SC, SH, RT);
+	printf("dE00 = %g\n", dE00);
 	 */
 
 	return dE00;

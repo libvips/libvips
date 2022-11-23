@@ -66,9 +66,9 @@
  * then we return a subpixel match using the ratio of correlations in the
  * vertical and horizontal dimension.
  *
- * ( xs[0], ys[0] ) is the best integer alignment
- * ( xs[ use_x ], ys[ use_x ] ) is equal in y and (+/-)1 off in x
- * ( xs[ use_y ], ys[ use_y ] ) is equal in x and (+/-)1 off in y
+ * (xs[0], ys[0]) is the best integer alignment
+ * (xs[ use_x ], ys[ use_x ]) is equal in y and (+/-)1 off in x
+ * (xs[ use_y ], ys[ use_y ]) is equal in x and (+/-)1 off in y
  *
  * Alternatively if the best four matches in the correlation are aranged in
  * a square:

@@ -117,9 +117,9 @@ vips_foreign_load_jp2k_dispose(GObject *gobject)
 	/*
 	 * FIXME ... do we need this? seems to just cause warnings
 	 *
-	if( jp2k->codec &&
-		jp2k->stream )
-		opj_end_decompress( jp2k->codec, jp2k->stream );
+	if (jp2k->codec &&
+		jp2k->stream)
+		opj_end_decompress(jp2k->codec, jp2k->stream);
 	 *
 	 */
 

@@ -332,8 +332,8 @@ vips_isprefix(const char *a, const char *b)
 
 /* Exactly like strcspn(), but allow \ as an escape character.
  *
- * strspne( "hello world", " " ) == 5
- * strspne( "hello\\ world", " " ) == 12
+ * strspne("hello world", " ") == 5
+ * strspne("hello\\ world", " ") == 12
  */
 static size_t
 strcspne(const char *s, const char *reject)
@@ -380,8 +380,8 @@ strcspne(const char *s, const char *reject)
  * int i;
  * int v[...];
  *
- * for( i = 0; (q = vips_break_token( p, " " )); i++, p = q )
- * 	v[i] = atoi( p );
+ * for(i = 0; (q = vips_break_token(p, " ")); i++, p = q)
+ * 	v[i] = atoi(p);
  *
  * will set
  * 	v[0] = 1;
@@ -395,12 +395,12 @@ strcspne(const char *s, const char *reject)
  * int i;
  * int v[...];
  *
- * for( i = 0; p; p = vips_break_token( p, " " ) )
- *   v[i] = atoi( p );
+ * for(i = 0; p; p = vips_break_token(p, " "))
+ *   v[i] = atoi(p);
  *
  * You can use \ to escape breaks, for example:
  *
- * vips_break_token( "hello\ world", " " ) will see a single token containing
+ * vips_break_token("hello\ world", " ") will see a single token containing
  * a space. The \ characters are squashed out.
  */
 char *
@@ -2032,14 +2032,14 @@ vips__get_iso8601(void)
 		date = g_date_time_format_iso8601(now);
 		g_date_time_unref(now);
 	}
-#else  /*!GLIB_CHECK_VERSION( 2, 62, 0 )*/
+#else  /*!GLIB_CHECK_VERSION(2, 62, 0)*/
 	{
 		GTimeVal now;
 
 		g_get_current_time(&now);
 		date = g_time_val_to_iso8601(&now);
 	}
-#endif /*GLIB_CHECK_VERSION( 2, 62, 0 )*/
+#endif /*GLIB_CHECK_VERSION(2, 62, 0)*/
 
 	return date;
 }

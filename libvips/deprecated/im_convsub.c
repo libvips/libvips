@@ -1,7 +1,7 @@
 /* @(#) Function which convolves and subsamples VASARI format picture
  * @(#) with a mask stored in a file argument.
  * @(#)
- * @(#) int im_convsub( in, out, mask, xskip, yskip )
+ * @(#) int im_convsub(in, out, mask, xskip, yskip)
  * @(#) IMAGE *in, *out;
  * @(#) INTMASK *mask;  details in vips.h
  * @(#) int xskip, yskip;  is the subsamping factor along both directions

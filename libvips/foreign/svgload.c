@@ -438,7 +438,7 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 			width = viewbox.width;
 			height = viewbox.height;
 		}
-#else  /*!LIBRSVG_CHECK_VERSION( 2, 54, 0 )*/
+#else  /*!LIBRSVG_CHECK_VERSION(2, 54, 0)*/
 		if (has_width && has_height) {
 			/* We can use these values directly.
 			 */
@@ -457,7 +457,7 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 			width = viewbox.width;
 			height = viewbox.height;
 		}
-#endif /*!LIBRSVG_CHECK_VERSION( 2, 54, 0 )*/
+#endif /*!LIBRSVG_CHECK_VERSION(2, 54, 0)*/
 
 		if (width <= 0.0 ||
 			height <= 0.0) {
@@ -471,7 +471,7 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 		}
 	}
 
-#else /*!LIBRSVG_CHECK_VERSION( 2, 52, 0 )*/
+#else /*!LIBRSVG_CHECK_VERSION(2, 52, 0)*/
 
 	{
 		RsvgDimensionData dimensions;
@@ -481,7 +481,7 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 		height = dimensions.height;
 	}
 
-#endif /*LIBRSVG_CHECK_VERSION( 2, 52, 0 )*/
+#endif /*LIBRSVG_CHECK_VERSION(2, 52, 0)*/
 
 	/* width or height below 0.5 can't be rounded to 1.
 	 */
@@ -619,7 +619,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 		cairo_destroy(cr);
 	}
 
-#else /*!LIBRSVG_CHECK_VERSION( 2, 46, 0 )*/
+#else /*!LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 
 	cairo_scale(cr, svg->cairo_scale, svg->cairo_scale);
 	cairo_translate(cr, -r->left / svg->cairo_scale,
@@ -635,7 +635,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 
 	cairo_destroy(cr);
 
-#endif /*LIBRSVG_CHECK_VERSION( 2, 46, 0 )*/
+#endif /*LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */

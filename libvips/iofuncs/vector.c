@@ -94,7 +94,7 @@ vips_vector_init(void)
 	/* You can also do ORC_DEBUG=99 at the command-line.
 	 */
 #ifdef DEBUG_TRACE
-	printf("orc_debug_set_level( 99 );\n");
+	printf("orc_debug_set_level(99);\n");
 #endif /*DEBUG_TRACE*/
 	orc_debug_set_level(99);
 #endif /*DEBUG_ORC*/
@@ -141,7 +141,7 @@ vips_vector_free(VipsVector *vector)
 	 * free automatically.
 	 */
 #ifdef DEBUG_TRACE
-	printf("orc_program_free( %s );\n", vector->unique_name);
+	printf("orc_program_free(%s);\n", vector->unique_name);
 	printf("%s = NULL;\n", vector->unique_name);
 #endif /*DEBUG_TRACE*/
 	VIPS_FREEF(orc_program_free, vector->program);
@@ -210,7 +210,7 @@ vips_vector_asm2(VipsVector *vector,
 
 #ifdef HAVE_ORC
 #ifdef DEBUG_TRACE
-	printf("orc_program_append_ds_str( %s, \"%s\", \"%s\", \"%s\" );\n",
+	printf("orc_program_append_ds_str(%s, \"%s\", \"%s\", \"%s\");\n",
 		vector->unique_name, op, a, b);
 #endif /*DEBUG_TRACE*/
 	orc_program_append_ds_str(vector->program, op, a, b);
@@ -229,8 +229,8 @@ vips_vector_asm3(VipsVector *vector,
 
 #ifdef HAVE_ORC
 #ifdef DEBUG_TRACE
-	printf("orc_program_append_str( %s, \"%s\", "
-		   "\"%s\", \"%s\", \"%s\" );\n",
+	printf("orc_program_append_str(%s, \"%s\", "
+		   "\"%s\", \"%s\", \"%s\");\n",
 		vector->unique_name, op, a, b, c);
 #endif /*DEBUG_TRACE*/
 	orc_program_append_str(vector->program, op, a, b, c);
@@ -264,7 +264,7 @@ vips_vector_constant(VipsVector *vector, char *name, int value, int size)
 
 	if (orc_program_find_var_by_name(vector->program, name) == -1) {
 #ifdef DEBUG_TRACE
-		printf("orc_program_add_constant( %s, %d, %d, \"%s\" );\n",
+		printf("orc_program_add_constant(%s, %d, %d, \"%s\");\n",
 			vector->unique_name, size, value, name);
 #endif /*DEBUG_TRACE*/
 		if (!orc_program_add_constant(vector->program,
@@ -289,7 +289,7 @@ vips_vector_source_scanline(VipsVector *vector,
 				  size, name)))
 			vips_vector_error(vector);
 #ifdef DEBUG_TRACE
-		printf("orc_program_add_source( %s, %d, \"%s\" );\n",
+		printf("orc_program_add_source(%s, %d, \"%s\");\n",
 			vector->unique_name, size, name);
 #endif /*DEBUG_TRACE*/
 		vector->sl[vector->n_scanline] = var;
@@ -311,7 +311,7 @@ vips_vector_source_name(VipsVector *vector, const char *name, int size)
 		vips_vector_error(vector);
 	vector->s[vector->n_source] = var;
 #ifdef DEBUG_TRACE
-	printf("orc_program_add_source( %s, %d, \"%s\" );\n",
+	printf("orc_program_add_source(%s, %d, \"%s\");\n",
 		vector->unique_name, size, name);
 #endif /*DEBUG_TRACE*/
 	vector->n_source += 1;
@@ -332,7 +332,7 @@ vips_vector_temporary(VipsVector *vector, const char *name, int size)
 		vips_vector_error(vector);
 
 #ifdef DEBUG_TRACE
-	printf("orc_program_add_temporary( %s, %d, \"%s\" );\n",
+	printf("orc_program_add_temporary(%s, %d, \"%s\");\n",
 		vector->unique_name, size, name);
 #endif /*DEBUG_TRACE*/
 	vector->n_temp += 1;
@@ -352,7 +352,7 @@ vips_vector_parameter(VipsVector *vector, const char *name, int size)
 		vips_vector_error(vector);
 
 #ifdef DEBUG_TRACE
-	printf("orc_program_add_parameter( %s, %d, \"%s\" );\n",
+	printf("orc_program_add_parameter(%s, %d, \"%s\");\n",
 		vector->unique_name, size, name);
 #endif /*DEBUG_TRACE*/
 	vector->n_parameter += 1;
@@ -373,7 +373,7 @@ vips_vector_destination(VipsVector *vector, const char *name, int size)
 
 	var = orc_program_add_destination(vector->program, size, name);
 #ifdef DEBUG_TRACE
-	printf("orc_program_add_destination( %d, \"%s\" );\n",
+	printf("orc_program_add_destination(%d, \"%s\");\n",
 		size, name);
 #endif /*DEBUG_TRACE*/
 	vector->n_destination += 1;
@@ -430,7 +430,7 @@ vips_vector_compile(VipsVector *vector)
 	g_mutex_unlock(vips__global_lock);
 
 #ifdef DEBUG_TRACE
-	printf("orc_program_compile( %s );\n", vector->unique_name);
+	printf("orc_program_compile(%s);\n", vector->unique_name);
 #endif /*DEBUG_TRACE*/
 	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result)) {
 #ifdef DEBUG

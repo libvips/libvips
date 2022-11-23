@@ -926,23 +926,23 @@ write_json(VipsForeignSaveDz *dz)
 	/* "sizes" is needed for the full/ set of untiled images, which we
 	 * don't yet support. Leave this commented out for now.
 
-	vips_dbuf_writef( &dbuf,
-		"  \"sizes\": [\n" );
+	vips_dbuf_writef(&dbuf,
+		"  \"sizes\": [\n");
 
-	for( i = 0; i < dz->layer->n + 5; i++ ) {
-		vips_dbuf_writef( &dbuf,
+	for (i = 0; i < dz->layer->n + 5; i++) {
+		vips_dbuf_writef(&dbuf,
 			"    {\n"
 			"      \"width\": %d,\n"
 			"      \"height\": \"full\"\n"
 			"    }",
-				1 << (i + 4) );
-		if( i != dz->layer->n - 4 )
-			vips_dbuf_writef( &dbuf, "," );
-		vips_dbuf_writef( &dbuf, "\n" );
+				1 << (i + 4));
+		if (i != dz->layer->n - 4)
+			vips_dbuf_writef(&dbuf, ",");
+		vips_dbuf_writef(&dbuf, "\n");
 	}
 
-	vips_dbuf_writef( &dbuf,
-		"  ],\n" );
+	vips_dbuf_writef(&dbuf,
+		"  ],\n");
 
 	 */
 

@@ -74,8 +74,8 @@ vips_hist_entropy_build(VipsObject *object)
 		return -1;
 
 	/* Compute:
-	 *   norm_hist = hist / sum( hist )
-	 *   entropy = -sum( norm_hist * log2( norm_hist ) )
+	 *   norm_hist = hist / sum(hist)
+	 *   entropy = -sum(norm_hist * log2(norm_hist))
 	 */
 	if (vips_avg(entropy->in, &avg, NULL))
 		return -1;
@@ -135,7 +135,7 @@ vips_hist_entropy_init(VipsHistEntropy *entropy)
  * Estimate image entropy from a histogram. Entropy is calculated as:
  *
  * |[
- * -sum( p * log2( p ) )
+ * -sum(p * log2(p))
  * ]|
  *
  * where p is histogram-value / sum-of-histogram-values.

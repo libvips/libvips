@@ -205,7 +205,7 @@ typedef struct {
 #ifdef HAVE_VECTOR_ARITH
 /* Allocate aligned memory. The return value can be released
  * by calling the vips_free_aligned() function, for example:
- * VIPS_FREEF( vips_free_aligned, ptr );
+ * VIPS_FREEF(vips_free_aligned, ptr);
  */
 static inline void *
 vips_alloc_aligned(size_t sz, size_t align)

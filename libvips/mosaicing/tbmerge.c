@@ -4,7 +4,7 @@
  * Usage:
  *
  *   int
- *   vips_tbmerge( ref, sec, out, dx, dy )
+ *   vips_tbmerge(ref, sec, out, dx, dy)
  *   VipsImage *ref, *sec, *out;
  *   int dx, dy;
  *

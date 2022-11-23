@@ -1,8 +1,8 @@
 /* @(#) Extract a tile from a pyramid as a jpeg
  * @(#)
  * @(#) int
- * @(#) im_bernd( const char *tiffname,
- * @(#) 	int x, int y, int w, int h )
+ * @(#) im_bernd(const char *tiffname,
+ * @(#) 	int x, int y, int w, int h)
  * @(#)
  * @(#)
  * @(#) Returns 0 on success and -1 on error

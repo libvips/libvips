@@ -125,7 +125,7 @@ vips_logmat_build(VipsObject *object)
 		 * by Young and Fu AP 1986 pp 220-221
 		 * temp =  (1.0 / (2.0 * IM_PI * sig4)) *
 			(2.0 - (distance / sig2)) *
-			exp( (-1.0) * distance / (2.0 * sig2) )
+			exp((-1.0) * distance / (2.0 * sig2))
 
 		   .. use 0.5 to normalise
 		 */

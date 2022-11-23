@@ -364,9 +364,9 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * other bands are transformed as:
  *
  * |[
- *   alpha = (int) clip( 0, in[in.bands - 1], @max_alpha );
+ *   alpha = (int) clip(0, in[in.bands - 1], @max_alpha);
  *   norm = (double) alpha / @max_alpha;
- *   if( alpha == 0 )
+ *   if (alpha == 0)
  *   	out = [0, ..., 0, alpha];
  *   else
  *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha];
