@@ -173,13 +173,13 @@ vips_foreign_load_nsgif_dispose( GObject *gobject )
 static VipsForeignFlags
 vips_foreign_load_nsgif_get_flags_filename( const char *filename )
 {
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
 }
 
 static VipsForeignFlags
 vips_foreign_load_nsgif_get_flags( VipsForeignLoad *load )
 {
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
 }
 
 static gboolean
