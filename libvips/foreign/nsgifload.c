@@ -162,9 +162,7 @@ vips_foreign_load_nsgif_dispose( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_dispose:\n" );
 
-	if( gif->anim ) {
-		nsgif_destroy( gif->anim );
-	}
+	VIPS_FREEF( nsgif_destroy, gif->anim );
 	VIPS_UNREF( gif->source );
 	VIPS_FREE( gif->delay );
 
