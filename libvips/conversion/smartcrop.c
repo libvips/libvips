@@ -71,6 +71,9 @@ typedef struct _VipsSmartcrop {
 	int height;
 	VipsInteresting interesting;
 
+	int attention_x;
+	int attention_y;
+
 } VipsSmartcrop;
 
 typedef VipsConversionClass VipsSmartcropClass;
@@ -195,7 +198,7 @@ pythagoras( VipsSmartcrop *smartcrop, VipsImage *in, VipsImage **out )
 
 static int
 vips_smartcrop_attention( VipsSmartcrop *smartcrop, 
-	VipsImage *in, int *left, int *top )
+	VipsImage *in, int *left, int *top, int *attention_x, int *attention_y)
 {
 	/* From smartcrop.js.
 	 */
@@ -290,15 +293,20 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	if( vips_sum( &t[14], &t[18], 3, NULL ) ||
 		vips_gaussblur( t[18], &t[19], sigma, NULL ) ||
 		vips_max( t[19], &max, "x", &x_pos, "y", &y_pos, NULL ) )
-		return( -1 ); 
+		return( -1 );
+
+	/* Transform back into image coordinates.
+	*/
+	*attention_x = x_pos / hscale;
+	*attention_y = y_pos / vscale;
 
 	/* Centre the crop over the max.
 	 */
 	*left = VIPS_CLIP( 0, 
-		x_pos / hscale - smartcrop->width / 2, 
+		*attention_x - smartcrop->width / 2, 
 		in->Xsize - smartcrop->width );
 	*top = VIPS_CLIP( 0, 
-		y_pos / vscale - smartcrop->height / 2, 
+		*attention_y - smartcrop->height / 2, 
 		in->Ysize - smartcrop->height ); 
 
 	return( 0 ); 
@@ -315,6 +323,9 @@ vips_smartcrop_build( VipsObject *object )
 	VipsImage *in;
 	int left;
 	int top;
+
+	int attention_x = 0;
+	int attention_y = 0;
 
 	if( VIPS_OBJECT_CLASS( vips_smartcrop_parent_class )->
 		build( object ) )
@@ -357,7 +368,7 @@ vips_smartcrop_build( VipsObject *object )
 		break;
 
 	case VIPS_INTERESTING_ATTENTION:
-		if( vips_smartcrop_attention( smartcrop, in, &left, &top ) )
+		if( vips_smartcrop_attention( smartcrop, in, &left, &top, &attention_x, &attention_y ) )
 			return( -1 );
 		break;
 
@@ -382,6 +393,11 @@ vips_smartcrop_build( VipsObject *object )
 		top = 0;
 		break;
 	}
+
+	g_object_set(smartcrop, 
+		"attention_x", attention_x,
+		"attention_y", attention_y,
+		NULL);
 
 	if( vips_extract_area( smartcrop->in, &t[1], 
 			left, top, 
@@ -420,7 +436,7 @@ vips_smartcrop_class_init( VipsSmartcropClass *class )
 		G_STRUCT_OFFSET( VipsSmartcrop, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
+	VIPS_ARG_INT( class, "height", 5,
 		_( "Height" ), 
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
@@ -433,6 +449,21 @@ vips_smartcrop_class_init( VipsSmartcropClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSmartcrop, interesting ),
 		VIPS_TYPE_INTERESTING, VIPS_INTERESTING_ATTENTION );
+
+	VIPS_ARG_INT( class, "attention_x", 2, 
+		_( "AttentionX" ), 
+		_( "Horizontal position of attention center" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsSmartcrop, attention_x ),
+		0, VIPS_MAX_COORD, 0 );
+
+	VIPS_ARG_INT( class, "attention_y", 3, 
+		_( "AttentionY" ), 
+		_( "Vertical position of attention center" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsSmartcrop, attention_y ),
+		0, VIPS_MAX_COORD, 0 );
+
 
 }
 
