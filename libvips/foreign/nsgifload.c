@@ -259,7 +259,8 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 		gif->has_transparency ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+		return( -1 );
 
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.
@@ -440,7 +441,8 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 
 	gif->gif_delay = gif->delay[0] / 10;
 
-	vips_foreign_load_nsgif_set_header( gif, load->out );
+	if( vips_foreign_load_nsgif_set_header( gif, load->out ) )
+		return( -1 );
 
 	return( 0 );
 }
