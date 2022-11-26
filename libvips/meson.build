@@ -75,8 +75,8 @@ endif
 # Keep the autotools convention for shared module suffix because GModule
 # depends on it: https://gitlab.gnome.org/GNOME/glib/issues/1413
 module_suffix = []
-if ['darwin', 'ios'].contains(host_os)
-  module_suffix = 'so'
+if host_os in ['darwin', 'ios']
+    module_suffix = 'so'
 endif
 
 if magick_module
