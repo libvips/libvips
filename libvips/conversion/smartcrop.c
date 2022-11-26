@@ -14,6 +14,8 @@
  * 	- add low and high
  * 19/3/20 jcupitt
  * 	- add all
+ * 26/11/22 ejoebstl
+ *  - expose location of interest when using attention based cropping
  */
 
 /*
@@ -452,14 +454,14 @@ vips_smartcrop_class_init( VipsSmartcropClass *class )
 
 	VIPS_ARG_INT( class, "attention_x", 2, 
 		_( "AttentionX" ), 
-		_( "Horizontal position of attention center" ),
+		_( "Horizontal position of attention centre" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSmartcrop, attention_x ),
 		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "attention_y", 3, 
 		_( "AttentionY" ), 
-		_( "Vertical position of attention center" ),
+		_( "Vertical position of attention centre" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSmartcrop, attention_y ),
 		0, VIPS_MAX_COORD, 0 );
@@ -482,9 +484,11 @@ vips_smartcrop_init( VipsSmartcrop *smartcrop )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
- *
+ * 
  * * @interesting: #VipsInteresting to use to find interesting areas (default: #VIPS_INTERESTING_ATTENTION)
- *
+ * * @attention_x: horizontal position of attention centre when using attention based cropping
+ * * @attention_y: vertical position of attention centre when using attention based cropping
+ * 
  * Crop an image down to a specified width and height by removing boring parts. 
  *
  * Use @interesting to pick the method vips uses to decide which bits of the
