@@ -1027,7 +1027,7 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_header( heif, t[0] ) )
 		return( -1 );
 
-	/* CLose input immediately at end of read.
+	/* Close input immediately at end of read.
 	 */
 	g_signal_connect( t[0], "minimise", 
 		G_CALLBACK( vips_foreign_load_heif_minimise ), heif ); 

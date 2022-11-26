@@ -43,11 +43,6 @@
 
  */
 
-/* TODO
- *
- * - can we map and then close the fd? how about on Windows?
- */
-
 /*
 #define TEST_SANITY
 #define VIPS_DEBUG
