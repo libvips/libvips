@@ -580,12 +580,13 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	return( dir ); 
 }
 
-/* Return a GsfOutput for writing to a path. Paths are object name first, then
- * path components with least-specific first, NULL-terminated. For example:
+/* Return a GsfOutput or %NULL for writing to a path. Paths are object name first,
+ * then path components with least-specific first, NULL-terminated. For example:
  *
  * GsfOutput *obj = vips_gsf_path( tree, "fred.jpg", "a", "b", NULL );
  *
- * Returns an obj you can use to write to a/b/fred.jpg. 
+ * Returns an obj you can use to write to a/b/fred.jpg, or %NULL when it exceeds
+ * the path limits.
  *
  * You must write, close and unref obj.
  */
@@ -881,8 +882,10 @@ write_image( VipsForeignSaveDz *dz,
 		gsf_output_close( out );
 		g_mutex_unlock( vips__global_lock );
 		g_free( buf );
-		vips_error( class->nickname,
-			"%s", gsf_output_error( out )->message );
+
+		if( gsf_output_error( out ) )
+			vips_error( class->nickname,
+				"%s", gsf_output_error( out )->message );
 
 		return( -1 );
 	}
@@ -1112,7 +1115,8 @@ write_dzi( VipsForeignSaveDz *dz )
 	char *p;
 
 	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->basename );
-	out = vips_gsf_path( dz->tree, buf, NULL ); 
+	if( !(out = vips_gsf_path( dz->tree, buf, NULL ) ))
+		return( -1 );
 
 	vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
 	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
@@ -1143,7 +1147,10 @@ write_properties( VipsForeignSaveDz *dz )
 {
 	GsfOutput *out;
 
-	out = vips_gsf_path( dz->tree, "ImageProperties.xml", NULL ); 
+	if( !(out = vips_gsf_path( dz->tree, 
+		"ImageProperties.xml", NULL ) )) {
+		return( -1 );
+	}
 
 	gsf_output_printf( out, "<IMAGE_PROPERTIES "
 		"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
@@ -1196,7 +1203,11 @@ write_blank( VipsForeignSaveDz *dz )
 	g_object_unref( x );
 	x = t;
 
-	out = vips_gsf_path( dz->tree, "blank.png", NULL ); 
+	if( !(out = vips_gsf_path( dz->tree, "blank.png", NULL ) )) {
+		g_object_unref( x );
+
+		return( -1 );
+	}
 
 	if( write_image( dz, out, x, ".png" ) ) {
 		g_object_unref( out );
@@ -1229,7 +1240,8 @@ write_json( VipsForeignSaveDz *dz )
 	GsfOutput *out;
 	int i;
 
-	out = vips_gsf_path( dz->tree, "info.json", NULL ); 
+	if( !(out = vips_gsf_path( dz->tree, "info.json", NULL ) ))
+		return( -1 );
 
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) 
 		gsf_output_printf( out, 
@@ -1344,7 +1356,13 @@ write_vips_meta( VipsForeignSaveDz *dz )
 	else
 		out = vips_gsf_path( dz->tree, "vips-properties.xml", NULL );
 
-	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
+	if( out == NULL ) {
+		g_free( dump );
+
+		return( -1 );
+	}
+
+	(void) gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
 
@@ -1454,9 +1472,15 @@ write_scan_properties( VipsForeignSaveDz *dz )
 
 	if( !(dump = build_scan_properties( save->ready )) )
                 return( -1 );
+	
+	if( !(out = vips_gsf_path( dz->tree, 
+		"scan-properties.xml", NULL ) )) {
+		g_free( dump );
 
-	out = vips_gsf_path( dz->tree, "scan-properties.xml", NULL );
-	gsf_output_write( out, strlen( dump ), (guchar *) dump );
+		return( -1 );
+	}
+
+	(void) gsf_output_write( out, strlen( dump ), (guchar *) dump );
 	(void) gsf_output_close( out );
 	g_object_unref( out );
 
@@ -1489,7 +1513,12 @@ write_associated_images( VipsImage *image,
 			return( image );
 
 		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
-		out = vips_gsf_path( dz->tree, buf, "associated_images", NULL );
+		if( !(out = vips_gsf_path( dz->tree, buf, 
+			"associated_images", NULL ) )) {
+			g_object_unref( associated );
+
+			return( image );
+		}
 
 		if( write_image( dz, out, associated, ".jpg" ) ) {
 			g_object_unref( out );
@@ -1899,6 +1928,14 @@ strip_work( VipsThreadState *state, void *a )
 		state->x / dz->tile_step, state->y / dz->tile_step );
 
 	g_mutex_unlock( vips__global_lock );
+
+	/* vips_gsf_path() can return NULL when it exceeds the path limits.
+	 */
+	if( out == NULL ) {
+		g_object_unref( x );
+
+		return( -1 );
+	}
 
         vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
 
