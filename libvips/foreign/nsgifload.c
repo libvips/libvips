@@ -3,9 +3,11 @@
  * 6/10/18
  * 	- from gifload.c
  * 3/3/22 tlsa
- *	- update libnsgif API
- *9/5/22
- 	- attach GIF palette as metadata
+ * 	- update libnsgif API
+ * 9/5/22
+ * 	- attach GIF palette as metadata
+ * 26/11/22 kleisauke
+ * 	- avoid minimise after mapping -- not reliable on Win32
  */
 
 /*
@@ -160,9 +162,7 @@ vips_foreign_load_nsgif_dispose( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_dispose:\n" );
 
-	if( gif->anim ) {
-		nsgif_destroy( gif->anim );
-	}
+	VIPS_FREEF( nsgif_destroy, gif->anim );
 	VIPS_UNREF( gif->source );
 	VIPS_FREE( gif->delay );
 
@@ -336,8 +336,6 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
  *
  * Don't flag any errors unless we have to: we want to work for corrupt or
  * malformed GIFs.
- *
- * Close as soon as we can to free up the fd.
  */
 static int
 vips_foreign_load_nsgif_header( VipsForeignLoad *load )
@@ -352,12 +350,10 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_header:\n" );
 
-	/* We map in the image, then minimise to close any underlying file
-	 * object. This won't unmap.
+	/* Map the whole source into memory.
 	 */
-	if( !(data = vips_source_map( gif->source, &size )) ) 
+	if( !(data = vips_source_map( gif->source, &size )) )
 		return( -1 );
-	vips_source_minimise( gif->source );
 
 	/* Treat errors from _scan() as warnings. If libnsgif really can't do
 	 * something it'll fail gracefully later when we try to read out 
@@ -542,7 +538,7 @@ vips_foreign_load_nsgif_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) load;
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array( VIPS_OBJECT( load ), 4 );
+		vips_object_local_array( VIPS_OBJECT( load ), 2 );
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_load:\n" );
 

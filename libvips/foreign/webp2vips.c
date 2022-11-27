@@ -370,7 +370,7 @@ read_new( VipsImage *out, VipsSource *source, int page, int n, double scale )
 	read->frame_no = 0;
 
 	/* Everything has to stay open until read has finished, unfortunately,
-	 * since webp relies on us mapping the whole file.
+	 * since webp relies on us mapping the whole source.
 	 */
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
@@ -379,6 +379,8 @@ read_new( VipsImage *out, VipsSource *source, int page, int n, double scale )
 	read->config.options.use_threads = 1;
 	read->config.output.is_external_memory = 1;
 
+	/* Map the whole source into memory.
+	 */
 	if( !(read->data.bytes = 
 		vips_source_map( source, &read->data.size )) ) 
 		return( NULL );
@@ -783,8 +785,10 @@ static int
 read_image( Read *read, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
 
+	/* Make the output pipeline.
+	 */
 	t[0] = vips_image_new();
 	if( read_header( read, t[0] ) )
 		return( -1 );

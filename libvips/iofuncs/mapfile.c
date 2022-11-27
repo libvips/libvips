@@ -90,6 +90,7 @@
 #endif /*G_OS_WIN32*/
 
 /* Does this fd support mmap. Pipes won't, for example.
+ * FIXME unused internal function
  */
 gboolean
 vips__mmap_supported( int fd )
