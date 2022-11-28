@@ -931,14 +931,11 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 	/* Walk the string to get the number of elements. 
 	 * We need a copy of the string, since we insert \0 during
 	 * scan.
-	 *
-	 * We can't allow ',' as a separator, since some locales use it as a
-	 * decimal point.
 	 */
 	str = g_value_dup_string( src_value );
 
 	n = 0;
-	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+	for( p = str; (q = vips_break_token( p, "\t;, " )); p = q ) 
 		n += 1;
 
 	g_free( str );
@@ -1158,14 +1155,11 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 
 	/* Walk the string to get the number of elements. 
 	 * We need a copy of the string, since we insert \0 during scan.
-	 *
-	 * We can't allow ',' as a separator since some locales use it as a
-	 * decimal point.
 	 */
 	str = g_value_dup_string( src_value );
 
 	n = 0;
-	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+	for( p = str; (q = vips_break_token( p, "\t;, " )); p = q ) 
 		n += 1;
 
 	g_free( str );
@@ -1177,11 +1171,9 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 
 	i = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
-		if( sscanf( p, "%lf", &array[i] ) != 1 ) { 
+		if( !vips_strtod( p, &array[i] ) ) {
 			/* Set array to length zero to indicate an error.
 			 */
-			vips_error( "vipstype", 
-				_( "unable to convert \"%s\" to float" ), p );
 			vips_value_set_array_double( dest_value, NULL, 0 ); 
 			g_free( str );
 			return;

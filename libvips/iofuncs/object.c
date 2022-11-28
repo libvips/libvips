@@ -2083,11 +2083,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		if( sscanf( value, "%lg", &d ) != 1 ) {
-			vips_error( class->nickname,
-				_( "'%s' is not a double" ), value );
+		if( vips_strtod( value, &d ) )
 			return( -1 );
-		}
 
 		g_value_init( &gvalue, G_TYPE_DOUBLE );
 		g_value_set_double( &gvalue, d );
