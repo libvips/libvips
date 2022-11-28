@@ -453,14 +453,14 @@ vips_smartcrop_class_init( VipsSmartcropClass *class )
 		VIPS_TYPE_INTERESTING, VIPS_INTERESTING_ATTENTION );
 
 	VIPS_ARG_INT( class, "attention_x", 2, 
-		_( "AttentionX" ), 
+		_( "Attention x" ),
 		_( "Horizontal position of attention centre" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSmartcrop, attention_x ),
 		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "attention_y", 3, 
-		_( "AttentionY" ), 
+		_( "Attention y" ),
 		_( "Vertical position of attention centre" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsSmartcrop, attention_y ),
@@ -486,8 +486,8 @@ vips_smartcrop_init( VipsSmartcrop *smartcrop )
  * Optional arguments:
  * 
  * * @interesting: #VipsInteresting to use to find interesting areas (default: #VIPS_INTERESTING_ATTENTION)
- * * @attention_x: horizontal position of attention centre when using attention based cropping
- * * @attention_y: vertical position of attention centre when using attention based cropping
+ * * @attention_x: %gint, horizontal position of attention centre when using attention based cropping
+ * * @attention_y: %gint, vertical position of attention centre when using attention based cropping
  * 
  * Crop an image down to a specified width and height by removing boring parts. 
  *
