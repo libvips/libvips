@@ -1,5 +1,6 @@
 master
 
+- expose location of interest when using attention based cropping [ejoebstl]
 - version bump to 8.14
 - remove autotools
 - remove various obsolete scripts
