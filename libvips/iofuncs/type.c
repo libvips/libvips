@@ -1171,7 +1171,7 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 
 	i = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
-		if( !vips_strtod( p, &array[i] ) ) {
+		if( vips_strtod( p, &array[i] ) ) {
 			/* Set array to length zero to indicate an error.
 			 */
 			vips_value_set_array_double( dest_value, NULL, 0 ); 
