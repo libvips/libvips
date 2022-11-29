@@ -99,6 +99,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	VipsForeignSubsample subsample_mode;
 
+	/* Encoder to use. For instance: aom, svt etc.
+	 */
+	gchararray selected_encoder;
+
 	/* The image we save. This is a copy of save->ready since we need to
 	 * be able to update the metadata.
 	 */
@@ -438,6 +442,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	struct heif_error error;
 	struct heif_writer writer;
 	char *chroma;
+	const struct heif_encoder_descriptor* out_encoder;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_parent_class )->
 		build( object ) )
@@ -465,9 +470,21 @@ vips_foreign_save_heif_build( VipsObject *object )
                         heif->image->Type == VIPS_INTERPRETATION_GREY16 ? 
                                 12 : 8;
 
-	error = heif_context_get_encoder_for_format( heif->ctx, 
-		(enum heif_compression_format) heif->compression, 
-		&heif->encoder );
+	/* Try to find the selected encoder.
+	 */
+	const int count = heif_context_get_encoder_descriptors( heif->ctx,
+				(enum heif_compression_format) heif->compression,
+				heif->selected_encoder,
+				&out_encoder, 1 );
+	if( count > 0 ) {
+		error = heif_context_get_encoder( heif->ctx,
+				out_encoder, &heif->encoder );
+	} else {
+		error = heif_context_get_encoder_for_format( heif->ctx,
+				(enum heif_compression_format) heif->compression,
+				&heif->encoder );
+	}
+
 	if( error.code ) {
 		if( error.code == heif_error_Unsupported_filetype ) 
 			vips_error( "heifsave", 
@@ -651,6 +668,12 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
 		0, 9, 5 );
 
+	VIPS_ARG_STRING( class, "encoder", 18,
+		_( "encoder" ),
+		_( "select encoder to use" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, selected_encoder ),
+		"" );
 }
 
 static void
