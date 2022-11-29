@@ -431,7 +431,7 @@ if libopenjp2_dep.found()
     cfg_var.set('HAVE_LIBOPENJP2', '1')
 endif
 
-libhwy_dep = dependency('libhwy', version: '>=1.0.2', required: get_option('highway'))
+libhwy_dep = dependency('libhwy', version: '>=1.0.3', required: get_option('highway'))
 if libhwy_dep.found()
     libvips_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', '1')

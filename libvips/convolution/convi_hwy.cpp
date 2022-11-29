@@ -2,6 +2,8 @@
  * 	- initial implementation
  * 07/09/22 kleisauke
  * 	- implement using ReorderWidenMulAccumulate
+ * 29/11/22 kleisauke
+ * 	- prefer use of RearrangeToOddPlusEven
  */
 
 /*
@@ -142,12 +144,8 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 					/* byref */ sum3);
 			}
 
-#if !(HWY_ARCH_X86 || HWY_ARCH_WASM) || HWY_TARGET == HWY_EMU128
-			/* De-interleave all accumulators by pairs.
-			 */
-			sum0 = ConcatEven(di32, /* hi */ sum1, /* lo */ sum0);
-			sum2 = ConcatEven(di32, /* hi */ sum3, /* lo */ sum2);
-#endif
+			sum0 = RearrangeToOddPlusEven(sum0, sum1);
+			sum2 = RearrangeToOddPlusEven(sum2, sum3);
 
 			/* The final 32->8 conversion.
 			 */
@@ -218,11 +216,7 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 					/* byref */ sum1);
 			}
 
-#if !(HWY_ARCH_X86 || HWY_ARCH_WASM) || HWY_TARGET == HWY_EMU128
-			/* De-interleave all accumulators by pairs.
-			 */
-			sum0 = ConcatEven(di32, /* hi */ sum1, /* lo */ sum0);
-#endif
+			sum0 = RearrangeToOddPlusEven(sum0, sum1);
 
 			/* The final 32->8 conversion.
 			 */
