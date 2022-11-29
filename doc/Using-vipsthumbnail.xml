@@ -202,7 +202,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
   <para>
     Check the image write operations to see all the possible options. For example:
   </para>
-  <programlisting language="bash">
+  <programlisting>
 $ vips jpegsave
 save image to jpeg file
 usage:
@@ -240,7 +240,7 @@ optional arguments:
   <para>
     For example:
   </para>
-  <programlisting language="bash">
+  <programlisting>
 $ vipsthumbnail 42-32157534.jpg
 $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
@@ -248,7 +248,7 @@ $ ls -l tn_42-32157534.jpg
   <para>
     <literal>strip</literal> almost halves the size of the thumbnail:
   </para>
-  <programlisting language="bash">
+  <programlisting>
 $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
@@ -262,7 +262,7 @@ $ ls -l x.jpg
   <para>
     For example:
   </para>
-  <programlisting language="bash">
+  <programlisting>
 $ vipsthumbnail shark.jpg
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
@@ -270,7 +270,7 @@ $ ls -l tn_shark.jpg
   <para>
     Now transform to sRGB and don’t attach a profile (you can also use <literal>strip</literal>, though that will remove <emphasis>all</emphasis> metadata from the image):
   </para>
-  <programlisting language="bash">
+  <programlisting>
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg

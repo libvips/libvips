@@ -20,7 +20,7 @@
 <para>
   Run dzsave with no arguments to see a summary:
 </para>
-<programlisting language="bash">
+<programlisting>
 $ vips dzsave
 save image to deepzoom file
 usage:

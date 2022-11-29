@@ -21,7 +21,7 @@ but that's very simple to use. This page concentrates on the DeepZoom builder.
 
 Run dzsave with no arguments to see a summary:
 
-```bash
+```
 $ vips dzsave
 save image to deepzoom file
 usage:

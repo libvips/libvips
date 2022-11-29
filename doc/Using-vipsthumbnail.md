@@ -206,7 +206,7 @@ optimizer.
 
 Check the image write operations to see all the possible options. For example:
 
-```bash
+```
 $ vips jpegsave
 save image to jpeg file
 usage:
@@ -245,7 +245,7 @@ saving.
 
 For example:
 
-```bash
+```
 $ vipsthumbnail 42-32157534.jpg
 $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
@@ -253,7 +253,7 @@ $ ls -l tn_42-32157534.jpg
 
 `strip` almost halves the size of the thumbnail:
 
-```bash
+```
 $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
@@ -269,7 +269,7 @@ This can save several kb per thumbnail.
 
 For example:
 
-```bash
+```
 $ vipsthumbnail shark.jpg
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
@@ -278,7 +278,7 @@ $ ls -l tn_shark.jpg
 Now transform to sRGB and don't attach a profile (you can also use `strip`,
 though that will remove *all* metadata from the image):
 
-```bash
+```
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
