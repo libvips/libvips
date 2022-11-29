@@ -3679,19 +3679,19 @@ VipsBlob *VImage::webpsave_buffer( VOption *options ) const
     return( buffer );
 }
 
+void VImage::webpsave_mime( VOption *options ) const
+{
+    call( "webpsave_mime",
+        (options ? options : VImage::option())->
+            set( "in", *this ) );
+}
+
 void VImage::webpsave_target( VTarget target, VOption *options ) const
 {
     call( "webpsave_target",
         (options ? options : VImage::option())->
             set( "in", *this )->
             set( "target", target ) );
-}
-
-void VImage::webpsave_mime( VOption *options ) const
-{
-    call( "webpsave_mime",
-        (options ? options : VImage::option())->
-            set( "in", *this ) );
 }
 
 VImage VImage::worley( int width, int height, VOption *options )
