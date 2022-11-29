@@ -87,16 +87,21 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
+#if HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128
+		/* Initialize the sum with the addition on x86 and Wasm,
+		 * avoids an extra add instruction. Should be safe given
+		 * that only one accumulator is used.
+		 */
 		auto sum0 = initial; /* left row */
-		auto sum1 = initial; /* unused on x86 and Wasm */
 		auto sum2 = initial; /* right row */
-		auto sum3 = initial; /* unused on x86 and Wasm */
+#else
+		auto sum0 = Zero(di32);
+		auto sum2 = Zero(di32);
+#endif
+		auto sum1 = Zero(di32); /* unused on x86 and Wasm */
+		auto sum3 = Zero(di32); /* unused on x86 and Wasm */
 
 		int32_t i = 0;
-
-#if (HWY_ARCH_X86 || HWY_ARCH_WASM) && HWY_TARGET != HWY_EMU128
-		/* 2x unroll loop on x86 and Wasm, as it uses 1 accumulator.
-		 */
 		for (; i + 2 <= n; i += 2) {
 			/* Load two coefficients at once.
 			 */
@@ -118,7 +123,6 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 				/* byref */ sum3);
 		}
-#endif
 		for (; i < n; ++i) {
 			auto mmk = Set(di16, k[i]);
 
@@ -139,6 +143,11 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 
 		sum0 = RearrangeToOddPlusEven(sum0, sum1);
 		sum2 = RearrangeToOddPlusEven(sum2, sum3);
+
+#if !(HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128)
+		sum0 = Add(sum0, initial);
+		sum2 = Add(sum2, initial);
+#endif
 
 		/* The final 32->8 conversion.
 		 */
@@ -167,14 +176,18 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
+#if HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128
+		/* Initialize the sum with the addition on x86 and Wasm,
+		 * avoids an extra add instruction. Should be safe given
+		 * that only one accumulator is used.
+		 */
 		auto sum0 = initial;
-		auto sum1 = initial; /* unused on x86 and Wasm */
+#else
+		auto sum0 = Zero(di32);
+#endif
+		auto sum1 = Zero(di32); /* unused on x86 and Wasm */
 
 		int32_t i = 0;
-
-#if (HWY_ARCH_X86 || HWY_ARCH_WASM) && HWY_TARGET != HWY_EMU128
-		/* 2x unroll loop on x86 and Wasm, as it uses 1 accumulator.
-		 */
 		for (; i + 2 <= n; i += 2) {
 			/* Load two coefficients at once.
 			 */
@@ -191,7 +204,6 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 				/* byref */ sum1);
 		}
-#endif
 		for (; i < n; ++i) {
 			auto mmk = Set(di16, k[i]);
 
@@ -206,6 +218,10 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		}
 
 		sum0 = RearrangeToOddPlusEven(sum0, sum1);
+
+#if !(HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128)
+		sum0 = Add(sum0, initial);
+#endif
 
 		/* The final 32->8 conversion.
 		 */
