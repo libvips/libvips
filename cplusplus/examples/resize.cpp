@@ -13,6 +13,9 @@ main( int argc, char **argv )
 	if( VIPS_INIT( argv[0] ) )
 		vips_error_exit( NULL ); 
 
+	if( argc != 3 )
+		vips_error_exit( "usage: %s infile outfile", argv[0] );
+
 	VImage in = VImage::new_from_file( argv[1], VImage::option()
 		->set( "access", "sequential" ) ); 
 
