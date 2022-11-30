@@ -9,7 +9,7 @@ _vips_compgen_f()
   COMPREPLY=($(compgen -f -- "${COMP_WORDS[-1]}"))
 
   if [ ${#COMPREPLY[@]} = 1 ]; then
-    local LASTCHAR=' '
+    local LASTCHAR=
     if [ -d "$COMPREPLY" ]; then
       LASTCHAR=/
     fi
@@ -31,7 +31,9 @@ _vips_completions()
   else
     local args=($(vips -c ${COMP_WORDS[1]}))
     local arg_type=${args[${#COMP_WORDS[@]}-3]}
-    if [ $arg_type == "file" ]; then
+    if [ x$arg_type == x"" ]; then
+      COMPREPLY=
+    elif [ $arg_type == "file" ]; then
       _vips_compgen_f
     elif [[ $arg_type = word:* ]]; then
       local options=$(echo $arg_type | sed 's/word://' | sed 's/|/ /g')

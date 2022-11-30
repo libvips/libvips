@@ -131,14 +131,18 @@ list_class( GType type, void *user_data )
 }
 
 static void *
-test_nickname( GType type, void *data )
+test_class_name( GType type, void *data )
 {
-	const char *nickname = (const char *) data;
+	const char *name = (const char *) data;
 
 	VipsObjectClass *class;
 
+	/* Test the classname too.
+	 */
 	if( (class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) )) &&
-		strcmp( class->nickname, nickname ) == 0 ) 
+		strcmp( class->nickname, name ) == 0 ) 
+		return( class ); 
+	if( strcmp( G_OBJECT_CLASS_NAME( class ), name ) == 0 )
 		return( class ); 
 
 	return( NULL );
@@ -153,7 +157,7 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 	if( value &&
 		(class = (VipsObjectClass *) vips_type_map_all( 
 			g_type_from_name( "VipsObject" ), 
-			test_nickname, (void *) value )) ) { 
+			test_class_name, (void *) value )) ) { 
 		vips_type_map_all( G_TYPE_FROM_CLASS( class ), 
 			list_class, NULL );
 	}
@@ -184,7 +188,11 @@ list_operation( GType type, void *user_data )
 	if( VIPS_OPERATION_CLASS( class )->flags & VIPS_OPERATION_DEPRECATED )
 		return( NULL ); 
 
+	/* Complete on class names as well as nicknames -- "crop", for
+	 * example, is a class name.
+	 */
 	printf( "%s\n", class->nickname );
+	printf( "%s\n", G_OBJECT_CLASS_NAME( class ) );
 
 	return( NULL );
 }
@@ -265,7 +273,7 @@ parse_main_option_completion( const gchar *option_name, const gchar *value,
 	if( value &&
 		(class = (VipsObjectClass *) vips_type_map_all( 
 			g_type_from_name( "VipsOperation" ), 
-			test_nickname, (void *) value )) )  
+			test_class_name, (void *) value )) )  
 		vips_argument_class_map( class,
 			(VipsArgumentClassMapFn) list_operation_arg, 
 			NULL, NULL );
