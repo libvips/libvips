@@ -2250,7 +2250,7 @@ vips_heifload_source( VipsSource *source, VipsImage **out, ... )
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
- * * @encoder: %gchararray, select encoder to use
+ * * @encoder: #VipsForeignHeifEncoder, select encoder to use
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -2306,7 +2306,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
- * * @encoder: %gchararray, select encoder to use
+ * * @encoder: #VipsForeignHeifEncoder, select encoder to use
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *
@@ -2360,7 +2360,7 @@ vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
- * * @encoder: %gchararray, select encoder to use
+ * * @encoder: #VipsForeignHeifEncoder, select encoder to use
  *
  * As vips_heifsave(), but save to a target.
  *
