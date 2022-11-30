@@ -70,7 +70,7 @@ operation flags: sequential nocache
   <para>
     The <literal>--layout</literal> option sets the basic mode of operation. With no <literal>--layout</literal>, dzsave writes DeepZoom pyramids. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave huge.tif mydz
 </programlisting>
   <para>
@@ -79,7 +79,7 @@ $ vips dzsave huge.tif mydz
   <para>
     You can use the <literal>--suffix</literal> option to control how tiles are written. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
 </programlisting>
   <para>
@@ -91,7 +91,7 @@ $ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
   <para>
     Use <literal>--layout zoomify</literal> to put dzsave into zoomify mode. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave huge.tif myzoom --layout zoomify
 </programlisting>
   <para>
@@ -106,7 +106,7 @@ $ vips dzsave huge.tif myzoom --layout zoomify
   <para>
     Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <ulink url="http://leafletjs.com">Leaflet</ulink>. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave wtc.tif gmapdir --layout google
 </programlisting>
   <para>
@@ -124,7 +124,7 @@ $ vips dzsave wtc.tif gmapdir --layout google
   <para>
     For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
 </programlisting>
 </refsect3>
@@ -142,7 +142,7 @@ $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
   <para>
     You can use <literal>--container</literal> to set the container type. Normally dzsave will write a tree of directories, but with <literal>--container zip</literal> you’ll get a zip file instead. Use .zip as the directory suffix to turn on zip format automatically:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave wtc.tif mypyr.zip
 </programlisting>
   <para>
@@ -157,7 +157,7 @@ $ vips dzsave wtc.tif mypyr.zip
   <para>
     You can use <literal>.dz</literal> as a filename suffix, meaning send the image to <literal>vips_dzsave()</literal>. This means you can write the output of any vips operation to a pyramid. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
 </programlisting>
   <para>
@@ -166,7 +166,7 @@ $ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
   <para>
     If you are working from OpenSlide images, you can use the shrink-on-load feature of many of those formats. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips dzsave CMU-1.mrxs[level=1] x
 </programlisting>
   <para>

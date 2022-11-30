@@ -17,7 +17,7 @@ in the API.  It's also a useful source of examples.
 
 # Average a region of interest box on an image
 
-``` python
+```python
 #!/usr/bin/python3
 
 import sys
@@ -124,20 +124,20 @@ To test it, first make a large 1-bit image. This command will take the
 green channel and write as a 1-bit fax image. `wtc.jpg` is a test 10,000
 x 10,000 jpeg:
 
-```
+```bash
 $ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
 ```
 
 Now make 1,000 copies of that image in a subdirectory:
 
-```
+```bash
 $ mkdir test
 $ for i in {1..1000}; do cp x.tif test/$i.tif; done
 ```
 
 And run this Python program on them:
 
-```
+```bash
 $ time python try255.py x.tif[squash,compression=ccittfax4,strip,bigtiff] test/*
 real	1m59.924s
 user	4m5.388s
@@ -152,7 +152,7 @@ If you wanted to handle transparency, or if you wanted mixed CMYK and RGB
 images, you'd need to do some more work to convert them all into the same
 colourspace before inserting them.
 
-``` python
+```python
 #!/usr/bin/python3
 #file try255.py
 

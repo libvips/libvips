@@ -25,7 +25,7 @@ $image->writeToFile("my-thumbnail.jpg");
 
 You can also call `thumbnail_source` from the CLI, for example:
 
-```
+```bash
 $ cat k2.jpg | \
     vips thumbnail_source [descriptor=0] .jpg[Q=90] 128 | \
     cat > x.jpg
@@ -52,7 +52,7 @@ is running. 
 
 `vipsthumbnail` can process many images in one command. For example:
 
-```
+```bash
 $ vipsthumbnail *.jpg
 ```
 
@@ -64,7 +64,7 @@ where thumbnails are written.
 speedup by running several `vipsthumbnail`s in parallel, depending on how
 much load you want to put on your system. For example:
 
-```
+```bash
 $ parallel vipsthumbnail ::: *.jpg
 ```
 
@@ -73,14 +73,14 @@ $ parallel vipsthumbnail ::: *.jpg
 You can set the bounding box of the generated thumbnail with the `--size`
 option. For example:
 
-```
+```bash
 $ vipsthumbnail shark.jpg --size 200x100
 ```
 
 Use a single number to set a square bounding box. You can omit either number
 but keep the x to mean resize just based on that axis, for example:
 
-```
+```bash
 $ vipsthumbnail shark.jpg --size 200x
 ```
 
@@ -99,7 +99,7 @@ the aspect ratio.
 You can use the `--smartcrop` option to crop to fill the box instead. Excess
 pixels are trimmed away using the strategy you set. For example:
 
-```
+```bash
 $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 ```
 
@@ -126,7 +126,7 @@ to the voltage that should be applied to the electron gun in a CRT display.
 `vipsthumbnail` has an option to perform image shrinking in linear space, that
 is, a colourspace where values are proportional to photon numbers. For example:
 
-```
+```bash
 $ vipsthumbnail fred.jpg --linear
 ```
 
@@ -137,7 +137,7 @@ photons. This can make linear light thumbnailing of large images extremely slow.
 
 For example, for a 10,000 x 10,000 pixel JPEG I see:
 
-```
+```bash
 $ time vipsthumbnail wtc.jpg 
 real	0m0.317s
 user	0m0.292s
@@ -154,7 +154,7 @@ You set the thumbnail write parameters with the `-o`
 option. This is a pattern which the input filename is pasted into to
 produce the output filename. For example:
 
-```
+```bash
 $ vipsthumbnail fred.jpg jim.tif -o tn_%s.jpg
 ```
 
@@ -167,7 +167,7 @@ If the pattern given to `-o` is an absolute path, any path components are
 dropped from the input filenames. This lets you write all of your thumbnails
 to a specific directory, if you want. For example:
 
-```
+```bash
 $ vipsthumbnail fred.jpg ../jim.tif -o /mythumbs/tn_%s.jpg
 ```
 
@@ -177,7 +177,7 @@ images are in different directories.
 Conversely, if `-o` is set to a relative path, any path component from the
 input file is prepended. For example:
 
-```
+```bash
 $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
 ```
 
@@ -188,7 +188,7 @@ their current directory.
 
 You can use `-o` to specify the thumbnail image format too. For example: 
 
-```
+```bash
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
 ```
 
@@ -197,7 +197,7 @@ Will write thumbnails in PNG format.
 You can give options to the image write operation as a list of comma-separated
 arguments in square brackets. For example:
 
-```
+```bash
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
 ```
 
@@ -294,7 +294,7 @@ embedded one. For example, perhaps you somehow know that a JPG is in Adobe98
 space, even though it has no embedded profile. 
 
 
-```
+```bash
 $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
 ```
 
@@ -302,7 +302,7 @@ $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm
 
 Putting all this together, I suggest this as a sensible set of options:
 
-```
+```bash
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \

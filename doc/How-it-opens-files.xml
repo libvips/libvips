@@ -63,7 +63,7 @@
   <para>
     Imagine how this command might be executed:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips flip fred.jpg jim.jpg vertical
 </programlisting>
   <para>
@@ -75,7 +75,7 @@ $ vips flip fred.jpg jim.jpg vertical
   <para>
     However many useful operations do not require true random access.  For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vips shrink fred.png jim.png 10 10
 </programlisting>
   <para>

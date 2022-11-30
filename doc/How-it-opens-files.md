@@ -85,7 +85,7 @@ two.
 
 Imagine how this command might be executed:
 
-```
+```bash
 $ vips flip fred.jpg jim.jpg vertical
 ```
 
@@ -99,7 +99,7 @@ before it can run the flip operation.
 However many useful operations do not require true random access.  For
 example:
 
-```
+```bash
 $ vips shrink fred.png jim.png 10 10
 ```
 
