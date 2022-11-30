@@ -650,14 +650,15 @@ vips_foreign_save_spng_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Except for 8-bit inputs, we send everything else to 16. We decide on spng8
- * vs. spng16 based on Type in_build(), see above.
- */
 #define UC VIPS_FORMAT_UCHAR
 #define US VIPS_FORMAT_USHORT
-static int bandfmt_spng[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, US, US, US, US, US, US
+
+/* Except for 8-bit inputs, we send everything else to 16. We decide on png8
+ * vs. png16 based on Type in_build(), see above.
+ */
+static VipsBandFormat bandfmt_spng[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void

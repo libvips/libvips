@@ -244,8 +244,8 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 /* Format doesn't change with abs, other than complex -> real.
  */
 static const VipsBandFormat vips_abs_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  F,  D,  D 
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, F, D, D
 };
 
 static void

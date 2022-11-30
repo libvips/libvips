@@ -182,9 +182,9 @@ vips_foreign_save_png_build( VipsObject *object )
 /* Except for 8-bit inputs, we send everything else to 16. We decide on png8
  * vs. png16 based on Type in_build(), see above.
  */
-static int bandfmt_png[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, US, US, US, US, US, US
+static VipsBandFormat bandfmt_png[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void

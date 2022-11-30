@@ -87,8 +87,8 @@ G_DEFINE_TYPE( VipsProject, vips_project, VIPS_TYPE_STATISTIC );
 #define N VIPS_FORMAT_NOTSET
 
 static const VipsBandFormat vips_project_format_table[10] = {
-/* UC   C  US   S  UI   I   F   X   D  DX */
-   UI,  I, UI,  I, UI,  I,  D,  N,  D, N
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UI, I, UI, I, UI, I, D, N, D, N
 };
 
 static Histogram *

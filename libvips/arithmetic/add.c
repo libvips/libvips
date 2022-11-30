@@ -158,8 +158,8 @@ add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
  * match the case statement in add_buffer() above.
  */
 static const VipsBandFormat vips_add_format_table[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   US, S,  UI, I,  UI, I, F, X, D, DX
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ US, S, UI, I, UI, I, F, X, D, DX
 };
 
 static void

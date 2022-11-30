@@ -1748,9 +1748,9 @@ vips_foreign_save_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int vips_foreign_save_format_table[10] = {
-// UC  C   US  S   UI  I  F  X  D  DX 
-   UC, C,  US, S,  UI, I, F, X, D, DX
+static VipsBandFormat vips_foreign_save_format_table[10] = {
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void

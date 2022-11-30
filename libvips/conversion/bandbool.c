@@ -190,8 +190,8 @@ vips_bandbool_buffer( VipsBandarySequence *seq,
 /* Format conversions for boolean. 
  */
 static const VipsBandFormat vips_bandbool_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  I,  I,  I,  I,
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, I, I, I, I
 };
 
 static void

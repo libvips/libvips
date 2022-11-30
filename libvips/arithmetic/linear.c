@@ -401,8 +401,8 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 /* Format doesn't change with linear.
  */
 static const VipsBandFormat vips_linear_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ F, F, F, F, F, F, F, X, D, DX
 };
 
 static void

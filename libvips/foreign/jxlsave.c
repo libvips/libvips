@@ -484,9 +484,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 
 /* Type promotion for save ... unsigned ints + float + double.
  */
-static int bandfmt_jxl[10] = {
-     /* UC   C  US   S  UI   I  F  X  D DX */
-	UC, UC, US, US,  F,  F, F, F, F, F
+static VipsBandFormat bandfmt_jxl[10] = {
+	/* Band format:  UC  C   US  S   UI I  F  X  D DX */
+	/* Promotion: */ UC, UC, US, US, F, F, F, F, F, F
 };
 
 static void

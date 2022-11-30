@@ -386,8 +386,8 @@ vips_hist_find_scan( VipsStatistic *statistic, void *seq,
 /* Type mapping: go to uchar or ushort.
  */
 static const VipsBandFormat vips_hist_find_format_table[10] = {
-/* UC   C  US   S  UI   I   F   X   D  DX */
-   UC, UC, US, US, US, US, US, US, US, US
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void

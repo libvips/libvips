@@ -152,8 +152,8 @@ vips_hough_scan( VipsStatistic *statistic,
 /* Input image is cast to this format.
  */
 static const VipsBandFormat vips_hough_format_table[10] = {
-/* UC   C  US   S  UI   I   F   X   D  DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static void

@@ -210,9 +210,9 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 /* Type promotion for division. Sign and value preserving. Make sure 
  * these match the case statement in divide_buffer() above.
  */
-static int vips_divide_format_table[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   F,  F,  F,  F,  F,  F, F, X, D, DX
+static VipsBandFormat vips_divide_format_table[10] = {
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ F, F, F, F, F, F, F, X, D, DX
 };
 
 static void
