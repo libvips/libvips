@@ -669,8 +669,8 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		0, 9, 5 );
 
 	VIPS_ARG_STRING( class, "encoder", 18,
-		_( "encoder" ),
-		_( "select encoder to use" ),
+		_( "Encoder" ),
+		_( "Select encoder to use" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, selected_encoder ),
 		"" );
