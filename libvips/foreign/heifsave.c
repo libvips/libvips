@@ -101,7 +101,7 @@ typedef struct _VipsForeignSaveHeif {
 
 	/* Encoder to use. For instance: aom, svt etc.
 	 */
-	gchararray selected_encoder;
+	VipsForeignHeifEncoder selected_encoder;
 
 	/* The image we save. This is a copy of save->ready since we need to
 	 * be able to update the metadata.
@@ -472,14 +472,22 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	/* Try to find the selected encoder.
 	 */
-	const int count = heif_context_get_encoder_descriptors( heif->ctx,
-				(enum heif_compression_format) heif->compression,
-				heif->selected_encoder,
-				&out_encoder, 1 );
-	if( count > 0 ) {
-		error = heif_context_get_encoder( heif->ctx,
+	if( heif->selected_encoder != VIPS_FOREIGN_HEIF_ENCODER_AUTO ) {
+		const int count = heif_context_get_encoder_descriptors( heif->ctx,
+					(enum heif_compression_format) heif->compression,
+					vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER, heif->selected_encoder ),
+					&out_encoder, 1 );
+
+		if( count > 0 ) {
+			error = heif_context_get_encoder( heif->ctx,
 				out_encoder, &heif->encoder );
-	} else {
+		} else {
+			g_warning( "heifsave: could not find selected encoder %s", vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER, heif->selected_encoder ) );
+		}
+	}
+	/* Fallback to default encoder.
+	 */
+	if( heif->encoder == NULL ) {
 		error = heif_context_get_encoder_for_format( heif->ctx,
 				(enum heif_compression_format) heif->compression,
 				&heif->encoder );
@@ -668,12 +676,13 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
 		0, 9, 5 );
 
-	VIPS_ARG_STRING( class, "encoder", 18,
+	VIPS_ARG_ENUM( class, "encoder", 18,
 		_( "Encoder" ),
 		_( "Select encoder to use" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, selected_encoder ),
-		"" );
+		VIPS_TYPE_FOREIGN_HEIF_ENCODER,
+		VIPS_FOREIGN_HEIF_ENCODER_AUTO );
 }
 
 static void
