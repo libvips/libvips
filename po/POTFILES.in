@@ -281,7 +281,6 @@ libvips/foreign/tiffsave.c
 libvips/foreign/vips2jpeg.c
 libvips/foreign/vips2magick.c
 libvips/foreign/vips2tiff.c
-libvips/foreign/vips2webp.c
 libvips/foreign/vipsload.c
 libvips/foreign/vipspng.c
 libvips/foreign/vipssave.c
@@ -339,7 +338,9 @@ libvips/iofuncs/sourceginput.c
 libvips/iofuncs/system.c
 libvips/iofuncs/target.c
 libvips/iofuncs/targetcustom.c
+libvips/iofuncs/thread.c
 libvips/iofuncs/threadpool.c
+libvips/iofuncs/threadset.c
 libvips/iofuncs/type.c
 libvips/iofuncs/util.c
 libvips/iofuncs/vector.c
