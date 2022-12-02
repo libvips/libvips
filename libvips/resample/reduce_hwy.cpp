@@ -149,9 +149,19 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		sum0 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum0);
 		sum2 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum2);
 
+#if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
+		/* RVV/SVE defines demotion as writing to the upper or lower half
+		 * of each lane, rather than compacting them within a vector.
+		 */
+		auto demoted0 = DemoteTo(du8x32, sum0);
+		auto demoted1 = DemoteTo(du8x32, sum2);
+		StoreU(demoted0, du8x32, q);
+		StoreU(demoted1, du8x32, q + 4);
+#else
 		auto demoted = DemoteTo(du8x16,
 			ReorderDemote2To(di16, sum0, sum2));
 		StoreU(demoted, du8x16, q);
+#endif
 	}
 #endif
 
