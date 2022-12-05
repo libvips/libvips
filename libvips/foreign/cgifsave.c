@@ -3,6 +3,8 @@
  * 22/8/21 lovell
  * 18/1/22 TheEssem
  * 	- fix change detector
+ * 3/12/22
+ * 	- deprecate reoptimise, add reuse
  */
 
 /*
@@ -56,19 +58,19 @@
 
 /* The modes we work in.
  *
- * VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL:
- * 	
- * 	Each frame is dithered to single global colour table taken from the 
- * 	input image "gif-palette" metadata item. 
- *
  * VIPS_FOREIGN_SAVE_CGIF_MODE_LOCAL:
  *
  * 	We find a global palette from the first frame, then write subsequent
  * 	frames with a local palette if they start to drift too far from the
  * 	first frame.
  *
- * We pick GLOBAL if "gif-palette" is set. We pick LOCAL if there is
- * no "gif-palette", or if @reoptimise is set.
+ * VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL:
+ * 	
+ * 	Each frame is dithered to single global colour table taken from the 
+ * 	input image "gif-palette" metadata item. 
+ *
+ * We use LOCAL by default. We use GLOBAL if @reuse is set and there's 
+ * a palette attached to the image to be saved.
  */
 typedef enum _VipsForeignSaveCgifMode {
 	VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL,
@@ -82,7 +84,7 @@ typedef struct _VipsForeignSaveCgif {
 	int effort;
 	int bitdepth;
 	double interframe_maxerror;
-	gboolean reoptimise;
+	gboolean reuse;
 	gboolean interlace;
 	double interpalette_maxerror;
 	VipsTarget *target;
@@ -137,6 +139,10 @@ typedef struct _VipsForeignSaveCgif {
 	CGIF_Config cgif_config;
 
 	int n_palettes_generated;
+
+	/* Deprecated.
+	 */
+	gboolean reoptimise;
 } VipsForeignSaveCgif;
 
 typedef VipsForeignSaveClass VipsForeignSaveCgifClass;
@@ -707,7 +713,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* Read the palette on the input if we've not been asked to
 	 * reoptimise.
 	 */
-	if( !cgif->reoptimise &&
+	if( cgif->reuse &&
 		vips_image_get_typeof( cgif->in, "gif-palette" ) ) {
 		if( vips_image_get_array_int( cgif->in, "gif-palette",
 			&cgif->palette, &cgif->n_colours ) )
@@ -827,11 +833,11 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, interframe_maxerror ),
 		0, 32, 0.0 );
 
-	VIPS_ARG_BOOL( class, "reoptimise", 14,
-		_( "Reoptimise palettes" ),
-		_( "Reoptimise colour palettes" ),
+	VIPS_ARG_BOOL( class, "reuse", 14,
+		_( "Reuse palette" ),
+		_( "Reuse palette from input" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveCgif, reoptimise ),
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reuse ),
 		FALSE );
 
 	VIPS_ARG_DOUBLE( class, "interpalette_maxerror", 15,
@@ -848,6 +854,16 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, interlace ),
 		FALSE );
 
+	/* Not a good thing to have enabled by default since it can cause very
+	 * mysterious behaviour that varies with the input image.
+	 */
+	VIPS_ARG_BOOL( class, "reoptimise", 17,
+		_( "Reoptimise palettes" ),
+		_( "Reoptimise colour palettes" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reoptimise ),
+		FALSE );
+
 }
 
 static void
@@ -857,7 +873,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 	gif->effort = 7;
 	gif->bitdepth = 8;
 	gif->interframe_maxerror = 0.0;
-	gif->reoptimise = FALSE;
+	gif->reuse = FALSE;
 	gif->interlace = FALSE;
 	gif->interpalette_maxerror = 3.0;
 	gif->mode = VIPS_FOREIGN_SAVE_CGIF_MODE_GLOBAL;
@@ -1042,7 +1058,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
- * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @reuse: %gboolean, reuse palette from input
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
@@ -1063,9 +1079,12 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  * Pixels which don't change from frame to frame can be made transparent,
  * improving the compression rate. Default 0.
  *
- * If @reoptimise is TRUE, new palettes will be generated. Use
- * @interpalette_maxerror to set the threshold below which one of the previously
- * generated palettes will be reused.
+ * Use @interpalette_maxerror to set the threshold below which the 
+ * previously generated palette will be reused.
+ *
+ * If @reuse is TRUE, the GIF will be saved with a single global
+ * palette taken from the metadata in @in, and no new palette optimisation
+ * will be done. 
  *
  * If @interlace is TRUE, the GIF file will be interlaced (progressive GIF).
  * These files may be better for display over a slow network
@@ -1101,7 +1120,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
- * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @reuse: %gboolean, reuse palette from input
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
@@ -1156,7 +1175,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @effort: %gint, quantisation CPU effort
  * * @bitdepth: %gint, number of bits per pixel
  * * @interframe_maxerror: %gdouble, maximum inter-frame error for transparency
- * * @reoptimise: %gboolean, reoptimise colour palettes
+ * * @reuse: %gboolean, reuse palette from input
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
