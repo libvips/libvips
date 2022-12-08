@@ -8,7 +8,7 @@ master
 - jp2ksave defaults to chroma subsample off, and jp2 write
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
-- require libjxl 0.7+
+- require libjxl 0.6+
 - add "interlace" option to GIF save [dloebl]
 - magick load sets "magick-format" metadata [aksdb]
 - add ".pnm" save [ewelot]

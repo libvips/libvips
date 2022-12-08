@@ -229,7 +229,11 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
+#ifdef HAVE_LIBJXL_0_7
 	JxlEncoderFrameSettings *frame_settings;
+#else
+	JxlEncoderOptions *frame_settings;
+#endif
 	JxlEncoderStatus status;
 	VipsImage *in;
 	VipsBandFormat format;
@@ -413,6 +417,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( vips_image_wio_input( in ) )
 		return( -1 );
 
+#ifdef HAVE_LIBJXL_0_7
 	frame_settings = JxlEncoderFrameSettingsCreate( jxl->encoder, NULL );
 	JxlEncoderFrameSettingsSetOption( frame_settings, 
 		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier );
@@ -420,6 +425,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	JxlEncoderFrameSettingsSetOption( frame_settings, 
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort );
 	JxlEncoderSetFrameLossless( frame_settings, jxl->lossless );
+#else
+	frame_settings = JxlEncoderOptionsCreate( jxl->encoder, NULL );
+	JxlEncoderOptionsSetDecodingSpeed( frame_settings, jxl->tier );
+	JxlEncoderOptionsSetDistance( frame_settings, jxl->distance );
+	JxlEncoderOptionsSetEffort( frame_settings, jxl->effort );
+	JxlEncoderOptionsSetLossless( frame_settings, jxl->lossless );
+#endif
 
 #ifdef DEBUG
 	vips_foreign_save_jxl_print_info( &jxl->info );
