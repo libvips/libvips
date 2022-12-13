@@ -2259,7 +2259,7 @@ vips_heifload_source( VipsSource *source, VipsImage **out, ... )
  *
  * Set @lossless %TRUE to switch to lossless compression.
  *
- * Use @compression to set the encoder e.g. HEVC, AVC, AV1. It defaults to AV1
+ * Use @compression to set the compression format e.g. HEVC, AVC, AV1 to use. It defaults to AV1
  * if the target filename ends with ".avif", otherwise HEVC.
  *
  * Use @effort to control the CPU effort spent improving compression.
@@ -2272,7 +2272,7 @@ vips_heifload_source( VipsSource *source, VipsImage **out, ... )
  * Use @bitdepth to set the bitdepth of the output file. HEIC supports at
  * least 8, 10 and 12 bits; other codecs may support more or fewer options.
  *
- * Use @encoder if you want to use a specific encoder (e.g. aom, svt etc).
+ * Use @encoder to set the encode library to use, e.g. aom, SVT-AV1, rav1e etc.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *

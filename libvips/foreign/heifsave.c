@@ -473,24 +473,31 @@ vips_foreign_save_heif_build( VipsObject *object )
 	/* Try to find the selected encoder.
 	 */
 	if( heif->selected_encoder != VIPS_FOREIGN_HEIF_ENCODER_AUTO ) {
-		const int count = heif_context_get_encoder_descriptors( heif->ctx,
-					(enum heif_compression_format) heif->compression,
-					vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER, heif->selected_encoder ),
-					&out_encoder, 1 );
+		const int count = heif_context_get_encoder_descriptors(
+			heif->ctx,
+			(enum heif_compression_format) heif->compression,
+			vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER,
+				heif->selected_encoder ),
+			&out_encoder, 1 );
 
 		if( count > 0 ) {
 			error = heif_context_get_encoder( heif->ctx,
 				out_encoder, &heif->encoder );
-		} else {
-			g_warning( "heifsave: could not find selected encoder %s", vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER, heif->selected_encoder ) );
+		}
+		else {
+			g_warning(
+			"heifsave: could not find selected encoder %s",
+			vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER,
+				heif->selected_encoder ) );
 		}
 	}
+
 	/* Fallback to default encoder.
 	 */
-	if( heif->encoder == NULL ) {
+	if( !heif->encoder ) {
 		error = heif_context_get_encoder_for_format( heif->ctx,
-				(enum heif_compression_format) heif->compression,
-				&heif->encoder );
+			(enum heif_compression_format) heif->compression,
+			&heif->encoder );
 	}
 
 	if( error.code ) {
