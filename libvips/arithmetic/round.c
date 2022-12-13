@@ -143,8 +143,8 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 static const VipsBandFormat vips_round_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void

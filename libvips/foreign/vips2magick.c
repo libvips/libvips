@@ -445,9 +445,9 @@ static const char *vips__save_magick_gif_suffs[] = { ".gif", NULL };
 #define F VIPS_FORMAT_FLOAT
 #define D VIPS_FORMAT_DOUBLE
 
-static int bandfmt_magick[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, UI, UI, F,  F,  D,  D
+static VipsBandFormat bandfmt_magick[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F  X  D  DX */
+	/* Promotion: */ UC, UC, US, US, UI, UI, F, F, D, D
 };
 
 static void

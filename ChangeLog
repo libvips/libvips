@@ -8,7 +8,7 @@ master
 - jp2ksave defaults to chroma subsample off, and jp2 write
 - don't minimise sink_screen input after expose ... improves caching during
   interactive use
-- require libjxl 0.7+
+- require libjxl 0.6+
 - add "interlace" option to GIF save [dloebl]
 - magick load sets "magick-format" metadata [aksdb]
 - add ".pnm" save [ewelot]
@@ -25,6 +25,7 @@ master
 - add @wrap to vips_text()
 - GIF load supports truncated frames [tlsa]
 - EXIF support for PNG load and save
+- deprecate gifsave reoptimise, add reuse
 - add "encoder" to heifsave [dloebl]
 
 9/11/22 started 8.13.4

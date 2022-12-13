@@ -148,8 +148,8 @@ vips_subtract_buffer( VipsArithmetic *arithmetic,
  * match the case statement in vips_subtract_buffer() above.
  */
 static const VipsBandFormat vips_subtract_format_table[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   S,  S,  I,  I,  I,  I, F, X, D, DX
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ S, S, I, I, I, I, F, X, D, DX
 };
 
 static void

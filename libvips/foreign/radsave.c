@@ -76,9 +76,9 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveRad, vips_foreign_save_rad,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int vips_foreign_save_rad_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   F,  F,  F,  F,  F,  F,  F,  F,  F,  F
+static VipsBandFormat vips_foreign_save_rad_format_table[10] = {
+	/* Band format:  UC C  US S  UI I  F  X  D  DX */
+	/* Promotion: */ F, F, F, F, F, F, F, F, F, F
 };
 
 static void

@@ -1568,23 +1568,23 @@
 </row>
 <row>
   <entry>webpsave</entry>
-  <entry>Save image to webp file</entry>
+  <entry>Save as webp</entry>
   <entry>vips_webpsave()</entry>
 </row>
 <row>
   <entry>webpsave_buffer</entry>
-  <entry>Save image to webp buffer</entry>
+  <entry>Save as webp</entry>
   <entry>vips_webpsave_buffer()</entry>
-</row>
-<row>
-  <entry>webpsave_target</entry>
-  <entry>Save image to webp target</entry>
-  <entry>vips_webpsave_target()</entry>
 </row>
 <row>
   <entry>webpsave_mime</entry>
   <entry>Save image to webp mime</entry>
   <entry>vips_webpsave_mime()</entry>
+</row>
+<row>
+  <entry>webpsave_target</entry>
+  <entry>Save as webp</entry>
+  <entry>vips_webpsave_target()</entry>
 </row>
 <row>
   <entry>worley</entry>

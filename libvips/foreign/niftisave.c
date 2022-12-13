@@ -407,9 +407,9 @@ vips_foreign_save_nifti_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int vips_nifti_bandfmt[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  F,  X,  D,  DX
+static VipsBandFormat vips_nifti_bandfmt[10] = {
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void

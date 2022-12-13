@@ -127,8 +127,8 @@ sum_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
  * match the case statement in sum_buffer() above.
  */
 static const VipsBandFormat vips_sum_format_table[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   UI, I,  UI, I,  UI, I, F, X, D, DX
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UI, I, UI, I, UI, I, F, X, D, DX
 };
 
 static void

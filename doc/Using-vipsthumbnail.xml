@@ -24,7 +24,7 @@ $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 <para>
   You can also call <literal>thumbnail_source</literal> from the CLI, for example:
 </para>
-<programlisting>
+<programlisting language="bash">
 $ cat k2.jpg | \
     vips thumbnail_source [descriptor=0] .jpg[Q=90] 128 | \
     cat &gt; x.jpg
@@ -52,7 +52,7 @@ $ cat k2.jpg | \
   <para>
     <literal>vipsthumbnail</literal> can process many images in one command. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail *.jpg
 </programlisting>
   <para>
@@ -61,7 +61,7 @@ $ vipsthumbnail *.jpg
   <para>
     <literal>vipsthumbnail</literal> will process images one after the other. You can get a good speedup by running several <literal>vipsthumbnail</literal>s in parallel, depending on how much load you want to put on your system. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ parallel vipsthumbnail ::: *.jpg
 </programlisting>
 </refsect3>
@@ -70,13 +70,13 @@ $ parallel vipsthumbnail ::: *.jpg
   <para>
     You can set the bounding box of the generated thumbnail with the <literal>--size</literal> option. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail shark.jpg --size 200x100
 </programlisting>
   <para>
     Use a single number to set a square bounding box. You can omit either number but keep the x to mean resize just based on that axis, for example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail shark.jpg --size 200x
 </programlisting>
   <para>
@@ -94,7 +94,7 @@ $ vipsthumbnail shark.jpg --size 200x
   <para>
     <literal>vipsthumbnail</literal> normally shrinks images to fit within the box set by <literal>--size</literal>. You can use the <literal>--smartcrop</literal> option to crop to fill the box instead. Excess pixels are trimmed away using the strategy you set. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 </programlisting>
   <para>
@@ -129,7 +129,7 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
   <para>
     <literal>vipsthumbnail</literal> has an option to perform image shrinking in linear space, that is, a colourspace where values are proportional to photon numbers. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg --linear
 </programlisting>
   <para>
@@ -138,7 +138,7 @@ $ vipsthumbnail fred.jpg --linear
   <para>
     For example, for a 10,000 x 10,000 pixel JPEG I see:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ time vipsthumbnail wtc.jpg 
 real    0m0.317s
 user    0m0.292s
@@ -154,7 +154,7 @@ sys 0m0.016s
   <para>
     You set the thumbnail write parameters with the <literal>-o</literal> option. This is a pattern which the input filename is pasted into to produce the output filename. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg jim.tif -o tn_%s.jpg
 </programlisting>
   <para>
@@ -163,7 +163,7 @@ $ vipsthumbnail fred.jpg jim.tif -o tn_%s.jpg
   <para>
     If the pattern given to <literal>-o</literal> is an absolute path, any path components are dropped from the input filenames. This lets you write all of your thumbnails to a specific directory, if you want. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg ../jim.tif -o /mythumbs/tn_%s.jpg
 </programlisting>
   <para>
@@ -172,7 +172,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o /mythumbs/tn_%s.jpg
   <para>
     Conversely, if <literal>-o</literal> is set to a relative path, any path component from the input file is prepended. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
 </programlisting>
   <para>
@@ -184,7 +184,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
   <para>
     You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
 </programlisting>
   <para>
@@ -193,7 +193,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
   <para>
     You can give options to the image write operation as a list of comma-separated arguments in square brackets. For example:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
 </programlisting>
   <para>
@@ -284,7 +284,7 @@ $ ls -l tn_shark.jpg
   <para>
     You can also specify a fallback input profile to use if the image has no embedded one. For example, perhaps you somehow know that a JPG is in Adobe98 space, even though it has no embedded profile.
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
 </programlisting>
 </refsect3>
@@ -293,7 +293,7 @@ $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm
   <para>
     Putting all this together, I suggest this as a sensible set of options:
   </para>
-  <programlisting>
+  <programlisting language="bash">
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \

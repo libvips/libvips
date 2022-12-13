@@ -30,7 +30,6 @@ find cplusplus/include libvips/include \
 find libvips tools cplusplus \
   -path libvips/deprecated -prune -o \
   -path libvips/foreign/libnsgif -prune -o \
-  -name dummy.c -prune -o \
   -path cplusplus/examples -prune -o \
   \( -name '*.c' -o -name '*.cpp' \) \
   -printf '%h\0%d\0%p\n' | \

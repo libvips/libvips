@@ -498,9 +498,9 @@ vips_maplut_stop( void *vseq, void *a, void *b )
 
 /* Type mapping: go to uchar / ushort / uint to make an index. 
  */
-static int bandfmt_maplut[10] = {
-/* UC   C  US   S  UI   I   F   X  D   DX */
-   UC, UC, US, US, UI, UI, UI, UI, UI, UI
+static const VipsBandFormat bandfmt_maplut[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, US, US, UI, UI, UI, UI, UI, UI
 };
 
 /* Repack lut into a set of band arrays. If we're just passing one band of the

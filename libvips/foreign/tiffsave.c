@@ -137,9 +137,9 @@ vips_foreign_save_tiff_dispose( GObject *gobject )
 
 /* Type promotion for jpeg-in-tiff save ... just always go to uchar.
  */
-static int bandfmt_jpeg[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+static VipsBandFormat bandfmt_jpeg[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static int

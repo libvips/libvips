@@ -198,8 +198,8 @@ vips_relational_buffer( VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 static const VipsBandFormat vips_relational_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static void

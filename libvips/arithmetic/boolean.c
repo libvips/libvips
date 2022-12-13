@@ -224,8 +224,8 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 /* Type conversions for boolean. 
  */
 static const VipsBandFormat vips_boolean_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, C,  US, S,  UI, I,  I,  I,  I,  I,
+	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
+	/* Promotion: */ UC, C, US, S, UI, I, I, I, I, I
 };
 
 static void

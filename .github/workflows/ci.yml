@@ -93,7 +93,9 @@ jobs:
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
-          echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
+          # FIXME: remove `intercept_tls_get_addr=0`
+          # https://github.com/google/sanitizers/issues/1322
+          echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1:intercept_tls_get_addr=0" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.

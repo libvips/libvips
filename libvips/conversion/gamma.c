@@ -69,16 +69,16 @@ G_DEFINE_TYPE( VipsGamma, vips_gamma, VIPS_TYPE_CONVERSION );
 /* For each input format, what we normalise the pow() about.
  */
 static double vips_gamma_maxval[10] = {
-/* UC  */	UCHAR_MAX,
-/* C   */	SCHAR_MAX,
-/* US  */	USHRT_MAX,
-/* S   */	SHRT_MAX,
-/* UI  */	UINT_MAX,
-/* I  */	INT_MAX,
-/* F  */	1.0,
-/* X  */	1.0,
-/* D  */	1.0,
-/* DX */	1.0
+	/* UC */ UCHAR_MAX,
+	/* C  */ SCHAR_MAX,
+	/* US */ USHRT_MAX,
+	/* S  */ SHRT_MAX,
+	/* UI */ UINT_MAX,
+	/* I  */ INT_MAX,
+	/* F  */ 1.0,
+	/* X  */ 1.0,
+	/* D  */ 1.0,
+	/* DX */ 1.0
 };
 
 static int
