@@ -442,7 +442,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	struct heif_error error;
 	struct heif_writer writer;
 	char *chroma;
-	const struct heif_encoder_descriptor* out_encoder;
+	const struct heif_encoder_descriptor *out_encoder;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_parent_class )->
 		build( object ) )
@@ -480,25 +480,21 @@ vips_foreign_save_heif_build( VipsObject *object )
 				heif->selected_encoder ),
 			&out_encoder, 1 );
 
-		if( count > 0 ) {
+		if( count > 0 ) 
 			error = heif_context_get_encoder( heif->ctx,
 				out_encoder, &heif->encoder );
-		}
-		else {
-			g_warning(
-			"heifsave: could not find selected encoder %s",
-			vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER,
-				heif->selected_encoder ) );
-		}
+		else 
+			g_warning( "heifsave: could not find %s",
+				vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_ENCODER,
+					heif->selected_encoder ) );
 	}
 
 	/* Fallback to default encoder.
 	 */
-	if( !heif->encoder ) {
+	if( !heif->encoder )
 		error = heif_context_get_encoder_for_format( heif->ctx,
 			(enum heif_compression_format) heif->compression,
 			&heif->encoder );
-	}
 
 	if( error.code ) {
 		if( error.code == heif_error_Unsupported_filetype ) 
