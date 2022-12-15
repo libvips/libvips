@@ -48,7 +48,7 @@ fi
 
 # setting VIPS_MAX_THREADS low should force a small thread limit
 echo -n "checking threadset size limit ... "
-VIPS_MAX_THREADS=5 VIPS_CONCURRENCY=3 vips copy $image x.v || exit_code=$?
+VIPS_MAX_THREADS=5 VIPS_CONCURRENCY=3 $vips copy $image x.v || exit_code=$?
 if [ $exit_code -ne 0 ]; then
   echo FAILED
   exit 1

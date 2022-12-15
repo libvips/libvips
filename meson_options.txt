@@ -10,6 +10,11 @@ option('examples',
   value: true, 
   description: 'Build example programs')
 
+option('cplusplus', 
+  type: 'boolean', 
+  value: true, 
+  description: 'Build C++ API')
+
 option('doxygen', 
   type: 'boolean', 
   value: false, 

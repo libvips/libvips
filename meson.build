@@ -637,6 +637,7 @@ build_summary = {
      'enable doxygen': [get_option('doxygen')],
      'enable introspection': [get_option('introspection')],
      'enable examples': [get_option('examples')],
+     'enable cplusplus': [get_option('cplusplus')],
      'enable RAD load/save': [get_option('radiance')],
      'enable Analyze7 load/save': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
@@ -689,7 +690,9 @@ endif
 if get_option('examples')
   subdir('examples')
 endif
-subdir('cplusplus')
+if get_option('cplusplus')
+  subdir('cplusplus')
+endif
 
 # these lines removed by a regexp for oss-fuzz builds, don't touch!
 subdir('man')

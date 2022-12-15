@@ -89,7 +89,7 @@ There are basic bash completions in `completions/`, see the README in there.
 
 ```
 cd libvips-x.y.x
-meson build --prefix /my/install/prefix
+meson setup build --prefix /my/install/prefix
 cd build
 meson compile
 meson test

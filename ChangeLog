@@ -27,6 +27,7 @@ master
 - EXIF support for PNG load and save
 - deprecate gifsave reoptimise, add reuse
 - add "encoder" to heifsave [dloebl]
+- add "cplusplus" meson build option [jcupitt]
 
 9/11/22 started 8.13.4
 - missing include in mosaic_fuzzer [ServOKio]
