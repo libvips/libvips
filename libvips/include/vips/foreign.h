@@ -964,6 +964,28 @@ typedef enum {
 	VIPS_FOREIGN_HEIF_COMPRESSION_LAST
 } VipsForeignHeifCompression;
 
+/**
+ * VipsForeignHeifEncoder:
+ * @VIPS_FOREIGN_HEIF_ENCODER_AUTO: auto
+ * @VIPS_FOREIGN_HEIF_ENCODER_AOM: aom
+ * @VIPS_FOREIGN_HEIF_ENCODER_RAV1E: RAV1E
+ * @VIPS_FOREIGN_HEIF_ENCODER_SVT: SVT-AV1
+ * @VIPS_FOREIGN_HEIF_ENCODER_X265: x265
+ *
+ * The selected encoder to use.
+ * If libheif hasn't been compiled with the selected encoder,
+ * we will fallback to the default encoder for the compression format.
+ *
+ */
+typedef enum {
+	VIPS_FOREIGN_HEIF_ENCODER_AUTO,
+	VIPS_FOREIGN_HEIF_ENCODER_AOM,
+	VIPS_FOREIGN_HEIF_ENCODER_RAV1E,
+	VIPS_FOREIGN_HEIF_ENCODER_SVT,
+	VIPS_FOREIGN_HEIF_ENCODER_X265,
+	VIPS_FOREIGN_HEIF_ENCODER_LAST
+} VipsForeignHeifEncoder;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
