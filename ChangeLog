@@ -31,6 +31,7 @@ master
 
 9/11/22 started 8.13.4
 - missing include in mosaic_fuzzer [ServOKio]
+- emit "finish" at the end of targetcustom write [lucaskanashiro]
 
 11/10/22 started 8.13.3
 - improve rules for 16-bit heifsave [johntrunc]

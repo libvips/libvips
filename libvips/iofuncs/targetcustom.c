@@ -161,6 +161,11 @@ vips_target_custom_end_real( VipsTarget *target )
 
 	VIPS_DEBUG_MSG( "vips_target_custom_end_real:\n" );
 
+	/* For compatibility with oklder libvipses, we have to emit "finish"
+	 * as well. ruby-vips relies on this.
+	 */
+	g_signal_emit( target, vips_target_custom_signals[SIG_FINISH], 0 );
+
 	/* Return value if no attached handler.
 	 */
 	result = 0;
