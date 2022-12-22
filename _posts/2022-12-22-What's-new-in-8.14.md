@@ -7,8 +7,9 @@ libvips 8.14 is almost done, so here's a summary of what's new. Check the
 if you need more details.
 
 The headline features are the final switch to meson build system, a new
-thread pool and thread recycling system, some useful speedups to TIFF load and
-dzsave, and the usual small improveemnts to image format support. Details below!
+thread pool and thread recycling system, some useful speedups to TIFF load
+and dzsave, and the usual small improveemnts to image format support. Details
+below!
 
 We need to thank aksdb, dloebl, ewelot, tlsa, remicollet, DarthSim,
 ejoebstl, lovell, shado23, kleisauke, and others for their great work on
@@ -85,12 +86,34 @@ system. The new threadpool has several very useful new features:
    noticably faster.
 
 We've used this new threading system to revise `dzsave`, and it's now quite a
-bit faster. Here's the previous release, libvips 8.13, running on a slide
-image:
+bit faster. Here's the previous release, libvips 8.13, running on a
+46000x32914 pixel slide image:
 
+```
+$ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
+881892:36.65
+```
 
+And here's libvips 8.14:
 
+```
+$ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
+704360:19.50
+```
 
+Almost twice as fast, and nociably less memory use. This all comes from the
+new threading system.
+
+This new release has another feature which can improve slide read
+performance: the `rgb` flag to openslideload. This drops the redundant alpha 
+plane earlier, saving time and memory:
+
+```
+$ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs[rgb] x
+547832:13.02
+```
+
+Now it's three times faster than 8.13 and needs almost half the memory.
 
 ## Faster TIFF load
 
@@ -101,10 +124,43 @@ single threaded.
 In libvips 8.14, we've noved jpeg2000 and jpeg decompression outside the
 libtiff lock so they now run multi-threaded. This gives a relly nice speedup.
 
-Here's the previous 8.13 release:
+First, make a large, tiled, JPEG-compressed TIFF:
 
-And here's 8.14:
+```
+$ vips copy CMU-1.svs[rgb] x.tif[tile,compression=jpeg]
+```
 
+Then read the file and compute the pixel average. Here's the previous 8.13
+release:
+
+```
+$ time vips avg x.tif 
+226.581443
+
+real    0m42.776s
+user    0m48.380s
+sys 0m0.428s
+```
+
+You can see that the total CPU time (the user line) is almost equal to the
+real clock time (the real line), so there was very little parallelism.
+
+Here's 8.14:
+
+```
+$ time vips avg x.tif 
+226.581443
+
+real	0m3.371s
+user	0m17.413s
+sys	0m1.573s
+```
+
+Now tiles are decompressed in parallel and on this 16-core PC there's a
+huge speedup, more than 10x. Zoom!
+
+This is just accellerating TIFF lopad. Perhaps TIFF save will get the same
+treatment in the next version.
 
 ## bash completions
 
