@@ -944,14 +944,6 @@ vips_ppmload( const char *filename, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @skip: skip this many lines at start of file
- * * @lines: read this many lines from file
- * * @whitespace: set of whitespace characters
- * * @separator: set of separator characters
- * * @fail: %gboolean, fail on errors
- *
  * Exactly as vips_ppmload(), but read from a source. 
  *
  * See also: vips_ppmload().
