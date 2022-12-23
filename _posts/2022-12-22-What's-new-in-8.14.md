@@ -7,8 +7,8 @@ libvips 8.14 is almost done, so here's a summary of what's new. Check the
 if you need more details.
 
 The headline features are the final switch to meson build system, a new
-thread pool and thread recycling system, some useful speedups to TIFF load
-and dzsave, and the usual small improveemnts to image format support. Details
+thread pool and thread recycling system, some useful speedups to `dzsave` and
+TIFF load, and the usual small improvements to image format support. Details
 below!
 
 We need to thank aksdb, dloebl, ewelot, tlsa, remicollet, DarthSim,
@@ -20,11 +20,12 @@ Changes for this release:
 # Build system changes
 
 The previous release added a meson build system alongside the autotools build
-system we'd used for decades. This release removed the autotools system
-completely, and a lot of other old stuff too, so it's now meson all the way.
+system we'd used for decades. This release removes the autotools system
+completely, and a lot of other old stuff too, so it's now meson all the way
+down.
 
-The README has some notes tyo help you get started if you need to build from
-source, but the tldr is something like:
+The README has some notes to help you get started if you need to build from
+source, but the quick summary is something like:
 
 ```
 cd libvips-x.y.x
@@ -38,20 +39,49 @@ meson install
 # Enhancements to operators
 
 Printers usually work with four colours: cyan, magenta, yellow and black.
-libvips has supported (via LittleCMS) conversion to and from CMYK images for a
-long time.
+libvips has supported (via [LittleCMS](https://www.littlecms.com/))
+conversion to and from CMYK images for a long time.
 
-In 8.14 we've added support for N-colour profiles. These printers add extra
+In 8.14 we've added support for N-colour profiles. These profiles add extra
 colours, usually the complements of CMY, to expand the colour gamut available
 and reduce dithering effects. The `icc_transform` set of operators now 
 support rendering to and from N-colour device images in the obvious way.
 
-The TIFF saver also knows how to read and write these CMYRGBK (for example)
+The TIFF saver also knows how to read and write these CMYRGK (for example)
 files, and hopefully does it in a way that's compatible with PhotoShop.
 
-We've added support for character as well as word wrapping to vips_text() with
-the `wrap` parameter, added an `rgb` mode to `vips_openslideload()`, and
-`vips_smartcrop()` now optionally returns the location of interest in
+With [this sample 6CLR
+profile](https://github.com/libvips/libvips/files/9550789/6clr-test.icc.zip)
+I can run:
+
+```
+$ vips icc_export nina.jpg x.tif --output-profile 6clr-test.icc
+```
+
+To make an image split to 6 colour separations:
+
+```
+$ tiffinfo x.tif
+=== TIFF directory 0 ===
+TIFF Directory at offset 0x8b89008 (146313224)
+  Image Width: 6048 Image Length: 4032
+  Resolution: 300, 300 pixels/inch
+  Bits/Sample: 8
+  Sample Format: unsigned integer
+  Compression Scheme: None
+  Photometric Interpretation: separated
+  Extra Samples: 2<unassoc-alpha, unassoc-alpha>
+  Orientation: row 0 top, col 0 lhs
+  Samples/Pixel: 6
+  Rows/Strip: 128
+  Planar Configuration: single image plane
+  InkSet: 1
+  ICC Profile: <present>, 13739188 bytes
+```
+
+We've also added support for character as well as word wrapping to vips_text()
+with the `wrap` parameter, added an `rgb` mode to `vips_openslideload()`,
+and `vips_smartcrop()` now optionally returns the location of interest in
 attention-based cropping.
 
 # Improvements to the libvips core
@@ -62,7 +92,7 @@ There has been a major change to the libvips core: we have a new threadpool
 system. The new threadpool has several very useful new features:
 
 1. Thread pools now resize dynamically. Each threadpool is able to tell how 
-   busy their workers are, and are able to either size up or size down 
+   busy their workers are, and is able to either size up or size down 
    depending on load. The old `vips-concurrency` setting now sets the maximum
    threadpool size.
 
@@ -86,8 +116,8 @@ system. The new threadpool has several very useful new features:
    noticably faster.
 
 We've used this new threading system to revise `dzsave`, and it's now quite a
-bit faster. Here's the previous release, libvips 8.13, running on a
-46000x32914 pixel slide image:
+bit quicker. Here's the previous release, libvips 8.13, running on a
+46,000 x 32,914 pixel slide image:
 
 ```
 $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
@@ -101,7 +131,7 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
 704360:19.50
 ```
 
-Almost twice as fast, and nociably less memory use. This all comes from the
+Almost twice as fast, and noticably less memory use. This all comes from the
 new threading system.
 
 This new release has another feature which can improve slide read
@@ -113,7 +143,7 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs[rgb] x
 547832:13.02
 ```
 
-Now it's three times faster than 8.13 and needs almost half the memory.
+Now it's three times faster than 8.13 and runs in about half the memory.
 
 ## Faster TIFF load
 
@@ -142,8 +172,8 @@ user    0m48.380s
 sys 0m0.428s
 ```
 
-You can see that the total CPU time (the user line) is almost equal to the
-real clock time (the real line), so there was very little parallelism.
+You can see that the total CPU time (the `user` line) is almost equal to the
+real clock time (the `real` line), so there was very little parallelism.
 
 Here's 8.14:
 
@@ -159,17 +189,18 @@ sys	0m1.573s
 Now tiles are decompressed in parallel and on this 16-core PC there's a
 huge speedup, more than 10x. Zoom!
 
-This is just accellerating TIFF lopad. Perhaps TIFF save will get the same
+This is just accelerating TIFF load. Perhaps TIFF save will get the same
 treatment in the next version.
 
 ## bash completions
 
 This won't appeal to many people, but libvips now ships with a simple
-bash completion script in `libvips-x.y.z/completions`. It knows how to
-complete operator names, filenames, and required arguments, including enum
-values.
+bash completion script in `libvips-x.y.z/completions`, have a look at the
+README In there for install notes. It knows how to complete operator names,
+filenames, and required arguments, including enum values.
 
-It's useful now, and perhaps it'll be improved in the next version.
+It's useful now, and we hope to improve it in the next version, perhaps by
+expanding optional arguments, for example.
 
 # Image format improvements
 
@@ -181,12 +212,12 @@ There have been quite a few improvements to file format support.
 
   Gif load now handles truncated files much more gracefully.
 
-- **FITS** The FITS load and save operations have been fixed up. Many band
+- **HEIC/AVIF** The saver has a new `encoder` parameter you can use to select
+  the exact save codec library you want.
+
+- **FITS** The FITS load and save operations have been rewritten. Many band
   FITS images should load dramatically faster, and FITS save is much better at
   handling duplicated header fields.
-
-- **JP2K** The saver now defaults to chroms subsample off for compatibility,
-  and writes `jp2` images rather than a simple codestream.
 
 - **PNG** The PNG load and save operations now support EXIF metadata.
 
@@ -196,8 +227,8 @@ There have been quite a few improvements to file format support.
 - **PNM** Saving as `.pnm` will now pick the bext `p*m` subformat for you
   automatically.
 
-- **HEIC/AVIF** The saver has a new `encoder` parameter you can use to select
-  the exact save codec library you want.
+- **JP2K** The saver now defaults to chroma subsample off for better 
+  compatibility, and writes `jp2` images rather than a simple codestream.
 
 # Minor changes
 
