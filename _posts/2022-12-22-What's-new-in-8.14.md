@@ -15,8 +15,6 @@ We need to thank aksdb, dloebl, ewelot, tlsa, remicollet, DarthSim,
 ejoebstl, lovell, shado23, kleisauke, and others for their great work on
 this release.
 
-Changes for this release:
-
 # Build system changes
 
 The previous release added a meson build system alongside the autotools build
@@ -79,10 +77,10 @@ TIFF Directory at offset 0x8b89008 (146313224)
   ICC Profile: <present>, 13739188 bytes
 ```
 
-We've also added support for character as well as word wrapping to vips_text()
-with the `wrap` parameter, added an `rgb` mode to `vips_openslideload()`,
-and `vips_smartcrop()` now optionally returns the location of interest in
-attention-based cropping.
+We've also added support for character as well as word wrapping
+to `vips_text()` with the `wrap` parameter, added an `rgb` mode to
+`vips_openslideload()`, and `vips_smartcrop()` now optionally returns the
+location of interest in attention-based cropping.
 
 # Improvements to the libvips core
 
@@ -124,14 +122,14 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
 881892:36.65
 ```
 
-And here's libvips 8.14:
+That's 900mb of peak memory and 37s of run time. Here's libvips 8.14:
 
 ```
 $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
 704360:19.50
 ```
 
-Almost twice as fast, and noticably less memory use. This all comes from the
+Almost twice as fast, and noticably lower memory use. This all comes from the
 new threading system.
 
 This new release has another feature which can improve slide read
@@ -151,8 +149,8 @@ The previous libvips used libtiff to fetch decoded tiles from compressed
 TIFF files. This ran the decompressor inside the libtiff lock, so it was
 single threaded.
 
-In libvips 8.14, we've noved jpeg2000 and jpeg decompression outside the
-libtiff lock so they now run multi-threaded. This gives a relly nice speedup.
+For libvips 8.14, we've moved jpeg2000 and jpeg decompression outside the
+libtiff lock so they now run multi-threaded. This gives a really nice speedup.
 
 First, make a large, tiled, JPEG-compressed TIFF:
 
@@ -173,7 +171,9 @@ sys 0m0.428s
 ```
 
 You can see that the total CPU time (the `user` line) is almost equal to the
-real clock time (the `real` line), so there was very little parallelism.
+real clock time (the `real` line), so there was very little parallelism. It
+was able to parallelize the computation of the average value, but the
+decompress (which was most of the run time) was single threaded.
 
 Here's 8.14:
 
@@ -196,7 +196,7 @@ treatment in the next version.
 
 This won't appeal to many people, but libvips now ships with a simple
 bash completion script in `libvips-x.y.z/completions`, have a look at the
-README In there for install notes. It knows how to complete operator names,
+README in there for install notes. It knows how to complete operator names,
 filenames, and required arguments, including enum values.
 
 It's useful now, and we hope to improve it in the next version, perhaps by
@@ -206,30 +206,31 @@ expanding optional arguments, for example.
 
 There have been quite a few improvements to file format support.
 
-- **GIF** Gif save has a new `interlace` option, and the default save
-  behaviour has changed: it now always recomputes the palette. If you want to
-  reuse the input palette, set the new `reuse` flag.
+## **GIF** 
 
-  Gif load now handles truncated files much more gracefully.
+GIF save has a new `interlace` option, and the default save behaviour has
+changed: for safety it now always recomputes the palette. If you want to
+reuse the input palette, set the new `reuse` flag.
 
-- **HEIC/AVIF** The saver has a new `encoder` parameter you can use to select
-  the exact save codec library you want.
+GIF load now handles truncated files much more gracefully.
 
-- **FITS** The FITS load and save operations have been rewritten. Many band
-  FITS images should load dramatically faster, and FITS save is much better at
-  handling duplicated header fields.
+## **HEIC/AVIF** 
 
-- **PNG** The PNG load and save operations now support EXIF metadata.
+The saver has a new `encoder` parameter you can use to select
+the exact save codec library you want.
 
-- **WebP** Animated webp save has been reqritten and should perform much
-  better.
+## **FITS** 
 
-- **PNM** Saving as `.pnm` will now pick the bext `p*m` subformat for you
-  automatically.
+The FITS load and save operations have been rewritten. Many band
+FITS images should load dramatically faster, and FITS save is much better at
+handling duplicated header fields.
 
-- **JP2K** The saver now defaults to chroma subsample off for better 
-  compatibility, and writes `jp2` images rather than a simple codestream.
+## Other
 
-# Minor changes
+PNG load and save operations now support EXIF metadata.  Animated webp save
+has been rewritten and should perform much better.  Saving as `.pnm` will
+now pick the bext `p*m` subformat for you automatically.  The jp2k saver
+now defaults to chroma subsample off for better compatibility, and writes
+`jp2` images rather than a simple codestream.
 
-And the usual range of small improvements and bugfixes. See the ChangeLog.
+Plus the usual range of small improvements and bugfixes. See the ChangeLog.
