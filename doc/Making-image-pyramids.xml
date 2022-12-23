@@ -32,7 +32,7 @@ optional arguments:
    basename     - Base name to save to, input gchararray
    layout       - Directory layout, input VipsForeignDzLayout
             default: dz
-            allowed: dz, zoomify, google
+            allowed: dz, zoomify, google, iiif, iiif3
    suffix       - Filename suffix for tiles, input gchararray
    overlap      - Tile overlap in pixels, input gint
             default: 1
