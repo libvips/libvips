@@ -37,7 +37,7 @@ meson install
 # Enhancements to operators
 
 Printers usually work with four colours: cyan, magenta, yellow and black.
-libvips has supported (via [LittleCMS](https://www.littlecms.com/))
+libvips has supported (via [LittleCMS](https://github.com/mm2/Little-CMS))
 conversion to and from CMYK images for a long time.
 
 In 8.14 we've added support for N-colour profiles. These profiles add extra
