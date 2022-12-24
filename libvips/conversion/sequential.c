@@ -283,14 +283,14 @@ vips_sequential_init( VipsSequential *sequential )
  *
  * Optional arguments:
  *
- * * @strip_height: height of cache strips
+ * * @tile_height: height of cache strips
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels on @in are only requested
  * top-to-bottom. This operation is useful for loading file formats which are 
  * strictly top-to-bottom, like PNG. 
  *
- * @strip_height can be used to set the size of the tiles that
+ * @tile_height can be used to set the size of the tiles that
  * vips_sequential() uses. The default value is 1.
  *
  * See also: vips_cache(), vips_linecache(), vips_tilecache().
