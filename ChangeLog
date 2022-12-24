@@ -1,6 +1,5 @@
 22/12/22 8.14.0
 
-- expose location of interest when using attention based cropping [ejoebstl]
 - remove autotools
 - remove various obsolete scripts
 - remove benchmark
@@ -25,6 +24,7 @@
 - add `wrap` to `vips_text()`
 - GIF load supports truncated frames [tlsa]
 - EXIF support for PNG load and save
+- expose location of interest when using attention based cropping [ejoebstl]
 - deprecate gifsave `reoptimise`, add `reuse`
 - add `encoder` to heifsave [dloebl]
 - add `cplusplus` meson build option [jcupitt]
