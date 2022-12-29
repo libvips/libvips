@@ -1621,8 +1621,7 @@ vips_region_generate( VipsRegion *reg, void *a )
  * Use vips_sink_screen() to calculate an area of pixels in the 
  * background.
  *
- * See also: vips_sink_screen(), 
- * vips_region_prepare_to().
+ * See also: vips_sink_screen(), vips_region_prepare_to().
  *
  * Returns: 0 on success, or -1 on error.
  */

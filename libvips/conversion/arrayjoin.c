@@ -4,6 +4,8 @@
  * 	- from join.c
  * 6/9/21
  * 	- minmise inputs once we've used them
+ * 29/12/22
+ *	- much faster with large arrays
  */
 
 /*
@@ -80,43 +82,67 @@ static int
 vips_arrayjoin_gen( VipsRegion *or, void *seq, 
 	void *a, void *b, gboolean *stop )
 {
-	VipsRegion **ir = (VipsRegion **) seq;
+	VipsImage **in = (VipsImage **) a;
 	VipsArrayjoin *join = (VipsArrayjoin *) b;
 	VipsConversion *conversion = VIPS_CONVERSION( join );
 	VipsRect *r = &or->valid;
-
 	int n;
-	VipsImage **in;
-	int i;
-	gboolean just_one;
 
-	in = vips_array_image_get( join->in, &n );
-
-	/* Does this rect fit completely within one of our inputs? 
+	/* Find the left/top/width/height of the cells this region touches.
 	 */
-	just_one = FALSE;
-	for( i = 0; i < n; i++ ) 
-		if( vips_rect_includesrect( &join->rects[i], r ) ) {
-			just_one = TRUE;
-			break;
+	int cell_width = join->hspacing + join->shim;
+	int cell_height = join->vspacing + join->shim;
+	int left = r->left / cell_width;
+	int top = r->top / cell_height;
+	int width = (VIPS_ROUND_UP( VIPS_RECT_RIGHT( r ), cell_width ) - 
+		VIPS_ROUND_DOWN( r->left, cell_width )) / cell_width;
+	int height = (VIPS_ROUND_UP( VIPS_RECT_BOTTOM( r ), cell_height ) - 
+		VIPS_ROUND_DOWN( r->top, cell_height )) / cell_height;
+
+	int i;
+	VipsRegion *reg;
+
+	/* Size of image array.
+	 */
+	vips_array_image_get( join->in, &n );
+
+	/* Does this rect fit completely within one of our inputs? We can just
+	 * forward the request.
+	 */
+	if( width == 1 && height == 1 ) {
+		i = VIPS_MIN( n - 1, left + top * join->across );
+
+		reg = vips_region_new( in[i] );
+
+		if( vips__insert_just_one( or, reg,
+			join->rects[i].left, join->rects[i].top ) ) {
+			g_object_unref( reg );
+			return( -1 );
 		}
 
-	if( just_one ) {
-		/* Just needs one input, we can forward the request to that
-		 * region.
-		 */
-		if( vips__insert_just_one( or, ir[i],
-			join->rects[i].left, join->rects[i].top ) )
-		       return( -1 );
+		g_object_unref( reg );
 	}
 	else {
 		/* Output requires more than one input. Paste all touching 
 		 * inputs into the output.
 		 */
-		for( i = 0; i < n; i++ ) 
-			if( vips__insert_paste_region( or, ir[i], 
-				&join->rects[i] ) )
-				return( -1 );
+		int x, y;
+
+		for( y = 0; y < height; y++ )
+			for( x = 0; x < width; x++ ) {
+				i = VIPS_MIN( n - 1,
+					x + left + (y + top) * join->across );
+
+				reg = vips_region_new( in[i] );
+
+				if( vips__insert_paste_region( or, reg, 
+					&join->rects[i] ) ) {
+					g_object_unref( reg );
+					return( -1 );
+				}
+
+				g_object_unref( reg );
+			}
 	}
 
 	if( vips_image_is_sequential( conversion->out ) )
@@ -320,9 +346,12 @@ vips_arrayjoin_build( VipsObject *object )
 	conversion->out->Xsize = output_width;
 	conversion->out->Ysize = output_height;
 
+	/* DOn't use start_many -- the set of input images can be huge (many
+	 * 10s of 1000s) and we don't want to have 20,000 regions active. It's
+	 * much quicker to make them on demand.
+	 */
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_arrayjoin_gen, vips_stop_many, 
-		size, join ) )
+		NULL, vips_arrayjoin_gen, NULL, size, join ) )
 		return( -1 );
 
 	return( 0 );

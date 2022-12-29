@@ -28,6 +28,7 @@
 - deprecate gifsave `reoptimise`, add `reuse`
 - add `encoder` to heifsave [dloebl]
 - add `cplusplus` meson build option [jcupitt]
+- make arrayjoin much faster with large arrays
 
 9/11/22 started 8.13.4
 - missing include in mosaic_fuzzer [ServOKio]
