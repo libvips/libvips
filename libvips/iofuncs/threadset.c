@@ -92,6 +92,11 @@ struct _VipsThreadset {
 	int max_threads;
 };
 
+/* The maximum relative time (in microseconds) that a thread waits
+ * for work before being stopped.
+ */
+static const gint64 max_idle_time = 15 * G_TIME_SPAN_SECOND;
+
 /* The thread work function.
  */
 static void *
@@ -101,9 +106,13 @@ vips_threadset_work( void *pointer )
 	VipsThreadset *set = member->set;
 
 	for(;;) {
-		/* Wait to be given work.
+		/* Wait for at least 15 seconds to be given work.
 		 */
-		vips_semaphore_down( &member->idle );
+		if( vips_semaphore_down_timeout( &member->idle, max_idle_time ) == -1 )
+			break;
+
+		/* Killed or no task available? Leave this thread.
+		 */
 		if( member->kill ||
 			!member->func ) 
 			break;
@@ -134,9 +143,13 @@ vips_threadset_work( void *pointer )
 		g_mutex_unlock( set->lock );
 	}
 
-	/* Kill has been requested. We leave this thread on the members 
-	 * list so it can be found and joined.
+	/* Timed-out or kill has been requested ... remove from the free list.
+	 * Leave this thread on the members list, so it can be found and joined.
 	 */
+	g_mutex_lock( set->lock );
+	set->free = g_slist_remove( set->free, member );
+	set->n_threads -= 1;
+	g_mutex_unlock( set->lock );
 
 	return( NULL );
 }
@@ -274,18 +287,11 @@ vips_threadset_run( VipsThreadset *set,
 static void
 vips_threadset_kill_member( VipsThreadsetMember *member )
 {
-	VipsThreadset *set = member->set;
-
 	member->kill = TRUE;
 	vips_semaphore_up( &member->idle );
 	g_thread_join( member->thread );
 
 	vips_semaphore_destroy( &member->idle );
-
-	g_mutex_lock( set->lock );
-	set->free = g_slist_remove( set->free, member );
-	set->n_threads -= 1;
-	g_mutex_unlock( set->lock );
 
 	VIPS_FREE( member );
 }
