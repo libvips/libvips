@@ -113,6 +113,8 @@ system. The new threadpool has several very useful new features:
    We had a thread recycling system before, but this new one should be
    noticably faster.
 
+## Faster `dzsave` and `arrayjoin`
+
 We've used this new threading system to revise `dzsave`, and it's now quite a
 bit quicker. Here's the previous release, libvips 8.13, running on a
 46,000 x 32,914 pixel slide image:
@@ -142,6 +144,32 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs[rgb] x
 ```
 
 Now it's three times faster than 8.13 and runs in about half the memory.
+
+The matching `arrayjoin` operator has been reworked and is now faster
+for large sets of images. Here's libvips 8.13 reassembling 10,000 tiles:
+
+```
+$ vips dzsave CMU-1.svs x --depth one --tile-width 400 --tile-height 400 --overlap 0 --suffix .jpg
+$ cd x_files/0/
+$ ls | wc
+   9545    9545   94715
+$ time vips arrayjoin "$(ls *.jpg | sort -t_ -k2g -k1g)" x.jpg --across 115
+
+real	0m17.357s
+user	0m37.003s
+sys	0m44.812s
+```
+
+And here's 8.14:
+
+```
+$ time vips arrayjoin "$(ls *.jpg | sort -t_ -k2g -k1g)" x.jpg --across 115
+real	0m11.883s
+user	0m47.085s
+sys	0m46.906s
+```
+
+The speedup becomes dramatic with larger tile sets.
 
 ## Faster TIFF load
 
