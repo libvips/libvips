@@ -143,13 +143,18 @@ vips_threadset_work( void *pointer )
 		g_mutex_unlock( set->lock );
 	}
 
-	/* Timed-out or kill has been requested ... remove from the free list.
-	 * Leave this thread on the members list, so it can be found and joined.
+	/* Timed-out or kill has been requested ... remove from both free
+	 * and member list.
 	 */
 	g_mutex_lock( set->lock );
 	set->free = g_slist_remove( set->free, member );
+	set->members = g_slist_remove( set->members, member );
 	set->n_threads -= 1;
 	g_mutex_unlock( set->lock );
+
+	vips_semaphore_destroy( &member->idle );
+
+	VIPS_FREE( member );
 
 	return( NULL );
 }
@@ -287,13 +292,17 @@ vips_threadset_run( VipsThreadset *set,
 static void
 vips_threadset_kill_member( VipsThreadsetMember *member )
 {
+	GThread *thread;
+
+	thread = member->thread;
 	member->kill = TRUE;
+
 	vips_semaphore_up( &member->idle );
-	g_thread_join( member->thread );
 
-	vips_semaphore_destroy( &member->idle );
+	(void) g_thread_join( thread );
 
-	VIPS_FREE( member );
+	/* member is freed on thread exit.
+	 */
 }
 
 /** 
@@ -315,10 +324,8 @@ vips_threadset_free( VipsThreadset *set )
 
 		member = NULL;
 		g_mutex_lock( set->lock );
-		if( set->members ) {
+		if( set->members )
 			member = (VipsThreadsetMember *) set->members->data;
-			set->members = g_slist_remove( set->members, member );
-		}
 		g_mutex_unlock( set->lock );
 
 		if( !member )
