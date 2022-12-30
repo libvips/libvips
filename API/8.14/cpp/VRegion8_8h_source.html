@@ -1,28 +1,51 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.9.1"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vips-cpp: /home/john/GIT/libvips/cplusplus/include/vips/VRegion8.h Source File</title>
-<link href="tabs.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="dynsections.js"></script>
-<link href="search/search.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="search/searchdata.js"></script>
-<script type="text/javascript" src="search/search.js"></script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips C++</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <link href="tabs.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="dynsections.js"></script>
+    <link href="search/search.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="search/searchdata.js"></script>
+    <script type="text/javascript" src="search/search.js"></script>
+    <link href="doxygen.css" rel="stylesheet" type="text/css">
+
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<div id="top">
+<!-- do not remove this div, it is closed by doxygen! -->
 <div id="titlearea">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">vips-cpp
-   &#160;<span id="projectnumber">8.14</span>
+    <span id="projectnumber">8.14</span>
    </div>
    <div id="projectbrief">libvips C++ binding</div>
   </td>
@@ -48,164 +71,413 @@ $(function() {
 /* @license-end */</script>
 <div id="main-nav"></div>
 <!-- window showing the filter options -->
-<div id="MSearchSelectWindow"
-     onmouseover="return searchBox.OnSearchSelectShow()"
-     onmouseout="return searchBox.OnSearchSelectHide()"
-     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<div id="MSearchSelectWindow" onmouseover="return searchBox.OnSearchSelectShow()" onmouseout="return searchBox.OnSearchSelectHide()" onkeydown="return searchBox.OnSearchSelectKey(event)">
 </div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
-<iframe src="javascript:void(0)" frameborder="0" 
-        name="MSearchResults" id="MSearchResults">
+<iframe src="javascript:void(0)" frameborder="0" name="MSearchResults" id="MSearchResults">
 </iframe>
 </div>
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_413eba86a22d58dd6c01dd4edd69cedc.html">cplusplus</a></li><li class="navelem"><a class="el" href="dir_0fdf89178698c59bcf622970d314168c.html">include</a></li><li class="navelem"><a class="el" href="dir_64fa718902b861fbadd44c090ccfeb57.html">vips</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_413eba86a22d58dd6c01dd4edd69cedc.html">cplusplus</a></li>
+<li class="navelem"><a class="el" href="dir_0fdf89178698c59bcf622970d314168c.html">include</a></li>
+<li class="navelem"><a class="el" href="dir_64fa718902b861fbadd44c090ccfeb57.html">vips</a></li>  </ul>
 </div>
-</div><!-- top -->
+</div>
+<!-- top -->
 <div class="header">
   <div class="headertitle">
 <div class="title">VRegion8.h</div>  </div>
-</div><!--header-->
+</div>
+<!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">// VIPS region wrapper</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">    This file is part of VIPS.</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="comment">    VIPS is free software; you can redistribute it and/or modify</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment">    it under the terms of the GNU Lesser General Public License as published by</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment">    the Free Software Foundation; either version 2 of the License, or</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment">    (at your option) any later version.</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment">    This program is distributed in the hope that it will be useful,</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="comment">    GNU Lesser General Public License for more details.</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment">    You should have received a copy of the GNU Lesser General Public License</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment">    along with this program; if not, write to the Free Software</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment">    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment">    02110-1301  USA</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment">    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#ifndef VIPS_VREGION_H</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#define VIPS_VREGION_H</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &lt;vips/vips.h&gt;</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;VIPS_NAMESPACE_START</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
-<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="classVRegion.html">   40</a></span>&#160;<span class="keyword">class </span><a class="code" href="classVRegion.html">VRegion</a> : <span class="keyword">public</span> <a class="code" href="classVObject.html">VObject</a></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;{</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">   48</a></span>&#160;        <a class="code" href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">VRegion</a>( VipsRegion *region, VSteal steal = STEAL ) :</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;                <a class="code" href="classVObject.html">VObject</a>( (VipsObject *) region, steal )</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        {</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        }</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <span class="keyword">static</span> <a class="code" href="classVRegion.html">VRegion</a></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <a class="code" href="classVRegion.html#ac925554f21b2777071c23d50a11a2245">new_from_image</a>( <a class="code" href="classVImage.html">VImage</a> image );</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        VipsRegion *</div>
-<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">   63</a></span>&#160;        <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                <span class="keywordflow">return</span> (VipsRegion *) <a class="code" href="classVObject.html#a275ee3a6e6e6d8aca95e09bf82523a36">VObject::get_object</a>();</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        }</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">   72</a></span>&#160;        <a class="code" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">prepare</a>( <span class="keyword">const</span> VipsRect *rect )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;                <span class="keywordflow">if</span> ( vips_region_prepare( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>(), rect ) )</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;                        <span class="keywordflow">throw</span> <a class="code" href="classVError.html">VError</a>();</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        }</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">   82</a></span>&#160;        <a class="code" href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">prepare</a>( <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;                VipsRect rect = { left, top, width, height };</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;                <a class="code" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">prepare</a>( &amp;rect );</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        }</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        VipsRect</div>
-<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">   93</a></span>&#160;        <a class="code" href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">valid</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;                <span class="keywordflow">return</span> <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>()-&gt;valid;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        }</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        VipsPel *</div>
-<div class="line"><a name="l00102"></a><span class="lineno"><a class="line" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">  102</a></span>&#160;        <a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                <span class="keywordflow">return</span> <a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( 0 );</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        }</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        VipsPel *</div>
-<div class="line"><a name="l00111"></a><span class="lineno"><a class="line" href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">  111</a></span>&#160;        <a class="code" href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">addr</a>( <span class="keywordtype">size_t</span> i )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;                <span class="keywordflow">return</span> &amp;VIPS_REGION_ADDR_TOPLEFT( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>() )[i];</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        }</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        VipsPel *</div>
-<div class="line"><a name="l00120"></a><span class="lineno"><a class="line" href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">  120</a></span>&#160;        <a class="code" href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">addr</a>( <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                <span class="keywordflow">return</span> VIPS_REGION_ADDR( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>(), x, y );</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;        }</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keywordtype">size_t</span></div>
-<div class="line"><a name="l00129"></a><span class="lineno"><a class="line" href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">  129</a></span>&#160;        <a class="code" href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">stride</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;                <span class="keywordflow">return</span> VIPS_REGION_LSKIP( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>() );</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        }</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;        VipsPel</div>
-<div class="line"><a name="l00138"></a><span class="lineno"><a class="line" href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">  138</a></span>&#160;        <a class="code" href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">operator[]</a>( <span class="keywordtype">size_t</span> i )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;                <span class="keywordflow">return</span> *<a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( i );</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;        }</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160; </div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;        VipsPel</div>
-<div class="line"><a name="l00147"></a><span class="lineno"><a class="line" href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">  147</a></span>&#160;        <a class="code" href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">operator()</a>( <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;                <span class="keywordflow">return</span> *<a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( x, y );</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        }</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;};</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160; </div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;VIPS_NAMESPACE_END</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/*VIPS_VREGION_H*/</span><span class="preprocessor"></span></div>
-<div class="ttc" id="aclassVError_html"><div class="ttname"><a href="classVError.html">VError</a></div><div class="ttdef"><b>Definition:</b> VError8.h:46</div></div>
-<div class="ttc" id="aclassVImage_html"><div class="ttname"><a href="classVImage.html">VImage</a></div><div class="ttdef"><b>Definition:</b> VImage8.h:406</div></div>
-<div class="ttc" id="aclassVObject_html"><div class="ttname"><a href="classVObject.html">VObject</a></div><div class="ttdef"><b>Definition:</b> VImage8.h:68</div></div>
-<div class="ttc" id="aclassVObject_html_a275ee3a6e6e6d8aca95e09bf82523a36"><div class="ttname"><a href="classVObject.html#a275ee3a6e6e6d8aca95e09bf82523a36">VObject::get_object</a></div><div class="ttdeci">VipsObject * get_object() const</div><div class="ttdef"><b>Definition:</b> VImage8.h:172</div></div>
-<div class="ttc" id="aclassVRegion_html"><div class="ttname"><a href="classVRegion.html">VRegion</a></div><div class="ttdef"><b>Definition:</b> VRegion8.h:41</div></div>
-<div class="ttc" id="aclassVRegion_html_a13300da48e8e5ec0a330c9a6a2478296"><div class="ttname"><a href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">VRegion::addr</a></div><div class="ttdeci">VipsPel * addr() const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:102</div></div>
-<div class="ttc" id="aclassVRegion_html_a3d818b605ae6148b45f130b2ad81a9d3"><div class="ttname"><a href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">VRegion::stride</a></div><div class="ttdeci">size_t stride() const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:129</div></div>
-<div class="ttc" id="aclassVRegion_html_a50df67dd52c94f12f5b5866c0b4cfcd2"><div class="ttname"><a href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">VRegion::valid</a></div><div class="ttdeci">VipsRect valid() const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:93</div></div>
-<div class="ttc" id="aclassVRegion_html_a5477e5ae91d838ba728224f5d8e665ff"><div class="ttname"><a href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">VRegion::addr</a></div><div class="ttdeci">VipsPel * addr(int x, int y) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:120</div></div>
-<div class="ttc" id="aclassVRegion_html_a5a69a5654c24632456bb4a8ba2577637"><div class="ttname"><a href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">VRegion::addr</a></div><div class="ttdeci">VipsPel * addr(size_t i) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:111</div></div>
-<div class="ttc" id="aclassVRegion_html_a70113876aea0deec50a8edbed4b266a5"><div class="ttname"><a href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">VRegion::operator()</a></div><div class="ttdeci">VipsPel operator()(int x, int y) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:147</div></div>
-<div class="ttc" id="aclassVRegion_html_a7155fe30818b68656df4bb7a3a918dde"><div class="ttname"><a href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">VRegion::VRegion</a></div><div class="ttdeci">VRegion(VipsRegion *region, VSteal steal=STEAL)</div><div class="ttdef"><b>Definition:</b> VRegion8.h:48</div></div>
-<div class="ttc" id="aclassVRegion_html_a810c7aac092018ac28f1e029ec5b3d15"><div class="ttname"><a href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">VRegion::prepare</a></div><div class="ttdeci">void prepare(const VipsRect *rect) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:72</div></div>
-<div class="ttc" id="aclassVRegion_html_ab0fd17162b84a27d114b177b56c895a6"><div class="ttname"><a href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">VRegion::operator[]</a></div><div class="ttdeci">VipsPel operator[](size_t i) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:138</div></div>
-<div class="ttc" id="aclassVRegion_html_ab9cbc2c2451cedc354ce664a3e1893f2"><div class="ttname"><a href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">VRegion::get_region</a></div><div class="ttdeci">VipsRegion * get_region() const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:63</div></div>
-<div class="ttc" id="aclassVRegion_html_ac695259e47eebecd508d6ae3a4a44fd0"><div class="ttname"><a href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">VRegion::prepare</a></div><div class="ttdeci">void prepare(int left, int top, int width, int height) const</div><div class="ttdef"><b>Definition:</b> VRegion8.h:82</div></div>
-<div class="ttc" id="aclassVRegion_html_ac925554f21b2777071c23d50a11a2245"><div class="ttname"><a href="classVRegion.html#ac925554f21b2777071c23d50a11a2245">VRegion::new_from_image</a></div><div class="ttdeci">static VRegion new_from_image(VImage image)</div><div class="ttdef"><b>Definition:</b> VRegion.cpp:14</div></div>
-</div><!-- fragment --></div><!-- contents -->
+<div class="fragment">
+<div class="line">
+<a name="l00001"></a><span class="lineno">    1</span> <span class="comment">// VIPS region wrapper</span>
+</div>
+<div class="line">
+<a name="l00002"></a><span class="lineno">    2</span>  </div>
+<div class="line">
+<a name="l00003"></a><span class="lineno">    3</span> <span class="comment">/*</span>
+</div>
+<div class="line">
+<a name="l00004"></a><span class="lineno">    4</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00005"></a><span class="lineno">    5</span> <span class="comment">    This file is part of VIPS.</span>
+</div>
+<div class="line">
+<a name="l00006"></a><span class="lineno">    6</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00007"></a><span class="lineno">    7</span> <span class="comment">    VIPS is free software; you can redistribute it and/or modify</span>
+</div>
+<div class="line">
+<a name="l00008"></a><span class="lineno">    8</span> <span class="comment">    it under the terms of the GNU Lesser General Public License as published by</span>
+</div>
+<div class="line">
+<a name="l00009"></a><span class="lineno">    9</span> <span class="comment">    the Free Software Foundation; either version 2 of the License, or</span>
+</div>
+<div class="line">
+<a name="l00010"></a><span class="lineno">   10</span> <span class="comment">    (at your option) any later version.</span>
+</div>
+<div class="line">
+<a name="l00011"></a><span class="lineno">   11</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00012"></a><span class="lineno">   12</span> <span class="comment">    This program is distributed in the hope that it will be useful,</span>
+</div>
+<div class="line">
+<a name="l00013"></a><span class="lineno">   13</span> <span class="comment">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+</div>
+<div class="line">
+<a name="l00014"></a><span class="lineno">   14</span> <span class="comment">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+</div>
+<div class="line">
+<a name="l00015"></a><span class="lineno">   15</span> <span class="comment">    GNU Lesser General Public License for more details.</span>
+</div>
+<div class="line">
+<a name="l00016"></a><span class="lineno">   16</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00017"></a><span class="lineno">   17</span> <span class="comment">    You should have received a copy of the GNU Lesser General Public License</span>
+</div>
+<div class="line">
+<a name="l00018"></a><span class="lineno">   18</span> <span class="comment">    along with this program; if not, write to the Free Software</span>
+</div>
+<div class="line">
+<a name="l00019"></a><span class="lineno">   19</span> <span class="comment">    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA</span>
+</div>
+<div class="line">
+<a name="l00020"></a><span class="lineno">   20</span> <span class="comment">    02110-1301  USA</span>
+</div>
+<div class="line">
+<a name="l00021"></a><span class="lineno">   21</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00022"></a><span class="lineno">   22</span> <span class="comment"> */</span>
+</div>
+<div class="line">
+<a name="l00023"></a><span class="lineno">   23</span>  </div>
+<div class="line">
+<a name="l00024"></a><span class="lineno">   24</span> <span class="comment">/*</span>
+</div>
+<div class="line">
+<a name="l00025"></a><span class="lineno">   25</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00026"></a><span class="lineno">   26</span> <span class="comment">    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk</span>
+</div>
+<div class="line">
+<a name="l00027"></a><span class="lineno">   27</span> <span class="comment"></span> </div>
+<div class="line">
+<a name="l00028"></a><span class="lineno">   28</span> <span class="comment"> */</span>
+</div>
+<div class="line">
+<a name="l00029"></a><span class="lineno">   29</span>  </div>
+<div class="line">
+<a name="l00030"></a><span class="lineno">   30</span> <span class="preprocessor">#ifndef VIPS_VREGION_H</span>
+</div>
+<div class="line">
+<a name="l00031"></a><span class="lineno">   31</span> <span class="preprocessor">#define VIPS_VREGION_H</span>
+</div>
+<div class="line">
+<a name="l00032"></a><span class="lineno">   32</span>  </div>
+<div class="line">
+<a name="l00033"></a><span class="lineno">   33</span> <span class="preprocessor">#include &lt;vips/vips.h&gt;</span>
+</div>
+<div class="line">
+<a name="l00034"></a><span class="lineno">   34</span>  </div>
+<div class="line">
+<a name="l00035"></a><span class="lineno">   35</span> VIPS_NAMESPACE_START</div>
+<div class="line">
+<a name="l00036"></a><span class="lineno">   36</span>  </div>
+<div class="line">
+<a name="l00040"></a><span class="lineno"><a class="line" href="classVRegion.html">   40</a></span> <span class="keyword">class </span><a class="code" href="classVRegion.html">VRegion</a> : <span class="keyword">public</span> <a class="code" href="classVObject.html">VObject</a>
+</div>
+<div class="line">
+<a name="l00041"></a><span class="lineno">   41</span> {</div>
+<div class="line">
+<a name="l00042"></a><span class="lineno">   42</span> <span class="keyword">public</span>:</div>
+<div class="line">
+<a name="l00048"></a><span class="lineno"><a class="line" href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">   48</a></span>         <a class="code" href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">VRegion</a>( VipsRegion *region, VSteal steal = STEAL ) :</div>
+<div class="line">
+<a name="l00049"></a><span class="lineno">   49</span>                 <a class="code" href="classVObject.html">VObject</a>( (VipsObject *) region, steal )</div>
+<div class="line">
+<a name="l00050"></a><span class="lineno">   50</span>         {</div>
+<div class="line">
+<a name="l00051"></a><span class="lineno">   51</span>         }</div>
+<div class="line">
+<a name="l00052"></a><span class="lineno">   52</span>  </div>
+<div class="line">
+<a name="l00056"></a><span class="lineno">   56</span>         <span class="keyword">static</span> <a class="code" href="classVRegion.html">VRegion</a>
+</div>
+<div class="line">
+<a name="l00057"></a><span class="lineno">   57</span>         <a class="code" href="classVRegion.html#ac925554f21b2777071c23d50a11a2245">new_from_image</a>( <a class="code" href="classVImage.html">VImage</a> image );</div>
+<div class="line">
+<a name="l00058"></a><span class="lineno">   58</span>  </div>
+<div class="line">
+<a name="l00062"></a><span class="lineno">   62</span>         VipsRegion *</div>
+<div class="line">
+<a name="l00063"></a><span class="lineno"><a class="line" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">   63</a></span>         <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>()<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00064"></a><span class="lineno">   64</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00065"></a><span class="lineno">   65</span>                 <span class="keywordflow">return</span> (VipsRegion *) <a class="code" href="classVObject.html#a275ee3a6e6e6d8aca95e09bf82523a36">VObject::get_object</a>();</div>
+<div class="line">
+<a name="l00066"></a><span class="lineno">   66</span>         }</div>
+<div class="line">
+<a name="l00067"></a><span class="lineno">   67</span>  </div>
+<div class="line">
+<a name="l00071"></a><span class="lineno">   71</span>         <span class="keywordtype">void</span>
+</div>
+<div class="line">
+<a name="l00072"></a><span class="lineno"><a class="line" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">   72</a></span>         <a class="code" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">prepare</a>( <span class="keyword">const</span> VipsRect *rect )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00073"></a><span class="lineno">   73</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00074"></a><span class="lineno">   74</span>                 <span class="keywordflow">if</span> ( vips_region_prepare( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>(), rect ) )</div>
+<div class="line">
+<a name="l00075"></a><span class="lineno">   75</span>                         <span class="keywordflow">throw</span> <a class="code" href="classVError.html">VError</a>();</div>
+<div class="line">
+<a name="l00076"></a><span class="lineno">   76</span>         }</div>
+<div class="line">
+<a name="l00077"></a><span class="lineno">   77</span>  </div>
+<div class="line">
+<a name="l00081"></a><span class="lineno">   81</span>         <span class="keywordtype">void</span>
+</div>
+<div class="line">
+<a name="l00082"></a><span class="lineno"><a class="line" href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">   82</a></span>         <a class="code" href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">prepare</a>( <span class="keywordtype">int</span> left, <span class="keywordtype">int</span> top, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00083"></a><span class="lineno">   83</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00084"></a><span class="lineno">   84</span>                 VipsRect rect = { left, top, width, height };</div>
+<div class="line">
+<a name="l00085"></a><span class="lineno">   85</span>  </div>
+<div class="line">
+<a name="l00086"></a><span class="lineno">   86</span>                 <a class="code" href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">prepare</a>( &amp;rect );</div>
+<div class="line">
+<a name="l00087"></a><span class="lineno">   87</span>         }</div>
+<div class="line">
+<a name="l00088"></a><span class="lineno">   88</span>  </div>
+<div class="line">
+<a name="l00092"></a><span class="lineno">   92</span>         VipsRect</div>
+<div class="line">
+<a name="l00093"></a><span class="lineno"><a class="line" href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">   93</a></span>         <a class="code" href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">valid</a>()<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00094"></a><span class="lineno">   94</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00095"></a><span class="lineno">   95</span>                 <span class="keywordflow">return</span> <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>()-&gt;valid;</div>
+<div class="line">
+<a name="l00096"></a><span class="lineno">   96</span>         }</div>
+<div class="line">
+<a name="l00097"></a><span class="lineno">   97</span>  </div>
+<div class="line">
+<a name="l00101"></a><span class="lineno">  101</span>         VipsPel *</div>
+<div class="line">
+<a name="l00102"></a><span class="lineno"><a class="line" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">  102</a></span>         <a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>()<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00103"></a><span class="lineno">  103</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00104"></a><span class="lineno">  104</span>                 <span class="keywordflow">return</span> <a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( 0 );</div>
+<div class="line">
+<a name="l00105"></a><span class="lineno">  105</span>         }</div>
+<div class="line">
+<a name="l00106"></a><span class="lineno">  106</span>  </div>
+<div class="line">
+<a name="l00110"></a><span class="lineno">  110</span>         VipsPel *</div>
+<div class="line">
+<a name="l00111"></a><span class="lineno"><a class="line" href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">  111</a></span>         <a class="code" href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">addr</a>( <span class="keywordtype">size_t</span> i )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00112"></a><span class="lineno">  112</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00113"></a><span class="lineno">  113</span>                 <span class="keywordflow">return</span> &amp;VIPS_REGION_ADDR_TOPLEFT( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>() )[i];</div>
+<div class="line">
+<a name="l00114"></a><span class="lineno">  114</span>         }</div>
+<div class="line">
+<a name="l00115"></a><span class="lineno">  115</span>  </div>
+<div class="line">
+<a name="l00119"></a><span class="lineno">  119</span>         VipsPel *</div>
+<div class="line">
+<a name="l00120"></a><span class="lineno"><a class="line" href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">  120</a></span>         <a class="code" href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">addr</a>( <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00121"></a><span class="lineno">  121</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00122"></a><span class="lineno">  122</span>                 <span class="keywordflow">return</span> VIPS_REGION_ADDR( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>(), x, y );</div>
+<div class="line">
+<a name="l00123"></a><span class="lineno">  123</span>         }</div>
+<div class="line">
+<a name="l00124"></a><span class="lineno">  124</span>  </div>
+<div class="line">
+<a name="l00128"></a><span class="lineno">  128</span>         <span class="keywordtype">size_t</span>
+</div>
+<div class="line">
+<a name="l00129"></a><span class="lineno"><a class="line" href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">  129</a></span>         <a class="code" href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">stride</a>()<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00130"></a><span class="lineno">  130</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00131"></a><span class="lineno">  131</span>                 <span class="keywordflow">return</span> VIPS_REGION_LSKIP( <a class="code" href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">get_region</a>() );</div>
+<div class="line">
+<a name="l00132"></a><span class="lineno">  132</span>         }</div>
+<div class="line">
+<a name="l00133"></a><span class="lineno">  133</span>  </div>
+<div class="line">
+<a name="l00137"></a><span class="lineno">  137</span>         VipsPel</div>
+<div class="line">
+<a name="l00138"></a><span class="lineno"><a class="line" href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">  138</a></span>         <a class="code" href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">operator[]</a>( <span class="keywordtype">size_t</span> i )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00139"></a><span class="lineno">  139</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00140"></a><span class="lineno">  140</span>                 <span class="keywordflow">return</span> *<a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( i );</div>
+<div class="line">
+<a name="l00141"></a><span class="lineno">  141</span>         }</div>
+<div class="line">
+<a name="l00142"></a><span class="lineno">  142</span>  </div>
+<div class="line">
+<a name="l00146"></a><span class="lineno">  146</span>         VipsPel</div>
+<div class="line">
+<a name="l00147"></a><span class="lineno"><a class="line" href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">  147</a></span>         <a class="code" href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">operator()</a>( <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y )<span class="keyword"> const</span>
+</div>
+<div class="line">
+<a name="l00148"></a><span class="lineno">  148</span> <span class="keyword">        </span>{</div>
+<div class="line">
+<a name="l00149"></a><span class="lineno">  149</span>                 <span class="keywordflow">return</span> *<a class="code" href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">addr</a>( x, y );</div>
+<div class="line">
+<a name="l00150"></a><span class="lineno">  150</span>         }</div>
+<div class="line">
+<a name="l00151"></a><span class="lineno">  151</span> };</div>
+<div class="line">
+<a name="l00152"></a><span class="lineno">  152</span>  </div>
+<div class="line">
+<a name="l00153"></a><span class="lineno">  153</span> VIPS_NAMESPACE_END</div>
+<div class="line">
+<a name="l00154"></a><span class="lineno">  154</span>  </div>
+<div class="line">
+<a name="l00155"></a><span class="lineno">  155</span> <span class="preprocessor">#endif </span><span class="comment">/*VIPS_VREGION_H*/</span><span class="preprocessor"></span>
+</div>
+<div class="ttc" id="aclassVError_html">
+<div class="ttname"><a href="classVError.html">VError</a></div>
+<div class="ttdef">
+<b>Definition:</b> VError8.h:46</div>
+</div>
+<div class="ttc" id="aclassVImage_html">
+<div class="ttname"><a href="classVImage.html">VImage</a></div>
+<div class="ttdef">
+<b>Definition:</b> VImage8.h:406</div>
+</div>
+<div class="ttc" id="aclassVObject_html">
+<div class="ttname"><a href="classVObject.html">VObject</a></div>
+<div class="ttdef">
+<b>Definition:</b> VImage8.h:68</div>
+</div>
+<div class="ttc" id="aclassVObject_html_a275ee3a6e6e6d8aca95e09bf82523a36">
+<div class="ttname"><a href="classVObject.html#a275ee3a6e6e6d8aca95e09bf82523a36">VObject::get_object</a></div>
+<div class="ttdeci">VipsObject * get_object() const</div>
+<div class="ttdef">
+<b>Definition:</b> VImage8.h:172</div>
+</div>
+<div class="ttc" id="aclassVRegion_html">
+<div class="ttname"><a href="classVRegion.html">VRegion</a></div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:41</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a13300da48e8e5ec0a330c9a6a2478296">
+<div class="ttname"><a href="classVRegion.html#a13300da48e8e5ec0a330c9a6a2478296">VRegion::addr</a></div>
+<div class="ttdeci">VipsPel * addr() const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:102</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a3d818b605ae6148b45f130b2ad81a9d3">
+<div class="ttname"><a href="classVRegion.html#a3d818b605ae6148b45f130b2ad81a9d3">VRegion::stride</a></div>
+<div class="ttdeci">size_t stride() const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:129</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a50df67dd52c94f12f5b5866c0b4cfcd2">
+<div class="ttname"><a href="classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2">VRegion::valid</a></div>
+<div class="ttdeci">VipsRect valid() const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:93</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a5477e5ae91d838ba728224f5d8e665ff">
+<div class="ttname"><a href="classVRegion.html#a5477e5ae91d838ba728224f5d8e665ff">VRegion::addr</a></div>
+<div class="ttdeci">VipsPel * addr(int x, int y) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:120</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a5a69a5654c24632456bb4a8ba2577637">
+<div class="ttname"><a href="classVRegion.html#a5a69a5654c24632456bb4a8ba2577637">VRegion::addr</a></div>
+<div class="ttdeci">VipsPel * addr(size_t i) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:111</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a70113876aea0deec50a8edbed4b266a5">
+<div class="ttname"><a href="classVRegion.html#a70113876aea0deec50a8edbed4b266a5">VRegion::operator()</a></div>
+<div class="ttdeci">VipsPel operator()(int x, int y) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:147</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a7155fe30818b68656df4bb7a3a918dde">
+<div class="ttname"><a href="classVRegion.html#a7155fe30818b68656df4bb7a3a918dde">VRegion::VRegion</a></div>
+<div class="ttdeci">VRegion(VipsRegion *region, VSteal steal=STEAL)</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:48</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_a810c7aac092018ac28f1e029ec5b3d15">
+<div class="ttname"><a href="classVRegion.html#a810c7aac092018ac28f1e029ec5b3d15">VRegion::prepare</a></div>
+<div class="ttdeci">void prepare(const VipsRect *rect) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:72</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_ab0fd17162b84a27d114b177b56c895a6">
+<div class="ttname"><a href="classVRegion.html#ab0fd17162b84a27d114b177b56c895a6">VRegion::operator[]</a></div>
+<div class="ttdeci">VipsPel operator[](size_t i) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:138</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_ab9cbc2c2451cedc354ce664a3e1893f2">
+<div class="ttname"><a href="classVRegion.html#ab9cbc2c2451cedc354ce664a3e1893f2">VRegion::get_region</a></div>
+<div class="ttdeci">VipsRegion * get_region() const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:63</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_ac695259e47eebecd508d6ae3a4a44fd0">
+<div class="ttname"><a href="classVRegion.html#ac695259e47eebecd508d6ae3a4a44fd0">VRegion::prepare</a></div>
+<div class="ttdeci">void prepare(int left, int top, int width, int height) const</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion8.h:82</div>
+</div>
+<div class="ttc" id="aclassVRegion_html_ac925554f21b2777071c23d50a11a2245">
+<div class="ttname"><a href="classVRegion.html#ac925554f21b2777071c23d50a11a2245">VRegion::new_from_image</a></div>
+<div class="ttdeci">static VRegion new_from_image(VImage image)</div>
+<div class="ttdef">
+<b>Definition:</b> VRegion.cpp:14</div>
+</div>
+</div>
+<!-- fragment -->
+</div>
+<!-- contents -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+<hr class="footer">
+<address class="footer"><small>
+Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"></a> 1.9.1
 </small></address>
-</body>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
 </html>

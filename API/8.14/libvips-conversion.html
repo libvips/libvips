@@ -906,7 +906,7 @@ vips_sequential (<em class="parameter"><code><a class="link" href="VipsImage.htm
                  <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                  <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>strip_height</code></em>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>tile_height</code></em>
 : height of cache strips</p></li></ul></div>
 <p>This operation behaves rather like <a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy ()"><code class="function">vips_copy()</code></a> between images
 <em class="parameter"><code>in</code></em>
@@ -915,7 +915,7 @@ vips_sequential (<em class="parameter"><code><a class="link" href="VipsImage.htm
  are only requested
 top-to-bottom. This operation is useful for loading file formats which are 
 strictly top-to-bottom, like PNG. </p>
-<p><em class="parameter"><code>strip_height</code></em>
+<p><em class="parameter"><code>tile_height</code></em>
  can be used to set the size of the tiles that
 <a class="link" href="libvips-conversion.html#vips-sequential" title="vips_sequential ()"><code class="function">vips_sequential()</code></a> uses. The default value is 1.</p>
 <p>See also: <a class="link" href="libvips-conversion.html#vips-cache" title="vips_cache ()"><code class="function">vips_cache()</code></a>, <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a>, <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a>.</p>

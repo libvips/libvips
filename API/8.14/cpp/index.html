@@ -1,28 +1,51 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.9.1"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vips-cpp: Introduction</title>
-<link href="tabs.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="dynsections.js"></script>
-<link href="search/search.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="search/searchdata.js"></script>
-<script type="text/javascript" src="search/search.js"></script>
-<link href="doxygen.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips C++</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <link href="tabs.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="dynsections.js"></script>
+    <link href="search/search.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="search/searchdata.js"></script>
+    <script type="text/javascript" src="search/search.js"></script>
+    <link href="doxygen.css" rel="stylesheet" type="text/css">
+
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<div id="top">
+<!-- do not remove this div, it is closed by doxygen! -->
 <div id="titlearea">
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">vips-cpp
-   &#160;<span id="projectnumber">8.14</span>
+    <span id="projectnumber">8.14</span>
    </div>
    <div id="projectbrief">libvips C++ binding</div>
   </td>
@@ -47,29 +70,30 @@ $(function() {
 });
 /* @license-end */</script>
 <div id="main-nav"></div>
-</div><!-- top -->
+</div>
+<!-- top -->
 <!-- window showing the filter options -->
-<div id="MSearchSelectWindow"
-     onmouseover="return searchBox.OnSearchSelectShow()"
-     onmouseout="return searchBox.OnSearchSelectHide()"
-     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<div id="MSearchSelectWindow" onmouseover="return searchBox.OnSearchSelectShow()" onmouseout="return searchBox.OnSearchSelectHide()" onkeydown="return searchBox.OnSearchSelectKey(event)">
 </div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
-<iframe src="javascript:void(0)" frameborder="0" 
-        name="MSearchResults" id="MSearchResults">
+<iframe src="javascript:void(0)" frameborder="0" name="MSearchResults" id="MSearchResults">
 </iframe>
 </div>
 
-<div class="PageDoc"><div class="header">
+<div class="PageDoc">
+<div class="header">
   <div class="headertitle">
 <div class="title">Introduction </div>  </div>
-</div><!--header-->
+</div>
+<!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__home_john_GIT_libvips_cplusplus_README"></a> The libvips C++ API is a thin layer over the libvips GObject API. It adds automatic reference counting, exceptions, operator overloads, and automatic constant expansion.</p>
+<div class="textblock">
+<p><a class="anchor" id="md__home_john_GIT_libvips_cplusplus_README"></a> The libvips C++ API is a thin layer over the libvips GObject API. It adds automatic reference counting, exceptions, operator overloads, and automatic constant expansion.</p>
 <p>You can drop down to the C API at any point, so all the C API docs also work for C++.</p>
-<h2><a class="anchor" id="autotoc_md1"></a>
+<h2>
+<a class="anchor" id="autotoc_md1"></a>
 Example</h2>
 <pre class="fragment">/* compile with:
  *      g++ -g -Wall example.cc `pkg-config vips-cpp --cflags --libs`
@@ -110,67 +134,101 @@ main (int argc, char **argv)
 
   return 0;
 }
-</pre><p> Everything before <code><a class="el" href="classVImage.html">VImage</a> in = <a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code> is exactly as the C API. <code>vips_error_exit()</code> just prints the arguments plus the libvips error log and exits with an error code.</p>
+</pre>
+<p> Everything before <code><a class="el" href="classVImage.html">VImage</a> in = <a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code> is exactly as the C API. <code>vips_error_exit()</code> just prints the arguments plus the libvips error log and exits with an error code.</p>
 <p><code><a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code> is the C++ equivalent of <code>vips_image_new_from_file()</code>. It works in the same way, the differences being:</p>
 <ul>
-<li><a class="el" href="classVImage.html">VImage</a> lifetime is managed automatically, like a smart pointer. You don't need to call <code>g_object_unref()</code>.</li>
-<li><p class="startli">Instead of using varargs and a <code>NULL</code>-terminated option list, this function takes an optional <code><a class="el" href="classVOption.html">VOption</a></code> pointer. This gives a list of name / value pairs for optional arguments to the function.</p>
+<li>
+<a class="el" href="classVImage.html">VImage</a> lifetime is managed automatically, like a smart pointer. You don't need to call <code>g_object_unref()</code>.</li>
+<li>
+<p class="startli">Instead of using varargs and a <code>NULL</code>-terminated option list, this function takes an optional <code><a class="el" href="classVOption.html">VOption</a></code> pointer. This gives a list of name / value pairs for optional arguments to the function.</p>
 <p class="startli">In this case we request unbuffered IO for the image, meaning, we expect to do a single top-to-bottom scan of the image and do not need it to be decompressed entirely. You can use the C enum name, as is done in this case, or use a string and have the string looked up. See below.</p>
 <p class="startli">The function will delete the <code><a class="el" href="classVOption.html">VOption</a></code> pointer for us when it's finished with it.</p>
 </li>
 <li>Instead of returning <code>NULL</code> on error, this constructor will raise a <code><a class="el" href="classVError.html">VError</a></code> exception.</li>
 </ul>
 <p>There are a series of similar constructors which parallel the other constructors in the C API, see <code><a class="el" href="classVImage.html#a07226233b46f74f73956a4003609a06f">VImage::new_from_memory()</a></code>, <code><a class="el" href="classVImage.html#ada00d6564792d099ab7e3a1046301c85">VImage::new_from_buffer()</a></code>, and <code><a class="el" href="classVImage.html#ac4166259736c14dbd799b7ca98c5a72d">VImage::new_matrix()</a></code>.</p>
-<p>The convenience function <code><a class="el" href="classVImage.html#a75ebb9f9eadc50d4a10633f6040b18d1">VImage::new_from_image()</a></code> makes a constant image from an existing image. The image it returns will have the same size, interpretation, resolution and format as the image you call it on, but with every pixel having the constant value you specify. For example: </p><pre class="fragment">  new_image = image.new_from_image (12);
-</pre><p> Now <code>new_image</code> has the same size as <code>image</code>, but has one band, and every pixel has the value 12. You can pass a <code>std::vector&lt;double&gt;</code> as the argument to make a constant image with a different number of bands.</p>
+<p>The convenience function <code><a class="el" href="classVImage.html#a75ebb9f9eadc50d4a10633f6040b18d1">VImage::new_from_image()</a></code> makes a constant image from an existing image. The image it returns will have the same size, interpretation, resolution and format as the image you call it on, but with every pixel having the constant value you specify. For example: </p>
+<pre class="fragment">  new_image = image.new_from_image (12);
+</pre>
+<p> Now <code>new_image</code> has the same size as <code>image</code>, but has one band, and every pixel has the value 12. You can pass a <code>std::vector&lt;double&gt;</code> as the argument to make a constant image with a different number of bands.</p>
 <p>There's also <code><a class="el" href="classVImage.html#a2be887dc013176d0883f0cc15c352e1f">VImage::new_memory()</a></code> and <code><a class="el" href="classVImage.html#abf6e5f87e5f8bdb483c30e15a47af133">VImage::new_temp_file()</a></code>, which when written to with <code><a class="el" href="classVImage.html#a3af09b4772e9f3498b084d7befdf67dc">VImage::write()</a></code> will create whole images on memory or on disc.</p>
 <p>The next line finds the average pixel value, it's the equivalent of the <code>vips_avg()</code> function. The differences from the C API are:</p>
 <ul>
-<li><code><a class="el" href="classVImage.html#a6fd305bd8c7e6111bacc7a2da0ef4856">VImage::avg()</a></code> is a member function: the <code>this</code> parameter is the first (the only, in this case) input image.</li>
+<li>
+<code><a class="el" href="classVImage.html#a6fd305bd8c7e6111bacc7a2da0ef4856">VImage::avg()</a></code> is a member function: the <code>this</code> parameter is the first (the only, in this case) input image.</li>
 <li>The function returns the first output parameter, in this case the average pixel value. Other return values are via pointer arguments, as in the C API.</li>
 <li>Like <code><a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code>, function raises the <code><a class="el" href="classVError.html">VError</a></code> exception on error.</li>
 <li>Like <code><a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code>, extra arguments are passed via an optional <code><a class="el" href="classVOption.html">VOption</a></code> parameter. There are none in this case, so the function brackets can be left empty.</li>
 </ul>
-<p>All other operations follow the same pattern, for example the C API call <code>vips_add(</code>): </p><pre class="fragment">int vips_add (VipsImage *left, VipsImage *right, VipsImage **out, ...);
-</pre><p> appears in C++ as: </p><pre class="fragment">VImage VImage::add (VImage right, VOption *options) const
-</pre><p> The next line uses <code><a class="el" href="classVImage.html#ae065cf705a209f55ca643a9231998870">VImage::width()</a></code> to get the image width in pixels. There are similar functions paralleling <code>vips_image_get_format()</code> and friends. Use <code><a class="el" href="classVImage.html#a2f39e35e4ce5212dcf3f952da92362bd">VImage::set()</a></code> to set metadata fields, <code><a class="el" href="classVImage.html#a0a33a40017eedaec15b184003a7f3cbd">VImage::get_int()</a></code> and c. to fetch metadata.</p>
+<p>All other operations follow the same pattern, for example the C API call <code>vips_add(</code>): </p>
+<pre class="fragment">int vips_add (VipsImage *left, VipsImage *right, VipsImage **out, ...);
+</pre>
+<p> appears in C++ as: </p>
+<pre class="fragment">VImage VImage::add (VImage right, VOption *options) const
+</pre>
+<p> The next line uses <code><a class="el" href="classVImage.html#ae065cf705a209f55ca643a9231998870">VImage::width()</a></code> to get the image width in pixels. There are similar functions paralleling <code>vips_image_get_format()</code> and friends. Use <code><a class="el" href="classVImage.html#a2f39e35e4ce5212dcf3f952da92362bd">VImage::set()</a></code> to set metadata fields, <code><a class="el" href="classVImage.html#a0a33a40017eedaec15b184003a7f3cbd">VImage::get_int()</a></code> and c. to fetch metadata.</p>
 <p>Next we reload the image. The <code><a class="el" href="classVImage.html#a6fd305bd8c7e6111bacc7a2da0ef4856">VImage::avg()</a></code> will have scanned the image and reached the end of the file, we need to scan again for the next operation. If we'd selected random access mode (the default) in the original <code><a class="el" href="classVImage.html#a64578ac35c85c120d2dac23d59b6a67f">VImage::new_from_file()</a></code>, we would not need to reload.</p>
 <p>The next line runs <code>vips_embed()</code> with two optional parameters. The first sets the value to an enum (here we use a string to set the value, it'll be looked up in the list of possible enum values, or you can use the symbols from the C API), the second sets the value to an <code>int</code>. The <code>"background"</code> parameter is actually a <code>VipsArrayDouble</code>: if you pass an <code>int</code> instead, it will be automatically converted to a one-element array for you. You can pass a <code>std::vector&lt;double&gt;</code> too: the utility function <code>VImage::to_vectorv()</code> is a convenient way to make one.</p>
 <p>Finally, <code><a class="el" href="classVImage.html#a596c9acf29bbecfe55b471f683ab57c4">VImage::write_to_file()</a></code> will write the new image to the filesystem. You can add a <code><a class="el" href="classVOption.html">VOption</a></code> as a final parameter and set options for the writer if you wish. Again, the operation will throw a <code><a class="el" href="classVError.html">VError</a></code> exception on error. The other writers from the C API are also present: you can write to a memory array, to a formatted image in memory, or to another image.</p>
 <p>The API docs have a <a href="libvips/API/current/func-list.html">handy table of all vips operations</a>, if you want to find out how to do something, try searching that.</p>
-<h2><a class="anchor" id="autotoc_md2"></a>
+<h2>
+<a class="anchor" id="autotoc_md2"></a>
 Automatic constant expansion</h2>
-<p>The C++ API will automatically turn constants into images in some cases. For example, you can join two images together bandwise (the bandwise join of two RGB images would be a six-band image) with: </p><pre class="fragment">VImage rgb = ...; 
+<p>The C++ API will automatically turn constants into images in some cases. For example, you can join two images together bandwise (the bandwise join of two RGB images would be a six-band image) with: </p>
+<pre class="fragment">VImage rgb = ...; 
 VImage six_band = rgb.bandjoin (rgb);
-</pre><p> You can also bandjoin a constant, for example: </p><pre class="fragment">VImage rgb_with_alpha = rgb.bandjoin (255);
-</pre><p> Will add an extra band to an image, with every element in the new band having the value 255. This is quite a general feature. You can use a constant in most places where you can use an image and it will be converted. For example: </p><pre class="fragment">VImage a = (a &lt; 128).ifthenelse (128, a); 
-</pre><p> Will set every band element of <code>a</code> less than 128 to 128.</p>
+</pre>
+<p> You can also bandjoin a constant, for example: </p>
+<pre class="fragment">VImage rgb_with_alpha = rgb.bandjoin (255);
+</pre>
+<p> Will add an extra band to an image, with every element in the new band having the value 255. This is quite a general feature. You can use a constant in most places where you can use an image and it will be converted. For example: </p>
+<pre class="fragment">VImage a = (a &lt; 128).ifthenelse (128, a); 
+</pre>
+<p> Will set every band element of <code>a</code> less than 128 to 128.</p>
 <p>The C++ API includes the usual range of arithmetic operator overloads. You can mix constants, vectors and images freely.</p>
-<p>The API overloads <code>[]</code> to be <code>vips_extract_band()</code>. You can write: </p><pre class="fragment">VImage xyz = VImage::xyz (256, 256) - VImage::to_vectorv (2, 128.0, 128.0); 
+<p>The API overloads <code>[]</code> to be <code>vips_extract_band()</code>. You can write: </p>
+<pre class="fragment">VImage xyz = VImage::xyz (256, 256) - VImage::to_vectorv (2, 128.0, 128.0); 
 VImage mask = (xyz[0].pow (2) + xyz[1].pow (2)).pow (0.5) &lt; 100;
-</pre><p> to make a circular mask, for example.</p>
-<p>The API overloads <code>()</code> to be <code>vips_getpoint()</code>. You can write: </p><pre class="fragment">VImage xyz = VImage::xyz (256, 256) - VImage::to_vectorv (2, 128.0, 128.0); 
+</pre>
+<p> to make a circular mask, for example.</p>
+<p>The API overloads <code>()</code> to be <code>vips_getpoint()</code>. You can write: </p>
+<pre class="fragment">VImage xyz = VImage::xyz (256, 256) - VImage::to_vectorv (2, 128.0, 128.0); 
 // this will have the value [0, 0]
 std::vector&lt;double&gt; point = xyz (128, 128);
-</pre> <h2><a class="anchor" id="autotoc_md3"></a>
+</pre> <h2>
+<a class="anchor" id="autotoc_md3"></a>
 Enum expansion</h2>
-<p>libvips operations which implement several functions with a controlling enum, such as <code>vips_math()</code>, are expanded to a set of member functions named after the enum. For example, the C function: </p><pre class="fragment">int vips_math (VipsImage *in, VipsImage **out, VipsOperationMath math, ...);
-</pre><p> where <code>VipsOperationMath</code> has the member <code>VIPS_OPERATION_MATH_SIN</code>, has a C convenience function <code>vips_sin()</code>: </p><pre class="fragment">int vips_sin (VipsImage *in, VipsImage **out, ...);
-</pre><p> and a C++ member function <code><a class="el" href="classVImage.html#a65ab6dbe670d0c67a8d92d898c5ea62e">VImage::sin()</a></code>: </p><pre class="fragment">VImage VImage::sin (VOption *options = 0) const
-</pre> <h2><a class="anchor" id="autotoc_md4"></a>
+<p>libvips operations which implement several functions with a controlling enum, such as <code>vips_math()</code>, are expanded to a set of member functions named after the enum. For example, the C function: </p>
+<pre class="fragment">int vips_math (VipsImage *in, VipsImage **out, VipsOperationMath math, ...);
+</pre>
+<p> where <code>VipsOperationMath</code> has the member <code>VIPS_OPERATION_MATH_SIN</code>, has a C convenience function <code>vips_sin()</code>: </p>
+<pre class="fragment">int vips_sin (VipsImage *in, VipsImage **out, ...);
+</pre>
+<p> and a C++ member function <code><a class="el" href="classVImage.html#a65ab6dbe670d0c67a8d92d898c5ea62e">VImage::sin()</a></code>: </p>
+<pre class="fragment">VImage VImage::sin (VOption *options = 0) const
+</pre> <h2>
+<a class="anchor" id="autotoc_md4"></a>
 Image metadata</h2>
 <p>libvips images can have a lot of metadata attached to them, giving things like ICC profiles, EXIF data, and so on. You can use the command-line program <code>vipsheader</code> with the <code>-a</code> flag to list all the fields.</p>
-<p>You can read metadata items with the member functions <code>get_int()</code>, <code>get_double()</code>, <code>get_string()</code> and <code>get_blob()</code>. Use <code>get_typeof()</code> to call <code>vips_image_get_typeof()</code> and read the type of an item. This will return 0 for undefined fields. </p><pre class="fragment">const char *VImage::get_string (const char *field);
-</pre><p> You can use the <code>set()</code> family of overloaded members to set metadata, for example: </p><pre class="fragment">void VImage::set (const char *field, const char *value);
-</pre><p> You can use these functions to manipulate exif metadata, for example: </p><pre class="fragment">VImage im = VImage::new_from_file ("x.jpg")
+<p>You can read metadata items with the member functions <code>get_int()</code>, <code>get_double()</code>, <code>get_string()</code> and <code>get_blob()</code>. Use <code>get_typeof()</code> to call <code>vips_image_get_typeof()</code> and read the type of an item. This will return 0 for undefined fields. </p>
+<pre class="fragment">const char *VImage::get_string (const char *field);
+</pre>
+<p> You can use the <code>set()</code> family of overloaded members to set metadata, for example: </p>
+<pre class="fragment">void VImage::set (const char *field, const char *value);
+</pre>
+<p> You can use these functions to manipulate exif metadata, for example: </p>
+<pre class="fragment">VImage im = VImage::new_from_file ("x.jpg")
 int orientation = im.get_int (VIPS_META_ORIENTATION);
 im.set (VIPS_META_ORIENTATION, 2);
 im.write_to_file ("y.jpg");
-</pre> <h2><a class="anchor" id="autotoc_md5"></a>
+</pre> <h2>
+<a class="anchor" id="autotoc_md5"></a>
 Extending the C++ interface</h2>
 <p>The C++ interface comes in two parts. First, <code><a class="el" href="VImage8_8h_source.html">VImage8.h</a></code> defines a simple layer over <code>GObject</code> for automatic reference counting, then a generic way to call any vips8 operation with <code><a class="el" href="classVImage.html#a0a0c15a7cb778f167ce0d7a7cc64b95c">VImage::call()</a></code>, then a few convenience functions, then a set of overloads.</p>
 <p>The member definition and declaration for each operation, for example <code><a class="el" href="classVImage.html#aee4d988b575fcde0561536a8263a0fa1">VImage::add()</a></code>, is generated by a small Python program called <code>gen-operators.py</code>. If you write a new libvips operator, you'll need to rerun this program to make it visible in the C++ interface.</p>
-<p>You can write the wrapper yourself, of course, they are very simple. The one for <code><a class="el" href="classVImage.html#aee4d988b575fcde0561536a8263a0fa1">VImage::add()</a></code> looks like this: </p><pre class="fragment">VImage VImage::add (VImage right, VOption *options) const
+<p>You can write the wrapper yourself, of course, they are very simple. The one for <code><a class="el" href="classVImage.html#aee4d988b575fcde0561536a8263a0fa1">VImage::add()</a></code> looks like this: </p>
+<pre class="fragment">VImage VImage::add (VImage right, VOption *options) const
 {
     VImage out;
 
@@ -182,12 +240,28 @@ Extending the C++ interface</h2>
 
     return out;
 }
-</pre><p> Where <code><a class="el" href="classVImage.html#a0a0c15a7cb778f167ce0d7a7cc64b95c">VImage::call()</a></code> is the generic call-a-vips8-operation function. </p>
-</div></div><!-- PageDoc -->
-</div><!-- contents -->
+</pre>
+<p> Where <code><a class="el" href="classVImage.html#a0a0c15a7cb778f167ce0d7a7cc64b95c">VImage::call()</a></code> is the generic call-a-vips8-operation function. </p>
+</div>
+</div>
+<!-- PageDoc -->
+</div>
+<!-- contents -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+<hr class="footer">
+<address class="footer"><small>
+Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"></a> 1.9.1
 </small></address>
-</body>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
 </html>
