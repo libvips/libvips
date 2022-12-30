@@ -2,14 +2,14 @@
 title: What's new in libvips 8.14
 ---
 
-libvips 8.14 is almost done, so here's a summary of what's new. Check the
+libvips 8.14 is now done, so here's a summary of what's new. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
 The headline features are the final switch to meson build system, a new
-thread pool and thread recycling system, some useful speedups to `dzsave` and
-TIFF load, and the usual small improvements to image format support. Details
-below!
+thread pool and thread recycling system, some useful speedups to `dzsave`,
+`arrayjoin` and TIFF load, and the usual small improvements to image format
+support. Details below!
 
 We need to thank aksdb, dloebl, ewelot, tlsa, remicollet, DarthSim,
 ejoebstl, lovell, shado23, kleisauke, and others for their great work on
@@ -171,9 +171,23 @@ sys	0m46.906s
 
 The speedup becomes dramatic with larger tile sets.
 
-## Faster TIFF load
+## bash completions
 
-The previous libvips used libtiff to fetch decoded tiles from compressed 
+This won't appeal to many people, but libvips now ships with a simple
+bash completion script in `libvips-x.y.z/completions`, have a look at the
+README in there for install notes. It knows how to complete operator names,
+filenames, and required arguments, including enum values.
+
+It's useful now, and we hope to improve it in the next version, perhaps by
+expanding optional arguments, for example.
+
+# Image format improvements
+
+There have been quite a few improvements to file format support.
+
+## **TIFF**
+
+Previous releases used libtiff to fetch decoded tiles from compressed 
 TIFF files. This ran the decompressor inside the libtiff lock, so it was
 single threaded.
 
@@ -201,7 +215,7 @@ sys 0m0.428s
 You can see that the total CPU time (the `user` line) is almost equal to the
 real clock time (the `real` line), so there was very little parallelism. It
 was able to parallelize the computation of the average value, but the
-decompress (which was most of the run time) was single threaded.
+decompress (which was almost all of the run time) was single threaded.
 
 Here's 8.14:
 
@@ -219,20 +233,6 @@ huge speedup, more than 10x. Zoom!
 
 This is just accelerating TIFF load. Perhaps TIFF save will get the same
 treatment in the next version.
-
-## bash completions
-
-This won't appeal to many people, but libvips now ships with a simple
-bash completion script in `libvips-x.y.z/completions`, have a look at the
-README in there for install notes. It knows how to complete operator names,
-filenames, and required arguments, including enum values.
-
-It's useful now, and we hope to improve it in the next version, perhaps by
-expanding optional arguments, for example.
-
-# Image format improvements
-
-There have been quite a few improvements to file format support.
 
 ## **GIF** 
 
