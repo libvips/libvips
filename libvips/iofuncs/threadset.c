@@ -186,6 +186,11 @@ vips_threadset_add( VipsThreadset *set )
 		return( NULL );
 	}
 
+	/* Ensure idle threads are freed on exit, this
+	 * ref is increased before the thread is joined.
+	 */
+	g_thread_unref( member->thread );
+
 	g_mutex_lock( set->lock );
 	set->members = g_slist_prepend( set->members, member );
 	set->n_threads += 1;
@@ -294,7 +299,7 @@ vips_threadset_kill_member( VipsThreadsetMember *member )
 {
 	GThread *thread;
 
-	thread = member->thread;
+	thread = g_thread_ref( member->thread );
 	member->kill = TRUE;
 
 	vips_semaphore_up( &member->idle );
