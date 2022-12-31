@@ -195,7 +195,7 @@ vips_threadset_add( VipsThreadset *set )
 	set->members = g_slist_prepend( set->members, member );
 	set->n_threads += 1;
 	set->n_threads_highwater = 
-		VIPS_MAX( set->n_threads_highwater, set->n_threads );;
+		VIPS_MAX( set->n_threads_highwater, set->n_threads );
 	g_mutex_unlock( set->lock );
 
 	return( member );
