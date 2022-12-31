@@ -456,7 +456,7 @@ vips__render_shutdown( void )
 
 			vips_semaphore_up( &n_render_dirty_sem ); 
 
-			(void) vips_g_thread_join( thread );
+			(void) g_thread_join( thread );
 		}
 		else
 			g_mutex_unlock( render_dirty_lock );

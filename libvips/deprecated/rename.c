@@ -129,6 +129,12 @@ im_warning( const char *fmt, ... )
 	va_end( ap );
 }
 
+void *
+vips_g_thread_join( GThread *thread )
+{
+	return( g_thread_join( thread ) );
+}
+
 int 
 im_affine( IMAGE *in, IMAGE *out, 
 	double a, double b, double c, double d, double dx, double dy, 
