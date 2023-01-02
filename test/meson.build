@@ -1,6 +1,6 @@
 variables_data = configuration_data()
-variables_data.set('abs_top_srcdir', meson.project_source_root())
-variables_data.set('abs_top_builddir', meson.project_build_root())
+variables_data.set('abs_top_srcdir', project_source_root)
+variables_data.set('abs_top_builddir', project_build_root)
 variables_data.set('PYTHON', pymod.find_installation().full_path())
 
 variables_sh = configure_file(
