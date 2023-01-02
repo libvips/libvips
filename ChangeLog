@@ -1,3 +1,7 @@
+xx/1/23 8.14.1
+
+- add vips_thread_isworker() compatibility function [remicollet]
+
 22/12/22 8.14.0
 
 - remove autotools

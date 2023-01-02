@@ -398,6 +398,9 @@ void vips_vinfo( const char *domain, const char *fmt, va_list ap );
 VIPS_DEPRECATED_FOR(vips_autorot)
 VipsAngle vips_autorot_get_angle( VipsImage *image );
 
+VIPS_DEPRECATED_FOR(vips_thread_isvips)
+gboolean vips_thread_isworker( void );
+
 /* iofuncs
  */
 VIPS_DEPRECATED_FOR(g_free)

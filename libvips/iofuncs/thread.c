@@ -87,6 +87,14 @@ vips_thread_isvips( void )
 	return( g_private_get( is_vips_thread_key ) != NULL );
 }
 
+/* Deprecated compatibility function.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( vips_thread_isvips() );
+}
+
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
 
