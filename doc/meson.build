@@ -51,7 +51,7 @@ private_libvips_headers = [
 
 private_headers = []
 foreach private_libvips_header : private_libvips_headers
-    private_headers += [join_paths(meson.project_source_root(), 'libvips', private_libvips_header)]
+    private_headers += [join_paths(project_source_root, 'libvips', private_libvips_header)]
 endforeach
 
 markdown_content_files = files(
@@ -137,8 +137,8 @@ gnome.gtkdoc('libvips',
     mode: 'none',
     main_xml: 'libvips-docs.xml.in',
     src_dir: [
-        join_paths(meson.project_source_root(), 'libvips'),
-        join_paths(meson.project_build_root(), 'libvips'),
+        join_paths(project_source_root, 'libvips'),
+        join_paths(project_build_root, 'libvips'),
     ],
     dependencies: libvips_dep,
     scan_args: [

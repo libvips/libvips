@@ -1,6 +1,6 @@
 project('vips', 'c', 'cpp',
     version: '8.14.1',
-    meson_version: '>=0.56',
+    meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu99',
@@ -70,6 +70,10 @@ nodelete_link_args = cc.get_supported_link_arguments('-Wl,-z,nodelete')
 
 prefix_dir = get_option('prefix')
 lib_dir = prefix_dir / get_option('libdir')
+
+project_source_root = meson.current_source_dir()
+project_build_root = meson.current_build_dir()
+
 if gmodule_dep.found() and gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') == 'true'
     # Disable modules by default when building static libraries
     modules_enabled = get_option('modules').enabled() or get_option('default_library') == 'shared'
