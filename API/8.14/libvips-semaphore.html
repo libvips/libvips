@@ -68,14 +68,6 @@
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
-<a class="link" href="libvips-semaphore.html#vips-semaphore-down" title="vips_semaphore_down ()">vips_semaphore_down</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
-<span class="returnvalue">int</span>
-</td>
-<td class="function_name">
 <a class="link" href="libvips-semaphore.html#vips-semaphore-upn" title="vips_semaphore_upn ()">vips_semaphore_upn</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -84,7 +76,23 @@
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="libvips-semaphore.html#vips-semaphore-down" title="vips_semaphore_down ()">vips_semaphore_down</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="libvips-semaphore.html#vips-semaphore-downn" title="vips_semaphore_downn ()">vips_semaphore_downn</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-semaphore.html#vips-semaphore-down-timeout" title="vips_semaphore_down_timeout ()">vips_semaphore_down_timeout</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -136,12 +144,6 @@ vips_semaphore_up (<em class="parameter"><code><a class="link" href="libvips-sem
 </div>
 <hr>
 <div class="refsect2">
-<a name="vips-semaphore-down"></a><h3>vips_semaphore_down ()</h3>
-<pre class="programlisting"><span class="returnvalue">int</span>
-vips_semaphore_down (<em class="parameter"><code><a class="link" href="libvips-semaphore.html#VipsSemaphore" title="VipsSemaphore"><span class="type">VipsSemaphore</span></a> *s</code></em>);</pre>
-</div>
-<hr>
-<div class="refsect2">
 <a name="vips-semaphore-upn"></a><h3>vips_semaphore_upn ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_semaphore_upn (<em class="parameter"><code><a class="link" href="libvips-semaphore.html#VipsSemaphore" title="VipsSemaphore"><span class="type">VipsSemaphore</span></a> *s</code></em>,
@@ -149,10 +151,23 @@ vips_semaphore_upn (<em class="parameter"><code><a class="link" href="libvips-se
 </div>
 <hr>
 <div class="refsect2">
+<a name="vips-semaphore-down"></a><h3>vips_semaphore_down ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_semaphore_down (<em class="parameter"><code><a class="link" href="libvips-semaphore.html#VipsSemaphore" title="VipsSemaphore"><span class="type">VipsSemaphore</span></a> *s</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="vips-semaphore-downn"></a><h3>vips_semaphore_downn ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_semaphore_downn (<em class="parameter"><code><a class="link" href="libvips-semaphore.html#VipsSemaphore" title="VipsSemaphore"><span class="type">VipsSemaphore</span></a> *s</code></em>,
                       <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-semaphore-down-timeout"></a><h3>vips_semaphore_down_timeout ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_semaphore_down_timeout (<em class="parameter"><code><a class="link" href="libvips-semaphore.html#VipsSemaphore" title="VipsSemaphore"><span class="type">VipsSemaphore</span></a> *s</code></em>,
+                             <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> timeout</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">

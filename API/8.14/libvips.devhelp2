@@ -1344,9 +1344,10 @@
     <keyword type="macro" name="VIPS_CONFIG" link="libvips-version.html#VIPS-CONFIG:CAPS"/>
     <keyword type="macro" name="VIPS_ENABLE_DEPRECATED" link="libvips-version.html#VIPS-ENABLE-DEPRECATED:CAPS"/>
     <keyword type="function" name="vips_semaphore_up ()" link="libvips-semaphore.html#vips-semaphore-up"/>
-    <keyword type="function" name="vips_semaphore_down ()" link="libvips-semaphore.html#vips-semaphore-down"/>
     <keyword type="function" name="vips_semaphore_upn ()" link="libvips-semaphore.html#vips-semaphore-upn"/>
+    <keyword type="function" name="vips_semaphore_down ()" link="libvips-semaphore.html#vips-semaphore-down"/>
     <keyword type="function" name="vips_semaphore_downn ()" link="libvips-semaphore.html#vips-semaphore-downn"/>
+    <keyword type="function" name="vips_semaphore_down_timeout ()" link="libvips-semaphore.html#vips-semaphore-down-timeout"/>
     <keyword type="function" name="vips_semaphore_destroy ()" link="libvips-semaphore.html#vips-semaphore-destroy"/>
     <keyword type="function" name="vips_semaphore_init ()" link="libvips-semaphore.html#vips-semaphore-init"/>
     <keyword type="struct" name="VipsSemaphore" link="libvips-semaphore.html#VipsSemaphore"/>
