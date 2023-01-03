@@ -60,6 +60,8 @@ int vips_semaphore_up( VipsSemaphore *s );
 VIPS_API
 int vips_semaphore_down( VipsSemaphore *s );
 VIPS_API
+int vips_semaphore_down_timeout( VipsSemaphore *s, gint64 timeout );
+VIPS_API
 int vips_semaphore_upn( VipsSemaphore *s, int n );
 VIPS_API
 int vips_semaphore_downn( VipsSemaphore *s, int n );

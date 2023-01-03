@@ -190,19 +190,6 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	return( thread );
 }
 
-void *
-vips_g_thread_join( GThread *thread )
-{
-	void *result;
-
-	result = g_thread_join( thread );
-
-	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
-		thread );
-
-	return( result ); 
-}
-
 static int
 get_num_processors( void )
 {
