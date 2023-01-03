@@ -110,37 +110,72 @@ vips_semaphore_up( VipsSemaphore *s )
 }
 
 /* Wait for sem>n, then subtract n.
+ * Returns -1 when the monotonic time in @end_time was passed.
  */
-int
-vips_semaphore_downn( VipsSemaphore *s, int n )
+static int
+vips__semaphore_downn_until( VipsSemaphore *s, int n, gint64 end_time )
 {
 	int value_after_op;
 
-	VIPS_GATE_START( "vips_semaphore_downn: wait" );
+	VIPS_GATE_START( "vips__semaphore_downn_until: wait" );
 
 	g_mutex_lock( s->mutex );
 
-	while( s->v < n )
-		g_cond_wait( s->cond, s->mutex );
+	while( s->v < n ) {
+		if( end_time == -1 )
+			g_cond_wait( s->cond, s->mutex );
+		else if( !g_cond_wait_until( s->cond, s->mutex, end_time ) ) {
+			/* timeout has passed.
+			 */
+			g_mutex_unlock( s->mutex );
+
+			VIPS_GATE_STOP( "vips__semaphore_downn_until: wait" );
+			return( -1 );
+		}
+	}
+
 	s->v -= n;
 	value_after_op = s->v;
 
 	g_mutex_unlock( s->mutex );
 
 #ifdef DEBUG_IO
-	printf( "vips_semaphore_downn(\"%s\",%d): %d\n", 
+	printf( "vips__semaphore_downn_until(\"%s\",%d): %d\n", 
 		s->name, n, value_after_op );
 #endif /*DEBUG_IO*/
 
-	VIPS_GATE_STOP( "vips_semaphore_downn: wait" );
+	VIPS_GATE_STOP( "vips__semaphore_downn_until: wait" );
 
 	return( value_after_op );
 }
 
-/* Wait for sem > 0, then decrement.
+/* Wait for sem>n, then subtract n. n must be >= 0. Returns the new semaphore
+ * value.
+ */
+int
+vips_semaphore_downn( VipsSemaphore *s, int n )
+{
+	g_assert( n >= 0 );
+
+	return( vips__semaphore_downn_until( s, n, -1 ) );
+}
+
+/* Wait for sem > 0, then decrement. Returns the new semaphore value.
  */
 int
 vips_semaphore_down( VipsSemaphore *s )
 {
-	return( vips_semaphore_downn( s, 1 ) );
+	return( vips__semaphore_downn_until( s, 1, -1 ) );
+}
+
+/* Wait for sem > 0, then decrement.
+ * Returns -1 when @timeout (in microseconds) has passed, or the new 
+ * semaphore value.
+ */
+int
+vips_semaphore_down_timeout( VipsSemaphore *s, gint64 timeout )
+{
+	gint64 end_time = g_get_monotonic_time () + timeout;
+
+	return( vips__semaphore_downn_until( s, 1, end_time ) );
 }

@@ -1,6 +1,6 @@
 project('vips', 'c', 'cpp',
-    version: '8.14.0',
-    meson_version: '>=0.56',
+    version: '8.14.1',
+    meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu99',
@@ -19,7 +19,7 @@ version_patch = version_parts[2]
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-library_revision = 0
+library_revision = 1
 library_current = 58
 library_age = 16
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
@@ -32,8 +32,7 @@ i18n = import('i18n')
 
 add_project_arguments('-Drestrict=__restrict', language: 'cpp')
 
-# if we're optimising (eg. release mode) we turn off cast checks and
-# g_asserts
+# if we're optimising (eg. release mode) we turn off cast checks and g_asserts
 if get_option('optimization') in ['2', '3', 's']
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
@@ -71,6 +70,10 @@ nodelete_link_args = cc.get_supported_link_arguments('-Wl,-z,nodelete')
 
 prefix_dir = get_option('prefix')
 lib_dir = prefix_dir / get_option('libdir')
+
+project_source_root = meson.current_source_dir()
+project_build_root = meson.current_build_dir()
+
 if gmodule_dep.found() and gmodule_dep.get_variable(pkgconfig: 'gmodule_supported') == 'true'
     # Disable modules by default when building static libraries
     modules_enabled = get_option('modules').enabled() or get_option('default_library') == 'shared'

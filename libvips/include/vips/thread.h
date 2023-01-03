@@ -55,8 +55,6 @@ void vips_g_cond_free( GCond * );
  */
 VIPS_API
 GThread *vips_g_thread_new( const char *, GThreadFunc, gpointer );
-VIPS_API
-void *vips_g_thread_join( GThread *thread );
 
 VIPS_API
 gboolean vips_thread_isvips( void );

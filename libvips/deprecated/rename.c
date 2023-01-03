@@ -129,6 +129,12 @@ im_warning( const char *fmt, ... )
 	va_end( ap );
 }
 
+void *
+vips_g_thread_join( GThread *thread )
+{
+	return( g_thread_join( thread ) );
+}
+
 int 
 im_affine( IMAGE *in, IMAGE *out, 
 	double a, double b, double c, double d, double dx, double dy, 
@@ -821,5 +827,13 @@ vips_free( void *buf )
 	g_free( buf );
 
 	return( 0 );
+}
+
+/* Use vips_thread_isvips() instead.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( vips_thread_isvips() );
 }
 

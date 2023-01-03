@@ -147,6 +147,9 @@ VIPS_DEPRECATED_FOR(g_warning)
 void im_warning( const char *fmt, ... )
 	G_GNUC_PRINTF( 1, 2 );
 
+VIPS_DEPRECATED_FOR(g_thread_join)
+void *vips_g_thread_join( GThread *thread );
+
 VIPS_DEPRECATED
 int im_iterate( VipsImage *im,
 	VipsStartFn start, im_generate_fn generate, VipsStopFn stop,
@@ -397,6 +400,9 @@ void vips_vinfo( const char *domain, const char *fmt, va_list ap );
 
 VIPS_DEPRECATED_FOR(vips_autorot)
 VipsAngle vips_autorot_get_angle( VipsImage *image );
+
+VIPS_DEPRECATED_FOR(vips_thread_isvips)
+gboolean vips_thread_isworker( void );
 
 /* iofuncs
  */

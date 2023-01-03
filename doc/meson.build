@@ -51,7 +51,7 @@ private_libvips_headers = [
 
 private_headers = []
 foreach private_libvips_header : private_libvips_headers
-    private_headers += [join_paths(meson.project_source_root(), 'libvips', private_libvips_header)]
+    private_headers += [join_paths(project_source_root, 'libvips', private_libvips_header)]
 endforeach
 
 markdown_content_files = files(
@@ -126,8 +126,12 @@ images = files(
 )
 
 version_conf = configuration_data()
-version_conf.set('VIPS_VERSION', meson.project_version ())
-vips_docs = configure_file(input: 'libvips-docs.xml.in', output: 'libvips-docs.xml', configuration: version_conf)
+version_conf.set('VIPS_VERSION', meson.project_version())
+version_xml = configure_file(
+    input: 'version.xml.in',
+    output: '@BASENAME@',
+    configuration: version_conf
+)
 
 glib_prefix = glib_dep.get_variable(pkgconfig: 'prefix')
 glib_docpath = glib_prefix / 'share' / 'gtk-doc' / 'html'
@@ -135,16 +139,14 @@ docpath = get_option('prefix') / get_option('datadir') / 'gtk-doc' / 'html'
 
 gnome.gtkdoc('libvips',
     mode: 'none',
-    main_xml: 'libvips-docs.xml.in',
+    main_xml: 'libvips-docs.xml',
     src_dir: [
-        join_paths(meson.project_source_root(), 'libvips'),
-        join_paths(meson.project_build_root(), 'libvips'),
+        join_paths(project_source_root, 'libvips'),
+        join_paths(project_build_root, 'libvips'),
     ],
     dependencies: libvips_dep,
-    scan_args: [
-        '--ignore-headers=' + ' '.join(private_headers),
-        '--rebuild-types',
-    ],
+    ignore_headers: private_headers,
+    scan_args: '--rebuild-types',
     mkdb_args: [ '--default-includes=vips/vips.h' ],
     fixxref_args: [
         '--html-dir=@0@'.format(docpath),
@@ -152,7 +154,7 @@ gnome.gtkdoc('libvips',
         '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
         '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
     ],
-    content_files: [ content_files, markdown_content_files_docbook ],
+    content_files: [ content_files, markdown_content_files_docbook, version_xml ],
     expand_content_files: [ content_files ],
     html_assets: images,
     install: true
