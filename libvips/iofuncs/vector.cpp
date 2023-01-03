@@ -97,7 +97,9 @@ vips__vector_init(void)
 gboolean
 vips_vector_isenabled(void)
 {
-#if defined(HAVE_HWY) || defined(HAVE_ORC)
+#ifdef HAVE_HWY
+	return vips__vector_enabled && vips_vector_get_supported_targets() != 0;
+#elif defined(HAVE_ORC)
 	return vips__vector_enabled;
 #else
 	return FALSE;
@@ -133,16 +135,13 @@ vips_vector_get_builtin_targets(void)
  * Gets a bitfield of enabled targets that are supported on this CPU. The
  * targets returned may change after calling vips_vector_disable_targets().
  *
- * The return value is only 0 if libvips was built without highway,
- * otherwise there is always at least one target.
- *
  * Returns: a bitfield of supported CPU targets.
  */
 gint64
 vips_vector_get_supported_targets(void)
 {
 #ifdef HAVE_HWY
-	return hwy::SupportedTargets();
+	return hwy::SupportedTargets() & ~(HWY_EMU128 | HWY_SCALAR);
 #elif defined(HAVE_ORC)
 	return orc_target_get_default_flags(orc_target_get_default());
 #else
