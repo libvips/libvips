@@ -4,12 +4,13 @@
                "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
 [
   <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY version SYSTEM "version.xml">
 ]>
 <book id="index" xmlns:xlink="http://www.w3.org/1999/xlink">
   <bookinfo>
     <title>libvips Reference Manual</title>
     <releaseinfo>
-      For libvips @VIPS_VERSION@. The latest version of this documentation
+      For libvips &version;. The latest version of this documentation
       can be found on the <ulink role="online-location" url="/">libvips
       website</ulink>.
     </releaseinfo>
