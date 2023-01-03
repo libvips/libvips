@@ -149,15 +149,18 @@ vips__semaphore_downn_until( VipsSemaphore *s, int n, gint64 end_time )
 	return( value_after_op );
 }
 
-/* Wait for sem>n, then subtract n.
+/* Wait for sem>n, then subtract n. n must be >= 0. Returns the new semaphore
+ * value.
  */
 int
 vips_semaphore_downn( VipsSemaphore *s, int n )
 {
+	g_assert( n >= 0 );
+
 	return( vips__semaphore_downn_until( s, n, -1 ) );
 }
 
-/* Wait for sem > 0, then decrement.
+/* Wait for sem > 0, then decrement. Returns the new semaphore value.
  */
 int
 vips_semaphore_down( VipsSemaphore *s )
@@ -166,8 +169,8 @@ vips_semaphore_down( VipsSemaphore *s )
 }
 
 /* Wait for sem > 0, then decrement.
- * Returns -1 when the relative time in @timeout (in microseconds)
- * was passed.
+ * Returns -1 when @timeout (in microseconds) has passed, or the new 
+ * semaphore value.
  */
 int
 vips_semaphore_down_timeout( VipsSemaphore *s, gint64 timeout )

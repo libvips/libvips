@@ -829,3 +829,11 @@ vips_free( void *buf )
 	return( 0 );
 }
 
+/* Use vips_thread_isvips() instead.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( vips_thread_isvips() );
+}
+

@@ -1,6 +1,9 @@
 xx/1/23 8.14.1
 
 - add vips_thread_isworker() compatibility function [remicollet]
+- add vips_semaphore_down_timeout() [kleisauke]
+- idle threads are removed after 15s [kleisauke]
+- fix version number in gtk-doc index [kleisauke]
 
 22/12/22 8.14.0
 
