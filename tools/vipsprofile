@@ -257,14 +257,15 @@ wait = {}
 for thread in threads:
     for event in thread.all_events:
         if event.wait:
-            if event.gate_location not in wait:
-                wait[event.gate_location] = 0
+            name = f'{event.gate_location}::{event.gate_name}'
+            if name not in wait:
+                wait[name] = 0
 
-            wait[event.gate_location] += event.stop - event.start
+            wait[name] += event.stop - event.start
 
 print('name  wait')
 for [name, time] in sorted(wait.items(), reverse=True, key=lambda x: x[1])[:10]:
-    print(f'{name:>30}\t{time:.2f}')
+    print(f'{name:>35}\t{time:.2f}')
 
 # allocate a y position for each gate
 total_y = 0
