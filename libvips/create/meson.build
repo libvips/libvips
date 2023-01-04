@@ -37,6 +37,8 @@ create_headers = files(
     'pmask.h',
 )
 
+libvips_sources += create_sources
+
 create_lib = static_library('create',
     create_sources,
     create_headers,
