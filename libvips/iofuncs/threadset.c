@@ -43,6 +43,10 @@
 #endif /*HAVE_UNISTD_H*/
 #include <errno.h>
 
+/*
+#define VIPS_DEBUG
+ */
+
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
@@ -105,10 +109,13 @@ vips_threadset_work( void *pointer )
 	VipsThreadsetMember *member = (VipsThreadsetMember *) pointer;
 	VipsThreadset *set = member->set;
 
+	VIPS_DEBUG_MSG( "vips_threadset_work: starting %p\n", member );
+
 	for(;;) {
 		/* Wait for at least 15 seconds to be given work.
 		 */
-		if( vips_semaphore_down_timeout( &member->idle, max_idle_time ) == -1 )
+		if( vips_semaphore_down_timeout( &member->idle, 
+			max_idle_time ) == -1 )
 			break;
 
 		/* Killed or no task available? Leave this thread.
@@ -150,6 +157,8 @@ vips_threadset_work( void *pointer )
 	set->free = g_slist_remove( set->free, member );
 	set->members = g_slist_remove( set->members, member );
 	set->n_threads -= 1;
+	VIPS_DEBUG_MSG( "vips_threadset_work: stopping %p (%d remaining)\n", 
+		member, set->n_threads );
 	g_mutex_unlock( set->lock );
 
 	vips_semaphore_destroy( &member->idle );
