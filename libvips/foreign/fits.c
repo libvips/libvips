@@ -36,6 +36,8 @@
  * 27/10/22
  *      - band interleave ourselves on read
  *      - don't duplicate metadata
+ * 6/1/23 ewelot
+ *	- save mono images as NAXIS=2
  */
 
 /*
@@ -658,7 +660,7 @@ vips_fits_set_header( VipsFits *fits, VipsImage *in )
 
 	status = 0;
 
-	fits->naxis = 3;
+	fits->naxis = in->Bands == 1 ? 2 : 3;
 	fits->naxes[0] = in->Xsize;
 	fits->naxes[1] = in->Ysize;
 	fits->naxes[2] = in->Bands;

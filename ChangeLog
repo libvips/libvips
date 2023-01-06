@@ -4,6 +4,7 @@ xx/1/23 8.14.1
 - add vips_semaphore_down_timeout() [kleisauke]
 - idle threads are removed after 15s [kleisauke]
 - fix version number in gtk-doc index [kleisauke]
+- save mono fits images as NAXIS=2 [ewelot]
 
 22/12/22 8.14.0
 
