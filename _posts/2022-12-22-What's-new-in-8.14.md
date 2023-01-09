@@ -34,7 +34,7 @@ meson test
 meson install
 ```
 
-# Enhancements to operators
+# N-colour profile support
 
 Printers usually work with four colours: cyan, magenta, yellow and black.
 libvips has supported (via [LittleCMS](https://github.com/mm2/Little-CMS))
@@ -86,32 +86,33 @@ location of interest in attention-based cropping.
 
 ## Faster threading
 
-There has been a major change to the libvips core: we have a new threadpool
-system. The new threadpool has several very useful new features:
+libvips uses threadpools to compute pixels -- these are groups of worker
+threads cooperating on a task. For 8.14, we've rewritten the threadpool
+system and added several very useful new features:
 
-1. Thread pools now resize dynamically. Each threadpool is able to tell how 
-   busy their workers are, and is able to either size up or size down 
+1. Threadpools now resize dynamically. Each threadpool is able to tell how 
+   busy the workers are, and is able to either expand or shrink
    depending on load. The old `vips-concurrency` setting now sets the maximum
    threadpool size.
 
-   The aim is to prevent libvips having a lot of idle threads on machines with
-   many cores. Why create 16 workers for a pipeline that only has a small
-   amount of parallelism? 
+   The aim is to improve utilisation on machines with many cores.  Why create
+   16 workers, for example, for a pipeline that only has a small amount
+   of parallelism?
 
    Few idle threads means libvips should make better use of hardware resources
    on large machines with complex mixed workloads. The new threadpool should
    also be a bit quicker.
 
 2. You can also set hints for the amount of parallelism you expect in a
-   pipeline. Again, this help prevent overcomitting of thread resources.
+   pipeline. Again, this helps prevent overcomitting of thread resources.
 
 3. Finally, there's a new thread recycling system. Some platforms have very
    slow or tricky thread start and stop, so rather than killing and recreating
    threads all the time, libvips will make a set of threads and then recycle
-   them.
+   them between threadpools.
 
    We had a thread recycling system before, but this new one should be
-   noticably faster.
+   noticably simpler and faster.
 
 ## Faster `dzsave` and `arrayjoin`
 
@@ -192,7 +193,8 @@ TIFF files. This ran the decompressor inside the libtiff lock, so it was
 single threaded.
 
 For libvips 8.14, we've moved jpeg2000 and jpeg decompression outside the
-libtiff lock so they now run multi-threaded. This gives a really nice speedup.
+libtiff lock so they now run multi-threaded. This can give a really nice
+speedup.
 
 First, make a large, tiled, JPEG-compressed TIFF:
 
