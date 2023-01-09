@@ -1,7 +1,4 @@
-#!/usr/bin/python
-
-from __future__ import division
-from __future__ import print_function
+#!/usr/bin/python3
 
 import re
 import cairo
@@ -154,7 +151,7 @@ for thread in threads:
 
 all_events.sort(key=lambda x: x.start)
 
-print('loaded %d events' % n_events)
+print(f'loaded {n_events} events')
 
 # move time axis to secs of computation
 ticks_per_sec = 1000000.0
@@ -173,7 +170,7 @@ for event in all_events:
 last_time = (last_time - first_time) / ticks_per_sec
 first_time = 0
 
-print('total time =', last_time)
+print(f'total time = {last_time}')
 
 # calculate some simple stats
 for thread in threads:
@@ -202,7 +199,7 @@ for thread in threads:
     # hide very short-lived threads 
     thread.hide = thread.alive < 0.01
 
-print('name\t\talive\twait%\twork%\tunkn%\tmemory\tpeakm')
+print('name             alive wait%   work%   unkn%     mem   peakm')
 for thread in threads:
     if thread.hide:
         continue
@@ -211,11 +208,10 @@ for thread in threads:
     work_percent = 100 * thread.work / thread.alive
     unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
 
-    print('%13s\t%6.2g\t' % (thread.thread_name, thread.alive), end=' ')
-    print('%.3g\t%.3g\t%.3g\t' % 
-            (wait_percent, work_percent, unkn_percent), end=' ')
-    print('%.3g\t' % (thread.mem / (1024 * 1024)), end=' ')
-    print('%.3g\t' % (thread.peak_mem / (1024 * 1024)))
+    print((f'{thread.thread_name:>13}\t{thread.alive:6.2f}\t' 
+           f'{wait_percent:>4.1f}\t{work_percent:>4.1f}\t{unkn_percent:>4.1f}\t'
+           f'{thread.mem / (1024 * 1024):>4.1f}\t'
+           f'{thread.peak_mem / (1024 * 1024):>4.1f}'))
 
 mem = 0
 peak_mem = 0
@@ -225,9 +221,9 @@ for event in all_events:
         if mem > peak_mem:
             peak_mem = mem
 
-print('peak memory = %.3g MB' % (peak_mem / (1024 * 1024)))
+print(f'peak memory = {peak_mem / (1024 * 1024):.1f} MB')
 if mem != 0:
-    print('leak! final memory = %.3g MB' % (mem / (1024 * 1024)))
+    print(f'leak! final memory = {mem / (1024 * 1024):.1f} MB')
 
 # does a list of events contain an overlap? 
 # assume the list of events has been sorted by start time
@@ -255,6 +251,21 @@ def gates_overlap(events, gate_name1, gate_name2):
     merged.sort(key=lambda x: x.start)
 
     return events_overlap(merged)
+
+# show top 10 waits
+wait = {}
+for thread in threads:
+    for event in thread.all_events:
+        if event.wait:
+            name = f'{event.gate_location}::{event.gate_name}'
+            if name not in wait:
+                wait[name] = 0
+
+            wait[name] += event.stop - event.start
+
+print('name  wait')
+for [name, time] in sorted(wait.items(), reverse=True, key=lambda x: x[1])[:10]:
+    print(f'{name:>35}\t{time:.2f}')
 
 # allocate a y position for each gate
 total_y = 0

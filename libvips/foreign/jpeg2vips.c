@@ -979,9 +979,10 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 
 		/* Swap width and height if we're going to rotate this image.
 		 */
-		if( jpeg->autorotate &&
-			vips_image_get_orientation_swap( out ) ) {
-			VIPS_SWAP( int, out->Xsize, out->Ysize );
+		if( jpeg->autorotate ) {
+			if( vips_image_get_orientation_swap( out ) ) 
+				VIPS_SWAP( int, out->Xsize, out->Ysize );
+
 			vips_autorot_remove_angle( out ); 
 		}
 	}

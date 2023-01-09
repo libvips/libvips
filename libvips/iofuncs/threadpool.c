@@ -405,7 +405,7 @@ vips_thread_main_loop( void *a, void *b )
 		!pool->error ) {
 		VIPS_GATE_START( "vips_worker_work_unit: u" ); 
 		vips_worker_work_unit( worker );
-		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
+		VIPS_GATE_STOP( "vips_worker_work_unit: u" );
 		vips_semaphore_up( &pool->tick );
 	} 
 
