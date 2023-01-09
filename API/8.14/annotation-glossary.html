@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"><span id="nav_glossary"><a class="shortcut" href="#glsA">A</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsC">C</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsE">E</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsI">I</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsM">M</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsN">N</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsO">O</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsS">S</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#glsT">T</a></span></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
+<td><a accesskey="p" href="api-index-full.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><img src="right-insensitive.png" width="16" height="16" border="0"></td>
+</tr></table>
+<div class="glossary">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="annotation-glossary"></a>Annotation Glossary</h1></div></div></div>
+<a name="glsA"></a><h3 class="title">A</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-allow-none"></a>allow-none</span></dt>
+<dd class="glossdef"><p>NULL is OK, both for passing and for returning.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-array"></a>array</span></dt>
+<dd class="glossdef"><p>Parameter points to an array of items.</p></dd>
+<a name="glsC"></a><h3 class="title">C</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-closure"></a>closure</span></dt>
+<dd class="glossdef"><p>This parameter is a 'user_data', for callbacks; many bindings can pass NULL here.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-constructor"></a>constructor</span></dt>
+<dd class="glossdef"><p>This symbol is a constructor, not a static method.</p></dd>
+<a name="glsE"></a><h3 class="title">E</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-element-type"></a>element-type</span></dt>
+<dd class="glossdef"><p>Generics and defining elements of containers and arrays.</p></dd>
+<a name="glsI"></a><h3 class="title">I</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-inout"></a>inout</span></dt>
+<dd class="glossdef"><p>Parameter for input and for returning results. Default is <acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>.</p></dd>
+<a name="glsM"></a><h3 class="title">M</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-method"></a>method</span></dt>
+<dd class="glossdef"><p>This is a method</p></dd>
+<a name="glsN"></a><h3 class="title">N</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-nullable"></a>nullable</span></dt>
+<dd class="glossdef"><p>NULL may be passed as the value in, out, in-out; or as a return value.</p></dd>
+<a name="glsO"></a><h3 class="title">O</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-optional"></a>optional</span></dt>
+<dd class="glossdef"><p>NULL may be passed instead of a pointer to a location.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-out"></a>out</span></dt>
+<dd class="glossdef"><p>Parameter for returning results. Default is <acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-out%20caller-allocates"></a>out caller-allocates</span></dt>
+<dd class="glossdef"><p>Out parameter, where caller must allocate storage.</p></dd>
+<a name="glsS"></a><h3 class="title">S</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-scope%20async"></a>scope async</span></dt>
+<dd class="glossdef"><p>The callback is valid until first called.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-scope%20call"></a>scope call</span></dt>
+<dd class="glossdef"><p>The callback is valid only during the call to the method.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-skip"></a>skip</span></dt>
+<dd class="glossdef"><p>Exposed in C code, not necessarily available in other languages.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-Stable"></a>Stable</span></dt>
+<dd class="glossdef"><p>The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+</p></dd>
+<a name="glsT"></a><h3 class="title">T</h3>
+<dt><span class="glossterm"><a name="annotation-glossterm-transfer%20full"></a>transfer full</span></dt>
+<dd class="glossdef"><p>The caller owns the data, and is responsible for free it.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-transfer%20none"></a>transfer none</span></dt>
+<dd class="glossdef"><p>The data is owned by the callee, which is responsible of freeing it.</p></dd>
+<dt><span class="glossterm"><a name="annotation-glossterm-type"></a>type</span></dt>
+<dd class="glossdef"><p>Override the parsed C type with given type.</p></dd>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

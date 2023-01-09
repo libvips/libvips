@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#VipsTargetCustom.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#VipsTargetCustom.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#VipsTargetCustom.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#VipsTargetCustom.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-buf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="VipsSbuf.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="VipsTargetCustom"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="VipsTargetCustom.top_of_page"></a>VipsConnection</span></h2>
+<p>VipsConnection — a source/sink of bytes, perhaps a network socket</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="VipsTargetCustom.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-connection-filename" title="vips_connection_filename ()">vips_connection_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-connection-nick" title="vips_connection_nick ()">vips_connection_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-pipe-read-limit-set" title="vips_pipe_read_limit_set ()">vips_pipe_read_limit_set</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-descriptor" title="vips_source_new_from_descriptor ()">vips_source_new_from_descriptor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-file" title="vips_source_new_from_file ()">vips_source_new_from_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-blob" title="vips_source_new_from_blob ()">vips_source_new_from_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-target" title="vips_source_new_from_target ()">vips_source_new_from_target</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-memory" title="vips_source_new_from_memory ()">vips_source_new_from_memory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-new-from-options" title="vips_source_new_from_options ()">vips_source_new_from_options</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-minimise" title="vips_source_minimise ()">vips_source_minimise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-unminimise" title="vips_source_unminimise ()">vips_source_unminimise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-decode" title="vips_source_decode ()">vips_source_decode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-read" title="vips_source_read ()">vips_source_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-is-mappable" title="vips_source_is_mappable ()">vips_source_is_mappable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-is-file" title="vips_source_is_file ()">vips_source_is_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-map" title="vips_source_map ()">vips_source_map</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="returnvalue">VipsBlob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-map-blob" title="vips_source_map_blob ()">vips_source_map_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-seek" title="vips_source_seek ()">vips_source_seek</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-rewind" title="vips_source_rewind ()">vips_source_rewind</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-sniff-at-most" title="vips_source_sniff_at_most ()">vips_source_sniff_at_most</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-sniff" title="vips_source_sniff ()">vips_source_sniff</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-length" title="vips_source_length ()">vips_source_length</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="returnvalue">VipsSourceCustom</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-custom-new" title="vips_source_custom_new ()">vips_source_custom_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct"><span class="returnvalue">GInputStream</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-g-input-stream-new-from-source" title="vips_g_input_stream_new_from_source ()">vips_g_input_stream_new_from_source</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsSourceGInputStream" title="VipsSourceGInputStream"><span class="returnvalue">VipsSourceGInputStream</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-source-g-input-stream-new" title="vips_source_g_input_stream_new ()">vips_source_g_input_stream_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-new-to-descriptor" title="vips_target_new_to_descriptor ()">vips_target_new_to_descriptor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-new-to-file" title="vips_target_new_to_file ()">vips_target_new_to_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-new-to-memory" title="vips_target_new_to_memory ()">vips_target_new_to_memory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-new-temp" title="vips_target_new_temp ()">vips_target_new_temp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-write" title="vips_target_write ()">vips_target_write</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-read" title="vips_target_read ()">vips_target_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">off_t</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-seek" title="vips_target_seek ()">vips_target_seek</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-end" title="vips_target_end ()">vips_target_end</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-finish" title="vips_target_finish ()">vips_target_finish</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-steal" title="vips_target_steal ()">vips_target_steal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-steal-text" title="vips_target_steal_text ()">vips_target_steal_text</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-putc" title="vips_target_putc ()">vips_target_putc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#VIPS-TARGET-PUTC:CAPS" title="VIPS_TARGET_PUTC()">VIPS_TARGET_PUTC</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-writes" title="vips_target_writes ()">vips_target_writes</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-writef" title="vips_target_writef ()">vips_target_writef</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-write-amp" title="vips_target_write_amp ()">vips_target_write_amp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="returnvalue">VipsTargetCustom</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsTargetCustom.html#vips-target-custom-new" title="vips_target_custom_new ()">vips_target_custom_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">int</span></td>
+<td class="property_name"><a class="link" href="VipsTargetCustom.html#VipsConnection--descriptor" title="The “descriptor” property">descriptor</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="VipsTargetCustom.html#VipsConnection--filename" title="The “filename” property">filename</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsTargetCustom.html#VipsSource--blob" title="The “blob” property">blob</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsTargetCustom.html#VipsTarget--blob" title="The “blob” property">blob</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="VipsTargetCustom.html#VipsTarget--memory" title="The “memory” property">memory</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsSourceCustom-read" title="The “read” signal">read</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsSourceCustom-seek" title="The “seek” signal">seek</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">int</span></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsTargetCustom-end" title="The “end” signal">end</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsTargetCustom-finish" title="The “finish” signal">finish</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsTargetCustom-read" title="The “read” signal">read</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsTargetCustom-seek" title="The “seek” signal">seek</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsTargetCustom.html#VipsTargetCustom-write" title="The “write” signal">write</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<a name="VipsConnection"></a><a name="VipsGInputStream"></a><a name="VipsSource"></a><a name="VipsSourceCustom"></a><a name="VipsTarget"></a><div class="refsect1">
+<a name="VipsTargetCustom.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="VipsTargetCustom.html#VipsSourceGInputStream" title="VipsSourceGInputStream">VipsSourceGInputStream</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="VipsTargetCustom.html#VipsSourceGInputStreamClass" title="VipsSourceGInputStreamClass">VipsSourceGInputStreamClass</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsTargetCustom.html#VIPS-TARGET-BUFFER-SIZE:CAPS" title="VIPS_TARGET_BUFFER_SIZE">VIPS_TARGET_BUFFER_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsTargetCustom.html#VIPS-TARGET-CUSTOM-BUFFER-SIZE:CAPS" title="VIPS_TARGET_CUSTOM_BUFFER_SIZE">VIPS_TARGET_CUSTOM_BUFFER_SIZE</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">├──</span> <a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct">GInputStream</a>
+    <span class="lineart">│</span>   <span class="lineart">╰──</span> VipsGInputStream
+    <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+        <span class="lineart">╰──</span> VipsConnection
+            <span class="lineart">├──</span> VipsSource
+            <span class="lineart">│</span>   <span class="lineart">╰──</span> VipsSourceCustom
+            <span class="lineart">╰──</span> VipsTarget
+                <span class="lineart">╰──</span> VipsTargetCustom
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.description"></a><h2>Description</h2>
+<p>A <a class="link" href="VipsTargetCustom.html#VipsConnection"><span class="type">VipsConnection</span></a> is a source or sink of bytes for something like jpeg 
+loading, see for example <a class="link" href="VipsForeignSave.html#vips-jpegload-source" title="vips_jpegload_source ()"><code class="function">vips_jpegload_source()</code></a>. </p>
+<p>It can be connected to a network socket, for example, or perhaps 
+a node.js stream, or to an area of memory. </p>
+<p>Subclass to add other input sources. Use <a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="type">VipsSourceCustom</span></a> and
+<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> to make a source or target with action signals for 
+::read, ::write and ::seek.</p>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-connection-filename"></a><h3>vips_connection_filename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_connection_filename (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsConnection"><span class="type">VipsConnection</span></a> *connection</code></em>);</pre>
+<div class="refsect3">
+<a name="vips-connection-filename.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>connection to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-connection-filename.returns"></a><h4>Returns</h4>
+<p> any filename associated with this connection, or NULL.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-connection-nick"></a><h3>vips_connection_nick ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_connection_nick (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsConnection"><span class="type">VipsConnection</span></a> *connection</code></em>);</pre>
+<div class="refsect3">
+<a name="vips-connection-nick.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>connection to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-connection-nick.returns"></a><h4>Returns</h4>
+<p> a string describing this connection which could be displayed to a
+user.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-pipe-read-limit-set"></a><h3>vips_pipe_read_limit_set ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_pipe_read_limit_set (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> limit</code></em>);</pre>
+<p>If a source does not support mmap or seek and the source is
+used with a loader that can only work from memory, then the data will be
+automatically read into memory to EOF before the loader starts. This can
+produce high memory use if the descriptor represents a large object.</p>
+<p>Use <a class="link" href="VipsTargetCustom.html#vips-pipe-read-limit-set" title="vips_pipe_read_limit_set ()"><code class="function">vips_pipe_read_limit_set()</code></a> to limit the size of object that
+will be read in this way. The default is 1GB. </p>
+<p>Set a value of -1 to mean no limit.</p>
+<p>See also: <code class="literal">--vips-pipe-read-limit</code> and the environment variable 
+<code class="literal">VIPS_PIPE_READ_LIMIT</code>.</p>
+<div class="refsect3">
+<a name="vips-pipe-read-limit-set.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>limit</p></td>
+<td class="parameter_description"><p>maximum number of bytes to buffer from a pipe</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-descriptor"></a><h3>vips_source_new_from_descriptor ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_descriptor (<em class="parameter"><code><span class="type">int</span> descriptor</code></em>);</pre>
+<p>Create an source attached to a file descriptor. <em class="parameter"><code>descriptor</code></em>
+ is 
+closed with <code class="function">close()</code> when source is finalized.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-descriptor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>read from this file descriptor</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-descriptor.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-file"></a><h3>vips_source_new_from_file ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_file (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
+<p>Create an source attached to a file.</p>
+<p>If this descriptor does not support mmap and the source is
+used with a loader that can only work from memory, then the data will be
+automatically read into memory to EOF before the loader starts. This can
+produce high memory use if the descriptor represents a large object.</p>
+<p>Use <a class="link" href="VipsTargetCustom.html#vips-pipe-read-limit-set" title="vips_pipe_read_limit_set ()"><code class="function">vips_pipe_read_limit_set()</code></a> to limit the size of object that
+will be read in this way. The default is 1GB.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>read from this filename </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-file.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-blob"></a><h3>vips_source_new_from_blob ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_blob (<em class="parameter"><code><a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *blob</code></em>);</pre>
+<p>Create a source attached to an area of memory.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-blob.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>blob</p></td>
+<td class="parameter_description"><p>memory area to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-blob.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-target"></a><h3>vips_source_new_from_target ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_target (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>);</pre>
+<p>Create a source from a temp target that has been written to.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-target.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>build the source from this target</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-target.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-memory"></a><h3>vips_source_new_from_memory ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_memory (<em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
+                             <em class="parameter"><code><span class="type">size_t</span> size</code></em>);</pre>
+<p>Create a source attached to an area of memory. </p>
+<p>You must not free <em class="parameter"><code>data</code></em>
+ while the source is active.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-memory.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>memory area to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>size of memory area</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-memory.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-new-from-options"></a><h3>vips_source_new_from_options ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="returnvalue">VipsSource</span></a> *
+vips_source_new_from_options (<em class="parameter"><code>const <span class="type">char</span> *options</code></em>);</pre>
+<p>Create a source from an option string.</p>
+<div class="refsect3">
+<a name="vips-source-new-from-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>options</p></td>
+<td class="parameter_description"><p>option string</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-new-from-options.returns"></a><h4>Returns</h4>
+<p> a new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-minimise"></a><h3>vips_source_minimise ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_source_minimise (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Minimise the source. As many resources as can be safely removed are
+removed. Use <a class="link" href="VipsTargetCustom.html#vips-source-unminimise" title="vips_source_unminimise ()"><code class="function">vips_source_unminimise()</code></a> to restore the source if you wish to
+use it again.</p>
+<p>Loaders should call this in response to the minimise signal on their output
+image.</p>
+<div class="refsect3">
+<a name="vips-source-minimise.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-unminimise"></a><h3>vips_source_unminimise ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_source_unminimise (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Restore the source after minimisation. This is called at the start 
+of every source method, so loaders should not usually need this.</p>
+<p>See also: <a class="link" href="VipsTargetCustom.html#vips-source-minimise" title="vips_source_minimise ()"><code class="function">vips_source_minimise()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-source-unminimise.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-unminimise.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-decode"></a><h3>vips_source_decode ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_source_decode (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Signal the end of header read and the start of the pixel decode phase. 
+After this, you can no longer seek on this source.</p>
+<p>Loaders should call this at the end of header read.</p>
+<p>See also: <a class="link" href="VipsTargetCustom.html#vips-source-unminimise" title="vips_source_unminimise ()"><code class="function">vips_source_unminimise()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-source-decode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-decode.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-read"></a><h3>vips_source_read ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_source_read (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
+                  <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                  <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Read up to <em class="parameter"><code>length</code></em>
+ bytes from <em class="parameter"><code>source</code></em>
+ and store the bytes in <em class="parameter"><code>buffer</code></em>
+.
+Return the number of bytes actually read. If all bytes have been read from 
+the file, return 0.</p>
+<p>Arguments exactly as read(2).</p>
+<div class="refsect3">
+<a name="vips-source-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>store bytes here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes read, 0 on end of file, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-is-mappable"></a><h3>vips_source_is_mappable ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_source_is_mappable (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Some sources can be efficiently mapped into memory.
+You can still use <a class="link" href="VipsTargetCustom.html#vips-source-map" title="vips_source_map ()"><code class="function">vips_source_map()</code></a> if this function returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>,
+but it will be slow.</p>
+<div class="refsect3">
+<a name="vips-source-is-mappable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-is-mappable.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the source can be efficiently mapped into memory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-is-file"></a><h3>vips_source_is_file ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_source_is_file (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Test if this source is a simple file with support for seek. Named pipes,
+for example, will fail this test. If TRUE, you can use
+<a class="link" href="VipsTargetCustom.html#vips-connection-filename" title="vips_connection_filename ()"><code class="function">vips_connection_filename()</code></a> to find the filename.</p>
+<p>Use this to add basic source support for older loaders which can only work
+on files.</p>
+<div class="refsect3">
+<a name="vips-source-is-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-is-file.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the source is a simple file.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-map"></a><h3>vips_source_map ()</h3>
+<pre class="programlisting">const <span class="returnvalue">void</span> *
+vips_source_map (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
+                 <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
+<p>Map the source entirely into memory and return a pointer to the
+start. If <em class="parameter"><code>length_out</code></em>
+ is non-NULL, the source size is written to it.</p>
+<p>This operation can take a long time. Use <a class="link" href="VipsTargetCustom.html#vips-source-is-mappable" title="vips_source_is_mappable ()"><code class="function">vips_source_is_mappable()</code></a> to 
+check if a source can be mapped efficiently.</p>
+<p>The pointer is valid for as long as <em class="parameter"><code>source</code></em>
+ is alive.</p>
+<div class="refsect3">
+<a name="vips-source-map.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length_out</p></td>
+<td class="parameter_description"><p>return the file length here, or NULL</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-map.returns"></a><h4>Returns</h4>
+<p> a pointer to the start of the file contents, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-map-blob"></a><h3>vips_source_map_blob ()</h3>
+<pre class="programlisting"><a class="link" href="libvips-type.html#VipsBlob"><span class="returnvalue">VipsBlob</span></a> *
+vips_source_map_blob (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Just like <a class="link" href="VipsTargetCustom.html#vips-source-map" title="vips_source_map ()"><code class="function">vips_source_map()</code></a>, but return a <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> containing the
+pointer. <em class="parameter"><code>source</code></em>
+ will stay alive as long as the result is alive.</p>
+<div class="refsect3">
+<a name="vips-source-map-blob.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-map-blob.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> containing the data, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-seek"></a><h3>vips_source_seek ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_source_seek (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
+                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> offset</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> whence</code></em>);</pre>
+<p>Move the file read position. You can't call this after pixel decode starts.
+The arguments are exactly as lseek(2).</p>
+<div class="refsect3">
+<a name="vips-source-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p>seek by this offset</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p>seek relative to this point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-seek.returns"></a><h4>Returns</h4>
+<p> the new file position, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-rewind"></a><h3>vips_source_rewind ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_source_rewind (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Rewind the source to the start. </p>
+<p>You can't always do this after the pixel decode phase starts -- for
+example, pipe-like sources can't be rewound.</p>
+<div class="refsect3">
+<a name="vips-source-rewind.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-rewind.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-sniff-at-most"></a><h3>vips_source_sniff_at_most ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_source_sniff_at_most (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
+                           <em class="parameter"><code>unsigned <span class="type">char</span> **data</code></em>,
+                           <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Attempt to sniff at most <em class="parameter"><code>length</code></em>
+ bytes from the start of the source. A 
+pointer to the bytes is returned in <em class="parameter"><code>data</code></em>
+. The number of bytes actually 
+read is returned -- it may be less than <em class="parameter"><code>length</code></em>
+ if the file is shorter than
+<em class="parameter"><code>length</code></em>
+. A negative number indicates a read error.</p>
+<div class="refsect3">
+<a name="vips-source-sniff-at-most.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>peek this source</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>return a pointer to the bytes read here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>max number of bytes to read</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-sniff-at-most.returns"></a><h4>Returns</h4>
+<p> number of bytes read, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-sniff"></a><h3>vips_source_sniff ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">char</span> *
+vips_source_sniff (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
+                   <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Return a pointer to the first few bytes of the file. If the file is too
+short, return NULL.</p>
+<div class="refsect3">
+<a name="vips-source-sniff.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>sniff this source</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>number of bytes to sniff</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-sniff.returns"></a><h4>Returns</h4>
+<p> a pointer to the bytes at the start of the file, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-length"></a><h3>vips_source_length ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_source_length (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Return the length in bytes of the source. Unseekable sources, for
+example pipes, will have to be read entirely into memory before the length 
+can be found, so this operation can take a long time.</p>
+<div class="refsect3">
+<a name="vips-source-length.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-length.returns"></a><h4>Returns</h4>
+<p> number of bytes in source, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-custom-new"></a><h3>vips_source_custom_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="returnvalue">VipsSourceCustom</span></a> *
+vips_source_custom_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a <a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="type">VipsSourceCustom</span></a>. Attach signals to implement read and seek.</p>
+<div class="refsect3">
+<a name="vips-source-custom-new.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="type">VipsSourceCustom</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-g-input-stream-new-from-source"></a><h3>vips_g_input_stream_new_from_source ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct"><span class="returnvalue">GInputStream</span></a> *
+vips_g_input_stream_new_from_source (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Create a new <a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct"><span class="type">GInputStream</span></a> wrapping a <a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a>. This is useful for
+loaders like SVG and PDF which support GInput methods.</p>
+<div class="refsect3">
+<a name="vips-g-input-stream-new-from-source.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>vips source to wrap</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-g-input-stream-new-from-source.returns"></a><h4>Returns</h4>
+<p> a new <a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct"><span class="type">GInputStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-source-g-input-stream-new"></a><h3>vips_source_g_input_stream_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsSourceGInputStream" title="VipsSourceGInputStream"><span class="returnvalue">VipsSourceGInputStream</span></a> *
+vips_source_g_input_stream_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html#GInputStream-struct"><span class="type">GInputStream</span></a> *stream</code></em>);</pre>
+<p>Create a <a class="link" href="VipsTargetCustom.html#VipsSourceGInputStream" title="VipsSourceGInputStream"><span class="type">VipsSourceGInputStream</span></a> which wraps <em class="parameter"><code>stream</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-source-g-input-stream-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>stream</p></td>
+<td class="parameter_description"><p>read from this stream</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-source-g-input-stream-new.returns"></a><h4>Returns</h4>
+<p> the new source.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-new-to-descriptor"></a><h3>vips_target_new_to_descriptor ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+vips_target_new_to_descriptor (<em class="parameter"><code><span class="type">int</span> descriptor</code></em>);</pre>
+<p>Create a target attached to a file descriptor.
+<em class="parameter"><code>descriptor</code></em>
+ is kept open until the target is finalized.</p>
+<p>See also: <a class="link" href="VipsTargetCustom.html#vips-target-new-to-file" title="vips_target_new_to_file ()"><code class="function">vips_target_new_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-target-new-to-descriptor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>write to this file descriptor</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-new-to-descriptor.returns"></a><h4>Returns</h4>
+<p> a new target.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-new-to-file"></a><h3>vips_target_new_to_file ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+vips_target_new_to_file (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
+<p>Create a target attached to a file.</p>
+<div class="refsect3">
+<a name="vips-target-new-to-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>write to this file </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-new-to-file.returns"></a><h4>Returns</h4>
+<p> a new target.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-new-to-memory"></a><h3>vips_target_new_to_memory ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+vips_target_new_to_memory (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a target which will write to a memory area. Read from <em class="parameter"><code>blob</code></em>
+ to get
+memory.</p>
+<p>See also: <a class="link" href="VipsTargetCustom.html#vips-target-new-to-file" title="vips_target_new_to_file ()"><code class="function">vips_target_new_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-target-new-to-memory.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsTargetCustom.html#VipsConnection"><span class="type">VipsConnection</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-new-temp"></a><h3>vips_target_new_temp ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="returnvalue">VipsTarget</span></a> *
+vips_target_new_temp (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>);</pre>
+<p>Create a temporary target -- either a temporary file on disc, or an area in
+memory, depending on what sort of target <em class="parameter"><code>based_on</code></em>
+ is.</p>
+<p>See also: <a class="link" href="VipsTargetCustom.html#vips-target-new-to-file" title="vips_target_new_to_file ()"><code class="function">vips_target_new_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-target-new-temp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>based_on</p></td>
+<td class="parameter_description"><p>base the temporary target on this target</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-new-temp.returns"></a><h4>Returns</h4>
+<p> a new target.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-write"></a><h3>vips_target_write ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_write (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                   <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
+                   <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Write <em class="parameter"><code>length</code></em>
+ bytes from <em class="parameter"><code>buffer</code></em>
+ to the output.</p>
+<div class="refsect3">
+<a name="vips-target-write.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-write.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-read"></a><h3>vips_target_read ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_target_read (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                  <em class="parameter"><code><span class="type">void</span> *buffer</code></em>,
+                  <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Read up to <em class="parameter"><code>length</code></em>
+ bytes from <em class="parameter"><code>target</code></em>
+ and store the bytes in <em class="parameter"><code>buffer</code></em>
+.
+Return the number of bytes actually read. If all bytes have been read from 
+the file, return 0.</p>
+<p>Arguments exactly as read(2).</p>
+<p>Reading froma  target sounds weird, but libtiff needs this for
+multi-page writes. This method will fail for targets like pipes.</p>
+<div class="refsect3">
+<a name="vips-target-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>store bytes here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes read, 0 on end of file, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-seek"></a><h3>vips_target_seek ()</h3>
+<pre class="programlisting"><span class="returnvalue">off_t</span>
+vips_target_seek (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                  <em class="parameter"><code><span class="type">off_t</span> offset</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> whence</code></em>);</pre>
+<p>Seek the target. This behaves exactly as lseek(2).</p>
+<p>Seeking a target sounds weird, but libtiff needs this. This method will 
+fail for targets like pipes.</p>
+<div class="refsect3">
+<a name="vips-target-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>position</p></td>
+<td class="parameter_description"><p>position to seek to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p>seek relative to beginning, offset, or end</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-seek.returns"></a><h4>Returns</h4>
+<p> the new seek position, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-end"></a><h3>vips_target_end ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_end (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>);</pre>
+<p>Call this at the end of write to make the target do any cleaning up. You
+can call it many times. </p>
+<p>After a target has been finished, further writes will do nothing.</p>
+<div class="refsect3">
+<a name="vips-target-end.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-end.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-finish"></a><h3>vips_target_finish ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_target_finish (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>);</pre>
+<div class="warning"><p><code class="literal">vips_target_finish</code> is deprecated and should not be used in newly-written code.</p></div>
+<p>Deprecated in favour of <a class="link" href="VipsTargetCustom.html#vips-target-end" title="vips_target_end ()"><code class="function">vips_target_end()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-target-finish.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-steal"></a><h3>vips_target_steal ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">char</span> *
+vips_target_steal (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                   <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
+<p>Memory targets only (see <a class="link" href="VipsTargetCustom.html#vips-target-new-to-memory" title="vips_target_new_to_memory ()"><code class="function">vips_target_new_to_memory()</code></a>). Steal all data
+written to the target so far, and finish it.</p>
+<p>You must free the returned pointer with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.</p>
+<p>The data is NOT automatically null-terminated. <a class="link" href="VipsTargetCustom.html#vips-target-putc" title="vips_target_putc ()"><code class="function">vips_target_putc()</code></a> a '\0' 
+before calling this to get a null-terminated string.</p>
+<div class="refsect3">
+<a name="vips-target-steal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>return number of bytes of data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-steal.returns"></a><h4>Returns</h4>
+<p>the
+data. </p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-steal-text"></a><h3>vips_target_steal_text ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_target_steal_text (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>);</pre>
+<p>As <a class="link" href="VipsTargetCustom.html#vips-target-steal-text" title="vips_target_steal_text ()"><code class="function">vips_target_steal_text()</code></a>, but return a null-terminated string.</p>
+<div class="refsect3">
+<a name="vips-target-steal-text.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-steal-text.returns"></a><h4>Returns</h4>
+<p>target contents as a null-terminated string. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-putc"></a><h3>vips_target_putc ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_putc (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> ch</code></em>);</pre>
+<p>Write a single character <em class="parameter"><code>ch</code></em>
+ to <em class="parameter"><code>target</code></em>
+. See the macro <a class="link" href="VipsTargetCustom.html#VIPS-TARGET-PUTC:CAPS" title="VIPS_TARGET_PUTC()"><code class="function">VIPS_TARGET_PUTC()</code></a>
+for a faster way to do this.</p>
+<div class="refsect3">
+<a name="vips-target-putc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ch</p></td>
+<td class="parameter_description"><p>character to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-putc.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-TARGET-PUTC:CAPS"></a><h3>VIPS_TARGET_PUTC()</h3>
+<pre class="programlisting">#define             VIPS_TARGET_PUTC( S, C )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-writes"></a><h3>vips_target_writes ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_writes (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+<p>Write a null-terminated string to <em class="parameter"><code>target</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-target-writes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>string to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-writes.returns"></a><h4>Returns</h4>
+<p> 0 on success, and -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-writef"></a><h3>vips_target_writef ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_writef (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+                    <em class="parameter"><code>...</code></em>);</pre>
+<p>Format the string and write to <em class="parameter"><code>target</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-target-writef.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>&lt;function&gt;<code class="function">printf()</code>&lt;/function&gt;-style format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-writef.returns"></a><h4>Returns</h4>
+<p> 0 on success, and -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-write-amp"></a><h3>vips_target_write_amp ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_target_write_amp (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+<p>Write <em class="parameter"><code>str</code></em>
+ to <em class="parameter"><code>target</code></em>
+, but escape stuff that xml hates in text. Our
+argument string is utf-8.</p>
+<p>XML rules:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>We must escape &amp;&lt;&gt; </p></li>
+<li class="listitem"><p>Don't escape \n, \t, \r</p></li>
+<li class="listitem"><p>Do escape the other ASCII codes.</p></li>
+</ul></div>
+<div class="refsect3">
+<a name="vips-target-write-amp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>target to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>string to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-target-write-amp.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-target-custom-new"></a><h3>vips_target_custom_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="returnvalue">VipsTargetCustom</span></a> *
+vips_target_custom_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a <a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a>. Attach signals to implement write and finish.</p>
+<div class="refsect3">
+<a name="vips-target-custom-new.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsSourceGInputStream"></a><h3>VipsSourceGInputStream</h3>
+<pre class="programlisting">typedef struct {
+	VipsSource parent_instance;
+} VipsSourceGInputStream;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSourceGInputStreamClass"></a><h3>VipsSourceGInputStreamClass</h3>
+<pre class="programlisting">typedef struct {
+	VipsSourceClass parent_class;
+} VipsSourceGInputStreamClass;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-TARGET-BUFFER-SIZE:CAPS"></a><h3>VIPS_TARGET_BUFFER_SIZE</h3>
+<pre class="programlisting">#define VIPS_TARGET_BUFFER_SIZE (8500)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-TARGET-CUSTOM-BUFFER-SIZE:CAPS"></a><h3>VIPS_TARGET_CUSTOM_BUFFER_SIZE</h3>
+<pre class="programlisting">#define VIPS_TARGET_CUSTOM_BUFFER_SIZE (4096)
+</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="VipsConnection--descriptor"></a><h3>The <code class="literal">“descriptor”</code> property</h3>
+<pre class="programlisting">  “descriptor”               <span class="type">int</span></pre>
+<p>File descriptor for read or write.</p>
+<p>Owner: VipsConnection</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: [-1,1000000000]</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsConnection--filename"></a><h3>The <code class="literal">“filename”</code> property</h3>
+<pre class="programlisting">  “filename”                 <span class="type">char</span> *</pre>
+<p>Name of file to open.</p>
+<p>Owner: VipsConnection</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSource--blob"></a><h3>The <code class="literal">“blob”</code> property</h3>
+<pre class="programlisting">  “blob”                     <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</pre>
+<p>Blob to load from.</p>
+<p>Owner: VipsSource</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTarget--blob"></a><h3>The <code class="literal">“blob”</code> property</h3>
+<pre class="programlisting">  “blob”                     <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</pre>
+<p>Blob to save to.</p>
+<p>Owner: VipsTarget</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTarget--memory"></a><h3>The <code class="literal">“memory”</code> property</h3>
+<pre class="programlisting">  “memory”                   <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>File descriptor should output to memory.</p>
+<p>Owner: VipsTarget</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="VipsSourceCustom-read"></a><h3>The <code class="literal">“read”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="type">VipsSourceCustom</span></a> *source_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          buffer,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>            size,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted to read bytes from the source into <em class="parameter"><code>buffer</code></em>
+.</p>
+<div class="refsect3">
+<a name="VipsSourceCustom-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source_custom</p></td>
+<td class="parameter_description"><p>the source being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><code class="literal">gpointer</code></a>, buffer to fill</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>size</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, size of buffer</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsSourceCustom-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes read. Return 0 for EOF.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSourceCustom-seek"></a><h3>The <code class="literal">“seek”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsTargetCustom.html#VipsSourceCustom"><span class="type">VipsSourceCustom</span></a> *source_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>            offset,
+               <span class="type">int</span>               whence,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted to seek the source. The handler should
+change the source position appropriately.</p>
+<p>The handler for an unseekable source should always return -1.</p>
+<div class="refsect3">
+<a name="VipsSourceCustom-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>source_custom</p></td>
+<td class="parameter_description"><p>the source being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, seek offset</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, seek origin</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsSourceCustom-seek.returns"></a><h4>Returns</h4>
+<p> the new seek position.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTargetCustom-end"></a><h3>The <code class="literal">“end”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+user_function (<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> *target_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted at the end of write. The target should do
+any finishing necessary.</p>
+<div class="refsect3">
+<a name="VipsTargetCustom-end.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target_custom</p></td>
+<td class="parameter_description"><p>the target being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsTargetCustom-end.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTargetCustom-finish"></a><h3>The <code class="literal">“finish”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> *target_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>Deprecated for VipsTargetCustom::end.</p>
+<div class="refsect3">
+<a name="VipsTargetCustom-finish.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target_custom</p></td>
+<td class="parameter_description"><p>the target being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTargetCustom-read"></a><h3>The <code class="literal">“read”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> *target_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          buffer,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>            size,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted to read bytes from the target into <em class="parameter"><code>buffer</code></em>
+.</p>
+<p>The handler for an unreadable target should always return -1.</p>
+<div class="refsect3">
+<a name="VipsTargetCustom-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target_custom</p></td>
+<td class="parameter_description"><p>the target being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><code class="literal">gpointer</code></a>, buffer to fill</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>size</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, size of buffer</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsTargetCustom-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes read. Return 0 for EOF.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTargetCustom-seek"></a><h3>The <code class="literal">“seek”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> *target_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>            offset,
+               <span class="type">int</span>               whence,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted to seek the target. The handler should
+change the target position appropriately.</p>
+<p>The handler for an unseekable target should always return -1.</p>
+<div class="refsect3">
+<a name="VipsTargetCustom-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target_custom</p></td>
+<td class="parameter_description"><p>the target being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, seek offset</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, seek origin</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsTargetCustom-seek.returns"></a><h4>Returns</h4>
+<p> the new seek position.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsTargetCustom-write"></a><h3>The <code class="literal">“write”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsTargetCustom.html" title="VipsConnection"><span class="type">VipsTargetCustom</span></a> *target_custom,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          data,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>            length,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>          user_data)</pre>
+<p>This signal is emitted to write bytes to the target.</p>
+<div class="refsect3">
+<a name="VipsTargetCustom-write.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>target_custom</p></td>
+<td class="parameter_description"><p>the target being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p><code class="literal">pointer</code>, bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, number of bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsTargetCustom-write.returns"></a><h4>Returns</h4>
+<p> the number of bytes written.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsTargetCustom.see-also"></a><h2>See Also</h2>
+<p>&lt;link linkend="libvips-foreign"&gt;foreign&lt;/link&gt;</p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

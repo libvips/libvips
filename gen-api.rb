@@ -45,8 +45,9 @@ end
 copy_html "#{ARGV[0]}/share/gtk-doc/html/libvips", 
     "API/#{version}", "api-default.html"
 
-if File.directory? "#{ARGV[0]}/share/doc/vips/html"
-    copy_html "#{ARGV[0]}/share/doc/vips/html",
+if File.directory? "#{ARGV[0]}/share/doc/vips-doc/html"
+    copy_html "#{ARGV[0]}/share/doc/vips-doc/html",
         "API/#{version}/cpp", "cpp-default.html"
 end
+
 

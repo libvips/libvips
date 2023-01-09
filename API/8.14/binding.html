@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+      <a href="https://github.com/libvips" class="btn">libvips projects</a>
+      <a href="https://github.com/libvips/libvips" class="btn">libvips on GitHub</a>
+
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-from-C++.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="extending.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="binding"></a><div class="titlepage"></div>
+<p>
+  
+</p>
+<p>
+  </p>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2>Binding</h2>
+<p>Binding — Writing bindings for libvips</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<p>
+</p>
+<p>
+  There are full libvips bindings for quite a few environments now: C, C++, command-line, Ruby, PHP, Lua, Python and JavaScript (node).
+</p>
+<p>
+  This chapter runs through the four main styles that have been found to work well. If you want to write a new binding, one of these should be close to what you need.
+</p>
+<div class="refsect3">
+<a name="dont-bind-the-top-level-c-api"></a><h4>Don’t bind the top-level C API</h4>
+<p>
+    The libvips C API (vips_add() and so on) was designed to be easy for humans to write. It is inconvenient and dangerous to use from other languages due to its heavy use of varargs.
+  </p>
+<p>
+    It’s much better to use the layer below. This lower layer is structured as:
+  </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+        Create operator. You can use vips_operation_new() to make a new <code class="literal">VipsOperation</code> object from an operator nickname, like <code class="literal">"add"</code>.
+      </p></li>
+<li class="listitem"><p>
+        Set parameters. You can loop over the operation with vips_argument_map() to get the name and type of each input argument. For each argument, you need to get the value from your language, convert to a <code class="literal">GValue</code>, then use g_object_set_property() to set that value on the operator.
+      </p></li>
+<li class="listitem"><p>
+        Execute with vips_cache_operation_build().
+      </p></li>
+<li class="listitem"><p>
+        Extract results. Again, you loop over the operator arguments with vips_argument_map(), but instead of inputs, this time you look for output arguments. You extract their value with g_object_get_property(), and pass the value back to your language.
+      </p></li>
+</ul></div>
+<p>
+    For example, you can execute vips_invert() like this:
+  </p>
+<pre class="programlisting">
+/* compile with
+ *
+ * gcc -g -Wall callvips.c `pkg-config vips --cflags --libs`
+ *
+ */
+
+#include &lt;vips/vips.h&gt;
+
+int
+main( int argc, char **argv )
+{
+    VipsImage *in;
+    VipsImage *out;
+    VipsOperation *op;
+    VipsOperation *new_op;
+    GValue gvalue = { 0 };
+
+    if( VIPS_INIT( argv[0] ) ) 
+        /* This shows the vips error buffer and quits with a fail exit
+         * code.
+         */
+        vips_error_exit( NULL ); 
+
+    /* This will print a table of any ref leaks on exit, very handy for
+     * development.
+     */
+    vips_leak_set( TRUE );
+
+    if( argc != 3 )
+        vips_error_exit( "usage: %s input-filename output-filename", 
+            argv[0] );
+
+    if( !(in = vips_image_new_from_file( argv[1], NULL )) )
+        vips_error_exit( NULL ); 
+
+    /* Create a new operator from a nickname. NULL for unknown operator.
+     */
+    op = vips_operation_new( "invert" );
+
+    /* Init a gvalue as an image, set it to in, use the gvalue to set the
+     * operator property.
+     */
+    g_value_init( &amp;gvalue, VIPS_TYPE_IMAGE );
+    g_value_set_object( &amp;gvalue, in );
+    g_object_set_property( G_OBJECT( op ), "in", &amp;gvalue );
+    g_value_unset( &amp;gvalue );
+
+    /* We no longer need in: op will hold a ref to it as long as it needs
+     * it. 
+     */
+    g_object_unref( in ); 
+
+    /* Call the operation. This will look up the operation+args in the vips
+     * operation cache and either return a previous operation, or build
+     * this one. In either case, we have a new ref we must release.
+     */
+    if( !(new_op = vips_cache_operation_build( op )) ) {
+        g_object_unref( op );
+        vips_error_exit( NULL ); 
+    }
+    g_object_unref( op );
+    op = new_op;
+
+    /* Now get the result from op. g_value_get_object() does not ref the
+     * object, so we need to make a ref for out to hold.
+     */
+    g_value_init( &amp;gvalue, VIPS_TYPE_IMAGE );
+    g_object_get_property( G_OBJECT( op ), "out", &amp;gvalue );
+    out = VIPS_IMAGE( g_value_get_object( &amp;gvalue ) );
+    g_object_ref( out ); 
+    g_value_unset( &amp;gvalue );
+
+    /* All done: we can unref op. The output objects from op actually hold
+     * refs back to it, so before we can unref op, we must unref them. 
+     */
+    vips_object_unref_outputs( VIPS_OBJECT( op ) ); 
+    g_object_unref( op );
+
+    if( vips_image_write_to_file( out, argv[2], NULL ) )
+        vips_error_exit( NULL ); 
+
+    g_object_unref( out );
+
+    return( 0 ); 
+}
+</pre>
+</div>
+<div class="refsect3">
+<a name="compiled-language-which-can-call-c"></a><h4>Compiled language which can call C</h4>
+<p>
+    The C++ binding uses this lower layer to define a function called <code class="literal">VImage::call()</code> which can call any libvips operator with a set of variable arguments.
+  </p>
+<p>
+    A small Python program walks the set of all libvips operators and generates a set of static bindings. For example:
+  </p>
+<pre class="programlisting">
+VImage VImage::invert( VOption *options )
+{
+    VImage out;
+
+    call( "invert", (options ? options : VImage::option()) -&gt;
+        set( "in", *this ) -&gt;
+        set( "out", &amp;out ) );
+
+    return( out );
+}
+</pre>
+<p>
+    So from C++ you can call any libvips operator (though without static typechecking) with <code class="literal">VImage::call()</code>, or use the member functions on <code class="literal">VImage</code> to get type-checked calls for at least the required operator arguments.
+  </p>
+<p>
+    The <code class="literal">VImage</code> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
+  </p>
+</div>
+<div class="refsect3">
+<a name="dynamic-language-with-ffi"></a><h4>Dynamic language with FFI</h4>
+<p>
+    Languages like Ruby, Python, JavaScript and LuaJIT can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
+  </p>
+<p>
+    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <code class="literal">Image</code> class as libvips operators. In effect, the binding is generated at runtime.
+  </p>
+</div>
+<div class="refsect3">
+<a name="dynamic-language-without-ffi"></a><h4>Dynamic language without FFI</h4>
+<p>
+    PHP does not have a useful FFI, unfortunately, so for this language a small C module implements the general <code class="literal">vips_call()</code> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
+  </p>
+</div>
+<div class="refsect3">
+<a name="gobject-introspection"></a><h4>gobject-introspection</h4>
+<p>
+    The C source code to libvips has been marked up with special comments describing the interface in a standard way. These comments are read by the <code class="literal">gobject-introspection</code> package when libvips is compiled and used to generate a typelib, a description of how to call the library. Many languages have gobject-introspection packages: all you need to do to call libvips from your favorite language is to start g-o-i, load the libvips typelib, and you should have the whole library available. For example, from Python it’s as simple as:
+  </p>
+<pre class="programlisting">
+from gi.repository import Vips
+</pre>
+<p>
+    You can now use all of the libvips introspection machinery, as noted above.
+  </p>
+<p>
+    Unfortunately g-o-i has some strong disadvantages. It is not very portable, since you will need a g-o-i layer for whatever platform you are targetting; it does not cross-compile well, since typelibs include a lot of very-low level data (such as exact structure layouts); and installation for your users is likely to be tricky.
+  </p>
+<p>
+    If you have a choice, I would recommend simply using FFI.
+  </p>
+</div>
+<div class="refsect3">
+<a name="documentation"></a><h4>Documentation</h4>
+<p>
+    You can generate searchable docs from a <code class="code">.gir</code> (the thing that is built from scanning libvips and which in turn turn the typelib is made from) with <span class="command"><strong>g-ir-doc-tool</strong></span>, for example:
+  </p>
+<pre class="programlisting">
+$ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
+</pre>
+<p>
+    Then to view them, either:
+  </p>
+<pre class="programlisting">
+$ yelp ~/mydocs 
+</pre>
+<p>
+    Or perhaps:
+  </p>
+<pre class="programlisting">
+$ cd ~/mydocs 
+$ yelp-build html .
+</pre>
+<p>
+    To make HTML docs. This is an easy way to see what you can call in the library.
+  </p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
