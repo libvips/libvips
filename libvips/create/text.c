@@ -37,6 +37,8 @@
  * 	- add rgba flag
  * 31/10/22
  * 	- add @wrap
+ * 14/1/23
+ *	- make our own fontmap to prevent conflict with outher API users
  */
 
 /*
@@ -109,7 +111,6 @@ typedef struct _VipsText {
 	gboolean rgba;
 	VipsTextWrap wrap;
 
-	PangoFontMap *fontmap;
 	PangoContext *context;
 	PangoLayout *layout;
 
@@ -118,6 +119,10 @@ typedef struct _VipsText {
 typedef VipsCreateClass VipsTextClass;
 
 G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
+
+/* These are expensive. Have one shared between libvips threads.
+ */
+static PangoFontMap *vips_text_fontmap = NULL;
 
 /* ... single-thread vips_text_fontfiles with this.
  */
@@ -218,7 +223,7 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	PangoRectangle logical_rect;
 
 	pango_cairo_font_map_set_resolution( 
-		PANGO_CAIRO_FONT_MAP( text->fontmap ), text->dpi );
+		PANGO_CAIRO_FONT_MAP( vips_text_fontmap ), text->dpi );
 
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
@@ -366,9 +371,19 @@ vips_text_autofit( VipsText *text )
 	return( 0 ); 
 }
 
+static void *
+vips_text_fontmap_init( void *dummy )
+{
+	vips_text_fontmap = pango_cairo_font_map_new();
+
+	return( NULL );
+}
+
 static int
 vips_text_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsText *text = (VipsText *) object;
@@ -380,6 +395,8 @@ vips_text_build( VipsObject *object )
 	cairo_t *cr;
 	cairo_status_t status;
 
+	VIPS_ONCE( &once, vips_text_fontmap_init, NULL );
+
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
 
@@ -389,9 +406,7 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	text->fontmap = pango_cairo_font_map_get_default();
-	text->context = pango_font_map_create_context(
-		PANGO_FONT_MAP( text->fontmap ) );
+	text->context = pango_font_map_create_context( vips_text_fontmap );
 
 	g_mutex_lock( vips_text_lock ); 
 
@@ -416,9 +431,9 @@ vips_text_build( VipsObject *object )
 		/* We need to inform that pango should invalidate its
 		 * fontconfig cache whenever any changes are made.
 		 */
-		if( PANGO_IS_FC_FONT_MAP( text->fontmap ) )
+		if( PANGO_IS_FC_FONT_MAP( vips_text_fontmap ) )
 			pango_fc_font_map_cache_clear(
-				PANGO_FC_FONT_MAP( text->fontmap ) );
+				PANGO_FC_FONT_MAP( vips_text_fontmap ) );
 	}
 #else /*!HAVE_FONTCONFIG*/
 	if( text->fontfile )
