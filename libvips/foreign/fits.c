@@ -68,8 +68,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -127,6 +127,12 @@ typedef struct {
 	/* One line of pels ready for scatter/gather.
 	 */
 	VipsPel *line;
+
+	/* All the field names we've written, eg. "NAXIS", so we can dedupe 
+	 * metadata.
+	 */
+	GSList *names;
+
 } VipsFits;
 
 const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
@@ -147,6 +153,7 @@ vips_fits_close( VipsFits *fits )
 {
 	VIPS_FREE( fits->filename );
 	VIPS_FREEF( vips_g_mutex_free, fits->lock );
+	VIPS_FREEF( vips_slist_free_all, fits->names );
 
 	if( fits->fptr ) {
 		int status;
@@ -609,9 +616,75 @@ const char *vips_fits_basic[] = {
 	"NAXIS2 ",
 	"NAXIS3 ",
 	"EXTEND ",
-	"COMMENT   FITS (Fl",
-	"COMMENT   and Astro",
+	"COMMENT   FITS (Flexible Image Transport System) format",
+	"COMMENT   and Astrophysics', volume 376, page 359; bibcode:",
 };
+
+/* Header fields which can be duplicated start like this.
+ */
+const char *vips_fits_duplicate[] = {
+	"COMMENT ",
+	"HISTORY ",
+	"CONTINUE ",
+};
+
+/* Write a line of header text. Lines can be eg.:
+ *
+ *	"EXTEND  =                    T / FITS dataset may contain extensions"
+ *	"COMMENT   FITS (Flexible Image Transport System) format is defined
+ *
+ * - always left justfied
+ * - keyword is always 8 characters, right passed with spaces
+ * - "= ", if present, is cols 9 and 10
+ */
+static int
+vips_fits_write_field( VipsFits *fits, const char *line )
+{
+	char name[9];
+	int i;
+	GSList *p;
+	int status;
+
+	/* Don't write these (cfitsio does these for us).
+	 */
+	for( i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ )
+		if( vips_isprefix( vips_fits_basic[i], line ) )
+		       return( 0 );	
+
+	/* Just the keyword.
+	 */
+	vips_strncpy( name, line, 9 );
+
+	/* Don't write if it's been written before.
+	 */
+	for( p = fits->names; p; p = p->next ) {
+		const char *written = (const char *) p->data;
+
+		if( strcmp( name, written ) == 0 )
+		       return( 0 );	
+	}
+
+	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
+	VIPS_DEBUG_MSG( " value == \"%s\"\n", line );
+
+	status = 0;
+	if( fits_write_record( fits->fptr, line, &status ) ) {
+		vips_fits_error( status );
+		return( -1 );
+	}
+
+	/* If this isn't one of the fields that can be duplicated, note for
+	 * the dedupe list.
+	 */
+	for( i = 0; i < VIPS_NUMBER( vips_fits_duplicate ); i++ )
+		if( vips_isprefix( vips_fits_duplicate[i], name ) )
+		       break;
+
+	if( i == VIPS_NUMBER( vips_fits_duplicate ) ) 
+		fits->names = g_slist_prepend( fits->names, g_strdup( name ) );
+
+	return( 0 );
+}
 
 static void *
 vips_fits_write_meta( VipsImage *image, 
@@ -619,10 +692,7 @@ vips_fits_write_meta( VipsImage *image,
 {
 	VipsFits *fits = (VipsFits *) a;
 
-	int status;
 	const char *value_str;
-
-	status = 0;
 
 	/* We want fields which start "fits-".
 	 */
@@ -634,19 +704,8 @@ vips_fits_write_meta( VipsImage *image,
 	 */
 	value_str = vips_value_get_ref_string( value, NULL );
 
-	/* We don't want fields which cfitsio will have already written for us.
-	 */
-	for( int i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ ) 
-		if( vips_isprefix( vips_fits_basic[i], value_str ) )
-		       return( NULL );	
-
-	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
-	VIPS_DEBUG_MSG( " value == \"%s\"\n", value_str );
-
-	if( fits_write_record( fits->fptr, value_str, &status ) ) {
-		vips_fits_error( status );
+	if( vips_fits_write_field( fits, value_str ) )
 		return( a );
-	}
 
 	return( NULL );
 }
