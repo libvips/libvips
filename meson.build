@@ -131,6 +131,20 @@ if cpp.compiles(vector_arithmetic_check, name: 'Has vector arithmetic', dependen
     endif
 endif
 
+# HAVE_TARGET_CLONES
+target_clones_check = '''
+static int __attribute__((target_clones("default,avx")))
+has_target_clones(void) {
+    return 0;
+}
+int main(void) {
+    return has_target_clones();
+}
+'''
+if cc.compiles(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
+    cfg_var.set('HAVE_TARGET_CLONES', '1')
+endif
+
 func_names = [ 'vsnprintf', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
 foreach func_name : func_names
     if cc.has_function(func_name, dependencies: m_dep)
