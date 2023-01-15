@@ -218,7 +218,7 @@ G_STMT_START { \
 /* Create multiple copies of a function targeted at groups of SIMD intrinsics,
  * with the most suitable selected at runtime via dynamic dispatch.
  */
-#if defined( HAVE_TARGET_CLONES )
+#ifdef HAVE_TARGET_CLONES
 	#define VIPS_TARGET_CLONES( TARGETS ) \
 		__attribute__(( target_clones( TARGETS ) ))
 #else
