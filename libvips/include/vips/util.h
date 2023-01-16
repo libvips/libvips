@@ -215,6 +215,16 @@ G_STMT_START { \
  */
 #define VIPS_PATH_MAX (4096)
 
+/* Create multiple copies of a function targeted at groups of SIMD intrinsics,
+ * with the most suitable selected at runtime via dynamic dispatch.
+ */
+#ifdef HAVE_TARGET_CLONES
+	#define VIPS_TARGET_CLONES( TARGETS ) \
+		__attribute__(( target_clones( TARGETS ) ))
+#else
+	#define VIPS_TARGET_CLONES( TARGETS )
+#endif
+
 VIPS_API
 const char *vips_enum_string( GType enm, int value );
 VIPS_API

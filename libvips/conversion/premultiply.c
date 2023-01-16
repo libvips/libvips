@@ -121,6 +121,7 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+VIPS_TARGET_CLONES("default,avx")
 static int
 vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
