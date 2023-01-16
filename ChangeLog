@@ -1,3 +1,8 @@
+10/1/23 started 8.15
+
+- add support for target_clones attribute [lovell]
+	* use with (un)premultiply for ~10% perf gain on AVX CPUs
+
 9/1/23 8.14.1
 
 - add vips_thread_isworker() compatibility function [remicollet]
