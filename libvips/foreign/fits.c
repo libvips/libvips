@@ -606,7 +606,8 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 	return( fits );
 }
 
-/* Header fields which cfitsio 4.1 writes for us start like this.
+/* Header fields which cfitsio 4.1 writes for us start like this. It'll use
+ * BZERO and BSCALE for 16- and 32-bit signed data.
  */
 const char *vips_fits_basic[] = {
 	"SIMPLE ",
@@ -616,6 +617,8 @@ const char *vips_fits_basic[] = {
 	"NAXIS2 ",
 	"NAXIS3 ",
 	"EXTEND ",
+	"BZERO ",
+	"BSCALE ",
 	"COMMENT   FITS (Flexible Image Transport System) format",
 	"COMMENT   and Astrophysics', volume 376, page 359; bibcode:",
 };
