@@ -38,6 +38,8 @@
  *      - don't duplicate metadata
  * 6/1/23 ewelot
  *	- save mono images as NAXIS=2
+ * 18/1/23 ewelot
+ *	- dedupe header fields
  */
 
 /*
@@ -128,10 +130,10 @@ typedef struct {
 	 */
 	VipsPel *line;
 
-	/* All the field names we've written, eg. "NAXIS", so we can dedupe 
+	/* All the lines or part lines we've written so we can dedupe
 	 * metadata.
 	 */
-	GSList *names;
+	GSList *dedupe;
 
 } VipsFits;
 
@@ -153,7 +155,7 @@ vips_fits_close( VipsFits *fits )
 {
 	VIPS_FREE( fits->filename );
 	VIPS_FREEF( vips_g_mutex_free, fits->lock );
-	VIPS_FREEF( vips_slist_free_all, fits->names );
+	VIPS_FREEF( vips_slist_free_all, fits->dedupe );
 
 	if( fits->fptr ) {
 		int status;
@@ -621,54 +623,64 @@ const char *vips_fits_basic[] = {
 	"BSCALE ",
 	"COMMENT   FITS (Flexible Image Transport System) format",
 	"COMMENT   and Astrophysics', volume 376, page 359; bibcode:",
+	// may be present in a multi HDU file, but not allowed in a single HDU
+	// file
+	"XTENSION", 
+	"PCOUNT ", 
+	"GCOUNT ",
 };
 
-/* Header fields which can be duplicated start like this.
+/* Header fields which can be duplicated start like this. 
  */
 const char *vips_fits_duplicate[] = {
+	"        ",
 	"COMMENT ",
 	"HISTORY ",
-	"CONTINUE ",
+	"CONTINUE",
 };
 
 /* Write a line of header text. Lines can be eg.:
  *
  *	"EXTEND  =                    T / FITS dataset may contain extensions"
  *	"COMMENT   FITS (Flexible Image Transport System) format is defined
+ *	""
  *
  * - always left justfied
  * - keyword is always 8 characters, right passed with spaces
  * - "= ", if present, is cols 9 and 10
+ * - lines are variable length, can be zero length for blank lines
  */
 static int
-vips_fits_write_field( VipsFits *fits, const char *line )
+vips_fits_write_record( VipsFits *fits, const char *line )
 {
-	char name[9];
+	char keyword[9];
 	int i;
 	GSList *p;
 	int status;
 
-	/* Don't write these (cfitsio does these for us).
+	VIPS_DEBUG_MSG( "vips_fits_write_record: %s\n", line );
+
+	/* cfitsio writes lines like these for us, don't write them again.
 	 */
-	for( i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ )
-		if( vips_isprefix( vips_fits_basic[i], line ) )
-		       return( 0 );	
+	for( i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ ) 
+		if( vips_isprefix( vips_fits_basic[i], line ) ) 
+			return( 0 );	
 
 	/* Just the keyword.
 	 */
-	vips_strncpy( name, line, 9 );
+	vips_strncpy( keyword, line, 9 );
 
-	/* Don't write if it's been written before.
+	/* We dedupe some keywords, and we dedupe entire lines that match
+	 * exactly.
 	 */
-	for( p = fits->names; p; p = p->next ) {
+	for( p = fits->dedupe; p; p = p->next ) {
 		const char *written = (const char *) p->data;
 
-		if( strcmp( name, written ) == 0 )
-		       return( 0 );	
+		if( strcmp( keyword, written ) == 0 )
+			return( 0 );	
+		if( strcmp( line, written ) == 0 ) 
+			return( 0 );	
 	}
-
-	VIPS_DEBUG_MSG( "vips_fits_write_meta: setting meta on fits image:\n" );
-	VIPS_DEBUG_MSG( " value == \"%s\"\n", line );
 
 	status = 0;
 	if( fits_write_record( fits->fptr, line, &status ) ) {
@@ -676,15 +688,27 @@ vips_fits_write_field( VipsFits *fits, const char *line )
 		return( -1 );
 	}
 
-	/* If this isn't one of the fields that can be duplicated, note for
-	 * the dedupe list.
+	/* Add to the dedupe list (except for blank lines, which we must
+	 * dupe).
 	 */
-	for( i = 0; i < VIPS_NUMBER( vips_fits_duplicate ); i++ )
-		if( vips_isprefix( vips_fits_duplicate[i], name ) )
-		       break;
+	if( strcmp( line, "" ) != 0 ) {
+		/* If this isn't one of the keywords that can be duplicated, 
+		 * note for the dedupe list.
+		 */
+		for( i = 0; i < VIPS_NUMBER( vips_fits_duplicate ); i++ )
+			if( vips_isprefix( vips_fits_duplicate[i], keyword ) )
+			       break;
 
-	if( i == VIPS_NUMBER( vips_fits_duplicate ) ) 
-		fits->names = g_slist_prepend( fits->names, g_strdup( name ) );
+		if( i == VIPS_NUMBER( vips_fits_duplicate ) ) 
+			fits->dedupe = g_slist_prepend( fits->dedupe, 
+				g_strdup( keyword ) );
+
+		/* Also dedupe entire lines that match exactly.
+		 */
+		if( strcmp( line, "" ) != 0 )
+			fits->dedupe = g_slist_prepend( fits->dedupe, 
+				g_strdup( line ) );
+	}
 
 	return( 0 );
 }
@@ -707,7 +731,7 @@ vips_fits_write_meta( VipsImage *image,
 	 */
 	value_str = vips_value_get_ref_string( value, NULL );
 
-	if( vips_fits_write_field( fits, value_str ) )
+	if( vips_fits_write_record( fits, value_str ) )
 		return( a );
 
 	return( NULL );
