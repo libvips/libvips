@@ -38,7 +38,7 @@
  * 31/10/22
  * 	- add @wrap
  * 14/1/23
- *	- make our own fontmap to prevent conflict with outher API users
+ *	- make our own fontmap to prevent conflict with other API users
  */
 
 /*
