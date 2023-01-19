@@ -824,14 +824,15 @@ read_jpeg_generate( VipsRegion *or,
 	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
-	 * a vips_sequential().
+	 * a vips_sequential(). Some read errors can cause out of order, so
+	 * also test fail_on.
 	 */
 	if( r->top != jpeg->y_pos ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 		vips_error( "VipsJpeg", 
 			_( "out of order read at line %d" ), jpeg->y_pos );
 
-		return( -1 );
+		return( jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ? -1 : 0 );
 	}
 
 	/* Here for longjmp() from vips__new_error_exit() during
@@ -844,7 +845,7 @@ read_jpeg_generate( VipsRegion *or,
 		printf( "read_jpeg_generate: longjmp() exit\n" ); 
 #endif /*DEBUG*/
 
-		return( -1 );
+		return( jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ? -1 : 0 );
 	}
 
 	if( jpeg->eman.pub.num_warnings > 0 &&
