@@ -62,8 +62,6 @@ typedef struct _VipsDbuf {
 } VipsDbuf; 
 
 VIPS_API
-void vips_dbuf_destroy( VipsDbuf *dbuf );
-VIPS_API
 void vips_dbuf_init( VipsDbuf *dbuf );
 VIPS_API
 gboolean vips_dbuf_minimum_size( VipsDbuf *dbuf, size_t size );
