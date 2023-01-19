@@ -37,6 +37,8 @@
  * 	- add rgba flag
  * 31/10/22
  * 	- add @wrap
+ * 14/1/23
+ *	- make our own fontmap to prevent conflict with outher API users
  */
 
 /*
@@ -109,7 +111,6 @@ typedef struct _VipsText {
 	gboolean rgba;
 	VipsTextWrap wrap;
 
-	PangoFontMap *fontmap;
 	PangoContext *context;
 	PangoLayout *layout;
 
@@ -118,6 +119,13 @@ typedef struct _VipsText {
 typedef VipsCreateClass VipsTextClass;
 
 G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
+
+/* These are expensive and do not unref cleanly on many platforms. We keep a
+ * single value for libvips and reuse it behind a lock.
+ *
+ * Have one shared between libvips threads.
+ */
+static PangoFontMap *vips_text_fontmap = NULL;
 
 /* ... single-thread vips_text_fontfiles with this.
  */
@@ -218,7 +226,7 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	PangoRectangle logical_rect;
 
 	pango_cairo_font_map_set_resolution( 
-		PANGO_CAIRO_FONT_MAP( text->fontmap ), text->dpi );
+		PANGO_CAIRO_FONT_MAP( vips_text_fontmap ), text->dpi );
 
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
@@ -366,9 +374,21 @@ vips_text_autofit( VipsText *text )
 	return( 0 ); 
 }
 
+static void *
+vips_text_init_once( void *client )
+{
+	vips_text_lock = vips_g_mutex_new();
+	vips_text_fontmap = pango_cairo_font_map_new();
+	vips_text_fontfiles = g_hash_table_new( g_str_hash, g_str_equal );
+
+	return( NULL );
+}
+
 static int
 vips_text_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsText *text = (VipsText *) object;
@@ -389,15 +409,15 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	text->fontmap = pango_cairo_font_map_get_default();
-	text->context = pango_font_map_create_context(
-		PANGO_FONT_MAP( text->fontmap ) );
+	VIPS_ONCE( &once, vips_text_init_once, NULL );
 
+	text->context = pango_font_map_create_context( vips_text_fontmap );
+
+	/* Because we set resolution on vips_text_fontmap and that's shared
+	 * between all vips_text instances, we must lock all the way to the
+	 * end of text rendering.
+	 */
 	g_mutex_lock( vips_text_lock ); 
-
-	if( !vips_text_fontfiles )
-		vips_text_fontfiles = 
-			g_hash_table_new( g_str_hash, g_str_equal );
 
 #ifdef HAVE_FONTCONFIG
 	if( text->fontfile &&
@@ -416,9 +436,9 @@ vips_text_build( VipsObject *object )
 		/* We need to inform that pango should invalidate its
 		 * fontconfig cache whenever any changes are made.
 		 */
-		if( PANGO_IS_FC_FONT_MAP( text->fontmap ) )
+		if( PANGO_IS_FC_FONT_MAP( vips_text_fontmap ) )
 			pango_fc_font_map_cache_clear(
-				PANGO_FC_FONT_MAP( text->fontmap ) );
+				PANGO_FC_FONT_MAP( vips_text_fontmap ) );
 	}
 #else /*!HAVE_FONTCONFIG*/
 	if( text->fontfile )
@@ -426,24 +446,27 @@ vips_text_build( VipsObject *object )
 			_( "ignoring fontfile (no fontconfig support)" ) );
 #endif /*HAVE_FONTCONFIG*/
 
-	g_mutex_unlock( vips_text_lock );
-
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
 		!vips_object_argument_isset( object, "dpi" ) ) {
-		if( vips_text_autofit( text ) )
+		if( vips_text_autofit( text ) ) {
+			g_mutex_unlock( vips_text_lock );
 			return( -1 );
+		}
 	}
 
 	/* Layout. Can fail for "", for example.
 	 */
-	if( vips_text_get_extents( text, &extents ) )
+	if( vips_text_get_extents( text, &extents ) ) {
+		g_mutex_unlock( vips_text_lock );
 		return( -1 );
+	}
 
 	if( extents.width == 0 || 
 		extents.height == 0 ) {
+		g_mutex_unlock( vips_text_lock );
 		vips_error( class->nickname, "%s", _( "no text to render" ) );
 		return( -1 );
 	}
@@ -458,8 +481,10 @@ vips_text_build( VipsObject *object )
 	image->Yoffset = extents.top;
 
 	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_write_prepare( image ) ) 
+		vips_image_write_prepare( image ) ) {
+		g_mutex_unlock( vips_text_lock );
 		return( -1 );
+	}
 
 	surface = cairo_image_surface_create_for_data( 
 		VIPS_IMAGE_ADDR( image, 0, 0 ), 
@@ -470,6 +495,7 @@ vips_text_build( VipsObject *object )
 	status = cairo_surface_status( surface );
 	if( status ) {
 		cairo_surface_destroy( surface );
+		g_mutex_unlock( vips_text_lock );
 		vips_error( class->nickname,
 			"%s", cairo_status_to_string( status ) );
 		return( -1 );
@@ -483,6 +509,8 @@ vips_text_build( VipsObject *object )
 	pango_cairo_show_layout( cr, text->layout );
 
 	cairo_destroy( cr );
+
+	g_mutex_unlock( vips_text_lock );
 
 	if( text->rgba ) {
 		int y;
@@ -513,24 +541,11 @@ vips_text_build( VipsObject *object )
 	return( 0 );
 }
 
-static void *
-vips_text_make_lock( void *client )
-{
-	if( !vips_text_lock ) 
-		vips_text_lock = vips_g_mutex_new();
-
-	return( NULL );
-}
-
 static void
 vips_text_class_init( VipsTextClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, vips_text_make_lock, NULL );
 
 	gobject_class->dispose = vips_text_dispose;
 	gobject_class->set_property = vips_object_set_property;
