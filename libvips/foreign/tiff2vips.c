@@ -2767,6 +2767,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	guint16 subifd_count;
 	toff_t *subifd_offsets;
 	char *image_description;
+	guint32 max_tile_dimension;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, 
 			&header->width ) ||
@@ -2926,10 +2927,14 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 		/* Arbitrary sanity-checking limits.
 		 */
+		max_tile_dimension = VIPS_MIN( 10000, VIPS_ROUND_UP(
+			VIPS_MAX ( header->width, header->height ), 256 ) );
 		if( header->tile_width <= 0 ||
-			header->tile_width > 10000 ||
+			header->tile_width > max_tile_dimension ||
+			header->tile_width % 16 != 0 ||
 			header->tile_height <= 0 ||
-			header->tile_height > 10000 ) {
+			header->tile_height > max_tile_dimension ||
+			header->tile_height % 16 != 0 ) {
 			vips_error( "tiff2vips",
 				"%s", _( "tile size out of range" ) );
 			return( -1 );
