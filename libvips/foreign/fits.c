@@ -637,7 +637,7 @@ const char *vips_fits_duplicate[] = {
  *	""
  *
  * - always left justfied
- * - keyword is always 8 characters, right passed with spaces
+ * - keyword is always 8 characters, right padded with spaces
  * - "= ", if present, is cols 9 and 10
  * - lines are variable length, can be zero length for blank lines
  */
@@ -657,19 +657,13 @@ vips_fits_write_record( VipsFits *fits, const char *line )
 		if( vips_isprefix( vips_fits_basic[i], line ) ) 
 			return( 0 );	
 
-	/* Just the keyword.
+	/* Dedupe on the keyword, with some exceptions (see below).
 	 */
 	vips_strncpy( keyword, line, 9 );
-
-	/* We dedupe some keywords, and we dedupe entire lines that match
-	 * exactly.
-	 */
 	for( p = fits->dedupe; p; p = p->next ) {
 		const char *written = (const char *) p->data;
 
 		if( strcmp( keyword, written ) == 0 )
-			return( 0 );	
-		if( strcmp( line, written ) == 0 ) 
 			return( 0 );	
 	}
 
@@ -679,13 +673,10 @@ vips_fits_write_record( VipsFits *fits, const char *line )
 		return( -1 );
 	}
 
-	/* Add to the dedupe list (except for blank lines, which we must
-	 * dupe).
+	/* Add this keyword to the dedupe list if it's not on the allowed 
+	 * dupe table, or a blank line.
 	 */
 	if( strcmp( line, "" ) != 0 ) {
-		/* If this isn't one of the keywords that can be duplicated, 
-		 * note for the dedupe list.
-		 */
 		for( i = 0; i < VIPS_NUMBER( vips_fits_duplicate ); i++ )
 			if( vips_isprefix( vips_fits_duplicate[i], keyword ) )
 			       break;
@@ -693,12 +684,6 @@ vips_fits_write_record( VipsFits *fits, const char *line )
 		if( i == VIPS_NUMBER( vips_fits_duplicate ) ) 
 			fits->dedupe = g_slist_prepend( fits->dedupe, 
 				g_strdup( keyword ) );
-
-		/* Also dedupe entire lines that match exactly.
-		 */
-		if( strcmp( line, "" ) != 0 )
-			fits->dedupe = g_slist_prepend( fits->dedupe, 
-				g_strdup( line ) );
 	}
 
 	return( 0 );
