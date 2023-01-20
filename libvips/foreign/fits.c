@@ -346,12 +346,6 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	}
 
 	for( i = 0; i < keysexist; i++ ) {
-		/* We try to make key names unique, so when you eg. "add
-		 * a.fits b.fits c.fits" the writer sees all keys from all
-		 * inputs.
-		 */
-		static int key_id = 0;
-
 		char record[81];
 		char vipsname[100];
 
@@ -368,7 +362,7 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		 * have to include the key index in the vips name we assign.
 		 */
 
-		vips_snprintf( vipsname, 100, "fits-%d", key_id++ );
+		vips_snprintf( vipsname, 100, "fits-%d", i );
 		vips_image_set_string( out, vipsname, record );
 	}
 
