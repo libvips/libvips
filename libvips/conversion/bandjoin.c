@@ -131,7 +131,7 @@ vips_bandjoin_buffer( VipsBandarySequence *seq,
 				q1[1] = p1[1];
 				q1[2] = p1[2];
 
-				p1 += 3;
+				p1 += ips;
 				q1 += ops;
 			}
 
