@@ -404,7 +404,7 @@ if lcms_dep.found()
 endif
 
 # require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
-openexr_dep = dependency('OpenEXR', version: '>=0.1.2.2', required: get_option('openexr'))
+openexr_dep = dependency('OpenEXR', version: '>=1.2.2', required: get_option('openexr'))
 if openexr_dep.found()
     libvips_deps += openexr_dep
     cfg_var.set('HAVE_OPENEXR', '1')
