@@ -23,7 +23,6 @@ convolution_headers = files(
 
 libvips_sources += convolution_sources
 
-
 convolution_lib = static_library('convolution',
     convolution_sources,
     convolution_headers,
