@@ -55,7 +55,7 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#ifdef HAVE_HEIF_ENCODER
+#ifdef HAVE_HEIF
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -927,7 +927,7 @@ vips_foreign_save_avif_target_init( VipsForeignSaveAvifTarget *target )
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 }
 
-#endif /*HAVE_HEIF_ENCODER*/
+#endif /*HAVE_HEIF*/
 
 /* The C API wrappers are defined in foreign.c.
  */

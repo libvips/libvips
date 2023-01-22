@@ -452,12 +452,7 @@ if libheif_dep.found()
     else
         libvips_deps += libheif_dep
     endif
-    if libheif_dep.get_variable(pkgconfig: 'builtin_h265_decoder', internal: 'builtin_h265_decoder', default_value: 'no') != 'no' or libheif_dep.get_variable(pkgconfig: 'builtin_avif_decoder', internal: 'builtin_avif_decoder', default_value: 'no') != 'no'
-        cfg_var.set('HAVE_HEIF_DECODER', '1')
-    endif
-    if libheif_dep.get_variable(pkgconfig: 'builtin_h265_encoder', internal: 'builtin_h265_encoder', default_value: 'no') != 'no' or libheif_dep.get_variable(pkgconfig: 'builtin_avif_encoder', internal: 'builtin_avif_encoder', default_value: 'no') != 'no'
-        cfg_var.set('HAVE_HEIF_ENCODER', '1')
-    endif
+    cfg_var.set('HAVE_HEIF', '1')
     if cc.has_function('heif_image_handle_get_raw_color_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
         cfg_var.set('HAVE_HEIF_COLOR_PROFILE', '1')
     endif

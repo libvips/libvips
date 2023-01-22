@@ -47,7 +47,7 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
-#if (defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)) && defined(HEIF_MODULE)
+#if defined(HAVE_HEIF) && defined(HEIF_MODULE)
 
 /* This is called on module load.
  */
@@ -66,20 +66,15 @@ g_module_check_init( GModule *module )
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
 	extern GType vips_foreign_save_avif_target_get_type( void ); 
 
-#ifdef HAVE_HEIF_DECODER
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
 	vips_foreign_load_heif_source_get_type(); 
-#endif /*HAVE_HEIF_DECODER*/
-
-#ifdef HAVE_HEIF_ENCODER
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
 	vips_foreign_save_avif_target_get_type(); 
-#endif /*HAVE_HEIF_ENCODER*/
 
 	return( NULL );
 }
 
-#endif /*(defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)) && defined(HEIF_MODULE)*/
+#endif /*defined(HAVE_HEIF) && defined(HEIF_MODULE)*/

@@ -3147,18 +3147,15 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_nifti_get_type(); 
 #endif /*HAVE_NIFTI*/
 
-#if defined(HAVE_HEIF_DECODER) && !defined(HEIF_MODULE)
+#if defined(HAVE_HEIF) && !defined(HEIF_MODULE)
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
 	vips_foreign_load_heif_source_get_type(); 
-#endif /*defined(HAVE_HEIF_DECODER) && !defined(HEIF_MODULE)*/
-
-#if defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
 	vips_foreign_save_avif_target_get_type();
-#endif /*defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)*/
+#endif /*defined(HAVE_HEIF) && !defined(HEIF_MODULE)*/
 
 	vips__foreign_load_operation = 
 		g_quark_from_static_string( "vips-foreign-load-operation" ); 
