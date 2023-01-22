@@ -355,17 +355,26 @@ vips_extract_band_buffer( VipsBandarySequence *seq,
 	int ips = VIPS_IMAGE_SIZEOF_PEL( im );
 	const int ops = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
 
-	VipsPel *p, *q;
+	VipsPel * restrict p;
+	VipsPel * restrict q;
 	int x, z;
 
 	p = in[0] + extract->band * es;
 	q = out;
-	for( x = 0; x < width; x++ ) {
-		for( z = 0; z < ops; z++ )
-			q[z] = p[z];
+	if( ops == 1 ) {
+		for( x = 0; x < width; x++ ) {
+			q[x] = p[0];
+			p += ips;
+		}
+	}
+	else {
+		for( x = 0; x < width; x++ ) {
+			for( z = 0; z < ops; z++ )
+				q[z] = p[z];
 
-		p += ips;
-		q += ops;
+			p += ips;
+			q += ops;
+		}
 	}
 }
 
