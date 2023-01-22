@@ -21,6 +21,9 @@
 #include "cli.h"
 #include "cli.c"
 
+#define STR_VAL(_S) STR(_S)
+#define STR(_S) #_S
+
 #define BYTES_PER_PIXEL 4
 
 static struct nsgif_options {
@@ -28,16 +31,19 @@ static struct nsgif_options {
 	const char *ppm;
 	uint64_t loops;
 	bool palette;
+	bool version;
 	bool info;
+	bool help;
 } nsgif_options;
 
 static const struct cli_table_entry cli_entries[] = {
 	{
-		.s = 'm',
-		.l = "ppm",
-		.t = CLI_STRING,
-		.v.s = &nsgif_options.ppm,
-		.d = "Convert frames to PPM image at given path."
+		.s = 'h',
+		.l = "help",
+		.t = CLI_BOOL,
+		.no_pos = true,
+		.v.b = &nsgif_options.help,
+		.d = "Print this text.",
 	},
 	{
 		.s = 'i',
@@ -55,11 +61,26 @@ static const struct cli_table_entry cli_entries[] = {
 		     "The default is 1."
 	},
 	{
+		.s = 'm',
+		.l = "ppm",
+		.t = CLI_STRING,
+		.v.s = &nsgif_options.ppm,
+		.d = "Convert frames to PPM image at given path."
+	},
+	{
 		.s = 'p',
 		.l = "palette",
 		.t = CLI_BOOL,
 		.v.b = &nsgif_options.palette,
 		.d = "Save palette images."
+	},
+	{
+		.s = 'V',
+		.l = "version",
+		.t = CLI_BOOL,
+		.no_pos = true,
+		.v.b = &nsgif_options.version,
+		.d = "Print version number."
 	},
 	{
 		.p = true,
@@ -74,6 +95,7 @@ const struct cli_table cli = {
 	.entries = cli_entries,
 	.count = (sizeof(cli_entries))/(sizeof(*cli_entries)),
 	.min_positional = 1,
+	.d = "NSGIF - A utility for inspecting and decoding GIFs with libnsgif",
 };
 
 static void *bitmap_create(int width, int height)
@@ -165,6 +187,7 @@ static void print_gif_frame_info(const nsgif_frame_info_t *info, uint32_t i)
 	fprintf(stdout, "    local palette: %s\n", info->local_palette ? "yes" : "no");
 	fprintf(stdout, "    disposal-method: %s\n", disposal);
 	fprintf(stdout, "    transparency: %s\n", info->transparency ? "yes" : "no");
+	fprintf(stdout, "    interlaced: %s\n", info->interlaced ? "yes" : "no");
 	fprintf(stdout, "    display: %s\n", info->display ? "yes" : "no");
 	fprintf(stdout, "    delay: %"PRIu32"\n", info->delay);
 	fprintf(stdout, "    rect:\n");
@@ -355,6 +378,16 @@ int main(int argc, char *argv[])
 	if (!cli_parse(&cli, argc, (void *)argv)) {
 		cli_help(&cli, argv[0]);
 		return EXIT_FAILURE;
+	}
+
+	if (nsgif_options.help) {
+		cli_help(&cli, argv[0]);
+		return EXIT_SUCCESS;
+	}
+
+	if (nsgif_options.version) {
+		printf("%s %s\n", STR_VAL(NSGIF_NAME), STR_VAL(NSGIF_VERSION));
+		return EXIT_SUCCESS;
 	}
 
 	if (nsgif_options.ppm != NULL) {

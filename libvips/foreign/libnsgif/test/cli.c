@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: ISC
  *
- * Copyright (C) 2021 Michael Drake <tlsa@netsurf-browser.org>
+ * Copyright (C) 2021-2022 Michael Drake <tlsa@netsurf-browser.org>
  */
 
 /**
@@ -16,6 +16,15 @@
 #include <string.h>
 
 #include "cli.h"
+
+/**
+ * CLI parsing context.
+ */
+struct cli_ctx {
+	const struct cli_table *cli; /**< Client CLI spec. */
+	size_t pos_count; /**< The number of positional arguments found. */
+	bool no_pos; /**< Have an argument that negates min_positional. */
+};
 
 /**
  * Check whether a CLI argument type should have a numerical value.
@@ -111,6 +120,8 @@ static bool cli__parse_value_enum(
 			return true;
 		}
 	}
+
+	fprintf(stderr, "ERROR: Unknown enum value '%s'.\n", str);
 
 	return false;
 }
@@ -286,16 +297,82 @@ static bool cli__handle_arg_value(const struct cli_table_entry *entry,
 	return true;
 }
 
+static inline bool cli__is_negative(const char *arg)
+{
+	int64_t i;
+	size_t pos = 0;
+
+	return cli__parse_value_int(arg, &i, &pos)
+			&& pos == strlen(arg)
+			&& i < 0;
+}
+
+/**
+ * Parse a positional argument according to the given CLI spec entry.
+ *
+ * \param[in] ctx    Command line interface parsing context.
+ * \param[in] entry  Client command line interface argument specification.
+ * \param[in] arg    Argument to parse.
+ * \return true on success, or false otherwise.
+ */
+static bool cli__parse_positional_entry(struct cli_ctx *ctx,
+		const struct cli_table_entry *entry,
+		const char *arg)
+{
+	size_t pos = 0;
+	bool ret;
+
+	ret = cli__parse_value(entry, arg, &pos);
+	if (ret != true) {
+		return ret;
+	} else if (arg[pos] != '\0') {
+		fprintf(stderr, "Failed to parse value '%s' for arg '%s'\n",
+				arg, entry->l);
+		return false;
+	}
+
+	ctx->pos_count++;
+	return true;
+}
+
+/**
+ * Parse a positional argument.
+ *
+ * \param[in] ctx    Command line interface parsing context.
+ * \param[in] arg    Argument to parse.
+ * \return true on success, or false otherwise.
+ */
+static bool cli__parse_positional(struct cli_ctx *ctx,
+		const char *arg)
+{
+	const struct cli_table *cli = ctx->cli;
+	size_t positional = 0;
+
+	for (size_t i = 0; i < cli->count; i++) {
+		if (cli__entry_is_positional(&cli->entries[i])) {
+			if (positional == ctx->pos_count) {
+				return cli__parse_positional_entry(ctx,
+						&cli->entries[i], arg);
+			}
+
+			positional++;
+		}
+	}
+
+	fprintf(stderr, "Unexpected positional argument: '%s'\n", arg);
+	return false;
+}
+
 /**
  * Parse a flags argument.
  *
- * \param[in]  cli      Client command line interface specification.
+ * \param[in]  ctx      Command line interface parsing context.
  * \param[in]  argc     Number of command line arguments.
  * \param[in]  argv     String vector containing command line arguments.
  * \param[out] arg_pos  Current position in argv, updated on exit.
  * \return true on success, or false otherwise.
  */
-static bool cli__parse_short(const struct cli_table *cli,
+static bool cli__parse_short(struct cli_ctx *ctx,
 		int argc, const char **argv, int *arg_pos)
 {
 	const char *arg = argv[*arg_pos];
@@ -308,9 +385,16 @@ static bool cli__parse_short(const struct cli_table *cli,
 	while (arg[pos] != '\0') {
 		const struct cli_table_entry *entry;
 
-		entry = cli__lookup_short(cli, arg[pos]);
+		entry = cli__lookup_short(ctx->cli, arg[pos]);
 		if (entry == NULL) {
+			if (cli__is_negative(argv[pos])) {
+				return cli__parse_positional(ctx, argv[pos]);
+			}
 			return false;
+		}
+
+		if (entry->no_pos) {
+			ctx->no_pos = true;
 		}
 
 		if (entry->t == CLI_BOOL) {
@@ -364,13 +448,13 @@ static const struct cli_table_entry *cli__lookup_long(
 /**
  * Parse a long argument.
  *
- * \param[in]  cli      Client command line interface specification.
+ * \param[in]  ctx      Command line interface parsing context.
  * \param[in]  argc     Number of command line arguments.
  * \param[in]  argv     String vector containing command line arguments.
  * \param[out] arg_pos  Current position in argv, updated on exit.
  * \return true on success, or false otherwise.
  */
-static bool cli__parse_long(const struct cli_table *cli,
+static bool cli__parse_long(struct cli_ctx *ctx,
 		int argc, const char **argv, int *arg_pos)
 {
 	const struct cli_table_entry *entry;
@@ -382,9 +466,13 @@ static bool cli__parse_long(const struct cli_table *cli,
 		return false;
 	}
 
-	entry = cli__lookup_long(cli, arg, &pos);
+	entry = cli__lookup_long(ctx->cli, arg, &pos);
 	if (entry == NULL) {
 		return false;
+	}
+
+	if (entry->no_pos) {
+		ctx->no_pos = true;
 	}
 
 	if (entry->t == CLI_BOOL) {
@@ -405,60 +493,6 @@ static bool cli__parse_long(const struct cli_table *cli,
 	}
 
 	return true;
-}
-
-/**
- * Parse a positional argument according to the given CLI spec entry.
- *
- * \param[in] entry  Client command line interface argument specification.
- * \param[in] arg    Argument to parse.
- * \return true on success, or false otherwise.
- */
-static bool cli__parse_positional_entry(
-		const struct cli_table_entry *entry,
-		const char *arg)
-{
-	size_t pos = 0;
-	bool ret;
-
-	ret = cli__parse_value(entry, arg, &pos);
-	if (ret != true) {
-		return ret;
-	} else if (arg[pos] != '\0') {
-		fprintf(stderr, "Failed to parse value '%s' for arg '%s'\n",
-				arg, entry->l);
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Parse a positional argument.
- *
- * \param[in] cli    Client command line interface specification.
- * \param[in] arg    Argument to parse.
- * \param[in] count  Number of positional arguments parsed already.
- * \return true on success, or false otherwise.
- */
-static bool cli__parse_positional(const struct cli_table *cli,
-		const char *arg, size_t count)
-{
-	size_t positional = 0;
-
-	for (size_t i = 0; i < cli->count; i++) {
-		if (cli__entry_is_positional(&cli->entries[i])) {
-			if (positional == count) {
-				return cli__parse_positional_entry(
-						&cli->entries[i], arg);
-			}
-
-			positional++;
-		}
-	}
-
-	fprintf(stderr, "Unexpected positional argument: '%s'\n", arg);
-	return false;
 }
 
 /**
@@ -553,20 +587,12 @@ static void cli__count(const struct cli_table *cli,
 	}
 }
 
-static inline bool cli__is_negative(const char *arg)
-{
-	int64_t i;
-	size_t pos = 0;
-
-	return cli__parse_value_int(arg, &i, &pos)
-			&& pos == strlen(arg)
-			&& i < 0;
-}
-
 /* Documented in cli.h */
 bool cli_parse(const struct cli_table *cli, int argc, const char **argv)
 {
-	size_t pos_count = 0;
+	struct cli_ctx ctx = {
+		.cli = cli,
+	};
 	enum {
 		ARG_PROG_NAME,
 		ARG_FIRST,
@@ -574,36 +600,24 @@ bool cli_parse(const struct cli_table *cli, int argc, const char **argv)
 
 	for (int i = ARG_FIRST; i < argc; i++) {
 		const char *arg = argv[i];
-		size_t pos_inc = 0;
 		bool ret;
 
 		if (arg[0] == '-') {
 			if (arg[1] == '-') {
-				ret = cli__parse_long(cli, argc, argv, &i);
+				ret = cli__parse_long(&ctx, argc, argv, &i);
 			} else {
-				ret = cli__parse_short(cli, argc, argv, &i);
-				if (ret != true) {
-					if (cli__is_negative(argv[i])) {
-						pos_inc = 1;
-						ret = cli__parse_positional(
-								cli, argv[i],
-								pos_count);
-					}
-				}
+				ret = cli__parse_short(&ctx, argc, argv, &i);
 			}
 		} else {
-			pos_inc = 1;
-			ret = cli__parse_positional(cli, argv[i], pos_count);
+			ret = cli__parse_positional(&ctx, argv[i]);
 		}
 
 		if (ret != true) {
 			return ret;
 		}
-
-		pos_count += pos_inc;
 	}
 
-	if (pos_count < cli->min_positional) {
+	if (ctx.no_pos == false && ctx.pos_count < cli->min_positional) {
 		fprintf(stderr, "Insufficient positional arguments found.\n");
 		return false;
 	}
@@ -622,46 +636,90 @@ static size_t cli__terminal_width(void)
 }
 
 /**
+ * Print a wrapped string, with a given indent.
+ *
+ * The indent is assumed to already be applied for the first line of the
+ * output by the caller.
+ *
+ * \param[in] str     The string to print.
+ * \param[in] indent  The number of spaces to pad the left margin with.
+ */
+static void cli__print_wrapping_string(const char *str, size_t indent)
+{
+	size_t terminal_width = cli__terminal_width();
+	size_t avail = (indent > terminal_width) ? 0 : terminal_width - indent;
+	size_t space = avail;
+
+	while (*str != '\0') {
+		size_t word_len = strcspn(str, " \n\t");
+		if (word_len <= space || space == avail) {
+			fprintf(stderr, "%*.*s",
+					(int)word_len,
+					(int)word_len, str);
+			str += word_len;
+			if (word_len <= space) {
+				space -= word_len;
+			}
+			if (space > 0) {
+				fprintf(stderr, " ");
+				space--;
+			}
+		} else {
+			fprintf(stderr, "\n%*s", (int)indent, "");
+			space = avail;
+		}
+		str += strspn(str, " \n\t");
+	}
+}
+
+/**
  * Print an entry's description, with a given indent.
  *
  * The indent is assumed to already be applied for the first line of the
  * output by the caller.
- * 
+ *
  * \param[in] entry   The entry to print the description for.
  * \param[in] indent  The number of spaces to pad the left margin with.
  */
 static void cli__print_description(const struct cli_table_entry *entry,
 		size_t indent)
 {
-	size_t terminal_width = cli__terminal_width();
-	size_t avail = (indent > terminal_width) ? 0 : terminal_width - indent;
-	size_t space = avail;
-	const char *desc = entry->d;
-
-	if (desc != NULL) {
-		while (*desc != '\0') {
-			size_t word_len = strcspn(desc, " \n\t");
-			if (word_len <= space || space == avail) {
-				fprintf(stderr, "%*.*s",
-						(int)word_len,
-						(int)word_len, desc);
-				desc += word_len;
-				if (word_len <= space) {
-					space -= word_len;
-				}
-				if (space > 0) {
-					fprintf(stderr, " ");
-					space--;
-				}
-			} else {
-				fprintf(stderr, "\n%*s", (int)indent, "");
-				space = avail;
-			}
-			desc += strspn(desc, " \n\t");
-		}
+	if (entry->d != NULL) {
+		cli__print_wrapping_string(entry->d, indent);
 	}
 
 	fprintf(stderr, "\n");
+
+	if (entry->t == CLI_ENUM) {
+		size_t max_len = 0;
+
+		for (const struct cli_str_val *e = entry->v.e.desc;
+				e->str != NULL; e++) {
+			size_t len = strlen(e->str);
+			if (max_len < len) {
+				max_len = len;
+			}
+		}
+
+		fprintf(stderr, "\n");
+
+		for (const struct cli_str_val *e = entry->v.e.desc;
+				e->str != NULL; e++) {
+			fprintf(stderr, "        ");
+
+			if (e->d == NULL || e->d[0] == '\0') {
+				fprintf(stderr, "%s\n",
+						e->str);
+			} else {
+				fprintf(stderr, "%-*s - ",
+						(int)(max_len),
+						e->str);
+				cli__print_wrapping_string(e->d,
+						8 + max_len + 3);
+				fprintf(stderr, "\n");
+			}
+		}
+	}
 }
 
 /* Documented in cli.h */
@@ -678,6 +736,12 @@ void cli_help(const struct cli_table *cli, const char *prog_name)
 	};
 
 	cli__count(cli, &count, &pcount, &max_len, &pmax_len, &phas_desc);
+
+	if (cli->d != NULL) {
+		fprintf(stderr, "\n");
+		cli__print_wrapping_string(cli->d, 0);
+		fprintf(stderr, "\n");
+	}
 
 	fprintf(stderr, "\nUsage: %s", prog_name);
 
