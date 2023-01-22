@@ -6,6 +6,7 @@ TBD 8.14.2
 - minor doc fixes [jcupitt]
 - sanitise dimensions in JPEG-compressed TIFF images [lovell]
 - fix target pnm write [ewelot]
+- dedupe FITS header write [ewelot]
 
 9/1/23 8.14.1
 
