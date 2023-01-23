@@ -4,6 +4,7 @@
 	* use with (un)premultiply for ~10% perf gain on AVX CPUs
 - dedupe FITS header write [ewelot]
 - add fast path to extract_band and bandjoin for uchar images [lovell]
+- inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
 
 TBD 8.14.2
 
