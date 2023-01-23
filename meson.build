@@ -108,7 +108,7 @@ endif
 vector_arithmetic_check = '''
 typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
 int main(void) {
-    v4f f = {1, 2, 3, 4}; f *= 12.0; 
+    v4f f = {1, 2, 3, 4}; f *= 12.0;
     v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
 }
 '''
@@ -202,7 +202,7 @@ if magick_found
     if magick7
         cfg_var.set('HAVE_MAGICK7', '1')
     else
-        # come here for imagemagick6, and graphicsmagick1.x, which also uses 
+        # come here for imagemagick6, and graphicsmagick1.x, which also uses
         # the im6 API
         cfg_var.set('HAVE_MAGICK6', '1')
         if cc.has_member('struct _ImageInfo', 'number_scenes', prefix: magick_include, dependencies: magick_dep)
@@ -302,13 +302,12 @@ if libexif_dep.found()
     endif
 endif
 
-
 libjpeg_dep = dependency('libjpeg', required: get_option('jpeg'))
 if libjpeg_dep.found()
     libvips_deps += libjpeg_dep
     cfg_var.set('HAVE_JPEG', '1')
     # features like trellis quant are exposed as extension parameters ...
-    # mozjpeg 3.2 and later have #define JPEG_C_PARAM_SUPPORTED, but we must 
+    # mozjpeg 3.2 and later have #define JPEG_C_PARAM_SUPPORTED, but we must
     # work with earlier versions
     if cc.has_function('jpeg_c_bool_param_supported', prefix: '#include <stdio.h>\n#include <jpeglib.h>', dependencies: libjpeg_dep)
         cfg_var.set('HAVE_JPEG_EXT_PARAMS', '1')
@@ -342,7 +341,6 @@ if not spng_found
         endif
     endif
 endif
-
 
 # libwebp ... target 0.6+ to reduce complication
 # webp has the stuff for handling metadata in two separate libraries -- we
@@ -420,7 +418,7 @@ if lcms_dep.found()
 endif
 
 # require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
-openexr_dep = dependency('OpenEXR', version: '>=0.1.2.2', required: get_option('openexr'))
+openexr_dep = dependency('OpenEXR', version: '>=1.2.2', required: get_option('openexr'))
 if openexr_dep.found()
     libvips_deps += openexr_dep
     cfg_var.set('HAVE_OPENEXR', '1')
@@ -456,8 +454,7 @@ if pdfium_dep.found()
     cfg_var.set('HAVE_PDFIUM', '1')
 endif
 
-
-libheif_dep = dependency('libheif', version: '>=0.4.11', required: get_option('heif'))
+libheif_dep = dependency('libheif', version: '>=1.3.0', required: get_option('heif'))
 libheif_module = false
 if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
@@ -466,20 +463,17 @@ if libheif_dep.found()
     else
         libvips_deps += libheif_dep
     endif
-    if libheif_dep.get_variable(pkgconfig: 'builtin_h265_decoder', internal: 'builtin_h265_decoder', default_value: 'no') != 'no' or libheif_dep.get_variable(pkgconfig: 'builtin_avif_decoder', internal: 'builtin_avif_decoder', default_value: 'no') != 'no'
-        cfg_var.set('HAVE_HEIF_DECODER', '1')
-    endif
-    if libheif_dep.get_variable(pkgconfig: 'builtin_h265_encoder', internal: 'builtin_h265_encoder', default_value: 'no') != 'no' or libheif_dep.get_variable(pkgconfig: 'builtin_avif_encoder', internal: 'builtin_avif_encoder', default_value: 'no') != 'no'
-        cfg_var.set('HAVE_HEIF_ENCODER', '1')
-    endif
+    cfg_var.set('HAVE_HEIF', '1')
+    # added in 1.6.0
     if cc.has_function('heif_image_handle_get_raw_color_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
         cfg_var.set('HAVE_HEIF_COLOR_PROFILE', '1')
     endif
-    if cc.has_member('struct heif_decoding_options', 'convert_hdr_to_8bit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
-        cfg_var.set('HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT', '1')
-    endif
     if cc.has_function('heif_context_set_maximum_image_size_limit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
         cfg_var.set('HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT', '1')
+    endif
+    # added in 1.7.0
+    if cc.has_member('struct heif_decoding_options', 'convert_hdr_to_8bit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
+        cfg_var.set('HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT', '1')
     endif
     # heif_main_brand added in 1.4.0, but heif_avif appeared in 1.7 ... just check
     # the libheif version number since testing for enums is annoying

@@ -76,7 +76,7 @@
 
 /* These are shared with the encoder.
  */
-#if defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)
+#ifdef HAVE_HEIF
 
 #include "pforeign.h"
 
@@ -97,10 +97,6 @@ const char *vips__heif_suffs[] = {
 	".avif",
 	NULL 
 };
-
-#endif /*defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)*/
-
-#ifdef HAVE_HEIF_DECODER
 
 #include <libheif/heif.h>
 
@@ -1409,7 +1405,7 @@ vips_foreign_load_heif_source_init( VipsForeignLoadHeifSource *source )
 {
 }
 
-#endif /*HAVE_HEIF_DECODER*/
+#endif /*HAVE_HEIF*/
 
 /* The C API wrappers are defined in foreign.c.
  */

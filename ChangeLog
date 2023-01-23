@@ -3,8 +3,13 @@
 - add support for target_clones attribute [lovell]
 	* use with (un)premultiply for ~10% perf gain on AVX CPUs
 - dedupe FITS header write [ewelot]
-- increase sanity checks on TIFF tile dimensions [lovell]
 - add fast path to extract_band and bandjoin for uchar images [lovell]
+
+TBD 8.14.2
+
+- use a private fontmap in vips_text() [jcupitt]
+- increase sanity checks on TIFF tile dimensions [lovell]
+- ensure compatibility with libheif > 1.14.2 [kleisauke]
 
 9/1/23 8.14.1
 
