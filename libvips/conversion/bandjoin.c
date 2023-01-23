@@ -116,15 +116,38 @@ vips_bandjoin_buffer( VipsBandarySequence *seq,
 		q1 = q;
 		p1 = p[i];
 
-		for( x = 0; x < width; x++ ) {
-			for( z = 0; z < ips; z++ )
-				q1[z] = p1[z];
+		if( ips == 1 ) {
+			for( x = 0; x < width; x++ ) {
+				q1[0] = p1[x];
 
-			p1 += ips;
-			q1 += ops;
+				q1 += ops;
+			}
+
+			q += ips;
 		}
+		else if( ips == 3 ) {
+			for( x = 0; x < width; x++ ) {
+				q1[0] = p1[0];
+				q1[1] = p1[1];
+				q1[2] = p1[2];
 
-		q += ips;
+				p1 += ips;
+				q1 += ops;
+			}
+
+			q += ips;
+		}
+		else {
+			for( x = 0; x < width; x++ ) {
+				for( z = 0; z < ips; z++ )
+					q1[z] = p1[z];
+
+				p1 += ips;
+				q1 += ops;
+			}
+
+			q += ips;
+		}
 	}
 }
 
