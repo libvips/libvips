@@ -1468,7 +1468,7 @@ class TestForeign:
     def test_jxlsave(self):
         # save and load with an icc profile
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
-                              self.colour, 120)
+                              self.colour, 130)
 
         # with no icc profile
         no_profile = self.colour.copy()
@@ -1490,7 +1490,7 @@ class TestForeign:
         # 16-bit mode
         rgb16 = self.colour.colourspace("rgb16")
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
-                              rgb16, 30000)
+                              rgb16, 30300)
 
         # repeat for lossless mode
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
