@@ -90,6 +90,8 @@ typedef VipsColourTransformClass VipsXYZ2LabClass;
 
 G_DEFINE_TYPE( VipsXYZ2Lab, vips_XYZ2Lab, VIPS_TYPE_COLOUR_TRANSFORM );
 
+static GOnce table_init_once = G_ONCE_INIT;
+
 static void *
 table_init( void *client )
 {
@@ -111,10 +113,6 @@ static void
 vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
 	float X, float Y, float Z, float *L, float *a, float *b )
 {
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, table_init, NULL );
-
 	float nX, nY, nZ;
 	int i;
 	float f;
@@ -145,6 +143,7 @@ vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
 
 /* Process a buffer of data.
  */
+VIPS_TARGET_CLONES("default,avx")
 static void
 vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
@@ -153,6 +152,8 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	float *q = (float *) out;
 
 	int x;
+
+	VIPS_ONCE( &table_init_once, table_init, NULL );
 
 	for( x = 0; x < width; x++ ) {
 		float X, Y, Z;
@@ -189,6 +190,8 @@ void
 vips_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
 {
 	VipsXYZ2Lab XYZ2Lab;
+
+	VIPS_ONCE( &table_init_once, table_init, NULL );
 
 	XYZ2Lab.X0 = VIPS_D65_X0;
 	XYZ2Lab.Y0 = VIPS_D65_Y0;
