@@ -8,6 +8,8 @@
  * 	- attach GIF palette as metadata
  * 26/11/22 kleisauke
  * 	- avoid minimise after mapping -- not reliable on Win32
+ * 25/1/23 kleisauke
+ * 	- set interlaced=1 for interlaced images
  */
 
 /*
@@ -131,6 +133,10 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	gboolean has_transparency;
 
+	/* If the GIF has any interlaced frames.
+	 */
+	gboolean interlaced;
+
 	/* If the GIF has any local palettes.
 	 */
 	gboolean local_palette;
@@ -209,6 +215,7 @@ print_frame( const nsgif_frame_info_t *frame_info )
 	printf( "  display = %d\n", frame_info->display );
 	printf( "  local_palette = %d\n", frame_info->local_palette );
 	printf( "  transparency = %d\n", frame_info->transparency );
+	printf( "  interlaced = %d\n", frame_info->interlaced );
 	printf( "  disposal = %d (%s)\n", 
 		frame_info->disposal, 
 		nsgif_str_disposal( frame_info->disposal ) );
@@ -328,6 +335,11 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	vips_image_set_int( image, "palette-bit-depth", 
 		ceil( log2( colours ) ) ); 
 
+	/* Let our caller know if the GIF is interlaced.
+	 */
+	if( gif->interlaced )
+		vips_image_set_int( image, "interlaced", 1 );
+
 	return( 0 );
 }
 
@@ -398,7 +410,8 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	/* Check for any transparency.
+	/* Update our global struct based on the information in the
+	 * individual frames.
 	 */
 	for( i = 0; i < gif->info->frame_count; i++ ) {
 		const nsgif_frame_info_t *frame_info;
@@ -406,6 +419,8 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		if( (frame_info = nsgif_get_frame_info( gif->anim, i )) ) {
 			if( frame_info->transparency ) 
 				gif->has_transparency = TRUE;
+			if( frame_info->interlaced )
+				gif->interlaced = TRUE;
 			if( frame_info->local_palette ) 
 				gif->local_palette = TRUE;
 		}
