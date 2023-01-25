@@ -233,7 +233,7 @@ vips_col_make_tables_CMC( void )
 
 /* Process a buffer of data.
  */
-void
+static void
 vips_CMC2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float *p = (float *) in[0];

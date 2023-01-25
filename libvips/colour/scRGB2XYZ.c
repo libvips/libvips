@@ -54,7 +54,7 @@ typedef VipsColourTransformClass VipsscRGB2XYZClass;
 
 G_DEFINE_TYPE( VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
 
-void
+static void
 vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float * restrict p = (float *) in[0];

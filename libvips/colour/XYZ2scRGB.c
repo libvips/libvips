@@ -68,7 +68,7 @@ G_DEFINE_TYPE( VipsXYZ2scRGB, vips_XYZ2scRGB, VIPS_TYPE_COLOUR_TRANSFORM );
 
  */
 
-void
+static void
 vips_XYZ2scRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float * restrict p = (float *) in[0];
