@@ -7,6 +7,7 @@
 - add fast path to extract_band and bandjoin for uchar images [lovell]
 - reduce `vips_sharpen` max `sigma` to 10 [lovell]
 - inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
+- set "interlaced=1" for interlaced GIF images [kleisauke]
 
 TBD 8.14.2
 

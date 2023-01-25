@@ -992,11 +992,17 @@ class TestForeign:
         self.buffer_loader("gifload_buffer", GIF_FILE, gif_valid)
 
         # test metadata
+        x2 = pyvips.Image.new_from_file(GIF_FILE, n=-1)
+        assert x2.get("n-pages") == 1
+        assert x2.get("background") == [81, 81, 81]
+        assert x2.get("interlaced") == 1
+
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
         # our test gif has delay 0 for the first frame set in error
         assert x2.get("delay") == [0, 50, 50, 50, 50]
         assert x2.get("loop") == 32761
         assert x2.get("background") == [255, 255, 255]
+        assert x2.get_typeof("interlaced") == 0
         # test deprecated fields too
         assert x2.get("gif-loop") == 32760
         assert x2.get("gif-delay") == 0
