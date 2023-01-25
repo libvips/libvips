@@ -330,7 +330,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, sigma ),
-		0.000001, 10000.0, 0.5 );
+		0.000001, 10.0, 0.5 );
 
 	VIPS_ARG_DOUBLE( class, "x1", 5, 
 		_( "x1" ), 
