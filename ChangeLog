@@ -2,6 +2,7 @@
 
 - add support for target_clones attribute [lovell]
 	* use with (un)premultiply for ~10% perf gain on AVX CPUs
+	* use with XYZ to LAB colourspace conversion for ~10% perf gain on AVX CPUs
 - dedupe FITS header write [ewelot]
 - add fast path to extract_band and bandjoin for uchar images [lovell]
 - reduce `vips_sharpen` max `sigma` to 10 [lovell]
