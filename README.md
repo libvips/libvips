@@ -30,7 +30,7 @@ like DICOM.
 
 It comes with bindings for
 [C](https://libvips.github.io/libvips/API/current/using-from-c.html),
-[C++](https://libvips.github.io/libvips/API/current/using-from-cpp.html),
+[C++](https://libvips.github.io/libvips/API/current/libvips-from-C++.html),
 and the
 [command-line](https://libvips.github.io/libvips/API/current/using-cli.html).
 Full bindings are available for :
