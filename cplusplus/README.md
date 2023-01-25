@@ -144,7 +144,7 @@ on error. The other writers from the C API are also present: you can write
 to a memory array, to a formatted image in memory, or to another image.
 
 The API docs have a [handy table of all vips
-operations](libvips/API/current/func-list.html), if you want to find out
+operations](https://libvips.github.io/libvips/API/current/func-list.html), if you want to find out
 how to do something, try searching that.
 
 ### Automatic constant expansion
