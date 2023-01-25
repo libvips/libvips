@@ -36,9 +36,9 @@
  * Note that an individual LZW code can be split over up to three sub-blocks.
  */
 struct lzw_read_ctx {
-	const uint8_t *restrict data;    /**< Pointer to start of input data */
-	uint32_t data_len;      /**< Input data length */
-	uint32_t data_sb_next;  /**< Offset to sub-block size */
+	const uint8_t *restrict data; /**< Pointer to start of input data */
+	size_t data_len;              /**< Input data length */
+	size_t data_sb_next;          /**< Offset to sub-block size */
 
 	const uint8_t *sb_data; /**< Pointer to current sub-block in data */
 	size_t sb_bit;          /**< Current bit offset in sub-block */
@@ -122,8 +122,8 @@ void lzw_context_destroy(struct lzw_ctx *ctx)
  */
 static lzw_result lzw__block_advance(struct lzw_read_ctx *restrict ctx)
 {
-	uint32_t block_size;
-	uint32_t next_block_pos = ctx->data_sb_next;
+	size_t block_size;
+	size_t next_block_pos = ctx->data_sb_next;
 	const uint8_t *data_next = ctx->data + next_block_pos;
 
 	if (next_block_pos >= ctx->data_len) {
@@ -260,8 +260,8 @@ lzw_result lzw_decode_init(
 		struct lzw_ctx *ctx,
 		uint8_t minimum_code_size,
 		const uint8_t *input_data,
-		uint32_t input_length,
-		uint32_t input_pos)
+		size_t input_length,
+		size_t input_pos)
 {
 	struct lzw_table_entry *table = ctx->table;
 	lzw_result res;
@@ -322,8 +322,8 @@ lzw_result lzw_decode_init_map(
 		uint32_t transparency_idx,
 		const uint32_t *colour_table,
 		const uint8_t *input_data,
-		uint32_t input_length,
-		uint32_t input_pos)
+		size_t input_length,
+		size_t input_pos)
 {
 	lzw_result res;
 

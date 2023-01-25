@@ -80,11 +80,6 @@ typedef enum {
 	NSGIF_ERR_DATA_FRAME,
 
 	/**
-	 * Too many frames.
-	 */
-	NSGIF_ERR_FRAME_COUNT,
-
-	/**
 	 * Unexpected end of GIF source data.
 	 */
 	NSGIF_ERR_END_OF_DATA,
@@ -166,15 +161,14 @@ typedef enum nsgif_bitmap_fmt {
 /**
  * Client bitmap type.
  *
- * These are client-created and destroyed, via the \ref bitmap callbacks,
- * but they are owned by a \ref nsgif_t.
+ * These are client-created and destroyed, via the \ref nsgif_bitmap_cb_vt
+ * callbacks, but they are owned by a \ref nsgif_t.
  *
  * See \ref nsgif_bitmap_fmt for pixel format information.
  *
  * The bitmap may have a row_span greater than the bitmap width, but the
  * difference between row span and width must be a whole number of pixels
- * (a multiple of four bytes). If row span is greater than width, the
- * \ref get_rowspan callback must be provided.
+ * (a multiple of four bytes).
  */
 typedef void nsgif_bitmap_t;
 
@@ -237,6 +231,8 @@ typedef struct nsgif_bitmap_cb_vt {
 	 * Get row span in pixels.
 	 *
 	 * If this callback is not provided, LibNSGIF will use the width.
+	 *
+	 * If row span is greater than width, this callback must be provided.
 	 *
 	 * \param[in]  bitmap  The bitmap.
 	 */
@@ -428,7 +424,8 @@ typedef struct nsgif_frame_info {
 	bool transparency;
 	/** whether the frame has a local colour table */
 	bool local_palette;
-
+	/** whether the frame is interlaced */
+	bool interlaced;
 	/** Disposal method for previous frame; affects plotting */
 	uint8_t disposal;
 	/** delay (in cs) before animating the frame */
@@ -485,7 +482,7 @@ void nsgif_global_palette(
  * Colours in same pixel format as \ref nsgif_bitmap_t.
  *
  * \param[in]  gif      The \ref nsgif_t object.
- * \param[in]  frame    The \ref frame to get the palette for.
+ * \param[in]  frame    The frame to get the palette for.
  * \param[out] table    Client buffer to hold the colour table.
  * \param[out] entries  The number of used entries in the colour table.
  * \return true if a palette is returned, false otherwise.
@@ -511,7 +508,7 @@ bool nsgif_local_palette(
  *
  * Both the minimum and the default values can be overridden for a given GIF
  * by the client. To get frame delays exactly as specified by the GIF file, set
- * \ref delay_min to zero.
+ * `delay_min` to zero.
  *
  * Note that this does not affect the frame delay in the frame info
  * (\ref nsgif_frame_info_t) structure, which will always contain values
@@ -520,7 +517,7 @@ bool nsgif_local_palette(
  * \param[in]  gif            The \ref nsgif_t object to configure.
  * \param[in]  delay_min      The minimum frame delay in centiseconds.
  * \param[in]  delay_default  The delay to use if a frame delay is less than
- *                            \ref delay_min.
+ *                            `delay_min`.
  */
 void nsgif_set_frame_delay_behaviour(
 		nsgif_t *gif,
