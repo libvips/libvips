@@ -1949,7 +1949,7 @@ rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
                 break;
         }
 
-        jpeg_start_decompress( cinfo );
+        jpeg_calc_output_dimensions( cinfo );
         bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
 
         /* Double-check tile dimensions.
@@ -1958,6 +1958,8 @@ rtiff_decompress_jpeg_run( Rtiff *rtiff, j_decompress_ptr cinfo,
                 cinfo->output_height > rtiff->header.tile_height ||
                 bytes_per_scanline > rtiff->header.tile_row_size )
                 return( -1 );
+
+        jpeg_start_decompress( cinfo );
 
         q = (VipsPel *) out;
         for( y = 0; y < cinfo->output_height; y++ ) {
