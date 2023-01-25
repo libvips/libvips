@@ -54,7 +54,7 @@ typedef VipsColourTransformClass VipsscRGB2XYZClass;
 
 G_DEFINE_TYPE( VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
 
-void
+static void
 vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float * restrict p = (float *) in[0];
@@ -67,15 +67,21 @@ vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		float G = p[1];
 		float B = p[2];
 
-		float X, Y, Z;
+		/* Manually inlined logic from the vips_col_scRGB2XYZ function
+		 * as the original is defined in a separate file and is part of
+		 * the public API so a compiler will not inline.
+		 */
+		q[0] = VIPS_D65_Y0 * 0.4124 * R +
+			VIPS_D65_Y0 * 0.3576 * G +
+			VIPS_D65_Y0 * 0.18056 * B;
+		q[1] = VIPS_D65_Y0 * 0.2126 * R +
+			VIPS_D65_Y0 * 0.7152 * G +
+			VIPS_D65_Y0 * 0.07220 * B;
+		q[2] = VIPS_D65_Y0 * 0.0193 * R +
+			VIPS_D65_Y0 * 0.1192 * G +
+			VIPS_D65_Y0 * 0.9505 * B;
 
 		p += 3;
-
-		vips_col_scRGB2XYZ( R, G, B, &X, &Y, &Z );
-
-		q[0] = X;
-		q[1] = Y;
-		q[2] = Z;
 		q += 3;
 	}
 }

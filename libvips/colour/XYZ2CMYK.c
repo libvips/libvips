@@ -137,7 +137,7 @@ typedef VipsColourCodeClass VipsXYZ2CMYKClass;
 
 G_DEFINE_TYPE(VipsXYZ2CMYK, vips_XYZ2CMYK, VIPS_TYPE_COLOUR_CODE);
 
-void
+static void
 vips_XYZ2CMYK_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float *p = (float *) in[0];
