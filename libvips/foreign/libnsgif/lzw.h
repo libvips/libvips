@@ -69,8 +69,8 @@ lzw_result lzw_decode_init(
 		struct lzw_ctx *ctx,
 		uint8_t minimum_code_size,
 		const uint8_t *input_data,
-		uint32_t input_length,
-		uint32_t input_pos);
+		size_t input_length,
+		size_t input_pos);
 
 /**
  * Read input codes until end of LZW context owned output buffer.
@@ -110,8 +110,8 @@ lzw_result lzw_decode_init_map(
 		uint32_t transparency_idx,
 		const uint32_t *colour_table,
 		const uint8_t *input_data,
-		uint32_t input_length,
-		uint32_t input_pos);
+		size_t input_length,
+		size_t input_pos);
 
 /**
  * Read LZW codes into client buffer, mapping output to colours.

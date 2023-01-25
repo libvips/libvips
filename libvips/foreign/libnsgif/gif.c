@@ -32,7 +32,7 @@ typedef struct nsgif_frame {
 	struct nsgif_frame_info info;
 
 	/** offset (in bytes) to the GIF frame data */
-	uint32_t frame_offset;
+	size_t frame_offset;
 	/** whether the frame has previously been decoded. */
 	bool decoded;
 	/** whether the frame is totally opaque */
@@ -102,9 +102,9 @@ struct nsgif {
 	/** pointer to GIF data */
 	const uint8_t *buf;
 	/** current index into GIF data */
-	uint32_t buf_pos;
+	size_t buf_pos;
 	/** total number of bytes of GIF data available */
-	uint32_t buf_len;
+	size_t buf_len;
 
 	/** current number of frame holders */
 	uint32_t frame_holders;
@@ -295,6 +295,9 @@ static void nsgif__record_frame(
 		struct nsgif *gif,
 		const uint32_t *bitmap)
 {
+	size_t pixel_bytes = sizeof(*bitmap);
+	size_t height = gif->info.height;
+	size_t width  = gif->info.width;
 	uint32_t *prev_frame;
 
 	if (gif->decoded_frame == NSGIF_FRAME_INVALID ||
@@ -310,7 +313,7 @@ static void nsgif__record_frame(
 
 	if (gif->prev_frame == NULL) {
 		prev_frame = realloc(gif->prev_frame,
-				gif->info.width * gif->info.height * 4);
+				width * height * pixel_bytes);
 		if (prev_frame == NULL) {
 			return;
 		}
@@ -318,7 +321,7 @@ static void nsgif__record_frame(
 		prev_frame = gif->prev_frame;
 	}
 
-	memcpy(prev_frame, bitmap, gif->info.width * gif->info.height * 4);
+	memcpy(prev_frame, bitmap, width * height * pixel_bytes);
 
 	gif->prev_frame  = prev_frame;
 	gif->prev_index  = gif->decoded_frame;
@@ -329,10 +332,11 @@ static nsgif_error nsgif__recover_frame(
 		uint32_t *bitmap)
 {
 	const uint32_t *prev_frame = gif->prev_frame;
-	unsigned height = gif->info.height;
-	unsigned width  = gif->info.width;
+	size_t pixel_bytes = sizeof(*bitmap);
+	size_t height = gif->info.height;
+	size_t width  = gif->info.width;
 
-	memcpy(bitmap, prev_frame, height * width * sizeof(*bitmap));
+	memcpy(bitmap, prev_frame, height * width * pixel_bytes);
 
 	return NSGIF_OK;
 }
@@ -596,20 +600,15 @@ static inline nsgif_error nsgif__decode(
 		const uint8_t *data,
 		uint32_t *restrict frame_data)
 {
-	enum {
-		GIF_MASK_INTERLACE = 0x40,
-	};
-
 	nsgif_error ret;
 	uint32_t width  = frame->info.rect.x1 - frame->info.rect.x0;
 	uint32_t height = frame->info.rect.y1 - frame->info.rect.y0;
 	uint32_t offset_x = frame->info.rect.x0;
 	uint32_t offset_y = frame->info.rect.y0;
-	uint32_t interlace = frame->flags & GIF_MASK_INTERLACE;
 	uint32_t transparency_index = frame->transparency_index;
 	uint32_t *restrict colour_table = gif->colour_table;
 
-	if (interlace == false && offset_x == 0 &&
+	if (frame->info.interlaced == false && offset_x == 0 &&
 			width == gif->info.width &&
 			width == gif->rowspan) {
 		ret = nsgif__decode_simple(gif, height, offset_y,
@@ -617,7 +616,7 @@ static inline nsgif_error nsgif__decode(
 				frame_data, colour_table);
 	} else {
 		ret = nsgif__decode_complex(gif, width, height,
-				offset_x, offset_y, interlace,
+				offset_x, offset_y, frame->info.interlaced,
 				data, transparency_index,
 				frame_data, colour_table);
 	}
@@ -642,9 +641,14 @@ static void nsgif__restore_bg(
 		struct nsgif_frame *frame,
 		uint32_t *bitmap)
 {
+	size_t pixel_bytes = sizeof(*bitmap);
+
 	if (frame == NULL) {
+		size_t width  = gif->info.width;
+		size_t height = gif->info.height;
+
 		memset(bitmap, NSGIF_TRANSPARENT_COLOUR,
-				gif->info.width * gif->info.height * sizeof(*bitmap));
+				width * height * pixel_bytes);
 	} else {
 		uint32_t width  = frame->info.rect.x1 - frame->info.rect.x0;
 		uint32_t height = frame->info.rect.y1 - frame->info.rect.y0;
@@ -665,7 +669,7 @@ static void nsgif__restore_bg(
 				uint32_t *scanline = bitmap + offset_x +
 						(offset_y + y) * gif->info.width;
 				memset(scanline, NSGIF_TRANSPARENT_COLOUR,
-						width * sizeof(*bitmap));
+						width * pixel_bytes);
 			}
 		} else {
 			for (uint32_t y = 0; y < height; y++) {
@@ -1011,6 +1015,7 @@ static nsgif_error nsgif__parse_image_descriptor(
 	enum {
 		NSGIF_IMAGE_DESCRIPTOR_LEN = 10u,
 		NSGIF_IMAGE_SEPARATOR      = 0x2Cu,
+		NSGIF_MASK_INTERLACE       = 0x40u,
 	};
 
 	assert(gif != NULL);
@@ -1038,6 +1043,8 @@ static nsgif_error nsgif__parse_image_descriptor(
 		frame->info.rect.x1 = x + w;
 		frame->info.rect.y1 = y + h;
 
+		frame->info.interlaced = frame->flags & NSGIF_MASK_INTERLACE;
+
 		/* Allow first frame to grow image dimensions. */
 		if (gif->info.frame_count == 0) {
 			if (x + w > gif->info.width) {
@@ -1059,7 +1066,7 @@ static nsgif_error nsgif__parse_image_descriptor(
  * \param[in] colour_table          The colour table to populate.
  * \param[in] layout                la.
  * \param[in] colour_table_entries  The number of colour table entries.
- * \param[in] Data                  Raw colour table data.
+ * \param[in] data                  Raw colour table data.
  */
 static void nsgif__colour_table_decode(
 		uint32_t colour_table[NSGIF_MAX_COLOURS],
@@ -1088,11 +1095,13 @@ static void nsgif__colour_table_decode(
 /**
  * Extract a GIF colour table into a LibNSGIF colour table buffer.
  *
- * \param[in] gif                   The gif object we're decoding.
- * \param[in] colour_table          The colour table to populate.
- * \param[in] colour_table_entries  The number of colour table entries.
- * \param[in] pos                   Current position in data, updated on exit.
- * \param[in] decode                Whether to decode the colour table.
+ * \param[in]  colour_table          The colour table to populate.
+ * \param[in]  layout                The target pixel format to decode to.
+ * \param[in]  colour_table_entries  The number of colour table entries.
+ * \param[in]  data                  Current position in data.
+ * \param[in]  data_len              The available length of `data`.
+ * \param[out] used                  Number of colour table bytes read.
+ * \param[in]  decode                Whether to decode the colour table.
  * \return NSGIF_OK on success, appropriate error otherwise.
  */
 static inline nsgif_error nsgif__colour_table_extract(
@@ -1334,18 +1343,11 @@ static nsgif_error nsgif__process_frame(
 			return NSGIF_OK;
 		}
 	} else {
-		pos = (uint8_t *)(gif->buf + gif->buf_pos);
+		pos = gif->buf + gif->buf_pos;
 
 		/* Check if we've finished */
 		if (pos < end && pos[0] == NSGIF_TRAILER) {
 			return NSGIF_OK;
-		}
-
-		/* We could theoretically get some junk data that gives us
-		 * millions of frames, so we ensure that we don't have a
-		 * silly number. */
-		if (frame_idx > 4096) {
-			return NSGIF_ERR_FRAME_COUNT;
 		}
 	}
 
@@ -2042,7 +2044,6 @@ const char *nsgif_strerror(nsgif_error err)
 		[NSGIF_ERR_DATA]          = "Invalid source data",
 		[NSGIF_ERR_BAD_FRAME]     = "Requested frame does not exist",
 		[NSGIF_ERR_DATA_FRAME]    = "Invalid frame data",
-		[NSGIF_ERR_FRAME_COUNT]   = "Excessive number of frames",
 		[NSGIF_ERR_END_OF_DATA]   = "Unexpected end of GIF source data",
 		[NSGIF_ERR_DATA_COMPLETE] = "Can't add data to completed GIF",
 		[NSGIF_ERR_FRAME_DISPLAY] = "Frame can't be displayed",
