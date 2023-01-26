@@ -13,28 +13,28 @@
 
 /*** BEGIN value-header ***/
 GType
-@enum_name@_get_type( void )
+@enum_name@_get_type(void)
 {
 	static gsize gtype_id = 0;
 
-	if( g_once_init_enter( &gtype_id ) ) {
+	if (g_once_init_enter(&gtype_id)) {
 		static const G@Type@Value values[] = {
 /*** END value-header ***/
 
 /*** BEGIN value-production ***/
-			{@VALUENAME@, "@VALUENAME@", "@valuenick@"},
+			{ @VALUENAME@, "@VALUENAME@", "@valuenick@" },
 /*** END value-production ***/
 
 /*** BEGIN value-tail ***/
-			{0, NULL, NULL}
+			{ 0, NULL, NULL }
 		};
 
-		GType new_type = 
-			g_@type@_register_static( g_intern_static_string( "@EnumName@" ), values );
-		g_once_init_leave( &gtype_id, new_type );
+		GType new_type =
+			g_@type@_register_static(g_intern_static_string("@EnumName@"), values);
+		g_once_init_leave(&gtype_id, new_type);
 	}
 
-	return( (GType) gtype_id );
+	return (GType) gtype_id;
 }
 /*** END value-tail ***/
 
