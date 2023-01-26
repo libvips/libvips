@@ -12,7 +12,7 @@ G_BEGIN_DECLS
 
 /*** BEGIN value-header ***/
 VIPS_API
-GType @enum_name@_get_type (void) G_GNUC_CONST;
+GType @enum_name@_get_type(void) G_GNUC_CONST;
 #define VIPS_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
 /*** END value-header ***/
 
