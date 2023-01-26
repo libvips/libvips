@@ -223,13 +223,13 @@ G_DEFINE_ABSTRACT_TYPE(VipsColour, vips_colour, VIPS_TYPE_OPERATION);
 #define MAX_INPUT_IMAGES (64)
 
 static int
-vips_colour_gen(VipsRegion * or,
+vips_colour_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsColour *colour = VIPS_COLOUR(b);
 	VipsColourClass *class = VIPS_COLOUR_GET_CLASS(colour);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int i, y;
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
@@ -241,7 +241,7 @@ vips_colour_gen(VipsRegion * or,
 		r->left, r->top, r->width, r->height);
 	*/
 
-	if (vips_reorder_prepare_many(or->im, ir, r))
+	if (vips_reorder_prepare_many(out_region->im, ir, r))
 		return -1;
 
 	VIPS_GATE_START("vips_colour_gen: work");
@@ -250,14 +250,14 @@ vips_colour_gen(VipsRegion * or,
 		for (i = 0; ir[i]; i++)
 			p[i] = VIPS_REGION_ADDR(ir[i], r->left, r->top + y);
 		p[i] = NULL;
-		q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		class->process_line(colour, q, p, r->width);
 	}
 
 	VIPS_GATE_STOP("vips_colour_gen: work");
 
-	VIPS_COUNT_PIXELS(or, VIPS_OBJECT_GET_CLASS(colour)->nickname);
+	VIPS_COUNT_PIXELS(out_region, VIPS_OBJECT_GET_CLASS(colour)->nickname);
 
 	return 0;
 }

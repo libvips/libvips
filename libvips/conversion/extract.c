@@ -108,8 +108,8 @@ G_DEFINE_TYPE(VipsExtractArea, vips_extract_area, VIPS_TYPE_CONVERSION);
 /* Extract an area. Can just use pointers.
  */
 static int
-vips_extract_area_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_extract_area_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsExtractArea *extract = (VipsExtractArea *) b;
@@ -118,7 +118,7 @@ vips_extract_area_gen(VipsRegion * or, void *seq, void *a, void *b,
 	/* Ask for input we need. Translate from demand in or's space to
 	 * demand in ir's space.
 	 */
-	iarea = or->valid;
+	iarea = out_region->valid;
 	iarea.left += extract->left;
 	iarea.top += extract->top;
 	if (vips_region_prepare(ir, &iarea))
@@ -126,7 +126,8 @@ vips_extract_area_gen(VipsRegion * or, void *seq, void *a, void *b,
 
 	/* Attach or to ir.
 	 */
-	if (vips_region_region(or, ir, & or->valid, iarea.left, iarea.top))
+	if (vips_region_region(out_region, ir,
+			&out_region->valid, iarea.left, iarea.top))
 		return -1;
 
 	return 0;

@@ -171,18 +171,18 @@ smootherstep(float x)
 }
 
 static int
-vips_perlin_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_perlin_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsPerlin *perlin = (VipsPerlin *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	Sequence *seq = (Sequence *) vseq;
 
 	int x, y;
 
 	for (y = 0; y < r->height; y++) {
 		float *fq = (float *)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 		VipsPel *q = (VipsPel *) fq;
 
 		for (x = 0; x < r->width; x++) {

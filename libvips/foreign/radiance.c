@@ -754,10 +754,10 @@ vips__rad_header(VipsSource *source, VipsImage *out)
 }
 
 static int
-rad2vips_generate(VipsRegion * or,
+rad2vips_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
 	int y;
@@ -771,9 +771,9 @@ rad2vips_generate(VipsRegion * or,
 
 	for (y = 0; y < r->height; y++) {
 		COLR *buf = (COLR *)
-			VIPS_REGION_ADDR(or, 0, r->top + y);
+			VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
-		if (scanline_read(read->sbuf, buf, or->im->Xsize)) {
+		if (scanline_read(read->sbuf, buf, out_region->im->Xsize)) {
 			vips_error("rad2vips",
 				_("read error line %d"), r->top + y);
 			VIPS_GATE_STOP("rad2vips_generate: work");

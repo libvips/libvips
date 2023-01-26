@@ -83,11 +83,11 @@ typedef VipsConversionClass VipsFlipClass;
 G_DEFINE_TYPE(VipsFlip, vips_flip, VIPS_TYPE_CONVERSION);
 
 static int
-vips_flip_vertical_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_flip_vertical_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRect in;
 	VipsPel *p, *q;
 	int y;
@@ -112,10 +112,10 @@ vips_flip_vertical_gen(VipsRegion * or, void *seq, void *a, void *b,
 	/* Loop, copying and reversing lines.
 	 */
 	p = VIPS_REGION_ADDR(ir, le, in.top + in.height - 1);
-	q = VIPS_REGION_ADDR(or, le, to);
+	q = VIPS_REGION_ADDR(out_region, le, to);
 	psk = VIPS_REGION_LSKIP(ir);
-	qsk = VIPS_REGION_LSKIP(or);
-	ls = VIPS_REGION_SIZEOF_LINE(or);
+	qsk = VIPS_REGION_LSKIP(out_region);
+	ls = VIPS_REGION_SIZEOF_LINE(out_region);
 
 	for (y = to; y < bo; y++) {
 		memcpy(q, p, ls);
@@ -128,11 +128,11 @@ vips_flip_vertical_gen(VipsRegion * or, void *seq, void *a, void *b,
 }
 
 static int
-vips_flip_horizontal_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_flip_horizontal_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRect in;
 	VipsPel *p, *q;
 	int x, y, z;
@@ -166,7 +166,7 @@ vips_flip_horizontal_gen(VipsRegion * or, void *seq, void *a, void *b,
 	 */
 	for (y = to; y < bo; y++) {
 		p = VIPS_REGION_ADDR(ir, lastx, y);
-		q = VIPS_REGION_ADDR(or, le, y);
+		q = VIPS_REGION_ADDR(out_region, le, y);
 
 		for (x = le; x < ri; x++) {
 			/* Copy the pel.

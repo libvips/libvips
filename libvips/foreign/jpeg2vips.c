@@ -849,10 +849,10 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 }
 
 static int
-read_jpeg_generate(VipsRegion * or,
+read_jpeg_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	ReadJpeg *jpeg = (ReadJpeg *) a;
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	int sz = cinfo->output_width * cinfo->output_components;
@@ -870,8 +870,8 @@ read_jpeg_generate(VipsRegion * or,
 	 * this should always be true.
 	 */
 	g_assert(r->left == 0);
-	g_assert(r->width == or->im->Xsize);
-	g_assert(VIPS_RECT_BOTTOM(r) <= or->im->Ysize);
+	g_assert(r->width == out_region->im->Xsize);
+	g_assert(VIPS_RECT_BOTTOM(r) <= out_region->im->Ysize);
 
 	/* Tiles should always be on a 8-pixel boundary.
 	 */
@@ -880,7 +880,7 @@ read_jpeg_generate(VipsRegion * or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert(r->height == VIPS_MIN(8, or->im->Ysize - r->top));
+	g_assert(r->height == VIPS_MIN(8, out_region->im->Ysize - r->top));
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -921,7 +921,7 @@ read_jpeg_generate(VipsRegion * or,
 		JSAMPROW row_pointer[1];
 
 		row_pointer[0] = (JSAMPLE *)
-			VIPS_REGION_ADDR(or, 0, r->top + y);
+			VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
 		jpeg_read_scanlines(cinfo, &row_pointer[0], 1);
 

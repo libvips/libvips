@@ -488,10 +488,10 @@ vips_foreign_load_png_minimise(VipsObject *object, VipsForeignLoadPng *png)
 }
 
 static int
-vips_foreign_load_png_generate(VipsRegion * or,
+vips_foreign_load_png_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(a);
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(png);
@@ -509,14 +509,14 @@ vips_foreign_load_png_generate(VipsRegion * or,
 	 * this should always be true.
 	 */
 	g_assert(r->left == 0);
-	g_assert(r->width == or->im->Xsize);
-	g_assert(VIPS_RECT_BOTTOM(r) <= or->im->Ysize);
+	g_assert(r->width == out_region->im->Xsize);
+	g_assert(VIPS_RECT_BOTTOM(r) <= out_region->im->Ysize);
 
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
 	g_assert(r->height ==
-		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
+		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, out_region->im->Ysize - r->top));
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -532,8 +532,8 @@ vips_foreign_load_png_generate(VipsRegion * or,
 		 * final line of input.
 		 */
 		error = spng_decode_row(png->ctx,
-			VIPS_REGION_ADDR(or, 0, r->top + y),
-			VIPS_REGION_SIZEOF_LINE(or));
+			VIPS_REGION_ADDR(out_region, 0, r->top + y),
+			VIPS_REGION_SIZEOF_LINE(out_region));
 		if (error != 0 &&
 			error != SPNG_EOI) {
 			/* We've failed to read some pixels. Knock this

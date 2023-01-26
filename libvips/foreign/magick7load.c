@@ -660,12 +660,12 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	}
 
 static int
-vips_foreign_load_magick7_fill_region(VipsRegion * or,
+vips_foreign_load_magick7_fill_region(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) a;
-	VipsRect *r = & or->valid;
-	VipsImage *im = or->im;
+	VipsRect *r = &out_region->valid;
+	VipsImage *im = out_region->im;
 
 	int y;
 
@@ -693,7 +693,7 @@ vips_foreign_load_magick7_fill_region(VipsRegion * or,
 			 */
 			continue;
 
-		q = VIPS_REGION_ADDR(or, r->left, top);
+		q = VIPS_REGION_ADDR(out_region, r->left, top);
 
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

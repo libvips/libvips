@@ -404,7 +404,7 @@ vips_morph_compile(VipsMorph *morph)
 /* Dilate!
  */
 static int
-vips_dilate_gen(VipsRegion * or,
+vips_dilate_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
@@ -415,11 +415,11 @@ vips_dilate_gen(VipsRegion * or,
 	int *soff = seq->soff;
 	int *coff = seq->coff;
 
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y;
@@ -477,7 +477,7 @@ vips_dilate_gen(VipsRegion * or,
 	 */
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Loop along line.
 		 */
@@ -515,7 +515,7 @@ vips_dilate_gen(VipsRegion * or,
 /* Erode!
  */
 static int
-vips_erode_gen(VipsRegion * or,
+vips_erode_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
@@ -526,11 +526,11 @@ vips_erode_gen(VipsRegion * or,
 	int *soff = seq->soff;
 	int *coff = seq->coff;
 
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y;
@@ -588,7 +588,7 @@ vips_erode_gen(VipsRegion * or,
 	 */
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Loop along line.
 		 */
@@ -623,15 +623,15 @@ vips_erode_gen(VipsRegion * or,
 /* The vector codepath.
  */
 static int
-vips_morph_gen_vector(VipsRegion * or,
+vips_morph_gen_vector(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
 	VipsMorph *morph = (VipsMorph *) b;
 	VipsImage *M = morph->M;
 	VipsRegion *ir = seq->ir;
-	VipsRect *r = & or->valid;
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	VipsRect *r = &out_region->valid;
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int y, j;
@@ -665,7 +665,7 @@ vips_morph_gen_vector(VipsRegion * or,
 			 * intermediate passes go to t2.
 			 */
 			if (j == morph->n_pass - 1)
-				d = VIPS_REGION_ADDR(or, r->left, r->top + y);
+				d = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 			else
 				d = seq->t2;
 
@@ -682,7 +682,7 @@ vips_morph_gen_vector(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_morph_gen_vector: work");
 
-	VIPS_COUNT_PIXELS(or, "vips_morph_gen_vector");
+	VIPS_COUNT_PIXELS(out_region, "vips_morph_gen_vector");
 
 	return 0;
 }

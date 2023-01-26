@@ -66,12 +66,12 @@ typedef VipsConversionClass VipsGridClass;
 G_DEFINE_TYPE(VipsGrid, vips_grid, VIPS_TYPE_CONVERSION);
 
 static int
-vips_grid_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_grid_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsGrid *grid = (VipsGrid *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int twidth = grid->in->Xsize;
 	int theight = grid->tile_height;
 
@@ -103,7 +103,7 @@ vips_grid_gen(VipsRegion * or, void *vseq, void *a, void *b,
 		irect.top += grid->across * ys + theight * (xs / twidth);
 
 		if (vips_region_prepare(ir, &irect) ||
-			vips_region_region(or, ir, r, irect.left, irect.top))
+			vips_region_region(out_region, ir, r, irect.left, irect.top))
 			return -1;
 
 		return 0;
@@ -135,9 +135,9 @@ vips_grid_gen(VipsRegion * or, void *vseq, void *a, void *b,
 			input.top -= y;
 			input.top += grid->across * y + theight * (x / twidth);
 
-			/* Render into or.
+			/* Render into out_region.
 			 */
-			if (vips_region_prepare_to(ir, or, &input,
+			if (vips_region_prepare_to(ir, out_region, &input,
 					paint.left, paint.top))
 				return -1;
 		}

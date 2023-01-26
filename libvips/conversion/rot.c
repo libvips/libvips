@@ -96,15 +96,15 @@ typedef VipsConversionClass VipsRotClass;
 G_DEFINE_TYPE(VipsRot, vips_rot, VIPS_TYPE_CONVERSION);
 
 static int
-vips_rot90_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_rot90_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -137,7 +137,7 @@ vips_rot90_gen(VipsRegion * or, void *seq, void *a, void *b,
 	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
@@ -158,15 +158,15 @@ vips_rot90_gen(VipsRegion * or, void *seq, void *a, void *b,
 }
 
 static int
-vips_rot180_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_rot180_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -198,7 +198,7 @@ vips_rot180_gen(VipsRegion * or, void *seq, void *a, void *b,
 	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
@@ -221,15 +221,15 @@ vips_rot180_gen(VipsRegion * or, void *seq, void *a, void *b,
 }
 
 static int
-vips_rot270_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_rot270_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -262,7 +262,7 @@ vips_rot270_gen(VipsRegion * or, void *seq, void *a, void *b,
 	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */

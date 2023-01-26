@@ -1011,12 +1011,12 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 /* Just pointer-copy.
  */
 static int
-vips_foreign_load_generate(VipsRegion * or,
+vips_foreign_load_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Ask for input we need.
 	 */
@@ -1025,7 +1025,7 @@ vips_foreign_load_generate(VipsRegion * or,
 
 	/* Attach output region to that.
 	 */
-	if (vips_region_region(or, ir, r, r->left, r->top))
+	if (vips_region_region(out_region, ir, r, r->left, r->top))
 		return -1;
 
 	return 0;

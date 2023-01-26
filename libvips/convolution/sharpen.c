@@ -113,17 +113,17 @@ typedef VipsOperationClass VipsSharpenClass;
 G_DEFINE_TYPE(VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION);
 
 static int
-vips_sharpen_generate(VipsRegion * or,
+vips_sharpen_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **in = (VipsRegion **) vseq;
 	VipsSharpen *sharpen = (VipsSharpen *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int *lut = sharpen->lut;
 
 	int x, y;
 
-	if (vips_reorder_prepare_many(or->im, in, r))
+	if (vips_reorder_prepare_many(out_region->im, in, r))
 		return -1;
 
 	VIPS_GATE_START("vips_sharpen_generate: work");
@@ -134,7 +134,7 @@ vips_sharpen_generate(VipsRegion * or,
 		short *p2 = (short *restrict)
 			VIPS_REGION_ADDR(in[1], r->left, r->top + y);
 		short *q = (short *restrict)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		for (x = 0; x < r->width; x++) {
 			int v1 = p1[x];

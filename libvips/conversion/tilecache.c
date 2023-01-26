@@ -591,26 +591,26 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 }
 
 static void
-vips_tile_paste(VipsTile *tile, VipsRegion * or)
+vips_tile_paste(VipsTile *tile, VipsRegion *out_region)
 {
 	VipsRect hit;
 
 	/* The part of the tile that we need.
 	 */
-	vips_rect_intersectrect(& or->valid, &tile->pos, &hit);
+	vips_rect_intersectrect(&out_region->valid, &tile->pos, &hit);
 	if (!vips_rect_isempty(&hit))
-		vips_region_copy(tile->region, or, &hit, hit.left, hit.top);
+		vips_region_copy(tile->region, out_region, &hit, hit.left, hit.top);
 }
 
 /* Also called from vips_line_cache_gen(), beware.
  */
 static int
-vips_tile_cache_gen(VipsRegion * or,
+vips_tile_cache_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *in = (VipsRegion *) seq;
 	VipsBlockCache *cache = (VipsBlockCache *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	VipsTile *tile;
 	GSList *work;
@@ -652,7 +652,7 @@ vips_tile_cache_gen(VipsRegion * or,
 				"vips_tile_cache_gen: pasting %p\n",
 				tile);
 
-			vips_tile_paste(tile, or);
+			vips_tile_paste(tile, out_region);
 
 			/* We're done with this tile.
 			 */
@@ -888,7 +888,7 @@ typedef VipsBlockCacheClass VipsLineCacheClass;
 G_DEFINE_TYPE(VipsLineCache, vips_line_cache, VIPS_TYPE_BLOCK_CACHE);
 
 static int
-vips_line_cache_gen(VipsRegion * or,
+vips_line_cache_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsBlockCache *block_cache = (VipsBlockCache *) b;
@@ -901,18 +901,17 @@ vips_line_cache_gen(VipsRegion * or,
 
 	/* We size up the cache to the largest request.
 	 */
-	if (or->valid.height > /* clang-format off */
-			block_cache->max_tiles * block_cache->tile_height) {
-		/* clang-format on */
+	if (out_region->valid.height >
+		block_cache->max_tiles * block_cache->tile_height) {
 		block_cache->max_tiles =
-			1 + (or->valid.height / block_cache->tile_height);
+			1 + (out_region->valid.height / block_cache->tile_height);
 		VIPS_DEBUG_MSG("vips_line_cache_gen: bumped max_tiles to %d\n",
 			block_cache->max_tiles);
 	}
 
 	g_mutex_unlock(block_cache->lock);
 
-	return vips_tile_cache_gen(or, seq, a, b, stop);
+	return vips_tile_cache_gen(out_region, seq, a, b, stop);
 }
 
 static int

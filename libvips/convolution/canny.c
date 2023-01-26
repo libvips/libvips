@@ -155,16 +155,16 @@ static VipsPel vips_canny_polar_atan2[256];
 	}
 
 static int
-vips_canny_polar_generate(VipsRegion * or,
+vips_canny_polar_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **in = (VipsRegion **) vseq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsImage *Gx = in[0]->im;
 
 	int x, y, band;
 
-	if (vips_reorder_prepare_many(or->im, in, r))
+	if (vips_reorder_prepare_many(out_region->im, in, r))
 		return -1;
 
 	for (y = 0; y < r->height; y++) {
@@ -173,7 +173,7 @@ vips_canny_polar_generate(VipsRegion * or,
 		VipsPel *p2 = (VipsPel *restrict)
 			VIPS_REGION_ADDR(in[1], r->left, r->top + y);
 		VipsPel *q = (VipsPel *restrict)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (Gx->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
@@ -278,13 +278,13 @@ vips_canny_polar(VipsImage **args, VipsImage **out)
 	}
 
 static int
-vips_canny_thin_generate(VipsRegion * or,
+vips_canny_thin_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *in = (VipsRegion *) vseq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsImage *im = in->im;
-	int out_bands = or->im->Bands;
+	int out_bands = out_region->im->Bands;
 
 	VipsRect rect;
 	int x, y, band;
@@ -326,7 +326,7 @@ vips_canny_thin_generate(VipsRegion * or,
 		VipsPel *p = (VipsPel *restrict)
 			VIPS_REGION_ADDR(in, r->left, r->top + y);
 		VipsPel *q = (VipsPel *restrict)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

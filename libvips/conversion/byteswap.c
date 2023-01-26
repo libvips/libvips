@@ -129,12 +129,12 @@ static SwapFn vips_byteswap_swap_fn[] = {
 /* Byteswap, turning bands into the x axis.
  */
 static int
-vips_byteswap_gen(VipsRegion * or,
+vips_byteswap_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *im = ir->im;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	SwapFn swap = vips_byteswap_swap_fn[im->BandFmt];
 
 	int y;
@@ -146,7 +146,7 @@ vips_byteswap_gen(VipsRegion * or,
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		swap(p, q, r->width, im);
 	}

@@ -227,17 +227,17 @@ vips_worley_distance(VipsWorley *worley, Cell cells[9], int x, int y)
 }
 
 static int
-vips_worley_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_worley_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsWorley *worley = (VipsWorley *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	Sequence *seq = (Sequence *) vseq;
 
 	int x, y;
 
 	for (y = 0; y < r->height; y++) {
-		float *q = (float *) VIPS_REGION_ADDR(or, r->left, r->top + y);
+		float *q = (float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		for (x = 0; x < r->width; x++) {
 			int cell_x = (r->left + x) / worley->cell_size;

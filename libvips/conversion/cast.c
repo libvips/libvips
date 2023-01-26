@@ -355,13 +355,14 @@ G_DEFINE_TYPE(VipsCast, vips_cast, VIPS_TYPE_CONVERSION);
 	}
 
 static int
-vips_cast_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
+vips_cast_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsCast *cast = (VipsCast *) b;
 	VipsConversion *conversion = (VipsConversion *) b;
-	VipsRect *r = & or->valid;
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	VipsRect *r = &out_region->valid;
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	int x, y;
 
@@ -372,7 +373,7 @@ vips_cast_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (ir->im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

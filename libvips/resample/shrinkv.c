@@ -240,7 +240,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
  */
 static void
 vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
-	VipsRegion * or, int left, int top, int width)
+	VipsRegion *out_region, int left, int top, int width)
 {
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
@@ -249,7 +249,7 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 
 	int x;
 
-	VipsPel *out = VIPS_REGION_ADDR(or, left, top);
+	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
 	switch (resample->in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
 		IAVG(int, unsigned char);
@@ -288,13 +288,13 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 }
 
 static int
-vips_shrinkv_gen(VipsRegion * or, void *vseq,
-	void *a, void *b, gboolean *stop)
+vips_shrinkv_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
 	VipsRegion *ir = seq->ir;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int y, y1;
 
@@ -335,13 +335,13 @@ vips_shrinkv_gen(VipsRegion * or, void *vseq,
 
 		VIPS_GATE_START("vips_shrinkv_gen: work");
 
-		vips_shrinkv_write_line(shrink, seq, or,
+		vips_shrinkv_write_line(shrink, seq, out_region,
 			r->left, r->top + y, r->width);
 
 		VIPS_GATE_STOP("vips_shrinkv_gen: work");
 	}
 
-	VIPS_COUNT_PIXELS(or, "vips_shrinkv_gen");
+	VIPS_COUNT_PIXELS(out_region, "vips_shrinkv_gen");
 
 	return 0;
 }

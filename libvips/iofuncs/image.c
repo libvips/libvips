@@ -2582,23 +2582,23 @@ vips_image_new_temp_file(const char *format)
 }
 
 static int
-vips_image_write_gen(VipsRegion * or,
+vips_image_write_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/*
 	printf("vips_image_write_gen: %p "
 		   "left = %d, top = %d, width = %d, height = %d\n",
-		or->im,
+		out_region->im,
 		r->left, r->top, r->width, r->height);
 	 */
 
 	/* Copy with pointers.
 	 */
 	if (vips_region_prepare(ir, r) ||
-		vips_region_region(or, ir, r, r->left, r->top))
+		vips_region_region(out_region, ir, r, r->left, r->top))
 		return -1;
 
 	return 0;

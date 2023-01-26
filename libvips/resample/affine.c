@@ -210,7 +210,8 @@ G_DEFINE_TYPE(VipsAffine, vips_affine, VIPS_TYPE_RESAMPLE);
  */
 
 static int
-vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_affine_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	const VipsAffine *affine = (VipsAffine *) b;
@@ -224,7 +225,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	/* Area we generate in the output image.
 	 */
-	const VipsRect *r = & or->valid;
+	const VipsRect *r = &out_region->valid;
 	const int le = r->left;
 	const int ri = VIPS_RECT_RIGHT(r);
 	const int to = r->top;
@@ -297,7 +298,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 #endif /*DEBUG_VERBOSE*/
 
 	if (vips_rect_isempty(&clipped)) {
-		vips_region_paint_pel(or, r, affine->ink);
+		vips_region_paint_pel(out_region, r, affine->ink);
 		return 0;
 	}
 	if (vips_region_prepare(ir, &clipped))
@@ -347,7 +348,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		ix += window_offset;
 		iy += window_offset;
 
-		q = VIPS_REGION_ADDR(or, le, y);
+		q = VIPS_REGION_ADDR(out_region, le, y);
 
 		for (x = le; x < ri; x++) {
 			int fx, fy;
@@ -390,7 +391,7 @@ vips_affine_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	VIPS_GATE_STOP("vips_affine_gen: work");
 
-	VIPS_COUNT_PIXELS(or, "vips_affine_gen");
+	VIPS_COUNT_PIXELS(out_region, "vips_affine_gen");
 
 	return 0;
 }

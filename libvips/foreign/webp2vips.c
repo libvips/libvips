@@ -730,10 +730,10 @@ read_next_frame(Read *read)
 }
 
 static int
-read_webp_generate(VipsRegion * or,
+read_webp_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
 	/* iter.frame_num numbers from 1.
@@ -754,8 +754,8 @@ read_webp_generate(VipsRegion * or,
 		read->frame_no += 1;
 	}
 
-	if (or->im->Bands == 4)
-		memcpy(VIPS_REGION_ADDR(or, 0, r->top),
+	if (out_region->im->Bands == 4)
+		memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
 			VIPS_IMAGE_ADDR(read->frame, 0, line),
 			VIPS_IMAGE_SIZEOF_LINE(read->frame));
 	else {
@@ -767,7 +767,7 @@ read_webp_generate(VipsRegion * or,
 		 * band.
 		 */
 		p = VIPS_IMAGE_ADDR(read->frame, 0, line);
-		q = VIPS_REGION_ADDR(or, 0, r->top);
+		q = VIPS_REGION_ADDR(out_region, 0, r->top);
 		for (x = 0; x < r->width; x++) {
 			q[0] = p[0];
 			q[1] = p[1];

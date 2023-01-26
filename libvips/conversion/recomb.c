@@ -77,7 +77,7 @@ G_DEFINE_TYPE(VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION);
 		IN *restrict p = (IN *) in; \
 		OUT *restrict q = (OUT *) out; \
 \
-		for (x = 0; x < or->valid.width; x++) { \
+		for (x = 0; x < out_region->valid.width; x++) { \
 			double *restrict m = VIPS_MATRIX(recomb->coeff, 0, 0); \
 \
 			for (v = 0; v < mheight; v++) { \
@@ -98,7 +98,7 @@ G_DEFINE_TYPE(VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION);
 	}
 
 static int
-vips_recomb_gen(VipsRegion * or,
+vips_recomb_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
@@ -109,14 +109,14 @@ vips_recomb_gen(VipsRegion * or,
 
 	int y, x, u, v;
 
-	if (vips_region_prepare(ir, & or->valid))
+	if (vips_region_prepare(ir, &out_region->valid))
 		return -1;
 
-	for (y = 0; y < or->valid.height; y++) {
+	for (y = 0; y < out_region->valid.height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir,
-			or->valid.left, or->valid.top + y);
-		VipsPel *out = VIPS_REGION_ADDR(or,
-			or->valid.left, or->valid.top + y);
+			out_region->valid.left, out_region->valid.top + y);
+		VipsPel *out = VIPS_REGION_ADDR(out_region,
+			out_region->valid.left, out_region->valid.top + y);
 
 		switch (vips_image_get_format(im)) {
 		case VIPS_FORMAT_UCHAR:

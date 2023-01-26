@@ -115,8 +115,8 @@ vips_quadratic_dispose(GObject *gobject)
 }
 
 static int
-vips_quadratic_gen(VipsRegion * or, void *vseq,
-	void *a, void *b, gboolean *stop)
+vips_quadratic_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsQuadratic *quadratic = (VipsQuadratic *) b;
@@ -136,10 +136,10 @@ vips_quadratic_gen(VipsRegion * or, void *vseq,
 	int clip_width = resample->in->Xsize;
 	int clip_height = resample->in->Ysize;
 
-	int xlow = or->valid.left;
-	int ylow = or->valid.top;
-	int xhigh = VIPS_RECT_RIGHT(& or->valid);
-	int yhigh = VIPS_RECT_BOTTOM(& or->valid);
+	int xlow = out_region->valid.left;
+	int ylow = out_region->valid.top;
+	int xhigh = VIPS_RECT_RIGHT(&out_region->valid);
+	int yhigh = VIPS_RECT_BOTTOM(&out_region->valid);
 
 	VipsPel *q;
 
@@ -198,7 +198,7 @@ vips_quadratic_gen(VipsRegion * or, void *vseq,
 
 		printf("dx = %g, dy = %g\n", dx, dy);
 
-		q = VIPS_REGION_ADDR(or, xlow, yo);
+		q = VIPS_REGION_ADDR(out_region, xlow, yo);
 
 		for (xo = xlow; xo < xhigh; xo++) {
 			int xi, yi;

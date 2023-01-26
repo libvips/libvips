@@ -49,14 +49,14 @@ G_DEFINE_ABSTRACT_TYPE(VipsCorrelation, vips_correlation,
 	VIPS_TYPE_OPERATION);
 
 static int
-vips_correlation_gen(VipsRegion * or,
+vips_correlation_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsCorrelation *correlation = (VipsCorrelation *) b;
 	VipsCorrelationClass *cclass =
 		VIPS_CORRELATION_GET_CLASS(correlation);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	VipsRect irect;
 
@@ -70,7 +70,7 @@ vips_correlation_gen(VipsRegion * or,
 	if (vips_region_prepare(ir, &irect))
 		return -1;
 
-	cclass->correlation(correlation, ir, or);
+	cclass->correlation(correlation, ir, out_region);
 
 	return 0;
 }

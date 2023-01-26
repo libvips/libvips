@@ -96,11 +96,11 @@ G_DEFINE_TYPE(VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION);
 /* Generate function.
  */
 static int
-vips_hist_plot_vert_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_hist_plot_vert_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsImage *in = (VipsImage *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int ri = VIPS_RECT_RIGHT(r);
@@ -110,7 +110,7 @@ vips_hist_plot_vert_gen(VipsRegion * or, void *seq, void *a, void *b,
 	int x, y, z;
 
 	for (y = to; y < bo; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 		VipsPel *p = VIPS_IMAGE_ADDR(in, 0, y);
 
 		switch (in->BandFmt) {
@@ -162,23 +162,23 @@ vips_hist_plot_vert_gen(VipsRegion * or, void *seq, void *a, void *b,
 /* Generate function.
  */
 static int
-vips_hist_plot_horz_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_hist_plot_horz_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsImage *in = (VipsImage *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int ri = VIPS_RECT_RIGHT(r);
 	int bo = VIPS_RECT_BOTTOM(r);
 	int nb = in->Bands;
-	int lsk = VIPS_REGION_LSKIP(or);
-	int ht = or->im->Ysize;
+	int lsk = VIPS_REGION_LSKIP(out_region);
+	int ht = out_region->im->Ysize;
 
 	int x, y, z;
 
 	for (x = le; x < ri; x++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, x, to);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, x, to);
 		VipsPel *p = VIPS_IMAGE_ADDR(in, x, 0);
 
 		switch (in->BandFmt) {

@@ -580,11 +580,12 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 /* Left-right blend function for non-labpack images.
  */
 static int
-lr_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
+lr_blend(VipsRegion *out_region, MergeInfo *inf, Overlapping *ovlap,
+	VipsRect *oreg)
 {
 	VipsRegion *rir = inf->rir;
 	VipsRegion *sir = inf->sir;
-	VipsImage *im = or->im;
+	VipsImage *im = out_region->im;
 
 	VipsRect prr, psr;
 	int y, yr, ys;
@@ -618,7 +619,7 @@ lr_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 		 y < VIPS_RECT_BOTTOM(oreg); y++, yr++, ys++) {
 		VipsPel *pr = VIPS_REGION_ADDR(rir, prr.left, yr);
 		VipsPel *ps = VIPS_REGION_ADDR(sir, psr.left, ys);
-		VipsPel *q = VIPS_REGION_ADDR(or, oreg->left, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, oreg->left, y);
 
 		const int j = y - ovlap->overlap.top;
 		const int first = ovlap->first[j];
@@ -669,7 +670,7 @@ lr_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 /* Left-right blend function for VIPS_CODING_LABQ images.
  */
 static int
-lr_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap,
+lr_blend_labpack(VipsRegion *out_region, MergeInfo *inf, Overlapping *ovlap,
 	VipsRect *oreg)
 {
 	VipsRegion *rir = inf->rir;
@@ -707,7 +708,7 @@ lr_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap,
 		 y < VIPS_RECT_BOTTOM(oreg); y++, yr++, ys++) {
 		VipsPel *pr = VIPS_REGION_ADDR(rir, prr.left, yr);
 		VipsPel *ps = VIPS_REGION_ADDR(sir, psr.left, ys);
-		VipsPel *q = VIPS_REGION_ADDR(or, oreg->left, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, oreg->left, y);
 
 		const int j = y - ovlap->overlap.top;
 		const int first = ovlap->first[j];
@@ -920,9 +921,9 @@ build_lrstate(VipsImage *ref, VipsImage *sec, VipsImage *out,
  * Shared with tbmerge, so not static.
  */
 int
-vips__attach_input(VipsRegion * or, VipsRegion *ir, VipsRect *area)
+vips__attach_input(VipsRegion *out_region, VipsRegion *ir, VipsRect *area)
 {
-	VipsRect r = or->valid;
+	VipsRect r = out_region->valid;
 
 	/* Translate to source coordinate space.
 	 */
@@ -936,7 +937,7 @@ vips__attach_input(VipsRegion * or, VipsRegion *ir, VipsRect *area)
 
 	/* Attach or to ir.
 	 */
-	if (vips_region_region(or, ir, & or->valid, r.left, r.top))
+	if (vips_region_region(out_region, ir, &out_region->valid, r.left, r.top))
 		return -1;
 
 	return 0;
@@ -944,12 +945,13 @@ vips__attach_input(VipsRegion * or, VipsRegion *ir, VipsRect *area)
 
 /* The area being demanded requires pixels from the ref and sec images. As
  * above, but just do a sub-area of the output, and make sure we copy rather
- * than just pointer-fiddling. reg is the sub-area of or->valid we should do.
+ * than just pointer-fiddling. reg is the sub-area of out_region->valid we
+ * should do.
  *
  * Shared with tbmerge, so not static.
  */
 int
-vips__copy_input(VipsRegion * or, VipsRegion *ir,
+vips__copy_input(VipsRegion *out_region, VipsRegion *ir,
 	VipsRect *area, VipsRect *reg)
 {
 	VipsRect r = *reg;
@@ -959,9 +961,9 @@ vips__copy_input(VipsRegion * or, VipsRegion *ir,
 	r.left -= area->left;
 	r.top -= area->top;
 
-	/* Paint this area of ir into or.
+	/* Paint this area of ir into out_region.
 	 */
-	if (vips_region_prepare_to(ir, or, &r, reg->left, reg->top))
+	if (vips_region_prepare_to(ir, out_region, &r, reg->left, reg->top))
 		return -1;
 
 	return 0;
@@ -971,12 +973,12 @@ vips__copy_input(VipsRegion * or, VipsRegion *ir,
  * tbmerge.
  */
 int
-vips__merge_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips__merge_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	MergeInfo *inf = (MergeInfo *) seq;
 	Overlapping *ovlap = (Overlapping *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRect rreg, sreg, oreg;
 
 	/* Find intersection with overlap, ref and sec parts.
@@ -988,11 +990,11 @@ vips__merge_gen(VipsRegion * or, void *seq, void *a, void *b,
 	 * from ref, or just from sec.
 	 */
 	if (vips_rect_equalsrect(r, &rreg)) {
-		if (vips__attach_input(or, inf->rir, &ovlap->rarea))
+		if (vips__attach_input(out_region, inf->rir, &ovlap->rarea))
 			return -1;
 	}
 	else if (vips_rect_equalsrect(r, &sreg)) {
-		if (vips__attach_input(or, inf->sir, &ovlap->sarea))
+		if (vips__attach_input(out_region, inf->sir, &ovlap->sarea))
 			return -1;
 	}
 	else {
@@ -1010,28 +1012,28 @@ vips__merge_gen(VipsRegion * or, void *seq, void *a, void *b,
 		vips_rect_intersectrect(r, &ovlap->sarea, &sreg);
 		vips_rect_intersectrect(r, &ovlap->overlap, &oreg);
 
-		vips_region_black(or);
+		vips_region_black(out_region);
 		if (!vips_rect_isempty(&rreg))
-			if (vips__copy_input(or,
+			if (vips__copy_input(out_region,
 					inf->rir, &ovlap->rarea, &rreg))
 				return -1;
 		if (!vips_rect_isempty(&sreg))
-			if (vips__copy_input(or,
+			if (vips__copy_input(out_region,
 					inf->sir, &ovlap->sarea, &sreg))
 				return -1;
 
 		/* Nasty: inf->rir and inf->sir now point to the same bit of
-		 * memory (part of or), and we've written twice. We need to
-		 * make sure we get fresh pixels for the blend, so we must
-		 * invalidate them both. Should maybe add a call to the API
-		 * for this.
+		 * memory (part of out_region), and we've written twice. We
+		 * need to make sure we get fresh pixels for the blend, so
+		 * we must invalidate them both. Should maybe add a call to
+		 * the API for this.
 		 */
 		inf->rir->valid.width = inf->sir->valid.width = 0;
 
 		/* Now blat in the blended area.
 		 */
 		if (!vips_rect_isempty(&oreg))
-			if (ovlap->blend(or, inf, ovlap, &oreg))
+			if (ovlap->blend(out_region, inf, ovlap, &oreg))
 				return -1;
 	}
 

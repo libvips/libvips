@@ -73,9 +73,9 @@ vips_scRGB2BW_line_8(VipsPel *restrict q, float *restrict p,
 		float B = p[2];
 
 		int g;
-		int or ;
+		int og;
 
-		vips_col_scRGB2BW_8(R, G, B, &g, & or);
+		vips_col_scRGB2BW_8(R, G, B, &g, &og);
 
 		p += 3;
 
@@ -102,9 +102,9 @@ vips_scRGB2BW_line_16(unsigned short *restrict q, float *restrict p,
 		float B = p[2];
 
 		int g;
-		int or ;
+		int og;
 
-		vips_col_scRGB2BW_16(R, G, B, &g, & or);
+		vips_col_scRGB2BW_16(R, G, B, &g, &og);
 
 		p += 3;
 
@@ -120,12 +120,12 @@ vips_scRGB2BW_line_16(unsigned short *restrict q, float *restrict p,
 }
 
 static int
-vips_scRGB2BW_gen(VipsRegion * or,
+vips_scRGB2BW_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsscRGB2BW *scRGB2BW = (VipsscRGB2BW *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsImage *in = ir->im;
 
 	int y;
@@ -139,7 +139,7 @@ vips_scRGB2BW_gen(VipsRegion * or,
 		float *p = (float *)
 			VIPS_REGION_ADDR(ir, r->left, r->top + y);
 		VipsPel *q = (VipsPel *)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		if (scRGB2BW->depth == 16)
 			vips_scRGB2BW_line_16((unsigned short *) q, p,

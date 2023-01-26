@@ -58,13 +58,13 @@ typedef VipsConversionClass VipsTranspose3dClass;
 G_DEFINE_TYPE(VipsTranspose3d, vips_transpose3d, VIPS_TYPE_CONVERSION);
 
 static int
-vips_transpose3d_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_transpose3d_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	VipsTranspose3d *transpose3d = (VipsTranspose3d *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int output_page_height = in->Ysize / transpose3d->page_height;
 
@@ -97,9 +97,9 @@ vips_transpose3d_gen(VipsRegion * or, void *vseq, void *a, void *b,
 
 		tile.top = yi;
 
-		/* Render into or.
+		/* Render into out_region.
 		 */
-		if (vips_region_prepare_to(ir, or, &tile, tile.left, yo))
+		if (vips_region_prepare_to(ir, out_region, &tile, tile.left, yo))
 			return -1;
 	}
 

@@ -91,10 +91,10 @@ G_DEFINE_TYPE(VipsStdif, vips_stdif, VIPS_TYPE_OPERATION);
 #define MAX_BANDS (100)
 
 static int
-vips_stdif_generate(VipsRegion * or,
+vips_stdif_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	VipsStdif *stdif = (VipsStdif *) b;
@@ -108,10 +108,10 @@ vips_stdif_generate(VipsRegion * or,
 
 	/* What part of ir do we need?
 	 */
-	irect.left = or->valid.left;
-	irect.top = or->valid.top;
-	irect.width = or->valid.width + stdif->width;
-	irect.height = or->valid.height + stdif->height;
+	irect.left = out_region->valid.left;
+	irect.top = out_region->valid.top;
+	irect.width = out_region->valid.width + stdif->width;
+	irect.height = out_region->valid.height + stdif->height;
 	if (vips_region_prepare(ir, &irect))
 		return -1;
 
@@ -122,7 +122,7 @@ vips_stdif_generate(VipsRegion * or,
 		/* Get input and output pointers for this line.
 		 */
 		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		double f1 = stdif->a * stdif->m0;
 		double f2 = 1.0 - stdif->a;

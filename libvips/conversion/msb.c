@@ -83,12 +83,13 @@ typedef VipsConversionClass VipsMsbClass;
 G_DEFINE_TYPE(VipsMsb, vips_msb, VIPS_TYPE_CONVERSION);
 
 static int
-vips_msb_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_msb_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsMsb *msb = (VipsMsb *) b;
 	VipsConversion *conversion = (VipsConversion *) msb;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
@@ -101,7 +102,7 @@ vips_msb_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		if (msb->in->Coding == VIPS_CODING_LABQ &&
 			msb->band == -1) {

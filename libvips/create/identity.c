@@ -71,7 +71,7 @@ G_DEFINE_TYPE(VipsIdentity, vips_identity, VIPS_TYPE_CREATE);
 
 #define IDENTITY(TYPE) \
 	{ \
-		TYPE *q = (TYPE *) VIPS_REGION_ADDR(or, le, 0); \
+		TYPE *q = (TYPE *) VIPS_REGION_ADDR(out_region, le, 0); \
 \
 		for (x = le; x < ri; x++) { \
 			for (i = 0; i < identity->bands; i++) \
@@ -82,11 +82,11 @@ G_DEFINE_TYPE(VipsIdentity, vips_identity, VIPS_TYPE_CREATE);
 	}
 
 static int
-vips_identity_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_identity_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsIdentity *identity = (VipsIdentity *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 

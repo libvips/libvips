@@ -559,12 +559,12 @@ vips_foreign_load_svg_header(VipsForeignLoad *load)
 }
 
 static int
-vips_foreign_load_svg_generate(VipsRegion * or,
+vips_foreign_load_svg_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	const VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) a;
 	const VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(svg);
-	const VipsRect *r = & or->valid;
+	const VipsRect *r = &out_region->valid;
 
 	cairo_surface_t *surface;
 	cairo_t *cr;
@@ -579,13 +579,13 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 
 	/* rsvg won't always paint the background.
 	 */
-	vips_region_black(or);
+	vips_region_black(out_region);
 
 	surface = cairo_image_surface_create_for_data(
-		VIPS_REGION_ADDR(or, r->left, r->top),
+		VIPS_REGION_ADDR(out_region, r->left, r->top),
 		CAIRO_FORMAT_ARGB32,
 		r->width, r->height,
-		VIPS_REGION_LSKIP(or));
+		VIPS_REGION_LSKIP(out_region));
 	cr = cairo_create(surface);
 	cairo_surface_destroy(surface);
 
@@ -604,8 +604,8 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 		cairo_translate(cr, -r->left, -r->top);
 		viewport.x = 0;
 		viewport.y = 0;
-		viewport.width = or->im->Xsize;
-		viewport.height = or->im->Ysize;
+		viewport.width = out_region->im->Xsize;
+		viewport.height = out_region->im->Ysize;
 
 		if (!rsvg_handle_render_document(svg->page, cr, &viewport, &error)) {
 			cairo_destroy(cr);
@@ -641,7 +641,7 @@ vips_foreign_load_svg_generate(VipsRegion * or,
 	 */
 	for (y = 0; y < r->height; y++)
 		vips__premultiplied_bgra2rgba(
-			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
+			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 			r->width);
 
 	return 0;

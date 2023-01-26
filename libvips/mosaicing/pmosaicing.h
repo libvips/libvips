@@ -51,7 +51,7 @@
 struct _MergeInfo;
 struct _Overlapping;
 
-typedef int (*VipsBlendFn)(VipsRegion * or,
+typedef int (*VipsBlendFn)(VipsRegion *out_region,
 	struct _MergeInfo *inf, struct _Overlapping *ovlap, VipsRect *oreg);
 
 /* Keep state for each call in one of these.
@@ -114,12 +114,12 @@ const char *vips__get_mosaic_name(VipsImage *image);
 
 int vips__affinei(VipsImage *in, VipsImage *out, VipsTransformation *trn);
 
-int vips__attach_input(VipsRegion * or, VipsRegion *ir, VipsRect *area);
-int vips__copy_input(VipsRegion * or, VipsRegion *ir, VipsRect *area, VipsRect *reg);
+int vips__attach_input(VipsRegion *out_region, VipsRegion *ir, VipsRect *area);
+int vips__copy_input(VipsRegion *out_region, VipsRegion *ir, VipsRect *area, VipsRect *reg);
 Overlapping *vips__build_mergestate(const char *domain,
 	VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth);
 void *vips__start_merge(VipsImage *out, void *, void *);
-int vips__merge_gen(VipsRegion * or, void *seq, void *a, void *,
+int vips__merge_gen(VipsRegion *out_region, void *seq, void *a, void *,
 	gboolean *stop);
 int vips__stop_merge(void *seq, void *, void *);
 

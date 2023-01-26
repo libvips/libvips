@@ -513,11 +513,12 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 /* Top-bottom blend function for non-labpack images.
  */
 static int
-tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
+tb_blend(VipsRegion *out_region, MergeInfo *inf, Overlapping *ovlap,
+	VipsRect *oreg)
 {
 	VipsRegion *rir = inf->rir;
 	VipsRegion *sir = inf->sir;
-	VipsImage *im = or->im;
+	VipsImage *im = out_region->im;
 
 	VipsRect prr, psr;
 	int y, yr, ys;
@@ -551,7 +552,7 @@ tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 		 y < VIPS_RECT_BOTTOM(oreg); y++, yr++, ys++) {
 		VipsPel *pr = VIPS_REGION_ADDR(rir, prr.left, yr);
 		VipsPel *ps = VIPS_REGION_ADDR(sir, psr.left, ys);
-		VipsPel *q = VIPS_REGION_ADDR(or, oreg->left, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, oreg->left, y);
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;
@@ -601,7 +602,8 @@ tb_blend(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 /* Top-bottom blend function for VIPS_CODING_LABQ images.
  */
 static int
-tb_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
+tb_blend_labpack(VipsRegion *out_region, MergeInfo *inf, Overlapping *ovlap,
+	VipsRect *oreg)
 {
 	VipsRegion *rir = inf->rir;
 	VipsRegion *sir = inf->sir;
@@ -638,7 +640,7 @@ tb_blend_labpack(VipsRegion * or, MergeInfo *inf, Overlapping *ovlap, VipsRect *
 		 y < VIPS_RECT_BOTTOM(oreg); y++, yr++, ys++) {
 		VipsPel *pr = VIPS_REGION_ADDR(rir, prr.left, yr);
 		VipsPel *ps = VIPS_REGION_ADDR(sir, psr.left, ys);
-		VipsPel *q = VIPS_REGION_ADDR(or, oreg->left, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, oreg->left, y);
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;

@@ -144,13 +144,13 @@ vips_hist_local_start(VipsImage *out, void *a, void *b)
 }
 
 static int
-vips_hist_local_generate(VipsRegion * or,
+vips_hist_local_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsHistLocalSequence *seq = (VipsHistLocalSequence *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	const VipsHistLocal *local = (VipsHistLocal *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	const int bands = in->Bands;
 	const int max_slope = local->max_slope;
 
@@ -177,7 +177,7 @@ vips_hist_local_generate(VipsRegion * or,
 		VipsPel *restrict p =
 			VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
 		VipsPel *restrict q =
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		VipsPel *restrict p1;
 		int x, i, j, b;

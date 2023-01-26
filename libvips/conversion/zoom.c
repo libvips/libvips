@@ -90,11 +90,11 @@ G_DEFINE_TYPE(VipsZoom, vips_zoom, VIPS_TYPE_CONVERSION);
 /* Paint the part of the region containing only whole pels.
  */
 static void
-vips_zoom_paint_whole(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
+vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 	const int left, const int right, const int top, const int bottom)
 {
 	const int ps = VIPS_IMAGE_SIZEOF_PEL(ir->im);
-	const int ls = VIPS_REGION_LSKIP(or);
+	const int ls = VIPS_REGION_LSKIP(out_region);
 	const int rs = ps * (right - left);
 
 	/* Transform to ir coordinates.
@@ -118,7 +118,7 @@ vips_zoom_paint_whole(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
 	 */
 	for (y = itop; y < ibottom; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, ileft, y);
-		VipsPel *q = VIPS_REGION_ADDR(or, left, y * zoom->yfac);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, left, y * zoom->yfac);
 		VipsPel *r;
 
 		/* Expand the first line of pels.
@@ -150,11 +150,11 @@ vips_zoom_paint_whole(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
 /* Paint the part of the region containing only part-pels.
  */
 static void
-vips_zoom_paint_part(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
+vips_zoom_paint_part(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 	const int left, const int right, const int top, const int bottom)
 {
 	const int ps = VIPS_IMAGE_SIZEOF_PEL(ir->im);
-	const int ls = VIPS_REGION_LSKIP(or);
+	const int ls = VIPS_REGION_LSKIP(out_region);
 	const int rs = ps * (right - left);
 
 	/* Start position in input.
@@ -180,7 +180,7 @@ vips_zoom_paint_part(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
 	 */
 	for (y = top; y < bottom;) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, ix, y / zoom->yfac);
-		VipsPel *q = VIPS_REGION_ADDR(or, left, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, left, y);
 		VipsPel *r;
 
 		/* Output pels until we jump the input pointer.
@@ -228,14 +228,15 @@ vips_zoom_paint_part(VipsRegion * or, VipsRegion *ir, VipsZoom *zoom,
 /* Zoom a VipsRegion.
  */
 static int
-vips_zoom_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_zoom_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsZoom *zoom = (VipsZoom *) b;
 
 	/* Output area we are building.
 	 */
-	const VipsRect *r = & or->valid;
+	const VipsRect *r = &out_region->valid;
 	const int ri = VIPS_RECT_RIGHT(r);
 	const int bo = VIPS_RECT_BOTTOM(r);
 
@@ -277,7 +278,7 @@ vips_zoom_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	 * As we know they are not clipped, we can do it quickly.
 	 */
 	if (width > 0 && height > 0)
-		vips_zoom_paint_whole(or, ir, zoom, left, right, top, bottom);
+		vips_zoom_paint_whole(out_region, ir, zoom, left, right, top, bottom);
 
 	/* Just fractional pixels left. Paint in the top, left, right and
 	 * bottom parts.
@@ -285,22 +286,22 @@ vips_zoom_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	if (top - r->top > 0)
 		/* Some top pixels.
 		 */
-		vips_zoom_paint_part(or, ir, zoom,
+		vips_zoom_paint_part(out_region, ir, zoom,
 			r->left, ri, r->top, VIPS_MIN(top, bo));
 	if (left - r->left > 0 && height > 0)
 		/* Left pixels.
 		 */
-		vips_zoom_paint_part(or, ir, zoom,
+		vips_zoom_paint_part(out_region, ir, zoom,
 			r->left, VIPS_MIN(left, ri), top, bottom);
 	if (ri - right > 0 && height > 0)
 		/* Right pixels.
 		 */
-		vips_zoom_paint_part(or, ir, zoom,
+		vips_zoom_paint_part(out_region, ir, zoom,
 			VIPS_MAX(right, r->left), ri, top, bottom);
 	if (bo - bottom > 0 && height >= 0)
 		/* Bottom pixels.
 		 */
-		vips_zoom_paint_part(or, ir, zoom,
+		vips_zoom_paint_part(out_region, ir, zoom,
 			r->left, ri, VIPS_MAX(bottom, r->top), bo);
 
 	return 0;

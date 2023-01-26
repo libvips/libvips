@@ -52,18 +52,18 @@
 G_DEFINE_ABSTRACT_TYPE(VipsPoint, vips_point, VIPS_TYPE_CREATE);
 
 static int
-vips_point_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_point_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsPoint *point = (VipsPoint *) a;
 	VipsPointClass *class = VIPS_POINT_GET_CLASS(point);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int x, y;
 
 	for (y = 0; y < r->height; y++) {
 		int ay = r->top + y;
-		float *q = (float *) VIPS_REGION_ADDR(or, r->left, ay);
+		float *q = (float *) VIPS_REGION_ADDR(out_region, r->left, ay);
 
 		for (x = 0; x < r->width; x++)
 			q[x] = class->point(point, r->left + x, ay);

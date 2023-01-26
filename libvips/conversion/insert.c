@@ -120,13 +120,13 @@ G_DEFINE_TYPE(VipsInsert, vips_insert, VIPS_TYPE_CONVERSION);
  * Also used by vips_arrayjoin.
  */
 int
-vips__insert_just_one(VipsRegion * or, VipsRegion *ir, int x, int y)
+vips__insert_just_one(VipsRegion *out_region, VipsRegion *ir, int x, int y)
 {
 	VipsRect need;
 
 	/* Find the part of pos we need.
 	 */
-	need = or->valid;
+	need = out_region->valid;
 	need.left -= x;
 	need.top -= y;
 	if (vips_region_prepare(ir, &need))
@@ -134,35 +134,37 @@ vips__insert_just_one(VipsRegion * or, VipsRegion *ir, int x, int y)
 
 	/* Attach our output to it.
 	 */
-	if (vips_region_region(or, ir, & or->valid, need.left, need.top))
+	if (vips_region_region(out_region, ir,
+			&out_region->valid, need.left, need.top))
 		return -1;
 
 	return 0;
 }
 
-/* Paste in parts of ir that fall within or --- ir is an input REGION for an
- * image positioned at pos within or.
+/* Paste in parts of ir that fall within out_region --- ir is an input REGION
+ * for an image positioned at pos within out_region.
  *
  * Also used by vips_arrayjoin.
  */
 int
-vips__insert_paste_region(VipsRegion * or, VipsRegion *ir, VipsRect *pos)
+vips__insert_paste_region(VipsRegion *out_region,
+	VipsRegion *ir, VipsRect *pos)
 {
 	VipsRect ovl;
 
 	/* Does any of the sub-image appear in the area we have been asked
 	 * to make?
 	 */
-	vips_rect_intersectrect(& or->valid, pos, &ovl);
+	vips_rect_intersectrect(&out_region->valid, pos, &ovl);
 	if (!vips_rect_isempty(&ovl)) {
 		/* Find the part of in we need.
 		 */
 		ovl.left -= pos->left;
 		ovl.top -= pos->top;
 
-		/* Paint this area of pixels into or.
+		/* Paint this area of pixels into out_region.
 		 */
-		if (vips_region_prepare_to(ir, or, &ovl,
+		if (vips_region_prepare_to(ir, out_region, &ovl,
 				ovl.left + pos->left, ovl.top + pos->top))
 			return -1;
 	}
@@ -171,10 +173,11 @@ vips__insert_paste_region(VipsRegion * or, VipsRegion *ir, VipsRect *pos)
 }
 
 static int
-vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_insert_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **ir = (VipsRegion **) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsInsert *insert = (VipsInsert *) b;
 	VipsConversion *conversion = VIPS_CONVERSION(insert);
 
@@ -190,7 +193,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 	if (vips_rect_includesrect(&insert->rimage[1], r)) {
 		/* Just the subimage.
 		 */
-		if (vips__insert_just_one(or, ir[1],
+		if (vips__insert_just_one(out_region, ir[1],
 				insert->rimage[1].left, insert->rimage[1].top))
 			return -1;
 	}
@@ -198,7 +201,7 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		!vips_rect_overlapsrect(&insert->rimage[1], r)) {
 		/* Just the main image.
 		 */
-		if (vips__insert_just_one(or, ir[0],
+		if (vips__insert_just_one(out_region, ir[0],
 				insert->rimage[0].left, insert->rimage[0].top))
 			return -1;
 	}
@@ -207,12 +210,12 @@ vips_insert_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		 * entirely inside both the main and the sub, then there is
 		 * going to be some background.
 		 */
-		vips_region_paint_pel(or, r, insert->ink);
+		vips_region_paint_pel(out_region, r, insert->ink);
 
 		/* Paste the background first.
 		 */
 		for (i = 0; i < 2; i++)
-			if (vips__insert_paste_region(or, ir[i],
+			if (vips__insert_paste_region(out_region, ir[i],
 					&insert->rimage[i]))
 				return -1;
 	}

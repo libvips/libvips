@@ -555,11 +555,11 @@ vips_foreign_load_pdf_minimise(VipsObject *object, VipsForeignLoadPdf *pdf)
 }
 
 static int
-vips_foreign_load_pdf_generate(VipsRegion * or,
+vips_foreign_load_pdf_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int top;
 	int i;
@@ -594,8 +594,8 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 		/* 4 means RGBA.
 		 */
 		bitmap = FPDFBitmap_CreateEx(rect.width, rect.height, 4,
-			VIPS_REGION_ADDR(or, rect.left, rect.top),
-			VIPS_REGION_LSKIP(or));
+			VIPS_REGION_ADDR(out_region, rect.left, rect.top),
+			VIPS_REGION_LSKIP(out_region));
 
 		/* Only paint the background if there's no transparency.
 		 */
@@ -626,7 +626,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 	 */
 	for (y = 0; y < r->height; y++)
 		vips__bgra2rgba(
-			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
+			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 			r->width);
 
 	return 0;

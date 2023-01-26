@@ -131,13 +131,14 @@ typedef VipsConversionClass VipsCopyClass;
 G_DEFINE_TYPE(VipsCopy, vips_copy, VIPS_TYPE_CONVERSION);
 
 static int
-vips_copy_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_copy_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	if (vips_region_prepare(ir, r) ||
-		vips_region_region(or, ir, r, r->left, r->top))
+		vips_region_region(out_region, ir, r, r->left, r->top))
 		return -1;
 
 	return 0;

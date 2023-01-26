@@ -265,12 +265,12 @@ negative_build(VipsObject *object)
 
 <programlisting language="C">
 static int
-negative_generate(VipsRegion *or,
+negative_generate(VipsRegion *out_region,
     void *vseq, void *a, void *b, gboolean *stop)
 {
     /* The area of the output region we have been asked to make.
      */
-    VipsRect *r = &amp;or-&gt;valid;
+    VipsRect *r = &amp;out_region-&gt;valid;
 
     /* The sequence value ... the thing returned by vips_start_one().
      */
@@ -291,7 +291,7 @@ negative_generate(VipsRegion *or,
         unsigned char *p = (unsigned char *)
             VIPS_REGION_ADDR(ir, r-&gt;left, r-&gt;top + y);
         unsigned char *q = (unsigned char *)
-            VIPS_REGION_ADDR(or, r-&gt;left, r-&gt;top + y);
+            VIPS_REGION_ADDR(out_region, r-&gt;left, r-&gt;top + y);
 
         for (x = 0; x &lt; line_size; x++)
             q[x] = negative-&gt;image_max - p[x];
@@ -304,9 +304,9 @@ negative_generate(VipsRegion *or,
 
     <para>
       This has to calculate a section of the output image. The output
-      #VipsRegion, @or, contains a #VipsRect called @valid which is the
+      #VipsRegion, @out_region, contains a #VipsRect called @valid which is the
 			area needing calculation. This call to negative_generate() must 
-			somehow make this part of @or contain pixel data. 
+			somehow make this part of @out_region contain pixel data. 
     </para>
 
     <para>

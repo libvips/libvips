@@ -910,12 +910,12 @@ vips__heif_chroma(int bits_per_pixel, gboolean has_alpha)
 }
 
 static int
-vips_foreign_load_heif_generate(VipsRegion * or,
+vips_foreign_load_heif_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) a;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(heif);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int page = r->top / heif->page_height + heif->page;
 	int line = r->top % heif->page_height;
@@ -977,20 +977,20 @@ vips_foreign_load_heif_generate(VipsRegion * or,
 		}
 	}
 
-	memcpy(VIPS_REGION_ADDR(or, 0, r->top),
+	memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
 		heif->data + heif->stride * line,
-		VIPS_IMAGE_SIZEOF_LINE(or->im));
+		VIPS_IMAGE_SIZEOF_LINE(out_region->im));
 
 	/* We may need to swap bytes and shift to fill 16 bits.
 	 */
 	if (heif->bits_per_pixel > 8) {
 		int shift = 16 - heif->bits_per_pixel;
-		int ne = VIPS_REGION_N_ELEMENTS(or);
+		int ne = VIPS_REGION_N_ELEMENTS(out_region);
 
 		int i;
 		VipsPel *p;
 
-		p = VIPS_REGION_ADDR(or, 0, r->top);
+		p = VIPS_REGION_ADDR(out_region, 0, r->top);
 		for (i = 0; i < ne; i++) {
 			/* We've asked for big endian, we must write native.
 			 */

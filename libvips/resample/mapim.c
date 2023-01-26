@@ -305,9 +305,10 @@ vips_mapim_region_minmax(VipsRegion *region, VipsRect *r, VipsRect *bounds)
 	}
 
 static int
-vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
+vips_mapim_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRegion **ir = (VipsRegion **) seq;
 	const VipsImage **in_array = (const VipsImage **) a;
 	const VipsMapim *mapim = (VipsMapim *) b;
@@ -372,7 +373,7 @@ vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 #endif /*DEBUG_VERBOSE*/
 
 	if (vips_rect_isempty(&clipped)) {
-		vips_region_paint_pel(or, r, mapim->ink);
+		vips_region_paint_pel(out_region, r, mapim->ink);
 		return 0;
 	}
 	if (vips_region_prepare(ir[0], &clipped))
@@ -386,7 +387,7 @@ vips_mapim_gen(VipsRegion * or, void *seq, void *a, void *b, gboolean *stop)
 		VipsPel *restrict p =
 			VIPS_REGION_ADDR(ir[1], r->left, y + r->top);
 		VipsPel *restrict q =
-			VIPS_REGION_ADDR(or, r->left, y + r->top);
+			VIPS_REGION_ADDR(out_region, r->left, y + r->top);
 
 		switch (ir[1]->im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

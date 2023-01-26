@@ -495,19 +495,19 @@ vips_foreign_load_ppm_map(VipsForeignLoadPpm *ppm)
 }
 
 static int
-vips_foreign_load_ppm_generate_binary(VipsRegion * or,
+vips_foreign_load_ppm_generate_binary(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(ppm);
-	VipsImage *image = or->im;
+	VipsImage *image = out_region->im;
 	size_t sizeof_line = VIPS_IMAGE_SIZEOF_LINE(image);
 
 	int y;
 
 	for (y = 0; y < r->height; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, 0, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
 		size_t n_bytes;
 
@@ -534,17 +534,17 @@ vips_foreign_load_ppm_generate_binary(VipsRegion * or,
 }
 
 static int
-vips_foreign_load_ppm_generate_1bit_ascii(VipsRegion * or,
+vips_foreign_load_ppm_generate_1bit_ascii(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
-	VipsImage *image = or->im;
+	VipsImage *image = out_region->im;
 
 	int x, y;
 
 	for (y = 0; y < r->height; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, 0, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
 		for (x = 0; x < image->Xsize; x++) {
 			int val;
@@ -563,17 +563,17 @@ vips_foreign_load_ppm_generate_1bit_ascii(VipsRegion * or,
 }
 
 static int
-vips_foreign_load_ppm_generate_1bit_binary(VipsRegion * or,
+vips_foreign_load_ppm_generate_1bit_binary(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
-	VipsImage *image = or->im;
+	VipsImage *image = out_region->im;
 
 	int x, y;
 
 	for (y = 0; y < r->height; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, 0, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
 		int bits;
 
@@ -593,18 +593,18 @@ vips_foreign_load_ppm_generate_1bit_binary(VipsRegion * or,
 }
 
 static int
-vips_foreign_load_ppm_generate_ascii_int(VipsRegion * or,
+vips_foreign_load_ppm_generate_ascii_int(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
-	VipsImage *image = or->im;
+	VipsImage *image = out_region->im;
 	int n_elements = image->Xsize * image->Bands;
 
 	int i, y;
 
 	for (y = 0; y < r->height; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		for (i = 0; i < n_elements; i++) {
 			int val;

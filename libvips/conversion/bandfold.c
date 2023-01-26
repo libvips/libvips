@@ -69,13 +69,13 @@ typedef VipsConversionClass VipsBandfoldClass;
 G_DEFINE_TYPE(VipsBandfold, vips_bandfold, VIPS_TYPE_CONVERSION);
 
 static int
-vips_bandfold_gen(VipsRegion * or,
+vips_bandfold_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsBandfold *bandfold = (VipsBandfold *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsImage *out = or->im;
-	VipsRect *r = & or->valid;
+	VipsImage *out = out_region->im;
+	VipsRect *r = &out_region->valid;
 	int psize = VIPS_IMAGE_SIZEOF_PEL(out);
 
 	VipsRect need;
@@ -91,7 +91,7 @@ vips_bandfold_gen(VipsRegion * or,
 	for (y = 0; y < r->height; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir,
 			r->left * bandfold->factor, r->top + y);
-		VipsPel *q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
