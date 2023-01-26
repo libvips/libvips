@@ -875,7 +875,7 @@ vips_region_fill(VipsRegion *reg,
 	if (vips_region_buffer(reg, r))
 		return -1;
 
-	/* Evaluate into or, if we've not got calculated pixels.
+	/* Evaluate into out_region, if we've not got calculated pixels.
 	 */
 	if (!reg->buffer->done) {
 		if (fn(reg, a))

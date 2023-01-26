@@ -86,17 +86,17 @@ typedef VipsCreateClass VipsGaussnoiseClass;
 G_DEFINE_TYPE(VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE);
 
 static int
-vips_gaussnoise_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_gaussnoise_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) a;
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	int y;
 
-	for (y = 0; y < or->valid.height; y++) {
-		float *q = (float *) VIPS_REGION_ADDR(or,
-			or->valid.left, y + or->valid.top);
+	for (y = 0; y < out_region->valid.height; y++) {
+		float *q = (float *) VIPS_REGION_ADDR(out_region,
+			out_region->valid.left, y + out_region->valid.top);
 
 		int x;
 
@@ -106,8 +106,8 @@ vips_gaussnoise_gen(VipsRegion * or, void *seq, void *a, void *b,
 			int i;
 
 			seed = gaussnoise->seed;
-			seed = vips__random_add(seed, or->valid.left + x);
-			seed = vips__random_add(seed, or->valid.top + y);
+			seed = vips__random_add(seed, out_region->valid.left + x);
+			seed = vips__random_add(seed, out_region->valid.top + y);
 
 			sum = 0.0;
 			for (i = 0; i < 12; i++) {

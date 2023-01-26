@@ -177,7 +177,7 @@ vips_embed_base_copy_pixel(VipsEmbedBase *base,
  */
 static void
 vips_embed_base_paint_edge(VipsEmbedBase *base,
-	VipsRegion * or, int i, VipsRect *r, VipsPel *p, int plsk)
+	VipsRegion *out_region, int i, VipsRect *r, VipsPel *p, int plsk)
 {
 	const int bs = VIPS_IMAGE_SIZEOF_PEL(base->in);
 
@@ -195,7 +195,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 	 * todo, then use the line copier below to paint the rest of it.
 	 */
 	if (i > 3) {
-		q = VIPS_REGION_ADDR(or, todo.left, todo.top);
+		q = VIPS_REGION_ADDR(out_region, todo.left, todo.top);
 		vips_embed_base_copy_pixel(base, q, p, todo.width);
 
 		p = q;
@@ -207,7 +207,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 		/* Vertical line of pixels to copy.
 		 */
 		for (y = 0; y < todo.height; y++) {
-			q = VIPS_REGION_ADDR(or, todo.left, todo.top + y);
+			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
 			vips_embed_base_copy_pixel(base, q, p, todo.width);
 			p += plsk;
 		}
@@ -216,7 +216,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 		/* Horizontal line of pixels to copy.
 		 */
 		for (y = 0; y < todo.height; y++) {
-			q = VIPS_REGION_ADDR(or, todo.left, todo.top + y);
+			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
 			memcpy(q, p, bs * todo.width);
 		}
 	}
@@ -225,12 +225,12 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 }
 
 static int
-vips_embed_base_gen(VipsRegion * or,
+vips_embed_base_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsEmbedBase *base = (VipsEmbedBase *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	VipsRect ovl;
 	int i;
@@ -247,7 +247,7 @@ vips_embed_base_gen(VipsRegion * or,
 		need.left -= base->x;
 		need.top -= base->y;
 		if (vips_region_prepare(ir, &need) ||
-			vips_region_region(or, ir, r, need.left, need.top))
+			vips_region_region(out_region, ir, r, need.left, need.top))
 			return -1;
 
 		return 0;
@@ -262,7 +262,7 @@ vips_embed_base_gen(VipsRegion * or,
 		 */
 		ovl.left -= base->x;
 		ovl.top -= base->y;
-		if (vips_region_prepare_to(ir, or, &ovl,
+		if (vips_region_prepare_to(ir, out_region, &ovl,
 				ovl.left + base->x, ovl.top + base->y))
 			return -1;
 		ovl.left += base->x;
@@ -277,7 +277,7 @@ vips_embed_base_gen(VipsRegion * or,
 		/* Paint the borders a solid value.
 		 */
 		for (i = 0; i < 8; i++)
-			vips_region_paint(or, &base->border[i],
+			vips_region_paint(out_region, &base->border[i],
 				base->extend == 0 ? 0 : 255);
 
 		VIPS_GATE_STOP("vips_embed_base_gen: work1");
@@ -290,7 +290,7 @@ vips_embed_base_gen(VipsRegion * or,
 		/* Paint the borders a solid value.
 		 */
 		for (i = 0; i < 8; i++)
-			vips_region_paint_pel(or, &base->border[i], base->ink);
+			vips_region_paint_pel(out_region, &base->border[i], base->ink);
 
 		VIPS_GATE_STOP("vips_embed_base_gen: work2");
 
@@ -313,9 +313,9 @@ vips_embed_base_gen(VipsRegion * or,
 				 * that.
 				 */
 				if (!vips_rect_isempty(&ovl)) {
-					p = VIPS_REGION_ADDR(or,
+					p = VIPS_REGION_ADDR(out_region,
 						edge.left, edge.top);
-					plsk = VIPS_REGION_LSKIP(or);
+					plsk = VIPS_REGION_LSKIP(out_region);
 				}
 				else {
 					/* No pixels painted ... fetch
@@ -331,7 +331,7 @@ vips_embed_base_gen(VipsRegion * or,
 				}
 
 				vips_embed_base_paint_edge(base,
-					or, i, &todo, p, plsk);
+					out_region, i, &todo, p, plsk);
 			}
 		}
 

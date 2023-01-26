@@ -117,17 +117,17 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		} \
 	}
 
-/* Generate an area of @or. @ir is large enough.
+/* Generate an area of @out_region. @ir is large enough.
  */
 static void
-vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion * or, VipsRegion *ir,
+vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion *out_region, VipsRegion *ir,
 	int left, int top, int width)
 {
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
 		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
 	const int ne = shrink->hshrink * bands;
-	VipsPel *out = VIPS_REGION_ADDR(or, left, top);
+	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
 	VipsPel *in = VIPS_REGION_ADDR(ir, left * shrink->hshrink, top);
 
 	int x;
@@ -191,12 +191,12 @@ vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion * or, VipsRegion *ir,
 }
 
 static int
-vips_shrinkh_gen(VipsRegion * or, void *seq,
-	void *a, void *b, gboolean *stop)
+vips_shrinkh_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsShrinkh *shrink = (VipsShrinkh *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int y;
 
@@ -233,13 +233,13 @@ vips_shrinkh_gen(VipsRegion * or, void *seq,
 
 		VIPS_GATE_START("vips_shrinkh_gen: work");
 
-		vips_shrinkh_gen2(shrink, or, ir,
+		vips_shrinkh_gen2(shrink, out_region, ir,
 			r->left, r->top + y, r->width);
 
 		VIPS_GATE_STOP("vips_shrinkh_gen: work");
 	}
 
-	VIPS_COUNT_PIXELS(or, "vips_shrinkh_gen");
+	VIPS_COUNT_PIXELS(out_region, "vips_shrinkh_gen");
 
 	return 0;
 }

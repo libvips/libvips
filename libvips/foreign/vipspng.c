@@ -688,10 +688,10 @@ png2vips_interlace(Read *read, VipsImage *out)
 }
 
 static int
-png2vips_generate(VipsRegion * or,
+png2vips_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
 	int y;
@@ -705,14 +705,14 @@ png2vips_generate(VipsRegion * or,
 	 * this should always be true.
 	 */
 	g_assert(r->left == 0);
-	g_assert(r->width == or->im->Xsize);
-	g_assert(VIPS_RECT_BOTTOM(r) <= or->im->Ysize);
+	g_assert(r->width == out_region->im->Xsize);
+	g_assert(VIPS_RECT_BOTTOM(r) <= out_region->im->Ysize);
 
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
 	g_assert(r->height ==
-		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, or->im->Ysize - r->top));
+		VIPS_MIN(VIPS__FATSTRIP_HEIGHT, out_region->im->Ysize - r->top));
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -724,7 +724,7 @@ png2vips_generate(VipsRegion * or,
 	}
 
 	for (y = 0; y < r->height; y++) {
-		png_bytep q = (png_bytep) VIPS_REGION_ADDR(or, 0, r->top + y);
+		png_bytep q = (png_bytep) VIPS_REGION_ADDR(out_region, 0, r->top + y);
 
 		/* We need to catch errors from read_row().
 		 */

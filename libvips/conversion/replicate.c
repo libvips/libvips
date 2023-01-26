@@ -73,12 +73,12 @@ typedef VipsConversionClass VipsReplicateClass;
 G_DEFINE_TYPE(VipsReplicate, vips_replicate, VIPS_TYPE_CONVERSION);
 
 static int
-vips_replicate_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_replicate_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int twidth = in->Xsize;
 	int theight = in->Ysize;
 
@@ -110,7 +110,7 @@ vips_replicate_gen(VipsRegion * or, void *seq, void *a, void *b,
 		if (vips_region_prepare(ir, &irect))
 			return -1;
 
-		if (vips_region_region(or, ir, r, irect.left, irect.top))
+		if (vips_region_region(out_region, ir, r, irect.left, irect.top))
 			return -1;
 
 		return 0;
@@ -139,9 +139,9 @@ vips_replicate_gen(VipsRegion * or, void *seq, void *a, void *b,
 
 			g_assert(!vips_rect_isempty(&paint));
 
-			/* Render into or.
+			/* Render into out_region.
 			 */
-			if (vips_region_prepare_to(ir, or, &paint,
+			if (vips_region_prepare_to(ir, out_region, &paint,
 					paint.left + x,
 					paint.top + y))
 				return -1;

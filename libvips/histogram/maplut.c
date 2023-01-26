@@ -148,7 +148,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < b; z++) { \
 				VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
-				OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+				OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 				OUT *tlut = (OUT *) maplut->table[z]; \
 \
 				for (x = z; x < ne; x += b) \
@@ -166,7 +166,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < b; z++) { \
 				VipsPel *p = VIPS_REGION_ADDR(ir, le, y) + z; \
-				OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y) + z * 2; \
+				OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y) + z * 2; \
 				OUT *tlut = (OUT *) maplut->table[z]; \
 \
 				for (x = 0; x < ne; x += b) { \
@@ -187,7 +187,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < b; z++) { \
 				IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y); \
-				OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+				OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 				OUT *tlut = (OUT *) maplut->table[z]; \
 \
 				for (x = z; x < ne; x += b) { \
@@ -211,7 +211,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < b; z++) { \
 				IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y) + z; \
-				OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y) + z * 2; \
+				OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y) + z * 2; \
 				OUT *tlut = (OUT *) maplut->table[z]; \
 \
 				for (x = 0; x < ne; x += b) { \
@@ -238,7 +238,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT *tlut = (OUT *) maplut->table[0]; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < ne; x++) \
@@ -253,7 +253,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT *tlut = (OUT *) maplut->table[0]; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < ne; x++) { \
@@ -274,7 +274,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT *tlut = (OUT *) maplut->table[0]; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < ne; x++) { \
@@ -295,7 +295,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT *tlut = (OUT *) maplut->table[0]; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < ne; x++) { \
@@ -320,7 +320,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT **tlut = (OUT **) maplut->table; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (i = 0, x = 0; x < np; x++) { \
@@ -339,7 +339,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 		OUT **tlut = (OUT **) maplut->table; \
 \
 		for (y = to; y < bo; y++) { \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < np; x++) { \
@@ -362,7 +362,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 \
 		for (y = to; y < bo; y++) { \
 			IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y); \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 \
 			for (i = 0, x = 0; x < np; x++) { \
 				int n = p[x]; \
@@ -386,7 +386,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 \
 		for (y = to; y < bo; y++) { \
 			IN *p = (IN *) VIPS_REGION_ADDR(ir, le, y); \
-			OUT *q = (OUT *) VIPS_REGION_ADDR(or, le, y); \
+			OUT *q = (OUT *) VIPS_REGION_ADDR(out_region, le, y); \
 \
 			for (x = 0; x < np; x++) { \
 				int n = p[x]; \
@@ -465,19 +465,19 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 /* Do a map.
  */
 static int
-vips_maplut_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_maplut_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsMaplutSequence *seq = (VipsMaplutSequence *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	VipsMaplut *maplut = (VipsMaplut *) b;
 	VipsRegion *ir = seq->ir;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
-	int np = r->width;					 /* Pels across region */
-	int ne = VIPS_REGION_N_ELEMENTS(or); /* Number of elements */
+	int np = r->width;							 /* Pels across region */
+	int ne = VIPS_REGION_N_ELEMENTS(out_region); /* Number of elements */
 
 	int x, y, z, i;
 

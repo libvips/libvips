@@ -2517,15 +2517,15 @@ rtiff_strip_read_interleaved(Rtiff *rtiff,
 }
 
 static int
-rtiff_stripwise_generate(VipsRegion * or,
+rtiff_stripwise_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsImage *out = or->im;
+	VipsImage *out = out_region->im;
 	Rtiff *rtiff = (Rtiff *) a;
 	int read_height = rtiff->header.read_height;
 	int page_height = rtiff->header.height;
 	tsize_t scanline_size = rtiff->header.scanline_size;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int y;
 
@@ -2539,8 +2539,8 @@ rtiff_stripwise_generate(VipsRegion * or,
 	 * this should always be true.
 	 */
 	g_assert(r->left == 0);
-	g_assert(r->width == or->im->Xsize);
-	g_assert(VIPS_RECT_BOTTOM(r) <= or->im->Ysize);
+	g_assert(r->width == out_region->im->Xsize);
+	g_assert(VIPS_RECT_BOTTOM(r) <= out_region->im->Ysize);
 
 	/* If we're reading more than one page, tiles won't fall on strip
 	 * boundaries. Tiles may be contain several strips.
@@ -2614,7 +2614,7 @@ rtiff_stripwise_generate(VipsRegion * or,
 			hit.height == strip.height) {
 			if (rtiff_strip_read_interleaved(rtiff,
 					rtiff->page + page_no, strip_no,
-					VIPS_REGION_ADDR(or, 0, r->top + y))) {
+					VIPS_REGION_ADDR(out_region, 0, r->top + y))) {
 				VIPS_GATE_STOP(
 					"rtiff_stripwise_generate: work");
 				return -1;
@@ -2639,13 +2639,13 @@ rtiff_stripwise_generate(VipsRegion * or,
 			 */
 			p = (VipsPel *) rtiff->contig_buf +
 				(hit.top - strip.top) * scanline_size;
-			q = VIPS_REGION_ADDR(or, 0, r->top + y);
+			q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 			for (z = 0; z < hit.height; z++) {
 				rtiff->sfn(rtiff,
-					q, p, or->im->Xsize, rtiff->client);
+					q, p, out_region->im->Xsize, rtiff->client);
 
 				p += scanline_size;
-				q += VIPS_REGION_LSKIP(or);
+				q += VIPS_REGION_LSKIP(out_region);
 			}
 		}
 

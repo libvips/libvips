@@ -168,11 +168,11 @@ vips_sRGB2scRGB_line_16(float *restrict q, unsigned short *restrict p,
 }
 
 static int
-vips_sRGB2scRGB_gen(VipsRegion * or,
+vips_sRGB2scRGB_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsImage *in = ir->im;
 
 	int y;
@@ -188,7 +188,7 @@ vips_sRGB2scRGB_gen(VipsRegion * or,
 		for (y = 0; y < r->height; y++) {
 			VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
 			float *q = (float *)
-				VIPS_REGION_ADDR(or, r->left, r->top + y);
+				VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 			vips_sRGB2scRGB_line_8(q, p, in->Bands - 3, r->width);
 		}
@@ -199,7 +199,7 @@ vips_sRGB2scRGB_gen(VipsRegion * or,
 		for (y = 0; y < r->height; y++) {
 			VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
 			float *q = (float *)
-				VIPS_REGION_ADDR(or, r->left, r->top + y);
+				VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 			vips_sRGB2scRGB_line_16(q, (unsigned short *) p,
 				in->Bands - 3, r->width);

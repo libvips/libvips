@@ -157,22 +157,23 @@ vips_bandary_start(VipsImage *out, void *a, void *b)
 }
 
 static int
-vips_bandary_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
+vips_bandary_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsBandarySequence *seq = (VipsBandarySequence *) vseq;
 	VipsBandary *bandary = (VipsBandary *) b;
 	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS(bandary);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	VipsPel *q;
 	int y, i;
 
-	if (vips_reorder_prepare_many(or->im, seq->ir, r))
+	if (vips_reorder_prepare_many(out_region->im, seq->ir, r))
 		return -1;
 	for (i = 0; i < bandary->n; i++)
 		seq->p[i] = VIPS_REGION_ADDR(seq->ir[i], r->left, r->top);
 	seq->p[i] = NULL;
-	q = VIPS_REGION_ADDR(or, r->left, r->top);
+	q = VIPS_REGION_ADDR(out_region, r->left, r->top);
 
 	VIPS_GATE_START("vips_bandary_gen: work");
 
@@ -181,7 +182,7 @@ vips_bandary_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 		for (i = 0; i < bandary->n; i++)
 			seq->p[i] += VIPS_REGION_LSKIP(seq->ir[i]);
-		q += VIPS_REGION_LSKIP(or);
+		q += VIPS_REGION_LSKIP(out_region);
 	}
 
 	VIPS_GATE_STOP("vips_bandary_gen: work");

@@ -165,12 +165,12 @@ G_DEFINE_TYPE(VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION);
 	}
 
 static int
-vips_flatten_black_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_flatten_black_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsFlatten *flatten = (VipsFlatten *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int width = r->width;
 	int bands = ir->im->Bands;
 	double max_alpha = flatten->max_alpha;
@@ -182,7 +182,7 @@ vips_flatten_black_gen(VipsRegion * or, void *vseq, void *a, void *b,
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (ir->im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
@@ -230,12 +230,12 @@ vips_flatten_black_gen(VipsRegion * or, void *vseq, void *a, void *b,
 /* Any background.
  */
 static int
-vips_flatten_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_flatten_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsFlatten *flatten = (VipsFlatten *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int width = r->width;
 	int bands = ir->im->Bands;
 	double max_alpha = flatten->max_alpha;
@@ -247,7 +247,7 @@ vips_flatten_gen(VipsRegion * or, void *vseq, void *a, void *b,
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (ir->im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

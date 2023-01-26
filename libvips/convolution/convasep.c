@@ -465,7 +465,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 			int sum; \
 \
 			p = i + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
-			q = i + (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+			q = i + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 \
 			sum = 0; \
 			for (z = 0; z < n_lines; z++) { \
@@ -509,7 +509,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 			double sum; \
 \
 			p = i + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
-			q = i + (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+			q = i + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 \
 			sum = 0; \
 			for (z = 0; z < n_lines; z++) { \
@@ -544,7 +544,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-vips_convasep_generate_horizontal(VipsRegion * or,
+vips_convasep_generate_horizontal(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConvasepSeq *seq = (VipsConvasepSeq *) vseq;
@@ -554,7 +554,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Double the bands (notionally) for complex.
 	 */
@@ -648,7 +648,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 			int sum; \
 \
 			p = x + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top); \
-			q = x + (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top); \
+			q = x + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top); \
 \
 			sum = 0; \
 			for (z = 0; z < n_lines; z++) { \
@@ -690,7 +690,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
 			double sum; \
 \
 			p = x + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top); \
-			q = x + (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top); \
+			q = x + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top); \
 \
 			sum = 0; \
 			for (z = 0; z < n_lines; z++) { \
@@ -722,7 +722,7 @@ vips_convasep_generate_horizontal(VipsRegion * or,
  * from above with small changes.
  */
 static int
-vips_convasep_generate_vertical(VipsRegion * or,
+vips_convasep_generate_vertical(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConvasepSeq *seq = (VipsConvasepSeq *) vseq;
@@ -732,13 +732,13 @@ vips_convasep_generate_vertical(VipsRegion * or,
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Double the width (notionally) for complex.
 	 */
 	int sz = vips_band_format_iscomplex(in->BandFmt)
-		? 2 * VIPS_REGION_N_ELEMENTS(or)
-		: VIPS_REGION_N_ELEMENTS(or);
+		? 2 * VIPS_REGION_N_ELEMENTS(out_region)
+		: VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y, z;
@@ -757,7 +757,7 @@ vips_convasep_generate_vertical(VipsRegion * or,
 	 * ease of direction change.
 	 */
 	istride = VIPS_REGION_LSKIP(ir) / VIPS_IMAGE_SIZEOF_ELEMENT(in);
-	ostride = VIPS_REGION_LSKIP(or) /
+	ostride = VIPS_REGION_LSKIP(out_region) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(convolution->out);
 
 	/* Init offset array.

@@ -78,13 +78,13 @@ G_DEFINE_TYPE(VipsSubsample, vips_subsample, VIPS_TYPE_CONVERSION);
  * left-to-right across the input.
  */
 static int
-vips_subsample_line_gen(VipsRegion * or,
+vips_subsample_line_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsSubsample *subsample = (VipsSubsample *) b;
 	VipsImage *in = (VipsImage *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -99,7 +99,7 @@ vips_subsample_line_gen(VipsRegion * or,
 	/* Loop down the region.
 	 */
 	for (y = to; y < bo; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 		VipsPel *p;
 
 		/* Loop across the region, in owidth sized pieces.
@@ -142,13 +142,13 @@ vips_subsample_line_gen(VipsRegion * or,
 /* Fetch one pixel at a time ... good for very large shrinks.
  */
 static int
-vips_subsample_point_gen(VipsRegion * or,
+vips_subsample_point_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsSubsample *subsample = (VipsSubsample *) b;
 	VipsImage *in = (VipsImage *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -162,7 +162,7 @@ vips_subsample_point_gen(VipsRegion * or,
 	/* Loop down the region.
 	 */
 	for (y = to; y < bo; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 		VipsPel *p;
 
 		/* Loop across the region, in owidth sized pieces.

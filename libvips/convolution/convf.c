@@ -158,7 +158,7 @@ vips_convf_start(VipsImage *out, void *a, void *b)
 #define CONV_FLOAT(ITYPE, OTYPE) \
 	{ \
 		ITYPE *restrict p = (ITYPE *) VIPS_REGION_ADDR(ir, le, y); \
-		OTYPE *restrict q = (OTYPE *) VIPS_REGION_ADDR(or, le, y); \
+		OTYPE *restrict q = (OTYPE *) VIPS_REGION_ADDR(out_region, le, y); \
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
@@ -177,7 +177,8 @@ vips_convf_start(VipsImage *out, void *a, void *b)
 /* Convolve!
  */
 static int
-vips_convf_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
+vips_convf_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConvfSequence *seq = (VipsConvfSequence *) vseq;
 	VipsConvf *convf = (VipsConvf *) b;
@@ -188,11 +189,11 @@ vips_convf_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 	VipsRegion *ir = seq->ir;
 	double *restrict t = convf->coeff;
 	const int nnz = convf->nnz;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
-	int sz = VIPS_REGION_N_ELEMENTS(or) *
+	int sz = VIPS_REGION_N_ELEMENTS(out_region) *
 		(vips_band_format_iscomplex(in->BandFmt) ? 2 : 1);
 
 	VipsRect s;
@@ -270,7 +271,7 @@ vips_convf_gen(VipsRegion * or, void *vseq, void *a, void *b, gboolean *stop)
 
 	VIPS_GATE_STOP("vips_convf_gen: work");
 
-	VIPS_COUNT_PIXELS(or, "vips_convf_gen");
+	VIPS_COUNT_PIXELS(out_region, "vips_convf_gen");
 
 	return 0;
 }

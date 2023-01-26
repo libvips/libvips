@@ -467,10 +467,10 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 }
 
 static int
-vips_foreign_load_nsgif_generate(VipsRegion * or,
+vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) a;
 
 	int y;
@@ -511,9 +511,9 @@ vips_foreign_load_nsgif_generate(VipsRegion * or,
 		}
 
 		p = (VipsPel *) gif->bitmap + line * gif->info->width * sizeof(int);
-		q = VIPS_REGION_ADDR(or, 0, r->top + y);
+		q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 		if (gif->has_transparency)
-			memcpy(q, p, VIPS_REGION_SIZEOF_LINE(or));
+			memcpy(q, p, VIPS_REGION_SIZEOF_LINE(out_region));
 		else {
 			int i;
 

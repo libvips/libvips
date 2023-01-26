@@ -180,12 +180,12 @@ open_lazy_start(VipsImage *out, void *a, void *dummy)
 /* Just copy.
  */
 static int
-open_lazy_generate(VipsRegion * or,
+open_lazy_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Ask for input we need.
 	 */
@@ -194,7 +194,7 @@ open_lazy_generate(VipsRegion * or,
 
 	/* Attach output region to that.
 	 */
-	if (vips_region_region(or, ir, r, r->left, r->top))
+	if (vips_region_region(out_region, ir, r, r->left, r->top))
 		return -1;
 
 	return 0;

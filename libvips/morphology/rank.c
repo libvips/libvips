@@ -169,11 +169,11 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 /* Histogram path for large uchar ranks.
  */
 static void
-vips_rank_generate_uchar(VipsRegion * or,
+vips_rank_generate_uchar(VipsRegion *out_region,
 	VipsRankSequence *seq, VipsRank *rank, int y)
 {
 	VipsImage *in = seq->ir->im;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	const int bands = in->Bands;
 	const int last = bands * (rank->width - 1);
 
@@ -182,7 +182,7 @@ vips_rank_generate_uchar(VipsRegion * or,
 	VipsPel *restrict p =
 		VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
 	VipsPel *restrict q =
-		VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 	VipsPel *restrict p1;
 	int lsk;
@@ -245,7 +245,7 @@ vips_rank_generate_uchar(VipsRegion * or,
  */
 #define LOOP_SELECT(TYPE) \
 	{ \
-		TYPE *q = (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+		TYPE *q = (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 		TYPE *p = (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 		TYPE *sort = (TYPE *) seq->sort; \
 		TYPE a; \
@@ -336,7 +336,7 @@ vips_rank_generate_uchar(VipsRegion * or,
  */
 #define LOOP_MAX(TYPE) \
 	{ \
-		TYPE *q = (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+		TYPE *q = (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 		TYPE *p = (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 \
 		for (x = 0; x < sz; x++) { \
@@ -365,7 +365,7 @@ vips_rank_generate_uchar(VipsRegion * or,
  */
 #define LOOP_MIN(TYPE) \
 	{ \
-		TYPE *q = (TYPE *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+		TYPE *q = (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 		TYPE *p = (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 \
 		for (x = 0; x < sz; x++) { \
@@ -422,17 +422,17 @@ vips_rank_generate_uchar(VipsRegion * or,
 	}
 
 static int
-vips_rank_generate(VipsRegion * or,
+vips_rank_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRankSequence *seq = (VipsRankSequence *) vseq;
 	VipsRegion *ir = seq->ir;
 	VipsImage *in = (VipsImage *) a;
 	VipsRank *rank = (VipsRank *) b;
 	int bands = in->Bands;
 	int eaw = rank->width * bands; /* elements across window */
-	int sz = VIPS_REGION_N_ELEMENTS(or);
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int ls;
@@ -453,7 +453,7 @@ vips_rank_generate(VipsRegion * or,
 
 	for (y = 0; y < r->height; y++) {
 		if (rank->hist_path)
-			vips_rank_generate_uchar(or, seq, rank, y);
+			vips_rank_generate_uchar(out_region, seq, rank, y);
 		else if (rank->index == 0)
 			SWITCH(LOOP_MIN)
 		else if (rank->index == rank->n - 1)

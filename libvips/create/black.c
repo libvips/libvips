@@ -80,18 +80,18 @@ typedef VipsCreateClass VipsBlackClass;
 G_DEFINE_TYPE(VipsBlack, vips_black, VIPS_TYPE_CREATE);
 
 static int
-vips_black_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_black_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	/*
-	VipsRect *r = &or->valid;
+	VipsRect *r = &out_region->valid;
 
 	printf("vips_black_gen: "
 		   "left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 	 */
 
-	vips_region_black(or);
+	vips_region_black(out_region);
 
 	return 0;
 }

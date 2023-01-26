@@ -479,7 +479,7 @@ vips_convi_compile(VipsConvi *convi, VipsImage *in)
 }
 
 static int
-vips_convi_gen_vector(VipsRegion * or,
+vips_convi_gen_vector(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
@@ -488,7 +488,7 @@ vips_convi_gen_vector(VipsRegion * or,
 	VipsImage *M = convolution->M;
 	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int ne = r->width * in->Bands;
 
 	VipsRect s;
@@ -518,7 +518,7 @@ vips_convi_gen_vector(VipsRegion * or,
 	VIPS_GATE_START("vips_convi_gen_vector: work");
 
 	for (y = 0; y < r->height; y++) {
-		VipsPel *q = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 #ifdef DEBUG_PIXELS
 		{
@@ -561,13 +561,13 @@ vips_convi_gen_vector(VipsRegion * or,
 
 #ifdef DEBUG_PIXELS
 		printf("after clip: %d\n",
-			*VIPS_REGION_ADDR(or, r->left, r->top + y));
+			*VIPS_REGION_ADDR(out_region, r->left, r->top + y));
 #endif /*DEBUG_PIXELS*/
 	}
 
 	VIPS_GATE_STOP("vips_convi_gen_vector: work");
 
-	VIPS_COUNT_PIXELS(or, "vips_convi_gen_vector");
+	VIPS_COUNT_PIXELS(out_region, "vips_convi_gen_vector");
 
 	return 0;
 }
@@ -577,7 +577,7 @@ vips_convi_gen_vector(VipsRegion * or,
 #define CONV_INT(TYPE, CLIP) \
 	{ \
 		TYPE *restrict p = (TYPE *) VIPS_REGION_ADDR(ir, le, y); \
-		TYPE *restrict q = (TYPE *) VIPS_REGION_ADDR(or, le, y); \
+		TYPE *restrict q = (TYPE *) VIPS_REGION_ADDR(out_region, le, y); \
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
@@ -602,7 +602,7 @@ vips_convi_gen_vector(VipsRegion * or,
 #define CONV_FLOAT(TYPE) \
 	{ \
 		TYPE *restrict p = (TYPE *) VIPS_REGION_ADDR(ir, le, y); \
-		TYPE *restrict q = (TYPE *) VIPS_REGION_ADDR(or, le, y); \
+		TYPE *restrict q = (TYPE *) VIPS_REGION_ADDR(out_region, le, y); \
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
@@ -669,7 +669,7 @@ vips_convi_gen_vector(VipsRegion * or,
 /* Convolve!
  */
 static int
-vips_convi_gen(VipsRegion * or,
+vips_convi_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
@@ -683,11 +683,11 @@ vips_convi_gen(VipsRegion * or,
 	VipsRegion *ir = seq->ir;
 	int *restrict t = convi->coeff;
 	const int nnz = convi->nnz;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
-	int sz = VIPS_REGION_N_ELEMENTS(or) *
+	int sz = VIPS_REGION_N_ELEMENTS(out_region) *
 		(vips_band_format_iscomplex(in->BandFmt) ? 2 : 1);
 
 	VipsRect s;
@@ -765,7 +765,7 @@ vips_convi_gen(VipsRegion * or,
 
 	VIPS_GATE_STOP("vips_convi_gen: work");
 
-	VIPS_COUNT_PIXELS(or, "vips_convi_gen");
+	VIPS_COUNT_PIXELS(out_region, "vips_convi_gen");
 
 	return 0;
 }

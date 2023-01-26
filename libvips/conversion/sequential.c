@@ -112,11 +112,11 @@ vips_sequential_dispose(GObject *gobject)
 }
 
 static int
-vips_sequential_generate(VipsRegion * or,
+vips_sequential_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsSequential *sequential = (VipsSequential *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
 	if (sequential->trace)
@@ -167,7 +167,7 @@ vips_sequential_generate(VipsRegion * or,
 	 * This may trigger further, sequential reads.
 	 */
 	if (vips_region_prepare(ir, r) ||
-		vips_region_region(or, ir, r, r->left, r->top)) {
+		vips_region_region(out_region, ir, r, r->left, r->top)) {
 		sequential->error = -1;
 		g_mutex_unlock(sequential->lock);
 		return -1;

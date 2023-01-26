@@ -843,7 +843,7 @@ vips_conva_start(VipsImage *out, void *a, void *b)
 \
 			p = i + (IN *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 			q = i * n_hline + \
-				(OUT *) VIPS_REGION_ADDR(or, r->left, r->top + y); \
+				(OUT *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
 \
 			for (z = 0; z < n_hline; z++) { \
 				seq_sum[z] = 0; \
@@ -870,8 +870,8 @@ vips_conva_start(VipsImage *out, void *a, void *b)
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-vips_conva_hgenerate(VipsRegion * or, void *vseq,
-	void *a, void *b, gboolean *stop)
+vips_conva_hgenerate(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 	VipsImage *in = (VipsImage *) a;
@@ -880,7 +880,7 @@ vips_conva_hgenerate(VipsRegion * or, void *vseq,
 	VipsRegion *ir = seq->ir;
 	const int n_hline = conva->n_hline;
 	VipsImage *iM = conva->iM;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Double the bands (notionally) for complex.
 	 */
@@ -903,8 +903,8 @@ vips_conva_hgenerate(VipsRegion * or, void *vseq,
 
 	istride = VIPS_IMAGE_SIZEOF_PEL(in) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(in);
-	ostride = VIPS_IMAGE_SIZEOF_PEL(or->im) /
-		VIPS_IMAGE_SIZEOF_ELEMENT(or->im);
+	ostride = VIPS_IMAGE_SIZEOF_PEL(out_region->im) /
+		VIPS_IMAGE_SIZEOF_ELEMENT(out_region->im);
 
 	/* Init offset array.
 	 */
@@ -1069,7 +1069,7 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 \
 			p = x * conva->n_hline + \
 				(IN *) VIPS_REGION_ADDR(ir, r->left, r->top); \
-			q = x + (OUT *) VIPS_REGION_ADDR(or, r->left, r->top); \
+			q = x + (OUT *) VIPS_REGION_ADDR(out_region, r->left, r->top); \
 \
 			sum = 0; \
 			for (z = 0; z < n_vline; z++) { \
@@ -1106,8 +1106,8 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 /* Do vertical masks ... we scan the mask down columns of pixels.
  */
 static int
-vips_conva_vgenerate(VipsRegion * or, void *vseq,
-	void *a, void *b, gboolean *stop)
+vips_conva_vgenerate(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 	VipsImage *in = (VipsImage *) a;
@@ -1117,13 +1117,13 @@ vips_conva_vgenerate(VipsRegion * or, void *vseq,
 	VipsRegion *ir = seq->ir;
 	const int n_vline = conva->n_vline;
 	VipsImage *iM = conva->iM;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	/* Double the width (notionally) for complex.
 	 */
 	int sz = vips_band_format_iscomplex(in->BandFmt)
-		? 2 * VIPS_REGION_N_ELEMENTS(or)
-		: VIPS_REGION_N_ELEMENTS(or);
+		? 2 * VIPS_REGION_N_ELEMENTS(out_region)
+		: VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y, z, k;
@@ -1140,7 +1140,7 @@ vips_conva_vgenerate(VipsRegion * or, void *vseq,
 
 	istride = VIPS_REGION_LSKIP(ir) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(in);
-	ostride = VIPS_REGION_LSKIP(or) /
+	ostride = VIPS_REGION_LSKIP(out_region) /
 		VIPS_IMAGE_SIZEOF_ELEMENT(convolution->out);
 
 	/* Init offset array.

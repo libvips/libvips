@@ -79,13 +79,13 @@ typedef VipsConversionClass VipsArrayjoinClass;
 G_DEFINE_TYPE(VipsArrayjoin, vips_arrayjoin, VIPS_TYPE_CONVERSION);
 
 static int
-vips_arrayjoin_gen(VipsRegion * or, void *seq,
-	void *a, void *b, gboolean *stop)
+vips_arrayjoin_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsImage **in = (VipsImage **) a;
 	VipsArrayjoin *join = (VipsArrayjoin *) b;
 	VipsConversion *conversion = VIPS_CONVERSION(join);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int n;
 
 	/* Find the left/top/width/height of the cells this region touches.
@@ -116,7 +116,7 @@ vips_arrayjoin_gen(VipsRegion * or, void *seq,
 
 		reg = vips_region_new(in[i]);
 
-		if (vips__insert_just_one(or, reg,
+		if (vips__insert_just_one(out_region, reg,
 				join->rects[i].left, join->rects[i].top)) {
 			g_object_unref(reg);
 			return -1;
@@ -137,7 +137,7 @@ vips_arrayjoin_gen(VipsRegion * or, void *seq,
 
 				reg = vips_region_new(in[i]);
 
-				if (vips__insert_paste_region(or, reg,
+				if (vips__insert_paste_region(out_region, reg,
 						&join->rects[i])) {
 					g_object_unref(reg);
 					return -1;

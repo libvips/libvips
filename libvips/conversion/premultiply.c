@@ -126,13 +126,13 @@ G_DEFINE_TYPE(VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION);
 
 VIPS_TARGET_CLONES("default,avx")
 static int
-vips_premultiply_gen(VipsRegion * or, void *vseq, void *a, void *b,
-	gboolean *stop)
+vips_premultiply_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsPremultiply *premultiply = (VipsPremultiply *) b;
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsImage *im = ir->im;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int width = r->width;
 	int bands = im->Bands;
 	double max_alpha = premultiply->max_alpha;
@@ -144,7 +144,7 @@ vips_premultiply_gen(VipsRegion * or, void *vseq, void *a, void *b,
 
 	for (y = 0; y < r->height; y++) {
 		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(or, r->left, r->top + y);
+		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:

@@ -276,11 +276,11 @@ vips_blendn_buffer(VipsPel *qp,
 }
 
 static int
-vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
-	gboolean *stop)
+vips_blend_gen(VipsRegion *out_region,
+	void *seq, void *client1, void *client2, gboolean *stop)
 {
 	VipsRegion **ir = (VipsRegion **) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
@@ -316,14 +316,14 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		/* All 255. Point or at the then image.
 		 */
 		if (vips_region_prepare(ir[0], r) ||
-			vips_region_region(or, ir[0], r, r->left, r->top))
+			vips_region_region(out_region, ir[0], r, r->left, r->top))
 			return -1;
 	}
 	else if (all0) {
 		/* All zero. Point or at the else image.
 		 */
 		if (vips_region_prepare(ir[1], r) ||
-			vips_region_region(or, ir[1], r, r->left, r->top))
+			vips_region_region(out_region, ir[1], r, r->left, r->top))
 			return -1;
 	}
 	else {
@@ -341,7 +341,7 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 			VipsPel *ap = VIPS_REGION_ADDR(ir[0], le, y);
 			VipsPel *bp = VIPS_REGION_ADDR(ir[1], le, y);
 			VipsPel *cp = VIPS_REGION_ADDR(ir[2], le, y);
-			VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+			VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 			if (c->Bands == 1)
 				vips_blend1_buffer(q, cp, ap, bp,
@@ -356,11 +356,11 @@ vips_blend_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 }
 
 static int
-vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
-	gboolean *stop)
+vips_ifthenelse_gen(VipsRegion *out_region,
+	void *seq, void *client1, void *client2, gboolean *stop)
 {
 	VipsRegion **ir = (VipsRegion **) seq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
@@ -410,14 +410,14 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 		/* All non-zero. Point or at the then image.
 		 */
 		if (vips_region_prepare(ir[0], r) ||
-			vips_region_region(or, ir[0], r, r->left, r->top))
+			vips_region_region(out_region, ir[0], r, r->left, r->top))
 			return -1;
 	}
 	else if (all0) {
 		/* All zero. Point or at the else image.
 		 */
 		if (vips_region_prepare(ir[1], r) ||
-			vips_region_region(or, ir[1], r, r->left, r->top))
+			vips_region_region(out_region, ir[1], r, r->left, r->top))
 			return -1;
 	}
 	else {
@@ -432,7 +432,7 @@ vips_ifthenelse_gen(VipsRegion * or, void *seq, void *client1, void *client2,
 			VipsPel *ap = VIPS_REGION_ADDR(ir[0], le, y);
 			VipsPel *bp = VIPS_REGION_ADDR(ir[1], le, y);
 			VipsPel *cp = VIPS_REGION_ADDR(ir[2], le, y);
-			VipsPel *q = VIPS_REGION_ADDR(or, le, y);
+			VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 			for (x = 0, i = 0; i < width; i++, x += size)
 				if (cp[i])

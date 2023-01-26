@@ -71,13 +71,13 @@
 /* Zerox generate function.
  */
 static int
-zerox_gen(REGION * or, void *seq, void *a, void *b)
+zerox_gen(REGION *out_region, void *seq, void *a, void *b)
 {
 	REGION *ir = (REGION *) seq;
 	IMAGE *in = (IMAGE *) a;
 	int flag = GPOINTER_TO_INT(b);
 	Rect irect;
-	Rect *r = & or->valid;
+	Rect *r = &out_region->valid;
 
 	/* Range of pixels we loop over.
 	 */
@@ -100,7 +100,7 @@ zerox_gen(REGION * or, void *seq, void *a, void *b)
 
 	for (y = to; y < bo; y++) {
 		VipsPel *p = IM_REGION_ADDR(ir, le, y);
-		VipsPel *q = IM_REGION_ADDR(or, le, y);
+		VipsPel *q = IM_REGION_ADDR(out_region, le, y);
 
 		switch (in->BandFmt) {
 		case IM_BANDFMT_CHAR:

@@ -190,12 +190,12 @@ make_yline(StretchInfo *sin, int lsk, int boff,
 }
 
 static int
-stretch_gen(REGION * or, void *vseq, void *a, void *b)
+stretch_gen(REGION *out_region, void *vseq, void *a, void *b)
 {
 	SeqInfo *seq = (SeqInfo *) vseq;
 	StretchInfo *sin = (StretchInfo *) b;
 	REGION *ir = seq->ir;
-	Rect *r = & or->valid;
+	Rect *r = &out_region->valid;
 	Rect r1;
 	int x, y;
 
@@ -242,7 +242,7 @@ stretch_gen(REGION * or, void *vseq, void *a, void *b)
 		/* Line we write in output.
 		 */
 		unsigned short *q1 = (unsigned short *)
-			IM_REGION_ADDR(or, r->left, y + r->top);
+			IM_REGION_ADDR(out_region, r->left, y + r->top);
 
 		/* Process this new xline.
 		 */

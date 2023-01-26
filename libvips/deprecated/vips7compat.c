@@ -681,7 +681,7 @@ typedef struct {
 /* Convert a VipsRegion.
  */
 static int
-process_region(VipsRegion * or, void *seq, void *a, void *b)
+process_region(VipsRegion *out_region, void *seq, void *a, void *b)
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	Bundle *bun = (Bundle *) b;
@@ -691,17 +691,17 @@ process_region(VipsRegion * or, void *seq, void *a, void *b)
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	if (vips_reorder_prepare_many(or->im, ir, & or->valid))
+	if (vips_reorder_prepare_many(out_region->im, ir, &out_region->valid))
 		return -1;
 	for (i = 0; ir[i]; i++)
 		p[i] = (PEL *) VIPS_REGION_ADDR(ir[i],
-			or->valid.left, or->valid.top);
+			out_region->valid.left, out_region->valid.top);
 	p[i] = NULL;
-	q = (PEL *) VIPS_REGION_ADDR(or, or->valid.left, or->valid.top);
+	q = (PEL *) VIPS_REGION_ADDR(out_region, out_region->valid.left, out_region->valid.top);
 
 	/* Convert linewise.
 	 */
-	for (y = 0; y < or->valid.height; y++) {
+	for (y = 0; y < out_region->valid.height; y++) {
 		PEL *p1[MAX_INPUT_IMAGES];
 
 		/* Make a copy of p[] which the buffer function can mess up if
@@ -713,13 +713,13 @@ process_region(VipsRegion * or, void *seq, void *a, void *b)
 		/* Bizarre double-cast stops a bogus gcc 4.1 compiler warning.
 		 */
 		bun->fn((void **) ((void *) p1), q,
-			or->valid.width, bun->a, bun->b);
+			out_region->valid.width, bun->a, bun->b);
 
 		/* Move pointers on.
 		 */
 		for (i = 0; ir[i]; i++)
 			p[i] += VIPS_REGION_LSKIP(ir[i]);
-		q += VIPS_REGION_LSKIP(or);
+		q += VIPS_REGION_LSKIP(out_region);
 	}
 
 	return 0;

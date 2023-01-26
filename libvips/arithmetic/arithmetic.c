@@ -600,27 +600,27 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 }
 
 static int
-vips_arithmetic_gen(VipsRegion * or,
+vips_arithmetic_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsArithmeticSequence *seq = (VipsArithmeticSequence *) vseq;
 	VipsRegion **ir = seq->ir;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC(b);
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS(arithmetic);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	VipsPel *q;
 	int i, y;
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	if (vips_reorder_prepare_many(or->im, ir, r))
+	if (vips_reorder_prepare_many(out_region->im, ir, r))
 		return -1;
 	for (i = 0; ir[i]; i++)
 		seq->p[i] = (VipsPel *)
 			VIPS_REGION_ADDR(ir[i], r->left, r->top);
 	seq->p[i] = NULL;
-	q = (VipsPel *) VIPS_REGION_ADDR(or, r->left, r->top);
+	q = (VipsPel *) VIPS_REGION_ADDR(out_region, r->left, r->top);
 
 	VIPS_GATE_START("vips_arithmetic_gen: work");
 
@@ -629,12 +629,12 @@ vips_arithmetic_gen(VipsRegion * or,
 
 		for (i = 0; ir[i]; i++)
 			seq->p[i] += VIPS_REGION_LSKIP(ir[i]);
-		q += VIPS_REGION_LSKIP(or);
+		q += VIPS_REGION_LSKIP(out_region);
 	}
 
 	VIPS_GATE_STOP("vips_arithmetic_gen: work");
 
-	VIPS_COUNT_PIXELS(or, VIPS_OBJECT_CLASS(class)->nickname);
+	VIPS_COUNT_PIXELS(out_region, VIPS_OBJECT_CLASS(class)->nickname);
 
 	return 0;
 }

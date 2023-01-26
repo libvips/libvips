@@ -73,16 +73,16 @@ vips_edge_dispose(GObject *gobject)
 }
 
 static int
-vips_edge_uchar_gen(VipsRegion * or,
+vips_edge_uchar_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **in = (VipsRegion **) vseq;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int sz = r->width * in[0]->im->Bands;
 
 	int x, y;
 
-	if (vips_reorder_prepare_many(or->im, in, r))
+	if (vips_reorder_prepare_many(out_region->im, in, r))
 		return -1;
 
 	for (y = 0; y < r->height; y++) {
@@ -91,7 +91,7 @@ vips_edge_uchar_gen(VipsRegion * or,
 		VipsPel *p2 = (VipsPel *restrict)
 			VIPS_REGION_ADDR(in[1], r->left, r->top + y);
 		VipsPel *q = (VipsPel *restrict)
-			VIPS_REGION_ADDR(or, r->left, r->top + y);
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		for (x = 0; x < sz; x++) {
 			int v1 = 2 * (p1[x] - 128);

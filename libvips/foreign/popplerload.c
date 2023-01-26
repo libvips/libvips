@@ -409,11 +409,11 @@ vips_foreign_load_pdf_minimise(VipsImage *image, VipsForeignLoadPdf *pdf)
 }
 
 static int
-vips_foreign_load_pdf_generate(VipsRegion * or,
+vips_foreign_load_pdf_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF(a);
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int top;
 	int i;
@@ -427,7 +427,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 
 	/* Poppler won't always paint the background.
 	 */
-	vips_region_paint_pel(or, r, pdf->ink);
+	vips_region_paint_pel(out_region, r, pdf->ink);
 
 	/* Search through the pages we are drawing for the first containing
 	 * this rect. This could be quicker, perhaps a binary search, but who
@@ -446,10 +446,10 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 		vips_rect_intersectrect(r, &pdf->pages[i], &rect);
 
 		surface = cairo_image_surface_create_for_data(
-			VIPS_REGION_ADDR(or, rect.left, rect.top),
+			VIPS_REGION_ADDR(out_region, rect.left, rect.top),
 			CAIRO_FORMAT_ARGB32,
 			rect.width, rect.height,
-			VIPS_REGION_LSKIP(or));
+			VIPS_REGION_LSKIP(out_region));
 		cr = cairo_create(surface);
 		cairo_surface_destroy(surface);
 
@@ -475,7 +475,7 @@ vips_foreign_load_pdf_generate(VipsRegion * or,
 	 */
 	for (y = 0; y < r->height; y++)
 		vips__premultiplied_bgra2rgba(
-			(guint32 *) VIPS_REGION_ADDR(or, r->left, r->top + y),
+			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 			r->width);
 
 	return 0;

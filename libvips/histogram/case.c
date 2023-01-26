@@ -58,12 +58,12 @@ typedef VipsOperationClass VipsCaseClass;
 G_DEFINE_TYPE(VipsCase, vips_case, VIPS_TYPE_OPERATION);
 
 static int
-vips_case_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_case_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **ar = (VipsRegion **) seq;
 	VipsCase *cas = (VipsCase *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	VipsRegion *index = ar[cas->n];
 
 	int x, y, i;
@@ -107,9 +107,9 @@ vips_case_gen(VipsRegion * or, void *seq, void *a, void *b,
 		}
 
 	ip = VIPS_REGION_ADDR(index, r->left, r->top);
-	q = VIPS_REGION_ADDR(or, r->left, r->top);
-	qls = VIPS_REGION_LSKIP(or);
-	ps = VIPS_IMAGE_SIZEOF_PEL(or->im);
+	q = VIPS_REGION_ADDR(out_region, r->left, r->top);
+	qls = VIPS_REGION_LSKIP(out_region);
+	ps = VIPS_IMAGE_SIZEOF_PEL(out_region->im);
 	for (y = 0; y < r->height; y++) {
 		int k;
 

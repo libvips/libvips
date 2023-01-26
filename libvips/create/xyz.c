@@ -72,11 +72,11 @@ typedef VipsCreateClass VipsXyzClass;
 G_DEFINE_TYPE(VipsXyz, vips_xyz, VIPS_TYPE_CREATE);
 
 static int
-vips_xyz_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_xyz_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsXyz *xyz = (VipsXyz *) a;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
 	int ri = VIPS_RECT_RIGHT(r);
@@ -86,7 +86,7 @@ vips_xyz_gen(VipsRegion * or, void *seq, void *a, void *b,
 
 	for (y = to; y < bo; y++) {
 		unsigned int *q = (unsigned int *)
-			VIPS_REGION_ADDR(or, le, y);
+			VIPS_REGION_ADDR(out_region, le, y);
 
 		unsigned int dims[5];
 		int r;

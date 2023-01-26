@@ -58,12 +58,12 @@ typedef VipsOperationClass VipsSwitchClass;
 G_DEFINE_TYPE(VipsSwitch, vips_switch, VIPS_TYPE_OPERATION);
 
 static int
-vips_switch_gen(VipsRegion * or, void *seq, void *a, void *b,
-	gboolean *stop)
+vips_switch_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion **ar = (VipsRegion **) seq;
 	VipsSwitch *swit = (VipsSwitch *) b;
-	VipsRect *r = & or->valid;
+	VipsRect *r = &out_region->valid;
 
 	int x, y, i;
 	VipsPel *restrict q;
@@ -71,7 +71,7 @@ vips_switch_gen(VipsRegion * or, void *seq, void *a, void *b,
 	VipsPel *restrict p[256];
 	size_t ls[256];
 
-	if (vips_reorder_prepare_many(or->im, ar, r))
+	if (vips_reorder_prepare_many(out_region->im, ar, r))
 		return -1;
 
 	g_assert(ar[0]->im->BandFmt == VIPS_FORMAT_UCHAR);
@@ -82,8 +82,8 @@ vips_switch_gen(VipsRegion * or, void *seq, void *a, void *b,
 		ls[i] = VIPS_REGION_LSKIP(ar[i]);
 	}
 
-	q = VIPS_REGION_ADDR(or, r->left, r->top);
-	qls = VIPS_REGION_LSKIP(or);
+	q = VIPS_REGION_ADDR(out_region, r->left, r->top);
+	qls = VIPS_REGION_LSKIP(out_region);
 	for (y = 0; y < r->height; y++) {
 		for (x = 0; x < r->width; x++) {
 			for (i = 0; i < swit->n; i++)
