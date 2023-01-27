@@ -2740,6 +2740,7 @@ vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
  * * @associated: %gchararray, load this associated image
  * * @attach_associated: %gboolean, attach all associated images as metadata
  * * @autocrop: %gboolean, crop to image bounds
+ * * @rgb: %gboolean, output RGB (not RGBA) pixels
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -2762,7 +2763,8 @@ vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
  * are attached as "openslide-associated-XXXXX", where XXXXX is the name of the
  * associated image.
  *
- * The output of this operator is always RGBA.
+ * By default, the output of this operator is RGBA. Set @rgb to enable RGB
+ * output.
  *
  * See also: vips_image_new_from_file().
  *
@@ -2793,6 +2795,7 @@ vips_openslideload( const char *filename, VipsImage **out, ... )
  * * @associated: %gchararray, load this associated image
  * * @attach_associated: %gboolean, attach all associated images as metadata
  * * @autocrop: %gboolean, crop to image bounds
+ * * @rgb: %gboolean, output RGB (not RGBA) pixels
  *
  * Exactly as vips_openslideload(), but read from a source. 
  *
