@@ -2196,6 +2196,8 @@ vips_openslideload (<em class="parameter"><code>const <span class="type">char</s
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, attach all associated images as metadata</p></li>
 <li class="listitem"><p><em class="parameter"><code>autocrop</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, crop to image bounds</p></li>
+<li class="listitem"><p><em class="parameter"><code>rgb</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, output RGB (not RGBA) pixels</p></li>
 </ul></div>
 <p>Read a virtual slide supported by the OpenSlide library into a VIPS image.
 OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -2218,7 +2220,9 @@ metadata items. Use <a class="link" href="libvips-header.html#vips-image-get-ima
  to retrieve them. Images
 are attached as "openslide-associated-XXXXX", where XXXXX is the name of the
 associated image.</p>
-<p>The output of this operator is always RGBA.</p>
+<p>By default, the output of this operator is RGBA. Set <em class="parameter"><code>rgb</code></em>
+ to enable RGB
+output.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-openslideload.parameters"></a><h4>Parameters</h4>
@@ -2269,6 +2273,8 @@ vips_openslideload_source (<em class="parameter"><code><a class="link" href="Vip
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, attach all associated images as metadata</p></li>
 <li class="listitem"><p><em class="parameter"><code>autocrop</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, crop to image bounds</p></li>
+<li class="listitem"><p><em class="parameter"><code>rgb</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, output RGB (not RGBA) pixels</p></li>
 </ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-openslideload" title="vips_openslideload ()"><code class="function">vips_openslideload()</code></a>, but read from a source.</p>
 <div class="refsect3">
