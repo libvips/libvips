@@ -338,12 +338,10 @@ formatval(			/* get format value (return true if format) */
 	return(1);
 }
 
+/* Get header from source.
+ */
 static int
-getheader(		/* get header from file */
-	VipsSbuf *sbuf,
-	gethfunc *f,
-	void  *p
-)
+getheader( VipsSbuf *sbuf, gethfunc *f, void  *p )
 {
 	for(;;) { 
 		const char *line;
