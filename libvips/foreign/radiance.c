@@ -31,6 +31,7 @@
  * 	- revise for VipsConnection
  * 28/1/23 kleisauke
  * 	- clean-up unused macros/externs
+ * 	- sync with radiance 5.3
  */
 
 /*
@@ -165,17 +166,17 @@
  *
  * 1. Download and unpack latest stable radiance
  * 2. ray/src/common has the files we need ... copy in this order:
- * 	colour.h
+ * 	color.h
  * 	resolu.h
  * 	rtio.h
  * 	fputword.c
- * 	colour.c
+ * 	color.c
  * 	resolu.c
  * 	header.c
  * 3. trim each one down, removing extern decls
  * 4. make all functions static
  * 5. reorder to remove forward refs
- * 6. remove unused funcs, mostly related to HDR write
+ * 6. remove unused funcs/macros, mostly related to HDR write
  */
 
 #define  RED		0
@@ -260,13 +261,12 @@ typedef struct {
 
 			/* resolution string buffer and its size */
 #define  RESOLU_BUFLEN		32
+static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
 			/* identify header lines */
 #define  isformat(s)	formatval(NULL,s)
 
 typedef int gethfunc(char *s, void *p); /* callback to process header lines */
-
-static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
 static char *
 resolu2str(			/* convert resolution struct to line */
@@ -315,10 +315,8 @@ str2resolu(			/* convert resolution line to struct */
 	return(1);
 }
 
-#define	 MAXFMTLEN	2048
-
+#define	 MAXFMTLEN	64
 static const char  FMTSTR[] = "FORMAT=";	/* format identifier */
-
 
 static int
 formatval(			/* get format value (return true if format) */
@@ -339,7 +337,6 @@ formatval(			/* get format value (return true if format) */
 	*r = '\0';
 	return(1);
 }
-
 
 static int
 getheader(		/* get header from file */
