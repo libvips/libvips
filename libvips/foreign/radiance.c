@@ -426,9 +426,10 @@ typedef int gethfunc(char *s, void *p); /* callback to process header lines */
 static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
 static char *
-resolu2str(buf, rp)		/* convert resolution struct to line */
-char  *buf;
-register RESOLU  *rp;
+resolu2str(			/* convert resolution struct to line */
+	char  *buf,
+	register RESOLU  *rp
+)
 {
 	if (rp->rt&YMAJOR)
 		sprintf(buf, "%cY %d %cX %d\n",
@@ -441,11 +442,11 @@ register RESOLU  *rp;
 	return(buf);
 }
 
-
 static int
-str2resolu(rp, buf)		/* convert resolution line to struct */
-register RESOLU  *rp;
-char  *buf;
+str2resolu(			/* convert resolution line to struct */
+	register RESOLU  *rp,
+	char  *buf
+)
 {
 	register char  *xndx, *yndx;
 	register char  *cp;
