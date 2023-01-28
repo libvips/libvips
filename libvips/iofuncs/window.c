@@ -198,10 +198,6 @@ vips_getpagesize(void)
 #else  /*!G_OS_WIN32*/
 		pagesize = sysconf(_SC_PAGESIZE);
 #endif /*G_OS_WIN32*/
-
-#ifdef DEBUG_TOTAL
-		printf("vips_getpagesize: 0x%x\n", pagesize);
-#endif /*DEBUG_TOTAL*/
 	}
 
 	return pagesize;
