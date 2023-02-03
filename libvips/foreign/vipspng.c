@@ -87,6 +87,8 @@
  * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
  * 17/11/22
  * 	- add exif read/write
+* 03/02/23 MathemanFlo
+ *  - add bits per sample metadata
  */
 
 /*
@@ -527,6 +529,8 @@ png2vips_header( Read *read, VipsImage *out )
 
 	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
+
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, bitdepth );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc. Ignore it.

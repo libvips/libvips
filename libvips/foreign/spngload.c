@@ -6,6 +6,8 @@
  * 	- read out background, if we can
  * 29/8/21 joshuamsager
  *	-  add "unlimited" flag to png load
+ * 03/02/23 MathemanFlo
+ *  - add bits per sample metadata
  */
 
 /*
@@ -269,6 +271,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		vips_image_set_blob_copy( image, VIPS_META_EXIF_NAME, 
 			exif.data, exif.length );
 
+	vips_image_set_int( image, VIPS_META_BITS_PER_SAMPLE, png->ihdr.bit_depth );
+	
 	/* Attach original palette bit depth, if any, as metadata.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED )
