@@ -5,6 +5,7 @@ TBD 8.14.2
 - ensure compatibility with libheif > 1.14.2 [kleisauke]
 - minor doc fixes [jcupitt]
 - sanitise dimensions in JPEG-compressed TIFF images [lovell]
+- fix target pnm write [ewelot]
 
 9/1/23 8.14.1
 
