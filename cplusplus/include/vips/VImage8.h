@@ -923,6 +923,24 @@ public:
 	/**
 	 * Create a new VImage object from an area of memory containing a
 	 * C-style array.
+	 * The VImage makes a copy of @data.
+	 */
+	static VImage 
+	new_from_memory_copy( void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_memory_copy( data, size, 
+			width, height, bands, format )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
+	/**
+	 * Create a new VImage object from an area of memory containing a
+	 * C-style array.
 	 *
 	 * The VImage steals ownership of @data and will free() it when it
 	 * goes out of scope.
