@@ -558,6 +558,26 @@ public:
 	}
 
 	/**
+	 * Gets an VImage ready for an in-place operation, such as draw_circle().
+	 * After calling this function you can both read and write the image with 
+	 * VIPS_IMAGE_ADDR().
+	 *
+	 * This method is called for you by the draw operations, 
+	 * there's no need to call it yourself.
+	 *
+	 * Since this function modifies the image, it is not thread-safe. Only call it on
+	 * images which you are sure have not been shared with another thread. 
+	 * All in-place operations are inherently not thread-safe, so you need to take
+	 * great care in any case.
+	 */
+	void
+	inplace()
+	{
+		if( vips_image_inplace( this->get_image() ) )
+			throw( VError() ); 
+	}
+
+	/**
 	 * Arrange for the underlying object to be entirely in memory, then
 	 * return a pointer to the first pixel.
 	 * 
