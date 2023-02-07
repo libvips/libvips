@@ -1783,6 +1783,30 @@ public:
 	{
 		return( draw_mask( to_vector( ink ), mask, x, y, options) );
 	}
+
+	/**
+	 * Generate thumbnail from buffer.
+	 *
+	 * **Optional parameters**
+	 *   - **option_string** -- Options that are passed on to the underlying loader, const char *.
+	 *   - **height** -- Size to this height, int.
+	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
+	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
+	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **linear** -- Reduce in linear light, bool.
+	 *   - **import_profile** -- Fallback import profile, const char *.
+	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **intent** -- Rendering intent, VipsIntent.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param buf Buffer to load from.
+	 * @param len Size of buffer.
+	 * @param width Size to this width.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage thumbnail_buffer( void *buf, size_t len, int width, VOption *options = 0 );
+
 	// Operator overloads
 
 	VImage operator[]( int index ) const;

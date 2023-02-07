@@ -777,6 +777,28 @@ VImage::write_to_target( const char *suffix, VTarget target,
 			set( "target", target ) );
 }
 
+VImage 
+VImage::thumbnail_buffer( void *buf, size_t len, int width, VOption *options )
+{
+	VipsBlob *blob;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	try
+	{
+		VImage thumbnail = thumbnail_buffer( blob, width, options );
+		vips_area_unref( VIPS_AREA( blob ) );
+		return( thumbnail );
+	}
+	catch ( VError &ex )
+	{
+		vips_area_unref( VIPS_AREA( blob ) );
+		throw; // rethrow exception
+	}
+}
+
 VRegion
 VImage::region() const
 {
