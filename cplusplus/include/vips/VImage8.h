@@ -1681,6 +1681,108 @@ public:
 			options ) );
 	}
 
+	/**
+	 * Draw a circle on an image.
+	 *
+	 * **Optional parameters**
+	 *   - **fill** -- Draw a solid object, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param cx Centre of draw_circle.
+	 * @param cy Centre of draw_circle.
+	 * @param radius Radius in pixels.
+	 * @param options Set of options.
+	 */
+	void draw_circle( double ink, int cx, int cy, int radius, VOption *options = 0 ) const
+	{
+		return( draw_circle( to_vector( ink ), cx, cy, radius, options) );
+	}
+
+	/**
+	 * Draw a line on an image.
+	 * @param ink Color for pixels.
+	 * @param x1 Start of draw_line.
+	 * @param y1 Start of draw_line.
+	 * @param x2 End of draw_line.
+	 * @param y2 End of draw_line.
+	 * @param options Set of options.
+	 */
+	void draw_line( double ink, int x1, int y1, int x2, int y2, VOption *options = 0 ) const
+	{
+		return( draw_line( to_vector( ink ), x1, y1, x2, y2, options) );
+	}
+
+	/**
+	 * Paint a rectangle on an image.
+	 *
+	 * **Optional parameters**
+	 *   - **fill** -- Draw a solid object, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param left Rect to fill.
+	 * @param top Rect to fill.
+	 * @param width Rect to fill.
+	 * @param height Rect to fill.
+	 * @param options Set of options.
+	 */
+	void draw_rect( double ink, int left, int top, int width, int height, VOption *options = 0 ) const
+	{
+		return( draw_rect( to_vector( ink ), left, top, width, height, options) );
+	}
+
+	/**
+	 * Paint a single pixel on an image.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x Point to paint.
+	 * @param y Point to paint.
+	 */
+	void draw_point( double ink, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_rect( ink , x, y, 1, 1, options) );
+	}
+
+	/**
+	 * Paint a single pixel on an image.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x Point to paint.
+	 * @param y Point to paint.
+	 */
+	void draw_point( std::vector<double> ink, int x, int y, VOption *options = 0  ) const
+	{
+		return( draw_rect( ink , x, y, 1, 1, options) );
+	}
+
+	/**
+	 * Flood-fill an area.
+	 *
+	 * **Optional parameters**
+	 *   - **test** -- Test pixels in this image, VImage.
+	 *   - **equal** -- DrawFlood while equal to edge, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x DrawFlood start point.
+	 * @param y DrawFlood start point.
+	 * @param options Set of options.
+	 */
+	void draw_flood( double ink, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_flood( to_vector( ink ) , x, y, options) );
+	}
+
+	/**
+	 * Draw a mask on an image.
+	 * @param ink Color for pixels.
+	 * @param mask Mask of pixels to draw.
+	 * @param x Draw mask here.
+	 * @param y Draw mask here.
+	 * @param options Set of options.
+	 */
+	void draw_mask( double ink, VImage mask, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_mask( to_vector( ink ), mask, x, y, options) );
+	}
 	// Operator overloads
 
 	VImage operator[]( int index ) const;
