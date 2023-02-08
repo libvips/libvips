@@ -165,6 +165,8 @@ vips_sequential_generate(VipsRegion *out_region,
 		}
 	}
 
+	r->height = VIPS_MAX(sequential->y_pos - r->top, r->height);
+
 	/* This is a request for old pixels, or for pixels exactly at the read
 	 * point. This might trigger a generate from the thing feeding the cache,
 	 * eg. a loader.
@@ -176,7 +178,7 @@ vips_sequential_generate(VipsRegion *out_region,
 		return -1;
 	}
 
-	sequential->y_pos = VIPS_MAX(sequential->y_pos, VIPS_RECT_BOTTOM(r));
+	sequential->y_pos = VIPS_RECT_BOTTOM(r);
 
 	g_mutex_unlock(sequential->lock);
 
