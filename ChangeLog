@@ -8,6 +8,7 @@
 - reduce `vips_sharpen` max `sigma` to 10 [lovell]
 - inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
 - set "interlaced=1" for interlaced GIF images [kleisauke]
+- add @vector to find_trim [miltoncandelero]
 
 TBD 8.14.2
 
