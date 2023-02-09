@@ -180,11 +180,15 @@ EOF
 
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
-sed -i "/subdir('man')/{N;N;N;N;d;}" meson.build
-meson setup build --prefix=$WORK --libdir=lib --default-library=static \
-  -Ddeprecated=false -Dintrospection=false -Dmodules=disabled
+sed -i "/subdir('man')/{N;N;N;d;}" meson.build
+meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static \
+  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dintrospection=false \
+  -Dmodules=disabled -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 ninja -C build
 ninja -C build install
+
+# Copy fuzz executables to $OUT
+find build/fuzz -maxdepth 1 -executable -type f -exec cp -v '{}' $OUT \;
 
 # All shared libraries needed during fuzz target execution should be inside the $OUT/lib directory
 mkdir -p $OUT/lib
@@ -197,30 +201,15 @@ find \
   fuzz/*_fuzzer_corpus \
   test/test-suite/images \
   -type f -size -2k \
-  -exec bash -c 'hash=($(sha1sum {})); mv {} fuzz/corpus/$hash' ';'
+  -exec bash -c 'hash=($(sha1sum {})); mv {} fuzz/corpus/$hash' \;
 zip -jrq $OUT/seed_corpus.zip fuzz/corpus
 
-# Build fuzzers and link corpus
+# Link corpus
 for fuzzer in fuzz/*_fuzzer.cc; do
   target=$(basename "$fuzzer" .cc)
-  $CXX $CXXFLAGS -std=c++11 "$fuzzer" -o "$OUT/$target" \
-    $CPPFLAGS \
-    -I/usr/include/glib-2.0 \
-    -I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
-    $LDFLAGS \
-    -lvips -lexif -llcms2 -ltiff -ljpeg -lpng -lspng -lz \
-    -lwebpmux -lwebpdemux -lwebp -lsharpyuv -lheif -laom \
-    -limagequant -lcgif -lpdfium \
-    $LIB_FUZZING_ENGINE \
-    -Wl,-Bstatic \
-    -lfftw3 -lexpat \
-    -lgio-2.0 -lgmodule-2.0 -lgobject-2.0 -lffi -lglib-2.0 \
-    -lresolv -lmount -lblkid -lselinux -lsepol -lpcre \
-    -Wl,-Bdynamic -pthread \
-    -Wl,-rpath,'$ORIGIN/lib'
   ln -sf "seed_corpus.zip" "$OUT/${target}_seed_corpus.zip"
 done
 
 # Copy options and dictionary files to $OUT
-find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT ';'
-find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT ';'
+find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
+find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
