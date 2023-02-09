@@ -67,6 +67,8 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
+          # FIXME: remove when the GitHub Actions runner image ships with Homebrew/homebrew-core#122689
+          brew update
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
           brew install cfitsio cgif jpeg-xl libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
