@@ -5,6 +5,8 @@
  * 18/9/17 kleisauke 
  * 	- missing bandor
  * 	- only flatten if there is an alpha
+ * 8/2/23
+ *	- add @vector
  */
 
 /*
@@ -55,6 +57,7 @@ typedef struct _VipsFindTrim {
 	VipsImage *in;
 	double threshold;
 	VipsArrayDouble *background;
+	gboolean vector;
 
 	int left;
 	int top;
@@ -119,10 +122,17 @@ vips_find_trim_build( VipsObject *object )
 		ones[i] = 1.0;
 	}
 
+	/* Filter out noise, unless we're in vector art mode.
+	 */
+	if( !find_trim->vector ) {
+		if( vips_median( in, &t[1], 3, NULL ) )
+			return( -1 ); 
+	}
+	in = t[1];
+
 	/* Smooth, find difference from bg, abs, threshold.
 	 */
-	if( vips_median( in, &t[1], 3, NULL ) ||
-		vips_linear( t[1], &t[2], ones, neg_bg, n, NULL ) ||
+	if( vips_linear( in, &t[2], ones, neg_bg, n, NULL ) ||
 		vips_abs( t[2], &t[3], NULL ) ||
 		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) ||
 		vips_bandor( t[4], &t[5], NULL ) )
@@ -199,6 +209,13 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 		G_STRUCT_OFFSET( VipsFindTrim, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
+	VIPS_ARG_BOOL( class, "vector", 4, 
+		_( "Vector" ), 
+		_( "Trim vector images" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsFindTrim, vector ),
+		FALSE );
+
 	VIPS_ARG_INT( class, "left", 5, 
 		_( "Left" ), 
 		_( "Left edge of image" ),
@@ -249,10 +266,12 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * * @threshold: %gdouble, background / object threshold
  * * @background: #VipsArrayDouble, background colour
+ * * @vector: %gboolean, trim vector images
  *
  * Search @in for the bounding box of the non-background area. 
  *
- * Any alpha is flattened out, then the image is median-filtered, all the row 
+ * Any alpha is flattened out, then the image is median-filtered (unless
+ * @vector is set, see below), all the row 
  * and column sums of the absolute
  * difference from @background are calculated in a
  * single pass, then the first row or column in each of the
@@ -267,6 +286,11 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  * before vips_getpoint() to get a correct background value.
  *
  * @threshold defaults to 10. 
+ *
+ * The detector is designed for photographic or compressed images where there
+ * is a degree of noise that needs filtering. If your images are synthetic
+ * (eg. rendered from vector art, perhaps), set @vector to disable the
+ * median filter.
  *
  * The image needs to be at least 3x3 pixels in size. 
  *
