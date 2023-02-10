@@ -289,7 +289,7 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * The detector is designed for photographic or compressed images where there
  * is a degree of noise that needs filtering. If your images are synthetic
- * (eg. rendered from vector art, perhjaps), set @vector to disable the
+ * (eg. rendered from vector art, perhaps), set @vector to disable the
  * median filter.
  *
  * The image needs to be at least 3x3 pixels in size. 
