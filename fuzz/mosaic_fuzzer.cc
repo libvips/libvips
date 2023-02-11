@@ -29,14 +29,14 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 	if( size > 100 * 1024 * 1024 )
 		return( 0 );
 
-	/* The beginning of `data` is treated as mosaic configuration
+	/* The tail of `data` is treated as mosaic configuration
 	 */
-	memcpy( &opt, data, sizeof( mosaic_opt ) );
+	size -= sizeof( mosaic_opt );
+	memcpy( &opt, data + size, sizeof( mosaic_opt ) );
 
 	/* Remainder of input is the image
 	 */
-	if( !(ref = vips_image_new_from_buffer( data + sizeof( mosaic_opt ),
-		size - sizeof( mosaic_opt ), "", NULL )) )
+	if( !(ref = vips_image_new_from_buffer( data, size, "", NULL )) )
 		return( 0 );
 
 	if( ref->Xsize > 100 ||
