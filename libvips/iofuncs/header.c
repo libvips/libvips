@@ -1457,7 +1457,8 @@ static const char *vips_image_header_deprecated[] = {
 	"ipct-data",
 	"gif-delay",
 	"gif-loop",
-	"palette-bit-depth"
+	"palette-bit-depth",
+	"heif-bitdepth"
 };
 
 static void *
