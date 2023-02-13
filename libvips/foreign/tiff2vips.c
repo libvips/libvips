@@ -212,7 +212,7 @@
  *      - move jpeg decode outside the lock
  *      - fix demand hinting
  * 3/2/23 MathemanFlo
- *  - add bits per sample metadata
+ * 	- add bits per sample metadata
  */
 
 /*

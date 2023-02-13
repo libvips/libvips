@@ -7,7 +7,7 @@
  * 29/8/21 joshuamsager
  *	-  add "unlimited" flag to png load
  * 3/2/23 MathemanFlo
- *  - add bits per sample metadata
+ * 	- add bits per sample metadata
  */
 
 /*

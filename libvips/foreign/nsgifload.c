@@ -11,7 +11,7 @@
  * 25/1/23 kleisauke
  * 	- set interlaced=1 for interlaced images
  * 13/3/23 MathemanFlo
- *  - add bits per sample metadata
+ * 	- add bits per sample metadata
  */
 
 /*

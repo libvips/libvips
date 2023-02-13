@@ -88,7 +88,7 @@
  * 17/11/22
  * 	- add exif read/write
  * 3/2/23 MathemanFlo
- *  - add bits per sample metadata
+ * 	- add bits per sample metadata
  */
 
 /*
