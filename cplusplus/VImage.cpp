@@ -781,22 +781,20 @@ VImage
 VImage::thumbnail_buffer( void *buf, size_t len, int width, VOption *options )
 {
 	VipsBlob *blob;
+	VImage out;
 
 	/* We don't take a copy of the data or free it.
 	 */
 	blob = vips_blob_new( NULL, buf, len );
+	options = (options ? options : VImage::option())->
+		set( "buffer", blob )->
+		set( "width", width )->
+		set( "out", &out );
+	vips_area_unref( VIPS_AREA( blob ) );
 
-	try
-	{
-		VImage thumbnail = thumbnail_buffer( blob, width, options );
-		vips_area_unref( VIPS_AREA( blob ) );
-		return( thumbnail );
-	}
-	catch ( VError &ex )
-	{
-		vips_area_unref( VIPS_AREA( blob ) );
-		throw; // rethrow exception
-	}
+	call( "thumbnail_buffer", options );
+
+	return( out );
 }
 
 VRegion
