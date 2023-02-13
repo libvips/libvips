@@ -658,6 +658,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			compression ) );
 
 	vips_image_set_int( out, "heif-bitdepth", heif->bits_per_pixel );
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, heif->bits_per_pixel );
 
 	if( heif->bits_per_pixel > 8 ) {
 		interpretation = VIPS_INTERPRETATION_RGB16;
