@@ -530,8 +530,6 @@ png2vips_header( Read *read, VipsImage *out )
 	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
 		return( -1 );
 
-	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, bitdepth );
-
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc. Ignore it.
 	 *
@@ -595,6 +593,8 @@ png2vips_header( Read *read, VipsImage *out )
 				text_ptr[i].key, text_ptr[i].text ) ) 
 				return( -1 ); 
 	}
+
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, bitdepth );
 
 	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
 	 */
