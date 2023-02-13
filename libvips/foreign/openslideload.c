@@ -55,6 +55,8 @@
  * 	- set libvips xres/yres from openslide mpp-x/mpp-y
  * 13/2/21 kleisauke
  * 	- include GObject part from openslideload.c
+ * 2/10/22
+ *	- add "rgb" option
  */
 
 /*
