@@ -478,6 +478,7 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 			jp2k->info->m_default_tile_info.tccp_info->
 				numresolutions );
 
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, first->prec );
 	return( 0 );
 }
 
