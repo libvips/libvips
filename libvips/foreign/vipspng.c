@@ -596,7 +596,7 @@ png2vips_header( Read *read, VipsImage *out )
 				return( -1 ); 
 	}
 
-	/* Attach original palette bit depth, if any, as metadata.
+	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		vips_image_set_int( out, "palette-bit-depth", bitdepth );

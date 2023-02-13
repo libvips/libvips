@@ -274,7 +274,7 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	vips_image_set_int( image, VIPS_META_BITS_PER_SAMPLE,
 		png->ihdr.bit_depth );
 
-	/* Attach original palette bit depth, if any, as metadata.
+	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED )
 		vips_image_set_int( image, 
