@@ -87,7 +87,7 @@
  * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
  * 17/11/22
  * 	- add exif read/write
-* 03/02/23 MathemanFlo
+ * 3/2/23 MathemanFlo
  *  - add bits per sample metadata
  */
 

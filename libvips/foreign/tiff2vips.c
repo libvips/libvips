@@ -211,7 +211,7 @@
  *      - move jp2k decompress outside the lock
  *      - move jpeg decode outside the lock
  *      - fix demand hinting
- * 03/02/23 MathemanFlo
+ * 3/2/23 MathemanFlo
  *  - add bits per sample metadata
  */
 
@@ -1735,7 +1735,8 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	if( get_resolution( rtiff->tiff, out ) )
 		return( -1 );
 
-	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, rtiff->header.bits_per_sample );
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE,
+		rtiff->header.bits_per_sample );
 
 	/* Set the "orientation" tag. This is picked up later by autorot, if
 	 * requested.
