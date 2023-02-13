@@ -334,6 +334,8 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 	vips_image_set_int( image, "palette-bit-depth", 
 		ceil( log2( colours ) ) ); 
+	vips_image_set_int( image, VIPS_META_BITS_PER_SAMPLE, 
+		ceil( log2( colours ) ) ); 
 
 	/* Let our caller know if the GIF is interlaced.
 	 */
