@@ -558,6 +558,26 @@ public:
 	}
 
 	/**
+	 * Gets an VImage ready for an in-place operation, such as draw_circle().
+	 * After calling this function you can both read and write the image with 
+	 * VIPS_IMAGE_ADDR().
+	 *
+	 * This method is called for you by the draw operations, 
+	 * there's no need to call it yourself.
+	 *
+	 * Since this function modifies the image, it is not thread-safe. Only call it on
+	 * images which you are sure have not been shared with another thread. 
+	 * All in-place operations are inherently not thread-safe, so you need to take
+	 * great care in any case.
+	 */
+	void
+	inplace()
+	{
+		if( vips_image_inplace( this->get_image() ) )
+			throw( VError() ); 
+	}
+
+	/**
 	 * Arrange for the underlying object to be entirely in memory, then
 	 * return a pointer to the first pixel.
 	 * 
@@ -914,6 +934,24 @@ public:
 		VipsImage *image;
 
 		if( !(image = vips_image_new_from_memory( data, size, 
+			width, height, bands, format )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
+	/**
+	 * Create a new VImage object from an area of memory containing a
+	 * C-style array.
+	 * The VImage makes a copy of @data.
+	 */
+	static VImage 
+	new_from_memory_copy( void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_memory_copy( data, size, 
 			width, height, bands, format )) )
 			throw( VError() ); 
 
@@ -1642,6 +1680,132 @@ public:
 		return( ifthenelse( to_vector( th ), to_vector( el ), 
 			options ) );
 	}
+
+	/**
+	 * Draw a circle on an image.
+	 *
+	 * **Optional parameters**
+	 *   - **fill** -- Draw a solid object, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param cx Centre of draw_circle.
+	 * @param cy Centre of draw_circle.
+	 * @param radius Radius in pixels.
+	 * @param options Set of options.
+	 */
+	void draw_circle( double ink, int cx, int cy, int radius, VOption *options = 0 ) const
+	{
+		return( draw_circle( to_vector( ink ), cx, cy, radius, options) );
+	}
+
+	/**
+	 * Draw a line on an image.
+	 * @param ink Color for pixels.
+	 * @param x1 Start of draw_line.
+	 * @param y1 Start of draw_line.
+	 * @param x2 End of draw_line.
+	 * @param y2 End of draw_line.
+	 * @param options Set of options.
+	 */
+	void draw_line( double ink, int x1, int y1, int x2, int y2, VOption *options = 0 ) const
+	{
+		return( draw_line( to_vector( ink ), x1, y1, x2, y2, options) );
+	}
+
+	/**
+	 * Paint a rectangle on an image.
+	 *
+	 * **Optional parameters**
+	 *   - **fill** -- Draw a solid object, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param left Rect to fill.
+	 * @param top Rect to fill.
+	 * @param width Rect to fill.
+	 * @param height Rect to fill.
+	 * @param options Set of options.
+	 */
+	void draw_rect( double ink, int left, int top, int width, int height, VOption *options = 0 ) const
+	{
+		return( draw_rect( to_vector( ink ), left, top, width, height, options) );
+	}
+
+	/**
+	 * Paint a single pixel on an image.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x Point to paint.
+	 * @param y Point to paint.
+	 */
+	void draw_point( double ink, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_rect( ink , x, y, 1, 1, options) );
+	}
+
+	/**
+	 * Paint a single pixel on an image.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x Point to paint.
+	 * @param y Point to paint.
+	 */
+	void draw_point( std::vector<double> ink, int x, int y, VOption *options = 0  ) const
+	{
+		return( draw_rect( ink , x, y, 1, 1, options) );
+	}
+
+	/**
+	 * Flood-fill an area.
+	 *
+	 * **Optional parameters**
+	 *   - **test** -- Test pixels in this image, VImage.
+	 *   - **equal** -- DrawFlood while equal to edge, bool.
+	 *
+	 * @param ink Color for pixels.
+	 * @param x DrawFlood start point.
+	 * @param y DrawFlood start point.
+	 * @param options Set of options.
+	 */
+	void draw_flood( double ink, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_flood( to_vector( ink ) , x, y, options) );
+	}
+
+	/**
+	 * Draw a mask on an image.
+	 * @param ink Color for pixels.
+	 * @param mask Mask of pixels to draw.
+	 * @param x Draw mask here.
+	 * @param y Draw mask here.
+	 * @param options Set of options.
+	 */
+	void draw_mask( double ink, VImage mask, int x, int y, VOption *options = 0 ) const
+	{
+		return( draw_mask( to_vector( ink ), mask, x, y, options) );
+	}
+
+	/**
+	 * Generate thumbnail from buffer.
+	 *
+	 * **Optional parameters**
+	 *   - **option_string** -- Options that are passed on to the underlying loader, const char *.
+	 *   - **height** -- Size to this height, int.
+	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
+	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
+	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **linear** -- Reduce in linear light, bool.
+	 *   - **import_profile** -- Fallback import profile, const char *.
+	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **intent** -- Rendering intent, VipsIntent.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param buf Buffer to load from.
+	 * @param len Size of buffer.
+	 * @param width Size to this width.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage thumbnail_buffer( void *buf, size_t len, int width, VOption *options = 0 );
 
 	// Operator overloads
 
