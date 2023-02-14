@@ -192,7 +192,8 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebp, vips_foreign_save_webp,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_foreign_save_webp_progress_hook(int percent, const WebPPicture* picture) {
+vips_foreign_save_webp_progress_hook( int percent, const WebPPicture* picture )
+{
 	VipsImage* image = (VipsImage *) picture->user_data;
 	if( vips_image_iskilled( image ) )
 		return 0;
