@@ -191,6 +191,14 @@ typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebp, vips_foreign_save_webp,
 	VIPS_TYPE_FOREIGN_SAVE );
 
+static int
+vips_foreign_save_webp_progress_hook(int percent, const WebPPicture* picture) {
+	VipsImage* image = (VipsImage *) picture->user_data;
+	if( vips_image_iskilled( image ) )
+		return 0;
+	return 1;
+}
+
 static void
 vips_foreign_save_webp_unset( VipsForeignSaveWebp *write )
 {
@@ -222,6 +230,8 @@ vips_foreign_save_webp_pic_init( VipsForeignSaveWebp *write, WebPPicture *pic )
 	}
 	pic->writer = WebPMemoryWrite;
 	pic->custom_ptr = (void *) &write->memory_writer;
+	pic->progress_hook = vips_foreign_save_webp_progress_hook;
+	pic->user_data = (void *) write->image;
 
 	/* Smart subsampling needs use_argb because it is applied during
 	 * RGB to YUV conversion.
