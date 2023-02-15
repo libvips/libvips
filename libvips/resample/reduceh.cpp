@@ -57,6 +57,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
 
@@ -87,6 +88,12 @@ typedef struct _VipsReduceh {
 	 */
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+
+	/* And another set for highway.
+	 */
+#ifdef HAVE_HWY
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
+#endif /*HAVE_HWY*/
 
 	/* Deprecated.
 	 */
@@ -407,6 +414,73 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 	return 0;
 }
 
+#ifdef HAVE_HWY
+static int
+vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
+	void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReduceh *reduceh = (VipsReduceh *) b;
+	const int ps = VIPS_IMAGE_SIZEOF_PEL(in);
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &out_region->valid;
+	const int bands = in->Bands;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf("vips_reduceh_uchar_vector_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG*/
+
+	s.left = r->left * reduceh->hshrink - reduceh->hoffset;
+	s.top = r->top;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.height = r->height;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+	VIPS_GATE_START("vips_reduceh_uchar_vector_gen: work");
+
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *p0;
+		VipsPel *q;
+
+		double X;
+
+		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+		X = (r->left + 0.5) * reduceh->hshrink - 0.5 -
+			reduceh->hoffset;
+
+		p0 = VIPS_REGION_ADDR(ir, ir->valid.left, r->top + y) -
+			ir->valid.left * ps;
+
+		for (int x = 0; x < r->width; x++) {
+			const int ix = (int) X;
+			VipsPel *p = p0 + ix * ps;
+			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
+			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
+			const int tx = (six + 1) >> 1;
+			const short *cxs = reduceh->matrixs[tx];
+
+			vips_reduce_uchar_hwy(
+				q, p,
+				reduceh->n_point, bands, ps, cxs);
+
+			X += reduceh->hshrink;
+			q += ps;
+		}
+	}
+
+	VIPS_GATE_STOP("vips_reduceh_uchar_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_reduceh_uchar_vector_gen");
+
+	return 0;
+}
+#endif /*HAVE_HWY*/
+
 static int
 vips_reduceh_build(VipsObject *object)
 {
@@ -417,6 +491,7 @@ vips_reduceh_build(VipsObject *object)
 		vips_object_local_array(object, 3);
 
 	VipsImage *in;
+	VipsGenerateFn generate;
 	int width;
 	int int_hshrink;
 	double extra_pixels;
@@ -495,17 +570,29 @@ vips_reduceh_build(VipsObject *object)
 			VIPS_ARRAY(object, reduceh->n_point, double);
 		reduceh->matrixi[x] =
 			VIPS_ARRAY(object, reduceh->n_point, int);
+#ifdef HAVE_HWY
+		reduceh->matrixs[x] =
+			VIPS_ARRAY(object, reduceh->n_point, short);
+#endif /*HAVE_HWY*/
 		if (!reduceh->matrixf[x] ||
-			!reduceh->matrixi[x])
+			!reduceh->matrixi[x]
+#ifdef HAVE_HWY
+			|| !reduceh->matrixs[x]
+#endif /*HAVE_HWY*/
+		)
 			return -1;
 
 		vips_reduce_make_mask(reduceh->matrixf[x],
 			reduceh->kernel, reduceh->hshrink,
 			(float) x / VIPS_TRANSFORM_SCALE);
 
-		for (int i = 0; i < reduceh->n_point; i++)
+		for (int i = 0; i < reduceh->n_point; i++) {
 			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] *
 				VIPS_INTERPOLATE_SCALE;
+#ifdef HAVE_HWY
+			reduceh->matrixs[x][i] = (short) reduceh->matrixi[x][i];
+#endif /*HAVE_HWY*/
+		}
 
 #ifdef DEBUG
 		printf("vips_reduceh_build: mask %d\n    ", x);
@@ -531,6 +618,20 @@ vips_reduceh_build(VipsObject *object)
 		return -1;
 	in = t[2];
 
+	/* For uchar input, try to make a vector path.
+	 */
+#ifdef HAVE_HWY
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled()) {
+		generate = vips_reduceh_uchar_vector_gen;
+		g_info("reduceh: using vector path");
+	}
+	else
+#endif /*HAVE_HWY*/
+		/* Default to the C path.
+		 */
+		generate = vips_reduceh_gen;
+
 	if (vips_image_pipelinev(resample->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
 		return -1;
@@ -553,7 +654,7 @@ vips_reduceh_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (vips_image_generate(resample->out,
-			vips_start_one, vips_reduceh_gen, vips_stop_one,
+			vips_start_one, generate, vips_stop_one,
 			in, reduceh))
 		return -1;
 

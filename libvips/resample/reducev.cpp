@@ -132,7 +132,11 @@ typedef struct _VipsReducev {
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
-#ifdef HAVE_ORC
+	/* And another set for highway.
+	 */
+#ifdef HAVE_HWY
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
+#elif defined(HAVE_ORC)
 	/* And another set for orc: we want 2.6 precision.
 	 */
 	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
@@ -141,7 +145,7 @@ typedef struct _VipsReducev {
 	 */
 	int n_pass;
 	Pass pass[MAX_PASS];
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 
 	/* Deprecated.
 	 */
@@ -626,7 +630,63 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 	return 0;
 }
 
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+static int
+vips_reducev_uchar_vector_gen(VipsRegion *out_region, void *vseq,
+	void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReducev *reducev = (VipsReducev *) b;
+	VipsReducevSequence *seq = (VipsReducevSequence *) vseq;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &out_region->valid;
+	const int bands = in->Bands;
+	int ne = r->width * bands;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf("vips_reducev_uchar_vector_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG*/
+
+	s.left = r->left;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
+	s.width = r->width;
+	s.height = r->height * reducev->vshrink + reducev->n_point;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+	VIPS_GATE_START("vips_reducev_uchar_vector_gen: work");
+
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 -
+		reducev->voffset;
+
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *q =
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		const int py = (int) Y;
+		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, py);
+		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
+		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
+		const int ty = (siy + 1) >> 1;
+		const short *cys = reducev->matrixs[ty];
+		const int lskip = VIPS_REGION_LSKIP(ir);
+
+		vips_reduce_uchar_hwy(
+			q, p,
+			reducev->n_point, ne, lskip, cys);
+
+		Y += reducev->vshrink;
+	}
+
+	VIPS_GATE_STOP("vips_reducev_uchar_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_reducev_uchar_vector_gen");
+
+	return 0;
+}
+#elif defined(HAVE_ORC)
 
 /* Process uchar images with a vector path.
  */
@@ -805,7 +865,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 			out[i] += direction;
 	}
 }
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 
 static int
 vips_reducev_build(VipsObject *object)
@@ -896,17 +956,29 @@ vips_reducev_build(VipsObject *object)
 			VIPS_ARRAY(object, reducev->n_point, double);
 		reducev->matrixi[y] =
 			VIPS_ARRAY(object, reducev->n_point, int);
+#ifdef HAVE_HWY
+		reducev->matrixs[y] =
+			VIPS_ARRAY(object, reducev->n_point, short);
+#endif /*HAVE_HWY*/
 		if (!reducev->matrixf[y] ||
-			!reducev->matrixi[y])
+			!reducev->matrixi[y]
+#ifdef HAVE_HWY
+			|| !reducev->matrixs[y]
+#endif /*HAVE_HWY*/
+		)
 			return -1;
 
 		vips_reduce_make_mask(reducev->matrixf[y],
 			reducev->kernel, reducev->vshrink,
 			(float) y / VIPS_TRANSFORM_SCALE);
 
-		for (int i = 0; i < reducev->n_point; i++)
+		for (int i = 0; i < reducev->n_point; i++) {
 			reducev->matrixi[y][i] = reducev->matrixf[y][i] *
 				VIPS_INTERPOLATE_SCALE;
+#ifdef HAVE_HWY
+			reducev->matrixs[y][i] = (short) reducev->matrixi[y][i];
+#endif /*HAVE_HWY*/
+		}
 
 #ifdef DEBUG
 		printf("vips_reducev_build: mask %d\n    ", y);
@@ -934,7 +1006,14 @@ vips_reducev_build(VipsObject *object)
 
 	/* For uchar input, try to make a vector path.
 	 */
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled()) {
+		generate = vips_reducev_uchar_vector_gen;
+		g_info("reducev: using vector path");
+	}
+	else
+#elif defined(HAVE_ORC)
 	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
 		!vips_reducev_compile(reducev)) {
@@ -955,7 +1034,7 @@ vips_reducev_build(VipsObject *object)
 		}
 	}
 	else
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 		/* Default to the C path.
 		 */
 		generate = vips_reducev_gen;
