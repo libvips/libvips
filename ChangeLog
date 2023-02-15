@@ -9,6 +9,7 @@
 - inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
 - set "interlaced=1" for interlaced GIF images [kleisauke]
 - add @vector to find_trim [miltoncandelero]
+- allow negative line spacing in text [donghuikugou]
 
 TBD 8.14.2
 

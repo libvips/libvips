@@ -39,6 +39,8 @@
  * 	- add @wrap
  * 14/1/23
  *	- make our own fontmap to prevent conflict with other API users
+ * 15/2/23
+ *	- allow negative line spacing
  */
 
 /*
@@ -165,9 +167,7 @@ text_layout_new( PangoContext *context,
 	pango_layout_set_font_description( layout, font_description );
 	pango_font_description_free( font_description );
 	pango_layout_set_justify( layout, justify );
-
-	if( spacing > 0 )
-		pango_layout_set_spacing( layout, spacing * PANGO_SCALE );
+	pango_layout_set_spacing( layout, spacing * PANGO_SCALE );
 
 	switch( align ) {
 	case VIPS_ALIGN_LOW:
@@ -616,7 +616,7 @@ vips_text_class_init( VipsTextClass *class )
 		_( "Line spacing" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, spacing ),
-		0, 1000000, 0 );
+		-1000000, 1000000, 0 );
 
 	VIPS_ARG_STRING( class, "fontfile", 13, 
 		_( "Font file" ), 
