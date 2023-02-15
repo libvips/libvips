@@ -253,7 +253,157 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	return seq;
 }
 
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+static int
+vips_dilate_vector_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
+	VipsMorph *morph = (VipsMorph *) b;
+	VipsImage *M = morph->M;
+	VipsRegion *ir = seq->ir;
+
+	/* Offsets for each non-128 matrix element.
+	 */
+	int *soff = seq->soff;
+
+	/* Array of non-128 mask coefficients.
+	 */
+	int *coff = seq->coff;
+
+	VipsRect *r = &out_region->valid;
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
+
+	VipsRect s;
+	int x, y;
+	int *t;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += M->Xsize - 1;
+	s.height += M->Ysize - 1;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+#ifdef DEBUG_VERBOSE
+	printf("vips_dilate_vector_gen: preparing %dx%d@%dx%d pixels\n",
+		s.width, s.height, s.left, s.top);
+#endif /*DEBUG_VERBOSE*/
+
+	/* Scan mask, building offsets we check when processing. Only do this
+	 * if the bpl has changed since the previous vips_region_prepare().
+	 */
+	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
+		seq->last_bpl = VIPS_REGION_LSKIP(ir);
+
+		/* Number of non-128 mask elements.
+		 */
+		seq->ss = 0;
+		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
+			for (x = 0; x < M->Xsize; x++, t++) {
+				/* Exclude don't-care elements.
+				 */
+				if (*t == 128)
+					continue;
+
+				soff[seq->ss] =
+					VIPS_REGION_ADDR(ir,
+						x + r->left, y + r->top) -
+					VIPS_REGION_ADDR(ir, r->left, r->top);
+				coff[seq->ss] = *t;
+				seq->ss++;
+			}
+	}
+
+	VIPS_GATE_START("vips_dilate_vector_gen: work");
+
+	vips_dilate_uchar_hwy(out_region, ir, r,
+		sz, seq->ss, soff, coff);
+
+	VIPS_GATE_STOP("vips_dilate_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_dilate_vector_gen");
+
+	return 0;
+}
+
+static int
+vips_erode_vector_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
+	VipsMorph *morph = (VipsMorph *) b;
+	VipsImage *M = morph->M;
+	VipsRegion *ir = seq->ir;
+
+	/* Offsets for each non-128 matrix element.
+	 */
+	int *soff = seq->soff;
+
+	/* Array of non-128 mask coefficients.
+	 */
+	int *coff = seq->coff;
+
+	VipsRect *r = &out_region->valid;
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
+
+	VipsRect s;
+	int x, y;
+	int *t;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += M->Xsize - 1;
+	s.height += M->Ysize - 1;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+#ifdef DEBUG_VERBOSE
+	printf("vips_erode_vector_gen: preparing %dx%d@%dx%d pixels\n",
+		s.width, s.height, s.left, s.top);
+#endif /*DEBUG_VERBOSE*/
+
+	/* Scan mask, building offsets we check when processing. Only do this
+	 * if the bpl has changed since the previous vips_region_prepare().
+	 */
+	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
+		seq->last_bpl = VIPS_REGION_LSKIP(ir);
+
+		/* Number of non-128 mask elements.
+		 */
+		seq->ss = 0;
+		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
+			for (x = 0; x < M->Xsize; x++, t++) {
+				/* Exclude don't-care elements.
+				 */
+				if (*t == 128)
+					continue;
+
+				soff[seq->ss] =
+					VIPS_REGION_ADDR(ir,
+						x + r->left, y + r->top) -
+					VIPS_REGION_ADDR(ir, r->left, r->top);
+				coff[seq->ss] = *t;
+				seq->ss++;
+			}
+	}
+
+	VIPS_GATE_START("vips_erode_vector_gen: work");
+
+	vips_erode_uchar_hwy(out_region, ir, r,
+		sz, seq->ss, soff, coff);
+
+	VIPS_GATE_STOP("vips_erode_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_erode_vector_gen");
+
+	return 0;
+}
+#elif defined(HAVE_ORC)
 
 #define TEMP(N, S) orc_program_add_temporary(p, S, N)
 #define SCANLINE(N, S) orc_program_add_source(p, S, N)
@@ -504,7 +654,7 @@ vips_morph_gen_vector(VipsRegion *out_region,
 
 	return 0;
 }
-#endif /*HAVE_OCR*/
+#endif /*HAVE_HWY*/
 
 /* Dilate!
  */
@@ -803,7 +953,17 @@ vips_morph_build(VipsObject *object)
 		morph->coeff[i] = coeff[i];
 	}
 
-#ifdef HAVE_ORC
+	/* Try to make a vector path.
+	 */
+#ifdef HAVE_HWY
+	if (vips_vector_isenabled()) {
+		generate = morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE
+			? vips_dilate_vector_gen
+			: vips_erode_vector_gen;
+		g_info("morph: using vector path");
+	}
+	else
+#elif defined(HAVE_ORC)
 	/* Generate code for this mask / image, if possible.
 	 */
 	if (vips_vector_isenabled() &&
@@ -812,7 +972,7 @@ vips_morph_build(VipsObject *object)
 		g_info("morph: using vector path");
 	}
 	else
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 		/* Default to the C path.
 		 */
 		generate = morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE

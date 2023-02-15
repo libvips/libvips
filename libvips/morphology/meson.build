@@ -4,6 +4,7 @@ morphology_sources = files(
     'countlines.c',
     'rank.c',
     'morph.c',
+    'morph_hwy.cpp',
     'labelregions.c',
 )
 
