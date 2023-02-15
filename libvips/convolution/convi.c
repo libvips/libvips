@@ -170,14 +170,16 @@ typedef struct {
 	int *coeff;		/* Array of non-zero mask coefficients */
 	int *coeff_pos; /* Index of each nnz element in mask->coeff */
 
-#ifdef HAVE_ORC
-	/* And a half float version for the vector path. mant has the signed
+#if defined(HAVE_HWY) || defined(HAVE_ORC)
+	/* And a half float version for the vector paths. mant has the signed
 	 * 8-bit mantissas in [-1, +1), exp has the final exponent shift before
 	 * write-back.
 	 */
 	short *mant;
 	int exp;
+#endif /*HAVE_HWY || HAVE_ORC*/
 
+#ifdef HAVE_ORC
 	/* sexp has the exponent shift after the mul and before the add.
 	 */
 	int sexp;
@@ -298,7 +300,65 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 	return (void *) seq;
 }
 
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+static int
+vips_convi_uchar_vector_gen(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsConviSequence *seq = (VipsConviSequence *) vseq;
+	VipsConvi *convi = (VipsConvi *) b;
+	VipsConvolution *convolution = (VipsConvolution *) convi;
+	VipsImage *M = convolution->M;
+	int offset = VIPS_RINT(vips_image_get_offset(M));
+	VipsImage *in = (VipsImage *) a;
+	VipsRegion *ir = seq->ir;
+	const int nnz = convi->nnz;
+	VipsRect *r = &out_region->valid;
+	int ne = r->width * in->Bands;
+
+	VipsRect s;
+	int x, y, z, i;
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += M->Xsize - 1;
+	s.height += M->Ysize - 1;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+	/* Fill offset array. Only do this if the bpl has changed since the
+	 * previous vips_region_prepare().
+	 */
+	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
+		seq->last_bpl = VIPS_REGION_LSKIP(ir);
+
+		for (i = 0; i < nnz; i++) {
+			z = convi->coeff_pos[i];
+			x = z % M->Xsize;
+			y = z / M->Xsize;
+
+			seq->offsets[i] =
+				(VIPS_REGION_ADDR(ir, x + r->left, y + r->top) -
+					VIPS_REGION_ADDR(ir, r->left, r->top)) /
+				VIPS_IMAGE_SIZEOF_ELEMENT(ir->im);
+		}
+	}
+
+	VIPS_GATE_START("vips_convi_uchar_vector_gen: work");
+
+	vips_convi_uchar_hwy(out_region, ir, r,
+		ne, nnz, offset, seq->offsets,
+		convi->mant, convi->exp);
+
+	VIPS_GATE_STOP("vips_convi_uchar_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_convi_uchar_vector_gen");
+
+	return 0;
+}
+#elif defined(HAVE_ORC)
 
 #define TEMP(N, S) orc_program_add_temporary(p, S, N)
 #define SCANLINE(N, S) orc_program_add_source(p, S, N)
@@ -629,7 +689,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 
 	return 0;
 }
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 
 /* INT inner loops.
  */
@@ -860,7 +920,7 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 	return 0;
 }
 
-#ifdef HAVE_ORC
+#if defined(HAVE_HWY) || defined(HAVE_ORC)
 /* Make an int version of a mask. Each element is 8.8 float, with the same
  * exponent for each element (so just 8 bits in @out).
  *
@@ -923,6 +983,18 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	 */
 	shift = ceil(log2(mx) + 1);
 
+#ifdef HAVE_HWY
+	/* Make sure we have enough range.
+	 */
+	if (ceil(log2(convi->n_point)) > 10) {
+		g_info("vips_convi_intize: mask too large");
+		return -1;
+	}
+
+	/* Calculate the final shift.
+	 */
+	convi->exp = 7 - shift;
+#elif defined(HAVE_ORC)
 	/* We need to sum n_points, so we have to shift right before adding a
 	 * new value to make sure we have enough range.
 	 */
@@ -935,10 +1007,19 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	/* With that already done, the final shift must be ...
 	 */
 	convi->exp = 7 - shift - convi->sexp;
+#endif /*HAVE_HWY*/
 
-	if (!(convi->mant = VIPS_ARRAY(convi, convi->n_point, short)))
+	if (!(convi->mant = VIPS_ARRAY(convi, convi->n_point, short))
+#ifdef HAVE_HWY
+		|| !(convi->coeff_pos =
+				   VIPS_ARRAY(convi, convi->n_point, int))
+#endif /*HAVE_HWY*/
+	)
 		return -1;
 
+#ifdef HAVE_HWY
+	convi->nnz = 0;
+#endif /*HAVE_HWY*/
 	for (i = 0; i < convi->n_point; i++) {
 		/* 128 since this is signed.
 		 */
@@ -949,14 +1030,37 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 			g_info("vips_convi_intize: mask range too large");
 			return -1;
 		}
+
+#ifdef HAVE_HWY
+		/* Squeeze out zero mask elements.
+		 */
+		if (convi->mant[i]) {
+			convi->mant[convi->nnz] = convi->mant[i];
+			convi->coeff_pos[convi->nnz] = i;
+			convi->nnz += 1;
+		}
+#endif /*HAVE_HWY*/
 	}
+
+#ifdef HAVE_HWY
+	/* Was the whole mask zero? We must have at least 1 element
+	 * in there: set it to zero.
+	 */
+	if (convi->nnz == 0) {
+		convi->mant[0] = 0;
+		convi->coeff_pos[0] = 0;
+		convi->nnz = 1;
+	}
+#endif /*HAVE_HWY*/
 
 #ifdef DEBUG_COMPILE
 	{
 		int x, y;
 
 		printf("vips_convi_intize:\n");
+#ifdef HAVE_ORC
 		printf("sexp = %d\n", convi->sexp);
+#endif /*HAVE_ORC*/
 		printf("exp = %d\n", convi->exp);
 		for (y = 0; y < t->Ysize; y++) {
 			printf("\t");
@@ -977,6 +1081,12 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 
 		true_sum = 0.0;
 		int_sum = 0;
+#ifdef HAVE_HWY
+		for (i = 0; i < convi->nnz; i++) {
+			true_sum += 128 * scaled[convi->coeff_pos[i]];
+			int_sum += 128 * convi->mant[i];
+		}
+#elif defined(HAVE_ORC)
 		for (i = 0; i < convi->n_point; i++) {
 			int value;
 
@@ -986,6 +1096,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 			int_sum += value;
 			int_sum = VIPS_CLIP(SHRT_MIN, int_sum, SHRT_MAX);
 		}
+#endif /*HAVE_HWY*/
 
 		true_value = VIPS_CLIP(0, true_sum, 255);
 
@@ -1003,7 +1114,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 
 	return 0;
 }
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY || HAVE_ORC*/
 
 static int
 vips_convi_build(VipsObject *object)
@@ -1035,7 +1146,15 @@ vips_convi_build(VipsObject *object)
 
 	/* For uchar input, try to make a vector path.
 	 */
-#ifdef HAVE_ORC
+#ifdef HAVE_HWY
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled() &&
+		!vips_convi_intize(convi, M)) {
+		generate = vips_convi_uchar_vector_gen;
+		g_info("convi: using vector path");
+	}
+	else
+#elif defined(HAVE_ORC)
 	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
 		!vips_convi_intize(convi, M) &&
@@ -1044,7 +1163,7 @@ vips_convi_build(VipsObject *object)
 		g_info("convi: using vector path");
 	}
 	else
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY*/
 		/* Default to the C path.
 		 */
 		generate = vips_convi_gen;
@@ -1133,9 +1252,9 @@ vips_convi_init(VipsConvi *convi)
 	convi->nnz = 0;
 	convi->coeff = NULL;
 	convi->coeff_pos = NULL;
-#ifdef HAVE_ORC
+#if defined(HAVE_HWY) || defined(HAVE_ORC)
 	convi->mant = NULL;
-#endif /*HAVE_ORC*/
+#endif /*HAVE_HWY || HAVE_ORC*/
 }
 
 /**

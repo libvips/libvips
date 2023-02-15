@@ -71,6 +71,10 @@ typedef struct _VipsConvolutionClass {
 
 GType vips_convolution_get_type(void);
 
+void vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
+	int ne, int nnz, int offset, const int *restrict offsets,
+	const short *restrict mant, int exp);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -7,6 +7,7 @@ convolution_sources = files(
     'conva.c',
     'convf.c',
     'convi.c',
+    'convi_hwy.cpp',
     'convasep.c',
     'convsep.c',
     'compass.c',
