@@ -102,6 +102,7 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	VipsForeignSaveWebpMode mode;
 	VipsImage *image;
+	VipsImage *in;
 
 	int timestamp_ms;
 
@@ -194,10 +195,10 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebp, vips_foreign_save_webp,
 static int
 vips_foreign_save_webp_progress_hook( int percent, const WebPPicture* picture )
 {
-	VipsImage* image = (VipsImage *) picture->user_data;
-	if( vips_image_iskilled( image ) )
-		return 0;
-	return 1;
+	VipsImage* in = (VipsImage *) picture->user_data;
+	if( vips_image_iskilled( in ) )
+		return( 0 );
+	return( 1 );
 }
 
 static void
@@ -232,7 +233,7 @@ vips_foreign_save_webp_pic_init( VipsForeignSaveWebp *write, WebPPicture *pic )
 	pic->writer = WebPMemoryWrite;
 	pic->custom_ptr = (void *) &write->memory_writer;
 	pic->progress_hook = vips_foreign_save_webp_progress_hook;
-	pic->user_data = (void *) write->image;
+	pic->user_data = (void *) write->in;
 
 	/* Smart subsampling needs use_argb because it is applied during
 	 * RGB to YUV conversion.
@@ -671,6 +672,7 @@ vips_foreign_save_webp_build( VipsObject *object )
 		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
+	webp->in = save->in;
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
