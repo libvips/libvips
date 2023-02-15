@@ -7,6 +7,7 @@ TBD 8.14.2
 - sanitise dimensions in JPEG-compressed TIFF images [lovell]
 - fix target pnm write [ewelot]
 - dedupe FITS header write [ewelot]
+- fix `strip` parameter in webpsave [jcupitt]
 
 9/1/23 8.14.1
 
