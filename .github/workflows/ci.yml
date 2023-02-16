@@ -20,7 +20,7 @@ jobs:
             build: { cc: clang-14, cxx: clang++-14, linker: ld.lld-14, sanitize: true }
             shell: bash
 
-          - name: "macOS (12.6) - Xcode 14.0.1"
+          - name: "macOS (12.6) - Xcode 14.2"
             os: macos-12
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
@@ -67,10 +67,8 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          # FIXME: remove when the GitHub Actions runner image ships with Homebrew/homebrew-core#122689
-          brew update
           brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio cgif jpeg-xl libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
@@ -81,7 +79,7 @@ jobs:
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
-          echo "PKG_CONFIG_PATH=$(brew --prefix jpeg-turbo)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Prepare sanitizers
         if: matrix.build.sanitize

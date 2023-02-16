@@ -3,7 +3,6 @@
 - add support for target_clones attribute [lovell]
 	* use with (un)premultiply for ~10% perf gain on AVX CPUs
 	* use with XYZ to LAB colourspace conversion for ~10% perf gain on AVX CPUs
-- dedupe FITS header write [ewelot]
 - add fast path to extract_band and bandjoin for uchar images [lovell]
 - reduce `vips_sharpen` max `sigma` to 10 [lovell]
 - inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
@@ -22,6 +21,8 @@ TBD 8.14.2
 - minor doc fixes [jcupitt]
 - sanitise dimensions in JPEG-compressed TIFF images [lovell]
 - fix target pnm write [ewelot]
+- dedupe FITS header write [ewelot]
+- fix `strip` parameter in webpsave [jcupitt]
 
 9/1/23 8.14.1
 
