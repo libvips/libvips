@@ -2,8 +2,9 @@
 
 export PKG_CONFIG="pkg-config --static"
 export PKG_CONFIG_PATH="$WORK/lib/pkgconfig"
-export CPPFLAGS="-I$WORK/include"
 export LDFLAGS="-L$WORK/lib"
+export CPPFLAGS="-I$WORK/include"
+export LIBRARY_PATH="$WORK/lib" # https://github.com/mesonbuild/meson/issues/10172
 
 # libz
 pushd $SRC/zlib
