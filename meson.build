@@ -446,9 +446,7 @@ if orc_dep.found()
     endif
 endif
 
-# pick 4200 as the starting version number ... no reason, really, it'd
-# probably work with much older versions
-pdfium_dep = dependency('pdfium', version: '>=4200', required: get_option('pdfium'))
+pdfium_dep = cc.find_library('pdfium', has_headers: ['fpdfview.h', 'fpdf_doc.h', 'fpdf_edit.h'], required: get_option('pdfium'))
 if pdfium_dep.found()
     libvips_deps += pdfium_dep
     cfg_var.set('HAVE_PDFIUM', '1')

@@ -62,24 +62,12 @@
  * 	cd ~/vips
  * 	tar xf ~/pdfium-linux.tgz
  *
- * Create a pdfium.pc like this (update the version number):
+ * For compilers to find PDFium you may need to set:
  *
-
-VIPSHOME=/home/john/vips
-cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
-     prefix=$VIPSHOME
-     exec_prefix=\${prefix}
-     libdir=\${exec_prefix}/lib
-     includedir=\${prefix}/include
-     Name: pdfium
-     Description: pdfium
-     Version: 4290
-     Requires:
-     Libs: -L\${libdir} -lpdfium
-     Cflags: -I\${includedir}
-EOF
-
- * 
+ * 	VIPSHOME=/home/john/vips
+ * 	export LDFLAGS="-L$VIPSHOME/lib"
+ * 	export CPPFLAGS="-I$VIPSHOME/include"
+ *
  */
 
 /*

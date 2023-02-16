@@ -163,21 +163,6 @@ cp lib/* $WORK/lib
 cp -r include/* $WORK/include
 popd
 
-# make a pdfium.pc that libvips can use ... the version number just needs to
-# be higher than 4200 to satisfy libvips
-cat > $WORK/lib/pkgconfig/pdfium.pc << EOF
-  prefix=$WORK
-  exec_prefix=\${prefix}
-  libdir=\${exec_prefix}/lib
-  includedir=\${prefix}/include
-  Name: pdfium
-  Description: pdfium
-  Version: 4901
-  Requires:
-  Libs: -L\${libdir} -lpdfium
-  Cflags: -I\${includedir}
-EOF
-
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
