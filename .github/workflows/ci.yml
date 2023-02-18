@@ -67,7 +67,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango
+          brew install meson ninja fftw fontconfig glib libexif libgsf little-cms2 orc pango pkg-config
           brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14
