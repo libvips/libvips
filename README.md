@@ -279,17 +279,20 @@ If available, libvips can load and save HEIC and AVIF images. Your libheif (in
 turn) needs to be built with the correct decoders and encoders. You can check
 with eg.:
 
-```
-$ pkg-config libheif --print-variables
-builtin_avif_decoder
-builtin_avif_encoder
-builtin_h265_decoder
-builtin_h265_encoder
-exec_prefix
-includedir
-libdir
-pcfiledir
-prefix
+```console
+$ heif-convert --list-decoders
+HEIC decoders:
+- libde265 = libde265 HEVC decoder, version 1.0.9
+AVIF decoders:
+- dav1d = dav1d v6.6.0
+- aom = AOMedia Project AV1 Decoder v3.5.0
+$ heif-enc --list-encoders
+HEIC encoders:
+- x265 = x265 HEVC encoder (3.5+1-f0c1022b6) [default]
+AVIF encoders:
+- aom = AOMedia Project AV1 Encoder v3.5.0 [default]
+- svt = SVT-AV1 encoder v1.1.0
+- rav1e = Rav1e encoder
 ```
 
 # Contributors
