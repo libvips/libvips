@@ -285,47 +285,29 @@ vips_buildlut_init( VipsBuildlut *lut )
  *
  * For example, consider this 2 x 2 matrix of (x, y) coordinates:
  *
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <tbody>
- *       <row>
- *         <entry>0</entry>
- *         <entry>0</entry>
- *       </row>
- *       <row>
- *         <entry>255</entry>
- *         <entry>100</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * 
- * We then generate:
+ * |[
+ *     |-------|-------|
+ *     | 0     | 0     |
+ *     |-------|-------|
+ *     | 255   | 100   |
+ *     |-------|-------|
+ * ]|
  *
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>Index</entry>
- *         <entry>Value</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>0</entry>
- *         <entry>0</entry>
- *       </row>
- *       <row>
- *         <entry>1</entry>
- *         <entry>0.4</entry>
- *       </row>
- *       <row>
- *         <entry>...</entry>
- *         <entry>etc. by linear interpolation</entry>
- *       </row>
- *       <row>
- *         <entry>255</entry>
- *         <entry>100</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
+ * We then generate a 1 x 256 element LUT like this:
+ *
+ * |[
+ *     |-------|-------|
+ *     | Index | Value |
+ *     |-------|-------|
+ *     | 0     | 0     |
+ *     |-------|-------|
+ *     | 1     | 0.4   |
+ *     |-------|-------|
+ *     | etc.  | 0.4   |
+ *     |-------|-------|
+ *     | 255   | 100   |
+ *     |-------|-------|
+ * ]|
  *
  * This is then written as the output image, with the left column giving the
  * index in the image to place the value.

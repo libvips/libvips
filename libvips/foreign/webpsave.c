@@ -26,8 +26,6 @@
  * 	- revise for target IO
  * 18/7/20
  * 	- add @profile param to match tiff, jpg, etc.
- * 18/7/20
- * 	- add @profile param to match tiff, jpg, etc.
  * 30/7/21
  * 	- rename "reduction_effort" as "effort"
  * 7/9/22 dloebl
@@ -141,7 +139,6 @@ typedef struct _VipsForeignSaveWebp {
 	int gif_delay;
 	int *delay;
 	int delay_length;
-	gboolean strip;
 
 	/* Attempt to minimise size
 	 */
@@ -434,68 +431,70 @@ vips_webp_add_chunks( VipsForeignSaveWebp *write )
 }
 
 static int
-vips_webp_add_metadata( VipsForeignSaveWebp *write )
+vips_webp_add_metadata( VipsForeignSaveWebp *webp )
 {
+	VipsForeignSave *save = (VipsForeignSave *) webp;
+
 	WebPData data;
 
-	data.bytes = write->memory_writer.mem;
-	data.size = write->memory_writer.size;
+	data.bytes = webp->memory_writer.mem;
+	data.size = webp->memory_writer.size;
 
 	/* Parse what we have.
 	 */
-	if( !(write->mux = WebPMuxCreate( &data, 1 )) ) {
+	if( !(webp->mux = WebPMuxCreate( &data, 1 )) ) {
 		vips_error( "webpsave", "%s", _( "mux error" ) );
 		return( -1 );
 	}
 
-	if( vips_image_get_typeof( write->image, "loop" ) ) {
+	if( vips_image_get_typeof( webp->image, "loop" ) ) {
 		int loop;
 
-		if( vips_image_get_int( write->image, "loop", &loop ) )
+		if( vips_image_get_int( webp->image, "loop", &loop ) )
 			return( -1 );
 
-		vips_webp_set_count( write, loop );
+		vips_webp_set_count( webp, loop );
 	}
 	/* DEPRECATED "gif-loop"
 	 */
-	else if ( vips_image_get_typeof( write->image, "gif-loop" ) ) {
+	else if ( vips_image_get_typeof( webp->image, "gif-loop" ) ) {
 		int gif_loop;
 
-		if( vips_image_get_int( write->image, "gif-loop", &gif_loop ) )
+		if( vips_image_get_int( webp->image, "gif-loop", &gif_loop ) )
 			return( -1 );
 
-		vips_webp_set_count( write, gif_loop == 0 ? 0 : gif_loop + 1 );
+		vips_webp_set_count( webp, gif_loop == 0 ? 0 : gif_loop + 1 );
 	}
 
 	/* Add extra metadata.
 	 */
-	if( !write->strip ) {
+	if( !save->strip ) {
 		/* We need to rebuild exif from the other image tags before
 		 * writing the metadata.
 		 */
-		if( vips__exif_update( write->image ) )
+		if( vips__exif_update( webp->image ) )
 			return( -1 );
 
 		/* Override profile.
 		 */
-		if( write->profile &&
-			vips__profile_set( write->image, write->profile ) )
+		if( webp->profile &&
+			vips__profile_set( webp->image, webp->profile ) )
 			return( -1 );
 
-		if( vips_webp_add_chunks( write ) )
+		if( vips_webp_add_chunks( webp ) )
 			return( -1 );
 	}
 
-	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
+	if( WebPMuxAssemble( webp->mux, &data ) != WEBP_MUX_OK ) {
 		vips_error( "webpsave", "%s", _( "mux error" ) );
 		return( -1 );
 	}
 
 	/* Free old stuff, reinit with new stuff.
 	 */
-	WebPMemoryWriterClear( &write->memory_writer );
-	write->memory_writer.mem = (uint8_t *) data.bytes;
-	write->memory_writer.size = data.size;
+	WebPMemoryWriterClear( &webp->memory_writer );
+	webp->memory_writer.mem = (uint8_t *) data.bytes;
+	webp->memory_writer.size = data.size;
 
 	return( 0 );
 }
@@ -664,10 +663,12 @@ vips_foreign_save_webp_build( VipsObject *object )
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
-	size_t frame_size = (size_t) webp->image->Bands * webp->image->Xsize * page_height;
+	size_t frame_size = 
+		(size_t) webp->image->Bands * webp->image->Xsize * page_height;
 	webp->frame_bytes = g_try_malloc( frame_size );
 	if( webp->frame_bytes == NULL ) {
-		vips_error( "webpsave", _( "failed to allocate %zu bytes" ), frame_size );
+		vips_error( "webpsave", 
+			_( "failed to allocate %zu bytes" ), frame_size );
 		vips_foreign_save_webp_unset( webp );
 		return( -1 );
 	}
