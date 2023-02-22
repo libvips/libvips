@@ -19,6 +19,7 @@ int main()
 	in = vips_image_new_from_file( "max_dim_webp.png", NULL );
 	if( in == NULL )
 		return( -1 );
+	vips_image_set_progress( in, TRUE );
 	g_signal_connect( in, "eval", G_CALLBACK( progress_callback ), NULL );
 	r = vips_webpsave_buffer( in, &buf, &len, NULL );
 	/* Error expected due to timeout
