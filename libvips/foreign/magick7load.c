@@ -632,7 +632,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	vips_image_set_int( out, VIPS_META_ORIENTATION, 
 		VIPS_CLIP( 1, image->orientation, 8 ) );
 
-	vips_image_set_int( im, VIPS_META_BITS_PER_SAMPLE, image->depth );
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, image->depth );
 
 	return( 0 );
 }
