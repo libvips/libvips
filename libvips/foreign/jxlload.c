@@ -4,6 +4,8 @@
  * 	- from heifload.c
  * 1/10/21
  * 	- reset read point for _load
+ * 13/3/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -486,6 +488,9 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 
 	vips_image_set_int( out, 
 		VIPS_META_ORIENTATION, jxl->info.orientation );
+
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE,
+		jxl->info.bits_per_sample );
 
 	return( 0 );
 }

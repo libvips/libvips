@@ -26,6 +26,8 @@
  * 	- add >8 bit support
  * 23/2/22 lovell
  * 	- add @unlimited
+ * 13/03/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -657,6 +659,11 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
 			compression ) );
 
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE,
+		heif->bits_per_pixel );
+
+	/* Deprecated "heif-bitdepth" use "bits-per-sample" instead.
+	 */
 	vips_image_set_int( out, "heif-bitdepth", heif->bits_per_pixel );
 
 	if( heif->bits_per_pixel > 8 ) {

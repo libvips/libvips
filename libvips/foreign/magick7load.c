@@ -10,6 +10,8 @@
  * 	- add profile (xmp, ipct, etc.) read
  * 12/11/21
  * 	- set "orientation"
+ * 22/3/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -629,6 +631,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	vips_image_set_int( out, VIPS_META_ORIENTATION, 
 		VIPS_CLIP( 1, image->orientation, 8 ) );
+
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, image->depth );
 
 	return( 0 );
 }

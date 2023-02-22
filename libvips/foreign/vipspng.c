@@ -87,6 +87,8 @@
  * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
  * 17/11/22
  * 	- add exif read/write
+ * 3/2/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -592,7 +594,9 @@ png2vips_header( Read *read, VipsImage *out )
 				return( -1 ); 
 	}
 
-	/* Attach original palette bit depth, if any, as metadata.
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, bitdepth );
+
+	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		vips_image_set_int( out, "palette-bit-depth", bitdepth );

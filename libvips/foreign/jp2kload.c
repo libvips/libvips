@@ -6,6 +6,8 @@
  * 	- add untiled load
  * 17/1/22
  * 	- left-justify bits for eg. 12-bit read
+ * 13/3/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -477,6 +479,8 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 		vips_image_set_int( out, VIPS_META_N_PAGES, 
 			jp2k->info->m_default_tile_info.tccp_info->
 				numresolutions );
+
+	vips_image_set_int( out, VIPS_META_BITS_PER_SAMPLE, first->prec );
 
 	return( 0 );
 }

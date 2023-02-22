@@ -68,6 +68,8 @@
  * 	- set "orientation"
  * 26/8/22
  *      - set "magick-format"
+ * 13/3/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -553,6 +555,8 @@ parse_header( Read *read )
 
 	vips_image_set_int( im, VIPS_META_ORIENTATION, 
 		VIPS_CLIP( 1, image->orientation, 8 ) );
+
+	vips_image_set_int( im, VIPS_META_BITS_PER_SAMPLE, depth );
 
 	return( 0 );
 }

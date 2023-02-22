@@ -93,6 +93,13 @@ extern "C" {
 #define VIPS_META_RESOLUTION_UNIT "resolution-unit"
 
 /**
+ * VIPS_META_BITS_PER_SAMPLE:
+ *
+ * The bits per sample for each channel.
+ */
+#define VIPS_META_BITS_PER_SAMPLE "bits-per-sample"
+
+/**
  * VIPS_META_LOADER:
  *
  * Record the name of the original loader here. Handy for hinting file formats

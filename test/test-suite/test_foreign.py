@@ -426,6 +426,7 @@ class TestForeign:
             assert im.width == 290
             assert im.height == 442
             assert im.bands == 3
+            assert im.get("bits-per-sample") == 16
 
         self.file_loader("pngload", PNG_FILE, png_valid)
         self.buffer_loader("pngload_buffer", PNG_FILE, png_valid)
@@ -453,6 +454,7 @@ class TestForeign:
         data = onebit.write_to_buffer(".png", bitdepth=1)
         after = pyvips.Image.new_from_buffer(data, "")
         assert( (onebit - after).abs().max() == 0 )
+        assert after.get("bits-per-sample") == 1
 
         # we can't test palette save since we can't be sure libimagequant is
         # available and there's no easy test for its presence
@@ -484,6 +486,7 @@ class TestForeign:
             assert im.width == 290
             assert im.height == 442
             assert im.bands == 3
+            assert im.get("bits-per-sample") == 16
 
         self.file_loader("tiffload", TIF_FILE, tiff_valid)
         self.buffer_loader("tiffload_buffer", TIF_FILE, tiff_valid)
@@ -496,6 +499,7 @@ class TestForeign:
             assert im.width == 256
             assert im.height == 4
             assert im.bands == 1
+            assert im.get("bits-per-sample") == 1
 
         self.file_loader("tiffload", TIF1_FILE, tiff1_valid)
 
@@ -507,6 +511,7 @@ class TestForeign:
             assert im.width == 256
             assert im.height == 4
             assert im.bands == 1
+            assert im.get("bits-per-sample") == 2
 
         self.file_loader("tiffload", TIF2_FILE, tiff2_valid)
 
@@ -518,6 +523,7 @@ class TestForeign:
             assert im.width == 256
             assert im.height == 4
             assert im.bands == 1
+            assert im.get("bits-per-sample") == 4
 
         self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
 
@@ -698,6 +704,7 @@ class TestForeign:
             assert_almost_equal_objects(a, [227, 216, 201])
             assert im.width == 1419
             assert im.height == 1001
+            assert im.get("bits-per-sample") == 8
 
         self.file_loader("magickload", BMP_FILE, bmp_valid)
         self.buffer_loader("magickload_buffer", BMP_FILE, bmp_valid)
@@ -996,6 +1003,7 @@ class TestForeign:
         assert x2.get("n-pages") == 1
         assert x2.get("background") == [81, 81, 81]
         assert x2.get("interlaced") == 1
+        assert x2.get("bits-per-sample") == 4
 
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
         # our test gif has delay 0 for the first frame set in error
@@ -1391,7 +1399,7 @@ class TestForeign:
         assert(im.width == rgb16.width)
         assert(im.format == rgb16.format)
         assert(im.interpretation == rgb16.interpretation)
-        assert(im.get("heif-bitdepth") == 12)
+        assert(im.get("bits-per-sample") == 12)
         # good grief, some kind of lossless
         assert((im - rgb16).abs().max() < 4500)
 
@@ -1405,7 +1413,7 @@ class TestForeign:
         assert(im.width == rgb16.width)
         assert(im.format == "uchar")
         assert(im.interpretation == "srgb")
-        assert(im.get("heif-bitdepth") == 8)
+        assert(im.get("bits-per-sample") == 8)
         # good grief, some kind of lossless
         assert((im - rgb16 / 256).abs().max() < 80)
 
@@ -1418,7 +1426,7 @@ class TestForeign:
         assert(im.width == self.colour.width)
         assert(im.format == "ushort")
         assert(im.interpretation == "rgb16")
-        assert(im.get("heif-bitdepth") == 12)
+        assert(im.get("bits-per-sample") == 12)
         # good grief, some kind of lossless
         assert((im - self.colour * 256).abs().max() < 4500)
 
@@ -1430,6 +1438,7 @@ class TestForeign:
             assert im.width == 800
             assert im.height == 400
             assert im.bands == 3
+            assert im.get("bits-per-sample") == 8
 
         self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
         self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
@@ -1463,6 +1472,7 @@ class TestForeign:
         buf = im.jp2ksave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
         assert (im == im2).min() == 255
+        assert im2.get("bits-per-sample") == 16
 
         # openjpeg 32-bit load and save doesn't seem to work, comment out
         # im = self.colour.colourspace("rgb16").cast("uint") << 14

@@ -10,6 +10,8 @@
  * 	- avoid minimise after mapping -- not reliable on Win32
  * 25/1/23 kleisauke
  * 	- set interlaced=1 for interlaced images
+ * 13/3/23 MathemanFlo
+ * 	- add bits per sample metadata
  */
 
 /*
@@ -332,8 +334,13 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 		}
 	}
 
-	vips_image_set_int( image, "palette-bit-depth", 
-		ceil( log2( colours ) ) ); 
+	vips_image_set_int( image, VIPS_META_BITS_PER_SAMPLE,
+		ceil( log2( colours ) ) );
+
+	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
+	 */
+	vips_image_set_int( image, "palette-bit-depth",
+		ceil( log2( colours ) ) );
 
 	/* Let our caller know if the GIF is interlaced.
 	 */
