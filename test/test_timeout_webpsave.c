@@ -3,31 +3,40 @@
 #define TIMEOUT_SECONDS 2
 
 static void
-progress_callback(VipsImage *image, VipsProgress *progress, void *pdata)
+eval_callback( VipsImage *image, VipsProgress *progress, gboolean *is_killed )
 {
-	if( progress->run >= TIMEOUT_SECONDS )
+	if( progress->run >= TIMEOUT_SECONDS ) {
+		*is_killed = TRUE;
 		vips_image_set_kill( image, TRUE );
+	}
 }
 
-int main()
+int
+main( int argc, char **argv )
 {
-	VipsImage *in;
+	VipsImage *im;
 	void *buf;
 	size_t len;
-	int r;
+	gboolean is_killed = FALSE;
 
-	in = vips_image_new_from_file( "max_dim_webp.png", NULL );
-	if( in == NULL )
-		return( -1 );
-	vips_image_set_progress( in, TRUE );
-	g_signal_connect( in, "eval", G_CALLBACK( progress_callback ), NULL );
-	r = vips_webpsave_buffer( in, &buf, &len, NULL );
-	/* Error expected due to timeout
-	 */
-	g_object_unref( in );
-	if( r == 0 ) {
+	if( VIPS_INIT( argv[0] ) )
+		vips_error_exit( NULL );
+
+	if( vips_black( &im, 16383, 16383, NULL ) )
+		vips_error_exit( NULL );
+
+	vips_image_set_progress( im, TRUE );
+	g_signal_connect( im, "eval",
+		G_CALLBACK( eval_callback ), &is_killed );
+
+	buf = NULL;
+	if( vips_webpsave_buffer( im, &buf, &len, NULL ) )
+		printf( "error return from vips_webpsave_buffer()\n" );
+
+	g_object_unref( im );
+	if( buf )
 		g_free( buf );
-		return( -1 );
-	}
+	g_assert( is_killed );
+
 	return( 0 );
 }
