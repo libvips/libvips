@@ -12,6 +12,8 @@
 	* add `inplace()` / `VImage::new_from_memory_copy()`
 	* add overloads for `draw_*()` / `VImage::thumbnail_buffer()`
 - allow negative line spacing in text [donghuikugou]
+- add VIPS_META_BITS_PER_SAMPLE metadata, deprecate the
+  "palette-bit-depth" and "heif-bitdepth" meta fields [MathemanFlo]
 
 TBD 8.14.2
 

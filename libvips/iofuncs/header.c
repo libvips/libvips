@@ -1456,7 +1456,9 @@ vips_image_remove( VipsImage *image, const char *name )
 static const char *vips_image_header_deprecated[] = {
 	"ipct-data",
 	"gif-delay",
-	"gif-loop"
+	"gif-loop",
+	"palette-bit-depth",
+	"heif-bitdepth"
 };
 
 static void *
