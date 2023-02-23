@@ -191,6 +191,24 @@ typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveWebp, vips_foreign_save_webp,
 	VIPS_TYPE_FOREIGN_SAVE );
 
+static int
+vips_foreign_save_webp_progress_hook( int percent, const WebPPicture* picture )
+{
+	VipsImage* in = (VipsImage *) picture->user_data;
+
+	/* Trigger any eval callbacks on the image and
+	 * check if we need to abort the WebP encoding.
+	 */
+	vips_image_eval( in, VIPS_IMAGE_N_PELS( in ) );
+
+	/* Abort WebP encoding if requested.
+	 */
+	if( vips_image_iskilled( in ) )
+		return( 0 );
+
+	return( 1 );
+}
+
 static void
 vips_foreign_save_webp_unset( VipsForeignSaveWebp *write )
 {
@@ -216,12 +234,16 @@ vips_foreign_save_webp_dispose( GObject *gobject )
 static gboolean
 vips_foreign_save_webp_pic_init( VipsForeignSaveWebp *write, WebPPicture *pic )
 {
+	VipsForeignSave *save = (VipsForeignSave *) write;
+
 	if( !WebPPictureInit( pic ) ) {
 		vips_error( "webpsave", "%s", _( "picture version error" ) );
 		return( FALSE );
 	}
 	pic->writer = WebPMemoryWrite;
 	pic->custom_ptr = (void *) &write->memory_writer;
+	pic->progress_hook = vips_foreign_save_webp_progress_hook;
+	pic->user_data = (void *) save->in;
 
 	/* Smart subsampling needs use_argb because it is applied during
 	 * RGB to YUV conversion.
