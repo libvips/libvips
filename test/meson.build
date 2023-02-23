@@ -63,3 +63,14 @@ if host_os == 'linux'
         workdir: meson.current_build_dir(),
     )
 endif
+
+test_timeout_webpsave = executable('test_timeout_webpsave',
+    'test_timeout_webpsave.c',
+    dependencies: libvips_dep,
+)
+
+test('webpsave_timeout',
+    test_timeout_webpsave,
+    depends: test_timeout_webpsave,
+    workdir: meson.current_build_dir(),
+)
