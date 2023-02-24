@@ -67,11 +67,6 @@ option('fontconfig',
   value: 'auto', 
   description: 'Build with fontconfig')
 
-option('gsf', 
-  type: 'feature', 
-  value: 'auto', 
-  description: 'Build with libgsf-1')
-
 option('heif', 
   type: 'feature', 
   value: 'auto', 
