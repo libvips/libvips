@@ -438,8 +438,9 @@ vips_icc_build( VipsObject *object )
 
 	/* Use cmsFLAGS_NOCACHE to disable the 1-pixel cache and make
 	 * calling cmsDoTransform() from multiple threads safe.
+	 * Use cmsFLAGS_NOOPTIMIZE to ensure we keep all precision.
 	 */
-	flags = cmsFLAGS_NOCACHE;
+	flags = cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE;
 
 	if( icc->black_point_compensation ) 
 		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
@@ -1228,7 +1229,7 @@ vips_icc_transform_init( VipsIccTransform *transform )
  * @out: (out): output image
  * @profile_filename: use this profile
  *
- * Transform an image from absolute to relative colorimetry using the
+ * Transform an image from absolute to relative colorimetric using the
  * MediaWhitePoint stored in the ICC profile.
  *
  * See also: vips_icc_transform(), vips_icc_import().
