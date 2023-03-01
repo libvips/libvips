@@ -226,8 +226,8 @@ static VipsIccInfo vips_icc_info_table[] = {
         { cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16 },
 
         { cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16 },
-        { cmsSigLabData, 3, TYPE_Lab_8, TYPE_Lab_16 },
-        { cmsSigXYZData, 3, -1, TYPE_XYZ_16 },
+        { cmsSigLabData, 3, -1, TYPE_Lab_FLT },
+        { cmsSigXYZData, 3, -1, TYPE_XYZ_FLT },
 
         { cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
         { cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
@@ -616,14 +616,13 @@ vips_icc_load_profile_blob( VipsBlob *blob,
  * unref the blob if it's useless.
  */
 static cmsHPROFILE
-vips_icc_verify_blob( VipsBlob **blob, 
-	VipsImage *image, VipsIntent intent, int direction )
+vips_icc_verify_blob( VipsBlob **blob, VipsImage *image, VipsIntent intent )
 {
 	if( *blob ) {
 		cmsHPROFILE profile;
 
 		if( !(profile = vips_icc_load_profile_blob( *blob, 
-			image, intent, direction )) ) {
+			image, intent, LCMS_USED_AS_INPUT )) ) {
 			vips_area_unref( (VipsArea *) *blob );
 			*blob = NULL;
 		}
@@ -663,7 +662,7 @@ vips_icc_set_import( VipsIcc *icc,
 		(embedded || !input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
 		icc->in_profile = vips_icc_verify_blob( &icc->in_blob,
-			code->in, icc->intent, LCMS_USED_AS_INPUT );
+			code->in, icc->intent );
 	}
 
 	/* Try profile from filename.
@@ -675,7 +674,7 @@ vips_icc_set_import( VipsIcc *icc,
 			!vips_profile_load( input_profile_filename, 
 				&icc->in_blob, NULL ) &&
 			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
-				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+				code->in, icc->intent )) )
 			icc->non_standard_input_profile = TRUE;
 	}
 
@@ -689,7 +688,7 @@ vips_icc_set_import( VipsIcc *icc,
 		if( 
 			!vips_profile_load( name, &icc->in_blob, NULL ) &&
 			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
-				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+				code->in, icc->intent )) )
 			icc->non_standard_input_profile = TRUE;
 	}
 
@@ -803,37 +802,33 @@ vips_icc_import_build( VipsObject *object )
 }
 
 static void 
-decode_lab( guint16 *fixed, float *lab, int n )
+decode_lab( float *in, float *out, int n )
 {
 	int i;
 
-        for( i = 0; i < n; i++ ) {
-                lab[0] = (double) fixed[0] / 652.800;
-                lab[1] = ((double) fixed[1] / 256.0) - 128.0;
-                lab[2] = ((double) fixed[2] / 256.0) - 128.0;
+	for( i = 0; i < n; i++ ) {
+		out[0] = in[0];
+		out[1] = in[1];
+		out[2] = in[2];
 
-                lab += 3;
-                fixed += 3;
-        }
+		out += 3;
+		in += 3;
+	}
 }
 
-#define X_FAC (VIPS_D50_X0 * 32768 / (VIPS_D65_X0 * 100))
-#define Y_FAC (VIPS_D50_Y0 * 32768 / (VIPS_D65_Y0 * 100))
-#define Z_FAC (VIPS_D50_Z0 * 32768 / (VIPS_D65_Z0 * 100))
-
 static void 
-decode_xyz( guint16 *fixed, float *xyz, int n )
+decode_xyz( float *in, float *out, int n )
 {
 	int i;
 
-        for( i = 0; i < n; i++ ) {
-                xyz[0] = (double) fixed[0] / X_FAC;
-                xyz[1] = (double) fixed[1] / Y_FAC;
-                xyz[2] = (double) fixed[2] / Z_FAC;
+	for( i = 0; i < n; i++ ) {
+		out[0] = in[0] * VIPS_D65_X0;
+		out[1] = in[1] * VIPS_D65_Y0;
+		out[2] = in[2] * VIPS_D65_Z0;
 
-                xyz += 3;
-                fixed += 3;
-        }
+		out += 3;
+		in += 3;
+	}
 }
 
 /* Process a buffer of data.
@@ -850,7 +845,7 @@ vips_icc_import_line( VipsColour *colour,
 
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */
-	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
+	float encoded[3 * PIXEL_BUFFER_SIZE];
 
 	p = (VipsPel *) in[0];
 	q = (float *) out;
@@ -968,77 +963,33 @@ vips_icc_export_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Pack a buffer of floats into lcms's fixed-point formats. Cut from
- * lcms-1.0.8.
- */
-static void 
-encode_lab( float *lab, guint16 *fixed, int n )
+static void
+encode_lab( float *in, float *out, int n )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		float L = lab[0];
-		float a = lab[1];
-		float b = lab[2];
+		out[0] = in[0];
+		out[1] = in[1];
+		out[2] = in[2];
 
-		if( L < 0 ) 
-			L = 0;
-		if( L > 100. ) 
-			L = 100.;
-
-		if( a < -128. ) 
-			a = -128;
-		if( a > 127.9961 ) 
-			a = 127.9961;
-		if( b < -128. ) 
-			b = -128;
-		if( b > 127.9961 ) 
-			b = 127.9961;
-
-		fixed[0] = L *  652.800 + 0.5;
-		fixed[1] = (a + 128.0) * 256.0 + 0.5;
-		fixed[2] = (b + 128.0) * 256.0 + 0.5;
-
-		lab += 3;
-		fixed += 3;
+		in += 3;
+		out += 3;
 	}
 }
 
-#define MAX_ENCODEABLE_XYZ  (100 * (1.0 + 32767.0 / 32768.0))
-
-// 1.15 fixed point for XYZ
-
-static void 
-encode_xyz( float *xyz, guint16 *fixed, int n )
+static void
+encode_xyz( float *in, float *out, int n )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		float X = xyz[0];
-		float Y = xyz[1];
-		float Z = xyz[2];
+		out[0] = in[0] / VIPS_D65_X0;
+		out[1] = in[1] / VIPS_D65_Y0;
+		out[2] = in[2] / VIPS_D65_Z0;
 
-		if( X < 0 ) 
-			X = 0;
-		if( X > MAX_ENCODEABLE_XYZ ) 
-			X = MAX_ENCODEABLE_XYZ;
-
-		if( Y < 0 ) 
-			Y = 0;
-		if( Y > MAX_ENCODEABLE_XYZ ) 
-			Y = MAX_ENCODEABLE_XYZ;
-
-		if( Z < 0 ) 
-			Z = 0;
-		if( Z > MAX_ENCODEABLE_XYZ ) 
-			Z = MAX_ENCODEABLE_XYZ;
-
-		fixed[0] = X * X_FAC + 0.5;
-		fixed[1] = Y * Y_FAC + 0.5;
-		fixed[2] = Z * Z_FAC + 0.5;
-
-		xyz += 3;
-		fixed += 3;
+		in += 3;
+		out += 3;
 	}
 }
 
@@ -1056,7 +1007,7 @@ vips_icc_export_line( VipsColour *colour,
 
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */
-	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
+	float encoded[3 * PIXEL_BUFFER_SIZE];
 
 	p = (float *) in[0];
 	q = (VipsPel *) out;
