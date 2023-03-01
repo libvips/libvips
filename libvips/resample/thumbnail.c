@@ -703,18 +703,6 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	preshrunk_page_height = vips_image_get_page_height( in );
 
-	/* RAD needs special unpacking.
-	 */
-	if( in->Coding == VIPS_CODING_RAD ) {
-		g_info( "unpacking Rad to float" );
-
-		/* rad is scrgb.
-		 */
-		if( vips_rad2float( in, &t[12], NULL ) )
-			return( -1 );
-		in = t[12];
-	}
-
 	needs_icc_transform = thumbnail->export_profile &&
 		(thumbnail->import_profile ||
 		 vips_image_get_typeof( in, VIPS_META_ICC_NAME ) );
@@ -896,9 +884,9 @@ vips_thumbnail_build( VipsObject *object )
 			return( -1 ); 
 		in = t[10];
 	}
-	else {
-		/* We are in one of the resize spaces and there's no export
-		 * profile. Output to sRGB or B_W
+	else if( thumbnail->linear ) {
+		/* We are in one of the scRGB or GREY16 spaces and there's
+		 * no export profile. Output to sRGB or B_W.
 		 */
 		VipsInterpretation interpretation;
 
