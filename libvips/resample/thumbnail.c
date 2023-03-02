@@ -707,6 +707,18 @@ vips_thumbnail_build( VipsObject *object )
 		(thumbnail->import_profile ||
 		 vips_image_get_typeof( in, VIPS_META_ICC_NAME ) );
 
+	/* RAD needs special unpacking.
+	 */
+	if( in->Coding == VIPS_CODING_RAD ) {
+		g_info( "unpacking Rad to float" );
+
+		/* rad is scrgb.
+		 */
+		if( vips_rad2float( in, &t[12], NULL ) )
+			return( -1 );
+		in = t[12];
+	}
+
 	/* In linear mode, we need to transform to a linear space before 
 	 * vips_resize(). 
 	 */
