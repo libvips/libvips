@@ -773,7 +773,7 @@ vips_icc_import_build( VipsObject *object )
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
-		cmsWhitePointFromTemp( &white, 6500 );
+		cmsWhitePointFromTemp( &white, 6504 );
 
 		icc->out_profile = cmsCreateLab4Profile( &white );
 	}
@@ -936,7 +936,7 @@ vips_icc_export_build( VipsObject *object )
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
-		cmsWhitePointFromTemp( &white, 6500 );
+		cmsWhitePointFromTemp( &white, 6504 );
 
 		icc->in_profile = cmsCreateLab4Profile( &white );
 	}
