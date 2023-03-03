@@ -9,6 +9,7 @@ TBD 8.14.2
 - dedupe FITS header write [ewelot]
 - fix `strip` parameter in webpsave [jcupitt]
 - earlier abort of webpsave on kill [dloebl]
+- fix thumbnail of CMYK images with an embedded ICC profile [kleisauke]
 
 9/1/23 8.14.1
 
