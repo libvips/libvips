@@ -802,21 +802,6 @@ vips_icc_import_build( VipsObject *object )
 }
 
 static void 
-decode_lab( float *in, float *out, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		out[0] = in[0];
-		out[1] = in[1];
-		out[2] = in[2];
-
-		out += 3;
-		in += 3;
-	}
-}
-
-static void 
 decode_xyz( float *in, float *out, int n )
 {
 	int i;
@@ -831,10 +816,8 @@ decode_xyz( float *in, float *out, int n )
 	}
 }
 
-/* Process a buffer of data.
- */
 static void
-vips_icc_import_line( VipsColour *colour, 
+vips_icc_import_line_xyz( VipsColour *colour, 
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsIcc *icc = (VipsIcc *) colour;
@@ -853,15 +836,25 @@ vips_icc_import_line( VipsColour *colour,
 		const int chunk = VIPS_MIN( width - i, PIXEL_BUFFER_SIZE );
 
 		cmsDoTransform( icc->trans, p, encoded, chunk );
-
-		if( icc->pcs == VIPS_PCS_LAB ) 
-			decode_lab( encoded, q, chunk );
-		else
-			decode_xyz( encoded, q, chunk );
+		decode_xyz( encoded, q, chunk );
 
 		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->in[0] );
 		q += PIXEL_BUFFER_SIZE * 3;
 	}
+}
+
+/* Process a buffer of data.
+ */
+static void
+vips_icc_import_line( VipsColour *colour,
+	VipsPel *out, VipsPel **in, int width )
+{
+	VipsIcc *icc = (VipsIcc *) colour;
+
+	if( icc->pcs == VIPS_PCS_LAB )
+		cmsDoTransform( icc->trans, in[0], out, width );
+	else
+		vips_icc_import_line_xyz( colour, out, in, width );
 }
 
 static void
@@ -964,21 +957,6 @@ vips_icc_export_build( VipsObject *object )
 }
 
 static void
-encode_lab( float *in, float *out, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		out[0] = in[0];
-		out[1] = in[1];
-		out[2] = in[2];
-
-		in += 3;
-		out += 3;
-	}
-}
-
-static void
 encode_xyz( float *in, float *out, int n )
 {
 	int i;
@@ -993,10 +971,8 @@ encode_xyz( float *in, float *out, int n )
 	}
 }
 
-/* Process a buffer of data.
- */
 static void
-vips_icc_export_line( VipsColour *colour, 
+vips_icc_export_line_xyz( VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsIcc *icc = (VipsIcc *) colour;
@@ -1014,16 +990,26 @@ vips_icc_export_line( VipsColour *colour,
 	for( x = 0; x < width; x += PIXEL_BUFFER_SIZE ) {
 		const int chunk = VIPS_MIN( width - x, PIXEL_BUFFER_SIZE );
 
-		if( icc->pcs == VIPS_PCS_LAB )
-			encode_lab( p, encoded, chunk );
-		else
-			encode_xyz( p, encoded, chunk );
-
+		encode_xyz( p, encoded, chunk );
 		cmsDoTransform( icc->trans, encoded, q, chunk );
 
 		p += PIXEL_BUFFER_SIZE * 3;
 		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->out );
 	}
+}
+
+/* Process a buffer of data.
+ */
+static void
+vips_icc_export_line( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
+{
+	VipsIcc *icc = (VipsIcc *) colour;
+
+	if( icc->pcs == VIPS_PCS_LAB )
+		cmsDoTransform( icc->trans, in[0], out, width );
+	else
+		vips_icc_export_line_xyz( colour, out, in, width );
 }
 
 static void
