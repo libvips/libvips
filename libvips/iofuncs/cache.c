@@ -896,7 +896,9 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	if( (hit = vips_cache_operation_lookup( *operation )) ) {
+	hit = vips_cache_operation_lookup( *operation );
+	if( hit && 
+		!(*operation)->nocache ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
 #endif /*VIPS_DEBUG*/
@@ -911,6 +913,16 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
+
+		/* If this is nocache, there might be an old cache entry we
+		 * must replace.
+		 */
+		if( hit ) {
+			g_mutex_lock( vips_cache_lock );
+			vips_cache_remove( hit );
+			g_mutex_unlock( vips_cache_lock );
+			hit = NULL;
+		}
 
 		vips_cache_operation_add( *operation ); 
 	}

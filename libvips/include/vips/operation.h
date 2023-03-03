@@ -80,6 +80,10 @@ typedef struct _VipsOperation {
 	 */
 	int pixels;
 
+	/* Set to force execution of this operation.
+	 */
+	gboolean nocache;
+
 } VipsOperation;
 
 typedef struct _VipsOperationClass {
