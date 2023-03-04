@@ -6,7 +6,7 @@
  * 	- missing bandor
  * 	- only flatten if there is an alpha
  * 8/2/23
- *	- add @vector
+ *	- add @line_art
  */
 
 /*
@@ -57,7 +57,7 @@ typedef struct _VipsFindTrim {
 	VipsImage *in;
 	double threshold;
 	VipsArrayDouble *background;
-	gboolean vector;
+	gboolean line_art;
 
 	int left;
 	int top;
@@ -122,9 +122,9 @@ vips_find_trim_build( VipsObject *object )
 		ones[i] = 1.0;
 	}
 
-	/* Filter out noise, unless we're in vector art mode.
+	/* Filter out noise, unless we're in line_art mode.
 	 */
-	if( !find_trim->vector ) {
+	if( !find_trim->line_art ) {
 		if( vips_median( in, &t[1], 3, NULL ) )
 			return( -1 ); 
 	}
@@ -209,11 +209,11 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 		G_STRUCT_OFFSET( VipsFindTrim, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_BOOL( class, "vector", 4, 
-		_( "Vector" ), 
-		_( "Trim vector images" ),
+	VIPS_ARG_BOOL( class, "line_art", 4, 
+		_( "Line art mode" ), 
+		_( "Enable line art mode" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFindTrim, vector ),
+		G_STRUCT_OFFSET( VipsFindTrim, line_art ),
 		FALSE );
 
 	VIPS_ARG_INT( class, "left", 5, 
@@ -266,12 +266,12 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * * @threshold: %gdouble, background / object threshold
  * * @background: #VipsArrayDouble, background colour
- * * @vector: %gboolean, trim vector images
+ * * @line_art: %gboolean, enable line art mode
  *
  * Search @in for the bounding box of the non-background area. 
  *
  * Any alpha is flattened out, then the image is median-filtered (unless
- * @vector is set, see below), all the row 
+ * @line_art is set, see below), all the row 
  * and column sums of the absolute
  * difference from @background are calculated in a
  * single pass, then the first row or column in each of the
@@ -289,8 +289,8 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * The detector is designed for photographic or compressed images where there
  * is a degree of noise that needs filtering. If your images are synthetic
- * (eg. rendered from vector art, perhaps), set @vector to disable the
- * median filter.
+ * (eg. rendered from vector art, perhaps), set @line_art to disable this
+ * filtering.
  *
  * The image needs to be at least 3x3 pixels in size. 
  *

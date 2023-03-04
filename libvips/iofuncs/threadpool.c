@@ -690,7 +690,7 @@ vips_threadpool_run( VipsImage *im,
 		VIPS_DEBUG_MSG( "n_working = %d\n", n_working );
 		VIPS_DEBUG_MSG( "exit = %d\n", pool->exit );
 
-		if( n_waiting > 3 &&
+		if( n_waiting > 2 &&
 			n_working > 1 ) {
 			VIPS_DEBUG_MSG( "shrinking thread pool\n" );
 			g_atomic_int_add( &pool->exit, 1 );
@@ -707,17 +707,16 @@ vips_threadpool_run( VipsImage *im,
 		}
 	}
 
-	/*
-	if( !vips_image_get_concurrency( im, 0 ) )
-		printf( "vips_threadpool_run: "
-			"finished with %d workers in pool\n", n_working );
-	 */
-
 	/* Return 0 for success.
 	 */
 	result = pool->error ? -1 : 0;
 
+	/* This will block until the last worker completes.
+	 */
 	vips_threadpool_free( pool );
+
+	if( !vips_image_get_concurrency( im, 0 ) )
+		g_info( "threadpool completed with %d workers", n_working );
 
 	vips_image_minimise_all( im );
 
