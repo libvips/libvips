@@ -707,12 +707,6 @@ vips_threadpool_run( VipsImage *im,
 		}
 	}
 
-	/*
-	if( !vips_image_get_concurrency( im, 0 ) )
-		printf( "vips_threadpool_run: "
-			"finished with %d workers in pool\n", n_working );
-	 */
-
 	/* Return 0 for success.
 	 */
 	result = pool->error ? -1 : 0;
@@ -720,6 +714,9 @@ vips_threadpool_run( VipsImage *im,
 	/* This will block until the last worker completes.
 	 */
 	vips_threadpool_free( pool );
+
+	if( !vips_image_get_concurrency( im, 0 ) )
+		g_info( "threadpool completed with %d workers", n_working );
 
 	vips_image_minimise_all( im );
 
