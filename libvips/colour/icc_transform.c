@@ -545,6 +545,54 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 }
 #endif /*DEBUG*/
 
+/* How many bands we expect to see from an image after preprocessing by our
+ * parent classes. This is a bit fragile :-( 
+ *
+ * FIXME ... split the _build() for colour into separate preprocess / process
+ * / postprocess phases so we can load profiles after preprocess but before
+ * actual processing takes place.
+ */
+static int
+vips_image_expected_bands( VipsImage *image )
+{
+	int expected_bands;
+
+	switch( image->Type ) {
+		case VIPS_INTERPRETATION_B_W:
+		case VIPS_INTERPRETATION_GREY16:
+			expected_bands = 1;
+			break;
+
+		case VIPS_INTERPRETATION_XYZ:
+		case VIPS_INTERPRETATION_LAB:
+		case VIPS_INTERPRETATION_LABQ:
+		case VIPS_INTERPRETATION_RGB:
+		case VIPS_INTERPRETATION_CMC:
+		case VIPS_INTERPRETATION_LCH:
+		case VIPS_INTERPRETATION_LABS:
+		case VIPS_INTERPRETATION_sRGB:
+		case VIPS_INTERPRETATION_YXY:
+		case VIPS_INTERPRETATION_RGB16:
+		case VIPS_INTERPRETATION_scRGB:
+		case VIPS_INTERPRETATION_HSV:
+			expected_bands = 3;
+			break;
+
+		case VIPS_INTERPRETATION_MULTIBAND:
+		case VIPS_INTERPRETATION_HISTOGRAM:
+		case VIPS_INTERPRETATION_CMYK:
+		case VIPS_INTERPRETATION_MATRIX:
+		case VIPS_INTERPRETATION_FOURIER:
+		default:
+			expected_bands = image->Bands;
+			break;
+	}
+
+	expected_bands = VIPS_MIN( expected_bands, image->Bands );
+
+	return( expected_bands );
+}
+
 /* Load a profile from a blob and check compatibility with image, intent and
  * direction.
  *
@@ -583,17 +631,7 @@ vips_icc_load_profile_blob( VipsBlob *blob,
         }
 
 	if( image &&
-		image->Bands < info->bands ) { 
-		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", _( "profile incompatible with image" ) );
-		return( NULL );
-	}
-
-	/* Spot the common error of an RGB profile and a CMYK image.
-	 */
-	if( image &&
-		image->Type == VIPS_INTERPRETATION_CMYK &&
-		info->bands == 3 ) {
+		vips_image_expected_bands( image ) != info->bands ) { 
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
@@ -1328,9 +1366,9 @@ vips_icc_is_compatible_profile( VipsImage *image,
                 return( FALSE );
         }
 
-	if( image->Bands < info->bands ) {
-                /* Too few bands,
-                 */
+	if( vips_image_expected_bands( image ) != info->bands ) {
+		/* Bands mismatch.
+		 */
 		VIPS_FREEF( cmsCloseProfile, profile );
 		return( FALSE );
 	}
