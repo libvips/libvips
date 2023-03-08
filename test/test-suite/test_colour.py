@@ -81,7 +81,7 @@ class TestColour:
             before = cmyk(10, 10)
             after = im2(10, 10)
 
-            assert_almost_equal_objects(before, after, threshold=11)
+            assert_almost_equal_objects(before, after, threshold=10)
 
     # test results from Bruce Lindbloom's calculator:
     # http://www.brucelindbloom.com

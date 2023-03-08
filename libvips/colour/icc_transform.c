@@ -226,8 +226,8 @@ static VipsIccInfo vips_icc_info_table[] = {
         { cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16 },
 
         { cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16 },
-        { cmsSigLabData, 3, -1, TYPE_Lab_FLT },
-        { cmsSigXYZData, 3, -1, TYPE_XYZ_FLT },
+        { cmsSigLabData, 3, TYPE_Lab_FLT, TYPE_Lab_16 },
+        { cmsSigXYZData, 3, TYPE_XYZ_FLT, TYPE_XYZ_16 },
 
         { cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
         { cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
@@ -308,14 +308,14 @@ vips_icc_build( VipsObject *object )
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_LAB;
-			icc->in_icc_format = info->lcms_type16;
+			icc->in_icc_format = info->lcms_type8;
 			break;
 
 		case cmsSigXYZData:
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_XYZ;
-			icc->in_icc_format = info->lcms_type16;
+			icc->in_icc_format = info->lcms_type8;
 			break;
 
 		case cmsSigCmykData:
@@ -801,49 +801,43 @@ vips_icc_import_build( VipsObject *object )
 	return( 0 );
 }
 
-#define X_FAC (cmsD50X / VIPS_D65_X0)
-#define Y_FAC (cmsD50Y / VIPS_D65_Y0)
-#define Z_FAC (cmsD50Z / VIPS_D65_Z0)
-
-static void 
-decode_xyz( float *in, float *out, int n )
+static void
+decode_lab( guint16 *fixed, float *lab, int n )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		out[0] = in[0] / X_FAC;
-		out[1] = in[1] / Y_FAC;
-		out[2] = in[2] / Z_FAC;
+		cmsCIELab Lab;
+		cmsLabEncoded2Float( &Lab, fixed );
 
-		out += 3;
-		in += 3;
+		lab[0] = (float) Lab.L;
+		lab[1] = (float) Lab.a;
+		lab[2] = (float) Lab.b;
+
+		lab += 3;
+		fixed += 3;
 	}
 }
 
-static void
-vips_icc_import_line_xyz( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
-{
-	VipsIcc *icc = (VipsIcc *) colour;
+#define X_FAC (cmsD50X / VIPS_D65_X0)
+#define Y_FAC (cmsD50Y / VIPS_D65_Y0)
+#define Z_FAC (cmsD50Z / VIPS_D65_Z0)
 
-	VipsPel *p;
-	float *q;
+static void
+decode_xyz( guint16 *fixed, float *xyz, int n )
+{
 	int i;
 
-	/* Buffer of encoded 16-bit pixels we transform.
-	 */
-	float encoded[3 * PIXEL_BUFFER_SIZE];
+	for( i = 0; i < n; i++ ) {
+		cmsCIEXYZ XYZ;
+		cmsXYZEncoded2Float( &XYZ, fixed );
 
-	p = (VipsPel *) in[0];
-	q = (float *) out;
-	for( i = 0; i < width; i += PIXEL_BUFFER_SIZE ) {
-		const int chunk = VIPS_MIN( width - i, PIXEL_BUFFER_SIZE );
+		xyz[0] = (float) XYZ.X / X_FAC;
+		xyz[1] = (float) XYZ.Y / Y_FAC;
+		xyz[2] = (float) XYZ.Z / Z_FAC;
 
-		cmsDoTransform( icc->trans, p, encoded, chunk );
-		decode_xyz( encoded, q, chunk );
-
-		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->in[0] );
-		q += PIXEL_BUFFER_SIZE * 3;
+		xyz += 3;
+		fixed += 3;
 	}
 }
 
@@ -855,10 +849,29 @@ vips_icc_import_line( VipsColour *colour,
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
-	if( icc->pcs == VIPS_PCS_LAB )
-		cmsDoTransform( icc->trans, in[0], out, width );
-	else
-		vips_icc_import_line_xyz( colour, out, in, width );
+	VipsPel *p;
+	float *q;
+	int i;
+
+	/* Buffer of encoded 16-bit pixels we transform.
+	 */
+	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
+
+	p = (VipsPel *) in[0];
+	q = (float *) out;
+	for( i = 0; i < width; i += PIXEL_BUFFER_SIZE ) {
+		const int chunk = VIPS_MIN( width - i, PIXEL_BUFFER_SIZE );
+
+		cmsDoTransform( icc->trans, p, encoded, chunk );
+
+		if( icc->pcs == VIPS_PCS_LAB )
+			decode_lab( encoded, q, chunk );
+		else
+			decode_xyz( encoded, q, chunk );
+
+		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->in[0] );
+		q += PIXEL_BUFFER_SIZE * 3;
+	}
 }
 
 static void
@@ -985,7 +998,7 @@ vips_icc_export_line_xyz( VipsColour *colour,
 	VipsPel *q;
 	int x;
 
-	/* Buffer of encoded 16-bit pixels we transform.
+	/* Buffer of encoded float pixels we transform.
 	 */
 	float encoded[3 * PIXEL_BUFFER_SIZE];
 
