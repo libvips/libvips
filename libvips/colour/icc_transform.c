@@ -801,15 +801,19 @@ vips_icc_import_build( VipsObject *object )
 	return( 0 );
 }
 
+#define X_FAC (cmsD50X / VIPS_D65_X0)
+#define Y_FAC (cmsD50Y / VIPS_D65_Y0)
+#define Z_FAC (cmsD50Z / VIPS_D65_Z0)
+
 static void 
 decode_xyz( float *in, float *out, int n )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		out[0] = in[0] * VIPS_D65_X0;
-		out[1] = in[1] * VIPS_D65_Y0;
-		out[2] = in[2] * VIPS_D65_Z0;
+		out[0] = in[0] / X_FAC;
+		out[1] = in[1] / Y_FAC;
+		out[2] = in[2] / Z_FAC;
 
 		out += 3;
 		in += 3;
@@ -962,9 +966,9 @@ encode_xyz( float *in, float *out, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		out[0] = in[0] / VIPS_D65_X0;
-		out[1] = in[1] / VIPS_D65_Y0;
-		out[2] = in[2] / VIPS_D65_Z0;
+		out[0] = in[0] * X_FAC;
+		out[1] = in[1] * Y_FAC;
+		out[2] = in[2] * Z_FAC;
 
 		in += 3;
 		out += 3;
