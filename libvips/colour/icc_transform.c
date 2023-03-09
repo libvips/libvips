@@ -845,12 +845,11 @@ decode_lab( guint16 *fixed, float *lab, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		cmsCIELab Lab;
-		cmsLabEncoded2Float( &Lab, fixed );
-
-		lab[0] = (float) Lab.L;
-		lab[1] = (float) Lab.a;
-		lab[2] = (float) Lab.b;
+		/* cmsLabEncoded2Float inlined.
+		 */
+		lab[0] = (double) fixed[0] / 655.35;
+		lab[1] = ((double) fixed[1] / 257.0) - 128.0;
+		lab[2] = ((double) fixed[2] / 257.0) - 128.0;
 
 		lab += 3;
 		fixed += 3;
@@ -867,12 +866,11 @@ decode_xyz( guint16 *fixed, float *xyz, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		cmsCIEXYZ XYZ;
-		cmsXYZEncoded2Float( &XYZ, fixed );
-
-		xyz[0] = (float) XYZ.X / X_FAC;
-		xyz[1] = (float) XYZ.Y / Y_FAC;
-		xyz[2] = (float) XYZ.Z / Z_FAC;
+		/* cmsXYZEncoded2Float inlined.
+ 		 */
+		xyz[0] = (double) fixed[0] / (X_FAC * 32768.0);
+		xyz[1] = (double) fixed[1] / (Y_FAC * 32768.0);
+		xyz[2] = (double) fixed[2] / (Z_FAC * 32768.0);
 
 		xyz += 3;
 		fixed += 3;
