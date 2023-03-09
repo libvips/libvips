@@ -608,11 +608,11 @@ vips_operation_class_init( VipsOperationClass *class )
 	class->usage = vips_operation_usage;
 	class->get_flags = vips_operation_real_get_flags;
 
-	VIPS_ARG_BOOL( class, "force", 200, 
-		_( "Force" ), 
-		_( "Force execution of this operation" ),
+	VIPS_ARG_BOOL( class, "revalidate", 200, 
+		_( "Revalidate" ), 
+		_( "Don't use a cached result for this operation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsOperation, force ),
+		G_STRUCT_OFFSET( VipsOperation, revalidate ),
 		FALSE );
 
 	vips_operation_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",

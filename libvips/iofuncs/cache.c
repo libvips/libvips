@@ -898,7 +898,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	hit = vips_cache_operation_lookup( *operation );
 	if( hit && 
-		!(*operation)->force ) {
+		!(*operation)->revalidate ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
 #endif /*VIPS_DEBUG*/
@@ -914,8 +914,8 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		/* If this is force, there might be an old cache entry we
-		 * must replace.
+		/* If this is a revalidation, there might be an old cache 
+		 * entry we must update.
 		 */
 		if( hit ) {
 			g_mutex_lock( vips_cache_lock );

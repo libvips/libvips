@@ -82,7 +82,7 @@ typedef struct _VipsOperation {
 
 	/* Set to force execution of this operation.
 	 */
-	gboolean force;
+	gboolean revalidate;
 
 } VipsOperation;
 

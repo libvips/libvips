@@ -14,7 +14,7 @@
 - allow negative line spacing in text [donghuikugou]
 - add VIPS_META_BITS_PER_SAMPLE metadata, deprecate the
   "palette-bit-depth" and "heif-bitdepth" meta fields [MathemanFlo]
-- add "force" to operation class [jcupitt]
+- add "revalidate" to operation class [jcupitt]
 
 TBD 8.14.2
 
