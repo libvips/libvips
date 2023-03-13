@@ -12,6 +12,7 @@ TBD 8.14.2
 - fix thumbnail of CMYK images with an embedded ICC profile [kleisauke]
 - fix ICC handling of RGB images with a monochrome profile [kleisauke]
 - ensure ICC transforms keep all precision [kleisauke]
+- fix compatibility with MSVC [SpaceIm]
 
 9/1/23 8.14.1
 
