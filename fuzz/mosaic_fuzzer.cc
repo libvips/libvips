@@ -1,13 +1,21 @@
 #include <cstring>
 #include <vips/vips.h>
 
-struct mosaic_opt {
+#ifdef __GNUC__
+#define PACK( ... ) __VA_ARGS__ __attribute__((__packed__))
+#elif defined(_MSC_VER)
+#define PACK( ... ) __pragma( pack(push, 1) ) __VA_ARGS__ __pragma( pack(pop) )
+#else
+#define PACK( ... ) __VA_ARGS__
+#endif
+
+PACK(struct mosaic_opt {
 	guint8 dir : 1;
 	guint16 xref;
 	guint16 yref;
 	guint16 xsec;
 	guint16 ysec;
-} __attribute__ ((packed));
+});
 
 extern "C" int
 LLVMFuzzerInitialize( int *argc, char ***argv )
