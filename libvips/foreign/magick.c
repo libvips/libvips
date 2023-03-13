@@ -150,7 +150,7 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 }
 
 int
-magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
+magick_import_pixels( Image *image, const gssize x, const gssize y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type,const void *pixels, ExceptionInfo *exception )
 {
@@ -358,7 +358,7 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 }
 
 int
-magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
+magick_import_pixels( Image *image, const gssize x, const gssize y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type, const void *pixels, ExceptionInfo *exception )
 {
