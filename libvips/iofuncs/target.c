@@ -470,7 +470,7 @@ vips_target_write_unbuffered( VipsTarget *target,
 		}
 
 		length -= bytes_written;
-		data += bytes_written;
+		data = (char *) data + bytes_written;
 	}
 
 	return( 0 );

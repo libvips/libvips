@@ -1121,7 +1121,7 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 			return( -1 );
 
 		size -= bytes_read;
-		data += bytes_read;
+		data = (char *) data + bytes_read;
 	}
 
 	return( 0 );

@@ -188,7 +188,7 @@ vips_exif_load_data_without_fix( const void *data, size_t length )
 		void* data_with_prefix;
 		data_with_prefix = g_malloc0( length + 6 );
 		memcpy( data_with_prefix, "Exif\0\0", 6 );
-		memcpy( data_with_prefix + 6, data, length );
+		memcpy( (char *) data_with_prefix + 6, data, length );
 		exif_data_load_data( ed, data_with_prefix, length + 6 );
 		g_free( data_with_prefix );
 	} else
