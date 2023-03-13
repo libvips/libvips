@@ -221,7 +221,7 @@ vips_foreign_save_nifti_set_fields( const char *name,
 		vips_snprintf( vips_name, 256, "nifti-%s", name );
 		if( vips_image_get( info->image, vips_name, &value_copy ) )
 			return( info );
-		vips_gvalue_write( &value_copy, (gpointer) info->nim + offset );
+		vips_gvalue_write( &value_copy, (char *) info->nim + offset );
 		g_value_unset( &value_copy );
 	}
 
