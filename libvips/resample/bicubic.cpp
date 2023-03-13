@@ -109,8 +109,8 @@ bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -172,8 +172,8 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -237,8 +237,8 @@ bicubic_float_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -301,8 +301,8 @@ bicubic_unsigned_int32_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -364,8 +364,8 @@ bicubic_signed_int32_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;
@@ -429,8 +429,8 @@ bicubic_notab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	double x, double y )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 
 	const int b1 = bands;
 	const int b2 = b1 + b1;

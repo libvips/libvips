@@ -174,10 +174,10 @@ template <typename T, int max_value>
 static void inline
 reduceh_unsigned_int_tab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int * restrict cx )
+	const int bands, const int * __restrict cx )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
@@ -195,10 +195,10 @@ template <typename T, int min_value, int max_value>
 static void inline
 reduceh_signed_int_tab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int * restrict cx )
+	const int bands, const int * __restrict cx )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
@@ -220,8 +220,8 @@ reduceh_float_tab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
 	const int bands, const double *cx )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ )
@@ -235,10 +235,10 @@ template <typename T, int max_value>
 static void inline
 reduceh_unsigned_int32_tab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const double * restrict cx )
+	const int bands, const double * __restrict cx )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
@@ -253,10 +253,10 @@ template <typename T, int min_value, int max_value>
 static void inline
 reduceh_signed_int32_tab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const double * restrict cx )
+	const int bands, const double * __restrict cx )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
@@ -276,8 +276,8 @@ reduceh_notab( VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
 	const int bands, double x )
 {
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
+	T* __restrict out = (T *) pout;
+	const T* __restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	double cx[MAX_POINT];

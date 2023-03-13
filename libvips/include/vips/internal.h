@@ -326,10 +326,10 @@ char *vips__xml_properties( VipsImage *image );
 /* TODO(kleisauke): VIPS_API is required by the poppler module.
  */
 VIPS_API
-void vips__premultiplied_bgra2rgba( guint32 * restrict p, int n );
+void vips__premultiplied_bgra2rgba( guint32 *p, int n );
 VIPS_API
-void vips__rgba2bgra_premultiplied( guint32 * restrict p, int n );
-void vips__bgra2rgba( guint32 * restrict p, int n );
+void vips__rgba2bgra_premultiplied( guint32 *p, int n );
+void vips__bgra2rgba( guint32 *p, int n );
 void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
 void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 

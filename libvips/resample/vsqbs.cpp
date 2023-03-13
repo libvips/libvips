@@ -178,16 +178,16 @@ typedef struct _VipsInterpolateVsqbsClass {
  */
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
-  vsqbs_ ## conversion(       void*    restrict pout, \
-                        const VipsPel* restrict pin,  \
+  vsqbs_ ## conversion(       void*    __restrict pout, \
+                        const VipsPel* __restrict pin,  \
                         const int             bands, \
                         const int             lskip, \
                         const double          x_0,   \
                         const double          y_0 )  \
   { \
-    T* restrict out = (T *) pout; \
+    T* __restrict out = (T *) pout; \
     \
-    const T* restrict in = (T *) pin; \
+    const T* __restrict in = (T *) pin; \
     \
     const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
     const int sign_of_y_0 = 2 * ( y_0 >= 0. ) - 1; \
@@ -302,9 +302,9 @@ extern "C" {
 
 
 static void
-vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
-                                    void*            restrict out,
-                                    VipsRegion*      restrict in,
+vips_interpolate_vsqbs_interpolate( VipsInterpolate* __restrict interpolate,
+                                    void*            __restrict out,
+                                    VipsRegion*      __restrict in,
                                     double                    absolute_x,
                                     double                    absolute_y )
 {
@@ -321,7 +321,7 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
    * 2x2 group of pixel centers which contains the sampling location
    * in its convex hull:
    */
-  const VipsPel* restrict p = VIPS_REGION_ADDR( in, ix, iy );
+  const VipsPel* __restrict p = VIPS_REGION_ADDR( in, ix, iy );
 
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;

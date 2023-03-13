@@ -480,7 +480,7 @@ vips_composite_base_select( VipsCompositeSequence *seq, VipsRect *r )
 template <typename T>
 static void
 vips_composite_base_blend( VipsCompositeBase *composite, 
-	VipsBlendMode mode, double * restrict B, T * restrict p )
+	VipsBlendMode mode, double * __restrict B, T * __restrict p )
 {
 	const int bands = composite->bands;
 
@@ -728,7 +728,7 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 template <typename T>
 static void
 vips_composite_base_blend3( VipsCompositeSequence *seq,
-	VipsBlendMode mode, v4f &B, T * restrict p )
+	VipsBlendMode mode, v4f &B, T * __restrict p )
 {
 	VipsCompositeBase *composite = seq->composite;
 
@@ -963,8 +963,8 @@ vips_combine_pixels( VipsCompositeSequence *seq, VipsPel *q )
 	int n_mode = composite->mode->area.n;
 	int n = seq->n;
 	int bands = composite->bands;
-	T * restrict tq = (T * restrict) q;
-	T ** restrict tp = (T ** restrict) seq->p;
+	T * __restrict tq = (T * __restrict) q;
+	T ** __restrict tp = (T ** __restrict) seq->p;
 
 	double B[MAX_BANDS + 1];
 	double aB;
@@ -1027,8 +1027,8 @@ vips_combine_pixels3( VipsCompositeSequence *seq, VipsPel *q )
 	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
 	int n_mode = composite->mode->area.n;
 	int n = seq->n;
-	T * restrict tq = (T * restrict) q;
-	T ** restrict tp = (T ** restrict) seq->p;
+	T * __restrict tq = (T * __restrict) q;
+	T ** __restrict tp = (T ** __restrict) seq->p;
 
 	v4f B;
 	float aB;

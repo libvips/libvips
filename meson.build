@@ -30,8 +30,6 @@ pymod = import('python')
 pkg = import('pkgconfig')
 i18n = import('i18n')
 
-add_project_arguments('-Drestrict=__restrict', language: 'cpp')
-
 # if we're optimising (eg. release mode) we turn off cast checks and g_asserts
 if get_option('optimization') in ['2', '3', 's']
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
