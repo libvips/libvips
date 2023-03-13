@@ -274,7 +274,7 @@ mat2vips_get_data( mat_t *mat, matvar_t *var, VipsImage *im )
 		return( -1 );
 
 	for( y = 0; y < im->Ysize; y++ ) {
-		const VipsPel *p = var->data + y * es;
+		const VipsPel *p = (VipsPel *) var->data + y * es;
 		int x;
 		VipsPel *q;
 
