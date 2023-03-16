@@ -345,22 +345,22 @@ nohalo_subdivision (const double           uno_two,
                     const double           cin_two,
                     const double           cin_thr,
                     const double           cin_fou,
-                          double* __restrict uno_one_1,
-                          double* __restrict uno_two_1,
-                          double* __restrict uno_thr_1,
-                          double* __restrict uno_fou_1,
-                          double* __restrict dos_one_1,
-                          double* __restrict dos_two_1,
-                          double* __restrict dos_thr_1,
-                          double* __restrict dos_fou_1,
-                          double* __restrict tre_one_1,
-                          double* __restrict tre_two_1,
-                          double* __restrict tre_thr_1,
-                          double* __restrict tre_fou_1,
-                          double* __restrict qua_one_1,
-                          double* __restrict qua_two_1,
-                          double* __restrict qua_thr_1,
-                          double* __restrict qua_fou_1)
+                          double* restrict uno_one_1,
+                          double* restrict uno_two_1,
+                          double* restrict uno_thr_1,
+                          double* restrict uno_fou_1,
+                          double* restrict dos_one_1,
+                          double* restrict dos_two_1,
+                          double* restrict dos_thr_1,
+                          double* restrict dos_fou_1,
+                          double* restrict tre_one_1,
+                          double* restrict tre_two_1,
+                          double* restrict tre_thr_1,
+                          double* restrict tre_fou_1,
+                          double* restrict qua_one_1,
+                          double* restrict qua_two_1,
+                          double* restrict qua_thr_1,
+                          double* restrict qua_fou_1)
 {
   /*
    * nohalo_subdivision calculates the missing twelve double density
@@ -1228,16 +1228,16 @@ lbbicubic( const double c00,
  */
 #define NOHALO_CONVERSION( conversion )               \
   template <typename T> static void inline            \
-  nohalo_ ## conversion(       void*  __restrict pout,  \
-                         const void*  __restrict pin,   \
+  nohalo_ ## conversion(       void*  restrict pout,  \
+                         const void*  restrict pin,   \
                          const int             bands, \
                          const int             lskip, \
                          const double          x_0,   \
                          const double          y_0 )  \
   { \
-    T* __restrict out = (T *) pout; \
+    T* restrict out = (T *) pout; \
     \
-    const T* __restrict in = (T *) pin; \
+    const T* restrict in = (T *) pin; \
     \
     \
     const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
@@ -1482,9 +1482,9 @@ G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
 
 
 static void
-vips_interpolate_nohalo_interpolate( VipsInterpolate* __restrict interpolate,
-                                     void*            __restrict out,
-                                     VipsRegion*      __restrict in,
+vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
+                                     void*            restrict out,
+                                     VipsRegion*      restrict in,
                                      double                    absolute_x,
                                      double                    absolute_y )
 {
@@ -1501,7 +1501,7 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* __restrict interpolate,
    * 2x2 group of pixel centers which contains the sampling location
    * in its convex hull:
    */
-  const VipsPel* __restrict p = VIPS_REGION_ADDR( in, ix, iy );
+  const VipsPel* restrict p = VIPS_REGION_ADDR( in, ix, iy );
 
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;

@@ -162,7 +162,7 @@ bicubic_unsigned_int(
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
-	const int* __restrict cx, const int* __restrict cy )
+	const int* restrict cx, const int* restrict cy )
 {
 	const int c0 = cx[0];
 	const int c1 = cx[1];
@@ -214,7 +214,7 @@ bicubic_signed_int(
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
-	const int* __restrict cx, const int* __restrict cy )
+	const int* restrict cx, const int* restrict cy )
 {
 	const int c0 = cx[0];
 	const int c1 = cx[1];
@@ -252,7 +252,7 @@ bicubic_signed_int(
 template <typename T> static T inline
 cubic_float(
 	const T one, const T two, const T thr, const T fou,
-	const double* __restrict cx )
+	const double* restrict cx )
 {
 	return( cx[0] * one +
 		 cx[1] * two +
@@ -268,7 +268,7 @@ bicubic_float(
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
-	const double* __restrict cx, const double* __restrict cy )
+	const double* restrict cx, const double* restrict cy )
 {
 	const double r0 = cubic_float<T>( 
 		uno_one, uno_two, uno_thr, uno_fou, cx ); 
@@ -444,7 +444,7 @@ calculate_coefficients_lanczos( double *c,
  */
 template <typename T, typename IT>
 static IT
-reduce_sum( const T * __restrict in, int stride, const IT * __restrict c, int n )
+reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
 {
 	IT sum;
 

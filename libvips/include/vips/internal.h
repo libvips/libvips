@@ -72,6 +72,20 @@ extern "C" {
 # define CLOEXEC(M) (M)
 #endif /*O_CLOEXEC*/
 
+/* C99 restrict keyword
+ */
+#ifndef restrict
+# ifndef __cplusplus
+   /* Use C99 restrict keyword */
+# elif defined(__GNUC__)
+#  define restrict __restrict__
+# elif defined(_MSC_VER)
+#  define restrict __restrict
+# else
+#  define restrict /* */
+# endif
+#endif
+
 /* << on an int is undefined in C if the int is negative. Imagine a machine
  * that uses 1s complement, for example.
  *
@@ -326,10 +340,10 @@ char *vips__xml_properties( VipsImage *image );
 /* TODO(kleisauke): VIPS_API is required by the poppler module.
  */
 VIPS_API
-void vips__premultiplied_bgra2rgba( guint32 *p, int n );
+void vips__premultiplied_bgra2rgba( guint32 * restrict p, int n );
 VIPS_API
-void vips__rgba2bgra_premultiplied( guint32 *p, int n );
-void vips__bgra2rgba( guint32 *p, int n );
+void vips__rgba2bgra_premultiplied( guint32 * restrict p, int n );
+void vips__bgra2rgba( guint32 * restrict p, int n );
 void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
 void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 

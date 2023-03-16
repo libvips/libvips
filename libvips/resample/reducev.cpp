@@ -386,10 +386,10 @@ template <typename T, int max_value>
 static void inline
 reducev_unsigned_int_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int * __restrict cy )
+	const int ne, const int lskip, const int * restrict cy )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 
@@ -408,10 +408,10 @@ template <typename T, int min_value, int max_value>
 static void inline
 reducev_signed_int_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int * __restrict cy )
+	const int ne, const int lskip, const int * restrict cy )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 
@@ -432,10 +432,10 @@ template <typename T>
 static void inline
 reducev_float_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * __restrict cy )
+	const int ne, const int lskip, const double * restrict cy )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 
@@ -450,10 +450,10 @@ template <typename T, int max_value>
 static void inline
 reducev_unsigned_int32_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * __restrict cy )
+	const int ne, const int lskip, const double * restrict cy )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 
@@ -469,10 +469,10 @@ template <typename T, int min_value, int max_value>
 static void inline
 reducev_signed_int32_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * __restrict cy )
+	const int ne, const int lskip, const double * restrict cy )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 
@@ -492,8 +492,8 @@ reducev_notab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, double y )
 {
-	T* __restrict out = (T *) pout;
-	const T* __restrict in = (T *) pin;
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof( T );
 

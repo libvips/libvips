@@ -581,16 +581,16 @@ lbbicubic( const double c00,
  */
 #define LBB_CONVERSION( conversion )                     \
   template <typename T> static void inline               \
-  lbb_ ## conversion(       void*      __restrict pout,    \
-                      const VipsPel*   __restrict pin,     \
+  lbb_ ## conversion(       void*      restrict pout,    \
+                      const VipsPel*   restrict pin,     \
                       const int             bands,       \
                       const int             lskip,       \
                       const double          relative_x,  \
                       const double          relative_y ) \
   { \
-    T* __restrict out = (T *) pout; \
+    T* restrict out = (T *) pout; \
     \
-    const T* __restrict in = (T *) pin; \
+    const T* restrict in = (T *) pin; \
     \
     const int one_shift     =  -bands; \
     const int thr_shift     =   bands; \
@@ -762,9 +762,9 @@ G_DEFINE_TYPE( VipsInterpolateLbb, vips_interpolate_lbb,
 }
 
 static void
-vips_interpolate_lbb_interpolate( VipsInterpolate* __restrict interpolate,
-                                  void*            __restrict out,
-                                  VipsRegion*      __restrict in,
+vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
+                                  void*            restrict out,
+                                  VipsRegion*      restrict in,
                                   double                    absolute_x,
                                   double                    absolute_y )
 {
@@ -781,7 +781,7 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* __restrict interpolate,
    * 2x2 group of pixel centers which contains the sampling location
    * in its convex hull:
    */
-  const VipsPel* __restrict p = VIPS_REGION_ADDR( in, ix, iy );
+  const VipsPel* restrict p = VIPS_REGION_ADDR( in, ix, iy );
 
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;
