@@ -74,16 +74,8 @@ extern "C" {
 
 /* C99 restrict keyword
  */
-#ifndef restrict
-# ifndef __cplusplus
-   /* Use C99 restrict keyword */
-# elif defined(__GNUC__)
-#  define restrict __restrict__
-# elif defined(_MSC_VER)
-#  define restrict __restrict
-# else
-#  define restrict /* */
-# endif
+#ifdef __cplusplus
+# define restrict __restrict
 #endif
 
 /* << on an int is undefined in C if the int is negative. Imagine a machine
