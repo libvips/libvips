@@ -80,10 +80,6 @@ typedef struct _VipsOperation {
 	 */
 	int pixels;
 
-	/* Set to force execution of this operation.
-	 */
-	gboolean revalidate;
-
 } VipsOperation;
 
 typedef struct _VipsOperationClass {

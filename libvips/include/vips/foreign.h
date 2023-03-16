@@ -163,6 +163,10 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsFailOn fail_on;
 
+	/* Set to force execution of this operation.
+	 */
+	gboolean revalidate;
+
 	/* Deprecated and unused. Just here for compat.
 	 */
 	gboolean fail;

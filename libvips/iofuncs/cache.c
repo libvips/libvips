@@ -888,6 +888,7 @@ int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
 	VipsOperation *hit;
+	gboolean revalidate = FALSE;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
@@ -897,8 +898,12 @@ vips_cache_operation_buildp( VipsOperation **operation )
 #endif /*VIPS_DEBUG*/
 
 	hit = vips_cache_operation_lookup( *operation );
-	if( hit && 
-		!(*operation)->revalidate ) {
+
+	if( VIPS_IS_FOREIGN_LOAD( *operation ) &&
+		VIPS_FOREIGN_LOAD( *operation )->revalidate )
+		revalidate = TRUE;
+
+	if( hit && !revalidate ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
 #endif /*VIPS_DEBUG*/
