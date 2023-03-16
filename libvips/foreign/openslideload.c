@@ -454,12 +454,11 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 	double yres;
 
 	rslide->osr = openslide_open( rslide->filename );
-	if( rslide->osr == NULL ) {
+	if( !rslide->osr ) {
 		vips_error( "openslide2vips", 
 			"%s", _( "unsupported slide format" ) );
 		return( -1 );
 	}
-
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "openslide2vips",
@@ -788,7 +787,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	if( !(rslide = readslide_new( filename, 
                 out, 0, FALSE, associated_name, FALSE, rgb )) )
 		return( -1 );
-
+	rslide->osr = openslide_open( rslide->filename );
         if( !(associated = vips__openslide_get_associated( rslide, 
                 associated_name )) )
                 return( -1 );
