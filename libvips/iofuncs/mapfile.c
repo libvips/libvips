@@ -89,6 +89,10 @@
 #include <io.h>
 #endif /*G_OS_WIN32*/
 
+#ifdef _MSC_VER
+#define mode_t guint16
+#endif
+
 /* Does this fd support mmap. Pipes won't, for example.
  * FIXME unused internal function
  */
