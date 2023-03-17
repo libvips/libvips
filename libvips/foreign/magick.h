@@ -48,7 +48,7 @@ void magick_acquire_next_image( const ImageInfo *image_info,
 	Image *image, ExceptionInfo *exception );
 int magick_set_image_size( Image *image, 
 	const size_t width, const size_t height, ExceptionInfo *exception );
-int magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
+int magick_import_pixels( Image *image, const gssize x, const gssize y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type,const void *pixels, ExceptionInfo *exception );
 void *magick_images_to_blob( const ImageInfo *image_info, Image *images, 

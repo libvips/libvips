@@ -30,8 +30,6 @@ pymod = import('python')
 pkg = import('pkgconfig')
 i18n = import('i18n')
 
-add_project_arguments('-Drestrict=__restrict', language: 'cpp')
-
 # if we're optimising (eg. release mode) we turn off cast checks and g_asserts
 if get_option('optimization') in ['2', '3', 's']
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
@@ -48,6 +46,9 @@ endif
 host_os = host_machine.system()
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
+
+# Prevent use of void* pointer arithmetic to support MSVC
+add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language : ['cpp', 'c'])
 
 glib_dep = dependency('glib-2.0', version: '>=2.40')
 gio_dep = dependency('gio-2.0')

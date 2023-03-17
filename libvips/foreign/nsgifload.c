@@ -510,7 +510,7 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 			gif->frame_number = page;
 		}
 
-		p = gif->bitmap + line * gif->info->width * sizeof( int );
+		p = (VipsPel *) gif->bitmap + line * gif->info->width * sizeof( int );
 		q = VIPS_REGION_ADDR( or, 0, r->top + y );
 		if( gif->has_transparency )
 			memcpy( q, p, VIPS_REGION_SIZEOF_LINE( or ) );

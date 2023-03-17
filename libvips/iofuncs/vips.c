@@ -480,7 +480,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 		return( NULL );
 	if( !(buf = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
-	if( read( fd, buf, length ) != (ssize_t) length ) {
+	if( read( fd, buf, length ) != (gssize) length ) {
 		g_free( buf );
 		vips_error( "VipsImage", "%s", _( "unable to read history" ) );
 		return( NULL );

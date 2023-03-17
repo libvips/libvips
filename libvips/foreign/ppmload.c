@@ -484,8 +484,8 @@ vips_foreign_load_ppm_map( VipsForeignLoadPpm *ppm )
 	if( header_offset < 0 || 
 		!data )
 		return( NULL );
-	data += header_offset;
-       	length -= header_offset;
+	data = (char *) data + header_offset;
+	length -= header_offset;
 
 	if( !(out = vips_image_new_from_memory( data, length,
 		ppm->width, ppm->height, ppm->bands, ppm->format )) )

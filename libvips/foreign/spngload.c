@@ -112,7 +112,7 @@ vips_foreign_load_png_stream( spng_ctx *ctx, void *user,
 		if( bytes_read == 0 )
 			return( SPNG_IO_EOF );
 
-		dest += bytes_read;
+		dest = (char *) dest + bytes_read;
 		length -= bytes_read;
 	}
 

@@ -226,8 +226,8 @@ static VipsIccInfo vips_icc_info_table[] = {
         { cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16 },
 
         { cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16 },
-        { cmsSigLabData, 3, TYPE_Lab_8, TYPE_Lab_16 },
-        { cmsSigXYZData, 3, -1, TYPE_XYZ_16 },
+        { cmsSigLabData, 3, TYPE_Lab_FLT, TYPE_Lab_16 },
+        { cmsSigXYZData, 3, TYPE_XYZ_FLT, TYPE_XYZ_16 },
 
         { cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
         { cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
@@ -308,14 +308,14 @@ vips_icc_build( VipsObject *object )
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_LAB;
-			icc->in_icc_format = info->lcms_type16;
+			icc->in_icc_format = info->lcms_type8;
 			break;
 
 		case cmsSigXYZData:
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_XYZ;
-			icc->in_icc_format = info->lcms_type16;
+			icc->in_icc_format = info->lcms_type8;
 			break;
 
 		case cmsSigCmykData:
@@ -545,6 +545,54 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 }
 #endif /*DEBUG*/
 
+/* How many bands we expect to see from an image after preprocessing by our
+ * parent classes. This is a bit fragile :-( 
+ *
+ * FIXME ... split the _build() for colour into separate preprocess / process
+ * / postprocess phases so we can load profiles after preprocess but before
+ * actual processing takes place.
+ */
+static int
+vips_image_expected_bands( VipsImage *image )
+{
+	int expected_bands;
+
+	switch( image->Type ) {
+		case VIPS_INTERPRETATION_B_W:
+		case VIPS_INTERPRETATION_GREY16:
+			expected_bands = 1;
+			break;
+
+		case VIPS_INTERPRETATION_XYZ:
+		case VIPS_INTERPRETATION_LAB:
+		case VIPS_INTERPRETATION_LABQ:
+		case VIPS_INTERPRETATION_RGB:
+		case VIPS_INTERPRETATION_CMC:
+		case VIPS_INTERPRETATION_LCH:
+		case VIPS_INTERPRETATION_LABS:
+		case VIPS_INTERPRETATION_sRGB:
+		case VIPS_INTERPRETATION_YXY:
+		case VIPS_INTERPRETATION_RGB16:
+		case VIPS_INTERPRETATION_scRGB:
+		case VIPS_INTERPRETATION_HSV:
+			expected_bands = 3;
+			break;
+
+		case VIPS_INTERPRETATION_MULTIBAND:
+		case VIPS_INTERPRETATION_HISTOGRAM:
+		case VIPS_INTERPRETATION_CMYK:
+		case VIPS_INTERPRETATION_MATRIX:
+		case VIPS_INTERPRETATION_FOURIER:
+		default:
+			expected_bands = image->Bands;
+			break;
+	}
+
+	expected_bands = VIPS_MIN( expected_bands, image->Bands );
+
+	return( expected_bands );
+}
+
 /* Load a profile from a blob and check compatibility with image, intent and
  * direction.
  *
@@ -583,17 +631,7 @@ vips_icc_load_profile_blob( VipsBlob *blob,
         }
 
 	if( image &&
-		image->Bands < info->bands ) { 
-		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", _( "profile incompatible with image" ) );
-		return( NULL );
-	}
-
-	/* Spot the common error of an RGB profile and a CMYK image.
-	 */
-	if( image &&
-		image->Type == VIPS_INTERPRETATION_CMYK &&
-		info->bands == 3 ) {
+		vips_image_expected_bands( image ) != info->bands ) { 
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
@@ -616,14 +654,13 @@ vips_icc_load_profile_blob( VipsBlob *blob,
  * unref the blob if it's useless.
  */
 static cmsHPROFILE
-vips_icc_verify_blob( VipsBlob **blob, 
-	VipsImage *image, VipsIntent intent, int direction )
+vips_icc_verify_blob( VipsBlob **blob, VipsImage *image, VipsIntent intent )
 {
 	if( *blob ) {
 		cmsHPROFILE profile;
 
 		if( !(profile = vips_icc_load_profile_blob( *blob, 
-			image, intent, direction )) ) {
+			image, intent, LCMS_USED_AS_INPUT )) ) {
 			vips_area_unref( (VipsArea *) *blob );
 			*blob = NULL;
 		}
@@ -663,7 +700,7 @@ vips_icc_set_import( VipsIcc *icc,
 		(embedded || !input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
 		icc->in_profile = vips_icc_verify_blob( &icc->in_blob,
-			code->in, icc->intent, LCMS_USED_AS_INPUT );
+			code->in, icc->intent );
 	}
 
 	/* Try profile from filename.
@@ -675,7 +712,7 @@ vips_icc_set_import( VipsIcc *icc,
 			!vips_profile_load( input_profile_filename, 
 				&icc->in_blob, NULL ) &&
 			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
-				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+				code->in, icc->intent )) )
 			icc->non_standard_input_profile = TRUE;
 	}
 
@@ -689,7 +726,7 @@ vips_icc_set_import( VipsIcc *icc,
 		if( 
 			!vips_profile_load( name, &icc->in_blob, NULL ) &&
 			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
-				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+				code->in, icc->intent )) )
 			icc->non_standard_input_profile = TRUE;
 	}
 
@@ -773,7 +810,7 @@ vips_icc_import_build( VipsObject *object )
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
-		cmsWhitePointFromTemp( &white, 6500 );
+		cmsWhitePointFromTemp( &white, 6504 );
 
 		icc->out_profile = cmsCreateLab4Profile( &white );
 	}
@@ -802,44 +839,48 @@ vips_icc_import_build( VipsObject *object )
 	return( 0 );
 }
 
-static void 
+static void
 decode_lab( guint16 *fixed, float *lab, int n )
 {
 	int i;
 
-        for( i = 0; i < n; i++ ) {
-                lab[0] = (double) fixed[0] / 652.800;
-                lab[1] = ((double) fixed[1] / 256.0) - 128.0;
-                lab[2] = ((double) fixed[2] / 256.0) - 128.0;
+	for( i = 0; i < n; i++ ) {
+		/* cmsLabEncoded2Float inlined.
+		 */
+		lab[0] = (double) fixed[0] / 655.35;
+		lab[1] = ((double) fixed[1] / 257.0) - 128.0;
+		lab[2] = ((double) fixed[2] / 257.0) - 128.0;
 
-                lab += 3;
-                fixed += 3;
-        }
+		lab += 3;
+		fixed += 3;
+	}
 }
 
-#define X_FAC (VIPS_D50_X0 * 32768 / (VIPS_D65_X0 * 100))
-#define Y_FAC (VIPS_D50_Y0 * 32768 / (VIPS_D65_Y0 * 100))
-#define Z_FAC (VIPS_D50_Z0 * 32768 / (VIPS_D65_Z0 * 100))
+#define X_FAC (cmsD50X / VIPS_D65_X0)
+#define Y_FAC (cmsD50Y / VIPS_D65_Y0)
+#define Z_FAC (cmsD50Z / VIPS_D65_Z0)
 
-static void 
+static void
 decode_xyz( guint16 *fixed, float *xyz, int n )
 {
 	int i;
 
-        for( i = 0; i < n; i++ ) {
-                xyz[0] = (double) fixed[0] / X_FAC;
-                xyz[1] = (double) fixed[1] / Y_FAC;
-                xyz[2] = (double) fixed[2] / Z_FAC;
+	for( i = 0; i < n; i++ ) {
+		/* cmsXYZEncoded2Float inlined.
+ 		 */
+		xyz[0] = (double) fixed[0] / (X_FAC * 32768.0);
+		xyz[1] = (double) fixed[1] / (Y_FAC * 32768.0);
+		xyz[2] = (double) fixed[2] / (Z_FAC * 32768.0);
 
-                xyz += 3;
-                fixed += 3;
-        }
+		xyz += 3;
+		fixed += 3;
+	}
 }
 
 /* Process a buffer of data.
  */
 static void
-vips_icc_import_line( VipsColour *colour, 
+vips_icc_import_line( VipsColour *colour,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsIcc *icc = (VipsIcc *) colour;
@@ -859,7 +900,7 @@ vips_icc_import_line( VipsColour *colour,
 
 		cmsDoTransform( icc->trans, p, encoded, chunk );
 
-		if( icc->pcs == VIPS_PCS_LAB ) 
+		if( icc->pcs == VIPS_PCS_LAB )
 			decode_lab( encoded, q, chunk );
 		else
 			decode_xyz( encoded, q, chunk );
@@ -936,7 +977,7 @@ vips_icc_export_build( VipsObject *object )
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
-		cmsWhitePointFromTemp( &white, 6500 );
+		cmsWhitePointFromTemp( &white, 6504 );
 
 		icc->in_profile = cmsCreateLab4Profile( &white );
 	}
@@ -968,77 +1009,45 @@ vips_icc_export_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Pack a buffer of floats into lcms's fixed-point formats. Cut from
- * lcms-1.0.8.
- */
-static void 
-encode_lab( float *lab, guint16 *fixed, int n )
+static void
+encode_xyz( float *in, float *out, int n )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		float L = lab[0];
-		float a = lab[1];
-		float b = lab[2];
+		out[0] = in[0] * X_FAC;
+		out[1] = in[1] * Y_FAC;
+		out[2] = in[2] * Z_FAC;
 
-		if( L < 0 ) 
-			L = 0;
-		if( L > 100. ) 
-			L = 100.;
-
-		if( a < -128. ) 
-			a = -128;
-		if( a > 127.9961 ) 
-			a = 127.9961;
-		if( b < -128. ) 
-			b = -128;
-		if( b > 127.9961 ) 
-			b = 127.9961;
-
-		fixed[0] = L *  652.800 + 0.5;
-		fixed[1] = (a + 128.0) * 256.0 + 0.5;
-		fixed[2] = (b + 128.0) * 256.0 + 0.5;
-
-		lab += 3;
-		fixed += 3;
+		in += 3;
+		out += 3;
 	}
 }
 
-#define MAX_ENCODEABLE_XYZ  (100 * (1.0 + 32767.0 / 32768.0))
-
-// 1.15 fixed point for XYZ
-
-static void 
-encode_xyz( float *xyz, guint16 *fixed, int n )
+static void
+vips_icc_export_line_xyz( VipsColour *colour,
+	VipsPel *out, VipsPel **in, int width )
 {
-	int i;
+	VipsIcc *icc = (VipsIcc *) colour;
 
-	for( i = 0; i < n; i++ ) {
-		float X = xyz[0];
-		float Y = xyz[1];
-		float Z = xyz[2];
+	float *p;
+	VipsPel *q;
+	int x;
 
-		if( X < 0 ) 
-			X = 0;
-		if( X > MAX_ENCODEABLE_XYZ ) 
-			X = MAX_ENCODEABLE_XYZ;
+	/* Buffer of encoded float pixels we transform.
+	 */
+	float encoded[3 * PIXEL_BUFFER_SIZE];
 
-		if( Y < 0 ) 
-			Y = 0;
-		if( Y > MAX_ENCODEABLE_XYZ ) 
-			Y = MAX_ENCODEABLE_XYZ;
+	p = (float *) in[0];
+	q = (VipsPel *) out;
+	for( x = 0; x < width; x += PIXEL_BUFFER_SIZE ) {
+		const int chunk = VIPS_MIN( width - x, PIXEL_BUFFER_SIZE );
 
-		if( Z < 0 ) 
-			Z = 0;
-		if( Z > MAX_ENCODEABLE_XYZ ) 
-			Z = MAX_ENCODEABLE_XYZ;
+		encode_xyz( p, encoded, chunk );
+		cmsDoTransform( icc->trans, encoded, q, chunk );
 
-		fixed[0] = X * X_FAC + 0.5;
-		fixed[1] = Y * Y_FAC + 0.5;
-		fixed[2] = Z * Z_FAC + 0.5;
-
-		xyz += 3;
-		fixed += 3;
+		p += PIXEL_BUFFER_SIZE * 3;
+		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->out );
 	}
 }
 
@@ -1050,29 +1059,10 @@ vips_icc_export_line( VipsColour *colour,
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
-	float *p;
-	VipsPel *q;
-	int x;
-
-	/* Buffer of encoded 16-bit pixels we transform.
-	 */
-	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
-
-	p = (float *) in[0];
-	q = (VipsPel *) out;
-	for( x = 0; x < width; x += PIXEL_BUFFER_SIZE ) {
-		const int chunk = VIPS_MIN( width - x, PIXEL_BUFFER_SIZE );
-
-		if( icc->pcs == VIPS_PCS_LAB )
-			encode_lab( p, encoded, chunk );
-		else
-			encode_xyz( p, encoded, chunk );
-
-		cmsDoTransform( icc->trans, encoded, q, chunk );
-
-		p += PIXEL_BUFFER_SIZE * 3;
-		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->out );
-	}
+	if( icc->pcs == VIPS_PCS_LAB )
+		cmsDoTransform( icc->trans, in[0], out, width );
+	else
+		vips_icc_export_line_xyz( colour, out, in, width );
 }
 
 static void
@@ -1328,9 +1318,9 @@ vips_icc_is_compatible_profile( VipsImage *image,
                 return( FALSE );
         }
 
-	if( image->Bands < info->bands ) {
-                /* Too few bands,
-                 */
+	if( vips_image_expected_bands( image ) != info->bands ) {
+		/* Bands mismatch.
+		 */
 		VIPS_FREEF( cmsCloseProfile, profile );
 		return( FALSE );
 	}

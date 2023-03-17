@@ -373,7 +373,7 @@ vips_foreign_load_nifti_set( const char *name, GValue *value, glong offset,
 
 	char vips_name[256];
 
-	vips_gvalue_read( value, (gpointer) nim + offset );
+	vips_gvalue_read( value, (char *) nim + offset );
 	vips_snprintf( vips_name, 256, "nifti-%s", name );
 	vips_image_set( out, vips_name, value );
 

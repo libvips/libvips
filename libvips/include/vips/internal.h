@@ -72,6 +72,12 @@ extern "C" {
 # define CLOEXEC(M) (M)
 #endif /*O_CLOEXEC*/
 
+/* C99 restrict keyword
+ */
+#ifdef __cplusplus
+# define restrict __restrict
+#endif
+
 /* << on an int is undefined in C if the int is negative. Imagine a machine
  * that uses 1s complement, for example.
  *

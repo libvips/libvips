@@ -1204,7 +1204,7 @@ write_vips( Write *write,
 			 */
 			if( length >= 6 &&
 				vips_isprefix( "Exif", (char *) data ) ) {
-				data += 6;
+				data = (char *) data + 6;
 				length -= 6;
 			}
 

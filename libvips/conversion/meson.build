@@ -53,7 +53,6 @@ conversion_lib = static_library('conversion',
     conversion_sources,
     conversion_headers,
     dependencies: libvips_deps,
-    c_args: [ '-Wno-unknown-pragmas' ],
     gnu_symbol_visibility: 'hidden',
 )
 

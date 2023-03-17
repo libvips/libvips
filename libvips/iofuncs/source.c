@@ -775,7 +775,7 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 
 		VIPS_DEBUG_MSG( "    %zd bytes from memory\n", available );
 		memcpy( buffer, 
-			source->data + source->read_position, available );
+			(char *) source->data + source->read_position, available );
 		source->read_position += available;
 		total_read += available;
 	}
@@ -798,7 +798,7 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 					source->read_position, 
 				available );
 			source->read_position += available;
-			buffer += available;
+			buffer = (char *) buffer + available;
 			length -= available;
 			total_read += available;
 		}
