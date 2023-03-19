@@ -888,7 +888,6 @@ int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
 	VipsOperation *hit;
-	gboolean revalidate = FALSE;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
@@ -897,13 +896,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	hit = vips_cache_operation_lookup( *operation );
-
-	if( VIPS_IS_FOREIGN_LOAD( *operation ) &&
-		VIPS_FOREIGN_LOAD( *operation )->revalidate )
-		revalidate = TRUE;
-
-	if( hit && !revalidate ) {
+	if( (hit = vips_cache_operation_lookup( *operation )) ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
 #endif /*VIPS_DEBUG*/
@@ -918,16 +911,6 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
-
-		/* If this is a revalidation, there might be an old cache 
-		 * entry we must update.
-		 */
-		if( hit ) {
-			g_mutex_lock( vips_cache_lock );
-			vips_cache_remove( hit );
-			g_mutex_unlock( vips_cache_lock );
-			hit = NULL;
-		}
 
 		vips_cache_operation_add( *operation ); 
 	}

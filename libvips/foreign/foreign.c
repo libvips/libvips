@@ -1211,7 +1211,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		_( "Revalidate" ),
 		_( "Don't use a cached result for this operation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoad, revalidate ),
+		G_STRUCT_OFFSET( VipsForeignLoad, nocache ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "sequential", 111, 
