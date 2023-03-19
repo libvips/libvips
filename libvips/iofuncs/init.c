@@ -263,7 +263,6 @@ vips_load_plugins( const char *fmt, ... )
         char dir_name[VIPS_PATH_MAX];
         GDir *dir;
 	const char *name;
-        int result;
 
 	/* Silently succeed if we can't do modules.
 	 */
@@ -281,7 +280,6 @@ vips_load_plugins( const char *fmt, ... )
 		 */
                 return( 0 );
 
-        result = 0;
         while( (name = g_dir_read_name( dir )) )
                 if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
 #if ENABLE_DEPRECATED
@@ -296,21 +294,27 @@ vips_load_plugins( const char *fmt, ... )
 
 			g_info( "loading \"%s\"", path );
 
+			/* This can fail if we're restarting (eg. in a web
+			 * service) and the library is already resident.
+			 *
+			 * Only info since this is probably harmless.
+			 */
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
 			if( !module ) {
-				g_warning( _( "unable to load \"%s\" -- %s" ), 
+				g_info( "vips_load_plugins: "
+					"unable to load \"%s\" -- %s", 
 					path, g_module_error() ); 
-				result = -1;
 			}
 
 			/* Modules will almost certainly create new types, so
 			 * they can't be unloaded.
 			 */
-			g_module_make_resident( module );
+			if( module )
+				g_module_make_resident( module );
                 }
         g_dir_close( dir );
 
-	return( result );
+	return( 0 );
 }
 #endif /*ENABLE_MODULES*/
 
