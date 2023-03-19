@@ -294,23 +294,16 @@ vips_load_plugins( const char *fmt, ... )
 
 			g_info( "loading \"%s\"", path );
 
-			/* This can fail if we're restarting (eg. in a web
-			 * service) and the library is already resident.
-			 *
-			 * Only info since this is probably harmless.
-			 */
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
-			if( !module ) {
-				g_info( "vips_load_plugins: "
-					"unable to load \"%s\" -- %s", 
-					path, g_module_error() ); 
-			}
-
-			/* Modules will almost certainly create new types, so
-			 * they can't be unloaded.
-			 */
 			if( module )
+				/* Modules will almost certainly create new 
+				 * types, so they can't be unloaded.
+				 */
 				g_module_make_resident( module );
+			else
+				g_warning( _( "unable to load \"%s\" -- %s" ), 
+					path, g_module_error() ); 
+
                 }
         g_dir_close( dir );
 
