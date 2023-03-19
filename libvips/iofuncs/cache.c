@@ -347,6 +347,13 @@ vips_object_hash_arg( VipsObject *object,
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 		GValue value = { 0, };
 
+		/* Don't take @revalidate into account.
+		 */
+		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) &&
+			strcmp( "revalidate", name ) == 0 ) {
+			return( NULL );
+		}
+
 		g_value_init( &value, type );
 		g_object_get_property( G_OBJECT( object ), name, &value ); 
 		*hash = (*hash << 1) ^ vips_value_hash( pspec, &value );
@@ -798,9 +805,9 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
+		VipsOperationFlags flags = vips_operation_get_flags( operation );
 		if( hit->invalid ||
-                        (VIPS_OPERATION_GET_CLASS( hit->operation )->flags &
-                                VIPS_OPERATION_BLOCKED) ) {
+			flags & (VIPS_OPERATION_NOCACHE | VIPS_OPERATION_BLOCKED) ) {
 			/* Has been tagged for removal, or has been blocked.
 			 */
 			vips_cache_remove( hit->operation );
