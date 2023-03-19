@@ -254,9 +254,9 @@ vips_get_prgname( void )
 
 #ifdef ENABLE_MODULES
 /* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
- * '.plg' (deprecated) suffix. Error if we had any probs.
+ * '.plg' (deprecated) suffix.
  */
-static int
+static void
 vips_load_plugins( const char *fmt, ... )
 {
         va_list ap;
@@ -264,10 +264,10 @@ vips_load_plugins( const char *fmt, ... )
         GDir *dir;
 	const char *name;
 
-	/* Silently succeed if we can't do modules.
+	/* Do nothing if modules aren't supported.
 	 */
 	if( !g_module_supported() )
-		return( 0 );
+		return;
 
         va_start( ap, fmt );
         (void) vips_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
@@ -275,10 +275,10 @@ vips_load_plugins( const char *fmt, ... )
 
 	g_info( "searching \"%s\"", dir_name );
 
-        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
-		/* Silent success for dir not there.
-		 */
-                return( 0 );
+	/* Do nothing if directory is not present.
+	 */
+	if( !(dir = g_dir_open( dir_name, 0, NULL )) )
+		return;
 
         while( (name = g_dir_read_name( dir )) )
                 if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
@@ -306,8 +306,6 @@ vips_load_plugins( const char *fmt, ... )
 
                 }
         g_dir_close( dir );
-
-	return( 0 );
 }
 #endif /*ENABLE_MODULES*/
 
@@ -608,13 +606,13 @@ vips_init( const char *argv0 )
 	 * modules, or we might try loading an operation into a library that
 	 * already has that operation built in.
 	 */
-	(void) vips_load_plugins( "%s/vips-modules-%d.%d", 
+	vips_load_plugins( "%s/vips-modules-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
 #if ENABLE_DEPRECATED
 	/* Load any vips8 plugins from the vips libdir.
 	 */
-	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
+	vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
