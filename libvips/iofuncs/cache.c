@@ -105,12 +105,6 @@ static int vips_cache_time = 0;
  */
 static GMutex *vips_cache_lock = NULL;
 
-/* Old versions of glib are missing these. When we abandon centos 5, switch to
- * g_int64_hash() and g_double_hash().
- */
-#define INT64_HASH(X) (g_direct_hash(X))
-#define DOUBLE_HASH(X) (g_direct_hash(X))
-
 /* A cache entry.
  */
 typedef struct _VipsOperationCacheEntry {
@@ -166,12 +160,12 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_UINT64 ) {
 		guint64 i = g_value_get_uint64( value );
 
-		return( INT64_HASH( (gint64 *) &i ) );
+		return( g_int64_hash( (gint64 *) &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_INT64 ) {
 		gint64 i = g_value_get_int64( value );
 
-		return( INT64_HASH( &i ) );
+		return( g_int64_hash( &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
@@ -181,7 +175,7 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
 
-		return( DOUBLE_HASH( &d ) );
+		return( g_double_hash( &d ) );
 	}
 	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
