@@ -105,12 +105,6 @@ static int vips_cache_time = 0;
  */
 static GMutex *vips_cache_lock = NULL;
 
-/* Old versions of glib are missing these. When we abandon centos 5, switch to
- * g_int64_hash() and g_double_hash().
- */
-#define INT64_HASH(X) (g_direct_hash(X))
-#define DOUBLE_HASH(X) (g_direct_hash(X))
-
 /* A cache entry.
  */
 typedef struct _VipsOperationCacheEntry {
@@ -166,12 +160,12 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_UINT64 ) {
 		guint64 i = g_value_get_uint64( value );
 
-		return( INT64_HASH( (gint64 *) &i ) );
+		return( g_int64_hash( (gint64 *) &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_INT64 ) {
 		gint64 i = g_value_get_int64( value );
 
-		return( INT64_HASH( &i ) );
+		return( g_int64_hash( &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
@@ -181,7 +175,7 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
 
-		return( DOUBLE_HASH( &d ) );
+		return( g_double_hash( &d ) );
 	}
 	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
@@ -342,7 +336,7 @@ vips_object_hash_arg( VipsObject *object,
 
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
-		!(argument_class->flags & VIPS_ARGUMENT_NOHASH) &&
+		!(argument_class->flags & VIPS_ARGUMENT_NON_HASHABLE) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
@@ -403,7 +397,7 @@ vips_object_equal_arg( VipsObject *object,
 	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
 		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
-		(argument_class->flags & VIPS_ARGUMENT_NOHASH) ||
+		(argument_class->flags & VIPS_ARGUMENT_NON_HASHABLE) ||
 		!argument_instance->assigned ) 
 		return( NULL );
 
@@ -780,6 +774,9 @@ vips_cache_trim( void )
  * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
  * return the old operation. If there's no hit, return NULL.
  *
+ * If it finds an invalid, blocked, or NOCACHE operation, it will
+ * automatically remove it and return NULL.
+ *
  * Returns: (transfer full): the cache hit, if any.
  */
 VipsOperation *
@@ -801,13 +798,18 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
-		VipsOperationFlags flags = 
+		VipsOperationFlags old_flags = 
 			vips_operation_get_flags( hit->operation );
+		VipsOperationFlags new_flags = 
+			vips_operation_get_flags( operation );
 
 		if( hit->invalid ||
-                        (flags & VIPS_OPERATION_BLOCKED) ) {
+                        (old_flags & VIPS_OPERATION_BLOCKED) ||
+                        (new_flags & VIPS_OPERATION_NOCACHE) ) {
 			/* Has been tagged for removal, or has been blocked,
 			 */
+			printf( "vips_cache_operation_lookup: "
+				"removing old entry\n" );
 			vips_cache_remove( hit->operation );
 			hit = NULL;
 		}
@@ -837,6 +839,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
  * @operation: (transfer none): pointer to operation to add
  *
  * Add a built operation to the cache. The cache will ref the operation. 
+ * NOCACHE operations are not added to the cache.
  */
 void
 vips_cache_operation_add( VipsOperation *operation )
@@ -903,9 +906,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	hit = vips_cache_operation_lookup( *operation );
-	if( hit && 
-		!(*operation)->revalidate ) {
+	if( (hit = vips_cache_operation_lookup( *operation )) ) {
 #ifdef VIPS_DEBUG
 		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
 #endif /*VIPS_DEBUG*/
@@ -920,21 +921,6 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
-
-		/* If this is a revalidation, there might be an old cache 
-		 * entry we must update.
-		 */
-		if( hit ) {
-#ifdef VIPS_DEBUG
-			printf( "vips_cache_operation_buildp: "
-				"revalidate ... removing old cache entry\n" );
-#endif /*VIPS_DEBUG*/
-
-			g_mutex_lock( vips_cache_lock );
-			vips_cache_remove( hit );
-			g_mutex_unlock( vips_cache_lock );
-			hit = NULL;
-		}
 
 		vips_cache_operation_add( *operation ); 
 	}

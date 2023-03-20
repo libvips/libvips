@@ -70,7 +70,7 @@ typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_OUTPUT = 32,
 	VIPS_ARGUMENT_DEPRECATED = 64,
 	VIPS_ARGUMENT_MODIFY = 128,
-	VIPS_ARGUMENT_NOHASH = 256
+	VIPS_ARGUMENT_NON_HASHABLE = 256
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:

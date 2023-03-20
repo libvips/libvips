@@ -596,8 +596,6 @@ vips_operation_class_init( VipsOperationClass *class )
 
 	gobject_class->finalize = vips_operation_finalize;
 	gobject_class->dispose = vips_operation_dispose;
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->build = vips_operation_build;
 	vobject_class->summary = vips_operation_summary;
@@ -607,13 +605,6 @@ vips_operation_class_init( VipsOperationClass *class )
 
 	class->usage = vips_operation_usage;
 	class->get_flags = vips_operation_real_get_flags;
-
-	VIPS_ARG_BOOL( class, "revalidate", 200, 
-		_( "Revalidate" ), 
-		_( "Don't use a cached result for this operation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_NOHASH,
-		G_STRUCT_OFFSET( VipsOperation, revalidate ),
-		FALSE );
 
 	vips_operation_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
 		G_TYPE_FROM_CLASS( class ),
