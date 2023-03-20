@@ -254,21 +254,20 @@ vips_get_prgname( void )
 
 #ifdef ENABLE_MODULES
 /* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
- * '.plg' (deprecated) suffix. Error if we had any probs.
+ * '.plg' (deprecated) suffix.
  */
-static int
+static void
 vips_load_plugins( const char *fmt, ... )
 {
         va_list ap;
         char dir_name[VIPS_PATH_MAX];
         GDir *dir;
 	const char *name;
-        int result;
 
-	/* Silently succeed if we can't do modules.
+	/* Do nothing if modules aren't supported.
 	 */
 	if( !g_module_supported() )
-		return( 0 );
+		return;
 
         va_start( ap, fmt );
         (void) vips_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
@@ -276,12 +275,11 @@ vips_load_plugins( const char *fmt, ... )
 
 	g_info( "searching \"%s\"", dir_name );
 
-        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
-		/* Silent success for dir not there.
-		 */
-                return( 0 );
+	/* Do nothing if directory is not present.
+	 */
+	if( !(dir = g_dir_open( dir_name, 0, NULL )) )
+		return;
 
-        result = 0;
         while( (name = g_dir_read_name( dir )) )
                 if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
 #if ENABLE_DEPRECATED
@@ -297,20 +295,17 @@ vips_load_plugins( const char *fmt, ... )
 			g_info( "loading \"%s\"", path );
 
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
-			if( !module ) {
+			if( module )
+				/* Modules will almost certainly create new 
+				 * types, so they can't be unloaded.
+				 */
+				g_module_make_resident( module );
+			else
 				g_warning( _( "unable to load \"%s\" -- %s" ), 
 					path, g_module_error() ); 
-				result = -1;
-			}
 
-			/* Modules will almost certainly create new types, so
-			 * they can't be unloaded.
-			 */
-			g_module_make_resident( module );
                 }
         g_dir_close( dir );
-
-	return( result );
 }
 #endif /*ENABLE_MODULES*/
 
@@ -611,13 +606,13 @@ vips_init( const char *argv0 )
 	 * modules, or we might try loading an operation into a library that
 	 * already has that operation built in.
 	 */
-	(void) vips_load_plugins( "%s/vips-modules-%d.%d", 
+	vips_load_plugins( "%s/vips-modules-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
 #if ENABLE_DEPRECATED
 	/* Load any vips8 plugins from the vips libdir.
 	 */
-	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
+	vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
