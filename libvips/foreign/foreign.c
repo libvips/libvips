@@ -1150,6 +1150,8 @@ vips_foreign_load_operation_get_flags( VipsOperation *operation )
 		get_flags( operation );
 	if( load->nocache )
 		flags |= VIPS_OPERATION_NOCACHE;
+	if( load->revalidate )
+		flags |= VIPS_OPERATION_REVALIDATE;
 
 	return( flags );
 }
@@ -1211,7 +1213,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		_( "Revalidate" ),
 		_( "Don't use a cached result for this operation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_NON_HASHABLE,
-		G_STRUCT_OFFSET( VipsForeignLoad, nocache ),
+		G_STRUCT_OFFSET( VipsForeignLoad, revalidate ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "sequential", 111, 

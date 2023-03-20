@@ -774,9 +774,6 @@ vips_cache_trim( void )
  * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
  * return the old operation. If there's no hit, return NULL.
  *
- * If it finds an invalid, blocked, or NOCACHE operation, it will
- * automatically remove it and return NULL.
- *
  * Returns: (transfer full): the cache hit, if any.
  */
 VipsOperation *
@@ -798,15 +795,14 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
-		VipsOperationFlags old_flags = 
-			vips_operation_get_flags( hit->operation );
-		VipsOperationFlags new_flags = 
+		VipsOperationFlags flags = 
 			vips_operation_get_flags( operation );
 
 		if( hit->invalid ||
-                        (old_flags & VIPS_OPERATION_BLOCKED) ||
-                        (new_flags & VIPS_OPERATION_NOCACHE) ) {
-			/* Has been tagged for removal, or has been blocked,
+                        (flags & VIPS_OPERATION_BLOCKED) ||
+                        (flags & VIPS_OPERATION_REVALIDATE) ) { 
+			/* Has been tagged for removal, has been blocked,
+			 * or needs revalidation.
 			 */
 			vips_cache_remove( hit->operation );
 			hit = NULL;
