@@ -542,13 +542,18 @@ vips_cache_unref( VipsOperation *operation )
 	g_object_unref( operation );
 }
 
+static VipsOperationCacheEntry *
+vips_cache_operation_get( VipsOperation *operation )
+{
+	return( g_hash_table_lookup( vips_cache_table, operation ) );
+}
+
 /* Remove an operation from the cache.
  */
 static void
 vips_cache_remove( VipsOperation *operation )
 {
-	VipsOperationCacheEntry *entry = (VipsOperationCacheEntry *)
-		g_hash_table_lookup( vips_cache_table, operation );
+	VipsOperationCacheEntry *entry = vips_cache_operation_get( operation );
 
 #ifdef DEBUG
 	printf( "vips_cache_remove: " );
@@ -593,8 +598,7 @@ vips_object_ref_arg( VipsObject *object,
 static void
 vips_operation_touch( VipsOperation *operation )
 {
-	VipsOperationCacheEntry *entry = (VipsOperationCacheEntry *)
-		g_hash_table_lookup( vips_cache_table, operation );
+	VipsOperationCacheEntry *entry = vips_cache_operation_get( operation );
 
 	vips_cache_time += 1;
 
@@ -768,114 +772,6 @@ vips_cache_trim( void )
 }
 
 /**
- * vips_cache_operation_lookup:
- * @operation: (transfer none): pointer to operation to lookup
- *
- * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
- * return the old operation. If there's no hit, return NULL.
- *
- * Returns: (transfer full): the cache hit, if any.
- */
-VipsOperation *
-vips_cache_operation_lookup( VipsOperation *operation )
-{
-	VipsOperationCacheEntry *hit;
-	VipsOperation *result;
-
-	g_assert( VIPS_IS_OPERATION( operation ) );
-	g_assert( !VIPS_OBJECT( operation )->constructed ); 
-
-#ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_lookup: " );
-	vips_object_print_dump( VIPS_OBJECT( operation ) );
-#endif /*VIPS_DEBUG*/
-
-	g_mutex_lock( vips_cache_lock );
-
-	result = NULL;
-
-	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
-		VipsOperationFlags flags = 
-			vips_operation_get_flags( operation );
-
-		if( hit->invalid ||
-                        (flags & VIPS_OPERATION_BLOCKED) ||
-                        (flags & VIPS_OPERATION_REVALIDATE) ) { 
-			/* Has been tagged for removal, has been blocked,
-			 * or needs revalidation.
-			 */
-			vips_cache_remove( hit->operation );
-			hit = NULL;
-		}
-		else {
-			if( vips__cache_trace ) {
-				printf( "vips cache*: " );
-				vips_object_print_summary( 
-					VIPS_OBJECT( operation ) );
-			}
-
-			result = hit->operation;
-			vips_cache_ref( result );
-		}
-	}
-
-	g_mutex_unlock( vips_cache_lock );
-
-#ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_lookup: result = %p\n", result );
-#endif /*VIPS_DEBUG*/
-
-	return( result );
-}
-
-/**
- * vips_cache_operation_add:
- * @operation: (transfer none): pointer to operation to add
- *
- * Add a built operation to the cache. The cache will ref the operation. 
- * NOCACHE operations are not added to the cache.
- */
-void
-vips_cache_operation_add( VipsOperation *operation )
-{
-	g_assert( VIPS_OBJECT( operation )->constructed ); 
-
-	g_mutex_lock( vips_cache_lock );
-
-#ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_add: adding " );
-	vips_object_print_dump( VIPS_OBJECT( operation ) );
-#endif /*VIPS_DEBUG*/
-
-	/* If two threads call the same operation at the same time, 
-	 * we can get multiple adds. Let the first one win. See
-	 * https://github.com/libvips/libvips/pull/181
-	 */
-	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
-		VipsOperationFlags flags = 
-			vips_operation_get_flags( operation );
-		gboolean nocache = flags & VIPS_OPERATION_NOCACHE;
-
-		/* Has to be after _build() so we can see output args.
-		 */
-		if( vips__cache_trace ) {
-			if( nocache )
-				printf( "vips cache : " );
-			else
-				printf( "vips cache+: " );
-			vips_object_print_summary( VIPS_OBJECT( operation ) );
-		}
-
-		if( !nocache ) 
-			vips_cache_insert( operation );
-	}
-
-	g_mutex_unlock( vips_cache_lock );
-
-	vips_cache_trim();
-}
-
-/**
  * vips_cache_operation_buildp: (skip)
  * @operation: pointer to operation to lookup
  *
@@ -889,7 +785,11 @@ vips_cache_operation_add( VipsOperation *operation )
 int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
-	VipsOperation *hit;
+	/* Any flags for this new operation we are building.
+	 */
+	VipsOperationFlags flags = vips_operation_get_flags( *operation );
+
+	VipsOperationCacheEntry *hit;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
@@ -900,24 +800,72 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	if( (hit = vips_cache_operation_lookup( *operation )) ) {
-#ifdef VIPS_DEBUG
-		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
-#endif /*VIPS_DEBUG*/
+	g_mutex_lock( vips_cache_lock );
 
-		g_object_unref( *operation );
-		*operation = hit;
+	hit = vips_cache_operation_get( *operation );
+
+	/* We need to remove the existing cache entry if it's been tagged
+	 * as invalid, if it's been blocked, or someone has requested
+	 * revalidation.
+	 */
+	if( hit ) {
+		if( hit->invalid ||
+                        (flags & VIPS_OPERATION_BLOCKED) ||
+                        (flags & VIPS_OPERATION_REVALIDATE) ) { 
+			vips_cache_remove( hit->operation );
+			hit = NULL;
+		}
 	}
-	else {
-#ifdef VIPS_DEBUG
-		printf( "vips_cache_operation_buildp: cache miss, building\n" );
-#endif /*VIPS_DEBUG*/
 
+	/* If we still have a hit, return that and junk the operation we were
+	 * passed.
+	 */
+	if( hit ) {
+		vips_cache_ref( hit->operation );
+		g_object_unref( *operation );
+		*operation = hit->operation;
+
+		if( vips__cache_trace ) {
+			printf( "vips cache*: " );
+			vips_object_print_summary( VIPS_OBJECT( *operation ) );
+		}
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+
+	/* If there was a miss, we need to build this operation and add 
+	 * it to the cache if appropriate.
+	 */
+	if( !hit ) {
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		vips_cache_operation_add( *operation ); 
+		g_mutex_lock( vips_cache_lock );
+
+		/* If two threads build the same operation at the same time, 
+		 * we can get multiple adds. Let the first one win. See
+		 * https://github.com/libvips/libvips/pull/181
+		 */
+		if( !vips_cache_operation_get( *operation ) ) {
+			/* Has to be after _build() so we can see output args.
+			 */
+			if( vips__cache_trace ) {
+				if( flags & VIPS_OPERATION_NOCACHE )
+					printf( "vips cache : " );
+				else
+					printf( "vips cache+: " );
+				vips_object_print_summary( 
+					VIPS_OBJECT( operation ) );
+			}
+
+			if( !(flags & VIPS_OPERATION_NOCACHE) ) 
+				vips_cache_insert( *operation );
+		}
+
+		g_mutex_unlock( vips_cache_lock );
 	}
+
+	vips_cache_trim();
 
 	return( 0 );
 }
@@ -1102,4 +1050,17 @@ void
 vips_cache_set_trace( gboolean trace )
 {
 	vips__cache_trace = trace;
+}
+
+/* We no longer expose this API.
+ */
+void
+vips_cache_operation_add( VipsOperation *operation )
+{
+}
+
+VipsOperation *
+vips_cache_operation_lookup( VipsOperation *operation )
+{
+	return( NULL );
 }
