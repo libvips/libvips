@@ -47,8 +47,8 @@
  */
 
 /*
-#define VIPS_DEBUG
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -342,6 +342,7 @@ vips_object_hash_arg( VipsObject *object,
 
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_NOHASH) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
@@ -397,10 +398,12 @@ vips_object_equal_arg( VipsObject *object,
 
 	gboolean equal;
 
-	/* Only test assigned input constructor args.
+	/* Only test assigned input constructor args. Avoid the nohash args as
+	 * well.
 	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
 		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
+		(argument_class->flags & VIPS_ARGUMENT_NOHASH) ||
 		!argument_instance->assigned ) 
 		return( NULL );
 
@@ -798,10 +801,12 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
+		VipsOperationFlags flags = 
+			vips_operation_get_flags( hit->operation );
+
 		if( hit->invalid ||
-                        (VIPS_OPERATION_GET_CLASS( hit->operation )->flags &
-                                VIPS_OPERATION_BLOCKED) ) {
-			/* Has been tagged for removal, or has been blocked.
+                        (flags & VIPS_OPERATION_BLOCKED) ) {
+			/* Has been tagged for removal, or has been blocked,
 			 */
 			vips_cache_remove( hit->operation );
 			hit = NULL;
@@ -892,7 +897,9 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
 #ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_buildp: " );
+	printf( "vips_cache_operation_buildp: %p %s\n", 
+		*operation,
+		VIPS_OBJECT_GET_CLASS( *operation )->nickname );
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
@@ -918,6 +925,11 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		 * entry we must update.
 		 */
 		if( hit ) {
+#ifdef VIPS_DEBUG
+			printf( "vips_cache_operation_buildp: "
+				"revalidate ... removing old cache entry\n" );
+#endif /*VIPS_DEBUG*/
+
 			g_mutex_lock( vips_cache_lock );
 			vips_cache_remove( hit );
 			g_mutex_unlock( vips_cache_lock );

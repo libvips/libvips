@@ -173,6 +173,7 @@
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
  * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
  * @VIPS_ARGUMENT_MODIFY: the input argument will be modified
+ * @VIPS_ARGUMENT_NOHASH: don't include this argument in hashing
  *
  * Flags we associate with each object argument.
  *
@@ -193,6 +194,10 @@
  *
  * Input args with @VIPS_ARGUMENT_MODIFY will be modified by the operation.
  * This is used for things like the in-place drawing operations. 
+ *
+ * @VIPS_ARGUMENT_NOHASH stops the argument being used in hash and equality
+ * tests. It's useful for arguments like `revalidate` which control the
+ * behaviour of the operator cache.
  */
 
 /* Our signals. 

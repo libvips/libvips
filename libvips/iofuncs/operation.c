@@ -611,7 +611,7 @@ vips_operation_class_init( VipsOperationClass *class )
 	VIPS_ARG_BOOL( class, "revalidate", 200, 
 		_( "Revalidate" ), 
 		_( "Don't use a cached result for this operation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_NOHASH,
 		G_STRUCT_OFFSET( VipsOperation, revalidate ),
 		FALSE );
 
