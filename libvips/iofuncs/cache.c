@@ -808,8 +808,6 @@ vips_cache_operation_lookup( VipsOperation *operation )
                         (new_flags & VIPS_OPERATION_NOCACHE) ) {
 			/* Has been tagged for removal, or has been blocked,
 			 */
-			printf( "vips_cache_operation_lookup: "
-				"removing old entry\n" );
 			vips_cache_remove( hit->operation );
 			hit = NULL;
 		}
