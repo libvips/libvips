@@ -173,6 +173,7 @@
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
  * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
  * @VIPS_ARGUMENT_MODIFY: the input argument will be modified
+ * @VIPS_ARGUMENT_NON_HASHABLE: the argument is non-hashable
  *
  * Flags we associate with each object argument.
  *

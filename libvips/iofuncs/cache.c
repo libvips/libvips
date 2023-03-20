@@ -336,17 +336,11 @@ vips_object_hash_arg( VipsObject *object,
 
 	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+		(argument_class->flags & VIPS_ARGUMENT_NON_HASHABLE) == 0 &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
 		GValue value = { 0, };
-
-		/* Don't take @revalidate into account.
-		 */
-		if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) &&
-			strcmp( "revalidate", name ) == 0 ) {
-			return( NULL );
-		}
 
 		g_value_init( &value, type );
 		g_object_get_property( G_OBJECT( object ), name, &value ); 

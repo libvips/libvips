@@ -1210,7 +1210,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	VIPS_ARG_BOOL( class, "revalidate", 110,
 		_( "Revalidate" ),
 		_( "Don't use a cached result for this operation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_NON_HASHABLE,
 		G_STRUCT_OFFSET( VipsForeignLoad, nocache ),
 		FALSE );
 
