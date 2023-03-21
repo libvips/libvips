@@ -780,6 +780,16 @@ vips_cache_trim( void )
  *
  * If we miss, build and add @operation.
  *
+ * Operators that have been tagged as invalid by the `invalidate` signal are
+ * removed from cache.
+ *
+ * Operators with the #VIPS_OPERATION_BLOCKED flag are never executed.
+ *
+ * Operators with the #VIPS_OPERATION_REVALIDATE flag are always executed and
+ * any old cache value is replaced.
+ *
+ * Operatoes with the #VIPS_OPERATION_NOCACHE flag are never cached.
+ *
  * Returns: 0 on success, or -1 on error.
  */
 int

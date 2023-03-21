@@ -109,10 +109,6 @@
  * for it automatically appears in all VIPS user-interfaces. It will also be
  * transparently supported by vips_image_new_from_file() and friends.
  *
- * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, FITS, WebP, SVG, PDF, GIF and VIPS. It also includes 
- * import filters which can load with libMagick and with OpenSlide. 
- *
  * ## Writing a new loader
  *
  * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
