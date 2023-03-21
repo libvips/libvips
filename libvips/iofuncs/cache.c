@@ -788,7 +788,7 @@ vips_cache_trim( void )
  * Operators with the #VIPS_OPERATION_REVALIDATE flag are always executed and
  * any old cache value is replaced.
  *
- * Operatoes with the #VIPS_OPERATION_NOCACHE flag are never cached.
+ * Operators with the #VIPS_OPERATION_NOCACHE flag are never cached.
  *
  * Returns: 0 on success, or -1 on error.
  */
