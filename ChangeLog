@@ -1,4 +1,4 @@
-TBD 8.14.2
+21/3/23 8.14.2
 
 - use a private fontmap in vips_text() [jcupitt]
 - increase sanity checks on TIFF tile dimensions [lovell]
