@@ -173,6 +173,7 @@
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  * @VIPS_OPERATION_UNTRUSTED: not hardened for untrusted input
  * @VIPS_OPERATION_BLOCKED: prevent this operation from running
+ * @VIPS_OPERATION_REVALIDATE: force the operation to run
  *
  * Flags we associate with an operation.
  *
@@ -203,6 +204,10 @@
  *
  * @VIPS_OPERATION_BLOCKED means the operation is prevented from executing. Use
  * vips_operation_block_set() to enable and disable groups of operations.
+ *
+ * @VIPS_OPERATION_REVALIDATE: force the operation to run, updating the cache
+ * with the new value. This is used by eg. VipsForeignLoad to implement the
+ * "revalidate" argument.
  */
 
 /* Abstract base class for operations.

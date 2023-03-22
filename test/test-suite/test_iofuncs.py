@@ -2,9 +2,17 @@
 import pytest
 
 import pyvips
+import tempfile
+from helpers import temp_filename
 
 
 class TestIofuncs:
+    tempdir = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.tempdir = tempfile.mkdtemp()
+
     def test_new_from_image(self):
         im = pyvips.Image.mask_ideal(100, 100, 0.5,
                                      reject=True, optical=True)
@@ -41,8 +49,6 @@ class TestIofuncs:
 
         assert im.avg() == 10
 
-    @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
-                        reason="requires libvips >= 8.5")
     def test_get_fields(self):
         im = pyvips.Image.black(10, 10)
         fields = im.get_fields()
@@ -56,6 +62,31 @@ class TestIofuncs:
         t = im.write_to_memory()
 
         assert s == t
+
+    def test_revalidate(self):
+        filename = temp_filename(self.tempdir, '.v')
+
+        im1 = pyvips.Image.black(10, 10)
+        im1.write_to_file(filename)
+
+        load1 = pyvips.Image.new_from_file(filename);
+        assert load1.width == im1.width
+
+        im2 = pyvips.Image.black(20, 20)
+        im2.write_to_file(filename)
+
+        # this will use the old, cached load
+        load2 = pyvips.Image.new_from_file(filename);
+        assert load2.width == im1.width
+
+        # load again with "revalidate" and we should see the new image
+        load2 = pyvips.Image.new_from_file(filename, revalidate=True);
+        assert load2.width == im2.width
+
+        # load once more without revalidate and we should see the cached 
+        # new image
+        load2 = pyvips.Image.new_from_file(filename)
+        assert load2.width == im2.width
 
 
 if __name__ == '__main__':

@@ -192,6 +192,11 @@ typedef struct _VipsForeignLoad {
 	 * from also triggering the load.
 	 */
 	gboolean error;
+
+	/* Set by "revalidate": set the REVALIDATE flag for this operation to
+	 * force it to execute.
+	 */
+	gboolean revalidate;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {

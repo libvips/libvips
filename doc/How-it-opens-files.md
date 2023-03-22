@@ -9,7 +9,7 @@
   <refpurpose>How libvips opens files</refpurpose>
 </refnamediv>
 
-libvips now has at least four different ways of opening image files, each
+libvips has at least four different ways of opening image files, each
 best for different file types, file sizes and image use cases. libvips tries
 hard to pick the best strategy in each case and mostly you don't need to
 know what it is doing behind the scenes, except unfortunately when you do.
@@ -17,6 +17,15 @@ know what it is doing behind the scenes, except unfortunately when you do.
 This page tries to explain what the different strategies are and when each is
 used. If you are running into unexpected memory, disc or CPU use, this might
 be helpful. `vips_image_new_from_file()` has the official documentation.
+
+# Caching
+
+libvips caches recent operations. This means that if a file changes between
+one load and the next, the second load will return the old image, even though
+the file has been replaced.
+
+You can force libvips to load a file and ignore any cached value by
+setting the `revalidate` flag, see #VipsForeignLoad.
 
 # Direct access
 

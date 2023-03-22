@@ -109,10 +109,6 @@
  * for it automatically appears in all VIPS user-interfaces. It will also be
  * transparently supported by vips_image_new_from_file() and friends.
  *
- * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, FITS, WebP, SVG, PDF, GIF and VIPS. It also includes 
- * import filters which can load with libMagick and with OpenSlide. 
- *
  * ## Writing a new loader
  *
  * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
@@ -1150,6 +1146,8 @@ vips_foreign_load_operation_get_flags( VipsOperation *operation )
 		get_flags( operation );
 	if( load->nocache )
 		flags |= VIPS_OPERATION_NOCACHE;
+	if( load->revalidate )
+		flags |= VIPS_OPERATION_REVALIDATE;
 
 	return( flags );
 }
@@ -1207,21 +1205,28 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, fail_on ),
 		VIPS_TYPE_FAIL_ON, VIPS_FAIL_ON_NONE ); 
 
-	VIPS_ARG_BOOL( class, "sequential", 110, 
+	VIPS_ARG_BOOL( class, "revalidate", 110,
+		_( "Revalidate" ),
+		_( "Don't use a cached result for this operation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_NON_HASHABLE,
+		G_STRUCT_OFFSET( VipsForeignLoad, revalidate ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "sequential", 111, 
 		_( "Sequential" ), 
 		_( "Sequential read only" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "fail", 111,
+	VIPS_ARG_BOOL( class, "fail", 112,
 		_( "Fail" ), 
 		_( "Fail on first warning" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "disc", 112, 
+	VIPS_ARG_BOOL( class, "disc", 113, 
 		_( "Disc" ), 
 		_( "Open to disc" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
