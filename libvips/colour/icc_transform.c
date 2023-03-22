@@ -732,10 +732,6 @@ vips_icc_set_import( VipsIcc *icc,
 			name = "cmyk";	
 			break;
 
-		case VIPS_INTERPRETATION_RGB16:
-			name = "p3";
-			break;
-
 		default:
 			name = "srgb";
 			break;
