@@ -720,8 +720,22 @@ vips_icc_set_import( VipsIcc *icc,
 	 */
 	if( code->in &&
 		!icc->in_profile ) {
-		const char *name = code->in->Type == VIPS_INTERPRETATION_CMYK ?
-			"cmyk" : "srgb";
+		const char *name;
+
+		switch( code->in->Type ) {
+		case VIPS_INTERPRETATION_B_W:
+		case VIPS_INTERPRETATION_GREY16:
+			name = "sgrey";
+			break;
+
+		case VIPS_INTERPRETATION_CMYK:
+			name = "cmyk";	
+			break;
+
+		default:
+			name = "srgb";
+			break;
+		}
 
 		if( 
 			!vips_profile_load( name, &icc->in_blob, NULL ) &&
