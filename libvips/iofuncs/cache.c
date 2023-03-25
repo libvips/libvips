@@ -850,6 +850,11 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
+		/* Retrieve the flags again, as vips_foreign_load_build() may
+		 * set load->nocache.
+		 */
+		flags = vips_operation_get_flags( *operation );
+
 		g_mutex_lock( vips_cache_lock );
 
 		/* If two threads build the same operation at the same time, 
