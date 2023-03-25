@@ -865,7 +865,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 				else
 					printf( "vips cache+: " );
 				vips_object_print_summary( 
-					VIPS_OBJECT( operation ) );
+					VIPS_OBJECT( *operation ) );
 			}
 
 			if( !(flags & VIPS_OPERATION_NOCACHE) ) 
