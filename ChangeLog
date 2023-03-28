@@ -16,7 +16,11 @@
   "palette-bit-depth" and "heif-bitdepth" meta fields [MathemanFlo]
 - add "revalidate" to foreign loaders [jcupitt]
 
-TBD 8.14.2
+TBD 8.14.3
+
+- fix ICC handling of greyscale images with a incompatible profile [kleisauke]
+
+21/3/23 8.14.2
 
 - use a private fontmap in vips_text() [jcupitt]
 - increase sanity checks on TIFF tile dimensions [lovell]

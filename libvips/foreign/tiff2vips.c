@@ -2934,8 +2934,8 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 		/* Arbitrary sanity-checking limits.
 		 */
-		max_tile_dimension = VIPS_MIN( 10000, VIPS_ROUND_UP(
-			VIPS_MAX ( header->width, header->height ), 256 ) );
+		max_tile_dimension = VIPS_MIN( 8192, VIPS_ROUND_UP(
+			2 * VIPS_MAX ( header->width, header->height ), 256 ) );
 		if( header->tile_width <= 0 ||
 			header->tile_width > max_tile_dimension ||
 			header->tile_width % 16 != 0 ||
