@@ -180,7 +180,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		NULL );
 
 	VIPS_ARG_BOOL( class, "optimize_coding", 12,
-		_( "Optimize_coding" ),
+		_( "Optimize coding" ),
 		_( "Compute optimal Huffman coding tables" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_coding ),
