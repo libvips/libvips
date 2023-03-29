@@ -949,30 +949,20 @@ layer_free( Layer *layer )
 	VIPS_UNREF( layer->image );
 }
 
-/* Free an entire pyramid.
- */
-static void
-layer_free_all( Layer *layer )
-{
-	if( layer->below ) 
-		layer_free_all( layer->below );
-
-	layer_free( layer );
-}
-
 static void
 wtiff_free( Wtiff *wtiff )
 {
 	Layer *layer;
 
-	/* unref all the targets, including the base layer.
+	/* Free all pyramid resources.
 	 */
-	for( layer = wtiff->layer; layer; layer = layer->below )
+	for( layer = wtiff->layer; layer; layer = layer->below ) {
+		layer_free( layer );
 		VIPS_UNREF( layer->target );
+	}
 
 	VIPS_UNREF( wtiff->ready );
 	VIPS_FREE( wtiff->tbuf );
-	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREE( wtiff );
 }
 
@@ -2163,7 +2153,8 @@ wtiff_page_end( Wtiff *wtiff )
 		 * TIFFClose() (but not delete) the smaller layers 
 		 * ready for us to read from them again.
 		 */
-		layer_free_all( wtiff->layer->below );
+		for( layer = wtiff->layer->below; layer; layer = layer->below )
+			layer_free( layer );
 
 		/* Append smaller layers to the main file.
 		 */
