@@ -441,7 +441,7 @@ if pdfium_dep.found()
     cfg_var.set('HAVE_PDFIUM', '1')
 endif
 
-libheif_dep = dependency('libheif', version: '>=1.3.0', required: get_option('heif'))
+libheif_dep = dependency('libheif', version: '>=1.4.0', required: get_option('heif'))
 libheif_module = false
 if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
