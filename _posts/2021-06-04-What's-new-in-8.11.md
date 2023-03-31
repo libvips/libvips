@@ -123,7 +123,7 @@ It's easy to use -- for example:
 
 ```
 $ vips copy k2.jpg x.tif[compression=jp2k,Q=90,tile]
-$ vips copy k2.jpg x.tif[compression=jp2k,lossless]
+$ vips copy k2.jpg x.tif[compression=jp2k,lossless,tile]
 ```
 
 # C++ API improments
