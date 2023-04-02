@@ -347,6 +347,27 @@ class TestConversion:
         assert opts["attention_x"] == 199
         assert opts["attention_y"] == 234
 
+    def test_smartcrop_rgba(self):
+        rgba = pyvips.Image.new_from_file(RGBA_FILE)
+        test, opts = rgba.smartcrop(
+            80, 60,
+            attention_x=True, attention_y=True)
+        assert test.width == 80
+        assert test.height == 60
+        assert opts["attention_x"] == 20
+        assert opts["attention_y"] == 124
+
+    def test_smartcrop_rgba_premultiplied(self):
+        rgba = pyvips.Image.new_from_file(RGBA_FILE)
+        test, opts = rgba.premultiply().smartcrop(
+            80, 60,
+            premultiplied=True,
+            attention_x=True, attention_y=True)
+        assert test.width == 80
+        assert test.height == 60
+        assert opts["attention_x"] == 20
+        assert opts["attention_y"] == 124
+
     def test_falsecolour(self):
         for fmt in all_formats:
             test = self.colour.cast(fmt)

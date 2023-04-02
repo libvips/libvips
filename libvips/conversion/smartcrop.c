@@ -72,6 +72,7 @@ typedef struct _VipsSmartcrop {
 	int width;
 	int height;
 	VipsInteresting interesting;
+	gboolean premultiplied;
 
 	int attention_x;
 	int attention_y;
@@ -346,7 +347,7 @@ vips_smartcrop_build( VipsObject *object )
 	 * content. There could be stuff in transparent areas which we don't
 	 * want to consider. 
 	 */
-	if( vips_image_hasalpha( in ) ) { 
+	if( vips_image_hasalpha( in ) && !smartcrop->premultiplied ) {
 		if( vips_premultiply( in, &t[0], NULL ) ) 
 			return( -1 );
 		in = t[0];
@@ -466,6 +467,12 @@ vips_smartcrop_class_init( VipsSmartcropClass *class )
 		G_STRUCT_OFFSET( VipsSmartcrop, attention_y ),
 		0, VIPS_MAX_COORD, 0 );
 
+	VIPS_ARG_BOOL( class, "premultiplied", 7,
+		_( "Premultiplied" ),
+		_( "Input image already has premultiplied alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSmartcrop, premultiplied ),
+		FALSE );
 
 }
 
@@ -473,6 +480,7 @@ static void
 vips_smartcrop_init( VipsSmartcrop *smartcrop )
 {
 	smartcrop->interesting = VIPS_INTERESTING_ATTENTION;
+	smartcrop->premultiplied = FALSE;
 }
 
 /**
@@ -486,6 +494,7 @@ vips_smartcrop_init( VipsSmartcrop *smartcrop )
  * Optional arguments:
  * 
  * * @interesting: #VipsInteresting to use to find interesting areas (default: #VIPS_INTERESTING_ATTENTION)
+ * * @premultiplied: %gboolean, input image already has premultiplied alpha
  * * @attention_x: %gint, horizontal position of attention centre when using attention based cropping
  * * @attention_y: %gint, vertical position of attention centre when using attention based cropping
  * 
