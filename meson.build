@@ -640,6 +640,9 @@ config_dep = declare_dependency(
 
 libvips_deps += config_dep
 
+gir = find_program('g-ir-scanner', required: get_option('introspection'))
+enable_introspection = gir.found() and (not meson.is_cross_build() or get_option('introspection').enabled())
+
 build_summary = {
   'Build options':
     {'enable debug': [get_option('debug')],
@@ -647,7 +650,7 @@ build_summary = {
      'enable modules': [modules_enabled],
      'enable gtk-doc': [get_option('gtk_doc')],
      'enable doxygen': [get_option('doxygen')],
-     'enable introspection': [get_option('introspection')],
+     'enable introspection': [enable_introspection],
      'enable examples': [get_option('examples')],
      'enable cplusplus': [get_option('cplusplus')],
      'enable RAD load/save': [get_option('radiance')],

@@ -182,8 +182,8 @@ EOF
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static \
-  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dintrospection=false \
-  -Dmodules=disabled -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
+  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
+  -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 ninja -C build
 ninja -C build install
 

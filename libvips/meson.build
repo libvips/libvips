@@ -41,7 +41,7 @@ pkg.generate(
     description: 'Image processing library',
 )
 
-if get_option('introspection')
+if enable_introspection
     vips_gir = gnome.generate_gir(
         libvips_lib,
         namespace: 'Vips',

@@ -112,7 +112,6 @@ jobs:
           meson setup build
             -Ddebug=true
             -Ddeprecated=false
-            -Dintrospection=false
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
