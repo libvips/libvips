@@ -31,9 +31,9 @@ option('modules',
   description: 'Build dynamic modules')
 
 option('introspection', 
-  type: 'boolean', 
-  value: true, 
-  description: 'Build GObject introspection')
+  type: 'feature', 
+  value: 'auto', 
+  description: 'Build GObject introspection data')
 
 option('vapi', 
   type: 'boolean', 
