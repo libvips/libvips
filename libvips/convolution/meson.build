@@ -1,6 +1,6 @@
 convolution_sources = files(
     'canny.c',
-    'sobel.c',
+    'edge.c',
     'convolution.c',
     'correlation.c',
     'conv.c',

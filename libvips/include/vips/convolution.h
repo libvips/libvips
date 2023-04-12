@@ -85,6 +85,12 @@ VIPS_API
 int vips_sobel( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_scharr( VipsImage *in, VipsImage **out, ... )
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_prewitt( VipsImage *in, VipsImage **out, ... )
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_canny( VipsImage *in, VipsImage **out, ... )
 	G_GNUC_NULL_TERMINATED;
 
