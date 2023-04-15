@@ -846,12 +846,12 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	/* Is there too much overlap? ie. right edge of ref image is greater
 	 * than right edge of sec image, or left > left.
 	 */
-	if( VIPS_RECT_RIGHT( &ovlap->rarea ) > 
-		VIPS_RECT_RIGHT( &ovlap->sarea ) ||
-		ovlap->rarea.left > ovlap->sarea.left ) {
-		vips_error( "lrmerge", "%s", _( "too much overlap" ) );
-		return( NULL );
-	}
+// 	if( VIPS_RECT_RIGHT( &ovlap->rarea ) > 
+// 		VIPS_RECT_RIGHT( &ovlap->sarea ) ||
+// 		ovlap->rarea.left > ovlap->sarea.left ) {
+// 		vips_error( "lrmerge", "%s", _( "too much overlap" ) );
+// 		return( NULL );
+// 	}
 
 	/* Max number of pixels we may have to blend over.
 	 */
