@@ -525,8 +525,8 @@ vips_threadpool_new(VipsImage *im)
 	 * the number of threads we create.
 	 */
 	vips_get_tile_size(im, &tile_width, &tile_height, &n_lines);
-	n_tiles = (1 + (gint64) im->Xsize / tile_width) *
-		(1 + (gint64) im->Ysize / tile_height);
+	n_tiles = ((gint64) VIPS_ROUND_UP(im->Xsize, tile_width) / tile_width) *
+		((gint64) VIPS_ROUND_UP(im->Ysize, tile_height) / tile_height);
 	n_tiles = VIPS_CLIP(1, n_tiles, 1024);
 	pool->max_workers = VIPS_MIN(pool->max_workers, n_tiles);
 

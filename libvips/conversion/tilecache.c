@@ -549,6 +549,8 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 {
 	const int tw = cache->tile_width;
 	const int th = cache->tile_height;
+	const int n_tiles = VIPS_ROUND_UP(r->width, tw) / tw *
+		VIPS_ROUND_UP(r->height, th) / th;
 
 	/* Find top left of tiles we need.
 	 */
@@ -558,6 +560,17 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 	GSList *work;
 	VipsTile *tile;
 	int x, y;
+
+	/* We size up the cache to the largest request.
+	 */
+	if (cache->max_tiles != -1 &&
+		n_tiles > cache->max_tiles) {
+		VIPS_DEBUG_MSG(
+			"vips_tile_cache_ref: bumped max_tiles from %d to %d\n",
+			cache->max_tiles,
+			n_tiles);
+		cache->max_tiles = n_tiles;
+	}
 
 	/* Ref all the tiles we will need.
 	 */
@@ -596,7 +609,7 @@ vips_tile_paste(VipsTile *tile, VipsRegion *out_region)
 		vips_region_copy(tile->region, out_region, &hit, hit.left, hit.top);
 }
 
-/* Also called from vips_line_cache_gen(), beware.
+/* Also used by vips_line_cache(), beware.
  */
 static int
 vips_tile_cache_gen(VipsRegion *out_region,
@@ -882,33 +895,6 @@ typedef VipsBlockCacheClass VipsLineCacheClass;
 G_DEFINE_TYPE(VipsLineCache, vips_line_cache, VIPS_TYPE_BLOCK_CACHE);
 
 static int
-vips_line_cache_gen(VipsRegion *out_region,
-	void *seq, void *a, void *b, gboolean *stop)
-{
-	VipsBlockCache *block_cache = (VipsBlockCache *) b;
-
-	VIPS_GATE_START("vips_line_cache_gen: wait");
-
-	vips__worker_lock(block_cache->lock);
-
-	VIPS_GATE_STOP("vips_line_cache_gen: wait");
-
-	/* We size up the cache to the largest request.
-	 */
-	if (out_region->valid.height >
-		block_cache->max_tiles * block_cache->tile_height) {
-		block_cache->max_tiles =
-			1 + (out_region->valid.height / block_cache->tile_height);
-		VIPS_DEBUG_MSG("vips_line_cache_gen: bumped max_tiles to %d\n",
-			block_cache->max_tiles);
-	}
-
-	g_mutex_unlock(block_cache->lock);
-
-	return vips_tile_cache_gen(out_region, seq, a, b, stop);
-}
-
-static int
 vips_line_cache_build(VipsObject *object)
 {
 	VipsConversion *conversion = VIPS_CONVERSION(object);
@@ -924,14 +910,13 @@ vips_line_cache_build(VipsObject *object)
 	if (!vips_object_argument_isset(object, "access"))
 		block_cache->access = VIPS_ACCESS_SEQUENTIAL;
 
+	block_cache->tile_width = block_cache->in->Xsize;
+
 	if (VIPS_OBJECT_CLASS(vips_line_cache_parent_class)->build(object))
 		return -1;
 
-	/* This can go up with request size, see vips_line_cache_gen().
-	 */
 	vips_get_tile_size(block_cache->in,
 		&tile_width, &tile_height, &n_lines);
-	block_cache->tile_width = block_cache->in->Xsize;
 
 	/* Output has two buffers n_lines height, so 2 * n_lines is the maximum
 	 * non-locality from threading. Double again for conv, rounding, etc.
@@ -965,7 +950,7 @@ vips_line_cache_build(VipsObject *object)
 		return -1;
 
 	if (vips_image_generate(conversion->out,
-			vips_start_one, vips_line_cache_gen, vips_stop_one,
+			vips_start_one, vips_tile_cache_gen, vips_stop_one,
 			block_cache->in, cache))
 		return -1;
 
