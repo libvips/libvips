@@ -59,7 +59,6 @@
  *
  * These operations convolve an image in some way, or are operations based on
  * simple convolution, or are useful with convolution.
- *
  */
 
 /** 
@@ -169,6 +168,8 @@ vips_convolution_operation_init( void )
 	extern GType vips_sharpen_get_type( void ); 
 	extern GType vips_gaussblur_get_type( void ); 
 	extern GType vips_sobel_get_type( void ); 
+	extern GType vips_scharr_get_type( void ); 
+	extern GType vips_prewitt_get_type( void ); 
 	extern GType vips_canny_get_type( void ); 
 
 	vips_conv_get_type(); 
@@ -182,6 +183,8 @@ vips_convolution_operation_init( void )
 	vips_spcor_get_type(); 
 	vips_sharpen_get_type(); 
 	vips_gaussblur_get_type(); 
-	vips_canny_get_type(); 
 	vips_sobel_get_type(); 
+	vips_scharr_get_type(); 
+	vips_prewitt_get_type(); 
+	vips_canny_get_type(); 
 }

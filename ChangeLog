@@ -16,6 +16,8 @@
   "palette-bit-depth" and "heif-bitdepth" meta fields [MathemanFlo]
 - add "revalidate" to foreign loaders [jcupitt]
 - add `premultiplied` option to smartcrop [lovell]
+- add "prewitt" and "scharr" edge detectors, "sobel" is more accurate for
+  non-uchar formats [jcupitt]
 
 TBD 8.14.3
 
