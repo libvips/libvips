@@ -178,10 +178,10 @@ libvips/convolution/convi.c
 libvips/convolution/convolution.c
 libvips/convolution/convsep.c
 libvips/convolution/correlation.c
+libvips/convolution/edge.c
 libvips/convolution/fastcor.c
 libvips/convolution/gaussblur.c
 libvips/convolution/sharpen.c
-libvips/convolution/sobel.c
 libvips/convolution/spcor.c
 libvips/create/black.c
 libvips/create/buildlut.c

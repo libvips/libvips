@@ -2706,6 +2706,18 @@ VImage VImage::premultiply( VOption *options ) const
     return( out );
 }
 
+VImage VImage::prewitt( VOption *options ) const
+{
+    VImage out;
+
+    call( "prewitt",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "out", &out ) );
+
+    return( out );
+}
+
 VImage VImage::profile( VImage *rows, VOption *options ) const
 {
     VImage columns;
@@ -3129,6 +3141,18 @@ VImage VImage::scale( VOption *options ) const
     VImage out;
 
     call( "scale",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::scharr( VOption *options ) const
+{
+    VImage out;
+
+    call( "scharr",
         (options ? options : VImage::option())->
             set( "in", *this )->
             set( "out", &out ) );

@@ -1172,6 +1172,11 @@
   <entry>vips_premultiply()</entry>
 </row>
 <row>
+  <entry>prewitt</entry>
+  <entry>Prewitt edge detector</entry>
+  <entry>vips_prewitt()</entry>
+</row>
+<row>
   <entry>profile</entry>
   <entry>Find image profiles</entry>
   <entry>vips_profile()</entry>
@@ -1345,6 +1350,11 @@
   <entry>scale</entry>
   <entry>Scale an image to uchar</entry>
   <entry>vips_scale()</entry>
+</row>
+<row>
+  <entry>scharr</entry>
+  <entry>Scharr edge detector</entry>
+  <entry>vips_scharr()</entry>
 </row>
 <row>
   <entry>sequential</entry>
