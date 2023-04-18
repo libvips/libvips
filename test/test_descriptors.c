@@ -101,9 +101,9 @@ main( int argc, char **argv )
 
 	list = get_open_files();
 	if( list == NULL )
-		/* Probably not linux, silent success.
+		/* Probably not *nix, skip test with return code 77.
 		 */
-		return( 0 );
+		return( 77 );
 
 	/* This is usually a list of 4 files. stdout / stdin / stderr plus one
 	 * more made for us by glib, I think, doing what I don't know.
