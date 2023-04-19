@@ -44,25 +44,22 @@ test('connections',
     workdir: meson.current_build_dir(),
 )
 
-# Uses /proc/self/fd, which is only available on *nix
-if host_os == 'linux'
-    test_descriptors = executable('test_descriptors',
-        'test_descriptors.c',
-        dependencies: libvips_dep,
-    )
+test_descriptors = executable('test_descriptors',
+    'test_descriptors.c',
+    dependencies: libvips_dep,
+)
 
-    test_descriptors_sh = configure_file(
-        input: 'test_descriptors.sh',
-        output: 'test_descriptors.sh',
-        copy: true,
-    )
+test_descriptors_sh = configure_file(
+    input: 'test_descriptors.sh',
+    output: 'test_descriptors.sh',
+    copy: true,
+)
 
-    test('descriptors',
-        test_descriptors_sh,
-        depends: test_descriptors,
-        workdir: meson.current_build_dir(),
-    )
-endif
+test('descriptors',
+    test_descriptors_sh,
+    depends: test_descriptors,
+    workdir: meson.current_build_dir(),
+)
 
 test_timeout_webpsave = executable('test_timeout_webpsave',
     'test_timeout_webpsave.c',
