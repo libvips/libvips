@@ -22,6 +22,11 @@ main( int argc, char **argv )
 	if( VIPS_INIT( argv[0] ) )
 		vips_error_exit( NULL );
 
+	if( !vips_type_find( "VipsOperation", "webpsave" ) )
+		/* webpsave not available, skip test with return code 77.
+		 */
+		return( 77 );
+
 	if( vips_black( &im, 16383, 16383, NULL ) )
 		vips_error_exit( NULL );
 
