@@ -107,6 +107,7 @@ EOF
 #include <fpdfview.h>
 #include <fpdf_doc.h>
 #include <fpdf_edit.h>
+#include <fpdf_formfill.h>
 
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
@@ -142,6 +143,8 @@ typedef struct _VipsForeignLoadPdf {
 	FPDF_FILEACCESS file_access;
 	FPDF_DOCUMENT doc;
 	FPDF_PAGE page;
+	FPDF_FORMFILLINFO form_callbacks;
+	FPDF_FORMHANDLE form;
 	int current_page;
 
 	/* Doc has this many pages. 
@@ -195,6 +198,7 @@ vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 	g_mutex_lock( vips_pdfium_mutex );
 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
+	VIPS_FREEF( FPDFDOC_ExitFormFillEnvironment, pdf->form ); 
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 	VIPS_UNREF( pdf->source );
 
@@ -272,6 +276,8 @@ vips_foreign_load_pdf_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
 
+	pdf->form_callbacks.version = 2;
+
 	/* pdfium must know the file length, unfortunately.
 	 */
 	if( pdf->source ) { 
@@ -296,6 +302,17 @@ vips_foreign_load_pdf_build( VipsObject *object )
 			vips_pdfium_error();
 			vips_error( "pdfload", 
 				_( "%s: unable to load" ), 
+				vips_connection_nick( 
+					VIPS_CONNECTION( pdf->source ) ) );
+			return( -1 ); 
+		}
+
+		if( !(pdf->form = FPDFDOC_InitFormFillEnvironment( pdf->doc,
+			&pdf->form_callbacks )) ) {
+			g_mutex_unlock( vips_pdfium_mutex );
+			vips_pdfium_error();
+			vips_error( "pdfload", 
+				_( "%s: unable to initialize form fill environment" ), 
 				vips_connection_nick( 
 					VIPS_CONNECTION( pdf->source ) ) );
 			return( -1 ); 
@@ -592,6 +609,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		FPDF_RenderPageBitmap( bitmap, pdf->page, 
 			0, 0, rect.width, rect.height,
 			0, 0 ); 
+
+		FPDF_FFLDraw( pdf->form, bitmap, pdf->page,
+			0, 0, rect.width, rect.height, 
+			0, 0 );
 
 		FPDFBitmap_Destroy( bitmap ); 
 
