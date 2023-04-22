@@ -16,6 +16,8 @@
  * 	- add password
  * 21/5/22
  * 	- improve transparency handling [DarthSim]
+ * 21/4/23
+ * 	- add support for forms [kleisauke]
  */
 
 /*
