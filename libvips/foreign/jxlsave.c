@@ -249,7 +249,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "distance" ) ) 
 		jxl->distance = jxl->Q >= 30 ?
 			0.1 + (100 - jxl->Q) * 0.09 :
-			6.24 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
+			53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
 
 	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
 	 */
@@ -542,7 +542,7 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 		_( "Target butteraugli distance" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, distance ),
-		0, 15, 1.0 );
+		0.0, 25.0, 1.0 );
 
 	VIPS_ARG_INT( class, "effort", 12, 
 		_( "Effort" ), 
