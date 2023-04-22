@@ -18,6 +18,7 @@
 - add `premultiplied` option to smartcrop [lovell]
 - add "prewitt" and "scharr" edge detectors, "sobel" is more accurate for
   non-uchar formats [jcupitt]
+- add support for forms in pdfium loader [kleisauke]
 
 TBD 8.14.3
 
