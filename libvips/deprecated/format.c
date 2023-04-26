@@ -273,7 +273,7 @@ im__format_init( void )
 	extern GType vips_format_jpeg_get_type( void );
 	vips_format_jpeg_get_type();
 #endif /*HAVE_JPEG*/
-#ifdef HAVE_PNG
+#if defined(HAVE_PNG) || defined(HAVE_SPNG)
 	extern GType vips_format_png_get_type( void );
 	vips_format_png_get_type();
 #endif /*HAVE_PNG*/
