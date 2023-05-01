@@ -67,14 +67,13 @@ popd
 pushd $SRC/libheif
 # Ensure libvips finds heif_image_handle_get_raw_color_profile
 sed -i '/^Libs.private:/s/-lstdc++/-lc++/' libheif.pc.in
-autoreconf -fi
-./configure \
-  --disable-shared \
-  --enable-static \
-  --disable-examples \
-  --disable-go \
-  --prefix=$WORK
-make clean
+cmake \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DBUILD_SHARED_LIBS=FALSE \
+  -DWITH_EXAMPLES=FALSE \
+  -DENABLE_PLUGIN_LOADING=FALSE \
+  .
 make -j$(nproc)
 make install
 popd
