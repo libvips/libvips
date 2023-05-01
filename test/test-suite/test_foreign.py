@@ -1243,17 +1243,17 @@ class TestForeign:
         assert x.height == 256
 
         # test zip output
-        #filename = temp_filename(self.tempdir, '.zip')
-        #self.colour.dzsave(filename)
-        #assert os.path.exists(filename)
-        #assert not os.path.exists(filename + "_files")
-        #assert not os.path.exists(filename + ".dzi")
+        filename = temp_filename(self.tempdir, '.zip')
+        self.colour.dzsave(filename)
+        assert os.path.exists(filename)
+        assert not os.path.exists(filename + "_files")
+        assert not os.path.exists(filename + ".dzi")
 
         # test compressed zip output
-        #filename2 = temp_filename(self.tempdir, '.zip')
-        #self.colour.dzsave(filename2, compression=-1)
-        #assert os.path.exists(filename2)
-        #assert os.path.getsize(filename2) < os.path.getsize(filename)
+        filename2 = temp_filename(self.tempdir, '.zip')
+        self.colour.dzsave(filename2, compression=-1)
+        assert os.path.exists(filename2)
+        assert os.path.getsize(filename2) < os.path.getsize(filename)
 
         # test suffix
         filename = temp_filename(self.tempdir, '')
@@ -1278,23 +1278,23 @@ class TestForeign:
         assert y.height == 442
 
         # test save to memory buffer
-        #filename = temp_filename(self.tempdir, '.zip')
-        #base = os.path.basename(filename)
-        #root, ext = os.path.splitext(base)
+        filename = temp_filename(self.tempdir, '.zip')
+        base = os.path.basename(filename)
+        root, ext = os.path.splitext(base)
 
-        #self.colour.dzsave(filename)
-        #with open(filename, 'rb') as f:
-        #    buf1 = f.read()
-        #buf2 = self.colour.dzsave_buffer(basename=root)
-        #assert len(buf1) == len(buf2)
+        self.colour.dzsave(filename)
+        with open(filename, 'rb') as f:
+            buf1 = f.read()
+        buf2 = self.colour.dzsave_buffer(basename=root)
+        assert len(buf1) == len(buf2)
 
         # we can't test the bytes are exactly equal -- the timestamps will
         # be different
 
         # added in 8.7
-        #buf = self.colour.dzsave_buffer(region_shrink="mean")
-        #buf = self.colour.dzsave_buffer(region_shrink="mode")
-        #buf = self.colour.dzsave_buffer(region_shrink="median")
+        buf = self.colour.dzsave_buffer(region_shrink="mean")
+        buf = self.colour.dzsave_buffer(region_shrink="mode")
+        buf = self.colour.dzsave_buffer(region_shrink="median")
 
         # test no-strip ... icc profiles should be passed down
         filename = temp_filename(self.tempdir, '')

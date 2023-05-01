@@ -181,6 +181,69 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_ZIP
+#include <zip.h>
+
+static zip_int64_t
+write_zip_target_cb( void *state, void *data, zip_uint64_t length,
+	zip_source_cmd_t cmd ) {
+	VipsTarget *target = (VipsTarget *) state;
+
+	switch( cmd ) {
+	case ZIP_SOURCE_READ:
+		return( vips_target_read( target, data, length ) );
+
+	case ZIP_SOURCE_CLOSE:
+		return( vips_target_end( target ) );
+
+	case ZIP_SOURCE_SEEK:
+	case ZIP_SOURCE_SEEK_WRITE:
+	{
+		zip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(
+			zip_source_args_seek_t, data, length, NULL );
+		if( args == NULL ) 
+			return( -1 );
+
+		/* Return 0 on success.
+		 */
+		return( vips_target_seek( target, args->offset, args->whence ) == -1 );
+	}
+
+	case ZIP_SOURCE_TELL:
+	case ZIP_SOURCE_TELL_WRITE:
+		return( (zip_int64_t) vips_target_seek( target, 0L, SEEK_CUR ) );
+
+	case ZIP_SOURCE_WRITE:
+		if( vips_target_write( target, data, length ) )
+			return( -1 );
+
+		/* Return number of bytes written on success.
+		 */
+		return( (zip_int64_t) length );
+
+	case ZIP_SOURCE_SUPPORTS:
+		return( zip_source_make_command_bitmap(
+			/* Readable
+			 */
+			ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE,
+			ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE,
+			/* Seekable
+			 */
+			ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL,
+			/* Writable
+			 */
+			ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_COMMIT_WRITE,
+			ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_WRITE,
+			ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE,
+			ZIP_SOURCE_REMOVE,
+			-1 ) );
+
+	default:
+		return( 0 );
+	}
+}
+#endif
+
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
 
@@ -292,12 +355,18 @@ struct _VipsForeignSaveDz {
 	 */
 	int tile_count;
 
+	/* The zipfile we are writing tiles to.
+	 */
+#ifdef HAVE_ZIP
+	zip_t *archive;
+#endif
+
 	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
 	 * No suffix, no path at the start. 
 	 */
 	char *basename; 
 
-	/* The directory we write the output to, or NULL for memory output. 
+	/* The directory we write the output to, or "" (empty) for memory output.
 	 */
 	char *dirname; 
 
@@ -323,13 +392,46 @@ typedef VipsForeignSaveClass VipsForeignSaveDzClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
-static int
-vips_mkpath( const char *pathname )
+/* ZIP and SZI are both written as zip files.
+ */
+static gboolean
+iszip( VipsForeignDzContainer container )
 {
-	if( g_mkdir_with_parents( pathname, 0777 ) != 0 &&
+	switch( container ) {
+	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
+	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
+		return( TRUE );
+
+	default:
+		return( FALSE );
+	}
+}
+
+#ifdef HAVE_ZIP
+static inline int
+vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
+{
+	if( zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 ) < 0 &&
+		zip_get_error( dz->archive )->zip_err != ZIP_ER_EXISTS ) {
+		char *utf8name = g_filename_display_name( dirname );
+		vips_error( "dzsave",
+			_( "unable to add directory \"%s\", %s" ),
+			utf8name, zip_strerror( dz->archive ) );
+		g_free( utf8name );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+#endif
+
+static inline int
+vips_mkdir_file( const char *dirname )
+{
+	if( g_mkdir_with_parents( dirname, 0777 ) &&
 		errno != EEXIST ) {
 		int save_errno = errno;
-		char *utf8name = g_filename_display_name( pathname );
+		char *utf8name = g_filename_display_name( dirname );
 		vips_error( "dzsave",
 			_( "unable to create directory \"%s\", %s" ),
 			utf8name, g_strerror( save_errno ) );
@@ -341,7 +443,77 @@ vips_mkpath( const char *pathname )
 }
 
 static int
-write_image_file( VipsForeignSaveDz *dz,
+vips_mkdir( VipsForeignSaveDz *dz, const char *dirname )
+{
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) 
+		return( vips_mkdir_zip( dz, dirname ) );
+	else
+#endif /*HAVE_ZIP*/
+		return( vips_mkdir_file( dirname ) );
+}
+
+#ifdef HAVE_ZIP
+static inline int
+vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
+	void *buf, size_t len )
+{
+	zip_source_t *s;
+	zip_int64_t index;
+
+	if( !(s = zip_source_buffer( dz->archive, buf, len, 1 )) ||
+		(index = zip_file_add( dz->archive, filename, s,
+			ZIP_FL_ENC_UTF_8 )) < 0 ) {
+		zip_source_free( s );
+		return( -1 );
+	}
+
+	if( dz->compression >= 0 &&
+		zip_set_file_compression( dz->archive, index,
+			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
+			dz->compression ) )
+		return( -1 );
+
+	return( 0 );
+}
+#endif
+
+static inline int
+vips_mkfile_file( const char *filename, void *buf, size_t len )
+{
+	FILE *f;
+
+	if( !(f = vips__file_open_write( filename, TRUE )) ) {
+		g_free( buf );
+		return( -1 );
+	}
+
+	if( fwrite( buf, sizeof( char ), len, f ) != len ) {
+		fclose( f );
+		g_free( buf );
+		return( -1 );
+	}
+
+	fclose( f );
+	g_free( buf );
+
+	return( 0 );
+}
+
+static int
+vips_mkfile( VipsForeignSaveDz *dz, const char *filename,
+	void *buf, size_t len )
+{
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) 
+		return( vips_mkfile_zip( dz, filename, buf, len ) );
+	else
+#endif /*HAVE_ZIP*/
+		return( vips_mkfile_file( filename, buf, len ) );
+}
+
+static int
+write_image( VipsForeignSaveDz *dz,
 	VipsImage *image, const char *filename )
 {
 	VipsImage *t;
@@ -357,13 +529,37 @@ write_image_file( VipsForeignSaveDz *dz,
 	 * off. Most people don't want metadata on every tile.
 	 */
 	vips_image_set_int( t, "hide-progress", 1 );
-	if( vips_image_write_to_file( t, filename,
-		"strip", !dz->no_strip,
-		NULL ) ) {
+
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) {
+		void *buf;
+		size_t len;
+
+		if( vips_image_write_to_buffer( t, dz->suffix, &buf, &len,
+			"strip", !dz->no_strip,
+			NULL ) ) {
+			VIPS_UNREF( t );
+			return( -1 );
+		}
 		VIPS_UNREF( t );
-		return( -1 );
+
+		/* vips_mkfile_zip() takes the ownership of buf.
+		 */
+		if( vips_mkfile_zip( dz, filename, buf, len ) )
+			return( -1 );
 	}
-	VIPS_UNREF( t );
+	else {
+#endif /*HAVE_ZIP*/
+		if( vips_image_write_to_file( t, filename,
+			"strip", !dz->no_strip,
+			NULL ) ) {
+			VIPS_UNREF( t );
+			return( -1 );
+		}
+		VIPS_UNREF( t );
+#ifdef HAVE_ZIP
+	}
+#endif /*HAVE_ZIP*/
 
 	return( 0 );
 }
@@ -384,6 +580,10 @@ static void
 vips_foreign_save_dz_dispose( GObject *gobject )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
+
+#ifdef HAVE_ZIP
+	VIPS_FREEF( zip_close, dz->archive );
+#endif
 
 	VIPS_UNREF( dz->target );
 
@@ -549,59 +749,65 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 }
 
 static int
-write_dzi_file( VipsForeignSaveDz *dz )
+write_dzi( VipsForeignSaveDz *dz )
 {
-	FILE *f;
-	char buf[VIPS_PATH_MAX];
-	char *p;
+	VipsDbuf dbuf;
+	char suffix[VIPS_PATH_MAX];
 	char *filename;
+	char *p;
+	void *buf;
+	size_t len;
 
-	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->basename );
-	filename = g_build_filename( dz->dirname, buf, NULL );
+	vips_snprintf( suffix, VIPS_PATH_MAX, "%s.dzi", dz->basename );
 
-	if( !(f = vips__file_open_write( filename, TRUE )) ) {
+	if( !(filename = g_build_filename( dz->dirname, suffix, NULL )) )
+		return( -1 );
+
+	vips_dbuf_init( &dbuf );
+
+	vips_snprintf( suffix, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
+	if( (p = (char *) vips__find_rightmost_brackets( suffix )) )
+		*p = '\0';
+
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+	vips_dbuf_writef( &dbuf, "<Image "
+		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
+	vips_dbuf_writef( &dbuf, "  Format=\"%s\"\n", suffix );
+	vips_dbuf_writef( &dbuf, "  Overlap=\"%d\"\n", dz->overlap );
+	vips_dbuf_writef( &dbuf, "  TileSize=\"%d\"\n", dz->tile_size );
+	vips_dbuf_writef( &dbuf, "  >\n" );
+	vips_dbuf_writef( &dbuf, "  <Size \n" );
+	vips_dbuf_writef( &dbuf, "    Height=\"%d\"\n", dz->layer->height );
+	vips_dbuf_writef( &dbuf, "    Width=\"%d\"\n", dz->layer->width );
+	vips_dbuf_writef( &dbuf, "  />\n" );
+	vips_dbuf_writef( &dbuf, "</Image>\n" );
+
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
 		g_free( filename );
 		return( -1 );
 	}
 
-	vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
-	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
-		*p = '\0';
-
-	fprintf( f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
-	fprintf( f, "<Image "
-		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
-	fprintf( f, "  Format=\"%s\"\n", buf );
-	fprintf( f, "  Overlap=\"%d\"\n", dz->overlap );
-	fprintf( f, "  TileSize=\"%d\"\n", dz->tile_size );
-	fprintf( f, "  >\n" );
-	fprintf( f, "  <Size \n" );
-	fprintf( f, "    Height=\"%d\"\n", dz->layer->height );
-	fprintf( f, "    Width=\"%d\"\n", dz->layer->width );
-	fprintf( f, "  />\n" );
-	fprintf( f, "</Image>\n" );
-
-	fclose( f );
 	g_free( filename );
 
 	return( 0 );
 }
 
 static int
-write_properties_file( VipsForeignSaveDz *dz )
+write_properties( VipsForeignSaveDz *dz )
 {
-	FILE *f;
+	VipsDbuf dbuf;
 	char *filename;
+	void *buf;
+	size_t len;
 
-	filename = g_build_filename( dz->dirname, dz->root_name,
-		"ImageProperties.xml", NULL );
-
-	if( !(f = vips__file_open_write( filename, TRUE )) ) {
-		g_free( filename );
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"ImageProperties.xml", NULL )) )
 		return( -1 );
-	}
 
-	fprintf( f, "<IMAGE_PROPERTIES "
+	vips_dbuf_init( &dbuf );
+
+	vips_dbuf_writef( &dbuf, "<IMAGE_PROPERTIES "
 		"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
 		"NUMIMAGES=\"1\" VERSION=\"1.8\" TILESIZE=\"%d\" />\n",
 		dz->layer->width,
@@ -609,14 +815,19 @@ write_properties_file( VipsForeignSaveDz *dz )
 		dz->tile_count,
 		dz->tile_size );
 
-	fclose( f );
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
 	g_free( filename );
 
 	return( 0 );
 }
 
 static int
-write_blank_file( VipsForeignSaveDz *dz )
+write_blank( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
@@ -652,10 +863,14 @@ write_blank_file( VipsForeignSaveDz *dz )
 	g_object_unref( x );
 	x = t;
 
-	filename = g_build_filename( dz->dirname, dz->root_name,
-		"blank.png", NULL );
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"blank.png", NULL )) ) {
+		g_object_unref( x );
 
-	if( write_image_file( dz, x, filename ) ) {
+		return( -1 );
+	}
+
+	if( write_image( dz, x, filename ) ) {
 		g_free( filename );
 		g_object_unref( x );
 
@@ -671,7 +886,7 @@ write_blank_file( VipsForeignSaveDz *dz )
 /* Write IIIF/IIF3 JSON metadata.
  */
 static int
-write_json_file( VipsForeignSaveDz *dz )
+write_json( VipsForeignSaveDz *dz )
 {
 	/* Can be NULL for memory output.
 	 */
@@ -682,20 +897,20 @@ write_json_file( VipsForeignSaveDz *dz )
 	const char *suffix = dz->file_suffix[0] == '.' ? 
 		dz->file_suffix + 1 : dz->file_suffix;
 
-	FILE *f;
+	VipsDbuf dbuf;
 	char *filename;
+	void *buf;
+	size_t len;
 	int i;
 
-	filename = g_build_filename( dz->dirname, dz->root_name,
-		"info.json", NULL );
-
-	if( !(f = vips__file_open_write( filename, TRUE )) ) {
-		g_free( filename );
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"info.json", NULL )) ) 
 		return( -1 );
-	}
+
+	vips_dbuf_init( &dbuf );
 
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 )
-		fprintf( f,
+		vips_dbuf_writef( &dbuf,
 			"{\n"
 			"  \"@context\": " 
 				"\"http://iiif.io/api/image/3/context.json\",\n"
@@ -706,7 +921,7 @@ write_json_file( VipsForeignSaveDz *dz )
 			dz->id ? dz->id : "https://example.com/iiif",
 			name );
 	else
-		fprintf( f,
+		vips_dbuf_writef( &dbuf,
 			"{\n"
 			"  \"@context\": "
 				"\"http://iiif.io/api/image/2/context.json\",\n"
@@ -730,58 +945,63 @@ write_json_file( VipsForeignSaveDz *dz )
 	/* "sizes" is needed for the full/ set of untiled images, which we 
 	 * don't yet support. Leave this commented out for now.
 
-	fprintf( f,
+	vips_dbuf_writef( &dbuf,
 		"  \"sizes\": [\n" );
 
 	for( i = 0; i < dz->layer->n + 5; i++ ) {
-		fprintf( f,
+		vips_dbuf_writef( &dbuf,
 			"    {\n"
 			"      \"width\": %d,\n"
 			"      \"height\": \"full\"\n"
 			"    }", 
 				1 << (i + 4) );
 		if( i != dz->layer->n - 4 )
-			fprintf( f, "," );
-		fprintf( f, "\n" );
+			vips_dbuf_writef( &dbuf, "," );
+		vips_dbuf_writef( &dbuf, "\n" );
 	}
 
-	fprintf( f, 
+	vips_dbuf_writef( &dbuf, 
 		"  ],\n" );
 
 	 */
 
 	/* The set of pyramid layers we have written.
 	 */
-	fprintf( f, 
+	vips_dbuf_writef( &dbuf, 
 		"  \"tiles\": [\n"
 		"    {\n"
 		"      \"scaleFactors\": [\n" );
 
 	for( i = 0; i < dz->layer->n; i++ ) {
-		fprintf( f, 
+		vips_dbuf_writef( &dbuf, 
 			"        %d",
 				1 << i );
 		if( i != dz->layer->n - 1 )
-			fprintf( f, "," );
-		fprintf( f, "\n" );
+			vips_dbuf_writef( &dbuf, "," );
+		vips_dbuf_writef( &dbuf, "\n" );
 	}
 
-	fprintf( f, 
+	vips_dbuf_writef( &dbuf, 
 		"      ],\n"
 		"      \"width\": %d\n"
 		"    }\n"
 		"  ],\n", dz->tile_size );
 
-	fprintf( f, 
+	vips_dbuf_writef( &dbuf, 
 		"  \"width\": %d,\n"
 		"  \"height\": %d\n", 
 			dz->layer->width,
 			dz->layer->height );
 
-	fprintf( f, 
+	vips_dbuf_writef( &dbuf, 
 		"}\n" );
 
-	fclose( f );
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
 	g_free( filename );
 
 	return( 0 );
@@ -792,12 +1012,8 @@ write_vips_meta( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
-	FILE *f;
-	char *dump;
 	char *filename;
-
-	if( !(dump = vips__xml_properties( save->ready )) )
-		return( -1 );
+	char *dump;
 
 	/* For deepzoom the props must go inside the ${name}_files subdir, for
 	 * gm and zoomify it can sit in the main folder.
@@ -809,17 +1025,211 @@ write_vips_meta( VipsForeignSaveDz *dz )
 		filename = g_build_filename( dz->dirname,
 			"vips-properties.xml", NULL );
 
-	if( !(f = vips__file_open_write( filename, TRUE )) ) {
-		g_free( dump );
+	if( filename == NULL )
+		return( -1 );
+
+	if( !(dump = vips__xml_properties( save->ready )) ) {
 		g_free( filename );
 		return( -1 );
 	}
 
-	fprintf( f, "%s", dump );
+	/* vips_mkfile() takes the ownership of dump.
+	 */
+	if( vips_mkfile( dz, filename, dump, strlen( dump ) ) ) {
+		g_free( filename );
+		return( -1 );
+	}
 
-	fclose( f );
-	g_free( dump );
 	g_free( filename );
+
+	return( 0 );
+}
+
+static void
+build_scan_property( VipsDbuf *dbuf, VipsImage *image, 
+	const char *vips_name, const char *szi_name )
+{
+	const char *str;
+	GValue value = { 0 };
+	GValue save_value = { 0 };
+	GType type;
+
+	if( !vips_image_get_typeof( image, vips_name ) )
+		return;
+
+	if( vips_image_get( image, vips_name, &value ) )
+		return;
+	type = G_VALUE_TYPE( &value );
+
+	if( !g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		g_value_unset( &value );
+		return;
+	}
+
+	g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+	if( !g_value_transform( &value, &save_value ) ) {
+		g_value_unset( &value );
+		return;
+	}
+	g_value_unset( &value );
+
+	if( !(str = vips_value_get_save_string( &save_value )) ) {
+		g_value_unset( &save_value );
+		return;
+	}
+
+	if( !g_utf8_validate( str, -1, NULL ) ) {
+		g_value_unset( &save_value );
+		return;
+	}
+
+	vips_dbuf_writef( dbuf, "    <property>\n" );
+	vips_dbuf_writef( dbuf, "      <name>" );
+	vips_dbuf_write_amp( dbuf, szi_name );
+	vips_dbuf_writef( dbuf, "</name>\n" );
+	vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
+		g_type_name( type )  );
+	vips_dbuf_write_amp( dbuf, str );
+	vips_dbuf_writef( dbuf, "</value>\n" );
+	vips_dbuf_writef( dbuf, "    </property>\n" );
+
+	g_value_unset( &save_value );
+}
+
+static char *scan_property_names[][2] = {
+	{ "openslide.vendor", "Vendor" },
+	{ "openslide.objective-power", "ObjectiveMagnification" },
+	{ "openslide.mpp-x", "MicronsPerPixelX" },
+	{ "openslide.mpp-y", "MicronsPerPixelY" },
+	{ "width", "ImageWidth" },
+	{ "height", "ImageHeight" }
+};
+
+/* Make the xml we write to scan-properties.xml in szi write.
+ * Free with g_free().
+ */
+static char *
+build_scan_properties( VipsImage *image, size_t *len )
+{
+	VipsDbuf dbuf;
+	char *date;
+	int i;
+
+	date = vips__get_iso8601();
+
+	vips_dbuf_init( &dbuf );
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
+		" date=\"%s\" version=\"1.0\">\n", date );
+	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+
+	g_free( date ); 
+
+	for( i = 0; i < VIPS_NUMBER( scan_property_names ); i++ )
+		build_scan_property( &dbuf, image,
+			scan_property_names[i][0],
+			scan_property_names[i][1] );
+
+	vips_dbuf_writef( &dbuf, "  </properties>\n" );
+	vips_dbuf_writef( &dbuf, "</image>\n" );
+
+	return( (char *) vips_dbuf_steal( &dbuf, len ) ); 
+}
+
+static int
+write_scan_properties( VipsForeignSaveDz *dz )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
+	char *filename;
+	char *dump;
+	size_t len;
+
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"scan-properties.xml", NULL )) ) 
+		return( -1 );
+
+	if( !(dump = build_scan_properties( save->ready, &len )) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
+	/* vips_mkfile() takes the ownership of dump.
+	 */
+	if( vips_mkfile( dz, filename, dump, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
+	g_free( filename );
+
+	return( 0 );
+}
+
+static void *
+write_associated_images( VipsImage *image,
+	const char *field, GValue *value, void *a )
+{
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
+
+	if( vips_isprefix( "openslide.associated.", field ) ) {
+		VipsImage *associated;
+		const char *p;
+		const char *q;
+		char *out;
+		char buf[VIPS_PATH_MAX];
+
+		p = field + strlen( "openslide.associated." );
+
+		/* Make sure there are no '/' in the filename.
+		 */
+		if( (q = strrchr( p, '/' )) )
+			p = q + 1;
+
+		if( vips_image_get_image( image, field, &associated ) )
+			return( image );
+
+		vips_snprintf( buf, VIPS_PATH_MAX, "%s%s", p, dz->file_suffix );
+
+		if( !(out = g_build_filename( dz->dirname, dz->root_name,
+				"associated_images", buf, NULL )) ) {
+			g_object_unref( associated );
+
+			return( image );
+		}
+
+		if( write_image( dz, associated, out ) ) {
+			g_free( out );
+			g_object_unref( associated );
+
+			return( image );
+		}
+
+		g_free( out );
+		g_object_unref( associated );
+	}
+
+	return( NULL );
+}
+
+static int
+write_associated( VipsForeignSaveDz *dz )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+	char *dirname;
+
+	if( !(dirname = g_build_filename( dz->dirname, dz->root_name,
+			"associated_images", NULL )) ) 
+		return( -1 );
+
+	if( vips_mkdir( dz, dirname ) ) {
+		g_free( dirname );
+		return( -1 );
+	}
+	g_free( dirname );
+
+	if( vips_image_map( save->ready, write_associated_images, dz ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -954,14 +1364,22 @@ tile_name( Layer *layer, int x, int y )
 	char *dirname;
 	char name[VIPS_PATH_MAX];
 	char subdir[VIPS_PATH_MAX];
+	char *suffix;
 	Layer *p;
 	int n;
+
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) )
+		suffix = dz->file_suffix;
+	else
+#endif
+		suffix = dz->suffix;
 
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
 		vips_snprintf( subdir, VIPS_PATH_MAX, "%d", layer->n );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d_%d%s", x, y, dz->suffix );
+			"%d_%d%s", x, y, suffix );
 
 		break;
 
@@ -984,7 +1402,7 @@ tile_name( Layer *layer, int x, int y )
 
 		vips_snprintf( subdir, VIPS_PATH_MAX, "TileGroup%d", n / 256 );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d-%d-%d%s", layer->n, x, y, dz->suffix );
+			"%d-%d-%d%s", layer->n, x, y, suffix );
 
 		/* Used at the end in ImageProperties.xml
 		 */
@@ -996,7 +1414,7 @@ tile_name( Layer *layer, int x, int y )
 		vips_snprintf( subdir, VIPS_PATH_MAX, 
 			"%d" G_DIR_SEPARATOR_S "%d", layer->n, y );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d%s", x, dz->suffix );
+			"%d%s", x, suffix );
 
 		break;
 
@@ -1048,8 +1466,7 @@ tile_name( Layer *layer, int x, int y )
 				rotation );
 		}
 
-		vips_snprintf( name, VIPS_PATH_MAX, "default%s", 
-			dz->suffix );
+		vips_snprintf( name, VIPS_PATH_MAX, "default%s", suffix );
 }
 
 		break;
@@ -1058,9 +1475,11 @@ tile_name( Layer *layer, int x, int y )
 		g_assert_not_reached();
 	}
 
-	dirname = g_build_filename( dz->dirname, dz->root_name,
-		subdir, NULL );
-	if( vips_mkpath( dirname ) ) {
+	if( !(dirname = g_build_filename( dz->dirname, dz->root_name,
+		subdir, NULL )) )
+		return( NULL );
+
+	if( vips_mkdir( dz, dirname ) ) {
 		g_free( dirname );
 		return( NULL );
 	}
@@ -1214,7 +1633,7 @@ strip_work( VipsThreadState *state, void *a )
 
 	vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
 
-	if( write_image_file( dz, x, out ) ) {
+	if( write_image( dz, x, out ) ) {
 		g_free( out );
 		g_object_unref( x );
 
@@ -1298,7 +1717,7 @@ layer_generate_extras( Layer *layer )
 		last.top = layer->image->Ysize - 2;
 		last.width = layer->image->Xsize;
 		last.height = 2;
-	
+
 		/* Do we have them both? Fill the last with the next-to-last.
 		 */
 		vips_rect_intersectrect( &last, &strip->valid, &last );
@@ -1762,6 +2181,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "dirname" ) ) {
 		if( filename )
 			dz->dirname = g_path_get_dirname( filename ); 
+		else
+			dz->dirname = g_strdup( "." );
 	}
 }
 
@@ -1807,36 +2228,69 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = (char *) vips__find_rightmost_brackets( dz->file_suffix )) )
 		*p = '\0';
 
-	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP ||
-		dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI ) {
-		vips_error( "dzsave",
-			_( "ZIP-compressed output is temporarily disabled" ) );
+#ifdef HAVE_ZIP
+	/* Make the zip archive we write the tiles into.
+	 */
+	if( iszip( dz->container ) ) {
+		zip_source_t *zs;
 
+		/* Ignore the root directory name for zip output, it should only
+		 * be set for filesystem output.
+		 */
+		VIPS_SETSTR( dz->dirname, "" );
+
+		/* We can have dzsave("x.zip", container="fs"), ie. zip output
+		 * from write to file. Make a target if we need one.
+		 */
+		if( !dz->target ) {
+			if( !(dz->target =
+					vips_target_new_to_file( dz->filename )) )
+				return( -1 );
+		}
+
+		/* Create source from target.
+		 */
+		if( !(zs = zip_source_function_create( write_zip_target_cb,
+				dz->target, NULL )) ) {
+			return( -1 );
+		}
+
+		if( !(dz->archive =
+				zip_open_from_source( zs, ZIP_TRUNCATE, NULL )) ) {
+			zip_source_free( zs );
+			return( -1 );
+		}
+	}
+#else
+	if( iszip( dz->container ) ) {
+		vips_error( "dzsave",
+			_( "ZIP-compressed output requires libzip >= 1.0.0" ) );
 		return( -1 );
 	}
+#endif
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
 		return( -1 );
 
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
-		if( write_dzi_file( dz ) )
+		if( write_dzi( dz ) )
 			return( -1 );
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY:
-		if( write_properties_file( dz ) )
+		if( write_properties( dz ) )
 			return( -1 );
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
-		if( write_blank_file( dz ) )
+		if( write_blank( dz ) )
 			return( -1 );
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_IIIF:
 	case VIPS_FOREIGN_DZ_LAYOUT_IIIF3:
-		if( write_json_file( dz ) )
+		if( write_json( dz ) )
 			return( -1 );
 		break;
 
@@ -1846,6 +2300,25 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	if( write_vips_meta( dz ) )
 		return( -1 );
+
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
+		write_scan_properties( dz ) )
+		return( -1 );
+
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
+		write_associated( dz ) )
+		return( -1 );
+
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) {
+		/* Shut down the output to flush everything.
+		 */
+		if( zip_close( dz->archive ) )
+			return( -1 );
+
+		dz->archive = NULL;
+	}
+#endif
 
 	return( 0 );
 }

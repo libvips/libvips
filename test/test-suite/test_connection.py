@@ -134,7 +134,7 @@ class TestConnection:
 
         assert (im - self.mono).abs().max() == 0
 
-    @pytest.mark.skip()  # ZIP-compressed output is temporarily disabled
+    @skip_if_no("dzsave_target")
     def test_connection_dz(self):
         x = pyvips.Target.new_to_memory()
         self.mono.dzsave_target(x)
