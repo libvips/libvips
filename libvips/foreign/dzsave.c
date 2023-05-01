@@ -514,7 +514,7 @@ vips_mkfile( VipsForeignSaveDz *dz, const char *filename,
 
 static int
 write_image( VipsForeignSaveDz *dz,
-	VipsImage *image, const char *filename )
+	VipsImage *image, const char *filename, const char *format )
 {
 	VipsImage *t;
 
@@ -535,7 +535,7 @@ write_image( VipsForeignSaveDz *dz,
 		void *buf;
 		size_t len;
 
-		if( vips_image_write_to_buffer( t, dz->suffix, &buf, &len,
+		if( vips_image_write_to_buffer( t, format, &buf, &len,
 			"strip", !dz->no_strip,
 			NULL ) ) {
 			VIPS_UNREF( t );
@@ -870,7 +870,7 @@ write_blank( VipsForeignSaveDz *dz )
 		return( -1 );
 	}
 
-	if( write_image( dz, x, filename ) ) {
+	if( write_image( dz, x, filename, ".png" ) ) {
 		g_free( filename );
 		g_object_unref( x );
 
@@ -1189,7 +1189,7 @@ write_associated_images( VipsImage *image,
 		if( vips_image_get_image( image, field, &associated ) )
 			return( image );
 
-		vips_snprintf( buf, VIPS_PATH_MAX, "%s%s", p, dz->file_suffix );
+		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
 
 		if( !(out = g_build_filename( dz->dirname, dz->root_name,
 				"associated_images", buf, NULL )) ) {
@@ -1198,7 +1198,7 @@ write_associated_images( VipsImage *image,
 			return( image );
 		}
 
-		if( write_image( dz, associated, out ) ) {
+		if( write_image( dz, associated, out, ".jpg" ) ) {
 			g_free( out );
 			g_object_unref( associated );
 
@@ -1633,7 +1633,7 @@ strip_work( VipsThreadState *state, void *a )
 
 	vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
 
-	if( write_image( dz, x, out ) ) {
+	if( write_image( dz, x, out, dz->suffix ) ) {
 		g_free( out );
 		g_object_unref( x );
 
