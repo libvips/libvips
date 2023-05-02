@@ -75,8 +75,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
  
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -511,6 +511,8 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 			g_free( buffer );
 		}
 	}
+
+	printf( "intent: %d\n", cmsGetHeaderRenderingIntent( profile ) );
 
 	printf( "profile class: %#x\n", cmsGetDeviceClass( profile ) );
 {
