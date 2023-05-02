@@ -164,14 +164,10 @@ if zlib_dep.found()
     cfg_var.set('HAVE_ZLIB', '1')
 endif
 
-gsf_dep = dependency('libgsf-1', version: '>=1.14.26', required: get_option('gsf'))
-if gsf_dep.found()
-    libvips_deps += gsf_dep
-    cfg_var.set('HAVE_GSF', '1')
-    if gsf_dep.version().version_compare('>=1.14.31')
-        cfg_var.set('HAVE_GSF_ZIP64', '1')
-        cfg_var.set('HAVE_GSF_DEFLATE_LEVEL', '1')
-    endif
+zip_dep = dependency('libzip', version: '>=1.0.0', required: get_option('zip'))
+if zip_dep.found()
+    libvips_deps += zip_dep
+    cfg_var.set('HAVE_ZIP', '1')
 endif
 
 fftw_dep = dependency('fftw3', required: get_option('fftw'))
@@ -675,7 +671,7 @@ build_summary = {
      'PNG load/save with libpng': [png_dep.found()],
      'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
      'TIFF load/save with libtiff': [libtiff_dep.found()],
-     'image pyramid save with libgsf': [gsf_dep.found()],
+     'ZIP pyramid save with libzip': [zip_dep.found()],
      'HEIC/AVIF load/save with libheif': [libheif_dep.found(), ' (dynamic module: ', libheif_module, ')'],
      'WebP load/save with libwebp': [libwebp_dep.found()],
      'PDF load with PDFium': [pdfium_dep.found()],

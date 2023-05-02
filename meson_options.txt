@@ -67,10 +67,10 @@ option('fontconfig',
   value: 'auto', 
   description: 'Build with fontconfig')
 
-option('gsf', 
+option('zip', 
   type: 'feature', 
   value: 'auto', 
-  description: 'Build with libgsf-1')
+  description: 'Build with libzip')
 
 option('heif', 
   type: 'feature', 

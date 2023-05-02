@@ -184,9 +184,10 @@ If available, libvips will save GIFs with
 [cgif](https://github.com/dloebl/cgif). If this is not present, vips will
 try to save gifs via imagemagick instead.
 
-### libgsf-1
+### libzip
 
-If available, libvips adds support for creating image pyramids with `dzsave`. 
+If available, libvips adds support for creating ZIP-compressed image pyramids
+with `dzsave`.
 
 ### libtiff
 

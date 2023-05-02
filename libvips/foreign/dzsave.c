@@ -181,475 +181,68 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_GSF
+#ifdef HAVE_ZIP
+#include <zip.h>
 
-/* Disable deprecation warnings from gsf. There are loads, and still not
- * patched as of 12/2020.
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <gsf/gsf.h>
-#pragma GCC diagnostic pop
+static zip_int64_t
+write_zip_target_cb( void *state, void *data, zip_uint64_t length,
+	zip_source_cmd_t cmd ) {
+	VipsTarget *target = (VipsTarget *) state;
 
-/* A GSF output object that can write to a VipsTarget.
- */
+	switch( cmd ) {
+	case ZIP_SOURCE_READ:
+		return( vips_target_read( target, data, length ) );
 
-typedef struct _GsfOutputTarget {
-        GsfOutput output;
+	case ZIP_SOURCE_CLOSE:
+		return( vips_target_end( target ) );
 
-        VipsTarget *target;
+	case ZIP_SOURCE_SEEK:
+	case ZIP_SOURCE_SEEK_WRITE:
+	{
+		zip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(
+			zip_source_args_seek_t, data, length, NULL );
+		if( args == NULL ) 
+			return( -1 );
 
-} GsfOutputTarget;
-
-typedef struct {
-        GsfOutputClass output_class;
-} GsfOutputTargetClass;
-
-G_DEFINE_TYPE( GsfOutputTarget, gsf_output_target, GSF_OUTPUT_TYPE );
-
-static gboolean
-gsf_output_target_close( GsfOutput *output )
-{
-        GsfOutputTarget *output_target = (GsfOutputTarget *) output;
-
-        if( output_target->target ) {
-		/* No easy way to report errors here, sadly.
+		/* Return 0 on success.
 		 */
-		(void) vips_target_end( output_target->target );
-                VIPS_UNREF( output_target->target );
+		return( vips_target_seek( target, args->offset, args->whence ) == -1 );
+	}
 
-                return( TRUE );
-        }
+	case ZIP_SOURCE_TELL:
+	case ZIP_SOURCE_TELL_WRITE:
+		return( (zip_int64_t) vips_target_seek( target, 0L, SEEK_CUR ) );
 
-        return( FALSE );
-}
+	case ZIP_SOURCE_WRITE:
+		if( vips_target_write( target, data, length ) )
+			return( -1 );
 
-static void
-gsf_output_target_finalize( GObject *obj )
-{
-        GsfOutputTarget *output_target = (GsfOutputTarget *) obj;
+		/* Return number of bytes written on success.
+		 */
+		return( (zip_int64_t) length );
 
-        (void) gsf_output_target_close( GSF_OUTPUT( output_target ) );
+	case ZIP_SOURCE_SUPPORTS:
+		return( zip_source_make_command_bitmap(
+			/* Readable
+			 */
+			ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE,
+			ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE,
+			/* Seekable
+			 */
+			ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL,
+			/* Writable
+			 */
+			ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_COMMIT_WRITE,
+			ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_WRITE,
+			ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE,
+			ZIP_SOURCE_REMOVE,
+			-1 ) );
 
-	G_OBJECT_CLASS( gsf_output_target_parent_class )->finalize( obj );
-}
-
-static gboolean
-gsf_output_target_write( GsfOutput *output, 
-	size_t num_bytes, guint8 const *buffer )
-{
-        GsfOutputTarget *output_target = (GsfOutputTarget *) output;
-
-	if( vips_target_write( output_target->target, buffer, num_bytes ) )
-		return( FALSE );
-
-        return( TRUE );
-}
-
-static gboolean
-gsf_output_target_seek( GsfOutput *output, gsf_off_t offset, GSeekType whence )
-{
-#ifdef HAVE_GSF_ZIP64
-	/* No seek needed.
-	 */
-	return( FALSE );
-#else
-	GsfOutputTarget *output_target = (GsfOutputTarget *) output;
-	int stdio_whence;
-
-	switch( whence ) {
-	case G_SEEK_CUR: stdio_whence = SEEK_CUR; break;
-	case G_SEEK_END: stdio_whence = SEEK_END; break;
-	case G_SEEK_SET: stdio_whence = SEEK_SET; break;
 	default:
-		g_assert_not_reached();
+		return( 0 );
 	}
-
-	if( vips_target_seek( output_target->target,
-		offset, stdio_whence ) == -1 )
-		return( FALSE );
-
-	/* This will make our parent class handle the seek.
-	 */
-	return( TRUE );
+}
 #endif
-}
-
-static void
-gsf_output_target_init( GsfOutputTarget *output )
-{
-}
-
-static void
-gsf_output_target_class_init( GsfOutputTargetClass *class )
-{
-        GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-        GsfOutputClass *output_class = GSF_OUTPUT_CLASS( class );
-
-        gobject_class->finalize = gsf_output_target_finalize;
-
-        output_class->Close = gsf_output_target_close;
-        output_class->Write = gsf_output_target_write;
-        output_class->Seek = gsf_output_target_seek;
-}
-
-static GsfOutput *
-gsf_output_target_new( VipsTarget *target )
-{
-	GsfOutputTarget *output;
-
-	output = g_object_new( gsf_output_target_get_type(), NULL );
-	output->target = target;
-	g_object_ref( target );
-
-        return( GSF_OUTPUT( output ) );
-}
-
-/* A GSF output object that can write to a directory.
- */
-
-typedef struct _GsfOutputDir {
-	GsfOutfile output;
-
-	char *root;
-
-} GsfOutputDir;
-
-typedef struct {
-	GsfOutfileClass output_class;
-} GsfOutputDirClass;
-
-G_DEFINE_TYPE( GsfOutputDir, gsf_output_dir, GSF_OUTFILE_TYPE );
-
-static gboolean
-gsf_output_dir_close( GsfOutput *output )
-{
-	return( TRUE );
-}
-
-static void
-gsf_output_dir_finalize( GObject *obj )
-{
-	GsfOutputDir *output_dir = (GsfOutputDir *) obj;
-
-	g_free( output_dir->root );
-
-	G_OBJECT_CLASS( gsf_output_dir_parent_class )->finalize( obj );
-}
-
-static GsfOutfile *
-gsf_output_dir_new_valist( char const *root,
-	char const *first_property_name, va_list var_args )
-{
-	GsfOutputDir *output_dir;
-
-	if( g_mkdir( root, 0777 ) != 0 && errno != EEXIST ) {
-		int save_errno = errno;
-		char *utf8name = g_filename_display_name( root );
-		vips_error( "dzsave",
-			_( "unable to create directory \"%s\", %s" ),
-			utf8name, g_strerror( save_errno ) );
-		g_free( utf8name );
-		return( NULL );
-	}
-
-	output_dir = (GsfOutputDir *) g_object_new_valist( GSF_OUTFILE_STDIO_TYPE,
-		first_property_name, var_args );
-	output_dir->root = g_strdup( root );
-	gsf_output_set_name_from_filename( GSF_OUTPUT( output_dir ), root );
-
-	return( GSF_OUTFILE( output_dir ) );
-}
-
-static GsfOutput *
-gsf_output_dir_new_child( GsfOutfile *parent,
-	char const *name, gboolean is_dir,
-	char const *first_property_name,
-	va_list args )
-{
-	GsfOutputDir *output_dir = (GsfOutputDir *) parent;
-	GsfOutput *child;
-	char *path = g_build_filename( output_dir->root, name, NULL );
-
-	if( is_dir )
-		child = (GsfOutput *) gsf_output_dir_new_valist( path,
-			first_property_name, args );
-	else
-		child = gsf_output_stdio_new_valist( path, NULL,
-			first_property_name, args );
-	g_free( path );
-
-	return( child );
-}
-
-static void
-gsf_output_dir_init( GsfOutputDir *output )
-{
-	output->root = NULL;
-}
-
-static void
-gsf_output_dir_class_init( GsfOutputDirClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	GsfOutputClass *output_class = GSF_OUTPUT_CLASS( class );
-	GsfOutfileClass *outfile_class = GSF_OUTFILE_CLASS( class );
-
-	gobject_class->finalize = gsf_output_dir_finalize;
-
-	output_class->Close = gsf_output_dir_close;
-	output_class->Seek = NULL;
-	output_class->Write = NULL;
-	output_class->Vprintf = NULL;
-
-	outfile_class->new_child = gsf_output_dir_new_child;
-}
-
-static GsfOutput *
-gsf_output_dir_new( char const *root, ... )
-{
-	GsfOutfile *output;
-	va_list var_args;
-
-	va_start( var_args, root );
-	output = gsf_output_dir_new_valist( root, NULL, var_args );
-	va_end( var_args );
-
-	return( GSF_OUTPUT( output ) );
-}
-
-/* Simple wrapper around libgsf.
- *
- * We need to be able to do scattered writes to structured files. So while
- * building a zip (for example) we need to be able to write to file/a/b.jpg,
- * then to file/c/d.jpg, then back to file/a/e.jpg. This is tricky with the
- * libgsf API which is happier doing writes in order.
- *
- * Put an API over libgsf to track refs to all directories and finish/close
- * them.
- */
-
-/* Need to track the directory tree we are writing, with a ref for each
- * GsfOutput.
- */
-typedef struct _VipsGsfDirectory { 
-	struct _VipsGsfDirectory *parent;
-	char *name;
-
-	/* List of child directories, if any.
-	 */
-	GSList *children;
-
-	/* The GsfOutput we use for this object.
-	 */
-	GsfOutput *out;
-
-	/* The root node holds the enclosing zip file or FS root ... finish
-	 * this on cleanup.
-	 */
-        GsfOutput *container;
-
-	/* Track number of files in tree and total length of filenames. We use
-	 * this to estimate zip size to spot a >4gb write.
-	 */
-	size_t file_count;
-	size_t filename_lengths;
-
-	/* Set deflate compression level for zip container.
-	 */
-	gint deflate_level;
-
-} VipsGsfDirectory; 
-
-static void *vips_gsf_tree_close( VipsGsfDirectory *tree );
-
-static void *
-vips_gsf_tree_close_cb( void *item, void *a, void *b )
-{
-	VipsGsfDirectory *tree = (VipsGsfDirectory *) item;
-
-	return( vips_gsf_tree_close( tree ) );
-}
-
-/* Close all dirs, non-NULL on error.
- */
-static void *
-vips_gsf_tree_close( VipsGsfDirectory *tree )
-{
-	vips_slist_map2( tree->children, vips_gsf_tree_close_cb, NULL, NULL );
-
-	if( tree->out ) {
-		if( !gsf_output_is_closed( tree->out ) &&
-			!gsf_output_close( tree->out ) ) {
-			vips_error( "vips_gsf", 
-				"%s", _( "unable to close stream" ) ); 
-			return( tree );
-		}
-
-		VIPS_UNREF( tree->out );
-	}
-
-	if( tree->container ) { 
-		if( !gsf_output_is_closed( tree->container ) && 
-			!gsf_output_close( tree->container ) ) {
-			vips_error( "vips_gsf", 
-				"%s", _( "unable to close stream" ) ); 
-			return( tree );
-		}
-
-		VIPS_UNREF( tree->container );
-	}
-
-	VIPS_FREEF( g_slist_free, tree->children );
-	VIPS_FREE( tree->name );
-	VIPS_FREE( tree );
-
-	return( NULL ); 
-}
-
-/* Make a new tree root.
- */
-static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gint deflate_level )
-{
-	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
-
-	tree->parent = NULL;
-	tree->name = NULL;
-	tree->children = NULL;
-	tree->out = out;
-	tree->container = NULL;
-	tree->file_count = 0;
-	tree->filename_lengths = 0;
-	tree->deflate_level = deflate_level;
-
-	return( tree ); 
-}
-
-static void *
-vips_gsf_child_by_name_sub( VipsGsfDirectory *dir, const char *name, void *b )
-{
-	if( strcmp( dir->name, name ) == 0 )
-		return( dir );
-
-	return( NULL ); 
-}
-
-/* Look up a child by name.
- */
-static VipsGsfDirectory *
-vips_gsf_child_by_name( VipsGsfDirectory *dir, const char *name )
-{
-	return( vips_slist_map2( dir->children, 
-		(VipsSListMap2Fn) vips_gsf_child_by_name_sub, 
-		(char *) name, NULL ) );
-}
-
-/* Make a new directory.
- */
-static VipsGsfDirectory *
-vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
-{
-	VipsGsfDirectory *dir = g_new( VipsGsfDirectory, 1 );
-
-	g_assert( !vips_gsf_child_by_name( parent, name ) ); 
-
-	dir->parent = parent;
-	dir->name = g_strdup( name );
-	dir->children = NULL;
-	dir->container = NULL;
-	dir->file_count = 0;
-	dir->filename_lengths = 0;
-	dir->deflate_level = parent->deflate_level;
-
-	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
-		dir->out = gsf_outfile_new_child_full( 
-			(GsfOutfile *) parent->out, 
-			name, TRUE,
-			"compression-level", GSF_ZIP_STORED,
-			NULL );
-	else
-		dir->out = gsf_outfile_new_child( 
-			(GsfOutfile *) parent->out, 
-			name, TRUE ); 
-
-	g_assert( dir->out ); 
-
-	parent->children = g_slist_prepend( parent->children, dir ); 
-
-	return( dir ); 
-}
-
-/* Return a GsfOutput or %NULL for writing to a path. Paths are object name first,
- * then path components with least-specific first, NULL-terminated. For example:
- *
- * GsfOutput *obj = vips_gsf_path( tree, "fred.jpg", "a", "b", NULL );
- *
- * Returns an obj you can use to write to a/b/fred.jpg, or %NULL when it exceeds
- * the path limits.
- *
- * You must write, close and unref obj.
- */
-static GsfOutput *
-vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
-{
-	va_list ap;
-	VipsGsfDirectory *dir;
-	VipsGsfDirectory *child;
-	char *dir_name;
-	GsfOutput *obj;
-
-	/* vips_gsf_path() always makes a new file, though it may add to an
-	 * existing directory. Note the file, and note the length of the full
-	 * path we are creating.
-	 */
-	tree->file_count += 1;
-	tree->filename_lengths += 
-		strlen( tree->out->name ) + strlen( name ) + 1;
-
-	dir = tree; 
-	va_start( ap, name );
-	while( (dir_name = va_arg( ap, char * )) ) {
-		if( (child = vips_gsf_child_by_name( dir, dir_name )) )
-			dir = child;
-		else 
-			dir = vips_gsf_dir_new( dir, dir_name );
-
-		tree->filename_lengths += strlen( dir_name ) + 1;
-	}
-	va_end( ap );
-
-	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
-		/* Confusingly, libgsf compression-level really means
-		 * compression-method. They have a separate deflate-level 
-		 * property for the deflate compression level.
-		 */
-		if( dir->deflate_level == 0 )
-			obj = gsf_outfile_new_child_full(
-				(GsfOutfile *) dir->out,
-				name, FALSE,
-				"compression-level", GSF_ZIP_STORED,
-				NULL );
-		else if( dir->deflate_level == -1 )
-			obj = gsf_outfile_new_child_full(
-				(GsfOutfile *) dir->out,
-				name, FALSE,
-				"compression-level", GSF_ZIP_DEFLATED,
-				NULL );
-		else
-			obj = gsf_outfile_new_child_full(
-				(GsfOutfile *) dir->out,
-				name, FALSE,
-				"compression-level", GSF_ZIP_DEFLATED,
-				"deflate-level", dir->deflate_level,
-				NULL );
-	}
-	else
-		obj = gsf_outfile_new_child( (GsfOutfile *) dir->out,
-			name, FALSE ); 
-
-	return( obj ); 
-}
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
@@ -762,21 +355,18 @@ struct _VipsForeignSaveDz {
 	 */
 	int tile_count;
 
-	/* The tree structure we are writing tiles to. Can be filesystem, a
-	 * zipfile, etc. 
+	/* The zipfile we are writing tiles to.
 	 */
-	VipsGsfDirectory *tree;
-
-	/* The actual output object our zip (or whatever) is writing to.
-	 */
-	GsfOutput *out;
+#ifdef HAVE_ZIP
+	zip_t *archive;
+#endif
 
 	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
 	 * No suffix, no path at the start. 
 	 */
 	char *basename; 
 
-	/* The directory we write the output to, or NULL for memory output. 
+	/* The directory we write the output to, or "" (empty) for memory output.
 	 */
 	char *dirname; 
 
@@ -790,11 +380,6 @@ struct _VipsForeignSaveDz {
 	 */
 	char *file_suffix;
 
-	/* libgsf before 1.14.31 can't write zip files larger than 4gb. 
-	 * Track bytes written here and try to guess when we'll go over.
-	 */
-	size_t bytes_written;
-
 	/* save->background turned into a pixel that matches the image we are
 	 * saving .. used to test for blank tiles.
 	 */
@@ -807,11 +392,6 @@ typedef VipsForeignSaveClass VipsForeignSaveDzClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
-#define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
-#define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
-#define VIPS_ZIP_EOCD_SIZE 22
-
-#ifndef HAVE_GSF_ZIP64
 /* ZIP and SZI are both written as zip files.
  */
 static gboolean
@@ -827,33 +407,116 @@ iszip( VipsForeignDzContainer container )
 	}
 }
 
-static size_t
-estimate_zip_size( VipsForeignSaveDz *dz )
+#ifdef HAVE_ZIP
+static inline int
+vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
-	size_t estimated_zip_size = dz->bytes_written +
-		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE +
-		dz->tree->filename_lengths +
-		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE +
-		dz->tree->filename_lengths +
-		VIPS_ZIP_EOCD_SIZE;
+	if( zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 ) < 0 &&
+		zip_get_error( dz->archive )->zip_err != ZIP_ER_EXISTS ) {
+		char *utf8name = g_filename_display_name( dirname );
+		vips_error( "dzsave",
+			_( "unable to add directory \"%s\", %s" ),
+			utf8name, zip_strerror( dz->archive ) );
+		g_free( utf8name );
+		return( -1 );
+	}
 
-#ifdef DEBUG_VERBOSE
-	printf( "estimate_zip_size: %zd\n", estimated_zip_size );
-#endif /*DEBUG_VERBOSE*/
-
-	return( estimated_zip_size );
+	return( 0 );
 }
-#endif /*HAVE_GSF_ZIP64*/
+#endif
+
+static inline int
+vips_mkdir_file( const char *dirname )
+{
+	if( g_mkdir_with_parents( dirname, 0777 ) &&
+		errno != EEXIST ) {
+		int save_errno = errno;
+		char *utf8name = g_filename_display_name( dirname );
+		vips_error( "dzsave",
+			_( "unable to create directory \"%s\", %s" ),
+			utf8name, g_strerror( save_errno ) );
+		g_free( utf8name );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips_mkdir( VipsForeignSaveDz *dz, const char *dirname )
+{
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) 
+		return( vips_mkdir_zip( dz, dirname ) );
+	else
+#endif /*HAVE_ZIP*/
+		return( vips_mkdir_file( dirname ) );
+}
+
+#ifdef HAVE_ZIP
+static inline int
+vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
+	void *buf, size_t len )
+{
+	zip_source_t *s;
+	zip_int64_t index;
+
+	if( !(s = zip_source_buffer( dz->archive, buf, len, 1 )) ||
+		(index = zip_file_add( dz->archive, filename, s,
+			ZIP_FL_ENC_UTF_8 )) < 0 ) {
+		zip_source_free( s );
+		return( -1 );
+	}
+
+	if( dz->compression >= 0 &&
+		zip_set_file_compression( dz->archive, index,
+			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
+			dz->compression ) )
+		return( -1 );
+
+	return( 0 );
+}
+#endif
+
+static inline int
+vips_mkfile_file( const char *filename, void *buf, size_t len )
+{
+	FILE *f;
+
+	if( !(f = vips__file_open_write( filename, TRUE )) ) {
+		g_free( buf );
+		return( -1 );
+	}
+
+	if( fwrite( buf, sizeof( char ), len, f ) != len ) {
+		fclose( f );
+		g_free( buf );
+		return( -1 );
+	}
+
+	fclose( f );
+	g_free( buf );
+
+	return( 0 );
+}
+
+static int
+vips_mkfile( VipsForeignSaveDz *dz, const char *filename,
+	void *buf, size_t len )
+{
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) 
+		return( vips_mkfile_zip( dz, filename, buf, len ) );
+	else
+#endif /*HAVE_ZIP*/
+		return( vips_mkfile_file( filename, buf, len ) );
+}
 
 static int
 write_image( VipsForeignSaveDz *dz,
-	GsfOutput *out, VipsImage *image, const char *format )
+	VipsImage *image, const char *filename, const char *format )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz );
-
 	VipsImage *t;
-	void *buf;
-	size_t len;
 
 	/* We need to block progress signalling on individual image write, so
 	 * we need a copy of the tile in case it's shared (eg. associated
@@ -866,61 +529,37 @@ write_image( VipsForeignSaveDz *dz,
 	 * off. Most people don't want metadata on every tile.
 	 */
 	vips_image_set_int( t, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( t, format, &buf, &len,
-		"strip", !dz->no_strip,
-		NULL ) ) {
-		VIPS_UNREF( t );
-		return( -1 );
-	}
-	VIPS_UNREF( t );
 
-	/* gsf doesn't like more than one write active at once.
-	 */
-	g_mutex_lock( vips__global_lock );
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) {
+		void *buf;
+		size_t len;
 
-	if( !gsf_output_write( out, len, buf ) ) {
-		gsf_output_close( out );
-		g_mutex_unlock( vips__global_lock );
-		g_free( buf );
-
-		if( gsf_output_error( out ) )
-			vips_error( class->nickname,
-				"%s", gsf_output_error( out )->message );
-
-		return( -1 );
-	}
-
-	dz->bytes_written += len;
-
-	gsf_output_close( out );
-
-#ifndef HAVE_GSF_ZIP64
-	if( iszip( dz->container ) ) { 
-		/* Leave 3 entry headroom for blank.png and metadata files.
-		 */
-		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
-			g_mutex_unlock( vips__global_lock );
-
-			vips_error( class->nickname,
-				"%s", _( "too many files in zip" ) );
+		if( vips_image_write_to_buffer( t, format, &buf, &len,
+			"strip", !dz->no_strip,
+			NULL ) ) {
+			VIPS_UNREF( t );
 			return( -1 );
 		}
+		VIPS_UNREF( t );
 
-		/* Leave 16k headroom for blank.png and metadata files. 
+		/* vips_mkfile_zip() takes the ownership of buf.
 		 */
-		if( estimate_zip_size( dz ) > (size_t) UINT_MAX - 16384) {
-			g_mutex_unlock( vips__global_lock );
-
-			vips_error( class->nickname,
-				"%s", _( "output file too large" ) ); 
-			return( -1 ); 
-		}
+		if( vips_mkfile_zip( dz, filename, buf, len ) )
+			return( -1 );
 	}
-#endif /*HAVE_GSF_ZIP64*/
-
-	g_mutex_unlock( vips__global_lock );
-
-	g_free( buf );
+	else {
+#endif /*HAVE_ZIP*/
+		if( vips_image_write_to_file( t, filename,
+			"strip", !dz->no_strip,
+			NULL ) ) {
+			VIPS_UNREF( t );
+			return( -1 );
+		}
+		VIPS_UNREF( t );
+#ifdef HAVE_ZIP
+	}
+#endif /*HAVE_ZIP*/
 
 	return( 0 );
 }
@@ -942,11 +581,13 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
+#ifdef HAVE_ZIP
+	VIPS_FREEF( zip_close, dz->archive );
+#endif
+
 	VIPS_UNREF( dz->target );
 
 	VIPS_FREEF( layer_free, dz->layer );
-	VIPS_FREEF( vips_gsf_tree_close,  dz->tree );
-	VIPS_FREEF( g_object_unref, dz->out );
 
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
@@ -1110,34 +751,44 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 static int
 write_dzi( VipsForeignSaveDz *dz )
 {
-	GsfOutput *out;
-	char buf[VIPS_PATH_MAX];
+	VipsDbuf dbuf;
+	char suffix[VIPS_PATH_MAX];
+	char *filename;
 	char *p;
+	void *buf;
+	size_t len;
 
-	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->basename );
-	if( !(out = vips_gsf_path( dz->tree, buf, NULL ) ))
+	vips_snprintf( suffix, VIPS_PATH_MAX, "%s.dzi", dz->basename );
+
+	if( !(filename = g_build_filename( dz->dirname, suffix, NULL )) )
 		return( -1 );
 
-	vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
-	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
+	vips_dbuf_init( &dbuf );
+
+	vips_snprintf( suffix, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
+	if( (p = (char *) vips__find_rightmost_brackets( suffix )) )
 		*p = '\0';
 
-	gsf_output_printf( out, "<?xml "
-		"version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
-	gsf_output_printf( out, "<Image "
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" );
+	vips_dbuf_writef( &dbuf, "<Image "
 		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
-	gsf_output_printf( out, "  Format=\"%s\"\n", buf );
-	gsf_output_printf( out, "  Overlap=\"%d\"\n", dz->overlap );
-	gsf_output_printf( out, "  TileSize=\"%d\"\n", dz->tile_size );
-	gsf_output_printf( out, "  >\n" ); 
-	gsf_output_printf( out, "  <Size \n" );
-	gsf_output_printf( out, "    Height=\"%d\"\n", dz->layer->height );
-	gsf_output_printf( out, "    Width=\"%d\"\n", dz->layer->width );
-	gsf_output_printf( out, "  />\n" ); 
-	gsf_output_printf( out, "</Image>\n" );
+	vips_dbuf_writef( &dbuf, "  Format=\"%s\"\n", suffix );
+	vips_dbuf_writef( &dbuf, "  Overlap=\"%d\"\n", dz->overlap );
+	vips_dbuf_writef( &dbuf, "  TileSize=\"%d\"\n", dz->tile_size );
+	vips_dbuf_writef( &dbuf, "  >\n" );
+	vips_dbuf_writef( &dbuf, "  <Size \n" );
+	vips_dbuf_writef( &dbuf, "    Height=\"%d\"\n", dz->layer->height );
+	vips_dbuf_writef( &dbuf, "    Width=\"%d\"\n", dz->layer->width );
+	vips_dbuf_writef( &dbuf, "  />\n" );
+	vips_dbuf_writef( &dbuf, "</Image>\n" );
 
-	(void) gsf_output_close( out );
-	g_object_unref( out );
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
+	g_free( filename );
 
 	return( 0 );
 }
@@ -1145,14 +796,18 @@ write_dzi( VipsForeignSaveDz *dz )
 static int
 write_properties( VipsForeignSaveDz *dz )
 {
-	GsfOutput *out;
+	VipsDbuf dbuf;
+	char *filename;
+	void *buf;
+	size_t len;
 
-	if( !(out = vips_gsf_path( dz->tree, 
-		"ImageProperties.xml", NULL ) )) {
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"ImageProperties.xml", NULL )) )
 		return( -1 );
-	}
 
-	gsf_output_printf( out, "<IMAGE_PROPERTIES "
+	vips_dbuf_init( &dbuf );
+
+	vips_dbuf_writef( &dbuf, "<IMAGE_PROPERTIES "
 		"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
 		"NUMIMAGES=\"1\" VERSION=\"1.8\" TILESIZE=\"%d\" />\n",
 		dz->layer->width,
@@ -1160,8 +815,13 @@ write_properties( VipsForeignSaveDz *dz )
 		dz->tile_count,
 		dz->tile_size );
 
-	(void) gsf_output_close( out );
-	g_object_unref( out );
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
+	g_free( filename );
 
 	return( 0 );
 }
@@ -1177,7 +837,7 @@ write_blank( VipsForeignSaveDz *dz )
 	double *d;
 	double *bg;
 	int i;
-	GsfOutput *out; 
+	char *filename;
 
 	/* Number of bands we will end up making. We need to set this in
 	 * vips_black() to make sure we set Type correctly, otherwise we can
@@ -1203,21 +863,21 @@ write_blank( VipsForeignSaveDz *dz )
 	g_object_unref( x );
 	x = t;
 
-	if( !(out = vips_gsf_path( dz->tree, "blank.png", NULL ) )) {
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"blank.png", NULL )) ) {
 		g_object_unref( x );
 
 		return( -1 );
 	}
 
-	if( write_image( dz, out, x, ".png" ) ) {
-		g_object_unref( out );
+	if( write_image( dz, x, filename, ".png" ) ) {
+		g_free( filename );
 		g_object_unref( x );
 
 		return( -1 );
 	}
 
-	g_object_unref( out );
-
+	g_free( filename );
 	g_object_unref( x );
 
 	return( 0 );
@@ -1237,14 +897,20 @@ write_json( VipsForeignSaveDz *dz )
 	const char *suffix = dz->file_suffix[0] == '.' ? 
 		dz->file_suffix + 1 : dz->file_suffix;
 
-	GsfOutput *out;
+	VipsDbuf dbuf;
+	char *filename;
+	void *buf;
+	size_t len;
 	int i;
 
-	if( !(out = vips_gsf_path( dz->tree, "info.json", NULL ) ))
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"info.json", NULL )) ) 
 		return( -1 );
 
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) 
-		gsf_output_printf( out, 
+	vips_dbuf_init( &dbuf );
+
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 )
+		vips_dbuf_writef( &dbuf,
 			"{\n"
 			"  \"@context\": " 
 				"\"http://iiif.io/api/image/3/context.json\",\n"
@@ -1255,7 +921,7 @@ write_json( VipsForeignSaveDz *dz )
 			dz->id ? dz->id : "https://example.com/iiif",
 			name );
 	else
-		gsf_output_printf( out, 
+		vips_dbuf_writef( &dbuf,
 			"{\n"
 			"  \"@context\": "
 				"\"http://iiif.io/api/image/2/context.json\",\n"
@@ -1279,59 +945,64 @@ write_json( VipsForeignSaveDz *dz )
 	/* "sizes" is needed for the full/ set of untiled images, which we 
 	 * don't yet support. Leave this commented out for now.
 
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf,
 		"  \"sizes\": [\n" );
 
 	for( i = 0; i < dz->layer->n + 5; i++ ) {
-		gsf_output_printf( out, 
+		vips_dbuf_writef( &dbuf,
 			"    {\n"
 			"      \"width\": %d,\n"
 			"      \"height\": \"full\"\n"
 			"    }", 
 				1 << (i + 4) );
 		if( i != dz->layer->n - 4 )
-			gsf_output_printf( out, "," );
-		gsf_output_printf( out, "\n" );
+			vips_dbuf_writef( &dbuf, "," );
+		vips_dbuf_writef( &dbuf, "\n" );
 	}
 
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf, 
 		"  ],\n" );
 
 	 */
 
 	/* The set of pyramid layers we have written.
 	 */
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf, 
 		"  \"tiles\": [\n"
 		"    {\n"
 		"      \"scaleFactors\": [\n" );
 
 	for( i = 0; i < dz->layer->n; i++ ) {
-		gsf_output_printf( out, 
+		vips_dbuf_writef( &dbuf, 
 			"        %d",
 				1 << i );
 		if( i != dz->layer->n - 1 )
-			gsf_output_printf( out, "," );
-		gsf_output_printf( out, "\n" );
+			vips_dbuf_writef( &dbuf, "," );
+		vips_dbuf_writef( &dbuf, "\n" );
 	}
 
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf, 
 		"      ],\n"
 		"      \"width\": %d\n"
 		"    }\n"
 		"  ],\n", dz->tile_size );
 
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf, 
 		"  \"width\": %d,\n"
 		"  \"height\": %d\n", 
 			dz->layer->width,
 			dz->layer->height );
 
-	gsf_output_printf( out, 
+	vips_dbuf_writef( &dbuf, 
 		"}\n" );
 
-	(void) gsf_output_close( out );
-	g_object_unref( out );
+	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+		vips_mkfile( dz, filename, buf, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
+
+	g_free( filename );
 
 	return( 0 );
 }
@@ -1341,32 +1012,35 @@ write_vips_meta( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
+	char *filename;
 	char *dump;
-	GsfOutput *out;
 
-	if( !(dump = vips__xml_properties( save->ready )) )
-                return( -1 );
-
-	/* For deepzom the props must go inside the ${name}_files subdir, for
+	/* For deepzoom the props must go inside the ${name}_files subdir, for
 	 * gm and zoomify it can sit in the main folder.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
-		out = vips_gsf_path( dz->tree, 
-			"vips-properties.xml", dz->root_name, NULL );
+		filename = g_build_filename( dz->dirname, dz->root_name,
+			"vips-properties.xml", NULL );
 	else
-		out = vips_gsf_path( dz->tree, "vips-properties.xml", NULL );
+		filename = g_build_filename( dz->dirname,
+			"vips-properties.xml", NULL );
 
-	if( out == NULL ) {
-		g_free( dump );
+	if( filename == NULL )
+		return( -1 );
 
+	if( !(dump = vips__xml_properties( save->ready )) ) {
+		g_free( filename );
 		return( -1 );
 	}
 
-	(void) gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
-	(void) gsf_output_close( out );
-	g_object_unref( out );
+	/* vips_mkfile() takes the ownership of dump.
+	 */
+	if( vips_mkfile( dz, filename, dump, strlen( dump ) ) ) {
+		g_free( filename );
+		return( -1 );
+	}
 
-	g_free( dump );
+	g_free( filename );
 
 	return( 0 );
 }
@@ -1435,7 +1109,7 @@ static char *scan_property_names[][2] = {
  * Free with g_free().
  */
 static char *
-build_scan_properties( VipsImage *image )
+build_scan_properties( VipsImage *image, size_t *len )
 {
 	VipsDbuf dbuf;
 	char *date;
@@ -1459,7 +1133,7 @@ build_scan_properties( VipsImage *image )
 	vips_dbuf_writef( &dbuf, "  </properties>\n" );
 	vips_dbuf_writef( &dbuf, "</image>\n" );
 
-	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+	return( (char *) vips_dbuf_steal( &dbuf, len ) ); 
 }
 
 static int
@@ -1467,24 +1141,27 @@ write_scan_properties( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
+	char *filename;
 	char *dump;
-	GsfOutput *out;
+	size_t len;
 
-	if( !(dump = build_scan_properties( save->ready )) )
-                return( -1 );
-	
-	if( !(out = vips_gsf_path( dz->tree, 
-		"scan-properties.xml", NULL ) )) {
-		g_free( dump );
+	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
+			"scan-properties.xml", NULL )) ) 
+		return( -1 );
 
+	if( !(dump = build_scan_properties( save->ready, &len )) ) {
+		g_free( filename );
 		return( -1 );
 	}
 
-	(void) gsf_output_write( out, strlen( dump ), (guchar *) dump );
-	(void) gsf_output_close( out );
-	g_object_unref( out );
+	/* vips_mkfile() takes the ownership of dump.
+	 */
+	if( vips_mkfile( dz, filename, dump, len ) ) {
+		g_free( filename );
+		return( -1 );
+	}
 
-	g_free( dump );
+	g_free( filename );
 
 	return( 0 );
 }
@@ -1499,7 +1176,7 @@ write_associated_images( VipsImage *image,
 		VipsImage *associated;
 		const char *p;
 		const char *q;
-		GsfOutput *out;
+		char *out;
 		char buf[VIPS_PATH_MAX];
 
 		p = field + strlen( "openslide.associated." );
@@ -1513,22 +1190,22 @@ write_associated_images( VipsImage *image,
 			return( image );
 
 		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
-		if( !(out = vips_gsf_path( dz->tree, buf, 
-			"associated_images", NULL ) )) {
+
+		if( !(out = g_build_filename( dz->dirname, dz->root_name,
+				"associated_images", buf, NULL )) ) {
 			g_object_unref( associated );
 
 			return( image );
 		}
 
-		if( write_image( dz, out, associated, ".jpg" ) ) {
-			g_object_unref( out );
+		if( write_image( dz, associated, out, ".jpg" ) ) {
+			g_free( out );
 			g_object_unref( associated );
 
 			return( image );
 		}
 
-		g_object_unref( out );
-
+		g_free( out );
 		g_object_unref( associated );
 	}
 
@@ -1539,6 +1216,17 @@ static int
 write_associated( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
+	char *dirname;
+
+	if( !(dirname = g_build_filename( dz->dirname, dz->root_name,
+			"associated_images", NULL )) ) 
+		return( -1 );
+
+	if( vips_mkdir( dz, dirname ) ) {
+		g_free( dirname );
+		return( -1 );
+	}
+	g_free( dirname );
 
 	if( vips_image_map( save->ready, write_associated_images, dz ) )
 		return( -1 );
@@ -1666,27 +1354,32 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 /* Make an output object for a tile in the current layout.
  */
-static GsfOutput *
+static char *
 tile_name( Layer *layer, int x, int y )
 {
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
-	GsfOutput *out; 
+	char *out;
+	char *dirname;
 	char name[VIPS_PATH_MAX];
-	char dirname[VIPS_PATH_MAX];
-	char dirname2[VIPS_PATH_MAX];
+	char subdir[VIPS_PATH_MAX];
+	char *suffix;
 	Layer *p;
 	int n;
 
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) )
+		suffix = dz->file_suffix;
+	else
+#endif
+		suffix = dz->suffix;
+
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
-		vips_snprintf( dirname, VIPS_PATH_MAX, "%d", layer->n );
+		vips_snprintf( subdir, VIPS_PATH_MAX, "%d", layer->n );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d_%d%s", x, y, dz->file_suffix );
-
-		out = vips_gsf_path( dz->tree, name, 
-			dz->root_name, dirname, NULL );
+			"%d_%d%s", x, y, suffix );
 
 		break;
 
@@ -1707,25 +1400,21 @@ tile_name( Layer *layer, int x, int y )
 		 */
 		n += y * layer->tiles_across + x;
 
-		vips_snprintf( dirname, VIPS_PATH_MAX, "TileGroup%d", n / 256 );
+		vips_snprintf( subdir, VIPS_PATH_MAX, "TileGroup%d", n / 256 );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d-%d-%d%s", layer->n, x, y, dz->file_suffix );
+			"%d-%d-%d%s", layer->n, x, y, suffix );
 
 		/* Used at the end in ImageProperties.xml
 		 */
 		dz->tile_count += 1;
 
-		out = vips_gsf_path( dz->tree, name, dirname, NULL );
-
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
-		vips_snprintf( dirname, VIPS_PATH_MAX, "%d", layer->n );
-		vips_snprintf( dirname2, VIPS_PATH_MAX, "%d", y );
+		vips_snprintf( subdir, VIPS_PATH_MAX, 
+			"%d" G_DIR_SEPARATOR_S "%d", layer->n, y );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d%s", x, dz->file_suffix );
-
-		out = vips_gsf_path( dz->tree, name, dirname, dirname2, NULL );
+			"%d%s", x, suffix );
 
 		break;
 
@@ -1747,8 +1436,10 @@ tile_name( Layer *layer, int x, int y )
 			save->ready->Xsize - left );
 		int height = VIPS_MIN( dz->tile_size * layer->sub, 
 			save->ready->Ysize - top );
-		vips_snprintf( dirname, VIPS_PATH_MAX, "%d,%d,%d,%d",
-			left, top, width, height );
+
+		/* Rotation is always 0.
+		 */
+		int rotation = 0;
 
 		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
 			int xsize = VIPS_MIN( dz->tile_size, 
@@ -1756,8 +1447,11 @@ tile_name( Layer *layer, int x, int y )
 			int ysize = VIPS_MIN( dz->tile_size, 
 				layer->height - y * dz->tile_size );
 
-			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,%d", 
-				xsize, ysize );
+			vips_snprintf( subdir, VIPS_PATH_MAX,
+				"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d,%d" G_DIR_SEPARATOR_S "%d",
+				left, top, width, height, 
+				xsize, ysize,
+				rotation );
 		}
 		else {
 			/* IIIF2 "size" is just real tile width, I think.
@@ -1765,30 +1459,36 @@ tile_name( Layer *layer, int x, int y )
 			int size = VIPS_MIN( dz->tile_size, 
 				layer->width - x * dz->tile_size );
 
-			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,", size );
+			vips_snprintf( subdir, VIPS_PATH_MAX,
+				"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d," G_DIR_SEPARATOR_S "%d",
+				left, top, width, height, 
+				size,
+				rotation );
 		}
 
-		vips_snprintf( name, VIPS_PATH_MAX, "default%s", 
-			dz->file_suffix );
-
-		/* "0" is rotation and is always 0.
-		 */
-		out = vips_gsf_path( dz->tree, 
-			name, dirname, dirname2, "0", NULL );
+		vips_snprintf( name, VIPS_PATH_MAX, "default%s", suffix );
 }
 
 		break;
 
 	default:
 		g_assert_not_reached();
-
-		/* Stop compiler warnings.
-		 */
-		out = NULL;
 	}
 
+	if( !(dirname = g_build_filename( dz->dirname, dz->root_name,
+		subdir, NULL )) )
+		return( NULL );
+
+	if( vips_mkdir( dz, dirname ) ) {
+		g_free( dirname );
+		return( NULL );
+	}
+
+	out = g_build_filename( dirname, name, NULL );
+	g_free( dirname );
+
 #ifdef DEBUG_VERBOSE
-	printf( "tile_name: writing to %s\n", name );
+	printf( "tile_name: writing to %s\n", out );
 #endif /*DEBUG_VERBOSE*/
 
 	return( out );
@@ -1851,7 +1551,7 @@ strip_work( VipsThreadState *state, void *a )
 
 	VipsImage *x;
 	VipsImage *t;
-	GsfOutput *out; 
+	char *out; 
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work\n" );
@@ -1920,16 +1620,10 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-	/* we need to single-thread around calls to gsf.
-	 */
-	g_mutex_lock( vips__global_lock );
-
 	out = tile_name( layer, 
 		state->x / dz->tile_step, state->y / dz->tile_step );
 
-	g_mutex_unlock( vips__global_lock );
-
-	/* vips_gsf_path() can return NULL when it exceeds the path limits.
+	/* g_build_filename() can return NULL when it exceeds the path limits.
 	 */
 	if( out == NULL ) {
 		g_object_unref( x );
@@ -1937,16 +1631,16 @@ strip_work( VipsThreadState *state, void *a )
 		return( -1 );
 	}
 
-        vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
+	vips_image_set_int( x, VIPS_META_CONCURRENCY, 1 );
 
-	if( write_image( dz, out, x, dz->suffix ) ) {
-		g_object_unref( out );
+	if( write_image( dz, x, out, dz->suffix ) ) {
+		g_free( out );
 		g_object_unref( x );
 
 		return( -1 );
 	}
 
-	g_object_unref( out );
+	g_free( out );
 	g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
@@ -2023,7 +1717,7 @@ layer_generate_extras( Layer *layer )
 		last.top = layer->image->Ysize - 2;
 		last.width = layer->image->Xsize;
 		last.height = 2;
-	
+
 		/* Do we have them both? Fill the last with the next-to-last.
 		 */
 		vips_rect_intersectrect( &last, &strip->valid, &last );
@@ -2487,6 +2181,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "dirname" ) ) {
 		if( filename )
 			dz->dirname = g_path_get_dirname( filename ); 
+		else
+			dz->dirname = g_strdup( "." );
 	}
 }
 
@@ -2532,88 +2228,46 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = (char *) vips__find_rightmost_brackets( dz->file_suffix )) )
 		*p = '\0';
 
-	/* Make the thing we write the tiles into.
+#ifdef HAVE_ZIP
+	/* Make the zip archive we write the tiles into.
 	 */
-	switch( dz->container ) {
-	case VIPS_FOREIGN_DZ_CONTAINER_FS:
-{
-		GsfOutput *out;
-		char name[VIPS_PATH_MAX];
+	if( iszip( dz->container ) ) {
+		zip_source_t *zs;
 
-		/* For filesystem output of deepzoom, we write 
-		 * dirname/basename_files/ and dirname/basename.dzi, ie. the 
-		 * output does not go into a subdirectory.
+		/* Ignore the root directory name for zip output, it should only
+		 * be set for filesystem output.
 		 */
-		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) 
-			vips_snprintf( name, VIPS_PATH_MAX, 
-				"%s", dz->dirname );
-		else
-			vips_snprintf( name, VIPS_PATH_MAX, 
-				"%s/%s", dz->dirname, dz->basename ); 
-
-		if( !(out = (GsfOutput *) 
-			gsf_output_dir_new( name, NULL )) ) {
-			return( -1 );
-		}
-	
-		dz->tree = vips_gsf_tree_new( out, 0 );
-}
-		break;
-
-	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
-	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
-{
-		GsfOutput *zip;
-		GsfOutput *out2;
-		GError *error = NULL;
+		VIPS_SETSTR( dz->dirname, "" );
 
 		/* We can have dzsave("x.zip", container="fs"), ie. zip output
 		 * from write to file. Make a target if we need one.
 		 */
 		if( !dz->target ) {
-			if( !(dz->target = 
-				vips_target_new_to_file( dz->filename )) )
+			if( !(dz->target =
+					vips_target_new_to_file( dz->filename )) )
 				return( -1 );
 		}
 
-		/* Can be memory, a file (not a directory tree), pipe, etc.
+		/* Create source from target.
 		 */
-		dz->out = gsf_output_target_new( dz->target );
-
-		if( !(zip = (GsfOutput *) 
-			gsf_outfile_zip_new( dz->out, &error )) ) {
-			vips_g_error( &error );
+		if( !(zs = zip_source_function_create( write_zip_target_cb,
+				dz->target, NULL )) ) {
 			return( -1 );
 		}
 
-		/* Make the base directory inside the zip. All stuff goes into
-		 * this. 
-		 */
-		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
-			dz->basename, TRUE,
-			"compression-level", GSF_ZIP_STORED, 
-			NULL );
-
-#ifndef HAVE_GSF_DEFLATE_LEVEL
-		if( dz->compression > 0 ) {
-			g_warning( "%s", 
-				_( "deflate-level not supported by libgsf, "
-				"using default compression" ) ); 
-			dz->compression = -1;
+		if( !(dz->archive =
+				zip_open_from_source( zs, ZIP_TRUNCATE, NULL )) ) {
+			zip_source_free( zs );
+			return( -1 );
 		}
-#endif /*HAVE_GSF_DEFLATE_LEVEL*/
-
-		dz->tree = vips_gsf_tree_new( out2, dz->compression );
-
-		/* Note the thing that will need closing up on exit.
-		 */
-		dz->tree->container = zip; 
-}
-		break;
-
-	default:
-		g_assert_not_reached();
 	}
+#else
+	if( iszip( dz->container ) ) {
+		vips_error( "dzsave",
+			_( "ZIP-compressed output requires libzip >= 1.0.0" ) );
+		return( -1 );
+	}
+#endif
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
 		return( -1 );
@@ -2655,15 +2309,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 		write_associated( dz ) )
 		return( -1 );
 
-	/* Shut down the output to flush everything.
-	 */
-	if( vips_gsf_tree_close( dz->tree ) )
-		return( -1 ); 
-	dz->tree = NULL; 
+#ifdef HAVE_ZIP
+	if( iszip( dz->container ) ) {
+		/* Shut down the output to flush everything.
+		 */
+		if( zip_close( dz->archive ) )
+			return( -1 );
 
-	/* unref out to force flush in gsf_output_target_close().
-	 */
-	VIPS_UNREF( dz->out );
+		dz->archive = NULL;
+	}
+#endif
 
 	return( 0 );
 }
@@ -3034,8 +2689,6 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
 	 */
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 }
-
-#endif /*HAVE_GSF*/
 
 /**
  * vips_dzsave: (method)
