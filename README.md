@@ -186,8 +186,7 @@ try to save gifs via imagemagick instead.
 
 ### libzip
 
-If available, libvips adds support for creating ZIP-compressed image pyramids
-with `dzsave`.
+If available, libvips adds support for creating image pyramids with `dzsave`.
 
 ### libtiff
 

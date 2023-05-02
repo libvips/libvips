@@ -671,7 +671,7 @@ build_summary = {
      'PNG load/save with libpng': [png_dep.found()],
      'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
      'TIFF load/save with libtiff': [libtiff_dep.found()],
-     'ZIP pyramid save with libzip': [zip_dep.found()],
+     'image pyramid save with libzip': [zip_dep.found()],
      'HEIC/AVIF load/save with libheif': [libheif_dep.found(), ' (dynamic module: ', libheif_module, ')'],
      'WebP load/save with libwebp': [libwebp_dep.found()],
      'PDF load with PDFium': [pdfium_dep.found()],

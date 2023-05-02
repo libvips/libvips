@@ -197,6 +197,6 @@ make a pyramid from that.
 
 If you are building vips from source you do need to check the summary at
 the end of configure carefully. You must have the `libzip-dev` package
-to support ZIP-compressed output in `vips_dzsave()`.
+for `vips_dzsave()` to work.
 
 

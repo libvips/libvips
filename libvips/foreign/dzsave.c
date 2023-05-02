@@ -245,7 +245,6 @@ write_zip_target_cb( void *state, void *data, zip_uint64_t length,
 		return( 0 );
 	}
 }
-#endif
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
@@ -360,9 +359,7 @@ struct _VipsForeignSaveDz {
 
 	/* The zipfile we are writing tiles to.
 	 */
-#ifdef HAVE_ZIP
 	zip_t *archive;
-#endif
 
 	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
 	 * No suffix, no path at the start. 
@@ -410,7 +407,6 @@ iszip( VipsForeignDzContainer container )
 	}
 }
 
-#ifdef HAVE_ZIP
 static inline int
 vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
@@ -431,7 +427,6 @@ vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 
 	return( 0 );
 }
-#endif
 
 static inline int
 vips_mkdir_file( const char *dirname )
@@ -453,15 +448,12 @@ vips_mkdir_file( const char *dirname )
 static int
 vips_mkdir( VipsForeignSaveDz *dz, const char *dirname )
 {
-#ifdef HAVE_ZIP
 	if( iszip( dz->container ) ) 
 		return( vips_mkdir_zip( dz, dirname ) );
 	else
-#endif /*HAVE_ZIP*/
 		return( vips_mkdir_file( dirname ) );
 }
 
-#ifdef HAVE_ZIP
 static inline int
 vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	void *buf, size_t len )
@@ -491,7 +483,6 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 
 	return( 0 );
 }
-#endif
 
 static inline int
 vips_mkfile_file( const char *filename, void *buf, size_t len )
@@ -519,11 +510,9 @@ static int
 vips_mkfile( VipsForeignSaveDz *dz, const char *filename,
 	void *buf, size_t len )
 {
-#ifdef HAVE_ZIP
 	if( iszip( dz->container ) ) 
 		return( vips_mkfile_zip( dz, filename, buf, len ) );
 	else
-#endif /*HAVE_ZIP*/
 		return( vips_mkfile_file( filename, buf, len ) );
 }
 
@@ -545,7 +534,6 @@ write_image( VipsForeignSaveDz *dz,
 	 */
 	vips_image_set_int( t, "hide-progress", 1 );
 
-#ifdef HAVE_ZIP
 	if( iszip( dz->container ) ) {
 		void *buf;
 		size_t len;
@@ -564,7 +552,6 @@ write_image( VipsForeignSaveDz *dz,
 			return( -1 );
 	}
 	else {
-#endif /*HAVE_ZIP*/
 		if( vips_image_write_to_file( t, filename,
 			"strip", !dz->no_strip,
 			NULL ) ) {
@@ -572,9 +559,7 @@ write_image( VipsForeignSaveDz *dz,
 			return( -1 );
 		}
 		VIPS_UNREF( t );
-#ifdef HAVE_ZIP
 	}
-#endif /*HAVE_ZIP*/
 
 	return( 0 );
 }
@@ -596,9 +581,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
-#ifdef HAVE_ZIP
 	VIPS_FREEF( zip_close, dz->archive );
-#endif
 
 	VIPS_UNREF( dz->target );
 
@@ -1383,12 +1366,9 @@ tile_name( Layer *layer, int x, int y )
 	Layer *p;
 	int n;
 
-#ifdef HAVE_ZIP
-	if( iszip( dz->container ) )
-		suffix = dz->file_suffix;
-	else
-#endif
-		suffix = dz->suffix;
+	suffix = iszip( dz->container )
+		? dz->file_suffix
+		: dz->suffix;
 
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
@@ -2243,7 +2223,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = (char *) vips__find_rightmost_brackets( dz->file_suffix )) )
 		*p = '\0';
 
-#ifdef HAVE_ZIP
 	/* Make the zip archive we write the tiles into.
 	 */
 	if( iszip( dz->container ) ) {
@@ -2276,13 +2255,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 			return( -1 );
 		}
 	}
-#else
-	if( iszip( dz->container ) ) {
-		vips_error( "dzsave",
-			_( "ZIP-compressed output requires libzip >= 1.0.0" ) );
-		return( -1 );
-	}
-#endif
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
 		return( -1 );
@@ -2324,7 +2296,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		write_associated( dz ) )
 		return( -1 );
 
-#ifdef HAVE_ZIP
 	if( iszip( dz->container ) ) {
 		/* Shut down the output to flush everything.
 		 */
@@ -2333,7 +2304,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 		dz->archive = NULL;
 	}
-#endif
 
 	return( 0 );
 }
@@ -2716,6 +2686,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
 	 */
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 }
+
+#endif /*HAVE_ZIP*/
 
 /**
  * vips_dzsave: (method)
