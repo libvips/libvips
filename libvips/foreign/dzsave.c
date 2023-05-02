@@ -184,6 +184,8 @@
 #ifdef HAVE_ZIP
 #include <zip.h>
 
+static GMutex *vips_libzip_mutex = NULL;
+
 static zip_int64_t
 write_zip_target_cb( void *state, void *data, zip_uint64_t length,
 	zip_source_cmd_t cmd ) {
@@ -206,7 +208,8 @@ write_zip_target_cb( void *state, void *data, zip_uint64_t length,
 
 		/* Return 0 on success.
 		 */
-		return( vips_target_seek( target, args->offset, args->whence ) == -1 );
+		return( vips_target_seek( target, 
+			args->offset, args->whence ) == -1 );
 	}
 
 	case ZIP_SOURCE_TELL:
@@ -411,6 +414,8 @@ iszip( VipsForeignDzContainer container )
 static inline int
 vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
+	vips__worker_lock( vips_libzip_mutex );
+
 	if( zip_dir_add( dz->archive, dirname,
 			ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8 ) < 0 ) {
 		char *utf8name = g_filename_display_name( dirname );
@@ -418,8 +423,11 @@ vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 			_( "unable to add directory \"%s\", %s" ),
 			utf8name, zip_strerror( dz->archive ) );
 		g_free( utf8name );
+		g_mutex_unlock( vips_libzip_mutex );
 		return( -1 );
 	}
+
+	g_mutex_unlock( vips_libzip_mutex );
 
 	return( 0 );
 }
@@ -461,18 +469,25 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	zip_source_t *s;
 	zip_int64_t index;
 
+	vips__worker_lock( vips_libzip_mutex );
+
 	if( !(s = zip_source_buffer( dz->archive, buf, len, 1 )) ||
 		(index = zip_file_add( dz->archive, filename, s,
 			ZIP_FL_ENC_UTF_8 )) < 0 ) {
 		zip_source_free( s );
+		g_mutex_unlock( vips_libzip_mutex );
 		return( -1 );
 	}
 
 	if( dz->compression >= 0 &&
 		zip_set_file_compression( dz->archive, index,
 			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
-			dz->compression ) )
+			dz->compression ) ) {
+		g_mutex_unlock( vips_libzip_mutex );
 		return( -1 );
+	}
+
+	g_mutex_unlock( vips_libzip_mutex );
 
 	return( 0 );
 }
@@ -2244,19 +2259,19 @@ vips_foreign_save_dz_build( VipsObject *object )
 		 */
 		if( !dz->target ) {
 			if( !(dz->target =
-					vips_target_new_to_file( dz->filename )) )
+				vips_target_new_to_file( dz->filename )) )
 				return( -1 );
 		}
 
 		/* Create source from target.
 		 */
 		if( !(zs = zip_source_function_create( write_zip_target_cb,
-				dz->target, NULL )) ) {
+			dz->target, NULL )) ) {
 			return( -1 );
 		}
 
 		if( !(dz->archive =
-				zip_open_from_source( zs, ZIP_TRUNCATE, NULL )) ) {
+			zip_open_from_source( zs, ZIP_TRUNCATE, NULL )) ) {
 			zip_source_free( zs );
 			return( -1 );
 		}
@@ -2343,13 +2358,25 @@ static VipsBandFormat bandfmt_dz[10] = {
 
 static const char *dz_suffs[] = { ".dz", ".szi", NULL };
 
+static void *
+vips_foreign_save_dz_once_init( void *client )
+{
+	vips_libzip_mutex = vips_g_mutex_new();
+
+	return( NULL );
+}
+
 static void
 vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	VIPS_ONCE( &once, vips_foreign_save_dz_once_init, NULL );
 
 	gobject_class->dispose = vips_foreign_save_dz_dispose;
 	gobject_class->set_property = vips_object_set_property;
