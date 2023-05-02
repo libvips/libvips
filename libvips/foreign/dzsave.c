@@ -416,8 +416,8 @@ vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
 	vips__worker_lock( vips_libzip_mutex );
 
-	if( zip_dir_add( dz->archive, dirname,
-			ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8 ) < 0 ) {
+	if( zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 ) < 0 &&
+		zip_get_error( dz->archive )->zip_err != ZIP_ER_EXISTS ) {
 		char *utf8name = g_filename_display_name( dirname );
 		vips_error( "dzsave",
 			_( "unable to add directory \"%s\", %s" ),
