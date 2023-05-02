@@ -410,15 +410,26 @@ iszip( VipsForeignDzContainer container )
 static inline int
 vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
+	zip_int64_t idx;
+
 	vips__worker_lock( vips_libzip_mutex );
 
-	if( zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 ) < 0 &&
+	if( (idx = zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 )) < 0 &&
 		zip_get_error( dz->archive )->zip_err != ZIP_ER_EXISTS ) {
 		char *utf8name = g_filename_display_name( dirname );
 		vips_error( "dzsave",
 			_( "unable to add directory \"%s\", %s" ),
 			utf8name, zip_strerror( dz->archive ) );
 		g_free( utf8name );
+		g_mutex_unlock( vips_libzip_mutex );
+		return( -1 );
+	}
+
+	if( idx >= 0 &&
+		dz->compression >= 0 &&
+		zip_set_file_compression( dz->archive, idx,
+			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
+			dz->compression ) ) {
 		g_mutex_unlock( vips_libzip_mutex );
 		return( -1 );
 	}
@@ -459,12 +470,12 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	void *buf, size_t len )
 {
 	zip_source_t *s;
-	zip_int64_t index;
+	zip_int64_t idx;
 
 	vips__worker_lock( vips_libzip_mutex );
 
 	if( !(s = zip_source_buffer( dz->archive, buf, len, 1 )) ||
-		(index = zip_file_add( dz->archive, filename, s,
+		(idx = zip_file_add( dz->archive, filename, s,
 			ZIP_FL_ENC_UTF_8 )) < 0 ) {
 		zip_source_free( s );
 		g_mutex_unlock( vips_libzip_mutex );
@@ -472,7 +483,7 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	}
 
 	if( dz->compression >= 0 &&
-		zip_set_file_compression( dz->archive, index,
+		zip_set_file_compression( dz->archive, idx,
 			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
 			dz->compression ) ) {
 		g_mutex_unlock( vips_libzip_mutex );
