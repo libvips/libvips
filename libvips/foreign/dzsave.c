@@ -201,8 +201,7 @@ write_zip_target_cb( void *state, void *data, zip_uint64_t length,
 	case ZIP_SOURCE_SEEK:
 	case ZIP_SOURCE_SEEK_WRITE:
 	{
-		zip_source_args_seek_t *args = ZIP_SOURCE_GET_ARGS(
-			zip_source_args_seek_t, data, length, NULL );
+		zip_source_args_seek_t *args = (zip_source_args_seek_t *) data;
 		if( args == NULL ) 
 			return( -1 );
 
