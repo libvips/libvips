@@ -1153,8 +1153,8 @@ write_scan_properties( VipsForeignSaveDz *dz )
 	char *dump;
 	size_t len;
 
-	if( !(filename = g_build_filename( dz->dirname, dz->root_name,
-			"scan-properties.xml", NULL )) ) 
+	if( !(filename = g_build_filename( dz->dirname,
+			"scan-properties.xml", NULL )) )
 		return( -1 );
 
 	if( !(dump = build_scan_properties( save->ready, &len )) ) {
@@ -1199,7 +1199,7 @@ write_associated_images( VipsImage *image,
 
 		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
 
-		if( !(out = g_build_filename( dz->dirname, dz->root_name,
+		if( !(out = g_build_filename( dz->dirname,
 				"associated_images", buf, NULL )) ) {
 			g_object_unref( associated );
 
@@ -1226,10 +1226,12 @@ write_associated( VipsForeignSaveDz *dz )
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 	char *dirname;
 
-	if( !(dirname = g_build_filename( dz->dirname, dz->root_name,
-			"associated_images", NULL )) ) 
+	if( !(dirname = g_build_filename( dz->dirname,
+			"associated_images", NULL )) )
 		return( -1 );
 
+	/* TODO: Avoid empty directory when associated images are missing?
+	 */
 	if( vips_mkdir( dz, dirname ) ) {
 		g_free( dirname );
 		return( -1 );
