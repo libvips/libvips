@@ -24,6 +24,11 @@
 static GSList *
 get_open_files()
 {
+#ifdef G_OS_WIN32
+	/* realpath() and /proc/self/fd is not available on Windows.
+	 */
+	return( NULL );
+#else
 	GSList *list = NULL;
 	GDir *dir;
 	const char *name;
@@ -42,6 +47,7 @@ get_open_files()
 	g_dir_close( dir );
 
 	return( list );
+#endif
 }
 
 /**
