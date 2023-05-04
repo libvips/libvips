@@ -1184,6 +1184,7 @@ write_associated_images( VipsImage *image,
 		VipsImage *associated;
 		const char *p;
 		const char *q;
+		char *dirname;
 		char *out;
 		char buf[VIPS_PATH_MAX];
 
@@ -1197,14 +1198,24 @@ write_associated_images( VipsImage *image,
 		if( vips_image_get_image( image, field, &associated ) )
 			return( image );
 
+		if( !(dirname = g_build_filename( dz->dirname,
+				"associated_images", NULL )) )
+			return( image );
+
+		if( vips_mkdir( dz, dirname ) ) {
+			g_free( dirname );
+			return( image );
+		}
+
 		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
 
-		if( !(out = g_build_filename( dz->dirname,
-				"associated_images", buf, NULL )) ) {
+		if( !(out = g_build_filename( dirname, buf, NULL )) ) {
+			g_free( dirname );
 			g_object_unref( associated );
 
 			return( image );
 		}
+		g_free( dirname );
 
 		if( write_image( dz, associated, out, ".jpg" ) ) {
 			g_free( out );
@@ -1224,19 +1235,6 @@ static int
 write_associated( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
-	char *dirname;
-
-	if( !(dirname = g_build_filename( dz->dirname,
-			"associated_images", NULL )) )
-		return( -1 );
-
-	/* TODO: Avoid empty directory when associated images are missing?
-	 */
-	if( vips_mkdir( dz, dirname ) ) {
-		g_free( dirname );
-		return( -1 );
-	}
-	g_free( dirname );
 
 	if( vips_image_map( save->ready, write_associated_images, dz ) )
 		return( -1 );
