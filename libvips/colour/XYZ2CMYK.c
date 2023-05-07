@@ -219,9 +219,7 @@ vips_XYZ2CMYK_init( VipsXYZ2CMYK *XYZ2CMYK )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Turn XYZ to CMYK. If the image has an embedded ICC profile this will be
- * used for the conversion. If there is no embedded profile, a generic
- * fallback profile will be used. 
+ * Turn XYZ to CMYK.
  *
  * Conversion is from D65 XYZ with relative intent. If you need more control 
  * over the process, use vips_icc_export() instead.
