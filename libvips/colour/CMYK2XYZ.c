@@ -3,6 +3,8 @@
  *
  * 21/12/18
  *      - from scRGB2XYZ.c
+ * 7/5/23 kleisauke
+ *      - use embedded ICC profile, if available
  */
 
 /*
