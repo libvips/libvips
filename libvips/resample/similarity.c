@@ -235,7 +235,6 @@ vips_similarity_init( VipsSimilarity *similarity )
  * * @idy: %gdouble, input vertical offset
  * * @odx: %gdouble, output horizontal offset
  * * @ody: %gdouble, output vertical offset
- * * @ody: %gdouble, output vertical offset
  *
  * This operator calls vips_affine() for you, calculating the matrix for the
  * affine transform from @scale and @angle. Other parameters are passed on to
@@ -304,7 +303,6 @@ vips_rotate_init( VipsRotate *rotate )
  * * @idx: %gdouble, input horizontal offset
  * * @idy: %gdouble, input vertical offset
  * * @odx: %gdouble, output horizontal offset
- * * @ody: %gdouble, output vertical offset
  * * @ody: %gdouble, output vertical offset
  *
  * This operator calls vips_affine() for you, calculating the matrix for the
