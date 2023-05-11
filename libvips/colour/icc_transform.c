@@ -1029,9 +1029,26 @@ encode_xyz( float *in, float *out, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		out[0] = in[0] * X_FAC;
-		out[1] = in[1] * Y_FAC;
-		out[2] = in[2] * Z_FAC;
+		/* The matrix already includes the D65 channel weighting, so we
+		 * just divide by Y.
+		 */
+		float X = in[0] / VIPS_D65_Y0;
+		float Y = in[1] / VIPS_D65_Y0;
+		float Z = in[2] / VIPS_D65_Y0;
+
+		/* Transform XYZ D65 to D50, chromatic adaption is done with the
+		 * Bradford transformation.
+		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
+		 */
+		out[0] = 1.047886 * X +
+			0.022919 * Y +
+			-0.050216 * Z;
+		out[1] = 0.029582 * X +
+			0.990484 * Y +
+			-0.017079 * Z;
+		out[2] = -0.009252 * X +
+			0.015073 * Y +
+			0.751678 * Z;
 
 		in += 3;
 		out += 3;
