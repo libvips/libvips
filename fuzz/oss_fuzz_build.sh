@@ -67,8 +67,8 @@ popd
 pushd $SRC/libheif
 # Ensure libvips finds heif_image_handle_get_raw_color_profile
 sed -i '/^Libs.private:/s/-lstdc++/-lc++/' libheif.pc.in
-# Ensure heif_deinit is called at program exit
-sed -i '/void heif_deinit()/i __attribute__((destructor))' libheif/init.cc
+# Suppress leak warnings from ColorConversionPipeline::init_ops()
+sed -i '/void ColorConversionPipeline::init_ops()/i __attribute__((no_sanitize_address))' libheif/color-conversion/colorconversion.cc
 cmake \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX=$WORK \
