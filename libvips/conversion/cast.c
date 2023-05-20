@@ -227,7 +227,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = CAST( (double) p[x] ); \
+		q[x] = CAST( VIPS_ROUND_INT( (double) p[x] ) ); \
 }
 
 /* Cast complex types to an int type. Just take the real part.
@@ -240,7 +240,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		q[x] = CAST( (double) p[0] ); \
+		q[x] = CAST( VIPS_ROUND_INT( (double) p[0] ) ); \
 		p += 2; \
 	} \
 }

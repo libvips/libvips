@@ -284,12 +284,8 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->hshrink, x ); 
 
-	for( int z = 0; z < bands; z++ ) {
-		double sum;
-		sum = reduce_sum<T, double>( in + z, bands, cx, n );
-
-		out[z] = VIPS_ROUND_UINT( sum );
-	}
+	for( int z = 0; z < bands; z++ )
+		out[z] = reduce_sum<T, double>( in + z, bands, cx, n );
 }
 
 /* Tried a vector path (see reducev) but it was slower. The vectors for
