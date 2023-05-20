@@ -200,7 +200,7 @@ bicubic_unsigned_int(
 static int inline
 signed_fixed_round( int v )
 {
-	const int sign_of_v = 2 * (v > 0) - 1;
+	const int sign_of_v = 2 * (v >= 0) - 1;
 	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
