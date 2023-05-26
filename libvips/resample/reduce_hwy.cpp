@@ -60,9 +60,9 @@ namespace HWY_NAMESPACE {
 
 using namespace hwy::HWY_NAMESPACE;
 
-using DI32 = ScalableTag<int32_t>;
-using DI16 = ScalableTag<int16_t>;
-using DU8 = ScalableTag<uint8_t>;
+using DI32 = CappedTag<int32_t, 8>;
+using DI16 = CappedTag<int16_t, 16>;
+using DU8 = CappedTag<uint8_t, 32>;
 constexpr DU8 du8;
 constexpr Rebind<uint8_t, DI16> du8x16;
 constexpr Rebind<uint8_t, DI32> du8x32;
