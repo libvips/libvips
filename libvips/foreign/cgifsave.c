@@ -184,6 +184,10 @@ vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
 		(const void *) buffer, (size_t) length );
 }
 
+#define TRANS_STATE_NONE 0
+#define TRANS_STATE_SINGLE 1
+#define TRANS_STATE_ROW 2
+
 /* Set pixels in index transparent if they are equal RGB to the previous 
  * frame.
  *
@@ -192,11 +196,20 @@ vips__cgif_write( void *client, const uint8_t *buffer, const size_t length )
  */
 static void
 vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
-	VipsPel *old, VipsPel *new, VipsPel *index, int n_pels, int trans )
+	VipsPel *old, VipsPel *new, VipsPel *index, int n_pels, int width,
+	int trans )
 {
 	int sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
 
 	int i;
+	int this_trans = FALSE;
+	int trans_state = TRANS_STATE_NONE;
+	int trans_count = 0;
+	int same_count = 0;
+
+	VipsPel *trans_start_index = index;
+	VipsPel *trans_start_old = old;
+	VipsPel *trans_start_new = new;
 
 	for( i = 0; i < n_pels; i++ ) {
 		/* Alpha must match
@@ -204,21 +217,103 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 		if( old[3] == new[3] ) {
 			/* Both transparent ... no need to check RGB.
 			 */
-			if( !old[3] && !new[3] )
-				index[i] = trans;
-			else {
+			if( !old[3] && !new[3] ) {
+				*index = trans;
+				this_trans = TRUE;
+			} else {
 				/* Compare RGB.
 				 */
 				const int dR = old[0] - new[0];
 				const int dG = old[1] - new[1];
 				const int dB = old[2] - new[2];
 
-				if( dR * dR + dG * dG + dB * dB <= sq_maxerror )
-					index[i] = trans;
+				this_trans = dR * dR + dG * dG + dB * dB <= 
+					sq_maxerror;
 			}
 		}
 
-		if( index[i] != trans ) {
+		if( i && index[-1] == *index )
+			same_count++;
+		else
+			same_count = 1;
+
+		if( !this_trans ) {
+			/* Found an opaque pixel.
+			 * If we found a single transparent pixel before,
+			 * we haven't been copying new to old since then.
+			 * Time to do it now
+			 */
+			if ( trans_state == TRANS_STATE_SINGLE ) {
+				memcpy( trans_start_old, trans_start_new,
+					old - trans_start_old );
+			}
+
+			/* And reset the transparent pixels state
+			 */
+			trans_state = TRANS_STATE_NONE;
+			trans_count = 0;
+		} else {
+			int x = i % width;
+
+			trans_count++;
+
+			if( trans_state == TRANS_STATE_NONE ) {
+				/* Found the first pixel that should be
+				 * transparent
+				 */
+				if( x == 0 ) {
+					/* If we are at the start of the row,
+					 * start making pixels transparent
+					 * right away to help CGIF to trim the
+					 * frame
+					 */
+					trans_state = TRANS_STATE_ROW;
+				} else {
+					/* Otherwise, just mark the
+					 * point where we found it and update 
+					 * the transparent pixels state
+					 */
+					trans_start_index = index;
+					trans_start_old = old;
+					trans_start_new = new;
+					trans_state = TRANS_STATE_SINGLE;
+				}
+
+			/* We don't want to break a row of identical
+			 * indexes with a transparent pixel because
+			 * this would be unoptimal for LZW.
+			 * The only exception is if we are at the end of the
+			 * row. In this case, transparent pixels will help CGIF
+			 * to trim the frame
+			 */
+			} else if (
+				trans_state == TRANS_STATE_SINGLE &&
+				( trans_count * 2 >= same_count + 32  || 
+					x == width - 1 || *index != index[-1] )
+			) {
+				/* We found a transparent pixel before
+				 * and the previous index doesn't match the
+				 * current index. Make all pixels from the
+				 * marked point to the currect point
+				 * transparent and update the transparent
+				 * pixels state
+				 */
+				trans_state = TRANS_STATE_ROW;
+				memset( trans_start_index, trans,
+					index - trans_start_index );
+			}
+		}
+
+		if( trans_state == TRANS_STATE_ROW ) {
+			/* Since we have more than one transparent pixel in
+			 * a row, it's safe to make the current pixel
+			 * transparent
+			 */
+			*index = trans;
+		} else if ( trans_state == TRANS_STATE_NONE ) {
+			/* We did not find a pixel that should be transparent
+			 * before. Just copy new to old
+			 */
 			old[0] = new[0];
 			old[1] = new[1];
 			old[2] = new[2];
@@ -227,7 +322,15 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 
 		old += 4;
 		new += 4;
+		index += 1;
+		this_trans = FALSE;
 	}
+
+	/* If we are still in the single transparent pixel state, make the rest
+	 * of pixels transparent
+	 */
+	if ( trans_state == TRANS_STATE_SINGLE )
+		memset( trans_start_index, trans, index - trans_start_index );
 }
 
 static double
@@ -559,7 +662,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		vips_foreign_save_cgif_set_transparent( cgif,
 			cgif->previous_frame, cgif->frame_bytes, cgif->index, 
-			n_pels, trans );
+			n_pels, cgif->frame_width, trans );
 
 		if( has_transparency ) 
 			frame_config.attrFlags &= ~CGIF_FRAME_ATTR_HAS_ALPHA;
