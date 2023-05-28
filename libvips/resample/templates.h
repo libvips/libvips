@@ -146,10 +146,10 @@ bilinear_nosign(
  * Bicubic (Catmull-Rom) interpolation templates:
  */
 
-static int inline
-unsigned_fixed_round( int v )
+template <typename T> static T inline
+unsigned_fixed_round( T v )
 {
-	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
+	const T round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
@@ -197,11 +197,11 @@ bicubic_unsigned_int(
 		cy[3] * r3 ) ); 
 }
 
-static int inline
-signed_fixed_round( int v )
+template <typename T> static T inline
+signed_fixed_round( T v )
 {
-	const int sign_of_v = 2 * (v >= 0) - 1;
-	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
+	const T sign_of_v = 2 * (v >= 0) - 1;
+	const T round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
@@ -444,7 +444,24 @@ calculate_coefficients_lanczos( double *c,
  */
 template <typename T, typename IT>
 static IT
-reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
+reduce_sum( const T * restrict in, int stride, const int * restrict c, int n,
+	typename std::enable_if<std::is_integral<T>::value>::type* = 0 )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ ) {
+		sum += (IT) c[i] * in[0];
+		in += stride;
+	}
+
+	return( sum ); 
+}
+
+template <typename T, typename IT>
+static IT
+reduce_sum( const T * restrict in, int stride, const double * restrict c, int n,
+	typename std::enable_if<std::is_floating_point<T>::value>::type* = 0 )
 {
 	IT sum;
 
