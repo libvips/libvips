@@ -398,9 +398,7 @@ reducev_unsigned_int_tab( VipsReducev *reducev,
 
 		sum = reduce_sum<T, int>( in + z, l1, cy, n );
 		sum = unsigned_fixed_round( sum ); 
-		sum = VIPS_CLIP( 0, sum, max_value ); 
-
-		out[z] = sum;
+		out[z] = VIPS_CLIP( 0, sum, max_value );
 	}
 }
 
@@ -420,9 +418,7 @@ reducev_signed_int_tab( VipsReducev *reducev,
 
 		sum = reduce_sum<T, int>( in + z, l1, cy, n );
 		sum = signed_fixed_round( sum ); 
-		sum = VIPS_CLIP( min_value, sum, max_value ); 
-
-		out[z] = sum;
+		out[z] = VIPS_CLIP( min_value, sum, max_value );
 	}
 }
 
