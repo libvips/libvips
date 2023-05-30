@@ -431,9 +431,9 @@ if libopenjp2_dep.found()
     cfg_var.set('HAVE_LIBOPENJP2', '1')
 endif
 
-# Require 1.0.4 to ensure `ReorderDemote2To` preserves order on ARMv7
-# See: https://github.com/google/highway/pull/1101
-libhwy_dep = dependency('libhwy', version: '>=1.0.4', required: get_option('highway'))
+# Require 1.0.5 to support the `ReorderDemote2To(u8, i16, i16)` operation
+# See: https://github.com/google/highway/pull/1247
+libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('highway'))
 if libhwy_dep.found()
     libvips_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', '1')

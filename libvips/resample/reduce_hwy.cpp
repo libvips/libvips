@@ -60,9 +60,9 @@ namespace HWY_NAMESPACE {
 
 using namespace hwy::HWY_NAMESPACE;
 
-using DI32 = CappedTag<int32_t, 8>;
-using DI16 = CappedTag<int16_t, 16>;
-using DU8 = CappedTag<uint8_t, 32>;
+using DI32 = ScalableTag<int32_t>;
+using DI16 = ScalableTag<int16_t>;
+using DU8 = ScalableTag<uint8_t>;
 constexpr DU8 du8;
 constexpr Rebind<uint8_t, DI16> du8x16;
 constexpr Rebind<uint8_t, DI32> du8x32;
@@ -76,7 +76,14 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 #if HWY_TARGET != HWY_SCALAR
 	const auto l1 = lskip / sizeof(uint8_t);
 
-	const int32_t N = Lanes(di32);
+#if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
+	/* Ensure we do not cross 128-bit block boundaries on RVV/SVE.
+	 */
+	const int32_t N = 16;
+#else
+	const int32_t N = Lanes(du8);
+#endif
+
 	const auto zero = Zero(du8);
 	const auto initial = Set(di32, VIPS_INTERPOLATE_SCALE >> 1);
 
@@ -92,14 +99,20 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		 * avoids an extra add instruction. Should be safe given
 		 * that only one accumulator is used.
 		 */
-		auto sum0 = initial; /* left row */
-		auto sum2 = initial; /* right row */
+		auto sum0 = initial;
+		auto sum2 = initial;
+		auto sum4 = initial;
+		auto sum6 = initial;
 #else
 		auto sum0 = Zero(di32);
 		auto sum2 = Zero(di32);
+		auto sum4 = Zero(di32);
+		auto sum6 = Zero(di32);
 #endif
 		auto sum1 = Zero(di32); /* unused on x86 and Wasm */
 		auto sum3 = Zero(di32); /* unused on x86 and Wasm */
+		auto sum5 = Zero(di32); /* unused on x86 and Wasm */
+		auto sum7 = Zero(di32); /* unused on x86 and Wasm */
 
 		int32_t i = 0;
 		for (; i + 2 <= n; i += 2) {
@@ -122,6 +135,17 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 
 			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 				/* byref */ sum3);
+
+			source = InterleaveUpper(du8, top, bottom);
+			pix = BitCast(di16, InterleaveLower(source, zero));
+
+			sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
+				/* byref */ sum5);
+
+			pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+
+			sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
+				/* byref */ sum7);
 		}
 		for (; i < n; ++i) {
 			auto mmk = Set(di16, k[i]);
@@ -139,20 +163,37 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 
 			sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 				/* byref */ sum3);
+
+			source = InterleaveUpper(du8, top, zero);
+			pix = BitCast(di16, InterleaveLower(source, zero));
+
+			sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
+				/* byref */ sum5);
+
+			pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+
+			sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
+				/* byref */ sum7);
 		}
 
 		sum0 = RearrangeToOddPlusEven(sum0, sum1);
 		sum2 = RearrangeToOddPlusEven(sum2, sum3);
+		sum4 = RearrangeToOddPlusEven(sum4, sum5);
+		sum6 = RearrangeToOddPlusEven(sum6, sum7);
 
 #if !(HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128)
 		sum0 = Add(sum0, initial);
 		sum2 = Add(sum2, initial);
+		sum4 = Add(sum4, initial);
+		sum6 = Add(sum6, initial);
 #endif
 
 		/* The final 32->8 conversion.
 		 */
 		sum0 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum0);
 		sum2 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum2);
+		sum4 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum4);
+		sum6 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum6);
 
 #if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
 		/* RVV/SVE defines demotion as writing to the upper or lower half
@@ -160,12 +201,19 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		 */
 		auto demoted0 = DemoteTo(du8x32, sum0);
 		auto demoted1 = DemoteTo(du8x32, sum2);
-		StoreU(demoted0, du8x32, q);
-		StoreU(demoted1, du8x32, q + 4);
+		auto demoted2 = DemoteTo(du8x32, sum4);
+		auto demoted3 = DemoteTo(du8x32, sum6);
+
+		StoreU(demoted0, du8x32, q + 0 * N / 4);
+		StoreU(demoted1, du8x32, q + 1 * N / 4);
+		StoreU(demoted2, du8x32, q + 2 * N / 4);
+		StoreU(demoted3, du8x32, q + 3 * N / 4);
 #else
-		auto demoted = DemoteTo(du8x16,
-			ReorderDemote2To(di16, sum0, sum2));
-		StoreU(demoted, du8x16, q);
+		auto demoted0 = ReorderDemote2To(di16, sum0, sum2);
+		auto demoted2 = ReorderDemote2To(di16, sum4, sum6);
+		auto demoted = ReorderDemote2To(du8, demoted0, demoted2);
+
+		StoreU(demoted, du8, q);
 #endif
 	}
 
