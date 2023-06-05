@@ -545,8 +545,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	heif->page_height = vips_image_get_page_height( heif->image );
 	heif->n_pages = heif->image->Ysize / heif->page_height;
 
-	if( (guint64) heif->page_width * heif->page_height > INT_MAX / 4 ||
-		heif->page_width > 16384 || heif->page_height > 16384 ) {
+	if( heif->page_width > 16384 || heif->page_height > 16384 ) {
 		vips_error( "heifsave", _( "image too large" ) );
 		return( -1 );
 	}
