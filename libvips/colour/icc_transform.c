@@ -872,9 +872,10 @@ decode_lab( guint16 *fixed, float *lab, int n )
 	}
 }
 
-#define X_FAC (cmsD50X / VIPS_D65_X0)
-#define Y_FAC (cmsD50Y / VIPS_D65_Y0)
-#define Z_FAC (cmsD50Z / VIPS_D65_Z0)
+/* The matrix already includes the D65 channel weighting, so we just scale by
+ * Y.
+ */
+#define SCALE (VIPS_D65_Y0)
 
 static void
 decode_xyz( guint16 *fixed, float *xyz, int n )
@@ -884,9 +885,27 @@ decode_xyz( guint16 *fixed, float *xyz, int n )
 	for( i = 0; i < n; i++ ) {
 		/* cmsXYZEncoded2Float inlined.
  		 */
-		xyz[0] = (double) fixed[0] / (X_FAC * 32768.0);
-		xyz[1] = (double) fixed[1] / (Y_FAC * 32768.0);
-		xyz[2] = (double) fixed[2] / (Z_FAC * 32768.0);
+		float X = fixed[0] / 32768.0;
+		float Y = fixed[1] / 32768.0;
+		float Z = fixed[2] / 32768.0;
+
+		X *= SCALE;
+		Y *= SCALE;
+		Z *= SCALE;
+
+		/* Transform XYZ D50 to D65, chromatic adaption is done with the
+		 * Bradford transformation.
+		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
+		 */
+		xyz[0] = 0.955513 * X +
+			-0.023073 * Y +
+			0.063309 * Z;
+		xyz[1] = -0.028325 * X +
+			1.009942 * Y +
+			0.021055 * Z;
+		xyz[2] = 0.012329 * X +
+			-0.020536 * Y +
+			1.330714 * Z;
 
 		xyz += 3;
 		fixed += 3;
@@ -1031,9 +1050,23 @@ encode_xyz( float *in, float *out, int n )
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		out[0] = in[0] * X_FAC;
-		out[1] = in[1] * Y_FAC;
-		out[2] = in[2] * Z_FAC;
+		float X = in[0] / SCALE;
+		float Y = in[1] / SCALE;
+		float Z = in[2] / SCALE;
+
+		/* Transform XYZ D65 to D50, chromatic adaption is done with the
+		 * Bradford transformation.
+		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
+		 */
+		out[0] = 1.047886 * X +
+			0.022919 * Y +
+			-0.050216 * Z;
+		out[1] = 0.029582 * X +
+			0.990484 * Y +
+			-0.017079 * Z;
+		out[2] = -0.009252 * X +
+			0.015073 * Y +
+			0.751678 * Z;
 
 		in += 3;
 		out += 3;
@@ -1393,7 +1426,7 @@ vips_icc_is_compatible_profile( VipsImage *image,
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back. 
+ * @input_profile is used as a fall-back. 
  * You can test for the
  * presence of an embedded profile with
  * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will

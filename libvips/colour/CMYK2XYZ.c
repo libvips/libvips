@@ -3,6 +3,8 @@
  *
  * 21/12/18
  *      - from scRGB2XYZ.c
+ * 7/5/23 kleisauke
+ *      - use embedded ICC profile, if available
  */
 
 /*
@@ -66,6 +68,7 @@ static int
 vips_CMYK2XYZ_process( VipsImage *in, VipsImage **out, ... )
 {
 	return( vips_icc_import( in, out,
+		"input_profile", "cmyk",
 		"embedded", TRUE,
 		"pcs", VIPS_PCS_XYZ,
 		NULL ) );
@@ -75,9 +78,9 @@ static int
 vips_CMYK2XYZ_build( VipsObject *object )
 {
 	VipsCMYK2XYZ *CMYK2XYZ = (VipsCMYK2XYZ *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *out; 
+	VipsImage *t;
 
 	if( VIPS_OBJECT_CLASS( vips_CMYK2XYZ_parent_class )->build( object ) )
 		return( -1 );
@@ -85,12 +88,14 @@ vips_CMYK2XYZ_build( VipsObject *object )
 	out = vips_image_new();
 	g_object_set( object, "out", out, NULL ); 
 
-	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
-		vips__profile_set( t[0], "cmyk" ) ||
-		vips__colourspace_process_n( "CMYK2XYZ", 
-			t[0], &t[1], 4, vips_CMYK2XYZ_process ) ||
-		vips_image_write( t[1], out ) )
+	if( vips__colourspace_process_n( "CMYK2XYZ", 
+			CMYK2XYZ->in, &t, 4, vips_CMYK2XYZ_process ) )
 		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
