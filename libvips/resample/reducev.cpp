@@ -65,6 +65,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -398,9 +399,7 @@ reducev_unsigned_int_tab( VipsReducev *reducev,
 
 		sum = reduce_sum<T, int>( in + z, l1, cy, n );
 		sum = unsigned_fixed_round( sum ); 
-		sum = VIPS_CLIP( 0, sum, max_value ); 
-
-		out[z] = sum;
+		out[z] = VIPS_CLIP( 0, sum, max_value );
 	}
 }
 
@@ -420,9 +419,7 @@ reducev_signed_int_tab( VipsReducev *reducev,
 
 		sum = reduce_sum<T, int>( in + z, l1, cy, n );
 		sum = signed_fixed_round( sum ); 
-		sum = VIPS_CLIP( min_value, sum, max_value ); 
-
-		out[z] = sum;
+		out[z] = VIPS_CLIP( min_value, sum, max_value );
 	}
 }
 
@@ -443,14 +440,14 @@ reducev_float_tab( VipsReducev *reducev,
 		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
 }
 
-/* 32-bit int output needs a double intermediate.
+/* 32-bit int output needs a 64-bits intermediate.
  */
 
-template <typename T, int max_value>
+template <typename T, unsigned int max_value>
 static void inline
 reducev_unsigned_int32_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * restrict cy )
+	const int ne, const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
@@ -458,9 +455,10 @@ reducev_unsigned_int32_tab( VipsReducev *reducev,
 	const int l1 = lskip / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
-		double sum;
+		uint64_t sum;
 
-		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		sum = reduce_sum<T, uint64_t>( in + z, l1, cy, n );
+		sum = unsigned_fixed_round( sum );
 		out[z] = VIPS_CLIP( 0, sum, max_value ); 
 	}
 }
@@ -469,7 +467,7 @@ template <typename T, int min_value, int max_value>
 static void inline
 reducev_signed_int32_tab( VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * restrict cy )
+	const int ne, const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
@@ -477,9 +475,10 @@ reducev_signed_int32_tab( VipsReducev *reducev,
 	const int l1 = lskip / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
-		double sum;
+		int64_t sum;
 
-		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		sum = reduce_sum<T, int64_t>( in + z, l1, cy, n );
+		sum = signed_fixed_round( sum );
 		out[z] = VIPS_CLIP( min_value, sum, max_value ); 
 	}
 }
@@ -587,16 +586,16 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 
 		case VIPS_FORMAT_UINT:
 			reducev_unsigned_int32_tab
-				<unsigned int, INT_MAX>(
+				<unsigned int, UINT_MAX>(
 				reducev,
-				q, p, ne, lskip, cyf );
+				q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_INT:
 			reducev_signed_int32_tab
 				<signed int, INT_MIN, INT_MAX>(
 				reducev,
-				q, p, ne, lskip, cyf );
+				q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_FLOAT:

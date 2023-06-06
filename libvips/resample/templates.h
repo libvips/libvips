@@ -28,6 +28,8 @@
 
  */
 
+#include <type_traits>
+
 /*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
@@ -146,10 +148,10 @@ bilinear_nosign(
  * Bicubic (Catmull-Rom) interpolation templates:
  */
 
-static int inline
-unsigned_fixed_round( int v )
+template <typename T> static T inline
+unsigned_fixed_round( T v )
 {
-	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
+	const T round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
@@ -197,11 +199,11 @@ bicubic_unsigned_int(
 		cy[3] * r3 ) ); 
 }
 
-static int inline
-signed_fixed_round( int v )
+template <typename T> static T inline
+signed_fixed_round( T v )
 {
-	const int sign_of_v = 2 * (v >= 0) - 1;
-	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
+	const T sign_of_v = 2 * (v >= 0) - 1;
+	const T round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
@@ -439,12 +441,35 @@ calculate_coefficients_lanczos( double *c,
 		c[i] /= sum;
 }
 
+/* Simplified version of std::enable_if<cond, bool>::type
+ */
+template<bool Cond>
+using Requires = typename std::enable_if<Cond, bool>::type; /* C++11 */
+// using Requires = std::enable_if_t<Cond, bool>; /* C++14 */
+
 /* Our inner loop for resampling with a convolution. Operate on elements of 
  * type T, gather results in an intermediate of type IT.
  */
-template <typename T, typename IT>
+template <typename T, typename IT, Requires<std::is_integral<T>::value> = true>
 static IT
-reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
+reduce_sum( const T * restrict in, int stride, const int * restrict c, int n )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ ) {
+		sum += (IT) c[i] * in[0];
+		in += stride;
+	}
+
+	return( sum ); 
+}
+
+/* Same as above, but specialized for floating point types.
+ */
+template <typename T, typename IT, Requires<std::is_floating_point<T>::value> = true>
+static IT
+reduce_sum( const T * restrict in, int stride, const double * restrict c, int n )
 {
 	IT sum;
 
