@@ -28,6 +28,8 @@
 
  */
 
+#include <type_traits>
+
 /*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
@@ -439,13 +441,18 @@ calculate_coefficients_lanczos( double *c,
 		c[i] /= sum;
 }
 
+/* Simplified version of std::enable_if<cond, bool>::type
+ */
+template<bool Cond>
+using Requires = typename std::enable_if<Cond, bool>::type; /* C++11 */
+// using Requires = std::enable_if_t<Cond, bool>; /* C++14 */
+
 /* Our inner loop for resampling with a convolution. Operate on elements of 
  * type T, gather results in an intermediate of type IT.
  */
-template <typename T, typename IT>
+template <typename T, typename IT, Requires<std::is_integral<T>::value> = true>
 static IT
-reduce_sum( const T * restrict in, int stride, const int * restrict c, int n,
-	typename std::enable_if<std::is_integral<T>::value>::type* = 0 )
+reduce_sum( const T * restrict in, int stride, const int * restrict c, int n )
 {
 	IT sum;
 
@@ -458,10 +465,11 @@ reduce_sum( const T * restrict in, int stride, const int * restrict c, int n,
 	return( sum ); 
 }
 
-template <typename T, typename IT>
+/* Same as above, but specialized for floating point types.
+ */
+template <typename T, typename IT, Requires<std::is_floating_point<T>::value> = true>
 static IT
-reduce_sum( const T * restrict in, int stride, const double * restrict c, int n,
-	typename std::enable_if<std::is_floating_point<T>::value>::type* = 0 )
+reduce_sum( const T * restrict in, int stride, const double * restrict c, int n )
 {
 	IT sum;
 
