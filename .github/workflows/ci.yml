@@ -79,7 +79,7 @@ jobs:
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
-          echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Prepare sanitizers
         if: matrix.build.sanitize
