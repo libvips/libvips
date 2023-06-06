@@ -63,23 +63,23 @@ vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	int i;
 
 	for( i = 0; i < width; i++ ) {
-		float R = p[0];
-		float G = p[1];
-		float B = p[2];
+		float R = p[0] * VIPS_D65_Y0;
+		float G = p[1] * VIPS_D65_Y0;
+		float B = p[2] * VIPS_D65_Y0;
 
 		/* Manually inlined logic from the vips_col_scRGB2XYZ function
 		 * as the original is defined in a separate file and is part of
 		 * the public API so a compiler will not inline.
 		 */
-		q[0] = VIPS_D65_Y0 * 0.4124 * R +
-			VIPS_D65_Y0 * 0.3576 * G +
-			VIPS_D65_Y0 * 0.18056 * B;
-		q[1] = VIPS_D65_Y0 * 0.2126 * R +
-			VIPS_D65_Y0 * 0.7152 * G +
-			VIPS_D65_Y0 * 0.07220 * B;
-		q[2] = VIPS_D65_Y0 * 0.0193 * R +
-			VIPS_D65_Y0 * 0.1192 * G +
-			VIPS_D65_Y0 * 0.9505 * B;
+		q[0] = 0.4124 * R +
+			0.3576 * G +
+			0.1805 * B;
+		q[1] = 0.2126 * R +
+			0.7152 * G +
+			0.0722 * B;
+		q[2] = 0.0193 * R +
+			0.1192 * G +
+			0.9505 * B;
 
 		p += 3;
 		q += 3;
