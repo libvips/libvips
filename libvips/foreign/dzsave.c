@@ -438,6 +438,7 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	vips__worker_lock( vips_libarchive_mutex );
 
 	if( !(entry = archive_entry_new()) ) {
+		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
@@ -448,6 +449,7 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 
 	if( archive_write_header( dz->archive, entry ) != ARCHIVE_OK ) {
 		archive_entry_free( entry );
+		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
@@ -455,10 +457,12 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	archive_entry_free( entry );
 
 	if( archive_write_data( dz->archive, buf, len ) != len ) {
+		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
 
+	g_free( buf );
 	g_mutex_unlock( vips_libarchive_mutex );
 
 	return( 0 );
