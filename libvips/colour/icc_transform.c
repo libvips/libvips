@@ -1424,7 +1424,7 @@ vips_icc_is_compatible_profile( VipsImage *image,
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back. 
+ * @input_profile is used as a fall-back. 
  * You can test for the
  * presence of an embedded profile with
  * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will

@@ -68,6 +68,7 @@ static int
 vips_XYZ2CMYK_process( VipsImage *in, VipsImage **out, ... )
 {
 	return( vips_icc_export( in, out,
+		"output_profile", "cmyk",
 		"pcs", VIPS_PCS_XYZ,
 		NULL ) );
 }
@@ -76,9 +77,9 @@ static int
 vips_XYZ2CMYK_build( VipsObject *object )
 {
 	VipsXYZ2CMYK *XYZ2CMYK = (VipsXYZ2CMYK *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *out; 
+	VipsImage *t;
 
 	if( VIPS_OBJECT_CLASS( vips_XYZ2CMYK_parent_class )->build( object ) )
 		return( -1 );
@@ -86,12 +87,14 @@ vips_XYZ2CMYK_build( VipsObject *object )
 	out = vips_image_new();
 	g_object_set( object, "out", out, NULL ); 
 
-	if( vips_copy( XYZ2CMYK->in, &t[0], NULL ) ||
-		vips__profile_set( t[0], "cmyk" ) ||
-		vips__colourspace_process_n( "XYZ2CMYK", 
-			t[0], &t[1], 3, vips_XYZ2CMYK_process ) ||
-		vips_image_write( t[1], out ) )
+	if( vips__colourspace_process_n( "XYZ2CMYK",
+			XYZ2CMYK->in, &t, 3, vips_XYZ2CMYK_process ) )
 		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -216,9 +219,7 @@ vips_XYZ2CMYK_init( VipsXYZ2CMYK *XYZ2CMYK )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Turn XYZ to CMYK. If the image has an embedded ICC profile this will be
- * used for the conversion. If there is no embedded profile, a generic
- * fallback profile will be used. 
+ * Turn XYZ to CMYK.
  *
  * Conversion is from D65 XYZ with relative intent. If you need more control 
  * over the process, use vips_icc_export() instead.
