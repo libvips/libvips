@@ -1253,6 +1253,9 @@ class TestForeign:
         filename2 = temp_filename(self.tempdir, '.zip')
         self.colour.dzsave(filename2, compression=-1)
         assert os.path.exists(filename2)
+        # FIXME(kleisauke): compression=0 and compression=6 appear to generate the same
+        # file size on at least Fedora 38 with libarchive v3.6.1.
+        # assert os.path.getsize(filename2) <= os.path.getsize(filename)
         assert os.path.getsize(filename2) < os.path.getsize(filename)
 
         # test suffix

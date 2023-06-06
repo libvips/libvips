@@ -181,68 +181,33 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_ZIP
-#include <zip.h>
+#ifdef HAVE_LIBARCHIVE
+#include <archive.h>
+#include <archive_entry.h>
 
-static GMutex *vips_libzip_mutex = NULL;
+static GMutex *vips_libarchive_mutex = NULL;
 
-static zip_int64_t
-write_zip_target_cb( void *state, void *data, zip_uint64_t length,
-	zip_source_cmd_t cmd ) {
-	VipsTarget *target = (VipsTarget *) state;
+static ssize_t
+zip_write_target_cb( struct archive *a, void *client_data,
+	const void *data, size_t length )
+{
+	VipsTarget *target = VIPS_TARGET( client_data );
 
-	switch( cmd ) {
-	case ZIP_SOURCE_READ:
-		return( vips_target_read( target, data, length ) );
+	if( vips_target_write( target, data, length ) )
+		return( -1 );
 
-	case ZIP_SOURCE_CLOSE:
-		return( vips_target_end( target ) );
+	return( length );
+}
 
-	case ZIP_SOURCE_SEEK:
-	case ZIP_SOURCE_SEEK_WRITE:
-	{
-		zip_source_args_seek_t *args = (zip_source_args_seek_t *) data;
-		if( args == NULL ) 
-			return( -1 );
+static int
+zip_close_target_cb( struct archive *a, void *client_data )
+{
+	VipsTarget *target = VIPS_TARGET( client_data );
 
-		/* Return 0 on success.
-		 */
-		return( vips_target_seek( target, 
-			args->offset, args->whence ) == -1 );
-	}
+	if( vips_target_end( target ) )
+		return( ARCHIVE_FATAL );
 
-	case ZIP_SOURCE_TELL:
-	case ZIP_SOURCE_TELL_WRITE:
-		return( (zip_int64_t) vips_target_seek( target, 0L, SEEK_CUR ) );
-
-	case ZIP_SOURCE_WRITE:
-		if( vips_target_write( target, data, length ) )
-			return( -1 );
-
-		/* Return number of bytes written on success.
-		 */
-		return( (zip_int64_t) length );
-
-	case ZIP_SOURCE_SUPPORTS:
-		return( zip_source_make_command_bitmap(
-			/* Readable
-			 */
-			ZIP_SOURCE_OPEN, ZIP_SOURCE_READ, ZIP_SOURCE_CLOSE,
-			ZIP_SOURCE_STAT, ZIP_SOURCE_ERROR, ZIP_SOURCE_FREE,
-			/* Seekable
-			 */
-			ZIP_SOURCE_SEEK, ZIP_SOURCE_TELL,
-			/* Writable
-			 */
-			ZIP_SOURCE_BEGIN_WRITE, ZIP_SOURCE_COMMIT_WRITE,
-			ZIP_SOURCE_ROLLBACK_WRITE, ZIP_SOURCE_WRITE,
-			ZIP_SOURCE_SEEK_WRITE, ZIP_SOURCE_TELL_WRITE,
-			ZIP_SOURCE_REMOVE,
-			-1 ) );
-
-	default:
-		return( 0 );
-	}
+	return( ARCHIVE_OK );
 }
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
@@ -358,7 +323,7 @@ struct _VipsForeignSaveDz {
 
 	/* The zipfile we are writing tiles to.
 	 */
-	zip_t *archive;
+	struct archive *archive;
 
 	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
 	 * No suffix, no path at the start. 
@@ -409,31 +374,31 @@ iszip( VipsForeignDzContainer container )
 static inline int
 vips_mkdir_zip( VipsForeignSaveDz *dz, const char *dirname )
 {
-	zip_int64_t idx;
+	struct archive_entry *entry;
 
-	vips__worker_lock( vips_libzip_mutex );
+	vips__worker_lock( vips_libarchive_mutex );
 
-	if( (idx = zip_dir_add( dz->archive, dirname, ZIP_FL_ENC_UTF_8 )) < 0 &&
-		zip_get_error( dz->archive )->zip_err != ZIP_ER_EXISTS ) {
+	if( !(entry = archive_entry_new()) ) {
+		g_mutex_unlock( vips_libarchive_mutex );
+		return( -1 );
+	}
+
+	archive_entry_set_pathname( entry, dirname );
+	archive_entry_set_mode( entry, S_IFDIR | 0755 );
+
+	if( archive_write_header( dz->archive, entry ) != ARCHIVE_OK ) {
 		char *utf8name = g_filename_display_name( dirname );
 		vips_error( "dzsave",
 			_( "unable to add directory \"%s\", %s" ),
-			utf8name, zip_strerror( dz->archive ) );
+			utf8name, archive_error_string( dz->archive ) );
 		g_free( utf8name );
-		g_mutex_unlock( vips_libzip_mutex );
+		archive_entry_free( entry );
+		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
 
-	if( idx >= 0 &&
-		dz->compression >= 0 &&
-		zip_set_file_compression( dz->archive, idx,
-			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
-			dz->compression ) ) {
-		g_mutex_unlock( vips_libzip_mutex );
-		return( -1 );
-	}
-
-	g_mutex_unlock( vips_libzip_mutex );
+	archive_entry_free( entry );
+	g_mutex_unlock( vips_libarchive_mutex );
 
 	return( 0 );
 }
@@ -468,28 +433,33 @@ static inline int
 vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	void *buf, size_t len )
 {
-	zip_source_t *s;
-	zip_int64_t idx;
+	struct archive_entry *entry;
 
-	vips__worker_lock( vips_libzip_mutex );
+	vips__worker_lock( vips_libarchive_mutex );
 
-	if( !(s = zip_source_buffer( dz->archive, buf, len, 1 )) ||
-		(idx = zip_file_add( dz->archive, filename, s,
-			ZIP_FL_ENC_UTF_8 )) < 0 ) {
-		zip_source_free( s );
-		g_mutex_unlock( vips_libzip_mutex );
+	if( !(entry = archive_entry_new()) ) {
+		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
 
-	if( dz->compression >= 0 &&
-		zip_set_file_compression( dz->archive, idx,
-			dz->compression == 0 ? ZIP_CM_STORE : ZIP_CM_DEFLATE,
-			dz->compression ) ) {
-		g_mutex_unlock( vips_libzip_mutex );
+	archive_entry_set_pathname( entry, filename );
+	archive_entry_set_mode( entry, S_IFREG | 0664 );
+	archive_entry_set_size( entry, len );
+
+	if( archive_write_header( dz->archive, entry ) != ARCHIVE_OK ) {
+		archive_entry_free( entry );
+		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
 
-	g_mutex_unlock( vips_libzip_mutex );
+	archive_entry_free( entry );
+
+	if( archive_write_data( dz->archive, buf, len ) != len ) {
+		g_mutex_unlock( vips_libarchive_mutex );
+		return( -1 );
+	}
+
+	g_mutex_unlock( vips_libarchive_mutex );
 
 	return( 0 );
 }
@@ -591,7 +561,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
-	VIPS_FREEF( zip_close, dz->archive );
+	VIPS_FREEF( archive_write_free, dz->archive );
 
 	VIPS_UNREF( dz->target );
 
@@ -790,7 +760,7 @@ write_dzi( VipsForeignSaveDz *dz )
 	vips_dbuf_writef( &dbuf, "  />\n" );
 	vips_dbuf_writef( &dbuf, "</Image>\n" );
 
-	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
 		vips_mkfile( dz, filename, buf, len ) ) {
 		g_free( filename );
 		return( -1 );
@@ -823,7 +793,7 @@ write_properties( VipsForeignSaveDz *dz )
 		dz->tile_count,
 		dz->tile_size );
 
-	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
 		vips_mkfile( dz, filename, buf, len ) ) {
 		g_free( filename );
 		return( -1 );
@@ -1004,7 +974,7 @@ write_json( VipsForeignSaveDz *dz )
 	vips_dbuf_writef( &dbuf, 
 		"}\n" );
 
-	if ( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
+	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
 		vips_mkfile( dz, filename, buf, len ) ) {
 		g_free( filename );
 		return( -1 );
@@ -2236,8 +2206,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	/* Make the zip archive we write the tiles into.
 	 */
 	if( iszip( dz->container ) ) {
-		zip_source_t *zs;
-
 		/* Ignore the root directory name for zip output, it should only
 		 * be set for filesystem output.
 		 */
@@ -2252,16 +2220,44 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 		}
 
-		/* Create source from target.
+		/* Allocate and initialize a new archive.
 		 */
-		if( !(zs = zip_source_function_create( write_zip_target_cb,
-			dz->target, NULL )) ) {
+		if( !(dz->archive = archive_write_new()) )
+			return( -1 );
+
+		/* Set format to zip.
+		 */
+		if( archive_write_set_format( dz->archive,
+			ARCHIVE_FORMAT_ZIP ) != ARCHIVE_OK ) {
+			archive_write_free( dz->archive );
 			return( -1 );
 		}
 
-		if( !(dz->archive =
-			zip_open_from_source( zs, ZIP_TRUNCATE, NULL )) ) {
-			zip_source_free( zs );
+		/* Remap compression=-1 to compression=6.
+		 */
+		if( dz->compression == -1 )
+			dz->compression = 6; /* Z_DEFAULT_COMPRESSION */
+
+		/* Set deflate compression level.
+		 */
+		char compression_string[2] = { '0' + dz->compression, 0 };
+		if( archive_write_set_format_option( dz->archive, "zip",
+			"compression-level", compression_string ) != ARCHIVE_OK ) {
+			archive_write_free( dz->archive );
+			return( -1 );
+		}
+
+		/*if( archive_write_add_filter( dz->archive,
+			ARCHIVE_FILTER_NONE ) != ARCHIVE_OK ) {
+			archive_write_free( dz->archive );
+			return( -1 );
+		}*/
+
+		/* Register target callback functions.
+		 */
+		if( archive_write_open2( dz->archive, dz->target, NULL,
+			zip_write_target_cb, zip_close_target_cb, NULL ) != ARCHIVE_OK ) {
+			archive_write_free( dz->archive );
 			return( -1 );
 		}
 	}
@@ -2306,14 +2302,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 		write_associated( dz ) )
 		return( -1 );
 
-	if( iszip( dz->container ) ) {
-		/* Shut down the output to flush everything.
-		 */
-		if( zip_close( dz->archive ) )
-			return( -1 );
-
-		dz->archive = NULL;
-	}
+	/* Shut down the output to flush everything.
+	 */
+	if( iszip( dz->container ) &&
+		archive_write_close( dz->archive ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -2341,7 +2334,7 @@ static const char *dz_suffs[] = { ".dz", ".szi", NULL };
 static void *
 vips_foreign_save_dz_once_init( void *client )
 {
-	vips_libzip_mutex = vips_g_mutex_new();
+	vips_libarchive_mutex = vips_g_mutex_new();
 
 	return( NULL );
 }
@@ -2697,7 +2690,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 }
 
-#endif /*HAVE_ZIP*/
+#endif /*HAVE_LIBARCHIVE*/
 
 /**
  * vips_dzsave: (method)

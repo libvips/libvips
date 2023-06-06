@@ -60,14 +60,14 @@ jobs:
             libheif-dev libexpat1-dev libcfitsio-dev
             libmatio-dev libnifti-dev liborc-0.4-dev
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
-            libopenexr-dev libpango1.0-dev libzip-dev
+            libopenexr-dev libpango1.0-dev libarchive-dev
             libopenslide-dev libffi-dev libopenjp2-7-dev
             libimagequant-dev libcgif-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install meson ninja fftw fontconfig glib libexif libzip little-cms2 orc pango pkg-config
+          brew install meson ninja fftw fontconfig glib libexif libarchive little-cms2 orc pango pkg-config
           brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14

@@ -67,10 +67,10 @@ option('fontconfig',
   value: 'auto', 
   description: 'Build with fontconfig')
 
-option('zip', 
+option('archive', 
   type: 'feature', 
   value: 'auto', 
-  description: 'Build with libzip')
+  description: 'Build with libarchive')
 
 option('heif', 
   type: 'feature', 
