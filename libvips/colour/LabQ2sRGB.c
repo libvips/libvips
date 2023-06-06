@@ -227,9 +227,19 @@ vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B )
 int
 vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
 {
-	*X = SCALE * 0.4124 * R + SCALE * 0.3576 * G + SCALE * 0.18056 * B;
-	*Y = SCALE * 0.2126 * R + SCALE * 0.7152 * G + SCALE * 0.07220 * B;
-	*Z = SCALE * 0.0193 * R + SCALE * 0.1192 * G + SCALE * 0.9505 * B;
+	R *= SCALE;
+	G *= SCALE;
+	B *= SCALE;
+
+	*X = 0.4124 * R +
+		0.3576 * G +
+		0.1805 * B;
+	*Y = 0.2126 * R +
+		0.7152 * G +
+		0.0722 * B;
+	*Z = 0.0193 * R +
+		0.1192 * G +
+		0.9505 * B;
 
 	return( 0 );
 }
@@ -250,9 +260,21 @@ vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
 int
 vips_col_XYZ2scRGB( float X, float Y, float Z, float *R, float *G, float *B ) 
 {
-	*R =  3.2406 / SCALE * X + -1.5372 / SCALE * Y + -0.4986 / SCALE * Z;
-	*G = -0.9689 / SCALE * X +  1.8758 / SCALE * Y +  0.0415 / SCALE * Z;
-	*B =  0.0557 / SCALE * X + -0.2040 / SCALE * Y +  1.0570 / SCALE * Z;
+	X /= SCALE;
+	Y /= SCALE;
+	Z /= SCALE;
+
+	/* Use 6 decimal places of precision for the inverse matrix.
+	 */
+	*R = 3.240625 * X +
+		-1.537208 * Y +
+		-0.498629 * Z;
+	*G = -0.968931 * X +
+		1.875756 * Y +
+		0.041518 * Z;
+	*B = 0.055710 * X +
+		-0.204021 * Y + 
+		1.056996 * Z;
 
 	return( 0 ); 
 } 
