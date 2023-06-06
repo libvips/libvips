@@ -179,6 +179,7 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 	struct spng_iccp iccp;
 	uint32_t n_text;
 	struct spng_text *text_chunk_array;
+	struct spng_exif exif;
 	int i;
 	GSList *p;
 
@@ -247,24 +248,19 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 		g_free( str );
 	}
 
-	if( vips_image_get_typeof( in, VIPS_META_EXIF_NAME ) ) {
-		struct spng_exif exif;
+	if( vips__exif_update( in ) ||
+		vips_image_get_blob( in, VIPS_META_EXIF_NAME,
+			(const void **) &exif.data, &exif.length ) )
+		return( -1 );
 
-		if( vips__exif_update( in ) ||
-			vips_image_get_blob( in, VIPS_META_EXIF_NAME, 
-				(const void **) &exif.data, &exif.length ) )
-			return( -1 );
-
-		/* libspng does not want the JFIF "Exif\0\0" prefix.
-		 */
-		if( exif.length >= 6 &&
-			vips_isprefix( "Exif", exif.data ) ) {
-			exif.data += 6;
-			exif.length -= 6;
-		}
-
-		spng_set_exif( spng->ctx, &exif );
+	/* libspng does not want the JFIF "Exif\0\0" prefix.
+		*/
+	if( exif.length >= 6 &&
+		vips_isprefix( "Exif", exif.data ) ) {
+		exif.data += 6;
+		exif.length -= 6;
 	}
+	spng_set_exif( spng->ctx, &exif );
 
 	if( vips_image_map( in, vips_foreign_save_spng_comment, spng ) )
 		return( -1 );
@@ -737,7 +733,7 @@ vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
 		_( "Write as a 1, 2, 4, 8 or 16 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, bitdepth ),
-		0, 16, 0 );
+		1, 16, 8 );
 
 	VIPS_ARG_INT( class, "effort", 18,
 		_( "Effort" ),

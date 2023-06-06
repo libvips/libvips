@@ -1191,26 +1191,26 @@ write_vips( Write *write,
 		}
 
 #ifdef PNG_eXIf_SUPPORTED
-		if( vips_image_get_typeof( in, VIPS_META_EXIF_NAME ) ) {
-			const void *data;
-			size_t length;
+{
+		const void *data;
+		size_t length;
 
-			if( vips__exif_update( in ) ||
-				vips_image_get_blob( in, VIPS_META_EXIF_NAME, 
-					&data, &length ) )
-				return( -1 );
+		if( vips__exif_update( in ) ||
+			vips_image_get_blob( in, VIPS_META_EXIF_NAME,
+				&data, &length ) )
+			return( -1 );
 
-			/* libpng does not want the JFIF "Exif\0\0" prefix.
-			 */
-			if( length >= 6 &&
-				vips_isprefix( "Exif", (char *) data ) ) {
-				data = (char *) data + 6;
-				length -= 6;
-			}
-
-			png_set_eXIf_1( write->pPng, write->pInfo,
-				length, (png_bytep) data );
+		/* libpng does not want the JFIF "Exif\0\0" prefix.
+		*/
+		if( length >= 6 &&
+			vips_isprefix( "Exif", (char *) data ) ) {
+			data = (char *) data + 6;
+			length -= 6;
 		}
+
+		png_set_eXIf_1( write->pPng, write->pInfo,
+			length, (png_bytep) data );
+}
 #endif /*PNG_eXIf_SUPPORTED*/
 
 		if( vips_image_map( in, write_png_comment, write ) )

@@ -478,6 +478,14 @@ class TestForeign:
             y = x.get("orientation")
             assert y == 2
 
+        # Add EXIF to new PNG
+        im1 = pyvips.Image.black(8, 8)
+        im1.set_type(pyvips.GValue.gstr_type,
+            "exif-ifd0-ImageDescription", "test description")
+        im2 = pyvips.Image.new_from_buffer(
+            im1.write_to_buffer(".png"), "")
+        assert im2.get("exif-ifd0-ImageDescription").startswith("test description")
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):

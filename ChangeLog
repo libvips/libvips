@@ -19,6 +19,7 @@
 - add "prewitt" and "scharr" edge detectors, "sobel" is more accurate for
   non-uchar formats [jcupitt]
 - add support for forms in pdfium loader [kleisauke]
+- swap built-in profiles with ICC v4 variants [kleisauke]
 - remove libgsf dependency in favor of libarchive [kleisauke]
 
 TBD 8.14.3

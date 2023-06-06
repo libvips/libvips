@@ -263,7 +263,7 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		_( "Write as a 1, 2, 4, 8 or 16 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, bitdepth ),
-		0, 16, 0 );
+		1, 16, 8 );
 
 	VIPS_ARG_INT( class, "effort", 18,
 		_( "Effort" ),
