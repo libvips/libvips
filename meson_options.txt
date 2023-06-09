@@ -40,6 +40,11 @@ option('vapi',
   value: false, 
   description: 'Build VAPI')
 
+option('simd', 
+  type: 'boolean', 
+  value: false, 
+  description: 'Use SIMD (SSE/NEON) intrinsics')
+
 # External libraries
 
 option('cfitsio', 

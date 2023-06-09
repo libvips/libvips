@@ -87,6 +87,7 @@ typedef struct _VipsReduceh {
 	 */
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
 
 	/* Deprecated.
 	 */
@@ -411,6 +412,72 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 	return 0;
 }
 
+#if HAVE_SIMD
+
+/* Process uchar images with a SIMD path.
+ */
+static int
+vips_reduceh_simd_gen(VipsRegion *out_region, void *seq,
+	void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReduceh *reduceh = (VipsReduceh *) b;
+	const int ps = VIPS_IMAGE_SIZEOF_PEL(in);
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &out_region->valid;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf("vips_reduceh_simd_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG*/
+
+	s.left = r->left * reduceh->hshrink - reduceh->hoffset;
+	s.top = r->top;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.height = r->height;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+	VIPS_GATE_START("vips_reduceh_simd_gen: work");
+
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *p0;
+		VipsPel *q;
+
+		double X;
+
+		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+		X = (r->left + 0.5) * reduceh->hshrink - 0.5 -
+			reduceh->hoffset;
+
+		/* We want p0 to be the start (ie. x == 0) of the input
+		 * scanline we are reading from. We can then calculate the p we
+		 * need for each pixel with a single mul and avoid calling ADDR
+		 * for each pixel.
+		 *
+		 * We can't get p0 directly with ADDR since it could be outside
+		 * valid, so get the leftmost pixel in valid and subtract a
+		 * bit.
+		 */
+		p0 = VIPS_REGION_ADDR(ir, ir->valid.left, r->top + y) -
+			ir->valid.left * ps;
+
+		reduceh_uchar_simd(q, p0, in->Bands, reduceh->n_point,
+			r->width, reduceh->matrixs, X, reduceh->hshrink);
+	}
+
+	VIPS_GATE_STOP("vips_reduceh_simd_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_reduceh_simd_gen");
+
+	return 0;
+}
+
+#endif /*HAVE_SIMD*/
+
 static int
 vips_reduceh_build(VipsObject *object)
 {
@@ -419,6 +486,8 @@ vips_reduceh_build(VipsObject *object)
 	VipsReduceh *reduceh = (VipsReduceh *) object;
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array(object, 3);
+
+	VipsGenerateFn generate = vips_reduceh_gen;
 
 	VipsImage *in;
 	int width;
@@ -519,6 +588,25 @@ vips_reduceh_build(VipsObject *object)
 #endif /*DEBUG*/
 	}
 
+#if HAVE_SIMD
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		(in->Bands == 4 || in->Bands == 3)) {
+
+		for (int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++) {
+			reduceh->matrixs[y] =
+				VIPS_ARRAY(object, reduceh->n_point, short);
+			if (!reduceh->matrixs[y])
+				return -1;
+
+			for (int i = 0; i < reduceh->n_point; i++)
+				reduceh->matrixs[y][i] = reduceh->matrixi[y][i];
+		}
+
+		g_info("reduceh: using simd path");
+		generate = vips_reduceh_simd_gen;
+	}
+#endif /*HAVE_SIMD*/
+
 	/* Unpack for processing.
 	 */
 	if (vips_image_decode(in, &t[1]))
@@ -557,7 +645,7 @@ vips_reduceh_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (vips_image_generate(resample->out,
-			vips_start_one, vips_reduceh_gen, vips_stop_one,
+			vips_start_one, generate, vips_stop_one,
 			in, reduceh))
 		return -1;
 

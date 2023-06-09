@@ -125,6 +125,7 @@ typedef struct _VipsReducev {
 	 * scale + 1 so we can round-to-nearest safely.
 	 */
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
 	/* And another set for orc: we want 2.6 precision.
@@ -161,11 +162,14 @@ vips_reducev_finalize(GObject *gobject)
 	for (int i = 0; i < VIPS_TRANSFORM_SCALE + 1; i++) {
 		VIPS_FREE(reducev->matrixf[i]);
 		VIPS_FREE(reducev->matrixi[i]);
+		VIPS_FREE(reducev->matrixs[i]);
 		VIPS_FREE(reducev->matrixo[i]);
 	}
 
 	G_OBJECT_CLASS(vips_reducev_parent_class)->finalize(gobject);
 }
+
+#if !HAVE_SIMD
 
 #define TEMP(N, S) vips_vector_temporary(v, (char *) N, S)
 #define PARAM(N, S) vips_vector_parameter(v, (char *) N, S)
@@ -321,6 +325,8 @@ vips_reducev_compile(VipsReducev *reducev)
 	return 0;
 }
 
+#endif /*!HAVE_SIMD*/
+
 /* Our sequence value.
  */
 typedef struct {
@@ -351,7 +357,6 @@ vips_reducev_start(VipsImage *out, void *a, void *b)
 {
 	VipsImage *in = (VipsImage *) a;
 	VipsReducev *reducev = (VipsReducev *) b;
-	int sz = VIPS_IMAGE_N_ELEMENTS(in);
 
 	Sequence *seq;
 
@@ -362,20 +367,28 @@ vips_reducev_start(VipsImage *out, void *a, void *b)
 	 */
 	seq->reducev = reducev;
 	seq->ir = NULL;
-	seq->t1 = NULL;
-	seq->t2 = NULL;
 
 	/* Attach region and arrays.
 	 */
 	seq->ir = vips_region_new(in);
-	seq->t1 = VIPS_ARRAY(NULL, sz, signed short);
-	seq->t2 = VIPS_ARRAY(NULL, sz, signed short);
-	if (!seq->ir ||
-		!seq->t1 ||
-		!seq->t2) {
+	if (!seq->ir) {
 		vips_reducev_stop(seq, NULL, NULL);
 		return NULL;
 	}
+
+#if !HAVE_SIMD
+	int sz = VIPS_IMAGE_N_ELEMENTS(in);
+
+	seq->t1 = NULL;
+	seq->t2 = NULL;
+
+	seq->t1 = VIPS_ARRAY(NULL, sz, signed short);
+	seq->t2 = VIPS_ARRAY(NULL, sz, signed short);
+	if (!seq->t1 || !seq->t2) {
+		vips_reducev_stop(seq, NULL, NULL);
+		return NULL;
+	}
+#endif /*!HAVE_SIMD*/
 
 	return seq;
 }
@@ -607,6 +620,70 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 	return 0;
 }
 
+#if HAVE_SIMD
+
+/* Process uchar images with a SIMD path.
+ */
+static int
+vips_reducev_simd_gen(VipsRegion *out_region, void *vseq,
+	void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReducev *reducev = (VipsReducev *) b;
+	Sequence *seq = (Sequence *) vseq;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &out_region->valid;
+	int ne = r->width * in->Bands;
+
+	VipsRect s;
+
+#ifdef DEBUG_PIXELS
+	printf("vips_reducev_simd_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG_PIXELS*/
+
+	s.left = r->left;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
+	s.width = r->width;
+	s.height = r->height * reducev->vshrink + reducev->n_point;
+	if (vips_region_prepare(ir, &s))
+		return (-1);
+
+#ifdef DEBUG_PIXELS
+	printf("vips_reducev_simd_gen: preparing %d x %d at %d x %d\n",
+		s.width, s.height, s.left, s.top);
+#endif /*DEBUG_PIXELS*/
+
+	VIPS_GATE_START("vips_reducev_simd_gen: work");
+
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 -
+		reducev->voffset;
+
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *q =
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		const int py = (int) Y;
+		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, py);
+		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
+		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
+		const int ty = (siy + 1) >> 1;
+		const short *cys = reducev->matrixs[ty];
+		const int lskip = VIPS_REGION_LSKIP(ir);
+
+		reducev_uchar_simd(q, p, reducev->n_point, ne, lskip, cys);
+
+		Y += reducev->vshrink;
+	}
+
+	VIPS_GATE_STOP("vips_reducev_simd_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_reducev_simd_gen");
+
+	return (0);
+}
+
+#else /*HAVE_SIMD*/
+
 /* Process uchar images with a vector path.
  */
 static int
@@ -704,18 +781,38 @@ vips_reducev_vector_gen(VipsRegion *out_region, void *vseq,
 	return 0;
 }
 
+#endif /*HAVE_SIMD*/
+
 static int
 vips_reducev_raw(VipsReducev *reducev, VipsImage *in, int height,
 	VipsImage **out)
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS(reducev);
 
-	VipsGenerateFn generate;
+	VipsGenerateFn generate = vips_reducev_gen;
 
+#if HAVE_SIMD
+	if (in->BandFmt == VIPS_FORMAT_UCHAR) {
+		for (int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++) {
+			reducev->matrixs[y] =
+				VIPS_ARRAY(NULL, reducev->n_point, short);
+			if (!reducev->matrixs[y])
+				return (-1);
+
+			for (int i = 0; i < reducev->n_point; i++)
+				reducev->matrixs[y][i] = reducev->matrixi[y][i];
+		}
+
+		g_info("reducev: using simd path");
+		generate = vips_reducev_simd_gen;
+	}
+#else  /*HAVE_SIMD*/
 	/* We need an 2.6 version if we will use the vector path.
 	 */
 	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
-		vips_vector_isenabled())
+		vips_vector_isenabled() &&
+		!vips_reducev_compile(reducev)) {
+
 		for (int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++) {
 			reducev->matrixo[y] =
 				VIPS_ARRAY(NULL, reducev->n_point, int);
@@ -727,15 +824,10 @@ vips_reducev_raw(VipsReducev *reducev, VipsImage *in, int height,
 				reducev->n_point, 64);
 		}
 
-	/* Try to build a vector version, if we can.
-	 */
-	generate = vips_reducev_gen;
-	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
-		vips_vector_isenabled() &&
-		!vips_reducev_compile(reducev)) {
 		g_info("reducev: using vector path");
 		generate = vips_reducev_vector_gen;
 	}
+#endif /*HAVE_SIMD*/
 
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
