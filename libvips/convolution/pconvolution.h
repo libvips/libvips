@@ -73,6 +73,12 @@ typedef struct _VipsConvolutionClass {
 
 GType vips_convolution_get_type(void);
 
+#if HAVE_SIMD
+void convi_uchar_simd(VipsPel *pout, VipsPel *pin,
+	int32_t n, int32_t ne, int32_t offset, int32_t *restrict offsets,
+	int16_t *restrict mant, int32_t exp);
+#endif /*HAVE_SIMD*/
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
