@@ -202,7 +202,7 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 	int sq_maxerror = cgif->interframe_maxerror * cgif->interframe_maxerror;
 
 	int i;
-	int this_trans = FALSE;
+	gboolean this_trans = FALSE;
 	int trans_state = TRANS_STATE_NONE;
 	int trans_count = 0;
 	int same_count = 0;
@@ -220,7 +220,8 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			if( !old[3] && !new[3] ) {
 				*index = trans;
 				this_trans = TRUE;
-			} else {
+			}
+			else {
 				/* Compare RGB.
 				 */
 				const int dR = old[0] - new[0];
@@ -243,10 +244,9 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			 * we haven't been copying new to old since then.
 			 * Time to do it now
 			 */
-			if ( trans_state == TRANS_STATE_SINGLE ) {
+			if( trans_state == TRANS_STATE_SINGLE )
 				memcpy( trans_start_old, trans_start_new,
 					old - trans_start_old );
-			}
 
 			/* And reset the transparent pixels state
 			 */
@@ -261,14 +261,14 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 				/* Found the first pixel that should be
 				 * transparent
 				 */
-				if( x == 0 ) {
+				if( x == 0 )
 					/* If we are at the start of the row,
 					 * start making pixels transparent
 					 * right away to help CGIF to trim the
 					 * frame
 					 */
 					trans_state = TRANS_STATE_ROW;
-				} else {
+				else {
 					/* Otherwise, just mark the
 					 * point where we found it and update 
 					 * the transparent pixels state
@@ -286,15 +286,14 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			 * row. In this case, transparent pixels will help CGIF
 			 * to trim the frame
 			 */
-			} else if (
-				trans_state == TRANS_STATE_SINGLE &&
-				( trans_count * 2 >= same_count + 32  || 
-					x == width - 1 || *index != index[-1] )
-			) {
+			}
+			else if( trans_state == TRANS_STATE_SINGLE &&
+				(trans_count * 2 >= same_count + 32 ||
+					x == width - 1 || *index != index[-1]) ) {
 				/* We found a transparent pixel before
 				 * and the previous index doesn't match the
 				 * current index. Make all pixels from the
-				 * marked point to the currect point
+				 * marked point to the current point
 				 * transparent and update the transparent
 				 * pixels state
 				 */
@@ -304,13 +303,13 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 			}
 		}
 
-		if( trans_state == TRANS_STATE_ROW ) {
+		if( trans_state == TRANS_STATE_ROW )
 			/* Since we have more than one transparent pixel in
 			 * a row, it's safe to make the current pixel
 			 * transparent
 			 */
 			*index = trans;
-		} else if ( trans_state == TRANS_STATE_NONE ) {
+		else if( trans_state == TRANS_STATE_NONE ) {
 			/* We did not find a pixel that should be transparent
 			 * before. Just copy new to old
 			 */
@@ -329,7 +328,7 @@ vips_foreign_save_cgif_set_transparent( VipsForeignSaveCgif *cgif,
 	/* If we are still in the single transparent pixel state, make the rest
 	 * of pixels transparent
 	 */
-	if ( trans_state == TRANS_STATE_SINGLE )
+	if( trans_state == TRANS_STATE_SINGLE )
 		memset( trans_start_index, trans, index - trans_start_index );
 }
 
