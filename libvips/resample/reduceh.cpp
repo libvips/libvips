@@ -131,7 +131,7 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 	}
 }
 
-template <typename T, int max_value>
+template <typename T, T max_value>
 static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
 	const int bands, const short *restrict cx)
@@ -141,9 +141,9 @@ static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		int sum;
+		typename intermediate<T>::type sum;
 
-		sum = reduce_sum<T, int>(in + z, bands, cx, n);
+		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = unsigned_fixed_round(sum);
 		out[z] = VIPS_CLIP(0, sum, max_value);
 	}
@@ -159,9 +159,9 @@ static void inline reduceh_signed_int_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		int sum;
+		typename intermediate<T>::type sum;
 
-		sum = reduce_sum<T, int>(in + z, bands, cx, n);
+		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = signed_fixed_round(sum);
 		out[z] = VIPS_CLIP(min_value, sum, max_value);
 	}
@@ -179,46 +179,7 @@ static void inline reduceh_float_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++)
-		out[z] = reduce_sum<T, double>(in + z, bands, cx, n);
-}
-
-/* 32-bit int output needs a 64-bits intermediate.
- */
-
-template <typename T, unsigned int max_value>
-static void inline reduceh_unsigned_int32_tab(VipsReduceh *reduceh,
-	VipsPel *pout, const VipsPel *pin,
-	const int bands, const short *restrict cx)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reduceh->n_point;
-
-	for (int z = 0; z < bands; z++) {
-		uint64_t sum;
-
-		sum = reduce_sum<T, uint64_t>(in + z, bands, cx, n);
-		sum = unsigned_fixed_round(sum);
-		out[z] = VIPS_CLIP(0, sum, max_value);
-	}
-}
-
-template <typename T, int min_value, int max_value>
-static void inline reduceh_signed_int32_tab(VipsReduceh *reduceh,
-	VipsPel *pout, const VipsPel *pin,
-	const int bands, const short *restrict cx)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reduceh->n_point;
-
-	for (int z = 0; z < bands; z++) {
-		int64_t sum;
-
-		sum = reduce_sum<T, int64_t>(in + z, bands, cx, n);
-		sum = signed_fixed_round(sum);
-		out[z] = VIPS_CLIP(min_value, sum, max_value);
-	}
+		out[z] = reduce_sum<T>(in + z, bands, cx, n);
 }
 
 /* Ultra-high-quality version for double images.
@@ -232,17 +193,13 @@ static void inline reduceh_notab(VipsReduceh *reduceh,
 	const T *restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
-	double cx[MAX_POINT];
+	typename intermediate<T>::type cx[MAX_POINT];
 
 	vips_reduce_make_mask(cx, reduceh->kernel, reduceh->n_point,
 		reduceh->hshrink, x);
 
-	for (int z = 0; z < bands; z++) {
-		double sum;
-		sum = reduce_sum<T, double>(in + z, bands, cx, n);
-
-		out[z] = VIPS_ROUND_UINT(sum);
-	}
+	for (int z = 0; z < bands; z++)
+		out[z] = reduce_sum<T>(in + z, bands, cx, n);
 }
 
 static int
@@ -330,12 +287,12 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 				break;
 
 			case VIPS_FORMAT_UINT:
-				reduceh_unsigned_int32_tab<unsigned int,
+				reduceh_unsigned_int_tab<unsigned int,
 					UINT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_INT:
-				reduceh_signed_int32_tab<signed int,
+				reduceh_signed_int_tab<signed int,
 					INT_MIN, INT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
