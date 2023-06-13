@@ -19,9 +19,9 @@ race:vips_tracked_mem
 race:vips_tracked_allocs
 race:vips_tracked_files
 
-# guarded with task->allocate_lock, so it should be fine
-race:vips_thread_allocate
-race:vips_task_work_unit
+# guarded with set->lock, so it should be fine
+race:vips_threadset_work
+race:vips_threadset_add
 
 # guarded with vips_cache_lock, so it should be fine
 race:vips_cache_table
@@ -29,6 +29,7 @@ race:vips_cache_drop_all
 race:vips_cache_get_first
 race:vips_cache_get_lru_cb
 race:vips_cache_remove
+race:vips_cache_trim
 
 # guarded with vips__global_lock, so it should be fine
 race:vips_error_freeze_count
@@ -36,6 +37,10 @@ race:vips__link_make
 race:vips__link_map
 race:vips__link_break_all
 race:tile_name
+race:vips_image_sanity
+
+# guarded with vips_text_lock, so it should be fine
+race:vips_text_build
 
 # the double-buffered output and write-behind thread are non-racy
 race:wbuffer_new
@@ -61,11 +66,14 @@ race:readjpeg_close_cb
 # semaphores are probably non-racy
 race:vips_semaphore_*
 
-# guarded with sink->sslock, so it should be fine
+# guarded with pool->allocate_lock, so it should be fine
+race:vips_worker_work_unit
 race:sink_call_start
 race:sink_call_stop
 race:vips_hist_find_start
+race:vips_hist_find_indexed_start
 race:vips_hist_find_stop
+race:vips_hough_new_accumulator
 race:vips_statistic_scan_start
 race:vips_statistic_scan_stop
 race:vips_max_stop
@@ -97,6 +105,7 @@ race:vips_image_init
 race:vips_image_build
 race:vips_image_finalize
 race:vips_image_dispose
+race:vips_threadset_free
 
 # guarded with image->sslock, so it should be fine
 race:vips__region_start
