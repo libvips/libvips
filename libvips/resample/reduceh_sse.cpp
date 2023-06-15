@@ -15,13 +15,10 @@
 #include <smmintrin.h>
 
 void
-reduceh_uchar_simd_4bands(VipsPel *pout, VipsPel *pin,
-	int32_t n, int32_t width,
-	int16_t *restrict cs[VIPS_TRANSFORM_SCALE + 1],
-	double Xstart, double Xstep)
+reduceh_uchar_simd_4bands(VipsPel *pout, VipsPel *pin, int32_t n_point,
+	int32_t width, int16_t *restrict c, int32_t *restrict bounds)
 {
 	int32_t x, i;
-	double X = Xstart;
 
 	__m128i line8, line16, vc_lo, vc_hi;
 	__m128i sum;
@@ -41,13 +38,11 @@ reduceh_uchar_simd_4bands(VipsPel *pout, VipsPel *pin,
 		-1, -1, -1, 1, -1, -1, -1, 0);
 
 	for (x = 0; x < width; x++) {
-		const int ix = (int) X;
-		const int sx = X * VIPS_TRANSFORM_SCALE * 2;
-		const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int tx = (six + 1) >> 1;
-		const int16_t *c = cs[tx];
+		const int left = bounds[0];
+		const int right = bounds[1];
+		const int32_t n = right - left;
 
-		uint8_t *restrict p = pin + ix * 4;
+		uint8_t *restrict p = pin + left * 4;
 		uint8_t *restrict q = pout + x * 4;
 
 		sum = initial;
@@ -95,18 +90,16 @@ reduceh_uchar_simd_4bands(VipsPel *pout, VipsPel *pin,
 		sum = _mm_packus_epi16(sum, sum);
 		*(uint32_t *) q = _mm_cvtsi128_si32(sum);
 
-		X += Xstep;
+		c += n_point;
+		bounds += 2;
 	}
 }
 
 void
-reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
-	int32_t n, int32_t width,
-	int16_t *restrict cs[VIPS_TRANSFORM_SCALE + 1],
-	double Xstart, double Xstep)
+reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin, int32_t n_point,
+	int32_t width, int16_t *restrict c, int32_t *restrict bounds)
 {
 	int32_t x, i;
-	double X = Xstart;
 
 	__m128i line8, line16, vc_lo, vc_hi;
 	__m128i sum;
@@ -131,13 +124,11 @@ reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
 	 * buffers range.
 	 */
 	for (x = 0; x < width - 1; x++) {
-		const int ix = (int) X;
-		const int sx = X * VIPS_TRANSFORM_SCALE * 2;
-		const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int tx = (six + 1) >> 1;
-		const int16_t *c = cs[tx];
+		const int left = bounds[0];
+		const int right = bounds[1];
+		const int32_t n = right - left;
 
-		uint8_t *restrict p = pin + ix * 3;
+		uint8_t *restrict p = pin + left * 3;
 		uint8_t *restrict q = pout + x * 3;
 
 		sum = initial;
@@ -185,7 +176,8 @@ reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
 		sum = _mm_packus_epi16(sum, sum);
 		*(uint32_t *) q = _mm_cvtsi128_si32(sum);
 
-		X += Xstep;
+		c += n_point;
+		bounds += 2;
 	}
 
 	/* Less optimal but safe approach for the last x.
@@ -193,13 +185,11 @@ reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
 	 * buffers range. So for the last x, we carefully load 3 bytes and
 	 * carefully save 3 bytes.
 	 */
-	const int ix = (int) X;
-	const int sx = X * VIPS_TRANSFORM_SCALE * 2;
-	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-	const int tx = (six + 1) >> 1;
-	const int16_t *c = cs[tx];
+	const int left = bounds[0];
+	const int right = bounds[1];
+	const int32_t n = right - left;
 
-	uint8_t *restrict p = pin + ix * 3;
+	uint8_t *restrict p = pin + left * 3;
 	uint8_t *restrict q = pout + x * 3;
 
 	sum = initial;
@@ -211,8 +201,8 @@ reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
 		p += 3;
 
 		/* Since we use only the first 16 bits of each number,
-			* it's safe to use _mm_madd_epi16 here
-			*/
+		 * it's safe to use _mm_madd_epi16 here
+		 */
 		sum = _mm_add_epi32(sum, _mm_madd_epi16(line16, vc_lo));
 	}
 
@@ -228,18 +218,17 @@ reduceh_uchar_simd_3bands(VipsPel *pout, VipsPel *pin,
 }
 
 void
-reduceh_uchar_simd(VipsPel *pout, VipsPel *pin, int32_t bands,
-	int32_t n, int32_t width,
-	int16_t *restrict cs[VIPS_TRANSFORM_SCALE + 1],
-	double Xstart, double Xstep)
+reduceh_uchar_simd(VipsPel *pout, VipsPel *pin, int32_t n_point,
+	int32_t bands, int32_t width, int16_t *restrict c,
+	int32_t *restrict bounds)
 {
 	switch (bands) {
 	case 4:
 		return reduceh_uchar_simd_4bands(
-			pout, pin, n, width, cs, Xstart, Xstep);
+			pout, pin, n_point, width, c, bounds);
 	case 3:
 		return reduceh_uchar_simd_3bands(
-			pout, pin, n, width, cs, Xstart, Xstep);
+			pout, pin, n_point, width, c, bounds);
 	default:
 		g_assert_not_reached();
 	}

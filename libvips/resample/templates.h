@@ -317,7 +317,7 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
  * from the interpolator as well as from the table builder.
  */
 static void inline calculate_coefficients_triangle(double *c,
-	const double shrink, const double x)
+	const double shrink, const double x, int start, int n)
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
@@ -328,8 +328,8 @@ static void inline calculate_coefficients_triangle(double *c,
 	double sum;
 
 	sum = 0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
+	for (i = 0; i < n; i++) {
+		const double xp = (i + start - half) / shrink;
 
 		double l;
 
@@ -340,7 +340,10 @@ static void inline calculate_coefficients_triangle(double *c,
 		sum += l;
 	}
 
-	for (i = 0; i < n_points; i++)
+	for (; i < n_points; i++)
+		c[i] = 0.0;
+
+	for (i = 0; i < n; i++)
 		c[i] /= sum;
 }
 
@@ -354,7 +357,8 @@ static void inline calculate_coefficients_triangle(double *c,
  * B = 0,   C = 1/2 - Catmull-Rom spline
  */
 static void inline calculate_coefficients_cubic(double *c,
-	const double shrink, const double x, double B, double C)
+	const double shrink, const double x, double B, double C,
+	int start, int n)
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
@@ -365,8 +369,8 @@ static void inline calculate_coefficients_cubic(double *c,
 	double sum;
 
 	sum = 0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
+	for (i = 0; i < n; i++) {
+		const double xp = (i + start - half) / shrink;
 		const double axp = VIPS_FABS(xp);
 		const double axp2 = axp * axp;
 		const double axp3 = axp2 * axp;
@@ -391,7 +395,10 @@ static void inline calculate_coefficients_cubic(double *c,
 		sum += l;
 	}
 
-	for (i = 0; i < n_points; i++)
+	for (; i < n_points; i++)
+		c[i] = 0.0;
+
+	for (i = 0; i < n; i++)
 		c[i] /= sum;
 }
 
@@ -404,7 +411,7 @@ static void inline calculate_coefficients_cubic(double *c,
  * points for large decimations to avoid aliasing.
  */
 static void inline calculate_coefficients_lanczos(double *c,
-	const int a, const double shrink, const double x)
+	const int a, const double shrink, const double x, int start, int n)
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
@@ -412,13 +419,11 @@ static void inline calculate_coefficients_lanczos(double *c,
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum;
+	double l, sum;
 
 	sum = 0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
-
-		double l;
+	for (i = 0; i < n; i++) {
+		const double xp = (i + start - half) / shrink;
 
 		if (xp == 0.0)
 			l = 1.0;
@@ -426,16 +431,21 @@ static void inline calculate_coefficients_lanczos(double *c,
 			l = 0.0;
 		else if (xp > a)
 			l = 0.0;
-		else
-			l = (double) a * sin(VIPS_PI * xp) *
-				sin(VIPS_PI * xp / (double) a) /
-				(VIPS_PI * VIPS_PI * xp * xp);
+		else {
+			const double xpi = VIPS_PI * xp;
+			l = (double) a * sin(xpi) *
+				sin(xpi / (double) a) /
+				(xpi * xpi);
+		}
 
 		c[i] = l;
 		sum += l;
 	}
 
-	for (i = 0; i < n_points; i++)
+	for (; i < n_points; i++)
+		c[i] = 0.0;
+
+	for (i = 0; i < n; i++)
 		c[i] /= sum;
 }
 
