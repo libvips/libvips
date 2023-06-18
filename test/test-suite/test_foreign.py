@@ -1265,9 +1265,9 @@ class TestForeign:
             buf1 = f.read()
         with open(filename2, 'rb') as f:
             buf2 = f.read()
-        # the buffer sizes could be the same
-        assert len(buf2) <= len(buf1)
-        # so check whether the *.dzi file is Deflate-compressed
+        # compressed output should produce smaller file size
+        assert len(buf2) < len(buf1)
+        # check whether the *.dzi file is Deflate-compressed
         assert buf1.find(b'http://schemas.microsoft.com/deepzoom/2008') != -1
         assert buf2.find(b'http://schemas.microsoft.com/deepzoom/2008') == -1
 

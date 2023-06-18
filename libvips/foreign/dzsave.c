@@ -2251,6 +2251,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 			return( -1 );
 		}
 
+		/* Do not pad last block.
+		 */
+		if( archive_write_set_bytes_in_last_block( dz->archive, 1 ) ) {
+			archive_write_free( dz->archive );
+			return( -1 );
+		}
+
 		/*if( archive_write_add_filter( dz->archive,
 			ARCHIVE_FILTER_NONE ) != ARCHIVE_OK ) {
 			archive_write_free( dz->archive );
