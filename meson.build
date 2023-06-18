@@ -164,7 +164,7 @@ if zlib_dep.found()
     cfg_var.set('HAVE_ZLIB', '1')
 endif
 
-libarchive_dep = dependency('libarchive', version: '>=3.3.0', required: get_option('archive'))
+libarchive_dep = dependency('libarchive', version: '>=3.0.0', required: get_option('archive'))
 if libarchive_dep.found()
     libvips_deps += libarchive_dep
     cfg_var.set('HAVE_LIBARCHIVE', '1')

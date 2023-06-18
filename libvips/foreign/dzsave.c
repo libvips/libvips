@@ -2242,6 +2242,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		if( dz->compression == -1 )
 			dz->compression = 6; /* Z_DEFAULT_COMPRESSION */
 
+		/* Deflate compression requires libarchive >= v3.2.0.
+		 * https://github.com/libarchive/libarchive/pull/84
+		 */
+#if ARCHIVE_VERSION_NUMBER >= 3002000
 		/* Set deflate compression level.
 		 */
 		char compression_string[2] = { '0' + dz->compression, 0 };
@@ -2250,6 +2254,12 @@ vips_foreign_save_dz_build( VipsObject *object )
 			archive_write_free( dz->archive );
 			return( -1 );
 		}
+#else
+		if( dz->compression > 0 )
+			g_warning(
+				"%s: libarchive >= v3.2.0 required for Deflate compression",
+				class->nickname );
+#endif
 
 		/* Do not pad last block.
 		 */
@@ -2266,8 +2276,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 		/* Register target callback functions.
 		 */
-		if( archive_write_open2( dz->archive, dz->target, NULL,
-			zip_write_target_cb, zip_close_target_cb, NULL ) != ARCHIVE_OK ) {
+		if( archive_write_open( dz->archive, dz->target, NULL,
+			zip_write_target_cb, zip_close_target_cb ) != ARCHIVE_OK ) {
 			archive_write_free( dz->archive );
 			return( -1 );
 		}
