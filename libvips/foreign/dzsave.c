@@ -2268,12 +2268,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 			return( -1 );
 		}
 
-		/*if( archive_write_add_filter( dz->archive,
-			ARCHIVE_FILTER_NONE ) != ARCHIVE_OK ) {
-			archive_write_free( dz->archive );
-			return( -1 );
-		}*/
-
 		/* Register target callback functions.
 		 */
 		if( archive_write_open( dz->archive, dz->target, NULL,
