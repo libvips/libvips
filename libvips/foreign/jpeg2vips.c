@@ -239,6 +239,11 @@ source_init_source( j_decompress_ptr cinfo )
 	src->pub.bytes_in_buffer = 0;
 }
 
+static void
+source_init_source_mappable( j_decompress_ptr cinfo )
+{
+}
+
 /* Fill the input buffer --- called whenever buffer is emptied.
  */
 static boolean
@@ -274,6 +279,30 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 	return( TRUE );
 }
 
+static boolean
+source_fill_input_buffer_mappable( j_decompress_ptr cinfo )
+{
+	static const JOCTET eoi_buffer[4] = {
+		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+	};
+
+	Source *src = (Source *) cinfo->src;
+
+	if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
+		/* Knock the output out of cache.
+		 */
+		vips_foreign_load_invalidate( src->jpeg->out );
+		ERREXIT( cinfo, JERR_INPUT_EOF );
+	}
+	else
+		WARNMS( cinfo, JWRN_JPEG_EOF );
+
+	src->pub.next_input_byte = eoi_buffer;
+	src->pub.bytes_in_buffer = 2;
+
+	return( TRUE );
+}
+
 static void
 skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 {
@@ -289,6 +318,20 @@ skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 			 */
 		}
 
+		src->pub.next_input_byte += (size_t) num_bytes;
+		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+	}
+}
+
+static void
+skip_input_data_mappable( j_decompress_ptr cinfo, long num_bytes )
+{
+	Source *src = (Source *) cinfo->src;
+
+	if( num_bytes > (long) src->pub.bytes_in_buffer ) {
+		src->pub.next_input_byte += src->pub.bytes_in_buffer;
+		src->pub.bytes_in_buffer = 0;
+	} else {
 		src->pub.next_input_byte += (size_t) num_bytes;
 		src->pub.bytes_in_buffer -= (size_t) num_bytes;
 	}
@@ -314,12 +357,27 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		src = (Source *) cinfo->src;
 		src->jpeg = jpeg;
 		src->source = jpeg->source;
-		src->pub.init_source = source_init_source;
-		src->pub.fill_input_buffer = source_fill_input_buffer;
 		src->pub.resync_to_restart = jpeg_resync_to_restart; 
-		src->pub.skip_input_data = skip_input_data; 
-		src->pub.bytes_in_buffer = 0;
-		src->pub.next_input_byte = src->buf;
+
+		if( vips_source_is_mappable( jpeg->source ) ) {
+			size_t src_len;
+			const unsigned char *src_data = vips_source_map(
+				jpeg->source, &src_len );
+
+			src->pub.init_source = source_init_source_mappable;
+			src->pub.fill_input_buffer =
+				source_fill_input_buffer_mappable;
+			src->pub.skip_input_data = skip_input_data_mappable;
+			src->pub.bytes_in_buffer = src_len;
+			src->pub.next_input_byte = src_data;
+		}
+		else {
+			src->pub.init_source = source_init_source;
+			src->pub.fill_input_buffer = source_fill_input_buffer;
+			src->pub.skip_input_data = skip_input_data;
+			src->pub.bytes_in_buffer = 0;
+			src->pub.next_input_byte = src->buf;
+		}
 	}
 
 	return( 0 );
