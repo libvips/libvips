@@ -240,7 +240,9 @@ source_init_source( j_decompress_ptr cinfo )
 }
 
 static void
-source_init_source_mappable( j_decompress_ptr cinfo ) {}
+source_init_source_mappable( j_decompress_ptr cinfo )
+{
+}
 
 /* Fill the input buffer --- called whenever buffer is emptied.
  */
@@ -278,7 +280,8 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 }
 
 static boolean
-source_fill_input_buffer_mappable( j_decompress_ptr cinfo ) {
+source_fill_input_buffer_mappable( j_decompress_ptr cinfo )
+{
 	static const JOCTET eoi_buffer[4] = {
 		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
 	};
@@ -299,7 +302,6 @@ source_fill_input_buffer_mappable( j_decompress_ptr cinfo ) {
 
 	return( TRUE );
 }
-
 
 static void
 skip_input_data( j_decompress_ptr cinfo, long num_bytes )
@@ -368,7 +370,8 @@ readjpeg_open_input( ReadJpeg *jpeg )
 			src->pub.skip_input_data = skip_input_data_mappable;
 			src->pub.bytes_in_buffer = src_len;
 			src->pub.next_input_byte = src_data;
-		} else {
+		}
+		else {
 			src->pub.init_source = source_init_source;
 			src->pub.fill_input_buffer = source_fill_input_buffer;
 			src->pub.skip_input_data = skip_input_data;
