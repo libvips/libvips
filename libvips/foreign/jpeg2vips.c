@@ -320,7 +320,8 @@ skip_input_data_mappable( j_decompress_ptr cinfo, long num_bytes )
 	if( num_bytes > (long) src->pub.bytes_in_buffer ) {
 		src->pub.next_input_byte += src->pub.bytes_in_buffer;
 		src->pub.bytes_in_buffer = 0;
-	} else {
+	}
+	else {
 		src->pub.next_input_byte += (size_t) num_bytes;
 		src->pub.bytes_in_buffer -= (size_t) num_bytes;
 	}
