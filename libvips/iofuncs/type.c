@@ -128,28 +128,9 @@ vips_thing_free( VipsThing *thing )
 	g_free( thing );
 }
 
-/*
- * glib-2.26+ only 
- 
 G_DEFINE_BOXED_TYPE( VipsThing, vips_thing,
-	(GBoxedCopyFunc) vips_thing_copy, 
-	(GBoxedFreeFunc) vips_thing_free );
-
- */
-
-GType
-vips_thing_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsThing",
-			(GBoxedCopyFunc) vips_thing_copy, 
-			(GBoxedFreeFunc) vips_thing_free );
-	}
-
-	return( type );
-}
+	(GBoxedCopyFunc) vips_thing_copy,
+	(GBoxedFreeFunc) vips_thing_free )
 
 static GSList *vips_area_all = NULL;
 
@@ -431,21 +412,14 @@ transform_area_g_string( const GValue *src_value, GValue *dest_value )
 	g_value_set_string( dest_value, buf );
 }
 
-GType
-vips_area_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsArea",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_area_g_string );
-	}
-
-	return( type );
-}
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsArea, vips_area,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_STRING,
+								   transform_area_g_string );
+							   )
 
 /* Transform funcs for builtin types to SAVE_STRING.
  */
@@ -507,19 +481,39 @@ transform_save_string_float( const GValue *src_value, GValue *dest_value )
  * to save to XML and define transform functions to go from our meta types to
  * this string type.
  */
-GType
-vips_save_string_get_type( void )
-{
-	static GType type = 0;
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsSaveString, vips_save_string,
+							   (GBoxedCopyFunc) g_strdup,
+							   (GBoxedFreeFunc) g_free,
+							   g_value_register_transform_func(
+								   G_TYPE_INT,
+								   g_define_type_id,
+								   transform_int_save_string );
 
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsSaveString",
-			(GBoxedCopyFunc) g_strdup, 
-			(GBoxedFreeFunc) g_free );
-	}
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_INT,
+								   transform_save_string_int );
 
-	return( type );
-}
+							   g_value_register_transform_func(
+							 	   G_TYPE_DOUBLE,
+								   g_define_type_id,
+								   transform_double_save_string );
+
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_DOUBLE,
+								   transform_save_string_double );
+
+							   g_value_register_transform_func(
+								   G_TYPE_FLOAT,
+								   g_define_type_id,
+								   transform_float_save_string );
+
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_FLOAT,
+								   transform_save_string_float );
+							   )
 
 /* Transform a refstring to a G_TYPE_STRING and back.
  */
@@ -603,27 +597,29 @@ vips_ref_string_get( VipsRefString *refstr, size_t *length )
 	return( vips_area_get_data( area, length, NULL, NULL, NULL ) ); 
 }
 
-GType
-vips_ref_string_get_type( void )
-{
-	static GType type = 0;
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsRefString, vips_ref_string,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_STRING,
+								   transform_ref_string_g_string );
 
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsRefString",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_ref_string_g_string );
-		g_value_register_transform_func( G_TYPE_STRING, type,
-			transform_g_string_ref_string );
-		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
-			transform_ref_string_save_string );
-		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
-			transform_save_string_ref_string );
-	}
+							   g_value_register_transform_func(
+								   G_TYPE_STRING,
+								   g_define_type_id,
+								   transform_g_string_ref_string );
 
-	return( type );
-}
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   VIPS_TYPE_SAVE_STRING,
+							 	   transform_ref_string_save_string );
+
+							   g_value_register_transform_func(
+								   VIPS_TYPE_SAVE_STRING,
+								   g_define_type_id,
+								   transform_save_string_ref_string );
+							   )
 
 /**
  * vips_blob_new: 
@@ -783,25 +779,24 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 		vips_value_set_blob( dest_value, NULL, NULL, 0 ); 
 }
 
-GType
-vips_blob_get_type( void )
-{
-	static GType type = 0;
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsBlob, vips_blob,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_STRING,
+								   transform_blob_g_string );
 
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsBlob",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_blob_g_string );
-		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
-			transform_blob_save_string );
-		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
-			transform_save_string_blob );
-	}
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   VIPS_TYPE_SAVE_STRING,
+								   transform_blob_save_string );
 
-	return( type );
-}
+							   g_value_register_transform_func(
+								   VIPS_TYPE_SAVE_STRING,
+								   g_define_type_id,
+								   transform_save_string_blob );
+							   )
 
 /**
  * vips_array_int_new:
@@ -1015,33 +1010,39 @@ transform_array_double_array_int( const GValue *src_value, GValue *dest_value )
 		array_int[i] = array_double[i];
 }
 
-GType
-vips_array_int_get_type( void )
-{
-	static GType type = 0;
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsArrayInt, vips_array_int,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_STRING,
+								   transform_array_int_g_string );
 
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsArrayInt",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_array_int_g_string );
-		g_value_register_transform_func( G_TYPE_STRING, type,
-			transform_g_string_array_int );
-		g_value_register_transform_func( G_TYPE_INT, type,
-			transform_int_array_int );
-		g_value_register_transform_func( G_TYPE_DOUBLE, type,
-			transform_double_array_int );
-		g_value_register_transform_func( VIPS_TYPE_ARRAY_DOUBLE, type,
-			transform_array_double_array_int );
-		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
-			transform_array_int_save_string );
-		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
-			transform_save_string_array_int );
-	}
+							   g_value_register_transform_func(
+								   G_TYPE_STRING,
+								   g_define_type_id,
+								   transform_g_string_array_int );
 
-	return( type );
-}
+							   g_value_register_transform_func(
+								   G_TYPE_INT,
+								   g_define_type_id,
+								   transform_int_array_int );
+
+							   g_value_register_transform_func(
+								   G_TYPE_DOUBLE,
+								   g_define_type_id,
+								   transform_double_array_int );
+
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   VIPS_TYPE_SAVE_STRING,
+								   transform_array_int_save_string );
+
+							   g_value_register_transform_func(
+							 	   VIPS_TYPE_SAVE_STRING,
+								   g_define_type_id,
+								   transform_save_string_array_int );
+							   )
 
 /**
  * vips_array_double_new:
@@ -1229,31 +1230,34 @@ transform_double_enum( const GValue *src_value, GValue *dest_value )
 	g_value_set_enum( dest_value, g_value_get_double( src_value ) ); 
 }
 
-GType
-vips_array_double_get_type( void )
-{
-	static GType type = 0;
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsArrayDouble, vips_array_double,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   g_define_type_id,
+								   G_TYPE_STRING,
+								   transform_array_double_g_string );
 
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsArrayDouble",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( type, G_TYPE_STRING,
-			transform_array_double_g_string );
-		g_value_register_transform_func( G_TYPE_STRING, type,
-			transform_g_string_array_double );
-		g_value_register_transform_func( G_TYPE_DOUBLE, type,
-			transform_double_array_double );
-		g_value_register_transform_func( G_TYPE_INT, type,
-			transform_int_array_double );
-		g_value_register_transform_func( VIPS_TYPE_ARRAY_INT, type,
-			transform_array_int_array_double );
-		g_value_register_transform_func( G_TYPE_DOUBLE, G_TYPE_ENUM,
-			transform_double_enum );
-	}
+							   g_value_register_transform_func(
+								   G_TYPE_STRING,
+								   g_define_type_id,
+								   transform_g_string_array_double );
 
-	return( type );
-}
+							   g_value_register_transform_func(
+								   G_TYPE_DOUBLE,
+								   g_define_type_id,
+								   transform_double_array_double );
+
+							   g_value_register_transform_func(
+								   G_TYPE_INT,
+								   g_define_type_id,
+								   transform_int_array_double );
+
+							   g_value_register_transform_func(
+								   G_TYPE_DOUBLE,
+								   G_TYPE_ENUM,
+								   transform_double_enum );
+							   )
 
 /**
  * vips_array_image_new: (constructor)
@@ -1484,21 +1488,14 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	vips_area_unref( VIPS_AREA( array_image ) );
 }
 
-GType
-vips_array_image_get_type( void )
-{
-	static GType type = 0;
-
-	if( !type ) {
-		type = g_boxed_type_register_static( "VipsArrayImage",
-			(GBoxedCopyFunc) vips_area_copy, 
-			(GBoxedFreeFunc) vips_area_unref );
-		g_value_register_transform_func( G_TYPE_STRING, type,
-			transform_g_string_array_image );
-	}
-
-	return( type );
-}
+G_DEFINE_BOXED_TYPE_WITH_CODE( VipsArrayImage, vips_array_image,
+							   (GBoxedCopyFunc) vips_area_copy,
+							   (GBoxedFreeFunc) vips_area_unref,
+							   g_value_register_transform_func(
+								   G_TYPE_STRING,
+								   g_define_type_id,
+								   transform_g_string_array_image );
+							   )
 
 /**
  * vips_value_set_area:
@@ -1945,20 +1942,12 @@ vips__meta_init_types( void )
 	(void) vips_array_double_get_type();
 	(void) vips_array_image_get_type();
 
-	/* Register transform functions to go from built-in saveable types to 
-	 * a save string. Transform functions for our own types are set 
-	 * during type creation. 
+	/* Register transform functions to convert between an array of
+	 * integers and doubles. This is set here to prevent a recursive 
+	 * call chain.
 	 */
-	g_value_register_transform_func( G_TYPE_INT, VIPS_TYPE_SAVE_STRING,
-		transform_int_save_string );
-	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_INT,
-		transform_save_string_int );
-	g_value_register_transform_func( G_TYPE_DOUBLE, VIPS_TYPE_SAVE_STRING,
-		transform_double_save_string );
-	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_DOUBLE,
-		transform_save_string_double );
-	g_value_register_transform_func( G_TYPE_FLOAT, VIPS_TYPE_SAVE_STRING,
-		transform_float_save_string );
-	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_FLOAT,
-		transform_save_string_float );
+	g_value_register_transform_func( VIPS_TYPE_ARRAY_INT,
+		VIPS_TYPE_ARRAY_DOUBLE, transform_array_int_array_double );
+	g_value_register_transform_func( VIPS_TYPE_ARRAY_DOUBLE,
+		VIPS_TYPE_ARRAY_INT, transform_array_double_array_int );
 }

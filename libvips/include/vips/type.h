@@ -146,6 +146,10 @@ GType vips_area_get_type(void);
 VIPS_API
 GType vips_save_string_get_type(void);
 
+typedef struct _VipsSaveString {
+	char *s;
+} VipsSaveString;
+
 /**
  * VIPS_TYPE_REF_STRING:
  *
