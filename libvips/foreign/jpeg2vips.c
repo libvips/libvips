@@ -230,18 +230,8 @@ typedef struct {
 static void
 source_init_source( j_decompress_ptr cinfo )
 {
-	Source *src = (Source *) cinfo->src;
-
-	/* Start off empty ... libjpeg will call fill_input_buffer to get the
-	 * first bytes.
+	/* No work necessary here.
 	 */
-	src->pub.next_input_byte = src->buf;
-	src->pub.bytes_in_buffer = 0;
-}
-
-static void
-source_init_source_mappable( j_decompress_ptr cinfo )
-{
 }
 
 /* Fill the input buffer --- called whenever buffer is emptied.
@@ -249,32 +239,30 @@ source_init_source_mappable( j_decompress_ptr cinfo )
 static boolean
 source_fill_input_buffer( j_decompress_ptr cinfo )
 {
-	static const JOCTET eoi_buffer[4] = {
-		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
-	};
-
 	Source *src = (Source *) cinfo->src;
 
-	gint64 bytes_read;
+	gint64 n_bytes;
 
-	if( (bytes_read = vips_source_read( src->source, 
-		src->buf, SOURCE_BUFFER_SIZE )) > 0 ) {
-		src->pub.next_input_byte = src->buf;
-		src->pub.bytes_in_buffer = bytes_read;
-	}
-	else {
+	if( (n_bytes = vips_source_read( src->source,
+		src->buf, SOURCE_BUFFER_SIZE )) <= 0 ) {
 		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
-                        /* Knock the output out of cache.
-                         */
-                        vips_foreign_load_invalidate( src->jpeg->out );
+			/* Knock the output out of cache.
+			 */
+			vips_foreign_load_invalidate( src->jpeg->out );
 			ERREXIT( cinfo, JERR_INPUT_EOF );
-                }
+		}
 		else
 			WARNMS( cinfo, JWRN_JPEG_EOF );
 
-		src->pub.next_input_byte = eoi_buffer;
-		src->pub.bytes_in_buffer = 2;
+		/* Insert a fake EOI marker.
+		 */
+		src->buf[0] = (JOCTET) 0xFF;
+		src->buf[1] = (JOCTET) JPEG_EOI;
+		n_bytes = 2;
 	}
+
+	src->pub.next_input_byte = src->buf;
+	src->pub.bytes_in_buffer = n_bytes;
 
 	return( TRUE );
 }
@@ -282,10 +270,6 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 static boolean
 source_fill_input_buffer_mappable( j_decompress_ptr cinfo )
 {
-	static const JOCTET eoi_buffer[4] = {
-		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
-	};
-
 	Source *src = (Source *) cinfo->src;
 
 	if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
@@ -297,7 +281,12 @@ source_fill_input_buffer_mappable( j_decompress_ptr cinfo )
 	else
 		WARNMS( cinfo, JWRN_JPEG_EOF );
 
-	src->pub.next_input_byte = eoi_buffer;
+	/* Insert a fake EOI marker.
+	 */
+	src->buf[0] = (JOCTET) 0xFF;
+	src->buf[1] = (JOCTET) JPEG_EOI;
+
+	src->pub.next_input_byte = src->buf;
 	src->pub.bytes_in_buffer = 2;
 
 	return( TRUE );
@@ -309,9 +298,9 @@ skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 	Source *src = (Source *) cinfo->src;
 
 	if( num_bytes > 0 ) {
-		while (num_bytes > (long) src->pub.bytes_in_buffer) {
+		while( num_bytes > (long) src->pub.bytes_in_buffer ) {
 			num_bytes -= (long) src->pub.bytes_in_buffer;
-			(void) (*src->pub.fill_input_buffer) (cinfo);
+			(void) (*src->pub.fill_input_buffer)( cinfo );
 
 			/* note we assume that fill_input_buffer will never 
 			 * return FALSE, so suspension need not be handled.
@@ -331,7 +320,8 @@ skip_input_data_mappable( j_decompress_ptr cinfo, long num_bytes )
 	if( num_bytes > (long) src->pub.bytes_in_buffer ) {
 		src->pub.next_input_byte += src->pub.bytes_in_buffer;
 		src->pub.bytes_in_buffer = 0;
-	} else {
+	}
+	else {
 		src->pub.next_input_byte += (size_t) num_bytes;
 		src->pub.bytes_in_buffer -= (size_t) num_bytes;
 	}
@@ -357,6 +347,10 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		src = (Source *) cinfo->src;
 		src->jpeg = jpeg;
 		src->source = jpeg->source;
+		src->pub.init_source = source_init_source;
+
+		/* Use default method.
+		 */
 		src->pub.resync_to_restart = jpeg_resync_to_restart; 
 
 		if( vips_source_is_mappable( jpeg->source ) ) {
@@ -364,7 +358,6 @@ readjpeg_open_input( ReadJpeg *jpeg )
 			const unsigned char *src_data = vips_source_map(
 				jpeg->source, &src_len );
 
-			src->pub.init_source = source_init_source_mappable;
 			src->pub.fill_input_buffer =
 				source_fill_input_buffer_mappable;
 			src->pub.skip_input_data = skip_input_data_mappable;
@@ -372,11 +365,16 @@ readjpeg_open_input( ReadJpeg *jpeg )
 			src->pub.next_input_byte = src_data;
 		}
 		else {
-			src->pub.init_source = source_init_source;
 			src->pub.fill_input_buffer = source_fill_input_buffer;
 			src->pub.skip_input_data = skip_input_data;
+
+			/* Forces fill_input_buffer on first read.
+			 */
 			src->pub.bytes_in_buffer = 0;
-			src->pub.next_input_byte = src->buf;
+
+			/* Until buffer loaded.
+			 */
+			src->pub.next_input_byte = NULL;
 		}
 	}
 
