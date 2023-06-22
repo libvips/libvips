@@ -1261,7 +1261,15 @@ class TestForeign:
         filename2 = temp_filename(self.tempdir, '.zip')
         self.colour.dzsave(filename2, compression=-1)
         assert os.path.exists(filename2)
-        assert os.path.getsize(filename2) < os.path.getsize(filename)
+        with open(filename, 'rb') as f:
+            buf1 = f.read()
+        with open(filename2, 'rb') as f:
+            buf2 = f.read()
+        # compressed output should produce smaller file size
+        assert len(buf2) < len(buf1)
+        # check whether the *.dzi file is Deflate-compressed
+        assert buf1.find(b'http://schemas.microsoft.com/deepzoom/2008') != -1
+        assert buf2.find(b'http://schemas.microsoft.com/deepzoom/2008') == -1
 
         # test suffix
         filename = temp_filename(self.tempdir, '')
@@ -1296,8 +1304,8 @@ class TestForeign:
         buf2 = self.colour.dzsave_buffer(basename=root)
         assert len(buf1) == len(buf2)
 
-        # we can't test the bytes are exactly equal -- the timestamps will
-        # be different
+        # we can't test the bytes are exactly equal -- the timestamp in
+        # vips-properties.xml will be different
 
         # added in 8.7
         buf = self.colour.dzsave_buffer(region_shrink="mean")

@@ -94,16 +94,6 @@
 #include <limits.h>
 #include <string.h>
 
-/* Disable deprecation warnings from gsf. There are loads, and still not
- * patched as of 12/2020.
- */
-#ifdef HAVE_GSF
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <gsf/gsf.h>
-#pragma GCC diagnostic pop
-#endif /*HAVE_GSF*/
-
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/thread.h>
@@ -639,12 +629,6 @@ vips_init( const char *argv0 )
 	 */
 	vips_vector_init();
 
-#ifdef HAVE_GSF
-	/* Use this for structured file write.
-	 */
-	gsf_init();
-#endif /*HAVE_GSF*/
-
 #ifdef DEBUG_LEAK
 	vips__image_pixels_quark = 
 		g_quark_from_static_string( "vips-image-pixels" ); 
@@ -756,10 +740,6 @@ vips_shutdown( void )
 	vips_thread_shutdown();
 	vips__thread_profile_stop();
 	vips__threadpool_shutdown();
-
-#ifdef HAVE_GSF
-	gsf_shutdown(); 
-#endif /*HAVE_GSF*/
 
 	/* Don't free vips__global_lock -- we want to be able to use
 	 * vips_error_buffer() after vips_shutdown(), since vips_leak() can

@@ -196,7 +196,7 @@ make a pyramid from that.
 # Troubleshooting
 
 If you are building vips from source you do need to check the summary at
-the end of configure carefully. You must have the `libgsf-1-dev` package
+the end of configure carefully. You must have the `libarchive-dev` package
 for `vips_dzsave()` to work.
 
 

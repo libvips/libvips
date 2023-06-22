@@ -3058,11 +3058,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_cgif_target_get_type();
 #endif /*HAVE_CGIF*/
 
-#ifdef HAVE_GSF
+#ifdef HAVE_LIBARCHIVE
 	vips_foreign_save_dz_file_get_type(); 
 	vips_foreign_save_dz_buffer_get_type(); 
 	vips_foreign_save_dz_target_get_type(); 
-#endif /*HAVE_GSF*/
+#endif /*HAVE_LIBARCHIVE*/
 
 #ifdef HAVE_PNG
 	vips_foreign_load_png_file_get_type(); 

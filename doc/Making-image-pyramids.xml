@@ -176,7 +176,7 @@ $ vips dzsave CMU-1.mrxs[level=1] x
 <refsect3 xml:id="troubleshooting">
   <title>Troubleshooting</title>
   <para>
-    If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libgsf-1-dev</literal> package for <literal>vips_dzsave()</literal> to work.
+    If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libarchive-dev</literal> package for <literal>vips_dzsave()</literal> to work.
   </para>
 </refsect3>
 
