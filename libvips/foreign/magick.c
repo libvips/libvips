@@ -75,6 +75,17 @@
 static const char *
 magick_sniff( const unsigned char *bytes, size_t length )
 {
+	if( length >= 12 &&
+		bytes[4] == 'f' &&
+		bytes[5] == 't' &&
+		bytes[6] == 'y' &&
+		bytes[7] == 'p' &&
+		bytes[8] == 'c' &&
+		bytes[9] == 'r' &&
+		bytes[10] == 'x' &&
+		bytes[11] == ' ' )
+		return("CR3");
+
 	if( length >= 4 &&
 		bytes[0] == 0 &&
 		bytes[1] == 0 &&
