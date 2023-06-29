@@ -284,10 +284,7 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 	 *
 	 * gcc10.3 (I think?) issues a false-positive warning about this.
 	 */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
 	strncpy( buf->base + buf->i, str, cpy );
-#pragma GCC diagnostic pop
 	buf->i += cpy;
 
 	if( buf->i >= buf->mx - 4 ) {

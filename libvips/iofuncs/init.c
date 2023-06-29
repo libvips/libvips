@@ -270,31 +270,26 @@ vips_load_plugins( const char *fmt, ... )
 	if( !(dir = g_dir_open( dir_name, 0, NULL )) )
 		return;
 
-        while( (name = g_dir_read_name( dir )) )
-                if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
-#if ENABLE_DEPRECATED
-				|| vips_ispostfix( name, ".plg" ) 
-#endif
-			) { 
-			char path[VIPS_PATH_MAX];
-			GModule *module;
+        while( (name = g_dir_read_name( dir )) ) {
+		char path[VIPS_PATH_MAX];
+		GModule *module;
 
-			vips_snprintf( path, VIPS_PATH_MAX - 1, 
-				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
+		vips_snprintf( path, VIPS_PATH_MAX - 1, 
+			"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
 
-			g_info( "loading \"%s\"", path );
+		g_info( "loading \"%s\"", path );
 
-			module = g_module_open( path, G_MODULE_BIND_LAZY );
-			if( module )
-				/* Modules will almost certainly create new 
-				 * types, so they can't be unloaded.
-				 */
-				g_module_make_resident( module );
-			else
-				g_warning( _( "unable to load \"%s\" -- %s" ), 
-					path, g_module_error() ); 
+		module = g_module_open( path, G_MODULE_BIND_LAZY );
+		if( module )
+			/* Modules will almost certainly create new 
+			 * types, so they can't be unloaded.
+			 */
+			g_module_make_resident( module );
+		else
+			g_warning( _( "unable to load \"%s\" -- %s" ), 
+				path, g_module_error() ); 
+	}
 
-                }
         g_dir_close( dir );
 }
 #endif /*ENABLE_MODULES*/

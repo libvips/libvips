@@ -573,8 +573,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
         /* Something like "BMP".
          */
-        if( magick7->image->magick &&
-                strlen( magick7->image->magick ) > 0 )
+        if( strlen( magick7->image->magick ) > 0 )
                 vips_image_set_string( out, "magick-format", 
                         magick7->image->magick );
 

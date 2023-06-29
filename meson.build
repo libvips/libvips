@@ -4,6 +4,8 @@ project('vips', 'c', 'cpp',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu99',
+	# we use some C++11 features 
+	'cpp_std=c++11',
         # turn off asserts etc. in release mode
         'b_ndebug=if-release'
     ]
