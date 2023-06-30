@@ -74,9 +74,7 @@
 
 /* Replacement for im_slice */
 int
-im_slice( in, out, t1, t2 )
-IMAGE *in, *out;
-double t1, t2;
+im_slice( IMAGE *in, IMAGE *out, double t1, double t2 )
 {	
 	int x, y, z;
 	PEL *bu;		/* Buffer we write to */

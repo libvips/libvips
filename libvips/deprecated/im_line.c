@@ -54,14 +54,11 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-int im_line(image, x1, y1, x2, y2, pelval)
-IMAGE *image;
-int   x1, x2, y1, y2, pelval;
+int im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)
 {
-
-double x, y, dx, dy, m;
-long offset;
-double signx, signy;
+	double x, y, dx, dy, m;
+	long offset;
+	double signx, signy;
 
 	if( im_rwcheck( image ) )
 		return( -1 );

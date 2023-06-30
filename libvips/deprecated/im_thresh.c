@@ -68,9 +68,7 @@
 
 /* Replacement for im_thresh */
 int
-im_thresh( in, out, threshold )
-IMAGE *in, *out;
-double threshold;
+im_thresh( IMAGE *in, IMAGE *out, double threshold )
 {	
 	int x, y;
 	PEL *bu;		/* Buffer we write to */
