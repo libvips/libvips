@@ -67,10 +67,14 @@
  * |0x02 | Any of (0, 1, 2, 3, 9, 10, 11), Image type        |
  * -----------------------------------------------------------
  *
+ * However, this would catch ISOBMFF formats, so we must also check for the
+ * 'ftyp' signature at offset 4.
+ *
  * References:
  * * https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
  * * http://www.paulbourke.net/dataformats/tga/
  * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
+ * * https://en.wikipedia.org/wiki/ISO_base_media_file_format#Technical_details
  */
 static const char *
 magick_sniff(const unsigned char *bytes, size_t length)
@@ -99,7 +103,8 @@ magick_sniff(const unsigned char *bytes, size_t length)
 			bytes[2] == 3 ||
 			bytes[2] == 9 ||
 			bytes[2] == 10 ||
-			bytes[2] == 11))
+			bytes[2] == 11) &&
+		memcmp(bytes + 4, "ftyp", 4) != 0)
 		return "TGA";
 
 	return NULL;
