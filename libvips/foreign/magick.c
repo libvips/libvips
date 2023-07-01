@@ -71,6 +71,7 @@
  * * https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
  * * http://www.paulbourke.net/dataformats/tga/
  * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
+ * * https://github.com/lclevy/canon_cr3
  */
 static const char *
 magick_sniff( const unsigned char *bytes, size_t length )
@@ -84,7 +85,7 @@ magick_sniff( const unsigned char *bytes, size_t length )
 		bytes[9] == 'r' &&
 		bytes[10] == 'x' &&
 		bytes[11] == ' ' )
-		return("CR3");
+		return( "CR3" );
 
 	if( length >= 4 &&
 		bytes[0] == 0 &&
