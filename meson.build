@@ -437,6 +437,13 @@ libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('high
 if libhwy_dep.found()
     libvips_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', '1')
+    # Always disable SSSE3 since it is rare to have SSSE3 but not SSE4
+    disabled_targets = ['HWY_SSSE3']
+    # Optionally, build without AVX512 support (helps to reduce binary size at the cost of performance)
+    #disabled_targets += ['HWY_AVX3']
+    #disabled_targets += ['HWY_AVX3_ZEN4']
+    #disabled_targets += ['HWY_AVX3_SPR']
+    add_project_arguments('-DHWY_DISABLED_TARGETS=@0@'.format('|'.join(disabled_targets)), language: ['cpp'])
 endif
 
 # only if highway not found
