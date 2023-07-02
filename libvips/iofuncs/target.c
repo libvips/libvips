@@ -601,7 +601,7 @@ vips_target_seek( VipsTarget *target, off_t position, int whence )
  * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times. 
  *
- * After a target has been finished, further writes will do nothing.
+ * After a target has been ended, further writes will do nothing.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -667,6 +667,9 @@ vips_target_finish( VipsTarget *target )
  * The data is NOT automatically null-terminated. vips_target_putc() a '\0' 
  * before calling this to get a null-terminated string.
  *
+ * This won't work after the tyarget has been ended -- read the blob in that
+ * case.
+ *
  * Returns: (array length=length) (element-type guint8) (transfer full): the 
  * data
  */
@@ -679,7 +682,8 @@ vips_target_steal( VipsTarget *target, size_t *length )
 
 	if( !target->memory_buffer ||
 		target->ended ) {
-		if( length )
+		if( target->memory_buffer &&
+			length )
 			*length = target->memory_buffer->len;
 
 		return( NULL );

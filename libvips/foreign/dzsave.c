@@ -181,6 +181,8 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_LIBARCHIVE
 #include <archive.h>
 #include <archive_entry.h>
@@ -283,6 +285,12 @@ struct _VipsForeignSaveDz {
 	int skip_blanks;
 	gboolean no_strip;
 	char *id;
+
+	/* In direct save mode, we write regions of pixels to the output and
+	 * avoid creating a pipeline for each tile. This must be disabled if
+	 * --suffix has been used.
+	 */
+	gboolean direct;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -438,7 +446,6 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	vips__worker_lock( vips_libarchive_mutex );
 
 	if( !(entry = archive_entry_new()) ) {
-		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
@@ -449,7 +456,6 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 
 	if( archive_write_header( dz->archive, entry ) != ARCHIVE_OK ) {
 		archive_entry_free( entry );
-		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
@@ -457,12 +463,10 @@ vips_mkfile_zip( VipsForeignSaveDz *dz, const char *filename,
 	archive_entry_free( entry );
 
 	if( archive_write_data( dz->archive, buf, len ) != len ) {
-		g_free( buf );
 		g_mutex_unlock( vips_libarchive_mutex );
 		return( -1 );
 	}
 
-	g_free( buf );
 	g_mutex_unlock( vips_libarchive_mutex );
 
 	return( 0 );
@@ -474,18 +478,15 @@ vips_mkfile_file( const char *filename, void *buf, size_t len )
 	FILE *f;
 
 	if( !(f = vips__file_open_write( filename, TRUE )) ) {
-		g_free( buf );
 		return( -1 );
 	}
 
 	if( fwrite( buf, sizeof( char ), len, f ) != len ) {
 		fclose( f );
-		g_free( buf );
 		return( -1 );
 	}
 
 	fclose( f );
-	g_free( buf );
 
 	return( 0 );
 }
@@ -530,10 +531,12 @@ write_image( VipsForeignSaveDz *dz,
 		}
 		VIPS_UNREF( t );
 
-		/* vips_mkfile_zip() takes the ownership of buf.
-		 */
-		if( vips_mkfile_zip( dz, filename, buf, len ) )
+		if( vips_mkfile_zip( dz, filename, buf, len ) ) {
+			g_free( buf );
 			return( -1 );
+		}
+
+		g_free( buf );
 	}
 	else {
 		if( vips_image_write_to_file( t, filename,
@@ -764,10 +767,14 @@ write_dzi( VipsForeignSaveDz *dz )
 	vips_dbuf_writef( &dbuf, "  />\n" );
 	vips_dbuf_writef( &dbuf, "</Image>\n" );
 
-	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
-		vips_mkfile( dz, filename, buf, len ) ) {
-		g_free( filename );
-		return( -1 );
+	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ) {
+		if( vips_mkfile( dz, filename, buf, len ) ) {
+			g_free( buf );
+			g_free( filename );
+			return( -1 );
+		}
+
+		g_free( buf );
 	}
 
 	g_free( filename );
@@ -797,10 +804,14 @@ write_properties( VipsForeignSaveDz *dz )
 		dz->tile_count,
 		dz->tile_size );
 
-	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
-		vips_mkfile( dz, filename, buf, len ) ) {
-		g_free( filename );
-		return( -1 );
+	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ) {
+		if( vips_mkfile( dz, filename, buf, len ) ) {
+			g_free( buf );
+			g_free( filename );
+			return( -1 );
+		}
+
+		g_free( buf );
 	}
 
 	g_free( filename );
@@ -978,10 +989,14 @@ write_json( VipsForeignSaveDz *dz )
 	vips_dbuf_writef( &dbuf, 
 		"}\n" );
 
-	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ||
-		vips_mkfile( dz, filename, buf, len ) ) {
-		g_free( filename );
-		return( -1 );
+	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
+		if( vips_mkfile( dz, filename, buf, len ) ) {
+			g_free( filename );
+			g_free( buf );
+			return( -1 );
+		}
+
+		g_free( buf );
 	}
 
 	g_free( filename );
@@ -1015,14 +1030,14 @@ write_vips_meta( VipsForeignSaveDz *dz )
 		return( -1 );
 	}
 
-	/* vips_mkfile() takes the ownership of dump.
-	 */
 	if( vips_mkfile( dz, filename, dump, strlen( dump ) ) ) {
 		g_free( filename );
+		g_free( dump );
 		return( -1 );
 	}
 
 	g_free( filename );
+	g_free( dump );
 
 	return( 0 );
 }
@@ -1136,14 +1151,14 @@ write_scan_properties( VipsForeignSaveDz *dz )
 		return( -1 );
 	}
 
-	/* vips_mkfile() takes the ownership of dump.
-	 */
 	if( vips_mkfile( dz, filename, dump, len ) ) {
 		g_free( filename );
+		g_free( dump );
 		return( -1 );
 	}
 
 	g_free( filename );
+	g_free( dump );
 
 	return( 0 );
 }
@@ -1521,6 +1536,48 @@ tile_equal( VipsImage *image, int threshold, VipsPel * restrict ink )
 }
 
 static int
+write_image_direct( VipsForeignSaveDz *dz,
+	VipsRegion *region, const char *filename, const char *format )
+{
+	VipsTarget *target;
+	if( !(target = vips_target_new_to_memory()) )
+		return( -1 );
+
+	if( vips__jpeg_region_write_target( region, target,
+		75, NULL, 
+		FALSE, FALSE,
+		!dz->no_strip, FALSE,
+		FALSE, FALSE, 
+		0, 0, 0 ) ) {
+		g_object_unref( target );
+		return( -1 );
+	}
+
+	VipsBlob *blob;
+	g_object_get( target, "blob", &blob, NULL );
+
+	g_object_unref( target );
+
+	const void *buffer;
+	size_t length;
+	buffer = vips_blob_get( blob, &length );
+
+	if( iszip( dz->container ) ) {
+		if( vips_mkfile_zip( dz, filename, (void *) buffer, length ) ) {
+			vips_area_unref( VIPS_AREA( blob ) );
+			return( -1 );
+		}
+	}
+	else {
+		// write buf to filename
+	}
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( 0 );
+}
+
+static int
 strip_work( VipsThreadState *state, void *a )
 {
 	Strip *strip = (Strip *) a;
@@ -1564,6 +1621,40 @@ strip_work( VipsThreadState *state, void *a )
 	}
 
 	g_assert( vips_object_sanity( VIPS_OBJECT( strip->image ) ) );
+
+	/* Direct mode ... make a region on the strip, and write that.
+	 */
+	if( dz->direct ) {
+		out = tile_name( layer, 
+			state->x / dz->tile_step, state->y / dz->tile_step );
+		/* g_build_filename() can return NULL when it exceeds the 
+		 * path limits.
+		 */
+		if( out == NULL )
+			return( -1 );
+
+		VipsRegion *region;
+		if( !(region = vips_region_new( strip->image )) )
+			return( -1 );
+		VipsRect tile = {
+			state->pos.left, 
+			0, 
+			state->pos.width, 
+			state->pos.height
+		};
+		if( vips_region_image( region, &tile ) )
+			return( -1 );
+
+		if( write_image_direct( dz, region, out, dz->suffix ) ) {
+			g_free( out );
+			g_object_unref( region );
+			return( -1 );
+		}
+
+		g_object_unref( region );
+
+		return( 0 );
+	}
 
 	/* Extract relative to the strip top-left corner.
 	 */
@@ -1979,6 +2070,18 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	VipsRect real_pixels; 
 	char *p;
+	
+	/* If "suffix" hasn't been set, we are in direct write mode.
+	 */
+	if( !vips_object_argument_isset( object, "suffix" ) ) {
+		// FIXME ... direct monde needs to implement
+		//  - "centre", ie. images can have a border added
+		//  - "skip_blanks", ie. we need to detect empty regions
+		//  - google mode, where tiles can be padded up to tilesize
+		//    along the bottom and right
+		dz->direct = TRUE;
+		VIPS_SETSTR( dz->suffix, ".jpg" );
+	}
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -1988,8 +2091,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
 		if( !vips_object_argument_isset( object, "overlap" ) )
 			dz->overlap = 0;
-		if( !vips_object_argument_isset( object, "suffix" ) )
-			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
 	/* Google and zoomify default to 256 pixel tiles.
