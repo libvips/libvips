@@ -767,7 +767,7 @@ write_dzi( VipsForeignSaveDz *dz )
 	vips_dbuf_writef( &dbuf, "  />\n" );
 	vips_dbuf_writef( &dbuf, "</Image>\n" );
 
-	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ) {
+	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
 		if( vips_mkfile( dz, filename, buf, len ) ) {
 			g_free( buf );
 			g_free( filename );
@@ -804,7 +804,7 @@ write_properties( VipsForeignSaveDz *dz )
 		dz->tile_count,
 		dz->tile_size );
 
-	if( !(buf = vips_dbuf_steal( &dbuf, &len )) ) {
+	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
 		if( vips_mkfile( dz, filename, buf, len ) ) {
 			g_free( buf );
 			g_free( filename );
@@ -2070,18 +2070,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	VipsRect real_pixels; 
 	char *p;
-	
-	/* If "suffix" hasn't been set, we are in direct write mode.
-	 */
-	if( !vips_object_argument_isset( object, "suffix" ) ) {
-		// FIXME ... direct monde needs to implement
-		//  - "centre", ie. images can have a border added
-		//  - "skip_blanks", ie. we need to detect empty regions
-		//  - google mode, where tiles can be padded up to tilesize
-		//    along the bottom and right
+
+	// direct mode will only work in a few cases
+	// - can't set suffix (we only support vanilla jpg)
+	// - can't suport centre, since that needs to expand layers
+	// - no code for skip_blanks yet
+	if( !vips_object_argument_isset( object, "suffix" ) &&
+		dz->layout != VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		!dz->centre &&
+		!dz->skip_blanks )
 		dz->direct = TRUE;
-		VIPS_SETSTR( dz->suffix, ".jpg" );
-	}
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -2091,6 +2089,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
 		if( !vips_object_argument_isset( object, "overlap" ) )
 			dz->overlap = 0;
+		if( !vips_object_argument_isset( object, "suffix" ) )
+			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
 	/* Google and zoomify default to 256 pixel tiles.
