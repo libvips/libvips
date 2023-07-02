@@ -1540,8 +1540,15 @@ write_image_direct( VipsForeignSaveDz *dz,
 	VipsRegion *region, const char *filename, const char *format )
 {
 	VipsTarget *target;
-	if( !(target = vips_target_new_to_memory()) )
-		return( -1 );
+
+	if( iszip( dz->container ) ) {
+		if( !(target = vips_target_new_to_memory()) )
+			return( -1 );
+	}
+	else {
+		if( !(target = vips_target_new_to_file( filename )) )
+			return( -1 );
+	}
 
 	if( vips__jpeg_region_write_target( region, target,
 		75, NULL, 
@@ -1553,26 +1560,24 @@ write_image_direct( VipsForeignSaveDz *dz,
 		return( -1 );
 	}
 
-	VipsBlob *blob;
-	g_object_get( target, "blob", &blob, NULL );
-
-	g_object_unref( target );
-
-	const void *buffer;
-	size_t length;
-	buffer = vips_blob_get( blob, &length );
-
 	if( iszip( dz->container ) ) {
+		VipsBlob *blob;
+		const void *buffer;
+		size_t length;
+
+		g_object_get( target, "blob", &blob, NULL );
+		buffer = vips_blob_get( blob, &length );
+
 		if( vips_mkfile_zip( dz, filename, (void *) buffer, length ) ) {
 			vips_area_unref( VIPS_AREA( blob ) );
+			g_object_unref( target );
 			return( -1 );
 		}
-	}
-	else {
-		// write buf to filename
+
+		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
-	vips_area_unref( VIPS_AREA( blob ) );
+	g_object_unref( target );
 
 	return( 0 );
 }
@@ -2078,8 +2083,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "suffix" ) &&
 		dz->layout != VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
 		!dz->centre &&
-		!dz->skip_blanks )
+		!vips_object_argument_isset( object, "skip_blanks" ) ) {
+		printf( "vips_foreign_save_dz_build: enabling direct mode\n" );
 		dz->direct = TRUE;
+	}
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
