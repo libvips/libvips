@@ -204,11 +204,10 @@ vips__new_error_exit( j_common_ptr cinfo )
 /* What we track during a JPEG write.
  */
 typedef struct {
-	VipsImage *in;
 	struct jpeg_compress_struct cinfo;
         ErrorManager eman;
 	JSAMPROW *row_pointer;
-	VipsImage *inverted;
+	gboolean invert;
 } Write;
 
 static void
@@ -216,48 +215,37 @@ write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
 	VIPS_FREE( write->row_pointer );
-	VIPS_UNREF( write->inverted );
-	VIPS_UNREF( write->in );
 
 	g_free( write );
 }
 
 static Write *
-write_new( VipsImage *in )
+write_new( void )
 {
 	Write *write;
 
 	if( !(write = g_new0( Write, 1 )) )
 		return( NULL );
 
-	write->in = NULL;
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->cinfo.dest = NULL;
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
-	write->inverted = NULL;
-
-	/* Make a copy of the input image since we may modify it with
-	 * vips__exif_update() etc.
-	 */
-	if( vips_copy( in, &write->in, NULL ) ) {
-		write_destroy( write );
-		return( NULL );
-	}
+	write->invert = FALSE;
 
         return( write );
 }
 
 static int
-write_blob( Write *write, const char *field, int app )
+write_blob( Write *write, VipsImage *image, const char *field, int app )
 {
-	unsigned char *data;
-	size_t data_length;
+	if( vips_image_get_typeof( image, field ) ) {
+		unsigned char *data;
+		size_t data_length;
 
-	if( vips_image_get_typeof( write->in, field ) ) {
-		if( vips_image_get_blob( write->in, field, 
+		if( vips_image_get_blob( image, field, 
 			(void *) &data, &data_length ) )
 			return( -1 );
 
@@ -291,15 +279,15 @@ write_blob( Write *write, const char *field, int app )
 #define XML_URL "http://ns.adobe.com/xap/1.0/"
 
 static int
-write_xmp( Write *write )
+write_xmp( Write *write, VipsImage *in )
 {
 	unsigned char *data;
 	size_t data_length;
 	char *p;
 
-	if( !vips_image_get_typeof( write->in, VIPS_META_XMP_NAME ) ) 
+	if( !vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) 
 		return( 0 );
-	if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
+	if( vips_image_get_blob( in, VIPS_META_XMP_NAME, 
 		(void *) &data, &data_length ) )
 		return( -1 );
 
@@ -335,9 +323,9 @@ write_xmp( Write *write )
 }
 
 static int
-write_exif( Write *write )
+write_exif( Write *write, VipsImage *image )
 {
-	if( write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
+	if( write_blob( write, image, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
 		return( -1 );
 
 	return( 0 );
@@ -492,12 +480,12 @@ write_profile_file( Write *write, const char *profile )
 }
 
 static int
-write_profile_meta( Write *write )
+write_profile_meta( Write *write, VipsImage *in )
 {
 	const void *data;
 	size_t length;
 
-	if( vips_image_get_blob( write->in, 
+	if( vips_image_get_blob( in, 
 		VIPS_META_ICC_NAME, &data, &length ) )
 		return( -1 );
 	write_profile_data( &write->cinfo, data, length );
@@ -693,28 +681,43 @@ write_metadata( Write *write, VipsImage *in,
 	gboolean strip, const char *profile )
 {
 	if( !strip ) {
+		/* Make a copy of the input image since we may modify it with
+		 * vips__exif_update() etc.
+		 */
+		VipsImage *x;
+		if( vips_copy( in, &x, NULL ) ) 
+			return( -1 );
+
 		/* We need to rebuild the exif data block from any exif tags
 		 * on the image.
 		 */
-		if( vips__exif_update( write->in ) ||  
-			write_exif( write ) ||
-			write_xmp( write ) ||
-			write_blob( write, 
-				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) )
+		if( vips__exif_update( x ) ||  
+			write_exif( write, x ) ||
+			write_xmp( write, x ) ||
+			write_blob( write, x, 
+				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) ) {
+			g_object_unref( x );
 			return( -1 );
+		}
 
 		/* A profile supplied as an argument overrides an embedded 
 		 * profile. 
 		 */
 		if( profile ) {
-			if( write_profile_file( write, profile ) )
+			if( write_profile_file( write, profile ) ) {
+				g_object_unref( x );
 				return( -1 );
+			}
 		}
 		else {
-			if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) && 
-				write_profile_meta( write ) )
+			if( vips_image_get_typeof( x, VIPS_META_ICC_NAME ) && 
+				write_profile_meta( write, x ) ) {
+				g_object_unref( x );
 				return( -1 );
+			}
 		}
+
+		g_object_unref( x );
 	}
 
 	return( 0 );
@@ -723,18 +726,12 @@ write_metadata( Write *write, VipsImage *in,
 /* Write a VIPS image to a JPEG compress struct.
  */
 static int
-write_vips( Write *write, int Q, const char *profile, 
+write_vips( Write *write, VipsImage *in, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval )
 {
-	VipsImage *in;
-
-	/* The image we'll be writing ... can change, see CMYK.
-	 */
-	in = write->in;
-
 	/* Should have been converted for save.
 	 */
         g_assert( in->BandFmt == VIPS_FORMAT_UCHAR );
@@ -754,13 +751,10 @@ write_vips( Write *write, int Q, const char *profile,
 		quant_table, subsample_mode, restart_interval );
 
 	if( in->Bands == 4 && 
-		in->Type == VIPS_INTERPRETATION_CMYK ) {
+		in->Type == VIPS_INTERPRETATION_CMYK ) 
 		/* IJG always sets an Adobe marker, so we should invert CMYK.
 		 */
-		if( vips_invert( in, &write->inverted, NULL ) ) 
-			return( -1 );
-		in = write->inverted;
-	}
+		write->invert = TRUE;
 
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
@@ -888,7 +882,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 {
 	Write *write;
 
-	if( !(write = write_new( in )) )
+	if( !(write = write_new()) )
 		return( -1 );
 
 	/* Make jpeg compression object.
@@ -908,7 +902,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 
 	/* Convert! Write errors come back here as an error return.
 	 */
-	if( write_vips( write, 
+	if( write_vips( write, in, 
 		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table, subsample_mode, restart_interval ) ) {
@@ -932,8 +926,8 @@ write_vips_region( Write *write, VipsRegion *region, VipsRect *rect,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval )
 {
-	// the image we'll be writing ... can change, see CMYK.
-	VipsImage *in = write->in;
+	// the image we'll be writing
+	VipsImage *in = region->im;
 
 	set_cinfo( &write->cinfo, in, rect->width, rect->height,
 		Q, profile, optimize_coding, progressive, strip,
@@ -949,10 +943,10 @@ write_vips_region( Write *write, VipsRegion *region, VipsRect *rect,
 		in->Bands == 4 );
 
 	if( in->Bands == 4 && 
-		in->Type == VIPS_INTERPRETATION_CMYK ) {
+		in->Type == VIPS_INTERPRETATION_CMYK ) 
 		// FIXME ... need to invert on the fly as we send pixels to
 		// libjpeg
-	}
+		write->invert = TRUE;
 
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
@@ -997,7 +991,7 @@ vips__jpeg_region_write_target( VipsRegion *region, VipsRect *rect,
 {
 	Write *write;
 
-	if( !(write = write_new( region->im )) )
+	if( !(write = write_new()) )
 		return( -1 );
 
 	/* Make jpeg compression object.
