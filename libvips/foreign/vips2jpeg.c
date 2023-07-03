@@ -502,16 +502,26 @@ static int
 write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
-	int i;
 
-	for( i = 0; i < area->height; i++ )
-		write->row_pointer[i] = (JSAMPROW) 
-			VIPS_REGION_ADDR( region, 0, area->top + i );
+	for( int y = 0; y < area->height; y++ )
+		write->row_pointer[y] = (JSAMPROW) 
+			VIPS_REGION_ADDR( region, area->left, area->top + y );
 
 	/* Catch any longjmp()s from jpeg_write_scanlines() here.
 	 */
 	if( setjmp( write->eman.jmp ) ) 
 		return( -1 );
+
+	if( write->invert ) {
+		int n_elements = region->im->Bands * area->width;
+
+		for( int y = 0; y < area->height; y++ ) {
+			unsigned char *line = write->row_pointer[y];
+
+			for( int x = 0; x < n_elements; x++ )
+				line[x] = 255 - line[x];
+		}
+	}
 
 	jpeg_write_scanlines( &write->cinfo, write->row_pointer, area->height );
 
