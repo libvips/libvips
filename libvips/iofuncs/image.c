@@ -3656,14 +3656,10 @@ vips_image_pio_input( VipsImage *image )
 		break;
 
 	case VIPS_IMAGE_PARTIAL:
-		/* Should have had generate functions attached.
+		/* We can sometimes want to copy images with no generate func,
+		 * eg. if we are going to be manipulating metadata, so we
+		 * can't check for gen funcs. See dzsave direct mode.
 		 */
-		if( !image->generate_fn ) {
-			vips_error( "vips_image_pio_input", 
-				"%s", _( "no image data" ) );
-			return( -1 );
-		}
-
 		break;
 
 	case VIPS_IMAGE_MMAPIN:

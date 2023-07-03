@@ -152,7 +152,8 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval );
 
-int vips__jpeg_region_write_target( VipsRegion *region, VipsTarget *target,
+int vips__jpeg_region_write_target( VipsRegion *region, VipsRect *rect, 
+	VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean trellis_quant,

@@ -1231,7 +1231,7 @@ write_associated( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
-/* Our state during a threaded write of a strip.
+/* Our state during a threaded write of a strip using the image API.
  */
 typedef struct _Strip {
 	Layer *layer; 
@@ -1241,16 +1241,16 @@ typedef struct _Strip {
 	/* Allocate the next tile on this boundary. 
 	 */
 	int x;
-} Strip;
+} ImageStrip;
 
 static void
-strip_free( Strip *strip )
+image_strip_free( ImageStrip *strip )
 {
 	g_object_unref( strip->image );
 }
 
 static void
-strip_init( Strip *strip, Layer *layer )
+image_strip_init( ImageStrip *strip, Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
 
@@ -1285,14 +1285,14 @@ strip_init( Strip *strip, Layer *layer )
 		VIPS_IMAGE_SIZEOF_LINE( layer->image ) * line.height,
 		line.width, line.height, 
 		layer->image->Bands, layer->image->BandFmt )) ) {
-		strip_free( strip );
+		image_strip_free( strip );
 		return;
 	}
 
 	/* The strip needs to inherit the layer's metadata.
 	 */
 	if( vips__image_meta_copy( strip->image, layer->image ) ) {
-		strip_free( strip );
+		image_strip_free( strip );
 		return;
 	}
 
@@ -1302,16 +1302,16 @@ strip_init( Strip *strip, Layer *layer )
 }
 
 static int
-strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
+image_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 {
-	Strip *strip = (Strip *) a;
+	ImageStrip *strip = (ImageStrip *) a;
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 
 	VipsRect image;
 
 #ifdef DEBUG_VERBOSE
-	printf( "strip_allocate\n" );
+	printf( "image_strip_allocate\n" );
 #endif /*DEBUG_VERBOSE*/
 
 	/* We can't test for allocated area empty, since it might just have
@@ -1321,7 +1321,7 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	if( strip->x / dz->tile_step >= layer->tiles_across ) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
-		printf( "strip_allocate: done\n" );
+		printf( "image_strip_allocate: done\n" );
 #endif /*DEBUG_VERBOSE*/
 
 		return( 0 );
@@ -1537,7 +1537,8 @@ tile_equal( VipsImage *image, int threshold, VipsPel * restrict ink )
 
 static int
 write_image_direct( VipsForeignSaveDz *dz,
-	VipsRegion *region, const char *filename, const char *format )
+	VipsRegion *region, VipsRect *rect, 
+	const char *filename, const char *format )
 {
 	VipsTarget *target;
 
@@ -1550,7 +1551,7 @@ write_image_direct( VipsForeignSaveDz *dz,
 			return( -1 );
 	}
 
-	if( vips__jpeg_region_write_target( region, target,
+	if( vips__jpeg_region_write_target( region, rect, target,
 		75, NULL, 
 		FALSE, FALSE,
 		!dz->no_strip, FALSE,
@@ -1583,9 +1584,9 @@ write_image_direct( VipsForeignSaveDz *dz,
 }
 
 static int
-strip_work( VipsThreadState *state, void *a )
+image_strip_work( VipsThreadState *state, void *a )
 {
-	Strip *strip = (Strip *) a;
+	ImageStrip *strip = (ImageStrip *) a;
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
@@ -1595,7 +1596,7 @@ strip_work( VipsThreadState *state, void *a )
 	char *out; 
 
 #ifdef DEBUG_VERBOSE
-	printf( "strip_work\n" );
+	printf( "image_strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
         /* killed is checked by sink_disc, but that's only once per strip, and
@@ -1616,7 +1617,7 @@ strip_work( VipsThreadState *state, void *a )
 		tile.height = dz->tile_size;
 		if( !vips_rect_overlapsrect( &tile, &layer->real_pixels ) ) {
 #ifdef DEBUG_VERBOSE
-			printf( "strip_work: skipping tile %d x %d\n", 
+			printf( "image_strip_work: skipping tile %d x %d\n", 
 				state->x / dz->tile_size, 
 				state->y / dz->tile_size ); 
 #endif /*DEBUG_VERBOSE*/
@@ -1626,40 +1627,6 @@ strip_work( VipsThreadState *state, void *a )
 	}
 
 	g_assert( vips_object_sanity( VIPS_OBJECT( strip->image ) ) );
-
-	/* Direct mode ... make a region on the strip, and write that.
-	 */
-	if( dz->direct ) {
-		out = tile_name( layer, 
-			state->x / dz->tile_step, state->y / dz->tile_step );
-		/* g_build_filename() can return NULL when it exceeds the 
-		 * path limits.
-		 */
-		if( out == NULL )
-			return( -1 );
-
-		VipsRegion *region;
-		if( !(region = vips_region_new( strip->image )) )
-			return( -1 );
-		VipsRect tile = {
-			state->pos.left, 
-			0, 
-			state->pos.width, 
-			state->pos.height
-		};
-		if( vips_region_image( region, &tile ) )
-			return( -1 );
-
-		if( write_image_direct( dz, region, out, dz->suffix ) ) {
-			g_free( out );
-			g_object_unref( region );
-			return( -1 );
-		}
-
-		g_object_unref( region );
-
-		return( 0 );
-	}
 
 	/* Extract relative to the strip top-left corner.
 	 */
@@ -1673,7 +1640,7 @@ strip_work( VipsThreadState *state, void *a )
 		g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
-		printf( "strip_work: skipping blank tile %d x %d\n", 
+		printf( "image_strip_work: skipping blank tile %d x %d\n", 
 			state->x / dz->tile_size, 
 			state->y / dz->tile_size ); 
 #endif /*DEBUG_VERBOSE*/
@@ -1719,8 +1686,90 @@ strip_work( VipsThreadState *state, void *a )
 	g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
-	printf( "strip_work: success\n" );
+	printf( "image_strip_work: success\n" );
 #endif /*DEBUG_VERBOSE*/
+
+	return( 0 );
+}
+
+/* Our state during a direct write of a strip.
+ */
+typedef struct _DirectStrip {
+	Layer *layer; 
+
+	/* Allocate the next tile on this boundary. 
+	 */
+	int x;
+} DirectStrip;
+
+static int
+direct_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
+{
+	DirectStrip *strip = (DirectStrip *) a;
+	Layer *layer = strip->layer;
+	VipsForeignSaveDz *dz = layer->dz;
+
+	VipsRect image;
+
+#ifdef DEBUG_VERBOSE
+	printf( "direct_strip_allocate\n" );
+#endif /*DEBUG_VERBOSE*/
+
+	/* We can't test for allocated area empty, since it might just have
+	 * bits of the left-hand overlap in and no new pixels. Safest to count
+	 * tiles across.
+	 */
+	if( strip->x / dz->tile_step >= layer->tiles_across ) {
+		*stop = TRUE;
+#ifdef DEBUG_VERBOSE
+		printf( "direct_strip_allocate: done\n" );
+#endif /*DEBUG_VERBOSE*/
+
+		return( 0 );
+	}
+
+	/* Position this tile.
+	 */
+	image.left = 0;
+	image.top = 0;
+	image.width = layer->width;
+	image.height = layer->height;
+	state->pos.left = strip->x;
+	state->pos.top = layer->y;
+	state->pos.width = dz->tile_size;
+	state->pos.height = dz->tile_size;
+	vips_rect_marginadjust( &state->pos, dz->tile_margin );
+	vips_rect_intersectrect( &image, &state->pos, &state->pos );
+
+	state->x = strip->x;
+	state->y = layer->y;
+	strip->x += dz->tile_step;
+
+	return( 0 );
+}
+
+static int
+direct_strip_work( VipsThreadState *state, void *a )
+{
+	DirectStrip *strip = (DirectStrip *) a;
+	Layer *layer = strip->layer;
+	VipsForeignSaveDz *dz = layer->dz;
+
+	/* g_build_filename() can return NULL when it exceeds the 
+	 * path limits.
+	 */
+	char *name;
+	if( !(name = tile_name( layer, 
+		state->x / dz->tile_step, state->y / dz->tile_step )) )
+		return( -1 );
+
+	if( write_image_direct( dz, layer->strip, &state->pos, 
+		name, dz->suffix ) ) {
+		g_free( name );
+		return( -1 );
+	}
+
+	g_free( name );
 
 	return( 0 );
 }
@@ -1730,20 +1779,38 @@ strip_work( VipsThreadState *state, void *a )
 static int
 strip_save( Layer *layer )
 {
-	Strip strip;
-
 #ifdef DEBUG
 	printf( "strip_save: n = %d, y = %d\n", layer->n, layer->y );
 #endif /*DEBUG*/
 
-	strip_init( &strip, layer );
-	if( vips_threadpool_run( strip.image, 
-		vips_thread_state_new, strip_allocate, strip_work, NULL, 
-		&strip ) ) {
-		strip_free( &strip );
-		return( -1 );
+	if( layer->dz->direct ) {
+		DirectStrip strip = { layer, 0 };
+
+		if( vips_threadpool_run( layer->image, 
+			vips_thread_state_new, 
+			direct_strip_allocate, 
+			direct_strip_work, 
+			NULL, 
+			&strip ) )
+			return( -1 );
 	}
-	strip_free( &strip );
+	else {
+		ImageStrip strip;
+
+		image_strip_init( &strip, layer );
+
+		if( vips_threadpool_run( strip.image, 
+			vips_thread_state_new, 
+			image_strip_allocate, 
+			image_strip_work, 
+			NULL, 
+			&strip ) ) {
+			image_strip_free( &strip );
+			return( -1 );
+		}
+
+		image_strip_free( &strip );
+	}
 
 #ifdef DEBUG
 	printf( "strip_save: success\n" ); 

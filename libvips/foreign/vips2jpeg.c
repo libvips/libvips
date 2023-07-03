@@ -925,7 +925,7 @@ const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 /* Write a region to a JPEG compress struct.
  */
 static int
-write_vips_region( Write *write, VipsRegion *region,
+write_vips_region( Write *write, VipsRegion *region, VipsRect *rect,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean trellis_quant, gboolean overshoot_deringing,
@@ -935,10 +935,7 @@ write_vips_region( Write *write, VipsRegion *region,
 	// the image we'll be writing ... can change, see CMYK.
 	VipsImage *in = write->in;
 
-	// and the pixels wthin that image that we write
-	VipsRect *r = &region->valid;
-
-	set_cinfo( &write->cinfo, in, r->width, r->height,
+	set_cinfo( &write->cinfo, in, rect->width, rect->height,
 		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table, subsample_mode, restart_interval );
@@ -959,7 +956,7 @@ write_vips_region( Write *write, VipsRegion *region,
 
 	/* Build VIPS output stuff now we know the image we'll be writing.
 	 */
-	if( !(write->row_pointer = VIPS_ARRAY( NULL, r->height, JSAMPROW )) )
+	if( !(write->row_pointer = VIPS_ARRAY( NULL, rect->height, JSAMPROW )) )
 		return( -1 );
 
 	/* Write app0 and build compress tables.
@@ -973,7 +970,7 @@ write_vips_region( Write *write, VipsRegion *region,
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
-	if( write_jpeg_block(region, r, write ) )
+	if( write_jpeg_block( region, rect, write ) )
 		return( -1 );
 
 	/* We have to reinstate the setjmp() before we jpeg_finish_compress().
@@ -989,7 +986,8 @@ write_vips_region( Write *write, VipsRegion *region,
 }
 
 int
-vips__jpeg_region_write_target( VipsRegion *region, VipsTarget *target,
+vips__jpeg_region_write_target( VipsRegion *region, VipsRect *rect,
+	VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean trellis_quant,
@@ -1019,7 +1017,7 @@ vips__jpeg_region_write_target( VipsRegion *region, VipsTarget *target,
 
 	/* Convert! Write errors come back here as an error return.
 	 */
-	if( write_vips_region( write, region,
+	if( write_vips_region( write, region, rect,
 		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table, subsample_mode, restart_interval ) ) {
