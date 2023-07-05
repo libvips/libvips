@@ -243,8 +243,7 @@ vips_get_prgname( void )
  */
 
 #ifdef ENABLE_MODULES
-/* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
- * '.plg' (deprecated) suffix.
+/* Load all plugins in a directory.
  */
 static void
 vips_load_plugins( const char *fmt, ... )
