@@ -599,15 +599,27 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	int limit; 
 
 	layer->dz = dz;
-	layer->width = width;
-	layer->height = height;
 
-	/* We need to output all possible tiles, even if they give no new pixels.
+	/* We need to output all possible tiles, even if they give no new 
+	 * pixels.
 	 */
 	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_step ) / 
 		dz->tile_step;
 	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_step ) / 
 		dz->tile_step;
+
+	/* In google mode, we always write full tiles, so we must pad along
+	 * the bottom and right.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		width = (layer->tiles_across - 1) * dz->tile_step + 
+			dz->tile_size;
+		height = (layer->tiles_down - 1) * dz->tile_step + 
+			dz->tile_size;
+	}
+
+	layer->width = width;
+	layer->height = height;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -688,26 +700,20 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 		limit = 1;
 	}
 
-	if( width > limit || 
-		height > limit ) {
+	if( real_pixels->width > limit || 
+		real_pixels->height > limit ) {
 		/* Round up, so eg. a 5 pixel wide image becomes 3 a layer
 		 * down.
-		 *
-		 * For the rect, round left/top down, round bottom/right up,
-		 * so we get all possible pixels. 
 		 */
-		VipsRect halfrect;
+		VipsRect half;
 
-		halfrect.left = real_pixels->left / 2;
-		halfrect.top = real_pixels->top / 2;
-		halfrect.width = (VIPS_RECT_RIGHT( real_pixels ) + 1) / 2 - 
-			halfrect.left;
-		halfrect.height = (VIPS_RECT_BOTTOM( real_pixels ) + 1) / 2 - 
-			halfrect.top;
-
+		half.left = 0;
+		half.top = 0;
+		half.width = (real_pixels->width + 1) / 2;
+		half.height = (real_pixels->height + 1) / 2;
 		if( !(layer->below = pyramid_build( dz, layer, 
 			(width + 1) / 2, (height + 1) / 2,
-			&halfrect )) ) { 
+			&half )) ) { 
 			layer_free( layer );
 			return( NULL );
 		}
@@ -1592,7 +1598,6 @@ image_strip_work( VipsThreadState *state, void *a )
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
 	VipsImage *x;
-	VipsImage *t;
 	char *out; 
 
 #ifdef DEBUG_VERBOSE
@@ -1646,20 +1651,6 @@ image_strip_work( VipsThreadState *state, void *a )
 #endif /*DEBUG_VERBOSE*/
 
 		return( 0 ); 
-	}
-
-	/* Google tiles need to be padded up to tilesize.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
-		if( vips_embed( x, &t, 0, 0, dz->tile_size, dz->tile_size,
-			"background", save->background,
-			NULL ) ) {
-			g_object_unref( x );
-			return( -1 );
-		}
-		g_object_unref( x );
-
-		x = t;
 	}
 
 	out = tile_name( layer, 
@@ -2145,11 +2136,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	// direct mode will only work in a few cases
 	// - can't set suffix (we only support vanilla jpg)
-	// - can't suport centre, since that needs to expand layers
 	// - no code for skip_blanks yet
+	// - no google tile padding yet
 	if( !vips_object_argument_isset( object, "suffix" ) &&
 		dz->layout != VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		!dz->centre &&
 		!vips_object_argument_isset( object, "skip_blanks" ) ) {
 		printf( "vips_foreign_save_dz_build: enabling direct mode\n" );
 		dz->direct = TRUE;
@@ -2265,6 +2255,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 	real_pixels.width = save->ready->Xsize;
 	real_pixels.height = save->ready->Ysize;
 
+
+	rework this
+	do we need real_pixels left and top? can't they always be 0?
+        :n ar		
+
 	/* For centred images, imagine shrinking so that the image fits in a
 	 * single tile, centering in that tile, then expanding back again.
 	 */
@@ -2303,7 +2298,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		printf( "centre: centring within a %d x %d image\n", 
 			size, size );
 #endif /*DEBUG*/
-
 	}
 
 #ifdef DEBUG
