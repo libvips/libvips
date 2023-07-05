@@ -1168,8 +1168,17 @@ vips_icc_transform_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = (VipsColour *) object;
+	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccTransform *transform = (VipsIccTransform *) object;
+
+	/* Depth defaults to 16 for 16 bit images.
+	 */
+	if( !vips_object_argument_isset( object, "depth" ) &&
+		code->in &&
+		(code->in->Type == VIPS_INTERPRETATION_RGB16 ||
+		 code->in->Type == VIPS_INTERPRETATION_GREY16) ) 
+		icc->depth = 16;
 
 	if( vips_icc_set_import( icc, 
 		transform->embedded, transform->input_profile_filename ) )
@@ -1527,6 +1536,8 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
+ *
+ * @depth defaults to 8, or 16 if @in is a 16-bit image.
  *
  * The output image has the output profile attached to the #VIPS_META_ICC_NAME
  * field. 
