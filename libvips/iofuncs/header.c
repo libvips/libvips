@@ -1653,9 +1653,7 @@ vips_image_get_area( const VipsImage *image,
  * memory
  * @length: length of memory area
  *
- * Attaches @blob as a metadata item on @image under the name @name. A 
- * convenience
- * function over vips_image_set() using a vips_blob.
+ * Attaches @data as a metadata item on @image under the name @name.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
@@ -1678,9 +1676,8 @@ vips_image_set_blob( VipsImage *image, const char *name,
  * @data: (array length=length) (element-type guint8): pointer to area of memory
  * @length: length of memory area
  *
- * Attaches @blob as a metadata item on @image under the name @name, taking
- * a copy of the memory area. A convenience function over 
- * vips_image_set_blob().
+ * Attaches @data as a metadata item on @image under the name @name, taking
+ * a copy of the memory area.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
@@ -1717,10 +1714,8 @@ vips_image_set_blob_copy( VipsImage *image,
  * @data: (out) (array length=length) (element-type guint8): pointer to area of memory
  * @length: (out): return the blob length here, optionally
  *
- * Gets @blob from @image under the name @name, optionally returns its length in
- * @length. A convenience
- * function over vips_image_get(). Use vips_image_get_typeof() to test for the 
- * existence
+ * Gets @data from @image under the name @name, optionally returns its length in
+ * @length.  vips_image_get_typeof() to test for the existence
  * of a piece of metadata.
  *
  * See also: vips_image_get(), vips_image_get_typeof(), vips_blob_get(), 

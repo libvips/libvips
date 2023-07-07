@@ -612,6 +612,22 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
                 VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
                 VIPS_INTERPRETATION_sRGB, xres, yres );
 
+	int64_t len;
+	if( openslide_icc_profile_size( rslide->osr, &len ) &&
+		len > 0 ) {
+		void *data;
+
+		if( !(data = VIPS_MALLOC( NULL, len )) )
+			return( -1 );
+		if( !openslide_icc_profile_read( rslide->osr, data, len ) ) {
+			g_free( data );
+			return( -1 );
+		}
+
+		vips_image_set_blob( image, VIPS_META_ICC_NAME,
+			(VipsCallbackFn) g_free, data, len );
+	}
+
 	return( 0 );
 }
 
