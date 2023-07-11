@@ -123,7 +123,7 @@ vips_convsep_class_init( VipsConvsepClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "convsep";
-	object_class->description = _( "seperable convolution operation" );
+	object_class->description = _( "separable convolution operation" );
 	object_class->build = vips_convsep_build;
 
 	VIPS_ARG_ENUM( class, "precision", 203, 

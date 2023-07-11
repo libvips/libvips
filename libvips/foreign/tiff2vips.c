@@ -202,7 +202,7 @@
  * 6/6/20 MathemanFlo
  * 	- support 2 and 4 bit greyscale load
  * 27/3/21
- * 	- add jp2k decompresion
+ * 	- add jp2k decompression
  * 24/7/21
  * 	- add fail_on
  * 30/9/21
@@ -2652,7 +2652,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 /* Stripwise reading.
  *
  * We could potentially read strips in any order, but this would give
- * catastrophic performance for operations like 90 degress rotate on a 
+ * catastrophic performance for operations like 90 degrees rotate on a 
  * large image. Only offer sequential read.
  */
 static int
@@ -3027,7 +3027,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			 * whole image. Clip this down to height to avoid 
 			 * confusing vips. 
 			 *
-			 * And it musn't be zero.
+			 * And it mustn't be zero.
 			 */
 			header->read_height = VIPS_CLIP( 1, 
 				header->rows_per_strip, header->height );

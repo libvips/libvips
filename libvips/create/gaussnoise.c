@@ -11,7 +11,7 @@
  *	- declaration for drand48() added
  *	- partialised, adapting im_gaussnoise()
  * 23/10/98 JC
- *	- drand48() chaged to random() for portability
+ *	- drand48() changed to random() for portability
  * 21/10/02 JC
  *	- tries rand() if random() is not available
  *	- uses RAND_MAX, d'oh

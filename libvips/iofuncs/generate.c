@@ -140,7 +140,7 @@ vips__link_make( VipsImage *image_up, VipsImage *image_down )
 	image_down->upstream = 
 		g_slist_prepend( image_down->upstream, image_up );
 
-	/* Propogate the progress indicator.
+	/* Propagate the progress indicator.
 	 */
 	if( image_up->progress_signal && 
 		!image_down->progress_signal ) 
@@ -517,7 +517,7 @@ vips_start_many( VipsImage *out, void *a, void *b )
 	for( n = 0; in[n]; n++ )
 		;
 
-	/* Alocate space for region array.
+	/* Allocate space for region array.
 	 */
 	if( !(ar = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) )
 		return( NULL );

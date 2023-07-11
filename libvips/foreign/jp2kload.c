@@ -675,7 +675,7 @@ vips_foreign_load_jp2k_pack( gboolean upsample,
 		}
 }
 
-/* ycc->rgb coversion adapted from openjpeg src/bin/common/color.c
+/* ycc->rgb conversion adapted from openjpeg src/bin/common/color.c
  *
  * See also https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
  */

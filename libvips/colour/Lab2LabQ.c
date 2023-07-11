@@ -9,7 +9,7 @@
  * 5/5/94 JC
  *	- some nint->+0.5, for speed and to ease portability
  *	- other nint->rint
- *	- now inclues <math.h>!
+ *	- now includes <math.h>!
  * 15/11/94 JC
  *	- all nint(), rint() removed for speed
  *	- now -128 rather than -127 for a, b

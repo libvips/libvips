@@ -577,7 +577,7 @@ vips_exif_set_int( ExifData *ed,
 		return;
 	}
 
-	/* Wait until after the component check to make sure we cant get /0.
+	/* Wait until after the component check to make sure we can't get /0.
 	 */
 	bo = exif_data_get_byte_order( ed );
 	sizeof_component = entry->size / entry->components;
@@ -655,7 +655,7 @@ vips_exif_set_rational( ExifData *ed,
 		return;
 	}
 
-	/* Wait until after the component check to make sure we cant get /0.
+	/* Wait until after the component check to make sure we can't get /0.
 	 */
 	bo = exif_data_get_byte_order( ed );
 	sizeof_component = entry->size / entry->components;
@@ -709,7 +709,7 @@ vips_exif_set_double( ExifData *ed,
 		return;
 	}
 
-	/* Wait until after the component check to make sure we cant get /0.
+	/* Wait until after the component check to make sure we can't get /0.
 	 */
 	bo = exif_data_get_byte_order( ed );
 	sizeof_component = entry->size / entry->components;

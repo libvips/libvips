@@ -297,7 +297,7 @@ vips_interpolate_get_window_offset( VipsInterpolate *interpolate )
  * VIPS_INTERPOLATE_SHIFT:
  *
  * Many of the vips interpolators use fixed-point arithmetic for value
- * calcualtion. This is how many bits of precision they use.
+ * calculation. This is how many bits of precision they use.
  */
 
 /**

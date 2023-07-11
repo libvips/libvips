@@ -395,7 +395,7 @@ vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
  *
  * Rotate @in by a multiple of 90 degrees.
  *
- * Use vips_similarity() to rotate by an arbitary angle. vips_rot45() is 
+ * Use vips_similarity() to rotate by an arbitrary angle. vips_rot45() is 
  * useful for rotating convolution masks by 45 degrees. 
  *
  * See also: vips_flip(), vips_similarity(), vips_rot45().
@@ -421,7 +421,7 @@ vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 90 degress clockwise. A convenience function over vips_rot().
+ * Rotate @in by 90 degrees clockwise. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *
@@ -446,7 +446,7 @@ vips_rot90( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 180 degress. A convenience function over vips_rot().
+ * Rotate @in by 180 degrees. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *
@@ -471,7 +471,7 @@ vips_rot180( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 270 degress clockwise. A convenience function over vips_rot().
+ * Rotate @in by 270 degrees clockwise. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *

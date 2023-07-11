@@ -229,7 +229,7 @@ vips_recomb_init( VipsRecomb *recomb )
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation recombines an image's bands. Each pixel in @in is treated as 
- * an n-element vector, where n is the number of bands in @in, and multipled by
+ * an n-element vector, where n is the number of bands in @in, and multiplied by
  * the n x m matrix @m to produce the m-band image @out.
  *
  * @out is always float, unless @in is double, in which case @out is double

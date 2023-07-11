@@ -212,7 +212,7 @@ vips_get_prgname( void )
  * + sets a minimum stack size, see above
  *
  * + initialises any libraries that VIPS is using, including GObject
- *   and the threading system, if neccessary
+ *   and the threading system, if necessary
  *
  * + guesses where the VIPS data files are and sets up
  *   internationalisation --- see vips_guess_prefix()

@@ -167,7 +167,7 @@ vips_sines_init( VipsSines *sines )
  * square waves in two dimensions.
  *
  * If horfreq and verfreq are integers the resultant image is periodical
- * and therfore the Fourier transform does not present spikes
+ * and therefore the Fourier transform does not present spikes
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255]. 
  * 

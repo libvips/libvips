@@ -1,6 +1,6 @@
 /* Turn XYZ to Lab colourspace. 
  *
- * Modifed:
+ * Modified:
  * 16/11/94 JC
  *	- uses im_wrapone()
  *	- in-line conversion

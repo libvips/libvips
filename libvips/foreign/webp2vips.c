@@ -125,7 +125,7 @@ typedef struct {
 	 */
 	int frame_count;
 
-	/* Delays between frames (in miliseconds).
+	/* Delays between frames (in milliseconds).
 	 */
 	int *delays;
 
@@ -188,7 +188,7 @@ vips__error_webp( VP8StatusCode code )
 		return( "VP8_STATUS_NOT_ENOUGH_DATA" );
 
 	default:
-		return( "<unkown>" );
+		return( "<unknown>" );
 	}
 }
 

@@ -115,7 +115,7 @@ vips_perlin_create_cells( VipsPerlin *perlin,
 			cy = cell_y + y;
 
 			/* When we calculate the seed for this cell, we wrap
-			 * around so that our output will tesselate.
+			 * around so that our output will tessellate.
 			 */
 
 			if( cy >= perlin->cells_down )

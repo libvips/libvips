@@ -91,7 +91,7 @@ typedef struct _VipsQuadratic {
 	VipsImage *coeff;
 	VipsInterpolate *interpolate;
 
-	/* The coeff array argment, made into an in-memory double.
+	/* The coeff array argument, made into an in-memory double.
 	 */
 	VipsImage *mat;
 

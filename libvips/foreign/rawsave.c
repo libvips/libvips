@@ -1,6 +1,6 @@
 /* save to raw
  *
- * Write raw image data to file. Usefull when defining new formats...
+ * Write raw image data to file. Useful when defining new formats...
  *
  * Jesper Friis
  *

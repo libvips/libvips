@@ -338,7 +338,7 @@ vips_buf_appendc( VipsBuf *buf, char ch )
  * @o: the string to search for
  * @n: the string to substitute
  *
- * Swap the rightmost occurence of @o for @n.
+ * Swap the rightmost occurrence of @o for @n.
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */

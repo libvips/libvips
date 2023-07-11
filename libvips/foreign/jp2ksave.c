@@ -1458,7 +1458,7 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
  * Use @Q to set the compression quality factor. The default value
  * produces file with approximately the same size as regular JPEG Q 75.
  *
- * Set @lossless to enable lossless compresion.
+ * Set @lossless to enable lossless compression.
  *
  * Use @tile_width and @tile_height to set the tile size. The default is 512.
  *

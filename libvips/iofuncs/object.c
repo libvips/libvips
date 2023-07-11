@@ -121,7 +121,7 @@
  * 4. vips_object_build() finishes the process by checking that all output
  * objects have been set, and then triggering the #VipsObject::postbuild
  * signal. #VipsObject::postbuild only runs if the object has constructed
- * successfuly.
+ * successfully.
  *
  * #VipsOperation has a cache of recent operation objects, see that class for
  * an explanation of vips_cache_operation_build(). 
@@ -1640,7 +1640,7 @@ vips_object_class_init( VipsObjectClass *class )
 	 * @object: the object that is to close
 	 *
 	 * The ::preclose signal is emitted once just before object close
-	 * starts. The oject is still alive.
+	 * starts. The object is still alive.
 	 */
 	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
 		G_TYPE_FROM_CLASS( class ),
@@ -1782,7 +1782,7 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	argument_table_traverse = 
 		g_slist_copy( object_class->argument_table_traverse );
 
-	/* We keep traverse sorted by priority, so we musn't have duplicate
+	/* We keep traverse sorted by priority, so we mustn't have duplicate
 	 * priority values in required args. 
 	 */
 	if( (flags & VIPS_ARGUMENT_REQUIRED) && 
@@ -2062,7 +2062,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_value_set_int( &gvalue, i );
 	}
 	else if( G_IS_PARAM_SPEC_UINT64( pspec ) ) {
-		/* Not allways the same as guint64 :-( argh.
+		/* Not always the same as guint64 :-( argh.
 		 */
 		long long l;
 
@@ -3270,7 +3270,7 @@ vips_object_unref_outputs( VipsObject *object )
  *
  * Fetch the object description. Useful for language bindings. 
  *
- * @object.description is only avaliable after _build(), which can be too
+ * @object.description is only available after _build(), which can be too
  * late. This function fetches from the instance, if possible, but falls back
  * to the class description if we are too early. 
  * 

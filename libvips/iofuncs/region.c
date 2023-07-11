@@ -685,8 +685,8 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
  * @reg: region to operate upon
  * @dest: region to connect to
  * @r: #VipsRect of pixels you need to be able to address
- * @x: postion of @r in @dest
- * @y: postion of @r in @dest
+ * @x: position of @r in @dest
+ * @y: position of @r in @dest
  *
  * Make VIPS_REGION_ADDR() on @reg go to @dest instead. 
  *
@@ -1038,8 +1038,8 @@ vips_region_black( VipsRegion *reg )
  * @reg: source region 
  * @dest: (inout): destination region 
  * @r: #VipsRect of pixels you need to copy
- * @x: postion of @r in @dest
- * @y: postion of @r in @dest
+ * @x: position of @r in @dest
+ * @y: position of @r in @dest
  *
  * Copy from one region to another. Copy area @r from inside @reg to @dest,
  * positioning the area of pixels at @x, @y. The two regions must have pixels
@@ -1736,8 +1736,8 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  * @reg: region to prepare
  * @dest: region to write to
  * @r: #VipsRect of pixels you need to be able to address
- * @x: postion of @r in @dest
- * @y: postion of @r in @dest
+ * @x: position of @r in @dest
+ * @y: position of @r in @dest
  *
  * Like vips_region_prepare(): fill @reg with the pixels in area @r. 
  *

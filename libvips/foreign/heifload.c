@@ -285,9 +285,9 @@ static const char *heif_magic[] = {
 	"ftypheix",	/* Extended range (>8 bit) image */
 	"ftyphevc",	/* Image sequence */
 	"ftypheim",	/* Image sequence */
-	"ftypheis",	/* Scaleable image */
+	"ftypheis",	/* Scalable image */
 	"ftyphevm",	/* Multiview sequence */
-	"ftyphevs",	/* Scaleable sequence */
+	"ftyphevs",	/* Scalable sequence */
 	"ftypmif1",	/* Nokia alpha_ image */
 	"ftypmsf1",	/* Nokia animation image */
 	"ftypavif"	/* AV1 image format */
@@ -555,7 +555,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	}
 
 	/* We use libheif's autorotate, so we need to remove any EXIF
-	 * orientaion tags.
+	 * orientation tags.
 	 *
 	 * According to the HEIF standard, EXIF orientation tags are only
 	 * informational and images should not be rotated because of them.

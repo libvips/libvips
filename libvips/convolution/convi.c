@@ -23,7 +23,7 @@
  *	- bug with large non-square matricies fixed too
  *	- uses new im_embed() function
  * 13/7/98 JC
- *	- wierd bug ... im_free_imask is no longer directly called for close
+ *	- weird bug ... im_free_imask is no longer directly called for close
  *	  callback, caused SIGKILL on solaris 2.6 ... linker bug?
  * 9/3/01 JC
  *	- reworked and simplified, about 10% faster
@@ -66,7 +66,7 @@
  * 9/5/11
  * 	- argh typo in overflow estimation could cause errors
  * 15/10/11 Nicolas
- * 	- handle offset correctly in seperable convolutions
+ * 	- handle offset correctly in separable convolutions
  * 26/1/16 Lovell Fuller
  * 	- remove Duff for a 25% speedup
  * 23/6/16

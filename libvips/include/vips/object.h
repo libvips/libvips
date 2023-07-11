@@ -427,13 +427,13 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 struct _VipsObject {
 	GObject parent_instance;
 
-	/* Set after ->build() has run succesfully: construct is fully done
+	/* Set after ->build() has run successfully: construct is fully done
 	 * and checked.
 	 */
 	gboolean constructed;
 
 	/* Set for static objects which are allocated at startup and never
-	 * freed. These objects are ommitted from leak reports.
+	 * freed. These objects are omitted from leak reports.
 	 */
 	gboolean static_object;
 

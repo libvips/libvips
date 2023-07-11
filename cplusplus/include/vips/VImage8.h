@@ -240,7 +240,7 @@ private:
 		Pair( const char *name ) : 
 			name( name ), input( false ), vimage( 0 )
 		{
-			// argh = {0} won't work wil vanilla C++
+			// argh = {0} won't work with vanilla C++
 			memset( &value, 0, sizeof( GValue ) ); 
 		}
 
@@ -868,7 +868,7 @@ public:
 	}
 
 	/**
-	 * Make a new VImage which, when written to, will craete a temporary
+	 * Make a new VImage which, when written to, will create a temporary
 	 * file on disc. See VImage::write().
 	 */
 	static VImage 
@@ -1245,7 +1245,7 @@ public:
 	}
 
 	/**
-	 * Dilate the image with the specified strucuring element, see
+	 * Dilate the image with the specified structuring element, see
 	 * VImage::new_matrix(). Stucturing element values can be 0 for 
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
@@ -1257,7 +1257,7 @@ public:
 	}
 
 	/**
-	 * Erode the image with the specified strucuring element, see
+	 * Erode the image with the specified structuring element, see
 	 * VImage::new_matrix(). Stucturing element values can be 0 for 
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
@@ -2592,7 +2592,7 @@ VImage convf( VImage mask, VOption *options = 0 ) const;
 VImage convi( VImage mask, VOption *options = 0 ) const;
 
 /**
- * Seperable convolution operation.
+ * Separable convolution operation.
  *
  * **Optional parameters**
  *   - **precision** -- Convolve with this precision, VipsPrecision.

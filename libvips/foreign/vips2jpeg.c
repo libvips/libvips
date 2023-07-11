@@ -1,4 +1,4 @@
-/* wrap jpeg libray for write
+/* wrap jpeg library for write
  *
  * 28/11/03 JC
  *	- better no-overshoot on tile loop

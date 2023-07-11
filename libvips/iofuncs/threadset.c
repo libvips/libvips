@@ -212,7 +212,7 @@ vips_threadset_add( VipsThreadset *set )
 
 /** 
  * vips_threadset_new:
- * @max_threads: maxium number of system threads
+ * @max_threads: maximum number of system threads
  *
  * Create a new threadset. 
  *

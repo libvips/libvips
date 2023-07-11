@@ -149,7 +149,7 @@ vips_freqmult_init( VipsFreqmult *freqmult )
  *
  * Multiply @in by @mask in Fourier space.
  *
- * @in is transformed to Fourier space, multipled with @mask, then
+ * @in is transformed to Fourier space, multiplied with @mask, then
  * transformed back to real space. If @in is already a complex image, just
  * multiply then inverse transform.
  *

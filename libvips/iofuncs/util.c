@@ -159,7 +159,7 @@ vips_slist_fold2( GSList *list, void *start,
         return( c );
 }
 
-/* Remove all occurences of an item from a list.
+/* Remove all occurrences of an item from a list.
  */
 GSList *
 vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b )
