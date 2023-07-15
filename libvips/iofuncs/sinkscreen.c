@@ -1,4 +1,4 @@
-/* aynchronous screen sink
+/* asynchronous screen sink
  *
  * 1/1/10
  * 	- from im_render.c
