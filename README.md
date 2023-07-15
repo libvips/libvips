@@ -107,9 +107,6 @@ configuration.
   see `meson_options.txt` and the list below for a summary of all the libvips
   dependencies.
 
-- Meson will do a debug build by default. Add `--buildtype release` for a 
-  release (optimised) build.
-
 - You might need to add `--libdir lib` on Debian if you don't want the arch 
   name in the library path.
 
