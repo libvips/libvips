@@ -586,7 +586,7 @@ vips_image_is_profile_compatible( VipsImage *image, int profile_bands )
 		case VIPS_INTERPRETATION_MATRIX:
 		case VIPS_INTERPRETATION_FOURIER:
 		default:
-			return( image->Bands == profile_bands );
+			return( image->Bands >= profile_bands );
 	}
 }
 
