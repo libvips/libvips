@@ -3,28 +3,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -56,17 +56,17 @@
  * @include: vips/vips.h
  *
  * Histograms and look-up tables are 1xn or nx1 images, where n is less than
- * 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images. 
- * They are tagged with a #VipsInterpretation of 
- * #VIPS_INTERPRETATION_HISTOGRAM and usually displayed by user-interfaces 
+ * 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images.
+ * They are tagged with a #VipsInterpretation of
+ * #VIPS_INTERPRETATION_HISTOGRAM and usually displayed by user-interfaces
  * such as nip2 as plots rather than images.
  *
- * These functions can be broadly grouped as things to find or build 
+ * These functions can be broadly grouped as things to find or build
  * histograms (vips_hist_find(), vips_hist_find_indexed(),
- * vips_hist_find_ndim(), vips_buildlut(), vips_identity()), 
- * operations that 
- * manipulate histograms in some way (vips_hist_cum(), vips_hist_norm()), 
- * operations to apply histograms (vips_maplut()), and a variety of utility 
+ * vips_hist_find_ndim(), vips_buildlut(), vips_identity()),
+ * operations that
+ * manipulate histograms in some way (vips_hist_cum(), vips_hist_norm()),
+ * operations to apply histograms (vips_maplut()), and a variety of utility
  * operations.
  *
  * A final group of operations build tone curves. These are useful in
@@ -74,46 +74,46 @@
  * for CIELAB images, but might be useful elsewhere.
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION );
+G_DEFINE_ABSTRACT_TYPE(VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION);
 
-/* sizealike by expanding in just one dimension and copying the final element. 
+/* sizealike by expanding in just one dimension and copying the final element.
  */
 static int
-vips__hist_sizealike_vec( VipsImage **in, VipsImage **out, int n )
+vips__hist_sizealike_vec(VipsImage **in, VipsImage **out, int n)
 {
 	int i;
 	int max_size;
 
-	g_assert( n >= 1 );
+	g_assert(n >= 1);
 
-	max_size = VIPS_MAX( in[0]->Xsize, in[0]->Ysize );
-	for( i = 1; i < n; i++ ) 
-		max_size = VIPS_MAX( max_size, 
-			VIPS_MAX( in[0]->Xsize, in[0]->Ysize ) );
+	max_size = VIPS_MAX(in[0]->Xsize, in[0]->Ysize);
+	for (i = 1; i < n; i++)
+		max_size = VIPS_MAX(max_size,
+			VIPS_MAX(in[0]->Xsize, in[0]->Ysize));
 
-	for( i = 0; i < n; i++ ) 
-		if( in[i]->Ysize == 1 ) {
-			if( vips_embed( in[i], &out[i], 0, 0, max_size, 1, 
-				"extend", VIPS_EXTEND_COPY,
-				NULL ) )
-				return( -1 );
+	for (i = 0; i < n; i++)
+		if (in[i]->Ysize == 1) {
+			if (vips_embed(in[i], &out[i], 0, 0, max_size, 1,
+					"extend", VIPS_EXTEND_COPY,
+					NULL))
+				return -1;
 		}
 		else {
-			if( vips_embed( in[i], &out[i], 0, 0, 1, max_size, 
-				"extend", VIPS_EXTEND_COPY,
-				NULL ) )
-				return( -1 );
+			if (vips_embed(in[i], &out[i], 0, 0, 1, max_size,
+					"extend", VIPS_EXTEND_COPY,
+					NULL))
+				return -1;
 		}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_histogram_build( VipsObject *object )
+vips_histogram_build(VipsObject *object)
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHistogramClass *hclass = VIPS_HISTOGRAM_GET_CLASS( histogram );
+	VipsHistogram *histogram = VIPS_HISTOGRAM(object);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_GET_CLASS(histogram);
 
 	VipsImage **decode;
 	VipsImage **format;
@@ -121,106 +121,106 @@ vips_histogram_build( VipsObject *object )
 	VipsImage **size;
 	VipsImage **memory;
 
-	VipsPel *outbuf;		
-	VipsPel **inbuf;		
+	VipsPel *outbuf;
+	VipsPel **inbuf;
 	int i;
 
 #ifdef DEBUG
-	printf( "vips_histogram_build: " );
-	vips_object_print_name( object );
-	printf( "\n" );
+	printf("vips_histogram_build: ");
+	vips_object_print_name(object);
+	printf("\n");
 #endif /*DEBUG*/
 
-	if( VIPS_OBJECT_CLASS( vips_histogram_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_histogram_parent_class)->build(object))
+		return -1;
 
-	g_assert( histogram->n > 0 ); 
+	g_assert(histogram->n > 0);
 
 	/* Must be NULL-terminated.
 	 */
-	g_assert( !histogram->in[histogram->n] ); 
+	g_assert(!histogram->in[histogram->n]);
 
-	decode = (VipsImage **) vips_object_local_array( object, histogram->n );
-	format = (VipsImage **) vips_object_local_array( object, histogram->n );
-	band = (VipsImage **) vips_object_local_array( object, histogram->n );
-	size = (VipsImage **) vips_object_local_array( object, histogram->n );
-	memory = (VipsImage **) vips_object_local_array( object, histogram->n );
+	decode = (VipsImage **) vips_object_local_array(object, histogram->n);
+	format = (VipsImage **) vips_object_local_array(object, histogram->n);
+	band = (VipsImage **) vips_object_local_array(object, histogram->n);
+	size = (VipsImage **) vips_object_local_array(object, histogram->n);
+	memory = (VipsImage **) vips_object_local_array(object, histogram->n);
 
-	g_object_set( histogram, "out", vips_image_new(), NULL ); 
+	g_object_set(histogram, "out", vips_image_new(), NULL);
 
-	for( i = 0; i < histogram->n; i++ ) 
-		if( vips_image_decode( histogram->in[i], &decode[i] ) ||
-			vips_check_hist( class->nickname, decode[i] ) )
-			return( -1 ); 
+	for (i = 0; i < histogram->n; i++)
+		if (vips_image_decode(histogram->in[i], &decode[i]) ||
+			vips_check_hist(class->nickname, decode[i]))
+			return -1;
 
 	/* Cast our input images up to a common format, bands and size. If
 	 * input_format is set, cast to a fixed input type.
 	 */
-	if( hclass->input_format != VIPS_FORMAT_NOTSET ) {
-		for( i = 0; i < histogram->n; i++ ) 
-			if( vips_cast( decode[i], &format[i],
-				hclass->input_format, NULL ) )
-				return( -1 ); 
+	if (hclass->input_format != VIPS_FORMAT_NOTSET) {
+		for (i = 0; i < histogram->n; i++)
+			if (vips_cast(decode[i], &format[i],
+					hclass->input_format, NULL))
+				return -1;
 	}
 	else {
-		if( vips__formatalike_vec( decode, format, histogram->n ) )
-			return( -1 );
+		if (vips__formatalike_vec(decode, format, histogram->n))
+			return -1;
 	}
-		
-	if( vips__bandalike_vec( class->nickname, 
-		format, band, histogram->n, 1 ) ||
-		vips__hist_sizealike_vec( band, size, histogram->n ) ) 
-		return( -1 );
 
-	if( vips_image_pipeline_array( histogram->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, size ) ) 
-		return( -1 );
+	if (vips__bandalike_vec(class->nickname,
+			format, band, histogram->n, 1) ||
+		vips__hist_sizealike_vec(band, size, histogram->n))
+		return -1;
+
+	if (vips_image_pipeline_array(histogram->out,
+			VIPS_DEMAND_STYLE_THINSTRIP, size))
+		return -1;
 
 	/* Need a copy of the inputs in memory.
 	 */
-	if( !(inbuf = VIPS_ARRAY( object, histogram->n + 1, VipsPel * )) )
-                return( -1 );
-	for( i = 0; i < histogram->n; i++ ) {
-		if( !(memory[i] = vips_image_copy_memory( size[i] )) )
-			return( -1 ); 
-		inbuf[i] = VIPS_IMAGE_ADDR( memory[i], 0, 0 );
+	if (!(inbuf = VIPS_ARRAY(object, histogram->n + 1, VipsPel *)))
+		return -1;
+	for (i = 0; i < histogram->n; i++) {
+		if (!(memory[i] = vips_image_copy_memory(size[i])))
+			return -1;
+		inbuf[i] = VIPS_IMAGE_ADDR(memory[i], 0, 0);
 	}
-	inbuf[i] = NULL; 
+	inbuf[i] = NULL;
 
 	/* Keep a copy of the memory images here for subclasses.
 	 */
 	histogram->ready = memory;
 
-	histogram->out->Xsize = VIPS_IMAGE_N_PELS( histogram->ready[0] );
+	histogram->out->Xsize = VIPS_IMAGE_N_PELS(histogram->ready[0]);
 	histogram->out->Ysize = 1;
-	if( hclass->format_table ) 
-		histogram->out->BandFmt = 
+	if (hclass->format_table)
+		histogram->out->BandFmt =
 			hclass->format_table[histogram->ready[0]->BandFmt];
 	histogram->out->Type = VIPS_INTERPRETATION_HISTOGRAM;
 
-	if( !(outbuf = vips_malloc( object, 
-		VIPS_IMAGE_SIZEOF_LINE( histogram->out ))) )
-                return( -1 );
+	if (!(outbuf = vips_malloc(object,
+			  VIPS_IMAGE_SIZEOF_LINE(histogram->out))))
+		return -1;
 
-	hclass->process( histogram, outbuf, inbuf, histogram->ready[0]->Xsize );
+	hclass->process(histogram, outbuf, inbuf, histogram->ready[0]->Xsize);
 
-	if( vips_image_write_line( histogram->out, 0, outbuf ) )
-		return( -1 ); 
+	if (vips_image_write_line(histogram->out, 0, outbuf))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_histogram_class_init( VipsHistogramClass *class )
+vips_histogram_class_init(VipsHistogramClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "histogram";
-	vobject_class->description = _( "histogram operations" );
+	vobject_class->description = _("histogram operations");
 	vobject_class->build = vips_histogram_build;
 
 	class->input_format = VIPS_FORMAT_NOTSET;
@@ -228,16 +228,15 @@ vips_histogram_class_init( VipsHistogramClass *class )
 	/* Inputs set by subclassess.
 	 */
 
-	VIPS_ARG_IMAGE( class, "out", 10, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsHistogram, out ) );
-
+	VIPS_ARG_IMAGE(class, "out", 10,
+		_("Output"),
+		_("Output image"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsHistogram, out));
 }
 
 static void
-vips_histogram_init( VipsHistogram *histogram )
+vips_histogram_init(VipsHistogram *histogram)
 {
 	/* Sanity check this above.
 	 */
@@ -248,20 +247,20 @@ vips_histogram_init( VipsHistogram *histogram )
  * instead?
  */
 void
-vips_histogram_operation_init( void )
+vips_histogram_operation_init(void)
 {
-	extern GType vips_maplut_get_type( void ); 
-	extern GType vips_case_get_type( void ); 
-	extern GType vips_percent_get_type( void ); 
-	extern GType vips_hist_cum_get_type( void ); 
-	extern GType vips_hist_norm_get_type( void ); 
-	extern GType vips_hist_equal_get_type( void ); 
-	extern GType vips_hist_plot_get_type( void ); 
-	extern GType vips_hist_match_get_type( void ); 
-	extern GType vips_hist_local_get_type( void ); 
-	extern GType vips_hist_ismonotonic_get_type( void ); 
-	extern GType vips_hist_entropy_get_type( void ); 
-	extern GType vips_stdif_get_type( void ); 
+	extern GType vips_maplut_get_type(void);
+	extern GType vips_case_get_type(void);
+	extern GType vips_percent_get_type(void);
+	extern GType vips_hist_cum_get_type(void);
+	extern GType vips_hist_norm_get_type(void);
+	extern GType vips_hist_equal_get_type(void);
+	extern GType vips_hist_plot_get_type(void);
+	extern GType vips_hist_match_get_type(void);
+	extern GType vips_hist_local_get_type(void);
+	extern GType vips_hist_ismonotonic_get_type(void);
+	extern GType vips_hist_entropy_get_type(void);
+	extern GType vips_stdif_get_type(void);
 
 	vips_maplut_get_type();
 	vips_case_get_type();
@@ -274,5 +273,5 @@ vips_histogram_operation_init( void )
 	vips_hist_match_get_type();
 	vips_hist_local_get_type();
 	vips_hist_ismonotonic_get_type();
-	vips_hist_entropy_get_type(); 
+	vips_hist_entropy_get_type();
 }

@@ -1,15 +1,15 @@
-/* @(#)  Function which improves the selection of tiepoints carried out by 
+/* @(#)  Function which improves the selection of tiepoints carried out by
  * @(#) vips_clinear() until no points have deviation greater than 1 pixel
  * @(#) No reference or secondary images are involved
  * @(#) Function vips__improve assumes that vips_clinear has been applied on points
  * @(#) No images are involved in this function and the result is
  * @(#) returned in outpoints which is declared as a pointer in the
- * @(#) calling routine. Space for outpoints should be allocated in the calling 
+ * @(#) calling routine. Space for outpoints should be allocated in the calling
  * @(#) routine
  * @(#)
- * @(#) int vips__improve( inpoints, outpoints )
+ * @(#) int vips__improve(inpoints, outpoints)
  * @(#) TiePoints *inpoints, *outpoints;
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
@@ -21,28 +21,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -60,7 +60,7 @@
 #include "pmosaicing.h"
 
 static void
-copypoints( TiePoints *pnew, TiePoints *pold )
+copypoints(TiePoints *pnew, TiePoints *pold)
 {
 	int i;
 
@@ -73,7 +73,7 @@ copypoints( TiePoints *pnew, TiePoints *pold )
 	pnew->halfcorsize = pold->halfcorsize;
 	pnew->halfareasize = pold->halfareasize;
 
-	for( i = 0; i < pold->nopoints; i++ ) {
+	for (i = 0; i < pold->nopoints; i++) {
 		pnew->x_reference[i] = pold->x_reference[i];
 		pnew->y_reference[i] = pold->y_reference[i];
 		pnew->x_secondary[i] = pold->x_secondary[i];
@@ -94,32 +94,32 @@ copypoints( TiePoints *pnew, TiePoints *pold )
 /* exclude all points with deviation greater or equal to 1.0 pixel
  */
 static int
-copydevpoints( TiePoints *pnew, TiePoints *pold )
+copydevpoints(TiePoints *pnew, TiePoints *pold)
 {
 	int i;
 	int j;
-	double thresh_dev,max_dev, min_dev;
+	double thresh_dev, max_dev, min_dev;
 	double *corr;
 
 	min_dev = 9999.0;
 	max_dev = 0.0;
 	corr = &pold->correlation[0];
 
-	for( i = 0; i < pold->nopoints; i++ )
-		if( corr[i] > 0.01 ) { 
-			if( pold->deviation[i] / corr[i] < min_dev )
-				min_dev = pold->deviation[i]/corr[i] ;
-			if( pold->deviation[i] / corr[i] > max_dev )
-				max_dev = pold->deviation[i]/corr[i];
+	for (i = 0; i < pold->nopoints; i++)
+		if (corr[i] > 0.01) {
+			if (pold->deviation[i] / corr[i] < min_dev)
+				min_dev = pold->deviation[i] / corr[i];
+			if (pold->deviation[i] / corr[i] > max_dev)
+				max_dev = pold->deviation[i] / corr[i];
 		}
 
 	thresh_dev = min_dev + (max_dev - min_dev) * 0.3;
-	if( thresh_dev <= 1.0 ) 
+	if (thresh_dev <= 1.0)
 		thresh_dev = 1.0;
 
-	for( i = 0, j = 0; i < pold->nopoints; i++ ) 
-		if( pold->correlation[i] > 0.01 )
-			if( pold->deviation[i] / corr[i] <= thresh_dev ) {
+	for (i = 0, j = 0; i < pold->nopoints; i++)
+		if (pold->correlation[i] > 0.01)
+			if (pold->deviation[i] / corr[i] <= thresh_dev) {
 				pnew->x_reference[j] = pold->x_reference[i];
 				pnew->y_reference[j] = pold->y_reference[i];
 				pnew->x_secondary[j] = pold->x_secondary[i];
@@ -133,7 +133,7 @@ copydevpoints( TiePoints *pnew, TiePoints *pold )
 			}
 	pnew->nopoints = j;
 
-	for( i = j; i < VIPS_MAXPOINTS; i++ ) {
+	for (i = j; i < VIPS_MAXPOINTS; i++) {
 		pnew->x_reference[i] = 0;
 		pnew->y_reference[i] = 0;
 		pnew->x_secondary[i] = 0;
@@ -147,14 +147,14 @@ copydevpoints( TiePoints *pnew, TiePoints *pold )
 
 	/* Return non-zero if we changed something.
 	 */
-	if( j != pold->nopoints )
-		return( -1 );
+	if (j != pold->nopoints)
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
-int 
-vips__improve( TiePoints *inpoints, TiePoints *outpoints )
+int
+vips__improve(TiePoints *inpoints, TiePoints *outpoints)
 {
 	TiePoints points1, points2;
 	TiePoints *p = &points1;
@@ -163,26 +163,26 @@ vips__improve( TiePoints *inpoints, TiePoints *outpoints )
 	/* p has the current state - make a new state, q, with only those
 	 * points which have a small deviation.
 	 */
-	for( copypoints( p, inpoints ); 
-		copypoints( q, p ), copydevpoints( q, p ); ) {
+	for (copypoints(p, inpoints);
+		 copypoints(q, p), copydevpoints(q, p);) {
 		/* If there are only a few left, jump out.
 		 */
-		if( q->nopoints < 2 )
+		if (q->nopoints < 2)
 			break;
 
 		/* Fit the model to the new set of points.
 		 */
-		if( vips__clinear( q ) )
-			return( -1 );
+		if (vips__clinear(q))
+			return -1;
 
 		/* And loop.
 		 */
-		VIPS_SWAP( void *, p, q );
+		VIPS_SWAP(void *, p, q);
 	}
 
 	/* q has the output - copy to outpoints.
 	 */
-	copypoints( outpoints, q );
+	copypoints(outpoints, q);
 
-	return( 0 );
+	return 0;
 }

@@ -1,8 +1,8 @@
 /* @(#) Extract a tile from a pyramid as a jpeg
  * @(#)
- * @(#) int 
- * @(#) im_bernd( const char *tiffname, 
- * @(#) 	int x, int y, int w, int h )
+ * @(#) int
+ * @(#) im_bernd(const char *tiffname,
+ * @(#) 	int x, int y, int w, int h)
  * @(#)
  * @(#)
  * @(#) Returns 0 on success and -1 on error
@@ -18,28 +18,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -55,39 +55,39 @@
 #include <vips/vips7compat.h>
 
 static int
-extract( IMAGE *in, int x, int y, int w, int h )
+extract(IMAGE *in, int x, int y, int w, int h)
 {
 	IMAGE *t1;
 	int len;
 	char *buf;
 
-	if( !(t1 = im_open_local( in, "im_bernd:2", "p" )) ||
-		im_extract_area( in, t1, x, y, w, h ) ||
-		im_vips2bufjpeg( t1, in, 75, &buf, &len ) )
-		return( -1 );
+	if (!(t1 = im_open_local(in, "im_bernd:2", "p")) ||
+		im_extract_area(in, t1, x, y, w, h) ||
+		im_vips2bufjpeg(t1, in, 75, &buf, &len))
+		return -1;
 
-	if( fwrite( buf, sizeof( char ), len, stdout ) != (size_t) len ) {
-		im_error( "im_bernd", "%s", _( "error writing output" ) );
-		return( -1 );
+	if (fwrite(buf, sizeof(char), len, stdout) != (size_t) len) {
+		im_error("im_bernd", "%s", _("error writing output"));
+		return -1;
 	}
-	fflush( stdout );
+	fflush(stdout);
 
-	return( 0 );
+	return 0;
 }
 
 int
-im_bernd( const char *tiffname, int x, int y, int w, int h )
+im_bernd(const char *tiffname, int x, int y, int w, int h)
 {
 	IMAGE *in;
 
-	if( !(in = im_open( "im_bernd:1", "p" )) )
-		return( -1 );
-	if( im_tiff2vips( tiffname, in ) ||
-		extract( in, x, y, w, h ) ) {
-		im_close( in );
-		return( -1 );
+	if (!(in = im_open("im_bernd:1", "p")))
+		return -1;
+	if (im_tiff2vips(tiffname, in) ||
+		extract(in, x, y, w, h)) {
+		im_close(in);
+		return -1;
 	}
-	im_close( in );
+	im_close(in);
 
-	return( 0 );
+	return 0;
 }

@@ -10,28 +10,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -48,44 +48,47 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 
-static int 
-im__mean_std_int_buffer( int *buffer, int size, 
-	double *pmean, double *pstd )
+static int
+im__mean_std_int_buffer(int *buffer, int size,
+	double *pmean, double *pstd)
 {
 	double mean, std;
 	register int i;
-	int sumf;	
+	int sumf;
 	int temp;
 	int *pbuffer;
 	int sumf2;
 	double correction; /* calulates the correction term for the variance */
-	double variance;	/* = (sumf2 - correction)/n */
-	
+	double variance;   /* = (sumf2 - correction)/n */
+
 	if (size <= 0) {
-		im_error( "im_mean_std_int_buffer", "%s", _( "wrong args") );
-		return(-1);
+		im_error("im_mean_std_int_buffer", "%s", _("wrong args"));
+		return -1;
 	}
 
-	mean = 0.0; std = 0.0;
-	sumf = 0; sumf2 = 0;
+	mean = 0.0;
+	std = 0.0;
+	sumf = 0;
+	sumf2 = 0;
 	pbuffer = buffer;
-	for (i=0; i<size; i++) {
+	for (i = 0; i < size; i++) {
 		temp = *pbuffer++;
 		sumf += temp;
-		sumf2 += (temp*temp);
+		sumf2 += (temp * temp);
 	}
 
-	correction = ((double)(sumf * sumf))/((double)size);
-	mean = ((double)sumf)/((double)size);
-	variance = ( sumf2 - correction)/((double)size);
+	correction = ((double) (sumf * sumf)) / ((double) size);
+	mean = ((double) sumf) / ((double) size);
+	variance = (sumf2 - correction) / ((double) size);
 	std = sqrt(variance);
 	*pmean = mean;
 	*pstd = std;
 
-	return(0);
+	return 0;
 }
 
-int im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, double *pmean, double *pstd)
+int
+im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, double *pmean, double *pstd)
 {
 	PEL *input, *cpinput;
 	double m, s;
@@ -93,43 +96,44 @@ int im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int 
 	int x, y;
 	int ofst, bufsize;
 
+	if (im_incheck(im))
+		return -1;
 
-	if( im_incheck( im ) )
-		return( -1 );
-
-	if ((im->Bands != 1)||(im->BandFmt != IM_BANDFMT_UCHAR)) {
-		im_error( "im_dif_std", "%s", _( "Unable to accept input") ); 
-		return(-1);}
-	if ( (xpos + xsize + dx > im->Xsize)|| (ypos + ysize + dy > im->Ysize) ) { 
-		im_error( "im_dif_std", "%s", _( "wrong args") ); 
-		return(-1); }
+	if ((im->Bands != 1) || (im->BandFmt != IM_BANDFMT_UCHAR)) {
+		im_error("im_dif_std", "%s", _("Unable to accept input"));
+		return -1;
+	}
+	if ((xpos + xsize + dx > im->Xsize) || (ypos + ysize + dy > im->Ysize)) {
+		im_error("im_dif_std", "%s", _("wrong args"));
+		return -1;
+	}
 
 	bufsize = xsize * ysize;
-	buf = (int *)calloc( (unsigned)bufsize, sizeof(int) );
-	if ( buf == NULL ) { 
-		im_error( "im_dif_std", "%s", _( "calloc failed") ); 
-		return(-1); }
-	input = (PEL*)im->data;
-	input += ( ypos * im->Xsize + xpos );
+	buf = (int *) calloc((unsigned) bufsize, sizeof(int));
+	if (buf == NULL) {
+		im_error("im_dif_std", "%s", _("calloc failed"));
+		return -1;
+	}
+	input = (PEL *) im->data;
+	input += (ypos * im->Xsize + xpos);
 	ofst = dy * im->Xsize + dx;
 	pbuf = buf;
-	for ( y=0; y<ysize; y++ )
-		{
+	for (y = 0; y < ysize; y++) {
 		cpinput = input;
 		input += im->Xsize;
-		for ( x=0; x<xsize; x++ )
-			{
-			*pbuf++ = ((int)(*cpinput))-((int)(*(cpinput + ofst)));
+		for (x = 0; x < xsize; x++) {
+			*pbuf++ = ((int) (*cpinput)) - ((int) (*(cpinput + ofst)));
 			cpinput++;
-			}
 		}
+	}
 
-	m = 0.0; s = 0.0;
-	if( im__mean_std_int_buffer( buf, bufsize, &m, &s ) )
-		return(-1);
+	m = 0.0;
+	s = 0.0;
+	if (im__mean_std_int_buffer(buf, bufsize, &m, &s))
+		return -1;
 	*pmean = m;
 	*pstd = s;
-	free((char*)buf);
+	free((char *) buf);
 
-	return(0);
+	return 0;
 }

@@ -1,33 +1,33 @@
 /* Read a csv file.
- * 
+ *
  * 16/12/11
  * 	- just a stub
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -48,7 +48,7 @@
 #include "../foreign/pforeign.h"
 
 int
-im_csv2vips( const char *filename, IMAGE *out )
+im_csv2vips(const char *filename, IMAGE *out)
 {
 	/* Read options.
 	 */
@@ -65,33 +65,33 @@ im_csv2vips( const char *filename, IMAGE *out )
 
 	/* Parse mode string.
 	 */
-	im_filename_split( filename, name, mode );
+	im_filename_split(filename, name, mode);
 	p = &mode[0];
-	while( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "ski", q ) && (r = im_getsuboption( q )) )
-			start_skip = atoi( r );
-		else if( im_isprefix( "whi", q ) && (r = im_getsuboption( q )) )
+	while ((q = im_getnextoption(&p))) {
+		if (im_isprefix("ski", q) && (r = im_getsuboption(q)))
+			start_skip = atoi(r);
+		else if (im_isprefix("whi", q) && (r = im_getsuboption(q)))
 			whitespace = r;
-		else if( im_isprefix( "sep", q ) && (r = im_getsuboption( q )) )
+		else if (im_isprefix("sep", q) && (r = im_getsuboption(q)))
 			separator = r;
-		else if( im_isprefix( "lin", q ) && (r = im_getsuboption( q )) )
-			lines = atoi( r );
+		else if (im_isprefix("lin", q) && (r = im_getsuboption(q)))
+			lines = atoi(r);
 	}
 
-	if( vips_csvload( name, &x, 
-		"skip", start_skip,
-		"lines", lines,
-		"whitespace", whitespace,
-		"separator", separator,
-		NULL ) )
-		return( -1 );
-	if( vips_image_write( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
+	if (vips_csvload(name, &x,
+			"skip", start_skip,
+			"lines", lines,
+			"whitespace", whitespace,
+			"separator", separator,
+			NULL))
+		return -1;
+	if (vips_image_write(x, out)) {
+		g_object_unref(x);
+		return -1;
 	}
-	g_object_unref( x );
+	g_object_unref(x);
 
-	return( 0 );
+	return 0;
 }
 
 static const char *csv_suffs[] = { ".csv", NULL };
@@ -102,13 +102,13 @@ typedef VipsFormat VipsFormatCsv;
 typedef VipsFormatClass VipsFormatCsvClass;
 
 static void
-vips_format_csv_class_init( VipsFormatCsvClass *class )
+vips_format_csv_class_init(VipsFormatCsvClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "csv";
-	object_class->description = _( "CSV" );
+	object_class->description = _("CSV");
 
 	format_class->load = im_csv2vips;
 	format_class->save = im_vips2csv;
@@ -116,8 +116,8 @@ vips_format_csv_class_init( VipsFormatCsvClass *class )
 }
 
 static void
-vips_format_csv_init( VipsFormatCsv *object )
+vips_format_csv_init(VipsFormatCsv *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatCsv, vips_format_csv, VIPS_TYPE_FORMAT );
+G_DEFINE_TYPE(VipsFormatCsv, vips_format_csv, VIPS_TYPE_FORMAT);

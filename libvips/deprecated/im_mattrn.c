@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -43,7 +43,7 @@
 
 /**
  * im_mattrn:
- * @in: input matrix 
+ * @in: input matrix
  * @filename: name for output matrix
  *
  * Transposes the input matrix.
@@ -54,16 +54,16 @@
  * Returns: the result matrix on success, or %NULL on error.
  */
 DOUBLEMASK *
-im_mattrn( DOUBLEMASK *in, const char *name )
-{	
+im_mattrn(DOUBLEMASK *in, const char *name)
+{
 	int xc, yc;
 	DOUBLEMASK *mat;
 	double *out, *a, *b;
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( name, in->ysize, in->xsize )) ) 
-		return( NULL );
+	if (!(mat = im_create_dmask(name, in->ysize, in->xsize)))
+		return NULL;
 	mat->scale = in->scale;
 	mat->offset = in->offset;
 
@@ -72,10 +72,10 @@ im_mattrn( DOUBLEMASK *in, const char *name )
 	out = mat->coeff;
 	a = in->coeff;
 
-	for( yc = 0; yc < mat->ysize; yc++ ) {
+	for (yc = 0; yc < mat->ysize; yc++) {
 		b = a;
 
-		for( xc = 0; xc < mat->xsize; xc++ ) {
+		for (xc = 0; xc < mat->xsize; xc++) {
 			*out++ = *b;
 			b += in->xsize;
 		}
@@ -83,5 +83,5 @@ im_mattrn( DOUBLEMASK *in, const char *name )
 		a++;
 	}
 
-	return( mat );
+	return mat;
 }

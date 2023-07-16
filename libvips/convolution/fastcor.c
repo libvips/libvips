@@ -12,7 +12,7 @@
  * 21/2/95 JC
  * 	- partialed
  *	- speed-ups
- * 7/4/04 
+ * 7/4/04
  *	- now uses im_embed() with edge stretching on the output
  *	- sets Xoffset / Yoffset
  * 8/3/06 JC
@@ -28,28 +28,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -69,119 +69,122 @@
 typedef VipsCorrelationClass VipsFastcor;
 typedef VipsCorrelationClass VipsFastcorClass;
 
-G_DEFINE_TYPE( VipsFastcor, vips_fastcor, VIPS_TYPE_CORRELATION );
+G_DEFINE_TYPE(VipsFastcor, vips_fastcor, VIPS_TYPE_CORRELATION);
 
-#define CORR_INT( TYPE ) { \
-	for( y = 0; y < r->height; y++ ) { \
-		unsigned int *q = (unsigned int *) \
-			VIPS_REGION_ADDR( out, r->left, r->top + y ); \
-		\
-		for( x = 0; x < r->width; x++ ) \
-			for( b = 0; b < bands; b++ ) {  \
-				TYPE *p1 = (TYPE *) ref->data; \
-				TYPE *p2 = (TYPE *) VIPS_REGION_ADDR( in,  \
-					r->left + x, r->top + y ); \
-				\
-				unsigned int sum; \
-				\
-				sum = 0; \
-				for( j = 0; j < ref->Ysize; j++ ) { \
-					for( i = b; i < sz; i += bands ) { \
-						int t = p1[i] - p2[i]; \
-						\
-						sum += t * t; \
+#define CORR_INT(TYPE) \
+	{ \
+		for (y = 0; y < r->height; y++) { \
+			unsigned int *q = (unsigned int *) \
+				VIPS_REGION_ADDR(out, r->left, r->top + y); \
+\
+			for (x = 0; x < r->width; x++) \
+				for (b = 0; b < bands; b++) { \
+					TYPE *p1 = (TYPE *) ref->data; \
+					TYPE *p2 = (TYPE *) VIPS_REGION_ADDR(in, \
+						r->left + x, r->top + y); \
+\
+					unsigned int sum; \
+\
+					sum = 0; \
+					for (j = 0; j < ref->Ysize; j++) { \
+						for (i = b; i < sz; i += bands) { \
+							int t = p1[i] - p2[i]; \
+\
+							sum += t * t; \
+						} \
+\
+						p1 += sz; \
+						p2 += lsk; \
 					} \
-					\
-					p1 += sz; \
-					p2 += lsk; \
+\
+					*q++ = sum; \
 				} \
-				\
-				*q++ = sum; \
-			} \
-	} \
-}
+		} \
+	}
 
-#define CORR_FLOAT( TYPE ) { \
-	for( y = 0; y < r->height; y++ ) { \
-		TYPE *q = (TYPE *) \
-			VIPS_REGION_ADDR( out, r->left, r->top + y ); \
-		\
-		for( x = 0; x < r->width; x++ ) \
-			for( b = 0; b < bands; b++ ) {  \
-				TYPE *p_ref = (TYPE *) ref->data; \
-				TYPE *p_in = (TYPE *) VIPS_REGION_ADDR( in,  \
-					r->left + x, r->top + y ); \
-				\
-				TYPE sum; \
-				\
-				sum = 0; \
-				for( j = 0; j < ref->Ysize; j++ ) { \
-					for( i = b; i < sz; i += bands ) { \
-						TYPE dif = p_ref[i] - p_in[i]; \
-						\
-						sum += dif * dif; \
+#define CORR_FLOAT(TYPE) \
+	{ \
+		for (y = 0; y < r->height; y++) { \
+			TYPE *q = (TYPE *) \
+				VIPS_REGION_ADDR(out, r->left, r->top + y); \
+\
+			for (x = 0; x < r->width; x++) \
+				for (b = 0; b < bands; b++) { \
+					TYPE *p_ref = (TYPE *) ref->data; \
+					TYPE *p_in = (TYPE *) VIPS_REGION_ADDR(in, \
+						r->left + x, r->top + y); \
+\
+					TYPE sum; \
+\
+					sum = 0; \
+					for (j = 0; j < ref->Ysize; j++) { \
+						for (i = b; i < sz; i += bands) { \
+							TYPE dif = p_ref[i] - p_in[i]; \
+\
+							sum += dif * dif; \
+						} \
+\
+						p_ref += sz; \
+						p_in += lsk; \
 					} \
-					\
-					p_ref += sz; \
-					p_in += lsk; \
+\
+					*q++ = sum; \
 				} \
-				\
-				*q++ = sum; \
-			} \
-	} \
-}
+		} \
+	}
 
 static void
-vips_fastcor_correlation( VipsCorrelation *correlation,
-	VipsRegion *in, VipsRegion *out )
+vips_fastcor_correlation(VipsCorrelation *correlation,
+	VipsRegion *in, VipsRegion *out)
 {
 	VipsRect *r = &out->valid;
 	VipsImage *ref = correlation->ref_ready;
-	int bands = vips_band_format_iscomplex( ref->BandFmt ) ? 
-		ref->Bands * 2 : ref->Bands; 
-	int sz = ref->Xsize * bands; 
-	int lsk = VIPS_REGION_LSKIP( in ) / VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
+	int bands = vips_band_format_iscomplex(ref->BandFmt)
+		? ref->Bands * 2
+		: ref->Bands;
+	int sz = ref->Xsize * bands;
+	int lsk = VIPS_REGION_LSKIP(in) / VIPS_IMAGE_SIZEOF_ELEMENT(in->im);
 
 	int x, y, i, j, b;
 
-        switch( vips_image_get_format( ref ) ) {
-        case VIPS_FORMAT_CHAR: 	
-		CORR_INT( signed char ); 
-		break; 
-
-        case VIPS_FORMAT_UCHAR:	
-		CORR_INT( unsigned char ); 
-		break; 
-
-        case VIPS_FORMAT_SHORT:	
-		CORR_INT( signed short ); 
-		break; 
-
-        case VIPS_FORMAT_USHORT:
-		CORR_INT( unsigned short ); 
-		break; 
-
-        case VIPS_FORMAT_INT: 	
-		CORR_INT( signed int ); 
-		break; 
-
-        case VIPS_FORMAT_UINT: 	
-		CORR_INT( unsigned int ); 
-		break; 
-
-        case VIPS_FORMAT_FLOAT:	
-        case VIPS_FORMAT_COMPLEX: 
-		CORR_FLOAT( float ); 
-		break; 
-
-        case VIPS_FORMAT_DOUBLE: 
-        case VIPS_FORMAT_DPCOMPLEX: 
-		CORR_FLOAT( double ); 
+	switch (vips_image_get_format(ref)) {
+	case VIPS_FORMAT_CHAR:
+		CORR_INT(signed char);
 		break;
 
-        default:
+	case VIPS_FORMAT_UCHAR:
+		CORR_INT(unsigned char);
+		break;
+
+	case VIPS_FORMAT_SHORT:
+		CORR_INT(signed short);
+		break;
+
+	case VIPS_FORMAT_USHORT:
+		CORR_INT(unsigned short);
+		break;
+
+	case VIPS_FORMAT_INT:
+		CORR_INT(signed int);
+		break;
+
+	case VIPS_FORMAT_UINT:
+		CORR_INT(unsigned int);
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		CORR_FLOAT(float);
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		CORR_FLOAT(double);
+		break;
+
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -197,7 +200,7 @@ vips_fastcor_correlation( VipsCorrelation *correlation,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for multiplication. Sign and value preserving. Make sure 
+/* Type promotion for multiplication. Sign and value preserving. Make sure
  * these match the case statement in multiply_buffer() above.
  */
 static const VipsBandFormat vips_fastcor_format_table[10] = {
@@ -206,20 +209,20 @@ static const VipsBandFormat vips_fastcor_format_table[10] = {
 };
 
 static void
-vips_fastcor_class_init( VipsFastcorClass *class )
+vips_fastcor_class_init(VipsFastcorClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsCorrelationClass *cclass = VIPS_CORRELATION_CLASS( class );
+	VipsCorrelationClass *cclass = VIPS_CORRELATION_CLASS(class);
 
 	object_class->nickname = "fastcor";
-	object_class->description = _( "fast correlation" );
+	object_class->description = _("fast correlation");
 
 	cclass->format_table = vips_fastcor_format_table;
 	cclass->correlation = vips_fastcor_correlation;
 }
 
 static void
-vips_fastcor_init( VipsFastcor *fastcor )
+vips_fastcor_init(VipsFastcor *fastcor)
 {
 }
 
@@ -233,19 +236,19 @@ vips_fastcor_init( VipsFastcor *fastcor )
  * Calculate a fast correlation surface.
  *
  * @ref is placed at every position in @in and the sum of squares of
- * differences calculated. 
+ * differences calculated.
  *
  * The output
- * image is the same size as the input. Extra input edge pixels are made by 
- * copying the existing edges outwards. 
+ * image is the same size as the input. Extra input edge pixels are made by
+ * copying the existing edges outwards.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
  * The output type is uint if both inputs are integer, float if both are float
- * or complex, and double if either is double or double complex. 
+ * or complex, and double if either is double or double complex.
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
@@ -253,15 +256,15 @@ vips_fastcor_init( VipsFastcor *fastcor )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+int
+vips_fastcor(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "fastcor", ap, in, ref, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("fastcor", ap, in, ref, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

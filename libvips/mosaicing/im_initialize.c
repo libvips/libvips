@@ -1,27 +1,27 @@
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -37,10 +37,10 @@
 
 #include "pmosaicing.h"
 
-int 
-vips__initialize( TiePoints *points )
+int
+vips__initialize(TiePoints *points)
 {
-	if( vips__clinear( points ) ) {
+	if (vips__clinear(points)) {
 		/* vips_clinear failed! Set some sensible fallback values.
 		 */
 		int i, j;
@@ -59,38 +59,38 @@ vips__initialize( TiePoints *points )
 		int npt = points->nopoints;
 
 		max_cor = 0.0;
-		for( i = 0; i < npt; i++ )
-			if( corr[i] > max_cor )
+		for (i = 0; i < npt; i++)
+			if (corr[i] > max_cor)
 				max_cor = corr[i];
 
 		max_cor = max_cor - 0.04;
 		xdelta = 0.0;
 		ydelta = 0.0;
 		j = 0;
-		for( i = 0; i < npt; i++ )
-			if( corr[i] >= max_cor ) {
+		for (i = 0; i < npt; i++)
+			if (corr[i] >= max_cor) {
 				xdelta += xsec[i] - xref[i];
 				ydelta += ysec[i] - yref[i];
 				++j;
 			}
 
-		if( j == 0 ) {
-			vips_error( "vips_initialize", "no tie points" );
-			return( -1 );
+		if (j == 0) {
+			vips_error("vips_initialize", "no tie points");
+			return -1;
 		}
 
 		xdelta = xdelta / j;
 		ydelta = ydelta / j;
-		for( i = 0; i < npt; i++ ) {
+		for (i = 0; i < npt; i++) {
 			dx[i] = (xsec[i] - xref[i]) - xdelta;
 			dy[i] = (ysec[i] - yref[i]) - ydelta;
 		}
 
-		for( i = 0; i < npt; i++ ) {
+		for (i = 0; i < npt; i++) {
 			a1 = dx[i];
 			a2 = dy[i];
-			points->deviation[i] = sqrt( a1 * a1 + a2 * a2 );
-		}	
+			points->deviation[i] = sqrt(a1 * a1 + a2 * a2);
+		}
 
 		points->l_scale = 1.0;
 		points->l_angle = 0.0;
@@ -98,5 +98,5 @@ vips__initialize( TiePoints *points )
 		points->l_deltay = ydelta;
 	}
 
-	return( 0 );
+	return 0;
 }
