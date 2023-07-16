@@ -16,28 +16,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -59,97 +59,97 @@
 
 /* The type of the vips operations we support.
  */
-typedef int (*vips_fn)( IMAGE *in, IMAGE *out );
+typedef int (*vips_fn)(IMAGE *in, IMAGE *out);
 
 /* Pass a mask through a vips operation, eg. im_rot90().
  */
 static INTMASK *
-vapplyimask( INTMASK *in, const char *name, vips_fn fn )
+vapplyimask(INTMASK *in, const char *name, vips_fn fn)
 {
 	IMAGE *x;
 	IMAGE *t[2];
 	DOUBLEMASK *d[2];
 	INTMASK *out;
 
-	if( !(x = im_open( name, "p" )) )
-		return( NULL );
-	if( !(d[0] = im_local_dmask( x, im_imask2dmask( in, name ) )) ||
-		im_open_local_array( x, t, 2, name, "p" ) ||
-		im_mask2vips( d[0], t[0] ) ||
-		fn( t[0], t[1] ) ||
-		!(d[1] = im_local_dmask( x, im_vips2mask( t[1], name ) )) ||
-		!(out = im_dmask2imask( d[1], name )) ) {
-		im_close( x );
-		return( NULL );
+	if (!(x = im_open(name, "p")))
+		return NULL;
+	if (!(d[0] = im_local_dmask(x, im_imask2dmask(in, name))) ||
+		im_open_local_array(x, t, 2, name, "p") ||
+		im_mask2vips(d[0], t[0]) ||
+		fn(t[0], t[1]) ||
+		!(d[1] = im_local_dmask(x, im_vips2mask(t[1], name))) ||
+		!(out = im_dmask2imask(d[1], name))) {
+		im_close(x);
+		return NULL;
 	}
-	im_close( x );
+	im_close(x);
 
 	out->scale = in->scale;
 	out->offset = in->offset;
 
-	return( out );
+	return out;
 }
 
 static DOUBLEMASK *
-vapplydmask( DOUBLEMASK *in, const char *name, vips_fn fn )
+vapplydmask(DOUBLEMASK *in, const char *name, vips_fn fn)
 {
 	IMAGE *x;
 	IMAGE *t[2];
 	DOUBLEMASK *out;
 
-	if( !(x = im_open( name, "p" )) )
-		return( NULL );
-	if( im_open_local_array( x, t, 2, name, "p" ) ||
-		im_mask2vips( in, t[0] ) ||
-		fn( t[0], t[1] ) ||
-		!(out = im_vips2mask( t[1], name )) ) {
-		im_close( x );
-		return( NULL );
+	if (!(x = im_open(name, "p")))
+		return NULL;
+	if (im_open_local_array(x, t, 2, name, "p") ||
+		im_mask2vips(in, t[0]) ||
+		fn(t[0], t[1]) ||
+		!(out = im_vips2mask(t[1], name))) {
+		im_close(x);
+		return NULL;
 	}
-	im_close( x );
+	im_close(x);
 
 	out->scale = in->scale;
 	out->offset = in->offset;
 
-	return( out );
+	return out;
 }
 
 INTMASK *
-im_rotate_imask90( INTMASK *in, const char *filename )
+im_rotate_imask90(INTMASK *in, const char *filename)
 {
-	return( vapplyimask( in, filename, im_rot90 ) );
+	return vapplyimask(in, filename, im_rot90);
 }
 
 DOUBLEMASK *
-im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
+im_rotate_dmask90(DOUBLEMASK *in, const char *filename)
 {
-	return( vapplydmask( in, filename, im_rot90 ) );
+	return vapplydmask(in, filename, im_rot90);
 }
 
-static int 
-im_rot45( IMAGE *in, IMAGE *out )
+static int
+im_rot45(IMAGE *in, IMAGE *out)
 {
 	VipsImage *t;
 
-	if( vips_rot45( in, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
+	if (vips_rot45(in, &t, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
 	}
-	g_object_unref( t );
+	g_object_unref(t);
 
-	return( 0 );
+	return 0;
 }
 
 INTMASK *
-im_rotate_imask45( INTMASK *in, const char *filename )
+im_rotate_imask45(INTMASK *in, const char *filename)
 {
-	return( vapplyimask( in, filename, im_rot45 ) );
+	return vapplyimask(in, filename, im_rot45);
 }
 
 DOUBLEMASK *
-im_rotate_dmask45( DOUBLEMASK *in, const char *filename )
+im_rotate_dmask45(DOUBLEMASK *in, const char *filename)
 {
-	return( vapplydmask( in, filename, im_rot45 ) );
+	return vapplydmask(in, filename, im_rot45);
 }

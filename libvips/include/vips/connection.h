@@ -5,28 +5,28 @@
 
 /*
 
-    This file is part of VIPS.
+	This file is part of VIPS.
 
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -44,21 +44,21 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #define VIPS_TYPE_CONNECTION (vips_connection_get_type())
-#define VIPS_CONNECTION( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_CONNECTION, VipsConnection ))
-#define VIPS_CONNECTION_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_CONNECTION, VipsConnectionClass))
-#define VIPS_IS_CONNECTION( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_CONNECTION ))
-#define VIPS_IS_CONNECTION_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_CONNECTION ))
-#define VIPS_CONNECTION_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_CONNECTION, VipsConnectionClass ))
+#define VIPS_CONNECTION(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_CONNECTION, VipsConnection))
+#define VIPS_CONNECTION_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_CONNECTION, VipsConnectionClass))
+#define VIPS_IS_CONNECTION(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_CONNECTION))
+#define VIPS_IS_CONNECTION_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_CONNECTION))
+#define VIPS_CONNECTION_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_CONNECTION, VipsConnectionClass))
 
-/* Communicate with something like a socket or pipe. 
+/* Communicate with something like a socket or pipe.
  */
 typedef struct _VipsConnection {
 	VipsObject parent_object;
@@ -68,20 +68,20 @@ typedef struct _VipsConnection {
 	/* Read/write this fd if connected to a system pipe/socket. Override
 	 * ::read() and ::write() to do something else.
 	 */
-	int descriptor;	
+	int descriptor;
 
 	/* A descriptor we close with vips_tracked_close().
 	 */
-	int tracked_descriptor;	
+	int tracked_descriptor;
 
 	/* A descriptor we close with close().
 	 */
-	int close_descriptor;	
+	int close_descriptor;
 
 	/* If descriptor is a file, the filename we opened. Handy for error
-	 * messages. 
+	 * messages.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsConnection;
 
@@ -91,30 +91,30 @@ typedef struct _VipsConnectionClass {
 } VipsConnectionClass;
 
 VIPS_API
-GType vips_connection_get_type( void );
+GType vips_connection_get_type(void);
 
 VIPS_API
-const char *vips_connection_filename( VipsConnection *connection );
+const char *vips_connection_filename(VipsConnection *connection);
 VIPS_API
-const char *vips_connection_nick( VipsConnection *connection );
+const char *vips_connection_nick(VipsConnection *connection);
 
 VIPS_API
-void vips_pipe_read_limit_set( gint64 limit );
+void vips_pipe_read_limit_set(gint64 limit);
 
 #define VIPS_TYPE_SOURCE (vips_source_get_type())
-#define VIPS_SOURCE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_SOURCE, VipsSource ))
-#define VIPS_SOURCE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_SOURCE, VipsSourceClass))
-#define VIPS_IS_SOURCE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_SOURCE ))
-#define VIPS_IS_SOURCE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_SOURCE ))
-#define VIPS_SOURCE_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_SOURCE, VipsSourceClass ))
+#define VIPS_SOURCE(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_SOURCE, VipsSource))
+#define VIPS_SOURCE_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_SOURCE, VipsSourceClass))
+#define VIPS_IS_SOURCE(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_SOURCE))
+#define VIPS_IS_SOURCE_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_SOURCE))
+#define VIPS_SOURCE_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_SOURCE, VipsSourceClass))
 
 /* Read from something like a socket, file or memory area and present the data
  * with a unified seek / read / map interface.
@@ -126,7 +126,7 @@ void vips_pipe_read_limit_set( gint64 limit );
 struct _VipsSource {
 	VipsConnection parent_object;
 
-	/* We have two phases: 
+	/* We have two phases:
 	 *
 	 * During the header phase, we save bytes read from the input (if this
 	 * is an unseekable source) so that we can rewind and try again, if
@@ -140,7 +140,7 @@ struct _VipsSource {
 	/* TRUE if this input is something like a pipe. These don't support
 	 * seek or map -- all you can do is read() bytes sequentially.
 	 *
-	 * If you attempt to map or get the size of a pipe-style input, it'll 
+	 * If you attempt to map or get the size of a pipe-style input, it'll
 	 * get read entirely into memory. Seeks will cause read up to the seek
 	 * point.
 	 */
@@ -151,7 +151,7 @@ struct _VipsSource {
 	 *
 	 * length is -1 for is_pipe sources.
 	 *
-	 * off_t can be 32 bits on some platforms, so make sure we have a 
+	 * off_t can be 32 bits on some platforms, so make sure we have a
 	 * full 64.
 	 */
 	gint64 read_position;
@@ -160,12 +160,12 @@ struct _VipsSource {
 	/*< private >*/
 
 	/* For sources where we have the whole image in memory (from a memory
-	 * buffer, from mmaping the file, from reading the pipe into memory), 
+	 * buffer, from mmaping the file, from reading the pipe into memory),
 	 * a pointer to the start.
 	 */
 	const void *data;
 
-	/* For is_pipe sources, save data read during header phase here. If 
+	/* For is_pipe sources, save data read during header phase here. If
 	 * we rewind and try again, serve data from this until it runs out.
 	 *
 	 * If we need to force the whole pipe into memory, read everything to
@@ -177,7 +177,7 @@ struct _VipsSource {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory source, the blob we read from. 
+	/* For a memory source, the blob we read from.
 	 */
 	VipsBlob *blob;
 
@@ -185,7 +185,6 @@ struct _VipsSource {
 	 */
 	void *mmap_baseaddr;
 	size_t mmap_length;
-
 };
 
 typedef struct _VipsSourceClass {
@@ -200,7 +199,7 @@ typedef struct _VipsSourceClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*read)( VipsSource *, void *, size_t );
+	gint64 (*read)(VipsSource *, void *, size_t);
 
 	/* Seek to a certain position, args exactly as lseek(2). Set errno on
 	 * error.
@@ -211,68 +210,68 @@ typedef struct _VipsSourceClass {
 	 * We have to use int64 rather than off_t, since we must work on
 	 * Windows, where off_t can be 32-bits.
 	 */
-	gint64 (*seek)( VipsSource *, gint64, int );
+	gint64 (*seek)(VipsSource *, gint64, int);
 
 } VipsSourceClass;
 
 VIPS_API
-GType vips_source_get_type( void );
+GType vips_source_get_type(void);
 
 VIPS_API
-VipsSource *vips_source_new_from_descriptor( int descriptor );
+VipsSource *vips_source_new_from_descriptor(int descriptor);
 VIPS_API
-VipsSource *vips_source_new_from_file( const char *filename );
+VipsSource *vips_source_new_from_file(const char *filename);
 VIPS_API
-VipsSource *vips_source_new_from_blob( VipsBlob *blob );
+VipsSource *vips_source_new_from_blob(VipsBlob *blob);
 VIPS_API
-VipsSource *vips_source_new_from_target( VipsTarget *target );
+VipsSource *vips_source_new_from_target(VipsTarget *target);
 VIPS_API
-VipsSource *vips_source_new_from_memory( const void *data, size_t size );
+VipsSource *vips_source_new_from_memory(const void *data, size_t size);
 VIPS_API
-VipsSource *vips_source_new_from_options( const char *options );
+VipsSource *vips_source_new_from_options(const char *options);
 
 VIPS_API
-void vips_source_minimise( VipsSource *source );
+void vips_source_minimise(VipsSource *source);
 VIPS_API
-int vips_source_unminimise( VipsSource *source );
+int vips_source_unminimise(VipsSource *source);
 VIPS_API
-int vips_source_decode( VipsSource *source );
+int vips_source_decode(VipsSource *source);
 VIPS_API
-gint64 vips_source_read( VipsSource *source, void *data, size_t length );
+gint64 vips_source_read(VipsSource *source, void *data, size_t length);
 VIPS_API
-gboolean vips_source_is_mappable( VipsSource *source );
+gboolean vips_source_is_mappable(VipsSource *source);
 VIPS_API
-gboolean vips_source_is_file( VipsSource *source );
+gboolean vips_source_is_file(VipsSource *source);
 VIPS_API
-const void *vips_source_map( VipsSource *source, size_t *length );
+const void *vips_source_map(VipsSource *source, size_t *length);
 VIPS_API
-VipsBlob *vips_source_map_blob( VipsSource *source );
+VipsBlob *vips_source_map_blob(VipsSource *source);
 VIPS_API
-gint64 vips_source_seek( VipsSource *source, gint64 offset, int whence );
+gint64 vips_source_seek(VipsSource *source, gint64 offset, int whence);
 VIPS_API
-int vips_source_rewind( VipsSource *source );
+int vips_source_rewind(VipsSource *source);
 VIPS_API
-gint64 vips_source_sniff_at_most( VipsSource *source, 
-	unsigned char **data, size_t length );
+gint64 vips_source_sniff_at_most(VipsSource *source,
+	unsigned char **data, size_t length);
 VIPS_API
-unsigned char *vips_source_sniff( VipsSource *source, size_t length );
+unsigned char *vips_source_sniff(VipsSource *source, size_t length);
 VIPS_API
-gint64 vips_source_length( VipsSource *source ); 
+gint64 vips_source_length(VipsSource *source);
 
 #define VIPS_TYPE_SOURCE_CUSTOM (vips_source_custom_get_type())
-#define VIPS_SOURCE_CUSTOM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustom ))
-#define VIPS_SOURCE_CUSTOM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustomClass))
-#define VIPS_IS_SOURCE_CUSTOM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_SOURCE_CUSTOM ))
-#define VIPS_IS_SOURCE_CUSTOM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_SOURCE_CUSTOM ))
-#define VIPS_SOURCE_CUSTOM_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustomClass ))
+#define VIPS_SOURCE_CUSTOM(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustom))
+#define VIPS_SOURCE_CUSTOM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustomClass))
+#define VIPS_IS_SOURCE_CUSTOM(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_SOURCE_CUSTOM))
+#define VIPS_IS_SOURCE_CUSTOM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_SOURCE_CUSTOM))
+#define VIPS_SOURCE_CUSTOM_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustomClass))
 
 /* Subclass of source_custom with signals for handlers. This is supposed to be
  * useful for language bindings.
@@ -289,34 +288,34 @@ typedef struct _VipsSourceCustomClass {
 	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
 	 */
 
-	gint64 (*read)( VipsSourceCustom *, void *, gint64 );
-	gint64 (*seek)( VipsSourceCustom *, gint64, int );
+	gint64 (*read)(VipsSourceCustom *, void *, gint64);
+	gint64 (*seek)(VipsSourceCustom *, gint64, int);
 
 } VipsSourceCustomClass;
 
 VIPS_API
-GType vips_source_custom_get_type( void );
+GType vips_source_custom_get_type(void);
 VIPS_API
-VipsSourceCustom *vips_source_custom_new( void );
+VipsSourceCustom *vips_source_custom_new(void);
 
-/* A GInputStream that wraps a VipsSource. This lets us eg. 
+/* A GInputStream that wraps a VipsSource. This lets us eg.
  * hook librsvg up to libvips using their GInputStream interface.
  */
 
 #define VIPS_TYPE_G_INPUT_STREAM (vips_g_input_stream_get_type())
-#define VIPS_G_INPUT_STREAM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStream ))
-#define VIPS_G_INPUT_STREAM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass))
-#define VIPS_IS_G_INPUT_STREAM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_G_INPUT_STREAM ))
-#define VIPS_IS_G_INPUT_STREAM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_G_INPUT_STREAM ))
-#define VIPS_G_INPUT_STREAM_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass ))
+#define VIPS_G_INPUT_STREAM(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_G_INPUT_STREAM, VipsGInputStream))
+#define VIPS_G_INPUT_STREAM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass))
+#define VIPS_IS_G_INPUT_STREAM(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_G_INPUT_STREAM))
+#define VIPS_IS_G_INPUT_STREAM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_G_INPUT_STREAM))
+#define VIPS_G_INPUT_STREAM_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass))
 
 typedef struct _VipsGInputStream {
 	GInputStream parent_instance;
@@ -335,26 +334,26 @@ typedef struct _VipsGInputStreamClass {
 } VipsGInputStreamClass;
 
 VIPS_API
-GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
+GInputStream *vips_g_input_stream_new_from_source(VipsSource *source);
 
-/* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from 
+/* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from
  * GFile objects.
  */
 
 #define VIPS_TYPE_SOURCE_G_INPUT_STREAM (vips_source_g_input_stream_get_type())
-#define VIPS_SOURCE_G_INPUT_STREAM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStream ))
-#define VIPS_SOURCE_G_INPUT_STREAM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
-#define VIPS_IS_SOURCE_G_INPUT_STREAM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_SOURCE_G_INPUT_STREAM ))
-#define VIPS_IS_SOURCE_G_INPUT_STREAM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_SOURCE_G_INPUT_STREAM ))
-#define VIPS_SOURCE_G_INPUT_STREAM_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass ))
+#define VIPS_SOURCE_G_INPUT_STREAM(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStream))
+#define VIPS_SOURCE_G_INPUT_STREAM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
+#define VIPS_IS_SOURCE_G_INPUT_STREAM(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_SOURCE_G_INPUT_STREAM))
+#define VIPS_IS_SOURCE_G_INPUT_STREAM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_SOURCE_G_INPUT_STREAM))
+#define VIPS_SOURCE_G_INPUT_STREAM_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
 
 typedef struct _VipsSourceGInputStream {
 	VipsSource parent_instance;
@@ -376,28 +375,28 @@ typedef struct _VipsSourceGInputStreamClass {
 } VipsSourceGInputStreamClass;
 
 VIPS_API
-VipsSourceGInputStream *vips_source_g_input_stream_new( GInputStream *stream );
+VipsSourceGInputStream *vips_source_g_input_stream_new(GInputStream *stream);
 
 #define VIPS_TYPE_TARGET (vips_target_get_type())
-#define VIPS_TARGET( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_TARGET, VipsTarget ))
-#define VIPS_TARGET_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_TARGET, VipsTargetClass))
-#define VIPS_IS_TARGET( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_TARGET ))
-#define VIPS_IS_TARGET_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_TARGET ))
-#define VIPS_TARGET_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_TARGET, VipsTargetClass ))
+#define VIPS_TARGET(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_TARGET, VipsTarget))
+#define VIPS_TARGET_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_TARGET, VipsTargetClass))
+#define VIPS_IS_TARGET(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_TARGET))
+#define VIPS_IS_TARGET_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_TARGET))
+#define VIPS_TARGET_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_TARGET, VipsTargetClass))
 
 /* PNG writes in 8kb chunks, so we need to be a little larger than that.
  */
 #define VIPS_TARGET_BUFFER_SIZE (8500)
 
-/* Output to something like a socket, pipe or memory area. 
+/* Output to something like a socket, pipe or memory area.
  */
 struct _VipsTarget {
 	VipsConnection parent_object;
@@ -412,7 +411,7 @@ struct _VipsTarget {
 	 */
 	gboolean ended;
 
-	/* Write memory output here. We use a GString rather than a 
+	/* Write memory output here. We use a GString rather than a
 	 * GByteArray since we need eg. g_string_overwrite_len().
 	 * @position tracks the current write position in this.
 	 */
@@ -436,7 +435,6 @@ struct _VipsTarget {
 	 */
 	gboolean delete_on_close;
 	char *delete_on_close_filename;
-
 };
 
 typedef struct _VipsTargetClass {
@@ -447,14 +445,14 @@ typedef struct _VipsTargetClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*write)( VipsTarget *, const void *, size_t );
+	gint64 (*write)(VipsTarget *, const void *, size_t);
 
 	/* Deprecated in favour of ::end.
 	 */
-	void (*finish)( VipsTarget * );
+	void (*finish)(VipsTarget *);
 
 	/* libtiff needs to be able to seek and read on targets,
-	 * unfortunately. 
+	 * unfortunately.
 	 *
 	 * This will not work for eg. pipes, of course.
 	 */
@@ -465,78 +463,77 @@ typedef struct _VipsTargetClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*read)( VipsTarget *, void *, size_t );
+	gint64 (*read)(VipsTarget *, void *, size_t);
 
 	/* Seek output. Args exactly as lseek(2).
 	 */
-	off_t (*seek)( VipsTarget *, off_t offset, int whence);
+	off_t (*seek)(VipsTarget *, off_t offset, int whence);
 
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
-	int (*end)( VipsTarget * );
+	int (*end)(VipsTarget *);
 
 } VipsTargetClass;
 
 VIPS_API
-GType vips_target_get_type( void );
+GType vips_target_get_type(void);
 
 VIPS_API
-VipsTarget *vips_target_new_to_descriptor( int descriptor );
+VipsTarget *vips_target_new_to_descriptor(int descriptor);
 VIPS_API
-VipsTarget *vips_target_new_to_file( const char *filename );
+VipsTarget *vips_target_new_to_file(const char *filename);
 VIPS_API
-VipsTarget *vips_target_new_to_memory( void );
+VipsTarget *vips_target_new_to_memory(void);
 VIPS_API
-VipsTarget *vips_target_new_temp( VipsTarget *target );
+VipsTarget *vips_target_new_temp(VipsTarget *target);
 VIPS_API
-int vips_target_write( VipsTarget *target, const void *data, size_t length );
+int vips_target_write(VipsTarget *target, const void *data, size_t length);
 VIPS_API
-gint64 vips_target_read( VipsTarget *target, void *buffer, size_t length );
+gint64 vips_target_read(VipsTarget *target, void *buffer, size_t length);
 VIPS_API
-off_t vips_target_seek( VipsTarget *target, off_t offset, int whence );
+off_t vips_target_seek(VipsTarget *target, off_t offset, int whence);
 VIPS_API
-int vips_target_end( VipsTarget *target );
+int vips_target_end(VipsTarget *target);
 VIPS_DEPRECATED_FOR(vips_target_end)
-void vips_target_finish( VipsTarget *target );
+void vips_target_finish(VipsTarget *target);
 VIPS_API
-unsigned char *vips_target_steal( VipsTarget *target, size_t *length );
+unsigned char *vips_target_steal(VipsTarget *target, size_t *length);
 VIPS_API
-char *vips_target_steal_text( VipsTarget *target );
+char *vips_target_steal_text(VipsTarget *target);
 
 VIPS_API
-int vips_target_putc( VipsTarget *target, int ch );
-#define VIPS_TARGET_PUTC( S, C ) ( \
-	(S)->write_point < VIPS_TARGET_BUFFER_SIZE ? \
-	((S)->output_buffer[(S)->write_point++] = (C), 0) : \
-	vips_target_putc( (S), (C) ) \
-)
+int vips_target_putc(VipsTarget *target, int ch);
+#define VIPS_TARGET_PUTC(S, C) ( \
+	(S)->write_point < VIPS_TARGET_BUFFER_SIZE \
+		? ((S)->output_buffer[(S)->write_point++] = (C), 0) \
+		: vips_target_putc((S), (C)))
 VIPS_API
-int vips_target_writes( VipsTarget *target, const char *str );
+int vips_target_writes(VipsTarget *target, const char *str);
 VIPS_API
-int vips_target_writef( VipsTarget *target, const char *fmt, ... )
-	G_GNUC_PRINTF( 2, 3 );
+int vips_target_writef(VipsTarget *target, const char *fmt, ...)
+	G_GNUC_PRINTF(2, 3);
 VIPS_API
-int vips_target_write_amp( VipsTarget *target, const char *str );
+int vips_target_write_amp(VipsTarget *target, const char *str);
 
 #define VIPS_TYPE_TARGET_CUSTOM (vips_target_custom_get_type())
-#define VIPS_TARGET_CUSTOM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustom ))
-#define VIPS_TARGET_CUSTOM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustomClass))
-#define VIPS_IS_TARGET_CUSTOM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_TARGET_CUSTOM ))
-#define VIPS_IS_TARGET_CUSTOM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_TARGET_CUSTOM ))
-#define VIPS_TARGET_CUSTOM_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustomClass ))
+#define VIPS_TARGET_CUSTOM(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustom))
+#define VIPS_TARGET_CUSTOM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustomClass))
+#define VIPS_IS_TARGET_CUSTOM(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_TARGET_CUSTOM))
+#define VIPS_IS_TARGET_CUSTOM_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_TARGET_CUSTOM))
+#define VIPS_TARGET_CUSTOM_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_TARGET_CUSTOM, VipsTargetCustomClass))
 
 #define VIPS_TARGET_CUSTOM_BUFFER_SIZE (4096)
 
-/* Output to something like a socket, pipe or memory area. 
+/* Output to something like a socket, pipe or memory area.
  */
 typedef struct _VipsTargetCustom {
 	VipsTarget parent_object;
@@ -550,18 +547,18 @@ typedef struct _VipsTargetCustomClass {
 	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
 	 */
 
-	gint64 (*write)( VipsTargetCustom *, const void *, gint64 );
-	void (*finish)( VipsTargetCustom * );
-	gint64 (*read)( VipsTargetCustom *, void *, gint64 );
-	gint64 (*seek)( VipsTargetCustom *, gint64, int );
-	int (*end)( VipsTargetCustom * );
+	gint64 (*write)(VipsTargetCustom *, const void *, gint64);
+	void (*finish)(VipsTargetCustom *);
+	gint64 (*read)(VipsTargetCustom *, void *, gint64);
+	gint64 (*seek)(VipsTargetCustom *, gint64, int);
+	int (*end)(VipsTargetCustom *);
 
 } VipsTargetCustomClass;
 
 VIPS_API
-GType vips_target_custom_get_type( void );
+GType vips_target_custom_get_type(void);
 VIPS_API
-VipsTargetCustom *vips_target_custom_new( void );
+VipsTargetCustom *vips_target_custom_new(void);
 
 #ifdef __cplusplus
 }

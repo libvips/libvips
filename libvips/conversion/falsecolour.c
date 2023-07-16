@@ -14,34 +14,34 @@
  * 	- force input to mono 8-bit for the user
  * 1/8/13
  * 	- redone as a class
- * 23/1/14	
+ * 23/1/14
  * 	- oops, was not auto-getting and casting the first band
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -66,7 +66,7 @@ typedef struct _VipsFalsecolour {
 
 typedef VipsConversionClass VipsFalsecolourClass;
 
-G_DEFINE_TYPE( VipsFalsecolour, vips_falsecolour, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE(VipsFalsecolour, vips_falsecolour, VIPS_TYPE_CONVERSION);
 
 /* Falsecolour scale nicked from a PET scan.
  */
@@ -330,73 +330,71 @@ static unsigned char vips_falsecolour_pet[][3] = {
 };
 
 static int
-vips_falsecolour_build( VipsObject *object )
+vips_falsecolour_build(VipsObject *object)
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsFalsecolour *falsecolour = (VipsFalsecolour *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
 
-	if( VIPS_OBJECT_CLASS( vips_falsecolour_parent_class )->
-		build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_falsecolour_parent_class)->build(object))
+		return -1;
 
-	if( !(t[0] = vips_image_new_from_memory( 
-		(void *) vips_falsecolour_pet, 
-		sizeof( vips_falsecolour_pet ),
-		1, VIPS_NUMBER( vips_falsecolour_pet ), 3, 
-		VIPS_FORMAT_UCHAR )) )
-		return( -1 );
+	if (!(t[0] = vips_image_new_from_memory(
+			  (void *) vips_falsecolour_pet,
+			  sizeof(vips_falsecolour_pet),
+			  1, VIPS_NUMBER(vips_falsecolour_pet), 3,
+			  VIPS_FORMAT_UCHAR)))
+		return -1;
 
 	/* Force to mono 8-bit. Don't use vips_colourspace() to go to B_W, we
 	 * want to work for images which aren't in a recognised space, like
 	 * MULTIBAND.
 	 */
-	if( vips_image_decode( falsecolour->in, &t[1] ) ||
-		vips_extract_band( t[1], &t[2], 0, NULL ) ||
-		vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
-		vips_maplut( t[3], &t[4], t[0], NULL ) ||
-		vips_image_write( t[4], conversion->out ) ) 
-		return( -1 );
+	if (vips_image_decode(falsecolour->in, &t[1]) ||
+		vips_extract_band(t[1], &t[2], 0, NULL) ||
+		vips_cast(t[2], &t[3], VIPS_FORMAT_UCHAR, NULL) ||
+		vips_maplut(t[3], &t[4], t[0], NULL) ||
+		vips_image_write(t[4], conversion->out))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_falsecolour_class_init( VipsFalsecolourClass *class )
+vips_falsecolour_class_init(VipsFalsecolourClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "falsecolour";
-	vobject_class->description = _( "false-color an image" );
+	vobject_class->description = _("false-color an image");
 	vobject_class->build = vips_falsecolour_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE(class, "in", 0,
+		_("Input"),
+		_("Input image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFalsecolour, in ) );
-
+		G_STRUCT_OFFSET(VipsFalsecolour, in));
 }
 
 static void
-vips_falsecolour_init( VipsFalsecolour *falsecolour )
+vips_falsecolour_init(VipsFalsecolour *falsecolour)
 {
 }
 
 /**
  * vips_falsecolour: (method)
- * @in: input image 
+ * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Force @in to 1 band, 8-bit, then transform to 
+ * Force @in to 1 band, 8-bit, then transform to
  * a 3-band 8-bit image with a false colour
  * map. The map is supposed to make small differences in brightness more
  * obvious.
@@ -406,14 +404,14 @@ vips_falsecolour_init( VipsFalsecolour *falsecolour )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_falsecolour( VipsImage *in, VipsImage **out, ... )
+vips_falsecolour(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "falsecolour", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("falsecolour", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

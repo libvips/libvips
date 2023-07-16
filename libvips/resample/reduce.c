@@ -1,9 +1,9 @@
 /* 2D reduce ... call reduceh and reducev
  *
  * 27/1/16
- * 	- from shrink.c 
+ * 	- from shrink.c
  * 15/8/16
- * 	- rename xshrink -> hshrink for greater consistency 
+ * 	- rename xshrink -> hshrink for greater consistency
  * 9/9/16
  * 	- add @centre option
  * 6/6/20 kleisauke
@@ -14,28 +14,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -59,15 +59,15 @@
 #include "presample.h"
 
 /**
- * VipsKernel: 
+ * VipsKernel:
  * @VIPS_KERNEL_NEAREST: The nearest pixel to the point.
- * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter. 
- * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter. 
+ * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter.
+ * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter.
  * @VIPS_KERNEL_MITCHELL: Convolve with a Mitchell kernel.
  * @VIPS_KERNEL_LANCZOS2: Convolve with a two-lobe Lanczos kernel.
  * @VIPS_KERNEL_LANCZOS3: Convolve with a three-lobe Lanczos kernel.
  *
- * The resampling kernels vips supports. See vips_reduce(), for example.  
+ * The resampling kernels vips supports. See vips_reduce(), for example.
  */
 
 /* gtk-doc does not see comments in C++ files, so we have these docs here.
@@ -94,10 +94,10 @@
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
@@ -125,10 +125,10 @@
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
@@ -138,9 +138,9 @@
 typedef struct _VipsReduce {
 	VipsResample parent_instance;
 
-	double hshrink;			/* Shrink factors */
+	double hshrink; /* Shrink factors */
 	double vshrink;
-	double gap;			/* Reduce gap */
+	double gap; /* Reduce gap */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -154,108 +154,107 @@ typedef struct _VipsReduce {
 
 typedef VipsResampleClass VipsReduceClass;
 
-G_DEFINE_TYPE( VipsReduce, vips_reduce, VIPS_TYPE_RESAMPLE );
+G_DEFINE_TYPE(VipsReduce, vips_reduce, VIPS_TYPE_RESAMPLE);
 
 static int
-vips_reduce_build( VipsObject *object )
+vips_reduce_build(VipsObject *object)
 {
-	VipsResample *resample = VIPS_RESAMPLE( object );
+	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsReduce *reduce = (VipsReduce *) object;
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array(object, 2);
 
-	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_reduce_parent_class)->build(object))
+		return -1;
 
-	if( vips_reducev( resample->in, &t[0], reduce->vshrink, 
-		"kernel", reduce->kernel, 
-		"gap", reduce->gap,
-		NULL ) ||
-		vips_reduceh( t[0], &t[1], reduce->hshrink, 
-			"kernel", reduce->kernel, 
+	if (vips_reducev(resample->in, &t[0], reduce->vshrink,
+			"kernel", reduce->kernel,
 			"gap", reduce->gap,
-			NULL ) ||
-		vips_image_write( t[1], resample->out ) )
-		return( -1 );
+			NULL) ||
+		vips_reduceh(t[0], &t[1], reduce->hshrink,
+			"kernel", reduce->kernel,
+			"gap", reduce->gap,
+			NULL) ||
+		vips_image_write(t[1], resample->out))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_reduce_class_init( VipsReduceClass *class )
+vips_reduce_class_init(VipsReduceClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
-	VIPS_DEBUG_MSG( "vips_reduce_class_init\n" );
+	VIPS_DEBUG_MSG("vips_reduce_class_init\n");
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "reduce";
-	vobject_class->description = _( "reduce an image" );
+	vobject_class->description = _("reduce an image");
 	vobject_class->build = vips_reduce_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_DOUBLE( class, "hshrink", 8, 
-		_( "Hshrink" ), 
-		_( "Horizontal shrink factor" ),
+	VIPS_ARG_DOUBLE(class, "hshrink", 8,
+		_("Hshrink"),
+		_("Horizontal shrink factor"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, hshrink ),
-		1.0, 1000000.0, 1.0 );
+		G_STRUCT_OFFSET(VipsReduce, hshrink),
+		1.0, 1000000.0, 1.0);
 
-	VIPS_ARG_DOUBLE( class, "vshrink", 9, 
-		_( "Vshrink" ), 
-		_( "Vertical shrink factor" ),
+	VIPS_ARG_DOUBLE(class, "vshrink", 9,
+		_("Vshrink"),
+		_("Vertical shrink factor"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, vshrink ),
-		1.0, 1000000.0, 1.0 );
+		G_STRUCT_OFFSET(VipsReduce, vshrink),
+		1.0, 1000000.0, 1.0);
 
-	VIPS_ARG_ENUM( class, "kernel", 3, 
-		_( "Kernel" ), 
-		_( "Resampling kernel" ),
+	VIPS_ARG_ENUM(class, "kernel", 3,
+		_("Kernel"),
+		_("Resampling kernel"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, kernel ),
-		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+		G_STRUCT_OFFSET(VipsReduce, kernel),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3);
 
-	VIPS_ARG_DOUBLE( class, "gap", 4, 
-		_( "Gap" ), 
-		_( "Reducing gap" ),
+	VIPS_ARG_DOUBLE(class, "gap", 4,
+		_("Gap"),
+		_("Reducing gap"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, gap ),
-		0.0, 1000000.0, 0.0 );
+		G_STRUCT_OFFSET(VipsReduce, gap),
+		0.0, 1000000.0, 0.0);
 
-	/* The old names .. now use h and v everywhere. 
+	/* The old names .. now use h and v everywhere.
 	 */
-	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
-		_( "Xshrink" ), 
-		_( "Horizontal shrink factor" ),
+	VIPS_ARG_DOUBLE(class, "xshrink", 8,
+		_("Xshrink"),
+		_("Horizontal shrink factor"),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsReduce, hshrink ),
-		1.0, 1000000.0, 1.0 );
+		G_STRUCT_OFFSET(VipsReduce, hshrink),
+		1.0, 1000000.0, 1.0);
 
-	VIPS_ARG_DOUBLE( class, "yshrink", 9, 
-		_( "Yshrink" ), 
-		_( "Vertical shrink factor" ),
+	VIPS_ARG_DOUBLE(class, "yshrink", 9,
+		_("Yshrink"),
+		_("Vertical shrink factor"),
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsReduce, vshrink ),
-		1.0, 1000000.0, 1.0 );
+		G_STRUCT_OFFSET(VipsReduce, vshrink),
+		1.0, 1000000.0, 1.0);
 
 	/* We used to let people pick centre or corner, but it's automatic now.
 	 */
-	VIPS_ARG_BOOL( class, "centre", 7,
-		_( "Centre" ),
-		_( "Use centre sampling convention" ),
+	VIPS_ARG_BOOL(class, "centre", 7,
+		_("Centre"),
+		_("Use centre sampling convention"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsReduce, centre ),
-		FALSE );
-
+		G_STRUCT_OFFSET(VipsReduce, centre),
+		FALSE);
 }
 
 static void
-vips_reduce_init( VipsReduce *reduce )
+vips_reduce_init(VipsReduce *reduce)
 {
 	reduce->gap = 0.0;
 	reduce->kernel = VIPS_KERNEL_LANCZOS3;
@@ -274,7 +273,7 @@ vips_reduce_init( VipsReduce *reduce )
  * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  * * @gap: reducing gap to use (default: 0.0)
  *
- * Reduce @in by a pair of factors with a pair of 1D kernels. This 
+ * Reduce @in by a pair of factors with a pair of 1D kernels. This
  * will not work well for shrink factors greater than three.
  *
  * Set @gap to speed up reducing by having vips_shrink() to shrink
@@ -283,25 +282,25 @@ vips_reduce_init( VipsReduce *reduce )
  * The default value is 0.0 (no optimization).
  *
  * This is a very low-level operation: see vips_resize() for a more
- * convenient way to resize images. 
+ * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
- * be updated by the application. 
+ * be updated by the application.
  *
  * See also: vips_shrink(), vips_resize(), vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reduce( VipsImage *in, VipsImage **out, 
-	double hshrink, double vshrink, ... )
+vips_reduce(VipsImage *in, VipsImage **out,
+	double hshrink, double vshrink, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, vshrink );
-	result = vips_call_split( "reduce", ap, in, out, hshrink, vshrink );
-	va_end( ap );
+	va_start(ap, vshrink);
+	result = vips_call_split("reduce", ap, in, out, hshrink, vshrink);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

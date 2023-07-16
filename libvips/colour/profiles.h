@@ -10,4 +10,3 @@ typedef struct _VipsProfileFallback {
 } VipsProfileFallback;
 
 extern VipsProfileFallback *vips__profile_fallback_table[];
-

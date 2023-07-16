@@ -52,28 +52,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -145,47 +145,48 @@ extern "C" {
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().
  */
-#define VIPS_INIT( ARGV0 ) \
-	(vips_version( 3 ) - vips_version( 5 ) != \
-	 	VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ? ( \
-		g_warning( "ABI mismatch" ), \
-		g_warning( "library has ABI version %d", \
-			vips_version( 3 ) - vips_version( 5 ) ), \
-		g_warning( "application needs ABI version %d", \
-			VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ), \
-		vips_error( "vips_init", "ABI mismatch" ), \
-		-1 ) : \
-		vips_init( ARGV0 ))
+#define VIPS_INIT(ARGV0) \
+	(vips_version(3) - vips_version(5) != \
+				VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE \
+			? ( \
+				  g_warning("ABI mismatch"), \
+				  g_warning("library has ABI version %d", \
+					  vips_version(3) - vips_version(5)), \
+				  g_warning("application needs ABI version %d", \
+					  VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE), \
+				  vips_error("vips_init", "ABI mismatch"), \
+				  -1) \
+			: vips_init(ARGV0))
 
 VIPS_API
-int vips_init( const char *argv0 );
+int vips_init(const char *argv0);
 VIPS_API
-const char *vips_get_argv0( void );
+const char *vips_get_argv0(void);
 VIPS_API
-const char *vips_get_prgname( void );
+const char *vips_get_prgname(void);
 VIPS_API
-void vips_shutdown( void );
+void vips_shutdown(void);
 VIPS_API
-void vips_thread_shutdown( void );
+void vips_thread_shutdown(void);
 
 VIPS_API
-void vips_add_option_entries( GOptionGroup *option_group );
+void vips_add_option_entries(GOptionGroup *option_group);
 
 VIPS_API
-void vips_leak_set( gboolean leak ); 
+void vips_leak_set(gboolean leak);
 
 VIPS_API
-void vips_block_untrusted_set( gboolean state );
+void vips_block_untrusted_set(gboolean state);
 
 VIPS_API
-const char *vips_version_string( void );
+const char *vips_version_string(void);
 VIPS_API
-int vips_version( int flag );
+int vips_version(int flag);
 
 VIPS_API
-const char *vips_guess_prefix( const char *argv0, const char *env_name );
+const char *vips_guess_prefix(const char *argv0, const char *env_name);
 VIPS_API
-const char *vips_guess_libdir( const char *argv0, const char *env_name );
+const char *vips_guess_libdir(const char *argv0, const char *env_name);
 
 #ifdef __cplusplus
 }

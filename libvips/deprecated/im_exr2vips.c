@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -53,41 +53,40 @@
 #include "../foreign/pforeign.h"
 
 int
-im_exr2vips( const char *filename, IMAGE *out )
+im_exr2vips(const char *filename, IMAGE *out)
 {
 #ifdef HAVE_OPENEXR
-	return( vips__openexr_read( filename, out ) ); 
+	return vips__openexr_read(filename, out);
 #else
-	vips_error( "im_exr2vips", 
-		"%s", _( "no OpenEXR support in your libvips" ) ); 
+	vips_error("im_exr2vips",
+		"%s", _("no OpenEXR support in your libvips"));
 
-	return( -1 );
+	return -1;
 #endif /*HAVE_OPENEXR*/
 }
 
 static const char *exr_suffs[] = { ".exr", NULL };
 
 static VipsFormatFlags
-exr_flags( const char *name )
+exr_flags(const char *name)
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 
-	im_filename_split( name, filename, mode );
+	im_filename_split(name, filename, mode);
 
-	return( (VipsFormatFlags) 
-		vips_foreign_flags( "openexrload", filename ) );
+	return (VipsFormatFlags) vips_foreign_flags("openexrload", filename);
 }
 
 static int
-isexr( const char *name )
+isexr(const char *name)
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 
-	im_filename_split( name, filename, mode );
+	im_filename_split(name, filename, mode);
 
-	return( vips_foreign_is_a( "openexrload", filename ) );
+	return vips_foreign_is_a("openexrload", filename);
 }
 
 /* exr format adds no new members.
@@ -96,13 +95,13 @@ typedef VipsFormat VipsFormatExr;
 typedef VipsFormatClass VipsFormatExrClass;
 
 static void
-vips_format_exr_class_init( VipsFormatExrClass *class )
+vips_format_exr_class_init(VipsFormatExrClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "exr";
-	object_class->description = _( "OpenEXR" );
+	object_class->description = _("OpenEXR");
 
 	format_class->is_a = isexr;
 	format_class->load = im_exr2vips;
@@ -111,9 +110,8 @@ vips_format_exr_class_init( VipsFormatExrClass *class )
 }
 
 static void
-vips_format_exr_init( VipsFormatExr *object )
+vips_format_exr_init(VipsFormatExr *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatExr, vips_format_exr, VIPS_TYPE_FORMAT );
-
+G_DEFINE_TYPE(VipsFormatExr, vips_format_exr, VIPS_TYPE_FORMAT);

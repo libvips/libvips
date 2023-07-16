@@ -8,28 +8,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -49,50 +49,49 @@ typedef struct _VipsLabelregions {
 	VipsMorphology parent_instance;
 
 	VipsImage *mask;
-	int segments; 
+	int segments;
 } VipsLabelregions;
 
 typedef VipsMorphologyClass VipsLabelregionsClass;
 
-G_DEFINE_TYPE( VipsLabelregions, vips_labelregions, VIPS_TYPE_MORPHOLOGY );
+G_DEFINE_TYPE(VipsLabelregions, vips_labelregions, VIPS_TYPE_MORPHOLOGY);
 
 static int
-vips_labelregions_build( VipsObject *object )
+vips_labelregions_build(VipsObject *object)
 {
-	VipsMorphology *morphology = VIPS_MORPHOLOGY( object );
+	VipsMorphology *morphology = VIPS_MORPHOLOGY(object);
 	VipsImage *in = morphology->in;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 	VipsImage *mask;
 
 	int segments;
 	int *m;
 	int x, y;
 
-	if( VIPS_OBJECT_CLASS( vips_labelregions_parent_class )->
-		build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_labelregions_parent_class)->build(object))
+		return -1;
 
 	/* Create the zero mask image in memory.
 	 */
 	mask = vips_image_new_memory();
-	g_object_set( object,
+	g_object_set(object,
 		"mask", mask,
-		NULL ); 
-	if( vips_black( &t[0], in->Xsize, in->Ysize, NULL ) ||
-		vips_cast( t[0], &t[1], VIPS_FORMAT_INT, NULL ) || 
-		vips_image_write( t[1], mask ) )
-		return( -1 );
+		NULL);
+	if (vips_black(&t[0], in->Xsize, in->Ysize, NULL) ||
+		vips_cast(t[0], &t[1], VIPS_FORMAT_INT, NULL) ||
+		vips_image_write(t[1], mask))
+		return -1;
 
 	segments = 1;
 	m = (int *) mask->data;
-	for( y = 0; y < mask->Ysize; y++ ) {
-		for( x = 0; x < mask->Xsize; x++ ) {
-			if( !m[x] ) {
+	for (y = 0; y < mask->Ysize; y++) {
+		for (x = 0; x < mask->Xsize; x++) {
+			if (!m[x]) {
 				/* Use a direct path for speed.
 				 */
-				if( vips__draw_flood_direct( mask, in, 
-					segments, x, y ) )
-					return( -1 ); 
+				if (vips__draw_flood_direct(mask, in,
+						segments, x, y))
+					return -1;
 
 				segments += 1;
 			}
@@ -101,43 +100,42 @@ vips_labelregions_build( VipsObject *object )
 		m += mask->Xsize;
 	}
 
-	g_object_set( object,
+	g_object_set(object,
 		"segments", segments,
-		NULL ); 
+		NULL);
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_labelregions_class_init( VipsLabelregionsClass *class )
+vips_labelregions_class_init(VipsLabelregionsClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "labelregions";
-	vobject_class->description = _( "label regions in an image" ); 
+	vobject_class->description = _("label regions in an image");
 	vobject_class->build = vips_labelregions_build;
 
-	VIPS_ARG_IMAGE( class, "mask", 2, 
-		_( "Mask" ), 
-		_( "Mask of region labels" ),
+	VIPS_ARG_IMAGE(class, "mask", 2,
+		_("Mask"),
+		_("Mask of region labels"),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsLabelregions, mask ) ); 
+		G_STRUCT_OFFSET(VipsLabelregions, mask));
 
-	VIPS_ARG_INT( class, "segments", 3, 
-		_( "Segments" ), 
-		_( "Number of discrete contiguous regions" ),
+	VIPS_ARG_INT(class, "segments", 3,
+		_("Segments"),
+		_("Number of discrete contiguous regions"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsLabelregions, segments ),
-		0, 1000000000, 0 );
-
+		G_STRUCT_OFFSET(VipsLabelregions, segments),
+		0, 1000000000, 0);
 }
 
 static void
-vips_labelregions_init( VipsLabelregions *labelregions )
+vips_labelregions_init(VipsLabelregions *labelregions)
 {
 }
 
@@ -171,14 +169,14 @@ vips_labelregions_init( VipsLabelregions *labelregions )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_labelregions( VipsImage *in, VipsImage **mask, ... ) 
+vips_labelregions(VipsImage *in, VipsImage **mask, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, mask );
-	result = vips_call_split( "labelregions", ap, in, mask );
-	va_end( ap );
+	va_start(ap, mask);
+	result = vips_call_split("labelregions", ap, in, mask);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

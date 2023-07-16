@@ -3,7 +3,7 @@
  * 23/3/09
  * 	- from im_rad2float and Radiance sources
  * 2/11/09
- * 	- gtkdoc 
+ * 	- gtkdoc
  * 20/9/12
  * 	- redo as a class
  * 13/12/12
@@ -12,35 +12,35 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
 
- */
-
-/*
-
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    Sections of this file from Greg Ward and Radiance with kind 
-    permission. The Radience copyright notice appears below.
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+/*
+
+	Sections of this file from Greg Ward and Radiance with kind
+	permission. The Radience copyright notice appears below.
 
  */
 
@@ -116,57 +116,62 @@
 /* Begin copy-paste from Radiance sources.
  */
 
-#define  RED		0
-#define  GRN		1
-#define  BLU		2
-#define  CIEX		0	/* or, if input is XYZ... */
-#define  CIEY		1
-#define  CIEZ		2
-#define  EXP		3	/* exponent same for either format */
-#define  COLXS		128	/* excess used for exponent */
-#define  WHT		3	/* used for RGBPRIMS type */
+#define RED 0
+#define GRN 1
+#define BLU 2
+#define CIEX 0 /* or, if input is XYZ... */
+#define CIEY 1
+#define CIEZ 2
+#define EXP 3	  /* exponent same for either format */
+#define COLXS 128 /* excess used for exponent */
+#define WHT 3	  /* used for RGBPRIMS type */
 
-#undef  BYTE
-#define  BYTE 	unsigned char	/* 8-bit unsigned integer */
+#undef BYTE
+#define BYTE unsigned char /* 8-bit unsigned integer */
 
-typedef BYTE  COLR[4];		/* red, green, blue (or X,Y,Z), exponent */
+typedef BYTE COLR[4]; /* red, green, blue (or X,Y,Z), exponent */
 
 typedef float COLORV;
-typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
+typedef COLORV COLOR[3]; /* red, green, blue (or X,Y,Z) */
 
-#define  copycolor(c1,c2)	((c1)[0]=(c2)[0],(c1)[1]=(c2)[1],(c1)[2]=(c2)[2])
+#define copycolor(c1, c2) ( \
+	(c1)[0] = (c2)[0], \
+	(c1)[1] = (c2)[1], \
+	(c1)[2] = (c2)[2])
 
+/* assign a short color value */
 static void
-setcolr( COLR clr, double r, double g, double b )           /* assign a short color value */
+setcolr(COLR clr, double r, double g, double b)
 {
-        double  d;
-        int  e;
+	double d;
+	int e;
 
-        d = r > g ? r : g;
-        if (b > d) d = b;
+	d = r > g ? r : g;
+	if (b > d)
+		d = b;
 
-        if (d <= 1e-32) {
-                clr[RED] = clr[GRN] = clr[BLU] = 0;
-                clr[EXP] = 0;
-                return;
-        }
+	if (d <= 1e-32) {
+		clr[RED] = clr[GRN] = clr[BLU] = 0;
+		clr[EXP] = 0;
+		return;
+	}
 
-        d = frexp(d, &e) * 255.9999 / d;
+	d = frexp(d, &e) * 255.9999 / d;
 
-        if (r > 0.0)
-                clr[RED] = r * d;
-        else
-                clr[RED] = 0;
-        if (g > 0.0)
-                clr[GRN] = g * d;
-        else
-                clr[GRN] = 0;
-        if (b > 0.0)
-                clr[BLU] = b * d;
-        else
-                clr[BLU] = 0;
+	if (r > 0.0)
+		clr[RED] = r * d;
+	else
+		clr[RED] = 0;
+	if (g > 0.0)
+		clr[GRN] = g * d;
+	else
+		clr[GRN] = 0;
+	if (b > 0.0)
+		clr[BLU] = b * d;
+	else
+		clr[BLU] = 0;
 
-        clr[EXP] = e + COLXS;
+	clr[EXP] = e + COLXS;
 }
 
 /* End copy-paste from Radiance sources.
@@ -175,39 +180,39 @@ setcolr( COLR clr, double r, double g, double b )           /* assign a short co
 typedef VipsColourCode VipsFloat2rad;
 typedef VipsColourCodeClass VipsFloat2radClass;
 
-G_DEFINE_TYPE( VipsFloat2rad, vips_float2rad, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE(VipsFloat2rad, vips_float2rad, VIPS_TYPE_COLOUR_CODE);
 
 static void
-vips_float2rad_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_float2rad_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	COLOR *inp = (COLOR *) in[0];
 	COLR *outbuf = (COLR *) out;
 
-	while( width-- > 0 ) {
-		setcolr( outbuf[0], inp[0][RED], inp[0][GRN], inp[0][BLU] );
+	while (width-- > 0) {
+		setcolr(outbuf[0], inp[0][RED], inp[0][GRN], inp[0][BLU]);
 		inp++;
 		outbuf++;
 	}
 }
 
 static void
-vips_float2rad_class_init( VipsFloat2radClass *class )
+vips_float2rad_class_init(VipsFloat2radClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "float2rad";
-	object_class->description = 
-		_( "transform float RGB to Radiance coding" );
+	object_class->description =
+		_("transform float RGB to Radiance coding");
 
 	colour_class->process_line = vips_float2rad_line;
 }
 
 static void
-vips_float2rad_init( VipsFloat2rad *float2rad )
+vips_float2rad_init(VipsFloat2rad *float2rad)
 {
-	VipsColour *colour = VIPS_COLOUR( float2rad );
-	VipsColourCode *code = VIPS_COLOUR_CODE( float2rad );
+	VipsColour *colour = VIPS_COLOUR(float2rad);
+	VipsColourCode *code = VIPS_COLOUR_CODE(float2rad);
 
 	colour->coding = VIPS_CODING_RAD;
 	colour->interpretation = VIPS_INTERPRETATION_scRGB;
@@ -232,14 +237,14 @@ vips_float2rad_init( VipsFloat2rad *float2rad )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_float2rad( VipsImage *in, VipsImage **out, ... )
+vips_float2rad(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "float2rad", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("float2rad", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

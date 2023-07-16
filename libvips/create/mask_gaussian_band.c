@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -63,10 +63,10 @@ typedef struct _VipsMaskGaussianBand {
 
 typedef VipsMaskClass VipsMaskGaussianBandClass;
 
-G_DEFINE_TYPE( VipsMaskGaussianBand, vips_mask_gaussian_band, VIPS_TYPE_MASK );
+G_DEFINE_TYPE(VipsMaskGaussianBand, vips_mask_gaussian_band, VIPS_TYPE_MASK);
 
 static double
-vips_mask_gaussian_band_point( VipsMask *mask, double dx, double dy ) 
+vips_mask_gaussian_band_point(VipsMask *mask, double dx, double dy)
 {
 	VipsMaskGaussianBand *gaussian_band = (VipsMaskGaussianBand *) mask;
 
@@ -75,66 +75,65 @@ vips_mask_gaussian_band_point( VipsMask *mask, double dx, double dy )
 	double r2 = gaussian_band->radius * gaussian_band->radius;
 	double ac = gaussian_band->amplitude_cutoff;
 
-	double cnst = log( ac ); 
+	double cnst = log(ac);
 
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
 
 	/* Normalise the amplitude at (fcx, fcy) to 1.0.
 	 */
-	double cnsta = 1.0 / (1.0 + 
-		exp( cnst * 4.0 * (fcx * fcx + fcy * fcy) / r2 )); 
+	double cnsta = 1.0 /
+		(1.0 + exp(cnst * 4.0 * (fcx * fcx + fcy * fcy) / r2));
 
-	return( cnsta * (exp( cnst * d1 / r2 ) + exp( cnst * d2 / r2 )) );
+	return cnsta * (exp(cnst * d1 / r2) + exp(cnst * d2 / r2));
 }
 
 static void
-vips_mask_gaussian_band_class_init( VipsMaskGaussianBandClass *class )
+vips_mask_gaussian_band_class_init(VipsMaskGaussianBandClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsMaskClass *mask_class = VIPS_MASK_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsMaskClass *mask_class = VIPS_MASK_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "mask_gaussian_band";
-	vobject_class->description = _( "make a gaussian filter" );
+	vobject_class->description = _("make a gaussian filter");
 
 	mask_class->point = vips_mask_gaussian_band_point;
 
-	VIPS_ARG_DOUBLE( class, "frequency_cutoff_x", 7, 
-		_( "Frequency cutoff x" ), 
-		_( "Frequency cutoff x" ),
+	VIPS_ARG_DOUBLE(class, "frequency_cutoff_x", 7,
+		_("Frequency cutoff x"),
+		_("Frequency cutoff x"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskGaussianBand, frequency_cutoff_x ),
-		0.0, 1000000.0, 0.5 );
+		G_STRUCT_OFFSET(VipsMaskGaussianBand, frequency_cutoff_x),
+		0.0, 1000000.0, 0.5);
 
-	VIPS_ARG_DOUBLE( class, "frequency_cutoff_y", 8, 
-		_( "Frequency cutoff y" ), 
-		_( "Frequency cutoff y" ),
+	VIPS_ARG_DOUBLE(class, "frequency_cutoff_y", 8,
+		_("Frequency cutoff y"),
+		_("Frequency cutoff y"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskGaussianBand, frequency_cutoff_y ),
-		0.0, 1000000.0, 0.5 );
+		G_STRUCT_OFFSET(VipsMaskGaussianBand, frequency_cutoff_y),
+		0.0, 1000000.0, 0.5);
 
-	VIPS_ARG_DOUBLE( class, "radius", 9, 
-		_( "Radius" ), 
-		_( "Radius of circle" ),
+	VIPS_ARG_DOUBLE(class, "radius", 9,
+		_("Radius"),
+		_("Radius of circle"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskGaussianBand, radius ),
-		0.0, 1000000.0, 0.1 );
+		G_STRUCT_OFFSET(VipsMaskGaussianBand, radius),
+		0.0, 1000000.0, 0.1);
 
-	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 10, 
-		_( "Amplitude cutoff" ), 
-		_( "Amplitude cutoff" ),
+	VIPS_ARG_DOUBLE(class, "amplitude_cutoff", 10,
+		_("Amplitude cutoff"),
+		_("Amplitude cutoff"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskGaussianBand, amplitude_cutoff ),
-		0.0, 1.0, 0.5 );
-
+		G_STRUCT_OFFSET(VipsMaskGaussianBand, amplitude_cutoff),
+		0.0, 1.0, 0.5);
 }
 
 static void
-vips_mask_gaussian_band_init( VipsMaskGaussianBand *gaussian_band )
+vips_mask_gaussian_band_init(VipsMaskGaussianBand *gaussian_band)
 {
 	gaussian_band->frequency_cutoff_x = 0.5;
 	gaussian_band->frequency_cutoff_x = 0.5;
@@ -147,7 +146,7 @@ vips_mask_gaussian_band_init( VipsMaskGaussianBand *gaussian_band )
  * @out: (out): output image
  * @width: image size
  * @height: image size
- * @frequency_cutoff_x: band position 
+ * @frequency_cutoff_x: band position
  * @frequency_cutoff_y: band position
  * @radius: band radius
  * @amplitude_cutoff: amplitude threshold
@@ -160,27 +159,27 @@ vips_mask_gaussian_band_init( VipsMaskGaussianBand *gaussian_band )
  * * @optical: coordinates in optical space
  * * @uchar: output a uchar image
  *
- * Make a gaussian band-pass or band-reject filter, that is, one with a 
- * variable, smooth transition positioned at @frequency_cutoff_x, 
+ * Make a gaussian band-pass or band-reject filter, that is, one with a
+ * variable, smooth transition positioned at @frequency_cutoff_x,
  * @frequency_cutoff_y, of radius @radius.
  *
- * See also: vips_mask_ideal(). 
+ * See also: vips_mask_ideal().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mask_gaussian_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
-	double amplitude_cutoff, ... )
+vips_mask_gaussian_band(VipsImage **out, int width, int height,
+	double frequency_cutoff_x, double frequency_cutoff_y, double radius,
+	double amplitude_cutoff, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, amplitude_cutoff );
-	result = vips_call_split( "mask_gaussian_band", ap, out, width, height, 
-		frequency_cutoff_x, frequency_cutoff_y, radius, 
-		amplitude_cutoff );
-	va_end( ap );
+	va_start(ap, amplitude_cutoff);
+	result = vips_call_split("mask_gaussian_band", ap, out, width, height,
+		frequency_cutoff_x, frequency_cutoff_y, radius,
+		amplitude_cutoff);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

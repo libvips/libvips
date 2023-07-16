@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 29/4/93 JC
  *	- now works for partial images
  * 1/7/93 JC
@@ -31,28 +31,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -76,70 +76,92 @@
 typedef VipsBinary VipsMultiply;
 typedef VipsBinaryClass VipsMultiplyClass;
 
-G_DEFINE_TYPE( VipsMultiply, vips_multiply, VIPS_TYPE_BINARY );
+G_DEFINE_TYPE(VipsMultiply, vips_multiply, VIPS_TYPE_BINARY);
 
 /* Complex multiply.
  */
-#define CLOOP( TYPE ) { \
-	TYPE * restrict left = (TYPE *) in[0]; \
-	TYPE * restrict right = (TYPE *) in[1]; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		double x1 = left[0]; \
-		double y1 = left[1]; \
-		double x2 = right[0]; \
-		double y2 = right[1]; \
-		\
-		left += 2; \
-		right += 2; \
-		\
-		q[0] = x1 * x2 - y1 * y2; \
-		q[1] = x1 * y2 + x2 * y1; \
-		\
-		q += 2; \
-	} \
-}
+#define CLOOP(TYPE) \
+	{ \
+		TYPE *restrict left = (TYPE *) in[0]; \
+		TYPE *restrict right = (TYPE *) in[1]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < sz; x++) { \
+			double x1 = left[0]; \
+			double y1 = left[1]; \
+			double x2 = right[0]; \
+			double y2 = right[1]; \
+\
+			left += 2; \
+			right += 2; \
+\
+			q[0] = x1 * x2 - y1 * y2; \
+			q[1] = x1 * y2 + x2 * y1; \
+\
+			q += 2; \
+		} \
+	}
 
 /* Real multiply.
  */
-#define RLOOP( IN, OUT ) { \
-	IN * restrict left = (IN *) in[0]; \
-	IN * restrict right = (IN *) in[1]; \
-	OUT * restrict q = (OUT *) out; \
-	\
-	for( x = 0; x < sz; x++ ) \
-		q[x] = left[x] * right[x]; \
-}
+#define RLOOP(IN, OUT) \
+	{ \
+		IN *restrict left = (IN *) in[0]; \
+		IN *restrict right = (IN *) in[1]; \
+		OUT *restrict q = (OUT *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = left[x] * right[x]; \
+	}
 
 static void
-vips_multiply_buffer( VipsArithmetic *arithmetic, 
-	VipsPel *out, VipsPel **in, int width )
+vips_multiply_buffer(VipsArithmetic *arithmetic,
+	VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
-	const int sz = width * vips_image_get_bands( im );
+	const int sz = width * vips_image_get_bands(im);
 
 	int x;
 
-	/* Keep types here in sync with vips_bandfmt_multiply[] 
+	/* Keep types here in sync with vips_bandfmt_multiply[]
 	 * below.
-         */
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	RLOOP( signed char, signed short ); break; 
-        case VIPS_FORMAT_UCHAR:	RLOOP( unsigned char, signed short ); break; 
-        case VIPS_FORMAT_SHORT:	RLOOP( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT:RLOOP( unsigned short, signed int ); break; 
-        case VIPS_FORMAT_INT: 	RLOOP( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 	RLOOP( unsigned int, signed int ); break; 
-        case VIPS_FORMAT_FLOAT:	RLOOP( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE: RLOOP( double, double ); break;
+	 */
+	switch (vips_image_get_format(im)) {
+	case VIPS_FORMAT_CHAR:
+		RLOOP(signed char, signed short);
+		break;
+	case VIPS_FORMAT_UCHAR:
+		RLOOP(unsigned char, signed short);
+		break;
+	case VIPS_FORMAT_SHORT:
+		RLOOP(signed short, signed int);
+		break;
+	case VIPS_FORMAT_USHORT:
+		RLOOP(unsigned short, signed int);
+		break;
+	case VIPS_FORMAT_INT:
+		RLOOP(signed int, signed int);
+		break;
+	case VIPS_FORMAT_UINT:
+		RLOOP(unsigned int, signed int);
+		break;
+	case VIPS_FORMAT_FLOAT:
+		RLOOP(float, float);
+		break;
+	case VIPS_FORMAT_DOUBLE:
+		RLOOP(double, double);
+		break;
 
-        case VIPS_FORMAT_COMPLEX: CLOOP( float ); break;
-        case VIPS_FORMAT_DPCOMPLEX: CLOOP( double ); break;
+	case VIPS_FORMAT_COMPLEX:
+		CLOOP(float);
+		break;
+	case VIPS_FORMAT_DPCOMPLEX:
+		CLOOP(double);
+		break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -155,7 +177,7 @@ vips_multiply_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for multiplication. Sign and value preserving. Make sure 
+/* Type promotion for multiplication. Sign and value preserving. Make sure
  * these match the case statement in multiply_buffer() above.
  */
 static const VipsBandFormat vips_multiply_format_table[10] = {
@@ -164,21 +186,21 @@ static const VipsBandFormat vips_multiply_format_table[10] = {
 };
 
 static void
-vips_multiply_class_init( VipsMultiplyClass *class )
+vips_multiply_class_init(VipsMultiplyClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	object_class->nickname = "multiply";
-	object_class->description = _( "multiply two images" );
+	object_class->description = _("multiply two images");
 
 	aclass->process_line = vips_multiply_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_multiply_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_multiply_format_table);
 }
 
 static void
-vips_multiply_init( VipsMultiply *multiply )
+vips_multiply_init(VipsMultiply *multiply)
 {
 }
 
@@ -189,19 +211,19 @@ vips_multiply_init( VipsMultiply *multiply )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @left * @right and writes the result to @out. 
+ * This operation calculates @left * @right and writes the result to @out.
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the
  * following table is used to determine the output type:
  *
  * <table>
@@ -266,14 +288,14 @@ vips_multiply_init( VipsMultiply *multiply )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_multiply( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+vips_multiply(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "multiply", ap, left, right, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("multiply", ap, left, right, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

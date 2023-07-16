@@ -13,28 +13,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -64,69 +64,81 @@ typedef struct _VipsRound {
 
 typedef VipsUnaryClass VipsRoundClass;
 
-G_DEFINE_TYPE( VipsRound, vips_round, VIPS_TYPE_UNARY );
+G_DEFINE_TYPE(VipsRound, vips_round, VIPS_TYPE_UNARY);
 
 static int
-vips_round_build( VipsObject *object )
+vips_round_build(VipsObject *object)
 {
 	VipsUnary *unary = (VipsUnary *) object;
 
 	/* Is this one of the int types? Degenerate to vips_copy() if it
 	 * is.
 	 */
-	if( unary->in &&
-		vips_band_format_isint( unary->in->BandFmt ) ) 
-		return( vips_unary_copy( unary ) ); 
+	if (unary->in &&
+		vips_band_format_isint(unary->in->BandFmt))
+		return vips_unary_copy(unary);
 
-	if( VIPS_OBJECT_CLASS( vips_round_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_round_parent_class)->build(object))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
-#define LOOP( TYPE, OP ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) \
-		q[x] = OP( p[x] ); \
-}
+#define LOOP(TYPE, OP) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = OP(p[x]); \
+	}
 
-#define SWITCH( OP ) { \
-	switch( vips_image_get_format( im ) ) { \
-        case VIPS_FORMAT_COMPLEX: \
-	case VIPS_FORMAT_FLOAT: LOOP( float, OP ); break; \
-	\
-        case VIPS_FORMAT_DPCOMPLEX: \
-	case VIPS_FORMAT_DOUBLE:LOOP( double, OP ); break;\
- 	\
-	default: \
-		g_assert_not_reached(); \
-	} \
-}
+#define SWITCH(OP) \
+	{ \
+		switch (vips_image_get_format(im)) { \
+		case VIPS_FORMAT_COMPLEX: \
+		case VIPS_FORMAT_FLOAT: \
+			LOOP(float, OP); \
+			break; \
+\
+		case VIPS_FORMAT_DPCOMPLEX: \
+		case VIPS_FORMAT_DOUBLE: \
+			LOOP(double, OP); \
+			break; \
+\
+		default: \
+			g_assert_not_reached(); \
+		} \
+	}
 
 static void
-vips_round_buffer( VipsArithmetic *arithmetic, 
-	VipsPel *out, VipsPel **in, int width )
+vips_round_buffer(VipsArithmetic *arithmetic,
+	VipsPel *out, VipsPel **in, int width)
 {
 	VipsRound *round = (VipsRound *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * im->Bands * 
-		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * im->Bands *
+		(vips_band_format_iscomplex(im->BandFmt) ? 2 : 1);
 
 	int x;
 
-	switch( round->round ) {
-	case VIPS_OPERATION_ROUND_RINT:		SWITCH( VIPS_RINT ); break;
-	case VIPS_OPERATION_ROUND_CEIL:		SWITCH( VIPS_CEIL ); break;
-	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( VIPS_FLOOR ); break;
+	switch (round->round) {
+	case VIPS_OPERATION_ROUND_RINT:
+		SWITCH(VIPS_RINT);
+		break;
+	case VIPS_OPERATION_ROUND_CEIL:
+		SWITCH(VIPS_CEIL);
+		break;
+	case VIPS_OPERATION_ROUND_FLOOR:
+		SWITCH(VIPS_FLOOR);
+		break;
 
-	default: 
-		g_assert_not_reached(); 
-	} 
+	default:
+		g_assert_not_reached();
+	}
 }
 
 /* Save a bit of typing.
@@ -148,41 +160,41 @@ static const VipsBandFormat vips_round_format_table[10] = {
 };
 
 static void
-vips_round_class_init( VipsRoundClass *class )
+vips_round_class_init(VipsRoundClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "round";
-	object_class->description = _( "perform a round function on an image" );
+	object_class->description = _("perform a round function on an image");
 	object_class->build = vips_round_build;
 
 	aclass->process_line = vips_round_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_round_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_round_format_table);
 
-	VIPS_ARG_ENUM( class, "round", 200, 
-		_( "Round operation" ), 
-		_( "Rounding operation to perform" ),
+	VIPS_ARG_ENUM(class, "round", 200,
+		_("Round operation"),
+		_("Rounding operation to perform"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsRound, round ),
-		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT ); 
+		G_STRUCT_OFFSET(VipsRound, round),
+		VIPS_TYPE_OPERATION_ROUND, VIPS_OPERATION_ROUND_RINT);
 }
 
 static void
-vips_round_init( VipsRound *round )
+vips_round_init(VipsRound *round)
 {
 }
 
 static int
-vips_roundv( VipsImage *in, VipsImage **out, 
-	VipsOperationRound round, va_list ap )
+vips_roundv(VipsImage *in, VipsImage **out,
+	VipsOperationRound round, va_list ap)
 {
-	return( vips_call_split( "round", ap, in, out, round ) );
+	return vips_call_split("round", ap, in, out, round);
 }
 
 /**
@@ -194,8 +206,8 @@ vips_roundv( VipsImage *in, VipsImage **out,
  *
  * Round to an integral value.
  *
- * Copy for integer types, round float and 
- * complex types. 
+ * Copy for integer types, round float and
+ * complex types.
  *
  * The format of @out is always the same as @in, so you may wish to cast to an
  * integer format afterwards.
@@ -205,16 +217,16 @@ vips_roundv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
+vips_round(VipsImage *in, VipsImage **out, VipsOperationRound round, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, round );
-	result = vips_roundv( in, out, round, ap );
-	va_end( ap );
+	va_start(ap, round);
+	result = vips_roundv(in, out, round, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -223,22 +235,22 @@ vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_floor( VipsImage *in, VipsImage **out, ... )
+vips_floor(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_FLOOR, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_FLOOR, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -247,22 +259,22 @@ vips_floor( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_ceil( VipsImage *in, VipsImage **out, ... )
+vips_ceil(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_CEIL, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_CEIL, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -271,20 +283,20 @@ vips_ceil( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See 
- * vips_round(). 
+ * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See
+ * vips_round().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rint( VipsImage *in, VipsImage **out, ... )
+vips_rint(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_roundv( in, out, VIPS_OPERATION_ROUND_RINT, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_roundv(in, out, VIPS_OPERATION_ROUND_RINT, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
