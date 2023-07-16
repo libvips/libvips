@@ -10,7 +10,7 @@
  * MODIFICATION FOR VIPS Copyright 1991, K.Martinez
  *
  * software may be distributed FREE, with these copyright notices
- * no responsibility/warantee is implied or given
+ * no responsibility/warrantee is implied or given
  *
  *
  * Modified and added im_LabQ2LabC() function. It can write IM_TYPE_LABQ image

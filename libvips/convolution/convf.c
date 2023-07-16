@@ -42,7 +42,7 @@
  * 	- get rid of im_convsep_f(), just call this twice, no longer worth
  * 	  keeping two versions
  * 15/10/11 Nicolas
- * 	- handle offset correctly in seperable convolutions
+ * 	- handle offset correctly in separable convolutions
  * 26/1/16 Lovell Fuller
  * 	- remove Duff for a 25% speedup
  * 23/6/16

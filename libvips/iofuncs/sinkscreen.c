@@ -1,4 +1,4 @@
-/* aynchronous screen sink
+/* asynchronous screen sink
  *
  * 1/1/10
  * 	- from im_render.c
@@ -724,7 +724,7 @@ tile_queue(Tile *tile, VipsRegion *reg)
 	}
 	else {
 		/* no notify ... paint the tile ourselves
-		 * sychronously. No need to notify the client since they'll
+		 * synchronously. No need to notify the client since they'll
 		 * never see black tiles.
 		 */
 		VIPS_DEBUG_MSG("tile_queue: painting tile %p %dx%d synchronously\n",
@@ -795,7 +795,7 @@ render_tile_request(Render *render, VipsRegion *reg, VipsRect *area)
 	}
 	else if (render->ntiles < render->max_tiles ||
 		render->max_tiles == -1) {
-		/* We have fewer tiles than teh max. We can just make a new
+		/* We have fewer tiles than the max. We can just make a new
 		 * tile.
 		 */
 		if (!(tile = tile_new(render)))
@@ -1106,7 +1106,7 @@ vips__sink_screen_once(void *data)
  * See also: vips_tilecache(), vips_region_prepare(),
  * vips_sink_disc(), vips_sink().
  *
- * Returns: 0 on sucess, -1 on error.
+ * Returns: 0 on success, -1 on error.
  */
 int
 vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,

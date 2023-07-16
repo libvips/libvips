@@ -130,7 +130,7 @@ vips_eye_init(VipsEye *eye)
  * * @factor: maximum spatial frequency
  * * @uchar: output a uchar image
  *
- * Create a test pattern with increasing spatial frequence in X and
+ * Create a test pattern with increasing spatial frequency in X and
  * amplitude in Y. @factor should be between 0 and 1 and determines the
  * maximum spatial frequency.
  *

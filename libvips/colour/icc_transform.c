@@ -670,7 +670,7 @@ vips_icc_verify_blob(VipsBlob **blob, VipsImage *image, VipsIntent intent)
 	return NULL;
 }
 
-/* Try to set the inport profile. We read the input profile like this:
+/* Try to set the import profile. We read the input profile like this:
  *
  *	embedded	filename	action
  *	0		0 		image

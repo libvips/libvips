@@ -373,7 +373,7 @@ vips_stdif_init(VipsStdif *stdif)
  * * @b: weight of new deviation
  * * @s0: target deviation
  *
- * vips_stdif() preforms statistical differencing according to the formula
+ * vips_stdif() performs statistical differencing according to the formula
  * given in page 45 of the book "An Introduction to Digital Image
  * Processing" by Wayne Niblack. This transformation emphasises the way in
  * which a pel differs statistically from its neighbours. It is useful for

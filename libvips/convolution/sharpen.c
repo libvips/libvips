@@ -16,7 +16,7 @@
  *	- xs are now ys
  *	- better LUT generation
  * 12/3/01 JC
- *	- uses seperable convolution for umask
+ *	- uses separable convolution for umask
  *	- tiny clean ups
  * 23/7/01 JC
  *	- fix for band extract index changed

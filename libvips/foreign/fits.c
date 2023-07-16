@@ -576,7 +576,7 @@ vips_fits_new_write(VipsImage *in, const char *filename)
 		return NULL;
 
 	/* fits_create_file() will fail if there's a file of thet name, unless
-	 * we put a "!" in front ofthe filename. This breaks conventions with
+	 * we put a "!" in front of the filename. This breaks conventions with
 	 * the rest of vips, so just unlink explicitly.
 	 */
 	g_unlink(filename);
@@ -630,7 +630,7 @@ const char *vips_fits_duplicate[] = {
  *	"COMMENT   FITS (Flexible Image Transport System) format is defined
  *	""
  *
- * - always left justfied
+ * - always left justified
  * - keyword is always 8 characters, right padded with spaces
  * - "= ", if present, is cols 9 and 10
  * - lines are variable length, can be zero length for blank lines

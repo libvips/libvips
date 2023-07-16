@@ -358,7 +358,7 @@ vips_hist_plot_init(VipsHistPlot *hist_plot)
  *
  * <emphasis>unsigned char</emphasis> max is always 256
  *
- * <emphasis>other unsigned integer types</emphasis> output 0 - maxium
+ * <emphasis>other unsigned integer types</emphasis> output 0 - maximum
  * value of @in.
  *
  * <emphasis>signed int types</emphasis> min moved to 0, max moved to max + min.

@@ -760,7 +760,7 @@ main(int argc, char **argv)
 	if (main_option_version)
 		printf("vips-%s\n", vips_version_string());
 
-	/* Reenable help and unknown option detection ready for the second
+	/* Re-enable help and unknown option detection ready for the second
 	 * option parse.
 	 */
 	g_option_context_set_ignore_unknown_options(context, FALSE);

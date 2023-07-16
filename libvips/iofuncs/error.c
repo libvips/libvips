@@ -86,7 +86,7 @@
  * main thread of execution.
  *
  * The general principle is: if you detect an error, log a message for the
- * user. If a function you call detects an error, just propogate it and don't
+ * user. If a function you call detects an error, just propagate it and don't
  * add another message.
  *
  * |[
@@ -153,7 +153,7 @@ vips_error_freeze(void)
 /**
  * vips_error_thaw:
  *
- * Reenable error logging.
+ * Re-enable error logging.
  */
 void
 vips_error_thaw(void)

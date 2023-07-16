@@ -106,7 +106,7 @@ vips_matrixinvert_dispose(GObject *gobject)
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
+ *   PRESS, W. et al, 1992.  Numerical Recipes in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * Returns: the decomposed matrix on success, or NULL on error.
@@ -225,7 +225,7 @@ lu_decomp(VipsImage *mat)
  *
  * See:
  *
- *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific
+ *   PRESS, W. et al, 1992.  Numerical Recipes in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
  * See also: vips__matrixtranspose(), vips__matrixmultiply().

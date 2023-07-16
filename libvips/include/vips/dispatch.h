@@ -113,7 +113,7 @@ typedef struct {
 	im_print_obj_fn print; /* Print some output objects */
 } im_arg_desc;
 
-/* Type of VIPS dispatch funtion.
+/* Type of VIPS dispatch function.
  */
 typedef int (*im_dispatch_fn)(im_object *argv);
 

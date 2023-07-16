@@ -89,7 +89,7 @@
       lot of state in per-thread storage. If you want to create a region in 
       one thread and use it in another, you have to first tag the region as 
       unowned from the creating thread with vips__region_no_ownership(), then 
-      in the recieving thread take ownership with 
+      in the receiving thread take ownership with 
       vips__region_take_ownership(). See the source for operations like 
       vips_tilecache() if you're curious how this works. 
     </para>

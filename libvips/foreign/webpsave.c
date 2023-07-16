@@ -254,7 +254,7 @@ vips_foreign_save_webp_pic_init(VipsForeignSaveWebp *write, WebPPicture *pic)
 	return TRUE;
 }
 
-/* Write a VipsImage into an unintialised pic.
+/* Write a VipsImage into an uninitialised pic.
  */
 static int
 vips_foreign_save_webp_write_webp_image(VipsForeignSaveWebp *write,
