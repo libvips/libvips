@@ -3,28 +3,28 @@
 
 /*
 
-    Copyright (C) 1991-2003 The National Gallery
+	Copyright (C) 1991-2003 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -52,8 +52,8 @@
  * @see_also: #vips
  * @include: vips/vips.h
  *
- * A message buffer you can append stuff to safely and quickly. If the message 
- * gets too long, you get "..." and truncation. Message buffers can be on the 
+ * A message buffer you can append stuff to safely and quickly. If the message
+ * gets too long, you get "..." and truncation. Message buffers can be on the
  * stack or heap.
  *
  * For example:
@@ -73,7 +73,7 @@
  * ]|
  */
 
-/** 
+/**
  * VIPS_BUF_STATIC:
  * @TEXT: the storage area to use
  *
@@ -92,13 +92,13 @@
  * Reset the buffer to the empty string.
  */
 void
-vips_buf_rewind( VipsBuf *buf )
+vips_buf_rewind(VipsBuf *buf)
 {
 	buf->i = 0;
 	buf->lasti = 0;
 	buf->full = FALSE;
 
-	if( buf->base )
+	if (buf->base)
 		buf->base[0] = '\0';
 }
 
@@ -109,12 +109,12 @@ vips_buf_rewind( VipsBuf *buf )
  * Initialize a buffer.
  */
 void
-vips_buf_init( VipsBuf *buf )
+vips_buf_init(VipsBuf *buf)
 {
 	buf->base = NULL;
 	buf->mx = 0;
 	buf->dynamic = FALSE;
-	vips_buf_rewind( buf );
+	vips_buf_rewind(buf);
 }
 
 /**
@@ -125,16 +125,16 @@ vips_buf_init( VipsBuf *buf )
  * _init state.
  */
 void
-vips_buf_destroy( VipsBuf *buf )
+vips_buf_destroy(VipsBuf *buf)
 {
-	if( buf->dynamic ) {
-		VIPS_FREE( buf->base );
+	if (buf->dynamic) {
+		VIPS_FREE(buf->base);
 	}
 
-	vips_buf_init( buf );
+	vips_buf_init(buf);
 }
 
-/** 
+/**
  * vips_buf_set_static:
  * @buf: the buffer
  * @base: the start of the memory area to use for storage
@@ -144,16 +144,16 @@ vips_buf_destroy( VipsBuf *buf )
  * initialised. The memory area needs to be at least 4 bytes long.
  */
 void
-vips_buf_set_static( VipsBuf *buf, char *base, int mx )
+vips_buf_set_static(VipsBuf *buf, char *base, int mx)
 {
-	g_assert( mx >= 4 );
+	g_assert(mx >= 4);
 
-	vips_buf_destroy( buf );
+	vips_buf_destroy(buf);
 
 	buf->base = base;
 	buf->mx = mx;
 	buf->dynamic = FALSE;
-	vips_buf_rewind( buf );
+	vips_buf_rewind(buf);
 }
 
 /**
@@ -170,18 +170,18 @@ vips_buf_set_static( VipsBuf *buf, char *base, int mx )
  * |[
  * char txt[256];
  * VipsBuf buf;
- * 
+ *
  * vips_buf_init_static (&buf, txt, 256);
  * ]|
- * 
+ *
  * Static buffers don't need to be freed when they go out of scope, but their
  * size must be set at compile-time.
  */
 void
-vips_buf_init_static( VipsBuf *buf, char *base, int mx )
+vips_buf_init_static(VipsBuf *buf, char *base, int mx)
 {
-	vips_buf_init( buf );
-	vips_buf_set_static( buf, base, mx );
+	vips_buf_init(buf);
+	vips_buf_set_static(buf, base, mx);
 }
 
 /**
@@ -193,25 +193,25 @@ vips_buf_init_static( VipsBuf *buf, char *base, int mx )
  * initialised. The memory area needs to be at least 4 bytes long.
  */
 void
-vips_buf_set_dynamic( VipsBuf *buf, int mx )
+vips_buf_set_dynamic(VipsBuf *buf, int mx)
 {
-	g_assert( mx >= 4 );
+	g_assert(mx >= 4);
 
-	if( buf->mx == mx && buf->dynamic ) 
+	if (buf->mx == mx && buf->dynamic)
 		/* No change?
 		 */
-		vips_buf_rewind( buf );
+		vips_buf_rewind(buf);
 	else {
-		vips_buf_destroy( buf );
+		vips_buf_destroy(buf);
 
-		if( !(buf->base = VIPS_ARRAY( NULL, mx, char )) )
+		if (!(buf->base = VIPS_ARRAY(NULL, mx, char)))
 			/* No error return, so just block writes.
 			 */
 			buf->full = TRUE;
 		else {
 			buf->mx = mx;
 			buf->dynamic = TRUE;
-			vips_buf_rewind( buf );
+			vips_buf_rewind(buf);
 		}
 	}
 }
@@ -221,12 +221,12 @@ vips_buf_set_dynamic( VipsBuf *buf, int mx )
  * @buf: the buffer
  * @mx: the size of the storage area
  *
- * Initialise and attach to a heap memory area. 
+ * Initialise and attach to a heap memory area.
  * The memory area needs to be at least 4 bytes long.
- * 
+ *
  * |[
  * VipsBuf buf;
- * 
+ *
  * vips_buf_init_synamic (&buf, 256);
  * ]|
  *
@@ -234,10 +234,10 @@ vips_buf_set_dynamic( VipsBuf *buf, int mx )
  * be set at runtime.
  */
 void
-vips_buf_init_dynamic( VipsBuf *buf, int mx )
+vips_buf_init_dynamic(VipsBuf *buf, int mx)
 {
-	vips_buf_init( buf );
-	vips_buf_set_dynamic( buf, mx );
+	vips_buf_init(buf);
+	vips_buf_set_dynamic(buf, mx);
 }
 
 /**
@@ -249,27 +249,27 @@ vips_buf_init_dynamic( VipsBuf *buf, int mx )
  * Append at most @sz chars from @str to @buf. @sz < 0 means unlimited. This
  * is the low-level append operation: functions like vips_buf_appendf() build
  * on top of this.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
+vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 {
 	int len;
 	int n;
 	int avail;
 	int cpy;
 
-	if( buf->full )
-		return( FALSE );
-        if( !str )
-		return( TRUE );
+	if (buf->full)
+		return (FALSE);
+	if (!str)
+		return (TRUE);
 
 	/* Amount we want to copy.
 	 */
-	len = strlen( str );
-	if( sz >= 0 )
-		n = VIPS_MIN( sz, len );
+	len = strlen(str);
+	if (sz >= 0)
+		n = VIPS_MIN(sz, len);
 	else
 		n = len;
 
@@ -277,24 +277,24 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 	 */
 	avail = buf->mx - buf->i - 4;
 
-	cpy = VIPS_MIN( n, avail );
+	cpy = VIPS_MIN(n, avail);
 
 	/* Can't use vips_strncpy() here, we don't want to drop the end of the
 	 * string.
 	 *
 	 * gcc10.3 (I think?) issues a false-positive warning about this.
 	 */
-	strncpy( buf->base + buf->i, str, cpy );
+	strncpy(buf->base + buf->i, str, cpy);
 	buf->i += cpy;
 
-	if( buf->i >= buf->mx - 4 ) {
+	if (buf->i >= buf->mx - 4) {
 		buf->full = TRUE;
-		strcpy( buf->base + buf->mx - 4, "..." );
+		strcpy(buf->base + buf->mx - 4, "...");
 		buf->i = buf->mx - 1;
-		return( FALSE );
+		return (FALSE);
 	}
 
-	return( TRUE );
+	return (TRUE);
 }
 
 /**
@@ -302,14 +302,14 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
  * @buf: the buffer
  * @str: the string to append to the buffer
  *
- * Append the whole of @str to @buf. 
- * 
+ * Append the whole of @str to @buf.
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appends( VipsBuf *buf, const char *str )
+vips_buf_appends(VipsBuf *buf, const char *str)
 {
-	return( vips_buf_appendns( buf, str, -1 ) );
+	return (vips_buf_appendns(buf, str, -1));
 }
 
 /**
@@ -317,19 +317,19 @@ vips_buf_appends( VipsBuf *buf, const char *str )
  * @buf: the buffer
  * @ch: the character to append to the buffer
  *
- * Append a single character @ch to @buf. 
- * 
+ * Append a single character @ch to @buf.
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendc( VipsBuf *buf, char ch )
+vips_buf_appendc(VipsBuf *buf, char ch)
 {
 	char tiny[2];
 
 	tiny[0] = ch;
 	tiny[1] = '\0';
 
-	return( vips_buf_appendns( buf, tiny, 1 ) );
+	return (vips_buf_appendns(buf, tiny, 1));
 }
 
 /**
@@ -339,41 +339,41 @@ vips_buf_appendc( VipsBuf *buf, char ch )
  * @n: the string to substitute
  *
  * Swap the rightmost occurence of @o for @n.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_change( VipsBuf *buf, const char *old, const char *new )
+vips_buf_change(VipsBuf *buf, const char *old, const char *new)
 {
-	int olen = strlen( old );
-	int nlen = strlen( new );
+	int olen = strlen(old);
+	int nlen = strlen(new);
 	int i;
 
-	if( buf->full )
-		return( FALSE );
-	if( buf->i - olen + nlen > buf->mx - 4 ) {
+	if (buf->full)
+		return (FALSE);
+	if (buf->i - olen + nlen > buf->mx - 4) {
 		buf->full = TRUE;
-		return( FALSE );
+		return (FALSE);
 	}
 
 	/* Find pos of old.
 	 */
-	for( i = buf->i - olen; i > 0; i-- )
-		if( vips_isprefix( old, buf->base + i ) )
+	for (i = buf->i - olen; i > 0; i--)
+		if (vips_isprefix(old, buf->base + i))
 			break;
-	g_assert( i >= 0 );
+	g_assert(i >= 0);
 
 	/* Move tail of buffer to make right-size space for new.
 	 */
-	memmove( buf->base + i + nlen, buf->base + i + olen,
-		buf->i - i - olen );
+	memmove(buf->base + i + nlen, buf->base + i + olen,
+		buf->i - i - olen);
 
 	/* Copy new in.
 	 */
-	memcpy( buf->base + i, new, nlen );
+	memcpy(buf->base + i, new, nlen);
 	buf->i = i + nlen + (buf->i - i - olen);
 
-	return( TRUE );
+	return (TRUE);
 }
 
 /**
@@ -382,20 +382,20 @@ vips_buf_change( VipsBuf *buf, const char *old, const char *new )
  * @ch: the character to remove
  *
  * Remove the last character, if it's @ch.
- * 
+ *
  * Returns: %FALSE on failure, %TRUE otherwise.
  */
 gboolean
-vips_buf_removec( VipsBuf *buf, char ch )
+vips_buf_removec(VipsBuf *buf, char ch)
 {
-	if( buf->full )
-		return( FALSE );
-	if( buf->i <= 0 ) 
-		return( FALSE );
-	if( buf->base[buf->i - 1] == ch )
+	if (buf->full)
+		return (FALSE);
+	if (buf->i <= 0)
+		return (FALSE);
+	if (buf->base[buf->i - 1] == ch)
 		buf->i -= 1;
 
-	return( TRUE );
+	return (TRUE);
 }
 
 /**
@@ -409,27 +409,27 @@ vips_buf_removec( VipsBuf *buf, char ch )
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )
+vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 {
 	int avail;
 	char *p;
 
-	if( buf->full )
-		return( FALSE );
+	if (buf->full)
+		return (FALSE);
 
 	avail = buf->mx - buf->i - 4;
 	p = buf->base + buf->i;
-	(void) vips_vsnprintf( p, avail, fmt, ap ); 
-	buf->i += strlen( p );
+	(void) vips_vsnprintf(p, avail, fmt, ap);
+	buf->i += strlen(p);
 
-	if( buf->i >= buf->mx - 4 ) {
+	if (buf->i >= buf->mx - 4) {
 		buf->full = TRUE;
-		strcpy( buf->base + buf->mx - 4, "..." );
+		strcpy(buf->base + buf->mx - 4, "...");
 		buf->i = buf->mx - 1;
-		return( FALSE );
+		return (FALSE);
 	}
 
-	return( TRUE );
+	return (TRUE);
 }
 
 /**
@@ -439,39 +439,39 @@ vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )
  * @...: arguments to format string
  *
  * Format the string and append to @buf.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
+vips_buf_appendf(VipsBuf *buf, const char *fmt, ...)
 {
 	va_list ap;
 	gboolean result;
 
-        va_start( ap, fmt );
-        result = vips_buf_vappendf( buf, fmt, ap );
-        va_end( ap );
+	va_start(ap, fmt);
+	result = vips_buf_vappendf(buf, fmt, ap);
+	va_end(ap);
 
-	return( result );
+	return (result);
 }
 
 /**
  * vips_buf_appendg:
  * @buf: the buffer
  * @g: value to format and append
- * 
+ *
  * Append a double, non-localised. Useful for config files etc.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendg( VipsBuf *buf, double g )
+vips_buf_appendg(VipsBuf *buf, double g)
 {
 	char text[G_ASCII_DTOSTR_BUF_SIZE];
 
-	g_ascii_dtostr( text, sizeof( text ), g );
+	g_ascii_dtostr(text, sizeof(text), g);
 
-	return( vips_buf_appends( buf, text ) );
+	return (vips_buf_appends(buf, text));
 }
 
 /**
@@ -481,16 +481,16 @@ vips_buf_appendg( VipsBuf *buf, double g )
  *
  * Append a number. If the number is -ve, add brackets. Needed for
  * building function arguments.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendd( VipsBuf *buf, int d )
+vips_buf_appendd(VipsBuf *buf, int d)
 {
-	if( d < 0 )
-		return( vips_buf_appendf( buf, " (%d)", d ) );
+	if (d < 0)
+		return (vips_buf_appendf(buf, " (%d)", d));
 	else
-		return( vips_buf_appendf( buf, " %d", d ) );
+		return (vips_buf_appendf(buf, " %d", d));
 }
 
 /**
@@ -502,15 +502,15 @@ vips_buf_appendd( VipsBuf *buf, int d )
  * bytes of binary data" for BLOBs like icc-profile-data.
  *
  * Use vips_image_get_as_string() to make a text representation of a field.
- * That will base64-encode blobs, for example. 
+ * That will base64-encode blobs, for example.
  *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_appendgv( VipsBuf *buf, GValue *value )
+vips_buf_appendgv(VipsBuf *buf, GValue *value)
 {
-	GType type = G_VALUE_TYPE( value ); 
-	GType fundamental = g_type_fundamental( type ); 
+	GType type = G_VALUE_TYPE(value);
+	GType fundamental = g_type_fundamental(type);
 
 	gboolean handled;
 	gboolean result;
@@ -518,133 +518,127 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 	result = FALSE;
 	handled = FALSE;
 
-	switch( fundamental ) {
-	case G_TYPE_STRING:
-{
+	switch (fundamental) {
+	case G_TYPE_STRING: {
 		const char *str;
 
-		/* These are GStrings (gchararray). vips refstrings are 
+		/* These are GStrings (gchararray). vips refstrings are
 		 * handled by boxed, see below.
 		 */
-		str = g_value_get_string( value );
-                result = vips_buf_appends( buf, str ); 
+		str = g_value_get_string(value);
+		result = vips_buf_appends(buf, str);
 		handled = TRUE;
-}
-		break;
+	} break;
 
-	case G_TYPE_OBJECT:
-{
+	case G_TYPE_OBJECT: {
 		GObject *object;
 
-		object = g_value_get_object( value );
-		if( VIPS_IS_OBJECT( object ) ) {
-			vips_object_summary( VIPS_OBJECT( object ), buf );
+		object = g_value_get_object(value);
+		if (VIPS_IS_OBJECT(object)) {
+			vips_object_summary(VIPS_OBJECT(object), buf);
 			result = TRUE;
 			handled = TRUE;
 		}
-}
-		break;
+	} break;
 
 	case G_TYPE_INT:
-		result = vips_buf_appendf( buf, 
-			"%d", g_value_get_int( value ) );
+		result = vips_buf_appendf(buf,
+			"%d", g_value_get_int(value));
 		handled = TRUE;
 		break;
 
 	case G_TYPE_UINT64:
-		result = vips_buf_appendf( buf, 
-			"%" G_GINT64_FORMAT, g_value_get_uint64( value ) );
+		result = vips_buf_appendf(buf,
+			"%" G_GINT64_FORMAT, g_value_get_uint64(value));
 		handled = TRUE;
 		break;
 
 	case G_TYPE_DOUBLE:
-		result = vips_buf_appendf( buf, 
-			"%g", g_value_get_double( value ) );
+		result = vips_buf_appendf(buf,
+			"%g", g_value_get_double(value));
 		handled = TRUE;
 		break;
 
 	case G_TYPE_BOOLEAN:
-		result = vips_buf_appends( buf, 
-			g_value_get_boolean( value ) ? "true" : "false" );
+		result = vips_buf_appends(buf,
+			g_value_get_boolean(value) ? "true" : "false");
 		handled = TRUE;
 		break;
 
 	case G_TYPE_ENUM:
-		result = vips_buf_appends( buf, 
-			vips_enum_nick( type, g_value_get_enum( value ) ) );
+		result = vips_buf_appends(buf,
+			vips_enum_nick(type, g_value_get_enum(value)));
 		handled = TRUE;
 		break;
 
-	case G_TYPE_FLAGS:
-{
-		GFlagsClass *flags_class = g_type_class_ref( type );
+	case G_TYPE_FLAGS: {
+		GFlagsClass *flags_class = g_type_class_ref(type);
 
 		GFlagsValue *v;
 		int flags;
 
-		flags = g_value_get_flags( value );
+		flags = g_value_get_flags(value);
 
-		while( flags &&
-			(v = g_flags_get_first_value( flags_class, flags )) ) {
-			result = vips_buf_appendf( buf, "%s ", v->value_nick );
+		while (flags &&
+			(v = g_flags_get_first_value(flags_class, flags))) {
+			result = vips_buf_appendf(buf, "%s ", v->value_nick);
 			flags &= ~v->value;
 		}
 
 		handled = TRUE;
-}
-		break;
+	} break;
 
 	case G_TYPE_BOXED:
-		if( type == VIPS_TYPE_REF_STRING ) { 
+		if (type == VIPS_TYPE_REF_STRING) {
 			const char *str;
 			size_t str_len;
 
 			/* These should be printable.
 			 */
-			str = vips_value_get_ref_string( value, &str_len );
-			result = vips_buf_appends( buf, str ); 
+			str = vips_value_get_ref_string(value, &str_len);
+			result = vips_buf_appends(buf, str);
 			handled = TRUE;
 		}
-		else if( type == VIPS_TYPE_BLOB ) {
+		else if (type == VIPS_TYPE_BLOB) {
 			size_t str_len;
 
 			/* Binary data and not printable.
 			 */
-			(void) vips_value_get_ref_string( value, &str_len );
-			result = vips_buf_appendf( buf, 
-				_( "%zd bytes of binary data" ), str_len ); 
+			(void) vips_value_get_ref_string(value, &str_len);
+			result = vips_buf_appendf(buf,
+				_("%zd bytes of binary data"), str_len);
 			handled = TRUE;
 		}
-		else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {
+		else if (type == VIPS_TYPE_ARRAY_DOUBLE) {
 			double *arr;
 			int n;
 			int i;
 
-			arr = vips_value_get_array_double( value, &n );
-			for( i = 0; i < n; i++ ) 
-				result = vips_buf_appendf( buf, "%g ", arr[i] ); 
+			arr = vips_value_get_array_double(value, &n);
+			for (i = 0; i < n; i++)
+				result = vips_buf_appendf(buf, "%g ", arr[i]);
 			handled = TRUE;
 		}
-		else if( type == VIPS_TYPE_ARRAY_INT ) {
+		else if (type == VIPS_TYPE_ARRAY_INT) {
 			int *arr;
 			int n;
 			int i;
 
-			arr = vips_value_get_array_int( value, &n );
-			for( i = 0; i < n; i++ ) 
-				result = vips_buf_appendf( buf, "%d ", arr[i] ); 
+			arr = vips_value_get_array_int(value, &n);
+			for (i = 0; i < n; i++)
+				result = vips_buf_appendf(buf, "%d ", arr[i]);
 			handled = TRUE;
 		}
-		else if( type == VIPS_TYPE_ARRAY_IMAGE ) {
+		else if (type == VIPS_TYPE_ARRAY_IMAGE) {
 			VipsImage **arr;
 			int n;
 			int i;
 
-			arr = vips_value_get_array_image( value, &n );
-			for( i = 0; i < n; i++ ) {
-				vips_object_summary( VIPS_OBJECT( arr[i] ), 
-					buf );
-				result = vips_buf_appends( buf, " " ); 
+			arr = vips_value_get_array_image(value, &n);
+			for (i = 0; i < n; i++) {
+				vips_object_summary(VIPS_OBJECT(arr[i]),
+					buf);
+				result = vips_buf_appends(buf, " ");
 			}
 			handled = TRUE;
 		}
@@ -654,15 +648,15 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 		break;
 	}
 
-	if( !handled ) { 
+	if (!handled) {
 		char *str_value;
 
-		str_value = g_strdup_value_contents( value );
-		result = vips_buf_appends( buf, str_value );
-		g_free( str_value );
+		str_value = g_strdup_value_contents(value);
+		result = vips_buf_appends(buf, str_value);
+		g_free(str_value);
 	}
 
-	return( result );
+	return (result);
 }
 
 /**
@@ -672,32 +666,32 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
  *
  * Turn a number of bytes into a sensible string ... eg "12", "12KB", "12MB",
  * "12GB" etc.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
-vips_buf_append_size( VipsBuf *buf, size_t n )
+vips_buf_append_size(VipsBuf *buf, size_t n)
 {
-	const static char *names[] = { 
+	const static char *names[] = {
 		/* File length unit.
 		 */
-		N_( "bytes" ), 
+		N_("bytes"),
 
 		/* Kilobyte unit.
 		 */
-		N_( "KB" ), 
+		N_("KB"),
 
 		/* Megabyte unit.
 		 */
-		N_( "MB" ), 
+		N_("MB"),
 
 		/* Gigabyte unit.
 		 */
-		N_( "GB" ), 
+		N_("GB"),
 
 		/* Terabyte unit.
 		 */
-		N_( "TB" ) 
+		N_("TB")
 	};
 
 	double sz = n;
@@ -705,32 +699,32 @@ vips_buf_append_size( VipsBuf *buf, size_t n )
 
 	/* -1, since we want to stop at TB, not run off the end.
 	 */
-	for( i = 0; sz > 1024 && i < VIPS_NUMBER( names ) - 1; sz /= 1024, i++ )
+	for (i = 0; sz > 1024 && i < VIPS_NUMBER(names) - 1; sz /= 1024, i++)
 		;
 
-	if( i == 0 )
+	if (i == 0)
 		/* No decimal places for bytes.
 		 */
-		return( vips_buf_appendf( buf, "%g %s", sz, _( names[i] ) ) );
-	else 
-		return( vips_buf_appendf( buf, "%.2f %s", sz, _( names[i] ) ) );
+		return (vips_buf_appendf(buf, "%g %s", sz, _(names[i])));
+	else
+		return (vips_buf_appendf(buf, "%.2f %s", sz, _(names[i])));
 }
 
 /**
  * vips_buf_all:
  * @buf: the buffer
  *
- * Return the contents of the buffer as a C string. 
- * 
+ * Return the contents of the buffer as a C string.
+ *
  * Returns: the %NULL-terminated contents of the buffer. This is a pointer to
- * the memory managed by the buffer and must not be freed. 
+ * the memory managed by the buffer and must not be freed.
  */
 const char *
-vips_buf_all( VipsBuf *buf )
+vips_buf_all(VipsBuf *buf)
 {
 	buf->base[buf->i] = '\0';
 
-	return( buf->base );
+	return (buf->base);
 }
 
 /**
@@ -738,19 +732,19 @@ vips_buf_all( VipsBuf *buf )
  * @buf: the buffer
  *
  * Trim to just the first line (excluding "\n").
- * 
+ *
  * Returns: the %NULL-terminated contents of the buffer. This is a pointer to
- * the memory managed by the buffer and must not be freed. 
+ * the memory managed by the buffer and must not be freed.
  */
 const char *
-vips_buf_firstline( VipsBuf *buf )
+vips_buf_firstline(VipsBuf *buf)
 {
 	char *p;
 
-	if( (p = strchr( vips_buf_all( buf ), '\n' )) )
+	if ((p = strchr(vips_buf_all(buf), '\n')))
 		*p = '\0';
 
-	return( vips_buf_all( buf ) );
+	return (vips_buf_all(buf));
 }
 
 /**
@@ -760,9 +754,9 @@ vips_buf_firstline( VipsBuf *buf )
  * Returns: %TRUE if the buffer is empty.
  */
 gboolean
-vips_buf_is_empty( VipsBuf *buf )
+vips_buf_is_empty(VipsBuf *buf)
 {
-	return( buf->i == 0 );
+	return (buf->i == 0);
 }
 
 /**
@@ -772,9 +766,9 @@ vips_buf_is_empty( VipsBuf *buf )
  * Returns: %TRUE if the buffer is full.
  */
 gboolean
-vips_buf_is_full( VipsBuf *buf )
+vips_buf_is_full(VipsBuf *buf)
 {
-	return( buf->full );
+	return (buf->full);
 }
 
 /**
@@ -784,8 +778,7 @@ vips_buf_is_full( VipsBuf *buf )
  * Returns: the number of characters currently in the buffer.
  */
 int
-vips_buf_len( VipsBuf *buf )
+vips_buf_len(VipsBuf *buf)
 {
-	return( buf->i );
+	return (buf->i);
 }
-

@@ -151,10 +151,11 @@ im__create_int_luts(int *buffer, int buffersize,
 	return 0;
 }
 
-int im_convsub( IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip )
+int
+im_convsub(IMAGE *in, IMAGE *out, INTMASK *m, int xskip, int yskip)
 {
-	int x;		/* horizontal direction */
-	int y;		/* vertical direction */
+	int x; /* horizontal direction */
+	int y; /* vertical direction */
 	int n_clipped = 0;
 	int p_clipped = 0;
 	int i, b;

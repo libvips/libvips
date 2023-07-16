@@ -1170,15 +1170,15 @@ vips_icc_transform_build(VipsObject *object)
 
 	/* Depth defaults to 16 for 16 bit images.
 	 */
-	if( !vips_object_argument_isset( object, "depth" ) &&
+	if (!vips_object_argument_isset(object, "depth") &&
 		code->in &&
 		(code->in->Type == VIPS_INTERPRETATION_RGB16 ||
-		 code->in->Type == VIPS_INTERPRETATION_GREY16) )
+			code->in->Type == VIPS_INTERPRETATION_GREY16))
 		icc->depth = 16;
 
-	if( vips_icc_set_import( icc,
-		transform->embedded, transform->input_profile_filename ) )
-		return( -1 );
+	if (vips_icc_set_import(icc,
+			transform->embedded, transform->input_profile_filename))
+		return (-1);
 
 	if (transform->output_profile_filename) {
 		if (vips_profile_load(transform->output_profile_filename,
