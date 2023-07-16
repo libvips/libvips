@@ -14,28 +14,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -52,72 +52,74 @@
 #include <vips/internal.h>
 
 int
-im_clamp( IMAGE *in, IMAGE *out, IMAGE *black, int hstep, int vstep )
-{	PEL *p, *blk, *bline, *bexp;
-PEL *q, *outbuf;
-int rep;
-int x, y, bnd;
-int temp, blacky, newblacky;
+im_clamp(IMAGE *in, IMAGE *out, IMAGE *black, int hstep, int vstep)
+{
+	PEL *p, *blk, *bline, *bexp;
+	PEL *q, *outbuf;
+	int rep;
+	int x, y, bnd;
+	int temp, blacky, newblacky;
 
-if( im_iocheck( in, out ) ) 
-	return( -1 );
-if( in->Bbits != 8 || 
-	in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR ) {
-	im_error( "im_clamp", "%s", _( "bad input format" ) ); 
-	return( -1 );
-}
-if(  black->Bbits != 8 || 
-	black->Coding != IM_CODING_NONE || black->BandFmt != IM_BANDFMT_UCHAR ) { 
-	im_error( "im_clamp", "%s", _( "bad black format" ) );
-	return( -1 );
-}
-
-/* Set up the output header.  
- */
-if( im_cp_desc( out, in ) ) 
-	return( -1 );
-if( im_setupout( out ) )
-	return( -1 );
-
-/* Make buffer for expanded black line
- */
-if( !(bline = (PEL *) im_malloc( out, black->Bands * hstep * in->Xsize )) )  
-	return( -1 ); 
-/* Make buffer we write to.  
- */
-if( !(outbuf = (PEL *) im_malloc( out, out->Bands * out->Xsize )) )  
-	return( -1 ); 
-blacky = -1;
-p = (PEL *) in->data;
-
-for( y = 0; y < in->Ysize; y++ ) {
-	/* calc corresponding black line - get new one if different */
-	newblacky = (vstep * black->Ysize - in->Ysize + y)/vstep;
-	if( newblacky != blacky){
-		blacky = newblacky;
-		/* time to expand a new black line */
-		blk = (PEL *) (black->data + 
-			black->Xsize * black->Bands * blacky);
-		for(bexp = bline, x = 0; x < black->Xsize; x++){
-			for(rep = 0; rep < hstep; rep++)
-				for(q=blk, bnd = 0; bnd < in->Bands; bnd++)
-					*bexp++ = *q++;
-		blk += black->Bands;
-		}
+	if (im_iocheck(in, out))
+		return -1;
+	if (in->Bbits != 8 ||
+		in->Coding != IM_CODING_NONE || in->BandFmt != IM_BANDFMT_UCHAR) {
+		im_error("im_clamp", "%s", _("bad input format"));
+		return -1;
+	}
+	if (black->Bbits != 8 ||
+		black->Coding != IM_CODING_NONE || black->BandFmt != IM_BANDFMT_UCHAR) {
+		im_error("im_clamp", "%s", _("bad black format"));
+		return -1;
 	}
 
-	/* correct a line of image */
-	bexp = bline;
-	q = outbuf;
-	for( x = 0; x < (out->Bands * out->Xsize); x++ ) {
-		temp = ((int) *p++ - *bexp++);
-		if( temp < 0 ) temp = 0; 
-		*q++ = (PEL)temp;
+	/* Set up the output header.
+	 */
+	if (im_cp_desc(out, in))
+		return -1;
+	if (im_setupout(out))
+		return -1;
+
+	/* Make buffer for expanded black line
+	 */
+	if (!(bline = (PEL *) im_malloc(out, black->Bands * hstep * in->Xsize)))
+		return -1;
+	/* Make buffer we write to.
+	 */
+	if (!(outbuf = (PEL *) im_malloc(out, out->Bands * out->Xsize)))
+		return -1;
+	blacky = -1;
+	p = (PEL *) in->data;
+
+	for (y = 0; y < in->Ysize; y++) {
+		/* calc corresponding black line - get new one if different */
+		newblacky = (vstep * black->Ysize - in->Ysize + y) / vstep;
+		if (newblacky != blacky) {
+			blacky = newblacky;
+			/* time to expand a new black line */
+			blk = (PEL *) (black->data +
+				black->Xsize * black->Bands * blacky);
+			for (bexp = bline, x = 0; x < black->Xsize; x++) {
+				for (rep = 0; rep < hstep; rep++)
+					for (q = blk, bnd = 0; bnd < in->Bands; bnd++)
+						*bexp++ = *q++;
+				blk += black->Bands;
+			}
 		}
 
-	if( im_writeline( y, out, outbuf ) ) 
-		return( -1 );
-} /* end of a line */
+		/* correct a line of image */
+		bexp = bline;
+		q = outbuf;
+		for (x = 0; x < (out->Bands * out->Xsize); x++) {
+			temp = ((int) *p++ - *bexp++);
+			if (temp < 0)
+				temp = 0;
+			*q++ = (PEL) temp;
+		}
 
-return( 0 );
+		if (im_writeline(y, out, outbuf))
+			return -1;
+	} /* end of a line */
+
+	return 0;
 }

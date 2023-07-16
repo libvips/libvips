@@ -14,28 +14,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -53,21 +53,21 @@
 typedef VipsColourCode VipsLabQ2LabS;
 typedef VipsColourCodeClass VipsLabQ2LabSClass;
 
-G_DEFINE_TYPE( VipsLabQ2LabS, vips_LabQ2LabS, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE(VipsLabQ2LabS, vips_LabQ2LabS, VIPS_TYPE_COLOUR_CODE);
 
 /* CONVERT n pels from packed 32bit Lab to signed short.
  */
 static void
-vips_LabQ2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_LabQ2LabS_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	unsigned char * restrict p = (unsigned char *) in[0];
-	signed short * restrict q = (signed short *) out;
+	unsigned char *restrict p = (unsigned char *) in[0];
+	signed short *restrict q = (signed short *) out;
 
 	int i;
 	unsigned char ext;
 	signed short l, a, b;
 
-	for( i = 0; i < width; i++ ) {
+	for (i = 0; i < width; i++) {
 		/* Get most significant 8 bits of lab.
 		 */
 		l = p[0] << 7;
@@ -95,22 +95,22 @@ vips_LabQ2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 static void
-vips_LabQ2LabS_class_init( VipsLabQ2LabSClass *class )
+vips_LabQ2LabS_class_init(VipsLabQ2LabSClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "LabQ2LabS";
-	object_class->description = _( "unpack a LabQ image to short Lab" );
+	object_class->description = _("unpack a LabQ image to short Lab");
 
 	colour_class->process_line = vips_LabQ2LabS_line;
 }
 
 static void
-vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
+vips_LabQ2LabS_init(VipsLabQ2LabS *LabQ2LabS)
 {
-	VipsColour *colour = VIPS_COLOUR( LabQ2LabS );
-	VipsColourCode *code = VIPS_COLOUR_CODE( LabQ2LabS );
+	VipsColour *colour = VIPS_COLOUR(LabQ2LabS);
+	VipsColourCode *code = VIPS_COLOUR_CODE(LabQ2LabS);
 
 	colour->coding = VIPS_CODING_NONE;
 	colour->interpretation = VIPS_INTERPRETATION_LABS;
@@ -133,14 +133,14 @@ vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_LabQ2LabS( VipsImage *in, VipsImage **out, ... )
+vips_LabQ2LabS(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "LabQ2LabS", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("LabQ2LabS", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

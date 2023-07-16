@@ -1,4 +1,4 @@
-/* Turn XYZ to Yxy colourspace. 
+/* Turn XYZ to Yxy colourspace.
  *
  * Modified:
  * 29/5/02 JC
@@ -12,28 +12,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -52,17 +52,17 @@
 typedef VipsColourTransform VipsXYZ2Yxy;
 typedef VipsColourTransformClass VipsXYZ2YxyClass;
 
-G_DEFINE_TYPE( VipsXYZ2Yxy, vips_XYZ2Yxy, VIPS_TYPE_COLOUR_TRANSFORM );
+G_DEFINE_TYPE(VipsXYZ2Yxy, vips_XYZ2Yxy, VIPS_TYPE_COLOUR_TRANSFORM);
 
 static void
-vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_XYZ2Yxy_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	float * restrict p = (float *) in[0];
-	float * restrict q = (float *) out;
+	float *restrict p = (float *) in[0];
+	float *restrict q = (float *) out;
 
 	int i;
 
-	for( i = 0; i < width; i++ ) {
+	for (i = 0; i < width; i++) {
 		float X = p[0];
 		float Y = p[1];
 		float Z = p[2];
@@ -72,7 +72,7 @@ vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		p += 3;
 
-	        x = X / total;
+		x = X / total;
 		y = Y / total;
 
 		q[0] = Y;
@@ -83,21 +83,21 @@ vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 static void
-vips_XYZ2Yxy_class_init( VipsXYZ2YxyClass *class )
+vips_XYZ2Yxy_class_init(VipsXYZ2YxyClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "XYZ2Yxy";
-	object_class->description = _( "transform XYZ to Yxy" );
+	object_class->description = _("transform XYZ to Yxy");
 
 	colour_class->process_line = vips_XYZ2Yxy_line;
 }
 
 static void
-vips_XYZ2Yxy_init( VipsXYZ2Yxy *XYZ2Yxy )
+vips_XYZ2Yxy_init(VipsXYZ2Yxy *XYZ2Yxy)
 {
-	VipsColour *colour = VIPS_COLOUR( XYZ2Yxy );
+	VipsColour *colour = VIPS_COLOUR(XYZ2Yxy);
 
 	colour->interpretation = VIPS_INTERPRETATION_YXY;
 }
@@ -113,14 +113,14 @@ vips_XYZ2Yxy_init( VipsXYZ2Yxy *XYZ2Yxy )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_XYZ2Yxy( VipsImage *in, VipsImage **out, ... )
+vips_XYZ2Yxy(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "XYZ2Yxy", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("XYZ2Yxy", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -16,28 +16,28 @@
 
 /*
 
-    This file is part of VIPS.
+	This file is part of VIPS.
 
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -68,21 +68,21 @@ typedef struct _VipsAutorot {
 
 typedef VipsConversionClass VipsAutorotClass;
 
-G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE(VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION);
 
 static void *
-vips_autorot_remove_angle_sub( VipsImage *image, 
-	const char *field, GValue *value, void *my_data )
+vips_autorot_remove_angle_sub(VipsImage *image,
+	const char *field, GValue *value, void *my_data)
 {
-	if( strcmp( field, "exif-ifd0-Orientation" ) == 0 ) {
+	if (strcmp(field, "exif-ifd0-Orientation") == 0) {
 #ifdef DEBUG
-		printf( "vips_autorot_remove_angle: %s\n", field ); 
+		printf("vips_autorot_remove_angle: %s\n", field);
 #endif /*DEBUG*/
 
-		(void) vips_image_remove( image, field );
+		(void) vips_image_remove(image, field);
 	}
 
-	return( NULL );
+	return NULL;
 }
 
 /**
@@ -94,29 +94,29 @@ vips_autorot_remove_angle_sub( VipsImage *image,
  * modifies metadata.
  */
 void
-vips_autorot_remove_angle( VipsImage *image )
+vips_autorot_remove_angle(VipsImage *image)
 {
-	(void) vips_image_remove( image, VIPS_META_ORIENTATION );
-	(void) vips_image_map( image, vips_autorot_remove_angle_sub, NULL );
+	(void) vips_image_remove(image, VIPS_META_ORIENTATION);
+	(void) vips_image_map(image, vips_autorot_remove_angle_sub, NULL);
 }
 
 static int
-vips_autorot_build( VipsObject *object )
+vips_autorot_build(VipsObject *object)
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsAutorot *autorot = (VipsAutorot *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
-	if( VIPS_OBJECT_CLASS( vips_autorot_parent_class )->build( object ) )
-		return( -1 );
-	
+	if (VIPS_OBJECT_CLASS(vips_autorot_parent_class)->build(object))
+		return -1;
+
 	VipsAngle angle;
 	gboolean flip;
 	VipsImage *in;
 
 	in = autorot->in;
 
-	switch( vips_image_get_orientation( in ) ) {
+	switch (vips_image_get_orientation(in)) {
 	case 2:
 		angle = VIPS_ANGLE_D0;
 		flip = TRUE;
@@ -157,76 +157,75 @@ vips_autorot_build( VipsObject *object )
 		angle = VIPS_ANGLE_D0;
 		flip = FALSE;
 		break;
-
 	}
 
-	g_object_set( object,
+	g_object_set(object,
 		"angle", angle,
 		"flip", flip,
-		NULL );
+		NULL);
 
-	if( angle != VIPS_ANGLE_D0 ) {
-		if( vips_rot( in, &t[0], angle, NULL ) )
-			return( -1 );
+	if (angle != VIPS_ANGLE_D0) {
+		if (vips_rot(in, &t[0], angle, NULL))
+			return -1;
 		in = t[0];
 	}
 
-	if( flip ) { 
-		if( vips_flip( in, &t[1], VIPS_DIRECTION_HORIZONTAL, NULL ) )
-			return( -1 );
+	if (flip) {
+		if (vips_flip(in, &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+			return -1;
 		in = t[1];
 	}
 
 	/* We must copy before modifying metadata.
 	 */
-	if( vips_copy( in, &t[2], NULL ) )
-		return( -1 );
+	if (vips_copy(in, &t[2], NULL))
+		return -1;
 	in = t[2];
 
-	vips_autorot_remove_angle( in );
+	vips_autorot_remove_angle(in);
 
-	if( vips_image_write( in, conversion->out ) )
-		return( -1 );
+	if (vips_image_write(in, conversion->out))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_autorot_class_init( VipsAutorotClass *class )
+vips_autorot_class_init(VipsAutorotClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "autorot";
-	vobject_class->description = _( "autorotate image by exif tag" );
+	vobject_class->description = _("autorotate image by exif tag");
 	vobject_class->build = vips_autorot_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsAutorot, in ) );
+		G_STRUCT_OFFSET(VipsAutorot, in));
 
-	VIPS_ARG_ENUM( class, "angle", 6, 
-		_( "Angle" ), 
-		_( "Angle image was rotated by" ),
+	VIPS_ARG_ENUM(class, "angle", 6,
+		_("Angle"),
+		_("Angle image was rotated by"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsAutorot, angle ),
-		VIPS_TYPE_ANGLE, VIPS_ANGLE_D0 );
+		G_STRUCT_OFFSET(VipsAutorot, angle),
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D0);
 
-    VIPS_ARG_BOOL( class, "flip", 7,
-		_( "Flip" ),
-		_( "Whether the image was flipped or not" ),
+	VIPS_ARG_BOOL(class, "flip", 7,
+		_("Flip"),
+		_("Whether the image was flipped or not"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsAutorot, flip ),
-		FALSE );
+		G_STRUCT_OFFSET(VipsAutorot, flip),
+		FALSE);
 }
 
 static void
-vips_autorot_init( VipsAutorot *autorot )
+vips_autorot_init(VipsAutorot *autorot)
 {
 	autorot->angle = VIPS_ANGLE_D0;
 	autorot->flip = FALSE;
@@ -241,26 +240,26 @@ vips_autorot_init( VipsAutorot *autorot )
  * Optional arguments:
  *
  * * @angle: output #VipsAngle the image was rotated by
- * * @flip: output %gboolean whether the image was flipped 
+ * * @flip: output %gboolean whether the image was flipped
  *
- * Look at the image metadata and rotate and flip the image to make it 
- * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent 
- * accidental double rotation. 
+ * Look at the image metadata and rotate and flip the image to make it
+ * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent
+ * accidental double rotation.
  *
- * Read @angle to find the amount the image was rotated by. Read @flip to 
+ * Read @angle to find the amount the image was rotated by. Read @flip to
  * see if the image was also flipped.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_autorot( VipsImage *in, VipsImage **out, ... )
+vips_autorot(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "autorot", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("autorot", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -3,28 +3,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -37,22 +37,21 @@ extern "C" {
 
 /* Slow and horrid version if there's no recent glib.
  */
-#if !GLIB_CHECK_VERSION( 2, 48, 0 )
-#define g_uint_checked_mul( dest, a, b ) ( \
-	((guint64) a * b) > UINT_MAX ? \
-		(*dest = UINT_MAX, FALSE) : \
-		(*dest = a * b, TRUE) \
-)
-#endif /*!GLIB_CHECK_VERSION( 2, 48, 0 )*/
+#if !GLIB_CHECK_VERSION(2, 48, 0)
+#define g_uint_checked_mul(dest, a, b) ( \
+	((guint64) a * b) > UINT_MAX \
+		? (*dest = UINT_MAX, FALSE) \
+		: (*dest = a * b, TRUE))
+#endif /*!GLIB_CHECK_VERSION(2, 48, 0)*/
 
 /* We've seen real images with 28 chunks, so set 50.
  */
 #define MAX_PNG_TEXT_CHUNKS 50
 
-void vips__tiff_init( void );
+void vips__tiff_init(void);
 
-int vips__tiff_write_target( VipsImage *in, VipsTarget *target,
-	VipsForeignTiffCompression compression, int Q, 
+int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
+	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
@@ -65,66 +64,66 @@ int vips__tiff_write_target( VipsImage *in, VipsTarget *target,
 	gboolean properties,
 	gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, 
+	int level,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd, 
+	gboolean subifd,
 	gboolean premultiply,
-	int page_height );
+	int page_height);
 
-gboolean vips__istiff_source( VipsSource *source );
-gboolean vips__istifftiled_source( VipsSource *source );
-int vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
-int vips__tiff_read_source( VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
+gboolean vips__istiff_source(VipsSource *source);
+gboolean vips__istifftiled_source(VipsSource *source);
+int vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on);
+int vips__tiff_read_source(VipsSource *source, VipsImage *out,
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on);
 
 extern const char *vips__foreign_tiff_suffs[];
 
-int vips__isanalyze( const char *filename );
-int vips__analyze_read_header( const char *filename, VipsImage *out );
-int vips__analyze_read( const char *filename, VipsImage *out );
+int vips__isanalyze(const char *filename);
+int vips__analyze_read_header(const char *filename, VipsImage *out);
+int vips__analyze_read(const char *filename, VipsImage *out);
 
 extern const char *vips__foreign_csv_suffs[];
 
-int vips__matrix_read_header( const char *filename,
-	int *width, int *height, double *scale, double *offset );
-int vips__matrix_ismatrix( const char *filename );
-VipsImage *vips__matrix_read_file( FILE *fp );
-VipsImage *vips__matrix_read( const char *filename );
-int vips__matrix_write( VipsImage *in, const char *filename );
-int vips__matrix_write_file( VipsImage *in, FILE *fp );
+int vips__matrix_read_header(const char *filename,
+	int *width, int *height, double *scale, double *offset);
+int vips__matrix_ismatrix(const char *filename);
+VipsImage *vips__matrix_read_file(FILE *fp);
+VipsImage *vips__matrix_read(const char *filename);
+int vips__matrix_write(VipsImage *in, const char *filename);
+int vips__matrix_write_file(VipsImage *in, FILE *fp);
 
 extern const char *vips__foreign_matrix_suffs[];
 
-int vips__openexr_isexr( const char *filename );
-gboolean vips__openexr_istiled( const char *filename );
-int vips__openexr_read_header( const char *filename, VipsImage *out );
-int vips__openexr_read( const char *filename, VipsImage *out );
+int vips__openexr_isexr(const char *filename);
+gboolean vips__openexr_istiled(const char *filename);
+int vips__openexr_read_header(const char *filename, VipsImage *out);
+int vips__openexr_read(const char *filename, VipsImage *out);
 
 extern const char *vips__fits_suffs[];
 
-int vips__fits_isfits( const char *filename );
-int vips__fits_read_header( const char *filename, VipsImage *out );
-int vips__fits_read( const char *filename, VipsImage *out );
+int vips__fits_isfits(const char *filename);
+int vips__fits_read_header(const char *filename, VipsImage *out);
+int vips__fits_read(const char *filename, VipsImage *out);
 
-int vips__fits_write( VipsImage *in, const char *filename );
+int vips__fits_write(VipsImage *in, const char *filename);
 
-int vips__magick_read( const char *filename, 
-	VipsImage *out, const char *density, int page, int n );
-int vips__magick_read_header( const char *filename, 
-	VipsImage *out, const char *density, int page, int n );
+int vips__magick_read(const char *filename,
+	VipsImage *out, const char *density, int page, int n);
+int vips__magick_read_header(const char *filename,
+	VipsImage *out, const char *density, int page, int n);
 
-int vips__magick_read_buffer( const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n );
-int vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n );
+int vips__magick_read_buffer(const void *buf, const size_t len,
+	VipsImage *out, const char *density, int page, int n);
+int vips__magick_read_buffer_header(const void *buf, const size_t len,
+	VipsImage *out, const char *density, int page, int n);
 
 extern const char *vips__mat_suffs[];
 
-int vips__mat_load( const char *filename, VipsImage *out );
-int vips__mat_header( const char *filename, VipsImage *out );
-int vips__mat_ismat( const char *filename );
+int vips__mat_load(const char *filename, VipsImage *out);
+int vips__mat_header(const char *filename, VipsImage *out);
+int vips__mat_ismat(const char *filename);
 
 extern const char *vips__ppm_suffs[];
 extern const char *vips__save_pbm_suffs[];
@@ -133,43 +132,43 @@ extern const char *vips__save_ppm_suffs[];
 extern const char *vips__save_pfm_suffs[];
 extern const char *vips__save_pnm_suffs[];
 
-int vips__ppm_save_target( VipsImage *in, VipsTarget *target,
-	gboolean ascii, gboolean squash );
-int vips__rad_israd( VipsSource *source );
-int vips__rad_header( VipsSource *source, VipsImage *out );
-int vips__rad_load( VipsSource *source, VipsImage *out );
+int vips__ppm_save_target(VipsImage *in, VipsTarget *target,
+	gboolean ascii, gboolean squash);
+int vips__rad_israd(VipsSource *source);
+int vips__rad_header(VipsSource *source, VipsImage *out);
+int vips__rad_load(VipsSource *source, VipsImage *out);
 
-int vips__rad_save( VipsImage *in, VipsTarget *target );
+int vips__rad_save(VipsImage *in, VipsTarget *target);
 
 extern const char *vips__rad_suffs[];
 
 extern const char *vips__jpeg_suffs[];
 
-int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
-	int Q, const char *profile, 
+int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
+	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode, int restart_interval );
+	VipsForeignSubsample subsample_mode, int restart_interval);
 
-int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
-	gboolean header_only, int shrink, VipsFailOn fail_on, 
-	gboolean autorotate, gboolean unlimited );
-int vips__isjpeg_source( VipsSource *source );
+int vips__jpeg_read_source(VipsSource *source, VipsImage *out,
+	gboolean header_only, int shrink, VipsFailOn fail_on,
+	gboolean autorotate, gboolean unlimited);
+int vips__isjpeg_source(VipsSource *source);
 
-int vips__png_ispng_source( VipsSource *source );
-int vips__png_header_source( VipsSource *source, VipsImage *out, 
-	gboolean unlimited );
-int vips__png_read_source( VipsSource *source, VipsImage *out, 
-	VipsFailOn fail_on, gboolean unlimited );
-gboolean vips__png_isinterlaced_source( VipsSource *source );
+int vips__png_ispng_source(VipsSource *source);
+int vips__png_header_source(VipsSource *source, VipsImage *out,
+	gboolean unlimited);
+int vips__png_read_source(VipsSource *source, VipsImage *out,
+	VipsFailOn fail_on, gboolean unlimited);
+gboolean vips__png_isinterlaced_source(VipsSource *source);
 extern const char *vips__png_suffs[];
 
-int vips__png_write_target( VipsImage *in, VipsTarget *target,
+int vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth, int effort );
+	int bitdepth, int effort);
 
 /* Map WEBP metadata names to vips names.
  */
@@ -183,36 +182,36 @@ extern const VipsWebPNames vips__webp_names[];
 extern const int vips__n_webp_names;
 extern const char *vips__webp_suffs[];
 
-int vips__iswebp_source( VipsSource *source );
+int vips__iswebp_source(VipsSource *source);
 
-int vips__webp_read_header_source( VipsSource *source, VipsImage *out,
-	int page, int n, double scale ); 
-int vips__webp_read_source( VipsSource *source, VipsImage *out, 
-	int page, int n, double scale ); 
+int vips__webp_read_header_source(VipsSource *source, VipsImage *out,
+	int page, int n, double scale);
+int vips__webp_read_source(VipsSource *source, VipsImage *out,
+	int page, int n, double scale);
 
 extern const char *vips_foreign_nifti_suffs[];
 
-VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
-int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );
+VipsBandFormat vips__foreign_nifti_datatype2BandFmt(int datatype);
+int vips__foreign_nifti_BandFmt2datatype(VipsBandFormat fmt);
 
-typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset, 
-	void *a, void *b );
-void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
+typedef void *(*VipsNiftiMapFn)(const char *name, GValue *value, glong offset,
+	void *a, void *b);
+void *vips__foreign_nifti_map(VipsNiftiMapFn fn, void *a, void *b);
 
 extern const char *vips__heic_suffs[];
 extern const char *vips__avif_suffs[];
 extern const char *vips__heif_suffs[];
-int vips__heif_chroma( int bits_per_pixel, gboolean has_alpha );
+int vips__heif_chroma(int bits_per_pixel, gboolean has_alpha);
 
 extern const char *vips__jp2k_suffs[];
-int vips__foreign_load_jp2k_decompress( VipsImage *out,
+int vips__foreign_load_jp2k_decompress(VipsImage *out,
 	int width, int height, gboolean ycc_to_rgb,
 	void *from, size_t from_length,
-	void *to, size_t to_length );
-int vips__foreign_load_jp2k_compress( VipsRegion *region,
+	void *to, size_t to_length);
+int vips__foreign_load_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
-	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q );
+	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q);
 
 extern const char *vips__jxl_suffs[];
 

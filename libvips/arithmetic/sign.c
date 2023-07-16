@@ -10,28 +10,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -55,69 +55,91 @@
 typedef VipsUnary VipsSign;
 typedef VipsUnaryClass VipsSignClass;
 
-G_DEFINE_TYPE( VipsSign, vips_sign, VIPS_TYPE_UNARY );
+G_DEFINE_TYPE(VipsSign, vips_sign, VIPS_TYPE_UNARY);
 
-#define CSIGN( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict q = (TYPE *) out; \
-	int x; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		TYPE re = p[0]; \
-		TYPE im = p[1]; \
-		double fac = sqrt( re * re + im * im ); \
-		\
-		p += 2; \
-		\
-		if( fac == 0.0 ) { \
-			q[0] = 0.0; \
-			q[1] = 0.0; \
+#define CSIGN(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+		int x; \
+\
+		for (x = 0; x < sz; x++) { \
+			TYPE re = p[0]; \
+			TYPE im = p[1]; \
+			double fac = sqrt(re * re + im * im); \
+\
+			p += 2; \
+\
+			if (fac == 0.0) { \
+				q[0] = 0.0; \
+				q[1] = 0.0; \
+			} \
+			else { \
+				q[0] = re / fac; \
+				q[1] = im / fac; \
+			} \
+\
+			q += 2; \
 		} \
-		else { \
-			q[0] = re / fac; \
-			q[1] = im / fac; \
-		} \
-		\
-		q += 2; \
-	} \
-}
+	}
 
-#define SIGN( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	signed char * restrict q = (signed char *) out; \
-	int x; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		TYPE v = p[x]; \
- 		\
-		if( v > 0 ) \
-			q[x] = 1; \
-		else if( v == 0 ) \
-			q[x] = 0; \
-		else \
-			q[x] = -1; \
-	} \
-}
+#define SIGN(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		signed char *restrict q = (signed char *) out; \
+		int x; \
+\
+		for (x = 0; x < sz; x++) { \
+			TYPE v = p[x]; \
+\
+			if (v > 0) \
+				q[x] = 1; \
+			else if (v == 0) \
+				q[x] = 0; \
+			else \
+				q[x] = -1; \
+		} \
+	}
 
 static void
-vips_sign_buffer( VipsArithmetic *arithmetic, 
-	VipsPel *out, VipsPel **in, int width )
+vips_sign_buffer(VipsArithmetic *arithmetic,
+	VipsPel *out, VipsPel **in, int width)
 {
-	VipsUnary *unary = VIPS_UNARY( arithmetic );
-	const int bands = vips_image_get_bands( unary->in );
+	VipsUnary *unary = VIPS_UNARY(arithmetic);
+	const int bands = vips_image_get_bands(unary->in);
 	int sz = width * bands;
 
-	switch( vips_image_get_format( unary->in ) ) {
-        case VIPS_FORMAT_UCHAR: 	SIGN( unsigned char ); break;
-        case VIPS_FORMAT_CHAR: 		SIGN( signed char ); break; 
-        case VIPS_FORMAT_USHORT: 	SIGN( unsigned short ); break; 
-        case VIPS_FORMAT_SHORT: 	SIGN( signed short ); break; 
-        case VIPS_FORMAT_UINT: 		SIGN( unsigned int ); break; 
-        case VIPS_FORMAT_INT: 		SIGN( signed int );  break; 
-        case VIPS_FORMAT_FLOAT: 	SIGN( float ); break; 
-        case VIPS_FORMAT_DOUBLE:	SIGN( double ); break; 
-	case VIPS_FORMAT_COMPLEX:	CSIGN( float ); break;
-	case VIPS_FORMAT_DPCOMPLEX:	CSIGN( double ); break; 
+	switch (vips_image_get_format(unary->in)) {
+	case VIPS_FORMAT_UCHAR:
+		SIGN(unsigned char);
+		break;
+	case VIPS_FORMAT_CHAR:
+		SIGN(signed char);
+		break;
+	case VIPS_FORMAT_USHORT:
+		SIGN(unsigned short);
+		break;
+	case VIPS_FORMAT_SHORT:
+		SIGN(signed short);
+		break;
+	case VIPS_FORMAT_UINT:
+		SIGN(unsigned int);
+		break;
+	case VIPS_FORMAT_INT:
+		SIGN(signed int);
+		break;
+	case VIPS_FORMAT_FLOAT:
+		SIGN(float);
+		break;
+	case VIPS_FORMAT_DOUBLE:
+		SIGN(double);
+		break;
+	case VIPS_FORMAT_COMPLEX:
+		CSIGN(float);
+		break;
+	case VIPS_FORMAT_DPCOMPLEX:
+		CSIGN(double);
+		break;
 
 	default:
 		g_assert_not_reached();
@@ -143,21 +165,21 @@ static const VipsBandFormat vips_sign_format_table[10] = {
 };
 
 static void
-vips_sign_class_init( VipsSignClass *class )
+vips_sign_class_init(VipsSignClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	object_class->nickname = "sign";
-	object_class->description = _( "unit vector of pixel" );
+	object_class->description = _("unit vector of pixel");
 
 	aclass->process_line = vips_sign_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_sign_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_sign_format_table);
 }
 
 static void
-vips_sign_init( VipsSign *sign )
+vips_sign_init(VipsSign *sign)
 {
 }
 
@@ -177,14 +199,14 @@ vips_sign_init( VipsSign *sign )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_sign( VipsImage *in, VipsImage **out, ... )
+vips_sign(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "sign", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("sign", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

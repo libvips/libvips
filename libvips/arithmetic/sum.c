@@ -6,28 +6,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -51,61 +51,69 @@
 typedef VipsNary VipsSum;
 typedef VipsNaryClass VipsSumClass;
 
-G_DEFINE_TYPE( VipsSum, vips_sum, VIPS_TYPE_NARY );
+G_DEFINE_TYPE(VipsSum, vips_sum, VIPS_TYPE_NARY);
 
-#define LOOP( IN, OUT ) { \
-	IN ** restrict p = (IN **) in; \
-	OUT * restrict q = (OUT *) out; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		OUT sum; \
-		\
-		sum = p[0][x]; \
-		for( i = 1; i < n; i++ ) \
-			sum += p[i][x]; \
-		q[x] = sum; \
-	} \
-}
+#define LOOP(IN, OUT) \
+	{ \
+		IN **restrict p = (IN **) in; \
+		OUT *restrict q = (OUT *) out; \
+\
+		for (x = 0; x < sz; x++) { \
+			OUT sum; \
+\
+			sum = p[0][x]; \
+			for (i = 1; i < n; i++) \
+				sum += p[i][x]; \
+			q[x] = sum; \
+		} \
+	}
 
 static void
-sum_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
+sum_buffer(VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
-	int n = arithmetic->n; 
+	int n = arithmetic->n;
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
-		 	2 : 1);
+	const int sz = width * vips_image_get_bands(im) *
+		(vips_band_format_iscomplex(vips_image_get_format(im)) ? 2 : 1);
 
 	int x;
 	int i;
 
-	/* Sum all input types. Keep types here in sync with 
+	/* Sum all input types. Keep types here in sync with
 	 * vips_sum_format_table[] below.
 	 */
-	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, unsigned int ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOP( signed char, signed int ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, unsigned int ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOP( signed short, signed int ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, unsigned int ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOP( signed int, signed int ); break; 
+	switch (vips_image_get_format(im)) {
+	case VIPS_FORMAT_UCHAR:
+		LOOP(unsigned char, unsigned int);
+		break;
+	case VIPS_FORMAT_CHAR:
+		LOOP(signed char, signed int);
+		break;
+	case VIPS_FORMAT_USHORT:
+		LOOP(unsigned short, unsigned int);
+		break;
+	case VIPS_FORMAT_SHORT:
+		LOOP(signed short, signed int);
+		break;
+	case VIPS_FORMAT_UINT:
+		LOOP(unsigned int, unsigned int);
+		break;
+	case VIPS_FORMAT_INT:
+		LOOP(signed int, signed int);
+		break;
 
-	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
-		LOOP( float, float ); break; 
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		LOOP(float, float);
+		break;
 
-	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
-		LOOP( double, double ); break;
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		LOOP(double, double);
+		break;
 
 	default:
 		g_assert_not_reached();
@@ -132,35 +140,35 @@ static const VipsBandFormat vips_sum_format_table[10] = {
 };
 
 static void
-vips_sum_class_init( VipsSumClass *class )
+vips_sum_class_init(VipsSumClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	object_class->nickname = "sum";
-	object_class->description = _( "sum an array of images" );
+	object_class->description = _("sum an array of images");
 
 	aclass->process_line = sum_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_sum_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_sum_format_table);
 }
 
 static void
-vips_sum_init( VipsSum *sum )
+vips_sum_init(VipsSum *sum)
 {
 }
 
 static int
-vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
+vips_sumv(VipsImage **in, VipsImage **out, int n, va_list ap)
 {
-	VipsArrayImage *array; 
+	VipsArrayImage *array;
 	int result;
 
-	array = vips_array_image_new( in, n );
-	result = vips_call_split( "sum", ap, array, out );
-	vips_area_unref( VIPS_AREA( array ) );
+	array = vips_array_image_new(in, n);
+	result = vips_call_split("sum", ap, array, out);
+	vips_area_unref(VIPS_AREA(array));
 
-	return( result );
+	return result;
 }
 
 /**
@@ -170,19 +178,19 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation sums all images in @in and writes the result to @out. 
+ * This operation sums all images in @in and writes the result to @out.
  *
  * If the images differ in size, the smaller images are enlarged to match the
  * largest by adding zero pixels along the bottom and right.
  *
  * If the number of bands differs, all but one of the images
- * must have one band. In this case, n-band images are formed from the 
+ * must have one band. In this case, n-band images are formed from the
  * one-band images by joining n copies of the one-band images together, and then
  * the n-band images are operated upon.
  *
- * The input images are cast up to the smallest common format (see table 
- * Smallest common format in 
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
+ * The input images are cast up to the smallest common format (see table
+ * Smallest common format in
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the
  * following table is used to determine the output type:
  *
  * <table>
@@ -247,14 +255,14 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_sum( VipsImage **in, VipsImage **out, int n, ... )
+vips_sum(VipsImage **in, VipsImage **out, int n, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, n );
-	result = vips_sumv( in, out, n, ap );
-	va_end( ap );
+	va_start(ap, n);
+	result = vips_sumv(in, out, n, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -24,28 +24,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -71,30 +71,30 @@
 typedef VipsPoint VipsGrey;
 typedef VipsPointClass VipsGreyClass;
 
-G_DEFINE_TYPE( VipsGrey, vips_grey, VIPS_TYPE_POINT );
+G_DEFINE_TYPE(VipsGrey, vips_grey, VIPS_TYPE_POINT);
 
 static float
-vips_grey_point( VipsPoint *point, int x, int y ) 
+vips_grey_point(VipsPoint *point, int x, int y)
 {
-	return( (double) x / (point->width - 1) );
+	return (double) x / (point->width - 1);
 }
 
 static void
-vips_grey_class_init( VipsGreyClass *class )
+vips_grey_class_init(VipsGreyClass *class)
 {
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsPointClass *point_class = VIPS_POINT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsPointClass *point_class = VIPS_POINT_CLASS(class);
 
 	vobject_class->nickname = "grey";
-	vobject_class->description = _( "make a grey ramp image" );
+	vobject_class->description = _("make a grey ramp image");
 
 	point_class->point = vips_grey_point;
-	point_class->min = 0.0; 
-	point_class->max = 1.0; 
+	point_class->min = 0.0;
+	point_class->max = 1.0;
 }
 
 static void
-vips_grey_init( VipsGrey *grey )
+vips_grey_init(VipsGrey *grey)
 {
 }
 
@@ -113,21 +113,21 @@ vips_grey_init( VipsGrey *grey )
  * right-most 1. Intermediate pixels are a linear ramp.
  *
  * Set @uchar to output a uchar image with the leftmost pixel 0 and the
- * rightmost 255. 
+ * rightmost 255.
  *
  * See also: vips_xyz(), vips_identity().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_grey( VipsImage **out, int width, int height, ... )
+vips_grey(VipsImage **out, int width, int height, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, height );
-	result = vips_call_split( "grey", ap, out, width, height );
-	va_end( ap );
+	va_start(ap, height);
+	result = vips_call_split("grey", ap, out, width, height);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

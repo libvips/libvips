@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -46,52 +46,52 @@ typedef enum {
 } VipsCombine;
 
 VIPS_API
-int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_conv(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_convf(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_convi( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_convi(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_conva( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_conva(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_convsep(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_convasep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
+int vips_convasep(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+int vips_compass(VipsImage *in, VipsImage **out, VipsImage *mask, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+int vips_gaussblur(VipsImage *in, VipsImage **out, double sigma, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_sharpen(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_sobel( VipsImage *in, VipsImage **out, ... )
+int vips_spcor(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_scharr( VipsImage *in, VipsImage **out, ... )
+int vips_fastcor(VipsImage *in, VipsImage *ref, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_sobel(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_prewitt( VipsImage *in, VipsImage **out, ... )
+int vips_scharr(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_canny( VipsImage *in, VipsImage **out, ... )
+int vips_prewitt(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_canny(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus

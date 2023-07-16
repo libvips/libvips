@@ -14,35 +14,35 @@
  * 2/9/09
  * 	- gtk-doc comment
  * 23/8/11
- * 	- rewrite as a class 
+ * 	- rewrite as a class
  * 7/12/12
  * 	- only invert real part of complex
  */
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -66,69 +66,82 @@
 typedef VipsUnary VipsInvert;
 typedef VipsUnaryClass VipsInvertClass;
 
-G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
+G_DEFINE_TYPE(VipsInvert, vips_invert, VIPS_TYPE_UNARY);
 
-#define LOOP( TYPE, L ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) \
-		q[x] = (L) - p[x]; \
-}
+#define LOOP(TYPE, L) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = (L) -p[x]; \
+	}
 
-#define LOOPN( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) \
-		q[x] = -1 * p[x]; \
-}
+#define LOOPN(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = -1 * p[x]; \
+	}
 
-#define LOOPC( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < sz; x++ ) { \
-		q[0] = -1 * p[0]; \
-		q[1] = p[1]; \
- 		\
-		p += 2; \
-		q += 2; \
-	} \
-}
+#define LOOPC(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < sz; x++) { \
+			q[0] = -1 * p[0]; \
+			q[1] = p[1]; \
+\
+			p += 2; \
+			q += 2; \
+		} \
+	}
 
 static void
-vips_invert_buffer( VipsArithmetic *arithmetic, 
-	VipsPel *out, VipsPel **in, int width )
+vips_invert_buffer(VipsArithmetic *arithmetic,
+	VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
-	const int sz = width * vips_image_get_bands( im );
+	const int sz = width * vips_image_get_bands(im);
 
 	int x;
 
-	switch( vips_image_get_format( im ) ) {
-	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char, UCHAR_MAX ); break; 
-	case VIPS_FORMAT_CHAR: 	
-		LOOPN( signed char ); break; 
-	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short, USHRT_MAX ); break; 
-	case VIPS_FORMAT_SHORT: 	
-		LOOPN( signed short ); break; 
-	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int, UINT_MAX ); break; 
-	case VIPS_FORMAT_INT: 	
-		LOOPN( signed int ); break; 
+	switch (vips_image_get_format(im)) {
+	case VIPS_FORMAT_UCHAR:
+		LOOP(unsigned char, UCHAR_MAX);
+		break;
+	case VIPS_FORMAT_CHAR:
+		LOOPN(signed char);
+		break;
+	case VIPS_FORMAT_USHORT:
+		LOOP(unsigned short, USHRT_MAX);
+		break;
+	case VIPS_FORMAT_SHORT:
+		LOOPN(signed short);
+		break;
+	case VIPS_FORMAT_UINT:
+		LOOP(unsigned int, UINT_MAX);
+		break;
+	case VIPS_FORMAT_INT:
+		LOOPN(signed int);
+		break;
 
-	case VIPS_FORMAT_FLOAT: 		
-		LOOPN( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	
-		LOOPN( double ); break;
+	case VIPS_FORMAT_FLOAT:
+		LOOPN(float);
+		break;
+	case VIPS_FORMAT_DOUBLE:
+		LOOPN(double);
+		break;
 
-	case VIPS_FORMAT_COMPLEX: 
-		LOOPC( float ); break;
-	case VIPS_FORMAT_DPCOMPLEX: 
-		LOOPC( double ); break;
+	case VIPS_FORMAT_COMPLEX:
+		LOOPC(float);
+		break;
+	case VIPS_FORMAT_DPCOMPLEX:
+		LOOPC(double);
+		break;
 
 	default:
 		g_assert_not_reached();
@@ -156,21 +169,21 @@ static const VipsBandFormat vips_invert_format_table[10] = {
 };
 
 static void
-vips_invert_class_init( VipsInvertClass *class )
+vips_invert_class_init(VipsInvertClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	object_class->nickname = "invert";
-	object_class->description = _( "invert an image" );
+	object_class->description = _("invert an image");
 
 	aclass->process_line = vips_invert_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_invert_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_invert_format_table);
 }
 
 static void
-vips_invert_init( VipsInvert *invert )
+vips_invert_init(VipsInvert *invert)
 {
 }
 
@@ -182,7 +195,7 @@ vips_invert_init( VipsInvert *invert )
  *
  * For unsigned formats, this operation calculates (max - @in), eg. (255 -
  * @in) for uchar. For signed and float formats, this operation calculates (-1
- * @in). 
+ * @in).
  *
  * For complex images, only the real part is inverted. See also vips_conj().
  *
@@ -191,14 +204,14 @@ vips_invert_init( VipsInvert *invert )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_invert( VipsImage *in, VipsImage **out, ... )
+vips_invert(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "invert", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("invert", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

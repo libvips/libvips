@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -46,34 +46,34 @@
 #include <vips/debug.h>
 
 int
-im_fits2vips( const char *filename, VipsImage *out )
+im_fits2vips(const char *filename, VipsImage *out)
 {
 	VipsImage *t;
 
-	if( vips_fitsload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
+	if (vips_fitsload(filename, &t, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
 	}
-	g_object_unref( t );
+	g_object_unref(t);
 
-	return( 0 );
+	return 0;
 }
 
 int
-im_vips2fits( VipsImage *in, const char *filename )
+im_vips2fits(VipsImage *in, const char *filename)
 {
-	if( vips_fitssave( in, filename, NULL ) )
-		return( -1 );
+	if (vips_fitssave(in, filename, NULL))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static int
-isfits( const char *name )
+isfits(const char *name)
 {
-	return( vips_foreign_is_a( "fitsload", name ) );
+	return vips_foreign_is_a("fitsload", name);
 }
 
 static const char *fits_suffs[] = { ".fits", NULL };
@@ -84,13 +84,13 @@ typedef VipsFormat VipsFormatFits;
 typedef VipsFormatClass VipsFormatFitsClass;
 
 static void
-vips_format_fits_class_init( VipsFormatFitsClass *class )
+vips_format_fits_class_init(VipsFormatFitsClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "fits";
-	object_class->description = _( "FITS" );
+	object_class->description = _("FITS");
 
 	format_class->is_a = isfits;
 	format_class->load = im_fits2vips;
@@ -99,9 +99,8 @@ vips_format_fits_class_init( VipsFormatFitsClass *class )
 }
 
 static void
-vips_format_fits_init( VipsFormatFits *object )
+vips_format_fits_init(VipsFormatFits *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatFits, vips_format_fits, VIPS_TYPE_FORMAT );
-
+G_DEFINE_TYPE(VipsFormatFits, vips_format_fits, VIPS_TYPE_FORMAT);

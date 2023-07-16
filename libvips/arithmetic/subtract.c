@@ -4,7 +4,7 @@
  *
  * Author: Nicos Dessipris
  * Written on: 02/05/1990
- * Modified on: 
+ * Modified on:
  * 29/4/93 J.Cupitt
  *	- now works for partial images
  * 1/7/93 JC
@@ -35,28 +35,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -80,55 +80,67 @@
 typedef VipsBinary VipsSubtract;
 typedef VipsBinaryClass VipsSubtractClass;
 
-G_DEFINE_TYPE( VipsSubtract, vips_subtract, VIPS_TYPE_BINARY );
+G_DEFINE_TYPE(VipsSubtract, vips_subtract, VIPS_TYPE_BINARY);
 
-#define LOOP( IN, OUT ) { \
-	IN * restrict left = (IN *) in[0]; \
-	IN * restrict right = (IN *) in[1]; \
-	OUT * restrict q = (OUT *) out; \
-	\
-	for( x = 0; x < sz; x++ ) \
-		q[x] = left[x] - right[x]; \
-}
+#define LOOP(IN, OUT) \
+	{ \
+		IN *restrict left = (IN *) in[0]; \
+		IN *restrict right = (IN *) in[1]; \
+		OUT *restrict q = (OUT *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = left[x] - right[x]; \
+	}
 
 static void
-vips_subtract_buffer( VipsArithmetic *arithmetic, 
-	VipsPel *out, VipsPel **in, int width )
+vips_subtract_buffer(VipsArithmetic *arithmetic,
+	VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
 
 	/* Complex just doubles the size.
 	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
-		 	2 : 1);
+	const int sz = width * vips_image_get_bands(im) *
+		(vips_band_format_iscomplex(vips_image_get_format(im)) ? 2 : 1);
 
 	int x;
 
-	/* Keep types here in sync with bandfmt_subtract[] 
+	/* Keep types here in sync with bandfmt_subtract[]
 	 * below.
-         */
-        switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	LOOP( signed char, signed short ); break; 
-        case VIPS_FORMAT_UCHAR:	LOOP( unsigned char, signed short ); break; 
-        case VIPS_FORMAT_SHORT:	LOOP( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT:LOOP( unsigned short, signed int ); break; 
-        case VIPS_FORMAT_INT: 	LOOP( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 	LOOP( unsigned int, signed int ); break; 
-
-        case VIPS_FORMAT_FLOAT: 		
-        case VIPS_FORMAT_COMPLEX:
-		LOOP( float, float ); 
-		break; 
-
-        case VIPS_FORMAT_DOUBLE:	
-        case VIPS_FORMAT_DPCOMPLEX:
-		LOOP( double, double ); 
+	 */
+	switch (vips_image_get_format(im)) {
+	case VIPS_FORMAT_CHAR:
+		LOOP(signed char, signed short);
+		break;
+	case VIPS_FORMAT_UCHAR:
+		LOOP(unsigned char, signed short);
+		break;
+	case VIPS_FORMAT_SHORT:
+		LOOP(signed short, signed int);
+		break;
+	case VIPS_FORMAT_USHORT:
+		LOOP(unsigned short, signed int);
+		break;
+	case VIPS_FORMAT_INT:
+		LOOP(signed int, signed int);
+		break;
+	case VIPS_FORMAT_UINT:
+		LOOP(unsigned int, signed int);
 		break;
 
-        default:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		LOOP(float, float);
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		LOOP(double, double);
+		break;
+
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -153,44 +165,44 @@ static const VipsBandFormat vips_subtract_format_table[10] = {
 };
 
 static void
-vips_subtract_class_init( VipsSubtractClass *class )
+vips_subtract_class_init(VipsSubtractClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
 	object_class->nickname = "subtract";
-	object_class->description = _( "subtract two images" );
+	object_class->description = _("subtract two images");
 
 	aclass->process_line = vips_subtract_buffer;
 
-	vips_arithmetic_set_format_table( aclass, vips_subtract_format_table ); 
+	vips_arithmetic_set_format_table(aclass, vips_subtract_format_table);
 }
 
 static void
-vips_subtract_init( VipsSubtract *subtract )
+vips_subtract_init(VipsSubtract *subtract)
 {
 }
 
 /**
  * vips_subtract:
- * @in1: input image 
- * @in2: input image 
+ * @in1: input image
+ * @in2: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation calculates @in1 - @in2 and writes the result to @out. 
+ * This operation calculates @in1 - @in2 and writes the result to @out.
  *
  * If the images differ in size, the smaller image is enlarged to match the
  * larger by adding zero pixels along the bottom and right.
  *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
+ * If the number of bands differs, one of the images
+ * must have one band. In this case, an n-band image is formed from the
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common format (see table 
- * Smallest common format in 
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
+ * The two input images are cast up to the smallest common format (see table
+ * Smallest common format in
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the
  * following table is used to determine the output type:
  *
  * <table>
@@ -255,14 +267,14 @@ vips_subtract_init( VipsSubtract *subtract )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_subtract( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+vips_subtract(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "subtract", ap, left, right, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("subtract", ap, left, right, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

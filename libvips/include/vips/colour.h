@@ -11,28 +11,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -108,196 +108,196 @@ typedef enum {
 } VipsPCS;
 
 VIPS_API
-gboolean vips_colourspace_issupported( const VipsImage *image );
+gboolean vips_colourspace_issupported(const VipsImage *image);
 VIPS_API
-int vips_colourspace( VipsImage *in, VipsImage **out, 
-	VipsInterpretation space, ... )
+int vips_colourspace(VipsImage *in, VipsImage **out,
+	VipsInterpretation space, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_LabQ2sRGB( VipsImage *in, VipsImage **out, ... )
+int vips_LabQ2sRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_rad2float( VipsImage *in, VipsImage **out, ... )
+int vips_rad2float(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_float2rad( VipsImage *in, VipsImage **out, ... )
+int vips_float2rad(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
+int vips_LabS2LabQ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_LabQ2LabS( VipsImage *in, VipsImage **out, ... )
+int vips_LabQ2LabS(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
+int vips_LabQ2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
+int vips_Lab2LabQ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
+int vips_LCh2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Lab2LCh( VipsImage *in, VipsImage **out, ... )
+int vips_Lab2LCh(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
+int vips_Yxy2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_CMC2XYZ( VipsImage *in, VipsImage **out, ... )
+int vips_CMC2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
+int vips_Lab2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_XYZ2scRGB( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_scRGB2sRGB( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_scRGB2BW( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_sRGB2scRGB( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_scRGB2XYZ( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_HSV2sRGB( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_sRGB2HSV( VipsImage *in, VipsImage **out, ... )
+int vips_XYZ2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_LCh2CMC( VipsImage *in, VipsImage **out, ... )
+int vips_XYZ2scRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_CMC2LCh( VipsImage *in, VipsImage **out, ... )
+int vips_scRGB2sRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_XYZ2Yxy( VipsImage *in, VipsImage **out, ... )
+int vips_scRGB2BW(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Yxy2XYZ( VipsImage *in, VipsImage **out, ... )
+int vips_sRGB2scRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_LabS2Lab( VipsImage *in, VipsImage **out, ... )
+int vips_scRGB2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Lab2LabS( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_CMYK2XYZ( VipsImage *in, VipsImage **out, ... )
+int vips_HSV2sRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_XYZ2CMYK( VipsImage *in, VipsImage **out, ... )
+int vips_sRGB2HSV(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_profile_load( const char *name, VipsBlob **profile, ... )
+int vips_LCh2CMC(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_icc_present( void );
-VIPS_API
-int vips_icc_transform( VipsImage *in, VipsImage **out, 
-	const char *output_profile, ... )
+int vips_CMC2LCh(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_icc_import( VipsImage *in, VipsImage **out, ... )
+int vips_XYZ2Yxy(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_icc_export( VipsImage *in, VipsImage **out, ... )
+int vips_Yxy2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_icc_ac2rc( VipsImage *in, VipsImage **out, 
-	const char *profile_filename );
-VIPS_API
-gboolean vips_icc_is_compatible_profile( VipsImage *image, 
-	const void *data, size_t data_length );
-
-VIPS_API
-int vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+int vips_LabS2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_dE00( VipsImage *left, VipsImage *right, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_dECMC( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+int vips_Lab2LabS(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-void vips_col_Lab2XYZ( float L, float a, float b, 
-	float *X, float *Y, float *Z );
+int vips_CMYK2XYZ(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
-void vips_col_XYZ2Lab( float X, float Y, float Z, 
-	float *L, float *a, float *b );
-VIPS_API
-double vips_col_ab2h( double a, double b );
-VIPS_API
-void vips_col_ab2Ch( float a, float b, float *C, float *h );
-VIPS_API
-void vips_col_Ch2ab( float C, float h, float *a, float *b );
+int vips_XYZ2CMYK(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-float vips_col_L2Lcmc( float L );
+int vips_profile_load(const char *name, VipsBlob **profile, ...)
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
-float vips_col_C2Ccmc( float C );
+int vips_icc_present(void);
 VIPS_API
-float vips_col_Ch2hcmc( float C, float h );
+int vips_icc_transform(VipsImage *in, VipsImage **out,
+	const char *output_profile, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_icc_import(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_icc_export(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_icc_ac2rc(VipsImage *in, VipsImage **out,
+	const char *profile_filename);
+VIPS_API
+gboolean vips_icc_is_compatible_profile(VipsImage *image,
+	const void *data, size_t data_length);
 
 VIPS_API
-void vips_col_make_tables_CMC( void );
+int vips_dE76(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
-float vips_col_Lcmc2L( float Lcmc );
+int vips_dE00(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 VIPS_API
-float vips_col_Ccmc2C( float Ccmc );
-VIPS_API
-float vips_col_Chcmc2h( float C, float hcmc );
+int vips_dECMC(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_col_sRGB2scRGB_8( int r, int g, int b, float *R, float *G, float *B );
+void vips_col_Lab2XYZ(float L, float a, float b,
+	float *X, float *Y, float *Z);
 VIPS_API
-int vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B );
+void vips_col_XYZ2Lab(float X, float Y, float Z,
+	float *L, float *a, float *b);
 VIPS_API
-int vips_col_sRGB2scRGB_8_noclip( int r, int g, int b, 
-	float *R, float *G, float *B );
+double vips_col_ab2h(double a, double b);
 VIPS_API
-int vips_col_sRGB2scRGB_16_noclip( int r, int g, int b, 
-	float *R, float *G, float *B );
+void vips_col_ab2Ch(float a, float b, float *C, float *h);
+VIPS_API
+void vips_col_Ch2ab(float C, float h, float *a, float *b);
 
 VIPS_API
-int vips_col_scRGB2XYZ( float R, float G, float B, 
-	float *X, float *Y, float *Z );
+float vips_col_L2Lcmc(float L);
 VIPS_API
-int vips_col_XYZ2scRGB( float X, float Y, float Z, 
-	float *R, float *G, float *B );
+float vips_col_C2Ccmc(float C);
+VIPS_API
+float vips_col_Ch2hcmc(float C, float h);
 
 VIPS_API
-int vips_col_scRGB2sRGB_8( float R, float G, float B, 
-	int *r, int *g, int *b, int *og );
+void vips_col_make_tables_CMC(void);
 VIPS_API
-int vips_col_scRGB2sRGB_16( float R, float G, float B, 
-	int *r, int *g, int *b, int *og );
+float vips_col_Lcmc2L(float Lcmc);
 VIPS_API
-int vips_col_scRGB2BW_16( float R, float G, float B, int *g, int *og );
+float vips_col_Ccmc2C(float Ccmc);
 VIPS_API
-int vips_col_scRGB2BW_8( float R, float G, float B, int *g, int *og );
+float vips_col_Chcmc2h(float C, float hcmc);
 
 VIPS_API
-float vips_pythagoras( float L1, float a1, float b1, 
-	float L2, float a2, float b2 );
+int vips_col_sRGB2scRGB_8(int r, int g, int b, float *R, float *G, float *B);
 VIPS_API
-float vips_col_dE00( 
-	float L1, float a1, float b1, float L2, float a2, float b2 );
+int vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B);
+VIPS_API
+int vips_col_sRGB2scRGB_8_noclip(int r, int g, int b,
+	float *R, float *G, float *B);
+VIPS_API
+int vips_col_sRGB2scRGB_16_noclip(int r, int g, int b,
+	float *R, float *G, float *B);
+
+VIPS_API
+int vips_col_scRGB2XYZ(float R, float G, float B,
+	float *X, float *Y, float *Z);
+VIPS_API
+int vips_col_XYZ2scRGB(float X, float Y, float Z,
+	float *R, float *G, float *B);
+
+VIPS_API
+int vips_col_scRGB2sRGB_8(float R, float G, float B,
+	int *r, int *g, int *b, int *og);
+VIPS_API
+int vips_col_scRGB2sRGB_16(float R, float G, float B,
+	int *r, int *g, int *b, int *og);
+VIPS_API
+int vips_col_scRGB2BW_16(float R, float G, float B, int *g, int *og);
+VIPS_API
+int vips_col_scRGB2BW_8(float R, float G, float B, int *g, int *og);
+
+VIPS_API
+float vips_pythagoras(float L1, float a1, float b1,
+	float L2, float a2, float b2);
+VIPS_API
+float vips_col_dE00(
+	float L1, float a1, float b1, float L2, float a2, float b2);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,20 @@
+BasedOnStyle: GNU
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignEscapedNewlines: DontAlign
+AlignOperands: DontAlign
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Stroustrup
+IndentWidth: 4
+SortIncludes: Never
+SpaceAfterCStyleCast: true
+SpaceBeforeParens: ControlStatements
+TabWidth: 4
+UseTab: Always
+# Our column limit is actually 80, but setting that results in clang-format
+# making a lot of dubious hanging-indent choices; disable it and assume the
+# developer will line wrap appropriately. clang-format will still check
+# existing hanging indents.
+ColumnLimit: 0

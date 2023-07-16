@@ -8,28 +8,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -52,7 +52,7 @@
 #include "../foreign/pforeign.h"
 
 static int
-jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
+jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
@@ -68,26 +68,26 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 	/* Parse the filename.
 	 */
-	im_filename_split( name, filename, mode );
+	im_filename_split(name, filename, mode);
 	p = &mode[0];
 	shrink = 1;
 	seq = 0;
-	if( (q = im_getnextoption( &p )) ) {
-		shrink = atoi( q );
+	if ((q = im_getnextoption(&p))) {
+		shrink = atoi(q);
 
-		if( shrink != 1 && shrink != 2 && 
-			shrink != 4 && shrink != 8 ) {
-			im_error( "im_jpeg2vips", 
-				_( "bad shrink factor %d" ), shrink );
-			return( -1 );
+		if (shrink != 1 && shrink != 2 &&
+			shrink != 4 && shrink != 8) {
+			im_error("im_jpeg2vips",
+				_("bad shrink factor %d"), shrink);
+			return -1;
 		}
 	}
-	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "fail", q ) ) 
+	if ((q = im_getnextoption(&p))) {
+		if (im_isprefix("fail", q))
 			fail_on_warn = TRUE;
 	}
-	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "seq", q ) )
+	if ((q = im_getnextoption(&p))) {
+		if (im_isprefix("seq", q))
 			seq = 1;
 	}
 
@@ -96,86 +96,86 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	 * like that.
 	 */
 
-	/* We need to be compatible with the pre-sequential mode 
+	/* We need to be compatible with the pre-sequential mode
 	 * im_jpeg2vips(). This returned a "t" if given a "p" image, since it
 	 * used writeline.
 	 *
 	 * If we're writing the image to a "p", switch it to a "t".
 	 */
 
-	if( !header_only &&
+	if (!header_only &&
 		!seq &&
-		out->dtype == VIPS_IMAGE_PARTIAL ) {
-		if( vips__image_wio_output( out ) ) 
-			return( -1 );
+		out->dtype == VIPS_IMAGE_PARTIAL) {
+		if (vips__image_wio_output(out))
+			return -1;
 	}
 
 #ifdef HAVE_JPEG
-{
-	VipsSource *source;
+	{
+		VipsSource *source;
 
-	if( !(source = vips_source_new_from_file( filename )) ) 
-		return( -1 );
-	if( vips__jpeg_read_source( source, out,
-		header_only, shrink, fail_on_warn, FALSE, FALSE ) ) {
-		VIPS_UNREF( source );
-		return( -1 );
+		if (!(source = vips_source_new_from_file(filename)))
+			return -1;
+		if (vips__jpeg_read_source(source, out,
+				header_only, shrink, fail_on_warn, FALSE, FALSE)) {
+			VIPS_UNREF(source);
+			return -1;
+		}
+		VIPS_UNREF(source);
 	}
-	VIPS_UNREF( source );
-}
 #else
-	vips_error( "im_jpeg2vips", 
-		"%s", _( "no JPEG support in your libvips" ) ); 
+	vips_error("im_jpeg2vips",
+		"%s", _("no JPEG support in your libvips"));
 
-	return( -1 );
+	return -1;
 #endif /*HAVE_JPEG*/
 
-	return( 0 );
+	return 0;
 }
 
 int
-im_jpeg2vips( const char *name, IMAGE *out )
+im_jpeg2vips(const char *name, IMAGE *out)
 {
-	return( jpeg2vips( name, out, FALSE ) ); 
+	return jpeg2vips(name, out, FALSE);
 }
 
 /* By having a separate header func, we get lazy.c to open via disc/mem.
  */
 static int
-im_jpeg2vips_header( const char *name, IMAGE *out )
+im_jpeg2vips_header(const char *name, IMAGE *out)
 {
-	return( jpeg2vips( name, out, TRUE ) ); 
+	return jpeg2vips(name, out, TRUE);
 }
 
 int
-im_bufjpeg2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
+im_bufjpeg2vips(void *buf, size_t len, IMAGE *out, gboolean header_only)
 {
 	VipsImage *t;
 
-	/* header_only is now automatic ... this call will only decompress on 
+	/* header_only is now automatic ... this call will only decompress on
 	 * pixel access.
 	 */
 
-	if( vips_jpegload_buffer( buf, len, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
+	if (vips_jpegload_buffer(buf, len, &t, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
 	}
-	g_object_unref( t );
+	g_object_unref(t);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-isjpeg( const char *name )
+isjpeg(const char *name)
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 
-	im_filename_split( name, filename, mode );
+	im_filename_split(name, filename, mode);
 
-	return( vips_foreign_is_a( "jpegload", filename ) );
+	return vips_foreign_is_a("jpegload", filename);
 }
 
 static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
@@ -186,13 +186,13 @@ typedef VipsFormat VipsFormatJpeg;
 typedef VipsFormatClass VipsFormatJpegClass;
 
 static void
-vips_format_jpeg_class_init( VipsFormatJpegClass *class )
+vips_format_jpeg_class_init(VipsFormatJpegClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "jpeg";
-	object_class->description = _( "JPEG" );
+	object_class->description = _("JPEG");
 
 	format_class->is_a = isjpeg;
 	format_class->header = im_jpeg2vips_header;
@@ -202,8 +202,8 @@ vips_format_jpeg_class_init( VipsFormatJpegClass *class )
 }
 
 static void
-vips_format_jpeg_init( VipsFormatJpeg *object )
+vips_format_jpeg_init(VipsFormatJpeg *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatJpeg, vips_format_jpeg, VIPS_TYPE_FORMAT );
+G_DEFINE_TYPE(VipsFormatJpeg, vips_format_jpeg, VIPS_TYPE_FORMAT);

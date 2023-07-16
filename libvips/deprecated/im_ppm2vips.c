@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -40,32 +40,31 @@
 #include <vips/vips7compat.h>
 
 int
-im_ppm2vips( const char *filename, IMAGE *out )
+im_ppm2vips(const char *filename, IMAGE *out)
 {
 	VipsImage *t;
 
-	if( vips_ppmload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
+	if (vips_ppmload(filename, &t, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
 	}
-	g_object_unref( t );
+	g_object_unref(t);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-isppm( const char *filename )
+isppm(const char *filename)
 {
-	return( vips_foreign_is_a( "ppmload", filename ) );
+	return vips_foreign_is_a("ppmload", filename);
 }
 
 static VipsFormatFlags
-ppm_flags( const char *filename )
+ppm_flags(const char *filename)
 {
-	return( (VipsFormatFlags)
-		vips_foreign_flags( "ppmload", filename ) );
+	return (VipsFormatFlags) vips_foreign_flags("ppmload", filename);
 }
 
 static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
@@ -76,13 +75,13 @@ typedef VipsFormat VipsFormatPpm;
 typedef VipsFormatClass VipsFormatPpmClass;
 
 static void
-vips_format_ppm_class_init( VipsFormatPpmClass *class )
+vips_format_ppm_class_init(VipsFormatPpmClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "ppm";
-	object_class->description = _( "PPM/PBM/PNM/PFM" );
+	object_class->description = _("PPM/PBM/PNM/PFM");
 
 	format_class->is_a = isppm;
 	format_class->load = im_ppm2vips;
@@ -92,9 +91,8 @@ vips_format_ppm_class_init( VipsFormatPpmClass *class )
 }
 
 static void
-vips_format_ppm_init( VipsFormatPpm *object )
+vips_format_ppm_init(VipsFormatPpm *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatPpm, vips_format_ppm, VIPS_TYPE_FORMAT );
-
+G_DEFINE_TYPE(VipsFormatPpm, vips_format_ppm, VIPS_TYPE_FORMAT);

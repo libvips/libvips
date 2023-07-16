@@ -20,34 +20,34 @@
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
- * 12/8/13	
+ * 12/8/13
  * 	- redone im_histcum() as a class, vips_hist_cum()
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -66,58 +66,68 @@
 typedef VipsHistUnary VipsHistCum;
 typedef VipsHistUnaryClass VipsHistCumClass;
 
-G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY );
+G_DEFINE_TYPE(VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY);
 
-#define ACCUMULATE( ITYPE, OTYPE ) { \
-	for( b = 0; b < nb; b++ ) { \
-		ITYPE *p = (ITYPE *) in[0]; \
-		OTYPE *q = (OTYPE *) out; \
-		OTYPE total; \
-		\
-		total = 0; \
-		for( x = b; x < mx; x += nb ) { \
-			total += p[x]; \
-			q[x] = total; \
+#define ACCUMULATE(ITYPE, OTYPE) \
+	{ \
+		for (b = 0; b < nb; b++) { \
+			ITYPE *p = (ITYPE *) in[0]; \
+			OTYPE *q = (OTYPE *) out; \
+			OTYPE total; \
+\
+			total = 0; \
+			for (x = b; x < mx; x += nb) { \
+				total += p[x]; \
+				q[x] = total; \
+			} \
 		} \
-	} \
-}
+	}
 
 static void
-vips_hist_cum_process( VipsHistogram *histogram, 
-	VipsPel *out, VipsPel **in, int width )
+vips_hist_cum_process(VipsHistogram *histogram,
+	VipsPel *out, VipsPel **in, int width)
 {
-	const int bands = vips_image_get_bands( histogram->ready[0] );
-	const int nb = 
-		vips_band_format_iscomplex( histogram->ready[0]->BandFmt ) ? 
-		bands * 2 : bands;
+	const int bands = vips_image_get_bands(histogram->ready[0]);
+	const int nb =
+		vips_band_format_iscomplex(histogram->ready[0]->BandFmt)
+		? bands * 2
+		: bands;
 	int mx = width * nb;
 
-	int x, b; 
+	int x, b;
 
-	switch( vips_image_get_format( histogram->ready[0] ) ) {
-        case VIPS_FORMAT_CHAR: 		
-		ACCUMULATE( signed char, signed int ); break; 
-        case VIPS_FORMAT_UCHAR: 		
-		ACCUMULATE( unsigned char, unsigned int ); break; 
-        case VIPS_FORMAT_SHORT: 		
-		ACCUMULATE( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT: 	
-		ACCUMULATE( unsigned short, unsigned int ); break; 
-        case VIPS_FORMAT_INT: 		
-		ACCUMULATE( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 		
-		ACCUMULATE( unsigned int, unsigned int ); break; 
+	switch (vips_image_get_format(histogram->ready[0])) {
+	case VIPS_FORMAT_CHAR:
+		ACCUMULATE(signed char, signed int);
+		break;
+	case VIPS_FORMAT_UCHAR:
+		ACCUMULATE(unsigned char, unsigned int);
+		break;
+	case VIPS_FORMAT_SHORT:
+		ACCUMULATE(signed short, signed int);
+		break;
+	case VIPS_FORMAT_USHORT:
+		ACCUMULATE(unsigned short, unsigned int);
+		break;
+	case VIPS_FORMAT_INT:
+		ACCUMULATE(signed int, signed int);
+		break;
+	case VIPS_FORMAT_UINT:
+		ACCUMULATE(unsigned int, unsigned int);
+		break;
 
-        case VIPS_FORMAT_FLOAT: 		
-        case VIPS_FORMAT_COMPLEX:	
-		ACCUMULATE( float, float ); break;
-        case VIPS_FORMAT_DOUBLE:		
-        case VIPS_FORMAT_DPCOMPLEX:	
-		ACCUMULATE( double, double ); break;
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		ACCUMULATE(float, float);
+		break;
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		ACCUMULATE(double, double);
+		break;
 
-        default:
+	default:
 		g_assert_not_reached();
-        }
+	}
 }
 
 /* Save a bit of typing.
@@ -139,20 +149,20 @@ static const VipsBandFormat vips_hist_cum_format_table[10] = {
 };
 
 static void
-vips_hist_cum_class_init( VipsHistCumClass *class )
+vips_hist_cum_class_init(VipsHistCumClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS( class );
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS(class);
 
 	object_class->nickname = "hist_cum";
-	object_class->description = _( "form cumulative histogram" );
+	object_class->description = _("form cumulative histogram");
 
 	hclass->format_table = vips_hist_cum_format_table;
 	hclass->process = vips_hist_cum_process;
 }
 
 static void
-vips_hist_cum_init( VipsHistCum *hist_cum )
+vips_hist_cum_init(VipsHistCum *hist_cum)
 {
 }
 
@@ -162,21 +172,21 @@ vips_hist_cum_init( VipsHistCum *hist_cum )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Form cumulative histogram. 
+ * Form cumulative histogram.
  *
  * See also: vips_hist_norm().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_hist_cum( VipsImage *in, VipsImage **out, ... )
+int
+vips_hist_cum(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "hist_cum", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("hist_cum", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

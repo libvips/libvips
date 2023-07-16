@@ -11,17 +11,17 @@
 VIPS_NAMESPACE_START
 
 VRegion
-VRegion::new_from_image( VImage image )
+VRegion::new_from_image(VImage image)
 {
 	VipsRegion *region;
 
-	if( !(region = vips_region_new( image.get_image() )) ) {
+	if (!(region = vips_region_new(image.get_image()))) {
 		throw VError();
 	}
 
-	VRegion out( region );
+	VRegion out(region);
 
-	return( out );
+	return out;
 }
 
 VIPS_NAMESPACE_END

@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -135,219 +135,219 @@ typedef enum {
 } VipsBlendMode;
 
 VIPS_API
-int vips_copy( VipsImage *in, VipsImage **out, ... )
+int vips_copy(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_tilecache( VipsImage *in, VipsImage **out, ... )
+int vips_tilecache(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_linecache( VipsImage *in, VipsImage **out, ... )
+int vips_linecache(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_sequential( VipsImage *in, VipsImage **out, ... )
+int vips_sequential(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cache( VipsImage *in, VipsImage **out, ... )
+int vips_cache(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_copy_file( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_embed( VipsImage *in, VipsImage **out, 
-	int x, int y, int width, int height, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_gravity( VipsImage *in, VipsImage **out, 
-	VipsCompassDirection direction, int width, int height, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
-	int x, int y, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
-	VipsDirection direction, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_arrayjoin( VipsImage **in, VipsImage **out, int n, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_extract_area( VipsImage *in, VipsImage **out, 
-	int left, int top, int width, int height, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_crop( VipsImage *in, VipsImage **out, 
-	int left, int top, int width, int height, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_smartcrop( VipsImage *in, VipsImage **out, int width, int height, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_grid( VipsImage *in, VipsImage **out, 
-	int tile_height, int across, int down, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_transpose3d( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_wrap( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_rot90( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_rot180( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_rot270( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_rot45( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-void vips_autorot_remove_angle( VipsImage *image );
-VIPS_API
-int vips_autorot( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_subsample( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
+int vips_copy_file(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
+int vips_embed(VipsImage *in, VipsImage **out,
+	int x, int y, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_uchar( VipsImage *in, VipsImage **out, ... )
+int vips_gravity(VipsImage *in, VipsImage **out,
+	VipsCompassDirection direction, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_char( VipsImage *in, VipsImage **out, ... )
+int vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_ushort( VipsImage *in, VipsImage **out, ... )
+int vips_insert(VipsImage *main, VipsImage *sub, VipsImage **out,
+	int x, int y, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_short( VipsImage *in, VipsImage **out, ... )
+int vips_join(VipsImage *in1, VipsImage *in2, VipsImage **out,
+	VipsDirection direction, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_uint( VipsImage *in, VipsImage **out, ... )
+int vips_arrayjoin(VipsImage **in, VipsImage **out, int n, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_int( VipsImage *in, VipsImage **out, ... )
+int vips_extract_area(VipsImage *in, VipsImage **out,
+	int left, int top, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_float( VipsImage *in, VipsImage **out, ... )
+int vips_crop(VipsImage *in, VipsImage **out,
+	int left, int top, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_double( VipsImage *in, VipsImage **out, ... )
+int vips_smartcrop(VipsImage *in, VipsImage **out, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_complex( VipsImage *in, VipsImage **out, ... )
+int vips_extract_band(VipsImage *in, VipsImage **out, int band, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cast_dpcomplex( VipsImage *in, VipsImage **out, ... )
+int vips_replicate(VipsImage *in, VipsImage **out, int across, int down, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_scale( VipsImage *in, VipsImage **out, ... )
+int vips_grid(VipsImage *in, VipsImage **out,
+	int tile_height, int across, int down, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_msb( VipsImage *in, VipsImage **out, ... )
+int vips_transpose3d(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_byteswap( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
+int vips_wrap(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
+int vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandjoin_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_rot90(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
+int vips_rot180(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
+int vips_rot270(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandfold( VipsImage *in, VipsImage **out, ... )
+int vips_rot45(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandunfold( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-
+void vips_autorot_remove_angle(VipsImage *image);
 VIPS_API
-int vips_bandbool( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean boolean, ... )
+int vips_autorot(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandand( VipsImage *in, VipsImage **out, ... )
+int vips_zoom(VipsImage *in, VipsImage **out, int xfac, int yfac, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_bandor( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_bandeor( VipsImage *in, VipsImage **out, ... )
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_bandmean( VipsImage *in, VipsImage **out, ... )
+int vips_subsample(VipsImage *in, VipsImage **out, int xfac, int yfac, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
+int vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_uchar(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_char(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_ushort(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_short(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_uint(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_int(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_float(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_double(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_complex(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_cast_dpcomplex(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_scale(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_msb(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_byteswap(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
-	VipsImage **out, ... )
+int vips_bandjoin(VipsImage **in, VipsImage **out, int n, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_switch( VipsImage **tests, VipsImage **out, int n, ... )
-	G_GNUC_NULL_TERMINATED;
-
-VIPS_API
-int vips_flatten( VipsImage *in, VipsImage **out, ... )
+int vips_bandjoin2(VipsImage *in1, VipsImage *in2, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_addalpha( VipsImage *in, VipsImage **out, ... )
+int vips_bandjoin_const(VipsImage *in, VipsImage **out, double *c, int n, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_premultiply( VipsImage *in, VipsImage **out, ... )
+int vips_bandjoin_const1(VipsImage *in, VipsImage **out, double c, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_unpremultiply( VipsImage *in, VipsImage **out, ... )
+int vips_bandrank(VipsImage **in, VipsImage **out, int n, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
+int vips_bandfold(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
-	VipsBlendMode mode, ... )
+int vips_bandunfold(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
-int vips_falsecolour( VipsImage *in, VipsImage **out, ... )
+int vips_bandbool(VipsImage *in, VipsImage **out,
+	VipsOperationBoolean boolean, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_gamma( VipsImage *in, VipsImage **out, ... )
+int vips_bandand(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_bandor(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_bandeor(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_bandmean(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_recomb(VipsImage *in, VipsImage **out, VipsImage *m, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_ifthenelse(VipsImage *cond, VipsImage *in1, VipsImage *in2,
+	VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_switch(VipsImage **tests, VipsImage **out, int n, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_flatten(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_addalpha(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_premultiply(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_unpremultiply(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_composite(VipsImage **in, VipsImage **out, int n, int *mode, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_composite2(VipsImage *base, VipsImage *overlay, VipsImage **out,
+	VipsBlendMode mode, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_falsecolour(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_gamma(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 #ifdef __cplusplus
