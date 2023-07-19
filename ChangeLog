@@ -7,6 +7,7 @@ TBD 8.14.3
 - heifsave: limit dimensions to a maximum edge of 16384 [lovell]
 - colourspace: ensure CMYK conversion uses the embedded ICC profile [kleisauke]
 - ensure chromatic adaptation during icc_{im,ex}port() [kleisauke]
+- improve ICC compatibility check for CMYK images [kleisauke]
 
 21/3/23 8.14.2
 

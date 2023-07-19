@@ -545,23 +545,18 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 }
 #endif /*DEBUG*/
 
-/* How many bands we expect to see from an image after preprocessing by our
- * parent classes. This is a bit fragile :-( 
- *
- * FIXME ... split the _build() for colour into separate preprocess / process
- * / postprocess phases so we can load profiles after preprocess but before
- * actual processing takes place.
+/* TRUE if the number of bands in the ICC profile is compatible with the
+ * image.
  */
-static int
-vips_image_expected_bands( VipsImage *image )
+static gboolean
+vips_image_is_profile_compatible( VipsImage *image, int profile_bands )
 {
-	int expected_bands;
-
 	switch( image->Type ) {
 		case VIPS_INTERPRETATION_B_W:
 		case VIPS_INTERPRETATION_GREY16:
-			expected_bands = 1;
-			break;
+			/* The ICC profile needs to be monochrome.
+			 */
+			return( profile_bands == 1 );
 
 		case VIPS_INTERPRETATION_XYZ:
 		case VIPS_INTERPRETATION_LAB:
@@ -575,22 +570,24 @@ vips_image_expected_bands( VipsImage *image )
 		case VIPS_INTERPRETATION_RGB16:
 		case VIPS_INTERPRETATION_scRGB:
 		case VIPS_INTERPRETATION_HSV:
-			expected_bands = 3;
-			break;
+			/* The band count in the ICC profile must correspond to that of
+			 * the image, with a maximum of 3 bands allowed.
+			 */
+			return( VIPS_MIN( 3, image->Bands ) == profile_bands );
+
+		case VIPS_INTERPRETATION_CMYK:
+			/* CMYK images can only be imported if the ICC-profile has at
+			 * least 4 bands thereby blocking the usage of RGB profiles.
+			 */
+			return( profile_bands >= 4 );
 
 		case VIPS_INTERPRETATION_MULTIBAND:
 		case VIPS_INTERPRETATION_HISTOGRAM:
-		case VIPS_INTERPRETATION_CMYK:
 		case VIPS_INTERPRETATION_MATRIX:
 		case VIPS_INTERPRETATION_FOURIER:
 		default:
-			expected_bands = image->Bands;
-			break;
+			return( image->Bands >= profile_bands );
 	}
-
-	expected_bands = VIPS_MIN( expected_bands, image->Bands );
-
-	return( expected_bands );
 }
 
 /* Load a profile from a blob and check compatibility with image, intent and
@@ -631,7 +628,7 @@ vips_icc_load_profile_blob( VipsBlob *blob,
         }
 
 	if( image &&
-		vips_image_expected_bands( image ) != info->bands ) { 
+		!vips_image_is_profile_compatible( image, info->bands ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
@@ -1365,7 +1362,7 @@ vips_icc_is_compatible_profile( VipsImage *image,
                 return( FALSE );
         }
 
-	if( vips_image_expected_bands( image ) != info->bands ) {
+	if( !vips_image_is_profile_compatible( image, info->bands ) ) {
 		/* Bands mismatch.
 		 */
 		VIPS_FREEF( cmsCloseProfile, profile );
