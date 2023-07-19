@@ -1251,10 +1251,16 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * lanczos3. The output should be high quality, and the operation should be
  * quick.
  *
- * See vips_thumbnail_buffer() to thumbnail from a memory source.
+ * See vips_thumbnail_buffer() to thumbnail from a memory buffer, or
+ * vips_thumbnail_source() to thumbnail from an arbitrary byte source.
+ *
+ * By default, libvips will only the first frame of animated or multipage
+ * images. To thumbnail all pages or frames, pass `n=-1` to the loader in
+ * @filename, for example `"x.gif[n=-1]"`.
  *
  * The output image will fit within a square of size @width x @width. You can
- * specify a separate height with the @height option.
+ * specify a separate height with the @height option. Set either @width or
+ * @height to a very large number to ignore that dimension.
  *
  * If you set @crop, then the output image will fill the whole of the @width x
  * @height rectangle, with any excess cropped away. See vips_smartcrop() for
