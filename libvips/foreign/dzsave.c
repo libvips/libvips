@@ -821,7 +821,7 @@ write_blank(VipsForeignSaveDz *dz)
 
 	/* Number of bands we will end up making. We need to set this in
 	 * vips_black() to make sure we set Type correctly, otherwise we can
-	 * try saving a B_W image as PNG, with disasterous results.
+	 * try saving a B_W image as PNG, with disastrous results.
 	 */
 	bg = (double *) vips_area_get_data(VIPS_AREA(save->background),
 		NULL, &n, NULL, NULL);

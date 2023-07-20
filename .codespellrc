@@ -1,0 +1,3 @@
+[codespell]
+skip = .git,*.pdf,*.svg,./test/test-suite/images,./fuzz/common_fuzzer_corpus,./build/meson-private,./build,*.gir,*.po,./cplusplus/html,./libvips/deprecated,*.xml
+ignore-words-list = gir,ody,te,tre,mmaped,openin,dout,inout,co-ordinate

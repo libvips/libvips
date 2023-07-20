@@ -8,7 +8,7 @@
  * Written on: 17/01/1990
  * Modified on : 17/04/1990, 2/6/93 K.Martinez
  * 16/6/93 JC
- *	- now calls im_mmapin instead of bizzare bogosity
+ *	- now calls im_mmapin instead of bizarre bogosity
  * 1/6/95 JC
  *	- extra field argument for testing particular bits of the header
  * 29/10/98 JC

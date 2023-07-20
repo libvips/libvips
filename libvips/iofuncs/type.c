@@ -73,7 +73,7 @@
  * @see_also: <link linkend="libvips-header">header</link>
  * @include: vips/vips.h
  *
- * A selection of %GType defintions used by VIPS.
+ * A selection of %GType definitions used by VIPS.
  */
 
 /* A very simple boxed type for testing. Just an int.
@@ -229,7 +229,7 @@ vips_area_unref(VipsArea *area)
  * #VipsObject pointers to operations, and for reference-counted immutable
  * strings.
  *
- * Inital count == 1, so _unref() after attaching somewhere.
+ * Initial count == 1, so _unref() after attaching somewhere.
  *
  * See also: vips_area_unref().
  *

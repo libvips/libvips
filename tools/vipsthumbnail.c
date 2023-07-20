@@ -104,7 +104,7 @@
  * 	- deprecate --delete
  * 2/10/20
  * 	- support "stdin" as a magic input filename for thumbnail_source
- * 	- support ".suffix" as a magic ouput format for stdout write
+ * 	- support ".suffix" as a magic output format for stdout write
  */
 
 #ifdef HAVE_CONFIG_H

@@ -2493,7 +2493,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  * As a convenience, you can also use @Q to set @distance. @Q uses
  * approximately the same scale as regular JPEG.
  *
- * Set @lossless to enable lossless compresion.
+ * Set @lossless to enable lossless compression.
  *
  * Returns: 0 on success, -1 on error.
  */

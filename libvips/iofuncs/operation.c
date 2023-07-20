@@ -1125,7 +1125,7 @@ vips_call_option_output(VipsObject *object,
 
 	int result;
 
-	/* Don't look at the output arg if _build() hasn't run sucessfully, it
+	/* Don't look at the output arg if _build() hasn't run successfully, it
 	 * probably won't have been set.
 	 */
 	result = 0;

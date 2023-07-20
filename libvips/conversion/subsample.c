@@ -222,8 +222,6 @@ vips_subsample_build(VipsObject *object)
 	 */
 	conversion->out->Xsize = subsample->in->Xsize / subsample->xfac;
 	conversion->out->Ysize = subsample->in->Ysize / subsample->yfac;
-	conversion->out->Xres = subsample->in->Xres / subsample->xfac;
-	conversion->out->Yres = subsample->in->Yres / subsample->yfac;
 	if (conversion->out->Xsize <= 0 ||
 		conversion->out->Ysize <= 0) {
 		vips_error(class->nickname,

@@ -567,7 +567,7 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  *
  * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
  * in jpg parlance). These files may be better for display over a slow network
- * conection, but need much more memory to encode and decode.
+ * connection, but need much more memory to encode and decode.
  *
  * If @strip is set, no EXIF data, IPTC data, ICC profile or XMP metadata is
  * written into the output file.
@@ -606,7 +606,7 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  *   Quantization (1993)
  *
  * Quantization table 0 is the default in vips and libjpeg(-turbo), but it
- * tends to favor detail over color accuracy, producting colored patches and
+ * tends to favor detail over color accuracy, producing colored patches and
  * stripes as well as heavy banding in flat areas at high compression ratios.
  * Quantization table 2 is a good candidate to try if the default quantization
  * table produces banding or color shifts and is well suited for hires images.

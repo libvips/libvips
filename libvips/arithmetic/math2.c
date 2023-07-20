@@ -19,7 +19,7 @@
  * 	- gtkdoc
  * 	- tiny cleanups
  * 20/9/09
- * 	- im_powtra() adapated to make math2.c
+ * 	- im_powtra() adapted to make math2.c
  * 12/11/11
  * 	- redone as a class
  * 17/7/12

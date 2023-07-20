@@ -131,7 +131,7 @@ vips_worley_create_cells(VipsWorley *worley,
 			seed = worley->seed;
 
 			/* When we calculate the seed for this cell, we wrap
-			 * around so that our output will tesselate.
+			 * around so that our output will tessellate.
 			 */
 			if (cell->cell_x >= worley->cells_across)
 				value = 0;

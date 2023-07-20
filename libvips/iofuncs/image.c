@@ -184,7 +184,7 @@
  *
  * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works
- * reasonably efficiently, even for bizzare operations like 45 degree rotate.
+ * reasonably efficiently, even for bizzarre operations like 45 degree rotate.
  *
  * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips
  * the width of the image and as high as possible. This option is suitable
@@ -3392,7 +3392,7 @@ vips_image_copy_memory(VipsImage *image)
  * See also: vips_image_copy_memory(), vips_image_pio_input(),
  * vips_image_inplace(), VIPS_IMAGE_ADDR().
  *
- * Returns: 0 on succeess, or -1 on error.
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_wio_input(VipsImage *image)
@@ -3568,7 +3568,7 @@ vips__image_wio_output(VipsImage *image)
  *
  * See also: vips_draw_circle(), vips_image_wio_input().
  *
- * Returns: 0 on succeess, or -1 on error.
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_inplace(VipsImage *image)
@@ -3620,7 +3620,7 @@ vips_image_inplace(VipsImage *image)
  *
  * See also: vips_image_pio_output(), vips_region_prepare().
  *
- * Returns: 0 on succeess, or -1 on error.
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_pio_input(VipsImage *image)
@@ -3695,7 +3695,7 @@ vips_image_pio_input(VipsImage *image)
  *
  * See also: vips_image_pio_input().
  *
- * Returns: 0 on succeess, or -1 on error.
+ * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_pio_output(VipsImage *image)
@@ -3890,7 +3890,7 @@ vips_band_format_iscomplex(VipsBandFormat format)
 /**
  * vips_image_free_buffer:
  * @image: the image that contains the buffer
- * @buffer: the orignal buffer that was stolen
+ * @buffer: the original buffer that was stolen
  *
  * Free the externally allocated buffer found in the input image. This function
  * is intended to be used with g_signal_connect.

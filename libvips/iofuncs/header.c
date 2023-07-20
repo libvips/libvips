@@ -1255,7 +1255,7 @@ vips_image_set(VipsImage *image, const char *name, GValue *value)
 #endif /*DEBUG*/
 }
 
-/* Unforunately gvalue seems to have no way of doing this. Just handle the vips
+/* Unfortunately gvalue seems to have no way of doing this. Just handle the vips
  * built-in types.
  */
 static void

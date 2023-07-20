@@ -62,7 +62,7 @@
  * allowance.
  *
  * A. Turcotte's image resampling research on reduced halo funded in
- * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
+ * part by an NSERC Alexander Graham Bell Canada Graduate Scholarship
  * awarded to him and by a Google Summer of Code 2010 award awarded to
  * GIMP (Gnu Image Manipulation Program).
  *

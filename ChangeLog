@@ -22,7 +22,7 @@
 - swap built-in profiles with ICC v4 variants [kleisauke]
 - remove libgsf dependency in favor of libarchive [kleisauke]
 
-TBD 8.14.3
+20/7/23 8.14.3
 
 - fix ICC handling of greyscale images with a incompatible profile [kleisauke]
 - fix use-after-free during tiff pyramid save [kleisauke]
@@ -31,6 +31,7 @@ TBD 8.14.3
 - heifsave: limit dimensions to a maximum edge of 16384 [lovell]
 - colourspace: ensure CMYK conversion uses the embedded ICC profile [kleisauke]
 - ensure chromatic adaptation during icc_{im,ex}port() [kleisauke]
+- improve ICC compatibility check for CMYK images [kleisauke]
 
 21/3/23 8.14.2
 
@@ -96,15 +97,15 @@ TBD 8.14.3
 
 11/10/22 started 8.13.3
 - improve rules for 16-bit heifsave [johntrunc]
-- improve libspng pallette write [kleisauke]
-- improve libspng pallette sort [DarthSim]
+- improve libspng palette write [kleisauke]
+- improve libspng palette sort [DarthSim]
 - ensure EXIF has prefix before parsing [lovell]
-- fix low bit depth pallette spng save [DarthSim]
+- fix low bit depth palette spng save [DarthSim]
 - fix thumbnail of non-sRGB images with an export profile [kleisauke]
 
 5/9/22 started 8.13.2
 - in dzsave, add add missing include directive for errno/EEXIST [kleisauke]
-- fix 8 bit pallete PNG save [lovell]
+- fix 8 bit palette PNG save [lovell]
 - fix null string in buffer print [pclewis]
 - revise caching of seq mode loaders [jcupitt]
 - reduce latency on dzsave kill [kleisauke]
@@ -259,7 +260,8 @@ TBD 8.14.3
 - move openslide, libheif, poppler and magick to loadable modules [kleisauke]
 - better detection of invalid ICC profiles, better fallback paths
 - add "premultiply" flag to tiffsave
-- new threading model has a singe threadpool shared by all pipelines [kleisauke]
+- new threading model has a single threadpool shared by all 
+  pipelines [kleisauke]
 
 30/4/21 start 8.10.7
 - better vips7 PNG load compatibility [SkyDiverCool]
@@ -473,7 +475,7 @@ TBD 8.14.3
 - istiff attempts to read the first directory rather than just testing the
   magic number [przemyslawpluta]
 - much faster ismagick() [jcupitt]
-- better behaviour for vips_region_fetch() if request lies partly ouside image
+- better behaviour for vips_region_fetch() if request lies partly outside image
 - remove 256 band limit in arithmetic.c [erdmann]
 - disable Orc if building with CET [lovell]
 - fix vipsthumbnail with pyr tiff [kleisauke]
@@ -825,7 +827,7 @@ TBD 8.14.3
 - gif loader can make 1, 2, 3, or 4 bands depending on file contents
 - support --strip for pngsave
 - add svgz support [Felix Bünemann]
-- rename boostrap.sh -> autogen.sh to help snapcraft
+- rename bootstrap.sh -> autogen.sh to help snapcraft
 - support unicode filenames on Windows 
 - added VIPS_ROUND as well as VIPS_RINT
 - resize/reduce*/shrink*/affine now round output size to nearest rather than 
@@ -1076,7 +1078,7 @@ _ add vips_foreign_get_suffixes()
 - python vips8 binding
 - python vips8 test suite: test_arithmetic.py, test_colour.py,
   test_conversion.py
-- move zoomify ImageProperties file, now a better match to the offical tool
+- move zoomify ImageProperties file, now a better match to the official tool
 - rename VIPS_ANGLE_180 as VIPS_ANGLE_D180 etc. to help python
 - remove cimg support, we have a gmic plugin now instead
 - add support for vips8 plugins
@@ -2085,7 +2087,7 @@ _ add vips_foreign_get_suffixes()
 - added im_histindexed
 - new im_iterate() calls start and stop functions from workers so resources
   they make are owned by the worker thread ... this makes it possible to have
-  start functions which create mutiple regions and therefore allows
+  start functions which create multiple regions and therefore allows
   im_iterate() to scan more than one image at once
 - threadgroup no longer has any default action, you must attach a work
   function
@@ -2137,7 +2139,7 @@ _ add vips_foreign_get_suffixes()
 - added im_rad2float()
 
 11/10/08 started 7.17.0
-- merge vips-7.16 brach back into trunk
+- merge vips-7.16 branch back into trunk
 - bumped version number to 7.17.0
 - re-added type.[hc]
 - added vipsinterpolate and im_affinei
@@ -3315,7 +3317,7 @@ _ add vips_foreign_get_suffixes()
 
 15/01/02 JC
 - im_rect_unionrect() and im_rect_intersectrect() safer for repeated args
-- im_video_v4l() no longer perrror()s on ioctl fail for less spam
+- im_video_v4l() no longer perror()s on ioctl fail for less spam
 
 03/01/02 JC
 - started 7.7.16
@@ -3481,7 +3483,7 @@ _ add vips_foreign_get_suffixes()
 
 12/3/01 JC
 - started 7.7.5
-- im_sharpen() uses seperable convolution for big speed up
+- im_sharpen() uses separable convolution for big speed up
 - new "Print" menu
 
 11/3/01 JC
@@ -3694,7 +3696,7 @@ _ add vips_foreign_get_suffixes()
 - paste into background dialog
 
 19/11/99 JC
-- adjust labq was mising
+- adjust labq was missing
 - shrink image defaulted to /2 not /1
 - sharpdropshadow broken
 - Rotate.* broken

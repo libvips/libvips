@@ -49,8 +49,8 @@ typedef VipsImage *(*transform_fn)(JoinNode *, void *);
 enum _JoinType {
 	JOIN_LR,		 /* vips__lrmerge join */
 	JOIN_TB,		 /* vips__tbmerge join */
-	JOIN_LRROTSCALE, /* 1st oder lrmerge */
-	JOIN_TBROTSCALE, /* 1st oder tbmerge */
+	JOIN_LRROTSCALE, /* 1st order lrmerge */
+	JOIN_TBROTSCALE, /* 1st order tbmerge */
 	JOIN_CP,		 /* vips_copy operation */
 	JOIN_LEAF		 /* Base file */
 };

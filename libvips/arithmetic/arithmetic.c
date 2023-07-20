@@ -573,7 +573,7 @@ vips_arithmetic_start(VipsImage *out, void *a, void *b)
 	for (n = 0; in[n]; n++)
 		;
 
-	/* Alocate space for region array.
+	/* Allocate space for region array.
 	 */
 	if (!(seq->ir = VIPS_ARRAY(NULL, n + 1, VipsRegion *))) {
 		vips_arithmetic_stop(seq, NULL, NULL);

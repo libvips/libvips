@@ -307,7 +307,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * After a successful VIPS_SBUF_REQUIRE(), you can index this to get
  * require characters of input.
  *
- * Returns: a pointer to the next requre characters of input.
+ * Returns: a pointer to the next require characters of input.
  */
 
 /**

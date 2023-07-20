@@ -14,7 +14,7 @@
  *	- memory leaks fixed, ready for partial v2
  *	- now does IM_CODING_LABQ too
  * 8/11/93 JC
- *	- now propogates both input histories
+ *	- now propagates both input histories
  *	- adds magic lines for global mosaic optimisation
  *
  *
@@ -753,7 +753,7 @@ vips__build_mergestate(const char *domain,
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array(VIPS_OBJECT(out), 4);
 
-	VipsImage **arry;
+	VipsImage **array;
 	Overlapping *ovlap;
 	int x;
 
@@ -774,12 +774,12 @@ vips__build_mergestate(const char *domain,
 		vips__bandalike(domain, t[0], t[1], &t[2], &t[3]))
 		return NULL;
 
-	if (!(arry = vips_allocate_input_array(out,
+	if (!(array = vips_allocate_input_array(out,
 			  t[2], t[3], NULL)))
 		return NULL;
 
 	if (vips_image_pipeline_array(out,
-			VIPS_DEMAND_STYLE_SMALLTILE, arry))
+			VIPS_DEMAND_STYLE_SMALLTILE, array))
 		return NULL;
 
 	if (mwidth < -1) {
@@ -790,8 +790,8 @@ vips__build_mergestate(const char *domain,
 	if (!(ovlap = VIPS_NEW(out, Overlapping)))
 		return NULL;
 
-	ovlap->ref = arry[0];
-	ovlap->sec = arry[1];
+	ovlap->ref = array[0];
+	ovlap->sec = array[1];
 	ovlap->out = out;
 	ovlap->dx = dx;
 	ovlap->dy = dy;

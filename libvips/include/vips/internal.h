@@ -1,5 +1,5 @@
 /* Declarations only used internally to vips. See private.h for declarations
- * which are not public, but which have to be publically visible.
+ * which are not public, but which have to be publicly visible.
  *
  * 11/9/06
  *	- cut from proto.h

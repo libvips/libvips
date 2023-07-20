@@ -1,6 +1,6 @@
 /* convasep ... separable approximate convolution
  *
- * This operation does an approximate, seperable convolution.
+ * This operation does an approximate, separable convolution.
  *
  * Author: John Cupitt & Nicolas Robidoux
  * Written on: 31/5/11
