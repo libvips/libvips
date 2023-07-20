@@ -1,4 +1,4 @@
-19/7/23 8.14.3
+20/7/23 8.14.3
 
 - fix ICC handling of greyscale images with a incompatible profile [kleisauke]
 - fix use-after-free during tiff pyramid save [kleisauke]
