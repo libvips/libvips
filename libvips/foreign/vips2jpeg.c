@@ -8,98 +8,98 @@
  *	- update im_error()/im_warn()
  *	- now loads and saves exif data
  * 30/7/05
- * 	- now loads ICC profiles
- * 	- now saves ICC profiles from the VIPS header
+ *	- now loads ICC profiles
+ *	- now saves ICC profiles from the VIPS header
  * 24/8/05
- * 	- jpeg load sets vips xres/yres from exif, if possible
- * 	- jpeg save sets exif xres/yres from vips, if possible
+ *	- jpeg load sets vips xres/yres from exif, if possible
+ *	- jpeg save sets exif xres/yres from vips, if possible
  * 29/8/05
- * 	- cut from old vips_jpeg.c
+ *	- cut from old vips_jpeg.c
  * 20/4/06
- * 	- auto convert to sRGB/mono for save
+ *	- auto convert to sRGB/mono for save
  * 13/10/06
- * 	- add </libexif/ prefix if required
+ *	- add </libexif/ prefix if required
  * 19/1/07
- * 	- oop, libexif confusion
+ *	- oop, libexif confusion
  * 2/11/07
- * 	- use im_wbuffer() API for BG writes
+ *	- use im_wbuffer() API for BG writes
  * 15/2/08
- * 	- write CMYK if Bands == 4 and Type == CMYK
+ *	- write CMYK if Bands == 4 and Type == CMYK
  * 12/5/09
  *	- fix signed/unsigned warning
  * 13/8/09
- * 	- allow "none" for profile, meaning don't embed one
+ *	- allow "none" for profile, meaning don't embed one
  * 4/2/10
- * 	- gtkdoc
+ *	- gtkdoc
  * 17/7/10
- * 	- use g_assert()
- * 	- allow space for the header in init_destination(), helps writing very
- * 	  small JPEGs (thanks Tim Elliott)
+ *	- use g_assert()
+ *	- allow space for the header in init_destination(), helps writing very
+ *	  small JPEGs (thanks Tim Elliott)
  * 18/7/10
- * 	- collect im_vips2bufjpeg() output in a list of blocks ... we no
- * 	  longer overallocate or underallocate
+ *	- collect im_vips2bufjpeg() output in a list of blocks ... we no
+ *	  longer overallocate or underallocate
  * 8/7/11
- * 	- oop CMYK write was not inverting, thanks Ole
+ *	- oop CMYK write was not inverting, thanks Ole
  * 12/10/2011
- * 	- write XMP data
+ *	- write XMP data
  * 18/10/2011
- * 	- update Orientation as well
+ *	- update Orientation as well
  * 3/11/11
- * 	- rebuild exif tags from coded metadata values
+ *	- rebuild exif tags from coded metadata values
  * 24/11/11
- * 	- turn into a set of write fns ready to be called from a class
+ *	- turn into a set of write fns ready to be called from a class
  * 7/8/12
- * 	- use VIPS_META_RESOLUTION_UNIT to select resolution unit
+ *	- use VIPS_META_RESOLUTION_UNIT to select resolution unit
  * 16/11/12
- * 	- read ifds from exif fields
- * 	- optionally parse rationals as a/b
- * 	- update exif image dimensions
+ *	- read ifds from exif fields
+ *	- optionally parse rationals as a/b
+ *	- update exif image dimensions
  * 21/11/12
- * 	- attach IPTC data (app13), thanks Gary
+ *	- attach IPTC data (app13), thanks Gary
  * 2/10/13 Lovell Fuller
- * 	- add optimize_coding parameter
- * 	- add progressive mode
+ *	- add optimize_coding parameter
+ *	- add progressive mode
  * 12/11/13
- * 	- add "strip" option to remove all metadata
+ *	- add "strip" option to remove all metadata
  * 13/11/13
- * 	- add a "no_subsample" option to disable chroma subsample
+ *	- add a "no_subsample" option to disable chroma subsample
  * 9/9/14
- * 	- support "none" as a resolution unit
+ *	- support "none" as a resolution unit
  * 8/7/15
- * 	- omit oversized jpeg markers
+ *	- omit oversized jpeg markers
  * 15/7/15
- * 	- exif tags use @name, not @title
- * 	- set arbitrary exif tags from metadata
+ *	- exif tags use @name, not @title
+ *	- set arbitrary exif tags from metadata
  * 25/11/15
- * 	- don't write JFIF headers if we are stripping, thanks Benjamin
+ *	- don't write JFIF headers if we are stripping, thanks Benjamin
  * 13/4/16
- * 	- remove deleted exif fields more carefully
+ *	- remove deleted exif fields more carefully
  * 9/5/16 felixbuenemann
- * 	- add quant_table
+ *	- add quant_table
  * 26/5/16
- * 	- switch to new orientation tag
+ *	- switch to new orientation tag
  * 9/7/16
- * 	- turn off chroma subsample for Q >= 90
+ *	- turn off chroma subsample for Q >= 90
  * 7/11/16
- * 	- move exif handling out to exif.c
+ *	- move exif handling out to exif.c
  * 27/2/17
- * 	- use dbuf for memory output
+ *	- use dbuf for memory output
  * 19/12/17 Lovell
- * 	- fix a leak with an error during buffer output
+ *	- fix a leak with an error during buffer output
  * 19/4/19
- * 	- fix another leak with error during buffer output
+ *	- fix another leak with error during buffer output
  * 19/7/19
- * 	- ignore large XMP
+ *	- ignore large XMP
  * 14/10/19
- * 	- revise for target IO
+ *	- revise for target IO
  * 18/2/20 Elad-Laufer
- * 	- add subsample_mode, deprecate no_subsample
+ *	- add subsample_mode, deprecate no_subsample
  * 13/9/20
- * 	- only write JFIF resolution if we don't have EXIF
+ *	- only write JFIF resolution if we don't have EXIF
  * 7/10/21 Manthey
- * 	- add restart_interval
+ *	- add restart_interval
  * 21/10/21 usualuse
- * 	- raise single-chunk limit on APP to 65533
+ *	- raise single-chunk limit on APP to 65533
  */
 
 /*
@@ -297,7 +297,7 @@ write_xmp(Write *write, VipsImage *in)
 	 * extended XMP markers.
 	 *
 	 * http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/ \
-	 * 	XMPSpecificationPart3.pdf
+	 *	XMPSpecificationPart3.pdf
 	 *
 	 * jpeg_write_marker() with some libjpeg versions will throw a fatal
 	 * error with large chunks.

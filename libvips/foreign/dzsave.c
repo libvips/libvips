@@ -95,7 +95,7 @@
  *	- always write a properties file
  *	- add .szi as a registered suffix
  * 9/5/22
- * 	- add dzsave_target
+ *	- add dzsave_target
  */
 
 /*
@@ -1364,24 +1364,19 @@ tile_name(Layer *layer, int x, int y)
 {
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
+	const char *suffix = iszip(dz->container) ? dz->file_suffix : dz->suffix;
 
 	char *out;
 	char *dirname;
 	char name[VIPS_PATH_MAX];
 	char subdir[VIPS_PATH_MAX];
-	char *suffix;
 	Layer *p;
 	int n;
-
-	suffix = iszip(dz->container)
-		? dz->file_suffix
-		: dz->suffix;
 
 	switch (dz->layout) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
 		vips_snprintf(subdir, VIPS_PATH_MAX, "%d", layer->n);
-		vips_snprintf(name, VIPS_PATH_MAX,
-			"%d_%d%s", x, y, suffix);
+		vips_snprintf(name, VIPS_PATH_MAX, "%d_%d%s", x, y, suffix);
 
 		break;
 
@@ -1477,7 +1472,7 @@ tile_name(Layer *layer, int x, int y)
 	}
 
 	if (!(dirname = g_build_filename(dz->dirname, dz->root_name,
-			  subdir, NULL)))
+			subdir, NULL)))
 		return NULL;
 
 	if (vips_mkdir(dz, dirname)) {
