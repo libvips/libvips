@@ -1,6 +1,6 @@
 /* save to raw
  *
- * Write raw image data to file. Usefull when defining new formats...
+ * Write raw image data to file. Useful when defining new formats...
  *
  * Jesper Friis
  *
@@ -19,28 +19,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -75,55 +75,53 @@ typedef struct _VipsForeignSaveRaw {
 
 typedef VipsForeignSaveClass VipsForeignSaveRawClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRaw, vips_foreign_save_raw, 
-	VIPS_TYPE_FOREIGN_SAVE );
+G_DEFINE_TYPE(VipsForeignSaveRaw, vips_foreign_save_raw,
+	VIPS_TYPE_FOREIGN_SAVE);
 
 static void
-vips_foreign_save_raw_dispose( GObject *gobject )
+vips_foreign_save_raw_dispose(GObject *gobject)
 {
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) gobject;
 
-	VIPS_FREEF( vips_tracked_close, raw->fd );
+	VIPS_FREEF(vips_tracked_close, raw->fd);
 
-	G_OBJECT_CLASS( vips_foreign_save_raw_parent_class )->
-		dispose( gobject );
+	G_OBJECT_CLASS(vips_foreign_save_raw_parent_class)->dispose(gobject);
 }
 
 static int
-vips_foreign_save_raw_write( VipsRegion *region, VipsRect *area, void *a )
+vips_foreign_save_raw_write(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) a;
 	int i;
-  
-	for( i = 0; i < area->height; i++ ) {
-		VipsPel *p = 
-			VIPS_REGION_ADDR( region, area->left, area->top + i );
 
-		if( vips__write( raw->fd, p, 
-			VIPS_IMAGE_SIZEOF_PEL( save->in ) * area->width ) )
-			return( -1 );
+	for (i = 0; i < area->height; i++) {
+		VipsPel *p =
+			VIPS_REGION_ADDR(region, area->left, area->top + i);
+
+		if (vips__write(raw->fd, p,
+				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
+			return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_foreign_save_raw_build( VipsObject *object )
+vips_foreign_save_raw_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_raw_parent_class )->
-		build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_raw_parent_class)->build(object))
+		return -1;
 
-	if( (raw->fd = vips__open_image_write( raw->filename, FALSE )) < 0 ||
-		vips_image_pio_input( save->in ) || 
-		vips_sink_disc( save->in, vips_foreign_save_raw_write, raw ) ) 
-		return( -1 );
+	if ((raw->fd = vips__open_image_write(raw->filename, FALSE)) < 0 ||
+		vips_image_pio_input(save->in) ||
+		vips_sink_disc(save->in, vips_foreign_save_raw_write, raw))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static const char *vips_foreign_save_raw_suffs[] = {
@@ -132,9 +130,9 @@ static const char *vips_foreign_save_raw_suffs[] = {
 };
 
 static void
-vips_foreign_save_raw_class_init( VipsForeignSaveRawClass *class )
+vips_foreign_save_raw_class_init(VipsForeignSaveRawClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
@@ -144,50 +142,50 @@ vips_foreign_save_raw_class_init( VipsForeignSaveRawClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "rawsave";
-	object_class->description = _( "save image to raw file" );
+	object_class->description = _("save image to raw file");
 	object_class->build = vips_foreign_save_raw_build;
 
 	foreign_class->suffs = vips_foreign_save_raw_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveRaw, filename ),
-		NULL );
+	VIPS_ARG_STRING(class, "filename", 1,
+		_("Filename"),
+		_("Filename to save to"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveRaw, filename),
+		NULL);
 }
 
 static void
-vips_foreign_save_raw_init( VipsForeignSaveRaw *raw )
+vips_foreign_save_raw_init(VipsForeignSaveRaw *raw)
 {
 }
 
 /**
  * vips_rawsave: (method)
- * @in: image to save 
+ * @in: image to save
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes the pixels in @in to the file @filename with no header or other
- * metadata. 
+ * metadata.
  *
  * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_rawsave( VipsImage *in, const char *filename, ... )
+vips_rawsave(VipsImage *in, const char *filename, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, filename );
-	result = vips_call_split( "rawsave", ap, in, filename );
-	va_end( ap );
+	va_start(ap, filename);
+	result = vips_call_split("rawsave", ap, in, filename);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /* And with an fd rather than a filename.
@@ -201,50 +199,49 @@ typedef struct _VipsForeignSaveRawFd {
 
 typedef VipsForeignSaveClass VipsForeignSaveRawFdClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRawFd, vips_foreign_save_raw_fd, 
-	VIPS_TYPE_FOREIGN_SAVE );
+G_DEFINE_TYPE(VipsForeignSaveRawFd, vips_foreign_save_raw_fd,
+	VIPS_TYPE_FOREIGN_SAVE);
 
 static int
-vips_foreign_save_raw_fd_write( VipsRegion *region, VipsRect *area, void *a )
+vips_foreign_save_raw_fd_write(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) a;
 	int i;
-  
-	for( i = 0; i < area->height; i++ ) {
-		VipsPel *p = 
-			VIPS_REGION_ADDR( region, area->left, area->top + i );
 
-		if( vips__write( fd->fd, p, 
-			VIPS_IMAGE_SIZEOF_PEL( save->in ) * area->width ) )
-			return( -1 );
+	for (i = 0; i < area->height; i++) {
+		VipsPel *p =
+			VIPS_REGION_ADDR(region, area->left, area->top + i);
+
+		if (vips__write(fd->fd, p,
+				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
+			return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_foreign_save_raw_fd_build( VipsObject *object )
+vips_foreign_save_raw_fd_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_raw_fd_parent_class )->
-		build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_raw_fd_parent_class)->build(object))
+		return -1;
 
-	if( vips_image_pio_input( save->in ) || 
-		vips_sink_disc( save->in, 
-			vips_foreign_save_raw_fd_write, fd ) ) 
-		return( -1 );
+	if (vips_image_pio_input(save->in) ||
+		vips_sink_disc(save->in,
+			vips_foreign_save_raw_fd_write, fd))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_foreign_save_raw_fd_class_init( VipsForeignSaveRawFdClass *class )
+vips_foreign_save_raw_fd_class_init(VipsForeignSaveRawFdClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
@@ -253,29 +250,29 @@ vips_foreign_save_raw_fd_class_init( VipsForeignSaveRawFdClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "rawsave_fd";
-	object_class->description = _( "write raw image to file descriptor" );
+	object_class->description = _("write raw image to file descriptor");
 	object_class->build = vips_foreign_save_raw_fd_build;
 
 	foreign_class->suffs = vips_foreign_save_raw_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 
-	VIPS_ARG_INT( class, "fd", 1, 
-		_( "File descriptor" ),
-		_( "File descriptor to write to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveRawFd, fd ),
-		0, 10000, 0 );
+	VIPS_ARG_INT(class, "fd", 1,
+		_("File descriptor"),
+		_("File descriptor to write to"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveRawFd, fd),
+		0, 10000, 0);
 }
 
 static void
-vips_foreign_save_raw_fd_init( VipsForeignSaveRawFd *fd )
+vips_foreign_save_raw_fd_init(VipsForeignSaveRawFd *fd)
 {
 }
 
 /**
  * vips_rawsave_fd: (method)
- * @in: image to save 
+ * @in: image to save
  * @fd: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -287,14 +284,14 @@ vips_foreign_save_raw_fd_init( VipsForeignSaveRawFd *fd )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_rawsave_fd( VipsImage *in, int fd, ... )
+vips_rawsave_fd(VipsImage *in, int fd, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, fd );
-	result = vips_call_split( "rawsave_fd", ap, in, fd );
-	va_end( ap );
+	va_start(ap, fd);
+	result = vips_call_split("rawsave_fd", ap, in, fd);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

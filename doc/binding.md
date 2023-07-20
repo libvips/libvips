@@ -41,7 +41,7 @@ It's much better to use the layer below. This lower layer is structured as:
 
 For example, you can execute vips_invert() like this:
 
-```C
+```c
 /* compile with
  *
  * gcc -g -Wall callvips.c `pkg-config vips --cflags --libs`
@@ -51,7 +51,7 @@ For example, you can execute vips_invert() like this:
 #include <vips/vips.h>
 
 int
-main( int argc, char **argv )
+main(int argc, char **argv)
 {
 	VipsImage *in;
 	VipsImage *out;
@@ -59,73 +59,73 @@ main( int argc, char **argv )
 	VipsOperation *new_op;
 	GValue gvalue = { 0 };
 
-	if( VIPS_INIT( argv[0] ) ) 
+	if (VIPS_INIT(argv[0]))
 		/* This shows the vips error buffer and quits with a fail exit
 		 * code.
 		 */
-		vips_error_exit( NULL ); 
+		vips_error_exit(NULL);
 
 	/* This will print a table of any ref leaks on exit, very handy for
 	 * development.
 	 */
-	vips_leak_set( TRUE );
+	vips_leak_set(TRUE);
 
-	if( argc != 3 )
-		vips_error_exit( "usage: %s input-filename output-filename", 
-			argv[0] );
+	if (argc != 3)
+		vips_error_exit("usage: %s input-filename output-filename",
+			argv[0]);
 
-	if( !(in = vips_image_new_from_file( argv[1], NULL )) )
-		vips_error_exit( NULL ); 
+	if (!(in = vips_image_new_from_file(argv[1], NULL)))
+		vips_error_exit(NULL);
 
 	/* Create a new operator from a nickname. NULL for unknown operator.
 	 */
-	op = vips_operation_new( "invert" );
+	op = vips_operation_new("invert");
 
 	/* Init a gvalue as an image, set it to in, use the gvalue to set the
 	 * operator property.
 	 */
-	g_value_init( &gvalue, VIPS_TYPE_IMAGE );
-	g_value_set_object( &gvalue, in );
-	g_object_set_property( G_OBJECT( op ), "in", &gvalue );
-	g_value_unset( &gvalue );
+	g_value_init(&gvalue, VIPS_TYPE_IMAGE);
+	g_value_set_object(&gvalue, in);
+	g_object_set_property(G_OBJECT(op), "in", &gvalue);
+	g_value_unset(&gvalue);
 
 	/* We no longer need in: op will hold a ref to it as long as it needs
-	 * it. 
+	 * it.
 	 */
-	g_object_unref( in ); 
+	g_object_unref(in);
 
 	/* Call the operation. This will look up the operation+args in the vips
 	 * operation cache and either return a previous operation, or build
 	 * this one. In either case, we have a new ref we must release.
 	 */
-	if( !(new_op = vips_cache_operation_build( op )) ) {
-		g_object_unref( op );
-		vips_error_exit( NULL ); 
+	if (!(new_op = vips_cache_operation_build(op))) {
+		g_object_unref(op);
+		vips_error_exit(NULL);
 	}
-	g_object_unref( op );
+	g_object_unref(op);
 	op = new_op;
 
 	/* Now get the result from op. g_value_get_object() does not ref the
 	 * object, so we need to make a ref for out to hold.
 	 */
-	g_value_init( &gvalue, VIPS_TYPE_IMAGE );
-	g_object_get_property( G_OBJECT( op ), "out", &gvalue );
-	out = VIPS_IMAGE( g_value_get_object( &gvalue ) );
-	g_object_ref( out ); 
-	g_value_unset( &gvalue );
+	g_value_init(&gvalue, VIPS_TYPE_IMAGE);
+	g_object_get_property(G_OBJECT(op), "out", &gvalue);
+	out = VIPS_IMAGE(g_value_get_object(&gvalue));
+	g_object_ref(out);
+	g_value_unset(&gvalue);
 
 	/* All done: we can unref op. The output objects from op actually hold
-	 * refs back to it, so before we can unref op, we must unref them. 
+	 * refs back to it, so before we can unref op, we must unref them.
 	 */
-	vips_object_unref_outputs( VIPS_OBJECT( op ) ); 
-	g_object_unref( op );
+	vips_object_unref_outputs(VIPS_OBJECT(op));
+	g_object_unref(op);
 
-	if( vips_image_write_to_file( out, argv[2], NULL ) )
-		vips_error_exit( NULL ); 
+	if (vips_image_write_to_file(out, argv[2], NULL))
+		vips_error_exit(NULL);
 
-	g_object_unref( out );
+	g_object_unref(out);
 
-	return( 0 ); 
+	return 0;
 }
 ```
 
@@ -139,15 +139,16 @@ A small Python program walks the set of all libvips operators and generates a
 set of static bindings. For example:
 
 ```c++
-VImage VImage::invert( VOption *options )
+VImage
+VImage::invert(VOption *options) const
 {
-    VImage out;
+	VImage out;
 
-    call( "invert", (options ? options : VImage::option()) ->
-        set( "in", *this ) ->
-        set( "out", &out ) );
+	call("invert", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
 
-    return( out );
+	return out;
 }
 ```
 
@@ -193,7 +194,7 @@ from gi.repository import Vips
 You can now use all of the libvips introspection machinery, as noted above. 
 
 Unfortunately g-o-i has some strong disadvantages. It is not very portable,
-since you will need a g-o-i layer for whatever platform you are targetting;
+since you will need a g-o-i layer for whatever platform you are targeting;
 it does not cross-compile well, since typelibs include a lot of very-low
 level data (such as exact structure layouts); and installation for your
 users is likely to be tricky.

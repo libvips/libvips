@@ -9,7 +9,7 @@
  * 5/5/94 JC
  *	- some nint->+0.5, for speed and to ease portability
  *	- other nint->rint
- *	- now inclues <math.h>!
+ *	- now includes <math.h>!
  * 15/11/94 JC
  *	- all nint(), rint() removed for speed
  *	- now -128 rather than -127 for a, b
@@ -35,28 +35,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -75,7 +75,7 @@
 typedef VipsColourCode VipsLab2LabQ;
 typedef VipsColourCodeClass VipsLab2LabQClass;
 
-G_DEFINE_TYPE( VipsLab2LabQ, vips_Lab2LabQ, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE(VipsLab2LabQ, vips_Lab2LabQ, VIPS_TYPE_COLOUR_CODE);
 
 /* @(#) convert float Lab to packed Lab32 format 10 11 11 bits
  * works only on buffers, not IMAGEs
@@ -83,38 +83,38 @@ G_DEFINE_TYPE( VipsLab2LabQ, vips_Lab2LabQ, VIPS_TYPE_COLOUR_CODE );
  * Modified: 3/5/93, 16/6/93
  */
 static void
-vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_Lab2LabQ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	float * restrict p = (float *) in[0];
-	VipsPel * restrict q = out; 
+	float *restrict p = (float *) in[0];
+	VipsPel *restrict q = out;
 
 	int i;
 
-	for( i = 0; i < width; i++ ) {
+	for (i = 0; i < width; i++) {
 		float fval;
 		int lsbs;
 		int intv;
 
-		/* Scale L up to 10 bits. 
+		/* Scale L up to 10 bits.
 		 */
-		intv = VIPS_ROUND_UINT( 10.23 * p[0] ); 
-		intv = VIPS_CLIP( 0, intv, 1023 );
-		lsbs = (intv & 0x3) << 6;       /* 00000011 -> 11000000 */
-		q[0] = intv >> 2; 		/* drop bot 2 bits and store */
+		intv = VIPS_ROUND_UINT(10.23 * p[0]);
+		intv = VIPS_CLIP(0, intv, 1023);
+		lsbs = (intv & 0x3) << 6; /* 00000011 -> 11000000 */
+		q[0] = intv >> 2;		  /* drop bot 2 bits and store */
 
-		fval = 8.0 * p[1];              /* do a */
-		intv = VIPS_RINT( fval );
-		intv = VIPS_CLIP( -1024, intv, 1023 );
-		lsbs |= (intv & 0x7) << 3;      /* 00000111 -> 00111000 */
-		q[1] = intv >> 3;   		/* drop bot 3 bits & store */
+		fval = 8.0 * p[1]; /* do a */
+		intv = VIPS_RINT(fval);
+		intv = VIPS_CLIP(-1024, intv, 1023);
+		lsbs |= (intv & 0x7) << 3; /* 00000111 -> 00111000 */
+		q[1] = intv >> 3;		   /* drop bot 3 bits & store */
 
-		fval = 8.0 * p[2];              /* do b */
-		intv = VIPS_RINT( fval );
-		intv = VIPS_CLIP( -1024, intv, 1023 );
+		fval = 8.0 * p[2]; /* do b */
+		intv = VIPS_RINT(fval);
+		intv = VIPS_CLIP(-1024, intv, 1023);
 		lsbs |= (intv & 0x7);
 		q[2] = intv >> 3;
 
-		q[3] = lsbs;                	/* store lsb band */
+		q[3] = lsbs; /* store lsb band */
 
 		p += 3;
 		q += 4;
@@ -122,28 +122,28 @@ vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 void
-vips__Lab2LabQ_vec( VipsPel *out, float *in, int width )
+vips__Lab2LabQ_vec(VipsPel *out, float *in, int width)
 {
-	vips_Lab2LabQ_line( NULL, out, (VipsPel **) &in, width );
+	vips_Lab2LabQ_line(NULL, out, (VipsPel **) &in, width);
 }
 
 static void
-vips_Lab2LabQ_class_init( VipsLab2LabQClass *class )
+vips_Lab2LabQ_class_init(VipsLab2LabQClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "Lab2LabQ";
-	object_class->description = _( "transform float Lab to LabQ coding" );
+	object_class->description = _("transform float Lab to LabQ coding");
 
 	colour_class->process_line = vips_Lab2LabQ_line;
 }
 
 static void
-vips_Lab2LabQ_init( VipsLab2LabQ *Lab2LabQ )
+vips_Lab2LabQ_init(VipsLab2LabQ *Lab2LabQ)
 {
-	VipsColour *colour = VIPS_COLOUR( Lab2LabQ );
-	VipsColourCode *code = VIPS_COLOUR_CODE( Lab2LabQ );
+	VipsColour *colour = VIPS_COLOUR(Lab2LabQ);
+	VipsColourCode *code = VIPS_COLOUR_CODE(Lab2LabQ);
 
 	colour->coding = VIPS_CODING_LABQ;
 	colour->interpretation = VIPS_INTERPRETATION_LABQ;
@@ -168,14 +168,14 @@ vips_Lab2LabQ_init( VipsLab2LabQ *Lab2LabQ )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
+vips_Lab2LabQ(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "Lab2LabQ", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("Lab2LabQ", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

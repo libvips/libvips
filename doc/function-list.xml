@@ -348,7 +348,7 @@
 </row>
 <row>
   <entry>convsep</entry>
-  <entry>Seperable convolution operation</entry>
+  <entry>Separable convolution operation</entry>
   <entry>vips_convsep()</entry>
 </row>
 <row>

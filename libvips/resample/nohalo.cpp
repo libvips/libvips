@@ -17,28 +17,28 @@
 
 /*
 
-    This file is part of VIPS.
+	This file is part of VIPS.
 
-    VIPS is free software; you can redistribute it and/or modify it
-    under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2 of the
-    License, or (at your option) any later version.
+	VIPS is free software; you can redistribute it and/or modify it
+	under the terms of the GNU Lesser General Public License as
+	published by the Free Software Foundation; either version 2 of the
+	License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301 USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301 USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -62,7 +62,7 @@
  * allowance.
  *
  * A. Turcotte's image resampling research on reduced halo funded in
- * part by an NSERC Alexander Graham Bell Canada Graduate Scholarhip
+ * part by an NSERC Alexander Graham Bell Canada Graduate Scholarship
  * awarded to him and by a Google Summer of Code 2010 award awarded to
  * GIMP (Gnu Image Manipulation Program).
  *
@@ -249,19 +249,19 @@
 
 #define VIPS_TYPE_INTERPOLATE_NOHALO \
 	(vips_interpolate_nohalo_get_type())
-#define VIPS_INTERPOLATE_NOHALO( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohalo ))
-#define VIPS_INTERPOLATE_NOHALO_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
-#define VIPS_IS_INTERPOLATE_NOHALO( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_NOHALO ))
-#define VIPS_IS_INTERPOLATE_NOHALO_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_NOHALO ))
-#define VIPS_INTERPOLATE_NOHALO_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass ))
+#define VIPS_INTERPOLATE_NOHALO(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
+		VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohalo))
+#define VIPS_INTERPOLATE_NOHALO_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_CAST((klass), \
+		VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
+#define VIPS_IS_INTERPOLATE_NOHALO(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), VIPS_TYPE_INTERPOLATE_NOHALO))
+#define VIPS_IS_INTERPOLATE_NOHALO_CLASS(klass) \
+	(G_TYPE_CHECK_CLASS_TYPE((klass), VIPS_TYPE_INTERPOLATE_NOHALO))
+#define VIPS_INTERPOLATE_NOHALO_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS((obj), \
+		VIPS_TYPE_INTERPOLATE_NOHALO, VipsInterpolateNohaloClass))
 
 typedef struct _VipsInterpolateNohalo {
 	VipsInterpolate parent_object;
@@ -285,7 +285,7 @@ typedef struct _VipsInterpolateNohaloClass {
  * each other), or chips with good branch prediction, the following
  * version of the minmod function may work well:
  *
- * ( (a_times_b)>=0. ? ( (a_times_b)<(a_times_a) ? (b) : (a) ) : 0. )
+ * ((a_times_b) >= 0. ? ((a_times_b) < (a_times_a) ? (b) : (a)) : 0.)
  *
  * In this version, the forward branch of the second conditional move
  * is taken when |b|>|a| and when a*b<0. However, the "else" branch is
@@ -300,388 +300,370 @@ typedef struct _VipsInterpolateNohaloClass {
  * may be preferable if "branch flag look ahead" does not work so
  * well.
  *
- * ( (a_times_b)>=0. ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
+ * ((a_times_b) >=0. ? ((a_times_a) <= (a_times_b) ? (a) : (b)) : 0.)
  *
  * This last version appears to be slightly better than the former in
  * speed tests performed on a recent multicore Intel chip, especially
  * when enlarging a sharp image by a large factor, hence the choice.
  */
-#define NOHALO_MINMOD(a,b,a_times_a,a_times_b) \
-  ( ( (a_times_b)>=0. ) ? ( (a_times_a)<=(a_times_b) ? (a) : (b) ) : 0. )
+#define NOHALO_MINMOD(a, b, a_times_a, a_times_b) \
+	(((a_times_b) >= 0.) ? ((a_times_a) <= (a_times_b) ? (a) : (b)) : 0.)
 
 /*
  * Absolute value and sign macros:
  */
-#define NOHALO_ABS(x)  ( ((x)>=0.) ? (x) : -(x) )
-#define NOHALO_SIGN(x) ( ((x)>=0.) ? 1.  : -1.  )
+#define NOHALO_ABS(x) (((x) >= 0.) ? (x) : -(x))
+#define NOHALO_SIGN(x) (((x) >= 0.) ? 1. : -1.)
 
 /*
  * MIN and MAX macros set up so that I can put the likely winner in
  * the first argument (forward branch likely blah blah blah):
  */
-#define NOHALO_MIN(x,y) ( ((x)<=(y)) ? (x) : (y) )
-#define NOHALO_MAX(x,y) ( ((x)>=(y)) ? (x) : (y) )
+#define NOHALO_MIN(x, y) (((x) <= (y)) ? (x) : (y))
+#define NOHALO_MAX(x, y) (((x) >= (y)) ? (x) : (y))
 
-
-static void inline
-nohalo_subdivision (const double           uno_two,
-                    const double           uno_thr,
-                    const double           uno_fou,
-                    const double           dos_one,
-                    const double           dos_two,
-                    const double           dos_thr,
-                    const double           dos_fou,
-                    const double           dos_fiv,
-                    const double           tre_one,
-                    const double           tre_two,
-                    const double           tre_thr,
-                    const double           tre_fou,
-                    const double           tre_fiv,
-                    const double           qua_one,
-                    const double           qua_two,
-                    const double           qua_thr,
-                    const double           qua_fou,
-                    const double           qua_fiv,
-                    const double           cin_two,
-                    const double           cin_thr,
-                    const double           cin_fou,
-                          double* restrict uno_one_1,
-                          double* restrict uno_two_1,
-                          double* restrict uno_thr_1,
-                          double* restrict uno_fou_1,
-                          double* restrict dos_one_1,
-                          double* restrict dos_two_1,
-                          double* restrict dos_thr_1,
-                          double* restrict dos_fou_1,
-                          double* restrict tre_one_1,
-                          double* restrict tre_two_1,
-                          double* restrict tre_thr_1,
-                          double* restrict tre_fou_1,
-                          double* restrict qua_one_1,
-                          double* restrict qua_two_1,
-                          double* restrict qua_thr_1,
-                          double* restrict qua_fou_1)
+static void inline nohalo_subdivision(const double uno_two,
+	const double uno_thr,
+	const double uno_fou,
+	const double dos_one,
+	const double dos_two,
+	const double dos_thr,
+	const double dos_fou,
+	const double dos_fiv,
+	const double tre_one,
+	const double tre_two,
+	const double tre_thr,
+	const double tre_fou,
+	const double tre_fiv,
+	const double qua_one,
+	const double qua_two,
+	const double qua_thr,
+	const double qua_fou,
+	const double qua_fiv,
+	const double cin_two,
+	const double cin_thr,
+	const double cin_fou,
+	double *restrict uno_one_1,
+	double *restrict uno_two_1,
+	double *restrict uno_thr_1,
+	double *restrict uno_fou_1,
+	double *restrict dos_one_1,
+	double *restrict dos_two_1,
+	double *restrict dos_thr_1,
+	double *restrict dos_fou_1,
+	double *restrict tre_one_1,
+	double *restrict tre_two_1,
+	double *restrict tre_thr_1,
+	double *restrict tre_fou_1,
+	double *restrict qua_one_1,
+	double *restrict qua_two_1,
+	double *restrict qua_thr_1,
+	double *restrict qua_fou_1)
 {
-  /*
-   * nohalo_subdivision calculates the missing twelve double density
-   * pixel values, and also returns the "already known" four, so that
-   * the sixteen values which make up the stencil of LBB are
-   * available.
-   */
-  /*
-   * THE STENCIL OF INPUT VALUES:
-   *
-   * Pointer arithmetic is used to implicitly reflect the input
-   * stencil about tre_thr---assumed closer to the sampling location
-   * than other pixels (ties are OK)---in such a way that after
-   * reflection the sampling point is to the bottom right of tre_thr.
-   *
-   * The following code and picture assumes that the stencil reflexion
-   * has already been performed.
-   *
-   *               (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)
-   *               =uno_two     = uno_thr    = uno_fou
-   *
-   *
-   *
-   *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)
-   *  = dos_one    = dos_two    = dos_thr    = dos_fou    = dos_fiv
-   *
-   *
-   *
-   *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
-   *  = tre_one    = tre_two    = tre_thr    = tre_fou    = tre_fiv
-   *                                    X
-   *
-   *
-   *  (ix-2,iy+1)  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
-   *  = qua_one    = qua_two    = qua_thr    = qua_fou    = qua_fiv
-   *
-   *
-   *
-   *               (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)
-   *               = cin_two    = cin_thr    = cin_fou
-   *
-   *
-   * The above input pixel values are the ones needed in order to make
-   * available the following values, needed by LBB:
-   *
-   *  uno_one_1 =      uno_two_1 =  uno_thr_1 =      uno_fou_1 =
-   *  (ix-1/2,iy-1/2)  (ix,iy-1/2)  (ix+1/2,iy-1/2)  (ix+1,iy-1/2)
-   *
-   *
-   *
-   *
-   *  dos_one_1 =      dos_two_1 =  dos_thr_1 =      dos_fou_1 =
-   *  (ix-1/2,iy)      (ix,iy)      (ix+1/2,iy)      (ix+1,iy)
-   *
-   *                             X
-   *
-   *
-   *  tre_one_1 =      tre_two_1 =  tre_thr_1 =      tre_fou_1 =
-   *  (ix-1/2,iy+1/2)  (ix,iy+1/2)  (ix+1/2,iy+1/2)  (ix+1,iy+1/2)
-   *
-   *
-   *
-   *
-   *  qua_one_1 =      qua_two_1 =  qua_thr_1 =      qua_fou_1 =
-   *  (ix-1/2,iy+1)    (ix,iy+1)    (ix+1/2,iy+1)    (ix+1,iy+1)
-   *
-   */
+	/*
+	 * nohalo_subdivision calculates the missing twelve double density
+	 * pixel values, and also returns the "already known" four, so that
+	 * the sixteen values which make up the stencil of LBB are
+	 * available.
+	 */
+	/*
+	 * THE STENCIL OF INPUT VALUES:
+	 *
+	 * Pointer arithmetic is used to implicitly reflect the input
+	 * stencil about tre_thr---assumed closer to the sampling location
+	 * than other pixels (ties are OK)---in such a way that after
+	 * reflection the sampling point is to the bottom right of tre_thr.
+	 *
+	 * The following code and picture assumes that the stencil reflexion
+	 * has already been performed.
+	 *
+	 *               (ix-1,iy-2)  (ix,iy-2)    (ix+1,iy-2)
+	 *               =uno_two     = uno_thr    = uno_fou
+	 *
+	 *
+	 *
+	 *  (ix-2,iy-1)  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)
+	 *  = dos_one    = dos_two    = dos_thr    = dos_fou    = dos_fiv
+	 *
+	 *
+	 *
+	 *  (ix-2,iy)    (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
+	 *  = tre_one    = tre_two    = tre_thr    = tre_fou    = tre_fiv
+	 *                                    X
+	 *
+	 *
+	 *  (ix-2,iy+1)  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
+	 *  = qua_one    = qua_two    = qua_thr    = qua_fou    = qua_fiv
+	 *
+	 *
+	 *
+	 *               (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)
+	 *               = cin_two    = cin_thr    = cin_fou
+	 *
+	 *
+	 * The above input pixel values are the ones needed in order to make
+	 * available the following values, needed by LBB:
+	 *
+	 *  uno_one_1 =      uno_two_1 =  uno_thr_1 =      uno_fou_1 =
+	 *  (ix-1/2,iy-1/2)  (ix,iy-1/2)  (ix+1/2,iy-1/2)  (ix+1,iy-1/2)
+	 *
+	 *
+	 *
+	 *
+	 *  dos_one_1 =      dos_two_1 =  dos_thr_1 =      dos_fou_1 =
+	 *  (ix-1/2,iy)      (ix,iy)      (ix+1/2,iy)      (ix+1,iy)
+	 *
+	 *                             X
+	 *
+	 *
+	 *  tre_one_1 =      tre_two_1 =  tre_thr_1 =      tre_fou_1 =
+	 *  (ix-1/2,iy+1/2)  (ix,iy+1/2)  (ix+1/2,iy+1/2)  (ix+1,iy+1/2)
+	 *
+	 *
+	 *
+	 *
+	 *  qua_one_1 =      qua_two_1 =  qua_thr_1 =      qua_fou_1 =
+	 *  (ix-1/2,iy+1)    (ix,iy+1)    (ix+1/2,iy+1)    (ix+1,iy+1)
+	 *
+	 */
 
-  /*
-   * Computation of the nonlinear slopes: If two consecutive pixel
-   * value differences have the same sign, the smallest one (in
-   * absolute value) is taken to be the corresponding slope; if the
-   * two consecutive pixel value differences don't have the same sign,
-   * the corresponding slope is set to 0.
-   *
-   * In other words: Apply minmod to consecutive differences.
-   */
-  /*
-   * Two vertical simple differences:
-   */
-  const double d_unodos_two = dos_two - uno_two;
-  const double d_dostre_two = tre_two - dos_two;
-  const double d_trequa_two = qua_two - tre_two;
-  const double d_quacin_two = cin_two - qua_two;
-  /*
-   * Thr(ee) vertical differences:
-   */
-  const double d_unodos_thr = dos_thr - uno_thr;
-  const double d_dostre_thr = tre_thr - dos_thr;
-  const double d_trequa_thr = qua_thr - tre_thr;
-  const double d_quacin_thr = cin_thr - qua_thr;
-  /*
-   * Fou(r) vertical differences:
-   */
-  const double d_unodos_fou = dos_fou - uno_fou;
-  const double d_dostre_fou = tre_fou - dos_fou;
-  const double d_trequa_fou = qua_fou - tre_fou;
-  const double d_quacin_fou = cin_fou - qua_fou;
-  /*
-   * Dos horizontal differences:
-   */
-  const double d_dos_onetwo = dos_two - dos_one;
-  const double d_dos_twothr = dos_thr - dos_two;
-  const double d_dos_thrfou = dos_fou - dos_thr;
-  const double d_dos_foufiv = dos_fiv - dos_fou;
-  /*
-   * Tre(s) horizontal differences:
-   */
-  const double d_tre_onetwo = tre_two - tre_one;
-  const double d_tre_twothr = tre_thr - tre_two;
-  const double d_tre_thrfou = tre_fou - tre_thr;
-  const double d_tre_foufiv = tre_fiv - tre_fou;
-  /*
-   * Qua(ttro) horizontal differences:
-   */
-  const double d_qua_onetwo = qua_two - qua_one;
-  const double d_qua_twothr = qua_thr - qua_two;
-  const double d_qua_thrfou = qua_fou - qua_thr;
-  const double d_qua_foufiv = qua_fiv - qua_fou;
+	/*
+	 * Computation of the nonlinear slopes: If two consecutive pixel
+	 * value differences have the same sign, the smallest one (in
+	 * absolute value) is taken to be the corresponding slope; if the
+	 * two consecutive pixel value differences don't have the same sign,
+	 * the corresponding slope is set to 0.
+	 *
+	 * In other words: Apply minmod to consecutive differences.
+	 */
+	/*
+	 * Two vertical simple differences:
+	 */
+	const double d_unodos_two = dos_two - uno_two;
+	const double d_dostre_two = tre_two - dos_two;
+	const double d_trequa_two = qua_two - tre_two;
+	const double d_quacin_two = cin_two - qua_two;
+	/*
+	 * Thr(ee) vertical differences:
+	 */
+	const double d_unodos_thr = dos_thr - uno_thr;
+	const double d_dostre_thr = tre_thr - dos_thr;
+	const double d_trequa_thr = qua_thr - tre_thr;
+	const double d_quacin_thr = cin_thr - qua_thr;
+	/*
+	 * Fou(r) vertical differences:
+	 */
+	const double d_unodos_fou = dos_fou - uno_fou;
+	const double d_dostre_fou = tre_fou - dos_fou;
+	const double d_trequa_fou = qua_fou - tre_fou;
+	const double d_quacin_fou = cin_fou - qua_fou;
+	/*
+	 * Dos horizontal differences:
+	 */
+	const double d_dos_onetwo = dos_two - dos_one;
+	const double d_dos_twothr = dos_thr - dos_two;
+	const double d_dos_thrfou = dos_fou - dos_thr;
+	const double d_dos_foufiv = dos_fiv - dos_fou;
+	/*
+	 * Tre(s) horizontal differences:
+	 */
+	const double d_tre_onetwo = tre_two - tre_one;
+	const double d_tre_twothr = tre_thr - tre_two;
+	const double d_tre_thrfou = tre_fou - tre_thr;
+	const double d_tre_foufiv = tre_fiv - tre_fou;
+	/*
+	 * Qua(ttro) horizontal differences:
+	 */
+	const double d_qua_onetwo = qua_two - qua_one;
+	const double d_qua_twothr = qua_thr - qua_two;
+	const double d_qua_thrfou = qua_fou - qua_thr;
+	const double d_qua_foufiv = qua_fiv - qua_fou;
 
-  /*
-   * Recyclable vertical products and squares:
-   */
-  const double d_unodos_times_dostre_two = d_unodos_two * d_dostre_two;
-  const double d_dostre_two_sq           = d_dostre_two * d_dostre_two;
-  const double d_dostre_times_trequa_two = d_dostre_two * d_trequa_two;
-  const double d_trequa_times_quacin_two = d_quacin_two * d_trequa_two;
-  const double d_quacin_two_sq           = d_quacin_two * d_quacin_two;
+	/*
+	 * Recyclable vertical products and squares:
+	 */
+	const double d_unodos_times_dostre_two = d_unodos_two * d_dostre_two;
+	const double d_dostre_two_sq = d_dostre_two * d_dostre_two;
+	const double d_dostre_times_trequa_two = d_dostre_two * d_trequa_two;
+	const double d_trequa_times_quacin_two = d_quacin_two * d_trequa_two;
+	const double d_quacin_two_sq = d_quacin_two * d_quacin_two;
 
-  const double d_unodos_times_dostre_thr = d_unodos_thr * d_dostre_thr;
-  const double d_dostre_thr_sq           = d_dostre_thr * d_dostre_thr;
-  const double d_dostre_times_trequa_thr = d_trequa_thr * d_dostre_thr;
-  const double d_trequa_times_quacin_thr = d_trequa_thr * d_quacin_thr;
-  const double d_quacin_thr_sq           = d_quacin_thr * d_quacin_thr;
+	const double d_unodos_times_dostre_thr = d_unodos_thr * d_dostre_thr;
+	const double d_dostre_thr_sq = d_dostre_thr * d_dostre_thr;
+	const double d_dostre_times_trequa_thr = d_trequa_thr * d_dostre_thr;
+	const double d_trequa_times_quacin_thr = d_trequa_thr * d_quacin_thr;
+	const double d_quacin_thr_sq = d_quacin_thr * d_quacin_thr;
 
-  const double d_unodos_times_dostre_fou = d_unodos_fou * d_dostre_fou;
-  const double d_dostre_fou_sq           = d_dostre_fou * d_dostre_fou;
-  const double d_dostre_times_trequa_fou = d_trequa_fou * d_dostre_fou;
-  const double d_trequa_times_quacin_fou = d_trequa_fou * d_quacin_fou;
-  const double d_quacin_fou_sq           = d_quacin_fou * d_quacin_fou;
-  /*
-   * Recyclable horizontal products and squares:
-   */
-  const double d_dos_onetwo_times_twothr = d_dos_onetwo * d_dos_twothr;
-  const double d_dos_twothr_sq           = d_dos_twothr * d_dos_twothr;
-  const double d_dos_twothr_times_thrfou = d_dos_twothr * d_dos_thrfou;
-  const double d_dos_thrfou_times_foufiv = d_dos_thrfou * d_dos_foufiv;
-  const double d_dos_foufiv_sq           = d_dos_foufiv * d_dos_foufiv;
+	const double d_unodos_times_dostre_fou = d_unodos_fou * d_dostre_fou;
+	const double d_dostre_fou_sq = d_dostre_fou * d_dostre_fou;
+	const double d_dostre_times_trequa_fou = d_trequa_fou * d_dostre_fou;
+	const double d_trequa_times_quacin_fou = d_trequa_fou * d_quacin_fou;
+	const double d_quacin_fou_sq = d_quacin_fou * d_quacin_fou;
+	/*
+	 * Recyclable horizontal products and squares:
+	 */
+	const double d_dos_onetwo_times_twothr = d_dos_onetwo * d_dos_twothr;
+	const double d_dos_twothr_sq = d_dos_twothr * d_dos_twothr;
+	const double d_dos_twothr_times_thrfou = d_dos_twothr * d_dos_thrfou;
+	const double d_dos_thrfou_times_foufiv = d_dos_thrfou * d_dos_foufiv;
+	const double d_dos_foufiv_sq = d_dos_foufiv * d_dos_foufiv;
 
-  const double d_tre_onetwo_times_twothr = d_tre_onetwo * d_tre_twothr;
-  const double d_tre_twothr_sq           = d_tre_twothr * d_tre_twothr;
-  const double d_tre_twothr_times_thrfou = d_tre_thrfou * d_tre_twothr;
-  const double d_tre_thrfou_times_foufiv = d_tre_thrfou * d_tre_foufiv;
-  const double d_tre_foufiv_sq           = d_tre_foufiv * d_tre_foufiv;
+	const double d_tre_onetwo_times_twothr = d_tre_onetwo * d_tre_twothr;
+	const double d_tre_twothr_sq = d_tre_twothr * d_tre_twothr;
+	const double d_tre_twothr_times_thrfou = d_tre_thrfou * d_tre_twothr;
+	const double d_tre_thrfou_times_foufiv = d_tre_thrfou * d_tre_foufiv;
+	const double d_tre_foufiv_sq = d_tre_foufiv * d_tre_foufiv;
 
-  const double d_qua_onetwo_times_twothr = d_qua_onetwo * d_qua_twothr;
-  const double d_qua_twothr_sq           = d_qua_twothr * d_qua_twothr;
-  const double d_qua_twothr_times_thrfou = d_qua_thrfou * d_qua_twothr;
-  const double d_qua_thrfou_times_foufiv = d_qua_thrfou * d_qua_foufiv;
-  const double d_qua_foufiv_sq           = d_qua_foufiv * d_qua_foufiv;
+	const double d_qua_onetwo_times_twothr = d_qua_onetwo * d_qua_twothr;
+	const double d_qua_twothr_sq = d_qua_twothr * d_qua_twothr;
+	const double d_qua_twothr_times_thrfou = d_qua_thrfou * d_qua_twothr;
+	const double d_qua_thrfou_times_foufiv = d_qua_thrfou * d_qua_foufiv;
+	const double d_qua_foufiv_sq = d_qua_foufiv * d_qua_foufiv;
 
-  /*
-   * Minmod slopes and first level pixel values:
-   */
-  const double dos_thr_y = NOHALO_MINMOD( d_dostre_thr, d_unodos_thr,
-                                          d_dostre_thr_sq,
-                                          d_unodos_times_dostre_thr );
-  const double tre_thr_y = NOHALO_MINMOD( d_dostre_thr, d_trequa_thr,
-                                          d_dostre_thr_sq,
-                                          d_dostre_times_trequa_thr );
+	/*
+	 * Minmod slopes and first level pixel values:
+	 */
+	const double dos_thr_y = NOHALO_MINMOD(d_dostre_thr, d_unodos_thr,
+		d_dostre_thr_sq,
+		d_unodos_times_dostre_thr);
+	const double tre_thr_y = NOHALO_MINMOD(d_dostre_thr, d_trequa_thr,
+		d_dostre_thr_sq,
+		d_dostre_times_trequa_thr);
 
-  const double newval_uno_two =
-    .5 * ( dos_thr + tre_thr )
-    +
-    .25 * ( dos_thr_y - tre_thr_y );
+	const double newval_uno_two =
+		.5 * (dos_thr + tre_thr) +
+		.25 * (dos_thr_y - tre_thr_y);
 
-  const double qua_thr_y = NOHALO_MINMOD( d_quacin_thr, d_trequa_thr,
-                                          d_quacin_thr_sq,
-                                          d_trequa_times_quacin_thr );
+	const double qua_thr_y = NOHALO_MINMOD(d_quacin_thr, d_trequa_thr,
+		d_quacin_thr_sq,
+		d_trequa_times_quacin_thr);
 
-  const double newval_tre_two =
-    .5 * ( tre_thr + qua_thr )
-    +
-    .25 * ( tre_thr_y - qua_thr_y );
+	const double newval_tre_two =
+		.5 * (tre_thr + qua_thr) +
+		.25 * (tre_thr_y - qua_thr_y);
 
-  const double tre_fou_y = NOHALO_MINMOD( d_dostre_fou, d_trequa_fou,
-                                          d_dostre_fou_sq,
-                                          d_dostre_times_trequa_fou );
-  const double qua_fou_y = NOHALO_MINMOD( d_quacin_fou, d_trequa_fou,
-                                          d_quacin_fou_sq,
-                                          d_trequa_times_quacin_fou );
+	const double tre_fou_y = NOHALO_MINMOD(d_dostre_fou, d_trequa_fou,
+		d_dostre_fou_sq,
+		d_dostre_times_trequa_fou);
+	const double qua_fou_y = NOHALO_MINMOD(d_quacin_fou, d_trequa_fou,
+		d_quacin_fou_sq,
+		d_trequa_times_quacin_fou);
 
-  const double newval_tre_fou =
-    .5 * ( tre_fou + qua_fou )
-    +
-    .25 * ( tre_fou_y - qua_fou_y );
+	const double newval_tre_fou =
+		.5 * (tre_fou + qua_fou) +
+		.25 * (tre_fou_y - qua_fou_y);
 
-  const double dos_fou_y = NOHALO_MINMOD( d_dostre_fou, d_unodos_fou,
-                                          d_dostre_fou_sq,
-                                          d_unodos_times_dostre_fou );
+	const double dos_fou_y = NOHALO_MINMOD(d_dostre_fou, d_unodos_fou,
+		d_dostre_fou_sq,
+		d_unodos_times_dostre_fou);
 
-  const double newval_uno_fou =
-     .5 * ( dos_fou + tre_fou )
-     +
-     .25 * (dos_fou_y - tre_fou_y );
+	const double newval_uno_fou =
+		.5 * (dos_fou + tre_fou) +
+		.25 * (dos_fou_y - tre_fou_y);
 
-  const double tre_two_x = NOHALO_MINMOD( d_tre_twothr, d_tre_onetwo,
-                                          d_tre_twothr_sq,
-                                          d_tre_onetwo_times_twothr );
-  const double tre_thr_x = NOHALO_MINMOD( d_tre_twothr, d_tre_thrfou,
-                                          d_tre_twothr_sq,
-                                          d_tre_twothr_times_thrfou );
+	const double tre_two_x = NOHALO_MINMOD(d_tre_twothr, d_tre_onetwo,
+		d_tre_twothr_sq,
+		d_tre_onetwo_times_twothr);
+	const double tre_thr_x = NOHALO_MINMOD(d_tre_twothr, d_tre_thrfou,
+		d_tre_twothr_sq,
+		d_tre_twothr_times_thrfou);
 
-  const double newval_dos_one =
-    .5 * ( tre_two + tre_thr )
-    +
-    .25 * ( tre_two_x - tre_thr_x );
+	const double newval_dos_one =
+		.5 * (tre_two + tre_thr) +
+		.25 * (tre_two_x - tre_thr_x);
 
-  const double tre_fou_x = NOHALO_MINMOD( d_tre_foufiv, d_tre_thrfou,
-                                          d_tre_foufiv_sq,
-                                          d_tre_thrfou_times_foufiv );
+	const double tre_fou_x = NOHALO_MINMOD(d_tre_foufiv, d_tre_thrfou,
+		d_tre_foufiv_sq,
+		d_tre_thrfou_times_foufiv);
 
-  const double tre_thr_x_minus_tre_fou_x =
-    tre_thr_x - tre_fou_x;
+	const double tre_thr_x_minus_tre_fou_x =
+		tre_thr_x - tre_fou_x;
 
-  const double newval_dos_thr =
-    .5 * ( tre_thr + tre_fou )
-    +
-    .25 * tre_thr_x_minus_tre_fou_x;
+	const double newval_dos_thr =
+		.5 * (tre_thr + tre_fou) +
+		.25 * tre_thr_x_minus_tre_fou_x;
 
-  const double qua_thr_x = NOHALO_MINMOD( d_qua_twothr, d_qua_thrfou,
-                                          d_qua_twothr_sq,
-                                          d_qua_twothr_times_thrfou );
-  const double qua_fou_x = NOHALO_MINMOD( d_qua_foufiv, d_qua_thrfou,
-                                          d_qua_foufiv_sq,
-                                          d_qua_thrfou_times_foufiv );
+	const double qua_thr_x = NOHALO_MINMOD(d_qua_twothr, d_qua_thrfou,
+		d_qua_twothr_sq,
+		d_qua_twothr_times_thrfou);
+	const double qua_fou_x = NOHALO_MINMOD(d_qua_foufiv, d_qua_thrfou,
+		d_qua_foufiv_sq,
+		d_qua_thrfou_times_foufiv);
 
-  const double qua_thr_x_minus_qua_fou_x =
-    qua_thr_x - qua_fou_x;
+	const double qua_thr_x_minus_qua_fou_x =
+		qua_thr_x - qua_fou_x;
 
-  const double newval_qua_thr =
-    .5 * ( qua_thr + qua_fou )
-    +
-    .25 * qua_thr_x_minus_qua_fou_x;
+	const double newval_qua_thr =
+		.5 * (qua_thr + qua_fou) +
+		.25 * qua_thr_x_minus_qua_fou_x;
 
-  const double qua_two_x = NOHALO_MINMOD( d_qua_twothr, d_qua_onetwo,
-                                          d_qua_twothr_sq,
-                                          d_qua_onetwo_times_twothr );
+	const double qua_two_x = NOHALO_MINMOD(d_qua_twothr, d_qua_onetwo,
+		d_qua_twothr_sq,
+		d_qua_onetwo_times_twothr);
 
-  const double newval_qua_one =
-    .5 * ( qua_two + qua_thr )
-    +
-    .25 * ( qua_two_x - qua_thr_x );
+	const double newval_qua_one =
+		.5 * (qua_two + qua_thr) +
+		.25 * (qua_two_x - qua_thr_x);
 
-  const double newval_tre_thr =
-    .125 * ( tre_thr_x_minus_tre_fou_x + qua_thr_x_minus_qua_fou_x )
-    +
-    .5 * ( newval_tre_two + newval_tre_fou );
+	const double newval_tre_thr =
+		.125 * (tre_thr_x_minus_tre_fou_x + qua_thr_x_minus_qua_fou_x) +
+		.5 * (newval_tre_two + newval_tre_fou);
 
-  const double dos_thr_x = NOHALO_MINMOD( d_dos_twothr, d_dos_thrfou,
-                                          d_dos_twothr_sq,
-                                          d_dos_twothr_times_thrfou );
-  const double dos_fou_x = NOHALO_MINMOD( d_dos_foufiv, d_dos_thrfou,
-                                          d_dos_foufiv_sq,
-                                          d_dos_thrfou_times_foufiv );
+	const double dos_thr_x = NOHALO_MINMOD(d_dos_twothr, d_dos_thrfou,
+		d_dos_twothr_sq,
+		d_dos_twothr_times_thrfou);
+	const double dos_fou_x = NOHALO_MINMOD(d_dos_foufiv, d_dos_thrfou,
+		d_dos_foufiv_sq,
+		d_dos_thrfou_times_foufiv);
 
-  const double newval_uno_thr =
-    .25 * ( dos_fou - tre_thr )
-    +
-    .125 * ( dos_fou_y - tre_fou_y + dos_thr_x - dos_fou_x )
-    +
-    .5 * ( newval_uno_two + newval_dos_thr );
+	const double newval_uno_thr =
+		.25 * (dos_fou - tre_thr) +
+		.125 * (dos_fou_y - tre_fou_y + dos_thr_x - dos_fou_x) +
+		.5 * (newval_uno_two + newval_dos_thr);
 
-  const double tre_two_y = NOHALO_MINMOD( d_dostre_two, d_trequa_two,
-                                          d_dostre_two_sq,
-                                          d_dostre_times_trequa_two );
-  const double qua_two_y = NOHALO_MINMOD( d_quacin_two, d_trequa_two,
-                                          d_quacin_two_sq,
-                                          d_trequa_times_quacin_two );
+	const double tre_two_y = NOHALO_MINMOD(d_dostre_two, d_trequa_two,
+		d_dostre_two_sq,
+		d_dostre_times_trequa_two);
+	const double qua_two_y = NOHALO_MINMOD(d_quacin_two, d_trequa_two,
+		d_quacin_two_sq,
+		d_trequa_times_quacin_two);
 
-  const double newval_tre_one =
-    .25 * ( qua_two - tre_thr )
-    +
-    .125 * ( qua_two_x - qua_thr_x + tre_two_y - qua_two_y )
-    +
-    .5 * ( newval_dos_one + newval_tre_two );
+	const double newval_tre_one =
+		.25 * (qua_two - tre_thr) +
+		.125 * (qua_two_x - qua_thr_x + tre_two_y - qua_two_y) +
+		.5 * (newval_dos_one + newval_tre_two);
 
-  const double dos_two_x = NOHALO_MINMOD( d_dos_twothr, d_dos_onetwo,
-                                          d_dos_twothr_sq,
-                                          d_dos_onetwo_times_twothr );
+	const double dos_two_x = NOHALO_MINMOD(d_dos_twothr, d_dos_onetwo,
+		d_dos_twothr_sq,
+		d_dos_onetwo_times_twothr);
 
-  const double dos_two_y = NOHALO_MINMOD( d_dostre_two, d_unodos_two,
-                                          d_dostre_two_sq,
-                                          d_unodos_times_dostre_two );
+	const double dos_two_y = NOHALO_MINMOD(d_dostre_two, d_unodos_two,
+		d_dostre_two_sq,
+		d_unodos_times_dostre_two);
 
-  const double newval_uno_one =
-    .25 * ( dos_two + dos_thr + tre_two + tre_thr )
-    +
-    .125 * ( dos_two_x - dos_thr_x + tre_two_x - tre_thr_x
-             +
-             dos_two_y + dos_thr_y - tre_two_y - tre_thr_y );
+	const double newval_uno_one =
+		.25 * (dos_two + dos_thr + tre_two + tre_thr) +
+		.125 * (dos_two_x - dos_thr_x + tre_two_x - tre_thr_x + dos_two_y + dos_thr_y - tre_two_y - tre_thr_y);
 
-  /*
-   * Return the sixteen LBB stencil values:
-   */
-  *uno_one_1 = newval_uno_one;
-  *uno_two_1 = newval_uno_two;
-  *uno_thr_1 = newval_uno_thr;
-  *uno_fou_1 = newval_uno_fou;
-  *dos_one_1 = newval_dos_one;
-  *dos_two_1 =        tre_thr;
-  *dos_thr_1 = newval_dos_thr;
-  *dos_fou_1 =        tre_fou;
-  *tre_one_1 = newval_tre_one;
-  *tre_two_1 = newval_tre_two;
-  *tre_thr_1 = newval_tre_thr;
-  *tre_fou_1 = newval_tre_fou;
-  *qua_one_1 = newval_qua_one;
-  *qua_two_1 =        qua_thr;
-  *qua_thr_1 = newval_qua_thr;
-  *qua_fou_1 =        qua_fou;
+	/*
+	 * Return the sixteen LBB stencil values:
+	 */
+	*uno_one_1 = newval_uno_one;
+	*uno_two_1 = newval_uno_two;
+	*uno_thr_1 = newval_uno_thr;
+	*uno_fou_1 = newval_uno_fou;
+	*dos_one_1 = newval_dos_one;
+	*dos_two_1 = tre_thr;
+	*dos_thr_1 = newval_dos_thr;
+	*dos_fou_1 = tre_fou;
+	*tre_one_1 = newval_tre_one;
+	*tre_two_1 = newval_tre_two;
+	*tre_thr_1 = newval_tre_thr;
+	*tre_fou_1 = newval_tre_fou;
+	*qua_one_1 = newval_qua_one;
+	*qua_two_1 = qua_thr;
+	*qua_thr_1 = newval_qua_thr;
+	*qua_fou_1 = qua_fou;
 }
 
 /*
@@ -760,463 +742,458 @@ nohalo_subdivision (const double           uno_two,
  */
 
 static inline double
-lbbicubic( const double c00,
-           const double c10,
-           const double c01,
-           const double c11,
-           const double c00dx,
-           const double c10dx,
-           const double c01dx,
-           const double c11dx,
-           const double c00dy,
-           const double c10dy,
-           const double c01dy,
-           const double c11dy,
-           const double c00dxdy,
-           const double c10dxdy,
-           const double c01dxdy,
-           const double c11dxdy,
-           const double uno_one,
-           const double uno_two,
-           const double uno_thr,
-           const double uno_fou,
-           const double dos_one,
-           const double dos_two,
-           const double dos_thr,
-           const double dos_fou,
-           const double tre_one,
-           const double tre_two,
-           const double tre_thr,
-           const double tre_fou,
-           const double qua_one,
-           const double qua_two,
-           const double qua_thr,
-           const double qua_fou )
+lbbicubic(const double c00,
+	const double c10,
+	const double c01,
+	const double c11,
+	const double c00dx,
+	const double c10dx,
+	const double c01dx,
+	const double c11dx,
+	const double c00dy,
+	const double c10dy,
+	const double c01dy,
+	const double c11dy,
+	const double c00dxdy,
+	const double c10dxdy,
+	const double c01dxdy,
+	const double c11dxdy,
+	const double uno_one,
+	const double uno_two,
+	const double uno_thr,
+	const double uno_fou,
+	const double dos_one,
+	const double dos_two,
+	const double dos_thr,
+	const double dos_fou,
+	const double tre_one,
+	const double tre_two,
+	const double tre_thr,
+	const double tre_fou,
+	const double qua_one,
+	const double qua_two,
+	const double qua_thr,
+	const double qua_fou)
 {
-  /*
-   * STENCIL (FOOTPRINT) OF INPUT VALUES:
-   *
-   * The stencil of LBB is the same as for any standard Hermite
-   * bicubic (e.g., Catmull-Rom):
-   *
-   *  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)
-   *  = uno_one    = uno_two    = uno_thr    = uno_fou
-   *
-   *  (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
-   *  = dos_one    = dos_two    = dos_thr    = dos_fou
-   *                        X
-   *  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
-   *  = tre_one    = tre_two    = tre_thr    = tre_fou
-   *
-   *  (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)  (ix+2,iy+2)
-   *  = qua_one    = qua_two    = qua_thr    = qua_fou
-   *
-   * where ix is the (pseudo-)floor of the requested left-to-right
-   * location ("X"), and iy is the floor of the requested up-to-down
-   * location.
-   */
+	/*
+	 * STENCIL (FOOTPRINT) OF INPUT VALUES:
+	 *
+	 * The stencil of LBB is the same as for any standard Hermite
+	 * bicubic (e.g., Catmull-Rom):
+	 *
+	 *  (ix-1,iy-1)  (ix,iy-1)    (ix+1,iy-1)  (ix+2,iy-1)
+	 *  = uno_one    = uno_two    = uno_thr    = uno_fou
+	 *
+	 *  (ix-1,iy)    (ix,iy)      (ix+1,iy)    (ix+2,iy)
+	 *  = dos_one    = dos_two    = dos_thr    = dos_fou
+	 *                        X
+	 *  (ix-1,iy+1)  (ix,iy+1)    (ix+1,iy+1)  (ix+2,iy+1)
+	 *  = tre_one    = tre_two    = tre_thr    = tre_fou
+	 *
+	 *  (ix-1,iy+2)  (ix,iy+2)    (ix+1,iy+2)  (ix+2,iy+2)
+	 *  = qua_one    = qua_two    = qua_thr    = qua_fou
+	 *
+	 * where ix is the (pseudo-)floor of the requested left-to-right
+	 * location ("X"), and iy is the floor of the requested up-to-down
+	 * location.
+	 */
 
-#if defined (__NOHALO_CHEAP_H__)
-  /*
-   * Computation of the four min and four max over 3x3 input data
-   * sub-crosses of the 4x4 input stencil.
-   *
-   * We exploit the fact that the data comes from the (co-monotone)
-   * method Nohalo so that it is known ahead of time that
-   *
-   *  dos_thr is between dos_two and dos_fou
-   *
-   *  tre_two is between dos_two and qua_two
-   *
-   *  tre_fou is between dos_fou and qua_fou
-   *
-   *  qua_thr is between qua_two and qua_fou
-   *
-   *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
-   *
-   *  to minimize the number of flags and conditional moves.
-   *
-   * (The "between" are not strict: "a between b and c" means
-   *
-   * "min(b,c) <= a <= max(b,c)".)
-   *
-   * We have, however, succeeded in eliminating one flag computation
-   * (one comparison) and one use of an intermediate result. See the
-   * two commented out lines below.
-   *
-   * Overall, only 20 comparisons and 28 "? :" are needed (to compute
-   * 4 mins and 4 maxes). If you can figure how to do this more
-   * efficiently, let us know.
-   */
-  const double m1    = (uno_two <= tre_two) ? uno_two : tre_two  ;
-  const double M1    = (uno_two <= tre_two) ? tre_two : uno_two  ;
-  const double m2    = (dos_thr <= qua_thr) ? dos_thr : qua_thr  ;
-  const double M2    = (dos_thr <= qua_thr) ? qua_thr : dos_thr  ;
-  const double m3    = (dos_two <= dos_fou) ? dos_two : dos_fou  ;
-  const double M3    = (dos_two <= dos_fou) ? dos_fou : dos_two  ;
-  const double m4    = (uno_thr <= tre_thr) ? uno_thr : tre_thr  ;
-  const double M4    = (uno_thr <= tre_thr) ? tre_thr : uno_thr  ;
-  const double m5    = (dos_two <= qua_two) ? dos_two : qua_two  ;
-  const double M5    = (dos_two <= qua_two) ? qua_two : dos_two  ;
-  const double m6    = (tre_one <= tre_thr) ? tre_one : tre_thr  ;
-  const double M6    = (tre_one <= tre_thr) ? tre_thr : tre_one  ;
-  const double m7    = (dos_one <= dos_thr) ? dos_one : dos_thr  ;
-  const double M7    = (dos_one <= dos_thr) ? dos_thr : dos_one  ;
-  const double m8    = (tre_two <= tre_fou) ? tre_two : tre_fou  ;
-  const double M8    = (tre_two <= tre_fou) ? tre_fou : tre_two  ;
-  const double m9    = NOHALO_MIN(            m1,       dos_two );
-  const double M9    = NOHALO_MAX(            M1,       dos_two );
-  const double m10   = NOHALO_MIN(            m2,       tre_thr );
-  const double M10   = NOHALO_MAX(            M2,       tre_thr );
-  const double min10 = NOHALO_MIN(            m3,       m4      );
-  const double max10 = NOHALO_MAX(            M3,       M4      );
-  const double min01 = NOHALO_MIN(            m5,       m6      );
-  const double max01 = NOHALO_MAX(            M5,       M6      );
-  const double min00 = NOHALO_MIN(            m9,       m7      );
-  const double max00 = NOHALO_MAX(            M9,       M7      );
-  const double min11 = NOHALO_MIN(           m10,       m8      );
-  const double max11 = NOHALO_MAX(           M10,       M8      );
+#if defined(__NOHALO_CHEAP_H__)
+	/*
+	 * Computation of the four min and four max over 3x3 input data
+	 * sub-crosses of the 4x4 input stencil.
+	 *
+	 * We exploit the fact that the data comes from the (co-monotone)
+	 * method Nohalo so that it is known ahead of time that
+	 *
+	 *  dos_thr is between dos_two and dos_fou
+	 *
+	 *  tre_two is between dos_two and qua_two
+	 *
+	 *  tre_fou is between dos_fou and qua_fou
+	 *
+	 *  qua_thr is between qua_two and qua_fou
+	 *
+	 *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
+	 *
+	 *  to minimize the number of flags and conditional moves.
+	 *
+	 * (The "between" are not strict: "a between b and c" means
+	 *
+	 * "min(b,c) <= a <= max(b,c)".)
+	 *
+	 * We have, however, succeeded in eliminating one flag computation
+	 * (one comparison) and one use of an intermediate result. See the
+	 * two commented out lines below.
+	 *
+	 * Overall, only 20 comparisons and 28 "? :" are needed (to compute
+	 * 4 mins and 4 maxes). If you can figure how to do this more
+	 * efficiently, let us know.
+	 */
+	const double m1 = (uno_two <= tre_two) ? uno_two : tre_two;
+	const double M1 = (uno_two <= tre_two) ? tre_two : uno_two;
+	const double m2 = (dos_thr <= qua_thr) ? dos_thr : qua_thr;
+	const double M2 = (dos_thr <= qua_thr) ? qua_thr : dos_thr;
+	const double m3 = (dos_two <= dos_fou) ? dos_two : dos_fou;
+	const double M3 = (dos_two <= dos_fou) ? dos_fou : dos_two;
+	const double m4 = (uno_thr <= tre_thr) ? uno_thr : tre_thr;
+	const double M4 = (uno_thr <= tre_thr) ? tre_thr : uno_thr;
+	const double m5 = (dos_two <= qua_two) ? dos_two : qua_two;
+	const double M5 = (dos_two <= qua_two) ? qua_two : dos_two;
+	const double m6 = (tre_one <= tre_thr) ? tre_one : tre_thr;
+	const double M6 = (tre_one <= tre_thr) ? tre_thr : tre_one;
+	const double m7 = (dos_one <= dos_thr) ? dos_one : dos_thr;
+	const double M7 = (dos_one <= dos_thr) ? dos_thr : dos_one;
+	const double m8 = (tre_two <= tre_fou) ? tre_two : tre_fou;
+	const double M8 = (tre_two <= tre_fou) ? tre_fou : tre_two;
+	const double m9 = NOHALO_MIN(m1, dos_two);
+	const double M9 = NOHALO_MAX(M1, dos_two);
+	const double m10 = NOHALO_MIN(m2, tre_thr);
+	const double M10 = NOHALO_MAX(M2, tre_thr);
+	const double min10 = NOHALO_MIN(m3, m4);
+	const double max10 = NOHALO_MAX(M3, M4);
+	const double min01 = NOHALO_MIN(m5, m6);
+	const double max01 = NOHALO_MAX(M5, M6);
+	const double min00 = NOHALO_MIN(m9, m7);
+	const double max00 = NOHALO_MAX(M9, M7);
+	const double min11 = NOHALO_MIN(m10, m8);
+	const double max11 = NOHALO_MAX(M10, M8);
 #else
-  /*
-   * Computation of the four min and four max over 3x3 input data
-   * sub-blocks of the 4x4 input stencil.
-   *
-   * Surprisingly, we have not succeeded in reducing the number of "?
-   * :" needed by using the fact that the data comes from the
-   * (co-monotone) method Nohalo so that it is known ahead of time
-   * that
-   *
-   *  dos_thr is between dos_two and dos_fou
-   *
-   *  tre_two is between dos_two and qua_two
-   *
-   *  tre_fou is between dos_fou and qua_fou
-   *
-   *  qua_thr is between qua_two and qua_fou
-   *
-   *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
-   *
-   *  to minimize the number of flags and conditional moves.
-   *
-   * (The "between" are not strict: "a between b and c" means
-   *
-   * "min(b,c) <= a <= max(b,c)".)
-   *
-   * We have, however, succeeded in eliminating one flag computation
-   * (one comparison) and one use of an intermediate result. See the
-   * two commented out lines below.
-   *
-   * Overall, only 27 comparisons are needed (to compute 4 mins and 4
-   * maxes!). Without the simplification, 28 comparisons would be
-   * used. Either way, the number of "? :" used is 34. If you can
-   * figure how to do this more efficiently, let us know.
-   */
-  const double m1    = (dos_two <= dos_thr) ? dos_two : dos_thr  ;
-  const double M1    = (dos_two <= dos_thr) ? dos_thr : dos_two  ;
-  const double m2    = (tre_two <= tre_thr) ? tre_two : tre_thr  ;
-  const double M2    = (tre_two <= tre_thr) ? tre_thr : tre_two  ;
-  const double m4    = (qua_two <= qua_thr) ? qua_two : qua_thr  ;
-  const double M4    = (qua_two <= qua_thr) ? qua_thr : qua_two  ;
-  const double m3    = (uno_two <= uno_thr) ? uno_two : uno_thr  ;
-  const double M3    = (uno_two <= uno_thr) ? uno_thr : uno_two  ;
-  const double m5    = NOHALO_MIN(            m1,       m2      );
-  const double M5    = NOHALO_MAX(            M1,       M2      );
-  const double m6    = (dos_one <= tre_one) ? dos_one : tre_one  ;
-  const double M6    = (dos_one <= tre_one) ? tre_one : dos_one  ;
-  const double m7    = (dos_fou <= tre_fou) ? dos_fou : tre_fou  ;
-  const double M7    = (dos_fou <= tre_fou) ? tre_fou : dos_fou  ;
-  const double m13   = (dos_fou <= qua_fou) ? dos_fou : qua_fou  ;
-  const double M13   = (dos_fou <= qua_fou) ? qua_fou : dos_fou  ;
-  /*
-   * Because the data comes from Nohalo subdivision, the following two
-   * lines can be replaced by the above, simpler, two lines without
-   * changing the results.
-   *
-   * const double m13   = NOHALO_MIN(               m7,       qua_fou );
-   * const double M13   = NOHALO_MAX(               M7,       qua_fou );
-   *
-   * This also allows reodering the comparisons to put space between
-   * the computation of a result and its use.
-   */
-  const double m9    = NOHALO_MIN(            m5,       m4      );
-  const double M9    = NOHALO_MAX(            M5,       M4      );
-  const double m11   = NOHALO_MIN(            m6,       qua_one );
-  const double M11   = NOHALO_MAX(            M6,       qua_one );
-  const double m10   = NOHALO_MIN(            m6,       uno_one );
-  const double M10   = NOHALO_MAX(            M6,       uno_one );
-  const double m8    = NOHALO_MIN(            m5,       m3      );
-  const double M8    = NOHALO_MAX(            M5,       M3      );
-  const double m12   = NOHALO_MIN(            m7,       uno_fou );
-  const double M12   = NOHALO_MAX(            M7,       uno_fou );
-  const double min11 = NOHALO_MIN(            m9,       m13     );
-  const double max11 = NOHALO_MAX(            M9,       M13     );
-  const double min01 = NOHALO_MIN(            m9,       m11     );
-  const double max01 = NOHALO_MAX(            M9,       M11     );
-  const double min00 = NOHALO_MIN(            m8,       m10     );
-  const double max00 = NOHALO_MAX(            M8,       M10     );
-  const double min10 = NOHALO_MIN(            m8,       m12     );
-  const double max10 = NOHALO_MAX(            M8,       M12     );
+	/*
+	 * Computation of the four min and four max over 3x3 input data
+	 * sub-blocks of the 4x4 input stencil.
+	 *
+	 * Surprisingly, we have not succeeded in reducing the number of "?
+	 * :" needed by using the fact that the data comes from the
+	 * (co-monotone) method Nohalo so that it is known ahead of time
+	 * that
+	 *
+	 *  dos_thr is between dos_two and dos_fou
+	 *
+	 *  tre_two is between dos_two and qua_two
+	 *
+	 *  tre_fou is between dos_fou and qua_fou
+	 *
+	 *  qua_thr is between qua_two and qua_fou
+	 *
+	 *  tre_thr is in the convex hull of dos_two, dos_fou, qua_two and qua_fou
+	 *
+	 *  to minimize the number of flags and conditional moves.
+	 *
+	 * (The "between" are not strict: "a between b and c" means
+	 *
+	 * "min(b,c) <= a <= max(b,c)".)
+	 *
+	 * We have, however, succeeded in eliminating one flag computation
+	 * (one comparison) and one use of an intermediate result. See the
+	 * two commented out lines below.
+	 *
+	 * Overall, only 27 comparisons are needed (to compute 4 mins and 4
+	 * maxes!). Without the simplification, 28 comparisons would be
+	 * used. Either way, the number of "? :" used is 34. If you can
+	 * figure how to do this more efficiently, let us know.
+	 */
+	const double m1 = (dos_two <= dos_thr) ? dos_two : dos_thr;
+	const double M1 = (dos_two <= dos_thr) ? dos_thr : dos_two;
+	const double m2 = (tre_two <= tre_thr) ? tre_two : tre_thr;
+	const double M2 = (tre_two <= tre_thr) ? tre_thr : tre_two;
+	const double m4 = (qua_two <= qua_thr) ? qua_two : qua_thr;
+	const double M4 = (qua_two <= qua_thr) ? qua_thr : qua_two;
+	const double m3 = (uno_two <= uno_thr) ? uno_two : uno_thr;
+	const double M3 = (uno_two <= uno_thr) ? uno_thr : uno_two;
+	const double m5 = NOHALO_MIN(m1, m2);
+	const double M5 = NOHALO_MAX(M1, M2);
+	const double m6 = (dos_one <= tre_one) ? dos_one : tre_one;
+	const double M6 = (dos_one <= tre_one) ? tre_one : dos_one;
+	const double m7 = (dos_fou <= tre_fou) ? dos_fou : tre_fou;
+	const double M7 = (dos_fou <= tre_fou) ? tre_fou : dos_fou;
+	const double m13 = (dos_fou <= qua_fou) ? dos_fou : qua_fou;
+	const double M13 = (dos_fou <= qua_fou) ? qua_fou : dos_fou;
+	/*
+	 * Because the data comes from Nohalo subdivision, the following two
+	 * lines can be replaced by the above, simpler, two lines without
+	 * changing the results.
+	 *
+	 * const double m13 = NOHALO_MIN(m7, qua_fou);
+	 * const double M13 = NOHALO_MAX(M7, qua_fou);
+	 *
+	 * This also allows reodering the comparisons to put space between
+	 * the computation of a result and its use.
+	 */
+	const double m9 = NOHALO_MIN(m5, m4);
+	const double M9 = NOHALO_MAX(M5, M4);
+	const double m11 = NOHALO_MIN(m6, qua_one);
+	const double M11 = NOHALO_MAX(M6, qua_one);
+	const double m10 = NOHALO_MIN(m6, uno_one);
+	const double M10 = NOHALO_MAX(M6, uno_one);
+	const double m8 = NOHALO_MIN(m5, m3);
+	const double M8 = NOHALO_MAX(M5, M3);
+	const double m12 = NOHALO_MIN(m7, uno_fou);
+	const double M12 = NOHALO_MAX(M7, uno_fou);
+	const double min11 = NOHALO_MIN(m9, m13);
+	const double max11 = NOHALO_MAX(M9, M13);
+	const double min01 = NOHALO_MIN(m9, m11);
+	const double max01 = NOHALO_MAX(M9, M11);
+	const double min00 = NOHALO_MIN(m8, m10);
+	const double max00 = NOHALO_MAX(M8, M10);
+	const double min10 = NOHALO_MIN(m8, m12);
+	const double max10 = NOHALO_MAX(M8, M12);
 #endif
 
-  /*
-   * The remainder of the "per channel" computation involves the
-   * computation of:
-   *
-   * --8 conditional moves,
-   *
-   * --8 signs (in which the sign of zero is unimportant),
-   *
-   * --12 minima of two values,
-   *
-   * --8 maxima of two values,
-   *
-   * --8 absolute values,
-   *
-   * for a grand total of 29 minima, 25 maxima, 8 conditional moves, 8
-   * signs, and 8 absolute values. If everything is done with
-   * conditional moves, "only" 28+8+8+12+8+8=72 flags are involved
-   * (because initial min and max can be computed with one flag).
-   *
-   * The "per channel" part of the computation also involves 107
-   * arithmetic operations (54 *, 21 +, 42 -).
-   */
+	/*
+	 * The remainder of the "per channel" computation involves the
+	 * computation of:
+	 *
+	 * --8 conditional moves,
+	 *
+	 * --8 signs (in which the sign of zero is unimportant),
+	 *
+	 * --12 minima of two values,
+	 *
+	 * --8 maxima of two values,
+	 *
+	 * --8 absolute values,
+	 *
+	 * for a grand total of 29 minima, 25 maxima, 8 conditional moves, 8
+	 * signs, and 8 absolute values. If everything is done with
+	 * conditional moves, "only" 28+8+8+12+8+8=72 flags are involved
+	 * (because initial min and max can be computed with one flag).
+	 *
+	 * The "per channel" part of the computation also involves 107
+	 * arithmetic operations (54 *, 21 +, 42 -).
+	 */
 
-  /*
-   * Distances to the local min and max:
-   */
-  const double u11 = tre_thr - min11;
-  const double v11 = max11 - tre_thr;
-  const double u01 = tre_two - min01;
-  const double v01 = max01 - tre_two;
-  const double u00 = dos_two - min00;
-  const double v00 = max00 - dos_two;
-  const double u10 = dos_thr - min10;
-  const double v10 = max10 - dos_thr;
+	/*
+	 * Distances to the local min and max:
+	 */
+	const double u11 = tre_thr - min11;
+	const double v11 = max11 - tre_thr;
+	const double u01 = tre_two - min01;
+	const double v01 = max01 - tre_two;
+	const double u00 = dos_two - min00;
+	const double v00 = max00 - dos_two;
+	const double u10 = dos_thr - min10;
+	const double v10 = max10 - dos_thr;
 
-  /*
-   * Initial values of the derivatives computed with centered
-   * differences. Factors of 1/2 are left out because they are folded
-   * in later:
-   */
-  const double dble_dzdx00i = dos_thr - dos_one;
-  const double dble_dzdy11i = qua_thr - dos_thr;
-  const double dble_dzdx10i = dos_fou - dos_two;
-  const double dble_dzdy01i = qua_two - dos_two;
-  const double dble_dzdx01i = tre_thr - tre_one;
-  const double dble_dzdy10i = tre_thr - uno_thr;
-  const double dble_dzdx11i = tre_fou - tre_two;
-  const double dble_dzdy00i = tre_two - uno_two;
+	/*
+	 * Initial values of the derivatives computed with centered
+	 * differences. Factors of 1/2 are left out because they are folded
+	 * in later:
+	 */
+	const double dble_dzdx00i = dos_thr - dos_one;
+	const double dble_dzdy11i = qua_thr - dos_thr;
+	const double dble_dzdx10i = dos_fou - dos_two;
+	const double dble_dzdy01i = qua_two - dos_two;
+	const double dble_dzdx01i = tre_thr - tre_one;
+	const double dble_dzdy10i = tre_thr - uno_thr;
+	const double dble_dzdx11i = tre_fou - tre_two;
+	const double dble_dzdy00i = tre_two - uno_two;
 
-  /*
-   * Signs of the derivatives. The upcoming clamping does not change
-   * them (except if the clamping sends a negative derivative to 0, in
-   * which case the sign does not matter anyway).
-   */
-  const double sign_dzdx00 = NOHALO_SIGN( dble_dzdx00i );
-  const double sign_dzdx10 = NOHALO_SIGN( dble_dzdx10i );
-  const double sign_dzdx01 = NOHALO_SIGN( dble_dzdx01i );
-  const double sign_dzdx11 = NOHALO_SIGN( dble_dzdx11i );
+	/*
+	 * Signs of the derivatives. The upcoming clamping does not change
+	 * them (except if the clamping sends a negative derivative to 0, in
+	 * which case the sign does not matter anyway).
+	 */
+	const double sign_dzdx00 = NOHALO_SIGN(dble_dzdx00i);
+	const double sign_dzdx10 = NOHALO_SIGN(dble_dzdx10i);
+	const double sign_dzdx01 = NOHALO_SIGN(dble_dzdx01i);
+	const double sign_dzdx11 = NOHALO_SIGN(dble_dzdx11i);
 
-  const double sign_dzdy00 = NOHALO_SIGN( dble_dzdy00i );
-  const double sign_dzdy10 = NOHALO_SIGN( dble_dzdy10i );
-  const double sign_dzdy01 = NOHALO_SIGN( dble_dzdy01i );
-  const double sign_dzdy11 = NOHALO_SIGN( dble_dzdy11i );
+	const double sign_dzdy00 = NOHALO_SIGN(dble_dzdy00i);
+	const double sign_dzdy10 = NOHALO_SIGN(dble_dzdy10i);
+	const double sign_dzdy01 = NOHALO_SIGN(dble_dzdy01i);
+	const double sign_dzdy11 = NOHALO_SIGN(dble_dzdy11i);
 
-  /*
-   * Initial values of the cross-derivatives. Factors of 1/4 are left
-   * out because folded in later:
-   */
-  const double quad_d2zdxdy00i = uno_one - uno_thr + dble_dzdx01i;
-  const double quad_d2zdxdy10i = uno_two - uno_fou + dble_dzdx11i;
-  const double quad_d2zdxdy01i = qua_thr - qua_one - dble_dzdx00i;
-  const double quad_d2zdxdy11i = qua_fou - qua_two - dble_dzdx10i;
+	/*
+	 * Initial values of the cross-derivatives. Factors of 1/4 are left
+	 * out because folded in later:
+	 */
+	const double quad_d2zdxdy00i = uno_one - uno_thr + dble_dzdx01i;
+	const double quad_d2zdxdy10i = uno_two - uno_fou + dble_dzdx11i;
+	const double quad_d2zdxdy01i = qua_thr - qua_one - dble_dzdx00i;
+	const double quad_d2zdxdy11i = qua_fou - qua_two - dble_dzdx10i;
 
-  /*
-   * Slope limiters. The key multiplier is 3 but we fold a factor of
-   * 2, hence 6:
-   */
-  const double dble_slopelimit_00 = 6.0 * NOHALO_MIN( u00, v00 );
-  const double dble_slopelimit_10 = 6.0 * NOHALO_MIN( u10, v10 );
-  const double dble_slopelimit_01 = 6.0 * NOHALO_MIN( u01, v01 );
-  const double dble_slopelimit_11 = 6.0 * NOHALO_MIN( u11, v11 );
+	/*
+	 * Slope limiters. The key multiplier is 3 but we fold a factor of
+	 * 2, hence 6:
+	 */
+	const double dble_slopelimit_00 = 6.0 * NOHALO_MIN(u00, v00);
+	const double dble_slopelimit_10 = 6.0 * NOHALO_MIN(u10, v10);
+	const double dble_slopelimit_01 = 6.0 * NOHALO_MIN(u01, v01);
+	const double dble_slopelimit_11 = 6.0 * NOHALO_MIN(u11, v11);
 
-  /*
-   * Clamped first derivatives:
-   */
-  const double dble_dzdx00 =
-    ( sign_dzdx00 * dble_dzdx00i <= dble_slopelimit_00 )
-    ? dble_dzdx00i :  sign_dzdx00 * dble_slopelimit_00;
-  const double dble_dzdy00 =
-    ( sign_dzdy00 * dble_dzdy00i <= dble_slopelimit_00 )
-    ? dble_dzdy00i :  sign_dzdy00 * dble_slopelimit_00;
-  const double dble_dzdx10 =
-    ( sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10 )
-    ? dble_dzdx10i :  sign_dzdx10 * dble_slopelimit_10;
-  const double dble_dzdy10 =
-    ( sign_dzdy10 * dble_dzdy10i <= dble_slopelimit_10 )
-    ? dble_dzdy10i :  sign_dzdy10 * dble_slopelimit_10;
-  const double dble_dzdx01 =
-    ( sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01 )
-    ? dble_dzdx01i :  sign_dzdx01 * dble_slopelimit_01;
-  const double dble_dzdy01 =
-    ( sign_dzdy01 * dble_dzdy01i <= dble_slopelimit_01 )
-    ? dble_dzdy01i :  sign_dzdy01 * dble_slopelimit_01;
-  const double dble_dzdx11 =
-    ( sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11 )
-    ? dble_dzdx11i :  sign_dzdx11 * dble_slopelimit_11;
-  const double dble_dzdy11 =
-    ( sign_dzdy11 * dble_dzdy11i <= dble_slopelimit_11 )
-    ? dble_dzdy11i :  sign_dzdy11 * dble_slopelimit_11;
+	/*
+	 * Clamped first derivatives:
+	 */
+	const double dble_dzdx00 =
+		(sign_dzdx00 * dble_dzdx00i <= dble_slopelimit_00)
+		? dble_dzdx00i
+		: sign_dzdx00 * dble_slopelimit_00;
+	const double dble_dzdy00 =
+		(sign_dzdy00 * dble_dzdy00i <= dble_slopelimit_00)
+		? dble_dzdy00i
+		: sign_dzdy00 * dble_slopelimit_00;
+	const double dble_dzdx10 =
+		(sign_dzdx10 * dble_dzdx10i <= dble_slopelimit_10)
+		? dble_dzdx10i
+		: sign_dzdx10 * dble_slopelimit_10;
+	const double dble_dzdy10 =
+		(sign_dzdy10 * dble_dzdy10i <= dble_slopelimit_10)
+		? dble_dzdy10i
+		: sign_dzdy10 * dble_slopelimit_10;
+	const double dble_dzdx01 =
+		(sign_dzdx01 * dble_dzdx01i <= dble_slopelimit_01)
+		? dble_dzdx01i
+		: sign_dzdx01 * dble_slopelimit_01;
+	const double dble_dzdy01 =
+		(sign_dzdy01 * dble_dzdy01i <= dble_slopelimit_01)
+		? dble_dzdy01i
+		: sign_dzdy01 * dble_slopelimit_01;
+	const double dble_dzdx11 =
+		(sign_dzdx11 * dble_dzdx11i <= dble_slopelimit_11)
+		? dble_dzdx11i
+		: sign_dzdx11 * dble_slopelimit_11;
+	const double dble_dzdy11 =
+		(sign_dzdy11 * dble_dzdy11i <= dble_slopelimit_11)
+		? dble_dzdy11i
+		: sign_dzdy11 * dble_slopelimit_11;
 
-  /*
-   * Sums and differences of first derivatives:
-   */
-  const double twelve_sum00 = 6.0 * ( dble_dzdx00 + dble_dzdy00 );
-  const double twelve_dif00 = 6.0 * ( dble_dzdx00 - dble_dzdy00 );
-  const double twelve_sum10 = 6.0 * ( dble_dzdx10 + dble_dzdy10 );
-  const double twelve_dif10 = 6.0 * ( dble_dzdx10 - dble_dzdy10 );
-  const double twelve_sum01 = 6.0 * ( dble_dzdx01 + dble_dzdy01 );
-  const double twelve_dif01 = 6.0 * ( dble_dzdx01 - dble_dzdy01 );
-  const double twelve_sum11 = 6.0 * ( dble_dzdx11 + dble_dzdy11 );
-  const double twelve_dif11 = 6.0 * ( dble_dzdx11 - dble_dzdy11 );
+	/*
+	 * Sums and differences of first derivatives:
+	 */
+	const double twelve_sum00 = 6.0 * (dble_dzdx00 + dble_dzdy00);
+	const double twelve_dif00 = 6.0 * (dble_dzdx00 - dble_dzdy00);
+	const double twelve_sum10 = 6.0 * (dble_dzdx10 + dble_dzdy10);
+	const double twelve_dif10 = 6.0 * (dble_dzdx10 - dble_dzdy10);
+	const double twelve_sum01 = 6.0 * (dble_dzdx01 + dble_dzdy01);
+	const double twelve_dif01 = 6.0 * (dble_dzdx01 - dble_dzdy01);
+	const double twelve_sum11 = 6.0 * (dble_dzdx11 + dble_dzdy11);
+	const double twelve_dif11 = 6.0 * (dble_dzdx11 - dble_dzdy11);
 
-  /*
-   * Absolute values of the sums:
-   */
-  const double twelve_abs_sum00 = NOHALO_ABS( twelve_sum00 );
-  const double twelve_abs_sum10 = NOHALO_ABS( twelve_sum10 );
-  const double twelve_abs_sum01 = NOHALO_ABS( twelve_sum01 );
-  const double twelve_abs_sum11 = NOHALO_ABS( twelve_sum11 );
+	/*
+	 * Absolute values of the sums:
+	 */
+	const double twelve_abs_sum00 = NOHALO_ABS(twelve_sum00);
+	const double twelve_abs_sum10 = NOHALO_ABS(twelve_sum10);
+	const double twelve_abs_sum01 = NOHALO_ABS(twelve_sum01);
+	const double twelve_abs_sum11 = NOHALO_ABS(twelve_sum11);
 
-  /*
-   * Scaled distances to the min:
-   */
-  const double u00_times_36 = 36.0 * u00;
-  const double u10_times_36 = 36.0 * u10;
-  const double u01_times_36 = 36.0 * u01;
-  const double u11_times_36 = 36.0 * u11;
+	/*
+	 * Scaled distances to the min:
+	 */
+	const double u00_times_36 = 36.0 * u00;
+	const double u10_times_36 = 36.0 * u10;
+	const double u01_times_36 = 36.0 * u01;
+	const double u11_times_36 = 36.0 * u11;
 
-  /*
-   * First cross-derivative limiter:
-   */
-  const double first_limit00 = twelve_abs_sum00 - u00_times_36;
-  const double first_limit10 = twelve_abs_sum10 - u10_times_36;
-  const double first_limit01 = twelve_abs_sum01 - u01_times_36;
-  const double first_limit11 = twelve_abs_sum11 - u11_times_36;
+	/*
+	 * First cross-derivative limiter:
+	 */
+	const double first_limit00 = twelve_abs_sum00 - u00_times_36;
+	const double first_limit10 = twelve_abs_sum10 - u10_times_36;
+	const double first_limit01 = twelve_abs_sum01 - u01_times_36;
+	const double first_limit11 = twelve_abs_sum11 - u11_times_36;
 
-  const double quad_d2zdxdy00ii = NOHALO_MAX( quad_d2zdxdy00i, first_limit00 );
-  const double quad_d2zdxdy10ii = NOHALO_MAX( quad_d2zdxdy10i, first_limit10 );
-  const double quad_d2zdxdy01ii = NOHALO_MAX( quad_d2zdxdy01i, first_limit01 );
-  const double quad_d2zdxdy11ii = NOHALO_MAX( quad_d2zdxdy11i, first_limit11 );
+	const double quad_d2zdxdy00ii = NOHALO_MAX(quad_d2zdxdy00i, first_limit00);
+	const double quad_d2zdxdy10ii = NOHALO_MAX(quad_d2zdxdy10i, first_limit10);
+	const double quad_d2zdxdy01ii = NOHALO_MAX(quad_d2zdxdy01i, first_limit01);
+	const double quad_d2zdxdy11ii = NOHALO_MAX(quad_d2zdxdy11i, first_limit11);
 
-  /*
-   * Scaled distances to the max:
-   */
-  const double v00_times_36 = 36.0 * v00;
-  const double v10_times_36 = 36.0 * v10;
-  const double v01_times_36 = 36.0 * v01;
-  const double v11_times_36 = 36.0 * v11;
+	/*
+	 * Scaled distances to the max:
+	 */
+	const double v00_times_36 = 36.0 * v00;
+	const double v10_times_36 = 36.0 * v10;
+	const double v01_times_36 = 36.0 * v01;
+	const double v11_times_36 = 36.0 * v11;
 
-  /*
-   * Second cross-derivative limiter:
-   */
-  const double second_limit00 = v00_times_36 - twelve_abs_sum00;
-  const double second_limit10 = v10_times_36 - twelve_abs_sum10;
-  const double second_limit01 = v01_times_36 - twelve_abs_sum01;
-  const double second_limit11 = v11_times_36 - twelve_abs_sum11;
+	/*
+	 * Second cross-derivative limiter:
+	 */
+	const double second_limit00 = v00_times_36 - twelve_abs_sum00;
+	const double second_limit10 = v10_times_36 - twelve_abs_sum10;
+	const double second_limit01 = v01_times_36 - twelve_abs_sum01;
+	const double second_limit11 = v11_times_36 - twelve_abs_sum11;
 
-  const double quad_d2zdxdy00iii =
-    NOHALO_MIN( quad_d2zdxdy00ii, second_limit00 );
-  const double quad_d2zdxdy10iii =
-    NOHALO_MIN( quad_d2zdxdy10ii, second_limit10 );
-  const double quad_d2zdxdy01iii =
-    NOHALO_MIN( quad_d2zdxdy01ii, second_limit01 );
-  const double quad_d2zdxdy11iii =
-    NOHALO_MIN( quad_d2zdxdy11ii, second_limit11 );
+	const double quad_d2zdxdy00iii =
+		NOHALO_MIN(quad_d2zdxdy00ii, second_limit00);
+	const double quad_d2zdxdy10iii =
+		NOHALO_MIN(quad_d2zdxdy10ii, second_limit10);
+	const double quad_d2zdxdy01iii =
+		NOHALO_MIN(quad_d2zdxdy01ii, second_limit01);
+	const double quad_d2zdxdy11iii =
+		NOHALO_MIN(quad_d2zdxdy11ii, second_limit11);
 
-  /*
-   * Absolute values of the differences:
-   */
-  const double twelve_abs_dif00 = NOHALO_ABS( twelve_dif00 );
-  const double twelve_abs_dif10 = NOHALO_ABS( twelve_dif10 );
-  const double twelve_abs_dif01 = NOHALO_ABS( twelve_dif01 );
-  const double twelve_abs_dif11 = NOHALO_ABS( twelve_dif11 );
+	/*
+	 * Absolute values of the differences:
+	 */
+	const double twelve_abs_dif00 = NOHALO_ABS(twelve_dif00);
+	const double twelve_abs_dif10 = NOHALO_ABS(twelve_dif10);
+	const double twelve_abs_dif01 = NOHALO_ABS(twelve_dif01);
+	const double twelve_abs_dif11 = NOHALO_ABS(twelve_dif11);
 
-  /*
-   * Third cross-derivative limiter:
-   */
-  const double third_limit00 = twelve_abs_dif00 - v00_times_36;
-  const double third_limit10 = twelve_abs_dif10 - v10_times_36;
-  const double third_limit01 = twelve_abs_dif01 - v01_times_36;
-  const double third_limit11 = twelve_abs_dif11 - v11_times_36;
+	/*
+	 * Third cross-derivative limiter:
+	 */
+	const double third_limit00 = twelve_abs_dif00 - v00_times_36;
+	const double third_limit10 = twelve_abs_dif10 - v10_times_36;
+	const double third_limit01 = twelve_abs_dif01 - v01_times_36;
+	const double third_limit11 = twelve_abs_dif11 - v11_times_36;
 
-  const double quad_d2zdxdy00iiii =
-    NOHALO_MAX( quad_d2zdxdy00iii, third_limit00);
-  const double quad_d2zdxdy10iiii =
-    NOHALO_MAX( quad_d2zdxdy10iii, third_limit10);
-  const double quad_d2zdxdy01iiii =
-    NOHALO_MAX( quad_d2zdxdy01iii, third_limit01);
-  const double quad_d2zdxdy11iiii =
-    NOHALO_MAX( quad_d2zdxdy11iii, third_limit11);
+	const double quad_d2zdxdy00iiii =
+		NOHALO_MAX(quad_d2zdxdy00iii, third_limit00);
+	const double quad_d2zdxdy10iiii =
+		NOHALO_MAX(quad_d2zdxdy10iii, third_limit10);
+	const double quad_d2zdxdy01iiii =
+		NOHALO_MAX(quad_d2zdxdy01iii, third_limit01);
+	const double quad_d2zdxdy11iiii =
+		NOHALO_MAX(quad_d2zdxdy11iii, third_limit11);
 
-  /*
-   * Fourth cross-derivative limiter:
-   */
-  const double fourth_limit00 = u00_times_36 - twelve_abs_dif00;
-  const double fourth_limit10 = u10_times_36 - twelve_abs_dif10;
-  const double fourth_limit01 = u01_times_36 - twelve_abs_dif01;
-  const double fourth_limit11 = u11_times_36 - twelve_abs_dif11;
+	/*
+	 * Fourth cross-derivative limiter:
+	 */
+	const double fourth_limit00 = u00_times_36 - twelve_abs_dif00;
+	const double fourth_limit10 = u10_times_36 - twelve_abs_dif10;
+	const double fourth_limit01 = u01_times_36 - twelve_abs_dif01;
+	const double fourth_limit11 = u11_times_36 - twelve_abs_dif11;
 
-  const double quad_d2zdxdy00 = NOHALO_MIN( quad_d2zdxdy00iiii, fourth_limit00);
-  const double quad_d2zdxdy10 = NOHALO_MIN( quad_d2zdxdy10iiii, fourth_limit10);
-  const double quad_d2zdxdy01 = NOHALO_MIN( quad_d2zdxdy01iiii, fourth_limit01);
-  const double quad_d2zdxdy11 = NOHALO_MIN( quad_d2zdxdy11iiii, fourth_limit11);
+	const double quad_d2zdxdy00 = NOHALO_MIN(quad_d2zdxdy00iiii, fourth_limit00);
+	const double quad_d2zdxdy10 = NOHALO_MIN(quad_d2zdxdy10iiii, fourth_limit10);
+	const double quad_d2zdxdy01 = NOHALO_MIN(quad_d2zdxdy01iiii, fourth_limit01);
+	const double quad_d2zdxdy11 = NOHALO_MIN(quad_d2zdxdy11iiii, fourth_limit11);
 
-  /*
-   * Part of the result which does not need derivatives:
-   */
-  const double newval1 = c00 * dos_two
-                         +
-                         c10 * dos_thr
-                         +
-                         c01 * tre_two
-                         +
-                         c11 * tre_thr;
+	/*
+	 * Part of the result which does not need derivatives:
+	 */
+	const double newval1 = c00 * dos_two +
+		c10 * dos_thr +
+		c01 * tre_two +
+		c11 * tre_thr;
 
-  /*
-   * Twice the part of the result which only needs first derivatives.
-   */
-  const double newval2 = c00dx * dble_dzdx00
-                         +
-                         c10dx * dble_dzdx10
-                         +
-                         c01dx * dble_dzdx01
-                         +
-                         c11dx * dble_dzdx11
-                         +
-                         c00dy * dble_dzdy00
-                         +
-                         c10dy * dble_dzdy10
-                         +
-                         c01dy * dble_dzdy01
-                         +
-                         c11dy * dble_dzdy11;
+	/*
+	 * Twice the part of the result which only needs first derivatives.
+	 */
+	const double newval2 = c00dx * dble_dzdx00 +
+		c10dx * dble_dzdx10 +
+		c01dx * dble_dzdx01 +
+		c11dx * dble_dzdx11 +
+		c00dy * dble_dzdy00 +
+		c10dy * dble_dzdy10 +
+		c01dy * dble_dzdy01 +
+		c11dy * dble_dzdy11;
 
-  /*
-   * Four times the part of the result which only uses cross
-   * derivatives:
-   */
-  const double newval3 = c00dxdy * quad_d2zdxdy00
-                         +
-                         c10dxdy * quad_d2zdxdy10
-                         +
-                         c01dxdy * quad_d2zdxdy01
-                         +
-                         c11dxdy * quad_d2zdxdy11;
+	/*
+	 * Four times the part of the result which only uses cross
+	 * derivatives:
+	 */
+	const double newval3 = c00dxdy * quad_d2zdxdy00 +
+		c10dxdy * quad_d2zdxdy10 +
+		c01dxdy * quad_d2zdxdy01 +
+		c11dxdy * quad_d2zdxdy11;
 
-  const double newval = newval1 + .5 * newval2 + .25 * newval3;
+	const double newval = newval1 + .5 * newval2 + .25 * newval3;
 
-  return newval;
+	return newval;
 }
 
 /*
@@ -1226,371 +1203,359 @@ lbbicubic( const double c00,
  * this would allow code comments!---but we can't figure a clean way
  * to do it.
  */
-#define NOHALO_CONVERSION( conversion )               \
-  template <typename T> static void inline            \
-  nohalo_ ## conversion(       void*  restrict pout,  \
-                         const void*  restrict pin,   \
-                         const int             bands, \
-                         const int             lskip, \
-                         const double          x_0,   \
-                         const double          y_0 )  \
-  { \
-    T* restrict out = (T *) pout; \
-    \
-    const T* restrict in = (T *) pin; \
-    \
-    \
-    const int sign_of_x_0 = 2 * ( x_0 >= 0. ) - 1; \
-    const int sign_of_y_0 = 2 * ( y_0 >= 0. ) - 1; \
-    \
-    \
-    const int shift_forw_1_pix = sign_of_x_0 * bands; \
-    const int shift_forw_1_row = sign_of_y_0 * lskip; \
-    \
-    const int shift_back_1_pix = -shift_forw_1_pix; \
-    const int shift_back_1_row = -shift_forw_1_row; \
-    \
-    const int shift_back_2_pix = 2 * shift_back_1_pix; \
-    const int shift_back_2_row = 2 * shift_back_1_row; \
-    const int shift_forw_2_pix = 2 * shift_forw_1_pix; \
-    const int shift_forw_2_row = 2 * shift_forw_1_row; \
-    \
-    \
-    const int uno_two_shift = shift_back_1_pix + shift_back_2_row; \
-    const int uno_thr_shift =                    shift_back_2_row; \
-    const int uno_fou_shift = shift_forw_1_pix + shift_back_2_row; \
-    \
-    const int dos_one_shift = shift_back_2_pix + shift_back_1_row; \
-    const int dos_two_shift = shift_back_1_pix + shift_back_1_row; \
-    const int dos_thr_shift =                    shift_back_1_row; \
-    const int dos_fou_shift = shift_forw_1_pix + shift_back_1_row; \
-    const int dos_fiv_shift = shift_forw_2_pix + shift_back_1_row; \
-    \
-    const int tre_one_shift = shift_back_2_pix; \
-    const int tre_two_shift = shift_back_1_pix; \
-    const int tre_thr_shift = 0;                \
-    const int tre_fou_shift = shift_forw_1_pix; \
-    const int tre_fiv_shift = shift_forw_2_pix; \
-    \
-    const int qua_one_shift = shift_back_2_pix + shift_forw_1_row; \
-    const int qua_two_shift = shift_back_1_pix + shift_forw_1_row; \
-    const int qua_thr_shift =                    shift_forw_1_row; \
-    const int qua_fou_shift = shift_forw_1_pix + shift_forw_1_row; \
-    const int qua_fiv_shift = shift_forw_2_pix + shift_forw_1_row; \
-    \
-    const int cin_two_shift = shift_back_1_pix + shift_forw_2_row; \
-    const int cin_thr_shift =                    shift_forw_2_row; \
-    const int cin_fou_shift = shift_forw_1_pix + shift_forw_2_row; \
-    \
-    \
-    const double xp1over2   = ( 2 * sign_of_x_0 ) * x_0; \
-    const double xm1over2   = xp1over2 - 1.0; \
-    const double onepx      = 0.5 + xp1over2; \
-    const double onemx      = 1.5 - xp1over2; \
-    const double xp1over2sq = xp1over2 * xp1over2; \
-    \
-    const double yp1over2   = ( 2 * sign_of_y_0 ) * y_0; \
-    const double ym1over2   = yp1over2 - 1.0; \
-    const double onepy      = 0.5 + yp1over2; \
-    const double onemy      = 1.5 - yp1over2; \
-    const double yp1over2sq = yp1over2 * yp1over2; \
-    \
-    const double xm1over2sq = xm1over2 * xm1over2; \
-    const double ym1over2sq = ym1over2 * ym1over2; \
-    \
-    const double twice1px = onepx + onepx; \
-    const double twice1py = onepy + onepy; \
-    const double twice1mx = onemx + onemx; \
-    const double twice1my = onemy + onemy; \
-    \
-    const double xm1over2sq_times_ym1over2sq = xm1over2sq * ym1over2sq; \
-    const double xp1over2sq_times_ym1over2sq = xp1over2sq * ym1over2sq; \
-    const double xp1over2sq_times_yp1over2sq = xp1over2sq * yp1over2sq; \
-    const double xm1over2sq_times_yp1over2sq = xm1over2sq * yp1over2sq; \
-    \
-    const double four_times_1px_times_1py = twice1px * twice1py; \
-    const double four_times_1mx_times_1py = twice1mx * twice1py; \
-    const double twice_xp1over2_times_1py = xp1over2 * twice1py; \
-    const double twice_xm1over2_times_1py = xm1over2 * twice1py; \
-    \
-    const double twice_xm1over2_times_1my = xm1over2 * twice1my; \
-    const double twice_xp1over2_times_1my = xp1over2 * twice1my; \
-    const double four_times_1mx_times_1my = twice1mx * twice1my; \
-    const double four_times_1px_times_1my = twice1px * twice1my; \
-    \
-    const double twice_1px_times_ym1over2 = twice1px * ym1over2; \
-    const double twice_1mx_times_ym1over2 = twice1mx * ym1over2; \
-    const double xp1over2_times_ym1over2  = xp1over2 * ym1over2; \
-    const double xm1over2_times_ym1over2  = xm1over2 * ym1over2; \
-    \
-    const double xm1over2_times_yp1over2  = xm1over2 * yp1over2; \
-    const double xp1over2_times_yp1over2  = xp1over2 * yp1over2; \
-    const double twice_1mx_times_yp1over2 = twice1mx * yp1over2; \
-    const double twice_1px_times_yp1over2 = twice1px * yp1over2; \
-    \
-    \
-    const double c00 = \
-      four_times_1px_times_1py * xm1over2sq_times_ym1over2sq; \
-    const double c00dx = \
-      twice_xp1over2_times_1py * xm1over2sq_times_ym1over2sq; \
-    const double c00dy = \
-      twice_1px_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
-    const double c00dxdy = \
-       xp1over2_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
-    \
-    const double c10 = \
-      four_times_1mx_times_1py * xp1over2sq_times_ym1over2sq; \
-    const double c10dx = \
-      twice_xm1over2_times_1py * xp1over2sq_times_ym1over2sq; \
-    const double c10dy = \
-      twice_1mx_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
-    const double c10dxdy = \
-       xm1over2_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
-    \
-    const double c01 = \
-      four_times_1px_times_1my * xm1over2sq_times_yp1over2sq; \
-    const double c01dx = \
-      twice_xp1over2_times_1my * xm1over2sq_times_yp1over2sq; \
-    const double c01dy = \
-      twice_1px_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
-    const double c01dxdy = \
-       xp1over2_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
-    \
-    const double c11 = \
-      four_times_1mx_times_1my * xp1over2sq_times_yp1over2sq; \
-    const double c11dx = \
-      twice_xm1over2_times_1my * xp1over2sq_times_yp1over2sq; \
-    const double c11dy = \
-      twice_1mx_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
-    const double c11dxdy = \
-       xm1over2_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
-    \
-    \
-    int band = bands; \
-    \
-    \
-    do \
-      { \
-        double uno_one, uno_two, uno_thr, uno_fou;  \
-        double dos_one, dos_two, dos_thr, dos_fou;  \
-        double tre_one, tre_two, tre_thr, tre_fou;  \
-        double qua_one, qua_two, qua_thr, qua_fou;  \
-        \
-        nohalo_subdivision( in[ uno_two_shift ], \
-                            in[ uno_thr_shift ], \
-                            in[ uno_fou_shift ], \
-                            in[ dos_one_shift ], \
-                            in[ dos_two_shift ], \
-                            in[ dos_thr_shift ], \
-                            in[ dos_fou_shift ], \
-                            in[ dos_fiv_shift ], \
-                            in[ tre_one_shift ], \
-                            in[ tre_two_shift ], \
-                            in[ tre_thr_shift ], \
-                            in[ tre_fou_shift ], \
-                            in[ tre_fiv_shift ], \
-                            in[ qua_one_shift ], \
-                            in[ qua_two_shift ], \
-                            in[ qua_thr_shift ], \
-                            in[ qua_fou_shift ], \
-                            in[ qua_fiv_shift ], \
-                            in[ cin_two_shift ], \
-                            in[ cin_thr_shift ], \
-                            in[ cin_fou_shift ], \
-                            &uno_one,            \
-                            &uno_two,            \
-                            &uno_thr,            \
-                            &uno_fou,            \
-                            &dos_one,            \
-                            &dos_two,            \
-                            &dos_thr,            \
-                            &dos_fou,            \
-                            &tre_one,            \
-                            &tre_two,            \
-                            &tre_thr,            \
-                            &tre_fou,            \
-                            &qua_one,            \
-                            &qua_two,            \
-                            &qua_thr,            \
-                            &qua_fou );          \
-        \
-        const double double_result =        \
-          lbbicubic( c00,                   \
-                     c10,                   \
-                     c01,                   \
-                     c11,                   \
-                     c00dx,                 \
-                     c10dx,                 \
-                     c01dx,                 \
-                     c11dx,                 \
-                     c00dy,                 \
-                     c10dy,                 \
-                     c01dy,                 \
-                     c11dy,                 \
-                     c00dxdy,               \
-                     c10dxdy,               \
-                     c01dxdy,               \
-                     c11dxdy,               \
-                     uno_one,               \
-                     uno_two,               \
-                     uno_thr,               \
-                     uno_fou,               \
-                     dos_one,               \
-                     dos_two,               \
-                     dos_thr,               \
-                     dos_fou,               \
-                     tre_one,               \
-                     tre_two,               \
-                     tre_thr,               \
-                     tre_fou,               \
-                     qua_one,               \
-                     qua_two,               \
-                     qua_thr,               \
-                     qua_fou );             \
-        \
-        {                                                         \
-          const T result = to_ ## conversion<T>( double_result ); \
-          in++;                                                   \
-          *out++ = result;                                        \
-        }                                                         \
-        \
-      } while (--band); \
-  }
+#define NOHALO_CONVERSION(conversion) \
+	template <typename T> \
+	static void inline nohalo_##conversion(void *restrict pout, \
+		const void *restrict pin, \
+		const int bands, \
+		const int lskip, \
+		const double x_0, \
+		const double y_0) \
+	{ \
+		T *restrict out = (T *) pout; \
+\
+		const T *restrict in = (T *) pin; \
+\
+		const int sign_of_x_0 = 2 * (x_0 >= 0.) - 1; \
+		const int sign_of_y_0 = 2 * (y_0 >= 0.) - 1; \
+\
+		const int shift_forw_1_pix = sign_of_x_0 * bands; \
+		const int shift_forw_1_row = sign_of_y_0 * lskip; \
+\
+		const int shift_back_1_pix = -shift_forw_1_pix; \
+		const int shift_back_1_row = -shift_forw_1_row; \
+\
+		const int shift_back_2_pix = 2 * shift_back_1_pix; \
+		const int shift_back_2_row = 2 * shift_back_1_row; \
+		const int shift_forw_2_pix = 2 * shift_forw_1_pix; \
+		const int shift_forw_2_row = 2 * shift_forw_1_row; \
+\
+		const int uno_two_shift = shift_back_1_pix + shift_back_2_row; \
+		const int uno_thr_shift = shift_back_2_row; \
+		const int uno_fou_shift = shift_forw_1_pix + shift_back_2_row; \
+\
+		const int dos_one_shift = shift_back_2_pix + shift_back_1_row; \
+		const int dos_two_shift = shift_back_1_pix + shift_back_1_row; \
+		const int dos_thr_shift = shift_back_1_row; \
+		const int dos_fou_shift = shift_forw_1_pix + shift_back_1_row; \
+		const int dos_fiv_shift = shift_forw_2_pix + shift_back_1_row; \
+\
+		const int tre_one_shift = shift_back_2_pix; \
+		const int tre_two_shift = shift_back_1_pix; \
+		const int tre_thr_shift = 0; \
+		const int tre_fou_shift = shift_forw_1_pix; \
+		const int tre_fiv_shift = shift_forw_2_pix; \
+\
+		const int qua_one_shift = shift_back_2_pix + shift_forw_1_row; \
+		const int qua_two_shift = shift_back_1_pix + shift_forw_1_row; \
+		const int qua_thr_shift = shift_forw_1_row; \
+		const int qua_fou_shift = shift_forw_1_pix + shift_forw_1_row; \
+		const int qua_fiv_shift = shift_forw_2_pix + shift_forw_1_row; \
+\
+		const int cin_two_shift = shift_back_1_pix + shift_forw_2_row; \
+		const int cin_thr_shift = shift_forw_2_row; \
+		const int cin_fou_shift = shift_forw_1_pix + shift_forw_2_row; \
+\
+		const double xp1over2 = (2 * sign_of_x_0) * x_0; \
+		const double xm1over2 = xp1over2 - 1.0; \
+		const double onepx = 0.5 + xp1over2; \
+		const double onemx = 1.5 - xp1over2; \
+		const double xp1over2sq = xp1over2 * xp1over2; \
+\
+		const double yp1over2 = (2 * sign_of_y_0) * y_0; \
+		const double ym1over2 = yp1over2 - 1.0; \
+		const double onepy = 0.5 + yp1over2; \
+		const double onemy = 1.5 - yp1over2; \
+		const double yp1over2sq = yp1over2 * yp1over2; \
+\
+		const double xm1over2sq = xm1over2 * xm1over2; \
+		const double ym1over2sq = ym1over2 * ym1over2; \
+\
+		const double twice1px = onepx + onepx; \
+		const double twice1py = onepy + onepy; \
+		const double twice1mx = onemx + onemx; \
+		const double twice1my = onemy + onemy; \
+\
+		const double xm1over2sq_times_ym1over2sq = xm1over2sq * ym1over2sq; \
+		const double xp1over2sq_times_ym1over2sq = xp1over2sq * ym1over2sq; \
+		const double xp1over2sq_times_yp1over2sq = xp1over2sq * yp1over2sq; \
+		const double xm1over2sq_times_yp1over2sq = xm1over2sq * yp1over2sq; \
+\
+		const double four_times_1px_times_1py = twice1px * twice1py; \
+		const double four_times_1mx_times_1py = twice1mx * twice1py; \
+		const double twice_xp1over2_times_1py = xp1over2 * twice1py; \
+		const double twice_xm1over2_times_1py = xm1over2 * twice1py; \
+\
+		const double twice_xm1over2_times_1my = xm1over2 * twice1my; \
+		const double twice_xp1over2_times_1my = xp1over2 * twice1my; \
+		const double four_times_1mx_times_1my = twice1mx * twice1my; \
+		const double four_times_1px_times_1my = twice1px * twice1my; \
+\
+		const double twice_1px_times_ym1over2 = twice1px * ym1over2; \
+		const double twice_1mx_times_ym1over2 = twice1mx * ym1over2; \
+		const double xp1over2_times_ym1over2 = xp1over2 * ym1over2; \
+		const double xm1over2_times_ym1over2 = xm1over2 * ym1over2; \
+\
+		const double xm1over2_times_yp1over2 = xm1over2 * yp1over2; \
+		const double xp1over2_times_yp1over2 = xp1over2 * yp1over2; \
+		const double twice_1mx_times_yp1over2 = twice1mx * yp1over2; \
+		const double twice_1px_times_yp1over2 = twice1px * yp1over2; \
+\
+		const double c00 = \
+			four_times_1px_times_1py * xm1over2sq_times_ym1over2sq; \
+		const double c00dx = \
+			twice_xp1over2_times_1py * xm1over2sq_times_ym1over2sq; \
+		const double c00dy = \
+			twice_1px_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
+		const double c00dxdy = \
+			xp1over2_times_yp1over2 * xm1over2sq_times_ym1over2sq; \
+\
+		const double c10 = \
+			four_times_1mx_times_1py * xp1over2sq_times_ym1over2sq; \
+		const double c10dx = \
+			twice_xm1over2_times_1py * xp1over2sq_times_ym1over2sq; \
+		const double c10dy = \
+			twice_1mx_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
+		const double c10dxdy = \
+			xm1over2_times_yp1over2 * xp1over2sq_times_ym1over2sq; \
+\
+		const double c01 = \
+			four_times_1px_times_1my * xm1over2sq_times_yp1over2sq; \
+		const double c01dx = \
+			twice_xp1over2_times_1my * xm1over2sq_times_yp1over2sq; \
+		const double c01dy = \
+			twice_1px_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
+		const double c01dxdy = \
+			xp1over2_times_ym1over2 * xm1over2sq_times_yp1over2sq; \
+\
+		const double c11 = \
+			four_times_1mx_times_1my * xp1over2sq_times_yp1over2sq; \
+		const double c11dx = \
+			twice_xm1over2_times_1my * xp1over2sq_times_yp1over2sq; \
+		const double c11dy = \
+			twice_1mx_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
+		const double c11dxdy = \
+			xm1over2_times_ym1over2 * xp1over2sq_times_yp1over2sq; \
+\
+		int band = bands; \
+\
+		do { \
+			double uno_one, uno_two, uno_thr, uno_fou; \
+			double dos_one, dos_two, dos_thr, dos_fou; \
+			double tre_one, tre_two, tre_thr, tre_fou; \
+			double qua_one, qua_two, qua_thr, qua_fou; \
+\
+			nohalo_subdivision(in[uno_two_shift], \
+				in[uno_thr_shift], \
+				in[uno_fou_shift], \
+				in[dos_one_shift], \
+				in[dos_two_shift], \
+				in[dos_thr_shift], \
+				in[dos_fou_shift], \
+				in[dos_fiv_shift], \
+				in[tre_one_shift], \
+				in[tre_two_shift], \
+				in[tre_thr_shift], \
+				in[tre_fou_shift], \
+				in[tre_fiv_shift], \
+				in[qua_one_shift], \
+				in[qua_two_shift], \
+				in[qua_thr_shift], \
+				in[qua_fou_shift], \
+				in[qua_fiv_shift], \
+				in[cin_two_shift], \
+				in[cin_thr_shift], \
+				in[cin_fou_shift], \
+				&uno_one, \
+				&uno_two, \
+				&uno_thr, \
+				&uno_fou, \
+				&dos_one, \
+				&dos_two, \
+				&dos_thr, \
+				&dos_fou, \
+				&tre_one, \
+				&tre_two, \
+				&tre_thr, \
+				&tre_fou, \
+				&qua_one, \
+				&qua_two, \
+				&qua_thr, \
+				&qua_fou); \
+\
+			const double double_result = \
+				lbbicubic(c00, \
+					c10, \
+					c01, \
+					c11, \
+					c00dx, \
+					c10dx, \
+					c01dx, \
+					c11dx, \
+					c00dy, \
+					c10dy, \
+					c01dy, \
+					c11dy, \
+					c00dxdy, \
+					c10dxdy, \
+					c01dxdy, \
+					c11dxdy, \
+					uno_one, \
+					uno_two, \
+					uno_thr, \
+					uno_fou, \
+					dos_one, \
+					dos_two, \
+					dos_thr, \
+					dos_fou, \
+					tre_one, \
+					tre_two, \
+					tre_thr, \
+					tre_fou, \
+					qua_one, \
+					qua_two, \
+					qua_thr, \
+					qua_fou); \
+\
+			{ \
+				const T result = to_##conversion<T>(double_result); \
+				in++; \
+				*out++ = result; \
+			} \
+\
+		} while (--band); \
+	}
 
+NOHALO_CONVERSION(fptypes)
+NOHALO_CONVERSION(withsign)
+NOHALO_CONVERSION(nosign)
 
-NOHALO_CONVERSION( fptypes )
-NOHALO_CONVERSION( withsign )
-NOHALO_CONVERSION( nosign )
-
-
-#define CALL( T, conversion )             \
-  nohalo_ ## conversion<T>( out,          \
-                            p,            \
-                            bands,        \
-                            lskip,        \
-                            relative_x,   \
-                            relative_y );
-
+#define CALL(T, conversion) \
+	nohalo_##conversion<T>(out, \
+		p, \
+		bands, \
+		lskip, \
+		relative_x, \
+		relative_y);
 
 /*
  * We need C linkage:
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateNohalo, vips_interpolate_nohalo,
-	VIPS_TYPE_INTERPOLATE );
+G_DEFINE_TYPE(VipsInterpolateNohalo, vips_interpolate_nohalo,
+	VIPS_TYPE_INTERPOLATE);
 }
 
-
 static void
-vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
-                                     void*            restrict out,
-                                     VipsRegion*      restrict in,
-                                     double                    absolute_x,
-                                     double                    absolute_y )
+vips_interpolate_nohalo_interpolate(VipsInterpolate *restrict interpolate,
+	void *restrict out,
+	VipsRegion *restrict in,
+	double absolute_x,
+	double absolute_y)
 {
-  /* absolute_x and absolute_y are always >= 2.0 (see double-check assert
-   * below), so we don't need floor(). 
-   *
-   * It's 2 not 0 since we ask for a window_offset of 2 at the bottom.
-   */
-  const int ix = (int) (absolute_x + 0.5);
-  const int iy = (int) (absolute_y + 0.5);
+	/* absolute_x and absolute_y are always >= 2.0 (see double-check assert
+	 * below), so we don't need floor().
+	 *
+	 * It's 2 not 0 since we ask for a window_offset of 2 at the bottom.
+	 */
+	const int ix = (int) (absolute_x + 0.5);
+	const int iy = (int) (absolute_y + 0.5);
 
-  /*
-   * Move the pointer to (the first band of) the top/left pixel of the
-   * 2x2 group of pixel centers which contains the sampling location
-   * in its convex hull:
-   */
-  const VipsPel* restrict p = VIPS_REGION_ADDR( in, ix, iy );
+	/*
+	 * Move the pointer to (the first band of) the top/left pixel of the
+	 * 2x2 group of pixel centers which contains the sampling location
+	 * in its convex hull:
+	 */
+	const VipsPel *restrict p = VIPS_REGION_ADDR(in, ix, iy);
 
-  const double relative_x = absolute_x - ix;
-  const double relative_y = absolute_y - iy;
+	const double relative_x = absolute_x - ix;
+	const double relative_y = absolute_y - iy;
 
-  /*
-   * VIPS versions of Nicolas's pixel addressing values.
-   */
-  const int lskip = VIPS_REGION_LSKIP( in ) / 
-	  VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
+	/*
+	 * VIPS versions of Nicolas's pixel addressing values.
+	 */
+	const int lskip = VIPS_REGION_LSKIP(in) /
+		VIPS_IMAGE_SIZEOF_ELEMENT(in->im);
 
-  /*
-   * Double the bands for complex images to account for the real and
-   * imaginary parts being computed independently:
-   */
-  const int actual_bands = in->im->Bands;
-  const int bands =
-    vips_band_format_iscomplex( in->im->BandFmt ) ? 
-      2 * actual_bands : actual_bands;
+	/*
+	 * Double the bands for complex images to account for the real and
+	 * imaginary parts being computed independently:
+	 */
+	const int actual_bands = in->im->Bands;
+	const int bands = vips_band_format_iscomplex(in->im->BandFmt)
+		? 2 * actual_bands
+		: actual_bands;
 
-  g_assert( ix - 2 >= in->valid.left );
-  g_assert( iy - 2 >= in->valid.top );
-  g_assert( ix + 2 <= VIPS_RECT_RIGHT( &in->valid ) );
-  g_assert( iy + 2 <= VIPS_RECT_BOTTOM( &in->valid ) );
+	g_assert(ix - 2 >= in->valid.left);
+	g_assert(iy - 2 >= in->valid.top);
+	g_assert(ix + 2 <= VIPS_RECT_RIGHT(&in->valid));
+	g_assert(iy + 2 <= VIPS_RECT_BOTTOM(&in->valid));
 
-  /* Confirm that absolute_x and absolute_y are >= 2, see above. 
-   */
-  g_assert( absolute_x >= 2.0 );
-  g_assert( absolute_y >= 2.0 );
+	/* Confirm that absolute_x and absolute_y are >= 2, see above.
+	 */
+	g_assert(absolute_x >= 2.0);
+	g_assert(absolute_y >= 2.0);
 
-  switch( in->im->BandFmt ) {
-  case VIPS_FORMAT_UCHAR:
-    CALL( unsigned char, nosign );
-    break;
+	switch (in->im->BandFmt) {
+	case VIPS_FORMAT_UCHAR:
+		CALL(unsigned char, nosign);
+		break;
 
-  case VIPS_FORMAT_CHAR:
-    CALL( signed char, withsign );
-    break;
+	case VIPS_FORMAT_CHAR:
+		CALL(signed char, withsign);
+		break;
 
-  case VIPS_FORMAT_USHORT:
-    CALL( unsigned short, nosign );
-    break;
+	case VIPS_FORMAT_USHORT:
+		CALL(unsigned short, nosign);
+		break;
 
-  case VIPS_FORMAT_SHORT:
-    CALL( signed short, withsign );
-    break;
+	case VIPS_FORMAT_SHORT:
+		CALL(signed short, withsign);
+		break;
 
-  case VIPS_FORMAT_UINT:
-    CALL( unsigned int, nosign );
-    break;
+	case VIPS_FORMAT_UINT:
+		CALL(unsigned int, nosign);
+		break;
 
-  case VIPS_FORMAT_INT:
-    CALL( signed int, withsign );
-    break;
+	case VIPS_FORMAT_INT:
+		CALL(signed int, withsign);
+		break;
 
-  /*
-   * Complex images are handled by doubling of bands.
-   */
-  case VIPS_FORMAT_FLOAT:
-  case VIPS_FORMAT_COMPLEX:
-    CALL( float, fptypes );
-    break;
+	/*
+	 * Complex images are handled by doubling of bands.
+	 */
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		CALL(float, fptypes);
+		break;
 
-  case VIPS_FORMAT_DOUBLE:
-  case VIPS_FORMAT_DPCOMPLEX:
-    CALL( double, fptypes );
-    break;
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		CALL(double, fptypes);
+		break;
 
-  default:
-    g_assert( 0 );
-    break;
-  }
+	default:
+		g_assert(0);
+		break;
+	}
 }
 
 static void
-vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
+vips_interpolate_nohalo_class_init(VipsInterpolateNohaloClass *klass)
 {
-  VipsObjectClass *object_class = VIPS_OBJECT_CLASS( klass );
-  VipsInterpolateClass *interpolate_class = VIPS_INTERPOLATE_CLASS( klass );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS(klass);
+	VipsInterpolateClass *interpolate_class = VIPS_INTERPOLATE_CLASS(klass);
 
-  object_class->nickname    = "nohalo";
-  object_class->description =
-    _( "edge sharpening resampler with halo reduction" );
+	object_class->nickname = "nohalo";
+	object_class->description =
+		_("edge sharpening resampler with halo reduction");
 
-  interpolate_class->interpolate   = vips_interpolate_nohalo_interpolate;
-  interpolate_class->window_size   = 6;
-  interpolate_class->window_offset = 2;
+	interpolate_class->interpolate = vips_interpolate_nohalo_interpolate;
+	interpolate_class->window_size = 6;
+	interpolate_class->window_offset = 2;
 }
 
 static void
-vips_interpolate_nohalo_init( VipsInterpolateNohalo *nohalo )
+vips_interpolate_nohalo_init(VipsInterpolateNohalo *nohalo)
 {
 }

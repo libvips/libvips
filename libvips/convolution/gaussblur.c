@@ -1,5 +1,5 @@
-/* Gaussian blur. 
- * 
+/* Gaussian blur.
+ *
  * 15/11/13
  * 	- from vips_sharpen()
  * 19/11/14
@@ -11,28 +11,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -57,118 +57,117 @@ typedef struct _VipsGaussblur {
 	VipsImage *in;
 	VipsImage *out;
 
-	gdouble sigma; 
-	gdouble min_ampl; 
-	VipsPrecision precision; 
+	gdouble sigma;
+	gdouble min_ampl;
+	VipsPrecision precision;
 
 } VipsGaussblur;
 
 typedef VipsOperationClass VipsGaussblurClass;
 
-G_DEFINE_TYPE( VipsGaussblur, vips_gaussblur, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE(VipsGaussblur, vips_gaussblur, VIPS_TYPE_OPERATION);
 
 static int
-vips_gaussblur_build( VipsObject *object )
+vips_gaussblur_build(VipsObject *object)
 {
 	VipsGaussblur *gaussblur = (VipsGaussblur *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
-	if( VIPS_OBJECT_CLASS( vips_gaussblur_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_gaussblur_parent_class)->build(object))
+		return -1;
 
 	/* vips_gaussmat() will make a 1x1 pixel mask for anything smaller than
 	 * this.
 	 */
-	if( gaussblur->sigma < 0.2 ) {
-		if( vips_copy( gaussblur->in, &t[1], NULL ) )
-			return( -1 ); 
+	if (gaussblur->sigma < 0.2) {
+		if (vips_copy(gaussblur->in, &t[1], NULL))
+			return -1;
 	}
 	else {
-		if( vips_gaussmat( &t[0], 
-			gaussblur->sigma, gaussblur->min_ampl, 
-			"separable", TRUE,
-			"precision", gaussblur->precision,
-			NULL ) )
-			return( -1 ); 
+		if (vips_gaussmat(&t[0],
+				gaussblur->sigma, gaussblur->min_ampl,
+				"separable", TRUE,
+				"precision", gaussblur->precision,
+				NULL))
+			return -1;
 
 #ifdef DEBUG
-		printf( "gaussblur: blurring with:\n" ); 
-		vips_matrixprint( t[0], NULL ); 
+		printf("gaussblur: blurring with:\n");
+		vips_matrixprint(t[0], NULL);
 #endif /*DEBUG*/
 
-		g_info( "gaussblur mask width %d", t[0]->Xsize );
+		g_info("gaussblur mask width %d", t[0]->Xsize);
 
-		if( vips_convsep( gaussblur->in, &t[1], t[0], 
-			"precision", gaussblur->precision,
-			NULL ) )
-			return( -1 );
+		if (vips_convsep(gaussblur->in, &t[1], t[0],
+				"precision", gaussblur->precision,
+				NULL))
+			return -1;
 	}
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set(object, "out", vips_image_new(), NULL);
 
-	if( vips_image_write( t[1], gaussblur->out ) )
-		return( -1 );
+	if (vips_image_write(t[1], gaussblur->out))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_gaussblur_class_init( VipsGaussblurClass *class )
+vips_gaussblur_class_init(VipsGaussblurClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gaussblur";
-	object_class->description = _( "gaussian blur" );
+	object_class->description = _("gaussian blur");
 	object_class->build = vips_gaussblur_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGaussblur, in ) );
+		G_STRUCT_OFFSET(VipsGaussblur, in));
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsGaussblur, out ) );
+	VIPS_ARG_IMAGE(class, "out", 2,
+		_("Output"),
+		_("Output image"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsGaussblur, out));
 
-	VIPS_ARG_DOUBLE( class, "sigma", 3, 
-		_( "Sigma" ), 
-		_( "Sigma of Gaussian" ),
+	VIPS_ARG_DOUBLE(class, "sigma", 3,
+		_("Sigma"),
+		_("Sigma of Gaussian"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGaussblur, sigma ),
-		0.0, 1000, 1.5 );
+		G_STRUCT_OFFSET(VipsGaussblur, sigma),
+		0.0, 1000, 1.5);
 
-	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
-		_( "Minimum amplitude" ), 
-		_( "Minimum amplitude of Gaussian" ),
+	VIPS_ARG_DOUBLE(class, "min_ampl", 3,
+		_("Minimum amplitude"),
+		_("Minimum amplitude of Gaussian"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGaussblur, min_ampl ),
-		0.001, 1.0, 0.2 );
+		G_STRUCT_OFFSET(VipsGaussblur, min_ampl),
+		0.001, 1.0, 0.2);
 
-	VIPS_ARG_ENUM( class, "precision", 4, 
-		_( "Precision" ), 
-		_( "Convolve with this precision" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsGaussblur, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
-
+	VIPS_ARG_ENUM(class, "precision", 4,
+		_("Precision"),
+		_("Convolve with this precision"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsGaussblur, precision),
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER);
 }
 
 static void
-vips_gaussblur_init( VipsGaussblur *gaussblur )
+vips_gaussblur_init(VipsGaussblur *gaussblur)
 {
-	gaussblur->sigma = 1.5; 
+	gaussblur->sigma = 1.5;
 	gaussblur->min_ampl = 0.2;
-	gaussblur->precision = VIPS_PRECISION_INTEGER; 
+	gaussblur->precision = VIPS_PRECISION_INTEGER;
 }
 
 /**
@@ -185,21 +184,21 @@ vips_gaussblur_init( VipsGaussblur *gaussblur )
  *
  * This operator runs vips_gaussmat() and vips_convsep() for you on an image.
  * Set @min_ampl smaller to generate a larger, more accurate mask. Set @sigma
- * larger to make the blur more blurry. 
+ * larger to make the blur more blurry.
  *
  * See also: vips_gaussmat(), vips_convsep().
- * 
+ *
  * Returns: 0 on success, -1 on error.
  */
-int 
-vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
+int
+vips_gaussblur(VipsImage *in, VipsImage **out, double sigma, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, sigma );
-	result = vips_call_split( "gaussblur", ap, in, out, sigma );  
-	va_end( ap );
+	va_start(ap, sigma);
+	result = vips_call_split("gaussblur", ap, in, out, sigma);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

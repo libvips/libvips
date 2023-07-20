@@ -11,10 +11,10 @@
  *    - Code tidied up, better error recovery.
  *    -	Bugs fixed in im_dup_*mask. No longer coredump.
  *    -	Bugs fixed in im_write_*mask. Now work for non-square matricies.
- *    -	im_copy_*mask_matrix, im_copy_matrix_*mask added: copy VIPS mask 
+ *    -	im_copy_*mask_matrix, im_copy_matrix_*mask added: copy VIPS mask
  *	structures into Numerical Recipies in C style matricies and vice
  *	versa. Both structures should have been built before copy attempted.
- *	See im_create_*mask, im_*mat_alloc. The matrix should be indexed by 0 
+ *	See im_create_*mask, im_*mat_alloc. The matrix should be indexed by 0
  *	to size-1.
  * 9/7/93 JC
  *    - some ANSIfication and tidies
@@ -43,7 +43,7 @@
  * 1/9/09
  * 	- move im_print_*mask() here
  * 12/11/09
- * 	- reading a float mask with im_read_imask() produced an incorrect 
+ * 	- reading a float mask with im_read_imask() produced an incorrect
  * 	  error messagge
  * 21/10/10
  * 	- gtk-doc
@@ -58,28 +58,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -106,11 +106,11 @@
  * @coeff: array of mask elements
  * @filename: the file this mask was read from, or should be written to
  *
- * An integer mask. 
+ * An integer mask.
  *
  * @scale lets the mask represent fractional values: for
  * example, in integer convolution (see im_conv()) the result of the
- * convolution is divided by @scale and then added to @offset before being 
+ * convolution is divided by @scale and then added to @offset before being
  * written to the output image.
  *
  * @scale and @offset default to 1 and 0. Various functions, such as
@@ -128,10 +128,10 @@
  * @coeff: array of mask elements
  * @filename: the file this mask was read from, or should be written to
  *
- * A floating-point mask. 
+ * A floating-point mask.
  *
  * As with #INTMASK, in convolution (see im_convf()) the result of the
- * convolution is divided by @scale and then added to @offset before being 
+ * convolution is divided by @scale and then added to @offset before being
  * written to the output image.
  *
  * @scale and @offset default to 1.0 and 0.0. Various functions, such as
@@ -156,16 +156,16 @@
  * Returns: zero.
  */
 int
-im_free_imask( INTMASK *in )
-{	
-	if( !in )
-		return( 0 );
+im_free_imask(INTMASK *in)
+{
+	if (!in)
+		return 0;
 
-	IM_FREE( in->coeff );
-	IM_FREE( in->filename );
-	IM_FREE( in );
+	IM_FREE(in->coeff);
+	IM_FREE(in->filename);
+	IM_FREE(in);
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -180,16 +180,16 @@ im_free_imask( INTMASK *in )
  * Returns: zero.
  */
 int
-im_free_dmask( DOUBLEMASK *in )
+im_free_dmask(DOUBLEMASK *in)
 {
-	if( !in )
-		return( 0 );
+	if (!in)
+		return 0;
 
-	IM_FREE( in->coeff );
-	IM_FREE( in->filename );
-	IM_FREE( in );
+	IM_FREE(in->coeff);
+	IM_FREE(in->filename);
+	IM_FREE(in);
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -198,29 +198,29 @@ im_free_dmask( DOUBLEMASK *in )
  * @xsize: mask width
  * @ysize: mask height
  *
- * Create an empty imask. You need to loop over @coeff to set the values. 
+ * Create an empty imask. You need to loop over @coeff to set the values.
  *
  * See also: im_create_imaskv().
  *
  * Returns: The newly-allocated mask.
  */
 INTMASK *
-im_create_imask( const char *filename, int xsize, int ysize )
-{	
+im_create_imask(const char *filename, int xsize, int ysize)
+{
 	INTMASK *out;
 	int size = xsize * ysize;
 
 	/* Check args.
 	 */
-	if( xsize <= 0 || ysize <= 0 || filename == NULL ) { 
-		im_error( "im_create_imask", "%s", _( "bad arguments" ) ); 
-		return( NULL );
+	if (xsize <= 0 || ysize <= 0 || filename == NULL) {
+		im_error("im_create_imask", "%s", _("bad arguments"));
+		return NULL;
 	}
 
 	/* Allocate and initialise structure.
 	 */
-	if( !(out = IM_NEW( NULL, INTMASK )) ) 
-		return( NULL );
+	if (!(out = IM_NEW(NULL, INTMASK)))
+		return NULL;
 	out->coeff = NULL;
 	out->filename = NULL;
 	out->scale = 1;
@@ -228,19 +228,19 @@ im_create_imask( const char *filename, int xsize, int ysize )
 	out->xsize = 0;
 	out->ysize = 0;
 
-	if( !(out->coeff = IM_ARRAY( NULL, size, int )) ) {
-		im_free_imask( out );
-		return( NULL );
+	if (!(out->coeff = IM_ARRAY(NULL, size, int))) {
+		im_free_imask(out);
+		return NULL;
 	}
-	(void) memset( (char *) out->coeff, 0, size * sizeof( int ) );
-	if( !(out->filename = im_strdup( NULL, filename )) ) {
-		im_free_imask( out );
-		return( NULL );
+	(void) memset((char *) out->coeff, 0, size * sizeof(int));
+	if (!(out->filename = im_strdup(NULL, filename))) {
+		im_free_imask(out);
+		return NULL;
 	}
-	out->xsize = xsize; 
+	out->xsize = xsize;
 	out->ysize = ysize;
 
-	return( out );
+	return out;
 }
 
 /**
@@ -257,22 +257,22 @@ im_create_imask( const char *filename, int xsize, int ysize )
  * Returns: The newly-allocated mask.
  */
 INTMASK *
-im_create_imaskv( const char *filename, int xsize, int ysize, ... )
+im_create_imaskv(const char *filename, int xsize, int ysize, ...)
 {
 	va_list ap;
 
 	INTMASK *out;
 	int i;
 
-	if( !(out = im_create_imask( filename, xsize, ysize )) )
-		return( NULL );
+	if (!(out = im_create_imask(filename, xsize, ysize)))
+		return NULL;
 
-	va_start( ap, ysize );
-	for( i = 0; i < xsize * ysize; i++ )
-		out->coeff[i] = va_arg( ap, int );
-	va_end( ap );
+	va_start(ap, ysize);
+	for (i = 0; i < xsize * ysize; i++)
+		out->coeff[i] = va_arg(ap, int);
+	va_end(ap);
 
-	return( out );
+	return out;
 }
 
 /**
@@ -281,29 +281,29 @@ im_create_imaskv( const char *filename, int xsize, int ysize, ... )
  * @xsize: mask width
  * @ysize: mask height
  *
- * Create an empty dmask. You need to loop over @coeff to set the values. 
+ * Create an empty dmask. You need to loop over @coeff to set the values.
  *
  * See also: im_create_dmaskv(), im_vips2mask().
  *
  * Returns: The newly-allocated mask.
  */
 DOUBLEMASK *
-im_create_dmask( const char *filename, int xsize, int ysize )
-{	
+im_create_dmask(const char *filename, int xsize, int ysize)
+{
 	DOUBLEMASK *out;
 	int size = xsize * ysize;
 
 	/* Check args.
 	 */
-	if( xsize <= 0 || ysize <= 0 || filename == NULL ) { 
-		im_error( "im_create_dmask", "%s", _( "bad arguments" ) ); 
-		return( NULL );
+	if (xsize <= 0 || ysize <= 0 || filename == NULL) {
+		im_error("im_create_dmask", "%s", _("bad arguments"));
+		return NULL;
 	}
 
 	/* Allocate and initialise structure.
 	 */
-	if( !(out = IM_NEW( NULL, DOUBLEMASK )) ) 
-		return( NULL );
+	if (!(out = IM_NEW(NULL, DOUBLEMASK)))
+		return NULL;
 	out->coeff = NULL;
 	out->filename = NULL;
 	out->scale = 1.0;
@@ -311,19 +311,19 @@ im_create_dmask( const char *filename, int xsize, int ysize )
 	out->xsize = 0;
 	out->ysize = 0;
 
-	if( !(out->coeff = IM_ARRAY( NULL, size, double )) ) {
-		im_free_dmask( out );
-		return( NULL );
+	if (!(out->coeff = IM_ARRAY(NULL, size, double))) {
+		im_free_dmask(out);
+		return NULL;
 	}
-	(void) memset( (char *) out->coeff, 0, size * sizeof( double ) );
-	if( !(out->filename = im_strdup( NULL, filename )) ) {
-		im_free_dmask( out );
-		return( NULL );
+	(void) memset((char *) out->coeff, 0, size * sizeof(double));
+	if (!(out->filename = im_strdup(NULL, filename))) {
+		im_free_dmask(out);
+		return NULL;
 	}
-	out->xsize = xsize; 
+	out->xsize = xsize;
 	out->ysize = ysize;
 
-	return( out );
+	return out;
 }
 
 /**
@@ -340,81 +340,81 @@ im_create_dmask( const char *filename, int xsize, int ysize )
  * Returns: The newly-allocated mask.
  */
 DOUBLEMASK *
-im_create_dmaskv( const char *filename, int xsize, int ysize, ... )
-{	
+im_create_dmaskv(const char *filename, int xsize, int ysize, ...)
+{
 	va_list ap;
 
 	DOUBLEMASK *out;
 	int i;
 
-	if( !(out = im_create_dmask( filename, xsize, ysize )) )
-		return( NULL );
+	if (!(out = im_create_dmask(filename, xsize, ysize)))
+		return NULL;
 
-	va_start( ap, ysize );
-	for( i = 0; i < xsize * ysize; i++ )
-		out->coeff[i] = va_arg( ap, double );
-	va_end( ap );
+	va_start(ap, ysize);
+	for (i = 0; i < xsize * ysize; i++)
+		out->coeff[i] = va_arg(ap, double);
+	va_end(ap);
 
-	return( out );
+	return out;
 }
 
-/* Read a line from a file! 
+/* Read a line from a file!
  */
 static int
-get_line( FILE *fp, char *buf )
+get_line(FILE *fp, char *buf)
 {
-	if( !fgets( buf, MAX_LINE, fp ) ) {
-		im_error( "read_mask", "%s", _( "unexpected EOF" ) );
-		return( -1 );
+	if (!fgets(buf, MAX_LINE, fp)) {
+		im_error("read_mask", "%s", _("unexpected EOF"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /* width, height, optional scale, optional offset.
  */
 static int
-read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
+read_header(FILE *fp, int *xs, int *ys, double *scale, double *offset)
 {
 	char buf[MAX_LINE];
 	char *p, *q;
 	double v[4];
 	int i;
 
-	/* Read the first line: should contain size and optional 
-	 * scale + offset. 
+	/* Read the first line: should contain size and optional
+	 * scale + offset.
 	 */
-	if( get_line( fp, buf ) ) 
-		return( -1 );
+	if (get_line(fp, buf))
+		return -1;
 
 	/* Read as space separated doubles. \n is in the break list because
 	 * our line will (usually) have a trailing \n which we want to count
 	 * as whitespace.
 	 */
-	p = buf; 
-	for( i = 0, p = buf; 
-		i < 4 && (q = im_break_token( p, " \";,\t\n" )); 
-		i++, p = q ) 
-		v[i] = g_ascii_strtod( p, NULL );
+	p = buf;
+	for (i = 0, p = buf;
+		 i < 4 && (q = im_break_token(p, " \";,\t\n"));
+		 i++, p = q)
+		v[i] = g_ascii_strtod(p, NULL);
 
-	if( (i != 2 && i != 4) ||
-		ceil( v[0] ) != v[0] ||
-		ceil( v[1] ) != v[1] ||
+	if ((i != 2 && i != 4) ||
+		ceil(v[0]) != v[0] ||
+		ceil(v[1]) != v[1] ||
 		v[0] <= 0 ||
-		v[1] <= 0 ) {
-		im_error( "read_header", 
-			"%s", _( "error reading matrix header" ) );
-		return( -1 );
+		v[1] <= 0) {
+		im_error("read_header",
+			"%s", _("error reading matrix header"));
+		return -1;
 	}
-	if( i == 4 && v[2] == 0 ) {
-		im_error( "read_header", 
-			"%s", _( "scale should be non-zero" ) );
-		return( -1 );
+	if (i == 4 && v[2] == 0) {
+		im_error("read_header",
+			"%s", _("scale should be non-zero"));
+		return -1;
 	}
 
 	*xs = v[0];
 	*ys = v[1];
-	if( i == 2 ) {
+	if (i == 2) {
 		*scale = 1.0;
 		*offset = 0.0;
 	}
@@ -423,7 +423,7 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
 		*offset = v[3];
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -433,18 +433,18 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
  * Reads a matrix from a file.
  *
  * Matrix files have a simple format that's supposed to be easy to create with
- * a text editor or a spreadsheet. 
+ * a text editor or a spreadsheet.
  *
  * The first line has four numbers for width, height, scale and
  * offset (scale and offset may be omitted, in which case they default to 1.0
  * and 0.0). Scale must be non-zero. Width and height must be positive
- * integers. The numbers are separated by any mixture of spaces, commas, 
- * tabs and quotation marks ("). The scale and offset fields may be 
+ * integers. The numbers are separated by any mixture of spaces, commas,
+ * tabs and quotation marks ("). The scale and offset fields may be
  * floating-point, and must use '.'
  * as a decimal separator.
  *
  * Subsequent lines each hold one line of matrix data, with numbers again
- * separated by any mixture of spaces, commas, 
+ * separated by any mixture of spaces, commas,
  * tabs and quotation marks ("). The numbers may be floating-point, and must
  * use '.'
  * as a decimal separator.
@@ -457,7 +457,7 @@ read_header( FILE *fp, int *xs, int *ys, double *scale, double *offset )
  * Returns: the loaded mask on success, or NULL on error.
  */
 DOUBLEMASK *
-im_read_dmask( const char *filename )
+im_read_dmask(const char *filename)
 {
 	FILE *fp;
 	double sc, off;
@@ -466,37 +466,37 @@ im_read_dmask( const char *filename )
 	int x, y, i;
 	char buf[MAX_LINE];
 
-	if( !(fp = im__file_open_read( filename, NULL, TRUE )) ) 
-		return( NULL );
+	if (!(fp = im__file_open_read(filename, NULL, TRUE)))
+		return NULL;
 
-	if( read_header( fp, &xs, &ys, &sc, &off ) ) {
-		fclose( fp );
-		return( NULL );
+	if (read_header(fp, &xs, &ys, &sc, &off)) {
+		fclose(fp);
+		return NULL;
 	}
 
-	if( !(out = im_create_dmask( filename, xs, ys )) ) {
-		fclose( fp );
-		return( NULL );
+	if (!(out = im_create_dmask(filename, xs, ys))) {
+		fclose(fp);
+		return NULL;
 	}
 	out->scale = sc;
 	out->offset = off;
 
-	for( i = 0, y = 0; y < ys; y++ ) {
+	for (i = 0, y = 0; y < ys; y++) {
 		char *p;
 
-		if( get_line( fp, buf ) ) {
-			im_free_dmask( out );
-			fclose( fp );
-			return( NULL );
+		if (get_line(fp, buf)) {
+			im_free_dmask(out);
+			fclose(fp);
+			return NULL;
 		}
 
-		for( p = buf, x = 0; p && x < xs; 
-			x++, i++, p = im_break_token( p, " \t,\";" ) ) 
-			out->coeff[i] = g_ascii_strtod( p, NULL );
+		for (p = buf, x = 0; p && x < xs;
+			 x++, i++, p = im_break_token(p, " \t,\";"))
+			out->coeff[i] = g_ascii_strtod(p, NULL);
 	}
-	fclose( fp );
+	fclose(fp);
 
-	return( out );
+	return out;
 }
 
 /**
@@ -514,48 +514,48 @@ im_read_dmask( const char *filename )
  * Returns: the loaded mask on success, or NULL on error.
  */
 INTMASK *
-im_read_imask( const char *filename )
+im_read_imask(const char *filename)
 {
 	DOUBLEMASK *dmask;
 	INTMASK *imask;
 	int i;
 
-	if( !(dmask = im_read_dmask( filename )) )
-		return( NULL );
+	if (!(dmask = im_read_dmask(filename)))
+		return NULL;
 
-	if( ceil( dmask->scale ) != dmask->scale || 
-		ceil( dmask->offset ) != dmask->offset ) {
-		im_error( "im_read_imask", 
-			"%s", _( "scale and offset should be int" ) );
-		im_free_dmask( dmask );
+	if (ceil(dmask->scale) != dmask->scale ||
+		ceil(dmask->offset) != dmask->offset) {
+		im_error("im_read_imask",
+			"%s", _("scale and offset should be int"));
+		im_free_dmask(dmask);
 
-		return( NULL );
+		return NULL;
 	}
 
-	for( i = 0; i < dmask->xsize * dmask->ysize; i++ ) 
-		if( ceil( dmask->coeff[i] ) != dmask->coeff[i] ) {
-			im_error( "im_read_imask", _( "ceofficient at "
-				"position (%d, %d) is not int" ), 
+	for (i = 0; i < dmask->xsize * dmask->ysize; i++)
+		if (ceil(dmask->coeff[i]) != dmask->coeff[i]) {
+			im_error("im_read_imask", _("ceofficient at "
+										"position (%d, %d) is not int"),
 				i % dmask->xsize,
-				i / dmask->xsize );
-			im_free_dmask( dmask );
+				i / dmask->xsize);
+			im_free_dmask(dmask);
 
-			return( NULL );
+			return NULL;
 		}
 
-	if( !(imask = im_create_imask( filename, 
-		dmask->xsize, dmask->ysize )) ) {
-		im_free_dmask( dmask );
-		return( NULL );
+	if (!(imask = im_create_imask(filename,
+			  dmask->xsize, dmask->ysize))) {
+		im_free_dmask(dmask);
+		return NULL;
 	}
 	imask->scale = dmask->scale;
 	imask->offset = dmask->offset;
-	for( i = 0; i < dmask->xsize * dmask->ysize; i++ ) 
+	for (i = 0; i < dmask->xsize * dmask->ysize; i++)
 		imask->coeff[i] = dmask->coeff[i];
 
-	im_free_dmask( dmask );
+	im_free_dmask(dmask);
 
-	return( imask );
+	return imask;
 }
 
 /**
@@ -570,49 +570,49 @@ im_read_imask( const char *filename )
  * Returns: the converted mask, or NULL on error.
  */
 INTMASK *
-im_scale_dmask( DOUBLEMASK *in, const char *filename )
+im_scale_dmask(DOUBLEMASK *in, const char *filename)
 {
 	const int size = in->xsize * in->ysize;
 
 	INTMASK *out;
-	double maxval, dsum; 
+	double maxval, dsum;
 	int i;
 	int isum;
 
-	if( im_check_dmask( "im_scale_dmask", in ) ||
-		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
-		return( NULL );
+	if (im_check_dmask("im_scale_dmask", in) ||
+		!(out = im_create_imask(filename, in->xsize, in->ysize)))
+		return NULL;
 
 	/* Find mask max.
 	 */
 	maxval = in->coeff[0];
-	for( i = 0; i < size; i++ ) 
-		if( in->coeff[i] > maxval )
+	for (i = 0; i < size; i++)
+		if (in->coeff[i] > maxval)
 			maxval = in->coeff[i];
 
 	/* Copy and scale, setting max to 20.
 	 */
-	for( i = 0; i < size; i++ ) 
-		out->coeff[i] = IM_RINT( in->coeff[i] * 20.0 / maxval );
+	for (i = 0; i < size; i++)
+		out->coeff[i] = IM_RINT(in->coeff[i] * 20.0 / maxval);
 	out->offset = in->offset;
 
 	/* Set the scale to match the adjustment to max.
 	 */
 	isum = 0;
 	dsum = 0.0;
-	for( i = 0; i < size; i++ ) { 
-		isum += out->coeff[i]; 
+	for (i = 0; i < size; i++) {
+		isum += out->coeff[i];
 		dsum += in->coeff[i];
 	}
 
-	if( dsum == in->scale )
+	if (dsum == in->scale)
 		out->scale = isum;
-	else if( dsum == 0.0 )
+	else if (dsum == 0.0)
 		out->scale = 1.0;
 	else
-		out->scale = IM_RINT( in->scale * isum / dsum );
+		out->scale = IM_RINT(in->scale * isum / dsum);
 
-	return( out );	
+	return out;
 }
 
 /**
@@ -620,30 +620,30 @@ im_scale_dmask( DOUBLEMASK *in, const char *filename )
  * @in: mask to convert
  * @filename: filename for returned mask
  *
- * Make an imask from the dmask, rounding to nearest. 
+ * Make an imask from the dmask, rounding to nearest.
  *
  * See also: im_scale_dmask().
  *
  * Returns: the converted mask, or NULL on error.
  */
 INTMASK *
-im_dmask2imask( DOUBLEMASK *in, const char *filename )
+im_dmask2imask(DOUBLEMASK *in, const char *filename)
 {
 	const int size = in->xsize * in->ysize;
 
 	INTMASK *out;
 	int i;
 
-	if( im_check_dmask( "im_dmask2imask", in ) ||
-		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
-		return( NULL );
+	if (im_check_dmask("im_dmask2imask", in) ||
+		!(out = im_create_imask(filename, in->xsize, in->ysize)))
+		return NULL;
 
-	for( i = 0; i < size; i++ ) 
-		out->coeff[i] = IM_RINT( in->coeff[i] );
-	out->offset = IM_RINT( in->offset );
-	out->scale = IM_RINT( in->scale );
+	for (i = 0; i < size; i++)
+		out->coeff[i] = IM_RINT(in->coeff[i]);
+	out->offset = IM_RINT(in->offset);
+	out->scale = IM_RINT(in->scale);
 
-	return( out );	
+	return out;
 }
 
 /**
@@ -658,23 +658,23 @@ im_dmask2imask( DOUBLEMASK *in, const char *filename )
  * Returns: the converted mask, or NULL on error.
  */
 DOUBLEMASK *
-im_imask2dmask( INTMASK *in, const char *filename )
+im_imask2dmask(INTMASK *in, const char *filename)
 {
 	const int size = in->xsize * in->ysize;
 
 	DOUBLEMASK *out;
 	int i;
 
-	if( im_check_imask( "im_imask2dmask", in ) ||
-		!(out = im_create_dmask( filename, in->xsize, in->ysize )) )
-		return( NULL );
+	if (im_check_imask("im_imask2dmask", in) ||
+		!(out = im_create_dmask(filename, in->xsize, in->ysize)))
+		return NULL;
 
-	for( i = 0; i < size; i++ ) 
+	for (i = 0; i < size; i++)
 		out->coeff[i] = in->coeff[i];
 	out->offset = in->offset;
 	out->scale = in->scale;
 
-	return( out );	
+	return out;
 }
 
 /**
@@ -688,19 +688,19 @@ im_imask2dmask( INTMASK *in, const char *filename )
  *
  * Returns: 0 on success, or -1 on error.
  */
-void 
-im_norm_dmask( DOUBLEMASK *mask )
-{ 	
+void
+im_norm_dmask(DOUBLEMASK *mask)
+{
 	const int n = mask->xsize * mask->ysize;
 	const double scale = (mask->scale == 0) ? 0 : (1.0 / mask->scale);
 
 	int i;
 
-	if( im_check_dmask( "im_norm_dmask", mask ) ||
-		(1.0 == scale && 0.0 == mask->offset) )
+	if (im_check_dmask("im_norm_dmask", mask) ||
+		(1.0 == scale && 0.0 == mask->offset))
 		return;
 
-	for( i = 0; i < n; i++ )
+	for (i = 0; i < n; i++)
 		mask->coeff[i] = mask->coeff[i] * scale + mask->offset;
 
 	mask->scale = 1.0;
@@ -719,22 +719,22 @@ im_norm_dmask( DOUBLEMASK *mask )
  * Returns: the mask copy, or NULL on error.
  */
 INTMASK *
-im_dup_imask( INTMASK *in, const char *filename )
+im_dup_imask(INTMASK *in, const char *filename)
 {
 	INTMASK *out;
 	int i;
 
-	if( im_check_imask( "im_dup_imask", in ) ||
-		!(out = im_create_imask( filename, in->xsize, in->ysize )) )
-		return( NULL );
+	if (im_check_imask("im_dup_imask", in) ||
+		!(out = im_create_imask(filename, in->xsize, in->ysize)))
+		return NULL;
 
-        out->offset = in->offset; 
+	out->offset = in->offset;
 	out->scale = in->scale;
 
-        for( i = 0; i < in->xsize * in->ysize; i++ )
+	for (i = 0; i < in->xsize * in->ysize; i++)
 		out->coeff[i] = in->coeff[i];
 
-        return( out );
+	return out;
 }
 
 /**
@@ -749,49 +749,49 @@ im_dup_imask( INTMASK *in, const char *filename )
  * Returns: the mask copy, or NULL on error.
  */
 DOUBLEMASK *
-im_dup_dmask( DOUBLEMASK *in, const char *filename )
+im_dup_dmask(DOUBLEMASK *in, const char *filename)
 {
 	DOUBLEMASK *out;
 	int i;
 
-	if( im_check_dmask( "im_dup_dmask", in ) ||
-		!(out = im_create_dmask( filename, in->xsize, in->ysize )) )
-		return( NULL );
+	if (im_check_dmask("im_dup_dmask", in) ||
+		!(out = im_create_dmask(filename, in->xsize, in->ysize)))
+		return NULL;
 
-        out->offset = in->offset; 
+	out->offset = in->offset;
 	out->scale = in->scale;
 
-        for( i = 0; i < in->xsize * in->ysize; i++ )
+	for (i = 0; i < in->xsize * in->ysize; i++)
 		out->coeff[i] = in->coeff[i];
 
-        return( out );
+	return out;
 }
 
 /* Write to file.
  */
-static int 
-write_line( FILE *fp, const char *fmt, ... )
+static int
+write_line(FILE *fp, const char *fmt, ...)
 {
 	va_list ap;
 
-	va_start( ap, fmt );
-	if( !vfprintf( fp, fmt, ap ) ) {
-		im_error( "write_mask", "%s", _( "write error, disc full?" ) );
-		return( -1 );
+	va_start(ap, fmt);
+	if (!vfprintf(fp, fmt, ap)) {
+		im_error("write_mask", "%s", _("write error, disc full?"));
+		return -1;
 	}
-	va_end( ap );
+	va_end(ap);
 
-	return( 0 );
+	return 0;
 }
 
-static int 
-write_double( FILE *fp, double d )
+static int
+write_double(FILE *fp, double d)
 {
 	char buf[G_ASCII_DTOSTR_BUF_SIZE];
 
-	fprintf( fp, "%s", g_ascii_dtostr( buf, sizeof( buf ), d ) );
+	fprintf(fp, "%s", g_ascii_dtostr(buf, sizeof(buf), d));
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -806,36 +806,36 @@ write_double( FILE *fp, double d )
  *
  * Returns: 0 on success, or -1 on error.
  */
-int 
-im_write_imask_name( INTMASK *in, const char *filename )
+int
+im_write_imask_name(INTMASK *in, const char *filename)
 {
 	FILE *fp;
 	int x, y, i;
 
-	if( im_check_imask( "im_write_imask_name", in ) ||
-		!(fp = im__file_open_write( filename, TRUE )) )
-		return( -1 );
+	if (im_check_imask("im_write_imask_name", in) ||
+		!(fp = im__file_open_write(filename, TRUE)))
+		return -1;
 
-	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {
-		fclose( fp ); 
-		return( -1 );
+	if (write_line(fp, "%d %d", in->xsize, in->ysize)) {
+		fclose(fp);
+		return -1;
 	}
-	if( in->scale != 1 || in->offset != 0 ) 
-		write_line( fp, " %d %d", in->scale, in->offset );
-	write_line( fp, "\n" );
+	if (in->scale != 1 || in->offset != 0)
+		write_line(fp, " %d %d", in->scale, in->offset);
+	write_line(fp, "\n");
 
-	for( i = 0, y = 0; y < in->ysize; y++ ) {
-		for( x = 0; x < in->xsize; x++, i++ ) 
-			write_line( fp, "%d ", in->coeff[i] );
+	for (i = 0, y = 0; y < in->ysize; y++) {
+		for (x = 0; x < in->xsize; x++, i++)
+			write_line(fp, "%d ", in->coeff[i]);
 
-		if( write_line( fp, "\n" ) ) {
-			fclose( fp ); 
-			return( -1 );
+		if (write_line(fp, "\n")) {
+			fclose(fp);
+			return -1;
 		}
 	}
-	fclose( fp );
+	fclose(fp);
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -848,15 +848,15 @@ im_write_imask_name( INTMASK *in, const char *filename )
  *
  * Returns: 0 on success, or -1 on error.
  */
-int 
-im_write_imask( INTMASK *in )
+int
+im_write_imask(INTMASK *in)
 {
-	if( !in->filename ) { 
-		im_error( "im_write_imask", "%s", _( "filename not set" ) );
-		return( -1 );
+	if (!in->filename) {
+		im_error("im_write_imask", "%s", _("filename not set"));
+		return -1;
 	}
 
-	return( im_write_imask_name( in, in->filename ) );
+	return im_write_imask_name(in, in->filename);
 }
 
 /**
@@ -871,42 +871,42 @@ im_write_imask( INTMASK *in )
  *
  * Returns: 0 on success, or -1 on error.
  */
-int 
-im_write_dmask_name( DOUBLEMASK *in, const char *filename )
+int
+im_write_dmask_name(DOUBLEMASK *in, const char *filename)
 {
 	FILE *fp;
 	int x, y, i;
 
-	if( im_check_dmask( "im_write_dmask_name", in ) ||
-		!(fp = im__file_open_write( filename, TRUE )) )
-		return( -1 );
+	if (im_check_dmask("im_write_dmask_name", in) ||
+		!(fp = im__file_open_write(filename, TRUE)))
+		return -1;
 
-	if( write_line( fp, "%d %d", in->xsize, in->ysize ) ) {
-		fclose( fp ); 
-		return( -1 );
+	if (write_line(fp, "%d %d", in->xsize, in->ysize)) {
+		fclose(fp);
+		return -1;
 	}
-	if( in->scale != 1.0 || in->offset != 0.0 ) {
-		write_line( fp, " " );
-		write_double( fp, in->scale );
-		write_line( fp, " " );
-		write_double( fp, in->offset );
+	if (in->scale != 1.0 || in->offset != 0.0) {
+		write_line(fp, " ");
+		write_double(fp, in->scale);
+		write_line(fp, " ");
+		write_double(fp, in->offset);
 	}
-	write_line( fp, "\n" );
+	write_line(fp, "\n");
 
-	for( i = 0, y = 0; y < in->ysize; y++ ) {
-		for( x = 0; x < in->xsize; x++, i++ ) {
-			write_double( fp, in->coeff[i] );
-			write_line( fp, " " );
+	for (i = 0, y = 0; y < in->ysize; y++) {
+		for (x = 0; x < in->xsize; x++, i++) {
+			write_double(fp, in->coeff[i]);
+			write_line(fp, " ");
 		}
 
-		if( write_line( fp, "\n" ) ) {
-			fclose( fp ); 
-			return( -1 );
+		if (write_line(fp, "\n")) {
+			fclose(fp);
+			return -1;
 		}
 	}
-	fclose( fp );
+	fclose(fp);
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -920,68 +920,67 @@ im_write_dmask_name( DOUBLEMASK *in, const char *filename )
  *
  * Returns: 0 on success, or -1 on error.
  */
-int 
-im_write_dmask( DOUBLEMASK *in )
+int
+im_write_dmask(DOUBLEMASK *in)
 {
-	if( !in->filename ) { 
-		im_error( "im_write_dmask", "%s", _( "filename not set" ) );
-		return( -1 );
+	if (!in->filename) {
+		im_error("im_write_dmask", "%s", _("filename not set"));
+		return -1;
 	}
 
-	return( im_write_dmask_name( in, in->filename ) );
+	return im_write_dmask_name(in, in->filename);
 }
 
 /* Copy an imask into a matrix. Only used internally by matrix package for
  * invert.
  */
-void 
-im_copy_imask_matrix( INTMASK *mask, int **matrix )
-{	
+void
+im_copy_imask_matrix(INTMASK *mask, int **matrix)
+{
 	int x, y;
 	int *p = mask->coeff;
 
-	for( y = 0; y < mask->ysize; y++ )
-		for( x = 0; x < mask->xsize; x++ )
+	for (y = 0; y < mask->ysize; y++)
+		for (x = 0; x < mask->xsize; x++)
 			matrix[x][y] = *p++;
 }
 
-
 /* Copy a matrix into an imask.
  */
-void 
-im_copy_matrix_imask( int **matrix, INTMASK *mask )
-{	
+void
+im_copy_matrix_imask(int **matrix, INTMASK *mask)
+{
 	int x, y;
 	int *p = mask->coeff;
 
-	for( y = 0; y < mask->ysize; y++ )
-		for( x = 0; x < mask->xsize; x++ )
+	for (y = 0; y < mask->ysize; y++)
+		for (x = 0; x < mask->xsize; x++)
 			*p++ = matrix[x][y];
 }
 
 /* Copy a dmask into a matrix.
  */
-void 
-im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix )
-{	
+void
+im_copy_dmask_matrix(DOUBLEMASK *mask, double **matrix)
+{
 	int x, y;
 	double *p = mask->coeff;
 
-	for( y = 0; y < mask->ysize; y++ )
-		for( x = 0; x < mask->xsize; x++ )
+	for (y = 0; y < mask->ysize; y++)
+		for (x = 0; x < mask->xsize; x++)
 			matrix[x][y] = *p++;
 }
 
 /* Copy a matrix to a dmask.
  */
-void 
-im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask )
-{	
+void
+im_copy_matrix_dmask(double **matrix, DOUBLEMASK *mask)
+{
 	int x, y;
 	double *p = mask->coeff;
 
-	for( y = 0; y < mask->ysize; y++ )
-		for( x = 0; x < mask->xsize; x++ )
+	for (y = 0; y < mask->ysize; y++)
+		for (x = 0; x < mask->xsize; x++)
 			*p++ = matrix[x][y];
 }
 
@@ -993,19 +992,19 @@ im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask )
  *
  * See also: im_print_dmask().
  */
-void 
-im_print_imask( INTMASK *in )
+void
+im_print_imask(INTMASK *in)
 {
-        int i, j, k;
+	int i, j, k;
 
-        printf( "%s: %d %d %d %d\n",
-		in->filename, in->xsize, in->ysize, in->scale, in->offset );
+	printf("%s: %d %d %d %d\n",
+		in->filename, in->xsize, in->ysize, in->scale, in->offset);
 
-        for( k = 0, j = 0; j < in->ysize; j++ ) {
-                for( i = 0; i < in->xsize; i++, k++ )
-                        printf( "%d\t", in->coeff[k] );
+	for (k = 0, j = 0; j < in->ysize; j++) {
+		for (i = 0; i < in->xsize; i++, k++)
+			printf("%d\t", in->coeff[k]);
 
-                printf( "\n" );
+		printf("\n");
 	}
 }
 
@@ -1017,19 +1016,19 @@ im_print_imask( INTMASK *in )
  *
  * See also: im_print_imask().
  */
-void 
-im_print_dmask( DOUBLEMASK *in )
+void
+im_print_dmask(DOUBLEMASK *in)
 {
-        int i, j, k;
+	int i, j, k;
 
-        printf( "%s: %d %d %f %f\n",
-		in->filename, in->xsize, in->ysize, in->scale, in->offset );
+	printf("%s: %d %d %f %f\n",
+		in->filename, in->xsize, in->ysize, in->scale, in->offset);
 
-        for( k = 0, j = 0; j < in->ysize; j++ ) {
-                for( i = 0; i < in->xsize; i++, k++ )
-                        printf( "%f\t", in->coeff[k] );
+	for (k = 0, j = 0; j < in->ysize; j++) {
+		for (i = 0; i < in->xsize; i++, k++)
+			printf("%f\t", in->coeff[k]);
 
-                printf( "\n" );
+		printf("\n");
 	}
 }
 
@@ -1046,18 +1045,18 @@ im_print_dmask( DOUBLEMASK *in )
  * Returns: the mask, or NULL on error.
  */
 DOUBLEMASK *
-im_local_dmask( VipsImage *out, DOUBLEMASK *mask )
+im_local_dmask(VipsImage *out, DOUBLEMASK *mask)
 {
-	if( im_check_dmask( "im_local_dmask", mask ) )
-		return( NULL );
+	if (im_check_dmask("im_local_dmask", mask))
+		return NULL;
 
-	if( im_add_close_callback( out, 
-		(im_callback_fn) im_free_dmask, mask, NULL ) ) {
-		im_free_dmask( mask );
-		return( NULL );
+	if (im_add_close_callback(out,
+			(im_callback_fn) im_free_dmask, mask, NULL)) {
+		im_free_dmask(mask);
+		return NULL;
 	}
 
-	return( mask );
+	return mask;
 }
 
 /**
@@ -1073,16 +1072,16 @@ im_local_dmask( VipsImage *out, DOUBLEMASK *mask )
  * Returns: the mask, or NULL on error.
  */
 INTMASK *
-im_local_imask( VipsImage *out, INTMASK *mask )
+im_local_imask(VipsImage *out, INTMASK *mask)
 {
-	if( im_check_imask( "im_local_dmask", mask ) )
-		return( NULL );
+	if (im_check_imask("im_local_dmask", mask))
+		return NULL;
 
-	if( im_add_close_callback( out, 
-		(im_callback_fn) im_free_imask, mask, NULL ) ) {
-		im_free_imask( mask );
-		return( NULL );
+	if (im_add_close_callback(out,
+			(im_callback_fn) im_free_imask, mask, NULL)) {
+		im_free_imask(mask);
+		return NULL;
 	}
 
-	return( mask );
+	return mask;
 }

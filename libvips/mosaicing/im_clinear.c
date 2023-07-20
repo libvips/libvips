@@ -7,10 +7,10 @@
  * @(#) No images are involved in this function and the calculated parameters
  * @(#) are returned in scale angle deltax and deltay of the TiePoints struct.
  * @(#)
- * @(#) int vips_clinear( points )
+ * @(#) int vips_clinear(points)
  * @(#) TiePoints *points;
- * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#)
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -25,28 +25,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -63,8 +63,8 @@
 
 #include "pmosaicing.h"
 
-int 
-vips__clinear( TiePoints *points )
+int
+vips__clinear(TiePoints *points)
 {
 	VipsImage *mat, *matinv;
 	double *g;
@@ -87,14 +87,14 @@ vips__clinear( TiePoints *points )
 	dev = &points->deviation[0];
 	elms = points->nopoints;
 
-	if( !(mat = vips_image_new_matrix( 4, 4 )) )
-		return( -1 );
-	if( !(g = VIPS_ARRAY( NULL, 4, double )) ) {
-		g_object_unref( mat );
-		return( -1 );
+	if (!(mat = vips_image_new_matrix(4, 4)))
+		return -1;
+	if (!(g = VIPS_ARRAY(NULL, 4, double))) {
+		g_object_unref(mat);
+		return -1;
 	}
 
-	for( i = 0; i < points->nopoints; i++ ) {
+	for (i = 0; i < points->nopoints; i++) {
 		sx1 += xref[i];
 		sx1x1 += xref[i] * xref[i];
 		sy1 += yref[i];
@@ -107,64 +107,66 @@ vips__clinear( TiePoints *points )
 		sy2 += ysec[i];
 	}
 
-	*VIPS_MATRIX( mat, 0, 0 ) = sx1x1 + sy1y1;
-	*VIPS_MATRIX( mat, 1, 0 ) = 0;
-	*VIPS_MATRIX( mat, 2, 0 ) = sx1;
-	*VIPS_MATRIX( mat, 3, 0 ) = sy1;
+	*VIPS_MATRIX(mat, 0, 0) = sx1x1 + sy1y1;
+	*VIPS_MATRIX(mat, 1, 0) = 0;
+	*VIPS_MATRIX(mat, 2, 0) = sx1;
+	*VIPS_MATRIX(mat, 3, 0) = sy1;
 
-	*VIPS_MATRIX( mat, 0, 1 ) = 0;
-	*VIPS_MATRIX( mat, 1, 1 ) = sx1x1 + sy1y1;
-	*VIPS_MATRIX( mat, 2, 1 ) = -sy1;
-	*VIPS_MATRIX( mat, 3, 1 ) = sx1;
+	*VIPS_MATRIX(mat, 0, 1) = 0;
+	*VIPS_MATRIX(mat, 1, 1) = sx1x1 + sy1y1;
+	*VIPS_MATRIX(mat, 2, 1) = -sy1;
+	*VIPS_MATRIX(mat, 3, 1) = sx1;
 
-	*VIPS_MATRIX( mat, 0, 2 ) = sx1;
-	*VIPS_MATRIX( mat, 1, 2 ) = -sy1;
-	*VIPS_MATRIX( mat, 2, 2 ) = (double) elms;
-	*VIPS_MATRIX( mat, 3, 2 ) = 0.0;
+	*VIPS_MATRIX(mat, 0, 2) = sx1;
+	*VIPS_MATRIX(mat, 1, 2) = -sy1;
+	*VIPS_MATRIX(mat, 2, 2) = (double) elms;
+	*VIPS_MATRIX(mat, 3, 2) = 0.0;
 
-	*VIPS_MATRIX( mat, 0, 3 ) = sy1;
-	*VIPS_MATRIX( mat, 1, 3 ) = sx1;
-	*VIPS_MATRIX( mat, 2, 3 ) = 0.0;
-	*VIPS_MATRIX( mat, 3, 3 ) = (double) elms;
+	*VIPS_MATRIX(mat, 0, 3) = sy1;
+	*VIPS_MATRIX(mat, 1, 3) = sx1;
+	*VIPS_MATRIX(mat, 2, 3) = 0.0;
+	*VIPS_MATRIX(mat, 3, 3) = (double) elms;
 
 	g[0] = sx2x1 + sy2y1;
 	g[1] = -sx2y1 + sy2x1;
 	g[2] = sx2;
 	g[3] = sy2;
 
-	if( vips_matrixinvert( mat, &matinv, NULL ) ) {
-		g_object_unref( mat );
-		g_free( g );
-		vips_error( "vips_clinear", "%s", _( "vips_invmat failed" ) ); 
-		return( -1 );
+	if (vips_matrixinvert(mat, &matinv, NULL)) {
+		g_object_unref(mat);
+		g_free(g);
+		vips_error("vips_clinear", "%s", _("vips_invmat failed"));
+		return -1;
 	}
 
-	scale = 0.0; angle = 0.0;
-	xdelta = 0.0; ydelta = 0.0;
+	scale = 0.0;
+	angle = 0.0;
+	xdelta = 0.0;
+	ydelta = 0.0;
 
-	for( j = 0; j < 4; j++ ) {
-		scale += *VIPS_MATRIX( matinv, j, 0 ) * g[j];
-		angle += *VIPS_MATRIX( matinv, j, 1 ) * g[j];
-		xdelta += *VIPS_MATRIX( matinv, j, 2 ) * g[j];
-		ydelta += *VIPS_MATRIX( matinv, j, 3 ) * g[j];
+	for (j = 0; j < 4; j++) {
+		scale += *VIPS_MATRIX(matinv, j, 0) * g[j];
+		angle += *VIPS_MATRIX(matinv, j, 1) * g[j];
+		xdelta += *VIPS_MATRIX(matinv, j, 2) * g[j];
+		ydelta += *VIPS_MATRIX(matinv, j, 3) * g[j];
 	}
 
-	g_object_unref( mat );
-	g_object_unref( matinv );
-	g_free( g );
+	g_object_unref(mat);
+	g_object_unref(matinv);
+	g_free(g);
 
 	/* find the deviation of each point for the estimated variables
 	 * if it greater than 1 then the solution is not good enough
-	 * but this is handled by the main program 
+	 * but this is handled by the main program
 	 */
-	for( i = 0; i < points->nopoints; i++ ) {
-		dx[i] = xsec[i] - 
+	for (i = 0; i < points->nopoints; i++) {
+		dx[i] = xsec[i] -
 			((scale * xref[i]) - (angle * yref[i]) + xdelta);
 
-		dy[i] = ysec[i] - 
+		dy[i] = ysec[i] -
 			((angle * xref[i]) + (scale * yref[i]) + ydelta);
 
-		value = sqrt( dx[i] * dx[i] + dy[i] * dy[i] );
+		value = sqrt(dx[i] * dx[i] + dy[i] * dy[i]);
 		dev[i] = value;
 	}
 
@@ -173,5 +175,5 @@ vips__clinear( TiePoints *points )
 	points->l_deltax = xdelta;
 	points->l_deltay = ydelta;
 
-	return( 0 );
+	return 0;
 }

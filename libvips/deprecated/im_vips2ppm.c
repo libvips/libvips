@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -42,7 +42,7 @@
 #include <vips/vips7compat.h>
 
 int
-im_vips2ppm( IMAGE *in, const char *filename )
+im_vips2ppm(IMAGE *in, const char *filename)
 {
 	int ascii;
 	char name[FILENAME_MAX];
@@ -54,19 +54,19 @@ im_vips2ppm( IMAGE *in, const char *filename )
 
 	/* Extract write mode from filename.
 	 */
-	im_filename_split( filename, name, mode );
-	if( strcmp( mode, "" ) != 0 ) {
-		if( im_isprefix( "binary", mode ) )
+	im_filename_split(filename, name, mode);
+	if (strcmp(mode, "") != 0) {
+		if (im_isprefix("binary", mode))
 			ascii = 0;
-		else if( im_isprefix( "ascii", mode ) )
+		else if (im_isprefix("ascii", mode))
 			ascii = 1;
 		else {
-			im_error( "im_vips2ppm", 
-				"%s", _( "bad mode string, "
-					"should be \"binary\" or \"ascii\"" ) );
-			return( -1 );
+			im_error("im_vips2ppm",
+				"%s", _("bad mode string, "
+						"should be \"binary\" or \"ascii\""));
+			return -1;
 		}
 	}
 
-	return( vips_ppmsave( in, name, "ascii", ascii, NULL ) ); 
+	return vips_ppmsave(in, name, "ascii", ascii, NULL);
 }

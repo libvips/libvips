@@ -1,6 +1,6 @@
-/* error.c --- error message handling 
+/* error.c --- error message handling
  *
- * Copyright: N. Dessipris 
+ * Copyright: N. Dessipris
  * Written on: 18/03/1991
  * Updated on: 9/7/92 KM
  * 20/12/2003 JC
@@ -20,28 +20,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -76,7 +76,7 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * VIPS maintains an error buffer (a log of localised text messages), 
+ * VIPS maintains an error buffer (a log of localised text messages),
  * a set of functions
  * for adding messages, and a way to access and clear the buffer.
  *
@@ -86,20 +86,20 @@
  * main thread of execution.
  *
  * The general principle is: if you detect an error, log a message for the
- * user. If a function you call detects an error, just propogate it and don't
+ * user. If a function you call detects an error, just propagate it and don't
  * add another message.
  *
  * |[
- * IMAGE *im;
+ * VipsImage *im;
  *
- * if( !(im = vips_image_new_from_file( filename, NULL )) )
- *   // vips_image_new_from_file() will set a message, we don't need to
- *   return( -1 );
+ * if (!(im = vips_image_new_from_file(filename, NULL)))
+ *     // vips_image_new_from_file() will set a message, we don't need to
+ *     return -1;
  *
- * if( vips_image_get_width( im ) &lt; 100 ) {
- *   // we have detected an error, we must set a message
- *   vips_error( "myprogram", "%s", _( "width too small" ) );
- *   return( -1 );
+ * if (vips_image_get_width(im) &lt; 100) {
+ *     // we have detected an error, we must set a message
+ *     vips_error("myprogram", "%s", _("width too small"));
+ *     return -1;
  * }
  * ]|
  *
@@ -109,10 +109,10 @@
  * libvips uses g_warning() and g_info() to send warning and information
  * messages to the user. You can use the usual glib mechanisms to display or
  * divert these messages. For example, info messages are hidden by default, but
- * you can see them with: 
+ * you can see them with:
  *
  * |[
- * $ G_MESSAGES_DEBUG=VIPS vipsthumbnail k2.jpg 
+ * $ G_MESSAGES_DEBUG=VIPS vipsthumbnail k2.jpg
  * VIPS-INFO: thumbnailing k2.jpg
  * VIPS-INFO: selected loader is VipsForeignLoadJpegFile
  * VIPS-INFO: input size is 1450 x 2048
@@ -132,7 +132,7 @@
  */
 #define VIPS_MAX_ERROR (10240)
 static char vips_error_text[VIPS_MAX_ERROR] = "";
-static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );
+static VipsBuf vips_error_buf = VIPS_BUF_STATIC(vips_error_text);
 static int vips_error_freeze_count = 0;
 
 /**
@@ -142,30 +142,30 @@ static int vips_error_freeze_count = 0;
  * nest freeze/thaw pairs.
  */
 void
-vips_error_freeze( void )
+vips_error_freeze(void)
 {
-	g_mutex_lock( vips__global_lock );
-	g_assert( vips_error_freeze_count >= 0 );
+	g_mutex_lock(vips__global_lock);
+	g_assert(vips_error_freeze_count >= 0);
 	vips_error_freeze_count += 1;
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock(vips__global_lock);
 }
 
 /**
  * vips_error_thaw:
  *
- * Reenable error logging. 
+ * Re-enable error logging.
  */
 void
-vips_error_thaw( void )
+vips_error_thaw(void)
 {
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock(vips__global_lock);
 	vips_error_freeze_count -= 1;
-	g_assert( vips_error_freeze_count >= 0 );
-	g_mutex_unlock( vips__global_lock );
+	g_assert(vips_error_freeze_count >= 0);
+	g_mutex_unlock(vips__global_lock);
 }
 
 /**
- * vips_error_buffer: 
+ * vips_error_buffer:
  *
  * Get a pointer to the start of the error buffer as a C string.
  * The string is owned by the error system and must not be freed.
@@ -175,35 +175,35 @@ vips_error_thaw( void )
  * Returns: the error buffer as a C string which must not be freed
  */
 const char *
-vips_error_buffer( void )
+vips_error_buffer(void)
 {
 	const char *msg;
 
-	g_mutex_lock( vips__global_lock );
-	msg = vips_buf_all( &vips_error_buf );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_lock(vips__global_lock);
+	msg = vips_buf_all(&vips_error_buf);
+	g_mutex_unlock(vips__global_lock);
 
-	return( msg );
+	return msg;
 }
 
 /**
- * vips_error_buffer_copy: 
+ * vips_error_buffer_copy:
  *
- * Return a copy of the vips error buffer, and clear it. 
+ * Return a copy of the vips error buffer, and clear it.
  *
  * Returns: a copy of the libvips error buffer
  */
 char *
-vips_error_buffer_copy( void )
+vips_error_buffer_copy(void)
 {
 	char *msg;
 
-	g_mutex_lock( vips__global_lock );
-	msg = g_strdup( vips_buf_all( &vips_error_buf ) );
-	vips_buf_rewind( &vips_error_buf );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_lock(vips__global_lock);
+	msg = g_strdup(vips_buf_all(&vips_error_buf));
+	vips_buf_rewind(&vips_error_buf);
+	g_mutex_unlock(vips__global_lock);
 
-	return( msg );
+	return msg;
 }
 
 /* Some systems do not have va_copy() ... this might work (it does on MSVC,
@@ -212,11 +212,11 @@ vips_error_buffer_copy( void )
  * FIXME ... this should be in configure.in
  */
 #ifndef va_copy
-#define va_copy(d,s) ((d) = (s))
+#define va_copy(d, s) ((d) = (s))
 #endif
 
 /**
- * vips_verror: 
+ * vips_verror:
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
  * @ap: arguments to the format string
@@ -225,39 +225,39 @@ vips_error_buffer_copy( void )
  *
  * See also: vips_error().
  */
-void 
-vips_verror( const char *domain, const char *fmt, va_list ap )
+void
+vips_verror(const char *domain, const char *fmt, va_list ap)
 {
 #ifdef VIPS_DEBUG
-{
-	char txt[256];
-	VipsBuf buf = VIPS_BUF_STATIC( txt );
-	va_list ap2;
+	{
+		char txt[256];
+		VipsBuf buf = VIPS_BUF_STATIC(txt);
+		va_list ap2;
 
-	vips_buf_appendf( &buf, "%s: ", domain );
-	va_copy( ap2, ap );
-	vips_buf_vappendf( &buf, fmt, ap2 );
-	vips_buf_appends( &buf, "\n" );
-	VIPS_DEBUG_MSG( "vips_verror: %s", vips_buf_all( &buf ) );
-}
+		vips_buf_appendf(&buf, "%s: ", domain);
+		va_copy(ap2, ap);
+		vips_buf_vappendf(&buf, fmt, ap2);
+		vips_buf_appends(&buf, "\n");
+		VIPS_DEBUG_MSG("vips_verror: %s", vips_buf_all(&buf));
+	}
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock( vips__global_lock );
-	g_assert( vips_error_freeze_count >= 0 );
-	if( !vips_error_freeze_count ) {
-		if( domain ) 
-			vips_buf_appendf( &vips_error_buf, "%s: ", domain );
-		vips_buf_vappendf( &vips_error_buf, fmt, ap );
-		vips_buf_appends( &vips_error_buf, "\n" );
+	g_mutex_lock(vips__global_lock);
+	g_assert(vips_error_freeze_count >= 0);
+	if (!vips_error_freeze_count) {
+		if (domain)
+			vips_buf_appendf(&vips_error_buf, "%s: ", domain);
+		vips_buf_vappendf(&vips_error_buf, fmt, ap);
+		vips_buf_appends(&vips_error_buf, "\n");
 	}
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock(vips__global_lock);
 
-	if( vips__fatal )
-		vips_error_exit( "vips__fatal" );
+	if (vips__fatal)
+		vips_error_exit("vips__fatal");
 }
 
 /**
- * vips_error: 
+ * vips_error:
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
  * @...: arguments to the format string
@@ -266,18 +266,18 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
  *
  * See also: vips_error_system(), vips_verror().
  */
-void 
-vips_error( const char *domain, const char *fmt, ... )
-{	
+void
+vips_error(const char *domain, const char *fmt, ...)
+{
 	va_list ap;
 
-	va_start( ap, fmt );
-	vips_verror( domain, fmt, ap );
-	va_end( ap );
+	va_start(ap, fmt);
+	vips_verror(domain, fmt, ap);
+	va_end(ap);
 }
 
 /**
- * vips_verror_system: 
+ * vips_verror_system:
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
@@ -290,39 +290,39 @@ vips_error( const char *domain, const char *fmt, ... )
  * See also: vips_error_system().
  */
 void
-vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
+vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
 {
-	vips_verror( domain, fmt, ap );
+	vips_verror(domain, fmt, ap);
 
 #ifdef G_OS_WIN32
-{
-	char *buf;
+	{
+		char *buf;
 
-	if( FormatMessageA(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_IGNORE_INSERTS |
-		FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		err,
-		MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), 
-		(LPSTR) &buf, 0, NULL ) ) {
-		vips_error( _( "windows error" ), "%s", buf );
-		LocalFree( buf );
+		if (FormatMessageA(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+					FORMAT_MESSAGE_IGNORE_INSERTS |
+					FORMAT_MESSAGE_FROM_SYSTEM,
+				NULL,
+				err,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPSTR) &buf, 0, NULL)) {
+			vips_error(_("windows error"), "%s", buf);
+			LocalFree(buf);
+		}
 	}
-}
-#else /*!G_OS_WIN32*/
-{
-	char *buf;
+#else  /*!G_OS_WIN32*/
+	{
+		char *buf;
 
-	buf = g_locale_to_utf8( strerror( err ), -1, NULL, NULL, NULL );
-	vips_error( _( "unix error" ), "%s", buf );
-	g_free( buf );
-}
+		buf = g_locale_to_utf8(strerror(err), -1, NULL, NULL, NULL);
+		vips_error(_("unix error"), "%s", buf);
+		g_free(buf);
+	}
 #endif /*G_OS_WIN32*/
 }
 
 /**
- * vips_error_system: 
+ * vips_error_system:
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
@@ -335,13 +335,13 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
  * See also: vips_verror_system().
  */
 void
-vips_error_system( int err, const char *domain, const char *fmt, ... )
+vips_error_system(int err, const char *domain, const char *fmt, ...)
 {
 	va_list ap;
 
-	va_start( ap, fmt );
-	vips_verror_system( err, domain, fmt, ap );
-	va_end( ap );
+	va_start(ap, fmt);
+	vips_verror_system(err, domain, fmt, ap);
+	va_end(ap);
 }
 
 /**
@@ -356,23 +356,22 @@ vips_error_system( int err, const char *domain, const char *fmt, ... )
  * See also: g_set_error(), vips_g_error().
  */
 void
-vips_error_g( GError **error )
+vips_error_g(GError **error)
 {
 	static GQuark vips_domain = 0;
 
-	if( !vips_domain ) 
-		vips_domain = g_quark_from_string( "libvips" );
+	if (!vips_domain)
+		vips_domain = g_quark_from_string("libvips");
 
 	/* glib does not expect a trailing '\n' and vips always has one.
 	 */
-	g_mutex_lock( vips__global_lock );
-	vips_buf_removec( &vips_error_buf, '\n' );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_lock(vips__global_lock);
+	vips_buf_removec(&vips_error_buf, '\n');
+	g_mutex_unlock(vips__global_lock);
 
-	g_set_error( error, vips_domain, -1, "%s", vips_error_buffer() );
+	g_set_error(error, vips_domain, -1, "%s", vips_error_buffer());
 	vips_error_clear();
 }
-
 
 /**
  * vips_g_error:
@@ -381,42 +380,42 @@ vips_error_g( GError **error )
  * This function adds the %GError to the vips error buffer and clears it. It's
  * the opposite of vips_error_g().
  *
- * See also: vips_error_g(). 
+ * See also: vips_error_g().
  */
 void
-vips_g_error( GError **error )
+vips_g_error(GError **error)
 {
-	if( error &&
-		*error ) {
-		vips_error( "glib", "%s\n", (*error)->message ); 
-		g_error_free( *error );
+	if (error &&
+		*error) {
+		vips_error("glib", "%s\n", (*error)->message);
+		g_error_free(*error);
 		*error = NULL;
 	}
 }
 
 /**
- * vips_error_clear: 
+ * vips_error_clear:
  *
  * Clear and reset the error buffer. This is typically called after presenting
  * an error to the user.
  *
  * See also: vips_error_buffer().
  */
-void 
-vips_error_clear( void )
+void
+vips_error_clear(void)
 {
-	g_mutex_lock( vips__global_lock );
-	vips_buf_rewind( &vips_error_buf );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_lock(vips__global_lock);
+	vips_buf_rewind(&vips_error_buf);
+	g_mutex_unlock(vips__global_lock);
 }
 
 /**
- * vips_error_exit: 
+ * vips_error_exit:
  * @fmt: printf()-style format string for the message
  * @...: arguments to the format string
  *
  * Sends a formatted error message to stderr, then sends the contents of the
- * error buffer, if any, then shuts down vips and terminates the program with 
+ * error buffer, if any, then shuts down vips and terminates the program with
  * an error code.
  *
  * @fmt may be %NULL, in which case only the error buffer is printed before
@@ -424,29 +423,29 @@ vips_error_clear( void )
  *
  * See also: vips_error().
  */
-void 
-vips_error_exit( const char *fmt, ... )
-{	
-	if( fmt ) {
+void
+vips_error_exit(const char *fmt, ...)
+{
+	if (fmt) {
 		va_list ap;
 
-		fprintf( stderr, "%s: ", vips_get_prgname() );
+		fprintf(stderr, "%s: ", vips_get_prgname());
 
-		va_start( ap, fmt );
-		(void) vfprintf( stderr, fmt, ap );
-		va_end( ap );
+		va_start(ap, fmt);
+		(void) vfprintf(stderr, fmt, ap);
+		va_end(ap);
 
-		fprintf( stderr, "\n" );
+		fprintf(stderr, "\n");
 	}
 
-	fprintf( stderr, "%s", vips_error_buffer() );
+	fprintf(stderr, "%s", vips_error_buffer());
 
 	vips_shutdown();
 
-	if( vips__fatal )
+	if (vips__fatal)
 		abort();
 	else
-		exit( 1 );
+		exit(1);
 }
 
 /**
@@ -454,7 +453,7 @@ vips_error_exit( const char *fmt, ... )
  * @domain: the originating domain for the error message
  * @im: image to check
  *
- * Check that the image is not coded. 
+ * Check that the image is not coded.
  * If not, set an error message
  * and return non-zero.
  *
@@ -463,14 +462,14 @@ vips_error_exit( const char *fmt, ... )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_uncoded( const char *domain, VipsImage *im )
+vips_check_uncoded(const char *domain, VipsImage *im)
 {
-	if( im->Coding != VIPS_CODING_NONE ) {
-		vips_error( domain, "%s", _( "image must be uncoded" ) );
-		return( -1 );
+	if (im->Coding != VIPS_CODING_NONE) {
+		vips_error(domain, "%s", _("image must be uncoded"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -487,18 +486,18 @@ vips_check_uncoded( const char *domain, VipsImage *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_coding_noneorlabq( const char *domain, VipsImage *im )
+vips_check_coding_noneorlabq(const char *domain, VipsImage *im)
 {
 	/* These all have codings that extract/ifthenelse/etc can ignore.
 	 */
-	if( im->Coding != VIPS_CODING_NONE && 
-		im->Coding != VIPS_CODING_LABQ ) {
-		vips_error( domain, 
-			"%s", _( "image coding must be 'none' or 'labq'" ) );
-		return( -1 );
+	if (im->Coding != VIPS_CODING_NONE &&
+		im->Coding != VIPS_CODING_LABQ) {
+		vips_error(domain,
+			"%s", _("image coding must be 'none' or 'labq'"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -506,7 +505,7 @@ vips_check_coding_noneorlabq( const char *domain, VipsImage *im )
  * @domain: the originating domain for the error message
  * @im: image to check
  *
- * Check that the image is uncoded, LABQ coded or RAD coded. 
+ * Check that the image is uncoded, LABQ coded or RAD coded.
  * If not, set an error message
  * and return non-zero.
  *
@@ -515,18 +514,18 @@ vips_check_coding_noneorlabq( const char *domain, VipsImage *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_coding_known( const char *domain, VipsImage *im )
+vips_check_coding_known(const char *domain, VipsImage *im)
 {
 	/* These all have codings that extract/ifthenelse/etc can ignore.
 	 */
-	if( im->Coding != VIPS_CODING_NONE && 
+	if (im->Coding != VIPS_CODING_NONE &&
 		im->Coding != VIPS_CODING_LABQ &&
-		im->Coding != VIPS_CODING_RAD ) {
-		vips_error( domain, "%s", _( "unknown image coding" ) );
-		return( -1 );
+		im->Coding != VIPS_CODING_RAD) {
+		vips_error(domain, "%s", _("unknown image coding"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -544,15 +543,15 @@ vips_check_coding_known( const char *domain, VipsImage *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding )
+vips_check_coding(const char *domain, VipsImage *im, VipsCoding coding)
 {
-	if( im->Coding != coding ) {
-		vips_error( domain, _( "coding '%s' only" ), 
-			vips_enum_nick( VIPS_TYPE_CODING, coding ) );
-		return( -1 );
+	if (im->Coding != coding) {
+		vips_error(domain, _("coding '%s' only"),
+			vips_enum_nick(VIPS_TYPE_CODING, coding));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -569,14 +568,14 @@ vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_mono( const char *domain, VipsImage *im )
+vips_check_mono(const char *domain, VipsImage *im)
 {
-	if( im->Bands != 1 ) {
-		vips_error( domain, "%s", _( "image must one band" ) );
-		return( -1 );
+	if (im->Bands != 1) {
+		vips_error(domain, "%s", _("image must one band"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -594,14 +593,14 @@ vips_check_mono( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bands( const char *domain, VipsImage *im, int bands )
+vips_check_bands(const char *domain, VipsImage *im, int bands)
 {
-	if( im->Bands != bands ) {
-		vips_error( domain, _( "image must have %d bands" ), bands );
-		return( -1 );
+	if (im->Bands != bands) {
+		vips_error(domain, _("image must have %d bands"), bands);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -618,15 +617,15 @@ vips_check_bands( const char *domain, VipsImage *im, int bands )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bands_1or3( const char *domain, VipsImage *im )
+vips_check_bands_1or3(const char *domain, VipsImage *im)
 {
-	if( im->Bands != 1 && im->Bands != 3 ) {
-		vips_error( domain, "%s", 
-			_( "image must have one or three bands" ) );
-		return( -1 );
+	if (im->Bands != 1 && im->Bands != 3) {
+		vips_error(domain, "%s",
+			_("image must have one or three bands"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -635,7 +634,7 @@ vips_check_bands_1or3( const char *domain, VipsImage *im )
  * @im: image to check
  * @bands: at least this many bands
  *
- * Check that the image has at least @bands bands. 
+ * Check that the image has at least @bands bands.
  * Otherwise set an error message
  * and return non-zero.
  *
@@ -644,15 +643,15 @@ vips_check_bands_1or3( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bands_atleast( const char *domain, VipsImage *im, int bands )
+vips_check_bands_atleast(const char *domain, VipsImage *im, int bands)
 {
-	if( im->Bands < bands ) {
-		vips_error( domain, 
-			_( "image must have at least %d bands" ), bands );
-		return( -1 );
+	if (im->Bands < bands) {
+		vips_error(domain,
+			_("image must have at least %d bands"), bands);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -671,17 +670,17 @@ vips_check_bands_atleast( const char *domain, VipsImage *im, int bands )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 )
+vips_check_bands_1orn(const char *domain, VipsImage *im1, VipsImage *im2)
 {
-	if( im1->Bands != im2->Bands &&
-		(im1->Bands != 1 && im2->Bands != 1) ) {
-		vips_error( domain, "%s", 
-			_( "images must have the same number of bands, "
-			"or one must be single-band" ) );
-		return( -1 );
+	if (im1->Bands != im2->Bands &&
+		(im1->Bands != 1 && im2->Bands != 1)) {
+		vips_error(domain, "%s",
+			_("images must have the same number of bands, "
+			  "or one must be single-band"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -700,14 +699,14 @@ vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n )
+vips_check_bands_1orn_unary(const char *domain, VipsImage *im, int n)
 {
-	if( im->Bands != 1 && im->Bands != n ) { 
-		vips_error( domain, _( "image must have 1 or %d bands" ), n );
-		return( -1 );
+	if (im->Bands != 1 && im->Bands != n) {
+		vips_error(domain, _("image must have 1 or %d bands"), n);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -724,14 +723,14 @@ vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_noncomplex( const char *domain, VipsImage *im )
+vips_check_noncomplex(const char *domain, VipsImage *im)
 {
-	if( vips_band_format_iscomplex( im->BandFmt ) ) {
-		vips_error( domain, "%s", _( "image must be non-complex" ) );
-		return( -1 );
+	if (vips_band_format_iscomplex(im->BandFmt)) {
+		vips_error(domain, "%s", _("image must be non-complex"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -748,14 +747,14 @@ vips_check_noncomplex( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_complex( const char *domain, VipsImage *im )
+vips_check_complex(const char *domain, VipsImage *im)
 {
-	if( !vips_band_format_iscomplex( im->BandFmt ) ) {
-		vips_error( domain, "%s", _( "image must be complex" ) );
-		return( -1 );
+	if (!vips_band_format_iscomplex(im->BandFmt)) {
+		vips_error(domain, "%s", _("image must be complex"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -764,7 +763,7 @@ vips_check_complex( const char *domain, VipsImage *im )
  * @im: image to check
  *
  * Check that the image is has two "components", ie. is a one-band complex or
- * a two-band non-complex. 
+ * a two-band non-complex.
  * Otherwise set an error message
  * and return non-zero.
  *
@@ -773,16 +772,16 @@ vips_check_complex( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_twocomponents( const char *domain, VipsImage *im )
+vips_check_twocomponents(const char *domain, VipsImage *im)
 {
-	if( !vips_band_format_iscomplex( im->BandFmt ) &&
-		im->Bands != 2 ) {
-		vips_error( domain, 
-			"%s", _( "image must be two-band or complex" ) );
-		return( -1 );
+	if (!vips_band_format_iscomplex(im->BandFmt) &&
+		im->Bands != 2) {
+		vips_error(domain,
+			"%s", _("image must be two-band or complex"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -800,16 +799,16 @@ vips_check_twocomponents( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt )
+vips_check_format(const char *domain, VipsImage *im, VipsBandFormat fmt)
 {
-	if( im->BandFmt != fmt ) {
-		vips_error( domain, 
-			_( "image must be %s" ), 
-			vips_enum_string( VIPS_TYPE_BAND_FORMAT, fmt ) );
-		return( -1 );
+	if (im->BandFmt != fmt) {
+		vips_error(domain,
+			_("image must be %s"),
+			vips_enum_string(VIPS_TYPE_BAND_FORMAT, fmt));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -826,14 +825,14 @@ vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_int( const char *domain, VipsImage *im )
+vips_check_int(const char *domain, VipsImage *im)
 {
-	if( !vips_band_format_isint( im->BandFmt ) ) {
-		vips_error( domain, "%s", _( "image must be integer" ) );
-		return( -1 );
+	if (!vips_band_format_isint(im->BandFmt)) {
+		vips_error(domain, "%s", _("image must be integer"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -850,15 +849,15 @@ vips_check_int( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_uint( const char *domain, VipsImage *im )
+vips_check_uint(const char *domain, VipsImage *im)
 {
-	if( !vips_band_format_isuint( im->BandFmt ) ) {
-		vips_error( domain, 
-			"%s", _( "image must be unsigned integer" ) );
-		return( -1 );
+	if (!vips_band_format_isuint(im->BandFmt)) {
+		vips_error(domain,
+			"%s", _("image must be unsigned integer"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -875,19 +874,18 @@ vips_check_uint( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_8or16( const char *domain, VipsImage *im )
+vips_check_8or16(const char *domain, VipsImage *im)
 {
-	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+	if (im->BandFmt != VIPS_FORMAT_UCHAR &&
 		im->BandFmt != VIPS_FORMAT_USHORT &&
 		im->BandFmt != VIPS_FORMAT_CHAR &&
-		im->BandFmt != VIPS_FORMAT_SHORT ) {
-		vips_error( domain, "%s", 
-			_( "image must be 8- or 16-bit integer, "
-				"signed or unsigned" ) );
-		return( -1 );
+		im->BandFmt != VIPS_FORMAT_SHORT) {
+		vips_error(domain, "%s",
+			_("image must be 8- or 16-bit integer, signed or unsigned"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -904,16 +902,16 @@ vips_check_8or16( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_u8or16( const char *domain, VipsImage *im )
+vips_check_u8or16(const char *domain, VipsImage *im)
 {
-	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
-		im->BandFmt != VIPS_FORMAT_USHORT ) {
-		vips_error( domain, "%s", 
-			_( "image must be 8- or 16-bit unsigned integer" ) );
-		return( -1 );
+	if (im->BandFmt != VIPS_FORMAT_UCHAR &&
+		im->BandFmt != VIPS_FORMAT_USHORT) {
+		vips_error(domain, "%s",
+			_("image must be 8- or 16-bit unsigned integer"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -929,18 +927,17 @@ vips_check_u8or16( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_u8or16orf( const char *domain, VipsImage *im )
+vips_check_u8or16orf(const char *domain, VipsImage *im)
 {
-	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+	if (im->BandFmt != VIPS_FORMAT_UCHAR &&
 		im->BandFmt != VIPS_FORMAT_USHORT &&
-		im->BandFmt != VIPS_FORMAT_FLOAT ) {
-		vips_error( domain, "%s", 
-			_( "image must be 8- or 16-bit unsigned integer, "
-				"or float" ) );
-		return( -1 );
+		im->BandFmt != VIPS_FORMAT_FLOAT) {
+		vips_error(domain, "%s",
+			_("image must be 8- or 16-bit unsigned integer, or float"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -956,18 +953,18 @@ vips_check_u8or16orf( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_uintorf( const char *domain, VipsImage *im )
+vips_check_uintorf(const char *domain, VipsImage *im)
 {
-	if( im->BandFmt != VIPS_FORMAT_UCHAR &&
+	if (im->BandFmt != VIPS_FORMAT_UCHAR &&
 		im->BandFmt != VIPS_FORMAT_USHORT &&
 		im->BandFmt != VIPS_FORMAT_UINT &&
-		im->BandFmt != VIPS_FORMAT_FLOAT ) {
-		vips_error( domain, "%s", 
-			_( "image must be unsigned int or float" ) );
-		return( -1 );
+		im->BandFmt != VIPS_FORMAT_FLOAT) {
+		vips_error(domain, "%s",
+			_("image must be unsigned int or float"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -985,15 +982,15 @@ vips_check_uintorf( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )
+vips_check_size_same(const char *domain, VipsImage *im1, VipsImage *im2)
 {
-	if( im1->Xsize != im2->Xsize || 
-		im1->Ysize != im2->Ysize ) {
-		vips_error( domain, "%s", _( "images must match in size" ) );
-		return( -1 );
+	if (im1->Xsize != im2->Xsize ||
+		im1->Ysize != im2->Ysize) {
+		vips_error(domain, "%s", _("images must match in size"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1001,7 +998,7 @@ vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * @domain: the originating domain for the error message
  * @im: image to check
  *
- * Check that the image is square and that the sides are odd. 
+ * Check that the image is square and that the sides are odd.
  * If not, set an error message
  * and return non-zero.
  *
@@ -1010,16 +1007,16 @@ vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_oddsquare( const char *domain, VipsImage *im )
+vips_check_oddsquare(const char *domain, VipsImage *im)
 {
-	if( im->Xsize != im->Ysize || 
-		im->Xsize % 2 == 0 ) { 
-		vips_error( domain, 
-			"%s", _( "images must be odd and square" ) );
-		return( -1 );
+	if (im->Xsize != im->Ysize ||
+		im->Xsize % 2 == 0) {
+		vips_error(domain,
+			"%s", _("images must be odd and square"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1037,15 +1034,15 @@ vips_check_oddsquare( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 )
+vips_check_bands_same(const char *domain, VipsImage *im1, VipsImage *im2)
 {
-	if( im1->Bands != im2->Bands ) {
-		vips_error( domain, "%s", 
-			_( "images must have the same number of bands" ) ); 
-		return( -1 );
+	if (im1->Bands != im2->Bands) {
+		vips_error(domain, "%s",
+			_("images must have the same number of bands"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1055,7 +1052,7 @@ vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * @bandno: band number
  *
  * @bandno should be a valid band number (ie. 0 to im->Bands - 1), or can be
- * -1, meaning all bands. 
+ * -1, meaning all bands.
  * If not, set an error message
  * and return non-zero.
  *
@@ -1064,16 +1061,16 @@ vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bandno( const char *domain, VipsImage *im, int bandno )
+vips_check_bandno(const char *domain, VipsImage *im, int bandno)
 {
-	if( bandno < -1 ||
-		bandno > im->Bands - 1 ) {
-		vips_error( domain, "bandno must be -1, or less than %d",
-			im->Bands );
-		return( -1 );
+	if (bandno < -1 ||
+		bandno > im->Bands - 1) {
+		vips_error(domain, "bandno must be -1, or less than %d",
+			im->Bands);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1091,15 +1088,15 @@ vips_check_bandno( const char *domain, VipsImage *im, int bandno )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 )
+vips_check_format_same(const char *domain, VipsImage *im1, VipsImage *im2)
 {
-	if( im1->BandFmt != im2->BandFmt ) {
-		vips_error( domain, "%s", 
-			_( "images must have the same band format" ) ); 
-		return( -1 );
+	if (im1->BandFmt != im2->BandFmt) {
+		vips_error(domain, "%s",
+			_("images must have the same band format"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1117,15 +1114,15 @@ vips_check_format_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 )
+vips_check_coding_same(const char *domain, VipsImage *im1, VipsImage *im2)
 {
-	if( im1->Coding != im2->Coding ) {
-		vips_error( domain, "%s", 
-			_( "images must have the same coding" ) ); 
-		return( -1 );
+	if (im1->Coding != im2->Coding) {
+		vips_error(domain, "%s",
+			_("images must have the same coding"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1134,21 +1131,21 @@ vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 )
  * @n: number of elements in vector
  * @len: number of elements vector should have
  *
- * Check that @n == @len. 
+ * Check that @n == @len.
  *
  * See also: vips_error().
  *
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_vector_length( const char *domain, int n, int len )
+vips_check_vector_length(const char *domain, int n, int len)
 {
-	if( n != len ) {
-		vips_error( domain, _( "vector must have %d elements" ), len );
-		return( -1 );
+	if (n != len) {
+		vips_error(domain, _("vector must have %d elements"), len);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1166,35 +1163,35 @@ vips_check_vector_length( const char *domain, int n, int len )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_vector( const char *domain, int n, VipsImage *im )
+vips_check_vector(const char *domain, int n, VipsImage *im)
 {
 	/* Here it's clearer to list the cases that are OK.
 	 */
-	if( n == im->Bands )
-		return( 0 );
-	if( n == 1 )
-		return( 0 );
-	if( im->Bands == 1 &&
-		n > 1 )
-		return( 0 );
+	if (n == im->Bands)
+		return 0;
+	if (n == 1)
+		return 0;
+	if (im->Bands == 1 &&
+		n > 1)
+		return 0;
 
-	if( im->Bands == 1 )
-		vips_error( domain, 
-			"%s", _( "vector must have 1 element" ) );
+	if (im->Bands == 1)
+		vips_error(domain,
+			"%s", _("vector must have 1 element"));
 	else
-		vips_error( domain, 
-			_( "vector must have 1 or %d elements" ), 
-			im->Bands );
+		vips_error(domain,
+			_("vector must have 1 or %d elements"),
+			im->Bands);
 
-	return( -1 );
+	return -1;
 }
 
 /**
  * vips_check_hist:
  * @domain: the originating domain for the error message
- * @im: image to check 
+ * @im: image to check
  *
- * Histogram images must have width or height 1, and must not have more than 
+ * Histogram images must have width or height 1, and must not have more than
  * 65536 elements. Return 0 if the image will pass as a histogram, or -1 and
  * set an error message otherwise.
  *
@@ -1203,37 +1200,36 @@ vips_check_vector( const char *domain, int n, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_hist( const char *domain, VipsImage *im )
+vips_check_hist(const char *domain, VipsImage *im)
 {
-	if( im->Xsize != 1 && 
-		im->Ysize != 1 ) {
-		vips_error( domain, "%s", 
-			_( "histograms must have width or height 1" ) );
-		return( -1 );
+	if (im->Xsize != 1 &&
+		im->Ysize != 1) {
+		vips_error(domain, "%s",
+			_("histograms must have width or height 1"));
+		return -1;
 	}
-	if( VIPS_IMAGE_N_PELS( im ) > 65536 ) {
-		vips_error( domain, "%s", 
-			_( "histograms must have not have more than "
-				"65536 elements" ) );
-		return( -1 );
+	if (VIPS_IMAGE_N_PELS(im) > 65536) {
+		vips_error(domain, "%s",
+			_("histograms must have not have more than 65536 elements"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
-/** 
- * vips_check_matrix: 
+/**
+ * vips_check_matrix:
  * @domain: the originating domain for the error message
- * @im: image to check 
+ * @im: image to check
  * @out: (out): put image as in-memory doubles here
  *
  * Matrix images must have width and height less than 100000 and have 1 band.
  *
- * Return 0 if the image will pass as a matrix, or -1 and set an error 
+ * Return 0 if the image will pass as a matrix, or -1 and set an error
  * message otherwise.
  *
  * @out is set to be @im cast to double and stored in memory. Use
- * VIPS_MATRIX() to address values in @out. 
+ * VIPS_MATRIX() to address values in @out.
  *
  * You must unref @out when you are done with it.
  *
@@ -1242,38 +1238,38 @@ vips_check_hist( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
+vips_check_matrix(const char *domain, VipsImage *im, VipsImage **out)
 {
 	VipsImage *t;
 
 	*out = NULL;
 
-	if( im->Xsize > 100000 || 
-		im->Ysize > 100000 ) {
-		vips_error( domain, "%s", _( "matrix image too large" ) );
-		return( -1 );
+	if (im->Xsize > 100000 ||
+		im->Ysize > 100000) {
+		vips_error(domain, "%s", _("matrix image too large"));
+		return -1;
 	}
-	if( im->Bands != 1 ) {
-		vips_error( domain, 
-			"%s", _( "matrix image must have one band" ) ); 
-		return( -1 );
+	if (im->Bands != 1) {
+		vips_error(domain,
+			"%s", _("matrix image must have one band"));
+		return -1;
 	}
 
-	if( vips_cast( im, &t, VIPS_FORMAT_DOUBLE, NULL ) )
-                return( -1 );
-	if( !(*out = vips_image_copy_memory( t )) ) {
-		VIPS_UNREF( t );
-		return( -1 );
+	if (vips_cast(im, &t, VIPS_FORMAT_DOUBLE, NULL))
+		return -1;
+	if (!(*out = vips_image_copy_memory(t))) {
+		VIPS_UNREF(t);
+		return -1;
 	}
-	VIPS_UNREF( t );
+	VIPS_UNREF(t);
 
-	return( 0 );
+	return 0;
 }
 
 /**
  * vips_check_separable:
  * @domain: the originating domain for the error message
- * @im: image to check 
+ * @im: image to check
  *
  * Separable matrix images must have width or height 1.
  * Return 0 if the image will pass, or -1 and
@@ -1284,17 +1280,16 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_separable( const char *domain, VipsImage *im )
+vips_check_separable(const char *domain, VipsImage *im)
 {
-	if( im->Xsize != 1 && 
-		im->Ysize != 1 ) {
-		vips_error( domain, 
-			"%s", _( "separable matrix images must have "
-			"width or height 1" ) );
-		return( -1 );
+	if (im->Xsize != 1 &&
+		im->Ysize != 1) {
+		vips_error(domain,
+			"%s", _("separable matrix images must have width or height 1"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 /**
@@ -1311,14 +1306,14 @@ vips_check_separable( const char *domain, VipsImage *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_precision_intfloat( const char *domain, VipsPrecision precision )
+vips_check_precision_intfloat(const char *domain, VipsPrecision precision)
 {
-	if( precision != VIPS_PRECISION_INTEGER &&
-		precision != VIPS_PRECISION_FLOAT ) {
-		vips_error( domain,
-			"%s", _( "precision must be int or float" ) );
-		return( -1 );
+	if (precision != VIPS_PRECISION_INTEGER &&
+		precision != VIPS_PRECISION_FLOAT) {
+		vips_error(domain,
+			"%s", _("precision must be int or float"));
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }

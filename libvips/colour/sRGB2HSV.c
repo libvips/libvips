@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -45,76 +45,75 @@
 typedef VipsColourCode VipssRGB2HSV;
 typedef VipsColourCodeClass VipssRGB2HSVClass;
 
-G_DEFINE_TYPE( VipssRGB2HSV, vips_sRGB2HSV, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE(VipssRGB2HSV, vips_sRGB2HSV, VIPS_TYPE_COLOUR_CODE);
 
 static void
-vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_sRGB2HSV_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	unsigned char *p = (unsigned char *) in[0];
 	unsigned char *q = (unsigned char *) out;
 
 	int i;
 
-	for( i = 0; i < width; i++ ) {
+	for (i = 0; i < width; i++) {
 		unsigned char c_max;
 		unsigned char c_min;
 		float secondary_diff;
 		float wrap_around_hue;
 
-		if( p[1] < p[2] ) {
-			if( p[2] < p[0] ) {
+		if (p[1] < p[2]) {
+			if (p[2] < p[0]) {
 				/* Center red (at top).
 				 */
 				c_max = p[0];
 				c_min = p[1];
 				secondary_diff = p[1] - p[2];
 				wrap_around_hue = 255.0;
-			} 
+			}
 			else {
 				/* Center blue.
 				 */
 				c_max = p[2];
-				c_min = VIPS_MIN( p[1], p[0] );
+				c_min = VIPS_MIN(p[1], p[0]);
 				secondary_diff = p[0] - p[1];
 				wrap_around_hue = 170.0;
 			}
-		} 
+		}
 		else {
-			if( p[1] < p[0] ) {
+			if (p[1] < p[0]) {
 				/* Center red (at bottom)
 				 */
 				c_max = p[0];
 				c_min = p[2];
 				secondary_diff = p[1] - p[2];
 				wrap_around_hue = 0.0;
-			} 
+			}
 			else {
 				/* Center green
 				 */
 				c_max = p[1];
-				c_min = VIPS_MIN( p[2], p[0] );
+				c_min = VIPS_MIN(p[2], p[0]);
 				secondary_diff = p[2] - p[0];
 				wrap_around_hue = 85.0;
 			}
 		}
 
-
-		if( c_max == 0 ) {
+		if (c_max == 0) {
 			q[0] = 0;
 			q[1] = 0;
 			q[2] = 0;
-		} 
+		}
 		else {
 			unsigned char delta;
 
 			q[2] = c_max;
 			delta = c_max - c_min;
 
-			if( delta == 0 ) 
+			if (delta == 0)
 				q[0] = 0;
-			else 
+			else
 				q[0] = 42.5 * (secondary_diff / (float) delta) +
-				       	wrap_around_hue;
+					wrap_around_hue;
 
 			q[1] = delta * 255.0 / (float) c_max;
 		}
@@ -125,22 +124,22 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 static void
-vips_sRGB2HSV_class_init( VipssRGB2HSVClass *class )
+vips_sRGB2HSV_class_init(VipssRGB2HSVClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "sRGB2HSV";
-	object_class->description = _( "transform sRGB to HSV" );
+	object_class->description = _("transform sRGB to HSV");
 
 	colour_class->process_line = vips_sRGB2HSV_line;
 }
 
 static void
-vips_sRGB2HSV_init( VipssRGB2HSV *sRGB2HSV )
+vips_sRGB2HSV_init(VipssRGB2HSV *sRGB2HSV)
 {
-	VipsColour *colour = VIPS_COLOUR( sRGB2HSV );
-	VipsColourCode *code = VIPS_COLOUR_CODE( sRGB2HSV );
+	VipsColour *colour = VIPS_COLOUR(sRGB2HSV);
+	VipsColourCode *code = VIPS_COLOUR_CODE(sRGB2HSV);
 
 	colour->interpretation = VIPS_INTERPRETATION_HSV;
 	colour->format = VIPS_FORMAT_UCHAR;
@@ -161,7 +160,7 @@ vips_sRGB2HSV_init( VipssRGB2HSV *sRGB2HSV )
  * Convert to HSV.
  *
  * HSV is a crude polar coordinate system for RGB images. It is provided for
- * compatibility with other image processing systems. See vips_Lab2LCh() for a 
+ * compatibility with other image processing systems. See vips_Lab2LCh() for a
  * much better colour space.
  *
  * See also: vips_HSV2sRGB(), vips_Lab2LCh().
@@ -169,15 +168,14 @@ vips_sRGB2HSV_init( VipssRGB2HSV *sRGB2HSV )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_sRGB2HSV( VipsImage *in, VipsImage **out, ... )
+vips_sRGB2HSV(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "sRGB2HSV", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("sRGB2HSV", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
-

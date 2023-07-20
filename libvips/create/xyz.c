@@ -1,4 +1,4 @@
-/* make an xy index image 
+/* make an xy index image
  *
  * 21/4/04
  *	- from im_grey
@@ -10,28 +10,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -69,163 +69,162 @@ typedef struct _VipsXyz {
 
 typedef VipsCreateClass VipsXyzClass;
 
-G_DEFINE_TYPE( VipsXyz, vips_xyz, VIPS_TYPE_CREATE );
+G_DEFINE_TYPE(VipsXyz, vips_xyz, VIPS_TYPE_CREATE);
 
 static int
-vips_xyz_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+vips_xyz_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsXyz *xyz = (VipsXyz *) a;
-	VipsRect *r = &or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int to = r->top;
-	int ri = VIPS_RECT_RIGHT( r );
-	int bo = VIPS_RECT_BOTTOM( r );
+	int ri = VIPS_RECT_RIGHT(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y, i;
 
-	for( y = to; y < bo; y++ ) {
-		unsigned int *q = (unsigned int *) 
-			VIPS_REGION_ADDR( or, le, y );
+	for (y = to; y < bo; y++) {
+		unsigned int *q = (unsigned int *)
+			VIPS_REGION_ADDR(out_region, le, y);
 
 		unsigned int dims[5];
 		int r;
 		int h;
 
-		h = xyz->height * xyz->csize * xyz->dsize; 
+		h = xyz->height * xyz->csize * xyz->dsize;
 		dims[4] = y / h;
 		r = y % h;
 
-		h /= xyz->dsize; 
+		h /= xyz->dsize;
 		dims[3] = r / h;
 		r %= h;
 
-		h /= xyz->csize; 
+		h /= xyz->csize;
 		dims[2] = r / h;
 		r %= h;
 
 		dims[1] = r;
 
-		for( x = le; x < ri; x++ ) {
+		for (x = le; x < ri; x++) {
 			dims[0] = x;
-			for( i = 0; i < xyz->dimensions; i++ )
+			for (i = 0; i < xyz->dimensions; i++)
 				q[i] = dims[i];
 
 			q += xyz->dimensions;
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_xyz_build( VipsObject *object )
+vips_xyz_build(VipsObject *object)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsCreate *create = VIPS_CREATE( object );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+	VipsCreate *create = VIPS_CREATE(object);
 	VipsXyz *xyz = (VipsXyz *) object;
 
 	double d;
 	int ysize;
 
-	if( VIPS_OBJECT_CLASS( vips_xyz_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_xyz_parent_class)->build(object))
+		return -1;
 
-	if( (vips_object_argument_isset( object, "dsize" ) &&
-		!vips_object_argument_isset( object, "csize" )) ||
-		(vips_object_argument_isset( object, "esize" ) &&
-		 !vips_object_argument_isset( object, "dsize" )) ) {
-		vips_error( class->nickname, "%s", 
-			_( "lower dimensions not set" ) );
-		return( -1 ); 
+	if ((vips_object_argument_isset(object, "dsize") &&
+			!vips_object_argument_isset(object, "csize")) ||
+		(vips_object_argument_isset(object, "esize") &&
+			!vips_object_argument_isset(object, "dsize"))) {
+		vips_error(class->nickname, "%s",
+			_("lower dimensions not set"));
+		return -1;
 	}
 
-	if( vips_object_argument_isset( object, "csize" ) ) {
+	if (vips_object_argument_isset(object, "csize")) {
 		xyz->dimensions += 1;
 
-		if( vips_object_argument_isset( object, "dsize" ) ) {
+		if (vips_object_argument_isset(object, "dsize")) {
 			xyz->dimensions += 1;
 
-			if( vips_object_argument_isset( object, "esize" ) ) 
+			if (vips_object_argument_isset(object, "esize"))
 				xyz->dimensions += 1;
 		}
 	}
 
-	d = (double) xyz->height * xyz->csize * xyz->dsize * xyz->esize; 
-	if( d > INT_MAX ) {
-		vips_error( class->nickname, "%s", _( "image too large" ) );
-		return( -1 ); 
+	d = (double) xyz->height * xyz->csize * xyz->dsize * xyz->esize;
+	if (d > INT_MAX) {
+		vips_error(class->nickname, "%s", _("image too large"));
+		return -1;
 	}
 	ysize = d;
 
-	vips_image_init_fields( create->out,
-		xyz->width, ysize, xyz->dimensions, 
+	vips_image_init_fields(create->out,
+		xyz->width, ysize, xyz->dimensions,
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
-		1.0, 1.0 );
-	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_generate( create->out, 
-			NULL, vips_xyz_gen, NULL, xyz, NULL ) )
-		return( -1 );
+		1.0, 1.0);
+	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
+		vips_image_generate(create->out,
+			NULL, vips_xyz_gen, NULL, xyz, NULL))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_xyz_class_init( VipsXyzClass *class )
+vips_xyz_class_init(VipsXyzClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
-	VIPS_DEBUG_MSG( "vips_xyz_class_init\n" );
+	VIPS_DEBUG_MSG("vips_xyz_class_init\n");
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "xyz";
-	vobject_class->description = 
-		_( "make an image where pixel values are coordinates" );
+	vobject_class->description =
+		_("make an image where pixel values are coordinates");
 	vobject_class->build = vips_xyz_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
+	VIPS_ARG_INT(class, "width", 4,
+		_("Width"),
+		_("Image width in pixels"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsXyz, width ),
-		1, VIPS_MAX_COORD, 64 );
+		G_STRUCT_OFFSET(VipsXyz, width),
+		1, VIPS_MAX_COORD, 64);
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
+	VIPS_ARG_INT(class, "height", 5,
+		_("Height"),
+		_("Image height in pixels"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsXyz, height ),
-		1, VIPS_MAX_COORD, 64 );
+		G_STRUCT_OFFSET(VipsXyz, height),
+		1, VIPS_MAX_COORD, 64);
 
-	VIPS_ARG_INT( class, "csize", 6, 
-		_( "csize" ), 
-		_( "Size of third dimension" ),
+	VIPS_ARG_INT(class, "csize", 6,
+		_("csize"),
+		_("Size of third dimension"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsXyz, csize ),
-		1, VIPS_MAX_COORD, 1 );
+		G_STRUCT_OFFSET(VipsXyz, csize),
+		1, VIPS_MAX_COORD, 1);
 
-	VIPS_ARG_INT( class, "dsize", 7, 
-		_( "dsize" ), 
-		_( "Size of fourth dimension" ),
+	VIPS_ARG_INT(class, "dsize", 7,
+		_("dsize"),
+		_("Size of fourth dimension"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsXyz, dsize ),
-		1, VIPS_MAX_COORD, 1 );
+		G_STRUCT_OFFSET(VipsXyz, dsize),
+		1, VIPS_MAX_COORD, 1);
 
-	VIPS_ARG_INT( class, "esize", 8, 
-		_( "esize" ), 
-		_( "Size of fifth dimension" ),
+	VIPS_ARG_INT(class, "esize", 8,
+		_("esize"),
+		_("Size of fifth dimension"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsXyz, esize ),
-		1, VIPS_MAX_COORD, 1 );
-
+		G_STRUCT_OFFSET(VipsXyz, esize),
+		1, VIPS_MAX_COORD, 1);
 }
 
 static void
-vips_xyz_init( VipsXyz *xyz )
+vips_xyz_init(VipsXyz *xyz)
 {
 	xyz->width = 64;
 	xyz->height = 64;
@@ -250,28 +249,28 @@ vips_xyz_init( VipsXyz *xyz )
  *
  * Create a two-band uint32 image where the elements in the first band have the
  * value of their x coordinate and elements in the second band have their y
- * coordinate. 
+ * coordinate.
  *
  * You can make any image where the value of a pixel is a function of its (x,
- * y) coordinate by combining this operator with the arithmetic operators. 
+ * y) coordinate by combining this operator with the arithmetic operators.
  *
  * Set @csize, @dsize, @esize to generate higher dimensions and add more
  * bands. The extra dimensions are placed down the vertical axis. Use
- * vips_grid() to change the layout. 
+ * vips_grid() to change the layout.
  *
  * See also: vips_grey(), vips_grid(), vips_identity().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_xyz( VipsImage **out, int width, int height, ... )
+vips_xyz(VipsImage **out, int width, int height, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, height );
-	result = vips_call_split( "xyz", ap, out, width, height );
-	va_end( ap );
+	va_start(ap, height);
+	result = vips_call_split("xyz", ap, out, width, height);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

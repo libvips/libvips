@@ -20,34 +20,34 @@
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
- * 12/8/13	
+ * 12/8/13
  * 	- redone im_histnorm() as a class, vips_hist_norm()
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -69,89 +69,89 @@ typedef struct _VipsHistNorm {
 
 typedef VipsOperationClass VipsHistNormClass;
 
-G_DEFINE_TYPE( VipsHistNorm, vips_hist_norm, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE(VipsHistNorm, vips_hist_norm, VIPS_TYPE_OPERATION);
 
 static int
-vips_hist_norm_build( VipsObject *object )
+vips_hist_norm_build(VipsObject *object)
 {
 	VipsHistNorm *norm = (VipsHistNorm *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
 	guint64 new_max;
-	int bands; 
+	int bands;
 	double *a, *b;
 	int y;
 	VipsBandFormat fmt;
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set(object, "out", vips_image_new(), NULL);
 
-	if( VIPS_OBJECT_CLASS( vips_hist_norm_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_hist_norm_parent_class)->build(object))
+		return -1;
 
 	/* Need max for each channel.
 	 */
-	if( vips_stats( norm->in, &t[0], NULL ) )
-		return( -1 ); 
+	if (vips_stats(norm->in, &t[0], NULL))
+		return -1;
 
 	/* Scale each channel by px / channel max
 	 */
-	new_max = VIPS_IMAGE_N_PELS( norm->in ) - 1;
+	new_max = VIPS_IMAGE_N_PELS(norm->in) - 1;
 	bands = norm->in->Bands;
-	if( !(a = VIPS_ARRAY( object, bands, double )) ||
-		!(b = VIPS_ARRAY( object, bands, double )) )
-		return( -1 );
-	for( y = 0; y < bands; y++ ) {
-		a[y] = new_max / *VIPS_MATRIX( t[0], 1, y + 1 );
+	if (!(a = VIPS_ARRAY(object, bands, double)) ||
+		!(b = VIPS_ARRAY(object, bands, double)))
+		return -1;
+	for (y = 0; y < bands; y++) {
+		a[y] = new_max / *VIPS_MATRIX(t[0], 1, y + 1);
 		b[y] = 0;
 	}
 
-	if( vips_linear( norm->in, &t[1], a, b, bands, NULL ) )
-		return( -1 );
+	if (vips_linear(norm->in, &t[1], a, b, bands, NULL))
+		return -1;
 
 	/* Make output format as small as we can.
 	 */
-	if( new_max <= 255 ) 
+	if (new_max <= 255)
 		fmt = VIPS_FORMAT_UCHAR;
-	else if( new_max <= 65535 ) 
+	else if (new_max <= 65535)
 		fmt = VIPS_FORMAT_USHORT;
-	else 
+	else
 		fmt = VIPS_FORMAT_UINT;
 
-	if( vips_cast( t[1], &t[2], fmt, NULL ) ||
-		vips_image_write( t[2], norm->out ) )
-		return( -1 );
+	if (vips_cast(t[1], &t[2], fmt, NULL) ||
+		vips_image_write(t[2], norm->out))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_hist_norm_class_init( VipsHistNormClass *class )
+vips_hist_norm_class_init(VipsHistNormClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "hist_norm";
-	object_class->description = _( "normalise histogram" );
+	object_class->description = _("normalise histogram");
 	object_class->build = vips_hist_norm_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsHistNorm, in ) );
+		G_STRUCT_OFFSET(VipsHistNorm, in));
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsHistNorm, out ) );
+	VIPS_ARG_IMAGE(class, "out", 2,
+		_("Output"),
+		_("Output image"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsHistNorm, out));
 }
 
 static void
-vips_hist_norm_init( VipsHistNorm *hist_norm )
+vips_hist_norm_init(VipsHistNorm *hist_norm)
 {
 }
 
@@ -160,8 +160,8 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
- * 
- * Normalise histogram. The maximum of each band becomes equal to the maximum 
+ *
+ * Normalise histogram. The maximum of each band becomes equal to the maximum
  * index, so for example the max for a uchar image becomes 255.
  * Normalise each band separately.
  *
@@ -169,15 +169,15 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-vips_hist_norm( VipsImage *in, VipsImage **out, ... )
+int
+vips_hist_norm(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "hist_norm", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("hist_norm", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

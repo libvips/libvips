@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -57,59 +57,59 @@ typedef struct _VipsForeignLoadAnalyze {
 
 	/* Filename for load.
 	 */
-	char *filename; 
+	char *filename;
 
 } VipsForeignLoadAnalyze;
 
 typedef VipsForeignLoadClass VipsForeignLoadAnalyzeClass;
 
-G_DEFINE_TYPE( VipsForeignLoadAnalyze, vips_foreign_load_analyze, 
-	VIPS_TYPE_FOREIGN_LOAD );
+G_DEFINE_TYPE(VipsForeignLoadAnalyze, vips_foreign_load_analyze,
+	VIPS_TYPE_FOREIGN_LOAD);
 
 static VipsForeignFlags
-vips_foreign_load_analyze_get_flags_filename( const char *filename )
+vips_foreign_load_analyze_get_flags_filename(const char *filename)
 {
-	return( VIPS_FOREIGN_PARTIAL );
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static VipsForeignFlags
-vips_foreign_load_analyze_get_flags( VipsForeignLoad *load )
+vips_foreign_load_analyze_get_flags(VipsForeignLoad *load)
 {
-	return( VIPS_FOREIGN_PARTIAL );
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
-vips_foreign_load_analyze_header( VipsForeignLoad *load )
+vips_foreign_load_analyze_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
-	if( vips__analyze_read_header( analyze->filename, load->out ) ) 
-		return( -1 );
+	if (vips__analyze_read_header(analyze->filename, load->out))
+		return -1;
 
-	VIPS_SETSTR( load->out->filename, analyze->filename );
+	VIPS_SETSTR(load->out->filename, analyze->filename);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_foreign_load_analyze_load( VipsForeignLoad *load )
+vips_foreign_load_analyze_load(VipsForeignLoad *load)
 {
 	VipsForeignLoadAnalyze *analyze = (VipsForeignLoadAnalyze *) load;
 
-	if( vips__analyze_read( analyze->filename, load->real ) ) 
-		return( -1 );
+	if (vips__analyze_read(analyze->filename, load->real))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static const char *vips_foreign_analyze_suffs[] = { ".img", ".hdr", NULL };
 
 static void
-vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
+vips_foreign_load_analyze_class_init(VipsForeignLoadAnalyzeClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -117,9 +117,9 @@ vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "analyzeload";
-	object_class->description = _( "load an Analyze6 image" );
+	object_class->description = _("load an Analyze6 image");
 
-	/* This is fuzzed, but you're unlikely to want to use it on 
+	/* This is fuzzed, but you're unlikely to want to use it on
 	 * untrusted files.
 	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
@@ -131,22 +131,22 @@ vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
 	foreign_class->priority = -50;
 
 	load_class->is_a = vips__isanalyze;
-	load_class->get_flags_filename = 
+	load_class->get_flags_filename =
 		vips_foreign_load_analyze_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_analyze_get_flags;
 	load_class->header = vips_foreign_load_analyze_header;
 	load_class->load = vips_foreign_load_analyze_load;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadAnalyze, filename ),
-		NULL );
+	VIPS_ARG_STRING(class, "filename", 1,
+		_("Filename"),
+		_("Filename to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadAnalyze, filename),
+		NULL);
 }
 
 static void
-vips_foreign_load_analyze_init( VipsForeignLoadAnalyze *analyze )
+vips_foreign_load_analyze_init(VipsForeignLoadAnalyze *analyze)
 {
 }
 
@@ -171,14 +171,14 @@ vips_foreign_load_analyze_init( VipsForeignLoadAnalyze *analyze )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_analyzeload( const char *filename, VipsImage **out, ... )
+vips_analyzeload(const char *filename, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "analyzeload", ap, filename, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("analyzeload", ap, filename, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -11,7 +11,7 @@
  *	- declaration for drand48() added
  *	- partialised, adapting im_gaussnoise()
  * 23/10/98 JC
- *	- drand48() chaged to random() for portability
+ *	- drand48() changed to random() for portability
  * 21/10/02 JC
  *	- tries rand() if random() is not available
  *	- uses RAND_MAX, d'oh
@@ -30,28 +30,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -83,129 +83,128 @@ typedef struct _VipsGaussnoise {
 
 typedef VipsCreateClass VipsGaussnoiseClass;
 
-G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE );
+G_DEFINE_TYPE(VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE);
 
 static int
-vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+vips_gaussnoise_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) a;
-	int sz = VIPS_REGION_N_ELEMENTS( or );
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	int y;
 
-	for( y = 0; y < or->valid.height; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, 
-			or->valid.left, y + or->valid.top );
+	for (y = 0; y < out_region->valid.height; y++) {
+		float *q = (float *) VIPS_REGION_ADDR(out_region,
+			out_region->valid.left, y + out_region->valid.top);
 
 		int x;
 
-		for( x = 0; x < sz; x++ ) {
+		for (x = 0; x < sz; x++) {
 			guint32 seed;
 			double sum;
 			int i;
 
 			seed = gaussnoise->seed;
-			seed = vips__random_add( seed, or->valid.left + x );
-			seed = vips__random_add( seed, or->valid.top + y );
+			seed = vips__random_add(seed, out_region->valid.left + x);
+			seed = vips__random_add(seed, out_region->valid.top + y);
 
 			sum = 0.0;
-			for( i = 0; i < 12; i++ ) {
-				seed = vips__random( seed ); 
+			for (i = 0; i < 12; i++) {
+				seed = vips__random(seed);
 				sum += (double) seed / UINT_MAX;
 			}
 
-			q[x] = (sum - 6.0) * gaussnoise->sigma + 
+			q[x] = (sum - 6.0) * gaussnoise->sigma +
 				gaussnoise->mean;
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_gaussnoise_build( VipsObject *object )
+vips_gaussnoise_build(VipsObject *object)
 {
-	VipsCreate *create = VIPS_CREATE( object );
+	VipsCreate *create = VIPS_CREATE(object);
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_gaussnoise_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_gaussnoise_parent_class)->build(object))
+		return -1;
 
-	vips_image_init_fields( create->out,
+	vips_image_init_fields(create->out,
 		gaussnoise->width, gaussnoise->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_MULTIBAND, 1.0, 1.0 );
+		VIPS_INTERPRETATION_MULTIBAND, 1.0, 1.0);
 
-	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
-		vips_image_generate( create->out, 
-			NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )
-		return( -1 );
+	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
+		vips_image_generate(create->out,
+			NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
+vips_gaussnoise_class_init(VipsGaussnoiseClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "gaussnoise";
-	vobject_class->description = _( "make a gaussnoise image" );
+	vobject_class->description = _("make a gaussnoise image");
 	vobject_class->build = vips_gaussnoise_build;
 
 	/* We want a new set of numbers each time.
 	 */
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
+	VIPS_ARG_INT(class, "width", 4,
+		_("Width"),
+		_("Image width in pixels"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGaussnoise, width ),
-		1, VIPS_MAX_COORD, 1 );
+		G_STRUCT_OFFSET(VipsGaussnoise, width),
+		1, VIPS_MAX_COORD, 1);
 
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
+	VIPS_ARG_INT(class, "height", 5,
+		_("Height"),
+		_("Image height in pixels"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGaussnoise, height ),
-		1, VIPS_MAX_COORD, 1 );
+		G_STRUCT_OFFSET(VipsGaussnoise, height),
+		1, VIPS_MAX_COORD, 1);
 
-	VIPS_ARG_DOUBLE( class, "mean", 6, 
-		_( "Mean" ), 
-		_( "Mean of pixels in generated image" ),
+	VIPS_ARG_DOUBLE(class, "mean", 6,
+		_("Mean"),
+		_("Mean of pixels in generated image"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGaussnoise, mean ),
-		-10000000, 1000000, 128 );
+		G_STRUCT_OFFSET(VipsGaussnoise, mean),
+		-10000000, 1000000, 128);
 
-	VIPS_ARG_DOUBLE( class, "sigma", 6, 
-		_( "Sigma" ), 
-		_( "Standard deviation of pixels in generated image" ),
+	VIPS_ARG_DOUBLE(class, "sigma", 6,
+		_("Sigma"),
+		_("Standard deviation of pixels in generated image"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGaussnoise, sigma ),
-		0, 100000, 30 );
+		G_STRUCT_OFFSET(VipsGaussnoise, sigma),
+		0, 100000, 30);
 
-	VIPS_ARG_INT( class, "seed", 7, 
-		_( "Seed" ), 
-		_( "Random number seed" ),
+	VIPS_ARG_INT(class, "seed", 7,
+		_("Seed"),
+		_("Random number seed"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGaussnoise, seed ),
-		INT_MIN, INT_MAX, 0 );
-
+		G_STRUCT_OFFSET(VipsGaussnoise, seed),
+		INT_MIN, INT_MAX, 0);
 }
 
 static void
-vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
+vips_gaussnoise_init(VipsGaussnoise *gaussnoise)
 {
 	gaussnoise->mean = 128.0;
 	gaussnoise->sigma = 30.0;
-	gaussnoise->seed = UINT_MAX * g_random_double(); 
+	gaussnoise->seed = UINT_MAX * g_random_double();
 }
 
 /**
@@ -221,7 +220,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  * * @sigma: standard deviation of generated pixels
  *
  * Make a one band float image of gaussian noise with the specified
- * distribution. The noise distribution is created by averaging 12 random 
+ * distribution. The noise distribution is created by averaging 12 random
  * numbers with the appropriate weights.
  *
  * See also: vips_black(), vips_xyz(), vips_text().
@@ -229,14 +228,14 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_gaussnoise( VipsImage **out, int width, int height, ... )
+vips_gaussnoise(VipsImage **out, int width, int height, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, height );
-	result = vips_call_split( "gaussnoise", ap, out, width, height );
-	va_end( ap );
+	va_start(ap, height);
+	result = vips_call_split("gaussnoise", ap, out, width, height);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -18,7 +18,7 @@
  * 21/3/11
  * 	- read/write metadata as whole records to avoid changing things
  * 	- cast input to a supported format
- * 	- bandsplit for write 
+ * 	- bandsplit for write
  * 13/12/11
  * 	- redo as a set of fns ready for wrapping in a new-style class
  * 23/6/13
@@ -28,9 +28,9 @@
  * 	  support for BSCALE / BZERO settings
  * 17/1/17
  * 	- invalidate operation on read error
- * 26/1/17 aferrero2707 
+ * 26/1/17 aferrero2707
  * 	- use fits_open_diskfile(), not fits_open_file() ... we don't want the
- *	  extended filename syntax 
+ *	  extended filename syntax
  * 15/4/17
  * 	- skip HDUs with zero dimensions, thanks benepo
  * 27/10/22
@@ -44,28 +44,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -109,7 +109,7 @@ typedef struct {
 	int naxis;
 	long long int naxes[MAX_DIMENSIONS];
 
-	GMutex *lock;		/* Lock fits_*() calls with this */
+	GMutex *lock; /* Lock fits_*() calls with this */
 
 	/* One line of pels ready for scatter/gather.
 	 */
@@ -125,70 +125,70 @@ typedef struct {
 const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
 
 static void
-vips_fits_error( int status )
+vips_fits_error(int status)
 {
 	char buf[80];
 
-	fits_get_errstatus( status, buf );
-	vips_error( "fits", "%s", buf );
+	fits_get_errstatus(status, buf);
+	vips_error("fits", "%s", buf);
 }
 
 /* Shut down. Can be called many times.
  */
 static void
-vips_fits_close( VipsFits *fits )
+vips_fits_close(VipsFits *fits)
 {
-	VIPS_FREE( fits->filename );
-	VIPS_FREEF( vips_g_mutex_free, fits->lock );
-	VIPS_FREEF( vips_slist_free_all, fits->dedupe );
+	VIPS_FREE(fits->filename);
+	VIPS_FREEF(vips_g_mutex_free, fits->lock);
+	VIPS_FREEF(vips_slist_free_all, fits->dedupe);
 
-	if( fits->fptr ) {
+	if (fits->fptr) {
 		int status;
 
 		status = 0;
 
-		if( fits_close_file( fits->fptr, &status ) ) 
-			vips_fits_error( status );
+		if (fits_close_file(fits->fptr, &status))
+			vips_fits_error(status);
 
 		fits->fptr = NULL;
 	}
 
-	VIPS_FREE( fits->line );
+	VIPS_FREE(fits->line);
 }
 
 static void
-vips_fits_close_cb( VipsImage *image, VipsFits *fits )
+vips_fits_close_cb(VipsImage *image, VipsFits *fits)
 {
-	vips_fits_close( fits );
+	vips_fits_close(fits);
 }
 
 static VipsFits *
-vips_fits_new_read( const char *filename, VipsImage *out )
+vips_fits_new_read(const char *filename, VipsImage *out)
 {
 	VipsFits *fits;
 	int status;
 
-	if( !(fits = VIPS_NEW( out, VipsFits )) )
-		return( NULL );
+	if (!(fits = VIPS_NEW(out, VipsFits)))
+		return NULL;
 
-	fits->filename = vips_strdup( NULL, filename );
+	fits->filename = vips_strdup(NULL, filename);
 	fits->image = out;
 	fits->fptr = NULL;
 	fits->lock = NULL;
 	fits->line = NULL;
-	g_signal_connect( out, "close", 
-		G_CALLBACK( vips_fits_close_cb ), fits );
+	g_signal_connect(out, "close",
+		G_CALLBACK(vips_fits_close_cb), fits);
 
 	status = 0;
-	if( fits_open_diskfile( &fits->fptr, filename, READONLY, &status ) ) {
-		vips_error( "fits", _( "unable to open \"%s\"" ), filename );
-		vips_fits_error( status );
-		return( NULL );
+	if (fits_open_diskfile(&fits->fptr, filename, READONLY, &status)) {
+		vips_error("fits", _("unable to open \"%s\""), filename);
+		vips_fits_error(status);
+		return NULL;
 	}
 
 	fits->lock = vips_g_mutex_new();
 
-	return( fits );
+	return fits;
 }
 
 /* fits image types -> VIPS band formats. VIPS doesn't have 64-bit int, so no
@@ -196,16 +196,16 @@ vips_fits_new_read( const char *filename, VipsImage *out )
  */
 static int fits2vips_formats[][3] = {
 	{ BYTE_IMG, VIPS_FORMAT_UCHAR, TBYTE },
-	{ SHORT_IMG,  VIPS_FORMAT_SHORT, TSHORT },
-	{ USHORT_IMG,  VIPS_FORMAT_USHORT, TUSHORT },
-	{ LONG_IMG,  VIPS_FORMAT_INT, TINT },
-	{ ULONG_IMG,  VIPS_FORMAT_UINT, TUINT },
-	{ FLOAT_IMG,  VIPS_FORMAT_FLOAT, TFLOAT },
+	{ SHORT_IMG, VIPS_FORMAT_SHORT, TSHORT },
+	{ USHORT_IMG, VIPS_FORMAT_USHORT, TUSHORT },
+	{ LONG_IMG, VIPS_FORMAT_INT, TINT },
+	{ ULONG_IMG, VIPS_FORMAT_UINT, TUINT },
+	{ FLOAT_IMG, VIPS_FORMAT_FLOAT, TFLOAT },
 	{ DOUBLE_IMG, VIPS_FORMAT_DOUBLE, TDOUBLE }
 };
 
 static int
-vips_fits_get_header( VipsFits *fits, VipsImage *out )
+vips_fits_get_header(VipsFits *fits, VipsImage *out)
 {
 	int status;
 	int bitpix;
@@ -221,44 +221,44 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	/* Some FITS images have the first HDU for extra metadata ... skip
 	 * forward until we find a header unit we can load as an image.
 	 */
-	for(;;) { 
-		if( fits_get_img_paramll( fits->fptr, 
-			10, &bitpix, &fits->naxis, fits->naxes, &status ) ) {
-			vips_fits_error( status );
-			return( -1 );
+	for (;;) {
+		if (fits_get_img_paramll(fits->fptr,
+				10, &bitpix, &fits->naxis, fits->naxes, &status)) {
+			vips_fits_error(status);
+			return -1;
 		}
 
-		if( fits->naxis > 0 )
+		if (fits->naxis > 0)
 			break;
 
-		if( fits_movrel_hdu( fits->fptr, 1, NULL, &status ) ) {
-			vips_fits_error( status );
-			vips_error( "fits", 
-				"%s", _( "no HDU found with naxes > 0" ) );
-			return( -1 );
+		if (fits_movrel_hdu(fits->fptr, 1, NULL, &status)) {
+			vips_fits_error(status);
+			vips_error("fits",
+				"%s", _("no HDU found with naxes > 0"));
+			return -1;
 		}
 	}
 
 	/* cfitsio does automatic conversion from the format stored in
-	 * the file to the equivalent type after scale/offset. We need 
+	 * the file to the equivalent type after scale/offset. We need
 	 * to allocate a vips image of the equivalent type, not the original
 	 * type.
 	 */
-	if( fits_get_img_equivtype( fits->fptr, &bitpix, &status ) ) {
-		vips_fits_error( status );
-		return( -1 );
+	if (fits_get_img_equivtype(fits->fptr, &bitpix, &status)) {
+		vips_fits_error(status);
+		return -1;
 	}
 
 #ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
-	for( i = 0; i < fits->naxis; i++ )
-		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
-	VIPS_DEBUG_MSG( "fits2vips: bitpix = %d\n", bitpix );
+	VIPS_DEBUG_MSG("naxis = %d\n", fits->naxis);
+	for (i = 0; i < fits->naxis; i++)
+		VIPS_DEBUG_MSG("%d) %lld\n", i, fits->naxes[i]);
+	VIPS_DEBUG_MSG("fits2vips: bitpix = %d\n", bitpix);
 #endif /*VIPS_DEBUG*/
 
 	height = 1;
 	bands = 1;
-	switch( fits->naxis ) {
+	switch (fits->naxis) {
 	/* If you add more dimensions here, adjust data read below. See also
 	 * the definition of MAX_DIMENSIONS above.
 	 */
@@ -269,12 +269,11 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	case 6:
 	case 5:
 	case 4:
-		for( i = fits->naxis; i > 3; i-- )
-			if( fits->naxes[i - 1] != 1 ) {
-				vips_error( "fits", 
-					"%s", _( "dimensions above 3 "
-					"must be size 1" ) );
-				return( -1 );
+		for (i = fits->naxis; i > 3; i--)
+			if (fits->naxes[i - 1] != 1) {
+				vips_error("fits",
+					"%s", _("dimensions above 3 must be size 1"));
+				return -1;
 			}
 
 	case 3:
@@ -288,32 +287,32 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		break;
 
 	default:
-		vips_error( "fits", _( "bad number of axis %d" ), fits->naxis );
-		return( -1 );
+		vips_error("fits", _("bad number of axis %d"), fits->naxis);
+		return -1;
 	}
 
 	/* Get image format. This is the equivalent format, or the format
 	 * stored in the file.
 	 */
-	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
-		if( fits2vips_formats[i][0] == bitpix )
+	for (i = 0; i < VIPS_NUMBER(fits2vips_formats); i++)
+		if (fits2vips_formats[i][0] == bitpix)
 			break;
-	if( i == VIPS_NUMBER( fits2vips_formats ) ) {
-		vips_error( "fits", _( "unsupported bitpix %d\n" ),
-			bitpix );
-		return( -1 );
+	if (i == VIPS_NUMBER(fits2vips_formats)) {
+		vips_error("fits", _("unsupported bitpix %d\n"),
+			bitpix);
+		return -1;
 	}
 	format = fits2vips_formats[i][1];
 	fits->datatype = fits2vips_formats[i][2];
 
-	if( bands == 1 ) {
-		if( format == VIPS_FORMAT_USHORT )
+	if (bands == 1) {
+		if (format == VIPS_FORMAT_USHORT)
 			interpretation = VIPS_INTERPRETATION_GREY16;
 		else
 			interpretation = VIPS_INTERPRETATION_B_W;
 	}
-	else if( bands == 3 ) {
-		if( format == VIPS_FORMAT_USHORT )
+	else if (bands == 3) {
+		if (format == VIPS_FORMAT_USHORT)
 			interpretation = VIPS_INTERPRETATION_RGB16;
 		else
 			interpretation = VIPS_INTERPRETATION_sRGB;
@@ -321,77 +320,77 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	else
 		interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
-	vips_image_init_fields( out,
-		 width, height, bands,
-		 format,
-		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
+	vips_image_init_fields(out,
+		width, height, bands,
+		format,
+		VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
-        /* We read in lines, so SMALLTILE ends up being too small.
-         */
-	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
-		return( -1 );
+	/* We read in lines, so SMALLTILE ends up being too small.
+	 */
+	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
+		return -1;
 
 	/* We need to be able to hold one scanline of one band for
 	 * scatter/gather.
 	 */
-	if( !(fits->line = VIPS_ARRAY( NULL, 
-		VIPS_IMAGE_SIZEOF_ELEMENT( out ) * out->Xsize, VipsPel )) )
-		return( -1 );
+	if (!(fits->line = VIPS_ARRAY(NULL,
+			  VIPS_IMAGE_SIZEOF_ELEMENT(out) * out->Xsize, VipsPel)))
+		return -1;
 
 	/* Read all keys into meta.
 	 */
-	if( fits_get_hdrspace( fits->fptr, &keysexist, NULL, &status ) ) {
-		vips_fits_error( status );
-		return( -1 );
+	if (fits_get_hdrspace(fits->fptr, &keysexist, NULL, &status)) {
+		vips_fits_error(status);
+		return -1;
 	}
 
-	for( i = 0; i < keysexist; i++ ) {
+	for (i = 0; i < keysexist; i++) {
 		char record[81];
 		char vipsname[100];
 
-		if( fits_read_record( fits->fptr, i + 1, record, &status ) ) {
-			vips_fits_error( status );
-			return( -1 );
+		if (fits_read_record(fits->fptr, i + 1, record, &status)) {
+			vips_fits_error(status);
+			return -1;
 		}
 
-		VIPS_DEBUG_MSG( "fits2vips: setting meta on vips image:\n" );
-		VIPS_DEBUG_MSG( " record == \"%s\"\n", record );
+		VIPS_DEBUG_MSG("fits2vips: setting meta on vips image:\n");
+		VIPS_DEBUG_MSG(" record == \"%s\"\n", record);
 
 		/* FITS lets keys repeat. For example, HISTORY appears many
 		 * times, each time with a fresh line of history attached. We
 		 * have to include the key index in the vips name we assign.
 		 */
 
-		vips_snprintf( vipsname, 100, "fits-%d", i );
-		vips_image_set_string( out, vipsname, record );
+		vips_snprintf(vipsname, 100, "fits-%d", i);
+		vips_image_set_string(out, vipsname, record);
 	}
 
-	return( 0 );
+	return 0;
 }
 
 int
-vips__fits_read_header( const char *filename, VipsImage *out )
+vips__fits_read_header(const char *filename, VipsImage *out)
 {
 	VipsFits *fits;
 
-	VIPS_DEBUG_MSG( "fits2vips_header: reading \"%s\"\n", filename );
+	VIPS_DEBUG_MSG("fits2vips_header: reading \"%s\"\n", filename);
 
-	if( !(fits = vips_fits_new_read( filename, out )) )
-		return( -1 );
+	if (!(fits = vips_fits_new_read(filename, out)))
+		return -1;
 
-	if( vips_fits_get_header( fits, out ) ) {
-		vips_fits_close( fits );
-		return( -1 );
+	if (vips_fits_get_header(fits, out)) {
+		vips_fits_close(fits);
+		return -1;
 	}
 
-	vips_fits_close( fits );
+	vips_fits_close(fits);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_fits_read_subset( VipsFits *fits, 
-	long *fpixel, long *lpixel, long *inc, VipsPel *q )
+vips_fits_read_subset(VipsFits *fits,
+	long *fpixel, long *lpixel, long *inc, VipsPel *q)
 {
 	int status;
 
@@ -401,52 +400,53 @@ vips_fits_read_subset( VipsFits *fits,
 
 	/* Break on ffgsv() for this call.
 	 */
-	if( fits_read_subset( fits->fptr, fits->datatype, 
-		fpixel, lpixel, inc, 
-		NULL, q, NULL, &status ) ) {
-		vips_fits_error( status );
-		vips_foreign_load_invalidate( fits->image );
+	if (fits_read_subset(fits->fptr, fits->datatype,
+			fpixel, lpixel, inc,
+			NULL, q, NULL, &status)) {
+		vips_fits_error(status);
+		vips_foreign_load_invalidate(fits->image);
 
-		return( -1 ); 
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
-#define SCATTER( TYPE ) { \
-	TYPE *tp = (TYPE *) p; \
-	TYPE *tq = ((TYPE *) q) + band; \
-	\
-	for( int x = 0; x < width; x++ ) { \
-		*tq = tp[x]; \
-		tq += bands; \
-	} \
-}
+#define SCATTER(TYPE) \
+	{ \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tq = ((TYPE *) q) + band; \
+\
+		for (int x = 0; x < width; x++) { \
+			*tq = tp[x]; \
+			tq += bands; \
+		} \
+	}
 
 static void
-vips_fits_scatter( VipsFits *fits, VipsPel *q, VipsPel *p, int width, int band )
+vips_fits_scatter(VipsFits *fits, VipsPel *q, VipsPel *p, int width, int band)
 {
-	int bands = fits->image->Bands; 
+	int bands = fits->image->Bands;
 
-	switch( fits->image->BandFmt ) {
+	switch (fits->image->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
-		SCATTER( guchar );
+		SCATTER(guchar);
 		break;
 
 	case VIPS_FORMAT_SHORT:
 	case VIPS_FORMAT_USHORT:
-		SCATTER( gushort );
+		SCATTER(gushort);
 		break;
 
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_UINT:
 	case VIPS_FORMAT_FLOAT:
-		SCATTER( guint );
+		SCATTER(guint);
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		SCATTER( double );
+		SCATTER(double);
 		break;
 
 	default:
@@ -455,142 +455,142 @@ vips_fits_scatter( VipsFits *fits, VipsPel *q, VipsPel *p, int width, int band )
 }
 
 static int
-vips_fits_generate( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop )
+vips_fits_generate(VipsRegion *out,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsFits *fits = (VipsFits *) a;
 	VipsRect *r = &out->valid;
 
-	VIPS_DEBUG_MSG( "fits2vips_generate: "
-		"generating left = %d, top = %d, width = %d, height = %d\n", 
-		r->left, r->top, r->width, r->height );
+	VIPS_DEBUG_MSG("fits2vips_generate: "
+				   "generating left = %d, top = %d, width = %d, height = %d\n",
+		r->left, r->top, r->width, r->height);
 
-	vips__worker_lock( fits->lock );
+	vips__worker_lock(fits->lock);
 
-	for( int w = 0; w < out->im->Bands; w++ )  {
-		for( int y = r->top; y < VIPS_RECT_BOTTOM( r ); y++ ) {
+	for (int w = 0; w < out->im->Bands; w++) {
+		for (int y = r->top; y < VIPS_RECT_BOTTOM(r); y++) {
 			long fpixel[MAX_DIMENSIONS];
 			long lpixel[MAX_DIMENSIONS];
 			long inc[MAX_DIMENSIONS];
 
-			for( int z = 0; z < MAX_DIMENSIONS; z++ )
+			for (int z = 0; z < MAX_DIMENSIONS; z++)
 				fpixel[z] = 1;
 			fpixel[0] = r->left + 1;
 			fpixel[1] = y + 1;
 			fpixel[2] = w + 1;
 
-			for( int z = 0; z < MAX_DIMENSIONS; z++ )
+			for (int z = 0; z < MAX_DIMENSIONS; z++)
 				lpixel[z] = 1;
-			lpixel[0] = VIPS_RECT_RIGHT( r );
+			lpixel[0] = VIPS_RECT_RIGHT(r);
 			lpixel[1] = y + 1;
 			lpixel[2] = w + 1;
 
-			for( int z = 0; z < MAX_DIMENSIONS; z++ )
+			for (int z = 0; z < MAX_DIMENSIONS; z++)
 				inc[z] = 1;
 
 			/* We're inside a lock, so it's OK to write to ->line.
 			 */
-			if( vips_fits_read_subset( fits, 
-				fpixel, lpixel, inc, fits->line ) ) { 
-				g_mutex_unlock( fits->lock );
-				return( -1 );
+			if (vips_fits_read_subset(fits,
+					fpixel, lpixel, inc, fits->line)) {
+				g_mutex_unlock(fits->lock);
+				return -1;
 			}
 
-			vips_fits_scatter( fits, 
-				VIPS_REGION_ADDR( out, r->left, y ), fits->line,
-				r->width, w );
+			vips_fits_scatter(fits,
+				VIPS_REGION_ADDR(out, r->left, y), fits->line,
+				r->width, w);
 		}
 	}
 
-	g_mutex_unlock( fits->lock );
+	g_mutex_unlock(fits->lock);
 
-	return( 0 );
+	return 0;
 }
 
 int
-vips__fits_read( const char *filename, VipsImage *out )
+vips__fits_read(const char *filename, VipsImage *out)
 {
 	VipsFits *fits;
 
-	if( !(fits = vips_fits_new_read( filename, out )) )
-		return( -1 );
-	if( vips_fits_get_header( fits, out ) ||
-		vips_image_generate( out, 
-			NULL, vips_fits_generate, NULL, fits, NULL ) ) {
-		vips_fits_close( fits );
-		return( -1 );
+	if (!(fits = vips_fits_new_read(filename, out)))
+		return -1;
+	if (vips_fits_get_header(fits, out) ||
+		vips_image_generate(out,
+			NULL, vips_fits_generate, NULL, fits, NULL)) {
+		vips_fits_close(fits);
+		return -1;
 	}
 
-	return( 0 );
+	return 0;
 }
 
 int
-vips__fits_isfits( const char *filename )
+vips__fits_isfits(const char *filename)
 {
 	fitsfile *fptr;
 	int status;
 
-	VIPS_DEBUG_MSG( "isfits: testing \"%s\"\n", filename );
+	VIPS_DEBUG_MSG("isfits: testing \"%s\"\n", filename);
 
 	status = 0;
 
-	if( fits_open_diskfile( &fptr, filename, READONLY, &status ) ) {
-		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
+	if (fits_open_diskfile(&fptr, filename, READONLY, &status)) {
+		VIPS_DEBUG_MSG("isfits: error reading \"%s\"\n", filename);
 #ifdef VIPS_DEBUG
-		vips_fits_error( status );
-		VIPS_DEBUG_MSG( "isfits: %s\n", vips_error_buffer() );
+		vips_fits_error(status);
+		VIPS_DEBUG_MSG("isfits: %s\n", vips_error_buffer());
 #endif /*VIPS_DEBUG*/
 
-		return( 0 );
+		return 0;
 	}
-	fits_close_file( fptr, &status );
+	fits_close_file(fptr, &status);
 
-	return( 1 );
+	return 1;
 }
 
 static VipsFits *
-vips_fits_new_write( VipsImage *in, const char *filename )
+vips_fits_new_write(VipsImage *in, const char *filename)
 {
 	VipsFits *fits;
 	int status;
 
 	status = 0;
 
-	if( !(fits = VIPS_NEW( in, VipsFits )) )
-		return( NULL );
-	fits->filename = vips_strdup( VIPS_OBJECT( in ), filename );
+	if (!(fits = VIPS_NEW(in, VipsFits)))
+		return NULL;
+	fits->filename = vips_strdup(VIPS_OBJECT(in), filename);
 	fits->image = in;
 	fits->fptr = NULL;
 	fits->lock = NULL;
 	fits->line = NULL;
-	g_signal_connect( in, "close", 
-		G_CALLBACK( vips_fits_close_cb ), fits );
+	g_signal_connect(in, "close",
+		G_CALLBACK(vips_fits_close_cb), fits);
 
-	if( !(fits->filename = vips_strdup( NULL, filename )) )
-		return( NULL );
+	if (!(fits->filename = vips_strdup(NULL, filename)))
+		return NULL;
 
 	/* We need to be able to hold one scanline of one band.
 	 */
-	if( !(fits->line = VIPS_ARRAY( NULL, 
-		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * in->Xsize, VipsPel )) )
-		return( NULL );
+	if (!(fits->line = VIPS_ARRAY(NULL,
+			  VIPS_IMAGE_SIZEOF_ELEMENT(in) * in->Xsize, VipsPel)))
+		return NULL;
 
 	/* fits_create_file() will fail if there's a file of thet name, unless
-	 * we put a "!" in front ofthe filename. This breaks conventions with
+	 * we put a "!" in front of the filename. This breaks conventions with
 	 * the rest of vips, so just unlink explicitly.
 	 */
-	g_unlink( filename );
+	g_unlink(filename);
 
-	if( fits_create_file( &fits->fptr, filename, &status ) ) {
-		vips_error( "fits", 
-			_( "unable to write to \"%s\"" ), filename );
-		vips_fits_error( status );
-		return( NULL );
+	if (fits_create_file(&fits->fptr, filename, &status)) {
+		vips_error("fits",
+			_("unable to write to \"%s\""), filename);
+		vips_fits_error(status);
+		return NULL;
 	}
 
 	fits->lock = vips_g_mutex_new();
 
-	return( fits );
+	return fits;
 }
 
 /* Header fields which cfitsio 4.1 writes for us start like this. It'll use
@@ -610,12 +610,12 @@ const char *vips_fits_basic[] = {
 	"COMMENT   and Astrophysics', volume 376, page 359; bibcode:",
 	// may be present in a multi HDU file, but not allowed in a single HDU
 	// file
-	"XTENSION", 
-	"PCOUNT ", 
+	"XTENSION",
+	"PCOUNT ",
 	"GCOUNT ",
 };
 
-/* Header fields which can be duplicated start like this. 
+/* Header fields which can be duplicated start like this.
  */
 const char *vips_fits_duplicate[] = {
 	"        ",
@@ -630,62 +630,62 @@ const char *vips_fits_duplicate[] = {
  *	"COMMENT   FITS (Flexible Image Transport System) format is defined
  *	""
  *
- * - always left justfied
+ * - always left justified
  * - keyword is always 8 characters, right padded with spaces
  * - "= ", if present, is cols 9 and 10
  * - lines are variable length, can be zero length for blank lines
  */
 static int
-vips_fits_write_record( VipsFits *fits, const char *line )
+vips_fits_write_record(VipsFits *fits, const char *line)
 {
 	char keyword[9];
 	int i;
 	GSList *p;
 	int status;
 
-	VIPS_DEBUG_MSG( "vips_fits_write_record: %s\n", line );
+	VIPS_DEBUG_MSG("vips_fits_write_record: %s\n", line);
 
 	/* cfitsio writes lines like these for us, don't write them again.
 	 */
-	for( i = 0; i < VIPS_NUMBER( vips_fits_basic ); i++ ) 
-		if( vips_isprefix( vips_fits_basic[i], line ) ) 
-			return( 0 );	
+	for (i = 0; i < VIPS_NUMBER(vips_fits_basic); i++)
+		if (vips_isprefix(vips_fits_basic[i], line))
+			return 0;
 
 	/* Dedupe on the keyword, with some exceptions (see below).
 	 */
-	vips_strncpy( keyword, line, 9 );
-	for( p = fits->dedupe; p; p = p->next ) {
+	vips_strncpy(keyword, line, 9);
+	for (p = fits->dedupe; p; p = p->next) {
 		const char *written = (const char *) p->data;
 
-		if( strcmp( keyword, written ) == 0 )
-			return( 0 );	
+		if (strcmp(keyword, written) == 0)
+			return 0;
 	}
 
 	status = 0;
-	if( fits_write_record( fits->fptr, line, &status ) ) {
-		vips_fits_error( status );
-		return( -1 );
+	if (fits_write_record(fits->fptr, line, &status)) {
+		vips_fits_error(status);
+		return -1;
 	}
 
-	/* Add this keyword to the dedupe list if it's not on the allowed 
+	/* Add this keyword to the dedupe list if it's not on the allowed
 	 * dupe table, or a blank line.
 	 */
-	if( strcmp( line, "" ) != 0 ) {
-		for( i = 0; i < VIPS_NUMBER( vips_fits_duplicate ); i++ )
-			if( vips_isprefix( vips_fits_duplicate[i], keyword ) )
-			       break;
+	if (strcmp(line, "") != 0) {
+		for (i = 0; i < VIPS_NUMBER(vips_fits_duplicate); i++)
+			if (vips_isprefix(vips_fits_duplicate[i], keyword))
+				break;
 
-		if( i == VIPS_NUMBER( vips_fits_duplicate ) ) 
-			fits->dedupe = g_slist_prepend( fits->dedupe, 
-				g_strdup( keyword ) );
+		if (i == VIPS_NUMBER(vips_fits_duplicate))
+			fits->dedupe = g_slist_prepend(fits->dedupe,
+				g_strdup(keyword));
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static void *
-vips_fits_write_meta( VipsImage *image, 
-	const char *field, GValue *value, void *a )
+vips_fits_write_meta(VipsImage *image,
+	const char *field, GValue *value, void *a)
 {
 	VipsFits *fits = (VipsFits *) a;
 
@@ -693,22 +693,22 @@ vips_fits_write_meta( VipsImage *image,
 
 	/* We want fields which start "fits-".
 	 */
-	if( !vips_isprefix( "fits-", field ) )
-		return( NULL );
+	if (!vips_isprefix("fits-", field))
+		return NULL;
 
-	/* The value should be a refstring, since we wrote it in fits2vips 
+	/* The value should be a refstring, since we wrote it in fits2vips
 	 * above ^^.
 	 */
-	value_str = vips_value_get_ref_string( value, NULL );
+	value_str = vips_value_get_ref_string(value, NULL);
 
-	if( vips_fits_write_record( fits, value_str ) )
-		return( a );
+	if (vips_fits_write_record(fits, value_str))
+		return a;
 
-	return( NULL );
+	return NULL;
 }
 
 static int
-vips_fits_set_header( VipsFits *fits, VipsImage *in )
+vips_fits_set_header(VipsFits *fits, VipsImage *in)
 {
 	int status;
 	int bitpix;
@@ -721,73 +721,73 @@ vips_fits_set_header( VipsFits *fits, VipsImage *in )
 	fits->naxes[1] = in->Ysize;
 	fits->naxes[2] = in->Bands;
 
-	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
-		if( fits2vips_formats[i][1] == in->BandFmt )
+	for (i = 0; i < VIPS_NUMBER(fits2vips_formats); i++)
+		if (fits2vips_formats[i][1] == in->BandFmt)
 			break;
-	if( i == VIPS_NUMBER( fits2vips_formats ) ) {
-		vips_error( "fits", 
-			_( "unsupported BandFmt %d\n" ), in->BandFmt );
-		return( -1 );
+	if (i == VIPS_NUMBER(fits2vips_formats)) {
+		vips_error("fits",
+			_("unsupported BandFmt %d\n"), in->BandFmt);
+		return -1;
 	}
 	bitpix = fits2vips_formats[i][0];
 	fits->datatype = fits2vips_formats[i][2];
 
 #ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
-	for( i = 0; i < fits->naxis; i++ )
-		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
-	VIPS_DEBUG_MSG( "bitpix = %d\n", bitpix );
+	VIPS_DEBUG_MSG("naxis = %d\n", fits->naxis);
+	for (i = 0; i < fits->naxis; i++)
+		VIPS_DEBUG_MSG("%d) %lld\n", i, fits->naxes[i]);
+	VIPS_DEBUG_MSG("bitpix = %d\n", bitpix);
 #endif /*VIPS_DEBUG*/
 
-	if( fits_create_imgll( fits->fptr, bitpix, fits->naxis, 
-		fits->naxes, &status ) ) {
-		vips_fits_error( status );
-		return( -1 );
+	if (fits_create_imgll(fits->fptr, bitpix, fits->naxis,
+			fits->naxes, &status)) {
+		vips_fits_error(status);
+		return -1;
 	}
 
-	if( vips_image_map( in,
-		(VipsImageMapFn) vips_fits_write_meta, fits ) )
-		return( -1 );
+	if (vips_image_map(in,
+			(VipsImageMapFn) vips_fits_write_meta, fits))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
+vips_fits_write(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsFits *fits = (VipsFits *) a;
 	VipsImage *image = fits->image;
-	int es = VIPS_IMAGE_SIZEOF_ELEMENT( image );
-	int ps = VIPS_IMAGE_SIZEOF_PEL( image );
+	int es = VIPS_IMAGE_SIZEOF_ELEMENT(image);
+	int ps = VIPS_IMAGE_SIZEOF_PEL(image);
 
 	int status;
 	int y, b, x, k;
 
 	status = 0;
 
-	VIPS_DEBUG_MSG( "vips_fits_write: "
-		"writing left = %d, top = %d, width = %d, height = %d\n", 
-		area->left, area->top, area->width, area->height );
+	VIPS_DEBUG_MSG("vips_fits_write: "
+				   "writing left = %d, top = %d, width = %d, height = %d\n",
+		area->left, area->top, area->width, area->height);
 
 	/* We need to write a band at a time. We can't bandsplit in vips,
 	 * since vips_sink_disc() can't loop over many images at once, sadly.
 	 */
 
-	for( y = 0; y < area->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( region, 
-			area->left, area->top + y );
+	for (y = 0; y < area->height; y++) {
+		VipsPel *p = VIPS_REGION_ADDR(region,
+			area->left, area->top + y);
 
-		for( b = 0; b < image->Bands; b++ ) {
+		for (b = 0; b < image->Bands; b++) {
 			VipsPel *p1, *q;
 			long fpixel[3];
 
 			p1 = p + b * es;
 			q = fits->line;
 
-			for( x = 0; x < area->width; x++ ) {
-				for( k = 0; k < es; k++ ) 
+			for (x = 0; x < area->width; x++) {
+				for (k = 0; k < es; k++)
 					q[k] = p1[k];
-				
+
 				q += es;
 				p1 += ps;
 			}
@@ -799,36 +799,36 @@ vips_fits_write( VipsRegion *region, VipsRect *area, void *a )
 			/* No need to lock, write functions are single-threaded.
 			 */
 
-			if( fits_write_pix( fits->fptr, fits->datatype, 
-				fpixel, area->width, fits->line, 
-				&status ) ) {
-				vips_fits_error( status );
-				return( -1 );
+			if (fits_write_pix(fits->fptr, fits->datatype,
+					fpixel, area->width, fits->line,
+					&status)) {
+				vips_fits_error(status);
+				return -1;
 			}
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 int
-vips__fits_write( VipsImage *in, const char *filename )
+vips__fits_write(VipsImage *in, const char *filename)
 {
 	VipsFits *fits;
 
-	VIPS_DEBUG_MSG( "vips2fits: writing \"%s\"\n", filename );
+	VIPS_DEBUG_MSG("vips2fits: writing \"%s\"\n", filename);
 
-	if( !(fits = vips_fits_new_write( in, filename )) )
-		return( -1 );
+	if (!(fits = vips_fits_new_write(in, filename)))
+		return -1;
 
-	if( vips_fits_set_header( fits, fits->image ) ||
-		vips_sink_disc( fits->image, vips_fits_write, fits ) ) {
-		vips_fits_close( fits );
-		return( -1 );
+	if (vips_fits_set_header(fits, fits->image) ||
+		vips_sink_disc(fits->image, vips_fits_write, fits)) {
+		vips_fits_close(fits);
+		return -1;
 	}
-	vips_fits_close( fits );
+	vips_fits_close(fits);
 
-	return( 0 );
+	return 0;
 }
 
 #endif /*HAVE_CFITSIO*/

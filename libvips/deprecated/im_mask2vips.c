@@ -11,28 +11,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -59,64 +59,63 @@
  * Returns: 0 on success, -1 on error
  */
 int
-im_mask2vips( DOUBLEMASK *in, IMAGE *out )
+im_mask2vips(DOUBLEMASK *in, IMAGE *out)
 {
 	int x, y;
 	double *buf, *p, *q;
 
 	/* Check the mask.
 	 */
-	if( !in || 
-		!in->coeff ) {
-		im_error( "im_mask2vips", "%s", _( "bad input mask" ) );
-		return( -1 );
+	if (!in ||
+		!in->coeff) {
+		im_error("im_mask2vips", "%s", _("bad input mask"));
+		return -1;
 	}
 
 	/* Make the output image.
 	 */
-	im_initdesc( out, in->xsize, in->ysize, 1, 
-		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE, 
-		IM_CODING_NONE, 
-		IM_TYPE_B_W, 
-		1.0, 1.0, 
-		0, 0 );
-	if( im_setupout( out ) )
-		return( -1 );
+	im_initdesc(out, in->xsize, in->ysize, 1,
+		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
+		IM_CODING_NONE,
+		IM_TYPE_B_W,
+		1.0, 1.0,
+		0, 0);
+	if (im_setupout(out))
+		return -1;
 
 	/* Make an output buffer.
 	 */
-	if( !(buf = IM_ARRAY( out, in->xsize, double )) )
-		return( -1 );
+	if (!(buf = IM_ARRAY(out, in->xsize, double)))
+		return -1;
 
 	/* Write!
 	 */
-	for( p = in->coeff, y = 0; y < out->Ysize; y++ ) {
+	for (p = in->coeff, y = 0; y < out->Ysize; y++) {
 		q = buf;
 
-		for( x = 0; x < out->Xsize; x++ )
+		for (x = 0; x < out->Xsize; x++)
 			*q++ = *p++;
 
-		if( im_writeline( y, out, (void *) buf ) )
-			return( -1 );
+		if (im_writeline(y, out, (void *) buf))
+			return -1;
 	}
 
-	vips_image_set_double( out, "scale", in->scale ); 
-	vips_image_set_double( out, "offset", in->offset ); 
+	vips_image_set_double(out, "scale", in->scale);
+	vips_image_set_double(out, "offset", in->offset);
 
-	return( 0 );
+	return 0;
 }
 
 int
-im_imask2vips( INTMASK *in, IMAGE *out )
+im_imask2vips(INTMASK *in, IMAGE *out)
 {
 	DOUBLEMASK *d;
 	int result;
 
-	if( !(d = im_imask2dmask( in, in->filename )) )
-		return( -1 );
-	result = im_mask2vips( d, out );
-	im_free_dmask( d );
+	if (!(d = im_imask2dmask(in, in->filename)))
+		return -1;
+	result = im_mask2vips(d, out);
+	im_free_dmask(d);
 
-	return( result ); 
+	return result;
 }
-

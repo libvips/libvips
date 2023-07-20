@@ -6,28 +6,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -51,7 +51,7 @@
 #include "point.h"
 #include "pmask.h"
 
-/** 
+/**
  * SECTION: create
  * @short_description: create images in various ways
  * @stability: Stable
@@ -63,7 +63,7 @@
  * The im_benchmark() operations are for testing the VIPS SMP system.
  */
 
-/** 
+/**
  * VipsTextWrap:
  * @VIPS_TEXT_WRAP_WORD: wrap at word boundaries
  * @VIPS_TEXT_WRAP_CHAR: wrap at character boundaries
@@ -76,113 +76,112 @@
  * See also: vips_text().
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsCreate, vips_create, VIPS_TYPE_OPERATION );
+G_DEFINE_ABSTRACT_TYPE(VipsCreate, vips_create, VIPS_TYPE_OPERATION);
 
 static int
-vips_create_build( VipsObject *object )
+vips_create_build(VipsObject *object)
 {
-	VipsCreate *create = VIPS_CREATE( object );
+	VipsCreate *create = VIPS_CREATE(object);
 
 #ifdef DEBUG
-	printf( "vips_create_build: " );
-	vips_object_print_name( object );
-	printf( "\n" );
+	printf("vips_create_build: ");
+	vips_object_print_name(object);
+	printf("\n");
 #endif /*DEBUG*/
 
-	g_object_set( create, "out", vips_image_new(), NULL ); 
+	g_object_set(create, "out", vips_image_new(), NULL);
 
-	if( VIPS_OBJECT_CLASS( vips_create_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_create_parent_class)->build(object))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_create_class_init( VipsCreateClass *class )
+vips_create_class_init(VipsCreateClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "create";
-	vobject_class->description = _( "create operations" );
+	vobject_class->description = _("create operations");
 	vobject_class->build = vips_create_build;
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsCreate, out ) );
+	VIPS_ARG_IMAGE(class, "out", 1,
+		_("Output"),
+		_("Output image"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsCreate, out));
 }
 
 static void
-vips_create_init( VipsCreate *create )
+vips_create_init(VipsCreate *create)
 {
 }
 
 void
-vips_create_operation_init( void )
+vips_create_operation_init(void)
 {
-	extern GType vips_black_get_type( void ); 
-	extern GType vips_gaussmat_get_type( void ); 
-	extern GType vips_logmat_get_type( void ); 
-	extern GType vips_gaussnoise_get_type( void ); 
+	extern GType vips_black_get_type(void);
+	extern GType vips_gaussmat_get_type(void);
+	extern GType vips_logmat_get_type(void);
+	extern GType vips_gaussnoise_get_type(void);
 #ifdef HAVE_PANGOCAIRO
-	extern GType vips_text_get_type( void ); 
+	extern GType vips_text_get_type(void);
 #endif /*HAVE_PANGOCAIRO*/
-	extern GType vips_xyz_get_type( void ); 
-	extern GType vips_eye_get_type( void ); 
-	extern GType vips_grey_get_type( void ); 
-	extern GType vips_zone_get_type( void ); 
-	extern GType vips_sines_get_type( void ); 
-	extern GType vips_buildlut_get_type( void ); 
-	extern GType vips_invertlut_get_type( void ); 
-	extern GType vips_tonelut_get_type( void ); 
-	extern GType vips_identity_get_type( void ); 
-	extern GType vips_mask_butterworth_get_type( void ); 
-	extern GType vips_mask_butterworth_ring_get_type( void ); 
-	extern GType vips_mask_butterworth_band_get_type( void ); 
-	extern GType vips_mask_gaussian_get_type( void ); 
-	extern GType vips_mask_gaussian_ring_get_type( void ); 
-	extern GType vips_mask_gaussian_band_get_type( void ); 
-	extern GType vips_mask_ideal_get_type( void ); 
-	extern GType vips_mask_ideal_ring_get_type( void ); 
-	extern GType vips_mask_ideal_band_get_type( void ); 
-	extern GType vips_mask_fractal_get_type( void ); 
-	extern GType vips_fractsurf_get_type( void ); 
-	extern GType vips_worley_get_type( void ); 
-	extern GType vips_perlin_get_type( void ); 
+	extern GType vips_xyz_get_type(void);
+	extern GType vips_eye_get_type(void);
+	extern GType vips_grey_get_type(void);
+	extern GType vips_zone_get_type(void);
+	extern GType vips_sines_get_type(void);
+	extern GType vips_buildlut_get_type(void);
+	extern GType vips_invertlut_get_type(void);
+	extern GType vips_tonelut_get_type(void);
+	extern GType vips_identity_get_type(void);
+	extern GType vips_mask_butterworth_get_type(void);
+	extern GType vips_mask_butterworth_ring_get_type(void);
+	extern GType vips_mask_butterworth_band_get_type(void);
+	extern GType vips_mask_gaussian_get_type(void);
+	extern GType vips_mask_gaussian_ring_get_type(void);
+	extern GType vips_mask_gaussian_band_get_type(void);
+	extern GType vips_mask_ideal_get_type(void);
+	extern GType vips_mask_ideal_ring_get_type(void);
+	extern GType vips_mask_ideal_band_get_type(void);
+	extern GType vips_mask_fractal_get_type(void);
+	extern GType vips_fractsurf_get_type(void);
+	extern GType vips_worley_get_type(void);
+	extern GType vips_perlin_get_type(void);
 
 	vips_black_get_type();
 	vips_gaussmat_get_type();
 	vips_logmat_get_type();
-	vips_gaussnoise_get_type(); 
+	vips_gaussnoise_get_type();
 #ifdef HAVE_PANGOCAIRO
-	vips_text_get_type(); 
+	vips_text_get_type();
 #endif /*HAVE_PANGOCAIRO*/
-	vips_xyz_get_type(); 
-	vips_eye_get_type(); 
-	vips_grey_get_type(); 
-	vips_zone_get_type(); 
-	vips_sines_get_type(); 
-	vips_buildlut_get_type(); 
-	vips_invertlut_get_type(); 
-	vips_tonelut_get_type(); 
-	vips_identity_get_type(); 
-	vips_mask_ideal_get_type(); 
-	vips_mask_ideal_ring_get_type(); 
-	vips_mask_ideal_band_get_type(); 
-	vips_mask_butterworth_get_type(); 
-	vips_mask_butterworth_ring_get_type(); 
-	vips_mask_butterworth_band_get_type(); 
-	vips_mask_gaussian_get_type(); 
-	vips_mask_gaussian_ring_get_type(); 
-	vips_mask_gaussian_band_get_type(); 
-	vips_mask_fractal_get_type(); 
-	vips_fractsurf_get_type(); 
-	vips_worley_get_type(); 
-	vips_perlin_get_type(); 
+	vips_xyz_get_type();
+	vips_eye_get_type();
+	vips_grey_get_type();
+	vips_zone_get_type();
+	vips_sines_get_type();
+	vips_buildlut_get_type();
+	vips_invertlut_get_type();
+	vips_tonelut_get_type();
+	vips_identity_get_type();
+	vips_mask_ideal_get_type();
+	vips_mask_ideal_ring_get_type();
+	vips_mask_ideal_band_get_type();
+	vips_mask_butterworth_get_type();
+	vips_mask_butterworth_ring_get_type();
+	vips_mask_butterworth_band_get_type();
+	vips_mask_gaussian_get_type();
+	vips_mask_gaussian_ring_get_type();
+	vips_mask_gaussian_band_get_type();
+	vips_mask_fractal_get_type();
+	vips_fractsurf_get_type();
+	vips_worley_get_type();
+	vips_perlin_get_type();
 }
-

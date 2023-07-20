@@ -2,7 +2,7 @@
  *
  * Copyright: 1991, N. Dessipris
  * Written on: 28/10/91
- * Updated on: 2/4/92, J.Cupitt 
+ * Updated on: 2/4/92, J.Cupitt
  * 	bugs in im_la90rot fixed, now works for any type.
  * 19/7/93 JC
  *	- IM_CODING_LABQ allowed now
@@ -28,34 +28,34 @@
  * 	- rewrite as a class
  * 7/3/17
  * 	- added 90/180/270 convenience functions
- * 10/11/22 alantudyk 
+ * 10/11/22 alantudyk
  * 	- swapped memcpy() in d180 for a loop
  */
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -93,18 +93,18 @@ typedef struct _VipsRot {
 
 typedef VipsConversionClass VipsRotClass;
 
-G_DEFINE_TYPE( VipsRot, vips_rot, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE(VipsRot, vips_rot, VIPS_TYPE_CONVERSION);
 
 static int
-vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+vips_rot90_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = &or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -124,29 +124,29 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 	need.top = in->Ysize - ri;
 	need.width = r->height;
 	need.height = r->width;
-	if( vips_region_prepare( ir, &need ) )
-		return( -1 );
-	
+	if (vips_region_prepare(ir, &need))
+		return -1;
+
 	/* Find PEL size and line skip for ir.
 	 */
-	ps = VIPS_IMAGE_SIZEOF_PEL( in );
-	ls = VIPS_REGION_LSKIP( ir );
+	ps = VIPS_IMAGE_SIZEOF_PEL(in);
+	ls = VIPS_REGION_LSKIP(ir);
 
 	/* Rotate the bit we now have.
 	 */
-	for( y = to; y < bo; y++ ) {
+	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
-			need.left + y - to, 
-			need.top + need.height - 1 );
+		VipsPel *p = VIPS_REGION_ADDR(ir,
+			need.left + y - to,
+			need.top + need.height - 1);
 
-		for( x = le; x < ri; x++ ) {
-			for( i = 0; i < ps; i++ )
+		for (x = le; x < ri; x++) {
+			for (i = 0; i < ps; i++)
 				q[i] = p[i];
 
 			q += ps;
@@ -154,19 +154,19 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+vips_rot180_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = &or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -186,30 +186,30 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 	need.top = in->Ysize - bo;
 	need.width = r->width;
 	need.height = r->height;
-	if( vips_region_prepare( ir, &need ) )
-		return( -1 );
+	if (vips_region_prepare(ir, &need))
+		return -1;
 
 	/* Find PEL size and line skip for ir.
 	 */
-	ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	ps = VIPS_IMAGE_SIZEOF_PEL(in);
 
 	/* Rotate the bit we now have.
 	 */
-	for( y = to; y < bo; y++ ) {
+	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
-			need.left + need.width - 1, 
-			need.top + need.height - (y - to) - 1 );
+		VipsPel *p = VIPS_REGION_ADDR(ir,
+			need.left + need.width - 1,
+			need.top + need.height - (y - to) - 1);
 
 		/* Blap across!
 		 */
-		for( x = le; x < ri; x++ ) {
-			for( i = 0; i < ps; i++ )
+		for (x = le; x < ri; x++) {
+			for (i = 0; i < ps; i++)
 				q[i] = p[i];
 
 			q += ps;
@@ -217,19 +217,19 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+vips_rot270_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a;
 
 	/* Output area.
 	 */
-	VipsRect *r = &or->valid;
+	VipsRect *r = &out_region->valid;
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
@@ -249,29 +249,29 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 	need.top = le;
 	need.width = r->height;
 	need.height = r->width;
-	if( vips_region_prepare( ir, &need ) )
-		return( -1 );
-	
+	if (vips_region_prepare(ir, &need))
+		return -1;
+
 	/* Find PEL size and line skip for ir.
 	 */
-	ps = VIPS_IMAGE_SIZEOF_PEL( in );
-	ls = VIPS_REGION_LSKIP( ir );
+	ps = VIPS_IMAGE_SIZEOF_PEL(in);
+	ls = VIPS_REGION_LSKIP(ir);
 
 	/* Rotate the bit we now have.
 	 */
-	for( y = to; y < bo; y++ ) {
+	for (y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
+		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, 
+		VipsPel *p = VIPS_REGION_ADDR(ir,
 			need.left + need.width - (y - to) - 1,
-			need.top );
+			need.top);
 
-		for( x = le; x < ri; x++ ) {
-			for( i = 0; i < ps; i++ )
+		for (x = le; x < ri; x++) {
+			for (i = 0; i < ps; i++)
 				q[i] = p[i];
 
 			q += ps;
@@ -279,35 +279,35 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 		}
 	}
 
-	return( 0 );
+	return 0;
 }
 
 static int
-vips_rot_build( VipsObject *object )
+vips_rot_build(VipsObject *object)
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsRot *rot = (VipsRot *) object;
 
 	VipsGenerateFn generate_fn;
 	VipsDemandStyle hint;
 
-	if( VIPS_OBJECT_CLASS( vips_rot_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_rot_parent_class)->build(object))
+		return -1;
 
-	if( rot->angle == VIPS_ANGLE_D0 )
-		return( vips_image_write( rot->in, conversion->out ) );
+	if (rot->angle == VIPS_ANGLE_D0)
+		return vips_image_write(rot->in, conversion->out);
 
-	if( vips_image_pio_input( rot->in ) )
-		return( -1 );
+	if (vips_image_pio_input(rot->in))
+		return -1;
 
-	hint = rot->angle == VIPS_ANGLE_D180 ? 
-		VIPS_DEMAND_STYLE_THINSTRIP :
-		VIPS_DEMAND_STYLE_SMALLTILE; 
+	hint = rot->angle == VIPS_ANGLE_D180
+		? VIPS_DEMAND_STYLE_THINSTRIP
+		: VIPS_DEMAND_STYLE_SMALLTILE;
 
-	if( vips_image_pipelinev( conversion->out, hint, rot->in, NULL ) )
-		return( -1 );
+	if (vips_image_pipelinev(conversion->out, hint, rot->in, NULL))
+		return -1;
 
-	switch( rot->angle ) {
+	switch (rot->angle) {
 	case VIPS_ANGLE_D90:
 		generate_fn = vips_rot90_gen;
 		conversion->out->Xsize = rot->in->Ysize;
@@ -338,52 +338,52 @@ vips_rot_build( VipsObject *object )
 		generate_fn = NULL;
 	}
 
-	if( vips_image_generate( conversion->out,
-		vips_start_one, generate_fn, vips_stop_one, 
-		rot->in, rot ) )
-		return( -1 );
+	if (vips_image_generate(conversion->out,
+			vips_start_one, generate_fn, vips_stop_one,
+			rot->in, rot))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_rot_class_init( VipsRotClass *class )
+vips_rot_class_init(VipsRotClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
-	VIPS_DEBUG_MSG( "vips_rot_class_init\n" );
+	VIPS_DEBUG_MSG("vips_rot_class_init\n");
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "rot";
-	vobject_class->description = _( "rotate an image" );
+	vobject_class->description = _("rotate an image");
 	vobject_class->build = vips_rot_build;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsRot, in ) );
+		G_STRUCT_OFFSET(VipsRot, in));
 
-	VIPS_ARG_ENUM( class, "angle", 6, 
-		_( "Angle" ), 
-		_( "Angle to rotate image" ),
+	VIPS_ARG_ENUM(class, "angle", 6,
+		_("Angle"),
+		_("Angle to rotate image"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsRot, angle ),
-		VIPS_TYPE_ANGLE, VIPS_ANGLE_D90 ); 
+		G_STRUCT_OFFSET(VipsRot, angle),
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D90);
 }
 
 static void
-vips_rot_init( VipsRot *rot )
+vips_rot_init(VipsRot *rot)
 {
 }
 
 static int
-vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
+vips_rotv(VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap)
 {
-	return( vips_call_split( "rot", ap, in, out, angle ) );
+	return vips_call_split("rot", ap, in, out, angle);
 }
 
 /**
@@ -395,24 +395,24 @@ vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
  *
  * Rotate @in by a multiple of 90 degrees.
  *
- * Use vips_similarity() to rotate by an arbitary angle. vips_rot45() is 
- * useful for rotating convolution masks by 45 degrees. 
+ * Use vips_similarity() to rotate by an arbitrary angle. vips_rot45() is
+ * useful for rotating convolution masks by 45 degrees.
  *
  * See also: vips_flip(), vips_similarity(), vips_rot45().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
+vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, angle );
-	result = vips_rotv( in, out, angle, ap );
-	va_end( ap );
+	va_start(ap, angle);
+	result = vips_rotv(in, out, angle, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -421,23 +421,23 @@ vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 90 degress clockwise. A convenience function over vips_rot().
+ * Rotate @in by 90 degrees clockwise. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot90( VipsImage *in, VipsImage **out, ... )
+vips_rot90(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_rotv( in, out, VIPS_ANGLE_D90, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_rotv(in, out, VIPS_ANGLE_D90, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -446,23 +446,23 @@ vips_rot90( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 180 degress. A convenience function over vips_rot().
+ * Rotate @in by 180 degrees. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot180( VipsImage *in, VipsImage **out, ... )
+vips_rot180(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_rotv( in, out, VIPS_ANGLE_D180, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_rotv(in, out, VIPS_ANGLE_D180, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }
 
 /**
@@ -471,21 +471,21 @@ vips_rot180( VipsImage *in, VipsImage **out, ... )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 270 degress clockwise. A convenience function over vips_rot().
+ * Rotate @in by 270 degrees clockwise. A convenience function over vips_rot().
  *
  * See also: vips_rot().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot270( VipsImage *in, VipsImage **out, ... )
+vips_rot270(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_rotv( in, out, VIPS_ANGLE_D270, ap );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_rotv(in, out, VIPS_ANGLE_D270, ap);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

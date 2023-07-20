@@ -8,20 +8,20 @@
  * @(#) Results are saved in the structure points
  * @(#) The function expects the following valid data in points:
  * @(#) deltax, deltay, nopoints, halfcorsize, halfareasize
- * @(#) and fills in the memebers:
+ * @(#) and fills in the members:
  * @(#) x, y_reference[], contrast and x,y_secondary[],
  * @(#) based on deltax and deltay
  * @(#) Input image should are either memory mapped or in a buffer.
  * @(#) To make the calculation faster set FACTOR to 1, 2 or 3
  * @(#)  Calculations are based on bandno only.
- * @(#)  The function uses functions vips__find_best_contrast() 
+ * @(#)  The function uses functions vips__find_best_contrast()
  * @(#) which is in vips_lrcalcon()
  * @(#)
- * @(#) int vips_tbcalcon( ref, sec, bandno, points )
+ * @(#) int vips_tbcalcon(ref, sec, bandno, points)
  * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
  * @(#) TiePoints *points; 	see mosaic.h
- * @(#) 
+ * @(#)
  * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
@@ -41,28 +41,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -79,8 +79,8 @@
 
 #include "pmosaicing.h"
 
-int 
-vips__tbcalcon( VipsImage *ref, TiePoints *points )
+int
+vips__tbcalcon(VipsImage *ref, TiePoints *points)
 {
 	/* Geometry: border we must leave around each area.
 	 */
@@ -99,11 +99,11 @@ vips__tbcalcon( VipsImage *ref, TiePoints *points )
 
 	/* Make sure we can read image.
 	 */
-	if( vips_image_wio_input( ref ) )
-		return( -1 );
-	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) { 
-		vips_error( "vips__tbcalcon", "%s", _( "help!" ) );
-		return( -1 );
+	if (vips_image_wio_input(ref))
+		return -1;
+	if (ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR) {
+		vips_error("vips__tbcalcon", "%s", _("help!"));
+		return -1;
 	}
 
 	/* Define bits to search for high-contrast areas.
@@ -112,25 +112,25 @@ vips__tbcalcon( VipsImage *ref, TiePoints *points )
 	area.height = ref->Ysize;
 	area.left = 0;
 	area.top = 0;
-	vips_rect_marginadjust( &area, -border );
+	vips_rect_marginadjust(&area, -border);
 	area.width--;
 	area.height--;
-	if( area.width < 0 || area.height < 0 ) {
-		vips_error( "vips__tbcalcon", "%s", _( "overlap too small" ) );
-		return( -1 );
+	if (area.width < 0 || area.height < 0) {
+		vips_error("vips__tbcalcon", "%s", _("overlap too small"));
+		return -1;
 	}
 
 	/* Loop over areas, finding points.
 	 */
-	for( i = 0; area.left < ref->Xsize; area.left += awidth, i++ ) 
-		if( vips__find_best_contrast( ref, 
-			area.left, area.top, area.width, area.height,
-			points->x_reference + i * len,
-			points->y_reference + i * len,
-			points->contrast + i * len, 
-			len,
-			points->halfcorsize ) )
-				return( -1 );
+	for (i = 0; area.left < ref->Xsize; area.left += awidth, i++)
+		if (vips__find_best_contrast(ref,
+				area.left, area.top, area.width, area.height,
+				points->x_reference + i * len,
+				points->y_reference + i * len,
+				points->contrast + i * len,
+				len,
+				points->halfcorsize))
+			return -1;
 
-	return( 0 );
+	return 0;
 }

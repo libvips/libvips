@@ -6,28 +6,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -40,25 +40,25 @@
 #include <vips/vips7compat.h>
 
 int
-im_mat2vips( const char *filename, IMAGE *out )
+im_mat2vips(const char *filename, IMAGE *out)
 {
 	VipsImage *t;
 
-	if( vips_matload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
+	if (vips_matload(filename, &t, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
 	}
-	g_object_unref( t );
+	g_object_unref(t);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-ismat( const char *filename )
+ismat(const char *filename)
 {
-	return( vips_foreign_is_a( "matload", filename ) );
+	return vips_foreign_is_a("matload", filename);
 }
 
 static const char *mat_suffs[] = { ".mat", NULL };
@@ -67,13 +67,13 @@ typedef VipsFormat VipsFormatMat;
 typedef VipsFormatClass VipsFormatMatClass;
 
 static void
-vips_format_mat_class_init( VipsFormatMatClass *class )
+vips_format_mat_class_init(VipsFormatMatClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsFormatClass *format_class = (VipsFormatClass *) class;
 
 	object_class->nickname = "mat";
-	object_class->description = _( "Matlab" );
+	object_class->description = _("Matlab");
 
 	format_class->is_a = ismat;
 	format_class->load = im_mat2vips;
@@ -82,9 +82,8 @@ vips_format_mat_class_init( VipsFormatMatClass *class )
 }
 
 static void
-vips_format_mat_init( VipsFormatMat *object )
+vips_format_mat_init(VipsFormatMat *object)
 {
 }
 
-G_DEFINE_TYPE( VipsFormatMat, vips_format_mat, VIPS_TYPE_FORMAT );
-
+G_DEFINE_TYPE(VipsFormatMat, vips_format_mat, VIPS_TYPE_FORMAT);

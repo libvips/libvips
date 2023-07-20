@@ -8,28 +8,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -58,7 +58,7 @@
  * Returns: the joined mask on success, or NULL on error.
  */
 DOUBLEMASK *
-im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
+im_matcat(DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename)
 {
 	int newxsize, newysize;
 	DOUBLEMASK *mat;
@@ -66,10 +66,10 @@ im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
 
 	/* matrices must be same width
 	 */
-	if( top->xsize != bottom->xsize ) {
-		im_error( "im_matcat", "%s", 
-			_( "matrices must be same width" ) );
-		return( NULL );
+	if (top->xsize != bottom->xsize) {
+		im_error("im_matcat", "%s",
+			_("matrices must be same width"));
+		return NULL;
 	}
 
 	newxsize = top->xsize;
@@ -77,16 +77,16 @@ im_matcat( DOUBLEMASK *top, DOUBLEMASK *bottom, const char *filename )
 
 	/* Allocate output matrix.
 	 */
-	if( !(mat = im_create_dmask( filename, newxsize, newysize )) ) 
-		return( NULL );
+	if (!(mat = im_create_dmask(filename, newxsize, newysize)))
+		return NULL;
 
 	/* copy first matrix then add second on the end
 	 */
-	memcpy( mat->coeff, top->coeff, 
-		top->xsize * top->ysize * sizeof( double ) );
+	memcpy(mat->coeff, top->coeff,
+		top->xsize * top->ysize * sizeof(double));
 	out = mat->coeff + top->xsize * top->ysize;
-	memcpy( out, bottom->coeff, 
-		bottom->xsize * bottom->ysize * sizeof( double ) );
+	memcpy(out, bottom->coeff,
+		bottom->xsize * bottom->ysize * sizeof(double));
 
-	return( mat );
+	return mat;
 }

@@ -72,20 +72,12 @@ if not modules_enabled
     subdir_done()
 endif
 
-# Keep the autotools convention for shared module suffix because GModule
-# depends on it: https://gitlab.gnome.org/GNOME/glib/issues/1413
-module_suffix = []
-if host_os in ['darwin', 'ios']
-    module_suffix = 'so'
-endif
-
 if magick_module
     shared_module('vips-magick',
         'module/magick.c',
         magick_module_sources,
         magick_module_headers,
         name_prefix: '',
-        name_suffix: module_suffix,
         dependencies: [libvips_dep, magick_dep],
         install: true,
         install_dir: module_dir
@@ -97,7 +89,6 @@ if libjxl_module
         'module/jxl.c',
         jpeg_xl_module_sources,
         name_prefix: '',
-        name_suffix: module_suffix,
         dependencies: [libvips_dep, libjxl_dep, libjxl_threads_dep],
         install: true,
         install_dir: module_dir
@@ -109,7 +100,6 @@ if libheif_module
         'module/heif.c',
         heif_module_sources,
         name_prefix: '',
-        name_suffix: module_suffix,
         dependencies: [libvips_dep, libheif_dep],
         install: true,
         install_dir: module_dir
@@ -121,7 +111,6 @@ if libpoppler_module
         'module/poppler.c',
         poppler_module_sources,
         name_prefix: '',
-        name_suffix: module_suffix,
         dependencies: [libvips_dep, libpoppler_dep, cairo_dep],
         install: true,
         install_dir: module_dir
@@ -133,7 +122,6 @@ if openslide_module
         'module/openslide.c',
         openslide_module_sources,
         name_prefix: '',
-        name_suffix: module_suffix,
         dependencies: [libvips_dep, openslide_dep],
         install: true,
         install_dir: module_dir

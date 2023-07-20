@@ -3,7 +3,7 @@
  * 3/3/09
  * 	- from LabQ2Lab and Radiance sources
  * 2/11/09
- * 	- gtkdoc 
+ * 	- gtkdoc
  * 20/9/12
  * 	- redo as a class
  * 13/12/12
@@ -12,35 +12,35 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
 
- */
-
-/*
-
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    Sections of this file from Greg Ward and Radiance with kind 
-    permission. The Radience copyright notice appears below.
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+/*
+
+	Sections of this file from Greg Ward and Radiance with kind
+	permission. The Radience copyright notice appears below.
 
  */
 
@@ -116,37 +116,40 @@
 /* Begin copy-paste from Radiance sources.
  */
 
-#define  RED		0
-#define  GRN		1
-#define  BLU		2
-#define  CIEX		0	/* or, if input is XYZ... */
-#define  CIEY		1
-#define  CIEZ		2
-#define  EXP		3	/* exponent same for either format */
-#define  COLXS		128	/* excess used for exponent */
-#define  WHT		3	/* used for RGBPRIMS type */
+#define RED 0
+#define GRN 1
+#define BLU 2
+#define CIEX 0 /* or, if input is XYZ... */
+#define CIEY 1
+#define CIEZ 2
+#define EXP 3	  /* exponent same for either format */
+#define COLXS 128 /* excess used for exponent */
+#define WHT 3	  /* used for RGBPRIMS type */
 
-#undef  BYTE
-#define  BYTE 	unsigned char	/* 8-bit unsigned integer */
+#undef BYTE
+#define BYTE unsigned char /* 8-bit unsigned integer */
 
-typedef BYTE  COLR[4];		/* red, green, blue (or X,Y,Z), exponent */
+typedef BYTE COLR[4]; /* red, green, blue (or X,Y,Z), exponent */
 
 typedef float COLORV;
-typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
+typedef COLORV COLOR[3]; /* red, green, blue (or X,Y,Z) */
 
-#define  copycolor(c1,c2)	((c1)[0]=(c2)[0],(c1)[1]=(c2)[1],(c1)[2]=(c2)[2])
+#define copycolor(c1, c2) ( \
+	(c1)[0] = (c2)[0], \
+	(c1)[1] = (c2)[1], \
+	(c1)[2] = (c2)[2])
 
 static void
-colr_color(COLOR col, COLR clr)		/* convert short to float color */
+colr_color(COLOR col, COLR clr) /* convert short to float color */
 {
 	if (clr[EXP] == 0)
 		col[RED] = col[GRN] = col[BLU] = 0.0;
 	else {
-		double  f = ldexp(1.0, (int)clr[EXP]-(COLXS+8));
+		double f = ldexp(1.0, (int) clr[EXP] - (COLXS + 8));
 
-		col[RED] = (clr[RED] + 0.5)*f;
-		col[GRN] = (clr[GRN] + 0.5)*f;
-		col[BLU] = (clr[BLU] + 0.5)*f;
+		col[RED] = (clr[RED] + 0.5) * f;
+		col[GRN] = (clr[GRN] + 0.5) * f;
+		col[BLU] = (clr[BLU] + 0.5) * f;
 	}
 }
 
@@ -156,38 +159,38 @@ colr_color(COLOR col, COLR clr)		/* convert short to float color */
 typedef VipsColourCode VipsRad2float;
 typedef VipsColourCodeClass VipsRad2floatClass;
 
-G_DEFINE_TYPE( VipsRad2float, vips_rad2float, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE(VipsRad2float, vips_rad2float, VIPS_TYPE_COLOUR_CODE);
 
 static void
-vips_rad2float_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_rad2float_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	COLR *inp = (COLR *) in[0];
 	COLOR *outbuf = (COLOR *) out;
 
 	int i;
 
-	for( i = 0; i < width; i++ )
-		colr_color( outbuf[i], inp[i] );
+	for (i = 0; i < width; i++)
+		colr_color(outbuf[i], inp[i]);
 }
 
 static void
-vips_rad2float_class_init( VipsRad2floatClass *class )
+vips_rad2float_class_init(VipsRad2floatClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	object_class->nickname = "rad2float";
-	object_class->description = 
-		_( "unpack Radiance coding to float RGB" );
+	object_class->description =
+		_("unpack Radiance coding to float RGB");
 
 	colour_class->process_line = vips_rad2float_line;
 }
 
 static void
-vips_rad2float_init( VipsRad2float *rad2float )
+vips_rad2float_init(VipsRad2float *rad2float)
 {
-	VipsColour *colour = VIPS_COLOUR( rad2float );
-	VipsColourCode *code = VIPS_COLOUR_CODE( rad2float );
+	VipsColour *colour = VIPS_COLOUR(rad2float);
+	VipsColourCode *code = VIPS_COLOUR_CODE(rad2float);
 
 	colour->coding = VIPS_CODING_NONE;
 	colour->interpretation = VIPS_INTERPRETATION_scRGB;
@@ -210,14 +213,14 @@ vips_rad2float_init( VipsRad2float *rad2float )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_rad2float( VipsImage *in, VipsImage **out, ... )
+vips_rad2float(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "rad2float", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("rad2float", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

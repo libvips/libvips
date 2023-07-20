@@ -89,7 +89,7 @@
       lot of state in per-thread storage. If you want to create a region in 
       one thread and use it in another, you have to first tag the region as 
       unowned from the creating thread with vips__region_no_ownership(), then 
-      in the recieving thread take ownership with 
+      in the receiving thread take ownership with 
       vips__region_take_ownership(). See the source for operations like 
       vips_tilecache() if you're curious how this works. 
     </para>
@@ -110,17 +110,17 @@
 <example>
 <title>VIPS and threads example</title>
 <programlisting language="C">
-/* Read from many threads. 
+/* Read from many threads.
  *
  * Compile with:
  *
- * 	gcc -g -Wall soak.c `pkg-config vips --cflags --libs`
+ *     gcc -g -Wall soak.c `pkg-config vips --cflags --libs`
  *
  * Run with:
  *
- * 	rm -rf x
- * 	mkdir x
- * 	for i in {0..10}; do ./a.out ~/pics/k2.jpg; done
+ *     rm -rf x
+ *     mkdir x
+ *     for i in {0..10}; do ./a.out ~/pics/k2.jpg; done
  *
  */
 
@@ -150,84 +150,81 @@ GThread *workers[NUM_IN_PARALLEL];
 int n_calls = 0;
 
 /* Our test function. This is called by NUM_IN_PARALLEL threads a total of
- * TOTAL_TESTS times. 
+ * TOTAL_TESTS times.
  */
 static int
-test (const char *filename)
+test(const char *filename)
 {
-  VipsImage *im, *x;
-  char output_file[256];
+    VipsImage *im, *x;
+    char output_file[256];
 
-  snprintf (output_file, 256, "x/tmp-%p.jpg", g_thread_self ());
+    snprintf(output_file, 256, "x/tmp-%p.jpg", g_thread_self());
 
-  if (!(im = vips_image_new_from_file (filename,
-				       "access", VIPS_ACCESS_SEQUENTIAL,
-				       NULL)))
-    return (-1);
+    if (!(im = vips_image_new_from_file(filename,
+              "access", VIPS_ACCESS_SEQUENTIAL,
+              NULL)))
+        return -1;
 
-  if (vips_resize (im, &amp;x, 0.1, NULL))
-    {
-      g_object_unref (im);
-      return (-1);
+    if (vips_resize(im, &amp;x, 0.1, NULL)) {
+        g_object_unref(im);
+        return -1;
     }
-  g_object_unref (im);
-  im = x;
+    g_object_unref(im);
+    im = x;
 
-  if (vips_image_write_to_file (im, output_file, NULL))
-    {
-      g_object_unref (im);
-      return (-1);
+    if (vips_image_write_to_file(im, output_file, NULL)) {
+        g_object_unref(im);
+        return -1;
     }
-  g_object_unref (im);
+    g_object_unref(im);
 
-  return (0);
+    return 0;
 }
 
 /* What we run as a thread.
  */
 static void *
-worker (void *data)
+worker(void *data)
 {
-  const char *filename = (const char *) data;
+    const char *filename = (const char *) data;
 
-  for (;;)
-    {
-      gboolean done;
+    for (;;) {
+        gboolean done;
 
-      done = FALSE;
-      g_mutex_lock (&amp;allocation_lock);
-      n_calls += 1;
-      if (n_calls &gt; TOTAL_TESTS)
-	done = TRUE;
-      g_mutex_unlock (&amp;allocation_lock);
+        done = FALSE;
+        g_mutex_lock(&amp;allocation_lock);
+        n_calls += 1;
+        if (n_calls &gt; TOTAL_TESTS)
+            done = TRUE;
+        g_mutex_unlock(&amp;allocation_lock);
 
-      if (done)
-	break;
+        if (done)
+            break;
 
-      if (test (filename))
-	vips_error_exit (NULL);
+        if (test(filename))
+            vips_error_exit(NULL);
     }
 
-  return (NULL);
+    return NULL;
 }
 
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
-  int i;
+    int i;
 
-  if (VIPS_INIT (argv[0]))
-    vips_error_exit (NULL);
+    if (VIPS_INIT(argv[0]))
+        vips_error_exit(NULL);
 
-  g_mutex_init (&amp;allocation_lock);
+    g_mutex_init(&amp;allocation_lock);
 
-  for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
-    workers[i] = g_thread_new (NULL, (GThreadFunc) worker, argv[1]);
+    for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
+        workers[i] = g_thread_new(NULL, (GThreadFunc) worker, argv[1]);
 
-  for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
-    g_thread_join (workers[i]);
+    for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
+        g_thread_join(workers[i]);
 
-  return (0);
+    return 0;
 }
 </programlisting>
 </example>

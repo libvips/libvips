@@ -1,6 +1,6 @@
-/* Turn XYZ to Lab colourspace. 
+/* Turn XYZ to Lab colourspace.
  *
- * Modifed:
+ * Modified:
  * 16/11/94 JC
  *	- uses im_wrapone()
  *	- in-line conversion
@@ -23,28 +23,28 @@
 
 /*
 
-    This file is part of VIPS.
-    
-    VIPS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is part of VIPS.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	VIPS is free software; you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -62,7 +62,7 @@
 #include "pcolour.h"
 
 #ifndef HAVE_CBRT
-#define cbrt( X ) pow( (X), 1.0 / 3.0 )
+#define cbrt(X) pow((X), 1.0 / 3.0)
 #endif /*!HAVE_CBRT*/
 
 /* Lookup table size.
@@ -74,7 +74,7 @@ static float cbrt_table[QUANT_ELEMENTS];
 typedef struct _VipsXYZ2Lab {
 	VipsColourTransform parent_instance;
 
-	/* The colour temperature -- default to D65. 
+	/* The colour temperature -- default to D65.
 	 */
 	VipsArea *temp;
 
@@ -88,30 +88,30 @@ typedef struct _VipsXYZ2Lab {
 
 typedef VipsColourTransformClass VipsXYZ2LabClass;
 
-G_DEFINE_TYPE( VipsXYZ2Lab, vips_XYZ2Lab, VIPS_TYPE_COLOUR_TRANSFORM );
+G_DEFINE_TYPE(VipsXYZ2Lab, vips_XYZ2Lab, VIPS_TYPE_COLOUR_TRANSFORM);
 
 static GOnce table_init_once = G_ONCE_INIT;
 
 static void *
-table_init( void *client )
+table_init(void *client)
 {
 	int i;
 
-	for( i = 0; i < QUANT_ELEMENTS; i++ ) {
+	for (i = 0; i < QUANT_ELEMENTS; i++) {
 		float Y = (double) i / QUANT_ELEMENTS;
 
-		if( Y < 0.008856 ) 
+		if (Y < 0.008856)
 			cbrt_table[i] = 7.787 * Y + (16.0 / 116.0);
-		else 
-			cbrt_table[i] = cbrt( Y );
+		else
+			cbrt_table[i] = cbrt(Y);
 	}
 
-	return( NULL );
+	return NULL;
 }
 
 static void
-vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
-	float X, float Y, float Z, float *L, float *a, float *b )
+vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
+	float X, float Y, float Z, float *L, float *a, float *b)
 {
 	float nX, nY, nZ;
 	int i;
@@ -124,15 +124,15 @@ vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
 
 	/* CLIP is much faster than FCLIP, and we want an int result.
 	 */
-	i = VIPS_CLIP( 0, (int) nX, QUANT_ELEMENTS - 2 );
+	i = VIPS_CLIP(0, (int) nX, QUANT_ELEMENTS - 2);
 	f = nX - i;
 	cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-	i = VIPS_CLIP( 0, (int) nY, QUANT_ELEMENTS - 2 );
+	i = VIPS_CLIP(0, (int) nY, QUANT_ELEMENTS - 2);
 	f = nY - i;
 	cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-	i = VIPS_CLIP( 0, (int) nZ, QUANT_ELEMENTS - 2 );
+	i = VIPS_CLIP(0, (int) nZ, QUANT_ELEMENTS - 2);
 	f = nZ - i;
 	cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
@@ -145,7 +145,7 @@ vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
  */
 VIPS_TARGET_CLONES("default,avx")
 static void
-vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_XYZ2Lab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) colour;
 	float *p = (float *) in[0];
@@ -153,9 +153,9 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	int x;
 
-	VIPS_ONCE( &table_init_once, table_init, NULL );
+	VIPS_ONCE(&table_init_once, table_init, NULL);
 
-	for( x = 0; x < width; x++ ) {
+	for (x = 0; x < width; x++) {
 		float X, Y, Z;
 		float L, a, b;
 
@@ -164,7 +164,7 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		Z = p[2];
 		p += 3;
 
-		vips_col_XYZ2Lab_helper( XYZ2Lab, X, Y, Z, &L, &a, &b );
+		vips_col_XYZ2Lab_helper(XYZ2Lab, X, Y, Z, &L, &a, &b);
 
 		q[0] = L;
 		q[1] = a;
@@ -183,71 +183,71 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
  * @b: (out): Return CIE Lab value
  *
  * Calculate XYZ from Lab, D65.
- * 
+ *
  * See also: vips_XYZ2Lab().
  */
 void
-vips_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
+vips_col_XYZ2Lab(float X, float Y, float Z, float *L, float *a, float *b)
 {
 	VipsXYZ2Lab XYZ2Lab;
 
-	VIPS_ONCE( &table_init_once, table_init, NULL );
+	VIPS_ONCE(&table_init_once, table_init, NULL);
 
 	XYZ2Lab.X0 = VIPS_D65_X0;
 	XYZ2Lab.Y0 = VIPS_D65_Y0;
 	XYZ2Lab.Z0 = VIPS_D65_Z0;
-	vips_col_XYZ2Lab_helper( &XYZ2Lab, X, Y, Z, L, a, b );
+	vips_col_XYZ2Lab_helper(&XYZ2Lab, X, Y, Z, L, a, b);
 }
 
 static int
-vips_XYZ2Lab_build( VipsObject *object )
+vips_XYZ2Lab_build(VipsObject *object)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) object;
 
-	if( XYZ2Lab->temp ) {
-		if( vips_check_vector_length( class->nickname, 
-			XYZ2Lab->temp->n, 3 ) )
-			return( -1 );
+	if (XYZ2Lab->temp) {
+		if (vips_check_vector_length(class->nickname,
+				XYZ2Lab->temp->n, 3))
+			return -1;
 		XYZ2Lab->X0 = ((double *) XYZ2Lab->temp->data)[0];
 		XYZ2Lab->Y0 = ((double *) XYZ2Lab->temp->data)[1];
 		XYZ2Lab->Z0 = ((double *) XYZ2Lab->temp->data)[2];
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_XYZ2Lab_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_XYZ2Lab_parent_class)->build(object))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_XYZ2Lab_class_init( VipsXYZ2LabClass *class )
+vips_XYZ2Lab_class_init(VipsXYZ2LabClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "XYZ2Lab";
-	object_class->description = _( "transform XYZ to Lab" );
+	object_class->description = _("transform XYZ to Lab");
 	object_class->build = vips_XYZ2Lab_build;
 
 	colour_class->process_line = vips_XYZ2Lab_line;
 
-	VIPS_ARG_BOXED( class, "temp", 110, 
-		_( "Temperature" ), 
-		_( "Colour temperature" ),
+	VIPS_ARG_BOXED(class, "temp", 110,
+		_("Temperature"),
+		_("Colour temperature"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsXYZ2Lab, temp ),
-		VIPS_TYPE_ARRAY_DOUBLE );
+		G_STRUCT_OFFSET(VipsXYZ2Lab, temp),
+		VIPS_TYPE_ARRAY_DOUBLE);
 }
 
 static void
-vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
+vips_XYZ2Lab_init(VipsXYZ2Lab *XYZ2Lab)
 {
-	VipsColour *colour = VIPS_COLOUR( XYZ2Lab );
+	VipsColour *colour = VIPS_COLOUR(XYZ2Lab);
 
 	XYZ2Lab->X0 = VIPS_D65_X0;
 	XYZ2Lab->Y0 = VIPS_D65_Y0;
@@ -267,19 +267,19 @@ vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
  * * @temp: #VipsArrayDouble, colour temperature
  *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
- * defaults to D65. 
+ * defaults to D65.
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
+vips_XYZ2Lab(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, out );
-	result = vips_call_split( "XYZ2Lab", ap, in, out );
-	va_end( ap );
+	va_start(ap, out);
+	result = vips_call_split("XYZ2Lab", ap, in, out);
+	va_end(ap);
 
-	return( result );
+	return result;
 }

@@ -6,28 +6,28 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
+	Copyright (C) 1991-2005 The National Gallery
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301  USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+	02110-1301  USA
 
  */
 
 /*
 
-    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -49,7 +49,7 @@
 
 #include "pconversion.h"
 
-/** 
+/**
  * SECTION: conversion
  * @short_description: convert images in some way: change band format, change header, insert, extract, join
  * @see_also: <link linkend="libvips-resample">resample</link>
@@ -84,36 +84,36 @@
  * * @x: #VipsArrayInt, position of subimages
  * * @y: #VipsArrayInt, position of subimages
  *
- * Composite an array of images together. 
+ * Composite an array of images together.
  *
  * Images are placed in a stack, with @in[0] at the bottom and @in[@n - 1] at
- * the top. Pixels are blended together working from the bottom upwards, with 
+ * the top. Pixels are blended together working from the bottom upwards, with
  * the blend mode at each step being set by the corresponding #VipsBlendMode
  * in @mode.
  *
  * Images are transformed to a compositing space before processing. This is
  * #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_B_W,
- * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16 
- * by default, depending on 
- * how many bands and bits the input images have. You can select any other 
+ * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16
+ * by default, depending on
+ * how many bands and bits the input images have. You can select any other
  * space, such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
  *
- * The output image is in the compositing space. It will always be 
- * #VIPS_FORMAT_FLOAT unless one of the inputs is #VIPS_FORMAT_DOUBLE, in 
+ * The output image is in the compositing space. It will always be
+ * #VIPS_FORMAT_FLOAT unless one of the inputs is #VIPS_FORMAT_DOUBLE, in
  * which case the output will be double as well.
  *
  * Complex images are not supported.
  *
  * The output image will always have an alpha band. A solid alpha is
- * added to any input missing an alpha. 
+ * added to any input missing an alpha.
  *
  * The images do not need to match in size or format. They will be expanded to
  * the smallest common size and format in the usual way. Images are positioned
- * using the @x and @y parameters, if set. 
+ * using the @x and @y parameters, if set.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
  * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied. 
+ * set @premultiplied.
  *
  * See also: vips_insert().
  *
@@ -168,7 +168,7 @@
  * @VIPS_BLEND_MODE_DIFFERENCE: difference of the two
  * @VIPS_BLEND_MODE_EXCLUSION: somewhat like DIFFERENCE, but lower-contrast
  *
- * The various Porter-Duff and PDF blend modes. See vips_composite(), 
+ * The various Porter-Duff and PDF blend modes. See vips_composite(),
  * for example.
  *
  * The Cairo docs have a nice explanation of all the blend modes:
@@ -178,7 +178,7 @@
  * The non-separable modes are not implemented.
  */
 
-/** 
+/**
  * VipsAlign:
  * @VIPS_ALIGN_LOW: align low coordinate edge
  * @VIPS_ALIGN_CENTRE: align centre
@@ -192,7 +192,7 @@
  * See also: vips_join().
  */
 
-/** 
+/**
  * VipsAngle:
  * @VIPS_ANGLE_D0: no rotate
  * @VIPS_ANGLE_D90: 90 degrees clockwise
@@ -206,7 +206,7 @@
  * See also: vips_rot().
  */
 
-/** 
+/**
  * VipsInteresting:
  * @VIPS_INTERESTING_NONE: do nothing
  * @VIPS_INTERESTING_CENTRE: just take the centre
@@ -222,7 +222,7 @@
  *
  * #VIPS_INTERESTING_NONE and #VIPS_INTERESTING_LOW mean the same -- the
  * crop is positioned at the top or left. #VIPS_INTERESTING_HIGH positions at
- * the bottom or right. 
+ * the bottom or right.
  *
  * See also: vips_smartcrop().
  */
@@ -239,16 +239,16 @@
  * @VIPS_COMPASS_DIRECTION_SOUTH_WEST: south-west
  * @VIPS_COMPASS_DIRECTION_NORTH_WEST: north-west
  *
- * A direction on a compass. Used for vips_gravity(), for example. 
+ * A direction on a compass. Used for vips_gravity(), for example.
  */
 
 /**
  * VipsAngle45:
  * @VIPS_ANGLE45_D0: no rotate
- * @VIPS_ANGLE45_D45: 45 degrees clockwise 
+ * @VIPS_ANGLE45_D45: 45 degrees clockwise
  * @VIPS_ANGLE45_D90: 90 degrees clockwise
  * @VIPS_ANGLE45_D135: 135 degrees clockwise
- * @VIPS_ANGLE45_D180: 180 degrees 
+ * @VIPS_ANGLE45_D180: 180 degrees
  * @VIPS_ANGLE45_D225: 135 degrees anti-clockwise
  * @VIPS_ANGLE45_D270: 90 degrees anti-clockwise
  * @VIPS_ANGLE45_D315: 45 degrees anti-clockwise
@@ -260,7 +260,7 @@
  * See also: vips_rot45().
  */
 
-/** 
+/**
  * VipsExtend:
  * @VIPS_EXTEND_BLACK: extend with black (all 0) pixels
  * @VIPS_EXTEND_COPY: copy the image edges
@@ -272,9 +272,9 @@
  * See vips_embed(), vips_conv(), vips_affine() and so on.
  *
  * When the edges of an image are extended, you can specify
- * how you want the extension done. 
+ * how you want the extension done.
  *
- * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero. 
+ * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero.
  *
  * #VIPS_EXTEND_COPY --- each new pixel takes the value of the nearest edge
  * pixel
@@ -288,68 +288,68 @@
  *
  * #VIPS_EXTEND_BACKGROUND --- colour set from the @background property
  *
- * We have to specify the exact value of each enum member since we have to 
+ * We have to specify the exact value of each enum member since we have to
  * keep these frozen for back compat with vips7.
  *
  * See also: vips_embed().
  */
 
-/** 
+/**
  * VipsDirection:
- * @VIPS_DIRECTION_HORIZONTAL: left-right 
+ * @VIPS_DIRECTION_HORIZONTAL: left-right
  * @VIPS_DIRECTION_VERTICAL: top-bottom
  *
  * See vips_flip(), vips_join() and so on.
  *
  * Operations like vips_flip() need to be told whether to flip left-right or
- * top-bottom. 
+ * top-bottom.
  *
  * See also: vips_flip(), vips_join().
  */
 
-G_DEFINE_ABSTRACT_TYPE( VipsConversion, vips_conversion, VIPS_TYPE_OPERATION );
+G_DEFINE_ABSTRACT_TYPE(VipsConversion, vips_conversion, VIPS_TYPE_OPERATION);
 
 static int
-vips_conversion_build( VipsObject *object )
+vips_conversion_build(VipsObject *object)
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsConversion *conversion = VIPS_CONVERSION(object);
 
 #ifdef DEBUG
-	printf( "vips_conversion_build: " );
-	vips_object_print_name( object );
-	printf( "\n" );
+	printf("vips_conversion_build: ");
+	vips_object_print_name(object);
+	printf("\n");
 #endif /*DEBUG*/
 
-	g_object_set( conversion, "out", vips_image_new(), NULL ); 
+	g_object_set(conversion, "out", vips_image_new(), NULL);
 
-	if( VIPS_OBJECT_CLASS( vips_conversion_parent_class )->build( object ) )
-		return( -1 );
+	if (VIPS_OBJECT_CLASS(vips_conversion_parent_class)->build(object))
+		return -1;
 
-	return( 0 );
+	return 0;
 }
 
 static void
-vips_conversion_class_init( VipsConversionClass *class )
+vips_conversion_class_init(VipsConversionClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "conversion";
-	vobject_class->description = _( "conversion operations" );
+	vobject_class->description = _("conversion operations");
 	vobject_class->build = vips_conversion_build;
 
-	VIPS_ARG_IMAGE( class, "out", 2, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsConversion, out ) );
+	VIPS_ARG_IMAGE(class, "out", 2,
+		_("Output"),
+		_("Output image"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsConversion, out));
 }
 
 static void
-vips_conversion_init( VipsConversion *conversion )
+vips_conversion_init(VipsConversion *conversion)
 {
 }
 
@@ -357,62 +357,62 @@ vips_conversion_init( VipsConversion *conversion )
  * instead?
  */
 void
-vips_conversion_operation_init( void )
+vips_conversion_operation_init(void)
 {
-	extern GType vips_copy_get_type( void ); 
-	extern GType vips_tile_cache_get_type( void ); 
-	extern GType vips_line_cache_get_type( void ); 
-	extern GType vips_sequential_get_type( void ); 
-	extern GType vips_cache_get_type( void ); 
-	extern GType vips_embed_get_type( void ); 
-	extern GType vips_gravity_get_type( void ); 
-	extern GType vips_flip_get_type( void ); 
-	extern GType vips_insert_get_type( void ); 
-	extern GType vips_join_get_type( void ); 
-	extern GType vips_arrayjoin_get_type( void ); 
-	extern GType vips_extract_area_get_type( void ); 
-	extern GType vips_crop_get_type( void ); 
-	extern GType vips_smartcrop_get_type( void ); 
-	extern GType vips_extract_band_get_type( void ); 
-	extern GType vips_replicate_get_type( void ); 
-	extern GType vips_cast_get_type( void ); 
-	extern GType vips_bandjoin_get_type( void ); 
-	extern GType vips_bandjoin_const_get_type( void ); 
-	extern GType vips_bandrank_get_type( void ); 
-	extern GType vips_black_get_type( void ); 
-	extern GType vips_rot_get_type( void ); 
-	extern GType vips_rot45_get_type( void ); 
-	extern GType vips_autorot_get_type( void ); 
-	extern GType vips_ifthenelse_get_type( void ); 
-	extern GType vips_switch_get_type( void ); 
-	extern GType vips_recomb_get_type( void ); 
-	extern GType vips_bandmean_get_type( void ); 
-	extern GType vips_bandfold_get_type( void ); 
-	extern GType vips_bandunfold_get_type( void ); 
-	extern GType vips_flatten_get_type( void ); 
-	extern GType vips_premultiply_get_type( void ); 
-	extern GType vips_unpremultiply_get_type( void ); 
-	extern GType vips_bandbool_get_type( void ); 
-	extern GType vips_gaussnoise_get_type( void ); 
-	extern GType vips_grid_get_type( void ); 
-	extern GType vips_transpose3d_get_type( void ); 
-	extern GType vips_scale_get_type( void ); 
-	extern GType vips_wrap_get_type( void ); 
-	extern GType vips_zoom_get_type( void ); 
-	extern GType vips_subsample_get_type( void ); 
-	extern GType vips_msb_get_type( void ); 
-	extern GType vips_byteswap_get_type( void ); 
-	extern GType vips_xyz_get_type( void ); 
-	extern GType vips_falsecolour_get_type( void ); 
-	extern GType vips_gamma_get_type( void ); 
-	extern GType vips_composite_get_type( void ); 
-	extern GType vips_composite2_get_type( void ); 
+	extern GType vips_copy_get_type(void);
+	extern GType vips_tile_cache_get_type(void);
+	extern GType vips_line_cache_get_type(void);
+	extern GType vips_sequential_get_type(void);
+	extern GType vips_cache_get_type(void);
+	extern GType vips_embed_get_type(void);
+	extern GType vips_gravity_get_type(void);
+	extern GType vips_flip_get_type(void);
+	extern GType vips_insert_get_type(void);
+	extern GType vips_join_get_type(void);
+	extern GType vips_arrayjoin_get_type(void);
+	extern GType vips_extract_area_get_type(void);
+	extern GType vips_crop_get_type(void);
+	extern GType vips_smartcrop_get_type(void);
+	extern GType vips_extract_band_get_type(void);
+	extern GType vips_replicate_get_type(void);
+	extern GType vips_cast_get_type(void);
+	extern GType vips_bandjoin_get_type(void);
+	extern GType vips_bandjoin_const_get_type(void);
+	extern GType vips_bandrank_get_type(void);
+	extern GType vips_black_get_type(void);
+	extern GType vips_rot_get_type(void);
+	extern GType vips_rot45_get_type(void);
+	extern GType vips_autorot_get_type(void);
+	extern GType vips_ifthenelse_get_type(void);
+	extern GType vips_switch_get_type(void);
+	extern GType vips_recomb_get_type(void);
+	extern GType vips_bandmean_get_type(void);
+	extern GType vips_bandfold_get_type(void);
+	extern GType vips_bandunfold_get_type(void);
+	extern GType vips_flatten_get_type(void);
+	extern GType vips_premultiply_get_type(void);
+	extern GType vips_unpremultiply_get_type(void);
+	extern GType vips_bandbool_get_type(void);
+	extern GType vips_gaussnoise_get_type(void);
+	extern GType vips_grid_get_type(void);
+	extern GType vips_transpose3d_get_type(void);
+	extern GType vips_scale_get_type(void);
+	extern GType vips_wrap_get_type(void);
+	extern GType vips_zoom_get_type(void);
+	extern GType vips_subsample_get_type(void);
+	extern GType vips_msb_get_type(void);
+	extern GType vips_byteswap_get_type(void);
+	extern GType vips_xyz_get_type(void);
+	extern GType vips_falsecolour_get_type(void);
+	extern GType vips_gamma_get_type(void);
+	extern GType vips_composite_get_type(void);
+	extern GType vips_composite2_get_type(void);
 
 	vips_copy_get_type();
-	vips_tile_cache_get_type(); 
-	vips_line_cache_get_type(); 
-	vips_sequential_get_type(); 
-	vips_cache_get_type(); 
+	vips_tile_cache_get_type();
+	vips_line_cache_get_type();
+	vips_sequential_get_type();
+	vips_cache_get_type();
 	vips_embed_get_type();
 	vips_gravity_get_type();
 	vips_flip_get_type();
@@ -433,27 +433,27 @@ vips_conversion_operation_init( void )
 	vips_rot45_get_type();
 	vips_autorot_get_type();
 	vips_ifthenelse_get_type();
-	vips_switch_get_type(); 
-	vips_recomb_get_type(); 
-	vips_bandmean_get_type(); 
-	vips_bandfold_get_type(); 
-	vips_bandunfold_get_type(); 
-	vips_flatten_get_type(); 
-	vips_premultiply_get_type(); 
-	vips_unpremultiply_get_type(); 
-	vips_bandbool_get_type(); 
-	vips_gaussnoise_get_type(); 
-	vips_grid_get_type(); 
-	vips_transpose3d_get_type(); 
-	vips_scale_get_type(); 
-	vips_wrap_get_type(); 
-	vips_zoom_get_type(); 
-	vips_subsample_get_type(); 
-	vips_msb_get_type(); 
-	vips_byteswap_get_type(); 
-	vips_xyz_get_type(); 
-	vips_falsecolour_get_type(); 
-	vips_gamma_get_type(); 
-	vips_composite_get_type(); 
-	vips_composite2_get_type(); 
+	vips_switch_get_type();
+	vips_recomb_get_type();
+	vips_bandmean_get_type();
+	vips_bandfold_get_type();
+	vips_bandunfold_get_type();
+	vips_flatten_get_type();
+	vips_premultiply_get_type();
+	vips_unpremultiply_get_type();
+	vips_bandbool_get_type();
+	vips_gaussnoise_get_type();
+	vips_grid_get_type();
+	vips_transpose3d_get_type();
+	vips_scale_get_type();
+	vips_wrap_get_type();
+	vips_zoom_get_type();
+	vips_subsample_get_type();
+	vips_msb_get_type();
+	vips_byteswap_get_type();
+	vips_xyz_get_type();
+	vips_falsecolour_get_type();
+	vips_gamma_get_type();
+	vips_composite_get_type();
+	vips_composite2_get_type();
 }
