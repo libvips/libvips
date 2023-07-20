@@ -679,10 +679,10 @@ vips_target_steal(VipsTarget *target, size_t *length)
 
 	(void) vips_target_flush(target);
 
-	if( !target->memory_buffer ||
-		target->ended ) {
-		if( target->memory_buffer &&
-			length )
+	if (!target->memory_buffer ||
+		target->ended) {
+		if (target->memory_buffer &&
+			length)
 			*length = target->memory_buffer->len;
 
 		return NULL;

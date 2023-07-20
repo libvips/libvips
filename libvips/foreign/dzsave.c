@@ -444,29 +444,29 @@ vips_mkfile_zip(VipsForeignSaveDz *dz, const char *filename,
 
 	vips__worker_lock(vips_libarchive_mutex);
 
-	if( !(entry = archive_entry_new()) ) {
-		g_mutex_unlock( vips_libarchive_mutex );
-		return( -1 );
+	if (!(entry = archive_entry_new())) {
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
 	}
 
 	archive_entry_set_pathname(entry, filename);
 	archive_entry_set_mode(entry, S_IFREG | 0664);
 	archive_entry_set_size(entry, len);
 
-	if( archive_write_header( dz->archive, entry ) != ARCHIVE_OK ) {
-		archive_entry_free( entry );
-		g_mutex_unlock( vips_libarchive_mutex );
-		return( -1 );
+	if (archive_write_header(dz->archive, entry) != ARCHIVE_OK) {
+		archive_entry_free(entry);
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
 	}
 
 	archive_entry_free(entry);
 
-	if( archive_write_data( dz->archive, buf, len ) != len ) {
-		g_mutex_unlock( vips_libarchive_mutex );
-		return( -1 );
+	if (archive_write_data(dz->archive, buf, len) != len) {
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
 	}
 
-	g_mutex_unlock( vips_libarchive_mutex );
+	g_mutex_unlock(vips_libarchive_mutex);
 
 	return 0;
 }
@@ -476,16 +476,16 @@ vips_mkfile_file(const char *filename, void *buf, size_t len)
 {
 	FILE *f;
 
-	if( !(f = vips__file_open_write( filename, TRUE )) ) {
-		return( -1 );
+	if (!(f = vips__file_open_write(filename, TRUE))) {
+		return -1;
 	}
 
-	if( fwrite( buf, sizeof( char ), len, f ) != len ) {
-		fclose( f );
-		return( -1 );
+	if (fwrite(buf, sizeof(char), len, f) != len) {
+		fclose(f);
+		return -1;
 	}
 
-	fclose( f );
+	fclose(f);
 
 	return 0;
 }
@@ -530,12 +530,12 @@ write_image(VipsForeignSaveDz *dz,
 		}
 		VIPS_UNREF(t);
 
-		if( vips_mkfile_zip( dz, filename, buf, len ) ) {
-			g_free( buf );
-			return( -1 );
+		if (vips_mkfile_zip(dz, filename, buf, len)) {
+			g_free(buf);
+			return -1;
 		}
 
-		g_free( buf );
+		g_free(buf);
 	}
 	else {
 		if (vips_image_write_to_file(t, filename,
@@ -609,7 +609,7 @@ pyramid_build(VipsForeignSaveDz *dz, Layer *above,
 	/* In google mode, we always write full tiles, so we must pad along
 	 * the bottom and right.
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
 		width = (layer->tiles_across - 1) * dz->tile_step +
 			dz->tile_size;
 		height = (layer->tiles_down - 1) * dz->tile_step +
@@ -698,8 +698,8 @@ pyramid_build(VipsForeignSaveDz *dz, Layer *above,
 		limit = 1;
 	}
 
-	if( real_pixels->width > limit ||
-		real_pixels->height > limit ) {
+	if (real_pixels->width > limit ||
+		real_pixels->height > limit) {
 		/* Round up, so eg. a 5 pixel wide image becomes 3 a layer
 		 * down.
 		 */
@@ -709,11 +709,11 @@ pyramid_build(VipsForeignSaveDz *dz, Layer *above,
 		half.top = 0;
 		half.width = (real_pixels->width + 1) / 2;
 		half.height = (real_pixels->height + 1) / 2;
-		if( !(layer->below = pyramid_build( dz, layer,
-			(width + 1) / 2, (height + 1) / 2,
-			&half )) ) {
-			layer_free( layer );
-			return( NULL );
+		if (!(layer->below = pyramid_build(dz, layer,
+				  (width + 1) / 2, (height + 1) / 2,
+				  &half))) {
+			layer_free(layer);
+			return NULL;
 		}
 		layer->n = layer->below->n + 1;
 	}
@@ -771,14 +771,14 @@ write_dzi(VipsForeignSaveDz *dz)
 	vips_dbuf_writef(&dbuf, "  />\n");
 	vips_dbuf_writef(&dbuf, "</Image>\n");
 
-	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
-		if( vips_mkfile( dz, filename, buf, len ) ) {
-			g_free( buf );
-			g_free( filename );
-			return( -1 );
+	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
+		if (vips_mkfile(dz, filename, buf, len)) {
+			g_free(buf);
+			g_free(filename);
+			return -1;
 		}
 
-		g_free( buf );
+		g_free(buf);
 	}
 
 	g_free(filename);
@@ -808,14 +808,14 @@ write_properties(VipsForeignSaveDz *dz)
 		dz->tile_count,
 		dz->tile_size);
 
-	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
-		if( vips_mkfile( dz, filename, buf, len ) ) {
-			g_free( buf );
-			g_free( filename );
-			return( -1 );
+	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
+		if (vips_mkfile(dz, filename, buf, len)) {
+			g_free(buf);
+			g_free(filename);
+			return -1;
 		}
 
-		g_free( buf );
+		g_free(buf);
 	}
 
 	g_free(filename);
@@ -995,14 +995,14 @@ write_json(VipsForeignSaveDz *dz)
 	vips_dbuf_writef(&dbuf,
 		"}\n");
 
-	if( (buf = vips_dbuf_steal( &dbuf, &len )) ) {
-		if( vips_mkfile( dz, filename, buf, len ) ) {
-			g_free( filename );
-			g_free( buf );
-			return( -1 );
+	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
+		if (vips_mkfile(dz, filename, buf, len)) {
+			g_free(filename);
+			g_free(buf);
+			return -1;
 		}
 
-		g_free( buf );
+		g_free(buf);
 	}
 
 	g_free(filename);
@@ -1036,14 +1036,14 @@ write_vips_meta(VipsForeignSaveDz *dz)
 		return -1;
 	}
 
-	if( vips_mkfile( dz, filename, dump, strlen( dump ) ) ) {
-		g_free( filename );
-		g_free( dump );
-		return( -1 );
+	if (vips_mkfile(dz, filename, dump, strlen(dump))) {
+		g_free(filename);
+		g_free(dump);
+		return -1;
 	}
 
-	g_free( filename );
-	g_free( dump );
+	g_free(filename);
+	g_free(dump);
 
 	return 0;
 }
@@ -1159,14 +1159,14 @@ write_scan_properties(VipsForeignSaveDz *dz)
 		return -1;
 	}
 
-	if( vips_mkfile( dz, filename, dump, len ) ) {
-		g_free( filename );
-		g_free( dump );
-		return( -1 );
+	if (vips_mkfile(dz, filename, dump, len)) {
+		g_free(filename);
+		g_free(dump);
+		return -1;
 	}
 
-	g_free( filename );
-	g_free( dump );
+	g_free(filename);
+	g_free(dump);
 
 	return 0;
 }
@@ -1252,13 +1252,13 @@ typedef struct _Strip {
 } ImageStrip;
 
 static void
-image_strip_free( ImageStrip *strip )
+image_strip_free(ImageStrip *strip)
 {
 	g_object_unref(strip->image);
 }
 
 static void
-image_strip_init( ImageStrip *strip, Layer *layer )
+image_strip_init(ImageStrip *strip, Layer *layer)
 {
 	VipsForeignSaveDz *dz = layer->dz;
 
@@ -1288,19 +1288,19 @@ image_strip_init( ImageStrip *strip, Layer *layer )
 
 	vips_rect_intersectrect(&image, &line, &line);
 
-	if( !(strip->image = vips_image_new_from_memory(
-		VIPS_REGION_ADDR( layer->strip, 0, line.top ),
-		VIPS_IMAGE_SIZEOF_LINE( layer->image ) * line.height,
-		line.width, line.height,
-		layer->image->Bands, layer->image->BandFmt )) ) {
-		image_strip_free( strip );
+	if (!(strip->image = vips_image_new_from_memory(
+			  VIPS_REGION_ADDR(layer->strip, 0, line.top),
+			  VIPS_IMAGE_SIZEOF_LINE(layer->image) * line.height,
+			  line.width, line.height,
+			  layer->image->Bands, layer->image->BandFmt))) {
+		image_strip_free(strip);
 		return;
 	}
 
 	/* The strip needs to inherit the layer's metadata.
 	 */
-	if( vips__image_meta_copy( strip->image, layer->image ) ) {
-		image_strip_free( strip );
+	if (vips__image_meta_copy(strip->image, layer->image)) {
+		image_strip_free(strip);
 		return;
 	}
 
@@ -1310,7 +1310,7 @@ image_strip_init( ImageStrip *strip, Layer *layer )
 }
 
 static int
-image_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
+image_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 {
 	ImageStrip *strip = (ImageStrip *) a;
 	Layer *layer = strip->layer;
@@ -1319,7 +1319,7 @@ image_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	VipsRect image;
 
 #ifdef DEBUG_VERBOSE
-	printf( "image_strip_allocate\n" );
+	printf("image_strip_allocate\n");
 #endif /*DEBUG_VERBOSE*/
 
 	/* We can't test for allocated area empty, since it might just have
@@ -1329,7 +1329,7 @@ image_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	if (strip->x / dz->tile_step >= layer->tiles_across) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
-		printf( "image_strip_allocate: done\n" );
+		printf("image_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
 
 		return 0;
@@ -1543,55 +1543,55 @@ tile_equal(VipsImage *image, int threshold, VipsPel *restrict ink)
 }
 
 static int
-write_image_direct( VipsForeignSaveDz *dz,
+write_image_direct(VipsForeignSaveDz *dz,
 	VipsRegion *region, VipsRect *rect,
-	const char *filename, const char *format )
+	const char *filename, const char *format)
 {
 	VipsTarget *target;
 
-	if( iszip( dz->container ) ) {
-		if( !(target = vips_target_new_to_memory()) )
-			return( -1 );
+	if (iszip(dz->container)) {
+		if (!(target = vips_target_new_to_memory()))
+			return -1;
 	}
 	else {
-		if( !(target = vips_target_new_to_file( filename )) )
-			return( -1 );
+		if (!(target = vips_target_new_to_file(filename)))
+			return -1;
 	}
 
-	if( vips__jpeg_region_write_target( region, rect, target,
-		75, NULL,
-		FALSE, FALSE,
-		!dz->no_strip, FALSE,
-		FALSE, FALSE,
-		0, 0, 0 ) ) {
-		g_object_unref( target );
-		return( -1 );
+	if (vips__jpeg_region_write_target(region, rect, target,
+			75, NULL,
+			FALSE, FALSE,
+			!dz->no_strip, FALSE,
+			FALSE, FALSE,
+			0, 0, 0)) {
+		g_object_unref(target);
+		return -1;
 	}
 
-	if( iszip( dz->container ) ) {
+	if (iszip(dz->container)) {
 		VipsBlob *blob;
 		const void *buffer;
 		size_t length;
 
-		g_object_get( target, "blob", &blob, NULL );
-		buffer = vips_blob_get( blob, &length );
+		g_object_get(target, "blob", &blob, NULL);
+		buffer = vips_blob_get(blob, &length);
 
-		if( vips_mkfile_zip( dz, filename, (void *) buffer, length ) ) {
-			vips_area_unref( VIPS_AREA( blob ) );
-			g_object_unref( target );
-			return( -1 );
+		if (vips_mkfile_zip(dz, filename, (void *) buffer, length)) {
+			vips_area_unref(VIPS_AREA(blob));
+			g_object_unref(target);
+			return -1;
 		}
 
-		vips_area_unref( VIPS_AREA( blob ) );
+		vips_area_unref(VIPS_AREA(blob));
 	}
 
-	g_object_unref( target );
+	g_object_unref(target);
 
-	return( 0 );
+	return 0;
 }
 
 static int
-image_strip_work( VipsThreadState *state, void *a )
+image_strip_work(VipsThreadState *state, void *a)
 {
 	ImageStrip *strip = (ImageStrip *) a;
 	Layer *layer = strip->layer;
@@ -1602,7 +1602,7 @@ image_strip_work( VipsThreadState *state, void *a )
 	char *out;
 
 #ifdef DEBUG_VERBOSE
-	printf( "image_strip_work\n" );
+	printf("image_strip_work\n");
 #endif /*DEBUG_VERBOSE*/
 
 	/* killed is checked by sink_disc, but that's only once per strip, and
@@ -1623,9 +1623,9 @@ image_strip_work( VipsThreadState *state, void *a )
 		tile.height = dz->tile_size;
 		if (!vips_rect_overlapsrect(&tile, &layer->real_pixels)) {
 #ifdef DEBUG_VERBOSE
-			printf( "image_strip_work: skipping tile %d x %d\n",
+			printf("image_strip_work: skipping tile %d x %d\n",
 				state->x / dz->tile_size,
-				state->y / dz->tile_size );
+				state->y / dz->tile_size);
 #endif /*DEBUG_VERBOSE*/
 
 			return 0;
@@ -1646,16 +1646,16 @@ image_strip_work( VipsThreadState *state, void *a )
 		g_object_unref(x);
 
 #ifdef DEBUG_VERBOSE
-		printf( "image_strip_work: skipping blank tile %d x %d\n",
+		printf("image_strip_work: skipping blank tile %d x %d\n",
 			state->x / dz->tile_size,
-			state->y / dz->tile_size );
+			state->y / dz->tile_size);
 #endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
 
-	out = tile_name( layer,
-		state->x / dz->tile_step, state->y / dz->tile_step );
+	out = tile_name(layer,
+		state->x / dz->tile_step, state->y / dz->tile_step);
 
 	/* g_build_filename() can return NULL when it exceeds the path limits.
 	 */
@@ -1678,7 +1678,7 @@ image_strip_work( VipsThreadState *state, void *a )
 	g_object_unref(x);
 
 #ifdef DEBUG_VERBOSE
-	printf( "image_strip_work: success\n" );
+	printf("image_strip_work: success\n");
 #endif /*DEBUG_VERBOSE*/
 
 	return 0;
@@ -1695,7 +1695,7 @@ typedef struct _DirectStrip {
 } DirectStrip;
 
 static int
-direct_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
+direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 {
 	DirectStrip *strip = (DirectStrip *) a;
 	Layer *layer = strip->layer;
@@ -1704,20 +1704,20 @@ direct_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	VipsRect image;
 
 #ifdef DEBUG_VERBOSE
-	printf( "direct_strip_allocate\n" );
+	printf("direct_strip_allocate\n");
 #endif /*DEBUG_VERBOSE*/
 
 	/* We can't test for allocated area empty, since it might just have
 	 * bits of the left-hand overlap in and no new pixels. Safest to count
 	 * tiles across.
 	 */
-	if( strip->x / dz->tile_step >= layer->tiles_across ) {
+	if (strip->x / dz->tile_step >= layer->tiles_across) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
-		printf( "direct_strip_allocate: done\n" );
+		printf("direct_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
 
-		return( 0 );
+		return 0;
 	}
 
 	/* Position this tile.
@@ -1730,18 +1730,18 @@ direct_strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
-	vips_rect_marginadjust( &state->pos, dz->tile_margin );
-	vips_rect_intersectrect( &image, &state->pos, &state->pos );
+	vips_rect_marginadjust(&state->pos, dz->tile_margin);
+	vips_rect_intersectrect(&image, &state->pos, &state->pos);
 
 	state->x = strip->x;
 	state->y = layer->y;
 	strip->x += dz->tile_step;
 
-	return( 0 );
+	return 0;
 }
 
 static int
-direct_strip_work( VipsThreadState *state, void *a )
+direct_strip_work(VipsThreadState *state, void *a)
 {
 	DirectStrip *strip = (DirectStrip *) a;
 	Layer *layer = strip->layer;
@@ -1751,19 +1751,19 @@ direct_strip_work( VipsThreadState *state, void *a )
 	 * path limits.
 	 */
 	char *name;
-	if( !(name = tile_name( layer,
-		state->x / dz->tile_step, state->y / dz->tile_step )) )
-		return( -1 );
+	if (!(name = tile_name(layer,
+			  state->x / dz->tile_step, state->y / dz->tile_step)))
+		return -1;
 
-	if( write_image_direct( dz, layer->strip, &state->pos,
-		name, dz->suffix ) ) {
-		g_free( name );
-		return( -1 );
+	if (write_image_direct(dz, layer->strip, &state->pos,
+			name, dz->suffix)) {
+		g_free(name);
+		return -1;
 	}
 
-	g_free( name );
+	g_free(name);
 
-	return( 0 );
+	return 0;
 }
 
 /* Write a line of tiles with a threadpool.
@@ -1775,33 +1775,33 @@ strip_save(Layer *layer)
 	printf("strip_save: n = %d, y = %d\n", layer->n, layer->y);
 #endif /*DEBUG*/
 
-	if( layer->dz->direct ) {
+	if (layer->dz->direct) {
 		DirectStrip strip = { layer, 0 };
 
-		if( vips_threadpool_run( layer->image,
-			vips_thread_state_new,
-			direct_strip_allocate,
-			direct_strip_work,
-			NULL,
-			&strip ) )
-			return( -1 );
+		if (vips_threadpool_run(layer->image,
+				vips_thread_state_new,
+				direct_strip_allocate,
+				direct_strip_work,
+				NULL,
+				&strip))
+			return -1;
 	}
 	else {
 		ImageStrip strip;
 
-		image_strip_init( &strip, layer );
+		image_strip_init(&strip, layer);
 
-		if( vips_threadpool_run( strip.image,
-			vips_thread_state_new,
-			image_strip_allocate,
-			image_strip_work,
-			NULL,
-			&strip ) ) {
-			image_strip_free( &strip );
-			return( -1 );
+		if (vips_threadpool_run(strip.image,
+				vips_thread_state_new,
+				image_strip_allocate,
+				image_strip_work,
+				NULL,
+				&strip)) {
+			image_strip_free(&strip);
+			return -1;
 		}
 
-		image_strip_free( &strip );
+		image_strip_free(&strip);
 	}
 
 #ifdef DEBUG
@@ -2139,10 +2139,10 @@ vips_foreign_save_dz_build(VipsObject *object)
 	// - can't set suffix (we only support vanilla jpg)
 	// - no code for skip_blanks yet
 	// - no google tile padding yet
-	if( !vips_object_argument_isset( object, "suffix" ) &&
+	if (!vips_object_argument_isset(object, "suffix") &&
 		dz->layout != VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		!vips_object_argument_isset( object, "skip_blanks" ) ) {
-		printf( "vips_foreign_save_dz_build: enabling direct mode\n" );
+		!vips_object_argument_isset(object, "skip_blanks")) {
+		printf("vips_foreign_save_dz_build: enabling direct mode\n");
 		dz->direct = TRUE;
 	}
 

@@ -151,19 +151,19 @@ int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval);
 
-int vips__jpeg_region_write_target( VipsRegion *region, VipsRect *rect,
+int vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
-	int restart_interval );
+	int restart_interval);
 
-int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
+int vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on,
-	gboolean autorotate, gboolean unlimited );
-int vips__isjpeg_source( VipsSource *source );
+	gboolean autorotate, gboolean unlimited);
+int vips__isjpeg_source(VipsSource *source);
 
 int vips__png_ispng_source(VipsSource *source);
 int vips__png_header_source(VipsSource *source, VipsImage *out,
