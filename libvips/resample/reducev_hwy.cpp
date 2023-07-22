@@ -52,7 +52,7 @@
 #ifdef HAVE_HWY
 
 #undef HWY_TARGET_INCLUDE
-#define HWY_TARGET_INCLUDE "libvips/resample/reduce_hwy.cpp"
+#define HWY_TARGET_INCLUDE "libvips/resample/reducev_hwy.cpp"
 #include <hwy/foreach_target.h>
 #include <hwy/highway.h>
 
@@ -70,7 +70,7 @@ constexpr DI16 di16;
 constexpr DI32 di32;
 
 HWY_ATTR void
-vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
+vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int32_t n, int32_t ne, int32_t lskip, const int16_t *HWY_RESTRICT k)
 {
 #if HWY_TARGET != HWY_SCALAR
@@ -284,14 +284,14 @@ vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
 } /*namespace HWY_NAMESPACE*/
 
 #if HWY_ONCE
-HWY_EXPORT(vips_reduce_uchar_hwy);
+HWY_EXPORT(vips_reducev_uchar_hwy);
 
 void
-vips_reduce_uchar_hwy(VipsPel *pout, VipsPel *pin,
+vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int n, int ne, int lskip, const short *restrict k)
 {
 	/* clang-format off */
-	HWY_DYNAMIC_DISPATCH(vips_reduce_uchar_hwy)(pout, pin, n, ne, lskip, k);
+	HWY_DYNAMIC_DISPATCH(vips_reducev_uchar_hwy)(pout, pin, n, ne, lskip, k);
 	/* clang-format on */
 }
 #endif /*HWY_ONCE*/

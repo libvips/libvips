@@ -456,21 +456,8 @@ vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
 		p0 = VIPS_REGION_ADDR(ir, ir->valid.left, r->top + y) -
 			ir->valid.left * ps;
 
-		for (int x = 0; x < r->width; x++) {
-			const int ix = (int) X;
-			VipsPel *p = p0 + ix * ps;
-			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
-			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-			const int tx = (six + 1) >> 1;
-			const short *cxs = reduceh->matrixs[tx];
-
-			vips_reduce_uchar_hwy(
-				q, p,
-				reduceh->n_point, bands, ps, cxs);
-
-			X += reduceh->hshrink;
-			q += ps;
-		}
+		vips_reduceh_uchar_hwy(q, p0, reduceh->n_point, r->width,
+			bands, reduceh->matrixs, X, reduceh->hshrink);
 	}
 
 	VIPS_GATE_STOP("vips_reduceh_uchar_vector_gen: work");
@@ -622,6 +609,7 @@ vips_reduceh_build(VipsObject *object)
 	 */
 #ifdef HAVE_HWY
 	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		(in->Bands == 4 || in->Bands == 3) &&
 		vips_vector_isenabled()) {
 		generate = vips_reduceh_uchar_vector_gen;
 		g_info("reduceh: using vector path");

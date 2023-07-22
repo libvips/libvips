@@ -673,7 +673,7 @@ vips_reducev_uchar_vector_gen(VipsRegion *out_region, void *vseq,
 		const short *cys = reducev->matrixs[ty];
 		const int lskip = VIPS_REGION_LSKIP(ir);
 
-		vips_reduce_uchar_hwy(
+		vips_reducev_uchar_hwy(
 			q, p,
 			reducev->n_point, ne, lskip, cys);
 
