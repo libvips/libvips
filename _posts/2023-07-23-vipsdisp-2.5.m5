@@ -1,0 +1,73 @@
+---
+title: vipsdisp 2.5 is out
+---
+
+There's a new version of vipsdisp, a gtk4 image viewer:
+
+https://github.com/jcupitt/vipsdisp
+
+## Another image viewer??
+
+It can display huge (eg. 100,000 x 100,000 pixel and more) images quickly
+and without using much memory. It supports many scientific and technical
+image formats, including TIFF (with some OME-TIFF support), WEBP, JP2, JXL,
+HEIC, AVIF, PNG, JPEG, SVS, MRXS, NDPI, OpenEXR, GIF, PDF, SVG, FITS, HDR
+(Radiance), Matlab, NIfTI, Analyze, CSV, PPM, PFM, etc. It supports many
+pixel types, from 1 bit mono to 128-bit double precision complex.
+
+## What's new
+
+Version 2.5 adds save-as (contributed by angstyloop), better SVG and PDF
+support, improved mousewheel handling, selectable image backgrounds, and
+faster and smoother image animation.
+
+Save-as supports all the image write features of libvips, so (for example),
+you can save any image as a DeepZoom pyramid, or as tiled pyramidal
+JPEG-compressed TIFF, or as JXL.
+
+## Install
+
+There's a binary on flathub, so it should be easy to try out:
+
+https://flathub.org/apps/details/org.libvips.vipsdisp
+
+And there's a homebrew formula here:
+
+https://github.com/jcupitt/homebrew-core/commit/faae7e9568f49508316a60d6f70660b9f35b54a6
+
+The macOS version seems to mostly work OK.
+
+## Technical background
+
+It has some interesting features:
+
+* It doesn't need to keep the whole image in memory. When possible, it will
+  only decompress the pixels that it needs for display, and it understands most
+  pyramidal image formats. This means you can open and view huge images quickly.
+
+* It has threaded, asynchronous image repaint, so image tiles are computed
+  in the background by a pool of workers and the screen is updated as they
+  are finished. The interface should stay live even under very heavy load.
+
+* It keeps a sparse pyramid of tiles as textures on the GPU. For each frame,
+  it computes the set of visible tiles, and then the GPU scales, positions
+  and composites just those tiles to the screen. CPU load should be low
+  (except for the background workers haha). Hold down i (for "in") or +
+  to do a smooth zoom on the cursor. If you press "d" it toggles a debug
+  display mode which shows the tiles being computed.
+
+* Select Display Control Bar from the top-right menu and a useful set of
+  visualization options appear. It supports four main display modes: Toilet
+  Roll (sorry), Multipage, Animated, and Pages as Bands.
+
+* In Toilet Roll mode, a multi-page image is presented as a tall, thin strip
+  of images. In Multipage, you see a single page at a time, with a page-select
+  spinner (you can also use the crtl-< and ctrl-> keys to flip pages). In
+  animated mode, pages flip automatically on a timeout. In pages-as-bands
+  mode, many-page single-band images (eg. OME-TIFF) are presented as a single
+  colour image.
+
+* You can select falsecolour and log-scale filters, useful for many scientific
+  images. Scale and offset sliders let you adjust image brightness to see into
+  darker areas (useful for HDR and science images). Pick Scale to search the
+  window for min and max and set the scale and offset sliders to fill the range.
