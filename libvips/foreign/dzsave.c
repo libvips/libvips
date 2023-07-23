@@ -395,8 +395,7 @@ vips_mkdir_zip(VipsForeignSaveDz *dz, const char *dirname)
 
 	if (archive_write_header(dz->archive, entry) != ARCHIVE_OK) {
 		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave",
-			_("unable to add directory \"%s\", %s"),
+		vips_error("dzsave", _("unable to add directory \"%s\", %s"),
 			utf8name, archive_error_string(dz->archive));
 		g_free(utf8name);
 		archive_entry_free(entry);
@@ -417,8 +416,7 @@ vips_mkdir_file(const char *dirname)
 		errno != EEXIST) {
 		int save_errno = errno;
 		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave",
-			_("unable to create directory \"%s\", %s"),
+		vips_error("dzsave", _("unable to create directory \"%s\", %s"),
 			utf8name, g_strerror(save_errno));
 		g_free(utf8name);
 		return -1;
@@ -601,19 +599,15 @@ pyramid_build(VipsForeignSaveDz *dz, Layer *above,
 	/* We need to output all possible tiles, even if they give no new
 	 * pixels.
 	 */
-	layer->tiles_across = VIPS_ROUND_UP(width, dz->tile_step) /
-		dz->tile_step;
-	layer->tiles_down = VIPS_ROUND_UP(height, dz->tile_step) /
-		dz->tile_step;
+	layer->tiles_across = VIPS_ROUND_UP(width, dz->tile_step) / dz->tile_step;
+	layer->tiles_down = VIPS_ROUND_UP(height, dz->tile_step) / dz->tile_step;
 
 	/* In google mode, we always write full tiles, so we must pad along
 	 * the bottom and right.
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
-		width = (layer->tiles_across - 1) * dz->tile_step +
-			dz->tile_size;
-		height = (layer->tiles_down - 1) * dz->tile_step +
-			dz->tile_size;
+		width = (layer->tiles_across - 1) * dz->tile_step + dz->tile_size;
+		height = (layer->tiles_down - 1) * dz->tile_step + dz->tile_size;
 	}
 
 	layer->width = width;
@@ -710,8 +704,7 @@ pyramid_build(VipsForeignSaveDz *dz, Layer *above,
 		half.width = (real_pixels->width + 1) / 2;
 		half.height = (real_pixels->height + 1) / 2;
 		if (!(layer->below = pyramid_build(dz, layer,
-				  (width + 1) / 2, (height + 1) / 2,
-				  &half))) {
+				  (width + 1) / 2, (height + 1) / 2, &half))) {
 			layer_free(layer);
 			return NULL;
 		}
@@ -759,8 +752,9 @@ write_dzi(VipsForeignSaveDz *dz)
 		*p = '\0';
 
 	vips_dbuf_writef(&dbuf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-	vips_dbuf_writef(&dbuf, "<Image "
-							"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n");
+	vips_dbuf_writef(&dbuf, "<Image xmlns=\""
+							"http://schemas.microsoft.com/deepzoom/2008"
+							"\"\n");
 	vips_dbuf_writef(&dbuf, "  Format=\"%s\"\n", suffix);
 	vips_dbuf_writef(&dbuf, "  Overlap=\"%d\"\n", dz->overlap);
 	vips_dbuf_writef(&dbuf, "  TileSize=\"%d\"\n", dz->tile_size);
@@ -802,7 +796,8 @@ write_properties(VipsForeignSaveDz *dz)
 
 	vips_dbuf_writef(&dbuf, "<IMAGE_PROPERTIES "
 							"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
-							"NUMIMAGES=\"1\" VERSION=\"1.8\" TILESIZE=\"%d\" />\n",
+							"NUMIMAGES=\"1\" VERSION=\"1.8\" "
+							"TILESIZE=\"%d\" />\n",
 		dz->layer->width,
 		dz->layer->height,
 		dz->tile_count,
@@ -1750,8 +1745,7 @@ direct_strip_work(VipsThreadState *state, void *a)
 			  state->x / dz->tile_step, state->y / dz->tile_step)))
 		return -1;
 
-	if (write_image_direct(dz, layer->strip, &state->pos,
-			name, dz->suffix)) {
+	if (write_image_direct(dz, layer->strip, &state->pos, name, dz->suffix)) {
 		g_free(name);
 		return -1;
 	}
@@ -1852,9 +1846,7 @@ layer_generate_extras(Layer *layer)
 		vips_rect_intersectrect(&last, &strip->valid, &last);
 		if (last.height == 2) {
 			last.height = 1;
-
-			vips_region_copy(strip, strip, &last,
-				0, last.top + 1);
+			vips_region_copy(strip, strip, &last, 0, last.top + 1);
 		}
 	}
 }
@@ -1921,8 +1913,7 @@ strip_shrink(Layer *layer)
 		if (vips_rect_isempty(&target))
 			break;
 
-		(void) vips_region_shrink_method(from, to,
-			&target, region_shrink);
+		(void) vips_region_shrink_method(from, to, &target, region_shrink);
 
 		below->write_y += target.height;
 
@@ -2384,8 +2375,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 		 * from write to file. Make a target if we need one.
 		 */
 		if (!dz->target) {
-			if (!(dz->target =
-						vips_target_new_to_file(dz->filename)))
+			if (!(dz->target = vips_target_new_to_file(dz->filename)))
 				return -1;
 		}
 
@@ -2772,7 +2762,8 @@ vips_foreign_save_dz_file_build(VipsObject *object)
 
 	dz->filename = file->filename;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)
+			->build(object))
 		return -1;
 
 	return 0;
