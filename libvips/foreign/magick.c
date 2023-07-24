@@ -67,10 +67,15 @@
  * |0x02 | Any of (0, 1, 2, 3, 9, 10, 11), Image type        |
  * -----------------------------------------------------------
  *
+ * However, this would catch ISOBMFF formats, so we must also check for the
+ * 'ftyp' signature at offset 4.
+ *
  * References:
  * * https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
  * * http://www.paulbourke.net/dataformats/tga/
  * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
+ * * https://en.wikipedia.org/wiki/ISO_base_media_file_format#Technical_details
+ * * http://lclevy.free.fr/cr2/
  */
 static const char *
 magick_sniff(const unsigned char *bytes, size_t length)
@@ -99,8 +104,41 @@ magick_sniff(const unsigned char *bytes, size_t length)
 			bytes[2] == 3 ||
 			bytes[2] == 9 ||
 			bytes[2] == 10 ||
-			bytes[2] == 11))
+			bytes[2] == 11) &&
+		memcmp(bytes + 4, "ftyp", 4) != 0)
 		return "TGA";
+
+	guint32 ifd_offset = 0;
+
+	/* Big-endian TIFF header
+	 */
+	if (length >= 8 &&
+		bytes[0] == 'M' &&
+		bytes[1] == 'M' &&
+		bytes[2] == 0 &&
+		bytes[3] == 42)
+		ifd_offset = ((guint32) bytes[4] << 24) |
+			((guint32) bytes[5] << 16) |
+			((guint32) bytes[6] << 8) |
+			bytes[7];
+
+	/* Little-endian TIFF header
+	 */
+	if (length >= 8 &&
+		bytes[0] == 'I' &&
+		bytes[1] == 'I' &&
+		bytes[2] == 42 &&
+		bytes[3] == 0)
+		ifd_offset = ((guint32) bytes[7] << 24) |
+			((guint32) bytes[6] << 16) |
+			((guint32) bytes[5] << 8) |
+			bytes[4];
+
+	if (length >= 10 &&
+		ifd_offset >= 6 &&
+		bytes[8] == 'C' &&
+		bytes[9] == 'R')
+		return "CR2";
 
 	return NULL;
 }
@@ -122,7 +160,7 @@ magick_sniff_file(ImageInfo *image_info, const char *filename)
 	size_t length;
 
 	if ((length = vips__get_bytes(filename, bytes, 256)) >= 4)
-		magick_sniff_bytes(image_info, bytes, 256);
+		magick_sniff_bytes(image_info, bytes, length);
 }
 
 #endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/

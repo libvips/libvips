@@ -4,7 +4,7 @@ project('vips', 'c', 'cpp',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu99',
-	# we use some C++11 features 
+	# we use some C++11 features
 	'cpp_std=c++11',
         # do a release (optimised) build by default
         'buildtype=release',
@@ -380,8 +380,8 @@ if libtiff_dep.found()
     endif
 endif
 
-# 2.40.3 so we get the UNLIMITED open flag
-librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_option('rsvg'))
+# 2.48 is the first version to not use libcroco, an unmaintained CSS parser
+librsvg_dep = dependency('librsvg-2.0', version: '>=2.48.0', required: get_option('rsvg'))
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
 librsvg_found = librsvg_dep.found() and cairo_dep.found()
 if librsvg_found
