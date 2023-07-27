@@ -147,7 +147,7 @@ extern const char *vips__jpeg_suffs[];
 int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean trellis_quant, gboolean overshoot_deringing,
+	gboolean keep_profile, gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval);
 
@@ -167,7 +167,7 @@ extern const char *vips__png_suffs[];
 int vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int Q, double dither,
+	gboolean keep_profile, gboolean palette, int Q, double dither,
 	int bitdepth, int effort);
 
 /* Map WEBP metadata names to vips names.

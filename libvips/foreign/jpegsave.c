@@ -276,10 +276,10 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 
 	if (vips__jpeg_write_target(save->ready, target->target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
-			jpeg->interlace, save->strip, jpeg->trellis_quant,
-			jpeg->overshoot_deringing, jpeg->optimize_scans,
-			jpeg->quant_table, jpeg->subsample_mode,
-			jpeg->restart_interval))
+			jpeg->interlace, save->strip, save->keep_profile,
+			jpeg->trellis_quant, jpeg->overshoot_deringing,
+			jpeg->optimize_scans, jpeg->quant_table,
+			jpeg->subsample_mode, jpeg->restart_interval))
 		return -1;
 
 	return 0;
@@ -343,10 +343,10 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 		return -1;
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
-			jpeg->interlace, save->strip, jpeg->trellis_quant,
-			jpeg->overshoot_deringing, jpeg->optimize_scans,
-			jpeg->quant_table, jpeg->subsample_mode,
-			jpeg->restart_interval)) {
+			jpeg->interlace, save->strip, save->keep_profile,
+			jpeg->trellis_quant, jpeg->overshoot_deringing,
+			jpeg->optimize_scans, jpeg->quant_table,
+			jpeg->subsample_mode, jpeg->restart_interval)) {
 		VIPS_UNREF(target);
 		return -1;
 	}
@@ -415,10 +415,10 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
-			jpeg->interlace, save->strip, jpeg->trellis_quant,
-			jpeg->overshoot_deringing, jpeg->optimize_scans,
-			jpeg->quant_table, jpeg->subsample_mode,
-			jpeg->restart_interval)) {
+			jpeg->interlace, save->strip, save->keep_profile,
+			jpeg->trellis_quant, jpeg->overshoot_deringing,
+			jpeg->optimize_scans, jpeg->quant_table,
+			jpeg->subsample_mode, jpeg->restart_interval)) {
 		VIPS_UNREF(target);
 		return -1;
 	}
@@ -489,10 +489,10 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 
 	if (vips__jpeg_write_target(save->ready, target,
 			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
-			jpeg->interlace, save->strip, jpeg->trellis_quant,
-			jpeg->overshoot_deringing, jpeg->optimize_scans,
-			jpeg->quant_table, jpeg->subsample_mode,
-			jpeg->restart_interval)) {
+			jpeg->interlace, save->strip, save->keep_profile,
+			jpeg->trellis_quant, jpeg->overshoot_deringing,
+			jpeg->optimize_scans, jpeg->quant_table,
+			jpeg->subsample_mode, jpeg->restart_interval)) {
 		VIPS_UNREF(target);
 		return -1;
 	}

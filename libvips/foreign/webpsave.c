@@ -427,13 +427,16 @@ vips_webp_set_chunk(VipsForeignSaveWebp *write,
 }
 
 static int
-vips_webp_add_chunks(VipsForeignSaveWebp *write)
+vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 {
 	int i;
 
 	for (i = 0; i < vips__n_webp_names; i++) {
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
+
+		if (!strcmp(vips_name, VIPS_META_ICC_NAME))
+			continue;
 
 		if (vips_image_get_typeof(write->image, vips_name)) {
 			const void *data;
@@ -447,6 +450,67 @@ vips_webp_add_chunks(VipsForeignSaveWebp *write)
 		}
 	}
 
+	return 0;
+}
+
+static const char *
+vips_webp_get_webp_name(const char *vips_name)
+{
+	int position = 0;
+	while (position < vips__n_webp_names) {
+		gboolean needed = strcmp(vips_name, vips__webp_names[position].vips) == 0;
+		const char *webp_name = vips__webp_names[position].webp;
+
+		if (needed) {
+			return webp_name;
+			break;
+		}
+
+		position++;
+	}
+	return "";
+}
+
+static int
+vips_webp_add_icc(VipsForeignSaveWebp *webp, const void *profile, size_t length)
+{
+	const char *webp_name = vips_webp_get_webp_name(VIPS_META_ICC_NAME);
+
+	if (vips_webp_set_chunk(webp, webp_name, profile, length))
+		return -1;
+
+	return 0;
+}
+
+static int
+vips_webp_add_custom_icc(VipsForeignSaveWebp *webp)
+{
+	const char *profile = webp->profile;
+	VipsBlob *blob;
+	size_t length;
+
+	if (vips_profile_load(profile, &blob, NULL))
+		return -1;
+
+	const void *data = vips_blob_get(blob, &length);
+
+	if (vips_webp_add_icc(webp, data, length))
+		return -1;
+
+	return 0;
+}
+
+static int
+vips_webp_add_original_icc(VipsForeignSaveWebp *webp)
+{
+	const void *data;
+	size_t length;
+
+	if (vips_image_get_blob(webp->image, VIPS_META_ICC_NAME,
+			&data, &length))
+		return -1;
+
+	vips_webp_add_icc(webp, data, length);
 	return 0;
 }
 
@@ -486,22 +550,39 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
 	}
 
-	/* Add extra metadata.
+	/* When save is called w/o "strip" option,
+	 * we need to update exif data with actual
+	 * values and copy all meta, but skip ICC
+	 * if we have "profile" option
 	 */
 	if (!save->strip) {
-		/* We need to rebuild exif from the other image tags before
-		 * writing the metadata.
-		 */
-		if (vips__exif_update(webp->image))
+		if (vips__exif_update(webp->image) ||
+			vips_webp_add_original_meta(webp))
 			return -1;
 
-		/* Override profile.
-		 */
-		if (webp->profile &&
-			vips__profile_set(webp->image, webp->profile))
-			return -1;
+		if (!webp->profile) {
+			if (vips_webp_add_original_icc(webp))
+				return -1;
+		}
+	}
 
-		if (vips_webp_add_chunks(webp))
+	/* If save is called with "keep_profile" and
+	 * "strip" options, we need to copy ICC profile
+	 * from original image to new webp
+	 */
+	if (save->keep_profile && save->strip) {
+		if (vips_webp_add_original_icc(webp))
+			return -1;
+	}
+
+	/* If save is called with "profile" option,
+	 * we need to add/overwrite ICC profile
+	 * in webp image (if called with both "profile"
+	 * and keep_profile options, profile may be
+	 * overwritten two times)
+	 */
+	if (webp->profile) {
+		if (vips_webp_add_custom_icc(webp))
 			return -1;
 	}
 

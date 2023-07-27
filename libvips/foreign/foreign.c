@@ -1820,6 +1820,13 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, page_height),
 		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_BOOL(class, "keep_profile", 103,
+		_("Keep_Profile"),
+		_("When used with \"strip\" option, preserves ICC profile from original image. Do not call with \"profile\" option"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSave, keep_profile),
+		FALSE);
 }
 
 static void

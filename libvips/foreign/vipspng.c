@@ -1019,12 +1019,61 @@ write_png_comment(VipsImage *image,
 	return NULL;
 }
 
+int
+vips_png_add_icc(Write *write, const void *data, size_t length)
+{
+	if (setjmp(png_jmpbuf(write->pPng))) {
+		// Silent ignore of error.
+		g_debug("bad ICC profile not saved");
+	}
+	else {
+		png_set_iCCP(write->pPng, write->pInfo,
+			"icc", PNG_COMPRESSION_TYPE_BASE,
+			(void *) data, length);
+	}
+
+	// And restore the setjmp.
+	if (setjmp(png_jmpbuf(write->pPng)))
+		return -1;
+	return 0;
+}
+
+int
+vips_png_add_custom_icc(Write *write, const char *profile)
+{
+	VipsBlob *blob;
+	size_t length;
+
+	if (vips_profile_load(profile, &blob, NULL))
+		return -1;
+
+	const void *data = vips_blob_get(blob, &length);
+
+	vips_png_add_icc(write, data, length);
+	vips_area_unref((VipsArea *) blob);
+	return 0;
+}
+
+int
+vips_png_add_original_icc(Write *write)
+{
+	const void *data;
+	size_t length;
+
+	if (vips_image_get_blob(write->in, VIPS_META_ICC_NAME,
+			&data, &length))
+		return -1;
+
+	vips_png_add_icc(write, data, length);
+	return 0;
+}
+
 /* Write a VIPS image to PNG.
  */
 static int
 write_vips(Write *write,
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
+	VipsForeignPngFilter filter, gboolean strip, gboolean keep_profile,
 	gboolean palette, int Q, double dither,
 	int bitdepth, int effort)
 {
@@ -1119,70 +1168,10 @@ write_vips(Write *write,
 		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
 		PNG_RESOLUTION_METER);
 
-	/* Metadata
+	/* If save called w\o "strip" option, we need to copy all meta to new
+	 *  png image
 	 */
 	if (!strip) {
-		if (profile) {
-			VipsBlob *blob;
-
-			if (vips_profile_load(profile, &blob, NULL))
-				return -1;
-			if (blob) {
-				size_t length;
-				const void *data =
-					vips_blob_get(blob, &length);
-
-#ifdef DEBUG
-				printf(
-					"write_vips: attaching %zd bytes "
-					"of ICC profile\n",
-					length);
-#endif /*DEBUG*/
-
-				png_set_iCCP(write->pPng, write->pInfo,
-					"icc", PNG_COMPRESSION_TYPE_BASE,
-					(void *) data, length);
-
-				vips_area_unref((VipsArea *) blob);
-			}
-		}
-		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-			const void *data;
-			size_t length;
-
-			if (vips_image_get_blob(in, VIPS_META_ICC_NAME,
-					&data, &length))
-				return -1;
-
-#ifdef DEBUG
-			printf("write_vips: attaching %zd bytes of ICC profile\n",
-				length);
-#endif /*DEBUG*/
-
-			/* We need to ignore any errors from png_set_iCCP()
-			 * since we want to drop incompatible profiles rather
-			 * than simply failing.
-			 */
-			if (setjmp(png_jmpbuf(write->pPng))) {
-				/* Silent ignore of error.
-				 */
-				g_warning("bad ICC profile not saved");
-			}
-			else {
-				/* This will jump back to the line above on
-				 * error.
-				 */
-				png_set_iCCP(write->pPng, write->pInfo, "icc",
-					PNG_COMPRESSION_TYPE_BASE,
-					(void *) data, length);
-			}
-
-			/* And restore the setjmp.
-			 */
-			if (setjmp(png_jmpbuf(write->pPng)))
-				return -1;
-		}
-
 		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
 			const void *data;
 			size_t length;
@@ -1224,8 +1213,32 @@ write_vips(Write *write,
 				length, (png_bytep) data);
 		}
 #endif /*PNG_eXIf_SUPPORTED*/
+		if (!profile) {
+			if (vips_png_add_original_icc(write))
+				return -1;
+		}
 
 		if (vips_image_map(in, write_png_comment, write))
+			return -1;
+	}
+
+	/* If save is called with "keep_profile" and
+	 * "strip" options, we need to copy ICC profile
+	 * from original image to new png
+	 */
+	if (keep_profile && strip) {
+		if (vips_png_add_original_icc(write))
+			return -1;
+	}
+
+	/* If save is called with "profile" option,
+	 * we need to add/overwrite ICC profile
+	 * in png image (if called with both "profile"
+	 * and keep_profile options, profile may be
+	 * overwritten two times)
+	 */
+	if (profile) {
+		if (vips_png_add_custom_icc(write, profile))
 			return -1;
 	}
 
@@ -1332,7 +1345,7 @@ int
 vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int Q, double dither,
+	gboolean keep_profile, gboolean palette, int Q, double dither,
 	int bitdepth, int effort)
 {
 	Write *write;
@@ -1341,7 +1354,7 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 		return -1;
 
 	if (write_vips(write,
-			compression, interlace, profile, filter, strip, palette,
+			compression, interlace, profile, filter, strip, keep_profile, palette,
 			Q, dither, bitdepth, effort)) {
 		write_destroy(write);
 		vips_error("vips2png", _("unable to write to target %s"),

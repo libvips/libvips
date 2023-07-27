@@ -15,6 +15,7 @@ script_tests = [
     'seq',
     'stall',
     'threading',
+    'strip_profile'
 ]
 
 foreach script_test : script_tests

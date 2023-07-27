@@ -337,6 +337,11 @@ typedef struct _VipsForeignSave {
 	 */
 	gboolean strip;
 
+	/* When used with "strip" option,
+	 * preserves ICC profile from original image
+	 */
+	gboolean keep_profile;
+
 	/* If flattening out alpha, the background colour to use. Default to
 	 * 0 (black).
 	 */

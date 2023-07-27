@@ -536,7 +536,7 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 static int
 write_vips(Write *write, int qfac, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean trellis_quant, gboolean overshoot_deringing,
+	gboolean keep_profile, gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
 {
@@ -716,6 +716,10 @@ write_vips(Write *write, int qfac, const char *profile,
 	 */
 	jpeg_start_compress(&write->cinfo, TRUE);
 
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+
 	/* All the other APP chunks come next.
 	 */
 	if (!strip) {
@@ -729,18 +733,22 @@ write_vips(Write *write, int qfac, const char *profile,
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
 			return -1;
 
-		/* A profile supplied as an argument overrides an embedded
-		 * profile.
-		 */
-		if (profile) {
-			if (write_profile_file(write, profile))
-				return -1;
-		}
-		else {
+		if (!profile) {
 			if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) &&
 				write_profile_meta(write))
 				return -1;
 		}
+	}
+
+	if (keep_profile) {
+		if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) &&
+			write_profile_meta(write))
+			return -1;
+	}
+
+	if (profile) {
+		if (write_profile_file(write, profile))
+			return -1;
 	}
 
 	/* Write data. Note that the write function grabs the longjmp()!
@@ -848,7 +856,7 @@ int
 vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean trellis_quant,
+	gboolean strip, gboolean keep_profile, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -876,7 +884,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips(write,
-			Q, profile, optimize_coding, progressive, strip,
+			Q, profile, optimize_coding, progressive, strip, keep_profile,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);
