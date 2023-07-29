@@ -163,10 +163,10 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define VIPS_DEBUG
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -2121,13 +2121,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 	VipsRect real_pixels;
 	char *p;
 
-	// direct mode will only work in a few cases
-	// - can't set suffix (we only support vanilla jpg)
-	// - no code for skip_blanks yet
-	// - no google tile padding yet
-	if (!vips_object_argument_isset(object, "suffix") &&
-		dz->layout != VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		!vips_object_argument_isset(object, "skip_blanks")) {
+	// direct mode won't work if the suffix has been set
+	if (!vips_object_argument_isset(object, "suffix")) {
 		printf("vips_foreign_save_dz_build: enabling direct mode\n");
 		dz->direct = TRUE;
 	}
@@ -2232,44 +2227,40 @@ vips_foreign_save_dz_build(VipsObject *object)
 			return -1;
 	}
 
-	/* The real pixels we have from our input. This is about to get
-	 * expanded with background.
+	/* In google mode, we expand the image so we have complete tiles in every
+	 * level. We shrink to fit in one tile, then expand those dimensions out
+	 * again.
 	 */
-	real_pixels.left = 0;
-	real_pixels.top = 0;
-	real_pixels.width = save->ready->Xsize;
-	real_pixels.height = save->ready->Ysize;
-
-	/* FIXME
-
-	rework this
-	do we need real_pixels left and top? can't they always be 0?
-
-	 */
-
-	/* For centred images, imagine shrinking so that the image fits in a
-	 * single tile, centering in that tile, then expanding back again.
-	 */
-	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		dz->centre) {
+	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
+		VipsRect image;
 		VipsImage *z;
 		Layer *layer;
 		int n_layers;
 		int size;
 
+		/* The real pixels we have from our input. In google mode we expand the
+		 * image wth bg pixels to make complete tiles. With google + centre,
+		 * we add bg along the top and left as well.
+		 */
+		image.left = 0;
+		image.top = 0;
+		image.width = save->ready->Xsize;
+		image.height = save->ready->Ysize;
+
 		if (!(layer = pyramid_build(dz, NULL,
-				  save->ready->Xsize, save->ready->Ysize,
-				  &real_pixels)))
+				  save->ready->Xsize, save->ready->Ysize, &image)))
 			return -1;
 		n_layers = layer->n;
+
 		/* This would cause interesting problems.
 		 */
 		g_assert(n_layers < 30);
 		layer_free(layer);
 		size = dz->tile_size * (1 << n_layers);
 
-		real_pixels.left = (size - save->ready->Xsize) / 2;
-		real_pixels.top = (size - save->ready->Ysize) / 2;
+			real_pixels.left = (size - save->ready->Xsize) / 2;
+			real_pixels.top = (size - save->ready->Ysize) / 2;
+		}
 
 		if (vips_embed(save->ready, &z,
 				real_pixels.left, real_pixels.top,
