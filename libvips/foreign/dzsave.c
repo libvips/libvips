@@ -1762,9 +1762,9 @@ direct_strip_work(VipsThreadState *state, void *a)
 	tile.height = dz->tile_size;
 	if (!vips_rect_overlapsrect(&tile, &layer->real_pixels)) {
 #ifdef DEBUG_VERBOSE
-#endif /*DEBUG_VERBOSE*/
 		printf("direct_strip_work: skipping tile %d x %d\n",
 			tile_x, tile_y);
+#endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
@@ -1773,9 +1773,9 @@ direct_strip_work(VipsThreadState *state, void *a)
 		region_tile_equal(layer->strip, &state->pos,
 			dz->skip_blanks, dz->ink)) {
 #ifdef DEBUG_VERBOSE
-#endif /*DEBUG_VERBOSE*/
 		printf("direct_strip_work: skipping blank tile %d x %d\n",
 				tile_x, tile_y );
+#endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
@@ -1802,9 +1802,9 @@ direct_strip_work(VipsThreadState *state, void *a)
 static int
 strip_save(Layer *layer)
 {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("strip_save: n = %d, y = %d\n", layer->n, layer->y);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if (layer->dz->direct) {
 		DirectStrip strip = { layer, 0 };
@@ -1840,9 +1840,9 @@ strip_save(Layer *layer)
 		image_strip_free(&strip);
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("strip_save: success\n");
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	return 0;
 }
@@ -1915,10 +1915,10 @@ strip_shrink(Layer *layer)
 	VipsRect target;
 	VipsRect source;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("strip_shrink: %d lines in layer %d to layer %d\n",
 		from->valid.height, layer->n, below->n);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* We may have an extra column of pixels on the right or
 	 * bottom that need filling: generate them.
@@ -1996,10 +1996,10 @@ strip_arrived(Layer *layer)
 	VipsRect overlap;
 	VipsRect image_area;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("strip_arrived: layer %d, strip at %d, height %d\n",
 		layer->n, layer->y, layer->strip->valid.height);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if (strip_save(layer))
 		return -1;
@@ -2090,10 +2090,10 @@ pyramid_strip(VipsRegion *region, VipsRect *area, void *a)
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 	Layer *layer = dz->layer;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("pyramid_strip: strip at %d, height %d\n",
 		area->top, area->height);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	for (;;) {
 		VipsRect *to = &layer->strip->valid;
@@ -2274,6 +2274,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 			return -1;
 	}
 
+	/* The real (not background) pixels we have. save->ready can be a lot
+	 * bigger. left/top are moved if we centre.
+	 */
+	real_pixels.left = 0;
+	real_pixels.top = 0;
+	real_pixels.width = save->ready->Xsize;
+	real_pixels.height = save->ready->Ysize;
+
 	/* In google mode, we expand the image so we have complete tiles in every
 	 * level. We shrink to fit in one tile, then expand those dimensions out
 	 * again.
@@ -2284,10 +2292,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 		int n_layers;
 		int size;
 
-		real_pixels.left = 0;
-		real_pixels.top = 0;
-		real_pixels.width = save->ready->Xsize;
-		real_pixels.height = save->ready->Ysize;
 		if (!(layer = pyramid_build(dz, NULL,
 				  save->ready->Xsize, save->ready->Ysize, &real_pixels)))
 			return -1;
@@ -2381,10 +2385,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 	/* Build the skeleton of the image pyramid.
 	 */
-	real_pixels.left = 0;
-	real_pixels.top = 0;
-	real_pixels.width = save->ready->Xsize;
-	real_pixels.height = save->ready->Ysize;
 	if (!(dz->layer = pyramid_build(dz, NULL,
 			  save->ready->Xsize, save->ready->Ysize, &real_pixels)))
 		return -1;
