@@ -163,10 +163,10 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define VIPS_DEBUG
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1485,20 +1485,41 @@ tile_name(Layer *layer, int x, int y)
 	return out;
 }
 
-/* Test for tile nearly equal to background colour. In google maps mode, we
+/* Test for region nearly equal to background colour. In google maps mode, we
  * skip blank background tiles.
  *
  * Don't use exactly equality since compression artefacts or noise can upset
  * this.
  */
 static gboolean
-tile_equal(VipsImage *image, int threshold, VipsPel *restrict ink)
+region_tile_equal(VipsRegion *region, VipsRect *rect,
+		int threshold, VipsPel *restrict ink)
 {
-	const int bytes = VIPS_IMAGE_SIZEOF_PEL(image);
+	int bytes = VIPS_REGION_SIZEOF_LINE(region);
 
+	int x, y, b;
+
+	for (y = 0; y < rect->height; y++) {
+		VipsPel *restrict p = VIPS_REGION_ADDR(region,
+				rect->left, rect->top + y);
+
+		for (x = 0; x < rect->width; x++) {
+			for (b = 0; b < bytes; b++)
+				if (VIPS_ABS(p[b] - ink[b]) > threshold)
+					return FALSE;
+
+			p += bytes;
+		}
+	}
+
+	return TRUE;
+}
+
+static gboolean
+image_tile_equal(VipsImage *image, int threshold, VipsPel *restrict ink)
+{
 	VipsRect rect;
 	VipsRegion *region;
-	int x, y, b;
 
 	region = vips_region_new(image);
 
@@ -1513,18 +1534,9 @@ tile_equal(VipsImage *image, int threshold, VipsPel *restrict ink)
 		return FALSE;
 	}
 
-	for (y = 0; y < image->Ysize; y++) {
-		VipsPel *restrict p = VIPS_REGION_ADDR(region, 0, y);
-
-		for (x = 0; x < image->Xsize; x++) {
-			for (b = 0; b < bytes; b++)
-				if (VIPS_ABS(p[b] - ink[b]) > threshold) {
-					g_object_unref(region);
-					return FALSE;
-				}
-
-			p += bytes;
-		}
+	if (!region_tile_equal(region, &rect, threshold, ink)) {
+		g_object_unref(region);
+		return FALSE;
 	}
 
 	g_object_unref(region);
@@ -1587,7 +1599,10 @@ image_strip_work(VipsThreadState *state, void *a)
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
+	int tile_x = state->x / dz->tile_step;
+	int tile_y = state->y / dz->tile_step;
 
+	VipsRect tile;
 	VipsImage *x;
 	char *out;
 
@@ -1601,25 +1616,17 @@ image_strip_work(VipsThreadState *state, void *a)
 	if (vips_image_iskilled(save->in))
 		return -1;
 
-	/* If we are centering we may be outside the real pixels. Skip in
-	 * this case, and the viewer will display blank.png for us.
+	/* We may be outside the real pixels.
 	 */
-	if (dz->centre) {
-		VipsRect tile;
-
-		tile.left = state->x;
-		tile.top = state->y;
-		tile.width = dz->tile_size;
-		tile.height = dz->tile_size;
-		if (!vips_rect_overlapsrect(&tile, &layer->real_pixels)) {
+	tile.left = state->x;
+	tile.top = state->y;
+	tile.width = dz->tile_size;
+	tile.height = dz->tile_size;
+	if (!vips_rect_overlapsrect(&tile, &layer->real_pixels)) {
 #ifdef DEBUG_VERBOSE
-			printf("image_strip_work: skipping tile %d x %d\n",
-				state->x / dz->tile_size,
-				state->y / dz->tile_size);
+		printf("image_strip_work: skipping tile %d x %d\n", tile_x, tile_y);
 #endif /*DEBUG_VERBOSE*/
-
-			return 0;
-		}
+		return 0;
 	}
 
 	g_assert(vips_object_sanity(VIPS_OBJECT(strip->image)));
@@ -1632,29 +1639,28 @@ image_strip_work(VipsThreadState *state, void *a)
 		return -1;
 
 	if (dz->skip_blanks >= 0 &&
-		tile_equal(x, dz->skip_blanks, dz->ink)) {
+		image_tile_equal(x, dz->skip_blanks, dz->ink)) {
 		g_object_unref(x);
 
 #ifdef DEBUG_VERBOSE
 		printf("image_strip_work: skipping blank tile %d x %d\n",
-			state->x / dz->tile_size,
-			state->y / dz->tile_size);
+				tile_x, tile_y);
 #endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
 
-	out = tile_name(layer,
-		state->x / dz->tile_step, state->y / dz->tile_step);
-
 	/* g_build_filename() can return NULL when it exceeds the path limits.
 	 */
-	if (out == NULL) {
+	if (!(out = tile_name(layer, tile_x, tile_y))) {
 		g_object_unref(x);
 
 		return -1;
 	}
 
+	/* Don't do a threaded write -- this pipeline is too small to have useful
+	 * concurrency, and we are already writing tiles in parallel.
+	 */
 	vips_image_set_int(x, VIPS_META_CONCURRENCY, 1);
 
 	if (write_image(dz, x, out, dz->suffix)) {
@@ -1736,13 +1742,49 @@ direct_strip_work(VipsThreadState *state, void *a)
 	DirectStrip *strip = (DirectStrip *) a;
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+	int tile_x = state->x / dz->tile_step;
+	int tile_y = state->y / dz->tile_step;
+
+	VipsRect tile;
+
+	/* killed is checked by sink_disc, but that's only once per strip, and
+	 * they can be huge. Check per output tile as well.
+	 */
+	if (vips_image_iskilled(save->in))
+		return -1;
+
+	/* We may be outside the real pixels.
+	 */
+	tile.left = state->x;
+	tile.top = state->y;
+	tile.width = dz->tile_size;
+	tile.height = dz->tile_size;
+	if (!vips_rect_overlapsrect(&tile, &layer->real_pixels)) {
+#ifdef DEBUG_VERBOSE
+#endif /*DEBUG_VERBOSE*/
+		printf("direct_strip_work: skipping tile %d x %d\n",
+			tile_x, tile_y);
+
+		return 0;
+	}
+
+	if (dz->skip_blanks >= 0 &&
+		region_tile_equal(layer->strip, &state->pos,
+			dz->skip_blanks, dz->ink)) {
+#ifdef DEBUG_VERBOSE
+#endif /*DEBUG_VERBOSE*/
+		printf("direct_strip_work: skipping blank tile %d x %d\n",
+				tile_x, tile_y );
+
+		return 0;
+	}
 
 	/* g_build_filename() can return NULL when it exceeds the
 	 * path limits.
 	 */
 	char *name;
-	if (!(name = tile_name(layer,
-			  state->x / dz->tile_step, state->y / dz->tile_step)))
+	if (!(name = tile_name(layer, tile_x, tile_y)))
 		return -1;
 
 	if (write_image_direct(dz, layer->strip, &state->pos, name, dz->suffix)) {
@@ -1766,6 +1808,11 @@ strip_save(Layer *layer)
 
 	if (layer->dz->direct) {
 		DirectStrip strip = { layer, 0 };
+
+		/* We don't want threadpoolrun to minimise on completion -- we need to
+		 * keep the cache on the pipeline before us.
+		 */
+		vips_image_set_int(layer->image, "vips-no-minimise", 1);
 
 		if (vips_threadpool_run(layer->image,
 				vips_thread_state_new,
@@ -2232,61 +2279,56 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * again.
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
-		VipsRect image;
 		VipsImage *z;
 		Layer *layer;
 		int n_layers;
 		int size;
 
-		/* The real pixels we have from our input. In google mode we expand the
-		 * image wth bg pixels to make complete tiles. With google + centre,
-		 * we add bg along the top and left as well.
-		 */
-		image.left = 0;
-		image.top = 0;
-		image.width = save->ready->Xsize;
-		image.height = save->ready->Ysize;
-
+		real_pixels.left = 0;
+		real_pixels.top = 0;
+		real_pixels.width = save->ready->Xsize;
+		real_pixels.height = save->ready->Ysize;
 		if (!(layer = pyramid_build(dz, NULL,
-				  save->ready->Xsize, save->ready->Ysize, &image)))
+				  save->ready->Xsize, save->ready->Ysize, &real_pixels)))
 			return -1;
 		n_layers = layer->n;
 
 		/* This would cause interesting problems.
 		 */
 		g_assert(n_layers < 30);
+
 		layer_free(layer);
 		size = dz->tile_size * (1 << n_layers);
+
+#ifdef DEBUG
+		printf("vips_foreign_save_dz_build: "
+			"google mode outputs a %d x %d pixel image\n", size, size);
+#endif /*DEBUG*/
+
+		if (dz->centre) {
+#ifdef DEBUG
+			printf("vips_foreign_save_dz_build: centring\n");
+#endif /*DEBUG*/
 
 			real_pixels.left = (size - save->ready->Xsize) / 2;
 			real_pixels.top = (size - save->ready->Ysize) / 2;
 		}
 
 		if (vips_embed(save->ready, &z,
-				real_pixels.left, real_pixels.top,
-				size, size,
+				real_pixels.left, real_pixels.top, size, size,
 				"background", save->background,
 				NULL))
 			return -1;
 
 		VIPS_UNREF(save->ready);
 		save->ready = z;
-
-#ifdef DEBUG
-		printf("centre: centring within a %d x %d image\n",
-			size, size);
-#endif /*DEBUG*/
 	}
 
 #ifdef DEBUG
-	printf("vips_foreign_save_dz_build: tile_size == %d\n",
-		dz->tile_size);
-	printf("vips_foreign_save_dz_build: overlap == %d\n",
-		dz->overlap);
-	printf("vips_foreign_save_dz_build: tile_margin == %d\n",
-		dz->tile_margin);
-	printf("vips_foreign_save_dz_build: tile_step == %d\n",
-		dz->tile_step);
+	printf("vips_foreign_save_dz_build: tile_size == %d\n", dz->tile_size);
+	printf("vips_foreign_save_dz_build: overlap == %d\n", dz->overlap);
+	printf("vips_foreign_save_dz_build: tile_margin == %d\n", dz->tile_margin);
+	printf("vips_foreign_save_dz_build: tile_step == %d\n", dz->tile_step);
 #endif /*DEBUG*/
 
 	/* Init basename and dirname from the associated filesystem names, if
@@ -2339,6 +2381,10 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 	/* Build the skeleton of the image pyramid.
 	 */
+	real_pixels.left = 0;
+	real_pixels.top = 0;
+	real_pixels.width = save->ready->Xsize;
+	real_pixels.height = save->ready->Ysize;
 	if (!(dz->layer = pyramid_build(dz, NULL,
 			  save->ready->Xsize, save->ready->Ysize, &real_pixels)))
 		return -1;
@@ -2378,28 +2424,22 @@ vips_foreign_save_dz_build(VipsObject *object)
 		/* Set format to zip.
 		 */
 		if (archive_write_set_format(dz->archive,
-				ARCHIVE_FORMAT_ZIP) != ARCHIVE_OK) {
-			archive_write_free(dz->archive);
+				ARCHIVE_FORMAT_ZIP) != ARCHIVE_OK)
 			return -1;
-		}
 
 		/* Remap compression=-1 to compression=6.
 		 */
 		if (dz->compression == -1)
 			dz->compression = 6; /* Z_DEFAULT_COMPRESSION */
 
-			/* Deflate compression requires libarchive >= v3.2.0.
-			 * https://github.com/libarchive/libarchive/pull/84
-			 */
-#if ARCHIVE_VERSION_NUMBER >= 3002000
-		/* Set deflate compression level.
+		/* Deflate compression requires libarchive >= v3.2.0.
+		 * https://github.com/libarchive/libarchive/pull/84
 		 */
+#if ARCHIVE_VERSION_NUMBER >= 3002000
 		char compression_string[2] = { '0' + dz->compression, 0 };
 		if (archive_write_set_format_option(dz->archive, "zip",
-				"compression-level", compression_string) != ARCHIVE_OK) {
-			archive_write_free(dz->archive);
+				"compression-level", compression_string) != ARCHIVE_OK)
 			return -1;
-		}
 #else
 		if (dz->compression > 0)
 			g_warning(
@@ -2409,18 +2449,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 		/* Do not pad last block.
 		 */
-		if (archive_write_set_bytes_in_last_block(dz->archive, 1)) {
-			archive_write_free(dz->archive);
+		if (archive_write_set_bytes_in_last_block(dz->archive, 1))
 			return -1;
-		}
 
 		/* Register target callback functions.
 		 */
 		if (archive_write_open(dz->archive, dz->target, NULL,
-				zip_write_target_cb, zip_close_target_cb) != ARCHIVE_OK) {
-			archive_write_free(dz->archive);
+				zip_write_target_cb, zip_close_target_cb) != ARCHIVE_OK)
 			return -1;
-		}
 	}
 
 	if (vips_sink_disc(save->ready, pyramid_strip, dz))
