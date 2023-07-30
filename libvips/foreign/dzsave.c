@@ -582,7 +582,8 @@ vips_foreign_save_dz_dispose(GObject *gobject)
 /* Build a pyramid.
  *
  * width/height is the size of this level, real_* the subsection of the level
- * which is real pixels (as opposed to background).
+ * which is real pixels (as opposed to background). left/top of real_pixels
+ * can be >0 if we are centring.
  */
 static Level *
 pyramid_build(VipsForeignSaveDz *dz, Level *above,
@@ -601,14 +602,6 @@ pyramid_build(VipsForeignSaveDz *dz, Level *above,
 	 */
 	level->tiles_across = VIPS_ROUND_UP(width, dz->tile_step) / dz->tile_step;
 	level->tiles_down = VIPS_ROUND_UP(height, dz->tile_step) / dz->tile_step;
-
-	/* In google mode, we always write full tiles, so we must pad along
-	 * the bottom and right.
-	 */
-	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
-		width = (level->tiles_across - 1) * dz->tile_step + dz->tile_size;
-		height = (level->tiles_down - 1) * dz->tile_step + dz->tile_size;
-	}
 
 	level->width = width;
 	level->height = height;
@@ -699,8 +692,8 @@ pyramid_build(VipsForeignSaveDz *dz, Level *above,
 		 */
 		VipsRect half;
 
-		half.left = 0;
-		half.top = 0;
+		half.left = (real_pixels->left + 1) / 2;
+		half.top = (real_pixels->top + 1) / 2;
 		half.width = (real_pixels->width + 1) / 2;
 		half.height = (real_pixels->height + 1) / 2;
 		if (!(level->below = pyramid_build(dz, level,
@@ -1762,9 +1755,9 @@ direct_strip_work(VipsThreadState *state, void *a)
 	tile.height = dz->tile_size;
 	if (!vips_rect_overlapsrect(&tile, &level->real_pixels)) {
 #ifdef DEBUG_VERBOSE
-#endif /*DEBUG_VERBOSE*/
 		printf("direct_strip_work: level %d, skipping tile %d x %d\n",
 			level->n, tile_x, tile_y);
+#endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
