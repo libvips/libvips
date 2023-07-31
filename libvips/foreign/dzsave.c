@@ -685,8 +685,8 @@ pyramid_build(VipsForeignSaveDz *dz, Level *above,
 		limit = 1;
 	}
 
-	if (real_pixels->width > limit ||
-		real_pixels->height > limit) {
+	if (width > limit ||
+		height > limit) {
 		/* Round up, so eg. a 5 pixel wide image becomes 3 a level
 		 * down.
 		 */
