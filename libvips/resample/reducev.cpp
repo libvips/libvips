@@ -125,18 +125,14 @@ typedef struct _VipsReducev {
 	 */
 	double voffset;
 
-	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others). We go to
+	/* Precalculated interpolation matrices. short (used for pel
+	 * sizes up to int), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
 	 */
-	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
-	/* And another set for highway.
-	 */
-#ifdef HAVE_HWY
-	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
-#elif defined(HAVE_ORC)
+#ifdef HAVE_ORC
 	/* And another set for orc: we want 2.6 precision.
 	 */
 	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
@@ -145,7 +141,7 @@ typedef struct _VipsReducev {
 	 */
 	int n_pass;
 	Pass pass[MAX_PASS];
-#endif /*HAVE_HWY*/
+#endif /*HAVE_ORC*/
 
 	/* Deprecated.
 	 */
@@ -409,7 +405,7 @@ vips_reducev_compile(VipsReducev *reducev)
 template <typename T, int max_value>
 static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int *restrict cy)
+	const int ne, const int lskip, const short *restrict cy)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
@@ -428,7 +424,7 @@ static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
 template <typename T, int min_value, int max_value>
 static void inline reducev_signed_int_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int *restrict cy)
+	const int ne, const int lskip, const short *restrict cy)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
@@ -466,7 +462,7 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 template <typename T, unsigned int max_value>
 static void inline reducev_unsigned_int32_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int *restrict cy)
+	const int ne, const int lskip, const short *restrict cy)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
@@ -485,7 +481,7 @@ static void inline reducev_unsigned_int32_tab(VipsReducev *reducev,
 template <typename T, int min_value, int max_value>
 static void inline reducev_signed_int32_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int *restrict cy)
+	const int ne, const int lskip, const short *restrict cy)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
@@ -568,39 +564,39 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
-		const int *cyi = reducev->matrixi[ty];
+		const short *cys = reducev->matrixs[ty];
 		const double *cyf = reducev->matrixf[ty];
 		const int lskip = VIPS_REGION_LSKIP(ir);
 
 		switch (in->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
 			reducev_unsigned_int_tab<unsigned char,
-				UCHAR_MAX>(reducev, q, p, ne, lskip, cyi);
+				UCHAR_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_CHAR:
 			reducev_signed_int_tab<signed char,
-				SCHAR_MIN, SCHAR_MAX>(reducev, q, p, ne, lskip, cyi);
+				SCHAR_MIN, SCHAR_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_USHORT:
 			reducev_unsigned_int_tab<unsigned short,
-				USHRT_MAX>(reducev, q, p, ne, lskip, cyi);
+				USHRT_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_SHORT:
 			reducev_signed_int_tab<signed short,
-				SHRT_MIN, SHRT_MAX>(reducev, q, p, ne, lskip, cyi);
+				SHRT_MIN, SHRT_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_UINT:
 			reducev_unsigned_int32_tab<unsigned int,
-				UINT_MAX>(reducev, q, p, ne, lskip, cyi);
+				UINT_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_INT:
 			reducev_signed_int32_tab<signed int,
-				INT_MIN, INT_MAX>(reducev, q, p, ne, lskip, cyi);
+				INT_MIN, INT_MAX>(reducev, q, p, ne, lskip, cys);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -954,36 +950,23 @@ vips_reducev_build(VipsObject *object)
 	for (int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++) {
 		reducev->matrixf[y] =
 			VIPS_ARRAY(object, reducev->n_point, double);
-		reducev->matrixi[y] =
-			VIPS_ARRAY(object, reducev->n_point, int);
-#ifdef HAVE_HWY
 		reducev->matrixs[y] =
 			VIPS_ARRAY(object, reducev->n_point, short);
-#endif /*HAVE_HWY*/
 		if (!reducev->matrixf[y] ||
-			!reducev->matrixi[y]
-#ifdef HAVE_HWY
-			|| !reducev->matrixs[y]
-#endif /*HAVE_HWY*/
-		)
+			!reducev->matrixs[y])
 			return -1;
 
 		vips_reduce_make_mask(reducev->matrixf[y],
 			reducev->kernel, reducev->vshrink,
 			(float) y / VIPS_TRANSFORM_SCALE);
 
-		for (int i = 0; i < reducev->n_point; i++) {
-			reducev->matrixi[y][i] = reducev->matrixf[y][i] *
-				VIPS_INTERPOLATE_SCALE;
-#ifdef HAVE_HWY
-			reducev->matrixs[y][i] = (short) reducev->matrixi[y][i];
-#endif /*HAVE_HWY*/
-		}
-
+		for (int i = 0; i < reducev->n_point; i++)
+			reducev->matrixs[y][i] = (short) (reducev->matrixf[y][i] *
+				VIPS_INTERPOLATE_SCALE);
 #ifdef DEBUG
 		printf("vips_reducev_build: mask %d\n    ", y);
 		for (int i = 0; i < reducev->n_point; i++)
-			printf("%d ", reducev->matrixi[y][i]);
+			printf("%d ", reducev->matrixs[y][i]);
 		printf("\n");
 #endif /*DEBUG*/
 	}
