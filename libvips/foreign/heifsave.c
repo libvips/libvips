@@ -215,6 +215,57 @@ vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
+#ifdef HAVE_HEIF_COLOR_PROFILE
+static int
+vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif, const void *profile, size_t length)
+{
+#ifdef DEBUG
+		printf("attaching profile ..\n");
+#endif /*DEBUG*/
+
+	struct heif_error error;
+	error = heif_image_set_raw_color_profile(heif->img,
+			"rICC", profile, length);
+
+	if (error.code) {
+		vips__heif_error(&error);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *profile)
+{
+	VipsBlob *blob;
+	size_t length;
+
+	if (vips_profile_load(profile, &blob, NULL))
+		return -1;
+
+	const void *data = vips_blob_get(blob, &length);
+
+	if (vips_foreign_save_heif_add_icc(heif, data, length))
+		return -1;
+
+	return 0;
+}
+
+static int
+vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
+{
+  	const void *data;
+	size_t length;
+
+    if (vips_image_get_blob(heif->image, VIPS_META_ICC_NAME, &data, &length) &&
+		vips_foreign_save_heif_add_icc(heif, data, length))
+		return -1;
+
+	return 0;
+}
+#endif /*HAVE_HEIF_COLOR_PROFILE*/
+
 static int
 vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 {
@@ -224,26 +275,14 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	struct heif_encoding_options *options;
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
-	if (!save->strip &&
-		vips_image_get_typeof(heif->image, VIPS_META_ICC_NAME)) {
-		const void *data;
-		size_t length;
-
-#ifdef DEBUG
-		printf("attaching profile ..\n");
-#endif /*DEBUG*/
-
-		if (vips_image_get_blob(heif->image,
-				VIPS_META_ICC_NAME, &data, &length))
-			return -1;
-
-		/* FIXME .. also see heif_image_set_nclx_color_profile()
-		 */
-		error = heif_image_set_raw_color_profile(heif->img,
-			"rICC", data, length);
-		if (error.code) {
-			vips__heif_error(&error);
-			return -1;
+	if (save->keep_profile) {
+		if (save->profile) {
+			if (vips_foreign_save_heif_add_custom_icc(heif, save->profile))
+				return -1;
+		}
+		else if (vips_image_get_typeof(heif->image, VIPS_META_ICC_NAME)) {
+			if (vips_foreign_save_heif_add_orig_icc(heif))
+				return -1;
 		}
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
