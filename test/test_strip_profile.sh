@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 #  Prepare:
-#  0. Check test-suite/images/sample.jpg includes exif and icc_profile
-#  1. Read image with exif and icc profile
+#  0. Check test-suite/images/sample.jpg includes xmp and icc_profile
+#  1. Read image with xmp and icc profile
 #  2. Save it with [] to no_strip.{jpg|png|webp}
 #  3. Save it with [strip] to strip.{jpg|png|webp}
 #  4. Save it with [strip,keep_profile] to strip_keep.{jpg|png|webp}
@@ -10,10 +10,10 @@
 #  6. Save it with [profile=profile.icc] to another_profile.{jpg|png|webp}
 #  
 #  Tests:
-#  Assert "no_strip.jpg" includes exif and original ICC
-#  Assert "strip.jpg" not includes icc-profile and exif
-#  Assert "strip_keep" not includes exif and includes original ICC
-#  Assert "strip-profile.jpg" with icc-profile and without exif
+#  Assert "no_strip.jpg" includes xmp and original ICC
+#  Assert "strip.jpg" not includes icc-profile and xmp
+#  Assert "strip_keep" not includes xmp and includes original ICC
+#  Assert "strip-profile.jpg" with icc-profile and without xmp
 #  Assert "another-profile.jpg" includes other icc_profile than original image (by size)
 #
 source ./variables.sh
@@ -26,7 +26,7 @@ strip_keep="${tmp}/strip_keep_profile"
 strip_profile="${tmp}/strip_profile"
 another_profile="${tmp}/another_profile"
 
-formats=("jpg" "webp" "png")
+formats=(jpg webp png tif)
 
 iccp_bytes() {
   $vipsheader -a "$1" \
@@ -40,10 +40,10 @@ same_icc() {
   echo $?
 }
 
-# returns 0 if exif-data is missing
-ch_exif() {
+# returns 0 if xmp-data is missing
+ch_xmp() {
   $vipsheader -a "$1" \
-  | grep -c "^exif-data"
+  | grep -c "^xmp-data"
 } 
 
 # returns 0 if icc-profile-data is missing
@@ -52,8 +52,8 @@ ch_iccp() {
   | grep -c "^icc-profile-data" 
 }
 
-# Check original image contains exif & icc
-[ $(ch_exif "${image}") -eq 0 ] && exit 1
+# Check original image contains xmp & icc
+[ $(ch_xmp "${image}") -eq 0 ] && exit 1
 [ $(ch_iccp "${image}") -eq 0 ] && exit 2
 
 echo "${tmp}"
@@ -70,27 +70,27 @@ for f in ${formats[@]}; do
   #echo "----- another"
   $vips copy "${image}" "${another_profile}.${f}[profile=${srgb}]"
 
-  echo -en "\nCheck no_strip.${f} includes exif:"
-    [ $(ch_exif "${no_strip}.${f}") -eq 0 ] && printf "FAIL\n" $f && exit 1
+  echo -en "\nCheck no_strip.${f} includes xmp:"
+    [ $(ch_xmp "${no_strip}.${f}") -eq 0 ] && printf "FAIL\n" $f && exit 1
   echo -en "\nCheck no_strip.${f} includes ICC:"
     [ $(ch_iccp "${no_strip}.${f}") -eq 0 ] && printf "FAIL\n" && exit 2
   echo -en "\nCheck no_strip.${f} includes original ICC:"
     [ $(same_icc "${no_strip}.${f}" "${image}") -ne 0 ] && printf "FAIL\n" && exit 3
 
-  echo -en "\nCheck strip.${f} not includes exif"
-    [ $(ch_exif "${strip}.${f}") -ne 0 ] && printf "FAIL\n" && exit 3
+  echo -en "\nCheck strip.${f} not includes xmp"
+    [ $(ch_xmp "${strip}.${f}") -ne 0 ] && printf "FAIL\n" && exit 3
   echo -en "\nCheck strip.${f} not includes ICC"
     [ $(ch_iccp "${strip}.${f}") -ne 0 ] && printf "FAIL\n" && exit 4
 
-  echo -en "\nCheck strip_keep_profile.${f} not includes exif"
-    [ $(ch_exif "${strip_keep}.${f}") -ne 0 ] && printf "FAIL\n" && exit 5
+  echo -en "\nCheck strip_keep_profile.${f} not includes xmp"
+    [ $(ch_xmp "${strip_keep}.${f}") -ne 0 ] && printf "FAIL\n" && exit 5
   echo -en "\nCheck strip_keep_profile.${f} includes ICC"
     [ $(ch_iccp "${strip_keep}.${f}") -eq 0 ] && printf "FAIL\n" && exit 6
   echo -en "\nCheck strip_keep_profile.${f} includes original ICC:"
     [ $(same_icc "${strip_keep}.${f}" "${image}") -ne 0 ] && printf "FAIL\n" && exit 3
 
-  echo -en "\nCheck strip_profile.${f} not includes exif"
-    [ $(ch_exif "${strip_profile}.${f}") -ne 0 ] && printf "FAIL\n" && exit 7
+  echo -en "\nCheck strip_profile.${f} not includes xmp"
+    [ $(ch_xmp "${strip_profile}.${f}") -ne 0 ] && printf "FAIL\n" && exit 7
   echo -en "\nCheck strip_profile.${f} includes ICC"
     [ $(ch_iccp "${strip_profile}.${f}") -eq 0 ] && printf "FAIL\n" && exit 8
 
