@@ -1019,7 +1019,7 @@ write_png_comment(VipsImage *image,
 	return NULL;
 }
 
-int
+static int
 vips_png_add_icc(Write *write, const void *data, size_t length)
 {
 	if (setjmp(png_jmpbuf(write->pPng))) {
@@ -1032,13 +1032,10 @@ vips_png_add_icc(Write *write, const void *data, size_t length)
 			(void *) data, length);
 	}
 
-	// And restore the setjmp.
-	if (setjmp(png_jmpbuf(write->pPng)))
-		return -1;
 	return 0;
 }
 
-int
+static int
 vips_png_add_custom_icc(Write *write, const char *profile)
 {
 	VipsBlob *blob;
@@ -1054,7 +1051,7 @@ vips_png_add_custom_icc(Write *write, const char *profile)
 	return 0;
 }
 
-int
+static int
 vips_png_add_original_icc(Write *write)
 {
 	const void *data;
@@ -1169,7 +1166,7 @@ write_vips(Write *write,
 		PNG_RESOLUTION_METER);
 
 	/* If save called w\o "strip" option, we need to copy all meta to new
-	 *  png image
+	 * png image
 	 */
 	if (!strip) {
 		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
@@ -1213,34 +1210,25 @@ write_vips(Write *write,
 				length, (png_bytep) data);
 		}
 #endif /*PNG_eXIf_SUPPORTED*/
-		if (!profile) {
-			if (vips_png_add_original_icc(write))
-				return -1;
-		}
 
 		if (vips_image_map(in, write_png_comment, write))
 			return -1;
 	}
 
-	/* If save is called with "keep_profile" and
-	 * "strip" options, we need to copy ICC profile
-	 * from original image to new png
-	 */
-	if (keep_profile && strip) {
-		if (vips_png_add_original_icc(write))
-			return -1;
+	if (keep_profile) {
+		if (profile) {
+			if (vips_png_add_custom_icc(write, profile))
+				return -1;
+		}
+		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+			if (vips_png_add_original_icc(write))
+				return -1;
+		}
 	}
 
-	/* If save is called with "profile" option,
-	 * we need to add/overwrite ICC profile
-	 * in png image (if called with both "profile"
-	 * and keep_profile options, profile may be
-	 * overwritten two times)
-	 */
-	if (profile) {
-		if (vips_png_add_custom_icc(write, profile))
-			return -1;
-	}
+	// the profile writers grab the setjmp, restore it
+	if (setjmp(png_jmpbuf(write->pPng)))
+		return -1;
 
 #ifdef HAVE_QUANTIZATION
 	if (palette) {

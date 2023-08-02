@@ -733,22 +733,17 @@ write_vips(Write *write, int qfac, const char *profile,
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
 			return -1;
 
-		if (!profile) {
-			if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) &&
-				write_profile_meta(write))
-				return -1;
-		}
 	}
 
 	if (keep_profile) {
-		if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) &&
-			write_profile_meta(write))
-			return -1;
-	}
-
-	if (profile) {
-		if (write_profile_file(write, profile))
-			return -1;
+		if (profile) {
+			if (write_profile_file(write, profile))
+				return -1;
+		}
+		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+			if (write_profile_meta(write))
+				return -1;
+		}
 	}
 
 	/* Write data. Note that the write function grabs the longjmp()!

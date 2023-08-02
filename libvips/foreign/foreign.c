@@ -1733,6 +1733,14 @@ vips_foreign_save_build(VipsObject *object)
 		save->ready = ready;
 	}
 
+	/* If we're not stripping, or a user profile has been set, keep_profile
+	 * defaults to true.
+	 */
+	if (!save->strip ||
+			  vips_object_argument_isset(object, "profile")) {
+		save->keep_profile = TRUE;
+	}
+
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
 		return -1;
 
@@ -1822,11 +1830,18 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		0, VIPS_MAX_COORD, 0);
 
 	VIPS_ARG_BOOL(class, "keep_profile", 103,
-		_("Keep_Profile"),
-		_("When used with \"strip\" option, preserves ICC profile from original image. Do not call with \"profile\" option"),
+		_("Save profile"),
+		_("When used with \"strip\" option, don't strip the ICC profile"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, keep_profile),
 		FALSE);
+
+	VIPS_ARG_STRING(class, "profile", 11,
+		_("Profile"),
+		_("Filename of ICC profile to embed"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSave, profile),
+		NULL);
 }
 
 static void

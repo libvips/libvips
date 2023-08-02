@@ -1487,6 +1487,7 @@ vips__exif_update(VipsImage *image)
 		(VipsCallbackFn) vips_area_free_cb, data, length);
 
 	exif_data_free(ed);
+
 	return 0;
 }
 

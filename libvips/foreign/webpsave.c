@@ -156,10 +156,6 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	int kmax;
 
-	/* Profile to embed.
-	 */
-	const char *profile;
-
 	WebPConfig config;
 
 	/* Output is written here. We can only support memory write, since we
@@ -429,23 +425,19 @@ vips_webp_set_chunk(VipsForeignSaveWebp *write,
 static int
 vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 {
-	int i;
-
-	for (i = 0; i < vips__n_webp_names; i++) {
+	for (int i = 0; i < vips__n_webp_names; i++) {
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
 
-		if (!strcmp(vips_name, VIPS_META_ICC_NAME))
+		if (strcmp(vips_name, VIPS_META_ICC_NAME))
 			continue;
 
 		if (vips_image_get_typeof(write->image, vips_name)) {
 			const void *data;
 			size_t length;
 
-			if (vips_image_get_blob(write->image,
-					vips_name, &data, &length) ||
-				vips_webp_set_chunk(write,
-					webp_name, data, length))
+			if (vips_image_get_blob(write->image, vips_name, &data, &length) ||
+				vips_webp_set_chunk(write, webp_name, data, length))
 				return -1;
 		}
 	}
@@ -456,18 +448,10 @@ vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 static const char *
 vips_webp_get_webp_name(const char *vips_name)
 {
-	int position = 0;
-	while (position < vips__n_webp_names) {
-		gboolean needed = strcmp(vips_name, vips__webp_names[position].vips) == 0;
-		const char *webp_name = vips__webp_names[position].webp;
+	for (int i = 0; i < vips__n_webp_names; i++) 
+		if (strcmp(vips_name, vips__webp_names[i].vips) == 0) 
+			return vips__webp_names[i].webp;
 
-		if (needed) {
-			return webp_name;
-			break;
-		}
-
-		position++;
-	}
 	return "";
 }
 
@@ -483,9 +467,8 @@ vips_webp_add_icc(VipsForeignSaveWebp *webp, const void *profile, size_t length)
 }
 
 static int
-vips_webp_add_custom_icc(VipsForeignSaveWebp *webp)
+vips_webp_add_custom_icc(VipsForeignSaveWebp *webp, const char *profile)
 {
-	const char *profile = webp->profile;
 	VipsBlob *blob;
 	size_t length;
 
@@ -506,8 +489,7 @@ vips_webp_add_original_icc(VipsForeignSaveWebp *webp)
 	const void *data;
 	size_t length;
 
-	if (vips_image_get_blob(webp->image, VIPS_META_ICC_NAME,
-			&data, &length))
+	if (vips_image_get_blob(webp->image, VIPS_META_ICC_NAME, &data, &length))
 		return -1;
 
 	vips_webp_add_icc(webp, data, length);
@@ -539,9 +521,9 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 
 		vips_webp_set_count(webp, loop);
 	}
-	/* DEPRECATED "gif-loop"
-	 */
 	else if (vips_image_get_typeof(webp->image, "gif-loop")) {
+		/* DEPRECATED "gif-loop"
+		 */
 		int gif_loop;
 
 		if (vips_image_get_int(webp->image, "gif-loop", &gif_loop))
@@ -550,40 +532,21 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
 	}
 
-	/* When save is called w/o "strip" option,
-	 * we need to update exif data with actual
-	 * values and copy all meta, but skip ICC
-	 * if we have "profile" option
-	 */
 	if (!save->strip) {
 		if (vips__exif_update(webp->image) ||
 			vips_webp_add_original_meta(webp))
 			return -1;
+	}
 
-		if (!webp->profile) {
+	if (save->keep_profile) {
+		if (save->profile) {
+			if (vips_webp_add_custom_icc(webp, save->profile))
+				return -1;
+		}
+		else if (vips_image_get_typeof(webp->image, VIPS_META_ICC_NAME)) {
 			if (vips_webp_add_original_icc(webp))
 				return -1;
 		}
-	}
-
-	/* If save is called with "keep_profile" and
-	 * "strip" options, we need to copy ICC profile
-	 * from original image to new webp
-	 */
-	if (save->keep_profile && save->strip) {
-		if (vips_webp_add_original_icc(webp))
-			return -1;
-	}
-
-	/* If save is called with "profile" option,
-	 * we need to add/overwrite ICC profile
-	 * in webp image (if called with both "profile"
-	 * and keep_profile options, profile may be
-	 * overwritten two times)
-	 */
-	if (webp->profile) {
-		if (vips_webp_add_custom_icc(webp))
-			return -1;
 	}
 
 	if (WebPMuxAssemble(webp->mux, &data) != WEBP_MUX_OK) {
@@ -924,13 +887,6 @@ vips_foreign_save_webp_class_init(VipsForeignSaveWebpClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveWebp, effort),
 		0, 6, 4);
-
-	VIPS_ARG_STRING(class, "profile", 20,
-		_("Profile"),
-		_("ICC profile to embed"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveWebp, profile),
-		NULL);
 
 	VIPS_ARG_INT(class, "reduction_effort", 21,
 		_("Reduction effort"),

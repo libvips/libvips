@@ -64,7 +64,6 @@ typedef struct _VipsForeignSavePng {
 
 	int compression;
 	gboolean interlace;
-	char *profile;
 	VipsForeignPngFilter filter;
 	gboolean palette;
 	int Q;
@@ -151,7 +150,7 @@ vips_foreign_save_png_build(VipsObject *object)
 		png->palette = FALSE;
 
 	if (vips__png_write_target(in, png->target,
-			png->compression, png->interlace, png->profile, png->filter,
+			png->compression, png->interlace, save->profile, png->filter,
 			save->strip, save->keep_profile, png->palette, png->Q, png->dither,
 			png->bitdepth, png->effort)) {
 		g_object_unref(in);
@@ -221,13 +220,6 @@ vips_foreign_save_png_class_init(VipsForeignSavePngClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSavePng, interlace),
 		FALSE);
-
-	VIPS_ARG_STRING(class, "profile", 11,
-		_("Profile"),
-		_("ICC profile to embed"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSavePng, profile),
-		NULL);
 
 	VIPS_ARG_FLAGS(class, "filter", 12,
 		_("Filter"),

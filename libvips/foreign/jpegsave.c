@@ -63,10 +63,6 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	int Q;
 
-	/* Profile to embed.
-	 */
-	char *profile;
-
 	/* Compute optimal Huffman coding tables.
 	 */
 	gboolean optimize_coding;
@@ -171,13 +167,6 @@ vips_foreign_save_jpeg_class_init(VipsForeignSaveJpegClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveJpeg, Q),
 		1, 100, 75);
 
-	VIPS_ARG_STRING(class, "profile", 11,
-		_("Profile"),
-		_("ICC profile to embed"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJpeg, profile),
-		NULL);
-
 	VIPS_ARG_BOOL(class, "optimize_coding", 12,
 		_("Optimize coding"),
 		_("Compute optimal Huffman coding tables"),
@@ -275,7 +264,7 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target->target,
-			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
+			jpeg->Q, save->profile, jpeg->optimize_coding,
 			jpeg->interlace, save->strip, save->keep_profile,
 			jpeg->trellis_quant, jpeg->overshoot_deringing,
 			jpeg->optimize_scans, jpeg->quant_table,
@@ -342,7 +331,7 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 	if (!(target = vips_target_new_to_file(file->filename)))
 		return -1;
 	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
+			jpeg->Q, save->profile, jpeg->optimize_coding,
 			jpeg->interlace, save->strip, save->keep_profile,
 			jpeg->trellis_quant, jpeg->overshoot_deringing,
 			jpeg->optimize_scans, jpeg->quant_table,
@@ -414,7 +403,7 @@ vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
+			jpeg->Q, save->profile, jpeg->optimize_coding,
 			jpeg->interlace, save->strip, save->keep_profile,
 			jpeg->trellis_quant, jpeg->overshoot_deringing,
 			jpeg->optimize_scans, jpeg->quant_table,
@@ -488,7 +477,7 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 		return -1;
 
 	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, jpeg->profile, jpeg->optimize_coding,
+			jpeg->Q, save->profile, jpeg->optimize_coding,
 			jpeg->interlace, save->strip, save->keep_profile,
 			jpeg->trellis_quant, jpeg->overshoot_deringing,
 			jpeg->optimize_scans, jpeg->quant_table,
