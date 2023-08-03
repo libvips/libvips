@@ -94,7 +94,6 @@ typedef struct _VipsForeignSaveTiff {
 	VipsForeignTiffCompression compression;
 	int Q;
 	VipsForeignTiffPredictor predictor;
-	char *profile;
 	gboolean tile;
 	int tile_width;
 	int tile_height;
@@ -145,7 +144,6 @@ static int
 vips_foreign_save_tiff_build(VipsObject *object)
 {
 	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_GET_CLASS(object);
-
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 
@@ -210,7 +208,8 @@ vips_foreign_save_tiff_build(VipsObject *object)
 
 	if (vips__tiff_write_target(save->ready, tiff->target,
 			tiff->compression, tiff->Q, tiff->predictor,
-			tiff->profile,
+			save->profile,
+			save->keep_profile,
 			tiff->tile, tiff->tile_width, tiff->tile_height,
 			tiff->pyramid,
 			tiff->bitdepth,
@@ -278,13 +277,6 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveTiff, predictor),
 		VIPS_TYPE_FOREIGN_TIFF_PREDICTOR,
 		VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL);
-
-	VIPS_ARG_STRING(class, "profile", 9,
-		_("Profile"),
-		_("ICC profile to embed"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveTiff, profile),
-		NULL);
 
 	VIPS_ARG_BOOL(class, "tile", 10,
 		_("Tile"),
