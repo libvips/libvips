@@ -258,8 +258,10 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
   	const void *data;
 	size_t length;
 
-    if (vips_image_get_blob(heif->image, VIPS_META_ICC_NAME, &data, &length) &&
-		vips_foreign_save_heif_add_icc(heif, data, length))
+	if (vips_image_get_blob(heif->image, VIPS_META_ICC_NAME, &data, &length))
+		return -1;
+
+	if (vips_foreign_save_heif_add_icc(heif, data, length))
 		return -1;
 
 	return 0;
