@@ -493,6 +493,7 @@ vips_webp_add_original_icc(VipsForeignSaveWebp *webp)
 		return -1;
 
 	vips_webp_add_icc(webp, data, length);
+	
 	return 0;
 }
 

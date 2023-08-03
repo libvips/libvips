@@ -1048,6 +1048,7 @@ vips_png_add_custom_icc(Write *write, const char *profile)
 
 	vips_png_add_icc(write, data, length);
 	vips_area_unref((VipsArea *) blob);
+
 	return 0;
 }
 
@@ -1062,6 +1063,7 @@ vips_png_add_original_icc(Write *write)
 		return -1;
 
 	vips_png_add_icc(write, data, length);
+	
 	return 0;
 }
 
