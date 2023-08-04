@@ -1159,8 +1159,6 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
- * * @strip: %gboolean, remove all metadata from image
- * * @profile: %gchararray, filename of ICC profile to attach
  *
  * Write an image to a file in WebP format.
  *
@@ -1194,15 +1192,8 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * For animated webp output, @mixed tries to improve the file size by mixing
  * both lossy and lossless encoding.
  *
- * Use @profile to give the name of a profile to be embedded in the file.
- * This does not affect the pixels which are written, just the way
- * they are tagged. See vips_profile_load() for details on profile naming.
- *
  * Use the metadata items `loop` and `delay` to set the number of
  * loops for the animation and the frame delays.
- *
- * The writer will attach ICC, EXIF and XMP metadata, unless @strip is set to
- * %TRUE.
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -1241,8 +1232,6 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
- * * @strip: %gboolean, remove all metadata from image
- * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save to a memory buffer.
  *
@@ -1300,8 +1289,6 @@ vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
- * * @strip: %gboolean, remove all metadata from image
- * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
  *
@@ -1341,8 +1328,6 @@ vips_webpsave_mime(VipsImage *in, ...)
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
- * * @strip: %gboolean, remove all metadata from image
- * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save to a target.
  *

@@ -304,7 +304,7 @@ struct _Layer {
 	TIFF *tif;		   /* TIFF file we write this layer to */
 
 	/* The image we build. We only keep a few scanlines of this around in
-	 * @strip.
+	 * strip.
 	 */
 	VipsImage *image;
 

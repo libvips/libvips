@@ -528,10 +528,8 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
- * * @strip: %gboolean, remove all metadata from image
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
@@ -543,23 +541,12 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * Use @profile to give the name of a profile to be embedded in the JPEG.
- * This does not affect the pixels which are written, just the way
- * they are tagged. See vips_profile_load() for details on profile naming.
- *
- * If no profile is specified and the VIPS header
- * contains an ICC profile named #VIPS_META_ICC_NAME, the
- * profile from the VIPS header will be attached.
- *
  * If @optimize_coding is set, the Huffman tables are optimized. This is
- * sllightly slower and produces slightly smaller files.
+ * slightly slower and produces slightly smaller files.
  *
  * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
  * in jpg parlance). These files may be better for display over a slow network
  * connection, but need much more memory to encode and decode.
- *
- * If @strip is set, no EXIF data, IPTC data, ICC profile or XMP metadata is
- * written into the output file.
  *
  * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
@@ -651,10 +638,8 @@ vips_jpegsave(VipsImage *in, const char *filename, ...)
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
- * * @strip: %gboolean, remove all metadata from image
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
@@ -691,10 +676,8 @@ vips_jpegsave_target(VipsImage *in, VipsTarget *target, ...)
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
- * * @strip: %gboolean, remove all metadata from image
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
@@ -748,10 +731,8 @@ vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
- * * @strip: %gboolean, remove all metadata from image
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
