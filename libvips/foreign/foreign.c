@@ -1107,7 +1107,8 @@ vips_foreign_load_build(VipsObject *object)
 
 	/* The deprecated "fail" field sets fail_on warning.
 	 */
-	if (!vips_object_argument_isset(object, "fail_on"))
+	if (vips_object_argument_isset(object, "fail") &&
+		!vips_object_argument_isset(object, "fail_on"))
 		load->fail_on = load->fail
 			? VIPS_FAIL_ON_WARNING
 			: VIPS_FAIL_ON_NONE;
@@ -1773,15 +1774,15 @@ vips_foreign_save_build(VipsObject *object)
 
 	/* The deprecated "strip" field sets "preserve" to none.
 	 */
-	if (!vips_object_argument_isset(object, "preserve"))
+	if (vips_object_argument_isset(object, "strip") &&
+		!vips_object_argument_isset(object, "preserve"))
 		save->preserve = save->strip
 			? VIPS_FOREIGN_PRESERVE_NONE
 			: VIPS_FOREIGN_PRESERVE_ALL;
 
-	/* Preserve ICC profile by default when a user profile has been set,
-	 * and we're not stripping.
+	/* Preserve ICC profile by default when a user profile has been set.
 	 */
-	if (save->preserve &&
+	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) == 0 &&
 		vips_object_argument_isset(object, "profile"))
 		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
 
@@ -1858,7 +1859,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, preserve),
 		VIPS_TYPE_FOREIGN_PRESERVE,
-		VIPS_FOREIGN_PRESERVE_ALL); // FIXME(kleisauke): Why we can't set default flags?
+		VIPS_FOREIGN_PRESERVE_ALL);
 
 	VIPS_ARG_BOXED(class, "background", 101,
 		_("Background"),
@@ -1892,6 +1893,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 static void
 vips_foreign_save_init(VipsForeignSave *save)
 {
+	save->preserve = VIPS_FOREIGN_PRESERVE_ALL;
 	save->background = vips_array_double_newv(1, 0.0);
 }
 
