@@ -236,6 +236,7 @@ optional arguments:
 			min: 0, max: 8
    strip        - Strip all metadata from image, input gboolean
 			default: false
+   keep_profile - When using "strip" option, preserve original ICC profile
    background   - Background value, input VipsArrayDouble
 ```
 
