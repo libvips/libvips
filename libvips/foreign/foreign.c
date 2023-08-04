@@ -83,13 +83,17 @@
  *
  * This set of operations load and save images in a variety of formats.
  *
- * The operations share a base class that offers a simple way to search for a
- * subclass of #VipsForeign which can load a certain file (see
- * vips_foreign_find_load()) or buffer (see vips_foreign_find_load_buffer()),
- * or which could be used to save an image to a
- * certain file type (see vips_foreign_find_save() and
- * vips_foreign_find_save_buffer()). You can then run these
- * operations using vips_call() and friends to perform the load or save.
+ * # Load and save
+ *
+ * You can load and save from and to files, memory areas, and the libvips IO
+ * abstractions, #VipsSource and #VipsTarget.
+ *
+ * Use vips_foreign_find_load(), vips_foreign_find_load_buffer() and
+ * vips_foreign_find_load_source() to find a loader for an object. Use
+ * vips_foreign_find_save(), vips_foreign_find_save_buffer() and
+ * vips_foreign_find_save_target() to find a saver for a format. You can then 
+ * run these operations using vips_call() and friends to perform the load or 
+ * save.
  *
  * vips_image_write_to_file() and vips_image_new_from_file() and friends use
  * these functions to automate file load and save.
@@ -101,6 +105,41 @@
  *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
  *     NULL);
  * ]|
+ *
+ * # Image metadata
+ *
+ * All loaders attach all image metadata as libvips properties on load.
+ *
+ * You can change metadata with vips_image_set_int() and friends.
+ *
+ * The savers have three general controls for metadata. Setting @strip will
+ * not save any image metadata. Setting @keep_profile as well will strip
+ * metadata, but retain an ICC profile, if any. Setting @profile to the
+ * filename of an ICC profile will attach that file instead of any ICC profile
+ * that is attached to the image. Setting @profile will automatically set
+ * @keep_profile.
+ *
+ * # Many page images
+ *
+ * By default, libvips will only load the first page of many page or animated
+ * images. Use @page and @n to set the start page and the number of pages to
+ * load. Set @n to -1 to load all pages.
+ *
+ * Many page images are loaded as a tall, thin strip of pages.
+ *
+ * Use vips_image_get_page_height() and vips_image_get_n_pages() to find the
+ * page height and number of pages of a loaded image.
+ *
+ * Use @page_height to set the page height for image save.
+ *
+ * # Alpha save
+ *
+ * Not all image formats support alpha. If you try to save an image with an
+ * alpha channel to a format that does not support it, the alpha will be
+ * automatically flattened out. Use @background (default 0) to set the colour
+ * that alpha should be flattened against.
+ *
+ * # Adding new formats
  *
  * To add support for a new file format to vips, simply define a new subclass
  * of #VipsForeignLoad or #VipsForeignSave.

@@ -458,7 +458,6 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  *
  * * @compression: %gint, compression level
  * * @interlace: %gboolean, interlace image
- * * @profile: %gchararray, ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation
@@ -474,14 +473,6 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  * interlacing. Beware
  * than an interlaced PNG can be up to 7 times slower to write than a
  * non-interlaced image.
- *
- * Use @profile to give the filename of a profile to be embedded in the PNG.
- * This does not affect the pixels which are written, just the way
- * they are tagged. See vips_profile_load() for details on profile naming.
- *
- * If @profile is specified and the VIPS header
- * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
- * profile from the VIPS header will be attached.
  *
  * Use @filter to specify one or more filters, defaults to none,
  * see #VipsForeignPngFilter.
@@ -532,7 +523,6 @@ vips_pngsave(VipsImage *in, const char *filename, ...)
  *
  * * @compression: %gint, compression level
  * * @interlace: %gboolean, interlace image
- * * @profile: %gchararray, ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation
@@ -588,7 +578,6 @@ vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *
  * * @compression: compression level
  * * @interlace: interlace image
- * * @profile: ICC profile to embed
  * * @filter: libpng row filter flag(s)
  * * @palette: enable quantisation to 8bpp palette
  * * @Q: quality for 8bpp quantisation

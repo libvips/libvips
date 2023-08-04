@@ -612,7 +612,6 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * * @compression: use this #VipsForeignTiffCompression
  * * @Q: %gint quality factor
  * * @predictor: use this #VipsForeignTiffPredictor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @tile: %gboolean, set %TRUE to write a tiled tiff
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
@@ -657,14 +656,6 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * It defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
  * differencing. Please refer to the libtiff
  * specifications for further discussion of various predictors.
- *
- * Use @profile to give the filename of a profile to be embedded in the TIFF.
- * This does not affect the pixels which are written, just the way
- * they are tagged. See vips_profile_load() for details on profile naming.
- *
- * If no profile is specified and the VIPS header
- * contains an ICC profile named #VIPS_META_ICC_NAME, the
- * profile from the VIPS header will be attached.
  *
  * Set @tile to TRUE to write a tiled tiff.  By default tiff are written in
  * strips. Use @tile_width and @tile_height to set the tile size. The defaiult
@@ -752,7 +743,6 @@ vips_tiffsave(VipsImage *in, const char *filename, ...)
  * * @compression: use this #VipsForeignTiffCompression
  * * @Q: %gint quality factor
  * * @predictor: use this #VipsForeignTiffPredictor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @tile: %gboolean, set %TRUE to write a tiled tiff
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
@@ -820,7 +810,6 @@ vips_tiffsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @compression: use this #VipsForeignTiffCompression
  * * @Q: %gint quality factor
  * * @predictor: use this #VipsForeignTiffPredictor
- * * @profile: %gchararray, filename of ICC profile to attach
  * * @tile: %gboolean, set %TRUE to write a tiled tiff
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
