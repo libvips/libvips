@@ -169,48 +169,57 @@ typedef struct heif_error (*libheif_metadata_fn)(struct heif_context *,
 /* String-based metadata fields we add.
  */
 typedef struct _VipsForeignSaveHeifMetadata {
-	const char *name;		   /* as understood by libvips */
-	libheif_metadata_fn saver; /* as understood by libheif */
+	const char *name;				   /* as understood by libvips */
+	libheif_metadata_fn saver;		   /* as understood by libheif */
+	VipsForeignPreserve preserve_flag; /* flag to check */
 } VipsForeignSaveHeifMetadata;
 
 static VipsForeignSaveHeifMetadata libheif_metadata[] = {
-	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
-	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
+	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata,
+		VIPS_FOREIGN_PRESERVE_EXIF },
+	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata,
+		VIPS_FOREIGN_PRESERVE_XMP }
 };
 
 static int
-vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
+vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif,
+	VipsForeignPreserve preserve)
 {
 	int i;
 	struct heif_error error;
 
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
-	if (vips__exif_update(heif->image))
+	if (preserve & VIPS_FOREIGN_PRESERVE_EXIF &&
+		vips__exif_update(heif->image))
 		return -1;
 
-	for (i = 0; i < VIPS_NUMBER(libheif_metadata); i++)
-		if (vips_image_get_typeof(heif->image,
-				libheif_metadata[i].name)) {
+	for (i = 0; i < VIPS_NUMBER(libheif_metadata); i++) {
+		const char *vips_name = libheif_metadata[i].name;
+		libheif_metadata_fn heif_saver = libheif_metadata[i].saver;
+		VipsForeignPreserve preserve_flag = libheif_metadata[i].preserve_flag;
+
+		if ((preserve & preserve_flag) == 0)
+			continue;
+
+		if (vips_image_get_typeof(heif->image, vips_name)) {
 			const void *data;
 			size_t length;
 
 #ifdef DEBUG
-			printf("attaching %s ..\n",
-				libheif_metadata[i].name);
+			printf("attaching %s ..\n", vips_name);
 #endif /*DEBUG*/
 
-			if (vips_image_get_blob(heif->image,
-					libheif_metadata[i].name, &data, &length))
+			if (vips_image_get_blob(heif->image, vips_name, &data, &length))
 				return -1;
 
-			error = libheif_metadata[i].saver(heif->ctx,
-				heif->handle, data, length);
+			error = heif_saver(heif->ctx, heif->handle, data, length);
 			if (error.code) {
 				vips__heif_error(&error);
 				return -1;
 			}
 		}
+	}
 
 	return 0;
 }
@@ -220,12 +229,12 @@ static int
 vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif, const void *profile, size_t length)
 {
 #ifdef DEBUG
-		printf("attaching profile ..\n");
+	printf("attaching profile ..\n");
 #endif /*DEBUG*/
 
 	struct heif_error error;
 	error = heif_image_set_raw_color_profile(heif->img,
-			"rICC", profile, length);
+		"rICC", profile, length);
 
 	if (error.code) {
 		vips__heif_error(&error);
@@ -255,7 +264,7 @@ vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *pro
 static int
 vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 {
-  	const void *data;
+	const void *data;
 	size_t length;
 
 	if (vips_image_get_blob(heif->image, VIPS_META_ICC_NAME, &data, &length))
@@ -277,7 +286,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	struct heif_encoding_options *options;
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
-	if (save->keep_profile) {
+	if (save->preserve & VIPS_FOREIGN_PRESERVE_ICC) {
 		if (save->profile) {
 			if (vips_foreign_save_heif_add_custom_icc(heif, save->profile))
 				return -1;
@@ -334,8 +343,8 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		}
 	}
 
-	if (!save->strip &&
-		vips_foreign_save_heif_write_metadata(heif))
+	if (save->preserve &&
+		vips_foreign_save_heif_write_metadata(heif, save->preserve))
 		return -1;
 
 	VIPS_FREEF(heif_image_handle_release, heif->handle);

@@ -330,16 +330,39 @@ typedef enum {
 	VIPS_SAVEABLE_LAST
 } VipsSaveable;
 
+/**
+ * VipsForeignPreserve:
+ * @VIPS_FOREIGN_PRESERVE_NONE: don't attach metadata
+ * @VIPS_FOREIGN_PRESERVE_EXIF: preserve EXIF metadata, including PNG text chunks and some TIFF tags.
+ * @VIPS_FOREIGN_PRESERVE_XMP: preserve XMP metadata
+ * @VIPS_FOREIGN_PRESERVE_ICC: preserve ICC metadata
+ * @VIPS_FOREIGN_PRESERVE_IPTC: preserve IPTC metadata
+ * @VIPS_FOREIGN_PRESERVE_ALL: preserve all metadata
+ *
+ * Which metadata should be preserved.
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_PRESERVE_NONE = 0,
+	VIPS_FOREIGN_PRESERVE_EXIF = 1 << 0,
+	VIPS_FOREIGN_PRESERVE_XMP = 1 << 1,
+	VIPS_FOREIGN_PRESERVE_ICC = 1 << 2,
+	VIPS_FOREIGN_PRESERVE_IPTC = 1 << 3,
+	VIPS_FOREIGN_PRESERVE_ALL = (VIPS_FOREIGN_PRESERVE_EXIF |
+		VIPS_FOREIGN_PRESERVE_XMP |
+		VIPS_FOREIGN_PRESERVE_ICC |
+		VIPS_FOREIGN_PRESERVE_IPTC),
+} VipsForeignPreserve;
+
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
-	/* Don't attach metadata.
+	/* Deprecated in favor of [preserve=none]
 	 */
 	gboolean strip;
 
-	/* When used with "strip" option, don't strip the ICC profile.
+	/* Which metadata should be preserved.
 	 */
-	gboolean keep_profile;
+	VipsForeignPreserve preserve;
 
 	/* Filename of profile to embed.
 	 */

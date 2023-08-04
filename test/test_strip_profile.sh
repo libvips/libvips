@@ -4,9 +4,9 @@
 #  0. Check test-suite/images/sample.jpg includes xmp and icc_profile
 #  1. Read image with xmp and icc profile
 #  2. Save it with [] to no_strip.{jpg|png|webp}
-#  3. Save it with [strip] to strip.{jpg|png|webp}
-#  4. Save it with [strip,keep_profile] to strip_keep.{jpg|png|webp}
-#  5. Save it with [strip,profile=profile.icc] to strip_profile.{jpg|png|webp}
+#  3. Save it with [preserve=none] to strip.{jpg|png|webp}
+#  4. Save it with [preserve=icc] to strip_keep.{jpg|png|webp}
+#  5. Save it with [preserve=icc,profile=profile.icc] to strip_profile.{jpg|png|webp}
 #  6. Save it with [profile=profile.icc] to another_profile.{jpg|png|webp}
 #  
 #  Tests:
@@ -62,11 +62,11 @@ for f in ${formats[@]}; do
   # echo "----- no strip"
   $vips copy "${image}" "${no_strip}.${f}"
   # echo "----- strip"
-  $vips copy "${image}" "${strip}.${f}[strip]"
+  $vips copy "${image}" "${strip}.${f}[preserve=none]"
   # echo "----- strip_keep"
-  $vips copy "${image}" "${strip_keep}.${f}[strip,keep_profile]"
+  $vips copy "${image}" "${strip_keep}.${f}[preserve=icc]"
   #echo "----- strip profile"
-  $vips copy "${image}" "${strip_profile}.${f}[strip,profile=${srgb}]"
+  $vips copy "${image}" "${strip_profile}.${f}[preserve=icc,profile=${srgb}]"
   #echo "----- another"
   $vips copy "${image}" "${another_profile}.${f}[profile=${srgb}]"
 
