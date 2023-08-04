@@ -391,9 +391,9 @@ read_new(VipsImage *out, VipsSource *source, int page, int n, double scale)
 /* Map vips metadata names to webp names.
  */
 const VipsWebPNames vips__webp_names[] = {
-	{ VIPS_META_ICC_NAME, "ICCP", ICCP_FLAG },
-	{ VIPS_META_EXIF_NAME, "EXIF", EXIF_FLAG },
-	{ VIPS_META_XMP_NAME, "XMP ", XMP_FLAG }
+	{ VIPS_META_ICC_NAME, "ICCP", ICCP_FLAG, VIPS_FOREIGN_PRESERVE_ICC },
+	{ VIPS_META_EXIF_NAME, "EXIF", EXIF_FLAG, VIPS_FOREIGN_PRESERVE_EXIF },
+	{ VIPS_META_XMP_NAME, "XMP ", XMP_FLAG, VIPS_FOREIGN_PRESERVE_XMP }
 };
 const int vips__n_webp_names = VIPS_NUMBER(vips__webp_names);
 

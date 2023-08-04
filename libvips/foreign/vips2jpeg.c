@@ -535,10 +535,11 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
  */
 static int
 write_vips(Write *write, int qfac, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean keep_profile, gboolean trellis_quant, gboolean overshoot_deringing,
-	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode, int restart_interval)
+	gboolean optimize_coding, gboolean progressive,
+	VipsForeignPreserve preserve, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval)
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -722,27 +723,33 @@ write_vips(Write *write, int qfac, const char *profile,
 
 	/* All the other APP chunks come next.
 	 */
-	if (!strip) {
+	if (preserve) {
 		/* We need to rebuild the exif data block from any exif tags
 		 * on the image.
 		 */
-		if (vips__exif_update(write->in) ||
-			write_exif(write) ||
-			write_xmp(write) ||
+		if (preserve & VIPS_FOREIGN_PRESERVE_EXIF &&
+			(vips__exif_update(write->in) ||
+				write_exif(write)))
+			return -1;
+
+		if (preserve & VIPS_FOREIGN_PRESERVE_XMP &&
+			write_xmp(write))
+			return -1;
+
+		if (preserve & VIPS_FOREIGN_PRESERVE_IPTC &&
 			write_blob(write,
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
 			return -1;
 
-	}
-
-	if (keep_profile) {
-		if (profile) {
-			if (write_profile_file(write, profile))
-				return -1;
-		}
-		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-			if (write_profile_meta(write))
-				return -1;
+		if (preserve & VIPS_FOREIGN_PRESERVE_ICC) {
+			if (profile) {
+				if (write_profile_file(write, profile))
+					return -1;
+			}
+			else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+				if (write_profile_meta(write))
+					return -1;
+			}
 		}
 	}
 
@@ -851,7 +858,7 @@ int
 vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean keep_profile, gboolean trellis_quant,
+	VipsForeignPreserve preserve, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -879,7 +886,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips(write,
-			Q, profile, optimize_coding, progressive, strip, keep_profile,
+			Q, profile, optimize_coding, progressive, preserve,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);

@@ -91,8 +91,8 @@
  * Use vips_foreign_find_load(), vips_foreign_find_load_buffer() and
  * vips_foreign_find_load_source() to find a loader for an object. Use
  * vips_foreign_find_save(), vips_foreign_find_save_buffer() and
- * vips_foreign_find_save_target() to find a saver for a format. You can then 
- * run these operations using vips_call() and friends to perform the load or 
+ * vips_foreign_find_save_target() to find a saver for a format. You can then
+ * run these operations using vips_call() and friends to perform the load or
  * save.
  *
  * vips_image_write_to_file() and vips_image_new_from_file() and friends use
@@ -1772,13 +1772,19 @@ vips_foreign_save_build(VipsObject *object)
 		save->ready = ready;
 	}
 
-	/* If we're not stripping, or a user profile has been set, keep_profile
-	 * defaults to true.
+	/* The deprecated "strip" field sets "preserve" to none.
 	 */
-	if (!save->strip ||
-			  vips_object_argument_isset(object, "profile")) {
-		save->keep_profile = TRUE;
-	}
+	if (vips_object_argument_isset(object, "strip") &&
+		!vips_object_argument_isset(object, "preserve"))
+		save->preserve = save->strip
+			? VIPS_FOREIGN_PRESERVE_NONE
+			: VIPS_FOREIGN_PRESERVE_ALL;
+
+	/* Preserve ICC profile by default when a user profile has been set.
+	 */
+	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) == 0 &&
+		vips_object_argument_isset(object, "profile"))
+		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
 		return -1;
@@ -1847,12 +1853,13 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, in));
 
-	VIPS_ARG_BOOL(class, "strip", 100,
-		_("Strip"),
-		_("Strip all metadata from image"),
+	VIPS_ARG_FLAGS(class, "preserve", 100,
+		_("Preserve"),
+		_("Which metadata should be preserved"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSave, strip),
-		FALSE);
+		G_STRUCT_OFFSET(VipsForeignSave, preserve),
+		VIPS_TYPE_FOREIGN_PRESERVE,
+		VIPS_FOREIGN_PRESERVE_ALL);
 
 	VIPS_ARG_BOXED(class, "background", 101,
 		_("Background"),
@@ -1868,24 +1875,25 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		G_STRUCT_OFFSET(VipsForeignSave, page_height),
 		0, VIPS_MAX_COORD, 0);
 
-	VIPS_ARG_BOOL(class, "keep_profile", 103,
-		_("Save profile"),
-		_("When used with \"strip\" option, don't strip the ICC profile"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSave, keep_profile),
-		FALSE);
-
 	VIPS_ARG_STRING(class, "profile", 11,
 		_("Profile"),
 		_("Filename of ICC profile to embed"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, profile),
 		NULL);
+
+	VIPS_ARG_BOOL(class, "strip", 103,
+		_("Strip"),
+		_("Strip all metadata from image"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsForeignSave, strip),
+		FALSE);
 }
 
 static void
 vips_foreign_save_init(VipsForeignSave *save)
 {
+	save->preserve = VIPS_FOREIGN_PRESERVE_ALL;
 	save->background = vips_array_double_newv(1, 0.0);
 }
 

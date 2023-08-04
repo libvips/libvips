@@ -53,8 +53,8 @@ void vips__tiff_init(void);
 int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
 	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
+	VipsForeignPreserve preserve,
 	const char *profile,
-	gboolean keep_profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -63,7 +63,6 @@ int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -147,10 +146,11 @@ extern const char *vips__jpeg_suffs[];
 
 int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean keep_profile, gboolean trellis_quant, gboolean overshoot_deringing,
-	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode, int restart_interval);
+	gboolean optimize_coding, gboolean progressive,
+	VipsForeignPreserve preserve, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval);
 
 int vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on,
@@ -167,8 +167,8 @@ extern const char *vips__png_suffs[];
 
 int vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
-	gboolean keep_profile, gboolean palette, int Q, double dither,
+	VipsForeignPngFilter filter, VipsForeignPreserve preserve,
+	gboolean palette, int Q, double dither,
 	int bitdepth, int effort);
 
 /* Map WEBP metadata names to vips names.
@@ -177,6 +177,7 @@ typedef struct _VipsWebPNames {
 	const char *vips;
 	const char *webp;
 	int flags;
+	int preserve_flag;
 } VipsWebPNames;
 
 extern const VipsWebPNames vips__webp_names[];

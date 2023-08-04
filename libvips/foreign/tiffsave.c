@@ -208,8 +208,8 @@ vips_foreign_save_tiff_build(VipsObject *object)
 
 	if (vips__tiff_write_target(save->ready, tiff->target,
 			tiff->compression, tiff->Q, tiff->predictor,
+			save->preserve,
 			save->profile,
-			save->keep_profile,
 			tiff->tile, tiff->tile_width, tiff->tile_height,
 			tiff->pyramid,
 			tiff->bitdepth,
@@ -218,7 +218,6 @@ vips_foreign_save_tiff_build(VipsObject *object)
 			tiff->bigtiff,
 			tiff->rgbjpeg,
 			tiff->properties,
-			save->strip,
 			tiff->region_shrink,
 			tiff->level,
 			tiff->lossless,

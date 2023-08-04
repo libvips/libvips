@@ -225,7 +225,8 @@ vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 }
 
 static int
-vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
+vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in,
+	VipsForeignPreserve preserve)
 {
 	uint32_t n_text;
 	struct spng_text *text_chunk_array;
@@ -233,7 +234,8 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 	int i;
 	GSList *p;
 
-	if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
+	if (preserve & VIPS_FOREIGN_PRESERVE_XMP &&
+		vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
 		const void *data;
 		size_t length;
 		char *str;
@@ -251,35 +253,39 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		g_free(str);
 	}
 
-	if (vips__exif_update(in) ||
-		vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-			(const void **) &exif.data, &exif.length))
-		return -1;
+	if (preserve & VIPS_FOREIGN_PRESERVE_EXIF) {
+		if (vips__exif_update(in) ||
+			vips_image_get_blob(in, VIPS_META_EXIF_NAME,
+				(const void **) &exif.data, &exif.length))
+			return -1;
 
-	/* libspng does not want the JFIF "Exif\0\0" prefix.
-	 */
-	if (exif.length >= 6 &&
-		vips_isprefix("Exif", exif.data)) {
-		exif.data += 6;
-		exif.length -= 6;
-	}
-	spng_set_exif(spng->ctx, &exif);
+		/* libspng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if (exif.length >= 6 &&
+			vips_isprefix("Exif", exif.data)) {
+			exif.data += 6;
+			exif.length -= 6;
+		}
+		spng_set_exif(spng->ctx, &exif);
 
-	if (vips_image_map(in, vips_foreign_save_spng_comment, spng))
-		return -1;
+		/* We categorize PNG text chunks as EXIF.
+		 */
+		if (vips_image_map(in, vips_foreign_save_spng_comment, spng))
+			return -1;
 
-	n_text = g_slist_length(spng->text_chunks);
-	text_chunk_array = VIPS_ARRAY(NULL, n_text, struct spng_text);
-	for (i = 0, p = spng->text_chunks; p; p = p->next, i++) {
-		struct spng_text *text = (struct spng_text *) p->data;
+		n_text = g_slist_length(spng->text_chunks);
+		text_chunk_array = VIPS_ARRAY(NULL, n_text, struct spng_text);
+		for (i = 0, p = spng->text_chunks; p; p = p->next, i++) {
+			struct spng_text *text = (struct spng_text *) p->data;
 
-		text_chunk_array[i] = *text;
-	}
+			text_chunk_array[i] = *text;
+		}
 #ifdef DEBUG
-	printf("attaching %u text items\n", n_text);
+		printf("attaching %u text items\n", n_text);
 #endif /*DEBUG*/
-	spng_set_text(spng->ctx, text_chunk_array, n_text);
-	VIPS_FREE(text_chunk_array);
+		spng_set_text(spng->ctx, text_chunk_array, n_text);
+		VIPS_FREE(text_chunk_array);
+	}
 
 	return 0;
 }
@@ -455,12 +461,13 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	/* Metadata.
 	 */
-	if (save->keep_profile &&
-		vips_foreign_save_spng_profile(spng, in))
-		return -1;
-	if (!save->strip &&
-		vips_foreign_save_spng_metadata(spng, in))
-		return -1;
+	if (save->preserve) {
+		if (save->preserve & VIPS_FOREIGN_PRESERVE_ICC &&
+			vips_foreign_save_spng_profile(spng, in))
+			return -1;
+		if (vips_foreign_save_spng_metadata(spng, in, save->preserve))
+			return -1;
+	}
 
 #ifdef HAVE_QUANTIZATION
 	if (spng->palette) {
