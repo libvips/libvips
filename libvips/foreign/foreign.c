@@ -1107,8 +1107,7 @@ vips_foreign_load_build(VipsObject *object)
 
 	/* The deprecated "fail" field sets fail_on warning.
 	 */
-	if (vips_object_argument_isset(object, "fail") &&
-		!vips_object_argument_isset(object, "fail_on"))
+	if (!vips_object_argument_isset(object, "fail_on"))
 		load->fail_on = load->fail
 			? VIPS_FAIL_ON_WARNING
 			: VIPS_FAIL_ON_NONE;
@@ -1775,7 +1774,7 @@ vips_foreign_save_build(VipsObject *object)
 	/* The deprecated "strip" field sets "preserve" to none.
 	 */
 	if (!vips_object_argument_isset(object, "preserve"))
-		save->preserve = vips_object_argument_isset(object, "strip")
+		save->preserve = save->strip
 			? VIPS_FOREIGN_PRESERVE_NONE
 			: VIPS_FOREIGN_PRESERVE_ALL;
 
@@ -1859,7 +1858,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, preserve),
 		VIPS_TYPE_FOREIGN_PRESERVE,
-		VIPS_FOREIGN_PRESERVE_ALL);
+		VIPS_FOREIGN_PRESERVE_ALL); // FIXME(kleisauke): Why we can't set default flags?
 
 	VIPS_ARG_BOXED(class, "background", 101,
 		_("Background"),
