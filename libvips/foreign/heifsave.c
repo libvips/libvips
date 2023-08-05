@@ -169,38 +169,29 @@ typedef struct heif_error (*libheif_metadata_fn)(struct heif_context *,
 /* String-based metadata fields we add.
  */
 typedef struct _VipsForeignSaveHeifMetadata {
-	const char *name;				   /* as understood by libvips */
-	libheif_metadata_fn saver;		   /* as understood by libheif */
-	VipsForeignPreserve preserve_flag; /* flag to check */
+	const char *name;		   /* as understood by libvips */
+	libheif_metadata_fn saver; /* as understood by libheif */
 } VipsForeignSaveHeifMetadata;
 
 static VipsForeignSaveHeifMetadata libheif_metadata[] = {
-	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata,
-		VIPS_FOREIGN_PRESERVE_EXIF },
-	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata,
-		VIPS_FOREIGN_PRESERVE_XMP }
+	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
+	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
 };
 
 static int
-vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif,
-	VipsForeignPreserve preserve)
+vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
 {
 	int i;
 	struct heif_error error;
 
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
-	if (preserve & VIPS_FOREIGN_PRESERVE_EXIF &&
-		vips__exif_update(heif->image))
+	if (vips__exif_update(heif->image))
 		return -1;
 
 	for (i = 0; i < VIPS_NUMBER(libheif_metadata); i++) {
 		const char *vips_name = libheif_metadata[i].name;
 		libheif_metadata_fn heif_saver = libheif_metadata[i].saver;
-		VipsForeignPreserve preserve_flag = libheif_metadata[i].preserve_flag;
-
-		if ((preserve & preserve_flag) == 0)
-			continue;
 
 		if (vips_image_get_typeof(heif->image, vips_name)) {
 			const void *data;
@@ -286,7 +277,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	struct heif_encoding_options *options;
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
-	if (save->preserve & VIPS_FOREIGN_PRESERVE_ICC) {
+	if (save->preserve) {
 		if (save->profile) {
 			if (vips_foreign_save_heif_add_custom_icc(heif, save->profile))
 				return -1;
@@ -344,7 +335,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	}
 
 	if (save->preserve &&
-		vips_foreign_save_heif_write_metadata(heif, save->preserve))
+		vips_foreign_save_heif_write_metadata(heif))
 		return -1;
 
 	VIPS_FREEF(heif_image_handle_release, heif->handle);

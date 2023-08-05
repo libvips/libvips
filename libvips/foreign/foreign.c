@@ -1739,10 +1739,27 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	return 0;
 }
 
+/* Map VipsForeignPreserve flags to metadata names.
+ */
+typedef struct _VipsForeignPreserveNames {
+	VipsForeignPreserve flag;
+	const char *name;
+} VipsForeignPreserveNames;
+
+const VipsForeignPreserveNames vips__preserve_names[] = {
+	{ VIPS_FOREIGN_PRESERVE_EXIF, VIPS_META_EXIF_NAME },
+	{ VIPS_FOREIGN_PRESERVE_XMP, VIPS_META_XMP_NAME },
+	{ VIPS_FOREIGN_PRESERVE_IPTC, VIPS_META_IPTC_NAME },
+	{ VIPS_FOREIGN_PRESERVE_ICC, VIPS_META_ICC_NAME },
+	{ VIPS_FOREIGN_PRESERVE_PHOTOSHOP, VIPS_META_PHOTOSHOP_NAME },
+	{ VIPS_FOREIGN_PRESERVE_IMAGEDESCRIPTION, VIPS_META_IMAGEDESCRIPTION }
+};
+
 static int
 vips_foreign_save_build(VipsObject *object)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
+	int i;
 
 	if (save->in) {
 		VipsForeignSaveClass *class =
@@ -1785,6 +1802,25 @@ vips_foreign_save_build(VipsObject *object)
 	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) == 0 &&
 		vips_object_argument_isset(object, "profile"))
 		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
+
+	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
+		VipsForeignPreserve flag = vips__preserve_names[i].flag;
+		const char *name = vips__preserve_names[i].name;
+
+		if ((save->preserve & flag) == 0 &&
+			vips_image_get_typeof(save->ready, name)) {
+			VipsImage *out;
+
+			if (vips_copy(save->ready, &out, NULL)) {
+				g_object_unref(save->ready);
+				return -1;
+			}
+			g_object_unref(save->ready);
+
+			vips_image_remove(out, name);
+			save->ready = out;
+		}
+	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
 		return -1;

@@ -41,7 +41,7 @@ extern "C" {
 /**
  * VIPS_META_EXIF_NAME:
  *
- * The name that JPEG read and write operations use for the image's EXIF data.
+ * The name that read and write operations use for the image's EXIF data.
  */
 #define VIPS_META_EXIF_NAME "exif-data"
 

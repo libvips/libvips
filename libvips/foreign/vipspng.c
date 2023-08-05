@@ -1168,11 +1168,11 @@ write_vips(Write *write,
 		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
 		PNG_RESOLUTION_METER);
 
-	/* Copy XMP and EXIF metadata based on the "preserve" option.
+	/* If save called w/ "preserve" option, we need to copy all meta to new
+	 * png image.
 	 */
 	if (preserve) {
-		if (preserve & VIPS_FOREIGN_PRESERVE_XMP &&
-			vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
+		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
 			const void *data;
 			size_t length;
 			char *str;
@@ -1192,7 +1192,7 @@ write_vips(Write *write,
 		}
 
 #ifdef PNG_eXIf_SUPPORTED
-		if (preserve & VIPS_FOREIGN_PRESERVE_EXIF) {
+		{
 			const void *data;
 			size_t length;
 
@@ -1214,21 +1214,16 @@ write_vips(Write *write,
 		}
 #endif /*PNG_eXIf_SUPPORTED*/
 
-		/* We categorize PNG text chunks as EXIF.
-		 */
-		if (preserve & VIPS_FOREIGN_PRESERVE_EXIF &&
-			vips_image_map(in, write_png_comment, write))
+		if (vips_image_map(in, write_png_comment, write))
 			return -1;
 
-		if (preserve & VIPS_FOREIGN_PRESERVE_ICC) {
-			if (profile) {
-				if (vips_png_add_custom_icc(write, profile))
-					return -1;
-			}
-			else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-				if (vips_png_add_original_icc(write))
-					return -1;
-			}
+		if (profile) {
+			if (vips_png_add_custom_icc(write, profile))
+				return -1;
+		}
+		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+			if (vips_png_add_original_icc(write))
+				return -1;
 		}
 	}
 

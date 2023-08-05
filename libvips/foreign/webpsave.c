@@ -423,22 +423,18 @@ vips_webp_set_chunk(VipsForeignSaveWebp *write,
 }
 
 static int
-vips_webp_add_original_meta(VipsForeignSaveWebp *write,
-	VipsForeignPreserve preserve)
+vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 {
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
-	if (preserve & VIPS_FOREIGN_PRESERVE_EXIF &&
-		vips__exif_update(write->image))
+	if (vips__exif_update(write->image))
 		return -1;
 
 	for (int i = 0; i < vips__n_webp_names; i++) {
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
-		VipsForeignPreserve preserve_flag = vips__webp_names[i].preserve_flag;
 
-		if (strcmp(vips_name, VIPS_META_ICC_NAME) == 0 ||
-			(preserve & preserve_flag) == 0)
+		if (strcmp(vips_name, VIPS_META_ICC_NAME) == 0)
 			continue;
 
 		if (vips_image_get_typeof(write->image, vips_name)) {
@@ -542,11 +538,10 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
 	}
 
-	if (save->preserve &&
-		vips_webp_add_original_meta(webp, save->preserve))
-		return -1;
+	if (save->preserve) {
+		if (vips_webp_add_original_meta(webp))
+			return -1;
 
-	if (save->preserve & VIPS_FOREIGN_PRESERVE_ICC) {
 		if (save->profile) {
 			if (vips_webp_add_custom_icc(webp, save->profile))
 				return -1;

@@ -177,7 +177,6 @@ typedef struct _VipsWebPNames {
 	const char *vips;
 	const char *webp;
 	int flags;
-	int preserve_flag;
 } VipsWebPNames;
 
 extern const VipsWebPNames vips__webp_names[];
