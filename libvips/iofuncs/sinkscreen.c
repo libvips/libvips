@@ -636,6 +636,9 @@ tile_new(Render *render)
 		return NULL;
 	}
 
+	// tiles are shared between threads
+	vips__region_no_ownership(tile->region);
+
 	render->all = g_slist_prepend(render->all, tile);
 	render->ntiles += 1;
 
