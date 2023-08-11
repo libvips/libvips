@@ -145,7 +145,7 @@ vips_foreign_load_svg_zfree( void *opaque, void *ptr )
 /* Find a utf-8 substring within the first len_bytes (not characters). 
  *
  *   - case-insensitive
- *   - needle must be zero-terminated, but hackstack need not be
+ *   - needle must be zero-terminated, but haystack need not be
  *   - haystack can be null-terminated
  *   - if haystack is shorter than len bytes, that'll end the search 
  *   - if we hit invalid utf-8, we return NULL
@@ -191,12 +191,6 @@ vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
 				b == (gunichar) -2 )
                                 return( NULL );
 
-                        /* End of haystack. There can't be a complete needle
-                         * anywhere.
-                         */
-                        if( a == (gunichar) 0 )
-                                return( NULL );
-
                         /* Mismatch.
                          */
                         if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
@@ -205,6 +199,15 @@ vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
                         haystack_char = 
 				g_utf8_find_next_char( haystack_char, 
 					haystack_start + len_bytes );
+
+                        /* End of haystack. There can't be a complete needle
+                         * anywhere.
+                         */
+                        if( haystack_char == NULL )
+                                return( NULL );
+
+                        /* needle_char will never be NULL.
+                         */
                         needle_char = 
 				g_utf8_find_next_char( needle_char, NULL );
                 }
