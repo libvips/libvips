@@ -302,7 +302,7 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	 * whole of the input region corresponding to *r since it could be huge.
 	 *
 	 * We also don't want to fetch a line at a time, since that can make
-	 * upstream coodinate changes very expensive.
+	 * upstream coordinate changes very expensive.
 	 *
 	 * Instead, aim for a minimum of tile_height on the input image.
 	 */
