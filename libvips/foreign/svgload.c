@@ -191,6 +191,15 @@ vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
 				b == (gunichar) -2 )
                                 return( NULL );
 
+                        /* Disallow codepoint U+0000 as it's a nul byte.
+                         * This is redundant with GLib >= 2.63.0, see:
+                         * https://gitlab.gnome.org/GNOME/glib/-/merge_requests/967
+                         */
+#if !GLIB_CHECK_VERSION( 2, 63, 0 )
+                        if( a == (gunichar) 0 )
+                                return( NULL );
+#endif
+
                         /* Mismatch.
                          */
                         if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
