@@ -202,8 +202,10 @@ vips_shrinkh_gen(VipsRegion *out_region,
 	 * Reading a line at a time could cause a lot of overcomputation, depending
 	 * on what's upstream from us. In SMALLTILE, output scanlines could be
 	 * quite small.
+	 *
+	 * Use fatstrip height as a compromise.
 	 */
-	const int dy = 32;
+	const int dy = vips__fatstrip_height;
 
 	VipsShrinkh *shrink = (VipsShrinkh *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
