@@ -49,6 +49,8 @@
  * 	- use a double sum buffer for int32 types
  * 22/4/22 kleisauke
  * 	- add @ceil option
+ * 12/8/23 jcupitt
+ *	- improve chunking for small shrinks
  */
 
 /*
@@ -296,47 +298,57 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &out_region->valid;
 
-	int y, y1;
-
-	/* How do we chunk up the image? We don't want to prepare the whole of
-	 * the input region corresponding to *r since it could be huge.
+	/* How do we chunk up the output image? We don't want to prepare the
+	 * whole of the input region corresponding to *r since it could be huge.
 	 *
-	 * Request input a line at a time, average to a line buffer.
+	 * We also don't want to fetch a line at a time, since that can make
+	 * upstream coordinate changes very expensive.
+	 *
+	 * Instead, aim for a minimum of tile_height on the input image.
 	 */
+	int input_target = VIPS_MAX(shrink->vshrink, r->height);
+	int dy = input_target / shrink->vshrink;
+
+	int y, y1, y2;
 
 #ifdef DEBUG
 	printf("vips_shrinkv_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y++) {
-		memset(seq->sum, 0, shrink->sizeof_line_buffer);
+	for (y = 0; y < r->height; y += dy) {
+		int chunk_height = VIPS_MIN(dy, r->height - y);
 
-		for (y1 = 0; y1 < shrink->vshrink; y1++) {
-			VipsRect s;
+		VipsRect s;
 
-			s.left = r->left;
-			s.top = y1 + (y + r->top) * shrink->vshrink;
-			s.width = r->width;
-			s.height = 1;
+		s.left = r->left;
+		s.top = (r->top + y) * shrink->vshrink;
+		s.width = r->width;
+		s.height = chunk_height * shrink->vshrink;
 #ifdef DEBUG
-			printf("shrink_gen: requesting line %d\n", s.top);
+		printf("vips_shrinkv_gen: requesting %d lines from %d\n",
+			s.height, s.top);
 #endif /*DEBUG*/
-			if (vips_region_prepare(ir, &s))
-				return -1;
-
-			VIPS_GATE_START("vips_shrinkv_gen: work");
-
-			vips_shrinkv_add_line(shrink, seq, ir,
-				s.left, s.top, s.width);
-
-			VIPS_GATE_STOP("vips_shrinkv_gen: work");
-		}
+		if (vips_region_prepare(ir, &s))
+			return -1;
 
 		VIPS_GATE_START("vips_shrinkv_gen: work");
 
-		vips_shrinkv_write_line(shrink, seq, out_region,
-			r->left, r->top + y, r->width);
+		// each output line
+		for (y1 = 0; y1 < chunk_height; y1++) {
+			// top of this line in the input
+			int top = s.top + y1 * shrink->vshrink;
+
+			memset(seq->sum, 0, shrink->sizeof_line_buffer);
+
+			// each line in the corresponding area of input
+			for (y2 = 0; y2 < shrink->vshrink; y2++)
+				vips_shrinkv_add_line(shrink, seq, ir,
+					s.left, top + y2, s.width);
+
+			vips_shrinkv_write_line(shrink, seq, out_region,
+				r->left, r->top + y + y1, r->width);
+		}
 
 		VIPS_GATE_STOP("vips_shrinkv_gen: work");
 	}
@@ -412,6 +424,7 @@ vips_shrinkv_build(VipsObject *object)
 	}
 
 #ifdef DEBUG
+	printf("vips_shrinkv_build: vshrink = %d\n", shrink->vshrink);
 	printf("vips_shrinkv_build: shrinking %d x %d image to %d x %d\n",
 		in->Xsize, in->Ysize,
 		t[2]->Xsize, t[2]->Ysize);

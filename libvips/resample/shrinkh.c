@@ -10,6 +10,8 @@
  * 	- use a double sum buffer for int32 types
  * 22/4/22 kleisauke
  * 	- add @ceil option
+ * 12/8/23 jcupitt
+ *	- improve chunking for small shrinks
  */
 
 /*
@@ -194,47 +196,49 @@ static int
 vips_shrinkh_gen(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
 {
+	/* How do we chunk up the image? We don't want to prepare the whole of
+	 * the input region corresponding to *r since it could be huge.
+	 *
+	 * Reading a line at a time could cause a lot of overcomputation, depending
+	 * on what's upstream from us. In SMALLTILE, output scanlines could be
+	 * quite small.
+	 *
+	 * Use fatstrip height as a compromise.
+	 */
+	const int dy = vips__fatstrip_height;
+
 	VipsShrinkh *shrink = (VipsShrinkh *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &out_region->valid;
 
-	int y;
-
-	/* How do we chunk up the image? We don't want to prepare the whole of
-	 * the input region corresponding to *r since it could be huge.
-	 *
-	 * Request input a line at a time.
-	 *
-	 * We don't chunk horizontally. We want "vips shrink x.jpg b.jpg 100
-	 * 100" to run sequentially. If we chunk horizontally, we will fetch
-	 * 100x100 lines from the top of the image, then 100x100 100 lines
-	 * down, etc. for each thread, then when they've finished, fetch
-	 * 100x100, 100 pixels across from the top of the image. This will
-	 * break sequentiality.
-	 */
+	int y, y1;
 
 #ifdef DEBUG
 	printf("vips_shrinkh_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y++) {
+	for (y = 0; y < r->height; y += dy) {
+		int chunk_height = VIPS_MIN(dy, r->height - y);
+
 		VipsRect s;
 
 		s.left = r->left * shrink->hshrink;
 		s.top = r->top + y;
 		s.width = r->width * shrink->hshrink;
-		s.height = 1;
+		s.height = chunk_height;
 #ifdef DEBUG
-		printf("shrinkh_gen: requesting line %d\n", s.top);
+		printf("vips_shrinkh_gen: requesting %d lines from %d\n",
+			s.height, s.top);
 #endif /*DEBUG*/
 		if (vips_region_prepare(ir, &s))
 			return -1;
 
 		VIPS_GATE_START("vips_shrinkh_gen: work");
 
-		vips_shrinkh_gen2(shrink, out_region, ir,
-			r->left, r->top + y, r->width);
+		for (y1 = 0; y1 < chunk_height; y1++)
+			vips_shrinkh_gen2(shrink, out_region, ir,
+				r->left, r->top + y + y1, r->width);
 
 		VIPS_GATE_STOP("vips_shrinkh_gen: work");
 	}
