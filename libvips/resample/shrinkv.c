@@ -326,7 +326,8 @@ vips_shrinkv_gen(VipsRegion *out_region,
 		s.width = r->width;
 		s.height = chunk_height * shrink->vshrink;
 #ifdef DEBUG
-		printf("shrink_gen: requesting %d lines from %d\n", s.height, s.top);
+		printf("vips_shrinkv_gen: requesting %d lines from %d\n",
+			s.height, s.top);
 #endif /*DEBUG*/
 		if (vips_region_prepare(ir, &s))
 			return -1;
