@@ -385,9 +385,9 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	printf( "vips_foreign_load_pdf_set_image: %p\n", pdf );
 #endif /*DEBUG*/
 
-        /* We render to a tilecache, so it has to be SMALLTILE.
-         */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+	/* We render to a tilecache, so it has to be SMALLTILE.
+	 */
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	/* Extract and attach metadata. Set the old name too for compat.
@@ -643,13 +643,13 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 
 	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
-		vips_tilecache(t[0], &t[1],
+		vips_tilecache( t[0], &t[1],
 			"tile_width", TILE_SIZE,
 			"tile_height", TILE_SIZE,
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
-			NULL) ||
+			NULL ) ||
 		vips_image_write( t[1], load->real ) )
-		return -1;
+		return( -1 );
 
 	return( 0 );
 }
