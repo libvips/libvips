@@ -108,6 +108,8 @@ EOF
 #include <fpdf_doc.h>
 #include <fpdf_edit.h>
 
+#define TILE_SIZE (4000)
+
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
 
@@ -314,8 +316,7 @@ vips_foreign_load_pdf_build( VipsObject *object )
 static VipsForeignFlags
 vips_foreign_load_pdf_get_flags_filename( const char *filename )
 {
-	/* We can't render any part of the page on demand, but we can render
-	 * separate pages. Might as well call ourselves partial.
+	/* We can render any part of the page on demand.
 	 */
 	return( VIPS_FOREIGN_PARTIAL );
 }
@@ -384,9 +385,9 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	printf( "vips_foreign_load_pdf_set_image: %p\n", pdf );
 #endif /*DEBUG*/
 
-	/* We render to a linecache, so fat strips work well.
+	/* We render to a tilecache, so it has to be SMALLTILE.
 	 */
-        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
 		return( -1 );
 
 	/* Extract and attach metadata. Set the old name too for compat.
@@ -562,7 +563,12 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		if( VIPS_RECT_BOTTOM( &pdf->pages[i] ) > r->top )
 			break;
 
-	top = r->top; 
+	/* Reset out region. Otherwise there might be parts of previous pages
+	 * left.
+	 */
+	vips_region_black( or );
+
+	top = r->top;
 	while( top < VIPS_RECT_BOTTOM( r ) ) {
 		VipsRect rect;
 		FPDF_BITMAP bitmap;
@@ -589,11 +595,13 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 				0, 0, rect.width, rect.height, ink );
 		}
 
-		FPDF_RenderPageBitmap( bitmap, pdf->page, 
-			0, 0, rect.width, rect.height,
-			0, 0 ); 
+		FPDF_RenderPageBitmap( bitmap, pdf->page,
+			pdf->pages[i].left - rect.left,
+			pdf->pages[i].top - rect.top,
+			pdf->pages[i].width, pdf->pages[i].height,
+			0, 0 );
 
-		FPDFBitmap_Destroy( bitmap ); 
+		FPDFBitmap_Destroy( bitmap );
 
 		g_mutex_unlock( vips_pdfium_mutex );
 
@@ -631,21 +639,16 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	g_signal_connect( t[0], "minimise", 
 		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf ); 
 
-	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
-	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) )
-		return( -1 );
+	vips_foreign_load_pdf_set_image( pdf, t[0] );
 
-	/* PDFium does not like rendering parts of pages :-( always render
-	 * complete pages. 
-	 */
-	if( vips_tilecache( t[0], &t[1],
-		"tile_width", pdf->pages[0].width,
-		"tile_height", pdf->pages[0].height,
-		"max_tiles", 1,
-		NULL ) )
-		return( -1 );
-	if( vips_image_write( t[1], load->real ) ) 
+	if( vips_image_generate( t[0],
+		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
+		vips_tilecache( t[0], &t[1],
+			"tile_width", TILE_SIZE,
+			"tile_height", TILE_SIZE,
+			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
+			NULL ) ||
+		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -655,7 +658,7 @@ static void *
 vips_foreign_load_pdf_once_init( void *client )
 {
 	/* We must make the mutex on class init (not _build) since we
-	 * can lock ebven if build is not called.
+	 * can lock even if build is not called.
 	 */
 	vips_pdfium_mutex = vips_g_mutex_new();
 

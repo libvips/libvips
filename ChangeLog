@@ -2,6 +2,7 @@ TBD 8.14.4
 
 - fix null-pointer dereference during svgload [kleisauke]
 - heif{load,save}: guard against NULL strings [kleisauke]
+- pdfiumload: fix rendering of pages with different sizes [DarthSim]
 
 20/7/23 8.14.3
 
