@@ -1032,8 +1032,8 @@ build_scan_property(VipsDbuf *dbuf, VipsImage *image,
 	const char *vips_name, const char *szi_name)
 {
 	const char *str;
-	GValue value = { 0 };
-	GValue save_value = { 0 };
+	GValue value = G_VALUE_INIT;
+	GValue save_value = G_VALUE_INIT;
 	GType type;
 
 	if (!vips_image_get_typeof(image, vips_name))

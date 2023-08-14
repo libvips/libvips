@@ -402,7 +402,7 @@ set_property(VipsObject *object, const char *name, const GValue *value)
 		GType pspec_type = G_PARAM_SPEC_VALUE_TYPE(pspec);
 
 		int enum_value;
-		GValue value2 = { 0 };
+		GValue value2 = G_VALUE_INIT;
 
 		if ((enum_value = vips_enum_from_nick(object_class->nickname,
 				 pspec_type, g_value_get_string(value))) < 0) {

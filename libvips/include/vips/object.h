@@ -397,7 +397,7 @@ int vips_object_get_argument_priority(VipsObject *object, const char *name);
  */
 #define VIPS_ARGUMENT_COLLECT_SET(PSPEC, ARG_CLASS, AP) \
 	if ((ARG_CLASS->flags & VIPS_ARGUMENT_INPUT)) { \
-		GValue value = { 0 }; \
+		GValue value = G_VALUE_INIT; \
 		gchar *error = NULL; \
 \
 		/* Input args are given inline, eg. ("factor", 12.0) \
