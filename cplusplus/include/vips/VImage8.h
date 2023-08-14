@@ -76,7 +76,7 @@ public:
 	 * If steal is STEAL, then the new VObject takes over the reference
 	 * that you pass in.
 	 */
-	VObject(VipsObject *new_vobject, VSteal steal = STEAL)
+	explicit VObject(VipsObject *new_vobject, VSteal steal = STEAL)
 		: vobject(new_vobject)
 	{
 		// we allow NULL init, eg. "VImage a;"
@@ -235,8 +235,8 @@ private:
 			VipsBlob **vblob;
 		};
 
-		Pair(const char *name) : name(name), value(G_VALUE_INIT),
-								 input(false), vimage(0)
+		explicit Pair(const char *name) : name(name), value(G_VALUE_INIT),
+										  input(false), vimage(0)
 		{
 		}
 
@@ -407,7 +407,7 @@ public:
 	 * If steal is STEAL, then the VImage will take ownership of the
 	 * reference to the VipsImage.
 	 */
-	VImage(VipsImage *image, VSteal steal = STEAL)
+	explicit VImage(VipsImage *image, VSteal steal = STEAL)
 		: VObject((VipsObject *) image, steal)
 	{
 	}

@@ -47,7 +47,7 @@ public:
 	/**
 	 * Wrap a VSource around an underlying VipsSource object.
 	 */
-	VSource(VipsSource *input, VSteal steal = STEAL)
+	explicit VSource(VipsSource *input, VSteal steal = STEAL)
 		: VObject((VipsObject *) input, steal)
 	{
 	}
@@ -106,7 +106,7 @@ public:
 	/**
 	 * Wrap a VTarget around an underlying VipsTarget object.
 	 */
-	VTarget(VipsTarget *output, VSteal steal = STEAL)
+	explicit VTarget(VipsTarget *output, VSteal steal = STEAL)
 		: VObject((VipsObject *) output, steal)
 	{
 	}
