@@ -583,7 +583,7 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 	/* Reset out region. Otherwise there might be parts of previous pages
 	 * left.
 	 */
-	vips_region_black(or);
+	vips_region_black(out_region);
 
 	top = r->top;
 	while (top < VIPS_RECT_BOTTOM(r)) {
@@ -619,7 +619,9 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 			0, 0);
 
 		FPDF_FFLDraw(pdf->form, bitmap, pdf->page,
-			0, 0, rect.width, rect.height,
+			pdf->pages[i].left - rect.left,
+			pdf->pages[i].top - rect.top,
+			pdf->pages[i].width, pdf->pages[i].height,
 			0, 0);
 
 		FPDFBitmap_Destroy(bitmap);
