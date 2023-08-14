@@ -440,7 +440,7 @@ vips_get_tile_size(VipsImage *im,
 void
 vips__thread_init(void)
 {
-	static GPrivate private = { 0 };
+	static GPrivate private = G_PRIVATE_INIT(NULL);
 
 	is_vips_thread_key = &private;
 

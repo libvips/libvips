@@ -114,7 +114,7 @@ static GPrivate *worker_key = NULL;
 void
 vips__threadpool_init(void)
 {
-	static GPrivate private = { 0 };
+	static GPrivate private = G_PRIVATE_INIT(NULL);
 
 	/* 3 is the useful minimum, and huge values can crash the machine.
 	 */
