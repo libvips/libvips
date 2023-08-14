@@ -235,10 +235,9 @@ private:
 			VipsBlob **vblob;
 		};
 
-		Pair(const char *name) : name(name), input(false), vimage(0)
+		Pair(const char *name) : name(name), value(G_VALUE_INIT),
+								 input(false), vimage(0)
 		{
-			// argh = {0} won't work with vanilla C++
-			memset(&value, 0, sizeof(GValue));
 		}
 
 		~Pair()
