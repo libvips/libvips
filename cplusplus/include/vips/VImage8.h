@@ -249,9 +249,7 @@ private:
 	std::list<Pair *> options;
 
 public:
-	VOption()
-	{
-	}
+	VOption() = default;
 
 	virtual ~VOption();
 
