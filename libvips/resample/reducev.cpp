@@ -739,7 +739,7 @@ vips_reducev_raw(VipsReducev *reducev, VipsImage *in, int height,
 
 	*out = vips_image_new();
 	if (vips_image_pipelinev(*out,
-			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
+			VIPS_DEMAND_STYLE_THINSTRIP, in, nullptr))
 		return -1;
 
 	/* Don't change xres/yres, leave that to the application layer. For
@@ -821,7 +821,7 @@ vips_reducev_build(VipsObject *object)
 			g_info("shrinkv by %d", int_vshrink);
 			if (vips_shrinkv(in, &t[0], int_vshrink,
 					"ceil", TRUE,
-					NULL))
+					nullptr))
 				return -1;
 			in = t[0];
 
@@ -888,7 +888,7 @@ vips_reducev_build(VipsObject *object)
 			0, VIPS_CEIL(reducev->n_point / 2.0) - 1,
 			in->Xsize, in->Ysize + reducev->n_point,
 			"extend", VIPS_EXTEND_COPY,
-			(void *) NULL))
+			nullptr))
 		return -1;
 	in = t[2];
 
@@ -912,7 +912,7 @@ vips_reducev_build(VipsObject *object)
 		if (vips_sequential(in, &t[4],
 				"tile_height", 10,
 				// "trace", TRUE,
-				(void *) NULL))
+				nullptr))
 			return -1;
 		in = t[4];
 	}

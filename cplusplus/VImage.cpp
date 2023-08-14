@@ -732,7 +732,7 @@ VImage::write_to_buffer(const char *suffix, void **buf, size_t *size,
 				->set("in", *this)
 				->set("target", target));
 
-		g_object_get(target.get_target(), "blob", &blob, (void *) NULL);
+		g_object_get(target.get_target(), "blob", &blob, nullptr);
 	}
 	else if ((operation_name = vips_foreign_find_save_buffer(filename))) {
 		call_option_string(operation_name, option_string,
