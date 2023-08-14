@@ -213,8 +213,9 @@ void
 vips__heif_error( struct heif_error *error )
 {
 	if( error->code ) 
-		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
-			error->subcode );
+		vips_error( "heif", "%s (%d.%d)",
+			error->message ? error->message : "(null)",
+			error->code, error->subcode );
 }
 
 typedef struct _VipsForeignLoadHeifClass {
