@@ -999,8 +999,7 @@ operator-=(VImage &a, const std::vector<double> b)
 VImage
 operator-(const VImage a)
 {
-	a * -1;
-	return a;
+	return a * -1;
 }
 
 VImage
