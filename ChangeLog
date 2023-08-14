@@ -1,7 +1,7 @@
 TBD 8.14.4
 
 - fix null-pointer dereference during svgload [kleisauke]
-- heifsave: avoid printing NULL strings with vsnprintf [kleisauke]
+- heif{load,save}: guard against NULL strings [kleisauke]
 
 20/7/23 8.14.3
 
