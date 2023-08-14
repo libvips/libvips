@@ -1880,7 +1880,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 	VipsObjectClass *oclass;
 	GType otype;
 
-	GValue gvalue = { 0 };
+	GValue gvalue = G_VALUE_INIT;
 
 	VIPS_DEBUG_MSG("vips_object_set_argument_from_string: %s = %s\n",
 		name, value);
@@ -2174,7 +2174,7 @@ vips_object_print_arg(VipsObject *object, GParamSpec *pspec, VipsBuf *buf)
 {
 	GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
 	const char *name = g_param_spec_get_name(pspec);
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 	char *str_value;
 
 	g_value_init(&value, type);

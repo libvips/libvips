@@ -324,7 +324,7 @@ vips__foreign_nifti_map(VipsNiftiMapFn fn, void *a, void *b)
 	void *result;
 
 	for (i = 0; i < VIPS_NUMBER(vips_foreign_nifti_fields); i++) {
-		GValue value = { 0 };
+		GValue value = G_VALUE_INIT;
 
 		g_value_init(&value, vips_foreign_nifti_fields[i].type);
 		result = fn(vips_foreign_nifti_fields[i].name, &value,

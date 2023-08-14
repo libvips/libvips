@@ -115,8 +115,8 @@ vips_target_custom_read_real(VipsTarget *target, void *buffer, size_t length)
 static gint64
 vips_target_custom_seek_real(VipsTarget *target, gint64 offset, int whence)
 {
-	GValue args[3] = { { 0 } };
-	GValue result = { 0 };
+	GValue args[3] = { G_VALUE_INIT, G_VALUE_INIT, G_VALUE_INIT };
+	GValue result = G_VALUE_INIT;
 	gint64 new_position;
 
 	VIPS_DEBUG_MSG("vips_target_custom_seek_real:\n");

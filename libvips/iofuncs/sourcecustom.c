@@ -94,8 +94,8 @@ static gint64
 vips_source_custom_seek_real(VipsSource *source,
 	gint64 offset, int whence)
 {
-	GValue args[3] = { { 0 } };
-	GValue result = { 0 };
+	GValue args[3] = { G_VALUE_INIT, G_VALUE_INIT, G_VALUE_INIT };
+	GValue result = G_VALUE_INIT;
 	gint64 new_position;
 
 	VIPS_DEBUG_MSG("vips_source_custom_seek_real:\n");

@@ -671,8 +671,8 @@ set_history(VipsImage *im, char *history)
 static int
 set_meta(VipsImage *image, GType gtype, const char *name, const char *data)
 {
-	GValue save_value = { 0 };
-	GValue value = { 0 };
+	GValue save_value = G_VALUE_INIT;
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&save_value, VIPS_TYPE_SAVE_STRING);
 	vips_value_set_save_string(&save_value, data);
@@ -830,7 +830,7 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 	 */
 	if (g_value_type_transformable(type, VIPS_TYPE_SAVE_STRING) &&
 		g_value_type_transformable(VIPS_TYPE_SAVE_STRING, type)) {
-		GValue save_value = { 0 };
+		GValue save_value = G_VALUE_INIT;
 
 		g_value_init(&save_value, VIPS_TYPE_SAVE_STRING);
 		if (!g_value_transform(&meta->value, &save_value)) {
@@ -918,7 +918,7 @@ vips__xml_properties_meta(VipsImage *image,
 	 */
 	if (g_value_type_transformable(type, VIPS_TYPE_SAVE_STRING) &&
 		g_value_type_transformable(VIPS_TYPE_SAVE_STRING, type)) {
-		GValue save_value = { 0 };
+		GValue save_value = G_VALUE_INIT;
 
 		g_value_init(&save_value, VIPS_TYPE_SAVE_STRING);
 		if (!g_value_transform(value, &save_value)) {
