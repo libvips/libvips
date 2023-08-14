@@ -8,7 +8,7 @@
 #   pip install --user pyvips
 
 # Sample member declaration:
-# VImage invert(VOption *options = 0) const;
+# VImage invert(VOption *options = nullptr) const;
 
 # Sample member definition:
 # VImage
@@ -171,7 +171,7 @@ def generate_operation(operation_name, declaration_only=False, indent=''):
             spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
             result += f'{cpp_type}{spacing}*{cppize(name)}, '
 
-    result += f'VOption *options{" = 0" if declaration_only else ""})'
+    result += f'VOption *options{" = nullptr" if declaration_only else ""})'
 
     # if no 'this' available, it's a class method and they are all const
     if intro.member_x is not None:

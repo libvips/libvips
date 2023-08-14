@@ -57,7 +57,7 @@ public:
 	/**
 	 * Create a VInterpolate from a name, for example `"bicubic"`.
 	 */
-	static VInterpolate new_from_name(const char *name, VOption *options = 0);
+	static VInterpolate new_from_name(const char *name, VOption *options = nullptr);
 
 	/**
 	 * Get a pointer to the underlying VipsInterpolate object.
