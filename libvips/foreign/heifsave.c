@@ -424,11 +424,17 @@ vips_foreign_save_heif_write( struct heif_context *ctx,
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) userdata;
 
-	struct heif_error error;
+	struct heif_error error = {
+		heif_error_Ok,
+		heif_suberror_Unspecified,
+		"Success"
+	};
 
-	error.code = 0;
-	if( vips_target_write( heif->target, data, length ) )
-		error.code = -1;
+	if( vips_target_write( heif->target, data, length ) ) {
+		error.code = heif_error_Encoding_error;
+		error.subcode = heif_suberror_Cannot_write_output_data;
+		error.message = "Write error";
+	}
 
 	return( error );
 }
