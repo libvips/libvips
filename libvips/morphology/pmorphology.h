@@ -66,10 +66,10 @@ typedef struct _VipsMorphologyClass {
 GType vips_morphology_get_type(void);
 
 void vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
-	size_t sz, size_t nn128, int *restrict offsets, int *restrict coeff);
+	int sz, int nn128, int *restrict offsets, guint8 *restrict coeff);
 
 void vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
-	size_t sz, size_t nn128, int *restrict offsets, int *restrict coeff);
+	int sz, int nn128, int *restrict offsets, guint8 *restrict coeff);
 
 #ifdef __cplusplus
 }

@@ -129,7 +129,7 @@ typedef struct {
 
 	int n_point; /* w * h for our matrix */
 
-	int *coeff; /* Mask coefficients */
+	guint8 *coeff; /* Mask coefficients */
 
 #ifdef HAVE_ORC
 	/* The passes we generate for this mask.
@@ -151,7 +151,7 @@ typedef struct {
 
 	int *soff; /* Offsets we check for set */
 	int ss;	   /* ... and number we check for set */
-	int *coff; /* Offsets we check for clear */
+	guint8 *coff; /* Offsets we check for clear */
 	int cs;	   /* ... and number we check for clear */
 
 	int last_bpl; /* Avoid recalcing offsets, if we can */
@@ -225,7 +225,7 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	seq->ir = vips_region_new(in);
 
 	seq->soff = VIPS_ARRAY(out, morph->n_point, int);
-	seq->coff = VIPS_ARRAY(out, morph->n_point, int);
+	seq->coff = VIPS_ARRAY(out, morph->n_point, guint8);
 
 	if (!seq->soff ||
 		!seq->coff) {
@@ -269,14 +269,14 @@ vips_dilate_vector_gen(VipsRegion *out_region,
 
 	/* Array of non-128 mask coefficients.
 	 */
-	int *coff = seq->coff;
+	guint8 *coff = seq->coff;
 
 	VipsRect *r = &out_region->valid;
 	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y;
-	int *t;
+	guint8 *t;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
@@ -344,14 +344,14 @@ vips_erode_vector_gen(VipsRegion *out_region,
 
 	/* Array of non-128 mask coefficients.
 	 */
-	int *coff = seq->coff;
+	guint8 *coff = seq->coff;
 
 	VipsRect *r = &out_region->valid;
 	int sz = VIPS_REGION_N_ELEMENTS(out_region);
 
 	VipsRect s;
 	int x, y;
-	int *t;
+	guint8 *t;
 
 	/* Prepare the section of the input image we need. A little larger
 	 * than the section of the output image we are producing.
@@ -668,7 +668,7 @@ vips_dilate_gen(VipsRegion *out_region,
 	VipsRegion *ir = seq->ir;
 
 	int *soff = seq->soff;
-	int *coff = seq->coff;
+	guint8 *coff = seq->coff;
 
 	VipsRect *r = &out_region->valid;
 	int le = r->left;
@@ -678,7 +678,7 @@ vips_dilate_gen(VipsRegion *out_region,
 
 	VipsRect s;
 	int x, y;
-	int *t;
+	guint8 *t;
 	int result, i;
 
 	/* Prepare the section of the input image we need. A little larger
@@ -785,7 +785,7 @@ vips_erode_gen(VipsRegion *out_region,
 	VipsRegion *ir = seq->ir;
 
 	int *soff = seq->soff;
-	int *coff = seq->coff;
+	guint8 *coff = seq->coff;
 
 	VipsRect *r = &out_region->valid;
 	int le = r->left;
@@ -795,7 +795,7 @@ vips_erode_gen(VipsRegion *out_region,
 
 	VipsRect s;
 	int x, y;
-	int *t;
+	guint8 *t;
 	int result, i;
 
 	/* Prepare the section of the input image we need. A little larger
@@ -938,7 +938,7 @@ vips_morph_build(VipsObject *object)
 	M = t[4];
 
 	coeff = VIPS_MATRIX(M, 0, 0);
-	if (!(morph->coeff = VIPS_ARRAY(object, morph->n_point, int)))
+	if (!(morph->coeff = VIPS_ARRAY(object, morph->n_point, guint8)))
 		return -1;
 
 	for (i = 0; i < morph->n_point; i++) {
