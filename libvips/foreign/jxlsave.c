@@ -311,13 +311,13 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	switch (in->Type) {
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
-		jxl->info.num_color_channels = 1;
+		jxl->info.num_color_channels = VIPS_MIN(1, in->Bands);
 		break;
 
 	case VIPS_INTERPRETATION_sRGB:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_RGB16:
-		jxl->info.num_color_channels = 3;
+		jxl->info.num_color_channels = VIPS_MIN(3, in->Bands);
 		break;
 
 	default:
