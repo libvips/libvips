@@ -1433,7 +1433,6 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in->Type != VIPS_INTERPRETATION_CMYK &&
 		in->Type != VIPS_INTERPRETATION_sRGB &&
 		in->Type != VIPS_INTERPRETATION_RGB16 &&
-		in->Type != VIPS_INTERPRETATION_scRGB &&
 		vips_colourspace_issupported(in) &&
 		(saveable == VIPS_SAVEABLE_RGB ||
 			saveable == VIPS_SAVEABLE_RGBA ||
