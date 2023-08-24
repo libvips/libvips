@@ -210,17 +210,25 @@ vips_scRGB2sRGB_build(VipsObject *object)
 	case 8:
 		interpretation = VIPS_INTERPRETATION_sRGB;
 		format = VIPS_FORMAT_UCHAR;
+
+		// 8-bit RGB has a gamma, so any profile on the image can no longer
+		// work (and will cause horrible problems in any downstream colour
+		// handling)
+		if (vips_copy(in, &t[0], NULL))
+			return -1;
+		in = t[0];
+		vips_image_remove(in, VIPS_META_ICC_NAME);
+
 		break;
 
 	default:
-		vips_error(class->nickname,
-			"%s", _("depth must be 8 or 16"));
+		vips_error(class->nickname, "%s", _("depth must be 8 or 16"));
 		return -1;
 	}
 
-	if (vips_cast_float(in, &t[0], NULL))
+	if (vips_cast_float(in, &t[1], NULL))
 		return -1;
-	in = t[0];
+	in = t[1];
 
 	out = vips_image_new();
 	if (vips_image_pipelinev(out,
