@@ -179,6 +179,21 @@ cat > $WORK/lib/pkgconfig/pdfium.pc << EOF
   Cflags: -I\${includedir}
 EOF
 
+# highway
+pushd $SRC/highway
+cmake \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DBUILD_SHARED_LIBS=0 \
+  -DBUILD_TESTING=0 \
+  -DHWY_ENABLE_CONTRIB=0 \
+  -DHWY_ENABLE_EXAMPLES=0 \
+  -DHWY_ENABLE_TESTS=0 \
+  .
+make -j$(nproc)
+make install
+popd
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
