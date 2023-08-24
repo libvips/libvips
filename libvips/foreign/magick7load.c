@@ -539,7 +539,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	}
 
 	// revise the interpretation if it seems crazy
-	im->Type = vips_image_guess_interpretation(im);
+	out->Type = vips_image_guess_interpretation(out);
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
