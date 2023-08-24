@@ -534,7 +534,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		break;
 
 	default:
-		im->Type = VIPS_INTERPRETATION_ERROR;
+		out->Type = VIPS_INTERPRETATION_ERROR;
 		break;
 	}
 
