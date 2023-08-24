@@ -67,7 +67,7 @@
  * 12/11/21
  * 	- set "orientation"
  * 26/8/22
- *      - set "magick-format"
+ *  - set "magick-format"
  * 13/3/23 MathemanFlo
  * 	- add bits per sample metadata
  */
@@ -339,6 +339,7 @@ parse_header(Read *read)
 	printf("image->rows = %zd\n", image->rows);
 #endif /*DEBUG*/
 
+	im->Coding = VIPS_CODING_NONE;
 	im->Xsize = image->columns;
 	im->Ysize = image->rows;
 	read->frame_height = image->rows;
@@ -385,6 +386,25 @@ parse_header(Read *read)
 		return -1;
 	}
 
+	switch (image->units) {
+	case PixelsPerInchResolution:
+		im->Xres = image->x_resolution / 25.4;
+		im->Yres = image->y_resolution / 25.4;
+		break;
+
+	case PixelsPerCentimeterResolution:
+		im->Xres = image->x_resolution / 10.0;
+		im->Yres = image->y_resolution / 10.0;
+		break;
+
+	default:
+		im->Xres = 1.0;
+		im->Yres = 1.0;
+		break;
+	}
+
+	// this can be wrong for some GM versions and must be sanity checked (see
+	// below)
 	switch (image->colorspace) {
 	case GRAYColorspace:
 		if (im->BandFmt == VIPS_FORMAT_USHORT)
@@ -406,31 +426,12 @@ parse_header(Read *read)
 		break;
 
 	default:
-		vips_error("magick2vips", _("unsupported colorspace %d"),
-			(int) image->colorspace);
-		return -1;
-	}
-
-	switch (image->units) {
-	case PixelsPerInchResolution:
-		im->Xres = image->x_resolution / 25.4;
-		im->Yres = image->y_resolution / 25.4;
-		break;
-
-	case PixelsPerCentimeterResolution:
-		im->Xres = image->x_resolution / 10.0;
-		im->Yres = image->y_resolution / 10.0;
-		break;
-
-	default:
-		im->Xres = 1.0;
-		im->Yres = 1.0;
+		im->Type = VIPS_INTERPRETATION_ERROR;
 		break;
 	}
 
-	/* Other fields.
-	 */
-	im->Coding = VIPS_CODING_NONE;
+	// revise the interpretation if it seems crazy
+	im->Type = vips_image_guess_interpretation(im);
 
 	if (vips_image_pipelinev(im, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
