@@ -201,6 +201,14 @@ vips_scRGB2sRGB_build(VipsObject *object)
 	if (vips_check_bands_atleast(class->nickname, in, 3))
 		return -1;
 
+	// we are changing the gamma, so any profile on the image can no longer
+	// work (and will cause horrible problems in any downstream colour
+	// handling)
+	if (vips_copy(in, &t[0], NULL))
+		return -1;
+	in = t[0];
+	vips_image_remove(in, VIPS_META_ICC_NAME);
+
 	switch (scRGB2sRGB->depth) {
 	case 16:
 		interpretation = VIPS_INTERPRETATION_RGB16;
@@ -210,15 +218,6 @@ vips_scRGB2sRGB_build(VipsObject *object)
 	case 8:
 		interpretation = VIPS_INTERPRETATION_sRGB;
 		format = VIPS_FORMAT_UCHAR;
-
-		// 8-bit RGB has a gamma, so any profile on the image can no longer
-		// work (and will cause horrible problems in any downstream colour
-		// handling)
-		if (vips_copy(in, &t[0], NULL))
-			return -1;
-		in = t[0];
-		vips_image_remove(in, VIPS_META_ICC_NAME);
-
 		break;
 
 	default:
