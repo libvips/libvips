@@ -238,6 +238,26 @@ vips_format_sizeof_unsafe(VipsBandFormat format)
 	return vips__image_sizeof_bandformat[format];
 }
 
+/**
+ * vips_interpretation_max_alpha:
+ * @interpretation: image interpretation
+ *
+ * Returns: the maximum alpha value for an interpretation.
+ */
+double
+vips_interpretation_max_alpha(VipsInterpretation interpretation)
+{
+	switch (interpretation) {
+	case VIPS_INTERPRETATION_GREY16:
+	case VIPS_INTERPRETATION_RGB16:
+		return 65535.0;
+	case VIPS_INTERPRETATION_scRGB:
+		return 1.0;
+	default:
+		return 255.0;
+	}
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */
