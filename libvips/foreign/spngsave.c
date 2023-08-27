@@ -455,7 +455,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	/* Metadata.
 	 */
-	if (save->preserve) 
+	if (save->preserve)
 		if (vips_foreign_save_spng_profile(spng, in) ||
 			vips_foreign_save_spng_metadata(spng, in))
 			return -1;
