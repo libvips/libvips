@@ -512,14 +512,14 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 static int
 wtiff_embed_profile(Wtiff *wtiff, TIFF *tif)
 {
-	if (wtiff->profile &&
-		embed_profile_file(tif, wtiff->profile))
-		return -1;
-
-	if (!wtiff->profile &&
-		vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME) &&
-		embed_profile_meta(tif, wtiff->ready))
-		return -1;
+	if (wtiff->profile) {
+		if (embed_profile_file(tif, wtiff->profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME)) {
+		if (embed_profile_meta(tif, wtiff->ready))
+			return -1;
+	}
 
 	return 0;
 }
