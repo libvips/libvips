@@ -1022,15 +1022,12 @@ write_png_comment(VipsImage *image,
 static int
 vips_png_add_icc(Write *write, const void *data, size_t length)
 {
-	if (setjmp(png_jmpbuf(write->pPng))) {
-		// Silent ignore of error.
+	if (setjmp(png_jmpbuf(write->pPng)))
 		g_debug("bad ICC profile not saved");
-	}
-	else {
+	else
 		png_set_iCCP(write->pPng, write->pInfo,
 			"icc", PNG_COMPRESSION_TYPE_BASE,
 			(void *) data, length);
-	}
 
 	return 0;
 }

@@ -482,8 +482,11 @@ vips_webp_add_custom_icc(VipsForeignSaveWebp *webp, const char *profile)
 
 	const void *data = vips_blob_get(blob, &length);
 
-	if (vips_webp_add_icc(webp, data, length))
+	if (vips_webp_add_icc(webp, data, length)) {
+		vips_area_unref((VipsArea *) blob);
 		return -1;
+	}
+	vips_area_unref((VipsArea *) blob);
 
 	return 0;
 }
