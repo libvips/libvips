@@ -210,7 +210,7 @@ Check the image write operations to see all the possible options. For example:
 $ vips jpegsave
 save image to jpeg file
 usage:
-   jpegsave in filename
+   jpegsave in filename [--option-name option-value ...]
 where:
    in           - Image to save, input VipsImage
    filename     - Filename to save to, input gchararray
@@ -218,31 +218,33 @@ optional arguments:
    Q            - Q factor, input gint
 			default: 75
 			min: 1, max: 100
-   profile      - ICC profile to embed, input gchararray
+   profile      - Filename of ICC profile to embed, input gchararray
    optimize-coding - Compute optimal Huffman coding tables, input gboolean
 			default: false
    interlace    - Generate an interlaced (progressive) jpeg, input gboolean
-			default: false
-   no-subsample - Disable chroma subsample, input gboolean
 			default: false
    trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
 			default: false
    overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
 			default: false
-   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+   optimize-scans - Split spectrum of DCT coefficients into separate scans, input gboolean
 			default: false
    quant-table  - Use predefined quantization table with given index, input gint
 			default: 0
 			min: 0, max: 8
-   strip        - Strip all metadata from image, input gboolean
-			default: false
-   keep_profile - When using "strip" option, preserve original ICC profile
+   subsample-mode - Select chroma subsample operation mode, input VipsForeignSubsample
+			default: auto
+			allowed: auto, on, off
+   restart-interval - Add restart markers every specified number of mcu, input gint
+			default: 0
+			min: 0, max: 2147483647
+   preserve     - Which metadata should be preserved, input VipsForeignPreserve
    background   - Background value, input VipsArrayDouble
 ```
 
-The `strip` option is especially useful. Many image have very large IPCT, ICC or
-XMP metadata items embedded in them, and removing these can give a large
-saving. 
+The `preserve` option is especially useful. Many image have very large IPTC,
+ICC or XMP metadata items embedded in them, and removing these can give a
+large saving.
 
 For example:
 
@@ -252,10 +254,10 @@ $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
 ```
 
-`strip` almost halves the size of the thumbnail:
+`preserve=none` almost halves the size of the thumbnail:
 
 ```
-$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
+$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,preserve=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 ```
@@ -276,8 +278,8 @@ $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
 ```
 
-Now transform to sRGB and don't attach a profile (you can also use `strip`,
-though that will remove *all* metadata from the image):
+Now transform to sRGB and don't attach a profile (you can also use
+`preserve=none`, though that will remove *all* metadata from the image):
 
 ```
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
@@ -307,5 +309,5 @@ Putting all this together, I suggest this as a sensible set of options:
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \
-    -o tn_%s.jpg[optimize_coding,strip] 
+    -o tn_%s.jpg[optimize_coding,preserve=none] 
 ```

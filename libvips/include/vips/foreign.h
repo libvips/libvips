@@ -333,7 +333,7 @@ typedef enum {
 /**
  * VipsForeignPreserve:
  * @VIPS_FOREIGN_PRESERVE_NONE: don't attach metadata
- * @VIPS_FOREIGN_PRESERVE_EXIF: preserve EXIF metadata
+ * @VIPS_FOREIGN_PRESERVE_EXIF: preserve Exif metadata
  * @VIPS_FOREIGN_PRESERVE_XMP: preserve XMP metadata
  * @VIPS_FOREIGN_PRESERVE_IPTC: preserve IPTC metadata
  * @VIPS_FOREIGN_PRESERVE_ICC: preserve ICC metadata

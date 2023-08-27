@@ -112,12 +112,9 @@
  *
  * You can change metadata with vips_image_set_int() and friends.
  *
- * The savers have three general controls for metadata. Setting @strip will
- * not save any image metadata. Setting @keep_profile as well will strip
- * metadata, but retain an ICC profile, if any. Setting @profile to the
- * filename of an ICC profile will attach that file instead of any ICC profile
- * that is attached to the image. Setting @profile will automatically set
- * @keep_profile.
+ * Use @preserve to specify which metadata should be preserved, defaults to
+ * all, see #VipsForeignPreserve. Setting @profile will automatically
+ * preserve the ICC profile.
  *
  * # Many page images
  *
