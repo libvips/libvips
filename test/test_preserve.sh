@@ -26,8 +26,6 @@ preserve_none="$tmp/preserve_none"
 preserve_icc="$tmp/preserve_icc_profile"
 preserve_custom_icc="$tmp/preserve_custom_icc"
 
-savers=(jpegsave webpsave pngsave tiffsave heifsave)
-
 iccp_base64() {
   $vipsheader -f "icc-profile-data" "$1"
 }
@@ -51,7 +49,7 @@ ch_iccp() {
 [ "$(ch_iccp "$image")" -eq 0 ] && exit 2
 
 echo "$tmp"
-for saver in ${savers[@]}; do
+for saver in jpegsave webpsave pngsave tiffsave heifsave; do
   if ! test_supported $saver; then continue; fi
 
   f=${saver%"save"}
