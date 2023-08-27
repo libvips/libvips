@@ -112,9 +112,9 @@
  *
  * You can change metadata with vips_image_set_int() and friends.
  *
- * Use @preserve to specify which metadata should be preserved, defaults to
- * all, see #VipsForeignPreserve. Setting @profile will automatically
- * preserve the ICC profile.
+ * During save, you can use @preserve to specify which metadata should be
+ * preserved, defaults to all, see #VipsForeignPreserve. Setting @profile
+ * will automatically preserve the ICC profile.
  *
  * # Many page images
  *

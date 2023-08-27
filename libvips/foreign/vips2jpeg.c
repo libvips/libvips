@@ -717,10 +717,6 @@ write_vips(Write *write, int qfac, const char *profile,
 	 */
 	jpeg_start_compress(&write->cinfo, TRUE);
 
-	/* A profile supplied as an argument overrides an embedded
-	 * profile.
-	 */
-
 	/* All the other APP chunks come next.
 	 */
 	if (preserve) {
@@ -734,6 +730,9 @@ write_vips(Write *write, int qfac, const char *profile,
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
 			return -1;
 
+		/* A profile supplied as an argument overrides an embedded
+		 * profile.
+		 */
 		if (profile) {
 			if (write_profile_file(write, profile))
 				return -1;
