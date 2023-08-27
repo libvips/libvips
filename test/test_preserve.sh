@@ -36,12 +36,12 @@ same_icc() {
 
 # returns 0 if xmp-data is missing
 ch_xmp() {
-  $vipsheader -f "xmp-data" "$1" &> /dev/null && echo 1 || echo 0
+  $vipsheader -f "xmp-data" $1 > /dev/null 2>&1 && echo 1 || echo 0
 }
 
 # returns 0 if icc-profile-data is missing
 ch_iccp() {
-  $vipsheader -f "icc-profile-data" "$1" &> /dev/null && echo 1 || echo 0
+  $vipsheader -f "icc-profile-data" $1 > /dev/null 2>&1 && echo 1 || echo 0
 }
 
 # Check original image contains XMP and ICC
@@ -67,28 +67,27 @@ for saver in jpegsave webpsave pngsave tiffsave heifsave; do
   # echo "----- custom ICC profile"
   $vips $saver "$image" "$preserve_custom_icc.$f" --preserve=none --profile=$srgb
 
-  echo -en "\nCheck preserve_all.$f preserve XMP: "
+  echo -n "\nCheck preserve_all.$f preserve XMP: "
     [ $(ch_xmp "$preserve_all.$f") -eq 0 ] && echo -n "FAIL" && exit 2 || echo -n "OK"
-  echo -en "\nCheck preserve_all.$f preserve ICC: "
+  echo -n "\nCheck preserve_all.$f preserve ICC: "
     [ $(ch_iccp "$preserve_all.$f") -eq 0 ] && echo -n "FAIL" && exit 3 || echo -n "OK"
-  echo -en "\nCheck preserve_all.$f preserve original ICC: "
+  echo -n "\nCheck preserve_all.$f preserve original ICC: "
     [ $(same_icc "$preserve_all.$f" "$image") -eq 0 ] && echo -n "FAIL" && exit 4 || echo -n "OK"
 
-  echo -en "\nCheck preserve_none.$f strip XMP: "
+  echo -n "\nCheck preserve_none.$f strip XMP: "
     [ $(ch_xmp "$preserve_none.$f") -ne 0 ] && echo -n "FAIL" && exit 5 || echo -n "OK"
-  echo -en "\nCheck preserve_none.$f strip ICC: "
+  echo -n "\nCheck preserve_none.$f strip ICC: "
     [ $(ch_iccp "$preserve_none.$f") -ne 0 ] && echo -n "FAIL" && exit 6 || echo -n "OK"
 
-  echo -en "\nCheck preserve_icc_profile.$f strip XMP: "
+  echo -n "\nCheck preserve_icc_profile.$f strip XMP: "
     [ $(ch_xmp "$preserve_icc.$f") -ne 0 ] && echo -n "FAIL" && exit 7 || echo -n "OK"
-  echo -en "\nCheck preserve_icc_profile.$f preserve ICC: "
+  echo -n "\nCheck preserve_icc_profile.$f preserve ICC: "
     [ $(ch_iccp "$preserve_icc.$f") -eq 0 ] && echo -n "FAIL" && exit 8 || echo -n "OK"
-  echo -en "\nCheck preserve_icc_profile.$f preserve original ICC: "
+  echo -n "\nCheck preserve_icc_profile.$f preserve original ICC: "
     [ $(same_icc "$preserve_icc.$f" "$image") -eq 0 ] && echo -n "FAIL" && exit 9 || echo -n "OK"
 
-  echo -en "\nCheck preserve_custom_icc.$f differ from original ICC: "
-  [ $(same_icc "$preserve_custom_icc.$f" "$image") -eq 1 ] && echo -n "FAIL" && exit 10 || echo -n "OK"
+  echo -n "\nCheck preserve_custom_icc.$f differ from original ICC: "
+  [ $(same_icc "$preserve_custom_icc.$f" "$image") -eq 1 ] && echo "FAIL" && exit 10 || echo "OK"
 done
-echo -e "\n"
 
 exit 0
