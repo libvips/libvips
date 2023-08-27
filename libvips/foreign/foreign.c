@@ -1803,7 +1803,7 @@ vips_foreign_save_build(VipsObject *object)
 		const void *data;
 		size_t length;
 
-		if (!vips_image_get_blob(save->ready, VIPS_META_ICC_NAME, 
+		if (!vips_image_get_blob(save->ready, VIPS_META_ICC_NAME,
 				&data, &length) &&
 			!vips_icc_is_compatible_profile(save->ready, data, length))
 			vips_image_remove(save->ready, VIPS_META_ICC_NAME);

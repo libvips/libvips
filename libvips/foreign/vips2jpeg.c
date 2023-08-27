@@ -707,7 +707,7 @@ write_vips(Write *write, int qfac, const char *profile,
 	 */
 	write->cinfo.write_JFIF_header = FALSE;
 #ifndef HAVE_EXIF
-	if (!strip) {
+	if (preserve) {
 		vips_jfif_resolution_from_image(&write->cinfo, write->in);
 		write->cinfo.write_JFIF_header = TRUE;
 	}
