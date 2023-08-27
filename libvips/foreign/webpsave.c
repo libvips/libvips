@@ -538,6 +538,8 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
 	}
 
+	/* Metadata
+	 */
 	if (save->preserve) {
 		if (vips_webp_add_original_meta(webp))
 			return -1;

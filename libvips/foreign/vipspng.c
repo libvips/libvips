@@ -1168,8 +1168,7 @@ write_vips(Write *write,
 		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
 		PNG_RESOLUTION_METER);
 
-	/* If save called w/ "preserve" option, we need to copy all meta to new
-	 * png image.
+	/* Metadata
 	 */
 	if (preserve) {
 		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
