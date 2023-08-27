@@ -26,7 +26,7 @@ preserve_none="$tmp/preserve_none"
 preserve_icc="$tmp/preserve_icc_profile"
 preserve_custom_icc="$tmp/preserve_custom_icc"
 
-savers=(jpegsave webpsave pngsave tiffsave)
+savers=(jpegsave webpsave pngsave tiffsave heifsave)
 
 iccp_base64() {
   $vipsheader -f "icc-profile-data" "$1"
@@ -55,6 +55,9 @@ for saver in ${savers[@]}; do
   if ! test_supported $saver; then continue; fi
 
   f=${saver%"save"}
+
+  # Prefer AVIF over HEIC
+  if [ "$f" = "heif" ]; then f="avif"; fi
 
   # Create test images for format
   # echo "----- preserve all"
