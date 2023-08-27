@@ -1708,32 +1708,6 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* Some format libraries, like libpng, will throw a hard error if the
-	 * profile is inappropriate for this image type. With profiles inherited
-	 * from a source image, this can happen all the time, so we
-	 * want to silently drop the profile in this case.
-	 */
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-		const void *data;
-		size_t length;
-
-		if (!vips_image_get_blob(in, VIPS_META_ICC_NAME,
-				&data, &length) &&
-			!vips_icc_is_compatible_profile(in, data, length)) {
-			VipsImage *out;
-
-			if (vips_copy(in, &out, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-
-			vips_image_remove(in, VIPS_META_ICC_NAME);
-		}
-	}
-
 	*ready = in;
 
 	return 0;
@@ -1759,6 +1733,7 @@ static int
 vips_foreign_save_build(VipsObject *object)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
+	VipsImage *out;
 	int i;
 
 	if (save->in) {
@@ -1803,23 +1778,38 @@ vips_foreign_save_build(VipsObject *object)
 		vips_object_argument_isset(object, "profile"))
 		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
 
+	/* Removing metadata, need to copy the image.
+	 */
+	if (vips_copy(save->ready, &out, NULL)) {
+		g_object_unref(save->ready);
+		return -1;
+	}
+	g_object_unref(save->ready);
+	save->ready = out;
+
 	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
 		VipsForeignPreserve flag = vips__preserve_names[i].flag;
 		const char *name = vips__preserve_names[i].name;
 
 		if ((save->preserve & flag) == 0 &&
-			vips_image_get_typeof(save->ready, name)) {
-			VipsImage *out;
+			vips_image_get_typeof(save->ready, name))
+			vips_image_remove(save->ready, name);
+	}
 
-			if (vips_copy(save->ready, &out, NULL)) {
-				g_object_unref(save->ready);
-				return -1;
-			}
-			g_object_unref(save->ready);
+	/* Some format libraries, like libpng, will throw a hard error if the
+	 * profile is inappropriate for this image type. With profiles inherited
+	 * from a source image, this can happen all the time, so we
+	 * want to silently drop the profile in this case.
+	 */
+	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) &&
+		vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME)) {
+		const void *data;
+		size_t length;
 
-			vips_image_remove(out, name);
-			save->ready = out;
-		}
+		if (!vips_image_get_blob(save->ready, VIPS_META_ICC_NAME, 
+				&data, &length) &&
+			!vips_icc_is_compatible_profile(save->ready, data, length))
+			vips_image_remove(save->ready, VIPS_META_ICC_NAME);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
