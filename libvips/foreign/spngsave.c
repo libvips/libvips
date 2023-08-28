@@ -178,6 +178,9 @@ vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	struct spng_iccp iccp;
 
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
 	if (save->profile) {
 		VipsBlob *blob;
 
@@ -251,19 +254,20 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		g_free(str);
 	}
 
-	if (vips__exif_update(in) ||
-		vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-			(const void **) &exif.data, &exif.length))
-		return -1;
+	if (vips_image_get_typeof(in, VIPS_META_EXIF_NAME)) {
+		if (vips_image_get_blob(in, VIPS_META_EXIF_NAME,
+				(const void **) &exif.data, &exif.length))
+			return -1;
 
-	/* libspng does not want the JFIF "Exif\0\0" prefix.
-	 */
-	if (exif.length >= 6 &&
-		vips_isprefix("Exif", exif.data)) {
-		exif.data += 6;
-		exif.length -= 6;
+		/* libspng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if (exif.length >= 6 &&
+			vips_isprefix("Exif", exif.data)) {
+			exif.data += 6;
+			exif.length -= 6;
+		}
+		spng_set_exif(spng->ctx, &exif);
 	}
-	spng_set_exif(spng->ctx, &exif);
 
 	if (vips_image_map(in, vips_foreign_save_spng_comment, spng))
 		return -1;
@@ -377,7 +381,6 @@ vips_foreign_save_spng_write_block(VipsRegion *region, VipsRect *area,
 static int
 vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 {
-	VipsForeignSave *save = (VipsForeignSave *) spng;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(spng);
 
 	int error;
@@ -455,10 +458,9 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	/* Metadata.
 	 */
-	if (save->preserve)
-		if (vips_foreign_save_spng_profile(spng, in) ||
-			vips_foreign_save_spng_metadata(spng, in))
-			return -1;
+	if (vips_foreign_save_spng_profile(spng, in) ||
+		vips_foreign_save_spng_metadata(spng, in))
+		return -1;
 
 #ifdef HAVE_QUANTIZATION
 	if (spng->palette) {

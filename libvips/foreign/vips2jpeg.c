@@ -217,7 +217,6 @@ write_destroy(Write *write)
 	jpeg_destroy_compress(&write->cinfo);
 	VIPS_FREE(write->row_pointer);
 	VIPS_UNREF(write->inverted);
-	VIPS_UNREF(write->in);
 
 	g_free(write);
 }
@@ -230,7 +229,7 @@ write_new(VipsImage *in)
 	if (!(write = g_new0(Write, 1)))
 		return NULL;
 
-	write->in = NULL;
+	write->in = in;
 	write->row_pointer = NULL;
 	write->cinfo.err = jpeg_std_error(&write->eman.pub);
 	write->cinfo.dest = NULL;
@@ -238,14 +237,6 @@ write_new(VipsImage *in)
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->inverted = NULL;
-
-	/* Make a copy of the input image since we may modify it with
-	 * vips__exif_update() etc.
-	 */
-	if (vips_copy(in, &write->in, NULL)) {
-		write_destroy(write);
-		return NULL;
-	}
 
 	return write;
 }
@@ -536,7 +527,7 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 static int
 write_vips(Write *write, int qfac, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	VipsForeignPreserve preserve, gboolean trellis_quant,
+	gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -702,15 +693,13 @@ write_vips(Write *write, int qfac, const char *profile,
 		}
 	}
 
-	/* Only write the JFIF headers if we are not stripping and we have no
-	 * EXIF. Some readers get confused if you set both.
+	/* Only write the JFIF headers if we have no EXIF.
+	 * Some readers get confused if you set both.
 	 */
 	write->cinfo.write_JFIF_header = FALSE;
 #ifndef HAVE_EXIF
-	if (preserve) {
-		vips_jfif_resolution_from_image(&write->cinfo, write->in);
-		write->cinfo.write_JFIF_header = TRUE;
-	}
+	vips_jfif_resolution_from_image(&write->cinfo, write->in);
+	write->cinfo.write_JFIF_header = TRUE;
 #endif /*HAVE_EXIF*/
 
 	/* Write app0 and build compress tables.
@@ -719,28 +708,22 @@ write_vips(Write *write, int qfac, const char *profile,
 
 	/* All the other APP chunks come next.
 	 */
-	if (preserve) {
-		/* We need to rebuild the exif data block from any exif tags
-		 * on the image.
-		 */
-		if (vips__exif_update(write->in) ||
-			write_exif(write) ||
-			write_xmp(write) ||
-			write_blob(write,
-				VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
-			return -1;
+	if (write_exif(write) ||
+		write_xmp(write) ||
+		write_blob(write,
+			VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
+		return -1;
 
-		/* A profile supplied as an argument overrides an embedded
-		 * profile.
-		 */
-		if (profile) {
-			if (write_profile_file(write, profile))
-				return -1;
-		}
-		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-			if (write_profile_meta(write))
-				return -1;
-		}
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (profile) {
+		if (write_profile_file(write, profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		if (write_profile_meta(write))
+			return -1;
 	}
 
 	/* Write data. Note that the write function grabs the longjmp()!
@@ -848,7 +831,7 @@ int
 vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	VipsForeignPreserve preserve, gboolean trellis_quant,
+	gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -876,7 +859,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips(write,
-			Q, profile, optimize_coding, progressive, preserve,
+			Q, profile, optimize_coding, progressive,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);

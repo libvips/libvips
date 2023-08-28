@@ -351,7 +351,6 @@ struct _Wtiff {
 	int resunit;					/* Resolution unit (inches or cm) */
 	double xres;					/* Resolution in X */
 	double yres;					/* Resolution in Y */
-	VipsForeignPreserve preserve;	/* Metadata preservation */
 	const char *profile;			/* Profile to embed */
 	int bigtiff;					/* True for bigtiff write */
 	int rgbjpeg;					/* True for RGB not YCbCr */
@@ -512,6 +511,9 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 static int
 wtiff_embed_profile(Wtiff *wtiff, TIFF *tif)
 {
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
 	if (wtiff->profile) {
 		if (embed_profile_file(tif, wtiff->profile))
 			return -1;
@@ -687,13 +689,12 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	TIFFSetField(tif, TIFFTAG_YRESOLUTION,
 		VIPS_FCLIP(0.01, wtiff->yres, 1000000));
 
-	if (wtiff->preserve)
-		if (wtiff_embed_xmp(wtiff, tif) ||
-			wtiff_embed_iptc(wtiff, tif) ||
-			wtiff_embed_photoshop(wtiff, tif) ||
-			wtiff_embed_imagedescription(wtiff, tif) ||
-			wtiff_embed_profile(wtiff, tif))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, tif) ||
+		wtiff_embed_iptc(wtiff, tif) ||
+		wtiff_embed_photoshop(wtiff, tif) ||
+		wtiff_embed_imagedescription(wtiff, tif) ||
+		wtiff_embed_profile(wtiff, tif))
+		return -1;
 
 	if (vips_image_get_typeof(wtiff->ready, VIPS_META_ORIENTATION) &&
 		!vips_image_get_int(wtiff->ready,
@@ -1074,7 +1075,6 @@ static Wtiff *
 wtiff_new(VipsImage *input, VipsTarget *target,
 	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
-	VipsForeignPreserve preserve,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
@@ -1113,7 +1113,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->resunit = get_resunit(resunit);
 	wtiff->xres = xres;
 	wtiff->yres = yres;
-	wtiff->preserve = preserve;
 	wtiff->profile = profile;
 	wtiff->bigtiff = bigtiff;
 	wtiff->rgbjpeg = rgbjpeg;
@@ -2019,13 +2018,12 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
-	if (wtiff->preserve)
-		if (wtiff_embed_xmp(wtiff, out) ||
-			wtiff_embed_iptc(wtiff, out) ||
-			wtiff_embed_photoshop(wtiff, out) ||
-			wtiff_embed_imagedescription(wtiff, out) ||
-			wtiff_embed_profile(wtiff, out))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, out) ||
+		wtiff_embed_iptc(wtiff, out) ||
+		wtiff_embed_photoshop(wtiff, out) ||
+		wtiff_embed_imagedescription(wtiff, out) ||
+		wtiff_embed_profile(wtiff, out))
+		return -1;
 
 	if (wtiff_copy_tiles(wtiff, out, in))
 		return -1;
@@ -2241,7 +2239,6 @@ int
 vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
-	VipsForeignPreserve preserve,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
@@ -2264,7 +2261,7 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 	vips__tiff_init();
 
 	if (!(wtiff = wtiff_new(input, target,
-			  compression, Q, predictor, preserve, profile,
+			  compression, Q, predictor, profile,
 			  tile, tile_width, tile_height, pyramid, bitdepth,
 			  miniswhite, resunit, xres, yres, bigtiff, rgbjpeg,
 			  properties, region_shrink, level, lossless, depth,

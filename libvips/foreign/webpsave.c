@@ -101,7 +101,6 @@ typedef struct _VipsForeignSaveWebp {
 	 * for animated WebP write.
 	 */
 	VipsForeignSaveWebpMode mode;
-	VipsImage *image;
 
 	int timestamp_ms;
 
@@ -211,7 +210,6 @@ vips_foreign_save_webp_unset(VipsForeignSaveWebp *write)
 	WebPMemoryWriterClear(&write->memory_writer);
 	VIPS_FREEF(WebPAnimEncoderDelete, write->enc);
 	VIPS_FREEF(WebPMuxDelete, write->mux);
-	VIPS_UNREF(write->image);
 }
 
 static void
@@ -256,22 +254,24 @@ static int
 vips_foreign_save_webp_write_webp_image(VipsForeignSaveWebp *write,
 	const VipsPel *imagedata, WebPPicture *pic)
 {
+	VipsForeignSave *save = (VipsForeignSave *) write;
+
 	webp_import import;
-	int page_height = vips_image_get_page_height(write->image);
+	int page_height = vips_image_get_page_height(save->ready);
 
 	if (!vips_foreign_save_webp_pic_init(write, pic))
 		return -1;
 
-	pic->width = write->image->Xsize;
+	pic->width = save->ready->Xsize;
 	pic->height = page_height;
 
-	if (write->image->Bands == 4)
+	if (save->ready->Bands == 4)
 		import = WebPPictureImportRGBA;
 	else
 		import = WebPPictureImportRGB;
 
 	if (!import(pic, imagedata,
-			write->image->Xsize * write->image->Bands)) {
+			save->ready->Xsize * save->ready->Bands)) {
 		WebPPictureFree(pic);
 		vips_error("webpsave", "%s", _("picture memory error"));
 		return -1;
@@ -332,17 +332,18 @@ vips_foreign_save_webp_write_frame(VipsForeignSaveWebp *webp)
 static int
 vips_foreign_save_webp_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 {
+	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) a;
 	int i;
-	int page_height = vips_image_get_page_height(webp->image);
+	int page_height = vips_image_get_page_height(save->ready);
 
 	/* Write the new pixels into the frame.
 	 */
 	for (i = 0; i < area->height; i++) {
 		memcpy(webp->frame_bytes +
-				area->width * webp->write_y * webp->image->Bands,
+				area->width * webp->write_y * save->ready->Bands,
 			VIPS_REGION_ADDR(region, 0, area->top + i),
-			area->width * webp->image->Bands);
+			area->width * save->ready->Bands);
 
 		webp->write_y += 1;
 
@@ -425,10 +426,7 @@ vips_webp_set_chunk(VipsForeignSaveWebp *write,
 static int
 vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 {
-	/* Rebuild exif from tags, if we'll be saving it.
-	 */
-	if (vips__exif_update(write->image))
-		return -1;
+	VipsForeignSave *save = (VipsForeignSave *) write;
 
 	for (int i = 0; i < vips__n_webp_names; i++) {
 		const char *vips_name = vips__webp_names[i].vips;
@@ -437,11 +435,11 @@ vips_webp_add_original_meta(VipsForeignSaveWebp *write)
 		if (strcmp(vips_name, VIPS_META_ICC_NAME) == 0)
 			continue;
 
-		if (vips_image_get_typeof(write->image, vips_name)) {
+		if (vips_image_get_typeof(save->ready, vips_name)) {
 			const void *data;
 			size_t length;
 
-			if (vips_image_get_blob(write->image, vips_name, &data, &length) ||
+			if (vips_image_get_blob(save->ready, vips_name, &data, &length) ||
 				vips_webp_set_chunk(write, webp_name, data, length))
 				return -1;
 		}
@@ -494,10 +492,12 @@ vips_webp_add_custom_icc(VipsForeignSaveWebp *webp, const char *profile)
 static int
 vips_webp_add_original_icc(VipsForeignSaveWebp *webp)
 {
+	VipsForeignSave *save = (VipsForeignSave *) webp;
+
 	const void *data;
 	size_t length;
 
-	if (vips_image_get_blob(webp->image, VIPS_META_ICC_NAME, &data, &length))
+	if (vips_image_get_blob(save->ready, VIPS_META_ICC_NAME, &data, &length))
 		return -1;
 
 	vips_webp_add_icc(webp, data, length);
@@ -522,20 +522,20 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		return -1;
 	}
 
-	if (vips_image_get_typeof(webp->image, "loop")) {
+	if (vips_image_get_typeof(save->ready, "loop")) {
 		int loop;
 
-		if (vips_image_get_int(webp->image, "loop", &loop))
+		if (vips_image_get_int(save->ready, "loop", &loop))
 			return -1;
 
 		vips_webp_set_count(webp, loop);
 	}
-	else if (vips_image_get_typeof(webp->image, "gif-loop")) {
+	else if (vips_image_get_typeof(save->ready, "gif-loop")) {
 		/* DEPRECATED "gif-loop"
 		 */
 		int gif_loop;
 
-		if (vips_image_get_int(webp->image, "gif-loop", &gif_loop))
+		if (vips_image_get_int(save->ready, "gif-loop", &gif_loop))
 			return -1;
 
 		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
@@ -543,18 +543,19 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 
 	/* Metadata
 	 */
-	if (save->preserve) {
-		if (vips_webp_add_original_meta(webp))
-			return -1;
+	if (vips_webp_add_original_meta(webp))
+		return -1;
 
-		if (save->profile) {
-			if (vips_webp_add_custom_icc(webp, save->profile))
-				return -1;
-		}
-		else if (vips_image_get_typeof(webp->image, VIPS_META_ICC_NAME)) {
-			if (vips_webp_add_original_icc(webp))
-				return -1;
-		}
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (save->profile) {
+		if (vips_webp_add_custom_icc(webp, save->profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME)) {
+		if (vips_webp_add_original_icc(webp))
+			return -1;
 	}
 
 	if (WebPMuxAssemble(webp->mux, &data) != WEBP_MUX_OK) {
@@ -619,9 +620,11 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 static int
 vips_foreign_save_webp_init_anim_enc(VipsForeignSaveWebp *webp)
 {
+	VipsForeignSave *save = (VipsForeignSave *) webp;
+
 	WebPAnimEncoderOptions anim_config;
 	int i;
-	int page_height = vips_image_get_page_height(webp->image);
+	int page_height = vips_image_get_page_height(save->ready);
 
 	/* Init config for animated write
 	 */
@@ -635,7 +638,7 @@ vips_foreign_save_webp_init_anim_enc(VipsForeignSaveWebp *webp)
 	anim_config.allow_mixed = webp->mixed;
 	anim_config.kmin = webp->kmin;
 	anim_config.kmax = webp->kmax;
-	webp->enc = WebPAnimEncoderNew(webp->image->Xsize, page_height,
+	webp->enc = WebPAnimEncoderNew(save->ready->Xsize, page_height,
 		&anim_config);
 	if (!webp->enc) {
 		vips_error("webpsave",
@@ -648,16 +651,16 @@ vips_foreign_save_webp_init_anim_enc(VipsForeignSaveWebp *webp)
 	 * There might just be the old gif-delay field. This is centiseconds.
 	 */
 	webp->gif_delay = 10;
-	if (vips_image_get_typeof(webp->image, "gif-delay") &&
-		vips_image_get_int(webp->image, "gif-delay",
+	if (vips_image_get_typeof(save->ready, "gif-delay") &&
+		vips_image_get_int(save->ready, "gif-delay",
 			&webp->gif_delay))
 		return -1;
 
 	/* New images have an array of ints instead.
 	 */
 	webp->delay = NULL;
-	if (vips_image_get_typeof(webp->image, "delay") &&
-		vips_image_get_array_int(webp->image, "delay",
+	if (vips_image_get_typeof(save->ready, "delay") &&
+		vips_image_get_array_int(save->ready, "delay",
 			&webp->delay, &webp->delay_length))
 		return -1;
 
@@ -727,18 +730,10 @@ vips_foreign_save_webp_build(VipsObject *object)
 		return -1;
 	}
 
-	/* We need a copy of the input image in case we change the metadata
-	 * eg. in vips__exif_update().
-	 */
-	if (vips_copy(save->ready, &webp->image, NULL)) {
-		vips_foreign_save_webp_unset(webp);
-		return -1;
-	}
-
 	/* RGB(A) frame as a contiguous buffer.
 	 */
 	size_t frame_size =
-		(size_t) webp->image->Bands * webp->image->Xsize * page_height;
+		(size_t) save->ready->Bands * save->ready->Xsize * page_height;
 	webp->frame_bytes = g_try_malloc(frame_size);
 	if (webp->frame_bytes == NULL) {
 		vips_error("webpsave",
@@ -755,7 +750,7 @@ vips_foreign_save_webp_build(VipsObject *object)
 	/* Determine the write mode (single image or animated write)
 	 */
 	webp->mode = VIPS_FOREIGN_SAVE_WEBP_MODE_SINGLE;
-	if (page_height != webp->image->Ysize)
+	if (page_height != save->ready->Ysize)
 		webp->mode = VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM;
 
 	/* Init config for animated write (if necessary)
@@ -764,7 +759,7 @@ vips_foreign_save_webp_build(VipsObject *object)
 		if (vips_foreign_save_webp_init_anim_enc(webp))
 			return -1;
 
-	if (vips_sink_disc(webp->image,
+	if (vips_sink_disc(save->ready,
 			vips_foreign_save_webp_sink_disc, webp))
 		return -1;
 

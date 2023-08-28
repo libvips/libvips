@@ -1070,7 +1070,7 @@ static int
 write_vips(Write *write,
 	int compress, int interlace,
 	const char *profile, VipsForeignPngFilter filter,
-	VipsForeignPreserve preserve, gboolean palette,
+	gboolean palette,
 	int Q, double dither,
 	int bitdepth, int effort)
 {
@@ -1167,60 +1167,60 @@ write_vips(Write *write,
 
 	/* Metadata
 	 */
-	if (preserve) {
-		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
-			const void *data;
-			size_t length;
-			char *str;
+	if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
+		const void *data;
+		size_t length;
+		char *str;
 
-			/* XMP is attached as a BLOB with no null-termination.
-			 * We must re-add this.
-			 */
-			if (vips_image_get_blob(in,
-					VIPS_META_XMP_NAME, &data, &length))
-				return -1;
-
-			str = g_malloc(length + 1);
-			vips_strncpy(str, data, length + 1);
-			vips__png_set_text(write->pPng, write->pInfo,
-				"XML:com.adobe.xmp", str);
-			g_free(str);
-		}
-
-#ifdef PNG_eXIf_SUPPORTED
-		{
-			const void *data;
-			size_t length;
-
-			if (vips__exif_update(in) ||
-				vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-					&data, &length))
-				return -1;
-
-			/* libpng does not want the JFIF "Exif\0\0" prefix.
-			 */
-			if (length >= 6 &&
-				vips_isprefix("Exif", (char *) data)) {
-				data = (char *) data + 6;
-				length -= 6;
-			}
-
-			png_set_eXIf_1(write->pPng, write->pInfo,
-				length, (png_bytep) data);
-		}
-#endif /*PNG_eXIf_SUPPORTED*/
-
-		if (vips_image_map(in, write_png_comment, write))
+		/* XMP is attached as a BLOB with no null-termination.
+		 * We must re-add this.
+		 */
+		if (vips_image_get_blob(in,
+				VIPS_META_XMP_NAME, &data, &length))
 			return -1;
 
-		if (profile) {
-			if (vips_png_add_custom_icc(write, profile))
-				return -1;
+		str = g_malloc(length + 1);
+		vips_strncpy(str, data, length + 1);
+		vips__png_set_text(write->pPng, write->pInfo,
+			"XML:com.adobe.xmp", str);
+		g_free(str);
+	}
+
+#ifdef PNG_eXIf_SUPPORTED
+	if (vips_image_get_typeof(in, VIPS_META_EXIF_NAME)) {
+		const void *data;
+		size_t length;
+
+		if (vips_image_get_blob(in, VIPS_META_EXIF_NAME,
+				&data, &length))
+			return -1;
+
+		/* libpng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if (length >= 6 &&
+			vips_isprefix("Exif", (char *) data)) {
+			data = (char *) data + 6;
+			length -= 6;
 		}
-		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-			if (vips_png_add_original_icc(write))
-				return -1;
-		}
+
+		png_set_eXIf_1(write->pPng, write->pInfo,
+			length, (png_bytep) data);
+	}
+#endif /*PNG_eXIf_SUPPORTED*/
+
+	if (vips_image_map(in, write_png_comment, write))
+		return -1;
+
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (profile) {
+		if (vips_png_add_custom_icc(write, profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		if (vips_png_add_original_icc(write))
+			return -1;
 	}
 
 	// the profile writers grab the setjmp, restore it
@@ -1330,7 +1330,7 @@ int
 vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter,
-	VipsForeignPreserve preserve, gboolean palette,
+	gboolean palette,
 	int Q, double dither,
 	int bitdepth, int effort)
 {
@@ -1340,7 +1340,7 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 		return -1;
 
 	if (write_vips(write,
-			compression, interlace, profile, filter, preserve, palette,
+			compression, interlace, profile, filter, palette,
 			Q, dither, bitdepth, effort)) {
 		write_destroy(write);
 		vips_error("vips2png", _("unable to write to target %s"),

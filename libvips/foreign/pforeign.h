@@ -53,7 +53,6 @@ void vips__tiff_init(void);
 int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
 	VipsForeignTiffCompression compression, int Q,
 	VipsForeignTiffPredictor predictor,
-	VipsForeignPreserve preserve,
 	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
@@ -147,7 +146,7 @@ extern const char *vips__jpeg_suffs[];
 int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	VipsForeignPreserve preserve, gboolean trellis_quant,
+	gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval);
@@ -167,7 +166,7 @@ extern const char *vips__png_suffs[];
 
 int vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, VipsForeignPreserve preserve,
+	VipsForeignPngFilter filter,
 	gboolean palette, int Q, double dither,
 	int bitdepth, int effort);
 

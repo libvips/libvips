@@ -1721,10 +1721,21 @@ const VipsForeignPreserveNames vips__preserve_names[] = {
 	{ VIPS_FOREIGN_PRESERVE_EXIF, VIPS_META_EXIF_NAME },
 	{ VIPS_FOREIGN_PRESERVE_XMP, VIPS_META_XMP_NAME },
 	{ VIPS_FOREIGN_PRESERVE_IPTC, VIPS_META_IPTC_NAME },
-	{ VIPS_FOREIGN_PRESERVE_ICC, VIPS_META_ICC_NAME },
-	{ VIPS_FOREIGN_PRESERVE_PHOTOSHOP, VIPS_META_PHOTOSHOP_NAME },
-	{ VIPS_FOREIGN_PRESERVE_IMAGEDESCRIPTION, VIPS_META_IMAGEDESCRIPTION }
+	{ VIPS_FOREIGN_PRESERVE_ICC, VIPS_META_ICC_NAME }
 };
+
+static void *
+vips_foreign_save_remove_other(VipsImage *image,
+	const char *field, GValue *value, void *user_data)
+{
+	if (vips_isprefix("png-comment-", field) ||
+		strcmp(field, VIPS_META_PHOTOSHOP_NAME) == 0 ||
+		strcmp(field, VIPS_META_IMAGEDESCRIPTION) == 0)
+		if (!vips_image_remove(image, field))
+			return image;
+
+	return NULL;
+}
 
 static int
 vips_foreign_save_build(VipsObject *object)
@@ -1789,9 +1800,20 @@ vips_foreign_save_build(VipsObject *object)
 		const char *name = vips__preserve_names[i].name;
 
 		if ((save->preserve & flag) == 0 &&
-			vips_image_get_typeof(save->ready, name))
-			vips_image_remove(save->ready, name);
+			vips_image_get_typeof(save->ready, name)) {
+			if (!vips_image_remove(save->ready, name))
+				return -1;
+		}
+		else if (flag == VIPS_FOREIGN_PRESERVE_EXIF)
+			/* Rebuild exif from tags, if we'll be saving it.
+			 */
+			if (vips__exif_update(save->ready))
+				return -1;
 	}
+
+	if ((save->preserve & VIPS_FOREIGN_PRESERVE_OTHER) == 0 &&
+		vips_image_map(save->ready, vips_foreign_save_remove_other, NULL))
+		return -1;
 
 	/* Some format libraries, like libpng, will throw a hard error if the
 	 * profile is inappropriate for this image type. With profiles inherited
@@ -1805,8 +1827,9 @@ vips_foreign_save_build(VipsObject *object)
 
 		if (!vips_image_get_blob(save->ready, VIPS_META_ICC_NAME,
 				&data, &length) &&
-			!vips_icc_is_compatible_profile(save->ready, data, length))
-			vips_image_remove(save->ready, VIPS_META_ICC_NAME);
+			!vips_icc_is_compatible_profile(save->ready, data, length) &&
+			!vips_image_remove(save->ready, VIPS_META_ICC_NAME))
+			return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
