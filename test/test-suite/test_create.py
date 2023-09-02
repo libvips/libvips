@@ -403,7 +403,8 @@ class TestCreate:
     @pytest.mark.skipif(pyvips.type_find("VipsOperation", "text") == 0,
                         reason="no text, skipping test")
     def test_text(self):
-        im = pyvips.Image.text("Hello, world!")
+        # high DPI to make sure we have some solid white pixels with all fonts
+        im = pyvips.Image.text("Hello, world!", dpi=300)
         assert im.width > 10
         assert im.height > 10
         assert im.bands == 1
