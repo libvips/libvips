@@ -215,7 +215,7 @@ vips_foreign_save_nifti_set_fields(const char *name,
 	 */
 	if (info->n >= 8) {
 		char vips_name[256];
-		GValue value_copy = { 0 };
+		GValue value_copy = G_VALUE_INIT;
 
 		vips_snprintf(vips_name, 256, "nifti-%s", name);
 		if (vips_image_get(info->image, vips_name, &value_copy))

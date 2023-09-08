@@ -456,6 +456,7 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 
 	/* Ysize updated below once we have worked out how many frames to load.
 	 */
+	out->Coding = VIPS_CODING_NONE;
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
 	magick7->frame_height = image->rows;
@@ -491,33 +492,6 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		return -1;
 	}
 
-	switch (image->colorspace) {
-	case GRAYColorspace:
-		if (out->BandFmt == VIPS_FORMAT_USHORT)
-			out->Type = VIPS_INTERPRETATION_GREY16;
-		else
-			out->Type = VIPS_INTERPRETATION_B_W;
-		break;
-
-	case sRGBColorspace:
-	case RGBColorspace:
-		if (out->BandFmt == VIPS_FORMAT_USHORT)
-			out->Type = VIPS_INTERPRETATION_RGB16;
-		else
-			out->Type = VIPS_INTERPRETATION_sRGB;
-		break;
-
-	case CMYKColorspace:
-		out->Type = VIPS_INTERPRETATION_CMYK;
-		break;
-
-	default:
-		vips_error(class->nickname,
-			_("unsupported colorspace %s"),
-			magick_ColorspaceType2str(image->colorspace));
-		return -1;
-	}
-
 	switch (image->units) {
 	case PixelsPerInchResolution:
 		out->Xres = image->resolution.x / 25.4;
@@ -539,9 +513,33 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 		break;
 	}
 
-	/* Other fields.
-	 */
-	out->Coding = VIPS_CODING_NONE;
+	switch (image->colorspace) {
+	case GRAYColorspace:
+		if (out->BandFmt == VIPS_FORMAT_USHORT)
+			out->Type = VIPS_INTERPRETATION_GREY16;
+		else
+			out->Type = VIPS_INTERPRETATION_B_W;
+		break;
+
+	case sRGBColorspace:
+	case RGBColorspace:
+		if (out->BandFmt == VIPS_FORMAT_USHORT)
+			out->Type = VIPS_INTERPRETATION_RGB16;
+		else
+			out->Type = VIPS_INTERPRETATION_sRGB;
+		break;
+
+	case CMYKColorspace:
+		out->Type = VIPS_INTERPRETATION_CMYK;
+		break;
+
+	default:
+		out->Type = VIPS_INTERPRETATION_ERROR;
+		break;
+	}
+
+	// revise the interpretation if it seems crazy
+	out->Type = vips_image_guess_interpretation(out);
 
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
