@@ -96,6 +96,8 @@
  *	- add .szi as a registered suffix
  * 9/5/22
  *	- add dzsave_target
+ * 8/9/23
+ *	- add direct mode
  */
 
 /*
@@ -133,32 +135,32 @@
    exactly align with image edges, or which have orphan scanlines which need
    adding for the shrink.
 
-   1.	$ header test.v
-	test.v: 14016x16448 uchar, 3 bands, srgb, openin VipsImage (0x11e7060)
-	$ time vips dzsave test.v x --overlap 0
+	1.	$ header test.v
+		test.v: 14016x16448 uchar, 3 bands, srgb, openin VipsImage (0x11e7060)
+		$ time vips dzsave test.v x --overlap 0
 
-	Not all levels written.
+		Not all levels written.
 
-   2.	$ header ~/Desktop/leicaimage.scn
-	/home/john/Desktop/leicaimage.scn: 4225x7905 uchar, 4 bands, rgb
+	2.	$ header ~/Desktop/leicaimage.scn
+		/home/john/Desktop/leicaimage.scn: 4225x7905 uchar, 4 bands, rgb
 
-	Not all levels written.
+		Not all levels written.
 
 	3.	$ header ~/leicatest1.scn
-	/home/john/leicatest1.scn: 11585x8449 uchar, 4 bands, rgb
+		/home/john/leicatest1.scn: 11585x8449 uchar, 4 bands, rgb
 
-	Not all levels written.
+		Not all levels written.
 
-   various combinations of odd and even tile-size and overlap need testing too.
+	various combinations of odd and even tile-size and overlap need testing too.
 
 	Overlap handling
 
-   For deepzoom, tile-size == 254 and overlap == 1 means that edge tiles are
-   255 x 255 (though less at the bottom right) and non-edge tiles are 256 x
-   256. Tiles are positioned across the image in tile-size steps. This means
-   (confusingly) that two adjoining tiles will have two pixels in common.
+	For deepzoom, tile-size == 254 and overlap == 1 means that edge tiles are
+	255 x 255 (though less at the bottom right) and non-edge tiles are 256 x
+	256. Tiles are positioned across the image in tile-size steps. This means
+	(confusingly) that two adjoining tiles will have two pixels in common.
 
-   This has caused bugs in the past.
+	This has caused bugs in the past.
 
  */
 
@@ -184,33 +186,6 @@
 #include "pforeign.h"
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive.h>
-#include <archive_entry.h>
-
-static GMutex *vips_libarchive_mutex = NULL;
-
-static ssize_t
-zip_write_target_cb(struct archive *a, void *client_data,
-	const void *data, size_t length)
-{
-	VipsTarget *target = VIPS_TARGET(client_data);
-
-	if (vips_target_write(target, data, length))
-		return -1;
-
-	return length;
-}
-
-static int
-zip_close_target_cb(struct archive *a, void *client_data)
-{
-	VipsTarget *target = VIPS_TARGET(client_data);
-
-	if (vips_target_end(target))
-		return ARCHIVE_FATAL;
-
-	return ARCHIVE_OK;
-}
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Level Level;
@@ -329,9 +304,9 @@ struct _VipsForeignSaveDz {
 	 */
 	int tile_count;
 
-	/* The zipfile we are writing tiles to.
+	/* Where we write ... can be the filesystem, or a zip.
 	 */
-	struct archive *archive;
+	VipsArchive *archive;
 
 	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
 	 * No suffix, no path at the start.
@@ -378,126 +353,6 @@ iszip(VipsForeignDzContainer container)
 	}
 }
 
-static inline int
-vips_mkdir_zip(VipsForeignSaveDz *dz, const char *dirname)
-{
-	struct archive_entry *entry;
-
-	vips__worker_lock(vips_libarchive_mutex);
-
-	if (!(entry = archive_entry_new())) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_set_pathname(entry, dirname);
-	archive_entry_set_mode(entry, S_IFDIR | 0755);
-
-	if (archive_write_header(dz->archive, entry) != ARCHIVE_OK) {
-		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave", _("unable to add directory \"%s\", %s"),
-			utf8name, archive_error_string(dz->archive));
-		g_free(utf8name);
-		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_free(entry);
-	g_mutex_unlock(vips_libarchive_mutex);
-
-	return 0;
-}
-
-static inline int
-vips_mkdir_file(const char *dirname)
-{
-	if (g_mkdir_with_parents(dirname, 0777) &&
-		errno != EEXIST) {
-		int save_errno = errno;
-		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave", _("unable to create directory \"%s\", %s"),
-			utf8name, g_strerror(save_errno));
-		g_free(utf8name);
-		return -1;
-	}
-
-	return 0;
-}
-
-static int
-vips_mkdir(VipsForeignSaveDz *dz, const char *dirname)
-{
-	if (iszip(dz->container))
-		return vips_mkdir_zip(dz, dirname);
-	else
-		return vips_mkdir_file(dirname);
-}
-
-static inline int
-vips_mkfile_zip(VipsForeignSaveDz *dz, const char *filename,
-	void *buf, size_t len)
-{
-	struct archive_entry *entry;
-
-	vips__worker_lock(vips_libarchive_mutex);
-
-	if (!(entry = archive_entry_new())) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_set_pathname(entry, filename);
-	archive_entry_set_mode(entry, S_IFREG | 0664);
-	archive_entry_set_size(entry, len);
-
-	if (archive_write_header(dz->archive, entry) != ARCHIVE_OK) {
-		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_free(entry);
-
-	if (archive_write_data(dz->archive, buf, len) != len) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	g_mutex_unlock(vips_libarchive_mutex);
-
-	return 0;
-}
-
-static inline int
-vips_mkfile_file(const char *filename, void *buf, size_t len)
-{
-	FILE *f;
-
-	if (!(f = vips__file_open_write(filename, TRUE))) {
-		return -1;
-	}
-
-	if (fwrite(buf, sizeof(char), len, f) != len) {
-		fclose(f);
-		return -1;
-	}
-
-	fclose(f);
-
-	return 0;
-}
-
-static int
-vips_mkfile(VipsForeignSaveDz *dz, const char *filename,
-	void *buf, size_t len)
-{
-	if (iszip(dz->container))
-		return vips_mkfile_zip(dz, filename, buf, len);
-	else
-		return vips_mkfile_file(filename, buf, len);
-}
-
 static int
 write_image(VipsForeignSaveDz *dz,
 	VipsImage *image, const char *filename, const char *format)
@@ -516,34 +371,21 @@ write_image(VipsForeignSaveDz *dz,
 	 */
 	vips_image_set_int(t, "hide-progress", 1);
 
-	if (iszip(dz->container)) {
-		void *buf;
-		size_t len;
-
-		if (vips_image_write_to_buffer(t, format, &buf, &len,
-				"strip", !dz->no_strip,
-				NULL)) {
-			VIPS_UNREF(t);
-			return -1;
-		}
+	void *buf;
+	size_t len;
+	if (vips_image_write_to_buffer(t, format, &buf, &len,
+			"strip", !dz->no_strip,
+			NULL)) {
 		VIPS_UNREF(t);
+		return -1;
+	}
+	VIPS_UNREF(t);
 
-		if (vips_mkfile_zip(dz, filename, buf, len)) {
-			g_free(buf);
-			return -1;
-		}
-
+	if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 		g_free(buf);
+		return -1;
 	}
-	else {
-		if (vips_image_write_to_file(t, filename,
-				"strip", !dz->no_strip,
-				NULL)) {
-			VIPS_UNREF(t);
-			return -1;
-		}
-		VIPS_UNREF(t);
-	}
+	g_free(buf);
 
 	return 0;
 }
@@ -565,7 +407,7 @@ vips_foreign_save_dz_dispose(GObject *gobject)
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
-	VIPS_FREEF(archive_write_free, dz->archive);
+	VIPS_FREEF(vips__archive_free, dz->archive);
 
 	VIPS_UNREF(dz->target);
 
@@ -759,7 +601,7 @@ write_dzi(VipsForeignSaveDz *dz)
 	vips_dbuf_writef(&dbuf, "</Image>\n");
 
 	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
-		if (vips_mkfile(dz, filename, buf, len)) {
+		if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 			g_free(buf);
 			g_free(filename);
 			return -1;
@@ -797,7 +639,7 @@ write_properties(VipsForeignSaveDz *dz)
 		dz->tile_size);
 
 	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
-		if (vips_mkfile(dz, filename, buf, len)) {
+		if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 			g_free(buf);
 			g_free(filename);
 			return -1;
@@ -984,7 +826,7 @@ write_json(VipsForeignSaveDz *dz)
 		"}\n");
 
 	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
-		if (vips_mkfile(dz, filename, buf, len)) {
+		if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 			g_free(filename);
 			g_free(buf);
 			return -1;
@@ -1024,7 +866,7 @@ write_vips_meta(VipsForeignSaveDz *dz)
 		return -1;
 	}
 
-	if (vips_mkfile(dz, filename, dump, strlen(dump))) {
+	if (vips__archive_mkfile(dz->archive, filename, dump, strlen(dump))) {
 		g_free(filename);
 		g_free(dump);
 		return -1;
@@ -1147,7 +989,7 @@ write_scan_properties(VipsForeignSaveDz *dz)
 		return -1;
 	}
 
-	if (vips_mkfile(dz, filename, dump, len)) {
+	if (vips__archive_mkfile(dz->archive, filename, dump, len)) {
 		g_free(filename);
 		g_free(dump);
 		return -1;
@@ -1187,7 +1029,7 @@ write_associated_images(VipsImage *image,
 				  "associated_images", NULL)))
 			return image;
 
-		if (vips_mkdir(dz, dirname)) {
+		if (vips__archive_mkdir(dz->archive, dirname)) {
 			g_free(dirname);
 			return image;
 		}
@@ -1463,7 +1305,7 @@ tile_name(Level *level, int x, int y)
 			subdir, NULL)))
 		return NULL;
 
-	if (vips_mkdir(dz, dirname)) {
+	if (vips__archive_mkdir(dz->archive, dirname)) {
 		g_free(dirname);
 		return NULL;
 	}
@@ -1544,14 +1386,8 @@ write_image_direct(VipsForeignSaveDz *dz,
 {
 	VipsTarget *target;
 
-	if (iszip(dz->container)) {
-		if (!(target = vips_target_new_to_memory()))
-			return -1;
-	}
-	else {
-		if (!(target = vips_target_new_to_file(filename)))
-			return -1;
-	}
+	if (!(target = vips_target_new_to_memory()))
+		return -1;
 
 	if (vips__jpeg_region_write_target(region, rect, target,
 			75, NULL,
@@ -1563,23 +1399,18 @@ write_image_direct(VipsForeignSaveDz *dz,
 		return -1;
 	}
 
-	if (iszip(dz->container)) {
-		VipsBlob *blob;
-		const void *buffer;
-		size_t length;
-
-		g_object_get(target, "blob", &blob, NULL);
-		buffer = vips_blob_get(blob, &length);
-
-		if (vips_mkfile_zip(dz, filename, (void *) buffer, length)) {
-			vips_area_unref(VIPS_AREA(blob));
-			g_object_unref(target);
-			return -1;
-		}
-
+	VipsBlob *blob;
+	const void *buf;
+	size_t len;
+	g_object_get(target, "blob", &blob, NULL);
+	buf = vips_blob_get(blob, &len);
+	if (vips__archive_mkfile(dz->archive, filename, (void *) buf, len)) {
 		vips_area_unref(VIPS_AREA(blob));
+		g_object_unref(target);
+		return -1;
 	}
 
+	vips_area_unref(VIPS_AREA(blob));
 	g_object_unref(target);
 
 	return 0;
@@ -2409,46 +2240,12 @@ vips_foreign_save_dz_build(VipsObject *object)
 				return -1;
 		}
 
-		/* Allocate and initialize a new archive.
-		 */
-		if (!(dz->archive = archive_write_new()))
+		if (!(dz->archive = vips__archive_new_to_target(dz->target,
+				dz->compression)))
 			return -1;
-
-		/* Set format to zip.
-		 */
-		if (archive_write_set_format(dz->archive,
-				ARCHIVE_FORMAT_ZIP) != ARCHIVE_OK)
-			return -1;
-
-		/* Remap compression=-1 to compression=6.
-		 */
-		if (dz->compression == -1)
-			dz->compression = 6; /* Z_DEFAULT_COMPRESSION */
-
-		/* Deflate compression requires libarchive >= v3.2.0.
-		 * https://github.com/libarchive/libarchive/pull/84
-		 */
-#if ARCHIVE_VERSION_NUMBER >= 3002000
-		char compression_string[2] = { '0' + dz->compression, 0 };
-		if (archive_write_set_format_option(dz->archive, "zip",
-				"compression-level", compression_string) != ARCHIVE_OK)
-			return -1;
-#else
-		if (dz->compression > 0)
-			g_warning(
-				"%s: libarchive >= v3.2.0 required for Deflate compression",
-				class->nickname);
-#endif
-
-		/* Do not pad last block.
-		 */
-		if (archive_write_set_bytes_in_last_block(dz->archive, 1))
-			return -1;
-
-		/* Register target callback functions.
-		 */
-		if (archive_write_open(dz->archive, dz->target, NULL,
-				zip_write_target_cb, zip_close_target_cb) != ARCHIVE_OK)
+	}
+	else {
+		if (!(dz->archive = vips__archive_new_to_dir(dz->dirname)))
 			return -1;
 	}
 
@@ -2494,9 +2291,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 	/* Shut down the output to flush everything.
 	 */
-	if (iszip(dz->container) &&
-		archive_write_close(dz->archive))
-		return -1;
+	VIPS_FREEF(vips__archive_free, dz->archive);
 
 	return 0;
 }
@@ -2521,25 +2316,13 @@ static VipsBandFormat bandfmt_dz[10] = {
 
 static const char *dz_suffs[] = { ".dz", ".szi", NULL };
 
-static void *
-vips_foreign_save_dz_once_init(void *client)
-{
-	vips_libarchive_mutex = vips_g_mutex_new();
-
-	return NULL;
-}
-
 static void
 vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 {
-	static GOnce once = G_ONCE_INIT;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
-
-	VIPS_ONCE(&once, vips_foreign_save_dz_once_init, NULL);
 
 	gobject_class->dispose = vips_foreign_save_dz_dispose;
 	gobject_class->set_property = vips_object_set_property;
