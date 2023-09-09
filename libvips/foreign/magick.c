@@ -84,7 +84,8 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		bytes[0] == 0 &&
 		bytes[1] == 0 &&
 		(bytes[2] == 1 || bytes[2] == 2) &&
-		bytes[3] == 0)
+		bytes[3] == 0 &&
+		!(bytes[4] == 0 && bytes[5] == 0))
 		return "ICO";
 
 	if (length >= 5 &&
