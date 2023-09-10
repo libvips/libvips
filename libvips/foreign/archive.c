@@ -59,134 +59,13 @@
 static GMutex *vips_libarchive_mutex = NULL;
 
 struct _VipsArchive {
-	// set for filesystem output
-	char *dirname;
+	// prepend filenames with this for filesystem output
+	char *base_dirname;
 
 	// write a zip to a target
 	struct archive *archive;
 	VipsTarget *target;
 };
-
-static int
-vips__archive_mkdir_zip(VipsArchive *archive, const char *dirname)
-{
-	struct archive_entry *entry;
-
-	vips__worker_lock(vips_libarchive_mutex);
-
-	if (!(entry = archive_entry_new())) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_set_pathname(entry, dirname);
-	archive_entry_set_mode(entry, S_IFDIR | 0755);
-
-	if (archive_write_header(archive->archive, entry) != ARCHIVE_OK) {
-		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave", _("unable to add directory \"%s\", %s"),
-			utf8name, archive_error_string(archive->archive));
-		g_free(utf8name);
-		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_free(entry);
-	g_mutex_unlock(vips_libarchive_mutex);
-
-	return 0;
-}
-
-static int
-vips__archive_mkdir_file(VipsArchive *archive, const char *dirname)
-{
-	if (g_mkdir_with_parents(dirname, 0777) &&
-		errno != EEXIST) {
-		int save_errno = errno;
-		char *utf8name = g_filename_display_name(dirname);
-		vips_error("dzsave", _("unable to create directory \"%s\", %s"),
-			utf8name, g_strerror(save_errno));
-		g_free(utf8name);
-		return -1;
-	}
-
-	return 0;
-}
-
-int
-vips__archive_mkdir(VipsArchive *archive, const char *dirname)
-{
-	return ((archive->archive) ?
-			vips__archive_mkdir_zip :
-			vips__archive_mkdir_file)
-		(archive, dirname);
-}
-
-static int
-vips__archive_mkfile_zip(VipsArchive *archive,
-	const char *filename, void *buf, size_t len)
-{
-	struct archive_entry *entry;
-
-	vips__worker_lock(vips_libarchive_mutex);
-
-	if (!(entry = archive_entry_new())) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_set_pathname(entry, filename);
-	archive_entry_set_mode(entry, S_IFREG | 0664);
-	archive_entry_set_size(entry, len);
-
-	if (archive_write_header(archive->archive, entry) != ARCHIVE_OK) {
-		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_free(entry);
-
-	if (archive_write_data(archive->archive, buf, len) != len) {
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	g_mutex_unlock(vips_libarchive_mutex);
-
-	return 0;
-}
-
-static int
-vips__archive_mkfile_file(VipsArchive *archive,
-	const char *filename, void *buf, size_t len)
-{
-	FILE *f;
-
-	if (!(f = vips__file_open_write(filename, TRUE))) {
-		return -1;
-	}
-
-	if (fwrite(buf, sizeof(char), len, f) != len) {
-		fclose(f);
-		return -1;
-	}
-
-	fclose(f);
-
-	return 0;
-}
-
-int
-vips__archive_mkfile(VipsArchive *archive,
-	const char *filename, void *buf, size_t len)
-{
-	return ((archive->archive) ?
-			vips__archive_mkfile_zip :
-			vips__archive_mkfile_file)
-		(archive, filename, buf, len);
-}
 
 void
 vips__archive_free(VipsArchive *archive)
@@ -195,7 +74,7 @@ vips__archive_free(VipsArchive *archive)
 	if (archive->archive)
 		archive_write_close(archive->archive);
 
-	VIPS_FREE(archive->dirname);
+	VIPS_FREE(archive->base_dirname);
 	VIPS_FREEF(archive_write_free, archive->archive);
 	VIPS_FREE(archive);
 }
@@ -241,7 +120,7 @@ vips__archive_init(void)
 
 // write to a filesystem directory
 VipsArchive *
-vips__archive_new_to_dir(const char *dirname)
+vips__archive_new_to_dir(const char *base_dirname)
 {
 	VipsArchive *archive;
 
@@ -249,7 +128,7 @@ vips__archive_new_to_dir(const char *dirname)
 
 	archive = VIPS_NEW(NULL, VipsArchive);
 
-	archive->dirname = g_strdup(dirname);
+	archive->base_dirname = g_strdup(base_dirname);
 
 	return archive;
 }
@@ -267,14 +146,15 @@ vips__archive_new_to_target(VipsTarget *target, int compression)
 	archive->target = target;
 
 	if (!(archive->archive = archive_write_new())) {
+		vips_error("archive", "%s", _("unable to create archive"));
 		vips__archive_free(archive);
 		return NULL;
 	}
 
 	/* Set format to zip.
 	 */
-	if (archive_write_set_format(archive->archive, ARCHIVE_FORMAT_ZIP) !=
-		ARCHIVE_OK) {
+	if (archive_write_set_format(archive->archive, ARCHIVE_FORMAT_ZIP)) {
+		vips_error("archive", "%s", _("unable to set zip format"));
 		vips__archive_free(archive);
 		return NULL;
 	}
@@ -290,7 +170,8 @@ vips__archive_new_to_target(VipsTarget *target, int compression)
 #if ARCHIVE_VERSION_NUMBER >= 3002000
 	char compression_string[2] = { '0' + compression, 0 };
 	if (archive_write_set_format_option(archive->archive, "zip",
-			"compression-level", compression_string) != ARCHIVE_OK) {
+			"compression-level", compression_string)) {
+		vips_error("archive", "%s", _("unable to set compression"));
 		vips__archive_free(archive);
 		return NULL;
 	}
@@ -302,6 +183,7 @@ vips__archive_new_to_target(VipsTarget *target, int compression)
 	/* Do not pad last block.
 	 */
 	if (archive_write_set_bytes_in_last_block(archive->archive, 1)) {
+		vips_error("archive", "%s", _("unable to set padding"));
 		vips__archive_free(archive);
 		return NULL;
 	}
@@ -309,12 +191,155 @@ vips__archive_new_to_target(VipsTarget *target, int compression)
 	/* Register target callback functions.
 	 */
 	if (archive_write_open(archive->archive, archive, NULL,
-			zip_write_target_cb, zip_close_target_cb) != ARCHIVE_OK) {
+			zip_write_target_cb, zip_close_target_cb)) {
+		vips_error("archive", "%s", _("unable to open for write"));
 		vips__archive_free(archive);
 		return NULL;
 	}
 
 	return archive;
+}
+
+static int
+vips__archive_mkdir_zip(VipsArchive *archive, const char *dirname)
+{
+	struct archive_entry *entry;
+
+	vips__worker_lock(vips_libarchive_mutex);
+
+	if (!(entry = archive_entry_new())) {
+		vips_error("archive", "%s", _("unable to create entry"));
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
+	}
+
+	archive_entry_set_pathname(entry, dirname);
+	archive_entry_set_mode(entry, S_IFDIR | 0755);
+
+	if (archive_write_header(archive->archive, entry)) {
+		char *utf8name = g_filename_display_name(dirname);
+		vips_error("archive", _("unable to add directory \"%s\", %s"),
+			utf8name, archive_error_string(archive->archive));
+		g_free(utf8name);
+		archive_entry_free(entry);
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
+	}
+
+	archive_entry_free(entry);
+	g_mutex_unlock(vips_libarchive_mutex);
+
+	return 0;
+}
+
+static int
+vips__archive_mkdir_file(VipsArchive *archive, const char *dirname)
+{
+	char *path;
+
+	path = g_build_filename(archive->base_dirname, dirname, NULL);
+
+	if (g_mkdir_with_parents(path, 0777) &&
+		errno != EEXIST) {
+		int save_errno = errno;
+		char *utf8name;
+
+		utf8name = g_filename_display_name(path);
+		vips_error("archive", _("unable to create directory \"%s\", %s"),
+			utf8name, g_strerror(save_errno));
+
+		g_free(utf8name);
+		g_free(path);
+
+		return -1;
+	}
+
+	g_free(path);
+
+	return 0;
+}
+
+int
+vips__archive_mkdir(VipsArchive *archive, const char *dirname)
+{
+	return ((archive->archive) ?
+			vips__archive_mkdir_zip :
+			vips__archive_mkdir_file)
+		(archive, dirname);
+}
+
+static int
+vips__archive_mkfile_zip(VipsArchive *archive,
+	const char *filename, void *buf, size_t len)
+{
+	struct archive_entry *entry;
+
+	vips__worker_lock(vips_libarchive_mutex);
+
+	if (!(entry = archive_entry_new())) {
+		vips_error("archive", "%s", _("unable to create entry"));
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
+	}
+
+	archive_entry_set_pathname(entry, filename);
+	archive_entry_set_mode(entry, S_IFREG | 0664);
+	archive_entry_set_size(entry, len);
+
+	if (archive_write_header(archive->archive, entry)) {
+		vips_error("archive", "%s", _("unable to write header"));
+		archive_entry_free(entry);
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
+	}
+
+	archive_entry_free(entry);
+
+	if (archive_write_data(archive->archive, buf, len) != len) {
+		vips_error("archive", "%s", _("unable to write data"));
+		g_mutex_unlock(vips_libarchive_mutex);
+		return -1;
+	}
+
+	g_mutex_unlock(vips_libarchive_mutex);
+
+	return 0;
+}
+
+static int
+vips__archive_mkfile_file(VipsArchive *archive,
+	const char *filename, void *buf, size_t len)
+{
+	char *path;
+	FILE *f;
+
+	path = g_build_filename(archive->base_dirname, filename, NULL);
+
+	if (!(f = vips__file_open_write(path, TRUE))) {
+		g_free(path);
+		return -1;
+	}
+
+	if (vips__file_write(buf, sizeof(char), len, f)) {
+		g_free(path);
+		fclose(f);
+		return -1;
+	}
+
+	fclose(f);
+	g_free(path);
+
+	return 0;
+}
+
+int
+vips__archive_mkfile(VipsArchive *archive,
+	const char *filename, void *buf, size_t len)
+{
+	return ((archive->archive) ?
+			vips__archive_mkfile_zip :
+			vips__archive_mkfile_file)
+		(archive, filename, buf, len);
 }
 
 #endif /*HAVE_LIBARCHIVE*/

@@ -313,7 +313,7 @@ struct _VipsForeignSaveDz {
 	 */
 	char *basename;
 
-	/* The directory we write the output to, or "" (empty) for memory output.
+	/* The directory we write the output to.
 	 */
 	char *dirname;
 
@@ -408,7 +408,6 @@ vips_foreign_save_dz_dispose(GObject *gobject)
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
 	VIPS_FREEF(vips__archive_free, dz->archive);
-
 	VIPS_UNREF(dz->target);
 
 	VIPS_FREEF(level_free, dz->level);
@@ -569,28 +568,25 @@ static int
 write_dzi(VipsForeignSaveDz *dz)
 {
 	VipsDbuf dbuf;
-	char suffix[VIPS_PATH_MAX];
-	char *filename;
+	char filename[VIPS_PATH_MAX];
+	char format[VIPS_PATH_MAX];
 	char *p;
 	void *buf;
 	size_t len;
 
-	vips_snprintf(suffix, VIPS_PATH_MAX, "%s.dzi", dz->basename);
-
-	if (!(filename = g_build_filename(dz->dirname, suffix, NULL)))
-		return -1;
+	vips_snprintf(filename, VIPS_PATH_MAX, "%s.dzi", dz->basename);
 
 	vips_dbuf_init(&dbuf);
 
-	vips_snprintf(suffix, VIPS_PATH_MAX, "%s", dz->suffix + 1);
-	if ((p = (char *) vips__find_rightmost_brackets(suffix)))
+	vips_snprintf(format, VIPS_PATH_MAX, "%s", dz->suffix + 1);
+	if ((p = (char *) vips__find_rightmost_brackets(format)))
 		*p = '\0';
 
 	vips_dbuf_writef(&dbuf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 	vips_dbuf_writef(&dbuf, "<Image xmlns=\""
 							"http://schemas.microsoft.com/deepzoom/2008"
 							"\"\n");
-	vips_dbuf_writef(&dbuf, "  Format=\"%s\"\n", suffix);
+	vips_dbuf_writef(&dbuf, "  Format=\"%s\"\n", format);
 	vips_dbuf_writef(&dbuf, "  Overlap=\"%d\"\n", dz->overlap);
 	vips_dbuf_writef(&dbuf, "  TileSize=\"%d\"\n", dz->tile_size);
 	vips_dbuf_writef(&dbuf, "  >\n");
@@ -603,14 +599,11 @@ write_dzi(VipsForeignSaveDz *dz)
 	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
 		if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 			g_free(buf);
-			g_free(filename);
 			return -1;
 		}
 
 		g_free(buf);
 	}
-
-	g_free(filename);
 
 	return 0;
 }
@@ -623,9 +616,7 @@ write_properties(VipsForeignSaveDz *dz)
 	void *buf;
 	size_t len;
 
-	if (!(filename = g_build_filename(dz->dirname, dz->root_name,
-			  "ImageProperties.xml", NULL)))
-		return -1;
+	filename = g_build_filename(dz->root_name, "ImageProperties.xml", NULL);
 
 	vips_dbuf_init(&dbuf);
 
@@ -690,12 +681,7 @@ write_blank(VipsForeignSaveDz *dz)
 	g_object_unref(x);
 	x = t;
 
-	if (!(filename = g_build_filename(dz->dirname, dz->root_name,
-			  "blank.png", NULL))) {
-		g_object_unref(x);
-
-		return -1;
-	}
+	filename = g_build_filename(dz->root_name, "blank.png", NULL);
 
 	if (write_image(dz, x, filename, ".png")) {
 		g_free(filename);
@@ -731,9 +717,7 @@ write_json(VipsForeignSaveDz *dz)
 	size_t len;
 	int i;
 
-	if (!(filename = g_build_filename(dz->dirname, dz->root_name,
-			  "info.json", NULL)))
-		return -1;
+	filename = g_build_filename(dz->root_name, "info.json", NULL);
 
 	vips_dbuf_init(&dbuf);
 
@@ -852,11 +836,9 @@ write_vips_meta(VipsForeignSaveDz *dz)
 	 * gm and zoomify it can sit in the main folder.
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ)
-		filename = g_build_filename(dz->dirname, dz->root_name,
-			"vips-properties.xml", NULL);
+		filename = g_build_filename(dz->root_name, "vips-properties.xml", NULL);
 	else
-		filename = g_build_filename(dz->dirname,
-			"vips-properties.xml", NULL);
+		filename = g_strdup("vips-properties.xml");
 
 	if (filename == NULL)
 		return -1;
@@ -976,26 +958,17 @@ write_scan_properties(VipsForeignSaveDz *dz)
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
-	char *filename;
 	char *dump;
 	size_t len;
 
-	if (!(filename = g_build_filename(dz->dirname,
-			  "scan-properties.xml", NULL)))
+	if (!(dump = build_scan_properties(save->ready, &len)))
 		return -1;
 
-	if (!(dump = build_scan_properties(save->ready, &len))) {
-		g_free(filename);
-		return -1;
-	}
-
-	if (vips__archive_mkfile(dz->archive, filename, dump, len)) {
-		g_free(filename);
+	if (vips__archive_mkfile(dz->archive, "scan-properties.xml", dump, len)) {
 		g_free(dump);
 		return -1;
 	}
 
-	g_free(filename);
 	g_free(dump);
 
 	return 0;
@@ -1011,7 +984,6 @@ write_associated_images(VipsImage *image,
 		VipsImage *associated;
 		const char *p;
 		const char *q;
-		char *dirname;
 		char *out;
 		char buf[VIPS_PATH_MAX];
 
@@ -1025,24 +997,12 @@ write_associated_images(VipsImage *image,
 		if (vips_image_get_image(image, field, &associated))
 			return image;
 
-		if (!(dirname = g_build_filename(dz->dirname,
-				  "associated_images", NULL)))
+		if (vips__archive_mkdir(dz->archive, "associated_images"))
 			return image;
-
-		if (vips__archive_mkdir(dz->archive, dirname)) {
-			g_free(dirname);
-			return image;
-		}
 
 		vips_snprintf(buf, VIPS_PATH_MAX, "%s.jpg", p);
 
-		if (!(out = g_build_filename(dirname, buf, NULL))) {
-			g_free(dirname);
-			g_object_unref(associated);
-
-			return image;
-		}
-		g_free(dirname);
+		out = g_build_filename("associated_images", buf, NULL);
 
 		if (write_image(dz, associated, out, ".jpg")) {
 			g_free(out);
@@ -1301,9 +1261,7 @@ tile_name(Level *level, int x, int y)
 		g_assert_not_reached();
 	}
 
-	if (!(dirname = g_build_filename(dz->dirname, dz->root_name,
-			subdir, NULL)))
-		return NULL;
+	dirname = g_build_filename(dz->root_name, subdir, NULL);
 
 	if (vips__archive_mkdir(dz->archive, dirname)) {
 		g_free(dirname);
@@ -1474,8 +1432,6 @@ image_strip_work(VipsThreadState *state, void *a)
 		return 0;
 	}
 
-	/* g_build_filename() can return NULL when it exceeds the path limits.
-	 */
 	if (!(out = tile_name(level, tile_x, tile_y))) {
 		g_object_unref(x);
 
@@ -1604,9 +1560,6 @@ direct_strip_work(VipsThreadState *state, void *a)
 		return 0;
 	}
 
-	/* g_build_filename() can return NULL when it exceeds the
-	 * path limits.
-	 */
 	char *name;
 	if (!(name = tile_name(level, tile_x, tile_y)))
 		return -1;
@@ -2227,11 +2180,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 	/* Make the zip archive we write the tiles into.
 	 */
 	if (iszip(dz->container)) {
-		/* Ignore the root directory name for zip output, it should only
-		 * be set for filesystem output.
-		 */
-		VIPS_SETSTR(dz->dirname, "");
-
 		/* We can have dzsave("x.zip", container="fs"), ie. zip output
 		 * from write to file. Make a target if we need one.
 		 */
