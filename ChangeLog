@@ -1,3 +1,7 @@
+TBD 8.14.5
+
+- fix a crash with alpha plus icc_import and icc_export [jcupitt]
+
 15/8/23 8.14.4
 
 - fix null-pointer dereference during svgload [kleisauke]
