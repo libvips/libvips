@@ -228,7 +228,8 @@ struct _VipsArchive;
 typedef struct _VipsArchive VipsArchive;
 void vips__archive_free(VipsArchive *archive);
 VipsArchive *vips__archive_new_to_dir(const char *base_dirname);
-VipsArchive *vips__archive_new_to_target(VipsTarget *target, int compression);
+VipsArchive *vips__archive_new_to_target(VipsTarget *target,
+	const char *base_dirname, int compression);
 int vips__archive_mkdir(VipsArchive *archive, const char *dirname);
 int vips__archive_mkfile(VipsArchive *archive,
 	const char *filename, void *buf, size_t len);

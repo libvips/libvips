@@ -135,15 +135,20 @@ vips__archive_new_to_dir(const char *base_dirname)
 
 // write a zip to a target
 VipsArchive *
-vips__archive_new_to_target(VipsTarget *target, int compression)
+vips__archive_new_to_target(VipsTarget *target,
+	const char *base_dirname, int compression)
 {
 	VipsArchive *archive;
+
+	printf("vips__archive_new_to_target: base_dirname = %s, compression = %d\n",
+		base_dirname, compression);
 
 	vips__archive_init();
 
 	archive = VIPS_NEW(NULL, VipsArchive);
 
 	archive->target = target;
+	archive->base_dirname = g_strdup(base_dirname);
 
 	if (!(archive->archive = archive_write_new())) {
 		vips_error("archive", "%s", _("unable to create archive"));
@@ -213,20 +218,26 @@ vips__archive_mkdir_zip(VipsArchive *archive, const char *dirname)
 		return -1;
 	}
 
-	archive_entry_set_pathname(entry, dirname);
+	char *path;
+
+	path = g_build_filename(archive->base_dirname, dirname, NULL);
+
+	archive_entry_set_pathname(entry, path);
 	archive_entry_set_mode(entry, S_IFDIR | 0755);
 
 	if (archive_write_header(archive->archive, entry)) {
-		char *utf8name = g_filename_display_name(dirname);
+		char *utf8name = g_filename_display_name(path);
 		vips_error("archive", _("unable to add directory \"%s\", %s"),
 			utf8name, archive_error_string(archive->archive));
 		g_free(utf8name);
+		g_free(path);
 		archive_entry_free(entry);
 		g_mutex_unlock(vips_libarchive_mutex);
 		return -1;
 	}
 
 	archive_entry_free(entry);
+	g_free(path);
 	g_mutex_unlock(vips_libarchive_mutex);
 
 	return 0;
@@ -282,9 +293,15 @@ vips__archive_mkfile_zip(VipsArchive *archive,
 		return -1;
 	}
 
-	archive_entry_set_pathname(entry, filename);
+	char *path;
+
+	path = g_build_filename(archive->base_dirname, filename, NULL);
+
+	archive_entry_set_pathname(entry, path);
 	archive_entry_set_mode(entry, S_IFREG | 0664);
 	archive_entry_set_size(entry, len);
+
+	g_free(path);
 
 	if (archive_write_header(archive->archive, entry)) {
 		vips_error("archive", "%s", _("unable to write header"));

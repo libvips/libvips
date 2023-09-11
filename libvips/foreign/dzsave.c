@@ -308,17 +308,17 @@ struct _VipsForeignSaveDz {
 	 */
 	VipsArchive *archive;
 
-	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
+	/* The name to save as, eg. deepzoom tiles go into ${imagename}_files.
 	 * No suffix, no path at the start.
 	 */
-	char *basename;
+	char *imagename;
 
 	/* The directory we write the output to.
 	 */
 	char *dirname;
 
-	/* The root directory name ... $basename with perhaps some extra
-	 * stuff, eg. $(basename)_files, etc.
+	/* The name of the directory containing the levels ... eg. perhaps
+	 * $(imagename)_files, etc.
 	 */
 	char *root_name;
 
@@ -412,7 +412,7 @@ vips_foreign_save_dz_dispose(GObject *gobject)
 
 	VIPS_FREEF(level_free, dz->level);
 
-	VIPS_FREE(dz->basename);
+	VIPS_FREE(dz->imagename);
 	VIPS_FREE(dz->dirname);
 	VIPS_FREE(dz->root_name);
 	VIPS_FREE(dz->file_suffix);
@@ -574,7 +574,7 @@ write_dzi(VipsForeignSaveDz *dz)
 	void *buf;
 	size_t len;
 
-	vips_snprintf(filename, VIPS_PATH_MAX, "%s.dzi", dz->basename);
+	vips_snprintf(filename, VIPS_PATH_MAX, "%s.dzi", dz->imagename);
 
 	vips_dbuf_init(&dbuf);
 
@@ -701,10 +701,6 @@ write_blank(VipsForeignSaveDz *dz)
 static int
 write_json(VipsForeignSaveDz *dz)
 {
-	/* Can be NULL for memory output.
-	 */
-	const char *name = dz->basename ? dz->basename : "untitled";
-
 	/* dz->file_suffix has a leading "." character.
 	 */
 	const char *suffix = dz->file_suffix[0] == '.'
@@ -731,7 +727,7 @@ write_json(VipsForeignSaveDz *dz)
 			"  \"profile\": \"level0\",\n"
 			"  \"protocol\": \"http://iiif.io/api/image\",\n",
 			dz->id ? dz->id : "https://example.com/iiif",
-			name);
+			dz->imagename);
 	else
 		vips_dbuf_writef(&dbuf,
 			"{\n"
@@ -751,7 +747,7 @@ write_json(VipsForeignSaveDz *dz)
 			"  ],\n"
 			"  \"protocol\": \"http://iiif.io/api/image\",\n",
 			dz->id ? dz->id : "https://example.com/iiif",
-			name,
+			dz->imagename,
 			suffix);
 
 	/* "sizes" is needed for the full/ set of untiled images, which we
@@ -2112,7 +2108,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	printf("vips_foreign_save_dz_build: tile_step == %d\n", dz->tile_step);
 #endif /*DEBUG*/
 
-	/* Init basename and dirname from the associated filesystem names, if
+	/* Init imagename and dirname from the associated filesystem names, if
 	 * we can.
 	 */
 	{
@@ -2121,10 +2117,17 @@ vips_foreign_save_dz_build(VipsObject *object)
 			: vips_connection_filename(VIPS_CONNECTION(dz->target));
 
 		if (!vips_object_argument_isset(object, "basename")) {
-			if (filename)
-				dz->basename = g_path_get_basename(filename);
+			if (filename) {
+				dz->imagename = g_path_get_basename(filename);
+
+				/* Remove any [options] we may have picked up from the
+				 * filename.
+				 */
+				if ((p = (char *) vips__find_rightmost_brackets(dz->imagename)))
+					*p = '\0';
+			}
 			else
-				dz->basename = g_strdup("untitled");
+				dz->imagename = g_strdup("untitled");
 		}
 
 		if (!vips_object_argument_isset(object, "dirname")) {
@@ -2133,17 +2136,13 @@ vips_foreign_save_dz_build(VipsObject *object)
 			else
 				dz->dirname = g_strdup(".");
 		}
-	}
 
-	/* Remove any [options] from basename.
-	 */
-	if ((p = (char *) vips__find_rightmost_brackets(dz->basename)))
-		*p = '\0';
+	}
 
 	/* If we're writing thing.zip or thing.szi, default to zip
 	 * container.
 	 */
-	if ((p = strrchr(dz->basename, '.'))) {
+	if ((p = strrchr(dz->imagename, '.'))) {
 		if (!vips_object_argument_isset(object, "container")) {
 			if (g_ascii_strcasecmp(p + 1, "zip") == 0)
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
@@ -2167,9 +2166,9 @@ vips_foreign_save_dz_build(VipsObject *object)
 		return -1;
 
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ)
-		dz->root_name = g_strdup_printf("%s_files", dz->basename);
+		dz->root_name = g_strdup_printf("%s_files", dz->imagename);
 	else
-		dz->root_name = g_strdup(dz->basename);
+		dz->root_name = g_strdup(dz->imagename);
 
 	/* Drop any [options] from @suffix.
 	 */
@@ -2188,9 +2187,22 @@ vips_foreign_save_dz_build(VipsObject *object)
 				return -1;
 		}
 
+		char *path;
+
+		// SZI needs an enclosing folder named after the image, according to
+		// the spec
+		if (dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI)
+			path = g_build_filename(dz->dirname, dz->imagename, NULL);
+		else
+			path = g_strdup(dz->dirname);
+
 		if (!(dz->archive = vips__archive_new_to_target(dz->target,
-				dz->compression)))
+				path, dz->compression))) {
+			g_free(path);
 			return -1;
+		}
+
+		g_free(path);
 	}
 	else {
 		if (!(dz->archive = vips__archive_new_to_dir(dz->dirname)))
@@ -2290,7 +2302,7 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 		_("Base name"),
 		_("Base name to save to"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveDz, basename),
+		G_STRUCT_OFFSET(VipsForeignSaveDz, imagename),
 		NULL);
 
 	VIPS_ARG_ENUM(class, "layout", 8,
