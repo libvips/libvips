@@ -127,8 +127,8 @@ vips_find_trim_build(VipsObject *object)
 	if (!find_trim->line_art) {
 		if (vips_median(in, &t[1], 3, NULL))
 			return -1;
+		in = t[1];
 	}
-	in = t[1];
 
 	/* Smooth, find difference from bg, abs, threshold.
 	 */
