@@ -1940,10 +1940,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 	char *p;
 
 	// direct mode won't work if the suffix has been set
-	if (!vips_object_argument_isset(object, "suffix")) {
-		printf("vips_foreign_save_dz_build: enabling direct mode\n");
+	if (!vips_object_argument_isset(object, "suffix"))
 		dz->direct = TRUE;
-	}
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */

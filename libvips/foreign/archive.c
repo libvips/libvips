@@ -140,8 +140,10 @@ vips__archive_new_to_target(VipsTarget *target,
 {
 	VipsArchive *archive;
 
+#ifdef DEBUG
 	printf("vips__archive_new_to_target: base_dirname = %s, compression = %d\n",
 		base_dirname, compression);
+#endif /*DEBUG*/
 
 	vips__archive_init();
 
