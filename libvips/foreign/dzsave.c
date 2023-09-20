@@ -260,6 +260,7 @@ struct _VipsForeignSaveDz {
 	int skip_blanks;
 	gboolean no_strip;
 	char *id;
+	int Q;
 
 	/* In direct save mode, we write regions of pixels to the output and
 	 * avoid creating a pipeline for each tile. This must be disabled if
@@ -1483,7 +1484,7 @@ direct_image_write(VipsForeignSaveDz *dz,
 		return -1;
 
 	if (vips__jpeg_region_write_target(region, rect, target,
-			75, NULL,
+			dz->Q, NULL,
 			FALSE, FALSE,
 			!dz->no_strip, FALSE,
 			FALSE, FALSE,
@@ -2122,7 +2123,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 			? dz->filename
 			: vips_connection_filename(VIPS_CONNECTION(dz->target));
 
-		if (!vips_object_argument_isset(object, "basename")) {
+		if (!vips_object_argument_isset(object, "imagename") ||
+			!vips_object_argument_isset(object, "basename")) {
 			if (filename) {
 				dz->imagename = g_path_get_basename(filename);
 
@@ -2304,9 +2306,9 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
-	VIPS_ARG_STRING(class, "basename", 2,
-		_("Base name"),
-		_("Base name to save to"),
+	VIPS_ARG_STRING(class, "imagename", 2,
+		_("Image name"),
+		_("Image name"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveDz, imagename),
 		NULL);
@@ -2402,8 +2404,22 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveDz, id),
 		"https://example.com/iiif");
 
+	VIPS_ARG_INT(class, "Q", 23,
+		_("Q"),
+		_("Q factor"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveDz, Q),
+		1, 100, 75);
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
+
+	VIPS_ARG_STRING(class, "basename", 23,
+		_("Base name"),
+		_("Base name to save to"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsForeignSaveDz, imagename),
+		NULL);
 
 	VIPS_ARG_STRING(class, "dirname", 1,
 		_("Directory name"),
@@ -2448,6 +2464,7 @@ vips_foreign_save_dz_init(VipsForeignSaveDz *dz)
 	dz->compression = 0;
 	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
 	dz->skip_blanks = -1;
+	dz->Q = 75;
 }
 
 typedef struct _VipsForeignSaveDzTarget {
@@ -2653,6 +2670,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
+ * * @Q: %gint, quality factor
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2661,11 +2679,14 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * ends `.zip`, vips_dzsave() will create a zip file called @name to hold the
  * tiles. You can use @container to force zip file output.
  *
- * Use @basename to set the name of the directory tree we are creating. The
+ * Use @basename to set the name of the image we are creating. The
  * default value is set from @name.
  *
- * You can set @suffix to something like `".jpg[Q=85]"` to control the tile
- * write options.
+ * By default, tiles are written as JPEGs. Use @Q set set the JPEG quality
+ * factor.
+ *
+ * You can set @suffix to something like `".png[bitdepth=4]"` to write tiles
+ * in another format.
  *
  * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size
  * pixels. Normally they are filled with white, but you can set another colour
@@ -2748,6 +2769,7 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
+ * * @Q: %gint, quality factor
  *
  * As vips_dzsave(), but save to a memory buffer.
  *
@@ -2813,6 +2835,7 @@ vips_dzsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
+ * * @Q: %gint, quality factor
  *
  * As vips_dzsave(), but save to a target.
  *
