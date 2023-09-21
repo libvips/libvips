@@ -201,7 +201,12 @@ void *vips__foreign_nifti_map(VipsNiftiMapFn fn, void *a, void *b);
 extern const char *vips__heic_suffs[];
 extern const char *vips__avif_suffs[];
 extern const char *vips__heif_suffs[];
+struct heif_image;
+struct heif_error;
+void vips__heif_init(void);
 int vips__heif_chroma(int bits_per_pixel, gboolean has_alpha);
+void vips__heif_image_print(struct heif_image *img);
+void vips__heif_error(struct heif_error *error);
 
 extern const char *vips__jp2k_suffs[];
 int vips__foreign_load_jp2k_decompress(VipsImage *out,

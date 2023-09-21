@@ -696,7 +696,8 @@ class TestArithmetic:
                 assert height == 60
 
             test_rgb = test.bandjoin([test, test])
-            left, top, width, height = test_rgb.find_trim(background=[255, 255,
+            left, top, width, height = test_rgb.find_trim(line_art=True,
+                                                          background=[255, 255,
                                                                       255])
             assert left == 10
             assert top == 20
