@@ -666,7 +666,7 @@ vips_target_finish(VipsTarget *target)
  * The data is NOT automatically null-terminated. vips_target_putc() a '\0'
  * before calling this to get a null-terminated string.
  *
- * This won't work after the tyarget has been ended -- read the blob in that
+ * This won't work after the target has been ended -- read the blob in that
  * case.
  *
  * Returns: (array length=length) (element-type guint8) (transfer full): the
