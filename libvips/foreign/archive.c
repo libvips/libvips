@@ -173,10 +173,10 @@ vips__archive_new_to_target(VipsTarget *target,
 	if (compression == -1)
 		compression = 6; /* Z_DEFAULT_COMPRESSION */
 
+#if ARCHIVE_VERSION_NUMBER >= 3002000
 	/* Deflate compression requires libarchive >= v3.2.0.
 	 * https://github.com/libarchive/libarchive/pull/84
 	 */
-#if ARCHIVE_VERSION_NUMBER >= 3002000
 	char compression_string[2] = { '0' + compression, 0 };
 	if (archive_write_set_format_option(archive->archive, "zip",
 			"compression-level", compression_string)) {
@@ -277,10 +277,9 @@ vips__archive_mkdir_file(VipsArchive *archive, const char *dirname)
 int
 vips__archive_mkdir(VipsArchive *archive, const char *dirname)
 {
-	return ((archive->archive) ?
-			vips__archive_mkdir_zip :
-			vips__archive_mkdir_file)
-		(archive, dirname);
+	return ((archive->archive)
+			? vips__archive_mkdir_zip
+			: vips__archive_mkdir_file)(archive, dirname);
 }
 
 static int
@@ -357,10 +356,9 @@ int
 vips__archive_mkfile(VipsArchive *archive,
 	const char *filename, void *buf, size_t len)
 {
-	return ((archive->archive) ?
-			vips__archive_mkfile_zip :
-			vips__archive_mkfile_file)
-		(archive, filename, buf, len);
+	return ((archive->archive)
+			? vips__archive_mkfile_zip
+			: vips__archive_mkfile_file)(archive, filename, buf, len);
 }
 
 #endif /*HAVE_LIBARCHIVE*/

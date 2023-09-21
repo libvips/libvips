@@ -225,14 +225,14 @@ struct _Level {
 	 */
 	int write_y;
 
-	VipsRegion *strip;					/* The current strip of pixels */
-	VipsRegion *copy;					/* Pixels we copy to the next strip */
+	VipsRegion *strip; /* The current strip of pixels */
+	VipsRegion *copy;  /* Pixels we copy to the next strip */
 
-	int sub;							/* Subsample factor for this level */
-	int n;								/* Level number ... 0 for smallest */
+	int sub; /* Subsample factor for this level */
+	int n;	 /* Level number ... 0 for smallest */
 
-	Level *below;						/* Tiles go to here */
-	Level *above;						/* Tiles come from here */
+	Level *below; /* Tiles go to here */
+	Level *above; /* Tiles come from here */
 };
 
 struct _VipsForeignSaveDz {
@@ -299,7 +299,7 @@ struct _VipsForeignSaveDz {
 	int tile_margin;
 	int tile_step;
 
-	Level *level;						/* x2 shrink pyr level */
+	Level *level; /* x2 shrink pyr level */
 
 	/* Count zoomify tiles we write.
 	 */
@@ -1283,7 +1283,7 @@ tile_name(Level *level, int x, int y)
  */
 static gboolean
 region_tile_equal(VipsRegion *region, VipsRect *rect,
-		int threshold, VipsPel *restrict ink)
+	int threshold, VipsPel *restrict ink)
 {
 	int bytes = VIPS_REGION_SIZEOF_LINE(region);
 
@@ -1291,7 +1291,7 @@ region_tile_equal(VipsRegion *region, VipsRect *rect,
 
 	for (y = 0; y < rect->height; y++) {
 		VipsPel *restrict p = VIPS_REGION_ADDR(region,
-				rect->left, rect->top + y);
+			rect->left, rect->top + y);
 
 		for (x = 0; x < rect->width; x++) {
 			for (b = 0; b < bytes; b++)
@@ -1386,7 +1386,7 @@ image_strip_work(VipsThreadState *state, void *a)
 
 #ifdef DEBUG_VERBOSE
 		printf("image_strip_work: skipping blank tile %d x %d\n",
-				tile_x, tile_y);
+			tile_x, tile_y);
 #endif /*DEBUG_VERBOSE*/
 
 		return 0;
@@ -2067,7 +2067,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 		int height;
 
 		if (!(level = pyramid_build(dz, NULL,
-				save->ready->Xsize, save->ready->Ysize, &save_area)))
+				  save->ready->Xsize, save->ready->Ysize, &save_area)))
 			return -1;
 
 		// find the deepest (smallest) level
@@ -2087,7 +2087,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 #ifdef DEBUG
 		printf("vips_foreign_save_dz_build: "
-			"google mode outputs a %d x %d pixel image\n", width, height);
+			   "google mode outputs a %d x %d pixel image\n",
+			width, height);
 #endif /*DEBUG*/
 
 		if (dz->centre) {
@@ -2145,7 +2146,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 			else
 				dz->dirname = g_strdup(".");
 		}
-
 	}
 
 	/* If we're writing thing.zip or thing.szi, default to zip
@@ -2206,7 +2206,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 			path = g_strdup(dz->dirname);
 
 		if (!(dz->archive = vips__archive_new_to_target(dz->target,
-				path, dz->compression))) {
+				  path, dz->compression))) {
 			g_free(path);
 			return -1;
 		}
