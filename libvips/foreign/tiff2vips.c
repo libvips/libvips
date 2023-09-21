@@ -440,9 +440,9 @@ half_2_float(gushort h)
 	case -15:
 		return sign / (float) (1 << 14) * (prec / 1024.0);
 	default:
-		return exp > 0 ?
-			sign * (float) (1 << exp) * (1.0 + prec / 1024.0) :
-			sign / (float) (1 << -exp) * (1.0 + prec / 1024.0);
+		return exp > 0
+			? sign * (float) (1 << exp) * (1.0 + prec / 1024.0)
+			: sign / (float) (1 << -exp) * (1.0 + prec / 1024.0);
 	}
 }
 
