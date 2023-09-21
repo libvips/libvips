@@ -148,7 +148,8 @@ vips__archive_new_to_target(VipsTarget *target,
 
 	vips__archive_init();
 
-	archive = VIPS_NEW(NULL, VipsArchive);
+	if (!(archive = VIPS_NEW(NULL, VipsArchive)))
+		return NULL;
 
 	archive->target = target;
 	archive->base_dirname = g_strdup(base_dirname);
