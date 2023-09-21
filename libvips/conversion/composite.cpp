@@ -356,10 +356,7 @@ vips_composite_base_max_band(VipsCompositeBase *composite, double *max_band)
 	double max_alpha;
 	int b;
 
-	max_alpha = 255.0;
-	if (composite->compositing_space == VIPS_INTERPRETATION_GREY16 ||
-		composite->compositing_space == VIPS_INTERPRETATION_RGB16)
-		max_alpha = 65535.0;
+	max_alpha = vips_interpretation_max_alpha(composite->compositing_space);
 
 	for (b = 0; b <= composite->bands; b++)
 		max_band[b] = max_alpha;

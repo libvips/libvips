@@ -31,6 +31,7 @@ height = 64
 image = pyvips.Image.new_from_file(sys.argv[1])
 roi = image.crop(left, top, width, height)
 print('average:', roi.avg())
+```
 
 # Build huge image mosaic
 
