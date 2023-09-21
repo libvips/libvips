@@ -2086,9 +2086,9 @@ vips_foreign_save_dz_build(VipsObject *object)
 		level_free(level);
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 		printf("vips_foreign_save_dz_build: "
 			"google mode outputs a %d x %d pixel image\n", width, height);
+#endif /*DEBUG*/
 
 		if (dz->centre) {
 #ifdef DEBUG
