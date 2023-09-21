@@ -16,8 +16,6 @@
  * 	- tag output as scRGB
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
- * 19/8/18
- * 	- scale alpha up to 0 - 255 to match the rest of libvips
  */
 
 /*
@@ -343,16 +341,8 @@ vips__openexr_generate(VipsRegion *out,
 				float *q = (float *) VIPS_REGION_ADDR(out,
 					hit.left, hit.top + z);
 
-				int i;
-
 				ImfHalfToFloatArray(4 * hit.width,
 					(ImfHalf *) p, q);
-
-				/* oexr uses 0 - 1 for alpha, but vips is
-				 * always 0 - 255, even for scrgb images.
-				 */
-				for (i = 0; i < hit.width; i++)
-					q[4 * i + 3] *= 255;
 			}
 		}
 
@@ -413,8 +403,6 @@ vips__openexr_read(const char *filename, VipsImage *out)
 		read_header(read, out);
 
 		for (y = 0; y < height; y++) {
-			int i;
-
 			if (!ImfInputSetFrameBuffer(read->lines,
 					imf_buffer - left - (top + y) * width,
 					1, width)) {
@@ -429,12 +417,6 @@ vips__openexr_read(const char *filename, VipsImage *out)
 
 			ImfHalfToFloatArray(4 * width,
 				(ImfHalf *) imf_buffer, vips_buffer);
-
-			/* oexr uses 0 - 1 for alpha, but vips is always 0 -
-			 * 255, even for scrgb images.
-			 */
-			for (i = 0; i < width; i++)
-				vips_buffer[4 * i + 3] *= 255;
 
 			if (vips_image_write_line(out, y,
 					(VipsPel *) vips_buffer))
