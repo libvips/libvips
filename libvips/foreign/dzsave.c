@@ -432,10 +432,13 @@ pyramid_build(VipsForeignSaveDz *dz,
 	Level *above, int width, int height, VipsRect *save_area)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(dz);
-	Level *level = VIPS_NEW(dz, Level);
 
+	Level *level;
 	VipsRect strip;
 	int limit;
+
+	if (!(level = VIPS_NEW(dz, Level)))
+		return NULL;
 
 	level->dz = dz;
 	level->width = width;
