@@ -223,17 +223,21 @@ optional arguments:
 			default: false
    interlace    - Generate an interlaced (progressive) jpeg, input gboolean
 			default: false
-   no-subsample - Disable chroma subsample, input gboolean
-			default: false
    trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
 			default: false
    overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
 			default: false
-   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+   optimize-scans - Split spectrum of DCT coefficients into separate scans, input gboolean
 			default: false
    quant-table  - Use predefined quantization table with given index, input gint
 			default: 0
 			min: 0, max: 8
+   subsample-mode - Select chroma subsample operation mode, input VipsForeignSubsample
+			default: auto
+			allowed: auto, on, off
+   restart-interval - Add restart markers every specified number of mcu, input gint
+			default: 0
+			min: 0, max: 2147483647
    strip        - Strip all metadata from image, input gboolean
 			default: false
    background   - Background value, input VipsArrayDouble
