@@ -80,12 +80,12 @@
 static const char *
 magick_sniff(const unsigned char *bytes, size_t length)
 {
-	if (length >= 4 &&
+	if (length >= 6 &&
 		bytes[0] == 0 &&
 		bytes[1] == 0 &&
 		(bytes[2] == 1 || bytes[2] == 2) &&
 		bytes[3] == 0 &&
-		!(bytes[4] == 0 && bytes[5] == 0))
+		(bytes[4] != 0 || bytes[5] != 0)
 		return "ICO";
 
 	if (length >= 5 &&
