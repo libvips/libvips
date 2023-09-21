@@ -25,7 +25,10 @@ class TestColour:
                 assert pytest.approx(min_l) == max_h
 
             pixel = im(10, 10)
-            assert pytest.approx(pixel[3], 0.01) == 42
+            if col == pyvips.Interpretation.SCRGB:
+                assert pytest.approx(pixel[3], 0.0001) == 42.0 / 255.0
+            else:
+                assert pytest.approx(pixel[3], 0.01) == 42
 
         # alpha won't be equal for RGB16, but it should be preserved if we go
         # there and back

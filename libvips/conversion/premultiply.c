@@ -224,9 +224,7 @@ vips_premultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		if (in->Type == VIPS_INTERPRETATION_GREY16 ||
-			in->Type == VIPS_INTERPRETATION_RGB16)
-			premultiply->max_alpha = 65535;
+		premultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
 
 	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;

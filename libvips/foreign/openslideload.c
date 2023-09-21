@@ -610,6 +610,26 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, xres, yres);
 
+#ifdef HAVE_OPENSLIDE_ICC
+	int64_t len;
+	if ((len = openslide_get_icc_profile_size( rslide->osr ))) {
+		void *data;
+
+		if (!(data = VIPS_MALLOC(NULL, len)))
+			return -1;
+		openslide_read_icc_profile(rslide->osr, data);
+		error = openslide_get_error(rslide->osr);
+		if (error) {
+			g_free(data);
+			vips_error("openslide2vips", _( "opening slide: %s" ), error);
+			return -1;
+		}
+
+		vips_image_set_blob(image, VIPS_META_ICC_NAME,
+			(VipsCallbackFn) g_free, data, len);
+	}
+#endif /*HAVE_OPENSLIDE_ICC*/
+
 	return 0;
 }
 

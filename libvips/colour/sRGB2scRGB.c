@@ -98,7 +98,7 @@ vips_sRGB2scRGB_line_8(float *restrict q, VipsPel *restrict p,
 			q[0] = vips_v2Y_8[p[0]];
 			q[1] = vips_v2Y_8[p[1]];
 			q[2] = vips_v2Y_8[p[2]];
-			q[3] = p[3];
+			q[3] = p[3] / 255.0;
 
 			p += 4;
 			q += 4;
@@ -114,7 +114,7 @@ vips_sRGB2scRGB_line_8(float *restrict q, VipsPel *restrict p,
 			q += 3;
 
 			for (j = 0; j < extra_bands; j++)
-				q[j] = p[j];
+				q[j] = p[j] / 255.0;
 			p += extra_bands;
 			q += extra_bands;
 		}
@@ -144,7 +144,7 @@ vips_sRGB2scRGB_line_16(float *restrict q, unsigned short *restrict p,
 			q[0] = vips_v2Y_16[p[0]];
 			q[1] = vips_v2Y_16[p[1]];
 			q[2] = vips_v2Y_16[p[2]];
-			q[3] = p[3] / 256.0;
+			q[3] = p[3] / 65535.0;
 
 			p += 4;
 			q += 4;
@@ -160,7 +160,7 @@ vips_sRGB2scRGB_line_16(float *restrict q, unsigned short *restrict p,
 			q += 3;
 
 			for (j = 0; j < extra_bands; j++)
-				q[j] = p[j] / 256.0;
+				q[j] = p[j] / 65535.0;
 			p += extra_bands;
 			q += extra_bands;
 		}

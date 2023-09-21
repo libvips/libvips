@@ -934,7 +934,11 @@ vips_icc_import_line(VipsColour *colour,
 		else
 			decode_xyz(encoded, q, chunk);
 
-		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL(colour->in[0]);
+		// use input_bands, since in[0] may have had alpha removed,
+		// and can have 1, 3 or 4 bands
+		p += PIXEL_BUFFER_SIZE *
+			colour->input_bands *
+			VIPS_IMAGE_SIZEOF_ELEMENT(colour->in[0]);
 		q += PIXEL_BUFFER_SIZE * 3;
 	}
 }
@@ -1076,7 +1080,7 @@ vips_icc_export_line_xyz(VipsColour *colour,
 	VipsPel *q;
 	int x;
 
-	/* Buffer of encoded float pixels we transform.
+	/* Buffer of encoded float pixels we transform to device space.
 	 */
 	float encoded[3 * PIXEL_BUFFER_SIZE];
 
@@ -1089,7 +1093,11 @@ vips_icc_export_line_xyz(VipsColour *colour,
 		cmsDoTransform(icc->trans, encoded, q, chunk);
 
 		p += PIXEL_BUFFER_SIZE * 3;
-		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL(colour->out);
+		// use colour->bands, since out may have had alpha reattached
+		// and can have extra bands
+		q += PIXEL_BUFFER_SIZE *
+			colour->bands *
+			VIPS_IMAGE_SIZEOF_ELEMENT(colour->out);
 	}
 }
 
