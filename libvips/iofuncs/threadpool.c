@@ -717,7 +717,10 @@ vips_threadpool_run(VipsImage *im,
 	if (!vips_image_get_concurrency(im, 0))
 		g_info("threadpool completed with %d workers", n_working);
 
-	vips_image_minimise_all(im);
+	/* "minimise" is only emitted for top-level threadpools.
+	 */
+	if (!vips_image_get_typeof(im, "vips-no-minimise"))
+		vips_image_minimise_all(im);
 
 	return result;
 }

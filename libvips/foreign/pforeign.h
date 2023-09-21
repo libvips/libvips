@@ -151,6 +151,15 @@ int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval);
 
+int vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
+	VipsTarget *target,
+	int Q, const char *profile,
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval);
+
 int vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on,
 	gboolean autorotate, gboolean unlimited);
@@ -219,6 +228,16 @@ int vips__foreign_load_jp2k_compress(VipsRegion *region,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q);
 
 extern const char *vips__jxl_suffs[];
+
+struct _VipsArchive;
+typedef struct _VipsArchive VipsArchive;
+void vips__archive_free(VipsArchive *archive);
+VipsArchive *vips__archive_new_to_dir(const char *base_dirname);
+VipsArchive *vips__archive_new_to_target(VipsTarget *target,
+	const char *base_dirname, int compression);
+int vips__archive_mkdir(VipsArchive *archive, const char *dirname);
+int vips__archive_mkfile(VipsArchive *archive,
+	const char *filename, void *buf, size_t len);
 
 #ifdef __cplusplus
 }
