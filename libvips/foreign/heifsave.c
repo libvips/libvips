@@ -134,11 +134,6 @@ typedef struct _VipsForeignSaveHeif {
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
 
-/* Defined in heifload.c
- */
-void vips__heif_image_print(struct heif_image *img);
-void vips__heif_error(struct heif_error *error);
-
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveHeif, vips_foreign_save_heif,
 	VIPS_TYPE_FOREIGN_SAVE);
 
@@ -462,9 +457,11 @@ vips_foreign_save_heif_write(struct heif_context *ctx,
 
 	struct heif_error error;
 
-	error.code = 0;
-	if (vips_target_write(heif->target, data, length))
-		error.code = -1;
+	error.code = heif_error_Ok;
+	if (vips_target_write(heif->target, data, length)) {
+		error.code = heif_error_Encoding_error;
+		error.subcode = heif_suberror_Cannot_write_output_data;
+	}
 
 	return error;
 }
@@ -656,6 +653,8 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	vips__heif_init();
 
 	gobject_class->dispose = vips_foreign_save_heif_dispose;
 	gobject_class->set_property = vips_object_set_property;

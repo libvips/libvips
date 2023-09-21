@@ -114,7 +114,7 @@ static GPrivate *worker_key = NULL;
 void
 vips__threadpool_init(void)
 {
-	static GPrivate private = { 0 };
+	static GPrivate private = G_PRIVATE_INIT(NULL);
 
 	/* 3 is the useful minimum, and huge values can crash the machine.
 	 */
@@ -717,7 +717,10 @@ vips_threadpool_run(VipsImage *im,
 	if (!vips_image_get_concurrency(im, 0))
 		g_info("threadpool completed with %d workers", n_working);
 
-	vips_image_minimise_all(im);
+	/* "minimise" is only emitted for top-level threadpools.
+	 */
+	if (!vips_image_get_typeof(im, "vips-no-minimise"))
+		vips_image_minimise_all(im);
 
 	return result;
 }

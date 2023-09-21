@@ -238,6 +238,26 @@ vips_format_sizeof_unsafe(VipsBandFormat format)
 	return vips__image_sizeof_bandformat[format];
 }
 
+/**
+ * vips_interpretation_max_alpha:
+ * @interpretation: image interpretation
+ *
+ * Returns: the maximum alpha value for an interpretation.
+ */
+double
+vips_interpretation_max_alpha(VipsInterpretation interpretation)
+{
+	switch (interpretation) {
+	case VIPS_INTERPRETATION_GREY16:
+	case VIPS_INTERPRETATION_RGB16:
+		return 65535.0;
+	case VIPS_INTERPRETATION_scRGB:
+		return 1.0;
+	default:
+		return 255.0;
+	}
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */
@@ -1212,7 +1232,7 @@ vips__image_copy_fields_array(VipsImage *out, VipsImage *in[])
  * convenience function vips_image_set_int() in practice), you would do:
  *
  * |[
- * GValue value = { 0 };
+ * GValue value = G_VALUE_INIT;
  *
  * g_value_init(&value, G_TYPE_INT);
  * g_value_set_int(&value, 42);
@@ -1299,7 +1319,7 @@ vips_set_value_from_pointer(GValue *value, void *data)
  * vips_image_get_double() in practice):
  *
  * |[
- * GValue value = { 0 };
+ * GValue value = G_VALUE_INIT;
  * double d;
  *
  * if (vips_image_get(image, name, &value))
@@ -1493,7 +1513,7 @@ void *
 vips_image_map(VipsImage *image, VipsImageMapFn fn, void *a)
 {
 	int i;
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 	void *result;
 
 	for (i = 0; i < VIPS_NUMBER(vips_header_fields); i++) {
@@ -1581,7 +1601,7 @@ void
 vips_image_set_area(VipsImage *image, const char *name,
 	VipsCallbackFn free_fn, void *data)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	vips_value_set_area(&value, free_fn, data);
 	vips_image_set(image, name, &value);
@@ -1592,7 +1612,7 @@ static int
 meta_get_value(const VipsImage *image,
 	const char *name, GType type, GValue *value_copy)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (vips_image_get(image, name, &value))
 		return -1;
@@ -1631,7 +1651,7 @@ int
 vips_image_get_area(const VipsImage *image,
 	const char *name, const void **data)
 {
-	GValue value_copy = { 0 };
+	GValue value_copy = G_VALUE_INIT;
 
 	if (!meta_get_value(image, name, VIPS_TYPE_AREA, &value_copy)) {
 		*data = vips_value_get_area(&value_copy, NULL);
@@ -1651,9 +1671,7 @@ vips_image_get_area(const VipsImage *image,
  * memory
  * @length: length of memory area
  *
- * Attaches @blob as a metadata item on @image under the name @name. A
- * convenience
- * function over vips_image_set() using a vips_blob.
+ * Attaches @data as a metadata item on @image under the name @name.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
@@ -1661,7 +1679,7 @@ void
 vips_image_set_blob(VipsImage *image, const char *name,
 	VipsCallbackFn free_fn, const void *data, size_t size)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, VIPS_TYPE_BLOB);
 	vips_value_set_blob(&value, free_fn, data, size);
@@ -1676,9 +1694,8 @@ vips_image_set_blob(VipsImage *image, const char *name,
  * @data: (array length=length) (element-type guint8): pointer to area of memory
  * @length: length of memory area
  *
- * Attaches @blob as a metadata item on @image under the name @name, taking
- * a copy of the memory area. A convenience function over
- * vips_image_set_blob().
+ * Attaches @data as a metadata item on @image under the name @name, taking
+ * a copy of the memory area.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
@@ -1715,10 +1732,8 @@ vips_image_set_blob_copy(VipsImage *image,
  * @data: (out) (array length=length) (element-type guint8): pointer to area of memory
  * @length: (out): return the blob length here, optionally
  *
- * Gets @blob from @image under the name @name, optionally returns its length in
- * @length. A convenience
- * function over vips_image_get(). Use vips_image_get_typeof() to test for the
- * existence
+ * Gets @data from @image under the name @name, optionally returns its
+ * length in @length. Use vips_image_get_typeof() to test for the existence
  * of a piece of metadata.
  *
  * See also: vips_image_get(), vips_image_get_typeof(), vips_blob_get(),
@@ -1729,7 +1744,7 @@ int
 vips_image_get_blob(const VipsImage *image, const char *name,
 	const void **data, size_t *length)
 {
-	GValue value_copy = { 0 };
+	GValue value_copy = G_VALUE_INIT;
 
 	if (!meta_get_value(image, name, VIPS_TYPE_BLOB, &value_copy)) {
 		*data = vips_value_get_blob(&value_copy, length);
@@ -1757,7 +1772,7 @@ vips_image_get_blob(const VipsImage *image, const char *name,
 int
 vips_image_get_int(const VipsImage *image, const char *name, int *out)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (meta_get_value(image, name, G_TYPE_INT, &value))
 		return -1;
@@ -1782,7 +1797,7 @@ vips_image_get_int(const VipsImage *image, const char *name, int *out)
 void
 vips_image_set_int(VipsImage *image, const char *name, int i)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, G_TYPE_INT);
 	g_value_set_int(&value, i);
@@ -1807,7 +1822,7 @@ vips_image_set_int(VipsImage *image, const char *name, int i)
 int
 vips_image_get_double(const VipsImage *image, const char *name, double *out)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (meta_get_value(image, name, G_TYPE_DOUBLE, &value))
 		return -1;
@@ -1832,7 +1847,7 @@ vips_image_get_double(const VipsImage *image, const char *name, double *out)
 void
 vips_image_set_double(VipsImage *image, const char *name, double d)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, G_TYPE_DOUBLE);
 	g_value_set_double(&value, d);
@@ -1862,7 +1877,7 @@ int
 vips_image_get_string(const VipsImage *image, const char *name,
 	const char **out)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (vips_image_get(image, name, &value))
 		return -1;
@@ -1906,7 +1921,7 @@ vips_image_get_string(const VipsImage *image, const char *name,
 void
 vips_image_set_string(VipsImage *image, const char *name, const char *str)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, VIPS_TYPE_REF_STRING);
 	vips_value_set_ref_string(&value, str);
@@ -1935,7 +1950,7 @@ int
 vips_image_get_as_string(const VipsImage *image,
 	const char *name, char **out)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 	GType type;
 
 	if (vips_image_get(image, name, &value))
@@ -1946,7 +1961,7 @@ vips_image_get_as_string(const VipsImage *image,
 	 */
 	type = G_VALUE_TYPE(&value);
 	if (g_value_type_transformable(type, VIPS_TYPE_SAVE_STRING)) {
-		GValue save_value = { 0 };
+		GValue save_value = G_VALUE_INIT;
 
 		g_value_init(&save_value, VIPS_TYPE_SAVE_STRING);
 		if (!g_value_transform(&value, &save_value))
@@ -2005,7 +2020,7 @@ int
 vips_image_get_image(const VipsImage *image,
 	const char *name, VipsImage **out)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (meta_get_value(image, name, VIPS_TYPE_IMAGE, &value))
 		return -1;
@@ -2029,7 +2044,7 @@ vips_image_get_image(const VipsImage *image,
 void
 vips_image_set_image(VipsImage *image, const char *name, VipsImage *im)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, VIPS_TYPE_IMAGE);
 	g_value_set_object(&value, im);
@@ -2061,7 +2076,7 @@ int
 vips_image_get_array_int(VipsImage *image, const char *name,
 	int **out, int *n)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (meta_get_value(image, name, VIPS_TYPE_ARRAY_INT, &value))
 		return -1;
@@ -2087,7 +2102,7 @@ void
 vips_image_set_array_int(VipsImage *image, const char *name,
 	const int *array, int n)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, VIPS_TYPE_ARRAY_INT);
 	vips_value_set_array_int(&value, array, n);
@@ -2119,7 +2134,7 @@ int
 vips_image_get_array_double(VipsImage *image, const char *name,
 	double **out, int *n)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	if (meta_get_value(image, name, VIPS_TYPE_ARRAY_DOUBLE, &value))
 		return -1;
@@ -2145,7 +2160,7 @@ void
 vips_image_set_array_double(VipsImage *image, const char *name,
 	const double *array, int n)
 {
-	GValue value = { 0 };
+	GValue value = G_VALUE_INIT;
 
 	g_value_init(&value, VIPS_TYPE_ARRAY_DOUBLE);
 	vips_value_set_array_double(&value, array, n);

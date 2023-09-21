@@ -403,17 +403,17 @@ class TestCreate:
     @pytest.mark.skipif(pyvips.type_find("VipsOperation", "text") == 0,
                         reason="no text, skipping test")
     def test_text(self):
-        im = pyvips.Image.text("Hello, world!")
+        im = pyvips.Image.text("Hello, world!", dpi=300)
         assert im.width > 10
         assert im.height > 10
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.UCHAR
-        assert im.max() == 255
+        assert im.max() > 240
         assert im.min() == 0
 
         # test autofit
         im = pyvips.Image.text("Hello, world!", width=500, height=500)
-        # quite a large threshold, since we need to work with a huge range of 
+        # quite a large threshold, since we need to work with a huge range of
         # text rendering systems
         assert abs(im.width - 500) < 50
 

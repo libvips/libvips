@@ -210,7 +210,7 @@ Check the image write operations to see all the possible options. For example:
 $ vips jpegsave
 save image to jpeg file
 usage:
-   jpegsave in filename [--option-name option-value ...]
+   jpegsave in filename
 where:
    in           - Image to save, input VipsImage
    filename     - Filename to save to, input gchararray

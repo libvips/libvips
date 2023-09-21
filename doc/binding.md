@@ -10,11 +10,11 @@
 </refnamediv>
 
 There are full libvips bindings for quite a few environments now: C, C++,
-command-line, Ruby, PHP, Lua, Python and JavaScript (node). 
+command-line, Ruby, PHP, Lua, Python and JavaScript (node).
 
 This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
-to what you need. 
+to what you need.
 
 # Don't bind the top-level C API
 
@@ -57,7 +57,7 @@ main(int argc, char **argv)
 	VipsImage *out;
 	VipsOperation *op;
 	VipsOperation *new_op;
-	GValue gvalue = { 0 };
+	GValue gvalue = G_VALUE_INIT;
 
 	if (VIPS_INIT(argv[0]))
 		/* This shows the vips error buffer and quits with a fail exit
@@ -170,12 +170,6 @@ the method-missing hook and attempt to run any method calls not implemented by
 the `Image` class as libvips operators. In effect, the binding is generated at
 runtime.
 
-# Dynamic language without FFI
-
-PHP does not have a useful FFI, unfortunately, so for this language a small
-C module implements the general `vips_call()` function for PHP language
-types, and a larger pure PHP layer makes it convenient to use.
-
 # gobject-introspection
 
 The C source code to libvips has been marked up with special comments
@@ -191,7 +185,7 @@ it's as simple as:
 from gi.repository import Vips
 ```
 
-You can now use all of the libvips introspection machinery, as noted above. 
+You can now use all of the libvips introspection machinery, as noted above.
 
 Unfortunately g-o-i has some strong disadvantages. It is not very portable,
 since you will need a g-o-i layer for whatever platform you are targeting;
@@ -199,12 +193,12 @@ it does not cross-compile well, since typelibs include a lot of very-low
 level data (such as exact structure layouts); and installation for your
 users is likely to be tricky.
 
-If you have a choice, I would recommend simply using FFI. 
+If you have a choice, I would recommend simply using FFI.
 
 # Documentation
 
-You can generate searchable docs from a <code>.gir</code> (the thing that 
-is built from scanning libvips and which in turn turn the typelib is 
+You can generate searchable docs from a <code>.gir</code> (the thing that
+is built from scanning libvips and which in turn turn the typelib is
 made from) with <command>g-ir-doc-tool</command>, for example:
 
 ```bash
@@ -214,15 +208,15 @@ $ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
 Then to view them, either:
 
 ```bash
-$ yelp ~/mydocs 
+$ yelp ~/mydocs
 ```
 
 Or perhaps:
 
 ```bash
-$ cd ~/mydocs 
+$ cd ~/mydocs
 $ yelp-build html .
 ```
 
-To make HTML docs. This is an easy way to see what you can call in the 
+To make HTML docs. This is an easy way to see what you can call in the
 library.

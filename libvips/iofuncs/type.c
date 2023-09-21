@@ -895,7 +895,7 @@ transform_array_int_g_string(const GValue *src_value, GValue *dest_value)
 static void
 transform_array_int_save_string(const GValue *src_value, GValue *dest_value)
 {
-	GValue intermediate = { 0 };
+	GValue intermediate = G_VALUE_INIT;
 
 	g_value_init(&intermediate, G_TYPE_STRING);
 
@@ -958,7 +958,7 @@ transform_g_string_array_int(const GValue *src_value, GValue *dest_value)
 static void
 transform_save_string_array_int(const GValue *src_value, GValue *dest_value)
 {
-	GValue intermediate = { 0 };
+	GValue intermediate = G_VALUE_INIT;
 
 	g_value_init(&intermediate, G_TYPE_STRING);
 

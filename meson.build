@@ -403,6 +403,10 @@ if openslide_dep.found()
     if openslide_dep.version().version_compare('>=3.4.0')
         cfg_var.set('HAVE_OPENSLIDE_3_4', '1')
     endif
+
+    if cc.has_function('openslide_get_icc_profile_size', dependencies: openslide_dep)
+        cfg_var.set('HAVE_OPENSLIDE_ICC', '1')
+    endif
 endif
 
 matio_dep = dependency('matio', required: get_option('matio'))
@@ -480,6 +484,11 @@ if libheif_dep.found()
     # the libheif version number since testing for enums is annoying
     if libheif_dep.version().version_compare('>=1.7.0')
         cfg_var.set('HAVE_HEIF_AVIF', '1')
+    endif
+
+    # heif_init in 1.13
+    if libheif_dep.version().version_compare('>=1.13.0')
+        cfg_var.set('HAVE_HEIF_INIT', '1')
     endif
 endif
 

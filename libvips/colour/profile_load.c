@@ -214,7 +214,7 @@ vips__profile_set(VipsImage *image, const char *name)
 		return -1;
 
 	if (profile) {
-		GValue value = { 0 };
+		GValue value = G_VALUE_INIT;
 
 		g_value_init(&value, VIPS_TYPE_BLOB);
 		g_value_set_boxed(&value, profile);
