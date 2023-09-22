@@ -861,7 +861,7 @@ static void
 build_scan_property(VipsDbuf *dbuf, VipsImage *image,
 	const char *vips_name, const char *szi_name)
 {
-	const char *str;
+	char *str;
 	GValue value = G_VALUE_INIT;
 	GValue save_value = G_VALUE_INIT;
 	GType type;
@@ -885,12 +885,8 @@ build_scan_property(VipsDbuf *dbuf, VipsImage *image,
 	}
 	g_value_unset(&value);
 
-	if (!(str = vips_value_get_save_string(&save_value))) {
-		g_value_unset(&save_value);
-		return;
-	}
-
-	if (!g_utf8_validate(str, -1, NULL)) {
+	if (!(str = g_utf8_make_valid(
+			  vips_value_get_save_string(&save_value), -1))) {
 		g_value_unset(&save_value);
 		return;
 	}
@@ -904,6 +900,8 @@ build_scan_property(VipsDbuf *dbuf, VipsImage *image,
 	vips_dbuf_write_amp(dbuf, str);
 	vips_dbuf_writef(dbuf, "</value>\n");
 	vips_dbuf_writef(dbuf, "    </property>\n");
+
+	g_free(str);
 
 	g_value_unset(&save_value);
 }

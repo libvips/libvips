@@ -54,7 +54,7 @@ cpp = meson.get_compiler('cpp')
 # Prevent use of void* pointer arithmetic to support MSVC
 add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language : ['cpp', 'c'])
 
-glib_dep = dependency('glib-2.0', version: '>=2.40')
+glib_dep = dependency('glib-2.0', version: '>=2.52')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')
 gmodule_dep = dependency('gmodule-no-export-2.0', required: get_option('modules'))
