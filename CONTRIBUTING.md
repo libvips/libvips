@@ -38,3 +38,15 @@ $ git commit --amend -a
 ```
 
 in order to update the last commit with all pending changes.
+
+In an emergency, reformat the entire project with something like:
+
+```shell
+find . \
+  \( -name "*.[hc]" -o -name "*.cc" -o -name "*.cpp" \) \
+  -not \( -path "./libvips/foreign/libnsgif/*" -o \
+    -name vips-operators.cpp -o \
+    -name StandaloneFuzzTargetMain.c -o \
+    -name profiles.c \) | \
+  xargs clang-format -i
+```
