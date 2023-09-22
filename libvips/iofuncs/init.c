@@ -489,14 +489,6 @@ vips_init(const char *argv0)
 	vips__buffer_init();
 	vips__meta_init();
 
-	/* This does an unsynchronised static hash table init on first call --
-	 * we have to make sure we do this single-threaded. See:
-	 * https://github.com/openslide/openslide/issues/161
-	 */
-#if !GLIB_CHECK_VERSION(2, 48, 1)
-	(void) g_get_language_names();
-#endif
-
 	if (!vips__global_lock)
 		vips__global_lock = vips_g_mutex_new();
 
