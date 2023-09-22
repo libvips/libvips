@@ -16,7 +16,7 @@ test_one_file(const char *name)
 
 	if (!(image = vips_image_new_from_file(name,
 			  "access", VIPS_ACCESS_SEQUENTIAL,
-			  NULL)))
+			  nullptr)))
 		return 0;
 
 	if (image->Xsize > 100 ||
@@ -26,7 +26,7 @@ test_one_file(const char *name)
 		return 0;
 	}
 
-	if (vips_jpegsave_buffer(image, &buf, &len, NULL)) {
+	if (vips_jpegsave_buffer(image, &buf, &len, nullptr)) {
 		g_object_unref(image);
 		return 0;
 	}
@@ -48,7 +48,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	if (!(name = vips__temp_name("%s")))
 		return 0;
 
-	if (!g_file_set_contents(name, (const char *) data, size, NULL) ||
+	if (!g_file_set_contents(name, (const char *) data, size, nullptr) ||
 		test_one_file(name)) {
 		g_unlink(name);
 		g_free(name);

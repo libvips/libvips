@@ -281,9 +281,7 @@ vips_unpremultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		if (in->Type == VIPS_INTERPRETATION_GREY16 ||
-			in->Type == VIPS_INTERPRETATION_RGB16)
-			unpremultiply->max_alpha = 65535;
+		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
 
 	/* Is alpha-band unset? Default to the final band for this image.
 	 */

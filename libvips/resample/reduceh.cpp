@@ -516,7 +516,7 @@ vips_reduceh_build(VipsObject *object)
 			g_info("shrinkh by %d", int_hshrink);
 			if (vips_shrinkh(in, &t[0], int_hshrink,
 					"ceil", TRUE,
-					NULL))
+					nullptr))
 				return -1;
 			in = t[0];
 
@@ -582,7 +582,7 @@ vips_reduceh_build(VipsObject *object)
 			VIPS_CEIL(reduceh->n_point / 2.0) - 1, 0,
 			in->Xsize + reduceh->n_point, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
-			(void *) NULL))
+			nullptr))
 		return -1;
 	in = t[2];
 
@@ -602,7 +602,7 @@ vips_reduceh_build(VipsObject *object)
 		generate = vips_reduceh_gen;
 
 	if (vips_image_pipelinev(resample->out,
-			VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL))
+			VIPS_DEMAND_STYLE_FATSTRIP, in, nullptr))
 		return -1;
 
 	/* Don't change xres/yres, leave that to the application layer. For

@@ -200,7 +200,7 @@ C convenience function `vips_sin()`:
 
 and a C++ member function `VImage::sin()`:
 
-    VImage VImage::sin (VOption *options = 0) const
+    VImage VImage::sin (VOption *options = nullptr) const
 
 ### Image metadata
 

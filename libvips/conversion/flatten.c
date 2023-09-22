@@ -326,9 +326,7 @@ vips_flatten_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		if (in->Type == VIPS_INTERPRETATION_GREY16 ||
-			in->Type == VIPS_INTERPRETATION_RGB16)
-			flatten->max_alpha = 65535;
+		flatten->max_alpha = vips_interpretation_max_alpha(in->Type);
 
 	/* Is max_alpha less than the numeric range of this image? If it is,
 	 * we can get int overflow.

@@ -3,6 +3,7 @@ if get_option('nsgif')
 endif
 
 foreign_sources = files(
+    'archive.c',
     'analyze2vips.c',
     'analyzeload.c',
     'cairo.c',
