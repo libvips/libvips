@@ -258,6 +258,12 @@
 #include "pforeign.h"
 #include "tiff.h"
 
+/* We do jpeg compress ourselves, if we can.
+ */
+#ifdef HAVE_JPEG
+#include "jpeg.h"
+#endif /*HAVE_JPEG*/
+
 /* TODO:
  *
  * - add a flag for plane-separate write
@@ -284,6 +290,9 @@
 /* Compression types we handle ourselves.
  */
 static int wtiff_we_compress[] = {
+#ifdef HAVE_JPEG
+	COMPRESSION_JPEG,
+#endif /*HAVE_JPEG*/
 	JP2K_LOSSY
 };
 
@@ -377,8 +386,7 @@ struct _Wtiff {
 	 */
 	int image_height;
 
-	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must compress ourselves.
+	/* TRUE if we compress ourselves outside the libtiff lock.
 	 */
 	gboolean we_compress;
 };
@@ -1490,6 +1498,52 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 	}
 }
 
+#ifdef HAVE_JPEG
+// in vips2jpeg.c
+void vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target);
+
+static int
+wtiff_compress_jpeg(Wtiff *wtiff,
+	VipsRegion *strip, VipsRect *tile, VipsTarget *target)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	// we could have one of these per thread and reuse it for a small speedup
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
+
+	cinfo.image_width = tile->width;
+	cinfo.image_height = tile->height;
+	cinfo.input_components = 3;
+	cinfo.in_color_space = JCS_RGB;
+	jpeg_set_defaults(&cinfo);
+
+	// don't output tables, just coefficients
+	jpeg_suppress_tables(&cinfo, TRUE);
+
+	// FALSE means we are outputting an abbreviated (no tables) datastream
+	jpeg_start_compress(&cinfo, FALSE);
+
+	for (int y = 0; y < tile->height; y++) {
+		JSAMPROW row_pointer[1];
+
+		row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
+		jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	return 0;
+}
+#endif /*HAVE_JPEG*/
+
 /* Write a set of tiles across the strip.
  */
 static int
@@ -1549,7 +1603,7 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 				 * FIXME ... try again with openjpeg 2.5,
 				 * when that comes.
 				 */
-				result = vips__foreign_load_jp2k_compress(
+				result = vips__foreign_save_jp2k_compress(
 					strip, &tile, target,
 					wtiff->tilew, wtiff->tileh,
 					!wtiff->rgbjpeg,
@@ -1558,6 +1612,12 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 					wtiff->lossless,
 					wtiff->Q);
 				break;
+
+#ifdef HAVE_JPEG
+			case COMPRESSION_JPEG:
+				result = wtiff_compress_jpeg(wtiff, strip, &tile, target);
+				break;
+#endif /*HAVE_JPEG*/
 
 			default:
 				result = -1;

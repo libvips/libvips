@@ -1,4 +1,4 @@
-/* wrap jpeg library for write
+/* wrap jpeg library for write);
  *
  * 28/11/03 JC
  *	- better no-overshoot on tile loop
@@ -818,15 +818,12 @@ term_destination(j_compress_ptr cinfo)
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer))
 		ERREXIT(cinfo, JERR_FILE_WRITE);
-
-	if (vips_target_end(dest->target))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
 }
 
 /* Set dest to one of our objects.
  */
-static void
-target_dest(j_compress_ptr cinfo, VipsTarget *target)
+void
+vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target)
 {
 	Dest *dest;
 
@@ -871,7 +868,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 
 	/* Attach output.
 	 */
-	target_dest(&write->cinfo, target);
+	vips__jpeg_target_dest(&write->cinfo, target);
 
 	/* Convert! Write errors come back here as an error return.
 	 */
@@ -883,6 +880,9 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 		return -1;
 	}
 	write_destroy(write);
+
+	if (vips_target_end(target))
+		return -1;
 
 	return 0;
 }
