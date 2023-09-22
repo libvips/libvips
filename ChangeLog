@@ -23,6 +23,9 @@
 - remove libgsf dependency in favor of libarchive [kleisauke]
 - better chunking for small shrinks [jcupitt]
 - use alpha range of 0.0 - 1.0 for scRGB images [DarthSim]
+- add support for 16-bit float TIFFs [DarthSim]
+- add direct mode to dzsave [jcupitt]
+- require C++11 as a minimum standard [kleisauke]
 
 18/9/23 8.14.5
 
