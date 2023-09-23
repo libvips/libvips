@@ -642,14 +642,52 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 void vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target);
 
 static void
-wtiff_compress_jpeg_header(Wtiff *wtiff, struct jpeg_compress_struct *cinfo,
-    VipsImage *image, int width, int height)
+wtiff_compress_jpeg_header(Wtiff *wtiff,
+	struct jpeg_compress_struct *cinfo, VipsImage *image)
 {
-	cinfo->image_width = width;
-	cinfo->image_height = height;
+	J_COLOR_SPACE space;
+
+	cinfo->image_width = wtiff->tilew;
+	cinfo->image_height = wtiff->tileh;
 	cinfo->input_components = image->Bands;
-	cinfo->in_color_space = JCS_RGB;
+
+	if (image->Bands == 4 &&
+		image->Type == VIPS_INTERPRETATION_CMYK) {
+		space = JCS_CMYK;
+	}
+	else if (image->Bands == 3)
+		space = JCS_RGB;
+	else if (image->Bands == 1)
+		space = JCS_GRAYSCALE;
+	else
+		/* Use luminance compression for all channels.
+		 */
+		space = JCS_UNKNOWN;
+	cinfo->in_color_space = space;
+
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Reset compression profile to libjpeg defaults
+	 */
+	if (jpeg_c_int_param_supported(cinfo, JINT_COMPRESS_PROFILE))
+		jpeg_c_set_int_param(cinfo,
+			JINT_COMPRESS_PROFILE, JCP_FASTEST);
+#endif
+
 	jpeg_set_defaults(cinfo);
+
+	/* Set compression quality. Must be called after setting params above.
+	 */
+	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
+
+	// disable chroma subsample for high Q
+	if (wtiff->Q >= 90) {
+		int i;
+
+		for (i = 0; i < image->Bands; i++) {
+			cinfo->comp_info[i].h_samp_factor = 1;
+			cinfo->comp_info[i].v_samp_factor = 1;
+		}
+	}
 }
 
 static int
@@ -659,6 +697,10 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 
+	printf("wtiff_compress_jpeg: left = %d, top = %d, "
+			"width = %d, height = %d\n",
+			tile->left, tile->top, tile->width, tile->height);
+
 	// we could have one of these per thread and reuse it for a small speedup
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
@@ -667,8 +709,7 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	 */
 	vips__jpeg_target_dest(&cinfo, target);
 
-	wtiff_compress_jpeg_header(wtiff, &cinfo,
-		strip->im, tile->width, tile->height);
+	wtiff_compress_jpeg_header(wtiff, &cinfo, strip->im);
 
 	// don't output tables, just coefficients
 	jpeg_suppress_tables(&cinfo, TRUE);
@@ -676,13 +717,37 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	// FALSE means we are outputting an abbreviated (no tables) datastream
 	jpeg_start_compress(&cinfo, FALSE);
 
-	for (int y = 0; y < tile->height; y++) {
+	if (tile->width < wtiff->tilew ||
+		tile->height < wtiff->tileh) {
+		size_t sizeof_pel = VIPS_REGION_SIZEOF_PEL(strip);
+		VipsPel *line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
+
 		JSAMPROW row_pointer[1];
 
-		row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
-		jpeg_write_scanlines(&cinfo, row_pointer, 1);
-	}
+		row_pointer[0] = line;
 
+		for (int y = 0; y < tile->height; y++) {
+			memcpy(line, VIPS_REGION_ADDR(strip, tile->left, tile->top + y),
+				tile->width * sizeof_pel);
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+
+		memset(line, 0, wtiff->tilew * sizeof_pel);
+		for (int y = tile->height; y < wtiff->tileh; y++) {
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+
+		g_free(row_pointer[0]);
+	}
+	else {
+		for (int y = 0; y < tile->height; y++) {
+			JSAMPROW row_pointer[1];
+
+			row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+
+	}
 	jpeg_finish_compress(&cinfo);
 
 	jpeg_destroy_compress(&cinfo);
@@ -704,7 +769,7 @@ wtiff_compress_jpeg_tables(Wtiff *wtiff,
 	 */
 	vips__jpeg_target_dest(&cinfo, target);
 
-	wtiff_compress_jpeg_header(wtiff, &cinfo, image, width, height);
+	wtiff_compress_jpeg_header(wtiff, &cinfo, image);
 
 	// write just the header tables
 	jpeg_write_tables(&cinfo);
@@ -764,6 +829,13 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			wtiff->we_compress = TRUE;
 			break;
 		}
+
+	/* Special case: we don't compress JPEG strip images, they are best left
+	 * to libtiff.
+	 */
+	if (wtiff->compression == COMPRESSION_JPEG &&
+		!wtiff->tile)
+		wtiff->we_compress = FALSE;
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
