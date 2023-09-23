@@ -1432,17 +1432,19 @@ vips_icc_is_compatible_profile(VipsImage *image,
  * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
  * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead.
  *
- * If @embedded is set, the input profile is taken from the input image
- * metadata. If there is no embedded profile,
- * @input_profile is used as a fall-back.
- * You can test for the
- * presence of an embedded profile with
- * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
- * return %GType 0 if there is no profile.
+ * The input profile is searched for in three places:
  *
- * If @embedded is not set, the input profile is taken from
- * @input_profile. If @input_profile is not supplied, the
- * metadata profile, if any, is used as a fall-back.
+ *	  1. If @embedded is set, libvips will try to use any profile in the input
+ *	  image metadata. You can test for the presence of an embedded profile
+ *	  with vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument.
+ *	  This will return %GType 0 if there is no profile.
+ *
+ *	  2. Otherwise, if @input_profile is set, libvips will try to load a
+ *	  profile from the named file. This can aslso be the name of one of the
+ *	  built-in profiles.
+ *
+ *	  3. Otherwise, libvips will try to pick a compatible profile from the set
+ *	  of built-in profiles.
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
@@ -1521,17 +1523,19 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * profile-connection space with the input profile and then to the output
  * space with the output profile.
  *
- * If @embedded is set, the input profile is taken from the input image
- * metadata, if present. If there is no embedded profile,
- * @input_profile is used as a fall-back.
- * You can test for the
- * presence of an embedded profile with
- * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
- * return %GType 0 if there is no profile.
+ * The input profile is searched for in three places:
  *
- * If @embedded is not set, the input profile is taken from
- * @input_profile. If @input_profile is not supplied, the
- * metadata profile, if any, is used as a fall-back.
+ *	  1. If @embedded is set, libvips will try to use any profile in the input
+ *	  image metadata. You can test for the presence of an embedded profile
+ *	  with vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument.
+ *	  This will return %GType 0 if there is no profile.
+ *
+ *	  2. Otherwise, if @input_profile is set, libvips will try to load a
+ *	  profile from the named file. This can aslso be the name of one of the
+ *	  built-in profiles.
+ *
+ *	  3. Otherwise, libvips will try to pick a compatible profile from the set
+ *	  of built-in profiles.
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
