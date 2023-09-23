@@ -637,6 +637,84 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 	return 0;
 }
 
+#ifdef HAVE_JPEG
+// in vips2jpeg.c
+void vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target);
+
+static void
+wtiff_compress_jpeg_header(Wtiff *wtiff, struct jpeg_compress_struct *cinfo,
+    VipsImage *image, int width, int height)
+{
+	cinfo->image_width = width;
+	cinfo->image_height = height;
+	cinfo->input_components = image->Bands;
+	cinfo->in_color_space = JCS_RGB;
+	jpeg_set_defaults(cinfo);
+}
+
+static int
+wtiff_compress_jpeg(Wtiff *wtiff,
+	VipsRegion *strip, VipsRect *tile, VipsTarget *target)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	// we could have one of these per thread and reuse it for a small speedup
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
+
+	wtiff_compress_jpeg_header(wtiff, &cinfo,
+		strip->im, tile->width, tile->height);
+
+	// don't output tables, just coefficients
+	jpeg_suppress_tables(&cinfo, TRUE);
+
+	// FALSE means we are outputting an abbreviated (no tables) datastream
+	jpeg_start_compress(&cinfo, FALSE);
+
+	for (int y = 0; y < tile->height; y++) {
+		JSAMPROW row_pointer[1];
+
+		row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
+		jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	return 0;
+}
+
+static int
+wtiff_compress_jpeg_tables(Wtiff *wtiff,
+	VipsImage *image, int width, int height, VipsTarget *target)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
+
+	wtiff_compress_jpeg_header(wtiff, &cinfo, image, width, height);
+
+	// write just the header tables
+	jpeg_write_tables(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	return 0;
+}
+#endif /*HAVE_JPEG*/
+
 /* Write a TIFF header for this layer.
  */
 static int
@@ -861,6 +939,38 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			format = SAMPLEFORMAT_COMPLEXIEEEFP;
 		TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, format);
 	}
+
+#ifdef HAVE_JPEG
+	// we have to write the tables ourselves for JPEG we_compress
+	if (wtiff->we_compress &&
+		wtiff->compression == COMPRESSION_JPEG) {
+		VipsTarget *target;
+		int result;
+		unsigned char *buffer;
+		size_t length;
+
+		target = vips_target_new_to_memory();
+
+		result = wtiff_compress_jpeg_tables(wtiff, wtiff->input,
+			wtiff->input->Xsize, wtiff->input->Ysize, target);
+
+		if (result) {
+			g_object_unref(target);
+			return -1;
+		}
+
+		buffer = vips_target_steal(target, &length);
+
+		g_object_unref(target);
+
+		printf("setting %zd bytes of table data\n", length);
+
+		guint32 length32 = (guint32) length;
+		TIFFSetField(tif, TIFFTAG_JPEGTABLES, length32, buffer);
+
+		g_free(buffer);
+	}
+#endif /*HAVE_JPEG*/
 
 	return 0;
 }
@@ -1497,52 +1607,6 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 		q += wtiff->tls;
 	}
 }
-
-#ifdef HAVE_JPEG
-// in vips2jpeg.c
-void vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target);
-
-static int
-wtiff_compress_jpeg(Wtiff *wtiff,
-	VipsRegion *strip, VipsRect *tile, VipsTarget *target)
-{
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-
-	// we could have one of these per thread and reuse it for a small speedup
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
-
-	/* Attach output.
-	 */
-	vips__jpeg_target_dest(&cinfo, target);
-
-	cinfo.image_width = tile->width;
-	cinfo.image_height = tile->height;
-	cinfo.input_components = 3;
-	cinfo.in_color_space = JCS_RGB;
-	jpeg_set_defaults(&cinfo);
-
-	// don't output tables, just coefficients
-	jpeg_suppress_tables(&cinfo, TRUE);
-
-	// FALSE means we are outputting an abbreviated (no tables) datastream
-	jpeg_start_compress(&cinfo, FALSE);
-
-	for (int y = 0; y < tile->height; y++) {
-		JSAMPROW row_pointer[1];
-
-		row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
-		jpeg_write_scanlines(&cinfo, row_pointer, 1);
-	}
-
-	jpeg_finish_compress(&cinfo);
-
-	jpeg_destroy_compress(&cinfo);
-
-	return 0;
-}
-#endif /*HAVE_JPEG*/
 
 /* Write a set of tiles across the strip.
  */

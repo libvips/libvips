@@ -1018,7 +1018,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 
 	/* Attach output.
 	 */
-	target_dest(&write->cinfo, target);
+	vips__jpeg_target_dest(&write->cinfo, target);
 
 	/* Convert! Write errors come back here as an error return.
 	 */
