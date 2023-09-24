@@ -697,9 +697,11 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 
+#ifdef DEBUG
 	printf("wtiff_compress_jpeg: left = %d, top = %d, "
 			"width = %d, height = %d\n",
 			tile->left, tile->top, tile->width, tile->height);
+#endif /*DEBUG*/
 
 	// we could have one of these per thread and reuse it for a small speedup
 	cinfo.err = jpeg_std_error(&jerr);
@@ -1035,10 +1037,11 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 
 		g_object_unref(target);
 
+#ifdef DEBUG
 		printf("setting %zd bytes of table data\n", length);
+#endif /*DEBUG*/
 
-		guint32 length32 = (guint32) length;
-		TIFFSetField(tif, TIFFTAG_JPEGTABLES, length32, buffer);
+		TIFFSetField(tif, TIFFTAG_JPEGTABLES, length, buffer);
 
 		g_free(buffer);
 	}

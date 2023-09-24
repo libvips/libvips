@@ -1031,6 +1031,9 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	}
 	write_destroy(write);
 
+	if (vips_target_end(target))
+		return -1;
+
 	return 0;
 }
 
