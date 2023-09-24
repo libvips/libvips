@@ -2170,45 +2170,24 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 	tdata_t buf;
 	ttile_t i;
 
-	if (wtiff->compression == COMPRESSION_JPEG)
-		tile_size = TIFFTileSize(in);
-	else
-		/* If we will be copying raw tiles we need a buffer large
-		 * enough to hold the largest compressed tile in any page.
-		 *
-		 * Allocate a buffer 2x the uncompressed tile size ... much
-		 * simpler than searching every page for the largest tile with
-		 * TIFFTAG_TILEBYTECOUNTS.
-		 */
-		tile_size = 2 * wtiff->tls * wtiff->tileh;
+	/* If we will be copying raw tiles we need a buffer large
+	 * enough to hold the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much
+	 * simpler than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	tile_size = 2 * wtiff->tls * wtiff->tileh;
+
 	buf = vips_malloc(NULL, tile_size);
 
 	for (i = 0; i < n_tiles; i++) {
-		tsize_t len;
+		tsize_t len = TIFFReadRawTile(in, i, buf, tile_size);
 
-		/* If this is a JPEG-compressed TIFF, we need to decompress
-		 * and recompress, since tiles are actually written in several
-		 * places (coefficients go in the tile, huffman tables go
-		 * elsewhere).
-		 *
-		 * For all other compression types, we can just use
-		 * TIFFReadRawTile()/TIFFWriteRawTile().
-		 */
-		if (wtiff->compression == COMPRESSION_JPEG) {
-			len = TIFFReadEncodedTile(in, i, buf, tile_size);
-			if (len <= 0 ||
-				TIFFWriteEncodedTile(out, i, buf, len) < 0) {
-				g_free(buf);
-				return -1;
-			}
-		}
-		else {
-			len = TIFFReadRawTile(in, i, buf, tile_size);
-			if (len <= 0 ||
-				TIFFWriteRawTile(out, i, buf, len) < 0) {
-				g_free(buf);
-				return -1;
-			}
+		if (len <= 0 ||
+			TIFFWriteRawTile(out, i, buf, len) < 0) {
+			g_free(buf);
+			return -1;
 		}
 	}
 
@@ -2258,6 +2237,9 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	 * Set explicitly from Wtiff.
 	 */
 	if (wtiff->compression == COMPRESSION_JPEG) {
+		unsigned char *buffer;
+		guint32 length;
+
 		TIFFSetField(out, TIFFTAG_JPEGQUALITY, wtiff->Q);
 
 		/* Only for three-band, 8-bit images.
@@ -2279,6 +2261,9 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 			TIFFSetField(in,
 				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB);
 		}
+
+		if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &length, &buffer))
+			TIFFSetField(out, TIFFTAG_JPEGTABLES, length, buffer);
 	}
 
 #ifdef HAVE_TIFF_COMPRESSION_WEBP
