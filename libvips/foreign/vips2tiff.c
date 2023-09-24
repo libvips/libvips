@@ -204,6 +204,8 @@
  * 	- add support for page_height param
  * 11/5/22
  * 	- switch to terget API for output
+ * 24/9/23
+ *  - add threaded write of tiled JPEG and JP2K
  */
 
 /*
@@ -705,9 +707,9 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	VipsPel *line;
 
 #ifdef DEBUG
-	printf("wtiff_compress_jpeg: left = %d, top = %d, "
-			"width = %d, height = %d\n",
-			tile->left, tile->top, tile->width, tile->height);
+	printf("wtiff_compress_jpeg: "
+		   "left = %d, top = %d, width = %d, height = %d\n",
+		tile->left, tile->top, tile->width, tile->height);
 #endif /*DEBUG*/
 
 	// we could have one of these per thread and reuse it for a small speedup
@@ -717,7 +719,7 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	eman.pub.output_message = vips__new_output_message;
 	eman.fp = NULL;
 
-	/// we need a line buffer to pad edge tiles
+	// we need a line buffer to pad edge tiles
 	line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
 
 	/* Error handling. The error message will have ben set by our handlers.
@@ -728,13 +730,13 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 		return -1;
 	}
 
-	/* Attach output.
-	 */
-	vips__jpeg_target_dest(&cinfo, target);
-
 	/* Make jpeg compression object.
 	 */
 	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
 
 	wtiff_compress_jpeg_header(wtiff, &cinfo, strip->im);
 
