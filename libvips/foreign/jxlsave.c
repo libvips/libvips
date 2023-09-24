@@ -107,6 +107,18 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
 
+/* String-based metadata fields we add.
+ */
+typedef struct _VipsForeignSaveJxlMetadata {
+	const char *name;	 /* as understood by libvips */
+	JxlBoxType box_type; /* as understood by libjxl */
+} VipsForeignSaveJxlMetadata;
+
+static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
+	{ VIPS_META_EXIF_NAME, "Exif" },
+	{ VIPS_META_XMP_NAME, "xml " }
+};
+
 static void
 vips_foreign_save_jxl_dispose(GObject *gobject)
 {
@@ -220,6 +232,78 @@ vips_foreign_save_jxl_print_status(JxlEncoderStatus status)
 	}
 }
 #endif /*DEBUG*/
+
+static int
+vips_foreign_save_jxl_add_metadata(VipsForeignSaveJxl *jxl, VipsImage *in)
+{
+#ifdef HAVE_LIBJXL_0_7
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
+	int i;
+
+	for (i = 0; i < VIPS_NUMBER(libjxl_metadata); i++)
+		if (vips_image_get_typeof(in, libjxl_metadata[i].name)) {
+			uint8_t *data;
+			size_t length;
+
+#ifdef DEBUG
+			printf("attaching %s ..\n", libjxl_metadata[i].name);
+#endif /*DEBUG*/
+
+			if (vips_image_get_blob(in,
+					libjxl_metadata[i].name, (const void **) &data, &length))
+				return -1;
+
+			/* It's safe to call JxlEncoderUseBoxes multiple times
+			 */
+			if (JxlEncoderUseBoxes(jxl->encoder) != JXL_ENC_SUCCESS) {
+				vips_foreign_save_jxl_error(jxl, "JxlEncoderUseBoxes");
+				return -1;
+			}
+
+			/* JPEG XL stores EXIF data without leading "Exif\0\0" with offset
+			 */
+			if (!strcmp(libjxl_metadata[i].name, VIPS_META_EXIF_NAME)) {
+				if (length >= 6 && vips_isprefix("Exif", (char *) data)) {
+					data = data + 6;
+					length -= 6;
+				}
+
+				size_t exif_size = length + 4;
+				uint8_t *exif_data = g_malloc0(exif_size);
+
+				if (!exif_data) {
+					vips_error(class->nickname, "%s", _("out of memory"));
+					return -1;
+				}
+
+				/* The first 4 bytes is offset which is 0 in this case
+				 */
+				memcpy(exif_data + 4, data, length);
+
+				if (JxlEncoderAddBox(jxl->encoder, libjxl_metadata[i].box_type,
+						exif_data, exif_size, JXL_TRUE) != JXL_ENC_SUCCESS) {
+					vips_foreign_save_jxl_error(jxl, "JxlEncoderAddBox");
+					return -1;
+				}
+
+				g_free(exif_data);
+			}
+			else {
+				if (JxlEncoderAddBox(jxl->encoder, libjxl_metadata[i].box_type,
+						data, length, JXL_TRUE) != JXL_ENC_SUCCESS) {
+					vips_foreign_save_jxl_error(jxl, "JxlEncoderAddBox");
+					return -1;
+				}
+			}
+		}
+
+	/* It's safe to call JxlEncoderCloseBoxes even if we don't use boxes
+	 */
+	JxlEncoderCloseBoxes(jxl->encoder);
+#endif /*HAVE_LIBJXL_0_7*/
+
+	return 0;
+}
 
 static int
 vips_foreign_save_jxl_build(VipsObject *object)
@@ -408,6 +492,9 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			return -1;
 		}
 	}
+
+	if (vips_foreign_save_jxl_add_metadata(jxl, in))
+		return -1;
 
 	/* Render the entire image in memory. libjxl seems to be missing
 	 * tile-based write at the moment.
