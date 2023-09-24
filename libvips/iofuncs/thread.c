@@ -182,85 +182,6 @@ vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
 	return thread;
 }
 
-static int
-get_num_processors(void)
-{
-#if GLIB_CHECK_VERSION(2, 48, 1)
-	/* We could use g_get_num_processors when GLib >= 2.48.1, see:
-	 * https://gitlab.gnome.org/GNOME/glib/commit/999711abc82ea3a698d05977f9f91c0b73957f7f
-	 * https://gitlab.gnome.org/GNOME/glib/commit/2149b29468bb99af3c29d5de61f75aad735082dc
-	 */
-	return g_get_num_processors();
-#else
-	int nproc;
-
-	nproc = 1;
-
-#ifdef G_OS_UNIX
-
-#if defined(HAVE_UNISTD_H) && defined(_SC_NPROCESSORS_ONLN)
-	{
-		/* POSIX style.
-		 */
-		int x;
-
-		x = sysconf(_SC_NPROCESSORS_ONLN);
-		if (x > 0)
-			nproc = x;
-	}
-#elif defined HW_NCPU
-	{
-		/* BSD style.
-		 */
-		int x;
-		size_t len = sizeof(x);
-
-		sysctl((int[2]){ CTL_HW, HW_NCPU }, 2, &x, &len, NULL, 0);
-		if (x > 0)
-			nproc = x;
-	}
-#endif
-
-	/* libgomp has some very complex code on Linux to count the number of
-	 * processors available to the current process taking pthread affinity
-	 * into account, but we don't attempt that here. Perhaps we should?
-	 */
-
-#endif /*G_OS_UNIX*/
-
-#ifdef G_OS_WIN32
-	{
-		/* Count the CPUs currently available to this process.
-		 */
-		SYSTEM_INFO sysinfo;
-		DWORD_PTR process_cpus;
-		DWORD_PTR system_cpus;
-
-		/* This *never* fails, use it as fallback
-		 */
-		GetNativeSystemInfo(&sysinfo);
-		nproc = (int) sysinfo.dwNumberOfProcessors;
-
-		if (GetProcessAffinityMask(GetCurrentProcess(),
-				&process_cpus, &system_cpus)) {
-			unsigned int af_count;
-
-			for (af_count = 0; process_cpus != 0; process_cpus >>= 1)
-				if (process_cpus & 1)
-					af_count++;
-
-			/* Prefer affinity-based result, if available
-			 */
-			if (af_count > 0)
-				nproc = af_count;
-		}
-	}
-#endif /*G_OS_WIN32*/
-
-	return nproc;
-#endif /*!GLIB_CHECK_VERSION(2, 48, 1)*/
-}
-
 /* The default concurrency, set by the environment variable VIPS_CONCURRENCY,
  * or if that is not set, the number of threads available on the host machine.
  */
@@ -284,7 +205,7 @@ vips__concurrency_get_default(void)
 		(x = atoi(str)) > 0)
 		nthr = x;
 	else
-		nthr = get_num_processors();
+		nthr = g_get_num_processors();
 
 	if (nthr < 1 ||
 		nthr > MAX_THREADS) {
