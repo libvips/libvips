@@ -389,6 +389,10 @@ struct _Wtiff {
 	/* TRUE if we compress ourselves outside the libtiff lock.
 	 */
 	gboolean we_compress;
+
+	/* Lock thread calls into libtiff with this.
+	 */
+	GMutex *lock;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -1154,6 +1158,7 @@ wtiff_free(Wtiff *wtiff)
 
 	VIPS_UNREF(wtiff->ready);
 	VIPS_FREE(wtiff->tbuf);
+	VIPS_FREEF(vips_g_mutex_free, wtiff->lock);
 	VIPS_FREE(wtiff);
 }
 
@@ -1322,6 +1327,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->page_number = 0;
 	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
+	wtiff->lock = vips_g_mutex_new();
 
 	/* Any pre-processing on the image.
 	 */
@@ -1683,6 +1689,142 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 	}
 }
 
+typedef struct _WtiffTiles {
+	Wtiff *wtiff;
+	VipsRegion *strip;
+	Layer *layer;
+	int x;
+} WtiffTiles;
+
+static int
+wtiff_layer_write_tiles_allocate(VipsThreadState *state,
+	void *a, gboolean *stop)
+{
+	WtiffTiles *tiles = (WtiffTiles *) a;
+	Wtiff *wtiff = tiles->wtiff;
+	VipsImage *im = tiles->layer->image;
+	VipsRegion *strip = tiles->strip;
+	VipsRect *valid = &strip->valid;
+
+#ifdef DEBUG_VERBOSE
+	printf("wtiff_layer_write_tiles_allocate\n");
+#endif /*DEBUG_VERBOSE*/
+
+	if (tiles->x >= im->Xsize) {
+		*stop = TRUE;
+#ifdef DEBUG_VERBOSE
+		printf("direct_strip_allocate: done\n");
+#endif /*DEBUG_VERBOSE*/
+
+		return 0;
+	}
+
+	state->x = tiles->x;
+	state->y = valid->top;
+	tiles->x += wtiff->tilew;
+
+	return 0;
+}
+
+/* Write a tile from a threadpool.
+ */
+static int
+wtiff_layer_write_tiles_work(VipsThreadState *state, void *a)
+{
+	WtiffTiles *tiles = (WtiffTiles *) a;
+	Wtiff *wtiff = tiles->wtiff;
+	Layer *layer = tiles->layer;
+	VipsImage *im = layer->image;
+	VipsRegion *strip = tiles->strip;
+	VipsRect *valid = &strip->valid;
+
+	VipsRect image;
+	VipsRect tile;
+	VipsTarget *target;
+	int result;
+	unsigned char *buffer;
+	size_t length;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = im->Xsize;
+	image.height = im->Ysize;
+	tile.left = state->x;
+	tile.top = valid->top;
+	tile.width = wtiff->tilew;
+	tile.height = wtiff->tileh;
+	vips_rect_intersectrect(&tile, &image, &tile);
+
+#ifdef DEBUG_VERBOSE
+	printf("Writing %dx%d tile at position %dx%d to image %s\n",
+		tile.width, tile.height, tile.left, tile.top,
+		TIFFFileName(layer->tif));
+#endif /*DEBUG_VERBOSE*/
+
+	target = vips_target_new_to_memory();
+
+	switch (wtiff->compression) {
+	case JP2K_LOSSY:
+		/* Sadly, chroma subsample seems not to work for edge tiles in tiff
+		 * with jp2k compression, so we always pass FALSE instead of:
+		 *
+		 * 	!wtiff->rgbjpeg && wtiff->Q < 90,
+		 *
+		 * I've verified that the libvips jp2k encode and decode subsample
+		 * operations fill the comps[i].data arrays correctly, so it
+		 * seems to be a openjpeg bug.
+		 *
+		 * FIXME ... try again with openjpeg 2.5, when that comes.
+		 */
+		result = vips__foreign_save_jp2k_compress(
+			strip, &tile, target,
+			wtiff->tilew, wtiff->tileh,
+			!wtiff->rgbjpeg,
+			// !wtiff->rgbjpeg && wtiff->Q < 90,
+			FALSE,
+			wtiff->lossless,
+			wtiff->Q);
+		break;
+
+#ifdef HAVE_JPEG
+	case COMPRESSION_JPEG:
+		result = wtiff_compress_jpeg(wtiff, strip, &tile, target);
+		break;
+#endif /*HAVE_JPEG*/
+
+	default:
+		result = -1;
+		g_assert_not_reached();
+		break;
+	}
+
+	if (result) {
+		g_object_unref(target);
+		return -1;
+	}
+
+	buffer = vips_target_steal(target, &length);
+
+	g_object_unref(target);
+
+	vips__worker_lock(wtiff->lock);
+
+	ttile_t tile_no = TIFFComputeTile(layer->tif, tile.left, tile.top, 0, 0);
+	result = TIFFWriteRawTile(layer->tif, tile_no, buffer, length);
+
+	g_mutex_unlock(wtiff->lock);
+
+	g_free(buffer);
+
+	if (result < 0) {
+		vips_error("vips2tiff",
+			"%s", _("TIFF write tile failed"));
+		return -1;
+	}
+
+	return 0;
+}
+
 /* Write a set of tiles across the strip.
  */
 static int
@@ -1699,96 +1841,39 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 	image.width = im->Xsize;
 	image.height = im->Ysize;
 
-	for (x = 0; x < im->Xsize; x += wtiff->tilew) {
-		VipsRect tile;
+	if (wtiff->we_compress) {
+		/* If we're compressing, we can do it in parallel.
+		 */
+		WtiffTiles tiles = { wtiff, strip, layer, 0 };
 
-		tile.left = x;
-		tile.top = area->top;
-		tile.width = wtiff->tilew;
-		tile.height = wtiff->tileh;
-		vips_rect_intersectrect(&tile, &image, &tile);
+		/* We don't want threadpoolrun to minimise on completion -- we need to
+		 * keep the cache on the pipeline before us.
+		 */
+		vips_image_set_int(im, "vips-no-minimise", 1);
 
-#ifdef DEBUG_VERBOSE
-		printf("Writing %dx%d tile at position %dx%d to image %s\n",
-			tile.width, tile.height, tile.left, tile.top,
-			TIFFFileName(layer->tif));
-#endif /*DEBUG_VERBOSE*/
+		if (vips_threadpool_run(im,
+				vips_thread_state_new,
+				wtiff_layer_write_tiles_allocate,
+				wtiff_layer_write_tiles_work,
+				NULL,
+				&tiles))
+			return -1;
+	}
+	else {
+		/* If we're using libtiff compression, we can to be serial.
+		 */
+		for (x = 0; x < im->Xsize; x += wtiff->tilew) {
+			VipsRect tile;
 
-		if (wtiff->we_compress) {
-			ttile_t tile_no = TIFFComputeTile(layer->tif,
-				tile.left, tile.top, 0, 0);
+			tile.left = x;
+			tile.top = area->top;
+			tile.width = wtiff->tilew;
+			tile.height = wtiff->tileh;
+			vips_rect_intersectrect(&tile, &image, &tile);
 
-			VipsTarget *target;
-			int result;
-			unsigned char *buffer;
-			size_t length;
-
-			target = vips_target_new_to_memory();
-
-			switch (wtiff->compression) {
-			case JP2K_LOSSY:
-				/* Sadly chroma subsample seems not to work
-				 * for edge tiles in tiff with jp2k
-				 * compression, so we always pass FALSE
-				 * instead of:
-				 *
-				 * 	!wtiff->rgbjpeg && wtiff->Q < 90,
-				 *
-				 * I've verified that the libvips jp2k
-				 * encode and decode subsample operations fill
-				 * the comps[i].data arrays correctly, so it
-				 * seems to be a openjpeg bug.
-				 *
-				 * FIXME ... try again with openjpeg 2.5,
-				 * when that comes.
-				 */
-				result = vips__foreign_save_jp2k_compress(
-					strip, &tile, target,
-					wtiff->tilew, wtiff->tileh,
-					!wtiff->rgbjpeg,
-					// !wtiff->rgbjpeg && wtiff->Q < 90,
-					FALSE,
-					wtiff->lossless,
-					wtiff->Q);
-				break;
-
-#ifdef HAVE_JPEG
-			case COMPRESSION_JPEG:
-				result = wtiff_compress_jpeg(wtiff, strip, &tile, target);
-				break;
-#endif /*HAVE_JPEG*/
-
-			default:
-				result = -1;
-				g_assert_not_reached();
-				break;
-			}
-
-			if (result) {
-				g_object_unref(target);
-				return -1;
-			}
-
-			buffer = vips_target_steal(target, &length);
-
-			g_object_unref(target);
-
-			result = TIFFWriteRawTile(layer->tif, tile_no,
-				buffer, length);
-
-			g_free(buffer);
-
-			if (result < 0) {
-				vips_error("vips2tiff",
-					"%s", _("TIFF write tile failed"));
-				return -1;
-			}
-		}
-		else {
 			/* Have to repack pixels for libtiff.
 			 */
-			wtiff_pack2tiff(wtiff,
-				layer, strip, &tile, wtiff->tbuf);
+			wtiff_pack2tiff(wtiff, layer, strip, &tile, wtiff->tbuf);
 
 			if (TIFFWriteTile(layer->tif, wtiff->tbuf,
 					tile.left, tile.top, 0, 0) < 0) {
