@@ -139,8 +139,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#ifdef HAVE_JPEG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -151,6 +149,8 @@
 #include <vips/internal.h>
 
 #include "pforeign.h"
+
+#ifdef HAVE_JPEG
 
 #include "jpeg.h"
 
@@ -1035,6 +1035,23 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 		return -1;
 
 	return 0;
+}
+
+#else /*!HAVE_JPEG*/
+
+int
+vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
+	VipsTarget *target,
+	int Q, const char *profile,
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval)
+{
+	vips_error("jp2k",
+		"%s", _("libvips built without JPEG support"));
+	return -1;
 }
 
 #endif /*HAVE_JPEG*/

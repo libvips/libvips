@@ -698,8 +698,11 @@ static int
 wtiff_compress_jpeg(Wtiff *wtiff,
 	VipsRegion *strip, VipsRect *tile, VipsTarget *target)
 {
+	size_t sizeof_pel = VIPS_REGION_SIZEOF_PEL(strip);
+
 	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	ErrorManager eman;
+	VipsPel *line;
 
 #ifdef DEBUG
 	printf("wtiff_compress_jpeg: left = %d, top = %d, "
@@ -708,12 +711,30 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 #endif /*DEBUG*/
 
 	// we could have one of these per thread and reuse it for a small speedup
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
+	cinfo.err = jpeg_std_error(&eman.pub);
+	cinfo.dest = NULL;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
+	eman.fp = NULL;
+
+	/// we need a line buffer to pad edge tiles
+	line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
+
+	/* Error handling. The error message will have ben set by our handlers.
+	 */
+	if (setjmp(eman.jmp)) {
+		jpeg_destroy_compress(&cinfo);
+		VIPS_FREE(line);
+		return -1;
+	}
 
 	/* Attach output.
 	 */
 	vips__jpeg_target_dest(&cinfo, target);
+
+	/* Make jpeg compression object.
+	 */
+	jpeg_create_compress(&cinfo);
 
 	wtiff_compress_jpeg_header(wtiff, &cinfo, strip->im);
 
@@ -725,12 +746,7 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 
 	if (tile->width < wtiff->tilew ||
 		tile->height < wtiff->tileh) {
-		size_t sizeof_pel = VIPS_REGION_SIZEOF_PEL(strip);
-		VipsPel *line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
-
-		JSAMPROW row_pointer[1];
-
-		row_pointer[0] = line;
+		JSAMPROW row_pointer[1] = { line };
 
 		for (int y = 0; y < tile->height; y++) {
 			memcpy(line, VIPS_REGION_ADDR(strip, tile->left, tile->top + y),
@@ -742,8 +758,6 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 		for (int y = tile->height; y < wtiff->tileh; y++) {
 			jpeg_write_scanlines(&cinfo, row_pointer, 1);
 		}
-
-		g_free(row_pointer[0]);
 	}
 	else {
 		for (int y = 0; y < tile->height; y++) {
@@ -752,8 +766,8 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 			row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
 			jpeg_write_scanlines(&cinfo, row_pointer, 1);
 		}
-
 	}
+
 	jpeg_finish_compress(&cinfo);
 
 	jpeg_destroy_compress(&cinfo);
