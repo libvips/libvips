@@ -1049,7 +1049,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
 {
-	vips_error("jp2k",
+	vips_error("vips2jpeg",
 		"%s", _("libvips built without JPEG support"));
 	return -1;
 }
