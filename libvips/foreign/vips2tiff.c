@@ -694,6 +694,9 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 			cinfo->comp_info[i].v_samp_factor = 1;
 		}
 	}
+
+	// Avoid writing the JFIF APP0 marker.
+	cinfo->write_JFIF_header = FALSE;
 }
 
 static int
