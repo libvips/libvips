@@ -774,6 +774,8 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 
 	jpeg_destroy_compress(&cinfo);
 
+	VIPS_FREE(line);
+
 	return 0;
 }
 
