@@ -35,8 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vector.h>
-
 #define VIPS_TYPE_FREQFILT (vips_freqfilt_get_type())
 #define VIPS_FREQFILT(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \

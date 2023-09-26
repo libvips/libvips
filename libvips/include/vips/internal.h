@@ -110,6 +110,8 @@ int vips__exif_update(VipsImage *image);
 
 void vips_check_init(void);
 
+void vips__vector_init(void);
+
 void vips__meta_init_types(void);
 void vips__meta_destroy(VipsImage *im);
 int vips__meta_cp(VipsImage *, const VipsImage *);

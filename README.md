@@ -227,10 +227,10 @@ enabling a package with such a large attack surface.
 If available, libvips adds support for text rendering. You need the
 package pangocairo in `pkg-config --list-all`.
 
-### orc-0.4
+### highway
 
-If available, vips will accelerate some operations with this run-time
-compiler.
+If present, libvips will accelerate some operations with SIMD. If not, it
+will look for the orc-0.4 package.
 
 ### matio
 
