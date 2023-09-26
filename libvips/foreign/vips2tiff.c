@@ -1710,53 +1710,132 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 	}
 }
 
-typedef struct _WtiffTiles {
+// a compressed (raw) tile waiting to be written
+typedef struct _WtiffTile {
+	// x position (sort by this)
+	int x;
+	int y;
+
+	// compressed data
+	unsigned char *buffer;
+	size_t length;
+} WtiffTile;
+
+// the state for a row of tiles being compressed in parallel
+typedef struct _WtiffRow {
 	Wtiff *wtiff;
 	VipsRegion *strip;
 	Layer *layer;
 	int x;
-} WtiffTiles;
+
+	// set of compressed tiles we have accumulated
+	GSList *tiles;
+} WtiffRow;
 
 static int
-wtiff_layer_write_tiles_allocate(VipsThreadState *state,
-	void *a, gboolean *stop)
+wtiff_row_add_tile(WtiffRow *row,
+	int x, int y, unsigned char *buffer, size_t length)
 {
-	WtiffTiles *tiles = (WtiffTiles *) a;
-	Wtiff *wtiff = tiles->wtiff;
-	VipsImage *im = tiles->layer->image;
-	VipsRegion *strip = tiles->strip;
+	WtiffTile *tile;
+
+	if (!(tile = VIPS_NEW(NULL, WtiffTile)))
+		return -1;
+
+	tile->x = x;
+	tile->y = y;
+	tile->buffer = buffer;
+	tile->length = length;
+
+	g_mutex_lock(row->wtiff->lock);
+
+	row->tiles = g_slist_prepend(row->tiles, tile);
+
+	g_mutex_unlock(row->wtiff->lock);
+
+	return 0;
+}
+
+static void
+wtiff_row_free(WtiffRow *row)
+{
+	GSList *p;
+
+	for (p = row->tiles; p; p = p->next) {
+		WtiffTile *tile = (WtiffTile *) p->data;
+
+		VIPS_FREE(tile->buffer);
+		VIPS_FREE(tile);
+	}
+
+	VIPS_FREEF(g_slist_free, row->tiles);
+}
+
+static int
+wtiff_tile_compare(WtiffTile *a, WtiffTile *b)
+{
+	return b->x - a->x;
+}
+
+static int
+wtiff_row_write(WtiffRow *row, TIFF *tif)
+{
+	GSList *p;
+
+	row->tiles = g_slist_sort(row->tiles,
+		(GCompareFunc) wtiff_tile_compare);
+
+	for (p = row->tiles; p; p = p->next) {
+		WtiffTile *tile = (WtiffTile *) p->data;
+
+		ttile_t tile_no = TIFFComputeTile(tif, tile->x, tile->y, 0, 0);
+		if (TIFFWriteRawTile(tif, tile_no, tile->buffer, tile->length) == -1) {
+			vips_error("vips2tiff", "%s", _("TIFF write tile failed"));
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+wtiff_layer_row_allocate(VipsThreadState *state, void *a, gboolean *stop)
+{
+	WtiffRow *row = (WtiffRow *) a;
+	Wtiff *wtiff = row->wtiff;
+	VipsImage *im = row->layer->image;
+	VipsRegion *strip = row->strip;
 	VipsRect *valid = &strip->valid;
 
 #ifdef DEBUG_VERBOSE
-	printf("wtiff_layer_write_tiles_allocate\n");
+	printf("wtiff_layer_row_allocate:\n");
 #endif /*DEBUG_VERBOSE*/
 
-	if (tiles->x >= im->Xsize) {
+	if (row->x >= im->Xsize) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
-		printf("direct_strip_allocate: done\n");
+		printf("wtiff_layer_row_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
 
 		return 0;
 	}
 
-	state->x = tiles->x;
+	state->x = row->x;
 	state->y = valid->top;
-	tiles->x += wtiff->tilew;
+	row->x += wtiff->tilew;
 
 	return 0;
 }
 
-/* Write a tile from a threadpool.
+/* Compress a tile from a threadpool.
  */
 static int
-wtiff_layer_write_tiles_work(VipsThreadState *state, void *a)
+wtiff_layer_row_work(VipsThreadState *state, void *a)
 {
-	WtiffTiles *tiles = (WtiffTiles *) a;
-	Wtiff *wtiff = tiles->wtiff;
-	Layer *layer = tiles->layer;
+	WtiffRow *row = (WtiffRow *) a;
+	Wtiff *wtiff = row->wtiff;
+	Layer *layer = row->layer;
 	VipsImage *im = layer->image;
-	VipsRegion *strip = tiles->strip;
+	VipsRegion *strip = row->strip;
 	VipsRect *valid = &strip->valid;
 
 	VipsRect image;
@@ -1777,9 +1856,8 @@ wtiff_layer_write_tiles_work(VipsThreadState *state, void *a)
 	vips_rect_intersectrect(&tile, &image, &tile);
 
 #ifdef DEBUG_VERBOSE
-	printf("Writing %dx%d tile at position %dx%d to image %s\n",
-		tile.width, tile.height, tile.left, tile.top,
-		TIFFFileName(layer->tif));
+	printf("Compressing %dx%d tile at position %dx%d\n",
+		tile.width, tile.height, tile.left, tile.top);
 #endif /*DEBUG_VERBOSE*/
 
 	target = vips_target_new_to_memory();
@@ -1826,22 +1904,13 @@ wtiff_layer_write_tiles_work(VipsThreadState *state, void *a)
 
 	buffer = vips_target_steal(target, &length);
 
-	g_object_unref(target);
-
-	vips__worker_lock(wtiff->lock);
-
-	ttile_t tile_no = TIFFComputeTile(layer->tif, tile.left, tile.top, 0, 0);
-	result = TIFFWriteRawTile(layer->tif, tile_no, buffer, length);
-
-	g_mutex_unlock(wtiff->lock);
-
-	g_free(buffer);
-
-	if (result < 0) {
-		vips_error("vips2tiff",
-			"%s", _("TIFF write tile failed"));
+	if (wtiff_row_add_tile(row, tile.left, tile.top, buffer, length)) {
+		g_object_unref(target);
+		g_free(buffer);
 		return -1;
 	}
+
+	g_object_unref(target);
 
 	return 0;
 }
@@ -1863,25 +1932,35 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 	image.height = im->Ysize;
 
 	if (wtiff->we_compress) {
-		/* If we're compressing, we can do it in parallel.
+		/* If we're compressing ourselves, we can do the whole strip in
+		 * parallel.
 		 */
-		WtiffTiles tiles = { wtiff, strip, layer, 0 };
+		WtiffRow row = { wtiff, strip, layer, 0 };
 
-		/* We don't want threadpoolrun to minimise on completion -- we need to
+		/* We don't want threadpool_run to minimise on completion -- we need to
 		 * keep the cache on the pipeline before us.
 		 */
 		vips_image_set_int(im, "vips-no-minimise", 1);
 
 		if (vips_threadpool_run(im,
 				vips_thread_state_new,
-				wtiff_layer_write_tiles_allocate,
-				wtiff_layer_write_tiles_work,
+				wtiff_layer_row_allocate,
+				wtiff_layer_row_work,
 				NULL,
-				&tiles))
+				&row)) {
+			wtiff_row_free(&row);
 			return -1;
+		}
+
+		if (wtiff_row_write(&row, layer->tif)) {
+			wtiff_row_free(&row);
+			return -1;
+		}
+
+		wtiff_row_free(&row);
 	}
 	else {
-		/* If we're using libtiff compression, we can to be serial.
+		/* If we're using libtiff compression, we have to be serial.
 		 */
 		for (x = 0; x < im->Xsize; x += wtiff->tilew) {
 			VipsRect tile;
