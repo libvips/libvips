@@ -347,9 +347,9 @@ endif
 # insist on having both of them
 libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('webp'))
 if libwebp_dep.found()
-    libvips_deps += libwebp_dep
     libvips_deps += dependency('libwebpmux', version: '>=0.6')
     libvips_deps += dependency('libwebpdemux', version: '>=0.6')
+    libvips_deps += libwebp_dep
     cfg_var.set('HAVE_LIBWEBP', '1')
 endif
 
