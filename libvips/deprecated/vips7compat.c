@@ -49,7 +49,6 @@
 #include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
-#include <vips/vector.h>
 #include <vips/transform.h>
 
 /* Split filename into name / mode components. name and mode should both be
@@ -1001,45 +1000,142 @@ im__bandalike(const char *domain,
 	return 0;
 }
 
-VipsVector *
-im__init_program(VipsVector *vectors[IM_BANDFMT_LAST],
-	VipsBandFmt format_table[IM_BANDFMT_LAST], VipsBandFmt fmt)
+/* This is deprecated to make room for highway.
+ */
+void
+vips_vector_init(void)
 {
-	int isize = im__sizeof_bandfmt[fmt];
-	int osize = im__sizeof_bandfmt[format_table[fmt]];
-
-	VipsVector *v;
-
-	v = vips_vector_new("binary arith", osize);
-
-	vips_vector_source_name(v, "s1", isize);
-	vips_vector_source_name(v, "s2", isize);
-	vips_vector_temporary(v, "t1", osize);
-	vips_vector_temporary(v, "t2", osize);
-
-	vectors[fmt] = v;
-
-	return v;
+	vips_error("vips_vector_init", "%s", _("deprecated"));
 }
 
 void
-im__compile_programs(VipsVector *vectors[IM_BANDFMT_LAST])
+vips_vector_free(VipsVector *vector)
 {
-	int fmt;
+	vips_error("vips_vector_free", "%s", _("deprecated"));
+}
 
-	for (fmt = 0; fmt < IM_BANDFMT_LAST; fmt++) {
-		if (vectors[fmt] &&
-			!vips_vector_compile(vectors[fmt]))
-			IM_FREEF(vips_vector_free, vectors[fmt]);
-	}
+VipsVector *
+vips_vector_new(const char *name, int dsize)
+{
+	vips_error("vips_vector_new", "%s", _("deprecated"));
+	return NULL;
+}
 
-#ifdef DEBUG
-	printf("im__compile_programs: ");
-	for (fmt = 0; fmt < IM_BANDFMT_LAST; fmt++)
-		if (vectors[fmt])
-			printf("%s ", im_BandFmt2char(fmt));
-	printf("\n");
-#endif /*DEBUG*/
+void
+vips_vector_asm2(VipsVector *vector,
+	const char *op, const char *a, const char *b)
+{
+	vips_error("vips_vector_asm2", "%s", _("deprecated"));
+}
+
+void
+vips_vector_asm3(VipsVector *vector,
+	const char *op, const char *a, const char *b, const char *c)
+{
+	vips_error("vips_vector_asm3", "%s", _("deprecated"));
+}
+
+void
+vips_vector_constant(VipsVector *vector, char *name, int value, int size)
+{
+	vips_error("vips_vector_constant", "%s", _("deprecated"));
+}
+
+void
+vips_vector_source_scanline(VipsVector *vector,
+	char *name, int line, int size)
+{
+	vips_error("vips_vector_source_scanline", "%s", _("deprecated"));
+}
+
+int
+vips_vector_source_name(VipsVector *vector, const char *name, int size)
+{
+	vips_error("vips_vector_source_name", "%s", _("deprecated"));
+	return -1;
+}
+
+void
+vips_vector_temporary(VipsVector *vector, const char *name, int size)
+{
+	vips_error("vips_vector_temporary", "%s", _("deprecated"));
+}
+
+int
+vips_vector_parameter(VipsVector *vector, const char *name, int size)
+{
+	vips_error("vips_vector_parameter", "%s", _("deprecated"));
+	return -1;
+}
+
+int
+vips_vector_destination(VipsVector *vector, const char *name, int size)
+{
+	vips_error("vips_vector_destination", "%s", _("deprecated"));
+	return -1;
+}
+
+gboolean
+vips_vector_full(VipsVector *vector)
+{
+	vips_error("vips_vector_full", "%s", _("deprecated"));
+	return FALSE;
+}
+
+gboolean
+vips_vector_compile(VipsVector *vector)
+{
+	vips_error("vips_vector_compile", "%s", _("deprecated"));
+	return TRUE;
+}
+
+void
+vips_vector_print(VipsVector *vector)
+{
+	vips_error("vips_vector_print", "%s", _("deprecated"));
+}
+
+void
+vips_executor_set_program(VipsExecutor *executor, VipsVector *vector, int n)
+{
+	vips_error("vips_executor_set_program", "%s", _("deprecated"));
+}
+
+void
+vips_executor_set_array(VipsExecutor *executor, int var, void *value)
+{
+	vips_error("vips_executor_set_array", "%s", _("deprecated"));
+}
+
+void
+vips_executor_set_parameter(VipsExecutor *executor, int var, int value)
+{
+	vips_error("vips_executor_set_parameter", "%s", _("deprecated"));
+}
+
+void
+vips_executor_set_scanline(VipsExecutor *executor,
+	VipsRegion *ir, int x, int y)
+{
+	vips_error("vips_executor_set_scanline", "%s", _("deprecated"));
+}
+
+void
+vips_executor_set_destination(VipsExecutor *executor, void *value)
+{
+	vips_error("vips_executor_set_destination", "%s", _("deprecated"));
+}
+
+void
+vips_executor_run(VipsExecutor *executor)
+{
+	vips_error("vips_executor_run", "%s", _("deprecated"));
+}
+
+void
+vips_vector_to_fixed_point(double *in, int *out, int n, int scale)
+{
+	vips_error("vips_vector_to_fixed_point", "%s", _("deprecated"));
 }
 
 int

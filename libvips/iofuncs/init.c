@@ -96,9 +96,9 @@
 
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
-#include <vips/vector.h>
 
 #if ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
@@ -611,9 +611,9 @@ vips_init(const char *argv0)
 #endif /*ENABLE_DEPRECATED*/
 #endif /*ENABLE_MODULES*/
 
-	/* Get the run-time compiler going.
+	/* Detect SIMD features.
 	 */
-	vips_vector_init();
+	vips__vector_init();
 
 #ifdef DEBUG_LEAK
 	vips__image_pixels_quark =
