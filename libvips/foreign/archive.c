@@ -210,44 +210,6 @@ vips__archive_new_to_target(VipsTarget *target,
 }
 
 static int
-vips__archive_mkdir_zip(VipsArchive *archive, const char *dirname)
-{
-	struct archive_entry *entry;
-
-	vips__worker_lock(vips_libarchive_mutex);
-
-	if (!(entry = archive_entry_new())) {
-		vips_error("archive", "%s", _("unable to create entry"));
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	char *path;
-
-	path = g_build_filename(archive->base_dirname, dirname, NULL);
-
-	archive_entry_set_pathname(entry, path);
-	archive_entry_set_mode(entry, S_IFDIR | 0755);
-
-	if (archive_write_header(archive->archive, entry)) {
-		char *utf8name = g_filename_display_name(path);
-		vips_error("archive", _("unable to add directory \"%s\", %s"),
-			utf8name, archive_error_string(archive->archive));
-		g_free(utf8name);
-		g_free(path);
-		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
-		return -1;
-	}
-
-	archive_entry_free(entry);
-	g_free(path);
-	g_mutex_unlock(vips_libarchive_mutex);
-
-	return 0;
-}
-
-static int
 vips__archive_mkdir_file(VipsArchive *archive, const char *dirname)
 {
 	char *path;
@@ -277,9 +239,13 @@ vips__archive_mkdir_file(VipsArchive *archive, const char *dirname)
 int
 vips__archive_mkdir(VipsArchive *archive, const char *dirname)
 {
-	return ((archive->archive)
-			? vips__archive_mkdir_zip
-			: vips__archive_mkdir_file)(archive, dirname);
+	/* The ZIP format maintains a hierarchical structure, avoiding
+	 * the need to create individual entries for each (sub-)directory.
+	 */
+	if (archive->archive)
+		return 0;
+
+	return vips__archive_mkdir_file(archive, dirname);
 }
 
 static int
