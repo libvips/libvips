@@ -1599,6 +1599,8 @@ strip_save(Level *level)
 
 		image_strip_init(&strip, level);
 
+		vips_image_set_int(strip.image, "vips-no-minimise", 1);
+
 		if (vips_threadpool_run(strip.image,
 				vips_thread_state_new,
 				image_strip_allocate,

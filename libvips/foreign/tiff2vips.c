@@ -208,9 +208,9 @@
  * 30/9/21
  * 	- fix tiled + packed formats
  * 31/7/22
- *      - move jp2k decompress outside the lock
- *      - move jpeg decode outside the lock
- *      - fix demand hinting
+ *  - move jp2k decompress outside the lock
+ *  - move jpeg decode outside the lock
+ *  - fix demand hinting
  * 3/2/23 MathemanFlo
  * 	- add bits per sample metadata
  */
