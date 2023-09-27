@@ -18,7 +18,8 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE, JP2K_FILE, RGBA_FILE
+    WEBP_ANIMATED_FILE, JP2K_FILE, RGBA_FILE, TIF_OJPEG_TILE_FILE, \
+    TIF_OJPEG_STRIP_FILE, TIF_SUBSAMPLED_FILE
 
 class TestForeign:
     tempdir = None
@@ -534,6 +535,39 @@ class TestForeign:
             assert im.get("bits-per-sample") == 4
 
         self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
+
+        def tiff_ojpeg_tile_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [135.0, 156.0, 177.0, 255.0])
+            assert im.width == 234
+            assert im.height == 213
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+
+        def tiff_ojpeg_strip_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [228.0, 15.0, 9.0, 255.0])
+            assert im.width == 160
+            assert im.height == 160
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
+
+        def tiff_subsampled_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [6.0, 5.0, 21.0, 255.0])
+            assert im.width == 250
+            assert im.height == 325
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_SUBSAMPLED_FILE, tiff_subsampled_valid)
+        self.buffer_loader("tiffload_buffer", TIF_SUBSAMPLED_FILE, tiff_subsampled_valid)
 
         self.save_load_buffer("tiffsave_buffer", "tiffload_buffer", self.colour)
         self.save_load("%s.tif", self.mono)
