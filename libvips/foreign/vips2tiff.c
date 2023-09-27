@@ -1771,7 +1771,7 @@ wtiff_row_free(WtiffRow *row)
 }
 
 static int
-wtiff_tile_compare(WtiffTile *a, WtiffTile *b)
+wtiff_tile_compare(WtiffTile *a, WtiffTile *b, void *user_data)
 {
 	return b->x - a->x;
 }
