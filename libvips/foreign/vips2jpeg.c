@@ -911,13 +911,15 @@ const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 static int
 write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 	int Q, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
+	gboolean optimize_coding, gboolean progressive,
+	VipsForeignPreserve preserve,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
 {
 	// the image we'll be writing
 	VipsImage *in = region->im;
+	VipsImage *x;
 
 	set_cinfo(&write->cinfo, in, rect->width, rect->height,
 		Q, optimize_coding, progressive,
@@ -947,24 +949,20 @@ write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 	 */
 	jpeg_start_compress(&write->cinfo, TRUE);
 
-	if (!strip) {
-		/* Make a copy of the input image since we may modify it with
-		 * vips__exif_update() etc.
-		 */
-		VipsImage *x;
-		if (vips_copy(in, &x, NULL))
-			return -1;
+	/* Updating metadata, need to copy the image.
+	 */
+	if (vips_copy(in, &x, NULL))
+		return -1;
 
-		/* All the other APP chunks come next.
-		 */
-		if (vips__exif_update(x) ||
-			write_metadata(write, x, profile)) {
-			g_object_unref(x);
-			return -1;
-		}
-
+	/* All the other APP chunks come next.
+	 */
+	if (vips__foreign_update_metadata(x, preserve) ||
+		write_metadata(write, x, profile)) {
 		g_object_unref(x);
+		return -1;
 	}
+
+	g_object_unref(x);
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
@@ -988,7 +986,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean trellis_quant,
+	VipsForeignPreserve preserve, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -1016,7 +1014,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips_region(write, region, rect,
-			Q, profile, optimize_coding, progressive, strip,
+			Q, profile, optimize_coding, progressive, preserve,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);

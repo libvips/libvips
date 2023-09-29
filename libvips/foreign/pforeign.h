@@ -48,6 +48,9 @@ extern "C" {
  */
 #define MAX_PNG_TEXT_CHUNKS 50
 
+int vips__foreign_update_metadata(VipsImage *in,
+	VipsForeignPreserve preserve);
+
 void vips__tiff_init(void);
 
 int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
@@ -155,7 +158,7 @@ int vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean trellis_quant,
+	VipsForeignPreserve preserve, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval);

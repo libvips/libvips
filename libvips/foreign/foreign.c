@@ -1737,40 +1737,55 @@ vips_foreign_save_remove_other(VipsImage *image,
 	return NULL;
 }
 
+int
+vips__foreign_update_metadata(VipsImage *in,
+	VipsForeignPreserve preserve)
+{
+	int i;
+
+	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
+		VipsForeignPreserve flag = vips__preserve_names[i].flag;
+		const char *name = vips__preserve_names[i].name;
+
+		if ((preserve & flag) == 0 &&
+			vips_image_get_typeof(in, name)) {
+			if (!vips_image_remove(in, name))
+				return -1;
+		}
+		else if (flag == VIPS_FOREIGN_PRESERVE_EXIF)
+			/* Rebuild exif from tags, if we'll be saving it.
+			 */
+			if (vips__exif_update(in))
+				return -1;
+	}
+
+	if ((preserve & VIPS_FOREIGN_PRESERVE_OTHER) == 0 &&
+		vips_image_map(in, vips_foreign_save_remove_other, NULL))
+		return -1;
+
+	/* Some format libraries, like libpng, will throw a hard error if the
+	 * profile is inappropriate for this image type. With profiles inherited
+	 * from a source image, this can happen all the time, so we
+	 * want to silently drop the profile in this case.
+	 */
+	if ((preserve & VIPS_FOREIGN_PRESERVE_ICC) &&
+		vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		const void *data;
+		size_t length;
+
+		if (!vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length) &&
+			!vips_icc_is_compatible_profile(in, data, length) &&
+			!vips_image_remove(in, VIPS_META_ICC_NAME))
+			return -1;
+	}
+
+	return 0;
+}
+
 static int
 vips_foreign_save_build(VipsObject *object)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
-	VipsImage *out;
-	int i;
-
-	if (save->in) {
-		VipsForeignSaveClass *class =
-			VIPS_FOREIGN_SAVE_GET_CLASS(save);
-		VipsImage *ready;
-
-		if (vips__foreign_convert_saveable(save->in, &ready,
-				class->saveable, class->format_table, class->coding,
-				save->background))
-			return -1;
-
-		if (save->page_height) {
-			VipsImage *x;
-
-			if (vips_copy(ready, &x, NULL)) {
-				VIPS_UNREF(ready);
-				return -1;
-			}
-			VIPS_UNREF(ready);
-			ready = x;
-
-			vips_image_set_int(ready,
-				VIPS_META_PAGE_HEIGHT, save->page_height);
-		}
-
-		VIPS_UNREF(save->ready);
-		save->ready = ready;
-	}
 
 	/* The deprecated "strip" field sets "preserve" to none.
 	 */
@@ -1786,50 +1801,37 @@ vips_foreign_save_build(VipsObject *object)
 		vips_object_argument_isset(object, "profile"))
 		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
 
-	/* Removing metadata, need to copy the image.
-	 */
-	if (vips_copy(save->ready, &out, NULL)) {
-		g_object_unref(save->ready);
-		return -1;
-	}
-	g_object_unref(save->ready);
-	save->ready = out;
+	if (save->in) {
+		VipsForeignSaveClass *class =
+			VIPS_FOREIGN_SAVE_GET_CLASS(save);
+		VipsImage *ready;
+		VipsImage *x;
 
-	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
-		VipsForeignPreserve flag = vips__preserve_names[i].flag;
-		const char *name = vips__preserve_names[i].name;
-
-		if ((save->preserve & flag) == 0 &&
-			vips_image_get_typeof(save->ready, name)) {
-			if (!vips_image_remove(save->ready, name))
-				return -1;
-		}
-		else if (flag == VIPS_FOREIGN_PRESERVE_EXIF)
-			/* Rebuild exif from tags, if we'll be saving it.
-			 */
-			if (vips__exif_update(save->ready))
-				return -1;
-	}
-
-	if ((save->preserve & VIPS_FOREIGN_PRESERVE_OTHER) == 0 &&
-		vips_image_map(save->ready, vips_foreign_save_remove_other, NULL))
-		return -1;
-
-	/* Some format libraries, like libpng, will throw a hard error if the
-	 * profile is inappropriate for this image type. With profiles inherited
-	 * from a source image, this can happen all the time, so we
-	 * want to silently drop the profile in this case.
-	 */
-	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) &&
-		vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME)) {
-		const void *data;
-		size_t length;
-
-		if (!vips_image_get_blob(save->ready, VIPS_META_ICC_NAME,
-				&data, &length) &&
-			!vips_icc_is_compatible_profile(save->ready, data, length) &&
-			!vips_image_remove(save->ready, VIPS_META_ICC_NAME))
+		if (vips__foreign_convert_saveable(save->in, &ready,
+				class->saveable, class->format_table, class->coding,
+				save->background))
 			return -1;
+
+		/* Updating metadata, need to copy the image.
+		 */
+		if (vips_copy(ready, &x, NULL)) {
+			VIPS_UNREF(ready);
+			return -1;
+		}
+		VIPS_UNREF(ready);
+		ready = x;
+
+		if (vips__foreign_update_metadata(ready, save->preserve)) {
+			VIPS_UNREF(ready);
+			return -1;
+		}
+
+		if (save->page_height)
+			vips_image_set_int(ready, VIPS_META_PAGE_HEIGHT,
+				save->page_height);
+
+		VIPS_UNREF(save->ready);
+		save->ready = ready;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
