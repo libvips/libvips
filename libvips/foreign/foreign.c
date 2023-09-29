@@ -83,13 +83,17 @@
  *
  * This set of operations load and save images in a variety of formats.
  *
- * The operations share a base class that offers a simple way to search for a
- * subclass of #VipsForeign which can load a certain file (see
- * vips_foreign_find_load()) or buffer (see vips_foreign_find_load_buffer()),
- * or which could be used to save an image to a
- * certain file type (see vips_foreign_find_save() and
- * vips_foreign_find_save_buffer()). You can then run these
- * operations using vips_call() and friends to perform the load or save.
+ * # Load and save
+ *
+ * You can load and save from and to files, memory areas, and the libvips IO
+ * abstractions, #VipsSource and #VipsTarget.
+ *
+ * Use vips_foreign_find_load(), vips_foreign_find_load_buffer() and
+ * vips_foreign_find_load_source() to find a loader for an object. Use
+ * vips_foreign_find_save(), vips_foreign_find_save_buffer() and
+ * vips_foreign_find_save_target() to find a saver for a format. You can then
+ * run these operations using vips_call() and friends to perform the load or
+ * save.
  *
  * vips_image_write_to_file() and vips_image_new_from_file() and friends use
  * these functions to automate file load and save.
@@ -101,6 +105,38 @@
  *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
  *     NULL);
  * ]|
+ *
+ * # Image metadata
+ *
+ * All loaders attach all image metadata as libvips properties on load.
+ *
+ * You can change metadata with vips_image_set_int() and friends.
+ *
+ * During save, you can use @preserve to specify which metadata should be
+ * preserved, defaults to all, see #VipsForeignPreserve. Setting @profile
+ * will automatically preserve the ICC profile.
+ *
+ * # Many page images
+ *
+ * By default, libvips will only load the first page of many page or animated
+ * images. Use @page and @n to set the start page and the number of pages to
+ * load. Set @n to -1 to load all pages.
+ *
+ * Many page images are loaded as a tall, thin strip of pages.
+ *
+ * Use vips_image_get_page_height() and vips_image_get_n_pages() to find the
+ * page height and number of pages of a loaded image.
+ *
+ * Use @page_height to set the page height for image save.
+ *
+ * # Alpha save
+ *
+ * Not all image formats support alpha. If you try to save an image with an
+ * alpha channel to a format that does not support it, the alpha will be
+ * automatically flattened out. Use @background (default 0) to set the colour
+ * that alpha should be flattened against.
+ *
+ * # Adding new formats
  *
  * To add support for a new file format to vips, simply define a new subclass
  * of #VipsForeignLoad or #VipsForeignSave.
@@ -1669,33 +1705,79 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
+	*ready = in;
+
+	return 0;
+}
+
+/* Map VipsForeignPreserve flags to metadata names.
+ */
+typedef struct _VipsForeignPreserveNames {
+	VipsForeignPreserve flag;
+	const char *name;
+} VipsForeignPreserveNames;
+
+const VipsForeignPreserveNames vips__preserve_names[] = {
+	{ VIPS_FOREIGN_PRESERVE_EXIF, VIPS_META_EXIF_NAME },
+	{ VIPS_FOREIGN_PRESERVE_XMP, VIPS_META_XMP_NAME },
+	{ VIPS_FOREIGN_PRESERVE_IPTC, VIPS_META_IPTC_NAME },
+	{ VIPS_FOREIGN_PRESERVE_ICC, VIPS_META_ICC_NAME }
+};
+
+static void *
+vips_foreign_save_remove_other(VipsImage *image,
+	const char *field, GValue *value, void *user_data)
+{
+	if (vips_isprefix("png-comment-", field) ||
+		strcmp(field, VIPS_META_PHOTOSHOP_NAME) == 0 ||
+		strcmp(field, VIPS_META_IMAGEDESCRIPTION) == 0)
+		if (!vips_image_remove(image, field))
+			return image;
+
+	return NULL;
+}
+
+int
+vips__foreign_update_metadata(VipsImage *in,
+	VipsForeignPreserve preserve)
+{
+	int i;
+
+	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
+		VipsForeignPreserve flag = vips__preserve_names[i].flag;
+		const char *name = vips__preserve_names[i].name;
+
+		if ((preserve & flag) == 0 &&
+			vips_image_get_typeof(in, name)) {
+			if (!vips_image_remove(in, name))
+				return -1;
+		}
+		else if (flag == VIPS_FOREIGN_PRESERVE_EXIF)
+			/* Rebuild exif from tags, if we'll be saving it.
+			 */
+			if (vips__exif_update(in))
+				return -1;
+	}
+
+	if ((preserve & VIPS_FOREIGN_PRESERVE_OTHER) == 0 &&
+		vips_image_map(in, vips_foreign_save_remove_other, NULL))
+		return -1;
+
 	/* Some format libraries, like libpng, will throw a hard error if the
 	 * profile is inappropriate for this image type. With profiles inherited
 	 * from a source image, this can happen all the time, so we
 	 * want to silently drop the profile in this case.
 	 */
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+	if ((preserve & VIPS_FOREIGN_PRESERVE_ICC) &&
+		vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
 
-		if (!vips_image_get_blob(in, VIPS_META_ICC_NAME,
-				&data, &length) &&
-			!vips_icc_is_compatible_profile(in, data, length)) {
-			VipsImage *out;
-
-			if (vips_copy(in, &out, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-
-			vips_image_remove(in, VIPS_META_ICC_NAME);
-		}
+		if (!vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length) &&
+			!vips_icc_is_compatible_profile(in, data, length) &&
+			!vips_image_remove(in, VIPS_META_ICC_NAME))
+			return -1;
 	}
-
-	*ready = in;
 
 	return 0;
 }
@@ -1705,29 +1787,48 @@ vips_foreign_save_build(VipsObject *object)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
 
+	/* The deprecated "strip" field sets "preserve" to none.
+	 */
+	if (vips_object_argument_isset(object, "strip") &&
+		!vips_object_argument_isset(object, "preserve"))
+		save->preserve = save->strip
+			? VIPS_FOREIGN_PRESERVE_NONE
+			: VIPS_FOREIGN_PRESERVE_ALL;
+
+	/* Preserve ICC profile by default when a user profile has been set.
+	 */
+	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) == 0 &&
+		vips_object_argument_isset(object, "profile"))
+		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
+
 	if (save->in) {
 		VipsForeignSaveClass *class =
 			VIPS_FOREIGN_SAVE_GET_CLASS(save);
 		VipsImage *ready;
+		VipsImage *x;
 
 		if (vips__foreign_convert_saveable(save->in, &ready,
 				class->saveable, class->format_table, class->coding,
 				save->background))
 			return -1;
 
-		if (save->page_height) {
-			VipsImage *x;
-
-			if (vips_copy(ready, &x, NULL)) {
-				VIPS_UNREF(ready);
-				return -1;
-			}
+		/* Updating metadata, need to copy the image.
+		 */
+		if (vips_copy(ready, &x, NULL)) {
 			VIPS_UNREF(ready);
-			ready = x;
-
-			vips_image_set_int(ready,
-				VIPS_META_PAGE_HEIGHT, save->page_height);
+			return -1;
 		}
+		VIPS_UNREF(ready);
+		ready = x;
+
+		if (vips__foreign_update_metadata(ready, save->preserve)) {
+			VIPS_UNREF(ready);
+			return -1;
+		}
+
+		if (save->page_height)
+			vips_image_set_int(ready, VIPS_META_PAGE_HEIGHT,
+				save->page_height);
 
 		VIPS_UNREF(save->ready);
 		save->ready = ready;
@@ -1800,12 +1901,13 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, in));
 
-	VIPS_ARG_BOOL(class, "strip", 100,
-		_("Strip"),
-		_("Strip all metadata from image"),
+	VIPS_ARG_FLAGS(class, "preserve", 100,
+		_("Preserve"),
+		_("Which metadata should be preserved"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSave, strip),
-		FALSE);
+		G_STRUCT_OFFSET(VipsForeignSave, preserve),
+		VIPS_TYPE_FOREIGN_PRESERVE,
+		VIPS_FOREIGN_PRESERVE_ALL);
 
 	VIPS_ARG_BOXED(class, "background", 101,
 		_("Background"),
@@ -1820,11 +1922,26 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, page_height),
 		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_STRING(class, "profile", 11,
+		_("Profile"),
+		_("Filename of ICC profile to embed"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSave, profile),
+		NULL);
+
+	VIPS_ARG_BOOL(class, "strip", 103,
+		_("Strip"),
+		_("Strip all metadata from image"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsForeignSave, strip),
+		FALSE);
 }
 
 static void
 vips_foreign_save_init(VipsForeignSave *save)
 {
+	save->preserve = VIPS_FOREIGN_PRESERVE_ALL;
 	save->background = vips_array_double_newv(1, 0.0);
 }
 

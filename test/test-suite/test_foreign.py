@@ -1321,9 +1321,10 @@ class TestForeign:
         buf = self.colour.dzsave_buffer(region_shrink="mode")
         buf = self.colour.dzsave_buffer(region_shrink="median")
 
-        # test no-strip ... icc profiles should be passed down
+        # test preserve=pyvips.ForeignPreserve.ICC ... icc
+        # profiles should be passed down
         filename = temp_filename(self.tempdir, '')
-        self.colour.dzsave(filename, no_strip=True)
+        self.colour.dzsave(filename, preserve=1 << 3) # pyvips.ForeignPreserve.ICC - https://github.com/libvips/pyvips/pull/429
 
         y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
         assert y.get_typeof("icc-profile-data") != 0

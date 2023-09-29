@@ -358,6 +358,7 @@ static int
 write_image(VipsForeignSaveDz *dz,
 	VipsImage *image, const char *filename, const char *format)
 {
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE(dz);
 	VipsImage *t;
 
 	/* We need to block progress signalling on individual image write, so
@@ -367,15 +368,12 @@ write_image(VipsForeignSaveDz *dz,
 	if (vips_copy(image, &t, NULL))
 		return -1;
 
-	/* We default to stripping all metadata. "no_strip" turns this
-	 * off. Most people don't want metadata on every tile.
-	 */
 	vips_image_set_int(t, "hide-progress", 1);
 
 	void *buf;
 	size_t len;
 	if (vips_image_write_to_buffer(t, format, &buf, &len,
-			"strip", !dz->no_strip,
+			"preserve", save->preserve,
 			NULL)) {
 		VIPS_UNREF(t);
 		return -1;
@@ -1477,8 +1475,9 @@ direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 static int
 direct_image_write(VipsForeignSaveDz *dz,
 	VipsRegion *region, VipsRect *rect,
-	const char *filename, const char *format)
+	const char *filename)
 {
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE(dz);
 	VipsTarget *target;
 
 	if (!(target = vips_target_new_to_memory()))
@@ -1487,7 +1486,7 @@ direct_image_write(VipsForeignSaveDz *dz,
 	if (vips__jpeg_region_write_target(region, rect, target,
 			dz->Q, NULL,
 			FALSE, FALSE,
-			!dz->no_strip, FALSE,
+			save->preserve, FALSE,
 			FALSE, FALSE,
 			0, 0, 0)) {
 		g_object_unref(target);
@@ -1559,7 +1558,7 @@ direct_strip_work(VipsThreadState *state, void *a)
 	if (!(name = tile_name(level, tile_x, tile_y)))
 		return -1;
 
-	if (direct_image_write(dz, level->strip, &state->pos, name, dz->suffix)) {
+	if (direct_image_write(dz, level->strip, &state->pos, name)) {
 		g_free(name);
 		return -1;
 	}
@@ -1945,6 +1944,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 	// direct mode won't work if the suffix has been set
 	if (!vips_object_argument_isset(object, "suffix"))
 		dz->direct = TRUE;
+
+	/* We default to stripping all metadata as most people
+	 * don't want metadata on every tile. Setting "preserve"
+	 * or the deprecated "no_strip" turns this off.
+	 */
+	if (!vips_object_argument_isset(object, "preserve") &&
+		!vips_object_argument_isset(object, "no_strip"))
+		save->preserve = VIPS_FOREIGN_PRESERVE_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -2391,21 +2398,14 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveDz, skip_blanks),
 		-1, 65535, -1);
 
-	VIPS_ARG_BOOL(class, "no_strip", 20,
-		_("No strip"),
-		_("Don't strip tile metadata"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveDz, no_strip),
-		FALSE);
-
-	VIPS_ARG_STRING(class, "id", 21,
+	VIPS_ARG_STRING(class, "id", 20,
 		_("id"),
 		_("Resource ID"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveDz, id),
 		"https://example.com/iiif");
 
-	VIPS_ARG_INT(class, "Q", 23,
+	VIPS_ARG_INT(class, "Q", 21,
 		_("Q"),
 		_("Q factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -2414,6 +2414,13 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
+
+	VIPS_ARG_BOOL(class, "no_strip", 22,
+		_("No strip"),
+		_("Don't strip tile metadata"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsForeignSaveDz, no_strip),
+		FALSE);
 
 	VIPS_ARG_STRING(class, "basename", 23,
 		_("Base name"),
@@ -2669,7 +2676,6 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
  * * @Q: %gint, quality factor
  *
@@ -2709,7 +2715,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * may do what you need.
  *
  * By default, all tiles are stripped since usually you do not want a copy of
- * all metadata in every tile. Set @no_strip if you want to keep metadata.
+ * all metadata in every tile. Set @preserve if you want to keep metadata.
  *
  * If @container is set to `zip`, you can set a compression level from -1
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
@@ -2768,7 +2774,6 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
  * * @Q: %gint, quality factor
  *
@@ -2834,7 +2839,6 @@ vips_dzsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @no_strip: %gboolean don't strip tiles
  * * @id: %gchar id for IIIF properties
  * * @Q: %gint, quality factor
  *

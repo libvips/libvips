@@ -214,7 +214,7 @@ optional arguments:
    Q            - Q factor, input gint
             default: 75
             min: 1, max: 100
-   profile      - ICC profile to embed, input gchararray
+   profile      - Filename of ICC profile to embed, input gchararray
    optimize-coding - Compute optimal Huffman coding tables, input gboolean
             default: false
    interlace    - Generate an interlaced (progressive) jpeg, input gboolean
@@ -234,12 +234,11 @@ optional arguments:
    restart-interval - Add restart markers every specified number of mcu, input gint
             default: 0
             min: 0, max: 2147483647
-   strip        - Strip all metadata from image, input gboolean
-            default: false
+   preserve     - Which metadata should be preserved, input VipsForeignPreserve
    background   - Background value, input VipsArrayDouble
 </programlisting>
   <para>
-    The <literal>strip</literal> option is especially useful. Many image have very large IPCT, ICC or XMP metadata items embedded in them, and removing these can give a large saving.
+    The <literal>preserve</literal> option is especially useful. Many image have very large IPTC, ICC or XMP metadata items embedded in them, and removing these can give a large saving.
   </para>
   <para>
     For example:
@@ -250,10 +249,10 @@ $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
 </programlisting>
   <para>
-    <literal>strip</literal> almost halves the size of the thumbnail:
+    <literal>preserve=none</literal> almost halves the size of the thumbnail:
   </para>
   <programlisting>
-$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
+$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,preserve=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 </programlisting>
@@ -272,7 +271,7 @@ $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
 </programlisting>
   <para>
-    Now transform to sRGB and don’t attach a profile (you can also use <literal>strip</literal>, though that will remove <emphasis>all</emphasis> metadata from the image):
+    Now transform to sRGB and don’t attach a profile (you can also use <literal>preserve=none</literal>, though that will remove <emphasis>all</emphasis> metadata from the image):
   </para>
   <programlisting>
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
@@ -301,7 +300,7 @@ $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \
-    -o tn_%s.jpg[optimize_coding,strip] 
+    -o tn_%s.jpg[optimize_coding,preserve=none] 
 </programlisting>
 </refsect3>
 
