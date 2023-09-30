@@ -1808,7 +1808,7 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 	}
 	gflags = G_FLAGS_CLASS(class);
 
-	/* nick can just be an integer.
+	/* Allow an integer as a value.
 	 */
 	if (sscanf(nick, "%d", &i) == 1)
 		return i;
@@ -1818,7 +1818,6 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 	i = 0;
 	vips_strncpy(str, nick, sizeof(str));
 	for (p = str; (q = vips_break_token(p, "\t;:|, ")); p = q) {
-		// allow
 		if ((flags_value = g_flags_get_value_by_name(gflags, p)) ||
 			(flags_value = g_flags_get_value_by_nick(gflags, p)))
 			i |= flags_value->value;
