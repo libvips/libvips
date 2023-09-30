@@ -1798,8 +1798,9 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 	GFlagsClass *gflags;
 	GFlagsValue *flags_value;
 	int i;
-	char str[1000];
-	VipsBuf buf = VIPS_BUF_STATIC(str);
+	char *p, *q;
+
+	char str[256];
 
 	if (!(class = g_type_class_ref(type))) {
 		vips_error(domain, "%s", _("no such flag type"));
@@ -1807,22 +1808,28 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 	}
 	gflags = G_FLAGS_CLASS(class);
 
-	if ((flags_value = g_flags_get_value_by_name(gflags, nick)))
-		return flags_value->value;
-	if ((flags_value = g_flags_get_value_by_nick(gflags, nick)))
-		return flags_value->value;
+	/* nick can just be an integer.
+	 */
+	if (sscanf(nick, "%d", &i) == 1)
+		return i;
 
-	for (i = 0; i < gflags->n_values; i++) {
-		if (i > 0)
-			vips_buf_appends(&buf, ", ");
-		vips_buf_appends(&buf, gflags->values[i].value_nick);
+	/* It can be a list of nicks, in which case we OR the bits together.
+	 */
+	i = 0;
+	vips_strncpy(str, nick, sizeof(str));
+	for (p = str; (q = vips_break_token(p, "\t;:|, ")); p = q) {
+		// allow
+		if ((flags_value = g_flags_get_value_by_name(gflags, p)) ||
+			(flags_value = g_flags_get_value_by_nick(gflags, p)))
+			i |= flags_value->value;
+		else {
+			vips_error(domain, _("flags '%s' has no member '%s'"),
+				g_type_name(type), p);
+			return -1;
+		}
 	}
 
-	vips_error(domain, _("flags '%s' has no member '%s', "
-						 "should be one of: %s"),
-		g_type_name(type), nick, vips_buf_all(&buf));
-
-	return -1;
+	return i;
 }
 
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the
