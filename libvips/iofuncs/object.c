@@ -2104,16 +2104,14 @@ vips_object_set_argument_from_string(VipsObject *object,
 			return -1;
 		}
 
-		if ((i = vips_enum_from_nick(class->nickname,
-				 otype, value)) < 0)
+		if ((i = vips_enum_from_nick(class->nickname, otype, value)) < 0)
 			return -1;
 
 		g_value_init(&gvalue, otype);
 		g_value_set_enum(&gvalue, i);
 	}
+
 	else if (G_IS_PARAM_SPEC_FLAGS(pspec)) {
-		/* Allow a symbolic name, or an int.
-		 */
 		int i;
 
 		if (!value) {
@@ -2121,17 +2119,13 @@ vips_object_set_argument_from_string(VipsObject *object,
 			return -1;
 		}
 
-		if (sscanf(value, "%d", &i) != 1 &&
-			(i = vips_flags_from_nick(class->nickname,
-				 otype, value)) < 0) {
-			vips_error(class->nickname,
-				_("'%s' is not an integer"), value);
+		if ((i = vips_flags_from_nick(class->nickname, otype, value)) < 0)
 			return -1;
-		}
 
 		g_value_init(&gvalue, otype);
 		g_value_set_flags(&gvalue, i);
 	}
+
 	else {
 		if (!value) {
 			vips_object_no_value(object, name);
