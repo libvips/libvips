@@ -1710,29 +1710,31 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	return 0;
 }
 
-/* Map VipsForeignPreserve flags to metadata names.
- */
-typedef struct _VipsForeignPreserveNames {
-	VipsForeignPreserve flag;
-	const char *name;
-} VipsForeignPreserveNames;
-
-const VipsForeignPreserveNames vips__preserve_names[] = {
-	{ VIPS_FOREIGN_PRESERVE_EXIF, VIPS_META_EXIF_NAME },
-	{ VIPS_FOREIGN_PRESERVE_XMP, VIPS_META_XMP_NAME },
-	{ VIPS_FOREIGN_PRESERVE_IPTC, VIPS_META_IPTC_NAME },
-	{ VIPS_FOREIGN_PRESERVE_ICC, VIPS_META_ICC_NAME }
-};
-
 static void *
-vips_foreign_save_remove_other(VipsImage *image,
+vips_foreign_save_remove_metadata(VipsImage *image,
 	const char *field, GValue *value, void *user_data)
 {
-	if (vips_isprefix("png-comment-", field) ||
-		strcmp(field, VIPS_META_PHOTOSHOP_NAME) == 0 ||
-		strcmp(field, VIPS_META_IMAGEDESCRIPTION) == 0)
-		if (!vips_image_remove(image, field))
-			return image;
+	VipsForeignPreserve preserve = *((VipsForeignPreserve *) user_data);
+
+	// we are only interested in metadata
+	if (!vips_isprefix(field, "png-comment-") &&
+		strcmp(field, VIPS_META_IMAGEDESCRIPTION) != 0 &&
+		!vips_ispostfix(field, "-data"))
+		return NULL;
+
+	if ((strcmp(field, VIPS_META_EXIF_NAME) == 0 &&
+			(preserve & VIPS_FOREIGN_PRESERVE_EXIF)) ||
+		(strcmp(field, VIPS_META_XMP_NAME) == 0 &&
+			(preserve & VIPS_FOREIGN_PRESERVE_XMP)) ||
+		(strcmp(field, VIPS_META_IPTC_NAME) == 0 &&
+			(preserve & VIPS_FOREIGN_PRESERVE_IPTC)) ||
+		(strcmp(field, VIPS_META_ICC_NAME) == 0 &&
+			(preserve & VIPS_FOREIGN_PRESERVE_ICC)) ||
+		(preserve & VIPS_FOREIGN_PRESERVE_OTHER))
+		return NULL;
+
+	if (!vips_image_remove(image, field))
+		return image;
 
 	return NULL;
 }
@@ -1741,26 +1743,16 @@ int
 vips__foreign_update_metadata(VipsImage *in,
 	VipsForeignPreserve preserve)
 {
-	int i;
+	/* Rebuild exif from tags, if we'll be saving it.
+	 */
+	if ((preserve & VIPS_FOREIGN_PRESERVE_EXIF) &&
+		vips__exif_update(in))
+		return -1;
 
-	for (i = 0; i < VIPS_NUMBER(vips__preserve_names); i++) {
-		VipsForeignPreserve flag = vips__preserve_names[i].flag;
-		const char *name = vips__preserve_names[i].name;
-
-		if ((preserve & flag) == 0 &&
-			vips_image_get_typeof(in, name)) {
-			if (!vips_image_remove(in, name))
-				return -1;
-		}
-		else if (flag == VIPS_FOREIGN_PRESERVE_EXIF)
-			/* Rebuild exif from tags, if we'll be saving it.
-			 */
-			if (vips__exif_update(in))
-				return -1;
-	}
-
-	if ((preserve & VIPS_FOREIGN_PRESERVE_OTHER) == 0 &&
-		vips_image_map(in, vips_foreign_save_remove_other, NULL))
+	/* Remove metadata, if any.
+	 */
+	if (preserve != VIPS_FOREIGN_PRESERVE_ALL &&
+		vips_image_map(in, vips_foreign_save_remove_metadata, &preserve))
 		return -1;
 
 	/* Some format libraries, like libpng, will throw a hard error if the
