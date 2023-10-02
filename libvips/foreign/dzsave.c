@@ -373,7 +373,7 @@ write_image(VipsForeignSaveDz *dz,
 	void *buf;
 	size_t len;
 	if (vips_image_write_to_buffer(t, format, &buf, &len,
-			"preserve", save->preserve,
+			"keep", save->keep,
 			NULL)) {
 		VIPS_UNREF(t);
 		return -1;
@@ -1486,7 +1486,7 @@ direct_image_write(VipsForeignSaveDz *dz,
 	if (vips__jpeg_region_write_target(region, rect, target,
 			dz->Q, NULL,
 			FALSE, FALSE,
-			save->preserve, FALSE,
+			save->keep, FALSE,
 			FALSE, FALSE,
 			0, 0, 0)) {
 		g_object_unref(target);
@@ -1946,12 +1946,12 @@ vips_foreign_save_dz_build(VipsObject *object)
 		dz->direct = TRUE;
 
 	/* We default to stripping all metadata as most people
-	 * don't want metadata on every tile. Setting "preserve"
+	 * don't want metadata on every tile. Setting "keep"
 	 * or the deprecated "no_strip" turns this off.
 	 */
-	if (!vips_object_argument_isset(object, "preserve") &&
+	if (!vips_object_argument_isset(object, "keep") &&
 		!vips_object_argument_isset(object, "no_strip"))
-		save->preserve = VIPS_FOREIGN_PRESERVE_NONE;
+		save->keep = VIPS_FOREIGN_KEEP_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -2715,7 +2715,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * may do what you need.
  *
  * By default, all tiles are stripped since usually you do not want a copy of
- * all metadata in every tile. Set @preserve if you want to keep metadata.
+ * all metadata in every tile. Set @keep if you want to keep metadata.
  *
  * If @container is set to `zip`, you can set a compression level from -1
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).

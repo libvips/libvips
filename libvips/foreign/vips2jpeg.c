@@ -912,7 +912,7 @@ static int
 write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	VipsForeignPreserve preserve,
+	VipsForeignKeep keep,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
@@ -956,7 +956,7 @@ write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 
 	/* All the other APP chunks come next.
 	 */
-	if (vips__foreign_update_metadata(x, preserve) ||
+	if (vips__foreign_update_metadata(x, keep) ||
 		write_metadata(write, x, profile)) {
 		g_object_unref(x);
 		return -1;
@@ -986,7 +986,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	VipsForeignPreserve preserve, gboolean trellis_quant,
+	VipsForeignKeep keep, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -1014,7 +1014,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips_region(write, region, rect,
-			Q, profile, optimize_coding, progressive, preserve,
+			Q, profile, optimize_coding, progressive, keep,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);

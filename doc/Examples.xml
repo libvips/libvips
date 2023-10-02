@@ -43,7 +43,7 @@ print('average:', roi.avg())
     To test it, first make a large 1-bit image. This command will take the green channel and write as a 1-bit fax image. <literal>wtc.jpg</literal> is a test 10,000 x 10,000 jpeg:
   </para>
   <programlisting language="bash">
-$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,preserve=none] 1
+$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,keep=none] 1
 </programlisting>
   <para>
     Now make 1,000 copies of that image in a subdirectory:

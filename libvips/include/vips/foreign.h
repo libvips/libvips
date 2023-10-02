@@ -331,42 +331,42 @@ typedef enum {
 } VipsSaveable;
 
 /**
- * VipsForeignPreserve:
- * @VIPS_FOREIGN_PRESERVE_NONE: don't attach metadata
- * @VIPS_FOREIGN_PRESERVE_EXIF: preserve Exif metadata
- * @VIPS_FOREIGN_PRESERVE_XMP: preserve XMP metadata
- * @VIPS_FOREIGN_PRESERVE_IPTC: preserve IPTC metadata
- * @VIPS_FOREIGN_PRESERVE_ICC: preserve ICC metadata
- * @VIPS_FOREIGN_PRESERVE_OTHER: preserve other metadata (e.g. PNG comments and some TIFF tags)
- * @VIPS_FOREIGN_PRESERVE_ALL: preserve all metadata
+ * VipsForeignKeep:
+ * @VIPS_FOREIGN_KEEP_NONE: don't attach metadata
+ * @VIPS_FOREIGN_KEEP_EXIF: keep Exif metadata
+ * @VIPS_FOREIGN_KEEP_XMP: keep XMP metadata
+ * @VIPS_FOREIGN_KEEP_IPTC: keep IPTC metadata
+ * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
+ * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments and some TIFF tags)
+ * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
  *
- * Which metadata should be preserved.
+ * Which metadata to retain.
  */
 typedef enum /*< flags >*/ {
-	VIPS_FOREIGN_PRESERVE_NONE = 0,
-	VIPS_FOREIGN_PRESERVE_EXIF = 1 << 0,
-	VIPS_FOREIGN_PRESERVE_XMP = 1 << 1,
-	VIPS_FOREIGN_PRESERVE_IPTC = 1 << 2,
-	VIPS_FOREIGN_PRESERVE_ICC = 1 << 3,
-	VIPS_FOREIGN_PRESERVE_OTHER = 1 << 4,
+	VIPS_FOREIGN_KEEP_NONE = 0,
+	VIPS_FOREIGN_KEEP_EXIF = 1 << 0,
+	VIPS_FOREIGN_KEEP_XMP = 1 << 1,
+	VIPS_FOREIGN_KEEP_IPTC = 1 << 2,
+	VIPS_FOREIGN_KEEP_ICC = 1 << 3,
+	VIPS_FOREIGN_KEEP_OTHER = 1 << 4,
 
-	VIPS_FOREIGN_PRESERVE_ALL = (VIPS_FOREIGN_PRESERVE_EXIF |
-		VIPS_FOREIGN_PRESERVE_XMP |
-		VIPS_FOREIGN_PRESERVE_IPTC |
-		VIPS_FOREIGN_PRESERVE_ICC |
-		VIPS_FOREIGN_PRESERVE_OTHER),
-} VipsForeignPreserve;
+	VIPS_FOREIGN_KEEP_ALL = (VIPS_FOREIGN_KEEP_EXIF |
+		VIPS_FOREIGN_KEEP_XMP |
+		VIPS_FOREIGN_KEEP_IPTC |
+		VIPS_FOREIGN_KEEP_ICC |
+		VIPS_FOREIGN_KEEP_OTHER),
+} VipsForeignKeep;
 
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
-	/* Deprecated in favor of [preserve=none]
+	/* Deprecated in favor of [keep=none]
 	 */
 	gboolean strip;
 
-	/* Which metadata should be preserved.
+	/* Which metadata to retain.
 	 */
-	VipsForeignPreserve preserve;
+	VipsForeignKeep keep;
 
 	/* Filename of profile to embed.
 	 */

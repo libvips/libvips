@@ -112,9 +112,9 @@
  *
  * You can change metadata with vips_image_set_int() and friends.
  *
- * During save, you can use @preserve to specify which metadata should be
- * preserved, defaults to all, see #VipsForeignPreserve. Setting @profile
- * will automatically preserve the ICC profile.
+ * During save, you can use @keep to specify which metadata to retain,
+ * defaults to all, see #VipsForeignKeep. Setting @profile will
+ * automatically keep the ICC profile.
  *
  * # Many page images
  *
@@ -1714,7 +1714,7 @@ static void *
 vips_foreign_save_remove_metadata(VipsImage *image,
 	const char *field, GValue *value, void *user_data)
 {
-	VipsForeignPreserve preserve = *((VipsForeignPreserve *) user_data);
+	VipsForeignKeep keep = *((VipsForeignKeep *) user_data);
 
 	// we are only interested in metadata
 	if (!vips_isprefix(field, "png-comment-") &&
@@ -1724,14 +1724,14 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 		return NULL;
 
 	if ((strcmp(field, VIPS_META_EXIF_NAME) == 0 &&
-			(preserve & VIPS_FOREIGN_PRESERVE_EXIF)) ||
+			(keep & VIPS_FOREIGN_KEEP_EXIF)) ||
 		(strcmp(field, VIPS_META_XMP_NAME) == 0 &&
-			(preserve & VIPS_FOREIGN_PRESERVE_XMP)) ||
+			(keep & VIPS_FOREIGN_KEEP_XMP)) ||
 		(strcmp(field, VIPS_META_IPTC_NAME) == 0 &&
-			(preserve & VIPS_FOREIGN_PRESERVE_IPTC)) ||
+			(keep & VIPS_FOREIGN_KEEP_IPTC)) ||
 		(strcmp(field, VIPS_META_ICC_NAME) == 0 &&
-			(preserve & VIPS_FOREIGN_PRESERVE_ICC)) ||
-		(preserve & VIPS_FOREIGN_PRESERVE_OTHER))
+			(keep & VIPS_FOREIGN_KEEP_ICC)) ||
+		(keep & VIPS_FOREIGN_KEEP_OTHER))
 		return NULL;
 
 	if (!vips_image_remove(image, field))
@@ -1742,18 +1742,18 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 
 int
 vips__foreign_update_metadata(VipsImage *in,
-	VipsForeignPreserve preserve)
+	VipsForeignKeep keep)
 {
 	/* Rebuild exif from tags, if we'll be saving it.
 	 */
-	if ((preserve & VIPS_FOREIGN_PRESERVE_EXIF) &&
+	if ((keep & VIPS_FOREIGN_KEEP_EXIF) &&
 		vips__exif_update(in))
 		return -1;
 
 	/* Remove metadata, if any.
 	 */
-	if (preserve != VIPS_FOREIGN_PRESERVE_ALL &&
-		vips_image_map(in, vips_foreign_save_remove_metadata, &preserve))
+	if (keep != VIPS_FOREIGN_KEEP_ALL &&
+		vips_image_map(in, vips_foreign_save_remove_metadata, &keep))
 		return -1;
 
 	/* Some format libraries, like libpng, will throw a hard error if the
@@ -1761,7 +1761,7 @@ vips__foreign_update_metadata(VipsImage *in,
 	 * from a source image, this can happen all the time, so we
 	 * want to silently drop the profile in this case.
 	 */
-	if ((preserve & VIPS_FOREIGN_PRESERVE_ICC) &&
+	if ((keep & VIPS_FOREIGN_KEEP_ICC) &&
 		vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
@@ -1780,19 +1780,19 @@ vips_foreign_save_build(VipsObject *object)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
 
-	/* The deprecated "strip" field sets "preserve" to none.
+	/* The deprecated "strip" field sets "keep" to none.
 	 */
 	if (vips_object_argument_isset(object, "strip") &&
-		!vips_object_argument_isset(object, "preserve"))
-		save->preserve = save->strip
-			? VIPS_FOREIGN_PRESERVE_NONE
-			: VIPS_FOREIGN_PRESERVE_ALL;
+		!vips_object_argument_isset(object, "keep"))
+		save->keep = save->strip
+			? VIPS_FOREIGN_KEEP_NONE
+			: VIPS_FOREIGN_KEEP_ALL;
 
-	/* Preserve ICC profile by default when a user profile has been set.
+	/* Keep ICC profile by default when a user profile has been set.
 	 */
-	if ((save->preserve & VIPS_FOREIGN_PRESERVE_ICC) == 0 &&
+	if ((save->keep & VIPS_FOREIGN_KEEP_ICC) == 0 &&
 		vips_object_argument_isset(object, "profile"))
-		save->preserve |= VIPS_FOREIGN_PRESERVE_ICC;
+		save->keep |= VIPS_FOREIGN_KEEP_ICC;
 
 	if (save->in) {
 		VipsForeignSaveClass *class =
@@ -1814,7 +1814,7 @@ vips_foreign_save_build(VipsObject *object)
 		VIPS_UNREF(ready);
 		ready = x;
 
-		if (vips__foreign_update_metadata(ready, save->preserve)) {
+		if (vips__foreign_update_metadata(ready, save->keep)) {
 			VIPS_UNREF(ready);
 			return -1;
 		}
@@ -1894,13 +1894,13 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, in));
 
-	VIPS_ARG_FLAGS(class, "preserve", 100,
-		_("Preserve"),
-		_("Which metadata should be preserved"),
+	VIPS_ARG_FLAGS(class, "keep", 100,
+		_("Keep"),
+		_("Which metadata to retain"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSave, preserve),
-		VIPS_TYPE_FOREIGN_PRESERVE,
-		VIPS_FOREIGN_PRESERVE_ALL);
+		G_STRUCT_OFFSET(VipsForeignSave, keep),
+		VIPS_TYPE_FOREIGN_KEEP,
+		VIPS_FOREIGN_KEEP_ALL);
 
 	VIPS_ARG_BOXED(class, "background", 101,
 		_("Background"),
@@ -1934,7 +1934,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 static void
 vips_foreign_save_init(VipsForeignSave *save)
 {
-	save->preserve = VIPS_FOREIGN_PRESERVE_ALL;
+	save->keep = VIPS_FOREIGN_KEEP_ALL;
 	save->background = vips_array_double_newv(1, 0.0);
 }
 

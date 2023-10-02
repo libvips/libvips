@@ -238,13 +238,13 @@ optional arguments:
    restart-interval - Add restart markers every specified number of mcu, input gint
 			default: 0
 			min: 0, max: 2147483647
-   preserve     - Which metadata should be preserved, input VipsForeignPreserve
+   keep         - Which metadata to retain, input VipsForeignKeep
 			default flags: exif:xmp:iptc:icc:other:all
 			allowed flags: none, exif, xmp, iptc, icc, other, all
    background   - Background value, input VipsArrayDouble
 ```
 
-The `preserve` option is especially useful. Many image have very large IPTC,
+The `keep` option is especially useful. Many image have very large IPTC,
 ICC or XMP metadata items embedded in them, and removing these can give a
 large saving.
 
@@ -256,10 +256,10 @@ $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
 ```
 
-`preserve=none` almost halves the size of the thumbnail:
+`keep=none` almost halves the size of the thumbnail:
 
 ```
-$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,preserve=none]
+$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,keep=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 ```
@@ -281,7 +281,7 @@ $ ls -l tn_shark.jpg
 ```
 
 Now transform to sRGB and don't attach a profile (you can also use
-`preserve=none`, though that will remove *all* metadata from the image):
+`keep=none`, though that will remove *all* metadata from the image):
 
 ```
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
@@ -311,5 +311,5 @@ Putting all this together, I suggest this as a sensible set of options:
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \
-    -o tn_%s.jpg[optimize_coding,preserve=none] 
+    -o tn_%s.jpg[optimize_coding,keep=none] 
 ```
