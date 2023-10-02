@@ -139,8 +139,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#ifdef HAVE_JPEG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -151,6 +149,8 @@
 #include <vips/internal.h>
 
 #include "pforeign.h"
+
+#ifdef HAVE_JPEG
 
 #include "jpeg.h"
 
@@ -835,15 +835,12 @@ term_destination(j_compress_ptr cinfo)
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer))
 		ERREXIT(cinfo, JERR_FILE_WRITE);
-
-	if (vips_target_end(dest->target))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
 }
 
 /* Set dest to one of our objects.
  */
-static void
-target_dest(j_compress_ptr cinfo, VipsTarget *target)
+void
+vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target)
 {
 	Dest *dest;
 
@@ -888,7 +885,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 
 	/* Attach output.
 	 */
-	target_dest(&write->cinfo, target);
+	vips__jpeg_target_dest(&write->cinfo, target);
 
 	/* Convert! Write errors come back here as an error return.
 	 */
@@ -900,6 +897,9 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 		return -1;
 	}
 	write_destroy(write);
+
+	if (vips_target_end(target))
+		return -1;
 
 	return 0;
 }
@@ -1009,7 +1009,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 
 	/* Attach output.
 	 */
-	target_dest(&write->cinfo, target);
+	vips__jpeg_target_dest(&write->cinfo, target);
 
 	/* Convert! Write errors come back here as an error return.
 	 */
@@ -1022,7 +1022,27 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	}
 	write_destroy(write);
 
+	if (vips_target_end(target))
+		return -1;
+
 	return 0;
+}
+
+#else /*!HAVE_JPEG*/
+
+int
+vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
+	VipsTarget *target,
+	int Q, const char *profile,
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval)
+{
+	vips_error("vips2jpeg",
+		"%s", _("libvips built without JPEG support"));
+	return -1;
 }
 
 #endif /*HAVE_JPEG*/

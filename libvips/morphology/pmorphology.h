@@ -35,8 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vector.h>
-
 #define VIPS_TYPE_MORPHOLOGY (vips_morphology_get_type())
 #define VIPS_MORPHOLOGY(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
@@ -66,6 +64,12 @@ typedef struct _VipsMorphologyClass {
 } VipsMorphologyClass;
 
 GType vips_morphology_get_type(void);
+
+void vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
+	int sz, int nn128, int *restrict offsets, guint8 *restrict coeff);
+
+void vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
+	int sz, int nn128, int *restrict offsets, guint8 *restrict coeff);
 
 #ifdef __cplusplus
 }

@@ -450,7 +450,7 @@ using Requires = typename std::enable_if<Cond, bool>::type; /* C++11 */
  */
 template <typename T, typename IT, Requires<std::is_integral<T>::value> = true>
 static IT
-reduce_sum(const T *restrict in, int stride, const int *restrict c, int n)
+reduce_sum(const T *restrict in, int stride, const short *restrict c, int n)
 {
 	IT sum;
 

@@ -35,15 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Slow and horrid version if there's no recent glib.
- */
-#if !GLIB_CHECK_VERSION(2, 48, 0)
-#define g_uint_checked_mul(dest, a, b) ( \
-	((guint64) a * b) > UINT_MAX \
-		? (*dest = UINT_MAX, FALSE) \
-		: (*dest = a * b, TRUE))
-#endif /*!GLIB_CHECK_VERSION(2, 48, 0)*/
-
 /* We've seen real images with 28 chunks, so set 50.
  */
 #define MAX_PNG_TEXT_CHUNKS 50
@@ -225,7 +216,7 @@ int vips__foreign_load_jp2k_decompress(VipsImage *out,
 	int width, int height, gboolean ycc_to_rgb,
 	void *from, size_t from_length,
 	void *to, size_t to_length);
-int vips__foreign_load_jp2k_compress(VipsRegion *region,
+int vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q);

@@ -96,9 +96,9 @@
 
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
-#include <vips/vector.h>
 
 #if ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
@@ -489,14 +489,6 @@ vips_init(const char *argv0)
 	vips__buffer_init();
 	vips__meta_init();
 
-	/* This does an unsynchronised static hash table init on first call --
-	 * we have to make sure we do this single-threaded. See:
-	 * https://github.com/openslide/openslide/issues/161
-	 */
-#if !GLIB_CHECK_VERSION(2, 48, 1)
-	(void) g_get_language_names();
-#endif
-
 	if (!vips__global_lock)
 		vips__global_lock = vips_g_mutex_new();
 
@@ -619,9 +611,9 @@ vips_init(const char *argv0)
 #endif /*ENABLE_DEPRECATED*/
 #endif /*ENABLE_MODULES*/
 
-	/* Get the run-time compiler going.
+	/* Detect SIMD features.
 	 */
-	vips_vector_init();
+	vips__vector_init();
 
 #ifdef DEBUG_LEAK
 	vips__image_pixels_quark =

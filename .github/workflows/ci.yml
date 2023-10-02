@@ -58,16 +58,17 @@ jobs:
             libfftw3-dev libexif-dev libjpeg-turbo8-dev
             libpng-dev libwebp-dev libtiff5-dev
             libheif-dev libexpat1-dev libcfitsio-dev
-            libmatio-dev libnifti-dev liborc-0.4-dev
+            libmatio-dev libnifti-dev libhwy-dev
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
             libopenexr-dev libpango1.0-dev libarchive-dev
             libopenslide-dev libffi-dev libopenjp2-7-dev
             libimagequant-dev libcgif-dev
+            liborc-0.4-dev # FIXME: Remove once libhwy 1.0.5 is available.
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install meson ninja fftw fontconfig glib libexif libarchive little-cms2 orc pango pkg-config
+          brew install meson ninja fftw fontconfig glib libexif libarchive little-cms2 highway pango pkg-config
           brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 14

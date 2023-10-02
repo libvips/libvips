@@ -197,7 +197,7 @@ vips_conv_init(VipsConv *conv)
  *
  * For #VIPS_FORMAT_UCHAR images and #VIPS_PRECISION_INTEGER @precision,
  * vips_conv() uses a fast vector path based on
- * fixed-point arithmetic. This can produce slightly different results.
+ * half-float arithmetic. This can produce slightly different results.
  * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
  * vips_vector_set_enabled().
  *

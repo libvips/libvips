@@ -35,8 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vector.h>
-
 #define VIPS_TYPE_CONVOLUTION (vips_convolution_get_type())
 #define VIPS_CONVOLUTION(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
@@ -72,6 +70,10 @@ typedef struct _VipsConvolutionClass {
 } VipsConvolutionClass;
 
 GType vips_convolution_get_type(void);
+
+void vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
+	int ne, int nnz, int offset, const int *restrict offsets,
+	const short *restrict mant, int exp);
 
 #ifdef __cplusplus
 }

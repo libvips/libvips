@@ -44,7 +44,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 
 	/* Remainder of input is the image
 	 */
-	if (!(ref = vips_image_new_from_buffer(data, size, "", NULL)))
+	if (!(ref = vips_image_new_from_buffer(data, size, "", nullptr)))
 		return 0;
 
 	if (ref->Xsize > 100 ||
@@ -54,19 +54,19 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		return 0;
 	}
 
-	if (vips_rot180(ref, &sec, NULL)) {
+	if (vips_rot180(ref, &sec, nullptr)) {
 		g_object_unref(ref);
 		return 0;
 	}
 
 	if (vips_mosaic(ref, sec, &out, (VipsDirection) opt.dir,
-			opt.xref, opt.yref, opt.xsec, opt.ysec, NULL)) {
+			opt.xref, opt.yref, opt.xsec, opt.ysec, nullptr)) {
 		g_object_unref(sec);
 		g_object_unref(ref);
 		return 0;
 	}
 
-	vips_max(out, &d, NULL);
+	vips_max(out, &d, nullptr);
 
 	g_object_unref(out);
 	g_object_unref(sec);

@@ -563,14 +563,13 @@ vips_ref_string_new(const char *str)
 {
 	VipsArea *area;
 
-	if (!g_utf8_validate(str, -1, NULL))
-		str = "<invalid utf-8 string>";
+	char *utf8_str = g_utf8_make_valid(str, -1);
 
-	area = vips_area_new((VipsCallbackFn) vips_area_free_cb, g_strdup(str));
+	area = vips_area_new((VipsCallbackFn) vips_area_free_cb, utf8_str);
 
 	/* Handy place to cache this.
 	 */
-	area->length = strlen(str);
+	area->length = strlen(utf8_str);
 
 	return (VipsRefString *) area;
 }

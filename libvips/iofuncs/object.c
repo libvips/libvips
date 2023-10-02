@@ -1712,12 +1712,10 @@ traverse_find_required_priority(void *data, void *a, void *b)
 	return NULL;
 }
 
-static gint
-traverse_sort(gconstpointer a, gconstpointer b, void *user_data)
+static int
+traverse_sort(VipsArgumentClass *class1, VipsArgumentClass *class2,
+	void *user_data)
 {
-	VipsArgumentClass *class1 = (VipsArgumentClass *) a;
-	VipsArgumentClass *class2 = (VipsArgumentClass *) b;
-
 	return class1->priority - class2->priority;
 }
 
