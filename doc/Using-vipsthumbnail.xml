@@ -229,12 +229,14 @@ optional arguments:
             default: 0
             min: 0, max: 8
    subsample-mode - Select chroma subsample operation mode, input VipsForeignSubsample
-            default: auto
-            allowed: auto, on, off
+            default enum: auto
+            allowed enums: auto, on, off
    restart-interval - Add restart markers every specified number of mcu, input gint
             default: 0
             min: 0, max: 2147483647
    preserve     - Which metadata should be preserved, input VipsForeignPreserve
+            default flags: exif:xmp:iptc:icc:other:all
+            allowed flags: none, exif, xmp, iptc, icc, other, all
    background   - Background value, input VipsArrayDouble
 </programlisting>
   <para>
