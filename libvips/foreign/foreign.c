@@ -1718,6 +1718,7 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 
 	// we are only interested in metadata
 	if (!vips_isprefix(field, "png-comment-") &&
+		!vips_isprefix(field, "magickprofile-") &&
 		strcmp(field, VIPS_META_IMAGEDESCRIPTION) != 0 &&
 		!vips_ispostfix(field, "-data"))
 		return NULL;
