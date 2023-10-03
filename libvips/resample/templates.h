@@ -312,6 +312,58 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
 	c[2] = cthr;
 }
 
+static double inline triangle_filter(double x)
+{
+	if (x < 0.0)
+		x = -x;
+
+	if (x < 1.0)
+		return 1.0 - x;
+
+	return 0.0;
+}
+
+/* Generate a cubic filter. See:
+ *
+ * Mitchell and Netravali, Reconstruction Filters in Computer Graphics
+ * Computer Graphics, Volume 22, Number 4, August 1988.
+ *
+ * B = 1,   C = 0   - cubic B-spline
+ * B = 1/3, C = 1/3 - Mitchell
+ * B = 0,   C = 1/2 - Catmull-Rom spline
+ */
+static double inline cubic_filter(double x, double B, double C)
+{
+	const double ax = VIPS_FABS(x);
+	const double ax2 = ax * ax;
+	const double ax3 = ax2 * ax;
+
+	if (ax <= 1)
+		return ((12 - 9 * B - 6 * C) * ax3 +
+				   (-18 + 12 * B + 6 * C) * ax2 +
+				   (6 - 2 * B)) /
+			6;
+
+	if (ax <= 2)
+		return ((-B - 6 * C) * ax3 +
+				   (6 * B + 30 * C) * ax2 +
+				   (-12 * B - 48 * C) * ax +
+				   (8 * B + 24 * C)) /
+			6;
+
+	return 0.0;
+}
+
+static double inline sinc_filter(double x)
+{
+	if (x == 0.0)
+		return 1.0;
+
+	x = x * VIPS_PI;
+
+	return sin(x) / x;
+}
+
 /* Given an x in [0,1] (we can have x == 1 when building tables),
  * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
  * from the interpolator as well as from the table builder.
@@ -324,14 +376,11 @@ static void inline calculate_coefficients_triangle(double *c,
 	int i;
 	double sum;
 
-	sum = 0;
+	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
 		const double xp = (i - half) / shrink;
 
-		double l;
-
-		l = 1.0 - VIPS_FABS(xp);
-		l = VIPS_MAX(0.0, l);
+		double l = triangle_filter(xp);
 
 		c[i] = l;
 		sum += l;
@@ -359,28 +408,11 @@ static void inline calculate_coefficients_cubic(double *c,
 	int i;
 	double sum;
 
-	sum = 0;
+	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
 		const double xp = (i - half) / shrink;
-		const double axp = VIPS_FABS(xp);
-		const double axp2 = axp * axp;
-		const double axp3 = axp2 * axp;
 
-		double l;
-
-		if (axp <= 1)
-			l = ((12 - 9 * B - 6 * C) * axp3 +
-					(-18 + 12 * B + 6 * C) * axp2 +
-					(6 - 2 * B)) /
-				6;
-		else if (axp <= 2)
-			l = ((-B - 6 * C) * axp3 +
-					(6 * B + 30 * C) * axp2 +
-					(-12 * B - 48 * C) * axp +
-					(8 * B + 24 * C)) /
-				6;
-		else
-			l = 0.0;
+		double l = cubic_filter(xp, B, C);
 
 		c[i] = l;
 		sum += l;
@@ -406,22 +438,16 @@ static void inline calculate_coefficients_lanczos(double *c,
 	int i;
 	double sum;
 
-	sum = 0;
+	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
 		const double xp = (i - half) / shrink;
 
 		double l;
 
-		if (xp == 0.0)
-			l = 1.0;
-		else if (xp < -a)
-			l = 0.0;
-		else if (xp > a)
-			l = 0.0;
+		if (xp >= -a && xp <= a)
+			l = sinc_filter(xp) * sinc_filter(xp / a);
 		else
-			l = (double) a * sin(VIPS_PI * xp) *
-				sin(VIPS_PI * xp / (double) a) /
-				(VIPS_PI * VIPS_PI * xp * xp);
+			l = 0.0;
 
 		c[i] = l;
 		sum += l;
