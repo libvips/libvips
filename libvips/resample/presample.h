@@ -70,8 +70,6 @@ GType vips_resample_get_type(void);
 #define MAX_POINT (2000)
 
 int vips_reduce_get_points(VipsKernel kernel, double shrink);
-void vips_reduce_make_mask(double *c,
-	VipsKernel kernel, int n_points, double shrink, double x);
 
 void vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int n, int width, int bands,

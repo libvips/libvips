@@ -131,46 +131,6 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 	}
 }
 
-/* Calculate a mask element.
- */
-void
-vips_reduce_make_mask(double *c, VipsKernel kernel, int n_points,
-	double shrink, double x)
-{
-	switch (kernel) {
-	case VIPS_KERNEL_NEAREST:
-		c[0] = 1.0;
-		break;
-
-	case VIPS_KERNEL_LINEAR:
-		calculate_coefficients_triangle(c, n_points, shrink, x);
-		break;
-
-	case VIPS_KERNEL_CUBIC:
-		/* Catmull-Rom.
-		 */
-		calculate_coefficients_cubic(c, n_points, shrink, x, 0.0, 0.5);
-		break;
-
-	case VIPS_KERNEL_MITCHELL:
-		calculate_coefficients_cubic(c, n_points, shrink, x,
-			1.0 / 3.0, 1.0 / 3.0);
-		break;
-
-	case VIPS_KERNEL_LANCZOS2:
-		calculate_coefficients_lanczos(c, n_points, 2, shrink, x);
-		break;
-
-	case VIPS_KERNEL_LANCZOS3:
-		calculate_coefficients_lanczos(c, n_points, 3, shrink, x);
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-}
-
 template <typename T, int max_value>
 static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,

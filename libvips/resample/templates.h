@@ -312,17 +312,6 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
 	c[2] = cthr;
 }
 
-static double inline triangle_filter(double x)
-{
-	if (x < 0.0)
-		x = -x;
-
-	if (x < 1.0)
-		return 1.0 - x;
-
-	return 0.0;
-}
-
 /* Generate a cubic filter. See:
  *
  * Mitchell and Netravali, Reconstruction Filters in Computer Graphics
@@ -364,23 +353,76 @@ static double inline sinc_filter(double x)
 	return sin(x) / x;
 }
 
-/* Given an x in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
- * from the interpolator as well as from the table builder.
+using VipsFilterFn = double (*)(double);
+
+template <VipsKernel K>
+static double inline filter(double x);
+
+template <>
+double inline filter<VIPS_KERNEL_LINEAR>(double x)
+{
+	if (x < 0.0)
+		x = -x;
+
+	if (x < 1.0)
+		return 1.0 - x;
+
+	return 0.0;
+}
+
+/* Catmull-Rom.
  */
-static void inline calculate_coefficients_triangle(double *c,
-	const int n_points, const double shrink, const double x)
+template <>
+double inline filter<VIPS_KERNEL_CUBIC>(double x)
+{
+	return cubic_filter(x, 0.0, 0.5);
+}
+
+template <>
+double inline filter<VIPS_KERNEL_MITCHELL>(double x)
+{
+	return cubic_filter(x, 1.0 / 3.0, 1.0 / 3.0);
+}
+
+template <>
+double inline filter<VIPS_KERNEL_LANCZOS2>(double x)
+{
+	if (x >= -2 && x <= 2)
+		return sinc_filter(x) * sinc_filter(x / 2);
+
+	return 0.0;
+}
+
+template <>
+double inline filter<VIPS_KERNEL_LANCZOS3>(double x)
+{
+	if (x >= -3 && x <= 3)
+		return sinc_filter(x) * sinc_filter(x / 3);
+
+	return 0.0;
+}
+
+/* Given an x in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(@n_points), the coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ *
+ * @shrink is the reduction factor, so 1 for interpolation, 2 for a
+ * x2 reduction, etc.
+ */
+template <typename T>
+static void
+calculate_coefficients(T *c, const int n_points,
+	VipsFilterFn filter_fn, const double shrink, const double x)
 {
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum;
+	T sum;
 
 	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
 		const double xp = (i - half) / shrink;
-
-		double l = triangle_filter(xp);
+		double l = filter_fn(xp);
 
 		c[i] = l;
 		sum += l;
@@ -390,71 +432,47 @@ static void inline calculate_coefficients_triangle(double *c,
 		c[i] /= sum;
 }
 
-/* Generate a cubic filter. See:
- *
- * Mitchell and Netravali, Reconstruction Filters in Computer Graphics
- * Computer Graphics, Volume 22, Number 4, August 1988.
- *
- * B = 1,   C = 0   - cubic B-spline
- * B = 1/3, C = 1/3 - Mitchell
- * B = 0,   C = 1/2 - Catmull-Rom spline
+/* Calculate a mask element.
  */
-static void inline calculate_coefficients_cubic(double *c,
-	const int n_points, const double shrink, const double x,
-	double B, double C)
+template <typename T>
+static void
+vips_reduce_make_mask(T *c, VipsKernel kernel, const int n_points,
+	const double shrink, const double x)
 {
-	const double half = x + n_points / 2.0 - 1;
+	switch (kernel) {
+	case VIPS_KERNEL_NEAREST:
+		c[0] = 1.0;
+		break;
 
-	int i;
-	double sum;
+	case VIPS_KERNEL_LINEAR:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LINEAR>, shrink, x);
+		break;
 
-	sum = 0.0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
+	case VIPS_KERNEL_CUBIC:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_CUBIC>, shrink, x);
+		break;
 
-		double l = cubic_filter(xp, B, C);
+	case VIPS_KERNEL_MITCHELL:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_MITCHELL>, shrink, x);
+		break;
 
-		c[i] = l;
-		sum += l;
+	case VIPS_KERNEL_LANCZOS2:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LANCZOS2>, shrink, x);
+		break;
+
+	case VIPS_KERNEL_LANCZOS3:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LANCZOS3>, shrink, x);
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
 	}
-
-	for (i = 0; i < n_points; i++)
-		c[i] /= sum;
-}
-
-/* Given an x in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(@a * @shrink + 1), the lanczos coefficients. This is called
- * from the interpolator as well as from the table builder.
- *
- * @a is the number of lobes, so usually 2 or 3. @shrink is the reduction
- * factor, so 1 for interpolation, 2 for a x2 reduction, etc. We need more
- * points for large decimations to avoid aliasing.
- */
-static void inline calculate_coefficients_lanczos(double *c,
-	const int n_points, const int a, const double shrink, const double x)
-{
-	const double half = x + n_points / 2.0 - 1;
-
-	int i;
-	double sum;
-
-	sum = 0.0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
-
-		double l;
-
-		if (xp >= -a && xp <= a)
-			l = sinc_filter(xp) * sinc_filter(xp / a);
-		else
-			l = 0.0;
-
-		c[i] = l;
-		sum += l;
-	}
-
-	for (i = 0; i < n_points; i++)
-		c[i] /= sum;
 }
 
 /* Simplified version of std::enable_if<cond, bool>::type
