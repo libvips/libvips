@@ -28,6 +28,7 @@
 - require C++11 as a minimum standard [kleisauke]
 - add support for SIMD via Highway [kleisauke]
 - threaded write in tiffsave for tiled JPEG and JPEG2000 [jcupitt]
+- add vips_threadset public API [jcupitt]
 
 18/9/23 8.14.5
 
