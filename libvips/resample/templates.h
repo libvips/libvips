@@ -28,8 +28,6 @@
 
  */
 
-#include <type_traits>
-
 /*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
@@ -475,41 +473,18 @@ vips_reduce_make_mask(T *c, VipsKernel kernel, const int n_points,
 	}
 }
 
-/* Simplified version of std::enable_if<cond, bool>::type
+/* Our inner loop for resampling with a convolution of type CT. Operate on
+ * elements of type T, gather results in an intermediate of type IT.
  */
-template <bool Cond>
-using Requires = typename std::enable_if<Cond, bool>::type; /* C++11 */
-// using Requires = std::enable_if_t<Cond, bool>; /* C++14 */
-
-/* Our inner loop for resampling with a convolution. Operate on elements of
- * type T, gather results in an intermediate of type IT.
- */
-template <typename T, typename IT, Requires<std::is_integral<T>::value> = true>
-static IT
-reduce_sum(const T *restrict in, int stride, const short *restrict c, int n)
+template <typename T, typename IT, typename CT>
+static IT inline reduce_sum(const T *restrict in, int stride,
+	const CT *restrict c, int n)
 {
 	IT sum;
 
 	sum = 0;
 	for (int i = 0; i < n; i++) {
 		sum += (IT) c[i] * in[0];
-		in += stride;
-	}
-
-	return sum;
-}
-
-/* Same as above, but specialized for floating point types.
- */
-template <typename T, typename IT, Requires<std::is_floating_point<T>::value> = true>
-static IT
-reduce_sum(const T *restrict in, int stride, const double *restrict c, int n)
-{
-	IT sum;
-
-	sum = 0;
-	for (int i = 0; i < n; i++) {
-		sum += c[i] * in[0];
 		in += stride;
 	}
 
