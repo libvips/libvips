@@ -184,7 +184,7 @@
  *
  * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works
- * reasonably efficiently, even for bizzarre operations like 45 degree rotate.
+ * reasonably efficiently, even for bizarre operations like 45 degree rotate.
  *
  * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips
  * the width of the image and as high as possible. This option is suitable

@@ -107,7 +107,7 @@ VIPS_API
 int vips_interpolate_get_window_offset(VipsInterpolate *interpolate);
 
 /* How many bits of precision we keep for transformations, ie. how many
- * pre-computed matricies we have.
+ * pre-computed matrices we have.
  */
 #define VIPS_TRANSFORM_SHIFT (6)
 #define VIPS_TRANSFORM_SCALE (1 << VIPS_TRANSFORM_SHIFT)

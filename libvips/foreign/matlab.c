@@ -44,7 +44,7 @@
 
 + it will not do complex images
 
-+ it will not handle sparse matricies
++ it will not handle sparse matrices
 
 + it loads the first variable in the file with between 1 and 3 dimensions,
   is this sensible behaviour?

@@ -42,7 +42,7 @@
  * 14/4/01 JC
  *	- oops, invert_point() had a rounding problem
  * 23/2/02 JC
- *	- pre-calculate interpolation matricies
+ *	- pre-calculate interpolation matrices
  *	- integer interpolation for int8/16 types, double for
  *	  int32/float/double
  *	- faster transformation
