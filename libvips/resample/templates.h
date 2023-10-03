@@ -317,11 +317,8 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
  * from the interpolator as well as from the table builder.
  */
 static void inline calculate_coefficients_triangle(double *c,
-	const double shrink, const double x)
+	const int n_points, const double shrink, const double x)
 {
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(shrink) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
@@ -354,11 +351,9 @@ static void inline calculate_coefficients_triangle(double *c,
  * B = 0,   C = 1/2 - Catmull-Rom spline
  */
 static void inline calculate_coefficients_cubic(double *c,
-	const double shrink, const double x, double B, double C)
+	const int n_points, const double shrink, const double x,
+	double B, double C)
 {
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(2 * shrink) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
@@ -404,11 +399,8 @@ static void inline calculate_coefficients_cubic(double *c,
  * points for large decimations to avoid aliasing.
  */
 static void inline calculate_coefficients_lanczos(double *c,
-	const int a, const double shrink, const double x)
+	const int n_points, const int a, const double shrink, const double x)
 {
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(a * shrink) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
