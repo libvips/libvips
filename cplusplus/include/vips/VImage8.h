@@ -1237,7 +1237,7 @@ public:
 
 	/**
 	 * Dilate the image with the specified structuring element, see
-	 * VImage::new_matrix(). Stucturing element values can be 0 for
+	 * VImage::new_matrix(). Structuring element values can be 0 for
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
 	VImage
@@ -1249,7 +1249,7 @@ public:
 
 	/**
 	 * Erode the image with the specified structuring element, see
-	 * VImage::new_matrix(). Stucturing element values can be 0 for
+	 * VImage::new_matrix(). Structuring element values can be 0 for
 	 * black, 255 for white and 128 for don't care. See VImage::morph().
 	 */
 	VImage

@@ -686,7 +686,7 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  *
  * Load a CSV (comma-separated values) file. The output image is always 1
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
- * RGBRGBRGB mono images into colour iamges.
+ * RGBRGBRGB mono images into colour images.
  *
  * Items in lines can be either floating point numbers in the C locale, or
  * strings enclosed in double-quotes ("), or empty.
