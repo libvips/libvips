@@ -51,6 +51,7 @@ libvips is used as an image processing engine by:
 | |
 |---|
 | [sharp (on node.js)](https://www.npmjs.org/package/sharp) |
+| [imgproxy](https://github.com/imgproxy/imgproxy) |
 | [bimg](https://github.com/h2non/bimg) |
 | [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
