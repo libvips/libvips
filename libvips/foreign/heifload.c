@@ -589,10 +589,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs(
 		heif->handle, NULL, id, VIPS_NUMBER(id));
 	for (i = 0; i < n_metadata; i++) {
-		size_t length = heif_image_handle_get_metadata_size(
-			heif->handle, id[i]);
-		const char *type = heif_image_handle_get_metadata_type(
-			heif->handle, id[i]);
+		size_t length =
+			heif_image_handle_get_metadata_size(heif->handle, id[i]);
+		const char *type =
+			heif_image_handle_get_metadata_type(heif->handle, id[i]);
+		const char *content_type =
+			heif_image_handle_get_metadata_content_type(heif->handle, id[i]);
 
 		unsigned char *data;
 		char name[256];
@@ -621,16 +623,13 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			length -= 4;
 		}
 
-		/* exif has a special name.
+		/* Exif data will have the type string "exif".
 		 *
-		 * XMP metadata is just attached with the "mime" type, and
-		 * usually start with "<x:xmpmeta".
+		 * For XMP, the content type is "application/rdf+xml".
 		 */
 		if (g_ascii_strcasecmp(type, "exif") == 0)
 			vips_snprintf(name, 256, VIPS_META_EXIF_NAME);
-		else if (g_ascii_strcasecmp(type, "mime") == 0 &&
-			length > 10 &&
-			vips_isprefix("<x:xmpmeta", (const char *) data))
+		else if (g_ascii_strcasecmp(content_type, "application/rdf+xml") == 0)
 			vips_snprintf(name, 256, VIPS_META_XMP_NAME);
 		else
 			vips_snprintf(name, 256, "heif-%s-%d", type, i);

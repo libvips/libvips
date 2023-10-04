@@ -241,36 +241,37 @@ write_new(void)
 static int
 write_blob(Write *write, VipsImage *image, const char *field, int app)
 {
-	if (vips_image_get_typeof(image, field)) {
-		unsigned char *data;
-		size_t data_length;
+	unsigned char *data;
+	size_t data_length;
 
-		if (vips_image_get_blob(image, field,
-				(void *) &data, &data_length))
-			return -1;
+	if (!vips_image_get_typeof(image, field))
+		return 0;
 
-		/* Single jpeg markers can only hold 64kb, large objects must
-		 * be split into multiple markers.
-		 *
-		 * Unfortunately, how this splitting is done depends on the
-		 * data type. For example, ICC and XMP have completely
-		 * different ways of doing this.
-		 *
-		 * For now, just ignore oversize objects and warn.
-		 */
-		if (data_length > MAX_BYTES_IN_MARKER)
-			g_warning(_("field \"%s\" is too large "
-						"for a single JPEG marker, ignoring"),
-				field);
-		else {
+	if (vips_image_get_blob(image, field,
+			(void *) &data, &data_length))
+		return -1;
+
+	/* Single jpeg markers can only hold 64kb, large objects must
+	 * be split into multiple markers.
+	 *
+	 * Unfortunately, how this splitting is done depends on the
+	 * data type. For example, ICC and XMP have completely
+	 * different ways of doing this.
+	 *
+	 * For now, just ignore oversize objects and warn.
+	 */
+	if (data_length > MAX_BYTES_IN_MARKER)
+		g_warning(_("field \"%s\" is too large "
+					"for a single JPEG marker, ignoring"),
+			field);
+	else {
 #ifdef DEBUG
-			printf("write_blob: attaching %zd bytes of %s\n",
-				data_length, field);
+		printf("write_blob: attaching %zd bytes of %s\n",
+			data_length, field);
 #endif /*DEBUG*/
 
-			jpeg_write_marker(&write->cinfo, app,
-				data, data_length);
-		}
+		jpeg_write_marker(&write->cinfo, app,
+			data, data_length);
 	}
 
 	return 0;
@@ -287,6 +288,7 @@ write_xmp(Write *write, VipsImage *in)
 
 	if (!vips_image_get_typeof(in, VIPS_META_XMP_NAME))
 		return 0;
+
 	if (vips_image_get_blob(in, VIPS_META_XMP_NAME,
 			(void *) &data, &data_length))
 		return -1;
@@ -489,6 +491,7 @@ write_profile_meta(Write *write, VipsImage *in)
 	if (vips_image_get_blob(in,
 			VIPS_META_ICC_NAME, &data, &length))
 		return -1;
+
 	write_profile_data(&write->cinfo, data, length);
 
 #ifdef DEBUG
@@ -535,8 +538,8 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 static void
 set_cinfo(struct jpeg_compress_struct *cinfo,
 	VipsImage *in, int width, int height,
-	int qfac, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
+	int qfac,
+	gboolean optimize_coding, gboolean progressive,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
@@ -675,60 +678,36 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 		}
 	}
 
-	/* Only write the JFIF headers if we are not stripping and we have no
-	 * EXIF. Some readers get confused if you set both.
+	/* Only write the JFIF headers if we have no EXIF.
+	 * Some readers get confused if you set both.
 	 */
 	cinfo->write_JFIF_header = FALSE;
 #ifndef HAVE_EXIF
-	if (!strip) {
-		vips_jfif_resolution_from_image(cinfo, in);
-		cinfo->write_JFIF_header = TRUE;
-	}
+	vips_jfif_resolution_from_image(cinfo, in);
+	cinfo->write_JFIF_header = TRUE;
 #endif /*HAVE_EXIF*/
 }
 
 static int
 write_metadata(Write *write, VipsImage *in,
-	gboolean strip, const char *profile)
+	const char *profile)
 {
-	if (!strip) {
-		/* Make a copy of the input image since we may modify it with
-		 * vips__exif_update() etc.
-		 */
-		VipsImage *x;
-		if (vips_copy(in, &x, NULL))
+	if (write_exif(write, in) ||
+		write_xmp(write, in) ||
+		write_blob(write, in,
+			VIPS_META_IPTC_NAME, JPEG_APP0 + 13))
+		return -1;
+
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (profile) {
+		if (write_profile_file(write, profile))
 			return -1;
-
-		/* We need to rebuild the exif data block from any exif tags
-		 * on the image.
-		 */
-		if (vips__exif_update(x) ||
-			write_exif(write, x) ||
-			write_xmp(write, x) ||
-			write_blob(write, x,
-				VIPS_META_IPTC_NAME, JPEG_APP0 + 13)) {
-			g_object_unref(x);
+	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		if (write_profile_meta(write, in))
 			return -1;
-		}
-
-		/* A profile supplied as an argument overrides an embedded
-		 * profile.
-		 */
-		if (profile) {
-			if (write_profile_file(write, profile)) {
-				g_object_unref(x);
-				return -1;
-			}
-		}
-		else {
-			if (vips_image_get_typeof(x, VIPS_META_ICC_NAME) &&
-				write_profile_meta(write, x)) {
-				g_object_unref(x);
-				return -1;
-			}
-		}
-
-		g_object_unref(x);
 	}
 
 	return 0;
@@ -738,7 +717,7 @@ write_metadata(Write *write, VipsImage *in,
  */
 static int
 write_vips(Write *write, VipsImage *in, int Q, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
+	gboolean optimize_coding, gboolean progressive,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
@@ -757,7 +736,7 @@ write_vips(Write *write, VipsImage *in, int Q, const char *profile,
 		return -1;
 
 	set_cinfo(&write->cinfo, in, in->Xsize, in->Ysize,
-		Q, profile, optimize_coding, progressive, strip,
+		Q, optimize_coding, progressive,
 		trellis_quant, overshoot_deringing, optimize_scans,
 		quant_table, subsample_mode, restart_interval);
 
@@ -778,7 +757,7 @@ write_vips(Write *write, VipsImage *in, int Q, const char *profile,
 
 	/* All the other APP chunks come next.
 	 */
-	if (write_metadata(write, in, strip, profile))
+	if (write_metadata(write, in, profile))
 		return -1;
 
 	/* Write data. Note that the write function grabs the longjmp()!
@@ -883,7 +862,7 @@ int
 vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean trellis_quant,
+	gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -911,7 +890,7 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips(write, in,
-			Q, profile, optimize_coding, progressive, strip,
+			Q, profile, optimize_coding, progressive,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);
@@ -932,16 +911,18 @@ const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
 static int
 write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 	int Q, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
+	gboolean optimize_coding, gboolean progressive,
+	VipsForeignKeep keep,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
 	VipsForeignSubsample subsample_mode, int restart_interval)
 {
 	// the image we'll be writing
 	VipsImage *in = region->im;
+	VipsImage *x;
 
 	set_cinfo(&write->cinfo, in, rect->width, rect->height,
-		Q, profile, optimize_coding, progressive, strip,
+		Q, optimize_coding, progressive,
 		trellis_quant, overshoot_deringing, optimize_scans,
 		quant_table, subsample_mode, restart_interval);
 
@@ -968,10 +949,20 @@ write_vips_region(Write *write, VipsRegion *region, VipsRect *rect,
 	 */
 	jpeg_start_compress(&write->cinfo, TRUE);
 
+	/* Updating metadata, need to copy the image.
+	 */
+	if (vips_copy(in, &x, NULL))
+		return -1;
+
 	/* All the other APP chunks come next.
 	 */
-	if (write_metadata(write, in, strip, profile))
+	if (vips__foreign_update_metadata(x, keep) ||
+		write_metadata(write, x, profile)) {
+		g_object_unref(x);
 		return -1;
+	}
+
+	g_object_unref(x);
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
@@ -995,7 +986,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean trellis_quant,
+	VipsForeignKeep keep, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
 	int restart_interval)
@@ -1023,7 +1014,7 @@ vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if (write_vips_region(write, region, rect,
-			Q, profile, optimize_coding, progressive, strip,
+			Q, profile, optimize_coding, progressive, keep,
 			trellis_quant, overshoot_deringing, optimize_scans,
 			quant_table, subsample_mode, restart_interval)) {
 		write_destroy(write);

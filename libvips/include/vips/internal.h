@@ -103,9 +103,6 @@ typedef struct _VipsMeta {
  */
 VIPS_API
 int vips__exif_parse(VipsImage *image);
-/* TODO(kleisauke): VIPS_API is required by the heif module.
- */
-VIPS_API
 int vips__exif_update(VipsImage *image);
 
 void vips_check_init(void);

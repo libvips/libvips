@@ -315,7 +315,7 @@ struct _Layer {
 	TIFF *tif;		   /* TIFF file we write this layer to */
 
 	/* The image we build. We only keep a few scanlines of this around in
-	 * @strip.
+	 * strip.
 	 */
 	VipsImage *image;
 
@@ -366,7 +366,6 @@ struct _Wtiff {
 	int bigtiff;					/* True for bigtiff write */
 	int rgbjpeg;					/* True for RGB not YCbCr */
 	int properties;					/* Set to save XML props */
-	int strip;						/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
 	int level;						/* zstd compression level */
 	gboolean lossless;				/* lossless mode */
@@ -526,14 +525,17 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 static int
 wtiff_embed_profile(Wtiff *wtiff, TIFF *tif)
 {
-	if (wtiff->profile &&
-		embed_profile_file(tif, wtiff->profile))
-		return -1;
-
-	if (!wtiff->profile &&
-		vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME) &&
-		embed_profile_meta(tif, wtiff->ready))
-		return -1;
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (wtiff->profile) {
+		if (embed_profile_file(tif, wtiff->profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME)) {
+		if (embed_profile_meta(tif, wtiff->ready))
+			return -1;
+	}
 
 	return 0;
 }
@@ -872,13 +874,12 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	TIFFSetField(tif, TIFFTAG_YRESOLUTION,
 		VIPS_FCLIP(0.01, wtiff->yres, 1000000));
 
-	if (!wtiff->strip)
-		if (wtiff_embed_profile(wtiff, tif) ||
-			wtiff_embed_xmp(wtiff, tif) ||
-			wtiff_embed_iptc(wtiff, tif) ||
-			wtiff_embed_photoshop(wtiff, tif) ||
-			wtiff_embed_imagedescription(wtiff, tif))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, tif) ||
+		wtiff_embed_iptc(wtiff, tif) ||
+		wtiff_embed_photoshop(wtiff, tif) ||
+		wtiff_embed_imagedescription(wtiff, tif) ||
+		wtiff_embed_profile(wtiff, tif))
+		return -1;
 
 	if (vips_image_get_typeof(wtiff->ready, VIPS_META_ORIENTATION) &&
 		!vips_image_get_int(wtiff->ready,
@@ -1302,7 +1303,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -1336,7 +1336,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->bigtiff = bigtiff;
 	wtiff->rgbjpeg = rgbjpeg;
 	wtiff->properties = properties;
-	wtiff->strip = strip;
 	wtiff->region_shrink = region_shrink;
 	wtiff->level = level;
 	wtiff->lossless = lossless;
@@ -2388,13 +2387,12 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
-	if (!wtiff->strip)
-		if (wtiff_embed_profile(wtiff, out) ||
-			wtiff_embed_xmp(wtiff, out) ||
-			wtiff_embed_iptc(wtiff, out) ||
-			wtiff_embed_photoshop(wtiff, out) ||
-			wtiff_embed_imagedescription(wtiff, out))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, out) ||
+		wtiff_embed_iptc(wtiff, out) ||
+		wtiff_embed_photoshop(wtiff, out) ||
+		wtiff_embed_imagedescription(wtiff, out) ||
+		wtiff_embed_profile(wtiff, out))
+		return -1;
 
 	if (wtiff_copy_tiles(wtiff, out, in))
 		return -1;
@@ -2618,7 +2616,7 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip,
+	gboolean properties,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -2635,7 +2633,7 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 			  compression, Q, predictor, profile,
 			  tile, tile_width, tile_height, pyramid, bitdepth,
 			  miniswhite, resunit, xres, yres, bigtiff, rgbjpeg,
-			  properties, strip, region_shrink, level, lossless, depth,
+			  properties, region_shrink, level, lossless, depth,
 			  subifd, premultiply, page_height)))
 		return -1;
 

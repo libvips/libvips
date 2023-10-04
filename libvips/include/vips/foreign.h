@@ -330,12 +330,47 @@ typedef enum {
 	VIPS_SAVEABLE_LAST
 } VipsSaveable;
 
+/**
+ * VipsForeignKeep:
+ * @VIPS_FOREIGN_KEEP_NONE: don't attach metadata
+ * @VIPS_FOREIGN_KEEP_EXIF: keep Exif metadata
+ * @VIPS_FOREIGN_KEEP_XMP: keep XMP metadata
+ * @VIPS_FOREIGN_KEEP_IPTC: keep IPTC metadata
+ * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
+ * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments and some TIFF tags)
+ * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
+ *
+ * Which metadata to retain.
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_KEEP_NONE = 0,
+	VIPS_FOREIGN_KEEP_EXIF = 1 << 0,
+	VIPS_FOREIGN_KEEP_XMP = 1 << 1,
+	VIPS_FOREIGN_KEEP_IPTC = 1 << 2,
+	VIPS_FOREIGN_KEEP_ICC = 1 << 3,
+	VIPS_FOREIGN_KEEP_OTHER = 1 << 4,
+
+	VIPS_FOREIGN_KEEP_ALL = (VIPS_FOREIGN_KEEP_EXIF |
+		VIPS_FOREIGN_KEEP_XMP |
+		VIPS_FOREIGN_KEEP_IPTC |
+		VIPS_FOREIGN_KEEP_ICC |
+		VIPS_FOREIGN_KEEP_OTHER),
+} VipsForeignKeep;
+
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
-	/* Don't attach metadata.
+	/* Deprecated in favor of [keep=none]
 	 */
 	gboolean strip;
+
+	/* Which metadata to retain.
+	 */
+	VipsForeignKeep keep;
+
+	/* Filename of profile to embed.
+	 */
+	char *profile;
 
 	/* If flattening out alpha, the background colour to use. Default to
 	 * 0 (black).
