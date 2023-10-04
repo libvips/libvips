@@ -142,9 +142,9 @@ vips__threadpool_shutdown(void)
 }
 
 /**
- * vips__thread_execute:
+ * vips_thread_execute:
  * @name: a name for the thread
- * @func: a function to execute in the global threadset
+ * @func: a function to execute in the libvips threadset
  * @data: an argument to supply to @func
  *
  * A newly created or reused thread will execute @func with the
@@ -153,7 +153,7 @@ vips__threadpool_shutdown(void)
  * Returns: 0 on success, -1 on error.
  */
 int
-vips__thread_execute(const char *domain, GFunc func, gpointer data)
+vips_thread_execute(const char *domain, GFunc func, gpointer data)
 {
 	return vips_threadset_run(vips__threadset, domain, func, data);
 }
@@ -445,8 +445,7 @@ vips_worker_new(VipsThreadpool *pool)
 	 * owned by the correct thread.
 	 */
 
-	if (vips__thread_execute("worker",
-			vips_thread_main_loop, worker)) {
+	if (vips_thread_execute("worker", vips_thread_main_loop, worker)) {
 		g_free(worker);
 		return -1;
 	}
