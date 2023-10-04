@@ -79,7 +79,7 @@ typedef VipsInterpolateClass VipsInterpolateBicubicClass;
  * scale + 1 so we can round-to-nearest safely.
  */
 
-/* We could keep a large set of 2d 4x4 matricies, but this actually
+/* We could keep a large set of 2d 4x4 matrices, but this actually
  * works out slower since for many resizes the thing will no longer
  * fit in L1.
  */

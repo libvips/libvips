@@ -20,7 +20,7 @@
  * 1/2/95 JC
  *	- use of IM_REGION_ADDR() updated
  *	- output size was incorrect! see comment below
- *	- bug with large non-square matricies fixed too
+ *	- bug with large non-square matrices fixed too
  *	- uses new im_embed() function
  * 13/7/98 JC
  *	- weird bug ... im_free_imask is no longer directly called for close

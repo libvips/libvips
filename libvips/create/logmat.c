@@ -257,7 +257,7 @@ vips_logmat_init(VipsLogmat *logmat)
  * of radius
  * @sigma.  The size of the mask is determined by the variable @min_ampl;
  * if for instance the value .1 is entered this means that the produced mask
- * is clipped at values within 10 persent of zero, and where the change
+ * is clipped at values within 10 percent of zero, and where the change
  * between mask elements is less than 10%.
  *
  * The program uses the following equation: (from Handbook of Pattern

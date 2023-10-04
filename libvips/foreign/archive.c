@@ -301,7 +301,7 @@ vips__archive_mkfile_file(VipsArchive *archive,
 
 	path = g_build_filename(archive->base_dirname, filename, NULL);
 
-	if (!(f = vips__file_open_write(path, TRUE))) {
+	if (!(f = vips__file_open_write(path, FALSE))) {
 		g_free(path);
 		return -1;
 	}

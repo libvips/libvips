@@ -28,6 +28,7 @@
 - require C++11 as a minimum standard [kleisauke]
 - add support for SIMD via Highway [kleisauke]
 - threaded write in tiffsave for tiled JPEG and JPEG2000 [jcupitt]
+- add vips_thread_execute() to the public API [jcupitt]
 - add "keep" flag to foreign savers, deprecate "strip" [a3mar]
 
 18/9/23 8.14.5
@@ -2362,7 +2363,7 @@ _ add vips_foreign_get_suffixes()
 
 27/7/07 started 7.12.4
 - proto.h had vars called small, breaking on win32
-- more python fixing, we now have working matricies too
+- more python fixing, we now have working matrices too
 
 17/7/07 started 7.12.3
 - fix to VImage.i for gcc 4.2 (thanks Damir)
@@ -2737,7 +2738,7 @@ _ add vips_foreign_get_suffixes()
 - added "ccittfax4" as a TIFF compression option
 - fix all 64-bit compiler warnings
 - "," allowed as column separator in mask read
-- better at spotting singular matricies
+- better at spotting singular matrices
 - small im_render() tidies
 - glib dependency reduced to just 2.0, but untested ... helps people building
   on older systems who aren't interested in nip2

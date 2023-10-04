@@ -360,18 +360,21 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 #ifdef HAVE_OPENSLIDE_ICC
 	int64_t len;
 	if ((len = openslide_get_associated_image_icc_profile_size(rslide->osr,
-			associated_name))) {
+			associated_name)) > 0) {
 		void *data;
 
-		if (!(data = VIPS_MALLOC(NULL, len)))
-			return -1;
+		if (!(data = VIPS_MALLOC(NULL, len))) {
+			g_object_unref(associated);
+			return NULL;
+		}
 		openslide_read_associated_image_icc_profile(rslide->osr,
 				associated_name, data);
 		error = openslide_get_error(rslide->osr);
 		if (error) {
 			g_free(data);
+			g_object_unref(associated);
 			vips_error("openslide2vips", _( "opening slide: %s" ), error);
-			return -1;
+			return NULL;
 		}
 
 		vips_image_set_blob(associated, VIPS_META_ICC_NAME,
@@ -637,7 +640,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 
 #ifdef HAVE_OPENSLIDE_ICC
 	int64_t len;
-	if ((len = openslide_get_icc_profile_size(rslide->osr))) {
+	if ((len = openslide_get_icc_profile_size(rslide->osr)) > 0) {
 		void *data;
 
 		if (!(data = VIPS_MALLOC(NULL, len)))
