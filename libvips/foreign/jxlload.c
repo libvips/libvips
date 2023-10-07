@@ -259,10 +259,12 @@ vips_foreign_load_jxl_fill_input(VipsForeignLoadJxl *jxl,
 	bytes_read = vips_source_read(jxl->source,
 		jxl->input_buffer + bytes_remaining,
 		INPUT_BUFFER_SIZE - bytes_remaining);
-	/* Read error, or unexpected end of input.
+
+	/* Read error.
 	 */
-	if (bytes_read <= 0)
+	if (bytes_read < 0)
 		return -1;
+
 	jxl->bytes_in_buffer = bytes_read + bytes_remaining;
 
 #ifdef DEBUG_VERBOSE
@@ -270,7 +272,7 @@ vips_foreign_load_jxl_fill_input(VipsForeignLoadJxl *jxl,
 		bytes_read);
 #endif /*DEBUG_VERBOSE*/
 
-	return 0;
+	return bytes_read;
 }
 
 #ifdef DEBUG
@@ -429,16 +431,24 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 	while ((status = JxlDecoderProcessInput(jxl->decoder)) ==
 		JXL_DEC_NEED_MORE_INPUT) {
 		size_t bytes_remaining;
+		int bytes_read;
 
 #ifdef DEBUG
 		printf("vips_foreign_load_jxl_process: reading ...\n");
 #endif /*DEBUG*/
 
 		bytes_remaining = JxlDecoderReleaseInput(jxl->decoder);
-		if (vips_foreign_load_jxl_fill_input(jxl, bytes_remaining))
+		bytes_read = vips_foreign_load_jxl_fill_input(jxl, bytes_remaining);
+
+		if (bytes_read < 0)
 			return JXL_DEC_ERROR;
-		JxlDecoderSetInput(jxl->decoder,
-			jxl->input_buffer, jxl->bytes_in_buffer);
+
+		if (jxl->bytes_in_buffer)
+			JxlDecoderSetInput(jxl->decoder,
+				jxl->input_buffer, jxl->bytes_in_buffer);
+
+		if (!bytes_read)
+			JxlDecoderCloseInput(jxl->decoder);
 	}
 
 #ifdef DEBUG
@@ -648,7 +658,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 	if (JxlDecoderSetDecompressBoxes(jxl->decoder, JXL_TRUE) != JXL_DEC_SUCCESS)
 		decompress_boxes = JXL_FALSE;
 
-	if (vips_foreign_load_jxl_fill_input(jxl, 0))
+	if (vips_foreign_load_jxl_fill_input(jxl, 0) < 0)
 		return -1;
 	JxlDecoderSetInput(jxl->decoder,
 		jxl->input_buffer, jxl->bytes_in_buffer);
@@ -825,7 +835,7 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 		return -1;
 	}
 
-	if (vips_foreign_load_jxl_fill_input(jxl, 0))
+	if (vips_foreign_load_jxl_fill_input(jxl, 0) < 0)
 		return -1;
 	JxlDecoderSetInput(jxl->decoder,
 		jxl->input_buffer, jxl->bytes_in_buffer);
