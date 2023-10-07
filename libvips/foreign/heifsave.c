@@ -232,8 +232,11 @@ vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *pro
 		size_t length;
 		const void *data = vips_blob_get(blob, &length);
 
-		if (vips_foreign_save_heif_add_icc(heif, data, length))
+		if (vips_foreign_save_heif_add_icc(heif, data, length)) {
+			vips_area_unref((VipsArea *) blob);
 			return -1;
+		}
+		vips_area_unref((VipsArea *) blob);
 	}
 
 	return 0;
