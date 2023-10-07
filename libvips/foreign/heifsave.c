@@ -221,18 +221,25 @@ vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif, const void *profile, s
 }
 
 static int
-vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *profile)
+vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif,
+									  const char *profile)
 {
 	VipsBlob *blob;
-	size_t length;
 
 	if (vips_profile_load(profile, &blob, NULL))
 		return -1;
 
-	const void *data = vips_blob_get(blob, &length);
+	if (blob) {
+		size_t length;
+		const void *data = vips_blob_get(blob, &length);
 
-	if (vips_foreign_save_heif_add_icc(heif, data, length))
-		return -1;
+		if (vips_foreign_save_heif_add_icc(heif, data, length)) {
+			vips_area_unref((VipsArea *) blob);
+			return -1;
+		}
+
+		vips_area_unref((VipsArea *) blob);
+	}
 
 	return 0;
 }

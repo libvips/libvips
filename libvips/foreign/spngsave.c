@@ -186,6 +186,7 @@ vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 
 		if (vips_profile_load(save->profile, &blob, NULL))
 			return -1;
+
 		if (blob) {
 			size_t length;
 			const void *data = vips_blob_get(blob, &length);
