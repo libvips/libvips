@@ -221,7 +221,8 @@ vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif, const void *profile, s
 }
 
 static int
-vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *profile)
+vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif,
+	const char *profile)
 {
 	VipsBlob *blob;
 
@@ -236,6 +237,7 @@ vips_foreign_save_heif_add_custom_icc(VipsForeignSaveHeif *heif, const char *pro
 			vips_area_unref((VipsArea *) blob);
 			return -1;
 		}
+
 		vips_area_unref((VipsArea *) blob);
 	}
 

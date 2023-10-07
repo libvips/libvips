@@ -1045,6 +1045,7 @@ vips_png_add_custom_icc(Write *write, const char *profile)
 		const void *data = vips_blob_get(blob, &length);
 
 		vips_png_add_icc(write, data, length);
+
 		vips_area_unref((VipsArea *) blob);
 	}
 

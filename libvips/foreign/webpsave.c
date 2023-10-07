@@ -485,6 +485,7 @@ vips_webp_add_custom_icc(VipsForeignSaveWebp *webp, const char *profile)
 			vips_area_unref((VipsArea *) blob);
 			return -1;
 		}
+
 		vips_area_unref((VipsArea *) blob);
 	}
 
