@@ -1036,15 +1036,17 @@ static int
 vips_png_add_custom_icc(Write *write, const char *profile)
 {
 	VipsBlob *blob;
-	size_t length;
 
 	if (vips_profile_load(profile, &blob, NULL))
 		return -1;
 
-	const void *data = vips_blob_get(blob, &length);
+	if (blob) {
+		size_t length;
+		const void *data = vips_blob_get(blob, &length);
 
-	vips_png_add_icc(write, data, length);
-	vips_area_unref((VipsArea *) blob);
+		vips_png_add_icc(write, data, length);
+		vips_area_unref((VipsArea *) blob);
+	}
 
 	return 0;
 }
