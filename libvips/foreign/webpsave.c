@@ -459,7 +459,8 @@ vips_webp_get_webp_name(const char *vips_name)
 }
 
 static int
-vips_webp_add_icc(VipsForeignSaveWebp *webp, const void *profile, size_t length)
+vips_webp_add_icc(VipsForeignSaveWebp *webp,
+	const void *profile, size_t length)
 {
 	const char *webp_name = vips_webp_get_webp_name(VIPS_META_ICC_NAME);
 
@@ -473,18 +474,21 @@ static int
 vips_webp_add_custom_icc(VipsForeignSaveWebp *webp, const char *profile)
 {
 	VipsBlob *blob;
-	size_t length;
 
 	if (vips_profile_load(profile, &blob, NULL))
 		return -1;
 
-	const void *data = vips_blob_get(blob, &length);
+	if (blob) {
+		size_t length;
+		const void *data = vips_blob_get(blob, &length);
 
-	if (vips_webp_add_icc(webp, data, length)) {
+		if (vips_webp_add_icc(webp, data, length)) {
+			vips_area_unref((VipsArea *) blob);
+			return -1;
+		}
+
 		vips_area_unref((VipsArea *) blob);
-		return -1;
 	}
-	vips_area_unref((VipsArea *) blob);
 
 	return 0;
 }
