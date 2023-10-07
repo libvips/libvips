@@ -202,7 +202,8 @@ vips_foreign_save_heif_write_metadata(VipsForeignSaveHeif *heif)
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
 static int
-vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif, const void *profile, size_t length)
+vips_foreign_save_heif_add_icc(VipsForeignSaveHeif *heif,
+	const void *profile, size_t length)
 {
 #ifdef DEBUG
 	printf("attaching profile ..\n");
