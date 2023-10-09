@@ -511,7 +511,8 @@ static void inline reducev_notab(VipsReducev *reducev,
 
 	double cy[MAX_POINT];
 
-	vips_reduce_make_mask(cy, reducev->kernel, reducev->vshrink, y);
+	vips_reduce_make_mask(cy, reducev->kernel, reducev->n_point,
+		reducev->vshrink, y);
 
 	for (int z = 0; z < ne; z++) {
 		double sum;
@@ -956,8 +957,8 @@ vips_reducev_build(VipsObject *object)
 			!reducev->matrixs[y])
 			return -1;
 
-		vips_reduce_make_mask(reducev->matrixf[y],
-			reducev->kernel, reducev->vshrink,
+		vips_reduce_make_mask(reducev->matrixf[y], reducev->kernel,
+			reducev->n_point, reducev->vshrink,
 			(float) y / VIPS_TRANSFORM_SCALE);
 
 		for (int i = 0; i < reducev->n_point; i++)
