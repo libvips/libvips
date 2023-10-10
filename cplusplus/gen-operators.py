@@ -35,7 +35,6 @@ gtype_to_cpp = {
     GValue.gdouble_type: 'double',
     GValue.gstr_type: 'const char *',
     GValue.refstr_type: 'char *',
-    GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
     GValue.source_type: 'VSource',
     GValue.target_type: 'VTarget',
@@ -69,8 +68,8 @@ def get_cpp_type(gtype):
 
     fundamental = gobject_lib.g_type_fundamental(gtype)
 
-    # enum params use the C name as their name
-    if fundamental == GValue.genum_type:
+    # enum/flag params use the C name as their name
+    if fundamental == GValue.genum_type or fundamental == GValue.gflags_type:
         return type_name(gtype)
 
     if fundamental in gtype_to_cpp:

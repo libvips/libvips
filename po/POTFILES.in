@@ -225,6 +225,7 @@ libvips/draw/draw_rect.c
 libvips/draw/draw_smudge.c
 libvips/foreign/analyze2vips.c
 libvips/foreign/analyzeload.c
+libvips/foreign/archive.c
 libvips/foreign/cairo.c
 libvips/foreign/cgifsave.c
 libvips/foreign/csvload.c
