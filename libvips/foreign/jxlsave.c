@@ -561,7 +561,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		_("Encoding effort"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, effort),
-		3, 9, 7);
+		1, 9, 7);
 
 	VIPS_ARG_BOOL(class, "lossless", 13,
 		_("Lossless"),

@@ -3,6 +3,7 @@ TBD 8.15.1
 - reduceh: fix Highway path on SSE2 [DarthSim]
 - fix JPEG in TIFF colourspace for Q >= 90 [heman1-test]
 - fix build with upcoming libjxl 0.9 [kleisauke]
+- jxlsave: lower min effort value to 1 [DarthSim]
 
 11/11/23 8.15.0
 
