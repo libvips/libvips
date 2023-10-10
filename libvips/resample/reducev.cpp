@@ -413,7 +413,7 @@ static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
 	const int l1 = lskip / sizeof(T);
 
 	for (int z = 0; z < ne; z++) {
-		typename intermediate<T>::type sum;
+		typename LongT<T>::type sum;
 
 		sum = reduce_sum<T>(in + z, l1, cy, n);
 		sum = unsigned_fixed_round(sum);
@@ -432,7 +432,7 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
 	const int l1 = lskip / sizeof(T);
 
 	for (int z = 0; z < ne; z++) {
-		typename intermediate<T>::type sum;
+		typename LongT<T>::type sum;
 
 		sum = reduce_sum<T>(in + z, l1, cy, n);
 		sum = signed_fixed_round(sum);
@@ -468,7 +468,7 @@ static void inline reducev_notab(VipsReducev *reducev,
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof(T);
 
-	typename intermediate<T>::type cy[MAX_POINT];
+	typename LongT<T>::type cy[MAX_POINT];
 
 	vips_reduce_make_mask(cy, reducev->kernel, reducev->n_point,
 		reducev->vshrink, y);

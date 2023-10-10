@@ -29,7 +29,6 @@
  */
 
 #include <cstdint>
-#include <type_traits>
 
 /*
  * Various casts which assume that the data is already in range. (That
@@ -476,41 +475,44 @@ vips_reduce_make_mask(T *c, VipsKernel kernel, const int n_points,
 	}
 }
 
-/* Machinery to pick an intermediate for type T, prevents an overflow in
- * reduce_sum(). Defaults to a 32-bit integral type.
+/* Machinery to promote type T to a larger data type, prevents an
+ * overflow in reduce_sum(). Defaults to a 32-bit integral type.
  */
-template <typename T,
-	bool IsIntegral = std::is_integral<T>::value,
-	size_t Size = sizeof(T)>
-struct intermediate {
+template <typename T>
+struct LongT {
 	typedef int32_t type;
 };
 
 /* 32-bit integral types needs a 64-bits intermediate.
  */
-template <typename T>
-struct intermediate<T, true, 4> {
+template <>
+struct LongT<int32_t> {
+	typedef int64_t type;
+};
+
+template <>
+struct LongT<uint32_t> {
 	typedef int64_t type;
 };
 
 /* 32-bit floating-point types needs a 64-bits intermediate.
  */
-template <typename T>
-struct intermediate<T, false, 4> {
+template <>
+struct LongT<float> {
 	typedef double type;
 };
 
 /* 64-bit floating-point types needs a 128-bits intermediate.
  */
-template <typename T>
-struct intermediate<T, false, 8> {
+template <>
+struct LongT<double> {
 	typedef long double type;
 };
 
 /* Our inner loop for resampling with a convolution of type CT. Operate on
  * elements of type T, gather results in an intermediate of type IT.
  */
-template <typename T, typename CT, typename IT = typename intermediate<T>::type>
+template <typename T, typename CT, typename IT = typename LongT<T>::type>
 static IT inline reduce_sum(const T *restrict in, int stride,
 	const CT *restrict c, int n)
 {

@@ -141,7 +141,7 @@ static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		typename intermediate<T>::type sum;
+		typename LongT<T>::type sum;
 
 		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = unsigned_fixed_round(sum);
@@ -159,7 +159,7 @@ static void inline reduceh_signed_int_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		typename intermediate<T>::type sum;
+		typename LongT<T>::type sum;
 
 		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = signed_fixed_round(sum);
@@ -193,7 +193,7 @@ static void inline reduceh_notab(VipsReduceh *reduceh,
 	const T *restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
-	typename intermediate<T>::type cx[MAX_POINT];
+	typename LongT<T>::type cx[MAX_POINT];
 
 	vips_reduce_make_mask(cx, reduceh->kernel, reduceh->n_point,
 		reduceh->hshrink, x);
