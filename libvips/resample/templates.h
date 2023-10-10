@@ -28,6 +28,8 @@
 
  */
 
+#include <cstdint>
+
 /*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
@@ -149,7 +151,7 @@ static T inline bilinear_nosign(
 template <typename T>
 static T inline unsigned_fixed_round(T v)
 {
-	const T round_by = VIPS_INTERPOLATE_SCALE >> 1;
+	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
@@ -200,8 +202,8 @@ static int inline bicubic_unsigned_int(
 template <typename T>
 static T inline signed_fixed_round(T v)
 {
-	const T sign_of_v = 2 * (v >= 0) - 1;
-	const T round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
+	const int sign_of_v = 2 * (v >= 0) - 1;
+	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
 	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
@@ -473,10 +475,44 @@ vips_reduce_make_mask(T *c, VipsKernel kernel, const int n_points,
 	}
 }
 
+/* Machinery to promote type T to a larger data type, prevents an
+ * overflow in reduce_sum(). Defaults to a 32-bit integral type.
+ */
+template <typename T>
+struct LongT {
+	typedef int32_t type;
+};
+
+/* 32-bit integral types needs a 64-bits intermediate.
+ */
+template <>
+struct LongT<int32_t> {
+	typedef int64_t type;
+};
+
+template <>
+struct LongT<uint32_t> {
+	typedef int64_t type;
+};
+
+/* 32-bit floating-point types needs a 64-bits intermediate.
+ */
+template <>
+struct LongT<float> {
+	typedef double type;
+};
+
+/* 64-bit floating-point types needs a 128-bits intermediate.
+ */
+template <>
+struct LongT<double> {
+	typedef long double type;
+};
+
 /* Our inner loop for resampling with a convolution of type CT. Operate on
  * elements of type T, gather results in an intermediate of type IT.
  */
-template <typename T, typename IT, typename CT>
+template <typename T, typename CT, typename IT = typename LongT<T>::type>
 static IT inline reduce_sum(const T *restrict in, int stride,
 	const CT *restrict c, int n)
 {
