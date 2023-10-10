@@ -2684,8 +2684,9 @@ public:
 	 * Save image to csv.
 	 *
 	 * **Optional parameters**
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **separator** -- Separator characters, const char *.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -2698,8 +2699,9 @@ public:
 	 * Save image to csv.
 	 *
 	 * **Optional parameters**
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **separator** -- Separator characters, const char *.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -2838,11 +2840,12 @@ public:
 	 * Save image to deepzoom file.
 	 *
 	 * **Optional parameters**
-	 *   - **basename** -- Base name to save to, const char *.
+	 *   - **imagename** -- Image name, const char *.
 	 *   - **layout** -- Directory layout, VipsForeignDzLayout.
 	 *   - **suffix** -- Filename suffix for tiles, const char *.
 	 *   - **overlap** -- Tile overlap in pixels, int.
 	 *   - **tile_size** -- Tile size in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **centre** -- Center image in tile, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **angle** -- Rotate image during save, VipsAngle.
@@ -2850,9 +2853,9 @@ public:
 	 *   - **compression** -- ZIP deflate compression level, int.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
 	 *   - **skip_blanks** -- Skip tiles which are nearly equal to the background, int.
-	 *   - **no_strip** -- Don't strip tile metadata, bool.
 	 *   - **id** -- Resource ID, const char *.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -2865,11 +2868,12 @@ public:
 	 * Save image to dz buffer.
 	 *
 	 * **Optional parameters**
-	 *   - **basename** -- Base name to save to, const char *.
+	 *   - **imagename** -- Image name, const char *.
 	 *   - **layout** -- Directory layout, VipsForeignDzLayout.
 	 *   - **suffix** -- Filename suffix for tiles, const char *.
 	 *   - **overlap** -- Tile overlap in pixels, int.
 	 *   - **tile_size** -- Tile size in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **centre** -- Center image in tile, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **angle** -- Rotate image during save, VipsAngle.
@@ -2877,9 +2881,9 @@ public:
 	 *   - **compression** -- ZIP deflate compression level, int.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
 	 *   - **skip_blanks** -- Skip tiles which are nearly equal to the background, int.
-	 *   - **no_strip** -- Don't strip tile metadata, bool.
 	 *   - **id** -- Resource ID, const char *.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -2892,11 +2896,12 @@ public:
 	 * Save image to deepzoom target.
 	 *
 	 * **Optional parameters**
-	 *   - **basename** -- Base name to save to, const char *.
+	 *   - **imagename** -- Image name, const char *.
 	 *   - **layout** -- Directory layout, VipsForeignDzLayout.
 	 *   - **suffix** -- Filename suffix for tiles, const char *.
 	 *   - **overlap** -- Tile overlap in pixels, int.
 	 *   - **tile_size** -- Tile size in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **centre** -- Center image in tile, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **angle** -- Rotate image during save, VipsAngle.
@@ -2904,9 +2909,9 @@ public:
 	 *   - **compression** -- ZIP deflate compression level, int.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
 	 *   - **skip_blanks** -- Skip tiles which are nearly equal to the background, int.
-	 *   - **no_strip** -- Don't strip tile metadata, bool.
 	 *   - **id** -- Resource ID, const char *.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3040,7 +3045,8 @@ public:
 	 * Save image to fits file.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3220,12 +3226,13 @@ public:
 	 * **Optional parameters**
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **effort** -- Quantisation effort, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
 	 *   - **interframe_maxerror** -- Maximum inter-frame error for transparency, double.
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3240,12 +3247,13 @@ public:
 	 * **Optional parameters**
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **effort** -- Quantisation effort, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
 	 *   - **interframe_maxerror** -- Maximum inter-frame error for transparency, double.
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3260,12 +3268,13 @@ public:
 	 * **Optional parameters**
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **effort** -- Quantisation effort, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
 	 *   - **interframe_maxerror** -- Maximum inter-frame error for transparency, double.
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3387,12 +3396,13 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **compression** -- Compression format, VipsForeignHeifCompression.
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3407,12 +3417,13 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **compression** -- Compression format, VipsForeignHeifCompression.
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3427,12 +3438,13 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **compression** -- Compression format, VipsForeignHeifCompression.
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3753,11 +3765,12 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Q factor, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3771,11 +3784,12 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Q factor, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3789,11 +3803,12 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Q factor, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3861,7 +3876,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
 	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
 	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
@@ -3870,7 +3885,7 @@ public:
 	 *   - **quant_table** -- Use predefined quantization table with given index, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3884,7 +3899,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
 	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
 	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
@@ -3893,7 +3908,7 @@ public:
 	 *   - **quant_table** -- Use predefined quantization table with given index, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3907,7 +3922,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
 	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
 	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
@@ -3916,7 +3931,7 @@ public:
 	 *   - **quant_table** -- Use predefined quantization table with given index, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3929,7 +3944,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
 	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
 	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
@@ -3938,7 +3953,7 @@ public:
 	 *   - **quant_table** -- Use predefined quantization table with given index, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -3998,10 +4013,11 @@ public:
 	 * **Optional parameters**
 	 *   - **tier** -- Decode speed tier, int.
 	 *   - **distance** -- Target butteraugli distance, double.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4016,10 +4032,11 @@ public:
 	 * **Optional parameters**
 	 *   - **tier** -- Decode speed tier, int.
 	 *   - **distance** -- Target butteraugli distance, double.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4034,10 +4051,11 @@ public:
 	 * **Optional parameters**
 	 *   - **tier** -- Decode speed tier, int.
 	 *   - **distance** -- Target butteraugli distance, double.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4139,7 +4157,8 @@ public:
 	 *   - **optimize_gif_frames** -- Apply GIF frames optimization, bool.
 	 *   - **optimize_gif_transparency** -- Apply GIF transparency optimization, bool.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4157,7 +4176,8 @@ public:
 	 *   - **optimize_gif_frames** -- Apply GIF frames optimization, bool.
 	 *   - **optimize_gif_transparency** -- Apply GIF transparency optimization, bool.
 	 *   - **bitdepth** -- Number of bits per pixel, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4486,7 +4506,8 @@ public:
 	 * Print matrix.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4498,7 +4519,8 @@ public:
 	 * Save image to matrix.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4511,7 +4533,8 @@ public:
 	 * Save image to matrix.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4680,7 +4703,8 @@ public:
 	 * Save image to nifti file.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4892,14 +4916,14 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **profile** -- ICC profile to embed, const char *.
-	 *   - **filter** -- libspng row filter flag(s), int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **bitdepth** -- Write as a 1, 2, 4, 8 or 16 bit image, int.
 	 *   - **effort** -- Quantisation CPU effort, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4914,14 +4938,14 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **profile** -- ICC profile to embed, const char *.
-	 *   - **filter** -- libspng row filter flag(s), int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **bitdepth** -- Write as a 1, 2, 4, 8 or 16 bit image, int.
 	 *   - **effort** -- Quantisation CPU effort, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4936,14 +4960,14 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **profile** -- ICC profile to embed, const char *.
-	 *   - **filter** -- libspng row filter flag(s), int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
 	 *   - **bitdepth** -- Write as a 1, 2, 4, 8 or 16 bit image, int.
 	 *   - **effort** -- Quantisation CPU effort, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -4988,8 +5012,9 @@ public:
 	 * **Optional parameters**
 	 *   - **format** -- Format to save in, VipsForeignPpmFormat.
 	 *   - **ascii** -- Save as ascii, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **bitdepth** -- Set to 1 to write as a 1 bit image, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5004,8 +5029,9 @@ public:
 	 * **Optional parameters**
 	 *   - **format** -- Format to save in, VipsForeignPpmFormat.
 	 *   - **ascii** -- Save as ascii, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **bitdepth** -- Set to 1 to write as a 1 bit image, int.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5124,7 +5150,8 @@ public:
 	 * Save image to radiance file.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5137,7 +5164,8 @@ public:
 	 * Save image to radiance buffer.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5150,7 +5178,8 @@ public:
 	 * Save image to radiance target.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5194,7 +5223,8 @@ public:
 	 * Save image to raw file.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5207,7 +5237,8 @@ public:
 	 * Write raw image to file descriptor.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5864,9 +5895,9 @@ public:
 	 *   - **compression** -- Compression for this file, VipsForeignTiffCompression.
 	 *   - **Q** -- Q factor, int.
 	 *   - **predictor** -- Compression prediction, VipsForeignTiffPredictor.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **tile** -- Write a tiled tiff, bool.
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **pyramid** -- Write a pyramidal tiff, bool.
 	 *   - **miniswhite** -- Use 0 for white in 1-bit images, bool.
@@ -5882,7 +5913,7 @@ public:
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
 	 *   - **premultiply** -- Save with premultiplied alpha, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5898,9 +5929,9 @@ public:
 	 *   - **compression** -- Compression for this file, VipsForeignTiffCompression.
 	 *   - **Q** -- Q factor, int.
 	 *   - **predictor** -- Compression prediction, VipsForeignTiffPredictor.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **tile** -- Write a tiled tiff, bool.
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **pyramid** -- Write a pyramidal tiff, bool.
 	 *   - **miniswhite** -- Use 0 for white in 1-bit images, bool.
@@ -5916,7 +5947,7 @@ public:
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
 	 *   - **premultiply** -- Save with premultiplied alpha, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -5932,9 +5963,9 @@ public:
 	 *   - **compression** -- Compression for this file, VipsForeignTiffCompression.
 	 *   - **Q** -- Q factor, int.
 	 *   - **predictor** -- Compression prediction, VipsForeignTiffPredictor.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **tile** -- Write a tiled tiff, bool.
 	 *   - **tile_width** -- Tile width in pixels, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **tile_height** -- Tile height in pixels, int.
 	 *   - **pyramid** -- Write a pyramidal tiff, bool.
 	 *   - **miniswhite** -- Use 0 for white in 1-bit images, bool.
@@ -5950,7 +5981,7 @@ public:
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
 	 *   - **premultiply** -- Save with premultiplied alpha, bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6052,7 +6083,8 @@ public:
 	 * Save image to file in vips format.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6065,7 +6097,8 @@ public:
 	 * Save image to target in vips format.
 	 *
 	 * **Optional parameters**
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6134,6 +6167,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6142,9 +6176,8 @@ public:
 	 *   - **kmin** -- Minimum number of frames between key frames, int.
 	 *   - **kmax** -- Maximum number of frames between key frames, int.
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6159,6 +6192,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6167,9 +6201,8 @@ public:
 	 *   - **kmin** -- Minimum number of frames between key frames, int.
 	 *   - **kmax** -- Maximum number of frames between key frames, int.
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6184,6 +6217,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6192,9 +6226,8 @@ public:
 	 *   - **kmin** -- Minimum number of frames between key frames, int.
 	 *   - **kmax** -- Maximum number of frames between key frames, int.
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
@@ -6208,6 +6241,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6216,9 +6250,8 @@ public:
 	 *   - **kmin** -- Minimum number of frames between key frames, int.
 	 *   - **kmax** -- Maximum number of frames between key frames, int.
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
-	 *   - **profile** -- ICC profile to embed, const char *.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
-	 *   - **strip** -- Strip all metadata from image, bool.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
 	 *
