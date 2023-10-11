@@ -109,12 +109,12 @@ set of mechanisms to copy image areas by just adjusting pointers. Most of
 the time no actual copying is necessary and you can perform operations on
 large images at low cost.
 
-**SIMD optimizations**
+**SIMD optimisations**
 
 VIPS uses
 <ulink url="https://github.com/google/highway">Highway</ulink>, a
-C++ library, to optimize various operations with SIMD/vector
-instructions. These optimized code paths are flexible and can adapt to
+C++ library, to optimise various operations with SIMD/vector
+instructions. These optimised code paths are flexible and can adapt to
 different instruction sets, including those with 'scalable' vectors
 (size unknown at compile time). At runtime, dynamic dispatch selects
 the best available implementation based on the processor's capabilities,
