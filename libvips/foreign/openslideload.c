@@ -57,6 +57,8 @@
  * 	- include GObject part from openslideload.c
  * 2/10/22
  *	- add "rgb" option
+ * 1/10/23
+ *	- add openslide4 icc profile support
  */
 
 /*
@@ -354,6 +356,32 @@ vips__openslide_get_associated(ReadSlide *rslide, const char *associated_name)
 	vips_image_init_fields(associated, w, h, 4,
 		VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
+
+#ifdef HAVE_OPENSLIDE_ICC
+	int64_t len;
+	if ((len = openslide_get_associated_image_icc_profile_size(rslide->osr,
+			associated_name)) > 0) {
+		void *data;
+
+		if (!(data = VIPS_MALLOC(NULL, len))) {
+			g_object_unref(associated);
+			return NULL;
+		}
+		openslide_read_associated_image_icc_profile(rslide->osr,
+				associated_name, data);
+		error = openslide_get_error(rslide->osr);
+		if (error) {
+			g_free(data);
+			g_object_unref(associated);
+			vips_error("openslide2vips", _( "opening slide: %s" ), error);
+			return NULL;
+		}
+
+		vips_image_set_blob(associated, VIPS_META_ICC_NAME,
+			(VipsCallbackFn) g_free, data, len);
+	}
+#endif /*HAVE_OPENSLIDE_ICC*/
+
 	if (vips_image_pipelinev(associated,
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 		vips_image_write_prepare(associated)) {
@@ -610,6 +638,26 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, xres, yres);
 
+#ifdef HAVE_OPENSLIDE_ICC
+	int64_t len;
+	if ((len = openslide_get_icc_profile_size(rslide->osr)) > 0) {
+		void *data;
+
+		if (!(data = VIPS_MALLOC(NULL, len)))
+			return -1;
+		openslide_read_icc_profile(rslide->osr, data);
+		error = openslide_get_error(rslide->osr);
+		if (error) {
+			g_free(data);
+			vips_error("openslide2vips", _( "opening slide: %s" ), error);
+			return -1;
+		}
+
+		vips_image_set_blob(image, VIPS_META_ICC_NAME,
+			(VipsCallbackFn) g_free, data, len);
+	}
+#endif /*HAVE_OPENSLIDE_ICC*/
+
 	return 0;
 }
 
@@ -785,8 +833,7 @@ vips__openslide_read_associated(const char *filename, VipsImage *out,
 			  out, 0, FALSE, associated_name, FALSE, rgb)))
 		return -1;
 	rslide->osr = openslide_open(rslide->filename);
-	if (!(associated = vips__openslide_get_associated(rslide,
-			  associated_name)))
+	if (!(associated = vips__openslide_get_associated(rslide, associated_name)))
 		return -1;
 
 	if (vips_image_write(associated, out)) {

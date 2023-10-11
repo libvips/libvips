@@ -35,18 +35,12 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Slow and horrid version if there's no recent glib.
- */
-#if !GLIB_CHECK_VERSION(2, 48, 0)
-#define g_uint_checked_mul(dest, a, b) ( \
-	((guint64) a * b) > UINT_MAX \
-		? (*dest = UINT_MAX, FALSE) \
-		: (*dest = a * b, TRUE))
-#endif /*!GLIB_CHECK_VERSION(2, 48, 0)*/
-
 /* We've seen real images with 28 chunks, so set 50.
  */
 #define MAX_PNG_TEXT_CHUNKS 50
+
+int vips__foreign_update_metadata(VipsImage *in,
+	VipsForeignKeep keep);
 
 void vips__tiff_init(void);
 
@@ -62,7 +56,6 @@ int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -146,10 +139,20 @@ extern const char *vips__jpeg_suffs[];
 
 int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
-	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean trellis_quant, gboolean overshoot_deringing,
-	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode, int restart_interval);
+	gboolean optimize_coding, gboolean progressive,
+	gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval);
+
+int vips__jpeg_region_write_target(VipsRegion *region, VipsRect *rect,
+	VipsTarget *target,
+	int Q, const char *profile,
+	gboolean optimize_coding, gboolean progressive,
+	VipsForeignKeep keep, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans,
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval);
 
 int vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on,
@@ -166,7 +169,7 @@ extern const char *vips__png_suffs[];
 
 int vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
+	VipsForeignPngFilter filter,
 	gboolean palette, int Q, double dither,
 	int bitdepth, int effort);
 
@@ -201,19 +204,34 @@ void *vips__foreign_nifti_map(VipsNiftiMapFn fn, void *a, void *b);
 extern const char *vips__heic_suffs[];
 extern const char *vips__avif_suffs[];
 extern const char *vips__heif_suffs[];
+struct heif_image;
+struct heif_error;
+void vips__heif_init(void);
 int vips__heif_chroma(int bits_per_pixel, gboolean has_alpha);
+void vips__heif_image_print(struct heif_image *img);
+void vips__heif_error(struct heif_error *error);
 
 extern const char *vips__jp2k_suffs[];
 int vips__foreign_load_jp2k_decompress(VipsImage *out,
 	int width, int height, gboolean ycc_to_rgb,
 	void *from, size_t from_length,
 	void *to, size_t to_length);
-int vips__foreign_load_jp2k_compress(VipsRegion *region,
+int vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q);
 
 extern const char *vips__jxl_suffs[];
+
+struct _VipsArchive;
+typedef struct _VipsArchive VipsArchive;
+void vips__archive_free(VipsArchive *archive);
+VipsArchive *vips__archive_new_to_dir(const char *base_dirname);
+VipsArchive *vips__archive_new_to_target(VipsTarget *target,
+	const char *base_dirname, int compression);
+int vips__archive_mkdir(VipsArchive *archive, const char *dirname);
+int vips__archive_mkfile(VipsArchive *archive,
+	const char *filename, void *buf, size_t len);
 
 #ifdef __cplusplus
 }

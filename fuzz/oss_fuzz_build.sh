@@ -67,8 +67,6 @@ popd
 pushd $SRC/libheif
 # Ensure libvips finds heif_image_handle_get_raw_color_profile
 sed -i '/^Libs.private:/s/-lstdc++/-lc++/' libheif.pc.in
-# Suppress leak warnings from ColorConversionPipeline::init_ops()
-sed -i '/void ColorConversionPipeline::init_ops()/i __attribute__((no_sanitize_address))' libheif/color-conversion/colorconversion.cc
 cmake \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX=$WORK \
@@ -178,6 +176,21 @@ cat > $WORK/lib/pkgconfig/pdfium.pc << EOF
   Libs: -L\${libdir} -lpdfium
   Cflags: -I\${includedir}
 EOF
+
+# highway
+pushd $SRC/highway
+cmake \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DBUILD_SHARED_LIBS=0 \
+  -DBUILD_TESTING=0 \
+  -DHWY_ENABLE_CONTRIB=0 \
+  -DHWY_ENABLE_EXAMPLES=0 \
+  -DHWY_ENABLE_TESTS=0 \
+  .
+make -j$(nproc)
+make install
+popd
 
 # libvips
 # Disable building man pages, gettext po files, tools, and tests

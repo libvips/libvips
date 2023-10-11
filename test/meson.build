@@ -15,6 +15,7 @@ script_tests = [
     'seq',
     'stall',
     'threading',
+    'keep'
 ]
 
 foreach script_test : script_tests

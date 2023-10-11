@@ -823,7 +823,7 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 {
 	GType type = G_VALUE_TYPE(&meta->value);
 
-	const char *str;
+	char *str;
 
 	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save
 	 * and restore.
@@ -842,8 +842,9 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 		/* We need to validate the str to make sure we'll be able to
 		 * read it back.
 		 */
-		str = vips_value_get_save_string(&save_value);
-		if (g_utf8_validate(str, -1, NULL)) {
+		str = g_utf8_make_valid(vips_value_get_save_string(&save_value), -1);
+
+		if (str) {
 			vips_target_writef(target,
 				"    <field type=\"%s\" name=\"",
 				g_type_name(type));
@@ -851,6 +852,8 @@ build_xml_meta(VipsMeta *meta, VipsTarget *target, void *b)
 			vips_target_writes(target, "\">");
 			vips_target_write_amp(target, str);
 			vips_target_writes(target, "</field>\n");
+
+			g_free(str);
 		}
 
 		g_value_unset(&save_value);

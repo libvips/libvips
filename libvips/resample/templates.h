@@ -28,7 +28,7 @@
 
  */
 
-#include <type_traits>
+#include <cstdint>
 
 /*
  * Various casts which assume that the data is already in range. (That
@@ -151,7 +151,7 @@ static T inline bilinear_nosign(
 template <typename T>
 static T inline unsigned_fixed_round(T v)
 {
-	const T round_by = VIPS_INTERPOLATE_SCALE >> 1;
+	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
@@ -202,8 +202,8 @@ static int inline bicubic_unsigned_int(
 template <typename T>
 static T inline signed_fixed_round(T v)
 {
-	const T sign_of_v = 2 * (v >= 0) - 1;
-	const T round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
+	const int sign_of_v = 2 * (v >= 0) - 1;
+	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
 
 	return (v + round_by) >> VIPS_INTERPOLATE_SHIFT;
 }
@@ -312,38 +312,6 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
 	c[2] = cthr;
 }
 
-/* Given an x in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
- * from the interpolator as well as from the table builder.
- */
-static void inline calculate_coefficients_triangle(double *c,
-	const double shrink, const double x)
-{
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(shrink) + 1;
-	const double half = x + n_points / 2.0 - 1;
-
-	int i;
-	double sum;
-
-	sum = 0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
-
-		double l;
-
-		l = 1.0 - VIPS_FABS(xp);
-		l = VIPS_MAX(0.0, l);
-
-		c[i] = l;
-		sum += l;
-	}
-
-	for (i = 0; i < n_points; i++)
-		c[i] /= sum;
-}
-
 /* Generate a cubic filter. See:
  *
  * Mitchell and Netravali, Reconstruction Filters in Computer Graphics
@@ -353,83 +321,108 @@ static void inline calculate_coefficients_triangle(double *c,
  * B = 1/3, C = 1/3 - Mitchell
  * B = 0,   C = 1/2 - Catmull-Rom spline
  */
-static void inline calculate_coefficients_cubic(double *c,
-	const double shrink, const double x, double B, double C)
+static double inline cubic_filter(double x, double B, double C)
 {
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(2 * shrink) + 1;
-	const double half = x + n_points / 2.0 - 1;
+	const double ax = VIPS_FABS(x);
+	const double ax2 = ax * ax;
+	const double ax3 = ax2 * ax;
 
-	int i;
-	double sum;
+	if (ax <= 1)
+		return ((12 - 9 * B - 6 * C) * ax3 +
+				   (-18 + 12 * B + 6 * C) * ax2 +
+				   (6 - 2 * B)) /
+			6;
 
-	sum = 0;
-	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
-		const double axp = VIPS_FABS(xp);
-		const double axp2 = axp * axp;
-		const double axp3 = axp2 * axp;
+	if (ax <= 2)
+		return ((-B - 6 * C) * ax3 +
+				   (6 * B + 30 * C) * ax2 +
+				   (-12 * B - 48 * C) * ax +
+				   (8 * B + 24 * C)) /
+			6;
 
-		double l;
+	return 0.0;
+}
 
-		if (axp <= 1)
-			l = ((12 - 9 * B - 6 * C) * axp3 +
-					(-18 + 12 * B + 6 * C) * axp2 +
-					(6 - 2 * B)) /
-				6;
-		else if (axp <= 2)
-			l = ((-B - 6 * C) * axp3 +
-					(6 * B + 30 * C) * axp2 +
-					(-12 * B - 48 * C) * axp +
-					(8 * B + 24 * C)) /
-				6;
-		else
-			l = 0.0;
+static double inline sinc_filter(double x)
+{
+	if (x == 0.0)
+		return 1.0;
 
-		c[i] = l;
-		sum += l;
-	}
+	x = x * VIPS_PI;
 
-	for (i = 0; i < n_points; i++)
-		c[i] /= sum;
+	return sin(x) / x;
+}
+
+using VipsFilterFn = double (*)(double);
+
+template <VipsKernel K>
+static double inline filter(double x);
+
+template <>
+double inline filter<VIPS_KERNEL_LINEAR>(double x)
+{
+	if (x < 0.0)
+		x = -x;
+
+	if (x < 1.0)
+		return 1.0 - x;
+
+	return 0.0;
+}
+
+/* Catmull-Rom.
+ */
+template <>
+double inline filter<VIPS_KERNEL_CUBIC>(double x)
+{
+	return cubic_filter(x, 0.0, 0.5);
+}
+
+template <>
+double inline filter<VIPS_KERNEL_MITCHELL>(double x)
+{
+	return cubic_filter(x, 1.0 / 3.0, 1.0 / 3.0);
+}
+
+template <>
+double inline filter<VIPS_KERNEL_LANCZOS2>(double x)
+{
+	if (x >= -2 && x <= 2)
+		return sinc_filter(x) * sinc_filter(x / 2);
+
+	return 0.0;
+}
+
+template <>
+double inline filter<VIPS_KERNEL_LANCZOS3>(double x)
+{
+	if (x >= -3 && x <= 3)
+		return sinc_filter(x) * sinc_filter(x / 3);
+
+	return 0.0;
 }
 
 /* Given an x in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(@a * @shrink + 1), the lanczos coefficients. This is called
+ * calculate c0 .. c(@n_points), the coefficients. This is called
  * from the interpolator as well as from the table builder.
  *
- * @a is the number of lobes, so usually 2 or 3. @shrink is the reduction
- * factor, so 1 for interpolation, 2 for a x2 reduction, etc. We need more
- * points for large decimations to avoid aliasing.
+ * @shrink is the reduction factor, so 1 for interpolation, 2 for a
+ * x2 reduction, etc.
  */
-static void inline calculate_coefficients_lanczos(double *c,
-	const int a, const double shrink, const double x)
+template <typename T>
+static void
+calculate_coefficients(T *c, const int n_points,
+	VipsFilterFn filter_fn, const double shrink, const double x)
 {
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = 2 * rint(a * shrink) + 1;
 	const double half = x + n_points / 2.0 - 1;
 
 	int i;
-	double sum;
+	T sum;
 
-	sum = 0;
+	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
 		const double xp = (i - half) / shrink;
-
-		double l;
-
-		if (xp == 0.0)
-			l = 1.0;
-		else if (xp < -a)
-			l = 0.0;
-		else if (xp > a)
-			l = 0.0;
-		else
-			l = (double) a * sin(VIPS_PI * xp) *
-				sin(VIPS_PI * xp / (double) a) /
-				(VIPS_PI * VIPS_PI * xp * xp);
+		double l = filter_fn(xp);
 
 		c[i] = l;
 		sum += l;
@@ -439,41 +432,95 @@ static void inline calculate_coefficients_lanczos(double *c,
 		c[i] /= sum;
 }
 
-/* Simplified version of std::enable_if<cond, bool>::type
+/* Calculate a mask element.
  */
-template <bool Cond>
-using Requires = typename std::enable_if<Cond, bool>::type; /* C++11 */
-// using Requires = std::enable_if_t<Cond, bool>; /* C++14 */
+template <typename T>
+static void
+vips_reduce_make_mask(T *c, VipsKernel kernel, const int n_points,
+	const double shrink, const double x)
+{
+	switch (kernel) {
+	case VIPS_KERNEL_NEAREST:
+		c[0] = 1.0;
+		break;
 
-/* Our inner loop for resampling with a convolution. Operate on elements of
- * type T, gather results in an intermediate of type IT.
+	case VIPS_KERNEL_LINEAR:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LINEAR>, shrink, x);
+		break;
+
+	case VIPS_KERNEL_CUBIC:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_CUBIC>, shrink, x);
+		break;
+
+	case VIPS_KERNEL_MITCHELL:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_MITCHELL>, shrink, x);
+		break;
+
+	case VIPS_KERNEL_LANCZOS2:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LANCZOS2>, shrink, x);
+		break;
+
+	case VIPS_KERNEL_LANCZOS3:
+		calculate_coefficients(c, n_points,
+			filter<VIPS_KERNEL_LANCZOS3>, shrink, x);
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+}
+
+/* Machinery to promote type T to a larger data type, prevents an
+ * overflow in reduce_sum(). Defaults to a 32-bit integral type.
  */
-template <typename T, typename IT, Requires<std::is_integral<T>::value> = true>
-static IT
-reduce_sum(const T *restrict in, int stride, const int *restrict c, int n)
+template <typename T>
+struct LongT {
+	typedef int32_t type;
+};
+
+/* 32-bit integral types needs a 64-bits intermediate.
+ */
+template <>
+struct LongT<int32_t> {
+	typedef int64_t type;
+};
+
+template <>
+struct LongT<uint32_t> {
+	typedef int64_t type;
+};
+
+/* 32-bit floating-point types needs a 64-bits intermediate.
+ */
+template <>
+struct LongT<float> {
+	typedef double type;
+};
+
+/* 64-bit floating-point types needs a 128-bits intermediate.
+ */
+template <>
+struct LongT<double> {
+	typedef long double type;
+};
+
+/* Our inner loop for resampling with a convolution of type CT. Operate on
+ * elements of type T, gather results in an intermediate of type IT.
+ */
+template <typename T, typename CT, typename IT = typename LongT<T>::type>
+static IT inline reduce_sum(const T *restrict in, int stride,
+	const CT *restrict c, int n)
 {
 	IT sum;
 
 	sum = 0;
 	for (int i = 0; i < n; i++) {
 		sum += (IT) c[i] * in[0];
-		in += stride;
-	}
-
-	return sum;
-}
-
-/* Same as above, but specialized for floating point types.
- */
-template <typename T, typename IT, Requires<std::is_floating_point<T>::value> = true>
-static IT
-reduce_sum(const T *restrict in, int stride, const double *restrict c, int n)
-{
-	IT sum;
-
-	sum = 0;
-	for (int i = 0; i < n; i++) {
-		sum += c[i] * in[0];
 		in += stride;
 	}
 

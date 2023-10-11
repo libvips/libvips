@@ -600,7 +600,7 @@ vips_target_seek(VipsTarget *target, off_t position, int whence)
  * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times.
  *
- * After a target has been finished, further writes will do nothing.
+ * After a target has been ended, further writes will do nothing.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -659,12 +659,17 @@ vips_target_finish(VipsTarget *target)
  * @length: return number of bytes of data
  *
  * Memory targets only (see vips_target_new_to_memory()). Steal all data
- * written to the target so far, and finish it.
+ * written to the target so far, and call vips_target_end().
  *
  * You must free the returned pointer with g_free().
  *
  * The data is NOT automatically null-terminated. vips_target_putc() a '\0'
  * before calling this to get a null-terminated string.
+ *
+ * You can't call this after vips_target_end(), since that moves the data to a
+ * blob, and we can't steal from that in case the pointer has been be shared.
+ *
+ * You can't call this function more than once.
  *
  * Returns: (array length=length) (element-type guint8) (transfer full): the
  * data
@@ -676,22 +681,18 @@ vips_target_steal(VipsTarget *target, size_t *length)
 
 	(void) vips_target_flush(target);
 
-	if (!target->memory_buffer ||
-		target->ended) {
+	data = NULL;
+
+	if (target->memory_buffer) {
 		if (length)
 			*length = target->memory_buffer->len;
+		data = g_string_free(target->memory_buffer, FALSE);
+		target->memory_buffer = NULL;
 
-		return NULL;
+		/* We must have a valid byte array, or end will fail.
+		 */
+		target->memory_buffer = g_string_sized_new(0);
 	}
-
-	if (length)
-		*length = target->memory_buffer->len;
-	data = g_string_free(target->memory_buffer, FALSE);
-	target->memory_buffer = NULL;
-
-	/* We must have a valid byte array or end will fail.
-	 */
-	target->memory_buffer = g_string_sized_new(0);
 
 	if (vips_target_end(target))
 		return NULL;

@@ -344,7 +344,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		g_assert_not_reached();
 
 	vips_target_writef(ppm->target, "%s\n", magic);
-	if (!save->strip) {
+	if (save->keep & VIPS_FOREIGN_KEEP_OTHER) {
 		date = vips__get_iso8601();
 		vips_target_writef(ppm->target,
 			"#vips2ppm - %s\n", date);

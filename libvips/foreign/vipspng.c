@@ -1019,13 +1019,62 @@ write_png_comment(VipsImage *image,
 	return NULL;
 }
 
+static int
+vips_png_add_icc(Write *write, const void *data, size_t length)
+{
+	if (setjmp(png_jmpbuf(write->pPng)))
+		g_debug("bad ICC profile not saved");
+	else
+		png_set_iCCP(write->pPng, write->pInfo,
+			"icc", PNG_COMPRESSION_TYPE_BASE,
+			(void *) data, length);
+
+	return 0;
+}
+
+static int
+vips_png_add_custom_icc(Write *write, const char *profile)
+{
+	VipsBlob *blob;
+
+	if (vips_profile_load(profile, &blob, NULL))
+		return -1;
+
+	if (blob) {
+		size_t length;
+		const void *data = vips_blob_get(blob, &length);
+
+		vips_png_add_icc(write, data, length);
+
+		vips_area_unref((VipsArea *) blob);
+	}
+
+	return 0;
+}
+
+static int
+vips_png_add_original_icc(Write *write)
+{
+	const void *data;
+	size_t length;
+
+	if (vips_image_get_blob(write->in, VIPS_META_ICC_NAME,
+			&data, &length))
+		return -1;
+
+	vips_png_add_icc(write, data, length);
+
+	return 0;
+}
+
 /* Write a VIPS image to PNG.
  */
 static int
 write_vips(Write *write,
-	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int Q, double dither,
+	int compress, int interlace,
+	const char *profile, VipsForeignPngFilter filter,
+	gboolean palette,
+	int Q, double dither,
 	int bitdepth, int effort)
 {
 	VipsImage *in = write->in;
@@ -1121,113 +1170,65 @@ write_vips(Write *write,
 
 	/* Metadata
 	 */
-	if (!strip) {
-		if (profile) {
-			VipsBlob *blob;
+	if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
+		const void *data;
+		size_t length;
+		char *str;
 
-			if (vips_profile_load(profile, &blob, NULL))
-				return -1;
-			if (blob) {
-				size_t length;
-				const void *data =
-					vips_blob_get(blob, &length);
+		/* XMP is attached as a BLOB with no null-termination.
+		 * We must re-add this.
+		 */
+		if (vips_image_get_blob(in,
+				VIPS_META_XMP_NAME, &data, &length))
+			return -1;
 
-#ifdef DEBUG
-				printf(
-					"write_vips: attaching %zd bytes "
-					"of ICC profile\n",
-					length);
-#endif /*DEBUG*/
-
-				png_set_iCCP(write->pPng, write->pInfo,
-					"icc", PNG_COMPRESSION_TYPE_BASE,
-					(void *) data, length);
-
-				vips_area_unref((VipsArea *) blob);
-			}
-		}
-		else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-			const void *data;
-			size_t length;
-
-			if (vips_image_get_blob(in, VIPS_META_ICC_NAME,
-					&data, &length))
-				return -1;
-
-#ifdef DEBUG
-			printf("write_vips: attaching %zd bytes of ICC profile\n",
-				length);
-#endif /*DEBUG*/
-
-			/* We need to ignore any errors from png_set_iCCP()
-			 * since we want to drop incompatible profiles rather
-			 * than simply failing.
-			 */
-			if (setjmp(png_jmpbuf(write->pPng))) {
-				/* Silent ignore of error.
-				 */
-				g_warning("bad ICC profile not saved");
-			}
-			else {
-				/* This will jump back to the line above on
-				 * error.
-				 */
-				png_set_iCCP(write->pPng, write->pInfo, "icc",
-					PNG_COMPRESSION_TYPE_BASE,
-					(void *) data, length);
-			}
-
-			/* And restore the setjmp.
-			 */
-			if (setjmp(png_jmpbuf(write->pPng)))
-				return -1;
-		}
-
-		if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
-			const void *data;
-			size_t length;
-			char *str;
-
-			/* XMP is attached as a BLOB with no null-termination.
-			 * We must re-add this.
-			 */
-			if (vips_image_get_blob(in,
-					VIPS_META_XMP_NAME, &data, &length))
-				return -1;
-
-			str = g_malloc(length + 1);
-			vips_strncpy(str, data, length + 1);
-			vips__png_set_text(write->pPng, write->pInfo,
-				"XML:com.adobe.xmp", str);
-			g_free(str);
-		}
+		str = g_malloc(length + 1);
+		vips_strncpy(str, data, length + 1);
+		vips__png_set_text(write->pPng, write->pInfo,
+			"XML:com.adobe.xmp", str);
+		g_free(str);
+	}
 
 #ifdef PNG_eXIf_SUPPORTED
-		{
-			const void *data;
-			size_t length;
+	if (vips_image_get_typeof(in, VIPS_META_EXIF_NAME)) {
+		const void *data;
+		size_t length;
 
-			if (vips__exif_update(in) ||
-				vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-					&data, &length))
-				return -1;
+		if (vips_image_get_blob(in, VIPS_META_EXIF_NAME,
+				&data, &length))
+			return -1;
 
-			/* libpng does not want the JFIF "Exif\0\0" prefix.
-			 */
-			if (length >= 6 &&
-				vips_isprefix("Exif", (char *) data)) {
-				data = (char *) data + 6;
-				length -= 6;
-			}
-
-			png_set_eXIf_1(write->pPng, write->pInfo,
-				length, (png_bytep) data);
+		/* libpng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if (length >= 6 &&
+			vips_isprefix("Exif", (char *) data)) {
+			data = (char *) data + 6;
+			length -= 6;
 		}
+
+		png_set_eXIf_1(write->pPng, write->pInfo,
+			length, (png_bytep) data);
+	}
 #endif /*PNG_eXIf_SUPPORTED*/
 
-		if (vips_image_map(in, write_png_comment, write))
+	if (vips_image_map(in, write_png_comment, write))
+		return -1;
+
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (profile) {
+		if (vips_png_add_custom_icc(write, profile))
 			return -1;
 	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		if (vips_png_add_original_icc(write))
+			return -1;
+	}
+
+	// the profile writers grab the setjmp, restore it
+	if (setjmp(png_jmpbuf(write->pPng)))
+		return -1;
 
 #ifdef HAVE_QUANTIZATION
 	if (palette) {
@@ -1331,8 +1332,9 @@ write_vips(Write *write,
 int
 vips__png_write_target(VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
-	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int Q, double dither,
+	const char *profile, VipsForeignPngFilter filter,
+	gboolean palette,
+	int Q, double dither,
 	int bitdepth, int effort)
 {
 	Write *write;
@@ -1341,7 +1343,7 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 		return -1;
 
 	if (write_vips(write,
-			compression, interlace, profile, filter, strip, palette,
+			compression, interlace, profile, filter, palette,
 			Q, dither, bitdepth, effort)) {
 		write_destroy(write);
 		vips_error("vips2png", _("unable to write to target %s"),

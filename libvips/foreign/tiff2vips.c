@@ -208,9 +208,9 @@
  * 30/9/21
  * 	- fix tiled + packed formats
  * 31/7/22
- *      - move jp2k decompress outside the lock
- *      - move jpeg decode outside the lock
- *      - fix demand hinting
+ *  - move jp2k decompress outside the lock
+ *  - move jpeg decode outside the lock
+ *  - fix demand hinting
  * 3/2/23 MathemanFlo
  * 	- add bits per sample metadata
  */
@@ -424,6 +424,27 @@ typedef struct _Rtiff {
 	 */
 	int y_pos;
 } Rtiff;
+
+/* Convert IEEE 754-2008 16-bit float to 32-bit float
+ */
+static inline float
+half_2_float(gushort h)
+{
+	const float sign = (h >> 15) * -2 + 1;
+	const int exp = ((h & 0x7C00) >> 10) - 15;
+	const float prec = (h & 0x03FF);
+
+	switch (exp) {
+	case 16:
+		return INFINITY * sign;
+	case -15:
+		return sign / (float) (1 << 14) * (prec / 1024.0);
+	default:
+		return exp > 0
+			? sign * (float) (1 << exp) * (1.0 + prec / 1024.0)
+			: sign / (float) (1 << -exp) * (1.0 + prec / 1024.0);
+	}
+}
 
 /* Test for field exists.
  */
@@ -869,6 +890,8 @@ rtiff_guess_format(Rtiff *rtiff)
 			return VIPS_FORMAT_SHORT;
 		if (sample_format == SAMPLEFORMAT_UINT)
 			return VIPS_FORMAT_USHORT;
+		if (sample_format == SAMPLEFORMAT_IEEEFP)
+			return VIPS_FORMAT_FLOAT;
 		break;
 
 	case 32:
@@ -1229,6 +1252,29 @@ rtiff_parse_fourbit(Rtiff *rtiff, VipsImage *out)
 		} \
 	}
 
+/* GREY_LOOP implementation for 16-bit float
+ */
+#define GREY_LOOP_F16 \
+	{ \
+		gushort *p1; \
+		float *q1; \
+\
+		p1 = (gushort *) p; \
+		q1 = (float *) q; \
+		for (x = 0; x < n; x++) { \
+			if (invert) \
+				q1[0] = 1.0 - half_2_float(p1[0]); \
+			else \
+				q1[0] = half_2_float(p1[0]); \
+\
+			for (i = 1; i < samples_per_pixel; i++) \
+				q1[i] = half_2_float(p1[i]); \
+\
+			q1 += samples_per_pixel; \
+			p1 += samples_per_pixel; \
+		} \
+	}
+
 /* Per-scanline process function for greyscale images.
  */
 static void
@@ -1236,6 +1282,7 @@ rtiff_greyscale_line(Rtiff *rtiff,
 	VipsPel *q, VipsPel *p, int n, void *client)
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
+	int bits_per_sample = rtiff->header.bits_per_sample;
 	int photometric_interpretation =
 		rtiff->header.photometric_interpretation;
 	VipsBandFormat format = rtiff_guess_format(rtiff);
@@ -1274,7 +1321,12 @@ rtiff_greyscale_line(Rtiff *rtiff,
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		GREY_LOOP(float, 1.0);
+		if (bits_per_sample == 16) {
+			GREY_LOOP_F16;
+		}
+		else {
+			GREY_LOOP(float, 1.0);
+		}
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
@@ -1565,6 +1617,27 @@ rtiff_memcpy_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
 	memcpy(q, p, len);
 }
 
+/* Per-scanline process function when we just need to copy.
+ */
+static void
+rtiff_memcpy_f16_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
+{
+	VipsImage *im = (VipsImage *) client;
+	size_t len = n * im->Bands;
+
+	if (im->BandFmt == VIPS_FORMAT_COMPLEX ||
+		im->BandFmt == VIPS_FORMAT_DPCOMPLEX)
+		len *= 2;
+
+	int i;
+
+	gushort *restrict hp = (gushort *) p;
+	float *restrict fq = (float *) q;
+
+	for (i = 0; i < len; i++)
+		fq[i] = half_2_float(hp[i]);
+}
+
 /* Read a regular multiband image where we can just copy pixels from the tiff
  * buffer.
  */
@@ -1574,6 +1647,8 @@ rtiff_parse_copy(Rtiff *rtiff, VipsImage *out)
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation =
 		rtiff->header.photometric_interpretation;
+	int bits_per_sample = rtiff->header.bits_per_sample;
+	int sample_format = rtiff->header.sample_format;
 	int inkset = rtiff->header.inkset;
 
 	if (rtiff_non_fractional(rtiff))
@@ -1608,15 +1683,20 @@ rtiff_parse_copy(Rtiff *rtiff, VipsImage *out)
 	else
 		out->Type = VIPS_INTERPRETATION_MULTIBAND;
 
-	rtiff->sfn = rtiff_memcpy_line;
 	rtiff->client = out;
 
-	/* We expand YCBCR images to RGB using JPEGCOLORMODE_RGB, and this
-	 * means we need a slightly larger read buffer for the edge pixels. In
-	 * turn, this means we can't just memcpy to libvips regions.
-	 */
-	rtiff->memcpy = photometric_interpretation != PHOTOMETRIC_YCBCR;
+	if (bits_per_sample == 16 && sample_format == SAMPLEFORMAT_IEEEFP) {
+		rtiff->sfn = rtiff_memcpy_f16_line;
+	}
+	else {
+		rtiff->sfn = rtiff_memcpy_line;
 
+		/* We expand YCBCR images to RGB using JPEGCOLORMODE_RGB, and this
+		 * means we need a slightly larger read buffer for the edge pixels. In
+		 * turn, this means we can't just memcpy to libvips regions.
+		 */
+		rtiff->memcpy = photometric_interpretation != PHOTOMETRIC_YCBCR;
+	}
 	return 0;
 }
 
@@ -2694,6 +2774,10 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 				t[0]->Xsize;
 		else
 			vips_line_size = VIPS_IMAGE_SIZEOF_LINE(t[0]);
+
+		if (rtiff->header.bits_per_sample == 16 &&
+			rtiff->header.sample_format == SAMPLEFORMAT_IEEEFP)
+			vips_line_size /= 2;
 
 		if (vips_line_size != rtiff->header.scanline_size) {
 			vips_error("tiff2vips",

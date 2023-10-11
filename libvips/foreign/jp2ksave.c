@@ -1309,8 +1309,8 @@ vips_foreign_save_jp2k_unpack_image(VipsRegion *region, VipsRect *tile,
 	}
 }
 
-void
-vips__foreign_load_jp2k_compress_free(TileCompress *compress)
+static void
+vips__foreign_save_jp2k_compress_free(TileCompress *compress)
 {
 	VIPS_FREEF(opj_destroy_codec, compress->codec);
 	VIPS_FREEF(opj_image_destroy, compress->image);
@@ -1326,7 +1326,7 @@ vips__foreign_load_jp2k_compress_free(TileCompress *compress)
  * nope, openjpeg does not allow that.
  */
 int
-vips__foreign_load_jp2k_compress(VipsRegion *region,
+vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q)
@@ -1357,7 +1357,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	 */
 	if (!(compress.image = vips_foreign_save_jp2k_new_image(region->im,
 			  tile_width, tile_height, subsample, save_as_ycc, TRUE))) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
@@ -1366,7 +1366,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	sizeof_line = sizeof(gint64) * tile->width;
 	if (!(compress.accumulate =
 				VIPS_ARRAY(NULL, sizeof_line, VipsPel))) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
@@ -1376,7 +1376,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 	vips_foreign_save_jp2k_attach_handlers(compress.codec);
 	if (!opj_setup_encoder(compress.codec,
 			&parameters, compress.image)) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
@@ -1397,24 +1397,24 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 			tile, compress.image);
 
 	if (!(compress.stream = vips_foreign_save_jp2k_target(target))) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
 	if (!opj_start_compress(compress.codec,
 			compress.image, compress.stream)) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
 	if (!opj_encode(compress.codec, compress.stream)) {
-		vips__foreign_load_jp2k_compress_free(&compress);
+		vips__foreign_save_jp2k_compress_free(&compress);
 		return -1;
 	}
 
 	opj_end_compress(compress.codec, compress.stream);
 
-	vips__foreign_load_jp2k_compress_free(&compress);
+	vips__foreign_save_jp2k_compress_free(&compress);
 
 	return 0;
 }
@@ -1422,7 +1422,7 @@ vips__foreign_load_jp2k_compress(VipsRegion *region,
 #else /*!HAVE_LIBOPENJP2*/
 
 int
-vips__foreign_load_jp2k_compress(VipsRegion *region,
+vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q)

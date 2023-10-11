@@ -10,7 +10,7 @@ from helpers import \
     IMAGES, JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, CUR_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
     AVIF_FILE_HUGE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
@@ -146,7 +146,7 @@ class TestForeign:
     def test_jpeg(self):
         def jpeg_valid(im):
             a = im(10, 10)
-            # different versions of libjpeg decode have slightly different 
+            # different versions of libjpeg decode have slightly different
             # rounding
             assert_almost_equal_objects(a, [141, 127, 90], threshold=3)
             profile = im.get("icc-profile-data")
@@ -224,7 +224,7 @@ class TestForeign:
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
 
-            x.set_type(pyvips.GValue.gstr_type, 
+            x.set_type(pyvips.GValue.gstr_type,
                        "exif-ifd0-ImageDescription", "hello world")
 
             filename = temp_filename(self.tempdir, '.jpg')
@@ -232,11 +232,11 @@ class TestForeign:
 
             x = pyvips.Image.new_from_file(filename)
             y = x.get("exif-ifd0-ImageDescription")
-            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # can't use == since the string will have an extra " (xx, yy, zz)"
             # format area at the end
             assert y.startswith("hello world")
 
-            # can set, save and reload UTF16 string fields ... pyvips is 
+            # can set, save and reload UTF16 string fields ... pyvips is
             # utf8, but it will be coded as utf16 and back for the XP* fields
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
@@ -248,7 +248,7 @@ class TestForeign:
 
             x = pyvips.Image.new_from_file(filename)
             y = x.get("exif-ifd0-XPComment")
-            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # can't use == since the string will have an extra " (xx, yy, zz)"
             # format area at the end
             assert y.startswith(u"йцук")
 
@@ -258,7 +258,7 @@ class TestForeign:
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
 
-            x.set_type(pyvips.GValue.gstr_type, 
+            x.set_type(pyvips.GValue.gstr_type,
                        "exif-ifd2-UserComment", "hello world")
 
             filename = temp_filename(self.tempdir, '.jpg')
@@ -266,7 +266,7 @@ class TestForeign:
 
             x = pyvips.Image.new_from_file(filename)
             y = x.get("exif-ifd2-UserComment")
-            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # can't use == since the string will have an extra " (xx, yy, zz)"
             # format area at the end
             assert y.startswith("hello world")
 
@@ -278,7 +278,7 @@ class TestForeign:
         q10_subsample_auto = im.jpegsave_buffer(Q=10, subsample_mode="auto")
         q10_subsample_on = im.jpegsave_buffer(Q=10, subsample_mode="on")
         q10_subsample_off = im.jpegsave_buffer(Q=10, subsample_mode="off")
-        
+
         q90 = im.jpegsave_buffer(Q=90)
         q90_subsample_auto = im.jpegsave_buffer(Q=90, subsample_mode="auto")
         q90_subsample_on = im.jpegsave_buffer(Q=90, subsample_mode="on")
@@ -286,13 +286,13 @@ class TestForeign:
 
         # higher Q should mean a bigger buffer
         assert len(q90) > len(q10)
-        
-        assert len(q10_subsample_auto) == len(q10) 
+
+        assert len(q10_subsample_auto) == len(q10)
         assert len(q10_subsample_on) == len(q10_subsample_auto)
-        assert len(q10_subsample_off) > len(q10)    
-        
-        assert len(q90_subsample_auto) == len(q90) 
-        assert len(q90_subsample_on) < len(q90) 
+        assert len(q10_subsample_off) > len(q10)
+
+        assert len(q90_subsample_auto) == len(q90)
+        assert len(q90_subsample_on) < len(q90)
         assert len(q90_subsample_off) == len(q90_subsample_auto)
 
         # A non-zero restart_interval should result in a bigger file.
@@ -304,7 +304,7 @@ class TestForeign:
         assert len(r10) > len(r0)
         assert len(r2) > len(r10)
 
-        # we should be able to reload jpegs with extra MCU markers 
+        # we should be able to reload jpegs with extra MCU markers
         im0 = pyvips.Image.jpegload_buffer(r0)
         im10 = pyvips.Image.jpegload_buffer(r10)
         assert im0.avg() == im10.avg()
@@ -436,7 +436,7 @@ class TestForeign:
         self.save_load_file(".png", "[interlace]", self.colour)
         self.save_load_file(".png", "[interlace]", self.mono)
 
-        # size of a regular mono PNG 
+        # size of a regular mono PNG
         len_mono = len(self.mono.write_to_buffer(".png"))
 
         # 4-bit should be smaller
@@ -553,7 +553,7 @@ class TestForeign:
         self.save_load_file(".tif",
                             "[tile,pyramid,compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
-                            "[tile,pyramid,subifd,compression=jpeg]", 
+                            "[tile,pyramid,subifd,compression=jpeg]",
                             self.colour, 80)
         self.save_load_file(".tif", "[bigtiff]", self.colour)
         self.save_load_file(".tif", "[compression=jpeg]", self.colour, 80)
@@ -766,6 +766,14 @@ class TestForeign:
         assert im.width == 16
         assert im.height == 16
 
+        # libvips has its own sniffer for CUR, test that
+        with open(CUR_FILE, 'rb') as f:
+            buf = f.read()
+
+        im = pyvips.Image.new_from_buffer(buf, "")
+        assert im.width == 32
+        assert im.height == 32
+
         # libvips has its own sniffer for TGA, test that
         with open(TGA_FILE, 'rb') as f:
             buf = f.read()
@@ -773,16 +781,16 @@ class TestForeign:
         assert im.width == 433
         assert im.height == 433
 
-        # Test SGI/RGB files to sanity check that sniffers 
+        # Test SGI/RGB files to sanity check that sniffers
         # aren't too broad
         with open(SGI_FILE, 'rb') as f:
             buf = f.read()
         im = pyvips.Image.new_from_buffer(buf, "")
         assert im.width == 433
         assert im.height == 433
-        
 
-        # load should see metadata like eg. icc profiles 
+
+        # load should see metadata like eg. icc profiles
         im = pyvips.Image.magickload(JPEG_FILE)
         assert len(im.get("icc-profile-data")) == 564
 
@@ -790,7 +798,7 @@ class TestForeign:
     @skip_if_no("magicksave")
     def test_magicksave(self):
         # save to a file and load again ... we can't use save_load_file since
-        # we want to make sure we use magickload/save 
+        # we want to make sure we use magickload/save
         # don't use BMP - GraphicsMagick always adds an alpha
         # don't use TIF - IM7 will save as 16-bit
         filename = temp_filename(self.tempdir, ".jpg")
@@ -923,8 +931,8 @@ class TestForeign:
     def test_openexrload(self):
         def exr_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [0.124512, 0.159668, 0.040375, 
-                                            255.0],
+            assert_almost_equal_objects(a, [0.124512, 0.159668, 0.040375,
+                                            1.0],
                                         threshold=0.00001)
             assert im.width == 610
             assert im.height == 406
@@ -1302,7 +1310,8 @@ class TestForeign:
         with open(filename, 'rb') as f:
             buf1 = f.read()
         buf2 = self.colour.dzsave_buffer(basename=root)
-        assert len(buf1) == len(buf2)
+        # won't be identical since tiles can be in a different order
+        assert abs(len(buf1) - len(buf2)) < 5000
 
         # we can't test the bytes are exactly equal -- the timestamp in
         # vips-properties.xml will be different
@@ -1312,9 +1321,10 @@ class TestForeign:
         buf = self.colour.dzsave_buffer(region_shrink="mode")
         buf = self.colour.dzsave_buffer(region_shrink="median")
 
-        # test no-strip ... icc profiles should be passed down
+        # test keep=pyvips.ForeignKeep.ICC ... icc profiles should be
+        # passed down
         filename = temp_filename(self.tempdir, '')
-        self.colour.dzsave(filename, no_strip=True)
+        self.colour.dzsave(filename, keep=1 << 3) # pyvips.ForeignKeep.ICC - https://github.com/libvips/pyvips/pull/429
 
         y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
         assert y.get_typeof("icc-profile-data") != 0
@@ -1323,7 +1333,7 @@ class TestForeign:
     def test_heifload(self):
         def heif_valid(im):
             a = im(10, 10)
-            # different versions of libheif decode have slightly different 
+            # different versions of libheif decode have slightly different
             # rounding
             assert_almost_equal_objects(a, [197.0, 181.0, 158.0], threshold=2)
             assert im.width == 3024
@@ -1380,7 +1390,7 @@ class TestForeign:
     @skip_if_no("heifsave")
     @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave_icc(self):
-        # try saving an image with an ICC profile and reading it back 
+        # try saving an image with an ICC profile and reading it back
         # not all libheif have profile support, so put it in an if
         buf = self.colour.heifsave_buffer(Q=10, compression="av1")
         im = pyvips.Image.new_from_buffer(buf, "")

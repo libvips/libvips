@@ -31,6 +31,7 @@ height = 64
 image = pyvips.Image.new_from_file(sys.argv[1])
 roi = image.crop(left, top, width, height)
 print('average:', roi.avg())
+```
 
 # Build huge image mosaic
 
@@ -44,7 +45,7 @@ green channel and write as a 1-bit fax image. `wtc.jpg` is a test 10,000
 x 10,000 jpeg:
 
 ```bash
-$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
+$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,keep=none] 1
 ```
 
 Now make 1,000 copies of that image in a subdirectory:

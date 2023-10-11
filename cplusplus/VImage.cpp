@@ -213,9 +213,9 @@ VOption::set(const char *name, std::vector<int> value)
 	pair->input = true;
 
 	g_value_init(&pair->value, VIPS_TYPE_ARRAY_INT);
-	vips_value_set_array_int(&pair->value, NULL,
+	vips_value_set_array_int(&pair->value, nullptr,
 		static_cast<int>(value.size()));
-	array = vips_value_get_array_int(&pair->value, NULL);
+	array = vips_value_get_array_int(&pair->value, nullptr);
 
 	for (std::vector<double>::size_type i = 0; i < value.size(); i++)
 		array[i] = value[i];
@@ -236,9 +236,9 @@ VOption::set(const char *name, std::vector<double> value)
 	pair->input = true;
 
 	g_value_init(&pair->value, VIPS_TYPE_ARRAY_DOUBLE);
-	vips_value_set_array_double(&pair->value, NULL,
+	vips_value_set_array_double(&pair->value, nullptr,
 		static_cast<int>(value.size()));
-	array = vips_value_get_array_double(&pair->value, NULL);
+	array = vips_value_get_array_double(&pair->value, nullptr);
 
 	for (std::vector<double>::size_type i = 0; i < value.size(); i++)
 		array[i] = value[i];
@@ -261,7 +261,7 @@ VOption::set(const char *name, std::vector<VImage> value)
 	g_value_init(&pair->value, VIPS_TYPE_ARRAY_IMAGE);
 	vips_value_set_array_image(&pair->value,
 		static_cast<int>(value.size()));
-	array = vips_value_get_array_image(&pair->value, NULL);
+	array = vips_value_get_array_image(&pair->value, nullptr);
 
 	for (std::vector<double>::size_type i = 0; i < value.size(); i++) {
 		VipsImage *vips_image = value[i].get_image();
@@ -554,7 +554,7 @@ VImage::call_option_string(const char *operation_name,
 void
 VImage::call(const char *operation_name, VOption *options)
 {
-	call_option_string(operation_name, NULL, options);
+	call_option_string(operation_name, nullptr, options);
 }
 
 VImage
@@ -595,7 +595,7 @@ VImage::new_from_buffer(const void *buf, size_t len, const char *option_string,
 
 	/* We don't take a copy of the data or free it.
 	 */
-	blob = vips_blob_new(NULL, buf, len);
+	blob = vips_blob_new(nullptr, buf, len);
 	options = (options ? options : VImage::option())
 				  ->set("buffer", blob)
 				  ->set("out", &out);
@@ -732,7 +732,7 @@ VImage::write_to_buffer(const char *suffix, void **buf, size_t *size,
 				->set("in", *this)
 				->set("target", target));
 
-		g_object_get(target.get_target(), "blob", &blob, (void *) NULL);
+		g_object_get(target.get_target(), "blob", &blob, nullptr);
 	}
 	else if ((operation_name = vips_foreign_find_save_buffer(filename))) {
 		call_option_string(operation_name, option_string,
@@ -748,7 +748,7 @@ VImage::write_to_buffer(const char *suffix, void **buf, size_t *size,
 	if (blob) {
 		if (buf) {
 			*buf = VIPS_AREA(blob)->data;
-			VIPS_AREA(blob)->free_fn = NULL;
+			VIPS_AREA(blob)->free_fn = nullptr;
 		}
 		if (size)
 			*size = VIPS_AREA(blob)->length;
@@ -785,7 +785,7 @@ VImage::thumbnail_buffer(void *buf, size_t len, int width, VOption *options)
 
 	/* We don't take a copy of the data or free it.
 	 */
-	blob = vips_blob_new(NULL, buf, len);
+	blob = vips_blob_new(nullptr, buf, len);
 	options = (options ? options : VImage::option())->set("buffer", blob)->set("width", width)->set("out", &out);
 	vips_area_unref(VIPS_AREA(blob));
 

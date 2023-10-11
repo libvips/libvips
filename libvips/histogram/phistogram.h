@@ -37,8 +37,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vector.h>
-
 #define VIPS_TYPE_HISTOGRAM (vips_histogram_get_type())
 #define VIPS_HISTOGRAM(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \

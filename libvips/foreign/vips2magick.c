@@ -199,8 +199,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 	 */
 	image->dispose = BackgroundDispose;
 
-	if (!save->strip &&
-		magick_set_magick_profile(image, im, magick->exception)) {
+	if (magick_set_magick_profile(image, im, magick->exception)) {
 		magick_vips_error(class->nickname, magick->exception);
 		return -1;
 	}

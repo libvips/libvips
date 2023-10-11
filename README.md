@@ -51,6 +51,7 @@ libvips is used as an image processing engine by:
 | |
 |---|
 | [sharp (on node.js)](https://www.npmjs.org/package/sharp) |
+| [imgproxy](https://github.com/imgproxy/imgproxy) |
 | [bimg](https://github.com/h2non/bimg) |
 | [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
@@ -227,10 +228,10 @@ enabling a package with such a large attack surface.
 If available, libvips adds support for text rendering. You need the
 package pangocairo in `pkg-config --list-all`.
 
-### orc-0.4
+### highway
 
-If available, vips will accelerate some operations with this run-time
-compiler.
+If present, libvips will accelerate some operations with SIMD. If not, it
+will look for the orc-0.4 package.
 
 ### matio
 

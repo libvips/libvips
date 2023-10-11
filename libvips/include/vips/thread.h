@@ -59,6 +59,9 @@ GThread *vips_g_thread_new(const char *, GThreadFunc, gpointer);
 VIPS_API
 gboolean vips_thread_isvips(void);
 
+VIPS_API
+int vips_thread_execute(const char *domain, GFunc func, gpointer data);
+
 typedef struct _VipsThreadset VipsThreadset;
 VipsThreadset *vips_threadset_new(int max_threads);
 int vips_threadset_run(VipsThreadset *set,

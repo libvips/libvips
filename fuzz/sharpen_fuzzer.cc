@@ -16,7 +16,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	if (size > 100 * 1024 * 1024)
 		return 0;
 
-	if (!(image = vips_image_new_from_buffer(data, size, "", NULL)))
+	if (!(image = vips_image_new_from_buffer(data, size, "", nullptr)))
 		return 0;
 
 	if (image->Xsize > 100 ||
@@ -26,12 +26,12 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		return 0;
 	}
 
-	if (vips_sharpen(image, &out, NULL)) {
+	if (vips_sharpen(image, &out, nullptr)) {
 		g_object_unref(image);
 		return 0;
 	}
 
-	vips_avg(out, &d, NULL);
+	vips_avg(out, &d, nullptr);
 
 	g_object_unref(out);
 	g_object_unref(image);

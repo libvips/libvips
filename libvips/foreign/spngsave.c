@@ -72,7 +72,6 @@ typedef struct _VipsForeignSaveSpng {
 
 	int compression;
 	gboolean interlace;
-	char *profile;
 	VipsForeignPngFilter filter;
 	gboolean palette;
 	int Q;
@@ -173,28 +172,28 @@ vips_foreign_save_spng_comment(VipsImage *image,
 }
 
 static int
-vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
+vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 {
-	struct spng_iccp iccp;
-	uint32_t n_text;
-	struct spng_text *text_chunk_array;
-	struct spng_exif exif;
-	int i;
-	GSList *p;
+	VipsForeignSave *save = (VipsForeignSave *) spng;
 
-	if (spng->profile) {
+	struct spng_iccp iccp;
+
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (save->profile) {
 		VipsBlob *blob;
 
-		if (vips_profile_load(spng->profile, &blob, NULL))
+		if (vips_profile_load(save->profile, &blob, NULL))
 			return -1;
+
 		if (blob) {
 			size_t length;
 			const void *data = vips_blob_get(blob, &length);
-			char *basename = g_path_get_basename(spng->profile);
+			char *basename = g_path_get_basename(save->profile);
 
 #ifdef DEBUG
-			printf("write_vips: attaching %zd bytes of ICC profile\n",
-				length);
+			printf("write_vips: attaching %zd bytes of ICC profile\n", length);
 #endif /*DEBUG*/
 
 			vips_strncpy(iccp.profile_name, basename,
@@ -211,8 +210,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		const void *data;
 		size_t length;
 
-		if (vips_image_get_blob(in, VIPS_META_ICC_NAME,
-				&data, &length))
+		if (vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length))
 			return -1;
 
 #ifdef DEBUG
@@ -220,21 +218,31 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 			length);
 #endif /*DEBUG*/
 
-		vips_strncpy(iccp.profile_name, "icc",
-			sizeof(iccp.profile_name));
+		vips_strncpy(iccp.profile_name, "icc", sizeof(iccp.profile_name));
 		iccp.profile_len = length;
 		iccp.profile = (void *) data;
 
 		spng_set_iccp(spng->ctx, &iccp);
 	}
 
+	return 0;
+}
+
+static int
+vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
+{
+	uint32_t n_text;
+	struct spng_text *text_chunk_array;
+	struct spng_exif exif;
+	int i;
+	GSList *p;
+
 	if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
 		const void *data;
 		size_t length;
 		char *str;
 
-		if (vips_image_get_blob(in,
-				VIPS_META_XMP_NAME, &data, &length))
+		if (vips_image_get_blob(in, VIPS_META_XMP_NAME, &data, &length))
 			return -1;
 
 		/* The blob form of the XMP metadata is missing the
@@ -247,19 +255,20 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		g_free(str);
 	}
 
-	if (vips__exif_update(in) ||
-		vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-			(const void **) &exif.data, &exif.length))
-		return -1;
+	if (vips_image_get_typeof(in, VIPS_META_EXIF_NAME)) {
+		if (vips_image_get_blob(in, VIPS_META_EXIF_NAME,
+				(const void **) &exif.data, &exif.length))
+			return -1;
 
-	/* libspng does not want the JFIF "Exif\0\0" prefix.
-	 */
-	if (exif.length >= 6 &&
-		vips_isprefix("Exif", exif.data)) {
-		exif.data += 6;
-		exif.length -= 6;
+		/* libspng does not want the JFIF "Exif\0\0" prefix.
+		 */
+		if (exif.length >= 6 &&
+			vips_isprefix("Exif", exif.data)) {
+			exif.data += 6;
+			exif.length -= 6;
+		}
+		spng_set_exif(spng->ctx, &exif);
 	}
-	spng_set_exif(spng->ctx, &exif);
 
 	if (vips_image_map(in, vips_foreign_save_spng_comment, spng))
 		return -1;
@@ -374,7 +383,6 @@ static int
 vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(spng);
-	VipsForeignSave *save = (VipsForeignSave *) spng;
 
 	int error;
 	struct spng_ihdr ihdr;
@@ -451,7 +459,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 	/* Metadata.
 	 */
-	if (!save->strip &&
+	if (vips_foreign_save_spng_profile(spng, in) ||
 		vips_foreign_save_spng_metadata(spng, in))
 		return -1;
 
@@ -691,13 +699,6 @@ vips_foreign_save_spng_class_init(VipsForeignSaveSpngClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveSpng, interlace),
 		FALSE);
-
-	VIPS_ARG_STRING(class, "profile", 11,
-		_("Profile"),
-		_("ICC profile to embed"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveSpng, profile),
-		NULL);
 
 	VIPS_ARG_FLAGS(class, "filter", 12,
 		_("Filter"),

@@ -57,6 +57,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
 
@@ -81,11 +82,11 @@ typedef struct _VipsReduceh {
 	 */
 	double hoffset;
 
-	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others). We go to
+	/* Precalculated interpolation matrices. short (used for pel
+	 * sizes up to int), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
 	 */
-	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	short *matrixs[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
 	/* Deprecated.
@@ -119,8 +120,6 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 		return 2 * rint(2 * shrink) + 1;
 
 	case VIPS_KERNEL_LANCZOS2:
-		/* Needs to be in sync with calculate_coefficients_lanczos().
-		 */
 		return 2 * rint(2 * shrink) + 1;
 
 	case VIPS_KERNEL_LANCZOS3:
@@ -132,58 +131,19 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 	}
 }
 
-/* Calculate a mask element.
- */
-void
-vips_reduce_make_mask(double *c, VipsKernel kernel, double shrink, double x)
-{
-	switch (kernel) {
-	case VIPS_KERNEL_NEAREST:
-		c[0] = 1.0;
-		break;
-
-	case VIPS_KERNEL_LINEAR:
-		calculate_coefficients_triangle(c, shrink, x);
-		break;
-
-	case VIPS_KERNEL_CUBIC:
-		/* Catmull-Rom.
-		 */
-		calculate_coefficients_cubic(c, shrink, x, 0.0, 0.5);
-		break;
-
-	case VIPS_KERNEL_MITCHELL:
-		calculate_coefficients_cubic(c, shrink, x,
-			1.0 / 3.0, 1.0 / 3.0);
-		break;
-
-	case VIPS_KERNEL_LANCZOS2:
-		calculate_coefficients_lanczos(c, 2, shrink, x);
-		break;
-
-	case VIPS_KERNEL_LANCZOS3:
-		calculate_coefficients_lanczos(c, 3, shrink, x);
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-}
-
-template <typename T, int max_value>
+template <typename T, T max_value>
 static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *restrict cx)
+	const int bands, const short *restrict cx)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		int sum;
+		typename LongT<T>::type sum;
 
-		sum = reduce_sum<T, int>(in + z, bands, cx, n);
+		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = unsigned_fixed_round(sum);
 		out[z] = VIPS_CLIP(0, sum, max_value);
 	}
@@ -192,16 +152,16 @@ static void inline reduceh_unsigned_int_tab(VipsReduceh *reduceh,
 template <typename T, int min_value, int max_value>
 static void inline reduceh_signed_int_tab(VipsReduceh *reduceh,
 	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *restrict cx)
+	const int bands, const short *restrict cx)
 {
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++) {
-		int sum;
+		typename LongT<T>::type sum;
 
-		sum = reduce_sum<T, int>(in + z, bands, cx, n);
+		sum = reduce_sum<T>(in + z, bands, cx, n);
 		sum = signed_fixed_round(sum);
 		out[z] = VIPS_CLIP(min_value, sum, max_value);
 	}
@@ -219,46 +179,7 @@ static void inline reduceh_float_tab(VipsReduceh *reduceh,
 	const int n = reduceh->n_point;
 
 	for (int z = 0; z < bands; z++)
-		out[z] = reduce_sum<T, double>(in + z, bands, cx, n);
-}
-
-/* 32-bit int output needs a 64-bits intermediate.
- */
-
-template <typename T, unsigned int max_value>
-static void inline reduceh_unsigned_int32_tab(VipsReduceh *reduceh,
-	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *restrict cx)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reduceh->n_point;
-
-	for (int z = 0; z < bands; z++) {
-		uint64_t sum;
-
-		sum = reduce_sum<T, uint64_t>(in + z, bands, cx, n);
-		sum = unsigned_fixed_round(sum);
-		out[z] = VIPS_CLIP(0, sum, max_value);
-	}
-}
-
-template <typename T, int min_value, int max_value>
-static void inline reduceh_signed_int32_tab(VipsReduceh *reduceh,
-	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *restrict cx)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reduceh->n_point;
-
-	for (int z = 0; z < bands; z++) {
-		int64_t sum;
-
-		sum = reduce_sum<T, int64_t>(in + z, bands, cx, n);
-		sum = signed_fixed_round(sum);
-		out[z] = VIPS_CLIP(min_value, sum, max_value);
-	}
+		out[z] = reduce_sum<T>(in + z, bands, cx, n);
 }
 
 /* Ultra-high-quality version for double images.
@@ -272,21 +193,14 @@ static void inline reduceh_notab(VipsReduceh *reduceh,
 	const T *restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
-	double cx[MAX_POINT];
+	typename LongT<T>::type cx[MAX_POINT];
 
-	vips_reduce_make_mask(cx, reduceh->kernel, reduceh->hshrink, x);
+	vips_reduce_make_mask(cx, reduceh->kernel, reduceh->n_point,
+		reduceh->hshrink, x);
 
-	for (int z = 0; z < bands; z++) {
-		double sum;
-		sum = reduce_sum<T, double>(in + z, bands, cx, n);
-
-		out[z] = VIPS_ROUND_UINT(sum);
-	}
+	for (int z = 0; z < bands; z++)
+		out[z] = reduce_sum<T>(in + z, bands, cx, n);
 }
-
-/* Tried a vector path (see reducev) but it was slower. The vectors for
- * horizontal reduce are just too small to get a useful speedup.
- */
 
 static int
 vips_reduceh_gen(VipsRegion *out_region, void *seq,
@@ -348,38 +262,38 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
 			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
 			const int tx = (six + 1) >> 1;
-			const int *cxi = reduceh->matrixi[tx];
+			const short *cxs = reduceh->matrixs[tx];
 			const double *cxf = reduceh->matrixf[tx];
 
 			switch (in->BandFmt) {
 			case VIPS_FORMAT_UCHAR:
 				reduceh_unsigned_int_tab<unsigned char,
-					UCHAR_MAX>(reduceh, q, p, bands, cxi);
+					UCHAR_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_CHAR:
 				reduceh_signed_int_tab<signed char,
-					SCHAR_MIN, SCHAR_MAX>(reduceh, q, p, bands, cxi);
+					SCHAR_MIN, SCHAR_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_USHORT:
 				reduceh_unsigned_int_tab<unsigned short,
-					USHRT_MAX>(reduceh, q, p, bands, cxi);
+					USHRT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_SHORT:
 				reduceh_signed_int_tab<signed short,
-					SHRT_MIN, SHRT_MAX>(reduceh, q, p, bands, cxi);
+					SHRT_MIN, SHRT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_UINT:
-				reduceh_unsigned_int32_tab<unsigned int,
-					UINT_MAX>(reduceh, q, p, bands, cxi);
+				reduceh_unsigned_int_tab<unsigned int,
+					UINT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_INT:
-				reduceh_signed_int32_tab<signed int,
-					INT_MIN, INT_MAX>(reduceh, q, p, bands, cxi);
+				reduceh_signed_int_tab<signed int,
+					INT_MIN, INT_MAX>(reduceh, q, p, bands, cxs);
 				break;
 
 			case VIPS_FORMAT_FLOAT:
@@ -411,6 +325,60 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 	return 0;
 }
 
+#ifdef HAVE_HWY
+static int
+vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
+	void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReduceh *reduceh = (VipsReduceh *) b;
+	const int ps = VIPS_IMAGE_SIZEOF_PEL(in);
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &out_region->valid;
+	const int bands = in->Bands;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf("vips_reduceh_uchar_vector_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG*/
+
+	s.left = r->left * reduceh->hshrink - reduceh->hoffset;
+	s.top = r->top;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.height = r->height;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+	VIPS_GATE_START("vips_reduceh_uchar_vector_gen: work");
+
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *p0;
+		VipsPel *q;
+
+		double X;
+
+		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+		X = (r->left + 0.5) * reduceh->hshrink - 0.5 -
+			reduceh->hoffset;
+
+		p0 = VIPS_REGION_ADDR(ir, ir->valid.left, r->top + y) -
+			ir->valid.left * ps;
+
+		vips_reduceh_uchar_hwy(q, p0, reduceh->n_point, r->width,
+			bands, reduceh->matrixs, X, reduceh->hshrink);
+	}
+
+	VIPS_GATE_STOP("vips_reduceh_uchar_vector_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_reduceh_uchar_vector_gen");
+
+	return 0;
+}
+#endif /*HAVE_HWY*/
+
 static int
 vips_reduceh_build(VipsObject *object)
 {
@@ -421,6 +389,7 @@ vips_reduceh_build(VipsObject *object)
 		vips_object_local_array(object, 3);
 
 	VipsImage *in;
+	VipsGenerateFn generate;
 	int width;
 	int int_hshrink;
 	double extra_pixels;
@@ -464,7 +433,7 @@ vips_reduceh_build(VipsObject *object)
 			g_info("shrinkh by %d", int_hshrink);
 			if (vips_shrinkh(in, &t[0], int_hshrink,
 					"ceil", TRUE,
-					NULL))
+					nullptr))
 				return -1;
 			in = t[0];
 
@@ -497,24 +466,23 @@ vips_reduceh_build(VipsObject *object)
 	for (int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++) {
 		reduceh->matrixf[x] =
 			VIPS_ARRAY(object, reduceh->n_point, double);
-		reduceh->matrixi[x] =
-			VIPS_ARRAY(object, reduceh->n_point, int);
+		reduceh->matrixs[x] =
+			VIPS_ARRAY(object, reduceh->n_point, short);
 		if (!reduceh->matrixf[x] ||
-			!reduceh->matrixi[x])
+			!reduceh->matrixs[x])
 			return -1;
 
-		vips_reduce_make_mask(reduceh->matrixf[x],
-			reduceh->kernel, reduceh->hshrink,
+		vips_reduce_make_mask(reduceh->matrixf[x], reduceh->kernel,
+			reduceh->n_point, reduceh->hshrink,
 			(float) x / VIPS_TRANSFORM_SCALE);
 
 		for (int i = 0; i < reduceh->n_point; i++)
-			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] *
-				VIPS_INTERPOLATE_SCALE;
-
+			reduceh->matrixs[x][i] = (short) (reduceh->matrixf[x][i] *
+				VIPS_INTERPOLATE_SCALE);
 #ifdef DEBUG
 		printf("vips_reduceh_build: mask %d\n    ", x);
 		for (int i = 0; i < reduceh->n_point; i++)
-			printf("%d ", reduceh->matrixi[x][i]);
+			printf("%d ", reduceh->matrixs[x][i]);
 		printf("\n");
 #endif /*DEBUG*/
 	}
@@ -531,12 +499,27 @@ vips_reduceh_build(VipsObject *object)
 			VIPS_CEIL(reduceh->n_point / 2.0) - 1, 0,
 			in->Xsize + reduceh->n_point, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
-			(void *) NULL))
+			nullptr))
 		return -1;
 	in = t[2];
 
+	/* For uchar input, try to make a vector path.
+	 */
+#ifdef HAVE_HWY
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		(in->Bands == 4 || in->Bands == 3) &&
+		vips_vector_isenabled()) {
+		generate = vips_reduceh_uchar_vector_gen;
+		g_info("reduceh: using vector path");
+	}
+	else
+#endif /*HAVE_HWY*/
+		/* Default to the C path.
+		 */
+		generate = vips_reduceh_gen;
+
 	if (vips_image_pipelinev(resample->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
+			VIPS_DEMAND_STYLE_FATSTRIP, in, nullptr))
 		return -1;
 
 	/* Don't change xres/yres, leave that to the application layer. For
@@ -557,7 +540,7 @@ vips_reduceh_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (vips_image_generate(resample->out,
-			vips_start_one, vips_reduceh_gen, vips_stop_one,
+			vips_start_one, generate, vips_stop_one,
 			in, reduceh))
 		return -1;
 

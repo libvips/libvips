@@ -294,6 +294,30 @@ vips_operation_class_usage_classify(VipsArgumentClass *argument_class)
 	return USAGE_NONE;
 }
 
+/* Display a set of flags as "a:b:c"
+ */
+static void
+vips__flags_to_str(VipsBuf *buf, GType type, guint value)
+{
+	GTypeClass *class = g_type_class_ref(type);
+	GFlagsClass *flags = G_FLAGS_CLASS(class);
+
+	gboolean first;
+
+	first = TRUE;
+	for (int i = 0; i < flags->n_values; i++)
+		// can't be 0 (would match everything), and all bits
+		// should match all bits in the value, or "all" would always match
+		// everything
+		if (flags->values[i].value &&
+			(value & flags->values[i].value) == flags->values[i].value) {
+			if (!first)
+				vips_buf_appends(buf, ":");
+			first = FALSE;
+			vips_buf_appends(buf, flags->values[i].value_nick);
+		}
+}
+
 static void
 vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 {
@@ -316,11 +340,11 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 		genum = G_ENUM_CLASS(class);
 
 		vips_buf_appendf(buf, "\t\t\t");
-		vips_buf_appendf(buf, "%s", _("default"));
+		vips_buf_appendf(buf, "%s", _("default enum"));
 		vips_buf_appendf(buf, ": %s\n",
 			vips_enum_nick(type, pspec_enum->default_value));
 		vips_buf_appendf(buf, "\t\t\t");
-		vips_buf_appendf(buf, "%s", _("allowed"));
+		vips_buf_appendf(buf, "%s", _("allowed enums"));
 		vips_buf_appendf(buf, ": ");
 
 		/* -1 since we always have a "last" member.
@@ -333,6 +357,38 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 
 		vips_buf_appendf(buf, "\n");
 	}
+	if (G_IS_PARAM_SPEC_FLAGS(pspec)) {
+		GTypeClass *class = g_type_class_ref(type);
+		GParamSpecFlags *pspec_flags = (GParamSpecFlags *) pspec;
+
+		GFlagsClass *gflags;
+		int i;
+
+		/* Should be impossible, no need to warn.
+		 */
+		if (!class)
+			return;
+
+		gflags = G_FLAGS_CLASS(class);
+
+		vips_buf_appendf(buf, "\t\t\t");
+		vips_buf_appendf(buf, "%s", _("default flags"));
+		vips_buf_appendf(buf, ": ");
+		vips__flags_to_str(buf, type, pspec_flags->default_value);
+		vips_buf_appendf(buf, "\n");
+		vips_buf_appendf(buf, "\t\t\t");
+		vips_buf_appendf(buf, "%s", _("allowed flags"));
+		vips_buf_appendf(buf, ": ");
+
+		for (i = 0; i < gflags->n_values; i++) {
+			if (i > 0)
+				vips_buf_appends(buf, ", ");
+			vips_buf_appends(buf, gflags->values[i].value_nick);
+		}
+
+		vips_buf_appendf(buf, "\n");
+	}
+
 	else if (G_IS_PARAM_SPEC_BOOLEAN(pspec)) {
 		GParamSpecBoolean *pspec_boolean = (GParamSpecBoolean *) pspec;
 
@@ -1318,8 +1374,7 @@ vips_call_argv_input(VipsObject *object,
 			const char *arg;
 
 			if (!(arg = vips_call_get_arg(call, call->i)) ||
-				vips_object_set_argument_from_string(object,
-					name, arg))
+				vips_object_set_argument_from_string(object, name, arg))
 				return pspec;
 
 			call->i += 1;
@@ -1362,8 +1417,7 @@ vips_call_argv_output(VipsObject *object,
 				call->i += 1;
 			}
 
-			if (vips_object_get_argument_to_string(object,
-					name, arg))
+			if (vips_object_get_argument_to_string(object, name, arg))
 				return pspec;
 		}
 	}

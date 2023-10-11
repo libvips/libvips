@@ -10,9 +10,9 @@
  *	Instead, they set default values of scale=1, offset=0.
  *    - Code tidied up, better error recovery.
  *    -	Bugs fixed in im_dup_*mask. No longer coredump.
- *    -	Bugs fixed in im_write_*mask. Now work for non-square matricies.
+ *    -	Bugs fixed in im_write_*mask. Now work for non-square matrices.
  *    -	im_copy_*mask_matrix, im_copy_matrix_*mask added: copy VIPS mask
- *	structures into Numerical Recipies in C style matricies and vice
+ *	structures into Numerical Recipies in C style matrices and vice
  *	versa. Both structures should have been built before copy attempted.
  *	See im_create_*mask, im_*mat_alloc. The matrix should be indexed by 0
  *	to size-1.

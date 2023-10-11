@@ -211,6 +211,32 @@ typedef struct _VipsForeignLoadHeif {
 
 } VipsForeignLoadHeif;
 
+#ifdef HAVE_HEIF_INIT
+static void *
+vips__heif_init_once(void *client)
+{
+	struct heif_error error;
+
+	error = heif_init(NULL);
+	if (error.code)
+		g_warning("heif_init: %s (%d.%d)\n",
+			error.message ? error.message : "(null)",
+			error.code, error.subcode);
+
+	return NULL;
+}
+#endif /*HAVE_HEIF_INIT*/
+
+void
+vips__heif_init(void)
+{
+#ifdef HAVE_HEIF_INIT
+	static GOnce once = G_ONCE_INIT;
+
+	VIPS_ONCE(&once, vips__heif_init_once, NULL);
+#endif /*HAVE_HEIF_INIT*/
+}
+
 void
 vips__heif_error(struct heif_error *error)
 {
@@ -218,6 +244,69 @@ vips__heif_error(struct heif_error *error)
 		vips_error("heif", "%s (%d.%d)",
 			error->message ? error->message : "(null)",
 			error->code, error->subcode);
+}
+
+#ifdef DEBUG
+void
+vips__heif_image_print(struct heif_image *img)
+{
+	const static enum heif_channel channel[] = {
+		heif_channel_Y,
+		heif_channel_Cb,
+		heif_channel_Cr,
+		heif_channel_R,
+		heif_channel_G,
+		heif_channel_B,
+		heif_channel_Alpha,
+		heif_channel_interleaved
+	};
+
+	const static char *channel_name[] = {
+		"heif_channel_Y",
+		"heif_channel_Cb",
+		"heif_channel_Cr",
+		"heif_channel_R",
+		"heif_channel_G",
+		"heif_channel_B",
+		"heif_channel_Alpha",
+		"heif_channel_interleaved"
+	};
+
+	int i;
+
+	printf("vips__heif_image_print:\n");
+	for (i = 0; i < VIPS_NUMBER(channel); i++) {
+		if (!heif_image_has_channel(img, channel[i]))
+			continue;
+
+		printf("\t%s:\n", channel_name[i]);
+		printf("\t\twidth = %d\n",
+			heif_image_get_width(img, channel[i]));
+		printf("\t\theight = %d\n",
+			heif_image_get_height(img, channel[i]));
+		printf("\t\tbits = %d\n",
+			heif_image_get_bits_per_pixel(img, channel[i]));
+	}
+}
+#endif /*DEBUG*/
+
+/* Pick a chroma format. Shared with heifsave.
+ */
+int
+vips__heif_chroma(int bits_per_pixel, gboolean has_alpha)
+{
+	if (bits_per_pixel == 8) {
+		if (has_alpha)
+			return heif_chroma_interleaved_RGBA;
+		else
+			return heif_chroma_interleaved_RGB;
+	}
+	else {
+		if (has_alpha)
+			return heif_chroma_interleaved_RRGGBBAA_BE;
+		else
+			return heif_chroma_interleaved_RRGGBB_BE;
+	}
 }
 
 typedef struct _VipsForeignLoadHeifClass {
@@ -500,10 +589,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs(
 		heif->handle, NULL, id, VIPS_NUMBER(id));
 	for (i = 0; i < n_metadata; i++) {
-		size_t length = heif_image_handle_get_metadata_size(
-			heif->handle, id[i]);
-		const char *type = heif_image_handle_get_metadata_type(
-			heif->handle, id[i]);
+		size_t length =
+			heif_image_handle_get_metadata_size(heif->handle, id[i]);
+		const char *type =
+			heif_image_handle_get_metadata_type(heif->handle, id[i]);
+		const char *content_type =
+			heif_image_handle_get_metadata_content_type(heif->handle, id[i]);
 
 		unsigned char *data;
 		char name[256];
@@ -532,16 +623,13 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			length -= 4;
 		}
 
-		/* exif has a special name.
+		/* Exif data will have the type string "exif".
 		 *
-		 * XMP metadata is just attached with the "mime" type, and
-		 * usually start with "<x:xmpmeta".
+		 * For XMP, the content type is "application/rdf+xml".
 		 */
 		if (g_ascii_strcasecmp(type, "exif") == 0)
 			vips_snprintf(name, 256, VIPS_META_EXIF_NAME);
-		else if (g_ascii_strcasecmp(type, "mime") == 0 &&
-			length > 10 &&
-			vips_isprefix("<x:xmpmeta", (const char *) data))
+		else if (g_ascii_strcasecmp(content_type, "application/rdf+xml") == 0)
 			vips_snprintf(name, 256, VIPS_META_XMP_NAME);
 		else
 			vips_snprintf(name, 256, "heif-%s-%d", type, i);
@@ -847,69 +935,6 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	return 0;
 }
 
-#ifdef DEBUG
-void
-vips__heif_image_print(struct heif_image *img)
-{
-	const static enum heif_channel channel[] = {
-		heif_channel_Y,
-		heif_channel_Cb,
-		heif_channel_Cr,
-		heif_channel_R,
-		heif_channel_G,
-		heif_channel_B,
-		heif_channel_Alpha,
-		heif_channel_interleaved
-	};
-
-	const static char *channel_name[] = {
-		"heif_channel_Y",
-		"heif_channel_Cb",
-		"heif_channel_Cr",
-		"heif_channel_R",
-		"heif_channel_G",
-		"heif_channel_B",
-		"heif_channel_Alpha",
-		"heif_channel_interleaved"
-	};
-
-	int i;
-
-	printf("vips__heif_image_print:\n");
-	for (i = 0; i < VIPS_NUMBER(channel); i++) {
-		if (!heif_image_has_channel(img, channel[i]))
-			continue;
-
-		printf("\t%s:\n", channel_name[i]);
-		printf("\t\twidth = %d\n",
-			heif_image_get_width(img, channel[i]));
-		printf("\t\theight = %d\n",
-			heif_image_get_height(img, channel[i]));
-		printf("\t\tbits = %d\n",
-			heif_image_get_bits_per_pixel(img, channel[i]));
-	}
-}
-#endif /*DEBUG*/
-
-/* Pick a chroma format. Shared with heifsave.
- */
-int
-vips__heif_chroma(int bits_per_pixel, gboolean has_alpha)
-{
-	if (bits_per_pixel == 8) {
-		if (has_alpha)
-			return heif_chroma_interleaved_RGBA;
-		else
-			return heif_chroma_interleaved_RGB;
-	}
-	else {
-		if (has_alpha)
-			return heif_chroma_interleaved_RRGGBBAA_BE;
-		else
-			return heif_chroma_interleaved_RRGGBB_BE;
-	}
-}
-
 static int
 vips_foreign_load_heif_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
@@ -1050,6 +1075,8 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	vips__heif_init();
 
 	gobject_class->dispose = vips_foreign_load_heif_dispose;
 	gobject_class->set_property = vips_object_set_property;

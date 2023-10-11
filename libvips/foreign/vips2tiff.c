@@ -204,6 +204,8 @@
  * 	- add support for page_height param
  * 11/5/22
  * 	- switch to terget API for output
+ * 24/9/23
+ *  - add threaded write of tiled JPEG and JP2K
  */
 
 /*
@@ -258,6 +260,12 @@
 #include "pforeign.h"
 #include "tiff.h"
 
+/* We do jpeg compress ourselves, if we can.
+ */
+#ifdef HAVE_JPEG
+#include "jpeg.h"
+#endif /*HAVE_JPEG*/
+
 /* TODO:
  *
  * - add a flag for plane-separate write
@@ -284,6 +292,9 @@
 /* Compression types we handle ourselves.
  */
 static int wtiff_we_compress[] = {
+#ifdef HAVE_JPEG
+	COMPRESSION_JPEG,
+#endif /*HAVE_JPEG*/
 	JP2K_LOSSY
 };
 
@@ -304,7 +315,7 @@ struct _Layer {
 	TIFF *tif;		   /* TIFF file we write this layer to */
 
 	/* The image we build. We only keep a few scanlines of this around in
-	 * @strip.
+	 * strip.
 	 */
 	VipsImage *image;
 
@@ -355,7 +366,6 @@ struct _Wtiff {
 	int bigtiff;					/* True for bigtiff write */
 	int rgbjpeg;					/* True for RGB not YCbCr */
 	int properties;					/* Set to save XML props */
-	int strip;						/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
 	int level;						/* zstd compression level */
 	gboolean lossless;				/* lossless mode */
@@ -377,10 +387,13 @@ struct _Wtiff {
 	 */
 	int image_height;
 
-	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must compress ourselves.
+	/* TRUE if we compress ourselves outside the libtiff lock.
 	 */
 	gboolean we_compress;
+
+	/* Lock thread calls into libtiff with this.
+	 */
+	GMutex *lock;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -512,14 +525,17 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 static int
 wtiff_embed_profile(Wtiff *wtiff, TIFF *tif)
 {
-	if (wtiff->profile &&
-		embed_profile_file(tif, wtiff->profile))
-		return -1;
-
-	if (!wtiff->profile &&
-		vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME) &&
-		embed_profile_meta(tif, wtiff->ready))
-		return -1;
+	/* A profile supplied as an argument overrides an embedded
+	 * profile.
+	 */
+	if (wtiff->profile) {
+		if (embed_profile_file(tif, wtiff->profile))
+			return -1;
+	}
+	else if (vips_image_get_typeof(wtiff->ready, VIPS_META_ICC_NAME)) {
+		if (embed_profile_meta(tif, wtiff->ready))
+			return -1;
+	}
 
 	return 0;
 }
@@ -629,6 +645,170 @@ wtiff_embed_imagedescription(Wtiff *wtiff, TIFF *tif)
 	return 0;
 }
 
+#ifdef HAVE_JPEG
+// in vips2jpeg.c
+void vips__jpeg_target_dest(j_compress_ptr cinfo, VipsTarget *target);
+
+static void
+wtiff_compress_jpeg_header(Wtiff *wtiff,
+	struct jpeg_compress_struct *cinfo, VipsImage *image)
+{
+	J_COLOR_SPACE space;
+
+	cinfo->image_width = wtiff->tilew;
+	cinfo->image_height = wtiff->tileh;
+	cinfo->input_components = image->Bands;
+
+	if (image->Bands == 4 &&
+		image->Type == VIPS_INTERPRETATION_CMYK) {
+		space = JCS_CMYK;
+	}
+	else if (image->Bands == 3)
+		space = JCS_RGB;
+	else if (image->Bands == 1)
+		space = JCS_GRAYSCALE;
+	else
+		/* Use luminance compression for all channels.
+		 */
+		space = JCS_UNKNOWN;
+	cinfo->in_color_space = space;
+
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Reset compression profile to libjpeg defaults
+	 */
+	if (jpeg_c_int_param_supported(cinfo, JINT_COMPRESS_PROFILE))
+		jpeg_c_set_int_param(cinfo,
+			JINT_COMPRESS_PROFILE, JCP_FASTEST);
+#endif
+
+	jpeg_set_defaults(cinfo);
+
+	/* Set compression quality. Must be called after setting params above.
+	 */
+	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
+
+	// disable chroma subsample for high Q
+	if (wtiff->Q >= 90) {
+		int i;
+
+		for (i = 0; i < image->Bands; i++) {
+			cinfo->comp_info[i].h_samp_factor = 1;
+			cinfo->comp_info[i].v_samp_factor = 1;
+		}
+	}
+
+	// Avoid writing the JFIF APP0 marker.
+	cinfo->write_JFIF_header = FALSE;
+}
+
+static int
+wtiff_compress_jpeg(Wtiff *wtiff,
+	VipsRegion *strip, VipsRect *tile, VipsTarget *target)
+{
+	size_t sizeof_pel = VIPS_REGION_SIZEOF_PEL(strip);
+
+	struct jpeg_compress_struct cinfo;
+	ErrorManager eman;
+	VipsPel *line;
+
+#ifdef DEBUG
+	printf("wtiff_compress_jpeg: "
+		   "left = %d, top = %d, width = %d, height = %d\n",
+		tile->left, tile->top, tile->width, tile->height);
+#endif /*DEBUG*/
+
+	// we could have one of these per thread and reuse it for a small speedup
+	cinfo.err = jpeg_std_error(&eman.pub);
+	cinfo.dest = NULL;
+	eman.pub.error_exit = vips__new_error_exit;
+	eman.pub.output_message = vips__new_output_message;
+	eman.fp = NULL;
+
+	// we need a line buffer to pad edge tiles
+	line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
+
+	/* Error handling. The error message will have ben set by our handlers.
+	 */
+	if (setjmp(eman.jmp)) {
+		jpeg_destroy_compress(&cinfo);
+		VIPS_FREE(line);
+		return -1;
+	}
+
+	/* Make jpeg compression object.
+	 */
+	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
+
+	wtiff_compress_jpeg_header(wtiff, &cinfo, strip->im);
+
+	// don't output tables, just coefficients
+	jpeg_suppress_tables(&cinfo, TRUE);
+
+	// FALSE means we are outputting an abbreviated (no tables) datastream
+	jpeg_start_compress(&cinfo, FALSE);
+
+	if (tile->width < wtiff->tilew ||
+		tile->height < wtiff->tileh) {
+		JSAMPROW row_pointer[1] = { line };
+
+		for (int y = 0; y < tile->height; y++) {
+			memcpy(line, VIPS_REGION_ADDR(strip, tile->left, tile->top + y),
+				tile->width * sizeof_pel);
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+
+		memset(line, 0, wtiff->tilew * sizeof_pel);
+		for (int y = tile->height; y < wtiff->tileh; y++) {
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+	}
+	else {
+		for (int y = 0; y < tile->height; y++) {
+			JSAMPROW row_pointer[1];
+
+			row_pointer[0] = VIPS_REGION_ADDR(strip, tile->left, tile->top + y);
+			jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		}
+	}
+
+	jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	VIPS_FREE(line);
+
+	return 0;
+}
+
+static int
+wtiff_compress_jpeg_tables(Wtiff *wtiff,
+	VipsImage *image, int width, int height, VipsTarget *target)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	/* Attach output.
+	 */
+	vips__jpeg_target_dest(&cinfo, target);
+
+	wtiff_compress_jpeg_header(wtiff, &cinfo, image);
+
+	// write just the header tables
+	jpeg_write_tables(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+
+	return 0;
+}
+#endif /*HAVE_JPEG*/
+
 /* Write a TIFF header for this layer.
  */
 static int
@@ -679,6 +859,13 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			break;
 		}
 
+	/* Special case: we don't compress JPEG strip images, they are best left
+	 * to libtiff.
+	 */
+	if (wtiff->compression == COMPRESSION_JPEG &&
+		!wtiff->tile)
+		wtiff->we_compress = FALSE;
+
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
 	TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, wtiff->resunit);
@@ -687,13 +874,12 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	TIFFSetField(tif, TIFFTAG_YRESOLUTION,
 		VIPS_FCLIP(0.01, wtiff->yres, 1000000));
 
-	if (!wtiff->strip)
-		if (wtiff_embed_profile(wtiff, tif) ||
-			wtiff_embed_xmp(wtiff, tif) ||
-			wtiff_embed_iptc(wtiff, tif) ||
-			wtiff_embed_photoshop(wtiff, tif) ||
-			wtiff_embed_imagedescription(wtiff, tif))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, tif) ||
+		wtiff_embed_iptc(wtiff, tif) ||
+		wtiff_embed_photoshop(wtiff, tif) ||
+		wtiff_embed_imagedescription(wtiff, tif) ||
+		wtiff_embed_profile(wtiff, tif))
+		return -1;
 
 	if (vips_image_get_typeof(wtiff->ready, VIPS_META_ORIENTATION) &&
 		!vips_image_get_int(wtiff->ready,
@@ -854,6 +1040,39 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, format);
 	}
 
+#ifdef HAVE_JPEG
+	// we have to write the tables ourselves for JPEG we_compress
+	if (wtiff->we_compress &&
+		wtiff->compression == COMPRESSION_JPEG) {
+		VipsTarget *target;
+		int result;
+		unsigned char *buffer;
+		size_t length;
+
+		target = vips_target_new_to_memory();
+
+		result = wtiff_compress_jpeg_tables(wtiff, wtiff->input,
+			wtiff->input->Xsize, wtiff->input->Ysize, target);
+
+		if (result) {
+			g_object_unref(target);
+			return -1;
+		}
+
+		buffer = vips_target_steal(target, &length);
+
+		g_object_unref(target);
+
+#ifdef DEBUG
+		printf("setting %zd bytes of table data\n", length);
+#endif /*DEBUG*/
+
+		TIFFSetField(tif, TIFFTAG_JPEGTABLES, length, buffer);
+
+		g_free(buffer);
+	}
+#endif /*HAVE_JPEG*/
+
 	return 0;
 }
 
@@ -961,6 +1180,7 @@ wtiff_free(Wtiff *wtiff)
 
 	VIPS_UNREF(wtiff->ready);
 	VIPS_FREE(wtiff->tbuf);
+	VIPS_FREEF(vips_g_mutex_free, wtiff->lock);
 	VIPS_FREE(wtiff);
 }
 
@@ -1083,7 +1303,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -1117,7 +1336,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->bigtiff = bigtiff;
 	wtiff->rgbjpeg = rgbjpeg;
 	wtiff->properties = properties;
-	wtiff->strip = strip;
 	wtiff->region_shrink = region_shrink;
 	wtiff->level = level;
 	wtiff->lossless = lossless;
@@ -1129,6 +1347,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->page_number = 0;
 	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
+	wtiff->lock = vips_g_mutex_new();
 
 	/* Any pre-processing on the image.
 	 */
@@ -1490,6 +1709,211 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 	}
 }
 
+// a compressed (raw) tile waiting to be written
+typedef struct _WtiffTile {
+	// x position (sort by this)
+	int x;
+	int y;
+
+	// compressed data
+	unsigned char *buffer;
+	size_t length;
+} WtiffTile;
+
+// the state for a row of tiles being compressed in parallel
+typedef struct _WtiffRow {
+	Wtiff *wtiff;
+	VipsRegion *strip;
+	Layer *layer;
+	int x;
+
+	// set of compressed tiles we have accumulated
+	GSList *tiles;
+} WtiffRow;
+
+static int
+wtiff_row_add_tile(WtiffRow *row,
+	int x, int y, unsigned char *buffer, size_t length)
+{
+	WtiffTile *tile;
+
+	if (!(tile = VIPS_NEW(NULL, WtiffTile)))
+		return -1;
+
+	tile->x = x;
+	tile->y = y;
+	tile->buffer = buffer;
+	tile->length = length;
+
+	g_mutex_lock(row->wtiff->lock);
+
+	row->tiles = g_slist_prepend(row->tiles, tile);
+
+	g_mutex_unlock(row->wtiff->lock);
+
+	return 0;
+}
+
+static void
+wtiff_row_free(WtiffRow *row)
+{
+	GSList *p;
+
+	for (p = row->tiles; p; p = p->next) {
+		WtiffTile *tile = (WtiffTile *) p->data;
+
+		VIPS_FREE(tile->buffer);
+		VIPS_FREE(tile);
+	}
+
+	VIPS_FREEF(g_slist_free, row->tiles);
+}
+
+static int
+wtiff_tile_compare(WtiffTile *a, WtiffTile *b, void *user_data)
+{
+	return b->x - a->x;
+}
+
+static int
+wtiff_row_write(WtiffRow *row, TIFF *tif)
+{
+	GSList *p;
+
+	row->tiles = g_slist_sort(row->tiles,
+		(GCompareFunc) wtiff_tile_compare);
+
+	for (p = row->tiles; p; p = p->next) {
+		WtiffTile *tile = (WtiffTile *) p->data;
+
+		ttile_t tile_no = TIFFComputeTile(tif, tile->x, tile->y, 0, 0);
+		if (TIFFWriteRawTile(tif, tile_no, tile->buffer, tile->length) == -1) {
+			vips_error("vips2tiff", "%s", _("TIFF write tile failed"));
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+wtiff_layer_row_allocate(VipsThreadState *state, void *a, gboolean *stop)
+{
+	WtiffRow *row = (WtiffRow *) a;
+	Wtiff *wtiff = row->wtiff;
+	VipsImage *im = row->layer->image;
+	VipsRegion *strip = row->strip;
+	VipsRect *valid = &strip->valid;
+
+#ifdef DEBUG_VERBOSE
+	printf("wtiff_layer_row_allocate:\n");
+#endif /*DEBUG_VERBOSE*/
+
+	if (row->x >= im->Xsize) {
+		*stop = TRUE;
+#ifdef DEBUG_VERBOSE
+		printf("wtiff_layer_row_allocate: done\n");
+#endif /*DEBUG_VERBOSE*/
+
+		return 0;
+	}
+
+	state->x = row->x;
+	state->y = valid->top;
+	row->x += wtiff->tilew;
+
+	return 0;
+}
+
+/* Compress a tile from a threadpool.
+ */
+static int
+wtiff_layer_row_work(VipsThreadState *state, void *a)
+{
+	WtiffRow *row = (WtiffRow *) a;
+	Wtiff *wtiff = row->wtiff;
+	Layer *layer = row->layer;
+	VipsImage *im = layer->image;
+	VipsRegion *strip = row->strip;
+	VipsRect *valid = &strip->valid;
+
+	VipsRect image;
+	VipsRect tile;
+	VipsTarget *target;
+	int result;
+	unsigned char *buffer;
+	size_t length;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = im->Xsize;
+	image.height = im->Ysize;
+	tile.left = state->x;
+	tile.top = valid->top;
+	tile.width = wtiff->tilew;
+	tile.height = wtiff->tileh;
+	vips_rect_intersectrect(&tile, &image, &tile);
+
+#ifdef DEBUG_VERBOSE
+	printf("Compressing %dx%d tile at position %dx%d\n",
+		tile.width, tile.height, tile.left, tile.top);
+#endif /*DEBUG_VERBOSE*/
+
+	target = vips_target_new_to_memory();
+
+	switch (wtiff->compression) {
+	case JP2K_LOSSY:
+		/* Sadly, chroma subsample seems not to work for edge tiles in tiff
+		 * with jp2k compression, so we always pass FALSE instead of:
+		 *
+		 * 	!wtiff->rgbjpeg && wtiff->Q < 90,
+		 *
+		 * I've verified that the libvips jp2k encode and decode subsample
+		 * operations fill the comps[i].data arrays correctly, so it
+		 * seems to be a openjpeg bug.
+		 *
+		 * FIXME ... try again with openjpeg 2.5, when that comes.
+		 */
+		result = vips__foreign_save_jp2k_compress(
+			strip, &tile, target,
+			wtiff->tilew, wtiff->tileh,
+			!wtiff->rgbjpeg,
+			// !wtiff->rgbjpeg && wtiff->Q < 90,
+			FALSE,
+			wtiff->lossless,
+			wtiff->Q);
+		break;
+
+#ifdef HAVE_JPEG
+	case COMPRESSION_JPEG:
+		result = wtiff_compress_jpeg(wtiff, strip, &tile, target);
+		break;
+#endif /*HAVE_JPEG*/
+
+	default:
+		result = -1;
+		g_assert_not_reached();
+		break;
+	}
+
+	if (result) {
+		g_object_unref(target);
+		return -1;
+	}
+
+	buffer = vips_target_steal(target, &length);
+
+	if (wtiff_row_add_tile(row, tile.left, tile.top, buffer, length)) {
+		g_object_unref(target);
+		g_free(buffer);
+		return -1;
+	}
+
+	g_object_unref(target);
+
+	return 0;
+}
+
 /* Write a set of tiles across the strip.
  */
 static int
@@ -1506,90 +1930,49 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 	image.width = im->Xsize;
 	image.height = im->Ysize;
 
-	for (x = 0; x < im->Xsize; x += wtiff->tilew) {
-		VipsRect tile;
+	if (wtiff->we_compress) {
+		/* If we're compressing ourselves, we can do the whole strip in
+		 * parallel.
+		 */
+		WtiffRow row = { wtiff, strip, layer, 0 };
 
-		tile.left = x;
-		tile.top = area->top;
-		tile.width = wtiff->tilew;
-		tile.height = wtiff->tileh;
-		vips_rect_intersectrect(&tile, &image, &tile);
+		/* We don't want threadpool_run to minimise on completion -- we need to
+		 * keep the cache on the pipeline before us.
+		 */
+		vips_image_set_int(im, "vips-no-minimise", 1);
 
-#ifdef DEBUG_VERBOSE
-		printf("Writing %dx%d tile at position %dx%d to image %s\n",
-			tile.width, tile.height, tile.left, tile.top,
-			TIFFFileName(layer->tif));
-#endif /*DEBUG_VERBOSE*/
-
-		if (wtiff->we_compress) {
-			ttile_t tile_no = TIFFComputeTile(layer->tif,
-				tile.left, tile.top, 0, 0);
-
-			VipsTarget *target;
-			int result;
-			unsigned char *buffer;
-			size_t length;
-
-			target = vips_target_new_to_memory();
-
-			switch (wtiff->compression) {
-			case JP2K_LOSSY:
-				/* Sadly chroma subsample seems not to work
-				 * for edge tiles in tiff with jp2k
-				 * compression, so we always pass FALSE
-				 * instead of:
-				 *
-				 * 	!wtiff->rgbjpeg && wtiff->Q < 90,
-				 *
-				 * I've verified that the libvips jp2k
-				 * encode and decode subsample operations fill
-				 * the comps[i].data arrays correctly, so it
-				 * seems to be a openjpeg bug.
-				 *
-				 * FIXME ... try again with openjpeg 2.5,
-				 * when that comes.
-				 */
-				result = vips__foreign_load_jp2k_compress(
-					strip, &tile, target,
-					wtiff->tilew, wtiff->tileh,
-					!wtiff->rgbjpeg,
-					// !wtiff->rgbjpeg && wtiff->Q < 90,
-					FALSE,
-					wtiff->lossless,
-					wtiff->Q);
-				break;
-
-			default:
-				result = -1;
-				g_assert_not_reached();
-				break;
-			}
-
-			if (result) {
-				g_object_unref(target);
-				return -1;
-			}
-
-			buffer = vips_target_steal(target, &length);
-
-			g_object_unref(target);
-
-			result = TIFFWriteRawTile(layer->tif, tile_no,
-				buffer, length);
-
-			g_free(buffer);
-
-			if (result < 0) {
-				vips_error("vips2tiff",
-					"%s", _("TIFF write tile failed"));
-				return -1;
-			}
+		if (vips_threadpool_run(im,
+				vips_thread_state_new,
+				wtiff_layer_row_allocate,
+				wtiff_layer_row_work,
+				NULL,
+				&row)) {
+			wtiff_row_free(&row);
+			return -1;
 		}
-		else {
+
+		if (wtiff_row_write(&row, layer->tif)) {
+			wtiff_row_free(&row);
+			return -1;
+		}
+
+		wtiff_row_free(&row);
+	}
+	else {
+		/* If we're using libtiff compression, we have to be serial.
+		 */
+		for (x = 0; x < im->Xsize; x += wtiff->tilew) {
+			VipsRect tile;
+
+			tile.left = x;
+			tile.top = area->top;
+			tile.width = wtiff->tilew;
+			tile.height = wtiff->tileh;
+			vips_rect_intersectrect(&tile, &image, &tile);
+
 			/* Have to repack pixels for libtiff.
 			 */
-			wtiff_pack2tiff(wtiff,
-				layer, strip, &tile, wtiff->tbuf);
+			wtiff_pack2tiff(wtiff, layer, strip, &tile, wtiff->tbuf);
 
 			if (TIFFWriteTile(layer->tif, wtiff->tbuf,
 					tile.left, tile.top, 0, 0) < 0) {
@@ -1886,45 +2269,24 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 	tdata_t buf;
 	ttile_t i;
 
-	if (wtiff->compression == COMPRESSION_JPEG)
-		tile_size = TIFFTileSize(in);
-	else
-		/* If we will be copying raw tiles we need a buffer large
-		 * enough to hold the largest compressed tile in any page.
-		 *
-		 * Allocate a buffer 2x the uncompressed tile size ... much
-		 * simpler than searching every page for the largest tile with
-		 * TIFFTAG_TILEBYTECOUNTS.
-		 */
-		tile_size = 2 * wtiff->tls * wtiff->tileh;
+	/* If we will be copying raw tiles we need a buffer large
+	 * enough to hold the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much
+	 * simpler than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	tile_size = 2 * wtiff->tls * wtiff->tileh;
+
 	buf = vips_malloc(NULL, tile_size);
 
 	for (i = 0; i < n_tiles; i++) {
-		tsize_t len;
+		tsize_t len = TIFFReadRawTile(in, i, buf, tile_size);
 
-		/* If this is a JPEG-compressed TIFF, we need to decompress
-		 * and recompress, since tiles are actually written in several
-		 * places (coefficients go in the tile, huffman tables go
-		 * elsewhere).
-		 *
-		 * For all other compression types, we can just use
-		 * TIFFReadRawTile()/TIFFWriteRawTile().
-		 */
-		if (wtiff->compression == COMPRESSION_JPEG) {
-			len = TIFFReadEncodedTile(in, i, buf, tile_size);
-			if (len <= 0 ||
-				TIFFWriteEncodedTile(out, i, buf, len) < 0) {
-				g_free(buf);
-				return -1;
-			}
-		}
-		else {
-			len = TIFFReadRawTile(in, i, buf, tile_size);
-			if (len <= 0 ||
-				TIFFWriteRawTile(out, i, buf, len) < 0) {
-				g_free(buf);
-				return -1;
-			}
+		if (len <= 0 ||
+			TIFFWriteRawTile(out, i, buf, len) < 0) {
+			g_free(buf);
+			return -1;
 		}
 	}
 
@@ -1974,6 +2336,9 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	 * Set explicitly from Wtiff.
 	 */
 	if (wtiff->compression == COMPRESSION_JPEG) {
+		unsigned char *buffer;
+		guint32 length;
+
 		TIFFSetField(out, TIFFTAG_JPEGQUALITY, wtiff->Q);
 
 		/* Only for three-band, 8-bit images.
@@ -1995,6 +2360,9 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 			TIFFSetField(in,
 				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB);
 		}
+
+		if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &length, &buffer))
+			TIFFSetField(out, TIFFTAG_JPEGTABLES, length, buffer);
 	}
 
 #ifdef HAVE_TIFF_COMPRESSION_WEBP
@@ -2019,13 +2387,12 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
-	if (!wtiff->strip)
-		if (wtiff_embed_profile(wtiff, out) ||
-			wtiff_embed_xmp(wtiff, out) ||
-			wtiff_embed_iptc(wtiff, out) ||
-			wtiff_embed_photoshop(wtiff, out) ||
-			wtiff_embed_imagedescription(wtiff, out))
-			return -1;
+	if (wtiff_embed_xmp(wtiff, out) ||
+		wtiff_embed_iptc(wtiff, out) ||
+		wtiff_embed_photoshop(wtiff, out) ||
+		wtiff_embed_imagedescription(wtiff, out) ||
+		wtiff_embed_profile(wtiff, out))
+		return -1;
 
 	if (wtiff_copy_tiles(wtiff, out, in))
 		return -1;
@@ -2249,7 +2616,7 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip,
+	gboolean properties,
 	VipsRegionShrink region_shrink,
 	int level,
 	gboolean lossless,
@@ -2266,7 +2633,7 @@ vips__tiff_write_target(VipsImage *input, VipsTarget *target,
 			  compression, Q, predictor, profile,
 			  tile, tile_width, tile_height, pyramid, bitdepth,
 			  miniswhite, resunit, xres, yres, bigtiff, rgbjpeg,
-			  properties, strip, region_shrink, level, lossless, depth,
+			  properties, region_shrink, level, lossless, depth,
 			  subifd, premultiply, page_height)))
 		return -1;
 
