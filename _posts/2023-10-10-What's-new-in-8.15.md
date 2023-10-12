@@ -31,20 +31,15 @@ paths.
 In 8.15, we've optimised various operations by leveraging [Highway](
 https://github.com/google/highway), a C++ library with carefully-chosen
 functions that map well to CPU instructions without extensive compiler
-transformations. Highway supports five architectures, allowing our 
-code to target various instruction sets, including those with 'scalable'
-vectors (size unknown at compile time). At runtime, dynamic dispatch selects
-the best available implementation based on the processor's capabilities,
-ensuring optimal performance. While Highway is our preferred choice, the
-liborc paths remain available as a fallback whenever Highway is unavailable.
+transformations. Highway supports five architectures, allowing our code to
+target various instruction sets, including those with 'scalable' vectors
+(size unknown at compile time). At runtime, dynamic dispatch selects the best
+available implementation based on the processor's capabilities, ensuring
+optimal performance. While Highway is our preferred choice, the liborc paths
+remain available as a fallback whenever Highway is unavailable.
 
 Additionally, for x86/x86-64 targets, a couple of functions are now marked
 with the `target_clones` attribute to improve performance on AVX CPUs by ~10%.
-
-> - add support for SIMD via Highway [kleisauke]
-> - add support for target_clones attribute [lovell]
->   * use with (un)premultiply for ~10% perf gain on AVX CPUs
->   * use with XYZ to LAB colourspace conversion for ~10% perf gain on AVX CPUs
 
 # New operators
 
@@ -53,7 +48,9 @@ We've added two new edge detectors,
 [`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt), and
 improved the accuracy of `vips_sobel()`.
 
-An improvement to the shrink operators has allowed a dramatic speedup in 
+# Shrink performance
+
+An improvement to the shrink operators has allowed a dramatic speedup in
 edge cases where there was upstream coordinate transformation. Performance
 should now be more predictable.
 
@@ -64,7 +61,7 @@ systems.
 
 There are two improvements to all loaders and savers. First, you can pass a
 `revalidate` flag to all loaders which will make them bypass the libvips cache
-and refeth the image from the source. This is useful if you are loading a file
+and refetch the image from the source. This is useful if you are loading a file
 where the contents might change.
 
 Secondly, we've deprecated the `strip` option to savers and added a new `keep`
@@ -79,7 +76,7 @@ Will copy a JPEG image, keep any ICC profile and EXIF metadata, but delete
 everything else, such as XMP and IPTC. Use `keep=none` to remove everything.
 
 We've added a new `bitdepth` metadata item which all loaders and savers
-now support, and deprecated the old palette-bit-depth` and `heif-bitdepth`
+now support, and deprecated the old `palette-bit-depth` and `heif-bitdepth`
 fields.
 
 ## Better `tiffsave`
@@ -113,7 +110,7 @@ sys	0m7.543s
 More than twice as fast.
 
 We've also added support for load and save of 16-bit float TIFFs, and improved
-the compatibility of 32-bit float TIFFs. 
+the compatibility of 32-bit float TIFFs.
 
 ## Better `dzsave`
 
@@ -142,11 +139,11 @@ user	1m4.462s
 sys	0m21.581s
 ```
 
-Nearly 3x faster. There'a new `--Q` flag to set the Q factor for direct JPEG
+Nearly 3x faster. There's a new `--Q` flag to set the Q factor for direct JPEG
 tile save.
 
 We've made another improvement to `dzsave`: it now uses a better ZIP write
-library, `libarchive`, which should improve portability. 
+library, `libarchive`, which should improve portability.
 
 ## **PDF**
 
@@ -160,13 +157,3 @@ capable of rendering user-provided input in checkboxes and text fields.
 * GIF load now sets `interlaced=1` for interlaced GIF images.
 * Improved C++ binding, taking advantage of C++11 features.
 * The built-in ICC profiles are replaced with ICC v4 variants.
-* Improved performance of [`vips_shrinkh()`](
-  /API/current/libvips-resample.html#vips-shrinkh) and [`vips_shrinkv()`](
-  /API/current/libvips-resample.html#vips-shrinkv) for small shrinks.
-
-> - add fast path to extract_band and bandjoin for uchar images [lovell]
-> - reduce `vips_sharpen` max `sigma` to 10 [lovell]
-> - inline scRGB to XYZ colourspace conversion, ~2x faster [lovell]
-> - allow negative line spacing in text [donghuikugou]
-> - add `premultiplied` option to smartcrop [lovell]
-> - add vips_thread_execute() to the public API [jcupitt]
