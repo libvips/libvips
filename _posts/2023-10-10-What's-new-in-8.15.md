@@ -22,16 +22,16 @@ Traditionally, libvips relied on [liborc's runtime compiler](
 https://gitlab.freedesktop.org/gstreamer/orc)
 to dynamically generate optimised SIMD/vector code specifically for the target
 architecture. However, maintaining this code proved challenging, and it didn't
-generalize to other architectures (such as [WebAssembly](
-/2020/09/01/libvips-for-webassembly.html#performance)).
-Additionally, it lacked support for newer instruction sets (like AVX2 and
-AVX-512), and the vector paths of liborc didn't match the precision of the C
+generalize to architectures like [WebAssembly](
+/2020/09/01/libvips-for-webassembly.html#performance).
+Additionally, it lacked support for newer instruction sets like AVX2 and
+AVX-512, and the vector paths of liborc didn't match the precision of the C
 paths.
 
 In 8.15, we've optimised various operations by leveraging [Highway](
 https://github.com/google/highway), a C++ library with carefully-chosen
 functions that map well to CPU instructions without extensive compiler
-transformations. Highway supports five architectures; allowing our application
+transformations. Highway supports five architectures, allowing our 
 code to target various instruction sets, including those with 'scalable'
 vectors (size unknown at compile time). At runtime, dynamic dispatch selects
 the best available implementation based on the processor's capabilities,
@@ -46,71 +46,123 @@ with the `target_clones` attribute to improve performance on AVX CPUs by ~10%.
 >   * use with (un)premultiply for ~10% perf gain on AVX CPUs
 >   * use with XYZ to LAB colourspace conversion for ~10% perf gain on AVX CPUs
 
-# Faster `dzsave` and `tiffsave`
+# New operators
 
-> - add direct mode to dzsave [jcupitt]
-> - threaded write in tiffsave for tiled JPEG and JPEG2000 [jcupitt]
-> - remove libgsf dependency in favor of libarchive [kleisauke]
+We've added two new edge detectors,
+[`vips_scharr()`](/API/current/libvips-convolution.html#vips-scharr) and
+[`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt), and
+improved the accuracy of `vips_sobel()`.
 
-# Metadata improvements
+An improvement to the shrink operators has allowed a dramatic speedup in 
+edge cases where there was upstream coordinate transformation. Performance
+should now be more predictable.
 
-> - add "keep" flag to foreign savers, deprecate "strip" [a3mar]
-> - add VIPS_META_BITS_PER_SAMPLE metadata, deprecate the
->    "palette-bit-depth" and "heif-bitdepth" meta fields [MathemanFlo]
+# Image load and save improvements
 
-# Image format improvements
+There have been a lot of useful improvements to the image load and save
+systems.
 
-There have been a couple improvements to file format support.
+There are two improvements to all loaders and savers. First, you can pass a
+`revalidate` flag to all loaders which will make them bypass the libvips cache
+and refeth the image from the source. This is useful if you are loading a file
+where the contents might change.
 
-## **GIF**
+Secondly, we've deprecated the `strip` option to savers and added a new `keep`
+option which you can use to select what classes of metadata item you'd like to
+*not* remove. For example:
 
-GIF load now sets `interlaced=1` for interlaced GIF images.
+```
+$ vips copy k2.tif x.jpg[keep=icc:exif]
+```
 
-> - set "interlaced=1" for interlaced GIF images [kleisauke]
+Will copy a JPEG image, keep any ICC profile and EXIF metadata, but delete
+everything else, such as XMP and IPTC. Use `keep=none` to remove everything.
+
+We've added a new `bitdepth` metadata item which all loaders and savers
+now support, and deprecated the old palette-bit-depth` and `heif-bitdepth`
+fields.
+
+## Better `tiffsave`
+
+libvips used to rely on libtiff to manage write of compressed tiles. This
+meant that the selected compression library (libjpeg, perhaps) would run
+inside the libtiff lock, and compression was therefore single-threaded.
+
+In libvips 8.15, we've taken over control of JPEG and JPEG2000 compression
+and we now do this ourselves in parallel, leaving only the raw tile
+write to libtiff.
+
+When making a JPEG-compressed TIFF with libvips 8.14 I see:
+
+```
+$ time vips copy CMU-1.svs[rgb] x.tif[compression=jpeg,tile,pyramid]
+real	0m11.732s
+user	1m8.123s
+sys	0m5.810s
+```
+
+But with 8.15 it's now:
+
+```
+$ time vips copy CMU-1.svs[rgb] x.tif[compression=jpeg,tile,pyramid]
+real	0m5.332s
+user	1m2.410s
+sys	0m7.543s
+```
+
+More than twice as fast.
+
+We've also added support for load and save of 16-bit float TIFFs, and improved
+the compatibility of 32-bit float TIFFs. 
+
+## Better `dzsave`
+
+libvips used to save each tile in `dzsave` by building and executing a complete
+libvips pipeline. With small tiles, the setup and teardown cost
+was often a significant part of the runtime, and this limited speed.
+
+With libvips 8.15 we've added a direct path for JPEG tiles (the default case)
+which avoids this overhead.
+
+With libvips 8.14 I saw:
+
+```
+$ time vips dzsave CMU-1.svs[rgb] x
+real	0m14.435s
+user	1m26.434s
+sys	0m50.474s
+```
+
+With 8.15 it's now:
+
+```
+$ time vips dzsave CMU-1.svs[rgb] x
+real	0m5.586s
+user	1m4.462s
+sys	0m21.581s
+```
+
+Nearly 3x faster. There'a new `--Q` flag to set the Q factor for direct JPEG
+tile save.
+
+We've made another improvement to `dzsave`: it now uses a better ZIP write
+library, `libarchive`, which should improve portability. 
 
 ## **PDF**
 
 PDF loading with PDFium now includes support for PDF forms, making it
 capable of rendering user-provided input in checkboxes and text fields.
 
-> - add support for forms in pdfium loader [kleisauke]
-
-## **TIFF**
-
-TIFF load now supports 16-bit float TIFFs.
-
-> - add support for 16-bit float TIFFs [DarthSim]
-
 # General minor improvements
 
 * [`vips_find_trim()`](/API/current/libvips-arithmetic.html#vips-find-trim)
   features a `line_art` option.
+* GIF load now sets `interlaced=1` for interlaced GIF images.
 * Improved C++ binding, taking advantage of C++11 features.
-* Foreign loaders includes support for the `revalidate` option.
 * The built-in ICC profiles are replaced with ICC v4 variants.
 * Improved performance of [`vips_shrinkh()`](
   /API/current/libvips-resample.html#vips-shrinkh) and [`vips_shrinkv()`](
   /API/current/libvips-resample.html#vips-shrinkv) for small shrinks.
-* scRGB images uses an alpha range of 0.0 - 1.0.
-* Added [`vips_scharr()`](/API/current/libvips-convolution.html#vips-scharr) 
-  and [`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt)
-  edge-detectors.
-* [`vips_sobel()`](/API/current/libvips-convolution.html#vips-sobel) is a more
-  accurate for non-uchar images.
-
-> - add @line_art to find_trim [miltoncandelero]
-> - improve C++ binding [MathemanFlo]
->   * add `inplace()` / `VImage::new_from_memory_copy()`
->   * add overloads for `draw_*()` / `VImage::thumbnail_buffer()`
-> - require C++11 as a minimum standard [kleisauke]
-> - add "revalidate" to foreign loaders [jcupitt]
-> - swap built-in profiles with ICC v4 variants [kleisauke]
-> - better chunking for small shrinks [jcupitt]
-> - use alpha range of 0.0 - 1.0 for scRGB images [DarthSim]
-> - add "prewitt" and "scharr" edge detectors, "sobel" is more accurate for
->   non-uchar formats [jcupitt]
-
-Plus the usual range of small improvements and bugfixes. See the ChangeLog.
 
 > - add fast path to extract_band and bandjoin for uchar images [lovell]
 > - reduce `vips_sharpen` max `sigma` to 10 [lovell]
