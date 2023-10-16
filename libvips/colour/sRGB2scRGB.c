@@ -230,18 +230,22 @@ vips_sRGB2scRGB_build(VipsObject *object)
 	if (vips_check_bands_atleast(class->nickname, in, 3))
 		return -1;
 
+	// we are changing the gamma, so any profile on the image can no longer
+	// work (and will cause horrible problems in any downstream colour
+	// handling)
+	if (vips_copy(in, &t[0], NULL))
+		return -1;
+	in = t[0];
+	vips_image_remove(in, VIPS_META_ICC_NAME);
+
 	format = in->Type == VIPS_INTERPRETATION_RGB16
 		? VIPS_FORMAT_USHORT
 		: VIPS_FORMAT_UCHAR;
 	if (in->BandFmt != format) {
-		if (vips_cast(in, &t[0], format, NULL))
+		if (vips_cast(in, &t[1], format, NULL))
 			return -1;
+		in = t[1];
 	}
-	else {
-		t[0] = in;
-		g_object_ref(t[0]);
-	}
-	in = t[0];
 
 	out = vips_image_new();
 	if (vips_image_pipelinev(out,

@@ -372,8 +372,7 @@ vips_col_scRGB2sRGB_16(float R, float G, float B,
 {
 	vips_col_make_tables_RGB_16();
 
-	return vips_col_scRGB2sRGB(65536, vips_Y2v_16,
-		R, G, B, r, g, b, og);
+	return vips_col_scRGB2sRGB(65536, vips_Y2v_16, R, G, B, r, g, b, og);
 }
 
 /* Turn scRGB into BW. Return or=1 for out of gamut - g will contain an

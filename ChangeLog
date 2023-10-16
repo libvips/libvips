@@ -30,6 +30,7 @@
 - threaded write in tiffsave for tiled JPEG and JPEG2000 [jcupitt]
 - add vips_thread_execute() to the public API [jcupitt]
 - add "keep" flag to foreign savers, deprecate "strip" [a3mar]
+- improve scRGB handling [jcupitt]
 
 18/9/23 8.14.5
 

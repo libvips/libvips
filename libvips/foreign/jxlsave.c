@@ -66,6 +66,8 @@
  * - add animation support
  *
  * - libjxl is currently missing error messages (I think)
+ *
+ * - add support encoding images with > 4 bands.
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
@@ -226,7 +228,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 #ifdef HAVE_LIBJXL_0_7
 	JxlEncoderFrameSettings *frame_settings;
@@ -281,6 +283,17 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	if (vips_cast(in, &t[0], format, NULL))
 		return -1;
 	in = t[0];
+
+	/* Mimics VIPS_SAVEABLE_RGBA.
+	 * FIXME: add support encoding images with > 4 bands.
+	 */
+	if (in->Bands > 4) {
+		if (vips_extract_band(in, &t[1], 0,
+				"n", 4,
+				NULL))
+			return -1;
+		in = t[1];
+	}
 
 	JxlEncoderInitBasicInfo(&jxl->info);
 
@@ -523,9 +536,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 
 	foreign_class->suffs = vips__jxl_suffs;
 
-	/* This lets throuigh scRGB too, which we then save as jxl float.
-	 */
-	save_class->saveable = VIPS_SAVEABLE_RGBA;
+	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT(class, "tier", 10,
