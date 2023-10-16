@@ -65,8 +65,6 @@ popd
 
 # libheif
 pushd $SRC/libheif
-# Ensure libvips finds heif_image_handle_get_raw_color_profile
-sed -i '/^Libs.private:/s/$/ -lc++/' libheif.pc.in
 cmake \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX=$WORK \
