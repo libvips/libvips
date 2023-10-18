@@ -14,11 +14,9 @@ We need to thank lovell, kleisauke, miltoncandelero, MathemanFlo,
 donghuikugou, jcupitt, DarthSim, shado23, a3mar, and others for their great
 work on this release.
 
-Changes for this release:
-
 # Performance improvements
 
-Traditionally, libvips relied on [liborc's runtime compiler](
+Traditionally, libvips has relied on [liborc's runtime compiler](
 https://gitlab.freedesktop.org/gstreamer/orc)
 to dynamically generate optimised SIMD/vector code specifically for the target
 architecture. However, maintaining this code proved challenging, and it didn't
