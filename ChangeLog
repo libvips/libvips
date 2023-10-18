@@ -1,4 +1,4 @@
-10/1/23 started 8.15
+18/10/23 8.15.0-rc1
 
 - add support for target_clones attribute [lovell]
 	* use with (un)premultiply for ~10% perf gain on AVX CPUs
