@@ -16,7 +16,7 @@ work on this release.
 
 Changes for this release:
 
-# SIMD optimisations
+# Performance improvements
 
 Traditionally, libvips relied on [liborc's runtime compiler](
 https://gitlab.freedesktop.org/gstreamer/orc)
@@ -41,23 +41,11 @@ remain available as a fallback whenever Highway is unavailable.
 Additionally, for x86/x86-64 targets, a couple of functions are now marked
 with the `target_clones` attribute to improve performance on AVX CPUs by ~10%.
 
-# New operators
-
-We've added two new edge detectors,
-[`vips_scharr()`](/API/current/libvips-convolution.html#vips-scharr) and
-[`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt), and
-improved the accuracy of `vips_sobel()`.
-
-# Shrink performance
-
 An improvement to the shrink operators has allowed a dramatic speedup in
 edge cases where there was upstream coordinate transformation. Performance
-should now be more predictable.
+should now be more predictable in these cases.
 
 # Image load and save improvements
-
-There have been a lot of useful improvements to the image load and save
-systems.
 
 There are two improvements to all loaders and savers. First, you can pass a
 `revalidate` flag to all loaders which will make them bypass the libvips cache
@@ -74,6 +62,8 @@ $ vips copy k2.tif x.jpg[keep=icc:exif]
 
 Will copy a JPEG image, keep any ICC profile and EXIF metadata, but delete
 everything else, such as XMP and IPTC. Use `keep=none` to remove everything.
+This new colon syntax for flag options works everywhere, including in language
+bindings.
 
 We've added a new `bitdepth` metadata item which all loaders and savers
 now support, and deprecated the old `palette-bit-depth` and `heif-bitdepth`
@@ -145,15 +135,17 @@ tile save.
 We've made another improvement to `dzsave`: it now uses a better ZIP write
 library, `libarchive`, which should improve portability.
 
-## **PDF**
+# General improvements
 
-PDF loading with PDFium now includes support for PDF forms, making it
-capable of rendering user-provided input in checkboxes and text fields.
-
-# General minor improvements
-
+* PDF loading with PDFium now includes support for PDF forms, making it
+  capable of rendering user-provided input in checkboxes and text fields.
+* We've added two new edge detectors,
+  [`vips_scharr()`](/API/current/libvips-convolution.html#vips-scharr) and
+  [`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt),
+  and improved the accuracy of
+  [`vips_sobel()`](/API/current/libvips-convolution.html#vips-sobel).  
 * [`vips_find_trim()`](/API/current/libvips-arithmetic.html#vips-find-trim)
   features a `line_art` option.
-* GIF load now sets `interlaced=1` for interlaced GIF images.
-* Improved C++ binding, taking advantage of C++11 features.
+* GIF load now sets `interlaced=1` for interlaced GIF images.  
+* Improved C++ binding, taking advantage of C++11 features.  
 * The built-in ICC profiles are replaced with ICC v4 variants.
