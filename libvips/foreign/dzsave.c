@@ -1147,7 +1147,6 @@ tile_name(Level *level, int x, int y)
 {
 	VipsForeignSaveDz *dz = level->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
-	const char *suffix = iszip(dz->container) ? dz->file_suffix : dz->suffix;
 
 	char *out;
 	char *dirname;
@@ -1159,7 +1158,7 @@ tile_name(Level *level, int x, int y)
 	switch (dz->layout) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
 		vips_snprintf(subdir, VIPS_PATH_MAX, "%d", level->n);
-		vips_snprintf(name, VIPS_PATH_MAX, "%d_%d%s", x, y, suffix);
+		vips_snprintf(name, VIPS_PATH_MAX, "%d_%d%s", x, y, dz->file_suffix);
 
 		break;
 
@@ -1182,7 +1181,7 @@ tile_name(Level *level, int x, int y)
 
 		vips_snprintf(subdir, VIPS_PATH_MAX, "TileGroup%d", n / 256);
 		vips_snprintf(name, VIPS_PATH_MAX,
-			"%d-%d-%d%s", level->n, x, y, suffix);
+			"%d-%d-%d%s", level->n, x, y, dz->file_suffix);
 
 		/* Used at the end in ImageProperties.xml
 		 */
@@ -1194,7 +1193,7 @@ tile_name(Level *level, int x, int y)
 		vips_snprintf(subdir, VIPS_PATH_MAX,
 			"%d" G_DIR_SEPARATOR_S "%d", level->n, y);
 		vips_snprintf(name, VIPS_PATH_MAX,
-			"%d%s", x, suffix);
+			"%d%s", x, dz->file_suffix);
 
 		break;
 
@@ -1245,7 +1244,7 @@ tile_name(Level *level, int x, int y)
 				rotation);
 		}
 
-		vips_snprintf(name, VIPS_PATH_MAX, "default%s", suffix);
+		vips_snprintf(name, VIPS_PATH_MAX, "default%s", dz->file_suffix);
 	}
 
 	break;
