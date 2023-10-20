@@ -505,6 +505,10 @@ if libheif_dep.found()
     if libheif_dep.version().version_compare('>=1.13.0')
         cfg_var.set('HAVE_HEIF_INIT', '1')
     endif
+    # heif_error_success added in 1.17.0
+    if libheif_dep.version().version_compare('>=1.17.0')
+        cfg_var.set('HAVE_HEIF_ERROR_SUCCESS', '1')
+    endif
 endif
 
 libjxl_dep = dependency('libjxl', version: '>=0.6', required: get_option('jpeg-xl'))
