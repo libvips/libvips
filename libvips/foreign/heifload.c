@@ -514,11 +514,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 		if( !length )
 			continue;
-		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
+		if( !(data = VIPS_ARRAY( NULL, length, unsigned char )) )
 			return( -1 );
 		error = heif_image_handle_get_metadata( 
 			heif->handle, id[i], data );
 		if( error.code ) {
+			VIPS_FREE( data );
 			vips__heif_error( &error );
 			return( -1 );
 		}
@@ -528,8 +529,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		 */
 		if( length > 4 &&
 			g_ascii_strcasecmp( type, "exif" ) == 0 ) {
-			data += 4;
 			length -= 4;
+			memmove( data, data + 4, length );
 		}
 
 		/* exif has a special name.
@@ -547,7 +548,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			vips_snprintf( name, 256, "heif-%s-%d", type, i );
 
 		vips_image_set_blob( out, name, 
-			(VipsCallbackFn) NULL, data, length );
+			(VipsCallbackFn) vips_area_free_cb, data, length );
 
 		/* image_set will automatically parse EXIF, if necessary.
 		 */
@@ -604,11 +605,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 		unsigned char *data;
 
-		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
+		if( !(data = VIPS_ARRAY( NULL, length, unsigned char )) )
 			return( -1 );
 		error = heif_image_handle_get_raw_color_profile( 
 			heif->handle, data );
 		if( error.code ) {
+			VIPS_FREE( data );
 			vips__heif_error( &error );
 			return( -1 );
 		}
@@ -618,7 +620,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 #endif /*DEBUG*/
 
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) NULL, data, length );
+			(VipsCallbackFn) vips_area_free_cb, data, length );
 	}
 	else if( profile_type == heif_color_profile_type_nclx ) {
 		g_warning( "heifload: ignoring nclx profile" );
