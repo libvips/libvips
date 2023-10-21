@@ -2202,22 +2202,15 @@ vips_foreign_save_dz_build(VipsObject *object)
 				return -1;
 		}
 
-		char *path;
-
 		// SZI needs an enclosing folder named after the image, according to
 		// the spec
-		if (dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI)
-			path = g_build_filename(dz->dirname, dz->imagename, NULL);
-		else
-			path = g_strdup(dz->dirname);
+		char *path = dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI
+			? dz->imagename
+			: "";
 
 		if (!(dz->archive = vips__archive_new_to_target(dz->target,
-				  path, dz->compression))) {
-			g_free(path);
+				  path, dz->compression)))
 			return -1;
-		}
-
-		g_free(path);
 	}
 	else {
 		if (!(dz->archive = vips__archive_new_to_dir(dz->dirname)))
