@@ -2131,7 +2131,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 			? dz->filename
 			: vips_connection_filename(VIPS_CONNECTION(dz->target));
 
-		if (!vips_object_argument_isset(object, "imagename") ||
+		if (!vips_object_argument_isset(object, "imagename") &&
 			!vips_object_argument_isset(object, "basename")) {
 			if (filename) {
 				dz->imagename = g_path_get_basename(filename);

@@ -1310,8 +1310,7 @@ class TestForeign:
         with open(filename, 'rb') as f:
             buf1 = f.read()
         buf2 = self.colour.dzsave_buffer(basename=root)
-        # won't be identical since tiles can be in a different order
-        assert abs(len(buf1) - len(buf2)) < 5000
+        assert len(buf1) == len(buf2)
 
         # we can't test the bytes are exactly equal -- the timestamp in
         # vips-properties.xml will be different
