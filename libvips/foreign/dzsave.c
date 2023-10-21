@@ -1280,7 +1280,7 @@ static gboolean
 region_tile_equal(VipsRegion *region, VipsRect *rect,
 	int threshold, VipsPel *restrict ink)
 {
-	int bytes = VIPS_REGION_SIZEOF_LINE(region);
+	int bytes = VIPS_REGION_SIZEOF_PEL(region);
 
 	int x, y, b;
 
