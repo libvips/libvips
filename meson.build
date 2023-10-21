@@ -379,8 +379,8 @@ if libtiff_dep.found()
     endif
 endif
 
-# 2.48 is the first version to not use libcroco, an unmaintained CSS parser
-librsvg_dep = dependency('librsvg-2.0', version: '>=2.48.0', required: get_option('rsvg'))
+# 2.40.3 so we get the UNLIMITED open flag
+librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_option('rsvg'))
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
 librsvg_found = librsvg_dep.found() and cairo_dep.found()
 if librsvg_found
@@ -504,6 +504,10 @@ if libheif_dep.found()
     # heif_init in 1.13
     if libheif_dep.version().version_compare('>=1.13.0')
         cfg_var.set('HAVE_HEIF_INIT', '1')
+    endif
+    # heif_error_success added in 1.17.0
+    if libheif_dep.version().version_compare('>=1.17.0')
+        cfg_var.set('HAVE_HEIF_ERROR_SUCCESS', '1')
     endif
 endif
 

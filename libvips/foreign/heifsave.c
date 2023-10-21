@@ -465,10 +465,16 @@ vips_foreign_save_heif_write(struct heif_context *ctx,
 
 	struct heif_error error;
 
+#ifdef HAVE_HEIF_ERROR_SUCCESS
+	error = heif_error_success;
+#else
 	error.code = heif_error_Ok;
+#endif /*HAVE_HEIF_ERROR_SUCCESS*/
+
 	if (vips_target_write(heif->target, data, length)) {
 		error.code = heif_error_Encoding_error;
 		error.subcode = heif_suberror_Cannot_write_output_data;
+		error.message = "Cannot write output data";
 	}
 
 	return error;
