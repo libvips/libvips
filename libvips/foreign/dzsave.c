@@ -1147,7 +1147,6 @@ tile_name(Level *level, int x, int y)
 {
 	VipsForeignSaveDz *dz = level->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
-	const char *suffix = iszip(dz->container) ? dz->file_suffix : dz->suffix;
 
 	char *out;
 	char *dirname;
@@ -1159,7 +1158,7 @@ tile_name(Level *level, int x, int y)
 	switch (dz->layout) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
 		vips_snprintf(subdir, VIPS_PATH_MAX, "%d", level->n);
-		vips_snprintf(name, VIPS_PATH_MAX, "%d_%d%s", x, y, suffix);
+		vips_snprintf(name, VIPS_PATH_MAX, "%d_%d%s", x, y, dz->file_suffix);
 
 		break;
 
@@ -1182,7 +1181,7 @@ tile_name(Level *level, int x, int y)
 
 		vips_snprintf(subdir, VIPS_PATH_MAX, "TileGroup%d", n / 256);
 		vips_snprintf(name, VIPS_PATH_MAX,
-			"%d-%d-%d%s", level->n, x, y, suffix);
+			"%d-%d-%d%s", level->n, x, y, dz->file_suffix);
 
 		/* Used at the end in ImageProperties.xml
 		 */
@@ -1194,7 +1193,7 @@ tile_name(Level *level, int x, int y)
 		vips_snprintf(subdir, VIPS_PATH_MAX,
 			"%d" G_DIR_SEPARATOR_S "%d", level->n, y);
 		vips_snprintf(name, VIPS_PATH_MAX,
-			"%d%s", x, suffix);
+			"%d%s", x, dz->file_suffix);
 
 		break;
 
@@ -1245,7 +1244,7 @@ tile_name(Level *level, int x, int y)
 				rotation);
 		}
 
-		vips_snprintf(name, VIPS_PATH_MAX, "default%s", suffix);
+		vips_snprintf(name, VIPS_PATH_MAX, "default%s", dz->file_suffix);
 	}
 
 	break;
@@ -1281,7 +1280,7 @@ static gboolean
 region_tile_equal(VipsRegion *region, VipsRect *rect,
 	int threshold, VipsPel *restrict ink)
 {
-	int bytes = VIPS_REGION_SIZEOF_LINE(region);
+	int bytes = VIPS_REGION_SIZEOF_PEL(region);
 
 	int x, y, b;
 
@@ -2132,7 +2131,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 			? dz->filename
 			: vips_connection_filename(VIPS_CONNECTION(dz->target));
 
-		if (!vips_object_argument_isset(object, "imagename") ||
+		if (!vips_object_argument_isset(object, "imagename") &&
 			!vips_object_argument_isset(object, "basename")) {
 			if (filename) {
 				dz->imagename = g_path_get_basename(filename);
@@ -2203,22 +2202,15 @@ vips_foreign_save_dz_build(VipsObject *object)
 				return -1;
 		}
 
-		char *path;
-
 		// SZI needs an enclosing folder named after the image, according to
 		// the spec
-		if (dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI)
-			path = g_build_filename(dz->dirname, dz->imagename, NULL);
-		else
-			path = g_strdup(dz->dirname);
+		char *path = dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI
+			? dz->imagename
+			: "";
 
 		if (!(dz->archive = vips__archive_new_to_target(dz->target,
-				  path, dz->compression))) {
-			g_free(path);
+				  path, dz->compression)))
 			return -1;
-		}
-
-		g_free(path);
 	}
 	else {
 		if (!(dz->archive = vips__archive_new_to_dir(dz->dirname)))
