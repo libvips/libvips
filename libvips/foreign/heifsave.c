@@ -261,6 +261,33 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 
 	return 0;
 }
+
+static int
+vips_foreign_save_heif_add_default_nclx(VipsForeignSaveHeif *heif)
+{
+	struct heif_color_profile_nclx *nclx;
+	struct heif_error error;
+
+	if (!(nclx = heif_nclx_color_profile_alloc())) {
+		g_warning("heifsave: can't allocate nclx profile");
+		return 0;
+	}
+
+	nclx->color_primaries = heif_color_primaries_ITU_R_BT_709_5;
+	nclx->transfer_characteristics = heif_transfer_characteristic_IEC_61966_2_1;
+	nclx->matrix_coefficients = heif_matrix_coefficients_ITU_R_BT_709_5;
+
+	error = heif_image_set_nclx_color_profile(heif->img, nclx);
+	if (error.code) {
+		heif_nclx_color_profile_free(nclx);
+		vips__heif_error(&error);
+		return -1;
+	}
+
+	heif_nclx_color_profile_free(nclx);
+
+	return 0;
+}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 static int
@@ -283,6 +310,8 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		if (vips_foreign_save_heif_add_orig_icc(heif))
 			return -1;
 	}
+	else
+		vips_foreign_save_heif_add_default_nclx(heif);
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 	options = heif_encoding_options_alloc();
