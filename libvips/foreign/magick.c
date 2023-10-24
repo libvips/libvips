@@ -75,7 +75,6 @@
  * * http://www.paulbourke.net/dataformats/tga/
  * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
  * * https://en.wikipedia.org/wiki/ISO_base_media_file_format#Technical_details
- * * http://lclevy.free.fr/cr2/
  */
 static const char *
 magick_sniff(const unsigned char *bytes, size_t length)
@@ -87,14 +86,6 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		bytes[3] == 0 &&
 		(bytes[4] != 0 || bytes[5] != 0))
 		return "ICO";
-
-	if (length >= 5 &&
-		bytes[0] == 0 &&
-		bytes[1] == 1 &&
-		bytes[2] == 0 &&
-		bytes[3] == 0 &&
-		bytes[4] == 0)
-		return "TTF";
 
 	if (length >= 18 &&
 		(bytes[1] == 0 ||
@@ -109,37 +100,14 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		memcmp(bytes + 4, "ftyp", 4) != 0)
 		return "TGA";
 
-	guint32 ifd_offset = 0;
-
-	/* Big-endian TIFF header
+	/* Try to search the internal magic list for a match.
 	 */
-	if (length >= 8 &&
-		bytes[0] == 'M' &&
-		bytes[1] == 'M' &&
-		bytes[2] == 0 &&
-		bytes[3] == 42)
-		ifd_offset = ((guint32) bytes[4] << 24) |
-			((guint32) bytes[5] << 16) |
-			((guint32) bytes[6] << 8) |
-			bytes[7];
+	ExceptionInfo *exception = magick_acquire_exception();
+	const MagicInfo *magic_info = GetMagicInfo(bytes, length, exception);
+	magick_destroy_exception(exception);
 
-	/* Little-endian TIFF header
-	 */
-	if (length >= 8 &&
-		bytes[0] == 'I' &&
-		bytes[1] == 'I' &&
-		bytes[2] == 42 &&
-		bytes[3] == 0)
-		ifd_offset = ((guint32) bytes[7] << 24) |
-			((guint32) bytes[6] << 16) |
-			((guint32) bytes[5] << 8) |
-			bytes[4];
-
-	if (length >= 10 &&
-		ifd_offset >= 6 &&
-		bytes[8] == 'C' &&
-		bytes[9] == 'R')
-		return "CR2";
+	if (magic_info != NULL)
+		return GetMagicName(magic_info);
 
 	return NULL;
 }
