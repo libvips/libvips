@@ -106,7 +106,7 @@ magick_sniff(const unsigned char *bytes, size_t length)
 	const MagicInfo *magic_info = GetMagicInfo(bytes, length, exception);
 	magick_destroy_exception(exception);
 
-	if (magic_info != NULL)
+	if (magic_info)
 		return GetMagicName(magic_info);
 
 	return NULL;
