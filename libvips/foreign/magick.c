@@ -100,6 +100,7 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		memcmp(bytes + 4, "ftyp", 4) != 0)
 		return "TGA";
 
+#if defined(HAVE_GETMAGICINFO) || defined(HAVE_MAGICK7)
 	/* Try to search the internal magic list for a match.
 	 */
 	ExceptionInfo *exception = magick_acquire_exception();
@@ -108,6 +109,7 @@ magick_sniff(const unsigned char *bytes, size_t length)
 
 	if (magic_info)
 		return GetMagicName(magic_info);
+#endif
 
 	return NULL;
 }
