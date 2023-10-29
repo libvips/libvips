@@ -26,15 +26,15 @@ Additionally, it lacked support for newer instruction sets like AVX2 and
 AVX-512, and the vector paths of liborc didn't match the precision of the C
 paths.
 
-In 8.15, we've optimised various operations by leveraging [Highway](
-https://github.com/google/highway), a C++ library with carefully-chosen
-functions that map well to CPU instructions without extensive compiler
-transformations. Highway supports five architectures, allowing our code to
-target various instruction sets, including those with 'scalable' vectors
-(size unknown at compile time). At runtime, dynamic dispatch selects the best
-available implementation based on the processor's capabilities, ensuring
-optimal performance. While Highway is our preferred choice, the liborc paths
-remain available as a fallback whenever Highway is unavailable.
+In 8.15, we've used [Highway](https://github.com/google/highway) to
+reimplement vector paths in many operation. Highway is a C++ library with
+carefully-chosen functions that map well to CPU instructions without extensive
+compiler transformations. Highway supports five architectures, allowing our
+code to target various instruction sets, including those with 'scalable'
+vectors (size unknown at compile time). At runtime, dynamic dispatch selects
+the best available implementation based on the processor's capabilities,
+ensuring optimal performance. While Highway is our preferred choice, the
+liborc paths remain available as a fallback whenever Highway is unavailable.
 
 Additionally, for x86/x86-64 targets, a couple of functions are now marked
 with the `target_clones` attribute to improve performance on AVX CPUs by ~10%.
@@ -43,7 +43,7 @@ An improvement to the shrink operators has allowed a dramatic speedup in
 edge cases where there was upstream coordinate transformation. Performance
 should now be more predictable in these cases.
 
-# Image load and save improvements
+# General image load and save improvements
 
 There are two improvements to all loaders and savers. First, you can pass a
 `revalidate` flag to all loaders which will make them bypass the libvips cache
@@ -71,7 +71,7 @@ fields.
 
 libvips used to rely on libtiff to manage write of compressed tiles. This
 meant that the selected compression library (libjpeg, perhaps) would run
-inside the libtiff lock, and compression was therefore single-threaded.
+inside libtiff, and was therefore single-threaded.
 
 In libvips 8.15, we've taken over control of JPEG and JPEG2000 compression
 and we now do this ourselves in parallel, leaving only the raw tile
@@ -146,4 +146,5 @@ library, `libarchive`, which should improve portability.
   features a `line_art` option.
 * GIF load now sets `interlaced=1` for interlaced GIF images.  
 * Improved C++ binding, taking advantage of C++11 features.  
-* The built-in ICC profiles are replaced with ICC v4 variants.
+* The built-in ICC profiles have been replaced with smaller and more accurate 
+  ICC v4 variants.
