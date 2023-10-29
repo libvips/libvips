@@ -2027,6 +2027,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 	else if (!vips_object_argument_isset(object, "depth"))
 		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
 
+	/* We don't support onepixel pyramids in gmaps mode. It doesn't make a lot
+	 * of sense anyway, since gmaps tiles are never clipped, so you can't have
+	 * a 1x1 pixel tile.
+	 */
+	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		dz->depth == VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL)
+		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
+
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_parent_class)->build(object))
 		return -1;
 
