@@ -236,6 +236,7 @@ vips_embed_base_gen(VipsRegion *out_region,
 	int i;
 	VipsPel *p;
 	int plsk;
+	int ink;
 
 	/* Entirely within the input image? Generate the subimage and copy
 	 * pointers.
@@ -274,11 +275,14 @@ vips_embed_base_gen(VipsRegion *out_region,
 	case VIPS_EXTEND_WHITE:
 		VIPS_GATE_START("vips_embed_base_gen: work1");
 
+		ink = base->extend == VIPS_EXTEND_BLACK
+			? 0
+			: (int) vips_interpretation_max_alpha(base->in->Type);
+
 		/* Paint the borders a solid value.
 		 */
 		for (i = 0; i < 8; i++)
-			vips_region_paint(out_region, &base->border[i],
-				base->extend == 0 ? 0 : 255);
+			vips_region_paint(out_region, &base->border[i], ink);
 
 		VIPS_GATE_STOP("vips_embed_base_gen: work1");
 
