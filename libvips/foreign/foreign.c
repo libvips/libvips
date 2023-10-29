@@ -1915,14 +1915,14 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 		G_STRUCT_OFFSET(VipsForeignSave, page_height),
 		0, VIPS_MAX_COORD, 0);
 
-	VIPS_ARG_STRING(class, "profile", 11,
+	VIPS_ARG_STRING(class, "profile", 103,
 		_("Profile"),
 		_("Filename of ICC profile to embed"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSave, profile),
 		NULL);
 
-	VIPS_ARG_BOOL(class, "strip", 103,
+	VIPS_ARG_BOOL(class, "strip", 104,
 		_("Strip"),
 		_("Strip all metadata from image"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
