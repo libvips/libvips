@@ -27,7 +27,7 @@ AVX-512, and the vector paths of liborc didn't match the precision of the C
 paths.
 
 In 8.15, we've used [Highway](https://github.com/google/highway) to
-reimplement vector paths in many operation. Highway is a C++ library with
+reimplement vector paths in many operations. Highway is a C++ library with
 carefully-chosen functions that map well to CPU instructions without extensive
 compiler transformations. Highway supports five architectures, allowing our
 code to target various instruction sets, including those with 'scalable'
