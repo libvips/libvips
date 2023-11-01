@@ -93,12 +93,8 @@ vips_find_trim_build(VipsObject *object)
 	 * for this interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "background"))
-		if (find_trim->in->Type == VIPS_INTERPRETATION_GREY16 ||
-			find_trim->in->Type == VIPS_INTERPRETATION_RGB16) {
-			vips_area_unref(VIPS_AREA(find_trim->background));
-			find_trim->background =
-				vips_array_double_newv(1, 65535.0);
-		}
+		find_trim->background = vips_array_double_newv(1,
+			vips_interpretation_max_alpha(find_trim->in->Type));
 
 	/* Flatten out alpha, if any.
 	 */
@@ -249,7 +245,6 @@ static void
 vips_find_trim_init(VipsFindTrim *find_trim)
 {
 	find_trim->threshold = 10;
-	find_trim->background = vips_array_double_newv(1, 255.0);
 }
 
 /**
