@@ -107,6 +107,7 @@ EOF
 #include <fpdfview.h>
 #include <fpdf_doc.h>
 #include <fpdf_edit.h>
+#include <fpdf_flatten.h>
 
 #define TILE_SIZE (4000)
 
@@ -342,6 +343,9 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
+		pdf->page = FPDF_LoadPage( pdf->doc, page_no );
+		FPDFPage_Flatten(pdf->page, FLAT_PRINT);
+		FPDF_ClosePage(pdf->page);
 		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
 			g_mutex_unlock( vips_pdfium_mutex );
 			vips_pdfium_error();
