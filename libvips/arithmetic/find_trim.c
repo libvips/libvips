@@ -92,13 +92,9 @@ vips_find_trim_build(VipsObject *object)
 	/* Is "background" unset? Default to the correct value
 	 * for this interpretation.
 	 */
-	if (!vips_object_argument_isset(object, "background")) {
-		double max_val = vips_interpretation_max_alpha(find_trim->in->Type);
-		if (max_val != 255.0) {
-			vips_area_unref(VIPS_AREA(find_trim->background));
-			find_trim->background = vips_array_double_newv(1, max_val);
-		}
-	}
+	if (!vips_object_argument_isset(object, "background"))
+		find_trim->background = vips_array_double_newv(1,
+			vips_interpretation_max_alpha(find_trim->in->Type));
 
 	/* Flatten out alpha, if any.
 	 */
@@ -249,7 +245,6 @@ static void
 vips_find_trim_init(VipsFindTrim *find_trim)
 {
 	find_trim->threshold = 10;
-	find_trim->background = vips_array_double_newv(1, 255.0);
 }
 
 /**
