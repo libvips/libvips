@@ -287,8 +287,10 @@ vips__link_map(VipsImage *image, gboolean upstream,
  */
 void
 vips__demand_hint_array(VipsImage *image,
-	VipsDemandStyle hint, VipsImage **in)
+	int int_hint, VipsImage **in)
 {
+	VipsDemandStyle hint = (VipsDemandStyle) int_hint;
+
 	int i, len, nany;
 	VipsDemandStyle set_hint;
 
