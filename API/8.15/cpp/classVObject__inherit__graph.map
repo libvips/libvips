@@ -1,8 +1,13 @@
 <map id="VObject" name="VObject">
-<area shape="rect" id="node1" title=" " alt="" coords="230,5,303,31"/>
-<area shape="rect" id="node2" href="$classVImage.html" title=" " alt="" coords="5,79,77,104"/>
-<area shape="rect" id="node3" href="$classVInterpolate.html" title=" " alt="" coords="102,79,205,104"/>
-<area shape="rect" id="node4" href="$classVRegion.html" title=" " alt="" coords="229,79,305,104"/>
-<area shape="rect" id="node5" href="$classVSource.html" title=" " alt="" coords="329,79,404,104"/>
-<area shape="rect" id="node6" href="$classVTarget.html" title=" " alt="" coords="429,79,499,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="228,5,300,33"/>
+<area shape="rect" id="Node000002" href="$classVImage.html" title=" " alt="" coords="5,81,77,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,40,78,84,76,79,212,35"/>
+<area shape="rect" id="Node000003" href="$classVInterpolate.html" title=" " alt="" coords="101,81,202,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,44,173,83,170,78,230,39"/>
+<area shape="rect" id="Node000004" href="$classVRegion.html" title=" " alt="" coords="226,81,301,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="266,48,266,81,261,81,261,48"/>
+<area shape="rect" id="Node000005" href="$classVSource.html" title=" " alt="" coords="325,81,400,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="294,40,346,78,343,83,291,44"/>
+<area shape="rect" id="Node000006" href="$classVTarget.html" title=" " alt="" coords="423,81,494,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="313,36,425,78,423,83,311,41"/>
 </map>

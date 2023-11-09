@@ -1,4 +1,5 @@
 <map id="VError" name="VError">
-<area shape="rect" id="node1" title=" " alt="" coords="31,79,94,104"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,120,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="31,81,93,109"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,119,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="65,48,65,81,59,81,59,48"/>
 </map>

@@ -49,5 +49,3 @@ if File.directory? "#{ARGV[0]}/share/doc/vips-doc/html"
     copy_html "#{ARGV[0]}/share/doc/vips-doc/html",
         "API/#{version}/cpp", "cpp-default.html"
 end
-
-
