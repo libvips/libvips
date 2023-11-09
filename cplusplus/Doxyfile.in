@@ -16,7 +16,7 @@ INPUT                  = @DOXY_INPUT_DIRECTORY@/README.md \
                          @DOXY_INPUT_DIRECTORY@/include/vips/VInterpolate8.h \
                          @DOXY_INPUT_DIRECTORY@/include/vips/VRegion8.h \
                          @DOXY_INPUT_DIRECTORY@/include/vips/vips8
-USE_MDFILE_AS_MAINPAGE = README.md
+USE_MDFILE_AS_MAINPAGE = @DOXY_INPUT_DIRECTORY@/README.md
 GENERATE_LATEX         = NO
 HAVE_DOT               = YES
 DOT_IMAGE_FORMAT       = svg
