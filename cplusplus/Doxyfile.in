@@ -2,7 +2,6 @@ PROJECT_NAME           = vips-cpp
 PROJECT_NUMBER         = @VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
 PROJECT_BRIEF          = "libvips C++ binding"
 OUTPUT_DIRECTORY       = @DOXY_OUTPUT_DIRECTORY@
-TAB_SIZE               = 8
 QUIET                  = YES
 INPUT                  = @DOXY_INPUT_DIRECTORY@/README.md \
                          @DOXY_INPUT_DIRECTORY@/VConnection.cpp \
