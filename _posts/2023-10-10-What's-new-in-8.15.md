@@ -2,7 +2,7 @@
 title: What's new in libvips 8.15
 ---
 
-libvips 8.15 is almost done, so here's a summary of what's new. Check the
+libvips 8.15 is now done, so here's a summary of what's new. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
