@@ -100,6 +100,13 @@ extern "C" {
 #define VIPS_META_BITS_PER_SAMPLE "bits-per-sample"
 
 /**
+ * VIPS_META_PALETTE:
+ *
+ * Does this image have a palette?
+ */
+#define VIPS_META_PALETTE "palette"
+
+/**
  * VIPS_META_LOADER:
  *
  * Record the name of the original loader here. Handy for hinting file formats
