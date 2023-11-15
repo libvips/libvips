@@ -948,7 +948,7 @@ vips_line_cache_build(VipsObject *object)
 	 * tile boundary.
 	 */
 	block_cache->max_tiles = VIPS_MAX(2,
-		4 * n_lines / block_cache->tile_height);
+			2 * n_lines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG("vips_line_cache_build: n_lines = %d\n",
 		n_lines);

@@ -25,6 +25,8 @@
  * 	- deprecate @trace, @access now seq is much simpler
  * 6/9/21
  * 	- don't set "persistent", it can cause huge memory use
+ * 15/11/23
+ *	- order threads by allocation number
  */
 
 /*
