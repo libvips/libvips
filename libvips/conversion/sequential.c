@@ -152,7 +152,7 @@ vips_sequential_generate(VipsRegion *out_region,
 	/* Stall until it's this thread's turn.
 	 */
 	while (allocation_number > sequential->allocation_number) {
-		g_cond_wait(sequential->stall, sequential->lock);
+		vips__worker_cond_wait(sequential->stall, sequential->lock);
 
 		/* An error might have occurred while we were sleeping.
 		 */

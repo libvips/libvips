@@ -479,6 +479,18 @@ vips__worker_lock(GMutex *mutex)
 		g_atomic_int_add(&worker->pool->n_waiting, -1);
 }
 
+void
+vips__worker_cond_wait(GCond *cond, GMutex *mutex)
+{
+	VipsWorker *worker = (VipsWorker *) g_private_get(worker_key);
+
+	if (worker)
+		g_atomic_int_add(&worker->pool->n_waiting, 1);
+	g_cond_wait(cond, mutex);
+	if (worker)
+		g_atomic_int_add(&worker->pool->n_waiting, -1);
+}
+
 /* Sequential uses this to get the allocation number for request ordering.
  */
 int

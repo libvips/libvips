@@ -53,6 +53,7 @@
 
 #include <vips/vips.h>
 #include <vips/thread.h>
+#include <vips/internal.h>
 
 void
 vips_semaphore_init(VipsSemaphore *s, int v, char *name)
@@ -109,7 +110,7 @@ vips_semaphore_up(VipsSemaphore *s)
 	return vips_semaphore_upn(s, 1);
 }
 
-/* Wait for sem>n, then subtract n.
+/* Wait for sem > n, then subtract n.
  * Returns -1 when the monotonic time in @end_time was passed.
  */
 static int
@@ -123,7 +124,7 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 
 	while (s->v < n) {
 		if (end_time == -1)
-			g_cond_wait(s->cond, s->mutex);
+			vips__worker_cond_wait(s->cond, s->mutex);
 		else if (!g_cond_wait_until(s->cond, s->mutex, end_time)) {
 			/* timeout has passed.
 			 */
