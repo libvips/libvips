@@ -1,3 +1,7 @@
+master 8.16
+
+- switch to thread ordering by allocation number
+
 11/11/23 8.15.0
 
 - add support for target_clones attribute [lovell]

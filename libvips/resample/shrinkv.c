@@ -437,26 +437,6 @@ vips_shrinkv_build(VipsObject *object)
 
 	in = t[2];
 
-	/* Large vshrinks will throw off sequential mode. Suppose thread1 is
-	 * generating tile (0, 0), but stalls. thread2 generates tile
-	 * (0, 1), 128 lines further down the output. After it has done,
-	 * thread1 tries to generate (0, 0), but by then the pixels it needs
-	 * have gone from the input image line cache if the vshrink is large.
-	 *
-	 * To fix this, put another seq on the output of vshrink. Now we'll
-	 * always have the previous XX lines of the shrunk image, and we won't
-	 * fetch out of order.
-	 */
-	if (vips_image_is_sequential(in)) {
-		g_info("shrinkv sequential line cache");
-
-		if (vips_sequential(in, &t[3],
-				"tile_height", 10,
-				NULL))
-			return -1;
-		in = t[3];
-	}
-
 	if (vips_image_write(in, resample->out))
 		return -1;
 

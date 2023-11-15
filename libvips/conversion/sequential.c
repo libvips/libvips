@@ -82,12 +82,16 @@ typedef struct _VipsSequential {
 	VipsAccess access;
 	gboolean trace;
 
-	/* Lock access to y_pos with this.
+	/* Lock access to allocate_number with this.
 	 */
 	GMutex *lock;
 
-	/* The next read from our source will fetch this scanline, ie. it's 0
-	 * when we start.
+	/* The next allocate_number we let through.
+	 */
+	int allocation_number;
+
+	/* The last y position we saw ... we issue extra requests for gaps in
+	 * allocation.
 	 */
 	int y_pos;
 
@@ -95,6 +99,10 @@ typedef struct _VipsSequential {
 	 * can stall and never wake.
 	 */
 	int error;
+
+	/* Ahead threads stall on this.
+	 */
+	GCond *stall;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
@@ -107,6 +115,7 @@ vips_sequential_dispose(GObject *gobject)
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
 	VIPS_FREEF(vips_g_mutex_free, sequential->lock);
+	VIPS_FREEF(vips_g_cond_free, sequential->stall);
 
 	G_OBJECT_CLASS(vips_sequential_parent_class)->dispose(gobject);
 }
@@ -118,6 +127,7 @@ vips_sequential_generate(VipsRegion *out_region,
 	VipsSequential *sequential = (VipsSequential *) b;
 	VipsRect *r = &out_region->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
+	int allocation_number = vips__worker_get_allocation_number();
 
 	if (sequential->trace)
 		printf("vips_sequential_generate %p: "
@@ -135,6 +145,19 @@ vips_sequential_generate(VipsRegion *out_region,
 	if (sequential->error) {
 		g_mutex_unlock(sequential->lock);
 		return -1;
+	}
+
+	/* Stall until it's this thread's turn.
+	 */
+	while (allocation_number > sequential->allocation_number) {
+		g_cond_wait(sequential->stall, sequential->lock);
+
+		/* An error might have occurred while we were sleeping.
+		 */
+		if (sequential->error) {
+			g_mutex_unlock(sequential->lock);
+			return -1;
+		}
 	}
 
 	if (r->top > sequential->y_pos) {
@@ -175,6 +198,12 @@ vips_sequential_generate(VipsRegion *out_region,
 
 	sequential->y_pos =
 		VIPS_MAX(sequential->y_pos, VIPS_RECT_BOTTOM(r));
+
+	/* Now we've moved on, wake up all stalled threads. They'll all test to
+	 * see if they are next, which is a bit inefficient.
+	 */
+	sequential->allocation_number += 1;
+	g_cond_broadcast(sequential->stall);
 
 	g_mutex_unlock(sequential->lock);
 
@@ -272,6 +301,7 @@ vips_sequential_init(VipsSequential *sequential)
 	sequential->tile_height = 1;
 	sequential->error = 0;
 	sequential->trace = FALSE;
+	sequential->stall = vips_g_cond_new();
 }
 
 /**

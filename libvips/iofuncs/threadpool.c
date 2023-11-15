@@ -240,6 +240,12 @@ typedef struct _VipsWorker {
 
 	gboolean stop;
 
+	/* The allocation number for this worker -- this is set by allocate as
+	 * work units are handed out, and vips_sequential() uses them to order
+	 * requests on input streams.
+	 */
+	int allocation_number;
+
 } VipsWorker;
 
 /* What we track for a group of threads working together.
@@ -286,6 +292,11 @@ typedef struct _VipsThreadpool {
 	 * (used to downsize the threadpool).
 	 */
 	int exit;
+
+	/* Counter we use to hand out allocationm numbers ... zero this before
+	 * each task.
+	 */
+	int allocation_number;
 } VipsThreadpool;
 
 static int
@@ -294,6 +305,8 @@ vips_worker_allocate(VipsWorker *worker)
 	VipsThreadpool *pool = worker->pool;
 
 	g_assert(!pool->stop);
+
+	worker->allocation_number = pool->allocation_number++;
 
 	if (!worker->state &&
 		!(worker->state = pool->start(pool->im, pool->a)))
@@ -307,9 +320,6 @@ vips_worker_allocate(VipsWorker *worker)
 
 /* Run this once per main loop. Get some work (single-threaded), then do it
  * (many-threaded).
- *
- * The very first workunit is also executed single-threaded. This gives
- * loaders a change to seek to the correct spot, see vips_sequential().
  */
 static void
 vips_worker_work_unit(VipsWorker *worker)
@@ -469,6 +479,16 @@ vips__worker_lock(GMutex *mutex)
 		g_atomic_int_add(&worker->pool->n_waiting, -1);
 }
 
+/* Sequential uses this to get the allocation number for request ordering.
+ */
+int
+vips__worker_get_allocation_number(void)
+{
+	VipsWorker *worker = (VipsWorker *) g_private_get(worker_key);
+
+	return worker ? worker->allocation_number : -1;
+}
+
 static void
 vips_threadpool_free(VipsThreadpool *pool)
 {
@@ -509,6 +529,7 @@ vips_threadpool_new(VipsImage *im)
 	pool->error = FALSE;
 	pool->stop = FALSE;
 	pool->exit = 0;
+	pool->allocation_number = 0;
 
 	/* If this is a tiny image, we won't need all max_workers threads.
 	 * Guess how
