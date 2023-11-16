@@ -233,6 +233,11 @@ int vips__archive_mkdir(VipsArchive *archive, const char *dirname);
 int vips__archive_mkfile(VipsArchive *archive,
 	const char *filename, void *buf, size_t len);
 
+extern const char *vips__pdf_suffs[];
+gboolean vips__pdf_is_a_buffer(const void *buf, size_t len);
+gboolean vips__pdf_is_a_file(const char *filename);
+gboolean vips__pdf_is_a_source(VipsSource *source);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
