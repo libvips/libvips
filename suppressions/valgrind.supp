@@ -50,7 +50,7 @@
    fun:_dl_init
 }
 
-# g_get_home_dir has a private buffer 
+# g_get_home_dir has a private buffer
 {
    gwd
    Memcheck:Leak
@@ -209,6 +209,14 @@
    fun:*alloc
    ...
    fun:gtk_module_init
+}
+
+# libheif init has some static data
+{
+   heif_init
+   Memcheck:Leak
+   ...
+   fun:heif_init
 }
 
 # gdk-x11 makes a toplevel object
@@ -399,7 +407,7 @@
 }
 
 
-# helgrind stuff ... run against glib-2.40.x or earlier, later glibs have 
+# helgrind stuff ... run against glib-2.40.x or earlier, later glibs have
 # their own mutex primitive which helgrind can't see
 
 {
