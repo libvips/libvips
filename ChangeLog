@@ -1,6 +1,7 @@
 master 8.16
 
-- switch to thread ordering by allocation number
+- allow small offsets for the PDF magic string [project0]
+- order threads by allocation number to maintain sequentiality [jcupitt]
 
 11/11/23 8.15.0
 
