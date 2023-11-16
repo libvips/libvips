@@ -25,8 +25,6 @@
  * 	- deprecate @trace, @access now seq is much simpler
  * 6/9/21
  * 	- don't set "persistent", it can cause huge memory use
- * 15/11/23
- *	- order threads by allocation number
  */
 
 /*
@@ -102,9 +100,9 @@ typedef struct _VipsSequential {
 	 */
 	int error;
 
-	/* Ahead threads stall on this.
+	/* Ahead threads queue up here, hashed from their allocation number.
 	 */
-	GCond *stall;
+	GHashTable *waiting;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
@@ -117,18 +115,60 @@ vips_sequential_dispose(GObject *gobject)
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
 	VIPS_FREEF(vips_g_mutex_free, sequential->lock);
-	VIPS_FREEF(vips_g_cond_free, sequential->stall);
+	g_assert(g_hash_table_size(sequential->waiting) == 0);
+	VIPS_FREEF(g_hash_table_destroy, sequential->waiting);
 
 	G_OBJECT_CLASS(vips_sequential_parent_class)->dispose(gobject);
 }
 
+/* Per thread state.
+ */
+typedef struct _VipsSequentialSeq {
+	VipsSequential *sequential;
+
+	VipsRegion *region;
+
+	/* Sleep on this if we're out of order.
+	 */
+	GCond *stall;
+
+} VipsSequentialSeq;
+
+static void *
+vips_sequential_start(VipsImage *out, void *a, void *b)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsSequential *sequential = (VipsSequential *) b;
+
+	VipsSequentialSeq *seq;
+
+	if (!(seq = VIPS_NEW(out, VipsSequentialSeq)))
+		return NULL;
+	seq->sequential = sequential;
+	seq->region = vips_region_new(in);
+	seq->stall = vips_g_cond_new();
+
+	return (void *) seq;
+}
+
+static int
+vips_sequential_stop(void *vseq, void *a, void *b)
+{
+	VipsSequentialSeq *seq = (VipsSequentialSeq *) vseq;
+
+	VIPS_UNREF(seq->region);
+	VIPS_FREEF(vips_g_cond_free, seq->stall);
+
+	return 0;
+}
+
 static int
 vips_sequential_generate(VipsRegion *out_region,
-	void *seq, void *a, void *b, gboolean *stop)
+	void *vseq, void *a, void *b, gboolean *stop)
 {
 	VipsSequential *sequential = (VipsSequential *) b;
+	VipsSequentialSeq *seq = (VipsSequentialSeq *) vseq;
 	VipsRect *r = &out_region->valid;
-	VipsRegion *ir = (VipsRegion *) seq;
 	int allocation_number = vips__worker_get_allocation_number();
 
 	if (sequential->trace)
@@ -149,16 +189,25 @@ vips_sequential_generate(VipsRegion *out_region,
 		return -1;
 	}
 
-	/* Stall until it's this thread's turn.
+	/* Are we ready for this thread? If not, add ourselves to the waiting
+	 * table and sleep.
 	 */
-	while (allocation_number > sequential->allocation_number) {
-		vips__worker_cond_wait(sequential->stall, sequential->lock);
+	if (allocation_number > sequential->allocation_number) {
+		printf("stalling allocation %d\n", allocation_number);
+		g_hash_table_insert(sequential->waiting,
+			&allocation_number, seq->stall);
+		printf("%d threads waiting\n", g_hash_table_size(sequential->waiting));
 
-		/* An error might have occurred while we were sleeping.
-		 */
-		if (sequential->error) {
-			g_mutex_unlock(sequential->lock);
-			return -1;
+		while(allocation_number != sequential->allocation_number) {
+			vips__worker_cond_wait(seq->stall, sequential->lock);
+			printf("%d wakes up\n", allocation_number);
+
+			/* An error might have occurred while we were sleeping.
+			 */
+			if (sequential->error) {
+				g_mutex_unlock(sequential->lock);
+				return -1;
+			}
 		}
 	}
 
@@ -170,16 +219,14 @@ vips_sequential_generate(VipsRegion *out_region,
 		 */
 		VipsRect area;
 
-		if (sequential->trace)
-			printf("vips_sequential_generate %p: "
-				   "skipping to line %d ...\n",
-				sequential, r->top);
+		printf("vips_sequential_generate %p: skipping to line %d ...\n",
+			sequential, r->top);
 
 		area.left = 0;
 		area.top = sequential->y_pos;
 		area.width = 1;
 		area.height = r->top - sequential->y_pos;
-		if (vips_region_prepare(ir, &area)) {
+		if (vips_region_prepare(seq->region, &area)) {
 			sequential->error = -1;
 			g_mutex_unlock(sequential->lock);
 			return -1;
@@ -191,8 +238,8 @@ vips_sequential_generate(VipsRegion *out_region,
 	/* This is a request for old or present pixels -- serve from cache.
 	 * This may trigger further, sequential reads.
 	 */
-	if (vips_region_prepare(ir, r) ||
-		vips_region_region(out_region, ir, r, r->left, r->top)) {
+	if (vips_region_prepare(seq->region, r) ||
+		vips_region_region(out_region, seq->region, r, r->left, r->top)) {
 		sequential->error = -1;
 		g_mutex_unlock(sequential->lock);
 		return -1;
@@ -200,12 +247,18 @@ vips_sequential_generate(VipsRegion *out_region,
 
 	sequential->y_pos =
 		VIPS_MAX(sequential->y_pos, VIPS_RECT_BOTTOM(r));
-
-	/* Now we've moved on, wake up all stalled threads. They'll all test to
-	 * see if they are next, which is a bit inefficient.
-	 */
 	sequential->allocation_number += 1;
-	g_cond_broadcast(sequential->stall);
+
+	/* Was a thread waiting for our new allocation number? Wake it up.
+	 */
+	GCond *stall = g_hash_table_lookup(sequential->waiting,
+		&sequential->allocation_number);
+	if (stall) {
+		g_hash_table_remove(sequential->waiting,
+				&sequential->allocation_number);
+		printf("signalling %d to wake\n", sequential->allocation_number);
+		g_cond_signal(stall);
+	}
 
 	g_mutex_unlock(sequential->lock);
 
@@ -245,7 +298,9 @@ vips_sequential_build(VipsObject *object)
 			VIPS_DEMAND_STYLE_THINSTRIP, t, NULL))
 		return -1;
 	if (vips_image_generate(conversion->out,
-			vips_start_one, vips_sequential_generate, vips_stop_one,
+			vips_sequential_start,
+			vips_sequential_generate,
+			vips_sequential_stop,
 			t, sequential))
 		return -1;
 
@@ -303,7 +358,7 @@ vips_sequential_init(VipsSequential *sequential)
 	sequential->tile_height = 1;
 	sequential->error = 0;
 	sequential->trace = FALSE;
-	sequential->stall = vips_g_cond_new();
+	sequential->waiting = g_hash_table_new(g_int_hash, g_int_equal);
 }
 
 /**

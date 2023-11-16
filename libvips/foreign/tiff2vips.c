@@ -1868,6 +1868,7 @@ static void *
 rtiff_seq_start(VipsImage *out, void *a, void *b)
 {
 	Rtiff *rtiff = (Rtiff *) a;
+
 	RtiffSeq *seq;
 
 	if (!(seq = VIPS_NEW(out, RtiffSeq)))
