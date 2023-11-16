@@ -193,14 +193,11 @@ vips_sequential_generate(VipsRegion *out_region,
 	 * table and sleep.
 	 */
 	if (allocation_number > sequential->allocation_number) {
-		printf("stalling allocation %d\n", allocation_number);
 		g_hash_table_insert(sequential->waiting,
 			&allocation_number, seq->stall);
-		printf("%d threads waiting\n", g_hash_table_size(sequential->waiting));
 
 		while(allocation_number != sequential->allocation_number) {
 			vips__worker_cond_wait(seq->stall, sequential->lock);
-			printf("%d wakes up\n", allocation_number);
 
 			/* An error might have occurred while we were sleeping.
 			 */
@@ -212,15 +209,12 @@ vips_sequential_generate(VipsRegion *out_region,
 	}
 
 	if (r->top > sequential->y_pos) {
-		/* This is a request for something some way down the image.
+		/* This is a request for something ahead of our read point.
 		 * Probably the operation is something like extract_area and
 		 * we should skip the initial part of the image. In fact,
 		 * we read to cache, since it may be useful.
 		 */
 		VipsRect area;
-
-		printf("vips_sequential_generate %p: skipping to line %d ...\n",
-			sequential, r->top);
 
 		area.left = 0;
 		area.top = sequential->y_pos;
@@ -235,8 +229,9 @@ vips_sequential_generate(VipsRegion *out_region,
 		sequential->y_pos = VIPS_RECT_BOTTOM(&area);
 	}
 
-	/* This is a request for old or present pixels -- serve from cache.
-	 * This may trigger further, sequential reads.
+	/* This is a request for old pixels, or for pixels exactly at the read
+	 * point. This might trigger a generate from the thing feeding the cache,
+	 * eg. the loader.
 	 */
 	if (vips_region_prepare(seq->region, r) ||
 		vips_region_region(out_region, seq->region, r, r->left, r->top)) {
@@ -247,17 +242,20 @@ vips_sequential_generate(VipsRegion *out_region,
 
 	sequential->y_pos =
 		VIPS_MAX(sequential->y_pos, VIPS_RECT_BOTTOM(r));
-	sequential->allocation_number += 1;
 
-	/* Was a thread waiting for our new allocation number? Wake it up.
+	/* Was this a read at the read point? There could be a thread waiting for
+	 * the next allocation.
 	 */
-	GCond *stall = g_hash_table_lookup(sequential->waiting,
-		&sequential->allocation_number);
-	if (stall) {
-		g_hash_table_remove(sequential->waiting,
-				&sequential->allocation_number);
-		printf("signalling %d to wake\n", sequential->allocation_number);
-		g_cond_signal(stall);
+	if (allocation_number == sequential->allocation_number) {
+		sequential->allocation_number += 1;
+
+		GCond *stall = g_hash_table_lookup(sequential->waiting,
+			&sequential->allocation_number);
+		if (stall) {
+			g_hash_table_remove(sequential->waiting,
+					&sequential->allocation_number);
+			g_cond_signal(stall);
+		}
 	}
 
 	g_mutex_unlock(sequential->lock);
