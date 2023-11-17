@@ -119,10 +119,10 @@ vips_sequential_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	if (sequential->trace)
-		printf("vips_sequential_generate %p: "
-			   "request for line %d, height %d\n",
-			sequential, r->top, r->height);
+	/*
+	printf("vips_sequential_generate %p: request for line %d, height %d\n",
+		sequential, r->top, r->height);
+	 */
 
 	VIPS_GATE_START("vips_sequential_generate: wait");
 
@@ -145,10 +145,10 @@ vips_sequential_generate(VipsRegion *out_region,
 		 */
 		VipsRect area;
 
-		if (sequential->trace)
-			printf("vips_sequential_generate %p: "
-				   "skipping to line %d ...\n",
-				sequential, r->top);
+		/*
+		printf("vips_sequential_generate %p: skipping to line %d ...\n",
+			sequential, r->top);
+		 */
 
 		area.left = 0;
 		area.top = sequential->y_pos;
@@ -163,8 +163,9 @@ vips_sequential_generate(VipsRegion *out_region,
 		sequential->y_pos = VIPS_RECT_BOTTOM(&area);
 	}
 
-	/* This is a request for old or present pixels -- serve from cache.
-	 * This may trigger further, sequential reads.
+	/* This is a request for old pixels, or for pixels exactly at the read
+	 * point. This might trigger a generate from the thing feeding the cache,
+	 * eg. a loader.
 	 */
 	if (vips_region_prepare(ir, r) ||
 		vips_region_region(out_region, ir, r, r->left, r->top)) {
