@@ -437,6 +437,21 @@ vips_shrinkv_build(VipsObject *object)
 
 	in = t[2];
 
+	/* Cache the output to reduce overcomputation.
+	if (vips_image_is_sequential(in)) {
+		g_info("shrinkv sequential line cache");
+
+		if (vips_linecache(in, &t[3],
+			"tile_height", 10,
+			//"threaded", TRUE,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			NULL))
+			return -1;
+
+		in = t[3];
+	}
+	 */
+
 	if (vips_image_write(in, resample->out))
 		return -1;
 

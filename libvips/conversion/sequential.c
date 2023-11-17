@@ -171,10 +171,10 @@ vips_sequential_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	int allocation_number = vips__worker_get_allocation_number();
 
-	if (sequential->trace)
-		printf("vips_sequential_generate %p: "
-			   "request for line %d, height %d\n",
-			sequential, r->top, r->height);
+	printf("vips_sequential_generate: allocation %d\n", allocation_number);
+
+	printf("vips_sequential_generate %p: request for line %d, height %d\n",
+		sequential, r->top, r->height);
 
 	VIPS_GATE_START("vips_sequential_generate: wait");
 
