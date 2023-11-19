@@ -382,11 +382,12 @@
    fun:gsk_renderer_render
 }
 
+# there are loads of these, but they are not our problem
 {
    iris1
    Memcheck:Leak
    match-leak-kinds: possible
-   fun:malloc
+   ...
    obj:/usr/lib/x86_64-linux-gnu/dri/iris_dri.so
 }
 
