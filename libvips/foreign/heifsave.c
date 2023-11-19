@@ -501,6 +501,13 @@ vips_foreign_save_heif_build(VipsObject *object)
 		!vips_object_argument_isset(object, "effort"))
 		heif->effort = 9 - heif->speed;
 
+	/* Disable chroma subsampling by default when the "lossless" param
+	 * is being used.
+	 */
+	if (vips_object_argument_isset(object, "lossless") &&
+		!vips_object_argument_isset(object, "subsample_mode"))
+		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+
 	/* Default 12 bit save for 16-bit images. HEIC (for example) implements
 	 * 8 / 10 / 12.
 	 */
