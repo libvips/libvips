@@ -7,7 +7,9 @@ import pytest
 
 import pyvips
 from helpers import \
-    IMAGES, JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
+    IMAGES, JPEG_FILE, SRGB_FILE, MATLAB_FILE, \
+    PNG_FILE, PNG_INDEXED_FILE, \
+    TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
     BMP_FILE, NIFTI_FILE, ICO_FILE, CUR_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
@@ -427,6 +429,7 @@ class TestForeign:
             assert im.height == 442
             assert im.bands == 3
             assert im.get("bits-per-sample") == 16
+            assert im.get_typeof("palette") == 0
 
         self.file_loader("pngload", PNG_FILE, png_valid)
         self.buffer_loader("pngload_buffer", PNG_FILE, png_valid)
@@ -435,6 +438,18 @@ class TestForeign:
         self.save_load("%s.png", self.colour)
         self.save_load_file(".png", "[interlace]", self.colour)
         self.save_load_file(".png", "[interlace]", self.mono)
+
+        def png_indexed_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [148.0, 131.0, 109.0])
+            assert im.width == 290
+            assert im.height == 442
+            assert im.bands == 3
+            assert im.get("bits-per-sample") == 8
+            assert im.get("palette") == 1
+
+        self.file_loader("pngload", PNG_INDEXED_FILE, png_indexed_valid)
+        self.buffer_loader("pngload_buffer", PNG_INDEXED_FILE, png_indexed_valid)
 
         # size of a regular mono PNG
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -1020,6 +1035,7 @@ class TestForeign:
         assert x2.get("background") == [81, 81, 81]
         assert x2.get("interlaced") == 1
         assert x2.get("bits-per-sample") == 4
+        assert x2.get("palette") == 1
 
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
         # our test gif has delay 0 for the first frame set in error
@@ -1027,6 +1043,7 @@ class TestForeign:
         assert x2.get("loop") == 32761
         assert x2.get("background") == [255, 255, 255]
         assert x2.get_typeof("interlaced") == 0
+        assert x2.get("palette") == 1
         # test deprecated fields too
         assert x2.get("gif-loop") == 32760
         assert x2.get("gif-delay") == 0
