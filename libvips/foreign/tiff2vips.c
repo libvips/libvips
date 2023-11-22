@@ -2241,23 +2241,17 @@ rtiff_read_rgba_tile(Rtiff *rtiff, int x, int y, tdata_t *buf)
 	if (!TIFFReadRGBATile(rtiff->tiff, x, y, u32_buf))
 		return -1;
 
-	/* For some reasons, TIFFReadRGBATile decodes tiles upside down,
-	 * so we need to flip them
+	/* For some reason TIFFReadRGBATile decodes tiles upside down,
+	 * so we need to flip them.
 	 */
 	guint32 tile_width = rtiff->header.tile_width;
 	guint32 tile_height = rtiff->header.tile_height;
 
-	int xx, yy;
-	guint32 t;
 	guint32 *up = u32_buf;
 	guint32 *down = u32_buf + (tile_height - 1) * tile_width;
-
-	for (yy = 0; yy < tile_height / 2; yy++) {
-		for (xx = 0; xx < tile_width; xx++) {
-			t = up[xx];
-			up[xx] = down[xx];
-			down[xx] = t;
-		}
+	for (int yy = 0; yy < tile_height / 2; yy++) {
+		for (int xx = 0; xx < tile_width; xx++) 
+			VIPS_SWAP(guint32, up[xx], down[xx]);
 
 		up += tile_width;
 		down -= tile_width;
@@ -2323,14 +2317,12 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 			return -1;
 		}
 
-		if (rtiff->header.read_as_rgba) {
-			if (rtiff_read_rgba_tile(rtiff, x, y, buf)) {
-				vips_foreign_load_invalidate(rtiff->out);
-				g_rec_mutex_unlock(&rtiff->lock);
-				return -1;
-			}
-		}
-		else if (TIFFReadTile(rtiff->tiff, buf, x, y, 0, 0) < 0) {
+		int result;
+		if (rtiff->header.read_as_rgba) 
+			result = rtiff_read_rgba_tile(rtiff, x, y, buf);
+		else 
+			result = TIFFReadTile(rtiff->tiff, buf, x, y, 0, 0) < 0;
+		if (result) { 
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
 			return -1;
@@ -3002,6 +2994,8 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 
 	header->read_as_rgba = FALSE;
 
+	/* TIFF images which can be read by TIFFRGBAImage or TIFFReadRGBATile.
+	 */
 	can_read_as_rgba =
 		(header->samples_per_pixel == 1 ||
 			header->samples_per_pixel == 3 ||
@@ -3015,14 +3009,15 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 	TIFFGetFieldDefaulted(rtiff->tiff,
 		TIFFTAG_COMPRESSION, &header->compression);
 
-	/* We'll decode old-style JPEG using TIFFRGBAImage or TIFFReadRGBATile
+	/* We'll decode old-style JPEG using the libtiff RGBA path.
 	 */
 	if (header->compression == COMPRESSION_OJPEG) {
-		if (!(header->read_as_rgba = can_read_as_rgba)) {
-			vips_error("tiff2vips",
-				"%s", _("unsupported tiff image type"));
+		if (!can_read_as_rgba) {
+			vips_error("tiff2vips", "%s", _("unsupported tiff image type"));
 			return -1;
 		}
+
+		header->read_as_rgba = TRUE;
 	}
 
 	/* One of the types we decompress?
@@ -3041,29 +3036,24 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 	 */
 	rtiff_set_decode_format(rtiff);
 
-	/* Request YCbCr expansion. libtiff complains if you do this for
-	 * non-jpg images. We must set this here since it changes the result
-	 * of scanline_size.
+	/* If there's YCbCr chroma subsampling and we're not already using one of
+	 * the JPEG decompressors, use the libtiff RGBA path.
 	 */
 	if (!header->read_as_rgba &&
 		header->compression != COMPRESSION_JPEG &&
 		header->photometric_interpretation == PHOTOMETRIC_YCBCR) {
-		/* We rely on the jpg decompressor to upsample chroma
-		 * subsampled images. If there is chroma subsampling but
-		 * no jpg compression, we have to give up.
-		 *
-		 * tiffcp fails for images like this too.
-		 */
 		guint16 hsub, vsub;
 
 		TIFFGetFieldDefaulted(rtiff->tiff,
 			TIFFTAG_YCBCRSUBSAMPLING, &hsub, &vsub);
 		if (hsub != 1 || vsub != 1) {
-			if (!(header->read_as_rgba = can_read_as_rgba)) {
+			if (!can_read_as_rgba) {
 				vips_error("tiff2vips",
 					"%s", _("subsampled images not supported"));
 				return -1;
 			}
+
+			header->read_as_rgba = TRUE;
 		}
 	}
 

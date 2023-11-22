@@ -1,6 +1,8 @@
 master 8.16
 
 - allow small offsets for the PDF magic string [project0]
+- add support for OJPEG tiffs [DarthSim]
+- add "indexed" metadata item to flag indexed images [DarthSim]
 
 11/11/23 8.15.0
 
