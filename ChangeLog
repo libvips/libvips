@@ -4,6 +4,10 @@ master 8.16
 - add support for OJPEG tiffs [DarthSim]
 - add "indexed" metadata item to flag indexed images [DarthSim]
 
+TBD 8.15.1
+
+- reduceh: fix Highway path on SSE2 [DarthSim]
+
 11/11/23 8.15.0
 
 - add support for target_clones attribute [lovell]
