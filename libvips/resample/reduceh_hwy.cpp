@@ -135,12 +135,12 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			auto source = LoadU(du8, p);
 			p += bands * 4;
 
-			auto pix = TableLookupBytes(source, shuf_lo);
+			auto pix = TableLookupBytesOr0(source, shuf_lo);
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk_lo, sum0,
 				/* byref */ sum1);
 
-			pix = TableLookupBytes(source, shuf_hi);
+			pix = TableLookupBytesOr0(source, shuf_hi);
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk_hi, sum0,
 				/* byref */ sum1);
@@ -153,7 +153,7 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 			auto source = LoadU(du8, p);
 			p += bands * 2;
 
-			auto pix = TableLookupBytes(source, shuf_lo);
+			auto pix = TableLookupBytesOr0(source, shuf_lo);
 
 			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk_lo, sum0,
 				/* byref */ sum1);
