@@ -827,7 +827,7 @@ vips_foreign_load_pdf_file_class_init(
 
 	foreign_class->suffs = vips__pdf_suffs;
 
-	load_class->is_a = vips__pdf__is_a_file;
+	load_class->is_a = vips__pdf_is_a_file;
 	load_class->header = vips_foreign_load_pdf_file_header;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -888,7 +888,7 @@ vips_foreign_load_pdf_buffer_class_init(
 	object_class->description = _("load PDF from buffer");
 	object_class->build = vips_foreign_load_pdf_buffer_build;
 
-	load_class->is_a_buffer = vips__pdf__is_a_buffer;
+	load_class->is_a_buffer = vips__pdf_is_a_buffer;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
@@ -948,7 +948,7 @@ vips_foreign_load_pdf_source_class_init(
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->is_a_source = vips__pdf__is_a_source;
+	load_class->is_a_source = vips__pdf_is_a_source;
 
 	VIPS_ARG_OBJECT(class, "source", 1,
 		_("Source"),
