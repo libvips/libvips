@@ -2,7 +2,8 @@ master 8.16
 
 - allow small offsets for the PDF magic string [project0]
 - add support for OJPEG tiffs [DarthSim]
-- add "indexed" metadata item to flag indexed images [DarthSim]
+- add "palette" metadata item to flag palette images [DarthSim]
+- jxl load and save now support exif, xmp, animation [DarthSim]
 
 TBD 8.15.1
 
