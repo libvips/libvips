@@ -455,7 +455,7 @@ libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('high
 if libhwy_dep.found()
     external_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', '1')
-    # 1.1.0 adds `InterleaveWhole{Lower,Upper}`
+    # 1.1.0 adds `InterleaveWhole{Lower,Upper}` and `Dup128VecFromValues`
     if libhwy_dep.version().version_compare('>=1.1.0')
         cfg_var.set('HAVE_HWY_1_1_0', '1')
     endif
