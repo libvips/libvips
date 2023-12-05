@@ -683,19 +683,13 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 
 	jpeg_set_defaults(cinfo);
 
+	// use RGB mode (no chroma subsample) for high Q
+	if (wtiff->Q >= 90)
+		jpeg_set_colorspace(cinfo, JCS_RGB);
+
 	/* Set compression quality. Must be called after setting params above.
 	 */
 	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
-
-	// disable chroma subsample for high Q
-	if (wtiff->Q >= 90) {
-		int i;
-
-		for (i = 0; i < image->Bands; i++) {
-			cinfo->comp_info[i].h_samp_factor = 1;
-			cinfo->comp_info[i].v_samp_factor = 1;
-		}
-	}
 
 	// Avoid writing the JFIF APP0 marker.
 	cinfo->write_JFIF_header = FALSE;
@@ -2332,58 +2326,14 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	if (TIFFGetField(in, TIFFTAG_PAGENUMBER, &ui16, &ui16_2))
 		TIFFSetField(out, TIFFTAG_PAGENUMBER, ui16, ui16_2);
 
-	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
-	 * Set explicitly from Wtiff.
+	unsigned char *buffer;
+	guint32 length;
+	if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &length, &buffer))
+		TIFFSetField(out, TIFFTAG_JPEGTABLES, length, buffer);
+
+	/* No need to set any of the pseudo tags that control compression since
+	 * we copy raw tiles.
 	 */
-	if (wtiff->compression == COMPRESSION_JPEG) {
-		unsigned char *buffer;
-		guint32 length;
-
-		TIFFSetField(out, TIFFTAG_JPEGQUALITY, wtiff->Q);
-
-		/* Only for three-band, 8-bit images.
-		 */
-		if (wtiff->ready->Bands == 3 &&
-			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR) {
-			/* Enable rgb->ycbcr conversion in the jpeg write.
-			 */
-			if (!wtiff->rgbjpeg &&
-				wtiff->Q < 90)
-				TIFFSetField(out,
-					TIFFTAG_JPEGCOLORMODE,
-					JPEGCOLORMODE_RGB);
-
-			/* And we want ycbcr expanded to rgb on read. Otherwise
-			 * TIFFTileSize() will give us the size of a chrominance
-			 * subsampled tile.
-			 */
-			TIFFSetField(in,
-				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB);
-		}
-
-		if (TIFFGetField(in, TIFFTAG_JPEGTABLES, &length, &buffer))
-			TIFFSetField(out, TIFFTAG_JPEGTABLES, length, buffer);
-	}
-
-#ifdef HAVE_TIFF_COMPRESSION_WEBP
-	/* More pseudotags we can't copy.
-	 */
-	if (wtiff->compression == COMPRESSION_WEBP) {
-		TIFFSetField(out, TIFFTAG_WEBP_LEVEL, wtiff->Q);
-		TIFFSetField(out, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless);
-	}
-	if (wtiff->compression == COMPRESSION_ZSTD) {
-		TIFFSetField(out, TIFFTAG_ZSTD_LEVEL, wtiff->level);
-		if (wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
-			TIFFSetField(out,
-				TIFFTAG_PREDICTOR, wtiff->predictor);
-	}
-#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
-
-	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
-			wtiff->compression == COMPRESSION_LZW) &&
-		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
-		TIFFSetField(out, TIFFTAG_PREDICTOR, wtiff->predictor);
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
