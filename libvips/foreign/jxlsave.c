@@ -243,13 +243,16 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		return -1;
 
 	/* If Q is set and distance is not, use Q to set a rough distance
-	 * value. Formula stolen from cjxl.c and very roughly approximates
-	 * libjpeg values.
+	 * value.
 	 */
 	if (!vips_object_argument_isset(object, "distance"))
+#ifdef HAVE_LIBJXL_0_9
+		jxl->distance = JxlEncoderDistanceFromQuality((float) jxl->Q);
+#else
 		jxl->distance = jxl->Q >= 30
 			? 0.1 + (100 - jxl->Q) * 0.09
 			: 53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
+#endif
 
 	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
 	 */
@@ -558,7 +561,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		_("Encoding effort"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, effort),
-		3, 9, 7);
+		1, 9, 7);
 
 	VIPS_ARG_BOOL(class, "lossless", 13,
 		_("Lossless"),

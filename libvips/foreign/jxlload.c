@@ -564,7 +564,9 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 
 		case JXL_DEC_COLOR_ENCODING:
 			if (JxlDecoderGetICCProfileSize(jxl->decoder,
+#ifndef HAVE_LIBJXL_0_9
 					&jxl->format,
+#endif
 					JXL_COLOR_PROFILE_TARGET_DATA,
 					&jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
@@ -583,7 +585,9 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
+#ifndef HAVE_LIBJXL_0_9
 					&jxl->format,
+#endif
 					JXL_COLOR_PROFILE_TARGET_DATA,
 					jxl->icc_data, jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
