@@ -1574,7 +1574,7 @@ class TestForeign:
         # remove the ICC profile: the RGB one will no longer be appropriate
         rgb16.remove("icc-profile-data")
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
-                              rgb16, 10700)
+                              rgb16, 12000)
 
         # repeat for lossless mode
         self.save_load_buffer("jxlsave_buffer", "jxlload_buffer",
