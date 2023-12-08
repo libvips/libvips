@@ -184,50 +184,50 @@ typedef struct {
 
 /* Built-in VIPS types.
  */
-extern im_type_desc im__input_int;
-extern im_type_desc im__input_intvec;
-extern im_type_desc im__input_imask;
-extern im_type_desc im__output_int;
-extern im_type_desc im__output_intvec;
-extern im_type_desc im__output_imask;
+VIPS_DEPRECATED im_type_desc im__input_int;
+VIPS_DEPRECATED im_type_desc im__input_intvec;
+VIPS_DEPRECATED im_type_desc im__input_imask;
+VIPS_DEPRECATED im_type_desc im__output_int;
+VIPS_DEPRECATED im_type_desc im__output_intvec;
+VIPS_DEPRECATED im_type_desc im__output_imask;
 
-extern im_type_desc im__input_double;
-extern im_type_desc im__input_doublevec;
-extern im_type_desc im__input_dmask;
-extern im_type_desc im__output_double;
-extern im_type_desc im__output_doublevec;
-extern im_type_desc im__output_dmask;
-extern im_type_desc im__output_dmask_screen;
+VIPS_DEPRECATED im_type_desc im__input_double;
+VIPS_DEPRECATED im_type_desc im__input_doublevec;
+VIPS_DEPRECATED im_type_desc im__input_dmask;
+VIPS_DEPRECATED im_type_desc im__output_double;
+VIPS_DEPRECATED im_type_desc im__output_doublevec;
+VIPS_DEPRECATED im_type_desc im__output_dmask;
+VIPS_DEPRECATED im_type_desc im__output_dmask_screen;
 
-extern im_type_desc im__output_complex;
+VIPS_DEPRECATED im_type_desc im__output_complex;
 
-extern im_type_desc im__input_string;
-extern im_type_desc im__output_string;
+VIPS_DEPRECATED im_type_desc im__input_string;
+VIPS_DEPRECATED im_type_desc im__output_string;
 
-extern im_type_desc im__input_imagevec;
-extern im_type_desc im__input_image;
-extern im_type_desc im__output_image;
-extern im_type_desc im__rw_image;
+VIPS_DEPRECATED im_type_desc im__input_imagevec;
+VIPS_DEPRECATED im_type_desc im__input_image;
+VIPS_DEPRECATED im_type_desc im__output_image;
+VIPS_DEPRECATED im_type_desc im__rw_image;
 
-extern im_type_desc im__input_display;
-extern im_type_desc im__output_display;
+VIPS_DEPRECATED im_type_desc im__input_display;
+VIPS_DEPRECATED im_type_desc im__output_display;
 
-extern im_type_desc im__input_gvalue;
-extern im_type_desc im__output_gvalue;
+VIPS_DEPRECATED im_type_desc im__input_gvalue;
+VIPS_DEPRECATED im_type_desc im__output_gvalue;
 
-extern im_type_desc im__input_interpolate;
+VIPS_DEPRECATED im_type_desc im__input_interpolate;
 
 /* VIPS print functions.
  */
-int im__iprint(im_object obj);		 /* int */
-int im__ivprint(im_object obj);		 /* intvec */
-int im__dprint(im_object obj);		 /* double */
-int im__dvprint(im_object obj);		 /* doublevec */
-int im__dmsprint(im_object obj);	 /* DOUBLEMASK as stats */
-int im__cprint(im_object obj);		 /* complex */
-int im__sprint(im_object obj);		 /* string */
-int im__displayprint(im_object obj); /* im_col_display */
-int im__gprint(im_object obj);		 /* GValue */
+VIPS_DEPRECATED int im__iprint(im_object obj);		/* int */
+VIPS_DEPRECATED int im__ivprint(im_object obj);		/* intvec */
+VIPS_DEPRECATED int im__dprint(im_object obj);		/* double */
+VIPS_DEPRECATED int im__dvprint(im_object obj);		/* doublevec */
+VIPS_DEPRECATED int im__dmsprint(im_object obj);	/* DOUBLEMASK as stats */
+VIPS_DEPRECATED int im__cprint(im_object obj);		/* complex */
+VIPS_DEPRECATED int im__sprint(im_object obj);		/* string */
+VIPS_DEPRECATED int im__displayprint(im_object obj);/* im_col_display */
+VIPS_DEPRECATED int im__gprint(im_object obj);		/* GValue */
 
 /* Macros for convenient creation.
  */
