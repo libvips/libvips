@@ -12,6 +12,7 @@ TBD 8.15.1
 - fix build with upcoming libjxl 0.9 [kleisauke]
 - jxlsave: lower min effort value to 1 [DarthSim]
 - fix build without libjpeg [ionenwks]
+- fix vips7 plugin load [jcupitt]
 
 11/11/23 8.15.0
 

@@ -586,12 +586,12 @@ vips_init(const char *argv0)
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION);
 
 #if ENABLE_DEPRECATED
-	/* Load any vips8 plugins from the vips libdir.
+	/* We had vips8 plugins for a while.
 	 */
 	vips_load_plugins("%s/vips-plugins-%d.%d",
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION);
 
-	/* Load up any vips7 plugins in the vips libdir. We don't error on
+	/* Load up any vips7 plugins. We don't error on
 	 * failure, it's too annoying to have VIPS refuse to start because of
 	 * a broken plugin.
 	 */
@@ -601,8 +601,7 @@ vips_init(const char *argv0)
 		vips_error_clear();
 	}
 
-	/* Also load from libdir. This is old and slightly broken behaviour
-	 * :-( kept for back compat convenience.
+	/* Also load from libdir :-( kept for back compat convenience.
 	 */
 	if (im_load_plugins("%s", libdir)) {
 		g_warning("%s", vips_error_buffer());
