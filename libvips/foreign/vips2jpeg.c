@@ -904,7 +904,12 @@ vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	return 0;
 }
 
-const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+/* Some people want to be able to save as xxx.jfif. libjpeg will write as
+ * JFIF if it can, but if you use features like CMYK or YCCK, you'll get a
+ * regular JPEG. So saving as .jfif won't (by itself) guarantee strict JFIF
+ * conformance.
+ */
+const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", ".jfif", NULL };
 
 /* Write a region to a JPEG compress struct.
  */

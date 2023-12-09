@@ -13,6 +13,7 @@ TBD 8.15.1
 - jxlsave: lower min effort value to 1 [DarthSim]
 - fix build without libjpeg [ionenwks]
 - fix vips7 plugin load [jcupitt]
+- add ".jfif" as a suffix for jpegsave [casperbrike]
 
 11/11/23 8.15.0
 
