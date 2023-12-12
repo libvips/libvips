@@ -881,7 +881,7 @@ vips_foreign_save_jxl_file_class_init(VipsForeignSaveJxlFileClass *class)
 
 	VIPS_ARG_STRING(class, "filename", 1,
 		_("Filename"),
-		_("Filename to load from"),
+		_("Filename to save to"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxlFile, filename),
 		NULL);
