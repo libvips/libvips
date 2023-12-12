@@ -52,7 +52,7 @@
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
-/* ImageMagick can't detect some formats, like ICO and TGA, by examining the
+/* ImageMagick can't detect some formats (eg. ICO and TGA) by examining the
  * contents -- ico.c and tga.c simply do not have recognisers.
  *
  * For these formats, do the detection ourselves.
@@ -115,8 +115,17 @@ magick_sniff(const unsigned char *bytes, size_t length)
 	const MagicInfo *magic_info = GetMagicInfo(bytes, length, exception);
 	magick_destroy_exception(exception);
 
-	if (magic_info)
-		return GetMagicName(magic_info);
+	if (magic_info) {
+		const char *magic_name = GetMagicName(magic_info);
+
+		/* Avoid using TIFF as a format hint since RAW/DNG images often
+		 * share the same magic signature as TIFF.
+		 */
+		if (magic_name &&
+			g_ascii_strcasecmp(magic_name, "TIFF") != 0) {
+			return magic_name;
+		}
+	}
 #endif
 
 	return NULL;
