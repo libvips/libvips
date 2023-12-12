@@ -15,6 +15,8 @@ TBD 8.15.1
 - fix build without libjpeg [ionenwks]
 - fix vips7 plugin load [jcupitt]
 - add ".jfif" as a suffix for jpegsave [casperbrike]
+- don't let the magick sniffer hijack TIFF [kleisauke]
+- ignore BLOCKED classes in foreign map [jcupitt]
 
 11/11/23 8.15.0
 
