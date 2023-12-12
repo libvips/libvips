@@ -421,13 +421,20 @@ vips_foreign_init(VipsForeign *object)
 static void *
 file_add_class(VipsForeignClass *class, GSList **files)
 {
-	/* We exclude "rawload" as it has a different API.
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+
+	// don't consider blocked classes ... we don't want eg. sniffers to run
+	if (operation_class->flags & VIPS_OPERATION_BLOCKED)
+		return NULL;
+
+	// exclude "rawload" as it has a different API.
+	if (vips_isprefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
+		return NULL;
+
+	/* Append so we don't reverse the list of files. Sort will
+	 * not reorder items of equal priority.
 	 */
-	if (!vips_isprefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
-		/* Append so we don't reverse the list of files. Sort will
-		 * not reorder items of equal priority.
-		 */
-		*files = g_slist_append(*files, class);
+	*files = g_slist_append(*files, class);
 
 	return NULL;
 }
