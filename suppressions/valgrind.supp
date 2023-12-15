@@ -336,13 +336,6 @@
 }
 
 {
-   XML_ParseBuffer
-   Memcheck:Leak
-   ...
-   fun:XML_ParseBuffer
-}
-
-{
    FcFontSetList
    Memcheck:Leak
    ...
