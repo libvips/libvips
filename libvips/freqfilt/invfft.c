@@ -26,6 +26,8 @@
  * 	- reduce memuse
  * 3/1/14
  * 	- redone as a class
+ * 15/12/23 [akash-akya]
+ *	- add locks
  */
 
 /*
@@ -111,20 +113,25 @@ cinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 	if (!(planner_scratch = VIPS_ARRAY(invfft,
 			  VIPS_IMAGE_N_PELS(in) * 2, double)))
 		return -1;
+	g_mutex_lock(vips__fft_lock);
 	if (!(plan = fftw_plan_dft_2d(in->Ysize, in->Xsize,
 			  (fftw_complex *) planner_scratch,
 			  (fftw_complex *) planner_scratch,
 			  FFTW_BACKWARD,
 			  0))) {
+		g_mutex_unlock(vips__fft_lock);
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
 		return -1;
 	}
+	g_mutex_unlock(vips__fft_lock);
 
 	fftw_execute_dft(plan,
 		(fftw_complex *) (*out)->data, (fftw_complex *) (*out)->data);
 
+	g_mutex_lock(vips__fft_lock);
 	fftw_destroy_plan(plan);
+	g_mutex_unlock(vips__fft_lock);
 
 	(*out)->Type = VIPS_INTERPRETATION_B_W;
 
@@ -187,18 +194,23 @@ rinvfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 	if (!(planner_scratch = VIPS_ARRAY(invfft,
 			  t[1]->Ysize * half_width * 2, double)))
 		return -1;
+	g_mutex_lock(vips__fft_lock);
 	if (!(plan = fftw_plan_dft_c2r_2d(t[1]->Ysize, t[1]->Xsize,
 			  (fftw_complex *) planner_scratch, (double *) (*out)->data,
 			  0))) {
+		g_mutex_unlock(vips__fft_lock);
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
 		return -1;
 	}
+	g_mutex_unlock(vips__fft_lock);
 
 	fftw_execute_dft_c2r(plan,
 		(fftw_complex *) half_complex, (double *) (*out)->data);
 
+	g_mutex_lock(vips__fft_lock);
 	fftw_destroy_plan(plan);
+	g_mutex_unlock(vips__fft_lock);
 
 	return 0;
 }
@@ -211,6 +223,8 @@ vips_invfft_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *in;
+
+	vips__fft_init();
 
 	if (VIPS_OBJECT_CLASS(vips_invfft_parent_class)->build(object))
 		return -1;
