@@ -733,6 +733,15 @@ build_features = {
     },
 }
 
+foreach _, section: build_features
+    foreach _, arr : section
+        if not arr[1].found()
+            continue
+        endif
+
+        summary(arr[1].name(), arr[1].version(), section: 'Dependency versions')
+    endforeach
+endforeach
 foreach section_title, section : build_summary
     summary(section, bool_yn: true, section: section_title)
 endforeach
