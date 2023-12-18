@@ -722,7 +722,7 @@ build_features = {
      'HEIC/AVIF load/save': ['libheif', libheif_dep, libheif_module],
      'WebP load/save': ['libwebp', libwebp_dep],
      'PDF load': ['PDFium or Poppler', pdf_loader, libpoppler_module],
-     'SVG load': ['librsvg', librsvg_dep],
+     'SVG load': ['librsvg', librsvg_found ? librsvg_dep : disabler()],
      'EXR load': ['OpenEXR', openexr_dep],
      'WSI load': ['OpenSlide', openslide_dep],
      'Matlab load': ['Matio', matio_dep],
