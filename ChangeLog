@@ -5,7 +5,7 @@ master 8.16
 - add "palette" metadata item to flag palette images [DarthSim]
 - jxl load and save now support exif, xmp, animation [DarthSim]
 
-TBD 8.15.1
+18/12/23 8.15.1
 
 - reduceh: fix Highway path on SSE2 [DarthSim]
 - fix JPEG in TIFF colourspace for Q >= 90 [heman1-test]
@@ -13,7 +13,7 @@ TBD 8.15.1
 - jxlsave: lower min effort value to 1 [DarthSim]
 - fix build without libjpeg [ionenwks]
 - fix vips7 plugin load [jcupitt]
-- add ".jfif" as a suffix for jpegsave [casperbrike]
+- allow ".jfif" as a suffix for jpegsave [casperbrike]
 - don't let the magick sniffer hijack TIFF [kleisauke]
 - ignore BLOCKED classes in foreign map [jcupitt]
 - add locks to fftw3 calls [akash-akya]
