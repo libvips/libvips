@@ -690,22 +690,30 @@ build_summary = {
      'enable GIF load': [get_option('nsgif')],
     },
   'Optional external packages':
-    {'use fftw for FFTs':
-        [fftw_dep.found(), fftw_dep.version()],
-     'SIMD support with highway':
-        [libhwy_dep.found(), libhwy_dep.version()],
+    {'FFTs with fftw':
+        [fftw_dep.found(), fftw_dep.found() ?
+          fftw_dep.name() + ' ' + fftw_dep.version() : ''],
+     'SIMD support with Highway':
+        [libhwy_dep.found(), libhwy_dep.found() ?
+          libhwy_dep.name() + ' ' + libhwy_dep.version() : ''],
      'accelerate loops with ORC':
-        [orc_dep.found(), orc_dep.version()],
+        [orc_dep.found(), orc_dep.found() ?
+          orc_dep.name() + orc_dep.version() : ''],
      'ICC profile support with lcms':
-        [lcms_dep.found(), lcms_dep.version()],
-     'zlib':
-        [zlib_dep.found(), zlib_dep.version()],
+        [lcms_dep.found(), lcms_dep.found() ?
+          lcms_dep.name() + ' ' + lcms_dep.version() : ''],
+     'deflate compression with zlib':
+        [zlib_dep.found(), zlib_dep.found() ?
+          zlib_dep.name() + ' ' + zlib_dep.version() : ''],
      'text rendering with pangocairo':
-        [pangocairo_dep.found(), pangocairo_dep.version()],
+        [pangocairo_dep.found(), pangocairo_dep.found() ?
+          pangocairo_dep.name() + ' ' + pangocairo_dep.version() : ''],
      'font file support with fontconfig':
-        [fontconfig_found, fontconfig_dep.version()],
+        [fontconfig_found, fontconfig_found ?
+          fontconfig_dep.name() + ' ' + fontconfig_dep.version() : ''],
      'EXIF metadata support with libexif':
-        [libexif_dep.found(), libexif_dep.version()],
+        [libexif_dep.found(), libexif_dep.found() ?
+          libexif_dep.name() + ' ' + libexif_dep.version() : ''],
     },
   'External image format libraries':
     {'JPEG load/save with libjpeg':
@@ -766,7 +774,7 @@ build_summary = {
 }
 
 foreach section_title, section : build_summary
-    summary(section, bool_yn: true, list_sep: ' ', section: section_title)
+    summary(section, bool_yn: true, list_sep: '\t', section: section_title)
 endforeach
 
 subdir('libvips')
