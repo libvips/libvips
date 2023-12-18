@@ -93,10 +93,15 @@ foreach _, section : build_summary
            continue
         endif
 
-        vips_verbose_config += '@0@: @1@@2@@3@@4@'.format(key, arr[0],
-            arr.length() > 1 ? arr[1] : '',
-            arr.length() > 2 ? arr[2] : '',
-            arr.length() > 3 ? arr[3] : '')
+        vips_verbose_config += '@0@: @1@'.format(key, arr[0])
+    endforeach
+endforeach
+foreach _, section : build_features
+    foreach key, arr : section
+        found = arr[1].found()
+        dep_name = found ? arr[1].name() : arr[0]
+        dynamic_module = arr.length() > 2 ? ' (dynamic module: @0@)'.format(arr[2]) : ''
+        vips_verbose_config += '@0@ with @1@: @2@@3@'.format(key, dep_name, found, dynamic_module)
     endforeach
 endforeach
 

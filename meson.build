@@ -314,6 +314,9 @@ if libjpeg_dep.found()
     endif
 endif
 
+# png package we use
+png_package = disabler()
+
 # Look for libspng first
 # - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
 #   both
@@ -323,15 +326,14 @@ spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
     spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
-spng_found = not get_option('spng').disabled() and spng_dep.found()
-if spng_found
+if not get_option('spng').disabled() and spng_dep.found()
     libvips_deps += spng_dep
     cfg_var.set('HAVE_SPNG', '1')
+    png_package = spng_dep
 endif
 
 # only if libspng not found
-png_dep = disabler()
-if not spng_found
+if not png_package.found()
     png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
     if png_dep.found()
         libvips_deps += png_dep
@@ -339,6 +341,7 @@ if not spng_found
         if cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep)
             cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', '1')
         endif
+        png_package = png_dep
     endif
 endif
 
@@ -435,6 +438,9 @@ if libopenjp2_dep.found()
     cfg_var.set('HAVE_LIBOPENJP2', '1')
 endif
 
+# simd package we use
+simd_package = disabler()
+
 # Require 1.0.5 to support the `ReorderDemote2To(u8, i16, i16)` operation
 # See: https://github.com/google/highway/pull/1247
 libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('highway'))
@@ -448,11 +454,11 @@ if libhwy_dep.found()
     #disabled_targets += ['HWY_AVX3_ZEN4']
     #disabled_targets += ['HWY_AVX3_SPR']
     add_project_arguments('-DHWY_DISABLED_TARGETS=@0@'.format('|'.join(disabled_targets)), language: ['cpp'])
+    simd_package = libhwy_dep
 endif
 
 # only if highway not found
-orc_dep = disabler()
-if not libhwy_dep.found()
+if not simd_package.found()
     # we use loadpw etc.
     orc_dep = dependency('orc-0.4', version: '>=0.4.11', required: get_option('orc'))
     if orc_dep.found()
@@ -463,8 +469,12 @@ if not libhwy_dep.found()
         if orc_dep.version().version_compare('>=0.4.31')
             cfg_var.set('HAVE_ORC_CF_PROTECTION', '1')
         endif
+        simd_package = orc_dep
     endif
 endif
+
+# pdf loader we use
+pdf_loader = disabler()
 
 # pick 4200 as the starting version number ... no reason, really, it'd
 # probably work with much older versions
@@ -472,6 +482,7 @@ pdfium_dep = dependency('pdfium', version: '>=4200', required: get_option('pdfiu
 if pdfium_dep.found()
     libvips_deps += pdfium_dep
     cfg_var.set('HAVE_PDFIUM', '1')
+    pdf_loader = pdfium_dep
 endif
 
 libheif_dep = dependency('libheif', version: '>=1.4.0', required: get_option('heif'))
@@ -532,24 +543,24 @@ if libjxl_found
     endif
 endif
 
-libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
-libpoppler_found = false
+# only if pdfium not found
 libpoppler_module = false
-if not cairo_dep.found()
-    cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
-endif
-if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
-    message('PDFium has been found, ignoring Poppler support')
-elif libpoppler_dep.found() and cairo_dep.found()
-    libpoppler_found = true
-    libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
-    if libpoppler_module
-        cfg_var.set('POPPLER_MODULE', '1')
-    else
-        libvips_deps += libpoppler_dep
-        libvips_deps += cairo_dep
+if not pdf_loader.found()
+    libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
+    if not cairo_dep.found()
+        cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
     endif
-    cfg_var.set('HAVE_POPPLER', '1')
+    if libpoppler_dep.found() and cairo_dep.found()
+        libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
+        if libpoppler_module
+            cfg_var.set('POPPLER_MODULE', '1')
+        else
+            libvips_deps += libpoppler_dep
+            libvips_deps += cairo_dep
+        endif
+        cfg_var.set('HAVE_POPPLER', '1')
+        pdf_loader = libpoppler_dep
+    endif
 endif
 
 # niftiio.pc is not present, and only provides the CMake package definition
@@ -689,92 +700,49 @@ build_summary = {
      'enable PPM load/save': [get_option('ppm')],
      'enable GIF load': [get_option('nsgif')],
     },
+}
+build_features = {
   'Optional external packages':
-    {'FFTs with fftw':
-        [fftw_dep.found(), fftw_dep.found() ?
-          fftw_dep.name() + ' ' + fftw_dep.version() : ''],
-     'SIMD support with Highway':
-        [libhwy_dep.found(), libhwy_dep.found() ?
-          libhwy_dep.name() + ' ' + libhwy_dep.version() : ''],
-     'accelerate loops with ORC':
-        [orc_dep.found(), orc_dep.found() ?
-          orc_dep.name() + orc_dep.version() : ''],
-     'ICC profile support with lcms':
-        [lcms_dep.found(), lcms_dep.found() ?
-          lcms_dep.name() + ' ' + lcms_dep.version() : ''],
-     'deflate compression with zlib':
-        [zlib_dep.found(), zlib_dep.found() ?
-          zlib_dep.name() + ' ' + zlib_dep.version() : ''],
-     'text rendering with pangocairo':
-        [pangocairo_dep.found(), pangocairo_dep.found() ?
-          pangocairo_dep.name() + ' ' + pangocairo_dep.version() : ''],
-     'font file support with fontconfig':
-        [fontconfig_found, fontconfig_found ?
-          fontconfig_dep.name() + ' ' + fontconfig_dep.version() : ''],
-     'EXIF metadata support with libexif':
-        [libexif_dep.found(), libexif_dep.found() ?
-          libexif_dep.name() + ' ' + libexif_dep.version() : ''],
+    {'FFTs': ['fftw', fftw_dep],
+     'SIMD support': ['libhwy or liborc', simd_package],
+     'ICC profile support': ['lcms2', lcms_dep],
+     'deflate compression': ['zlib', zlib_dep],
+     'text rendering': ['pangocairo', pangocairo_dep],
+     'font file support': ['fontconfig', fontconfig_found ? fontconfig_dep : disabler()],
+     'EXIF metadata support': ['libexif', libexif_dep],
     },
   'External image format libraries':
-    {'JPEG load/save with libjpeg':
-        [libjpeg_dep.found(), libjpeg_dep.version()],
-     'JXL load/save with libjxl':
-        [libjxl_found, libjxl_dep.version(),
-          'dynamic module:', libjxl_module],
-     'JPEG2000 load/save with OpenJPEG':
-        [libopenjp2_dep.found(), libopenjp2_dep.version()],
-     'PNG load/save with libspng':
-        [spng_found, spng_dep.version()],
-     'PNG load/save with libpng':
-        [png_dep.found(), png_dep.version()],
-     'selected quantisation package':
-        [quantisation_package.found() ?
-          quantisation_package.name() : 'none',
-         quantisation_package.version()],
-     'TIFF load/save with libtiff':
-        [libtiff_dep.found(), libtiff_dep.version()],
-     'image pyramid save with libarchive':
-        [libarchive_dep.found(), libarchive_dep.version()],
-     'HEIC/AVIF load/save with libheif':
-        [libheif_dep.found(), libheif_dep.version(),
-          'dynamic module:', libheif_module],
-     'WebP load/save with libwebp':
-        [libwebp_dep.found(), libwebp_dep.version()],
-     'PDF load with PDFium':
-        [pdfium_dep.found(), pdfium_dep.version()],
-     'PDF load with poppler-glib':
-        [libpoppler_found, libpoppler_dep.version(),
-          'dynamic module:', libpoppler_module],
-     'SVG load with librsvg':
-        [librsvg_found, librsvg_dep.version()],
-     'EXR load with OpenEXR':
-        [openexr_dep.found(), openexr_dep.version()],
-     'OpenSlide load':
-        [openslide_dep.found(), openslide_dep.version(),
-          'dynamic module:', openslide_module],
-     'Matlab load with libmatio':
-        [matio_dep.found(), matio_dep.version()],
-     'NIfTI load/save with niftiio':
-        [libnifti_found, libnifti_dep.version()],
-     'FITS load/save with cfitsio':
-        [cfitsio_dep.found(), cfitsio_dep.version()],
-     'GIF save with cgif':
-        [cgif_dep.found(), cgif_dep.version()],
-     'selected Magick package':
-        [magick_found ? magick_dep.name() : 'none', magick_dep.version(),
-          'dynamic module:', magick_module],
-     'Magick API version':
-        [magick_found ?
-          'magick' + magick_dep.version().split('.')[0] : 'none'],
-     'Magick load':
-        [magick_found and 'load' in get_option('magick-features')],
-     'Magick save':
-        [magick_found and 'save' in get_option('magick-features')],
+    {'JPEG load/save': ['libjpeg', libjpeg_dep],
+     'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
+     'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
+     'PNG load/save': ['libspng or libpng', png_package],
+     'image quantisation': ['imagequant or quantizr', quantisation_package],
+     'TIFF load/save': ['libtiff', libtiff_dep],
+     'image pyramid save': ['libarchive', libarchive_dep],
+     'HEIC/AVIF load/save': ['libheif', libheif_dep, libheif_module],
+     'WebP load/save': ['libwebp', libwebp_dep],
+     'PDF load': ['PDFium or Poppler', pdf_loader, libpoppler_module],
+     'SVG load': ['librsvg', librsvg_dep],
+     'EXR load': ['OpenEXR', openexr_dep],
+     'WSI load': ['OpenSlide', openslide_dep],
+     'Matlab load': ['Matio', matio_dep],
+     'NIfTI load/save': ['libnifti', libnifti_found ? libnifti_dep : disabler()],
+     'FITS load/save': ['cfitsio', cfitsio_dep],
+     'GIF save': ['cgif', cgif_dep],
+     'Magick @0@'.format('/'.join(get_option('magick-features'))): [get_option('magick-package'), magick_found ? magick_dep : disabler(), magick_module],
     },
 }
 
 foreach section_title, section : build_summary
-    summary(section, bool_yn: true, list_sep: '\t', section: section_title)
+    summary(section, bool_yn: true, section: section_title)
+endforeach
+foreach section_title, section: build_features
+    foreach key, arr : section
+        found = arr[1].found()
+        dep_name = found ? arr[1].name() : arr[0]
+        dynamic_module = arr.length() > 2 ? [' (dynamic module: ', arr[2], ')'] : []
+        summary('@0@ with @1@'.format(key, dep_name), [found] + dynamic_module, bool_yn: true, list_sep: '', section: section_title)
+    endforeach
 endforeach
 
 subdir('libvips')
