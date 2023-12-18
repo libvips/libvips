@@ -690,44 +690,83 @@ build_summary = {
      'enable GIF load': [get_option('nsgif')],
     },
   'Optional external packages':
-    {'use fftw for FFTs': [fftw_dep.found()],
-     'SIMD support with highway': [libhwy_dep.found()],
-     'accelerate loops with ORC': [orc_dep.found()],
-     'ICC profile support with lcms': [lcms_dep.found()],
-     'zlib': [zlib_dep.found()],
-     'text rendering with pangocairo': [pangocairo_dep.found()],
-     'font file support with fontconfig': [fontconfig_found],
-     'EXIF metadata support with libexif': [libexif_dep.found()],
+    {'use fftw for FFTs':
+        [fftw_dep.found(), fftw_dep.version()],
+     'SIMD support with highway':
+        [libhwy_dep.found(), libhwy_dep.version()],
+     'accelerate loops with ORC':
+        [orc_dep.found(), orc_dep.version()],
+     'ICC profile support with lcms':
+        [lcms_dep.found(), lcms_dep.version()],
+     'zlib':
+        [zlib_dep.found(), zlib_dep.version()],
+     'text rendering with pangocairo':
+        [pangocairo_dep.found(), pangocairo_dep.version()],
+     'font file support with fontconfig':
+        [fontconfig_found, fontconfig_dep.version()],
+     'EXIF metadata support with libexif':
+        [libexif_dep.found(), libexif_dep.version()],
     },
   'External image format libraries':
-    {'JPEG load/save with libjpeg': [libjpeg_dep.found()],
-     'JXL load/save with libjxl': [libjxl_found, ' (dynamic module: ', libjxl_module, ')'],
-     'JPEG2000 load/save with OpenJPEG': [libopenjp2_dep.found()],
-     'PNG load/save with libspng': [spng_found],
-     'PNG load/save with libpng': [png_dep.found()],
-     'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
-     'TIFF load/save with libtiff': [libtiff_dep.found()],
-     'image pyramid save with libarchive': [libarchive_dep.found()],
-     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), ' (dynamic module: ', libheif_module, ')'],
-     'WebP load/save with libwebp': [libwebp_dep.found()],
-     'PDF load with PDFium': [pdfium_dep.found()],
-     'PDF load with poppler-glib': [libpoppler_found, ' (dynamic module: ', libpoppler_module, ')'],
-     'SVG load with librsvg': [librsvg_found],
-     'EXR load with OpenEXR': [openexr_dep.found()],
-     'OpenSlide load': [openslide_dep.found(), ' (dynamic module: ', openslide_module, ')'],
-     'Matlab load with libmatio': [matio_dep.found()],
-     'NIfTI load/save with niftiio': [libnifti_found],
-     'FITS load/save with cfitsio': [cfitsio_dep.found()],
-     'GIF save with cgif': [cgif_dep.found()],
-     'selected Magick package': [magick_found ? magick_dep.name() : 'none', ' (dynamic module: ', magick_module, ')'],
-     'Magick API version': [magick_found ? 'magick' + magick_dep.version().split('.')[0] : 'none'],
-     'Magick load': [magick_found and 'load' in get_option('magick-features')],
-     'Magick save': [magick_found and 'save' in get_option('magick-features')],
+    {'JPEG load/save with libjpeg':
+        [libjpeg_dep.found(), libjpeg_dep.version()],
+     'JXL load/save with libjxl':
+        [libjxl_found, libjxl_dep.version(),
+          'dynamic module:', libjxl_module],
+     'JPEG2000 load/save with OpenJPEG':
+        [libopenjp2_dep.found(), libopenjp2_dep.version()],
+     'PNG load/save with libspng':
+        [spng_found, spng_dep.version()],
+     'PNG load/save with libpng':
+        [png_dep.found(), png_dep.version()],
+     'selected quantisation package':
+        [quantisation_package.found() ?
+          quantisation_package.name() : 'none',
+         quantisation_package.version()],
+     'TIFF load/save with libtiff':
+        [libtiff_dep.found(), libtiff_dep.version()],
+     'image pyramid save with libarchive':
+        [libarchive_dep.found(), libarchive_dep.version()],
+     'HEIC/AVIF load/save with libheif':
+        [libheif_dep.found(), libheif_dep.version(),
+          'dynamic module:', libheif_module],
+     'WebP load/save with libwebp':
+        [libwebp_dep.found(), libwebp_dep.version()],
+     'PDF load with PDFium':
+        [pdfium_dep.found(), pdfium_dep.version()],
+     'PDF load with poppler-glib':
+        [libpoppler_found, libpoppler_dep.version(),
+          'dynamic module:', libpoppler_module],
+     'SVG load with librsvg':
+        [librsvg_found, librsvg_dep.version()],
+     'EXR load with OpenEXR':
+        [openexr_dep.found(), openexr_dep.version()],
+     'OpenSlide load':
+        [openslide_dep.found(), openslide_dep.version(),
+          'dynamic module:', openslide_module],
+     'Matlab load with libmatio':
+        [matio_dep.found(), matio_dep.version()],
+     'NIfTI load/save with niftiio':
+        [libnifti_found, libnifti_dep.version()],
+     'FITS load/save with cfitsio':
+        [cfitsio_dep.found(), cfitsio_dep.version()],
+     'GIF save with cgif':
+        [cgif_dep.found(), cgif_dep.version()],
+     'selected Magick package':
+        [magick_found ? magick_dep.name() : 'none', magick_dep.version(),
+          'dynamic module:', magick_module],
+     'Magick API version':
+        [magick_found ?
+          'magick' + magick_dep.version().split('.')[0] : 'none'],
+     'Magick load':
+        [magick_found and 'load' in get_option('magick-features')],
+     'Magick save':
+        [magick_found and 'save' in get_option('magick-features')],
     },
 }
 
 foreach section_title, section : build_summary
-    summary(section, bool_yn: true, list_sep: '', section: section_title)
+    summary(section, bool_yn: true, list_sep: ' ', section: section_title)
 endforeach
 
 subdir('libvips')
