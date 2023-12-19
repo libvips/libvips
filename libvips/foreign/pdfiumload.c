@@ -622,7 +622,7 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 			pdf->pages[i].left - rect.left,
 			pdf->pages[i].top - rect.top,
 			pdf->pages[i].width, pdf->pages[i].height,
-			0, 0);
+			0, FPDF_ANNOT);
 
 		FPDFBitmap_Destroy(bitmap);
 
