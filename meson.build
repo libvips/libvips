@@ -688,6 +688,18 @@ config_dep = declare_dependency(
     compile_args: '-DHAVE_CONFIG_H=1',
 )
 
+# external_deps can have duplicates (eg. cairo can appear several times),
+# which will make summary fail
+seen_deps = []
+deduped_external_deps = []
+foreach dep: external_deps
+    if dep.name() not in seen_deps
+        deduped_external_deps += dep
+        seen_deps += dep.name()
+    endif
+endforeach
+external_deps = deduped_external_deps
+
 libvips_deps = [config_dep] + external_deps + other_deps
 
 gir = find_program('g-ir-scanner', required: get_option('introspection'))
@@ -742,7 +754,7 @@ build_features = {
 }
 
 foreach dep: external_deps
-    summary(dep.name(), dep.version(), section: 'External dependencies')
+    summary(dep.name(), dep.version(), section: 'Dependencies')
 endforeach
 foreach section_title, section : build_summary
     summary(section, bool_yn: true, section: section_title)
