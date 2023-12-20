@@ -27,7 +27,7 @@ option('gtk_doc',
 
 option('modules',
   type: 'feature',
-  value: 'disabled',
+  value: 'enabled',
   description: 'Build dynamic modules')
 
 option('introspection',
