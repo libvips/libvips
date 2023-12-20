@@ -4,6 +4,7 @@ master 8.16
 - add support for OJPEG tiffs [DarthSim]
 - add "palette" metadata item to flag palette images [DarthSim]
 - jxl load and save now support exif, xmp, animation [DarthSim]
+- improved configure output
 
 18/12/23 8.15.1
 

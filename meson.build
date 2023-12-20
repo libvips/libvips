@@ -742,7 +742,7 @@ build_features = {
 }
 
 foreach dep: external_deps
-    summary(dep.name(), dep.version(), section: 'External dependency versions')
+    summary(dep.name(), dep.version(), section: 'External dependencies')
 endforeach
 foreach section_title, section : build_summary
     summary(section, bool_yn: true, section: section_title)
