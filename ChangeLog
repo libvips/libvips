@@ -7,6 +7,10 @@ master 8.16
 - improved configure output
 - don't build loaders as modules by default
 
+date-tbd 8.15.2
+
+- fix deflate compression of tiff pyramids [manthey]
+
 18/12/23 8.15.1
 
 - reduceh: fix Highway path on SSE2 [DarthSim]
