@@ -1,6 +1,7 @@
 date-tbd 8.15.2
 
 - fix deflate compression of tiff pyramids [manthey]
+- better no-chroma-subsample switching for jpeg in tiff [kleisauke]
 
 18/12/23 8.15.1
 
