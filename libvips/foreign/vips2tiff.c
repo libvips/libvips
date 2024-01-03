@@ -660,9 +660,8 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 	cinfo->input_components = image->Bands;
 
 	if (image->Bands == 4 &&
-		image->Type == VIPS_INTERPRETATION_CMYK) {
+		image->Type == VIPS_INTERPRETATION_CMYK)
 		space = JCS_CMYK;
-	}
 	else if (image->Bands == 3)
 		space = JCS_RGB;
 	else if (image->Bands == 1)
@@ -683,8 +682,9 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 
 	jpeg_set_defaults(cinfo);
 
-	// use RGB mode (no chroma subsample) for high Q
-	if (wtiff->Q >= 90)
+	// use RGB mode (no chroma subsample) for high Q RGB images
+	if (wtiff->Q >= 90 &&
+		image->Bands == 3)
 		jpeg_set_colorspace(cinfo, JCS_RGB);
 
 	/* Set compression quality. Must be called after setting params above.
