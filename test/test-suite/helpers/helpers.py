@@ -67,87 +67,51 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [527, 42], [503, 959]]
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
 
-unsigned_formats = [pyvips.BandFormat.UCHAR,
-                    pyvips.BandFormat.USHORT,
-                    pyvips.BandFormat.UINT]
-signed_formats = [pyvips.BandFormat.CHAR,
-                  pyvips.BandFormat.SHORT,
-                  pyvips.BandFormat.INT]
-float_formats = [pyvips.BandFormat.FLOAT,
-                 pyvips.BandFormat.DOUBLE]
-complex_formats = [pyvips.BandFormat.COMPLEX,
-                   pyvips.BandFormat.DPCOMPLEX]
+unsigned_formats = ["uchar", "ushort", "uint"]
+signed_formats = ["char", "short", "int"]
+float_formats = ["float", "double"]
+complex_formats = ["complex", "dpcomplex"]
 int_formats = unsigned_formats + signed_formats
 noncomplex_formats = int_formats + float_formats
 all_formats = int_formats + float_formats + complex_formats
 
-colour_colourspaces = [pyvips.Interpretation.XYZ,
-                       pyvips.Interpretation.LAB,
-                       pyvips.Interpretation.LCH,
-                       pyvips.Interpretation.CMC,
-                       pyvips.Interpretation.LABS,
-                       pyvips.Interpretation.SCRGB,
-                       pyvips.Interpretation.HSV,
-                       pyvips.Interpretation.SRGB,
-                       pyvips.Interpretation.YXY]
-cmyk_colourspaces = [pyvips.Interpretation.CMYK]
-coded_colourspaces = [pyvips.Interpretation.LABQ]
-mono_colourspaces = [pyvips.Interpretation.B_W]
-sixteenbit_colourspaces = [pyvips.Interpretation.GREY16,
-                           pyvips.Interpretation.RGB16]
+colour_colourspaces = ["xyz", "lab", "lch", "cmc", "labs", "scrgb",
+                       "hsv", "srgb", "yxy"]
+cmyk_colourspaces = ["cmyk"]
+coded_colourspaces = ["labq"]
+mono_colourspaces = ["b-w"]
+sixteenbit_colourspaces = ["grey16", "rgb16"]
 all_colourspaces = colour_colourspaces + mono_colourspaces + \
                    coded_colourspaces + sixteenbit_colourspaces + \
                    cmyk_colourspaces
 
-max_value = {pyvips.BandFormat.UCHAR: 0xff,
-             pyvips.BandFormat.USHORT: 0xffff,
-             pyvips.BandFormat.UINT: 0xffffffff,
-             pyvips.BandFormat.CHAR: 0x7f,
-             pyvips.BandFormat.SHORT: 0x7fff,
-             pyvips.BandFormat.INT: 0x7fffffff,
-             pyvips.BandFormat.FLOAT: 1.0,
-             pyvips.BandFormat.DOUBLE: 1.0,
-             pyvips.BandFormat.COMPLEX: 1.0,
-             pyvips.BandFormat.DPCOMPLEX: 1.0}
+max_value = {"uchar": 0xff,
+             "ushort": 0xffff,
+             "uint": 0xffffffff,
+             "char": 0x7f,
+             "short": 0x7fff,
+             "int": 0x7fffffff,
+             "float": 1.0,
+             "double": 1.0,
+             "complex": 1.0,
+             "dpcomplex": 1.0}
 
-sizeof_format = {pyvips.BandFormat.UCHAR: 1,
-                 pyvips.BandFormat.USHORT: 2,
-                 pyvips.BandFormat.UINT: 4,
-                 pyvips.BandFormat.CHAR: 1,
-                 pyvips.BandFormat.SHORT: 2,
-                 pyvips.BandFormat.INT: 4,
-                 pyvips.BandFormat.FLOAT: 4,
-                 pyvips.BandFormat.DOUBLE: 8,
-                 pyvips.BandFormat.COMPLEX: 8,
-                 pyvips.BandFormat.DPCOMPLEX: 16}
+sizeof_format = {"uchar": 1,
+                 "ushort": 2,
+                 "uint": 4,
+                 "char": 1,
+                 "short": 2,
+                 "int": 4,
+                 "float": 4,
+                 "double": 8,
+                 "complex": 8,
+                 "dpcomplex": 16}
 
-rot45_angles = [pyvips.Angle45.D0,
-                pyvips.Angle45.D45,
-                pyvips.Angle45.D90,
-                pyvips.Angle45.D135,
-                pyvips.Angle45.D180,
-                pyvips.Angle45.D225,
-                pyvips.Angle45.D270,
-                pyvips.Angle45.D315]
+rot45_angles = ["d0", "d45", "d90", "d135", "d180", "d225", "d270", "d315"]
+rot45_angle_bonds = ["d0", "d315", "d270", "d225", "d180", "d135", "d90", "d45"]
 
-rot45_angle_bonds = [pyvips.Angle45.D0,
-                     pyvips.Angle45.D315,
-                     pyvips.Angle45.D270,
-                     pyvips.Angle45.D225,
-                     pyvips.Angle45.D180,
-                     pyvips.Angle45.D135,
-                     pyvips.Angle45.D90,
-                     pyvips.Angle45.D45]
-
-rot_angles = [pyvips.Angle.D0,
-              pyvips.Angle.D90,
-              pyvips.Angle.D180,
-              pyvips.Angle.D270]
-
-rot_angle_bonds = [pyvips.Angle.D0,
-                   pyvips.Angle.D270,
-                   pyvips.Angle.D180,
-                   pyvips.Angle.D90]
+rot_angles = ["d0", "d90", "d180", "d270"]
+rot_angle_bonds = ["d0", "d270", "d180", "d90"]
 
 
 # an expanding zip ... if either of the args is a scalar or a one-element list,
