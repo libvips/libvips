@@ -3,7 +3,7 @@ import pytest
 
 import pyvips
 import tempfile
-from helpers import temp_filename
+from helpers import *
 
 
 class TestIofuncs:
@@ -83,7 +83,7 @@ class TestIofuncs:
         load2 = pyvips.Image.new_from_file(filename, revalidate=True);
         assert load2.width == im2.width
 
-        # load once more without revalidate and we should see the cached 
+        # load once more without revalidate and we should see the cached
         # new image
         load2 = pyvips.Image.new_from_file(filename)
         assert load2.width == im2.width

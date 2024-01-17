@@ -173,7 +173,7 @@ static void
 vips_source_sanity(VipsSource *source)
 {
 	if (source->data) {
-		/* Not a pipe (can map and seek).
+		/* A memory buffer. Not a pipe (can map and seek).
 		 */
 		g_assert(!source->is_pipe);
 
@@ -193,6 +193,10 @@ vips_source_sanity(VipsSource *source)
 		g_assert(source->length != -1);
 	}
 	else if (source->is_pipe) {
+		/* Something like a descriptor we can't seek. It might not have
+		 * ->descriptor valid, that could be held in a subclass.
+		 */
+
 		if (source->decode) {
 			/* Reading pixel data.
 			 */
@@ -213,7 +217,8 @@ vips_source_sanity(VipsSource *source)
 		g_assert(source->length == -1);
 	}
 	else {
-		/* Something like a seekable file.
+		/* Something like a decriptor we can seek. It might not have
+         * ->descriptor valid, that could be held in a subclass.
 		 */
 
 		/* After we're done with the header, the sniff buffer should
@@ -231,13 +236,6 @@ vips_source_sanity(VipsSource *source)
 			g_assert(source->read_position >= 0);
 			g_assert(source->read_position <= source->length);
 		}
-
-		/* Supports minimise, so if descriptor is -1, we must have a
-		 * filename we can reopen.
-		 */
-		g_assert(VIPS_CONNECTION(source)->descriptor != -1 ||
-			(VIPS_CONNECTION(source)->filename &&
-				VIPS_CONNECTION(source)->descriptor));
 	}
 }
 #endif /*TEST_SANITY*/

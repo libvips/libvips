@@ -2,8 +2,7 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, JPEG_FILE_XYB, OME_FILE, HEIC_FILE, TIF_FILE, \
-    all_formats, have, RGBA_FILE, RGBA_CORRECT_FILE, AVIF_FILE
+from helpers import *
 
 
 # Run a function expecting a complex image on a two-band image
@@ -200,7 +199,7 @@ class TestResample:
         im2 = pyvips.Image.thumbnail(OME_FILE + "[page=1]", 100)
         assert im2.width == 100
         assert im2.height == 38
-        assert (im1 - im2).abs().max() != 0 
+        assert (im1 - im2).abs().max() != 0
 
         # should be able to thumbnail entire many-page tiff as a toilet-roll
         # image
@@ -225,7 +224,7 @@ class TestResample:
             im = pyvips.Image.new_from_file(AVIF_FILE)
             thumb = pyvips.Image.thumbnail(AVIF_FILE, 100)
 
-            # thumb should be portrait 
+            # thumb should be portrait
             assert thumb.width < thumb.height
             assert thumb.height == 100
 

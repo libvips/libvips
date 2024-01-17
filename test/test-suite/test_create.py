@@ -2,7 +2,7 @@
 import pytest
 
 import pyvips
-from helpers import assert_almost_equal_objects
+from helpers import *
 
 
 class TestCreate:

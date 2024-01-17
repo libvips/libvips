@@ -2,8 +2,7 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, SRGB_FILE, colour_colourspaces, \
-    mono_colourspaces, assert_almost_equal_objects, skip_if_no
+from helpers import *
 
 
 class TestColour:

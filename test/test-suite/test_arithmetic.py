@@ -4,9 +4,7 @@ import math
 import pytest
 
 import pyvips
-from helpers import unsigned_formats, float_formats, noncomplex_formats, \
-    all_formats, run_fn, run_image2, run_const, run_cmp, run_cmp2, \
-    assert_almost_equal_objects
+from helpers import *
 
 
 class TestArithmetic:
@@ -16,10 +14,10 @@ class TestArithmetic:
          for x in self.all_images for y in fmt for z in fmt]
 
     def run_arith_const(self, fn, fmt=all_formats):
-        [run_const('%s scalar %s %s' % (fn.__name__, x, y), 
+        [run_const('%s scalar %s %s' % (fn.__name__, x, y),
                    fn, x.cast(y), 2)
          for x in self.all_images for y in fmt]
-        [run_const('%s vector %s' % (fn.__name__, y), 
+        [run_const('%s vector %s' % (fn.__name__, y),
                    fn, self.colour.cast(y), [1, 2, 3])
          for y in fmt]
 
@@ -473,7 +471,7 @@ class TestArithmetic:
         self.run_unary([im], my_atan, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for sinh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_sinh(self):
@@ -486,7 +484,7 @@ class TestArithmetic:
         self.run_unary(self.all_images, my_sinh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for cosh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_cosh(self):
@@ -499,7 +497,7 @@ class TestArithmetic:
         self.run_unary(self.all_images, my_cosh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for tanh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_tanh(self):
@@ -512,7 +510,7 @@ class TestArithmetic:
         self.run_unary(self.all_images, my_tanh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for asinh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_asinh(self):
@@ -526,7 +524,7 @@ class TestArithmetic:
         self.run_unary([im], my_asinh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for acosh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_acosh(self):
@@ -540,7 +538,7 @@ class TestArithmetic:
         self.run_unary([im], my_acosh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for atanh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_atanh(self):
@@ -554,7 +552,7 @@ class TestArithmetic:
         self.run_unary([im], my_atanh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for atan2
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
             versiontuple('2.1.16'),
             reason='your pyvips is too old')
     def test_atan2(self):
