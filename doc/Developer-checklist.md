@@ -18,7 +18,7 @@ The `thumbnail` operation combines load and resize into one step. This lets it
 take advantage of format library features, such as shrink on load, and can
 lead to a large improvement in speed and drop in memory use.
 
-For example, whith this JPEG image:
+For example, with this JPEG image:
 
 ```
 $ vipsheader nina.jpg
