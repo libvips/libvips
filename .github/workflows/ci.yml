@@ -15,9 +15,9 @@ jobs:
             build: { cc: gcc, cxx: g++, linker: ld }
             shell: bash
 
-          - name: "Linux x64 (Ubuntu 22.04) - Clang 14 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 22.04) - Clang 15 with ASan and UBSan"
             os: ubuntu-22.04
-            build: { cc: clang-14, cxx: clang++-14, linker: ld.lld-14, sanitize: true }
+            build: { cc: clang-15, cxx: clang++-15, linker: ld.lld-15, sanitize: true }
             shell: bash
 
           - name: "macOS (12.6) - Xcode 14.2"
@@ -71,11 +71,11 @@ jobs:
           brew install meson ninja fftw fontconfig glib libexif libarchive little-cms2 highway pango pkg-config
           brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
-      - name: Install Clang 14
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
+      - name: Install Clang 15
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-15'
         run:
           sudo apt-get install -fqq
-            clang-14 libomp-14-dev lld-14 llvm-14
+            clang-15 libomp-15-dev lld-15 llvm-15
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
@@ -85,7 +85,7 @@ jobs:
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-14
+          LLVM_PREFIX: /usr/lib/llvm-15
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
@@ -94,8 +94,9 @@ jobs:
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
-          # FIXME: remove `intercept_tls_get_addr=0`
+          # FIXME: remove `intercept_tls_get_addr=0` once we update to LLVM 17
           # https://github.com/google/sanitizers/issues/1322
+          # https://github.com/llvm/llvm-project/commit/b1bd52cd0d8627df1187448b8247a9c7a4675019
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1:intercept_tls_get_addr=0" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV

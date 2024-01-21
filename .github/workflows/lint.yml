@@ -11,7 +11,7 @@ jobs:
         id: linter
         with:
           style: file
-          version: 14 # Ubuntu 22.04 provides clang-format-14
+          version: 15 # Ubuntu 22.04 provides clang-format-15
           tidy-checks: '-*' # disable clang-tidy
           lines-changed-only: true
           # ignore bundled files
