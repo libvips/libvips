@@ -19,7 +19,7 @@
     The <literal>thumbnail</literal> operation combines load and resize into one step. This lets it take advantage of format library features, such as shrink on load, and can lead to a large improvement in speed and drop in memory use.
   </para>
   <para>
-    For example, whith this JPEG image:
+    For example, with this JPEG image:
   </para>
   <programlisting>
 $ vipsheader nina.jpg
