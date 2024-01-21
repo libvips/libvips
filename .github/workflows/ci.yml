@@ -20,8 +20,8 @@ jobs:
             build: { cc: clang-15, cxx: clang++-15, linker: ld.lld-15, sanitize: true }
             shell: bash
 
-          - name: "macOS (12.6) - Xcode 14.2"
-            os: macos-12
+          - name: "macOS (13.6) - Xcode 15.2"
+            os: macos-13
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
 
