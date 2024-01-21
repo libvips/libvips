@@ -1,23 +1,11 @@
 private_libvips_headers = [
-    'include/vips/almostdeprecated.h',
-    'include/vips/deprecated.h',
-    'include/vips/vips7compat.h',
-    'include/vips/dispatch.h',
-    'include/vips/internal.h',
-    'include/vips/thread.h',
-    'include/vips/intl.h',
-    'include/vips/format.h',
-    'include/vips/mask.h',
-    'include/vips/private.h',
-    'include/vips/video.h',
-# ignore all .h files in libvips/*, these are internal
     'arithmetic/binary.h',
     'arithmetic/hough.h',
     'arithmetic/nary.h',
     'arithmetic/parithmetic.h',
     'arithmetic/statistic.h',
-    'arithmetic/unary.h',
     'arithmetic/unaryconst.h',
+    'arithmetic/unary.h',
     'colour/pcolour.h',
     'colour/profiles.h',
     'conversion/bandary.h',
@@ -31,22 +19,33 @@ private_libvips_headers = [
     'draw/pdraw.h',
     'foreign/dbh.h',
     'foreign/jpeg.h',
+    'foreign/libnsgif/lzw.h',
+    'foreign/libnsgif/nsgif.h',
+    'foreign/libnsgif/test/cli.h',
     'foreign/magick.h',
     'foreign/pforeign.h',
     'foreign/quantise.h',
     'foreign/tiff.h',
-    'foreign/libnsgif/lzw.h',
-    'foreign/libnsgif/nsgif.h',
-    'foreign/libnsgif/test/cli.h',
     'freqfilt/pfreqfilt.h',
     'histogram/hist_unary.h',
     'histogram/phistogram.h',
+    'include/vips/almostdeprecated.h',
+    'include/vips/deprecated.h',
+    'include/vips/dispatch.h',
+    'include/vips/format.h',
+    'include/vips/internal.h',
+    'include/vips/intl.h',
+    'include/vips/mask.h',
+    'include/vips/private.h',
+    'include/vips/thread.h',
+    'include/vips/video.h',
+    'include/vips/vips7compat.h',
     'iofuncs/sink.h',
     'morphology/pmorphology.h',
     'mosaicing/global_balance.h',
     'mosaicing/pmosaicing.h',
     'resample/presample.h',
-    'resample/templates.h'
+    'resample/templates.h',
 ]
 
 private_headers = []
@@ -55,14 +54,15 @@ foreach private_libvips_header : private_libvips_headers
 endforeach
 
 markdown_content_files = files(
+    'binding.md',
+    'Cite.md',
+    'Developer-checklist.md',
+    'Examples.md',
+    'How-it-opens-files.md',
     'How-it-works.md',
     'libvips-from-C++.md',
-    'Using-vipsthumbnail.md',
-    'How-it-opens-files.md',
-    'Examples.md',
-    'Cite.md',
-    'binding.md',
     'Making-image-pyramids.md',
+    'Using-vipsthumbnail.md',
 )
 
 pandoc = find_program('pandoc', required: false)
@@ -94,34 +94,35 @@ if pandoc.found()
 else
     # use the pre-generated docbook files when pandoc is not available
     markdown_content_files_docbook = files(
+        'binding.xml',
+        'Cite.xml',
+        'Developer-checklist.xml',
+        'Examples.xml',
+        'How-it-opens-files.xml',
         'How-it-works.xml',
         'libvips-from-C++.xml',
-        'Using-vipsthumbnail.xml',
-        'How-it-opens-files.xml',
-        'Examples.xml',
-        'Cite.xml',
-        'binding.xml',
         'Making-image-pyramids.xml',
+        'Using-vipsthumbnail.xml',
     )
 endif
 
 content_files = files(
+    'extending.xml',
+    'file-format.xml',
+    'function-list.xml',
     'using-command-line.xml',
     'using-C.xml',
     'using-threads.xml',
-    'extending.xml',
-    'function-list.xml',
-    'file-format.xml',
 )
 
 images = files(
-    'images/owl.jpg',
-    'images/tn_owl.jpg',
-    'images/interconvert.png',
     'images/Combine.png',
+    'images/interconvert.png',
     'images/Memtrace.png',
+    'images/owl.jpg',
     'images/Sequence.png',
     'images/Sink.png',
+    'images/tn_owl.jpg',
     'images/Vips-smp.png',
 )
 
