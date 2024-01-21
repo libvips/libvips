@@ -9,8 +9,8 @@
     <refpurpose>Checklist for libvips users</refpurpose>
   </refnamediv>
 
-libvips is a slightly unusual library and you need to consider some features
-when you design software that uses it.
+libvips is a slightly unusual library and you may need to take some of its
+stranger features into account when you design software that uses it.
 
 ## If you can, use `thumbnail`, not `resize`
 
@@ -52,7 +52,7 @@ $ /usr/bin/time -f %M:%e vips > /dev/null
 
 You can see much larger improvements with other formats, and quality will
 often be better as well, since `thumbnail` will automatically premultiply and
-will render vector images at the correct size.
+can render vector images directly at the correct size.
 
 ## Don't use `thumbnail_image`
 
