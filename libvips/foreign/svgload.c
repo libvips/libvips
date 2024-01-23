@@ -725,7 +725,7 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		_("Scale output by this factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, scale),
-		0.001, 100000.0, 1.0);
+		0.00001, 100000.0, 1.0);
 
 	VIPS_ARG_BOOL(class, "unlimited", 23,
 		_("Unlimited"),
