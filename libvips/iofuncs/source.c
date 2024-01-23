@@ -217,7 +217,7 @@ vips_source_sanity(VipsSource *source)
 		g_assert(source->length == -1);
 	}
 	else {
-		/* Something like a decriptor we can seek. It might not have
+		/* Something like a descriptor we can seek. It might not have
          * ->descriptor valid, that could be held in a subclass.
 		 */
 
