@@ -1135,6 +1135,18 @@ class TestForeign:
         assert im.width == 1
         assert im.height == 1
 
+        # scale up
+        svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>'
+        im = pyvips.Image.new_from_buffer(svg, "", scale=10000)
+        assert im.width == 10000
+        assert im.height == 10000
+
+        # scale down
+        svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="100000" height="100000"></svg>'
+        im = pyvips.Image.new_from_buffer(svg, "", scale=0.0001)
+        assert im.width == 10
+        assert im.height == 10
+
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
 
