@@ -219,6 +219,14 @@ class TestResample:
         im2 = pyvips.Image.new_from_file(RGBA_CORRECT_FILE)
         assert abs(im1.flatten(background=255).avg() - im2.avg()) < 1
 
+        # thumbnailing a 16-bit image should always make an 8-bit image
+        rgb16_buffer = pyvips.Image \
+                .new_from_file(JPEG_FILE) \
+                .colourspace("rgb16") \
+                .write_to_buffer(".png")
+        thumb = pyvips.Image.thumbnail_buffer(rgb16_buffer, 128)
+        assert thumb.format == "uchar"
+
         if have("heifload"):
             # this image is orientation 6 ... thumbnail should flip it
             im = pyvips.Image.new_from_file(AVIF_FILE)
