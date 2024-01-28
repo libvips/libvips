@@ -39,6 +39,8 @@
  * 	- add fail_on
  * 1/3/23 kleisauke
  *	- skip colourspace conversion when needed
+ * 27/1/24
+ *	- make icc profile transforms always write 8 bits
  */
 
 /*
@@ -245,14 +247,10 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 		for (level = 0; level < level_count; level++) {
 			char name[256];
 
-			vips_snprintf(name, 256,
-				"openslide.level[%d].width", level);
-			thumbnail->level_width[level] =
-				get_int(image, name, 0);
-			vips_snprintf(name, 256,
-				"openslide.level[%d].height", level);
-			thumbnail->level_height[level] =
-				get_int(image, name, 0);
+			vips_snprintf(name, 256, "openslide.level[%d].width", level);
+			thumbnail->level_width[level] = get_int(image, name, 0);
+			vips_snprintf(name, 256, "openslide.level[%d].height", level);
+			thumbnail->level_height[level] = get_int(image, name, 0);
 		}
 	}
 }
@@ -402,15 +400,9 @@ vips_thumbnail_calculate_shrink(VipsThumbnail *thumbnail,
 {
 	/* If we will be rotating, swap the target width and height.
 	 */
-	gboolean rotate =
-		thumbnail->swap &&
-		thumbnail->auto_rotate;
-	int target_width = rotate
-		? thumbnail->height
-		: thumbnail->width;
-	int target_height = rotate
-		? thumbnail->width
-		: thumbnail->height;
+	gboolean rotate = thumbnail->swap && thumbnail->auto_rotate;
+	int target_width = rotate ? thumbnail->height : thumbnail->width;
+	int target_height = rotate ? thumbnail->width : thumbnail->height;
 
 	VipsDirection direction;
 
@@ -600,8 +592,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 			thumbnail->input_width, thumbnail->input_height);
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadOpenslide",
-			thumbnail->loader)) {
+		vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		if (thumbnail->level_count > 0)
 			factor = vips_thumbnail_find_pyrlevel(thumbnail,
 				thumbnail->input_width,
@@ -735,8 +726,7 @@ vips_thumbnail_build(VipsObject *object)
 				thumbnail->import_profile)) {
 			g_info("importing to XYZ PCS");
 			if (thumbnail->import_profile)
-				g_info("fallback input profile %s",
-					thumbnail->import_profile);
+				g_info("fallback input profile %s", thumbnail->import_profile);
 
 			if (vips_icc_import(in, &t[2],
 					"input_profile", thumbnail->import_profile,
@@ -760,10 +750,8 @@ vips_thumbnail_build(VipsObject *object)
 				interpretation = VIPS_INTERPRETATION_scRGB;
 
 			g_info("converting to processing space %s",
-				vips_enum_nick(VIPS_TYPE_INTERPRETATION,
-					interpretation));
-			if (vips_colourspace(in, &t[2], interpretation,
-					NULL))
+				vips_enum_nick(VIPS_TYPE_INTERPRETATION, interpretation));
+			if (vips_colourspace(in, &t[2], interpretation, NULL))
 				return -1;
 			in = t[2];
 		}
@@ -780,10 +768,8 @@ vips_thumbnail_build(VipsObject *object)
 			interpretation = VIPS_INTERPRETATION_sRGB;
 
 		g_info("converting to processing space %s",
-			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
-				interpretation));
-		if (vips_colourspace(in, &t[2], interpretation,
-				NULL))
+			vips_enum_nick(VIPS_TYPE_INTERPRETATION, interpretation));
+		if (vips_colourspace(in, &t[2], interpretation, NULL))
 			return -1;
 		in = t[2];
 	}
@@ -797,10 +783,9 @@ vips_thumbnail_build(VipsObject *object)
 	 * page_height or we'll have pixels straddling page boundaries.
 	 */
 	if (in->Ysize > preshrunk_page_height) {
-		int target_page_height = VIPS_RINT(
-			preshrunk_page_height / vshrink);
-		int target_image_height = target_page_height *
-			thumbnail->n_loaded_pages;
+		int target_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
+		int target_image_height =
+			target_page_height * thumbnail->n_loaded_pages;
 
 		vshrink = (double) in->Ysize / target_image_height;
 	}
@@ -826,9 +811,7 @@ vips_thumbnail_build(VipsObject *object)
 		in = t[4];
 	}
 
-	if (vips_resize(in, &t[5], 1.0 / hshrink,
-			"vscale", 1.0 / vshrink,
-			NULL))
+	if (vips_resize(in, &t[5], 1.0 / hshrink, "vscale", 1.0 / vshrink, NULL))
 		return -1;
 	in = t[5];
 
@@ -844,18 +827,19 @@ vips_thumbnail_build(VipsObject *object)
 	 * accidentally turn into an animated image later.
 	 */
 	if (thumbnail->n_loaded_pages > 1) {
-		int output_page_height =
-			VIPS_RINT(preshrunk_page_height / vshrink);
+		int output_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
 
 		if (vips_copy(in, &t[8], NULL))
 			return -1;
 		in = t[8];
 
-		vips_image_set_int(in,
-			VIPS_META_PAGE_HEIGHT, output_page_height);
+		vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, output_page_height);
 	}
 
 	/* Colour management.
+	 *
+	 * We always export as depth 8, to match the no profile case which
+	 * uses vips_colourspace(sRGB|B_W).
 	 */
 	if (have_imported) {
 		/* We are in PCS. Export with the output profile, if any (this
@@ -866,6 +850,7 @@ vips_thumbnail_build(VipsObject *object)
 		if (vips_icc_export(in, &t[9],
 				"output_profile", thumbnail->export_profile,
 				"intent", thumbnail->intent,
+				"depth", 8,
 				NULL))
 			return -1;
 		in = t[9];
@@ -874,11 +859,11 @@ vips_thumbnail_build(VipsObject *object)
 		/* We can transform to the output with a pair of ICC profiles.
 		 */
 		g_info("transforming with supplied profiles");
-		if (vips_icc_transform(in, &t[9],
-				thumbnail->export_profile,
+		if (vips_icc_transform(in, &t[9], thumbnail->export_profile,
 				"input_profile", thumbnail->import_profile,
 				"intent", thumbnail->intent,
 				"embedded", TRUE,
+				"depth", 8,
 				NULL))
 			return -1;
 
@@ -889,11 +874,11 @@ vips_thumbnail_build(VipsObject *object)
 		 * and need to go to PCS, then export.
 		 */
 		g_info("exporting with %s", thumbnail->export_profile);
-		if (vips_colourspace(in, &t[9],
-				VIPS_INTERPRETATION_XYZ, NULL) ||
+		if (vips_colourspace(in, &t[9], VIPS_INTERPRETATION_XYZ, NULL) ||
 			vips_icc_export(t[9], &t[10],
 				"output_profile", thumbnail->export_profile,
 				"intent", thumbnail->intent,
+				"depth", 8,
 				NULL))
 			return -1;
 		in = t[10];
@@ -910,18 +895,15 @@ vips_thumbnail_build(VipsObject *object)
 			interpretation = VIPS_INTERPRETATION_sRGB;
 
 		g_info("converting to output space %s",
-			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
-				interpretation));
-		if (vips_colourspace(in, &t[9], interpretation,
-				NULL))
+			vips_enum_nick(VIPS_TYPE_INTERPRETATION, interpretation));
+		if (vips_colourspace(in, &t[9], interpretation, NULL))
 			return -1;
 		in = t[9];
 	}
 
 	if (thumbnail->auto_rotate &&
 		thumbnail->orientation != 1) {
-		g_info("rotating by EXIF orientation %d",
-			thumbnail->orientation);
+		g_info("rotating by EXIF orientation %d", thumbnail->orientation);
 		/* Need to copy to memory, we have to stay seq.
 		 */
 		if (!(t[11] = vips_image_copy_memory(in)) ||
@@ -946,8 +928,7 @@ vips_thumbnail_build(VipsObject *object)
 		 * FIXME ... could skip the copy if we've rotated.
 		 */
 		if (!(t[13] = vips_image_copy_memory(in)) ||
-			vips_smartcrop(t[13], &t[14],
-				crop_width, crop_height,
+			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
 				"interesting", thumbnail->crop,
 				NULL))
 			return -1;
@@ -1130,8 +1111,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
-				 thumbnail->loader)) {
+	else if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
@@ -1553,8 +1533,7 @@ vips_thumbnail_source_get_info(VipsThumbnail *thumbnail)
 
 	g_info("thumbnailing source");
 
-	if (!(thumbnail->loader = vips_foreign_find_load_source(
-			  source->source)) ||
+	if (!(thumbnail->loader = vips_foreign_find_load_source( source->source)) ||
 		!(image = vips_image_new_from_source(source->source,
 			  source->option_string, NULL)))
 		return -1;
