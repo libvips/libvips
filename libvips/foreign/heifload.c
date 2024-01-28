@@ -708,7 +708,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
 	else if (profile_type == heif_color_profile_type_nclx) {
-		g_warning("heifload: ignoring nclx profile");
+		g_info("heifload: ignoring nclx profile");
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
