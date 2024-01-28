@@ -3,6 +3,7 @@ date-tbd 8.15.2
 - fix deflate compression of tiff pyramids [manthey]
 - better no-chroma-subsample switching for jpeg in tiff [kleisauke]
 - thumbnail always writes 8-bit thumbnails [turtletowerz]
+- lower min scale factor to 0.0 in svgload and pdfload [lovell]
 
 18/12/23 8.15.1
 

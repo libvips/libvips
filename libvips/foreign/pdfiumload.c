@@ -739,7 +739,7 @@ vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 		_("Factor to scale by"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadPdf, scale),
-		0.001, 100000.0, 1.0);
+		0.0, 100000.0, 1.0);
 
 	VIPS_ARG_BOXED(class, "background", 14,
 		_("Background"),
