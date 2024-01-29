@@ -1537,8 +1537,7 @@ vips_composite_build(VipsObject *object)
 
 	if (vips_object_argument_isset(object, "x")) {
 		if (composite->x->area.n != n - 1) {
-			vips_error(klass->nickname,
-				_("must be %d x coordinates"), n - 1);
+			vips_error(klass->nickname, _("must be %d x coordinates"), n - 1);
 			return -1;
 		}
 		base->x_offset = (int *) composite->x->area.data;
@@ -1546,8 +1545,7 @@ vips_composite_build(VipsObject *object)
 
 	if (vips_object_argument_isset(object, "y")) {
 		if (composite->y->area.n != n - 1) {
-			vips_error(klass->nickname,
-				_("must be %d y coordinates"), n - 1);
+			vips_error(klass->nickname, _("must be %d y coordinates"), n - 1);
 			return -1;
 		}
 		base->y_offset = (int *) composite->y->area.data;
