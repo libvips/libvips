@@ -52,6 +52,49 @@
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
+/* Imagemagick has weak support for some formats --- for example, AVI is
+ * delegated to ffmpeg, and just getting the header can take many seconds and
+ * many GB of memory.
+ *
+ * This function detects blocked formats which we don't pass to
+ * imagemagick.
+ */
+static gboolean
+magick_block(const unsigned char *bytes, size_t length)
+{
+	// AVI is a RIFF with AVI as the first chunk
+	if (length > 12 &&
+		bytes[0] == 'R' &&
+		bytes[1] == 'I' &&
+		bytes[2] == 'F' &&
+		bytes[3] == 'F' &&
+		bytes[8] == 'A' &&
+		bytes[9] == 'V' &&
+		bytes[10] == 'I' &&
+		bytes[11] == ' ')
+		return TRUE;
+
+	// XML is very slow for some reason, and we handle SVG, so ...
+	if (length > 5 &&
+		bytes[0] == '<' &&
+		bytes[1] == '?' &&
+		bytes[2] == 'x' &&
+		bytes[3] == 'm' &&
+		bytes[4] == 'l' &&
+		bytes[5] == ' ')
+		return TRUE;
+	if (length > 5 &&
+		bytes[0] == '<' &&
+		bytes[1] == '?' &&
+		bytes[2] == 'X' &&
+		bytes[3] == 'M' &&
+		bytes[4] == 'L' &&
+		bytes[5] == ' ')
+		return TRUE;
+
+	return FALSE;
+}
+
 /* ImageMagick can't detect some formats (eg. ICO and TGA) by examining the
  * contents -- ico.c and tga.c simply do not have recognisers.
  *
@@ -308,8 +351,9 @@ magick_ismagick(const unsigned char *bytes, size_t length)
 
 	/* Try with our custom sniffers first.
 	 */
-	return magick_sniff(bytes, length) ||
-		GetImageMagick(bytes, length, format);
+	return !magick_block(bytes, length) &&
+		(magick_sniff(bytes, length) ||
+		GetImageMagick(bytes, length, format));
 }
 
 int
@@ -612,6 +656,7 @@ magick_optimize_image_layers(Image **images, ExceptionInfo *exception)
 #else  /*!HAVE_OPTIMIZEPLUSIMAGELAYERS*/
 	g_warning("%s", _("layer optimization is not supported by "
 					  "your version of libMagick"));
+
 	return MagickTrue;
 #endif /*HAVE_OPTIMIZEPLUSIMAGELAYERS*/
 }
@@ -622,10 +667,12 @@ magick_optimize_image_transparency(const Image *images,
 {
 #ifdef HAVE_OPTIMIZEIMAGETRANSPARENCY
 	OptimizeImageTransparency(images, exception);
+
 	return exception->severity == UndefinedException;
 #else  /*!HAVE_OPTIMIZEIMAGETRANSPARENCY*/
 	g_warning("%s", _("transparency optimization is not supported by "
 					  "your version of libMagick"));
+
 	return MagickTrue;
 #endif /*HAVE_OPTIMIZEIMAGETRANSPARENCY*/
 }
@@ -643,14 +690,16 @@ magick_ismagick(const unsigned char *bytes, size_t length)
 	{
 		char format[MaxTextExtent];
 
-		return magick_sniff(bytes, length) ||
-			GetImageMagick(bytes, length, format);
+		return !magick_block(bytes, length) &&
+			(magick_sniff(bytes, length) ||
+			GetImageMagick(bytes, length, format));
 	}
 #else /*!HAVE_GETIMAGEMAGICK3*/
 	/* The GM one returns a static string.
 	 */
-	return magick_sniff(bytes, length) ||
-		GetImageMagick(bytes, length);
+	return !magick_block(bytes, length) &&
+		(magick_sniff(bytes, length) ||
+		GetImageMagick(bytes, length));
 #endif
 }
 
@@ -662,6 +711,7 @@ magick_quantize_images(Image *images,
 
 	GetQuantizeInfo(&info);
 	info.number_colors = (1 << depth);
+
 	return QuantizeImages(&info, images);
 }
 

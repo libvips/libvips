@@ -6,6 +6,7 @@ master 8.16
 - jxl load and save now support exif, xmp, animation [DarthSim]
 - improved configure output
 - don't build loaders as modules by default
+- add a filetype blocker for imagemagick
 
 date-tbd 8.15.2
 
