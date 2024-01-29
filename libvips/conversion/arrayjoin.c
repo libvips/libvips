@@ -6,6 +6,8 @@
  * 	- minmise inputs once we've used them
  * 29/12/22
  *	- much faster with large arrays
+ * 29/1/24
+ *	- render and don't forward pixels for complete subregions
  */
 
 /*
@@ -112,16 +114,24 @@ vips_arrayjoin_gen(VipsRegion *out_region,
 	 * forward the request.
 	 */
 	if (width == 1 && height == 1) {
+		VipsRect need;
+
 		i = VIPS_MIN(n - 1, left + top * join->across);
 
-		reg = vips_region_new(in[i]);
+		/* The part of in[i] we need.
+		 */
+		need = out_region->valid;
+		need.left -= join->rects[i].left;
+		need.top -= join->rects[i].top;
 
-		if (vips__insert_just_one(out_region, reg,
-				join->rects[i].left, join->rects[i].top)) {
+		/* And render into out_region. We can't just forward a pointer since
+		 * we are about to unref reg.
+		 */
+		reg = vips_region_new(in[i]);
+		if (vips_region_prepare_to(reg, out_region, &need, r->left, r->top)) {
 			g_object_unref(reg);
 			return -1;
 		}
-
 		g_object_unref(reg);
 	}
 	else {
@@ -132,8 +142,7 @@ vips_arrayjoin_gen(VipsRegion *out_region,
 
 		for (y = 0; y < height; y++)
 			for (x = 0; x < width; x++) {
-				i = VIPS_MIN(n - 1,
-					x + left + (y + top) * join->across);
+				i = VIPS_MIN(n - 1, x + left + (y + top) * join->across);
 
 				reg = vips_region_new(in[i]);
 
@@ -147,16 +156,15 @@ vips_arrayjoin_gen(VipsRegion *out_region,
 			}
 	}
 
+	/* In sequential mode, we can minimise an input once our generate point
+	 * is well past the end of it. This can save a lot of memory and file
+	 * descriptors on large image arrays.
+	 *
+	 * minimise_all is quite expensive, so only trigger once for each input.
+	 *
+	 * We don't lock for minimised[], but it's harmless.
+	 */
 	if (vips_image_is_sequential(conversion->out))
-		/* In sequential mode, we can minimise an input once our
-		 * generate point is well past the end of it. This can save a
-		 * lot of memory and file descriptors on large image arrays.
-		 *
-		 * minimise_all is quite expensive, so only trigger once for
-		 * each input.
-		 *
-		 * We don't lock for minimised[], but it's harmless.
-		 */
 		for (i = 0; i < n; i++) {
 			int bottom_edge = VIPS_RECT_BOTTOM(&join->rects[i]);
 
@@ -198,6 +206,11 @@ vips_arrayjoin_build(VipsObject *object)
 	 */
 	if (n == 0)
 		return -1;
+
+	for (i = 0; i < n; i++)
+		if (vips_image_pio_input(in[i]) ||
+			vips_check_coding_known(class->nickname, in[i]))
+			return -1;
 
 	/* Move all input images to a common format and number of bands.
 	 */
