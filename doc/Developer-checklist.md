@@ -87,3 +87,72 @@ If you can, aim for long pipelines of processing operations.
 If you can, put large resizes right at the start (see `thumbnail` above),
 then area filters (sharpen, for example), and finally any point operations.
 
+## Disable or adjust imagemagick
+
+If libvips sees a format it does not support (eg. PSB, BMP, ICO, NIF etc.) it
+falls back to loading via imagemagick. This usually gets you an image,
+but it can cause *huge* memory spikes. For example:
+
+```
+$ /usr/bin/time -f %M:%e vipsheader bigphoto.psb
+bigphoto.psb: 23847x12799 uchar, 3 bands, srgb, magickload
+3325952:4.51
+$
+```
+
+So 3.3gb and 4.5s just to get the header of a PSB file. It's 10s to make
+a thumbnail.
+
+Suggestions:
+
+- make a list of the file formats you need to support, and be quite ruthless
+
+- if you can live without imagemagick, then remove it
+
+- or perhaps adjust your `policy.xml` to ban huge imagemagick images
+
+- you can also detect these images ahead of processing in python and divert
+  images which will need imagemagick to another container so as not to kill
+  your main image path
+
+## Block untrusted loaders
+
+We fuzz libvips for security, but only for a subset of the supported
+loaders. Some loaders are not designed for untrusted data and can be
+easily exploited. They should not be exposed to uploads.
+
+Many libvips binaries (eg. Debian, RHEL, etc.) ship with all of these bad
+loaders enabled. Since 8.13 we've had a feature to disable them at runtime:
+
+https://www.libvips.org/2022/05/28/What's-new-in-8.13.html
+
+If you are handling untrusted data, I would set the `VIPS_BLOCK_UNTRUSTED`
+env var and only use the tested loaders.
+
+## Interlaced (or progressive) images
+
+PNG and JPG both support interlaced (also called progressive) images --
+these are the ones that appear at a low res first, then slowly fill in
+detail as they are downloaded.
+
+The downside is that you don't get the final pixels until the whole image
+is in memory, which prevents any streaming processing and hugely increases
+memory use. For example:
+
+```
+$ /usr/bin/time -f %M:%e vipsthumbnail big-progressive.jpg
+3732224:4.23
+$ vips copy big-progressive.jpg x.jpg
+$ /usr/bin/time -f %M:%e vipsthumbnail x.jpg
+72448:0.26
+$
+```
+
+So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but
+exactly the same image as a regular jpeg takes 72mb and 0.26s.
+
+I would detect these horrors before processing and either ban them, or
+if your users insist on uploading in this terrible format, push them to
+a separate low-priority queue on a special container. Keep them away from
+your main image path.
+
