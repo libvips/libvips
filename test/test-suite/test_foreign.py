@@ -1172,6 +1172,11 @@ class TestForeign:
         self.save_load_file("%s.ppm", "[ascii]", grey16, 0)
         self.save_load_file("%s.ppm", "[ascii]", rgb16, 0)
 
+        source = pyvips.Source.new_from_memory(b'P1\n#\n#\n1 1\n0\n')
+        im = pyvips.Image.ppmload_source(source)
+        assert im.height == 1
+        assert im.width == 1
+
     @skip_if_no("radload")
     def test_rad(self):
         self.save_load("%s.hdr", self.colour)
