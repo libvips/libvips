@@ -371,10 +371,11 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 				return -1;
 			}
 
-			/* This will be the first tile of a new buffer ...
-			 * stall for a moment to stress the caching system.
+			/* This will be the first tile of a new buffer ... mark this as a
+			 * good place to stall for a moment if we want to stress the
+			 * caching system. See threadpool.c.
 			 */
-			state->stall = TRUE;
+            state->stall = TRUE;
 		}
 	}
 
