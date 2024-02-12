@@ -522,7 +522,7 @@ vips_sbuf_skip_whitespace(VipsSbuf *sbuf)
 
 		/* # skip comments too.
 		 */
-		if (ch == '#') {
+		while (ch == '#') {
 			/* Probably EOF.
 			 */
 			if (!vips_sbuf_get_line(sbuf))

@@ -2721,7 +2721,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @background: #VipsArrayDouble background colour
- * * @password: %gchararray background colour
+ * * @password: %gchararray PDF password
  *
  * Render a PDF file into a VIPS image.
  *
