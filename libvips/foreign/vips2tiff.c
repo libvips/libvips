@@ -682,6 +682,13 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 
 	jpeg_set_defaults(cinfo);
 
+	// disable chroma subsample for high Q
+	if (wtiff->Q >= 90)
+		for (int i = 0; i < image->Bands; i++) {
+			cinfo->comp_info[i].h_samp_factor = 1;
+			cinfo->comp_info[i].v_samp_factor = 1;
+		}
+
 	// use RGB mode (no chroma subsample) for high Q RGB images
 	if (wtiff->Q >= 90 &&
 		image->Bands == 3)
