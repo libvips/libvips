@@ -10,11 +10,12 @@ master 8.16
 date-tbd 8.15.2
 
 - fix deflate compression of tiff pyramids [manthey]
-- better no-chroma-subsample switching for jpeg in tiff [kleisauke]
 - thumbnail always writes 8-bit thumbnails [turtletowerz]
 - lower min scale factor to 0.0 in svgload and pdfload [lovell]
 - heifload: don't warn on images with nclx profiles [kleisauke]
 - ppmload: ensure multi-line comments are skipped [lovell]
+- fix arrayjoin with some pipelines [TheEssem]
+- fix high Q mono JPEG TIFF write with mozjpeg [cavenel]
 
 18/12/23 8.15.1
 
