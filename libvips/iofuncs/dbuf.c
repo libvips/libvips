@@ -46,6 +46,8 @@
  * @dbuf: the buffer
  *
  * Initialize @dbuf.
+ *
+ * Destroy with vips_dbuf_destroy().
  */
 void
 vips_dbuf_init(VipsDbuf *dbuf)
@@ -54,6 +56,23 @@ vips_dbuf_init(VipsDbuf *dbuf)
 	dbuf->allocated_size = 0;
 	dbuf->data_size = 0;
 	dbuf->write_point = 0;
+}
+
+/**
+ * vips_dbuf_new:
+ *
+ * Create a new dbuf on the heap.
+ *
+ * Free with vips_dbuf_free().
+ */
+VipsDbuf *
+vips_dbuf_new(void)
+{
+	VipsDbuf *dbuf = g_new0(VipsDbuf, 1);
+
+	vips_dbuf_init(dbuf);
+
+	return dbuf;
 }
 
 /**
@@ -191,17 +210,14 @@ gboolean
 vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
 {
 	va_list ap;
-	char *line;
+	g_autofree char *line;
 
 	va_start(ap, fmt);
 	line = g_strdup_vprintf(fmt, ap);
 	va_end(ap);
 
-	if (vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line))) {
-		g_free(line);
+	if (vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line)))
 		return FALSE;
-	}
-	g_free(line);
 
 	return TRUE;
 }
@@ -281,7 +297,8 @@ vips_dbuf_reset(VipsDbuf *dbuf)
  * vips_dbuf_destroy:
  * @dbuf: the buffer
  *
- * Destroy @dbuf. This frees any allocated memory.
+ * Destroy @dbuf. This frees any allocated memory. Useful for dbufs on the
+ * stack.
  */
 void
 vips_dbuf_destroy(VipsDbuf *dbuf)
@@ -290,6 +307,19 @@ vips_dbuf_destroy(VipsDbuf *dbuf)
 
 	VIPS_FREE(dbuf->data);
 	dbuf->allocated_size = 0;
+}
+
+/**
+ * vips_dbuf_free:
+ * @dbuf: the buffer
+ *
+ * Free @dbuf. This frees any allocated memory. Useful for dbufs in the heap.
+ */
+void
+vips_dbuf_free(VipsDbuf *dbuf)
+{
+	vips_dbuf_destroy(dbuf);
+	g_free(dbuf);
 }
 
 /**

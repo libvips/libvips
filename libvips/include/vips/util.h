@@ -123,7 +123,7 @@ extern "C" {
 	{ \
 		if ((N)) { \
 			int duff_count = ((N) + 15) / 16; \
-\
+			\
 			switch ((N) % 16) { \
 			case 0: \
 				do { \

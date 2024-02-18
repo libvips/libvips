@@ -62,6 +62,8 @@ typedef struct _VipsDbuf {
 } VipsDbuf;
 
 VIPS_API
+VipsDbuf *vips_dbuf_new(void);
+VIPS_API
 void vips_dbuf_init(VipsDbuf *dbuf);
 VIPS_API
 gboolean vips_dbuf_minimum_size(VipsDbuf *dbuf, size_t size);
@@ -83,6 +85,8 @@ VIPS_API
 void vips_dbuf_reset(VipsDbuf *dbuf);
 VIPS_API
 void vips_dbuf_destroy(VipsDbuf *dbuf);
+VIPS_API
+void vips_dbuf_free(VipsDbuf *dbuf);
 VIPS_API
 gboolean vips_dbuf_seek(VipsDbuf *dbuf, off_t offset, int whence);
 VIPS_API

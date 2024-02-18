@@ -53,7 +53,7 @@ extern "C" {
 	G_STMT_START \
 	{ \
 		const char *sst = (V); \
-\
+		\
 		if ((S) != sst) { \
 			if (!(S) || !sst || strcmp((S), sst) != 0) { \
 				VIPS_FREE(S); \
@@ -70,6 +70,14 @@ extern "C" {
 	((T *) VIPS_MALLOC(OBJ, sizeof(T)))
 #define VIPS_ARRAY(OBJ, N, T) \
 	((T *) VIPS_MALLOC(OBJ, (N) * sizeof(T)))
+
+/* An incomplete set of autoptr defs.
+ */
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsObject, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsRegion, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsDbuf, vips_dbuf_free)
 
 VIPS_API
 void *vips_malloc(VipsObject *object, size_t size);
