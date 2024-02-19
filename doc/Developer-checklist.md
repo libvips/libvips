@@ -87,3 +87,71 @@ If you can, aim for long pipelines of processing operations.
 If you can, put large resizes right at the start (see `thumbnail` above),
 then area filters (sharpen, for example), and finally any point operations.
 
+## Only enable the load libraries you need
+
+libvips after version 8.13 has a system for enabling and disabling image load
+libraries at runtime, see:
+
+https://www.libvips.org/2022/05/28/What's-new-in-8.13.html
+
+You can usually improve security and avoid memory spikes by only enabling
+the image formats you really need.  If you are handling untrusted data,
+I would set the `VIPS_BLOCK_UNTRUSTED` env var and only use the loaders we
+have tested for security.
+
+Older versions of libvips need compile-time configuration.
+
+## Sanity-check images before processing
+
+libvips image open is always fast and safe, as long as you have disabled
+load via imagemagick. This means you can open an image and sanity-check it
+before further processing.
+
+There are two main checks that are very worthwhile:
+
+1. Sanity check image dimensions to protect you from decompression
+   bombs like those described at
+   https://www.bamsoftware.com/hacks/deflate.html
+
+2. Check for interlaced (also called progressive) images.
+
+   These are the ones that appear at a low res first, then slowly fill in
+   detail as they are downloaded.
+
+   The downside is that you don't get the final pixels until the whole image
+   is in memory, which prevents any streaming processing and hugely increases
+   memory use. For example:
+
+```
+$ /usr/bin/time -f %M:%e vipsthumbnail big-progressive.jpg
+3732224:4.23
+$ vips copy big-progressive.jpg x.jpg
+$ /usr/bin/time -f %M:%e vipsthumbnail x.jpg
+72448:0.26
+```
+
+   So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but
+   exactly the same image as a regular jpeg takes 72mb and 0.26s.
+
+   I would detect these horrors before processing by looking for the
+   `interlaced` metadata item and either ban them, or if your users insist
+   on uploading in this terrible format, push them to a separate low-priority
+   queue on a special container. Keep them away from your main image path.
+
+## Linux memory allocator
+
+The default memory allocator on most glibc-based Linux systems (e.g.
+Debian, Red Hat) is unsuitable for long-running, multi-threaded processes
+that involve lots of small memory allocations.
+
+To help avoid fragmentation and improve performance on these systems,
+the use of an alternative memory allocator such as [jemalloc](
+https://github.com/jemalloc/jemalloc) is recommended.
+
+Those using musl-based Linux (e.g. Alpine) and non-Linux systems are
+unaffected.
+
+## Disable the libvips operation cache if you don't need it
+
+The libvips' operation cache is not useful for image proxies (i.e. processing
+many different images). Consider disabling this with `vips_cache_set_max(0);`.
