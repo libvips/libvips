@@ -293,32 +293,7 @@ void
 vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
 {
 	vips_verror(domain, fmt, ap);
-
-#ifdef G_OS_WIN32
-	{
-		char *buf;
-
-		if (FormatMessageA(
-				FORMAT_MESSAGE_ALLOCATE_BUFFER |
-					FORMAT_MESSAGE_IGNORE_INSERTS |
-					FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL,
-				err,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				(LPSTR) &buf, 0, NULL)) {
-			vips_error(_("windows error"), "%s", buf);
-			LocalFree(buf);
-		}
-	}
-#else  /*!G_OS_WIN32*/
-	{
-		char *buf;
-
-		buf = g_locale_to_utf8(strerror(err), -1, NULL, NULL, NULL);
-		vips_error(_("unix error"), "%s", buf);
-		g_free(buf);
-	}
-#endif /*G_OS_WIN32*/
+	vips_error(_("system error"), "%s", g_strerror(err));
 }
 
 /**
