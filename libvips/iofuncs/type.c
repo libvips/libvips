@@ -222,7 +222,7 @@ vips_area_unref(VipsArea *area)
 void
 VipsArrayDouble_unref(VipsArrayDouble *array)
 {
-    vips_area_unref(VIPS_AREA(array));
+	vips_area_unref(VIPS_AREA(array));
 }
 
 /**
