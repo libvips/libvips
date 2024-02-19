@@ -128,7 +128,6 @@ $ /usr/bin/time -f %M:%e vipsthumbnail big-progressive.jpg
 $ vips copy big-progressive.jpg x.jpg
 $ /usr/bin/time -f %M:%e vipsthumbnail x.jpg
 72448:0.26
-$
 ```
 
    So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but
