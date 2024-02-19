@@ -34,44 +34,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update apt
-        if: runner.os == 'Linux'
-        run: sudo apt-get update -qq
-
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
-        run:
-          sudo apt-get install -fqq
-            meson
-            python3-pip python3-setuptools python3-wheel
-            libfftw3-dev libexif-dev libjpeg-turbo8-dev
-            libpng-dev libwebp-dev libtiff5-dev
-            libheif-dev libexpat1-dev libcfitsio-dev
-            libmatio-dev libnifti-dev libhwy-dev
-            liblcms2-dev libpoppler-glib-dev librsvg2-dev
-            libopenexr-dev libpango1.0-dev libarchive-dev
-            libopenslide-dev libffi-dev libopenjp2-7-dev
-            libimagequant-dev libcgif-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            meson pkg-config \
+            python3-pip python3-setuptools python3-wheel \
+            libarchive-dev libcfitsio-dev libcgif-dev \
+            libexif-dev libexpat1-dev libffi-dev \
+            libfftw3-dev libheif-dev libhwy-dev \
+            libimagequant-dev libjpeg-dev liblcms2-dev \
+            libmatio-dev libnifti-dev libopenexr-dev \
+            libopenjp2-7-dev libopenslide-dev libpango1.0-dev \
+            libpng-dev libpoppler-glib-dev librsvg2-dev \
+            libtiff5-dev libwebp-dev \
             liborc-0.4-dev # FIXME: Remove once libhwy 1.0.5 is available.
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install python ninja
           pip3 install meson
-          brew install fftw fontconfig glib libexif libarchive little-cms2
-          brew install highway pango pkg-config cfitsio cgif jpeg-xl libheif
-          brew install libimagequant mozjpeg libmatio librsvg libspng libtiff
-          brew install openexr openjpeg openslide poppler webp
-          brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg
-          brew install libmatio librsvg libspng libtiff openexr openjpeg
-          brew install openslide poppler webp
+          brew install \
+            ninja pkg-config python \
+            cfitsio cgif fftw fontconfig glib \
+            highway jpeg-xl libarchive libexif \
+            libheif libimagequant libmatio librsvg \
+            libspng libtiff little-cms2 mozjpeg \
+            openexr openjpeg openslide pango \
+            poppler webp
 
       - name: Install Clang 15
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-15'
-        run:
-          sudo apt-get install -fqq
-            clang-15 libomp-15-dev lld-15 llvm-15
+        run: sudo apt-get install clang-15 libomp-15-dev lld-15 llvm-15
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
