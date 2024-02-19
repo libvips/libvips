@@ -71,13 +71,22 @@ extern "C" {
 #define VIPS_ARRAY(OBJ, N, T) \
 	((T *) VIPS_MALLOC(OBJ, (N) * sizeof(T)))
 
-/* An incomplete set of autoptr defs.
- */
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsObject, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsRegion, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsConnection, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSource, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSourceCustom, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsGInputStream, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSourceGInputStream, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsTarget, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsTargetCustom, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSbuf, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsInterpolate, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsOperation, g_object_unref)
+
+// FIXME ... need more of these
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsDbuf, vips_dbuf_free)
 
 VIPS_API
 void *vips_malloc(VipsObject *object, size_t size);

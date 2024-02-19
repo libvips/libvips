@@ -62,11 +62,6 @@ expat_dep = dependency('expat')
 thread_dep = dependency('threads')
 m_dep = cc.find_library('m', required: false)
 
-# clang and gcc at least support this
-if not cc.has_header_symbol('glib.h', 'g_autofree', dependencies : glib_dep)
-  error('libvips requires the GNU C "cleanup" attribute.')
-endif
-
 # Start to form our dependencies
 
 # External dependencies we've detected

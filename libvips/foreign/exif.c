@@ -87,7 +87,7 @@ entry_to_s(ExifEntry *entry)
 	 */
 	int size = VIPS_MIN(entry->size, 10000);
 	int max_size = size * 5;
-	g_autofree char *text = VIPS_MALLOC(NULL, max_size + 1);
+	char *text = VIPS_MALLOC(NULL, max_size + 1);
 
 	// this renders floats as eg. "12.2345", enums as "Inch", etc.
 	exif_entry_get_value(entry, text, max_size);
@@ -97,7 +97,11 @@ entry_to_s(ExifEntry *entry)
 	if (entry->format == EXIF_FORMAT_ASCII)
 		text[size] = '\0';
 
-	return g_utf8_make_valid(text, -1);
+	char *utf8 = g_utf8_make_valid(text, -1);
+
+	g_free(text);
+
+	return utf8;
 }
 
 #ifdef DEBUG_VERBOSE
@@ -133,7 +137,7 @@ show_tags(ExifData *data)
 static void
 show_entry(ExifEntry *entry, void *client)
 {
-	g_autofree char *text = entry_to_s(entry);
+	char *text = entry_to_s(entry);
 
 	printf("%s", exif_tag_get_title(entry->tag));
 	printf("|");
@@ -143,6 +147,8 @@ show_entry(ExifEntry *entry, void *client)
 	printf("|");
 	printf("%d bytes", entry->size);
 	printf("\n");
+
+	g_free(text);
 }
 
 static void
@@ -314,7 +320,7 @@ vips_exif_get_double(ExifData *ed,
 static void
 vips_exif_to_s(ExifData *ed, ExifEntry *entry, VipsDbuf *buf)
 {
-	g_autofree char *text = entry_to_s(entry);
+	char *text = entry_to_s(entry);
 
 	unsigned long i;
 	int iv;
@@ -350,6 +356,8 @@ vips_exif_to_s(ExifData *ed, ExifEntry *entry, VipsDbuf *buf)
 		exif_format_get_name(entry->format),
 		entry->components,
 		entry->size);
+
+	g_free(text);
 }
 
 typedef struct _VipsExifParams {
@@ -378,21 +386,22 @@ vips_exif_attach_entry(ExifEntry *entry, VipsExifParams *params)
 	const char *tag_name;
 	char vips_name_txt[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC(vips_name_txt);
-
-	g_autoptr(VipsDbuf) value = vips_dbuf_new();
+	VipsDbuf value = { 0 };
 
 	if (!(tag_name = vips_exif_entry_get_name(entry)))
 		return;
 
 	vips_buf_appendf(&vips_name, "exif-ifd%d-%s",
 		exif_entry_get_ifd(entry), tag_name);
-	vips_exif_to_s(params->ed, entry, value);
+	vips_exif_to_s(params->ed, entry, &value);
 
 	/* Can't do anything sensible with the error return.
 	 */
 	(void) vips_image_set_string(params->image,
 		vips_buf_all(&vips_name),
-		(char *) vips_dbuf_string(value, NULL));
+		(char *) vips_dbuf_string(&value, NULL));
+
+	vips_dbuf_destroy(&value);
 }
 
 static void
@@ -1331,7 +1340,7 @@ vips_exif_exif_entry(ExifEntry *entry, VipsExifRemove *ve)
 		(tag_is_encoding(entry->tag) ||
 			tag_is_ascii(entry->tag) ||
 			tag_is_utf16(entry->tag))) {
-		g_autoptr(VipsDbuf) value = vips_dbuf_new();
+		VipsDbuf value = { 0 };
 
 		/* Render the original exif-data value to a string and see
 		 * if the user has changed it. If they have, remove it ready
@@ -1339,9 +1348,10 @@ vips_exif_exif_entry(ExifEntry *entry, VipsExifRemove *ve)
 		 *
 		 * Leaving it there prevents it being recreated.
 		 */
-		vips_exif_to_s(ve->ed, entry, value);
-		if (strcmp((char *) vips_dbuf_string(value, NULL), vips_value) != 0)
+		vips_exif_to_s(ve->ed, entry, &value);
+		if (strcmp((char *) vips_dbuf_string(&value, NULL), vips_value) != 0)
 			ve->to_remove = g_slist_prepend(ve->to_remove, entry);
+		vips_dbuf_destroy(&value);
 	}
 }
 

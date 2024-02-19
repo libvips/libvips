@@ -743,8 +743,9 @@ parser_data_handler(void *user_data, const XML_Char *data, int len)
 static int
 readhist(VipsImage *im)
 {
+	VipsExpatParse vep = { 0 };
+
 	XML_Parser parser;
-	VipsExpatParse vep;
 
 	if (vips__seek(im->fd, image_pixel_length(im), SEEK_SET) == -1)
 		return -1;
@@ -752,8 +753,6 @@ readhist(VipsImage *im)
 	parser = XML_ParserCreate("UTF-8");
 
 	vep.image = im;
-	vips_dbuf_init(&vep.dbuf);
-	vep.error = FALSE;
 	XML_SetUserData(parser, &vep);
 
 	XML_SetElementHandler(parser,

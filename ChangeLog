@@ -6,8 +6,7 @@ master 8.16
 - jxl load and save now support exif, xmp, animation [DarthSim]
 - improved configure output
 - don't build loaders as modules by default
-- require "cleanup" compiler attribute
-- start basic g_auto support
+- add basic g_auto support
 - support for long EXIF values [MarcosAndre]
 
 date-tbd 8.15.2
