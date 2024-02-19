@@ -120,10 +120,6 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	gboolean smart_subsample;
 
-	/* Enable smart deblock filter adjusting.
-	 */
-	gboolean smart_deblock;
-
 	/* Use preprocessing in lossless mode.
 	 */
 	gboolean near_lossless;
@@ -615,8 +611,6 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 		webp->config.near_lossless = webp->Q;
 	if (webp->smart_subsample)
 		webp->config.use_sharp_yuv = 1;
-	if (webp->smart_deblock)
-		webp->config.autofilter = 1;
 
 	if (!WebPValidateConfig(&webp->config)) {
 		vips_foreign_save_webp_unset(webp);
@@ -914,13 +908,6 @@ vips_foreign_save_webp_class_init(VipsForeignSaveWebpClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveWebp, mixed),
 		FALSE);
-
-	VIPS_ARG_BOOL(class, "smart_deblock", 23,
-		_("Smart deblocking"),
-		_("Enable auto-adjusting of the deblocking filter"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveWebp, smart_deblock),
-		FALSE);
 }
 
 static void
@@ -1171,7 +1158,6 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * * @lossless: %gboolean, enables lossless compression
  * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
@@ -1190,8 +1176,6 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT.
  *
  * Set @smart_subsample to enable high quality chroma subsampling.
- *
- * Set @smart_deblock to enable auto-adjusting of the deblocking filter.
  *
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.
@@ -1247,7 +1231,6 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * * @lossless: %gboolean, enables lossless compression
  * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
@@ -1305,7 +1288,6 @@ vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @lossless: %gboolean, enables lossless compression
  * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
@@ -1345,7 +1327,6 @@ vips_webpsave_mime(VipsImage *in, ...)
  * * @lossless: %gboolean, enables lossless compression
  * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
