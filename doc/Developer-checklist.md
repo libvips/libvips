@@ -154,5 +154,5 @@ unaffected.
 
 ## Disable the libvips operation cache if you don't need it
 
-The libvips' operation cache is not useful for image proxies (i.e.  processing
+The libvips' operation cache is not useful for image proxies (i.e. processing
 many different images). Consider disabling this with `vips_cache_set_max(0);`.
