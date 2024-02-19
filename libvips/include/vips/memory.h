@@ -53,7 +53,7 @@ extern "C" {
 	G_STMT_START \
 	{ \
 		const char *sst = (V); \
-\
+		\
 		if ((S) != sst) { \
 			if (!(S) || !sst || strcmp((S), sst) != 0) { \
 				VIPS_FREE(S); \
@@ -70,6 +70,23 @@ extern "C" {
 	((T *) VIPS_MALLOC(OBJ, sizeof(T)))
 #define VIPS_ARRAY(OBJ, N, T) \
 	((T *) VIPS_MALLOC(OBJ, (N) * sizeof(T)))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsObject, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsRegion, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsConnection, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSource, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSourceCustom, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsGInputStream, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSourceGInputStream, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsTarget, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsTargetCustom, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSbuf, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsInterpolate, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsOperation, g_object_unref)
+
+// FIXME ... need more of these
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
 
 VIPS_API
 void *vips_malloc(VipsObject *object, size_t size);

@@ -1187,7 +1187,7 @@ vips_mkdirf(const char *name, ...)
 	if (g_mkdir(path, 0755)) {
 		vips_error("mkdirf",
 			_("unable to create directory \"%s\", %s"),
-			path, strerror(errno));
+			path, g_strerror(errno));
 		g_free(path);
 		return -1;
 	}
@@ -1211,7 +1211,7 @@ vips_rmdirf(const char *name, ...)
 	if (g_rmdir(path)) {
 		vips_error("rmdir",
 			_("unable to remove directory \"%s\", %s"),
-			path, strerror(errno));
+			path, g_strerror(errno));
 		g_free(path);
 		return -1;
 	}
@@ -1228,7 +1228,7 @@ vips_rename(const char *old_name, const char *new_name)
 	if (g_rename(old_name, new_name)) {
 		vips_error("rename",
 			_("unable to rename file \"%s\" as \"%s\", %s"),
-			old_name, new_name, strerror(errno));
+			old_name, new_name, g_strerror(errno));
 		return -1;
 	}
 

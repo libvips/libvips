@@ -116,10 +116,8 @@ typedef VipsConversionClass VipsInsertClass;
 G_DEFINE_TYPE(VipsInsert, vips_insert, VIPS_TYPE_CONVERSION);
 
 /* Trivial case: we just need pels from one of the inputs.
- *
- * Also used by vips_arrayjoin.
  */
-int
+static int
 vips__insert_just_one(VipsRegion *out_region, VipsRegion *ir, int x, int y)
 {
 	VipsRect need;

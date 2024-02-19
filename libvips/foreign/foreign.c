@@ -1029,7 +1029,7 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 		 * Some versions of ImageMagick give different results between
 		 * Ping and Load for some formats, for example.
 		 *
-		 * If the load fails, we need to stop
+		 * If the load fails, we need to stop.
 		 */
 		if (class->load(load) ||
 			vips_image_pio_input(load->real) ||
@@ -2721,7 +2721,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @background: #VipsArrayDouble background colour
- * * @password: %gchararray background colour
+ * * @password: %gchararray PDF password
  *
  * Render a PDF file into a VIPS image.
  *

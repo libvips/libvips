@@ -32,6 +32,7 @@
  */
 
 /*
+#define VIPS_DEBUG_RED
 #define VIPS_DEBUG
  */
 
@@ -69,13 +70,21 @@ enum {
 
 static guint vips_source_custom_signals[SIG_LAST] = { 0 };
 
+static void
+vips_source_custom_dispose(GObject *gobject)
+{
+	VIPS_DEBUG_MSG("vips_source_custom_dispose: %p\n", gobject);
+
+	G_OBJECT_CLASS(vips_source_custom_parent_class)->dispose(gobject);
+}
+
 static gint64
 vips_source_custom_read_real(VipsSource *source,
 	void *buffer, size_t length)
 {
 	gint64 bytes_read;
 
-	VIPS_DEBUG_MSG("vips_source_custom_read_real:\n");
+	VIPS_DEBUG_MSG_RED("vips_source_custom_read_real: %p\n", source);
 
 	/* Return this value (error) if there's no attached handler.
 	 */
@@ -84,7 +93,7 @@ vips_source_custom_read_real(VipsSource *source,
 	g_signal_emit(source, vips_source_custom_signals[SIG_READ], 0,
 		buffer, (gint64) length, &bytes_read);
 
-	VIPS_DEBUG_MSG("  vips_source_custom_read_real, seen %zd bytes\n",
+	VIPS_DEBUG_MSG_RED("  vips_source_custom_read_real, seen %zd bytes\n",
 		bytes_read);
 
 	return bytes_read;
@@ -137,7 +146,7 @@ static gint64
 vips_source_custom_read_signal_real(VipsSourceCustom *source_custom,
 	void *data, gint64 length)
 {
-	VIPS_DEBUG_MSG("vips_source_custom_read_signal_real:\n");
+	VIPS_DEBUG_MSG("vips_source_custom_read_signal_real: %p\n", source_custom);
 
 	return 0;
 }
@@ -154,8 +163,11 @@ vips_source_custom_seek_signal_real(VipsSourceCustom *source_custom,
 static void
 vips_source_custom_class_init(VipsSourceCustomClass *class)
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS(class);
 	VipsSourceClass *source_class = VIPS_SOURCE_CLASS(class);
+
+	gobject_class->dispose = vips_source_custom_dispose;
 
 	object_class->nickname = "source_custom";
 	object_class->description = _("Custom source");
@@ -211,6 +223,7 @@ vips_source_custom_class_init(VipsSourceCustomClass *class)
 static void
 vips_source_custom_init(VipsSourceCustom *source_custom)
 {
+	VIPS_DEBUG_MSG("vips_source_custom_init: %p\n", source_custom);
 }
 
 /**

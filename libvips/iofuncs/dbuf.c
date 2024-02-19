@@ -45,7 +45,10 @@
  * vips_dbuf_init:
  * @dbuf: the buffer
  *
- * Initialize @dbuf.
+ * Initialize @dbuf. You can also just init to zero, eg.
+ * `VipsDbuf buf = {0};`.
+ *
+ * Destroy with vips_dbuf_destroy().
  */
 void
 vips_dbuf_init(VipsDbuf *dbuf)
@@ -191,10 +194,9 @@ gboolean
 vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
 {
 	va_list ap;
-	char *line;
 
 	va_start(ap, fmt);
-	line = g_strdup_vprintf(fmt, ap);
+	char *line = g_strdup_vprintf(fmt, ap);
 	va_end(ap);
 
 	if (vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line))) {
@@ -281,7 +283,8 @@ vips_dbuf_reset(VipsDbuf *dbuf)
  * vips_dbuf_destroy:
  * @dbuf: the buffer
  *
- * Destroy @dbuf. This frees any allocated memory.
+ * Destroy @dbuf. This frees any allocated memory. Useful for dbufs on the
+ * stack.
  */
 void
 vips_dbuf_destroy(VipsDbuf *dbuf)
