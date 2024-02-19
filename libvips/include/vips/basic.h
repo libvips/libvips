@@ -105,6 +105,10 @@ struct _VipsSource;
 typedef struct _VipsSource VipsSource;
 struct _VipsTarget;
 typedef struct _VipsTarget VipsTarget;
+struct _VipsInterpolate;
+typedef struct _VipsInterpolate VipsInterpolate;
+struct _VipsOperation;
+typedef struct _VipsOperation VipsOperation;
 
 #ifdef __cplusplus
 }

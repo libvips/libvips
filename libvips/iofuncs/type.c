@@ -217,6 +217,14 @@ vips_area_unref(VipsArea *area)
 		g_mutex_unlock(area->lock);
 }
 
+/* autoptr needs typed versions of functions for free.
+ */
+void
+VipsArrayDouble_unref(VipsArrayDouble *array)
+{
+	vips_area_unref(VIPS_AREA(array));
+}
+
 /**
  * vips_area_new:
  * @free_fn: (scope async) (nullable): @data will be freed with this function
