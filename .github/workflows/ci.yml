@@ -101,20 +101,20 @@ jobs:
           echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
 
       - name: Configure libvips
-        run:
-          meson setup build
-            -Ddebug=true
-            -Ddeprecated=false
+        run: |
+          meson setup build \
+            -Ddebug=true \
+            -Ddeprecated=false \
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
-        run: ninja -C build
+        run: meson compile -C build
 
       - name: Check libvips
-        run: ninja -C build test
+        run: meson test -C build
 
       - name: Install libvips
-        run: sudo ninja -C build install
+        run: sudo meson install -C build
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'
