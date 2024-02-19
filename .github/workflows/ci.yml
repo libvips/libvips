@@ -15,27 +15,14 @@ jobs:
           - name: "Linux x64 (Ubuntu 22.04) - GCC 11"
             os: ubuntu-22.04
             build: { cc: gcc, cxx: g++, linker: ld }
-            shell: bash
 
           - name: "Linux x64 (Ubuntu 22.04) - Clang 15 with ASan and UBSan"
             os: ubuntu-22.04
             build: { cc: clang-15, cxx: clang++-15, linker: ld.lld-15, sanitize: true }
-            shell: bash
 
           - name: "macOS (13.6) - Xcode 15.2"
             os: macos-13
             build: { cc: clang, cxx: clang++, linker: ld.lld }
-            shell: bash
-
-          # TODO: Re-enable self-hosted M1 runner provided by MacStadium
-          #- name: "macOS (10.15) - Xcode 12.4 - M1"
-          #  os: macos-m1
-          #  build: { cc: clang, cxx: clang++, linker: ld.lld }
-          #  shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
-
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
 
     env:
       CC: ${{ matrix.build.cc }}
@@ -47,44 +34,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update apt
-        if: runner.os == 'Linux'
-        run: sudo apt-get update -qq
-
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
-        run:
-          sudo apt-get install -fqq
-            meson
-            python3-pip python3-setuptools python3-wheel
-            libfftw3-dev libexif-dev libjpeg-turbo8-dev
-            libpng-dev libwebp-dev libtiff5-dev
-            libheif-dev libexpat1-dev libcfitsio-dev
-            libmatio-dev libnifti-dev libhwy-dev
-            liblcms2-dev libpoppler-glib-dev librsvg2-dev
-            libopenexr-dev libpango1.0-dev libarchive-dev
-            libopenslide-dev libffi-dev libopenjp2-7-dev
-            libimagequant-dev libcgif-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            meson pkg-config \
+            libarchive-dev libcfitsio-dev libcgif-dev \
+            libexif-dev libexpat1-dev libffi-dev \
+            libfftw3-dev libheif-dev libhwy-dev \
+            libimagequant-dev libjpeg-dev liblcms2-dev \
+            libmatio-dev libnifti-dev libopenexr-dev \
+            libopenjp2-7-dev libopenslide-dev libpango1.0-dev \
+            libpng-dev libpoppler-glib-dev librsvg2-dev \
+            libtiff5-dev libwebp-dev \
             liborc-0.4-dev # FIXME: Remove once libhwy 1.0.5 is available.
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install python ninja
           pip3 install meson
-          brew install fftw fontconfig glib libexif libarchive little-cms2
-          brew install highway pango pkg-config cfitsio cgif jpeg-xl libheif
-          brew install libimagequant mozjpeg libmatio librsvg libspng libtiff
-          brew install openexr openjpeg openslide poppler webp
-          brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg
-          brew install libmatio librsvg libspng libtiff openexr openjpeg
-          brew install openslide poppler webp
+          brew install \
+            ninja pkg-config \
+            cfitsio cgif fftw fontconfig glib \
+            highway jpeg-xl libarchive libexif \
+            libheif libimagequant libmatio librsvg \
+            libspng libtiff little-cms2 mozjpeg \
+            openexr openjpeg openslide pango \
+            poppler webp
 
       - name: Install Clang 15
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-15'
-        run:
-          sudo apt-get install -fqq
-            clang-15 libomp-15-dev lld-15 llvm-15
+        run: sudo apt-get install clang-15 libomp-15-dev lld-15 llvm-15
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
@@ -119,20 +100,20 @@ jobs:
           echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
 
       - name: Configure libvips
-        run:
-          meson setup build
-            -Ddebug=true
-            -Ddeprecated=false
+        run: |
+          meson setup build \
+            -Ddebug=true \
+            -Ddeprecated=false \
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
-        run: ninja -C build
+        run: meson compile -C build
 
       - name: Check libvips
-        run: ninja -C build test
+        run: meson test -C build
 
       - name: Install libvips
-        run: sudo ninja -C build install
+        run: sudo meson install -C build
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'
