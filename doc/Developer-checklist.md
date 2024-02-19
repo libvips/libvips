@@ -139,13 +139,18 @@ $
    on uploading in this terrible format, push them to a separate low-priority
    queue on a special container. Keep them away from your main image path.
 
-## Use a different memory allocator
+## Linux memory allocator
 
-Consider using a different memory allocator, such as jemalloc, to prevent
-memory fragmentation in long-running, multi-threaded, glibc-based Linux
-processes. See [Leak on Linux?](https://github.com/lovell/sharp/issues/955) 
-to learn more about memory allocation and why the choice of a memory
-allocator is important.
+The default memory allocator on most glibc-based Linux systems (e.g.
+Debian, Red Hat) is unsuitable for long-running, multi-threaded processes
+that involve lots of small memory allocations.
+
+To help avoid fragmentation and improve performance on these systems,
+the use of an alternative memory allocator such as [jemalloc](
+https://github.com/jemalloc/jemalloc) is recommended.
+
+Those using musl-based Linux (e.g. Alpine) and non-Linux systems are
+unaffected.
 
 ## Disable the libvips operation cache if you don't need it
 
