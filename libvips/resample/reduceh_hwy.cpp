@@ -1,5 +1,7 @@
 /* 22/07/23 kleisauke
  * 	- from reducev_hwy.cpp
+ * 02/12/23 kleisauke
+ * 	- prefer use of Dup128VecFromValues
  */
 
 /*
@@ -75,6 +77,30 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 #if HWY_TARGET != HWY_SCALAR
 	const auto initial = Set(di32, VIPS_INTERPOLATE_SCALE >> 1);
 
+#ifdef HAVE_HWY_1_1_0
+	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+	 * r0 g0 b0 r1 g1 b1 r2 g2 b2 r3 g3 b3
+	 */
+	const auto shuf3_lo = Dup128VecFromValues(di8,
+		0, -1, 3, -1, 1, -1, 4, -1,
+		2, -1, 5, -1, -1, -1, -1, -1);
+	const auto shuf3_hi = Dup128VecFromValues(di8,
+		6, -1, 9, -1, 7, -1, 10, -1,
+		8, -1, 11, -1, -1, -1, -1, -1);
+
+	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+	 * r0 g0 b0 a0 r1 g1 b1 a1 r2 g2 b2 a2 r3 g3 b3 a3
+	 */
+	const auto shuf4_lo = Dup128VecFromValues(di8,
+		0, -1, 4, -1, 1, -1, 5, -1,
+		2, -1, 6, -1, 3, -1, 7, -1);
+	const auto shuf4_hi = Dup128VecFromValues(di8,
+		8, -1, 12, -1, 9, -1, 13, -1,
+		10, -1, 14, -1, 11, -1, 15, -1);
+
+	const auto shuf_lo = BitCast(di16, bands == 3 ? shuf3_lo : shuf4_lo);
+	const auto shuf_hi = BitCast(di16, bands == 3 ? shuf3_hi : shuf4_hi);
+#else
 	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 	 * r0 g0 b0 r1 g1 b1 r2 g2 b2 r3 g3 b3
 	 */
@@ -103,6 +129,7 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		LoadDup128(di8, bands == 3 ? tbl3_lo : tbl4_lo));
 	const auto shuf_hi = BitCast(di16,
 		LoadDup128(di8, bands == 3 ? tbl3_hi : tbl4_hi));
+#endif
 
 	for (int32_t x = 0; x < width; ++x) {
 		const int ix = (int) X;
