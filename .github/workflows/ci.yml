@@ -40,7 +40,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install \
             meson pkg-config \
-            python3-pip python3-setuptools python3-wheel \
             libarchive-dev libcfitsio-dev libcgif-dev \
             libexif-dev libexpat1-dev libffi-dev \
             libfftw3-dev libheif-dev libhwy-dev \
@@ -56,7 +55,7 @@ jobs:
         run: |
           pip3 install meson
           brew install \
-            ninja pkg-config python \
+            ninja pkg-config \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
             libheif libimagequant libmatio librsvg \
