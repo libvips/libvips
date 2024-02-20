@@ -428,8 +428,11 @@ struct _VipsTarget {
 	int write_point;
 
 	/* Write position in memory_buffer.
+	 *
+	 * off_t can be 32 bits on some platforms, so make sure we have a
+	 * full 64.
 	 */
-	off_t position;
+	gint64 position;
 
 	/* Temp targets on the filesystem need deleting, sometimes.
 	 */
@@ -466,8 +469,11 @@ typedef struct _VipsTargetClass {
 	gint64 (*read)(VipsTarget *, void *, size_t);
 
 	/* Seek output. Args exactly as lseek(2).
+	 *
+	 * We have to use int64 rather than off_t, since we must work on
+	 * Windows, where off_t can be 32-bits.
 	 */
-	off_t (*seek)(VipsTarget *, off_t offset, int whence);
+	gint64 (*seek)(VipsTarget *, gint64 offset, int whence);
 
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the target blob.
@@ -492,7 +498,7 @@ int vips_target_write(VipsTarget *target, const void *data, size_t length);
 VIPS_API
 gint64 vips_target_read(VipsTarget *target, void *buffer, size_t length);
 VIPS_API
-off_t vips_target_seek(VipsTarget *target, off_t offset, int whence);
+gint64 vips_target_seek(VipsTarget *target, gint64 offset, int whence);
 VIPS_API
 int vips_target_end(VipsTarget *target);
 VIPS_DEPRECATED_FOR(vips_target_end)
