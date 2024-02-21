@@ -6,6 +6,7 @@ master 8.16
 - jxl load and save now support exif, xmp, animation [DarthSim]
 - improved configure output
 - don't build loaders as modules by default
+- add a filetype blocker for imagemagick
 - add basic g_auto support
 - support for long EXIF values [MarcosAndre]
 - better system error messages on windows [kleisauke]
