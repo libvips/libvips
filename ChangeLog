@@ -10,6 +10,7 @@ master 8.16
 - add basic g_auto support
 - support for long EXIF values [MarcosAndre]
 - better system error messages on windows [kleisauke]
+- add configurable max coordinate and vips_max_coord_get()
 
 date-tbd 8.15.2
 
