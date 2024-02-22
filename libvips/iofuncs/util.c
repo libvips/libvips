@@ -1707,23 +1707,20 @@ vips__parse_size(const char *size_string)
 
 	guint64 size;
 	int n;
-	int i;
 	char *unit;
 
 	/* An easy way to alloc a buffer large enough.
 	 */
 	unit = g_strdup(size_string);
-	n = sscanf(size_string, "%d %s", &i, unit);
-	size = i;
-	if (n > 1) {
-		int j;
 
-		for (j = 0; j < VIPS_NUMBER(units); j++)
+	n = sscanf(size_string, "%" G_GUINT64_FORMAT " %s", &size, unit);
+	if (n > 1)
+		for (int j = 0; j < VIPS_NUMBER(units); j++)
 			if (tolower(unit[0]) == units[j].unit) {
 				size *= units[j].multiplier;
 				break;
 			}
-	}
+
 	g_free(unit);
 
 	VIPS_DEBUG_MSG("parse_size: parsed \"%s\" as %" G_GUINT64_FORMAT "\n",

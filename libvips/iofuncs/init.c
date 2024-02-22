@@ -162,12 +162,11 @@ vips_max_coord_get(void)
 	const char *as_str = vips__max_coord_arg ?
 		vips__max_coord_arg : g_getenv("VIPS_MAX_COORD");
 
-	guint64 size;
+	if (as_str) {
+		guint64 size = vips__parse_size(as_str);
 
-	if (as_str &&
-		(size = vips__parse_size(as_str)) > 100 &&
-		size < INT_MAX - 1000)
-		return size;
+		return VIPS_CLIP(100, size, INT_MAX);
+	}
 	else
 		return VIPS_DEFAULT_MAX_COORD;
 }
