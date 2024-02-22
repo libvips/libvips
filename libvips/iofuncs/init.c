@@ -166,7 +166,7 @@ vips_max_coord_get(void)
 
 	if (as_str &&
 		(size = vips__parse_size(as_str)) > 100 &&
-		size < INT_MAX - 1000)
+		size <= INT_MAX)
 		return size;
 	else
 		return VIPS_DEFAULT_MAX_COORD;
