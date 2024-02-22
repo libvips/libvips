@@ -151,7 +151,7 @@ static char *vips__max_coord_arg = NULL;
  * environment variable.
  *
  * These strings can include unit specifiers, eg. "10m" for 10 million pixels.
- * Values above 2b are not supported.
+ * Values above INT_MAX are not supported.
  *
  * Returns: The maximum value a coordinate, or image dimension, can have.
  */
