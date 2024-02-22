@@ -64,7 +64,7 @@ extern "C" {
  */
 #define VIPS_DEFAULT_MAX_COORD (100000000)
 
-/* Fetch the overriden value.
+/* Fetch the overridden value.
  */
 #define VIPS_MAX_COORD (vips_max_coord_get())
 

@@ -1701,7 +1701,8 @@ vips__parse_size(const char *size_string)
 	static Unit units[] = {
 		{ 'k', 1024 },
 		{ 'm', 1024 * 1024 },
-		{ 'g', 1024 * 1024 * 1024 }
+		{ 'g', 1024 * 1024 * 1024 },
+		{ 'b', 1024 * 1024 * 1024 }
 	};
 
 	guint64 size;
