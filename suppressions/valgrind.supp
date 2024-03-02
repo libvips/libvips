@@ -406,6 +406,14 @@
 }
 
 {
+   radeon1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/dri/radeonsi_dri.so
+}
+
+{
    wl_display_read_events
    Memcheck:Leak
    match-leak-kinds: possible
