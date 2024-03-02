@@ -11,6 +11,7 @@ master 8.16
 - support for long EXIF values [MarcosAndre]
 - better system error messages on windows [kleisauke]
 - add configurable max coordinate and vips_max_coord_get()
+- improve kill handling
 
 date-tbd 8.15.2
 
