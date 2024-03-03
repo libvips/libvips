@@ -599,44 +599,35 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
 
-	if (!jxl->exif_data || vips_isprefix("Exif", (char *) jxl->exif_data))
+	if (!jxl->exif_data ||
+		vips_isprefix("Exif", (char *) jxl->exif_data))
 		return 0;
 
-	size_t old_size = jxl->exif_size;
-	uint8_t *old_data = jxl->exif_data;
-	size_t new_size = 0;
-	uint8_t *new_data = NULL;
-
-	if (old_size >= 4) {
-		/* Offset is stored in big-endian
-		 */
-		size_t offset = (old_data[0] << 3) + (old_data[1] << 2) +
-			(old_data[2] << 1) + old_data[3];
-
-		if (offset < old_size - 4) {
-			old_data += 4 + offset;
-			old_size -= 4 + offset;
-
-			new_size = old_size + 6;
-			new_data = g_malloc0(new_size);
-
-			if (!new_data) {
-				vips_error(class->nickname, "%s", _("out of memory"));
-				return -1;
-			}
-
-			memcpy(new_data, "Exif\0\0", 6);
-			memcpy(new_data + 6, old_data, old_size);
-		}
+	if (jxl->exif_size < 4) {
+		g_warning("%s: invalid data in EXIF box", class->nickname);
+		return -1;
 	}
 
-	if (!new_data)
+	/* Offset is stored in big-endian
+	 */
+	size_t offset = (jxl->exif_data[0] << 24) + (jxl->exif_data[1] << 16) +
+		(jxl->exif_data[2] << 8) + jxl->exif_data[3];
+	if (offset > jxl->exif_size - 4) {
 		g_warning("%s: invalid data in EXIF box", class->nickname);
+		return -1;
+	}
 
-	g_free(jxl->exif_data);
+	size_t new_size = jxl->exif_size - 4 - offset + 6;
+	uint8_t *new_data;
+	if (!(new_data = VIPS_MALLOC(NULL, new_size)))
+		return -1;
 
-	jxl->exif_data = new_data;
+	memcpy(new_data, "Exif\0\0", 6);
+	memcpy(new_data + 6, jxl->exif_data + 4 + offset, new_size - 6);
+
+	VIPS_FREE(jxl->exif_data);
 	jxl->exif_size = new_size;
+	jxl->exif_data = new_data;
 
 	return 0;
 }
