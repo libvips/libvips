@@ -610,8 +610,7 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 
 	/* Offset is stored in big-endian
 	 */
-	size_t offset = (jxl->exif_data[0] << 24) + (jxl->exif_data[1] << 16) +
-		(jxl->exif_data[2] << 8) + jxl->exif_data[3];
+	size_t offset = GUINT32_FROM_BE(*((guint32 *) jxl->exif_data));
 	if (offset > jxl->exif_size - 4) {
 		g_warning("%s: invalid data in EXIF box", class->nickname);
 		return -1;
