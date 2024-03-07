@@ -108,6 +108,7 @@ EOF
 #include <fpdf_doc.h>
 #include <fpdf_edit.h>
 #include <fpdf_flatten.h>
+#include <fpdf_formfill.h>
 
 #define TILE_SIZE (4000)
 
@@ -160,6 +161,8 @@ typedef struct _VipsForeignLoadPdf {
 	/* The [double] background converted to image format.
 	 */
 	VipsPel *ink;
+
+	int formType;
 
 } VipsForeignLoadPdf;
 
@@ -304,6 +307,8 @@ vips_foreign_load_pdf_build( VipsObject *object )
 			return( -1 ); 
 		}
 
+		pdf->formType = FPDF_GetFormType(pdf->doc);
+
 		g_mutex_unlock( vips_pdfium_mutex );
 	}
 
@@ -343,9 +348,6 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		pdf->page = FPDF_LoadPage( pdf->doc, page_no );
-		FPDFPage_Flatten(pdf->page, FLAT_PRINT);
-		FPDF_ClosePage(pdf->page);
 		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
 			g_mutex_unlock( vips_pdfium_mutex );
 			vips_pdfium_error();
@@ -597,6 +599,14 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 			FPDFBitmap_FillRect( bitmap,
 				0, 0, rect.width, rect.height, ink );
+		}
+
+		int formType = FPDF_GetFormType(pdf->doc);
+
+		if (pdf->formType != 0) {
+			FPDFPage_Flatten(pdf->page, FLAT_PRINT);
+			FPDF_ClosePage(pdf->page);
+			pdf->page = FPDF_LoadPage( pdf->doc, pdf->page_no );
 		}
 
 		FPDF_RenderPageBitmap( bitmap, pdf->page,
