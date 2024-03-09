@@ -12,6 +12,7 @@ master 8.16
 - better system error messages on windows [kleisauke]
 - add configurable max coordinate and vips_max_coord_get()
 - improve kill handling
+- turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
 
 date-tbd 8.15.2
 
