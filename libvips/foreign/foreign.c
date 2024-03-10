@@ -1433,8 +1433,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			in->Type != VIPS_INTERPRETATION_XYZ) {
 			VipsImage *out;
 
-			if (vips_colourspace(in, &out,
-					VIPS_INTERPRETATION_scRGB, NULL)) {
+			if (vips_colourspace(in, &out, VIPS_INTERPRETATION_scRGB, NULL)) {
 				g_object_unref(in);
 				return -1;
 			}
@@ -1483,6 +1482,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			saveable == VIPS_SAVEABLE_RGB_CMYK)) {
 		VipsImage *out;
 		VipsInterpretation interpretation;
+
+		maybe handle scRGB as well?
+
+			or ppmsave could be ANY and do more things like CMYK import etc.
 
 		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
 		 * RGB down to 8 bits if the saver supports 16.
