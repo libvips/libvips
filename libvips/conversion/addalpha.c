@@ -52,10 +52,13 @@ typedef VipsConversionClass VipsAddAlphaClass;
 
 G_DEFINE_TYPE(VipsAddAlpha, vips_addalpha, VIPS_TYPE_CONVERSION);
 
+#define VIPS_ADDALPHA(obj) \
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), VIPS_TYPE_THREAD_STATE, VipsAddAlpha))
+
 static int
 vips_addalpha_build(VipsObject *object)
 {
-	VipsAddAlpha *addalpha = (VipsAddAlpha *) object;
+	VipsAddAlpha *addalpha = VIPS_ADDALPHA(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 
 	if (VIPS_OBJECT_CLASS(vips_addalpha_parent_class)->build(object))
