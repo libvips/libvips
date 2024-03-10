@@ -23,6 +23,7 @@ date-tbd 8.15.2
 - fix arrayjoin with some pipelines [TheEssem]
 - fix high Q mono JPEG TIFF write with mozjpeg [cavenel]
 - tiffsave: ensure large file support (>2GB) on MSVC [kleisauke]
+- check linker for target_clones support [lovell]
 
 18/12/23 8.15.1
 

@@ -153,7 +153,7 @@ int main(void) {
     return has_target_clones();
 }
 '''
-if cc.compiles(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
+if cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
     cfg_var.set('HAVE_TARGET_CLONES', '1')
 endif
 
