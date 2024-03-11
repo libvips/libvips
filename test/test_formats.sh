@@ -171,6 +171,7 @@ fi
 
 # csv can only do mono
 test_format $mono csv 0
+test_format $rad hdr 0
 
 # cmyk jpg is a special path
 if test_supported jpegload; then
@@ -182,8 +183,6 @@ if test_supported tiffload; then
 	test_format $cmyk tif 90 [compression=jpeg,tile]
 	test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
 fi
-
-test_rad $rad
 
 test_raw $mono
 test_raw $image
