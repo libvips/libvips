@@ -1433,8 +1433,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			in->Type != VIPS_INTERPRETATION_XYZ) {
 			VipsImage *out;
 
-			if (vips_colourspace(in, &out,
-					VIPS_INTERPRETATION_scRGB, NULL)) {
+			if (vips_colourspace(in, &out, VIPS_INTERPRETATION_scRGB, NULL)) {
 				g_object_unref(in);
 				return -1;
 			}

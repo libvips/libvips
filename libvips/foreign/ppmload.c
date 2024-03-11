@@ -45,6 +45,8 @@
  * 	- don't byteswap ascii formats
  * 	- set metadata for map loads
  * 	- byteswap binary loads
+ * 9/3/23
+ *	- pfm assumes linear 0-1 [NiHoel]
  */
 
 /*
@@ -306,15 +308,10 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 		}
 	}
 
-	/* For binary images, there is always exactly 1 more whitespace
-	 * character before the data starts.
+	/* Read the end of line character after the scale so we are positioned
+	 * exactly at the start of the data. This matters for binary formats.
 	 */
-	if (!ppm->ascii &&
-		!isspace(VIPS_SBUF_GETC(ppm->sbuf))) {
-		vips_error(class->nickname, "%s",
-			_("no whitespace before start of binary data"));
-		return -1;
-	}
+	(void) vips_sbuf_get_line(ppm->sbuf);
 
 	/* Choose a VIPS bandfmt.
 	 */
@@ -353,6 +350,8 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	else {
 		if (ppm->format == VIPS_FORMAT_USHORT)
 			ppm->interpretation = VIPS_INTERPRETATION_RGB16;
+		else if (ppm->format == VIPS_FORMAT_FLOAT)
+			ppm->interpretation = VIPS_INTERPRETATION_scRGB;
 		else
 			ppm->interpretation = VIPS_INTERPRETATION_sRGB;
 	}
@@ -365,11 +364,9 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	printf("\theight = %d\n", ppm->height);
 	printf("\tbands = %d\n", ppm->bands);
 	printf("\tformat = %s\n",
-		vips_enum_nick(VIPS_TYPE_BAND_FORMAT,
-			ppm->format));
+		vips_enum_nick(VIPS_TYPE_BAND_FORMAT, ppm->format));
 	printf("\tinterpretation = %s\n",
-		vips_enum_nick(VIPS_TYPE_INTERPRETATION,
-			ppm->interpretation));
+		vips_enum_nick(VIPS_TYPE_INTERPRETATION, ppm->interpretation));
 	printf("\tscale = %g\n", ppm->scale);
 	printf("\tmax_value = %d\n", ppm->max_value);
 	printf("\tbits = %d\n", ppm->bits);

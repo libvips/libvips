@@ -583,8 +583,7 @@ vips_target_seek(VipsTarget *target, gint64 position, int whence)
 
 	gint64 new_position;
 
-	VIPS_DEBUG_MSG(
-		"vips_target_seek: pos = %" G_GINT64_FORMAT
+	VIPS_DEBUG_MSG("vips_target_seek: pos = %" G_GINT64_FORMAT
 		", whence = %d\n",
 		position, whence);
 
@@ -593,8 +592,7 @@ vips_target_seek(VipsTarget *target, gint64 position, int whence)
 
 	new_position = class->seek(target, position, whence);
 
-	VIPS_DEBUG_MSG(
-		"vips_target_seek: new_position = %" G_GINT64_FORMAT "\n",
+	VIPS_DEBUG_MSG("vips_target_seek: new_position = %" G_GINT64_FORMAT "\n",
 		new_position);
 
 	return new_position;

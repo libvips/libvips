@@ -116,7 +116,9 @@ jobs:
         run: meson compile -C build
 
       - name: Check libvips
-        run: meson test -C build
+        run: |
+          meson test -C build \
+          || (cat build/meson-logs/testlog.txt && exit 1)
 
       - name: Install libvips
         run: sudo meson install -C build
