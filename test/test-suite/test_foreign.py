@@ -21,8 +21,6 @@ class TestForeign:
         cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
-        cls.rad = cls.colour.float2rad().copy()
-        cls.rad.remove("icc-profile-data")
         cls.cmyk = cls.colour.bandjoin(cls.mono)
         cls.cmyk = cls.cmyk.copy(interpretation=pyvips.Interpretation.CMYK)
         cls.cmyk.remove("icc-profile-data")
@@ -36,7 +34,6 @@ class TestForeign:
         cls.colour = None
         cls.rgba = None
         cls.mono = None
-        cls.rad = None
         cls.cmyk = None
         cls.onebit = None
 
@@ -1214,9 +1211,32 @@ class TestForeign:
 
     @skip_if_no("radload")
     def test_rad(self):
-        self.save_load("%s.hdr", self.colour)
+        def hdr_valid(im):
+            # might still be in RADIANCE coding
+            if im.coding == "rad":
+                im = im.rad2float()
+
+            assert_almost_equal_objects(im(10, 10),
+                                        [0.533, 0.564, 0.693],
+                                        threshold=0.01)
+
+            assert_almost_equal_objects(im(1592, 855),
+                                        [1580, 1364, 1276],
+                                        threshold=0.01)
+
+            assert im.width == 1655
+            assert im.height == 1764
+            assert im.bands == 3
+
+        self.file_loader("radload", RAD_FILE, hdr_valid)
+        self.buffer_loader("radload_buffer", RAD_FILE, hdr_valid)
+
+        rad = pyvips.Image.radload(RAD_FILE)
+        self.save_load("%s.hdr", rad)
+        self.save_load("%s.pfm", rad)
+        self.save_load("%s.tif", rad)
         self.save_buffer_tempfile("radsave_buffer", ".hdr",
-                                  self.rad, max_diff=0)
+                                  rad, max_diff=0)
 
     @skip_if_no("dzsave")
     def test_dzsave(self):
