@@ -308,15 +308,10 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 		}
 	}
 
-	/* For binary images, there is always exactly 1 more whitespace
-	 * character before the data starts.
+	/* Read the end of line character after the scale so we are positioned
+	 * exactly at the start of the data. This matters for binary formats.
 	 */
-	if (!ppm->ascii &&
-		!isspace(VIPS_SBUF_GETC(ppm->sbuf))) {
-		vips_error(class->nickname, "%s",
-			_("no whitespace before start of binary data"));
-		return -1;
-	}
+	(void) vips_sbuf_get_line(ppm->sbuf);
 
 	/* Choose a VIPS bandfmt.
 	 */
@@ -480,6 +475,8 @@ vips_foreign_load_ppm_map(VipsForeignLoadPpm *ppm)
 
 	vips_sbuf_unbuffer(ppm->sbuf);
 	header_offset = vips_source_seek(ppm->source, 0, SEEK_CUR);
+	printf("vips_foreign_load_ppm_map: header_offset = %" G_GINT64_FORMAT "\n",
+		header_offset);
 	data = vips_source_map(ppm->source, &length);
 	if (header_offset < 0 ||
 		!data)

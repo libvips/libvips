@@ -140,7 +140,6 @@ static SwapFn vips_byteswap_swap_fn[] = {
 static void
 vips_byteswap_swap_unaligned(VipsPel *in, VipsPel *out, int n, int size)
 {
-
 	for (int x = 0; x < n; x++) {
 		for (int i = 0; i < size; i++)
 			out[i] = in[size - i - 1];

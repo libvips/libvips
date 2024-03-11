@@ -18,6 +18,7 @@
  *  - add ".pnm", save as image format [ewelot]
  * 9/3/23
  *	- pfm saves as linear 0-1 [NiHoel]
+ *	- append spaces to the scale field to hit a 4 byte boundary for data
  */
 
 /*
@@ -417,6 +418,22 @@ vips_foreign_save_ppm_build(VipsObject *object)
 			 */
 			g_ascii_dtostr(buf, G_ASCII_DTOSTR_BUF_SIZE, scale);
 			vips_target_writes(ppm->target, buf);
+
+			/* Add some secret trailing spaces to the scale field to try to
+			 * get the data to land on a 4 byte (the largest pixel ppm can
+			 * handle) boundary.
+			 *
+			 * This means values in the file will be aligned when it's read
+			 * back, making vector operations like byteswap a lot quicker.
+			 */
+			if (!ppm->ascii) {
+				gint64 position = vips_target_seek(ppm->target, 0, SEEK_CUR);
+				// +1 for the \n after the padding
+				int padding = 4 - (position + 1) % 4;
+
+				vips_target_writef(ppm->target, "%*c", padding, ' ');
+			}
+
 			vips_target_writes(ppm->target, "\n");
 		} break;
 
