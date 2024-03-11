@@ -49,8 +49,12 @@ test_difference() {
 	after=$2
 	threshold=$3
 
-	$vips subtract $before $after $tmp/difference.v
-	$vips abs $tmp/difference.v $tmp/abs.v 
+  # compare in srgb space
+	$vips colourspace $before $tmp/b-rgb.v srgb
+	$vips colourspace $after $tmp/a-rgb.v srgb
+
+	$vips subtract $tmp/b-rgb.v $tmp/a-rgb.v $tmp/difference.v
+	$vips abs $tmp/difference.v $tmp/abs.v
 	dif=$($vips max $tmp/abs.v)
 
 	if break_threshold $dif $threshold; then

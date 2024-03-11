@@ -25,7 +25,7 @@ $vips extract_band $image $tmp/mono.v 1
 mono=$tmp/mono.v
 
 # make a radiance image
-$vips float2rad $image $tmp/rad.v 
+$vips float2rad $image $tmp/rad.v
 rad=$tmp/rad.v
 
 # make a cmyk image
@@ -183,10 +183,10 @@ if test_supported tiffload; then
 	test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
 fi
 
-test_rad $rad 
+test_rad $rad
 
-test_raw $mono 
-test_raw $image 
+test_raw $mono
+test_raw $image
 
 if test_supported pdfload; then
 	test_loader $poppler_ref $poppler pdfload 0
