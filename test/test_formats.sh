@@ -67,24 +67,6 @@ test_format() {
 	echo "ok"
 }
 
-# as above, but hdr format
-# this is a coded format, so we need to rad2float before we can test for
-# differences
-test_rad() {
-	in=$1
-
-	printf "testing $(basename $in) hdr ... "
-
-	save_load $in hdr
-
-	$vips rad2float $in $tmp/before.v
-	$vips rad2float $tmp/back.v $tmp/after.v
-
-	test_difference $tmp/before.v $tmp/after.v 0
-
-	echo "ok"
-}
-
 # as above, but raw format
 # we can't use suffix stuff to pick the load/save
 test_raw() {
