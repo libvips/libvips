@@ -53,6 +53,9 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
+          # FIXME: remove when Python is upgraded in the `macos-13` runner.
+          # https://github.com/actions/runner-images/issues/8838#issuecomment-1817486924
+          brew list -1 | grep python | while read formula; do brew unlink $formula; brew link --overwrite $formula; done
           pip3 install meson
           brew install \
             ninja pkg-config \
@@ -71,6 +74,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          # https://github.com/orgs/Homebrew/discussions/3404
+          mkdir -p $HOME/.config/pip
+          echo -e '[global]\nbreak-system-packages = true' > $HOME/.config/pip/pip.conf
 
       - name: Prepare sanitizers
         if: matrix.build.sanitize
