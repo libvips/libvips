@@ -475,8 +475,6 @@ vips_foreign_load_ppm_map(VipsForeignLoadPpm *ppm)
 
 	vips_sbuf_unbuffer(ppm->sbuf);
 	header_offset = vips_source_seek(ppm->source, 0, SEEK_CUR);
-	printf("vips_foreign_load_ppm_map: header_offset = %" G_GINT64_FORMAT "\n",
-		header_offset);
 	data = vips_source_map(ppm->source, &length);
 	if (header_offset < 0 ||
 		!data)
