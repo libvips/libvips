@@ -1,4 +1,4 @@
-date-tbd 8.15.2
+12/3/24 8.15.2
 
 - fix deflate compression of tiff pyramids [manthey]
 - thumbnail always writes 8-bit thumbnails [turtletowerz]
