@@ -14,7 +14,7 @@ master 8.16
 - improve kill handling
 - PFM save and load now uses scRGB (ie. linear 0-1) [NiHoel]
 
-date-tbd 8.15.2
+12/3/24 8.15.2
 
 - fix deflate compression of tiff pyramids [manthey]
 - thumbnail always writes 8-bit thumbnails [turtletowerz]
