@@ -13,6 +13,7 @@ master 8.16
 - add configurable max coordinate and vips_max_coord_get()
 - improve kill handling
 - PFM save and load now uses scRGB (ie. linear 0-1) [NiHoel]
+- turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
 
 12/3/24 8.15.2
 

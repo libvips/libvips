@@ -408,6 +408,7 @@ vips_conversion_operation_init(void)
 	extern GType vips_gamma_get_type(void);
 	extern GType vips_composite_get_type(void);
 	extern GType vips_composite2_get_type(void);
+	extern GType vips_addalpha_get_type(void);
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type();
@@ -457,4 +458,5 @@ vips_conversion_operation_init(void)
 	vips_gamma_get_type();
 	vips_composite_get_type();
 	vips_composite2_get_type();
+	vips_addalpha_get_type();
 }

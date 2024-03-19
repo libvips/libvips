@@ -121,6 +121,11 @@ class TestConversion:
         assert x[3].avg() == 1
         assert x[4].avg() == 2
 
+    def test_addalpha(self):
+        x = self.colour.addalpha()
+        assert x.bands == 4
+        assert x[3].avg() == 255  # self.colour is srgb
+
     def test_bandmean(self):
         def bandmean(x):
             if isinstance(x, pyvips.Image):
