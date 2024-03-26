@@ -1930,6 +1930,15 @@ pyramid_strip(VipsRegion *region, VipsRect *area, void *a)
 	return 0;
 }
 
+#define UC VIPS_FORMAT_UCHAR
+
+/* We force all types to uchar for save.
+ */
+static VipsBandFormat bandfmt_dzsave[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+};
+
 static int
 vips_foreign_save_dz_build(VipsObject *object)
 {
@@ -2050,6 +2059,26 @@ vips_foreign_save_dz_build(VipsObject *object)
 		save->ready = z;
 	}
 
+	/* If we're saving to direct JPEG, we need to convert to 8-bit RGB |
+	 * mono | cmyk.
+	 */
+	if (dz->direct) {
+		VipsImage *z;
+		gboolean coding[VIPS_CODING_LAST];
+
+		for (int i = 0; i < VIPS_CODING_LAST; i++)
+			coding[i] = FALSE;
+		coding[VIPS_CODING_NONE] = TRUE;
+
+		if (vips__foreign_convert_saveable(save->ready, &z,
+			VIPS_SAVEABLE_RGB_CMYK, bandfmt_dzsave, coding,
+			save->background))
+			return -1;
+
+		VIPS_UNREF(save->ready);
+		save->ready = z;
+	}
+
 	/* We use ink to check for blank tiles.
 	 */
 	if (dz->skip_blanks >= 0) {
@@ -2073,7 +2102,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * again.
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
-
 		VipsImage *z;
 		Level *level;
 		Level *p;
