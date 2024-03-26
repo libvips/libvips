@@ -1800,8 +1800,7 @@ vips_foreign_save_build(VipsObject *object)
 		save->keep |= VIPS_FOREIGN_KEEP_ICC;
 
 	if (save->in) {
-		VipsForeignSaveClass *class =
-			VIPS_FOREIGN_SAVE_GET_CLASS(save);
+		VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_GET_CLASS(save);
 		VipsImage *ready;
 		VipsImage *x;
 
