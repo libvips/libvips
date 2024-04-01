@@ -193,13 +193,13 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 	ExifData *ed;
 
 	/* exif_data_load_data() only allows uint for length. Limit it to less
-	 * than that: 2**20 should be enough for anyone.
+	 * than that: 2**23 should be enough for anyone.
 	 */
 	if (length < 4) {
 		vips_error("exif", "%s", _("exif too small"));
 		return NULL;
 	}
-	if (length > 1 << 20) {
+	if (length > 1 << 23) {
 		vips_error("exif", "%s", _("exif too large"));
 		return NULL;
 	}
