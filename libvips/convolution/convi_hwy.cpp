@@ -5,7 +5,7 @@
  * 29/11/22 kleisauke
  * 	- prefer use of RearrangeToOddPlusEven
  * 02/10/23 kleisauke
- * 	- prefer use of InterleaveWhole{Lower,Upper}
+ * 	- prefer use of InterleaveWhole{Lower,Upper} on RVV/SVE
  */
 
 /*
@@ -71,9 +71,10 @@ constexpr Rebind<uint8_t, DI32> du8x32;
 constexpr DI16 di16;
 constexpr DI32 di32;
 
-#ifndef HAVE_HWY_1_1_0
-#define InterleaveWholeLower InterleaveLower
-#define InterleaveWholeUpper InterleaveUpper
+#if defined(HAVE_HWY_1_1_0) && \
+	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
+#define InterleaveLower InterleaveWholeLower
+#define InterleaveUpper InterleaveWholeUpper
 #endif
 
 HWY_ATTR void
@@ -139,24 +140,24 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				auto bottom = LoadU(du8, /* bottom line */
 					p + offsets[i + 1]);
 
-				auto source = InterleaveWholeLower(top, bottom);
-				auto pix = BitCast(di16, InterleaveWholeLower(source, zero));
+				auto source = InterleaveLower(top, bottom);
+				auto pix = BitCast(di16, InterleaveLower(source, zero));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveWholeUpper(du8, source, zero));
+				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveWholeUpper(du8, top, bottom);
-				pix = BitCast(di16, InterleaveWholeLower(source, zero));
+				source = InterleaveUpper(du8, top, bottom);
+				pix = BitCast(di16, InterleaveLower(source, zero));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveWholeUpper(du8, source, zero));
+				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);
@@ -168,24 +169,24 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto top = LoadU(du8, p + offsets[i]);
 
-				auto source = InterleaveWholeLower(top, zero);
-				auto pix = BitCast(di16, InterleaveWholeLower(source, zero));
+				auto source = InterleaveLower(top, zero);
+				auto pix = BitCast(di16, InterleaveLower(source, zero));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveWholeUpper(du8, source, zero));
+				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveWholeUpper(du8, top, zero);
-				pix = BitCast(di16, InterleaveWholeLower(source, zero));
+				source = InterleaveUpper(du8, top, zero);
+				pix = BitCast(di16, InterleaveLower(source, zero));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveWholeUpper(du8, source, zero));
+				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);
@@ -266,7 +267,7 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				auto bottom = LoadU(du8x16, /* bottom line */
 					p + offsets[i + 1]);
 
-				auto source = InterleaveWholeLower(top, bottom);
+				auto source = InterleaveLower(top, bottom);
 				auto pix = PromoteTo(di16, source);
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
@@ -304,6 +305,9 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	}
 #endif
 }
+
+#undef InterleaveLower
+#undef InterleaveUpper
 
 } /*namespace HWY_NAMESPACE*/
 
