@@ -53,9 +53,6 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          # FIXME: remove when Python is upgraded in the `macos-13` runner.
-          # https://github.com/actions/runner-images/issues/8838#issuecomment-1817486924
-          brew list -1 | grep python | while read formula; do brew unlink $formula; brew link --overwrite $formula; done
           pip3 install meson
           brew install \
             ninja pkg-config \
