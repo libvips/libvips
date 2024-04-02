@@ -89,18 +89,6 @@ make -j$(nproc)
 make install
 popd
 
-# libpng
-pushd $SRC/libpng
-sed -ie 's/option WARNING /& disabled/' scripts/pnglibconf.dfa
-autoreconf -fi
-./configure \
-  --prefix=$WORK \
-  --disable-shared \
-  --disable-dependency-tracking
-make -j$(nproc)
-make install
-popd
-
 # libspng
 pushd $SRC/libspng
 meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
@@ -127,7 +115,7 @@ make -j$(nproc)
 make install
 popd
 
-# libtiff ... a bug in libtiff master as of 20 Nov 2019 means we have to 
+# libtiff ... a bug in libtiff master as of 20 Nov 2019 means we have to
 # explicitly disable lzma
 pushd $SRC/libtiff
 autoreconf -fi
