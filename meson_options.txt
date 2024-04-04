@@ -250,3 +250,15 @@ option('radiance',
   type: 'boolean',
   value: true,
   description: 'Build with radiance')
+
+# fuzzing options
+
+option('fuzzing_engine',
+    type: 'combo',
+    choices : ['none', 'libfuzzer', 'oss-fuzz'],
+    value: 'none',
+    description: 'Select the fuzzing engine')
+
+option('fuzzer_ldflags',
+    type: 'string',
+    description: 'Extra LDFLAGS used during linking of fuzzing binaries')
