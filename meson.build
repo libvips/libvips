@@ -54,6 +54,16 @@ cpp = meson.get_compiler('cpp')
 # Prevent use of void* pointer arithmetic to support MSVC
 add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language : ['cpp', 'c'])
 
+# libFuzzer related things
+fuzzing_engine = get_option('fuzzing_engine')
+if fuzzing_engine == 'libfuzzer'
+    if not cc.has_argument('-fsanitize=fuzzer')
+        error('fuzzing_engine libfuzzer requires "-fsanitize=fuzzer"')
+    endif
+    fuzzer_args = ['-fsanitize=fuzzer-no-link', '-fsanitize=fuzzer']
+    add_project_arguments(cc.first_supported_argument(fuzzer_args), language : ['cpp', 'c'])
+endif
+
 glib_dep = dependency('glib-2.0', version: '>=2.52')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')

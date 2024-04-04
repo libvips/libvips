@@ -183,6 +183,7 @@ popd
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static \
   -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
+  -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 ninja -C build
 ninja -C build install
