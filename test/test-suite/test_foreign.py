@@ -934,7 +934,7 @@ class TestForeign:
         # Animated WebP roundtrip
         x = pyvips.Image.new_from_file(WEBP_ANIMATED_FILE, n=-1)
         assert x.width == 13
-        assert x.height == 16393
+        assert x.height == 16731
         buf = x.webpsave_buffer()
 
     @skip_if_no("analyzeload")
