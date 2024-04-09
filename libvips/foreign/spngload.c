@@ -340,10 +340,10 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 	/* In non-fail mode, ignore CRC errors.
 	 */
 	flags = 0;
-	if (load->fail_on >= VIPS_FAIL_ON_ERROR)
+	if (load->fail_on < VIPS_FAIL_ON_ERROR)
 		flags |= SPNG_CTX_IGNORE_ADLER32;
 	png->ctx = spng_ctx_new(flags);
-	if (load->fail_on >= VIPS_FAIL_ON_ERROR)
+	if (load->fail_on < VIPS_FAIL_ON_ERROR)
 		/* Ignore and don't calculate checksums.
 		 */
 		spng_set_crc_action(png->ctx, SPNG_CRC_USE, SPNG_CRC_USE);
