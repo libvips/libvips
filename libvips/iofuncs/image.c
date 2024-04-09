@@ -2160,8 +2160,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
 
 	vips_check_init();
 
-	if (!(operation_name =
-				vips_foreign_find_load_buffer(buf, len)))
+	if (!(operation_name = vips_foreign_find_load_buffer(buf, len)))
 		return NULL;
 
 	/* We don't take a copy of the data or free it.
