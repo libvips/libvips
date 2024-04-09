@@ -13,9 +13,6 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	VipsImage *image, *out;
 	double d;
 
-	if (size > 100 * 1024 * 1024)
-		return 0;
-
 	if (!(image = vips_image_new_from_buffer(data, size, "", nullptr)))
 		return 0;
 
