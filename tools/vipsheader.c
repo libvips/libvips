@@ -135,10 +135,9 @@ print_header(VipsImage *image, gboolean many)
 	else if (strcmp(main_option_field, "getext") == 0) {
 		if (vips__has_extension_block(image)) {
 			void *buf;
-			int size;
+			size_t size;
 
-			if (!(buf =
-						vips__read_extension_block(image, &size)))
+			if (!(buf = vips__read_extension_block(image, &size)))
 				return -1;
 			printf("%s", (char *) buf);
 			g_free(buf);
