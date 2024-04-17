@@ -682,21 +682,32 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 
 	jpeg_set_defaults(cinfo);
 
-	// disable chroma subsample for high Q
-	if (wtiff->Q >= 90)
+	/* Set compression quality.
+	 */
+	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
+
+	if (image->Bands != 3 ||
+		wtiff->Q >= 90)
+		/* No chroma subsample.
+		 */
 		for (int i = 0; i < image->Bands; i++) {
 			cinfo->comp_info[i].h_samp_factor = 1;
 			cinfo->comp_info[i].v_samp_factor = 1;
 		}
+	else {
+		/* Use 4:2:0 subsampling, we must set this explicitly, since some
+		 * jpeg libraries do not enable chroma subsample by default.
+		 */
+		cinfo->comp_info[0].h_samp_factor = 2;
+		cinfo->comp_info[0].v_samp_factor = 2;
 
-	// use RGB mode (no chroma subsample) for high Q RGB images
-	if (wtiff->Q >= 90 &&
-		image->Bands == 3)
-		jpeg_set_colorspace(cinfo, JCS_RGB);
-
-	/* Set compression quality. Must be called after setting params above.
-	 */
-	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
+		/* Rest should have sampling factors 1,1.
+		 */
+		for (int i = 1; i < image->Bands; i++) {
+			cinfo->comp_info[i].h_samp_factor = 1;
+			cinfo->comp_info[i].v_samp_factor = 1;
+		}
+	}
 
 	// Avoid writing the JFIF APP0 marker.
 	cinfo->write_JFIF_header = FALSE;

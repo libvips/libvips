@@ -667,12 +667,26 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 	if (progressive)
 		jpeg_simple_progression(cinfo);
 
-	if (subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
+	if (in->Bands != 3 ||
+		subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
 		(subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
-			qfac >= 90)) {
-		int i;
+			qfac >= 90))
+		/* No chroma subsample.
+		 */
+		for (int i = 0; i < in->Bands; i++) {
+			cinfo->comp_info[i].h_samp_factor = 1;
+			cinfo->comp_info[i].v_samp_factor = 1;
+		}
+	else {
+		/* Use 4:2:0 subsampling, we must set this explicitly, since some
+		 * jpeg libraries do not enable chroma subsample by default.
+		 */
+		cinfo->comp_info[0].h_samp_factor = 2;
+		cinfo->comp_info[0].v_samp_factor = 2;
 
-		for (i = 0; i < in->Bands; i++) {
+		/* Rest should have sampling factors 1,1.
+		 */
+		for (int i = 1; i < in->Bands; i++) {
 			cinfo->comp_info[i].h_samp_factor = 1;
 			cinfo->comp_info[i].v_samp_factor = 1;
 		}
