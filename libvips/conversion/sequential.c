@@ -146,18 +146,15 @@ vips_sequential_generate(VipsRegion *out_region,
 		 * Read in chunks, since we may be skipping *many* lines of image from
 		 * a file source.
 		 */
-		int tile_width;
-		int tile_height;
-		int n_lines;
+		int y;
 
-		vips_get_tile_size(ir->im, &tile_width, &tile_height, &n_lines);
-		for (int y = sequential->y_pos; y < r->top; y += tile_height) {
+		for (y = sequential->y_pos; y < r->top; y += sequential->tile_height) {
 			VipsRect area;
 
 			area.left = 0;
 			area.top = y;
 			area.width = 1;
-			area.height = VIPS_MIN(tile_height, r->top - area.top);
+			area.height = VIPS_MIN(sequential->tile_height, r->top - area.top);
 			if (vips_region_prepare(ir, &area)) {
 				sequential->error = -1;
 				g_mutex_unlock(sequential->lock);
