@@ -6,8 +6,10 @@
  *
  * 21/04/24
  * 	- reworked based on ppmsave.c
+ * 	- removed rawsave_fd
  * 	- added save to target
  * 	- added save to buffer
+ * 	- deprecate vips_rawsave_fd()
  * 10/06/08 JF
  * 	- initial code based on im_vips2ppm()
  * 04/07/08 JF
@@ -422,19 +424,6 @@ vips_rawsave_target(VipsImage *in, VipsTarget *target, ...)
 	return result;
 }
 
-/**
- * vips_rawsave_fd: (method)
- * @in: image to save
- * @fd: file to write to
- * @...: %NULL-terminated list of optional named arguments
- *
- * Writes the pixels in @in to the @fd with no header or other
- * metadata.  Handy for implementing other savers.
- *
- * See also: vips_rawsave(), vips_rawsave_target().
- *
- * Returns: 0 on success, -1 on error.
- */
 int
 vips_rawsave_fd(VipsImage *in, int fd, ...)
 {
