@@ -121,6 +121,9 @@ vips_foreign_save_raw_build(VipsObject *object)
 		vips_sink_disc(save->in, vips_foreign_save_raw_block, raw))
 		return -1;
 
+	if (vips_target_end(raw->target))
+		return -1;
+
 	return 0;
 }
 
