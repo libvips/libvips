@@ -7,6 +7,7 @@
  * 21/04/24
  * 	- reworked based on ppmsave.c
  * 	- added save to target
+ * 	- added save to buffer
  * 10/06/08 JF
  * 	- initial code based on im_vips2ppm()
  * 04/07/08 JF
@@ -266,6 +267,65 @@ vips_foreign_save_raw_target_init(VipsForeignSaveRawTarget *target)
 {
 }
 
+typedef struct _VipsForeignSaveRawBuffer {
+	VipsForeignSaveRaw parent_object;
+
+	VipsArea *buf;
+} VipsForeignSaveRawBuffer;
+
+typedef VipsForeignSaveRawClass VipsForeignSaveRawBufferClass;
+
+G_DEFINE_TYPE(VipsForeignSaveRawBuffer, vips_foreign_save_raw_buffer,
+	vips_foreign_save_raw_get_type());
+
+static int
+vips_foreign_save_raw_buffer_build(VipsObject *object)
+{
+	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) object;
+	VipsForeignSaveRawBuffer *buffer = (VipsForeignSaveRawBuffer *) object;
+
+	VipsBlob *blob;
+
+	if (!(raw->target = vips_target_new_to_memory()))
+		return -1;
+
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_raw_buffer_parent_class)
+			->build(object))
+		return -1;
+
+	g_object_get(raw->target, "blob", &blob, NULL);
+	g_object_set(buffer, "buffer", blob, NULL);
+	vips_area_unref(VIPS_AREA(blob));
+
+	return 0;
+}
+
+static void
+vips_foreign_save_raw_buffer_class_init(VipsForeignSaveRawBufferClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "rawsave_buffer";
+	object_class->description = _("write raw image to buffer");
+	object_class->build = vips_foreign_save_raw_buffer_build;
+
+	VIPS_ARG_BOXED(class, "buffer", 1,
+		_("Buffer"),
+		_("Buffer to save to"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveRawBuffer, buf),
+		VIPS_TYPE_BLOB);
+}
+
+static void
+vips_foreign_save_raw_buffer_init(VipsForeignSaveRawBuffer *buffer)
+{
+}
+
 /**
  * vips_rawsave: (method)
  * @in: image to save
@@ -288,6 +348,51 @@ vips_rawsave(VipsImage *in, const char *filename, ...)
 	va_start(ap, filename);
 	result = vips_call_split("rawsave", ap, in, filename);
 	va_end(ap);
+
+	return result;
+}
+
+/**
+ * vips_rawsave_buffer: (method)
+ * @in: image to save
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * As vips_rawsave(), but save to a memory buffer.
+ *
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_rawsave(), vips_image_write_to_memory(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_rawsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL;
+
+	va_start(ap, len);
+	result = vips_call_split("rawsave_buffer", ap, in, &area);
+	va_end(ap);
+
+	if (!result &&
+		area) {
+		if (buf) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if (len)
+			*len = area->length;
+
+		vips_area_unref(area);
+	}
 
 	return result;
 }
