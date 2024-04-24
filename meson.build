@@ -83,6 +83,10 @@ external_deps = [
     expat_dep,
 ]
 
+# External dependencies of modules we've detected
+# These dependencies are not included in vips.pc
+module_deps = []
+
 # Required deps that may or may not be external versioned libraries
 other_deps = [
     thread_dep,
@@ -209,6 +213,7 @@ if magick_found
     magick_module = modules_enabled and not get_option('magick-module').disabled()
     if magick_module
         cfg_var.set('MAGICK_MODULE', '1')
+        module_deps += magick_dep
     else
         external_deps += magick_dep
     endif
@@ -416,6 +421,7 @@ if openslide_dep.found()
     openslide_module = modules_enabled and not get_option('openslide-module').disabled()
     if openslide_module
         cfg_var.set('OPENSLIDE_MODULE', '1')
+        module_deps += openslide_dep
     else
         external_deps += openslide_dep
     endif
@@ -513,6 +519,7 @@ if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
     if libheif_module
         cfg_var.set('HEIF_MODULE', '1')
+        module_deps += libheif_dep
     else
         external_deps += libheif_dep
     endif
@@ -552,6 +559,8 @@ if libjxl_found
     libjxl_module = modules_enabled and not get_option('jpeg-xl-module').disabled()
     if libjxl_module
         cfg_var.set('LIBJXL_MODULE', '1')
+        module_deps += libjxl_dep
+        module_deps += libjxl_threads_dep
     else
         external_deps += libjxl_dep
         external_deps += libjxl_threads_dep
@@ -576,6 +585,8 @@ if not pdf_loader.found()
         libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
         if libpoppler_module
             cfg_var.set('POPPLER_MODULE', '1')
+            module_deps += libpoppler_dep
+            module_deps += cairo_dep
         else
             external_deps += libpoppler_dep
             external_deps += cairo_dep
@@ -702,18 +713,6 @@ config_dep = declare_dependency(
     compile_args: '-DHAVE_CONFIG_H=1',
 )
 
-# external_deps can have duplicates (eg. cairo can appear several times),
-# which will make summary fail
-seen_deps = []
-deduped_external_deps = []
-foreach dep: external_deps
-    if dep.name() not in seen_deps
-        deduped_external_deps += dep
-        seen_deps += dep.name()
-    endif
-endforeach
-external_deps = deduped_external_deps
-
 libvips_deps = [config_dep] + external_deps + other_deps
 
 gir = find_program('g-ir-scanner', required: get_option('introspection'))
@@ -758,7 +757,7 @@ build_features = {
      'PDF load': ['PDFium or Poppler', pdf_loader, libpoppler_module],
      'SVG load': ['librsvg', librsvg_found ? librsvg_dep : disabler()],
      'EXR load': ['OpenEXR', openexr_dep],
-     'WSI load': ['OpenSlide', openslide_dep],
+     'WSI load': ['OpenSlide', openslide_dep, openslide_module],
      'Matlab load': ['Matio', matio_dep],
      'NIfTI load/save': ['libnifti', libnifti_found ? libnifti_dep : disabler()],
      'FITS load/save': ['cfitsio', cfitsio_dep],
@@ -767,8 +766,14 @@ build_features = {
     },
 }
 
-foreach dep: external_deps
-    summary(dep.name(), dep.version(), section: 'Dependencies')
+# external_deps can have duplicates (eg. cairo can appear several times),
+# which will make summary fail
+seen_deps = []
+foreach dep: external_deps + module_deps
+    if dep.name() not in seen_deps
+       summary(dep.name(), dep.version(), section: 'Dependencies')
+       seen_deps += dep.name()
+    endif
 endforeach
 foreach section_title, section : build_summary
     summary(section, bool_yn: true, section: section_title)
