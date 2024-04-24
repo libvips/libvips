@@ -1288,7 +1288,10 @@ vips_set_value_from_pointer(GValue *value, void *data)
 	else if (fundamental == G_TYPE_ENUM)
 		g_value_set_enum(value, *((int *) data));
 	else if (fundamental == G_TYPE_STRING)
-		g_value_set_string(value, *((char **) data));
+		// we don't want to copy the string (ie. the filename, usually) since
+		// it'll then be freed when the value is unset ... instead we must
+		// directly use the pointer owned by the VipsImage
+		g_value_set_static_string(value, *((char **) data));
 	else
 		g_warning("%s: unimplemented vips_set_value_from_pointer() type %s",
 			G_STRLOC,
@@ -1353,6 +1356,7 @@ vips_image_get(const VipsImage *image, const char *name, GValue *value_copy)
 			g_value_init(value_copy, gtype);
 			vips_set_value_from_pointer(value_copy,
 				G_STRUCT_MEMBER_P(image, field->offset));
+
 			return 0;
 		}
 	}
@@ -1366,6 +1370,7 @@ vips_image_get(const VipsImage *image, const char *name, GValue *value_copy)
 			g_value_init(value_copy, gtype);
 			vips_set_value_from_pointer(value_copy,
 				G_STRUCT_MEMBER_P(image, field->offset));
+
 			return 0;
 		}
 	}
