@@ -3,7 +3,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -29,6 +29,12 @@
 
 #ifndef VIPS_CPLUSPLUS
 #define VIPS_CPLUSPLUS
+
+/* avoid conflict with Qt definitions, if they exist */
+#if defined(signals) && defined(Q_SIGNALS)
+#define _VIPS_QT_SIGNALS_DEFINED
+#undef signals
+#endif
 
 #include <vips/version.h>
 
@@ -56,5 +62,11 @@
 #include "VInterpolate8.h"
 #include "VRegion8.h"
 #include "VConnection8.h"
+
+/* restore Qt keywords if they were disabled for GLib inclusion */
+#ifdef _VIPS_QT_SIGNALS_DEFINED
+#define signals Q_SIGNALS
+#undef _VIPS_QT_SIGNALS_DEFINED
+#endif
 
 #endif /*VIPS_CPLUSPLUS*/
