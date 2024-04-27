@@ -1,5 +1,6 @@
 master 8.16
 
+- add vips_rawsave_target(), vips_rawsave_buffer() [akash-akya]
 - allow small offsets for the PDF magic string [project0]
 - add support for OJPEG tiffs [DarthSim]
 - add "palette" metadata item to flag palette images [DarthSim]

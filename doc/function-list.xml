@@ -1247,9 +1247,14 @@
   <entry>vips_rawsave()</entry>
 </row>
 <row>
-  <entry>rawsave_fd</entry>
-  <entry>Write raw image to file descriptor</entry>
-  <entry>vips_rawsave_fd()</entry>
+  <entry>rawsave_buffer</entry>
+  <entry>Write raw image to buffer</entry>
+  <entry>vips_rawsave_buffer()</entry>
+</row>
+<row>
+  <entry>rawsave_target</entry>
+  <entry>Write raw image to target</entry>
+  <entry>vips_rawsave_target()</entry>
 </row>
 <row>
   <entry>recomb</entry>
