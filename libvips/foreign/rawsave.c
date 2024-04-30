@@ -4,22 +4,21 @@
  *
  * Jesper Friis
  *
- * 21/04/24
- * 	- reworked based on ppmsave.c
- * 	- removed rawsave_fd
- * 	- added save to target
- * 	- added save to buffer
- * 	- deprecate vips_rawsave_fd()
  * 10/06/08 JF
  * 	- initial code based on im_vips2ppm()
  * 04/07/08 JF
  * 	- replaced FILE with plain file handlers for reducing
- * 		confusion about binary vs. non-binary file modes.
+ * 	  confusion about binary vs. non-binary file modes.
  * 4/2/10
  * 	- gtkdoc
  * 15/12/11
  * 	- rework as a class
  * 	- added save raw to filename
+ * 21/04/24 akash-akya
+ * 	- reworked based on ppmsave.c
+ * 	- added save to target
+ * 	- added save to buffer
+ * 	- deprecate vips_rawsave_fd()
  */
 
 /*
@@ -303,6 +302,7 @@ vips_foreign_save_raw_buffer_class_init(VipsForeignSaveRawBufferClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -310,6 +310,8 @@ vips_foreign_save_raw_buffer_class_init(VipsForeignSaveRawBufferClass *class)
 	object_class->nickname = "rawsave_buffer";
 	object_class->description = _("write raw image to buffer");
 	object_class->build = vips_foreign_save_raw_buffer_build;
+
+	foreign_class->suffs = vips_foreign_save_raw_suffs;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
