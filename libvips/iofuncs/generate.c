@@ -628,15 +628,22 @@ vips_allocate_input_array(VipsImage *out, ...)
 static int
 write_vips(VipsRegion *region, VipsRect *area, void *a)
 {
-	size_t nwritten, count;
+	size_t count;
 	void *buf;
 
 	count = (size_t) region->bpl * area->height;
 	buf = VIPS_REGION_ADDR(region, 0, area->top);
 
 	do {
-		nwritten = write(region->im->fd, buf, count);
-		if (nwritten == (size_t) -1)
+		// write() uses int not size_t on windows, so we need to chunk
+		// ... max 1gb, why not
+		int chunk_size = VIPS_MIN(1024 * 1024 * 1024, count);
+		ssize_t nwritten = write(region->im->fd, buf, chunk_size);
+
+		/* n == 0 isn't strictly an error, but we treat it as
+		 * one to make sure we don't get stuck in this loop.
+		 */
+		if (nwritten <= 0)
 			return errno;
 
 		buf = (void *) ((char *) buf + nwritten);

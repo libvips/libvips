@@ -538,12 +538,15 @@ int
 vips__write(int fd, const void *buf, size_t count)
 {
 	do {
-		// write() uses int not ssize_t on windows, so we need to chunk
+		// write() uses int not size_t on windows, so we need to chunk
 		// ... max 1gb, why not
 		int chunk_size = VIPS_MIN(1024 * 1024 * 1024, count);
 		ssize_t nwritten = write(fd, buf, chunk_size);
 
-		if (nwritten == (ssize_t) -1) {
+		/* n == 0 isn't strictly an error, but we treat it as
+		 * one to make sure we don't get stuck in this loop.
+		 */
+		if (nwritten <= 0) {
 			vips_error_system(errno, "vips__write", "%s", _("write failed"));
 			return -1;
 		}
