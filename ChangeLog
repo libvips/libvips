@@ -3,6 +3,7 @@
 - fix dzsave of >8-bit images to JPEG
 - jpegsave: fix chrominance subsampling mode with jpegli [kleisauke]
 - pngload: disable ADLER32/CRC checking in non-fail mode [kleisauke]
+- improve target_clones support check [kleisauke]
 
 12/3/24 8.15.2
 
