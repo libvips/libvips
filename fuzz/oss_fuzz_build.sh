@@ -5,6 +5,13 @@ export PKG_CONFIG_PATH="$WORK/lib/pkgconfig"
 export CPPFLAGS="-I$WORK/include"
 export LDFLAGS="-L$WORK/lib"
 
+# FIXME: remove -flto from fuzz introspector flags
+# See: https://github.com/libvips/libvips/issues/3874
+if [ "$SANITIZER" == "introspector" ]; then
+  export CFLAGS="${CFLAGS//-flto /}"
+  export CXXFLAGS="${CXXFLAGS//-flto /}"
+fi
+
 # Run as many parallel jobs as there are available CPU cores
 export MAKEFLAGS="-j$(nproc)"
 
