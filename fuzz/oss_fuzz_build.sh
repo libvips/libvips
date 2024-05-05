@@ -5,13 +5,6 @@ export PKG_CONFIG_PATH="$WORK/lib/pkgconfig"
 export CPPFLAGS="-I$WORK/include"
 export LDFLAGS="-L$WORK/lib"
 
-# FIXME: remove -flto from fuzz introspector flags
-# See: https://github.com/libvips/libvips/issues/3874
-if [ "$SANITIZER" == "introspector" ]; then
-  export CFLAGS="${CFLAGS//-flto /}"
-  export CXXFLAGS="${CXXFLAGS//-flto /}"
-fi
-
 # Run as many parallel jobs as there are available CPU cores
 export MAKEFLAGS="-j$(nproc)"
 
@@ -184,6 +177,10 @@ popd
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
+# FIXME: https://github.com/libvips/libvips/issues/3874
+if [ "$SANITIZER" == "introspector" ]; then
+  sed -i "s/HAVE_TARGET_CLONES/DISABLE_&/" meson.build
+fi
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debugoptimized \
   -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
