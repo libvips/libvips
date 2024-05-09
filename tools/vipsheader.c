@@ -82,14 +82,26 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-static char *main_option_field = NULL;
+static GSList *main_option_fields = NULL;
 static gboolean main_option_all = FALSE;
 static gboolean version = FALSE;
+
+static gboolean
+main_option_field(const gchar *option_name, const gchar *value,
+	gpointer data, GError **error)
+{
+	if (value)
+		main_option_fields = g_slist_append(main_option_fields,
+			(void *) g_strdup(value));
+
+	return TRUE;
+}
 
 static GOptionEntry main_option[] = {
 	{ "all", 'a', 0, G_OPTION_ARG_NONE, &main_option_all,
 		N_("show all fields"), NULL },
-	{ "field", 'f', 0, G_OPTION_ARG_STRING, &main_option_field,
+	{ "field", 'f', 0, G_OPTION_ARG_CALLBACK,
+		(GOptionArgFunc) main_option_field,
 		N_("print value of FIELD (\"getext\" reads extension block, "
 		   "\"Hist\" reads image history)"),
 		"FIELD" },
@@ -105,6 +117,42 @@ print_error(void)
 {
 	fprintf(stderr, "%s: %s", g_get_prgname(), vips_error_buffer());
 	vips_error_clear();
+}
+
+// compleete dump of a field
+static void *
+dump_field(void *data, void *a, void *b)
+{
+	const char *field = (const char *) data;
+	VipsImage *image = VIPS_IMAGE(a);
+
+	if (g_str_equal(field, "getext")) {
+		if (vips__has_extension_block(image)) {
+			void *buf;
+			int size;
+
+			if (!(buf = vips__read_extension_block(image, &size)))
+				print_error();
+			else {
+				printf("%s", (char *) buf);
+				g_free(buf);
+			}
+		}
+	}
+	else if (g_str_equal(field, "Hist"))
+		printf("%s", vips_image_get_history(image));
+	else {
+		char *str;
+
+		if (vips_image_get_as_string(image, field, &str))
+			print_error();
+		else {
+			printf("%s\n", str);
+			g_free(str);
+		}
+	}
+
+	return NULL;
 }
 
 static void *
@@ -131,7 +179,9 @@ print_field_fn(VipsImage *image, const char *field, GValue *value, void *a)
 static int
 print_header(VipsImage *image, gboolean many)
 {
-	if (!main_option_field) {
+	if (main_option_fields)
+			vips_slist_map2(main_option_fields, dump_field, image, NULL);
+	else {
 		if (image->filename)
 			printf("%s: ", image->filename);
 
@@ -139,28 +189,6 @@ print_header(VipsImage *image, gboolean many)
 
 		if (main_option_all)
 			(void) vips_image_map(image, print_field_fn, &many);
-	}
-	else if (strcmp(main_option_field, "getext") == 0) {
-		if (vips__has_extension_block(image)) {
-			void *buf;
-			int size;
-
-			if (!(buf =
-						vips__read_extension_block(image, &size)))
-				return -1;
-			printf("%s", (char *) buf);
-			g_free(buf);
-		}
-	}
-	else if (strcmp(main_option_field, "Hist") == 0)
-		printf("%s", vips_image_get_history(image));
-	else {
-		char *str;
-
-		if (vips_image_get_as_string(image, main_option_field, &str))
-			return -1;
-		printf("%s\n", str);
-		g_free(str);
 	}
 
 	return 0;
@@ -232,7 +260,7 @@ main(int argc, char *argv[])
 		char option_string[VIPS_PATH_MAX];
 
 		vips__filename_split8(argv[i], filename, option_string);
-		if (strcmp(filename, "stdin") == 0) {
+		if (g_str_equal(filename, "stdin")) {
 			VipsSource *source;
 
 			if (!(source = vips_source_new_from_descriptor(0)))

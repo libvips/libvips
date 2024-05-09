@@ -15,6 +15,7 @@ master 8.16
 - PFM save and load now uses scRGB (ie. linear 0-1) [NiHoel]
 - turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
 - add vips_rawsave_target(), vips_rawsave_buffer() [akash-akya]
+- vipsheader supports multiple "-f field" arguments [sergeevabc]
 
 26/3/24 8.15.3
 
