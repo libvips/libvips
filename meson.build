@@ -163,8 +163,10 @@ static int __attribute__((target_clones("default,avx")))
 has_target_clones(void) {
     return 0;
 }
+
 int main(void) {
-    return has_target_clones();
+    int (*func)(void) = has_target_clones;
+    return func();
 }
 '''
 if cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
