@@ -356,8 +356,7 @@ thumbnail_process(VipsObject *process, const char *name)
 		if (!(target = vips_target_new_to_descriptor(1)))
 			return -1;
 
-		if (vips_image_write_to_target(image,
-				output_format, target, NULL)) {
+		if (vips_image_write_to_target(image, output_format, target, NULL)) {
 			VIPS_UNREF(image);
 			VIPS_UNREF(target);
 			return -1;
