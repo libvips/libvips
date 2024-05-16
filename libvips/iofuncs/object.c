@@ -1889,12 +1889,10 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		flags = 0;
 		if (VIPS_IS_OPERATION(object))
-			flags = vips_operation_get_flags(
-				VIPS_OPERATION(object));
+			flags = vips_operation_get_flags(VIPS_OPERATION(object));
 
 		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-				VIPS_OPERATION_SEQUENTIAL))
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;
@@ -1908,8 +1906,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 		if (strcmp("stdin", filename) == 0) {
 			VipsSource *source;
 
-			if (!(source =
-						vips_source_new_from_descriptor(0)))
+			if (!(source = vips_source_new_from_descriptor(0)))
 				return -1;
 			if (!(out = vips_image_new_from_source(source,
 					  option_string,
