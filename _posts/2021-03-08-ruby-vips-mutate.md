@@ -3,12 +3,12 @@ title: ruby-vips and image mutability
 ---
 
 ruby-vips is now at version 2.1 with a few useful bug fixes and an interesting
-new `mutate` feature. This new block makes it possible to modify images
+new `mutate` feature. This block makes it possible to modify images
 efficiently and safely. 
 
 # Draw operations
 
-Up until now ruby-vips has been purely functional, in other words, all
+Up until now, ruby-vips has been purely functional, in other words, all
 operations created new images and no operations modified their arguments. 
 
 For example, you can draw a circle on an image, but you are given a new
@@ -76,8 +76,7 @@ x.write_to_file "x.jpg"
 It works in simple cases, but actually this is not correct. The `x.set`
 is modifying image `x` (though only modifying the image metadata rather
 than any pixels) and in a large program, `x` could be shared. 
-In some large programs, you can get bizarre behaviour and even races
-and crashes.
+This can cause races and even crash.
 
 To be safe, you need to make a private copy of the image before you change
 it, like this:
@@ -132,7 +131,7 @@ new `Image` object. Because it manages the transition to `MutableImage` and
 back, ruby-vips can enforce all the obvious rules to guarantee run-time
 safety.
 
-Because there's only one allocate and copy, performance is much better. I see:
+Performance is much better because there's only one allocate and copy. I see:
 
 ```
 $ /usr/bin/time -f %M:%e ./circles-mutate.rb ~/pics/nina.jpg x.jpg
