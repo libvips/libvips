@@ -564,7 +564,6 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 	int top;
 	int i;
-	int y;
 
 	/*
 	printf("vips_foreign_load_pdf_generate: "
@@ -612,17 +611,18 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 				0, 0, rect.width, rect.height, ink);
 		}
 
+		// pdfium writes bgra by default, we need rgba
 		FPDF_RenderPageBitmap(bitmap, pdf->page,
 			pdf->pages[i].left - rect.left,
 			pdf->pages[i].top - rect.top,
 			pdf->pages[i].width, pdf->pages[i].height,
-			0, FPDF_ANNOT);
+			0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
 
 		FPDF_FFLDraw(pdf->form, bitmap, pdf->page,
 			pdf->pages[i].left - rect.left,
 			pdf->pages[i].top - rect.top,
 			pdf->pages[i].width, pdf->pages[i].height,
-			0, FPDF_ANNOT);
+			0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
 
 		FPDFBitmap_Destroy(bitmap);
 
@@ -631,13 +631,6 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 		top += rect.height;
 		i += 1;
 	}
-
-	/* PDFium writes BGRA, we must swap.
-	 */
-	for (y = 0; y < r->height; y++)
-		vips__bgra2rgba(
-			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
-			r->width);
 
 	return 0;
 }
