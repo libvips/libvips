@@ -119,7 +119,7 @@ print_error(void)
 	vips_error_clear();
 }
 
-// complete dump of a field
+// complete dump of a field with "-f"
 static void *
 dump_field(void *data, void *a, void *b)
 {
@@ -132,7 +132,7 @@ dump_field(void *data, void *a, void *b)
 			int size;
 
 			if (!(buf = vips__read_extension_block(image, &size)))
-				print_error();
+				vips_error_exit(NULL);
 			else {
 				printf("%s", (char *) buf);
 				g_free(buf);
@@ -145,7 +145,7 @@ dump_field(void *data, void *a, void *b)
 		char *str;
 
 		if (vips_image_get_as_string(image, field, &str))
-			print_error();
+			vips_error_exit(NULL);
 		else {
 			printf("%s\n", str);
 			g_free(str);
@@ -180,7 +180,7 @@ static int
 print_header(VipsImage *image, gboolean many)
 {
 	if (main_option_fields)
-			vips_slist_map2(main_option_fields, dump_field, image, NULL);
+		vips_slist_map2(main_option_fields, dump_field, image, NULL);
 	else {
 		if (image->filename)
 			printf("%s: ", image->filename);
@@ -273,8 +273,7 @@ main(int argc, char *argv[])
 			VIPS_UNREF(source);
 		}
 		else {
-			if (!(image =
-						vips_image_new_from_file(argv[i], NULL))) {
+			if (!(image = vips_image_new_from_file(argv[i], NULL))) {
 				print_error();
 				result = 1;
 			}
