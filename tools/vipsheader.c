@@ -119,7 +119,7 @@ print_error(void)
 	vips_error_clear();
 }
 
-// compleete dump of a field
+// complete dump of a field
 static void *
 dump_field(void *data, void *a, void *b)
 {
