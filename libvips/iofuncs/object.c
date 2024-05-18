@@ -778,25 +778,20 @@ vips_object_get_argument(VipsObject *object, const char *name,
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 
-	if (!(*pspec = g_object_class_find_property(
-			  G_OBJECT_CLASS(class), name))) {
-		vips_error(class->nickname,
-			_("no property named `%s'"), name);
+	if (!(*pspec = g_object_class_find_property(G_OBJECT_CLASS(class), name))) {
+		vips_error(class->nickname, _("no property named `%s'"), name);
 		return -1;
 	}
 
 	if (!(*argument_class = (VipsArgumentClass *)
-				vips__argument_table_lookup(class->argument_table,
-					*pspec))) {
-		vips_error(class->nickname,
-			_("no vips argument named `%s'"), name);
+			vips__argument_table_lookup(class->argument_table, *pspec))) {
+		vips_error(class->nickname, _("no vips argument named `%s'"), name);
 		return -1;
 	}
 
 	if (!(*argument_instance = vips__argument_get_instance(
-			  *argument_class, object))) {
-		vips_error(class->nickname,
-			_("argument `%s' has no instance"), name);
+		  *argument_class, object))) {
+		vips_error(class->nickname, _("argument `%s' has no instance"), name);
 		return -1;
 	}
 
@@ -889,8 +884,7 @@ vips_object_clear_member(VipsArgumentInstance *argument_instance)
 			vips_object_print_name(object);
 			printf("  no longer refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME(*member), *member);
-			printf("  count down to %d\n",
-				G_OBJECT(*member)->ref_count - 1);
+			printf("  count down to %d\n", G_OBJECT(*member)->ref_count - 1);
 #endif /*DEBUG_REF*/
 
 			/* We reffed the object.
@@ -903,8 +897,7 @@ vips_object_clear_member(VipsArgumentInstance *argument_instance)
 				G_OBJECT_TYPE_NAME(*member), *member);
 			printf("  no longer refers to vips object: ");
 			vips_object_print_name(object);
-			printf("  count down to %d\n",
-				G_OBJECT(object)->ref_count - 1);
+			printf("  count down to %d\n", G_OBJECT(object)->ref_count - 1);
 #endif /*DEBUG_REF*/
 
 			g_object_unref(object);
@@ -1069,8 +1062,7 @@ vips_object_arg_invalidate(GObject *argument,
 	 * operation.
 	 */
 	if (VIPS_IS_OPERATION(argument_instance->object))
-		vips_operation_invalidate(
-			VIPS_OPERATION(argument_instance->object));
+		vips_operation_invalidate(VIPS_OPERATION(argument_instance->object));
 }
 
 static void
@@ -1116,8 +1108,7 @@ vips__object_set_member(VipsObject *object, GParamSpec *pspec,
 			vips_object_print_name(object);
 			printf("  refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME(*member), *member);
-			printf("  count up to %d\n",
-				G_OBJECT(*member)->ref_count);
+			printf("  count up to %d\n", G_OBJECT(*member)->ref_count);
 #endif /*DEBUG_REF*/
 
 			/* Ref the argument.
@@ -1130,8 +1121,7 @@ vips__object_set_member(VipsObject *object, GParamSpec *pspec,
 				G_OBJECT_TYPE_NAME(*member), *member);
 			printf("  refers to vips object: ");
 			vips_object_print_name(object);
-			printf("  count up to %d\n",
-				G_OBJECT(object)->ref_count);
+			printf("  count up to %d\n", G_OBJECT(object)->ref_count);
 #endif /*DEBUG_REF*/
 
 			/* The argument reffs us.
@@ -1147,8 +1137,7 @@ vips__object_set_member(VipsObject *object, GParamSpec *pspec,
 
 			argument_instance->invalidate_id =
 				g_signal_connect(*member, "invalidate",
-					G_CALLBACK(
-						vips_object_arg_invalidate),
+					G_CALLBACK(vips_object_arg_invalidate),
 					argument_instance);
 		}
 		else if (argument_class->flags & VIPS_ARGUMENT_OUTPUT) {
@@ -1900,12 +1889,10 @@ vips_object_set_argument_from_string(VipsObject *object,
 
 		flags = 0;
 		if (VIPS_IS_OPERATION(object))
-			flags = vips_operation_get_flags(
-				VIPS_OPERATION(object));
+			flags = vips_operation_get_flags(VIPS_OPERATION(object));
 
 		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-				VIPS_OPERATION_SEQUENTIAL))
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;
@@ -1919,8 +1906,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 		if (strcmp("stdin", filename) == 0) {
 			VipsSource *source;
 
-			if (!(source =
-						vips_source_new_from_descriptor(0)))
+			if (!(source = vips_source_new_from_descriptor(0)))
 				return -1;
 			if (!(out = vips_image_new_from_source(source,
 					  option_string,
