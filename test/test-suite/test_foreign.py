@@ -937,6 +937,11 @@ class TestForeign:
         assert x.height == 16731
         buf = x.webpsave_buffer()
 
+        # target_size should reasonably work, +/- 2% is fine
+        x = pyvips.Image.new_from_file(WEBP_FILE)
+        buf_size = len(x.webpsave_buffer(target_size=20_000, keep='none'))
+        assert 19600 < buf_size < 20400
+
     @skip_if_no("analyzeload")
     def test_analyzeload(self):
         def analyze_valid(im):
