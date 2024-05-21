@@ -650,13 +650,14 @@ vips_icc_load_profile_blob(VipsBlob *blob,
  * unref the blob if it's useless.
  */
 static cmsHPROFILE
-vips_icc_verify_blob(VipsBlob **blob, VipsImage *image, VipsIntent intent)
+vips_icc_verify_blob(VipsIcc *icc, VipsBlob **blob)
 {
 	if (*blob) {
-		cmsHPROFILE profile;
+		VipsColourCode *code = (VipsColourCode *) icc;
+		cmsHPROFILE profile = vips_icc_load_profile_blob(*blob,
+			code->in, icc->intent, LCMS_USED_AS_INPUT);
 
-		if (!(profile = vips_icc_load_profile_blob(*blob,
-				  image, intent, LCMS_USED_AS_INPUT))) {
+		if (!profile) {
 			vips_area_unref((VipsArea *) *blob);
 			*blob = NULL;
 		}
@@ -675,10 +676,10 @@ vips_icc_verify_blob(VipsBlob **blob, VipsImage *image, VipsIntent intent)
  *	0		1		file
  *	1		1		image, then fall back to file
  *
- * If averything fails, we fall back to our built-in profiles, either
- * srgb or cmyk, depending on the input image.
+ * If averything fails, we fall back to one of our built-in profiles,
+ * depending on the input image.
  *
- * We set attach_input_profile if we used a non-emdedded profile. The profile
+ * We set attach_input_profile if we used a non-embedded profile. The profile
  * in in_blob will need to be attached to the output image in some way.
  */
 static int
@@ -695,8 +696,7 @@ vips_icc_set_import(VipsIcc *icc,
 	if (code->in &&
 		(embedded || !input_profile_filename)) {
 		icc->in_blob = vips_icc_get_profile_image(code->in);
-		icc->in_profile = vips_icc_verify_blob(&icc->in_blob,
-			code->in, icc->intent);
+		icc->in_profile = vips_icc_verify_blob(icc, &icc->in_blob);
 	}
 
 	/* Try profile from filename.
@@ -704,15 +704,12 @@ vips_icc_set_import(VipsIcc *icc,
 	if (code->in &&
 		!icc->in_blob &&
 		input_profile_filename) {
-		if (
-			!vips_profile_load(input_profile_filename,
-				&icc->in_blob, NULL) &&
-			(icc->in_profile = vips_icc_verify_blob(&icc->in_blob,
-				 code->in, icc->intent)))
+		if (!vips_profile_load(input_profile_filename, &icc->in_blob, NULL) &&
+			(icc->in_profile = vips_icc_verify_blob(icc, &icc->in_blob)))
 			icc->non_standard_input_profile = TRUE;
 	}
 
-	/* Try built-in profile.
+	/* Try a built-in profile.
 	 */
 	if (code->in &&
 		!icc->in_profile) {
@@ -733,10 +730,8 @@ vips_icc_set_import(VipsIcc *icc,
 			break;
 		}
 
-		if (
-			!vips_profile_load(name, &icc->in_blob, NULL) &&
-			(icc->in_profile = vips_icc_verify_blob(&icc->in_blob,
-				 code->in, icc->intent)))
+		if (!vips_profile_load(name, &icc->in_blob, NULL) &&
+			(icc->in_profile = vips_icc_verify_blob(icc, &icc->in_blob)))
 			icc->non_standard_input_profile = TRUE;
 	}
 
