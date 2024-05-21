@@ -5,31 +5,34 @@ vipsheader \- prints information about an image file
 vipsheader [OPTIONS ...] files ...
 .SH DESCRIPTION
 .B vipsheader(1)
-prints image header fields to stdout. 
+prints image header fields to stdout.
 
 .SH OPTIONS
 
 .TP
 .B -a, --all
-Show all fields. Fields are displayed to be convenient for humans to read, so
-binary data, for example, is summarized rather than simply copied.
+Show all fields. Fields are displayed to be convenient for humans to
+read, so binary data, for example, is summarized rather than simply printed.
 
 .TP
 .B -f FIELD, --field=FIELD
-Print value of 
-.B FIELD 
-from image header. Fields are printed in a way suitable for programs to
+Print the value of
+.B FIELD
+from the image header. Fields are printed in a way suitable for programs to
 understand, so, for example, binary data is base64-encoded and printed as a
-stream of characters. 
+stream of characters.
 
-The special field name 
+The special field name
 .B getext
-prints the VIPS extension block: the XML defining the image metadata. You can 
-alter this, then reattach with 
+prints the VIPS extension block: the XML defining the image metadata. You can
+alter this, then reattach with
 .B vipsedit(1).
 
+You can use multiple "-f" arguments to print the values
+of many fields.
+
 .SH EXAMPLES
- $ vipsheader -f Xsize ~/pics/*.v   
+ $ vipsheader -f width ~/pics/*.v
  1024
  1279
  22865
