@@ -5,7 +5,6 @@ master 8.16
 - add "palette" metadata item to flag palette images [DarthSim]
 - jxl load and save now support exif, xmp, animation [DarthSim]
 - improved configure output
-- don't build loaders as modules by default
 - add a filetype blocker for imagemagick
 - add basic g_auto support
 - support for long EXIF values [MarcosAndre]
@@ -16,10 +15,10 @@ master 8.16
 - turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
 - add vips_rawsave_target(), vips_rawsave_buffer() [akash-akya]
 - vipsheader supports multiple "-f field" arguments [sergeevabc]
-- webpsave has @target_size parameter to set desired size 
-  in bytes. [john-parton]
+- webpsave has @target_size parameter to set desired size
+  in bytes [john-parton]
 - webpsave has @passes parameter to set number of passes to achieve
-  desired target_size. [john-parton]
+  desired target_size [john-parton]
 
 26/3/24 8.15.3
 
