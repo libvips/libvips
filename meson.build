@@ -772,7 +772,7 @@ build_features = {
 # which will make summary fail
 seen_deps = []
 foreach dep: external_deps + module_deps
-    if dep.name() not in seen_deps
+    if dep.type_name() != 'internal' and dep.name() not in seen_deps
        summary(dep.name(), dep.version(), section: 'Dependencies')
        seen_deps += dep.name()
     endif
@@ -782,8 +782,11 @@ foreach section_title, section : build_summary
 endforeach
 foreach section_title, section: build_features
     foreach key, arr : section
+        dep_name = arr[0]
         found = arr[1].found()
-        dep_name = found ? arr[1].name() : arr[0]
+        if found and arr[1].type_name() != 'internal'
+            dep_name = arr[1].name()
+        endif
         dynamic_module = arr.length() > 2 ? [' (dynamic module: ', arr[2], ')'] : []
         summary('@0@ with @1@'.format(key, dep_name), [found] + dynamic_module, bool_yn: true, list_sep: '', section: section_title)
     endforeach
