@@ -917,7 +917,7 @@ lbbicubic(const double c00,
 	 * const double m13 = NOHALO_MIN(m7, qua_fou);
 	 * const double M13 = NOHALO_MAX(M7, qua_fou);
 	 *
-	 * This also allows reodering the comparisons to put space between
+	 * This also allows reordering the comparisons to put space between
 	 * the computation of a result and its use.
 	 */
 	const double m9 = NOHALO_MIN(m5, m4);
