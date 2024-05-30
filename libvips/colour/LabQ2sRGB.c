@@ -394,7 +394,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 
 	/* The usual ratio. We do this in linear space before we gamma.
 	 */
-	Y = 0.2 * R + 0.7 * G + 0.1 * B;
+	Y = 0.299 * R + 0.587 * G + 0.114 * B;
 
 	/* Y can be Nan. Throw those values out, they will break
 	 * our clipping.
@@ -463,8 +463,7 @@ build_tables(void *client)
 
 				vips_col_Lab2XYZ(L, A, B, &X, &Y, &Z);
 				vips_col_XYZ2scRGB(X, Y, Z, &Rf, &Gf, &Bf);
-				vips_col_scRGB2sRGB_8(Rf, Gf, Bf,
-					&rb, &gb, &bb, NULL);
+				vips_col_scRGB2sRGB_8(Rf, Gf, Bf, &rb, &gb, &bb, NULL);
 
 				t = INDEX(l, a, b);
 				vips_red[t] = rb;

@@ -133,14 +133,14 @@
  *
  * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
  *   The grey value is
- *   calculated in #VIPS_INTERPRETATION_scRGB space with the usual 0.2, 0.7, 0.1
- *   RGB ratios.
+ *   calculated in #VIPS_INTERPRETATION_scRGB space with the usual
+ *   0.299, 0.587, 0.114 RGB ratios.
  *
- *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16-bits.
+ *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16 bits.
  *
  * * #VIPS_INTERPRETATION_CMC -- a colour space based on the CMC(1:1)
  *   colour difference measurement. This is a highly uniform colour space,
- *   much better than CIELAB for expressing small differences.
+ *   and much better than CIELAB for expressing small differences.
  *
  *   The CMC colourspace is described in "Uniform Colour Space Based on the
  *   CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
