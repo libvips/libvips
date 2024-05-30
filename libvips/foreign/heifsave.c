@@ -300,8 +300,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n",
-			g_timer_elapsed(timer, NULL));
+		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
 		g_timer_destroy(timer);
 	}
 #endif /*DEBUG*/
@@ -316,13 +315,11 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	if (vips_image_get_typeof(save->ready, "heif-primary")) {
 		int primary;
 
-		if (vips_image_get_int(save->ready,
-				"heif-primary", &primary))
+		if (vips_image_get_int(save->ready, "heif-primary", &primary))
 			return -1;
 
 		if (page == primary) {
-			error = heif_context_set_primary_image(heif->ctx,
-				heif->handle);
+			error = heif_context_set_primary_image(heif->ctx, heif->handle);
 			if (error.code) {
 				vips__heif_error(&error);
 				return -1;
@@ -547,8 +544,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 
 	if (error.code) {
 		if (error.code == heif_error_Unsupported_filetype)
-			vips_error("heifsave",
-				"%s", _("Unsupported compression"));
+			vips_error("heifsave", "%s", _("Unsupported compression"));
 		else
 			vips__heif_error(&error);
 
@@ -580,8 +576,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 				heif->Q >= 90)
 		? "444"
 		: "420";
-	error = heif_encoder_set_parameter_string(heif->encoder,
-		"chroma", chroma);
+	error = heif_encoder_set_parameter_string(heif->encoder, "chroma", chroma);
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
