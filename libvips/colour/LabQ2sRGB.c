@@ -392,9 +392,9 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	int Yi;
 	float v;
 
-	/* The usual ratio. We do this in linear space before we gamma.
+	/* CIE linear luminance function, see https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
 	 */
-	Y = 0.299 * R + 0.587 * G + 0.114 * B;
+	Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
 
 	/* Y can be Nan. Throw those values out, they will break
 	 * our clipping.

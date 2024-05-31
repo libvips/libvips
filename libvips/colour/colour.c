@@ -133,8 +133,8 @@
  *
  * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
  *   The grey value is
- *   calculated in #VIPS_INTERPRETATION_scRGB space with the usual
- *   0.299, 0.587, 0.114 RGB ratios.
+ *   calculated in linear #VIPS_INTERPRETATION_scRGB space with RGB ratios
+ *   0.2126, 0.7152, 0.0722 as defined by CIE 1931 linear luminance.
  *
  *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16 bits.
  *
