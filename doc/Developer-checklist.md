@@ -16,7 +16,7 @@ stranger features into account when you design software that uses it.
 
 The `thumbnail` operation combines load and resize into one step. This lets it
 take advantage of format library features, such as shrink on load, and can
-lead to a large improvement in speed and drop in memory use.
+lead to a large improvement in speed and a large drop in memory use.
 
 For example, with this JPEG image:
 
@@ -40,7 +40,7 @@ $ /usr/bin/time -f %M:%e vips thumbnail nina.jpg x.jpg 605
 ```
 
 Now it's 68 MB of memory and 0.08s -- half the memory use, and 3x faster. In
-fact the improvement is better than that, since the ``vips` command takes a
+fact the improvement is better than that, since the `vips` command takes a
 while to start and needs a fair amount of memory:
 
 ```
@@ -66,21 +66,30 @@ will only scan this image in the direction that the underlying load library
 supports. This can give a useful improvement in speed and reduction in memory
 use in many cases.
 
-See [the "How it opens files"](How-it-opens-files.html) chapter for background
+See [the "How it opens files" chapter](How-it-opens-files.html) for background
 on this feature.
 
 ## Use longer pipelines if you can
 
-libvips is demand-driven, and uses *partial images* as intermediates. This
+libvips is demand-driven, and uses partial images as intermediates. This
 means you can construct long pipelines of image processing operations,
 they won't use much memory, and they'll (usually) join efficiently.
 
-libvips is *horizontally threaded*, meaning that threads run along
+libvips is horizontally threaded, meaning that threads run along
 the pipeline of operations you are evaluating, not up and down images. This
 means that libvips can (usually) parallelise longer pipelines more efficiently
 than short ones.
 
 If you can, aim for long pipelines of processing operations.
+
+## Cache commonly reused iamges
+
+If an image is reused repeatedly in one pipeline, it'll be recomputed each
+time. You can sometimes get a big speedup by keeping images like this in
+memory rather than recalculating their pixels each time, see (for example),
+`copy_memory()` in pyvips.
+
+This can raise memory use, of course.
 
 ## Adjust the order of operations in pipelines
 
