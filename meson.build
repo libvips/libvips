@@ -147,7 +147,13 @@ int main(void) {
     return func();
 }
 '''
-if cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
+if meson.can_run_host_binaries()
+    rres = cc.run(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
+    have_target_clones = rres.compiled() and rres.returncode() == 0
+else
+    have_target_clones = cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
+endif
+if have_target_clones
     cfg_var.set('HAVE_TARGET_CLONES', '1')
 endif
 
