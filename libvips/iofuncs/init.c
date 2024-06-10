@@ -135,7 +135,39 @@ int vips__leak = 0;
 GQuark vips__image_pixels_quark = 0;
 #endif /*DEBUG_LEAK*/
 
-static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
+/* The maximum coordinate (ie. dimension) value we allow. This can be
+ * overridden with the `--vips-max-coord` CLI arg, or the `VIPS_MAX_COORD` env
+ * var.
+ */
+static char *vips__max_coord_arg = NULL;
+
+/**
+ * vips_max_coord_get:
+ *
+ * Return the maximum coordinate value. This can be the default, a value set
+ * set by the `--vips-max-coord` CLI arg, or a value set in the `VIPS_MAX_COORD`
+ * environment variable.
+ *
+ * These strings can include unit specifiers, eg. "10m" for 10 million pixels.
+ * Values above INT_MAX are not supported.
+ *
+ * Returns: The maximum value a coordinate, or image dimension, can have.
+ */
+int
+vips_max_coord_get(void)
+{
+	// CLI overrides env var
+	const char *as_str = vips__max_coord_arg ?
+		vips__max_coord_arg : g_getenv("VIPS_MAX_COORD");
+
+	if (as_str) {
+		guint64 size = vips__parse_size(as_str);
+
+		return VIPS_CLIP(100, size, INT_MAX);
+	}
+	else
+		return VIPS_DEFAULT_MAX_COORD;
+}
 
 /**
  * vips_get_argv0:
@@ -468,11 +500,10 @@ vips_init(const char *argv0)
 		vips_leak_set(TRUE);
 	if (g_getenv("VIPS_TRACE"))
 		vips_cache_set_trace(TRUE);
-	if (g_getenv("VIPS_PIPE_READ_LIMIT"))
-		vips_pipe_read_limit =
-			g_ascii_strtoll(g_getenv("VIPS_PIPE_READ_LIMIT"),
-				NULL, 10);
-	vips_pipe_read_limit_set(vips_pipe_read_limit);
+
+	const char *pipe_read_limit;
+	if ((pipe_read_limit = g_getenv("VIPS_PIPE_READ_LIMIT")))
+		vips_pipe_read_limit_set(vips__parse_size(pipe_read_limit));
 
 #ifdef G_OS_WIN32
 	/* Windows has a limit of 512 files open at once for the fopen() family
@@ -822,6 +853,15 @@ vips_cache_max_files_cb(const gchar *option_name, const gchar *value,
 	return TRUE;
 }
 
+static gboolean
+vips_pipe_read_limit_cb(const gchar *option_name, const gchar *value,
+	gpointer data, GError **error)
+{
+	vips_pipe_read_limit_set(vips__parse_size(value));
+
+	return TRUE;
+}
+
 static GOptionEntry option_entries[] = {
 	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG,
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
@@ -881,7 +921,7 @@ static GOptionEntry option_entries[] = {
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_config_cb,
 		N_("print libvips config"), NULL },
 	{ "vips-pipe-read-limit", 0, 0,
-		G_OPTION_ARG_INT64, (gpointer) &vips_pipe_read_limit,
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_pipe_read_limit_cb,
 		N_("read at most this many bytes from a pipe"), NULL },
 	{ NULL }
 };
