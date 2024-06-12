@@ -79,7 +79,7 @@ jobs:
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
-          echo "CPPFLAGS=-g -fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          echo "CPPFLAGS=-g -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
           echo "LDFLAGS=-g -fsanitize=address,undefined -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
