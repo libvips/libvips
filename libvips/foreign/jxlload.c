@@ -964,20 +964,22 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				return -1;
 			}
 
-			if (jxl->delay_count <= jxl->frame_count) {
-				jxl->delay_count += 128;
-				int *new_delay = g_try_realloc(jxl->delay,
-					jxl->delay_count * sizeof(int));
-				if (!new_delay) {
-					vips_error(class->nickname, "%s", _("out of memory"));
-					return -1;
+			if (jxl->info.have_animation) {
+				if (jxl->delay_count <= jxl->frame_count) {
+					jxl->delay_count += 128;
+					int *new_delay = g_try_realloc(jxl->delay,
+						jxl->delay_count * sizeof(int));
+					if (!new_delay) {
+						vips_error(class->nickname, "%s", _("out of memory"));
+						return -1;
+					}
+					jxl->delay = new_delay;
 				}
-				jxl->delay = new_delay;
-			}
 
-			jxl->delay[jxl->frame_count] = VIPS_RINT(1000.0 * h.duration *
-				jxl->info.animation.tps_denominator /
-				jxl->info.animation.tps_numerator);
+				jxl->delay[jxl->frame_count] = VIPS_RINT(1000.0 * h.duration *
+					jxl->info.animation.tps_denominator /
+					jxl->info.animation.tps_numerator);
+			}
 
 			jxl->frame_count++;
 
