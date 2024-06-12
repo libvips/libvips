@@ -159,6 +159,8 @@ extern "C" {
 			: vips_init(ARGV0))
 
 VIPS_API
+int vips_max_coord_get(void);
+VIPS_API
 int vips_init(const char *argv0);
 VIPS_API
 const char *vips_get_argv0(void);

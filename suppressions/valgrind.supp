@@ -50,7 +50,7 @@
    fun:_dl_init
 }
 
-# g_get_home_dir has a private buffer 
+# g_get_home_dir has a private buffer
 {
    gwd
    Memcheck:Leak
@@ -172,6 +172,20 @@
 }
 
 {
+   fontconfg7
+   Memcheck:Leak
+   ...
+   fun:FcFontRenderPrepare
+}
+
+{
+   fontconfg8
+   Memcheck:Leak
+   ...
+   fun:FcInit
+}
+
+{
    freetype_init
    Memcheck:Leak
    fun:*alloc
@@ -209,6 +223,14 @@
    fun:*alloc
    ...
    fun:gtk_module_init
+}
+
+# libheif init has some static data
+{
+   heif_init
+   Memcheck:Leak
+   ...
+   fun:heif_init
 }
 
 # gdk-x11 makes a toplevel object
@@ -292,6 +314,41 @@
    fun:pango_font_description_from_string
 }
 
+{
+   pango_layout_get_lines_readonly
+   Memcheck:Leak
+   ...
+   fun:pango_layout_get_lines_readonly
+}
+
+{
+   pango_layout_get_size
+   Memcheck:Leak
+   ...
+   fun:pango_layout_get_size
+}
+
+{
+   pango_layout_get_pixel_extents
+   Memcheck:Leak
+   ...
+   fun:pango_layout_get_pixel_extents
+}
+
+{
+   FcFontSetList
+   Memcheck:Leak
+   ...
+   fun:FcFontSetList
+}
+
+{
+   FcFontSetSort
+   Memcheck:Leak
+   ...
+   fun:FcFontSetSort
+}
+
 # gettext has annoying uninit warnings
 {
    gettext
@@ -300,12 +357,76 @@
    ...
    fun:__dcigettext
 }
+
 {
    gettext
    Memcheck:Value8
    fun:__GI___strcasecmp_l
    ...
    fun:__dcigettext
+}
+
+# dlopen madness
+{
+   expand_dynamic_string_token
+   Memcheck:Addr8
+   ...
+   fun:expand_dynamic_string_token
+}
+
+{
+   decompose_rpath
+   Memcheck:Addr8
+   ...
+   fun:decompose_rpath
+}
+
+# gsk
+{
+   gsk_renderer_realize
+   Memcheck:Leak
+   ...
+   fun:gsk_renderer_realize
+}
+
+{
+   gsk_renderer_render
+   Memcheck:Leak
+   ...
+   fun:gsk_renderer_render
+}
+
+# there are loads of these, but they are not our problem
+{
+   iris1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/dri/iris_dri.so
+}
+
+{
+   radeon1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/dri/radeonsi_dri.so
+}
+
+{
+   wl_display_read_events
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   fun:wl_display_read_events
+}
+
+# gtk
+{
+   gdk_pixbuf_loader_close
+   Memcheck:Leak
+   ...
+   fun:gdk_pixbuf_loader_close
 }
 
 # libz has a warning too ... see this from libpng / libxml2 etc.
@@ -399,7 +520,7 @@
 }
 
 
-# helgrind stuff ... run against glib-2.40.x or earlier, later glibs have 
+# helgrind stuff ... run against glib-2.40.x or earlier, later glibs have
 # their own mutex primitive which helgrind can't see
 
 {
@@ -456,4 +577,5 @@
    Helgrind:Race
    fun:vips_threadpool_run
 }
+
 

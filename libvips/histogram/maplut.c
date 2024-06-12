@@ -637,6 +637,14 @@ vips_maplut_build(VipsObject *object)
 	if (lut->Bands != 1)
 		maplut->out->Type = lut->Type;
 
+	/* We can still set crazy interpretations -- for example, a many-band LUT
+	 * made with identity will be a histogram, but we don't want that for the
+	 * output image.
+	 *
+	 * Replace any crazy interpretations with the default.
+	 */
+	maplut->out->Type = vips_image_guess_interpretation(maplut->out);
+
 	g_signal_connect(in, "preeval",
 		G_CALLBACK(vips_maplut_preeval), maplut);
 	g_signal_connect(in, "posteval",

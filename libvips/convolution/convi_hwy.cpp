@@ -4,6 +4,8 @@
  * 	- implement using ReorderWidenMulAccumulate
  * 29/11/22 kleisauke
  * 	- prefer use of RearrangeToOddPlusEven
+ * 02/10/23 kleisauke
+ * 	- prefer use of InterleaveWhole{Lower,Upper} on RVV/SVE
  */
 
 /*
@@ -69,6 +71,12 @@ constexpr Rebind<uint8_t, DI32> du8x32;
 constexpr DI16 di16;
 constexpr DI32 di32;
 
+#if defined(HAVE_HWY_1_1_0) && \
+	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
+#define InterleaveLower InterleaveWholeLower
+#define InterleaveUpper InterleaveWholeUpper
+#endif
+
 HWY_ATTR void
 vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	int32_t ne, int32_t nnz, int32_t offset, const int32_t *HWY_RESTRICT offsets,
@@ -77,7 +85,8 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 #if HWY_TARGET != HWY_SCALAR
 	int32_t bo = VIPS_RECT_BOTTOM(r);
 
-#if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
+#if !defined(HAVE_HWY_1_1_0) && \
+	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
 	/* Ensure we do not cross 128-bit block boundaries on RVV/SVE.
 	 */
 	const int32_t N = 16;
@@ -296,6 +305,9 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	}
 #endif
 }
+
+#undef InterleaveLower
+#undef InterleaveUpper
 
 } /*namespace HWY_NAMESPACE*/
 

@@ -300,8 +300,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n",
-			g_timer_elapsed(timer, NULL));
+		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
 		g_timer_destroy(timer);
 	}
 #endif /*DEBUG*/
@@ -316,13 +315,11 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	if (vips_image_get_typeof(save->ready, "heif-primary")) {
 		int primary;
 
-		if (vips_image_get_int(save->ready,
-				"heif-primary", &primary))
+		if (vips_image_get_int(save->ready, "heif-primary", &primary))
 			return -1;
 
 		if (page == primary) {
-			error = heif_context_set_primary_image(heif->ctx,
-				heif->handle);
+			error = heif_context_set_primary_image(heif->ctx, heif->handle);
 			if (error.code) {
 				vips__heif_error(&error);
 				return -1;
@@ -490,6 +487,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	struct heif_writer writer;
 	char *chroma;
 	const struct heif_encoder_descriptor *out_encoder;
+	const struct heif_encoder_parameter *const *param;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
 		return -1;
@@ -500,6 +498,13 @@ vips_foreign_save_heif_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "speed") &&
 		!vips_object_argument_isset(object, "effort"))
 		heif->effort = 9 - heif->speed;
+
+	/* Disable chroma subsampling by default when the "lossless" param
+	 * is being used.
+	 */
+	if (vips_object_argument_isset(object, "lossless") &&
+		!vips_object_argument_isset(object, "subsample_mode"))
+		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
 	/* Default 12 bit save for 16-bit images. HEIC (for example) implements
 	 * 8 / 10 / 12.
@@ -539,8 +544,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 
 	if (error.code) {
 		if (error.code == heif_error_Unsupported_filetype)
-			vips_error("heifsave",
-				"%s", _("Unsupported compression"));
+			vips_error("heifsave", "%s", _("Unsupported compression"));
 		else
 			vips__heif_error(&error);
 
@@ -572,12 +576,36 @@ vips_foreign_save_heif_build(VipsObject *object)
 				heif->Q >= 90)
 		? "444"
 		: "420";
-	error = heif_encoder_set_parameter_string(heif->encoder,
-		"chroma", chroma);
+	error = heif_encoder_set_parameter_string(heif->encoder, "chroma", chroma);
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
 		return -1;
+	}
+
+	for (param = heif_encoder_list_parameters(heif->encoder); *param; param++) {
+		int have_minimum;
+		int have_maximum;
+		int minimum;
+		int maximum;
+
+		if (strcmp(heif_encoder_parameter_get_name(*param), "threads") != 0)
+			continue;
+
+		error = heif_encoder_parameter_get_valid_integer_values(*param,
+			&have_minimum, &have_maximum, &minimum, &maximum, NULL, NULL);
+		if (error.code) {
+			vips__heif_error(&error);
+			return -1;
+		}
+
+		error = heif_encoder_set_parameter_integer(heif->encoder,
+			"threads", VIPS_CLIP(minimum, vips_concurrency_get(), maximum));
+		if (error.code &&
+			error.subcode != heif_suberror_Unsupported_parameter) {
+			vips__heif_error(&error);
+			return -1;
+		}
 	}
 
 	/* TODO .. support extra per-encoder params with

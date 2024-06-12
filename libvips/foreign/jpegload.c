@@ -192,7 +192,7 @@ vips_foreign_load_jpeg_class_init(VipsForeignLoadJpegClass *class)
 		_("Shrink factor on load"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadJpeg, shrink),
-		1, 16, 1);
+		1, 8, 1);
 
 	VIPS_ARG_BOOL(class, "autorotate", 21,
 		_("Autorotate"),

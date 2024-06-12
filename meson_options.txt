@@ -1,85 +1,85 @@
 # core options
 
-option('deprecated', 
-  type: 'boolean', 
-  value: true, 
+option('deprecated',
+  type: 'boolean',
+  value: true,
   description: 'Build deprecated components')
 
-option('examples', 
-  type: 'boolean', 
-  value: true, 
+option('examples',
+  type: 'boolean',
+  value: true,
   description: 'Build example programs')
 
-option('cplusplus', 
-  type: 'boolean', 
-  value: true, 
+option('cplusplus',
+  type: 'boolean',
+  value: true,
   description: 'Build C++ API')
 
-option('doxygen', 
-  type: 'boolean', 
-  value: false, 
+option('doxygen',
+  type: 'boolean',
+  value: false,
   description: 'Build C++ documentation')
 
-option('gtk_doc', 
-  type: 'boolean', 
-  value: false, 
+option('gtk_doc',
+  type: 'boolean',
+  value: false,
   description: 'Build GTK-doc documentation')
 
-option('modules', 
-  type: 'feature', 
-  value: 'auto', 
+option('modules',
+  type: 'feature',
+  value: 'enabled',
   description: 'Build dynamic modules')
 
-option('introspection', 
-  type: 'feature', 
-  value: 'auto', 
+option('introspection',
+  type: 'feature',
+  value: 'auto',
   description: 'Build GObject introspection data')
 
-option('vapi', 
-  type: 'boolean', 
-  value: false, 
+option('vapi',
+  type: 'boolean',
+  value: false,
   description: 'Build VAPI')
 
 # External libraries
 
-option('cfitsio', 
-  type: 'feature', 
-  value: 'auto', 
+option('cfitsio',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with cfitsio')
 
-option('cgif', 
-  type: 'feature', 
-  value: 'auto', 
+option('cgif',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with cgif')
 
-option('exif', 
-  type: 'feature', 
-  value: 'auto', 
+option('exif',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with libexif')
 
-option('fftw', 
-  type: 'feature', 
-  value: 'auto', 
+option('fftw',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with fftw3')
 
-option('fontconfig', 
-  type: 'feature', 
-  value: 'auto', 
+option('fontconfig',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with fontconfig')
 
-option('archive', 
-  type: 'feature', 
-  value: 'auto', 
+option('archive',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with libarchive')
 
-option('heif', 
-  type: 'feature', 
-  value: 'auto', 
+option('heif',
+  type: 'feature',
+  value: 'auto',
   description: 'Build with libheif')
 
-option('heif-module', 
-  type: 'feature', 
-  value: 'auto', 
+option('heif-module',
+  type: 'feature',
+  value: 'auto',
   description: 'Build libheif as module')
 
 option('imagequant',
@@ -228,25 +228,37 @@ option('zlib',
   value: 'auto',
   description: 'Build with zlib')
 
-# not external libraries, but we have options to disable them to reduce 
+# not external libraries, but we have options to disable them to reduce
 # the potential attack surface
 
-option('nsgif', 
-  type: 'boolean', 
-  value: true, 
+option('nsgif',
+  type: 'boolean',
+  value: true,
   description: 'Build with nsgif')
 
-option('ppm', 
-  type: 'boolean', 
-  value: true, 
+option('ppm',
+  type: 'boolean',
+  value: true,
   description: 'Build with ppm')
 
-option('analyze', 
-  type: 'boolean', 
-  value: true, 
+option('analyze',
+  type: 'boolean',
+  value: true,
   description: 'Build with analyze')
 
-option('radiance', 
-  type: 'boolean', 
-  value: true, 
+option('radiance',
+  type: 'boolean',
+  value: true,
   description: 'Build with radiance')
+
+# fuzzing options
+
+option('fuzzing_engine',
+    type: 'combo',
+    choices : ['none', 'libfuzzer', 'oss-fuzz'],
+    value: 'none',
+    description: 'Select the fuzzing engine')
+
+option('fuzzer_ldflags',
+    type: 'string',
+    description: 'Extra LDFLAGS used during linking of fuzzing binaries')

@@ -594,10 +594,13 @@ png2vips_header(Read *read, VipsImage *out)
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE, bitdepth);
 
-	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
-	 */
-	if (color_type == PNG_COLOR_TYPE_PALETTE)
+	if (color_type == PNG_COLOR_TYPE_PALETTE) {
+		/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
+		 */
 		vips_image_set_int(out, "palette-bit-depth", bitdepth);
+
+		vips_image_set_int(out, VIPS_META_PALETTE, 1);
+	}
 
 		/* Note the PNG background colour, if any.
 		 */

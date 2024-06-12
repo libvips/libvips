@@ -1648,9 +1648,13 @@ vips_image_iskilled(VipsImage *image)
 
 	kill = image->kill;
 
+	// check the image we are signalling progress on too
+	if (image->progress_signal)
+		kill |= image->progress_signal->kill;
+
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
-	if (image->kill) {
+	if (kill) {
 		VIPS_DEBUG_MSG("vips_image_iskilled: %s (%p) killed\n",
 			image->filename, image);
 		vips_error("VipsImage",
@@ -1683,6 +1687,10 @@ vips_image_set_kill(VipsImage *image, gboolean kill)
 			image->filename, image, kill);
 
 	image->kill = kill;
+
+	// set here too
+	if (image->progress_signal)
+		image->progress_signal->kill = kill;
 }
 
 /* Fills the given buffer with a temporary filename.
@@ -2152,8 +2160,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
 
 	vips_check_init();
 
-	if (!(operation_name =
-				vips_foreign_find_load_buffer(buf, len)))
+	if (!(operation_name = vips_foreign_find_load_buffer(buf, len)))
 		return NULL;
 
 	/* We don't take a copy of the data or free it.

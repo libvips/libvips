@@ -747,7 +747,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 
 			VIPS_GATE_START("vips_tile_cache_gen: wait3");
 
-			g_cond_wait(cache->new_tile, cache->lock);
+			vips__worker_cond_wait(cache->new_tile, cache->lock);
 
 			VIPS_GATE_STOP("vips_tile_cache_gen: wait3");
 

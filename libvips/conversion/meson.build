@@ -40,6 +40,7 @@ conversion_sources = files(
     'wrap.c',
     'subsample.c',
     'zoom.c',
+    'addalpha.c',
 )
 
 conversion_headers = files(

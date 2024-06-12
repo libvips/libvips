@@ -1433,8 +1433,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			in->Type != VIPS_INTERPRETATION_XYZ) {
 			VipsImage *out;
 
-			if (vips_colourspace(in, &out,
-					VIPS_INTERPRETATION_scRGB, NULL)) {
+			if (vips_colourspace(in, &out, VIPS_INTERPRETATION_scRGB, NULL)) {
 				g_object_unref(in);
 				return -1;
 			}
@@ -2720,7 +2719,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @background: #VipsArrayDouble background colour
- * * @password: %gchararray background colour
+ * * @password: %gchararray PDF password
  *
  * Render a PDF file into a VIPS image.
  *
@@ -3008,8 +3007,9 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_tiff_target_get_type(void);
 
 	extern GType vips_foreign_load_raw_get_type(void);
-	extern GType vips_foreign_save_raw_get_type(void);
-	extern GType vips_foreign_save_raw_fd_get_type(void);
+	extern GType vips_foreign_save_raw_file_get_type(void);
+	extern GType vips_foreign_save_raw_buffer_get_type(void);
+	extern GType vips_foreign_save_raw_target_get_type(void);
 
 	extern GType vips_foreign_load_magick_file_get_type(void);
 	extern GType vips_foreign_load_magick_buffer_get_type(void);
@@ -3089,8 +3089,9 @@ vips_foreign_operation_init(void)
 	vips_foreign_print_matrix_get_type();
 
 	vips_foreign_load_raw_get_type();
-	vips_foreign_save_raw_get_type();
-	vips_foreign_save_raw_fd_get_type();
+	vips_foreign_save_raw_file_get_type();
+	vips_foreign_save_raw_buffer_get_type();
+	vips_foreign_save_raw_target_get_type();
 
 	vips_foreign_load_vips_file_get_type();
 	vips_foreign_load_vips_source_get_type();

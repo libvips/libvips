@@ -566,7 +566,8 @@ pyramid_build(VipsForeignSaveDz *dz,
 static int
 write_dzi(VipsForeignSaveDz *dz)
 {
-	VipsDbuf dbuf;
+	VipsDbuf dbuf = { 0 };
+
 	char filename[VIPS_PATH_MAX];
 	char format[VIPS_PATH_MAX];
 	char *p;
@@ -574,8 +575,6 @@ write_dzi(VipsForeignSaveDz *dz)
 	size_t len;
 
 	vips_snprintf(filename, VIPS_PATH_MAX, "%s.dzi", dz->imagename);
-
-	vips_dbuf_init(&dbuf);
 
 	vips_snprintf(format, VIPS_PATH_MAX, "%s", dz->suffix + 1);
 	if ((p = (char *) vips__find_rightmost_brackets(format)))
@@ -610,14 +609,13 @@ write_dzi(VipsForeignSaveDz *dz)
 static int
 write_properties(VipsForeignSaveDz *dz)
 {
-	VipsDbuf dbuf;
+	VipsDbuf dbuf = { 0 };
+
 	char *filename;
 	void *buf;
 	size_t len;
 
 	filename = g_build_filename(dz->root_name, "ImageProperties.xml", NULL);
-
-	vips_dbuf_init(&dbuf);
 
 	vips_dbuf_writef(&dbuf, "<IMAGE_PROPERTIES "
 							"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
@@ -700,21 +698,20 @@ write_blank(VipsForeignSaveDz *dz)
 static int
 write_json(VipsForeignSaveDz *dz)
 {
+	VipsDbuf dbuf = { 0 };
+
 	/* dz->file_suffix has a leading "." character.
 	 */
 	const char *suffix = dz->file_suffix[0] == '.'
 		? dz->file_suffix + 1
 		: dz->file_suffix;
 
-	VipsDbuf dbuf;
 	char *filename;
 	void *buf;
 	size_t len;
 	int i;
 
 	filename = g_build_filename(dz->root_name, "info.json", NULL);
-
-	vips_dbuf_init(&dbuf);
 
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3)
 		vips_dbuf_writef(&dbuf,
@@ -808,6 +805,7 @@ write_json(VipsForeignSaveDz *dz)
 		if (vips__archive_mkfile(dz->archive, filename, buf, len)) {
 			g_free(filename);
 			g_free(buf);
+
 			return -1;
 		}
 
@@ -919,13 +917,12 @@ static char *scan_property_names[][2] = {
 static char *
 build_scan_properties(VipsImage *image, size_t *len)
 {
-	VipsDbuf dbuf;
+	VipsDbuf dbuf = { 0 };
 	char *date;
 	int i;
 
 	date = vips__get_iso8601();
 
-	vips_dbuf_init(&dbuf);
 	vips_dbuf_writef(&dbuf, "<?xml version=\"1.0\"?>\n");
 	vips_dbuf_writef(&dbuf,
 		"<image xmlns=\"http://www.pathozoom.com/szi\""
@@ -2059,8 +2056,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 		save->ready = z;
 	}
 
-	/* If we're saving to direct JPEG, we need to convert to 8-bit RGB |
-	 * mono | cmyk.
+	/* If we're saving to direct JPEG we need to convert to 8-bit
+	 * RGB | mono | cmyk.
 	 */
 	if (dz->direct) {
 		VipsImage *z;

@@ -25,7 +25,7 @@ $vips extract_band $image $tmp/mono.v 1
 mono=$tmp/mono.v
 
 # make a radiance image
-$vips float2rad $image $tmp/rad.v 
+$vips float2rad $image $tmp/rad.v
 rad=$tmp/rad.v
 
 # make a cmyk image
@@ -63,24 +63,6 @@ test_format() {
 
 	save_load $in $format $mode
 	test_difference $in $tmp/back.v $threshold
-
-	echo "ok"
-}
-
-# as above, but hdr format
-# this is a coded format, so we need to rad2float before we can test for
-# differences
-test_rad() {
-	in=$1
-
-	printf "testing $(basename $in) hdr ... "
-
-	save_load $in hdr
-
-	$vips rad2float $in $tmp/before.v
-	$vips rad2float $tmp/back.v $tmp/after.v
-
-	test_difference $tmp/before.v $tmp/after.v 0
 
 	echo "ok"
 }
@@ -171,6 +153,7 @@ fi
 
 # csv can only do mono
 test_format $mono csv 0
+test_format $rad hdr 0
 
 # cmyk jpg is a special path
 if test_supported jpegload; then
@@ -183,10 +166,8 @@ if test_supported tiffload; then
 	test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
 fi
 
-test_rad $rad 
-
-test_raw $mono 
-test_raw $image 
+test_raw $mono
+test_raw $image
 
 if test_supported pdfload; then
 	test_loader $poppler_ref $poppler pdfload 0

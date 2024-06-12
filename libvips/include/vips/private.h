@@ -220,6 +220,11 @@ int _vips__argument_id;
 
 void vips__meta_init(void);
 
+// autoptr needs typed functions for autofree ... this needs to be in the
+// public API since downstream projects can use our auto defs
+VIPS_API
+void VipsArrayDouble_unref(VipsArrayDouble *array);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

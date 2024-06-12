@@ -1,5 +1,5 @@
 project('vips', 'c', 'cpp',
-    version: '8.15.3',
+    version: '8.16.0',
     meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
@@ -23,9 +23,9 @@ version_patch = version_parts[2]
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-library_revision = 3
-library_current = 59
-library_age = 17
+library_revision = 0
+library_current = 60
+library_age = 18
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
 darwin_versions = [library_current + 1, '@0@.@1@'.format(library_current + 1, library_revision)]
 
@@ -54,6 +54,16 @@ cpp = meson.get_compiler('cpp')
 # Prevent use of void* pointer arithmetic to support MSVC
 add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language : ['cpp', 'c'])
 
+# libFuzzer related things
+fuzzing_engine = get_option('fuzzing_engine')
+if fuzzing_engine == 'libfuzzer'
+    if not cc.has_argument('-fsanitize=fuzzer')
+        error('fuzzing_engine libfuzzer requires "-fsanitize=fuzzer"')
+    endif
+    fuzzer_args = ['-fsanitize=fuzzer-no-link', '-fsanitize=fuzzer']
+    add_project_arguments(cc.first_supported_argument(fuzzer_args), language : ['cpp', 'c'])
+endif
+
 glib_dep = dependency('glib-2.0', version: '>=2.52')
 gio_dep = dependency('gio-2.0')
 gobject_dep = dependency('gobject-2.0')
@@ -62,15 +72,27 @@ expat_dep = dependency('expat')
 thread_dep = dependency('threads')
 m_dep = cc.find_library('m', required: false)
 
-libvips_deps = [
+# Start to form our dependencies
+
+# External dependencies we've detected
+external_deps = [
     glib_dep,
     gio_dep,
     gobject_dep,
     gmodule_dep,
     expat_dep,
+]
+
+# External dependencies of modules we've detected
+# These dependencies are not included in vips.pc
+module_deps = []
+
+# Required deps that may or may not be external versioned libraries
+other_deps = [
     thread_dep,
     m_dep,
 ]
+
 nodelete_link_args = cc.get_supported_link_arguments('-Wl,-z,nodelete')
 
 prefix_dir = get_option('prefix')
@@ -171,19 +193,19 @@ endif
 # needed by rsvg and others
 zlib_dep = dependency('zlib', version: '>=0.4', required: get_option('zlib'))
 if zlib_dep.found()
-    libvips_deps += zlib_dep
+    external_deps += zlib_dep
     cfg_var.set('HAVE_ZLIB', '1')
 endif
 
 libarchive_dep = dependency('libarchive', version: '>=3.0.0', required: get_option('archive'))
 if libarchive_dep.found()
-    libvips_deps += libarchive_dep
+    external_deps += libarchive_dep
     cfg_var.set('HAVE_LIBARCHIVE', '1')
 endif
 
 fftw_dep = dependency('fftw3', required: get_option('fftw'))
 if fftw_dep.found()
-    libvips_deps += fftw_dep
+    external_deps += fftw_dep
     cfg_var.set('HAVE_FFTW', '1')
 endif
 
@@ -199,8 +221,9 @@ if magick_found
     magick_module = modules_enabled and not get_option('magick-module').disabled()
     if magick_module
         cfg_var.set('MAGICK_MODULE', '1')
+        module_deps += magick_dep
     else
-        libvips_deps += magick_dep
+        external_deps += magick_dep
     endif
     magick7 = magick_dep.version().version_compare('>=7.0')
     # IM7 uses <MagickCore/MagickCore.h>
@@ -250,7 +273,7 @@ endif
 
 cfitsio_dep = dependency('cfitsio', required: get_option('cfitsio'))
 if cfitsio_dep.found()
-    libvips_deps += cfitsio_dep
+    external_deps += cfitsio_dep
     cfg_var.set('HAVE_CFITSIO', '1')
 endif
 
@@ -259,7 +282,7 @@ quantisation_package = disabler()
 
 imagequant_dep = dependency('imagequant', required: get_option('imagequant'))
 if imagequant_dep.found()
-    libvips_deps += imagequant_dep
+    external_deps += imagequant_dep
     cfg_var.set('HAVE_IMAGEQUANT', '1')
     quantisation_package = imagequant_dep
 endif
@@ -269,7 +292,7 @@ quantizr_dep = disabler()
 if not quantisation_package.found()
     quantizr_dep = dependency('quantizr', required: get_option('quantizr'))
     if quantizr_dep.found()
-        libvips_deps += quantizr_dep
+        external_deps += quantizr_dep
         cfg_var.set('HAVE_QUANTIZR', '1')
         quantisation_package = quantizr_dep
     endif
@@ -279,7 +302,7 @@ cgif_dep = disabler()
 if quantisation_package.found()
     cgif_dep = dependency('cgif', version: '>=0.2.0', required: get_option('cgif'))
     if cgif_dep.found()
-        libvips_deps += cgif_dep
+        external_deps += cgif_dep
         cfg_var.set('HAVE_CGIF', '1')
         if cc.compiles('#include <cgif.h>\nint i = CGIF_ATTR_NO_LOOP;', name: 'Has CGIF_ATTR_NO_LOOP', dependencies: cgif_dep)
             cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', '1')
@@ -292,7 +315,7 @@ endif
 
 libexif_dep = dependency('libexif', version: '>=0.6', required: get_option('exif'))
 if libexif_dep.found()
-    libvips_deps += libexif_dep
+    external_deps += libexif_dep
     cfg_var.set('HAVE_EXIF', '1')
     # some libexif packages need include <libexif/poop.h>, some just <poop.h>
     # how annoying
@@ -312,7 +335,7 @@ endif
 
 libjpeg_dep = dependency('libjpeg', required: get_option('jpeg'))
 if libjpeg_dep.found()
-    libvips_deps += libjpeg_dep
+    external_deps += libjpeg_dep
     cfg_var.set('HAVE_JPEG', '1')
     # features like trellis quant are exposed as extension parameters ...
     # mozjpeg 3.2 and later have #define JPEG_C_PARAM_SUPPORTED, but we must
@@ -321,6 +344,9 @@ if libjpeg_dep.found()
         cfg_var.set('HAVE_JPEG_EXT_PARAMS', '1')
     endif
 endif
+
+# png package we use
+png_package = disabler()
 
 # Look for libspng first
 # - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
@@ -331,22 +357,22 @@ spng_dep = dependency('spng', version: '>=0.7', required: false)
 if not spng_dep.found()
     spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
 endif
-spng_found = not get_option('spng').disabled() and spng_dep.found()
-if spng_found
-    libvips_deps += spng_dep
+if not get_option('spng').disabled() and spng_dep.found()
+    external_deps += spng_dep
     cfg_var.set('HAVE_SPNG', '1')
+    png_package = spng_dep
 endif
 
 # only if libspng not found
-png_dep = disabler()
-if not spng_found
+if not png_package.found()
     png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
     if png_dep.found()
-        libvips_deps += png_dep
+        external_deps += png_dep
         cfg_var.set('HAVE_PNG', '1')
         if cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep)
             cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', '1')
         endif
+        png_package = png_dep
     endif
 endif
 
@@ -355,15 +381,15 @@ endif
 # insist on having both of them
 libwebp_dep = dependency('libwebp', version: '>=0.6', required: get_option('webp'))
 if libwebp_dep.found()
-    libvips_deps += libwebp_dep
-    libvips_deps += dependency('libwebpmux', version: '>=0.6')
-    libvips_deps += dependency('libwebpdemux', version: '>=0.6')
+    external_deps += libwebp_dep
+    external_deps += dependency('libwebpmux', version: '>=0.6')
+    external_deps += dependency('libwebpdemux', version: '>=0.6')
     cfg_var.set('HAVE_LIBWEBP', '1')
 endif
 
 pangocairo_dep = dependency('pangocairo', version: '>=1.32.6', required: get_option('pangocairo'))
 if pangocairo_dep.found()
-    libvips_deps += pangocairo_dep
+    external_deps += pangocairo_dep
     cfg_var.set('HAVE_PANGOCAIRO', '1')
 endif
 
@@ -372,14 +398,14 @@ pangoft2_dep = dependency('pangoft2', version: '>=1.32.6', required: get_option(
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
 fontconfig_found = pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
 if fontconfig_found
-    libvips_deps += pangoft2_dep
-    libvips_deps += fontconfig_dep
+    external_deps += pangoft2_dep
+    external_deps += fontconfig_dep
     cfg_var.set('HAVE_FONTCONFIG', '1')
 endif
 
 libtiff_dep = dependency('libtiff-4', required: get_option('tiff'))
 if libtiff_dep.found()
-    libvips_deps += libtiff_dep
+    external_deps += libtiff_dep
     cfg_var.set('HAVE_TIFF', '1')
     # ZSTD and WEBP in TIFF added in libtiff 4.0.10
     if cc.get_define('COMPRESSION_WEBP', prefix: '#include <tiff.h>', dependencies: libtiff_dep) != ''
@@ -392,8 +418,8 @@ librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_optio
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
 librsvg_found = librsvg_dep.found() and cairo_dep.found()
 if librsvg_found
-    libvips_deps += librsvg_dep
-    libvips_deps += cairo_dep
+    external_deps += librsvg_dep
+    external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', '1')
 endif
 
@@ -403,8 +429,9 @@ if openslide_dep.found()
     openslide_module = modules_enabled and not get_option('openslide-module').disabled()
     if openslide_module
         cfg_var.set('OPENSLIDE_MODULE', '1')
+        module_deps += openslide_dep
     else
-        libvips_deps += openslide_dep
+        external_deps += openslide_dep
     endif
     cfg_var.set('HAVE_OPENSLIDE', '1')
     if openslide_dep.version().version_compare('>=3.4.0')
@@ -418,37 +445,44 @@ endif
 
 matio_dep = dependency('matio', required: get_option('matio'))
 if matio_dep.found()
-    libvips_deps += matio_dep
+    external_deps += matio_dep
     cfg_var.set('HAVE_MATIO', '1')
 endif
 
 # lcms ... refuse to use lcms1
 lcms_dep = dependency('lcms2', required: get_option('lcms'))
 if lcms_dep.found()
-    libvips_deps += lcms_dep
+    external_deps += lcms_dep
     cfg_var.set('HAVE_LCMS2', '1')
 endif
 
 # require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
 openexr_dep = dependency('OpenEXR', version: '>=1.2.2', required: get_option('openexr'))
 if openexr_dep.found()
-    libvips_deps += openexr_dep
+    external_deps += openexr_dep
     cfg_var.set('HAVE_OPENEXR', '1')
 endif
 
 # 2.4 is the first one to have working threading and tiling
 libopenjp2_dep = dependency('libopenjp2', version: '>=2.4', required: get_option('openjpeg'))
 if libopenjp2_dep.found()
-    libvips_deps += libopenjp2_dep
+    external_deps += libopenjp2_dep
     cfg_var.set('HAVE_LIBOPENJP2', '1')
 endif
+
+# simd package we use
+simd_package = disabler()
 
 # Require 1.0.5 to support the `ReorderDemote2To(u8, i16, i16)` operation
 # See: https://github.com/google/highway/pull/1247
 libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('highway'))
 if libhwy_dep.found()
-    libvips_deps += libhwy_dep
+    external_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', '1')
+    # 1.1.0 adds `InterleaveWhole{Lower,Upper}` and `Dup128VecFromValues`
+    if libhwy_dep.version().version_compare('>=1.1.0')
+        cfg_var.set('HAVE_HWY_1_1_0', '1')
+    endif
     # Always disable SSSE3 since it is rare to have SSSE3 but not SSE4
     disabled_targets = ['HWY_SSSE3']
     # Optionally, build without AVX512 support (helps to reduce binary size at the cost of performance)
@@ -456,30 +490,35 @@ if libhwy_dep.found()
     #disabled_targets += ['HWY_AVX3_ZEN4']
     #disabled_targets += ['HWY_AVX3_SPR']
     add_project_arguments('-DHWY_DISABLED_TARGETS=@0@'.format('|'.join(disabled_targets)), language: ['cpp'])
+    simd_package = libhwy_dep
 endif
 
 # only if highway not found
-orc_dep = disabler()
-if not libhwy_dep.found()
+if not simd_package.found()
     # we use loadpw etc.
     orc_dep = dependency('orc-0.4', version: '>=0.4.11', required: get_option('orc'))
     if orc_dep.found()
-        libvips_deps += orc_dep
+        external_deps += orc_dep
         cfg_var.set('HAVE_ORC', '1')
         # orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
         # definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
         if orc_dep.version().version_compare('>=0.4.31')
             cfg_var.set('HAVE_ORC_CF_PROTECTION', '1')
         endif
+        simd_package = orc_dep
     endif
 endif
+
+# pdf loader we use
+pdf_loader = disabler()
 
 # pick 4200 as the starting version number ... no reason, really, it'd
 # probably work with much older versions
 pdfium_dep = dependency('pdfium', version: '>=4200', required: get_option('pdfium'))
 if pdfium_dep.found()
-    libvips_deps += pdfium_dep
+    external_deps += pdfium_dep
     cfg_var.set('HAVE_PDFIUM', '1')
+    pdf_loader = pdfium_dep
 endif
 
 libheif_dep = dependency('libheif', version: '>=1.4.0', required: get_option('heif'))
@@ -488,8 +527,9 @@ if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
     if libheif_module
         cfg_var.set('HEIF_MODULE', '1')
+        module_deps += libheif_dep
     else
-        libvips_deps += libheif_dep
+        external_deps += libheif_dep
     endif
     cfg_var.set('HAVE_HEIF', '1')
     # added in 1.6.0
@@ -527,9 +567,11 @@ if libjxl_found
     libjxl_module = modules_enabled and not get_option('jpeg-xl-module').disabled()
     if libjxl_module
         cfg_var.set('LIBJXL_MODULE', '1')
+        module_deps += libjxl_dep
+        module_deps += libjxl_threads_dep
     else
-        libvips_deps += libjxl_dep
-        libvips_deps += libjxl_threads_dep
+        external_deps += libjxl_dep
+        external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', '1')
     if libjxl_dep.version().version_compare('>=0.7')
@@ -540,24 +582,26 @@ if libjxl_found
     endif
 endif
 
-libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
-libpoppler_found = false
+# only if pdfium not found
 libpoppler_module = false
-if not cairo_dep.found()
-    cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
-endif
-if libpoppler_dep.found() and cairo_dep.found() and pdfium_dep.found()
-    message('PDFium has been found, ignoring Poppler support')
-elif libpoppler_dep.found() and cairo_dep.found()
-    libpoppler_found = true
-    libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
-    if libpoppler_module
-        cfg_var.set('POPPLER_MODULE', '1')
-    else
-        libvips_deps += libpoppler_dep
-        libvips_deps += cairo_dep
+if not pdf_loader.found()
+    libpoppler_dep = dependency('poppler-glib', version: '>=0.16.0', required: get_option('poppler'))
+    if not cairo_dep.found()
+        cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('poppler'))
     endif
-    cfg_var.set('HAVE_POPPLER', '1')
+    if libpoppler_dep.found() and cairo_dep.found()
+        libpoppler_module = modules_enabled and not get_option('poppler-module').disabled()
+        if libpoppler_module
+            cfg_var.set('POPPLER_MODULE', '1')
+            module_deps += libpoppler_dep
+            module_deps += cairo_dep
+        else
+            external_deps += libpoppler_dep
+            external_deps += cairo_dep
+        endif
+        cfg_var.set('HAVE_POPPLER', '1')
+        pdf_loader = libpoppler_dep
+    endif
 endif
 
 # niftiio.pc is not present, and only provides the CMake package definition
@@ -597,7 +641,7 @@ if nifti_prefix_dir != '' and not libnifti_dep.found()
 endif
 libnifti_found = not get_option('nifti').disabled() and libnifti_dep.found()
 if libnifti_found
-    libvips_deps += libnifti_dep
+    external_deps += libnifti_dep
     cfg_var.set('HAVE_NIFTI', '1')
 endif
 
@@ -645,7 +689,7 @@ if cc.has_function('ngettext')
 else
     libintl_dep = cc.find_library('intl', required: false)
     if libintl_dep.found()
-        libvips_deps += libintl_dep
+        other_deps += libintl_dep
         cfg_var.set('ENABLE_NLS', 1)
         have_bind_textdomain_codeset = cc.has_function('bind_textdomain_codeset', prefix: '#include <libintl.h>', dependencies: libintl_dep)
     else
@@ -677,7 +721,7 @@ config_dep = declare_dependency(
     compile_args: '-DHAVE_CONFIG_H=1',
 )
 
-libvips_deps += config_dep
+libvips_deps = [config_dep] + external_deps + other_deps
 
 gir = find_program('g-ir-scanner', required: get_option('introspection'))
 enable_introspection = gir.found() and (not meson.is_cross_build() or get_option('introspection').enabled())
@@ -697,45 +741,61 @@ build_summary = {
      'enable PPM load/save': [get_option('ppm')],
      'enable GIF load': [get_option('nsgif')],
     },
+}
+build_features = {
   'Optional external packages':
-    {'use fftw for FFTs': [fftw_dep.found()],
-     'SIMD support with highway': [libhwy_dep.found()],
-     'accelerate loops with ORC': [orc_dep.found()],
-     'ICC profile support with lcms': [lcms_dep.found()],
-     'zlib': [zlib_dep.found()],
-     'text rendering with pangocairo': [pangocairo_dep.found()],
-     'font file support with fontconfig': [fontconfig_found],
-     'EXIF metadata support with libexif': [libexif_dep.found()],
+    {'FFTs': ['fftw', fftw_dep],
+     'SIMD support': ['libhwy or liborc', simd_package],
+     'ICC profile support': ['lcms2', lcms_dep],
+     'deflate compression': ['zlib', zlib_dep],
+     'text rendering': ['pangocairo', pangocairo_dep],
+     'font file support': ['fontconfig', fontconfig_found ? fontconfig_dep : disabler()],
+     'EXIF metadata support': ['libexif', libexif_dep],
     },
   'External image format libraries':
-    {'JPEG load/save with libjpeg': [libjpeg_dep.found()],
-     'JXL load/save with libjxl': [libjxl_found, ' (dynamic module: ', libjxl_module, ')'],
-     'JPEG2000 load/save with OpenJPEG': [libopenjp2_dep.found()],
-     'PNG load/save with libspng': [spng_found],
-     'PNG load/save with libpng': [png_dep.found()],
-     'selected quantisation package': [quantisation_package.found() ? quantisation_package.name() : 'none'],
-     'TIFF load/save with libtiff': [libtiff_dep.found()],
-     'image pyramid save with libarchive': [libarchive_dep.found()],
-     'HEIC/AVIF load/save with libheif': [libheif_dep.found(), ' (dynamic module: ', libheif_module, ')'],
-     'WebP load/save with libwebp': [libwebp_dep.found()],
-     'PDF load with PDFium': [pdfium_dep.found()],
-     'PDF load with poppler-glib': [libpoppler_found, ' (dynamic module: ', libpoppler_module, ')'],
-     'SVG load with librsvg': [librsvg_found],
-     'EXR load with OpenEXR': [openexr_dep.found()],
-     'OpenSlide load': [openslide_dep.found(), ' (dynamic module: ', openslide_module, ')'],
-     'Matlab load with libmatio': [matio_dep.found()],
-     'NIfTI load/save with niftiio': [libnifti_found],
-     'FITS load/save with cfitsio': [cfitsio_dep.found()],
-     'GIF save with cgif': [cgif_dep.found()],
-     'selected Magick package': [magick_found ? magick_dep.name() : 'none', ' (dynamic module: ', magick_module, ')'],
-     'Magick API version': [magick_found ? 'magick' + magick_dep.version().split('.')[0] : 'none'],
-     'Magick load': [magick_found and 'load' in get_option('magick-features')],
-     'Magick save': [magick_found and 'save' in get_option('magick-features')],
+    {'JPEG load/save': ['libjpeg', libjpeg_dep],
+     'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
+     'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
+     'PNG load/save': ['libspng or libpng', png_package],
+     'image quantisation': ['imagequant or quantizr', quantisation_package],
+     'TIFF load/save': ['libtiff', libtiff_dep],
+     'image pyramid save': ['libarchive', libarchive_dep],
+     'HEIC/AVIF load/save': ['libheif', libheif_dep, libheif_module],
+     'WebP load/save': ['libwebp', libwebp_dep],
+     'PDF load': ['PDFium or Poppler', pdf_loader, libpoppler_module],
+     'SVG load': ['librsvg', librsvg_found ? librsvg_dep : disabler()],
+     'EXR load': ['OpenEXR', openexr_dep],
+     'WSI load': ['OpenSlide', openslide_dep, openslide_module],
+     'Matlab load': ['Matio', matio_dep],
+     'NIfTI load/save': ['libnifti', libnifti_found ? libnifti_dep : disabler()],
+     'FITS load/save': ['cfitsio', cfitsio_dep],
+     'GIF save': ['cgif', cgif_dep],
+     'Magick @0@'.format('/'.join(get_option('magick-features'))): [get_option('magick-package'), magick_found ? magick_dep : disabler(), magick_module],
     },
 }
 
+# external_deps can have duplicates (eg. cairo can appear several times),
+# which will make summary fail
+seen_deps = []
+foreach dep: external_deps + module_deps
+    if dep.type_name() != 'internal' and dep.name() not in seen_deps
+       summary(dep.name(), dep.version(), section: 'Dependencies')
+       seen_deps += dep.name()
+    endif
+endforeach
 foreach section_title, section : build_summary
-    summary(section, bool_yn: true, list_sep: '', section: section_title)
+    summary(section, bool_yn: true, section: section_title)
+endforeach
+foreach section_title, section: build_features
+    foreach key, arr : section
+        dep_name = arr[0]
+        found = arr[1].found()
+        if found and arr[1].type_name() != 'internal'
+            dep_name = arr[1].name()
+        endif
+        dynamic_module = arr.length() > 2 ? [' (dynamic module: ', arr[2], ')'] : []
+        summary('@0@ with @1@'.format(key, dep_name), [found] + dynamic_module, bool_yn: true, list_sep: '', section: section_title)
+    endforeach
 endforeach
 
 subdir('libvips')

@@ -517,25 +517,3 @@ vips_bandjoin_const1(VipsImage *in, VipsImage **out, double c, ...)
 
 	return result;
 }
-
-/**
- * vips_addalpha: (method)
- * @in: input image
- * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Append an alpha channel.
- *
- * See also: vips_image_hasalpha().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-vips_addalpha(VipsImage *in, VipsImage **out, ...)
-{
-	if (vips_bandjoin_const1(in, out,
-		vips_interpretation_max_alpha(in->Type), NULL))
-		return -1;
-
-	return 0;
-}

@@ -89,8 +89,6 @@ gboolean vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap);
 VIPS_API
 gboolean vips_buf_appendc(VipsBuf *buf, char ch);
 VIPS_API
-gboolean vips_buf_appendsc(VipsBuf *buf, gboolean quote, const char *str);
-VIPS_API
 gboolean vips_buf_appendgv(VipsBuf *buf, GValue *value);
 VIPS_API
 gboolean vips_buf_append_size(VipsBuf *buf, size_t n);

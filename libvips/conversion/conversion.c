@@ -81,8 +81,8 @@
  *
  * * @compositing_space: #VipsInterpretation to composite in
  * * @premultiplied: %gboolean, images are already premultiplied
- * * @x: #VipsArrayInt, position of subimages
- * * @y: #VipsArrayInt, position of subimages
+ * * @x: #VipsArrayInt, array of (@n - 1) x coordinates
+ * * @y: #VipsArrayInt, array of (@n - 1) y coordinates
  *
  * Composite an array of images together.
  *
@@ -107,9 +107,10 @@
  * The output image will always have an alpha band. A solid alpha is
  * added to any input missing an alpha.
  *
- * The images do not need to match in size or format. They will be expanded to
- * the smallest common size and format in the usual way. Images are positioned
- * using the @x and @y parameters, if set.
+ * The images do not need to match in size or format. The output image is
+ * always the size of @in[0], with other images being
+ * positioned with the @x and @y parameters and clipped
+ * against that rectangle.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
  * directly on PNG images. If your images have been through vips_premultiply(),
@@ -407,6 +408,7 @@ vips_conversion_operation_init(void)
 	extern GType vips_gamma_get_type(void);
 	extern GType vips_composite_get_type(void);
 	extern GType vips_composite2_get_type(void);
+	extern GType vips_addalpha_get_type(void);
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type();
@@ -456,4 +458,5 @@ vips_conversion_operation_init(void)
 	vips_gamma_get_type();
 	vips_composite_get_type();
 	vips_composite2_get_type();
+	vips_addalpha_get_type();
 }

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<refentry id="Developer-checklist">
+
+
+<para>
+  <refmeta> <refentrytitle>Developer checklist</refentrytitle> <manvolnum>3</manvolnum> <refmiscinfo>libvips</refmiscinfo> </refmeta>
+</para>
+<para>
+  <refnamediv> <refname>Dev checklist</refname> <refpurpose>Checklist for libvips users</refpurpose> </refnamediv>
+</para>
+<para>
+  libvips is a slightly unusual library and you may need to take some of its stranger features into account when you design software that uses it.
+</para>
+<refsect3 xml:id="if-you-can-use-thumbnail-not-resize">
+  <title>If you can, use <literal>thumbnail</literal>, not <literal>resize</literal></title>
+  <para>
+    The <literal>thumbnail</literal> operation combines load and resize into one step. This lets it take advantage of format library features, such as shrink on load, and can lead to a large improvement in speed and drop in memory use.
+  </para>
+  <para>
+    For example, with this JPEG image:
+  </para>
+  <programlisting>
+$ vipsheader nina.jpg
+nina.jpg: 6048x4032 uchar, 3 bands, srgb, jpegload
+</programlisting>
+  <para>
+    I see:
+  </para>
+  <programlisting>
+$ /usr/bin/time -f %M:%e vips resize nina.jpg x.jpg 0.1
+123648:0.23
+</programlisting>
+  <para>
+    124 MB of RAM and 0.23s to shink by a factor of 10. With <literal>thumbnail</literal> it’s:
+  </para>
+  <programlisting>
+$ /usr/bin/time -f %M:%e vips thumbnail nina.jpg x.jpg 605
+68864:0.08
+</programlisting>
+  <para>
+    Now it’s 68 MB of memory and 0.08s – half the memory use, and 3x faster. In fact the improvement is better than that, since the `<literal>vips</literal> command takes a while to start and needs a fair amount of memory:
+  </para>
+  <programlisting>
+$ /usr/bin/time -f %M:%e vips &gt; /dev/null
+31232:0.02
+</programlisting>
+  <para>
+    31 MB and 0.02s, so <literal>thumbnail</literal> is really 2.5x less memory and 4x faster.
+  </para>
+  <para>
+    You can see much larger improvements with other formats, and quality will often be better as well, since <literal>thumbnail</literal> will automatically premultiply and can render vector images directly at the correct size.
+  </para>
+</refsect3>
+<refsect3 xml:id="dont-use-thumbnail_image">
+  <title>Don’t use <literal>thumbnail_image</literal></title>
+  <para>
+    It’s just there for emergencies. It can’t do any of the rendering tricks, so it’s no faster than <literal>resize</literal>. Use <literal>thumbnail</literal> if you can.
+  </para>
+</refsect3>
+<refsect3 xml:id="use-sequential-mode-if-you-can">
+  <title>Use sequential mode if you can</title>
+  <para>
+    This is a hint you pass to <literal>new_from_file</literal> and friends that signals that you will only scan this image in the direction that the underlying load library supports. This can give a useful improvement in speed and reduction in memory use in many cases.
+  </para>
+  <para>
+    See <link xlink:href="How-it-opens-files.html">the <quote>How it opens files</quote></link> chapter for background on this feature.
+  </para>
+</refsect3>
+<refsect3 xml:id="use-longer-pipelines-if-you-can">
+  <title>Use longer pipelines if you can</title>
+  <para>
+    libvips is demand-driven, and uses <emphasis>partial images</emphasis> as intermediates. This means you can construct long pipelines of image processing operations, they won’t use much memory, and they’ll (usually) join efficiently.
+  </para>
+  <para>
+    libvips is <emphasis>horizontally threaded</emphasis>, meaning that threads run along the pipeline of operations you are evaluating, not up and down images. This means that libvips can (usually) parallelise longer pipelines more efficiently than short ones.
+  </para>
+  <para>
+    If you can, aim for long pipelines of processing operations.
+  </para>
+</refsect3>
+<refsect3 xml:id="adjust-the-order-of-operations-in-pipelines">
+  <title>Adjust the order of operations in pipelines</title>
+  <para>
+    If you can, put large resizes right at the start (see <literal>thumbnail</literal> above), then area filters (sharpen, for example), and finally any point operations.
+  </para>
+</refsect3>
+<refsect3 xml:id="only-enable-the-load-libraries-you-need">
+  <title>Only enable the load libraries you need</title>
+  <para>
+    libvips after version 8.13 has a system for enabling and disabling image load libraries at runtime, see:
+  </para>
+  <para>
+    https://www.libvips.org/2022/05/28/What’s-new-in-8.13.html
+  </para>
+  <para>
+    You can usually improve security and avoid memory spikes by only enabling the image formats you really need. If you are handling untrusted data, I would set the <literal>VIPS_BLOCK_UNTRUSTED</literal> env var and only use the loaders we have tested for security.
+  </para>
+  <para>
+    Older versions of libvips need compile-time configuration.
+  </para>
+</refsect3>
+<refsect3 xml:id="sanity-check-images-before-processing">
+  <title>Sanity-check images before processing</title>
+  <para>
+    libvips image open is always fast and safe, as long as you have disabled load via imagemagick. This means you can open an image and sanity-check it before further processing.
+  </para>
+  <para>
+    There are two main checks that are very worthwhile:
+  </para>
+  <orderedlist numeration="arabic">
+    <listitem>
+      <para>
+        Sanity check image dimensions to protect you from decompression bombs like those described at https://www.bamsoftware.com/hacks/deflate.html
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Check for interlaced (also called progressive) images.
+      </para>
+      <para>
+        These are the ones that appear at a low res first, then slowly fill in detail as they are downloaded.
+      </para>
+      <para>
+        The downside is that you don’t get the final pixels until the whole image is in memory, which prevents any streaming processing and hugely increases memory use. For example:
+      </para>
+    </listitem>
+  </orderedlist>
+  <programlisting>
+$ /usr/bin/time -f %M:%e vipsthumbnail big-progressive.jpg
+3732224:4.23
+$ vips copy big-progressive.jpg x.jpg
+$ /usr/bin/time -f %M:%e vipsthumbnail x.jpg
+72448:0.26
+</programlisting>
+  <para>
+    So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but exactly the same image as a regular jpeg takes 72mb and 0.26s.
+  </para>
+  <para>
+    I would detect these horrors before processing by looking for the <literal>interlaced</literal> metadata item and either ban them, or if your users insist on uploading in this terrible format, push them to a separate low-priority queue on a special container. Keep them away from your main image path.
+  </para>
+</refsect3>
+<refsect3 xml:id="linux-memory-allocator">
+  <title>Linux memory allocator</title>
+  <para>
+    The default memory allocator on most glibc-based Linux systems (e.g. Debian, Red Hat) is unsuitable for long-running, multi-threaded processes that involve lots of small memory allocations.
+  </para>
+  <para>
+    To help avoid fragmentation and improve performance on these systems, the use of an alternative memory allocator such as <link xlink:href="https://github.com/jemalloc/jemalloc">jemalloc</link> is recommended.
+  </para>
+  <para>
+    Those using musl-based Linux (e.g. Alpine) and non-Linux systems are unaffected.
+  </para>
+</refsect3>
+<refsect3 xml:id="disable-the-libvips-operation-cache-if-you-dont-need-it">
+  <title>Disable the libvips operation cache if you don’t need it</title>
+  <para>
+    The libvips’ operation cache is not useful for image proxies (i.e. processing many different images). Consider disabling this with <literal>vips_cache_set_max(0);</literal>.
+  </para>
+</refsect3>
+
+
+</refentry>

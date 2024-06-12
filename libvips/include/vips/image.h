@@ -59,9 +59,14 @@ extern "C" {
  * for width/height so we could go up to 2bn, but it's good to have a lower
  * value set so we can see crazy numbers early.
  *
- * This was 1m for a while, but someone found a use for a 4m wide image.
+ * This can be overridden with the `VIPS_MAX_COORD` env var, or the
+ * `--vips-max-coord` CLI arg.
  */
-#define VIPS_MAX_COORD (10000000)
+#define VIPS_DEFAULT_MAX_COORD (100000000)
+
+/* Fetch the overridden value.
+ */
+#define VIPS_MAX_COORD (vips_max_coord_get())
 
 typedef enum {
 	VIPS_DEMAND_STYLE_ERROR = -1,

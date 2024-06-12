@@ -69,7 +69,7 @@ typedef enum /*< flags >*/ {
 
 typedef gboolean (*VipsOperationBuildFn)(VipsObject *object);
 
-typedef struct _VipsOperation {
+struct _VipsOperation {
 	VipsObject parent_instance;
 
 	/* Keep the hash here.
@@ -80,8 +80,7 @@ typedef struct _VipsOperation {
 	/* Pixels calculated ... handy for measuring over-calculation.
 	 */
 	int pixels;
-
-} VipsOperation;
+};
 
 typedef struct _VipsOperationClass {
 	VipsObjectClass parent_class;

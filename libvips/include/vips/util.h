@@ -61,6 +61,9 @@ extern "C" {
 
 #define VIPS_ABS(X) (((X) >= 0) ? (X) : -(X))
 
+// is something (eg. a pointer) N aligned
+#define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
+
 /* The built-in isnan and isinf functions provided by gcc 4+ and clang are
  * up to 7x faster than their libc equivalent included from <math.h>.
  */
@@ -123,7 +126,7 @@ extern "C" {
 	{ \
 		if ((N)) { \
 			int duff_count = ((N) + 15) / 16; \
-\
+			\
 			switch ((N) % 16) { \
 			case 0: \
 				do { \

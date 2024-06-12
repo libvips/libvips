@@ -307,9 +307,6 @@ vips_worker_allocate(VipsWorker *worker)
 
 /* Run this once per main loop. Get some work (single-threaded), then do it
  * (many-threaded).
- *
- * The very first workunit is also executed single-threaded. This gives
- * loaders a change to seek to the correct spot, see vips_sequential().
  */
 static void
 vips_worker_work_unit(VipsWorker *worker)
@@ -465,6 +462,18 @@ vips__worker_lock(GMutex *mutex)
 	if (worker)
 		g_atomic_int_add(&worker->pool->n_waiting, 1);
 	g_mutex_lock(mutex);
+	if (worker)
+		g_atomic_int_add(&worker->pool->n_waiting, -1);
+}
+
+void
+vips__worker_cond_wait(GCond *cond, GMutex *mutex)
+{
+	VipsWorker *worker = (VipsWorker *) g_private_get(worker_key);
+
+	if (worker)
+		g_atomic_int_add(&worker->pool->n_waiting, 1);
+	g_cond_wait(cond, mutex);
 	if (worker)
 		g_atomic_int_add(&worker->pool->n_waiting, -1);
 }

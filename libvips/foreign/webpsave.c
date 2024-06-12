@@ -132,6 +132,17 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	int effort;
 
+	/* If non-zero, set the desired target size in bytes.
+	 * Takes precedence over the 'Q' parameter.
+	 */
+	int target_size;
+
+	/* Number of entropy-analysis passes (in [1..10]).
+	 * The default value of 1 is appropriate for most cases.
+	 * If target_size is set, this must be set to a suitably large value.
+	 */
+	int passes;
+
 	/* Animated webp options.
 	 */
 
@@ -604,6 +615,8 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 	webp->config.lossless = webp->lossless || webp->near_lossless;
 	webp->config.alpha_quality = webp->alpha_q;
 	webp->config.method = webp->effort;
+	webp->config.target_size = webp->target_size;
+	webp->config.pass = webp->passes;
 
 	if (webp->lossless)
 		webp->config.quality = webp->Q;
@@ -745,6 +758,10 @@ vips_foreign_save_webp_build(VipsObject *object)
 		vips_foreign_save_webp_unset(webp);
 		return -1;
 	}
+
+	if (!vips_object_argument_isset(object, "passes") &&
+		vips_object_argument_isset(object, "target_size"))
+		webp->passes = 3;
 
 	/* Init generic WebP config
 	 */
@@ -895,6 +912,20 @@ vips_foreign_save_webp_class_init(VipsForeignSaveWebpClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveWebp, effort),
 		0, 6, 4);
 
+	VIPS_ARG_INT(class, "target_size", 20,
+		_("Target size"),
+		_("Desired target size in bytes"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveWebp, target_size),
+		0, INT_MAX, 0);
+
+	VIPS_ARG_INT(class, "passes", 23,
+		_("Passes"),
+		_("Number of entropy-analysis passes (in [1..10])"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveWebp, passes),
+		1, 10, 1);
+
 	VIPS_ARG_INT(class, "reduction_effort", 21,
 		_("Reduction effort"),
 		_("Level of CPU effort to reduce file size"),
@@ -916,6 +947,7 @@ vips_foreign_save_webp_init(VipsForeignSaveWebp *webp)
 	webp->Q = 75;
 	webp->alpha_q = 100;
 	webp->effort = 4;
+	webp->passes = 1;
 
 	/* ie. keyframes disabled by default.
 	 */
@@ -1161,6 +1193,8 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
+ * * @target_size: %gint, desired target size in bytes
+ * * @passes: %gint, number of entropy-analysis passes
  * * @min_size: %gboolean, minimise size
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
@@ -1183,6 +1217,13 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * Use @effort to control how much CPU time to spend attempting to
  * reduce file size. A higher value means more effort and therefore CPU time
  * should be spent. It has the range 0-6 and a default value of 4.
+ *
+ * Use @target_size to set the desired target size in bytes.
+ *
+ * Use @passes to set the number of entropy-analysis passes, by default 1,
+ * unless @target_size is set, in which case the default is 3. It is not
+ * recommended to set @passes unless you set @target_size. Doing so will
+ * result in longer encoding times for no benefit.
  *
  * Set @lossless to use lossless compression, or combine @near_lossless
  * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
@@ -1234,6 +1275,8 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
+ * * @target_size: %gint, desired target size in bytes
+ * * @passes: %gint, number of entropy-analysis passes
  * * @min_size: %gboolean, minimise size
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
@@ -1291,6 +1334,8 @@ vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
+ * * @target_size: %gint, desired target size in bytes
+ * * @passes: %gint, number of entropy-analysis passes
  * * @min_size: %gboolean, minimise size
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes
@@ -1330,6 +1375,8 @@ vips_webpsave_mime(VipsImage *in, ...)
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
  * * @effort: %gint, level of CPU effort to reduce file size
+ * * @target_size: %gint, desired target size in bytes
+ * * @passes: %gint, number of entropy-analysis passes
  * * @min_size: %gboolean, minimise size
  * * @mixed: %gboolean, allow both lossy and lossless encoding
  * * @kmin: %gint, minimum number of frames between keyframes

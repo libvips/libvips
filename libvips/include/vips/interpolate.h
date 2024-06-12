@@ -57,10 +57,9 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_INTERPOLATE, VipsInterpolateClass))
 
-typedef struct _VipsInterpolate {
+struct _VipsInterpolate {
 	VipsObject parent_object;
-
-} VipsInterpolate;
+};
 
 /* An interpolation function. This is a class method, but we have a lookup
  * function for it to speed up dispatch. Write to the memory at "out",

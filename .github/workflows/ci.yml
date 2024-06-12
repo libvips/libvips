@@ -1,6 +1,8 @@
 name: CI
 
-on: [ push, pull_request, workflow_dispatch ]
+on: [push, pull_request, workflow_dispatch]
+
+permissions: {}
 
 jobs:
   CI:
@@ -13,27 +15,14 @@ jobs:
           - name: "Linux x64 (Ubuntu 22.04) - GCC 11"
             os: ubuntu-22.04
             build: { cc: gcc, cxx: g++, linker: ld }
-            shell: bash
 
-          - name: "Linux x64 (Ubuntu 22.04) - Clang 14 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 22.04) - Clang 15 with ASan and UBSan"
             os: ubuntu-22.04
-            build: { cc: clang-14, cxx: clang++-14, linker: ld.lld-14, sanitize: true }
-            shell: bash
+            build: { cc: clang-15, cxx: clang++-15, linker: ld.lld-15, sanitize: true }
 
-          - name: "macOS (12.6) - Xcode 14.2"
-            os: macos-12
+          - name: "macOS (13.6) - Xcode 15.2"
+            os: macos-13
             build: { cc: clang, cxx: clang++, linker: ld.lld }
-            shell: bash
-
-          # TODO: Re-enable self-hosted M1 runner provided by MacStadium
-          #- name: "macOS (10.15) - Xcode 12.4 - M1"
-          #  os: macos-m1
-          #  build: { cc: clang, cxx: clang++, linker: ld.lld }
-          #  shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
-
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
 
     env:
       CC: ${{ matrix.build.cc }}
@@ -43,49 +32,53 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Update apt
-        if: runner.os == 'Linux'
-        run: sudo apt-get update -qq
+        uses: actions/checkout@v4
 
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
-        run:
-          sudo apt-get install -fqq
-            meson
-            python3-pip python3-setuptools python3-wheel
-            libfftw3-dev libexif-dev libjpeg-turbo8-dev
-            libpng-dev libwebp-dev libtiff5-dev
-            libheif-dev libexpat1-dev libcfitsio-dev
-            libmatio-dev libnifti-dev libhwy-dev
-            liblcms2-dev libpoppler-glib-dev librsvg2-dev
-            libopenexr-dev libpango1.0-dev libarchive-dev
-            libopenslide-dev libffi-dev libopenjp2-7-dev
-            libimagequant-dev libcgif-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            meson pkg-config \
+            libarchive-dev libcfitsio-dev libcgif-dev \
+            libexif-dev libexpat1-dev libffi-dev \
+            libfftw3-dev libheif-dev libhwy-dev \
+            libimagequant-dev libjpeg-dev liblcms2-dev \
+            libmatio-dev libnifti-dev libopenexr-dev \
+            libopenjp2-7-dev libopenslide-dev libpango1.0-dev \
+            libpng-dev libpoppler-glib-dev librsvg2-dev \
+            libtiff5-dev libwebp-dev \
             liborc-0.4-dev # FIXME: Remove once libhwy 1.0.5 is available.
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install meson ninja fftw fontconfig glib libexif libarchive little-cms2 highway pango pkg-config
-          brew install cfitsio cgif jpeg-xl libheif libimagequant mozjpeg libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          pip3 install meson
+          brew install \
+            ninja pkg-config \
+            cfitsio cgif fftw fontconfig glib \
+            highway jpeg-xl libarchive libexif \
+            libheif libimagequant libmatio librsvg \
+            libspng libtiff little-cms2 mozjpeg \
+            openexr openjpeg openslide pango \
+            poppler webp
 
-      - name: Install Clang 14
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-14'
-        run:
-          sudo apt-get install -fqq
-            clang-14 libomp-14-dev lld-14 llvm-14
+      - name: Install Clang 15
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-15'
+        run: sudo apt-get install clang-15 libomp-15-dev lld-15 llvm-15
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          # https://github.com/orgs/Homebrew/discussions/3404
+          mkdir -p $HOME/.config/pip
+          echo -e '[global]\nbreak-system-packages = true' > $HOME/.config/pip/pip.conf
 
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-14
+          LLVM_PREFIX: /usr/lib/llvm-15
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
@@ -94,8 +87,9 @@ jobs:
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
-          # FIXME: remove `intercept_tls_get_addr=0`
+          # FIXME: remove `intercept_tls_get_addr=0` once we update to LLVM 17
           # https://github.com/google/sanitizers/issues/1322
+          # https://github.com/llvm/llvm-project/commit/b1bd52cd0d8627df1187448b8247a9c7a4675019
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1:intercept_tls_get_addr=0" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
@@ -109,20 +103,22 @@ jobs:
           echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
 
       - name: Configure libvips
-        run:
-          meson setup build
-            -Ddebug=true
-            -Ddeprecated=false
+        run: |
+          meson setup build \
+            -Ddebug=true \
+            -Ddeprecated=false \
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
-        run: ninja -C build
+        run: meson compile -C build
 
       - name: Check libvips
-        run: ninja -C build test
+        run: |
+          meson test -C build \
+          || (cat build/meson-logs/testlog.txt && exit 1)
 
       - name: Install libvips
-        run: sudo ninja -C build install
+        run: sudo meson install -C build
 
       - name: Rebuild the shared library cache
         if: runner.os == 'Linux'

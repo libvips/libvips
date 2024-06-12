@@ -4,6 +4,8 @@
  * 	- from copy.c
  * 27/1/16
  * 	- don't swap coded images
+ * 11/3/24
+ *	- support unaligned images
  */
 
 /*
@@ -77,6 +79,9 @@ vips_byteswap_swap2(VipsPel *in, VipsPel *out, int width, VipsImage *im)
 
 	int x;
 
+	// must be 2-byte aligned, or behaviour is undefined
+	g_assert(VIPS_ALIGNED(p, 2) && VIPS_ALIGNED(q, 2));
+
 	for (x = 0; x < sz; x++)
 		q[x] = GUINT16_SWAP_LE_BE(p[x]);
 }
@@ -92,6 +97,9 @@ vips_byteswap_swap4(VipsPel *in, VipsPel *out, int width, VipsImage *im)
 
 	int x;
 
+	// must be 4-byte aligned, or behaviour is undefined
+	g_assert(VIPS_ALIGNED(p, 4) && VIPS_ALIGNED(q, 4));
+
 	for (x = 0; x < sz; x++)
 		q[x] = GUINT32_SWAP_LE_BE(p[x]);
 }
@@ -106,6 +114,9 @@ vips_byteswap_swap8(VipsPel *in, VipsPel *out, int width, VipsImage *im)
 	int sz = (VIPS_IMAGE_SIZEOF_PEL(im) * width) / 8;
 
 	int x;
+
+	// must be 8-byte aligned, or behaviour is undefined
+	g_assert(VIPS_ALIGNED(p, 8) && VIPS_ALIGNED(q, 8));
 
 	for (x = 0; x < sz; x++)
 		q[x] = GUINT64_SWAP_LE_BE(p[x]);
@@ -126,6 +137,18 @@ static SwapFn vips_byteswap_swap_fn[] = {
 	vips_byteswap_swap8	 /* VIPS_FORMAT_DPCOMPLEX = 9, */
 };
 
+static void
+vips_byteswap_swap_unaligned(VipsPel *in, VipsPel *out, int n, int size)
+{
+	for (int x = 0; x < n; x++) {
+		for (int i = 0; i < size; i++)
+			out[i] = in[size - i - 1];
+
+		in += size;
+		out += size;
+	}
+}
+
 /* Byteswap, turning bands into the x axis.
  */
 static int
@@ -135,11 +158,12 @@ vips_byteswap_gen(VipsRegion *out_region,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *im = ir->im;
 	VipsRect *r = &out_region->valid;
-	SwapFn swap = vips_byteswap_swap_fn[im->BandFmt];
+	SwapFn swap_aligned = vips_byteswap_swap_fn[im->BandFmt];
+	int size = vips_format_sizeof(im->BandFmt);
 
 	int y;
 
-	g_assert(swap);
+	g_assert(swap_aligned);
 
 	if (vips_region_prepare(ir, r))
 		return -1;
@@ -148,7 +172,15 @@ vips_byteswap_gen(VipsRegion *out_region,
 		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
 		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
-		swap(p, q, r->width, im);
+		if (VIPS_ALIGNED(p, size) && VIPS_ALIGNED(q, size))
+			swap_aligned(p, q, r->width, im);
+		else
+			/* Ouch!! horribly slow.
+			 *
+			 * This can be necessary for formats like PFM, where the data
+			 * offset in the file can have any alignment.
+			 */
+			vips_byteswap_swap_unaligned(p, q, r->width * im->Bands, size);
 	}
 
 	return 0;

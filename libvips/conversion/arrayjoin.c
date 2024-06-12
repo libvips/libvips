@@ -361,7 +361,7 @@ vips_arrayjoin_build(VipsObject *object)
 	conversion->out->Xsize = output_width;
 	conversion->out->Ysize = output_height;
 
-	/* DOn't use start_many -- the set of input images can be huge (many
+	/* Don't use start_many -- the set of input images can be huge (many
 	 * 10s of 1000s) and we don't want to have 20,000 regions active. It's
 	 * much quicker to make them on demand.
 	 */

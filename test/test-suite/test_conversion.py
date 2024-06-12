@@ -8,17 +8,12 @@ import tempfile
 import shutil
 
 import pyvips
-from helpers import IMAGES, JPEG_FILE, RGBA_FILE, unsigned_formats, \
-    signed_formats, float_formats, int_formats, \
-    noncomplex_formats, all_formats, max_value, \
-    sizeof_format, rot45_angles, rot45_angle_bonds, \
-    rot_angles, rot_angle_bonds, run_cmp, run_cmp2, \
-    assert_almost_equal_objects, temp_filename
+from helpers import *
 
 
 class TestConversion:
     tempdir = None
-    
+
     # run a function on an image,
     # 50,50 and 10,10 should have different values on the test image
     # don't loop over band elements
@@ -62,7 +57,7 @@ class TestConversion:
 
     def test_cast(self):
         # casting negative pixels to an unsigned format should clip to zero
-        for signed in signed_formats: 
+        for signed in signed_formats:
             im = (pyvips.Image.black(1, 1) - 10).cast(signed)
             for unsigned in unsigned_formats:
                 im2 = im.cast(unsigned)
@@ -125,6 +120,11 @@ class TestConversion:
         assert x.bands == 5
         assert x[3].avg() == 1
         assert x[4].avg() == 2
+
+    def test_addalpha(self):
+        x = self.colour.addalpha()
+        assert x.bands == 4
+        assert x[3].avg() == 255  # self.colour is srgb
 
     def test_bandmean(self):
         def bandmean(x):
@@ -338,12 +338,12 @@ class TestConversion:
                         reason="no smartcrop, skipping test")
     def test_smartcrop_attention(self):
         test, opts = self.image.smartcrop(
-            100, 100, 
+            100, 100,
             interesting=pyvips.enums.Interesting.ATTENTION,
             attention_x=True, attention_y=True)
         assert test.width == 100
         assert test.height == 100
-        
+
         assert opts["attention_x"] == 199
         assert opts["attention_y"] == 234
 
@@ -631,9 +631,9 @@ class TestConversion:
         index = pyvips.Image.switch([x < 128, x >= 128])
         assert index.avg() == 0.5
 
-        # slice into four 
+        # slice into four
         index = pyvips.Image.switch([
-            x < 64, 
+            x < 64,
             x >= 64 and x < 128,
             x >= 128 and x < 192,
             x >= 192
@@ -848,7 +848,7 @@ class TestConversion:
                 assert actual.height == meta[i]['h']
                 assert actual.get('orientation') if actual.get_typeof('orientation') else None is None
                 i = i + 1
-       
+
     def test_scaleimage(self):
         for fmt in noncomplex_formats:
             test = self.colour.cast(fmt)

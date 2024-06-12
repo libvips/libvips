@@ -78,6 +78,32 @@
 
 #include "pforeign.h"
 
+// render an entry as a utf8 string
+static char *
+entry_to_s(ExifEntry *entry)
+{
+	/* Some extra space for conversion to string ... this can be quite a bit
+	 * for formats like float. Ban crazy size values.
+	 */
+	int size = VIPS_MIN(entry->size, 10000);
+	int max_size = size * 5;
+	char *text = VIPS_MALLOC(NULL, max_size + 1);
+
+	// this renders floats as eg. "12.2345", enums as "Inch", etc.
+	exif_entry_get_value(entry, text, max_size);
+
+	// libexif does not null-terminate ASCII strings, we must add the \0
+	// ourselves
+	if (entry->format == EXIF_FORMAT_ASCII)
+		text[size] = '\0';
+
+	char *utf8 = g_utf8_make_valid(text, -1);
+
+	g_free(text);
+
+	return utf8;
+}
+
 #ifdef DEBUG_VERBOSE
 /* Print exif for debugging ... hacked from exif-0.6.9/actions.c
  */
@@ -111,16 +137,18 @@ show_tags(ExifData *data)
 static void
 show_entry(ExifEntry *entry, void *client)
 {
-	char exif_text[256];
+	char *text = entry_to_s(entry);
 
 	printf("%s", exif_tag_get_title(entry->tag));
 	printf("|");
-	printf("%s", exif_entry_get_value(entry, exif_text, 256));
+	printf("%s", text);
 	printf("|");
 	printf("%s", exif_format_get_name(entry->format));
 	printf("|");
 	printf("%d bytes", entry->size);
 	printf("\n");
+
+	g_free(text);
 }
 
 static void
@@ -165,13 +193,13 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 	ExifData *ed;
 
 	/* exif_data_load_data() only allows uint for length. Limit it to less
-	 * than that: 2**20 should be enough for anyone.
+	 * than that: 2**23 should be enough for anyone.
 	 */
 	if (length < 4) {
 		vips_error("exif", "%s", _("exif too small"));
 		return NULL;
 	}
-	if (length > 1 << 20) {
+	if (length > 1 << 23) {
 		vips_error("exif", "%s", _("exif too large"));
 		return NULL;
 	}
@@ -290,63 +318,46 @@ vips_exif_get_double(ExifData *ed,
  * Keep in sync with vips_exif_from_s() below.
  */
 static void
-vips_exif_to_s(ExifData *ed, ExifEntry *entry, VipsBuf *buf)
+vips_exif_to_s(ExifData *ed, ExifEntry *entry, VipsDbuf *buf)
 {
+	char *text = entry_to_s(entry);
+
 	unsigned long i;
 	int iv;
 	ExifRational rv;
 	ExifSRational srv;
-	char txt[256], *value;
 
-	value = g_utf8_make_valid(
-		exif_entry_get_value(entry, txt, 256), -1);
-
-	if (entry->format == EXIF_FORMAT_ASCII) {
-		/* libexif does not null-terminate strings. Copy out and add
-		 * the \0 ourselves.
-		 */
-		int len = VIPS_MIN(254, entry->size);
-
-		memcpy(txt, entry->data, len);
-		txt[len] = '\0';
-
-		char *utf8 = g_utf8_make_valid(txt, -1);
-		vips_buf_appendf(buf, "%s ", utf8);
-		g_free(utf8);
-	}
-	else if (entry->components < 10 &&
+	if (entry->components < 10 &&
 		!vips_exif_get_int(ed, entry, 0, &iv)) {
 		for (i = 0; i < entry->components; i++) {
 			vips_exif_get_int(ed, entry, i, &iv);
-			vips_buf_appendf(buf, "%d ", iv);
+			vips_dbuf_writef(buf, "%d ", iv);
 		}
 	}
 	else if (entry->components < 10 &&
 		!vips_exif_get_rational(ed, entry, 0, &rv)) {
 		for (i = 0; i < entry->components; i++) {
 			vips_exif_get_rational(ed, entry, i, &rv);
-			vips_buf_appendf(buf, "%u/%u ",
-				rv.numerator, rv.denominator);
+			vips_dbuf_writef(buf, "%u/%u ", rv.numerator, rv.denominator);
 		}
 	}
 	else if (entry->components < 10 &&
 		!vips_exif_get_srational(ed, entry, 0, &srv)) {
 		for (i = 0; i < entry->components; i++) {
 			vips_exif_get_srational(ed, entry, i, &srv);
-			vips_buf_appendf(buf, "%d/%d ",
-				srv.numerator, srv.denominator);
+			vips_dbuf_writef(buf, "%d/%d ", srv.numerator, srv.denominator);
 		}
 	}
 	else
-		vips_buf_appendf(buf, "%s ", value);
+		vips_dbuf_writef(buf, "%s ", text);
 
-	vips_buf_appendf(buf, "(%s, %s, %lu components, %d bytes)",
-		value,
+	vips_dbuf_writef(buf, "(%s, %s, %lu components, %d bytes)",
+		text,
 		exif_format_get_name(entry->format),
 		entry->components,
 		entry->size);
 
-	g_free(value);
+	g_free(text);
 }
 
 typedef struct _VipsExifParams {
@@ -375,8 +386,7 @@ vips_exif_attach_entry(ExifEntry *entry, VipsExifParams *params)
 	const char *tag_name;
 	char vips_name_txt[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC(vips_name_txt);
-	char value_txt[256];
-	VipsBuf value = VIPS_BUF_STATIC(value_txt);
+	VipsDbuf value = { 0 };
 
 	if (!(tag_name = vips_exif_entry_get_name(entry)))
 		return;
@@ -388,7 +398,10 @@ vips_exif_attach_entry(ExifEntry *entry, VipsExifParams *params)
 	/* Can't do anything sensible with the error return.
 	 */
 	(void) vips_image_set_string(params->image,
-		vips_buf_all(&vips_name), vips_buf_all(&value));
+		vips_buf_all(&vips_name),
+		(char *) vips_dbuf_string(&value, NULL));
+
+	vips_dbuf_destroy(&value);
 }
 
 static void
@@ -1327,8 +1340,7 @@ vips_exif_exif_entry(ExifEntry *entry, VipsExifRemove *ve)
 		(tag_is_encoding(entry->tag) ||
 			tag_is_ascii(entry->tag) ||
 			tag_is_utf16(entry->tag))) {
-		char value_txt[256];
-		VipsBuf value = VIPS_BUF_STATIC(value_txt);
+		VipsDbuf value = { 0 };
 
 		/* Render the original exif-data value to a string and see
 		 * if the user has changed it. If they have, remove it ready
@@ -1337,8 +1349,9 @@ vips_exif_exif_entry(ExifEntry *entry, VipsExifRemove *ve)
 		 * Leaving it there prevents it being recreated.
 		 */
 		vips_exif_to_s(ve->ed, entry, &value);
-		if (strcmp(vips_buf_all(&value), vips_value) != 0)
+		if (strcmp((char *) vips_dbuf_string(&value, NULL), vips_value) != 0)
 			ve->to_remove = g_slist_prepend(ve->to_remove, entry);
+		vips_dbuf_destroy(&value);
 	}
 }
 

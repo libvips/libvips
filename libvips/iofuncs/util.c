@@ -1187,7 +1187,7 @@ vips_mkdirf(const char *name, ...)
 	if (g_mkdir(path, 0755)) {
 		vips_error("mkdirf",
 			_("unable to create directory \"%s\", %s"),
-			path, strerror(errno));
+			path, g_strerror(errno));
 		g_free(path);
 		return -1;
 	}
@@ -1211,7 +1211,7 @@ vips_rmdirf(const char *name, ...)
 	if (g_rmdir(path)) {
 		vips_error("rmdir",
 			_("unable to remove directory \"%s\", %s"),
-			path, strerror(errno));
+			path, g_strerror(errno));
 		g_free(path);
 		return -1;
 	}
@@ -1228,7 +1228,7 @@ vips_rename(const char *old_name, const char *new_name)
 	if (g_rename(old_name, new_name)) {
 		vips_error("rename",
 			_("unable to rename file \"%s\" as \"%s\", %s"),
-			old_name, new_name, strerror(errno));
+			old_name, new_name, g_strerror(errno));
 		return -1;
 	}
 
@@ -1701,28 +1701,26 @@ vips__parse_size(const char *size_string)
 	static Unit units[] = {
 		{ 'k', 1024 },
 		{ 'm', 1024 * 1024 },
-		{ 'g', 1024 * 1024 * 1024 }
+		{ 'g', 1024 * 1024 * 1024 },
+		{ 'b', 1024 * 1024 * 1024 }
 	};
 
 	guint64 size;
 	int n;
-	int i;
 	char *unit;
 
 	/* An easy way to alloc a buffer large enough.
 	 */
 	unit = g_strdup(size_string);
-	n = sscanf(size_string, "%d %s", &i, unit);
-	size = i;
-	if (n > 1) {
-		int j;
 
-		for (j = 0; j < VIPS_NUMBER(units); j++)
+	n = sscanf(size_string, "%" G_GUINT64_FORMAT " %s", &size, unit);
+	if (n > 1)
+		for (int j = 0; j < VIPS_NUMBER(units); j++)
 			if (tolower(unit[0]) == units[j].unit) {
 				size *= units[j].multiplier;
 				break;
 			}
-	}
+
 	g_free(unit);
 
 	VIPS_DEBUG_MSG("parse_size: parsed \"%s\" as %" G_GUINT64_FORMAT "\n",

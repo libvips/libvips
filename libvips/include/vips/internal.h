@@ -153,6 +153,7 @@ void vips__threadpool_init(void);
 void vips__threadpool_shutdown(void);
 int vips__thread_execute(const char *name, GFunc func, gpointer data);
 VIPS_API void vips__worker_lock(GMutex *mutex);
+VIPS_API void vips__worker_cond_wait(GCond *cond, GMutex *mutex);
 
 void vips__cache_init(void);
 

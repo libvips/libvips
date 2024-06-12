@@ -173,7 +173,7 @@ static void
 vips_source_sanity(VipsSource *source)
 {
 	if (source->data) {
-		/* Not a pipe (can map and seek).
+		/* A memory buffer. Not a pipe (can map and seek).
 		 */
 		g_assert(!source->is_pipe);
 
@@ -193,6 +193,10 @@ vips_source_sanity(VipsSource *source)
 		g_assert(source->length != -1);
 	}
 	else if (source->is_pipe) {
+		/* Something like a descriptor we can't seek. It might not have
+		 * ->descriptor valid, that could be held in a subclass.
+		 */
+
 		if (source->decode) {
 			/* Reading pixel data.
 			 */
@@ -204,8 +208,7 @@ vips_source_sanity(VipsSource *source)
 			 */
 			g_assert(source->header_bytes);
 			g_assert(source->read_position >= 0);
-			g_assert(source->read_position <=
-				source->header_bytes->len);
+			g_assert(source->read_position <= source->header_bytes->len);
 		}
 
 		/* No length available.
@@ -213,15 +216,15 @@ vips_source_sanity(VipsSource *source)
 		g_assert(source->length == -1);
 	}
 	else {
-		/* Something like a seekable file.
+		/* Something like a descriptor we can seek. It might not have
+         * ->descriptor valid, that could be held in a subclass.
 		 */
 
 		/* After we're done with the header, the sniff buffer should
 		 * be gone.
 		 */
-		if (source->decode) {
+		if (source->decode)
 			g_assert(!source->sniff);
-		}
 
 		/* Once we've tested seek, the read position must lie within
 		 * the file.
@@ -231,13 +234,6 @@ vips_source_sanity(VipsSource *source)
 			g_assert(source->read_position >= 0);
 			g_assert(source->read_position <= source->length);
 		}
-
-		/* Supports minimise, so if descriptor is -1, we must have a
-		 * filename we can reopen.
-		 */
-		g_assert(VIPS_CONNECTION(source)->descriptor != -1 ||
-			(VIPS_CONNECTION(source)->filename &&
-				VIPS_CONNECTION(source)->descriptor));
 	}
 }
 #endif /*TEST_SANITY*/
@@ -343,8 +339,7 @@ vips_source_seek_real(VipsSource *source, gint64 offset, int whence)
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
 	if (connection->descriptor != -1)
-		return vips__seek_no_error(connection->descriptor,
-			offset, whence);
+		return vips__seek_no_error(connection->descriptor, offset, whence);
 
 	return -1;
 }
@@ -503,10 +498,8 @@ vips_source_new_from_target(VipsTarget *target)
 	if (vips_target_end(target))
 		return NULL;
 
-	if (connection->descriptor > 0) {
-		source = vips_source_new_from_descriptor(
-			connection->descriptor);
-	}
+	if (connection->descriptor > 0)
+		source = vips_source_new_from_descriptor(connection->descriptor);
 	else if (target->memory) {
 		VipsBlob *blob;
 
@@ -786,15 +779,11 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 		if (source->header_bytes &&
 			source->read_position < source->header_bytes->len) {
 			gint64 available = VIPS_MIN(length,
-				source->header_bytes->len -
-					source->read_position);
+				source->header_bytes->len - source->read_position);
 
-			VIPS_DEBUG_MSG("    %zd bytes from cache\n",
-				available);
+			VIPS_DEBUG_MSG("    %zd bytes from cache\n", available);
 			memcpy(buffer,
-				source->header_bytes->data +
-					source->read_position,
-				available);
+				source->header_bytes->data + source->read_position, available);
 			source->read_position += available;
 			buffer = (char *) buffer + available;
 			length -= available;
@@ -816,12 +805,10 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 
 			VIPS_DEBUG_MSG("    calling class->read()\n");
 			bytes_read = class->read(source, buffer, length);
-			VIPS_DEBUG_MSG("    %zd bytes from read()\n",
-				bytes_read);
+			VIPS_DEBUG_MSG("    %zd bytes from read()\n", bytes_read);
 			if (bytes_read == -1) {
 				vips_error_system(errno,
-					vips_connection_nick(
-						VIPS_CONNECTION(source)),
+					vips_connection_nick(VIPS_CONNECTION(source)),
 					"%s", _("read error"));
 				return -1;
 			}
@@ -833,8 +820,7 @@ vips_source_read(VipsSource *source, void *buffer, size_t length)
 				source->is_pipe &&
 				!source->decode &&
 				bytes_read > 0)
-				g_byte_array_append(source->header_bytes,
-					buffer, bytes_read);
+				g_byte_array_append(source->header_bytes, buffer, bytes_read);
 
 			source->read_position += bytes_read;
 			total_read += bytes_read;
@@ -1123,8 +1109,7 @@ vips_source_map_blob(VipsSource *source)
 	VipsBlob *blob;
 
 	if (!(buf = vips_source_map(source, &len)) ||
-		!(blob = vips_blob_new((VipsCallbackFn) vips_source_map_cb,
-			  buf, len)))
+		!(blob = vips_blob_new((VipsCallbackFn) vips_source_map_cb, buf, len)))
 		return NULL;
 
 	/* The source must stay alive until the blob is done.
@@ -1155,8 +1140,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 	gint64 new_pos;
 
 	VIPS_DEBUG_MSG(
-		"vips_source_seek: offset = %" G_GINT64_FORMAT
-		", whence = %d\n",
+		"vips_source_seek: offset = %" G_GINT64_FORMAT ", whence = %d\n",
 		offset, whence);
 
 	if (vips_source_unminimise(source) ||
@@ -1222,8 +1206,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 	/* Don't allow out of range seeks.
 	 */
 	if (new_pos < 0 ||
-		(source->length != -1 &&
-			new_pos > source->length)) {
+		(source->length != -1 && new_pos > source->length)) {
 		vips_error(nick,
 			_("bad seek to %" G_GINT64_FORMAT), new_pos);
 		return -1;
@@ -1332,8 +1315,7 @@ vips_source_sniff_at_most(VipsSource *source,
 	while (read_position < length) {
 		gint64 bytes_read;
 
-		bytes_read = vips_source_read(source, q,
-			length - read_position);
+		bytes_read = vips_source_read(source, q, length - read_position);
 		if (bytes_read == -1)
 			return -1;
 		if (bytes_read == 0)

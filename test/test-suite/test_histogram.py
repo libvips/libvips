@@ -2,7 +2,7 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE
+from helpers import *
 
 
 class TestHistogram:
@@ -117,9 +117,9 @@ class TestHistogram:
         y = index.case([10, 20])
         assert y.avg() == 15
 
-        # slice into four 
+        # slice into four
         index = pyvips.Image.switch([
-            x < 64, 
+            x < 64,
             x >= 64 and x < 128,
             x >= 128 and x < 192,
             x >= 192

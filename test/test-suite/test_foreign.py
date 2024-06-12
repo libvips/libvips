@@ -6,19 +6,8 @@ import tempfile
 import pytest
 
 import pyvips
-from helpers import \
-    IMAGES, JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
-    ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
-    PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, CUR_FILE, TGA_FILE, SGI_FILE, AVIF_FILE, \
-    AVIF_FILE_HUGE, TRUNCATED_FILE, \
-    GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
-    GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
-    GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
-    GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
-    temp_filename, assert_almost_equal_objects, have, skip_if_no, \
-    TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE, JP2K_FILE, RGBA_FILE
+from helpers import *
+
 
 class TestForeign:
     tempdir = None
@@ -32,8 +21,6 @@ class TestForeign:
         cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
-        cls.rad = cls.colour.float2rad().copy()
-        cls.rad.remove("icc-profile-data")
         cls.cmyk = cls.colour.bandjoin(cls.mono)
         cls.cmyk = cls.cmyk.copy(interpretation=pyvips.Interpretation.CMYK)
         cls.cmyk.remove("icc-profile-data")
@@ -47,7 +34,6 @@ class TestForeign:
         cls.colour = None
         cls.rgba = None
         cls.mono = None
-        cls.rad = None
         cls.cmyk = None
         cls.onebit = None
 
@@ -427,6 +413,7 @@ class TestForeign:
             assert im.height == 442
             assert im.bands == 3
             assert im.get("bits-per-sample") == 16
+            assert im.get_typeof("palette") == 0
 
         self.file_loader("pngload", PNG_FILE, png_valid)
         self.buffer_loader("pngload_buffer", PNG_FILE, png_valid)
@@ -435,6 +422,18 @@ class TestForeign:
         self.save_load("%s.png", self.colour)
         self.save_load_file(".png", "[interlace]", self.colour)
         self.save_load_file(".png", "[interlace]", self.mono)
+
+        def png_indexed_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [148.0, 131.0, 109.0])
+            assert im.width == 290
+            assert im.height == 442
+            assert im.bands == 3
+            assert im.get("bits-per-sample") == 8
+            assert im.get("palette") == 1
+
+        self.file_loader("pngload", PNG_INDEXED_FILE, png_indexed_valid)
+        self.buffer_loader("pngload_buffer", PNG_INDEXED_FILE, png_indexed_valid)
 
         # size of a regular mono PNG
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -534,6 +533,39 @@ class TestForeign:
             assert im.get("bits-per-sample") == 4
 
         self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
+
+        def tiff_ojpeg_tile_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [135.0, 156.0, 177.0, 255.0])
+            assert im.width == 234
+            assert im.height == 213
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+
+        def tiff_ojpeg_strip_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [228.0, 15.0, 9.0, 255.0])
+            assert im.width == 160
+            assert im.height == 160
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
+
+        def tiff_subsampled_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [6.0, 5.0, 21.0, 255.0])
+            assert im.width == 250
+            assert im.height == 325
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_SUBSAMPLED_FILE, tiff_subsampled_valid)
+        self.buffer_loader("tiffload_buffer", TIF_SUBSAMPLED_FILE, tiff_subsampled_valid)
 
         self.save_load_buffer("tiffsave_buffer", "tiffload_buffer", self.colour)
         self.save_load("%s.tif", self.mono)
@@ -847,7 +879,7 @@ class TestForeign:
         im = pyvips.Image.new_from_file(WEBP_FILE)
         buf = im.webpsave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert abs(im.avg() - im2.avg()) < 1
+        assert (im - im2).abs().max() < 1
 
         # higher Q should mean a bigger buffer
         b1 = im.webpsave_buffer(Q=10)
@@ -864,7 +896,7 @@ class TestForeign:
             p2 = im.get("icc-profile-data")
             assert p1 == p2
 
-            # add tests for exif, xmp, ipct
+            # add tests for exif, xmp, iptc
             # the exif test will need us to be able to walk the header,
             # we can't just check exif-data
 
@@ -904,6 +936,11 @@ class TestForeign:
         assert x.width == 13
         assert x.height == 16731
         buf = x.webpsave_buffer()
+
+        # target_size should reasonably work, +/- 2% is fine
+        x = pyvips.Image.new_from_file(WEBP_FILE)
+        buf_size = len(x.webpsave_buffer(target_size=20_000, keep='none'))
+        assert 19600 < buf_size < 20400
 
     @skip_if_no("analyzeload")
     def test_analyzeload(self):
@@ -1020,6 +1057,7 @@ class TestForeign:
         assert x2.get("background") == [81, 81, 81]
         assert x2.get("interlaced") == 1
         assert x2.get("bits-per-sample") == 4
+        assert x2.get("palette") == 1
 
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
         # our test gif has delay 0 for the first frame set in error
@@ -1027,6 +1065,7 @@ class TestForeign:
         assert x2.get("loop") == 32761
         assert x2.get("background") == [255, 255, 255]
         assert x2.get_typeof("interlaced") == 0
+        assert x2.get("palette") == 1
         # test deprecated fields too
         assert x2.get("gif-loop") == 32760
         assert x2.get("gif-delay") == 0
@@ -1155,18 +1194,16 @@ class TestForeign:
 
     @skip_if_no("ppmload")
     def test_ppm(self):
-        self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
 
-        self.save_load_file("%s.ppm", "[ascii]", self.mono, 0)
+        self.save_load_file("%s.pgm", "[ascii]", self.mono, 0)
         self.save_load_file("%s.ppm", "[ascii]", self.colour, 0)
 
-        self.save_load_file("%s.ppm", "[ascii,bitdepth=1]", self.onebit, 0)
+        self.save_load_file("%s.pbm", "[ascii]", self.onebit, 0)
 
         rgb16 = self.colour.colourspace("rgb16")
         grey16 = self.mono.colourspace("rgb16")
 
-        self.save_load("%s.ppm", grey16)
         self.save_load("%s.ppm", rgb16)
 
         self.save_load_file("%s.ppm", "[ascii]", grey16, 0)
@@ -1179,9 +1216,32 @@ class TestForeign:
 
     @skip_if_no("radload")
     def test_rad(self):
-        self.save_load("%s.hdr", self.colour)
+        def hdr_valid(im):
+            # might still be in RADIANCE coding
+            if im.coding == "rad":
+                im = im.rad2float()
+
+            assert_almost_equal_objects(im(10, 10),
+                                        [0.533, 0.564, 0.693],
+                                        threshold=0.01)
+
+            assert_almost_equal_objects(im(1592, 855),
+                                        [1580, 1364, 1276],
+                                        threshold=0.01)
+
+            assert im.width == 1655
+            assert im.height == 1764
+            assert im.bands == 3
+
+        self.file_loader("radload", RAD_FILE, hdr_valid)
+        self.buffer_loader("radload_buffer", RAD_FILE, hdr_valid)
+
+        rad = pyvips.Image.radload(RAD_FILE)
+        self.save_load("%s.hdr", rad)
+        self.save_load("%s.pfm", rad)
+        self.save_load("%s.tif", rad)
         self.save_buffer_tempfile("radsave_buffer", ".hdr",
-                                  self.rad, max_diff=0)
+                                  rad, max_diff=0)
 
     @skip_if_no("dzsave")
     def test_dzsave(self):
@@ -1340,7 +1400,7 @@ class TestForeign:
         # test keep=pyvips.ForeignKeep.ICC ... icc profiles should be
         # passed down
         filename = temp_filename(self.tempdir, '')
-        self.colour.dzsave(filename, keep=1 << 3) # pyvips.ForeignKeep.ICC - https://github.com/libvips/pyvips/pull/429
+        self.colour.dzsave(filename, keep=1 << 3) # pyvips.ForeignKeep.ICC
 
         y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
         assert y.get_typeof("icc-profile-data") != 0
@@ -1367,27 +1427,23 @@ class TestForeign:
         assert im.avg() == 0.0
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave(self):
-        # TODO: Reduce the threshold once https://github.com/strukturag/libheif/issues/533 is resolved.
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 80, compression="av1",
-                              lossless=True)
+                              self.colour, compression="av1", lossless=True)
         self.save_load("%s.avif", self.colour)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     @pytest.mark.skip()
     def test_avifsave_lossless(self):
         # this takes FOREVER
         im = pyvips.Image.new_from_file(AVIF_FILE)
         buf = im.heifsave_buffer(lossless=True, compression="av1")
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        # not in fact quite lossless
-        assert abs(im.avg() - im2.avg()) < 3
+        # FIXME: needs matrix_coefficients=0 for true lossless, see:
+        # https://github.com/strukturag/libheif/pull/1039
+        assert (im - im2).abs().max() < 1
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave_Q(self):
         # higher Q should mean a bigger buffer, needs libheif >= v1.8.0,
         # see: https://github.com/libvips/libvips/issues/1757
@@ -1396,7 +1452,6 @@ class TestForeign:
         assert len(b2) > len(b1)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave_chroma(self):
         # Chroma subsampling should produce smaller file size for same Q
         b1 = self.colour.heifsave_buffer(compression="av1", subsample_mode="on")
@@ -1404,7 +1459,6 @@ class TestForeign:
         assert len(b2) > len(b1)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave_icc(self):
         # try saving an image with an ICC profile and reading it back
         # not all libheif have profile support, so put it in an if
@@ -1415,12 +1469,11 @@ class TestForeign:
             p2 = im.get("icc-profile-data")
             assert p1 == p2
 
-        # add tests for xmp, ipct
+        # add tests for xmp, iptc
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_avifsave_exif(self):
         # first make sure we have exif support
         x = pyvips.Image.new_from_file(JPEG_FILE)
@@ -1432,7 +1485,6 @@ class TestForeign:
             assert y.get("exif-ifd0-XPComment").startswith("banana")
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_heicsave_16_to_12(self):
         rgb16 = self.colour.colourspace("rgb16")
         data = rgb16.heifsave_buffer(lossless=True)
@@ -1446,7 +1498,6 @@ class TestForeign:
         assert((im - rgb16).abs().max() < 4500)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_heicsave_16_to_8(self):
         rgb16 = self.colour.colourspace("rgb16")
         data = rgb16.heifsave_buffer(lossless=True, bitdepth=8)
@@ -1460,7 +1511,6 @@ class TestForeign:
         assert((im - rgb16 / 256).abs().max() < 80)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_heicsave_8_to_16(self):
         data = self.colour.heifsave_buffer(lossless=True, bitdepth=12)
         im = pyvips.Image.heifload_buffer(data)

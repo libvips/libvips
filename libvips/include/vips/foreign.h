@@ -664,6 +664,12 @@ VIPS_API
 int vips_rawsave(VipsImage *in, const char *filename, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_rawsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_rawsave_target(VipsImage *in, VipsTarget *target, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_DEPRECATED_FOR(vips_rawsave_target)
 int vips_rawsave_fd(VipsImage *in, int fd, ...)
 	G_GNUC_NULL_TERMINATED;
 

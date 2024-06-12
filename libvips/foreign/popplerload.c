@@ -235,10 +235,8 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 		printf("vips_foreign_load_pdf_get_page: %d\n", page_no);
 #endif /*DEBUG*/
 
-		if (!(pdf->page =
-					poppler_document_get_page(pdf->doc, page_no))) {
-			vips_error(class->nickname,
-				_("unable to load page %d"), page_no);
+		if (!(pdf->page = poppler_document_get_page(pdf->doc, page_no))) {
+			vips_error(class->nickname, _("unable to load page %d"), page_no);
 			return -1;
 		}
 		pdf->current_page = page_no;
@@ -473,10 +471,12 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
-	for (y = 0; y < r->height; y++)
-		vips__premultiplied_bgra2rgba(
-			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
-			r->width);
+	for (y = 0; y < r->height; y++) {
+		guint32 *scanline =
+			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+		vips__premultiplied_bgra2rgba(scanline, r->width);
+	}
 
 	return 0;
 }
@@ -613,8 +613,7 @@ G_DEFINE_TYPE(VipsForeignLoadPdfFile, vips_foreign_load_pdf_file,
 static void
 vips_foreign_load_pdf_file_dispose(GObject *gobject)
 {
-	VipsForeignLoadPdfFile *file =
-		(VipsForeignLoadPdfFile *) gobject;
+	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) gobject;
 
 	VIPS_FREE(file->uri);
 
@@ -631,11 +630,6 @@ vips_foreign_load_pdf_file_header(VipsForeignLoad *load)
 	return VIPS_FOREIGN_LOAD_CLASS(vips_foreign_load_pdf_file_parent_class)
 		->header(load);
 }
-
-static const char *vips_foreign_pdf_suffs[] = {
-	".pdf",
-	NULL
-};
 
 static int
 vips_foreign_load_pdf_file_build(VipsObject *object)
@@ -661,40 +655,12 @@ vips_foreign_load_pdf_file_build(VipsObject *object)
 		}
 		g_free(path);
 
-		if (!(pdf->source =
-					vips_source_new_from_file(file->filename)))
+		if (!(pdf->source = vips_source_new_from_file(file->filename)))
 			return -1;
 	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_file_parent_class)
 		->build(object);
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a_buffer(const void *buf, size_t len)
-{
-	const guchar *str = (const guchar *) buf;
-
-	if (len >= 4 &&
-		str[0] == '%' &&
-		str[1] == 'P' &&
-		str[2] == 'D' &&
-		str[3] == 'F')
-		return 1;
-
-	return 0;
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a(const char *filename)
-{
-	unsigned char buf[4];
-
-	if (vips__get_bytes(filename, buf, 4) == 4 &&
-		vips_foreign_load_pdf_is_a_buffer(buf, 4))
-		return 1;
-
-	return 0;
 }
 
 static void
@@ -714,9 +680,9 @@ vips_foreign_load_pdf_file_class_init(
 	object_class->description = _("load PDF from file");
 	object_class->build = vips_foreign_load_pdf_file_build;
 
-	foreign_class->suffs = vips_foreign_pdf_suffs;
+	foreign_class->suffs = vips__pdf_suffs;
 
-	load_class->is_a = vips_foreign_load_pdf_is_a;
+	load_class->is_a = vips__pdf_is_a_file;
 	load_class->header = vips_foreign_load_pdf_file_header;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -777,7 +743,7 @@ vips_foreign_load_pdf_buffer_class_init(
 	object_class->description = _("load PDF from buffer");
 	object_class->build = vips_foreign_load_pdf_buffer_build;
 
-	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
+	load_class->is_a_buffer = vips__pdf_is_a_buffer;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
@@ -819,18 +785,6 @@ vips_foreign_load_pdf_source_build(VipsObject *object)
 		->build(object);
 }
 
-static gboolean
-vips_foreign_load_pdf_source_is_a_source(VipsSource *source)
-{
-	const unsigned char *p;
-
-	return (p = vips_source_sniff(source, 4)) &&
-		p[0] == '%' &&
-		p[1] == 'P' &&
-		p[2] == 'D' &&
-		p[3] == 'F';
-}
-
 static void
 vips_foreign_load_pdf_source_class_init(
 	VipsForeignLoadPdfSourceClass *class)
@@ -849,7 +803,7 @@ vips_foreign_load_pdf_source_class_init(
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->is_a_source = vips_foreign_load_pdf_source_is_a_source;
+	load_class->is_a_source = vips__pdf_is_a_source;
 
 	VIPS_ARG_OBJECT(class, "source", 1,
 		_("Source"),

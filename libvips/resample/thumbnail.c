@@ -1235,7 +1235,7 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * See vips_thumbnail_buffer() to thumbnail from a memory buffer, or
  * vips_thumbnail_source() to thumbnail from an arbitrary byte source.
  *
- * By default, libvips will only the first frame of animated or multipage
+ * By default, libvips will only use the first frame of animated or multipage
  * images. To thumbnail all pages or frames, pass `n=-1` to the loader in
  * @filename, for example `"x.gif[n=-1]"`.
  *
