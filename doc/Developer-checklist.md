@@ -82,7 +82,7 @@ than short ones.
 
 If you can, aim for long pipelines of processing operations.
 
-## Cache commonly reused iamges
+## Cache commonly reused images
 
 If an image is reused repeatedly in one pipeline, it'll be recomputed each
 time. You can sometimes get a big speedup by keeping images like this in
