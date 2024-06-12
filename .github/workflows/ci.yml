@@ -12,13 +12,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Linux x64 (Ubuntu 22.04) - GCC 11"
-            os: ubuntu-22.04
-            build: { cc: gcc, cxx: g++, linker: ld }
+          - name: "Linux x64 (Ubuntu 24.04) - GCC 14"
+            os: ubuntu-24.04
+            build: { cc: gcc-14, cxx: g++-14, linker: ld }
 
-          - name: "Linux x64 (Ubuntu 22.04) - Clang 15 with ASan and UBSan"
-            os: ubuntu-22.04
-            build: { cc: clang-15, cxx: clang++-15, linker: ld.lld-15, sanitize: true }
+          - name: "Linux x64 (Ubuntu 24.04) - Clang 18 with ASan and UBSan"
+            os: ubuntu-24.04
+            build: { cc: clang-18, cxx: clang++-18, linker: ld.lld-18, sanitize: true }
 
           - name: "macOS (13.6) - Xcode 15.2"
             os: macos-13
@@ -47,8 +47,7 @@ jobs:
             libmatio-dev libnifti-dev libopenexr-dev \
             libopenjp2-7-dev libopenslide-dev libpango1.0-dev \
             libpng-dev libpoppler-glib-dev librsvg2-dev \
-            libtiff5-dev libwebp-dev \
-            liborc-0.4-dev # FIXME: Remove once libhwy 1.0.5 is available.
+            libtiff5-dev libwebp-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
@@ -63,22 +62,19 @@ jobs:
             openexr openjpeg openslide pango \
             poppler webp
 
-      - name: Install Clang 15
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-15'
-        run: sudo apt-get install clang-15 libomp-15-dev lld-15 llvm-15
+      - name: Install Clang 18
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-18'
+        run: sudo apt-get install clang-18 libomp-18-dev lld-18 llvm-18
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
-          # https://github.com/orgs/Homebrew/discussions/3404
-          mkdir -p $HOME/.config/pip
-          echo -e '[global]\nbreak-system-packages = true' > $HOME/.config/pip/pip.conf
 
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-15
+          LLVM_PREFIX: /usr/lib/llvm-18
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
@@ -87,10 +83,7 @@ jobs:
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
-          # FIXME: remove `intercept_tls_get_addr=0` once we update to LLVM 17
-          # https://github.com/google/sanitizers/issues/1322
-          # https://github.com/llvm/llvm-project/commit/b1bd52cd0d8627df1187448b8247a9c7a4675019
-          echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1:intercept_tls_get_addr=0" >> $GITHUB_ENV
+          echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
@@ -125,7 +118,7 @@ jobs:
         run: sudo ldconfig
 
       - name: Install pyvips
-        run: pip3 install pyvips[test]
+        run: pip3 install pyvips[test] --break-system-packages
 
       - name: Run test suite
         env:
