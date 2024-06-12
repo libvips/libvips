@@ -135,8 +135,6 @@ int vips__leak = 0;
 GQuark vips__image_pixels_quark = 0;
 #endif /*DEBUG_LEAK*/
 
-static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
-
 /**
  * vips_get_argv0:
  *
@@ -468,11 +466,10 @@ vips_init(const char *argv0)
 		vips_leak_set(TRUE);
 	if (g_getenv("VIPS_TRACE"))
 		vips_cache_set_trace(TRUE);
-	if (g_getenv("VIPS_PIPE_READ_LIMIT"))
-		vips_pipe_read_limit =
-			g_ascii_strtoll(g_getenv("VIPS_PIPE_READ_LIMIT"),
-				NULL, 10);
-	vips_pipe_read_limit_set(vips_pipe_read_limit);
+
+	const char *pipe_read_limit;
+	if ((pipe_read_limit = g_getenv("VIPS_PIPE_READ_LIMIT")))
+		vips_pipe_read_limit_set(vips__parse_size(pipe_read_limit));
 
 #ifdef G_OS_WIN32
 	/* Windows has a limit of 512 files open at once for the fopen() family
@@ -822,6 +819,15 @@ vips_cache_max_files_cb(const gchar *option_name, const gchar *value,
 	return TRUE;
 }
 
+static gboolean
+vips_pipe_read_limit_cb(const gchar *option_name, const gchar *value,
+	gpointer data, GError **error)
+{
+	vips_pipe_read_limit_set(vips__parse_size(value));
+
+	return TRUE;
+}
+
 static GOptionEntry option_entries[] = {
 	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG,
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
@@ -881,7 +887,7 @@ static GOptionEntry option_entries[] = {
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_config_cb,
 		N_("print libvips config"), NULL },
 	{ "vips-pipe-read-limit", 0, 0,
-		G_OPTION_ARG_INT64, (gpointer) &vips_pipe_read_limit,
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_pipe_read_limit_cb,
 		N_("read at most this many bytes from a pipe"), NULL },
 	{ NULL }
 };

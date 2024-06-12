@@ -98,14 +98,6 @@ static GOptionEntry main_option[] = {
 	{ NULL }
 };
 
-/* A non-fatal error. Print the vips error buffer and continue.
- */
-static void
-print_error(void)
-{
-	fprintf(stderr, "%s: %s", g_get_prgname(), vips_error_buffer());
-	vips_error_clear();
-}
 
 static void *
 print_field_fn(VipsImage *image, const char *field, GValue *value, void *a)
@@ -235,31 +227,28 @@ main(int argc, char *argv[])
 		if (strcmp(filename, "stdin") == 0) {
 			VipsSource *source;
 
-			if (!(source = vips_source_new_from_descriptor(0)))
-				return -1;
-			if (!(image = vips_image_new_from_source(source,
-					  option_string, NULL))) {
-				VIPS_UNREF(source);
-				return -1;
-			}
+			if (!(source = vips_source_new_from_descriptor(0)) ||
+				!(image = vips_image_new_from_source(source,
+				option_string, NULL)))
+				result = 1;
+
 			VIPS_UNREF(source);
 		}
 		else {
-			if (!(image =
-						vips_image_new_from_file(argv[i], NULL))) {
-				print_error();
+			if (!(image = vips_image_new_from_file(argv[i], NULL)))
 				result = 1;
-			}
 		}
 
 		if (image &&
-			print_header(image, argv[2] != NULL)) {
-			print_error();
+			print_header(image, argv[2] != NULL))
 			result = 1;
-		}
 
-		if (image)
-			g_object_unref(image);
+		VIPS_UNREF(image);
+	}
+
+	if (result) {
+		fprintf(stderr, "%s: %s", g_get_prgname(), vips_error_buffer());
+		vips_error_clear();
 	}
 
 	/* We don't free this on error exit, sadly.
