@@ -135,40 +135,6 @@ int vips__leak = 0;
 GQuark vips__image_pixels_quark = 0;
 #endif /*DEBUG_LEAK*/
 
-/* The maximum coordinate (ie. dimension) value we allow. This can be
- * overridden with the `--vips-max-coord` CLI arg, or the `VIPS_MAX_COORD` env
- * var.
- */
-static char *vips__max_coord_arg = NULL;
-
-/**
- * vips_max_coord_get:
- *
- * Return the maximum coordinate value. This can be the default, a value set
- * set by the `--vips-max-coord` CLI arg, or a value set in the `VIPS_MAX_COORD`
- * environment variable.
- *
- * These strings can include unit specifiers, eg. "10m" for 10 million pixels.
- * Values above INT_MAX are not supported.
- *
- * Returns: The maximum value a coordinate, or image dimension, can have.
- */
-int
-vips_max_coord_get(void)
-{
-	// CLI overrides env var
-	const char *as_str = vips__max_coord_arg ?
-		vips__max_coord_arg : g_getenv("VIPS_MAX_COORD");
-
-	if (as_str) {
-		guint64 size = vips__parse_size(as_str);
-
-		return VIPS_CLIP(100, size, INT_MAX);
-	}
-	else
-		return VIPS_DEFAULT_MAX_COORD;
-}
-
 /**
  * vips_get_argv0:
  *
