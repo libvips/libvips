@@ -20,8 +20,8 @@ jobs:
             os: ubuntu-24.04
             build: { cc: clang-18, cxx: clang++-18, linker: ld.lld-18, sanitize: true }
 
-          - name: "macOS (13.6) - Xcode 15.2"
-            os: macos-13
+          - name: "macOS arm64 (14) - Xcode 15"
+            os: macos-14
             build: { cc: clang, cxx: clang++, linker: ld.lld }
 
     env:
@@ -53,7 +53,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          pip3 install meson
+          pip3 install meson --break-system-packages
           brew install \
             ninja pkg-config \
             cfitsio cgif fftw fontconfig glib \
