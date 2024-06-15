@@ -749,7 +749,7 @@ im_load_plugins(const char *fmt, ...)
 	(void) im_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
 	va_end(ap);
 
-	g_info("im_load_plugins: searching \"%s\"\n", dir_name);
+	g_info("im_load_plugins: searching \"%s\"", dir_name);
 
 	if (!(dir = g_dir_open(dir_name, 0, NULL)))
 		/* Silent success for dir not there.
