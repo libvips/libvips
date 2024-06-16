@@ -150,7 +150,7 @@ vips_foreign_save_spng_comment(VipsImage *image,
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user_data;
 
-	if (g_str_has_prefix("png-comment-", field)) {
+	if (vips_isprefix("png-comment-", field)) {
 		const char *value;
 		int i;
 		char key[256];
@@ -263,7 +263,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		/* libspng does not want the JFIF "Exif\0\0" prefix.
 		 */
 		if (exif.length >= 6 &&
-			g_str_has_prefix("Exif", exif.data)) {
+			vips_isprefix("Exif", exif.data)) {
 			exif.data += 6;
 			exif.length -= 6;
 		}

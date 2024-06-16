@@ -414,7 +414,7 @@ vips_foreign_save_jxl_add_metadata(VipsForeignSaveJxl *jxl, VipsImage *in)
 			/* JPEG XL stores EXIF data without leading "Exif\0\0" with offset
 			 */
 			if (!strcmp(libjxl_metadata[i].name, VIPS_META_EXIF_NAME)) {
-				if (length >= 6 && g_str_has_prefix("Exif", (char *) data)) {
+				if (length >= 6 && vips_isprefix("Exif", (char *) data)) {
 					data = data + 6;
 					length -= 6;
 				}

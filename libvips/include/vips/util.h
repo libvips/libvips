@@ -294,7 +294,7 @@ VIPS_DEPRECATED_FOR(g_str_has_suffix)
 gboolean vips_ispostfix(const char *a, const char *b);
 VIPS_API
 gboolean vips_iscasepostfix(const char *a, const char *b);
-VIPS_DEPRECATED_FOR(g_str_has_prefix)
+VIPS_API
 gboolean vips_isprefix(const char *a, const char *b);
 VIPS_API
 char *vips_break_token(char *str, const char *brk);

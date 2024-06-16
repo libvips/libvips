@@ -191,7 +191,7 @@ vips_foreign_save_tiff_build(VipsObject *object)
 			VIPS_META_RESOLUTION_UNIT) &&
 		!vips_image_get_string(save->ready,
 			VIPS_META_RESOLUTION_UNIT, &p) &&
-		g_str_has_prefix("in", p))
+		vips_isprefix("in", p))
 		tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 
 	if (tiff->resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH) {

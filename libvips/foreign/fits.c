@@ -648,7 +648,7 @@ vips_fits_write_record(VipsFits *fits, const char *line)
 	/* cfitsio writes lines like these for us, don't write them again.
 	 */
 	for (i = 0; i < VIPS_NUMBER(vips_fits_basic); i++)
-		if (g_str_has_prefix(vips_fits_basic[i], line))
+		if (vips_isprefix(vips_fits_basic[i], line))
 			return 0;
 
 	/* Dedupe on the keyword, with some exceptions (see below).
@@ -672,7 +672,7 @@ vips_fits_write_record(VipsFits *fits, const char *line)
 	 */
 	if (strcmp(line, "") != 0) {
 		for (i = 0; i < VIPS_NUMBER(vips_fits_duplicate); i++)
-			if (g_str_has_prefix(vips_fits_duplicate[i], keyword))
+			if (vips_isprefix(vips_fits_duplicate[i], keyword))
 				break;
 
 		if (i == VIPS_NUMBER(vips_fits_duplicate))
@@ -693,7 +693,7 @@ vips_fits_write_meta(VipsImage *image,
 
 	/* We want fields which start "fits-".
 	 */
-	if (!g_str_has_prefix("fits-", field))
+	if (!vips_isprefix("fits-", field))
 		return NULL;
 
 	/* The value should be a refstring, since we wrote it in fits2vips

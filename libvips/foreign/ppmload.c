@@ -161,7 +161,7 @@ vips_foreign_load_ppm_is_a_source(VipsSource *source)
 		int i;
 
 		for (i = 0; i < VIPS_NUMBER(magic_names); i++)
-			if (g_str_has_prefix(magic_names[i], (char *) data))
+			if (vips_isprefix(magic_names[i], (char *) data))
 				return TRUE;
 	}
 
@@ -258,7 +258,7 @@ vips_foreign_load_ppm_parse_header(VipsForeignLoadPpm *ppm)
 	buf[1] = VIPS_SBUF_GETC(ppm->sbuf);
 
 	for (i = 0; i < VIPS_NUMBER(magic_names); i++)
-		if (g_str_has_prefix(magic_names[i], buf))
+		if (vips_isprefix(magic_names[i], buf))
 			break;
 	if (i == VIPS_NUMBER(magic_names)) {
 		vips_error(class->nickname, "%s", _("bad magic number"));

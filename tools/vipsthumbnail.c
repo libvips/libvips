@@ -349,8 +349,8 @@ thumbnail_process(VipsObject *process, const char *name)
 	 *
 	 * (but allow "./%s.jpg" as a output format)
 	 */
-	if (g_str_has_prefix(".", output_format) &&
-		!g_str_has_prefix("./", output_format)) {
+	if (vips_isprefix(".", output_format) &&
+		!vips_isprefix("./", output_format)) {
 		VipsTarget *target;
 
 		if (!(target = vips_target_new_to_descriptor(1)))

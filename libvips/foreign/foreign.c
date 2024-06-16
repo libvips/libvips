@@ -428,7 +428,7 @@ file_add_class(VipsForeignClass *class, GSList **files)
 		return NULL;
 
 	// exclude "rawload" as it has a different API.
-	if (g_str_has_prefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
+	if (vips_isprefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
 		return NULL;
 
 	/* Append so we don't reverse the list of files. Sort will
@@ -1722,8 +1722,8 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 	VipsForeignKeep keep = *((VipsForeignKeep *) user_data);
 
 	// we are only interested in metadata
-	if (!g_str_has_prefix(field, "png-comment-") &&
-		!g_str_has_prefix(field, "magickprofile-") &&
+	if (!vips_isprefix(field, "png-comment-") &&
+		!vips_isprefix(field, "magickprofile-") &&
 		strcmp(field, VIPS_META_IMAGEDESCRIPTION) != 0 &&
 		!g_str_has_suffix(field, "-data"))
 		return NULL;

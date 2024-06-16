@@ -631,7 +631,7 @@ parser_element_start_handler(void *user_data,
 	else if (strcmp(name, "root") == 0) {
 		for (p = atts; *p; p += 2)
 			if (strcmp(p[0], "xmlns") == 0 &&
-				!g_str_has_prefix(NAMESPACE_URI "vips", p[1])) {
+				!vips_isprefix(NAMESPACE_URI "vips", p[1])) {
 				vips_error("VipsImage", "%s",
 					_("incorrect namespace in XML"));
 				vep->error = TRUE;

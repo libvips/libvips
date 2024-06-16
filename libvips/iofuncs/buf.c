@@ -359,7 +359,7 @@ vips_buf_change(VipsBuf *buf, const char *old, const char *new)
 	/* Find pos of old.
 	 */
 	for (i = buf->i - olen; i > 0; i--)
-		if (g_str_has_prefix(old, buf->base + i))
+		if (vips_isprefix(old, buf->base + i))
 			break;
 	g_assert(i >= 0);
 

@@ -910,7 +910,7 @@ magick_set_magick_profile_cb(VipsImage *im,
 		vips_buf_appendf(&buf, "ICC");
 	else if (strcmp(name, VIPS_META_EXIF_NAME) == 0)
 		vips_buf_appendf(&buf, "EXIF");
-	else if (g_str_has_prefix("magickprofile-", name))
+	else if (vips_isprefix("magickprofile-", name))
 		vips_buf_appendf(&buf,
 			"%s", name + strlen("magickprofile-"));
 

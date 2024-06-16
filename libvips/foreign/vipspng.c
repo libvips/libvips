@@ -999,7 +999,7 @@ write_png_comment(VipsImage *image,
 {
 	Write *write = (Write *) data;
 
-	if (g_str_has_prefix("png-comment-", field)) {
+	if (vips_isprefix("png-comment-", field)) {
 		const char *str;
 		int i;
 		char key[256];
@@ -1202,7 +1202,7 @@ write_vips(Write *write,
 		/* libpng does not want the JFIF "Exif\0\0" prefix.
 		 */
 		if (length >= 6 &&
-			g_str_has_prefix("Exif", (char *) data)) {
+			vips_isprefix("Exif", (char *) data)) {
 			data = (char *) data + 6;
 			length -= 6;
 		}

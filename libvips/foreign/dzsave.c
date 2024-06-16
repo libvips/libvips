@@ -970,7 +970,7 @@ write_associated_images(VipsImage *image,
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 
-	if (g_str_has_prefix("openslide.associated.", field)) {
+	if (vips_isprefix("openslide.associated.", field)) {
 		VipsImage *associated;
 		const char *p;
 		const char *q;

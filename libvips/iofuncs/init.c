@@ -980,7 +980,7 @@ extract_prefix(const char *dir, const char *name)
 	/* Remove any "/./", any trailing "/.", any trailing "/".
 	 */
 	for (i = 0; i < (int) strlen(vname); i++)
-		if (g_str_has_prefix(G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S,
+		if (vips_isprefix(G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S,
 				vname + i))
 			memmove(vname + i, vname + i + 2,
 				strlen(vname + i + 2) + 1);

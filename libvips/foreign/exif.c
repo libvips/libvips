@@ -210,7 +210,7 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 	}
 
 	exif_data_unset_option(ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
-	if (!g_str_has_prefix("Exif", (char *) data)) {
+	if (!vips_isprefix("Exif", (char *) data)) {
 		/* Ensure "Exif" prefix as loaders may not provide it.
 		 */
 		void *data_with_prefix;
@@ -1043,9 +1043,9 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 	if (vips_image_get_typeof(image, VIPS_META_RESOLUTION_UNIT) &&
 		!vips_image_get_string(image,
 			VIPS_META_RESOLUTION_UNIT, &p)) {
-		if (g_str_has_prefix("cm", p))
+		if (vips_isprefix("cm", p))
 			unit = 3;
-		else if (g_str_has_prefix("none", p))
+		else if (vips_isprefix("none", p))
 			unit = 1;
 	}
 
@@ -1251,7 +1251,7 @@ vips_exif_image_field(VipsImage *image,
 	const char *p;
 	ExifTag tag;
 
-	if (!g_str_has_prefix("exif-ifd", field))
+	if (!vips_isprefix("exif-ifd", field))
 		return NULL;
 
 	/* value must be a string.

@@ -60,7 +60,7 @@ vips__pdf_is_a_buffer(const void *buf, size_t len)
 		return FALSE;
 
 	for (size_t i = 0; i < len - 4; i++)
-		if (g_str_has_prefix("%PDF", str + i))
+		if (vips_isprefix("%PDF", str + i))
 			return TRUE;
 
 	return FALSE;

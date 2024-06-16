@@ -600,7 +600,7 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
 
 	if (!jxl->exif_data ||
-		g_str_has_prefix("Exif", (char *) jxl->exif_data))
+		vips_isprefix("Exif", (char *) jxl->exif_data))
 		return 0;
 
 	if (jxl->exif_size < 4) {

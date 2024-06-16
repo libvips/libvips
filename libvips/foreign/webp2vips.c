@@ -321,8 +321,8 @@ vips__iswebp_source(VipsSource *source)
 	/* WebP is "RIFF xxxx WEBP" at the start, so we need 12 bytes.
 	 */
 	if ((p = vips_source_sniff(source, 12)) &&
-		g_str_has_prefix("RIFF", (char *) p) &&
-		g_str_has_prefix("WEBP", (char *) p + 8))
+		vips_isprefix("RIFF", (char *) p) &&
+		vips_isprefix("WEBP", (char *) p + 8))
 		return 1;
 
 	return 0;

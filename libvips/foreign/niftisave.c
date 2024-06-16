@@ -240,7 +240,7 @@ vips_foreign_save_nifti_ext(VipsImage *image,
 	char *data;
 	size_t length;
 
-	if (!g_str_has_prefix("nifti-ext-", field))
+	if (!vips_isprefix("nifti-ext-", field))
 		return NULL;
 
 	/* The name is "nifti-ext-N-XX" where N is the index (discard this)

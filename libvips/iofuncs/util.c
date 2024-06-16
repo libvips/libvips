@@ -288,12 +288,25 @@ vips_iscasepostfix(const char *a, const char *b)
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
- * random data.
+ * random data. Use g_str_has_prefix() when both strings are non-NULL and
+ * NULL-terminated.
  */
 gboolean
 vips_isprefix(const char *a, const char *b)
 {
-	return g_str_has_prefix(a, b);
+	int i;
+	
+	for (i = 0; a[i] && b[i]; i++)
+		if (a[i] != b[i])
+			return FALSE;
+
+	/* If there's stuff left in a but b has finished, we must have a
+	 * mismatch.
+	 */
+	if (a[i] && !b[i])
+		return FALSE;
+
+	return TRUE;
 }
 
 /* Exactly like strcspn(), but allow \ as an escape character.

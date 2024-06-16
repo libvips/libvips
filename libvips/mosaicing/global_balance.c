@@ -586,8 +586,8 @@ process_line(SymbolTable *st, const char *text)
 	 */
 	g_strlcpy(line, text, 1024);
 
-	if (g_str_has_prefix("#LRJOIN ", line) ||
-		g_str_has_prefix("#TBJOIN ", line)) {
+	if (vips_isprefix("#LRJOIN ", line) ||
+		vips_isprefix("#TBJOIN ", line)) {
 		/* Yes: magic join command. Break into tokens. Format is eg.
 
 			#LRJOIN <left> <right> <out> <x> <y> [<mwidth>]
@@ -617,7 +617,7 @@ process_line(SymbolTable *st, const char *text)
 			mwidth = atoi(item[5]);
 		else
 			mwidth = -1;
-		if (g_str_has_prefix("#LRJOIN ", line))
+		if (vips_isprefix("#LRJOIN ", line))
 			type = JOIN_LR;
 		else
 			type = JOIN_TB;
@@ -626,8 +626,8 @@ process_line(SymbolTable *st, const char *text)
 				join, 1.0, 0.0, dx, dy, mwidth))
 			return -1;
 	}
-	else if (g_str_has_prefix("#LRROTSCALE ", line) ||
-		g_str_has_prefix("#TBROTSCALE ", line)) {
+	else if (vips_isprefix("#LRROTSCALE ", line) ||
+		vips_isprefix("#TBROTSCALE ", line)) {
 		/* Rot + scale. Format is eg.
 
 			#LRROTSCALE <left> <right> <out> \
@@ -661,7 +661,7 @@ process_line(SymbolTable *st, const char *text)
 			mwidth = atoi(item[7]);
 		else
 			mwidth = -1;
-		if (g_str_has_prefix("#LRROTSCALE ", line))
+		if (vips_isprefix("#LRROTSCALE ", line))
 			type = JOIN_LRROTSCALE;
 		else
 			type = JOIN_TBROTSCALE;
@@ -670,7 +670,7 @@ process_line(SymbolTable *st, const char *text)
 				join, a, b, dx, dy, mwidth))
 			return -1;
 	}
-	else if (g_str_has_prefix("copy ", line)) {
+	else if (vips_isprefix("copy ", line)) {
 		/* vips_copy() call ... make a JOIN_CP node.
 		 */
 		char *item[MAX_ITEMS];
