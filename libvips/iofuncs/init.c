@@ -135,8 +135,6 @@ int vips__leak = 0;
 GQuark vips__image_pixels_quark = 0;
 #endif /*DEBUG_LEAK*/
 
-static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
-
 /* The maximum coordinate (ie. dimension) value we allow. This can be
  * overridden with the `--vips-max-coord` CLI arg, or the `VIPS_MAX_COORD` env
  * var.

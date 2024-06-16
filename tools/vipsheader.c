@@ -263,12 +263,7 @@ main(int argc, char *argv[])
 			VIPS_UNREF(source);
 		}
 		else {
-<<<<<<< HEAD
-			if (!(image = vips_image_new_from_file(argv[i], NULL))) {
-				print_error();
-=======
 			if (!(image = vips_image_new_from_file(argv[i], NULL)))
->>>>>>> 8.15
 				result = 1;
 		}
 
