@@ -2201,8 +2201,7 @@ VipsImage *
 vips_image_new_from_source(VipsSource *source,
 	const char *option_string, ...)
 {
-	const char *filename =
-		vips_connection_filename(VIPS_CONNECTION(source));
+	const char *filename = vips_connection_filename(VIPS_CONNECTION(source));
 
 	const char *operation_name;
 	va_list ap;
@@ -2257,8 +2256,7 @@ vips_image_new_from_source(VipsSource *source,
 		vips_area_unref(VIPS_AREA(blob));
 	}
 	else {
-		vips_error("VipsImage",
-			"%s", _("unable to load source"));
+		vips_error("VipsImage", "%s", _("unable to load source"));
 		result = -1;
 	}
 
