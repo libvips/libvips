@@ -295,7 +295,7 @@ gboolean
 vips_isprefix(const char *a, const char *b)
 {
 	int i;
-	
+
 	for (i = 0; a[i] && b[i]; i++)
 		if (a[i] != b[i])
 			return FALSE;
