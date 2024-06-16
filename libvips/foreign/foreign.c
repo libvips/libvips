@@ -428,7 +428,7 @@ file_add_class(VipsForeignClass *class, GSList **files)
 		return NULL;
 
 	// exclude "rawload" as it has a different API.
-	if (vips_isprefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
+	if (g_str_has_prefix("rawload", VIPS_OBJECT_CLASS(class)->nickname))
 		return NULL;
 
 	/* Append so we don't reverse the list of files. Sort will
@@ -549,8 +549,8 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
 
 	/* Ignore the buffer and source loaders.
 	 */
-	if (vips_ispostfix(object_class->nickname, "_buffer") ||
-		vips_ispostfix(object_class->nickname, "_source"))
+	if (g_str_has_suffix(object_class->nickname, "_buffer") ||
+		g_str_has_suffix(object_class->nickname, "_source"))
 		return NULL;
 
 #ifdef DEBUG
@@ -665,7 +665,7 @@ vips_foreign_find_load_buffer_sub(VipsForeignLoadClass *load_class,
 
 	/* Skip non-buffer loaders.
 	 */
-	if (!vips_ispostfix(object_class->nickname, "_buffer"))
+	if (!g_str_has_suffix(object_class->nickname, "_buffer"))
 		return NULL;
 
 	if (load_class->is_a_buffer) {
@@ -723,7 +723,7 @@ vips_foreign_find_load_source_sub(void *item, void *a, void *b)
 
 	/* Skip non-source loaders.
 	 */
-	if (!vips_ispostfix(object_class->nickname, "_source"))
+	if (!g_str_has_suffix(object_class->nickname, "_source"))
 		return NULL;
 
 	if (load_class->is_a_source) {
@@ -1722,10 +1722,10 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 	VipsForeignKeep keep = *((VipsForeignKeep *) user_data);
 
 	// we are only interested in metadata
-	if (!vips_isprefix(field, "png-comment-") &&
-		!vips_isprefix(field, "magickprofile-") &&
+	if (!g_str_has_prefix(field, "png-comment-") &&
+		!g_str_has_prefix(field, "magickprofile-") &&
 		strcmp(field, VIPS_META_IMAGEDESCRIPTION) != 0 &&
-		!vips_ispostfix(field, "-data"))
+		!g_str_has_suffix(field, "-data"))
 		return NULL;
 
 	if ((strcmp(field, VIPS_META_EXIF_NAME) == 0 &&
@@ -1961,8 +1961,8 @@ vips_foreign_find_save_sub(VipsForeignSaveClass *save_class,
 
 	/* Skip non-file savers.
 	 */
-	if (vips_ispostfix(object_class->nickname, "_buffer") ||
-		vips_ispostfix(object_class->nickname, "_target"))
+	if (g_str_has_suffix(object_class->nickname, "_buffer") ||
+		g_str_has_suffix(object_class->nickname, "_target"))
 		return NULL;
 
 	/* vips_foreign_find_save() has already removed any options from the
@@ -2123,7 +2123,7 @@ vips_foreign_find_save_target_sub(VipsForeignSaveClass *save_class,
 
 	if (!G_TYPE_IS_ABSTRACT(G_TYPE_FROM_CLASS(class)) &&
 		class->suffs &&
-		vips_ispostfix(object_class->nickname, "_target") &&
+		g_str_has_suffix(object_class->nickname, "_target") &&
 		vips_filename_suffix_match(suffix, class->suffs))
 		return save_class;
 
@@ -2181,7 +2181,7 @@ vips_foreign_find_save_buffer_sub(VipsForeignSaveClass *save_class,
 
 	if (!G_TYPE_IS_ABSTRACT(G_TYPE_FROM_CLASS(class)) &&
 		class->suffs &&
-		vips_ispostfix(object_class->nickname, "_buffer") &&
+		g_str_has_suffix(object_class->nickname, "_buffer") &&
 		vips_filename_suffix_match(suffix, class->suffs))
 		return save_class;
 

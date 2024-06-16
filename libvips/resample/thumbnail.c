@@ -236,7 +236,7 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 
 	/* For openslide, read out the level structure too.
 	 */
-	if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		int level_count;
 		int level;
 
@@ -247,9 +247,9 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 		for (level = 0; level < level_count; level++) {
 			char name[256];
 
-			vips_snprintf(name, 256, "openslide.level[%d].width", level);
+			g_snprintf(name, 256, "openslide.level[%d].width", level);
 			thumbnail->level_width[level] = get_int(image, name, 0);
-			vips_snprintf(name, 256, "openslide.level[%d].height", level);
+			g_snprintf(name, 256, "openslide.level[%d].height", level);
 			thumbnail->level_height[level] = get_int(image, name, 0);
 		}
 	}
@@ -543,7 +543,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	/* For tiff, scan the image and try to spot page-based and ifd-based
 	 * pyramids.
 	 */
-	if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* Test for a subifd pyr first, since we can do that from just
 		 * one page.
 		 */
@@ -563,7 +563,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 
 	/* jp2k uses page-based pyramids.
 	 */
-	if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		if (thumbnail->level_count == 0) {
 			thumbnail->subifd_pyramid = FALSE;
 			thumbnail->page_pyramid = TRUE;
@@ -578,7 +578,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	/* For heif, we need to fetch the thumbnail size, in case we can use
 	 * that as the source.
 	 */
-	if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader))
+	if (g_str_has_prefix("VipsForeignLoadHeif", thumbnail->loader))
 		vips_thumbnail_get_heif_thumb_info(thumbnail);
 
 	/* We read the openslide level structure in
@@ -587,18 +587,18 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 
 	factor = 1.0;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader))
+	if (g_str_has_prefix("VipsForeignLoadJpeg", thumbnail->loader))
 		factor = vips_thumbnail_find_jpegshrink(thumbnail,
 			thumbnail->input_width, thumbnail->input_height);
-	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadTiff", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadJp2k", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		if (thumbnail->level_count > 0)
 			factor = vips_thumbnail_find_pyrlevel(thumbnail,
 				thumbnail->input_width,
 				thumbnail->input_height);
 	}
-	else if (vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadWebp", thumbnail->loader)) {
 		factor = vips_thumbnail_calculate_common_shrink(thumbnail,
 			thumbnail->input_width,
 			thumbnail->page_height);
@@ -607,12 +607,12 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 		 */
 		factor = VIPS_MAX(1.0, factor);
 	}
-	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader))
+	else if (g_str_has_prefix("VipsForeignLoadPdf", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadSvg", thumbnail->loader))
 		factor = vips_thumbnail_calculate_common_shrink(thumbnail,
 			thumbnail->input_width,
 			thumbnail->page_height);
-	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadHeif", thumbnail->loader)) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
 		 *
@@ -1104,30 +1104,30 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadJpeg", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadPdf", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadSvg", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadWebp", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* jp2k optionally uses page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
@@ -1141,7 +1141,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
@@ -1163,7 +1163,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadHeif", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
@@ -1339,7 +1339,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadJpeg", thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
@@ -1347,7 +1347,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
+	else if (g_str_has_prefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
@@ -1356,9 +1356,9 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			"level", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadPdf", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadSvg", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadWebp", thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
@@ -1366,7 +1366,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			"scale", 1.0 / factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
@@ -1383,7 +1383,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
@@ -1408,7 +1408,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadHeif", thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
@@ -1552,7 +1552,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (g_str_has_prefix("VipsForeignLoadJpeg", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
@@ -1560,7 +1560,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
+	else if (g_str_has_prefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
@@ -1569,9 +1569,9 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			"level", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadPdf", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadSvg", thumbnail->loader) ||
+		g_str_has_prefix("VipsForeignLoadWebp", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
@@ -1579,7 +1579,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			"scale", 1.0 / factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadJp2k", thumbnail->loader)) {
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
@@ -1596,7 +1596,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadTiff", thumbnail->loader)) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
@@ -1621,7 +1621,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
+	else if (g_str_has_prefix("VipsForeignLoadHeif", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,

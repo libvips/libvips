@@ -196,7 +196,7 @@ vips_foreign_load_png_set_text(VipsImage *out,
 		/* Save as a string comment. Some PNGs have EXIF data as
 		 * text segments, unfortunately.
 		 */
-		vips_snprintf(name, 256, "png-comment-%d-%s", i, key);
+		g_snprintf(name, 256, "png-comment-%d-%s", i, key);
 
 		vips_image_set_string(out, name, value);
 	}

@@ -433,7 +433,7 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 
 		/* The source. sl0 is the first scanline in the mask.
 		 */
-		vips_snprintf(source, 256, "sl%d", y);
+		g_snprintf(source, 256, "sl%d", y);
 		if (orc_program_find_var_by_name(p, source) == -1) {
 			SCANLINE(source, 1);
 			pass->line[pass->n_scanline] = y;
@@ -445,7 +445,7 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 		if (x == 0)
 			ASM2("convubw", "value", source);
 		else {
-			vips_snprintf(off, 256, "c%db", x);
+			g_snprintf(off, 256, "c%db", x);
 			if (orc_program_find_var_by_name(p, off) == -1) {
 				CONST(off, in->Bands * x, 1);
 				pass->n_const++;
@@ -459,7 +459,7 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 		 * of the image and coefficient are interesting, so we can take
 		 * the bottom half of a 16x16->32 multiply.
 		 */
-		vips_snprintf(coeff, 256, "c%dw", convi->mant[i]);
+		g_snprintf(coeff, 256, "c%dw", convi->mant[i]);
 		if (orc_program_find_var_by_name(p, coeff) == -1) {
 			CONST(coeff, convi->mant[i], 2);
 			pass->n_const++;

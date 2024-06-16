@@ -928,7 +928,7 @@ vips_image_build(VipsObject *object)
 		 * Otherwise save with VipsForeign when the image has been
 		 * written to.
 		 */
-		if (vips_isprefix("VipsForeignSaveVips", file_op))
+		if (g_str_has_prefix("VipsForeignSaveVips", file_op))
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
@@ -1703,7 +1703,7 @@ vips_image_temp_name(char *name, int size)
 
 	int serial = g_atomic_int_add(&global_serial, 1);
 
-	vips_snprintf(name, size, "temp-%d", serial);
+	g_snprintf(name, size, "temp-%d", serial);
 }
 
 /**

@@ -542,7 +542,7 @@ attach_xmp_blob(VipsImage *im, void *data, size_t data_length)
 	int i;
 
 	if (data_length < 4 ||
-		!vips_isprefix("http", p))
+		!g_str_has_prefix("http", p))
 		return 0;
 
 	/* Search for a null char within the first few characters. 80
@@ -727,13 +727,13 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			/* Possible EXIF or XMP data.
 			 */
 			if (p->data_length > 4 &&
-				vips_isprefix("Exif", (char *) p->data) &&
+				g_str_has_prefix("Exif", (char *) p->data) &&
 				attach_blob(out, VIPS_META_EXIF_NAME,
 					p->data, p->data_length))
 				return -1;
 
 			if (p->data_length > 4 &&
-				vips_isprefix("http", (char *) p->data) &&
+				g_str_has_prefix("http", (char *) p->data) &&
 				attach_xmp_blob(out,
 					p->data, p->data_length))
 				return -1;
@@ -744,7 +744,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			/* Possible ICC profile.
 			 */
 			if (p->data_length > 14 &&
-				vips_isprefix("ICC_PROFILE",
+				g_str_has_prefix("ICC_PROFILE",
 					(char *) p->data)) {
 				/* cur_marker numbers from 1, according to
 				 * spec.
@@ -764,7 +764,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			/* Possible IPTC data block.
 			 */
 			if (p->data_length > 5 &&
-				vips_isprefix("Photo", (char *) p->data)) {
+				g_str_has_prefix("Photo", (char *) p->data)) {
 				if (attach_blob(out, VIPS_META_IPTC_NAME,
 						p->data, p->data_length))
 					return -1;
@@ -796,7 +796,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			 * better rule.
 			 */
 			if (p->data_length >= 12 &&
-				vips_isprefix("Adobe", (char *) p->data)) {
+				g_str_has_prefix("Adobe", (char *) p->data)) {
 				if (p->data[11] == 0) {
 #ifdef DEBUG
 					printf("complete Adobe block, not YCCK image\n");

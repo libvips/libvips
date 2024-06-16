@@ -372,7 +372,7 @@ vips_foreign_load_nifti_set(const char *name, GValue *value, glong offset,
 	char vips_name[256];
 
 	vips_gvalue_read(value, (char *) nim + offset);
-	vips_snprintf(vips_name, 256, "nifti-%s", name);
+	g_snprintf(vips_name, 256, "nifti-%s", name);
 	vips_image_set(out, vips_name, value);
 
 	return NULL;
@@ -500,15 +500,15 @@ vips_foreign_load_nifti_set_header(VipsForeignLoadNifti *nifti,
 	/* One byte longer than the spec to leave space for any extra
 	 * '\0' termination.
 	 */
-	vips_strncpy(txt, nim->intent_name, 17);
+	g_strlcpy(txt, nim->intent_name, 17);
 	vips_image_set_string(out, "nifti-intent_name", txt);
-	vips_strncpy(txt, nim->descrip, 81);
+	g_strlcpy(txt, nim->descrip, 81);
 	vips_image_set_string(out, "nifti-descrip", txt);
 
 	for (i = 0; i < nim->num_ext; i++) {
 		nifti1_extension *ext = &nim->ext_list[i];
 
-		vips_snprintf(txt, 256, "nifti-ext-%d-%d", i, ext->ecode);
+		g_snprintf(txt, 256, "nifti-ext-%d-%d", i, ext->ecode);
 		vips_image_set_blob_copy(out, txt, ext->edata, ext->esize);
 	}
 

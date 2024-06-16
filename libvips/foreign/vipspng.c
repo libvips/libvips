@@ -379,7 +379,7 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 		 * text segments, but the correct way to support this is with
 		 * png_get_eXIf_1().
 		 */
-		vips_snprintf(name, 256, "png-comment-%d-%s", i, key);
+		g_snprintf(name, 256, "png-comment-%d-%s", i, key);
 
 		vips_image_set_string(out, name, text);
 	}
@@ -999,7 +999,7 @@ write_png_comment(VipsImage *image,
 {
 	Write *write = (Write *) data;
 
-	if (vips_isprefix("png-comment-", field)) {
+	if (g_str_has_prefix("png-comment-", field)) {
 		const char *str;
 		int i;
 		char key[256];
@@ -1184,7 +1184,7 @@ write_vips(Write *write,
 			return -1;
 
 		str = g_malloc(length + 1);
-		vips_strncpy(str, data, length + 1);
+		g_strlcpy(str, data, length + 1);
 		vips__png_set_text(write->pPng, write->pInfo,
 			"XML:com.adobe.xmp", str);
 		g_free(str);
@@ -1202,7 +1202,7 @@ write_vips(Write *write,
 		/* libpng does not want the JFIF "Exif\0\0" prefix.
 		 */
 		if (length >= 6 &&
-			vips_isprefix("Exif", (char *) data)) {
+			g_str_has_prefix("Exif", (char *) data)) {
 			data = (char *) data + 6;
 			length -= 6;
 		}

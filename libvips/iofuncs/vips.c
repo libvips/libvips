@@ -617,9 +617,9 @@ parser_element_start_handler(void *user_data,
 	if (strcmp(name, "field") == 0) {
 		for (p = atts; *p; p += 2) {
 			if (strcmp(p[0], "name") == 0)
-				vips_strncpy(vep->name, p[1], MAX_PARSE_ATTR);
+				g_strlcpy(vep->name, p[1], MAX_PARSE_ATTR);
 			if (strcmp(p[0], "type") == 0)
-				vips_strncpy(vep->type, p[1], MAX_PARSE_ATTR);
+				g_strlcpy(vep->type, p[1], MAX_PARSE_ATTR);
 		}
 
 		vips_dbuf_reset(&vep->dbuf);
@@ -631,7 +631,7 @@ parser_element_start_handler(void *user_data,
 	else if (strcmp(name, "root") == 0) {
 		for (p = atts; *p; p += 2)
 			if (strcmp(p[0], "xmlns") == 0 &&
-				!vips_isprefix(NAMESPACE_URI "vips", p[1])) {
+				!g_str_has_prefix(NAMESPACE_URI "vips", p[1])) {
 				vips_error("VipsImage", "%s",
 					_("incorrect namespace in XML"));
 				vep->error = TRUE;

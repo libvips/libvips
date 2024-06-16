@@ -253,15 +253,7 @@ vips_hash_table_map(GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b)
 char *
 vips_strncpy(char *dest, const char *src, int n)
 {
-	int i;
-
-	g_assert(n > 0);
-
-	for (i = 0; i < n - 1; i++)
-		if (!(dest[i] = src[i]))
-			break;
-	dest[i] = '\0';
-
+	(void) g_strlcpy(dest, src, n);
 	return dest;
 }
 
@@ -270,15 +262,7 @@ vips_strncpy(char *dest, const char *src, int n)
 char *
 vips_strrstr(const char *haystack, const char *needle)
 {
-	int haystack_len = strlen(haystack);
-	int needle_len = strlen(needle);
-	int i;
-
-	for (i = haystack_len - needle_len; i >= 0; i--)
-		if (strncmp(needle, haystack + i, needle_len) == 0)
-			return (char *) haystack + i;
-
-	return NULL;
+	return g_strrstr(haystack, needle);
 }
 
 /* Test for string b ends string a.
@@ -286,13 +270,7 @@ vips_strrstr(const char *haystack, const char *needle)
 gboolean
 vips_ispostfix(const char *a, const char *b)
 {
-	int m = strlen(a);
-	int n = strlen(b);
-
-	if (n > m)
-		return FALSE;
-
-	return strcmp(a + m - n, b) == 0;
+	return g_str_has_suffix(a, b);
 }
 
 /* Case-insensitive test for string b ends string a. ASCII strings only.
@@ -315,19 +293,7 @@ vips_iscasepostfix(const char *a, const char *b)
 gboolean
 vips_isprefix(const char *a, const char *b)
 {
-	int i;
-
-	for (i = 0; a[i] && b[i]; i++)
-		if (a[i] != b[i])
-			return FALSE;
-
-	/* If there's stuff left in a but b has finished, we must have a
-	 * mismatch.
-	 */
-	if (a[i] && !b[i])
-		return FALSE;
-
-	return TRUE;
+	return g_str_has_prefix(a, b);
 }
 
 /* Exactly like strcspn(), but allow \ as an escape character.
@@ -458,31 +424,7 @@ vips_break_token(char *str, const char *brk)
 int
 vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 {
-#ifdef HAVE_VSNPRINTF
-	return vsnprintf(str, size, format, ap);
-#else  /*HAVE_VSNPRINTF*/
-	/* Bleurg!
-	 */
-	int n;
-	static char buf[MAX_BUF];
-
-	/* We can't return an error code, we may already have trashed the
-	 * stack. We must stop immediately.
-	 */
-	if (size > MAX_BUF)
-		vips_error_exit("panic: buffer overflow "
-						"(request to write %lu bytes to buffer of %d bytes)",
-			(unsigned long) size, MAX_BUF);
-	n = vsprintf(buf, format, ap);
-	if (n > MAX_BUF)
-		vips_error_exit("panic: buffer overflow "
-						"(%d bytes written to buffer of %d bytes)",
-			n, MAX_BUF);
-
-	vips_strncpy(str, buf, size);
-
-	return n;
-#endif /*HAVE_VSNPRINTF*/
+	return g_vsnprintf(str, size, format, ap);
 }
 
 int
@@ -492,7 +434,7 @@ vips_snprintf(char *str, size_t size, const char *format, ...)
 	int n;
 
 	va_start(ap, format);
-	n = vips_vsnprintf(str, size, format, ap);
+	n = g_vsnprintf(str, size, format, ap);
 	va_end(ap);
 
 	return n;
@@ -1235,17 +1177,6 @@ vips_rename(const char *old_name, const char *new_name)
 	return 0;
 }
 
-/* Chop off any trailing whitespace.
- */
-void
-vips__chomp(char *str)
-{
-	char *p;
-
-	for (p = str + strlen(str); p > str && isspace(p[-1]); p--)
-		p[-1] = '\0';
-}
-
 /* Break a command-line argument into tokens separated by whitespace.
  *
  * Strings can't be adjacent, so "hello world" (without quotes) is a single
@@ -1313,7 +1244,7 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 			/* How much can we copy to the buffer?
 			 */
 			i = VIPS_MIN(n, size);
-			vips_strncpy(string, p + 1, i);
+			g_strlcpy(string, p + 1, i);
 
 			/* We might have stopped at an escaped quote. If the
 			 * string was not truncated, swap the preceding
@@ -1340,7 +1271,7 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 		q = p + strcspn(p, "[]=,");
 
 		i = VIPS_MIN(q - p, size);
-		vips_strncpy(string, p, i + 1);
+		g_strlcpy(string, p, i + 1);
 		p = q;
 
 		/* We remove leading whitespace, so we trim trailing
@@ -1438,7 +1369,7 @@ vips__token_segment(const char *p, VipsToken *token,
 		} while (!(sub_token == VIPS_TOKEN_RIGHT && depth == 0));
 
 		i = VIPS_MIN(q - p, size);
-		vips_strncpy(string, p, i + 1);
+		g_strlcpy(string, p, i + 1);
 	}
 
 	return q;
@@ -1542,13 +1473,13 @@ vips__filename_split8(const char *name, char *filename, char *option_string)
 {
 	char *p;
 
-	vips_strncpy(filename, name, VIPS_PATH_MAX);
+	g_strlcpy(filename, name, VIPS_PATH_MAX);
 	if ((p = (char *) vips__find_rightmost_brackets(filename))) {
-		vips_strncpy(option_string, p, VIPS_PATH_MAX);
+		g_strlcpy(option_string, p, VIPS_PATH_MAX);
 		*p = '\0';
 	}
 	else
-		vips_strncpy(option_string, "", VIPS_PATH_MAX);
+		g_strlcpy(option_string, "", VIPS_PATH_MAX);
 }
 
 /* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
@@ -1634,9 +1565,9 @@ vips__temp_name(const char *format)
 
 	int serial = g_atomic_int_add(&global_serial, 1);
 
-	vips_snprintf(file, FILENAME_MAX, "vips-%d-%u",
+	g_snprintf(file, FILENAME_MAX, "vips-%d-%u",
 		serial, g_random_int());
-	vips_snprintf(file2, FILENAME_MAX, format, file);
+	g_snprintf(file2, FILENAME_MAX, format, file);
 	name = g_build_filename(vips__temp_dir(), file2, NULL);
 
 	/* We could use something like g_mkstemp() to guarantee uniqueness
@@ -1664,7 +1595,7 @@ vips__change_suffix(const char *name, char *out, int mx,
 
 	/* Copy start string.
 	 */
-	vips_strncpy(out, name, mx);
+	g_strlcpy(out, name, mx);
 
 	/* Drop all matching suffixes.
 	 */
@@ -1687,7 +1618,7 @@ vips__change_suffix(const char *name, char *out, int mx,
 	/* Add new suffix.
 	 */
 	len = strlen(out);
-	vips_strncpy(out + len, new, mx - len);
+	g_strlcpy(out + len, new, mx - len);
 }
 
 typedef struct {
@@ -1814,7 +1745,7 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
 	/* It can be a list of nicks, in which case we OR the bits together.
 	 */
 	i = 0;
-	vips_strncpy(str, nick, sizeof(str));
+	g_strlcpy(str, nick, sizeof(str));
 	for (p = str; (q = vips_break_token(p, "\t;:|, ")); p = q) {
 		if ((flags_value = g_flags_get_value_by_name(gflags, p)) ||
 			(flags_value = g_flags_get_value_by_nick(gflags, p)))

@@ -447,7 +447,7 @@ readslide_attach_associated(ReadSlide *rslide, VipsImage *image)
 				  *associated_name)))
 			return -1;
 
-		vips_snprintf(buf, 256,
+		g_snprintf(buf, 256,
 			"openslide.associated.%s", *associated_name);
 		vips_image_set_image(image, buf, associated);
 
@@ -528,11 +528,11 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		/* Try to get tile width/height. An undocumented, experimental
 		 * feature.
 		 */
-		vips_snprintf(buf, 256,
+		g_snprintf(buf, 256,
 			"openslide.level[%d].tile-width", rslide->level);
 		if ((value = openslide_get_property_value(rslide->osr, buf)))
 			rslide->tile_width = atoi(value);
-		vips_snprintf(buf, 256,
+		g_snprintf(buf, 256,
 			"openslide.level[%d].tile-height", rslide->level);
 		if ((value = openslide_get_property_value(rslide->osr, buf)))
 			rslide->tile_height = atoi(value);

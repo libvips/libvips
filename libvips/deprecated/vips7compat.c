@@ -80,7 +80,7 @@ im_filename_split(const char *path, char *name, char *mode)
 	char *p;
 	size_t len;
 
-	vips_strncpy(name, path, FILENAME_MAX);
+	g_strlcpy(name, path, FILENAME_MAX);
 	strcpy(mode, "");
 
 	if ((len = strlen(name)) == 0)
@@ -121,7 +121,7 @@ im_filename_split(const char *path, char *name, char *mode)
 	 */
 	if (*p == ':' &&
 		p - name != 1) {
-		vips_strncpy(mode, p + 1, FILENAME_MAX);
+		g_strlcpy(mode, p + 1, FILENAME_MAX);
 		*p = '\0';
 	}
 }

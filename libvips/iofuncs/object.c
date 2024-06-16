@@ -2576,16 +2576,16 @@ vips_object_set_from_string(VipsObject *object, const char *string)
 	char buffer[VIPS_PATH_MAX];
 	char str[VIPS_PATH_MAX];
 
-	vips_strncpy(buffer, string, VIPS_PATH_MAX);
+	g_strlcpy(buffer, string, VIPS_PATH_MAX);
 
 	/* Does string start with a bracket? If it doesn't, enclose the whole
 	 * thing in [].
 	 */
 	if (!(q = vips__token_get(buffer, &token, str, VIPS_PATH_MAX)) ||
 		token != VIPS_TOKEN_LEFT)
-		vips_snprintf(buffer, VIPS_PATH_MAX, "[%s]", string);
+		g_snprintf(buffer, VIPS_PATH_MAX, "[%s]", string);
 	else
-		vips_strncpy(buffer, string, VIPS_PATH_MAX);
+		g_strlcpy(buffer, string, VIPS_PATH_MAX);
 
 	return vips_object_set_args(object, buffer);
 }
@@ -2604,9 +2604,9 @@ vips_object_new_from_string(VipsObjectClass *object_class, const char *p)
 	 * everything before that as the principal arg for the constructor.
 	 */
 	if ((q = vips__find_rightmost_brackets(p)))
-		vips_strncpy(str, p, VIPS_MIN(VIPS_PATH_MAX, q - p + 1));
+		g_strlcpy(str, p, VIPS_MIN(VIPS_PATH_MAX, q - p + 1));
 	else
-		vips_strncpy(str, p, VIPS_PATH_MAX);
+		g_strlcpy(str, p, VIPS_PATH_MAX);
 	if (!(object = object_class->new_from_string(str)))
 		return NULL;
 

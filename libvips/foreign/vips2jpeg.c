@@ -418,9 +418,9 @@ vips_jfif_resolution_from_image(struct jpeg_compress_struct *cinfo,
 	if (vips_image_get_typeof(image, VIPS_META_RESOLUTION_UNIT) &&
 		!vips_image_get_string(image,
 			VIPS_META_RESOLUTION_UNIT, &p)) {
-		if (vips_isprefix("cm", p))
+		if (g_str_has_prefix("cm", p))
 			unit = 2;
-		else if (vips_isprefix("none", p))
+		else if (g_str_has_prefix("none", p))
 			unit = 0;
 	}
 

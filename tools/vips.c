@@ -455,10 +455,10 @@ isvips(const char *name)
 {
 	/* If we're running uninstalled we get the lt- prefix.
 	 */
-	if (vips_isprefix("lt-", name))
+	if (g_str_has_prefix("lt-", name))
 		name += 3;
 
-	return vips_isprefix("vips", name);
+	return g_str_has_prefix("vips", name);
 }
 
 #if ENABLE_DEPRECATED

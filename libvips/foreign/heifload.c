@@ -627,11 +627,11 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		 * For XMP, the content type is "application/rdf+xml".
 		 */
 		if (g_ascii_strcasecmp(type, "exif") == 0)
-			vips_snprintf(name, 256, VIPS_META_EXIF_NAME);
+			g_snprintf(name, 256, VIPS_META_EXIF_NAME);
 		else if (g_ascii_strcasecmp(content_type, "application/rdf+xml") == 0)
-			vips_snprintf(name, 256, VIPS_META_XMP_NAME);
+			g_snprintf(name, 256, VIPS_META_XMP_NAME);
 		else
-			vips_snprintf(name, 256, "heif-%s-%d", type, i);
+			g_snprintf(name, 256, "heif-%s-%d", type, i);
 
 		vips_image_set_blob(out, name,
 			(VipsCallbackFn) vips_area_free_cb, data, length);

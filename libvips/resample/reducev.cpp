@@ -300,13 +300,13 @@ vips_reducev_compile_section(VipsReducev *reducev, Pass *pass, gboolean first)
 		char source[256];
 		char coeff[256];
 
-		vips_snprintf(source, 256, "sl%d", i);
+		g_snprintf(source, 256, "sl%d", i);
 		SCANLINE(source, 1);
 		pass->n_scanline++;
 
 		/* This mask coefficient.
 		 */
-		vips_snprintf(coeff, 256, "p%d", i);
+		g_snprintf(coeff, 256, "p%d", i);
 		PARAM(coeff, 2);
 		if (++pass->n_param >= MAX_PARAM)
 			return -1;

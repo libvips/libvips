@@ -329,7 +329,7 @@ vips__mat_ismat(const char *filename)
 	unsigned char buf[15];
 
 	if (vips__get_bytes(filename, buf, 10) == 10 &&
-		vips_isprefix("MATLAB 5.0", (char *) buf))
+		g_str_has_prefix("MATLAB 5.0", (char *) buf))
 		return 1;
 
 	return 0;
