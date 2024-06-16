@@ -885,8 +885,7 @@ vips_source_pipe_read_to_position(VipsSource *source, gint64 target)
 			break;
 		}
 
-		if (target == -1 &&
-			vips__pipe_read_limit != -1 &&
+		if (vips__pipe_read_limit != -1 &&
 			source->read_position > vips__pipe_read_limit) {
 			vips_error(nick, "%s", _("pipe too long"));
 			return -1;
