@@ -157,7 +157,19 @@ if have_target_clones
     cfg_var.set('HAVE_TARGET_CLONES', '1')
 endif
 
-func_names = [ 'vsnprintf', '_aligned_malloc', 'posix_memalign', 'memalign', 'cbrt', 'hypot', 'atan2', 'asinh' ]
+# windows needs to include stdio.h to find vsnprintf()
+if cc.has_function('vsnprintf', prefix: '#include <stdio.h>')
+    cfg_var.set('HAVE_VSNPRINTF', '1')
+endif
+
+func_names = [ '_aligned_malloc', 'posix_memalign', 'memalign' ]
+foreach func_name : func_names
+    if cc.has_function(func_name)
+        cfg_var.set('HAVE_' + func_name.to_upper(), '1')
+    endif
+endforeach
+
+func_names = [ 'cbrt', 'hypot', 'atan2', 'asinh' ]
 foreach func_name : func_names
     if cc.has_function(func_name, dependencies: m_dep)
         cfg_var.set('HAVE_' + func_name.to_upper(), '1')
