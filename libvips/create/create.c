@@ -133,6 +133,7 @@ vips_create_operation_init(void)
 	extern GType vips_text_get_type(void);
 #endif /*HAVE_PANGOCAIRO*/
 	extern GType vips_xyz_get_type(void);
+	extern GType vips_sdf_get_type(void);
 	extern GType vips_eye_get_type(void);
 	extern GType vips_grey_get_type(void);
 	extern GType vips_zone_get_type(void);
@@ -163,6 +164,7 @@ vips_create_operation_init(void)
 	vips_text_get_type();
 #endif /*HAVE_PANGOCAIRO*/
 	vips_xyz_get_type();
+	vips_sdf_get_type();
 	vips_eye_get_type();
 	vips_grey_get_type();
 	vips_zone_get_type();

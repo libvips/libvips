@@ -24,6 +24,7 @@ create_sources = files(
     'eye.c',
     'grey.c',
     'xyz.c',
+    'sdf.c',
     'black.c',
     'text.c',
     'gaussnoise.c',
