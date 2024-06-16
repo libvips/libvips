@@ -460,28 +460,8 @@ vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 {
 #ifdef HAVE_VSNPRINTF
 	return vsnprintf(str, size, format, ap);
-#else  /*HAVE_VSNPRINTF*/
-	/* Bleurg!
-	 */
-	int n;
-	static char buf[MAX_BUF];
-
-	/* We can't return an error code, we may already have trashed the
-	 * stack. We must stop immediately.
-	 */
-	if (size > MAX_BUF)
-		vips_error_exit("panic: buffer overflow "
-						"(request to write %lu bytes to buffer of %d bytes)",
-			(unsigned long) size, MAX_BUF);
-	n = vsprintf(buf, format, ap);
-	if (n > MAX_BUF)
-		vips_error_exit("panic: buffer overflow "
-						"(%d bytes written to buffer of %d bytes)",
-			n, MAX_BUF);
-
-	vips_strncpy(str, buf, size);
-
-	return n;
+#else  /*!HAVE_VSNPRINTF*/
+	return g_vsnprintf(str, size, format, ap);
 #endif /*HAVE_VSNPRINTF*/
 }
 
