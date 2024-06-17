@@ -1,6 +1,7 @@
 arithmetic_sources = files(
     'find_trim.c',
     'sum.c',
+    'clamp.c',
     'hough.c',
     'hough_line.c',
     'hough_circle.c',
