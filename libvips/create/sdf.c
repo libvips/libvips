@@ -75,15 +75,6 @@ typedef VipsCreateClass VipsSdfClass;
 
 G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 
-float sdRoundBox( in vec2 p, in vec2 b, in vec4 r )
-{
-
-    r.xy = (p.x>0.0)?r.xy : r.zw;
-    r.x  = (p.y>0.0)?r.x  : r.y;
-    vec2 q = abs(p)-b+r.x;
-    return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
-}
-
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
@@ -94,7 +85,18 @@ static float
 vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 {
 
-	return sqrt(x * x + y * y) - sdf->r;
+	/*
+float sdRoundBox( in vec2 p, in vec2 b, in vec4 r )
+{
+
+    r.xy = (p.x>0.0)?r.xy : r.zw;
+    r.x  = (p.y>0.0)?r.x  : r.y;
+    vec2 q = abs(p)-b+r.x;
+    return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+}
+	 */
+
+	return 0;
 }
 
 static int
@@ -235,7 +237,7 @@ vips_sdf_class_init(VipsSdfClass *class)
 static void
 vips_sdf_init(VipsSdf *sdf)
 {
-	sdf->corners = vips_area_new_array(G_TYPE_DOUBLE, sizeof(double), 4);
+	sdf->corners_area = vips_area_new_array(G_TYPE_DOUBLE, sizeof(double), 4);
 }
 
 /**

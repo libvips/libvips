@@ -138,18 +138,6 @@ vips_math_build(VipsObject *object)
 		g_assert_not_reached(); \
 	}
 
-/* If there's asinh, assume we have the other two as well.
- */
-#if HAVE_ASINH
-#define ASINH(X) (asinh(X))
-#define ACOSH(X) (acosh(X))
-#define ATANH(X) (atanh(X))
-#else
-#define ASINH(X) (LOGZ((X) + sqrt((X) * (X) + 1.0)))
-#define ACOSH(X) (LOGZ((X) + sqrt((X) * (X) -1.0)))
-#define ATANH(X) (0.5 * LOGZ((1.0 + (X)) / (1.0 - (X))))
-#endif
-
 /* sin/cos/tan in degrees.
  */
 #define DSIN(X) (sin(VIPS_RAD(X)))
@@ -207,13 +195,13 @@ vips_math_buffer(VipsArithmetic *arithmetic,
 		SWITCH(tanh);
 		break;
 	case VIPS_OPERATION_MATH_ASINH:
-		SWITCH(ASINH);
+		SWITCH(asinh);
 		break;
 	case VIPS_OPERATION_MATH_ACOSH:
-		SWITCH(ACOSH);
+		SWITCH(acosh);
 		break;
 	case VIPS_OPERATION_MATH_ATANH:
-		SWITCH(ATANH);
+		SWITCH(atanh);
 		break;
 	case VIPS_OPERATION_MATH_LOG:
 		SWITCH(LOGZ);

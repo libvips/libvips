@@ -61,10 +61,6 @@
 
 #include "pcolour.h"
 
-#ifndef HAVE_CBRT
-#define cbrt(X) pow((X), 1.0 / 3.0)
-#endif /*!HAVE_CBRT*/
-
 /* Lookup table size.
  */
 #define QUANT_ELEMENTS (100000)

@@ -148,16 +148,9 @@ vips_complex_atan2(double a, double b)
 {
 	double h;
 
-	/* atan2() is very slow, but is better behaved when a is near 0. Use
-	 * it in preference when we can.
-	 */
-#ifdef HAVE_ATAN2
 	h = VIPS_DEG(atan2(b, a));
 	if (h < 0.0)
 		h += 360;
-#else
-	h = vips_col_ab2h(a, b);
-#endif
 
 	return h;
 }
