@@ -538,11 +538,16 @@ int
 vips__write(int fd, const void *buf, size_t count)
 {
 	do {
-		size_t nwritten = write(fd, buf, count);
+		// write() uses int not size_t on windows, so we need to chunk
+		// ... max 1gb, why not
+		int chunk_size = VIPS_MIN(1024 * 1024 * 1024, count);
+		ssize_t nwritten = write(fd, buf, chunk_size);
 
-		if (nwritten == (size_t) -1) {
-			vips_error_system(errno, "vips__write",
-				"%s", _("write failed"));
+		/* n == 0 isn't strictly an error, but we treat it as
+		 * one to make sure we don't get stuck in this loop.
+		 */
+		if (nwritten <= 0) {
+			vips_error_system(errno, "vips__write", "%s", _("write failed"));
 			return -1;
 		}
 
@@ -727,8 +732,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 	if (len > 1024 * 1024 * 1024) {
 		/* Over a gb? Seems crazy!
 		 */
-		vips_error("vips__file_read",
-			_("\"%s\" too long"), filename);
+		vips_error("vips__file_read", _("\"%s\" too long"), filename);
 		return NULL;
 	}
 
@@ -750,8 +754,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 			if (size > 1024 * 1024 * 1024 ||
 				!(str2 = realloc(str, size))) {
 				free(str);
-				vips_error("vips__file_read",
-					"%s", _("out of memory"));
+				vips_error("vips__file_read", "%s", _("out of memory"));
 				return NULL;
 			}
 			str = str2;
@@ -759,8 +762,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 			/* -1 to allow space for an extra NULL we add later.
 			 */
 			read = fread(str + len, sizeof(char),
-				(size - len - 1) / sizeof(char),
-				fp);
+				(size - len - 1) / sizeof(char), fp);
 			len += read;
 		} while (!feof(fp));
 
@@ -778,8 +780,7 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 		if (read != (size_t) len) {
 			g_free(str);
 			vips_error("vips__file_read",
-				_("error reading from file \"%s\""),
-				filename);
+				_("error reading from file \"%s\""), filename);
 			return NULL;
 		}
 	}

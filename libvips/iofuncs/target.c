@@ -459,9 +459,10 @@ vips_target_write_unbuffered(VipsTarget *target,
 		return 0;
 
 	while (length > 0) {
-		gint64 bytes_written;
-
-		bytes_written = class->write(target, data, length);
+		// write() uses int not size_t on windows, so we need to chunk
+		// ... max 1gb, why not
+		int chunk_size = VIPS_MIN(1024 * 1024 * 1024, length);
+		gint64 bytes_written = class->write(target, data, chunk_size);
 
 		/* n == 0 isn't strictly an error, but we treat it as
 		 * one to make sure we don't get stuck in this loop.

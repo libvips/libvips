@@ -93,16 +93,12 @@ vips_foreign_save_raw_write(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) a;
-	int i;
 
-	for (i = 0; i < area->height; i++) {
-		VipsPel *p =
-			VIPS_REGION_ADDR(region, area->left, area->top + i);
-
-		if (vips__write(raw->fd, p,
-				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
+	for (int i = 0; i < area->height; i++)
+		if (vips__write(raw->fd,
+			VIPS_REGION_ADDR(region, area->left, area->top + i),
+			VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
 			return -1;
-	}
 
 	return 0;
 }
@@ -207,16 +203,12 @@ vips_foreign_save_raw_fd_write(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) a;
-	int i;
 
-	for (i = 0; i < area->height; i++) {
-		VipsPel *p =
-			VIPS_REGION_ADDR(region, area->left, area->top + i);
-
-		if (vips__write(fd->fd, p,
-				VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
+	for (int i = 0; i < area->height; i++)
+		if (vips__write(fd->fd,
+			VIPS_REGION_ADDR(region, area->left, area->top + i),
+			VIPS_IMAGE_SIZEOF_PEL(save->in) * area->width))
 			return -1;
-	}
 
 	return 0;
 }
@@ -231,8 +223,7 @@ vips_foreign_save_raw_fd_build(VipsObject *object)
 		return -1;
 
 	if (vips_image_pio_input(save->in) ||
-		vips_sink_disc(save->in,
-			vips_foreign_save_raw_fd_write, fd))
+		vips_sink_disc(save->in, vips_foreign_save_raw_fd_write, fd))
 		return -1;
 
 	return 0;
