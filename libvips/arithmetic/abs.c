@@ -122,8 +122,6 @@ vips_abs_build(VipsObject *object)
 /* Complex abs operation: calculate modulus.
  */
 
-#ifdef HAVE_HYPOT
-
 #define ABS_COMPLEX(TYPE) \
 	{ \
 		TYPE *restrict p = (TYPE *) in[0]; \
@@ -135,37 +133,6 @@ vips_abs_build(VipsObject *object)
 			p += 2; \
 		} \
 	}
-
-#else /*HAVE_HYPOT*/
-
-#define ABS_COMPLEX(TYPE) \
-	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
-		TYPE *restrict q = (TYPE *) out; \
-		int x; \
-\
-		for (x = 0; x < sz; x++) { \
-			double rp = p[0]; \
-			double ip = p[1]; \
-			double abs_rp = VIPS_FABS(rp); \
-			double abs_ip = VIPS_FABS(ip); \
-\
-			if (abs_rp > abs_ip) { \
-				double temp = ip / rp; \
-\
-				q[x] = abs_rp * sqrt(1.0 + temp * temp); \
-			} \
-			else { \
-				double temp = rp / ip; \
-\
-				q[x] = abs_ip * sqrt(1.0 + temp * temp); \
-			} \
-\
-			p += 2; \
-		} \
-	}
-
-#endif /*HAVE_HYPOT*/
 
 static void
 vips_abs_buffer(VipsArithmetic *arithmetic,
