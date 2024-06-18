@@ -84,6 +84,16 @@ vips_sdf_circle(VipsSdf *sdf, int x, int y)
 }
 
 static float
+vips_sdf_box(VipsSdf *sdf, int x, int y)
+{
+	float qx = abs(x) - sdf->sx;
+	float qy = abs(y) - sdf->sy;
+
+	return VIPS_MIN(VIPS_MAX(qx, qy), 0) +
+		hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0));
+}
+
+static float
 vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 {
 	// radius of nearest corner
@@ -140,7 +150,16 @@ vips_sdf_build(VipsObject *object)
 		}
 		sdf->point = vips_sdf_circle;
 	}
-	if (g_str_equal(sdf->name, "rounded-box")) {
+	else if (g_str_equal(sdf->name, "box")) {
+		if (!vips_object_argument_isset(object, "sx") ||
+			!vips_object_argument_isset(object, "sy")) {
+			vips_error(class->nickname, "%s",
+				_("box needs sx, sy to be set"));
+			return -1;
+		}
+		sdf->point = vips_sdf_box;
+	}
+	else if (g_str_equal(sdf->name, "rounded-box")) {
 		if (!vips_object_argument_isset(object, "sx") ||
 			!vips_object_argument_isset(object, "sy")) {
 			vips_error(class->nickname, "%s",
