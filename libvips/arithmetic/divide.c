@@ -84,49 +84,51 @@ typedef VipsBinaryClass VipsDivideClass;
 
 G_DEFINE_TYPE(VipsDivide, vips_divide, VIPS_TYPE_BINARY);
 
-#define CLOOP(TYPE) { \
-	TYPE *restrict left = (TYPE *) in[0]; \
-	TYPE *restrict right = (TYPE *) in[1]; \
-	TYPE *restrict q = (TYPE *) out; \
-	int i; \
+#define CLOOP(TYPE) \
+	{ \
+		TYPE *restrict left = (TYPE *) in[0]; \
+		TYPE *restrict right = (TYPE *) in[1]; \
+		TYPE *restrict q = (TYPE *) out; \
+		int i; \
 \
-	for (i = 0; i < sz; i++) { \
-		if (right[0] == 0.0 && \
-			right[1] == 0.0) { \
-			q[0] = 0.0; \
-			q[1] = 0.0; \
+		for (i = 0; i < sz; i++) { \
+			if (right[0] == 0.0 && \
+				right[1] == 0.0) { \
+				q[0] = 0.0; \
+				q[1] = 0.0; \
+			} \
+			else if (VIPS_FABS(right[0]) > VIPS_FABS(right[1])) { \
+				double a = right[1] / right[0]; \
+				double b = right[0] + right[1] * a; \
+\
+				q[0] = (left[0] + left[1] * a) / b; \
+				q[1] = (left[1] - left[0] * a) / b; \
+			} \
+			else { \
+				double a = right[0] / right[1]; \
+				double b = right[1] + right[0] * a; \
+\
+				q[0] = (left[0] * a + left[1]) / b; \
+				q[1] = (left[1] * a - left[0]) / b; \
+			} \
+\
+			left += 2; \
+			right += 2; \
+			q += 2; \
 		} \
-		else if (VIPS_FABS(right[0]) > VIPS_FABS(right[1])) { \
-			double a = right[1] / right[0]; \
-			double b = right[0] + right[1] * a; \
-\
-			q[0] = (left[0] + left[1] * a) / b; \
-			q[1] = (left[1] - left[0] * a) / b; \
-		} \
-		else { \
-			double a = right[0] / right[1]; \
-			double b = right[1] + right[0] * a; \
-\
-			q[0] = (left[0] * a + left[1]) / b; \
-			q[1] = (left[1] * a - left[0]) / b; \
-		} \
-\
-		left += 2; \
-		right += 2; \
-		q += 2; \
-	} \
-}
+	}
 
 /* Real divide. Cast in to OUT before divide so we work for float output.
  */
-#define RLOOP(IN, OUT) { \
-	IN *restrict left = (IN *) in[0]; \
-	IN *restrict right = (IN *) in[1]; \
-	OUT *restrict q = (OUT *) out; \
+#define RLOOP(IN, OUT) \
+	{ \
+		IN *restrict left = (IN *) in[0]; \
+		IN *restrict right = (IN *) in[1]; \
+		OUT *restrict q = (OUT *) out; \
 \
-	for (x = 0; x < sz; x++) \
-		q[x] = right[x] == 0 ? 0 : (OUT) left[x] / (OUT) right[x]; \
-}
+		for (x = 0; x < sz; x++) \
+			q[x] = right[x] == 0 ? 0 : (OUT) left[x] / (OUT) right[x]; \
+	}
 
 static void
 vips_divide_buffer(VipsArithmetic *arithmetic,

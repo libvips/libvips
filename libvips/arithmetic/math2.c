@@ -163,14 +163,15 @@ vips_math2_build(VipsObject *object)
 
 #define WOP(Y, X, E) POW(Y, E, X)
 
-#define ATAN2(Y, L, R) { \
-	double left = (double) (L); \
-	double right = (double) (R); \
+#define ATAN2(Y, L, R) \
+	{ \
+		double left = (double) (L); \
+		double right = (double) (R); \
 \
-	(Y) = VIPS_DEG(atan2(left, right)); \
-	if ((Y) < 0.0) \
-		(Y) += 360; \
-}
+		(Y) = VIPS_DEG(atan2(left, right)); \
+		if ((Y) < 0.0) \
+			(Y) += 360; \
+	}
 
 static void
 vips_math2_buffer(VipsArithmetic *arithmetic,

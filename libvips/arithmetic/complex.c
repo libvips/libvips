@@ -446,33 +446,34 @@ G_DEFINE_TYPE(VipsComplex2, vips_complex2, VIPS_TYPE_BINARY);
 		g_assert_not_reached(); \
 	}
 
-#define CROSS(Q, X1, Y1, X2, Y2) { \
-	if (((X1) == 0.0 && (Y1) == 0.0) || \
-		((X2) == 0.0 && (Y2) == 0.0)) { \
-		Q[0] = 0.0; \
-		Q[1] = 0.0; \
-	} \
-	else if (ABS(Y1) > ABS(Y2)) { \
-		double a = Y2 / Y1; \
-		double b = Y1 + Y2 * a; \
-		double re = (X1 + X2 * a) / b; \
-		double im = (X2 - X1 * a) / b; \
-		double mod = hypot(re, im); \
+#define CROSS(Q, X1, Y1, X2, Y2) \
+	{ \
+		if (((X1) == 0.0 && (Y1) == 0.0) || \
+			((X2) == 0.0 && (Y2) == 0.0)) { \
+			Q[0] = 0.0; \
+			Q[1] = 0.0; \
+		} \
+		else if (ABS(Y1) > ABS(Y2)) { \
+			double a = Y2 / Y1; \
+			double b = Y1 + Y2 * a; \
+			double re = (X1 + X2 * a) / b; \
+			double im = (X2 - X1 * a) / b; \
+			double mod = hypot(re, im); \
 \
-		Q[0] = re / mod; \
-		Q[1] = im / mod; \
-	} \
-	else { \
-		double a = Y1 / Y2; \
-		double b = Y2 + Y1 * a; \
-		double re = (X1 * a + X2) / b; \
-		double im = (X2 * a - X1) / b; \
-		double mod = hypot(re, im); \
+			Q[0] = re / mod; \
+			Q[1] = im / mod; \
+		} \
+		else { \
+			double a = Y1 / Y2; \
+			double b = Y2 + Y1 * a; \
+			double re = (X1 * a + X2) / b; \
+			double im = (X2 * a - X1) / b; \
+			double mod = hypot(re, im); \
 \
-		Q[0] = re / mod; \
-		Q[1] = im / mod; \
-	} \
-}
+			Q[0] = re / mod; \
+			Q[1] = im / mod; \
+		} \
+	}
 
 static void
 vips_complex2_buffer(VipsArithmetic *arithmetic,

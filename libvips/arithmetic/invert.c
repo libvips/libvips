@@ -74,7 +74,7 @@ G_DEFINE_TYPE(VipsInvert, vips_invert, VIPS_TYPE_UNARY);
 		TYPE *restrict q = (TYPE *) out; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = (L) -p[x]; \
+			q[x] = (L) - p[x]; \
 	}
 
 #define LOOPN(TYPE) \

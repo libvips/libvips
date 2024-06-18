@@ -68,7 +68,6 @@ struct _VipsSdf {
 	double *corners;
 
 	PointFn point;
-
 };
 
 typedef VipsCreateClass VipsSdfClass;
@@ -89,10 +88,10 @@ vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 float sdRoundBox( in vec2 p, in vec2 b, in vec4 r )
 {
 
-    r.xy = (p.x>0.0)?r.xy : r.zw;
-    r.x  = (p.y>0.0)?r.x  : r.y;
-    vec2 q = abs(p)-b+r.x;
-    return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+	r.xy = (p.x>0.0)?r.xy : r.zw;
+	r.x  = (p.y>0.0)?r.x  : r.y;
+	vec2 q = abs(p)-b+r.x;
+	return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
 }
 	 */
 
@@ -231,7 +230,6 @@ vips_sdf_class_init(VipsSdfClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSdf, corners_area),
 		VIPS_TYPE_ARRAY_DOUBLE);
-
 }
 
 static void

@@ -59,13 +59,14 @@ typedef VipsUnaryClass VipsClampClass;
 
 G_DEFINE_TYPE(VipsClamp, vips_clamp, VIPS_TYPE_UNARY);
 
-#define CLAMP_LINE(TYPE) { \
-	TYPE *restrict p = (TYPE *) in[0]; \
-	TYPE *restrict q = (TYPE *) out; \
-    \
-	for (int x = 0; x < sz; x++) \
-		q[x] = VIPS_CLIP(clamp->min, p[x], clamp->max); \
-}
+#define CLAMP_LINE(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (int x = 0; x < sz; x++) \
+			q[x] = VIPS_CLIP(clamp->min, p[x], clamp->max); \
+	}
 
 static void
 vips_clamp_buffer(VipsArithmetic *arithmetic,
@@ -74,8 +75,7 @@ vips_clamp_buffer(VipsArithmetic *arithmetic,
 	VipsClamp *clamp = (VipsClamp *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
 	const int bands = vips_image_get_bands(im);
-	int sz = vips_band_format_iscomplex(im->BandFmt) ?
-		2 * width * bands : width * bands;
+	int sz = vips_band_format_iscomplex(im->BandFmt) ? 2 * width * bands : width * bands;
 
 	switch (vips_image_get_format(im)) {
 	case VIPS_FORMAT_CHAR:
@@ -171,7 +171,6 @@ vips_clamp_class_init(VipsClampClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsClamp, max),
 		-INFINITY, INFINITY, 0.0);
-
 }
 
 static void
