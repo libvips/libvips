@@ -76,7 +76,7 @@ G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
-	return sqrt(x * x + y * y) - sdf->r;
+	return hypot(x, y) - sdf->r;
 }
 
 static int
