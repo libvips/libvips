@@ -144,22 +144,6 @@ G_DEFINE_TYPE(VipsComplex, vips_complex, VIPS_TYPE_UNARY);
 	}
 
 static double
-vips_complex_hypot(double a, double b)
-{
-	double d;
-
-	/* hypot() is less sensitive to overflow. Use it if we can.
-	 */
-#ifdef HAVE_HYPOT
-	d = hypot(a, b);
-#else
-	d = sqrt(a * a + b * b);
-#endif
-
-	return d;
-}
-
-static double
 vips_complex_atan2(double a, double b)
 {
 	double h;
@@ -184,7 +168,7 @@ vips_complex_atan2(double a, double b)
 		double im = (Y); \
 		double am, ph; \
 \
-		am = vips_complex_hypot(re, im); \
+		am = hypot(re, im); \
 		ph = vips_complex_atan2(re, im); \
 \
 		Q[0] = am; \
@@ -469,64 +453,33 @@ G_DEFINE_TYPE(VipsComplex2, vips_complex2, VIPS_TYPE_BINARY);
 		g_assert_not_reached(); \
 	}
 
-/* There doesn't seem to be much difference in speed between these two methods
- * (on an Athlon64), so I use the modulus argument version, since atan2() is
- * in c89 but hypot() is c99.
- *
- * If you think that it might be faster on your platform, uncomment the
- * following:
- */
-#define USE_MODARG_DIV
-
-#ifdef USE_MODARG_DIV
-
-#define CROSS(Q, X1, Y1, X2, Y2) \
-	{ \
-		if (((X1) == 0.0 && (Y1) == 0.0) || \
-			((X2) == 0.0 && (Y2) == 0.0)) { \
-			Q[0] = 0.0; \
-			Q[1] = 0.0; \
-		} \
-		else { \
-			double arg = atan2(X2, X1) - atan2(Y2, Y1); \
+#define CROSS(Q, X1, Y1, X2, Y2) { \
+	if (((X1) == 0.0 && (Y1) == 0.0) || \
+		((X2) == 0.0 && (Y2) == 0.0)) { \
+		Q[0] = 0.0; \
+		Q[1] = 0.0; \
+	} \
+	else if (ABS(Y1) > ABS(Y2)) { \
+		double a = Y2 / Y1; \
+		double b = Y1 + Y2 * a; \
+		double re = (X1 + X2 * a) / b; \
+		double im = (X2 - X1 * a) / b; \
+		double mod = hypot(re, im); \
 \
-			Q[0] = cos(arg); \
-			Q[1] = sin(arg); \
-		} \
-	}
-
-#else /* USE_MODARG_DIV */
-
-#define CROSS(Q, X1, Y1, X2, Y2) \
-	{ \
-		if (((X1) == 0.0 && (Y1) == 0.0) || \
-			((X2) == 0.0 && (Y2) == 0.0)) { \
-			Q[0] = 0.0; \
-			Q[1] = 0.0; \
-		} \
-		else if (ABS(Y1) > ABS(Y2)) { \
-			double a = Y2 / Y1; \
-			double b = Y1 + Y2 * a; \
-			double re = (X1 + X2 * a) / b; \
-			double im = (X2 - X1 * a) / b; \
-			double mod = vips__hypot(re, im); \
+		Q[0] = re / mod; \
+		Q[1] = im / mod; \
+	} \
+	else { \
+		double a = Y1 / Y2; \
+		double b = Y2 + Y1 * a; \
+		double re = (X1 * a + X2) / b; \
+		double im = (X2 * a - X1) / b; \
+		double mod = hypot(re, im); \
 \
-			Q[0] = re / mod; \
-			Q[1] = im / mod; \
-		} \
-		else { \
-			double a = Y1 / Y2; \
-			double b = Y2 + Y1 * a; \
-			double re = (X1 * a + X2) / b; \
-			double im = (X2 * a - X1) / b; \
-			double mod = vips__hypot(re, im); \
-\
-			Q[0] = re / mod; \
-			Q[1] = im / mod; \
-		} \
-	}
-
-#endif /* USE_MODARG_DIV */
+		Q[0] = re / mod; \
+		Q[1] = im / mod; \
+	} \
+}
 
 static void
 vips_complex2_buffer(VipsArithmetic *arithmetic,
