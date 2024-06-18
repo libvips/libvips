@@ -338,8 +338,7 @@ int vips__file_write(void *data, size_t size, size_t nmemb, FILE *stream);
 /* TODO(kleisauke): VIPS_API is required by the magick module.
  */
 VIPS_API
-gint64 vips__get_bytes(const char *filename,
-	unsigned char buf[], gint64 len);
+gint64 vips__get_bytes(const char *filename, unsigned char buf[], gint64 len);
 int vips__fgetc(FILE *fp);
 
 GValue *vips__gvalue_ref_string_new(const char *text);

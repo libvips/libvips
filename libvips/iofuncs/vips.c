@@ -506,7 +506,7 @@ vips__has_extension_block(VipsImage *im)
 /* Read everything after the pixels into memory.
  */
 void *
-vips__read_extension_block(VipsImage *im, int *size)
+vips__read_extension_block(VipsImage *im, size_t *size)
 {
 	gint64 psize;
 	void *buf;
@@ -515,8 +515,7 @@ vips__read_extension_block(VipsImage *im, int *size)
 	g_assert(im->file_length > 0);
 	if (im->file_length - psize > 100 * 1024 * 1024) {
 		vips_error("VipsImage",
-			"%s", _("more than 100 megabytes of XML? "
-					"sufferin' succotash!"));
+			"%s", _("more than 100 megabytes of XML? sufferin' succotash!"));
 		return NULL;
 	}
 	if (im->file_length - psize == 0)
@@ -773,7 +772,7 @@ readhist(VipsImage *im)
 }
 
 int
-vips__write_extension_block(VipsImage *im, void *buf, int size)
+vips__write_extension_block(VipsImage *im, void *buf, size_t size)
 {
 	gint64 length;
 	gint64 psize;
@@ -793,7 +792,7 @@ vips__write_extension_block(VipsImage *im, void *buf, int size)
 		return -1;
 
 #ifdef DEBUG
-	printf("vips__write_extension_block: written %d bytes of XML to %s\n",
+	printf("vips__write_extension_block: written %zd bytes of XML to %s\n",
 		size, im->filename);
 #endif /*DEBUG*/
 

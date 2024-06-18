@@ -323,7 +323,7 @@ static int
 getext_vec(im_object *argv)
 {
 	void **out = (void **) &argv[1];
-	int size;
+	size_t size;
 
 	/* void/char confusion is fine.
 	 */
