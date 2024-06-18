@@ -94,15 +94,12 @@ static int
 vips_foreign_save_raw_block(VipsRegion *region, VipsRect *area, void *a)
 {
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) a;
-	VipsImage *image = region->im;
 
-	for (int i = 0; i < area->height; i++) {
-		VipsPel *p = VIPS_REGION_ADDR(region, area->left, area->top + i);
-
-		if (vips_target_write(raw->target, p,
-				VIPS_IMAGE_SIZEOF_PEL(image) * area->width))
+	for (int y = 0; y < area->height; y++)
+		if (vips_target_write(raw->target,
+			VIPS_REGION_ADDR(region, area->left, area->top + y),
+			VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width))
 			return -1;
-	}
 
 	return 0;
 }

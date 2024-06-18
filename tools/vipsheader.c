@@ -121,7 +121,7 @@ dump_field(void *data, void *a, void *b)
 	if (g_str_equal(field, "getext")) {
 		if (vips__has_extension_block(image)) {
 			void *buf;
-			int size;
+			size_t size;
 
 			if (!(buf = vips__read_extension_block(image, &size)))
 				vips_error_exit(NULL);

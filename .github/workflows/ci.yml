@@ -91,10 +91,6 @@ jobs:
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
-          # Workaround for https://github.com/google/sanitizers/issues/89
-          # otherwise libIlmImf-2_3.so ends up as <unknown module>.
-          echo "DLCLOSE_PRELOAD=${{ github.workspace }}/dlclose.so" >> $GITHUB_ENV
-          echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
 
       - name: Configure libvips
         run: |
@@ -124,5 +120,5 @@ jobs:
       - name: Run test suite
         env:
           VIPS_LEAK: 1
-          LD_PRELOAD: ${{ env.ASAN_DSO }} ${{ env.DLCLOSE_PRELOAD }}
+          LD_PRELOAD: ${{ env.ASAN_DSO }}
         run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite

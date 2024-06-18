@@ -29,7 +29,8 @@ master 8.16
 - pngload: disable ADLER32/CRC checking in non-fail mode [kleisauke]
 - improve target_clones support check [kleisauke]
 - fix pipe read limit
-- fix a rare crash on windows in highly threaded applications [Julianiolo]
+- fix a rare crash on Windows in highly threaded applications [Julianiolo]
+- vipssave: fix infinite loop on Windows with large images [pdbourke]
 
 12/3/24 8.15.2
 
