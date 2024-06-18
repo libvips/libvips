@@ -75,8 +75,7 @@ vips_clamp_buffer(VipsArithmetic *arithmetic,
 	VipsClamp *clamp = (VipsClamp *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
 	const int bands = vips_image_get_bands(im);
-	int sz = vips_band_format_iscomplex(im->BandFmt) ?
-		2 * width * bands : width * bands;
+	int sz = width * bands * (vips_band_format_iscomplex(im->BandFmt) ? 2 : 1);
 
 	switch (vips_image_get_format(im)) {
 	case VIPS_FORMAT_CHAR:

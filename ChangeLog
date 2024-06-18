@@ -20,7 +20,7 @@ master 8.16
 - webpsave has @passes parameter to set number of passes to achieve
   desired target_size [john-parton]
 - revise sRGB -> B_W coefficients [daniellovera]
-- add vips_sdf(), vips_clamp()
+- add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
 
 8.15.3
 

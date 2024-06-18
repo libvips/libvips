@@ -237,6 +237,12 @@ VIPS_API
 int vips_clamp(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_maxpair(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_minpair(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_round(VipsImage *in, VipsImage **out, VipsOperationRound round, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

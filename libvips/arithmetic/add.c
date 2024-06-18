@@ -103,11 +103,9 @@ static void
 add_buffer(VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
-
-	/* Complex just doubles the size.
-	 */
-	const int sz = width * vips_image_get_bands(im) *
-		(vips_band_format_iscomplex(vips_image_get_format(im)) ? 2 : 1);
+	int bands = vips_image_get_bands(im);
+	VipsBandFormat format = vips_image_get_format(im);
+	int sz = width * bands * (vips_band_format_iscomplex(format) ? 2 : 1);
 
 	int x;
 
