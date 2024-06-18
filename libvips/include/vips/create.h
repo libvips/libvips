@@ -80,7 +80,8 @@ VIPS_API
 int vips_zone(VipsImage **out, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_sdf(VipsImage **out, int width, int height, const char *name, ...);
+int vips_sdf(VipsImage **out, int width, int height, const char *name, ...)
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_identity(VipsImage **out, ...)
