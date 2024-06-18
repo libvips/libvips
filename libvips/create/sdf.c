@@ -87,7 +87,7 @@ float sdRoundBox( in vec2 p, in vec2 b, in vec4 r )
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
-	return sqrt(x * x + y * y) - sdf->r;
+	return hypot(x, y) - sdf->r;
 }
 
 static float
