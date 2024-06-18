@@ -52,7 +52,7 @@
 
 typedef struct _VipsSdf VipsSdf;
 
-typedef float (*PointFn)(VipsSdf *, int x, int y);
+typedef float (*PointFn)(VipsSdf *, float x, float y);
 
 struct _VipsSdf {
 	VipsCreate parent_instance;
@@ -78,31 +78,31 @@ typedef VipsCreateClass VipsSdfClass;
 G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 
 static float
-vips_sdf_circle(VipsSdf *sdf, int x, int y)
+vips_sdf_circle(VipsSdf *sdf, float x, float y)
 {
 	return hypot(x, y) - sdf->r;
 }
 
 static float
-vips_sdf_box(VipsSdf *sdf, int x, int y)
+vips_sdf_box(VipsSdf *sdf, float x, float y)
 {
-	float qx = abs(x) - sdf->sx;
-	float qy = abs(y) - sdf->sy;
+	float qx = fabs(x) - sdf->sx;
+	float qy = fabs(y) - sdf->sy;
 
 	return VIPS_MIN(VIPS_MAX(qx, qy), 0) +
 		hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0));
 }
 
 static float
-vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
+vips_sdf_rounded_box(VipsSdf *sdf, float x, float y)
 {
 	// radius of nearest corner
 	float r_top = x > 0 ? sdf->corners[0] : sdf->corners[2];
 	float r_bottom = x > 0 ? sdf->corners[1] : sdf->corners[3];
 	float r = y > 0 ? r_top : r_bottom;
 
-	float qx = abs(x) - sdf->sx + r;
-	float qy = abs(y) - sdf->sy + r;
+	float qx = fabs(x) - sdf->sx + r;
+	float qy = fabs(y) - sdf->sy + r;
 
 	return VIPS_MIN(VIPS_MAX(qx, qy), 0) +
 		hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) - r;
@@ -117,10 +117,11 @@ vips_sdf_gen(VipsRegion *out_region,
 
 	for (int y = 0; y < r->height; y++) {
 		float *q = (float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		float ax = r->left - sdf->cx;
+		float ay = y + r->top - sdf->cy;
 
-		int ay = r->top + y - sdf->cy;
 		for (int x = 0; x < r->width; x++)
-			q[x] = sdf->point(sdf, r->left + x - sdf->cx, ay);
+			q[x] = sdf->point(sdf, x + ax, ay);
 	}
 
 	return 0;
