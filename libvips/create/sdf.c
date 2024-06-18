@@ -64,8 +64,11 @@ struct _VipsSdf {
 	double cx;
 	double cy;
 	double r;
+	double sx;					// size in x and y
+	double sy;
+	double *corners;			// corner radii
+
 	VipsArea *corners_area;
-	double *corners;
 
 	PointFn point;
 };
@@ -83,19 +86,16 @@ vips_sdf_circle(VipsSdf *sdf, int x, int y)
 static float
 vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 {
+	// radius of nearest corner
+	float r_top = x > 0 ? sdf->corners[0] : sdf->corners[2];
+	float r_bottom = x > 0 ? sdf->corners[1] : sdf->corners[3];
+	float r = y > 0 ? r_top : r_bottom;
 
-	/*
-float sdRoundBox( in vec2 p, in vec2 b, in vec4 r )
-{
+	float qx = abs(x) - sdf->sx + r;
+	float qy = abs(y) - sdf->sy + r;
 
-	r.xy = (p.x>0.0)?r.xy : r.zw;
-	r.x  = (p.y>0.0)?r.x  : r.y;
-	vec2 q = abs(p)-b+r.x;
-	return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
-}
-	 */
-
-	return 0;
+	return VIPS_MIN(VIPS_MAX(qx, qy), 0) +
+		hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) - r;
 }
 
 static int
@@ -126,6 +126,12 @@ vips_sdf_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_sdf_parent_class)->build(object))
 		return -1;
 
+	// cx/cy default to the centre of the image
+	if (!vips_object_argument_isset(object, "cx"))
+		sdf->cx = sdf->width / 2;
+	if (!vips_object_argument_isset(object, "cy"))
+		sdf->cy = sdf->height / 2;
+
 	if (g_str_equal(sdf->name, "circle")) {
 		if (!vips_object_argument_isset(object, "r")) {
 			vips_error(class->nickname, "%s",
@@ -135,11 +141,10 @@ vips_sdf_build(VipsObject *object)
 		sdf->point = vips_sdf_circle;
 	}
 	if (g_str_equal(sdf->name, "rounded-box")) {
-		if (!vips_object_argument_isset(object, "h") ||
-			!vips_object_argument_isset(object, "v") ||
-			!vips_object_argument_isset(object, "corners")) {
+		if (!vips_object_argument_isset(object, "sx") ||
+			!vips_object_argument_isset(object, "sy")) {
 			vips_error(class->nickname, "%s",
-				_("rounded-box needs h, v, corners to be set"));
+				_("rounded-box needs sx, sy to be set"));
 			return -1;
 		}
 		if (sdf->corners_area->n != 4) {
@@ -219,17 +224,32 @@ vips_sdf_class_init(VipsSdfClass *class)
 
 	VIPS_ARG_DOUBLE(class, "r", 9,
 		_("r"),
-		_("radius"),
+		_("Radius"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSdf, r),
 		0.0, VIPS_MAX_COORD, 50);
 
-	VIPS_ARG_BOXED(class, "corners", 10,
+	VIPS_ARG_DOUBLE(class, "sx", 10,
+		_("sx"),
+		_("Size in X"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSdf, sx),
+		0.0, VIPS_MAX_COORD, 100);
+
+	VIPS_ARG_DOUBLE(class, "sy", 11,
+		_("sy"),
+		_("Size in Y"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSdf, sy),
+		0.0, VIPS_MAX_COORD, 100);
+
+	VIPS_ARG_BOXED(class, "corners", 12,
 		_("corners"),
 		_("Corner radii"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSdf, corners_area),
 		VIPS_TYPE_ARRAY_DOUBLE);
+
 }
 
 static void
