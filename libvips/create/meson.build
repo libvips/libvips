@@ -1,47 +1,50 @@
 create_sources = files(
-	'perlin.c',
-	'worley.c',
-	'create.c',
-	'gaussmat.c',
-	'logmat.c',
-	'buildlut.c',
-	'invertlut.c',
-	'tonelut.c',
-	'identity.c',
-	'point.c',
-	'mask.c',
-	'mask_ideal.c',
-	'mask_ideal_ring.c',
-	'mask_ideal_band.c',
-	'mask_butterworth.c',
-	'mask_butterworth_ring.c',
-	'mask_butterworth_band.c',
-	'mask_gaussian.c',
-	'mask_gaussian_ring.c',
-	'mask_gaussian_band.c',
-	'mask_fractal.c',
-	'fractsurf.c',
-	'eye.c',
-	'grey.c',
-	'xyz.c',
-	'sdf.c',
-	'black.c',
-	'text.c',
-	'gaussnoise.c',
-	'sines.c',
-	'zone.c', )
+    'black.c',
+    'buildlut.c',
+    'create.c',
+    'eye.c',
+    'fractsurf.c',
+    'gaussmat.c',
+    'gaussnoise.c',
+    'grey.c',
+    'identity.c',
+    'invertlut.c',
+    'logmat.c',
+    'mask_butterworth_band.c',
+    'mask_butterworth.c',
+    'mask_butterworth_ring.c',
+    'mask.c',
+    'mask_fractal.c',
+    'mask_gaussian_band.c',
+    'mask_gaussian.c',
+    'mask_gaussian_ring.c',
+    'mask_ideal_band.c',
+    'mask_ideal.c',
+    'mask_ideal_ring.c',
+    'perlin.c',
+    'point.c',
+    'sdf.c',
+    'sines.c',
+    'text.c',
+    'tonelut.c',
+    'worley.c',
+    'xyz.c',
+    'zone.c',
+)
 
-	create_headers = files(
-		'pcreate.h',
-		'point.h',
-		'pmask.h', )
+create_headers = files(
+    'pcreate.h',
+    'pmask.h',
+    'point.h',
+)
 
-		libvips_sources += create_sources
+libvips_sources += create_sources
 
-			create_lib = static_library('create',
-										create_sources,
-										create_headers,
-										dependencies : libvips_deps,
-										gnu_symbol_visibility : 'hidden', )
+create_lib = static_library('create',
+    create_sources,
+    create_headers,
+    dependencies : libvips_deps,
+    gnu_symbol_visibility : 'hidden',
+)
 
-				libvips_components += create_lib
+libvips_components += create_lib
