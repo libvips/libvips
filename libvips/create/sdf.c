@@ -295,7 +295,15 @@ vips_sdf_init(VipsSdf *sdf)
  * Create a signed distance field (SDF) image of the named type. Different
  * fields use different combinations of the optional arguments, see below.
  *
- * @name `circle`: create a circle image centred at (@cx, @cy), radius @r.
+ * @name `circle`: create a circle, radius @r.
+ *
+ * @name `box`: create a box of size @sx by @sy.
+ *
+ * @name `rounded-box`: create a box of size @sx by @sy, whose four corners are
+ * rounded by the four-element float array @corners.
+ *
+ * All shapes are centred on @cx, @cy, which default to the centre of the
+ * image.
  *
  * See also: vips_grey(), vips_grid(), vips_xyz().
  *
