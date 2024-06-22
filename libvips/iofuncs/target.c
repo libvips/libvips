@@ -647,20 +647,6 @@ vips_target_end(VipsTarget *target)
 }
 
 /**
- * vips_target_finish:
- * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
- *
- * Deprecated in favour of vips_target_end().
- */
-void
-vips_target_finish(VipsTarget *target)
-{
-	(void) vips_target_end(target);
-}
-
-/**
  * vips_target_steal:
  * @target: target to operate on
  * @length: return number of bytes of data

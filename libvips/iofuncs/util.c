@@ -246,33 +246,6 @@ vips_hash_table_map(GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b)
 	return pair.result;
 }
 
-/* Like strncpy(), but always NULL-terminate, and don't pad with NULLs.
- * If @n is 100 and @src is more than 99 characters, 99 are copied and the
- * final byte of @dest is set to '\0'.
- */
-char *
-vips_strncpy(char *dest, const char *src, int n)
-{
-	(void) g_strlcpy(dest, src, n);
-	return dest;
-}
-
-/* Find the rightmost occurrence of needle in haystack.
- */
-char *
-vips_strrstr(const char *haystack, const char *needle)
-{
-	return g_strrstr(haystack, needle);
-}
-
-/* Test for string b ends string a.
- */
-gboolean
-vips_ispostfix(const char *a, const char *b)
-{
-	return g_str_has_suffix(a, b);
-}
-
 /* Case-insensitive test for string b ends string a. ASCII strings only.
  */
 gboolean
@@ -430,27 +403,6 @@ vips_break_token(char *str, const char *brk)
 	}
 
 	return p;
-}
-
-/* Wrapper over (v)snprintf() ... missing on old systems.
- */
-int
-vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
-{
-	return g_vsnprintf(str, size, format, ap);
-}
-
-int
-vips_snprintf(char *str, size_t size, const char *format, ...)
-{
-	va_list ap;
-	int n;
-
-	va_start(ap, format);
-	n = g_vsnprintf(str, size, format, ap);
-	va_end(ap);
-
-	return n;
 }
 
 /* Does a filename have one of a set of suffixes. Ignore case and any trailing

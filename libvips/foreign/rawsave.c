@@ -421,20 +421,3 @@ vips_rawsave_target(VipsImage *in, VipsTarget *target, ...)
 
 	return result;
 }
-
-int
-vips_rawsave_fd(VipsImage *in, int fd, ...)
-{
-	va_list ap;
-	int result;
-	VipsTarget *target;
-
-	if (!(target = vips_target_new_to_descriptor(fd)))
-		return -1;
-
-	va_start(ap, fd);
-	result = vips_call_split("rawsave_target", ap, in, target);
-	va_end(ap);
-
-	return result;
-}
