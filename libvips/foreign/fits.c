@@ -361,7 +361,7 @@ vips_fits_get_header(VipsFits *fits, VipsImage *out)
 		 * have to include the key index in the vips name we assign.
 		 */
 
-		vips_snprintf(vipsname, 100, "fits-%d", i);
+		g_snprintf(vipsname, 100, "fits-%d", i);
 		vips_image_set_string(out, vipsname, record);
 	}
 
@@ -653,7 +653,7 @@ vips_fits_write_record(VipsFits *fits, const char *line)
 
 	/* Dedupe on the keyword, with some exceptions (see below).
 	 */
-	vips_strncpy(keyword, line, 9);
+	g_strlcpy(keyword, line, 9);
 	for (p = fits->dedupe; p; p = p->next) {
 		const char *written = (const char *) p->data;
 

@@ -247,9 +247,9 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 		for (level = 0; level < level_count; level++) {
 			char name[256];
 
-			vips_snprintf(name, 256, "openslide.level[%d].width", level);
+			g_snprintf(name, 256, "openslide.level[%d].width", level);
 			thumbnail->level_width[level] = get_int(image, name, 0);
-			vips_snprintf(name, 256, "openslide.level[%d].height", level);
+			g_snprintf(name, 256, "openslide.level[%d].height", level);
 			thumbnail->level_height[level] = get_int(image, name, 0);
 		}
 	}

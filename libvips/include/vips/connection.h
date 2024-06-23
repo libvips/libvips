@@ -501,8 +501,6 @@ VIPS_API
 gint64 vips_target_seek(VipsTarget *target, gint64 offset, int whence);
 VIPS_API
 int vips_target_end(VipsTarget *target);
-VIPS_DEPRECATED_FOR(vips_target_end)
-void vips_target_finish(VipsTarget *target);
 VIPS_API
 unsigned char *vips_target_steal(VipsTarget *target, size_t *length);
 VIPS_API

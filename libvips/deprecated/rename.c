@@ -426,6 +426,23 @@ im_render_priority(IMAGE *in, IMAGE *out, IMAGE *mask,
 		width, height, max, priority, notify, client);
 }
 
+int
+vips_rawsave_fd(VipsImage *in, int fd, ...)
+{
+	va_list ap;
+	int result;
+	VipsTarget *target;
+	
+	if (!(target = vips_target_new_to_descriptor(fd)))
+		return -1;
+
+	va_start(ap, fd);
+	result = vips_call_split("rawsave_target", ap, in, target);
+	va_end(ap);
+
+	return result;
+}
+
 /**
  * im_circle:
  * @im: image to draw on
@@ -834,4 +851,88 @@ gboolean
 vips_thread_isworker(void)
 {
 	return vips_thread_isvips();
+}
+
+/**
+ * vips_cache_operation_add: (skip)
+ *
+ * No longer in the public API.
+ */
+void
+vips_cache_operation_add(VipsOperation *operation)
+{
+}
+
+/**
+ * vips_cache_operation_lookup: (skip)
+ *
+ * No longer in the public API.
+ */
+VipsOperation *
+vips_cache_operation_lookup(VipsOperation *operation)
+{
+	return NULL;
+}
+
+/**
+ * vips_target_finish:
+ * @target: target to operate on
+ * @buffer: bytes to write
+ * @length: length of @buffer in bytes
+ *
+ * Deprecated in favour of vips_target_end().
+ */
+void
+vips_target_finish(VipsTarget *target)
+{
+	(void) vips_target_end(target);
+}
+
+
+/* Use g_strlcpy() instead.
+ */
+char *
+vips_strncpy(char *dest, const char *src, int n)
+{
+	(void) g_strlcpy(dest, src, n);
+	return dest;
+}
+
+/* Use g_strrstr() instead.
+ */
+char *
+vips_strrstr(const char *haystack, const char *needle)
+{
+	return g_strrstr(haystack, needle);
+}
+
+/* Use g_str_has_suffix() instead.
+ */
+gboolean
+vips_ispostfix(const char *a, const char *b)
+{
+	return g_str_has_suffix(a, b);
+}
+
+/* Use g_vsnprintf() instead.
+ */
+int
+vips_vsnprintf(char *str, size_t size, const char *format, va_list ap)
+{
+	return g_vsnprintf(str, size, format, ap);
+}
+
+/* Use g_snprintf() instead.
+ */
+int
+vips_snprintf(char *str, size_t size, const char *format, ...)
+{
+	va_list ap;
+	int n;
+
+	va_start(ap, format);
+	n = g_vsnprintf(str, size, format, ap);
+	va_end(ap);
+
+	return n;
 }

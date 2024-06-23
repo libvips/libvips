@@ -94,12 +94,12 @@ remosaic_fn(JoinNode *node, VipsRemosaic *remosaic)
 	/* Remove substring remosaic->old_str from in->filename, replace with
 	 * remosaic->new_str.
 	 */
-	vips_strncpy(filename, im->filename, FILENAME_MAX);
-	if ((p = vips_strrstr(filename, remosaic->old_str))) {
+	g_strlcpy(filename, im->filename, FILENAME_MAX);
+	if ((p = g_strrstr(filename, remosaic->old_str))) {
 		int offset = p - &filename[0];
 
-		vips_strncpy(p, remosaic->new_str, FILENAME_MAX - offset);
-		vips_strncpy(p + remosaic->new_len,
+		g_strlcpy(p, remosaic->new_str, FILENAME_MAX - offset);
+		g_strlcpy(p + remosaic->new_len,
 			im->filename + offset + remosaic->old_len,
 			FILENAME_MAX - offset - remosaic->new_len);
 	}

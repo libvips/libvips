@@ -176,7 +176,7 @@ vips_system_build(VipsObject *object)
 			g_strconcat(system->out_name, option_string, NULL);
 	}
 
-	vips_strncpy(cmd, system->cmd_format, VIPS_PATH_MAX);
+	g_strlcpy(cmd, system->cmd_format, VIPS_PATH_MAX);
 	if (system->in)
 		for (i = 0; i < VIPS_AREA(system->in)->n; i++)
 			if (vips__substitute(cmd, VIPS_PATH_MAX,
@@ -209,14 +209,14 @@ vips_system_build(VipsObject *object)
 			g_error_free(error);
 		}
 		if (std_error) {
-			vips__chomp(std_error);
+			g_strchomp(std_error);
 			if (strcmp(std_error, "") != 0)
 				vips_error(class->nickname,
 					"error output: %s", std_error);
 			VIPS_FREE(std_error);
 		}
 		if (std_output) {
-			vips__chomp(std_output);
+			g_strchomp(std_output);
 			if (strcmp(std_output, "") != 0)
 				vips_error(class->nickname,
 					"output: %s", std_output);
@@ -229,12 +229,12 @@ vips_system_build(VipsObject *object)
 	}
 
 	if (std_error) {
-		vips__chomp(std_error);
+		g_strchomp(std_error);
 		if (strcmp(std_error, "") != 0)
 			g_warning(_("stderr output: %s"), std_error);
 	}
 	if (std_output) {
-		vips__chomp(std_output);
+		g_strchomp(std_output);
 		g_object_set(system, "log", std_output, NULL);
 	}
 

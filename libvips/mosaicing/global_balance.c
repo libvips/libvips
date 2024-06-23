@@ -584,7 +584,7 @@ process_line(SymbolTable *st, const char *text)
 
 	/* We destroy line during the parse.
 	 */
-	vips_strncpy(line, text, 1024);
+	g_strlcpy(line, text, 1024);
 
 	if (vips_isprefix("#LRJOIN ", line) ||
 		vips_isprefix("#TBJOIN ", line)) {

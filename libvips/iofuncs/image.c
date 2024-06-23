@@ -1703,7 +1703,7 @@ vips_image_temp_name(char *name, int size)
 
 	int serial = g_atomic_int_add(&global_serial, 1);
 
-	vips_snprintf(name, size, "temp-%d", serial);
+	g_snprintf(name, size, "temp-%d", serial);
 }
 
 /**

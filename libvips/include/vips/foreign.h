@@ -474,23 +474,6 @@ typedef enum {
 	VIPS_FOREIGN_SUBSAMPLE_LAST
 } VipsForeignSubsample;
 
-/**
- * VipsForeignJpegSubsample:
- * @VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO: default preset
- * @VIPS_FOREIGN_JPEG_SUBSAMPLE_ON: always perform subsampling
- * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
- *
- * Set jpeg subsampling mode.
- *
- * DEPRECATED: use #VipsForeignSubsample
- */
-typedef enum {
-	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
-	VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
-	VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF,
-	VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST
-} VipsForeignJpegSubsample;
-
 VIPS_API
 int vips_jpegload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
@@ -668,9 +651,6 @@ int vips_rawsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_rawsave_target(VipsImage *in, VipsTarget *target, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_DEPRECATED_FOR(vips_rawsave_target)
-int vips_rawsave_fd(VipsImage *in, int fd, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API

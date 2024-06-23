@@ -279,7 +279,7 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 
 	cpy = VIPS_MIN(n, avail);
 
-	/* Can't use vips_strncpy() here, we don't want to drop the end of the
+	/* Can't use g_strlcpy() here, we don't want to drop the end of the
 	 * string.
 	 *
 	 * gcc10.3 (I think?) issues a false-positive warning about this.
@@ -419,7 +419,7 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 
 	avail = buf->mx - buf->i - 4;
 	p = buf->base + buf->i;
-	(void) vips_vsnprintf(p, avail, fmt, ap);
+	(void) g_vsnprintf(p, avail, fmt, ap);
 	buf->i += strlen(p);
 
 	if (buf->i >= buf->mx - 4) {

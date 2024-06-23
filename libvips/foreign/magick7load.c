@@ -805,7 +805,7 @@ vips_foreign_load_magick7_file_header(VipsForeignLoad *load)
 	printf("vips_foreign_load_magick7_file_header: %p\n", load);
 #endif /*DEBUG*/
 
-	vips_strncpy(magick7->image_info->filename, file->filename,
+	g_strlcpy(magick7->image_info->filename, file->filename,
 		MagickPathExtent);
 
 	magick_sniff_file(magick7->image_info, file->filename);

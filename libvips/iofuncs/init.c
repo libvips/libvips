@@ -291,7 +291,7 @@ vips_load_plugins(const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	(void) vips_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
+	(void) g_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
 	va_end(ap);
 
 	g_info("searching \"%s\"", dir_name);
@@ -305,7 +305,7 @@ vips_load_plugins(const char *fmt, ...)
 		char path[VIPS_PATH_MAX];
 		GModule *module;
 
-		vips_snprintf(path, VIPS_PATH_MAX - 1,
+		g_snprintf(path, VIPS_PATH_MAX - 1,
 			"%s" G_DIR_SEPARATOR_S "%s", dir_name, name);
 
 		g_info("loading \"%s\"", path);
@@ -967,20 +967,20 @@ extract_prefix(const char *dir, const char *name)
 		char *cwd;
 
 		cwd = g_get_current_dir();
-		vips_snprintf(edir, VIPS_PATH_MAX,
+		g_snprintf(edir, VIPS_PATH_MAX,
 			"%s" G_DIR_SEPARATOR_S "%s", cwd, dir);
 		g_free(cwd);
 	}
 	else {
-		vips_strncpy(edir, dir, VIPS_PATH_MAX);
+		g_strlcpy(edir, dir, VIPS_PATH_MAX);
 	}
 
 	/* Chop off the trailing prog name, plus the trailing
 	 * G_DIR_SEPARATOR_S.
 	 */
-	if (!vips_ispostfix(edir, name))
+	if (!g_str_has_suffix(edir, name))
 		return NULL;
-	vips_strncpy(vname, edir, VIPS_PATH_MAX);
+	g_strlcpy(vname, edir, VIPS_PATH_MAX);
 	vname[strlen(edir) - strlen(name) - 1] = '\0';
 
 	/* Remove any "/./", any trailing "/.", any trailing "/".
@@ -990,16 +990,16 @@ extract_prefix(const char *dir, const char *name)
 				vname + i))
 			memmove(vname + i, vname + i + 2,
 				strlen(vname + i + 2) + 1);
-	if (vips_ispostfix(vname, G_DIR_SEPARATOR_S "."))
+	if (g_str_has_suffix(vname, G_DIR_SEPARATOR_S "."))
 		vname[strlen(vname) - 2] = '\0';
-	if (vips_ispostfix(vname, G_DIR_SEPARATOR_S))
+	if (g_str_has_suffix(vname, G_DIR_SEPARATOR_S))
 		vname[strlen(vname) - 1] = '\0';
 
 	g_info("canonicalised path = \"%s\"", vname);
 
 	/* Ought to be a "/bin" at the end now.
 	 */
-	if (!vips_ispostfix(vname, G_DIR_SEPARATOR_S "bin"))
+	if (!g_str_has_suffix(vname, G_DIR_SEPARATOR_S "bin"))
 		return NULL;
 	vname[strlen(vname) - strlen(G_DIR_SEPARATOR_S "bin")] = '\0';
 
@@ -1022,7 +1022,7 @@ scan_path(char *path, const char *name)
 
 		/* Form complete path.
 		 */
-		vips_snprintf(str, VIPS_PATH_MAX,
+		g_snprintf(str, VIPS_PATH_MAX,
 			"%s" G_DIR_SEPARATOR_S "%s", p, name);
 
 		g_info("looking in \"%s\" for \"%s\"",
@@ -1058,12 +1058,12 @@ find_file(const char *name)
 		/* Windows always searches '.' first, so prepend cwd to path.
 		 */
 		dir = g_get_current_dir();
-		vips_snprintf(full_path, VIPS_PATH_MAX,
+		g_snprintf(full_path, VIPS_PATH_MAX,
 			"%s" G_SEARCHPATH_SEPARATOR_S "%s", dir, path);
 		g_free(dir);
 	}
 #else  /*!G_OS_WIN32*/
-	vips_strncpy(full_path, path, VIPS_PATH_MAX);
+	g_strlcpy(full_path, path, VIPS_PATH_MAX);
 #endif /*G_OS_WIN32*/
 
 	if ((prefix = scan_path(full_path, name)))
@@ -1119,7 +1119,7 @@ guess_prefix(const char *argv0, const char *name)
 		char *resolved;
 
 		dir = g_get_current_dir();
-		vips_snprintf(full_path, VIPS_PATH_MAX,
+		g_snprintf(full_path, VIPS_PATH_MAX,
 			"%s" G_DIR_SEPARATOR_S "%s", dir, argv0);
 		g_free(dir);
 
