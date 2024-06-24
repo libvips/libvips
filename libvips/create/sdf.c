@@ -65,9 +65,12 @@ struct _VipsSdf {
 	double *b;
 	double r;
 	double *corners;			// corner radii
-	float cx;
+
+	float cx;					// centre
 	float cy;
-	float sx;
+	float dx;					// difference
+	float dy;
+	float sx;					// half size
 	float sy;
 
 	VipsArea *corners_area;
@@ -124,15 +127,12 @@ vips_sdf_line(VipsSdf *sdf, int px, int py)
 	float pax = px - sdf->a[0];
 	float pay = py - sdf->a[1];
 
-	float bax = sdf->b[0] - sdf->a[0];
-	float bay = sdf->b[1] - sdf->a[1];
-
-	float dot_paba = pax * bax + pay * bay;
-	float dot_baba = bax * bax + bay * bay;
+	float dot_paba = pax * sdf->dx + pay * sdf->dy;
+	float dot_baba = sdf->dx * sdf->dx + sdf->dy * sdf->dy;
 	float h = VIPS_CLIP(0, dot_paba / dot_baba, 1);
 
-	float dx = pax - h * bax;
-	float dy = pay - h * bay;
+	float dx = pax - h * sdf->dx;
+	float dy = pay - h * sdf->dy;
 
 	return hypot(dx, dy);
 }
@@ -252,17 +252,20 @@ vips_sdf_build(VipsObject *object)
 		sdf->cx = (sdf->a[0] + sdf->b[0]) / 2.0;
 		sdf->cy = (sdf->a[1] + sdf->b[1]) / 2.0;
 
+		// diffetrence
+		sdf->dx = sdf->b[0] - sdf->a[0];
+		sdf->dy = sdf->b[1] - sdf->a[1];
+
 		// half size
-		sdf->sx = (sdf->b[0] - sdf->a[0]) / 2.0;
-		sdf->sy = (sdf->b[1] - sdf->a[1]) / 2.0;
+		sdf->sx = sdf->dx / 2.0;
+		sdf->sy = sdf->dy / 2.0;
 	}
 
 	vips_image_init_fields(create->out,
 		sdf->width, sdf->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0);
 	if (vips_image_pipelinev(create->out, VIPS_DEMAND_STYLE_ANY, NULL) ||
-		vips_image_generate(create->out,
-			NULL, vips_sdf_gen, NULL, sdf, NULL))
+		vips_image_generate(create->out, NULL, vips_sdf_gen, NULL, sdf, NULL))
 		return -1;
 
 	return 0;
