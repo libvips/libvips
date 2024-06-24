@@ -287,25 +287,11 @@ void *vips_hash_table_map(GHashTable *hash,
 	VipsSListMap2Fn fn, void *a, void *b);
 
 VIPS_API
-char *vips_strncpy(char *dest, const char *src, int n);
-VIPS_API
-char *vips_strrstr(const char *haystack, const char *needle);
-VIPS_API
-gboolean vips_ispostfix(const char *a, const char *b);
-VIPS_API
 gboolean vips_iscasepostfix(const char *a, const char *b);
 VIPS_API
 gboolean vips_isprefix(const char *a, const char *b);
 VIPS_API
 char *vips_break_token(char *str, const char *brk);
-
-void vips__chomp(char *str);
-
-VIPS_API
-int vips_vsnprintf(char *str, size_t size, const char *format, va_list ap);
-VIPS_API
-int vips_snprintf(char *str, size_t size, const char *format, ...)
-	G_GNUC_PRINTF(3, 4);
 
 VIPS_API
 int vips_filename_suffix_match(const char *path, const char *suffixes[]);

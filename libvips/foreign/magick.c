@@ -181,7 +181,7 @@ magick_sniff_bytes(ImageInfo *image_info,
 	const char *format;
 
 	if ((format = magick_sniff(bytes, length)))
-		vips_strncpy(image_info->magick, format, MaxTextExtent);
+		g_strlcpy(image_info->magick, format, MaxTextExtent);
 }
 
 void
@@ -309,7 +309,7 @@ magick_set_number_scenes(ImageInfo *image_info, int scene, int number_scenes)
 
 	/* Some IMs must have the string version set as well.
 	 */
-	vips_snprintf(page, 256, "%d-%d", scene, scene + number_scenes);
+	g_snprintf(page, 256, "%d-%d", scene, scene + number_scenes);
 	image_info->scenes = g_strdup(page);
 }
 
@@ -627,7 +627,7 @@ magick_set_number_scenes(ImageInfo *image_info, int scene, int number_scenes)
 
 	/* Some IMs must have the string version set as well.
 	 */
-	vips_snprintf(page, 256, "%d-%d", scene, scene + number_scenes);
+	g_snprintf(page, 256, "%d-%d", scene, scene + number_scenes);
 	image_info->scenes = g_strdup(page);
 #else /*!HAVE_NUMBER_SCENES*/
 	/* This works with GM 1.2.31 and probably others.

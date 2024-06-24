@@ -429,7 +429,7 @@ vips_foreign_load_matrix_source_is_a_source(VipsSource *source)
 	if ((bytes_read = vips_source_sniff_at_most(source,
 			 &data, 79)) <= 0)
 		return FALSE;
-	vips_strncpy(line, (const char *) data, 80);
+	g_strlcpy(line, (const char *) data, 80);
 
 	vips_error_freeze();
 	result = parse_matrix_header(line,

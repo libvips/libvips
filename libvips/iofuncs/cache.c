@@ -1050,24 +1050,3 @@ vips_cache_set_trace(gboolean trace)
 {
 	vips__cache_trace = trace;
 }
-
-/**
- * vips_cache_operation_add: (skip)
- *
- * No longer in the public API.
- */
-void
-vips_cache_operation_add(VipsOperation *operation)
-{
-}
-
-/**
- * vips_cache_operation_lookup: (skip)
- *
- * No longer in the public API.
- */
-VipsOperation *
-vips_cache_operation_lookup(VipsOperation *operation)
-{
-	return NULL;
-}

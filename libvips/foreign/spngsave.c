@@ -132,7 +132,7 @@ vips_foreign_save_spng_text(VipsForeignSaveSpng *spng,
 {
 	struct spng_text *text = VIPS_NEW(NULL, struct spng_text);
 
-	vips_strncpy(text->keyword, keyword, sizeof(text->keyword));
+	g_strlcpy(text->keyword, keyword, sizeof(text->keyword));
 	/* FIXME ... is this right?
 	 */
 	text->type = SPNG_TEXT;
@@ -196,7 +196,7 @@ vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 			printf("write_vips: attaching %zd bytes of ICC profile\n", length);
 #endif /*DEBUG*/
 
-			vips_strncpy(iccp.profile_name, basename,
+			g_strlcpy(iccp.profile_name, basename,
 				sizeof(iccp.profile_name));
 			iccp.profile_len = length;
 			iccp.profile = (void *) data;
@@ -218,7 +218,7 @@ vips_foreign_save_spng_profile(VipsForeignSaveSpng *spng, VipsImage *in)
 			length);
 #endif /*DEBUG*/
 
-		vips_strncpy(iccp.profile_name, "icc", sizeof(iccp.profile_name));
+		g_strlcpy(iccp.profile_name, "icc", sizeof(iccp.profile_name));
 		iccp.profile_len = length;
 		iccp.profile = (void *) data;
 
@@ -250,7 +250,7 @@ vips_foreign_save_spng_metadata(VipsForeignSaveSpng *spng, VipsImage *in)
 		 * unfortunately. See pngload.
 		 */
 		str = g_malloc(length + 1);
-		vips_strncpy(str, data, length + 1);
+		g_strlcpy(str, data, length + 1);
 		vips_foreign_save_spng_text(spng, "XML:com.adobe.xmp", str);
 		g_free(str);
 	}

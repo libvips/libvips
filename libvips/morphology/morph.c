@@ -472,7 +472,7 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 
 		/* The source. sl0 is the first scanline in the mask.
 		 */
-		vips_snprintf(source, 256, "sl%d", y);
+		g_snprintf(source, 256, "sl%d", y);
 		if (orc_program_find_var_by_name(p, source) == -1) {
 			SCANLINE(source, 1);
 			pass->line[pass->n_scanline] = y;
@@ -482,7 +482,7 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 		/* The offset, only for non-first-columns though.
 		 */
 		if (x > 0) {
-			vips_snprintf(offset, 256, "c%db", x);
+			g_snprintf(offset, 256, "c%db", x);
 			if (orc_program_find_var_by_name(p, offset) == -1)
 				CONST(offset, morphology->in->Bands * x, 1);
 			ASM3("loadoffb", "value", source, offset);

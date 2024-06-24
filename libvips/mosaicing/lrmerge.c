@@ -1187,6 +1187,6 @@ vips__add_mosaic_name(VipsImage *image)
 	/* We must override any inherited name, so don't test for doesn't
 	 * exist before setting.
 	 */
-	vips_snprintf(name, 256, "mosaic-temp-%d", serial);
+	g_snprintf(name, 256, "mosaic-temp-%d", serial);
 	vips_image_set_string(image, "mosaic-name", name);
 }

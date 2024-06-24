@@ -895,7 +895,7 @@ vips2rad_make_header(Write *write)
 
 	if (vips_image_get_typeof(write->in, "rad-format") &&
 		!vips_image_get_string(write->in, "rad-format", &str))
-		vips_strncpy(write->format, str, 256);
+		g_strlcpy(write->format, str, 256);
 
 	if (write->in->Type == VIPS_INTERPRETATION_scRGB)
 		strcpy(write->format, COLRFMT);

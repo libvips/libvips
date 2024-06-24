@@ -336,6 +336,29 @@ int im_dilate_raw(IMAGE *in, IMAGE *out, INTMASK *m);
 VIPS_DEPRECATED
 int im_rank_raw(IMAGE *in, IMAGE *out, int xsize, int ysize, int order);
 
+/* foreign
+ */
+/**
+ * VipsForeignJpegSubsample:
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO: default preset
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_ON: always perform subsampling
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
+ *
+ * Set jpeg subsampling mode.
+ *
+ * DEPRECATED: use #VipsForeignSubsample
+ */
+typedef enum {
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST
+} VipsForeignJpegSubsample;
+
+VIPS_DEPRECATED_FOR(vips_rawsave_target)
+int vips_rawsave_fd(VipsImage *in, int fd, ...)
+	G_GNUC_NULL_TERMINATED;
+
 /* inplace
  */
 VIPS_DEPRECATED_FOR(vips_draw_circle)
@@ -407,6 +430,27 @@ gboolean vips_thread_isworker(void);
  */
 VIPS_DEPRECATED_FOR(g_free)
 int vips_free(void *buf);
+
+VIPS_DEPRECATED_FOR(vips_target_end)
+void vips_target_finish(VipsTarget *target);
+
+VIPS_DEPRECATED_FOR(vips_cache_operation_buildp)
+VipsOperation *vips_cache_operation_lookup(VipsOperation *operation);
+VIPS_DEPRECATED_FOR(vips_cache_operation_buildp)
+void vips_cache_operation_add(VipsOperation *operation);
+
+VIPS_DEPRECATED_FOR(g_strlcpy)
+char *vips_strncpy(char *dest, const char *src, int n);
+VIPS_DEPRECATED_FOR(g_strrstr)
+char *vips_strrstr(const char *haystack, const char *needle);
+VIPS_DEPRECATED_FOR(g_str_has_suffix)
+gboolean vips_ispostfix(const char *a, const char *b);
+
+VIPS_DEPRECATED_FOR(g_vsnprintf)
+int vips_vsnprintf(char *str, size_t size, const char *format, va_list ap);
+VIPS_DEPRECATED_FOR(g_snprintf)
+int vips_snprintf(char *str, size_t size, const char *format, ...)
+	G_GNUC_PRINTF(3, 4);
 
 #ifdef __cplusplus
 }

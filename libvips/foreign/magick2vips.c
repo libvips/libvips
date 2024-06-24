@@ -232,7 +232,7 @@ read_new(const char *filename, VipsImage *im,
 		return NULL;
 
 	if (filename)
-		vips_strncpy(read->image_info->filename,
+		g_strlcpy(read->image_info->filename,
 			filename, MaxTextExtent);
 
 	/* Any extra file format detection.

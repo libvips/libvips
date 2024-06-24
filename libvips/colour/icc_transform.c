@@ -519,7 +519,7 @@ vips_icc_print_profile(const char *name, cmsHPROFILE profile)
 
 		char name[5];
 
-		vips_strncpy(name, (const char *) &pcs_as_be, 5);
+		g_strlcpy(name, (const char *) &pcs_as_be, 5);
 		printf("PCS: %#x (%s)\n", pcs, name);
 	}
 

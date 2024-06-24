@@ -142,7 +142,7 @@ vips_foreign_save_nifti_header_vips(VipsForeignSaveNifti *nifti,
 	nifti->nim->dz = 1.0 / image->Yres;
 	nifti->nim->xyz_units = NIFTI_UNITS_MM;
 
-	vips_snprintf(nifti->nim->descrip, sizeof(nifti->nim->descrip),
+	g_snprintf(nifti->nim->descrip, sizeof(nifti->nim->descrip),
 		"libvips-%s", VIPS_VERSION);
 
 	/* All other fields can stay at their default value.
@@ -170,7 +170,7 @@ vips_foreign_save_nifti_set_dims(const char *name,
 		char vips_name[256];
 		int i;
 
-		vips_snprintf(vips_name, 256, "nifti-%s", name);
+		g_snprintf(vips_name, 256, "nifti-%s", name);
 		if (vips_image_get_int(info->image, vips_name, &i) ||
 			i <= 0 ||
 			i >= VIPS_MAX_COORD)
@@ -217,7 +217,7 @@ vips_foreign_save_nifti_set_fields(const char *name,
 		char vips_name[256];
 		GValue value_copy = G_VALUE_INIT;
 
-		vips_snprintf(vips_name, 256, "nifti-%s", name);
+		g_snprintf(vips_name, 256, "nifti-%s", name);
 		if (vips_image_get(info->image, vips_name, &value_copy))
 			return info;
 		vips_gvalue_write(&value_copy, (char *) info->nim + offset);
