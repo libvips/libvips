@@ -439,6 +439,42 @@ class TestCreate:
         p = im(45, 35)
         assert_almost_equal_objects(p, [45, 35])
 
+    def test_sdf(self):
+        im = pyvips.Image.sdf(128, 128, "circle", a=[64, 64], r=32)
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.FLOAT
+        assert im.width == 128
+        assert im.height == 128
+        p = im(45, 35)
+        assert_almost_equal_objects(p, [2.670], threshold=0.01)
+
+        im = pyvips.Image.sdf(128, 128, "box", a=[10, 10], b=[50, 40])
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.FLOAT
+        assert im.width == 128
+        assert im.height == 128
+        p = im(45, 35)
+        assert_almost_equal_objects(p, [-5.0])
+
+        im = pyvips.Image.sdf(128, 128, "rounded-box",
+                              a=[10, 10],
+                              b=[50, 40],
+                              corners=[50, 0, 0, 0])
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.FLOAT
+        assert im.width == 128
+        assert im.height == 128
+        p = im(45, 35)
+        assert_almost_equal_objects(p, [13.640], threshold=0.01)
+
+        im = pyvips.Image.sdf(128, 128, "line", a=[10, 10], b=[50, 40])
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.FLOAT
+        assert im.width == 128
+        assert im.height == 128
+        p = im(45, 35)
+        assert_almost_equal_objects(p, [1.0])
+
     def test_zone(self):
         im = pyvips.Image.zone(128, 128)
         assert im.width == 128

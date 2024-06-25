@@ -84,6 +84,11 @@ typedef VipsCreateClass VipsSdfClass;
 
 G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 
+/* SDF functions derived from
+ *
+ * https://iquilezles.org/articles/distfunctions2d/
+ */
+
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
