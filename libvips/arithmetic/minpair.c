@@ -1,22 +1,7 @@
-/* photographic negative ... just an example, really
+/* min of a pair of images
  *
- * Copyright: 1990, N. Dessipris.
- *
- * Author: Nicos Dessipris
- * Written on: 12/02/1990
- * Modified on :
- * 7/7/93 JC
- *      - memory leaks fixed
- *      - adapted for partial v2
- *      - ANSIfied
- * 22/2/95 JC
- *	- tidied up again
- * 2/9/09
- * 	- gtk-doc comment
- * 23/8/11
- * 	- rewrite as a class
- * 7/12/12
- * 	- only invert real part of complex
+ * 18/6/24
+ * 	- from maxpair.c
  */
 
 /*
@@ -61,86 +46,68 @@
 
 #include <vips/vips.h>
 
-#include "unary.h"
+#include "binary.h"
 
-typedef VipsUnary VipsInvert;
-typedef VipsUnaryClass VipsInvertClass;
+typedef VipsBinary VipsMinpair;
+typedef VipsBinaryClass VipsMinpairClass;
 
-G_DEFINE_TYPE(VipsInvert, vips_invert, VIPS_TYPE_UNARY);
+G_DEFINE_TYPE(VipsMinpair, vips_minpair, VIPS_TYPE_BINARY);
 
-#define LOOP(TYPE, L) \
+#define LOOP(TYPE) \
 	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
+		TYPE *restrict left = (TYPE *) in[0]; \
+		TYPE *restrict right = (TYPE *) in[1]; \
 		TYPE *restrict q = (TYPE *) out; \
 \
-		for (x = 0; x < sz; x++) \
-			q[x] = (L) - p[x]; \
-	}
-
-#define LOOPN(TYPE) \
-	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) \
-			q[x] = -1 * p[x]; \
-	}
-
-#define LOOPC(TYPE) \
-	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) { \
-			q[0] = -1 * p[0]; \
-			q[1] = p[1]; \
-\
-			p += 2; \
-			q += 2; \
-		} \
+		for (int x = 0; x < sz; x++) \
+			q[x] = VIPS_MIN(left[x], right[x]); \
 	}
 
 static void
-vips_invert_buffer(VipsArithmetic *arithmetic,
+minpair_buffer(VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width)
 {
 	VipsImage *im = arithmetic->ready[0];
-	const int sz = width * vips_image_get_bands(im);
+	int bands = vips_image_get_bands(im);
+	VipsBandFormat format = vips_image_get_format(im);
+	int sz = width * bands * (vips_band_format_iscomplex(format) ? 2 : 1);
 
-	int x;
-
+	/* Minpair all input types. Keep types here in sync with
+	 * vips_minpair_format_table[] below.
+	 */
 	switch (vips_image_get_format(im)) {
 	case VIPS_FORMAT_UCHAR:
-		LOOP(unsigned char, UCHAR_MAX);
+		LOOP(unsigned char);
 		break;
+
 	case VIPS_FORMAT_CHAR:
-		LOOPN(signed char);
+		LOOP(signed char);
 		break;
+
 	case VIPS_FORMAT_USHORT:
-		LOOP(unsigned short, USHRT_MAX);
+		LOOP(unsigned short);
 		break;
+
 	case VIPS_FORMAT_SHORT:
-		LOOPN(signed short);
+		LOOP(signed short);
 		break;
+
 	case VIPS_FORMAT_UINT:
-		LOOP(unsigned int, UINT_MAX);
+		LOOP(unsigned int);
 		break;
+
 	case VIPS_FORMAT_INT:
-		LOOPN(signed int);
+		LOOP(signed int);
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		LOOPN(float);
-		break;
-	case VIPS_FORMAT_DOUBLE:
-		LOOPN(double);
+	case VIPS_FORMAT_COMPLEX:
+		LOOP(float);
 		break;
 
-	case VIPS_FORMAT_COMPLEX:
-		LOOPC(float);
-		break;
+	case VIPS_FORMAT_DOUBLE:
 	case VIPS_FORMAT_DPCOMPLEX:
-		LOOPC(double);
+		LOOP(double);
 		break;
 
 	default:
@@ -148,8 +115,6 @@ vips_invert_buffer(VipsArithmetic *arithmetic,
 	}
 }
 
-/* Save a bit of typing.
- */
 #define UC VIPS_FORMAT_UCHAR
 #define C VIPS_FORMAT_CHAR
 #define US VIPS_FORMAT_USHORT
@@ -161,56 +126,51 @@ vips_invert_buffer(VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Format doesn't change with invert.
- */
-static const VipsBandFormat vips_invert_format_table[10] = {
+static const VipsBandFormat vips_minpair_format_table[10] = {
 	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
 	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void
-vips_invert_class_init(VipsInvertClass *class)
+vips_minpair_class_init(VipsMinpairClass *class)
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
-	object_class->nickname = "invert";
-	object_class->description = _("invert an image");
+	object_class->nickname = "minpair";
+	object_class->description = _("minimum of a pair of images");
 
-	aclass->process_line = vips_invert_buffer;
+	aclass->process_line = minpair_buffer;
 
-	vips_arithmetic_set_format_table(aclass, vips_invert_format_table);
+	vips_arithmetic_set_format_table(aclass, vips_minpair_format_table);
 }
 
 static void
-vips_invert_init(VipsInvert *invert)
+vips_minpair_init(VipsMinpair *minpair)
 {
 }
 
 /**
- * vips_invert: (method)
- * @in: input image
+ * vips_minpair:
+ * @left: input image
+ * @right: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * For unsigned formats, this operation calculates (max - @in), eg. (255 -
- * @in) for uchar. For signed and float formats, this operation calculates (-1
- * @in).
+ * For each pixel, pick the minimum of a pair of images.
  *
- * For complex images, only the real part is inverted. See also vips_conj().
- *
- * See also: vips_linear().
+ * See also: vips_minpair().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_invert(VipsImage *in, VipsImage **out, ...)
+vips_minpair(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
 	va_start(ap, out);
-	result = vips_call_split("invert", ap, in, out);
+	result = vips_call_split("minpair", ap, left, right, out);
 	va_end(ap);
 
 	return result;

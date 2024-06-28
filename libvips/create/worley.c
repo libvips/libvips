@@ -195,7 +195,7 @@ vips_worley_start(VipsImage *out, void *a, void *b)
 }
 
 static float
-vips_hypot(int x, int y)
+vips_int_hypot(int x, int y)
 {
 	/* Faster than hypot() for int args.
 	 */
@@ -215,9 +215,8 @@ vips_worley_distance(VipsWorley *worley, Cell cells[9], int x, int y)
 		Cell *cell = &cells[i];
 
 		for (j = 0; j < cell->n_features; j++) {
-			float d = vips_hypot(
-				x - cell->feature_x[j],
-				y - cell->feature_y[j]);
+			float d =
+				vips_int_hypot(x - cell->feature_x[j], y - cell->feature_y[j]);
 
 			distance = VIPS_MIN(distance, d);
 		}

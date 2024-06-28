@@ -256,6 +256,18 @@ VImage::add(VImage right, VOption *options) const
 }
 
 VImage
+VImage::addalpha(VOption *options) const
+{
+	VImage out;
+
+	call("addalpha", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
 VImage::affine(std::vector<double> matrix, VOption *options) const
 {
 	VImage out;
@@ -513,6 +525,18 @@ VImage::cast(VipsBandFormat format, VOption *options) const
 			->set("in", *this)
 			->set("out", &out)
 			->set("format", format));
+
+	return out;
+}
+
+VImage
+VImage::clamp(VOption *options) const
+{
+	VImage out;
+
+	call("clamp", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
 
 	return out;
 }
@@ -2328,6 +2352,19 @@ VImage::max(VOption *options) const
 }
 
 VImage
+VImage::maxpair(VImage right, VOption *options) const
+{
+	VImage out;
+
+	call("maxpair", (options ? options : VImage::option())
+			->set("left", *this)
+			->set("out", &out)
+			->set("right", right));
+
+	return out;
+}
+
+VImage
 VImage::measure(int h, int v, VOption *options) const
 {
 	VImage out;
@@ -2365,6 +2402,19 @@ VImage::min(VOption *options) const
 	call("min", (options ? options : VImage::option())
 			->set("in", *this)
 			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::minpair(VImage right, VOption *options) const
+{
+	VImage out;
+
+	call("minpair", (options ? options : VImage::option())
+			->set("left", *this)
+			->set("out", &out)
+			->set("right", right));
 
 	return out;
 }
@@ -2884,12 +2934,24 @@ VImage::rawsave(const char *filename, VOption *options) const
 			->set("filename", filename));
 }
 
-void
-VImage::rawsave_fd(int fd, VOption *options) const
+VipsBlob *
+VImage::rawsave_buffer(VOption *options) const
 {
-	call("rawsave_fd", (options ? options : VImage::option())
+	VipsBlob *buffer;
+
+	call("rawsave_buffer", (options ? options : VImage::option())
 			->set("in", *this)
-			->set("fd", fd));
+			->set("buffer", &buffer));
+
+	return buffer;
+}
+
+void
+VImage::rawsave_target(VTarget target, VOption *options) const
+{
+	call("rawsave_target", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("target", target));
 }
 
 VImage
@@ -3157,6 +3219,20 @@ VImage::scharr(VOption *options) const
 	call("scharr", (options ? options : VImage::option())
 			->set("in", *this)
 			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::sdf(int width, int height, VipsSdfShape shape, VOption *options)
+{
+	VImage out;
+
+	call("sdf", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("width", width)
+			->set("height", height)
+			->set("shape", shape));
 
 	return out;
 }

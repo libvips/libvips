@@ -759,6 +759,37 @@ class TestArithmetic:
             im3 = pyvips.Image.sum(im2)
             assert pytest.approx(im3.max()) == sum(range(0, 100, 10))
 
+    def test_clamp(self):
+        for fmt in noncomplex_formats:
+            im = self.colour
+            for x in range(0, 100, 10):
+                im2 = (im + x).cast(fmt)
+                im3 = im2.clamp()
+                assert im3.max() <= 1.0
+                assert im3.min() >= 0.0
+
+                im3 = im2.clamp(min=14, max=45)
+                assert im3.max() <= 45
+                assert im3.min() >= 14
+
+    def test_minpair(self):
+        for fmt in noncomplex_formats:
+            im = self.colour
+            for x in range(0, 100, 10):
+                im2 = ((im - x) * 5).cast(fmt)
+                im3 = im2.minpair(im)
+                im4 = (im2 < im).ifthenelse(im2, im)
+                assert (im3 - im4).abs().max() == 0
+
+    def test_maxpair(self):
+        for fmt in noncomplex_formats:
+            im = self.colour
+            for x in range(0, 100, 10):
+                im2 = ((im - x) * 5).cast(fmt)
+                im3 = im2.maxpair(im)
+                im4 = (im2 > im).ifthenelse(im2, im)
+                assert (im3 - im4).abs().max() == 0
+
 
 if __name__ == '__main__':
     pytest.main()

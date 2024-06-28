@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
-# This file generates the member definitions and declarations for all vips 
+# This file generates the member definitions and declarations for all vips
 # operators.
 
 # this needs pyvips
@@ -86,7 +86,7 @@ def cppize(name):
 def generate_operation(operation_name, declaration_only=False, indent=''):
     intro = Introspect.get(operation_name)
 
-    required_output = [name 
+    required_output = [name
         for name in intro.required_output if name != intro.member_x]
 
     # We are only interested in non-deprecated arguments

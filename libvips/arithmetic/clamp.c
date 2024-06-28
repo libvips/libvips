@@ -1,22 +1,7 @@
-/* photographic negative ... just an example, really
+/* clamp pixels to range
  *
- * Copyright: 1990, N. Dessipris.
- *
- * Author: Nicos Dessipris
- * Written on: 12/02/1990
- * Modified on :
- * 7/7/93 JC
- *      - memory leaks fixed
- *      - adapted for partial v2
- *      - ANSIfied
- * 22/2/95 JC
- *	- tidied up again
- * 2/9/09
- * 	- gtk-doc comment
- * 23/8/11
- * 	- rewrite as a class
- * 7/12/12
- * 	- only invert real part of complex
+ * 17/6/24
+ * 	- from abs.c
  */
 
 /*
@@ -63,84 +48,74 @@
 
 #include "unary.h"
 
-typedef VipsUnary VipsInvert;
-typedef VipsUnaryClass VipsInvertClass;
+typedef struct _VipsClamp {
+	VipsUnary parent_instance;
 
-G_DEFINE_TYPE(VipsInvert, vips_invert, VIPS_TYPE_UNARY);
+	double min;
+	double max;
+} VipsClamp;
 
-#define LOOP(TYPE, L) \
+typedef VipsUnaryClass VipsClampClass;
+
+G_DEFINE_TYPE(VipsClamp, vips_clamp, VIPS_TYPE_UNARY);
+
+#define CLAMP_LINE(TYPE) \
 	{ \
 		TYPE *restrict p = (TYPE *) in[0]; \
 		TYPE *restrict q = (TYPE *) out; \
 \
-		for (x = 0; x < sz; x++) \
-			q[x] = (L) - p[x]; \
-	}
-
-#define LOOPN(TYPE) \
-	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) \
-			q[x] = -1 * p[x]; \
-	}
-
-#define LOOPC(TYPE) \
-	{ \
-		TYPE *restrict p = (TYPE *) in[0]; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) { \
-			q[0] = -1 * p[0]; \
-			q[1] = p[1]; \
-\
-			p += 2; \
-			q += 2; \
-		} \
+		for (int x = 0; x < sz; x++) \
+			q[x] = VIPS_CLIP(clamp->min, p[x], clamp->max); \
 	}
 
 static void
-vips_invert_buffer(VipsArithmetic *arithmetic,
+vips_clamp_buffer(VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width)
 {
+	VipsClamp *clamp = (VipsClamp *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
-	const int sz = width * vips_image_get_bands(im);
-
-	int x;
+	const int bands = vips_image_get_bands(im);
+	int sz = width * bands * (vips_band_format_iscomplex(im->BandFmt) ? 2 : 1);
 
 	switch (vips_image_get_format(im)) {
-	case VIPS_FORMAT_UCHAR:
-		LOOP(unsigned char, UCHAR_MAX);
-		break;
 	case VIPS_FORMAT_CHAR:
-		LOOPN(signed char);
+		CLAMP_LINE(signed char);
 		break;
-	case VIPS_FORMAT_USHORT:
-		LOOP(unsigned short, USHRT_MAX);
+
+	case VIPS_FORMAT_UCHAR:
+		CLAMP_LINE(unsigned char);
 		break;
+
 	case VIPS_FORMAT_SHORT:
-		LOOPN(signed short);
+		CLAMP_LINE(signed short);
 		break;
-	case VIPS_FORMAT_UINT:
-		LOOP(unsigned int, UINT_MAX);
+
+	case VIPS_FORMAT_USHORT:
+		CLAMP_LINE(unsigned short);
 		break;
+
 	case VIPS_FORMAT_INT:
-		LOOPN(signed int);
+		CLAMP_LINE(signed int);
+		break;
+
+	case VIPS_FORMAT_UINT:
+		CLAMP_LINE(unsigned int);
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		LOOPN(float);
+		CLAMP_LINE(float);
 		break;
+
 	case VIPS_FORMAT_DOUBLE:
-		LOOPN(double);
+		CLAMP_LINE(double);
 		break;
 
 	case VIPS_FORMAT_COMPLEX:
-		LOOPC(float);
+		CLAMP_LINE(float);
 		break;
+
 	case VIPS_FORMAT_DPCOMPLEX:
-		LOOPC(double);
+		CLAMP_LINE(double);
 		break;
 
 	default:
@@ -148,8 +123,6 @@ vips_invert_buffer(VipsArithmetic *arithmetic,
 	}
 }
 
-/* Save a bit of typing.
- */
 #define UC VIPS_FORMAT_UCHAR
 #define C VIPS_FORMAT_CHAR
 #define US VIPS_FORMAT_USHORT
@@ -161,56 +134,79 @@ vips_invert_buffer(VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Format doesn't change with invert.
+/* Format doesn't change with clamp.
  */
-static const VipsBandFormat vips_invert_format_table[10] = {
+static const VipsBandFormat vips_clamp_format_table[10] = {
 	/* Band format:  UC  C  US  S  UI  I  F  X  D  DX */
 	/* Promotion: */ UC, C, US, S, UI, I, F, X, D, DX
 };
 
 static void
-vips_invert_class_init(VipsInvertClass *class)
+vips_clamp_class_init(VipsClampClass *class)
 {
+	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS(class);
 
-	object_class->nickname = "invert";
-	object_class->description = _("invert an image");
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
-	aclass->process_line = vips_invert_buffer;
+	object_class->nickname = "clamp";
+	object_class->description = _("clamp values of an image");
 
-	vips_arithmetic_set_format_table(aclass, vips_invert_format_table);
+	aclass->process_line = vips_clamp_buffer;
+
+	vips_arithmetic_set_format_table(aclass, vips_clamp_format_table);
+
+	VIPS_ARG_DOUBLE(class, "min", 10,
+		_("Min"),
+		_("Minimum value"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsClamp, min),
+		-INFINITY, INFINITY, 0.0);
+
+	VIPS_ARG_DOUBLE(class, "max", 11,
+		_("Max"),
+		_("Maximum value"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsClamp, max),
+		-INFINITY, INFINITY, 0.0);
 }
 
 static void
-vips_invert_init(VipsInvert *invert)
+vips_clamp_init(VipsClamp *clamp)
 {
+	clamp->min = 0.0;
+	clamp->max = 1.0;
 }
 
 /**
- * vips_invert: (method)
- * @in: input image
- * @out: (out): output image
+ * vips_clamp: (method)
+ * @in: input #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * For unsigned formats, this operation calculates (max - @in), eg. (255 -
- * @in) for uchar. For signed and float formats, this operation calculates (-1
- * @in).
+ * Optional arguments:
  *
- * For complex images, only the real part is inverted. See also vips_conj().
+ * * @min: %gdouble, minimum value
+ * * @max: %gdouble, maximum value
  *
- * See also: vips_linear().
+ * This operation clamps pixel values to a range, by default 0 - 1.
+ *
+ * Use @min and @max to change the range.
+ *
+ * See also: vips_sign(), vips_abs(), vips_sdf().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_invert(VipsImage *in, VipsImage **out, ...)
+vips_clamp(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
 	va_start(ap, out);
-	result = vips_call_split("invert", ap, in, out);
+	result = vips_call_split("clamp", ap, in, out);
 	va_end(ap);
 
 	return result;

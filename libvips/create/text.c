@@ -235,8 +235,7 @@ vips_text_get_extents(VipsText *text, VipsRect *extents)
 			  text->justify)))
 		return -1;
 
-	pango_layout_get_pixel_extents(text->layout,
-		&ink_rect, &logical_rect);
+	pango_layout_get_pixel_extents(text->layout, &ink_rect, &logical_rect);
 	extents->left = ink_rect.x;
 	extents->top = ink_rect.y;
 	extents->width = ink_rect.width;

@@ -186,13 +186,6 @@ foreach func_name : func_names
     endif
 endforeach
 
-func_names = [ 'cbrt', 'hypot', 'atan2', 'asinh' ]
-foreach func_name : func_names
-    if cc.has_function(func_name, dependencies: m_dep)
-        cfg_var.set('HAVE_' + func_name.to_upper(), '1')
-    endif
-endforeach
-
 if cc.has_function('pthread_setattr_default_np', args: '-D_GNU_SOURCE', prefix: '#include <pthread.h>', dependencies: thread_dep)
     cfg_var.set('HAVE_PTHREAD_DEFAULT_NP', '1')
 endif

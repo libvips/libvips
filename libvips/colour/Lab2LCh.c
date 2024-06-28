@@ -92,12 +92,7 @@ void
 vips_col_ab2Ch(float a, float b, float *C, float *h)
 {
 	*h = vips_col_ab2h(a, b);
-
-#ifdef HAVE_HYPOT
 	*C = hypot(a, b);
-#else
-	*C = sqrt(a * a + b * b);
-#endif
 }
 
 static void

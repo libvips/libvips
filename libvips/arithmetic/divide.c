@@ -84,42 +84,6 @@ typedef VipsBinaryClass VipsDivideClass;
 
 G_DEFINE_TYPE(VipsDivide, vips_divide, VIPS_TYPE_BINARY);
 
-/* Complex divide.
- */
-#ifdef USE_MODARG_DIV
-
-/* This is going to be much slower */
-#define CLOOP(TYPE) \
-	{ \
-		TYPE *restrict left = (TYPE *) in[0]; \
-		TYPE *restrict right = (TYPE *) in[1]; \
-		TYPE *restrict q = (TYPE *) out; \
-		int i; \
-\
-		for (i = 0; i < sz; i++) { \
-			if (right[0] == 0.0 && \
-				right[1] == 0.0) { \
-				q[0] = 0.0; \
-				q[1] = 0.0; \
-			} \
-			else { \
-				double arg = atan2(left[1], left[0]) - \
-					atan2(right[1], right[0]); \
-				double mod = hypot(left[1], left[0]) / \
-					hypot(right[1], right[0]); \
-\
-				q[0] = mod * cos(arg); \
-				q[1] = mod * sin(arg); \
-			} \
-\
-			left += 2; \
-			right += 2; \
-			q += 2; \
-		} \
-	}
-
-#else /* USE_MODARG_DIV */
-
 #define CLOOP(TYPE) \
 	{ \
 		TYPE *restrict left = (TYPE *) in[0]; \
@@ -153,8 +117,6 @@ G_DEFINE_TYPE(VipsDivide, vips_divide, VIPS_TYPE_BINARY);
 			q += 2; \
 		} \
 	}
-
-#endif /* USE_MODARG_DIV */
 
 /* Real divide. Cast in to OUT before divide so we work for float output.
  */
