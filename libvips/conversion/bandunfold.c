@@ -85,7 +85,7 @@ vips_bandunfold_gen(VipsRegion *out_region,
 
 	need.left = r->left / bandunfold->factor;
 	need.top = r->top;
-	need.width = (1 + r->width) / bandunfold->factor;
+	need.width = 1 + VIPS_RECT_RIGHT(r) / bandunfold->factor - need.left;
 	need.height = r->height;
 	if (vips_region_prepare(ir, &need))
 		return -1;
