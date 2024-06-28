@@ -57,10 +57,8 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * These functions generate various test images. You can combine them with
+ * These functions generate various images. You can combine them with
  * the arithmetic and rotate functions to build more complicated images.
- *
- * The im_benchmark() operations are for testing the VIPS SMP system.
  */
 
 /**
@@ -74,6 +72,18 @@
  * width.
  *
  * See also: vips_text().
+ */
+
+/**
+ * VipsSdfShape:
+ * @VIPS_SDF_SHAPE_CIRCLE: a circle at @a, radius @r
+ * @VIPS_SDF_SHAPE_BOX: a box from @a to @b
+ * @VIPS_SDF_SHAPE_ROUNDED_BOX: a box with rounded @corners from @a to @b
+ * @VIPS_SDF_SHAPE_LINE: a line from @a to @b
+ *
+ * The SDF to generate,
+ *
+ * See also: vips_sdf().
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsCreate, vips_create, VIPS_TYPE_OPERATION);

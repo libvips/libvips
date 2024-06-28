@@ -59,7 +59,7 @@ struct _VipsSdf {
 
 	int width;
 	int height;
-	char *name;
+	VipsSdfShape shape;
 
 	double *a;					// two vec2
 	double *b;
@@ -170,7 +170,8 @@ vips_sdf_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_sdf_parent_class)->build(object))
 		return -1;
 
-	if (g_str_equal(sdf->name, "circle")) {
+	switch (sdf->shape) {
+	case VIPS_SDF_SHAPE_CIRCLE:
 		if (!vips_object_argument_isset(object, "a") ||
 			!vips_object_argument_isset(object, "r")) {
 			vips_error(class->nickname, "%s",
@@ -185,8 +186,10 @@ vips_sdf_build(VipsObject *object)
 
 		sdf->a = (double *) sdf->a_area->data;
 		sdf->point = vips_sdf_circle;
-	}
-	else if (g_str_equal(sdf->name, "box")) {
+
+		break;
+
+	case VIPS_SDF_SHAPE_BOX:
 		if (!vips_object_argument_isset(object, "a") ||
 			!vips_object_argument_isset(object, "b")) {
 			vips_error(class->nickname, "%s",
@@ -203,8 +206,10 @@ vips_sdf_build(VipsObject *object)
 		sdf->a = (double *) sdf->a_area->data;
 		sdf->b = (double *) sdf->b_area->data;
 		sdf->point = vips_sdf_box;
-	}
-	else if (g_str_equal(sdf->name, "rounded-box")) {
+
+		break;
+
+	case VIPS_SDF_SHAPE_ROUNDED_BOX:
 		if (!vips_object_argument_isset(object, "a") ||
 			!vips_object_argument_isset(object, "b")) {
 			vips_error(class->nickname, "%s",
@@ -227,8 +232,10 @@ vips_sdf_build(VipsObject *object)
 		sdf->b = (double *) sdf->b_area->data;
 		sdf->corners = (double *) sdf->corners_area->data;
 		sdf->point = vips_sdf_rounded_box;
-	}
-	else if (g_str_equal(sdf->name, "line")) {
+
+		break;
+
+	case VIPS_SDF_SHAPE_LINE:
 		if (!vips_object_argument_isset(object, "a") ||
 			!vips_object_argument_isset(object, "b")) {
 			vips_error(class->nickname, "%s",
@@ -245,9 +252,11 @@ vips_sdf_build(VipsObject *object)
 		sdf->a = (double *) sdf->a_area->data;
 		sdf->b = (double *) sdf->b_area->data;
 		sdf->point = vips_sdf_line;
-	}
-	else {
-		vips_error(class->nickname, _("unknown SDF %s"), sdf->name);
+
+		break;
+
+	default:
+		vips_error(class->nickname, _("unknown SDF %d"), sdf->shape);
 		return -1;
 	}
 
@@ -257,7 +266,7 @@ vips_sdf_build(VipsObject *object)
 		sdf->cx = (sdf->a[0] + sdf->b[0]) / 2.0;
 		sdf->cy = (sdf->a[1] + sdf->b[1]) / 2.0;
 
-		// diffetrence
+		// difference
 		sdf->dx = sdf->b[0] - sdf->a[0];
 		sdf->dy = sdf->b[1] - sdf->a[1];
 
@@ -305,12 +314,12 @@ vips_sdf_class_init(VipsSdfClass *class)
 		G_STRUCT_OFFSET(VipsSdf, height),
 		1, VIPS_MAX_COORD, 1);
 
-	VIPS_ARG_STRING(class, "name", 6,
-		_("Name"),
-		_("Name of SDF to create"),
+	VIPS_ARG_ENUM(class, "shape", 8,
+		_("Shape"),
+		_("SDF shape to create"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsSdf, name),
-		NULL);
+		G_STRUCT_OFFSET(VipsSdf, shape),
+		VIPS_TYPE_SDF_SHAPE, VIPS_SDF_SHAPE_CIRCLE);
 
 	VIPS_ARG_DOUBLE(class, "r", 9,
 		_("r"),
@@ -353,7 +362,7 @@ vips_sdf_init(VipsSdf *sdf)
  * @out: (out): output image
  * @width: horizontal size
  * @height: vertical size
- * @name: name of SDF to create
+ * @shape: SDF to create
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -363,33 +372,33 @@ vips_sdf_init(VipsSdf *sdf)
  * * @r: %gfloat, radius
  * * @corners: #VipsArrayDouble, corner radii
  *
- * Create a signed distance field (SDF) image of the named type. Different
- * fields use different combinations of the optional arguments, see below.
+ * Create a signed distance field (SDF) image of the given shape. Different
+ * shapes use different combinations of the optional arguments, see below.
  *
- * @name `circle`: create a circle, centred on @a, radius @r.
+ * @shape #VIPS_SDF_SHAPE_CIRCLE: create a circle centred on @a, radius @r.
  *
- * @name `box`: create a box with top-left corner @a and bottom-right corner
- * @b.
+ * @shape #VIPS_SDF_SHAPE_BOX: create a box with top-left corner @a and
+ * bottom-right corner @b.
  *
- * @name `rounded-box`: create a box with top-left corner @a, bottom-right
- * corner @b, whose four corners are
+ * @shape #VIPS_SDF_SHAPE_ROUNDED_BOX: create a box with top-left corner @a
+ * and bottom-right corner @b, whose four corners are
  * rounded by the four-element float array @corners. @corners will default to
  * 0.0.
  *
- * @name `line`: draw a line from @a to @b.
+ * @shape #VIPS_SDF_SHAPE_LINE: draw a line from @a to @b.
  *
  * See also: vips_grey(), vips_grid(), vips_xyz().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_sdf(VipsImage **out, int width, int height, const char *name, ...)
+vips_sdf(VipsImage **out, int width, int height, VipsSdfShape shape, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start(ap, name);
-	result = vips_call_split("sdf", ap, out, width, height, name);
+	va_start(ap, shape);
+	result = vips_call_split("sdf", ap, out, width, height, shape);
 	va_end(ap);
 
 	return result;
