@@ -57,12 +57,14 @@ vips_addalpha_build(VipsObject *object)
 {
 	VipsAddAlpha *addalpha = (VipsAddAlpha *) object;
 	VipsConversion *conversion = VIPS_CONVERSION(object);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
+	double max_alpha = vips_interpretation_max_alpha(addalpha->in->Type);
 
 	if (VIPS_OBJECT_CLASS(vips_addalpha_parent_class)->build(object))
 		return -1;
 
-	if (vips_bandjoin_const1(addalpha->in, &conversion->out,
-			vips_interpretation_max_alpha(addalpha->in->Type), NULL))
+	if (vips_bandjoin_const1(addalpha->in, &t[0], max_alpha, NULL) ||
+		vips_image_write(t[0], conversion->out))
 		return -1;
 
 	return 0;
