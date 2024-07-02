@@ -919,7 +919,7 @@ public:
 	 * C-style array.
 	 */
 	static VImage
-	new_from_memory(void *data, size_t size,
+	new_from_memory(const void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format)
 	{
 		VipsImage *image;
@@ -937,7 +937,7 @@ public:
 	 * The VImage makes a copy of @data.
 	 */
 	static VImage
-	new_from_memory_copy(void *data, size_t size,
+	new_from_memory_copy(const void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format)
 	{
 		VipsImage *image;
@@ -957,7 +957,7 @@ public:
 	 * goes out of scope.
 	 */
 	static VImage
-	new_from_memory_steal(void *data, size_t size,
+	new_from_memory_steal(const void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format);
 
 	/**

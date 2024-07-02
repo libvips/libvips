@@ -637,7 +637,7 @@ VImage::new_from_source(VSource source, const char *option_string,
 }
 
 VImage
-VImage::new_from_memory_steal(void *data, size_t size,
+VImage::new_from_memory_steal(const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format)
 {
 	VipsImage *image;
@@ -647,7 +647,7 @@ VImage::new_from_memory_steal(void *data, size_t size,
 		throw(VError());
 
 	g_signal_connect(image, "postclose",
-		G_CALLBACK(vips_image_free_buffer), data);
+		G_CALLBACK(vips_image_free_buffer), (void *) data);
 
 	return VImage(image);
 }
