@@ -21,6 +21,7 @@ master 8.16
   desired target_size [john-parton]
 - revise sRGB -> B_W coefficients [daniellovera]
 - add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
+- more const for the C++ API [Julianiolo]
 
 8.15.3
 
