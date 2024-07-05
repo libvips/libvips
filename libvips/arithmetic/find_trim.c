@@ -126,7 +126,7 @@ vips_find_trim_build(VipsObject *object)
 		in = t[1];
 	}
 
-	/* Smooth, find difference from bg, abs, threshold.
+	/* Find difference from bg, abs, threshold.
 	 */
 	if (vips_linear(in, &t[2], ones, neg_bg, n, NULL) ||
 		vips_abs(t[2], &t[3], NULL) ||
