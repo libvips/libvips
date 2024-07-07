@@ -36,11 +36,11 @@
 
 /* Defined in config.h
  */
-#ifdef _VIPS_PUBLIC
-#define VIPS_API _VIPS_PUBLIC extern
-#else
-#define VIPS_API extern
+#ifndef _VIPS_PUBLIC
+#define _VIPS_PUBLIC
 #endif
+
+#define VIPS_API _VIPS_PUBLIC extern
 
 /* VIPS_DISABLE_DEPRECATION_WARNINGS:
  *

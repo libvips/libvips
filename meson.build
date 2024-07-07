@@ -122,10 +122,10 @@ endif
 # Detect and set symbol visibility
 if get_option('default_library') == 'shared' and host_os in ['windows', 'cygwin']
     cfg_var.set('DLL_EXPORT', true)
-    if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl'
-        cfg_var.set('_VIPS_PUBLIC', '__declspec(dllexport)')
-    elif cc.has_function_attribute('visibility:hidden')
+    if cc.has_function_attribute('visibility:hidden')
         cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default"))) __declspec(dllexport)')
+    else
+        cfg_var.set('_VIPS_PUBLIC', '__declspec(dllexport)')
     endif
 elif cc.has_function_attribute('visibility:hidden')
     cfg_var.set('_VIPS_PUBLIC', '__attribute__((visibility("default")))')
