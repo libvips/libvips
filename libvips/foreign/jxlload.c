@@ -320,10 +320,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 		printf("JXL_DEC_NEED_PREVIEW_OUT_BUFFER\n");
 		break;
 
-	case JXL_DEC_NEED_DC_OUT_BUFFER:
-		printf("JXL_DEC_NEED_DC_OUT_BUFFER\n");
-		break;
-
 	case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
 		printf("JXL_DEC_NEED_IMAGE_OUT_BUFFER\n");
 		break;
@@ -354,10 +350,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 
 	case JXL_DEC_FRAME:
 		printf("JXL_DEC_FRAME\n");
-		break;
-
-	case JXL_DEC_DC_IMAGE:
-		printf("JXL_DEC_DC_IMAGE\n");
 		break;
 
 	case JXL_DEC_FULL_IMAGE:
