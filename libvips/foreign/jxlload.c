@@ -1057,6 +1057,11 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 	if (vips_image_write(out, load->real))
 		return -1;
 
+	/* Switch to pixel decode.
+	 */
+	if (vips_source_decode(jxl->source))
+		return -1;
+
 	return 0;
 }
 
