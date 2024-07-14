@@ -707,21 +707,20 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 		vips_image_set_int(out, VIPS_META_N_PAGES, jxl->frame_count);
 
-		if (jxl->n > 1) {
+		if (jxl->n > 1)
 			vips_image_set_int(out,
 				VIPS_META_PAGE_HEIGHT, jxl->info.ysize);
 
-			g_assert(jxl->delay_count >= jxl->frame_count);
-			vips_image_set_array_int(out,
-				"delay", &jxl->delay[jxl->page], jxl->n);
+		g_assert(jxl->delay_count >= jxl->frame_count);
+		vips_image_set_array_int(out,
+			"delay", jxl->delay, jxl->frame_count);
 
-			/* gif uses centiseconds for delays
-			 */
-			vips_image_set_int(out, "gif-delay",
-				VIPS_RINT(jxl->delay[0] / 10.0));
+		/* gif uses centiseconds for delays
+		 */
+		vips_image_set_int(out, "gif-delay",
+			VIPS_RINT(jxl->delay[0] / 10.0));
 
-			vips_image_set_int(out, "loop", jxl->info.animation.num_loops);
-		}
+		vips_image_set_int(out, "loop", jxl->info.animation.num_loops);
 	}
 	else {
 		jxl->n = 1;
