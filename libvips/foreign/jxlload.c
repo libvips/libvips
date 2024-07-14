@@ -223,7 +223,9 @@ vips_foreign_load_jxl_is_a_source(VipsSource *source)
 static VipsForeignFlags
 vips_foreign_load_jxl_get_flags(VipsForeignLoad *load)
 {
-	return VIPS_FOREIGN_PARTIAL;
+	/* FIXME .. could support random access for non-animated images.
+	 */
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static int
