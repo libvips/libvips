@@ -484,8 +484,15 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 	size_t buffer_size;
 	JxlDecoderStatus status;
 
-	if (jxl->frame_no >= frame_no)
-		return 0;
+	int skip = frame_no - jxl->frame_no - 1;
+	if (skip > 0) {
+#ifdef DEBUG_VERBOSE
+		printf("vips_foreign_load_jxl_read_frame: skipping %d frames\n",
+			skip);
+#endif /*DEBUG_VERBOSE*/
+		JxlDecoderSkipFrames(jxl->decoder, skip);
+		jxl->frame_no = frame_no - 1;
+	}
 
 	/* Read to the end of the image.
 	 */
@@ -501,18 +508,6 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 			break;
 
 		case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
-			/* If current frame number is less than required, skip the frame
-			 */
-			if (jxl->frame_no < frame_no) {
-				if (JxlDecoderSkipCurrentFrame(jxl->decoder) !=
-					JXL_DEC_SUCCESS) {
-					vips_foreign_load_jxl_error(jxl,
-						"JxlDecoderSkipCurrentFrame");
-					return -1;
-				}
-				break;
-			}
-
 			if (JxlDecoderImageOutBufferSize(jxl->decoder,
 					&jxl->format,
 					&buffer_size)) {
@@ -539,7 +534,7 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 		case JXL_DEC_FULL_IMAGE:
 			/* We decoded the required frame and can return
 			 */
-			if (jxl->frame_no >= frame_no)
+			if (jxl->frame_no == frame_no)
 				return 0;
 
 			break;
@@ -574,7 +569,8 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 
 	g_assert(r->height == 1);
 
-	if (vips_foreign_load_jxl_read_frame(jxl, jxl->frame, frame))
+	if (jxl->frame_no < frame &&
+		vips_foreign_load_jxl_read_frame(jxl, jxl->frame, frame))
 		return -1;
 
 	memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
