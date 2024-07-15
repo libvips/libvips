@@ -1245,7 +1245,7 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 		 * hasn't been truncated.
 		 */
 		if (i != size)
-			while (i > 0 && isspace(string[i - 1])) {
+			while (i > 0 && g_ascii_isspace(string[i - 1])) {
 				string[i - 1] = '\0';
 				i--;
 			}
@@ -1749,10 +1749,10 @@ vips__substitute(char *buf, size_t len, char *sub)
 	sub_start = NULL;
 	sub_end = NULL;
 	for (p = buf; (p = strchr(p, '%')); p++)
-		if (isdigit(p[1])) {
+		if (g_ascii_isdigit(p[1])) {
 			char *q;
 
-			for (q = p + 1; isdigit(*q); q++)
+			for (q = p + 1; g_ascii_isdigit(*q); q++)
 				;
 			if (q[0] == 's') {
 				int n;
@@ -1960,7 +1960,7 @@ vips_strtod(const char *str, double *out)
 	 * a number and getting zero.
 	 */
 	for (p = str; *p; p++)
-		if (isdigit(*p))
+		if (g_ascii_isdigit(*p))
 			break;
 	if (!*p)
 		return -1;

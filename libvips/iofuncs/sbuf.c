@@ -478,7 +478,7 @@ vips_sbuf_get_non_whitespace(VipsSbuf *sbuf)
 	int i;
 
 	for (i = 0; i < VIPS_SBUF_BUFFER_SIZE &&
-		 !isspace(ch = VIPS_SBUF_GETC(sbuf)) &&
+		 !g_ascii_isspace(ch = VIPS_SBUF_GETC(sbuf)) &&
 		 ch != EOF;
 		 i++)
 		sbuf->line[i] = ch;
@@ -487,15 +487,15 @@ vips_sbuf_get_non_whitespace(VipsSbuf *sbuf)
 	/* If we stopped before seeing any whitespace, skip to the end of the
 	 * block of non-whitespace.
 	 */
-	if (!isspace(ch))
-		while (!isspace(ch = VIPS_SBUF_GETC(sbuf)) &&
+	if (!g_ascii_isspace(ch))
+		while (!g_ascii_isspace(ch = VIPS_SBUF_GETC(sbuf)) &&
 			ch != EOF)
 			;
 
 	/* If we finally stopped on whitespace, step back one so the next get
 	 * will be whitespace (or EOF).
 	 */
-	if (isspace(ch))
+	if (g_ascii_isspace(ch))
 		VIPS_SBUF_UNGETC(sbuf);
 
 	return (const char *) sbuf->line;
@@ -529,7 +529,7 @@ vips_sbuf_skip_whitespace(VipsSbuf *sbuf)
 				return -1;
 			ch = VIPS_SBUF_GETC(sbuf);
 		}
-	} while (isspace(ch));
+	} while (g_ascii_isspace(ch));
 
 	VIPS_SBUF_UNGETC(sbuf);
 
