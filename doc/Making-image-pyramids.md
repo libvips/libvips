@@ -162,11 +162,7 @@ $ vips dzsave wtc.tif mypyr.zip
 ```
 
 to write a zipfile containing the tiles. You can use `.szi` as a suffix to
-enable zip output as well. 
-
-Use `--properties` to output an XML file called `vips-properties.xml`. This
-contains a dump of all the metadata vips has about the image as a set of
-name-value pairs. It's handy with openslide image sources. 
+enable zip output as well.
 
 # Preprocessing images
 
