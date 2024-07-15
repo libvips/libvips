@@ -319,7 +319,7 @@ formatval(char fmt[MAXFMTLEN], const char *s)
 	while (*cp)
 		if (*cp++ != *s++)
 			return 0;
-	while (isspace(*s))
+	while (g_ascii_isspace(*s))
 		s++;
 	if (!*s)
 		return 0;
@@ -331,7 +331,7 @@ formatval(char fmt[MAXFMTLEN], const char *s)
 
 	do /* remove trailing white space */
 		*r-- = '\0';
-	while (r > fmt && isspace(*r));
+	while (r > fmt && g_ascii_isspace(*r));
 
 	return 1;
 }

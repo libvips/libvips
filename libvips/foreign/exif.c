@@ -1264,7 +1264,7 @@ vips_exif_image_field(VipsImage *image,
 	p = field + strlen("exif-ifd");
 	ifd = atoi(p);
 
-	for (; isdigit(*p); p++)
+	for (; g_ascii_isdigit(*p); p++)
 		;
 	if (*p != '-') {
 		g_warning(_("bad exif meta \"%s\""), field);

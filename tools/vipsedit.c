@@ -280,7 +280,7 @@ main(int argc, char **argv)
 		/* Strip trailing whitespace ... we can get stray \n at the
 		 * end, eg. "echo | vipsedit --setext fred.v".
 		 */
-		while (size > 0 && isspace(xml[size - 1]))
+		while (size > 0 && g_ascii_isspace(xml[size - 1]))
 			size -= 1;
 
 		if (vips__write_extension_block(im, xml, size))

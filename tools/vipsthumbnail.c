@@ -401,39 +401,39 @@ thumbnail_parse_geometry(const char *geometry)
 
 	/* Get the width.
 	 */
-	while (isspace(*p))
+	while (g_ascii_isspace(*p))
 		p++;
-	if (isdigit(*p)) {
+	if (g_ascii_isdigit(*p)) {
 		thumbnail_width = atoi(p);
 
-		while (isdigit(*p))
+		while (g_ascii_isdigit(*p))
 			p++;
 	}
 
 	/* Get the optional 'x'.
 	 */
-	while (isspace(*p))
+	while (g_ascii_isspace(*p))
 		p++;
 	had_x = FALSE;
 	if (*p == 'x') {
 		p += 1;
 		had_x = TRUE;
 	}
-	while (isspace(*p))
+	while (g_ascii_isspace(*p))
 		p++;
 
 	/* Get the height.
 	 */
-	if (isdigit(*p)) {
+	if (g_ascii_isdigit(*p)) {
 		thumbnail_height = atoi(p);
 
-		while (isdigit(*p))
+		while (g_ascii_isdigit(*p))
 			p++;
 	}
 
 	/* Get the final <>!
 	 */
-	while (isspace(*p))
+	while (g_ascii_isspace(*p))
 		p++;
 	if (*p == '<')
 		size_restriction = VIPS_SIZE_UP;

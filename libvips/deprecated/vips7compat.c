@@ -93,9 +93,9 @@ im_filename_split(const char *path, char *name, char *mode)
 			char *q;
 
 			/* We are skipping back over the file extension,
-			 * isalnum() is probably sufficient.
+			 * g_ascii_isalnum() is probably sufficient.
 			 */
-			for (q = p - 1; isalnum(*q) && q > name; q -= 1)
+			for (q = p - 1; g_ascii_isalnum(*q) && q > name; q -= 1)
 				;
 
 			if (*q == '.') {
