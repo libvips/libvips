@@ -223,7 +223,9 @@ vips_foreign_load_jxl_is_a_source(VipsSource *source)
 static VipsForeignFlags
 vips_foreign_load_jxl_get_flags(VipsForeignLoad *load)
 {
-	return VIPS_FOREIGN_PARTIAL;
+	/* FIXME .. could support random access for non-animated images.
+	 */
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 static int
@@ -320,10 +322,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 		printf("JXL_DEC_NEED_PREVIEW_OUT_BUFFER\n");
 		break;
 
-	case JXL_DEC_NEED_DC_OUT_BUFFER:
-		printf("JXL_DEC_NEED_DC_OUT_BUFFER\n");
-		break;
-
 	case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
 		printf("JXL_DEC_NEED_IMAGE_OUT_BUFFER\n");
 		break;
@@ -354,10 +352,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 
 	case JXL_DEC_FRAME:
 		printf("JXL_DEC_FRAME\n");
-		break;
-
-	case JXL_DEC_DC_IMAGE:
-		printf("JXL_DEC_DC_IMAGE\n");
 		break;
 
 	case JXL_DEC_FULL_IMAGE:
@@ -495,6 +489,16 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 	if (jxl->frame_no >= frame_no)
 		return 0;
 
+	int skip = frame_no - jxl->frame_no - 1;
+	if (skip > 0) {
+#ifdef DEBUG_VERBOSE
+		printf("vips_foreign_load_jxl_read_frame: skipping %d frames\n",
+			skip);
+#endif /*DEBUG_VERBOSE*/
+		JxlDecoderSkipFrames(jxl->decoder, skip);
+		jxl->frame_no += skip;
+	}
+
 	/* Read to the end of the image.
 	 */
 	do {
@@ -509,18 +513,6 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 			break;
 
 		case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
-			/* If current frame number is less than required, skip the frame
-			 */
-			if (jxl->frame_no < frame_no) {
-				if (JxlDecoderSkipCurrentFrame(jxl->decoder) !=
-					JXL_DEC_SUCCESS) {
-					vips_foreign_load_jxl_error(jxl,
-						"JxlDecoderSkipCurrentFrame");
-					return -1;
-				}
-				break;
-			}
-
 			if (JxlDecoderImageOutBufferSize(jxl->decoder,
 					&jxl->format,
 					&buffer_size)) {
@@ -719,21 +711,20 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 		vips_image_set_int(out, VIPS_META_N_PAGES, jxl->frame_count);
 
-		if (jxl->n > 1) {
+		if (jxl->n > 1)
 			vips_image_set_int(out,
 				VIPS_META_PAGE_HEIGHT, jxl->info.ysize);
 
-			g_assert(jxl->delay_count >= jxl->frame_count);
-			vips_image_set_array_int(out,
-				"delay", &jxl->delay[jxl->page], jxl->n);
+		g_assert(jxl->delay_count >= jxl->frame_count);
+		vips_image_set_array_int(out,
+			"delay", jxl->delay, jxl->frame_count);
 
-			/* gif uses centiseconds for delays
-			 */
-			vips_image_set_int(out, "gif-delay",
-				VIPS_RINT(jxl->delay[0] / 10.0));
+		/* gif uses centiseconds for delays
+		 */
+		vips_image_set_int(out, "gif-delay",
+			VIPS_RINT(jxl->delay[0] / 10.0));
 
-			vips_image_set_int(out, "loop", jxl->info.animation.num_loops);
-		}
+		vips_image_set_int(out, "loop", jxl->info.animation.num_loops);
 	}
 	else {
 		jxl->n = 1;
@@ -1068,6 +1059,11 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 	}
 
 	if (vips_image_write(out, load->real))
+		return -1;
+
+	/* Switch to pixel decode.
+	 */
+	if (vips_source_decode(jxl->source))
 		return -1;
 
 	return 0;
