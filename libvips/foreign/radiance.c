@@ -32,6 +32,8 @@
  * 28/1/23 kleisauke
  * 	- clean-up unused macros/externs
  * 	- sync with radiance 5.3
+ * 15/07/24 kleisauke
+ * 	- sync with radiance 5.4
  */
 
 /*
@@ -79,60 +81,50 @@
  */
 
 /* ====================================================================
- * The Radiance Software License, Version 1.0
+ * The Radiance Software License, Version 2.0
  *
- * Copyright (c) 1990 - 2009 The Regents of the University of California,
- * through Lawrence Berkeley National Laboratory.   All rights reserved.
+ * Radiance v5.4 Copyright (c) 1990 to 2022, The Regents of the University of
+ * California, through Lawrence Berkeley National Laboratory (subject to receipt
+ * of any required approvals from the U.S. Dept. of Energy).  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *         notice, this list of conditions and the following disclaimer.
+ * (1) Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in
- *       the documentation and/or other materials provided with the
- *       distribution.
+ * (2) Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *           if any, must include the following acknowledgment:
- *             "This product includes Radiance software
- *                 (http://radsite.lbl.gov/)
- *                 developed by the Lawrence Berkeley National Laboratory
- *               (http://www.lbl.gov/)."
- *       Alternately, this acknowledgment may appear in the software itself,
- *       if and wherever such third-party acknowledgments normally appear.
+ * (3) Neither the name of the University of California, Lawrence Berkeley
+ * National Laboratory, U.S. Dept. of Energy nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
  *
- * 4. The names "Radiance," "Lawrence Berkeley National Laboratory"
- *       and "The Regents of the University of California" must
- *       not be used to endorse or promote products derived from this
- *       software without prior written permission. For written
- *       permission, please contact radiance@radsite.lbl.gov.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * 5. Products derived from this software may not be called "Radiance",
- *       nor may "Radiance" appear in their name, without prior written
- *       permission of Lawrence Berkeley National Laboratory.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.   IN NO EVENT SHALL Lawrence Berkeley National Laboratory OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * You are under no obligation whatsoever to provide any bug fixes, patches,
+ * or upgrades to the features, functionality or performance of the source
+ * code ("Enhancements") to anyone; however, if you choose to make your
+ * Enhancements available either publicly, or directly to Lawrence Berkeley
+ * National Laboratory, without imposing a separate written license agreement
+ * for such Enhancements, then you hereby grant the following license: a
+ * non-exclusive, royalty-free perpetual license to install, use, modify,
+ * prepare derivative works, incorporate into other computer software,
+ * distribute, and sublicense such enhancements or derivative works thereof,
+ * in binary and source code form.
  * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of Lawrence Berkeley National Laboratory.   For more
- * information on Lawrence Berkeley National Laboratory, please see
- * <http://www.lbl.gov/>.
  */
 
 /*
@@ -203,7 +195,7 @@ typedef float RGBPRIMS[4][2]; /* (x,y) chromaticities for RGBW */
 #define CIE_y_g 0.600
 #define CIE_x_b 0.150
 #define CIE_y_b 0.060
-#define CIE_x_w (1. / 3.) /* use true white */
+#define CIE_x_w (1. / 3.) /* use EE white */
 #define CIE_y_w (1. / 3.)
 
 /* picture format identifier */
@@ -261,7 +253,7 @@ typedef struct {
 
 /* resolution string buffer and its size */
 #define RESOLU_BUFLEN 32
-static char resolu_buf[RESOLU_BUFLEN]; /* resolution line buffer */
+static char resolu_buf[RESOLU_BUFLEN];
 
 /* identify header lines */
 #define isformat(s) formatval(NULL, s)
@@ -273,11 +265,11 @@ static char *
 resolu2str(char *buf, register RESOLU *rp)
 {
 	if (rp->rt & YMAJOR)
-		sprintf(buf, "%cY %d %cX %d\n",
+		sprintf(buf, "%cY %8d %cX %8d\n",
 			rp->rt & YDECR ? '-' : '+', rp->yr,
 			rp->rt & XDECR ? '-' : '+', rp->xr);
 	else
-		sprintf(buf, "%cX %d %cY %d\n",
+		sprintf(buf, "%cX %8d %cY %8d\n",
 			rp->rt & XDECR ? '-' : '+', rp->xr,
 			rp->rt & YDECR ? '-' : '+', rp->yr);
 	return buf;
@@ -323,7 +315,7 @@ formatval(char fmt[MAXFMTLEN], const char *s)
 {
 	const char *cp = FMTSTR;
 	char *r = fmt;
-
+	/* check against format string */
 	while (*cp)
 		if (*cp++ != *s++)
 			return 0;
@@ -331,12 +323,16 @@ formatval(char fmt[MAXFMTLEN], const char *s)
 		s++;
 	if (!*s)
 		return 0;
-	if (r == NULL)
+	if (r == NULL) /* just checking if format? */
 		return 1;
-	do
+	do /* copy format ID */
 		*r++ = *s++;
-	while (*s && !isspace(*s) && r - fmt < MAXFMTLEN - 1);
-	*r = '\0';
+	while (*s && r - fmt < MAXFMTLEN - 1);
+
+	do /* remove trailing white space */
+		*r-- = '\0';
+	while (r > fmt && isspace(*r));
+
 	return 1;
 }
 
