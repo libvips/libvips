@@ -3,3 +3,13 @@
 
 # Ignore repository language statistics and hide diffs for generated files
 libvips/colour/profiles.c linguist-generated=true
+
+# Omit from release tarball
+.clang-format export-ignore
+.codespellrc export-ignore
+.editorconfig export-ignore
+.git-blame-ignore-revs export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+.gitkeep export-ignore
+.github/ export-ignore
