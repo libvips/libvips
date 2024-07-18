@@ -299,6 +299,10 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 		nclx->matrix_coefficients = heif_matrix_coefficients_RGB_GBR;
 		options->output_nclx_profile = nclx;
+
+		/* Ensure nclx profile is actually written with libheif < v1.17.2.
+		 */
+		options->macOS_compatibility_workaround_no_nclx_profile = 0;
 	}
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
