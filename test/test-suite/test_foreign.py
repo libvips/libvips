@@ -847,7 +847,7 @@ class TestForeign:
         im = pyvips.Image.new_from_file(WEBP_FILE)
         buf = im.webpsave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert (im - im2).abs().max() < 1
+        assert (im - im2).abs().max() == 0
 
         # higher Q should mean a bigger buffer
         b1 = im.webpsave_buffer(Q=10)
@@ -1373,15 +1373,11 @@ class TestForeign:
         self.save_load("%s.avif", self.colour)
 
     @skip_if_no("heifsave")
-    @pytest.mark.skip()
     def test_avifsave_lossless(self):
-        # this takes FOREVER
         im = pyvips.Image.new_from_file(AVIF_FILE)
-        buf = im.heifsave_buffer(lossless=True, compression="av1")
+        buf = im.heifsave_buffer(effort=0, lossless=True, compression="av1")
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        # FIXME: needs matrix_coefficients=0 for true lossless, see:
-        # https://github.com/strukturag/libheif/pull/1039
-        assert (im - im2).abs().max() < 1
+        assert (im - im2).abs().max() == 0
 
     @skip_if_no("heifsave")
     def test_avifsave_Q(self):
