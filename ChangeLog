@@ -7,6 +7,8 @@
 - fix pipe read limit
 - fix a rare crash on Windows in highly threaded applications [Julianiolo]
 - vipssave: fix infinite loop on Windows with large images [pdbourke]
+- fix vips_image_get_string
+- heifsave: fix lossless mode [kleisauke]
 
 12/3/24 8.15.2
 
