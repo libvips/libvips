@@ -1377,7 +1377,9 @@ class TestForeign:
         im = pyvips.Image.new_from_file(AVIF_FILE)
         buf = im.heifsave_buffer(effort=0, lossless=True, compression="av1")
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert (im - im2).abs().max() == 0
+        # requires libheif >= 1.13.0 for true lossless:
+        # see: https://github.com/strukturag/libheif/commit/b2612dd9c63f8835cf2047960b8cacd464a325a4
+        assert (im - im2).abs().max() <= 1.0
 
     @skip_if_no("heifsave")
     def test_avifsave_Q(self):
