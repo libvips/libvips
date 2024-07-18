@@ -548,8 +548,12 @@ if libheif_dep.found()
     if libheif_dep.version().version_compare('>=1.7.0')
         cfg_var.set('HAVE_HEIF_AVIF', '1')
     endif
+    # added in 1.11.0
+    if cpp.has_member('struct heif_encoding_options', 'output_nclx_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
+        cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE', '1')
+    endif
 
-    # heif_init in 1.13
+    # heif_init added in 1.13.0
     if libheif_dep.version().version_compare('>=1.13.0')
         cfg_var.set('HAVE_HEIF_INIT', '1')
     endif
