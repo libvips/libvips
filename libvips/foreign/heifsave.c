@@ -290,15 +290,21 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		options->save_alpha_channel = 1;
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
-	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless mode.
+	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
+	 * mode.
 	 */
 	if (heif->lossless) {
-		struct heif_color_profile_nclx *nclx = heif_nclx_color_profile_alloc();
-		if (!nclx)
+		struct heif_color_profile_nclx *nclxl
+
+		if (!(nclx = heif_nclx_color_profile_alloc()))
 			return -1;
 
 		nclx->matrix_coefficients = heif_matrix_coefficients_RGB_GBR;
 		options->output_nclx_profile = nclx;
+
+		/* Ensure nclx profile is actually written with libheif < v1.17.2.
+		 */
+		options->macOS_compatibility_workaround_no_nclx_profile = 0;
 	}
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
@@ -313,7 +319,8 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
+		printf("... libheif took %.2g seconds\n",
+			g_timer_elapsed(timer, NULL));
 		g_timer_destroy(timer);
 	}
 #endif /*DEBUG*/
@@ -502,7 +509,8 @@ vips_foreign_save_heif_build(VipsObject *object)
 	const struct heif_encoder_descriptor *out_encoder;
 	const struct heif_encoder_parameter *const *param;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->
+		build(object))
 		return -1;
 
 	/* If the old, deprecated "speed" param is being used and the new
@@ -589,14 +597,16 @@ vips_foreign_save_heif_build(VipsObject *object)
 				heif->Q >= 90)
 		? "444"
 		: "420";
-	error = heif_encoder_set_parameter_string(heif->encoder, "chroma", chroma);
+	error = heif_encoder_set_parameter_string(heif->encoder,
+		"chroma", chroma);
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
 		return -1;
 	}
 
-	for (param = heif_encoder_list_parameters(heif->encoder); *param; param++) {
+	for (param = heif_encoder_list_parameters(heif->encoder);
+		*param; param++) {
 		int have_minimum;
 		int have_maximum;
 		int minimum;
