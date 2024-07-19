@@ -294,7 +294,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	 * mode.
 	 */
 	if (heif->lossless) {
-		struct heif_color_profile_nclx *nclxl
+		struct heif_color_profile_nclx *nclx;
 
 		if (!(nclx = heif_nclx_color_profile_alloc()))
 			return -1;
