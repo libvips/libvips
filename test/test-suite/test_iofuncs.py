@@ -63,6 +63,7 @@ class TestIofuncs:
 
         assert s == t
 
+    @pytest.mark.skipif(pyvips.cache_get_max() == 0)
     def test_revalidate(self):
         filename = temp_filename(self.tempdir, '.v')
 
