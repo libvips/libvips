@@ -205,7 +205,7 @@ vips_similarity_class_init(VipsSimilarityClass *class)
 
 	VIPS_ARG_DOUBLE(class, "angle", 4,
 		_("Angle"),
-		_("Rotate anticlockwise by this many degrees"),
+		_("Rotate clockwise by this many degrees"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSimilarity, angle),
 		-10000000, 10000000, 0);
@@ -274,7 +274,7 @@ vips_rotate_class_init(VipsRotateClass *class)
 
 	VIPS_ARG_DOUBLE(class, "angle", 4,
 		_("Angle"),
-		_("Rotate anticlockwise by this many degrees"),
+		_("Rotate clockwise by this many degrees"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsSimilarity, angle),
 		-10000000, 10000000, 0);
