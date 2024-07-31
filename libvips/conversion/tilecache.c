@@ -565,7 +565,7 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 	 */
 	if (cache->max_tiles != -1 &&
 		n_tiles > cache->max_tiles) {
-		VIPS_DEBUG_MSG(
+		printf(
 			"vips_tile_cache_ref: bumped max_tiles from %d to %d\n",
 			cache->max_tiles,
 			n_tiles);
@@ -929,13 +929,13 @@ vips_line_cache_build(VipsObject *object)
 	block_cache->max_tiles = VIPS_MAX(2,
 		4 * n_lines / block_cache->tile_height);
 
-	VIPS_DEBUG_MSG("vips_line_cache_build: n_lines = %d\n",
+	printf("vips_line_cache_build: n_lines = %d\n",
 		n_lines);
-	VIPS_DEBUG_MSG("vips_line_cache_build: max_tiles = %d\n",
+	printf("vips_line_cache_build: max_tiles = %d\n",
 		block_cache->max_tiles);
-	VIPS_DEBUG_MSG("vips_line_cache_build: tile_height = %d\n",
+	printf("vips_line_cache_build: tile_height = %d\n",
 		block_cache->tile_height);
-	VIPS_DEBUG_MSG("vips_line_cache_build: max size = %g MB\n",
+	printf("vips_line_cache_build: max size = %g MB\n",
 		(block_cache->max_tiles *
 			block_cache->tile_width *
 			block_cache->tile_height *
