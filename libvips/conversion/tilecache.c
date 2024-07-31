@@ -129,7 +129,6 @@ typedef struct _VipsBlockCache {
 	gboolean threaded;
 	gboolean persistent;
 
-	int ntiles;		   /* Current cache size */
 	GMutex *lock;	   /* Lock everything here */
 	GCond *new_tile;   /* A new tile is ready */
 	GHashTable *tiles; /* Tiles, hashed by coordinates */
@@ -213,8 +212,6 @@ vips_tile_new(VipsBlockCache *cache, int x, int y)
 	tile->pos.height = cache->tile_height;
 	g_hash_table_insert(cache->tiles, &tile->pos, tile);
 	g_queue_push_tail(tile->cache->recycle, tile);
-	g_assert(cache->ntiles >= 0);
-	cache->ntiles += 1;
 
 	if (!(tile->region = vips_region_new(cache->in))) {
 		g_hash_table_remove(cache->tiles, &tile->pos);
@@ -291,7 +288,7 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 	/* VipsBlockCache not full?
 	 */
 	if (cache->max_tiles == -1 ||
-		cache->ntiles < cache->max_tiles) {
+		g_hash_table_size(cache->tiles) < cache->max_tiles) {
 		VIPS_DEBUG_MSG_RED(
 			"vips_tile_find: making new tile at %d x %d\n", x, y);
 		if (!(tile = vips_tile_new(cache, x, y)))
@@ -467,8 +464,6 @@ vips_tile_destroy(VipsTile *tile)
 	g_assert(g_queue_find(tile->cache->recycle, tile));
 	g_queue_remove(cache->recycle, tile);
 
-	cache->ntiles -= 1;
-	g_assert(cache->ntiles >= 0);
 	tile->cache = NULL;
 
 	VIPS_UNREF(tile->region);
@@ -486,7 +481,6 @@ vips_block_cache_init(VipsBlockCache *cache)
 	cache->threaded = FALSE;
 	cache->persistent = FALSE;
 
-	cache->ntiles = 0;
 	cache->lock = vips_g_mutex_new();
 	cache->new_tile = vips_g_cond_new();
 	cache->tiles = g_hash_table_new_full(
