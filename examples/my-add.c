@@ -7,6 +7,8 @@
  * compile with
  *
  *		gcc try.c -g -Wall `pkg-config vips --cflags --libs`
+ *
+ * (derived from code by @prasadbandodkar with thanks)
  */
 
 #include <vips/vips.h>
