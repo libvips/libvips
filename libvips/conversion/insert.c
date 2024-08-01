@@ -375,11 +375,9 @@ vips_insert_build(VipsObject *object)
 
 	if (vips_image_pio_input(insert->main) ||
 		vips_image_pio_input(insert->sub) ||
-		vips_check_bands_1orn(class->nickname,
-			insert->main, insert->sub) ||
+		vips_check_bands_1orn(class->nickname, insert->main, insert->sub) ||
 		vips_check_coding_known(class->nickname, insert->main) ||
-		vips_check_coding_same(class->nickname,
-			insert->main, insert->sub))
+		vips_check_coding_same(class->nickname, insert->main, insert->sub))
 		return -1;
 
 	/* Cast our input images up to a common format and bands.
