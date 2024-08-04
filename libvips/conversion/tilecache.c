@@ -220,7 +220,7 @@ vips_tile_new(VipsBlockCache *cache, int x, int y)
 
 	vips__region_no_ownership(tile->region);
 
-	if (vips_tile_move(tile, x, y)) {
+	if (vips_region_buffer(tile->region, &tile->pos)) {
 		g_hash_table_remove(cache->tiles, &tile->pos);
 		return NULL;
 	}
