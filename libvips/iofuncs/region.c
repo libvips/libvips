@@ -561,8 +561,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 	/* Test for empty.
 	 */
 	if (vips_rect_isempty(&clipped)) {
-		vips_error("VipsRegion",
-			"%s", _("valid clipped to nothing"));
+		vips_error("VipsRegion", "%s", _("valid clipped to nothing"));
 		return -1;
 	}
 
@@ -584,8 +583,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 		/* We combine buffer unref and new buffer ref in one call
 		 * to reduce malloc/free cycling.
 		 */
-		if (!(reg->buffer =
-					vips_buffer_unref_ref(reg->buffer, im, &clipped)))
+		if (!(reg->buffer = vips_buffer_unref_ref(reg->buffer, im, &clipped)))
 			return -1;
 	}
 
