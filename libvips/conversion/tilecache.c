@@ -281,27 +281,33 @@ vips_tile_find_is_topper(gpointer element, gpointer user_data)
 		*best = this;
 }
 
-/* Pick a tile for reuse -- the smallest Y, or the oldest.
+/* Pick a tile for reuse, depending on the access hint.
  */
 static VipsTile *
 vips_tile_reuse(VipsBlockCache *cache)
 {
+	VipsTile *tile;
+
+	tile = NULL;
 	if (cache->recycle) {
-		if (cache->access == VIPS_ACCESS_RANDOM)
+		switch (cache->access) {
+		case VIPS_ACCESS_RANDOM:
 			// oldest tile
-			return g_queue_peek_head(cache->recycle);
-		else {
-			VipsTile *tile;
+			tile = g_queue_peek_head(cache->recycle);
+			break;
 
+		case VIPS_ACCESS_SEQUENTIAL:
 			// highest tile (lowest Y position)
-			tile = NULL;
 			g_queue_foreach(cache->recycle, vips_tile_find_is_topper, &tile);
+			break;
 
-			return tile;
+		default:
+			g_assert_not_reached();
+			break;
 		}
 	}
 
-	return NULL;
+	return tile;
 }
 
 /* Find an existing tile, make a new tile, or if we have a full set of tiles,
@@ -457,16 +463,12 @@ vips_block_cache_class_init(VipsBlockCacheClass *class)
 static unsigned int
 vips_rect_hash(VipsRect *pos)
 {
-	guint hash;
-
 	/* We could shift down by the tile size?
 	 *
 	 * X discrimination is more important than Y, since
 	 * most tiles will have a similar Y.
 	 */
-	hash = (guint) pos->left ^ ((guint) pos->top << 16);
-
-	return hash;
+	return (guint) pos->left ^ ((guint) pos->top << 16);
 }
 
 static gboolean
@@ -525,18 +527,13 @@ vips_tile_unref(VipsTile *tile)
 {
 	SANITY(tile);
 
-	g_assert(tile->ref_count > 0);
-
 	tile->ref_count -= 1;
 
-	if (tile->ref_count == 0) {
+	if (tile->ref_count == 0)
 		/* Place at the end of the recycle queue. We pop from the
 		 * front when selecting an unused tile for reuse.
 		 */
-		g_assert(!g_queue_find(tile->cache->recycle, tile));
-
 		g_queue_push_tail(tile->cache->recycle, tile);
-	}
 
 	SANITY(tile);
 }
@@ -548,13 +545,8 @@ vips_tile_ref(VipsTile *tile)
 
 	tile->ref_count += 1;
 
-	g_assert(tile->ref_count > 0);
-
-	if (tile->ref_count == 1) {
-		g_assert(g_queue_find(tile->cache->recycle, tile));
-
+	if (tile->ref_count == 1)
 		g_queue_remove(tile->cache->recycle, tile);
-	}
 
 	SANITY(tile);
 }
@@ -562,12 +554,7 @@ vips_tile_ref(VipsTile *tile)
 static void
 vips_tile_cache_unref(GSList *work)
 {
-	for (GSList *p = work; p; p = p->next) {
-		VipsTile *tile = (VipsTile *) p->data;
-
-		vips_tile_unref(tile);
-	}
-
+	g_slist_foreach(work, (GFunc) vips_tile_unref, NULL);
 	g_slist_free(work);
 }
 
@@ -615,21 +602,8 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 /* Compute the first dirty tile on the work list.
  */
 static int
-vips_tile_cache_compute(VipsRegion *in_region, GSList *work)
+vips_tile_cache_compute(VipsRegion *in_region, VipsTile *tile)
 {
-	VipsTile *tile;
-
-	tile = NULL;
-	for (GSList *p = work; p; p = p->next) {
-		tile = (VipsTile *) p->data;
-
-		if (tile->dirty)
-			break;
-	}
-
-	if (!tile)
-		return 0;
-
 	VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: calc of %p\n", tile);
 
 	/* We must stop another thread picking up this tile when we unlock. And
@@ -662,21 +636,6 @@ vips_tile_cache_compute(VipsRegion *in_region, GSList *work)
 	}
 
 	return result;
-}
-
-/* Has a list of tiles been fully computed?
- */
-static gboolean
-vips_tile_cache_clean(GSList *work)
-{
-	for (GSList *p = work; p; p = p->next) {
-		VipsTile *tile = (VipsTile *) p->data;
-
-		if (tile->dirty)
-			return FALSE;
-	}
-
-	return TRUE;
 }
 
 static void
@@ -738,13 +697,21 @@ vips_tile_cache_gen(VipsRegion *out_region,
 	/* Loop until all our tiles are ready, or there's an error of some sort,
 	 * perhaps a loader hits a bad tile.
 	 */
-	while (!vips_tile_cache_clean(work))
-		if (vips_tile_cache_compute(in_region, work)) {
+	GSList *todo;
+	todo = g_slist_copy(work);
+	while (todo) {
+		VipsTile *tile = (VipsTile *) todo->data;
+		todo = g_slist_remove(todo, tile);
+
+		if (tile->dirty &&
+			vips_tile_cache_compute(in_region, tile)) {
 			*stop = TRUE;
 			break;
 		}
+	}
+	VIPS_FREEF(g_slist_free, todo);
 
-	/* Paint from our tiles into the result, unref, and return.
+	/* Paste from our tiles into the result, unref, and return.
 	 */
 	vips_tile_paste(out_region, work);
 	vips_tile_cache_unref(work);
