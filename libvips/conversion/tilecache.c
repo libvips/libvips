@@ -101,9 +101,13 @@ typedef struct _VipsTile {
 	 */
 	int ref_count;
 
-	/* This tile needs computing.
+	/* This tile does jnot contain valid pixels.
 	 */
 	gboolean dirty;
+
+	/* This tile is on the todo queue and is awaiting computation.
+	 */
+	gboolean pending;
 
 	/* Tile position. Just use left/top to calculate a hash. This is the
 	 * key for the hash table. Don't use region->valid in case the region
@@ -127,6 +131,8 @@ typedef struct _VipsBlockCache {
 	GMutex *lock;			/* Lock everything here */
 	GHashTable *tiles;		/* Tiles, hashed by coordinates */
 	GQueue *recycle;		/* Queue of unreffed tiles to reuse */
+	GQueue *todo;			/* Queue of tiles that need computing */
+	GCond *new_tile;		/* Broadcast this every time we compute a tile */
 } VipsBlockCache;
 
 typedef VipsConversionClass VipsBlockCacheClass;
@@ -153,11 +159,13 @@ vips_block_cache_dispose(GObject *gobject)
 
 	vips_block_cache_drop_all(cache);
 	VIPS_FREEF(vips_g_mutex_free, cache->lock);
+	VIPS_FREEF(vips_g_cond_free, cache->new_tile);
 
 	if (cache->tiles)
 		g_assert(g_hash_table_size(cache->tiles) == 0);
 	VIPS_FREEF(g_hash_table_destroy, cache->tiles);
 	VIPS_FREEF(g_queue_free, cache->recycle);
+	VIPS_FREEF(g_queue_free, cache->todo);
 
 	G_OBJECT_CLASS(vips_block_cache_parent_class)->dispose(gobject);
 }
@@ -174,6 +182,14 @@ vips_tile_sanity(VipsTile *tile)
 	// unreffed tiles should be ready for recycling
 	if (!tile->ref_count)
 		g_assert(g_queue_find(tile->cache->recycle, tile));
+
+	// pending tiles should be on the todo list
+	if (tile->pending)
+		g_assert(g_queue_find(tile->cache->todo, tile));
+
+	// pending tiles should be dirty
+	if (tile->pending)
+		g_assert(tile->dirty);
 }
 
 #define SANITY(TILE) vips_tile_sanity(TILE)
@@ -207,12 +223,19 @@ vips_tile_move(VipsTile *tile, int x, int y)
 	tile->dirty = TRUE;
 	vips_region_black(tile->region);
 
+	/* Add to the end of the recomp list. We only ever move computed and
+	 * unreffed tiles, so it can't be there already.
+	 */
+	g_assert(!tile->pending);
+	tile->pending = TRUE;
+	g_queue_push_tail(tile->cache->todo, tile);
+
 	SANITY(tile);
 
 	return 0;
 }
 
-/* New tiles are always dirty and unreffed.
+/* New tiles are always dirty, unreffed and pending.
  */
 static VipsTile *
 vips_tile_new(VipsBlockCache *cache, int x, int y)
@@ -230,8 +253,10 @@ vips_tile_new(VipsBlockCache *cache, int x, int y)
 	tile->pos.width = cache->tile_width;
 	tile->pos.height = cache->tile_height;
 	tile->dirty = TRUE;
+	tile->pending = TRUE;
 	g_hash_table_insert(cache->tiles, &tile->pos, tile);
 	g_queue_push_tail(tile->cache->recycle, tile);
+	g_queue_push_tail(tile->cache->todo, tile);
 
 	if (!(tile->region = vips_region_new(cache->in))) {
 		g_hash_table_remove(cache->tiles, &tile->pos);
@@ -486,6 +511,7 @@ vips_tile_destroy(VipsTile *tile)
 		tile->pos.left, tile->pos.top, tile);
 
 	g_queue_remove(cache->recycle, tile);
+	g_queue_remove(cache->todo, tile);
 
 	tile->cache = NULL;
 
@@ -511,6 +537,8 @@ vips_block_cache_init(VipsBlockCache *cache)
 		NULL,
 		(GDestroyNotify) vips_tile_destroy);
 	cache->recycle = g_queue_new();
+	cache->todo = g_queue_new();
+	cache->new_tile = vips_g_cond_new();
 }
 
 typedef struct _VipsTileCache {
@@ -530,8 +558,8 @@ vips_tile_unref(VipsTile *tile)
 	tile->ref_count -= 1;
 
 	if (tile->ref_count == 0)
-		/* Place at the end of the recycle queue. We pop from the
-		 * front when selecting an unused tile for reuse.
+		/* Place at the end of the recycle queue. In random mode, we pop from
+		 * the front when selecting an unused tile for reuse.
 		 */
 		g_queue_push_tail(tile->cache->recycle, tile);
 
@@ -599,18 +627,14 @@ vips_tile_cache_ref(VipsBlockCache *cache, VipsRect *r)
 	return work;
 }
 
-/* Compute the first dirty tile on the work list.
+/* Compute a tile.
  */
 static int
 vips_tile_cache_compute(VipsRegion *in_region, VipsTile *tile)
 {
-	VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: calc of %p\n", tile);
+	SANITY(tile);
 
-	/* We must stop another thread picking up this tile when we unlock. And
-	 * tiles must always be clean, if if recomp fails, since we don't want
-	 * to comp them again.
-	 */
-	tile->dirty = FALSE;
+	VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: calc of %p\n", tile);
 
 	/* In threaded mode, we let other threads run while we calc this tile.
 	 * In non-threaded mode, we keep the lock and make 'em wait.
@@ -654,6 +678,21 @@ vips_tile_paste(VipsRegion *out_region, GSList *work)
 	}
 }
 
+/* Have all tiles on the work list been computed?
+ */
+static gboolean
+vips_tile_cache_computed(GSList *work)
+{
+	for (GSList *p = work; p; p = p->next) {
+		VipsTile *tile = (VipsTile *) p->data;
+
+		if (tile->dirty)
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
 static void
 vips_tile_cache_trim(VipsBlockCache *cache)
 {
@@ -694,22 +733,51 @@ vips_tile_cache_gen(VipsRegion *out_region,
 		return -1;
 	}
 
-	/* Loop until all our tiles are ready, or there's an error of some sort,
-	 * perhaps a loader hits a bad tile.
+	/* Do any work we can until our work area is ready.
 	 */
-	GSList *todo;
-	todo = g_slist_copy(work);
-	while (todo) {
-		VipsTile *tile = (VipsTile *) todo->data;
-		todo = g_slist_remove(todo, tile);
+	for(;;) {
+		VipsTile *tile;
 
-		if (tile->dirty &&
-			vips_tile_cache_compute(in_region, tile)) {
-			*stop = TRUE;
+		/* Have all our tiles been computed? we are done.
+		 */
+		if (vips_tile_cache_computed(work))
 			break;
+
+		/* Are there uncomputed tiles? We can do useful work by computing one.
+		 */
+		if ((tile = g_queue_pop_head(cache->todo))) {
+			g_assert(tile->pending);
+			if (tile->pending)
+				tile->pending = FALSE;
+
+			if (vips_tile_cache_compute(in_region, tile))
+				*stop = TRUE;
+
+			/* Always clear dirty, since we don't want to comp again even if
+			 * computing this tile fails.
+			 */
+			tile->dirty = FALSE;
+
+			/* Let everyone know there's a new computed tile. Any blocked
+			 * threads need to recheck their work lists.
+			 */
+			g_cond_broadcast(tile->cache->new_tile);
+
+			if (*stop)
+				break;
+		}
+		else {
+			/* No tiles are waiting to be computed, but we've still got dirty
+			 * tiles on our work list ... some other thread must be computing
+			 * the tile we need.
+			 *
+			 * We must wait until another tile finishes, then test our work
+			 * list again.
+			 */
+			VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: blocking ...\n");
+			g_cond_wait(cache->new_tile, cache->lock);
 		}
 	}
-	VIPS_FREEF(g_slist_free, todo);
 
 	/* Paste from our tiles into the result, unref, and return.
 	 */
