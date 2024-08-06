@@ -235,8 +235,7 @@ vips__region_start(VipsRegion *region)
 
 		VIPS_GATE_STOP("vips__region_start: wait");
 
-		region->seq = image->start_fn(image,
-			image->client1, image->client2);
+		region->seq = image->start_fn(image, image->client1, image->client2);
 
 		g_mutex_unlock(image->sslock);
 
@@ -269,8 +268,7 @@ vips__region_stop(VipsRegion *region)
 
 		VIPS_GATE_STOP("vips__region_stop: wait");
 
-		result = image->stop_fn(region->seq,
-			image->client1, image->client2);
+		result = image->stop_fn(region->seq, image->client1, image->client2);
 
 		g_mutex_unlock(image->sslock);
 
@@ -278,8 +276,7 @@ vips__region_stop(VipsRegion *region)
 		 * can really do with it, sadly.
 		 */
 		if (result)
-			g_warning("stop callback failed for image %s",
-				image->filename);
+			g_warning("stop callback failed for image %s", image->filename);
 
 		region->seq = NULL;
 	}
@@ -409,8 +406,7 @@ vips__region_check_ownership(VipsRegion *region)
 	if (region->thread) {
 		g_assert(region->thread == g_thread_self());
 		if (region->buffer && region->buffer->cache)
-			g_assert(region->thread ==
-				region->buffer->cache->thread);
+			g_assert(region->thread == region->buffer->cache->thread);
 	}
 }
 
@@ -629,8 +625,7 @@ vips_region_image(VipsRegion *reg, const VipsRect *r)
 	vips_rect_intersectrect(r, &all, &clipped);
 
 	if (vips_rect_isempty(&clipped)) {
-		vips_error("VipsRegion",
-			"%s", _("valid clipped to nothing"));
+		vips_error("VipsRegion", "%s", _("valid clipped to nothing"));
 		return -1;
 	}
 
@@ -713,14 +708,12 @@ vips_region_region(VipsRegion *reg,
 	/* Sanity check.
 	 */
 	if (!dest->data) {
-		vips_error("VipsRegion",
-			"%s", _("no pixel data on attached image"));
+		vips_error("VipsRegion", "%s", _("no pixel data on attached image"));
 		return -1;
 	}
 	if (VIPS_IMAGE_SIZEOF_PEL(dest->im) !=
 		VIPS_IMAGE_SIZEOF_PEL(reg->im)) {
-		vips_error("VipsRegion",
-			"%s", _("images do not match in pixel size"));
+		vips_error("VipsRegion", "%s", _("images do not match in pixel size"));
 		return -1;
 	}
 	vips__region_check_ownership(reg);
@@ -752,8 +745,7 @@ vips_region_region(VipsRegion *reg,
 	/* Test that dest->valid is large enough.
 	 */
 	if (!vips_rect_includesrect(&dest->valid, &wanted)) {
-		vips_error("VipsRegion",
-			"%s", _("dest too small"));
+		vips_error("VipsRegion", "%s", _("dest too small"));
 		return -1;
 	}
 
@@ -771,8 +763,7 @@ vips_region_region(VipsRegion *reg,
 	/* Test for empty.
 	 */
 	if (vips_rect_isempty(&final)) {
-		vips_error("VipsRegion",
-			"%s", _("valid clipped to nothing"));
+		vips_error("VipsRegion", "%s", _("valid clipped to nothing"));
 		return -1;
 	}
 
@@ -935,10 +926,9 @@ vips_region_paint(VipsRegion *reg, const VipsRect *r, int value)
 			}
 		}
 		else {
-			gboolean iscomplex =
-				vips_band_format_iscomplex(reg->im->BandFmt);
-			int nele = clipped.width * reg->im->Bands *
-				(iscomplex ? 2 : 1);
+			gboolean iscomplex = vips_band_format_iscomplex(reg->im->BandFmt);
+			int nele = clipped.width * reg->im->Bands * (iscomplex ? 2 : 1);
+
 			VipsPel *q1;
 
 			switch (reg->im->BandFmt) {
@@ -1079,8 +1069,7 @@ vips_region_copy(VipsRegion *reg,
 
 	/* VipsPel size must be the same.
 	 */
-	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) ==
-		VIPS_IMAGE_SIZEOF_PEL(dest->im));
+	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) == VIPS_IMAGE_SIZEOF_PEL(dest->im));
 #endif /*DEBUG*/
 
 	/* Copy the scanlines.
@@ -1126,12 +1115,9 @@ vips_region_shrink_labpack(VipsRegion *from,
 			signed char *sp = (signed char *) p;
 			unsigned char *up = (unsigned char *) p;
 
-			int l = up[0] + up[4] +
-				up[ls] + up[ls + 4];
-			int a = sp[1] + sp[5] +
-				sp[ls + 1] + sp[ls + 5];
-			int b = sp[2] + sp[6] +
-				sp[ls + 2] + sp[ls + 6];
+			int l = up[0] + up[4] + up[ls] + up[ls + 4];
+			int a = sp[1] + sp[5] + sp[ls + 1] + sp[ls + 5];
+			int b = sp[2] + sp[6] + sp[ls + 2] + sp[ls + 6];
 
 			q[0] = (l + 2) >> 2;
 			q[1] = a >> 2;
@@ -1566,8 +1552,7 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 		return -1;
 
 	if (from->im->Coding == VIPS_CODING_NONE) {
-		if (vips_check_noncomplex("vips_region_shrink_method",
-				image))
+		if (vips_check_noncomplex("vips_region_shrink_method", image))
 			return -1;
 
 		if (vips_image_hasalpha(image))
@@ -1598,8 +1583,7 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 int
 vips_region_shrink(VipsRegion *from, VipsRegion *to, const VipsRect *target)
 {
-	return vips_region_shrink_method(from, to, target,
-		VIPS_REGION_SHRINK_MEAN);
+	return vips_region_shrink_method(from, to, target, VIPS_REGION_SHRINK_MEAN);
 }
 
 /* Generate into a region.
@@ -1622,8 +1606,7 @@ vips_region_generate(VipsRegion *reg, void *a)
 	if (im->generate_fn(reg, reg->seq, im->client1, im->client2, &stop))
 		return -1;
 	if (stop) {
-		vips_error("vips_region_generate",
-			"%s", _("stop requested"));
+		vips_error("vips_region_generate", "%s", _("stop requested"));
 		return -1;
 	}
 
@@ -1705,8 +1688,7 @@ vips_region_prepare(VipsRegion *reg, const VipsRect *r)
 		break;
 
 	default:
-		vips_error("vips_region_prepare",
-			_("unable to input from a %s image"),
+		vips_error("vips_region_prepare", _("unable to input from a %s image"),
 			vips_enum_string(VIPS_TYPE_DEMAND_STYLE, im->dtype));
 		return -1;
 	}
@@ -1729,8 +1711,7 @@ vips_region_prepare_to_generate(VipsRegion *reg,
 	VipsPel *p;
 
 	if (!im->generate_fn) {
-		vips_error("vips_region_prepare_to",
-			"%s", _("incomplete header"));
+		vips_error("vips_region_prepare_to", "%s", _("incomplete header"));
 		return -1;
 	}
 
@@ -1824,8 +1805,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	/* Test that dest->valid is large enough.
 	 */
 	if (!vips_rect_includesrect(&dest->valid, &wanted)) {
-		vips_error("vips_region_prepare_to",
-			"%s", _("dest too small"));
+		vips_error("vips_region_prepare_to", "%s", _("dest too small"));
 		return -1;
 	}
 
@@ -1882,8 +1862,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		 * function, we are outputting.
 		 */
 		if (im->generate_fn) {
-			if (vips_region_prepare_to_generate(reg,
-					dest, &final, x, y))
+			if (vips_region_prepare_to_generate(reg, dest, &final, x, y))
 				return -1;
 		}
 		else {
