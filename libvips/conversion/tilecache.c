@@ -281,18 +281,27 @@ vips_tile_find_is_topper(gpointer element, gpointer user_data)
 		*best = this;
 }
 
-/* Search the recycle list for the topmost tile. In seq mode, we recycle by Y
- * position.
+/* Pick a tile for reuse -- the smallest Y, or the oldest.
  */
 static VipsTile *
-vips_tile_find_topmost(GQueue *recycle)
+vips_tile_reuse(VipsBlockCache *cache)
 {
-	VipsTile *tile;
+	if (cache->recycle) {
+		if (cache->access == VIPS_ACCESS_RANDOM)
+			// oldest tile
+			return g_queue_peek_head(cache->recycle);
+		else {
+			VipsTile *tile;
 
-	tile = NULL;
-	g_queue_foreach(recycle, vips_tile_find_is_topper, &tile);
+			// highest tile (lowest Y position)
+			tile = NULL;
+			g_queue_foreach(cache->recycle, vips_tile_find_is_topper, &tile);
 
-	return tile;
+			return tile;
+		}
+	}
+
+	return NULL;
 }
 
 /* Find an existing tile, make a new tile, or if we have a full set of tiles,
@@ -324,31 +333,22 @@ vips_tile_find(VipsBlockCache *cache, int x, int y)
 	/* Reuse an old one, if there are any. We just peek the tile pointer,
 	 * it is removed from the recycle list later on _ref.
 	 */
-	if (cache->recycle) {
-		if (cache->access == VIPS_ACCESS_RANDOM)
-			// oldest tile
-			tile = g_queue_peek_head(cache->recycle);
-		else
-			// highest tile (lowest Y position)
-			tile = vips_tile_find_topmost(cache->recycle);
-	}
+	if ((tile = vips_tile_reuse(cache))) {
+		VIPS_DEBUG_MSG_RED("vips_tile_find: moving tile %d x %d to %d x %d\n",
+			tile->pos.left, tile->pos.top, x, y);
 
-	if (!tile) {
-		/* There are no tiles we can reuse -- we have to make another, pushing
-		 * us over max_tiles. These extra tiles will get culled down again
-		 * next time around.
-		 */
-		VIPS_DEBUG_MSG_RED("vips_tile_find: excess tile %d x %d\n", x, y);
-		if (!(tile = vips_tile_new(cache, x, y)))
+		if (vips_tile_move(tile, x, y))
 			return NULL;
 
 		return tile;
 	}
 
-	VIPS_DEBUG_MSG_RED("vips_tile_find: moving tile %d x %d to %d x %d\n",
-		tile->pos.left, tile->pos.top, x, y);
-
-	if (vips_tile_move(tile, x, y))
+	/* There are no tiles we can reuse -- we have to make another, pushing
+	 * us over max_tiles. These extra tiles will get culled down again
+	 * next time around.
+	 */
+	VIPS_DEBUG_MSG_RED("vips_tile_find: excess tile %d x %d\n", x, y);
+	if (!(tile = vips_tile_new(cache, x, y)))
 		return NULL;
 
 	return tile;
@@ -695,6 +695,16 @@ vips_tile_paste(VipsRegion *out_region, GSList *work)
 	}
 }
 
+static void
+vips_tile_cache_trim(VipsBlockCache *cache)
+{
+	VipsTile *tile;
+
+	while (g_hash_table_size(cache->tiles) > cache->max_tiles &&
+		(tile = vips_tile_reuse(cache)))
+		g_hash_table_remove(cache->tiles, &tile->pos);
+}
+
 /* Also called from vips_line_cache_gen(), beware.
  */
 static int
@@ -713,8 +723,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 
 	VIPS_GATE_STOP("vips_tile_cache_gen: wait1");
 
-	VIPS_DEBUG_MSG_RED(
-		"vips_tile_cache_gen: "
+	VIPS_DEBUG_MSG_RED("vips_tile_cache_gen: "
 		"left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
@@ -739,6 +748,10 @@ vips_tile_cache_gen(VipsRegion *out_region,
 	 */
 	vips_tile_paste(out_region, work);
 	vips_tile_cache_unref(work);
+
+	/* Trim the cache down if it's gone over max_tiles.
+	 */
+	vips_tile_cache_trim(cache);
 
 	g_mutex_unlock(cache->lock);
 
