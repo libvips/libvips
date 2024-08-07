@@ -147,9 +147,6 @@ VIPS_API
 int vips_sequential(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_cache(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
 int vips_copy_file(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 

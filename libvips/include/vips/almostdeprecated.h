@@ -284,6 +284,10 @@ int im_clip2f(IMAGE *in, IMAGE *out);
 VIPS_DEPRECATED_FOR(vips_cast)
 int im_clip2c(IMAGE *in, IMAGE *out);
 
+VIPS_DEPRECATED_FOR(vips_tilecache)
+int vips_cache(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
 VIPS_DEPRECATED
 int im_slice(IMAGE *in, IMAGE *out, double, double);
 VIPS_DEPRECATED
