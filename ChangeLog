@@ -22,6 +22,7 @@ master 8.16
 - revise sRGB -> B_W coefficients [daniellovera]
 - add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
 - more const for the C++ API [Julianiolo]
+- deprecate "cache" (use tilecache instead)
 
 8.15.3
 

@@ -87,6 +87,7 @@ vips_cache_class_init(VipsCacheClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	VIPS_DEBUG_MSG("vips_cache_class_init\n");
 
@@ -96,6 +97,12 @@ vips_cache_class_init(VipsCacheClass *class)
 	vobject_class->nickname = "cache";
 	vobject_class->description = _("cache an image");
 	vobject_class->build = vips_cache_build;
+
+	/* sinkscreen swallows errors (you don't want to see them when you display
+	 * images), making this operation worse than useless for batch processing.
+	 * Just use tilecache() instead.
+	 */
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 
 	VIPS_ARG_IMAGE(class, "in", 1,
 		_("Input"),

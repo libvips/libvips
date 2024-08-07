@@ -156,15 +156,6 @@ class TestConversion:
         b = (self.mono < 2).ifthenelse(self.mono, 2)
         assert (a - b).abs().min() == 0
 
-    def test_cache(self):
-        def cache(x):
-            if isinstance(x, pyvips.Image):
-                return x.cache()
-            else:
-                return x
-
-        self.run_unary(self.all_images, cache)
-
     def test_copy(self):
         x = self.colour.copy(interpretation=pyvips.Interpretation.LAB)
         assert x.interpretation == pyvips.Interpretation.LAB
