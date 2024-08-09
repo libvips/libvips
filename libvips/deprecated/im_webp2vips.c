@@ -76,25 +76,6 @@ webp2vips(const char *name, IMAGE *out, gboolean header_only)
 	return 0;
 }
 
-static gboolean
-vips__iswebp(const char *filename)
-{
-	gboolean result;
-
-#ifdef HAVE_LIBWEBP
-	VipsSource *source;
-
-	if (!(source = vips_source_new_from_file(filename)))
-		return FALSE;
-	result = vips__iswebp_source(source);
-	VIPS_UNREF(source);
-#else  /*!HAVE_LIBWEBP*/
-	result = -1;
-#endif /*HAVE_LIBWEBP*/
-
-	return result;
-}
-
 int
 im_webp2vips(const char *name, IMAGE *out)
 {
@@ -102,6 +83,20 @@ im_webp2vips(const char *name, IMAGE *out)
 }
 
 #ifdef HAVE_LIBWEBP
+
+static gboolean
+vips__iswebp(const char *filename)
+{
+	VipsSource *source;
+	gboolean result;
+
+	if (!(source = vips_source_new_from_file(filename)))
+		return FALSE;
+	result = vips__iswebp_source(source);
+	VIPS_UNREF(source);
+
+	return result;
+}
 
 static int
 im_webp2vips_header(const char *name, IMAGE *out)

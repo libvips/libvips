@@ -504,6 +504,9 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 			break;
 
 		default:
+			// stop a compiler warning
+			limitw = 128;
+			limith = 128;
 			g_assert_not_reached();
 		}
 
@@ -513,8 +516,7 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 		 * Very tall or wide images might end up with a smallest layer
 		 * larger than one tile.
 		 */
-		if (((*layer)->width > limitw ||
-				(*layer)->height > limith) &&
+		if (((*layer)->width > limitw || (*layer)->height > limith) &&
 			(*layer)->width > 1 &&
 			(*layer)->height > 1)
 			wtiff_layer_init(wtiff, &(*layer)->below, *layer,
