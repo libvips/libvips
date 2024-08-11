@@ -583,7 +583,7 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_DEST_ATOP:
 		aR = aA;
-		t1 = 1 - aA;
+		t1 = 1 - aB;
 		for (int b = 0; b < bands; b++)
 			B[b] = t1 * A[b] + B[b];
 		break;
@@ -827,7 +827,7 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 
 	case VIPS_BLEND_MODE_DEST_ATOP:
 		aR = aA;
-		t1 = 1 - aA;
+		t1 = 1 - aB;
 		B = t1 * A + B;
 		break;
 

@@ -1070,7 +1070,7 @@ vips_source_map(VipsSource *source, size_t *length_out)
 
 	/* We don't know the length and must read and assemble in chunks.
 	 */
-	if (!source->data &&
+	if (source->is_pipe &&
 		vips_source_pipe_read_to_position(source, -1))
 		return NULL;
 

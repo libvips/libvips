@@ -36,6 +36,8 @@ master 8.16
 - conva: fix a crash with {u,}{short,int} images [erdmann]
 - fix vips_image_get_string
 - heifsave: fix lossless mode [kleisauke]
+- composite: fix dest-atop blend mode [kleisauke]
+- fix vips_source_map for zero-length sources [kleisauke]
 
 12/3/24 8.15.2
 
