@@ -1,4 +1,4 @@
-8.15.3
+11/8/24 8.15.3
 
 - fix dzsave of >8-bit images to JPEG
 - jpegsave: fix chrominance subsampling mode with jpegli [kleisauke]
