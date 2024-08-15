@@ -414,6 +414,7 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 		interpretation = VIPS_INTERPRETATION_CMYK;
 		break;
 
+	case OPJ_CLRSPC_UNKNOWN:
 	case OPJ_CLRSPC_UNSPECIFIED:
 		/* Try to guess something sensible.
 		 */
