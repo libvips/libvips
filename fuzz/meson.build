@@ -20,6 +20,7 @@ fuzz_progs = [
     'pngsave_buffer_fuzzer',
     'webpsave_buffer_fuzzer',
     'gifsave_buffer_fuzzer',
+    'generic_buffer_fuzzer',
     'sharpen_fuzzer',
     'thumbnail_fuzzer',
     'smartcrop_fuzzer',
