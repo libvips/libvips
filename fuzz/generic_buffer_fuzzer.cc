@@ -19,7 +19,7 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 	char **array = vips_foreign_get_suffixes();
 	for (int i = 0; array[i] != nullptr; i++) {
 		if (!g_slist_find_custom(suffixes, array[i],
-				(GCompareFunc) g_strcmp0)) {
+			(GCompareFunc) g_strcmp0)) {
 			printf("%s\n", array[i]);
 			suffixes = g_slist_append(suffixes, g_strdup(array[i]));
 		}
