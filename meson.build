@@ -741,7 +741,7 @@ build_summary = {
      'enable examples': [get_option('examples')],
      'enable cplusplus': [get_option('cplusplus')],
      'enable RAD load/save': [get_option('radiance')],
-     'enable Analyze7 load/save': [get_option('analyze')],
+     'enable Analyze7 load': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
      'enable GIF load': [get_option('nsgif')],
     },
