@@ -114,6 +114,6 @@ if fuzzing_engine != 'oss-fuzz'
         ],
         # Increase the timeout as running the tests with sanitizers
         # enabled could be slower than the default 30 seconds.
-        timeout: 60,
+        timeout: 120,
     )
 endif
