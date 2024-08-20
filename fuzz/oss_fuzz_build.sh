@@ -201,8 +201,8 @@ find \
 zip -jrq $OUT/seed_corpus.zip fuzz/corpus
 
 # Link corpus
-for fuzzer in fuzz/*_fuzzer.cc; do
-  target=$(basename "$fuzzer" .cc)
+for fuzzer in $OUT/*_fuzzer; do
+  target=$(basename "$fuzzer")
   ln -sf "seed_corpus.zip" "$OUT/${target}_seed_corpus.zip"
 done
 
