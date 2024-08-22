@@ -1291,10 +1291,10 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 			else
 				n = strlen(p + 1);
 
-			/* How much can we copy to the buffer?
+			/* How much can we copy to the buffer? i + 1 to include the \0.
 			 */
-			i = VIPS_MIN(n, size);
-			vips_strncpy(string, p + 1, i);
+			i = VIPS_MIN(n, size - 1);
+			vips_strncpy(string, p + 1, i + 1);
 
 			/* We might have stopped at an escaped quote. If the
 			 * string was not truncated, swap the preceding
@@ -1308,7 +1308,9 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 			p += n + 1;
 		} while (p[0] && p[-1] == '\\');
 
-		p += 1;
+		// step over the terminating quote, if we hit one
+		if (p[0] == ch)
+			p += 1;
 
 		break;
 
