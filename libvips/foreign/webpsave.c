@@ -748,8 +748,10 @@ vips_foreign_save_webp_build(VipsObject *object)
 
 	/* Init generic WebP config
 	 */
-	if (vips_foreign_save_webp_init_config(webp))
+	if (vips_foreign_save_webp_init_config(webp)) {
+		vips_foreign_save_webp_unset(webp);
 		return -1;
+	}
 
 	/* Determine the write mode (single image or animated write)
 	 */
@@ -760,18 +762,24 @@ vips_foreign_save_webp_build(VipsObject *object)
 	/* Init config for animated write (if necessary)
 	 */
 	if (webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM)
-		if (vips_foreign_save_webp_init_anim_enc(webp))
+		if (vips_foreign_save_webp_init_anim_enc(webp)) {
+			vips_foreign_save_webp_unset(webp);
 			return -1;
+		}
 
 	if (vips_sink_disc(save->ready,
-			vips_foreign_save_webp_sink_disc, webp))
+			vips_foreign_save_webp_sink_disc, webp)) {
+		vips_foreign_save_webp_unset(webp);
 		return -1;
+	}
 
 	/* Finish animated write
 	 */
 	if (webp->mode == VIPS_FOREIGN_SAVE_WEBP_MODE_ANIM)
-		if (vips_foreign_save_webp_finish_anim(webp))
+		if (vips_foreign_save_webp_finish_anim(webp)) {
+			vips_foreign_save_webp_unset(webp);
 			return -1;
+		}
 
 	if (vips_webp_add_metadata(webp)) {
 		vips_foreign_save_webp_unset(webp);
@@ -784,8 +792,10 @@ vips_foreign_save_webp_build(VipsObject *object)
 		return -1;
 	}
 
-	if (vips_target_end(webp->target))
+	if (vips_target_end(webp->target)) {
+		vips_foreign_save_webp_unset(webp);
 		return -1;
+	}
 
 	vips_foreign_save_webp_unset(webp);
 
