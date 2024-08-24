@@ -2,6 +2,7 @@
 
 - fix an off-by-one error in vips__token_get()
 - heifsave: fix crash when passing an invalid bitdepth [kleisauke]
+- webpsave: fix memory leak on error [dloebl]
 - heifsave: ensure NCLX profile is freed in lossless mode [kleisauke]
 
 11/8/24 8.15.3

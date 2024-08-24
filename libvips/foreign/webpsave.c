@@ -217,6 +217,8 @@ vips_foreign_save_webp_dispose(GObject *gobject)
 {
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) gobject;
 
+	vips_foreign_save_webp_unset(webp);
+
 	VIPS_UNREF(webp->target);
 
 	VIPS_FREE(webp->frame_bytes);
@@ -583,7 +585,6 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 	 */
 	WebPMemoryWriterInit(&webp->memory_writer);
 	if (!WebPConfigInit(&webp->config)) {
-		vips_foreign_save_webp_unset(webp);
 		vips_error("webpsave",
 			"%s", _("config version error"));
 		return -1;
@@ -596,7 +597,6 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 	if (!(webp->lossless || webp->near_lossless) &&
 		!WebPConfigPreset(&webp->config, get_preset(webp->preset),
 			webp->Q)) {
-		vips_foreign_save_webp_unset(webp);
 		vips_error("webpsave", "%s", _("config version error"));
 		return -1;
 	}
@@ -613,7 +613,6 @@ vips_foreign_save_webp_init_config(VipsForeignSaveWebp *webp)
 		webp->config.use_sharp_yuv = 1;
 
 	if (!WebPValidateConfig(&webp->config)) {
-		vips_foreign_save_webp_unset(webp);
 		vips_error("webpsave", "%s", _("invalid configuration"));
 		return -1;
 	}
@@ -730,7 +729,6 @@ vips_foreign_save_webp_build(VipsObject *object)
 	page_height = vips_image_get_page_height(save->ready);
 	if (save->ready->Xsize > 16383 || page_height > 16383) {
 		vips_error("webpsave", _("image too large"));
-		vips_foreign_save_webp_unset(webp);
 		return -1;
 	}
 
@@ -742,7 +740,6 @@ vips_foreign_save_webp_build(VipsObject *object)
 	if (webp->frame_bytes == NULL) {
 		vips_error("webpsave",
 			_("failed to allocate %zu bytes"), frame_size);
-		vips_foreign_save_webp_unset(webp);
 		return -1;
 	}
 
@@ -773,16 +770,12 @@ vips_foreign_save_webp_build(VipsObject *object)
 		if (vips_foreign_save_webp_finish_anim(webp))
 			return -1;
 
-	if (vips_webp_add_metadata(webp)) {
-		vips_foreign_save_webp_unset(webp);
+	if (vips_webp_add_metadata(webp))
 		return -1;
-	}
 
 	if (vips_target_write(webp->target,
-			webp->memory_writer.mem, webp->memory_writer.size)) {
-		vips_foreign_save_webp_unset(webp);
+			webp->memory_writer.mem, webp->memory_writer.size))
 		return -1;
-	}
 
 	if (vips_target_end(webp->target))
 		return -1;
