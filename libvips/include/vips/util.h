@@ -390,8 +390,6 @@ typedef enum {
 	VIPS_TOKEN_COMMA
 } VipsToken;
 
-// we expose this one in the API for testing
-VIPS_API
 const char *vips__token_get(const char *buffer,
 	VipsToken *token, char *string, int size);
 const char *vips__token_must(const char *buffer, VipsToken *token,
