@@ -745,10 +745,8 @@ vips_foreign_save_webp_build(VipsObject *object)
 
 	/* Init generic WebP config
 	 */
-	if (vips_foreign_save_webp_init_config(webp)) {
-		vips_foreign_save_webp_unset(webp);
+	if (vips_foreign_save_webp_init_config(webp))
 		return -1;
-	}
 
 	/* Determine the write mode (single image or animated write)
 	 */
