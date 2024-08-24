@@ -1,8 +1,8 @@
 8.15.4
 
-- webpsave: fix memory leak on error [dloebl]
 - heifsave: fix crash when passing an invalid bitdepth
 - fix an off-by-one error in vips__token_get()
+- webpsave: fix memory leak on error [dloebl]
 
 11/8/24 8.15.3
 
