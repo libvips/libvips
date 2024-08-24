@@ -28,6 +28,23 @@ foreach script_test : script_tests
     )
 endforeach
 
+test_token = executable('test_token',
+    'test_token.c',
+    dependencies: libvips_dep,
+)
+
+test_token_sh = configure_file(
+    input: 'test_token.sh',
+    output: 'test_token.sh',
+    copy: true,
+)
+
+test('token',
+    test_token_sh,
+    depends: test_token,
+    workdir: meson.current_build_dir(),
+)
+
 test_connections = executable('test_connections',
     'test_connections.c',
     dependencies: libvips_dep,
