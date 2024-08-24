@@ -1242,6 +1242,11 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 	int ch;
 	int n;
 
+	/* string return defaults to "".
+	 */
+	if (size > 0)
+		string[0] = '\0';
+
 	/* Parse this token with p.
 	 */
 	if (!p)
