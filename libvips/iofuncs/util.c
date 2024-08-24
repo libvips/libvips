@@ -1210,7 +1210,7 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 
 			// number of characters we copy to the output
 			n = VIPS_MIN(q - p - 1, size - 1);
-			vips_strncpy(string, p + 1, n + 1);
+			g_strlcpy(string, p + 1, n + 1);
 
 			/* We might have stopped at an escaped quote. If the
 			 * char before the end is a backslash, swap it for a quote.
@@ -1238,14 +1238,14 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 		q = p + strcspn(p, "[]=,");
 
 		n = VIPS_MIN(q - p, size);
-		vips_strncpy(string, p, n + 1);
+		g_strlcpy(string, p, n + 1);
 		p = q;
 
 		/* We remove leading whitespace, so we trim trailing whitespace from
 		 * unquoted strings too. Only if the string hasn't been truncated.
 		 */
 		if (n != size)
-			while (n > 0 && isspace(string[n - 1])) {
+			while (n > 0 && g_ascii_isspace(string[n - 1])) {
 				string[n - 1] = '\0';
 				n--;
 			}
