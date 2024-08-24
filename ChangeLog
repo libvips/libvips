@@ -23,6 +23,11 @@ master 8.16
 - add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
 - more const for the C++ API [Julianiolo]
 - deprecate "cache" (use tilecache instead)
+- add tests for tokenisation
+
+8.15.4
+
+- fix an off-by-one error in vips__token_get()
 
 11/8/24 8.15.3
 
