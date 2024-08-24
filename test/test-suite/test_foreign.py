@@ -1608,6 +1608,8 @@ class TestForeign:
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("loop") == x2.get("loop")
 
+    @skip_if_no("gifload")
+    @skip_if_no("webpsave")
     def test_gifload_to_webpsave_invalid_frame_data_multipage(self):
         im = pyvips.Image.new_from_file(GIF_ANIM_FILE_INVALID, n=-1)
         im.webpsave_buffer()
