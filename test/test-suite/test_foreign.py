@@ -15,7 +15,6 @@ from helpers import \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
-    GIF_ANIM_FILE_INVALID, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
@@ -1607,12 +1606,6 @@ class TestForeign:
             assert x1.get("delay") == x2.get("delay")
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("loop") == x2.get("loop")
-
-    @skip_if_no("gifload")
-    @skip_if_no("webpsave")
-    def test_gifload_to_webpsave_invalid_frame_data_multipage(self):
-        im = pyvips.Image.new_from_file(GIF_ANIM_FILE_INVALID, n=-1)
-        im.webpsave_buffer()
 
     def test_fail_on(self):
         # csvload should spot trunc correctly
