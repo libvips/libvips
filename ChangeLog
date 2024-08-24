@@ -24,6 +24,11 @@ master 8.16
 - more const for the C++ API [Julianiolo]
 - deprecate "cache" (use tilecache instead)
 
+8.15.4
+
+- heifsave: fix crash when passing an invalid bitdepth
+- fix an off-by-one error in vips__token_get()
+
 11/8/24 8.15.3
 
 - fix dzsave of >8-bit images to JPEG
