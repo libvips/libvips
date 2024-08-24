@@ -4,7 +4,7 @@
  *
  * 	run with eg.:
  *
- * 		$ ./a.out '"wdfw"df,wdw,dw' f,wdw,dw 3 'wdfw"d'
+ * 		$ ./a.out '"wdfw"df,wdw,dw' 3 wdfw df,wdw,dw
  *
  */
 
@@ -13,10 +13,10 @@
 char *token_names[] = {
 	"",
 	"left",
-    "right",
-    "string",
-    "equals",
-    "comma",
+	"right",
+	"string",
+	"equals",
+	"comma",
 };
 
 int
