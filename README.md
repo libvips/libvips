@@ -45,6 +45,7 @@ Full bindings are available for :
 | Lua | [lua-vips](https://github.com/libvips/lua-vips) |
 | Crystal | [crystal-vips](https://github.com/naqvis/crystal-vips) |
 | Elixir | [vix](https://github.com/akash-akya/vix) |
+| JVM | [vips-ffm](https://github.com/lopcode/vips-ffm) |
 
 libvips is used as an image processing engine by:
 
@@ -58,6 +59,7 @@ libvips is used as an image processing engine by:
 | [carrierwave-vips](https://github.com/eltiare/carrierwave-vips) |
 | [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler) |
 | [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) |
+| [JVips](https://github.com/criteo/JVips) |
 
 and others. The official libvips GUI is
 [nip2](https://github.com/libvips/nip2), a strange combination of a
@@ -86,7 +88,7 @@ of the libvips optional dependencies.
 
 There are basic bash completions in `completions/`, see the README in there.
 
-## Cheatsheet 
+## Cheatsheet
 
 ```
 cd libvips-x.y.x
@@ -104,18 +106,18 @@ configuration.
 - Add flags like `-Dnsgif=false` to turn libvips options on and off, see
   `meson_options.txt` for a list of all the build options libvips supports.
 
-- Add flags like `-Dmagick=disabled` to turn libvips dependencies on and off, 
+- Add flags like `-Dmagick=disabled` to turn libvips dependencies on and off,
   see `meson_options.txt` and the list below for a summary of all the libvips
   dependencies.
 
-- You might need to add `--libdir lib` on Debian if you don't want the arch 
+- You might need to add `--libdir lib` on Debian if you don't want the arch
   name in the library path.
 
 - Add `--default-library static` for a static build.
 
 - Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
 
-- You can have many `build-dir`, pick whatever names you like, for example 
+- You can have many `build-dir`, pick whatever names you like, for example
   one for release and one for debug.
 
 There's a more comprehensive test suite you can run once libvips has been
@@ -125,12 +127,12 @@ installed. Use `pytest` in the libvips base directory.
 
 If suitable versions are found, libvips will add support for the following
 libraries automatically. Packages are generally found with `pkg-config`,
-so make sure that is working. 
+so make sure that is working.
 
 ### libjpeg
 
 Anything that is compatible with the IJG JPEG library. Use `mozjpeg` if you
-can. Another option is `libjpeg-turbo`. 
+can. Another option is `libjpeg-turbo`.
 
 ### libexif
 
@@ -143,8 +145,8 @@ via imagemagick instead.
 
 ### PDFium
 
-If present, libvips will attempt to load PDFs with PDFium. Download the 
-prebuilt pdfium binary from: 
+If present, libvips will attempt to load PDFs with PDFium. Download the
+prebuilt pdfium binary from:
 
     https://github.com/bblanchon/pdfium-binaries
 
@@ -189,16 +191,16 @@ If available, libvips adds support for creating image pyramids with `dzsave`.
 ### libtiff
 
 The TIFF library. It needs to be built with support for JPEG and
-ZIP compression. 3.4b037 and later are known to be OK. 
+ZIP compression. 3.4b037 and later are known to be OK.
 
 ### fftw3
 
-If libvips finds this library, it uses it for fourier transforms. 
+If libvips finds this library, it uses it for fourier transforms.
 
 ### lcms2
 
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
-can be used to manipulate images with ICC profiles. 
+can be used to manipulate images with ICC profiles.
 
 ### libspng
 
@@ -214,14 +216,14 @@ palette-ised PNGs and GIFs.
 
 If available, libvips adds support for loading and saving all
 libMagick-supported image file types. You can enable and disable load and save
-separately. 
+separately.
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
 IMs are, I think.
 
 If you are going to be using libvips with untrusted images, perhaps in a
 web server, for example, you should consider the security implications of
-enabling a package with such a large attack surface. 
+enabling a package with such a large attack surface.
 
 ### pangocairo
 
@@ -293,7 +295,7 @@ AVIF encoders:
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. 
+This project exists thanks to all the people who contribute.
 
 <a href="https://github.com/libvips/libvips/graphs/contributors"><img src="https://opencollective.com/libvips/contributors.svg?width=890&button=false" /></a>
 
