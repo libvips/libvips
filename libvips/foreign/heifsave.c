@@ -433,10 +433,10 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		}
 	}
 	else {
-		VipsObjectClass *class = VIPS_OBJECT_CLASS(heif);
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(heif);
 
 		vips_error(class->nickname,
-			"%s", _("unimplemeted format conversion"));
+			"%s", _("unimplemented format conversion"));
 		return -1;
 	}
 
