@@ -29,6 +29,11 @@ master 8.16
 
 - fix an off-by-one error in vips__token_get()
 
+8.15.4
+
+- heifsave: fix crash when passing an invalid bitdepth
+- fix an off-by-one error in vips__token_get()
+
 11/8/24 8.15.3
 
 - fix dzsave of >8-bit images to JPEG
