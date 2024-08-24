@@ -271,7 +271,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	struct heif_error error;
 	struct heif_encoding_options *options;
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
-	struct heif_color_profile_nclx *nclx;
+	struct heif_color_profile_nclx *nclx = NULL;
 #endif
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
