@@ -1,3 +1,7 @@
+8.15.4
+
+- heifsave: ensure NCLX profile is freed in lossless mode [kleisauke]
+
 11/8/24 8.15.3
 
 - fix dzsave of >8-bit images to JPEG
