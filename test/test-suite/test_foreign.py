@@ -15,6 +15,7 @@ from helpers import \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
+    GIF_ANIM_FILE_INVALID, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
@@ -1048,6 +1049,10 @@ class TestForeign:
 
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
         assert x2.height == 4 * x1.height
+
+        with pytest.raises(pyvips.error.Error):
+            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE_INVALID, n=-1)
+            x1.avg()
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):
