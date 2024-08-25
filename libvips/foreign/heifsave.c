@@ -733,7 +733,7 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		_("Number of bits per pixel"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, bitdepth),
-		1, 12, 12);
+		8, 12, 12);
 
 	VIPS_ARG_BOOL(class, "lossless", 13,
 		_("Lossless"),
