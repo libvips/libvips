@@ -533,8 +533,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		!vips_object_argument_isset(object, "subsample_mode"))
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
-	/* Default 12 bit save for 16-bit images. HEIC (for example) implements
-	 * 8 / 10 / 12.
+	/* Default 12 bit save for 16-bit images.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
 		heif->bitdepth =
@@ -542,6 +541,16 @@ vips_foreign_save_heif_build(VipsObject *object)
 				save->ready->Type == VIPS_INTERPRETATION_GREY16
 			? 12
 			: 8;
+
+	/* HEIC and AVIF only implements 8 / 10 / 12 bit depth.
+	 */
+	if (heif->bitdepth != 12 &&
+		heif->bitdepth != 10 &&
+		heif->bitdepth != 8) {
+		vips_error("heifsave", _("%d-bit colour depth not supported"),
+			heif->bitdepth);
+		return -1;
+	}
 
 	/* Try to find the selected encoder.
 	 */
@@ -750,7 +759,7 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		_("Number of bits per pixel"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, bitdepth),
-		1, 16, 12);
+		8, 12, 12);
 
 	VIPS_ARG_BOOL(class, "lossless", 13,
 		_("Lossless"),
