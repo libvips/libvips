@@ -1157,7 +1157,11 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 	const char *q;
 	int ch;
 	int n;
-	int i;
+
+	/* string return defaults to "".
+	 */
+	if (size > 0)
+		string[0] = '\0';
 
 	/* Parse this token with p.
 	 */
@@ -1193,61 +1197,57 @@ vips__token_get(const char *p, VipsToken *token, char *string, int size)
 
 	case '"':
 	case '\'':
-		/* Parse a quoted string. Copy up to ", interpret any \",
-		 * error if no closing ".
+		/* Parse a quoted string. Copy up to " or end of string, interpret
+		 * any \",
 		 */
 		*token = VIPS_TOKEN_STRING;
 
 		do {
-			/* Number of characters until the next quote
-			 * character or end of string.
+			/* Move q to the next matching quote, or the end of the string.
 			 */
-			if ((q = strchr(p + 1, ch)))
-				n = q - p + 1;
-			else
-				n = strlen(p + 1);
+			if (!(q = strchr(p + 1, ch)))
+				q = p + strlen(p);
 
-			/* How much can we copy to the buffer?
-			 */
-			i = VIPS_MIN(n, size);
-			g_strlcpy(string, p + 1, i);
+			// number of characters we copy to the output
+			n = VIPS_MIN(q - p - 1, size - 1);
+			g_strlcpy(string, p + 1, n + 1);
 
 			/* We might have stopped at an escaped quote. If the
-			 * string was not truncated, swap the preceding
-			 * backslash for a quote.
+			 * char before the end is a backslash, swap it for a quote.
 			 */
-			if (p[n + 1] == ch && p[n] == '\\' && i == n)
-				string[i - 1] = ch;
+			if (q[-1] == '\\')
+				string[n - 1] = ch;
 
-			string += i;
-			size -= i;
-			p += n + 1;
+			string += n;
+			size -= n;
+			p = q;
 		} while (p[0] && p[-1] == '\\');
 
-		p += 1;
+		// step over the terminating quote, if we hit one
+		if (p[0] == ch)
+			p += 1;
 
 		break;
 
 	default:
-		/* It's an unquoted string: read up to the next non-string
-		 * character. We don't allow two strings next to each other,
-		 * so the next break must be brackets, equals, comma.
+		/* It's an unquoted string: read up to the next non-string character.
+		 * We don't allow two strings next to each other, so the next break
+		 * must be brackets, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
 		q = p + strcspn(p, "[]=,");
 
-		i = VIPS_MIN(q - p, size);
-		g_strlcpy(string, p, i + 1);
+		n = VIPS_MIN(q - p, size);
+		g_strlcpy(string, p, n + 1);
 		p = q;
 
-		/* We remove leading whitespace, so we trim trailing
-		 * whitespace from unquoted strings too. Only if the string
-		 * hasn't been truncated.
+		/* We remove leading whitespace, so we trim trailing whitespace from
+		 * unquoted strings too. Only if the string hasn't been truncated.
 		 */
-		if (i != size)
-			while (i > 0 && g_ascii_isspace(string[i - 1])) {
-				string[i - 1] = '\0';
-				i--;
+		if (n != size)
+			while (n > 0 && g_ascii_isspace(string[n - 1])) {
+				string[n - 1] = '\0';
+				n--;
 			}
 
 		break;

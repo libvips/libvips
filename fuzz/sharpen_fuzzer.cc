@@ -3,6 +3,9 @@
 extern "C" int
 LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+	if (VIPS_INIT(*argv[0]))
+		return -1;
+
 	vips_concurrency_set(1);
 	return 0;
 }
