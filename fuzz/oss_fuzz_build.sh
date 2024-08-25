@@ -5,6 +5,19 @@ export PKG_CONFIG_PATH="$WORK/lib/pkgconfig"
 export CPPFLAGS="-I$WORK/include"
 export LDFLAGS="-L$WORK/lib"
 
+# `-fuse-ld=gold` can't be passed via `CFLAGS` and `CXXFLAGS` as Meson
+# injects `-Werror=ignored-optimization-argument` during compile tests.
+# https://github.com/google/oss-fuzz/issues/12167
+# https://github.com/mesonbuild/meson/issues/6377#issuecomment-575977919
+if [[ "$CFLAGS" == *"-fuse-ld=gold"* ]]; then
+  export CFLAGS="${CFLAGS//-fuse-ld=gold/}"
+  export CC_LD=gold
+fi
+if [[ "$CXXFLAGS" == *"-fuse-ld=gold"* ]]; then
+  export CXXFLAGS="${CXXFLAGS//-fuse-ld=gold/}"
+  export CXX_LD=gold
+fi
+
 # Run as many parallel jobs as there are available CPU cores
 export MAKEFLAGS="-j$(nproc)"
 
