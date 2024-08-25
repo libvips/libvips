@@ -270,6 +270,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 	struct heif_error error;
 	struct heif_encoding_options *options;
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
+	struct heif_color_profile_nclx *nclx = NULL;
+#endif
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
 	/* A profile supplied as an argument overrides an embedded
@@ -293,9 +296,10 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless mode.
 	 */
 	if (heif->lossless) {
-		struct heif_color_profile_nclx *nclx = heif_nclx_color_profile_alloc();
-		if (!nclx)
+		if (!(nclx = heif_nclx_color_profile_alloc())) {
+			heif_encoding_options_free(options);
 			return -1;
+		}
 
 		nclx->matrix_coefficients = heif_matrix_coefficients_RGB_GBR;
 		options->output_nclx_profile = nclx;
@@ -324,6 +328,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 #endif /*DEBUG*/
 
 	heif_encoding_options_free(options);
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
+	VIPS_FREEF(heif_nclx_color_profile_free, nclx);
+#endif
 
 	if (error.code) {
 		vips__heif_error(&error);
