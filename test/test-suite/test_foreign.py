@@ -8,7 +8,6 @@ import pytest
 import pyvips
 from helpers import *
 
-
 class TestForeign:
     tempdir = None
 
@@ -1087,6 +1086,10 @@ class TestForeign:
 
         x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
         assert x2.height == 4 * x1.height
+
+        with pytest.raises(pyvips.error.Error):
+            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE_INVALID, n=-1)
+            x1.avg()
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):

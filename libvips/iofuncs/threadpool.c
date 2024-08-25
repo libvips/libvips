@@ -479,15 +479,21 @@ vips__worker_cond_wait(GCond *cond, GMutex *mutex)
 }
 
 static void
+vips_threadpool_wait(VipsThreadpool *pool)
+{
+	/* Wait for them all to exit.
+	 */
+	pool->stop = TRUE;
+	vips_semaphore_downn(&pool->n_workers, 0);
+}
+
+static void
 vips_threadpool_free(VipsThreadpool *pool)
 {
 	VIPS_DEBUG_MSG("vips_threadpool_free: \"%s\" (%p)\n",
 		pool->im->filename, pool);
 
-	/* Wait for them all to exit.
-	 */
-	pool->stop = TRUE;
-	vips_semaphore_downn(&pool->n_workers, 0);
+	vips_threadpool_wait(pool);
 
 	VIPS_FREEF(vips_g_mutex_free, pool->allocate_lock);
 	vips_semaphore_destroy(&pool->n_workers);
@@ -714,12 +720,14 @@ vips_threadpool_run(VipsImage *im,
 		}
 	}
 
+	/* This will block until the last worker completes.
+	 */
+	vips_threadpool_wait(pool);
+
 	/* Return 0 for success.
 	 */
 	result = pool->error ? -1 : 0;
 
-	/* This will block until the last worker completes.
-	 */
 	vips_threadpool_free(pool);
 
 	if (!vips_image_get_concurrency(im, 0))
