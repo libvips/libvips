@@ -23,6 +23,8 @@
  * 	- crop to a memory image rather than using a region ... this means we
  * 	  use workers to calculate pixels and therefore use per-thread caching
  * 	  in the revised buffer system
+ * 26/8/24
+ *	- add "unpack_complex"
  */
 
 /*
@@ -77,8 +79,9 @@ typedef struct _VipsGetpoint {
 	VipsImage *in;
 	int x;
 	int y;
-	VipsArrayDouble *out_array;
+	gboolean unpack_complex;
 
+	VipsArrayDouble *out_array;
 } VipsGetpoint;
 
 typedef VipsOperationClass VipsGetpointClass;
@@ -97,12 +100,20 @@ vips_getpoint_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_getpoint_parent_class)->build(object))
 		return -1;
 
+	/* Unpack to double. Complex unpacks to 2 * bands.
+	 */
+	gboolean iscomplex = getpoint->unpack_complex &&
+		vips_band_format_iscomplex(getpoint->in->BandFmt);
+	VipsBandFormat target_bands = iscomplex ?
+		getpoint->in->Bands * 2 : getpoint->in->Bands;
+	VipsBandFormat target_format = iscomplex ?
+		VIPS_FORMAT_DPCOMPLEX : VIPS_FORMAT_DOUBLE;
+
 	/* Crop, decode and unpack to double.
 	 */
-	if (vips_crop(getpoint->in, &t[0],
-			getpoint->x, getpoint->y, 1, 1, NULL) ||
+	if (vips_crop(getpoint->in, &t[0], getpoint->x, getpoint->y, 1, 1, NULL) ||
 		vips_image_decode(t[0], &t[1]) ||
-		vips_cast(t[1], &t[2], VIPS_FORMAT_DOUBLE, NULL))
+		vips_cast(t[1], &t[2], target_format, NULL))
 		return -1;
 
 	/* To a mem buffer, then copy to out.
@@ -112,11 +123,11 @@ vips_getpoint_build(VipsObject *object)
 		vips_image_write(t[2], t[3]))
 		return -1;
 
-	if (!(vector = VIPS_ARRAY(getpoint->in, t[3]->Bands, double)))
+	if (!(vector = VIPS_ARRAY(getpoint->in, target_bands, double)))
 		return -1;
 	memcpy(vector, t[3]->data, VIPS_IMAGE_SIZEOF_PEL(t[3]));
 
-	out_array = vips_array_double_new(vector, t[3]->Bands);
+	out_array = vips_array_double_new(vector, target_bands);
 	g_object_set(object,
 		"out_array", out_array,
 		NULL);
@@ -164,6 +175,13 @@ vips_getpoint_class_init(VipsGetpointClass *class)
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsGetpoint, y),
 		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_BOOL(class, "unpack_complex", 7,
+		_("unpack_complex"),
+		_("Complex pixels should be unpacked"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsGetpoint, unpack_complex),
+		FALSE);
 }
 
 static void
@@ -185,6 +203,9 @@ vips_getpoint_init(VipsGetpoint *getpoint)
  * The pixel values are returned in @vector, the length of the
  * array in @n. You must free the array with g_free() when you are done with
  * it.
+ *
+ * The result array has an element for each band. If @unpack_complex is set,
+ * pixels in complex images are returned as double-length arrays.
  *
  * See also: vips_draw_point().
  *
