@@ -224,6 +224,8 @@ void vips__meta_init(void);
 // public API since downstream projects can use our auto defs
 VIPS_API
 void VipsArrayDouble_unref(VipsArrayDouble *array);
+VIPS_API
+void VipsArrayImage_unref(VipsArrayImage *array);
 
 #ifdef __cplusplus
 }

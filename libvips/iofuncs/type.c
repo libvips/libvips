@@ -225,6 +225,12 @@ VipsArrayDouble_unref(VipsArrayDouble *array)
 	vips_area_unref(VIPS_AREA(array));
 }
 
+void
+VipsArrayImage_unref(VipsArrayImage *array)
+{
+	vips_area_unref(VIPS_AREA(array));
+}
+
 /**
  * vips_area_new:
  * @free_fn: (scope async) (nullable): @data will be freed with this function

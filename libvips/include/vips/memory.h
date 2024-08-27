@@ -87,6 +87,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsOperation, g_object_unref)
 
 // FIXME ... need more of these
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayImage, VipsArrayImage_unref)
 
 VIPS_API
 void *vips_malloc(VipsObject *object, size_t size);
