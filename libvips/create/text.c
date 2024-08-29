@@ -391,7 +391,7 @@ vips_text_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsCreate *create = VIPS_CREATE(object);
 	VipsText *text = (VipsText *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
 	VipsRect extents;
 	VipsImage *in;
@@ -523,11 +523,12 @@ vips_text_build(VipsObject *object)
 	else {
 		/* We just want the alpha channel.
 		 */
-		if (vips_extract_band(in, &t[1], 3, NULL))
+		if (vips_extract_band(in, &t[1], 3, NULL) ||
+			vips_copy(t[1], &t[2],
+				"interpretation", VIPS_INTERPRETATION_MULTIBAND,
+				NULL))
 			return -1;
-		in = t[1];
-
-		in->Type = VIPS_INTERPRETATION_MULTIBAND;
+		in = t[2];
 	}
 
 	if (vips_image_write(in, create->out))
