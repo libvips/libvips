@@ -80,7 +80,9 @@ typedef struct _VipsThreadProfile {
 
 gboolean vips__thread_profile = FALSE;
 
-static GPrivate *vips_thread_profile_key = NULL;
+static void thread_profile_destroy_notify(gpointer data);
+static GPrivate vips_thread_profile_key =
+	G_PRIVATE_INIT(thread_profile_destroy_notify);
 
 static FILE *vips__thread_fp = NULL;
 
@@ -191,8 +193,10 @@ vips__thread_profile_stop(void)
 }
 
 static void
-vips__thread_profile_init_cb(VipsThreadProfile *profile)
+thread_profile_destroy_notify(gpointer data)
 {
+	VipsThreadProfile *profile = data;
+
 	/* We only come here if vips_thread_shutdown() was not called for this
 	 * thread. Do our best to clean up.
 	 *
@@ -208,17 +212,6 @@ vips__thread_profile_init_cb(VipsThreadProfile *profile)
 			profile->thread);
 
 	vips_thread_profile_free(profile);
-}
-
-static void *
-vips__thread_profile_init(void *data)
-{
-	static GPrivate private =
-		G_PRIVATE_INIT((GDestroyNotify) vips__thread_profile_init_cb);
-
-	vips_thread_profile_key = &private;
-
-	return NULL;
 }
 
 static VipsThreadGate *
@@ -237,11 +230,7 @@ vips_thread_gate_new(const char *gate_name)
 void
 vips__thread_profile_attach(const char *thread_name)
 {
-	static GOnce once = G_ONCE_INIT;
-
 	VipsThreadProfile *profile;
-
-	VIPS_ONCE(&once, vips__thread_profile_init, NULL);
 
 	VIPS_DEBUG_MSG("vips__thread_profile_attach: %s\n", thread_name);
 
@@ -251,18 +240,17 @@ vips__thread_profile_attach(const char *thread_name)
 		g_direct_hash, g_str_equal,
 		NULL, (GDestroyNotify) vips_thread_gate_free);
 	profile->memory = vips_thread_gate_new("memory");
-	g_private_replace(vips_thread_profile_key, profile);
+	g_private_replace(&vips_thread_profile_key, profile);
 }
 
 static VipsThreadProfile *
 vips_thread_profile_get(void)
 {
-	return g_private_get(vips_thread_profile_key);
+	return g_private_get(&vips_thread_profile_key);
 }
 
-/* This usually happens automatically when a thread shuts down, see
- * vips__thread_profile_init() where we set a GDestroyNotify, but will not
- * happen for the main thread.
+/* This usually happens automatically when a thread shuts down, but that will
+ * not happen for the main thread.
  *
  * Shut down any stats on the main thread with this, see vips_shutdown()
  */
@@ -278,7 +266,7 @@ vips__thread_profile_detach(void)
 			vips_thread_profile_save(profile);
 
 		vips_thread_profile_free(profile);
-		g_private_set(vips_thread_profile_key, NULL);
+		g_private_set(&vips_thread_profile_key, NULL);
 	}
 }
 

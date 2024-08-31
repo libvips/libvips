@@ -102,7 +102,7 @@ static VipsThreadset *vips__threadset = NULL;
 
 /* Set this GPrivate to link a thread back to its VipsWorker struct.
  */
-static GPrivate *worker_key = NULL;
+static GPrivate worker_key;
 
 /* Maximum value we allow for VIPS_CONCURRENCY. We need to stop huge values
  * killing the system.
@@ -114,16 +114,12 @@ static GPrivate *worker_key = NULL;
 void
 vips__threadpool_init(void)
 {
-	static GPrivate private = G_PRIVATE_INIT(NULL);
-
 	/* 3 is the useful minimum, and huge values can crash the machine.
 	 */
 	const char *max_threads_env = g_getenv("VIPS_MAX_THREADS");
 	int max_threads = max_threads_env
 		? VIPS_CLIP(3, atoi(max_threads_env), MAX_THREADS)
 		: 0;
-
-	worker_key = &private;
 
 	if (g_getenv("VIPS_STALL"))
 		vips__stall = TRUE;
@@ -395,7 +391,7 @@ vips_thread_main_loop(void *a, void *b)
 
 	VIPS_GATE_START("vips_thread_main_loop: thread");
 
-	g_private_set(worker_key, worker);
+	g_private_set(&worker_key, worker);
 
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit.
@@ -421,7 +417,7 @@ vips_thread_main_loop(void *a, void *b)
 	g_mutex_unlock(pool->allocate_lock);
 
 	VIPS_FREE(worker);
-	g_private_set(worker_key, NULL);
+	g_private_set(&worker_key, NULL);
 
 	/* We are done: tell the main thread.
 	 */
@@ -460,7 +456,7 @@ vips_worker_new(VipsThreadpool *pool)
 void
 vips__worker_lock(GMutex *mutex)
 {
-	VipsWorker *worker = (VipsWorker *) g_private_get(worker_key);
+	VipsWorker *worker = (VipsWorker *) g_private_get(&worker_key);
 
 	if (worker)
 		g_atomic_int_add(&worker->pool->n_waiting, 1);
