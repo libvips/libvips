@@ -247,7 +247,7 @@ main(int argc, char *argv[])
 	result = 0;
 
 	for (i = 1; argv[i]; i++) {
-		VipsImage *image;
+		VipsImage *image = NULL;
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 
