@@ -93,10 +93,11 @@ jobs:
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
 
       - name: Configure libvips
-        run: |
-          meson setup build \
-            -Ddebug=true \
-            -Ddeprecated=false \
+        run:
+          meson setup build
+            -Ddebug=true
+            -Ddeprecated=false
+            -Dmagick=disabled
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
