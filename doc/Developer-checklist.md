@@ -84,9 +84,9 @@ If you can, aim for long pipelines of processing operations.
 
 ## Cache commonly reused images
 
-If an image is reused repeatedly in one pipeline, it'll be recomputed each
-time. You can sometimes get a big speedup by keeping images like this in
-memory rather than recalculating their pixels each time, see (for example),
+If an image is reused repeatedly in one pipeline, it'll be recomputed
+each time. You can sometimes get a big speedup by keeping images like
+this in memory rather than recalculating their pixels, see (for example),
 `copy_memory()` in pyvips.
 
 This can raise memory use, of course.
@@ -124,8 +124,8 @@ There are two main checks that are very worthwhile:
 
 2. Check for interlaced (also called progressive) images.
 
-   These are the ones that appear at a low res first, then slowly fill in
-   detail as they are downloaded.
+   These are the ones that appear in low detail first, then progressively
+   sharpen as they are downloaded.
 
    The downside is that you don't get the final pixels until the whole image
    is in memory, which prevents any streaming processing and hugely increases
@@ -162,5 +162,5 @@ unaffected.
 
 ## Disable the libvips operation cache if you don't need it
 
-The libvips' operation cache is not useful for image proxies (i.e. processing
+The libvips operation cache is not useful for image proxies (i.e. processing
 many different images). Consider disabling this with `vips_cache_set_max(0);`.
