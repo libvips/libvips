@@ -465,7 +465,7 @@ vips__worker_lock(GMutex *mutex)
 void
 vips__worker_cond_wait(GCond *cond, GMutex *mutex)
 {
-	VipsWorker *worker = (VipsWorker *) g_private_get(worker_key);
+	VipsWorker *worker = (VipsWorker *) g_private_get(&worker_key);
 
 	if (worker)
 		g_atomic_int_add(&worker->pool->n_waiting, 1);
