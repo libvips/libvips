@@ -11,8 +11,8 @@ threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
 image processing library. Compared to similar
 libraries, [libvips runs quickly and uses little
 memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use).
-libvips is licensed under the [LGPL
-2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
+libvips is licensed under the [LGPL-2.1-or-later](
+https://spdx.org/licenses/LGPL-2.1-or-later).
 
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
