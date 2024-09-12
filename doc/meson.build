@@ -138,7 +138,6 @@ glib_docpath = glib_prefix / 'share' / 'gtk-doc' / 'html'
 docpath = get_option('prefix') / get_option('datadir') / 'gtk-doc' / 'html'
 
 gnome.gtkdoc('libvips',
-    mode: 'none',
     main_xml: 'libvips-docs.xml',
     src_dir: [
         join_paths(project_source_root, 'libvips'),
