@@ -199,8 +199,7 @@ vips_sharpen_build(VipsObject *object)
 	in = t[0];
 
 	if (vips_check_uncoded(class->nickname, in) ||
-		vips_check_bands_atleast(class->nickname, in, 3) ||
-		vips_check_format(class->nickname, in, VIPS_FORMAT_SHORT))
+		vips_check_bands_atleast(class->nickname, in, 3))
 		return -1;
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short,
@@ -216,6 +215,12 @@ vips_sharpen_build(VipsObject *object)
 	printf("sharpen: blurring with:\n");
 	vips_matrixprint(t[1], NULL);
 #endif /*DEBUG*/
+
+	/* Make sure we're short (need this for the LUT) and not eg. float LABS.
+	 */
+	if (vips_cast_short(in, &t[2], NULL))
+		return -1;
+	in = t[2];
 
 	/* Index with the signed difference between two 0 - 32767 images.
 	 */
