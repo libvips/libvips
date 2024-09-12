@@ -1268,7 +1268,6 @@
     <keyword type="macro" name="VIPS_ROUND_UP()" link="libvips-util.html#VIPS-ROUND-UP:CAPS"/>
     <keyword type="macro" name="VIPS_SWAP()" link="libvips-util.html#VIPS-SWAP:CAPS"/>
     <keyword type="macro" name="VIPS_UNROLL()" link="libvips-util.html#VIPS-UNROLL:CAPS"/>
-    <keyword type="macro" name="g_info()" link="libvips-util.html#g-info"/>
     <keyword type="macro" name="VIPS_CLIP_UCHAR()" link="libvips-util.html#VIPS-CLIP-UCHAR:CAPS"/>
     <keyword type="macro" name="VIPS_CLIP_CHAR()" link="libvips-util.html#VIPS-CLIP-CHAR:CAPS"/>
     <keyword type="macro" name="VIPS_CLIP_USHORT()" link="libvips-util.html#VIPS-CLIP-USHORT:CAPS"/>
