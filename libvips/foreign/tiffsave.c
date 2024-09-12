@@ -362,10 +362,10 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 
 	VIPS_ARG_INT(class, "level", 23,
 		_("Level"),
-		_("ZSTD compression level"),
+		_("Deflate (1-9, default 6) or ZSTD (1-22, default 9) compression level"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveTiff, level),
-		1, 22, 10);
+		1, 22, 6);
 
 	VIPS_ARG_BOOL(class, "lossless", 24,
 		_("Lossless"),
@@ -422,7 +422,7 @@ vips_foreign_save_tiff_init(VipsForeignSaveTiff *tiff)
 	tiff->xres = 1.0;
 	tiff->yres = 1.0;
 	tiff->region_shrink = VIPS_REGION_SHRINK_MEAN;
-	tiff->level = 10;
+	tiff->level = 0;
 	tiff->lossless = FALSE;
 	tiff->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
 	tiff->bitdepth = 0;
@@ -622,7 +622,7 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * * @bigtiff: %gboolean, write a BigTiff file
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd compression level
+ * * @level: %gint, Zstd or Deflate (zlib) compression level
  * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
@@ -647,7 +647,7 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * User @level to set the ZSTD compression level. Use @lossless to
+ * User @level to set the ZSTD (1-22) or Deflate (1-9) compression level. Use @lossless to
  * set WEBP lossless mode on. Use @Q to set the WEBP compression level.
  *
  * Use @predictor to set the predictor for lzw, deflate and zstd compression.
@@ -753,7 +753,7 @@ vips_tiffsave(VipsImage *in, const char *filename, ...)
  * * @bigtiff: %gboolean, write a BigTiff file
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd compression level
+ * * @level: %gint, Zstd or Deflate (zlib) compression level
  * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
@@ -820,7 +820,7 @@ vips_tiffsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @bigtiff: %gboolean, write a BigTiff file
  * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd compression level
+ * * @level: %gint, Zstd or Deflate (zlib) compression level
  * * @lossless: %gboolean, WebP lossless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds

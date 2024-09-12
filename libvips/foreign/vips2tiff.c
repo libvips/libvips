@@ -367,7 +367,7 @@ struct _Wtiff {
 	int rgbjpeg;					/* True for RGB not YCbCr */
 	int properties;					/* Set to save XML props */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
-	int level;						/* zstd compression level */
+	int level;						/* Deflate (zlib) / zstd compression level */
 	gboolean lossless;				/* lossless mode */
 	VipsForeignDzDepth depth;		/* Pyr depth */
 	gboolean subifd;				/* Write pyr layers into subifds */
@@ -855,12 +855,18 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		TIFFSetField(tif, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless);
 	}
 	if (wtiff->compression == COMPRESSION_ZSTD) {
-		TIFFSetField(tif, TIFFTAG_ZSTD_LEVEL, wtiff->level);
+		// Set zstd compression level - only accept valid values (1-22)
+		if ((wtiff->level>=1) && (wtiff->level<=22))
+			TIFFSetField(tif, TIFFTAG_ZSTD_LEVEL, wtiff->level);
 		if (wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
 			TIFFSetField(tif,
 				TIFFTAG_PREDICTOR, wtiff->predictor);
 	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
+
+	// Set zlib compression level - only accept valid values (1-9)
+	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE) && (wtiff->level>=1) && (wtiff->level<=9))
+		TIFFSetField(tif, TIFFTAG_ZIPQUALITY, wtiff->level);
 
 	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
 			wtiff->compression == COMPRESSION_LZW) &&
