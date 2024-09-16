@@ -126,6 +126,11 @@ typedef struct _VipsForeignSaveJxl {
 	/* Write buffer.
 	 */
 	uint8_t output_buffer[OUTPUT_BUFFER_SIZE];
+	JxlEncoderOutputProcessor output_processor;
+
+	/* Chunk reader.
+	 */
+	JxlChunkedFrameInputSource input_source;
 
 } VipsForeignSaveJxl;
 
@@ -133,6 +138,83 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
+
+static void *
+vips_foreign_save_jxl_get_buffer(void *opaque, size_t *size)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	*size = OUTPUT_BUFFER_SIZE;
+	return jxl->output_buffer;
+}
+
+static void
+vips_foreign_save_jxl_release_buffer(void *opaque, size_t written_bytes)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	if (vips_target_write(jxl->target, jxl->output_buffer, written_bytes))
+		jxl->error = TRUE;
+}
+
+static void
+vips_foreign_save_jxl_seek(void *opaque, uint64_t position)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	if (vips_target_seek(jxl->target, position, SEEK_SET))
+		jxl->error = TRUE;
+}
+
+static void
+vips_foreign_save_jxl_set_output_processor(VipsForeignSaveJxl *jxl)
+{
+	jxl->output_processor = {
+		.opaque = jxl,
+		.get_buffer = vips_foreign_save_jxl_get_buffer,
+		.release_buffer = vips_foreign_save_jxl_release_buffer,
+		.seek = vips_foreign_save_jxl_seek,
+		.set_finalized_position = vips_foreign_save_jxl_set_finalized_position,
+	};
+
+	JxlEncoderSetOutputProcessor(jxl->encoder, &jxl->output_processor);
+}
+
+static void
+vips_foreign_save_jxl_pixel_format(void *opaque, JxlPixelFormat *format)
+{
+	*format = jxl->format;
+}
+
+static const void *
+vips_foreign_save_jxl_data_at(void *opaque,
+	size_t xpos, size_t ypos, size_t xsize, size_t ysize,
+	size_t *row_offset)
+{
+	if (vips_region_prepare(jxl->region, xpos, ypox, xsize, ysize))
+		jxl->error = TRUE;
+
+	*row_offset = VIPS_REGION_LSKIP(jx->region);
+
+	returm VIPS_REGION_ADDR(jxl->region, xpos, ypos);
+}
+
+static void
+vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
+{
+	jxl->input_source = {
+		.opaque = jxl,
+		.get_color_channels_pixel_format = vips_foreign_save_jxl_pixel_format,
+		.get_color_channel_data_at = vips_foreign_save_jxl_data_at,
+		.get_extra_channel_pixel_format = vips_foreign_save_jxl_pixel_format,
+		.get_extra_channel_data_at = vips_foreign_save_jxl_extra_data_at,
+		.release_buffer = vips_foreign_save_jxl_release_buffer
+	};
+}
+
+
+
+
 
 /* String-based metadata fields we add.
  */
@@ -272,21 +354,18 @@ vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 	do {
 		out = jxl->output_buffer;
 		avail_out = OUTPUT_BUFFER_SIZE;
-		status = JxlEncoderProcessOutput(jxl->encoder,
-			&out, &avail_out);
+		status = JxlEncoderProcessOutput(jxl->encoder, &out, &avail_out);
 		switch (status) {
 		case JXL_ENC_SUCCESS:
 		case JXL_ENC_NEED_MORE_OUTPUT:
 			if (OUTPUT_BUFFER_SIZE > avail_out &&
-				vips_target_write(jxl->target,
-					jxl->output_buffer,
+				vips_target_write(jxl->target, jxl->output_buffer,
 					OUTPUT_BUFFER_SIZE - avail_out))
 				return -1;
 			break;
 
 		default:
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderProcessOutput");
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderProcessOutput");
 #ifdef DEBUG
 			vips_foreign_save_jxl_print_status(status);
 #endif /*DEBUG*/

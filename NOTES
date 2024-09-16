@@ -1,0 +1,72 @@
+## chunked jxl encode
+
+call JxlEncoderSetOutputProcessor() to set a JxlEncoderOutputProcessor obj
+
+	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv428JxlEncoderSetOutputProcessorP10JxlEncoder25JxlEncoderOutputProcessor
+
+then call JxlEncoderAddChunkedFrame() to do a chunked write
+
+	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv425JxlEncoderAddChunkedFramePK23JxlEncoderFrameSettings8JXL_BOOL26JxlChunkedFrameInputSource
+
+
+need JxlChunkedFrameInputSource object to supply pixels
+
+	https://libjxl.readthedocs.io/en/latest/api_encoder.html#structJxlChunkedFrameInputSource
+
+this struct holds callbacks:
+
+	get_color_channels_pixel_format()
+
+		gets the format we will supply pixels in, eg. float RGB or
+		whatever
+
+	get_color_channel_data_at()
+
+		gets a rect of pixels, return a pointer plus a row stride
+
+	get_extra_channel_pixel_format()
+	get_extra_channel_data_at()
+
+		same, but for extra channels (do we use these? is this for
+		alpha?)
+
+	release_buffer()
+
+		free the buffer from get_color_channel_data_at() etc.,
+		probably don't need this
+
+
+need JxlEncoderOutputProcessor object to write encoded data
+
+	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv425JxlEncoderOutputProcessor
+
+struct with callbacks:
+
+	get_buffer()
+
+		returns a memory buffer that libjxl can write to (pointer +
+		length)
+
+	release_buffer()
+
+		write some bytes to the output
+
+	seek()
+
+		optionally set write position
+
+	set_finalized_position()
+
+		bytes up to this point in the output are finalised and will
+		never be seeked to
+
+
+
+
+
+
+
+
+
+
+
