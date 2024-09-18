@@ -1,13 +1,15 @@
 /* load jpeg2000
  *
  * 18/3/20
- * 	- from heifload.c
+ *	- from heifload.c
  * 4/11/21
- * 	- add untiled load
+ *	- add untiled load
  * 17/1/22
- * 	- left-justify bits for eg. 12-bit read
+ *	- left-justify bits for eg. 12-bit read
  * 13/3/23 MathemanFlo
- * 	- add bits per sample metadata
+ *	- add bits per sample metadata
+ * 18/9/24
+ *	- revise offset handling
  */
 
 /*
@@ -85,6 +87,18 @@ typedef struct _VipsForeignLoadJp2k {
 	opj_dparameters_t parameters;	/* Core decompress params */
 	opj_image_t *image;				/* Read image to here */
 	opj_codestream_info_v2_t *info; /* Tile geometry */
+
+	/* Geometry of full size image
+	 */
+	int opj_x0;
+	int opj_y0;
+	int opj_x1;
+	int opj_y1;
+
+	/* Size of the image we generate.
+	 */
+	int width;
+	int height;
 
 	/* Number of errors reported during load -- use this to block load of
 	 * corrupted images.
@@ -183,17 +197,14 @@ vips_foreign_load_jp2k_stream(VipsSource *source)
 		return NULL;
 
 	opj_stream_set_user_data(stream, source, NULL);
+
 	/* Unfortunately, jp2k requires the length, so pipe sources will have
 	 * to buffer in memory.
 	 */
-	opj_stream_set_user_data_length(stream,
-		vips_source_length(source));
-	opj_stream_set_read_function(stream,
-		vips_foreign_load_jp2k_read_source);
-	opj_stream_set_skip_function(stream,
-		vips_foreign_load_jp2k_skip_source);
-	opj_stream_set_seek_function(stream,
-		vips_foreign_load_jp2k_seek_source);
+	opj_stream_set_user_data_length(stream, vips_source_length(source));
+	opj_stream_set_read_function(stream, vips_foreign_load_jp2k_read_source);
+	opj_stream_set_skip_function(stream, vips_foreign_load_jp2k_skip_source);
+	opj_stream_set_seek_function(stream, vips_foreign_load_jp2k_seek_source);
 
 	return stream;
 }
@@ -346,14 +357,10 @@ vips_foreign_load_jp2k_print(VipsForeignLoadJp2k *jp2k)
 
 		printf("%i) dx = %u, dy = %u, w = %u, h = %u, "
 			   "x0 = %u, y0 = %u\n",
-			i, this->dx, this->dy, this->w, this->h,
-			this->x0, this->y0);
-		printf("    prec = %d, sgnd = %x, "
-			   "resno_decoded = %u, factor = %u\n",
-			this->prec, this->sgnd,
-			this->resno_decoded, this->factor);
-		printf("    data = %p, alpha = %u\n",
-			this->data, this->alpha);
+			i, this->dx, this->dy, this->w, this->h, this->x0, this->y0);
+		printf("    prec = %d, sgnd = %x, resno_decoded = %u, factor = %u\n",
+			this->prec, this->sgnd, this->resno_decoded, this->factor);
+		printf("    data = %p, alpha = %u\n", this->data, this->alpha);
 	}
 
 	printf("info:\n");
@@ -392,22 +399,19 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	case OPJ_CLRSPC_EYCC:
 		/* Map these to RGB.
 		 */
-		interpretation = vips_format_sizeof(format) == 1
-			? VIPS_INTERPRETATION_sRGB
-			: VIPS_INTERPRETATION_RGB16;
+		interpretation = vips_format_sizeof(format) == 1 ?
+			VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
 		jp2k->ycc_to_rgb = TRUE;
 		break;
 
 	case OPJ_CLRSPC_GRAY:
-		interpretation = vips_format_sizeof(format) == 1
-			? VIPS_INTERPRETATION_B_W
-			: VIPS_INTERPRETATION_GREY16;
+		interpretation = vips_format_sizeof(format) == 1 ?
+			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_GREY16;
 		break;
 
 	case OPJ_CLRSPC_SRGB:
-		interpretation = vips_format_sizeof(format) == 1
-			? VIPS_INTERPRETATION_sRGB
-			: VIPS_INTERPRETATION_RGB16;
+		interpretation = vips_format_sizeof(format) == 1 ?
+			VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
 		break;
 
 	case OPJ_CLRSPC_CMYK:
@@ -419,13 +423,11 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 		/* Try to guess something sensible.
 		 */
 		if (jp2k->image->numcomps < 3)
-			interpretation = vips_format_sizeof(format) == 1
-				? VIPS_INTERPRETATION_B_W
-				: VIPS_INTERPRETATION_GREY16;
+			interpretation = vips_format_sizeof(format) == 1 ?
+				VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_GREY16;
 		else
-			interpretation = vips_format_sizeof(format) == 1
-				? VIPS_INTERPRETATION_sRGB
-				: VIPS_INTERPRETATION_RGB16;
+			interpretation = vips_format_sizeof(format) == 1 ?
+				VIPS_INTERPRETATION_sRGB : VIPS_INTERPRETATION_RGB16;
 
 		/* Unspecified with three bands and subsampling on bands 2 and
 		 * 3 is usually YCC.
@@ -443,8 +445,7 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 
 	default:
 		vips_error(class->nickname,
-			_("unsupported colourspace %d"),
-			jp2k->image->color_space);
+			_("unsupported colourspace %d"), jp2k->image->color_space);
 		return -1;
 	}
 
@@ -453,23 +454,23 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
 
+	/* x0/y0 give the offset to the first pixel in the image. first->w and h
+	 * are scaled by the page number.
+	 */
 	vips_image_init_fields(out,
-		first->w, first->h, jp2k->image->numcomps, format,
+		jp2k->width, jp2k->height, jp2k->image->numcomps, format,
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
 	/* openjpeg allows left and top of the coordinate grid to be
 	 * non-zero. These are always in unshrunk coordinates.
 	 */
-	out->Xoffset =
-		-VIPS_ROUND_INT((double) jp2k->image->x0 / jp2k->shrink);
-	out->Yoffset =
-		-VIPS_ROUND_INT((double) jp2k->image->y0 / jp2k->shrink);
+	out->Xoffset = -VIPS_ROUND_INT((double) jp2k->image->x0 / jp2k->shrink);
+	out->Yoffset = -VIPS_ROUND_INT((double) jp2k->image->y0 / jp2k->shrink);
 
 	if (jp2k->image->icc_profile_buf &&
 		jp2k->image->icc_profile_len > 0)
 		vips_image_set_blob_copy(out, VIPS_META_ICC_NAME,
-			jp2k->image->icc_profile_buf,
-			jp2k->image->icc_profile_len);
+			jp2k->image->icc_profile_buf, jp2k->image->icc_profile_len);
 
 	/* Map number of layers in image to pages.
 	 */
@@ -522,13 +523,11 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	/* We only allow images where all components have the same format.
 	 */
 	if (jp2k->image->numcomps > MAX_BANDS) {
-		vips_error(class->nickname,
-			"%s", _("too many image bands"));
+		vips_error(class->nickname, "%s", _("too many image bands"));
 		return -1;
 	}
 	if (jp2k->image->numcomps == 0) {
-		vips_error(class->nickname,
-			"%s", _("no image components"));
+		vips_error(class->nickname, "%s", _("no image components"));
 		return -1;
 	}
 	first = &jp2k->image->comps[0];
@@ -562,6 +561,19 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 			first->dy != 1)
 			jp2k->upsample = TRUE;
 	}
+
+	/* jp2k->image can change during decode, so we need a copy of the
+	 * full-size image geometry.
+	 */
+	jp2k->opj_x0 = jp2k->image->x0;
+	jp2k->opj_y0 = jp2k->image->y0;
+	jp2k->opj_x1 = jp2k->image->x1;
+	jp2k->opj_y1 = jp2k->image->y1;
+
+	/* The size we generate, ie. the decoded dimensions.
+	 */
+	jp2k->width = first->w - first->x0 / jp2k->shrink;
+	jp2k->height = first->h - first->y0 / jp2k->shrink;
 
 	if (vips_foreign_load_jp2k_set_header(jp2k, load->out))
 		return -1;
@@ -625,8 +637,7 @@ vips_foreign_load_jp2k_pack(gboolean upsample,
 	for (i = 0; i < b; i++) {
 		opj_image_comp_t *comp = &image->comps[i];
 
-		planes[i] = comp->data + (top / comp->dy) * comp->w +
-			(left / comp->dx);
+		planes[i] = comp->data + (top / comp->dy) * comp->w + (left / comp->dx);
 	}
 
 	if (upsample)
@@ -793,10 +804,6 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
 	VipsRect *r = &out->valid;
 
-	VipsRect opj;
-	VipsRect image;
-	int y;
-
 #ifdef DEBUG_VERBOSE
 	printf("vips_foreign_load_jp2k_generate_untiled: "
 		   "left = %d, top = %d, width = %d, height = %d\n",
@@ -809,24 +816,17 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 	if (jp2k->n_errors)
 		return 0;
 
-	/* Coordinates are always in the highest res level.
+	/* To opj image space. Coordinates are always in the highest res level.
 	 */
-	opj.left = r->left * jp2k->shrink;
-	opj.top = r->top * jp2k->shrink;
-	opj.width = r->width * jp2k->shrink;
-	opj.height = r->height * jp2k->shrink;
-
-	/* And must be clipped against the image size.
-	 */
-	image.left = 0;
-	image.top = 0;
-	image.width = jp2k->info->tdx;
-	image.height = jp2k->info->tdy;
-	vips_rect_intersectrect(&opj, &image, &opj);
+	VipsRect opj = {
+		.left = r->left * jp2k->shrink + jp2k->opj_x0,
+		.top = r->top * jp2k->shrink + jp2k->opj_y0,
+		.width = r->width * jp2k->shrink,
+		.height = r->height * jp2k->shrink
+	};
 
 	if (!opj_set_decode_area(jp2k->codec, jp2k->image,
-			opj.left, opj.top,
-			VIPS_RECT_RIGHT(&opj), VIPS_RECT_BOTTOM(&opj)))
+			opj.left, opj.top, VIPS_RECT_RIGHT(&opj), VIPS_RECT_BOTTOM(&opj)))
 		return -1;
 
 	if (!opj_decode(jp2k->codec, jp2k->stream, jp2k->image))
@@ -834,7 +834,7 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 
 	/* Unpack decoded pixels to buffer in vips layout.
 	 */
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		VipsPel *q = VIPS_REGION_ADDR(out, r->left, r->top + y);
 
 		vips_foreign_load_jp2k_pack(jp2k->upsample,
@@ -844,8 +844,7 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 			vips_foreign_load_jp2k_ycc_to_rgb(jp2k->image,
 				out->im, q, r->width);
 
-		vips_foreign_load_jp2k_ljust(jp2k->image,
-			out->im, q, r->width);
+		vips_foreign_load_jp2k_ljust(jp2k->image, out->im, q, r->width);
 	}
 
 	/* jp2k files can't be truncated (they fail to open), so all we can
@@ -872,10 +871,8 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 
 	/* jp2k get smaller with the layer size.
 	 */
-	int tile_width = VIPS_ROUND_UINT(
-		(double) jp2k->info->tdx / jp2k->shrink);
-	int tile_height = VIPS_ROUND_UINT(
-		(double) jp2k->info->tdy / jp2k->shrink);
+	int tile_width = VIPS_ROUND_UINT((double) jp2k->info->tdx / jp2k->shrink);
+	int tile_height = VIPS_ROUND_UINT((double) jp2k->info->tdy / jp2k->shrink);
 
 	/* ... so tiles_across is always the same.
 	 */
@@ -939,8 +936,7 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 			/* Unpack hit pixels to buffer in vips layout.
 			 */
 			for (z = 0; z < hit.height; z++) {
-				VipsPel *q = VIPS_REGION_ADDR(out,
-					hit.left, hit.top + z);
+				VipsPel *q = VIPS_REGION_ADDR(out, hit.left, hit.top + z);
 
 				vips_foreign_load_jp2k_pack(jp2k->upsample,
 					jp2k->image, out->im, q,
@@ -949,8 +945,7 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 					hit.width);
 
 				if (jp2k->ycc_to_rgb)
-					vips_foreign_load_jp2k_ycc_to_rgb(
-						jp2k->image, out->im, q,
+					vips_foreign_load_jp2k_ycc_to_rgb(jp2k->image, out->im, q,
 						hit.width);
 
 				vips_foreign_load_jp2k_ljust(jp2k->image,
@@ -1124,8 +1119,7 @@ vips_foreign_load_jp2k_is_a(const char *filename)
 }
 
 static void
-vips_foreign_load_jp2k_file_class_init(
-	VipsForeignLoadJp2kFileClass *class)
+vips_foreign_load_jp2k_file_class_init(VipsForeignLoadJp2kFileClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -1173,8 +1167,7 @@ static int
 vips_foreign_load_jp2k_buffer_build(VipsObject *object)
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) object;
-	VipsForeignLoadJp2kBuffer *buffer =
-		(VipsForeignLoadJp2kBuffer *) object;
+	VipsForeignLoadJp2kBuffer *buffer = (VipsForeignLoadJp2kBuffer *) object;
 
 	if (buffer->buf)
 		if (!(jp2k->source = vips_source_new_from_memory(
@@ -1250,8 +1243,7 @@ static int
 vips_foreign_load_jp2k_source_build(VipsObject *object)
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) object;
-	VipsForeignLoadJp2kSource *source =
-		(VipsForeignLoadJp2kSource *) object;
+	VipsForeignLoadJp2kSource *source = (VipsForeignLoadJp2kSource *) object;
 
 	if (source->source) {
 		jp2k->source = source->source;
@@ -1266,8 +1258,7 @@ vips_foreign_load_jp2k_source_build(VipsObject *object)
 }
 
 static void
-vips_foreign_load_jp2k_source_class_init(
-	VipsForeignLoadJp2kSourceClass *class)
+vips_foreign_load_jp2k_source_class_init(VipsForeignLoadJp2kSourceClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -1293,8 +1284,7 @@ vips_foreign_load_jp2k_source_class_init(
 }
 
 static void
-vips_foreign_load_jp2k_source_init(
-	VipsForeignLoadJp2kSource *jp2k)
+vips_foreign_load_jp2k_source_init(VipsForeignLoadJp2kSource *jp2k)
 {
 }
 
@@ -1400,8 +1390,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 		return -1;
 	}
 
-	if (!opj_decode(decompress.codec,
-			decompress.stream, decompress.image)) {
+	if (!opj_decode(decompress.codec, decompress.stream, decompress.image)) {
 		vips_error("jp2kload", "%s", ("decode error"));
 		vips__foreign_load_jp2k_decompress_free(&decompress);
 		return -1;
@@ -1423,16 +1412,12 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 	q = to;
 	for (y = 0; y < height; y++) {
 		vips_foreign_load_jp2k_pack(upsample,
-			decompress.image, out, q,
-			0, y, width);
+			decompress.image, out, q, 0, y, width);
 
 		if (ycc_to_rgb)
-			vips_foreign_load_jp2k_ycc_to_rgb(
-				decompress.image, out, q,
-				width);
+			vips_foreign_load_jp2k_ycc_to_rgb(decompress.image, out, q, width);
 
-		vips_foreign_load_jp2k_ljust(decompress.image,
-			out, q, width);
+		vips_foreign_load_jp2k_ljust(decompress.image, out, q, width);
 
 		q += line_size;
 	}
