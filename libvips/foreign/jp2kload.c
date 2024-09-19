@@ -342,18 +342,10 @@ vips_foreign_load_jp2k_print_image(opj_image_t *image)
 		image->numcomps, image->color_space);
 	printf("icc_profile_buf = %p, icc_profile_len = %x\n",
 		image->icc_profile_buf, image->icc_profile_len);
-}
-
-static void
-vips_foreign_load_jp2k_print(VipsForeignLoadJp2k *jp2k)
-{
-	int i;
-
-	vips_foreign_load_jp2k_print_image(jp2k->image);
 
 	printf("components:\n");
-	for (i = 0; i < jp2k->image->numcomps; i++) {
-		opj_image_comp_t *this = &jp2k->image->comps[i];
+	for (int i = 0; i < image->numcomps; i++) {
+		opj_image_comp_t *this = &image->comps[i];
 
 		printf("%i) dx = %u, dy = %u, w = %u, h = %u, "
 			   "x0 = %u, y0 = %u\n",
@@ -362,6 +354,12 @@ vips_foreign_load_jp2k_print(VipsForeignLoadJp2k *jp2k)
 			this->prec, this->sgnd, this->resno_decoded, this->factor);
 		printf("    data = %p, alpha = %u\n", this->data, this->alpha);
 	}
+}
+
+static void
+vips_foreign_load_jp2k_print(VipsForeignLoadJp2k *jp2k)
+{
+	vips_foreign_load_jp2k_print_image(jp2k->image);
 
 	printf("info:\n");
 	printf("tx0 = %u, ty0 = %d, tdx = %u, tdy = %u, tw = %u, th = %u\n",
@@ -373,6 +371,9 @@ vips_foreign_load_jp2k_print(VipsForeignLoadJp2k *jp2k)
 	if (jp2k->info->tw == 1 &&
 		jp2k->info->th == 1)
 		printf("untiled\n");
+	printf("opj_x0 = %d, opj_y0 = %d, opj_x1 = %d, opj_y1 = %d\n",
+		jp2k->opj_x0, jp2k->opj_y0, jp2k->opj_x1, jp2k->opj_y1);
+	printf("width = %d, height = %d\n", jp2k->width, jp2k->height);
 }
 #endif /*DEBUG*/
 
@@ -516,10 +517,6 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	if (!(jp2k->info = opj_get_cstr_info(jp2k->codec)))
 		return -1;
 
-#ifdef DEBUG
-	vips_foreign_load_jp2k_print(jp2k);
-#endif /*DEBUG*/
-
 	/* We only allow images where all components have the same format.
 	 */
 	if (jp2k->image->numcomps > MAX_BANDS) {
@@ -572,8 +569,14 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 
 	/* The size we generate, ie. the decoded dimensions.
 	 */
-	jp2k->width = first->w - first->x0 / jp2k->shrink;
-	jp2k->height = first->h - first->y0 / jp2k->shrink;
+	jp2k->width = first->w -
+		VIPS_ROUND_UINT((double) first->x0 / jp2k->shrink);
+	jp2k->height = first->h -
+		VIPS_ROUND_UINT((double) first->y0 / jp2k->shrink);
+
+#ifdef DEBUG
+	vips_foreign_load_jp2k_print(jp2k);
+#endif /*DEBUG*/
 
 	if (vips_foreign_load_jp2k_set_header(jp2k, load->out))
 		return -1;
@@ -588,7 +591,7 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	{ \
 		TYPE *tq = (TYPE *) q; \
 \
-		for (x = 0; x < length; x++) { \
+		for (x = 0; x < width; x++) { \
 			for (i = 0; i < b; i++) \
 				tq[i] = planes[i][x]; \
 \
@@ -600,7 +603,7 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	{ \
 		TYPE *tq = (TYPE *) q; \
 \
-		for (x = 0; x < length; x++) { \
+		for (x = 0; x < width; x++) { \
 			for (i = 0; i < b; i++) { \
 				int dx = image->comps[i].dx; \
 				int pixel = planes[i][x / dx]; \
@@ -621,7 +624,7 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 static void
 vips_foreign_load_jp2k_pack(gboolean upsample,
 	opj_image_t *image, VipsImage *im,
-	VipsPel *q, int left, int top, int length)
+	VipsPel *q, int left, int top, int width)
 {
 	int *planes[MAX_BANDS];
 	int b = image->numcomps;
@@ -630,8 +633,8 @@ vips_foreign_load_jp2k_pack(gboolean upsample,
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_foreign_load_jp2k_pack: "
-		   "upsample = %d, left = %d, top = %d, length = %d\n",
-		upsample, left, top, length);
+		   "upsample = %d, left = %d, top = %d, width = %d\n",
+		upsample, left, top, width);
 #endif /*DEBUG_VERBOSE*/
 
 	for (i = 0; i < b; i++) {
@@ -857,9 +860,13 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 	return 0;
 }
 
-/* Read a tile from the file. libvips tiles can be much larger or smaller than
- * openjpeg tiles, so we must loop over the output region, painting in
- * tiles from the file.
+/* Read a tile from the file.
+ *
+ * - jp2k tiles get smaller with `->shrink`, so we may need to fetch many jp2k
+ *   tiles to fill one libvips tile
+ *
+ * - jp2k tiles vary in size across a single image layer due to rounding, so
+ *   we must step x and y by a variable amount
  */
 static int
 vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
@@ -868,15 +875,6 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 	VipsForeignLoad *load = (VipsForeignLoad *) a;
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
 	VipsRect *r = &out->valid;
-
-	/* jp2k get smaller with the layer size.
-	 */
-	int tile_width = VIPS_ROUND_UINT((double) jp2k->info->tdx / jp2k->shrink);
-	int tile_height = VIPS_ROUND_UINT((double) jp2k->info->tdy / jp2k->shrink);
-
-	/* ... so tiles_across is always the same.
-	 */
-	int tiles_across = jp2k->info->tw;
 
 	int x, y, z;
 
@@ -896,27 +894,22 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 	while (y < r->height) {
 		VipsRect tile, hit;
 
-		/* Not necessary, but it stops static analyzers complaining
-		 * about a used-before-set.
-		 */
-		hit.height = 0;
-
 		x = 0;
 		while (x < r->width) {
-			/* Tile the xy falls in, in tile numbers.
+			/* libvips tile position to opj base resolution coordinates.
 			 */
-			int tx = (r->left + x) / tile_width;
-			int ty = (r->top + y) / tile_height;
+			int opj_x = (r->left + x) * jp2k->shrink;
+			int opj_y = (r->top + y) * jp2k->shrink;
 
-			/* Pixel coordinates of the tile that xy falls in.
+			/* To opj tile coordinates.
 			 */
-			int xs = tx * tile_width;
-			int ys = ty * tile_height;
+			int tx = opj_x / jp2k->info->tdx;
+			int ty = opj_y / jp2k->info->tdy;
 
-			int tile_index = ty * tiles_across + tx;
-
-			/* Fetch the tile.
+			/* To tile number.
 			 */
+			int tile_index = ty * jp2k->info->tw + tx;
+
 #ifdef DEBUG_VERBOSE
 			printf("   fetch tile %d\n", tile_index);
 #endif /*DEBUG_VERBOSE*/
@@ -924,13 +917,15 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 					jp2k->stream, jp2k->image, tile_index))
 				return -1;
 
-			/* Intersect tile with request to get pixels we need
-			 * to copy out.
+			/* Tile in libvips space intersected with the request to get the
+			 * pixels we need.
 			 */
-			tile.left = xs;
-			tile.top = ys;
-			tile.width = tile_width;
-			tile.height = tile_height;
+			tile = (VipsRect) {
+				.left = r->left + x,
+				.top = r->top + y,
+				.width = jp2k->image->comps[0].w,
+				.height = jp2k->image->comps[0].h
+			};
 			vips_rect_intersectrect(&tile, r, &hit);
 
 			/* Unpack hit pixels to buffer in vips layout.
@@ -955,9 +950,6 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 			x += hit.width;
 		}
 
-		/* This will be the same for all tiles in the row we've just
-		 * done.
-		 */
 		y += hit.height;
 	}
 
