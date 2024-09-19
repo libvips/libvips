@@ -1534,6 +1534,21 @@ class TestForeign:
         self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
         self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
 
+        # Bretagne2_4.j2k is a tiled jpeg2000 image with 127x127 pixel tiles,
+        # triggering tricky rounding issues
+        filename = os.path.join(IMAGES, "Bretagne2_4.j2k")
+        im = pyvips.Image.new_from_file(filename, page=4)
+        assert abs(im.avg() - 132) < 0.3
+        im = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im.avg() - 132) < 0.3
+
+        # Bretagne2_1.j2k is an untiled jpeg2000 image with non-zero offset
+        filename = os.path.join(IMAGES, "Bretagne2_1.j2k")
+        im = pyvips.Image.new_from_file(filename, page=4)
+        assert abs(im.avg() - 120) < 0.3
+        im = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im.avg() - 120) < 0.3
+
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
         self.save_load_buffer("jp2ksave_buffer", "jp2kload_buffer",
