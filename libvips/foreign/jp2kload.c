@@ -10,6 +10,7 @@
  *	- add bits per sample metadata
  * 18/9/24
  *	- revise offset handling
+ *	- test that decoded image matches header
  */
 
 /*

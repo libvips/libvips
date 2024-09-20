@@ -1547,6 +1547,14 @@ class TestForeign:
         im3 = pyvips.Image.new_from_file(filename, page=3)
         assert abs(im4.avg() - im3.avg()) < 0.5
 
+        # this horrible thing has a header that doesn't match the decoded
+        # pixels ... although it's a valid jp2k image, we reject files of
+        # this type
+        filename = os.path.join(IMAGES, "issue412.jp2")
+        with pytest.raises(Exception) as e_info:
+            im = pyvips.Image.new_from_file(filename)
+            im.avg()
+
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
         self.save_load_buffer("jp2ksave_buffer", "jp2kload_buffer",
