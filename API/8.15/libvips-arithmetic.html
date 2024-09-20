@@ -1045,161 +1045,171 @@ changing pixels.</p>
 First, the two input images are cast up to the smallest common format,
 that is, the type with the smallest range that can represent the full
 range of both inputs. This conversion can be represented as a table:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;Smallest common format&lt;/title&gt;
-  &lt;tgroup cols='10' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;<em class="parameter"><code>in2</code></em>
-/<em class="parameter"><code>in1</code></em>
-&lt;/entry&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In the second stage, the operation is performed between the two identical
+<div class="table">
+<a name="id-1.4.2.8.10"></a><p class="title"><b>Table 3. Smallest common format</b></p>
+<div class="table-contents"><table class="table" summary="Smallest common format" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">
+<em class="parameter"><code>in2</code></em>/<em class="parameter"><code>in1</code></em>
+</th>
+<th align="left">uchar</th>
+<th align="left">char</th>
+<th align="left">ushort</th>
+<th align="left">short</th>
+<th align="left">uint</th>
+<th align="left">int</th>
+<th align="left">float</th>
+<th align="left">double</th>
+<th align="left">complex</th>
+<th align="left">double complex</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">ushort</td>
+<td align="left">short</td>
+<td align="left">ushort</td>
+<td align="left">short</td>
+<td align="left">uint</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">ushort</td>
+<td align="left">short</td>
+<td align="left">ushort</td>
+<td align="left">short</td>
+<td align="left">uint</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">short</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">uint</td>
+<td align="left">int</td>
+<td align="left">uint</td>
+<td align="left">int</td>
+<td align="left">uint</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">int</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">float</td>
+<td align="left">double</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+<td align="left">complex</td>
+<td align="left">double complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In the second stage, the operation is performed between the two identical
 types to form the output. The details vary between operations, but
 generally the principle is that the output type should be large enough to
 represent the whole range of possible values, except that int never becomes
@@ -1225,63 +1235,65 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), then the
-following table is used to determine the output type:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;VipsAdd type promotion&lt;/title&gt;
-  &lt;tgroup cols='2' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;input type&lt;/entry&gt;
-        &lt;entry&gt;output type&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In other words, the output type is just large enough to hold the whole
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), then the
+<p>following table is used to determine the output type:</p>
+<div class="table">
+<a name="id-1.4.2.9.2.10"></a><p class="title"><b>Table 4. VipsAdd type promotion</b></p>
+<div class="table-contents"><table class="table" summary="VipsAdd type promotion" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">input type</th>
+<th align="left">output type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">ushort</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">short</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-subtract" title="vips_subtract ()"><code class="function">vips_subtract()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-linear" title="vips_linear ()"><code class="function">vips_linear()</code></a>.</p>
 <div class="refsect3">
@@ -1339,63 +1351,65 @@ must have one band. In this case, n-band images are formed from the
 one-band images by joining n copies of the one-band images together, and then
 the n-band images are operated upon.</p>
 <p>The input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), then the
-following table is used to determine the output type:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;VipsSum type promotion&lt;/title&gt;
-  &lt;tgroup cols='2' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;input type&lt;/entry&gt;
-        &lt;entry&gt;output type&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In other words, the output type is just large enough to hold the whole
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), then the
+<p>following table is used to determine the output type:</p>
+<div class="table">
+<a name="id-1.4.2.9.3.10"></a><p class="title"><b>Table 5. VipsSum type promotion</b></p>
+<div class="table-contents"><table class="table" summary="VipsSum type promotion" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">input type</th>
+<th align="left">output type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a>.</p>
 <div class="refsect3">
@@ -1454,63 +1468,65 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), then the
-following table is used to determine the output type:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;VipsSubtract type promotion&lt;/title&gt;
-  &lt;tgroup cols='2' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;input type&lt;/entry&gt;
-        &lt;entry&gt;output type&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In other words, the output type is just large enough to hold the whole
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), then the
+<p>following table is used to determine the output type:</p>
+<div class="table">
+<a name="id-1.4.2.9.4.10"></a><p class="title"><b>Table 6. VipsSubtract type promotion</b></p>
+<div class="table-contents"><table class="table" summary="VipsSubtract type promotion" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">input type</th>
+<th align="left">output type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">short</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">short</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-linear" title="vips_linear ()"><code class="function">vips_linear()</code></a>.</p>
 <div class="refsect3">
@@ -1569,63 +1585,65 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), then the
-following table is used to determine the output type:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;VipsMultiply type promotion&lt;/title&gt;
-  &lt;tgroup cols='2' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;input type&lt;/entry&gt;
-        &lt;entry&gt;output type&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In other words, the output type is just large enough to hold the whole
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), then the
+<p>following table is used to determine the output type:</p>
+<div class="table">
+<a name="id-1.4.2.9.5.10"></a><p class="title"><b>Table 7. VipsMultiply type promotion</b></p>
+<div class="table-contents"><table class="table" summary="VipsMultiply type promotion" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">input type</th>
+<th align="left">output type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">ushort</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">short</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">uint</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">int</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-linear" title="vips_linear ()"><code class="function">vips_linear()</code></a>.</p>
 <div class="refsect3">
@@ -1687,63 +1705,65 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), then the
-following table is used to determine the output type:</p>
-<p>&lt;table&gt;
-  &lt;title&gt;<a class="link" href="libvips-arithmetic.html#vips-divide" title="vips_divide ()"><code class="function">vips_divide()</code></a> type promotion&lt;/title&gt;
-  &lt;tgroup cols='2' align='left' colsep='1' rowsep='1'&gt;
-    &lt;thead&gt;
-      &lt;row&gt;
-        &lt;entry&gt;input type&lt;/entry&gt;
-        &lt;entry&gt;output type&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/thead&gt;
-    &lt;tbody&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uchar&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;char&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;ushort&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;short&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;uint&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;int&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-        &lt;entry&gt;float&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-        &lt;entry&gt;double&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-        &lt;entry&gt;complex&lt;/entry&gt;
-      &lt;/row&gt;
-      &lt;row&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-        &lt;entry&gt;double complex&lt;/entry&gt;
-      &lt;/row&gt;
-    &lt;/tbody&gt;
-  &lt;/tgroup&gt;
-&lt;/table&gt;</p>
-<p>In other words, the output type is just large enough to hold the whole
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), then the
+<p>following table is used to determine the output type:</p>
+<div class="table">
+<a name="id-1.4.2.9.6.10"></a><p class="title"><b>Table 8. <a class="link" href="libvips-arithmetic.html#vips-divide" title="vips_divide ()"><code class="function">vips_divide()</code></a> type promotion</b></p>
+<div class="table-contents"><table class="table" summary="vips_divide() type promotion" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">input type</th>
+<th align="left">output type</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">uchar</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">char</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">ushort</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">short</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">uint</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="left">float</td>
+</tr>
+<tr>
+<td align="left">double</td>
+<td align="left">double</td>
+</tr>
+<tr>
+<td align="left">complex</td>
+<td align="left">complex</td>
+</tr>
+<tr>
+<td align="left">double complex</td>
+<td align="left">double complex</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-multiply" title="vips_multiply ()"><code class="function">vips_multiply()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-linear" title="vips_linear ()"><code class="function">vips_linear()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-pow" title="vips_pow ()"><code class="function">vips_pow()</code></a>.</p>
 <div class="refsect3">
@@ -1943,9 +1963,9 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), and that format is the
-result type.</p>
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), and that format is the
+<p>result type.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-remainder-const" title="vips_remainder_const ()"><code class="function">vips_remainder_const()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-divide" title="vips_divide ()"><code class="function">vips_divide()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-round" title="vips_round ()"><code class="function">vips_round()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-remainder.parameters"></a><h4>Parameters</h4>
@@ -2180,7 +2200,7 @@ vips_abs (<em class="parameter"><code><a class="link" href="VipsImage.html" titl
           <em class="parameter"><code>...</code></em>);</pre>
 <p>This operation finds the absolute value of an image. It does a copy for
 unsigned integer types, negate for negative values in
-signed integer types, &lt;function&gt;fabs(3)&lt;/function&gt; for
+signed integer types, <code class="function">fabs(3)</code> for
 float types, and calculates modulus for complex
 types.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-sign" title="vips_sign ()"><code class="function">vips_sign()</code></a>.</p>
@@ -3634,8 +3654,8 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;).</p>
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>).
 <p>To decide if pixels match exactly, that is have the same value in every
 band, use <a class="link" href="libvips-conversion.html#vips-bandbool" title="vips_bandbool ()"><code class="function">vips_bandbool()</code></a> after this operation to AND or OR image bands
 together.</p>
@@ -4726,8 +4746,8 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;).</p>
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>).
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-boolean-const" title="vips_boolean_const ()"><code class="function">vips_boolean_const()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-boolean.parameters"></a><h4>Parameters</h4>
@@ -5682,9 +5702,9 @@ must have one band. In this case, an n-band image is formed from the
 one-band image by joining n copies of the one-band image together, and then
 the two n-band images are operated upon.</p>
 <p>The two input images are cast up to the smallest common format (see table
-Smallest common format in
-&lt;link linkend="libvips-arithmetic"&gt;arithmetic&lt;/link&gt;), and that format is the
-result type.</p>
+Smallest common format in</p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>), and that format is the
+<p>result type.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-math2-const" title="vips_math2_const ()"><code class="function">vips_math2_const()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-math2.parameters"></a><h4>Parameters</h4>
@@ -7720,7 +7740,7 @@ left edge to the first non-zero pixel in that row.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.34.0</div>
 </section>
 
     <script type="text/javascript">
