@@ -1,0 +1,62 @@
+# This contains the workflow definitions that allow maintainers to backport
+# fixes to the release branch using comments on issues and PRs.
+#
+# /cherry-pick <commit> <...>
+#
+# This comment will attempt to cherry-pick the given commits to the release
+# branch based on the milestone linked to the to issue or PR. If successful,
+# the changes will be pushed to a new branch on GitHub, from which a pull
+# request will be created.
+#
+# Originally from LLVM:
+# https://github.com/llvm/llvm-project/blob/main/.github/workflows/issue-release-workflow.yml
+
+name: Backport workflow
+
+permissions:
+  contents: read
+
+on:
+  issue_comment:
+    types:
+      - created
+      - edited
+  issues:
+    types:
+      - opened
+
+env:
+  COMMENT_BODY: ${{ github.event.action == 'opened' && github.event.issue.body || github.event.comment.body }}
+
+jobs:
+  backport-commits:
+    name: Backport commits
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    if: >-
+      (github.repository == 'libvips/libvips') &&
+      !startswith(github.event.comment.body, '<!--IGNORE-->') &&
+      contains(github.event.action == 'opened' && github.event.issue.body || github.event.comment.body, '/cherry-pick')
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        run: |
+          pip install -r ./.github/utils/requirements.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Backport commits
+        run: |
+          printf "%s" "$COMMENT_BODY" |
+          ./.github/utils/github-automation.py \
+          --repo "$GITHUB_REPOSITORY" \
+          --token "${{ secrets.GITHUB_TOKEN }}" \
+          --issue-number ${{ github.event.issue.number }} \
+          --requested-by ${{ (github.event.action == 'opened' && github.event.issue.user.login) || github.event.comment.user.login }}
