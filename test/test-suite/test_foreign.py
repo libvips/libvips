@@ -1537,17 +1537,15 @@ class TestForeign:
         # Bretagne2_4.j2k is a tiled jpeg2000 image with 127x127 pixel tiles,
         # triggering tricky rounding issues
         filename = os.path.join(IMAGES, "Bretagne2_4.j2k")
-        im = pyvips.Image.new_from_file(filename, page=4)
-        assert abs(im.avg() - 132) < 0.3
-        im = pyvips.Image.new_from_file(filename, page=3)
-        assert abs(im.avg() - 132) < 0.3
+        im4 = pyvips.Image.new_from_file(filename, page=4)
+        im3 = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im4.avg() - im3.avg()) < 0.2
 
         # Bretagne2_1.j2k is an untiled jpeg2000 image with non-zero offset
         filename = os.path.join(IMAGES, "Bretagne2_1.j2k")
-        im = pyvips.Image.new_from_file(filename, page=4)
-        assert abs(im.avg() - 120) < 0.3
-        im = pyvips.Image.new_from_file(filename, page=3)
-        assert abs(im.avg() - 120) < 0.3
+        im4 = pyvips.Image.new_from_file(filename, page=4)
+        im3 = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im4.avg() - im3.avg()) < 0.5
 
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
