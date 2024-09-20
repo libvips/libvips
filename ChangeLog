@@ -6,6 +6,7 @@
 - heifsave: ensure NCLX profile is freed in lossless mode [kleisauke]
 - threadpool: fix a race condition in error handling [kleisauke]
 - disable GLib cast checks and asserts for plain builds [kleisauke]
+- fix jpeg in tiff for high [nahilsobh]
 
 11/8/24 8.15.3
 

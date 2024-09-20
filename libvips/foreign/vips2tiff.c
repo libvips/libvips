@@ -686,28 +686,26 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 	 */
 	jpeg_set_quality(cinfo, wtiff->Q, TRUE);
 
-	if (image->Bands != 3 ||
-		wtiff->Q >= 90)
-		/* No chroma subsample.
-		 */
-		for (int i = 0; i < image->Bands; i++) {
-			cinfo->comp_info[i].h_samp_factor = 1;
-			cinfo->comp_info[i].v_samp_factor = 1;
-		}
-	else {
-		/* Use 4:2:0 subsampling, we must set this explicitly, since some
-		 * jpeg libraries do not enable chroma subsample by default.
-		 */
+	/* We must set chroma subsampling explicitly since some libjpegs do not
+	 * enable this by default.
+	 */
+	for (int i = 0; i < image->Bands; i++) {
+		cinfo->comp_info[i].h_samp_factor = 1;
+		cinfo->comp_info[i].v_samp_factor = 1;
+	}
+	if (image->Bands == 3 &&
+		wtiff->Q < 90) {
 		cinfo->comp_info[0].h_samp_factor = 2;
 		cinfo->comp_info[0].v_samp_factor = 2;
-
-		/* Rest should have sampling factors 1,1.
-		 */
-		for (int i = 1; i < image->Bands; i++) {
-			cinfo->comp_info[i].h_samp_factor = 1;
-			cinfo->comp_info[i].v_samp_factor = 1;
-		}
 	}
+
+	/* For low Q, we write YCbCr, for high Q, RGB. The jpeg coeffs don't
+	 * encode the photometic interpretation, the tiff header does that,
+	 * so this code must be kept synced with wtiff_write_header().
+	 */
+	if (image->Bands == 3 &&
+		wtiff->Q >= 90)
+		jpeg_set_colorspace(cinfo, JCS_RGB);
 
 	// Avoid writing the JFIF APP0 marker.
 	cinfo->write_JFIF_header = FALSE;
@@ -934,9 +932,8 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			wtiff->ready->Bands < 3) {
 			/* Mono or mono + alpha.
 			 */
-			photometric = wtiff->miniswhite
-				? PHOTOMETRIC_MINISWHITE
-				: PHOTOMETRIC_MINISBLACK;
+			photometric = wtiff->miniswhite ?
+				PHOTOMETRIC_MINISWHITE : PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
 		else if (wtiff->ready->Type == VIPS_INTERPRETATION_LAB ||
@@ -950,12 +947,10 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			photometric = PHOTOMETRIC_LOGLUV;
 			/* Tell libtiff we will write as float XYZ.
 			 */
-			TIFFSetField(tif,
-				TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT);
+			TIFFSetField(tif, TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT);
 			stonits = 1.0;
 			if (vips_image_get_typeof(wtiff->ready, "stonits"))
-				vips_image_get_double(wtiff->ready,
-					"stonits", &stonits);
+				vips_image_get_double(wtiff->ready, "stonits", &stonits);
 			TIFFSetField(tif, TIFFTAG_STONITS, stonits);
 			colour_bands = 3;
 		}
@@ -974,8 +969,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			 * that we will supply the image as YCbCr.
 			 */
 			photometric = PHOTOMETRIC_YCBCR;
-			TIFFSetField(tif, TIFFTAG_JPEGCOLORMODE,
-				JPEGCOLORMODE_RGB);
+			TIFFSetField(tif, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB);
 			colour_bands = 3;
 		}
 		else {
@@ -1001,11 +995,9 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 			 * we are premultiplying.
 			 */
 			for (i = 0; i < alpha_bands; i++)
-				v[i] = i == 0 && wtiff->premultiply
-					? EXTRASAMPLE_ASSOCALPHA
-					: EXTRASAMPLE_UNASSALPHA;
-			TIFFSetField(tif,
-				TIFFTAG_EXTRASAMPLES, alpha_bands, v);
+				v[i] = i == 0 && wtiff->premultiply ?
+					EXTRASAMPLE_ASSOCALPHA : EXTRASAMPLE_UNASSALPHA;
+			TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, alpha_bands, v);
 		}
 
 		TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
