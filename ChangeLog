@@ -8,6 +8,7 @@
 - disable GLib cast checks and asserts for plain builds [kleisauke]
 - fix jpeg in tiff for high Q [nahilsobh]
 - threadset: fix a race condition during thread exit [kleisauke]
+- fix compatibility with MSVC [Julianiolo]
 
 11/8/24 8.15.3
 
