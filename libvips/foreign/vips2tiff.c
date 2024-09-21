@@ -691,15 +691,16 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 	/* We must set chroma subsampling explicitly since some libjpegs do not
 	 * enable this by default.
 	 */
-	for (int i = 0; i < image->Bands; i++) {
-		cinfo->comp_info[i].h_samp_factor = 1;
-		cinfo->comp_info[i].v_samp_factor = 1;
-	}
 	if (image->Bands == 3 &&
-		wtiff->Q < 90) {
-		cinfo->comp_info[0].h_samp_factor = 2;
-		cinfo->comp_info[0].v_samp_factor = 2;
-	}
+		wtiff->Q < 90)
+		cinfo->comp_info[0].h_samp_factor = cinfo->comp_info[0].v_samp_factor = 2;
+	else
+		cinfo->comp_info[0].h_samp_factor = cinfo->comp_info[0].v_samp_factor = 1;
+
+	/* Rest should have sampling factors 1,1.
+	 */
+	for (int i = 1; i < image->Bands; i++)
+		cinfo->comp_info[i].h_samp_factor = cinfo->comp_info[i].v_samp_factor = 1;
 
 	/* For low Q, we write YCbCr, for high Q, RGB. The jpeg coeffs don't
 	 * encode the photometric interpretation, the tiff header does that,
