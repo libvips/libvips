@@ -34,6 +34,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Update apt
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq
+
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
         run: |
