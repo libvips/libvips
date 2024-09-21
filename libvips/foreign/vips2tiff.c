@@ -700,7 +700,7 @@ wtiff_compress_jpeg_header(Wtiff *wtiff,
 	}
 
 	/* For low Q, we write YCbCr, for high Q, RGB. The jpeg coeffs don't
-	 * encode the photometic interpretation, the tiff header does that,
+	 * encode the photometric interpretation, the tiff header does that,
 	 * so this code must be kept synced with wtiff_write_header().
 	 */
 	if (image->Bands == 3 &&
