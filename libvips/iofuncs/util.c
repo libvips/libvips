@@ -468,7 +468,7 @@ vips__write(int fd, const void *buf, size_t count)
 		// write() uses int not size_t on windows, so we need to chunk
 		// ... max 1gb, why not
 		int chunk_size = VIPS_MIN(1024 * 1024 * 1024, count);
-		ssize_t nwritten = write(fd, buf, chunk_size);
+		gint64 nwritten = write(fd, buf, chunk_size);
 
 		/* n == 0 isn't strictly an error, but we treat it as
 		 * one to make sure we don't get stuck in this loop.
