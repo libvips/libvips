@@ -61,10 +61,6 @@
  * - libjxl encode only works in one shot mode, so there's no way to write in
  *   chunks
  *
- * - add metadata support EXIF, XMP, etc. api for this is on the way
- *
- * - add animation support
- *
  * - libjxl is currently missing error messages (I think)
  *
  * - add support encoding images with > 4 bands.
