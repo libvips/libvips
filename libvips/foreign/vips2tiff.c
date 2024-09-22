@@ -856,8 +856,8 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	}
 	if (wtiff->compression == COMPRESSION_ZSTD) {
 		// Set zstd compression level - only accept valid values (1-22)
-		if ((wtiff->level>=1) && (wtiff->level<=22))
-			TIFFSetField(tif, TIFFTAG_ZSTD_LEVEL, wtiff->level);
+		if (wtiff->level)
+			TIFFSetField(tif, TIFFTAG_ZSTD_LEVEL, VIPS_CLIP(1, wtiff->level, 22));
 		if (wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
 			TIFFSetField(tif,
 				TIFFTAG_PREDICTOR, wtiff->predictor);
@@ -865,8 +865,8 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	// Set zlib compression level - only accept valid values (1-9)
-	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE) && (wtiff->level>=1) && (wtiff->level<=9))
-		TIFFSetField(tif, TIFFTAG_ZIPQUALITY, wtiff->level);
+	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE) && (wtiff->level))
+		TIFFSetField(tif, TIFFTAG_ZIPQUALITY, VIPS_CLIP(1, wtiff->level, 9));
 
 	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
 			wtiff->compression == COMPRESSION_LZW) &&
