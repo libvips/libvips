@@ -863,8 +863,8 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
-	// Set zlib compression level - only accept valid values (1-9)
-	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE) && (wtiff->level))
+	// Set deflate (zlib) compression level - only accept valid values (1-9)
+	if (wtiff->compression == COMPRESSION_ADOBE_DEFLATE && wtiff->level)
 		TIFFSetField(tif, TIFFTAG_ZIPQUALITY, VIPS_CLIP(1, wtiff->level, 9));
 
 	if ((wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
