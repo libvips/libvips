@@ -96,6 +96,7 @@ typedef struct _VipsForeignLoadJxl {
 	 */
 	JxlBasicInfo info;
 	JxlPixelFormat format;
+	JxlColorProfileTarget profile_target;
 	size_t icc_size;
 	uint8_t *icc_data;
 	size_t exif_size;
@@ -915,10 +916,11 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 			break;
 
 		case JXL_DEC_COLOR_ENCODING:
+			/* This has changed, see also
+			 * JxlDecoderGetColorAsEncodedProfile()
+
 			if (JxlDecoderGetICCProfileSize(jxl->decoder,
-#ifndef HAVE_LIBJXL_0_9
-					&jxl->format,
-#endif
+					jxl->profile_target,
 					JXL_COLOR_PROFILE_TARGET_DATA,
 					&jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
@@ -926,26 +928,23 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				return -1;
 			}
 
-#ifdef DEBUG
 			printf(
 				"vips_foreign_load_jxl_header: "
 				"%zd byte profile\n",
 				jxl->icc_size);
-#endif /*DEBUG*/
 			if (!(jxl->icc_data = vips_malloc(NULL,
 					  jxl->icc_size)))
 				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
-#ifndef HAVE_LIBJXL_0_9
 					&jxl->format,
-#endif
 					JXL_COLOR_PROFILE_TARGET_DATA,
 					jxl->icc_data, jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderGetColorAsICCProfile");
 				return -1;
 			}
+			 */
 			break;
 
 		case JXL_DEC_FRAME:

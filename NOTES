@@ -1,72 +1,71 @@
-## chunked jxl encode
+This branch adds chunked write for JXL save.
 
-call JxlEncoderSetOutputProcessor() to set a JxlEncoderOutputProcessor obj
+It uses the old write by default, but the `chunked` flag enables a new chunked
+write path.
 
-	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv428JxlEncoderSetOutputProcessorP10JxlEncoder25JxlEncoderOutputProcessor
+- we should removed the old sequential write once we're done
+- need v0.11 at minimum (v0.9 does not demand data in small chunks)
 
-then call JxlEncoderAddChunkedFrame() to do a chunked write
+## sequential write
 
-	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv425JxlEncoderAddChunkedFramePK23JxlEncoderFrameSettings8JXL_BOOL26JxlChunkedFrameInputSource
+- start sink_disc to generate scanlines, accumulate to a 2100 scanline
+  buffer
 
+- scanlines come into the BG writer
 
-need JxlChunkedFrameInputSource object to supply pixels
+	- add to current write buffer
 
-	https://libjxl.readthedocs.io/en/latest/api_encoder.html#structJxlChunkedFrameInputSource
+	- have min(page_height, 2100) scanlines?
 
-this struct holds callbacks:
+- as soon as we have the next min(remaining page height, 2064) scanlines we
+  can write another line of tiles
 
-	get_color_channels_pixel_format()
+	- start a add_chunked_frame() bg thread running if we don't have one
 
-		gets the format we will supply pixels in, eg. float RGB or
-		whatever
+	- raise sem tiles_available
 
-	get_color_channel_data_at()
+	- block on sem tiles_written
 
-		gets a rect of pixels, return a pointer plus a row stride
+	- is the frame complete? wait for sem frame_complete for the write to
+	  finish
 
-	get_extra_channel_pixel_format()
-	get_extra_channel_data_at()
+	- reset scanline buffer for the next set of scanlines
 
-		same, but for extra channels (do we use these? is this for
-		alpha?)
+- add_chunked_frame() thread:
 
-	release_buffer()
+	- make the frame settings, set up stuff
 
-		free the buffer from get_color_channel_data_at() etc.,
-		probably don't need this
+	- call JxlEncoderAddChunkedFrame() and block
 
+	- the call returns and the frame has been written
 
-need JxlEncoderOutputProcessor object to write encoded data
+	- signal on sem frame_complete
 
-	https://libjxl.readthedocs.io/en/latest/api_encoder.html#_CPPv425JxlEncoderOutputProcessor
+	- return
 
-struct with callbacks:
+- in data_at() we need to:
 
-	get_buffer()
+	- old scanlines? error
 
-		returns a memory buffer that libjxl can write to (pointer +
-		length)
+	- next set of scanlines?
 
-	release_buffer()
+		- block on tiles_available
 
-		write some bytes to the output
+		- update vars to make this new set the current set
 
-	seek()
+	- in the current set of scanlines?
 
-		optionally set write position
+		- add to n_threads, a counter tracking the number of threads
+		  running on this memory
 
-	set_finalized_position()
+		- return a pointer into the memory
 
-		bytes up to this point in the output are finalised and will
-		never be seeked to
+- in release, decrement the n_threads counter, if it's zero, signal done on
+  sem tiles_written
 
+	VipsSemaphore tiles_written
+	VipsSemaphore tiles_available
+	VipsSemaphore frame_complete
 
-
-
-
-
-
-
-
-
+	VipsThread add_chunked_frame
 
