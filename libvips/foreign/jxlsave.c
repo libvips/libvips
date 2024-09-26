@@ -130,6 +130,16 @@ typedef struct _VipsForeignSaveJxl {
 	 */
 	struct JxlChunkedFrameInputSource input_source;
 
+	/* We have a background JxlEncoderAddChunkedFrame() thread running.
+	 */
+	gboolean add_chunked_frame_running;
+
+	/* Set of sempaphores for organising the background encode.
+	 */
+	VipsSemaphore tiles_written;
+	VipsSemaphore tiles_available;
+	VipsSemaphore frame_complete;
+
 } VipsForeignSaveJxl;
 
 typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
@@ -314,11 +324,21 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
 
+	// wait for bg thread to exit
+	if (jxl->add_chunked_frame_running) {
+		vips_semaphore_down(&jxl->frame_complete);
+		jxl->add_chunked_frame_running = FALSE;
+	}
+
 	VIPS_UNREF(jxl->target);
 
 	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 	VIPS_FREEF(vips_tracked_free, jxl->frame_bytes);
+
+	vips_semaphore_destroy(&jxl->tiles_written);
+	vips_semaphore_destroy(&jxl->tiles_available);
+	vips_semaphore_destroy(&jxl->frame_complete);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
