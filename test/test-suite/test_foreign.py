@@ -1534,6 +1534,27 @@ class TestForeign:
         self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
         self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
 
+        # Bretagne2_4.j2k is a tiled jpeg2000 image with 127x127 pixel tiles,
+        # triggering tricky rounding issues
+        filename = os.path.join(IMAGES, "Bretagne2_4.j2k")
+        im4 = pyvips.Image.new_from_file(filename, page=4)
+        im3 = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im4.avg() - im3.avg()) < 0.2
+
+        # Bretagne2_1.j2k is an untiled jpeg2000 image with non-zero offset
+        filename = os.path.join(IMAGES, "Bretagne2_1.j2k")
+        im4 = pyvips.Image.new_from_file(filename, page=4)
+        im3 = pyvips.Image.new_from_file(filename, page=3)
+        assert abs(im4.avg() - im3.avg()) < 0.5
+
+        # this horrible thing has a header that doesn't match the decoded
+        # pixels ... although it's a valid jp2k image, we reject files of
+        # this type
+        filename = os.path.join(IMAGES, "issue412.jp2")
+        with pytest.raises(Exception) as e_info:
+            im = pyvips.Image.new_from_file(filename)
+            im.avg()
+
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
         self.save_load_buffer("jp2ksave_buffer", "jp2kload_buffer",

@@ -50,7 +50,7 @@ private_libvips_headers = [
 
 private_headers = []
 foreach private_libvips_header : private_libvips_headers
-    private_headers += [join_paths(project_source_root, 'libvips', private_libvips_header)]
+    private_headers += [project_source_root / 'libvips' / private_libvips_header]
 endforeach
 
 markdown_content_files = files(
@@ -73,7 +73,7 @@ if pandoc.found()
         output: '@BASENAME@.xml',
         arguments: [
             '@INPUT@',
-            '--template=@0@'.format(join_paths(meson.current_source_dir(), 'pandoc-docbook-template.docbook')),
+            '--template=@0@'.format(meson.current_source_dir() / 'pandoc-docbook-template.docbook'),
             '--wrap=none',
             '-V', 'title=@BASENAME@',
             '-f', 'markdown+smart',
@@ -135,25 +135,21 @@ version_xml = configure_file(
 )
 
 glib_prefix = glib_dep.get_variable(pkgconfig: 'prefix')
-glib_docpath = glib_prefix / 'share' / 'gtk-doc' / 'html'
 docpath = get_option('prefix') / get_option('datadir') / 'gtk-doc' / 'html'
 
 gnome.gtkdoc('libvips',
-    mode: 'none',
     main_xml: 'libvips-docs.xml',
-    src_dir: [
-        join_paths(project_source_root, 'libvips'),
-        join_paths(project_build_root, 'libvips'),
-    ],
+    namespace: 'vips',
+    src_dir: 'libvips',
     dependencies: libvips_dep,
     ignore_headers: private_headers,
-    scan_args: '--rebuild-types',
+    scan_args: [ '--rebuild-types' ],
     mkdb_args: [ '--default-includes=vips/vips.h' ],
     fixxref_args: [
         '--html-dir=@0@'.format(docpath),
-        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'glib')),
-        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
-        '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
+        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('glib')),
+        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('gobject')),
+        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('gio')),
     ],
     content_files: [ content_files, markdown_content_files_docbook, version_xml ],
     expand_content_files: [ content_files ],

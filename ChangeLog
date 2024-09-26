@@ -25,6 +25,7 @@ master 8.16
 - deprecate "cache" (use tilecache instead)
 - add tests for tokenisation
 - add "unpack_complex" option to vips_getpoint()
+- add zip level compression setting to vipsave [ruven]
 
 8.15.4
 
@@ -33,6 +34,8 @@ master 8.16
 - webpsave: fix memory leak on error [dloebl]
 - heifsave: ensure NCLX profile is freed in lossless mode [kleisauke]
 - threadpool: fix a race condition in error handling [kleisauke]
+- disable GLib cast checks and asserts for plain builds [kleisauke]
+- fix jpeg in tiff for high Q [nahilsobh]
 
 11/8/24 8.15.3
 

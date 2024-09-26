@@ -289,10 +289,15 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
 	 * it.
 	 */
 	if (reorder->n_inputs > 1)
-		g_qsort_with_data(reorder->recomp_order,
-			reorder->n_inputs,
-			sizeof(int),
-			vips_reorder_compare_score, reorder);
+#if GLIB_CHECK_VERSION(2, 82, 0)
+		g_sort_array
+#else
+		g_qsort_with_data
+#endif
+			(reorder->recomp_order,
+				reorder->n_inputs,
+				sizeof(int),
+				vips_reorder_compare_score, reorder);
 
 	/* No sources ... make one, us!
 	 */

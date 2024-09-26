@@ -35,7 +35,7 @@ pkg = import('pkgconfig')
 i18n = import('i18n')
 
 # if we're optimising (eg. release mode) we turn off cast checks and g_asserts
-if get_option('optimization') in ['2', '3', 's']
+if get_option('optimization') not in ['0', 'g']
     add_project_arguments('-DG_DISABLE_CAST_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_CHECKS', language : ['cpp', 'c'])
     add_project_arguments('-DG_DISABLE_ASSERT', language : ['cpp', 'c'])
