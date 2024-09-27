@@ -11,27 +11,48 @@ write path.
 - start sink_disc to generate scanlines, accumulate to a 2100 scanline
   buffer
 
+	we know the first set of tiles will start at y == 0, so we don't
+	need to wait for data_at()
+VipsSemaphone tiles_available
+VipsSemaphone frame_complete
+VipsSemaphone tiles_written
+VipsSemaphone write_complete
+
+	need something like vips_semaphore_up_all()
+
 - scanlines come into the BG writer
 
 	- add to current write buffer
 
-	- have min(page_height, 2100) scanlines?
+	- have min(page_height, 2064) scanlines?
 
 - as soon as we have the next min(remaining page height, 2064) scanlines we
   can write another line of tiles
 
-	- start a add_chunked_frame() bg thread running if we don't have one
+	- start a frame encode thread if we don't have one
 
-	- raise sem tiles_available
+	- up on tiles_available
 
-	- block on sem tiles_written
+		there can be many threads waiting in data_at(), we'll need to
+		up a lot
 
-	- is the frame complete? wait for sem frame_complete for the write to
-	  finish
+		frame encode thread now encodes a line of tiles, then resets
+		scanline_buffer ready for the next set
 
-	- reset scanline buffer for the next set of scanlines
+	- is this the final line of tiles?
 
-- add_chunked_frame() thread:
+		- down on frame_complete ... ie. exit of the frame encode thread
+
+		- reset scanline_buffer for next frame
+
+	- frame not complete?
+
+		- down on tiles_written
+
+			data_at() has adjusted scanline_buffer ready for the
+			next set of tiles
+
+- frame encode thread:
 
 	- make the frame settings, set up stuff
 
@@ -49,9 +70,25 @@ write path.
 
 	- next set of scanlines?
 
-		- block on tiles_available
+		- down on write_complete
 
-		- update vars to make this new set the current set
+			many data_at() will restart, we'll need a mutex
+
+			or maybe buffer_release can just up one and release a
+			single thread? that thread could move scanline_buffer,
+			then restart the rest?
+
+		- find new top of scanline_bytes ... there can be a 16 pixel
+		  overlap, and we'll need to copy some amount of pixels from
+		  the end to the start, and set scanline_y correctly
+
+		- up on tiles_written
+
+			sink_disc now fills data for the next set of tiles
+
+		- down on tiles_available
+
+		- and fall through to the case below
 
 	- in the current set of scanlines?
 
@@ -60,12 +97,11 @@ write path.
 
 		- return a pointer into the memory
 
-- in release, decrement the n_threads counter, if it's zero, signal done on
-  sem tiles_written
+- buffer_release
 
-	VipsSemaphore tiles_written
-	VipsSemaphore tiles_available
-	VipsSemaphore frame_complete
+	- decrement n_threads, hits zero?
 
-	VipsThread add_chunked_frame
+		- up on sem write_complete
+
+			** many threads can be blocked, we'll need to up a lot
 

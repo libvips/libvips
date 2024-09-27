@@ -67,6 +67,10 @@
 
 #define OUTPUT_BUFFER_SIZE (4096)
 
+// max number of scanlines for a jxl tile (ysize arg to _data_at()) ... 2048
+// plus 8 lines of overlap top and bottom
+#define MAX_TILE_HEIGHT (2064)
+
 typedef struct _VipsForeignSaveJxl {
 	VipsForeignSave parent_object;
 
@@ -93,9 +97,11 @@ typedef struct _VipsForeignSaveJxl {
 	int *delay;
 	int delay_length;
 
-	/* Fetch pixels during chunked save with this region.
+	/* Image geometry.
 	 */
-	VipsRegion *region;
+	int page_height;
+	int page_count;
+	int page_number;
 
 	/* Base image properties.
 	 */
@@ -108,19 +114,11 @@ typedef struct _VipsForeignSaveJxl {
 	void *runner;
 	JxlEncoder *encoder;
 
-	/* The current y position in the frame, page height,
-	 * total number of pages, and the current page index.
+	/* Buffer scanlines to make a line of libjxl tiles.
 	 */
-	int write_y;
-	int page_height;
-	int page_count;
-	int page_number;
-
-	/* VipsRegion is not always contiguous, but we need contiguous RGB(A)
-	 * for libjxl. We need to copy each frame to a local buffer.
-	 */
-	VipsPel *frame_bytes;
-	size_t frame_size;
+	VipsPel *scanline_buffer;
+	size_t scanline_size;
+	int scanline_y;
 
 	/* Write buffer.
 	 */
@@ -134,7 +132,11 @@ typedef struct _VipsForeignSaveJxl {
 	 */
 	gboolean add_chunked_frame_running;
 
-	/* Set of sempaphores for organising the background encode.
+	/* The y position the frame encoder is working on.
+	 */
+	int frame_y;
+
+	/* Set of sempaphores for organising the background frame encode.
 	 */
 	VipsSemaphore tiles_written;
 	VipsSemaphore tiles_available;
@@ -310,8 +312,8 @@ vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 /* String-based metadata fields we add.
  */
 typedef struct _VipsForeignSaveJxlMetadata {
-	const char *name;	 /* as understood by libvips */
-	JxlBoxType box_type; /* as understood by libjxl */
+	const char *name;			/* as understood by libvips */
+	JxlBoxType box_type;		/* as understood by libjxl */
 } VipsForeignSaveJxlMetadata;
 
 static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
@@ -334,7 +336,7 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 
 	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
-	VIPS_FREEF(vips_tracked_free, jxl->frame_bytes);
+	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	vips_semaphore_destroy(&jxl->tiles_written);
 	vips_semaphore_destroy(&jxl->tiles_available);
@@ -664,7 +666,7 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 	}
 
 	if (JxlEncoderAddImageFrame(frame_settings, &jxl->format,
-			jxl->frame_bytes, jxl->frame_size)) {
+			jxl->scanline_buffer, jxl->scanline_size)) {
 		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
 		return -1;
 	}
@@ -694,19 +696,19 @@ vips_foreign_save_jxl_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 	/* Write the new pixels into the frame.
 	 */
 	for (i = 0; i < area->height; i++) {
-		memcpy(jxl->frame_bytes + sz * jxl->write_y,
+		memcpy(jxl->scanline_buffer + sz * jxl->scanline_y,
 			VIPS_REGION_ADDR(region, 0, area->top + i),
 			sz);
 
-		jxl->write_y += 1;
+		jxl->scanline_y += 1;
 
 		/* If we've filled the frame, add it to the encoder.
 		 */
-		if (jxl->write_y == jxl->page_height) {
+		if (jxl->scanline_y == jxl->page_height) {
 			if (vips_foreign_save_jxl_add_frame(jxl))
 				return -1;
 
-			jxl->write_y = 0;
+			jxl->scanline_y = 0;
 		}
 	}
 
@@ -723,8 +725,8 @@ vips_foreign_save_jxl_save_sequential(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 	/* RGB(A) frame as a contiguous buffer.
 	 */
-	jxl->frame_size = VIPS_IMAGE_SIZEOF_LINE(in) * jxl->page_height;
-	if (!(jxl->frame_bytes = vips_tracked_malloc(jxl->frame_size)))
+	jxl->scanline_size = VIPS_IMAGE_SIZEOF_LINE(in) * jxl->page_height;
+	if (!(jxl->scanline_buffer = vips_tracked_malloc(jxl->scanline_size)))
 		return -1;
 
 	if (vips_sink_disc(in, vips_foreign_save_jxl_sink_disc, jxl))
@@ -749,6 +751,25 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 {
 	jxl->region = region;
 
+	if (JxlEncoderAddChunkedFrame(frame_settings,
+		n == jxl->page_count - 1, jxl->input_source)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddChunkedFrame");
+		return -1;
+	}
+
+	return 0;
+}
+
+	goes into data_at()
+		// wait for a line of tiles to be computed
+		vips_semaphore_down(&jxl->tiles_available);
+
+static void
+vips_foreign_save_jxl_add_chunked_frame(void *a, void *b)
+{
+	VipsWorker *worker = (VipsWorker *) a;
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) b;
+
 	JxlEncoderFrameSettings *frame_settings;
 	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
 	JxlEncoderFrameSettingsSetOption(frame_settings,
@@ -771,10 +792,73 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 		JxlEncoderSetFrameHeader(frame_settings, &header);
 	}
 
+	jxl->frame_y = 0;
+
 	if (JxlEncoderAddChunkedFrame(frame_settings,
-		n == jxl->page_count - 1, jxl->input_source)) {
-		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
+		jxl->page_number == jxl->page_count - 1, jxl->input_source)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddChunkedFrame");
 		return -1;
+	}
+
+	jxl->page_number += 1;
+
+	// signal to our caller that the frame is now done
+	vips_semaphore_up(&jxl->frame_complete);
+}
+
+/* scanline_buffer has filled, write a line of tiles.
+ */
+static int
+vips_foreign_save_jxl_tiles(VipsForeignSaveJxl *jxl)
+{
+	// start the frame encode thread, if this is a new frame
+	if (!jxl->add_chunked_frame_running) {
+		if (vips_thread_execute("add_chunked_frame",
+			vips_foreign_save_jxl_add_chunked_frame, jxl)
+			return -1;
+
+		jxl->add_chunked_frame_running = TRUE;
+	}
+
+	// set the bg thread writing this line of tiles
+	vips_semaphore_up(&jxl->tiles_available);
+
+	// wait for the line of tiles to be fully encoded (the last tile releases
+	// its buffer)
+	vips_semaphore_down(&jxl->tiles_written);
+
+	// is this the end of the jxl frame? wait for encode to wrap up
+	if (jxl->frame_y == jxl->page_height) {
+		vips_semaphore_down(&jxl->frame_complete);
+		jxl->add_chunked_frame_running = FALSE;
+	}
+
+	return 0;
+}
+
+/* Another set of scanlines have arrived from the pipeline. Add to the frame,
+ * and if the frame or this line of libjxl tiles completes, write to the
+ * target.
+ */
+static int
+vips_foreign_save_jxl_scanlines(VipsRegion *region, VipsRect *area, void *a)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) a;
+	size_t sz = VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width;
+
+	/* Write the new pixels into the frame.
+	 */
+	for (int i = 0; i < area->height; i++) {
+		memcpy(jxl->scanline_buffer + sz * jxl->scanline_y,
+			VIPS_REGION_ADDR(region, 0, area->top + i), sz);
+
+		jxl->scanline_y += 1;
+
+		/* If we've filled the frame or completed a line of tiles, encode it.
+		 */
+		if (jxl->scanline_y == VIPS_MIN(jxl->page_height, MAX_TILE_HEIGHT) &&
+			vips_foreign_save_jxl_tiles(jxl))
+			return -1;
 	}
 
 	return 0;
@@ -786,28 +870,15 @@ vips_foreign_save_jxl_save_chunked(VipsForeignSaveJxl *jxl, VipsImage *in)
 	vips_foreign_save_jxl_set_output_processor(jxl);
 	vips_foreign_save_jxl_set_input_source(jxl);
 
-	for (int n = 0; n < jxl->page_count; n++) {
-		VipsImage *page;
-		VipsRegion *region;
+	/* Buffer the set of scanlines we need for a line of tiles.
+	 */
+	jxl->scanline_size = VIPS_IMAGE_SIZEOF_LINE(in) *
+		VIPS_MIN(MAX_TILE_HEIGHT, in->Ysize);
+	if (!(jxl->scanline_buffer = vips_tracked_malloc(jxl->scanline_size)))
+		return -1;
 
-		if (vips_crop(in, &page,
-			0, n * jxl->page_height, in->Xsize, jxl->page_height, NULL))
-			return -1;
-
-		if (!(region = vips_region_new(page))) {
-			VIPS_UNREF(page);
-			return -1;
-		}
-
-		if (vips_foreign_save_jxl_save_chunked_page(jxl, n, page, region)) {
-			VIPS_UNREF(region);
-			VIPS_UNREF(page);
-			return -1;
-		}
-
-		VIPS_UNREF(region);
-		VIPS_UNREF(page);
-	}
+	if (vips_sink_disc(in, vips_foreign_save_jxl_scanlines, jxl))
+		return -1;
 
 	return 0;
 }
@@ -1024,6 +1095,10 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->distance = 1.0;
 	jxl->effort = 7;
 	jxl->Q = 75;
+
+	vips_semaphore_init(&tiles_written, 0, "tiles_written");
+	vips_semaphore_init(&tiles_available, 0, "tiles_available");
+	vips_semaphore_init(&frame_complete, 0, "frame_complete");
 }
 
 typedef struct _VipsForeignSaveJxlFile {
