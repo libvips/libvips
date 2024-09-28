@@ -8,6 +8,13 @@ write path.
 
 ## sequential write
 
+- use data_at() to drive libvips? maybe make a region for each data_at()
+  and unref in buffer_release()
+
+- need a tilecache before it
+
+## sequential write
+
 - start sink_disc to generate scanlines, accumulate to a 2100 scanline
   buffer
 
