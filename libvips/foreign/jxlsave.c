@@ -751,25 +751,6 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 {
 	jxl->region = region;
 
-	if (JxlEncoderAddChunkedFrame(frame_settings,
-		n == jxl->page_count - 1, jxl->input_source)) {
-		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddChunkedFrame");
-		return -1;
-	}
-
-	return 0;
-}
-
-	goes into data_at()
-		// wait for a line of tiles to be computed
-		vips_semaphore_down(&jxl->tiles_available);
-
-static void
-vips_foreign_save_jxl_add_chunked_frame(void *a, void *b)
-{
-	VipsWorker *worker = (VipsWorker *) a;
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) b;
-
 	JxlEncoderFrameSettings *frame_settings;
 	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
 	JxlEncoderFrameSettingsSetOption(frame_settings,
@@ -792,73 +773,10 @@ vips_foreign_save_jxl_add_chunked_frame(void *a, void *b)
 		JxlEncoderSetFrameHeader(frame_settings, &header);
 	}
 
-	jxl->frame_y = 0;
-
 	if (JxlEncoderAddChunkedFrame(frame_settings,
-		jxl->page_number == jxl->page_count - 1, jxl->input_source)) {
-		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddChunkedFrame");
+		n == jxl->page_count - 1, jxl->input_source)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
 		return -1;
-	}
-
-	jxl->page_number += 1;
-
-	// signal to our caller that the frame is now done
-	vips_semaphore_up(&jxl->frame_complete);
-}
-
-/* scanline_buffer has filled, write a line of tiles.
- */
-static int
-vips_foreign_save_jxl_tiles(VipsForeignSaveJxl *jxl)
-{
-	// start the frame encode thread, if this is a new frame
-	if (!jxl->add_chunked_frame_running) {
-		if (vips_thread_execute("add_chunked_frame",
-			vips_foreign_save_jxl_add_chunked_frame, jxl)
-			return -1;
-
-		jxl->add_chunked_frame_running = TRUE;
-	}
-
-	// set the bg thread writing this line of tiles
-	vips_semaphore_up(&jxl->tiles_available);
-
-	// wait for the line of tiles to be fully encoded (the last tile releases
-	// its buffer)
-	vips_semaphore_down(&jxl->tiles_written);
-
-	// is this the end of the jxl frame? wait for encode to wrap up
-	if (jxl->frame_y == jxl->page_height) {
-		vips_semaphore_down(&jxl->frame_complete);
-		jxl->add_chunked_frame_running = FALSE;
-	}
-
-	return 0;
-}
-
-/* Another set of scanlines have arrived from the pipeline. Add to the frame,
- * and if the frame or this line of libjxl tiles completes, write to the
- * target.
- */
-static int
-vips_foreign_save_jxl_scanlines(VipsRegion *region, VipsRect *area, void *a)
-{
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) a;
-	size_t sz = VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width;
-
-	/* Write the new pixels into the frame.
-	 */
-	for (int i = 0; i < area->height; i++) {
-		memcpy(jxl->scanline_buffer + sz * jxl->scanline_y,
-			VIPS_REGION_ADDR(region, 0, area->top + i), sz);
-
-		jxl->scanline_y += 1;
-
-		/* If we've filled the frame or completed a line of tiles, encode it.
-		 */
-		if (jxl->scanline_y == VIPS_MIN(jxl->page_height, MAX_TILE_HEIGHT) &&
-			vips_foreign_save_jxl_tiles(jxl))
-			return -1;
 	}
 
 	return 0;
@@ -870,15 +788,28 @@ vips_foreign_save_jxl_save_chunked(VipsForeignSaveJxl *jxl, VipsImage *in)
 	vips_foreign_save_jxl_set_output_processor(jxl);
 	vips_foreign_save_jxl_set_input_source(jxl);
 
-	/* Buffer the set of scanlines we need for a line of tiles.
-	 */
-	jxl->scanline_size = VIPS_IMAGE_SIZEOF_LINE(in) *
-		VIPS_MIN(MAX_TILE_HEIGHT, in->Ysize);
-	if (!(jxl->scanline_buffer = vips_tracked_malloc(jxl->scanline_size)))
-		return -1;
+	for (int n = 0; n < jxl->page_count; n++) {
+		VipsImage *page;
+		VipsRegion *region;
 
-	if (vips_sink_disc(in, vips_foreign_save_jxl_scanlines, jxl))
-		return -1;
+		if (vips_crop(in, &page,
+			0, n * jxl->page_height, in->Xsize, jxl->page_height, NULL))
+			return -1;
+
+		if (!(region = vips_region_new(page))) {
+			VIPS_UNREF(page);
+			return -1;
+		}
+
+		if (vips_foreign_save_jxl_save_chunked_page(jxl, n, page, region)) {
+			VIPS_UNREF(region);
+			VIPS_UNREF(page);
+			return -1;
+		}
+
+		VIPS_UNREF(region);
+		VIPS_UNREF(page);
+	}
 
 	return 0;
 }
