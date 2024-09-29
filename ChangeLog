@@ -29,6 +29,7 @@ master 8.16
 - move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
   public API
 - jxlsave uses the new chunked API for low memory use for large images
+- add deflate compression level setting to tiffsave [ruven]
 
 8.15.4
 
