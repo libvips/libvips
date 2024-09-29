@@ -142,6 +142,8 @@ typedef struct _VipsForeignSaveJxl {
 	/* Current page we are saving.
 	 */
 	VipsImage *page;
+	VipsImage *page_colour;
+	VipsImage *page_extras;
 
 } VipsForeignSaveJxl;
 
@@ -261,7 +263,7 @@ vips_foreign_save_jxl_data_at(void *opaque,
 
 	*row_offset = VIPS_REGION_LSKIP(region);
 
-	return VIPS_REGION_ADDR(region, xpos, ypos);
+	return VIPS_REGION_ADDR(region, (int) xpos, (int) ypos);
 }
 
 static const void *
@@ -308,69 +310,6 @@ vips_foreign_save_jxl_error(VipsForeignSaveJxl *jxl, const char *details)
 	 * moment.
 	 */
 	vips_error(class->nickname, "%s error", details);
-}
-
-/* Output for sequential write.
- */
-static int
-vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
-{
-	JxlEncoderStatus status;
-
-	do {
-		uint8_t *out = jxl->output_buffer;
-		size_t avail_out = OUTPUT_BUFFER_SIZE;
-		status = JxlEncoderProcessOutput(jxl->encoder, &out, &avail_out);
-
-		switch (status) {
-		case JXL_ENC_SUCCESS:
-		case JXL_ENC_NEED_MORE_OUTPUT:
-			if (OUTPUT_BUFFER_SIZE > avail_out &&
-				vips_target_write(jxl->target, jxl->output_buffer,
-					OUTPUT_BUFFER_SIZE - avail_out))
-				return -1;
-			break;
-
-		default:
-			vips_foreign_save_jxl_error(jxl, "JxlEncoderProcessOutput");
-#ifdef DEBUG
-			vips_foreign_save_jxl_print_status(status);
-#endif /*DEBUG*/
-			return -1;
-		}
-	} while (status != JXL_ENC_SUCCESS);
-
-	return 0;
-}
-
-/* String-based metadata fields we add.
- */
-typedef struct _VipsForeignSaveJxlMetadata {
-	const char *name;			/* as understood by libvips */
-	JxlBoxType box_type;		/* as understood by libjxl */
-} VipsForeignSaveJxlMetadata;
-
-static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
-	{ VIPS_META_EXIF_NAME, "Exif" },
-	{ VIPS_META_XMP_NAME, "xml " }
-};
-
-static void
-vips_foreign_save_jxl_dispose(GObject *gobject)
-{
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
-
-	VIPS_UNREF(jxl->target);
-
-	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
-	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
-
-	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
-    VIPS_FREEF(vips_g_mutex_free, jxl->region_lock);
-
-    VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
-
-	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
 
 #ifdef DEBUG
@@ -454,16 +393,75 @@ vips_foreign_save_jxl_print_status(JxlEncoderStatus status)
 		printf("JXL_ENC_NEED_MORE_OUTPUT\n");
 		break;
 
-	case JXL_ENC_NOT_SUPPORTED:
-		printf("JXL_ENC_NOT_SUPPORTED\n");
-		break;
-
 	default:
 		printf("JXL_ENC_<unknown>\n");
 		break;
 	}
 }
 #endif /*DEBUG*/
+
+/* Output for sequential write.
+ */
+static int
+vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
+{
+	JxlEncoderStatus status;
+
+	do {
+		uint8_t *out = jxl->output_buffer;
+		size_t avail_out = OUTPUT_BUFFER_SIZE;
+		status = JxlEncoderProcessOutput(jxl->encoder, &out, &avail_out);
+
+		switch (status) {
+		case JXL_ENC_SUCCESS:
+		case JXL_ENC_NEED_MORE_OUTPUT:
+			if (OUTPUT_BUFFER_SIZE > avail_out &&
+				vips_target_write(jxl->target, jxl->output_buffer,
+					OUTPUT_BUFFER_SIZE - avail_out))
+				return -1;
+			break;
+
+		default:
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderProcessOutput");
+#ifdef DEBUG
+			vips_foreign_save_jxl_print_status(status);
+#endif /*DEBUG*/
+			return -1;
+		}
+	} while (status != JXL_ENC_SUCCESS);
+
+	return 0;
+}
+
+/* String-based metadata fields we add.
+ */
+typedef struct _VipsForeignSaveJxlMetadata {
+	const char *name;			/* as understood by libvips */
+	JxlBoxType box_type;		/* as understood by libjxl */
+} VipsForeignSaveJxlMetadata;
+
+static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
+	{ VIPS_META_EXIF_NAME, "Exif" },
+	{ VIPS_META_XMP_NAME, "xml " }
+};
+
+static void
+vips_foreign_save_jxl_dispose(GObject *gobject)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
+
+	VIPS_UNREF(jxl->target);
+
+	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
+	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
+
+	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
+    VIPS_FREEF(vips_g_mutex_free, jxl->region_lock);
+
+    VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
+
+	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
+}
 
 static int
 vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
