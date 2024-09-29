@@ -58,6 +58,11 @@
 
 /* TODO:
  *
+ * - need to emit the various progress signals etc. for a sink, eg. preeval
+ *   eval, etc.
+ *
+ *
+ *
  * - libjxl is currently missing error messages (I think)
  *
  * - add support encoding images with > 4 bands.
@@ -128,19 +133,15 @@ typedef struct _VipsForeignSaveJxl {
 	 */
 	struct JxlChunkedFrameInputSource input_source;
 
-	/* We have a background JxlEncoderAddChunkedFrame() thread running.
+	/* Map thread ids to regions with this hash table, gate access to it with
+	 * the mutex.
 	 */
-	gboolean add_chunked_frame_running;
+	GHashTable *region_hash;
+	GMutex *region_lock;
 
-	/* The y position the frame encoder is working on.
+	/* Current page we are saving.
 	 */
-	int frame_y;
-
-	/* Set of sempaphores for organising the background frame encode.
-	 */
-	VipsSemaphore tiles_written;
-	VipsSemaphore tiles_available;
-	VipsSemaphore frame_complete;
+	VipsImage *page;
 
 } VipsForeignSaveJxl;
 
@@ -219,19 +220,29 @@ vips_foreign_save_jxl_data_at(void *opaque,
 	size_t xpos, size_t ypos, size_t xsize, size_t ysize,
 	size_t *row_offset)
 {
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+	GThread *self = g_thread_self();
+
 	printf("vips_foreign_save_jxl_data_at: "
 		"left = %zd, top = %zd, width = %zd, height = %zd\n",
 		xpos, ypos, xsize, ysize);
 
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+	g_mutex_lock(jxl->region_lock);
+	VipsRegion *region = g_hash_table_lookup(jxl->region_hash, self);
+	if (!region) {
+		printf("new region!\n");
+		region = vips_region_new(jxl->page);
+		g_hash_table_insert(jxl->region_hash, self, region);
+	}
+	g_mutex_unlock(jxl->region_lock);
 
 	VipsRect rect = { xpos, ypos, xsize, ysize };
-	if (vips_region_prepare(jxl->region, &rect))
+	if (vips_region_prepare(region, &rect))
 		jxl->error = TRUE;
 
-	*row_offset = VIPS_REGION_LSKIP(jxl->region);
+	*row_offset = VIPS_REGION_LSKIP(region);
 
-	return VIPS_REGION_ADDR(jxl->region, xpos, ypos);
+	return VIPS_REGION_ADDR(region, xpos, ypos);
 }
 
 static const void *
@@ -263,6 +274,8 @@ vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
 		.get_extra_channel_data_at = vips_foreign_save_jxl_extra_data_at,
 		.release_buffer = vips_foreign_save_jxl_input_release_buffer
 	};
+
+	jxl->region_lock = vips_g_mutex_new();
 }
 
 static void
@@ -326,21 +339,15 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
 
-	// wait for bg thread to exit
-	if (jxl->add_chunked_frame_running) {
-		vips_semaphore_down(&jxl->frame_complete);
-		jxl->add_chunked_frame_running = FALSE;
-	}
-
 	VIPS_UNREF(jxl->target);
 
 	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
-	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
-	vips_semaphore_destroy(&jxl->tiles_written);
-	vips_semaphore_destroy(&jxl->tiles_available);
-	vips_semaphore_destroy(&jxl->frame_complete);
+	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
+    VIPS_FREEF(vips_g_mutex_free, jxl->region_lock);
+
+    VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
@@ -747,9 +754,11 @@ vips_foreign_save_jxl_save_sequential(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 static int
 vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
-	int n, VipsImage *page, VipsRegion *region)
+	int n, VipsImage *page)
 {
-	jxl->region = region;
+	jxl->page = page;
+	jxl->region_hash = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+			NULL, (GDestroyNotify) g_object_unref);
 
 	JxlEncoderFrameSettings *frame_settings;
 	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
@@ -761,8 +770,7 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
 
 	if (jxl->info.have_animation) {
-		JxlFrameHeader header;
-		memset(&header, 0, sizeof(JxlFrameHeader));
+		JxlFrameHeader header = { 0 };
 
 		if (jxl->delay &&
 			n < jxl->delay_length)
@@ -779,6 +787,11 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 		return -1;
 	}
 
+	printf("end of frame encode, %d regions\n",
+		g_hash_table_size(jxl->region_hash));
+
+	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
+
 	return 0;
 }
 
@@ -790,24 +803,16 @@ vips_foreign_save_jxl_save_chunked(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 	for (int n = 0; n < jxl->page_count; n++) {
 		VipsImage *page;
-		VipsRegion *region;
 
 		if (vips_crop(in, &page,
 			0, n * jxl->page_height, in->Xsize, jxl->page_height, NULL))
 			return -1;
 
-		if (!(region = vips_region_new(page))) {
+		if (vips_foreign_save_jxl_save_chunked_page(jxl, n, page)) {
 			VIPS_UNREF(page);
 			return -1;
 		}
 
-		if (vips_foreign_save_jxl_save_chunked_page(jxl, n, page, region)) {
-			VIPS_UNREF(region);
-			VIPS_UNREF(page);
-			return -1;
-		}
-
-		VIPS_UNREF(region);
 		VIPS_UNREF(page);
 	}
 
@@ -1026,10 +1031,6 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->distance = 1.0;
 	jxl->effort = 7;
 	jxl->Q = 75;
-
-	vips_semaphore_init(&tiles_written, 0, "tiles_written");
-	vips_semaphore_init(&tiles_available, 0, "tiles_available");
-	vips_semaphore_init(&frame_complete, 0, "frame_complete");
 }
 
 typedef struct _VipsForeignSaveJxlFile {
