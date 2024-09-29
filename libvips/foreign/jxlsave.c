@@ -199,7 +199,9 @@ vips_foreign_save_jxl_set_output_processor(VipsForeignSaveJxl *jxl)
 static void
 vips_foreign_save_jxl_pixel_format(void *opaque, JxlPixelFormat *format)
 {
+#ifdef DEBUG
 	printf("vips_foreign_save_jxl_pixel_format:\n");
+#endif /*DEBUG*/
 
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
@@ -210,7 +212,9 @@ static void
 vips_foreign_save_jxl_extra_pixel_format(void *opaque,
 	size_t ec_index, JxlPixelFormat *format)
 {
+#ifdef DEBUG
 	printf("vips_foreign_save_jxl_extra_pixel_format:\n");
+#endif /*DEBUG*/
 
 	return vips_foreign_save_jxl_pixel_format(opaque, format);
 }
@@ -220,25 +224,40 @@ vips_foreign_save_jxl_data_at(void *opaque,
 	size_t xpos, size_t ypos, size_t xsize, size_t ysize,
 	size_t *row_offset)
 {
+	VipsForeignSave *save = (VipsForeignSave *) opaque;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 	GThread *self = g_thread_self();
 
+#ifdef DEBUG
 	printf("vips_foreign_save_jxl_data_at: "
 		"left = %zd, top = %zd, width = %zd, height = %zd\n",
 		xpos, ypos, xsize, ysize);
+#endif /*DEBUG*/
 
 	g_mutex_lock(jxl->region_lock);
+
 	VipsRegion *region = g_hash_table_lookup(jxl->region_hash, self);
 	if (!region) {
-		printf("new region!\n");
 		region = vips_region_new(jxl->page);
 		g_hash_table_insert(jxl->region_hash, self, region);
 	}
+
 	g_mutex_unlock(jxl->region_lock);
 
 	VipsRect rect = { xpos, ypos, xsize, ysize };
 	if (vips_region_prepare(region, &rect))
 		jxl->error = TRUE;
+
+	/* Trigger any eval callbacks on our source image and
+	 * check for errors.
+	 *
+	 * FIXME ... can we cancel save with NULL? or will this crash?
+	 */
+	guint64 processed =
+		(guint64) ypos * save->ready->Xsize + (guint64) xpos * ysize;
+	vips_image_eval(save->ready, processed);
+	if (vips_image_iskilled(save->ready))
+		return NULL;
 
 	*row_offset = VIPS_REGION_LSKIP(region);
 
@@ -249,7 +268,9 @@ static const void *
 vips_foreign_save_jxl_extra_data_at(void* opaque, size_t ec_index,
 	size_t xpos, size_t ypos, size_t xsize, size_t ysize, size_t* row_offset)
 {
+#ifdef DEBUG
 	printf("vips_foreign_save_jxl_extra_data_at:\n");
+#endif /*DEBUG*/
 
 	return vips_foreign_save_jxl_data_at(opaque,
 		xpos, ypos, xsize, ysize, row_offset);
@@ -787,8 +808,10 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 		return -1;
 	}
 
+#ifdef DEBUG
 	printf("end of frame encode, %d regions\n",
 		g_hash_table_size(jxl->region_hash));
+#endif /*DEBUG*/
 
 	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
 
@@ -928,8 +951,17 @@ vips_foreign_save_jxl_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (jxl->chunked) {
+		/* _save_chunked() is not a vips_sink_*() iterator, so we must emit
+		 * the various signals by hand.
+		 */
+		vips_image_preeval(save->ready);
+
 		if (vips_foreign_save_jxl_save_chunked(jxl, in))
 			return -1;
+
+		vips_image_posteval(save->ready);
+
+		vips_image_minimise_all(save->ready);
 	}
 	else  {
 		if (vips_foreign_save_jxl_save_sequential(jxl, in))

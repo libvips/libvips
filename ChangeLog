@@ -26,6 +26,9 @@ master 8.16
 - add tests for tokenisation
 - add "unpack_complex" option to vips_getpoint()
 - add zip level compression setting to vipsave [ruven]
+- move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
+  public API
+- jxlsave uses the new chunked API for low memory use for large images
 
 8.15.4
 
