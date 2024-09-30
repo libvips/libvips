@@ -44,7 +44,7 @@ $ cat k2.jpg | \
     <literal>--vips-progress</literal> runs a progress indicator during computation. It can be useful to see where libvips is looping and how often.
   </para>
   <para>
-    <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running. 
+    <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running.
   </para>
 </refsect3>
 <refsect3 xml:id="looping">
@@ -56,7 +56,7 @@ $ cat k2.jpg | \
 $ vipsthumbnail *.jpg
 </programlisting>
   <para>
-    will make a thumbnail for every jpeg in the current directory.  See the <link linkend="output-directory">Output directory</link> section below to see how to change where thumbnails are written.
+    will make a thumbnail for every JPEG in the current directory. See the <link linkend="output-directory">Output directory</link> section below to see how to change where thumbnails are written.
   </para>
   <para>
     <literal>vipsthumbnail</literal> will process images one after the other. You can get a good speedup by running several <literal>vipsthumbnail</literal>s in parallel, depending on how much load you want to put on your system. For example:
@@ -139,7 +139,7 @@ $ vipsthumbnail fred.jpg --linear
     For example, for a 10,000 x 10,000 pixel JPEG I see:
   </para>
   <programlisting language="bash">
-$ time vipsthumbnail wtc.jpg 
+$ time vipsthumbnail wtc.jpg
 real    0m0.317s
 user    0m0.292s
 sys 0m0.016s
@@ -182,7 +182,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
 <refsect3 xml:id="output-format-and-options">
   <title>Output format and options</title>
   <para>
-    You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
+    You can use <literal>-o</literal> to specify the thumbnail image format too. For example:
   </para>
   <programlisting language="bash">
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
@@ -197,7 +197,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
 </programlisting>
   <para>
-    will write jpeg images with quality 90, and will turn on the libjpeg coding optimizer.
+    will write JPEG images with quality 90, and will turn on the libjpeg coding optimizer.
   </para>
   <para>
     Check the image write operations to see all the possible options. For example:
@@ -269,15 +269,15 @@ $ ls -l x.jpg
   </para>
   <programlisting>
 $ vipsthumbnail shark.jpg
-$ ls -l tn_shark.jpg 
+$ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
 </programlisting>
   <para>
     Now transform to sRGB and don’t attach a profile (you can also use <literal>keep=none</literal>, though that will remove <emphasis>all</emphasis> metadata from the image):
   </para>
   <programlisting>
-$ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
-$ ls -l tn_shark.jpg 
+$ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
+$ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 </programlisting>
   <para>
@@ -287,10 +287,10 @@ $ ls -l tn_shark.jpg
     <literal>tn_shark.jpg</literal> will look identical to a user, but it’s almost half the size.
   </para>
   <para>
-    You can also specify a fallback input profile to use if the image has no embedded one. For example, perhaps you somehow know that a JPG is in Adobe98 space, even though it has no embedded profile.
+    You can also specify a fallback input profile to use if the image has no embedded one. For example, perhaps you somehow know that a JPEG is in Adobe98 space, even though it has no embedded profile.
   </para>
   <programlisting language="bash">
-$ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
+$ vipsthumbnail kgdev.jpg --import-profile /my/profiles/a98.icm
 </programlisting>
 </refsect3>
 <refsect3 xml:id="final-suggestion">
@@ -302,7 +302,7 @@ $ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm
 $ vipsthumbnail fred.jpg \
     --size 128 \
     --export-profile srgb \
-    -o tn_%s.jpg[optimize_coding,keep=none] 
+    -o tn_%s.jpg[optimize_coding,keep=none]
 </programlisting>
 </refsect3>
 
