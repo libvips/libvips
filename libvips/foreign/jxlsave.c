@@ -918,16 +918,12 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	}
 
 	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
-	 * The cache must be persistent, since it has to last for many vips_crop()
-	 * calls.
 	 */
 	if (vips_tilecache(in, &t[2],
 		"tile-width", in->Xsize,
 		"tile-height", 512,
 		"max_tiles", 3500 / 512,
 		"threaded", TRUE,
-		"persistent", TRUE,
-		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL))
 		return -1;
 	in = t[2];
