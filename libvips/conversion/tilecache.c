@@ -619,8 +619,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 
 	VIPS_GATE_STOP("vips_tile_cache_gen: wait1");
 
-	//VIPS_DEBUG_MSG_RED(
-	printf(
+	VIPS_DEBUG_MSG_RED(
 		"vips_tile_cache_gen: "
 		"left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);

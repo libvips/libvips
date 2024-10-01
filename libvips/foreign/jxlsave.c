@@ -230,10 +230,10 @@ vips_foreign_save_jxl_data_at(void *opaque,
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf("vips_foreign_save_jxl_data_at: "
 		"left = %zd, top = %zd, width = %zd, height = %zd\n",
 		xpos, ypos, xsize, ysize);
+#endif /*DEBUG*/
 
 	VipsImage *tile;
 	if (vips_crop(jxl->page, &tile, xpos, ypos, xsize, ysize, NULL)) {
@@ -918,30 +918,19 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	}
 
 	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
-	 * The cache must be persistent, since it has to ast for many vips_crop()
+	 * The cache must be persistent, since it has to last for many vips_crop()
 	 * calls.
 	 */
 	if (vips_tilecache(in, &t[2],
 		"tile-width", in->Xsize,
 		"tile-height", 512,
-		"max_tiles", 20,
+		"max_tiles", 3500 / 512,
 		"threaded", TRUE,
 		"persistent", TRUE,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL))
 		return -1;
 	in = t[2];
-
-	/* Make each tile we request fetch the whole width of the image.
-	const int tile_size = 512;
-	if (vips_linecache(in, &t[3],
-		"tile-height", tile_size,
-		"threaded", TRUE,
-		"persistent", TRUE,
-		NULL))
-		return -1;
-	in = t[3];
-	 */
 
 	if (vips_foreign_save_jxl_set_header(jxl, in))
 		return -1;

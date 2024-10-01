@@ -207,6 +207,7 @@ vips_sequential_build(VipsObject *object)
 	if (vips_linecache(sequential->in, &t,
 			"tile_height", sequential->tile_height,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"persistent", TRUE,
 			NULL))
 		return -1;
 
