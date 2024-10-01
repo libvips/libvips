@@ -4,7 +4,16 @@ It uses the old write by default, but the `chunked` flag enables a new chunked
 write path.
 
 - we should removed the old sequential write once we're done
-- need v0.11 at minimum (v0.9 does not demand data in small chunks)
+
+- should thread region prepare, test with
+
+	$ time vips gaussblur wtc.jpg x.jxl[chunked] 20 --vips-progress
+	real	0m42.860s
+	user	1m36.809s
+	sys	0m3.472s
+
+  so little overall threading and a lot of time is being spent in
+  single-threaded region prepare
 
 ## sequential write
 

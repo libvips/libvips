@@ -136,8 +136,8 @@ typedef struct _VipsForeignSaveJxl {
 	/* Map thread ids to regions with this hash table, gate access to it with
 	 * the mutex.
 	 */
-	GHashTable *region_hash;
-	GMutex *region_lock;
+	GHashTable *tile_hash;
+	GMutex *tile_lock;
 
 	/* Current page we are saving.
 	 */
@@ -228,27 +228,39 @@ vips_foreign_save_jxl_data_at(void *opaque,
 {
 	VipsForeignSave *save = (VipsForeignSave *) opaque;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
-	GThread *self = g_thread_self();
 
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf("vips_foreign_save_jxl_data_at: "
 		"left = %zd, top = %zd, width = %zd, height = %zd\n",
 		xpos, ypos, xsize, ysize);
-#endif /*DEBUG*/
 
-	g_mutex_lock(jxl->region_lock);
-
-	VipsRegion *region = g_hash_table_lookup(jxl->region_hash, self);
-	if (!region) {
-		region = vips_region_new(jxl->page);
-		g_hash_table_insert(jxl->region_hash, self, region);
+	VipsImage *tile;
+	if (vips_crop(jxl->page, &tile, xpos, ypos, xsize, ysize, NULL)) {
+		jxl->error = TRUE;
+		return NULL;
 	}
 
-	g_mutex_unlock(jxl->region_lock);
+	// disable progress reporting from this copy_memory()
+	vips_image_set_int(tile, "hide-progress", 1);
 
-	VipsRect rect = { xpos, ypos, xsize, ysize };
-	if (vips_region_prepare(region, &rect))
+	VipsImage *memory;
+	if (!(memory = vips_image_copy_memory(tile))) {
+		VIPS_UNREF(tile);
 		jxl->error = TRUE;
+		return NULL;
+	}
+	VIPS_UNREF(tile);
+
+	VipsPel *pels = VIPS_IMAGE_ADDR(memory, 0, 0);
+	*row_offset = VIPS_IMAGE_SIZEOF_LINE(memory);
+
+	g_mutex_lock(jxl->tile_lock);
+
+	g_assert(!g_hash_table_lookup(jxl->tile_hash, pels));
+	g_hash_table_insert(jxl->tile_hash, pels, memory);
+
+	g_mutex_unlock(jxl->tile_lock);
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
@@ -261,9 +273,7 @@ vips_foreign_save_jxl_data_at(void *opaque,
 	if (vips_image_iskilled(save->ready))
 		return NULL;
 
-	*row_offset = VIPS_REGION_LSKIP(region);
-
-	return VIPS_REGION_ADDR(region, (int) xpos, (int) ypos);
+	return pels;
 }
 
 static const void *
@@ -279,10 +289,12 @@ vips_foreign_save_jxl_extra_data_at(void* opaque, size_t ec_index,
 }
 
 static void
-vips_foreign_save_jxl_input_release_buffer(void *opaque, const void *)
+vips_foreign_save_jxl_input_release_buffer(void *opaque, const void *pels)
 {
-	// release the pointer from data_at() ... we don't need to do anything,
-	// the mem is owned by the region
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	g_assert(g_hash_table_lookup(jxl->tile_hash, pels));
+	g_hash_table_remove(jxl->tile_hash, pels);
 }
 
 static void
@@ -298,7 +310,7 @@ vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
 		.release_buffer = vips_foreign_save_jxl_input_release_buffer
 	};
 
-	jxl->region_lock = vips_g_mutex_new();
+	jxl->tile_lock = vips_g_mutex_new();
 }
 
 static void
@@ -455,8 +467,8 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
-	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
-    VIPS_FREEF(vips_g_mutex_free, jxl->region_lock);
+	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+    VIPS_FREEF(vips_g_mutex_free, jxl->tile_lock);
 
     VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
@@ -776,7 +788,7 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 	int n, VipsImage *page)
 {
 	jxl->page = page;
-	jxl->region_hash = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+	jxl->tile_hash = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 			NULL, (GDestroyNotify) g_object_unref);
 
 	JxlEncoderFrameSettings *frame_settings;
@@ -808,10 +820,10 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 
 #ifdef DEBUG
 	printf("end of frame encode, %d regions\n",
-		g_hash_table_size(jxl->region_hash));
+		g_hash_table_size(jxl->tile_hash));
 #endif /*DEBUG*/
 
-	VIPS_FREEF(g_hash_table_destroy, jxl->region_hash);
+	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
 
 	return 0;
 }
@@ -845,7 +857,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *in;
 	VipsBandFormat format;
@@ -904,6 +916,32 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			return -1;
 		in = t[1];
 	}
+
+	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
+	 * The cache must be persistent, since it has to ast for many vips_crop()
+	 * calls.
+	 */
+	if (vips_tilecache(in, &t[2],
+		"tile-width", in->Xsize,
+		"tile-height", 512,
+		"max_tiles", 20,
+		"threaded", TRUE,
+		"persistent", TRUE,
+		"access", VIPS_ACCESS_SEQUENTIAL,
+		NULL))
+		return -1;
+	in = t[2];
+
+	/* Make each tile we request fetch the whole width of the image.
+	const int tile_size = 512;
+	if (vips_linecache(in, &t[3],
+		"tile-height", tile_size,
+		"threaded", TRUE,
+		"persistent", TRUE,
+		NULL))
+		return -1;
+	in = t[3];
+	 */
 
 	if (vips_foreign_save_jxl_set_header(jxl, in))
 		return -1;
