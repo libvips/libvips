@@ -1442,6 +1442,11 @@ vips_image_minimise_all_cb(VipsImage *image, void *a, void *b)
 void
 vips_image_minimise_all(VipsImage *image)
 {
+	/* Just like the eval callbacks, don't minimise for sub-evaluations.
+	 */
+	if (vips_image_get_typeof(image, "hide-progress"))
+		return;
+
 	/* Minimisation will modify things like sources, so we can't run it
 	 * from many threads.
 	 */
