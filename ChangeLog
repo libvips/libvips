@@ -31,7 +31,7 @@ master 8.16
   public API
 - jxlsave uses the new chunked API for low memory use for large images
 
-8.15.4
+3/10/24 8.15.4
 
 - fix an off-by-one error in vips__token_get()
 - heifsave: fix crash when passing an invalid bitdepth [kleisauke]
@@ -40,6 +40,8 @@ master 8.16
 - threadpool: fix a race condition in error handling [kleisauke]
 - disable GLib cast checks and asserts for plain builds [kleisauke]
 - fix jpeg in tiff for high Q [nahilsobh]
+- threadset: fix a race condition during thread exit [kleisauke]
+- fix compatibility with MSVC [Julianiolo]
 
 11/8/24 8.15.3
 
