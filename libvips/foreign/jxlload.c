@@ -893,8 +893,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 			 * fallback.
 			 */
 			if (JxlDecoderGetICCProfileSize(jxl->decoder,
-					jxl->profile_target, JXL_COLOR_PROFILE_TARGET_DATA,
-					&jxl->icc_size)) {
+					jxl->profile_target, &jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl, "JxlDecoderGetICCProfileSize");
 				return -1;
 			}
@@ -903,7 +902,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
-					&jxl->format, JXL_COLOR_PROFILE_TARGET_DATA,
+					JXL_COLOR_PROFILE_TARGET_DATA,
 					jxl->icc_data, jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
 					"JxlDecoderGetColorAsICCProfile");
