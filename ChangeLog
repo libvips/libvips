@@ -1,4 +1,4 @@
-8.15.4
+3/10/24 8.15.4
 
 - fix an off-by-one error in vips__token_get()
 - heifsave: fix crash when passing an invalid bitdepth [kleisauke]
