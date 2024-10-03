@@ -27,7 +27,7 @@ master 8.16
 - add "unpack_complex" option to vips_getpoint()
 - add deflate compression level setting to tiffsave [ruven]
 
-8.15.4
+3/10/24 8.15.4
 
 - fix an off-by-one error in vips__token_get()
 - heifsave: fix crash when passing an invalid bitdepth [kleisauke]
@@ -37,6 +37,7 @@ master 8.16
 - disable GLib cast checks and asserts for plain builds [kleisauke]
 - fix jpeg in tiff for high Q [nahilsobh]
 - threadset: fix a race condition during thread exit [kleisauke]
+- fix compatibility with MSVC [Julianiolo]
 
 11/8/24 8.15.3
 
