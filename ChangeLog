@@ -31,6 +31,10 @@ master 8.16
   public API
 - jxlsave uses the new chunked API for low memory use for large images
 
+4/10/24 8.15.5
+
+- version bump, revise C++ soname
+
 3/10/24 8.15.4
 
 - fix an off-by-one error in vips__token_get()
