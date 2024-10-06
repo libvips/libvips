@@ -27,6 +27,7 @@ master 8.16
 - add "unpack_complex" option to vips_getpoint()
 - add zip level compression setting to vipsave [ruven]
 - add deflate compression level setting to tiffsave [ruven]
+- add "smart_deblock" to webpsave [goodusername123]
 - move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
   public API
 - jxlsave uses the new chunked API for low memory use for large images
