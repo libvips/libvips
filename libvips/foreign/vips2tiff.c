@@ -885,13 +885,15 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		!wtiff->tile)
 		wtiff->we_compress = FALSE;
 
-	/* Don't write mad resolutions (eg. zero), it confuses some programs.
+	/* Only set resolution if we actually have one. Also, mad resolutions (eg. zero) confuse some programs.
 	 */
-	TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, wtiff->resunit);
-	TIFFSetField(tif, TIFFTAG_XRESOLUTION,
-		VIPS_FCLIP(0.01, wtiff->xres, 1000000));
-	TIFFSetField(tif, TIFFTAG_YRESOLUTION,
-		VIPS_FCLIP(0.01, wtiff->yres, 1000000));
+	if(wtiff->xres || wtiff->yres){
+		TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, wtiff->resunit);
+		/* Scale resolution by the subsampling factor of the current level
+		 */
+		if(wtiff->xres) TIFFSetField(tif, TIFFTAG_XRESOLUTION, (wtiff->xres/layer->sub));
+		if(wtiff->yres) TIFFSetField(tif, TIFFTAG_YRESOLUTION, (wtiff->yres/layer->sub));
+	}
 
 	if (wtiff_embed_xmp(wtiff, tif) ||
 		wtiff_embed_iptc(wtiff, tif) ||
