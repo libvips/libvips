@@ -1198,7 +1198,9 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  *
  * Set @smart_subsample to enable high quality chroma subsampling.
  *
- * Set @smart_deblock to enable auto-adjusting of the deblocking filter.
+ * Set @smart_deblock to enable auto-adjusting of the deblocking filter. This
+ * can improve image quality, especially on low-contrast edges, but encoding
+ * can take significantly longer.
  *
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.

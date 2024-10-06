@@ -26,6 +26,7 @@ master 8.16
 - add tests for tokenisation
 - add "unpack_complex" option to vips_getpoint()
 - add deflate compression level setting to tiffsave [ruven]
+- add "smart_deblock" to webpsave [goodusername123]
 
 4/10/24 8.15.5
 
