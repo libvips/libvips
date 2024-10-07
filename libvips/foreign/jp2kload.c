@@ -1055,7 +1055,9 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 
 	y = 0;
 	while (y < r->height) {
-		VipsRect tile, hit;
+		VipsRect tile;
+		// stop compiler warnings
+		VipsRect hit = { 0 };
 
 		x = 0;
 		while (x < r->width) {
