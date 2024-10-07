@@ -56,6 +56,7 @@
 #ifdef HAVE_LIBJXL
 
 #include <jxl/decode.h>
+#include <jxl/color_encoding.h>
 #include <jxl/thread_parallel_runner.h>
 
 #include "pforeign.h"
@@ -514,8 +515,7 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 				vips_error(class->nickname, "%s", _("bad buffer size"));
 				return -1;
 			}
-			if (JxlDecoderSetImageOutBuffer(jxl->decoder,
-					&jxl->format,
+			if (JxlDecoderSetImageOutBuffer(jxl->decoder, &jxl->format,
 					VIPS_IMAGE_ADDR(frame, 0, 0),
 					VIPS_IMAGE_SIZEOF_IMAGE(frame))) {
 				vips_foreign_load_jxl_error(jxl, "JxlDecoderSetImageOutBuffer");
@@ -908,6 +908,32 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 					"JxlDecoderGetColorAsICCProfile");
 				return -1;
 			}
+
+			/* Tinkering with output transforms. Experiment with this plus
+			 *
+			 *		https://sneyers.info/hdrtest/
+			 *
+			 * and see if we can get values out of SDR range
+			 */
+
+			JxlColorEncoding enc = {
+				.color_space = JXL_COLOR_SPACE_RGB,
+				.white_point = JXL_WHITE_POINT_D65,
+				.primaries = JXL_PRIMARIES_SRGB,
+				.transfer_function = JXL_TRANSFER_FUNCTION_SRGB,
+				.rendering_intent = JXL_RENDERING_INTENT_RELATIVE,
+			};
+			if (JxlDecoderSetPreferredColorProfile(jxl->decoder, &enc)) {
+				vips_foreign_load_jxl_error(jxl,
+					"JxlDecoderSetOutputColorProfile");
+				return -1;
+			}
+			if (JxlDecoderSetDesiredIntensityTarget(jxl->decoder, 10000)) {
+				vips_foreign_load_jxl_error(jxl,
+					"JxlDecoderSetDesiredIntensityTarget");
+				return -1;
+			}
+
 			break;
 
 		case JXL_DEC_FRAME:
@@ -990,16 +1016,14 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 
 	JxlDecoderRewind(jxl->decoder);
 	if (JxlDecoderSubscribeEvents(jxl->decoder,
-			JXL_DEC_FRAME |
-				JXL_DEC_FULL_IMAGE)) {
+			JXL_DEC_FRAME | JXL_DEC_FULL_IMAGE)) {
 		vips_foreign_load_jxl_error(jxl, "JxlDecoderSubscribeEvents");
 		return -1;
 	}
 
 	if (vips_foreign_load_jxl_fill_input(jxl, 0) < 0)
 		return -1;
-	JxlDecoderSetInput(jxl->decoder,
-		jxl->input_buffer, jxl->bytes_in_buffer);
+	JxlDecoderSetInput(jxl->decoder, jxl->input_buffer, jxl->bytes_in_buffer);
 
 	if (jxl->n > 1) {
 		if (vips_image_generate(t[0],
