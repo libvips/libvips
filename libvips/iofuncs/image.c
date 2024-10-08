@@ -1344,8 +1344,8 @@ vips_image_init(VipsImage *image)
 	image->Ysize = 1;
 	image->Bands = 1;
 
-	image->Xres = 1.0;
-	image->Yres = 1.0;
+	image->Xres = 0.0;
+	image->Yres = 0.0;
 
 	image->fd = -1; /* since 0 is stdout */
 	image->sslock = vips_g_mutex_new();
