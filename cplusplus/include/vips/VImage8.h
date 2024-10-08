@@ -2413,6 +2413,7 @@ public:
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
+	G_DEPRECATED
 	VImage cache(VOption *options = nullptr) const;
 
 	/**
@@ -3181,6 +3182,10 @@ public:
 
 	/**
 	 * Read a point from an image.
+	 *
+	 * **Optional parameters**
+	 *   - **unpack_complex** -- Complex pixels should be unpacked, bool.
+	 *
 	 * @param x Point to read.
 	 * @param y Point to read.
 	 * @param options Set of options.
@@ -5437,7 +5442,7 @@ public:
 	 *   - **idx** -- Horizontal input displacement, double.
 	 *   - **idy** -- Vertical input displacement, double.
 	 *
-	 * @param angle Rotate anticlockwise by this many degrees.
+	 * @param angle Rotate clockwise by this many degrees.
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
@@ -5606,7 +5611,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **scale** -- Scale by this factor, double.
-	 *   - **angle** -- Rotate anticlockwise by this many degrees, double.
+	 *   - **angle** -- Rotate clockwise by this many degrees, double.
 	 *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **odx** -- Horizontal output displacement, double.
@@ -5979,7 +5984,7 @@ public:
 	 *   - **bigtiff** -- Write a bigtiff image, bool.
 	 *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
-	 *   - **level** -- ZSTD compression level, int.
+	 *   - **level** -- Deflate (1-9, default 6) or ZSTD (1-22, default 9) compression level, int.
 	 *   - **lossless** -- Enable WEBP lossless mode, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
@@ -6013,7 +6018,7 @@ public:
 	 *   - **bigtiff** -- Write a bigtiff image, bool.
 	 *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
-	 *   - **level** -- ZSTD compression level, int.
+	 *   - **level** -- Deflate (1-9, default 6) or ZSTD (1-22, default 9) compression level, int.
 	 *   - **lossless** -- Enable WEBP lossless mode, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
@@ -6047,7 +6052,7 @@ public:
 	 *   - **bigtiff** -- Write a bigtiff image, bool.
 	 *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
 	 *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
-	 *   - **level** -- ZSTD compression level, int.
+	 *   - **level** -- Deflate (1-9, default 6) or ZSTD (1-22, default 9) compression level, int.
 	 *   - **lossless** -- Enable WEBP lossless mode, bool.
 	 *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
 	 *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
@@ -6249,6 +6254,7 @@ public:
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
 	 *   - **target_size** -- Desired target size in bytes, int.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
+	 *   - **smart_deblock** -- Enable auto-adjusting of the deblocking filter, bool.
 	 *   - **passes** -- Number of entropy-analysis passes (in [1..10]), int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
@@ -6276,6 +6282,7 @@ public:
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
 	 *   - **target_size** -- Desired target size in bytes, int.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
+	 *   - **smart_deblock** -- Enable auto-adjusting of the deblocking filter, bool.
 	 *   - **passes** -- Number of entropy-analysis passes (in [1..10]), int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
@@ -6303,6 +6310,7 @@ public:
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
 	 *   - **target_size** -- Desired target size in bytes, int.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
+	 *   - **smart_deblock** -- Enable auto-adjusting of the deblocking filter, bool.
 	 *   - **passes** -- Number of entropy-analysis passes (in [1..10]), int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
@@ -6329,6 +6337,7 @@ public:
 	 *   - **effort** -- Level of CPU effort to reduce file size, int.
 	 *   - **target_size** -- Desired target size in bytes, int.
 	 *   - **mixed** -- Allow mixed encoding (might reduce file size), bool.
+	 *   - **smart_deblock** -- Enable auto-adjusting of the deblocking filter, bool.
 	 *   - **passes** -- Number of entropy-analysis passes (in [1..10]), int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
