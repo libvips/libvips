@@ -41,7 +41,7 @@ extern "C" {
 
 /* Was public, now deprecated.
  */
-typedef enum {
+typedef enum /*< skip >*/ {
 	IM_BBITS_BYTE = 8,
 	IM_BBITS_SHORT = 16,
 	IM_BBITS_INT = 32,
@@ -113,7 +113,7 @@ int im_clip(IMAGE *in, IMAGE *out);
 
 /* Copy and swap types.
  */
-typedef enum {
+typedef enum /*< skip >*/ {
 	IM_ARCH_NATIVE,
 	IM_ARCH_BYTE_SWAPPED,
 	IM_ARCH_LSB_FIRST,

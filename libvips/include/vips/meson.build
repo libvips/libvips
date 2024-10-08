@@ -57,26 +57,34 @@ public_headers = files(
     'vips.h',
 )
 
+enum_headers = files(
+    'resample.h',
+    'memory.h',
+    'create.h',
+    'foreign.h',
+    'arithmetic.h',
+    'conversion.h',
+    'util.h',
+    'image.h',
+    'colour.h',
+    'operation.h',
+    'convolution.h',
+    'morphology.h',
+    'draw.h',
+    'basic.h',
+    'object.h',
+    'region.h'
+)
+
+if get_option('deprecated')
+    enum_headers += files(
+        'almostdeprecated.h',
+    )
+endif
+
 enumtypes = gnome.mkenums(
     'enumtypes',
-    sources: files(
-        'resample.h',
-        'memory.h',
-        'create.h',
-        'foreign.h',
-        'arithmetic.h',
-        'conversion.h',
-        'util.h',
-        'image.h',
-        'colour.h',
-        'operation.h',
-        'convolution.h',
-        'morphology.h',
-        'draw.h',
-        'basic.h',
-        'object.h',
-        'region.h'
-    ),
+    sources: enum_headers,
     h_template: 'enumtypes.h.in',
     c_template: 'enumtypes.c.in',
     install_header: true,
