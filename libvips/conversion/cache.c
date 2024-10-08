@@ -48,6 +48,12 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+/* For the vips_cache() header decl.
+ */
+#if ENABLE_DEPRECATED
+#include <vips/vips7compat.h>
+#endif
+
 #include "pconversion.h"
 
 typedef struct _VipsCache {
