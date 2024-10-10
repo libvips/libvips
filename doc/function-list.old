@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- vim: set ts=2 sw=2 expandtab: -->
+<!-- vim: set ts=2 sw=2 expandtab: --> 
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
@@ -18,13 +18,13 @@
   <refsect3 id="function-list">
     <title>Function list</title>
     <para>
-      VIPS has a set of operators each of which computes some useful image
-      processing operation. Each operator is
-      implemented as a %GObject class, for example <code>VipsGamma</code>.
-      Classes are identified by their unique <code>nickname</code>, in this
-      case <code>gamma</code>.
+      VIPS has a set of operators each of which computes some useful image 
+      processing operation. Each operator is 
+      implemented as a %GObject class, for example <code>VipsGamma</code>. 
+      Classes are identified by their unique <code>nickname</code>, in this 
+      case <code>gamma</code>. 
 
-      From the command-line, C++ and most language bindings, you use the
+      From the command-line, C++ and most language bindings, you use the 
       nickname to call the operator. For example in C++:
 
 <programlisting language="C++">
@@ -38,7 +38,7 @@
   fred = jim.gamma()
 </programlisting>
 
-      VIPS has a set of C wrapper functions for calling operators, in this
+      VIPS has a set of C wrapper functions for calling operators, in this 
       case vips_gamma():
 
 <programlisting language="C">
@@ -46,15 +46,15 @@
   VipsImage *jim;
 
   if (vips_gamma(fred, &amp;jim, NULL))
-    ...error;
+    ...error; 
 </programlisting>
 
       Some operators have many C convenience functions.
     </para>
 
     <para>
-      This table lists all the VIPS operators with their C convenience
-      functions and a short description. It's supposed to be useful for
+      This table lists all the VIPS operators with their C convenience 
+      functions and a short description. It's supposed to be useful for 
       searching. See the API docs each function links to for more details.
     </para>
 
@@ -265,6 +265,11 @@
   <entry>byteswap</entry>
   <entry>Byteswap an image</entry>
   <entry>vips_byteswap()</entry>
+</row>
+<row>
+  <entry>cache</entry>
+  <entry>Cache an image</entry>
+  <entry>vips_cache()</entry>
 </row>
 <row>
   <entry>canny</entry>
