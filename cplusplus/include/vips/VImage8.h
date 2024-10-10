@@ -2048,6 +2048,23 @@ public:
 	friend VIPS_CPLUSPLUS_API VImage &
 	operator>>=(VImage &a, const std::vector<double> b);
 
+	// Compat operations
+
+	/**
+	 * Write raw image to file descriptor.
+	 *
+	 * **Optional parameters**
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param fd File descriptor to write to.
+	 * @param options Set of options.
+	 */
+	G_DEPRECATED_FOR(rawsave_target)
+	void rawsave_fd(int fd, VOption *options = nullptr) const;
+
 	/* Automatically generated members.
 	 *
 	 * Rebuild with:
