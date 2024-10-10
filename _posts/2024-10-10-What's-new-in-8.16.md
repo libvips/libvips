@@ -62,29 +62,36 @@ To make:
 
 Hmmm, possibly a person rowing a boat. This uses three
 other new operators: [`vips_minpair()`]({{ site.baseurl
-}}/API/8.16/libvips-arithmetic.html#vips-minpair} and [`vips_maxpair()`]({{
-site.baseurl }}/API/8.16/libvips-arithmetic.html#vips-maxpair), which given
-a pair of images find the pixel-wise max and min, and [`vips_clamp()`]({{
-site.baseurl }}/API/8.16/libvips-arithmetic.html#vips-clamp), which constrains
-pixels to a rangse.
+}}/API/8.16/libvips-arithmetic.html#vips-minpair) and [`vips_maxpair()`]({{
+site.baseurl }}/API/8.16/libvips-arithmetic.html#vips-maxpair),
+which given a pair of images find the
+pixel-wise max and min, and [`vips_clamp()`]({{ site.baseurl
+}}/API/8.16/libvips-arithmetic.html#vips-clamp), which constrains pixels
+to a range.
 
 SDFs fit really well with libvips on-demand-evaluation. These things
 never really exist, they are just chains of delayed computation, so you can
 make them any size, and compute them in parallel.
 
 Up until now we've used SVG rendering to generate masks for large images.
-SDFs are a lot faster and need much less memory -- as long as only need simple
-shapes, they should be a great replacement.
+SDFs are a lot faster and need much less memory -- as long as you only need
+simple shapes, they should be a great replacement.
 
 ## Better file format support
 
 File format support has been improved (again). Highlights this time are:
 
+* JXL load and save now supports exif, xmp, and animation.
+
+* `webpsave` now has `target_size` parameter to set desired size in bytes and a 
+  `passes` parameter to set number of passes to achieve desired target size,
+   plus a `smart_deblock` option for better edge rendering.
+
 * `tiffload` supports old-style JPEG compression.
 
-* All paletteised images now have a `palette` metadata item.
+* `tiffsave` now lets you change the deflate compression level.
 
-* JXL load and save now supports exif, xmp, and animation.
+* All paletteised images now have a `palette` metadata item.
 
 * PFM load and save now uses scRGB colourspace (ie. linear 0-1).
 
@@ -94,11 +101,6 @@ File format support has been improved (again). Highlights this time are:
   [`vips_rawsave_buffer()`]({{ site.baseurl 
   }}/API/8.16/VipsForeignSave.html#vips-rawsave-buffer).
 
-* `webpsave` now has `target_size` parameter to set desired size in bytes and a 
-  `passes` parameter to set number of passes to achieve desired target size,
-   plus a `smart_deblock` option for better edge rendering.
-
-* `tiffsave` now lets you change the deflate compression level.
 
 ## General improvements
 
