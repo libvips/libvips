@@ -1592,4 +1592,12 @@ operator>>=(VImage &a, const std::vector<double> b)
 	return a;
 }
 
+// Compat operations
+
+void
+VImage::rawsave_fd(int fd, VOption *options) const
+{
+	rawsave_target(VTarget::new_to_descriptor(fd), options);
+}
+
 VIPS_NAMESPACE_END
