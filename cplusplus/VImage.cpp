@@ -1597,7 +1597,7 @@ operator>>=(VImage &a, const std::vector<double> b)
 void
 VImage::rawsave_fd(int fd, VOption *options) const
 {
-	this->rawsave_target(VTarget::new_to_descriptor(fd), options);
+	rawsave_target(VTarget::new_to_descriptor(fd), options);
 }
 
 VIPS_NAMESPACE_END
