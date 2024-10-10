@@ -563,8 +563,9 @@ if libheif_dep.found()
     endif
 endif
 
-libjxl_dep = dependency('libjxl', version: '>=0.6', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.6', required: get_option('jpeg-xl'))
+# need v0.11+ for chunked write
+libjxl_dep = dependency('libjxl', version: '>=0.11', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.11', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
@@ -578,12 +579,6 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', '1')
-    if libjxl_dep.version().version_compare('>=0.7')
-        cfg_var.set('HAVE_LIBJXL_0_7', '1')
-    endif
-    if libjxl_dep.version().version_compare('>=0.9')
-        cfg_var.set('HAVE_LIBJXL_0_9', '1')
-    endif
 endif
 
 # only if pdfium not found
