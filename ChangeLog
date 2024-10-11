@@ -27,6 +27,7 @@
 - add "unpack_complex" option to vips_getpoint()
 - add deflate compression level setting to tiffsave [ruven]
 - add "smart_deblock" to webpsave [goodusername123]
+- add "auto_files" to heifsave [lovell]
 
 4/10/24 8.15.5
 
