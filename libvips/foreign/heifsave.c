@@ -130,6 +130,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int speed;
 
+	/* Auto tiles (currently aom only).
+	*/
+	gboolean auto_tiles;
+
 } VipsForeignSaveHeif;
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
@@ -648,6 +652,14 @@ vips_foreign_save_heif_build(VipsObject *object)
 	}
 #endif /*HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES*/
 
+	error = heif_encoder_set_parameter_boolean(heif->encoder,
+		"auto-tiles", heif->auto_tiles);
+	if (error.code &&
+		error.subcode != heif_suberror_Unsupported_parameter) {
+		vips__heif_error(&error);
+		return -1;
+	}
+
 	/* TODO .. support extra per-encoder params with
 	 * heif_encoder_list_parameters().
 	 */
@@ -807,6 +819,13 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, selected_encoder),
 		VIPS_TYPE_FOREIGN_HEIF_ENCODER,
 		VIPS_FOREIGN_HEIF_ENCODER_AUTO);
+
+	VIPS_ARG_BOOL(class, "auto_tiles", 19,
+		_("Auto-tiles"),
+		_("Determine optimum tile count"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveHeif, auto_tiles),
+		FALSE);
 }
 
 static void
