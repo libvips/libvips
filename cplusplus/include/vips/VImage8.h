@@ -3446,6 +3446,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **auto_tiles** -- Determine optimum tile count, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3467,6 +3468,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **auto_tiles** -- Determine optimum tile count, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3488,6 +3490,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **auto_tiles** -- Determine optimum tile count, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
