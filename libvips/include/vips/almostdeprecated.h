@@ -36,7 +36,7 @@
 #define IM_ALMOSTDEPRECATED_H
 
 #ifndef VIPS_VIPS7COMPAT_H
-#error Should not be inclued directly use vips7compat.h instead
+#error Should not be included directly use vips7compat.h instead
 #endif
 
 #ifdef __cplusplus
