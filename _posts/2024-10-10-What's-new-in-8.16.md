@@ -87,6 +87,9 @@ File format support has been improved (again). Highlights this time are:
   `passes` parameter to set number of passes to achieve desired target size,
    plus a `smart_deblock` option for better edge rendering.
 
+* `heifsave` has a new `auto_tiles` option. This can make AVIF encode much
+  faster, at the expense of slightly larger filesize.
+
 * `tiffload` supports old-style JPEG compression.
 
 * `tiffsave` now lets you change the deflate compression level.
