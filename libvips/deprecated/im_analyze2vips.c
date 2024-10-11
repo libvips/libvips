@@ -41,7 +41,6 @@
 #include <glib/gi18n-lib.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 static VipsFormatFlags
 analyze_flags(const char *filename)

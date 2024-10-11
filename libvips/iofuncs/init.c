@@ -100,10 +100,6 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
-
 /* abort() on the first warning or error.
  */
 int vips__fatal = 0;

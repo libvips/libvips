@@ -46,7 +46,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 
 int

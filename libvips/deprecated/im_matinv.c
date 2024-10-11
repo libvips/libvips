@@ -52,7 +52,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #define TOO_SMALL (2.0 * DBL_MIN)
 /* DBL_MIN is smallest *normalized* double precision float */

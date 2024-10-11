@@ -42,7 +42,6 @@
 
 #include <stdlib.h>
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #define MOST_OF(A, B) ((A) > 0.9 * (B))
 #define LITTLE_OF(A, B) ((B) < 0.1 * (B))

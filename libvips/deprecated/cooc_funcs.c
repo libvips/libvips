@@ -75,7 +75,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 static int
 im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int dx, int dy)
