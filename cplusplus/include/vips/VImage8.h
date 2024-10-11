@@ -2050,6 +2050,10 @@ public:
 
 	// Compat operations
 
+	static VImage
+	new_from_memory_steal(void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format);
+
 	/**
 	 * Write raw image to file descriptor.
 	 *

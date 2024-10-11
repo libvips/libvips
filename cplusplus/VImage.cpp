@@ -647,7 +647,7 @@ VImage::new_from_memory_steal(const void *data, size_t size,
 		throw(VError());
 
 	g_signal_connect(image, "postclose",
-		G_CALLBACK(vips_image_free_buffer), (void *) data);
+		G_CALLBACK(vips_image_free_buffer), const_cast<void *>(data));
 
 	return VImage(image);
 }
@@ -1593,6 +1593,14 @@ operator>>=(VImage &a, const std::vector<double> b)
 }
 
 // Compat operations
+
+VImage
+VImage::new_from_memory_steal(void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format)
+{
+	return new_from_memory_steal(static_cast<const void *>(data), size,
+		width, height, bands, format);
+}
 
 void
 VImage::rawsave_fd(int fd, VOption *options) const
