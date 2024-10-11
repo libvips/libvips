@@ -620,6 +620,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
+#ifdef HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES
 	for (param = heif_encoder_list_parameters(heif->encoder);
 		*param; param++) {
 		int have_minimum;
@@ -645,6 +646,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 			return -1;
 		}
 	}
+#endif /*HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES*/
 
 	/* TODO .. support extra per-encoder params with
 	 * heif_encoder_list_parameters().
