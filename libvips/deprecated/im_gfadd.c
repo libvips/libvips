@@ -61,7 +61,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /*               uchar char ushort short uint   int float double */
 static int array[8][8] = {

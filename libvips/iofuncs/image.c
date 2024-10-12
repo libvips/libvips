@@ -66,6 +66,7 @@
 #endif /*HAVE_UNISTD_H*/
 #include <ctype.h>
 
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>

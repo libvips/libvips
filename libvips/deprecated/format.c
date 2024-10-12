@@ -36,7 +36,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 
 /* To iterate over supported formats, we build a temp list of subclasses of

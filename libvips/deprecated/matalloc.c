@@ -13,7 +13,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #define TINY 1.0e-200
 

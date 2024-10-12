@@ -55,7 +55,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* The type of the vips operations we support.
  */

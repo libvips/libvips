@@ -57,7 +57,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 int
 im_debugim(IMAGE *in)

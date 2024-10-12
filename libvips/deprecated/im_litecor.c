@@ -66,7 +66,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /*   If maximum output is > 255 scale output between minout and maxout,
  * by normalising maxout to 255.

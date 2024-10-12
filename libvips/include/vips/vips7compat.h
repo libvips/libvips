@@ -34,6 +34,8 @@
 #ifndef VIPS_VIPS7COMPAT_H
 #define VIPS_VIPS7COMPAT_H
 
+#include <vips/mask.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -1760,6 +1762,7 @@ void vips_vector_to_fixed_point(double *in, int *out, int n, int scale);
 
 #include <vips/dispatch.h>
 #include <vips/almostdeprecated.h>
+#include <vips/video.h>
 
 #ifdef __cplusplus
 }
