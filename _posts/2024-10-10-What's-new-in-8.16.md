@@ -24,7 +24,7 @@ increasingly positive, as you move within the circle, values become negative.
 
 ![SDF circle]({{ site.baseurl }}/assets/images/sdf-circle.png)
 
-The great thing about SDFs is that they are quick to make and very easy to 
+The great thing about SDFs is that they are quick to make and very easy to
 combine to make more complex shapes. For example, you could write:
 
 ```python
@@ -33,17 +33,17 @@ combine to make more complex shapes. For example, you could write:
 import sys
 import pyvips
 
-box = pyvips.Image.sdf(1000, 1000, "rounded-box", 
+box = pyvips.Image.sdf(1000, 1000, "rounded-box",
                        a=[300, 400],
                        b=[700, 600],
                        corners=[100, 0, 0, 0])
 
-circle = pyvips.Image.sdf(1000, 1000, "circle", 
+circle = pyvips.Image.sdf(1000, 1000, "circle",
                           a=[500, 300],
                           r=100)
 
-line = pyvips.Image.sdf(1000, 1000, "line", 
-                        a=[500, 500], 
+line = pyvips.Image.sdf(1000, 1000, "line",
+                        a=[500, 500],
                         b=[600, 900])
 
 # union
@@ -83,7 +83,7 @@ File format support has been improved (again). Highlights this time are:
 
 * JXL load and save now supports exif, xmp, and animation.
 
-* `webpsave` now has `target_size` parameter to set desired size in bytes and a 
+* `webpsave` now has `target_size` parameter to set desired size in bytes and a
   `passes` parameter to set number of passes to achieve desired target size,
    plus a `smart_deblock` option for better edge rendering.
 
@@ -98,10 +98,10 @@ File format support has been improved (again). Highlights this time are:
 
 * PFM load and save now uses scRGB colourspace (ie. linear 0-1).
 
-* `rawsave` gets  streaming support with 
-  [`vips_rawsave_target()`]({{ site.baseurl 
+* `rawsave` gets  streaming support with
+  [`vips_rawsave_target()`]({{ site.baseurl
   }}/API/8.16/VipsForeignSave.html#vips-rawsave-target) and
-  [`vips_rawsave_buffer()`]({{ site.baseurl 
+  [`vips_rawsave_buffer()`]({{ site.baseurl
   }}/API/8.16/VipsForeignSave.html#vips-rawsave-buffer).
 
 
@@ -118,9 +118,9 @@ There have been some smaller libvips additions and improvements too.
 
 * `vips_getpoint()` has a new `unpack_complex` option.
 
-*  vipsheader` supports multiple `-f field` arguments.
+* `vipsheader` supports multiple `-f field` arguments.
 
 * libvips now includes basic `g_auto` support, making C programming slightly
-  more convenient. 
+  more convenient.
 
 Plus many minor bugfixes and improvements.
