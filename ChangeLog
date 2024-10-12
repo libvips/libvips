@@ -12,13 +12,11 @@ master 8.16
 - add configurable max coordinate and vips_max_coord_get()
 - improve kill handling
 - PFM save and load now uses scRGB (ie. linear 0-1) [NiHoel]
-- turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
+- turn vips_addalpha() into a VipsOperation [RiskoZoSlovenska]
 - add vips_rawsave_target(), vips_rawsave_buffer() [akash-akya]
 - vipsheader supports multiple "-f field" arguments [sergeevabc]
-- webpsave has @target_size parameter to set desired size
-  in bytes [john-parton]
-- webpsave has @passes parameter to set number of passes to achieve
-  desired target_size [john-parton]
+- add "target_size" to webpsave [john-parton]
+- add "passes" to webpsave [john-parton]
 - revise sRGB -> B_W coefficients [daniellovera]
 - add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
 - more const for the C++ API [Julianiolo]
@@ -27,7 +25,7 @@ master 8.16
 - add "unpack_complex" option to vips_getpoint()
 - add deflate compression level setting to tiffsave [ruven]
 - add "smart_deblock" to webpsave [goodusername123]
-- add "auto_files" to heifsave [lovell]
+- add "auto_tiles" to heifsave [lovell]
 
 4/10/24 8.15.5
 
