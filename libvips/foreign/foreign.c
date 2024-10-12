@@ -2366,7 +2366,6 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @encoder: #VipsForeignHeifEncoder, select encoder to use
- * * @auto_tiles: %gboolean, determine optimum tile count
  *
  * Write a VIPS image to a file in HEIF format.
  *
@@ -2389,11 +2388,6 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  * least 8, 10 and 12 bits; other codecs may support more or fewer options.
  *
  * Use @encoder to set the encode library to use, e.g. aom, SVT-AV1, rav1e etc.
- *
- * When using the aom encoder, set @auto_tiles to determine the optimum
- * number of tiles based on dimensions and available threads. This can
- * improve multi-core utilisation and/or reduce peak memory consumption
- * at the expense of slightly increased file size.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -2428,7 +2422,6 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @encoder: #VipsForeignHeifEncoder, select encoder to use
- * * @auto_tiles: %gboolean, determine optimum tile count
  *
  * As vips_heifsave(), but save to a memory buffer.
  *
@@ -2483,7 +2476,6 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @effort: %gint, encoding effort
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @encoder: #VipsForeignHeifEncoder, select encoder to use
- * * @auto_tiles: %gboolean, determine optimum tile count
  *
  * As vips_heifsave(), but save to a target.
  *
