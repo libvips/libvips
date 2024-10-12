@@ -44,7 +44,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 typedef struct {
 	REGION *reg;

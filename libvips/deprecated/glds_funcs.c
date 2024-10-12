@@ -72,7 +72,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* Keep the greylevel difference matrix as a 256x1 double image */
 

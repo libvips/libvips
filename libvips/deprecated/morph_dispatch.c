@@ -38,7 +38,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* Args to im_profile.
  */

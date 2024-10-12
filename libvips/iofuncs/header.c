@@ -86,12 +86,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/* For the vips__image_sizeof_bandformat declaration.
- */
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
-
 /**
  * SECTION: header
  * @short_description: get, set and walk image headers

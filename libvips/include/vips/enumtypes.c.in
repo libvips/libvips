@@ -5,10 +5,6 @@
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/vips.h>
-
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
 /*** END file-header ***/
 
 /*** BEGIN file-production ***/

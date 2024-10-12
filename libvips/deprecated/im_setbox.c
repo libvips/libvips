@@ -48,7 +48,6 @@
 #include <sys/types.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 void
 im_setbox(IMAGE_BOX *pbox, int xst, int yst, int xsiz, int ysiz, int ch_select)

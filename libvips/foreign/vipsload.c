@@ -42,6 +42,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* For vips_image_new_mode()
+ */
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 

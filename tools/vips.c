@@ -103,10 +103,6 @@
 #include <vips/vector.h>
 #include <vips/internal.h>
 
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
-
 static char *main_option_plugin = NULL;
 static gboolean main_option_targets;
 static gboolean main_option_version;
