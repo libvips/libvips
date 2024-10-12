@@ -1658,13 +1658,17 @@ size_t vips__get_sizeof_vipsobject(void);
 
 /* This is deprecated to make room for highway.
  */
+#ifndef OrcProgram
 typedef struct _OrcProgram {
 	/* Opaque */
 } OrcProgram;
+#endif
 
+#ifndef OrcExecutor
 typedef struct _OrcExecutor {
 	char data[808];
 } OrcExecutor;
+#endif
 
 #define VIPS_VECTOR_SOURCE_MAX (10)
 
