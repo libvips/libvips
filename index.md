@@ -2,7 +2,7 @@
 ---
 
 [![CI](https://github.com/libvips/libvips/workflows/CI/badge.svg)](https://github.com/libvips/libvips/actions)
-[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
+[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://issues.oss-fuzz.com/issues?q=is:open%20project:libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 [![Gitter](https://badges.gitter.im/libvips/devchat.svg)](https://gitter.im/libvips/devchat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -17,20 +17,21 @@ https://spdx.org/licenses/LGPL-2.1-or-later).
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
 filtering, colour, resampling, statistics and others. It supports a large
-range of [numeric formats](API/current/VipsImage.html#VipsBandFormat),
+range of [numeric types](API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, TIFF, 
-PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
-NIfTI, DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
-GraphicsMagick, letting it load formats like DICOM. 
+It supports a good range of image formats, including JPEG, JPEG 2000, JPEG XL,
+TIFF, PNG, WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM /
+PFM, CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load
+images via ImageMagick or GraphicsMagick, letting it work with formats
+like DICOM.
 
 It comes with bindings for [C](API/current/using-from-c.html),
 [C++](API/current/using-from-cpp.html),
 and the [command-line](API/current/using-cli.html). Full bindings
 are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [Python](https://pypi.python.org/pypi/pyvips),
-[PHP](https://github.com/libvips/php-vips), 
-[.NET](https://www.nuget.org/packages/NetVips), 
+[PHP](https://github.com/libvips/php-vips),
+[.NET](https://www.nuget.org/packages/NetVips),
 [Go](https://github.com/davidbyttow/govips), and
 [Lua](https://github.com/libvips/lua-vips). libvips
 is used as an image processing engine by [sharp (on
@@ -47,7 +48,7 @@ a strange combination of a spreadsheet and an photo editor.
 The [download area]({{ site.github.releases_url }}) has the
 source code plus pre-compiled binaries for Windows; you can install on macOS
 with homebrew, MacPorts or Fink; and it's available in most Linux package
-managers. See the [install notes](install.html).  
+managers. See the [install notes](install.html).
 
 ## News
 
