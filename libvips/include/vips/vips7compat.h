@@ -36,6 +36,21 @@
 
 #include <vips/mask.h>
 
+/* The old deprecated VipsVector/VipsExecutor API required orc.
+ * Avoid a possible ABI/API break with the adoption of highway.
+ */
+#ifdef HAVE_ORC
+#include <orc/orc.h>
+#else
+typedef struct _OrcProgram {
+	/* Opaque */
+} OrcProgram;
+
+typedef struct _OrcExecutor {
+	char data[808];
+} OrcExecutor;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -1658,18 +1673,6 @@ size_t vips__get_sizeof_vipsobject(void);
 
 /* This is deprecated to make room for highway.
  */
-#ifndef OrcProgram
-typedef struct _OrcProgram {
-	/* Opaque */
-} OrcProgram;
-#endif
-
-#ifndef OrcExecutor
-typedef struct _OrcExecutor {
-	char data[808];
-} OrcExecutor;
-#endif
-
 #define VIPS_VECTOR_SOURCE_MAX (10)
 
 typedef struct {
