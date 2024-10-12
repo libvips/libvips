@@ -85,10 +85,7 @@ File format support has been improved (again). Highlights this time are:
 
 * `webpsave` now has `target_size` parameter to set desired size in bytes and a
   `passes` parameter to set number of passes to achieve desired target size,
-   plus a `smart_deblock` option for better edge rendering.
-
-* `heifsave` has a new `auto_tiles` option. This can make AVIF encode much
-  faster, at the expense of slightly larger filesize.
+  plus a `smart_deblock` option for better edge rendering.
 
 * `tiffload` supports old-style JPEG compression.
 
@@ -104,7 +101,6 @@ File format support has been improved (again). Highlights this time are:
   [`vips_rawsave_buffer()`]({{ site.baseurl
   }}/API/8.16/VipsForeignSave.html#vips-rawsave-buffer).
 
-
 ## General improvements
 
 There have been some smaller libvips additions and improvements too.
@@ -114,7 +110,7 @@ There have been some smaller libvips additions and improvements too.
   }}/API/8.16/libvips-vips.html#vips-max-coord-get).
 
 * There's a new (trivial) [`vips_addalpha()`]({{ site.baseurl
-   }}/API/8.16/libvips-conversion.html#vips-addalpha) operation.
+  }}/API/8.16/libvips-conversion.html#vips-addalpha) operation.
 
 * `vips_getpoint()` has a new `unpack_complex` option.
 
@@ -123,4 +119,4 @@ There have been some smaller libvips additions and improvements too.
 * libvips now includes basic `g_auto` support, making C programming slightly
   more convenient.
 
-Plus many minor bugfixes and improvements.
+Plus some even more minor bugfixes and improvements.
