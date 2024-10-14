@@ -58,19 +58,23 @@
 
 /* TODO:
  *
- * - libjxl encode only works in one shot mode, so there's no way to write in
- *   chunks
+ * - need to emit the various progress signals etc. for a sink, eg. preeval
+ *   eval, etc.
  *
- * - add metadata support EXIF, XMP, etc. api for this is on the way
  *
- * - add animation support
  *
  * - libjxl is currently missing error messages (I think)
  *
  * - add support encoding images with > 4 bands.
+ *
+ *		see FIXME note in _build()
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
+
+// max number of scanlines for a jxl tile (ysize arg to _data_at()) ... 2048
+// plus 8 lines of overlap top and bottom
+#define MAX_TILE_HEIGHT (2064)
 
 typedef struct _VipsForeignSaveJxl {
 	VipsForeignSave parent_object;
@@ -86,6 +90,11 @@ typedef struct _VipsForeignSaveJxl {
 	int effort;
 	gboolean lossless;
 	int Q;
+	gboolean chunked;
+
+	/* Set on API fail.
+	 */
+	gboolean error;
 
 	/* Animated jxl options.
 	 */
@@ -93,10 +102,11 @@ typedef struct _VipsForeignSaveJxl {
 	int *delay;
 	int delay_length;
 
-	/* The image we save. This is a copy of save->ready since we need to
-	 * be able to update the metadata.
+	/* Image geometry.
 	 */
-	VipsImage *image;
+	int page_height;
+	int page_count;
+	int page_number;
 
 	/* Base image properties.
 	 */
@@ -109,23 +119,31 @@ typedef struct _VipsForeignSaveJxl {
 	void *runner;
 	JxlEncoder *encoder;
 
-	/* The current y position in the frame, page height,
-	 * total number of pages, and the current page index.
+	/* Buffer scanlines to make a line of libjxl tiles.
 	 */
-	int write_y;
-	int page_height;
-	int page_count;
-	int page_number;
-
-	/* VipsRegion is not always contiguous, but we need contiguous RGB(A)
-	 * for libjxl. We need to copy each frame to a local buffer.
-	 */
-	VipsPel *frame_bytes;
-	size_t frame_size;
+	VipsPel *scanline_buffer;
+	size_t scanline_size;
+	int scanline_y;
 
 	/* Write buffer.
 	 */
 	uint8_t output_buffer[OUTPUT_BUFFER_SIZE];
+
+	/* Chunk reader.
+	 */
+	struct JxlChunkedFrameInputSource input_source;
+
+	/* Map thread ids to regions with this hash table, gate access to it with
+	 * the mutex.
+	 */
+	GHashTable *tile_hash;
+	GMutex *tile_lock;
+
+	/* Current page we are saving.
+	 */
+	VipsImage *page;
+	VipsImage *page_colour;
+	VipsImage *page_extras;
 
 } VipsForeignSaveJxl;
 
@@ -134,30 +152,165 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
 
-/* String-based metadata fields we add.
- */
-typedef struct _VipsForeignSaveJxlMetadata {
-	const char *name;	 /* as understood by libvips */
-	JxlBoxType box_type; /* as understood by libjxl */
-} VipsForeignSaveJxlMetadata;
+static void *
+vips_foreign_save_jxl_get_buffer(void *opaque, size_t *size)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
-static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
-	{ VIPS_META_EXIF_NAME, "Exif" },
-	{ VIPS_META_XMP_NAME, "xml " }
-};
+	*size = OUTPUT_BUFFER_SIZE;
+	return jxl->output_buffer;
+}
 
 static void
-vips_foreign_save_jxl_dispose(GObject *gobject)
+vips_foreign_save_jxl_output_release_buffer(void *opaque, size_t written_bytes)
 {
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
-	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
-	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
-	VIPS_FREE(jxl->frame_bytes);
+	if (vips_target_write(jxl->target, jxl->output_buffer, written_bytes))
+		jxl->error = TRUE;
+}
 
-	VIPS_UNREF(jxl->target);
+static void
+vips_foreign_save_jxl_seek(void *opaque, uint64_t position)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
-	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
+	if (vips_target_seek(jxl->target, position, SEEK_SET))
+		jxl->error = TRUE;
+}
+
+static void
+vips_foreign_save_jxl_set_finalized_position(void *opaque, uint64_t position)
+{
+	// don't need this
+}
+
+static void
+vips_foreign_save_jxl_set_output_processor(VipsForeignSaveJxl *jxl)
+{
+	JxlEncoderSetOutputProcessor(jxl->encoder,
+		(struct JxlEncoderOutputProcessor) {
+		.opaque = jxl,
+		.get_buffer = vips_foreign_save_jxl_get_buffer,
+		.release_buffer = vips_foreign_save_jxl_output_release_buffer,
+		.seek = vips_foreign_save_jxl_seek,
+		.set_finalized_position = vips_foreign_save_jxl_set_finalized_position,
+	});
+}
+
+static void
+vips_foreign_save_jxl_pixel_format(void *opaque, JxlPixelFormat *format)
+{
+#ifdef DEBUG
+	printf("vips_foreign_save_jxl_pixel_format:\n");
+#endif /*DEBUG*/
+
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	*format = jxl->format;
+}
+
+static void
+vips_foreign_save_jxl_extra_pixel_format(void *opaque,
+	size_t ec_index, JxlPixelFormat *format)
+{
+#ifdef DEBUG
+	printf("vips_foreign_save_jxl_extra_pixel_format:\n");
+#endif /*DEBUG*/
+
+	return vips_foreign_save_jxl_pixel_format(opaque, format);
+}
+
+static const void *
+vips_foreign_save_jxl_data_at(void *opaque,
+	size_t xpos, size_t ypos, size_t xsize, size_t ysize,
+	size_t *row_offset)
+{
+	VipsForeignSave *save = (VipsForeignSave *) opaque;
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+#ifdef DEBUG
+	printf("vips_foreign_save_jxl_data_at: "
+		"left = %zd, top = %zd, width = %zd, height = %zd\n",
+		xpos, ypos, xsize, ysize);
+#endif /*DEBUG*/
+
+	VipsImage *tile;
+	if (vips_crop(jxl->page, &tile, xpos, ypos, xsize, ysize, NULL)) {
+		jxl->error = TRUE;
+		return NULL;
+	}
+
+	// disable progress reporting from this copy_memory()
+	vips_image_set_int(tile, "hide-progress", 1);
+
+	VipsImage *memory;
+	if (!(memory = vips_image_copy_memory(tile))) {
+		VIPS_UNREF(tile);
+		jxl->error = TRUE;
+		return NULL;
+	}
+	VIPS_UNREF(tile);
+
+	VipsPel *pels = VIPS_IMAGE_ADDR(memory, 0, 0);
+	*row_offset = VIPS_IMAGE_SIZEOF_LINE(memory);
+
+	g_mutex_lock(jxl->tile_lock);
+
+	g_assert(!g_hash_table_lookup(jxl->tile_hash, pels));
+	g_hash_table_insert(jxl->tile_hash, pels, memory);
+
+	g_mutex_unlock(jxl->tile_lock);
+
+	/* Trigger any eval callbacks on our source image and
+	 * check for errors.
+	 *
+	 * FIXME ... can we cancel save with NULL? or will this crash?
+	 */
+	guint64 processed =
+		(guint64) ypos * save->ready->Xsize + (guint64) xpos * ysize;
+	vips_image_eval(save->ready, processed);
+	if (vips_image_iskilled(save->ready))
+		return NULL;
+
+	return pels;
+}
+
+static const void *
+vips_foreign_save_jxl_extra_data_at(void* opaque, size_t ec_index,
+	size_t xpos, size_t ypos, size_t xsize, size_t ysize, size_t* row_offset)
+{
+#ifdef DEBUG
+	printf("vips_foreign_save_jxl_extra_data_at:\n");
+#endif /*DEBUG*/
+
+	return vips_foreign_save_jxl_data_at(opaque,
+		xpos, ypos, xsize, ysize, row_offset);
+}
+
+static void
+vips_foreign_save_jxl_input_release_buffer(void *opaque, const void *pels)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
+
+	g_assert(g_hash_table_lookup(jxl->tile_hash, pels));
+	g_hash_table_remove(jxl->tile_hash, pels);
+}
+
+static void
+vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
+{
+	jxl->input_source = (struct JxlChunkedFrameInputSource) {
+		.opaque = jxl,
+		.get_color_channels_pixel_format = vips_foreign_save_jxl_pixel_format,
+		.get_color_channel_data_at = vips_foreign_save_jxl_data_at,
+		.get_extra_channel_pixel_format =
+			vips_foreign_save_jxl_extra_pixel_format,
+		.get_extra_channel_data_at = vips_foreign_save_jxl_extra_data_at,
+		.release_buffer = vips_foreign_save_jxl_input_release_buffer
+	};
+
+	jxl->tile_lock = vips_g_mutex_new();
 }
 
 static void
@@ -165,9 +318,10 @@ vips_foreign_save_jxl_error(VipsForeignSaveJxl *jxl, const char *details)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
 
-	/* TODO ... jxl has no way to get error messages at the moment.
+	/* TODO ... libjxl seems to have no way to get error messages at the
+	 * moment.
 	 */
-	vips_error(class->nickname, "error %s", details);
+	vips_error(class->nickname, "%s error", details);
 }
 
 #ifdef DEBUG
@@ -251,10 +405,6 @@ vips_foreign_save_jxl_print_status(JxlEncoderStatus status)
 		printf("JXL_ENC_NEED_MORE_OUTPUT\n");
 		break;
 
-	case JXL_ENC_NOT_SUPPORTED:
-		printf("JXL_ENC_NOT_SUPPORTED\n");
-		break;
-
 	default:
 		printf("JXL_ENC_<unknown>\n");
 		break;
@@ -262,31 +412,29 @@ vips_foreign_save_jxl_print_status(JxlEncoderStatus status)
 }
 #endif /*DEBUG*/
 
+/* Output for sequential write.
+ */
 static int
 vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 {
 	JxlEncoderStatus status;
-	uint8_t *out;
-	size_t avail_out;
 
 	do {
-		out = jxl->output_buffer;
-		avail_out = OUTPUT_BUFFER_SIZE;
-		status = JxlEncoderProcessOutput(jxl->encoder,
-			&out, &avail_out);
+		uint8_t *out = jxl->output_buffer;
+		size_t avail_out = OUTPUT_BUFFER_SIZE;
+		status = JxlEncoderProcessOutput(jxl->encoder, &out, &avail_out);
+
 		switch (status) {
 		case JXL_ENC_SUCCESS:
 		case JXL_ENC_NEED_MORE_OUTPUT:
 			if (OUTPUT_BUFFER_SIZE > avail_out &&
-				vips_target_write(jxl->target,
-					jxl->output_buffer,
+				vips_target_write(jxl->target, jxl->output_buffer,
 					OUTPUT_BUFFER_SIZE - avail_out))
 				return -1;
 			break;
 
 		default:
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderProcessOutput");
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderProcessOutput");
 #ifdef DEBUG
 			vips_foreign_save_jxl_print_status(status);
 #endif /*DEBUG*/
@@ -297,101 +445,176 @@ vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 	return 0;
 }
 
-static int
-vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
+/* String-based metadata fields we add.
+ */
+typedef struct _VipsForeignSaveJxlMetadata {
+	const char *name;			/* as understood by libvips */
+	JxlBoxType box_type;		/* as understood by libjxl */
+} VipsForeignSaveJxlMetadata;
+
+static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
+	{ VIPS_META_EXIF_NAME, "Exif" },
+	{ VIPS_META_XMP_NAME, "xml " }
+};
+
+static void
+vips_foreign_save_jxl_dispose(GObject *gobject)
 {
-#ifdef HAVE_LIBJXL_0_7
-	JxlEncoderFrameSettings *frame_settings;
-#else
-	JxlEncoderOptions *frame_settings;
-#endif
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
 
-#ifdef HAVE_LIBJXL_0_7
-	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier);
-	JxlEncoderSetFrameDistance(frame_settings, jxl->distance);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
-	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
+	VIPS_UNREF(jxl->target);
 
-	if (jxl->info.have_animation) {
-		JxlFrameHeader header;
-		memset(&header, 0, sizeof(JxlFrameHeader));
+	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
+	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
-		if (jxl->delay && jxl->page_number < jxl->delay_length)
-			header.duration = jxl->delay[jxl->page_number];
-		else
-			header.duration = jxl->gif_delay * 10;
+	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+    VIPS_FREEF(vips_g_mutex_free, jxl->tile_lock);
 
-		JxlEncoderSetFrameHeader(frame_settings, &header);
+    VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
+
+	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
+}
+
+static int
+vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
+
+	JxlEncoderInitBasicInfo(&jxl->info);
+
+	switch (in->BandFmt) {
+	case VIPS_FORMAT_UCHAR:
+		jxl->info.bits_per_sample = 8;
+		jxl->info.exponent_bits_per_sample = 0;
+		jxl->format.data_type = JXL_TYPE_UINT8;
+		break;
+
+	case VIPS_FORMAT_USHORT:
+		jxl->info.bits_per_sample = 16;
+		jxl->info.exponent_bits_per_sample = 0;
+		jxl->format.data_type = JXL_TYPE_UINT16;
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		jxl->info.bits_per_sample = 32;
+		jxl->info.exponent_bits_per_sample = 8;
+		jxl->format.data_type = JXL_TYPE_FLOAT;
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
 	}
-#else
-	frame_settings = JxlEncoderOptionsCreate(jxl->encoder, NULL);
-	JxlEncoderOptionsSetDecodingSpeed(frame_settings, jxl->tier);
-	JxlEncoderOptionsSetDistance(frame_settings, jxl->distance);
-	JxlEncoderOptionsSetEffort(frame_settings, jxl->effort);
-	JxlEncoderOptionsSetLossless(frame_settings, jxl->lossless);
-#endif
 
-	if (JxlEncoderAddImageFrame(frame_settings, &jxl->format,
-			jxl->frame_bytes, jxl->frame_size)) {
-		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
+	switch (in->Type) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		jxl->info.num_color_channels = VIPS_MIN(1, in->Bands);
+		break;
+
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_RGB16:
+		jxl->info.num_color_channels = VIPS_MIN(3, in->Bands);
+		break;
+
+	default:
+		jxl->info.num_color_channels = in->Bands;
+	}
+	jxl->info.num_extra_channels = VIPS_MAX(0,
+		in->Bands - jxl->info.num_color_channels);
+
+	jxl->info.xsize = in->Xsize;
+	jxl->info.ysize = jxl->page_height;
+	jxl->format.num_channels = in->Bands;
+	jxl->format.endianness = JXL_NATIVE_ENDIAN;
+	jxl->format.align = 0;
+
+	if (jxl->page_count > 1) {
+		int num_loops = 0;
+
+		if (vips_image_get_typeof(in, "loop"))
+			vips_image_get_int(in, "loop", &num_loops);
+
+		jxl->info.have_animation = TRUE;
+		jxl->info.animation.tps_numerator = 1000;
+		jxl->info.animation.tps_denominator = 1;
+		jxl->info.animation.num_loops = num_loops;
+		jxl->info.animation.have_timecodes = FALSE;
+	}
+
+	if (vips_image_hasalpha(in)) {
+		jxl->info.alpha_bits = jxl->info.bits_per_sample;
+		jxl->info.alpha_exponent_bits = jxl->info.exponent_bits_per_sample;
+	}
+	else {
+		jxl->info.alpha_exponent_bits = 0;
+		jxl->info.alpha_bits = 0;
+	}
+
+	if (vips_image_get_typeof(in, "stonits")) {
+		double stonits;
+
+		if (vips_image_get_double(in, "stonits", &stonits))
+			return -1;
+		jxl->info.intensity_target = stonits;
+	}
+
+	/* uses_original_profile forces libjxl to not use lossy XYB
+	 * colourspace. The name is very confusing.
+	 */
+	jxl->info.uses_original_profile = jxl->lossless;
+
+	if (JxlEncoderSetBasicInfo(jxl->encoder, &jxl->info)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderSetBasicInfo");
 		return -1;
 	}
 
-	jxl->page_number += 1;
-
-	/* We should close frames before processing the output
-	 * if we have written the last frame
+	/* Set any ICC profile.
 	 */
-	if (jxl->page_number == jxl->page_count)
-		JxlEncoderCloseFrames(jxl->encoder);
+	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		const void *data;
+		size_t length;
 
-	return vips_foreign_save_jxl_process_output(jxl);
-}
+		if (vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length))
+			return -1;
 
-/* Another chunk of pixels have arrived from the pipeline. Add to frame, and
- * if the frame completes, compress and write to the target.
- */
-static int
-vips_foreign_save_jxl_sink_disc(VipsRegion *region, VipsRect *area, void *a)
-{
-	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) a;
-	size_t sz = VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width;
-
-	int i;
-
-	/* Write the new pixels into the frame.
-	 */
-	for (i = 0; i < area->height; i++) {
-		memcpy(jxl->frame_bytes + sz * jxl->write_y,
-			VIPS_REGION_ADDR(region, 0, area->top + i),
-			sz);
-
-		jxl->write_y += 1;
-
-		/* If we've filled the frame, add it to the encoder.
+#ifdef DEBUG
+		printf("attaching %zd bytes of ICC\n", length);
+#endif /*DEBUG*/
+		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			return -1;
+		}
+	}
+	else {
+		/* If there's no ICC profile, we must set the colour encoding
+		 * ourselves.
 		 */
-		if (jxl->write_y == jxl->page_height) {
-			if (vips_foreign_save_jxl_add_frame(jxl))
-				return -1;
+		if (in->Type == VIPS_INTERPRETATION_scRGB) {
+#ifdef DEBUG
+			printf("setting scRGB colourspace\n");
+#endif /*DEBUG*/
 
-			jxl->write_y = 0;
+			JxlColorEncodingSetToLinearSRGB(&jxl->color_encoding,
+				jxl->format.num_channels < 3);
+		}
+		else {
+#ifdef DEBUG
+			printf("setting sRGB colourspace\n");
+#endif /*DEBUG*/
+
+			JxlColorEncodingSetToSRGB(&jxl->color_encoding,
+				jxl->format.num_channels < 3);
+		}
+
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			return -1;
 		}
 	}
 
-	return 0;
-}
-
-static int
-vips_foreign_save_jxl_add_metadata(VipsForeignSaveJxl *jxl, VipsImage *in)
-{
-#ifdef HAVE_LIBJXL_0_7
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
-	int i;
-
-	for (i = 0; i < VIPS_NUMBER(libjxl_metadata); i++)
+	for (int i = 0; i < VIPS_NUMBER(libjxl_metadata); i++)
 		if (vips_image_get_typeof(in, libjxl_metadata[i].name)) {
 			uint8_t *data;
 			size_t length;
@@ -451,7 +674,180 @@ vips_foreign_save_jxl_add_metadata(VipsForeignSaveJxl *jxl, VipsImage *in)
 	/* It's safe to call JxlEncoderCloseBoxes even if we don't use boxes
 	 */
 	JxlEncoderCloseBoxes(jxl->encoder);
-#endif /*HAVE_LIBJXL_0_7*/
+
+	return 0;
+}
+
+static int
+vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
+{
+	JxlEncoderFrameSettings *frame_settings;
+
+	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
+	JxlEncoderFrameSettingsSetOption(frame_settings,
+		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier);
+	JxlEncoderSetFrameDistance(frame_settings, jxl->distance);
+	JxlEncoderFrameSettingsSetOption(frame_settings,
+		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
+	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
+
+	if (jxl->info.have_animation) {
+		JxlFrameHeader header;
+		memset(&header, 0, sizeof(JxlFrameHeader));
+
+		if (jxl->delay && jxl->page_number < jxl->delay_length)
+			header.duration = jxl->delay[jxl->page_number];
+		else
+			header.duration = jxl->gif_delay * 10;
+
+		JxlEncoderSetFrameHeader(frame_settings, &header);
+	}
+
+	if (JxlEncoderAddImageFrame(frame_settings, &jxl->format,
+			jxl->scanline_buffer, jxl->scanline_size)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
+		return -1;
+	}
+
+	jxl->page_number += 1;
+
+	/* We should close frames before processing the output
+	 * if we have written the last frame.
+	 */
+	if (jxl->page_number == jxl->page_count)
+		JxlEncoderCloseFrames(jxl->encoder);
+
+	return vips_foreign_save_jxl_process_output(jxl);
+}
+
+/* Another chunk of pixels have arrived from the pipeline. Add to frame, and
+ * if the frame completes, compress and write to the target.
+ */
+static int
+vips_foreign_save_jxl_sink_disc(VipsRegion *region, VipsRect *area, void *a)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) a;
+	size_t sz = VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width;
+
+	int i;
+
+	/* Write the new pixels into the frame.
+	 */
+	for (i = 0; i < area->height; i++) {
+		memcpy(jxl->scanline_buffer + sz * jxl->scanline_y,
+			VIPS_REGION_ADDR(region, 0, area->top + i),
+			sz);
+
+		jxl->scanline_y += 1;
+
+		/* If we've filled the frame, add it to the encoder.
+		 */
+		if (jxl->scanline_y == jxl->page_height) {
+			if (vips_foreign_save_jxl_add_frame(jxl))
+				return -1;
+
+			jxl->scanline_y = 0;
+		}
+	}
+
+	return 0;
+}
+
+static int
+vips_foreign_save_jxl_save_sequential(VipsForeignSaveJxl *jxl, VipsImage *in)
+{
+	/* Write the header.
+	 */
+	if (vips_foreign_save_jxl_process_output(jxl))
+		return -1;
+
+	/* RGB(A) frame as a contiguous buffer.
+	 */
+	jxl->scanline_size = VIPS_IMAGE_SIZEOF_LINE(in) * jxl->page_height;
+	if (!(jxl->scanline_buffer = vips_tracked_malloc(jxl->scanline_size)))
+		return -1;
+
+	if (vips_sink_disc(in, vips_foreign_save_jxl_sink_disc, jxl))
+		return -1;
+
+	/* This function must be called after the final frame and/or box,
+	 * otherwise the codestream will not be encoded correctly.
+	 */
+	JxlEncoderCloseInput(jxl->encoder);
+
+	/* Flush any remaining libjxl writes.
+	 */
+	if (vips_foreign_save_jxl_process_output(jxl))
+		return -1;
+
+	return 0;
+}
+
+static int
+vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
+	int n, VipsImage *page)
+{
+	jxl->page = page;
+	jxl->tile_hash = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+			NULL, (GDestroyNotify) g_object_unref);
+
+	JxlEncoderFrameSettings *frame_settings;
+	frame_settings = JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
+	JxlEncoderFrameSettingsSetOption(frame_settings,
+		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier);
+	JxlEncoderSetFrameDistance(frame_settings, jxl->distance);
+	JxlEncoderFrameSettingsSetOption(frame_settings,
+		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
+	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
+
+	if (jxl->info.have_animation) {
+		JxlFrameHeader header = { 0 };
+
+		if (jxl->delay &&
+			n < jxl->delay_length)
+			header.duration = jxl->delay[n];
+		else
+			header.duration = jxl->gif_delay * 10;
+
+		JxlEncoderSetFrameHeader(frame_settings, &header);
+	}
+
+	if (JxlEncoderAddChunkedFrame(frame_settings,
+		n == jxl->page_count - 1, jxl->input_source)) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
+		return -1;
+	}
+
+#ifdef DEBUG
+	printf("end of frame encode, %d regions\n",
+		g_hash_table_size(jxl->tile_hash));
+#endif /*DEBUG*/
+
+	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+
+	return 0;
+}
+
+static int
+vips_foreign_save_jxl_save_chunked(VipsForeignSaveJxl *jxl, VipsImage *in)
+{
+	vips_foreign_save_jxl_set_output_processor(jxl);
+	vips_foreign_save_jxl_set_input_source(jxl);
+
+	for (int n = 0; n < jxl->page_count; n++) {
+		VipsImage *page;
+
+		if (vips_crop(in, &page,
+			0, n * jxl->page_height, in->Xsize, jxl->page_height, NULL))
+			return -1;
+
+		if (vips_foreign_save_jxl_save_chunked_page(jxl, n, page)) {
+			VIPS_UNREF(page);
+			return -1;
+		}
+
+		VIPS_UNREF(page);
+	}
 
 	return 0;
 }
@@ -461,7 +857,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *in;
 	VipsBandFormat format;
@@ -470,41 +866,26 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->build(object))
 		return -1;
 
-#ifdef HAVE_LIBJXL_0_7
 	jxl->page_height = vips_image_get_page_height(save->ready);
-#else
-	/* libjxl prior to 0.7 doesn't seem to have API for saving animations
-	 */
-	jxl->page_height = save->ready->Ysize;
-#endif /*HAVE_LIBJXL_0_7*/
-
 	jxl->page_count = save->ready->Ysize / jxl->page_height;
 
 	/* If Q is set and distance is not, use Q to set a rough distance
 	 * value.
 	 */
 	if (!vips_object_argument_isset(object, "distance"))
-#ifdef HAVE_LIBJXL_0_9
 		jxl->distance = JxlEncoderDistanceFromQuality((float) jxl->Q);
-#else
-		jxl->distance = jxl->Q >= 30
-			? 0.1 + (100 - jxl->Q) * 0.09
-			: 53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
-#endif
 
 	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
 	 */
 	if (jxl->distance == 0)
 		jxl->lossless = TRUE;
 
-	jxl->runner = JxlThreadParallelRunnerCreate(NULL,
-		vips_concurrency_get());
+	jxl->runner = JxlThreadParallelRunnerCreate(NULL, vips_concurrency_get());
 	jxl->encoder = JxlEncoderCreate(NULL);
 
 	if (JxlEncoderSetParallelRunner(jxl->encoder,
 			JxlThreadParallelRunner, jxl->runner)) {
-		vips_foreign_save_jxl_error(jxl,
-			"JxlDecoderSetParallelRunner");
+		vips_foreign_save_jxl_error(jxl, "JxlDecoderSetParallelRunner");
 		return -1;
 	}
 
@@ -536,152 +917,18 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		in = t[1];
 	}
 
-	JxlEncoderInitBasicInfo(&jxl->info);
-
-	switch (in->BandFmt) {
-	case VIPS_FORMAT_UCHAR:
-		jxl->info.bits_per_sample = 8;
-		jxl->info.exponent_bits_per_sample = 0;
-		jxl->format.data_type = JXL_TYPE_UINT8;
-		break;
-
-	case VIPS_FORMAT_USHORT:
-		jxl->info.bits_per_sample = 16;
-		jxl->info.exponent_bits_per_sample = 0;
-		jxl->format.data_type = JXL_TYPE_UINT16;
-		break;
-
-	case VIPS_FORMAT_FLOAT:
-		jxl->info.bits_per_sample = 32;
-		jxl->info.exponent_bits_per_sample = 8;
-		jxl->format.data_type = JXL_TYPE_FLOAT;
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-
-	switch (in->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		jxl->info.num_color_channels = VIPS_MIN(1, in->Bands);
-		break;
-
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_RGB16:
-		jxl->info.num_color_channels = VIPS_MIN(3, in->Bands);
-		break;
-
-	default:
-		jxl->info.num_color_channels = in->Bands;
-	}
-	jxl->info.num_extra_channels = VIPS_MAX(0,
-		in->Bands - jxl->info.num_color_channels);
-
-	jxl->info.xsize = in->Xsize;
-	jxl->info.ysize = jxl->page_height;
-	jxl->format.num_channels = in->Bands;
-	jxl->format.endianness = JXL_NATIVE_ENDIAN;
-	jxl->format.align = 0;
-
-#ifdef HAVE_LIBJXL_0_7
-	if (jxl->page_count > 1) {
-		int num_loops = 0;
-
-		if (vips_image_get_typeof(in, "loop"))
-			vips_image_get_int(in, "loop", &num_loops);
-
-		jxl->info.have_animation = TRUE;
-		jxl->info.animation.tps_numerator = 1000;
-		jxl->info.animation.tps_denominator = 1;
-		jxl->info.animation.num_loops = num_loops;
-		jxl->info.animation.have_timecodes = FALSE;
-	}
-#endif /*HAVE_LIBJXL_0_7*/
-
-	if (vips_image_hasalpha(in)) {
-		jxl->info.alpha_bits = jxl->info.bits_per_sample;
-		jxl->info.alpha_exponent_bits =
-			jxl->info.exponent_bits_per_sample;
-	}
-	else {
-		jxl->info.alpha_exponent_bits = 0;
-		jxl->info.alpha_bits = 0;
-	}
-
-	if (vips_image_get_typeof(in, "stonits")) {
-		double stonits;
-
-		if (vips_image_get_double(in, "stonits", &stonits))
-			return -1;
-		jxl->info.intensity_target = stonits;
-	}
-
-	/* uses_original_profile forces libjxl to not use lossy XYB
-	 * colourspace. The name is very confusing.
+	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
 	 */
-	jxl->info.uses_original_profile = jxl->lossless;
-
-	if (JxlEncoderSetBasicInfo(jxl->encoder, &jxl->info)) {
-		vips_foreign_save_jxl_error(jxl, "JxlEncoderSetBasicInfo");
+	if (vips_tilecache(in, &t[2],
+		"tile-width", in->Xsize,
+		"tile-height", 512,
+		"max_tiles", 3500 / 512,
+		"threaded", TRUE,
+		NULL))
 		return -1;
-	}
+	in = t[2];
 
-	/* Set any ICC profile.
-	 */
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-		const void *data;
-		size_t length;
-
-		if (vips_image_get_blob(in,
-				VIPS_META_ICC_NAME, &data, &length))
-			return -1;
-
-#ifdef DEBUG
-		printf("attaching %zd bytes of ICC\n", length);
-#endif /*DEBUG*/
-		if (JxlEncoderSetICCProfile(jxl->encoder,
-				(guint8 *) data, length)) {
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderSetColorEncoding");
-			return -1;
-		}
-	}
-	else {
-		/* If there's no ICC profile, we must set the colour encoding
-		 * ourselves.
-		 */
-		if (in->Type == VIPS_INTERPRETATION_scRGB) {
-#ifdef DEBUG
-			printf("setting scRGB colourspace\n");
-#endif /*DEBUG*/
-
-			JxlColorEncodingSetToLinearSRGB(&jxl->color_encoding,
-				jxl->format.num_channels < 3);
-		}
-		else {
-#ifdef DEBUG
-			printf("setting sRGB colourspace\n");
-#endif /*DEBUG*/
-
-			JxlColorEncodingSetToSRGB(&jxl->color_encoding,
-				jxl->format.num_channels < 3);
-		}
-
-		if (JxlEncoderSetColorEncoding(jxl->encoder,
-				&jxl->color_encoding)) {
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderSetColorEncoding");
-			return -1;
-		}
-	}
-
-	if (vips_foreign_save_jxl_add_metadata(jxl, in))
-		return -1;
-
-	if (vips_foreign_save_jxl_process_output(jxl))
+	if (vips_foreign_save_jxl_set_header(jxl, in))
 		return -1;
 
 	if (jxl->info.have_animation) {
@@ -690,16 +937,15 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		 * There might just be the old gif-delay field. This is centiseconds.
 		 */
 		jxl->gif_delay = 10;
-		if (vips_image_get_typeof(save->ready, "gif-delay") &&
-			vips_image_get_int(save->ready, "gif-delay",
-				&jxl->gif_delay))
+		if (vips_image_get_typeof(in, "gif-delay") &&
+			vips_image_get_int(in, "gif-delay", &jxl->gif_delay))
 			return -1;
 
 		/* New images have an array of ints instead.
 		 */
 		jxl->delay = NULL;
-		if (vips_image_get_typeof(save->ready, "delay") &&
-			vips_image_get_array_int(save->ready, "delay",
+		if (vips_image_get_typeof(in, "delay") &&
+			vips_image_get_array_int(in, "delay",
 				&jxl->delay, &jxl->delay_length))
 			return -1;
 
@@ -725,26 +971,23 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	printf("    lossless = %d\n", jxl->lossless);
 #endif /*DEBUG*/
 
-	/* RGB(A) frame as a contiguous buffer.
-	 */
-	jxl->frame_size = VIPS_IMAGE_SIZEOF_LINE(in) * jxl->page_height;
-	jxl->frame_bytes = g_try_malloc(jxl->frame_size);
-	if (jxl->frame_bytes == NULL) {
-		vips_error("jxlsave",
-			_("failed to allocate %zu bytes"), jxl->frame_size);
-		return -1;
+	if (jxl->chunked) {
+		/* _save_chunked() is not a vips_sink_*() iterator, so we must emit
+		 * the various signals by hand.
+		 */
+		vips_image_preeval(save->ready);
+
+		if (vips_foreign_save_jxl_save_chunked(jxl, in))
+			return -1;
+
+		vips_image_posteval(save->ready);
+
+		vips_image_minimise_all(save->ready);
 	}
-
-	if (vips_sink_disc(in, vips_foreign_save_jxl_sink_disc, jxl))
-		return -1;
-
-	/* This function must be called after the final frame and/or box,
-	 * otherwise the codestream will not be encoded correctly.
-	 */
-	JxlEncoderCloseInput(jxl->encoder);
-
-	if (vips_foreign_save_jxl_process_output(jxl))
-		return -1;
+	else  {
+		if (vips_foreign_save_jxl_save_sequential(jxl, in))
+			return -1;
+	}
 
 	if (vips_target_end(jxl->target))
 		return -1;
@@ -826,15 +1069,20 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, Q),
 		0, 100, 75);
+
+	VIPS_ARG_BOOL(class, "chunked", 15,
+		_("Chunked"),
+		_("Used chunked write API"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveJxl, chunked),
+		FALSE);
 }
 
 static void
 vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 {
-	jxl->tier = 0;
 	jxl->distance = 1.0;
 	jxl->effort = 7;
-	jxl->lossless = FALSE;
 	jxl->Q = 75;
 }
 
