@@ -62,6 +62,12 @@ extern "C" {
 #include <jpeglib.h>
 #include <jerror.h>
 
+/* Our custom error message codes.
+ */
+#define JERR_VIPS_IMAGE_EOF (1000)
+#define JWRN_VIPS_IMAGE_EOF JERR_VIPS_IMAGE_EOF
+#define JERR_VIPS_TARGET_WRITE (1001)
+
 /* Define a new error handler for when we bomb out.
  */
 typedef struct {
@@ -74,6 +80,8 @@ typedef struct {
 	jmp_buf jmp; /* longjmp() here to get back to VIPS */
 	FILE *fp;	 /* fclose() if non-NULL */
 } ErrorManager;
+
+extern const char *vips__jpeg_message_table[];
 
 void vips__new_output_message(j_common_ptr cinfo);
 void vips__new_error_exit(j_common_ptr cinfo);

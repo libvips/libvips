@@ -1973,7 +1973,7 @@ rtiff_decompress_jpeg_fill_input_buffer(j_decompress_ptr cinfo)
 	 * buffer, so any request for more data beyond the given buffer size
 	 * is treated as an error.
 	 */
-	WARNMS(cinfo, JWRN_JPEG_EOF);
+	WARNMS(cinfo, JWRN_VIPS_IMAGE_EOF);
 
 	/* Insert a fake EOI marker
 	 */
@@ -2163,6 +2163,9 @@ rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
 
 	if (setjmp(eman.jmp) == 0) {
 		cinfo.err = jpeg_std_error(&eman.pub);
+		cinfo.err->addon_message_table = vips__jpeg_message_table;
+		cinfo.err->first_addon_message = 1000;
+		cinfo.err->last_addon_message = 1001;
 		eman.pub.error_exit = vips__new_error_exit;
 		eman.pub.emit_message = rtiff_decompress_jpeg_emit_message;
 		eman.pub.output_message = vips__new_output_message;

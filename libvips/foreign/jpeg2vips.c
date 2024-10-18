@@ -245,10 +245,10 @@ source_fill_input_buffer(j_decompress_ptr cinfo)
 			/* Knock the output out of cache.
 			 */
 			vips_foreign_load_invalidate(src->jpeg->out);
-			ERREXIT(cinfo, JERR_INPUT_EOF);
+			ERREXIT(cinfo, JERR_VIPS_IMAGE_EOF);
 		}
 		else
-			WARNMS(cinfo, JWRN_JPEG_EOF);
+			WARNMS(cinfo, JWRN_VIPS_IMAGE_EOF);
 
 		/* Insert a fake EOI marker.
 		 */
@@ -272,10 +272,10 @@ source_fill_input_buffer_mappable(j_decompress_ptr cinfo)
 		/* Knock the output out of cache.
 		 */
 		vips_foreign_load_invalidate(src->jpeg->out);
-		ERREXIT(cinfo, JERR_INPUT_EOF);
+		ERREXIT(cinfo, JERR_VIPS_IMAGE_EOF);
 	}
 	else
-		WARNMS(cinfo, JWRN_JPEG_EOF);
+		WARNMS(cinfo, JWRN_VIPS_IMAGE_EOF);
 
 	/* Insert a fake EOI marker.
 	 */
@@ -463,6 +463,9 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 	jpeg->shrink = shrink;
 	jpeg->fail_on = fail_on;
 	jpeg->cinfo.err = jpeg_std_error(&jpeg->eman.pub);
+	jpeg->cinfo.err->addon_message_table = vips__jpeg_message_table;
+	jpeg->cinfo.err->first_addon_message = 1000;
+	jpeg->cinfo.err->last_addon_message = 1001;
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.emit_message = readjpeg_emit_message;
 	jpeg->eman.pub.output_message = vips__new_output_message;
