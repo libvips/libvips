@@ -159,6 +159,12 @@
 #define MAX_BYTES_IN_MARKER 65533  /* maximum data len of a JPEG marker */
 #define MAX_DATA_BYTES_IN_MARKER (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
+const char *vips__jpeg_message_table[] = {
+	"premature end of JPEG image",
+	"unable to write to target",
+	NULL
+};
+
 /* New output message method - send to VIPS.
  */
 void
@@ -229,6 +235,9 @@ write_new(void)
 
 	write->row_pointer = NULL;
 	write->cinfo.err = jpeg_std_error(&write->eman.pub);
+	write->cinfo.err->addon_message_table = vips__jpeg_message_table;
+	write->cinfo.err->first_addon_message = 1000;
+	write->cinfo.err->last_addon_message = 1001;
 	write->cinfo.dest = NULL;
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
@@ -811,7 +820,7 @@ empty_output_buffer(j_compress_ptr cinfo)
 
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
+		ERREXIT(cinfo, JERR_VIPS_TARGET_WRITE);
 
 	dest->pub.next_output_byte = dest->buf;
 	dest->pub.free_in_buffer = TARGET_BUFFER_SIZE;
@@ -839,7 +848,7 @@ term_destination(j_compress_ptr cinfo)
 
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
+		ERREXIT(cinfo, JERR_VIPS_TARGET_WRITE);
 }
 
 /* Set dest to one of our objects.

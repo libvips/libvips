@@ -732,6 +732,9 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 
 	// we could have one of these per thread and reuse it for a small speedup
 	cinfo.err = jpeg_std_error(&eman.pub);
+	cinfo.err->addon_message_table = vips__jpeg_message_table;
+	cinfo.err->first_addon_message = 1000;
+	cinfo.err->last_addon_message = 1001;
 	cinfo.dest = NULL;
 	eman.pub.error_exit = vips__new_error_exit;
 	eman.pub.output_message = vips__new_output_message;
@@ -740,7 +743,7 @@ wtiff_compress_jpeg(Wtiff *wtiff,
 	// we need a line buffer to pad edge tiles
 	line = VIPS_MALLOC(NULL, wtiff->tilew * sizeof_pel);
 
-	/* Error handling. The error message will have ben set by our handlers.
+	/* Error handling. The error message will have been set by our handlers.
 	 */
 	if (setjmp(eman.jmp)) {
 		jpeg_destroy_compress(&cinfo);
@@ -805,6 +808,9 @@ wtiff_compress_jpeg_tables(Wtiff *wtiff,
 	struct jpeg_error_mgr jerr;
 
 	cinfo.err = jpeg_std_error(&jerr);
+	cinfo.err->addon_message_table = vips__jpeg_message_table;
+	cinfo.err->first_addon_message = 1000;
+	cinfo.err->last_addon_message = 1001;
 	jpeg_create_compress(&cinfo);
 
 	/* Attach output.
