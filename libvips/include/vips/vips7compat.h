@@ -42,9 +42,7 @@
 #ifdef HAVE_ORC
 #include <orc/orc.h>
 #else
-typedef struct _OrcProgram {
-	/* Opaque */
-} OrcProgram;
+typedef struct _OrcProgram OrcProgram;
 
 typedef struct _OrcExecutor {
 	char data[808];
