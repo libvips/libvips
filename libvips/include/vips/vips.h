@@ -135,7 +135,14 @@ extern "C" {
 #include <vips/colour.h>
 #include <vips/draw.h>
 #include <vips/create.h>
-#if VIPS_ENABLE_DEPRECATED
+
+/* VIPS_DISABLE_COMPAT:
+ *
+ * Disable automatically inclusion of `vips7compat.h`.
+ *
+ * This has no effect when building with `-Ddeprecated=false`.
+ */
+#if VIPS_ENABLE_DEPRECATED && !defined(VIPS_DISABLE_COMPAT)
 #include <vips/vips7compat.h>
 #endif
 
