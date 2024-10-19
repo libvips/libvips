@@ -36,18 +36,9 @@
 
 #include <vips/mask.h>
 
-/* The old deprecated VipsVector/VipsExecutor API required orc.
- * Avoid a possible ABI/API break with the adoption of highway.
- */
 #ifdef HAVE_ORC
 #include <orc/orc.h>
-#else
-typedef struct _OrcProgram OrcProgram;
-
-typedef struct _OrcExecutor {
-	char data[808];
-} OrcExecutor;
-#endif
+#endif /* HAVE_ORC */
 
 #ifdef __cplusplus
 extern "C" {
@@ -1692,13 +1683,17 @@ typedef struct {
 
 	int d1;
 
+#ifdef HAVE_ORC
 	OrcProgram *program;
+#endif /*HAVE_ORC*/
 
 	gboolean compiled;
 } VipsVector;
 
 typedef struct {
+#ifdef HAVE_ORC
 	OrcExecutor executor;
+#endif /*HAVE_ORC*/
 
 	VipsVector *vector;
 } VipsExecutor;
