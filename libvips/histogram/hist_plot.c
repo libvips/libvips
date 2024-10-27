@@ -87,7 +87,7 @@ G_DEFINE_TYPE(VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION);
 \
 		for (x = le; x < ri; x++) { \
 			for (z = 0; z < nb; z++) \
-				q[z] = p1[z] < ((TYPE) x) ? 0 : 255; \
+				q[z] = p1[z] < x ? 0 : 255; \
 \
 			q += nb; \
 		} \
@@ -153,7 +153,7 @@ vips_hist_plot_vert_gen(VipsRegion *out_region,
 \
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < nb; z++) \
-				q[z] = p1[z] < ((TYPE) (ht - y)) ? 0 : 255; \
+				q[z] = p1[z] < ht - y ? 0 : 255; \
 \
 			q += lsk; \
 		} \
