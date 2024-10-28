@@ -1059,6 +1059,9 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 		// stop compiler warnings
 		VipsRect hit = { 0 };
 
+		// keep compilers happy
+		hit = (VipsRect) { 0 };
+
 		x = 0;
 		while (x < r->width) {
 			/* libvips tile position to opj base resolution coordinates.
