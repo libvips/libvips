@@ -2,7 +2,7 @@
 title: What's new in libvips 8.16
 ---
 
-libvips 8.16 is now also done, so here's a summary of what's new. Check the
+Here's a summary of what's new in libvips 8.16. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
