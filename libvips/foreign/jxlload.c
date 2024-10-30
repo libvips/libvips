@@ -435,6 +435,56 @@ vips_foreign_load_jxl_print_format(JxlPixelFormat *format)
 	printf("    endianness = %d\n", format->endianness);
 	printf("    align = %zd\n", format->align);
 }
+
+static const char *
+vips_foreign_load_jxl_blend_mode(JxlBlendMode blendmode)
+{
+	switch (blendmode) {
+	case JXL_BLEND_REPLACE:
+		return "JXL_BLEND_REPLACE";
+
+	case JXL_BLEND_ADD:
+		return "JXL_BLEND_ADD";
+
+	case JXL_BLEND_BLEND:
+		return "JXL_BLEND_BLEND";
+
+	case JXL_BLEND_MULADD:
+		return "JXL_BLEND_MULADD";
+
+	case JXL_BLEND_MUL:
+		return "JXL_BLEND_MUL";
+
+	default:
+		return "<unknown JxlBlendMode";
+	}
+}
+
+static void
+vips_foreign_load_jxl_print_frame_header(JxlFrameHeader *h)
+{
+	printf("JxlFrameHeader:\n");
+	printf("    duration = %u\n", h->duration);
+	printf("    timecode = %u\n", h->timecode);
+	printf("    name_length = %u\n", h->name_length);
+	printf("    is_last = %s\n", h->is_last ? "TRUE" : "FALSE");
+	printf("    layer_info.have_crop = %s\n",
+		h->layer_info.have_crop ? "TRUE" : "FALSE");
+	printf("    layer_info.crop_x0 = %d\n", h->layer_info.crop_x0);
+	printf("    layer_info.crop_y0 = %d\n", h->layer_info.crop_y0);
+	printf("    layer_info.xsize = %u\n", h->layer_info.xsize);
+	printf("    layer_info.ysize = %u\n", h->layer_info.ysize);
+	printf("    layer_info.blend_info.blendmode = %s\n",
+		vips_foreign_load_jxl_blend_mode(h->layer_info.blend_info.blendmode));
+	printf("    layer_info.blend_info.source = %u\n",
+		h->layer_info.blend_info.source);
+	printf("    layer_info.blend_info.alpha = %u\n",
+		h->layer_info.blend_info.alpha);
+	printf("    layer_info.blend_info.clamp = %s\n",
+		h->layer_info.blend_info.clamp ? "TRUE" : "FALSE");
+	printf("    layer_info.save_as_reference = %u\n",
+		h->layer_info.save_as_reference);
+}
 #endif /*DEBUG*/
 
 static JxlDecoderStatus
@@ -451,9 +501,9 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 		size_t bytes_remaining;
 		int bytes_read;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		printf("vips_foreign_load_jxl_process: reading ...\n");
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 		bytes_remaining = JxlDecoderReleaseInput(jxl->decoder);
 		bytes_read = vips_foreign_load_jxl_fill_input(jxl, bytes_remaining);
@@ -491,10 +541,10 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 
 	int skip = frame_no - jxl->frame_no - 1;
 	if (skip > 0) {
-#ifdef DEBUG_VERBOSE
+#ifdef DEBUG
 		printf("vips_foreign_load_jxl_read_frame: skipping %d frames\n",
 			skip);
-#endif /*DEBUG_VERBOSE*/
+#endif /*DEBUG*/
 		JxlDecoderSkipFrames(jxl->decoder, skip);
 		jxl->frame_no += skip;
 	}
@@ -835,8 +885,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 	do {
 		switch ((status = vips_foreign_load_jxl_process(jxl))) {
 		case JXL_DEC_ERROR:
-			vips_foreign_load_jxl_error(jxl,
-				"JxlDecoderProcessInput");
+			vips_foreign_load_jxl_error(jxl, "JxlDecoderProcessInput");
 			return -1;
 
 		case JXL_DEC_BOX:
@@ -919,21 +968,16 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 #ifndef HAVE_LIBJXL_0_9
 					&jxl->format,
 #endif
-					JXL_COLOR_PROFILE_TARGET_DATA,
-					&jxl->icc_size)) {
-				vips_foreign_load_jxl_error(jxl,
-					"JxlDecoderGetICCProfileSize");
+					JXL_COLOR_PROFILE_TARGET_DATA, &jxl->icc_size)) {
+				vips_foreign_load_jxl_error(jxl, "JxlDecoderGetICCProfileSize");
 				return -1;
 			}
 
 #ifdef DEBUG
-			printf(
-				"vips_foreign_load_jxl_header: "
-				"%zd byte profile\n",
+			printf("vips_foreign_load_jxl_header: %zd byte profile\n",
 				jxl->icc_size);
 #endif /*DEBUG*/
-			if (!(jxl->icc_data = vips_malloc(NULL,
-					  jxl->icc_size)))
+			if (!(jxl->icc_data = vips_malloc(NULL, jxl->icc_size)))
 				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
@@ -950,10 +994,13 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 
 		case JXL_DEC_FRAME:
 			if (JxlDecoderGetFrameHeader(jxl->decoder, &h) != JXL_DEC_SUCCESS) {
-				vips_foreign_load_jxl_error(jxl,
-					"JxlDecoderGetFrameHeader");
+				vips_foreign_load_jxl_error(jxl, "JxlDecoderGetFrameHeader");
 				return -1;
 			}
+
+#ifdef DEBUG
+			vips_foreign_load_jxl_print_frame_header(&h);
+#endif /*DEBUG*/
 
 			if (jxl->info.have_animation) {
 				if (jxl->delay_count <= jxl->frame_count) {
@@ -973,11 +1020,6 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 			}
 
 			jxl->frame_count++;
-
-			/* This is the last frame, we can stop right here
-			 */
-			if (h.is_last || !jxl->info.have_animation)
-				status = JXL_DEC_SUCCESS;
 
 			break;
 
@@ -1028,8 +1070,7 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 
 	JxlDecoderRewind(jxl->decoder);
 	if (JxlDecoderSubscribeEvents(jxl->decoder,
-			JXL_DEC_FRAME |
-				JXL_DEC_FULL_IMAGE)) {
+				JXL_DEC_FRAME | JXL_DEC_FULL_IMAGE)) {
 		vips_foreign_load_jxl_error(jxl,
 			"JxlDecoderSubscribeEvents");
 		return -1;
