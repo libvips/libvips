@@ -284,6 +284,9 @@ static VipsForeignFlags
 vips_foreign_load_jp2k_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
+	if (g_getenv("VIPS_JP2K_ONESHOT")) {
+		jp2k->oneshot = TRUE;
+	};
 
 	if (jp2k->oneshot)
 		return VIPS_FOREIGN_SEQUENTIAL;
