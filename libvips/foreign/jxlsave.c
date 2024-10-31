@@ -710,7 +710,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 				&jxl->delay, &jxl->delay_length))
 			return -1;
 
-		/* If there's delay metadata, this is an aniamted image (as opposed to
+		/* If there's delay metadata, this is an animated image (as opposed to
 		 * a multipage one).
 		 */
 		if (vips_image_get_typeof(save->ready, "delay") ||
