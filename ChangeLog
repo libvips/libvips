@@ -1,5 +1,7 @@
 8.17.0
 
+- add `keep_duplicate_frames` option to GIF save [dloebl]
+
 8.16.1
 
 - support multipage JXL
