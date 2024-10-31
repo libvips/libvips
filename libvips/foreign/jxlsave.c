@@ -87,6 +87,11 @@ typedef struct _VipsForeignSaveJxl {
 	gboolean lossless;
 	int Q;
 
+	/* JXL multipage and animated images are the same, but multipage has
+	 * all the frame delays set to -1 (duration 0xffffffff).
+	 */
+	gboolean is_animated;
+
 	/* Animated jxl options.
 	 */
 	int gif_delay;
@@ -319,7 +324,9 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 		JxlFrameHeader header;
 		memset(&header, 0, sizeof(JxlFrameHeader));
 
-		if (jxl->delay && jxl->page_number < jxl->delay_length)
+		if (!jxl->is_animated)
+			header.duration = 0xffffffff;
+		else if (jxl->delay && jxl->page_number < jxl->delay_length)
 			header.duration = jxl->delay[jxl->page_number];
 		else
 			header.duration = jxl->gif_delay * 10;
@@ -593,6 +600,8 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		if (vips_image_get_typeof(in, "loop"))
 			vips_image_get_int(in, "loop", &num_loops);
 
+		// libjxl uses "have_animation" for multipage images too, but sets
+		// duration to 0xffffffff
 		jxl->info.have_animation = TRUE;
 		jxl->info.animation.tps_numerator = 1000;
 		jxl->info.animation.tps_denominator = 1;
@@ -670,10 +679,8 @@ vips_foreign_save_jxl_build(VipsObject *object)
 				jxl->format.num_channels < 3);
 		}
 
-		if (JxlEncoderSetColorEncoding(jxl->encoder,
-				&jxl->color_encoding)) {
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderSetColorEncoding");
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
 			return -1;
 		}
 	}
@@ -702,6 +709,13 @@ vips_foreign_save_jxl_build(VipsObject *object)
 			vips_image_get_array_int(save->ready, "delay",
 				&jxl->delay, &jxl->delay_length))
 			return -1;
+
+		/* If there's delay metadata, this is an animated image (as opposed to
+		 * a multipage one).
+		 */
+		if (vips_image_get_typeof(save->ready, "delay") ||
+			vips_image_get_typeof(save->ready, "gif-delay"))
+			jxl->is_animated = TRUE;
 
 		/* Force frames with a small or no duration to 100ms
 		 * to be consistent with web browsers and other
