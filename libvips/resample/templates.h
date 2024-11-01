@@ -408,7 +408,7 @@ double inline filter<VIPS_KERNEL_MKS2013>(double x)
 	if (x < 0.0)
 		x = -x;
 
-	if (x >= 5.0)
+	if (x >= 2.5)
 		return 0.0;
 
 	if (x >= 1.5)
