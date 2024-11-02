@@ -32,8 +32,9 @@ are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [Python](https://pypi.python.org/pypi/pyvips),
 [PHP](https://github.com/libvips/php-vips),
 [.NET](https://www.nuget.org/packages/NetVips),
-[Go](https://github.com/davidbyttow/govips), and
-[Lua](https://github.com/libvips/lua-vips). libvips
+[Go](https://github.com/davidbyttow/govips),
+[Lua](https://github.com/libvips/lua-vips), and
+[Java](https://github.com/lopcode/vips-ffm). libvips
 is used as an image processing engine by [sharp (on
 node.js)](https://www.npmjs.org/package/sharp),
 [bimg](https://github.com/h2non/bimg),
