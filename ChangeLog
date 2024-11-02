@@ -2,6 +2,7 @@
 
 - support multipage JXL
 - morph: fix erode Highway path [kleisauke]
+- morph: fix C-paths with masks containing zero [kleisauke]
 
 10/10/24 8.16.0
 
