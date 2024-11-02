@@ -83,7 +83,8 @@ class TestResample:
         for fac in [1, 1.1, 1.5, 1.999]:
             for fmt in all_formats:
                 for kernel in ["nearest", "linear",
-                               "cubic", "lanczos2", "lanczos3"]:
+                               "cubic", "lanczos2",
+                               "lanczos3", "mks2013", "mks2021"]:
                     x = im.cast(fmt)
                     r = x.reduce(fac, fac, kernel=kernel)
                     d = abs(r.avg() - im.avg())
@@ -93,7 +94,8 @@ class TestResample:
         for const in [0, 1, 2, 254, 255]:
             im = (pyvips.Image.black(10, 10) + const).cast("uchar")
             for kernel in ["nearest", "linear",
-                           "cubic", "lanczos2", "lanczos3"]:
+                           "cubic", "lanczos2",
+                           "lanczos3", "mks2013", "mks2021"]:
                 # print "testing kernel =", kernel
                 # print "testing const =", const
                 shr = im.reduce(2, 2, kernel=kernel)
