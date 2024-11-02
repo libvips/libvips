@@ -412,12 +412,12 @@ double inline filter<VIPS_KERNEL_MKS2013>(double x)
 		return 0.0;
 
 	if (x >= 1.5)
-		return -0.125 * (x - 2.5) * (x - 2.5);
+		return (x - 5.0 / 2.0) * (x - 5.0 / 2.0) / -8.0;
 
 	if (x >= 0.5)
-		return 0.25 * (4.0 * x * x - 11.0 * x + 7.0);
+		return (4.0 * x * x - 11.0 * x + 7.0) / 4.0;
 
-	return 1.0625 - 1.75 * x * x;
+	return 17.0 / 16.0 - 7.0 * x * x / 4.0;
 }
 
 template <>
