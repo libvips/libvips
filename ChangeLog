@@ -1,6 +1,7 @@
 8.16.1
 
 - support multipage JXL
+- morph: fix erode Highway path [kleisauke]
 
 10/10/24 8.16.0
 
