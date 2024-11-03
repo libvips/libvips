@@ -1,10 +1,12 @@
 8.17.0
 
 - add `keep_duplicate_frames` option to GIF save [dloebl]
+- add Magic Kernel support [akimon658]
 
 8.16.1
 
 - support multipage JXL
+- fix PFM byte order on little-endian machines [agoode]
 
 10/10/24 8.16.0
 

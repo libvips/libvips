@@ -125,6 +125,12 @@ vips_reduce_get_points(VipsKernel kernel, double shrink)
 	case VIPS_KERNEL_LANCZOS3:
 		return 2 * rint(3 * shrink) + 1;
 
+	case VIPS_KERNEL_MKS2013:
+		return 2 * rint(3 * shrink) + 1;
+
+	case VIPS_KERNEL_MKS2021:
+		return 2 * rint(5 * shrink) + 1;
+
 	default:
 		g_assert_not_reached();
 		return 0;
