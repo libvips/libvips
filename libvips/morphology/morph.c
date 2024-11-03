@@ -712,7 +712,7 @@ vips_dilate_gen(VipsRegion *out_region,
 			 */
 			result = 0;
 			for (i = 0; i < seq->nn128; i++)
-				result |= !coeff[i] ? p[off[i]] ^ 255 : p[off[i]];
+				result |= !coeff[i] ? ~p[off[i]] : p[off[i]];
 
 			*q = result;
 		}
