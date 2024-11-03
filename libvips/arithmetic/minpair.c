@@ -63,6 +63,16 @@ G_DEFINE_TYPE(VipsMinpair, vips_minpair, VIPS_TYPE_BINARY);
 			q[x] = VIPS_MIN(left[x], right[x]); \
 	}
 
+#define FLOOP(TYPE) \
+	{ \
+		TYPE *restrict left = (TYPE *) in[0]; \
+		TYPE *restrict right = (TYPE *) in[1]; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (int x = 0; x < sz; x++) \
+			q[x] = VIPS_FMIN(left[x], right[x]); \
+	}
+
 static void
 minpair_buffer(VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width)
@@ -102,12 +112,12 @@ minpair_buffer(VipsArithmetic *arithmetic,
 
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_COMPLEX:
-		LOOP(float);
+		FLOOP(float);
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
 	case VIPS_FORMAT_DPCOMPLEX:
-		LOOP(double);
+		FLOOP(double);
 		break;
 
 	default:
