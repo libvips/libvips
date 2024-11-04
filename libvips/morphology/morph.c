@@ -149,10 +149,9 @@ typedef struct {
 	VipsMorph *morph;
 	VipsRegion *ir; /* Input region */
 
-	int *soff; /* Offsets we check for set */
-	int ss;	   /* ... and number we check for set */
-	guint8 *coff; /* Offsets we check for clear */
-	int cs;	   /* ... and number we check for clear */
+	int *off;	   /* Offsets for each non-128 matrix element */
+	int nn128;	   /* Number of non-128 mask elements */
+	guint8 *coeff; /* Array of non-128 mask coefficients */
 
 	int last_bpl; /* Avoid recalcing offsets, if we can */
 
@@ -212,10 +211,9 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	 */
 	seq->morph = morph;
 	seq->ir = NULL;
-	seq->soff = NULL;
-	seq->ss = 0;
-	seq->coff = NULL;
-	seq->cs = 0;
+	seq->off = NULL;
+	seq->nn128 = 0;
+	seq->coeff = NULL;
 	seq->last_bpl = -1;
 #ifdef HAVE_ORC
 	seq->t1 = NULL;
@@ -224,11 +222,11 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 
 	seq->ir = vips_region_new(in);
 
-	seq->soff = VIPS_ARRAY(out, morph->n_point, int);
-	seq->coff = VIPS_ARRAY(out, morph->n_point, guint8);
+	seq->off = VIPS_ARRAY(out, morph->n_point, int);
+	seq->coeff = VIPS_ARRAY(out, morph->n_point, guint8);
 
-	if (!seq->soff ||
-		!seq->coff) {
+	if (!seq->off ||
+		!seq->coeff) {
 		vips_morph_stop(seq, in, morph);
 		return NULL;
 	}
@@ -263,13 +261,8 @@ vips_dilate_vector_gen(VipsRegion *out_region,
 	VipsImage *M = morph->M;
 	VipsRegion *ir = seq->ir;
 
-	/* Offsets for each non-128 matrix element.
-	 */
-	int *soff = seq->soff;
-
-	/* Array of non-128 mask coefficients.
-	 */
-	guint8 *coff = seq->coff;
+	int *off = seq->off;
+	guint8 *coeff = seq->coeff;
 
 	VipsRect *r = &out_region->valid;
 	int sz = VIPS_REGION_N_ELEMENTS(out_region);
@@ -298,9 +291,7 @@ vips_dilate_vector_gen(VipsRegion *out_region,
 	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
 		seq->last_bpl = VIPS_REGION_LSKIP(ir);
 
-		/* Number of non-128 mask elements.
-		 */
-		seq->ss = 0;
+		seq->nn128 = 0;
 		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
 			for (x = 0; x < M->Xsize; x++, t++) {
 				/* Exclude don't-care elements.
@@ -308,19 +299,18 @@ vips_dilate_vector_gen(VipsRegion *out_region,
 				if (*t == 128)
 					continue;
 
-				soff[seq->ss] =
-					VIPS_REGION_ADDR(ir,
-						x + r->left, y + r->top) -
+				off[seq->nn128] =
+					VIPS_REGION_ADDR(ir, x + r->left, y + r->top) -
 					VIPS_REGION_ADDR(ir, r->left, r->top);
-				coff[seq->ss] = *t;
-				seq->ss++;
+				coeff[seq->nn128] = *t;
+				seq->nn128++;
 			}
 	}
 
 	VIPS_GATE_START("vips_dilate_vector_gen: work");
 
 	vips_dilate_uchar_hwy(out_region, ir, r,
-		sz, seq->ss, soff, coff);
+		sz, seq->nn128, off, coeff);
 
 	VIPS_GATE_STOP("vips_dilate_vector_gen: work");
 
@@ -338,13 +328,8 @@ vips_erode_vector_gen(VipsRegion *out_region,
 	VipsImage *M = morph->M;
 	VipsRegion *ir = seq->ir;
 
-	/* Offsets for each non-128 matrix element.
-	 */
-	int *soff = seq->soff;
-
-	/* Array of non-128 mask coefficients.
-	 */
-	guint8 *coff = seq->coff;
+	int *off = seq->off;
+	guint8 *coeff = seq->coeff;
 
 	VipsRect *r = &out_region->valid;
 	int sz = VIPS_REGION_N_ELEMENTS(out_region);
@@ -373,9 +358,7 @@ vips_erode_vector_gen(VipsRegion *out_region,
 	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
 		seq->last_bpl = VIPS_REGION_LSKIP(ir);
 
-		/* Number of non-128 mask elements.
-		 */
-		seq->ss = 0;
+		seq->nn128 = 0;
 		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
 			for (x = 0; x < M->Xsize; x++, t++) {
 				/* Exclude don't-care elements.
@@ -383,19 +366,18 @@ vips_erode_vector_gen(VipsRegion *out_region,
 				if (*t == 128)
 					continue;
 
-				soff[seq->ss] =
-					VIPS_REGION_ADDR(ir,
-						x + r->left, y + r->top) -
+				off[seq->nn128] =
+					VIPS_REGION_ADDR(ir, x + r->left, y + r->top) -
 					VIPS_REGION_ADDR(ir, r->left, r->top);
-				coff[seq->ss] = *t;
-				seq->ss++;
+				coeff[seq->nn128] = *t;
+				seq->nn128++;
 			}
 	}
 
 	VIPS_GATE_START("vips_erode_vector_gen: work");
 
 	vips_erode_uchar_hwy(out_region, ir, r,
-		sz, seq->ss, soff, coff);
+		sz, seq->nn128, off, coeff);
 
 	VIPS_GATE_STOP("vips_erode_vector_gen: work");
 
@@ -667,8 +649,8 @@ vips_dilate_gen(VipsRegion *out_region,
 	VipsImage *M = morph->M;
 	VipsRegion *ir = seq->ir;
 
-	int *soff = seq->soff;
-	guint8 *coff = seq->coff;
+	int *off = seq->off;
+	guint8 *coeff = seq->coeff;
 
 	VipsRect *r = &out_region->valid;
 	int le = r->left;
@@ -701,37 +683,24 @@ vips_dilate_gen(VipsRegion *out_region,
 	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
 		seq->last_bpl = VIPS_REGION_LSKIP(ir);
 
-		seq->ss = 0;
-		seq->cs = 0;
+		seq->nn128 = 0;
 		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
-			for (x = 0; x < M->Xsize; x++, t++)
-				switch (*t) {
-				case 255:
-					soff[seq->ss++] =
-						VIPS_REGION_ADDR(ir,
-							x + le, y + to) -
-						VIPS_REGION_ADDR(ir, le, to);
-					break;
+			for (x = 0; x < M->Xsize; x++, t++) {
+				/* Exclude don't-care elements.
+				 */
+				if (*t == 128)
+					continue;
 
-				case 128:
-					break;
-
-				case 0:
-					coff[seq->cs++] =
-						VIPS_REGION_ADDR(ir,
-							x + le, y + to) -
-						VIPS_REGION_ADDR(ir, le, to);
-					break;
-
-				default:
-					g_assert_not_reached();
-				}
+				off[seq->nn128] =
+					VIPS_REGION_ADDR(ir, x + le, y + to) -
+					VIPS_REGION_ADDR(ir, le, to);
+				coeff[seq->nn128] = *t;
+				seq->nn128++;
+			}
 	}
 
 	VIPS_GATE_START("vips_dilate_gen: work");
 
-	/* Dilate!
-	 */
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
 		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
@@ -739,28 +708,11 @@ vips_dilate_gen(VipsRegion *out_region,
 		/* Loop along line.
 		 */
 		for (x = 0; x < sz; x++, q++, p++) {
-			/* Search for a hit on the set list.
+			/* Dilate!
 			 */
 			result = 0;
-			for (i = 0; i < seq->ss; i++)
-				if (p[soff[i]]) {
-					/* Found a match!
-					 */
-					result = 255;
-					break;
-				}
-
-			/* No set pixels ... search for a hit in the clear
-			 * pixels.
-			 */
-			if (!result)
-				for (i = 0; i < seq->cs; i++)
-					if (!p[coff[i]]) {
-						/* Found a match!
-						 */
-						result = 255;
-						break;
-					}
+			for (i = 0; i < seq->nn128; i++)
+				result |= !coeff[i] ? ~p[off[i]] : p[off[i]];
 
 			*q = result;
 		}
@@ -784,8 +736,8 @@ vips_erode_gen(VipsRegion *out_region,
 	VipsImage *M = morph->M;
 	VipsRegion *ir = seq->ir;
 
-	int *soff = seq->soff;
-	guint8 *coff = seq->coff;
+	int *off = seq->off;
+	guint8 *coeff = seq->coeff;
 
 	VipsRect *r = &out_region->valid;
 	int le = r->left;
@@ -818,37 +770,24 @@ vips_erode_gen(VipsRegion *out_region,
 	if (seq->last_bpl != VIPS_REGION_LSKIP(ir)) {
 		seq->last_bpl = VIPS_REGION_LSKIP(ir);
 
-		seq->ss = 0;
-		seq->cs = 0;
+		seq->nn128 = 0;
 		for (t = morph->coeff, y = 0; y < M->Ysize; y++)
-			for (x = 0; x < M->Xsize; x++, t++)
-				switch (*t) {
-				case 255:
-					soff[seq->ss++] =
-						VIPS_REGION_ADDR(ir,
-							x + le, y + to) -
-						VIPS_REGION_ADDR(ir, le, to);
-					break;
+			for (x = 0; x < M->Xsize; x++, t++) {
+				/* Exclude don't-care elements.
+				 */
+				if (*t == 128)
+					continue;
 
-				case 128:
-					break;
-
-				case 0:
-					coff[seq->cs++] =
-						VIPS_REGION_ADDR(ir,
-							x + le, y + to) -
-						VIPS_REGION_ADDR(ir, le, to);
-					break;
-
-				default:
-					g_assert_not_reached();
-				}
+				off[seq->nn128] =
+					VIPS_REGION_ADDR(ir, x + le, y + to) -
+					VIPS_REGION_ADDR(ir, le, to);
+				coeff[seq->nn128] = *t;
+				seq->nn128++;
+			}
 	}
 
 	VIPS_GATE_START("vips_erode_gen: work");
 
-	/* Erode!
-	 */
 	for (y = to; y < bo; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, le, y);
 		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
@@ -856,25 +795,11 @@ vips_erode_gen(VipsRegion *out_region,
 		/* Loop along line.
 		 */
 		for (x = 0; x < sz; x++, q++, p++) {
-			/* Check all set pixels are set.
+			/* Erode!
 			 */
 			result = 255;
-			for (i = 0; i < seq->ss; i++)
-				if (!p[soff[i]]) {
-					/* Found a mismatch!
-					 */
-					result = 0;
-					break;
-				}
-
-			/* Check all clear pixels are clear.
-			 */
-			if (result)
-				for (i = 0; i < seq->cs; i++)
-					if (p[coff[i]]) {
-						result = 0;
-						break;
-					}
+			for (i = 0; i < seq->nn128; i++)
+				result &= !coeff[i] ? ~p[off[i]] : p[off[i]];
 
 			*q = result;
 		}
@@ -950,7 +875,7 @@ vips_morph_build(VipsObject *object)
 				coeff[i]);
 			return -1;
 		}
-		morph->coeff[i] = coeff[i];
+		morph->coeff[i] = (guint8) coeff[i];
 	}
 
 	/* Try to make a vector path.

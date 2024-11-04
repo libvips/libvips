@@ -89,7 +89,7 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto pix = LoadU(du8, p + offsets[i]);
 
-				pix = IfThenElse(Ne(mmk, one), Xor(pix, one), pix);
+				pix = IfThenElse(Ne(mmk, one), AndNot(pix, one), pix);
 				sum = Or(sum, pix);
 			}
 
@@ -109,7 +109,7 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				auto pix = LoadU(du8, p + offsets[i]);
 
 				if (!coeff[i])
-					pix = Xor(pix, one);
+					pix = AndNot(pix, one);
 				sum = Or(sum, pix);
 			}
 
@@ -146,9 +146,8 @@ vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto pix = LoadU(du8, p + offsets[i]);
 
-				sum = IfThenElse(Ne(mmk, one),
-					AndNot(pix, one),
-					And(sum, pix));
+				pix = IfThenElse(Ne(mmk, one), AndNot(pix, one), pix);
+				sum = And(sum, pix);
 			}
 
 			StoreU(sum, du8, q + x);
@@ -166,7 +165,9 @@ vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto pix = LoadU(du8, p + offsets[i]);
 
-				sum = !coeff[i] ? AndNot(pix, one) : And(sum, pix);
+				if (!coeff[i])
+					pix = AndNot(pix, one);
+				sum = And(sum, pix);
 			}
 
 			q[x] = GetLane(sum);
