@@ -361,8 +361,7 @@ static double inline filter(double x);
 template <>
 double inline filter<VIPS_KERNEL_LINEAR>(double x)
 {
-	if (x < 0.0)
-		x = -x;
+	x = VIPS_FABS(x);
 
 	if (x < 1.0)
 		return 1.0 - x;
