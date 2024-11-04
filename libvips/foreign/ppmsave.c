@@ -411,9 +411,6 @@ vips_foreign_save_ppm_build(VipsObject *object)
 				!vips_image_get_double(image, "pfm-scale", &scale))
 				;
 
-			if (vips_amiMSBfirst())
-				scale *= -1;
-
 			/* Need to be locale independent.
 			 */
 			g_ascii_dtostr(buf, G_ASCII_DTOSTR_BUF_SIZE, scale);
