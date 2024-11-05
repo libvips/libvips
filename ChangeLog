@@ -1,5 +1,6 @@
 8.17.0
 
+- add `keep_duplicate_frames` option to GIF save [dloebl]
 - add Magic Kernel support [akimon658]
 
 8.16.1

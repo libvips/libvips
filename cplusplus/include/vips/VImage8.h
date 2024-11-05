@@ -3276,6 +3276,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3297,6 +3298,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3318,6 +3320,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.

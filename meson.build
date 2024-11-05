@@ -310,6 +310,9 @@ if quantisation_package.found()
         if cc.compiles('#include <cgif.h>\nint i = CGIF_FRAME_ATTR_INTERLACED;', name: 'Has CGIF_FRAME_ATTR_INTERLACED', dependencies: cgif_dep)
             cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', '1')
         endif
+        if cc.compiles('#include <cgif.h>\nint i = CGIF_GEN_KEEP_IDENT_FRAMES;', name: 'Has CGIF_GEN_KEEP_IDENT_FRAMES', dependencies: cgif_dep)
+            cfg_var.set('HAVE_CGIF_GEN_KEEP_IDENT_FRAMES', '1')
+        endif
     endif
 endif
 
