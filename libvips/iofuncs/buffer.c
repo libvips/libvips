@@ -70,7 +70,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 
 #ifdef DEBUG
 /* Track all buffers here for debugging.
@@ -206,12 +205,12 @@ vips_buffer_free(VipsBuffer *buffer)
 	g_free(buffer);
 
 #ifdef DEBUG
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	g_assert(g_slist_find(vips__buffer_all, buffer));
 	vips__buffer_all = g_slist_remove(vips__buffer_all, buffer);
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 #endif /*DEBUG*/
 
 #ifdef DEBUG_VERBOSE
@@ -234,10 +233,10 @@ buffer_cache_free(VipsBufferCache *cache)
 	GSList *p;
 
 #ifdef DEBUG_CREATE
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips__buffer_cache_all =
 		g_slist_remove(vips__buffer_cache_all, cache);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	printf("buffer_cache_free: freeing cache %p on thread %p\n",
 		cache, g_thread_self());
@@ -283,10 +282,10 @@ buffer_cache_new(VipsBufferThread *buffer_thread, VipsImage *im)
 	cache->n_reserve = 0;
 
 #ifdef DEBUG_CREATE
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips__buffer_cache_all =
 		g_slist_prepend(vips__buffer_cache_all, cache);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	printf("buffer_cache_new: new cache %p for thread %p on image %p\n",
 		cache, g_thread_self(), im);
@@ -537,10 +536,10 @@ vips_buffer_new(VipsImage *im, VipsRect *area)
 		buffer->bsize = 0;
 
 #ifdef DEBUG
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		vips__buffer_all =
 			g_slist_prepend(vips__buffer_all, buffer);
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 #endif /*DEBUG*/
 	}
 

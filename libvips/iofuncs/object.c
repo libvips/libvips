@@ -213,7 +213,7 @@ enum {
 /* Table of all objects, handy for debugging.
  */
 static GHashTable *vips__object_all = NULL;
-static GMutex *vips__object_all_lock = NULL;
+static GMutex vips__object_all_lock;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
@@ -559,9 +559,9 @@ vips__argument_table_lookup(VipsArgumentTable *table, GParamSpec *pspec)
 {
 	VipsArgument *argument;
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	argument = (VipsArgument *) g_hash_table_lookup(table, pspec);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	return argument;
 }
@@ -1047,9 +1047,9 @@ vips_object_finalize(GObject *gobject)
 	 * from finalize, sadly.
 	 */
 
-	g_mutex_lock(vips__object_all_lock);
+	g_mutex_lock(&vips__object_all_lock);
 	g_hash_table_remove(vips__object_all, object);
-	g_mutex_unlock(vips__object_all_lock);
+	g_mutex_unlock(&vips__object_all_lock);
 
 	G_OBJECT_CLASS(vips_object_parent_class)->finalize(gobject);
 }
@@ -1564,11 +1564,8 @@ vips_object_class_init(VipsObjectClass *class)
 	 */
 	vips_check_init();
 
-	if (!vips__object_all) {
-		vips__object_all = g_hash_table_new(
-			g_direct_hash, g_direct_equal);
-		vips__object_all_lock = vips_g_mutex_new();
-	}
+	if (!vips__object_all)
+		vips__object_all = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	gobject_class->dispose = vips_object_dispose;
 	gobject_class->finalize = vips_object_finalize;
@@ -1682,9 +1679,9 @@ vips_object_init(VipsObject *object)
 	printf("\n");
 #endif /*DEBUG*/
 
-	g_mutex_lock(vips__object_all_lock);
+	g_mutex_lock(&vips__object_all_lock);
 	g_hash_table_insert(vips__object_all, object, object);
-	g_mutex_unlock(vips__object_all_lock);
+	g_mutex_unlock(&vips__object_all_lock);
 }
 
 static void *
@@ -1728,7 +1725,7 @@ vips_object_class_install_argument(VipsObjectClass *object_class,
 
 	/* object_class->argument* is shared, so we must lock.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	/* Must be a new one.
 	 */
@@ -1827,7 +1824,7 @@ vips_object_class_install_argument(VipsObjectClass *object_class,
 	}
 #endif /*DEBUG*/
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 static void
@@ -2745,10 +2742,10 @@ vips_object_map(VipsSListMap2Fn fn, void *a, void *b)
 	 * only created when the first object is created.
 	 */
 	if (vips__object_all) {
-		g_mutex_lock(vips__object_all_lock);
+		g_mutex_lock(&vips__object_all_lock);
 		g_hash_table_foreach(vips__object_all,
 			(GHFunc) vips_object_map_sub, &args);
-		g_mutex_unlock(vips__object_all_lock);
+		g_mutex_unlock(&vips__object_all_lock);
 	}
 
 	return args.result;
