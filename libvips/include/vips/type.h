@@ -74,7 +74,7 @@ typedef struct _VipsArea {
 	 * structure, so a simple GMutex is OK.
 	 */
 	int count;
-	GMutex *lock;
+	GMutex lock;
 
 	/* Things like ICC profiles need their own free functions.
 	 *

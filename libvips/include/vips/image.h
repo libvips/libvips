@@ -252,7 +252,7 @@ struct _VipsImage {
 	VipsStopFn stop_fn;
 	void *client1; /* user arguments */
 	void *client2;
-	GMutex *sslock;		   /* start-stop lock */
+	GMutex sslock;		   /* start-stop lock */
 	GSList *regions;	   /* list of regions current for this image */
 	VipsDemandStyle dhint; /* demand style hint */
 
