@@ -93,10 +93,10 @@ vips_window_unmap(VipsWindow *window)
 			return -1;
 
 #ifdef DEBUG_TOTAL
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		total_mmap_usage -= window->length;
 		g_assert(total_mmap_usage >= 0);
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 #endif /*DEBUG_TOTAL*/
 
 		window->data = NULL;
@@ -166,7 +166,7 @@ vips_window_unref(VipsWindow *window)
 static void
 trace_mmap_usage(void)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	{
 		static int last_total = 0;
 		int total = total_mmap_usage / (1024 * 1024);
@@ -179,7 +179,7 @@ trace_mmap_usage(void)
 			last_total = total;
 		}
 	}
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 #endif /*DEBUG_TOTAL*/
 
@@ -252,11 +252,11 @@ vips_window_set(VipsWindow *window, int top, int height)
 	vips__read_test &= window->data[0];
 
 #ifdef DEBUG_TOTAL
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	total_mmap_usage += window->length;
 	if (total_mmap_usage > max_mmap_usage)
 		max_mmap_usage = total_mmap_usage;
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 	trace_mmap_usage();
 #endif /*DEBUG_TOTAL*/
 

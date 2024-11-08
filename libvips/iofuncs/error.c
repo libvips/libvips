@@ -144,10 +144,10 @@ static int vips_error_freeze_count = 0;
 void
 vips_error_freeze(void)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	g_assert(vips_error_freeze_count >= 0);
 	vips_error_freeze_count += 1;
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 /**
@@ -158,10 +158,10 @@ vips_error_freeze(void)
 void
 vips_error_thaw(void)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips_error_freeze_count -= 1;
 	g_assert(vips_error_freeze_count >= 0);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 /**
@@ -179,9 +179,9 @@ vips_error_buffer(void)
 {
 	const char *msg;
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	msg = vips_buf_all(&vips_error_buf);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	return msg;
 }
@@ -198,10 +198,10 @@ vips_error_buffer_copy(void)
 {
 	char *msg;
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	msg = g_strdup(vips_buf_all(&vips_error_buf));
 	vips_buf_rewind(&vips_error_buf);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	return msg;
 }
@@ -242,7 +242,7 @@ vips_verror(const char *domain, const char *fmt, va_list ap)
 	}
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	g_assert(vips_error_freeze_count >= 0);
 	if (!vips_error_freeze_count) {
 		if (domain)
@@ -250,7 +250,7 @@ vips_verror(const char *domain, const char *fmt, va_list ap)
 		vips_buf_vappendf(&vips_error_buf, fmt, ap);
 		vips_buf_appends(&vips_error_buf, "\n");
 	}
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	if (vips__fatal)
 		vips_error_exit("vips__fatal");
@@ -340,9 +340,9 @@ vips_error_g(GError **error)
 
 	/* glib does not expect a trailing '\n' and vips always has one.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips_buf_removec(&vips_error_buf, '\n');
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	g_set_error(error, vips_domain, -1, "%s", vips_error_buffer());
 	vips_error_clear();
@@ -379,9 +379,9 @@ vips_g_error(GError **error)
 void
 vips_error_clear(void)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips_buf_rewind(&vips_error_buf);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 /**

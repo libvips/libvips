@@ -107,7 +107,7 @@ int vips__fatal = 0;
 /* Use in various small places where we need a mutex and it's not worth
  * making a private one.
  */
-GMutex *vips__global_lock = NULL;
+GMutex vips__global_lock;
 
 /* A debugging timer, zero at library init.
  */
@@ -510,10 +510,6 @@ vips_init(const char *argv0)
 	vips__thread_init();
 	vips__threadpool_init();
 	vips__buffer_init();
-	vips__meta_init();
-
-	if (!vips__global_lock)
-		vips__global_lock = vips_g_mutex_new();
 
 	if (!vips__global_timer)
 		vips__global_timer = g_timer_new();
@@ -749,10 +745,6 @@ vips_shutdown(void)
 	vips__thread_profile_stop();
 	vips__threadpool_shutdown();
 
-	/* Don't free vips__global_lock -- we want to be able to use
-	 * vips_error_buffer() after vips_shutdown(), since vips_leak() can
-	 * call it.
-	 */
 	VIPS_FREE(vips__argv0);
 	VIPS_FREE(vips__prgname);
 	VIPS_FREEF(g_timer_destroy, vips__global_timer);

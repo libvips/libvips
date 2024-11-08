@@ -388,7 +388,7 @@ char *vips__disc_threshold = NULL;
 
 /* Minimise needs a lock.
  */
-static GMutex *vips__minimise_lock = NULL;
+static GMutex vips__minimise_lock;
 
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
@@ -698,7 +698,7 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 
 	/* Must lock around inter-image links.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	if (vips_slist_map2(image->upstream,
 			(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL))
@@ -707,7 +707,7 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 			(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL))
 		vips_buf_appends(buf, "downstream broken\n");
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	VIPS_OBJECT_CLASS(vips_image_parent_class)->sanity(object, buf);
 }
@@ -1326,8 +1326,6 @@ vips_image_class_init(VipsImageClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
-
-	vips__minimise_lock = vips_g_mutex_new();
 }
 
 static void
@@ -1446,12 +1444,12 @@ vips_image_minimise_all(VipsImage *image)
 	/* Minimisation will modify things like sources, so we can't run it
 	 * from many threads.
 	 */
-	g_mutex_lock(vips__minimise_lock);
+	g_mutex_lock(&vips__minimise_lock);
 
 	(void) vips__link_map(image, TRUE,
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL);
 
-	g_mutex_unlock(vips__minimise_lock);
+	g_mutex_unlock(&vips__minimise_lock);
 }
 
 /**

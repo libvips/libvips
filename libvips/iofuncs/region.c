@@ -213,9 +213,9 @@ vips_region_finalize(GObject *gobject)
 #endif /*VIPS_DEBUG*/
 
 #ifdef VIPS_DEBUG
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips__regions_all = g_slist_remove(vips__regions_all, gobject);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 #endif /*VIPS_DEBUG*/
 
 	G_OBJECT_CLASS(vips_region_parent_class)->finalize(gobject);
@@ -483,11 +483,11 @@ vips_region_init(VipsRegion *region)
 	region->type = VIPS_REGION_NONE;
 
 #ifdef VIPS_DEBUG
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	vips__regions_all = g_slist_prepend(vips__regions_all, region);
 	printf("vips_region_init: %d regions in vips\n",
 		g_slist_length(vips__regions_all));
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 #endif /*VIPS_DEBUG*/
 }
 
@@ -2055,13 +2055,13 @@ vips_region_dump_all(void)
 {
 	size_t alive;
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	alive = 0;
 	printf("%d regions in vips\n", g_slist_length(vips__regions_all));
 	vips_slist_map2(vips__regions_all,
 		(VipsSListMap2Fn) vips_region_dump_all_cb, &alive, NULL);
 	printf("%gMB alive\n", alive / (1024 * 1024.0));
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 #endif /*VIPS_DEBUG*/
 
@@ -2073,12 +2073,12 @@ vips__region_count_pixels(VipsRegion *region, const char *nickname)
 	VipsImagePixels *pixels = g_object_get_qdata(G_OBJECT(image),
 		vips__image_pixels_quark);
 
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	if (!pixels->tpels)
 		pixels->tpels = VIPS_IMAGE_N_PELS(image);
 	if (!pixels->nickname)
 		pixels->nickname = nickname;
 	pixels->npels += region->valid.width * region->valid.height;
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 #endif /*DEBUG_LEAK*/

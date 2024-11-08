@@ -186,9 +186,9 @@ vips_area_unref(VipsArea *area)
 #endif /*DEBUG*/
 
 	if (vips__leak) {
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		g_assert(g_slist_find(vips_area_all, area));
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 	}
 
 	if (area->count == 0) {
@@ -201,16 +201,16 @@ vips_area_unref(VipsArea *area)
 		g_free(area);
 
 		if (vips__leak) {
-			g_mutex_lock(vips__global_lock);
+			g_mutex_lock(&vips__global_lock);
 			vips_area_all = g_slist_remove(vips_area_all, area);
-			g_mutex_unlock(vips__global_lock);
+			g_mutex_unlock(&vips__global_lock);
 		}
 
 #ifdef DEBUG
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		printf("vips_area_unref: free .. total = %d\n",
 			g_slist_length(vips_area_all));
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 #endif /*DEBUG*/
 	}
 	else
@@ -264,17 +264,17 @@ vips_area_new(VipsCallbackFn free_fn, void *data)
 	area->sizeof_type = 0;
 
 	if (vips__leak) {
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		vips_area_all = g_slist_prepend(vips_area_all, area);
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 	}
 
 #ifdef DEBUG
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	printf("vips_area_new: %p count = %d (%d in total)\n",
 		area, area->count,
 		g_slist_length(vips_area_all));
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 #endif /*DEBUG*/
 
 	return area;
