@@ -138,10 +138,9 @@ vips_fits_error(int status)
 static void
 vips_fits_close(VipsFits *fits)
 {
-	GMutex *lock = &fits->lock;
-
 	VIPS_FREE(fits->filename);
-	VIPS_FREEF(g_mutex_clear, lock);
+	if (fits->line)
+		g_mutex_clear(&fits->lock);
 	VIPS_FREEF(vips_slist_free_all, fits->dedupe);
 
 	if (fits->fptr) {
