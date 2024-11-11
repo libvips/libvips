@@ -459,7 +459,7 @@ vips_extract_band_init(VipsExtractBand *extract)
  * vips_extract_band: (method)
  * @in: input image
  * @out: (out): output image
- * @band: band to extract
+ * @band: index of first band to extract
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -467,6 +467,8 @@ vips_extract_band_init(VipsExtractBand *extract)
  * * @n: number of bands to extract
  *
  * Extract a band or bands from an image. Extracting out of range is an error.
+ *
+ * @n defaults to 1.
  *
  * See also: vips_extract_area().
  *
