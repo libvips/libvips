@@ -4,6 +4,7 @@
 - fix PFM byte order on big-endian machines [agoode]
 - morph: fix erode Highway path [kleisauke]
 - morph: fix C-paths with masks containing zero [kleisauke]
+- fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
 
 10/10/24 8.16.0
 
