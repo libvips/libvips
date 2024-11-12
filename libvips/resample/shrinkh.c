@@ -72,10 +72,6 @@ typedef VipsResampleClass VipsShrinkhClass;
 
 G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 
-#define INNER(BANDS) \
-	sum += p[x1]; \
-	x1 += BANDS;
-
 /* Integer shrink.
  */
 #define ISHRINK(ACC_TYPE, TYPE, BANDS) \
@@ -88,8 +84,8 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 				ACC_TYPE sum; \
 \
 				sum = 0; \
-				x1 = b; \
-				VIPS_UNROLL(shrink->hshrink, INNER(BANDS)); \
+				for (x1 = b; x1 < ne; x1 += BANDS) \
+					sum += p[x1]; \
 				q[b] = (sum + shrink->hshrink / 2) / \
 					shrink->hshrink; \
 			} \
@@ -110,8 +106,8 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 				double sum; \
 \
 				sum = 0.0; \
-				x1 = b; \
-				VIPS_UNROLL(shrink->hshrink, INNER(bands)); \
+				for (x1 = b; x1 < ne; x1 += bands) \
+					sum += p[x1]; \
 				q[b] = sum / shrink->hshrink; \
 			} \
 			p += ne; \
