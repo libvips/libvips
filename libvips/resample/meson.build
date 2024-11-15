@@ -8,6 +8,7 @@ resample_sources = files(
     'resize.c',
     'shrink.c',
     'shrinkh.c',
+    'shrinkh_hwy.cpp',
     'shrinkv.c',
     'shrinkv_hwy.cpp',
     'reduce.c',
