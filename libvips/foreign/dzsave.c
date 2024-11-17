@@ -1955,7 +1955,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * or the deprecated "no_strip" turns this off.
 	 */
 	if (!vips_object_argument_isset(object, "keep") &&
-		!vips_object_argument_isset(object, "no_strip"))
+		!dz->no_strip)
 		save->keep = VIPS_FOREIGN_KEEP_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
