@@ -1107,12 +1107,14 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadHeif, autorotate),
 		FALSE);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	VIPS_ARG_BOOL(class, "unlimited", 22,
 		_("Unlimited"),
 		_("Remove all denial of service limits"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadHeif, unlimited),
 		FALSE);
+#endif
 }
 
 static gint64
