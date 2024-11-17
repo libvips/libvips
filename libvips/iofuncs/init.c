@@ -363,8 +363,7 @@ set_stacksize(guint64 size)
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
-/**
- * Equivalent to setting the `G_MESSAGES_DEBUG=VIPS` environment variable.
+/* Equivalent to setting the `G_MESSAGES_DEBUG=VIPS` environment variable.
  */
 static void
 vips_verbose(void)
