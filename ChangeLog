@@ -5,6 +5,7 @@
 - morph: fix erode Highway path [kleisauke]
 - morph: fix C-paths with masks containing zero [kleisauke]
 - fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
+- make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
 
 10/10/24 8.16.0
 

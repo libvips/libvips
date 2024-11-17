@@ -819,11 +819,14 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 		return -1;
 	}
 
+	/* The "lossless" param implies no chroma subsampling.
+	 */
+	if (jp2k->lossless)
+		jp2k->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+
 	switch (jp2k->subsample_mode) {
 	case VIPS_FOREIGN_SUBSAMPLE_AUTO:
-		jp2k->subsample =
-			!jp2k->lossless &&
-			jp2k->Q < 90 &&
+		jp2k->subsample = jp2k->Q < 90 &&
 			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
 				save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
 			save->ready->Bands == 3;
