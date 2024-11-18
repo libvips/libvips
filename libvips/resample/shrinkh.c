@@ -81,13 +81,10 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 \
 		for (x = 0; x < width; x++) { \
 			for (b = 0; b < BANDS; b++) { \
-				ACC_TYPE sum; \
-\
-				sum = 0; \
+				ACC_TYPE sum = amend; \
 				for (x1 = b; x1 < ne; x1 += BANDS) \
 					sum += p[x1]; \
-				q[b] = (sum + shrink->hshrink / 2) / \
-					shrink->hshrink; \
+				q[b] = sum / shrink->hshrink; \
 			} \
 			p += ne; \
 			q += BANDS; \
@@ -103,9 +100,7 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 \
 		for (x = 0; x < width; x++) { \
 			for (b = 0; b < bands; b++) { \
-				double sum; \
-\
-				sum = 0.0; \
+				double sum = 0.0; \
 				for (x1 = b; x1 < ne; x1 += bands) \
 					sum += p[x1]; \
 				q[b] = sum / shrink->hshrink; \
@@ -127,6 +122,8 @@ vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion *out_region, VipsRegion *ir,
 	const int ne = shrink->hshrink * bands;
 	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
 	VipsPel *in = VIPS_REGION_ADDR(ir, left * shrink->hshrink, top);
+
+	int amend = shrink->hshrink / 2;
 
 	int x;
 	int x1, b;
