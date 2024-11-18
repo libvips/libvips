@@ -90,7 +90,6 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -103,8 +102,7 @@
 typedef struct _VipsShrinkv {
 	VipsResample parent_instance;
 
-	int vshrink; /* Shrink factor */
-	size_t sizeof_line_buffer;
+	int vshrink;   /* Shrink factor */
 	gboolean ceil; /* Round operation */
 
 } VipsShrinkv;
@@ -113,175 +111,115 @@ typedef VipsResampleClass VipsShrinkvClass;
 
 G_DEFINE_TYPE(VipsShrinkv, vips_shrinkv, VIPS_TYPE_RESAMPLE);
 
-/* Our per-sequence parameter struct. Somewhere to sum band elements.
+/* Integer shrink.
  */
-typedef struct {
-	VipsRegion *ir;
-
-	VipsPel *sum;
-} VipsShrinkvSequence;
-
-/* Free a sequence value.
- */
-static int
-vips_shrinkv_stop(void *vseq, void *a, void *b)
-{
-	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
-
-	VIPS_FREEF(g_object_unref, seq->ir);
-	VIPS_FREE(seq->sum);
-	VIPS_FREE(seq);
-
-	return 0;
-}
-
-/* Make a sequence value.
- */
-static void *
-vips_shrinkv_start(VipsImage *out, void *a, void *b)
-{
-	VipsImage *in = (VipsImage *) a;
-	VipsShrinkv *shrink = (VipsShrinkv *) b;
-	VipsShrinkvSequence *seq;
-
-	if (!(seq = VIPS_NEW(NULL, VipsShrinkvSequence)))
-		return NULL;
-
-	seq->ir = vips_region_new(in);
-
-	/* Big enough for the largest intermediate .. a whole scanline.
-	 */
-	seq->sum = VIPS_ARRAY(NULL, shrink->sizeof_line_buffer, VipsPel);
-
-	return (void *) seq;
-}
-
-#define ADD(ACC_TYPE, TYPE) \
+#define ISHRINK(ACC_TYPE, TYPE, BANDS) \
 	{ \
-		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum; \
 		TYPE *restrict p = (TYPE *) in; \
+		TYPE *restrict q = (TYPE *) out; \
 \
-		for (x = 0; x < sz; x++) \
-			sum[x] += p[x]; \
+		for (x = 0; x < width; x++) { \
+			for (b = 0; b < BANDS; b++) { \
+				ACC_TYPE sum = amend; \
+				TYPE *restrict ptr = p + b; \
+				TYPE *restrict end = ptr + (shrink->vshrink * sz); \
+				for (; ptr < end; ptr += sz) \
+					sum += *ptr; \
+				q[b] = sum / shrink->vshrink; \
+			} \
+			p += BANDS; \
+			q += BANDS; \
+		} \
 	}
 
-/* Add a line of pixels to sum.
+/* Float shrink.
+ */
+#define FSHRINK(TYPE) \
+	{ \
+		TYPE *restrict p = (TYPE *) in; \
+		TYPE *restrict q = (TYPE *) out; \
+\
+		for (x = 0; x < width; x++) { \
+			for (b = 0; b < bands; b++) { \
+				double sum = 0.0; \
+				TYPE *restrict ptr = p + b; \
+				TYPE *restrict end = ptr + (shrink->vshrink * sz); \
+				for (; ptr < end; ptr += sz) \
+					sum += *ptr; \
+				q[b] = sum / shrink->vshrink; \
+			} \
+			p += bands; \
+			q += bands; \
+		} \
+	}
+
+/* Generate an area of @out_region. @ir is large enough.
  */
 static void
-vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
-	VipsRegion *ir, int left, int top, int width)
+vips_shrinkv_gen2(VipsShrinkv *shrink, VipsRegion *out_region, VipsRegion *ir,
+	int left, int top, int width)
 {
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
 		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
-	const int sz = bands * width;
-
-	int x;
-
-	VipsPel *in = VIPS_REGION_ADDR(ir, left, top);
-	switch (resample->in->BandFmt) {
-	case VIPS_FORMAT_UCHAR:
-		ADD(int, unsigned char);
-		break;
-	case VIPS_FORMAT_CHAR:
-		ADD(int, char);
-		break;
-	case VIPS_FORMAT_USHORT:
-		ADD(int, unsigned short);
-		break;
-	case VIPS_FORMAT_SHORT:
-		ADD(int, short);
-		break;
-	case VIPS_FORMAT_UINT:
-		ADD(double, unsigned int);
-		break;
-	case VIPS_FORMAT_INT:
-		ADD(double, int);
-		break;
-	case VIPS_FORMAT_FLOAT:
-		ADD(double, float);
-		break;
-	case VIPS_FORMAT_DOUBLE:
-		ADD(double, double);
-		break;
-	case VIPS_FORMAT_COMPLEX:
-		ADD(double, float);
-		break;
-	case VIPS_FORMAT_DPCOMPLEX:
-		ADD(double, double);
-		break;
-
-	default:
-		g_assert_not_reached();
-	}
-}
-
-/* Integer average.
- */
-#define IAVG(ACC_TYPE, TYPE) \
-	{ \
-		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) \
-			q[x] = (sum[x] + shrink->vshrink / 2) / shrink->vshrink; \
-	}
-
-/* Float average.
- */
-#define FAVG(TYPE) \
-	{ \
-		double *restrict sum = (double *) seq->sum; \
-		TYPE *restrict q = (TYPE *) out; \
-\
-		for (x = 0; x < sz; x++) \
-			q[x] = sum[x] / shrink->vshrink; \
-	}
-
-/* Average the line of sums to out.
- */
-static void
-vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
-	VipsRegion *out_region, int left, int top, int width)
-{
-	VipsResample *resample = VIPS_RESAMPLE(shrink);
-	const int bands = resample->in->Bands *
-		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
-	const int sz = bands * width;
-
-	int x;
-
+	const int sz = width * bands;
 	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
+	VipsPel *in = VIPS_REGION_ADDR(ir, left, top * shrink->vshrink);
+
+	int amend = shrink->vshrink / 2;
+
+	int x, b;
+
 	switch (resample->in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
-		IAVG(int, unsigned char);
+		/* Generate a special path for 1, 3 and 4 band uchar data. The
+		 * compiler will be able to vectorise these.
+		 *
+		 * Vectorisation doesn't help much for 16, 32-bit or float
+		 * data, don't bother with them.
+		 */
+		switch (bands) {
+		case 1:
+			ISHRINK(int, unsigned char, 1);
+			break;
+		case 3:
+			ISHRINK(int, unsigned char, 3);
+			break;
+		case 4:
+			ISHRINK(int, unsigned char, 4);
+			break;
+		default:
+			ISHRINK(int, unsigned char, bands);
+			break;
+		}
 		break;
+
 	case VIPS_FORMAT_CHAR:
-		IAVG(int, char);
+		ISHRINK(int, char, bands);
 		break;
 	case VIPS_FORMAT_USHORT:
-		IAVG(int, unsigned short);
+		ISHRINK(int, unsigned short, bands);
 		break;
 	case VIPS_FORMAT_SHORT:
-		IAVG(int, short);
+		ISHRINK(int, short, bands);
 		break;
 	case VIPS_FORMAT_UINT:
-		IAVG(double, unsigned int);
+		ISHRINK(double, unsigned int, bands);
 		break;
 	case VIPS_FORMAT_INT:
-		IAVG(double, int);
+		ISHRINK(double, int, bands);
 		break;
 	case VIPS_FORMAT_FLOAT:
-		FAVG(float);
+		FSHRINK(float);
 		break;
 	case VIPS_FORMAT_DOUBLE:
-		FAVG(double);
+		FSHRINK(double);
 		break;
 	case VIPS_FORMAT_COMPLEX:
-		FAVG(float);
+		FSHRINK(float);
 		break;
 	case VIPS_FORMAT_DPCOMPLEX:
-		FAVG(double);
+		FSHRINK(double);
 		break;
 
 	default:
@@ -291,11 +229,10 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 
 static int
 vips_shrinkv_gen(VipsRegion *out_region,
-	void *vseq, void *a, void *b, gboolean *stop)
+	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
-	VipsRegion *ir = seq->ir;
+	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &out_region->valid;
 
 	/* How do we chunk up the output image? We don't want to prepare the
@@ -309,7 +246,7 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	int input_target = VIPS_MAX(shrink->vshrink, r->height);
 	int dy = input_target / shrink->vshrink;
 
-	int y, y1, y2;
+	int y, y1;
 
 #ifdef DEBUG
 	printf("vips_shrinkv_gen: generating %d x %d at %d x %d\n",
@@ -334,21 +271,9 @@ vips_shrinkv_gen(VipsRegion *out_region,
 
 		VIPS_GATE_START("vips_shrinkv_gen: work");
 
-		// each output line
-		for (y1 = 0; y1 < chunk_height; y1++) {
-			// top of this line in the input
-			int top = s.top + y1 * shrink->vshrink;
-
-			memset(seq->sum, 0, shrink->sizeof_line_buffer);
-
-			// each line in the corresponding area of input
-			for (y2 = 0; y2 < shrink->vshrink; y2++)
-				vips_shrinkv_add_line(shrink, seq, ir,
-					s.left, top + y2, s.width);
-
-			vips_shrinkv_write_line(shrink, seq, out_region,
+		for (y1 = 0; y1 < chunk_height; y1++)
+			vips_shrinkv_gen2(shrink, out_region, ir,
 				r->left, r->top + y + y1, r->width);
-		}
 
 		VIPS_GATE_STOP("vips_shrinkv_gen: work");
 	}
@@ -393,12 +318,6 @@ vips_shrinkv_build(VipsObject *object)
 		return -1;
 	in = t[1];
 
-	/* We have to keep a line buffer as we sum columns.
-	 */
-	shrink->sizeof_line_buffer =
-		in->Xsize * in->Bands *
-		vips_format_sizeof(VIPS_FORMAT_DPCOMPLEX);
-
 	/* SMALLTILE or we'll need huge input areas for our output. In seq
 	 * mode, the linecache above will keep us sequential.
 	 */
@@ -430,7 +349,7 @@ vips_shrinkv_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (vips_image_generate(t[2],
-			vips_shrinkv_start, vips_shrinkv_gen, vips_shrinkv_stop,
+			vips_start_one, vips_shrinkv_gen, vips_stop_one,
 			in, shrink))
 		return -1;
 
