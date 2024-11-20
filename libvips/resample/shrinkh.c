@@ -162,10 +162,10 @@ vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion *out_region, VipsRegion *ir,
 		ISHRINK(int, short, bands);
 		break;
 	case VIPS_FORMAT_UINT:
-		ISHRINK(double, unsigned int, bands);
+		ISHRINK(gint64, unsigned int, bands);
 		break;
 	case VIPS_FORMAT_INT:
-		ISHRINK(double, int, bands);
+		ISHRINK(gint64, int, bands);
 		break;
 	case VIPS_FORMAT_FLOAT:
 		FSHRINK(float);
