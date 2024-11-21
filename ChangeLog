@@ -6,6 +6,7 @@
 - morph: fix C-paths with masks containing zero [kleisauke]
 - fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
 - make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
+- fix SZI write with openslide4 [goran-hc]
 
 10/10/24 8.16.0
 
