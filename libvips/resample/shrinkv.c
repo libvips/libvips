@@ -111,6 +111,27 @@ typedef VipsResampleClass VipsShrinkvClass;
 
 G_DEFINE_TYPE(VipsShrinkv, vips_shrinkv, VIPS_TYPE_RESAMPLE);
 
+/* Fixed-point arithmetic path for uchar images.
+ */
+#define UCHAR_SHRINK(BANDS) \
+	{ \
+		unsigned char *restrict p = (unsigned char *) in; \
+		unsigned char *restrict q = (unsigned char *) out; \
+\
+		for (x = 0; x < width; x++) { \
+			for (b = 0; b < BANDS; b++) { \
+				int sum = amend; \
+				unsigned char *restrict ptr = p + b; \
+				unsigned char *restrict end = ptr + (shrink->vshrink * sz); \
+				for (; ptr < end; ptr += sz) \
+					sum += *ptr; \
+				q[b] = (sum * multiplier) >> 24; \
+			} \
+			p += BANDS; \
+			q += BANDS; \
+		} \
+	}
+
 /* Integer shrink.
  */
 #define ISHRINK(ACC_TYPE, TYPE, BANDS) \
@@ -171,7 +192,9 @@ vips_shrinkv_gen2(VipsShrinkv *shrink, VipsRegion *out_region, VipsRegion *ir,
 	int x, b;
 
 	switch (resample->in->BandFmt) {
-	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_UCHAR: {
+		unsigned int multiplier = (1LL << 32) / ((1 << 8) * shrink->vshrink);
+
 		/* Generate a special path for 1, 3 and 4 band uchar data. The
 		 * compiler will be able to vectorise these.
 		 *
@@ -180,20 +203,20 @@ vips_shrinkv_gen2(VipsShrinkv *shrink, VipsRegion *out_region, VipsRegion *ir,
 		 */
 		switch (bands) {
 		case 1:
-			ISHRINK(int, unsigned char, 1);
+			UCHAR_SHRINK(1);
 			break;
 		case 3:
-			ISHRINK(int, unsigned char, 3);
+			UCHAR_SHRINK(3);
 			break;
 		case 4:
-			ISHRINK(int, unsigned char, 4);
+			UCHAR_SHRINK(4);
 			break;
 		default:
-			ISHRINK(int, unsigned char, bands);
+			UCHAR_SHRINK(bands);
 			break;
 		}
 		break;
-
+	}
 	case VIPS_FORMAT_CHAR:
 		ISHRINK(int, char, bands);
 		break;
