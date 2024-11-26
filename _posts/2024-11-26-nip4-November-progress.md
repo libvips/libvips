@@ -7,14 +7,15 @@ first version of the new toolkit browser.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Qo38aMJ5JZ4?si=AfAmFBqSc9H6rRAT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-We were using goffice to render plots, but sadly it's still gtk3. I did
-a bit of hacking and got it working with gtk4, but I don't think that's a
-very maintainable way forwards. Instead, I've switched to kplot:
+We were using goffice to render plots, but sadly goffice is still gtk3,
+with no progress towards a port. I did a bit of hacking and got it working
+with gtk4, but I don't think that's a very maintainable way forward. Instead,
+I've switched to kplot:
 
 [https://github.com/kristapsdz/kplot](https://github.com/kristapsdz/kplot)
 
 This is a very simple library, but it can do everything nip4 needs, more
-or less. I make a fork and added better axis labeling and picking.
+or less. I made a fork and added better axis labeling and picking.
 
 I've also mostly finished the new toolkit browser. I found the nip2 Toolkit
 menu difficult to use, so it's now a scrolling bar down the left of the
