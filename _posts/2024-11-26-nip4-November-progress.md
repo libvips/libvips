@@ -11,7 +11,7 @@ We were using goffice to render plots, but sadly it's still gtk3. I did
 a bit of hacking and got it working with gtk4, but I don't think that's a
 very maintainable way forwards. Instead, I've switched to kplot:
 
-https://github.com/kristapsdz/kplot
+[https://github.com/kristapsdz/kplot](https://github.com/kristapsdz/kplot)
 
 This is a very simple library, but it can do everything nip4 needs, more
 or less. I make a fork and added better axis labeling and picking.
