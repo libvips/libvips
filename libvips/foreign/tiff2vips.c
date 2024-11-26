@@ -680,11 +680,9 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 #endif /*DEBUG_VERBOSE*/
 
 	if (rtiff->header.read_scanlinewise)
-		length = TIFFReadScanline(rtiff->tiff,
-			buf, strip, (tsample_t) 0);
+		length = TIFFReadScanline(rtiff->tiff, buf, strip, (tsample_t) 0);
 	else
-		length = TIFFReadEncodedStrip(rtiff->tiff,
-			strip, buf, (tsize_t) -1);
+		length = TIFFReadEncodedStrip(rtiff->tiff, strip, buf, (tsize_t) -1);
 
 	if (length == -1) {
 		vips_foreign_load_invalidate(rtiff->out);
