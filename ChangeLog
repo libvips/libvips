@@ -7,6 +7,7 @@
 - fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
 - make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
 - fix SZI write with openslide4 [goran-hc]
+- heifsave: prevent use of AV1 intra block copy feature [lovell]
 
 10/10/24 8.16.0
 

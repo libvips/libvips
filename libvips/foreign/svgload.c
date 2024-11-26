@@ -727,12 +727,14 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, scale),
 		0.0, 100000.0, 1.0);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	VIPS_ARG_BOOL(class, "unlimited", 23,
 		_("Unlimited"),
 		_("Allow SVG of any size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, unlimited),
 		FALSE);
+#endif
 }
 
 static void
