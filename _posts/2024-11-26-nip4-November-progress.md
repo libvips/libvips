@@ -5,7 +5,7 @@ title: nip4 November progress
 I've done another month on nip4 -- plotting is in now, and I've done a
 first version of the new toolkit browser.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/laS5SZzdnAE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Qo38aMJ5JZ4?si=AfAmFBqSc9H6rRAT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 We were using goffice to render plots, but sadly it's still gtk3. I did
 a bit of hacking and got it working with gtk4, but I don't think that's a
