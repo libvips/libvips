@@ -9,22 +9,22 @@ and to the vips8 API.
 
 nip2 was written between about 1997 and 2003 and depends on a lot of
 frameworks from the period. These are becoming extremely elderly now,
-and nip2 is becoming difficult to maintain. It's also looking increasingly
+and nip2 is getting difficult to maintain. It's also looking increasingly
 old-fashioned.
 
 ![Screenshot](https://opencollective-production.s3.us-west-1.amazonaws.com/update/c944d166-2a2a-4e96-8afe-2a08389e84ae/screenshot.png)
 
 nip4 is hoping to fix this. It has the following goals:
 
-1. Update from the gtk2 GUI toolkit to gtk4, the current version. This is a
-lot of work -- the drawing model is completely different, and there are many,
-many changes in best practice. As a test, I updated vipsdisp to gtk4. The
-image display widget in this viewer is the thing that will display images
-in nip4.
+1. Update from the gtk2 GUI toolkit to gtk4, the current version. This
+is a lot of work -- the drawing model is completely different, and there
+are many, many changes in best practice. As a test, I [updated `vipsdisp`
+to gtk4](https://github.com/jcupitt/vipsdisp). The image display widget in
+this viewer is the thing that will display images in nip4.
 
 2. Switch to the vips8 API. We rewrote libvips to make vips8 between about
-2010 and 2015, but nip2 was obviously stuck on the old vips7 API. nip4
-has removed all the old vips7 code and redesigned for vips8. It's the last
+2010 and 2015, but nip2 was obviously stuck on the old vips7 API. nip4 has
+removed all the old vips7 code and redesigned for vips8. nip2 was the last
 large-scale user of vips7, as far as I know, so completing nip4 will let
 us build libvips with deprecated code removed by default.
 
@@ -33,7 +33,7 @@ of the nip2 test suite unmodified. 
 
 4. Prettier, simpler, faster, modernised.
 
-nip4 is now loading the first 5 test workspaces correctly. The big change
+nip4 is now loading the first 5 test nip2 workspaces correctly. The big change
 from the UI point of view is full animation for interactions. Everything
 slides around as you work:
 
@@ -44,7 +44,7 @@ Next steps:
 1. Get all the old nip2 test workspaces loading. This will involve
 implementing a few more workspace widgets. Plotting is probably the most work.
 
-2. Finish drag - drop and copy - paste. It's only half-there right now.
+2. Finish drag/drop and copy/paste. It's only half-there right now.
 
 3. Add the toolkit menu and browser. This will probably be a bar down the left.
 
