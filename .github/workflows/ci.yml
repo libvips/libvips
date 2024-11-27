@@ -54,7 +54,6 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           pip3 install meson --break-system-packages
-          brew unlink pkg-config@0.29.2
           brew install \
             ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
