@@ -661,7 +661,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 * helps ensure encoding time is more predictable.
 	 */
 	error = heif_encoder_set_parameter_boolean(heif->encoder,
-		"intra-block-copy", FALSE);
+		"enable-intrabc", FALSE);
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
