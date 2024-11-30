@@ -117,7 +117,7 @@ More usefully, you could convert a GIF to WebP with:
 $ vips copy silver-gear-cogs-animation-5.gif[n=-1] silver.webp
 ```
 
-To write an animated or multipage image programatically, you need to
+To write an animated or multipage image programmatically, you need to
 construct the tall, thin image and set the metadata. For example:
 
 ```
@@ -204,4 +204,13 @@ main(int argc, char *argv[])
     return 0;
 }
 ```
+
+`g_autoptr()` support was added to libvips 8.16. If you are using an
+earlier version, add:
+
+```C
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
+```
+
+just after including `vips.h`.
 
