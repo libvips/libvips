@@ -15,7 +15,7 @@ metadata items are used to hold the page height, the number of frames, and any
 frame delay or loop settings.
 
 At least the JXL, GIF and WebP loaders and savers support animation,
-and the TIFF, PDF and VIPS loaders and savers support multipage.
+and the TIFF, PDF, HEIC, AVIF and VIPS loaders and savers support multipage.
 
 # Reading multipage images
 
