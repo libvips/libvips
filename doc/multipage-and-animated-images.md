@@ -5,7 +5,7 @@
   </refmeta>
 
   <refnamediv>
-    <refname>Pyramids</refname>
+    <refname>Multipage and animated images</refname>
     <refpurpose>Processing multipage and animated images</refpurpose>
   </refnamediv>
 
