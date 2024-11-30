@@ -6,7 +6,14 @@
 8.16.1
 
 - support multipage JXL
-- fix PFM byte order on little-endian machines [agoode]
+- fix PFM byte order on big-endian machines [agoode]
+- morph: fix erode Highway path [kleisauke]
+- morph: fix C-paths with masks containing zero [kleisauke]
+- fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
+- make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
+- fix SZI write with openslide4 [goran-hc]
+- heifsave: prevent use of AV1 intra block copy feature [lovell]
+- threadpool: improve cooperative downsizing [kleisauke]
 
 10/10/24 8.16.0
 

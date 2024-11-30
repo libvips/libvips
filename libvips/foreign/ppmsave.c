@@ -324,7 +324,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 
 	/* Handle the deprecated squash parameter.
 	 */
-	if (vips_object_argument_isset(object, "squash"))
+	if (ppm->squash)
 		ppm->bitdepth = 1;
 
 	if (vips_check_uintorf("vips2ppm", image) ||

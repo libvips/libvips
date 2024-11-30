@@ -1426,9 +1426,6 @@ class TestForeign:
             im = pyvips.Image.heifload(AVIF_FILE_HUGE)
             assert im.avg() == 0.0
 
-        im = pyvips.Image.heifload(AVIF_FILE_HUGE, unlimited=True)
-        assert im.avg() == 0.0
-
     @skip_if_no("heifsave")
     def test_avifsave(self):
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",

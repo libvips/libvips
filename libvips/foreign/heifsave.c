@@ -526,11 +526,9 @@ vips_foreign_save_heif_build(VipsObject *object)
 		!vips_object_argument_isset(object, "effort"))
 		heif->effort = 9 - heif->speed;
 
-	/* Disable chroma subsampling by default when the "lossless" param
-	 * is being used.
+	/* The "lossless" param implies no chroma subsampling.
 	 */
-	if (vips_object_argument_isset(object, "lossless") &&
-		!vips_object_argument_isset(object, "subsample_mode"))
+	if (heif->lossless)
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
 	/* Default 12 bit save for 16-bit images.
@@ -653,6 +651,17 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 */
 	error = heif_encoder_set_parameter_boolean(heif->encoder,
 		"auto-tiles", TRUE);
+	if (error.code &&
+		error.subcode != heif_suberror_Unsupported_parameter) {
+		vips__heif_error(&error);
+		return -1;
+	}
+
+	/* Try to prevent the AVIF encoder from using intra block copy,
+	 * helps ensure encoding time is more predictable.
+	 */
+	error = heif_encoder_set_parameter_boolean(heif->encoder,
+		"enable-intrabc", FALSE);
 	if (error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);

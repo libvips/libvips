@@ -970,7 +970,8 @@ write_associated_images(VipsImage *image,
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 
-	if (vips_isprefix("openslide.associated.", field)) {
+	if (vips_isprefix("openslide.associated.", field) &&
+		vips_image_get_typeof(image, field) == VIPS_TYPE_IMAGE) {
 		VipsImage *associated;
 		const char *p;
 		const char *q;
@@ -1955,7 +1956,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * or the deprecated "no_strip" turns this off.
 	 */
 	if (!vips_object_argument_isset(object, "keep") &&
-		!vips_object_argument_isset(object, "no_strip"))
+		!dz->no_strip)
 		save->keep = VIPS_FOREIGN_KEEP_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".

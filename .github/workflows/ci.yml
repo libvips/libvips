@@ -55,7 +55,7 @@ jobs:
         run: |
           pip3 install meson --break-system-packages
           brew install \
-            ninja pkg-config \
+            ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
             libheif libimagequant libmatio librsvg \

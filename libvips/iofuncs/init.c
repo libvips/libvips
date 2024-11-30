@@ -363,24 +363,17 @@ set_stacksize(guint64 size)
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
+/* Equivalent to setting the `G_MESSAGES_DEBUG=VIPS` environment variable.
+ */
 static void
 vips_verbose(void)
 {
-	const char *old;
-
-	old = g_getenv("G_MESSAGES_DEBUG");
-
-	if (!old)
-		g_setenv("G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE);
-	else if (!g_str_equal(old, "all") &&
-		!g_strrstr(old, G_LOG_DOMAIN)) {
-		char *new;
-
-		new = g_strconcat(old, " ", G_LOG_DOMAIN, NULL);
-		g_setenv("G_MESSAGES_DEBUG", new, TRUE);
-
-		g_free(new);
-	}
+#if GLIB_CHECK_VERSION(2, 80, 0)
+	const char *domains[] = { G_LOG_DOMAIN, NULL };
+	g_log_writer_default_set_debug_domains(domains);
+#else
+	g_setenv("G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE);
+#endif
 }
 
 static int
