@@ -8,6 +8,7 @@
 - make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
 - fix SZI write with openslide4 [goran-hc]
 - heifsave: prevent use of AV1 intra block copy feature [lovell]
+- threadpool: improve cooperative downsizing [kleisauke]
 
 10/10/24 8.16.0
 
