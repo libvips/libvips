@@ -94,7 +94,7 @@ Now there's no `loop` or `delay` since this is not animated, but `n-pages` and
 page or a range of pages.
 
 This all assumes that every page (or frame) has the same dimensions. If
-they don't (this can commonly happen with PDF andf TIFF), you have to read
+they don't (this can commonly happen with PDF and TIFF), you have to read
 pages one by one.
 
 # Writing multipage images
