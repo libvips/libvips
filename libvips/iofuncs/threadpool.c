@@ -270,6 +270,11 @@ typedef struct _VipsThreadpool {
 	 */
 	int n_waiting; // (atomic)
 
+	/* Increment this and the next worker will decrement and exit if needed
+	 * (used to downsize the threadpool).
+	 */
+	int exit; // (atomic)
+
 	/* Set this to abort evaluation early with an error.
 	 */
 	gboolean error;
@@ -277,11 +282,6 @@ typedef struct _VipsThreadpool {
 	/* Ask threads to exit, either set by allocate, or on free.
 	 */
 	gboolean stop;
-
-	/* Set this and the next worker to see it will clear the flag and exit
-	 * (used to downsize the threadpool).
-	 */
-	gboolean exit; // (atomic)
 } VipsThreadpool;
 
 static int
@@ -325,13 +325,19 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	/* Has a thread been asked to exit? Volunteer if yes.
 	 */
-	if (g_atomic_int_compare_and_exchange(&pool->exit, TRUE, FALSE)) {
+	if (g_atomic_int_add(&pool->exit, -1) > 0) {
 		/* A thread had been asked to exit, and we've grabbed the
 		 * flag.
 		 */
 		worker->stop = TRUE;
 		g_mutex_unlock(pool->allocate_lock);
 		return;
+	}
+	else {
+		/* No one had been asked to exit and we've mistakenly taken
+		 * the exit count below zero. Put it back up again.
+		 */
+		g_atomic_int_inc(&pool->exit);
 	}
 
 	if (vips_worker_allocate(worker)) {
@@ -513,7 +519,7 @@ vips_threadpool_new(VipsImage *im)
 	vips_semaphore_init(&pool->tick, 0, "tick");
 	pool->error = FALSE;
 	pool->stop = FALSE;
-	pool->exit = FALSE;
+	pool->exit = 0;
 
 	/* If this is a tiny image, we won't need all max_workers threads.
 	 * Guess how
@@ -696,7 +702,7 @@ vips_threadpool_run(VipsImage *im,
 		if (n_waiting > 3 &&
 			n_working > 1) {
 			VIPS_DEBUG_MSG("shrinking thread pool\n");
-			g_atomic_int_set(&pool->exit, TRUE);
+			g_atomic_int_inc(&pool->exit);
 			n_working -= 1;
 		}
 		else if (n_waiting < 2 &&
