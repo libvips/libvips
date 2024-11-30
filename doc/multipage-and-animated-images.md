@@ -51,7 +51,7 @@ Points to note:
 - By default, libvips will just read the first page from an animated or
   multipage image. You pass `[n=-1]` to the loader to get all pages (or
   frames) in the animation. You can pick out a single page or range of
-  pages with perhaps [page=4]` and `[page=2,n=2]`.
+  pages with perhaps `[page=4]` and `[page=2,n=2]`.
 
 - `page-height` is the vertical size of each frame within the overall image
   (2560 pixels high in this case).
