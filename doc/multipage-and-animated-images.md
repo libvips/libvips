@@ -193,7 +193,6 @@ main(int argc, char *argv[])
      */
     VipsImage *frame0 = VIPS_IMAGE(frames->pdata[0]);
     vips_image_set_int(strip, "page-height", frame0->Ysize);
-    vips_image_set_int(strip, "n-pages", frames->len);
     vips_image_set_int(strip, "loop", 10);
     int delays[] = { 100, 100, 100 };
     vips_image_set_array_int(strip, "delay", delays, VIPS_NUMBER(delays));
