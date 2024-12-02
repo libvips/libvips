@@ -142,7 +142,7 @@ images = [pyvips.Image.new_from_file(filename, access="sequential")
 # frame delays are in milliseconds
 delay_array = [300] * len(images)
 
-animation = pyvips.Image.arrayjoin(images, across=1)
+animation = pyvips.Image.arrayjoin(images, across=1).copy()
 animation.set_type(pyvips.GValue.gint_type, "page-height", images[0].height)
 animation.set_type(pyvips.GValue.array_int_type, "delay", delay_array)
 print(f"writing {sys.argv[1]} ...")
