@@ -143,6 +143,8 @@ images = [pyvips.Image.new_from_file(filename, access="sequential")
 delay_array = [300] * len(images)
 
 animation = pyvips.Image.arrayjoin(images, across=1).copy()
+animation.set_type(pyvips.GValue.gint_type, "loop", 10)
+animation.set_type(pyvips.GValue.gint_type, "n-pages", len(images))
 animation.set_type(pyvips.GValue.gint_type, "page-height", images[0].height)
 animation.set_type(pyvips.GValue.array_int_type, "delay", delay_array)
 print(f"writing {sys.argv[1]} ...")
