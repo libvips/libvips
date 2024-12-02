@@ -63,6 +63,7 @@ markdown_content_files = files(
     'libvips-from-C++.md',
     'Making-image-pyramids.md',
     'Using-vipsthumbnail.md',
+    'multipage-and-animated-images.md',
 )
 
 pandoc = find_program('pandoc', required: false)
@@ -103,6 +104,7 @@ else
         'libvips-from-C++.xml',
         'Making-image-pyramids.xml',
         'Using-vipsthumbnail.xml',
+        'multipage-and-animated-images.xml',
     )
 endif
 

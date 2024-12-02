@@ -162,6 +162,10 @@ It's a little more fiddly in C:
 #include <stdlib.h>
 #include <vips/vips.h>
 
+/* for libvips before 8.16, add this line:
+ *	G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
+ */
+
 int
 main(int argc, char *argv[])
 {
@@ -196,7 +200,7 @@ main(int argc, char *argv[])
     VipsImage *frame0 = VIPS_IMAGE(frames->pdata[0]);
     vips_image_set_int(strip, "page-height", frame0->Ysize);
     vips_image_set_int(strip, "loop", 10);
-    int delays[] = { 100, 100, 100 };
+    int delays[] = { 300, 300, 300 };
     vips_image_set_array_int(strip, "delay", delays, VIPS_NUMBER(delays));
 
     if (vips_image_write_to_file(strip, argv[1], NULL))
@@ -205,13 +209,3 @@ main(int argc, char *argv[])
     return 0;
 }
 ```
-
-`g_autoptr()` support was added to libvips 8.16. If you are using an
-earlier version, add:
-
-```C
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
-```
-
-just after including `vips.h`.
-
