@@ -9,7 +9,7 @@
 - fix SZI write with openslide4 [goran-hc]
 - heifsave: prevent use of AV1 intra block copy feature [lovell]
 - threadpool: improve cooperative downsizing [kleisauke]
-- fix alpha shift during colourspace conversions
+- fix alpha shift during colourspace conversions [frederikrosenberg]
 
 10/10/24 8.16.0
 
