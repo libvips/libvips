@@ -1826,8 +1826,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 		vips_connection_filename(VIPS_CONNECTION(rtiff->source)));
 
 	if (rtiff->n > 1)
-		vips_image_set_int(out,
-			VIPS_META_PAGE_HEIGHT, rtiff->header.height);
+		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, rtiff->header.height);
 
 	if (rtiff->header.subifd_count > 0)
 		vips_image_set_int(out,
@@ -1843,24 +1842,18 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 
 	/* Read any ICC profile.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_ICCPROFILE, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_ICC_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_ICCPROFILE, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_ICC_NAME, data, data_len);
 
 	/* Read any XMP metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_XMLPACKET, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_XMP_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_XMLPACKET, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_XMP_NAME, data, data_len);
 
 	/* Read any IPTC metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
-		vips_image_set_blob_copy(out,
-			VIPS_META_IPTC_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
+		vips_image_set_blob_copy(out, VIPS_META_IPTC_NAME, data, data_len);
 
 		/* Older versions of libvips used this misspelt name :-( attach
 		 * under this name too for compatibility.
@@ -1870,10 +1863,8 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 
 	/* Read any photoshop metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_PHOTOSHOP, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_PHOTOSHOP_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_PHOTOSHOP, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_PHOTOSHOP_NAME, data, data_len);
 
 	if (rtiff->header.image_description)
 		vips_image_set_string(out, VIPS_META_IMAGEDESCRIPTION,
@@ -1888,8 +1879,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	/* Set the "orientation" tag. This is picked up later by autorot, if
 	 * requested.
 	 */
-	vips_image_set_int(out,
-		VIPS_META_ORIENTATION, rtiff->header.orientation);
+	vips_image_set_int(out, VIPS_META_ORIENTATION, rtiff->header.orientation);
 
 	/* Hint smalltile for tiled images, since we may be decompressing
 	 * outside the lock and THINSTRIP would prevent parallel tile decode.
