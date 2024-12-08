@@ -662,6 +662,15 @@ class TestForeign:
         assert x1.xres == 100
         assert x1.yres == 200
 
+        if sys.platform == "darwin":
+            with open(TIF2_FILE, 'rb') as f:
+                buf = bytearray(f.read())
+            buf = buf[:-4]
+            source = pyvips.Source.new_from_memory(buf)
+            im = pyvips.Image.tiffload_source(source, fail_on="warning")
+            with pytest.raises(Exception) as e_info:
+                im.avg() > 0
+
         # OME support in 8.5
         x = pyvips.Image.new_from_file(OME_FILE)
         assert x.width == 439

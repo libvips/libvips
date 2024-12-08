@@ -441,6 +441,22 @@ embed_profile_meta(TIFF *tif, VipsImage *im)
 	return 0;
 }
 
+static int
+wtiff_handler_error(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	vips_verror("vips2tiff", fmt, ap);
+	return 1;
+}
+
+static int
+wtiff_handler_warning(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	g_logv("vips2tiff", G_LOG_LEVEL_WARNING, fmt, ap);
+	return 1;
+}
+
 static void
 wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 	int width, int height)
@@ -1146,7 +1162,8 @@ wtiff_allocate_layers(Wtiff *wtiff)
 			vips__region_no_ownership(layer->copy);
 
 			layer->tif = vips__tiff_openout_target(layer->target,
-				wtiff->bigtiff);
+				wtiff->bigtiff, wtiff_handler_error,
+				wtiff_handler_warning, wtiff);
 			if (!layer->tif)
 				return -1;
 		}
@@ -2401,7 +2418,8 @@ wtiff_gather(Wtiff *wtiff)
 			if (!(source = vips_source_new_from_target(layer->target)))
 				return -1;
 
-			if (!(in = vips__tiff_openin_source(source))) {
+			if (!(in = vips__tiff_openin_source(source, wtiff_handler_error,
+				wtiff_handler_warning, NULL))) {
 				VIPS_UNREF(source);
 				return -1;
 			}
