@@ -10,6 +10,7 @@
 - heifsave: prevent use of AV1 intra block copy feature [lovell]
 - threadpool: improve cooperative downsizing [kleisauke]
 - fix alpha shift during colourspace conversions [frederikrosenberg]
+- heifsave: set image orientation using irot and imir transformations [lovell]
 
 10/10/24 8.16.0
 
