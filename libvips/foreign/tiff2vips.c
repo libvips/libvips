@@ -428,6 +428,10 @@ typedef struct _Rtiff {
 	/* The Y we are reading at. Used to verify strip read is sequential.
 	 */
 	int y_pos;
+
+	/* Stop processing due to an error or warning.
+	 */
+	gboolean failed;
 } Rtiff;
 
 /* Convert IEEE 754-2008 16-bit float to 32-bit float
@@ -614,6 +618,28 @@ rtiff_minimise_cb(VipsImage *image, Rtiff *rtiff)
 		vips_source_minimise(rtiff->source);
 }
 
+static int
+rtiff_handler_error(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	vips_verror("tiff2vips", fmt, ap);
+	return 1;
+}
+
+static int
+rtiff_handler_warning(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	if (user_data) {
+		Rtiff *rtiff = (Rtiff*) user_data;
+		if (rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
+			rtiff->failed = TRUE;
+		}
+	}
+	g_logv("tiff2vips", G_LOG_LEVEL_WARNING, fmt, ap);
+	return 1;
+}
+
 static Rtiff *
 rtiff_new(VipsSource *source, VipsImage *out,
 	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
@@ -641,6 +667,7 @@ rtiff_new(VipsSource *source, VipsImage *out,
 	rtiff->plane_buf = NULL;
 	rtiff->contig_buf = NULL;
 	rtiff->y_pos = 0;
+	rtiff->failed = FALSE;
 
 	g_signal_connect(out, "close",
 		G_CALLBACK(rtiff_close_cb), rtiff);
@@ -664,7 +691,8 @@ rtiff_new(VipsSource *source, VipsImage *out,
 		return NULL;
 	}
 
-	if (!(rtiff->tiff = vips__tiff_openin_source(source)))
+	if (!(rtiff->tiff = vips__tiff_openin_source(source,
+		rtiff_handler_error, rtiff_handler_warning, rtiff)))
 		return NULL;
 
 	return rtiff;
@@ -687,6 +715,11 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 	if (length == -1) {
 		vips_foreign_load_invalidate(rtiff->out);
 		vips_error("tiff2vips", "%s", _("read error"));
+		return -1;
+	}
+
+	if (rtiff->failed) {
+		vips_foreign_load_invalidate(rtiff->out);
 		return -1;
 	}
 
@@ -728,6 +761,11 @@ rtiff_rgba_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 	}
 
 	TIFFRGBAImageEnd(&img);
+
+	if (rtiff->failed) {
+		vips_foreign_load_invalidate(rtiff->out);
+		return -1;
+	}
 
 	return 0;
 }
@@ -3396,7 +3434,8 @@ vips__testtiff_source(VipsSource *source, TiffPropertyFn fn)
 
 	vips__tiff_init();
 
-	if (!(tif = vips__tiff_openin_source(source))) {
+	if (!(tif = vips__tiff_openin_source(source, rtiff_handler_error,
+		rtiff_handler_warning, NULL))) {
 		vips_error_clear();
 		return FALSE;
 	}

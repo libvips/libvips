@@ -414,6 +414,10 @@ if libtiff_dep.found()
     if cc.get_define('COMPRESSION_WEBP', prefix: '#include <tiff.h>', dependencies: libtiff_dep) != ''
         cfg_var.set('HAVE_TIFF_COMPRESSION_WEBP', '1')
     endif
+    # TIFFOpenOptions added in libtiff 4.5.0
+    if cc.has_function('TIFFOpenOptionsAlloc', prefix: '#include <tiffio.h>', dependencies: libtiff_dep)
+        cfg_var.set('HAVE_TIFF_OPEN_OPTIONS', '1')
+    endif
 endif
 
 # 2.40.3 so we get the UNLIMITED open flag

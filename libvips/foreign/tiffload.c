@@ -215,6 +215,7 @@ vips_foreign_load_tiff_class_init(VipsForeignLoadTiffClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadTiff, subifd),
 		-1, 100000, -1);
+
 }
 
 static void
@@ -470,6 +471,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader,
  * with extensions for tiled images, multipage images, XYZ and LAB colour
@@ -501,6 +503,9 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * If it is 0 or greater and there is a SUBIFD tag, the indexed SUBIFD is
  * selected. This can be used to read lower resolution layers from
  * bioformats-style image pyramids.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * Any ICC profile is read and attached to the VIPS image as
  * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
@@ -540,6 +545,7 @@ vips_tiffload(const char *filename, VipsImage **out, ...)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source.
@@ -584,6 +590,7 @@ vips_tiffload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_tiffload(), but read from a source.
  *
