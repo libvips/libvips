@@ -112,7 +112,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/transform.h>
 #include <vips/internal.h>
 
@@ -283,7 +282,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	 * threads. In fact it's harmless if we do get two writers, but we may
 	 * avoid duplicating work.
 	 */
-	g_mutex_lock(ovlap->fl_lock);
+	g_mutex_lock(&ovlap->fl_lock);
 
 	/* Do we already have first/last for this area? Bail out if we do.
 	 */
@@ -300,7 +299,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	if (!missing) {
 		/* No work to do!
 		 */
-		g_mutex_unlock(ovlap->fl_lock);
+		g_mutex_unlock(&ovlap->fl_lock);
 		return 0;
 	}
 
@@ -327,7 +326,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	 */
 	if (vips_region_prepare(rir, &rr) ||
 		vips_region_prepare(sir, &sr)) {
-		g_mutex_unlock(ovlap->fl_lock);
+		g_mutex_unlock(&ovlap->fl_lock);
 		return -1;
 	}
 
@@ -347,7 +346,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 					x + sr.left, sr.top, sr.height) ||
 				find_bot(rir, last,
 					x + rr.left, rr.top, rr.height)) {
-				g_mutex_unlock(ovlap->fl_lock);
+				g_mutex_unlock(&ovlap->fl_lock);
 				return -1;
 			}
 
@@ -368,7 +367,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 		}
 	}
 
-	g_mutex_unlock(ovlap->fl_lock);
+	g_mutex_unlock(&ovlap->fl_lock);
 
 	return 0;
 }
