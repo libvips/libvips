@@ -2,6 +2,7 @@
 
 - add `keep_duplicate_frames` option to GIF save [dloebl]
 - add Magic Kernel support [akimon658]
+- tiff: add threadsafe warning/error handlers (requires libtiff 4.5.0+) [lovell]
 
 8.16.1
 
