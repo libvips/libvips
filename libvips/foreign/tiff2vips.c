@@ -686,11 +686,10 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 		length = TIFFReadEncodedStrip(rtiff->tiff,
 			strip, buf, (tsize_t) -1);
 
-	if (length == -1) {
-		vips_foreign_load_invalidate(rtiff->out);
-		vips_error("tiff2vips", "%s", _("read error"));
-		return -1;
-	}
+	/* We get a length == -1 return for warnings with libtiff 4.7.0, we need
+	 * to ignore it.
+	 */
+	(void) length;
 
 	return 0;
 }

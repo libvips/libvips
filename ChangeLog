@@ -10,6 +10,7 @@
 - heifsave: prevent use of AV1 intra block copy feature [lovell]
 - threadpool: improve cooperative downsizing [kleisauke]
 - fix alpha shift during colourspace conversions [frederikrosenberg]
+- improve error handling with libtiff 4.7 [CrispinStichartFNSB]
 
 10/10/24 8.16.0
 
