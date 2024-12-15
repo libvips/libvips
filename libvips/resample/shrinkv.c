@@ -122,8 +122,8 @@ G_DEFINE_TYPE(VipsShrinkv, vips_shrinkv, VIPS_TYPE_RESAMPLE);
 			for (b = 0; b < BANDS; b++) { \
 				int sum = amend; \
 				unsigned char *restrict ptr = p + b; \
-				unsigned char *restrict end = ptr + (shrink->vshrink * sz); \
-				for (; ptr < end; ptr += sz) \
+				unsigned char *restrict end = ptr + (shrink->vshrink * ls); \
+				for (; ptr < end; ptr += ls) \
 					sum += *ptr; \
 				q[b] = (sum * multiplier) >> 24; \
 			} \
@@ -143,8 +143,8 @@ G_DEFINE_TYPE(VipsShrinkv, vips_shrinkv, VIPS_TYPE_RESAMPLE);
 			for (b = 0; b < BANDS; b++) { \
 				ACC_TYPE sum = amend; \
 				TYPE *restrict ptr = p + b; \
-				TYPE *restrict end = ptr + (shrink->vshrink * sz); \
-				for (; ptr < end; ptr += sz) \
+				TYPE *restrict end = ptr + (shrink->vshrink * ls); \
+				for (; ptr < end; ptr += ls) \
 					sum += *ptr; \
 				q[b] = sum / shrink->vshrink; \
 			} \
@@ -164,8 +164,8 @@ G_DEFINE_TYPE(VipsShrinkv, vips_shrinkv, VIPS_TYPE_RESAMPLE);
 			for (b = 0; b < bands; b++) { \
 				double sum = 0.0; \
 				TYPE *restrict ptr = p + b; \
-				TYPE *restrict end = ptr + (shrink->vshrink * sz); \
-				for (; ptr < end; ptr += sz) \
+				TYPE *restrict end = ptr + (shrink->vshrink * ls); \
+				for (; ptr < end; ptr += ls) \
 					sum += *ptr; \
 				q[b] = sum / shrink->vshrink; \
 			} \
@@ -183,7 +183,8 @@ vips_shrinkv_gen2(VipsShrinkv *shrink, VipsRegion *out_region, VipsRegion *ir,
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
 		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
-	const int sz = width * bands;
+	const int ls = VIPS_REGION_LSKIP(ir) /
+		VIPS_IMAGE_SIZEOF_ELEMENT(resample->in);
 	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
 	VipsPel *in = VIPS_REGION_ADDR(ir, left, top * shrink->vshrink);
 
