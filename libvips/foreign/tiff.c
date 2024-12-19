@@ -164,7 +164,7 @@ openin_source_unmap(thandle_t st, tdata_t start, toff_t len)
 
 TIFF *
 vips__tiff_openin_source(VipsSource *source, VipsTiffErrorHandler error_fn,
-	VipsTiffErrorHandler warning_fn, void *user_data)
+	VipsTiffErrorHandler warning_fn, void *user_data, gboolean unlimited)
 {
 	TIFF *tiff;
 
@@ -187,6 +187,11 @@ vips__tiff_openin_source(VipsSource *source, VipsTiffErrorHandler error_fn,
 	TIFFOpenOptions *opts = TIFFOpenOptionsAlloc();
 	TIFFOpenOptionsSetErrorHandlerExtR(opts, error_fn, user_data);
 	TIFFOpenOptionsSetWarningHandlerExtR(opts, warning_fn, user_data);
+#ifdef HAVE_TIFF_OPEN_OPTIONS_SET_MAX_CUMULATED_MEM_ALLOC
+	if (!unlimited) {
+		TIFFOpenOptionsSetMaxCumulatedMemAlloc(opts, 20 * 1024 * 1024);
+	}
+#endif /*HAVE_TIFF_OPEN_OPTIONS_SET_MAX_CUMULATED_MEM_ALLOC*/
 	if (!(tiff = TIFFClientOpenExt("source input", "rmC",
 			  (thandle_t) source,
 			  openin_source_read,
