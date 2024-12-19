@@ -2419,7 +2419,7 @@ wtiff_gather(Wtiff *wtiff)
 				return -1;
 
 			if (!(in = vips__tiff_openin_source(source, wtiff_handler_error,
-				wtiff_handler_warning, NULL))) {
+				wtiff_handler_warning, NULL, FALSE))) {
 				VIPS_UNREF(source);
 				return -1;
 			}

@@ -642,7 +642,8 @@ rtiff_handler_warning(TIFF *tiff, void* user_data,
 
 static Rtiff *
 rtiff_new(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
@@ -692,7 +693,7 @@ rtiff_new(VipsSource *source, VipsImage *out,
 	}
 
 	if (!(rtiff->tiff = vips__tiff_openin_source(source,
-		rtiff_handler_error, rtiff_handler_warning, rtiff)))
+		rtiff_handler_error, rtiff_handler_warning, rtiff, unlimited)))
 		return NULL;
 
 	return rtiff;
@@ -3435,7 +3436,7 @@ vips__testtiff_source(VipsSource *source, TiffPropertyFn fn)
 	vips__tiff_init();
 
 	if (!(tif = vips__tiff_openin_source(source, rtiff_handler_error,
-		rtiff_handler_warning, NULL))) {
+		rtiff_handler_warning, NULL, FALSE))) {
 		vips_error_clear();
 		return FALSE;
 	}
@@ -3461,14 +3462,15 @@ vips__istifftiled_source(VipsSource *source)
 
 int
 vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
 	if (!(rtiff = rtiff_new(source, out,
-			  page, n, autorotate, subifd, fail_on)) ||
+			  page, n, autorotate, subifd, fail_on, unlimited)) ||
 		rtiff_header_read_all(rtiff))
 		return -1;
 
@@ -3491,7 +3493,8 @@ vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
 
 int
 vips__tiff_read_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
@@ -3502,7 +3505,7 @@ vips__tiff_read_source(VipsSource *source, VipsImage *out,
 	vips__tiff_init();
 
 	if (!(rtiff = rtiff_new(source, out,
-			  page, n, autorotate, subifd, fail_on)) ||
+			  page, n, autorotate, subifd, fail_on, unlimited)) ||
 		rtiff_header_read_all(rtiff))
 		return -1;
 
