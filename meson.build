@@ -418,6 +418,10 @@ if libtiff_dep.found()
     if cc.has_function('TIFFOpenOptionsAlloc', prefix: '#include <tiffio.h>', dependencies: libtiff_dep)
         cfg_var.set('HAVE_TIFF_OPEN_OPTIONS', '1')
     endif
+    # TIFFOpenOptionsSetMaxCumulatedMemAlloc added in libtiff 4.7.0
+    if cc.has_function('TIFFOpenOptionsSetMaxCumulatedMemAlloc', prefix: '#include <tiffio.h>', dependencies: libtiff_dep)
+        cfg_var.set('HAVE_TIFF_OPEN_OPTIONS_SET_MAX_CUMULATED_MEM_ALLOC', '1')
+    endif
 endif
 
 # 2.40.3 so we get the UNLIMITED open flag

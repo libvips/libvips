@@ -67,9 +67,11 @@ int vips__tiff_write_target(VipsImage *in, VipsTarget *target,
 gboolean vips__istiff_source(VipsSource *source);
 gboolean vips__istifftiled_source(VipsSource *source);
 int vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on);
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited);
 int vips__tiff_read_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on);
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited);
 
 extern const char *vips__foreign_tiff_suffs[];
 
