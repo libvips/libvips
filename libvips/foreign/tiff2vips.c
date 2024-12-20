@@ -545,8 +545,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		/* We used to warn about missing res data, but it happens so
 		 * often and is so harmless, why bother.
 		 */
-		x = 1.0;
-		y = 1.0;
+		x = 0.0;
+		y = 0.0;
 	}
 
 	out->Xres = x;
