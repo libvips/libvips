@@ -322,8 +322,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n",
-			g_timer_elapsed(timer, NULL));
+		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
 		g_timer_destroy(timer);
 	}
 #endif /*DEBUG*/
@@ -397,9 +396,7 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16
-			? 16
-			: 8;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -416,9 +413,7 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16
-			? 16
-			: 8;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -515,8 +510,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	const struct heif_encoder_descriptor *out_encoder;
 	const struct heif_encoder_parameter *const *param;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->
-		build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)-> build(object))
 		return -1;
 
 	/* If the old, deprecated "speed" param is being used and the new
@@ -717,8 +711,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 
 	/* Write data.
 	 */
-	if (vips_sink_disc(save->ready,
-			vips_foreign_save_heif_write_block, heif))
+	if (vips_sink_disc(save->ready, vips_foreign_save_heif_write_block, heif))
 		return -1;
 
 	/* This has to come right at the end :-( so there's no support for
@@ -923,8 +916,7 @@ static int
 vips_foreign_save_heif_buffer_build(VipsObject *object)
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
-	VipsForeignSaveHeifBuffer *buffer =
-		(VipsForeignSaveHeifBuffer *) object;
+	VipsForeignSaveHeifBuffer *buffer = (VipsForeignSaveHeifBuffer *) object;
 
 	VipsBlob *blob;
 
@@ -986,8 +978,7 @@ static int
 vips_foreign_save_heif_target_build(VipsObject *object)
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
-	VipsForeignSaveHeifTarget *target =
-		(VipsForeignSaveHeifTarget *) object;
+	VipsForeignSaveHeifTarget *target = (VipsForeignSaveHeifTarget *) object;
 
 	if (target->target) {
 		heif->target = target->target;
