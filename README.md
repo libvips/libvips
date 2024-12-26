@@ -56,7 +56,7 @@ libvips is used as an image processing engine by:
 | [bimg](https://github.com/h2non/bimg) |
 | [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
-| [carrierwave-vips](https://github.com/eltiare/carrierwave-vips) |
+| [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips) |
 | [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler) |
 | [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) |
 | [JVips](https://github.com/criteo/JVips) |
