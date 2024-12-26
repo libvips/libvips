@@ -311,6 +311,14 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	}
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_IMAGE_ORIENTATION
+	/* EXIF orientation is informational in the HEIF specification.
+	 * Orientation is defined using irot and imir transformations.
+	 */
+	options->image_orientation = vips_image_get_orientation(save->ready);
+	vips_autorot_remove_angle(save->ready);
+#endif
+
 #ifdef DEBUG
 	{
 		GTimer *timer = g_timer_new();

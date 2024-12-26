@@ -572,6 +572,10 @@ if libheif_dep.found()
     if libheif_dep.version().version_compare('>=1.13.0')
         cfg_var.set('HAVE_HEIF_INIT', '1')
     endif
+    # heif_encoding_options.image_orientation added in 1.14.0
+    if cpp.has_member('struct heif_encoding_options', 'image_orientation', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep)
+        cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_IMAGE_ORIENTATION', '1')
+    endif
     # heif_error_success added in 1.17.0
     if libheif_dep.version().version_compare('>=1.17.0')
         cfg_var.set('HAVE_HEIF_ERROR_SUCCESS', '1')
