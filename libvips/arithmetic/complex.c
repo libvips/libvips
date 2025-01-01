@@ -455,7 +455,8 @@ G_DEFINE_TYPE(VipsComplex2, vips_complex2, VIPS_TYPE_BINARY);
 			Q[1] = 0.0; \
 		} \
 		else if (ABS(Y1) > ABS(Y2)) { \
-			double a = Y2 / Y1; \
+			double y1 = Y1; /* this suppress C2142 (division by zero) error on MSVC */ \
+			double a = Y2 / y1; \
 			double b = Y1 + Y2 * a; \
 			double re = (X1 + X2 * a) / b; \
 			double im = (X2 - X1 * a) / b; \
@@ -465,7 +466,8 @@ G_DEFINE_TYPE(VipsComplex2, vips_complex2, VIPS_TYPE_BINARY);
 			Q[1] = im / mod; \
 		} \
 		else { \
-			double a = Y1 / Y2; \
+			double y2 = Y2; \
+			double a = Y1 / y2; \
 			double b = Y2 + Y1 * a; \
 			double re = (X1 * a + X2) / b; \
 			double im = (X2 * a - X1) / b; \
