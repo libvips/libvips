@@ -218,7 +218,7 @@ VIPS_API
 int vips__write_header_bytes(VipsImage *im, unsigned char *to);
 int vips__image_meta_copy(VipsImage *dst, const VipsImage *src);
 
-extern GMutex *vips__global_lock;
+extern GMutex vips__global_lock;
 
 int vips_image_written(VipsImage *image);
 void vips_image_preeval(VipsImage *image);
