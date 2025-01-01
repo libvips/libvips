@@ -449,7 +449,8 @@ G_DEFINE_TYPE(VipsComplex2, vips_complex2, VIPS_TYPE_BINARY);
 #define CROSS(Q, X1, Y1, X2, Y2) \
 	{ \
 		if (((X1) == 0.0 && (Y1) == 0.0) || \
-			((X2) == 0.0 && (Y2) == 0.0)) { \
+			((X2) == 0.0 && (Y2) == 0.0) || \
+			((Y1) == 0.0 && (Y2) == 0.0)) { \
 			Q[0] = 0.0; \
 			Q[1] = 0.0; \
 		} \
