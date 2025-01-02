@@ -713,7 +713,7 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 	else
 		length = TIFFReadEncodedStrip(rtiff->tiff, strip, buf, (tsize_t) -1);
 
-	if (length == -1) {
+	if (length == -1 && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 		vips_foreign_load_invalidate(rtiff->out);
 		vips_error("tiff2vips", "%s", _("read error"));
 		return -1;
@@ -2316,7 +2316,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 
 		size = TIFFReadRawTile(rtiff->tiff, tile_no,
 			seq->compressed_buf, seq->compressed_buf_length);
-		if (size <= 0) {
+		if (size <= 0 && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
 			return -1;
@@ -2344,7 +2344,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 			result = rtiff_read_rgba_tile(rtiff, x, y, buf);
 		else
 			result = TIFFReadTile(rtiff->tiff, buf, x, y, 0, 0) < 0;
-		if (result) {
+		if (result && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
 			return -1;
