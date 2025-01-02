@@ -19,6 +19,7 @@
 - fix alpha shift during colourspace conversions [frederikrosenberg]
 - heifsave: set image orientation using irot and imir transformations [lovell]
 - XYZ2Yxy: guard against divide by zero
+- fix MSVC compile error [na-trium-144]
 
 10/10/24 8.16.0
 
