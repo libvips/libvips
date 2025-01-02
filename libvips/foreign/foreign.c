@@ -1956,8 +1956,10 @@ vips_foreign_find_save_sub(VipsForeignSaveClass *save_class,
 	/* All savers needs suffs defined since we use the suff to pick the
 	 * saver.
 	 */
-	if (!class->suffs)
+	if (!class->suffs) {
 		g_warning("no suffix defined for %s", object_class->nickname);
+		return NULL;
+	}
 
 	/* Skip non-file savers.
 	 */
