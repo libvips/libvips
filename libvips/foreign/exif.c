@@ -86,7 +86,7 @@ entry_to_s(ExifEntry *entry)
 	 * for formats like float. Ban crazy size values.
 	 */
 	int size = VIPS_MIN(entry->size, 10000);
-	int max_size = size * 5;
+	int max_size = size * 3 + 32;
 	char *text = VIPS_MALLOC(NULL, max_size + 1);
 
 	// this renders floats as eg. "12.2345", enums as "Inch", etc.
