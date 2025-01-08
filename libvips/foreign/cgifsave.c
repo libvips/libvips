@@ -48,6 +48,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 #include "quantise.h"
@@ -588,6 +589,12 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 	}
 
 	VIPS_FREEF(vips__quantise_image_destroy, image);
+
+	/* Remapping is relatively slow, trigger eval callbacks.
+	 */
+	vips_image_eval(cgif->in, n_pels);
+	if (vips_image_iskilled(cgif->in))
+		return -1;
 
 	/* Set up cgif on first use.
 	 */
