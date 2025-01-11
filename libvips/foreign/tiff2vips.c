@@ -2316,7 +2316,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 
 		size = TIFFReadRawTile(rtiff->tiff, tile_no,
 			seq->compressed_buf, seq->compressed_buf_length);
-		if (size <= 0 && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
+		if (size <= 0) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
 			return -1;
