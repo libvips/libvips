@@ -136,7 +136,7 @@ vips_thread_profile_save_cb(gpointer key, gpointer value, gpointer data)
 static void
 vips_thread_profile_save(VipsThreadProfile *profile)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	VIPS_DEBUG_MSG("vips_thread_profile_save: %s\n", profile->name);
 
@@ -144,7 +144,7 @@ vips_thread_profile_save(VipsThreadProfile *profile)
 		vips__thread_fp =
 			vips__file_open_write("vips-profile.txt", TRUE);
 		if (!vips__thread_fp) {
-			g_mutex_unlock(vips__global_lock);
+			g_mutex_unlock(&vips__global_lock);
 			g_warning("unable to create profile log");
 			return;
 		}
@@ -157,7 +157,7 @@ vips_thread_profile_save(VipsThreadProfile *profile)
 		vips_thread_profile_save_cb, vips__thread_fp);
 	vips_thread_profile_save_gate(profile->memory, vips__thread_fp);
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 static void

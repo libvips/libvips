@@ -37,9 +37,7 @@ extern "C" {
 
 /* All fftw3 calls except execute() need to be locked.
  */
-extern GMutex *vips__fft_lock;
-
-void vips__fft_init(void);
+extern GMutex vips__fft_lock;
 
 #define VIPS_TYPE_FREQFILT (vips_freqfilt_get_type())
 #define VIPS_FREQFILT(obj) \

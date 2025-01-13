@@ -117,6 +117,7 @@ extern "C" {
 #include <vips/generate.h>
 #include <vips/interpolate.h>
 #include <vips/semaphore.h>
+#include <vips/thread.h>
 #include <vips/threadpool.h>
 #include <vips/header.h>
 #include <vips/operation.h>
