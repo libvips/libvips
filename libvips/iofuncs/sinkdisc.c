@@ -533,6 +533,10 @@ vips_sink_disc(VipsImage *im, VipsRegionWrite write_fn, void *a)
 
 	vips_image_posteval(im);
 
+	/* The final write might have failed, pick up any error code.
+	 */
+	result |= write.buf->write_errno;
+
 	write_free(&write);
 
 	vips_image_minimise_all(im);

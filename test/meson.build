@@ -89,3 +89,14 @@ test('webpsave_timeout',
     depends: test_timeout_webpsave,
     workdir: meson.current_build_dir(),
 )
+
+test_timeout_gifsave = executable('test_timeout_gifsave',
+    'test_timeout_gifsave.c',
+    dependencies: libvips_dep,
+)
+
+test('gifsave_timeout',
+    test_timeout_gifsave,
+    depends: test_timeout_gifsave,
+    workdir: meson.current_build_dir(),
+)
