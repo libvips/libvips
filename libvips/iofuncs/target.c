@@ -382,7 +382,7 @@ vips_target_new_to_file(const char *filename)
  *
  * See also: vips_target_new_to_file().
  *
- * Returns: a new #VipsConnection
+ * Returns: a new target.
  */
 VipsTarget *
 vips_target_new_to_memory(void)
