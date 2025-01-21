@@ -337,12 +337,14 @@ vips_object_hash_arg(VipsObject *object,
 
 /* Find a hash from the input arguments to a VipsOperstion.
  */
-static unsigned int
+unsigned int
 vips_operation_hash(VipsOperation *operation)
 {
-	if (!operation->found_hash) {
-		guint hash;
+	guint hash;
 
+	if (operation->found_hash)
+		hash = operation->hash;
+	else {
 		/* Include the operation type in the hash.
 		 */
 		hash = (guint) G_OBJECT_TYPE(operation);
@@ -353,11 +355,16 @@ vips_operation_hash(VipsOperation *operation)
 		 */
 		hash |= 1;
 
-		operation->hash = hash;
-		operation->found_hash = TRUE;
+		/* The hash can change up to the moment of construction. After that,
+		 * it should be fixed.
+		 */
+		if (VIPS_OBJECT(operation)->constructed) {
+			operation->hash = hash;
+			operation->found_hash = TRUE;
+		}
 	}
 
-	return operation->hash;
+	return hash;
 }
 
 static void *
@@ -828,11 +835,33 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	g_mutex_unlock(vips_cache_lock);
 
 	/* If there was a miss, we need to build this operation and add
-	 * it to the cache if appropriate.
+	 * it to the cache, if appropriate.
 	 */
 	if (!hit) {
+		/* The _build method must not change the object hash. If it does, the
+		 * finished operation won't detect hits with next identical call.
+		 */
+		unsigned int hash_before = vips_operation_hash(*operation);
+
 		if (vips_object_build(VIPS_OBJECT(*operation)))
 			return -1;
+
+		unsigned int hash_after = vips_operation_hash(*operation);
+		if (hash_before != hash_after) {
+			VipsObject *object = VIPS_OBJECT(*operation);
+			VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+
+			char txt[256];
+			VipsBuf buf = VIPS_BUF_STATIC(txt);
+
+			vips_object_summary_class(class, &buf);
+			vips_buf_appends(&buf, ", ");
+			vips_object_summary(object, &buf);
+			vips_error(class->nickname,
+				_("hash changed during build, %s"), vips_buf_all(&buf));
+
+			return -1;
+		}
 
 		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
@@ -853,8 +882,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 					printf("vips cache : ");
 				else
 					printf("vips cache+: ");
-				vips_object_print_summary(
-					VIPS_OBJECT(*operation));
+				vips_object_print_summary(VIPS_OBJECT(*operation));
 			}
 
 			if (!(flags & VIPS_OPERATION_NOCACHE))

@@ -354,12 +354,11 @@ vips_object_check_required(VipsObject *object, GParamSpec *pspec,
 int
 vips_object_build(VipsObject *object)
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS(object);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 
 	/* Input and output args must both be set.
 	 */
-	VipsArgumentFlags iomask =
-		VIPS_ARGUMENT_INPUT | VIPS_ARGUMENT_OUTPUT;
+	VipsArgumentFlags iomask = VIPS_ARGUMENT_INPUT | VIPS_ARGUMENT_OUTPUT;
 
 	int result;
 
@@ -369,7 +368,7 @@ vips_object_build(VipsObject *object)
 	printf("\n");
 #endif /*DEBUG*/
 
-	if (object_class->build(object))
+	if (class->build(object))
 		return -1;
 
 	/* Check all required arguments have been supplied, don't stop on 1st
