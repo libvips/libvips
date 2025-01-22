@@ -486,10 +486,10 @@ vips_object_unref_arg(VipsObject *object,
 		g_object_get(G_OBJECT(object),
 			g_param_spec_get_name(pspec), &value, NULL);
 
-		/* This operation is probably going, so we must wipe the operation
-		 * pointer on the object.
+		/* This operation is probably going, so we must wipe the cache
+		 * entry pointer on the object.
 		 */
-		g_object_set_data(value, "libvips-operation", NULL);
+		g_object_set_data(value, "libvips-cache-entry", NULL);
 
 		/* Drop the ref we just got, then drop the ref we make when we
 		 * added to the cache.
@@ -602,7 +602,7 @@ vips_object_ref_arg(VipsObject *object,
 	VipsArgumentInstance *argument_instance,
 	void *a, void *b)
 {
-	VipsOperation *operation = VIPS_OPERATION(a);
+	VipsOperationCacheEntry *entry = a;
 
 	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
@@ -615,19 +615,17 @@ vips_object_ref_arg(VipsObject *object,
 		g_object_get(G_OBJECT(object),
 			g_param_spec_get_name(pspec), &value, NULL);
 
-		/* This object has been made by this operation.
+		/* This object has been made by this cache entry.
 		 */
-		g_object_set_data(value, "libvips-operation", operation);
+		g_object_set_data(value, "libvips-cache-entry", entry);
 	}
 
 	return NULL;
 }
 
 static void
-vips_operation_touch_operation(VipsOperation *operation)
+vips_entry_touch(VipsOperationCacheEntry *entry)
 {
-	VipsOperationCacheEntry *entry = vips_cache_operation_get(operation);
-
 	/* Don't up the time for invalid items -- we want them to fall out of
 	 * cache.
 	 */
@@ -638,11 +636,11 @@ vips_operation_touch_operation(VipsOperation *operation)
 static void *
 vips_image_touch_cb(VipsImage *image, void *a, void *b)
 {
-	VipsOperation *operation =
-		VIPS_OPERATION(g_object_get_data(G_OBJECT(image), "libvips-operation"));
+	VipsOperationCacheEntry *entry =
+		g_object_get_data(G_OBJECT(image), "libvips-cache-entry");
 
-	if (operation)
-		vips_operation_touch_operation(operation);
+	if (entry)
+		vips_entry_touch(entry);
 
 	return NULL;
 }
@@ -672,37 +670,31 @@ vips_object_touch_arg(VipsObject *object,
 	return NULL;
 }
 
-static void
-vips_operation_touch(VipsOperation *operation)
-{
-	vips_cache_time += 1;
-
-	/* Touch the operations on the upstream trees on all input images.
-	 */
-	(void) vips_argument_map(VIPS_OBJECT(operation),
-		vips_object_touch_arg, NULL, NULL);
-
-	/* And this operation.
-	 */
-	vips_operation_touch_operation(operation);
-}
-
 /* Ref an operation for the cache. The operation itself, plus all the output
  * objects it makes.
  */
 static void
-vips_cache_ref(VipsOperation *operation)
+vips_entry_ref(VipsOperationCacheEntry *entry)
 {
 #ifdef DEBUG
 	printf("vips_cache_ref: ");
-	vips_object_print_summary(VIPS_OBJECT(operation));
+	vips_object_print_summary(VIPS_OBJECT(entry->operation));
 #endif /*DEBUG*/
 
-	g_object_ref(operation);
-	(void) vips_argument_map(VIPS_OBJECT(operation),
-		vips_object_ref_arg, operation, NULL);
+	g_object_ref(entry->operation);
+	(void) vips_argument_map(VIPS_OBJECT(entry->operation),
+		vips_object_ref_arg, entry, NULL);
 
-	vips_operation_touch(operation);
+	vips_cache_time += 1;
+
+	/* Touch the cache entries on the upstream trees on all input images.
+	 */
+	(void) vips_argument_map(VIPS_OBJECT(entry->operation),
+		vips_object_touch_arg, NULL, NULL);
+
+	/* And this entry.
+	 */
+	vips_entry_touch(entry);
 }
 
 static void
@@ -733,7 +725,7 @@ vips_cache_insert(VipsOperation *operation)
 	entry->invalid = FALSE;
 
 	g_hash_table_insert(vips_cache_table, operation, entry);
-	vips_cache_ref(operation);
+	vips_entry_ref(entry);
 
 	/* If the operation signals "invalidate", we must tag this cache entry
 	 * for removal.
@@ -882,7 +874,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	 * passed.
 	 */
 	if (hit) {
-		vips_cache_ref(hit->operation);
+		vips_entry_ref(hit);
 		g_object_unref(*operation);
 		*operation = hit->operation;
 
