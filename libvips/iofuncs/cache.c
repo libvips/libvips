@@ -131,7 +131,7 @@ typedef struct _VipsOperationCacheEntry {
  * VipsImage. generics are much faster to compare.
  */
 static unsigned int
-vips_value_hash(GParamSpec *pspec, GValue *value)
+vips_value_hash(GParamSpec *pspec, const GValue *value)
 {
 	GType generic = G_PARAM_SPEC_TYPE(pspec);
 
@@ -227,7 +227,7 @@ vips_value_hash(GParamSpec *pspec, GValue *value)
  * could be of type VipsImage. generics are much faster to compare.
  */
 static gboolean
-vips_value_equal(GParamSpec *pspec, GValue *v1, GValue *v2)
+vips_value_equal(GParamSpec *pspec, const GValue *v1, const GValue *v2)
 {
 	GType generic = G_PARAM_SPEC_TYPE(pspec);
 	GType t1 = G_VALUE_TYPE(v1);
@@ -335,7 +335,7 @@ vips_object_hash_arg(VipsObject *object,
 	return NULL;
 }
 
-/* Find a hash from the input arguments to a VipsOperstion.
+/* Find a hash from the input arguments to a VipsOperation.
  */
 unsigned int
 vips_operation_hash(VipsOperation *operation)
@@ -468,12 +468,67 @@ vips_operation_copy(VipsOperation *operation)
 	return new;
 }
 
+static void *
+vips_object_unref_arg(VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b)
+{
+	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned &&
+		G_IS_PARAM_SPEC_OBJECT(pspec)) {
+		GObject *value;
+
+		/* This will up the ref count for us.
+		 */
+		g_object_get(G_OBJECT(object),
+			g_param_spec_get_name(pspec), &value, NULL);
+
+		/* This operation is probably going, so we must wipe the operation
+		 * pointer on the object.
+		 */
+		g_object_set_data(value, "libvips-operation", NULL);
+
+		/* Drop the ref we just got, then drop the ref we make when we
+		 * added to the cache.
+		 */
+		g_object_unref(value);
+		g_object_unref(value);
+	}
+
+	return NULL;
+}
+
+static void
+vips_cache_free_cb(VipsOperationCacheEntry *entry)
+{
+#ifdef DEBUG
+	printf("vips_cache_free_cb: ");
+	vips_object_print_summary(VIPS_OBJECT(entry->operation));
+#endif /*DEBUG*/
+
+	if (entry->invalidate_id) {
+		g_signal_handler_disconnect(entry->operation, entry->invalidate_id);
+		entry->invalidate_id = 0;
+	}
+
+	(void) vips_argument_map(VIPS_OBJECT(entry->operation),
+		vips_object_unref_arg, NULL, NULL);
+	g_object_unref(entry->operation);
+
+	g_free(entry);
+}
+
 void *
 vips__cache_once_init(void *data)
 {
-	vips_cache_table = g_hash_table_new(
+	vips_cache_table = g_hash_table_new_full(
 		(GHashFunc) vips_operation_hash,
-		(GEqualFunc) vips_operation_equal);
+		(GEqualFunc) vips_operation_equal,
+		NULL,
+		(GDestroyNotify) vips_cache_free_cb);
 
 	return NULL;
 }
@@ -526,52 +581,6 @@ vips_cache_print(void)
 	g_mutex_unlock(&vips_cache_lock);
 }
 
-static void *
-vips_object_unref_arg(VipsObject *object,
-	GParamSpec *pspec,
-	VipsArgumentClass *argument_class,
-	VipsArgumentInstance *argument_instance,
-	void *a, void *b)
-{
-	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
-		argument_instance->assigned &&
-		G_IS_PARAM_SPEC_OBJECT(pspec)) {
-		GObject *value;
-
-		/* This will up the ref count for us.
-		 */
-		g_object_get(G_OBJECT(object),
-			g_param_spec_get_name(pspec), &value, NULL);
-
-		/* This operation is probably going, so we must wipe the operation
-		 * pointer on the object.
-		 */
-		g_object_set_data(value, "libvips-operation", NULL);
-
-		/* Drop the ref we just got, then drop the ref we make when we
-		 * added to the cache.
-		 */
-		g_object_unref(value);
-		g_object_unref(value);
-	}
-
-	return NULL;
-}
-
-static void
-vips_cache_unref(VipsOperation *operation)
-{
-#ifdef DEBUG
-	printf("vips_cache_unref: ");
-	vips_object_print_summary(VIPS_OBJECT(operation));
-#endif /*DEBUG*/
-
-	(void) vips_argument_map(VIPS_OBJECT(operation),
-		vips_object_unref_arg, operation, NULL);
-	g_object_unref(operation);
-}
-
 static VipsOperationCacheEntry *
 vips_cache_operation_get(VipsOperation *operation)
 {
@@ -583,24 +592,7 @@ vips_cache_operation_get(VipsOperation *operation)
 static void
 vips_cache_remove(VipsOperation *operation)
 {
-	VipsOperationCacheEntry *entry = vips_cache_operation_get(operation);
-
-#ifdef DEBUG
-	printf("vips_cache_remove: ");
-	vips_object_print_summary(VIPS_OBJECT(operation));
-#endif /*DEBUG*/
-
-	g_assert(entry);
-
-	if (entry->invalidate_id) {
-		g_signal_handler_disconnect(operation, entry->invalidate_id);
-		entry->invalidate_id = 0;
-	}
-
 	g_hash_table_remove(vips_cache_table, operation);
-	vips_cache_unref(operation);
-
-	g_free(entry);
 }
 
 static void *
@@ -750,27 +742,6 @@ vips_cache_insert(VipsOperation *operation)
 		G_CALLBACK(vips_cache_invalidate_cb), entry);
 }
 
-static void *
-vips_cache_get_first_fn(void *value, void *a, void *b)
-{
-	return value;
-}
-
-/* Return the first item.
- */
-static VipsOperation *
-vips_cache_get_first(void)
-{
-	VipsOperationCacheEntry *entry;
-
-	if (vips_cache_table &&
-		(entry = vips_hash_table_map(vips_cache_table,
-			 vips_cache_get_first_fn, NULL, NULL)))
-		return VIPS_OPERATION(entry->operation);
-
-	return NULL;
-}
-
 /**
  * vips_cache_drop_all:
  *
@@ -787,18 +758,10 @@ vips_cache_drop_all(void)
 	g_mutex_lock(&vips_cache_lock);
 
 	if (vips_cache_table) {
-		VipsOperation *operation;
-
 		if (vips__cache_dump)
 			vips_cache_print_nolock();
 
-		/* We can't modify the hash in the callback from
-		 * [func@GLib.hash_table_foreach] and friends. Repeatedly drop the
-		 * first item instead.
-		 */
-		while ((operation = vips_cache_get_first()))
-			vips_cache_remove(operation);
-
+		g_hash_table_remove_all(vips_cache_table);
 		VIPS_FREEF(g_hash_table_unref, vips_cache_table);
 	}
 
