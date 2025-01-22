@@ -1067,7 +1067,9 @@ class TestForeign:
         assert x2.get("bits-per-sample") == 4
         assert x2.get("palette") == 1
 
-        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE,
+                                        n=-1,
+                                        access="sequential")
         # our test gif has delay 0 for the first frame set in error
         assert x2.get("delay") == [0, 50, 50, 50, 50]
         assert x2.get("loop") == 32761

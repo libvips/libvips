@@ -888,7 +888,8 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 #ifdef DEBUG_BUILD
 		unsigned int hash_after = vips_operation_hash(*operation);
-		if (hash_before != hash_after) {
+		if (!(flags & VIPS_OPERATION_NOCACHE) &&
+			hash_before != hash_after) {
 			const char *name = (const char *)
 				vips_argument_map(VIPS_OBJECT(*operation),
 					vips_object_equal_arg, operation_before, NULL);
