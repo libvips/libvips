@@ -2939,8 +2939,7 @@ vips_class_build_hash_cb(void *dummy)
 {
 	GType base;
 
-	vips__object_nickname_table =
-		g_hash_table_new(g_str_hash, g_str_equal);
+	vips__object_nickname_table = g_hash_table_new(g_str_hash, g_str_equal);
 
 	base = g_type_from_name("VipsObject");
 	g_assert(base);
@@ -2981,8 +2980,7 @@ vips_type_find(const char *basename, const char *nickname)
 	VIPS_ONCE(&once, vips_class_build_hash_cb, NULL);
 
 	hit = (NicknameGType *)
-		g_hash_table_lookup(vips__object_nickname_table,
-			(void *) nickname);
+		g_hash_table_lookup(vips__object_nickname_table, (void *) nickname);
 
 	/* We must only search below basename ... check that the cache hit is
 	 * in the right part of the tree.
@@ -3162,14 +3160,12 @@ vips__object_leak(void)
 	/* Don't count static objects.
 	 */
 	if (vips__object_all &&
-		g_hash_table_size(vips__object_all) >
-			vips_object_n_static()) {
+		g_hash_table_size(vips__object_all) > vips_object_n_static()) {
 		fprintf(stderr, "%d objects alive:\n",
 			g_hash_table_size(vips__object_all));
 
 		vips_object_map(
-			(VipsSListMap2Fn) vips_object_print_all_cb,
-			&n_leaks, NULL);
+			(VipsSListMap2Fn) vips_object_print_all_cb, &n_leaks, NULL);
 	}
 
 	return n_leaks;

@@ -50,6 +50,7 @@
 #define DEBUG
 #define VIPS_DEBUG
  */
+#define DEBUG_BUILD
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -400,7 +401,7 @@ vips_object_equal_arg(VipsObject *object,
 		/* Optional and was not set on other ... we've found a
 		 * difference!
 		 */
-		return object;
+		return (void *) name;
 
 	g_value_init(&v1, type);
 	g_value_init(&v2, type);
@@ -412,7 +413,7 @@ vips_object_equal_arg(VipsObject *object,
 
 	/* Stop (return non-NULL) if we've found a difference.
 	 */
-	return !equal ? object : NULL;
+	return !equal ? (void *) name : NULL;
 }
 
 /* Are two objects equal, ie. have the same inputs.
@@ -425,11 +426,47 @@ vips_operation_equal(VipsOperation *a, VipsOperation *b)
 
 	if (G_OBJECT_TYPE(a) == G_OBJECT_TYPE(b) &&
 		vips_operation_hash(a) == vips_operation_hash(b) &&
-		!vips_argument_map(VIPS_OBJECT(a),
-			vips_object_equal_arg, b, NULL))
+		!vips_argument_map(VIPS_OBJECT(a), vips_object_equal_arg, b, NULL))
 		return TRUE;
 
 	return FALSE;
+}
+
+static void *
+vips_operation_copy_argument(VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b)
+{
+	VipsOperation *new = VIPS_OPERATION(a);
+
+	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+		argument_instance->assigned) {
+		const char *name = g_param_spec_get_name(pspec);
+		GType type = G_PARAM_SPEC_VALUE_TYPE(pspec);
+		GValue value = G_VALUE_INIT;
+
+		g_value_init(&value, type);
+		g_object_get_property(G_OBJECT(object), name, &value);
+		g_object_set_property(G_OBJECT(new), name, &value);
+		g_value_unset(&value);
+	}
+
+	return NULL;
+}
+
+static VipsOperation *
+vips_operation_copy(VipsOperation *operation)
+{
+	VipsObject *object = VIPS_OBJECT(operation);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+
+	VipsOperation *new = vips_operation_new(class->nickname);
+	(void) vips_argument_map(object, vips_operation_copy_argument, new, NULL);
+
+	return new;
 }
 
 void *
@@ -838,30 +875,43 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	 * it to the cache, if appropriate.
 	 */
 	if (!hit) {
+#ifdef DEBUG_BUILD
 		/* The _build method must not change the object hash. If it does, the
 		 * finished operation won't detect hits with next identical call.
 		 */
 		unsigned int hash_before = vips_operation_hash(*operation);
+		VipsOperation *operation_before = vips_operation_copy(*operation);
+#endif /*DEBUG_BUILD*/
 
 		if (vips_object_build(VIPS_OBJECT(*operation)))
 			return -1;
 
+#ifdef DEBUG_BUILD
 		unsigned int hash_after = vips_operation_hash(*operation);
 		if (hash_before != hash_after) {
+			const char *name = (const char *)
+				vips_argument_map(VIPS_OBJECT(*operation),
+					vips_object_equal_arg, operation_before, NULL);
 			VipsObject *object = VIPS_OBJECT(*operation);
 			VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 
 			char txt[256];
 			VipsBuf buf = VIPS_BUF_STATIC(txt);
 
+			VIPS_UNREF(operation_before);
+
 			vips_object_summary_class(class, &buf);
 			vips_buf_appends(&buf, ", ");
 			vips_object_summary(object, &buf);
-			vips_error(class->nickname,
-				_("hash changed during build, %s"), vips_buf_all(&buf));
+			vips_buf_appends(&buf, ", ");
+			vips_error(class->nickname, "arg \"%s\" changed during build, %s",
+				name, vips_buf_all(&buf));
 
 			return -1;
 		}
+
+		VIPS_UNREF(operation_before);
+#endif /*DEBUG_BUILD*/
 
 		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
