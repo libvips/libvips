@@ -85,12 +85,6 @@ vips_fill_nearest_finalize(GObject *gobject)
 {
 	VipsFillNearest *nearest = (VipsFillNearest *) gobject;
 
-#ifdef DEBUG
-	printf("vips_fill_nearest_finalize: ");
-	vips_object_print_name(VIPS_OBJECT(gobject));
-	printf("\n");
-#endif /*DEBUG*/
-
 	VIPS_FREEF(g_array_unref, nearest->seeds);
 
 	G_OBJECT_CLASS(vips_fill_nearest_parent_class)->finalize(gobject);
@@ -244,8 +238,7 @@ vips_fill_nearest_build(VipsObject *object)
 			if (i != ps) {
 				Seed *seed;
 
-				g_array_set_size(nearest->seeds,
-					nearest->seeds->len + 1);
+				g_array_set_size(nearest->seeds, nearest->seeds->len + 1);
 				seed = &g_array_index(nearest->seeds,
 					Seed, nearest->seeds->len - 1);
 				seed->x = x;
@@ -261,9 +254,9 @@ vips_fill_nearest_build(VipsObject *object)
 	/* Create the output and distance images in memory.
 	 */
 	g_object_set(object, "distance", vips_image_new_memory(), NULL);
-	if (vips_black(&t[1], nearest->width, nearest->height, NULL) ||
-		vips_cast(t[1], &t[2], VIPS_FORMAT_FLOAT, NULL) ||
-		vips_image_write(t[2], nearest->distance))
+	if (vips_black(&t[0], nearest->width, nearest->height, NULL) ||
+		vips_cast(t[0], &t[1], VIPS_FORMAT_FLOAT, NULL) ||
+		vips_image_write(t[1], nearest->distance))
 		return -1;
 
 	g_object_set(object, "out", vips_image_new_memory(), NULL);
