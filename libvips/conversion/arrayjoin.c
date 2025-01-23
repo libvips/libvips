@@ -240,15 +240,15 @@ vips_arrayjoin_build(VipsObject *object)
 	}
 
 	if (!vips_object_argument_isset(object, "hspacing"))
-		join->hspacing = hspacing;
+		join->hspacing = hspacing; // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "vspacing"))
-		join->vspacing = vspacing;
+		join->vspacing = vspacing; // FIXME: Invalidates operation cache
 
 	hspacing = join->hspacing;
 	vspacing = join->vspacing;
 
 	if (!vips_object_argument_isset(object, "across"))
-		join->across = n;
+		join->across = n; // FIXME: Invalidates operation cache
 
 	/* How many images down the grid?
 	 */

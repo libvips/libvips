@@ -224,7 +224,7 @@ vips_premultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		premultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
+		premultiply->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
 	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;

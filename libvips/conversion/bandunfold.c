@@ -119,7 +119,8 @@ vips_bandunfold_build(VipsObject *object)
 		return -1;
 
 	if (bandunfold->factor == 0)
-		bandunfold->factor = bandunfold->in->Bands;
+		bandunfold->factor = bandunfold->in->Bands; // FIXME: Invalidates operation cache
+
 	if (bandunfold->in->Bands % bandunfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image bands"));

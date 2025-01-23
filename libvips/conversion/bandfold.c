@@ -116,7 +116,8 @@ vips_bandfold_build(VipsObject *object)
 		return -1;
 
 	if (bandfold->factor == 0)
-		bandfold->factor = bandfold->in->Xsize;
+		bandfold->factor = bandfold->in->Xsize; // FIXME: Invalidates operation cache
+
 	if (bandfold->in->Xsize % bandfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image width"));

@@ -293,7 +293,7 @@ vips_quadratic_build(VipsObject *object)
 	}
 
 	if (!quadratic->interpolate)
-		quadratic->interpolate = vips_interpolate_new("bilinear");
+		quadratic->interpolate = vips_interpolate_new("bilinear"); // FIXME: Invalidates operation cache
 
 	window_size = vips_interpolate_get_window_size(quadratic->interpolate);
 	window_offset = vips_interpolate_get_window_offset(quadratic->interpolate);

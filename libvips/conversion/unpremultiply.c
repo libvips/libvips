@@ -281,12 +281,12 @@ vips_unpremultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
+		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
 	/* Is alpha-band unset? Default to the final band for this image.
 	 */
 	if (!vips_object_argument_isset(object, "alpha_band"))
-		unpremultiply->alpha_band = in->Bands - 1;
+		unpremultiply->alpha_band = in->Bands - 1; // FIXME: Invalidates operation cache
 
 	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;

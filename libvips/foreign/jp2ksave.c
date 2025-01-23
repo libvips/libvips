@@ -822,7 +822,7 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	/* The "lossless" param implies no chroma subsampling.
 	 */
 	if (jp2k->lossless)
-		jp2k->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+		jp2k->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF; // FIXME: Invalidates operation cache
 
 	switch (jp2k->subsample_mode) {
 	case VIPS_FOREIGN_SUBSAMPLE_AUTO:

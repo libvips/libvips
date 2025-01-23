@@ -117,9 +117,9 @@ vips_measure_build(VipsObject *object)
 	/* left/top/width/height default to the size of the image.
 	 */
 	if (!vips_object_argument_isset(object, "width"))
-		measure->width = vips_image_get_width(ready);
+		measure->width = vips_image_get_width(ready); // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "height"))
-		measure->height = vips_image_get_height(ready);
+		measure->height = vips_image_get_height(ready); // FIXME: Invalidates operation cache
 
 	/* How large are the patches we are to measure?
 	 */

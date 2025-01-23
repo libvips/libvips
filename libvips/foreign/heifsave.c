@@ -526,17 +526,17 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 */
 	if (vips_object_argument_isset(object, "speed") &&
 		!vips_object_argument_isset(object, "effort"))
-		heif->effort = 9 - heif->speed;
+		heif->effort = 9 - heif->speed; // FIXME: Invalidates operation cache
 
 	/* The "lossless" param implies no chroma subsampling.
 	 */
 	if (heif->lossless)
-		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF; // FIXME: Invalidates operation cache
 
 	/* Default 12 bit save for 16-bit images.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
-		heif->bitdepth =
+		heif->bitdepth = // FIXME: Invalidates operation cache
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16
 			? 12
@@ -869,7 +869,7 @@ vips_foreign_save_heif_file_build(VipsObject *object)
 		return -1;
 
 	if (vips_iscasepostfix(file->filename, ".avif"))
-		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
+		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1; // FIXME: Invalidates operation cache
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
 			->build(object))

@@ -371,7 +371,7 @@ vips_embed_base_build(VipsObject *object)
 
 	if (!vips_object_argument_isset(object, "extend") &&
 		vips_object_argument_isset(object, "background"))
-		base->extend = VIPS_EXTEND_BACKGROUND;
+		base->extend = VIPS_EXTEND_BACKGROUND; // FIXME: Invalidates operation cache
 
 	if (base->extend == VIPS_EXTEND_BACKGROUND)
 		if (!(base->ink = vips__vector_to_ink(
