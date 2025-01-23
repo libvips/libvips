@@ -122,7 +122,7 @@ vips_match_build(VipsObject *object)
 		return -1;
 
 	if (!match->interpolate)
-		match->interpolate = vips_interpolate_new("bilinear");
+		match->interpolate = vips_interpolate_new("bilinear"); // FIXME: Invalidates operation cache
 
 	if (match->search) {
 		int xs, ys;
@@ -133,8 +133,8 @@ vips_match_build(VipsObject *object)
 				match->hwindow, match->harea,
 				&cor, &xs, &ys))
 			return -1;
-		match->xs1 = xs;
-		match->ys1 = ys;
+		match->xs1 = xs; // FIXME: Invalidates operation cache
+		match->ys1 = ys; // FIXME: Invalidates operation cache
 
 		if (vips__correl(match->ref, match->sec,
 				match->xr2, match->yr2, match->xs2, match->ys2,
@@ -142,8 +142,8 @@ vips_match_build(VipsObject *object)
 				&cor, &xs, &ys))
 			return -1;
 
-		match->xs2 = xs;
-		match->ys2 = ys;
+		match->xs2 = xs; // FIXME: Invalidates operation cache
+		match->ys2 = ys; // FIXME: Invalidates operation cache
 	}
 
 	/* Solve to get scale + rot + disp to obtain match.

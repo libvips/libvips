@@ -607,7 +607,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 	/* If no output bitdepth has been specified, use input Type to pick.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
-		spng->bitdepth =
+		spng->bitdepth = // FIXME: Invalidates operation cache
 			in->Type == VIPS_INTERPRETATION_RGB16 ||
 				in->Type == VIPS_INTERPRETATION_GREY16
 			? 16
@@ -617,7 +617,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 	 * that many colours.
 	 */
 	if (vips_object_argument_isset(object, "colours"))
-		spng->bitdepth = ceil(log2(spng->colours));
+		spng->bitdepth = ceil(log2(spng->colours)); // FIXME: Invalidates operation cache
 
 	/* Cast in down to 8 bit if we can.
 	 */
@@ -637,12 +637,12 @@ vips_foreign_save_spng_build(VipsObject *object)
 	 */
 	if (in->Bands > 2 &&
 		spng->bitdepth < 8)
-		spng->palette = TRUE;
+		spng->palette = TRUE; // FIXME: Invalidates operation cache
 
 	/* Disable palettization for >8 bit save.
 	 */
 	if (spng->bitdepth > 8)
-		spng->palette = FALSE;
+		spng->palette = FALSE; // FIXME: Invalidates operation cache
 
 	if (vips_foreign_save_spng_write(spng, in)) {
 		g_object_unref(in);

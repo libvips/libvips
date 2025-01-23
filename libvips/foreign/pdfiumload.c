@@ -277,7 +277,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 	VIPS_ONCE(&once, vips_pdfium_init_cb, NULL);
 
 	if (!vips_object_argument_isset(object, "scale"))
-		pdf->scale = pdf->dpi / 72.0;
+		pdf->scale = pdf->dpi / 72.0; // FIXME: Invalidates operation cache
 
 	pdf->form_callbacks.version = 2;
 
@@ -470,7 +470,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* @n == -1 means until the end of the doc.
 	 */
 	if (pdf->n == -1)
-		pdf->n = pdf->n_pages - pdf->page_no;
+		pdf->n = pdf->n_pages - pdf->page_no; // FIXME: Invalidates operation cache
 
 	if (pdf->page_no + pdf->n > pdf->n_pages ||
 		pdf->page_no < 0 ||

@@ -897,7 +897,7 @@ vips_line_cache_gen(VipsRegion *out_region,
 	 */
 	if (out_region->valid.height >
 		block_cache->max_tiles * block_cache->tile_height) {
-		block_cache->max_tiles =
+		block_cache->max_tiles = // FIXME: Invalidates operation cache
 			1 + (out_region->valid.height / block_cache->tile_height);
 		VIPS_DEBUG_MSG("vips_line_cache_gen: bumped max_tiles to %d\n",
 			block_cache->max_tiles);
@@ -922,7 +922,7 @@ vips_line_cache_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_line_cache_build\n");
 
 	if (!vips_object_argument_isset(object, "access"))
-		block_cache->access = VIPS_ACCESS_SEQUENTIAL;
+		block_cache->access = VIPS_ACCESS_SEQUENTIAL; // FIXME: Invalidates operation cache
 
 	if (VIPS_OBJECT_CLASS(vips_line_cache_parent_class)->build(object))
 		return -1;
@@ -931,7 +931,7 @@ vips_line_cache_build(VipsObject *object)
 	 */
 	vips_get_tile_size(block_cache->in,
 		&tile_width, &tile_height, &n_lines);
-	block_cache->tile_width = block_cache->in->Xsize;
+	block_cache->tile_width = block_cache->in->Xsize; // FIXME: Invalidates operation cache
 
 	/* Output has two buffers n_lines height, so 2 * n_lines is the maximum
 	 * non-locality from threading. Double again for conv, rounding, etc.
@@ -941,7 +941,7 @@ vips_line_cache_build(VipsObject *object)
 	 * minimum of two strips, so we can handle requests that straddle a
 	 * tile boundary.
 	 */
-	block_cache->max_tiles = VIPS_MAX(2,
+	block_cache->max_tiles = VIPS_MAX(2, // FIXME: Invalidates operation cache
 		4 * n_lines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG("vips_line_cache_build: n_lines = %d\n",

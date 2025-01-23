@@ -253,7 +253,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	switch (ppm->format) {
 	case VIPS_FOREIGN_PPM_FORMAT_PBM:
 		if (!vips_object_argument_isset(object, "bitdepth"))
-			ppm->bitdepth = 1;
+			ppm->bitdepth = 1; // FIXME: Invalidates operation cache
 		target_format = VIPS_FORMAT_UCHAR;
 		target_interpretation = VIPS_INTERPRETATION_B_W;
 		target_bands = 1;
@@ -325,7 +325,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	/* Handle the deprecated squash parameter.
 	 */
 	if (ppm->squash)
-		ppm->bitdepth = 1;
+		ppm->bitdepth = 1; // FIXME: Invalidates operation cache
 
 	if (vips_check_uintorf("vips2ppm", image) ||
 		vips_check_bands_1or3("vips2ppm", image) ||
@@ -336,7 +336,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	if (ppm->ascii &&
 		image->BandFmt == VIPS_FORMAT_FLOAT) {
 		g_warning("%s", _("float images must be binary -- disabling ascii"));
-		ppm->ascii = FALSE;
+		ppm->ascii = FALSE; // FIXME: Invalidates operation cache
 	}
 
 	/* One bit images must come from a 8 bit, one band source.

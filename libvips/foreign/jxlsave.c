@@ -492,9 +492,9 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 */
 	if (!vips_object_argument_isset(object, "distance"))
 #ifdef HAVE_LIBJXL_0_9
-		jxl->distance = JxlEncoderDistanceFromQuality((float) jxl->Q);
+		jxl->distance = JxlEncoderDistanceFromQuality((float) jxl->Q); // FIXME: Invalidates operation cache
 #else
-		jxl->distance = jxl->Q >= 30
+		jxl->distance = jxl->Q >= 30 // FIXME: Invalidates operation cache
 			? 0.1 + (100 - jxl->Q) * 0.09
 			: 53.0 / 3000.0 * jxl->Q * jxl->Q - 23.0 / 20.0 * jxl->Q + 25.0;
 #endif

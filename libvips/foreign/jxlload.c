@@ -745,7 +745,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 	if (jxl->frame_count > 1) {
 		if (jxl->n == -1)
-			jxl->n = jxl->frame_count - jxl->page;
+			jxl->n = jxl->frame_count - jxl->page; // FIXME: Invalidates operation cache
 
 		if (jxl->page < 0 ||
 			jxl->n <= 0 ||
@@ -772,8 +772,8 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		}
 	}
 	else {
-		jxl->n = 1;
-		jxl->page = 0;
+		jxl->n = 1; // FIXME: Invalidates operation cache
+		jxl->page = 0; // FIXME: Invalidates operation cache
 	}
 
 	/* Init jxl->frame only when we need to decode multiple frames.
