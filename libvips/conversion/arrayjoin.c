@@ -64,7 +64,7 @@ typedef struct _VipsArrayjoin {
 	VipsArrayImage *in;
 	int across;
 	int shim;
-	VipsArea *background;
+	VipsArrayDouble *background;
 	VipsAlign halign;
 	VipsAlign valign;
 	int hspacing;
@@ -224,7 +224,7 @@ vips_arrayjoin_build(VipsObject *object)
 	 */
 	band = (VipsImage **) vips_object_local_array(object, n);
 	if (vips__bandalike_vec(class->nickname,
-			in, band, n, join->background->n))
+			in, band, n, VIPS_AREA(join->background)->n))
 		return -1;
 	in = band;
 
@@ -452,9 +452,7 @@ vips_arrayjoin_init(VipsArrayjoin *join)
 {
 	/* Init our instance fields.
 	 */
-	join->background =
-		vips_area_new_array(G_TYPE_DOUBLE, sizeof(double), 1);
-	((double *) (join->background->data))[0] = 0.0;
+	join->background = vips_array_double_newv(1, 0.0);
 }
 
 static int
