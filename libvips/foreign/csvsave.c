@@ -56,7 +56,7 @@ typedef struct _VipsForeignSaveCsv {
 
 	VipsTarget *target;
 
-	const char *separator;
+	char *separator;
 } VipsForeignSaveCsv;
 
 typedef VipsForeignSaveClass VipsForeignSaveCsvClass;

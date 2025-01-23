@@ -142,7 +142,7 @@ typedef struct _VipsForeignLoadPdf {
 
 	/* Decrypt with this.
 	 */
-	const char *password;
+	char *password;
 
 	FPDF_FILEACCESS file_access;
 	FPDF_DOCUMENT doc;

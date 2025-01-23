@@ -134,7 +134,7 @@ typedef struct _VipsForeignLoadPdf {
 
 	/* Decrypt with this.
 	 */
-	const char *password;
+	char *password;
 
 	/* Poppler is not thread-safe, so we run inside a single-threaded
 	 * cache. On the plus side, this means we only need one @page pointer,

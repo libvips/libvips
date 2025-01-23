@@ -72,8 +72,8 @@ typedef struct _VipsForeignLoadCsv {
 	 */
 	int skip;
 	int lines;
-	const char *whitespace;
-	const char *separator;
+	char *whitespace;
+	char *separator;
 
 	/* Current position in file for error messages.
 	 */
