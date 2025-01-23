@@ -475,9 +475,16 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 			(*layer)->target = wtiff->target;
 			g_object_ref((*layer)->target);
 		}
-		else
-			(*layer)->target =
-				vips_target_new_temp(wtiff->target);
+		else {
+			const guint64 disc_threshold = vips_get_disc_threshold();
+			const guint64 layer_size =
+				VIPS_IMAGE_SIZEOF_PEL(wtiff->ready) * width * height;
+
+			if (layer_size > disc_threshold)
+				(*layer)->target = vips_target_new_temp(wtiff->target);
+			else
+				(*layer)->target = vips_target_new_to_memory();
+		}
 
 		/*
 		printf("wtiff_layer_init: sub = %d, width = %d, height = %d\n",
