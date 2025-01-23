@@ -129,7 +129,7 @@ vips_cache_class_init(VipsCacheClass *class)
 		_("Maximum number of tiles to cache"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsCache, max_tiles),
-		-1, 1000000, 1000);
+		-1, 1000000, 250);
 }
 
 static void

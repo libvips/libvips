@@ -170,7 +170,7 @@ vips_clamp_class_init(VipsClampClass *class)
 		_("Maximum value"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsClamp, max),
-		-INFINITY, INFINITY, 0.0);
+		-INFINITY, INFINITY, 1.0);
 }
 
 static void

@@ -254,7 +254,7 @@ vips_msb_class_init(VipsMsbClass *class)
 		_("Band to msb"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMsb, band),
-		0, 100000000, 0);
+		-1, 100000000, -1);
 }
 
 static void

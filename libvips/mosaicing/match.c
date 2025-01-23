@@ -271,14 +271,14 @@ vips_match_class_init(VipsMatchClass *class)
 		_("Half window size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMatch, hwindow),
-		0, 1000000000, 1);
+		0, 1000000000, 5);
 
 	VIPS_ARG_INT(class, "harea", 14,
 		_("harea"),
 		_("Half area size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMatch, harea),
-		0, 1000000000, 1);
+		0, 1000000000, 15);
 
 	VIPS_ARG_BOOL(class, "search", 15,
 		_("Search"),
