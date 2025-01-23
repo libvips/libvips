@@ -147,73 +147,69 @@ vips_foreign_save_tiff_build(VipsObject *object)
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 
-	const char *p;
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_parent_class)->build(object))
+		return -1;
+
+	VipsImage *ready = save->ready;
+	g_object_ref(ready);
 
 	/* If we are saving jpeg-in-tiff, we need a different convert_saveable
 	 * path. The regular tiff one will let through things like float and
 	 * 16-bit and alpha for example, which will make the jpeg saver choke.
 	 */
-	if (save->in &&
-		tiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_JPEG) {
+	if (tiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_JPEG) {
 		VipsImage *x;
 
 		/* See also vips_foreign_save_jpeg_class_init().
 		 */
-		if (vips__foreign_convert_saveable(save->in, &x,
+		if (vips__foreign_convert_saveable(ready, &x,
 				VIPS_SAVEABLE_RGB_CMYK, bandfmt_jpeg, class->coding,
-				save->background))
+				save->background)) {
+			VIPS_UNREF(ready);
 			return -1;
+		}
 
-		g_object_set(object, "in", x, NULL);
-		g_object_unref(x);
+		VIPS_UNREF(ready);
+		ready = x;
 	}
-
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_parent_class)->build(object))
-		return -1;
-
-	/* Default xres/yres to the values from the image. This is always
-	 * pixels/mm.
-	 */
-	if (!vips_object_argument_isset(object, "xres"))
-		tiff->xres = save->ready->Xres;
-	if (!vips_object_argument_isset(object, "yres"))
-		tiff->yres = save->ready->Yres;
-
-	/* We default to pixels/cm.
-	 */
-	tiff->xres *= 10.0;
-	tiff->yres *= 10.0;
 
 	/* resunit param overrides resunit metadata.
 	 */
+	VipsForeignTiffResunit resunit = tiff->resunit;
+	const char *p;
 	if (!vips_object_argument_isset(object, "resunit") &&
-		vips_image_get_typeof(save->ready,
-			VIPS_META_RESOLUTION_UNIT) &&
-		!vips_image_get_string(save->ready,
-			VIPS_META_RESOLUTION_UNIT, &p) &&
+		vips_image_get_typeof(ready, VIPS_META_RESOLUTION_UNIT) &&
+		!vips_image_get_string(ready, VIPS_META_RESOLUTION_UNIT, &p) &&
 		vips_isprefix("in", p))
-		tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
+		resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 
-	if (tiff->resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH) {
-		tiff->xres *= 2.54;
-		tiff->yres *= 2.54;
+	double xres;
+	xres = ready->Xres;
+	if (vips_object_argument_isset(object, "xres")) {
+		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
+			xres = tiff->xres * 25.4;
+		else
+			xres = tiff->xres * 10.0;
 	}
 
-	/* Handle the deprecated squash parameter.
-	 */
-	if (tiff->squash)
-		/* We set that even in the case of LAB to LABQ.
-		 */
-		tiff->bitdepth = 1;
+	double yres;
+	yres = ready->Yres;
+	if (vips_object_argument_isset(object, "yres")) {
+		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
+			yres = tiff->yres * 25.4;
+		else
+			yres = tiff->yres * 10.0;
+	}
 
-	if (vips__tiff_write_target(save->ready, tiff->target,
+	if (vips__tiff_write_target(ready, tiff->target,
 			tiff->compression, tiff->Q, tiff->predictor,
 			save->profile,
 			tiff->tile, tiff->tile_width, tiff->tile_height,
 			tiff->pyramid,
-			tiff->bitdepth,
+			// deprecated "squash" param
+			tiff->squash ? 1 : tiff->bitdepth,
 			tiff->miniswhite,
-			tiff->resunit, tiff->xres, tiff->yres,
+			resunit, xres, yres,
 			tiff->bigtiff,
 			tiff->rgbjpeg,
 			tiff->properties,
@@ -223,8 +219,12 @@ vips_foreign_save_tiff_build(VipsObject *object)
 			tiff->depth,
 			tiff->subifd,
 			tiff->premultiply,
-			save->page_height))
+			save->page_height)) {
+		VIPS_UNREF(ready);
 		return -1;
+	}
+
+	VIPS_UNREF(ready);
 
 	if (vips_target_end(tiff->target))
 		return -1;

@@ -368,6 +368,8 @@ int vips__correl(VipsImage *ref, VipsImage *sec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y);
 
+unsigned int vips_operation_hash(VipsOperation *operation);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

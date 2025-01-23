@@ -334,7 +334,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	layers_above = VIPS_CEIL(max / depth);
 	depth = max / layers_above;
 	layers_below = VIPS_FLOOR(min / depth);
-	conva->layers = layers_above - layers_below;
+	conva->layers = layers_above - layers_below; // FIXME: Invalidates operation cache
 
 	VIPS_DEBUG_MSG("vips_conva_decompose_hlines: depth = %g, layers = %d\n",
 		depth, conva->layers);

@@ -131,6 +131,10 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	int gif_delay;
 
+	/* n, ready for libnsgif.
+	 */
+	int gif_n;
+
 	/* If the GIF contains any frames with transparent elements.
 	 */
 	gboolean has_transparency;
@@ -263,7 +267,7 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	VIPS_DEBUG_MSG("vips_foreign_load_nsgif_set_header:\n");
 
 	vips_image_init_fields(image,
-		gif->info->width, gif->info->height * gif->n,
+		gif->info->width, gif->info->height * gif->gif_n,
 		gif->has_transparency ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
@@ -272,9 +276,8 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.
 	 */
-	if (gif->n > 1)
-		vips_image_set_int(image,
-			VIPS_META_PAGE_HEIGHT, gif->info->height);
+	if (gif->gif_n > 1)
+		vips_image_set_int(image, VIPS_META_PAGE_HEIGHT, gif->info->height);
 	vips_image_set_int(image, VIPS_META_N_PAGES,
 		gif->info->frame_count);
 	vips_image_set_int(image, "loop", gif->info->loop_max);
@@ -435,11 +438,13 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	}
 
 	if (gif->n == -1)
-		gif->n = gif->info->frame_count - gif->page;
+		gif->gif_n = gif->info->frame_count - gif->page;
+	else
+		gif->gif_n = gif->n;
 
 	if (gif->page < 0 ||
-		gif->n <= 0 ||
-		gif->page + gif->n > gif->info->frame_count) {
+		gif->gif_n <= 0 ||
+		gif->page + gif->gif_n > gif->info->frame_count) {
 		vips_error(class->nickname, "%s", _("bad page number"));
 		return -1;
 	}
@@ -680,6 +685,7 @@ vips_foreign_load_nsgif_init(VipsForeignLoadNsgif *gif)
 	}
 
 	gif->n = 1;
+	gif->gif_n = 1;
 	gif->frame_number = -1;
 	gif->bitmap = NULL;
 }

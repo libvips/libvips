@@ -204,7 +204,7 @@ vips_foreign_load_magick_file_header(VipsForeignLoad *load)
 		(VipsForeignLoadMagickFile *) load;
 
 	if (magick->all_frames)
-		magick->n = -1;
+		magick->n = -1; // FIXME: Invalidates operation cache
 
 	if (vips__magick_read(magick_file->filename,
 			load->out, magick->density,
@@ -280,7 +280,7 @@ vips_foreign_load_magick_buffer_header(VipsForeignLoad *load)
 		(VipsForeignLoadMagickBuffer *) load;
 
 	if (magick->all_frames)
-		magick->n = -1;
+		magick->n = -1; // FIXME: Invalidates operation cache
 
 	if (vips__magick_read_buffer(
 			magick_buffer->buf->data, magick_buffer->buf->length,

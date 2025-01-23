@@ -454,7 +454,7 @@ vips_mosaic1_build(VipsObject *object)
 		return -1;
 
 	if (!mosaic1->interpolate)
-		mosaic1->interpolate = vips_interpolate_new("bilinear");
+		mosaic1->interpolate = vips_interpolate_new("bilinear"); // FIXME: Invalidates operation cache
 
 	jfn = mosaic1->direction == VIPS_DIRECTION_HORIZONTAL
 		? vips__lrmerge1

@@ -223,7 +223,7 @@ vips_bandrank_build(VipsObject *object)
 		bandary->out_bands = band[0]->Bands;
 
 		if (bandrank->index == -1)
-			bandrank->index = bandary->n / 2;
+			bandrank->index = bandary->n / 2; // FIXME: Invalidates operation cache
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_bandrank_parent_class)->build(object))

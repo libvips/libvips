@@ -114,7 +114,7 @@ vips_gaussmat_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "integer") &&
 		!vips_object_argument_isset(object, "precision") &&
 		!gaussmat->integer)
-		gaussmat->precision = VIPS_PRECISION_FLOAT;
+		gaussmat->precision = VIPS_PRECISION_FLOAT; // FIXME: Invalidates operation cache
 
 	/* Find the size of the mask. Limit the mask size to 10k x 10k for
 	 * sanity. We allow x == 0, meaning a 1x1 mask.

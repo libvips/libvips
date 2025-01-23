@@ -2009,21 +2009,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 		return -1;
 	}
 
-	/* Default to white background. vips_foreign_save_init() defaults to
-	 * black.
-	 */
-	if (!vips_object_argument_isset(object, "background")) {
-		VipsArrayDouble *background;
-
-		/* Using g_object_set() to set an input param in build will
-		 * change the hash and confuse caching, but we don't cache
-		 * savers, so it's fine.
-		 */
-		background = vips_array_double_newv(1, 255.0);
-		g_object_set(object, "background", background, NULL);
-		vips_area_unref(VIPS_AREA(background));
-	}
-
 	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
 	 * tile.
 	 */
@@ -2499,6 +2484,12 @@ vips_foreign_save_dz_init(VipsForeignSaveDz *dz)
 	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
 	dz->skip_blanks = -1;
 	dz->Q = 75;
+
+	// we default background to 255 (not 0), see vips_foreign_save_init()
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+	if (save->background)
+		vips_area_unref(VIPS_AREA(save->background));
+	save->background = vips_array_double_newv(1, 255.0);
 }
 
 typedef struct _VipsForeignSaveDzTarget {
