@@ -106,7 +106,7 @@ vips_logmat_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "integer") &&
 		!vips_object_argument_isset(object, "precision") &&
 		!logmat->integer)
-		logmat->precision = VIPS_PRECISION_FLOAT;
+		logmat->precision = VIPS_PRECISION_FLOAT; // FIXME: Invalidates operation cache
 
 	if (vips_check_precision_intfloat(class->nickname,
 			logmat->precision))

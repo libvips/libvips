@@ -1387,7 +1387,7 @@ vips_composite_base_build(VipsObject *object)
 				break;
 			}
 
-		composite->compositing_space = any_16
+		composite->compositing_space = any_16 // FIXME: Invalidates operation cache
 			? (all_grey
 					  ? VIPS_INTERPRETATION_GREY16
 					  : VIPS_INTERPRETATION_RGB16)

@@ -122,6 +122,7 @@ vips_draw_class_init(VipsDrawClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -129,6 +130,9 @@ vips_draw_class_init(VipsDrawClass *class)
 	vobject_class->nickname = "draw";
 	vobject_class->description = _("draw operations");
 	vobject_class->build = vips_draw_build;
+
+	// no draw operation is cached
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE(class, "image", 1,
 		_("Image"),

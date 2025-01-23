@@ -503,8 +503,7 @@ vips_foreign_save_magick_class_init(VipsForeignSaveMagickClass *class)
 		_("Optimize_gif_transparency"),
 		_("Apply GIF transparency optimization"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveMagick,
-			optimize_gif_transparency),
+		G_STRUCT_OFFSET(VipsForeignSaveMagick, optimize_gif_transparency),
 		FALSE);
 
 	VIPS_ARG_INT(class, "bitdepth", 6,

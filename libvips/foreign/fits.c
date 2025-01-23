@@ -575,7 +575,7 @@ vips_fits_new_write(VipsImage *in, const char *filename)
 			  VIPS_IMAGE_SIZEOF_ELEMENT(in) * in->Xsize, VipsPel)))
 		return NULL;
 
-	/* fits_create_file() will fail if there's a file of thet name, unless
+	/* fits_create_file() will fail if there's a file of that name, unless
 	 * we put a "!" in front of the filename. This breaks conventions with
 	 * the rest of vips, so just unlink explicitly.
 	 */

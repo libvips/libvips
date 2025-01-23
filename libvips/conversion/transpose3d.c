@@ -126,7 +126,7 @@ vips_transpose3d_build(VipsObject *object)
 
 	if (!vips_object_argument_isset(object, "page_height")) {
 		if (vips_image_get_int(in,
-				VIPS_META_PAGE_HEIGHT, &transpose3d->page_height))
+				VIPS_META_PAGE_HEIGHT, &transpose3d->page_height)) // FIXME: Invalidates operation cache
 			return -1;
 	}
 

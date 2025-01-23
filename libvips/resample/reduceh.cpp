@@ -82,6 +82,10 @@ typedef struct _VipsReduceh {
 	 */
 	double hoffset;
 
+	/* The hshrink we do after integer reduction.
+	 */
+	double residual_hshrink;
+
 	/* Precalculated interpolation matrices. short (used for pel
 	 * sizes up to int), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
@@ -202,7 +206,7 @@ static void inline reduceh_notab(VipsReduceh *reduceh,
 	typename LongT<T>::type cx[MAX_POINT];
 
 	vips_reduce_make_mask(cx, reduceh->kernel, reduceh->n_point,
-		reduceh->hshrink, x);
+		reduceh->residual_hshrink, x);
 
 	for (int z = 0; z < bands; z++)
 		out[z] = reduce_sum<T>(in + z, bands, cx, n);
@@ -230,9 +234,9 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	s.left = r->left * reduceh->hshrink - reduceh->hoffset;
+	s.left = r->left * reduceh->residual_hshrink - reduceh->hoffset;
 	s.top = r->top;
-	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.width = r->width * reduceh->residual_hshrink + reduceh->n_point;
 	s.height = r->height;
 	if (vips_region_prepare(ir, &s))
 		return -1;
@@ -247,7 +251,7 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 
 		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
-		X = (r->left + 0.5) * reduceh->hshrink - 0.5 -
+		X = (r->left + 0.5) * reduceh->residual_hshrink - 0.5 -
 			reduceh->hoffset;
 
 		/* We want p0 to be the start (ie. x == 0) of the input
@@ -319,7 +323,7 @@ vips_reduceh_gen(VipsRegion *out_region, void *seq,
 				break;
 			}
 
-			X += reduceh->hshrink;
+			X += reduceh->residual_hshrink;
 			q += ps;
 		}
 	}
@@ -350,9 +354,9 @@ vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	s.left = r->left * reduceh->hshrink - reduceh->hoffset;
+	s.left = r->left * reduceh->residual_hshrink - reduceh->hoffset;
 	s.top = r->top;
-	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.width = r->width * reduceh->residual_hshrink + reduceh->n_point;
 	s.height = r->height;
 	if (vips_region_prepare(ir, &s))
 		return -1;
@@ -367,14 +371,14 @@ vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
 
 		q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
-		X = (r->left + 0.5) * reduceh->hshrink - 0.5 -
+		X = (r->left + 0.5) * reduceh->residual_hshrink - 0.5 -
 			reduceh->hoffset;
 
 		p0 = VIPS_REGION_ADDR(ir, ir->valid.left, r->top + y) -
 			ir->valid.left * ps;
 
 		vips_reduceh_uchar_hwy(q, p0, reduceh->n_point, r->width,
-			bands, reduceh->matrixs, X, reduceh->hshrink);
+			bands, reduceh->matrixs, X, reduceh->residual_hshrink);
 	}
 
 	VIPS_GATE_STOP("vips_reduceh_uchar_vector_gen: work");
@@ -422,6 +426,10 @@ vips_reduceh_build(VipsObject *object)
 	 */
 	extra_pixels = width * reduceh->hshrink - in->Xsize;
 
+	/* The hshrink we do after integer reduction.
+	 */
+	reduceh->residual_hshrink = reduceh->hshrink;
+
 	if (reduceh->gap > 0.0 &&
 		reduceh->kernel != VIPS_KERNEL_NEAREST) {
 		if (reduceh->gap < 1.0) {
@@ -443,16 +451,16 @@ vips_reduceh_build(VipsObject *object)
 				return -1;
 			in = t[0];
 
-			reduceh->hshrink /= int_hshrink;
+			reduceh->residual_hshrink /= int_hshrink;
 			extra_pixels /= int_hshrink;
 		}
 	}
 
-	if (reduceh->hshrink == 1.0)
+	if (reduceh->residual_hshrink == 1.0)
 		return vips_image_write(in, resample->out);
 
 	reduceh->n_point =
-		vips_reduce_get_points(reduceh->kernel, reduceh->hshrink);
+		vips_reduce_get_points(reduceh->kernel, reduceh->residual_hshrink);
 	g_info("reduceh: %d point mask", reduceh->n_point);
 	if (reduceh->n_point > MAX_POINT) {
 		vips_error(object_class->nickname,
@@ -479,7 +487,7 @@ vips_reduceh_build(VipsObject *object)
 			return -1;
 
 		vips_reduce_make_mask(reduceh->matrixf[x], reduceh->kernel,
-			reduceh->n_point, reduceh->hshrink,
+			reduceh->n_point, reduceh->residual_hshrink,
 			(float) x / VIPS_TRANSFORM_SCALE);
 
 		for (int i = 0; i < reduceh->n_point; i++)

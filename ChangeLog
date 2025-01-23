@@ -5,6 +5,7 @@
 - tiff: add threadsafe warning/error handlers (requires libtiff 4.5.0+) [lovell]
 - tiffload: add support for fail_on flag [lovell]
 - tiffload: add support for unlimited flag (requires libtiff 4.7.0+) [lovell]
+- much more reliable operation caching
 
 8.16.1
 
@@ -23,6 +24,7 @@
 - fix MSVC compile error [na-trium-144]
 - exif: ensure enumerated entries can to converted to string values [lovell]
 - gifsave: add support for eval callback, ensure correct return code [lovell]
+- fill_nearest: fix a leak
 
 10/10/24 8.16.0
 

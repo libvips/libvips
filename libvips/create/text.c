@@ -314,7 +314,7 @@ vips_text_autofit(VipsText *text)
 		previous_difference = difference;
 		previous_dpi = text->dpi;
 
-		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
+		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2; // FIXME: Invalidates operation cache
 
 		/* This can happen with fixed-size fonts.
 		 */
@@ -343,7 +343,7 @@ vips_text_autofit(VipsText *text)
 	 */
 	while (upper_dpi - lower_dpi > 1 &&
 		difference != 0) {
-		text->dpi = (upper_dpi + lower_dpi) / 2;
+		text->dpi = (upper_dpi + lower_dpi) / 2; // FIXME: Invalidates operation cache
 		if (vips_text_get_extents(text, &extents))
 			return -1;
 		target.left = extents.left;
@@ -361,9 +361,9 @@ vips_text_autofit(VipsText *text)
 	 * must take lower.
 	 */
 	if (difference == 0)
-		text->dpi = upper_dpi;
+		text->dpi = upper_dpi; // FIXME: Invalidates operation cache
 	else
-		text->dpi = lower_dpi;
+		text->dpi = lower_dpi; // FIXME: Invalidates operation cache
 	g_object_set(text, "autofit_dpi", text->dpi, NULL);
 
 #ifdef DEBUG

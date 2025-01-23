@@ -810,10 +810,10 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	 */
 	if (!vips_object_argument_isset(VIPS_OBJECT(load), "page") &&
 		!vips_object_argument_isset(VIPS_OBJECT(load), "n"))
-		heif->page = heif->primary_page;
+		heif->page = heif->primary_page; // FIXME: Invalidates operation cache
 
 	if (heif->n == -1)
-		heif->n = heif->n_top - heif->page;
+		heif->n = heif->n_top - heif->page; // FIXME: Invalidates operation cache
 	if (heif->page < 0 ||
 		heif->n <= 0 ||
 		heif->page + heif->n > heif->n_top) {

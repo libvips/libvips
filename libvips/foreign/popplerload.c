@@ -325,7 +325,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* @n == -1 means until the end of the doc.
 	 */
 	if (pdf->n == -1)
-		pdf->n = pdf->n_pages - pdf->page_no;
+		pdf->n = pdf->n_pages - pdf->page_no; // FIXME: Invalidates operation cache
 
 	if (pdf->page_no + pdf->n > pdf->n_pages ||
 		pdf->page_no < 0 ||

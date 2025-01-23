@@ -1174,7 +1174,7 @@ vips_icc_transform_build(VipsObject *object)
 		code->in &&
 		(code->in->Type == VIPS_INTERPRETATION_RGB16 ||
 			code->in->Type == VIPS_INTERPRETATION_GREY16))
-		icc->depth = 16;
+		icc->depth = 16; // FIXME: Invalidates operation cache
 
 	if (vips_icc_set_import(icc,
 			transform->embedded, transform->input_profile_filename))
