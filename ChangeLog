@@ -15,6 +15,7 @@
 - fix MSVC compile error [na-trium-144]
 - exif: ensure enumerated entries can to converted to string values [lovell]
 - gifsave: add support for eval callback, ensure correct return code [lovell]
+- fill_nearest: fix a leak
 
 10/10/24 8.16.0
 
