@@ -1957,7 +1957,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 */
 	if (!vips_object_argument_isset(object, "keep") &&
 		!dz->no_strip)
-		save->keep = VIPS_FOREIGN_KEEP_NONE; // FIXME: Invalidates operation cache
+		save->keep = VIPS_FOREIGN_KEEP_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
@@ -1966,9 +1966,9 @@ vips_foreign_save_dz_build(VipsObject *object)
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ||
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3) {
 		if (!vips_object_argument_isset(object, "overlap"))
-			dz->overlap = 0; // FIXME: Invalidates operation cache
+			dz->overlap = 0;
 		if (!vips_object_argument_isset(object, "suffix"))
-			VIPS_SETSTR(dz->suffix, ".jpg"); // FIXME: Invalidates operation cache
+			VIPS_SETSTR(dz->suffix, ".jpg");
 	}
 
 	/* Google and zoomify default to 256 pixel tiles.
@@ -1976,7 +1976,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE) {
 		if (!vips_object_argument_isset(object, "tile_size"))
-			dz->tile_size = 256; // FIXME: Invalidates operation cache
+			dz->tile_size = 256;
 	}
 
 	/* Some iiif writers default to 256, some to 512. We pick 512.
@@ -1984,14 +1984,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ||
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3) {
 		if (!vips_object_argument_isset(object, "tile_size"))
-			dz->tile_size = 512; // FIXME: Invalidates operation cache
+			dz->tile_size = 512;
 	}
 
 	/* skip_blanks defaults to 5 in google mode.
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
 		!vips_object_argument_isset(object, "skip_blanks"))
-		dz->skip_blanks = 5; // FIXME: Invalidates operation cache
+		dz->skip_blanks = 5;
 
 	/* Our tile layout.
 	 */
@@ -2014,10 +2014,10 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ) {
 		if (!vips_object_argument_isset(object, "depth"))
-			dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; // FIXME: Invalidates operation cache
+			dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL;
 	}
 	else if (!vips_object_argument_isset(object, "depth"))
-		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE; // FIXME: Invalidates operation cache
+		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
 
 	/* We don't support onepixel pyramids in gmaps mode. It doesn't make a lot
 	 * of sense anyway, since gmaps tiles are never clipped, so you can't have
@@ -2025,7 +2025,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 */
 	if (dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
 		dz->depth == VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL)
-		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE; // FIXME: Invalidates operation cache
+		dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_parent_class)->build(object))
 		return -1;
@@ -2153,7 +2153,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 		if (!vips_object_argument_isset(object, "imagename") &&
 			!vips_object_argument_isset(object, "basename")) {
 			if (filename) {
-				dz->imagename = g_path_get_basename(filename); // FIXME: Invalidates operation cache
+				dz->imagename = g_path_get_basename(filename);
 
 				/* Remove any [options] we may have picked up from the
 				 * filename.
@@ -2162,14 +2162,14 @@ vips_foreign_save_dz_build(VipsObject *object)
 					*p = '\0';
 			}
 			else
-				dz->imagename = g_strdup("untitled"); // FIXME: Invalidates operation cache
+				dz->imagename = g_strdup("untitled");
 		}
 
 		if (!vips_object_argument_isset(object, "dirname")) {
 			if (filename)
-				dz->dirname = g_path_get_dirname(filename); // FIXME: Invalidates operation cache
+				dz->dirname = g_path_get_dirname(filename);
 			else
-				dz->dirname = g_strdup("."); // FIXME: Invalidates operation cache
+				dz->dirname = g_strdup(".");
 		}
 	}
 
@@ -2179,9 +2179,9 @@ vips_foreign_save_dz_build(VipsObject *object)
 	if ((p = strrchr(dz->imagename, '.'))) {
 		if (!vips_object_argument_isset(object, "container")) {
 			if (g_ascii_strcasecmp(p + 1, "zip") == 0)
-				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP; // FIXME: Invalidates operation cache
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 			if (g_ascii_strcasecmp(p + 1, "szi") == 0)
-				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI; // FIXME: Invalidates operation cache
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI;
 		}
 
 		/* Remove any legal suffix. We don't remove all suffixes

@@ -131,7 +131,7 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 	 * new code should use subsample_mode
 	 */
 	if (vips_object_argument_isset(object, "no_subsample"))
-		jpeg->subsample_mode = jpeg->no_subsample // FIXME: Invalidates operation cache
+		jpeg->subsample_mode = jpeg->no_subsample
 			? VIPS_FOREIGN_SUBSAMPLE_OFF
 			: VIPS_FOREIGN_SUBSAMPLE_AUTO;
 

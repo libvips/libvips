@@ -747,7 +747,7 @@ vips_foreign_save_webp_build(VipsObject *object)
 
 	if (!vips_object_argument_isset(object, "passes") &&
 		vips_object_argument_isset(object, "target_size"))
-		webp->passes = 3; // FIXME: Invalidates operation cache
+		webp->passes = 3;
 
 	/* Init generic WebP config
 	 */
