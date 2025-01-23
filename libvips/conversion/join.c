@@ -81,7 +81,7 @@ typedef struct _VipsJoin {
 	VipsDirection direction;
 	gboolean expand;
 	int shim;
-	VipsArea *background;
+	VipsArrayDouble *background;
 	VipsAlign align;
 } VipsJoin;
 
@@ -286,9 +286,7 @@ vips_join_init(VipsJoin *join)
 {
 	/* Init our instance fields.
 	 */
-	join->background =
-		vips_area_new_array(G_TYPE_DOUBLE, sizeof(double), 1);
-	((double *) (join->background->data))[0] = 0.0;
+	join->background = vips_array_double_newv(1, 0.0);
 }
 
 /**
