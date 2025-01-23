@@ -50,7 +50,6 @@
 #define DEBUG
 #define VIPS_DEBUG
  */
-#define DEBUG_BUILD
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -875,21 +874,23 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	 * it to the cache, if appropriate.
 	 */
 	if (!hit) {
-#ifdef DEBUG_BUILD
+		unsigned int hash_before = 0;
+		VipsOperation *operation_before = NULL;
+
 		/* The _build method must not change the object hash. If it does, the
 		 * finished operation won't detect hits with next identical call.
 		 */
-		unsigned int hash_before = vips_operation_hash(*operation);
-		VipsOperation *operation_before = vips_operation_copy(*operation);
-#endif /*DEBUG_BUILD*/
+		if (vips__leak) {
+			hash_before = vips_operation_hash(*operation);
+			operation_before = vips_operation_copy(*operation);
+		}
 
 		if (vips_object_build(VIPS_OBJECT(*operation)))
 			return -1;
 
-#ifdef DEBUG_BUILD
-		unsigned int hash_after = vips_operation_hash(*operation);
-		if (!(flags & VIPS_OPERATION_NOCACHE) &&
-			hash_before != hash_after) {
+		if (vips__leak &&
+			!(flags & VIPS_OPERATION_NOCACHE) &&
+			hash_before != vips_operation_hash(*operation)) {
 			const char *name = (const char *)
 				vips_argument_map(VIPS_OBJECT(*operation),
 					vips_object_equal_arg, operation_before, NULL);
@@ -912,7 +913,6 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		}
 
 		VIPS_UNREF(operation_before);
-#endif /*DEBUG_BUILD*/
 
 		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
