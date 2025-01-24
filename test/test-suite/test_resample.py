@@ -250,7 +250,7 @@ class TestResample:
         # the colour distance should not deviate too much
         # (i.e. the embedded profile should not be ignored)
         im_orig = pyvips.Image.new_from_file(JPEG_FILE)
-        assert im_orig.de00(im).max() < 11
+        assert im_orig.de00(im).max() < 10
 
     def test_similarity(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
