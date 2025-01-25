@@ -104,7 +104,7 @@ vips_foreign_load_webp_build(VipsObject *object)
 	if (!vips_object_argument_isset(VIPS_OBJECT(webp), "scale") &&
 		vips_object_argument_isset(VIPS_OBJECT(webp), "shrink") &&
 		webp->shrink != 0)
-		webp->scale = 1.0 / webp->shrink;
+		webp->scale = 1.0 / webp->shrink; // FIXME: Invalidates operation cache
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_parent_class)->build(object))
 		return -1;

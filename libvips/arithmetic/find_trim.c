@@ -93,7 +93,7 @@ vips_find_trim_build(VipsObject *object)
 	 * for this interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "background"))
-		find_trim->background = vips_array_double_newv(1,
+		find_trim->background = vips_array_double_newv(1, // FIXME: Invalidates operation cache
 			vips_interpretation_max_alpha(find_trim->in->Type));
 
 	/* Flatten out alpha, if any.

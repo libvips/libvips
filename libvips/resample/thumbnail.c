@@ -680,10 +680,10 @@ vips_thumbnail_build(VipsObject *object)
 	 * auto_rotate.
 	 */
 	if (vips_object_argument_isset(object, "no_rotate"))
-		thumbnail->auto_rotate = !thumbnail->no_rotate;
+		thumbnail->auto_rotate = !thumbnail->no_rotate; // FIXME: Invalidates operation cache
 
 	if (!vips_object_argument_isset(object, "height"))
-		thumbnail->height = thumbnail->width;
+		thumbnail->height = thumbnail->width; // FIXME: Invalidates operation cache
 
 	/* Open and do any pre-shrinking.
 	 */
