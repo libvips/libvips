@@ -310,7 +310,7 @@ vips_foreign_load_magick7_build(VipsObject *object)
 		return -1;
 
 	if (magick7->all_frames)
-		magick7->n = -1;
+		magick7->n = -1; // FIXME: Invalidates operation cache
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
