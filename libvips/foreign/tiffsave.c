@@ -365,7 +365,7 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 		_("Deflate (1-9, default 6) or ZSTD (1-22, default 9) compression level"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveTiff, level),
-		1, 22, 6);
+		0, 22, 0);
 
 	VIPS_ARG_BOOL(class, "lossless", 24,
 		_("Lossless"),

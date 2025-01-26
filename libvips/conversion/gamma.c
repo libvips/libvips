@@ -149,7 +149,7 @@ vips_gamma_class_init(VipsGammaClass *class)
 		_("Gamma factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsGamma, exponent),
-		0.000001, 1000.0, 2.4);
+		0.000001, 1000.0, 1.0 / 2.4);
 }
 
 static void

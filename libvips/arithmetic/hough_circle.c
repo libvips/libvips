@@ -234,7 +234,7 @@ vips_hough_circle_class_init(VipsHoughClass *class)
 		_("Scale down dimensions by this factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsHoughCircle, scale),
-		1, 100000, 3);
+		1, 100000, 1);
 
 	VIPS_ARG_INT(class, "min_radius", 120,
 		_("Min radius"),
