@@ -103,7 +103,7 @@ static int vips_cache_time = 0;
 
 /* Protect cache access with this.
  */
-static GMutex *vips_cache_lock = NULL;
+static GMutex vips_cache_lock;
 
 /* A cache entry.
  */
@@ -471,8 +471,6 @@ vips_operation_copy(VipsOperation *operation)
 void *
 vips__cache_once_init(void *data)
 {
-	vips_cache_lock = vips_g_mutex_new();
-
 	vips_cache_table = g_hash_table_new(
 		(GHashFunc) vips_operation_hash,
 		(GEqualFunc) vips_operation_equal);
@@ -521,11 +519,11 @@ vips_cache_print_nolock(void)
 void
 vips_cache_print(void)
 {
-	g_mutex_lock(vips_cache_lock);
+	g_mutex_lock(&vips_cache_lock);
 
 	vips_cache_print_nolock();
 
-	g_mutex_unlock(vips_cache_lock);
+	g_mutex_unlock(&vips_cache_lock);
 }
 
 static void *
@@ -786,7 +784,7 @@ vips_cache_drop_all(void)
 	printf("vips_cache_drop_all:\n");
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock(vips_cache_lock);
+	g_mutex_lock(&vips_cache_lock);
 
 	if (vips_cache_table) {
 		VipsOperation *operation;
@@ -804,7 +802,7 @@ vips_cache_drop_all(void)
 		VIPS_FREEF(g_hash_table_unref, vips_cache_table);
 	}
 
-	g_mutex_unlock(vips_cache_lock);
+	g_mutex_unlock(&vips_cache_lock);
 }
 
 static void
@@ -842,7 +840,7 @@ vips_cache_trim(void)
 {
 	VipsOperation *operation;
 
-	g_mutex_lock(vips_cache_lock);
+	g_mutex_lock(&vips_cache_lock);
 
 	while (vips_cache_table &&
 		(g_hash_table_size(vips_cache_table) > vips_cache_max ||
@@ -857,7 +855,7 @@ vips_cache_trim(void)
 		vips_cache_remove(operation);
 	}
 
-	g_mutex_unlock(vips_cache_lock);
+	g_mutex_unlock(&vips_cache_lock);
 }
 
 /**
@@ -899,7 +897,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	vips_object_print_dump(VIPS_OBJECT(*operation));
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock(vips_cache_lock);
+	g_mutex_lock(&vips_cache_lock);
 
 	hit = vips_cache_operation_get(*operation);
 
@@ -930,7 +928,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		}
 	}
 
-	g_mutex_unlock(vips_cache_lock);
+	g_mutex_unlock(&vips_cache_lock);
 
 	/* If there was a miss, we need to build this operation and add
 	 * it to the cache, if appropriate.
@@ -981,7 +979,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		 */
 		flags = vips_operation_get_flags(*operation);
 
-		g_mutex_lock(vips_cache_lock);
+		g_mutex_lock(&vips_cache_lock);
 
 		/* If two threads build the same operation at the same time,
 		 * we can get multiple adds. Let the first one win. See
@@ -1002,7 +1000,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 				vips_cache_insert(*operation);
 		}
 
-		g_mutex_unlock(vips_cache_lock);
+		g_mutex_unlock(&vips_cache_lock);
 	}
 
 	vips_cache_trim();
@@ -1098,13 +1096,13 @@ vips_cache_get_size(void)
 {
 	guint size;
 
-	g_mutex_lock(vips_cache_lock);
+	g_mutex_lock(&vips_cache_lock);
 
 	size = 0;
 	if (vips_cache_table)
 		size = g_hash_table_size(vips_cache_table);
 
-	g_mutex_unlock(vips_cache_lock);
+	g_mutex_unlock(&vips_cache_lock);
 
 	return size;
 }

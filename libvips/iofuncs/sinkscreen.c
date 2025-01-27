@@ -179,7 +179,7 @@ static gboolean render_kill = FALSE;
 /* All the renders with dirty tiles, and a semaphore that the bg render thread
  * waits on.
  */
-static GMutex *render_dirty_lock = NULL;
+static GMutex render_dirty_lock;
 static GSList *render_dirty_all = NULL;
 static VipsSemaphore n_render_dirty_sem;
 
@@ -232,7 +232,7 @@ render_free(Render *render)
 	g_assert(render->ref_count == 0);
 #endif
 
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 	if (g_slist_find(render_dirty_all, render)) {
 		render_dirty_all = g_slist_remove(render_dirty_all, render);
 
@@ -241,7 +241,7 @@ render_free(Render *render)
 		 * render_dirty_all is NULL.
 		 */
 	}
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 
 #if !GLIB_CHECK_VERSION(2, 58, 0)
 	vips_g_mutex_free(render->ref_count_lock);
@@ -442,26 +442,21 @@ vips__render_shutdown(void)
 {
 	/* We may come here without having inited.
 	 */
-	if (render_dirty_lock) {
-		g_mutex_lock(render_dirty_lock);
+	if (render_thread) {
+		g_mutex_lock(&render_dirty_lock);
 
-		if (render_thread) {
-			GThread *thread;
+		GThread *thread;
 
-			thread = render_thread;
-			render_reschedule = TRUE;
-			render_kill = TRUE;
+		thread = render_thread;
+		render_reschedule = TRUE;
+		render_kill = TRUE;
 
-			g_mutex_unlock(render_dirty_lock);
+		g_mutex_unlock(&render_dirty_lock);
 
-			vips_semaphore_up(&n_render_dirty_sem);
+		vips_semaphore_up(&n_render_dirty_sem);
 
-			(void) g_thread_join(thread);
-		}
-		else
-			g_mutex_unlock(render_dirty_lock);
+		(void) g_thread_join(thread);
 
-		VIPS_FREEF(vips_g_mutex_free, render_dirty_lock);
 		vips_semaphore_destroy(&n_render_dirty_sem);
 	}
 }
@@ -477,7 +472,7 @@ render_dirty_sort(Render *a, Render *b, void *user_data)
 static void
 render_dirty_put(Render *render)
 {
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
 	if (render->dirty) {
 		if (!g_slist_find(render_dirty_all, render)) {
@@ -493,7 +488,7 @@ render_dirty_put(Render *render)
 		}
 	}
 
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 }
 
 static guint
@@ -979,7 +974,7 @@ render_dirty_get(void)
 	 */
 	vips_semaphore_down(&n_render_dirty_sem);
 
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
 	/* Just take the head of the jobs list ... we sort when we add.
 	 */
@@ -995,7 +990,7 @@ render_dirty_get(void)
 		render_dirty_all = g_slist_remove(render_dirty_all, render);
 	}
 
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 
 	return render;
 }
@@ -1047,9 +1042,7 @@ static void *
 vips__sink_screen_once(void *data)
 {
 	g_assert(!render_thread);
-	g_assert(!render_dirty_lock);
 
-	render_dirty_lock = vips_g_mutex_new();
 	vips_semaphore_init(&n_render_dirty_sem, 0, "n_render_dirty");
 
 	/* Don't use vips_thread_execute(), since this thread will only be
@@ -1177,15 +1170,13 @@ vips__print_renders(void)
 	}
 #endif /*VIPS_DEBUG_AMBER*/
 
-	if (render_dirty_lock) {
-		g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
-		n_leaks += g_slist_length(render_dirty_all);
-		if (render_dirty_all)
-			printf("dirty renders\n");
+	n_leaks += g_slist_length(render_dirty_all);
+	if (render_dirty_all)
+		printf("dirty renders\n");
 
-		g_mutex_unlock(render_dirty_lock);
-	}
+	g_mutex_unlock(&render_dirty_lock);
 
 	return n_leaks;
 }

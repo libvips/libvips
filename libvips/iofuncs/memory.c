@@ -115,7 +115,7 @@ static int vips_tracked_allocs = 0;
 static size_t vips_tracked_mem = 0;
 static int vips_tracked_files = 0;
 static size_t vips_tracked_mem_highwater = 0;
-static GMutex *vips_tracked_mutex = NULL;
+static GMutex vips_tracked_mutex;
 
 /**
  * VIPS_NEW:
@@ -238,7 +238,7 @@ vips_tracked_free(void *s)
 	void *start = (void *) ((char *) s - 16);
 	size_t size = *((size_t *) start);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 #ifdef DEBUG_VERBOSE_MEM
 	printf("vips_tracked_free: %p, %zd bytes\n", s, size);
@@ -252,7 +252,7 @@ vips_tracked_free(void *s)
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	g_free(start);
 
@@ -275,7 +275,7 @@ vips_tracked_aligned_free(void *s)
 	void *start = (size_t *) s - 1;
 	size_t size = *((size_t *) start);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_tracked_aligned_free: %p, %zd bytes\n", s, size);
@@ -289,7 +289,7 @@ vips_tracked_aligned_free(void *s)
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 #ifdef HAVE__ALIGNED_MALLOC
 	_aligned_free(start);
@@ -298,23 +298,6 @@ vips_tracked_aligned_free(void *s)
 #endif
 
 	VIPS_GATE_FREE(size);
-}
-
-static void *
-vips_tracked_init_mutex(void *data)
-{
-	vips_tracked_mutex = vips_g_mutex_new();
-
-	return NULL;
-}
-
-static void
-vips_tracked_init(void)
-{
-	static GOnce vips_tracked_once = G_ONCE_INIT;
-
-	VIPS_ONCE(&vips_tracked_once,
-		vips_tracked_init_mutex, NULL);
 }
 
 /**
@@ -338,8 +321,6 @@ vips_tracked_malloc(size_t size)
 {
 	void *buf;
 
-	vips_tracked_init();
-
 	/* Need an extra sizeof(size_t) bytes to track
 	 * size of this block. Ask for an extra 16 to make sure we don't break
 	 * alignment rules.
@@ -360,7 +341,7 @@ vips_tracked_malloc(size_t size)
 		return NULL;
 	}
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	*((size_t *) buf) = size;
 	buf = (void *) ((char *) buf + 16);
@@ -374,7 +355,7 @@ vips_tracked_malloc(size_t size)
 	printf("vips_tracked_malloc: %p, %zd bytes\n", buf, size);
 #endif /*DEBUG_VERBOSE_MEM*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	VIPS_GATE_MALLOC(size);
 
@@ -403,8 +384,6 @@ void *
 vips_tracked_aligned_alloc(size_t size, size_t align)
 {
 	void *buf;
-
-	vips_tracked_init();
 
 	g_assert(!(align & (align - 1)));
 
@@ -437,7 +416,7 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 
 	memset(buf, 0, size);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	*((size_t *) buf) = size;
 
@@ -450,7 +429,7 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 	printf("vips_tracked_aligned_alloc: %p, %zd bytes\n", buf, size);
 #endif /*DEBUG_VERBOSE*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	VIPS_GATE_MALLOC(size);
 
@@ -484,9 +463,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 	if ((fd = vips__open(pathname, flags, mode)) == -1)
 		return -1;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	vips_tracked_files += 1;
 #ifdef DEBUG_VERBOSE_FD
@@ -494,7 +471,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 		pathname, fd, vips_tracked_files);
 #endif /*DEBUG_VERBOSE_FD*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return fd;
 }
@@ -519,7 +496,7 @@ vips_tracked_close(int fd)
 {
 	int result;
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	/* libvips uses fd -1 to mean invalid descriptor.
 	 */
@@ -532,7 +509,7 @@ vips_tracked_close(int fd)
 	printf("   from thread %p\n", g_thread_self());
 #endif /*DEBUG_VERBOSE_FD*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	result = close(fd);
 
@@ -553,13 +530,11 @@ vips_tracked_get_mem(void)
 {
 	size_t mem;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	mem = vips_tracked_mem;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return mem;
 }
@@ -578,13 +553,11 @@ vips_tracked_get_mem_highwater(void)
 {
 	size_t mx;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	mx = vips_tracked_mem_highwater;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return mx;
 }
@@ -601,13 +574,11 @@ vips_tracked_get_allocs(void)
 {
 	int n;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	n = vips_tracked_allocs;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return n;
 }
@@ -624,13 +595,11 @@ vips_tracked_get_files(void)
 {
 	int n;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	n = vips_tracked_files;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return n;
 }

@@ -131,7 +131,7 @@ static PangoFontMap *vips_text_fontmap = NULL;
 
 /* ... single-thread vips_text_fontfiles with this.
  */
-static GMutex *vips_text_lock = NULL;
+static GMutex vips_text_lock;
 
 /* All the fontfiles we've loaded. fontconfig lets you add a fontfile
  * repeatedly, and we obviously don't want that.
@@ -376,7 +376,6 @@ vips_text_autofit(VipsText *text)
 static void *
 vips_text_init_once(void *client)
 {
-	vips_text_lock = vips_g_mutex_new();
 	vips_text_fontmap = pango_cairo_font_map_new();
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
@@ -416,7 +415,7 @@ vips_text_build(VipsObject *object)
 	 * between all vips_text instances, we must lock all the way to the
 	 * end of text rendering.
 	 */
-	g_mutex_lock(vips_text_lock);
+	g_mutex_lock(&vips_text_lock);
 
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
@@ -451,7 +450,7 @@ vips_text_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "height") &&
 		!vips_object_argument_isset(object, "dpi")) {
 		if (vips_text_autofit(text)) {
-			g_mutex_unlock(vips_text_lock);
+			g_mutex_unlock(&vips_text_lock);
 			return -1;
 		}
 	}
@@ -459,13 +458,13 @@ vips_text_build(VipsObject *object)
 	/* Layout. Can fail for "", for example.
 	 */
 	if (vips_text_get_extents(text, &extents)) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		return -1;
 	}
 
 	if (extents.width == 0 ||
 		extents.height == 0) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		vips_error(class->nickname, "%s", _("no text to render"));
 		return -1;
 	}
@@ -480,7 +479,7 @@ vips_text_build(VipsObject *object)
 
 	if (vips_image_pipelinev(t[0], VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_write_prepare(t[0])) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		return -1;
 	}
 	in = t[0];
@@ -494,7 +493,7 @@ vips_text_build(VipsObject *object)
 	status = cairo_surface_status(surface);
 	if (status) {
 		cairo_surface_destroy(surface);
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		vips_error(class->nickname,
 			"%s", cairo_status_to_string(status));
 		return -1;
@@ -509,7 +508,7 @@ vips_text_build(VipsObject *object)
 
 	cairo_destroy(cr);
 
-	g_mutex_unlock(vips_text_lock);
+	g_mutex_unlock(&vips_text_lock);
 
 	if (text->rgba) {
 		/* Cairo makes pre-multipled BRGA -- we must byteswap and

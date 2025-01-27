@@ -506,9 +506,9 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 
 	/* Some orcs seem to be unstable with many compilers active at once.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	result = orc_program_compile(p);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result))
 		return -1;

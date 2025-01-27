@@ -181,7 +181,7 @@ vips__link_break_rev(VipsImage *image_down, VipsImage *image_up, void *b)
 void
 vips__link_break_all(VipsImage *image)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	vips_slist_map2(image->upstream,
 		(VipsSListMap2Fn) vips__link_break, image, NULL);
@@ -191,7 +191,7 @@ vips__link_break_all(VipsImage *image)
 	g_assert(!image->upstream);
 	g_assert(!image->downstream);
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 typedef struct _LinkMap {
@@ -261,7 +261,7 @@ vips__link_map(VipsImage *image, gboolean upstream,
 	 * member. There will be intense confusion if two threads try to do
 	 * this at the same time.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	serial += 1;
 	map.serial = serial;
@@ -271,7 +271,7 @@ vips__link_map(VipsImage *image, gboolean upstream,
 	for (p = images; p; p = p->next)
 		g_object_ref(p->data);
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	result = vips_slist_map2(images, fn, a, b);
 
@@ -330,10 +330,10 @@ vips__demand_hint_array(VipsImage *image,
 
 	/* im depends on all these ims.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	for (i = 0; i < len; i++)
 		vips__link_make(in[i], image);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	/* Set a flag on the image to say we remembered to call this thing.
 	 * vips_image_generate() and friends check this.
