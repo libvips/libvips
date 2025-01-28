@@ -94,6 +94,7 @@ typedef struct {
 	int r;	/* Set previous result in this var */
 	int d1; /* The destination var */
 
+	int n_const;
 	int n_scanline;
 
 	/* The associated line corresponding to the scanline.
@@ -426,6 +427,7 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 
 	CONST("zero", 0, 1);
 	CONST("one", 255, 1);
+	pass->n_const += 2;
 
 	/* Init the sum. If this is the first pass, it's a constant. If this
 	 * is a later pass, we have to init the sum from the result
@@ -465,8 +467,10 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 		 */
 		if (x > 0) {
 			g_snprintf(offset, 256, "c%db", x);
-			if (orc_program_find_var_by_name(p, offset) == -1)
+			if (orc_program_find_var_by_name(p, offset) == -1) {
 				CONST(offset, morphology->in->Bands * x, 1);
+				pass->n_const++;
+			}
 			ASM3("loadoffb", "value", source, offset);
 		}
 		else
@@ -492,6 +496,12 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 			else
 				ASM3("andb", "sum", "sum", "value");
 		}
+
+		/* orc allows up to 8 constants, so break early once we
+		 * approach this limit.
+		 */
+		if (pass->n_const >= 7 /*ORC_MAX_CONST_VARS - 1*/)
+			break;
 
 		/* You can have 8 sources, and pass->r counts as one of them,
 		 * so +1 there.
@@ -553,6 +563,7 @@ vips_morph_compile(VipsMorph *morph)
 		pass->first = i;
 		pass->last = i;
 		pass->r = -1;
+		pass->n_const = 0;
 		pass->n_scanline = 0;
 
 		if (vips_morph_compile_section(morph, pass, morph->n_pass == 1))
