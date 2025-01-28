@@ -93,13 +93,15 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
-/* Note: constants align with those defined in lcms2.h.
+/* Note: constants align with those defined in lcms2.h, except for
+ * VIPS_INTENT_AUTO, which is libvips-specific.
  */
 typedef enum {
 	VIPS_INTENT_PERCEPTUAL = 0,
 	VIPS_INTENT_RELATIVE,
 	VIPS_INTENT_SATURATION,
 	VIPS_INTENT_ABSOLUTE,
+	VIPS_INTENT_AUTO,
 	VIPS_INTENT_LAST
 } VipsIntent;
 

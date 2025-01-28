@@ -106,6 +106,7 @@
  * @VIPS_INTENT_RELATIVE: relative colorimetric rendering intent
  * @VIPS_INTENT_SATURATION: saturation rendering intent
  * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
+ * @VIPS_INTENT_AUTO: the rendering intent that the profile suggests
  *
  * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
  * scientific work, #VIPS_INTENT_RELATIVE is usually best for
@@ -620,16 +621,18 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 	}
 
 	icc->selected_intent = icc->intent;
-	if (!cmsIsIntentSupported(profile, icc->intent, direction)) {
+	if (icc->intent == VIPS_INTENT_AUTO ||
+		!cmsIsIntentSupported(profile, icc->intent, direction))
 		icc->selected_intent = (VipsIntent) cmsGetHeaderRenderingIntent(
 			profile);
 
+	if (icc->intent != VIPS_INTENT_AUTO &&
+		icc->selected_intent != icc->intent)
 		g_warning(_("fallback to suggested %s intent, as profile "
 					"does not support %s %s intent"),
 			vips_enum_nick(VIPS_TYPE_INTENT, icc->selected_intent),
 			vips_enum_nick(VIPS_TYPE_INTENT, icc->intent),
 			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
-	}
 
 #ifdef DEBUG
 	vips_icc_print_profile("loaded from blob to make", profile);
