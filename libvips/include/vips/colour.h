@@ -93,6 +93,8 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
+/* Note: constants align with those defined in lcms2.h.
+ */
 typedef enum {
 	VIPS_INTENT_PERCEPTUAL = 0,
 	VIPS_INTENT_RELATIVE,

@@ -241,7 +241,7 @@ class TestResample:
     @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
                         reason="requires libvips >= 8.5")
     def test_thumbnail_icc(self):
-        im = pyvips.Image.thumbnail(JPEG_FILE_XYB, 442, export_profile="srgb", intent="perceptual")
+        im = pyvips.Image.thumbnail(JPEG_FILE_XYB, 442, export_profile="srgb")
 
         assert im.width == 290
         assert im.height == 442
