@@ -1189,10 +1189,6 @@ msgstr ""
 msgid "Background value"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:181
-msgid "copy swap is deprecated, use byteswap instead"
-msgstr ""
-
 #: ../libvips/conversion/copy.c:235
 msgid "must not change pel size"
 msgstr ""
@@ -2638,16 +2634,6 @@ msgstr ""
 msgid "images do not match"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:880
-msgid ""
-"VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL both set -- using SEQUENTIAL"
-msgstr ""
-
-#: ../libvips/foreign/foreign.c:900
-msgid ""
-"ignoring deprecated \"sequential\" mode -- please use \"access\" instead"
-msgstr ""
-
 #: ../libvips/foreign/foreign.c:979
 msgid "file loaders"
 msgstr ""
@@ -2728,10 +2714,6 @@ msgstr ""
 #: ../libvips/foreign/ppm.c:621 ../libvips/foreign/ppm.c:638
 #: ../libvips/foreign/ppm.c:672 ../libvips/foreign/ppm.c:686
 msgid "write error"
-msgstr ""
-
-#: ../libvips/foreign/ppm.c:803
-msgid "float images must be binary -- disabling ascii"
 msgstr ""
 
 #: ../libvips/foreign/ppm.c:813 ../libvips/foreign/vips2tiff.c:1001
@@ -3262,38 +3244,6 @@ msgstr ""
 msgid "field \"%s\" is too large for a single JPEG marker, ignoring"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:496
-msgid "trellis_quant unsupported"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:509
-msgid "overshoot_deringing unsupported"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:523 ../libvips/foreign/vips2jpeg.c:550
-msgid "ignoring optimize_scans"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:527
-msgid "ignoring optimize_scans for baseline"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:539
-msgid "setting quant_table unsupported"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:546
-msgid "ignoring trellis_quant"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:548
-msgid "ignoring overshoot_deringing"
-msgstr ""
-
-#: ../libvips/foreign/vips2jpeg.c:552
-msgid "ignoring quant_table"
-msgstr ""
-
 #: ../libvips/foreign/ppmload.c:119
 msgid "load ppm from file"
 msgstr ""
@@ -3492,10 +3442,6 @@ msgstr ""
 msgid "unable to init exif"
 msgstr ""
 
-#: ../libvips/foreign/exif.c:413 ../libvips/foreign/exif.c:788
-msgid "unknown EXIF resolution unit"
-msgstr ""
-
 #: ../libvips/foreign/exif.c:918 ../libvips/foreign/exif.c:928
 #: ../libvips/foreign/exif.c:933
 #, c-format
@@ -3640,10 +3586,6 @@ msgstr ""
 #: ../libvips/foreign/jpeg2vips.c:187
 #, c-format
 msgid "read gave %ld warnings"
-msgstr ""
-
-#: ../libvips/foreign/jpeg2vips.c:387
-msgid "unknown JFIF resolution unit"
 msgstr ""
 
 #: ../libvips/foreign/tiffsave.c:172 ../libvips/foreign/tiffsave.c:358
@@ -4152,16 +4094,6 @@ msgstr ""
 
 #: ../libvips/foreign/vips2tiff.c:988
 msgid "can only pyramid LABQ and non-complex images"
-msgstr ""
-
-#: ../libvips/foreign/vips2tiff.c:1009
-msgid "can't have 1-bit JPEG -- disabling JPEG"
-msgstr ""
-
-#: ../libvips/foreign/vips2tiff.c:1020
-msgid ""
-"can only save non-complex greyscale images as miniswhite -- disabling "
-"miniswhite"
 msgstr ""
 
 #: ../libvips/foreign/vips2tiff.c:1043
@@ -4717,10 +4649,6 @@ msgstr ""
 msgid "per-thread state for sinkmemory"
 msgstr ""
 
-#: ../libvips/iofuncs/generate.c:425
-msgid "too many images"
-msgstr ""
-
 #: ../libvips/iofuncs/generate.c:690
 msgid "demand hint not set"
 msgstr ""
@@ -5188,14 +5116,6 @@ msgstr ""
 msgid "unable to form filename"
 msgstr ""
 
-#: ../libvips/iofuncs/memory.c:251
-msgid "vips_free: too many frees"
-msgstr ""
-
-#: ../libvips/iofuncs/memory.c:253
-msgid "vips_free: too much free"
-msgstr ""
-
 #: ../libvips/iofuncs/sinkscreen.c:188
 msgid "per-thread state for render"
 msgstr ""
@@ -5553,10 +5473,6 @@ msgstr ""
 
 #: ../libvips/mosaicing/global_balance.c:741
 msgid "more than one root"
-msgstr ""
-
-#: ../libvips/mosaicing/global_balance.c:1060
-msgid "empty overlap!"
 msgstr ""
 
 #: ../libvips/mosaicing/global_balance.c:1783
@@ -6315,10 +6231,6 @@ msgstr ""
 
 #: ../tools/vipsthumbnail.c:375
 msgid "- thumbnail generator"
-msgstr ""
-
-#: ../tools/vipsthumbnail.c:406
-msgid "auto-rotate disabled: libvips built without exif support"
 msgstr ""
 
 #: ../libvips/resample/reduceh.cpp:457

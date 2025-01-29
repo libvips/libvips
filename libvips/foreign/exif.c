@@ -491,7 +491,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 		break;
 
 	default:
-		g_warning("%s", _("unknown EXIF resolution unit"));
+		g_warning("unknown EXIF resolution unit");
 		return -1;
 	}
 
@@ -1066,7 +1066,7 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 		break;
 
 	default:
-		g_warning("%s", _("unknown EXIF resolution unit"));
+		g_warning("unknown EXIF resolution unit");
 		return 0;
 	}
 

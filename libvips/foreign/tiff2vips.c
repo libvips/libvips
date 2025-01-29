@@ -1621,7 +1621,7 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 			read->blue8[i] = read->blue16[i] >> 8;
 		}
 	else {
-		g_warning("%s", _("assuming 8-bit palette"));
+		g_warning("assuming 8-bit palette");
 
 		for (i = 0; i < len; i++) {
 			read->red8[i] = read->red16[i] & 0xff;
@@ -3330,7 +3330,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		for (i = 0; i < extra_samples_count; i++)
 			if (extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA) {
 				if (header->alpha_band != -1)
-					g_warning("%s", _("more than one alpha -- ignoring"));
+					g_warning("more than one alpha -- ignoring");
 
 				header->alpha_band = header->samples_per_pixel -
 					extra_samples_count + i;

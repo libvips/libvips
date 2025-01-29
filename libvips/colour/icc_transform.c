@@ -616,7 +616,7 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 	data = vips_blob_get(blob, &size);
 	if (!(profile = cmsOpenProfileFromMem(data, size))) {
-		g_warning("%s", _("corrupt profile"));
+		g_warning("corrupt profile");
 		return NULL;
 	}
 
@@ -640,14 +640,14 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 	if (!(info = vips_icc_info(cmsGetColorSpace(profile)))) {
 		VIPS_FREEF(cmsCloseProfile, profile);
-		g_warning("%s", _("unsupported profile"));
+		g_warning("unsupported profile");
 		return NULL;
 	}
 
 	if (image &&
 		!vips_image_is_profile_compatible(image, info->bands)) {
 		VIPS_FREEF(cmsCloseProfile, profile);
-		g_warning("%s", _("profile incompatible with image"));
+		g_warning("profile incompatible with image");
 		return NULL;
 	}
 

@@ -643,7 +643,7 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 		return 0;
 
 	if (jxl->exif_size < 4) {
-		g_warning("%s: invalid data in EXIF box", class->nickname);
+		g_warning("invalid data in EXIF box");
 		return -1;
 	}
 
@@ -651,7 +651,7 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 	 */
 	size_t offset = GUINT32_FROM_BE(*((guint32 *) jxl->exif_data));
 	if (offset > jxl->exif_size - 4) {
-		g_warning("%s: invalid data in EXIF box", class->nickname);
+		g_warning("invalid data in EXIF box");
 		return -1;
 	}
 

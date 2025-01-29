@@ -335,7 +335,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 
 	if (ppm->ascii &&
 		image->BandFmt == VIPS_FORMAT_FLOAT) {
-		g_warning("%s", _("float images must be binary -- disabling ascii"));
+		g_warning("float images must be binary -- disabling ascii");
 		ppm->ascii = FALSE;
 	}
 
@@ -344,9 +344,8 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	if (ppm->bitdepth &&
 		(image->Bands != 1 ||
 		 image->BandFmt != VIPS_FORMAT_UCHAR)) {
-		g_warning("%s",
-			_("can only save 1 band uchar images as 1 bit -- "
-			  "disabling 1 bit save"));
+		g_warning("can only save 1 band uchar images as 1 bit -- "
+			  "disabling 1 bit save");
 		ppm->bitdepth = 0;
 	}
 

@@ -245,9 +245,9 @@ vips_tracked_free(void *s)
 #endif /*DEBUG_VERBOSE_MEM*/
 
 	if (vips_tracked_allocs <= 0)
-		g_warning("%s", _("vips_free: too many frees"));
+		g_warning("vips_free: too many frees");
 	if (vips_tracked_mem < size)
-		g_warning("%s", _("vips_free: too much free"));
+		g_warning("vips_free: too much free");
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
@@ -282,9 +282,9 @@ vips_tracked_aligned_free(void *s)
 #endif /*DEBUG_VERBOSE*/
 
 	if (vips_tracked_allocs <= 0)
-		g_warning("%s", _("vips_free: too many frees"));
+		g_warning("vips_free: too many frees");
 	if (vips_tracked_mem < size)
-		g_warning("%s", _("vips_free: too much free"));
+		g_warning("vips_free: too much free");
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;

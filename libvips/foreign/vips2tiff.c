@@ -601,7 +601,7 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 	 * long, not byte.
 	 */
 	if (size & 3) {
-		g_warning("%s", _("rounding up IPTC data length"));
+		g_warning("rounding up IPTC data length");
 		size /= 4;
 		size += 1;
 	}
@@ -1480,8 +1480,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		!(wtiff->bitdepth == 1 ||
 			wtiff->bitdepth == 2 ||
 			wtiff->bitdepth == 4)) {
-		g_warning("%s",
-			_("bitdepth 1, 2 or 4 only -- disabling bitdepth"));
+		g_warning("bitdepth 1, 2 or 4 only -- disabling bitdepth");
 		wtiff->bitdepth = 0;
 	}
 
@@ -1492,16 +1491,14 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		!(wtiff->ready->Coding == VIPS_CODING_NONE &&
 			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
 			wtiff->ready->Bands == 1)) {
-		g_warning("%s",
-			("can only set bitdepth for 1-band uchar and "
-			 "3-band float lab -- disabling bitdepth"));
+		g_warning("can only set bitdepth for 1-band uchar and "
+			  "3-band float lab -- disabling bitdepth");
 		wtiff->bitdepth = 0;
 	}
 
 	if (wtiff->bitdepth &&
 		wtiff->compression == COMPRESSION_JPEG) {
-		g_warning("%s",
-			_("can't have <8 bit JPEG -- disabling JPEG"));
+		g_warning("can't have <8 bit JPEG -- disabling JPEG");
 		wtiff->compression = COMPRESSION_NONE;
 	}
 
@@ -1511,9 +1508,8 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		(wtiff->ready->Coding != VIPS_CODING_NONE ||
 			vips_band_format_iscomplex(wtiff->ready->BandFmt) ||
 			wtiff->ready->Bands > 2)) {
-		g_warning("%s",
-			_("can only save non-complex greyscale images "
-			  "as miniswhite -- disabling miniswhite"));
+		g_warning("can only save non-complex greyscale images "
+			  "as miniswhite -- disabling miniswhite");
 		wtiff->miniswhite = FALSE;
 	}
 

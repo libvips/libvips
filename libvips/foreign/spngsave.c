@@ -431,8 +431,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		ihdr.color_type = SPNG_COLOR_TYPE_INDEXED;
 #else
 	if (spng->palette)
-		g_warning("%s",
-			_("ignoring palette (no quantisation support)"));
+		g_warning("ignoring palette (no quantisation support)");
 #endif /*HAVE_QUANTIZATION*/
 
 	ihdr.compression_method = 0;
