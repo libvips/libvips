@@ -101,7 +101,10 @@ typedef enum {
 	VIPS_INTENT_RELATIVE,
 	VIPS_INTENT_SATURATION,
 	VIPS_INTENT_ABSOLUTE,
-	VIPS_INTENT_AUTO,
+	/* Leave room for possible new rendering intents beyond the
+	 * four standard ones.
+	 */
+	VIPS_INTENT_AUTO = 32,
 	VIPS_INTENT_LAST
 } VipsIntent;
 
