@@ -683,8 +683,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 #ifdef HAVE_CGIF_FRAME_ATTR_INTERLACED
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_INTERLACED;
 #else  /*!HAVE_CGIF_FRAME_ATTR_INTERLACED*/
-		g_warning("%s: cgif >= v0.3.0 required for interlaced GIF write",
-			class->nickname);
+		g_warning("cgif >= v0.3.0 required for interlaced GIF write");
 #endif /*HAVE_CGIF_FRAME_ATTR_INTERLACED*/
 	}
 

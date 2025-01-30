@@ -1832,14 +1832,6 @@ msgstr "Lesen ergab %ld Warnungen"
 msgid "error reading resolution"
 msgstr "Fehler beim Lesen der Auflösung"
 
-#: libvips/foreign/jpeg2vips.c:510
-msgid "unknown EXIF resolution unit"
-msgstr "unbekannte EXIF-Auflösungseinheit"
-
-#: libvips/foreign/jpeg2vips.c:718
-msgid "unknown JFIF resolution unit"
-msgstr "unbekannte JFIF-Auflösungseinheit"
-
 #: libvips/foreign/fits.c:240
 msgid "dimensions above 3 must be size 1"
 msgstr "Dimensionen größer drei müssen die Größe eins haben"
@@ -1933,10 +1925,6 @@ msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 "nur LABQ und nicht-komplexe Bilder können pyramidenartig verwendet werden"
 
-#: libvips/foreign/vips2tiff.c:1285
-msgid "can't have 1-bit JPEG -- disabling JPEG"
-msgstr "1-Bit-JPEG nicht möglich – JPEG wird ausgeschaltet"
-
 #: libvips/foreign/vips2tiff.c:1463
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr "nur vorzeichenlose 8-Bit-Ganzzahl und 32-Bit-Fließkommazahl"
@@ -2023,13 +2011,6 @@ msgstr "»%s« ist kein bekanntes Dateiformat"
 #: libvips/foreign/foreign.c:740
 msgid "images do not match"
 msgstr "Bilder passen nicht zusammen"
-
-#: libvips/foreign/foreign.c:826
-msgid ""
-"VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL both set -- using SEQUENTIAL"
-msgstr ""
-"sowohl VIPS_FOREIGN_PARTIAL als auch VIPS_FOREIGN_SEQUENTIAL setzen – "
-"verwenden Sie SEQUENTIAL"
 
 #: libvips/foreign/foreign.c:894
 msgid "file loaders"
@@ -2234,14 +2215,6 @@ msgstr "»start«-Funktion für Bild »%s« fehlgeschlagen"
 msgid "per-thread state for sink"
 msgstr "Status pro Thread für »sink«"
 
-#: libvips/iofuncs/memory.c:231
-msgid "vips_free: too many frees"
-msgstr "vips_free: zu viele Frees"
-
-#: libvips/iofuncs/memory.c:235
-msgid "vips_free: too much free"
-msgstr "vips_free: zu viel frei"
-
 #: libvips/iofuncs/memory.c:295 libvips/iofuncs/memory.c:298
 #, c-format
 msgid "out of memory --- size == %dMB"
@@ -2301,10 +2274,6 @@ msgstr "Daten für »%s« können nicht gelesen werden, %s"
 #, c-format
 msgid "error reading XML: %s"
 msgstr "Fehler beim Lesen von XML: %s"
-
-#: libvips/iofuncs/generate.c:343 libvips/iofuncs/header.c:611
-msgid "too many images"
-msgstr "zu viele Bilder"
 
 #: libvips/iofuncs/generate.c:606
 msgid "demand hint not set"
@@ -3104,10 +3073,6 @@ msgstr ""
 #: libvips/mosaicing/global_balance.c:734
 msgid "more than one root"
 msgstr "mehr als eine Wurzel"
-
-#: libvips/mosaicing/global_balance.c:1053
-msgid "empty overlap!"
-msgstr "leere Überlappung!"
 
 #: libvips/mosaicing/im_avgdxdy.c:64
 msgid "no points to average"
