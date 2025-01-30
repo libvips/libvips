@@ -1492,7 +1492,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
 			wtiff->ready->Bands == 1)) {
 		g_warning("can only set bitdepth for 1-band uchar and "
-			  "3-band float lab -- disabling bitdepth");
+				  "3-band float lab -- disabling bitdepth");
 		wtiff->bitdepth = 0;
 	}
 
@@ -1509,7 +1509,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 			vips_band_format_iscomplex(wtiff->ready->BandFmt) ||
 			wtiff->ready->Bands > 2)) {
 		g_warning("can only save non-complex greyscale images "
-			  "as miniswhite -- disabling miniswhite");
+				  "as miniswhite -- disabling miniswhite");
 		wtiff->miniswhite = FALSE;
 	}
 

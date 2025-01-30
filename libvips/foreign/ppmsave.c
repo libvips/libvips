@@ -345,7 +345,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		(image->Bands != 1 ||
 		 image->BandFmt != VIPS_FORMAT_UCHAR)) {
 		g_warning("can only save 1 band uchar images as 1 bit -- "
-			  "disabling 1 bit save");
+				  "disabling 1 bit save");
 		ppm->bitdepth = 0;
 	}
 
