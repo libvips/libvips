@@ -547,7 +547,7 @@ main(int argc, char **argv)
 #ifndef HAVE_EXIF
 	if (rotate_image)
 		g_warning("auto-rotate disabled: "
-			  "libvips built without exif support");
+				  "libvips built without exif support");
 #endif /*!HAVE_EXIF*/
 
 	result = 0;

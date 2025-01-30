@@ -1094,7 +1094,7 @@ vips_foreign_load_build(VipsObject *object)
 	if ((flags & VIPS_FOREIGN_PARTIAL) &&
 		(flags & VIPS_FOREIGN_SEQUENTIAL)) {
 		g_warning("VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
-			  "both set -- using SEQUENTIAL");
+				  "both set -- using SEQUENTIAL");
 		flags ^= VIPS_FOREIGN_PARTIAL;
 	}
 
@@ -1121,7 +1121,7 @@ vips_foreign_load_build(VipsObject *object)
 
 	if (load->sequential)
 		g_warning("ignoring deprecated \"sequential\" mode -- "
-			  "please use \"access\" instead");
+				  "please use \"access\" instead");
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 

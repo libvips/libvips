@@ -655,7 +655,7 @@ magick_optimize_image_layers(Image **images, ExceptionInfo *exception)
 	return MagickTrue;
 #else  /*!HAVE_OPTIMIZEPLUSIMAGELAYERS*/
 	g_warning("layer optimization is not supported by "
-		  "your version of libMagick");
+			  "your version of libMagick");
 
 	return MagickTrue;
 #endif /*HAVE_OPTIMIZEPLUSIMAGELAYERS*/
@@ -671,7 +671,7 @@ magick_optimize_image_transparency(const Image *images,
 	return exception->severity == UndefinedException;
 #else  /*!HAVE_OPTIMIZEIMAGETRANSPARENCY*/
 	g_warning("transparency optimization is not supported by "
-		  "your version of libMagick");
+			  "your version of libMagick");
 
 	return MagickTrue;
 #endif /*HAVE_OPTIMIZEIMAGETRANSPARENCY*/
