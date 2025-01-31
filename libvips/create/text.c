@@ -440,8 +440,7 @@ vips_text_build(VipsObject *object)
 	}
 #else  /*!HAVE_FONTCONFIG*/
 	if (text->fontfile)
-		g_warning("%s",
-			_("ignoring fontfile (no fontconfig support)"));
+		g_warning("ignoring fontfile (no fontconfig support)");
 #endif /*HAVE_FONTCONFIG*/
 
 	/* If our caller set height and not dpi, we adjust dpi until

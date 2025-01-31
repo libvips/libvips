@@ -1103,7 +1103,7 @@ find_image_stats(VipsImage *mem,
 
 #ifdef DEBUG
 	if (count == 0)
-		g_warning("global_balance %s", _("empty overlap!"));
+		g_warning("global_balance empty overlap");
 #endif /*DEBUG*/
 
 	return t[4];

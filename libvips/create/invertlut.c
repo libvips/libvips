@@ -212,7 +212,7 @@ vips_invertlut_build_create(VipsInvertlut *lut)
 
 		/* Interpolate the data sections.
 		 */
-		for (k = first; k < last; k++) {
+		for (k = first; k <= last; k++) {
 			/* Where we're at in the [0,1] range.
 			 */
 			double ki = (double) k / (lut->size - 1);

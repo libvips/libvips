@@ -654,7 +654,7 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			break;
 
 		default:
-			g_warning("%s", _("unknown JFIF resolution unit"));
+			g_warning("unknown JFIF resolution unit");
 			break;
 		}
 

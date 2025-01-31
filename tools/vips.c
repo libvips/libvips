@@ -774,8 +774,8 @@ main(int argc, char **argv)
 		}
 #endif /*ENABLE_DEPRECATED*/
 #else  /*!ENABLE_MODULES*/
-		g_warning("%s", _("plugin load disabled: "
-						  "libvips built without modules support"));
+		g_warning("plugin load disabled: "
+				  "libvips built without modules support");
 #endif /*ENABLE_MODULES*/
 	}
 
