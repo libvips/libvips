@@ -19,6 +19,7 @@
 - fill_nearest: fix a leak
 - colour: use suggested rendering intent as fallback [kleisauke]
 - morph: fix Orc path with large masks [kleisauke]
+- matrixload: fix file format detect for some matrix types
 
 10/10/24 8.16.0
 
