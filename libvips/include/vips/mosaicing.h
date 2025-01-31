@@ -72,6 +72,10 @@ VIPS_API
 int vips_matrixinvert(VipsImage *m, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
+VIPS_API
+int vips_matrixmultiply(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

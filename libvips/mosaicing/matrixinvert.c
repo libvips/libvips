@@ -436,7 +436,7 @@ vips_matrixinvert_class_init(VipsMatrixinvertClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "matrixinvert";
-	vobject_class->description = _("invert an matrix");
+	vobject_class->description = _("invert a matrix");
 	vobject_class->build = vips_matrixinvert_build;
 
 	VIPS_ARG_IMAGE(class, "in", 0,

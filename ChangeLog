@@ -7,6 +7,7 @@
 - tiffload: add support for unlimited flag (requires libtiff 4.7.0+) [lovell]
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
+- add matrixmultiply
 
 8.16.1
 
