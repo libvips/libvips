@@ -3,7 +3,7 @@ title: nip4 January progress
 ---
 
 nip4 is pretty much done! It now loads the two largest workspaces I have
-correctly. I'll do a bit more polishing and aim for an alpha relase with
+correctly. I'll do a bit more polishing and aim for an alpha release with
 pre-compiled binaries for flatpak and Windows by the end of February.
 
 Here's the per-voxel Patlak workspace I made for analyzing pulmonary FDG-PET
@@ -30,8 +30,8 @@ workspace](https://www.academia.edu/7276130/J_Dyer_G_Verri_and_J_Cupitt_Multispe
 
 This thing is for museum imaging: you give it images taken under visible,
 infrared, and UV light with various filters and it aligns them and computes
-a range of useful derivatives, such as UV-induced visible fluorescence with
-stray visible light removal.
+a range of useful derivatives, such as Kubelka–Munk-modelled UV-induced
+visible fluorescence with stray visible light removal.
 
 ## Other additions
 
@@ -48,7 +48,7 @@ this window:
 ![Recover after crash]({{ site.baseurl }}/assets/images/nip4-jan-4.png)
 
 You can see the saves from each nip4 workspace and select one to recover it.
-The **Delete backups** button
+The **Delete all backups** button wipes the temp area if it's getting too big.
 
 ### Drag-drop and copy-paste
 
@@ -58,13 +58,14 @@ even set nip4 as the image handler for your desktop (!!!).
 
 ### Workspace definitions
 
-Each tab in each workspace can have private definitions. Rightclick on the
+Each tab in each workspace can have private definitions. Right click on the
 workspace background and select **Workspace definitions** and a panel opens on
 the right with all the local definitions. You can edit them and press the
+**Play** button to process your changes and update everything.
 
 ![Workspace definitions]({{ site.baseurl }}/assets/images/nip4-jan-5.png)
 
-### Programming window
+### Edit toolkits
 
 Right-click on the workspace background, pick **Edit toolkits** and you get
 the programming window:
