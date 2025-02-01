@@ -17,9 +17,13 @@ The **About nip4** menu item shows some stats:
 
 So this workspace has:
 
-- 9,000 rows
+- 8,400 rows
+- 15,000 images
+- over 100 GB of image data
+- 8,300 active operations
+- looking at `top`, it's running in about 2.5 GB of ram
 
-And here's the [Charisma
+Here's the [Charisma
 workspace](https://www.academia.edu/7276130/J_Dyer_G_Verri_and_J_Cupitt_Multispectral_Imaging_in_Reflectance_and_Photo_induced_Luminescence_modes_a_User_Manual_European_CHARISMA_Project):
 
 ![Charisma workspace]({{ site.baseurl }}/assets/images/nip4-jan-3.png)
