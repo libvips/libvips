@@ -6,6 +6,7 @@ mosaicing_sources = files(
     'mosaic1.c',
     'chkpair.c',
     'matrixinvert.c',
+    'matrixmultiply.c',
     'global_balance.c',
     'lrmerge.c',
     'tbmerge.c',
