@@ -33,6 +33,10 @@ infrared, and UV light with various filters and it aligns them and computes
 a range of useful derivatives, such as Kubelka–Munk-modelled UV-induced
 visible fluorescence with stray visible light removal.
 
+Looking at **About nip4** for this one, it's only 300 rows, but has
+14,000 images and over 120 GB of image data. It runs in about 1.2 GB of ram,
+according to `top`.
+
 ## Other additions
 
 I've implemented some other features:
