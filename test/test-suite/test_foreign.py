@@ -1200,6 +1200,12 @@ class TestForeign:
         assert im.width == 10
         assert im.height == 10
 
+        # Custom CSS stylesheet
+        im = pyvips.Image.new_from_file(SVG_FILE)
+        assert im.avg() < 5
+        im = pyvips.Image.new_from_file(SVG_FILE, stylesheet=b'path{stroke:#f00;stroke-width:1em;}')
+        assert im.avg() > 5
+
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
 

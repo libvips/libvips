@@ -8,6 +8,7 @@
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
+- svgload: add support for custom CSS via stylesheet option [lovell]
 
 8.16.1
 
