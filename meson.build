@@ -282,9 +282,9 @@ if quantisation_package.found()
     if cgif_dep.found()
         external_deps += cgif_dep
         cfg_var.set('HAVE_CGIF', '1')
-        cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', cc.compiles('#include <cgif.h>\nint i = CGIF_ATTR_NO_LOOP;', name: 'Has CGIF_ATTR_NO_LOOP', dependencies: cgif_dep))
-        cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', cc.compiles('#include <cgif.h>\nint i = CGIF_FRAME_ATTR_INTERLACED;', name: 'Has CGIF_FRAME_ATTR_INTERLACED', dependencies: cgif_dep))
-        cfg_var.set('HAVE_CGIF_GEN_KEEP_IDENT_FRAMES', cc.compiles('#include <cgif.h>\nint i = CGIF_GEN_KEEP_IDENT_FRAMES;', name: 'Has CGIF_GEN_KEEP_IDENT_FRAMES', dependencies: cgif_dep))
+        cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', cc.get_define('CGIF_ATTR_NO_LOOP', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
+        cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', cc.get_define('CGIF_FRAME_ATTR_INTERLACED', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
+        cfg_var.set('HAVE_CGIF_GEN_KEEP_IDENT_FRAMES', cc.get_define('CGIF_GEN_KEEP_IDENT_FRAMES', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
     endif
 endif
 
