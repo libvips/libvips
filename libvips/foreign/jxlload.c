@@ -636,8 +636,6 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 static int
 vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
-
 	if (!jxl->exif_data ||
 		vips_isprefix("Exif", (char *) jxl->exif_data))
 		return 0;
