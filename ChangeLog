@@ -8,6 +8,7 @@
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
+- improve performance of vips_shrink() [kleisauke]
 
 8.16.1
 
