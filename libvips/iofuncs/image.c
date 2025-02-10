@@ -803,7 +803,7 @@ vips_image_add_progress(VipsImage *image)
 {
 	if (vips__progress ||
 		g_getenv("VIPS_PROGRESS")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_PROGRESS")
 #endif
 	) {
@@ -2528,7 +2528,7 @@ vips_get_disc_threshold(void)
 		threshold = 100 * 1024 * 1024;
 
 		if ((env = g_getenv("VIPS_DISC_THRESHOLD"))
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 			|| (env = g_getenv("IM_DISC_THRESHOLD"))
 #endif
 		)

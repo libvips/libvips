@@ -481,7 +481,7 @@ vips_init(const char *argv0)
 	(void) set_stacksize(min_stack_size);
 
 	if (g_getenv("VIPS_INFO")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_INFO")
 #endif
 	)
@@ -564,7 +564,7 @@ vips_init(const char *argv0)
 	vips__meta_init_types();
 	vips__interpolate_init();
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	im__format_init();
 #endif
 
@@ -604,7 +604,7 @@ vips_init(const char *argv0)
 	vips_load_plugins("%s/vips-modules-%d.%d",
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION);
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	/* We had vips8 plugins for a while.
 	 */
 	vips_load_plugins("%s/vips-plugins-%d.%d",
@@ -646,7 +646,7 @@ vips_init(const char *argv0)
 	 * env var hack as a workaround.
 	 */
 	if (g_getenv("VIPS_WARNING")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_WARNING")
 #endif
 	)
@@ -726,7 +726,7 @@ vips_shutdown(void)
 
 	vips_cache_drop_all();
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
 

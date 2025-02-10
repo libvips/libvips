@@ -87,7 +87,7 @@ vips__vector_init(void)
 	/* Look for the deprecated IM_NOVECTOR environment variable as well.
 	 */
 	if (g_getenv("VIPS_NOVECTOR")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_NOVECTOR")
 #endif
 	)
