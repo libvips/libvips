@@ -92,6 +92,11 @@
 #include <pango/pangocairo.h>
 
 #ifdef HAVE_FONTCONFIG
+/* ftconfig.h also appears to define HAVE_UNISTD_H.
+ */
+#ifdef HAVE_UNISTD_H
+#undef HAVE_UNISTD_H
+#endif
 #include <pango/pangofc-fontmap.h>
 #include <fontconfig/fontconfig.h>
 #endif
