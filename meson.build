@@ -388,6 +388,8 @@ if librsvg_found
     external_deps += librsvg_dep
     external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', true)
+    # rsvg_handle_set_stylesheet added in librsvg 2.48.0
+    cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', dependencies: librsvg_dep))
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.3.0', required: get_option('openslide'))
