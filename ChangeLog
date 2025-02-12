@@ -9,6 +9,7 @@
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
 - improve performance of vips_shrink() [kleisauke]
+- svgload: add support for custom CSS via stylesheet option [lovell]
 
 8.16.1
 
