@@ -43,7 +43,7 @@ popd
 # lcms
 pushd $SRC/lcms
 meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Djpeg=disabled -Dtiff=disabled
+  -Dtests=disabled -Djpeg=disabled -Dtiff=disabled
 meson install -C build --tag devel
 popd
 
@@ -148,7 +148,8 @@ popd
 
 # cgif
 pushd $SRC/cgif
-meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized
+meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
+  -Dexamples=false -Dtests=false
 meson install -C build --tag devel
 popd
 
