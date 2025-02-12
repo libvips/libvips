@@ -94,6 +94,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
 
@@ -307,6 +308,76 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	return 0;
 }
 
+#ifdef HAVE_HWY
+static int
+vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsShrinkv *shrink = (VipsShrinkv *) b;
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &out_region->valid;
+	const int bands = in->Bands;
+	int ne = r->width * bands;
+
+	/* How do we chunk up the output image? We don't want to prepare the
+	 * whole of the input region corresponding to *r since it could be huge.
+	 *
+	 * We also don't want to fetch a line at a time, since that can make
+	 * upstream coordinate changes very expensive.
+	 *
+	 * Instead, aim for a minimum of tile_height on the input image.
+	 */
+	int input_target = VIPS_MAX(shrink->vshrink, r->height);
+	int dy = input_target / shrink->vshrink;
+
+	int y, y1;
+
+#ifdef DEBUG
+	printf("vips_shrinkv_uchar_vector_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top);
+#endif /*DEBUG*/
+
+	for (y = 0; y < r->height; y += dy) {
+		int chunk_height = VIPS_MIN(dy, r->height - y);
+
+		VipsRect s;
+
+		s.left = r->left;
+		s.top = (r->top + y) * shrink->vshrink;
+		s.width = r->width;
+		s.height = chunk_height * shrink->vshrink;
+#ifdef DEBUG
+		printf("vips_shrinkv_uchar_vector_gen: requesting %d lines from %d\n",
+			s.height, s.top);
+#endif /*DEBUG*/
+		if (vips_region_prepare(ir, &s))
+			return -1;
+
+		VIPS_GATE_START("vips_shrinkv_uchar_vector_gen: work");
+
+		const int lskip = VIPS_REGION_LSKIP(ir);
+
+		// each output line
+		for (y1 = 0; y1 < chunk_height; y1++) {
+			// top of this line in the output
+			int top = r->top + y + y1;
+
+			VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, top);
+			VipsPel *p = VIPS_REGION_ADDR(ir, r->left, top * shrink->vshrink);
+
+			vips_shrinkv_uchar_hwy(q, p, ne, shrink->vshrink, lskip);
+		}
+
+		VIPS_GATE_STOP("vips_shrinkv_uchar_vector_gen: work");
+	}
+
+	VIPS_COUNT_PIXELS(out_region, "vips_shrinkv_uchar_vector_gen");
+
+	return 0;
+}
+#endif /*HAVE_HWY*/
+
 static int
 vips_shrinkv_build(VipsObject *object)
 {
@@ -316,6 +387,7 @@ vips_shrinkv_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *in;
+	VipsGenerateFn generate;
 
 	if (VIPS_OBJECT_CLASS(vips_shrinkv_parent_class)->build(object))
 		return -1;
@@ -341,6 +413,20 @@ vips_shrinkv_build(VipsObject *object)
 			NULL))
 		return -1;
 	in = t[1];
+
+	/* For uchar input, try to make a vector path.
+	 */
+#ifdef HAVE_HWY
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled()) {
+		generate = vips_shrinkv_uchar_vector_gen;
+		g_info("shrinkv: using vector path");
+	}
+	else
+#endif /*HAVE_HWY*/
+		/* Default to the C path.
+		 */
+		generate = vips_shrinkv_gen;
 
 	/* SMALLTILE or we'll need huge input areas for our output. In seq
 	 * mode, the linecache above will keep us sequential.
@@ -373,7 +459,7 @@ vips_shrinkv_build(VipsObject *object)
 #endif /*DEBUG*/
 
 	if (vips_image_generate(t[2],
-			vips_start_one, vips_shrinkv_gen, vips_stop_one,
+			vips_start_one, generate, vips_stop_one,
 			in, shrink))
 		return -1;
 
