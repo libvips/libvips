@@ -56,7 +56,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 
 #ifdef G_OS_WIN32
 #include <windows.h>
@@ -139,7 +138,7 @@ vips_window_unref(VipsWindow *window)
 {
 	VipsImage *im = window->im;
 
-	g_mutex_lock(im->sslock);
+	g_mutex_lock(&im->sslock);
 
 #ifdef DEBUG
 	printf("vips_window_unref: window top = %d, height = %d, count = %d\n",
@@ -152,12 +151,12 @@ vips_window_unref(VipsWindow *window)
 
 	if (window->ref_count == 0) {
 		if (vips_window_free(window)) {
-			g_mutex_unlock(im->sslock);
+			g_mutex_unlock(&im->sslock);
 			return -1;
 		}
 	}
 
-	g_mutex_unlock(im->sslock);
+	g_mutex_unlock(&im->sslock);
 
 	return 0;
 }
@@ -353,20 +352,20 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 		window->top + window->height >= top + height)
 		return window;
 
-	g_mutex_lock(im->sslock);
+	g_mutex_lock(&im->sslock);
 
 	/* We have a window and we are the only ref to it ... scroll.
 	 */
 	if (window &&
 		window->ref_count == 1) {
 		if (vips_window_set(window, top, height)) {
-			g_mutex_unlock(im->sslock);
+			g_mutex_unlock(&im->sslock);
 			vips_window_unref(window);
 
 			return NULL;
 		}
 
-		g_mutex_unlock(im->sslock);
+		g_mutex_unlock(&im->sslock);
 
 		return window;
 	}
@@ -380,7 +379,7 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	/* Is there an existing window we can reuse?
 	 */
 	if ((window = vips_window_find(im, top, height))) {
-		g_mutex_unlock(im->sslock);
+		g_mutex_unlock(&im->sslock);
 
 		return window;
 	}
@@ -396,11 +395,11 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	height = VIPS_CLIP(0, height, im->Ysize - top);
 
 	if (!(window = vips_window_new(im, top, height))) {
-		g_mutex_unlock(im->sslock);
+		g_mutex_unlock(&im->sslock);
 		return NULL;
 	}
 
-	g_mutex_unlock(im->sslock);
+	g_mutex_unlock(&im->sslock);
 
 	return window;
 }
