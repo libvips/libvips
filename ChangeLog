@@ -22,6 +22,7 @@
 - invertlut: fix final value in some cases
 - matrixload: fix file format detect for some matrix types
 - radload: improve sanity check of colour-related headers [lovell]
+- heifsave: reject multiband images [lovell]
 
 10/10/24 8.16.0
 

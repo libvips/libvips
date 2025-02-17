@@ -689,6 +689,15 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
+	/* Reject multiband images.
+	 */
+	if (save->ready->Type == VIPS_INTERPRETATION_MULTIBAND) {
+		vips_error("heifsave", _("Unsupported interpretation: %s"),
+			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
+				save->ready->Type));
+		return -1;
+	}
+
 	/* Make a heif image the size of a page. We send sink_disc() output
 	 * here and write a frame each time it fills.
 	 */
