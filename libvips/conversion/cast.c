@@ -603,6 +603,10 @@ vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
+ *
  * Convert @in to #VIPS_FORMAT_UCHAR. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
@@ -625,6 +629,10 @@ vips_cast_uchar(VipsImage *in, VipsImage **out, ...)
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
  *
  * Convert @in to #VIPS_FORMAT_CHAR. See vips_cast().
  *
@@ -649,6 +657,10 @@ vips_cast_char(VipsImage *in, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
+ *
  * Convert @in to #VIPS_FORMAT_USHORT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
@@ -671,6 +683,10 @@ vips_cast_ushort(VipsImage *in, VipsImage **out, ...)
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
  *
  * Convert @in to #VIPS_FORMAT_SHORT. See vips_cast().
  *
@@ -695,6 +711,10 @@ vips_cast_short(VipsImage *in, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
+ *
  * Convert @in to #VIPS_FORMAT_UINT. See vips_cast().
  *
  * Returns: 0 on success, -1 on error
@@ -717,6 +737,10 @@ vips_cast_uint(VipsImage *in, VipsImage **out, ...)
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shift: %gboolean, integer values are shifted
  *
  * Convert @in to #VIPS_FORMAT_INT. See vips_cast().
  *
