@@ -510,6 +510,8 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_IMAGE_ORIENTATION', cpp.has_member('struct heif_encoding_options', 'image_orientation', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_error_success added in 1.17.0
     cfg_var.set('HAVE_HEIF_ERROR_SUCCESS', libheif_dep.version().version_compare('>=1.17.0'))
+    # heif_get_disabled_security_limits added in 1.19.0
+    cfg_var.set('HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS', cpp.has_function('heif_get_disabled_security_limits', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
 libjxl_dep = dependency('libjxl', version: '>=0.6', required: get_option('jpeg-xl'))
