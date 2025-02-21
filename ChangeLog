@@ -23,6 +23,7 @@
 - matrixload: fix file format detect for some matrix types
 - radload: improve sanity check of colour-related headers [lovell]
 - heifsave: reject multiband images [lovell]
+- heifload: prevent possible int overflow for large images [kleisauke]
 
 10/10/24 8.16.0
 
