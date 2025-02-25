@@ -354,6 +354,11 @@ vips_foreign_load_heif_build(VipsObject *object)
 		heif_context_set_maximum_image_size_limit(heif->ctx,
 			heif->unlimited ? USHRT_MAX : 0x4000);
 #endif /* HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT */
+#ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
+		if (heif->unlimited)
+			heif_context_set_security_limits(heif->ctx,
+				heif_get_disabled_security_limits());
+#endif /* HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS */
 		error = heif_context_read_from_reader(heif->ctx,
 			heif->reader, heif, NULL);
 		if (error.code) {
