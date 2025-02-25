@@ -59,8 +59,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
-#include <vips/threadpool.h>
 #include <vips/debug.h>
 
 #include "sink.h"

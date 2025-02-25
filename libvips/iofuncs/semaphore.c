@@ -48,11 +48,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <errno.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 
 void
@@ -60,15 +58,17 @@ vips_semaphore_init(VipsSemaphore *s, int v, char *name)
 {
 	s->v = v;
 	s->name = name;
-	s->mutex = vips_g_mutex_new();
-	s->cond = vips_g_cond_new();
+	g_mutex_init(&s->mutex);
+	s->cond = g_new(GCond, 1);
+	g_cond_init(s->cond);
 }
 
 void
 vips_semaphore_destroy(VipsSemaphore *s)
 {
-	VIPS_FREEF(vips_g_mutex_free, s->mutex);
-	VIPS_FREEF(vips_g_cond_free, s->cond);
+	g_mutex_clear(&s->mutex);
+	g_cond_clear(s->cond);
+	g_free(s->cond);
 }
 
 /* Add n to the semaphore and signal any threads that are blocked waiting
@@ -79,7 +79,7 @@ vips_semaphore_upn(VipsSemaphore *s, int n)
 {
 	int value_after_op;
 
-	g_mutex_lock(s->mutex);
+	g_mutex_lock(&s->mutex);
 	s->v += n;
 	value_after_op = s->v;
 
@@ -90,7 +90,7 @@ vips_semaphore_upn(VipsSemaphore *s, int n)
 		g_cond_signal(s->cond);
 	else
 		g_cond_broadcast(s->cond);
-	g_mutex_unlock(s->mutex);
+	g_mutex_unlock(&s->mutex);
 
 #ifdef DEBUG_IO
 	printf("vips_semaphore_upn(\"%s\",%d) = %d\n",
@@ -120,15 +120,15 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 
 	VIPS_GATE_START("vips__semaphore_downn_until: wait");
 
-	g_mutex_lock(s->mutex);
+	g_mutex_lock(&s->mutex);
 
 	while (s->v < n) {
 		if (end_time == -1)
-			vips__worker_cond_wait(s->cond, s->mutex);
-		else if (!g_cond_wait_until(s->cond, s->mutex, end_time)) {
+			vips__worker_cond_wait(s->cond, &s->mutex);
+		else if (!g_cond_wait_until(s->cond, &s->mutex, end_time)) {
 			/* timeout has passed.
 			 */
-			g_mutex_unlock(s->mutex);
+			g_mutex_unlock(&s->mutex);
 
 			VIPS_GATE_STOP("vips__semaphore_downn_until: wait");
 			return -1;
@@ -138,7 +138,7 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 	s->v -= n;
 	value_after_op = s->v;
 
-	g_mutex_unlock(s->mutex);
+	g_mutex_unlock(&s->mutex);
 
 #ifdef DEBUG_IO
 	printf("vips__semaphore_downn_until(\"%s\",%d): %d\n",

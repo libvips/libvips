@@ -62,7 +62,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/buf.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 #ifdef G_OS_WIN32
