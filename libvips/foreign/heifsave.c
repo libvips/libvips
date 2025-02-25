@@ -471,7 +471,7 @@ vips_foreign_save_heif_write_block(VipsRegion *region, VipsRect *area,
 		int page = (area->top + y) / heif->page_height;
 		int line = (area->top + y) % heif->page_height;
 		VipsPel *p = VIPS_REGION_ADDR(region, 0, area->top + y);
-		VipsPel *q = heif->data + line * heif->stride;
+		VipsPel *q = heif->data + (size_t) heif->stride * line;
 
 		if (vips_foreign_save_heif_pack(heif,
 				q, p, VIPS_REGION_N_ELEMENTS(region)))
