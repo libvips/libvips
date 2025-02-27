@@ -471,7 +471,7 @@ vips_image_finalize(GObject *gobject)
 	 */
 	vips_image_delete(image);
 
-	VIPS_FREEF(vips_g_mutex_free, image->sslock);
+	g_mutex_clear(&image->sslock);
 
 	VIPS_FREE(image->Hist);
 	VIPS_FREEF(vips__gslist_gvalue_free, image->history_list);
@@ -1025,14 +1025,14 @@ vips_image_real_invalidate(VipsImage *image, void *data)
 
 	VIPS_GATE_START("vips_image_real_invalidate: wait");
 
-	g_mutex_lock(image->sslock);
+	g_mutex_lock(&image->sslock);
 
 	VIPS_GATE_STOP("vips_image_real_invalidate: wait");
 
 	(void) vips_slist_map2(image->regions,
 		(VipsSListMap2Fn) vips_image_real_invalidate_cb, NULL, NULL);
 
-	g_mutex_unlock(image->sslock);
+	g_mutex_unlock(&image->sslock);
 }
 
 static void
@@ -1347,7 +1347,7 @@ vips_image_init(VipsImage *image)
 	image->Yres = 1.0;
 
 	image->fd = -1; /* since 0 is stdout */
-	image->sslock = vips_g_mutex_new();
+	g_mutex_init(&image->sslock);
 
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 
