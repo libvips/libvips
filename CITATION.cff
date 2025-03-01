@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: libvips
+authors:
+  - family-names: libvips team
+url: https://libvips.org
+preferred-citation:
+  type: conference-paper
+  title: The libvips image processing library
+  authors:
+    - family-names: Cupitt
+      given-names: John
+    - family-names: Martinez
+      given-names: Kirk
+    - family-names: Fuller
+      given-names: Lovell
+    - family-names: Wolthuizen
+      given-names: Kleis Auke
+  collection-title: Electronic Imaging 2025
+  collection-type: proceedings
+  month: 2
+  year: 2025
+  publisher:
+    name: Society for Imaging Science and Technology
+  url: "https://www.southampton.ac.uk/~km2/papers/2025/vips-ist-preprint.pdf"
