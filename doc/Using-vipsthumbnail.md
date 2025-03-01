@@ -210,7 +210,7 @@ Check the image write operations to see all the possible options. For example:
 $ vips jpegsave
 save image to jpeg file
 usage:
-   jpegsave in filename
+   jpegsave in filename [--option-name option-value ...]
 where:
    in           - Image to save, input VipsImage
    filename     - Filename to save to, input gchararray
@@ -218,7 +218,6 @@ optional arguments:
    Q            - Q factor, input gint
 			default: 75
 			min: 1, max: 100
-   profile      - Filename of ICC profile to embed, input gchararray
    optimize-coding - Compute optimal Huffman coding tables, input gboolean
 			default: false
    interlace    - Generate an interlaced (progressive) jpeg, input gboolean
@@ -242,6 +241,7 @@ optional arguments:
 			default flags: exif:xmp:iptc:icc:other:all
 			allowed flags: none, exif, xmp, iptc, icc, other, all
    background   - Background value, input VipsArrayDouble
+   profile      - Filename of ICC profile to embed, input gchararray
 ```
 
 The `keep` option is especially useful. Many image have very large IPTC,

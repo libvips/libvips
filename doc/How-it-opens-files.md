@@ -105,7 +105,7 @@ bottom-to-top. Unfortunately libjpeg only supports top-to-bottom reading
 and writing, so libvips must convert `fred.jpg` to a random access format
 before it can run the flip operation.
 
-However many useful operations do not require true random access.  For
+However many useful operations do not require true random access. For
 example:
 
 ```bash

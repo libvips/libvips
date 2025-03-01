@@ -89,15 +89,15 @@ VipsOperation (operation), operations
 $ vips gamma
 gamma an image
 usage:
-   gamma in out
+   gamma in out [--option-name option-value ...]
 where:
    in           - Input image, input VipsImage
    out          - Output image, output VipsImage
 optional arguments:
    exponent     - Gamma factor, input gdouble
-                  default: 2.4
+                  default: 0.416667
                   min: 1e-06, max: 1000
-operation flags: sequential-unbuffered 
+operation flags: sequential
 </programlisting>
 
       vips_gamma() applies a gamma factor to an image. By 
