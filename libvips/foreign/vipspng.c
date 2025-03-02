@@ -1162,11 +1162,13 @@ write_vips(Write *write,
 		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type,
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
-	/* Set resolution. libpng uses pixels per meter.
+	/* Set resolution if known. libpng uses pixels per meter.
 	 */
-	png_set_pHYs(write->pPng, write->pInfo,
-		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
-		PNG_RESOLUTION_METER);
+	if(in->Xres && in->Yres){
+		png_set_pHYs(write->pPng, write->pInfo,
+					 VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
+					 PNG_RESOLUTION_METER);
+	}
 
 	/* Metadata
 	 */
