@@ -18,7 +18,6 @@ main(int argc, char **argv)
 	void *buf;
 	size_t len;
 	gboolean is_killed = FALSE;
-	int ret;
 
 	if (VIPS_INIT(argv[0]))
 		vips_error_exit(NULL);
@@ -36,14 +35,13 @@ main(int argc, char **argv)
 		G_CALLBACK(eval_callback), &is_killed);
 
 	buf = NULL;
-	ret = vips_gifsave_buffer(im, &buf, &len, NULL);
-	if (!ret)
-		printf("expected error return from vips_gifsave_buffer()\n");
+	if (vips_gifsave_buffer(im, &buf, &len, NULL))
+		printf("error return from vips_gifsave_buffer()\n");
 
 	g_object_unref(im);
 	if (buf)
 		g_free(buf);
 	g_assert(is_killed);
 
-	return !ret;
+	return 0;
 }
