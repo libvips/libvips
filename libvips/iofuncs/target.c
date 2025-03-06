@@ -97,6 +97,18 @@ vips_target_finalize(GObject *gobject)
 	G_OBJECT_CLASS(vips_target_parent_class)->finalize(gobject);
 }
 
+static void
+vips_target_dispose(GObject *gobject)
+{
+	VipsTarget *target = VIPS_TARGET(gobject);
+
+	VIPS_DEBUG_MSG("vips_target_dispose:\n");
+
+	VIPS_UNREF(target->temp);
+
+	G_OBJECT_CLASS(vips_target_parent_class)->dispose(gobject);
+}
+
 static int
 vips_target_build(VipsObject *object)
 {
@@ -275,6 +287,7 @@ vips_target_class_init(VipsTargetClass *class)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS(class);
 
+	gobject_class->dispose = vips_target_dispose;
 	gobject_class->finalize = vips_target_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -427,8 +440,7 @@ vips_target_new_temp(VipsTarget *based_on)
 
 		if (!(filename = vips__temp_name("%s.target")))
 			return NULL;
-		if ((descriptor =
-					vips__open_image_write(filename, TRUE)) < 0) {
+		if ((descriptor = vips__open_image_write(filename, TRUE)) < 0) {
 			g_free(filename);
 			return NULL;
 		}
@@ -468,10 +480,9 @@ vips_target_write_unbuffered(VipsTarget *target,
 		 * one to make sure we don't get stuck in this loop.
 		 */
 		if (bytes_written <= 0) {
-			vips_error_system(errno,
-				vips_connection_nick(
-					VIPS_CONNECTION(target)),
-				"%s", _("write error"));
+			const char *nick = vips_connection_nick(VIPS_CONNECTION(target));
+
+			vips_error_system(errno, nick, "%s", _("write error"));
 			return -1;
 		}
 
@@ -515,20 +526,52 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
 {
 	VIPS_DEBUG_MSG("vips_target_write: %zd bytes\n", length);
 
-	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point &&
-		vips_target_flush(target))
-		return -1;
-
-	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point) {
-		/* Still too large? Do an unbuffered write.
-		 */
-		if (vips_target_write_unbuffered(target, buffer, length))
+	if (target->temp) {
+		if (vips_target_write(target->temp, data, length))
 			return -1;
 	}
 	else {
-		memcpy(target->output_buffer + target->write_point,
-			buffer, length);
-		target->write_point += length;
+		if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point &&
+			vips_target_flush(target))
+			return -1;
+
+		if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point) {
+			/* Still too large? Do an unbuffered write.
+			 */
+			if (vips_target_write_unbuffered(target, buffer, length))
+				return -1;
+		}
+		else {
+			memcpy(target->output_buffer + target->write_point, buffer, length);
+			target->write_point += length;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * vips_target_need_seek:
+ * @target: target to operate on
+ *
+ * Some writers need to be able to seek the output (for example, `tiffsave`),
+ * however, some targets (eg. pipes) don't support this.
+ *
+ * Calling `vips_target_need_seek()` on a target with no seek method redirects
+ * output to a temporary file or to memory, then on close, copies that object
+ * to the output.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_target_need_seek(VipsTarget *target)
+{
+	g_assert(!target->temp);
+
+    if (vips_target_seek(target, 0, SEEK_CUR) != -1) {
+		VIPS_DEBUG_MSG("vips_target_need_seek: redirecting output to temp\n");
+		if (!(target->temp = vips_target_new_temp(target)))
+			return -1;
 	}
 
 	return 0;
@@ -558,10 +601,17 @@ vips_target_read(VipsTarget *target, void *buffer, size_t length)
 
 	VIPS_DEBUG_MSG("vips_target_read: %zd bytes\n", length);
 
-	if (vips_target_flush(target))
-		return -1;
+	if (target->temp) {
+		if (vips_target_read(target->temp, buffer, length))
+			return -1;
+	}
+	else {
+		if (vips_target_flush(target) ||
+			class->read(target, buffer, length))
+			return -1;
+	}
 
-	return class->read(target, buffer, length);
+	return 0;
 }
 
 /**
@@ -584,17 +634,21 @@ vips_target_seek(VipsTarget *target, gint64 position, int whence)
 
 	gint64 new_position;
 
-	VIPS_DEBUG_MSG("vips_target_seek: pos = %" G_GINT64_FORMAT
-		", whence = %d\n",
-		position, whence);
+	if (target->temp)
+		new_position = vips_target_seek(target->temp, position, whence);
+	else {
+		VIPS_DEBUG_MSG("vips_target_seek: pos = %" G_GINT64_FORMAT
+			", whence = %d\n",
+			position, whence);
 
-	if (vips_target_flush(target))
-		return -1;
+		if (vips_target_flush(target))
+			return -1;
 
-	new_position = class->seek(target, position, whence);
+		new_position = class->seek(target, position, whence);
 
-	VIPS_DEBUG_MSG("vips_target_seek: new_position = %" G_GINT64_FORMAT "\n",
-		new_position);
+		VIPS_DEBUG_MSG("vips_target_seek: "
+			"new_position = %" G_GINT64_FORMAT "\n", new_position);
+	}
 
 	return new_position;
 }

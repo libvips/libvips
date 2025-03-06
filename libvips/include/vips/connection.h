@@ -438,6 +438,13 @@ struct _VipsTarget {
 	 */
 	gboolean delete_on_close;
 	char *delete_on_close_filename;
+
+	/* If this target doesn't support read and seek (eg. a pipe) and
+	 * vips_target_need_seek() has been called (eg. by tiffsave), we need to
+	 * redirect output to this temp target and do a copy to the real output on
+	 * close.
+	 */
+	VipsTarget *temp;
 };
 
 typedef struct _VipsTargetClass {
@@ -495,6 +502,8 @@ VIPS_API
 VipsTarget *vips_target_new_temp(VipsTarget *target);
 VIPS_API
 int vips_target_write(VipsTarget *target, const void *data, size_t length);
+VIPS_API
+int vips_target_need_seek(VipsTarget *target);
 VIPS_API
 gint64 vips_target_read(VipsTarget *target, void *buffer, size_t length);
 VIPS_API

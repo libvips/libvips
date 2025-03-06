@@ -300,7 +300,7 @@ openout_target_unmap(thandle_t st, tdata_t start, toff_t len)
 
 TIFF *
 vips__tiff_openout_target(VipsTarget *target, gboolean bigtiff,
-	VipsTiffErrorHandler error_fn, VipsTiffErrorHandler warning_fn,
+https://gitlab.com/libtiff/libtiff/-/blob/v4.7.0/libtiff/tif_unix.c#L97-125	VipsTiffErrorHandler error_fn, VipsTiffErrorHandler warning_fn,
 	void *user_data)
 {
 	const char *mode = bigtiff ? "w8" : "w";
