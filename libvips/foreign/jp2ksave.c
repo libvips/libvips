@@ -482,7 +482,7 @@ vips_foreign_save_jp2k_sizeof_tile(VipsForeignSaveJp2k *jp2k, VipsRect *tile)
 			(double) tile->height / comp->dy);
 		;
 
-		size += output_width * output_height * sizeof_element;
+		size += (size_t) output_width * output_height * sizeof_element;
 	}
 
 	return size;

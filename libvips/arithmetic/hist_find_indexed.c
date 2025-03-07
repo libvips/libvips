@@ -117,8 +117,8 @@ histogram_new(VipsHistFindIndexed *indexed)
 		!(hist->reg = vips_region_new(indexed->index_ready)))
 		return NULL;
 
-	memset(hist->bins, 0, bands * hist->size * sizeof(double));
-	memset(hist->init, 0, hist->size * sizeof(int));
+	memset(hist->bins, 0, (size_t) bands * hist->size * sizeof(double));
+	memset(hist->init, 0, (size_t) hist->size * sizeof(int));
 
 	return hist;
 }

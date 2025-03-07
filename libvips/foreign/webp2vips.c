@@ -305,7 +305,7 @@ vips_image_paint_image(VipsImage *frame,
 			}
 			else
 				memcpy((char *) q, (char *) p,
-					ovl.width * ps);
+					(size_t) ovl.width * ps);
 
 			p += VIPS_IMAGE_SIZEOF_LINE(sub);
 			q += VIPS_IMAGE_SIZEOF_LINE(frame);

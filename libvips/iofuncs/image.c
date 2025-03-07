@@ -3241,7 +3241,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	vips_image_eval(image, ypos * image->Xsize);
+	vips_image_eval(image, (guint64) ypos * image->Xsize);
 	if (vips_image_iskilled(image))
 		return -1;
 

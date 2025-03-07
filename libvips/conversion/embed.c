@@ -217,7 +217,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 		 */
 		for (y = 0; y < todo.height; y++) {
 			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
-			memcpy(q, p, bs * todo.width);
+			memcpy(q, p, (size_t) bs * todo.width);
 		}
 	}
 
