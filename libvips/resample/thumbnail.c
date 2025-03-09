@@ -783,7 +783,7 @@ vips_thumbnail_build(VipsObject *object)
 	 * page_height or we'll have pixels straddling page boundaries.
 	 */
 	if (in->Ysize > preshrunk_page_height) {
-		int target_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
+		int target_page_height = rint(preshrunk_page_height / vshrink);
 		int target_image_height =
 			target_page_height * thumbnail->n_loaded_pages;
 
@@ -827,7 +827,7 @@ vips_thumbnail_build(VipsObject *object)
 	 * accidentally turn into an animated image later.
 	 */
 	if (thumbnail->n_loaded_pages > 1) {
-		int output_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
+		int output_page_height = rint(preshrunk_page_height / vshrink);
 
 		if (vips_copy(in, &t[8], NULL))
 			return -1;

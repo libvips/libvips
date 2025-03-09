@@ -140,7 +140,7 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 		else
 			v = (1.0 + 0.055) * pow(f, 1.0 / 2.4) - 0.055;
 
-		Y2v[i] = VIPS_RINT((range - 1) * v);
+		Y2v[i] = rint((range - 1) * v);
 	}
 
 	/* Copy the final element. This is used in the piecewise linear
@@ -303,7 +303,7 @@ vips_col_scRGB2sRGB(int range, int *lut,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers.
 	 */
-	if (VIPS_ISNAN(R) || VIPS_ISNAN(G) || VIPS_ISNAN(B)) {
+	if (isnan(R) || isnan(G) || isnan(B)) {
 		*r = 0;
 		*g = 0;
 		*b = 0;
@@ -337,19 +337,19 @@ vips_col_scRGB2sRGB(int range, int *lut,
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*r = VIPS_RINT(v);
+	*r = rint(v);
 
 	Yf = G * maxval;
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*g = VIPS_RINT(v);
+	*g = rint(v);
 
 	Yf = B * maxval;
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*b = VIPS_RINT(v);
+	*b = rint(v);
 
 	if (og_ret)
 		*og_ret = og;
@@ -399,7 +399,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	/* Y can be Nan. Throw those values out, they will break
 	 * our clipping.
 	 */
-	if (VIPS_ISNAN(Y)) {
+	if (isnan(Y)) {
 		*g = 0;
 
 		return -1;
@@ -417,7 +417,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*g = VIPS_RINT(v);
+	*g = rint(v);
 
 	if (og_ret)
 		*og_ret = og;

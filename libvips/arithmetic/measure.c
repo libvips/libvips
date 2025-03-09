@@ -159,8 +159,8 @@ vips_measure_build(VipsObject *object)
 				 * averages near zero (can get these if use
 				 * measure on IM_TYPE_LAB images).
 				 */
-				if (dev * 5 > VIPS_FABS(avg) &&
-					VIPS_FABS(avg) > 3)
+				if (dev * 5 > fabs(avg) &&
+					fabs(avg) > 3)
 					g_warning(_("%s: "
 								"patch %d x %d, "
 								"band %d: "

@@ -140,8 +140,8 @@ parse_matrix_header(char *line,
 		return -1;
 	}
 
-	if (VIPS_FLOOR(header[0]) != header[0] ||
-		VIPS_FLOOR(header[1]) != header[1]) {
+	if (floor(header[0]) != header[0] ||
+		floor(header[1]) != header[1]) {
 		vips_error("mask2vips", "%s", _("width / height not int"));
 		return -1;
 	}

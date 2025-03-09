@@ -70,7 +70,7 @@ G_DEFINE_TYPE(VipsMinpair, vips_minpair, VIPS_TYPE_BINARY);
 		TYPE *restrict q = (TYPE *) out; \
 \
 		for (int x = 0; x < sz; x++) \
-			q[x] = VIPS_FMIN(left[x], right[x]); \
+			q[x] = fmin(left[x], right[x]); \
 	}
 
 static void

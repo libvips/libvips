@@ -253,7 +253,7 @@ vips_sharpen_build(VipsObject *object)
 		if (y > sharpen->y2)
 			y = sharpen->y2;
 
-		sharpen->lut[i] = VIPS_RINT(y * 327.67);
+		sharpen->lut[i] = rint(y * 327.67);
 	}
 
 #ifdef DEBUG
