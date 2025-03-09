@@ -97,9 +97,9 @@ table_init(void *client)
 		float Y = (double) i / QUANT_ELEMENTS;
 
 		if (Y < 0.008856)
-			cbrt_table[i] = 7.787 * Y + (16.0 / 116.0);
+			cbrt_table[i] = 7.787F * Y + (16.0F / 116.0F);
 		else
-			cbrt_table[i] = cbrt(Y);
+			cbrt_table[i] = cbrtf(Y);
 	}
 
 	return NULL;
@@ -132,9 +132,9 @@ vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	f = nZ - i;
 	cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-	*L = 116.0 * cby - 16.0;
-	*a = 500.0 * (cbx - cby);
-	*b = 200.0 * (cby - cbz);
+	*L = 116.0F * cby - 16.0F;
+	*a = 500.0F * (cbx - cby);
+	*b = 200.0F * (cby - cbz);
 }
 
 /* Process a buffer of data.

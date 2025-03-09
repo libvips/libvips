@@ -903,15 +903,15 @@ decode_xyz(guint16 *fixed, float *xyz, int n)
 		 * Bradford transformation.
 		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		xyz[0] = 0.955513 * X +
-			-0.023073 * Y +
-			0.063309 * Z;
-		xyz[1] = -0.028325 * X +
-			1.009942 * Y +
-			0.021055 * Z;
-		xyz[2] = 0.012329 * X +
-			-0.020536 * Y +
-			1.330714 * Z;
+		xyz[0] = 0.955513F * X +
+			-0.023073F * Y +
+			0.063309F * Z;
+		xyz[1] = -0.028325F * X +
+			1.009942F * Y +
+			0.021055F * Z;
+		xyz[2] = 0.012329F * X +
+			-0.020536F * Y +
+			1.330714F * Z;
 
 		xyz += 3;
 		fixed += 3;
@@ -1067,15 +1067,15 @@ encode_xyz(float *in, float *out, int n)
 		 * Bradford transformation.
 		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		out[0] = 1.047886 * X +
-			0.022919 * Y +
-			-0.050216 * Z;
-		out[1] = 0.029582 * X +
-			0.990484 * Y +
-			-0.017079 * Z;
-		out[2] = -0.009252 * X +
-			0.015073 * Y +
-			0.751678 * Z;
+		out[0] = 1.047886F * X +
+			0.022919F * Y +
+			-0.050216F * Z;
+		out[1] = 0.029582F * X +
+			0.990484F * Y +
+			-0.017079F * Z;
+		out[2] = -0.009252F * X +
+			0.015073F * Y +
+			0.751678F * Z;
 
 		in += 3;
 		out += 3;

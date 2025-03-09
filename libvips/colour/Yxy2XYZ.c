@@ -73,11 +73,11 @@ vips_Yxy2XYZ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 
 		if (x == 0.0 ||
 			y == 0.0) {
-			X = 0.0;
-			Z = 0.0;
+			X = 0.0F;
+			Z = 0.0F;
 		}
 		else {
-			double total;
+			float total;
 
 			total = Y / y;
 			X = x * total;

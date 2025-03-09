@@ -63,7 +63,7 @@ vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		float c, x, m;
 
 		c = p[2] * p[1] / 255.0;
-		x = c * (1 - fabs(fmod(p[0] / SIXTH_OF_CHAR, 2) - 1));
+		x = c * (1 - fabsf(fmodf(p[0] / SIXTH_OF_CHAR, 2) - 1));
 		m = p[2] - c;
 
 		if (p[0] < (int) SIXTH_OF_CHAR) {

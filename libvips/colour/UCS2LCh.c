@@ -155,7 +155,7 @@ vips_col_Lcmc2L(float Lcmc)
 	known = VIPS_CLIP(0, known, 999);
 
 	return LI[known] +
-		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known);
+		(LI[known + 1] - LI[known]) * (Lcmc * 10.0F - known);
 }
 
 /**
@@ -177,7 +177,7 @@ vips_col_Ccmc2C(float Ccmc)
 	known = VIPS_CLIP(0, known, 2999);
 
 	return CI[known] +
-		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known);
+		(CI[known + 1] - CI[known]) * (Ccmc * 10.0F - known);
 }
 
 /**
