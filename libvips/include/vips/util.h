@@ -62,7 +62,7 @@ extern "C" {
 
 #define VIPS_NUMBER(R) ((int) (sizeof(R) / sizeof(R[0])))
 
-#define VIPS_ABS(V) abs((V)) VIPS_DEPRECATED_MACRO_FOR(abs)
+#define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
 #define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
 // is something (eg. a pointer) N aligned
