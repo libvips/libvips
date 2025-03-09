@@ -129,7 +129,7 @@ lu_decomp(VipsImage *mat)
 
 	/* copy all coefficients and then perform decomposition in-place */
 	memcpy(VIPS_MATRIX(lu, 0, 0), VIPS_MATRIX(mat, 0, 0),
-		mat->Xsize * mat->Xsize * sizeof(double));
+		(size_t) mat->Xsize * mat->Xsize * sizeof(double));
 
 	for (i = 0; i < mat->Xsize; ++i) {
 		row_scale[i] = 0.0;

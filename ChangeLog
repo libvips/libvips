@@ -26,6 +26,7 @@
 - heifload: prevent possible int overflow for large images [kleisauke]
 - tiffload: add missing read loop [kleisauke]
 - prevent possible use-after-free when debugging via `--vips-leak` flag [lovell]
+- avoid possible overflow when multiplication result is cast up [lovell]
 
 10/10/24 8.16.0
 

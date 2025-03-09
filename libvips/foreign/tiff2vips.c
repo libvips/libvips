@@ -1659,7 +1659,7 @@ static void
 rtiff_memcpy_f16_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
 {
 	VipsImage *im = (VipsImage *) client;
-	size_t len = n * im->Bands;
+	size_t len = (size_t) n * im->Bands;
 
 	if (im->BandFmt == VIPS_FORMAT_COMPLEX ||
 		im->BandFmt == VIPS_FORMAT_DPCOMPLEX)
@@ -2107,7 +2107,7 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 	}
 
 	jpeg_calc_output_dimensions(cinfo);
-	bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
+	bytes_per_scanline = (size_t) cinfo->output_width * bytes_per_pixel;
 
 	/* Double-check tile dimensions.
 	 */

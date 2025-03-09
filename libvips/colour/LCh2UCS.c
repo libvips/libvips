@@ -165,9 +165,9 @@ vips_col_Ch2hcmc(float C, float h)
 	}
 
 	P = cos(VIPS_RAD(k7 * h + k8));
-	D = k4 + k5 * P * pow(VIPS_FABS(P), k6);
+	D = k4 + k5 * P * powf(fabsf(P), k6);
 	g = C * C * C * C;
-	f = sqrt(g / (g + 1900.0));
+	f = sqrtf(g / (g + 1900.0F));
 	hcmc = h + D * f;
 
 	return hcmc;
