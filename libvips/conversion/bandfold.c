@@ -96,7 +96,7 @@ vips_bandfold_gen(VipsRegion *out_region,
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy(q, p, psize * r->width);
+		memcpy(q, p, (size_t) psize * r->width);
 	}
 
 	return 0;

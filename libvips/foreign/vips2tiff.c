@@ -2315,7 +2315,7 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 	 * simpler than searching every page for the largest tile with
 	 * TIFFTAG_TILEBYTECOUNTS.
 	 */
-	tile_size = 2 * wtiff->tls * wtiff->tileh;
+	tile_size = (tsize_t) 2 * wtiff->tls * wtiff->tileh;
 
 	buf = vips_malloc(NULL, tile_size);
 

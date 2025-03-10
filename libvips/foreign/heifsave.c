@@ -466,7 +466,7 @@ vips_foreign_save_heif_write_block(VipsRegion *region, VipsRect *area,
 		int page = (area->top + y) / heif->page_height;
 		int line = (area->top + y) % heif->page_height;
 		VipsPel *p = VIPS_REGION_ADDR(region, 0, area->top + y);
-		VipsPel *q = heif->data + line * heif->stride;
+		VipsPel *q = heif->data + (size_t) heif->stride * line;
 
 		if (vips_foreign_save_heif_pack(heif,
 				q, p, VIPS_REGION_N_ELEMENTS(region)))
@@ -680,6 +680,15 @@ vips_foreign_save_heif_build(VipsObject *object)
 
 	if (heif->page_width > 16384 || heif->page_height > 16384) {
 		vips_error("heifsave", _("image too large"));
+		return -1;
+	}
+
+	/* Reject multiband images.
+	 */
+	if (save->ready->Type == VIPS_INTERPRETATION_MULTIBAND) {
+		vips_error("heifsave", _("Unsupported interpretation: %s"),
+			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
+				save->ready->Type));
 		return -1;
 	}
 

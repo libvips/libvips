@@ -198,13 +198,13 @@ vips_area_unref(VipsArea *area)
 
 		VIPS_FREEF(vips_g_mutex_free, area->lock);
 
-		g_free(area);
-
 		if (vips__leak) {
 			g_mutex_lock(&vips__global_lock);
 			vips_area_all = g_slist_remove(vips_area_all, area);
 			g_mutex_unlock(&vips__global_lock);
 		}
+
+		g_free(area);
 
 #ifdef DEBUG
 		g_mutex_lock(&vips__global_lock);
