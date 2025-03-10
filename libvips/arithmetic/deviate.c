@@ -120,7 +120,7 @@ vips_deviate_build(VipsObject *object)
 	s2 = deviate->sum2;
 
 	g_object_set(object,
-		"out", sqrt(VIPS_FABS(s2 - (s * s / vals)) / (vals - 1)),
+		"out", sqrt(fabs(s2 - (s * s / vals)) / (vals - 1)),
 		NULL);
 
 	return 0;

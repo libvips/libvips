@@ -443,7 +443,7 @@ vips_shrinkv_build(VipsObject *object)
 	 * fractional part), we just see the integer part here.
 	 */
 	t[2]->Ysize = shrink->ceil
-		? VIPS_CEIL((double) resample->in->Ysize / shrink->vshrink)
+		? ceil((double) resample->in->Ysize / shrink->vshrink)
 		: VIPS_ROUND_UINT((double) resample->in->Ysize / shrink->vshrink);
 	if (t[2]->Ysize <= 0) {
 		vips_error(class->nickname,

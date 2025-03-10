@@ -280,7 +280,7 @@ vips_hist_plot_build(VipsObject *object)
 	if (in->BandFmt == VIPS_FORMAT_UCHAR)
 		tsize = 256;
 	else
-		tsize = VIPS_CEIL(max);
+		tsize = ceil(max);
 
 	/* Make sure we don't make a zero height image.
 	 */

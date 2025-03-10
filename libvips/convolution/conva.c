@@ -331,9 +331,9 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	 * fixed n-lines which includes any negative parts.
 	 */
 	depth = (max - min) / conva->layers;
-	layers_above = VIPS_CEIL(max / depth);
+	layers_above = ceil(max / depth);
 	depth = max / layers_above;
-	layers_below = VIPS_FLOOR(min / depth);
+	layers_below = floor(min / depth);
 	conva->layers = layers_above - layers_below; // FIXME: Invalidates operation cache
 
 	VIPS_DEBUG_MSG("vips_conva_decompose_hlines: depth = %g, layers = %d\n",
@@ -744,7 +744,7 @@ vips_conva_decompose_boxes(VipsConva *conva)
 	for (z = 0; z < size; z++)
 		sum += fabs(coeff[z]);
 
-	conva->divisor = VIPS_RINT(area * scale / sum);
+	conva->divisor = rint(area * scale / sum);
 	conva->rounding = (conva->divisor + 1) / 2;
 	conva->offset = offset;
 

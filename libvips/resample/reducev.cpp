@@ -762,7 +762,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 	fsum = 0.0;
 	for (i = 0; i < n; i++)
 		fsum += in[i];
-	target = VIPS_RINT(fsum * scale);
+	target = rint(fsum * scale);
 
 	/* As we rint() each scale element, we can get up to 0.5 error.
 	 * Therefore, by the end of the mask, we can be off by up to n/2. Our
@@ -776,7 +776,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 		guess = (high + low) / 2.0;
 
 		for (i = 0; i < n; i++)
-			out[i] = VIPS_RINT(in[i] * guess);
+			out[i] = rint(in[i] * guess);
 
 		sum = 0;
 		for (i = 0; i < n; i++)
@@ -812,7 +812,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 		 * first abs(extra_error) elements.
 		 */
 		int direction = extra_error > 0 ? 1 : -1;
-		int n_elements = VIPS_ABS(extra_error);
+		int n_elements = abs(extra_error);
 
 		for (i = 0; i < n; i++)
 			out[i] += each_error;
@@ -874,7 +874,7 @@ vips_reducev_build(VipsObject *object)
 		/* The int part of our reduce.
 		 */
 		int_vshrink = VIPS_MAX(1,
-			VIPS_FLOOR((double) in->Ysize / height / reducev->gap));
+			floor((double) in->Ysize / height / reducev->gap));
 
 		if (int_vshrink > 1) {
 			g_info("shrinkv by %d", int_vshrink);
@@ -941,7 +941,7 @@ vips_reducev_build(VipsObject *object)
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if (vips_embed(in, &t[2],
-			0, VIPS_CEIL(reducev->n_point / 2.0) - 1,
+			0, ceil(reducev->n_point / 2.0) - 1,
 			in->Xsize, in->Ysize + reducev->n_point,
 			"extend", VIPS_EXTEND_COPY,
 			nullptr))

@@ -150,7 +150,7 @@ vips_gaussmat_build(VipsObject *object)
 			double v = exp(-distance / sig2);
 
 			if (gaussmat->precision != VIPS_PRECISION_FLOAT)
-				v = VIPS_RINT(20 * v);
+				v = rint(20 * v);
 
 			*VIPS_MATRIX(create->out, x, y) = v;
 			sum += v;
