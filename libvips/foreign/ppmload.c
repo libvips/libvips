@@ -764,7 +764,7 @@ vips_foreign_load_ppm_class_init(VipsForeignLoadPpmClass *class)
 static void
 vips_foreign_load_ppm_init(VipsForeignLoadPpm *ppm)
 {
-	ppm->scale = 1.0;
+	ppm->scale = 1.0F;
 }
 
 typedef struct _VipsForeignLoadPpmFile {

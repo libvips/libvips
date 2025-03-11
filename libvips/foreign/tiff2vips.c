@@ -447,11 +447,11 @@ half_2_float(gushort h)
 	case 16:
 		return INFINITY * sign;
 	case -15:
-		return sign / (float) (1 << 14) * (prec / 1024.0);
+		return sign / (float) (1 << 14) * (prec / 1024.0F);
 	default:
 		return exp > 0
-			? sign * (float) (1 << exp) * (1.0 + prec / 1024.0)
-			: sign / (float) (1 << -exp) * (1.0 + prec / 1024.0);
+			? sign * (float) (1 << exp) * (1.0F + prec / 1024.0F)
+			: sign / (float) (1 << -exp) * (1.0F + prec / 1024.0F);
 	}
 }
 
@@ -520,8 +520,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		case RESUNIT_INCH:
 			/* In pixels-per-inch ... convert to mm.
 			 */
-			x /= 10.0 * 2.54;
-			y /= 10.0 * 2.54;
+			x /= 10.0F * 2.54F;
+			y /= 10.0F * 2.54F;
 			vips_image_set_string(out,
 				VIPS_META_RESOLUTION_UNIT, "in");
 			break;
@@ -529,8 +529,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		case RESUNIT_CENTIMETER:
 			/* In pixels-per-centimetre ... convert to mm.
 			 */
-			x /= 10.0;
-			y /= 10.0;
+			x /= 10.0F;
+			y /= 10.0F;
 			vips_image_set_string(out,
 				VIPS_META_RESOLUTION_UNIT, "cm");
 			break;
@@ -545,8 +545,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		/* We used to warn about missing res data, but it happens so
 		 * often and is so harmless, why bother.
 		 */
-		x = 1.0;
-		y = 1.0;
+		x = 1.0F;
+		y = 1.0F;
 	}
 
 	out->Xres = x;

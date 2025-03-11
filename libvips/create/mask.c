@@ -114,8 +114,8 @@ vips_mask_class_init(VipsMaskClass *class)
 	vobject_class->description = _("base class for frequency filters");
 
 	point_class->point = vips_mask_point;
-	point_class->min = 0.0;
-	point_class->max = 1.0;
+	point_class->min = 0.0F;
+	point_class->max = 1.0F;
 	point_class->interpretation = VIPS_INTERPRETATION_FOURIER;
 
 	VIPS_ARG_BOOL(class, "optical", 5,

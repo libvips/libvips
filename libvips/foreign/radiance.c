@@ -610,7 +610,7 @@ read_new(VipsSource *source, VipsImage *out)
 	strcpy(read->format, COLRFMT);
 	read->expos = 1.0;
 	for (i = 0; i < 3; i++)
-		read->colcor[i] = 1.0;
+		read->colcor[i] = 1.0F;
 	read->aspect = 1.0;
 	read->prims[0][0] = CIE_x_r;
 	read->prims[0][1] = CIE_y_r;
@@ -858,7 +858,7 @@ write_new(VipsImage *in, VipsTarget *target)
 	strcpy(write->format, COLRFMT);
 	write->expos = 1.0;
 	for (i = 0; i < 3; i++)
-		write->colcor[i] = 1.0;
+		write->colcor[i] = 1.0F;
 	write->aspect = 1.0;
 	write->prims[0][0] = CIE_x_r;
 	write->prims[0][1] = CIE_y_r;

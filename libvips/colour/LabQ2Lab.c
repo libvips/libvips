@@ -92,17 +92,17 @@ vips_LabQ2Lab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		 */
 		l = ((unsigned char *) p)[0];
 		l = (l << 2) | (lsbs >> 6);
-		q[0] = (float) l * (100.0 / 1023.0);
+		q[0] = (float) l * (100.0F / 1023.0F);
 
 		/* Build a.
 		 */
 		l = VIPS_LSHIFT_INT(p[1], 3) | ((lsbs >> 3) & 0x7);
-		q[1] = (float) l * 0.125;
+		q[1] = (float) l * 0.125F;
 
 		/* And b.
 		 */
 		l = VIPS_LSHIFT_INT(p[2], 3) | (lsbs & 0x7);
-		q[2] = (float) l * 0.125;
+		q[2] = (float) l * 0.125F;
 
 		p += 4;
 		q += 3;

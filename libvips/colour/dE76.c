@@ -76,7 +76,7 @@ vips_pythagoras(float L1, float a1, float b1, float L2, float a2, float b2)
 	float da = a1 - a2;
 	float db = b1 - b2;
 
-	return sqrt(dL * dL + da * da + db * db);
+	return sqrtf(dL * dL + da * da + db * db);
 }
 
 /* Find the difference between two buffers of LAB data.
@@ -96,7 +96,7 @@ vips__pythagoras_line(VipsColour *colour,
 		float da = p1[1] - p2[1];
 		float db = p1[2] - p2[2];
 
-		q[x] = sqrt(dL * dL + da * da + db * db);
+		q[x] = sqrtf(dL * dL + da * da + db * db);
 
 		p1 += 3;
 		p2 += 3;

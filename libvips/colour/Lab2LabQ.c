@@ -102,14 +102,14 @@ vips_Lab2LabQ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		lsbs = (intv & 0x3) << 6; /* 00000011 -> 11000000 */
 		q[0] = intv >> 2;		  /* drop bot 2 bits and store */
 
-		fval = 8.0 * p[1]; /* do a */
-		intv = rint(fval);
+		fval = 8.0F * p[1]; /* do a */
+		intv = rintf(fval);
 		intv = VIPS_CLIP(-1024, intv, 1023);
 		lsbs |= (intv & 0x7) << 3; /* 00000111 -> 00111000 */
 		q[1] = intv >> 3;		   /* drop bot 3 bits & store */
 
-		fval = 8.0 * p[2]; /* do b */
-		intv = rint(fval);
+		fval = 8.0F * p[2]; /* do b */
+		intv = rintf(fval);
 		intv = VIPS_CLIP(-1024, intv, 1023);
 		lsbs |= (intv & 0x7);
 		q[2] = intv >> 3;
