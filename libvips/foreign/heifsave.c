@@ -289,8 +289,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 	options = heif_encoding_options_alloc();
-	if (vips_image_hasalpha(save->ready))
-		options->save_alpha_channel = 1;
+	options->save_alpha_channel = save->ready->Bands > 3;
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
@@ -517,6 +516,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	char *chroma;
 	const struct heif_encoder_descriptor *out_encoder;
 	const struct heif_encoder_parameter *const *param;
+	gboolean has_alpha;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)-> build(object))
 		return -1;
@@ -677,18 +677,10 @@ vips_foreign_save_heif_build(VipsObject *object)
 	heif->page_width = save->ready->Xsize;
 	heif->page_height = vips_image_get_page_height(save->ready);
 	heif->n_pages = save->ready->Ysize / heif->page_height;
+	has_alpha = save->ready->Bands > 3;
 
 	if (heif->page_width > 16384 || heif->page_height > 16384) {
 		vips_error("heifsave", _("image too large"));
-		return -1;
-	}
-
-	/* Reject multiband images.
-	 */
-	if (save->ready->Type == VIPS_INTERPRETATION_MULTIBAND) {
-		vips_error("heifsave", _("Unsupported interpretation: %s"),
-			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
-				save->ready->Type));
 		return -1;
 	}
 
@@ -699,12 +691,11 @@ vips_foreign_save_heif_build(VipsObject *object)
 	printf("vips_foreign_save_heif_build:\n");
 	printf("\twidth = %d\n", heif->page_width);
 	printf("\theight = %d\n", heif->page_height);
-	printf("\talpha = %d\n", vips_image_hasalpha(save->ready));
+	printf("\talpha = %d\n", has_alpha);
 #endif /*DEBUG*/
 	error = heif_image_create(heif->page_width, heif->page_height,
 		heif_colorspace_RGB,
-		vips__heif_chroma(heif->bitdepth,
-			vips_image_hasalpha(save->ready)),
+		vips__heif_chroma(heif->bitdepth, has_alpha),
 		&heif->img);
 	if (error.code) {
 		vips__heif_error(&error);

@@ -11,6 +11,7 @@
 - improve performance of vips_shrink() [kleisauke]
 - svgload: add support for custom CSS via stylesheet option [lovell]
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
+- heifsave: improve alpha channel detection [lovell]
 
 8.16.1
 
