@@ -15,9 +15,9 @@ to maintain since the major libraries it depends on (libvips-7 for image
 processing, gtk-2 for the user interface widgets, and goffice-0.8 for
 plotting) have long fallen out of maintenance.
 
-It was also starting to look extremely crude and old-fashioned! Something
+It was also starting to look rather crude and old-fashioned! Something
 of a trip back in time, with brightly coloured elements and hard edges and
-corners everywhere.  And nip2 is something of a "kitchen sink" program --
+corners everywhere.  And nip2 is something of a "kitchen sink" program ---
 it has lots of features which seemed like a good idea at the time, but
 which I never ended up using much.
 
@@ -37,7 +37,7 @@ nip4 is a rewrite of nip2 with the following aims:
 
 - simple build and distribution process for Linux, macOS and Windows
 
-And here it is, running the same very complex workspace:
+And here nip4 is, running the same very complex workspace:
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-12-mar-25.png)
 
@@ -48,7 +48,7 @@ understands most pyramidal image formats, it does smooth zooming, it runs on
 your GPU, it handles alpha, it supports animation and multipage images, and it
 should be a lot quicker.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-zoom.mp4)
+https://github.com/user-attachments/assets/32a400ed-106a-457d-9390-f5f0142300aa
 
 The big changes from a user-interface point of view are:
 
@@ -122,7 +122,7 @@ them all. This is useful for deleting or duplicating sets of rows.
 ## Definitions
 
 If you right-click on the workspace background, the workspace menu includes
-**Workspace definitions*** and **Edit toolkits ...**. 
+**Workspace definitions** and **Edit toolkits ...**. 
 
 The toolkit editor is a bit basic, but does work. 
 
