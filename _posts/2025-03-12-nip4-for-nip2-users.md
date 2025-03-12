@@ -17,9 +17,9 @@ plotting) have long fallen out of maintenance.
 
 It was also starting to look rather crude and old-fashioned! Something
 of a trip back in time, with brightly coloured elements and hard edges and
-corners everywhere.  And nip2 is something of a "kitchen sink" program ---
-it has lots of features which seemed like a good idea at the time, but
-which I never ended up using much.
+corners everywhere.  And nip2 is a "kitchen sink" program --- it has lots
+of features which seemed like a good idea at the time, but which I never
+ended up using much. 
 
 ![nip2]({{ site.baseurl }}/assets/images/nip2.png)
 
