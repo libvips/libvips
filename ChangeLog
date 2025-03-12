@@ -12,6 +12,7 @@
 - svgload: add support for custom CSS via stylesheet option [lovell]
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
 - heifsave: improve alpha channel detection [lovell]
+- convi: ensure double sum precision for floats [lovell]
 
 8.16.1
 

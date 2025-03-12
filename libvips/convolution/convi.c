@@ -728,7 +728,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 \
 			sum = 0; \
 			for (i = 0; i < nnz; i++) \
-				sum += t[i] * p[offsets[i]]; \
+				sum += (double) t[i] * p[offsets[i]]; \
 \
 			sum = (sum / scale) + offset; \
 \
