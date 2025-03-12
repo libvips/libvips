@@ -48,7 +48,8 @@ understands most pyramidal image formats, it does smooth zooming, it runs on
 your GPU, it handles alpha, it supports animation and multipage images, and it
 should be a lot quicker.
 
-https://github.com/user-attachments/assets/32a400ed-106a-457d-9390-f5f0142300aa
+<video src="https://github.com/user-attachments/assets/32a400ed-106a-457d-9390-f5f0142300aa" controls="controls" style="max-width: 730px;">
+</video>
 
 The big changes from a user-interface point of view are:
 
