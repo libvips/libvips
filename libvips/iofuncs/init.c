@@ -97,7 +97,6 @@
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/vector.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 
 /* abort() on the first warning or error.
