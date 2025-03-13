@@ -113,7 +113,16 @@ members:
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-region.png)
 
-This works for objects: open the row, edit the members. 
+This works for all objects: open the row, edit the members. 
+
+## Recover after crash
+
+nip4 has a much better recover after crash system. Select **Recover after
+crash ...** from the main burger menu and you see a table of recent
+workspace auto-backups, sorted by the process ID and time. Doubleclick one of
+them to restore it.
+
+![nip4]({{ site.baseurl }}/assets/images/nip4-recover.png)
 
 ## Multiple select on rows
 
