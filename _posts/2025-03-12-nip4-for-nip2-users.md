@@ -124,6 +124,16 @@ them to restore it.
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-recover.png)
 
+## New graphing window
+
+The graphing window has been rewritten and [now uses
+kplot](https://github.com/kristapsdz/kplot).
+
+![nip4]({{ site.baseurl }}/assets/images/nip4-plot.png)
+
+It no longer supports bar plots, but everything else works, and it's very
+fast.
+
 ## Multiple select on rows
 
 You can now range-select rows, then right-click on a row name and act on
