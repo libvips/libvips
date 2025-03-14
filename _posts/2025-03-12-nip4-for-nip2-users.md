@@ -37,7 +37,7 @@ nip4 is a rewrite of nip2 with the following aims:
 
 - simple build and distribution process for Linux, macOS and Windows
 
-And here nip4 is, running the same very complex workspace:
+And here is nip4, running the same very complex workspace:
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-12-mar-25.png)
 
@@ -151,6 +151,6 @@ The toolkit editor is a bit basic, but does work.
 The paintbox is probably the biggest missing feature, this might come back.
 
 The github repository has [a large TODO
-file](https://github.com/jcupitt/nip4/blob/main/TODO) with some other notes
+file](https://github.com/jcupitt/nip4/blob/main/TODO) with notes
 on bugs, ideas and other missing features.
 
