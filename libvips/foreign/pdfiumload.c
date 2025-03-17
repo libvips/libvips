@@ -498,9 +498,9 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT(
+		pdf->pages[i].width = rint(
 			FPDF_GetPageWidth(pdf->page) * pdf->scale);
-		pdf->pages[i].height = VIPS_RINT(
+		pdf->pages[i].height = rint(
 			FPDF_GetPageHeight(pdf->page) * pdf->scale);
 
 		/* PDFium allows page width or height to be less than 1 (!!).

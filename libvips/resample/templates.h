@@ -323,7 +323,7 @@ static void inline calculate_coefficients_catmull(double c[4], const double x)
  */
 static double inline cubic_filter(double x, double B, double C)
 {
-	const double ax = VIPS_FABS(x);
+	const double ax = fabs(x);
 	const double ax2 = ax * ax;
 	const double ax3 = ax2 * ax;
 
@@ -361,7 +361,7 @@ static double inline filter(double x);
 template <>
 double inline filter<VIPS_KERNEL_LINEAR>(double x)
 {
-	x = VIPS_FABS(x);
+	x = fabs(x);
 
 	if (x < 1.0)
 		return 1.0 - x;
@@ -404,7 +404,7 @@ double inline filter<VIPS_KERNEL_LANCZOS3>(double x)
 template <>
 double inline filter<VIPS_KERNEL_MKS2013>(double x)
 {
-	x = VIPS_FABS(x);
+	x = fabs(x);
 
 	if (x >= 2.5)
 		return 0.0;
@@ -421,7 +421,7 @@ double inline filter<VIPS_KERNEL_MKS2013>(double x)
 template <>
 double inline filter<VIPS_KERNEL_MKS2021>(double x)
 {
-	x = VIPS_FABS(x);
+	x = fabs(x);
 
 	if (x >= 4.5)
 		return 0.0;

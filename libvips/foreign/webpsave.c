@@ -355,7 +355,7 @@ vips_foreign_save_webp_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 		memcpy(webp->frame_bytes +
 				area->width * webp->write_y * save->ready->Bands,
 			VIPS_REGION_ADDR(region, 0, area->top + i),
-			area->width * save->ready->Bands);
+			(size_t) area->width * save->ready->Bands);
 
 		webp->write_y += 1;
 

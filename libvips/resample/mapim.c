@@ -285,8 +285,8 @@ vips_mapim_region_minmax(VipsRegion *region, VipsRect *r, VipsRect *bounds)
 			TYPE px = p1[0]; \
 			TYPE py = p1[1]; \
 \
-			if (VIPS_ISNAN(px) || \
-				VIPS_ISNAN(py) || \
+			if (isnan(px) || \
+				isnan(py) || \
 				px < -1 || \
 				px >= clip_width || \
 				py < -1 || \

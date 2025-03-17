@@ -109,8 +109,8 @@ histogram_new(VipsProject *project)
 		!hist->row_sums)
 		return NULL;
 
-	memset(hist->column_sums, 0, psize * in->Xsize);
-	memset(hist->row_sums, 0, psize * in->Ysize);
+	memset(hist->column_sums, 0, (size_t) psize * in->Xsize);
+	memset(hist->row_sums, 0, (size_t) psize * in->Ysize);
 
 	return hist;
 }

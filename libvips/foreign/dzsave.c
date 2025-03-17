@@ -1288,7 +1288,7 @@ region_tile_equal(VipsRegion *region, VipsRect *rect,
 
 		for (x = 0; x < rect->width; x++) {
 			for (b = 0; b < bytes; b++)
-				if (VIPS_ABS(p[b] - ink[b]) > threshold)
+				if (abs(p[b] - ink[b]) > threshold)
 					return FALSE;
 
 			p += bytes;

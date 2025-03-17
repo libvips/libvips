@@ -1165,7 +1165,7 @@ write_vips(Write *write,
 	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs(write->pPng, write->pInfo,
-		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
+		rint(in->Xres * 1000), rint(in->Yres * 1000),
 		PNG_RESOLUTION_METER);
 
 	/* Metadata

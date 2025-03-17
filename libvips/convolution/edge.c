@@ -98,7 +98,7 @@ vips_edge_uchar_gen(VipsRegion *out_region,
 			int v2 = 2 * (p2[x] - 128);
 			/* Avoid the sqrt() for uchar.
 			 */
-			int v = VIPS_ABS(v1) + VIPS_ABS(v2);
+			int v = abs(v1) + abs(v2);
 
 			q[x] = v > 255 ? 255 : v;
 		}

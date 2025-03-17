@@ -305,7 +305,7 @@ vips_image_paint_image(VipsImage *frame,
 			}
 			else
 				memcpy((char *) q, (char *) p,
-					ovl.width * ps);
+					(size_t) ovl.width * ps);
 
 			p += VIPS_IMAGE_SIZEOF_LINE(sub);
 			q += VIPS_IMAGE_SIZEOF_LINE(frame);
@@ -486,7 +486,7 @@ read_header(Read *read, VipsImage *out)
 			/* webp uses ms for delays, gif uses centiseconds.
 			 */
 			vips_image_set_int(out, "gif-delay",
-				VIPS_RINT(read->delays[0] / 10.0));
+				rint(read->delays[0] / 10.0));
 		}
 
 		WebPDemuxReleaseIterator(&iter);
@@ -510,8 +510,8 @@ read_header(Read *read, VipsImage *out)
 
 	/* We round-to-nearest cf. pdfload etc.
 	 */
-	read->frame_width = VIPS_RINT(read->canvas_width * read->scale);
-	read->frame_height = VIPS_RINT(read->canvas_height * read->scale);
+	read->frame_width = rint(read->canvas_width * read->scale);
+	read->frame_height = rint(read->canvas_height * read->scale);
 
 #ifdef DEBUG
 	printf("webp2vips: canvas_width = %d\n", read->canvas_width);
@@ -656,10 +656,10 @@ read_next_frame(Read *read)
 	 * since we need the same rules as the overall image scale, or we'll
 	 * sometimes have missing pixels on edges.
 	 */
-	area.left = VIPS_RINT(read->iter.x_offset * read->scale);
-	area.top = VIPS_RINT(read->iter.y_offset * read->scale);
-	area.width = VIPS_RINT(read->iter.width * read->scale);
-	area.height = VIPS_RINT(read->iter.height * read->scale);
+	area.left = rint(read->iter.x_offset * read->scale);
+	area.top = rint(read->iter.y_offset * read->scale);
+	area.width = rint(read->iter.width * read->scale);
+	area.height = rint(read->iter.height * read->scale);
 
 	/* Dispose from the previous frame.
 	 */

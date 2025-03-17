@@ -435,18 +435,18 @@ vips_jfif_resolution_from_image(struct jpeg_compress_struct *cinfo,
 
 	switch (unit) {
 	case 0:
-		xres = VIPS_RINT(image->Xres);
-		yres = VIPS_RINT(image->Yres);
+		xres = rint(image->Xres);
+		yres = rint(image->Yres);
 		break;
 
 	case 1:
-		xres = VIPS_RINT(image->Xres * 25.4);
-		yres = VIPS_RINT(image->Yres * 25.4);
+		xres = rint(image->Xres * 25.4);
+		yres = rint(image->Yres * 25.4);
 		break;
 
 	case 2:
-		xres = VIPS_RINT(image->Xres * 10.0);
-		yres = VIPS_RINT(image->Yres * 10.0);
+		xres = rint(image->Xres * 10.0);
+		yres = rint(image->Yres * 10.0);
 		break;
 
 	default:

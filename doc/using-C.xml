@@ -136,7 +136,7 @@ if (vips_embed(in, &amp;out, x, y, width, height,
 $ vips embed
 embed an image in a larger image
 usage:
-   embed in out x y width height
+   embed in out x y width height [--option-name option-value ...]
 where:
    in           - Input image, input VipsImage
    out          - Output image, output VipsImage
@@ -154,10 +154,9 @@ where:
                       min: 1, max: 1000000000
 optional arguments:
    extend       - How to generate the extra pixels, input VipsExtend
-                      default: black
-                      allowed: black, copy, repeat, mirror, white, background
+                      default enum: black
+                      allowed enums: black, copy, repeat, mirror, white, background
    background   - Colour for background pixels, input VipsArrayDouble
-operation flags: sequential-unbuffered 
 </programlisting>
 
       See #VipsOperation for more information on running operations on images. 

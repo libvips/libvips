@@ -133,8 +133,8 @@ vips_point_class_init(VipsPointClass *class)
 	vobject_class->build = vips_point_build;
 
 	class->point = NULL;
-	class->min = -1.0;
-	class->max = 1.0;
+	class->min = -1.0F;
+	class->max = 1.0F;
 	class->interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
 	VIPS_ARG_INT(class, "width", 2,

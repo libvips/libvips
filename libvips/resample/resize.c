@@ -171,17 +171,17 @@ vips_resize_build(VipsObject *object)
 		/* The int part of our scale.
 		 */
 		if (resize->gap < 1.0) {
-			int_hshrink = VIPS_FLOOR(1.0 / hscale);
-			int_vshrink = VIPS_FLOOR(1.0 / vscale);
+			int_hshrink = floor(1.0 / hscale);
+			int_vshrink = floor(1.0 / vscale);
 		}
 		else {
 			target_width = VIPS_ROUND_UINT(in->Xsize * hscale);
 			target_height = VIPS_ROUND_UINT(in->Ysize * vscale);
 
-			int_hshrink = VIPS_FLOOR(
+			int_hshrink = floor(
 				(double) in->Xsize / target_width /
 				resize->gap);
-			int_vshrink = VIPS_FLOOR(
+			int_vshrink = floor(
 				(double) in->Ysize / target_height /
 				resize->gap);
 		}
@@ -252,12 +252,12 @@ vips_resize_build(VipsObject *object)
 		vips_object_local(object, interpolate);
 
 		if (resize->kernel == VIPS_KERNEL_NEAREST &&
-			hscale == VIPS_FLOOR(hscale) &&
-			vscale == VIPS_FLOOR(vscale)) {
+			hscale == floor(hscale) &&
+			vscale == floor(vscale)) {
 			/* Fast, integral nearest neighbour enlargement
 			 */
-			if (vips_zoom(in, &t[4], VIPS_FLOOR(hscale),
-					VIPS_FLOOR(vscale), NULL))
+			if (vips_zoom(in, &t[4], floor(hscale),
+					floor(vscale), NULL))
 				return -1;
 			in = t[4];
 		}

@@ -441,7 +441,7 @@ vips_reduceh_build(VipsObject *object)
 		/* The int part of our reduce.
 		 */
 		int_hshrink = VIPS_MAX(1,
-			VIPS_FLOOR((double) in->Xsize / width / reduceh->gap));
+			floor((double) in->Xsize / width / reduceh->gap));
 
 		if (int_hshrink > 1) {
 			g_info("shrinkh by %d", int_hshrink);
@@ -510,7 +510,7 @@ vips_reduceh_build(VipsObject *object)
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if (vips_embed(in, &t[2],
-			VIPS_CEIL(reduceh->n_point / 2.0) - 1, 0,
+			ceil(reduceh->n_point / 2.0) - 1, 0,
 			in->Xsize + reduceh->n_point, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
 			nullptr))

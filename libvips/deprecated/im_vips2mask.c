@@ -216,15 +216,15 @@ im_vips2imask(IMAGE *in, const char *filename)
 				 * we need RRRGGGBBB.
 				 */
 				out->coeff[x + y * width] =
-					VIPS_RINT(data[x * height + y]);
+					rint(data[x * height + y]);
 			else
 				out->coeff[x + y * width] =
-					VIPS_RINT(data[x + y * width]);
+					rint(data[x + y * width]);
 
-	out->scale = VIPS_RINT(vips_image_get_scale(in));
+	out->scale = rint(vips_image_get_scale(in));
 	if (out->scale == 0)
 		out->scale = 1;
-	out->offset = VIPS_RINT(vips_image_get_offset(in));
+	out->offset = rint(vips_image_get_offset(in));
 
 	/* Now convolve a 1 everywhere image with the int version we've made,
 	 * what do we get?
@@ -237,7 +237,7 @@ im_vips2imask(IMAGE *in, const char *filename)
 
 	/* And adjust the scale to get as close to a match as we can.
 	 */
-	out->scale = VIPS_RINT(out->scale + (int_result - double_result));
+	out->scale = rint(out->scale + (int_result - double_result));
 	if (out->scale == 0)
 		out->scale = 1;
 

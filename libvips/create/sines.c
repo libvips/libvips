@@ -81,7 +81,7 @@ vips_sines_point(VipsPoint *point, int x, int y)
 {
 	VipsSines *sines = (VipsSines *) point;
 
-	return cos(sines->c * (x * sines->costheta - y * sines->sintheta));
+	return cosf(sines->c * (x * sines->costheta - y * sines->sintheta));
 }
 
 static int

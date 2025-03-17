@@ -412,10 +412,10 @@ vips_foreign_load_ppm_set_image_metadata(VipsForeignLoadPpm *ppm,
 	if (ppm->index == 6 ||
 		ppm->index == 7)
 		vips_image_set_double(image,
-			"pfm-scale", VIPS_FABS(ppm->scale));
+			"pfm-scale", fabs(ppm->scale));
 	else
 		vips_image_set_double(image,
-			"ppm-max-value", VIPS_ABS(ppm->max_value));
+			"ppm-max-value", abs(ppm->max_value));
 
 	VIPS_SETSTR(image->filename,
 		vips_connection_filename(VIPS_CONNECTION(ppm->sbuf->source)));
@@ -764,7 +764,7 @@ vips_foreign_load_ppm_class_init(VipsForeignLoadPpmClass *class)
 static void
 vips_foreign_load_ppm_init(VipsForeignLoadPpm *ppm)
 {
-	ppm->scale = 1.0;
+	ppm->scale = 1.0F;
 }
 
 typedef struct _VipsForeignLoadPpmFile {
