@@ -776,11 +776,11 @@ write_json(VipsForeignSaveDz *dz)
 		"    {\n"
 		"      \"scaleFactors\": [\n");
 
-	for (i = 0; i < dz->level->n; i++) {
+	for (i = 0; i <= dz->level->n; i++) {
 		vips_dbuf_writef(&dbuf,
 			"        %d",
 			1 << i);
-		if (i != dz->level->n - 1)
+		if (i != dz->level->n)
 			vips_dbuf_writef(&dbuf, ",");
 		vips_dbuf_writef(&dbuf, "\n");
 	}
