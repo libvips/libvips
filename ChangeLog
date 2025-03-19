@@ -14,6 +14,7 @@
 - heifsave: improve alpha channel detection [lovell]
 - convi: ensure double sum precision for floats [lovell]
 - improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
+- heifload: improve detection of seek beyond EOF [lovell]
 
 8.16.1
 
