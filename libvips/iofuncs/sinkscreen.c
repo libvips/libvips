@@ -205,8 +205,7 @@ render_thread_state_init(RenderThreadState *state)
 static VipsThreadState *
 render_thread_state_new(VipsImage *im, void *a)
 {
-	return VIPS_THREAD_STATE(vips_object_new(
-		render_thread_state_get_type(),
+	return VIPS_THREAD_STATE(vips_object_new(render_thread_state_get_type(),
 		vips_thread_state_set, im, a));
 }
 
@@ -341,8 +340,7 @@ render_tile_dirty_reuse(Render *render)
 		g_assert(tile->dirty);
 		tile->dirty = FALSE;
 
-		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: reusing dirty %p\n",
-			tile);
+		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: reusing dirty %p\n", tile);
 	}
 
 	return tile;
@@ -419,8 +417,7 @@ render_work(VipsThreadState *state, void *a)
 
 	if (vips_region_prepare_to(state->reg, tile->region,
 			&tile->area, tile->area.left, tile->area.top)) {
-		VIPS_DEBUG_MSG_RED("render_work: "
-						   "vips_region_prepare_to() failed: %s\n",
+		VIPS_DEBUG_MSG_RED("render_work: vips_region_prepare_to() failed: %s\n",
 			vips_error_buffer());
 		return -1;
 	}
@@ -476,8 +473,7 @@ render_dirty_put(Render *render)
 
 	if (render->dirty) {
 		if (!g_slist_find(render_dirty_all, render)) {
-			render_dirty_all = g_slist_prepend(render_dirty_all,
-				render);
+			render_dirty_all = g_slist_prepend(render_dirty_all, render);
 			render_dirty_all = g_slist_sort(render_dirty_all,
 				(GCompareFunc) render_dirty_sort);
 
@@ -583,12 +579,10 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	/* Both out and mask must close before we can free the render.
 	 */
-	g_signal_connect(out, "close",
-		G_CALLBACK(render_close_cb), render);
+	g_signal_connect(out, "close", G_CALLBACK(render_close_cb), render);
 
 	if (mask) {
-		g_signal_connect(mask, "close",
-			G_CALLBACK(render_close_cb), render);
+		g_signal_connect(mask, "close", G_CALLBACK(render_close_cb), render);
 		render_ref(render);
 	}
 
@@ -760,13 +754,10 @@ render_tile_get_painted(Render *render)
 	Tile *tile;
 
 	tile = NULL;
-	g_hash_table_foreach(render->tiles,
-		(GHFunc) tile_test_clean_ticks, &tile);
+	g_hash_table_foreach(render->tiles, (GHFunc) tile_test_clean_ticks, &tile);
 
-	if (tile) {
-		VIPS_DEBUG_MSG("render_tile_get_painted: reusing painted %p\n",
-			tile);
-	}
+	if (tile)
+		VIPS_DEBUG_MSG("render_tile_get_painted: reusing painted %p\n", tile);
 
 	return tile;
 }
@@ -845,8 +836,7 @@ tile_copy(Tile *tile, VipsRegion *to)
 			tile, tile->area.left, tile->area.top);
 
 		for (y = ovlap.top; y < VIPS_RECT_BOTTOM(&ovlap); y++) {
-			VipsPel *p = VIPS_REGION_ADDR(tile->region,
-				ovlap.left, y);
+			VipsPel *p = VIPS_REGION_ADDR(tile->region, ovlap.left, y);
 			VipsPel *q = VIPS_REGION_ADDR(to, ovlap.left, y);
 
 			memcpy(q, p, len);
@@ -877,8 +867,7 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	int xs = (r->left / tile_width) * tile_width;
 	int ys = (r->top / tile_height) * tile_height;
 
-	VIPS_DEBUG_MSG("image_fill: left = %d, top = %d, "
-				   "width = %d, height = %d\n",
+	VIPS_DEBUG_MSG("image_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
 	g_mutex_lock(render->lock);
@@ -929,8 +918,7 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	int xs = (r->left / tile_width) * tile_width;
 	int ys = (r->top / tile_height) * tile_height;
 
-	VIPS_DEBUG_MSG("mask_fill: left = %d, top = %d, "
-				   "width = %d, height = %d\n",
+	VIPS_DEBUG_MSG("mask_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
 	g_mutex_lock(render->lock);
@@ -1048,8 +1036,7 @@ vips__sink_screen_once(void *data)
 	/* Don't use vips_thread_execute(), since this thread will only be
 	 * ended by vips_shutdown, and that isn't always called.
 	 */
-	render_thread = vips_g_thread_new("sink_screen",
-		render_thread_main, NULL);
+	render_thread = vips_g_thread_new("sink_screen", render_thread_main, NULL);
 
 	return NULL;
 }
@@ -1124,13 +1111,11 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if (vips_image_pio_input(in) ||
-		vips_image_pipelinev(out,
-			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+		vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 		return -1;
 
 	if (mask) {
-		if (vips_image_pipelinev(mask,
-				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+		if (vips_image_pipelinev(mask, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 			return -1;
 
 		mask->Bands = 1;
@@ -1149,8 +1134,7 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 			vips_start_one, image_fill, vips_stop_one, in, render))
 		return -1;
 	if (mask &&
-		vips_image_generate(mask,
-			NULL, mask_fill, NULL, render, NULL))
+		vips_image_generate(mask, NULL, mask_fill, NULL, render, NULL))
 		return -1;
 
 	return 0;
