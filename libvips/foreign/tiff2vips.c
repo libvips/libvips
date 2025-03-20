@@ -261,7 +261,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 
 #include "pforeign.h"
 #include "tiff.h"

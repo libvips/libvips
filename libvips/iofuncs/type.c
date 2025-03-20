@@ -137,7 +137,7 @@ static GSList *vips_area_all = NULL;
 VipsArea *
 vips_area_copy(VipsArea *area)
 {
-	g_mutex_lock(area->lock);
+	g_mutex_lock(&area->lock);
 
 	g_assert(area->count > 0);
 
@@ -147,7 +147,7 @@ vips_area_copy(VipsArea *area)
 	printf("vips_area_copy: %p count = %d\n", area, area->count);
 #endif /*DEBUG*/
 
-	g_mutex_unlock(area->lock);
+	g_mutex_unlock(&area->lock);
 
 	return area;
 }
@@ -175,7 +175,7 @@ vips_area_free(VipsArea *area)
 void
 vips_area_unref(VipsArea *area)
 {
-	g_mutex_lock(area->lock);
+	g_mutex_lock(&area->lock);
 
 	g_assert(area->count > 0);
 
@@ -194,9 +194,9 @@ vips_area_unref(VipsArea *area)
 	if (area->count == 0) {
 		vips_area_free(area);
 
-		g_mutex_unlock(area->lock);
+		g_mutex_unlock(&area->lock);
 
-		VIPS_FREEF(vips_g_mutex_free, area->lock);
+		g_mutex_clear(&area->lock);
 
 		if (vips__leak) {
 			g_mutex_lock(&vips__global_lock);
@@ -214,7 +214,7 @@ vips_area_unref(VipsArea *area)
 #endif /*DEBUG*/
 	}
 	else
-		g_mutex_unlock(area->lock);
+		g_mutex_unlock(&area->lock);
 }
 
 /* autoptr needs typed versions of functions for free.
@@ -256,7 +256,7 @@ vips_area_new(VipsCallbackFn free_fn, void *data)
 
 	area = g_new(VipsArea, 1);
 	area->count = 1;
-	area->lock = vips_g_mutex_new();
+	g_mutex_init(&area->lock);
 	area->length = 0;
 	area->data = data;
 	area->free_fn = free_fn;
@@ -724,7 +724,7 @@ vips_blob_set(VipsBlob *blob,
 {
 	VipsArea *area = VIPS_AREA(blob);
 
-	g_mutex_lock(area->lock);
+	g_mutex_lock(&area->lock);
 
 	vips_area_free(area);
 
@@ -732,7 +732,7 @@ vips_blob_set(VipsBlob *blob,
 	area->length = length;
 	area->data = (void *) data;
 
-	g_mutex_unlock(area->lock);
+	g_mutex_unlock(&area->lock);
 }
 
 /* Transform a blob to a G_TYPE_STRING.

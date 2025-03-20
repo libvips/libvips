@@ -171,7 +171,7 @@ typedef struct _VipsForeignLoadMagick {
 
 	/* Mutex to serialise calls to libMagick during threaded read.
 	 */
-	GMutex *lock;
+	GMutex lock;
 
 } VipsForeignLoadMagick;
 
@@ -205,7 +205,7 @@ vips_foreign_load_magick_dispose(GObject *gobject)
 	VIPS_FREEF(DestroyImageInfo, magick->image_info);
 	VIPS_FREE(magick->frames);
 	VIPS_FREEF(magick_destroy_exception, magick->exception);
-	VIPS_FREEF(vips_g_mutex_free, magick->lock);
+	g_mutex_clear(&magick->lock);
 
 	G_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->dispose(gobject);
 }
@@ -223,7 +223,7 @@ vips_foreign_load_magick_build(VipsObject *object)
 
 	magick->image_info = CloneImageInfo(NULL);
 	magick->exception = magick_acquire_exception();
-	magick->lock = vips_g_mutex_new();
+	g_mutex_init(&magick->lock);
 
 	if (!magick->image_info)
 		return -1;
@@ -845,12 +845,12 @@ vips_foreign_load_magick_fill_region(VipsRegion *out_region,
 
 		PixelPacket *pixels;
 
-		vips__worker_lock(magick->lock);
+		vips__worker_lock(&magick->lock);
 
 		pixels = get_pixels(magick->frames[frame],
 			r->left, line, r->width, 1);
 
-		g_mutex_unlock(magick->lock);
+		g_mutex_unlock(&magick->lock);
 
 		if (!pixels) {
 			vips_foreign_load_invalidate(im);

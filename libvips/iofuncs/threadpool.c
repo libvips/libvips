@@ -71,7 +71,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 #ifdef G_OS_WIN32
@@ -251,7 +250,7 @@ typedef struct _VipsThreadpool {
 	VipsThreadStartFn start;
 	VipsThreadpoolAllocateFn allocate;
 	VipsThreadpoolWorkFn work;
-	GMutex *allocate_lock;
+	GMutex allocate_lock;
 	void *a; /* User argument to start / allocate / etc. */
 
 	int max_workers; /* Max number of workers in pool */
@@ -311,7 +310,7 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	VIPS_GATE_START("vips_worker_work_unit: wait");
 
-	vips__worker_lock(pool->allocate_lock);
+	vips__worker_lock(&pool->allocate_lock);
 
 	VIPS_GATE_STOP("vips_worker_work_unit: wait");
 
@@ -319,7 +318,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	 */
 	if (pool->stop) {
 		worker->stop = TRUE;
-		g_mutex_unlock(pool->allocate_lock);
+		g_mutex_unlock(&pool->allocate_lock);
 		return;
 	}
 
@@ -330,7 +329,7 @@ vips_worker_work_unit(VipsWorker *worker)
 		 * flag.
 		 */
 		worker->stop = TRUE;
-		g_mutex_unlock(pool->allocate_lock);
+		g_mutex_unlock(&pool->allocate_lock);
 		return;
 	}
 	else {
@@ -343,7 +342,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	if (vips_worker_allocate(worker)) {
 		pool->error = TRUE;
 		worker->stop = TRUE;
-		g_mutex_unlock(pool->allocate_lock);
+		g_mutex_unlock(&pool->allocate_lock);
 		return;
 	}
 
@@ -351,11 +350,11 @@ vips_worker_work_unit(VipsWorker *worker)
 	 */
 	if (pool->stop) {
 		worker->stop = TRUE;
-		g_mutex_unlock(pool->allocate_lock);
+		g_mutex_unlock(&pool->allocate_lock);
 		return;
 	}
 
-	g_mutex_unlock(pool->allocate_lock);
+	g_mutex_unlock(&pool->allocate_lock);
 
 	if (worker->state->stall &&
 		vips__stall) {
@@ -407,11 +406,11 @@ vips_thread_main_loop(void *a, void *b)
 	/* unreffing the worker state will trigger stop in the threadstate, so
 	 * we need to single-thread.
 	 */
-	g_mutex_lock(pool->allocate_lock);
+	g_mutex_lock(&pool->allocate_lock);
 
 	VIPS_FREEF(g_object_unref, worker->state);
 
-	g_mutex_unlock(pool->allocate_lock);
+	g_mutex_unlock(&pool->allocate_lock);
 
 	VIPS_FREE(worker);
 	g_private_set(&worker_key, NULL);
@@ -491,7 +490,7 @@ vips_threadpool_free(VipsThreadpool *pool)
 
 	vips_threadpool_wait(pool);
 
-	VIPS_FREEF(vips_g_mutex_free, pool->allocate_lock);
+	g_mutex_clear(&pool->allocate_lock);
 	vips_semaphore_destroy(&pool->n_workers);
 	vips_semaphore_destroy(&pool->tick);
 	VIPS_FREE(pool);
@@ -513,7 +512,7 @@ vips_threadpool_new(VipsImage *im)
 	pool->im = im;
 	pool->allocate = NULL;
 	pool->work = NULL;
-	pool->allocate_lock = vips_g_mutex_new();
+	g_mutex_init(&pool->allocate_lock);
 	pool->max_workers = vips_concurrency_get();
 	vips_semaphore_init(&pool->n_workers, 0, "n_workers");
 	vips_semaphore_init(&pool->tick, 0, "tick");

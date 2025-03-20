@@ -84,7 +84,7 @@ typedef struct _VipsSequential {
 
 	/* Lock access to y_pos with this.
 	 */
-	GMutex *lock;
+	GMutex lock;
 
 	/* The next read from our source will fetch this scanline, ie. it's 0
 	 * when we start.
@@ -106,7 +106,7 @@ vips_sequential_dispose(GObject *gobject)
 {
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
-	VIPS_FREEF(vips_g_mutex_free, sequential->lock);
+	g_mutex_clear(&sequential->lock);
 
 	G_OBJECT_CLASS(vips_sequential_parent_class)->dispose(gobject);
 }
@@ -126,14 +126,14 @@ vips_sequential_generate(VipsRegion *out_region,
 
 	VIPS_GATE_START("vips_sequential_generate: wait");
 
-	vips__worker_lock(sequential->lock);
+	vips__worker_lock(&sequential->lock);
 
 	VIPS_GATE_STOP("vips_sequential_generate: wait");
 
 	/* If we've seen an error, everything must stop.
 	 */
 	if (sequential->error) {
-		g_mutex_unlock(sequential->lock);
+		g_mutex_unlock(&sequential->lock);
 		return -1;
 	}
 
@@ -157,7 +157,7 @@ vips_sequential_generate(VipsRegion *out_region,
 			area.height = VIPS_MIN(sequential->tile_height, r->top - area.top);
 			if (vips_region_prepare(ir, &area)) {
 				sequential->error = -1;
-				g_mutex_unlock(sequential->lock);
+				g_mutex_unlock(&sequential->lock);
 				return -1;
 			}
 
@@ -172,13 +172,13 @@ vips_sequential_generate(VipsRegion *out_region,
 	if (vips_region_prepare(ir, r) ||
 		vips_region_region(out_region, ir, r, r->left, r->top)) {
 		sequential->error = -1;
-		g_mutex_unlock(sequential->lock);
+		g_mutex_unlock(&sequential->lock);
 		return -1;
 	}
 
 	sequential->y_pos = VIPS_MAX(sequential->y_pos, VIPS_RECT_BOTTOM(r));
 
-	g_mutex_unlock(sequential->lock);
+	g_mutex_unlock(&sequential->lock);
 
 	return 0;
 }
@@ -270,7 +270,7 @@ vips_sequential_class_init(VipsSequentialClass *class)
 static void
 vips_sequential_init(VipsSequential *sequential)
 {
-	sequential->lock = vips_g_mutex_new();
+	g_mutex_init(&sequential->lock);
 	sequential->tile_height = 1;
 	sequential->error = 0;
 	sequential->trace = FALSE;

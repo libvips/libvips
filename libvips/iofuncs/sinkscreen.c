@@ -69,7 +69,6 @@
 #endif /*HAVE_UNISTD_H*/
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -111,7 +110,7 @@ typedef struct _Render {
 	gatomicrefcount ref_count;
 #else
 	int ref_count;
-	GMutex *ref_count_lock;
+	GMutex ref_count_lock;
 #endif
 
 	/* Parameters.
@@ -128,7 +127,7 @@ typedef struct _Render {
 
 	/* Lock here before reading or modifying the tile structure.
 	 */
-	GMutex *lock;
+	GMutex lock;
 
 	/* Tile cache.
 	 */
@@ -243,9 +242,9 @@ render_free(Render *render)
 	g_mutex_unlock(&render_dirty_lock);
 
 #if !GLIB_CHECK_VERSION(2, 58, 0)
-	vips_g_mutex_free(render->ref_count_lock);
+	g_mutex_clear(&render->ref_count_lock);
 #endif
-	vips_g_mutex_free(render->lock);
+	g_mutex_clear(&render->lock);
 
 	vips_slist_map2(render->all, (VipsSListMap2Fn) tile_free, NULL, NULL);
 	VIPS_FREEF(g_slist_free, render->all);
@@ -273,10 +272,10 @@ render_ref(Render *render)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
 	g_atomic_ref_count_inc(&render->ref_count);
 #else
-	g_mutex_lock(render->ref_count_lock);
+	g_mutex_lock(&render->ref_count_lock);
 	g_assert(render->ref_count != 0);
 	render->ref_count += 1;
-	g_mutex_unlock(render->ref_count_lock);
+	g_mutex_unlock(&render->ref_count_lock);
 #endif
 
 	return 0;
@@ -291,11 +290,11 @@ render_unref(Render *render)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
 	kill = g_atomic_ref_count_dec(&render->ref_count);
 #else
-	g_mutex_lock(render->ref_count_lock);
+	g_mutex_lock(&render->ref_count_lock);
 	g_assert(render->ref_count > 0);
 	render->ref_count -= 1;
 	kill = render->ref_count == 0;
-	g_mutex_unlock(render->ref_count_lock);
+	g_mutex_unlock(&render->ref_count_lock);
 #endif
 
 	if (kill)
@@ -387,7 +386,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	RenderThreadState *rstate = (RenderThreadState *) state;
 	Tile *tile;
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	if (render_reschedule ||
 		!(tile = render_tile_dirty_get(render))) {
@@ -398,7 +397,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	else
 		rstate->tile = tile;
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }
@@ -552,7 +551,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	g_atomic_ref_count_init(&render->ref_count);
 #else
 	render->ref_count = 1;
-	render->ref_count_lock = vips_g_mutex_new();
+	g_mutex_init(&render->ref_count_lock);
 #endif
 
 	render->in = in;
@@ -565,7 +564,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	render->notify = notify;
 	render->a = a;
 
-	render->lock = vips_g_mutex_new();
+	g_mutex_init(&render->lock);
 
 	render->all = NULL;
 	render->ntiles = 0;
@@ -726,13 +725,13 @@ tile_queue(Tile *tile, VipsRegion *reg)
 		 * This tile won't get pulled out from under us since it's not
 		 * marked as "painted", and it's not on the dirty list.
 		 */
-		g_mutex_unlock(render->lock);
+		g_mutex_unlock(&render->lock);
 
 		if (vips_region_prepare_to(reg, tile->region,
 				&tile->area, tile->area.left, tile->area.top))
 			VIPS_DEBUG_MSG_RED("tile_queue: prepare failed\n");
 
-		g_mutex_lock(render->lock);
+		g_mutex_lock(&render->lock);
 
 		tile->painted = TRUE;
 	}
@@ -870,7 +869,7 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	VIPS_DEBUG_MSG("image_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	/*
 
@@ -896,7 +895,7 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 				VIPS_DEBUG_MSG_RED("image_fill: argh!\n");
 		}
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }
@@ -921,7 +920,7 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	VIPS_DEBUG_MSG("mask_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	for (y = ys; y < VIPS_RECT_BOTTOM(r); y += tile_height)
 		for (x = xs; x < VIPS_RECT_RIGHT(r); x += tile_width) {
@@ -946,7 +945,7 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 			vips_region_paint(out, &area, value);
 		}
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }

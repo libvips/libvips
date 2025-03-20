@@ -74,7 +74,6 @@
 #endif
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 
 /**
  * SECTION: memory
