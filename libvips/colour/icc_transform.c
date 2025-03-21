@@ -622,9 +622,15 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 	icc->selected_intent = icc->intent;
 	if (icc->intent == VIPS_INTENT_AUTO ||
-		!cmsIsIntentSupported(profile, icc->intent, direction))
-		icc->selected_intent = (VipsIntent) cmsGetHeaderRenderingIntent(
-			profile);
+		!cmsIsIntentSupported(profile, icc->intent, direction)) {
+		cmsUInt32Number intent = cmsGetHeaderRenderingIntent(profile);
+		if (intent > VIPS_INTENT_ABSOLUTE) {
+			VIPS_FREEF(cmsCloseProfile, profile);
+			g_warning("corrupt profile");
+			return NULL;
+		}
+		icc->selected_intent = (VipsIntent) intent;
+	}
 
 	if (icc->intent != VIPS_INTENT_AUTO &&
 		icc->selected_intent != icc->intent)

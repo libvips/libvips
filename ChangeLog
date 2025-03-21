@@ -13,6 +13,7 @@
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
 - heifsave: improve alpha channel detection [lovell]
 - convi: ensure double sum precision for floats [lovell]
+- improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
 
 8.16.1
 
