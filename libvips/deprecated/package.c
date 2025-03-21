@@ -645,9 +645,9 @@ plugin_free(Plugin *plug)
 	}
 	VIPS_FREE(plug->name);
 	plug->pack = NULL;
-	g_free(plug);
 
 	plugin_list = g_slist_remove(plugin_list, plug);
+	g_free(plug);
 
 	return 0;
 }
