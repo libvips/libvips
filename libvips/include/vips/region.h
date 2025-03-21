@@ -90,9 +90,9 @@ typedef enum {
 struct _VipsRegion {
 	VipsObject parent_object;
 
-	/*< public >*/
 	/* Users may read these two fields.
 	 */
+	/*< public >*/
 	VipsImage *im;	/* Link back to parent image */
 	VipsRect valid; /* Area of parent we can see */
 
