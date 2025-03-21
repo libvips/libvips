@@ -64,6 +64,7 @@ typedef enum {
 
 typedef struct _VipsFormat {
 	VipsObject parent_object;
+
 	/*< public >*/
 
 } VipsFormat;
@@ -72,6 +73,7 @@ typedef struct _VipsFormatClass {
 	VipsObjectClass parent_class;
 
 	/*< public >*/
+
 	/* Is a file in this format.
 	 */
 	gboolean (*is_a)(const char *);

@@ -46,6 +46,8 @@ extern "C" {
 /* Implement our own semaphores.
  */
 typedef struct {
+	/* All fields are private.
+	 */
 	/*< private >*/
 	char *name;
 	int v;

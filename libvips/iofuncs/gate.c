@@ -70,8 +70,6 @@ typedef struct _VipsThreadGate {
  */
 
 typedef struct _VipsThreadProfile {
-	/*< private >*/
-
 	const char *name;
 	GThread *thread;
 	GHashTable *gates;

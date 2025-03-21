@@ -229,13 +229,13 @@ vips_foreign_load_magick_build(VipsObject *object)
 		return -1;
 
 	if (magick->all_frames)
-		magick->n = -1; // FIXME: Invalidates operation cache
+		magick->n = -1;
 
 	/* IM doesn't use the -1 means end-of-file convention, change it to a
 	 * very large number.
 	 */
 	if (magick->n == -1)
-		magick->n = 10000000; // FIXME: Invalidates operation cache
+		magick->n = 10000000;
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */

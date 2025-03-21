@@ -228,7 +228,6 @@ vips_thread_state_new(VipsImage *im, void *a)
 /* What we track for each thread in the pool.
  */
 typedef struct _VipsWorker {
-	/*< private >*/
 	struct _VipsThreadpool *pool; /* Pool we are part of */
 
 	VipsThreadState *state;
@@ -240,7 +239,6 @@ typedef struct _VipsWorker {
 /* What we track for a group of threads working together.
  */
 typedef struct _VipsThreadpool {
-	/*< private >*/
 	VipsImage *im; /* Image we are calculating */
 
 	/* Start a thread, do a unit of work (runs in parallel) and allocate
