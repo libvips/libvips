@@ -14,6 +14,7 @@
 - heifsave: improve alpha channel detection [lovell]
 - convi: ensure double sum precision for floats [lovell]
 - improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
+- improve vips_sink_screen() thumbnail rendering
 
 8.16.1
 
