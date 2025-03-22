@@ -386,8 +386,8 @@ vips_smartcrop_build(VipsObject *object)
 	case VIPS_INTERESTING_ALL:
 		left = 0;
 		top = 0;
-		smartcrop->width = in->Xsize;
-		smartcrop->height = in->Ysize;
+		smartcrop->width = in->Xsize; // FIXME: Invalidates operation cache
+		smartcrop->height = in->Ysize; // FIXME: Invalidates operation cache
 		break;
 
 	default:

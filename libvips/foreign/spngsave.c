@@ -431,8 +431,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		ihdr.color_type = SPNG_COLOR_TYPE_INDEXED;
 #else
 	if (spng->palette)
-		g_warning("%s",
-			_("ignoring palette (no quantisation support)"));
+		g_warning("ignoring palette (no quantisation support)");
 #endif /*HAVE_QUANTIZATION*/
 
 	ihdr.compression_method = 0;
@@ -453,8 +452,8 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 	/* Set resolution. spng uses pixels per meter.
 	 */
 	phys.unit_specifier = 1;
-	phys.ppu_x = VIPS_RINT(in->Xres * 1000.0);
-	phys.ppu_y = VIPS_RINT(in->Xres * 1000.0);
+	phys.ppu_x = rint(in->Xres * 1000.0);
+	phys.ppu_y = rint(in->Xres * 1000.0);
 	spng_set_phys(spng->ctx, &phys);
 
 	/* Metadata.

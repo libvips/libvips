@@ -48,6 +48,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 #include "quantise.h"
@@ -86,6 +87,7 @@ typedef struct _VipsForeignSaveCgif {
 	double interframe_maxerror;
 	gboolean reuse;
 	gboolean interlace;
+	gboolean keep_duplicate_frames;
 	double interpalette_maxerror;
 	VipsTarget *target;
 
@@ -589,9 +591,19 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 
 	VIPS_FREEF(vips__quantise_image_destroy, image);
 
+	/* Remapping is relatively slow, trigger eval callbacks.
+	 */
+	vips_image_eval(cgif->in, n_pels);
+	if (vips_image_iskilled(cgif->in))
+		return -1;
+
 	/* Set up cgif on first use.
 	 */
 	if (!cgif->cgif_context) {
+#ifdef HAVE_CGIF_GEN_KEEP_IDENT_FRAMES
+		if (cgif->keep_duplicate_frames)
+			cgif->cgif_config.genFlags = CGIF_GEN_KEEP_IDENT_FRAMES;
+#endif
 #ifdef HAVE_CGIF_ATTR_NO_LOOP
 		cgif->cgif_config.attrFlags =
 			CGIF_ATTR_IS_ANIMATED |
@@ -655,7 +667,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 	if (cgif->delay &&
 		cgif->page_number < cgif->delay_length)
 		frame_config.delay =
-			VIPS_RINT(cgif->delay[cgif->page_number] / 10.0);
+			rint(cgif->delay[cgif->page_number] / 10.0);
 
 	/* Attach a local palette, if we need one.
 	 */
@@ -671,8 +683,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 #ifdef HAVE_CGIF_FRAME_ATTR_INTERLACED
 		frame_config.attrFlags |= CGIF_FRAME_ATTR_INTERLACED;
 #else  /*!HAVE_CGIF_FRAME_ATTR_INTERLACED*/
-		g_warning("%s: cgif >= v0.3.0 required for interlaced GIF write",
-			class->nickname);
+		g_warning("cgif >= v0.3.0 required for interlaced GIF write");
 #endif /*HAVE_CGIF_FRAME_ATTR_INTERLACED*/
 	}
 
@@ -936,6 +947,13 @@ vips_foreign_save_cgif_class_init(VipsForeignSaveCgifClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET(VipsForeignSaveCgif, reoptimise),
 		FALSE);
+
+	VIPS_ARG_BOOL(class, "keep_duplicate_frames", 18,
+		_("Keep duplicate frames"),
+		_("Keep duplicate frames in the output instead of combining them"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveCgif, keep_duplicate_frames),
+		FALSE);
 }
 
 static void
@@ -1126,6 +1144,8 @@ vips_foreign_save_cgif_buffer_init(VipsForeignSaveCgifBuffer *buffer)
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
+ * * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *   instead of combining them
  *
  * Write to a file in GIF format.
  *
@@ -1153,6 +1173,9 @@ vips_foreign_save_cgif_buffer_init(VipsForeignSaveCgifBuffer *buffer)
  * If @interlace is TRUE, the GIF file will be interlaced (progressive GIF).
  * These files may be better for display over a slow network
  * connection, but need more memory to encode.
+ *
+ * If @keep_duplicate_frames is TRUE, duplicate frames in the input will be
+ * kept in the output instead of combining them.
  *
  * See also: vips_image_new_from_file().
  *
@@ -1188,6 +1211,8 @@ vips_gifsave(VipsImage *in, const char *filename, ...)
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
+ * * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *   instead of combining them
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -1243,6 +1268,8 @@ vips_gifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * * @interlace: %gboolean, write an interlaced (progressive) GIF
  * * @interpalette_maxerror: %gdouble, maximum inter-palette error for palette
  *   reusage
+ * * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *   instead of combining them
  *
  * As vips_gifsave(), but save to a target.
  *

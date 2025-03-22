@@ -129,7 +129,7 @@ lu_decomp(VipsImage *mat)
 
 	/* copy all coefficients and then perform decomposition in-place */
 	memcpy(VIPS_MATRIX(lu, 0, 0), VIPS_MATRIX(mat, 0, 0),
-		mat->Xsize * mat->Xsize * sizeof(double));
+		(size_t) mat->Xsize * mat->Xsize * sizeof(double));
 
 	for (i = 0; i < mat->Xsize; ++i) {
 		row_scale[i] = 0.0;
@@ -436,7 +436,7 @@ vips_matrixinvert_class_init(VipsMatrixinvertClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "matrixinvert";
-	vobject_class->description = _("invert an matrix");
+	vobject_class->description = _("invert a matrix");
 	vobject_class->build = vips_matrixinvert_build;
 
 	VIPS_ARG_IMAGE(class, "in", 0,

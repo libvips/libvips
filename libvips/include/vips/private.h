@@ -218,8 +218,6 @@ int vips__view_image(struct _VipsImage *image);
 VIPS_API
 int _vips__argument_id;
 
-void vips__meta_init(void);
-
 // autoptr needs typed functions for autofree ... this needs to be in the
 // public API since downstream projects can use our auto defs
 VIPS_API

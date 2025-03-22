@@ -662,6 +662,15 @@ class TestForeign:
         assert x1.xres == 100
         assert x1.yres == 200
 
+        if sys.platform == "darwin":
+            with open(TIF2_FILE, 'rb') as f:
+                buf = bytearray(f.read())
+            buf = buf[:-4]
+            source = pyvips.Source.new_from_memory(buf)
+            im = pyvips.Image.tiffload_source(source, fail_on="warning")
+            with pytest.raises(Exception) as e_info:
+                im.avg() > 0
+
         # OME support in 8.5
         x = pyvips.Image.new_from_file(OME_FILE)
         assert x.width == 439
@@ -1058,7 +1067,9 @@ class TestForeign:
         assert x2.get("bits-per-sample") == 4
         assert x2.get("palette") == 1
 
-        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE,
+                                        n=-1,
+                                        access="sequential")
         # our test gif has delay 0 for the first frame set in error
         assert x2.get("delay") == [0, 50, 50, 50, 50]
         assert x2.get("loop") == 32761
@@ -1188,6 +1199,12 @@ class TestForeign:
         im = pyvips.Image.new_from_buffer(svg, "", scale=0.0001)
         assert im.width == 10
         assert im.height == 10
+
+        # Custom CSS stylesheet
+        im = pyvips.Image.new_from_file(SVG_FILE)
+        assert im.avg() < 5
+        im = pyvips.Image.new_from_file(SVG_FILE, stylesheet=b'path{stroke:#f00;stroke-width:1em;}')
+        assert im.avg() > 5
 
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
@@ -1425,9 +1442,6 @@ class TestForeign:
         with pytest.raises(Exception) as e_info:
             im = pyvips.Image.heifload(AVIF_FILE_HUGE)
             assert im.avg() == 0.0
-
-        im = pyvips.Image.heifload(AVIF_FILE_HUGE, unlimited=True)
-        assert im.avg() == 0.0
 
     @skip_if_no("heifsave")
     def test_avifsave(self):

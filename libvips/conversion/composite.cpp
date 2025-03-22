@@ -899,7 +899,7 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 			/* You can't sqrt a vector, so we must loop.
 			 */
 			for (int b = 0; b < 3; b++) {
-				double g;
+				float g;
 
 				if (B[b] <= 0.25)
 					g = ((16 * B[b] - 12) * B[b] + 4) * B[b];
@@ -1387,7 +1387,7 @@ vips_composite_base_build(VipsObject *object)
 				break;
 			}
 
-		composite->compositing_space = any_16
+		composite->compositing_space = any_16 // FIXME: Invalidates operation cache
 			? (all_grey
 					  ? VIPS_INTERPRETATION_GREY16
 					  : VIPS_INTERPRETATION_RGB16)

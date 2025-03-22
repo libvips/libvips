@@ -129,8 +129,8 @@ typedef struct _VipsBlockCache {
 	gboolean threaded;
 	gboolean persistent;
 
-	GMutex *lock;	   /* Lock everything here */
-	GCond *new_tile;   /* A new tile is ready */
+	GMutex lock;	   /* Lock everything here */
+	GCond new_tile;	   /* A new tile is ready */
 	GHashTable *tiles; /* Tiles, hashed by coordinates */
 	GQueue *recycle;   /* Queue of unreffed tiles to reuse */
 } VipsBlockCache;
@@ -158,8 +158,8 @@ vips_block_cache_dispose(GObject *gobject)
 	VipsBlockCache *cache = (VipsBlockCache *) gobject;
 
 	vips_block_cache_drop_all(cache);
-	VIPS_FREEF(vips_g_mutex_free, cache->lock);
-	VIPS_FREEF(vips_g_cond_free, cache->new_tile);
+	g_mutex_clear(&cache->lock);
+	g_cond_clear(&cache->new_tile);
 
 	if (cache->tiles)
 		g_assert(g_hash_table_size(cache->tiles) == 0);
@@ -342,14 +342,14 @@ vips_block_cache_minimise(VipsImage *image, VipsBlockCache *cache)
 {
 	VIPS_DEBUG_MSG("vips_block_cache_minimise:\n");
 
-	g_mutex_lock(cache->lock);
+	g_mutex_lock(&cache->lock);
 
 	/* We can't drop tiles that are in use.
 	 */
 	g_hash_table_foreach_remove(cache->tiles,
 		vips_tile_unlocked, NULL);
 
-	g_mutex_unlock(cache->lock);
+	g_mutex_unlock(&cache->lock);
 }
 
 static int
@@ -481,8 +481,8 @@ vips_block_cache_init(VipsBlockCache *cache)
 	cache->threaded = FALSE;
 	cache->persistent = FALSE;
 
-	cache->lock = vips_g_mutex_new();
-	cache->new_tile = vips_g_cond_new();
+	g_mutex_init(&cache->lock);
+	g_cond_init(&cache->new_tile);
 	cache->tiles = g_hash_table_new_full(
 		(GHashFunc) vips_rect_hash,
 		(GEqualFunc) vips_rect_equal,
@@ -615,7 +615,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 
 	VIPS_GATE_START("vips_tile_cache_gen: wait1");
 
-	vips__worker_lock(cache->lock);
+	vips__worker_lock(&cache->lock);
 
 	VIPS_GATE_STOP("vips_tile_cache_gen: wait1");
 
@@ -674,7 +674,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 				 * mode, we keep the lock and make 'em wait.
 				 */
 				if (cache->threaded)
-					g_mutex_unlock(cache->lock);
+					g_mutex_unlock(&cache->lock);
 
 				/* Don't compute if we've seen an error
 				 * previously.
@@ -688,7 +688,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 				if (cache->threaded) {
 					VIPS_GATE_START("vips_tile_cache_gen: wait2");
 
-					g_mutex_lock(cache->lock);
+					g_mutex_lock(&cache->lock);
 
 					VIPS_GATE_STOP("vips_tile_cache_gen: wait2");
 				}
@@ -718,7 +718,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 				/* Let everyone know there's a new DATA tile.
 				 * They need to all check their work lists.
 				 */
-				g_cond_broadcast(cache->new_tile);
+				g_cond_broadcast(&cache->new_tile);
 
 				break;
 			}
@@ -741,7 +741,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 
 			VIPS_GATE_START("vips_tile_cache_gen: wait3");
 
-			vips__worker_cond_wait(cache->new_tile, cache->lock);
+			vips__worker_cond_wait(&cache->new_tile, &cache->lock);
 
 			VIPS_GATE_STOP("vips_tile_cache_gen: wait3");
 
@@ -749,7 +749,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 		}
 	}
 
-	g_mutex_unlock(cache->lock);
+	g_mutex_unlock(&cache->lock);
 
 	return result;
 }
@@ -889,7 +889,7 @@ vips_line_cache_gen(VipsRegion *out_region,
 
 	VIPS_GATE_START("vips_line_cache_gen: wait");
 
-	vips__worker_lock(block_cache->lock);
+	vips__worker_lock(&block_cache->lock);
 
 	VIPS_GATE_STOP("vips_line_cache_gen: wait");
 
@@ -897,13 +897,13 @@ vips_line_cache_gen(VipsRegion *out_region,
 	 */
 	if (out_region->valid.height >
 		block_cache->max_tiles * block_cache->tile_height) {
-		block_cache->max_tiles =
+		block_cache->max_tiles = // FIXME: Invalidates operation cache
 			1 + (out_region->valid.height / block_cache->tile_height);
 		VIPS_DEBUG_MSG("vips_line_cache_gen: bumped max_tiles to %d\n",
 			block_cache->max_tiles);
 	}
 
-	g_mutex_unlock(block_cache->lock);
+	g_mutex_unlock(&block_cache->lock);
 
 	return vips_tile_cache_gen(out_region, seq, a, b, stop);
 }
@@ -922,7 +922,7 @@ vips_line_cache_build(VipsObject *object)
 	VIPS_DEBUG_MSG("vips_line_cache_build\n");
 
 	if (!vips_object_argument_isset(object, "access"))
-		block_cache->access = VIPS_ACCESS_SEQUENTIAL;
+		block_cache->access = VIPS_ACCESS_SEQUENTIAL; // FIXME: Invalidates operation cache
 
 	if (VIPS_OBJECT_CLASS(vips_line_cache_parent_class)->build(object))
 		return -1;
@@ -931,7 +931,7 @@ vips_line_cache_build(VipsObject *object)
 	 */
 	vips_get_tile_size(block_cache->in,
 		&tile_width, &tile_height, &n_lines);
-	block_cache->tile_width = block_cache->in->Xsize;
+	block_cache->tile_width = block_cache->in->Xsize; // FIXME: Invalidates operation cache
 
 	/* Output has two buffers n_lines height, so 2 * n_lines is the maximum
 	 * non-locality from threading. Double again for conv, rounding, etc.
@@ -941,7 +941,7 @@ vips_line_cache_build(VipsObject *object)
 	 * minimum of two strips, so we can handle requests that straddle a
 	 * tile boundary.
 	 */
-	block_cache->max_tiles = VIPS_MAX(2,
+	block_cache->max_tiles = VIPS_MAX(2, // FIXME: Invalidates operation cache
 		4 * n_lines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG("vips_line_cache_build: n_lines = %d\n",

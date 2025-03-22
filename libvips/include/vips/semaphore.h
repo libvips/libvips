@@ -38,8 +38,6 @@
 #define VIPS_SEMAPHORE_H
 
 #include <glib.h>
-#include <vips/vips.h>
-#include <vips/thread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,10 +46,17 @@ extern "C" {
 /* Implement our own semaphores.
  */
 typedef struct {
+	/* All fields are private.
+	 */
+	/*< private >*/
 	char *name;
 	int v;
 
-	GMutex *mutex;
+	GMutex mutex;
+
+	/* FIXME: sizeof(GCond) != sizeof(GCond *)
+	 * https://gitlab.gnome.org/GNOME/glib/-/issues/1256
+	 */
 	GCond *cond;
 } VipsSemaphore;
 

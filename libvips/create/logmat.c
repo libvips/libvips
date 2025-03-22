@@ -106,7 +106,7 @@ vips_logmat_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "integer") &&
 		!vips_object_argument_isset(object, "precision") &&
 		!logmat->integer)
-		logmat->precision = VIPS_PRECISION_FLOAT;
+		logmat->precision = VIPS_PRECISION_FLOAT; // FIXME: Invalidates operation cache
 
 	if (vips_check_precision_intfloat(class->nickname,
 			logmat->precision))
@@ -138,7 +138,7 @@ vips_logmat_build(VipsObject *object)
 		 * is less than the min.
 		 */
 		if (val - last >= 0 &&
-			VIPS_FABS(val) < logmat->min_ampl)
+			fabs(val) < logmat->min_ampl)
 			break;
 
 		last = val;
@@ -171,7 +171,7 @@ vips_logmat_build(VipsObject *object)
 				exp(-distance / (2.0 * sig2));
 
 			if (logmat->precision == VIPS_PRECISION_INTEGER)
-				v = VIPS_RINT(20 * v);
+				v = rint(20 * v);
 
 			*VIPS_MATRIX(create->out, x, y) = v;
 			sum += v;

@@ -96,7 +96,7 @@ vips_bandfold_gen(VipsRegion *out_region,
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy(q, p, psize * r->width);
+		memcpy(q, p, (size_t) psize * r->width);
 	}
 
 	return 0;
@@ -116,7 +116,8 @@ vips_bandfold_build(VipsObject *object)
 		return -1;
 
 	if (bandfold->factor == 0)
-		bandfold->factor = bandfold->in->Xsize;
+		bandfold->factor = bandfold->in->Xsize; // FIXME: Invalidates operation cache
+
 	if (bandfold->in->Xsize % bandfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image width"));

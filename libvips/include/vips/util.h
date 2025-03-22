@@ -54,38 +54,25 @@ extern "C" {
 #define VIPS_MAX(A, B) ((A) > (B) ? (A) : (B))
 #define VIPS_MIN(A, B) ((A) < (B) ? (A) : (B))
 
+#define VIPS_FMAX(A, B) fmax((A), (B)) VIPS_DEPRECATED_MACRO_FOR(fmax)
+#define VIPS_FMIN(A, B) fmin((A), (B)) VIPS_DEPRECATED_MACRO_FOR(fmin)
+
 #define VIPS_CLIP(A, V, B) VIPS_MAX((A), VIPS_MIN((B), (V)))
-#define VIPS_FCLIP(A, V, B) VIPS_FMAX((A), VIPS_FMIN((B), (V)))
+#define VIPS_FCLIP(A, V, B) fmax((A), fmin((B), (V)))
 
 #define VIPS_NUMBER(R) ((int) (sizeof(R) / sizeof(R[0])))
 
-#define VIPS_ABS(X) (((X) >= 0) ? (X) : -(X))
+#define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
+#define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
 
-/* The built-in isnan and isinf functions provided by gcc 4+ and clang are
- * up to 7x faster than their libc equivalent included from <math.h>.
- */
-#if defined(__clang__) || (__GNUC__ >= 4)
-#define VIPS_ISNAN(V) __builtin_isnan(V)
-#define VIPS_FLOOR(V) __builtin_floor(V)
-#define VIPS_CEIL(V) __builtin_ceil(V)
-#define VIPS_RINT(V) __builtin_rint(V)
-#define VIPS_ROUND(V) __builtin_round(V)
-#define VIPS_FABS(V) __builtin_fabs(V)
-#define VIPS_FMAX(A, B) __builtin_fmax(A, B)
-#define VIPS_FMIN(A, B) __builtin_fmin(A, B)
-#else
-#define VIPS_ISNAN(V) isnan(V)
-#define VIPS_FLOOR(V) floor(V)
-#define VIPS_CEIL(V) ceil(V)
-#define VIPS_RINT(V) rint(V)
-#define VIPS_ROUND(V) round(V)
-#define VIPS_FABS(V) VIPS_ABS(V)
-#define VIPS_FMAX(A, B) VIPS_MAX(A, B)
-#define VIPS_FMIN(A, B) VIPS_MIN(A, B)
-#endif
+#define VIPS_ISNAN(V) isnan(V) VIPS_DEPRECATED_MACRO_FOR(isnan)
+#define VIPS_FLOOR(V) floor(V) VIPS_DEPRECATED_MACRO_FOR(floor)
+#define VIPS_CEIL(V) ceil(V) VIPS_DEPRECATED_MACRO_FOR(ceil)
+#define VIPS_RINT(V) rint(V) VIPS_DEPRECATED_MACRO_FOR(rint)
+#define VIPS_ROUND(V) round(V) VIPS_DEPRECATED_MACRO_FOR(round)
 
 /* Testing status before the function call saves a lot of time.
  */
@@ -97,7 +84,7 @@ extern "C" {
 	} \
 	G_STMT_END
 
-/* VIPS_RINT() does "bankers rounding", it rounds to the nearest even integer.
+/* rint() does "bankers rounding", it rounds to the nearest even integer.
  * For things like image geometry, we want strict nearest int.
  *
  * If you know it's unsigned, _UINT is a little faster.

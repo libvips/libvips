@@ -776,11 +776,11 @@ write_json(VipsForeignSaveDz *dz)
 		"    {\n"
 		"      \"scaleFactors\": [\n");
 
-	for (i = 0; i < dz->level->n; i++) {
+	for (i = 0; i <= dz->level->n; i++) {
 		vips_dbuf_writef(&dbuf,
 			"        %d",
 			1 << i);
-		if (i != dz->level->n - 1)
+		if (i != dz->level->n)
 			vips_dbuf_writef(&dbuf, ",");
 		vips_dbuf_writef(&dbuf, "\n");
 	}
@@ -970,7 +970,8 @@ write_associated_images(VipsImage *image,
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 
-	if (vips_isprefix("openslide.associated.", field)) {
+	if (vips_isprefix("openslide.associated.", field) &&
+		vips_image_get_typeof(image, field) == VIPS_TYPE_IMAGE) {
 		VipsImage *associated;
 		const char *p;
 		const char *q;
@@ -1287,7 +1288,7 @@ region_tile_equal(VipsRegion *region, VipsRect *rect,
 
 		for (x = 0; x < rect->width; x++) {
 			for (b = 0; b < bytes; b++)
-				if (VIPS_ABS(p[b] - ink[b]) > threshold)
+				if (abs(p[b] - ink[b]) > threshold)
 					return FALSE;
 
 			p += bytes;
@@ -1955,7 +1956,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 * or the deprecated "no_strip" turns this off.
 	 */
 	if (!vips_object_argument_isset(object, "keep") &&
-		!vips_object_argument_isset(object, "no_strip"))
+		!dz->no_strip)
 		save->keep = VIPS_FOREIGN_KEEP_NONE;
 
 	/* Google, zoomify and iiif default to zero overlap, ".jpg".
@@ -2006,21 +2007,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 	if (dz->tile_step <= 0) {
 		vips_error("dzsave", "%s", _("overlap too large"));
 		return -1;
-	}
-
-	/* Default to white background. vips_foreign_save_init() defaults to
-	 * black.
-	 */
-	if (!vips_object_argument_isset(object, "background")) {
-		VipsArrayDouble *background;
-
-		/* Using g_object_set() to set an input param in build will
-		 * change the hash and confuse caching, but we don't cache
-		 * savers, so it's fine.
-		 */
-		background = vips_array_double_newv(1, 255.0);
-		g_object_set(object, "background", background, NULL);
-		vips_area_unref(VIPS_AREA(background));
 	}
 
 	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
@@ -2498,6 +2484,12 @@ vips_foreign_save_dz_init(VipsForeignSaveDz *dz)
 	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
 	dz->skip_blanks = -1;
 	dz->Q = 75;
+
+	// we default background to 255 (not 0), see vips_foreign_save_init()
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+	if (save->background)
+		vips_area_unref(VIPS_AREA(save->background));
+	save->background = vips_array_double_newv(1, 255.0);
 }
 
 typedef struct _VipsForeignSaveDzTarget {

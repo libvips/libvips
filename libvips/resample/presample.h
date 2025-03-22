@@ -78,6 +78,11 @@ void vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 void vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int n, int ne, int lskip, const short *restrict k);
 
+void vips_shrinkh_uchar_hwy(VipsPel *pout, VipsPel *pin,
+	int width, int hshrink, int bands);
+void vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
+	int ne, int vshrink, int lskip);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

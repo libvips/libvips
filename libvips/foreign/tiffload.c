@@ -77,6 +77,10 @@ typedef struct _VipsForeignLoadTiff {
 	 */
 	gboolean autorotate;
 
+	/* Remove denial of service limits.
+	 */
+	gboolean unlimited;
+
 } VipsForeignLoadTiff;
 
 typedef VipsForeignLoadClass VipsForeignLoadTiffClass;
@@ -137,7 +141,7 @@ vips_foreign_load_tiff_header(VipsForeignLoad *load)
 
 	if (vips__tiff_read_header_source(tiff->source, load->out,
 			tiff->page, tiff->n, tiff->autorotate, tiff->subifd,
-			load->fail_on))
+			load->fail_on, tiff->unlimited))
 		return -1;
 
 	return 0;
@@ -150,7 +154,7 @@ vips_foreign_load_tiff_load(VipsForeignLoad *load)
 
 	if (vips__tiff_read_source(tiff->source, load->real,
 			tiff->page, tiff->n, tiff->autorotate, tiff->subifd,
-			load->fail_on))
+			load->fail_on, tiff->unlimited))
 		return -1;
 
 	return 0;
@@ -209,12 +213,21 @@ vips_foreign_load_tiff_class_init(VipsForeignLoadTiffClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadTiff, autorotate),
 		FALSE);
 
-	VIPS_ARG_INT(class, "subifd", 21,
+	VIPS_ARG_INT(class, "subifd", 23,
 		_("subifd"),
 		_("Subifd index"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadTiff, subifd),
 		-1, 100000, -1);
+
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	VIPS_ARG_BOOL(class, "unlimited", 24,
+		_("Unlimited"),
+		_("Remove all denial of service limits"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadTiff, unlimited),
+		FALSE);
+#endif
 }
 
 static void
@@ -223,6 +236,7 @@ vips_foreign_load_tiff_init(VipsForeignLoadTiff *tiff)
 	tiff->page = 0;
 	tiff->n = 1;
 	tiff->subifd = -1;
+	tiff->unlimited = FALSE;
 }
 
 typedef struct _VipsForeignLoadTiffSource {
@@ -470,6 +484,8 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader,
  * with extensions for tiled images, multipage images, XYZ and LAB colour
@@ -501,6 +517,13 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * If it is 0 or greater and there is a SUBIFD tag, the indexed SUBIFD is
  * selected. This can be used to read lower resolution layers from
  * bioformats-style image pyramids.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ *
+ * When using libtiff 4.7.0+, the TIFF loader will limit memory allocation
+ * for tag processing to 20MB to prevent denial of service attacks.
+ * Set @unlimited to remove this limit.
  *
  * Any ICC profile is read and attached to the VIPS image as
  * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
@@ -540,6 +563,8 @@ vips_tiffload(const char *filename, VipsImage **out, ...)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source.
@@ -584,6 +609,8 @@ vips_tiffload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * * @autorotate: %gboolean, use orientation tag to rotate the image
  *   during load
  * * @subifd: %gint, select this subifd index
+ * * @fail_on: #VipsFailOn, types of read error to fail on
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Exactly as vips_tiffload(), but read from a source.
  *

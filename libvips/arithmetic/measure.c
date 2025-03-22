@@ -117,9 +117,9 @@ vips_measure_build(VipsObject *object)
 	/* left/top/width/height default to the size of the image.
 	 */
 	if (!vips_object_argument_isset(object, "width"))
-		measure->width = vips_image_get_width(ready);
+		measure->width = vips_image_get_width(ready); // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "height"))
-		measure->height = vips_image_get_height(ready);
+		measure->height = vips_image_get_height(ready); // FIXME: Invalidates operation cache
 
 	/* How large are the patches we are to measure?
 	 */
@@ -159,8 +159,8 @@ vips_measure_build(VipsObject *object)
 				 * averages near zero (can get these if use
 				 * measure on IM_TYPE_LAB images).
 				 */
-				if (dev * 5 > VIPS_FABS(avg) &&
-					VIPS_FABS(avg) > 3)
+				if (dev * 5 > fabs(avg) &&
+					fabs(avg) > 3)
 					g_warning(_("%s: "
 								"patch %d x %d, "
 								"band %d: "

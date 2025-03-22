@@ -261,7 +261,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 
 #include "pforeign.h"
 #include "tiff.h"
@@ -428,6 +427,10 @@ typedef struct _Rtiff {
 	/* The Y we are reading at. Used to verify strip read is sequential.
 	 */
 	int y_pos;
+
+	/* Stop processing due to an error or warning.
+	 */
+	gboolean failed;
 } Rtiff;
 
 /* Convert IEEE 754-2008 16-bit float to 32-bit float
@@ -443,11 +446,11 @@ half_2_float(gushort h)
 	case 16:
 		return INFINITY * sign;
 	case -15:
-		return sign / (float) (1 << 14) * (prec / 1024.0);
+		return sign / (float) (1 << 14) * (prec / 1024.0F);
 	default:
 		return exp > 0
-			? sign * (float) (1 << exp) * (1.0 + prec / 1024.0)
-			: sign / (float) (1 << -exp) * (1.0 + prec / 1024.0);
+			? sign * (float) (1 << exp) * (1.0F + prec / 1024.0F)
+			: sign / (float) (1 << -exp) * (1.0F + prec / 1024.0F);
 	}
 }
 
@@ -516,8 +519,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		case RESUNIT_INCH:
 			/* In pixels-per-inch ... convert to mm.
 			 */
-			x /= 10.0 * 2.54;
-			y /= 10.0 * 2.54;
+			x /= 10.0F * 2.54F;
+			y /= 10.0F * 2.54F;
 			vips_image_set_string(out,
 				VIPS_META_RESOLUTION_UNIT, "in");
 			break;
@@ -525,8 +528,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		case RESUNIT_CENTIMETER:
 			/* In pixels-per-centimetre ... convert to mm.
 			 */
-			x /= 10.0;
-			y /= 10.0;
+			x /= 10.0F;
+			y /= 10.0F;
 			vips_image_set_string(out,
 				VIPS_META_RESOLUTION_UNIT, "cm");
 			break;
@@ -541,8 +544,8 @@ get_resolution(TIFF *tiff, VipsImage *out)
 		/* We used to warn about missing res data, but it happens so
 		 * often and is so harmless, why bother.
 		 */
-		x = 1.0;
-		y = 1.0;
+		x = 1.0F;
+		y = 1.0F;
 	}
 
 	out->Xres = x;
@@ -614,9 +617,32 @@ rtiff_minimise_cb(VipsImage *image, Rtiff *rtiff)
 		vips_source_minimise(rtiff->source);
 }
 
+static int
+rtiff_handler_error(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	vips_verror("tiff2vips", fmt, ap);
+	return 1;
+}
+
+static int
+rtiff_handler_warning(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	if (user_data) {
+		Rtiff *rtiff = (Rtiff*) user_data;
+		if (rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
+			rtiff->failed = TRUE;
+		}
+	}
+	g_logv("tiff2vips", G_LOG_LEVEL_WARNING, fmt, ap);
+	return 1;
+}
+
 static Rtiff *
 rtiff_new(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
@@ -641,6 +667,7 @@ rtiff_new(VipsSource *source, VipsImage *out,
 	rtiff->plane_buf = NULL;
 	rtiff->contig_buf = NULL;
 	rtiff->y_pos = 0;
+	rtiff->failed = FALSE;
 
 	g_signal_connect(out, "close",
 		G_CALLBACK(rtiff_close_cb), rtiff);
@@ -664,7 +691,8 @@ rtiff_new(VipsSource *source, VipsImage *out,
 		return NULL;
 	}
 
-	if (!(rtiff->tiff = vips__tiff_openin_source(source)))
+	if (!(rtiff->tiff = vips__tiff_openin_source(source,
+		rtiff_handler_error, rtiff_handler_warning, rtiff, unlimited)))
 		return NULL;
 
 	return rtiff;
@@ -680,15 +708,18 @@ rtiff_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 #endif /*DEBUG_VERBOSE*/
 
 	if (rtiff->header.read_scanlinewise)
-		length = TIFFReadScanline(rtiff->tiff,
-			buf, strip, (tsample_t) 0);
+		length = TIFFReadScanline(rtiff->tiff, buf, strip, (tsample_t) 0);
 	else
-		length = TIFFReadEncodedStrip(rtiff->tiff,
-			strip, buf, (tsize_t) -1);
+		length = TIFFReadEncodedStrip(rtiff->tiff, strip, buf, (tsize_t) -1);
 
-	if (length == -1) {
+	if (length == -1 && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 		vips_foreign_load_invalidate(rtiff->out);
 		vips_error("tiff2vips", "%s", _("read error"));
+		return -1;
+	}
+
+	if (rtiff->failed) {
+		vips_foreign_load_invalidate(rtiff->out);
 		return -1;
 	}
 
@@ -730,6 +761,11 @@ rtiff_rgba_strip_read(Rtiff *rtiff, int strip, tdata_t buf)
 	}
 
 	TIFFRGBAImageEnd(&img);
+
+	if (rtiff->failed) {
+		vips_foreign_load_invalidate(rtiff->out);
+		return -1;
+	}
 
 	return 0;
 }
@@ -1584,7 +1620,7 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 			read->blue8[i] = read->blue16[i] >> 8;
 		}
 	else {
-		g_warning("%s", _("assuming 8-bit palette"));
+		g_warning("assuming 8-bit palette");
 
 		for (i = 0; i < len; i++) {
 			read->red8[i] = read->red16[i] & 0xff;
@@ -1659,7 +1695,7 @@ static void
 rtiff_memcpy_f16_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
 {
 	VipsImage *im = (VipsImage *) client;
-	size_t len = n * im->Bands;
+	size_t len = (size_t) n * im->Bands;
 
 	if (im->BandFmt == VIPS_FORMAT_COMPLEX ||
 		im->BandFmt == VIPS_FORMAT_DPCOMPLEX)
@@ -1828,8 +1864,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 		vips_connection_filename(VIPS_CONNECTION(rtiff->source)));
 
 	if (rtiff->n > 1)
-		vips_image_set_int(out,
-			VIPS_META_PAGE_HEIGHT, rtiff->header.height);
+		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, rtiff->header.height);
 
 	if (rtiff->header.subifd_count > 0)
 		vips_image_set_int(out,
@@ -1845,24 +1880,18 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 
 	/* Read any ICC profile.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_ICCPROFILE, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_ICC_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_ICCPROFILE, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_ICC_NAME, data, data_len);
 
 	/* Read any XMP metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_XMLPACKET, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_XMP_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_XMLPACKET, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_XMP_NAME, data, data_len);
 
 	/* Read any IPTC metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
-		vips_image_set_blob_copy(out,
-			VIPS_META_IPTC_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
+		vips_image_set_blob_copy(out, VIPS_META_IPTC_NAME, data, data_len);
 
 		/* Older versions of libvips used this misspelt name :-( attach
 		 * under this name too for compatibility.
@@ -1872,10 +1901,8 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 
 	/* Read any photoshop metadata.
 	 */
-	if (TIFFGetField(rtiff->tiff,
-			TIFFTAG_PHOTOSHOP, &data_len, &data))
-		vips_image_set_blob_copy(out,
-			VIPS_META_PHOTOSHOP_NAME, data, data_len);
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_PHOTOSHOP, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_PHOTOSHOP_NAME, data, data_len);
 
 	if (rtiff->header.image_description)
 		vips_image_set_string(out, VIPS_META_IMAGEDESCRIPTION,
@@ -1890,8 +1917,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	/* Set the "orientation" tag. This is picked up later by autorot, if
 	 * requested.
 	 */
-	vips_image_set_int(out,
-		VIPS_META_ORIENTATION, rtiff->header.orientation);
+	vips_image_set_int(out, VIPS_META_ORIENTATION, rtiff->header.orientation);
 
 	/* Hint smalltile for tiled images, since we may be decompressing
 	 * outside the lock and THINSTRIP would prevent parallel tile decode.
@@ -2107,7 +2133,7 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 	}
 
 	jpeg_calc_output_dimensions(cinfo);
-	bytes_per_scanline = cinfo->output_width * bytes_per_pixel;
+	bytes_per_scanline = (size_t) cinfo->output_width * bytes_per_pixel;
 
 	/* Double-check tile dimensions.
 	 */
@@ -2317,7 +2343,7 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 			result = rtiff_read_rgba_tile(rtiff, x, y, buf);
 		else
 			result = TIFFReadTile(rtiff->tiff, buf, x, y, 0, 0) < 0;
-		if (result) {
+		if (result && rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 			vips_foreign_load_invalidate(rtiff->out);
 			g_rec_mutex_unlock(&rtiff->lock);
 			return -1;
@@ -3303,7 +3329,7 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		for (i = 0; i < extra_samples_count; i++)
 			if (extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA) {
 				if (header->alpha_band != -1)
-					g_warning("%s", _("more than one alpha -- ignoring"));
+					g_warning("more than one alpha -- ignoring");
 
 				header->alpha_band = header->samples_per_pixel -
 					extra_samples_count + i;
@@ -3408,7 +3434,8 @@ vips__testtiff_source(VipsSource *source, TiffPropertyFn fn)
 
 	vips__tiff_init();
 
-	if (!(tif = vips__tiff_openin_source(source))) {
+	if (!(tif = vips__tiff_openin_source(source, rtiff_handler_error,
+		rtiff_handler_warning, NULL, FALSE))) {
 		vips_error_clear();
 		return FALSE;
 	}
@@ -3434,14 +3461,15 @@ vips__istifftiled_source(VipsSource *source)
 
 int
 vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
 	if (!(rtiff = rtiff_new(source, out,
-			  page, n, autorotate, subifd, fail_on)) ||
+			  page, n, autorotate, subifd, fail_on, unlimited)) ||
 		rtiff_header_read_all(rtiff))
 		return -1;
 
@@ -3464,7 +3492,8 @@ vips__tiff_read_header_source(VipsSource *source, VipsImage *out,
 
 int
 vips__tiff_read_source(VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on)
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on,
+	gboolean unlimited)
 {
 	Rtiff *rtiff;
 
@@ -3475,7 +3504,7 @@ vips__tiff_read_source(VipsSource *source, VipsImage *out,
 	vips__tiff_init();
 
 	if (!(rtiff = rtiff_new(source, out,
-			  page, n, autorotate, subifd, fail_on)) ||
+			  page, n, autorotate, subifd, fail_on, unlimited)) ||
 		rtiff_header_read_all(rtiff))
 		return -1;
 

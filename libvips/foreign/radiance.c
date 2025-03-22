@@ -229,8 +229,8 @@ typedef float RGBPRIMS[4][2]; /* (x,y) chromaticities for RGBW */
 #define COLCORSTR "COLORCORR="
 #define LCOLCORSTR 10
 #define iscolcor(hl) (!strncmp(hl, COLCORSTR, LCOLCORSTR))
-#define colcorval(cc, hl) sscanf((hl) + LCOLCORSTR, "%f %f %f", \
-	&(cc)[RED], &(cc)[GRN], &(cc)[BLU])
+#define colcorval(cc, hl) (sscanf((hl) + LCOLCORSTR, "%f %f %f", \
+							   &(cc)[RED], &(cc)[GRN], &(cc)[BLU]) == 3)
 
 #define MINELEN 8	   /* minimum scanline length for encoding */
 #define MAXELEN 0x7fff /* maximum scanline length for encoding */
@@ -610,7 +610,7 @@ read_new(VipsSource *source, VipsImage *out)
 	strcpy(read->format, COLRFMT);
 	read->expos = 1.0;
 	for (i = 0; i < 3; i++)
-		read->colcor[i] = 1.0;
+		read->colcor[i] = 1.0F;
 	read->aspect = 1.0;
 	read->prims[0][0] = CIE_x_r;
 	read->prims[0][1] = CIE_y_r;
@@ -643,7 +643,8 @@ rad2vips_process_line(char *line, Read *read)
 		COLOR cc;
 		int i;
 
-		(void) colcorval(cc, line);
+		if (!colcorval(cc, line))
+			return -1;
 		for (i = 0; i < 3; i++)
 			read->colcor[i] *= cc[i];
 	}
@@ -651,7 +652,8 @@ rad2vips_process_line(char *line, Read *read)
 		read->aspect *= aspectval(line);
 	}
 	else if (isprims(line)) {
-		(void) primsval(read->prims, line);
+		if (!primsval(read->prims, line))
+			return -1;
 	}
 
 	return 0;
@@ -856,7 +858,7 @@ write_new(VipsImage *in, VipsTarget *target)
 	strcpy(write->format, COLRFMT);
 	write->expos = 1.0;
 	for (i = 0; i < 3; i++)
-		write->colcor[i] = 1.0;
+		write->colcor[i] = 1.0F;
 	write->aspect = 1.0;
 	write->prims[0][0] = CIE_x_r;
 	write->prims[0][1] = CIE_y_r;

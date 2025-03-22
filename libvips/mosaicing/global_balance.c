@@ -1103,7 +1103,7 @@ find_image_stats(VipsImage *mem,
 
 #ifdef DEBUG
 	if (count == 0)
-		g_warning("global_balance %s", _("empty overlap!"));
+		g_warning("global_balance empty overlap");
 #endif /*DEBUG*/
 
 	return t[4];
@@ -1495,18 +1495,12 @@ vips__build_mosaic(SymbolTable *st, VipsImage *out, transform_fn tfn, void *a)
 static int
 vips__matrixtranspose(VipsImage *in, VipsImage **out)
 {
-	int yc, xc;
-
-	/* Allocate output matrix.
-	 */
 	if (!(*out = vips_image_new_matrix(in->Ysize, in->Xsize)))
 		return -1;
 
-	/* Transpose.
-	 */
-	for (yc = 0; yc < (*out)->Ysize; ++yc)
-		for (xc = 0; xc < (*out)->Xsize; ++xc)
-			*VIPS_MATRIX(*out, xc, yc) = *VIPS_MATRIX(in, yc, xc);
+	for (int y = 0; y < (*out)->Ysize; y++)
+		for (int x = 0; x < (*out)->Xsize; x++)
+			*VIPS_MATRIX(*out, x, y) = *VIPS_MATRIX(in, y, x);
 
 	return 0;
 }

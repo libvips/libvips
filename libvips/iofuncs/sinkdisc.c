@@ -59,8 +59,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
-#include <vips/threadpool.h>
 #include <vips/debug.h>
 
 #include "sink.h"
@@ -97,6 +95,20 @@ typedef struct _Write {
 	VipsRegionWrite write_fn;
 	void *a;
 } Write;
+
+static int
+write_check_error(Write *write)
+{
+	if (write->buf->write_errno ||
+		write->buf_back->write_errno) {
+		vips_error_system(write->buf->write_errno ?
+			write->buf->write_errno : write->buf_back->write_errno,
+			"wbuffer_write", "%s", _("write failed"));
+		return -1;
+	}
+
+	return 0;
+}
 
 /* Our per-thread state ... we need to also track the buffer that pos is
  * supposed to write to.
@@ -259,13 +271,8 @@ wbuffer_flush(Write *write)
 	if (write->buf->area.top > 0) {
 		vips_semaphore_down(&write->buf_back->done);
 
-		/* Previous write succeeded?
-		 */
-		if (write->buf_back->write_errno) {
-			vips_error_system(write->buf_back->write_errno,
-				"wbuffer_write", "%s", _("write failed"));
+		if (write_check_error(write))
 			return -1;
-		}
 	}
 
 	/* Set the background writer going for this buffer.
@@ -410,7 +417,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }
@@ -532,6 +539,10 @@ vips_sink_disc(VipsImage *im, VipsRegionWrite write_fn, void *a)
 		vips_semaphore_down(&write.buf->done);
 
 	vips_image_posteval(im);
+
+	/* The final write might have failed, pick up any error code.
+	 */
+	result |= write_check_error(&write);
 
 	write_free(&write);
 

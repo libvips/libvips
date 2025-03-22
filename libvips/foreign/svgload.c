@@ -119,6 +119,10 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	gboolean unlimited;
 
+	/* Custom CSS.
+	 */
+	const char *stylesheet;
+
 	RsvgHandle *page;
 
 } VipsForeignLoadSvg;
@@ -601,6 +605,21 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	cr = cairo_create(surface);
 	cairo_surface_destroy(surface);
 
+#ifdef HAVE_RSVG_HANDLE_SET_STYLESHEET
+	if (svg->stylesheet && g_utf8_validate(svg->stylesheet, -1, NULL)) {
+		GError *error = NULL;
+		if (!rsvg_handle_set_stylesheet(svg->page,
+				(const guint8 *) svg->stylesheet,
+				g_utf8_strlen(svg->stylesheet, -1), &error)) {
+			cairo_destroy(cr);
+			vips_operation_invalidate(VIPS_OPERATION(svg));
+			vips_error(class->nickname, "Invalid custom CSS");
+			vips_g_error(&error);
+			return -1;
+		}
+	}
+#endif
+
 	/* rsvg is single-threaded, but we don't need to lock since we're
 	 * running inside a non-threaded tilecache.
 	 */
@@ -727,12 +746,21 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, scale),
 		0.0, 100000.0, 1.0);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	VIPS_ARG_BOOL(class, "unlimited", 23,
 		_("Unlimited"),
 		_("Allow SVG of any size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, unlimited),
 		FALSE);
+#endif
+
+	VIPS_ARG_STRING(class, "stylesheet", 24,
+		_("Stylesheet"),
+		_("Custom CSS"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadSvg, stylesheet),
+		NULL);
 }
 
 static void
@@ -1017,6 +1045,7 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @unlimited: %gboolean, allow SVGs of any size
+ * * @stylesheet: %gchararray, custom CSS
  *
  * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
  * and should be fast.
@@ -1029,6 +1058,10 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  *
  * SVGs larger than 10MB are normally blocked for security. Set @unlimited to
  * allow SVGs of any size.
+ *
+ * A UTF-8 string containing custom CSS can be provided via @stylesheet.
+ * During the CSS cascade, the specified stylesheet will be applied with a
+ * User Origin. This feature requires librsvg 2.48.0 or later.
  *
  * See also: vips_image_new_from_file().
  *
@@ -1059,6 +1092,7 @@ vips_svgload(const char *filename, VipsImage **out, ...)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @unlimited: %gboolean, allow SVGs of any size
+ * * @stylesheet: %gchararray, custom CSS
  *
  * Read a SVG-formatted memory block into a VIPS image. Exactly as
  * vips_svgload(), but read from a memory buffer.
@@ -1101,6 +1135,7 @@ vips_svgload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @unlimited: %gboolean, allow SVGs of any size
+ * * @stylesheet: %gchararray, custom CSS
  *
  * Exactly as vips_svgload(), but read from a string. This function takes a
  * copy of the string.

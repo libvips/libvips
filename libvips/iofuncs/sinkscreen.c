@@ -69,7 +69,6 @@
 #endif /*HAVE_UNISTD_H*/
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -111,7 +110,7 @@ typedef struct _Render {
 	gatomicrefcount ref_count;
 #else
 	int ref_count;
-	GMutex *ref_count_lock;
+	GMutex ref_count_lock;
 #endif
 
 	/* Parameters.
@@ -128,7 +127,7 @@ typedef struct _Render {
 
 	/* Lock here before reading or modifying the tile structure.
 	 */
-	GMutex *lock;
+	GMutex lock;
 
 	/* Tile cache.
 	 */
@@ -179,7 +178,7 @@ static gboolean render_kill = FALSE;
 /* All the renders with dirty tiles, and a semaphore that the bg render thread
  * waits on.
  */
-static GMutex *render_dirty_lock = NULL;
+static GMutex render_dirty_lock;
 static GSList *render_dirty_all = NULL;
 static VipsSemaphore n_render_dirty_sem;
 
@@ -205,8 +204,7 @@ render_thread_state_init(RenderThreadState *state)
 static VipsThreadState *
 render_thread_state_new(VipsImage *im, void *a)
 {
-	return VIPS_THREAD_STATE(vips_object_new(
-		render_thread_state_get_type(),
+	return VIPS_THREAD_STATE(vips_object_new(render_thread_state_get_type(),
 		vips_thread_state_set, im, a));
 }
 
@@ -232,7 +230,7 @@ render_free(Render *render)
 	g_assert(render->ref_count == 0);
 #endif
 
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 	if (g_slist_find(render_dirty_all, render)) {
 		render_dirty_all = g_slist_remove(render_dirty_all, render);
 
@@ -241,12 +239,12 @@ render_free(Render *render)
 		 * render_dirty_all is NULL.
 		 */
 	}
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 
 #if !GLIB_CHECK_VERSION(2, 58, 0)
-	vips_g_mutex_free(render->ref_count_lock);
+	g_mutex_clear(&render->ref_count_lock);
 #endif
-	vips_g_mutex_free(render->lock);
+	g_mutex_clear(&render->lock);
 
 	vips_slist_map2(render->all, (VipsSListMap2Fn) tile_free, NULL, NULL);
 	VIPS_FREEF(g_slist_free, render->all);
@@ -274,10 +272,10 @@ render_ref(Render *render)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
 	g_atomic_ref_count_inc(&render->ref_count);
 #else
-	g_mutex_lock(render->ref_count_lock);
+	g_mutex_lock(&render->ref_count_lock);
 	g_assert(render->ref_count != 0);
 	render->ref_count += 1;
-	g_mutex_unlock(render->ref_count_lock);
+	g_mutex_unlock(&render->ref_count_lock);
 #endif
 
 	return 0;
@@ -292,11 +290,11 @@ render_unref(Render *render)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
 	kill = g_atomic_ref_count_dec(&render->ref_count);
 #else
-	g_mutex_lock(render->ref_count_lock);
+	g_mutex_lock(&render->ref_count_lock);
 	g_assert(render->ref_count > 0);
 	render->ref_count -= 1;
 	kill = render->ref_count == 0;
-	g_mutex_unlock(render->ref_count_lock);
+	g_mutex_unlock(&render->ref_count_lock);
 #endif
 
 	if (kill)
@@ -341,8 +339,7 @@ render_tile_dirty_reuse(Render *render)
 		g_assert(tile->dirty);
 		tile->dirty = FALSE;
 
-		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: reusing dirty %p\n",
-			tile);
+		VIPS_DEBUG_MSG("render_tile_get_dirty_reuse: reusing dirty %p\n", tile);
 	}
 
 	return tile;
@@ -389,7 +386,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	RenderThreadState *rstate = (RenderThreadState *) state;
 	Tile *tile;
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	if (render_reschedule ||
 		!(tile = render_tile_dirty_get(render))) {
@@ -400,7 +397,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	else
 		rstate->tile = tile;
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }
@@ -419,8 +416,7 @@ render_work(VipsThreadState *state, void *a)
 
 	if (vips_region_prepare_to(state->reg, tile->region,
 			&tile->area, tile->area.left, tile->area.top)) {
-		VIPS_DEBUG_MSG_RED("render_work: "
-						   "vips_region_prepare_to() failed: %s\n",
+		VIPS_DEBUG_MSG_RED("render_work: vips_region_prepare_to() failed: %s\n",
 			vips_error_buffer());
 		return -1;
 	}
@@ -442,26 +438,21 @@ vips__render_shutdown(void)
 {
 	/* We may come here without having inited.
 	 */
-	if (render_dirty_lock) {
-		g_mutex_lock(render_dirty_lock);
+	if (render_thread) {
+		g_mutex_lock(&render_dirty_lock);
 
-		if (render_thread) {
-			GThread *thread;
+		GThread *thread;
 
-			thread = render_thread;
-			render_reschedule = TRUE;
-			render_kill = TRUE;
+		thread = render_thread;
+		render_reschedule = TRUE;
+		render_kill = TRUE;
 
-			g_mutex_unlock(render_dirty_lock);
+		g_mutex_unlock(&render_dirty_lock);
 
-			vips_semaphore_up(&n_render_dirty_sem);
+		vips_semaphore_up(&n_render_dirty_sem);
 
-			(void) g_thread_join(thread);
-		}
-		else
-			g_mutex_unlock(render_dirty_lock);
+		(void) g_thread_join(thread);
 
-		VIPS_FREEF(vips_g_mutex_free, render_dirty_lock);
 		vips_semaphore_destroy(&n_render_dirty_sem);
 	}
 }
@@ -477,12 +468,11 @@ render_dirty_sort(Render *a, Render *b, void *user_data)
 static void
 render_dirty_put(Render *render)
 {
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
 	if (render->dirty) {
 		if (!g_slist_find(render_dirty_all, render)) {
-			render_dirty_all = g_slist_prepend(render_dirty_all,
-				render);
+			render_dirty_all = g_slist_prepend(render_dirty_all, render);
 			render_dirty_all = g_slist_sort(render_dirty_all,
 				(GCompareFunc) render_dirty_sort);
 
@@ -493,7 +483,7 @@ render_dirty_put(Render *render)
 		}
 	}
 
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 }
 
 static guint
@@ -561,7 +551,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	g_atomic_ref_count_init(&render->ref_count);
 #else
 	render->ref_count = 1;
-	render->ref_count_lock = vips_g_mutex_new();
+	g_mutex_init(&render->ref_count_lock);
 #endif
 
 	render->in = in;
@@ -574,7 +564,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 	render->notify = notify;
 	render->a = a;
 
-	render->lock = vips_g_mutex_new();
+	g_mutex_init(&render->lock);
 
 	render->all = NULL;
 	render->ntiles = 0;
@@ -588,12 +578,10 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	/* Both out and mask must close before we can free the render.
 	 */
-	g_signal_connect(out, "close",
-		G_CALLBACK(render_close_cb), render);
+	g_signal_connect(out, "close", G_CALLBACK(render_close_cb), render);
 
 	if (mask) {
-		g_signal_connect(mask, "close",
-			G_CALLBACK(render_close_cb), render);
+		g_signal_connect(mask, "close", G_CALLBACK(render_close_cb), render);
 		render_ref(render);
 	}
 
@@ -737,13 +725,13 @@ tile_queue(Tile *tile, VipsRegion *reg)
 		 * This tile won't get pulled out from under us since it's not
 		 * marked as "painted", and it's not on the dirty list.
 		 */
-		g_mutex_unlock(render->lock);
+		g_mutex_unlock(&render->lock);
 
 		if (vips_region_prepare_to(reg, tile->region,
 				&tile->area, tile->area.left, tile->area.top))
 			VIPS_DEBUG_MSG_RED("tile_queue: prepare failed\n");
 
-		g_mutex_lock(render->lock);
+		g_mutex_lock(&render->lock);
 
 		tile->painted = TRUE;
 	}
@@ -765,13 +753,10 @@ render_tile_get_painted(Render *render)
 	Tile *tile;
 
 	tile = NULL;
-	g_hash_table_foreach(render->tiles,
-		(GHFunc) tile_test_clean_ticks, &tile);
+	g_hash_table_foreach(render->tiles, (GHFunc) tile_test_clean_ticks, &tile);
 
-	if (tile) {
-		VIPS_DEBUG_MSG("render_tile_get_painted: reusing painted %p\n",
-			tile);
-	}
+	if (tile)
+		VIPS_DEBUG_MSG("render_tile_get_painted: reusing painted %p\n", tile);
 
 	return tile;
 }
@@ -850,8 +835,7 @@ tile_copy(Tile *tile, VipsRegion *to)
 			tile, tile->area.left, tile->area.top);
 
 		for (y = ovlap.top; y < VIPS_RECT_BOTTOM(&ovlap); y++) {
-			VipsPel *p = VIPS_REGION_ADDR(tile->region,
-				ovlap.left, y);
+			VipsPel *p = VIPS_REGION_ADDR(tile->region, ovlap.left, y);
 			VipsPel *q = VIPS_REGION_ADDR(to, ovlap.left, y);
 
 			memcpy(q, p, len);
@@ -882,11 +866,10 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	int xs = (r->left / tile_width) * tile_width;
 	int ys = (r->top / tile_height) * tile_height;
 
-	VIPS_DEBUG_MSG("image_fill: left = %d, top = %d, "
-				   "width = %d, height = %d\n",
+	VIPS_DEBUG_MSG("image_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	/*
 
@@ -912,7 +895,7 @@ image_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 				VIPS_DEBUG_MSG_RED("image_fill: argh!\n");
 		}
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }
@@ -934,11 +917,10 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 	int xs = (r->left / tile_width) * tile_width;
 	int ys = (r->top / tile_height) * tile_height;
 
-	VIPS_DEBUG_MSG("mask_fill: left = %d, top = %d, "
-				   "width = %d, height = %d\n",
+	VIPS_DEBUG_MSG("mask_fill: left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
-	g_mutex_lock(render->lock);
+	g_mutex_lock(&render->lock);
 
 	for (y = ys; y < VIPS_RECT_BOTTOM(r); y += tile_height)
 		for (x = xs; x < VIPS_RECT_RIGHT(r); x += tile_width) {
@@ -963,7 +945,7 @@ mask_fill(VipsRegion *out, void *seq, void *a, void *b, gboolean *stop)
 			vips_region_paint(out, &area, value);
 		}
 
-	g_mutex_unlock(render->lock);
+	g_mutex_unlock(&render->lock);
 
 	return 0;
 }
@@ -979,7 +961,7 @@ render_dirty_get(void)
 	 */
 	vips_semaphore_down(&n_render_dirty_sem);
 
-	g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
 	/* Just take the head of the jobs list ... we sort when we add.
 	 */
@@ -995,7 +977,7 @@ render_dirty_get(void)
 		render_dirty_all = g_slist_remove(render_dirty_all, render);
 	}
 
-	g_mutex_unlock(render_dirty_lock);
+	g_mutex_unlock(&render_dirty_lock);
 
 	return render;
 }
@@ -1047,16 +1029,13 @@ static void *
 vips__sink_screen_once(void *data)
 {
 	g_assert(!render_thread);
-	g_assert(!render_dirty_lock);
 
-	render_dirty_lock = vips_g_mutex_new();
 	vips_semaphore_init(&n_render_dirty_sem, 0, "n_render_dirty");
 
 	/* Don't use vips_thread_execute(), since this thread will only be
 	 * ended by vips_shutdown, and that isn't always called.
 	 */
-	render_thread = vips_g_thread_new("sink_screen",
-		render_thread_main, NULL);
+	render_thread = vips_g_thread_new("sink_screen", render_thread_main, NULL);
 
 	return NULL;
 }
@@ -1131,13 +1110,11 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if (vips_image_pio_input(in) ||
-		vips_image_pipelinev(out,
-			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+		vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 		return -1;
 
 	if (mask) {
-		if (vips_image_pipelinev(mask,
-				VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+		if (vips_image_pipelinev(mask, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 			return -1;
 
 		mask->Bands = 1;
@@ -1156,8 +1133,7 @@ vips_sink_screen(VipsImage *in, VipsImage *out, VipsImage *mask,
 			vips_start_one, image_fill, vips_stop_one, in, render))
 		return -1;
 	if (mask &&
-		vips_image_generate(mask,
-			NULL, mask_fill, NULL, render, NULL))
+		vips_image_generate(mask, NULL, mask_fill, NULL, render, NULL))
 		return -1;
 
 	return 0;
@@ -1177,15 +1153,13 @@ vips__print_renders(void)
 	}
 #endif /*VIPS_DEBUG_AMBER*/
 
-	if (render_dirty_lock) {
-		g_mutex_lock(render_dirty_lock);
+	g_mutex_lock(&render_dirty_lock);
 
-		n_leaks += g_slist_length(render_dirty_all);
-		if (render_dirty_all)
-			printf("dirty renders\n");
+	n_leaks += g_slist_length(render_dirty_all);
+	if (render_dirty_all)
+		printf("dirty renders\n");
 
-		g_mutex_unlock(render_dirty_lock);
-	}
+	g_mutex_unlock(&render_dirty_lock);
 
 	return n_leaks;
 }

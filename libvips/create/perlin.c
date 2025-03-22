@@ -264,10 +264,10 @@ vips_perlin_make_tables(void *client)
 	int i;
 
 	for (i = 0; i < 256; i++) {
-		double angle = 2 * VIPS_PI * i / 256.0;
+		float angle = 2.0F * VIPS_PI * i / 256.0F;
 
-		vips_perlin_cos[i] = cos(angle);
-		vips_perlin_sin[i] = sin(angle);
+		vips_perlin_cos[i] = cosf(angle);
+		vips_perlin_sin[i] = sinf(angle);
 	}
 
 	return NULL;

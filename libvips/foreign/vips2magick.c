@@ -166,7 +166,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 		page_index = magick->position.top / magick->page_height;
 		if (page_index < magick->delays_length)
 			image->delay =
-				VIPS_RINT(magick->delays[page_index] / 10.0);
+				rint(magick->delays[page_index] / 10.0);
 	}
 
 	/* ImageMagick uses iterations like this (at least in gif save):
@@ -503,8 +503,7 @@ vips_foreign_save_magick_class_init(VipsForeignSaveMagickClass *class)
 		_("Optimize_gif_transparency"),
 		_("Apply GIF transparency optimization"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveMagick,
-			optimize_gif_transparency),
+		G_STRUCT_OFFSET(VipsForeignSaveMagick, optimize_gif_transparency),
 		FALSE);
 
 	VIPS_ARG_INT(class, "bitdepth", 6,

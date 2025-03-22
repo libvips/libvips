@@ -314,7 +314,7 @@ write_xmp(Write *write, VipsImage *in)
 	 * error with large chunks.
 	 */
 	if (data_length > 60000) {
-		g_warning("%s", _("VipsJpeg: large XMP not saved"));
+		g_warning("large XMP not saved");
 		return 0;
 	}
 
@@ -435,18 +435,18 @@ vips_jfif_resolution_from_image(struct jpeg_compress_struct *cinfo,
 
 	switch (unit) {
 	case 0:
-		xres = VIPS_RINT(image->Xres);
-		yres = VIPS_RINT(image->Yres);
+		xres = rint(image->Xres);
+		yres = rint(image->Yres);
 		break;
 
 	case 1:
-		xres = VIPS_RINT(image->Xres * 25.4);
-		yres = VIPS_RINT(image->Yres * 25.4);
+		xres = rint(image->Xres * 25.4);
+		yres = rint(image->Yres * 25.4);
 		break;
 
 	case 2:
-		xres = VIPS_RINT(image->Xres * 10.0);
-		yres = VIPS_RINT(image->Yres * 10.0);
+		xres = rint(image->Xres * 10.0);
+		yres = rint(image->Yres * 10.0);
 		break;
 
 	default:
@@ -607,7 +607,7 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			cinfo->optimize_coding = TRUE;
 		}
 		else
-			g_warning("%s", _("trellis_quant unsupported"));
+			g_warning("trellis_quant unsupported");
 	}
 
 	/* Apply overshooting to samples with extreme values e.g. 0 & 255
@@ -619,8 +619,7 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			jpeg_c_set_bool_param(cinfo,
 				JBOOLEAN_OVERSHOOT_DERINGING, TRUE);
 		else
-			g_warning("%s",
-				_("overshoot_deringing unsupported"));
+			g_warning("overshoot_deringing unsupported");
 	}
 
 	/* Split the spectrum of DCT coefficients into separate scans.
@@ -634,12 +633,10 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 				jpeg_c_set_bool_param(cinfo,
 					JBOOLEAN_OPTIMIZE_SCANS, TRUE);
 			else
-				g_warning("%s",
-					_("ignoring optimize_scans"));
+				g_warning("ignoring optimize_scans");
 		}
 		else
-			g_warning("%s",
-				_("ignoring optimize_scans for baseline"));
+			g_warning("ignoring optimize_scans for baseline");
 	}
 
 	/* Use predefined quantization table.
@@ -650,21 +647,20 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			jpeg_c_set_int_param(cinfo,
 				JINT_BASE_QUANT_TBL_IDX, quant_table);
 		else
-			g_warning("%s",
-				_("setting quant_table unsupported"));
+			g_warning("setting quant_table unsupported");
 	}
 #else
 	/* Using jpeglib.h without extension parameters, warn of ignored
 	 * options.
 	 */
 	if (trellis_quant)
-		g_warning("%s", _("ignoring trellis_quant"));
+		g_warning("ignoring trellis_quant");
 	if (overshoot_deringing)
-		g_warning("%s", _("ignoring overshoot_deringing"));
+		g_warning("ignoring overshoot_deringing");
 	if (optimize_scans)
-		g_warning("%s", _("ignoring optimize_scans"));
+		g_warning("ignoring optimize_scans");
 	if (quant_table > 0)
-		g_warning("%s", _("ignoring quant_table"));
+		g_warning("ignoring quant_table");
 #endif
 
 	/* Set compression quality. Must be called after setting params above.

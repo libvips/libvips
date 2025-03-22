@@ -189,7 +189,7 @@ vips_sharpen_build(VipsObject *object)
 	 */
 	if (!vips_object_argument_isset(object, "sigma") &&
 		vips_object_argument_isset(object, "radius"))
-		sharpen->sigma = 1 + sharpen->radius / 2;
+		sharpen->sigma = 1 + sharpen->radius / 2; // FIXME: Invalidates operation cache
 
 	in = sharpen->in;
 
@@ -253,7 +253,7 @@ vips_sharpen_build(VipsObject *object)
 		if (y > sharpen->y2)
 			y = sharpen->y2;
 
-		sharpen->lut[i] = VIPS_RINT(y * 327.67);
+		sharpen->lut[i] = rint(y * 327.67);
 	}
 
 #ifdef DEBUG

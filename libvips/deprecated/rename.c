@@ -128,6 +128,42 @@ im_warning(const char *fmt, ...)
 	va_end(ap);
 }
 
+GMutex *
+vips_g_mutex_new(void)
+{
+	GMutex *mutex;
+
+	mutex = g_new(GMutex, 1);
+	g_mutex_init(mutex);
+
+	return mutex;
+}
+
+void
+vips_g_mutex_free(GMutex *mutex)
+{
+	g_mutex_clear(mutex);
+	g_free(mutex);
+}
+
+GCond *
+vips_g_cond_new(void)
+{
+	GCond *cond;
+
+	cond = g_new(GCond, 1);
+	g_cond_init(cond);
+
+	return cond;
+}
+
+void
+vips_g_cond_free(GCond *cond)
+{
+	g_cond_clear(cond);
+	g_free(cond);
+}
+
 void *
 vips_g_thread_join(GThread *thread)
 {
@@ -774,13 +810,13 @@ void
 vips_vinfo(const char *domain, const char *fmt, va_list ap)
 {
 	if (vips__info) {
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		(void) fprintf(stderr, _("%s: "), _("info"));
 		if (domain)
 			(void) fprintf(stderr, _("%s: "), domain);
 		(void) vfprintf(stderr, fmt, ap);
 		(void) fprintf(stderr, "\n");
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 	}
 }
 
@@ -799,13 +835,13 @@ vips_vwarn(const char *domain, const char *fmt, va_list ap)
 {
 	if (!g_getenv("IM_WARNING") &&
 		!g_getenv("VIPS_WARNING")) {
-		g_mutex_lock(vips__global_lock);
+		g_mutex_lock(&vips__global_lock);
 		(void) fprintf(stderr, _("%s: "), _("vips warning"));
 		if (domain)
 			(void) fprintf(stderr, _("%s: "), domain);
 		(void) vfprintf(stderr, fmt, ap);
 		(void) fprintf(stderr, "\n");
-		g_mutex_unlock(vips__global_lock);
+		g_mutex_unlock(&vips__global_lock);
 	}
 
 	if (vips__fatal)

@@ -1093,9 +1093,8 @@ vips_foreign_load_build(VipsObject *object)
 
 	if ((flags & VIPS_FOREIGN_PARTIAL) &&
 		(flags & VIPS_FOREIGN_SEQUENTIAL)) {
-		g_warning("%s",
-			_("VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
-			  "both set -- using SEQUENTIAL"));
+		g_warning("VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
+				  "both set -- using SEQUENTIAL");
 		flags ^= VIPS_FOREIGN_PARTIAL;
 	}
 
@@ -1121,9 +1120,8 @@ vips_foreign_load_build(VipsObject *object)
 		return -1;
 
 	if (load->sequential)
-		g_warning("%s",
-			_("ignoring deprecated \"sequential\" mode -- "
-			  "please use \"access\" instead"));
+		g_warning("ignoring deprecated \"sequential\" mode -- "
+				  "please use \"access\" instead");
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 
@@ -1956,8 +1954,10 @@ vips_foreign_find_save_sub(VipsForeignSaveClass *save_class,
 	/* All savers needs suffs defined since we use the suff to pick the
 	 * saver.
 	 */
-	if (!class->suffs)
+	if (!class->suffs) {
 		g_warning("no suffix defined for %s", object_class->nickname);
+		return NULL;
+	}
 
 	/* Skip non-file savers.
 	 */

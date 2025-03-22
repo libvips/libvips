@@ -1149,8 +1149,7 @@ write_vips(Write *write,
 		color_type = PNG_COLOR_TYPE_PALETTE;
 #else
 	if (palette)
-		g_warning("%s",
-			_("ignoring palette (no quantisation support)"));
+		g_warning("ignoring palette (no quantisation support)");
 #endif /*HAVE_QUANTIZATION*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
@@ -1166,7 +1165,7 @@ write_vips(Write *write,
 	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs(write->pPng, write->pInfo,
-		VIPS_RINT(in->Xres * 1000), VIPS_RINT(in->Yres * 1000),
+		rint(in->Xres * 1000), rint(in->Yres * 1000),
 		PNG_RESOLUTION_METER);
 
 	/* Metadata

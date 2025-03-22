@@ -218,7 +218,7 @@ VIPS_API
 int vips__write_header_bytes(VipsImage *im, unsigned char *to);
 int vips__image_meta_copy(VipsImage *dst, const VipsImage *src);
 
-extern GMutex *vips__global_lock;
+extern GMutex vips__global_lock;
 
 int vips_image_written(VipsImage *image);
 void vips_image_preeval(VipsImage *image);
@@ -367,6 +367,8 @@ int vips__correl(VipsImage *ref, VipsImage *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y);
+
+unsigned int vips_operation_hash(VipsOperation *operation);
 
 #ifdef __cplusplus
 }

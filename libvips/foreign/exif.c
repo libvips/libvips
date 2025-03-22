@@ -86,7 +86,7 @@ entry_to_s(ExifEntry *entry)
 	 * for formats like float. Ban crazy size values.
 	 */
 	int size = VIPS_MIN(entry->size, 10000);
-	int max_size = size * 5;
+	int max_size = size * 3 + 32;
 	char *text = VIPS_MALLOC(NULL, max_size + 1);
 
 	// this renders floats as eg. "12.2345", enums as "Inch", etc.
@@ -491,7 +491,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 		break;
 
 	default:
-		g_warning("%s", _("unknown EXIF resolution unit"));
+		g_warning("unknown EXIF resolution unit");
 		return -1;
 	}
 
@@ -748,7 +748,7 @@ vips_exif_set_double(ExifData *ed,
 		else
 			old_value = (double) rv.numerator / rv.denominator;
 
-		if (VIPS_FABS(old_value - value) > 0.0001) {
+		if (fabs(old_value - value) > 0.0001) {
 			vips_exif_double_to_rational(value, &rv);
 
 			VIPS_DEBUG_MSG("vips_exif_set_double: %u / %u\n",
@@ -767,7 +767,7 @@ vips_exif_set_double(ExifData *ed,
 		else
 			old_value = (double) srv.numerator / srv.denominator;
 
-		if (VIPS_FABS(old_value - value) > 0.0001) {
+		if (fabs(old_value - value) > 0.0001) {
 			vips_exif_double_to_srational(value, &srv);
 
 			VIPS_DEBUG_MSG("vips_exif_set_double: %d / %d\n",
@@ -1066,7 +1066,7 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 		break;
 
 	default:
-		g_warning("%s", _("unknown EXIF resolution unit"));
+		g_warning("unknown EXIF resolution unit");
 		return 0;
 	}
 

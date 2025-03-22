@@ -97,7 +97,6 @@
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/vector.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 
 /* abort() on the first warning or error.
@@ -107,7 +106,7 @@ int vips__fatal = 0;
 /* Use in various small places where we need a mutex and it's not worth
  * making a private one.
  */
-GMutex *vips__global_lock = NULL;
+GMutex vips__global_lock;
 
 /* A debugging timer, zero at library init.
  */
@@ -287,7 +286,7 @@ vips_load_plugins(const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	(void) g_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
+	(void) g_vsnprintf(dir_name, VIPS_PATH_MAX, fmt, ap);
 	va_end(ap);
 
 	g_info("searching \"%s\"", dir_name);
@@ -301,7 +300,7 @@ vips_load_plugins(const char *fmt, ...)
 		char path[VIPS_PATH_MAX];
 		GModule *module;
 
-		g_snprintf(path, VIPS_PATH_MAX - 1,
+		g_snprintf(path, VIPS_PATH_MAX,
 			"%s" G_DIR_SEPARATOR_S "%s", dir_name, name);
 
 		g_info("loading \"%s\"", path);
@@ -363,24 +362,17 @@ set_stacksize(guint64 size)
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
+/* Equivalent to setting the `G_MESSAGES_DEBUG=VIPS` environment variable.
+ */
 static void
 vips_verbose(void)
 {
-	const char *old;
-
-	old = g_getenv("G_MESSAGES_DEBUG");
-
-	if (!old)
-		g_setenv("G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE);
-	else if (!g_str_equal(old, "all") &&
-		!g_strrstr(old, G_LOG_DOMAIN)) {
-		char *new;
-
-		new = g_strconcat(old, " ", G_LOG_DOMAIN, NULL);
-		g_setenv("G_MESSAGES_DEBUG", new, TRUE);
-
-		g_free(new);
-	}
+#if GLIB_CHECK_VERSION(2, 80, 0)
+	const char *domains[] = { G_LOG_DOMAIN, NULL };
+	g_log_writer_default_set_debug_domains(domains);
+#else
+	g_setenv("G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE);
+#endif
 }
 
 static int
@@ -488,7 +480,7 @@ vips_init(const char *argv0)
 	(void) set_stacksize(min_stack_size);
 
 	if (g_getenv("VIPS_INFO")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_INFO")
 #endif
 	)
@@ -517,10 +509,6 @@ vips_init(const char *argv0)
 	vips__thread_init();
 	vips__threadpool_init();
 	vips__buffer_init();
-	vips__meta_init();
-
-	if (!vips__global_lock)
-		vips__global_lock = vips_g_mutex_new();
 
 	if (!vips__global_timer)
 		vips__global_timer = g_timer_new();
@@ -575,7 +563,7 @@ vips_init(const char *argv0)
 	vips__meta_init_types();
 	vips__interpolate_init();
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	im__format_init();
 #endif
 
@@ -615,7 +603,7 @@ vips_init(const char *argv0)
 	vips_load_plugins("%s/vips-modules-%d.%d",
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION);
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	/* We had vips8 plugins for a while.
 	 */
 	vips_load_plugins("%s/vips-plugins-%d.%d",
@@ -657,7 +645,7 @@ vips_init(const char *argv0)
 	 * env var hack as a workaround.
 	 */
 	if (g_getenv("VIPS_WARNING")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_WARNING")
 #endif
 	)
@@ -737,7 +725,7 @@ vips_shutdown(void)
 
 	vips_cache_drop_all();
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
 
@@ -756,10 +744,6 @@ vips_shutdown(void)
 	vips__thread_profile_stop();
 	vips__threadpool_shutdown();
 
-	/* Don't free vips__global_lock -- we want to be able to use
-	 * vips_error_buffer() after vips_shutdown(), since vips_leak() can
-	 * call it.
-	 */
 	VIPS_FREE(vips__argv0);
 	VIPS_FREE(vips__prgname);
 	VIPS_FREEF(g_timer_destroy, vips__global_timer);

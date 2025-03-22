@@ -1610,6 +1610,7 @@ vips__parse_size(const char *size_string)
 	 */
 	unit = g_strdup(size_string);
 
+	size = 0;
 	n = sscanf(size_string, "%" G_GUINT64_FORMAT " %s", &size, unit);
 	if (n > 1)
 		for (int j = 0; j < VIPS_NUMBER(units); j++)

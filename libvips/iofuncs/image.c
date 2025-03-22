@@ -388,7 +388,7 @@ char *vips__disc_threshold = NULL;
 
 /* Minimise needs a lock.
  */
-static GMutex *vips__minimise_lock = NULL;
+static GMutex vips__minimise_lock;
 
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
@@ -471,7 +471,7 @@ vips_image_finalize(GObject *gobject)
 	 */
 	vips_image_delete(image);
 
-	VIPS_FREEF(vips_g_mutex_free, image->sslock);
+	g_mutex_clear(&image->sslock);
 
 	VIPS_FREE(image->Hist);
 	VIPS_FREEF(vips__gslist_gvalue_free, image->history_list);
@@ -698,7 +698,7 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 
 	/* Must lock around inter-image links.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	if (vips_slist_map2(image->upstream,
 			(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL))
@@ -707,7 +707,7 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 			(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL))
 		vips_buf_appends(buf, "downstream broken\n");
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	VIPS_OBJECT_CLASS(vips_image_parent_class)->sanity(object, buf);
 }
@@ -803,7 +803,7 @@ vips_image_add_progress(VipsImage *image)
 {
 	if (vips__progress ||
 		g_getenv("VIPS_PROGRESS")
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		|| g_getenv("IM_PROGRESS")
 #endif
 	) {
@@ -1025,14 +1025,14 @@ vips_image_real_invalidate(VipsImage *image, void *data)
 
 	VIPS_GATE_START("vips_image_real_invalidate: wait");
 
-	g_mutex_lock(image->sslock);
+	g_mutex_lock(&image->sslock);
 
 	VIPS_GATE_STOP("vips_image_real_invalidate: wait");
 
 	(void) vips_slist_map2(image->regions,
 		(VipsSListMap2Fn) vips_image_real_invalidate_cb, NULL, NULL);
 
-	g_mutex_unlock(image->sslock);
+	g_mutex_unlock(&image->sslock);
 }
 
 static void
@@ -1326,8 +1326,6 @@ vips_image_class_init(VipsImageClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
-
-	vips__minimise_lock = vips_g_mutex_new();
 }
 
 static void
@@ -1349,7 +1347,7 @@ vips_image_init(VipsImage *image)
 	image->Yres = 1.0;
 
 	image->fd = -1; /* since 0 is stdout */
-	image->sslock = vips_g_mutex_new();
+	g_mutex_init(&image->sslock);
 
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 
@@ -1446,12 +1444,12 @@ vips_image_minimise_all(VipsImage *image)
 	/* Minimisation will modify things like sources, so we can't run it
 	 * from many threads.
 	 */
-	g_mutex_lock(vips__minimise_lock);
+	g_mutex_lock(&vips__minimise_lock);
 
 	(void) vips__link_map(image, TRUE,
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL);
 
-	g_mutex_unlock(vips__minimise_lock);
+	g_mutex_unlock(&vips__minimise_lock);
 }
 
 /**
@@ -2530,7 +2528,7 @@ vips_get_disc_threshold(void)
 		threshold = 100 * 1024 * 1024;
 
 		if ((env = g_getenv("VIPS_DISC_THRESHOLD"))
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 			|| (env = g_getenv("IM_DISC_THRESHOLD"))
 #endif
 		)
@@ -3241,7 +3239,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	vips_image_eval(image, ypos * image->Xsize);
+	vips_image_eval(image, (guint64) ypos * image->Xsize);
 	if (vips_image_iskilled(image))
 		return -1;
 

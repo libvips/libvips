@@ -79,21 +79,21 @@ vips_scRGB2XYZ_line(float *restrict q, float *restrict p,
 		 * as the original is defined in a separate file and is part of
 		 * the public API so a compiler will not inline.
 		 */
-		q[0] = 0.4124 * R +
-			0.3576 * G +
-			0.1805 * B;
-		q[1] = 0.2126 * R +
-			0.7152 * G +
-			0.0722 * B;
-		q[2] = 0.0193 * R +
-			0.1192 * G +
-			0.9505 * B;
+		q[0] = 0.4124F * R +
+			0.3576F * G +
+			0.1805F * B;
+		q[1] = 0.2126F * R +
+			0.7152F * G +
+			0.0722F * B;
+		q[2] = 0.0193F * R +
+			0.1192F * G +
+			0.9505F * B;
 
 		p += 3;
 		q += 3;
 
 		for (j = 0; j < extra_bands; j++)
-			q[j] = VIPS_CLIP(0, p[j] * 255.0, 255.0);
+			q[j] = VIPS_FCLIP(0, p[j] * 255.0, 255.0);
 		p += extra_bands;
 		q += extra_bands;
 	}

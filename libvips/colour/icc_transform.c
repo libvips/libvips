@@ -106,6 +106,7 @@
  * @VIPS_INTENT_RELATIVE: relative colorimetric rendering intent
  * @VIPS_INTENT_SATURATION: saturation rendering intent
  * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
+ * @VIPS_INTENT_AUTO: the rendering intent that the profile suggests
  *
  * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
  * scientific work, #VIPS_INTENT_RELATIVE is usually best for
@@ -158,6 +159,8 @@ typedef struct _VipsIcc {
 	VipsPCS pcs;
 	int depth;
 	gboolean black_point_compensation;
+
+	VipsIntent selected_intent;
 
 	VipsBlob *in_blob;
 	cmsHPROFILE in_profile;
@@ -446,7 +449,7 @@ vips_icc_build(VipsObject *object)
 	if (!(icc->trans = cmsCreateTransform(
 			  icc->in_profile, icc->in_icc_format,
 			  icc->out_profile, icc->out_icc_format,
-			  icc->intent, flags)))
+			  icc->selected_intent, flags)))
 		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_icc_parent_class)->build(object))
@@ -596,8 +599,8 @@ vips_image_is_profile_compatible(VipsImage *image, int profile_bands)
  * Don't set any errors since this is used to test compatibility.
  */
 static cmsHPROFILE
-vips_icc_load_profile_blob(VipsBlob *blob,
-	VipsImage *image, VipsIntent intent, int direction)
+vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
+	VipsImage *image, int direction)
 {
 	const void *data;
 	size_t size;
@@ -607,15 +610,35 @@ vips_icc_load_profile_blob(VipsBlob *blob,
 #ifdef DEBUG
 	printf("loading %s profile, intent %s, from blob %p\n",
 		direction == LCMS_USED_AS_INPUT ? _("input") : _("output"),
-		vips_enum_nick(VIPS_TYPE_INTENT, intent),
+		vips_enum_nick(VIPS_TYPE_INTENT, icc->intent),
 		blob);
 #endif /*DEBUG*/
 
 	data = vips_blob_get(blob, &size);
 	if (!(profile = cmsOpenProfileFromMem(data, size))) {
-		g_warning("%s", _("corrupt profile"));
+		g_warning("corrupt profile");
 		return NULL;
 	}
+
+	icc->selected_intent = icc->intent;
+	if (icc->intent == VIPS_INTENT_AUTO ||
+		!cmsIsIntentSupported(profile, icc->intent, direction)) {
+		cmsUInt32Number intent = cmsGetHeaderRenderingIntent(profile);
+		if (intent > VIPS_INTENT_ABSOLUTE) {
+			VIPS_FREEF(cmsCloseProfile, profile);
+			g_warning("corrupt profile");
+			return NULL;
+		}
+		icc->selected_intent = (VipsIntent) intent;
+	}
+
+	if (icc->intent != VIPS_INTENT_AUTO &&
+		icc->selected_intent != icc->intent)
+		g_warning(_("fallback to suggested %s intent, as profile "
+					"does not support %s %s intent"),
+			vips_enum_nick(VIPS_TYPE_INTENT, icc->selected_intent),
+			vips_enum_nick(VIPS_TYPE_INTENT, icc->intent),
+			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
 
 #ifdef DEBUG
 	vips_icc_print_profile("loaded from blob to make", profile);
@@ -623,21 +646,21 @@ vips_icc_load_profile_blob(VipsBlob *blob,
 
 	if (!(info = vips_icc_info(cmsGetColorSpace(profile)))) {
 		VIPS_FREEF(cmsCloseProfile, profile);
-		g_warning("%s", _("unsupported profile"));
+		g_warning("unsupported profile");
 		return NULL;
 	}
 
 	if (image &&
 		!vips_image_is_profile_compatible(image, info->bands)) {
 		VIPS_FREEF(cmsCloseProfile, profile);
-		g_warning("%s", _("profile incompatible with image"));
+		g_warning("profile incompatible with image");
 		return NULL;
 	}
 
-	if (!cmsIsIntentSupported(profile, intent, direction)) {
+	if (!cmsIsIntentSupported(profile, icc->selected_intent, direction)) {
 		VIPS_FREEF(cmsCloseProfile, profile);
 		g_warning(_("profile does not support %s %s intent"),
-			vips_enum_nick(VIPS_TYPE_INTENT, intent),
+			vips_enum_nick(VIPS_TYPE_INTENT, icc->selected_intent),
 			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
 		return NULL;
 	}
@@ -654,8 +677,8 @@ vips_icc_verify_blob(VipsIcc *icc, VipsBlob **blob)
 {
 	if (*blob) {
 		VipsColourCode *code = (VipsColourCode *) icc;
-		cmsHPROFILE profile = vips_icc_load_profile_blob(*blob,
-			code->in, icc->intent, LCMS_USED_AS_INPUT);
+		cmsHPROFILE profile = vips_icc_load_profile_blob(icc, *blob,
+			code->in, LCMS_USED_AS_INPUT);
 
 		if (!profile) {
 			vips_area_unref((VipsArea *) *blob);
@@ -886,15 +909,15 @@ decode_xyz(guint16 *fixed, float *xyz, int n)
 		 * Bradford transformation.
 		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		xyz[0] = 0.955513 * X +
-			-0.023073 * Y +
-			0.063309 * Z;
-		xyz[1] = -0.028325 * X +
-			1.009942 * Y +
-			0.021055 * Z;
-		xyz[2] = 0.012329 * X +
-			-0.020536 * Y +
-			1.330714 * Z;
+		xyz[0] = 0.955513F * X +
+			-0.023073F * Y +
+			0.063309F * Z;
+		xyz[1] = -0.028325F * X +
+			1.009942F * Y +
+			0.021055F * Z;
+		xyz[2] = 0.012329F * X +
+			-0.020536F * Y +
+			1.330714F * Z;
 
 		xyz += 3;
 		fixed += 3;
@@ -1000,7 +1023,7 @@ vips_icc_export_build(VipsObject *object)
 	if (!vips_object_argument_isset(object, "pcs") &&
 		code->in &&
 		code->in->Type == VIPS_INTERPRETATION_XYZ)
-		icc->pcs = VIPS_PCS_XYZ;
+		icc->pcs = VIPS_PCS_XYZ; // FIXME: Invalidates operation cache
 
 	if (icc->pcs == VIPS_PCS_LAB) {
 		cmsCIExyY white;
@@ -1024,8 +1047,8 @@ vips_icc_export_build(VipsObject *object)
 	}
 
 	if (icc->out_blob &&
-		!(icc->out_profile = vips_icc_load_profile_blob(icc->out_blob,
-			  NULL, icc->intent, LCMS_USED_AS_OUTPUT))) {
+		!(icc->out_profile = vips_icc_load_profile_blob(icc, icc->out_blob,
+			  NULL, LCMS_USED_AS_OUTPUT))) {
 		vips_error(class->nickname, "%s", _("no output profile"));
 		return -1;
 	}
@@ -1050,15 +1073,15 @@ encode_xyz(float *in, float *out, int n)
 		 * Bradford transformation.
 		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		out[0] = 1.047886 * X +
-			0.022919 * Y +
-			-0.050216 * Z;
-		out[1] = 0.029582 * X +
-			0.990484 * Y +
-			-0.017079 * Z;
-		out[2] = -0.009252 * X +
-			0.015073 * Y +
-			0.751678 * Z;
+		out[0] = 1.047886F * X +
+			0.022919F * Y +
+			-0.050216F * Z;
+		out[1] = 0.029582F * X +
+			0.990484F * Y +
+			-0.017079F * Z;
+		out[2] = -0.009252F * X +
+			0.015073F * Y +
+			0.751678F * Z;
 
 		in += 3;
 		out += 3;
@@ -1174,7 +1197,7 @@ vips_icc_transform_build(VipsObject *object)
 		code->in &&
 		(code->in->Type == VIPS_INTERPRETATION_RGB16 ||
 			code->in->Type == VIPS_INTERPRETATION_GREY16))
-		icc->depth = 16;
+		icc->depth = 16; // FIXME: Invalidates operation cache
 
 	if (vips_icc_set_import(icc,
 			transform->embedded, transform->input_profile_filename))
@@ -1188,8 +1211,8 @@ vips_icc_transform_build(VipsObject *object)
 	}
 
 	if (icc->out_blob)
-		icc->out_profile = vips_icc_load_profile_blob(icc->out_blob,
-			NULL, icc->intent, LCMS_USED_AS_OUTPUT);
+		icc->out_profile = vips_icc_load_profile_blob(icc, icc->out_blob,
+			NULL, LCMS_USED_AS_OUTPUT);
 
 	if (!icc->out_profile) {
 		vips_error(class->nickname, "%s", _("no output profile"));

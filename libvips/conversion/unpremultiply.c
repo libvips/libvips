@@ -138,7 +138,7 @@ G_DEFINE_TYPE(VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION);
 \
 		for (x = 0; x < width; x++) { \
 			IN alpha = p[alpha_band]; \
-			OUT factor = VIPS_ABS(alpha) < 0.01 ? 0 : max_alpha / alpha; \
+			OUT factor = fabs(alpha) < 0.01 ? 0 : max_alpha / alpha; \
 \
 			for (i = 0; i < alpha_band; i++) \
 				q[i] = factor * p[i]; \
@@ -158,7 +158,7 @@ G_DEFINE_TYPE(VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION);
 \
 		for (x = 0; x < width; x++) { \
 			IN alpha = p[3]; \
-			OUT factor = VIPS_ABS(alpha) < 0.01 ? 0 : max_alpha / alpha; \
+			OUT factor = fabs(alpha) < 0.01 ? 0 : max_alpha / alpha; \
 \
 			q[0] = factor * p[0]; \
 			q[1] = factor * p[1]; \
@@ -281,12 +281,12 @@ vips_unpremultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
+		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
 	/* Is alpha-band unset? Default to the final band for this image.
 	 */
 	if (!vips_object_argument_isset(object, "alpha_band"))
-		unpremultiply->alpha_band = in->Bands - 1;
+		unpremultiply->alpha_band = in->Bands - 1; // FIXME: Invalidates operation cache
 
 	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;

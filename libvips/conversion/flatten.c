@@ -326,7 +326,7 @@ vips_flatten_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		flatten->max_alpha = vips_interpretation_max_alpha(in->Type);
+		flatten->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
 	/* Is max_alpha less than the numeric range of this image? If it is,
 	 * we can get int overflow.

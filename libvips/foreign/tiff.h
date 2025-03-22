@@ -37,10 +37,17 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-TIFF *vips__tiff_openin_source(VipsSource *source);
+typedef int (*VipsTiffErrorHandler)(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap);
+
+TIFF *vips__tiff_openin_source(VipsSource *source,
+	VipsTiffErrorHandler error_fn, VipsTiffErrorHandler warning_fn,
+	void *user_data, gboolean unlimited);
 
 TIFF *vips__tiff_openout(const char *path, gboolean bigtiff);
-TIFF *vips__tiff_openout_target(VipsTarget *target, gboolean bigtiff);
+TIFF *vips__tiff_openout_target(VipsTarget *target, gboolean bigtiff,
+	VipsTiffErrorHandler error_fn, VipsTiffErrorHandler warning_fn,
+	void *user_data);
 
 #ifdef __cplusplus
 }

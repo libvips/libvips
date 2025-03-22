@@ -119,13 +119,15 @@ parse_matrix_header(char *line,
 	char *p, *q;
 	int i;
 
-	for (i = 0, p = line;
-		 (q = vips_break_token(p, " \t")) &&
-		 i < 4;
-		 i++, p = q)
+	/* Stop at newline.
+	 */
+	if ((p = strchr(line, '\r')) ||
+		((p = strchr(line, '\n'))))
+		*p = '\0';
+
+	for (i = 0, p = line; (q = vips_break_token(p, " \t")) && i < 4; i++, p = q)
 		if (vips_strtod(p, &header[i])) {
-			vips_error("matload",
-				_("bad number \"%s\""), p);
+			vips_error("matload", _("bad number \"%s\""), p);
 			return -1;
 		}
 
@@ -138,8 +140,8 @@ parse_matrix_header(char *line,
 		return -1;
 	}
 
-	if (VIPS_FLOOR(header[0]) != header[0] ||
-		VIPS_FLOOR(header[1]) != header[1]) {
+	if (floor(header[0]) != header[0] ||
+		floor(header[1]) != header[1]) {
 		vips_error("mask2vips", "%s", _("width / height not int"));
 		return -1;
 	}
@@ -152,8 +154,7 @@ parse_matrix_header(char *line,
 		*width > 100000 ||
 		*height <= 0 ||
 		*height > 100000) {
-		vips_error("mask2vips",
-			"%s", _("width / height out of range"));
+		vips_error("mask2vips", "%s", _("width / height out of range"));
 		return -1;
 	}
 	if (header[2] == 0.0) {
@@ -426,14 +427,12 @@ vips_foreign_load_matrix_source_is_a_source(VipsSource *source)
 	double offset;
 	int result;
 
-	if ((bytes_read = vips_source_sniff_at_most(source,
-			 &data, 79)) <= 0)
+	if ((bytes_read = vips_source_sniff_at_most(source, &data, 79)) <= 0)
 		return FALSE;
 	g_strlcpy(line, (const char *) data, 80);
 
 	vips_error_freeze();
-	result = parse_matrix_header(line,
-		&width, &height, &scale, &offset);
+	result = parse_matrix_header(line, &width, &height, &scale, &offset);
 	vips_error_thaw();
 
 	return result == 0;

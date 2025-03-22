@@ -99,7 +99,7 @@ vips_bandunfold_gen(VipsRegion *out_region,
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy(q, p, r->width * psize);
+		memcpy(q, p, (size_t) r->width * psize);
 	}
 
 	return 0;
@@ -119,7 +119,8 @@ vips_bandunfold_build(VipsObject *object)
 		return -1;
 
 	if (bandunfold->factor == 0)
-		bandunfold->factor = bandunfold->in->Bands;
+		bandunfold->factor = bandunfold->in->Bands; // FIXME: Invalidates operation cache
+
 	if (bandunfold->in->Bands % bandunfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image bands"));

@@ -145,6 +145,7 @@ typedef enum {
 
 typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
+
 	/*< private >*/
 
 	/* Set TRUE to force open via memory.
@@ -201,6 +202,7 @@ typedef struct _VipsForeignLoad {
 
 typedef struct _VipsForeignLoadClass {
 	VipsForeignClass parent_class;
+
 	/*< public >*/
 
 	/* Is a file in this format.

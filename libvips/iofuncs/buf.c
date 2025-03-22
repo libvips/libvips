@@ -417,7 +417,10 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 	if (buf->full)
 		return FALSE;
 
-	avail = buf->mx - buf->i - 4;
+	// -3 to leave space for "..."
+	// not -4, since the terminating \0 will already be on the string written
+	// by g_vsnprintf()
+	avail = buf->mx - buf->i - 3;
 	p = buf->base + buf->i;
 	(void) g_vsnprintf(p, avail, fmt, ap);
 	buf->i += strlen(p);

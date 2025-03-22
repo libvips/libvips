@@ -312,7 +312,7 @@ static GOptionEntry main_option[] = {
 	{ NULL }
 };
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 typedef void *(*map_name_fn)(im_function *);
 
 /* Loop over a package.
@@ -379,7 +379,7 @@ list_function(im_function *func)
 static int
 print_list(int argc, char **argv)
 {
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	if (!argv[0] || strcmp(argv[0], "packages") == 0)
 		im_map_packages((VSListMap2Fn) list_package, NULL);
 	else if (strcmp(argv[0], "classes") == 0)
@@ -394,7 +394,7 @@ print_list(int argc, char **argv)
 			list_class, NULL);
 	}
 	else {
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 		if (map_name(argv[0], list_function))
 			vips_error_exit("unknown package \"%s\"", argv[0]);
 #else
@@ -405,7 +405,7 @@ print_list(int argc, char **argv)
 	return 0;
 }
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 /* Print "ln -s" lines for this package.
  */
 static void *
@@ -457,7 +457,7 @@ isvips(const char *name)
 	return vips_isprefix("vips", name);
 }
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 /* Print a usage string from an im_function descriptor.
  */
 static void
@@ -552,13 +552,13 @@ static GOptionEntry empty_options[] = {
 };
 
 static ActionEntry actions[] = {
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	{ "list", N_("list classes|packages|all|package-name|operation-name"),
 #else
 	{ "list", N_("list classes|all|operation-name"),
 #endif
 		&empty_options[0], print_list },
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	{ "links", N_("generate links for vips/bin"),
 		&empty_options[0], print_links },
 #endif
@@ -661,7 +661,7 @@ main(int argc, char **argv)
 	GOptionGroup *main_group;
 	GOptionGroup *group;
 	VipsOperation *operation;
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	im_function *fn;
 #endif
 	int i, j;
@@ -760,8 +760,8 @@ main(int argc, char **argv)
 		;
 
 	if (main_option_plugin) {
-#if ENABLE_MODULES
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_MODULES
+#ifdef ENABLE_DEPRECATED
 		if (!im_load_plugin(main_option_plugin))
 			vips_error_exit(NULL);
 #else  /*!ENABLE_DEPRECATED*/
@@ -774,8 +774,8 @@ main(int argc, char **argv)
 		}
 #endif /*ENABLE_DEPRECATED*/
 #else  /*!ENABLE_MODULES*/
-		g_warning("%s", _("plugin load disabled: "
-						  "libvips built without modules support"));
+		g_warning("plugin load disabled: "
+				  "libvips built without modules support");
 #endif /*ENABLE_MODULES*/
 	}
 
@@ -843,7 +843,7 @@ main(int argc, char **argv)
 				break;
 			}
 
-#if ENABLE_DEPRECATED
+#ifdef ENABLE_DEPRECATED
 	/* Could be a vips7 im_function. We need to test for vips7 first,
 	 * since we don't want to use the vips7 compat wrappers in vips8
 	 * unless we have to. They don't support all args types.

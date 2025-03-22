@@ -76,9 +76,9 @@ vips_wrap_build(VipsObject *object)
 		return -1;
 
 	if (!vips_object_argument_isset(object, "x"))
-		wrap->x = wrap->in->Xsize / 2;
+		wrap->x = wrap->in->Xsize / 2; // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "y"))
-		wrap->y = wrap->in->Ysize / 2;
+		wrap->y = wrap->in->Ysize / 2; // FIXME: Invalidates operation cache
 
 	/* Clock arithmetic: we want negative x/y to wrap around
 	 * nicely.

@@ -393,7 +393,7 @@ struct _Wtiff {
 
 	/* Lock thread calls into libtiff with this.
 	 */
-	GMutex *lock;
+	GMutex lock;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -441,6 +441,22 @@ embed_profile_meta(TIFF *tif, VipsImage *im)
 	return 0;
 }
 
+static int
+wtiff_handler_error(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	vips_verror("vips2tiff", fmt, ap);
+	return 1;
+}
+
+static int
+wtiff_handler_warning(TIFF *tiff, void* user_data,
+	const char *module, const char *fmt, va_list ap)
+{
+	g_logv("vips2tiff", G_LOG_LEVEL_WARNING, fmt, ap);
+	return 1;
+}
+
 static void
 wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 	int width, int height)
@@ -475,9 +491,16 @@ wtiff_layer_init(Wtiff *wtiff, Layer **layer, Layer *above,
 			(*layer)->target = wtiff->target;
 			g_object_ref((*layer)->target);
 		}
-		else
-			(*layer)->target =
-				vips_target_new_temp(wtiff->target);
+		else {
+			const guint64 disc_threshold = vips_get_disc_threshold();
+			const guint64 layer_size =
+				VIPS_IMAGE_SIZEOF_PEL(wtiff->ready) * width * height;
+
+			if (layer_size > disc_threshold)
+				(*layer)->target = vips_target_new_temp(wtiff->target);
+			else
+				(*layer)->target = vips_target_new_to_memory();
+		}
 
 		/*
 		printf("wtiff_layer_init: sub = %d, width = %d, height = %d\n",
@@ -578,7 +601,7 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 	 * long, not byte.
 	 */
 	if (size & 3) {
-		g_warning("%s", _("rounding up IPTC data length"));
+		g_warning("rounding up IPTC data length");
 		size /= 4;
 		size += 1;
 	}
@@ -1146,7 +1169,8 @@ wtiff_allocate_layers(Wtiff *wtiff)
 			vips__region_no_ownership(layer->copy);
 
 			layer->tif = vips__tiff_openout_target(layer->target,
-				wtiff->bigtiff);
+				wtiff->bigtiff, wtiff_handler_error,
+				wtiff_handler_warning, wtiff);
 			if (!layer->tif)
 				return -1;
 		}
@@ -1199,7 +1223,7 @@ wtiff_free(Wtiff *wtiff)
 
 	VIPS_UNREF(wtiff->ready);
 	VIPS_FREE(wtiff->tbuf);
-	VIPS_FREEF(vips_g_mutex_free, wtiff->lock);
+	g_mutex_clear(&wtiff->lock);
 	VIPS_FREE(wtiff);
 }
 
@@ -1366,7 +1390,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->page_number = 0;
 	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
-	wtiff->lock = vips_g_mutex_new();
+	g_mutex_init(&wtiff->lock);
 
 	/* Any pre-processing on the image.
 	 */
@@ -1456,8 +1480,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		!(wtiff->bitdepth == 1 ||
 			wtiff->bitdepth == 2 ||
 			wtiff->bitdepth == 4)) {
-		g_warning("%s",
-			_("bitdepth 1, 2 or 4 only -- disabling bitdepth"));
+		g_warning("bitdepth 1, 2 or 4 only -- disabling bitdepth");
 		wtiff->bitdepth = 0;
 	}
 
@@ -1468,16 +1491,14 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		!(wtiff->ready->Coding == VIPS_CODING_NONE &&
 			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
 			wtiff->ready->Bands == 1)) {
-		g_warning("%s",
-			("can only set bitdepth for 1-band uchar and "
-			 "3-band float lab -- disabling bitdepth"));
+		g_warning("can only set bitdepth for 1-band uchar and "
+				  "3-band float lab -- disabling bitdepth");
 		wtiff->bitdepth = 0;
 	}
 
 	if (wtiff->bitdepth &&
 		wtiff->compression == COMPRESSION_JPEG) {
-		g_warning("%s",
-			_("can't have <8 bit JPEG -- disabling JPEG"));
+		g_warning("can't have <8 bit JPEG -- disabling JPEG");
 		wtiff->compression = COMPRESSION_NONE;
 	}
 
@@ -1487,9 +1508,8 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		(wtiff->ready->Coding != VIPS_CODING_NONE ||
 			vips_band_format_iscomplex(wtiff->ready->BandFmt) ||
 			wtiff->ready->Bands > 2)) {
-		g_warning("%s",
-			_("can only save non-complex greyscale images "
-			  "as miniswhite -- disabling miniswhite"));
+		g_warning("can only save non-complex greyscale images "
+				  "as miniswhite -- disabling miniswhite");
 		wtiff->miniswhite = FALSE;
 	}
 
@@ -1764,11 +1784,11 @@ wtiff_row_add_tile(WtiffRow *row,
 	tile->buffer = buffer;
 	tile->length = length;
 
-	g_mutex_lock(row->wtiff->lock);
+	g_mutex_lock(&row->wtiff->lock);
 
 	row->tiles = g_slist_prepend(row->tiles, tile);
 
-	g_mutex_unlock(row->wtiff->lock);
+	g_mutex_unlock(&row->wtiff->lock);
 
 	return 0;
 }
@@ -2295,7 +2315,7 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 	 * simpler than searching every page for the largest tile with
 	 * TIFFTAG_TILEBYTECOUNTS.
 	 */
-	tile_size = 2 * wtiff->tls * wtiff->tileh;
+	tile_size = (tsize_t) 2 * wtiff->tls * wtiff->tileh;
 
 	buf = vips_malloc(NULL, tile_size);
 
@@ -2401,7 +2421,8 @@ wtiff_gather(Wtiff *wtiff)
 			if (!(source = vips_source_new_from_target(layer->target)))
 				return -1;
 
-			if (!(in = vips__tiff_openin_source(source))) {
+			if (!(in = vips__tiff_openin_source(source, wtiff_handler_error,
+				wtiff_handler_warning, NULL, FALSE))) {
 				VIPS_UNREF(source);
 				return -1;
 			}

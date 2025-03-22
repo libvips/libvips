@@ -56,7 +56,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 
-static GMutex *vips_libarchive_mutex = NULL;
+static GMutex vips_libarchive_mutex;
 
 struct _VipsArchive {
 	// prepend filenames with this for filesystem output
@@ -102,29 +102,11 @@ zip_close_target_cb(struct archive *a, void *client_data)
 	return ARCHIVE_OK;
 }
 
-static void *
-vips__archive_once_init(void *client)
-{
-	vips_libarchive_mutex = vips_g_mutex_new();
-
-	return NULL;
-}
-
-static void
-vips__archive_init(void)
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE(&once, vips__archive_once_init, NULL);
-}
-
 // write to a filesystem directory
 VipsArchive *
 vips__archive_new_to_dir(const char *base_dirname)
 {
 	VipsArchive *archive;
-
-	vips__archive_init();
 
 	if (!(archive = VIPS_NEW(NULL, VipsArchive)))
 		return NULL;
@@ -145,8 +127,6 @@ vips__archive_new_to_target(VipsTarget *target,
 	printf("vips__archive_new_to_target: base_dirname = %s, compression = %d\n",
 		base_dirname, compression);
 #endif /*DEBUG*/
-
-	vips__archive_init();
 
 	if (!(archive = VIPS_NEW(NULL, VipsArchive)))
 		return NULL;
@@ -254,11 +234,11 @@ vips__archive_mkfile_zip(VipsArchive *archive,
 {
 	struct archive_entry *entry;
 
-	vips__worker_lock(vips_libarchive_mutex);
+	vips__worker_lock(&vips_libarchive_mutex);
 
 	if (!(entry = archive_entry_new())) {
 		vips_error("archive", "%s", _("unable to create entry"));
-		g_mutex_unlock(vips_libarchive_mutex);
+		g_mutex_unlock(&vips_libarchive_mutex);
 		return -1;
 	}
 
@@ -275,7 +255,7 @@ vips__archive_mkfile_zip(VipsArchive *archive,
 	if (archive_write_header(archive->archive, entry)) {
 		vips_error("archive", "%s", _("unable to write header"));
 		archive_entry_free(entry);
-		g_mutex_unlock(vips_libarchive_mutex);
+		g_mutex_unlock(&vips_libarchive_mutex);
 		return -1;
 	}
 
@@ -283,11 +263,11 @@ vips__archive_mkfile_zip(VipsArchive *archive,
 
 	if (archive_write_data(archive->archive, buf, len) != len) {
 		vips_error("archive", "%s", _("unable to write data"));
-		g_mutex_unlock(vips_libarchive_mutex);
+		g_mutex_unlock(&vips_libarchive_mutex);
 		return -1;
 	}
 
-	g_mutex_unlock(vips_libarchive_mutex);
+	g_mutex_unlock(&vips_libarchive_mutex);
 
 	return 0;
 }

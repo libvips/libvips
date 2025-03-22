@@ -500,7 +500,7 @@ vips_foreign_load_csv_class_init(VipsForeignLoadCsvClass *class)
 		_("Read this many lines from the file"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadCsv, lines),
-		-1, 10000000, 0);
+		-1, 10000000, -1);
 
 	VIPS_ARG_STRING(class, "whitespace", 22,
 		_("Whitespace"),

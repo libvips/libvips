@@ -44,7 +44,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -238,7 +237,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }

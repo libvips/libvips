@@ -106,8 +106,11 @@ foreach _, section : build_summary
 endforeach
 foreach _, section : build_features
     foreach key, arr : section
+        dep_name = arr[0]
         found = arr[1].found()
-        dep_name = found ? arr[1].name() : arr[0]
+        if found and arr[1].type_name() != 'internal'
+            dep_name = arr[1].name()
+        endif
         dynamic_module = arr.length() > 2 ? ' (dynamic module: @0@)'.format(arr[2]) : ''
         vips_verbose_config += '@0@ with @1@: @2@@3@'.format(key, dep_name, found, dynamic_module)
     endforeach
