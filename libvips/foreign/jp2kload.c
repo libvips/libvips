@@ -80,6 +80,10 @@ typedef struct _VipsForeignLoadJp2k {
 	int page;
 	int shrink;
 
+	/* Load images a frame at a time rather than a tile at a time.
+	 */
+	gboolean oneshot;
+
 	/* Decompress state.
 	 */
 	opj_stream_t *stream;			/* Source as an opj stream */
@@ -279,7 +283,12 @@ vips_foreign_load_jp2k_is_a_source(VipsSource *source)
 static VipsForeignFlags
 vips_foreign_load_jp2k_get_flags(VipsForeignLoad *load)
 {
-	return VIPS_FOREIGN_PARTIAL;
+	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
+
+	if (jp2k->oneshot)
+		return VIPS_FOREIGN_SEQUENTIAL;
+	else
+		return VIPS_FOREIGN_PARTIAL;
 }
 
 /* The openjpeg info and warning callbacks are incredibly chatty.
@@ -1147,9 +1156,9 @@ vips_foreign_load_jp2k_load(VipsForeignLoad *load)
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array(VIPS_OBJECT(load), 3);
 
-	int vips_tile_width;
-	int vips_tile_height;
-	int vips_tiles_across;
+	int tile_width;
+	int tile_height;
+	int tiles_across;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_jp2k_load:\n");
@@ -1161,13 +1170,11 @@ vips_foreign_load_jp2k_load(VipsForeignLoad *load)
 
 	/* Untiled jp2k images need a different read API.
 	 */
-	if (jp2k->info->tw == 1 &&
-		jp2k->info->th == 1) {
-		vips_tile_width = 512;
-		vips_tile_height = 512;
-		vips_tiles_across =
-			VIPS_ROUND_UP(t[0]->Xsize, vips_tile_width) /
-			vips_tile_width;
+	if (jp2k->oneshot ||
+		(jp2k->info->tw == 1 && jp2k->info->th == 1)) {
+		tile_width = jp2k->width;
+		tile_height = jp2k->height;
+		tiles_across = 1;
 
 		if (vips_image_generate(t[0],
 				NULL, vips_foreign_load_jp2k_generate_untiled, NULL,
@@ -1175,9 +1182,9 @@ vips_foreign_load_jp2k_load(VipsForeignLoad *load)
 			return -1;
 	}
 	else {
-		vips_tile_width = jp2k->info->tdx;
-		vips_tile_height = jp2k->info->tdy;
-		vips_tiles_across = jp2k->info->tw;
+		tile_width = jp2k->info->tdx;
+		tile_height = jp2k->info->tdy;
+		tiles_across = jp2k->info->tw;
 
 		if (vips_image_generate(t[0],
 				NULL, vips_foreign_load_jp2k_generate_tiled, NULL,
@@ -1189,9 +1196,9 @@ vips_foreign_load_jp2k_load(VipsForeignLoad *load)
 	 * rows, plus 50%.
 	 */
 	if (vips_tilecache(t[0], &t[1],
-			"tile_width", vips_tile_width,
-			"tile_height", vips_tile_height,
-			"max_tiles", 3 * vips_tiles_across,
+			"tile_width", tile_width,
+			"tile_height", tile_height,
+			"max_tiles", 3 * tiles_across,
 			NULL))
 		return -1;
 
@@ -1231,6 +1238,14 @@ vips_foreign_load_jp2k_class_init(VipsForeignLoadJp2kClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadJp2k, page),
 		0, 100000, 0);
+
+	VIPS_ARG_BOOL(class, "oneshot", 21,
+		_("One-shot"),
+		_("Load images a frame at a time"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadJp2k, oneshot),
+		FALSE);
+
 }
 
 static void
@@ -1612,6 +1627,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
@@ -1623,6 +1639,10 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * Use @page to set the page to load, where page 0 is the base resolution
  * image and higher-numbered pages are x2 reductions. Use the metadata item
  * "n-pages" to find the number of pyramid layers.
+ *
+ * Some versions of openjpeg can fail to decode some tiled images correctly.
+ * Setting @oneshot will force the loader to decode tiled images in a single
+ * operation and can improve compatibility.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
@@ -1654,6 +1674,7 @@ vips_jp2kload(const char *filename, VipsImage **out, ...)
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_jp2kload(), but read from a buffer.
@@ -1692,6 +1713,7 @@ vips_jp2kload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_jp2kload(), but read from a source.

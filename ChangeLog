@@ -1,3 +1,5 @@
+master
+
 8.17.0
 
 - add `keep_duplicate_frames` option to GIF save [dloebl]
@@ -16,6 +18,7 @@
 - convi: ensure double sum precision for floats [lovell]
 - improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
 - heifload: improve detection of seek beyond EOF [lovell]
+- add "oneshot" option to jp2kload [mbklein]
 
 8.16.1
 
