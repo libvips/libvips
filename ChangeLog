@@ -8,6 +8,7 @@
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
+- better handling of malformed size values [Simcha Kosman]
 - improve performance of vips_shrink() [kleisauke]
 - svgload: add support for custom CSS via stylesheet option [lovell]
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
