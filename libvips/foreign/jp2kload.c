@@ -80,7 +80,7 @@ typedef struct _VipsForeignLoadJp2k {
 	int page;
 	int shrink;
 
-	/* Load images a frame at a time, rather than a tile at a time.
+	/* Load images a frame at a time rather than a tile at a time.
 	 */
 	gboolean oneshot;
 
@@ -1627,7 +1627,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * Optional arguments:
  *
  * * @page: %gint, load this page
- * * @oneshot: %gboolean, pages in one-shot mode
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
@@ -1642,7 +1642,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  *
  * Some versions of openjpeg can fail to decode some tiled images correctly.
  * Setting @oneshot will force the loader to decode tiled images in a single
- * operation and can improve caompatibility.
+ * operation and can improve compatibility.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
@@ -1674,6 +1674,7 @@ vips_jp2kload(const char *filename, VipsImage **out, ...)
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_jp2kload(), but read from a buffer.
@@ -1712,6 +1713,7 @@ vips_jp2kload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @oneshot: %gboolean, load pages in one-shot mode
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_jp2kload(), but read from a source.
