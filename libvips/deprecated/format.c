@@ -296,7 +296,7 @@ im__format_init(void)
 	vips_format_fits_get_type();
 #endif /*HAVE_CFITSIO*/
 	vips_format_rad_get_type();
-#ifdef HAVE_MAGICK
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 	extern GType vips_format_magick_get_type(void);
 	vips_format_magick_get_type();
 #endif /*HAVE_MAGICK*/
