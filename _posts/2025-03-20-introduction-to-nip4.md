@@ -222,10 +222,27 @@ rules:
 1. Graphical edits (eg. dragging a region, or moving a scale) override
    formula.
 
-2. Inner formula override outer formula.
+2. Inner edits override outer edits.
 
 You can reset all changes to a row by right-clicking on a row and picking
 Reset from the menu. It will revert to the state of the top-most formula.
+
+## Overloading
+
+Most operations will work on rows of any type and will produce a result of the
+expected type. 
+
+For example, if you make a new column, select Widgets > Scale twice to make
+two scale widgets, then select Math > Arithmetic > Add (or enter `C1 + C2`
+in the formula box), you'll get a third scale. Try dragging either of the top
+two scales and the third will update.
+
+If you open up the new scale widget, you'll see that `from` and `to` have
+been set appropriately for the possible range:
+
+![nip4]({{ site.baseurl }}/assets/images/nip4-add-scale.png)
+
+Just as with regions, you can also set the formula for any of these members.
 
 ## Other features
 
