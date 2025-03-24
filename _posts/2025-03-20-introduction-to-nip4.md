@@ -198,7 +198,34 @@ is now fixed in place.
 You can use any formula you like. Try setting `height` to be the formula
 `width * 2 ** 0.5`, that is, width times root two. Now you'll find `B8` can't
 be sized vertically, but if you resize horizontally, the height will also
-change to keep the region in the A paper aspect ratio.
+change to keep the region in the "A" paper aspect ratio.
+
+## Reset
+
+In that last example, three conflicting things were competing to set the
+value of `B8`.
+
+First, at the bottom of `B8`, you'll see the original
+equation, created when you initially dragged out the shape:
+
+```
+Region B7 1534 964 2880 2283
+```
+
+Next, as you moved the region with the mouse, the `left`, `top`, `width` and
+`height` members were updated. Finally, you edited `top` by hand to fix a
+value in place.
+
+nip4 decides which of these ultimately sets the value of a row with two
+rules:
+
+1. Graphical edits (eg. dragging a region, or moving a scale) override
+   formula.
+
+2. Inner formula override outer formula.
+
+You can reset all changes to a row by right-clicking on a row and picking
+Reset from the menu. It will revert to the state of the top-most formula.
 
 ## Other features
 
