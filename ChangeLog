@@ -19,6 +19,7 @@ master
 - improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
 - heifload: improve detection of seek beyond EOF [lovell]
 - add "oneshot" option to jp2kload [mbklein]
+- improved scheduling for vips_sink_screen()
 
 8.16.1
 
