@@ -311,7 +311,9 @@ vips_threadset_run(VipsThreadset *set,
 
 	g_async_queue_lock(set->queue);
 
-	/* Create a new thread if there are no waiting threads in the queue.
+	/* Create or reuse an idle thread if there are at least as many tasks
+	 * in the queue as waiting threads. The guard comparison prevents
+	 * oversubscription by threads that haven't started yet.
 	 */
 	if (g_async_queue_length_unlocked(set->queue) >= set->queue_guard)
 		if (!vips_threadset_add_thread(set)) {
