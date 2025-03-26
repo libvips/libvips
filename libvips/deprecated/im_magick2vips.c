@@ -42,21 +42,22 @@
 
 #include <vips/vips.h>
 
-#include "../foreign/pforeign.h"
-
 int
 im_magick2vips(const char *filename, IMAGE *out)
 {
-#ifdef HAVE_MAGICK
+	VipsImage *t;
+
 	/* Old behaviour was always to read all frames.
 	 */
-	return vips__magick_read(filename, out, NULL, 0, -1);
-#else
-	vips_error("im_magick2vips",
-		"%s", _("no libMagick support in your libvips"));
+	if (vips_magickload(filename, &t, "n", -1, NULL))
+		return -1;
+	if (vips_image_write(t, out)) {
+		g_object_unref(t);
+		return -1;
+	}
+	g_object_unref(t);
 
-	return -1;
-#endif /*HAVE_MAGICK*/
+	return 0;
 }
 
 static int
