@@ -81,14 +81,6 @@ int vips__analyze_read(const char *filename, VipsImage *out);
 
 extern const char *vips__foreign_csv_suffs[];
 
-int vips__matrix_read_header(const char *filename,
-	int *width, int *height, double *scale, double *offset);
-int vips__matrix_ismatrix(const char *filename);
-VipsImage *vips__matrix_read_file(FILE *fp);
-VipsImage *vips__matrix_read(const char *filename);
-int vips__matrix_write(VipsImage *in, const char *filename);
-int vips__matrix_write_file(VipsImage *in, FILE *fp);
-
 extern const char *vips__foreign_matrix_suffs[];
 
 int vips__openexr_isexr(const char *filename);
@@ -104,16 +96,6 @@ int vips__fits_read(const char *filename, VipsImage *out);
 
 int vips__fits_write(VipsImage *in, const char *filename);
 
-int vips__magick_read(const char *filename,
-	VipsImage *out, const char *density, int page, int n);
-int vips__magick_read_header(const char *filename,
-	VipsImage *out, const char *density, int page, int n);
-
-int vips__magick_read_buffer(const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n);
-int vips__magick_read_buffer_header(const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n);
-
 extern const char *vips__mat_suffs[];
 
 int vips__mat_load(const char *filename, VipsImage *out);
@@ -127,8 +109,6 @@ extern const char *vips__save_ppm_suffs[];
 extern const char *vips__save_pfm_suffs[];
 extern const char *vips__save_pnm_suffs[];
 
-int vips__ppm_save_target(VipsImage *in, VipsTarget *target,
-	gboolean ascii, gboolean squash);
 int vips__rad_israd(VipsSource *source);
 int vips__rad_header(VipsSource *source, VipsImage *out);
 int vips__rad_load(VipsSource *source, VipsImage *out);
