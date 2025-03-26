@@ -35,13 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
- * also define. Make sure it's turned off.
- */
-#ifdef HAVE_STDLIB_H
-#undef HAVE_STDLIB_H
-#endif /*HAVE_STDLIB_H*/
-
 /* jpeglib defines its own boolean type as an enum which then clashes with
  * everyone elses. Rename it as jboolean.
  */
