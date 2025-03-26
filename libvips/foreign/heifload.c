@@ -1185,7 +1185,7 @@ vips_foreign_load_heif_wait_for_file_size(gint64 target_size, void *userdata)
 	result = vips_source_seek(heif->source, target_size, SEEK_SET);
 	vips_source_seek(heif->source, old_position, SEEK_SET);
 
-	if (result < 0)
+	if (result < 0 || old_position < 0)
 		/* Unable to seek to this point, so it's beyond EOF.
 		 */
 		status = heif_reader_grow_status_size_beyond_eof;
