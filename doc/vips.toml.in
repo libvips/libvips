@@ -53,6 +53,8 @@ content_files = [
   "binding.md",
   "examples.md",
   "cite.md",
+
+  "libvips-header.md",
 ]
 content_images = [
   "images/Combine.png",

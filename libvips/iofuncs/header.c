@@ -86,53 +86,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/**
- * SECTION: header
- * @short_description: get, set and walk image headers
- * @stability: Stable
- * @see_also: <link linkend="libvips-type">type</link>
- * @include: vips/vips.h
- *
- * These functions let you get at image header data (including metadata) in a
- * uniform way.
- *
- * Use vips_image_get_typeof() to test for the
- * existence and #GType of a header field.
- *
- * You can attach arbitrary metadata to images. Metadata is copied as images
- * are processed, so all images which used this image as input, directly or
- * indirectly, will have this same bit of metadata attached to them. Copying
- * is implemented with reference-counted pointers, so it is efficient, even for
- * large items of data. This does however mean that metadata items need to be
- * immutable. Metadata is handy for things like ICC profiles or EXIF data.
- *
- * Various convenience functions (eg. vips_image_set_int()) let you easily
- * attach
- * simple types like
- * numbers, strings and memory blocks to images. Use vips_image_map() to loop
- * over an image's fields, including all metadata.
- *
- * Items of metadata are identified by strings. Some strings are reserved, for
- * example the ICC profile for an image is known by convention as
- * "icc-profile-data".
- *
- * If you save an image in VIPS format, all metadata (with a restriction, see
- * below) is automatically saved for you in a block of XML at the end of the
- * file. When you load a VIPS image, the metadata is restored. You can use the
- * `vipsedit` command-line tool to extract or replace this block of XML.
- *
- * VIPS metadata is based on %GValue. See the docs for that system if you want
- * to do fancy stuff such as defining a new metadata type.
- * VIPS defines a new %GValue called `vips_save_string`, a variety of string,
- * see vips_value_set_save_string().
- * If your %GValue can be transformed to `vips_save_string`, it will be
- * saved and loaded to and from VIPS files for you.
- *
- * VIPS provides a couple of base classes which implement
- * reference-counted areas of memory. If you base your metadata on one of
- * these types, it can be copied between images efficiently.
- */
-
 /* Use in various small places where we need a mutex and it's not worth
  * making a private one.
  */
