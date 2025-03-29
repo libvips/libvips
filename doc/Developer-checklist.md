@@ -1,5 +1,7 @@
 Title: Checklist for libvips users
 
+## Checklist for libvips users
+
 libvips is a slightly unusual library and you may need to take some of its
 stranger features into account when you design software that uses it.
 

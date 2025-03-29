@@ -1,5 +1,7 @@
 Title: Processing multipage and animated images
 
+# Processing multipage and animated images
+
 libvips represents animated and multipage images as tall, thin strips of
 frames, like a strip of movie film (or a roll of toilet paper). Special image
 metadata items are used to hold the page height, the number of frames, and any
@@ -8,7 +10,7 @@ frame delay or loop settings.
 At least the JXL, GIF and WebP loaders and savers support animation,
 and the TIFF, PDF, HEIC, AVIF and VIPS loaders and savers support multipage.
 
-# Reading multipage images
+## Reading multipage images
 
 For example, at the command-line, try:
 
@@ -88,7 +90,7 @@ This all assumes that every page (or frame) has the same dimensions. If
 they don't (this can commonly happen with PDF and TIFF), you have to read
 pages one by one.
 
-# Writing multipage images
+## Writing multipage images
 
 As long as these various pieces of metadata are set, you can write animated
 and multipage images in the obvious way. For example:
@@ -144,7 +146,7 @@ animation.write_to_file(sys.argv[1])
 
 It's a little more fiddly in C:
 
-```C
+```c
 /* compile with
  *
  * gcc -g -Wall assemble-animated.c `pkg-config vips --cflags --libs`
