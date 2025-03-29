@@ -5,8 +5,8 @@ Title: Using vipsthumbnail
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples.
 
-The thumbnailing functionality is implemented by `vips_thumbnail()` and
-`vips_thumbnail_buffer()` (which thumbnails an image held as a string),
+The thumbnailing functionality is implemented by [func@thumbnail] and
+[func@thumbnail_buffer] (which thumbnails an image held as a string),
 see the docs for details. You can use these functions from any language
 with a libvips binding. For example, from PHP you could write:
 
@@ -26,7 +26,7 @@ $ cat k2.jpg | \
 
 ## libvips options
 
-`vipsthumbnail` supports the usual range of vips command-line options. A
+`vipsthumbnail` supports the usual range of `vips` command-line options. A
 few of them are useful:
 
 `--vips-cache-trace` shows each operation as libvips starts it. It can be
@@ -98,16 +98,16 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 
 Where `owl.jpg` is an off-centre composition:
 
-![](owl.jpg)
+![Owl](owl.jpg)
 
 Gives this result:
 
-![](tn_owl.jpg)
+![Smartcrop](tn_owl.jpg)
 
 First it shrinks the image to get the vertical axis to 128 pixels, then crops
 down to 128 pixels across using the `attention` strategy. This one searches
-the image for features which might catch a human eye, see `vips_smartcrop()`
-for details.
+the image for features which might catch a human eye, see
+[method@Image.smartcrop] for details.
 
 ## Linear light
 
@@ -199,7 +199,7 @@ optimizer.
 
 Check the image write operations to see all the possible options. For example:
 
-```
+```bash
 $ vips jpegsave
 save image to jpeg file
 usage:
@@ -243,7 +243,7 @@ large saving.
 
 For example:
 
-```
+```bash
 $ vipsthumbnail 42-32157534.jpg
 $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
@@ -251,7 +251,7 @@ $ ls -l tn_42-32157534.jpg
 
 `keep=none` almost halves the size of the thumbnail:
 
-```
+```bash
 $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,keep=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
@@ -267,7 +267,7 @@ This can save several kb per thumbnail.
 
 For example:
 
-```
+```bash
 $ vipsthumbnail shark.jpg
 $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
@@ -276,7 +276,7 @@ $ ls -l tn_shark.jpg
 Now transform to sRGB and don't attach a profile (you can also use
 `keep=none`, though that will remove *all* metadata from the image):
 
-```
+```bash
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg

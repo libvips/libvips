@@ -317,6 +317,7 @@ s/#Vips\(Image\)/[class@\1]/g
 s/#Vips\(Region\)/[class@\1]/g
 s/#Vips\(Object\)/[class@\1]/g
 s/#Vips\(Operation\)/[class@\1]/g
+s/#Vips\(ForeignLoad\)/[class@\1]/g
 
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g

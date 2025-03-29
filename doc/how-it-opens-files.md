@@ -9,7 +9,7 @@ know what it is doing behind the scenes, except unfortunately when you do.
 
 This page tries to explain what the different strategies are and when each is
 used. If you are running into unexpected memory, disc or CPU use, this might
-be helpful. `vips_image_new_from_file()` has the official documentation.
+be helpful. [ctor@Image.new_from_file] has the official documentation.
 
 ## Caching
 
@@ -18,7 +18,7 @@ one load and the next, the second load will return the old image, even though
 the file has been replaced.
 
 You can force libvips to load a file and ignore any cached value by
-setting the `revalidate` flag, see #VipsForeignLoad.
+setting the `revalidate` flag, see [class@ForeignLoad].
 
 ## Direct access
 
@@ -32,12 +32,11 @@ system: your OS will use spare memory to cache recently used chunks of the
 file.
 
 For this to be possible, the file format needs to be a simple dump of a memory
-array. libvips supports direct access for vips, 8-bit binary ppm/pbm/pnm,
+array. libvips supports direct access for `.v`, 8-bit binary ppm/pbm/pnm,
 analyse and raw.
 
 libvips has a special direct write mode where pixels can be written directly
-to the file image. This is used for the <ulink url="libvips-draw.html">draw
-operators</ulink>.
+to the file image. This is used for the [draw operators](?q=draw).
 
 ## Random access via load library
 
@@ -72,8 +71,7 @@ Note that on open libvips just reads the image header and is quick: the
 image decompress happens on the first pixel access.
 
 You can control this process with environment variables, command-line
-flags and API calls as you choose, see
-vips_image_new_from_file().
+flags and API calls as you choose, see [ctor@Image.new_from_file].
 They let you set the threshold at which libvips switches between memory
 and disc and where on disc the temporary files are held.
 
@@ -120,4 +118,4 @@ small cache of the most recent 100 or so lines.
 
 This is done automatically in command-line operation. In programs, you need to
 set `access` to #VIPS_ACCESS_SEQUENTIAL in calls to functions like
-vips_image_new_from_file().
+[ctor@Image.new_from_file].

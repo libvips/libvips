@@ -45,9 +45,10 @@ if enable_introspection
     vips_gir = gnome.generate_gir(
         libvips_lib,
         namespace: 'Vips',
-        nsversion: '8.0',
+        nsversion: '@0@.0'.format(version_major),
         identifier_prefix: 'Vips',
         symbol_prefix: 'vips',
+        export_packages: 'vips',
         header: 'vips/vips.h',
         sources: libvips_sources,
         dependencies: libvips_deps,

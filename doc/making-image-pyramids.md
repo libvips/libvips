@@ -2,19 +2,19 @@ Title: How to use libvips to make image pyramids
 
 # How to use libvips to make image pyramids
 
-libvips includes `vips_dzsave()`, an operation
-that can build image pyramids compatible with <ulink
-url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify
-and <ulink url="https://developers.google.com/maps">Google Maps</ulink>
-image viewers. It's fast and can generate pyramids for large images using
-only a small amount of memory.
+libvips includes [method@Image.dzsave], an operation that can build image
+pyramids compatible with [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom),
+Zoomify and [Google Maps](https://developers.google.com/maps) image viewers.
+It's fast and can generate pyramids for large images using only a small amount
+of memory.
 
-The TIFF writer, `vips_tiffsave()` can also build tiled pyramidal TIFF images,
-but that's very simple to use. This page concentrates on the DeepZoom builder.
+The TIFF writer, [method@Image.tiffsave] can also build tiled pyramidal TIFF
+images, but that's very simple to use. This page concentrates on the DeepZoom
+builder.
 
 Run dzsave with no arguments to see a summary:
 
-```
+```bash
 $ vips dzsave
 save image to deepzoom file
 usage:
@@ -65,8 +65,8 @@ optional arguments:
 operation flags: sequential nocache
 ```
 
-You can also call `vips_dzsave()` from any language with a libvips binding, or
-by using `.dz` or `.szi` as an output file suffix.
+You can also call [method@Image.dzsave] from any language with a libvips
+binding, or by using `.dz` or `.szi` as an output file suffix.
 
 ## Writing DeepZoom pyramids
 
@@ -89,7 +89,7 @@ $ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
 ```
 
 will write JPEG tiles with the quality factor set to 90. You can set any
-format write options you like, see the API docs for `vips_jpegsave()`
+format write options you like, see the API docs for [method@Image.jpegsave]
 for details.
 
 ## Writing Zoomify pyramids
@@ -109,8 +109,7 @@ As with DeepZoom, you can use `--suffix` to set jpeg quality.
 ## Writing Google Maps pyramids
 
 Use `--layout google` to write Google maps-style pyramids. These are
-compatible with <ulink url="http://leafletjs.com">Leaflet</ulink>. For
-example:
+compatible with [Leaflet](http://leafletjs.com). For example:
 
 ```bash
 $ vips dzsave wtc.tif gmapdir --layout google
@@ -168,8 +167,8 @@ enable zip output as well.
 ## Preprocessing images
 
 You can use `.dz` as a filename suffix, meaning send the image to
-`vips_dzsave()`. This means you can write the output of any vips operation to a
-pyramid. For example:
+[method@Image.dzsave]. This means you can write the output of any libvips
+operation to a pyramid. For example:
 
 ```bash
 $ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
@@ -192,8 +191,6 @@ make a pyramid from that.
 
 ## Troubleshooting
 
-If you are building vips from source you do need to check the summary at
+If you are building libvips from source you do need to check the summary at
 the end of configure carefully. You must have the `libarchive-dev` package
-for `vips_dzsave()` to work.
-
-
+for [method@Image.dzsave] to work.

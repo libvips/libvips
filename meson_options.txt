@@ -15,15 +15,15 @@ option('cplusplus',
   value: true,
   description: 'Build C++ API')
 
-option('doxygen',
+option('cpp-docs',
   type: 'boolean',
   value: false,
-  description: 'Build C++ documentation')
+  description: 'Build C++ documentation (requires doxygen)')
 
-option('gtk_doc',
+option('docs',
   type: 'boolean',
   value: false,
-  description: 'Build GI-DocGen documentation')
+  description: 'Build API reference and tools documentation (requires gi-docgen)')
 
 option('modules',
   type: 'feature',

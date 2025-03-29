@@ -30,7 +30,7 @@ def gen_function(operation_name, overloads):
     if overloads:
         c_operations += ', ' + (', '.join('vips_{}()'.format(n) for n in overloads))
 
-    result = f"`{operation_name}` | {intro.description.capitalize()} | {c_operations}"
+    result = f"| `{operation_name}` | {intro.description.capitalize()} | {c_operations} |"
 
     return result
 
@@ -112,36 +112,37 @@ def gen_function_list():
 
 if __name__ == '__main__':
     print("""Title: All libvips functions and operators
+
 # Introduction
 
 libvips has a set of operators, each of which computes some useful image
-processing operation. Each operator is implemented as a %GObject class,
-for example `VipsGamma`.  Classes are identified by their unique `nickname`,
-in this case `gamma`.
+processing operation. Each operator is implemented as a [class@GObject.Object]
+class, for example `VipsGamma`.  Classes are identified by their unique
+[property@VipsObject:nickname], in this case `gamma`.
 
 From the command-line, C++ and most language bindings, you use the nickname
 to call the operator. For example in C++:
 
-```C++
-  vips::VImage fred = ...;
-  vips::VImage jim = fred.gamma();
+```c++
+vips::VImage fred = ...;
+vips::VImage jim = fred.gamma();
 ```
 
 or Python:
 
 ```python
-  fred = jim.gamma()
+fred = jim.gamma()
 ```
 
-libvips has a set of C wrapper functions for calling operators, in this 
-case vips_gamma():
+libvips has a set of C wrapper functions for calling operators, in this
+case [method@Image.gamma]:
 
-```C
+```c
   VipsImage *fred = ...;
   VipsImage *jim;
 
   if (vips_gamma(fred, &jim, NULL))
-    ...error; 
+    ...error;
 ```
 
 Some operators have many C convenience functions.
@@ -152,7 +153,7 @@ This table lists all the libvips operators with their C convenience functions
 and a short description. It's supposed to be useful for searching. See the
 API docs each function links to for more details.
 
-Operator | Description | C functions
--------- | ----------- | ---- """)
+| Operator | Description | C functions |
+| -------- | ----------- | ----------- |""")
 
     gen_function_list()

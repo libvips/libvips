@@ -1,56 +1,59 @@
 [library]
-namespace = "Vips"
+name = "Vips"
 version = "@VIPS_VERSION@"
-description = "The libvips image processing library"
-authors = "libvips team and contributors"
-license = "LGPL-2.1-or-later"
 browse_url = "https://github.com/libvips/libvips"
 repository_url = "https://github.com/libvips/libvips.git"
 website_url = "https://www.libvips.org"
-search_index = true
 docs_url = "https://www.libvips.org/API/@VIPS_VERSION@/"
+authors = "libvips team and contributors"
+license = "LGPL-2.1-or-later"
+description = "The libvips image processing library"
+search_index = true
 
 # List the dependencies using their GIR namespace
-dependencies = [
-  "GObject-2.0",
-]
+dependencies = ["GObject-2.0"]
 
   [dependencies."GObject-2.0"]
   name = "GObject"
   description = "The base type system library"
   docs_url = "https://docs.gtk.org/gobject/"
 
-[source-location]
-# The base URL for the web UI
-base_url = "https://github.com/libvips/libvips/blob/master/"
-# The format for links, using "filename" and "line" for the format
-file_format = "{filename}#L{line}"
+related = ["GObject-2.0"]
+
+  [related."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
 
 [theme]
+name = "basic"
 show_class_hierarchy = true
 show_index_summary = true
 
+[source-location]
+# The base URL for accessing a file in the repository
+base_url = "https://github.com/libvips/libvips/blob/master/"
+
 [extra]
-# this order used for the index
+# The same order will be used when generating the index
 content_files = [
-  "using-command-line.md",
-  "using-C.md",
-  "libvips-from-C++.md",
-  "Developer-checklist.md",
+  "using-the-cli.md",
+  "using-from-c.md",
+  "using-from-cplusplus.md",
+  "developer-checklist.md",
   "using-threads.md",
   "function-list.md",
-  "Making-image-pyramids.md",
+  "making-image-pyramids.md",
   "multipage-and-animated-images.md",
-  "Using-vipsthumbnail.md",
-  "How-it-works.md",
-  "How-it-opens-files.md",
+  "using-vipsthumbnail.md",
+  "how-it-works.md",
+  "how-it-opens-files.md",
   "file-format.md",
   "extending.md",
   "binding.md",
-  "Examples.md",
-  "Cite.md",
+  "examples.md",
+  "cite.md",
 ]
-
 content_images = [
   "images/Combine.png",
   "images/interconvert.png",
@@ -61,5 +64,8 @@ content_images = [
   "images/tn_owl.jpg",
   "images/Vips-smp.png",
 ]
-
+content_base_url = "https://github.com/libvips/libvips/blob/master/doc/"
 urlmap_file = "urlmap.js"
+
+[check]
+ignore_deprecated = true

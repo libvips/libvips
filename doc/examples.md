@@ -28,7 +28,7 @@ print('average:', roi.avg())
 
 ## libvips and numpy
 
-You can use `pyvips.Image.new_from_memory()` to make a vips image from
+You can use `pyvips.Image.new_from_memory()` to make a libvips image from
 an area of memory. The memory array needs to be laid out band-interleaved,
 as a set of scanlines, with no padding between lines.
 
@@ -102,7 +102,7 @@ sys	0m8.936s
 
 It completes in just under two minutes on this laptop, and needs about
 7gb of RAM to run. It would need about the same amount of memory for a
-full-colour RGB image, I was just keen to keep disc usage down. 
+full-colour RGB image, I was just keen to keep disc usage down.
 
 If you wanted to handle transparency, or if you wanted mixed CMYK and RGB
 images, you'd need to do some more work to convert them all into the same

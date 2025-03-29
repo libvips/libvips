@@ -1,57 +1,71 @@
-gidocgen = find_program('gi-docgen', required: get_option('gtk_doc'))
+gidocgen = find_program('gi-docgen')
 
-vips_content_files = [
+if not enable_introspection
+  error('API reference requires introspection.')
+endif
+
+docs_dir = get_option('prefix') / get_option('datadir') / 'doc'
+
+vips_content_files = files(
   'binding.md',
-  'Cite.md',
-  'Developer-checklist.md',
-  'Examples.md',
+  'cite.md',
+  'developer-checklist.md',
+  'examples.md',
   'extending.md',
   'file-format.md',
   'function-list.md',
-  'How-it-opens-files.md',
-  'How-it-works.md',
-  'libvips-from-C++.md',
-  'Making-image-pyramids.md',
+  'how-it-opens-files.md',
+  'how-it-works.md',
+  'making-image-pyramids.md',
   'multipage-and-animated-images.md',
-  'using-C.md',
-  'using-command-line.md',
+  'using-from-c.md',
+  'using-from-cplusplus.md',
+  'using-the-cli.md',
   'using-threads.md',
-  'Using-vipsthumbnail.md',
-  'images/Combine.png',
-  'images/interconvert.png',
-  'images/interconvert.svg',
-  'images/Memtrace.png',
-  'images/owl.jpg',
-  'images/Sequence.png',
-  'images/Sink.png',
-  'images/tn_owl.jpg',
-  'images/Vips-smp.png',
-]
+  'using-vipsthumbnail.md',
+)
 
 vips_include_dir = meson.current_build_dir() / 'libvips' / 'include'
 doc_conf = configuration_data()
-doc_conf.set('VIPS_VERSION', version_major + '.' + version_minor)
+doc_conf.set('VIPS_VERSION', '@0@.@1@'.format(version_major, version_minor))
 
-vips_toml = configure_file(input: 'vips.toml.in',
+vips_toml = configure_file(
+  input: 'vips.toml.in',
   output: 'vips.toml',
-  configuration: doc_conf)
+  configuration: doc_conf,
+  install: true,
+  install_dir: docs_dir / 'vips',
+)
 
 custom_target('libvips-doc',
-  input: vips_gir[0],
-  output: 'Vips',
+  input: [vips_toml, vips_gir[0]],
+  output: 'vips',
   command: [
     gidocgen,
     'generate',
     '--quiet',
-    '--add-include-path=@0@'.format(vips_include_dir),
-    '--config', vips_toml,
-    '--output-dir=@OUTPUT@',
     '--no-namespace-dir',
+    '--add-include-path=@0@'.format(vips_include_dir),
+    '--config=@INPUT0@',
+    '--output-dir=@OUTPUT@',
     '--content-dir=@0@'.format(meson.current_source_dir()),
-    '@INPUT@',
+    '@INPUT1@',
   ],
-  depend_files: [vips_toml, 'urlmap.js', vips_content_files],
+  depends: vips_gir[0],
+  depend_files: vips_content_files,
   build_by_default: true,
   install: true,
-  install_dir: get_option('prefix') / get_option('datadir') / 'doc'
+  install_dir: docs_dir
+)
+
+test('doc-check-vips',
+  gidocgen,
+  args: [
+    'check',
+    '--config', vips_toml,
+    '--add-include-path=@0@'.format(vips_include_dir),
+    vips_gir[0],
+  ],
+  depends: vips_gir[0],
+  suite: ['docs', 'failing'],
 )

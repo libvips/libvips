@@ -94,8 +94,8 @@ enumtypes = gnome.mkenums(
 vips_verbose_config = []
 foreach _, section : build_summary
     foreach key, arr : section
-        if key.contains('gtk-doc') or \
-           key.contains('doxygen') or \
+        if key.contains('docs') or \
+           key.contains('cpp-docs') or \
            key.contains('introspection') or \
            key.contains('examples')
            continue

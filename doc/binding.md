@@ -54,7 +54,7 @@ main(int argc, char **argv)
 	GValue gvalue = G_VALUE_INIT;
 
 	if (VIPS_INIT(argv[0]))
-		/* This shows the vips error buffer and quits with a fail exit
+		/* This shows the libvips error buffer and quits with a fail exit
 		 * code.
 		 */
 		vips_error_exit(NULL);
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 	 */
 	g_object_unref(in);
 
-	/* Call the operation. This will look up the operation+args in the vips
+	/* Call the operation. This will look up the operation+args in the libvips
 	 * operation cache and either return a previous operation, or build
 	 * this one. In either case, we have a new ref we must release.
 	 */
@@ -161,8 +161,8 @@ but use FFI to call into libvips and run operations.
 
 Since these languages are dynamic, they can add another trick: they intercept
 the method-missing hook and attempt to run any method calls not implemented by
-the `Image` class as libvips operators. In effect, the binding is generated at
-runtime.
+the [class@Image] class as libvips operators. In effect, the binding is generated
+at runtime.
 
 # gobject-introspection
 
@@ -192,7 +192,7 @@ If you have a choice, I would recommend simply using FFI.
 ## Documentation
 
 You can generate searchable docs from a `.gir` (the thing that is built
-from scanning libvips and which in turn turn the typelib is made from) with
+from scanning libvips and which in turn the typelib is made from) with
 `g-ir-doc-tool`, for example:
 
 ```bash

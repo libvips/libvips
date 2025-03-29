@@ -14,7 +14,7 @@ and the TIFF, PDF, HEIC, AVIF and VIPS loaders and savers support multipage.
 
 For example, at the command-line, try:
 
-```
+```bash
 $ vipsheader -a silver-gear-cogs-animation-5.gif[n=-1]
 silver-gear-cogs-animation-5.gif: 281x2560 uchar, 4 bands, srgb, gifload
 width: 281
@@ -60,7 +60,7 @@ Points to note:
 
 You'll see a similar set of metadata for a multipage image, such as a PDF:
 
-```
+```bash
 $ vipsheader -a nipguide.pdf[n=-1]
 nipguide.pdf: 595x48836 uchar, 4 bands, srgb, pdfload
 width: 595
@@ -95,7 +95,7 @@ pages one by one.
 As long as these various pieces of metadata are set, you can write animated
 and multipage images in the obvious way. For example:
 
-```
+```bash
 $ vips copy nipguide.pdf[n=-1] x.gif
 ```
 
@@ -106,14 +106,14 @@ handled like this.
 
 More usefully, you could convert a GIF to WebP with:
 
-```
+```bash
 $ vips copy silver-gear-cogs-animation-5.gif[n=-1] silver.webp
 ```
 
 To write an animated or multipage image programmatically, you need to
 construct the tall, thin image and set the metadata. For example:
 
-```
+```bash
 $ vips arrayjoin "k2.jpg k4a.png" x.tif[page-height=2048] --across=1
 ```
 
