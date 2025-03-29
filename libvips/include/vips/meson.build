@@ -1,19 +1,9 @@
+# Headers that we install but neither introspect nor document.
 public_other_headers = files(
-    'buf.h',
-    'connection.h',
-    'dbuf.h',
     'debug.h',
     'format.h',
-    'gate.h',
-    'generate.h',
     'private.h',
-    'sbuf.h',
-    'semaphore.h',
-    'thread.h',
-    'threadpool.h',
     'transform.h',
-    'util.h',
-    'vector.h',
 )
 
 public_deprecated_headers = files(
@@ -33,14 +23,19 @@ endif
 public_headers = files(
     'arithmetic.h',
     'basic.h',
+    'buf.h',
     'colour.h',
+    'connection.h',
     'conversion.h',
     'convolution.h',
     'create.h',
+    'dbuf.h',
     'draw.h',
     'error.h',
     'foreign.h',
     'freqfilt.h',
+    'gate.h',
+    'generate.h',
     'header.h',
     'histogram.h',
     'image.h',
@@ -53,7 +48,13 @@ public_headers = files(
     'rect.h',
     'region.h',
     'resample.h',
+    'sbuf.h',
+    'semaphore.h',
+    'thread.h',
+    'threadpool.h',
     'type.h',
+    'util.h',
+    'vector.h',
     'vips.h',
 )
 
