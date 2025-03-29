@@ -52,7 +52,7 @@ if enable_introspection
         header: 'vips/vips.h',
         sources: libvips_sources,
         dependencies: libvips_deps,
-        includes: 'GObject-2.0',
+        includes: ['GObject-2.0', 'Gio-2.0'],
         install: true
     )
 

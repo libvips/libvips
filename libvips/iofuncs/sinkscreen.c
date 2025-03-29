@@ -1132,8 +1132,8 @@ vips__sink_screen_once(void *data)
  * @tile_height: tile height
  * @max_tiles: maximum tiles to cache
  * @priority: rendering priority
- * @notify_fn: (scope call) (nullable): pixels are ready notification callback
- * @a: (closure notify_fn) (nullable): client data for callback
+ * @notify_fn: (scope call) (closure a) (nullable): pixels are ready notification callback
+ * @a: (nullable): client data for callback
  *
  * This operation renders @in in the background, making pixels available
  * on @out as they are calculated. The @notify_fn callback is run every

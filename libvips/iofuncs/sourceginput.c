@@ -242,7 +242,7 @@ vips_source_g_input_stream_init(VipsSourceGInputStream *source)
  *
  * Create a #VipsSourceGInputStream which wraps @stream.
  *
- * Returns: the new source.
+ * Returns: (transfer full): the new source.
  */
 VipsSourceGInputStream *
 vips_source_g_input_stream_new(GInputStream *stream)

@@ -411,9 +411,9 @@ vips_source_new_from_descriptor(int descriptor)
 
 /**
  * vips_source_new_from_file:
- * @descriptor: read from this filename
+ * @filename: read from this filename
  *
- * Create an source attached to a file.
+ * Create a source attached to a file.
  *
  * If this descriptor does not support mmap and the source is
  * used with a loader that can only work from memory, then the data will be
@@ -1030,10 +1030,10 @@ vips_source_is_file(VipsSource *source)
 /**
  * vips_source_map:
  * @source: source to operate on
- * @length_out: return the file length here, or NULL
+ * @length: return the file length here, or NULL
  *
  * Map the source entirely into memory and return a pointer to the
- * start. If @length_out is non-NULL, the source size is written to it.
+ * start. If @length is non-NULL, the source size is written to it.
  *
  * This operation can take a long time. Use vips_source_is_mappable() to
  * check if a source can be mapped efficiently.
@@ -1043,7 +1043,7 @@ vips_source_is_file(VipsSource *source)
  * Returns: a pointer to the start of the file contents, or NULL on error.
  */
 const void *
-vips_source_map(VipsSource *source, size_t *length_out)
+vips_source_map(VipsSource *source, size_t *length)
 {
 	VIPS_DEBUG_MSG("vips_source_map:\n");
 
@@ -1074,8 +1074,8 @@ vips_source_map(VipsSource *source, size_t *length_out)
 		vips_source_pipe_read_to_position(source, -1))
 		return NULL;
 
-	if (length_out)
-		*length_out = source->length;
+	if (length)
+		*length = source->length;
 
 	SANITY(source);
 

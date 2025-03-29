@@ -446,9 +446,9 @@ vips_sink_base_progress(void *a)
  * @im: scan over this image
  * @tile_width: tile width
  * @tile_height: tile height
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -513,9 +513,9 @@ vips_sink_tile(VipsImage *im,
 /**
  * vips_sink: (method)
  * @im: scan over this image
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *

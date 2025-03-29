@@ -199,7 +199,7 @@ typedef struct _VipsSourceClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*read)(VipsSource *, void *, size_t);
+	gint64 (*read)(VipsSource *source, void *buffer, size_t length);
 
 	/* Seek to a certain position, args exactly as lseek(2). Set errno on
 	 * error.
@@ -210,7 +210,7 @@ typedef struct _VipsSourceClass {
 	 * We have to use int64 rather than off_t, since we must work on
 	 * Windows, where off_t can be 32-bits.
 	 */
-	gint64 (*seek)(VipsSource *, gint64, int);
+	gint64 (*seek)(VipsSource *source, gint64 offset, int whence);
 
 } VipsSourceClass;
 
@@ -226,7 +226,7 @@ VipsSource *vips_source_new_from_blob(VipsBlob *blob);
 VIPS_API
 VipsSource *vips_source_new_from_target(VipsTarget *target);
 VIPS_API
-VipsSource *vips_source_new_from_memory(const void *data, size_t size);
+VipsSource *vips_source_new_from_memory(const void *data, size_t length);
 VIPS_API
 VipsSource *vips_source_new_from_options(const char *options);
 
@@ -237,7 +237,7 @@ int vips_source_unminimise(VipsSource *source);
 VIPS_API
 int vips_source_decode(VipsSource *source);
 VIPS_API
-gint64 vips_source_read(VipsSource *source, void *data, size_t length);
+gint64 vips_source_read(VipsSource *source, void *buffer, size_t length);
 VIPS_API
 gboolean vips_source_is_mappable(VipsSource *source);
 VIPS_API
@@ -288,8 +288,8 @@ typedef struct _VipsSourceCustomClass {
 	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
 	 */
 
-	gint64 (*read)(VipsSourceCustom *, void *, gint64);
-	gint64 (*seek)(VipsSourceCustom *, gint64, int);
+	gint64 (*read)(VipsSourceCustom *source, void *buffer, gint64 length);
+	gint64 (*seek)(VipsSourceCustom *source, gint64 offset, int whence);
 
 } VipsSourceCustomClass;
 
@@ -355,6 +355,10 @@ GInputStream *vips_g_input_stream_new_from_source(VipsSource *source);
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
 
+/**
+ * VipsSourceGInputStream: (copy-func g_object_ref)
+ *   (free-func g_object_unref)
+ */
 typedef struct _VipsSourceGInputStream {
 	VipsSource parent_instance;
 
@@ -448,11 +452,11 @@ typedef struct _VipsTargetClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*write)(VipsTarget *, const void *, size_t);
+	gint64 (*write)(VipsTarget *target, const void *data, size_t length);
 
 	/* Deprecated in favour of ::end.
 	 */
-	void (*finish)(VipsTarget *);
+	void (*finish)(VipsTarget *target);
 
 	/* libtiff needs to be able to seek and read on targets,
 	 * unfortunately.
@@ -466,19 +470,19 @@ typedef struct _VipsTargetClass {
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
-	gint64 (*read)(VipsTarget *, void *, size_t);
+	gint64 (*read)(VipsTarget *target, void *buffer, size_t length);
 
 	/* Seek output. Args exactly as lseek(2).
 	 *
 	 * We have to use int64 rather than off_t, since we must work on
 	 * Windows, where off_t can be 32-bits.
 	 */
-	gint64 (*seek)(VipsTarget *, gint64 offset, int whence);
+	gint64 (*seek)(VipsTarget *target, gint64 offset, int whence);
 
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
-	int (*end)(VipsTarget *);
+	int (*end)(VipsTarget *target);
 
 } VipsTargetClass;
 
@@ -492,7 +496,7 @@ VipsTarget *vips_target_new_to_file(const char *filename);
 VIPS_API
 VipsTarget *vips_target_new_to_memory(void);
 VIPS_API
-VipsTarget *vips_target_new_temp(VipsTarget *target);
+VipsTarget *vips_target_new_temp(VipsTarget *based_on);
 VIPS_API
 int vips_target_write(VipsTarget *target, const void *data, size_t length);
 VIPS_API
@@ -551,11 +555,11 @@ typedef struct _VipsTargetCustomClass {
 	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
 	 */
 
-	gint64 (*write)(VipsTargetCustom *, const void *, gint64);
-	void (*finish)(VipsTargetCustom *);
-	gint64 (*read)(VipsTargetCustom *, void *, gint64);
-	gint64 (*seek)(VipsTargetCustom *, gint64, int);
-	int (*end)(VipsTargetCustom *);
+	gint64 (*write)(VipsTargetCustom *target, const void *data, gint64 length);
+	void (*finish)(VipsTargetCustom *target);
+	gint64 (*read)(VipsTargetCustom *target, void *buffer, gint64 length);
+	gint64 (*seek)(VipsTargetCustom *target, gint64 offset, int whence);
+	int (*end)(VipsTargetCustom *target);
 
 } VipsTargetCustomClass;
 

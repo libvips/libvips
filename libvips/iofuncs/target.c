@@ -503,15 +503,15 @@ vips_target_flush(VipsTarget *target)
 /**
  * vips_target_write:
  * @target: target to operate on
- * @buffer: buffer to write
+ * @data: data to write
  * @length: length of @data in bytes
  *
- * Write @length bytes from @buffer to the output.
+ * Write @length bytes from @data to the output.
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_target_write(VipsTarget *target, const void *buffer, size_t length)
+vips_target_write(VipsTarget *target, const void *data, size_t length)
 {
 	VIPS_DEBUG_MSG("vips_target_write: %zd bytes\n", length);
 
@@ -522,12 +522,12 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
 	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point) {
 		/* Still too large? Do an unbuffered write.
 		 */
-		if (vips_target_write_unbuffered(target, buffer, length))
+		if (vips_target_write_unbuffered(target, data, length))
 			return -1;
 	}
 	else {
 		memcpy(target->output_buffer + target->write_point,
-			buffer, length);
+			data, length);
 		target->write_point += length;
 	}
 
@@ -567,7 +567,7 @@ vips_target_read(VipsTarget *target, void *buffer, size_t length)
 /**
  * vips_target_seek:
  * @target: target to operate on
- * @position: position to seek to
+ * @offset: offset to seek to
  * @whence: seek relative to beginning, offset, or end
  *
  * Seek the target. This behaves exactly as [`lseek()`](man:lseek(2)).
@@ -575,35 +575,33 @@ vips_target_read(VipsTarget *target, void *buffer, size_t length)
  * Seeking a target sounds weird, but libtiff needs this. This method will
  * fail for targets like pipes.
  *
- * Returns: the new seek position, -1 on error.
+ * Returns: the new offset, -1 on error.
  */
 gint64
-vips_target_seek(VipsTarget *target, gint64 position, int whence)
+vips_target_seek(VipsTarget *target, gint64 offset, int whence)
 {
 	VipsTargetClass *class = VIPS_TARGET_GET_CLASS(target);
 
-	gint64 new_position;
+	gint64 new_offset;
 
-	VIPS_DEBUG_MSG("vips_target_seek: pos = %" G_GINT64_FORMAT
+	VIPS_DEBUG_MSG("vips_target_seek: offset = %" G_GINT64_FORMAT
 		", whence = %d\n",
-		position, whence);
+		offset, whence);
 
 	if (vips_target_flush(target))
 		return -1;
 
-	new_position = class->seek(target, position, whence);
+	new_offset = class->seek(target, offset, whence);
 
-	VIPS_DEBUG_MSG("vips_target_seek: new_position = %" G_GINT64_FORMAT "\n",
-		new_position);
+	VIPS_DEBUG_MSG("vips_target_seek: new_offset = %" G_GINT64_FORMAT "\n",
+		new_offset);
 
-	return new_position;
+	return new_offset;
 }
 
 /**
  * vips_target_end:
  * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
  *
  * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times.

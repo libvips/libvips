@@ -36,10 +36,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Wrapper for g_thread_try_new().
- */
 VIPS_API
-GThread *vips_g_thread_new(const char *, GThreadFunc, gpointer);
+GThread *vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data);
 
 VIPS_API
 gboolean vips_thread_isvips(void);

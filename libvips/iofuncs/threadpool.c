@@ -138,9 +138,9 @@ vips__threadpool_shutdown(void)
 
 /**
  * vips_thread_execute:
- * @name: a name for the thread
- * @func: a function to execute in the libvips threadset
- * @data: an argument to supply to @func
+ * @domain: a name for the thread (useful for debugging)
+ * @func: (scope async) (closure data): a function to execute in the libvips threadset
+ * @data: (nullable): an argument to supply to @func
  *
  * A newly created or reused thread will execute @func with the
  * argument @data.
@@ -562,16 +562,11 @@ vips_threadpool_new(VipsImage *im)
  * VipsThreadpoolAllocateFn:
  * @state: per-thread state
  * @a: client data
- * @b: client data
- * @c: client data
  * @stop: set this to signal end of computation
  *
  * This function is called to allocate a new work unit for the thread. It is
  * always single-threaded, so it can modify per-pool state (such as a
  * counter).
- *
- * @a, @b, @c are the values supplied to the call to
- * vips_threadpool_run().
  *
  * It should set @stop to %TRUE to indicate that no work could be allocated
  * because the job is done.
@@ -585,15 +580,10 @@ vips_threadpool_new(VipsImage *im)
  * VipsThreadpoolWorkFn:
  * @state: per-thread state
  * @a: client data
- * @b: client data
- * @c: client data
  *
  * This function is called to process a work unit. Many copies of this can run
  * at once, so it should not write to the per-pool state. It can write to
  * per-thread state.
- *
- * @a, @b, @c are the values supplied to the call to
- * vips_threadpool_run().
  *
  * See also: vips_threadpool_run().
  *
@@ -603,8 +593,6 @@ vips_threadpool_new(VipsImage *im)
 /**
  * VipsThreadpoolProgressFn:
  * @a: client data
- * @b: client data
- * @c: client data
  *
  * This function is called by the main thread once for every work unit
  * processed. It can be used to give the user progress feedback.
@@ -617,10 +605,10 @@ vips_threadpool_new(VipsImage *im)
 /**
  * vips_threadpool_run:
  * @im: image to loop over
- * @start: allocate per-thread state
- * @allocate: allocate a work unit
- * @work: process a work unit
- * @progress: give progress feedback about a work unit, or %NULL
+ * @start: (scope async): allocate per-thread state
+ * @allocate: (scope async): allocate a work unit
+ * @work: (scope async): process a work unit
+ * @progress: (scope async): give progress feedback about a work unit, or %NULL
  * @a: client data
  *
  * This function runs a set of threads over an image. Each thread first calls
