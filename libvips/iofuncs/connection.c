@@ -56,29 +56,21 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: connection
- * @short_description: a source/sink of bytes, perhaps a network socket
- * @stability: Stable
- * @see_also: <link linkend="libvips-foreign">foreign</link>
- * @include: vips/vips.h
- * @title: VipsConnection
- *
- * A #VipsConnection is a source or sink of bytes for something like jpeg
- * loading, see for example vips_jpegload_source().
- *
- * It can be connected to a network socket, for example, or perhaps
- * a node.js stream, or to an area of memory.
- *
- * Subclass to add other input sources. Use #VipsSourceCustom and
- * #VipsTargetCustom to make a source or target with action signals for
- * ::read, ::write and ::seek.
- */
-
-/**
  * VipsConnection:
  *
- * A #VipsConnection is a source or sink of bytes for something like jpeg
- * loading. It can be connected to a network socket, for example.
+ * An abstract base class representing a source or sink of bytes.
+ *
+ * It can be connected to a network socket, for example, or perhaps
+ * a Node.js stream, or to an area of memory. This allows it to support
+ * operations like JPEG loading, see for example [func@jpegload_source].
+ *
+ * Subclass to add other input sources. Use [class@SourceCustom] and
+ * [class@TargetCustom] to make a source or target with action signals.
+ * These classes provide action signals such as:
+ *
+ * - [signal@SourceCustom::read] for reading data from a custom source.
+ * - [signal@SourceCustom::seek] for seeking within a data stream.
+ * - [signal@TargetCustom::write] for writing data to a custom target.
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsConnection, vips_connection, VIPS_TYPE_OBJECT);

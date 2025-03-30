@@ -58,8 +58,6 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_CONNECTION, VipsConnectionClass))
 
-/* Communicate with something like a socket or pipe.
- */
 typedef struct _VipsConnection {
 	VipsObject parent_object;
 
