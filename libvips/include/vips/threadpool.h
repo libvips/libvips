@@ -51,10 +51,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Per-thread state. Allocate functions can use these members to
- * communicate with work functions.
- */
-
 #define VIPS_TYPE_THREAD_STATE (vips_thread_state_get_type())
 #define VIPS_THREAD_STATE(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \

@@ -78,17 +78,14 @@
 #endif /*G_OS_WIN32*/
 
 /**
- * SECTION: threadpool
- * @short_description: pools of worker threads
- * @stability: Stable
- * @see_also: <link linkend="libvips-generate">generate</link>
- * @include: vips/vips.h
- * @title: VipsThreadpool
+ * VipsThreadState:
  *
- * vips_threadpool_run() loops a set of threads over an image. Threads take it
- * in turns to allocate units of work (a unit might be a tile in an image),
- * then run in parallel to process those units. An optional progress function
- * can be used to give feedback.
+ * A [class@VipsThreadState] represents a per-thread state.
+ *
+ * [callback@ThreadpoolAllocateFn] functions can use these members to
+ * communicate with [callback@ThreadpoolWorkFn] functions.
+ *
+ * See also: [func@threadpool_run].
  */
 
 /* Set to stall threads for debugging.
