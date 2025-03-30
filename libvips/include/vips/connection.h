@@ -114,13 +114,6 @@ void vips_pipe_read_limit_set(gint64 limit);
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_SOURCE, VipsSourceClass))
 
-/* Read from something like a socket, file or memory area and present the data
- * with a unified seek / read / map interface.
- *
- * During the header phase, we save data from unseekable sources in a buffer
- * so readers can rewind and read again. We don't buffer data during the
- * decode stage.
- */
 struct _VipsSource {
 	VipsConnection parent_object;
 
@@ -271,9 +264,6 @@ gint64 vips_source_length(VipsSource *source);
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_SOURCE_CUSTOM, VipsSourceCustomClass))
 
-/* Subclass of source_custom with signals for handlers. This is supposed to be
- * useful for language bindings.
- */
 typedef struct _VipsSourceCustom {
 	VipsSource parent_object;
 
@@ -398,8 +388,6 @@ VipsSourceGInputStream *vips_source_g_input_stream_new(GInputStream *stream);
  */
 #define VIPS_TARGET_BUFFER_SIZE (8500)
 
-/* Output to something like a socket, pipe or memory area.
- */
 struct _VipsTarget {
 	VipsConnection parent_object;
 
@@ -539,8 +527,6 @@ int vips_target_write_amp(VipsTarget *target, const char *str);
 
 #define VIPS_TARGET_CUSTOM_BUFFER_SIZE (4096)
 
-/* Output to something like a socket, pipe or memory area.
- */
 typedef struct _VipsTargetCustom {
 	VipsTarget parent_object;
 

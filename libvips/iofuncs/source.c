@@ -74,6 +74,46 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
+/**
+ * VipsSource:
+ *
+ * A [class@Source] provides a unified interface for reading, seeking, and
+ * mapping data, regardless of the underlying source type.
+ *
+ * This source can originate from something like a socket, file or memory
+ * area.
+ *
+ * During the header phase, we save data from unseekable sources in a buffer
+ * so readers can rewind and read again. We don't buffer data during the
+ * decode stage.
+ */
+
+/**
+ * VipsSourceCustom:
+ *
+ * Subclass of [class@Source] with action signals for handlers.
+ *
+ * This is supposed to be useful for language bindings.
+ */
+
+/**
+ * VipsTarget:
+ *
+ * A [class@Target] provides a unified interface for writing data to various
+ * output destinations.
+ *
+ * This target could be a socket, file, memory area, or any other destination
+ * that accepts byte data.
+ */
+
+/**
+ * VipsTargetCustom:
+ *
+ * Subclass of [class@Target] with action signals for handlers.
+ *
+ * This is supposed to be useful for language bindings.
+ */
+
 #define MODE_READ CLOEXEC(BINARYIZE(O_RDONLY))
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
