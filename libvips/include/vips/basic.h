@@ -100,12 +100,16 @@ typedef enum {
 	VIPS_PRECISION_LAST
 } VipsPrecision;
 
+#ifndef __GI_SCANNER__
+	
 /* Just for testing.
  */
 VIPS_API
 char *vips_path_filename7(const char *path);
 VIPS_API
 char *vips_path_mode7(const char *path);
+
+#endif /* !__GI_SCANNER__ */
 
 struct _VipsImage;
 typedef struct _VipsImage VipsImage;

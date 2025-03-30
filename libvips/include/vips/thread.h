@@ -45,12 +45,6 @@ gboolean vips_thread_isvips(void);
 VIPS_API
 int vips_thread_execute(const char *domain, GFunc func, gpointer data);
 
-typedef struct _VipsThreadset VipsThreadset;
-VipsThreadset *vips_threadset_new(int max_threads);
-int vips_threadset_run(VipsThreadset *set,
-	const char *domain, GFunc func, gpointer data);
-void vips_threadset_free(VipsThreadset *set);
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

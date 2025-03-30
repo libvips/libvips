@@ -310,8 +310,14 @@ typedef GHashTable VipsArgumentTable;
 
 VIPS_API
 int vips_argument_get_id(void);
+
+#ifndef __GI_SCANNER__
+
 void vips__object_set_member(VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument);
+
+#endif /* !__GI_SCANNER__ */
+
 typedef void *(*VipsArgumentMapFn)(VipsObject *object, GParamSpec *pspec,
 	VipsArgumentClass *argument_class,
 	VipsArgumentInstance *argument_instance, void *a, void *b);

@@ -71,3 +71,8 @@ urlmap_file = "urlmap.js"
 
 [check]
 ignore_deprecated = true
+
+# Hide the following types from the docs
+[[object]]
+name = "Token"
+hidden = true

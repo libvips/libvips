@@ -40,6 +40,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include <stdio.h>
+
 #define VIPS_SPARE (8)
 
 /* Private to iofuncs: the minimum number of scanlines we add above and below
@@ -224,6 +226,54 @@ VIPS_API
 void VipsArrayDouble_unref(VipsArrayDouble *array);
 VIPS_API
 void VipsArrayImage_unref(VipsArrayImage *array);
+
+extern gboolean vips__thread_profile;
+
+void vips__thread_gate_start(const char *gate_name);
+void vips__thread_gate_stop(const char *gate_name);
+
+void vips__thread_malloc_free(gint64 size);
+	
+FILE *vips__file_open_read(const char *filename,
+	const char *fallback_dir, gboolean text_mode);
+FILE *vips__file_open_write(const char *filename,
+	gboolean text_mode);
+
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
+int vips__write(int fd, const void *buf, size_t count);
+
+/* TODO(kleisauke): VIPS_API is required by test_connections.
+ */
+VIPS_API
+int vips__open(const char *filename, int flags, int mode);
+
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
+char *vips__file_read(FILE *fp, const char *name, size_t *length_out);
+
+/* TODO(kleisauke): VIPS_API is required by the magick module.
+ */
+VIPS_API
+gint64 vips__get_bytes(const char *filename, unsigned char buf[], gint64 len);
+
+/* TODO(kleisauke): VIPS_API is required by vipsedit.
+ */
+VIPS_API
+gint64 vips__seek(int fd, gint64 pos, int whence);
+
+/* TODO(kleisauke): VIPS_API is required by libvips-cpp and vipsheader.
+ */
+VIPS_API
+void vips__filename_split8(const char *name,
+	char *filename, char *option_string);
+
+/* TODO(kleisauke): VIPS_API is required by jpegsave_file_fuzzer.
+ */
+VIPS_API
+char *vips__temp_name(const char *format);
 
 #ifdef __cplusplus
 }
