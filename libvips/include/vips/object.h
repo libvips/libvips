@@ -137,8 +137,7 @@ typedef enum /*< flags >*/ {
 #define VIPS_ARG_INTERPOLATE(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET) \
 	VIPS_ARG_OBJECT(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_INTERPOLATE)
 
-#define VIPS_ARG_BOOL(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, VALUE) \
+#define VIPS_ARG_BOOL(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -151,8 +150,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_DOUBLE(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, MIN, MAX, VALUE) \
+#define VIPS_ARG_DOUBLE(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, MIN, MAX, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -165,8 +163,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_BOXED(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, TYPE) \
+#define VIPS_ARG_BOXED(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -179,8 +176,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_INT(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, MIN, MAX, VALUE) \
+#define VIPS_ARG_INT(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, MIN, MAX, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -193,8 +189,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_UINT64(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, MIN, MAX, VALUE) \
+#define VIPS_ARG_UINT64(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, MIN, MAX, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -207,8 +202,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_ENUM(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, TYPE, VALUE) \
+#define VIPS_ARG_ENUM(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -221,8 +215,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_FLAGS(CLASS, NAME, PRIORITY, LONG, DESC, \
-	FLAGS, OFFSET, TYPE, VALUE) \
+#define VIPS_ARG_FLAGS(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
@@ -235,8 +228,7 @@ typedef enum /*< flags >*/ {
 			pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET)); \
 	}
 
-#define VIPS_ARG_STRING(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
-	VALUE) \
+#define VIPS_ARG_STRING(CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VALUE) \
 	{ \
 		GParamSpec *pspec; \
 \
