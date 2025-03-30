@@ -45,23 +45,13 @@
 #include <vips/vips.h>
 
 /**
- * SECTION: rectangle
- * @short_description: the VIPS rectangle class
- * @stability: Stable
- * @see_also: <link linkend="VipsRegion">region</link>
- * @include: vips/vips.h
- *
- * The #VipsRect class and associated types and macros.
- */
-
-/**
  * VipsRect:
  * @left: left edge of rectangle
  * @top: top edge of rectangle
  * @width: width of rectangle
  * @height: height of rectangle
  *
- * A #VipsRect is a rectangular area of pixels. This is a struct for
+ * A [struct@Rect] is a rectangular area of pixels. This is a struct for
  * performing simple rectangle algebra.
  */
 
