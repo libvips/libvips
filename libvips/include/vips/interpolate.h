@@ -91,8 +91,6 @@ typedef struct _VipsInterpolateClass {
 	int window_offset;
 } VipsInterpolateClass;
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_interpolate_get_type(void);
 VIPS_API

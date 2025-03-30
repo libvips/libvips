@@ -624,8 +624,6 @@ void vips_object_print_name(VipsObject *object);
 VIPS_API
 gboolean vips_object_sanity(VipsObject *object);
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_object_get_type(void);
 

@@ -82,8 +82,6 @@ typedef struct _VipsForeignClass {
 
 } VipsForeignClass;
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_foreign_get_type(void);
 
@@ -270,8 +268,6 @@ typedef struct _VipsForeignLoadClass {
 	int (*load)(VipsForeignLoad *load);
 } VipsForeignLoadClass;
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_foreign_load_get_type(void);
 
@@ -427,8 +423,6 @@ typedef struct _VipsForeignSaveClass {
 	gboolean coding[VIPS_CODING_LAST];
 } VipsForeignSaveClass;
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_foreign_save_get_type(void);
 

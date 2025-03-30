@@ -112,8 +112,6 @@ typedef struct _VipsThreadStateClass {
 VIPS_API
 void *vips_thread_state_set(VipsObject *object, void *a, void *b);
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_thread_state_get_type(void);
 
