@@ -1,3 +1,5 @@
+s/g_\([^(]*\)()/[func@GLib.\1]/g
+
 s/See also: \([^.]\)/::: seealso\n *     \1/g
 
 s/#VipsImage::\(width\)/[property@Image:\1]/g
@@ -309,6 +311,8 @@ s/vips_\(shrinkv\)()/[method@Image.\1]/g
 s/vips_\(sign\)()/[method@Image.\1]/g
 s/vips_\(similarity\)()/[method@Image.\1]/g
 s/vips_\(sinh\)()/[method@Image.\1]/g
+s/vips_\(sink_disc\)()/[method@Image.\1]/g
+s/vips_\(sink_screen\)()/[method@Image.\1]/g
 s/vips_\(sin\)()/[method@Image.\1]/g
 s/vips_\(smartcrop\)()/[method@Image.\1]/g
 s/vips_\(sobel\)()/[method@Image.\1]/g
