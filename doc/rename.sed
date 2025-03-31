@@ -15,6 +15,7 @@ s/vips_foreign_\([^(]*\)()/[func@Foreign.\1]/g
 s/VIPS_IMAGE_\([^(]*\)()/[func@IMAGE_\1]/g
 s/VIPS_REGION\([^(]*\)()/[func@REGION\1]/g
 s/VIPS_MATRIX\([^(]*\)()/[func@MATRIX]/g
+s/VIPS_BUF_\([^(]*\)()/[func@BUF_\1]/g
 
 s/vips_\([^(]*\)_new()/[ctor@\u\1.new]/g
 s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
