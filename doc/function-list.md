@@ -63,7 +63,7 @@ API docs each function links to for more details.
 | `Yxy2XYZ` | Transform yxy to xyz | [method@Image.Yxy2XYZ] |
 | `abs` | Absolute value of an image | [method@Image.abs] |
 | `add` | Add two images | [method@Image.add] |
-| `addalpha` | Append an alpha channel | [func@addalpha] |
+| `addalpha` | Append an alpha channel | [method@Image.addalpha] |
 | `affine` | Affine transform of an image | [method@Image.affine] |
 | `analyzeload` | Load an analyze6 image | [func@analyzeload] |
 | `arrayjoin` | Join an array of images | [func@arrayjoin] |
@@ -79,12 +79,12 @@ API docs each function links to for more details.
 | `black` | Make a black image | [func@black] |
 | `boolean` | Boolean operation on two images | [method@Image.boolean], [method@Image.andimage], [method@Image.orimage], [method@Image.eorimage], [method@Image.lshift], [method@Image.rshift] |
 | `boolean_const` | Boolean operations against a constant | [method@Image.boolean_const], [method@Image.andimage_const], [method@Image.orimage_const], [method@Image.eorimage_const], [method@Image.lshift_const], [method@Image.rshift_const], [method@Image.boolean_const1], [method@Image.andimage_const1], [method@Image.orimage_const1], [method@Image.eorimage_const1], [method@Image.lshift_const1], [method@Image.rshift_const1] |
-| `buildlut` | Build a look-up table | [func@buildlut] |
+| `buildlut` | Build a look-up table | [method@Image.buildlut] |
 | `byteswap` | Byteswap an image | [method@Image.byteswap] |
 | `canny` | Canny edge detector | [method@Image.canny] |
 | `case` | Use pixel values to pick cases from an array of images | [method@Image.case] |
 | `cast` | Cast an image | [method@Image.cast], [method@Image.cast_uchar], [method@Image.cast_char], [method@Image.cast_ushort], [method@Image.cast_short], [method@Image.cast_uint], [method@Image.cast_int], [method@Image.cast_float], [method@Image.cast_double], [method@Image.cast_complex], [method@Image.cast_dpcomplex] |
-| `clamp` | Clamp values of an image | [func@clamp] |
+| `clamp` | Clamp values of an image | [method@Image.clamp] |
 | `colourspace` | Convert to a new colorspace | [method@Image.colourspace] |
 | `compass` | Convolve with rotating mask | [method@Image.compass] |
 | `complex` | Perform a complex operation on an image | [method@Image.complex], [method@Image.polar], [method@Image.rect], [method@Image.conj] |
@@ -119,7 +119,7 @@ API docs each function links to for more details.
 | `draw_smudge` | Blur a rectangle on an image | [method@Image.draw_smudge] |
 | `dzsave` | Save image to deepzoom file | [method@Image.dzsave] |
 | `dzsave_buffer` | Save image to dz buffer | [method@Image.dzsave_buffer] |
-| `dzsave_target` | Save image to deepzoom target | [func@dzsave_target] |
+| `dzsave_target` | Save image to deepzoom target | [method@Image.dzsave_target] |
 | `embed` | Embed an image in a larger image | [method@Image.embed] |
 | `extract_area` | Extract an area from an image | [method@Image.extract_area], [method@Image.crop] |
 | `extract_band` | Extract band from an image | [method@Image.extract_band] |
@@ -128,8 +128,8 @@ API docs each function links to for more details.
 | `fastcor` | Fast correlation | [method@Image.fastcor] |
 | `fill_nearest` | Fill image zeros with nearest non-zero pixel | [method@Image.fill_nearest] |
 | `find_trim` | Search an image for non-edge areas | [method@Image.find_trim] |
-| `fitsload` | Load a fits image | [func@fitsload] |
-| `fitsload_source` | Load fits from a source | [func@fitsload_source] |
+| `fitsload` | Load a fits image | [method@Image.fitsload] |
+| `fitsload_source` | Load fits from a source | [method@Image.fitsload_source] |
 | `fitssave` | Save image to fits file | [method@Image.fitssave] |
 | `flatten` | Flatten alpha out of an image | [method@Image.flatten] |
 | `flip` | Flip an image | [method@Image.flip] |
@@ -178,7 +178,7 @@ API docs each function links to for more details.
 | `ifthenelse` | Ifthenelse an image | [method@Image.ifthenelse] |
 | `insert` | Insert image @sub into @main at @x, @y | [method@Image.insert] |
 | `invert` | Invert an image | [method@Image.invert] |
-| `invertlut` | Build an inverted look-up table | [func@invertlut] |
+| `invertlut` | Build an inverted look-up table | [method@Image.invertlut] |
 | `invfft` | Inverse fft | [method@Image.invfft] |
 | `join` | Join a pair of images | [method@Image.join] |
 | `jp2kload` | Load jpeg2000 image | [func@jp2kload] |
@@ -194,12 +194,12 @@ API docs each function links to for more details.
 | `jpegsave_buffer` | Save image to jpeg buffer | [method@Image.jpegsave_buffer] |
 | `jpegsave_mime` | Save image to jpeg mime | [method@Image.jpegsave_mime] |
 | `jpegsave_target` | Save image to jpeg target | [method@Image.jpegsave_target] |
-| `jxlload` | Load jpeg-xl image | [func@jxlload] |
+| `jxlload` | Load jpeg-xl image | [method@Image.jxlload] |
 | `jxlload_buffer` | Load jpeg-xl image | [func@jxlload_buffer] |
 | `jxlload_source` | Load jpeg-xl image | [func@jxlload_source] |
-| `jxlsave` | Save image in jpeg-xl format | [func@jxlsave] |
-| `jxlsave_buffer` | Save image in jpeg-xl format | [func@jxlsave_buffer] |
-| `jxlsave_target` | Save image in jpeg-xl format | [func@jxlsave_target] |
+| `jxlsave` | Save image in jpeg-xl format | [method@Image.jxlsave] |
+| `jxlsave_buffer` | Save image in jpeg-xl format | [method@Image.jxlsave_buffer] |
+| `jxlsave_target` | Save image in jpeg-xl format | [method@Image.jxlsave_target] |
 | `labelregions` | Label regions in an image | [method@Image.labelregions] |
 | `linear` | Calculate (a * in + b) | [method@Image.linear], [method@Image.linear1] |
 | `linecache` | Cache an image as a set of lines | [method@Image.linecache] |
@@ -228,16 +228,16 @@ API docs each function links to for more details.
 | `matrixinvert` | Invert a matrix | [method@Image.matrixinvert] |
 | `matrixload` | Load matrix | [func@matrixload] |
 | `matrixload_source` | Load matrix | [func@matrixload_source] |
-| `matrixmultiply` | Multiply two matrices | [func@matrixmultiply] |
+| `matrixmultiply` | Multiply two matrices | [method@Image.matrixmultiply] |
 | `matrixprint` | Print matrix | [method@Image.matrixprint] |
 | `matrixsave` | Save image to matrix | [method@Image.matrixsave] |
 | `matrixsave_target` | Save image to matrix | [method@Image.matrixsave_target] |
 | `max` | Find image maximum | [method@Image.max] |
-| `maxpair` | Maximum of a pair of images | [func@maxpair] |
+| `maxpair` | Maximum of a pair of images | [method@Image.maxpair] |
 | `measure` | Measure a set of patches on a color chart | [method@Image.measure] |
 | `merge` | Merge two images | [method@Image.merge] |
 | `min` | Find image minimum | [method@Image.min] |
-| `minpair` | Minimum of a pair of images | [func@minpair] |
+| `minpair` | Minimum of a pair of images | [method@Image.minpair] |
 | `morph` | Morphology operation | [method@Image.morph] |
 | `mosaic` | Mosaic two images | [method@Image.mosaic] |
 | `mosaic1` | First-order mosaic of two images | [method@Image.mosaic1] |
@@ -245,7 +245,7 @@ API docs each function links to for more details.
 | `multiply` | Multiply two images | [method@Image.multiply] |
 | `niftiload` | Load nifti volume | [func@niftiload] |
 | `niftiload_source` | Load nifti volumes | [func@niftiload_source] |
-| `niftisave` | Save image to nifti file | [func@niftisave] |
+| `niftisave` | Save image to nifti file | [method@Image.niftisave] |
 | `openexrload` | Load an openexr image | [func@openexrload] |
 | `openslideload` | Load file with openslide | [func@openslideload] |
 | `openslideload_source` | Load source with openslide | [func@openslideload_source] |
@@ -266,7 +266,7 @@ API docs each function links to for more details.
 | `ppmsave` | Save image to ppm file | [method@Image.ppmsave] |
 | `ppmsave_target` | Save to ppm | [method@Image.ppmsave_target] |
 | `premultiply` | Premultiply image alpha | [method@Image.premultiply] |
-| `prewitt` | Prewitt edge detector | [func@prewitt] |
+| `prewitt` | Prewitt edge detector | [method@Image.prewitt] |
 | `profile` | Find image profiles | [method@Image.profile] |
 | `profile_load` | Load named icc profile | [func@profile_load] |
 | `project` | Find image projections | [method@Image.project] |
@@ -281,8 +281,8 @@ API docs each function links to for more details.
 | `rank` | Rank filter | [method@Image.rank], [method@Image.median] |
 | `rawload` | Load raw data from a file | [func@rawload] |
 | `rawsave` | Save image to raw file | [method@Image.rawsave] |
-| `rawsave_buffer` | Write raw image to buffer | [func@rawsave_buffer] |
-| `rawsave_target` | Write raw image to target | [func@rawsave_target] |
+| `rawsave_buffer` | Write raw image to buffer | [method@Image.rawsave_buffer] |
+| `rawsave_target` | Write raw image to target | [method@Image.rawsave_target] |
 | `recomb` | Linear recombination with matrix | [method@Image.recomb] |
 | `reduce` | Reduce an image | [method@Image.reduce] |
 | `reduceh` | Shrink an image horizontally | [method@Image.reduceh] |
@@ -303,7 +303,7 @@ API docs each function links to for more details.
 | `scRGB2XYZ` | Transform scrgb to xyz | [method@Image.scRGB2XYZ] |
 | `scRGB2sRGB` | Convert an scrgb image to srgb | [method@Image.scRGB2sRGB] |
 | `scale` | Scale an image to uchar | [method@Image.scale] |
-| `scharr` | Scharr edge detector | [func@scharr] |
+| `scharr` | Scharr edge detector | [method@Image.scharr] |
 | `sdf` | Create an sdf image | [func@sdf] |
 | `sequential` | Check sequential access | [method@Image.sequential] |
 | `sharpen` | Unsharp masking for print | [method@Image.sharpen] |
@@ -337,7 +337,7 @@ API docs each function links to for more details.
 | `tiffload_source` | Load tiff from source | [func@tiffload_source] |
 | `tiffsave` | Save image to tiff file | [method@Image.tiffsave] |
 | `tiffsave_buffer` | Save image to tiff buffer | [method@Image.tiffsave_buffer] |
-| `tiffsave_target` | Save image to tiff target | [func@tiffsave_target] |
+| `tiffsave_target` | Save image to tiff target | [method@Image.tiffsave_target] |
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [func@tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
@@ -351,7 +351,7 @@ API docs each function links to for more details.
 | `webpload_source` | Load webp from source | [func@webpload_source] |
 | `webpsave` | Save as webp | [method@Image.webpsave] |
 | `webpsave_buffer` | Save as webp | [method@Image.webpsave_buffer] |
-| `webpsave_mime` | Save image to webp mime | [func@webpsave_mime] |
+| `webpsave_mime` | Save image to webp mime | [method@Image.webpsave_mime] |
 | `webpsave_target` | Save as webp | [method@Image.webpsave_target] |
 | `worley` | Make a worley noise image | [func@worley] |
 | `wrap` | Wrap image origin | [method@Image.wrap] |
