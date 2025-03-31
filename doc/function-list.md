@@ -65,7 +65,7 @@ API docs each function links to for more details.
 | `add` | Add two images | [method@Image.add] |
 | `addalpha` | Append an alpha channel | [method@Image.addalpha] |
 | `affine` | Affine transform of an image | [method@Image.affine] |
-| `analyzeload` | Load an analyze6 image | [func@analyzeload] |
+| `analyzeload` | Load an analyze6 image | [ctor@Image.analyzeload] |
 | `arrayjoin` | Join an array of images | [func@arrayjoin] |
 | `autorot` | Autorotate image by exif tag | [method@Image.autorot] |
 | `avg` | Find image average | [method@Image.avg] |
@@ -101,8 +101,8 @@ API docs each function links to for more details.
 | `convsep` | Separable convolution operation | [method@Image.convsep] |
 | `copy` | Copy an image | [method@Image.copy] |
 | `countlines` | Count lines in an image | [method@Image.countlines] |
-| `csvload` | Load csv | [func@csvload] |
-| `csvload_source` | Load csv | [func@csvload_source] |
+| `csvload` | Load csv | [ctor@Image.csvload] |
+| `csvload_source` | Load csv | [ctor@Image.csvload_source] |
 | `csvsave` | Save image to csv | [method@Image.csvsave] |
 | `csvsave_target` | Save image to csv | [method@Image.csvsave_target] |
 | `dE00` | Calculate de00 | [method@Image.dE00] |
@@ -128,8 +128,8 @@ API docs each function links to for more details.
 | `fastcor` | Fast correlation | [method@Image.fastcor] |
 | `fill_nearest` | Fill image zeros with nearest non-zero pixel | [method@Image.fill_nearest] |
 | `find_trim` | Search an image for non-edge areas | [method@Image.find_trim] |
-| `fitsload` | Load a fits image | [func@fitsload] |
-| `fitsload_source` | Load fits from a source | [func@fitsload_source] |
+| `fitsload` | Load a fits image | [ctor@Image.fitsload] |
+| `fitsload_source` | Load fits from a source | [ctor@Image.fitsload_source] |
 | `fitssave` | Save image to fits file | [method@Image.fitssave] |
 | `flatten` | Flatten alpha out of an image | [method@Image.flatten] |
 | `flip` | Flip an image | [method@Image.flip] |
@@ -142,9 +142,9 @@ API docs each function links to for more details.
 | `gaussmat` | Make a gaussian image | [func@gaussmat] |
 | `gaussnoise` | Make a gaussnoise image | [func@gaussnoise] |
 | `getpoint` | Read a point from an image | [method@Image.getpoint] |
-| `gifload` | Load gif with libnsgif | [func@gifload] |
-| `gifload_buffer` | Load gif with libnsgif | [func@gifload_buffer] |
-| `gifload_source` | Load gif from source | [func@gifload_source] |
+| `gifload` | Load gif with libnsgif | [ctor@Image.gifload] |
+| `gifload_buffer` | Load gif with libnsgif | [ctor@Image.gifload_buffer] |
+| `gifload_source` | Load gif from source | [ctor@Image.gifload_source] |
 | `gifsave` | Save as gif | [method@Image.gifsave] |
 | `gifsave_buffer` | Save as gif | [method@Image.gifsave_buffer] |
 | `gifsave_target` | Save as gif | [method@Image.gifsave_target] |
@@ -152,9 +152,9 @@ API docs each function links to for more details.
 | `gravity` | Place an image within a larger image with a certain gravity | [method@Image.gravity] |
 | `grey` | Make a grey ramp image | [func@grey] |
 | `grid` | Grid an image | [method@Image.grid] |
-| `heifload` | Load a heif image | [func@heifload] |
-| `heifload_buffer` | Load a heif image | [func@heifload_buffer] |
-| `heifload_source` | Load a heif image | [func@heifload_source] |
+| `heifload` | Load a heif image | [ctor@Image.heifload] |
+| `heifload_buffer` | Load a heif image | [ctor@Image.heifload_buffer] |
+| `heifload_source` | Load a heif image | [ctor@Image.heifload_source] |
 | `heifsave` | Save image in heif format | [method@Image.heifsave] |
 | `heifsave_buffer` | Save image in heif format | [method@Image.heifsave_buffer] |
 | `heifsave_target` | Save image in heif format | [method@Image.heifsave_target] |
@@ -181,22 +181,22 @@ API docs each function links to for more details.
 | `invertlut` | Build an inverted look-up table | [method@Image.invertlut] |
 | `invfft` | Inverse fft | [method@Image.invfft] |
 | `join` | Join a pair of images | [method@Image.join] |
-| `jp2kload` | Load jpeg2000 image | [func@jp2kload] |
-| `jp2kload_buffer` | Load jpeg2000 image | [func@jp2kload_buffer] |
-| `jp2kload_source` | Load jpeg2000 image | [func@jp2kload_source] |
+| `jp2kload` | Load jpeg2000 image | [ctor@Image.jp2kload] |
+| `jp2kload_buffer` | Load jpeg2000 image | [ctor@Image.jp2kload_buffer] |
+| `jp2kload_source` | Load jpeg2000 image | [ctor@Image.jp2kload_source] |
 | `jp2ksave` | Save image in jpeg2000 format | [method@Image.jp2ksave] |
 | `jp2ksave_buffer` | Save image in jpeg2000 format | [method@Image.jp2ksave_buffer] |
 | `jp2ksave_target` | Save image in jpeg2000 format | [method@Image.jp2ksave_target] |
-| `jpegload` | Load jpeg from file | [func@jpegload] |
-| `jpegload_buffer` | Load jpeg from buffer | [func@jpegload_buffer] |
-| `jpegload_source` | Load image from jpeg source | [func@jpegload_source] |
+| `jpegload` | Load jpeg from file | [ctor@Image.jpegload] |
+| `jpegload_buffer` | Load jpeg from buffer | [ctor@Image.jpegload_buffer] |
+| `jpegload_source` | Load image from jpeg source | [ctor@Image.jpegload_source] |
 | `jpegsave` | Save image to jpeg file | [method@Image.jpegsave] |
 | `jpegsave_buffer` | Save image to jpeg buffer | [method@Image.jpegsave_buffer] |
 | `jpegsave_mime` | Save image to jpeg mime | [method@Image.jpegsave_mime] |
 | `jpegsave_target` | Save image to jpeg target | [method@Image.jpegsave_target] |
-| `jxlload` | Load jpeg-xl image | [func@jxlload] |
-| `jxlload_buffer` | Load jpeg-xl image | [func@jxlload_buffer] |
-| `jxlload_source` | Load jpeg-xl image | [func@jxlload_source] |
+| `jxlload` | Load jpeg-xl image | [ctor@Image.jxlload] |
+| `jxlload_buffer` | Load jpeg-xl image | [ctor@Image.jxlload_buffer] |
+| `jxlload_source` | Load jpeg-xl image | [ctor@Image.jxlload_source] |
 | `jxlsave` | Save image in jpeg-xl format | [method@Image.jxlsave] |
 | `jxlsave_buffer` | Save image in jpeg-xl format | [method@Image.jxlsave_buffer] |
 | `jxlsave_target` | Save image in jpeg-xl format | [method@Image.jxlsave_target] |
@@ -204,8 +204,8 @@ API docs each function links to for more details.
 | `linear` | Calculate (a * in + b) | [method@Image.linear], [method@Image.linear1] |
 | `linecache` | Cache an image as a set of lines | [method@Image.linecache] |
 | `logmat` | Make a laplacian of gaussian image | [func@logmat] |
-| `magickload` | Load file with imagemagick | [func@magickload] |
-| `magickload_buffer` | Load buffer with imagemagick | [func@magickload_buffer] |
+| `magickload` | Load file with imagemagick | [ctor@Image.magickload] |
+| `magickload_buffer` | Load buffer with imagemagick | [ctor@Image.magickload_buffer] |
 | `magicksave` | Save file with imagemagick | [method@Image.magicksave] |
 | `magicksave_buffer` | Save image to magick buffer | [method@Image.magicksave_buffer] |
 | `mapim` | Resample with a map image | [method@Image.mapim] |
@@ -224,10 +224,10 @@ API docs each function links to for more details.
 | `math` | Apply a math operation to an image | [method@Image.math], [method@Image.sin], [method@Image.cos], [method@Image.tan], [method@Image.asin], [method@Image.acos], [method@Image.atan], [method@Image.sinh], [method@Image.cosh], [method@Image.tanh], [method@Image.asinh], [method@Image.acosh], [method@Image.atanh], [method@Image.exp], [method@Image.exp10], [method@Image.log], [method@Image.log10] |
 | `math2` | Binary math operations | [method@Image.math2], [method@Image.pow], [method@Image.wop], [method@Image.atan2] |
 | `math2_const` | Binary math operations with a constant | [method@Image.math2_const], [method@Image.andimage_const], [method@Image.orimage_const], [method@Image.eorimage_const], [method@Image.lshift_const], [method@Image.rshift_const], [method@Image.math2_const1], [method@Image.andimage_const1], [method@Image.orimage_const1], [method@Image.eorimage_const1], [method@Image.lshift_const1], [method@Image.rshift_const1] |
-| `matload` | Load mat from file | [func@matload] |
+| `matload` | Load mat from file | [ctor@Image.matload] |
 | `matrixinvert` | Invert a matrix | [method@Image.matrixinvert] |
-| `matrixload` | Load matrix | [func@matrixload] |
-| `matrixload_source` | Load matrix | [func@matrixload_source] |
+| `matrixload` | Load matrix | [ctor@Image.matrixload] |
+| `matrixload_source` | Load matrix | [ctor@Image.matrixload_source] |
 | `matrixmultiply` | Multiply two matrices | [method@Image.matrixmultiply] |
 | `matrixprint` | Print matrix | [method@Image.matrixprint] |
 | `matrixsave` | Save image to matrix | [method@Image.matrixsave] |
@@ -243,43 +243,43 @@ API docs each function links to for more details.
 | `mosaic1` | First-order mosaic of two images | [method@Image.mosaic1] |
 | `msb` | Pick most-significant byte from an image | [method@Image.msb] |
 | `multiply` | Multiply two images | [method@Image.multiply] |
-| `niftiload` | Load nifti volume | [func@niftiload] |
-| `niftiload_source` | Load nifti volumes | [func@niftiload_source] |
+| `niftiload` | Load nifti volume | [ctor@Image.niftiload] |
+| `niftiload_source` | Load nifti volumes | [ctor@Image.niftiload_source] |
 | `niftisave` | Save image to nifti file | [method@Image.niftisave] |
-| `openexrload` | Load an openexr image | [func@openexrload] |
-| `openslideload` | Load file with openslide | [func@openslideload] |
-| `openslideload_source` | Load source with openslide | [func@openslideload_source] |
-| `pdfload` | Load pdf from file | [func@pdfload] |
-| `pdfload_buffer` | Load pdf from buffer | [func@pdfload_buffer] |
-| `pdfload_source` | Load pdf from source | [func@pdfload_source] |
+| `openexrload` | Load an openexr image | [ctor@Image.openexrload] |
+| `openslideload` | Load file with openslide | [ctor@Image.openslideload] |
+| `openslideload_source` | Load source with openslide | [ctor@Image.openslideload_source] |
+| `pdfload` | Load pdf from file | [ctor@Image.pdfload] |
+| `pdfload_buffer` | Load pdf from buffer | [ctor@Image.pdfload_buffer] |
+| `pdfload_source` | Load pdf from source | [ctor@Image.pdfload_source] |
 | `percent` | Find threshold for percent of pixels | [method@Image.percent] |
 | `perlin` | Make a perlin noise image | [func@perlin] |
 | `phasecor` | Calculate phase correlation | [method@Image.phasecor] |
-| `pngload` | Load png from file | [func@pngload] |
-| `pngload_buffer` | Load png from buffer | [func@pngload_buffer] |
-| `pngload_source` | Load png from source | [func@pngload_source] |
+| `pngload` | Load png from file | [ctor@Image.pngload] |
+| `pngload_buffer` | Load png from buffer | [ctor@Image.pngload_buffer] |
+| `pngload_source` | Load png from source | [ctor@Image.pngload_source] |
 | `pngsave` | Save image to file as png | [method@Image.pngsave] |
 | `pngsave_buffer` | Save image to buffer as png | [method@Image.pngsave_buffer] |
 | `pngsave_target` | Save image to target as png | [method@Image.pngsave_target] |
-| `ppmload` | Load ppm from file | [func@ppmload] |
-| `ppmload_source` | Load ppm base class | [func@ppmload_source] |
+| `ppmload` | Load ppm from file | [ctor@Image.ppmload] |
+| `ppmload_source` | Load ppm base class | [ctor@Image.ppmload_source] |
 | `ppmsave` | Save image to ppm file | [method@Image.ppmsave] |
 | `ppmsave_target` | Save to ppm | [method@Image.ppmsave_target] |
 | `premultiply` | Premultiply image alpha | [method@Image.premultiply] |
 | `prewitt` | Prewitt edge detector | [method@Image.prewitt] |
 | `profile` | Find image profiles | [method@Image.profile] |
-| `profile_load` | Load named icc profile | [func@profile_load] |
+| `profile_load` | Load named icc profile | [ctor@Image.profile_load] |
 | `project` | Find image projections | [method@Image.project] |
 | `quadratic` | Resample an image with a quadratic transform | [method@Image.quadratic] |
 | `rad2float` | Unpack radiance coding to float rgb | [method@Image.rad2float] |
-| `radload` | Load a radiance image from a file | [func@radload] |
-| `radload_buffer` | Load rad from buffer | [func@radload_buffer] |
-| `radload_source` | Load rad from source | [func@radload_source] |
+| `radload` | Load a radiance image from a file | [ctor@Image.radload] |
+| `radload_buffer` | Load rad from buffer | [ctor@Image.radload_buffer] |
+| `radload_source` | Load rad from source | [ctor@Image.radload_source] |
 | `radsave` | Save image to radiance file | [method@Image.radsave] |
 | `radsave_buffer` | Save image to radiance buffer | [method@Image.radsave_buffer] |
 | `radsave_target` | Save image to radiance target | [method@Image.radsave_target] |
 | `rank` | Rank filter | [method@Image.rank], [method@Image.median] |
-| `rawload` | Load raw data from a file | [func@rawload] |
+| `rawload` | Load raw data from a file | [ctor@Image.rawload] |
 | `rawsave` | Save image to raw file | [method@Image.rawsave] |
 | `rawsave_buffer` | Write raw image to buffer | [method@Image.rawsave_buffer] |
 | `rawsave_target` | Write raw image to target | [method@Image.rawsave_target] |
@@ -322,9 +322,9 @@ API docs each function links to for more details.
 | `subsample` | Subsample an image | [method@Image.subsample] |
 | `subtract` | Subtract two images | [method@Image.subtract] |
 | `sum` | Sum an array of images | [func@sum] |
-| `svgload` | Load svg with rsvg | [func@svgload] |
-| `svgload_buffer` | Load svg with rsvg | [func@svgload_buffer] |
-| `svgload_source` | Load svg from source | [func@svgload_source] |
+| `svgload` | Load svg with rsvg | [ctor@Image.svgload] |
+| `svgload_buffer` | Load svg with rsvg | [ctor@Image.svgload_buffer] |
+| `svgload_source` | Load svg from source | [ctor@Image.svgload_source] |
 | `switch` | Find the index of the first non-zero pixel in tests | [func@switch] |
 | `system` | Run an external command | [func@system] |
 | `text` | Make a text image | [func@text] |
@@ -332,9 +332,9 @@ API docs each function links to for more details.
 | `thumbnail_buffer` | Generate thumbnail from buffer | [func@thumbnail_buffer] |
 | `thumbnail_image` | Generate thumbnail from image | [method@Image.thumbnail_image] |
 | `thumbnail_source` | Generate thumbnail from source | [func@thumbnail_source] |
-| `tiffload` | Load tiff from file | [func@tiffload] |
-| `tiffload_buffer` | Load tiff from buffer | [func@tiffload_buffer] |
-| `tiffload_source` | Load tiff from source | [func@tiffload_source] |
+| `tiffload` | Load tiff from file | [ctor@Image.tiffload] |
+| `tiffload_buffer` | Load tiff from buffer | [ctor@Image.tiffload_buffer] |
+| `tiffload_source` | Load tiff from source | [ctor@Image.tiffload_source] |
 | `tiffsave` | Save image to tiff file | [method@Image.tiffsave] |
 | `tiffsave_buffer` | Save image to tiff buffer | [method@Image.tiffsave_buffer] |
 | `tiffsave_target` | Save image to tiff target | [method@Image.tiffsave_target] |
@@ -342,13 +342,13 @@ API docs each function links to for more details.
 | `tonelut` | Build a look-up table | [func@tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
 | `unpremultiply` | Unpremultiply image alpha | [method@Image.unpremultiply] |
-| `vipsload` | Load vips from file | [func@vipsload] |
-| `vipsload_source` | Load vips from source | [func@vipsload_source] |
+| `vipsload` | Load vips from file | [ctor@Image.vipsload] |
+| `vipsload_source` | Load vips from source | [ctor@Image.vipsload_source] |
 | `vipssave` | Save image to file in vips format | [method@Image.vipssave] |
 | `vipssave_target` | Save image to target in vips format | [method@Image.vipssave_target] |
-| `webpload` | Load webp from file | [func@webpload] |
-| `webpload_buffer` | Load webp from buffer | [func@webpload_buffer] |
-| `webpload_source` | Load webp from source | [func@webpload_source] |
+| `webpload` | Load webp from file | [ctor@Image.webpload] |
+| `webpload_buffer` | Load webp from buffer | [ctor@Image.webpload_buffer] |
+| `webpload_source` | Load webp from source | [ctor@Image.webpload_source] |
 | `webpsave` | Save as webp | [method@Image.webpsave] |
 | `webpsave_buffer` | Save as webp | [method@Image.webpsave_buffer] |
 | `webpsave_mime` | Save image to webp mime | [method@Image.webpsave_mime] |

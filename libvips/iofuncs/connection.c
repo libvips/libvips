@@ -62,7 +62,7 @@
  *
  * It can be connected to a network socket, for example, or perhaps
  * a Node.js stream, or to an area of memory. This allows it to support
- * operations like JPEG loading, see for example [func@jpegload_source].
+ * operations like JPEG loading, see for example [ctor@Image.jpegload_source].
  *
  * Subclass to add other input sources. Use [class@SourceCustom] and
  * [class@TargetCustom] to make a source or target with action signals.
