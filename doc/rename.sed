@@ -114,8 +114,8 @@ s/vips_\(falsecolour\)()/[method@Image.\1]/g
 s/vips_\(fastcor\)()/[method@Image.\1]/g
 s/vips_\(fill_nearest\)()/[method@Image.\1]/g
 s/vips_\(find_trim\)()/[method@Image.\1]/g
-s/vips_\(fitsload\)()/[method@Image.\1]/g
-s/vips_\(fitsload_source\)()/[method@Image.\1]/g
+s/vips_\(fitsload\)()/[func@\1]/g
+s/vips_\(fitsload_source\)()/[func@\1]/g
 s/vips_\(fitssave\)()/[method@Image.\1]/g
 s/vips_\(flatten\)()/[method@Image.\1]/g
 s/vips_\(flip\)()/[method@Image.\1]/g
@@ -166,7 +166,7 @@ s/vips_\(jpegsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(jpegsave\)()/[method@Image.\1]/g
 s/vips_\(jpegsave_mime\)()/[method@Image.\1]/g
 s/vips_\(jpegsave_target\)()/[method@Image.\1]/g
-s/vips_\(jxlload\)()/[method@Image.\1]/g
+s/vips_\(jxlload\)()/[func@\1]/g
 s/vips_\(jxlsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(jxlsave\)()/[method@Image.\1]/g
 s/vips_\(jxlsave_target\)()/[method@Image.\1]/g

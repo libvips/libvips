@@ -628,6 +628,9 @@ VIPS_API
 int vips_fitsload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_fitsload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_fitssave(VipsImage *in, const char *filename, ...)
 	G_GNUC_NULL_TERMINATED;
 

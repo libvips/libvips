@@ -138,10 +138,10 @@ libvips has a set of C wrapper functions for calling operators, in this
 case [method@Image.gamma]:
 
 ```c
-  VipsImage *fred = ...;
-  VipsImage *jim;
+VipsImage *fred = ...;
+VipsImage *jim;
 
-  if (vips_gamma(fred, &jim, NULL))
+if (vips_gamma(fred, &jim, NULL))
     ...error;
 ```
 
