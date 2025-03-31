@@ -1845,10 +1845,9 @@ vips_filename_get_options(const char *vips_filename)
  * @name: file to open
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @access: hint [enum@Access] mode to loader
- * * @memory: force load via memory
+ * ::: note "Optional arguments"
+ *     * @access: hint [enum@Access] mode to loader
+ *     * @memory: force load via memory
  *
  * [ctor@Image.new_from_file] opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
