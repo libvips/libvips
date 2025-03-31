@@ -870,12 +870,13 @@ vips_cache_trim(void)
  * Operators that have been tagged as invalid by [signal@Image::invalidate] are
  * removed from cache.
  *
- * Operators with the #VIPS_OPERATION_BLOCKED flag are never executed.
+ * Operators with the [flags@Vips.OperationFlags.BLOCKED] flag are never
+ * executed.
  *
- * Operators with the #VIPS_OPERATION_REVALIDATE flag are always executed and
- * any old cache value is replaced.
+ * Operators with the [flags@Vips.OperationFlags.REVALIDATE] flag are always
+ * executed and any old cache value is replaced.
  *
- * Operators with the #VIPS_OPERATION_NOCACHE flag are never cached.
+ * Operators with the [flags@Vips.OperationFlags.NOCACHE] flag are never cached.
  *
  * Returns: 0 on success, or -1 on error.
  */
