@@ -69,5 +69,8 @@ test('doc-check-vips',
     vips_gir[0],
   ],
   depends: vips_gir[0],
-  suite: ['docs', 'failing'],
+  # FIXME: Remove once we have documented all public-facing symbols,
+  # parameters and return values.
+  should_fail: true,
+  suite: ['docs'],
 )
