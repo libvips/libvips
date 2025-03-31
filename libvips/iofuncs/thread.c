@@ -114,6 +114,16 @@ vips_thread_run(gpointer data)
 	return result;
 }
 
+/**
+ * vips_g_thread_new:
+ * @domain: (nullable): an (optional) name for the new thread
+ * @func: (scope async) (closure data): a function to execute in the new thread
+ * @data: (nullable): an argument to supply to the new thread
+ *
+ * Wrapper for g_thread_try_new().
+ *
+ * Returns: (transfer full): the new #GThread, or %NULL if an error occurred
+ */
 GThread *
 vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
 {

@@ -161,7 +161,7 @@ vips_minpair_init(VipsMinpair *minpair)
 }
 
 /**
- * vips_minpair:
+ * vips_minpair: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image

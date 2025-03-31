@@ -295,7 +295,7 @@ vips_booleanv(VipsImage *left, VipsImage *right, VipsImage **out,
 }
 
 /**
- * vips_boolean:
+ * vips_boolean: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -339,7 +339,7 @@ vips_boolean(VipsImage *left, VipsImage *right, VipsImage **out,
 }
 
 /**
- * vips_andimage:
+ * vips_andimage: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -365,7 +365,7 @@ vips_andimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_orimage:
+ * vips_orimage: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -391,7 +391,7 @@ vips_orimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_eorimage:
+ * vips_eorimage: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -417,7 +417,7 @@ vips_eorimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_lshift:
+ * vips_lshift: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -443,7 +443,7 @@ vips_lshift(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_rshift:
+ * vips_rshift: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage

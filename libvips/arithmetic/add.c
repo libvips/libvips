@@ -188,7 +188,7 @@ vips_add_init(VipsAdd *add)
 }
 
 /**
- * vips_add:
+ * vips_add: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image

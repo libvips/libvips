@@ -105,39 +105,23 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: region
- * @short_description: small, rectangular parts of images
- * @stability: Stable
- * @see_also: <link linkend="VipsImage">image</link>,
- * <link linkend="libvips-generate">generate</link>
- * @include: vips/vips.h
+ * VipsRegion:
  *
- * A #VipsRegion is a small part of an image. You use regions to
- * read pixels out of images without having to have the whole image in memory
- * at once.
+ * A [class@Region] represents a small, rectangular part of an image.
+ *
+ * You use regions to read pixels out of images without having to have the
+ * whole image in memory at once.
  *
  * A region can be a memory buffer, part of a memory-mapped file, part of some
  * other image, or part of some other region.
  *
  * Regions must be created, used and freed all within the same thread, since
- * they can reference private per-thread caches. VIPS sanity-checks region
- * ownership in various places, so you are likely to see g_assert() errors if
- * you don't follow this rule.
+ * they can reference private per-thread caches. libvips sanity-checks region
+ * ownership in various places, so you are likely to see [func@GLib.assert]
+ * errors if you don't follow this rule.
  *
- * There
- * is API to transfer ownership of regions between threads, but hopefully this
- * is only needed within VIPS, so we don't expose it. Hopefully.
- */
-
-/**
- * VipsRegion:
- * @im: the #VipsImage that this region is defined on
- * @valid: the #VipsRect of pixels that this region represents
- *
- * A small part of a #VipsImage. @valid holds the left/top/width/height of the
- * area of pixels that are available from the region.
- *
- * See also: VIPS_REGION_ADDR(), vips_region_new(), vips_region_prepare().
+ * There is API to transfer ownership of regions between threads, but
+ * (hopefully) this is only needed within libvips, so we don't expose it.
  */
 
 /**

@@ -1,13 +1,6 @@
-  <refmeta>
-    <refentrytitle>Multipage and animated images</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
+Title: Processing multipage and animated images
 
-  <refnamediv>
-    <refname>Multipage and animated images</refname>
-    <refpurpose>Processing multipage and animated images</refpurpose>
-  </refnamediv>
+# Processing multipage and animated images
 
 libvips represents animated and multipage images as tall, thin strips of
 frames, like a strip of movie film (or a roll of toilet paper). Special image
@@ -17,11 +10,11 @@ frame delay or loop settings.
 At least the JXL, GIF and WebP loaders and savers support animation,
 and the TIFF, PDF, HEIC, AVIF and VIPS loaders and savers support multipage.
 
-# Reading multipage images
+## Reading multipage images
 
 For example, at the command-line, try:
 
-```
+```bash
 $ vipsheader -a silver-gear-cogs-animation-5.gif[n=-1]
 silver-gear-cogs-animation-5.gif: 281x2560 uchar, 4 bands, srgb, gifload
 width: 281
@@ -67,7 +60,7 @@ Points to note:
 
 You'll see a similar set of metadata for a multipage image, such as a PDF:
 
-```
+```bash
 $ vipsheader -a nipguide.pdf[n=-1]
 nipguide.pdf: 595x48836 uchar, 4 bands, srgb, pdfload
 width: 595
@@ -97,12 +90,12 @@ This all assumes that every page (or frame) has the same dimensions. If
 they don't (this can commonly happen with PDF and TIFF), you have to read
 pages one by one.
 
-# Writing multipage images
+## Writing multipage images
 
 As long as these various pieces of metadata are set, you can write animated
 and multipage images in the obvious way. For example:
 
-```
+```bash
 $ vips copy nipguide.pdf[n=-1] x.gif
 ```
 
@@ -113,14 +106,14 @@ handled like this.
 
 More usefully, you could convert a GIF to WebP with:
 
-```
+```bash
 $ vips copy silver-gear-cogs-animation-5.gif[n=-1] silver.webp
 ```
 
 To write an animated or multipage image programmatically, you need to
 construct the tall, thin image and set the metadata. For example:
 
-```
+```bash
 $ vips arrayjoin "k2.jpg k4a.png" x.tif[page-height=2048] --across=1
 ```
 
@@ -153,7 +146,7 @@ animation.write_to_file(sys.argv[1])
 
 It's a little more fiddly in C:
 
-```C
+```c
 /* compile with
  *
  * gcc -g -Wall assemble-animated.c `pkg-config vips --cflags --libs`

@@ -100,8 +100,6 @@ typedef struct _VipsOperationClass {
 	void (*invalidate)(VipsOperation *operation);
 } VipsOperationClass;
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_operation_get_type(void);
 

@@ -265,7 +265,7 @@ vips_relationalv(VipsImage *left, VipsImage *right, VipsImage **out,
 }
 
 /**
- * vips_relational:
+ * vips_relational: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -313,7 +313,7 @@ vips_relational(VipsImage *left, VipsImage *right, VipsImage **out,
 }
 
 /**
- * vips_equal:
+ * vips_equal: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -339,7 +339,7 @@ vips_equal(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_notequal:
+ * vips_notequal: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -365,7 +365,7 @@ vips_notequal(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_more:
+ * vips_more: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -391,7 +391,7 @@ vips_more(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_moreeq:
+ * vips_moreeq: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -417,7 +417,7 @@ vips_moreeq(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_less:
+ * vips_less: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage
@@ -443,7 +443,7 @@ vips_less(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 }
 
 /**
- * vips_lesseq:
+ * vips_lesseq: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage

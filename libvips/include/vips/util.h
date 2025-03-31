@@ -39,7 +39,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <stdio.h>
 #include <math.h>
 
 /* Some platforms don't have M_PI :-(
@@ -285,47 +284,7 @@ int vips_filename_suffix_match(const char *path, const char *suffixes[]);
 
 VIPS_API
 gint64 vips_file_length(int fd);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-int vips__write(int fd, const void *buf, size_t count);
 
-/* TODO(kleisauke): VIPS_API is required by test_connections.
- */
-VIPS_API
-int vips__open(const char *filename, int flags, int mode);
-int vips__open_read(const char *filename);
-FILE *vips__fopen(const char *filename, const char *mode);
-
-FILE *vips__file_open_read(const char *filename,
-	const char *fallback_dir, gboolean text_mode);
-FILE *vips__file_open_write(const char *filename,
-	gboolean text_mode);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-char *vips__file_read(FILE *fp, const char *name, size_t *length_out);
-char *vips__file_read_name(const char *name, const char *fallback_dir,
-	size_t *length_out);
-int vips__file_write(void *data, size_t size, size_t nmemb, FILE *stream);
-/* TODO(kleisauke): VIPS_API is required by the magick module.
- */
-VIPS_API
-gint64 vips__get_bytes(const char *filename, unsigned char buf[], gint64 len);
-int vips__fgetc(FILE *fp);
-
-GValue *vips__gvalue_ref_string_new(const char *text);
-void vips__gslist_gvalue_free(GSList *list);
-GSList *vips__gslist_gvalue_copy(const GSList *list);
-GSList *vips__gslist_gvalue_merge(GSList *a, const GSList *b);
-char *vips__gslist_gvalue_get(const GSList *list);
-
-gint64 vips__seek_no_error(int fd, gint64 pos, int whence);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-gint64 vips__seek(int fd, gint64 pos, int whence);
-int vips__ftruncate(int fd, gint64 pos);
 VIPS_API
 int vips_existsf(const char *name, ...)
 	G_GNUC_PRINTF(1, 2);
@@ -342,7 +301,7 @@ VIPS_API
 int vips_rename(const char *old_name, const char *new_name);
 
 /**
- * VipsToken:
+ * VipsToken: (skip)
  * @VIPS_TOKEN_LEFT: left bracket
  * @VIPS_TOKEN_RIGHT: right bracket
  * @VIPS_TOKEN_STRING: string constant
@@ -356,7 +315,6 @@ int vips_rename(const char *old_name, const char *new_name);
  *
  * Strings may be in double quotes, and may contain escaped quote characters,
  * for example string, "string" and "str\"ing".
- *
  */
 typedef enum {
 	VIPS_TOKEN_LEFT = 1,
@@ -366,48 +324,22 @@ typedef enum {
 	VIPS_TOKEN_COMMA
 } VipsToken;
 
+#ifndef __GI_SCANNER__
+
 // we expose this one in the API for testing
 VIPS_API
 const char *vips__token_get(const char *buffer,
 	VipsToken *token, char *string, int size);
-const char *vips__token_must(const char *buffer, VipsToken *token,
-	char *string, int size);
-const char *vips__token_need(const char *buffer, VipsToken need_token,
-	char *string, int size);
-const char *vips__token_segment(const char *p, VipsToken *token,
-	char *string, int size);
-const char *vips__token_segment_need(const char *p, VipsToken need_token,
-	char *string, int size);
-const char *vips__find_rightmost_brackets(const char *p);
-/* TODO(kleisauke): VIPS_API is required by libvips-cpp and vipsheader.
- */
-VIPS_API
-void vips__filename_split8(const char *name,
-	char *filename, char *option_string);
+
+#endif /* !__GI_SCANNER__ */
 
 VIPS_API
 int vips_ispoweroftwo(int p);
 VIPS_API
 int vips_amiMSBfirst(void);
 
-/* TODO(kleisauke): VIPS_API is required by jpegsave_file_fuzzer.
- */
-VIPS_API
-char *vips__temp_name(const char *format);
-
-void vips__change_suffix(const char *name, char *out, int mx,
-	const char *new_suff, const char **olds, int nolds);
-
 VIPS_API
 char *vips_realpath(const char *path);
-
-guint32 vips__random(guint32 seed);
-guint32 vips__random_add(guint32 seed, int value);
-
-const char *vips__icc_dir(void);
-const char *vips__windows_prefix(void);
-
-char *vips__get_iso8601(void);
 
 VIPS_API
 int vips_strtod(const char *str, double *out);

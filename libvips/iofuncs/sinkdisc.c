@@ -484,8 +484,8 @@ write_free(Write *write)
 /**
  * vips_sink_disc: (method)
  * @im: image to process
- * @write_fn: (scope call): called for every batch of pixels
- * @a: (closure write_fn): client data
+ * @write_fn: (scope call) (closure a): called for every batch of pixels
+ * @a: client data
  *
  * vips_sink_disc() loops over @im, top-to-bottom, generating it in sections.
  * As each section is produced, @write_fn is called.

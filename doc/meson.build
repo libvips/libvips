@@ -1,160 +1,73 @@
-private_libvips_headers = [
-    'arithmetic/binary.h',
-    'arithmetic/hough.h',
-    'arithmetic/nary.h',
-    'arithmetic/parithmetic.h',
-    'arithmetic/statistic.h',
-    'arithmetic/unaryconst.h',
-    'arithmetic/unary.h',
-    'colour/pcolour.h',
-    'colour/profiles.h',
-    'conversion/bandary.h',
-    'conversion/pconversion.h',
-    'convolution/correlation.h',
-    'convolution/pconvolution.h',
-    'create/pcreate.h',
-    'create/pmask.h',
-    'create/point.h',
-    'draw/drawink.h',
-    'draw/pdraw.h',
-    'foreign/dbh.h',
-    'foreign/jpeg.h',
-    'foreign/libnsgif/lzw.h',
-    'foreign/libnsgif/nsgif.h',
-    'foreign/libnsgif/test/cli.h',
-    'foreign/magick.h',
-    'foreign/pforeign.h',
-    'foreign/quantise.h',
-    'foreign/tiff.h',
-    'freqfilt/pfreqfilt.h',
-    'histogram/hist_unary.h',
-    'histogram/phistogram.h',
-    'include/vips/almostdeprecated.h',
-    'include/vips/deprecated.h',
-    'include/vips/dispatch.h',
-    'include/vips/format.h',
-    'include/vips/internal.h',
-    'include/vips/intl.h',
-    'include/vips/mask.h',
-    'include/vips/private.h',
-    'include/vips/thread.h',
-    'include/vips/video.h',
-    'include/vips/vips7compat.h',
-    'iofuncs/sink.h',
-    'morphology/pmorphology.h',
-    'mosaicing/global_balance.h',
-    'mosaicing/pmosaicing.h',
-    'resample/presample.h',
-    'resample/templates.h',
-]
+gidocgen = find_program('gi-docgen')
 
-private_headers = []
-foreach private_libvips_header : private_libvips_headers
-    private_headers += [project_source_root / 'libvips' / private_libvips_header]
-endforeach
-
-markdown_content_files = files(
-    'binding.md',
-    'Cite.md',
-    'Developer-checklist.md',
-    'Examples.md',
-    'How-it-opens-files.md',
-    'How-it-works.md',
-    'libvips-from-C++.md',
-    'Making-image-pyramids.md',
-    'Using-vipsthumbnail.md',
-    'multipage-and-animated-images.md',
-)
-
-pandoc = find_program('pandoc', required: false)
-
-if pandoc.found()
-    # we have some files in markdown ... convert to docbook for gtk-doc
-    gen = generator(pandoc,
-        output: '@BASENAME@.xml',
-        arguments: [
-            '@INPUT@',
-            '--template=@0@'.format(meson.current_source_dir() / 'pandoc-docbook-template.docbook'),
-            '--wrap=none',
-            '-V', 'title=@BASENAME@',
-            '-f', 'markdown+smart',
-            '-t', 'docbook',
-            '-o', '@OUTPUT@',
-        ]
-    )
-
-    markdown_content_files_generated = gen.process(markdown_content_files)
-
-    # pandoc makes section headers, we want refsect3 for gtk-doc
-    markdown_content_files_docbook = custom_target('gen-docs',
-        output: 'generated',
-        input: markdown_content_files_generated,
-        command: [ 'sed', '-i', '-e', 's|<section|<refsect3|g', '-e', 's|</section|</refsect3|g', '@INPUT@' ],
-        build_by_default: true
-    )
-else
-    # use the pre-generated docbook files when pandoc is not available
-    markdown_content_files_docbook = files(
-        'binding.xml',
-        'Cite.xml',
-        'Developer-checklist.xml',
-        'Examples.xml',
-        'How-it-opens-files.xml',
-        'How-it-works.xml',
-        'libvips-from-C++.xml',
-        'Making-image-pyramids.xml',
-        'Using-vipsthumbnail.xml',
-        'multipage-and-animated-images.xml',
-    )
+if not enable_introspection
+  error('API reference requires introspection.')
 endif
 
-content_files = files(
-    'extending.xml',
-    'file-format.xml',
-    'function-list.xml',
-    'using-command-line.xml',
-    'using-C.xml',
-    'using-threads.xml',
+docs_dir = get_option('prefix') / get_option('datadir') / 'doc'
+
+vips_content_files = files(
+  'binding.md',
+  'cite.md',
+  'developer-checklist.md',
+  'examples.md',
+  'extending.md',
+  'file-format.md',
+  'function-list.md',
+  'how-it-opens-files.md',
+  'how-it-works.md',
+  'libvips-arithmetic.md',
+  'libvips-header.md',
+  'making-image-pyramids.md',
+  'multipage-and-animated-images.md',
+  'using-from-c.md',
+  'using-from-cplusplus.md',
+  'using-the-cli.md',
+  'using-threads.md',
+  'using-vipsthumbnail.md',
 )
 
-images = files(
-    'images/Combine.png',
-    'images/interconvert.png',
-    'images/Memtrace.png',
-    'images/owl.jpg',
-    'images/Sequence.png',
-    'images/Sink.png',
-    'images/tn_owl.jpg',
-    'images/Vips-smp.png',
+vips_include_dir = meson.current_build_dir() / 'libvips' / 'include'
+doc_conf = configuration_data()
+doc_conf.set('VIPS_VERSION', '@0@.@1@'.format(version_major, version_minor))
+
+vips_toml = configure_file(
+  input: 'vips.toml.in',
+  output: 'vips.toml',
+  configuration: doc_conf,
+  install: true,
+  install_dir: docs_dir / 'vips',
 )
 
-version_conf = configuration_data()
-version_conf.set('VIPS_VERSION', meson.project_version())
-version_xml = configure_file(
-    input: 'version.xml.in',
-    output: '@BASENAME@',
-    configuration: version_conf
+custom_target('libvips-doc',
+  input: [vips_toml, vips_gir[0]],
+  output: 'vips',
+  command: [
+    gidocgen,
+    'generate',
+    '--quiet',
+    '--no-namespace-dir',
+    '--add-include-path=@0@'.format(vips_include_dir),
+    '--config=@INPUT0@',
+    '--output-dir=@OUTPUT@',
+    '--content-dir=@0@'.format(meson.current_source_dir()),
+    '@INPUT1@',
+  ],
+  depends: vips_gir[0],
+  depend_files: vips_content_files,
+  build_by_default: true,
+  install: true,
+  install_dir: docs_dir
 )
 
-glib_prefix = glib_dep.get_variable(pkgconfig: 'prefix')
-docpath = get_option('prefix') / get_option('datadir') / 'gtk-doc' / 'html'
-
-gnome.gtkdoc('libvips',
-    main_xml: 'libvips-docs.xml',
-    namespace: 'vips',
-    src_dir: 'libvips',
-    dependencies: libvips_dep,
-    ignore_headers: private_headers,
-    scan_args: [ '--rebuild-types' ],
-    mkdb_args: [ '--default-includes=vips/vips.h' ],
-    fixxref_args: [
-        '--html-dir=@0@'.format(docpath),
-        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('glib')),
-        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('gobject')),
-        '--extra-dir=@0@'.format(glib_prefix / gnome.gtkdoc_html_dir('gio')),
-    ],
-    content_files: [ content_files, markdown_content_files_docbook, version_xml ],
-    expand_content_files: [ content_files ],
-    html_assets: images,
-    install: true
+test('doc-check-vips',
+  gidocgen,
+  args: [
+    'check',
+    '--config', vips_toml,
+    '--add-include-path=@0@'.format(vips_include_dir),
+    vips_gir[0],
+  ],
+  depends: vips_gir[0],
+  suite: ['docs', 'failing'],
 )

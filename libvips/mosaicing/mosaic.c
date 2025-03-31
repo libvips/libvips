@@ -309,7 +309,7 @@ vips_mosaic_init(VipsMosaic *mosaic)
 }
 
 /**
- * vips_mosaic:
+ * vips_mosaic: (method)
  * @ref: reference image
  * @sec: secondary image
  * @out: (out): output image

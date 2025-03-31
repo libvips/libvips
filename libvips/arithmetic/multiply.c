@@ -205,7 +205,7 @@ vips_multiply_init(VipsMultiply *multiply)
 }
 
 /**
- * vips_multiply:
+ * vips_multiply: (method)
  * @left: left-hand image
  * @right: right-hand image
  * @out: (out): output image

@@ -204,7 +204,7 @@ vips_remainder_init(VipsRemainder *remainder)
 }
 
 /**
- * vips_remainder:
+ * vips_remainder: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage

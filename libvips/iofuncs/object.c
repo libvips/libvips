@@ -58,108 +58,105 @@
 #include "vipsmarshal.h"
 
 /**
- * SECTION: object
- * @short_description: the VIPS base object class
- * @stability: Stable
- * @see_also: <link linkend="VipsOperation">operation</link>
- * @include: vips/vips.h
+ * VipsObject:
  *
- * The #VipsObject class and associated types and macros.
+ * An abstract base class for all objects in libvips.
  *
- * #VipsObject is the base class for all objects in libvips. It has the
- * following major features:
+ * It has the following major features:
  *
- * <emphasis>Functional class creation</emphasis> Vips objects have a very
- * regular lifecycle: initialise, build, use, destroy. They behave rather like
- * function calls and are free of side-effects.
+ * - **Functional class creation**: libvips objects have a very regular
+ *   lifecycle: initialise, build, use, destroy. They behave rather like
+ *   function calls and are free of side-effects.
  *
- * <emphasis>Run-time introspection</emphasis> Vips objects can be fully
- * introspected at run-time. There is no need for separate source-code
- * analysis.
+ * - **Run-time introspection**: libvips objects can be fully introspected
+ *   at run-time. There is no need for separate source-code analysis.
  *
- * <emphasis>Command-line interface</emphasis> Any vips object can be run from
- * the command-line with the `vips` driver program.
+ * - **Command-line interface**: Any vips object can be run from the
+ *   command-line with the `vips` driver program.
  *
- * ## The #VipsObject lifecycle
+ * ## The [class@Object] lifecycle
  *
- * #VipsObject s have a strictly defined lifecycle, split broadly as construct
- * and then use. In detail, the stages are:
+ * [class@Object]'s have a strictly defined lifecycle, split broadly as
+ * construct and then use. In detail, the stages are:
  *
- * 1. g_object_new(). The #VipsObject is created with g_object_new(). Objects
- * in this state are blank slates and need to have their various parameters
- * set.
+ * 1. [ctor@GObject.Object.new]. The [class@Object] is created with
+ *   [ctor@GObject.Object.new]. Objects in this state are blank slates and
+ *   need to have their various parameters set.
  *
- * 2. g_object_set(). You loop over the #VipsArgument that the object has
- * defined with vips_argument_map(). Arguments have a set of flags attached to
- * them for required, optional, input, output, type, and so on. You must set
- * all required arguments.
+ * 2. [method@GObject.Object.set]. You loop over the [struct@Argument] that
+ *   the object has defined with [func@Argument.map]. Arguments have a set of
+ *   flags attached to them for required, optional, input, output, type, and
+ *   so on. You must set all required arguments.
  *
- * 3. vips_object_build(). Call this to construct the object and get it ready
- * for use. Building an object happens in four stages, see below.
+ * 3. [method@Object.build]. Call this to construct the object and get it
+ *   ready for use. Building an object happens in four stages, see below.
  *
- * 4. g_object_get(). The object has now been built. You can read out any
- * computed values.
+ * 4. [method@GObject.Object.get]. The object has now been built. You can
+ *   read out any computed values.
  *
- * 5. g_object_unref(). When you are done with an object, you can unref it.
- * See the section on reference counting for an explanation of the convention
- * that #VipsObject uses. When the last ref to an object is released, the
- * object is closed. Objects close in three stages, see below.
+ * 5. [method@GObject.Object.unref]. When you are done with an object, you
+ *   can unref it. See the section on reference counting for an explanation
+ *   of the convention that [class@Object] uses. When the last ref to an
+ *   object is released, the object is closed. Objects close in three stages,
+ *   see below.
  *
- * The stages inside vips_object_build() are:
+ * The stages inside [method@Object.build] are:
  *
- * 1. Chain up through the object's @build class methods. At each stage,
- * each class does any initial setup and checking, then chains up to its
- * superclass.
+ * 1. Chain up through the object's `build` class methods. At each stage,
+ *   each class does any initial setup and checking, then chains up to its
+ *   superclass.
  *
- * 2. The innermost @build method inside #VipsObject itself checks that all
- * input arguments have been set and then returns.
+ * 2. The innermost `build` method inside [class@Object] itself checks that
+ *   all input arguments have been set and then returns.
  *
- * 3. All object @build methods now finish executing, from innermost to
- * outermost. They know all input arguments have been checked and supplied, so
- * now they set all output arguments.
+ * 3. All object `build` methods now finish executing, from innermost to
+ *   outermost. They know all input arguments have been checked and supplied,
+ *   so now they set all output arguments.
  *
- * 4. vips_object_build() finishes the process by checking that all output
- * objects have been set, and then triggering the #VipsObject::postbuild
- * signal. #VipsObject::postbuild only runs if the object has constructed
- * successfully.
+ * 4. [method@Object.build] finishes the process by checking that all output
+ *   objects have been set, and then triggering the [signal@Object::postbuild]
+ *   signal. [signal@Object::postbuild] only runs if the object has constructed
+ *   successfully.
  *
- * #VipsOperation has a cache of recent operation objects, see that class for
- * an explanation of vips_cache_operation_build().
+ * [class@Operation] has a cache of recent operation objects, see that class for
+ * an explanation of [func@cache_operation_build].
  *
- * Finally the stages inside close are:
+ * Finally, the stages inside close are:
  *
- * 1. #VipsObject::preclose. This is emitted at the start of
- * the #VipsObject dispose. The object is still functioning.
+ * 1. [signal@Object::preclose]. This is emitted at the start of the
+ *   [class@Object] dispose. The object is still functioning.
  *
- * 2. #VipsObject::close. This runs just after all #VipsArgument held by
- * the object have been released.
+ * 2. [signal@Object::close]. This runs just after all [struct@Argument] held
+ *   by the object have been released.
  *
- * 3. #VipsObject::postclose. This runs right at the end. The object
- * pointer is still valid, but nothing else is.
+ * 3. [signal@Object::postclose]. This runs right at the end. The object
+ *   pointer is still valid, but nothing else is.
  *
- * ## #VipsArgument
+ * ## The [class@Object] reference counting convention
+ *
+ * [class@Object] has a set of conventions to simplify reference counting.
+ *
+ * 1. All input [class@GObject.Object] have a ref added to them, owned by the
+ *   object. When a [class@Object] is unreffed, all of these refs to input
+ *   objects are automatically dropped.
+ *
+ * 2. All output [class@GObject.Object] hold a ref to the object. When a
+ *   [class@GObject.Object] which is an output of a [class@Object] is
+ *   disposed, it must drop this reference. [class@Object] which are outputs
+ *   of other [class@Object]'s will do this automatically.
+ *
+ * See [class@Operation] for an example of [class@Object] reference counting.
+ */
+
+/**
+ * VipsArgument:
  *
  * libvips has a simple mechanism for automating at least some aspects of
- * %GObject properties. You add a set of macros to your _class_init() which
- * describe the arguments, and set the get and set functions to the vips ones.
+ * [class@GObject.Object] properties. You add a set of macros to your
+ * `_class_init()` which describe the arguments, and set the get and set
+ * functions to the libvips ones.
  *
- * See <link linkend="extending">extending</link> for a complete example.
- *
- * ## The #VipsObject reference counting convention
- *
- * #VipsObject has a set of conventions to simplify reference counting.
- *
- * 1. All input %GObject have a ref added to them, owned by the object. When a
- * #VipsObject is unreffed, all of these refs to input objects are
- * automatically dropped.
- *
- * 2. All output %GObject hold a ref to the object. When a %GObject which is an
- * output of a #VipsObject is disposed, it must drop this reference.
- * #VipsObject which are outputs of other #VipsObject will do this
- * automatically.
- *
- * See #VipsOperation for an example of #VipsObject reference counting.
- *
+ * See [extending](extending.html) for a complete example.
  */
 
 /**

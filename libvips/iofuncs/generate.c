@@ -546,7 +546,8 @@ vips_start_many(VipsImage *out, void *a, void *b)
  *
  * See also: vips_image_generate(), vips_start_many().
  *
- * Returns: %NULL-terminated array of images. Do not free the result.
+ * Returns: (transfer none) (nullable): %NULL-terminated array of images.
+ *   Do not free the result.
  */
 VipsImage **
 vips_allocate_input_array(VipsImage *out, ...)
@@ -655,9 +656,9 @@ write_vips(VipsRegion *region, VipsRect *area, void *a)
 /**
  * vips_image_generate:
  * @image: generate this image
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *

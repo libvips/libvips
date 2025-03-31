@@ -74,94 +74,97 @@
 #include "pforeign.h"
 
 /**
- * SECTION: foreign
- * @short_description: load and save images in a variety of formats
- * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>
- * @include: vips/vips.h
- * @title: VipsForeign
+ * VipsForeign:
  *
- * This set of operations load and save images in a variety of formats.
+ * An abstract base class to load and save images in a variety of formats.
  *
- * # Load and save
+ * ## Load and save
  *
  * You can load and save from and to files, memory areas, and the libvips IO
- * abstractions, #VipsSource and #VipsTarget.
+ * abstractions, [class@Source] and [class@Target].
  *
- * Use vips_foreign_find_load(), vips_foreign_find_load_buffer() and
- * vips_foreign_find_load_source() to find a loader for an object. Use
- * vips_foreign_find_save(), vips_foreign_find_save_buffer() and
- * vips_foreign_find_save_target() to find a saver for a format. You can then
- * run these operations using vips_call() and friends to perform the load or
+ * Use [func@Foreign.find_load] [func@Foreign.find_load_buffer] and
+ * [func@Foreign.find_load_source] to find a loader for an object. Use
+ * [func@Foreign.find_save], [func@Foreign.find_save_buffer] and
+ * [func@Foreign.find_save_target] to find a saver for a format. You can then
+ * run these operations using [func@call] and friends to perform the load or
  * save.
  *
- * vips_image_write_to_file() and vips_image_new_from_file() and friends use
+ * [method@Image.write_to_file] and [ctor@Image.new_from_file] and friends use
  * these functions to automate file load and save.
  *
  * You can also invoke the operations directly, for example:
  *
- * |[
+ * ```c
  * vips_tiffsave(my_image, "frank.anything",
  *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
  *     NULL);
- * ]|
+ * ```
  *
- * # Image metadata
+ * ## Image metadata
  *
  * All loaders attach all image metadata as libvips properties on load.
  *
- * You can change metadata with vips_image_set_int() and friends.
+ * You can change metadata with [method@Image.set_int] and friends.
  *
- * During save, you can use @keep to specify which metadata to retain,
- * defaults to all, see #VipsForeignKeep. Setting @profile will
+ * During save, you can use `keep` to specify which metadata to retain,
+ * defaults to all, see [flags@ForeignKeep]. Setting `profile` will
  * automatically keep the ICC profile.
  *
- * # Many page images
+ * ## Many page images
  *
  * By default, libvips will only load the first page of many page or animated
- * images. Use @page and @n to set the start page and the number of pages to
- * load. Set @n to -1 to load all pages.
+ * images. Use `page` and `n` to set the start page and the number of pages to
+ * load. Set `n` to -1 to load all pages.
  *
  * Many page images are loaded as a tall, thin strip of pages.
  *
- * Use vips_image_get_page_height() and vips_image_get_n_pages() to find the
- * page height and number of pages of a loaded image.
+ * Use [method@Image.get_page_height] and [method@Image.get_n_pages] to find
+ * the page height and number of pages of a loaded image.
  *
- * Use @page_height to set the page height for image save.
+ * Use `page_height` to set the page height for image save.
  *
- * # Alpha save
+ * ## Alpha save
  *
  * Not all image formats support alpha. If you try to save an image with an
  * alpha channel to a format that does not support it, the alpha will be
- * automatically flattened out. Use @background (default 0) to set the colour
+ * automatically flattened out. Use `background` (default 0) to set the colour
  * that alpha should be flattened against.
  *
- * # Adding new formats
+ * ## Adding new formats
  *
  * To add support for a new file format to vips, simply define a new subclass
- * of #VipsForeignLoad or #VipsForeignSave.
+ * of [class@ForeignLoad] or [class@ForeignSave].
  *
- * If you define a new operation which is a subclass of #VipsForeign, support
- * for it automatically appears in all VIPS user-interfaces. It will also be
- * transparently supported by vips_image_new_from_file() and friends.
+ * If you define a new operation which is a subclass of [class@Foreign],
+ * support for it automatically appears in all libvips user-interfaces. It
+ * will also be transparently supported by [ctor@Image.new_from_file] and
+ * friends.
+ */
+
+/**
+ * VipsForeignLoad:
+ *
+ * An abstract base class to load images in a variety of formats.
  *
  * ## Writing a new loader
  *
- * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to
- * implement at least @header().
+ * Add a new loader to libvips by subclassing [class@ForeignLoad]. Subclasses
+ * need to implement at least [vfunc@ForeignLoad.header].
  *
- * @header() must set at least the header fields of @out. @load(), if defined,
- * must load the pixels to @real.
+ * [vfunc@ForeignLoad.header] must set at least the header fields of `out`.
+ * [vfunc@ForeignLoad.load], if defined, must load the pixels to `real`.
  *
  * The suffix list is used to select a format to save a file in, and to pick a
- * loader if you don't define is_a().
+ * loader if you don't define [func@Foreign.is_a].
  *
- * You should also define @nickname and @description in #VipsObject.
+ * You should also define [property@VipsObject:nickname] and
+ * [property@VipsObject:description] in [class@Object].
  *
  * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.
  *
- * |[
+ * ```c
  * typedef struct _VipsForeignLoadPng {
  *     VipsForeignLoad parent_object;
  *
@@ -252,17 +255,23 @@
  * vips_foreign_load_png_init(VipsForeignLoadPng *png)
  * {
  * }
- * ]|
+ * ```
+ */
+
+/**
+ * VipsForeignSave:
+ *
+ * An abstract base class to save images in a variety of formats.
  *
  * ## Writing a new saver
  *
- * Call your saver in the class' @build() method after chaining up. The
- * prepared image should be ready for you to save in @ready.
+ * Call your saver in the class' [vfunc@Object.build] method after chaining up.
+ * The prepared image should be ready for you to save in `ready`.
  *
  * As a complete example, here's the code for the CSV saver, minus the calls
  * to the actual save routines.
  *
- * |[
+ * ```c
  * typedef struct _VipsForeignSaveCsv {
  *     VipsForeignSave parent_object;
  *
@@ -332,7 +341,7 @@
  * {
  *     csv->separator = g_strdup("\t");
  * }
- * ]|
+ * ```
  */
 
 /* Use this to link images to the load operation that made them.

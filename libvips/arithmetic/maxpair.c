@@ -161,7 +161,7 @@ vips_maxpair_init(VipsMaxpair *maxpair)
 }
 
 /**
- * vips_maxpair:
+ * vips_maxpair: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image

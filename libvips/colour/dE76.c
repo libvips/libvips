@@ -124,7 +124,7 @@ vips_dE76_init(VipsdE76 *dE76)
 }
 
 /**
- * vips_dE76:
+ * vips_dE76: (method)
  * @left: first input image
  * @right: second input image
  * @out: (out): output image
