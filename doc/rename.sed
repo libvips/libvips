@@ -356,6 +356,7 @@ s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
+s/#Vips\(Precision\)/[enum@\1]/g
 
 s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(Progress\)/[struct@\1]/g
@@ -372,6 +373,7 @@ s/#Vips\(Dbuf*\)/[class@\1]/g
 
 s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
+s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
 
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
