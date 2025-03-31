@@ -1,7 +1,19 @@
+s/See also: \([^.]\)/::: seealso\n *     \1/g
+
+s/#VipsImage::\(width\)/[property@Image:\1]/g
+s/#VipsImage::\(height\)/[property@Image:\1]/g
+s/#VipsImage::\(format\)/[property@Image:\1]/g
+s/#VipsImage::\(interpretation\)/[property@Image:\1]/g
+
+s/#VipsImage::\([^ ,.]*\)/[signal@Image::\1]/g
+s/#VipsObject::\([^ ,.]*\)/[signal@Object::\1]/g
+
+s/vips_foreign_\([^(]*\)()/[func@Foreign.\1]/g
+
 s/vips_\([^(]*\)_new()/[ctor@\u\1.new]/g
 s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
 s/vips_object_\([^(]*\)()/[method@Object.\1]/g
-s/vips_image_\(generate\)()/[func@image_generate]/g
+s/vips_image_\(generate\)()/[method@Image.generate]/g
 s/vips_image_\([^(]*\)()/[method@Image.\1]/g
 s/vips_region_\([^(]*\)()/[method@Region.\1]/g
 
@@ -9,7 +21,6 @@ s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(acosh\)()/[method@Image.\1]/g
 s/vips_\(acos\)()/[method@Image.\1]/g
 s/vips_\(addalpha\)()/[method@Image.\1]/g
-s/vips_\(addlpha\)()/[method@Image.\1]/g
 s/vips_\(add\)()/[method@Image.\1]/g
 s/vips_\(affine\)()/[method@Image.\1]/g
 s/vips_\(andimage_const1\)()/[method@Image.\1]/g
@@ -331,16 +342,21 @@ s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(Access\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
 s/#Vips\(Rect\)/[struct@\1]/g
+s/#Vips\(Progress\)/[struct@\1]/g
+
 s/#Vips\(Image\)/[class@\1]/g
 s/#Vips\(Region\)/[class@\1]/g
 s/#Vips\(Object\)/[class@\1]/g
 s/#Vips\(Operation\)/[class@\1]/g
 s/#Vips\(ForeignLoad\)/[class@\1]/g
+s/#Vips\(Source*\)/[class@\1]/g
+s/#Vips\(Target*\)/[class@\1]/g
 
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
