@@ -1,5 +1,3 @@
-s/g_\([^(]*\)()/[func@GLib.\1]/g
-
 s/See also: \([^.]\)/::: seealso\n *     \1/g
 
 s/#VipsImage::\(width\)/[property@Image:\1]/g
@@ -23,6 +21,8 @@ s/vips_object_\([^(]*\)()/[method@Object.\1]/g
 s/vips_image_\(generate\)()/[method@Image.generate]/g
 s/vips_image_\([^(]*\)()/[method@Image.\1]/g
 s/vips_region_\([^(]*\)()/[method@Region.\1]/g
+s/vips_buf_\([^(]*\)()/[method@Buf.\1]/g
+s/vips_dbuf_\([^(]*\)()/[method@Dbuf.\1]/g
 
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(acosh\)()/[method@Image.\1]/g
@@ -366,7 +366,11 @@ s/#Vips\(Operation\)/[class@\1]/g
 s/#Vips\(ForeignLoad\)/[class@\1]/g
 s/#Vips\(Source*\)/[class@\1]/g
 s/#Vips\(Target*\)/[class@\1]/g
+s/#Vips\(Buf*\)/[class@\1]/g
+s/#Vips\(Dbuf*\)/[class@\1]/g
 
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
+
+s/g_\([^(]*\)()/[func@GLib.\1]/g

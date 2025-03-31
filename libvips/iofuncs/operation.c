@@ -102,9 +102,9 @@
  * ```
  *
  * This will invert `im` and return a new [class@Image], `t1`. As the caller
- * of [method@Image.invert], you are responsible for `t1` and must unref it when
- * you no longer need it. If [method@Image.invert] fails, no `t1` is returned and
- * you don't need to do anything.
+ * of [method@Image.invert], you are responsible for `t1` and must unref it
+ * when you no longer need it. If [method@Image.invert] fails, no `t1` is
+ * returned and you don't need to do anything.
  *
  * If you don't need to use `im` for another operation, you can unref `im`
  * immediately after the call. If `im` is needed to calculate `t1`,
