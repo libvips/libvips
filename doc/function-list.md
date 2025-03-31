@@ -25,10 +25,10 @@ libvips has a set of C wrapper functions for calling operators, in this
 case [method@Image.gamma]:
 
 ```c
-  VipsImage *fred = ...;
-  VipsImage *jim;
+VipsImage *fred = ...;
+VipsImage *jim;
 
-  if (vips_gamma(fred, &jim, NULL))
+if (vips_gamma(fred, &jim, NULL))
     ...error;
 ```
 
@@ -128,8 +128,8 @@ API docs each function links to for more details.
 | `fastcor` | Fast correlation | [method@Image.fastcor] |
 | `fill_nearest` | Fill image zeros with nearest non-zero pixel | [method@Image.fill_nearest] |
 | `find_trim` | Search an image for non-edge areas | [method@Image.find_trim] |
-| `fitsload` | Load a fits image | [method@Image.fitsload] |
-| `fitsload_source` | Load fits from a source | [method@Image.fitsload_source] |
+| `fitsload` | Load a fits image | [func@fitsload] |
+| `fitsload_source` | Load fits from a source | [func@fitsload_source] |
 | `fitssave` | Save image to fits file | [method@Image.fitssave] |
 | `flatten` | Flatten alpha out of an image | [method@Image.flatten] |
 | `flip` | Flip an image | [method@Image.flip] |
@@ -194,7 +194,7 @@ API docs each function links to for more details.
 | `jpegsave_buffer` | Save image to jpeg buffer | [method@Image.jpegsave_buffer] |
 | `jpegsave_mime` | Save image to jpeg mime | [method@Image.jpegsave_mime] |
 | `jpegsave_target` | Save image to jpeg target | [method@Image.jpegsave_target] |
-| `jxlload` | Load jpeg-xl image | [method@Image.jxlload] |
+| `jxlload` | Load jpeg-xl image | [func@jxlload] |
 | `jxlload_buffer` | Load jpeg-xl image | [func@jxlload_buffer] |
 | `jxlload_source` | Load jpeg-xl image | [func@jxlload_source] |
 | `jxlsave` | Save image in jpeg-xl format | [method@Image.jxlsave] |
