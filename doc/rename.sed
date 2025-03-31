@@ -26,6 +26,7 @@ s/vips_\(XYZ2scRGB\)()/[method@Image.\1]/g
 s/vips_\(Yxy2XYZ\)()/[method@Image.\1]/g
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(add\)()/[method@Image.\1]/g
+s/vips_\(addlpha\)()/[method@Image.\1]/g
 s/vips_\(affine\)()/[method@Image.\1]/g
 s/vips_\(autorot\)()/[method@Image.\1]/g
 s/vips_\(avg\)()/[method@Image.\1]/g
@@ -40,6 +41,8 @@ s/vips_\(bandjoin2\)()/[method@Image.\1]/g
 s/vips_\(bandmean\)()/[method@Image.\1]/g
 s/vips_\(bandunfold\)()/[method@Image.\1]/g
 s/vips_\(boolean\)()/[method@Image.\1]/g
+s/vips_\(buildlut\)()/[method@Image.\1]/g
+s/vips_\(clamp\)()/[method@Image.\1]/g
 s/vips_\(andimage\)()/[method@Image.\1]/g
 s/vips_\(orimage\)()/[method@Image.\1]/g
 s/vips_\(eorimage\)()/[method@Image.\1]/g
@@ -116,6 +119,7 @@ s/vips_\(draw_rect1\)()/[method@Image.\1]/g
 s/vips_\(draw_smudge\)()/[method@Image.\1]/g
 s/vips_\(dzsave\)()/[method@Image.\1]/g
 s/vips_\(dzsave_buffer\)()/[method@Image.\1]/g
+s/vips_\(dzsave_target\)()/[method@Image.\1]/g
 s/vips_\(embed\)()/[method@Image.\1]/g
 s/vips_\(extract_area\)()/[method@Image.\1]/g
 s/vips_\(crop\)()/[method@Image.\1]/g
@@ -125,6 +129,8 @@ s/vips_\(fastcor\)()/[method@Image.\1]/g
 s/vips_\(fill_nearest\)()/[method@Image.\1]/g
 s/vips_\(find_trim\)()/[method@Image.\1]/g
 s/vips_\(fitssave\)()/[method@Image.\1]/g
+s/vips_\(fitsload\)()/[method@Image.\1]/g
+s/vips_\(fitsload_source\)()/[method@Image.\1]/g
 s/vips_\(flatten\)()/[method@Image.\1]/g
 s/vips_\(flip\)()/[method@Image.\1]/g
 s/vips_\(float2rad\)()/[method@Image.\1]/g
@@ -161,8 +167,14 @@ s/vips_\(icc_transform\)()/[method@Image.\1]/g
 s/vips_\(ifthenelse\)()/[method@Image.\1]/g
 s/vips_\(insert\)()/[method@Image.\1]/g
 s/vips_\(invert\)()/[method@Image.\1]/g
+s/vips_\(invertlut\)()/[method@Image.\1]/g
 s/vips_\(invfft\)()/[method@Image.\1]/g
 s/vips_\(join\)()/[method@Image.\1]/g
+s/vips_\(jxlsave\)()/[method@Image.\1]/g
+s/vips_\(jxlsave_buffer\)()/[method@Image.\1]/g
+s/vips_\(jxlsave_target\)()/[method@Image.\1]/g
+s/vips_\(jxlload\)()/[method@Image.\1]/g
+s/vips_\(matrixmultiply\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave_buffer\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave_target\)()/[method@Image.\1]/g
@@ -207,9 +219,17 @@ s/vips_\(matrixprint\)()/[method@Image.\1]/g
 s/vips_\(matrixsave\)()/[method@Image.\1]/g
 s/vips_\(matrixsave_target\)()/[method@Image.\1]/g
 s/vips_\(max\)()/[method@Image.\1]/g
+s/vips_\(maxpair\)()/[method@Image.\1]/g
 s/vips_\(measure\)()/[method@Image.\1]/g
 s/vips_\(merge\)()/[method@Image.\1]/g
 s/vips_\(min\)()/[method@Image.\1]/g
+s/vips_\(minpair\)()/[method@Image.\1]/g
+s/vips_\(niftisave\)()/[method@Image.\1]/g
+s/vips_\(prewitt\)()/[method@Image.\1]/g
+s/vips_\(rawsave\)()/[method@Image.\1]/g
+s/vips_\(rawsave_buffer\)()/[method@Image.\1]/g
+s/vips_\(rawsave_target\)()/[method@Image.\1]/g
+s/vips_\(scharr\)()/[method@Image.\1]/g
 s/vips_\(morph\)()/[method@Image.\1]/g
 s/vips_\(mosaic\)()/[method@Image.\1]/g
 s/vips_\(mosaic1\)()/[method@Image.\1]/g
@@ -295,6 +315,7 @@ s/vips_\(subtract\)()/[method@Image.\1]/g
 s/vips_\(thumbnail_image\)()/[method@Image.\1]/g
 s/vips_\(tiffsave\)()/[method@Image.\1]/g
 s/vips_\(tiffsave_buffer\)()/[method@Image.\1]/g
+s/vips_\(tiffsave_target\)()/[method@Image.\1]/g
 s/vips_\(tilecache\)()/[method@Image.\1]/g
 s/vips_\(transpose3d\)()/[method@Image.\1]/g
 s/vips_\(unpremultiply\)()/[method@Image.\1]/g
@@ -303,6 +324,7 @@ s/vips_\(vipssave_target\)()/[method@Image.\1]/g
 s/vips_\(webpsave\)()/[method@Image.\1]/g
 s/vips_\(webpsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(webpsave_target\)()/[method@Image.\1]/g
+s/vips_\(webpsave_mime\)()/[method@Image.\1]/g
 s/vips_\(wrap\)()/[method@Image.\1]/g
 s/vips_\(zoom\)()/[method@Image.\1]/g
 
