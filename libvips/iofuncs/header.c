@@ -1039,7 +1039,7 @@ vips_image_get_data(VipsImage *image)
  * Normally you copy the fields from your input images with
  * [method.Image.pipelinev] and then make any adjustments you need,
  * but if you are creating an image from scratch, for example [func@black]
- * or [func@jpegload], you do need to set all the fields yourself.
+ * or [ctor@Image.jpegload], you do need to set all the fields yourself.
  *
  * See also: [method.Image.pipelinev].
  */
