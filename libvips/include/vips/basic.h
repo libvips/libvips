@@ -101,7 +101,7 @@ typedef enum {
 } VipsPrecision;
 
 #ifndef __GI_SCANNER__
-	
+
 /* Just for testing.
  */
 VIPS_API

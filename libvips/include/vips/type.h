@@ -58,7 +58,7 @@ VIPS_API
 VipsThing *vips_thing_new(int i);
 
 #endif /* !__GI_SCANNER__ */
-	
+
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
 typedef struct _VipsArea {

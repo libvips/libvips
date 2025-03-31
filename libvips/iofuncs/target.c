@@ -584,8 +584,8 @@ vips_target_seek(VipsTarget *target, gint64 offset, int whence)
 
 	gint64 new_offset;
 
-	VIPS_DEBUG_MSG("vips_target_seek: offset = %" G_GINT64_FORMAT
-		", whence = %d\n",
+	VIPS_DEBUG_MSG(
+		"vips_target_seek: offset = %" G_GINT64_FORMAT ", whence = %d\n",
 		offset, whence);
 
 	if (vips_target_flush(target))

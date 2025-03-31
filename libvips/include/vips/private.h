@@ -233,7 +233,7 @@ void vips__thread_gate_start(const char *gate_name);
 void vips__thread_gate_stop(const char *gate_name);
 
 void vips__thread_malloc_free(gint64 size);
-	
+
 FILE *vips__file_open_read(const char *filename,
 	const char *fallback_dir, gboolean text_mode);
 FILE *vips__file_open_write(const char *filename,
