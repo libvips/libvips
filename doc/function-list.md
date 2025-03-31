@@ -66,17 +66,17 @@ API docs each function links to for more details.
 | `addalpha` | Append an alpha channel | [method@Image.addalpha] |
 | `affine` | Affine transform of an image | [method@Image.affine] |
 | `analyzeload` | Load an analyze6 image | [ctor@Image.analyzeload] |
-| `arrayjoin` | Join an array of images | [func@arrayjoin] |
+| `arrayjoin` | Join an array of images | [func@Image.arrayjoin] |
 | `autorot` | Autorotate image by exif tag | [method@Image.autorot] |
 | `avg` | Find image average | [method@Image.avg] |
 | `bandbool` | Boolean operation across image bands | [method@Image.bandbool], [method@Image.bandand], [method@Image.bandor], [method@Image.bandeor], [method@Image.bandmean] |
 | `bandfold` | Fold up x axis into bands | [method@Image.bandfold] |
-| `bandjoin` | Bandwise join a set of images | [func@bandjoin], [method@Image.bandjoin2] |
+| `bandjoin` | Bandwise join a set of images | [func@Image.bandjoin], [method@Image.bandjoin2] |
 | `bandjoin_const` | Append a constant band to an image | [method@Image.bandjoin_const], [method@Image.bandjoin_const1] |
 | `bandmean` | Band-wise average | [method@Image.bandmean] |
-| `bandrank` | Band-wise rank of a set of images | [func@bandrank] |
+| `bandrank` | Band-wise rank of a set of images | [func@Image.bandrank] |
 | `bandunfold` | Unfold image bands into x axis | [method@Image.bandunfold] |
-| `black` | Make a black image | [func@black] |
+| `black` | Make a black image | [ctor@Image.black] |
 | `boolean` | Boolean operation on two images | [method@Image.boolean], [method@Image.andimage], [method@Image.orimage], [method@Image.eorimage], [method@Image.lshift], [method@Image.rshift] |
 | `boolean_const` | Boolean operations against a constant | [method@Image.boolean_const], [method@Image.andimage_const], [method@Image.orimage_const], [method@Image.eorimage_const], [method@Image.lshift_const], [method@Image.rshift_const], [method@Image.boolean_const1], [method@Image.andimage_const1], [method@Image.orimage_const1], [method@Image.eorimage_const1], [method@Image.lshift_const1], [method@Image.rshift_const1] |
 | `buildlut` | Build a look-up table | [method@Image.buildlut] |
@@ -91,7 +91,7 @@ API docs each function links to for more details.
 | `complex2` | Complex binary operations on two images | [method@Image.complex2], [method@Image.cross_phase] |
 | `complexform` | Form a complex image from two real images | [method@Image.complexform] |
 | `complexget` | Get a component from a complex image | [method@Image.complexget], [method@Image.real], [method@Image.imag] |
-| `composite` | Blend an array of images with an array of blend modes | [func@composite] |
+| `composite` | Blend an array of images with an array of blend modes | [func@Image.composite] |
 | `composite2` | Blend a pair of images with a blend mode | [method@Image.composite2] |
 | `conv` | Convolution operation | [method@Image.conv] |
 | `conva` | Approximate integer convolution | [method@Image.conva] |
@@ -123,7 +123,7 @@ API docs each function links to for more details.
 | `embed` | Embed an image in a larger image | [method@Image.embed] |
 | `extract_area` | Extract an area from an image | [method@Image.extract_area], [method@Image.crop] |
 | `extract_band` | Extract band from an image | [method@Image.extract_band] |
-| `eye` | Make an image showing the eye's spatial response | [func@eye] |
+| `eye` | Make an image showing the eye's spatial response | [ctor@Image.eye] |
 | `falsecolour` | False-color an image | [method@Image.falsecolour] |
 | `fastcor` | Fast correlation | [method@Image.fastcor] |
 | `fill_nearest` | Fill image zeros with nearest non-zero pixel | [method@Image.fill_nearest] |
@@ -134,13 +134,13 @@ API docs each function links to for more details.
 | `flatten` | Flatten alpha out of an image | [method@Image.flatten] |
 | `flip` | Flip an image | [method@Image.flip] |
 | `float2rad` | Transform float rgb to radiance coding | [method@Image.float2rad] |
-| `fractsurf` | Make a fractal surface | [func@fractsurf] |
+| `fractsurf` | Make a fractal surface | [ctor@Image.fractsurf] |
 | `freqmult` | Frequency-domain filtering | [method@Image.freqmult] |
 | `fwfft` | Forward fft | [method@Image.fwfft] |
 | `gamma` | Gamma an image | [method@Image.gamma] |
 | `gaussblur` | Gaussian blur | [method@Image.gaussblur] |
-| `gaussmat` | Make a gaussian image | [func@gaussmat] |
-| `gaussnoise` | Make a gaussnoise image | [func@gaussnoise] |
+| `gaussmat` | Make a gaussian image | [ctor@Image.gaussmat] |
+| `gaussnoise` | Make a gaussnoise image | [ctor@Image.gaussnoise] |
 | `getpoint` | Read a point from an image | [method@Image.getpoint] |
 | `gifload` | Load gif with libnsgif | [ctor@Image.gifload] |
 | `gifload_buffer` | Load gif with libnsgif | [ctor@Image.gifload_buffer] |
@@ -150,7 +150,7 @@ API docs each function links to for more details.
 | `gifsave_target` | Save as gif | [method@Image.gifsave_target] |
 | `globalbalance` | Global balance an image mosaic | [method@Image.globalbalance] |
 | `gravity` | Place an image within a larger image with a certain gravity | [method@Image.gravity] |
-| `grey` | Make a grey ramp image | [func@grey] |
+| `grey` | Make a grey ramp image | [ctor@Image.grey] |
 | `grid` | Grid an image | [method@Image.grid] |
 | `heifload` | Load a heif image | [ctor@Image.heifload] |
 | `heifload_buffer` | Load a heif image | [ctor@Image.heifload_buffer] |
@@ -174,7 +174,7 @@ API docs each function links to for more details.
 | `icc_export` | Output to device with icc profile | [method@Image.icc_export] |
 | `icc_import` | Import from device with icc profile | [method@Image.icc_import] |
 | `icc_transform` | Transform between devices with icc profiles | [method@Image.icc_transform] |
-| `identity` | Make a 1d image where pixel values are indexes | [func@identity] |
+| `identity` | Make a 1d image where pixel values are indexes | [ctor@Image.identity] |
 | `ifthenelse` | Ifthenelse an image | [method@Image.ifthenelse] |
 | `insert` | Insert image @sub into @main at @x, @y | [method@Image.insert] |
 | `invert` | Invert an image | [method@Image.invert] |
@@ -203,23 +203,23 @@ API docs each function links to for more details.
 | `labelregions` | Label regions in an image | [method@Image.labelregions] |
 | `linear` | Calculate (a * in + b) | [method@Image.linear], [method@Image.linear1] |
 | `linecache` | Cache an image as a set of lines | [method@Image.linecache] |
-| `logmat` | Make a laplacian of gaussian image | [func@logmat] |
+| `logmat` | Make a laplacian of gaussian image | [ctor@Image.logmat] |
 | `magickload` | Load file with imagemagick | [ctor@Image.magickload] |
 | `magickload_buffer` | Load buffer with imagemagick | [ctor@Image.magickload_buffer] |
 | `magicksave` | Save file with imagemagick | [method@Image.magicksave] |
 | `magicksave_buffer` | Save image to magick buffer | [method@Image.magicksave_buffer] |
 | `mapim` | Resample with a map image | [method@Image.mapim] |
 | `maplut` | Map an image though a lut | [method@Image.maplut] |
-| `mask_butterworth` | Make a butterworth filter | [func@mask_butterworth] |
-| `mask_butterworth_band` | Make a butterworth_band filter | [func@mask_butterworth_band] |
-| `mask_butterworth_ring` | Make a butterworth ring filter | [func@mask_butterworth_ring] |
-| `mask_fractal` | Make fractal filter | [func@mask_fractal] |
-| `mask_gaussian` | Make a gaussian filter | [func@mask_gaussian] |
-| `mask_gaussian_band` | Make a gaussian filter | [func@mask_gaussian_band] |
-| `mask_gaussian_ring` | Make a gaussian ring filter | [func@mask_gaussian_ring] |
-| `mask_ideal` | Make an ideal filter | [func@mask_ideal] |
-| `mask_ideal_band` | Make an ideal band filter | [func@mask_ideal_band] |
-| `mask_ideal_ring` | Make an ideal ring filter | [func@mask_ideal_ring] |
+| `mask_butterworth` | Make a butterworth filter | [ctor@Image.mask_butterworth] |
+| `mask_butterworth_band` | Make a butterworth_band filter | [ctor@Image.mask_butterworth_band] |
+| `mask_butterworth_ring` | Make a butterworth ring filter | [ctor@Image.mask_butterworth_ring] |
+| `mask_fractal` | Make fractal filter | [ctor@Image.mask_fractal] |
+| `mask_gaussian` | Make a gaussian filter | [ctor@Image.mask_gaussian] |
+| `mask_gaussian_band` | Make a gaussian filter | [ctor@Image.mask_gaussian_band] |
+| `mask_gaussian_ring` | Make a gaussian ring filter | [ctor@Image.mask_gaussian_ring] |
+| `mask_ideal` | Make an ideal filter | [ctor@Image.mask_ideal] |
+| `mask_ideal_band` | Make an ideal band filter | [ctor@Image.mask_ideal_band] |
+| `mask_ideal_ring` | Make an ideal ring filter | [ctor@Image.mask_ideal_ring] |
 | `match` | First-order match of two images | [method@Image.match] |
 | `math` | Apply a math operation to an image | [method@Image.math], [method@Image.sin], [method@Image.cos], [method@Image.tan], [method@Image.asin], [method@Image.acos], [method@Image.atan], [method@Image.sinh], [method@Image.cosh], [method@Image.tanh], [method@Image.asinh], [method@Image.acosh], [method@Image.atanh], [method@Image.exp], [method@Image.exp10], [method@Image.log], [method@Image.log10] |
 | `math2` | Binary math operations | [method@Image.math2], [method@Image.pow], [method@Image.wop], [method@Image.atan2] |
@@ -253,7 +253,7 @@ API docs each function links to for more details.
 | `pdfload_buffer` | Load pdf from buffer | [ctor@Image.pdfload_buffer] |
 | `pdfload_source` | Load pdf from source | [ctor@Image.pdfload_source] |
 | `percent` | Find threshold for percent of pixels | [method@Image.percent] |
-| `perlin` | Make a perlin noise image | [func@perlin] |
+| `perlin` | Make a perlin noise image | [ctor@Image.perlin] |
 | `phasecor` | Calculate phase correlation | [method@Image.phasecor] |
 | `pngload` | Load png from file | [ctor@Image.pngload] |
 | `pngload_buffer` | Load png from buffer | [ctor@Image.pngload_buffer] |
@@ -304,7 +304,7 @@ API docs each function links to for more details.
 | `scRGB2sRGB` | Convert an scrgb image to srgb | [method@Image.scRGB2sRGB] |
 | `scale` | Scale an image to uchar | [method@Image.scale] |
 | `scharr` | Scharr edge detector | [method@Image.scharr] |
-| `sdf` | Create an sdf image | [func@sdf] |
+| `sdf` | Create an sdf image | [ctor@Image.sdf] |
 | `sequential` | Check sequential access | [method@Image.sequential] |
 | `sharpen` | Unsharp masking for print | [method@Image.sharpen] |
 | `shrink` | Shrink an image | [method@Image.shrink] |
@@ -312,7 +312,7 @@ API docs each function links to for more details.
 | `shrinkv` | Shrink an image vertically | [method@Image.shrinkv] |
 | `sign` | Unit vector of pixel | [method@Image.sign] |
 | `similarity` | Similarity transform of an image | [method@Image.similarity] |
-| `sines` | Make a 2d sine wave | [func@sines] |
+| `sines` | Make a 2d sine wave | [ctor@Image.sines] |
 | `smartcrop` | Extract an area from an image | [method@Image.smartcrop] |
 | `sobel` | Sobel edge detector | [method@Image.sobel] |
 | `spcor` | Spatial correlation | [method@Image.spcor] |
@@ -321,17 +321,17 @@ API docs each function links to for more details.
 | `stdif` | Statistical difference | [method@Image.stdif] |
 | `subsample` | Subsample an image | [method@Image.subsample] |
 | `subtract` | Subtract two images | [method@Image.subtract] |
-| `sum` | Sum an array of images | [func@sum] |
+| `sum` | Sum an array of images | [func@Image.sum] |
 | `svgload` | Load svg with rsvg | [ctor@Image.svgload] |
 | `svgload_buffer` | Load svg with rsvg | [ctor@Image.svgload_buffer] |
 | `svgload_source` | Load svg from source | [ctor@Image.svgload_source] |
-| `switch` | Find the index of the first non-zero pixel in tests | [func@switch] |
-| `system` | Run an external command | [func@system] |
-| `text` | Make a text image | [func@text] |
-| `thumbnail` | Generate thumbnail from file | [func@thumbnail] |
-| `thumbnail_buffer` | Generate thumbnail from buffer | [func@thumbnail_buffer] |
+| `switch` | Find the index of the first non-zero pixel in tests | [func@Image.switch] |
+| `system` | Run an external command | [ctor@Image.system] |
+| `text` | Make a text image | [ctor@Image.text] |
+| `thumbnail` | Generate thumbnail from file | [ctor@Image.thumbnail] |
+| `thumbnail_buffer` | Generate thumbnail from buffer | [ctor@Image.thumbnail_buffer] |
 | `thumbnail_image` | Generate thumbnail from image | [method@Image.thumbnail_image] |
-| `thumbnail_source` | Generate thumbnail from source | [func@thumbnail_source] |
+| `thumbnail_source` | Generate thumbnail from source | [ctor@Image.thumbnail_source] |
 | `tiffload` | Load tiff from file | [ctor@Image.tiffload] |
 | `tiffload_buffer` | Load tiff from buffer | [ctor@Image.tiffload_buffer] |
 | `tiffload_source` | Load tiff from source | [ctor@Image.tiffload_source] |
@@ -339,7 +339,7 @@ API docs each function links to for more details.
 | `tiffsave_buffer` | Save image to tiff buffer | [method@Image.tiffsave_buffer] |
 | `tiffsave_target` | Save image to tiff target | [method@Image.tiffsave_target] |
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
-| `tonelut` | Build a look-up table | [func@tonelut] |
+| `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
 | `unpremultiply` | Unpremultiply image alpha | [method@Image.unpremultiply] |
 | `vipsload` | Load vips from file | [ctor@Image.vipsload] |
@@ -353,8 +353,8 @@ API docs each function links to for more details.
 | `webpsave_buffer` | Save as webp | [method@Image.webpsave_buffer] |
 | `webpsave_mime` | Save image to webp mime | [method@Image.webpsave_mime] |
 | `webpsave_target` | Save as webp | [method@Image.webpsave_target] |
-| `worley` | Make a worley noise image | [func@worley] |
+| `worley` | Make a worley noise image | [ctor@Image.worley] |
 | `wrap` | Wrap image origin | [method@Image.wrap] |
-| `xyz` | Make an image where pixel values are coordinates | [func@xyz] |
-| `zone` | Make a zone plate | [func@zone] |
+| `xyz` | Make an image where pixel values are coordinates | [ctor@Image.xyz] |
+| `zone` | Make a zone plate | [ctor@Image.zone] |
 | `zoom` | Zoom an image | [method@Image.zoom] |

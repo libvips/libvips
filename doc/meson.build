@@ -39,12 +39,12 @@ vips_toml = configure_file(
   install_dir: docs_dir / 'vips',
 )
 
-fixup_load_as_ctor = find_program('fixup-load-as-ctor.py')
+fixup_gir_for_doc = find_program('fixup-gir-for-doc.py')
 
 vips_gir_doc = custom_target(
   input: vips_gir[0],
   output: 'Vips-@0@.0-doc.gir'.format(version_major),
-  command: [fixup_load_as_ctor, '@INPUT@', '@OUTPUT@'],
+  command: [fixup_gir_for_doc, '@INPUT@', '@OUTPUT@'],
 )
 
 custom_target('libvips-doc',
