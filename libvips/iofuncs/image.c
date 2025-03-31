@@ -247,7 +247,7 @@
  * The format used for each band element.
  *
  * Each corresponds to a native C type for the current machine. For example,
- * #VIPS_FORMAT_USHORT is <type>unsigned short</type>.
+ * `VIPS_FORMAT_USHORT` is <type>unsigned short</type>.
  */
 
 /**
@@ -340,7 +340,7 @@
  * @Y: y coordinate
  *
  * This macro returns a pointer to a pixel in an image, cast to a double*. The
- * image must have a single band, be #VIPS_FORMAT_DOUBLE and be
+ * image must have a single band, be `VIPS_FORMAT_DOUBLE` and be
  * fully available in memory, so memory buffers and small
  * mapped images only.
  *
@@ -588,8 +588,7 @@ vips_image_dump(VipsObject *object, VipsBuf *buf)
 			vips_image_get_bands(image)),
 		vips_image_get_width(image),
 		vips_image_get_height(image),
-		vips_enum_nick(VIPS_TYPE_BAND_FORMAT,
-			vips_image_get_format(image)),
+		vips_enum_nick(VIPS_TYPE_BAND_FORMAT, vips_image_get_format(image)),
 		vips_image_get_bands(image),
 		vips_enum_nick(VIPS_TYPE_INTERPRETATION,
 			vips_image_get_interpretation(image)));
@@ -620,8 +619,7 @@ vips_image_summary(VipsObject *object, VipsBuf *buf)
 				" %s, %d band, %s",
 				" %s, %d bands, %s",
 				vips_image_get_bands(image)),
-			vips_enum_nick(VIPS_TYPE_BAND_FORMAT,
-				vips_image_get_format(image)),
+			vips_enum_nick(VIPS_TYPE_BAND_FORMAT, vips_image_get_format(image)),
 			vips_image_get_bands(image),
 			vips_enum_nick(VIPS_TYPE_INTERPRETATION,
 				vips_image_get_interpretation(image)));
@@ -2273,9 +2271,9 @@ vips_image_new_from_source(VipsSource *source,
  * @height: image height
  *
  * This convenience function makes an image which is a matrix: a one-band
- * #VIPS_FORMAT_DOUBLE image held in memory.
+ * `VIPS_FORMAT_DOUBLE` image held in memory.
  *
- * Use VIPS_IMAGE_ADDR(), or VIPS_MATRIX() to address pixels in the image.
+ * Use [func@IMAGE_ADDR], or [func@MATRIX] to address pixels in the image.
  *
  * Use [method@Image.set_double] to set "scale" and "offset", if required.
  *
