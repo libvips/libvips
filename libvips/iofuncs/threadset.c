@@ -49,7 +49,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 typedef struct _VipsThreadExec {
@@ -247,7 +246,7 @@ vips_threadset_add_thread(VipsThreadset *set)
 }
 
 /**
- * vips_threadset_new:
+ * vips_threadset_new: (free-func vips_threadset_free) (skip)
  * @max_threads: maximum number of system threads
  *
  * Create a new threadset.
@@ -286,8 +285,8 @@ vips_threadset_new(int max_threads)
  * vips_threadset_run:
  * @set: the threadset to run the task in
  * @domain: the name of the task (useful for debugging)
- * @func: the task to execute
- * @data: the task's data
+ * @func: (scope async) (closure data): the task to execute
+ * @data: (nullable): the task's data
  *
  * Execute a task in a thread. If there are no idle threads and the maximum
  * thread limit specified by @max_threads has not been reached, a new thread

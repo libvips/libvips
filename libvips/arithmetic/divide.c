@@ -97,7 +97,7 @@ G_DEFINE_TYPE(VipsDivide, vips_divide, VIPS_TYPE_BINARY);
 				q[0] = 0.0; \
 				q[1] = 0.0; \
 			} \
-			else if (VIPS_FABS(right[0]) > VIPS_FABS(right[1])) { \
+			else if (fabs(right[0]) > fabs(right[1])) { \
 				double a = right[1] / right[0]; \
 				double b = right[0] + right[1] * a; \
 \
@@ -220,7 +220,7 @@ vips_divide_init(VipsDivide *divide)
 }
 
 /**
- * vips_divide:
+ * vips_divide: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image

@@ -104,7 +104,24 @@ openin_source_read(thandle_t st, tdata_t data, tsize_t size)
 {
 	VipsSource *source = VIPS_SOURCE(st);
 
-	return vips_source_read(source, data, size);
+	gint64 total_read;
+
+	total_read = 0;
+
+	while (total_read < size) {
+		gint64 bytes_read;
+
+		bytes_read = vips_source_read(source, data, size - total_read);
+		if (bytes_read == -1)
+			return -1;
+		if (bytes_read == 0)
+			break;
+
+		total_read += bytes_read;
+		data = (char *) data + bytes_read;
+	}
+
+	return total_read;
 }
 
 static tsize_t

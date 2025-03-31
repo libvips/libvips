@@ -130,7 +130,6 @@
  */
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/transform.h>
 #include <vips/internal.h>
 
@@ -332,7 +331,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	 * threads. In fact it's harmless if we do get two writers, but we may
 	 * avoid duplicating work.
 	 */
-	g_mutex_lock(ovlap->fl_lock);
+	g_mutex_lock(&ovlap->fl_lock);
 
 	/* Do we already have first/last for this area? Bail out if we do.
 	 */
@@ -349,7 +348,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	if (!missing) {
 		/* No work to do!
 		 */
-		g_mutex_unlock(ovlap->fl_lock);
+		g_mutex_unlock(&ovlap->fl_lock);
 		return 0;
 	}
 
@@ -383,7 +382,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 	 */
 	if (vips_region_prepare(rir, &rr) ||
 		vips_region_prepare(sir, &sr)) {
-		g_mutex_unlock(ovlap->fl_lock);
+		g_mutex_unlock(&ovlap->fl_lock);
 		return -1;
 	}
 
@@ -404,7 +403,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 					sr.left, ys, sr.width) ||
 				find_last(rir, last,
 					rr.left, yr, rr.width)) {
-				g_mutex_unlock(ovlap->fl_lock);
+				g_mutex_unlock(&ovlap->fl_lock);
 				return -1;
 			}
 
@@ -425,7 +424,7 @@ make_firstlast(MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg)
 		}
 	}
 
-	g_mutex_unlock(ovlap->fl_lock);
+	g_mutex_unlock(&ovlap->fl_lock);
 
 	return 0;
 }
@@ -737,9 +736,9 @@ lr_blend_labpack(VipsRegion *out_region, MergeInfo *inf, Overlapping *ovlap,
 }
 
 static void
-lock_free(VipsImage *image, GMutex *lock)
+ovlap_free(VipsImage *image, Overlapping *ovlap)
 {
-	VIPS_FREEF(vips_g_mutex_free, lock);
+	g_mutex_clear(&ovlap->fl_lock);
 }
 
 /* Build basic per-call state and do some geometry calculations. Shared with
@@ -853,10 +852,10 @@ vips__build_mergestate(const char *domain,
 	for (x = 0; x < ovlap->flsize; x++)
 		ovlap->first[x] = -1;
 
-	ovlap->fl_lock = vips_g_mutex_new();
+	g_mutex_init(&ovlap->fl_lock);
 
 	g_signal_connect(out, "close",
-		G_CALLBACK(lock_free), ovlap->fl_lock);
+		G_CALLBACK(ovlap_free), ovlap);
 
 	return ovlap;
 }

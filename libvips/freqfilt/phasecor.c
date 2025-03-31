@@ -120,7 +120,7 @@ vips_phasecor_init(VipsPhasecor *phasecor)
 }
 
 /**
- * vips_phasecor:
+ * vips_phasecor: (method)
  * @in1: first input image
  * @in2: second input image
  * @out: (out): output image

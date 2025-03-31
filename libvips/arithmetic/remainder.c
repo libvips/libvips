@@ -113,7 +113,7 @@ vips_remainder_build(VipsObject *object)
 			double a = p1[x]; \
 			double b = p2[x]; \
 \
-			q[x] = b ? a - b * VIPS_FLOOR(a / b) : -1; \
+			q[x] = b ? a - b * floor(a / b) : -1; \
 		} \
 	}
 
@@ -204,7 +204,7 @@ vips_remainder_init(VipsRemainder *remainder)
 }
 
 /**
- * vips_remainder:
+ * vips_remainder: (method)
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: (out): output #VipsImage

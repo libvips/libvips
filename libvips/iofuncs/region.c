@@ -102,43 +102,26 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 /**
- * SECTION: region
- * @short_description: small, rectangular parts of images
- * @stability: Stable
- * @see_also: <link linkend="VipsImage">image</link>,
- * <link linkend="libvips-generate">generate</link>
- * @include: vips/vips.h
+ * VipsRegion:
  *
- * A #VipsRegion is a small part of an image. You use regions to
- * read pixels out of images without having to have the whole image in memory
- * at once.
+ * A [class@Region] represents a small, rectangular part of an image.
+ *
+ * You use regions to read pixels out of images without having to have the
+ * whole image in memory at once.
  *
  * A region can be a memory buffer, part of a memory-mapped file, part of some
  * other image, or part of some other region.
  *
  * Regions must be created, used and freed all within the same thread, since
- * they can reference private per-thread caches. VIPS sanity-checks region
- * ownership in various places, so you are likely to see g_assert() errors if
- * you don't follow this rule.
+ * they can reference private per-thread caches. libvips sanity-checks region
+ * ownership in various places, so you are likely to see [func@GLib.assert]
+ * errors if you don't follow this rule.
  *
- * There
- * is API to transfer ownership of regions between threads, but hopefully this
- * is only needed within VIPS, so we don't expose it. Hopefully.
- */
-
-/**
- * VipsRegion:
- * @im: the #VipsImage that this region is defined on
- * @valid: the #VipsRect of pixels that this region represents
- *
- * A small part of a #VipsImage. @valid holds the left/top/width/height of the
- * area of pixels that are available from the region.
- *
- * See also: VIPS_REGION_ADDR(), vips_region_new(), vips_region_prepare().
+ * There is API to transfer ownership of regions between threads, but
+ * (hopefully) this is only needed within libvips, so we don't expose it.
  */
 
 /**
@@ -231,14 +214,14 @@ vips__region_start(VipsRegion *region)
 	if (!region->seq && image->start_fn) {
 		VIPS_GATE_START("vips__region_start: wait");
 
-		g_mutex_lock(image->sslock);
+		g_mutex_lock(&image->sslock);
 
 		VIPS_GATE_STOP("vips__region_start: wait");
 
 		region->seq = image->start_fn(image,
 			image->client1, image->client2);
 
-		g_mutex_unlock(image->sslock);
+		g_mutex_unlock(&image->sslock);
 
 		if (!region->seq) {
 #ifdef DEBUG
@@ -265,14 +248,14 @@ vips__region_stop(VipsRegion *region)
 
 		VIPS_GATE_START("vips__region_stop: wait");
 
-		g_mutex_lock(image->sslock);
+		g_mutex_lock(&image->sslock);
 
 		VIPS_GATE_STOP("vips__region_stop: wait");
 
 		result = image->stop_fn(region->seq,
 			image->client1, image->client2);
 
-		g_mutex_unlock(image->sslock);
+		g_mutex_unlock(&image->sslock);
 
 		/* stop function can return an error, but we have nothing we
 		 * can really do with it, sadly.
@@ -312,13 +295,13 @@ vips_region_dispose(GObject *gobject)
 	 */
 	VIPS_GATE_START("vips_region_dispose: wait");
 
-	g_mutex_lock(image->sslock);
+	g_mutex_lock(&image->sslock);
 
 	VIPS_GATE_STOP("vips_region_dispose: wait");
 
 	image->regions = g_slist_remove(image->regions, region);
 
-	g_mutex_unlock(image->sslock);
+	g_mutex_unlock(&image->sslock);
 
 	region->im = NULL;
 
@@ -382,7 +365,7 @@ vips__region_take_ownership(VipsRegion *region)
 	 */
 	VIPS_GATE_START("vips__region_take_ownership: wait");
 
-	g_mutex_lock(region->im->sslock);
+	g_mutex_lock(&region->im->sslock);
 
 	VIPS_GATE_STOP("vips__region_take_ownership: wait");
 
@@ -400,7 +383,7 @@ vips__region_take_ownership(VipsRegion *region)
 		region->thread = g_thread_self();
 	}
 
-	g_mutex_unlock(region->im->sslock);
+	g_mutex_unlock(&region->im->sslock);
 }
 
 void
@@ -422,7 +405,7 @@ vips__region_no_ownership(VipsRegion *region)
 {
 	VIPS_GATE_START("vips__region_no_ownership: wait");
 
-	g_mutex_lock(region->im->sslock);
+	g_mutex_lock(&region->im->sslock);
 
 	VIPS_GATE_STOP("vips__region_no_ownership: wait");
 
@@ -432,7 +415,7 @@ vips__region_no_ownership(VipsRegion *region)
 	if (region->buffer)
 		vips_buffer_undone(region->buffer);
 
-	g_mutex_unlock(region->im->sslock);
+	g_mutex_unlock(&region->im->sslock);
 }
 
 static int
@@ -452,13 +435,13 @@ vips_region_build(VipsObject *object)
 	 */
 	VIPS_GATE_START("vips_region_build: wait");
 
-	g_mutex_lock(image->sslock);
+	g_mutex_lock(&image->sslock);
 
 	VIPS_GATE_STOP("vips_region_build: wait");
 
 	image->regions = g_slist_prepend(image->regions, region);
 
-	g_mutex_unlock(image->sslock);
+	g_mutex_unlock(&image->sslock);
 
 	return 0;
 }

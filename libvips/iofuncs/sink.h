@@ -39,7 +39,6 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 
 /* Base for sink.c / sinkdisc.c / sinkmemory.c
  */

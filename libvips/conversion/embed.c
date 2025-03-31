@@ -217,7 +217,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 		 */
 		for (y = 0; y < todo.height; y++) {
 			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
-			memcpy(q, p, bs * todo.width);
+			memcpy(q, p, (size_t) bs * todo.width);
 		}
 	}
 
@@ -822,7 +822,7 @@ vips_gravity_init(VipsGravity *gravity)
 }
 
 /**
- * vips_gravity:
+ * vips_gravity: (method)
  * @in: input image
  * @out: output image
  * @direction: place @in at this direction in @out

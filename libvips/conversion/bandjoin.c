@@ -264,7 +264,7 @@ vips_bandjoin(VipsImage **in, VipsImage **out, int n, ...)
 }
 
 /**
- * vips_bandjoin2:
+ * vips_bandjoin2: (method)
  * @in1: first input image
  * @in2: second input image
  * @out: (out): output image

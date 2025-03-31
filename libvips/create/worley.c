@@ -48,6 +48,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcreate.h"
 
@@ -197,9 +198,9 @@ vips_worley_start(VipsImage *out, void *a, void *b)
 static float
 vips_int_hypot(int x, int y)
 {
-	/* Faster than hypot() for int args.
+	/* Faster than hypotf() for int args.
 	 */
-	return sqrt(x * x + y * y);
+	return sqrtf(x * x + y * y);
 }
 
 static float

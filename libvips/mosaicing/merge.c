@@ -172,7 +172,7 @@ vips_merge_init(VipsMerge *merge)
 }
 
 /**
- * vips_merge:
+ * vips_merge: (method)
  * @ref: reference image
  * @sec: secondary image
  * @out: (out): output image

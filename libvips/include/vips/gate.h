@@ -69,19 +69,8 @@ extern "C" {
 	} \
 	G_STMT_END
 
-extern gboolean vips__thread_profile;
-
 VIPS_API
 void vips_profile_set(gboolean profile);
-
-void vips__thread_profile_attach(const char *thread_name);
-void vips__thread_profile_detach(void);
-void vips__thread_profile_stop(void);
-
-void vips__thread_gate_start(const char *gate_name);
-void vips__thread_gate_stop(const char *gate_name);
-
-void vips__thread_malloc_free(gint64 size);
 
 #endif /*VIPS_GATE_H*/
 

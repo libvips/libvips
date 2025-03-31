@@ -659,11 +659,11 @@ build_summary = {
     {'enable debug': [get_option('debug')],
      'enable deprecated': [get_option('deprecated')],
      'enable modules': [modules_enabled],
-     'enable gtk-doc': [get_option('gtk_doc')],
-     'enable doxygen': [get_option('doxygen')],
+     'enable docs': [get_option('docs')],
+     'enable C++ docs': [get_option('cpp-docs')],
      'enable introspection': [enable_introspection],
      'enable examples': [get_option('examples')],
-     'enable cplusplus': [get_option('cplusplus')],
+     'enable C++ binding': [get_option('cplusplus')],
      'enable RAD load/save': [get_option('radiance')],
      'enable Analyze7 load': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
@@ -727,8 +727,8 @@ foreach section_title, section: build_features
 endforeach
 
 subdir('libvips')
-if get_option('gtk_doc')
-    subdir('doc')
+if get_option('docs')
+  subdir('doc')
 endif
 if get_option('examples')
   subdir('examples')

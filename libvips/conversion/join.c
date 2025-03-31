@@ -290,7 +290,7 @@ vips_join_init(VipsJoin *join)
 }
 
 /**
- * vips_join:
+ * vips_join: (method)
  * @in1: first input image
  * @in2: second input image
  * @out: (out): output image

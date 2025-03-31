@@ -97,7 +97,6 @@
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/vector.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 
 /* abort() on the first warning or error.
@@ -287,7 +286,7 @@ vips_load_plugins(const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	(void) g_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
+	(void) g_vsnprintf(dir_name, VIPS_PATH_MAX, fmt, ap);
 	va_end(ap);
 
 	g_info("searching \"%s\"", dir_name);
@@ -301,7 +300,7 @@ vips_load_plugins(const char *fmt, ...)
 		char path[VIPS_PATH_MAX];
 		GModule *module;
 
-		g_snprintf(path, VIPS_PATH_MAX - 1,
+		g_snprintf(path, VIPS_PATH_MAX,
 			"%s" G_DIR_SEPARATOR_S "%s", dir_name, name);
 
 		g_info("loading \"%s\"", path);

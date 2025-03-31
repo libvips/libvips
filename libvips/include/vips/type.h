@@ -38,6 +38,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#ifndef __GI_SCANNER__
+
 /* A very simple boxed type for testing. Just holds an int.
  */
 typedef struct _VipsThing {
@@ -54,6 +56,8 @@ VIPS_API
 GType vips_thing_get_type(void);
 VIPS_API
 VipsThing *vips_thing_new(int i);
+
+#endif /* !__GI_SCANNER__ */
 
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
@@ -74,7 +78,7 @@ typedef struct _VipsArea {
 	 * structure, so a simple GMutex is OK.
 	 */
 	int count;
-	GMutex *lock;
+	GMutex lock;
 
 	/* Things like ICC profiles need their own free functions.
 	 *

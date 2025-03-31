@@ -70,7 +70,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 
 #ifdef DEBUG
 /* Track all buffers here for debugging.

@@ -1,3 +1,5 @@
+master
+
 8.17.0
 
 - add `keep_duplicate_frames` option to GIF save [dloebl]
@@ -8,9 +10,16 @@
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
+- better handling of malformed size values [Simcha Kosman]
 - improve performance of vips_shrink() [kleisauke]
 - svgload: add support for custom CSS via stylesheet option [lovell]
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
+- heifsave: improve alpha channel detection [lovell]
+- convi: ensure double sum precision for floats [lovell]
+- improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
+- improve vips_sink_screen() thumbnail rendering
+- heifload: improve detection of seek beyond EOF [lovell]
+- add "oneshot" option to jp2kload [mbklein]
 
 8.16.1
 
@@ -27,7 +36,7 @@
 - heifsave: set image orientation using irot and imir transformations [lovell]
 - XYZ2Yxy: guard against divide by zero
 - fix MSVC compile error [na-trium-144]
-- exif: ensure enumerated entries can to converted to string values [lovell]
+- exif: ensure enumerated entries can be converted to string values [lovell]
 - gifsave: add support for eval callback, ensure correct return code [lovell]
 - tiffsave: honor disc threshold during pyramid save [kleisauke]
 - fill_nearest: fix a leak
@@ -35,6 +44,12 @@
 - morph: fix Orc path with large masks [kleisauke]
 - invertlut: fix final value in some cases
 - matrixload: fix file format detect for some matrix types
+- radload: improve sanity check of colour-related headers [lovell]
+- heifsave: reject multiband images [lovell]
+- heifload: prevent possible int overflow for large images [kleisauke]
+- tiffload: add missing read loop [kleisauke]
+- prevent possible use-after-free when debugging via `--vips-leak` flag [lovell]
+- avoid possible overflow when multiplication result is cast up [lovell]
 
 10/10/24 8.16.0
 

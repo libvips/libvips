@@ -75,8 +75,8 @@ vips__avgdxdy(TiePoints *points, int *dx, int *dy)
 		sumdy += points->y_secondary[i] - points->y_reference[i];
 	}
 
-	*dx = VIPS_RINT((double) sumdx / (double) points->nopoints);
-	*dy = VIPS_RINT((double) sumdy / (double) points->nopoints);
+	*dx = rint((double) sumdx / (double) points->nopoints);
+	*dy = rint((double) sumdy / (double) points->nopoints);
 
 	return 0;
 }

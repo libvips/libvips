@@ -309,7 +309,7 @@ vips_convi_uchar_vector_gen(VipsRegion *out_region,
 	VipsConvi *convi = (VipsConvi *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convi;
 	VipsImage *M = convolution->M;
-	int offset = VIPS_RINT(vips_image_get_offset(M));
+	int offset = rint(vips_image_get_offset(M));
 	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
 	const int nnz = convi->nnz;
@@ -521,7 +521,7 @@ vips_convi_compile_clip(VipsConvi *convi)
 {
 	VipsConvolution *convolution = (VipsConvolution *) convi;
 	VipsImage *M = convolution->M;
-	int offset = VIPS_RINT(vips_image_get_offset(M));
+	int offset = rint(vips_image_get_offset(M));
 
 	OrcProgram *p;
 	OrcCompileResult result;
@@ -728,7 +728,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 \
 			sum = 0; \
 			for (i = 0; i < nnz; i++) \
-				sum += t[i] * p[offsets[i]]; \
+				sum += (double) t[i] * p[offsets[i]]; \
 \
 			sum = (sum / scale) + offset; \
 \
@@ -755,9 +755,9 @@ vips_convi_gen(VipsRegion *out_region,
 	VipsConvi *convi = (VipsConvi *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convi;
 	VipsImage *M = convolution->M;
-	int scale = VIPS_RINT(vips_image_get_scale(M));
+	int scale = rint(vips_image_get_scale(M));
 	int rounding = scale / 2;
-	int offset = VIPS_RINT(vips_image_get_offset(M));
+	int offset = rint(vips_image_get_offset(M));
 	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
 	int *restrict t = convi->coeff;
@@ -890,12 +890,12 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 	for (y = 0; y < t->Ysize; y++)
 		for (x = 0; x < t->Xsize; x++)
 			*VIPS_MATRIX(*out, x, y) =
-				VIPS_RINT(*VIPS_MATRIX(t, x, y));
+				rint(*VIPS_MATRIX(t, x, y));
 
-	out_scale = VIPS_RINT(vips_image_get_scale(t));
+	out_scale = rint(vips_image_get_scale(t));
 	if (out_scale == 0)
 		out_scale = 1;
-	out_offset = VIPS_RINT(vips_image_get_offset(t));
+	out_offset = rint(vips_image_get_offset(t));
 
 	/* Now convolve a 1 everywhere image with the int version we've made,
 	 * what do we get?
@@ -908,7 +908,7 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 
 	/* And adjust the scale to get as close to a match as we can.
 	 */
-	out_scale = VIPS_RINT(out_scale + (int_result - double_result));
+	out_scale = rint(out_scale + (int_result - double_result));
 	if (out_scale == 0)
 		out_scale = 1;
 
@@ -1023,7 +1023,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	for (i = 0; i < convi->n_point; i++) {
 		/* 128 since this is signed.
 		 */
-		convi->mant[i] = VIPS_RINT(128 * scaled[i] * pow(2, -shift));
+		convi->mant[i] = rint(128 * scaled[i] * pow(2, -shift));
 
 		if (convi->mant[i] < -128 ||
 			convi->mant[i] > 127) {
@@ -1106,7 +1106,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 			int_value = VIPS_LSHIFT_INT(int_sum, convi->exp);
 		int_value = VIPS_CLIP(0, int_value, 255);
 
-		if (VIPS_ABS(true_value - int_value) > 2) {
+		if (abs(true_value - int_value) > 2) {
 			g_info("vips_convi_intize: too inaccurate");
 			return -1;
 		}

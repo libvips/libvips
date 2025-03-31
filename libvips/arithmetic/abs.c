@@ -116,7 +116,7 @@ vips_abs_build(VipsObject *object)
 		int x; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = VIPS_FABS(p[x]); \
+			q[x] = fabs(p[x]); \
 	}
 
 /* Complex abs operation: calculate modulus.

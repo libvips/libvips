@@ -44,7 +44,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -238,7 +237,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }
@@ -447,9 +446,9 @@ vips_sink_base_progress(void *a)
  * @im: scan over this image
  * @tile_width: tile width
  * @tile_height: tile height
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -514,9 +513,9 @@ vips_sink_tile(VipsImage *im,
 /**
  * vips_sink: (method)
  * @im: scan over this image
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *

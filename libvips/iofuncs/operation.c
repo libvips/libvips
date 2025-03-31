@@ -52,28 +52,23 @@
 #include <gobject/gvaluecollector.h>
 
 /**
- * SECTION: operation
- * @short_description: the VIPS operation base object class
- * @stability: Stable
- * @see_also: <link linkend="VipsObject">object</link>
- * @include: vips/vips.h
+ * VipsOperation:
  *
- * The #VipsOperation class and associated types and macros.
+ * An abstract base class for all operations in libvips.
  *
- * #VipsOperation is the base class for all operations in libvips. It builds
- * on #VipsObject to provide the introspection and command-line interface to
- * libvips.
+ * It builds on [class@VipsObject] to provide the introspection and
+ * command-line interface to libvips.
  *
  * It also maintains a cache of recent operations. See below.
  *
- * vips_call(), vips_call_split() and vips_call_split_option_string() are used
- * by vips to implement the C API. They can execute any #VipsOperation,
+ * [func@call], [func@call_split] and [func@call_split_option_string] are used
+ * by vips to implement the C API. They can execute any [class@Operation],
  * passing in a set of required and optional arguments. Normally you would not
  * use these functions directly: every operation has a tiny wrapper function
  * which provides type-safety for the required arguments. For example,
- * vips_embed() is defined as:
+ * [method@Image.embed] is defined as:
  *
- * |[
+ * ```c
  * int
  * vips_embed(VipsImage *in, VipsImage **out,
  *     int x, int y, int width, int height, ...)
@@ -87,38 +82,38 @@
  *
  *     return result;
  * }
- * ]|
+ * ```
  *
- * Use vips_call_argv() to run any vips operation from a command-line style
- * argc/argv array. This is the thing used by the vips main program to
- * implement the vips command-line interface.
+ * Use [func@call_argv] to run any libvips operation from a command-line style
+ * argc/argv array. This is the thing used by the `vips` main program to
+ * implement the command-line interface.
  *
- * ## #VipsOperation and reference counting
+ * ## [class@Operation] and reference counting
  *
- * After calling a #VipsOperation you are responsible for unreffing any output
- * objects. For example, consider:
+ * After calling a [class@Operation] you are responsible for unreffing any
+ * output objects. For example, consider:
  *
- * |[
+ * ```c
  * VipsImage *im = ...;
  * VipsImage *t1;
  *
  * if (vips_invert(im, &t1, NULL))
- *   error ..
- * ]|
+ *     error ..
+ * ```
  *
- * This will invert @im and return a new #VipsImage, @t1. As the caller
- * of vips_invert(), you are responsible for @t1 and must unref it when you no
- * longer need it. If vips_invert() fails, no @t1 is returned and you don't
- * need to do anything.
+ * This will invert `im` and return a new [class@Image], `t1`. As the caller
+ * of [method@Image.invert], you are responsible for `t1` and must unref it when
+ * you no longer need it. If [method@Image.invert] fails, no `t1` is returned and
+ * you don't need to do anything.
  *
- * If you don't need to use @im for another operation,
- * you can unref @im immediately after the call. If @im is needed to calculate
- * @t1, vips_invert() will add a ref to @im and automatically drop it when @t1
- * is unreffed.
+ * If you don't need to use `im` for another operation, you can unref `im`
+ * immediately after the call. If `im` is needed to calculate `t1`,
+ * [method@Image.invert] will add a ref to `im` and automatically drop it when
+ * `t1` is unreffed.
  *
  * Consider running two operations, one after the other. You could write:
  *
- * |[
+ * ```c
  * VipsImage *im = ...;
  * VipsImage *t1, *t2;
  *
@@ -133,12 +128,12 @@
  *     return -1;
  * }
  * g_object_unref(t1);
- * ]|
+ * ```
  *
  * This is correct, but rather long-winded. libvips provides a handy thing to
  * make a vector of auto-freeing object references. You can write this as:
  *
- * |[
+ * ```c
  * VipsObject *parent = ...;
  * VipsImage *im = ...;
  * VipsImage *t = (VipsImage **) vips_object_local_array(parent, 2);
@@ -146,23 +141,23 @@
  * if (vips_invert(im, &t[0], NULL) ||
  *     vips_flip(t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
  *   return -1;
- * ]|
+ * ```
  *
- * where @parent is some enclosing object which will be unreffed when this
- * task is complete. vips_object_local_array() makes an array of #VipsObject
- * (or #VipsImage, in this case) where when @parent is freed, all non-NULL
- * #VipsObject in the array are also unreffed.
+ * where `parent` is some enclosing object which will be unreffed when this
+ * task is complete. [method@Object.local_array] makes an array of
+ * [class@Object] (or [class@Image], in this case) where when `parent` is
+ * freed, all non-`NULL` [class@Object] in the array are also unreffed.
  *
- * ## The #VipsOperation cache
+ * ## The [class@Operation] cache
  *
- * Because all #VipsObject are immutable, they can be cached. The cache is
- * very simple to use: instead of calling vips_object_build(), call
- * vips_cache_operation_build(). This function calculates a hash from the
- * operations's input arguments and looks it up in table of all recent
+ * Because all [class@Object] are immutable, they can be cached. The cache is
+ * very simple to use: instead of calling [method@Object.build], call
+ * [func@cache_operation_build]. This function calculates a hash from the
+ * operations' input arguments and looks it up in table of all recent
  * operations. If there's a hit, the new operation is unreffed, the old
  * operation reffed, and the old operation returned in place of the new one.
  *
- * The cache size is controlled with vips_cache_set_max() and friends.
+ * The cache size is controlled with [func@cache_set_max] and friends.
  */
 
 /**

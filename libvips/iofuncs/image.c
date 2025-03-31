@@ -72,72 +72,65 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: image
- * @short_description: the VIPS image class
- * @stability: Stable
- * @see_also: <link linkend="libvips-header">header</link>
- * <link linkend="VipsRegion">VipsRegion</link>
- * <link linkend="libvips-generate">generate</link>
- * <link linkend="VipsOperation">VipsOperation</link>
- * @include: vips/vips.h
+ * VipsImage:
  *
- * The image class and associated types and macros.
+ * The [class@Image] class and associated types and macros.
  *
  * Images can be created from formatted files on disc, from C-style arrays on
  * disc, from formatted areas of memory, or from C-style arrays in memory. See
- * vips_image_new_from_file() and friends.
- * Creating an image is fast. VIPS reads just enough of
+ * [ctor@Image.new_from_file] and friends.
+ * Creating an image is fast. libvips reads just enough of
  * the image to be able to get the various properties, such as width in
  * pixels. It delays reading any pixels until they are really needed.
  *
  * Once you have an image, you can get properties from it in the usual way.
- * You can use projection functions, like vips_image_get_width() or
- * g_object_get(), to get %GObject properties.
+ * You can use projection functions, like [method@Image.get_width] or
+ * [method@GObject.Object.get], to get [class@GObject.Object] properties.
  *
- * VIPS images are three-dimensional arrays, the dimensions being width,
+ * `.v` images are three-dimensional arrays, the dimensions being width,
  * height and bands. Each dimension can be up to 2 ** 31 pixels (or band
  * elements). An image has a format, meaning the machine number type used
- * to represent each value. VIPS supports 10 formats, from 8-bit unsigned
- * integer up to 128-bit double complex, see vips_image_get_format().
+ * to represent each value. libvips supports 10 formats, from 8-bit unsigned
+ * integer up to 128-bit double complex, see [method@Image.get_format].
  *
- * In VIPS, images are uninterpreted arrays, meaning that from the point of
- * view of most operations, they are just large collections of numbers.
+ * In libvips, images are uninterpreted arrays, meaning that from the point
+ * of view of most operations, they are just large collections of numbers.
  * There's no difference between an RGBA (RGB with alpha) image and a CMYK
  * image, for example, they are both just four-band images. It's up to the
  * user of the library to pass the right sort of image to each operation.
  *
- * To take an example, VIPS has vips_Lab2XYZ(), an operation to transform
- * an image from CIE LAB colour space to CIE XYZ space. It assumes the
- * first three bands represent pixels in LAB colour space and returns an
+ * To take an example, libvips has [method@Image.Lab2XYZ], an operation to
+ * transform an image from CIE LAB colour space to CIE XYZ space. It assumes
+ * the first three bands represent pixels in LAB colour space and returns an
  * image where the first three bands are transformed to XYZ and any
- * remaining bands are just copied. Pass it a RGB image by mistake and
+ * remaining bands are just copied. Pass it an RGB image by mistake and
  * you'll just get nonsense.
  *
- * VIPS has a feature to help (a little) with this: it sets a
- * #VipsInterpretation hint for each image (see
- * vips_image_get_interpretation()); a hint which says how pixels should
- * be interpreted. For example, vips_Lab2XYZ() will set the
- * interpretation of the output image to #VIPS_INTERPRETATION_XYZ. A
- * few utility operations will also use interpretation as a guide. For
- * example, you can give vips_colourspace() an input image and a desired
- * colourspace and it will use the input's interpretation hint to apply
- * the best sequence of colourspace transforms to get to the desired space.
+ * libvips has a feature to help (a little) with this: it sets a
+ * [enum@Interpretation] hint for each image (see
+ * [method@Image.get_interpretation]); a hint which says how pixels should
+ * be interpreted. For example, [method@Image.Lab2XYZ] will set the
+ * interpretation of the output image to [enum@Vips.Interpretation.XYZ].
+ * A few utility operations will also use interpretation as a guide. For
+ * example, you can give [method@Image.colourspace] an input image and a
+ * desired colourspace and it will use the input's interpretation hint to
+ * apply the best sequence of colourspace transforms to get to the desired
+ * space.
  *
- * Use things like vips_invert() to manipulate your images. When you are done,
- * you can write images to disc files (with vips_image_write_to_file()),
- * to formatted memory buffers (with vips_image_write_to_buffer()) and to
- * C-style memory arrays (with vips_image_write_to_memory().
+ * Use things like [method@Image.invert] to manipulate your images. When you
+ * are done, you can write images to disc files (with
+ * [method@Image.write_to_file]), to formatted memory buffers (with
+ * [method@Image.write_to_buffer]) and to C-style memory arrays (with
+ * [method@Image.write_to_memory]).
  *
  * You can also write images to other images. Create, for example, a temporary
- * disc image with vips_image_new_temp_file(), then write your image to that
- * with vips_image_write(). You can create several other types of image and
- * write to them, see vips_image_new_memory(), for example.
+ * disc image with [ctor@Image.new_temp_file], then write your image to that
+ * with [method@Image.write]. You can create several other types of image and
+ * write to them, see [ctor@Image.new_memory], for example.
  *
- * See <link linkend="VipsOperation">operation</link> for an introduction to
- * running operations on images, see <link
- * linkend="libvips-header">header</link> for getting and setting image
- * metadata. See <link linkend="VipsObject">object</link> for a discussion of
- * the lower levels.
+ * See [class@Operation] for an introduction to running operations on images,
+ * see [Image headers](libvips-header.html) for getting and setting image
+ * metadata. See [class@Object] for a discussion of the lower levels.
  */
 
 /**
@@ -283,14 +276,6 @@
  *
  * A structure available to eval callbacks giving information on evaluation
  * progress. See #VipsImage::eval.
- */
-
-/**
- * VipsImage:
- *
- * An image. These can represent an image on disc, a memory buffer, an image
- * in the process of being written to disc or a partially evaluated image
- * in memory.
  */
 
 /**
@@ -471,7 +456,7 @@ vips_image_finalize(GObject *gobject)
 	 */
 	vips_image_delete(image);
 
-	VIPS_FREEF(vips_g_mutex_free, image->sslock);
+	g_mutex_clear(&image->sslock);
 
 	VIPS_FREE(image->Hist);
 	VIPS_FREEF(vips__gslist_gvalue_free, image->history_list);
@@ -1025,14 +1010,14 @@ vips_image_real_invalidate(VipsImage *image, void *data)
 
 	VIPS_GATE_START("vips_image_real_invalidate: wait");
 
-	g_mutex_lock(image->sslock);
+	g_mutex_lock(&image->sslock);
 
 	VIPS_GATE_STOP("vips_image_real_invalidate: wait");
 
 	(void) vips_slist_map2(image->regions,
 		(VipsSListMap2Fn) vips_image_real_invalidate_cb, NULL, NULL);
 
-	g_mutex_unlock(image->sslock);
+	g_mutex_unlock(&image->sslock);
 }
 
 static void
@@ -1347,7 +1332,7 @@ vips_image_init(VipsImage *image)
 	image->Yres = 1.0;
 
 	image->fd = -1; /* since 0 is stdout */
-	image->sslock = vips_g_mutex_new();
+	g_mutex_init(&image->sslock);
 
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 
@@ -3239,7 +3224,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 
 	/* Trigger evaluation callbacks for this image.
 	 */
-	vips_image_eval(image, ypos * image->Xsize);
+	vips_image_eval(image, (guint64) ypos * image->Xsize);
 	if (vips_image_iskilled(image))
 		return -1;
 

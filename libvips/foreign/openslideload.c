@@ -447,8 +447,7 @@ readslide_attach_associated(ReadSlide *rslide, VipsImage *image)
 				  *associated_name)))
 			return -1;
 
-		g_snprintf(buf, 256,
-			"openslide.associated.%s", *associated_name);
+		g_snprintf(buf, 256, "openslide.associated.%s", *associated_name);
 		vips_image_set_image(image, buf, associated);
 
 		g_object_unref(associated);
@@ -481,21 +480,18 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 
 	rslide->osr = openslide_open(rslide->filename);
 	if (!rslide->osr) {
-		vips_error("openslide2vips",
-			"%s", _("unsupported slide format"));
+		vips_error("openslide2vips", "%s", _("unsupported slide format"));
 		return -1;
 	}
 	error = openslide_get_error(rslide->osr);
 	if (error) {
-		vips_error("openslide2vips",
-			_("opening slide: %s"), error);
+		vips_error("openslide2vips", _("opening slide: %s"), error);
 		return -1;
 	}
 
 	if (rslide->level < 0 ||
 		rslide->level >= openslide_get_level_count(rslide->osr)) {
-		vips_error("openslide2vips",
-			"%s", _("invalid slide level"));
+		vips_error("openslide2vips", "%s", _("invalid slide level"));
 		return -1;
 	}
 
@@ -508,21 +504,18 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 			rslide->associated, &w, &h);
 		vips_image_set_string(image, "slide-associated-image",
 			rslide->associated);
-		if (vips_image_pipelinev(image,
-				VIPS_DEMAND_STYLE_THINSTRIP, NULL))
+		if (vips_image_pipelinev(image, VIPS_DEMAND_STYLE_THINSTRIP, NULL))
 			return -1;
 	}
 	else {
 		char buf[256];
 		const char *value;
 
-		openslide_get_level_dimensions(rslide->osr,
-			rslide->level, &w, &h);
+		openslide_get_level_dimensions(rslide->osr, rslide->level, &w, &h);
 		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, rslide->level);
 		vips_image_set_int(image, "slide-level", rslide->level);
-		if (vips_image_pipelinev(image,
-				VIPS_DEMAND_STYLE_SMALLTILE, NULL))
+		if (vips_image_pipelinev(image, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 			return -1;
 
 		/* Try to get tile width/height. An undocumented, experimental
@@ -593,8 +586,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 	}
 	if (w > INT_MAX ||
 		h > INT_MAX) {
-		vips_error("openslide2vips",
-			"%s", _("image dimensions overflow int"));
+		vips_error("openslide2vips", "%s", _("image dimensions overflow int"));
 		return -1;
 	}
 
@@ -613,8 +605,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 	for (properties = openslide_get_property_names(rslide->osr);
 		 *properties != NULL; properties++) {
 		const char *name = *properties;
-		const char *value =
-			openslide_get_property_value(rslide->osr, name);
+		const char *value = openslide_get_property_value(rslide->osr, name);
 
 		/* Can be NULL for some openslides with some images.
 		 */
@@ -630,8 +621,7 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 
 	associated_names = g_strjoinv(", ",
 		(char **) openslide_get_associated_image_names(rslide->osr));
-	vips_image_set_string(image,
-		"slide-associated-images", associated_names);
+	vips_image_set_string(image, "slide-associated-images", associated_names);
 	VIPS_FREE(associated_names);
 
 	vips_image_init_fields(image, w, h, rslide->rgb ? 3 : 4,
@@ -687,7 +677,7 @@ vips__openslide_start(VipsImage *out, void *a, void *b)
 	uint32_t *tile_buffer;
 
 	if (!(tile_buffer = VIPS_MALLOC(NULL,
-			  (size_t) rslide->tile_width * rslide->tile_height * 4)))
+		(size_t) rslide->tile_width * rslide->tile_height * 4)))
 		return NULL;
 
 	return (void *) tile_buffer;
@@ -740,23 +730,20 @@ vips__openslide_generate(VipsRegion *out,
 		rslide->level,
 		r->width, r->height);
 
-	/* openslide errors are terminal. To support
-	 * @fail we'd have to close the openslide_t and reopen, perhaps
-	 * somehow marking this tile as unreadable.
-	 *
-	 * See
-	 * https://github.com/libvips/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
-	 */
 	error = openslide_get_error(rslide->osr);
 	if (error) {
-		vips_error("openslide2vips",
-			_("reading region: %s"), error);
+		vips_error("openslide2vips", _("reading region: %s"), error);
+
+		/* Knock the output out of cache ... openslide errors are terminal, so
+		 * we need to force a reopen.
+		 */
+		vips_foreign_load_invalidate(rslide->out);
+
 		return -1;
 	}
 
 	if (rslide->rgb)
-		argb2rgb(tile_buffer,
-			VIPS_REGION_ADDR(out, r->left, r->top), n);
+		argb2rgb(tile_buffer, VIPS_REGION_ADDR(out, r->left, r->top), n);
 	else
 		argb2rgba(buf, n, bg);
 
@@ -1026,13 +1013,7 @@ vips_foreign_load_openslide_class_init(VipsForeignLoadOpenslideClass *class)
 	 */
 	foreign_class->priority = 100;
 
-	/* libopenslide does not try to recover from errors, so it's not safe
-	 * to cache.
-	 */
-	operation_class->flags |= VIPS_OPERATION_NOCACHE;
-
-	/* openslide has not been fuzzed and is largly unmaintained, so should
-	 * not be used with untrusted input unless you are very careful.
+	/* openslide is not fuzzed too heavily.
 	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 

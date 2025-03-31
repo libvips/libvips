@@ -50,7 +50,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 #ifdef G_OS_WIN32
@@ -87,45 +86,6 @@ vips_thread_isvips(void)
 	return g_private_get(&is_vips_thread_key) != NULL;
 }
 
-/* Glib 2.32 revised the thread API. We need some compat functions.
- */
-
-GMutex *
-vips_g_mutex_new(void)
-{
-	GMutex *mutex;
-
-	mutex = g_new(GMutex, 1);
-	g_mutex_init(mutex);
-
-	return mutex;
-}
-
-void
-vips_g_mutex_free(GMutex *mutex)
-{
-	g_mutex_clear(mutex);
-	g_free(mutex);
-}
-
-GCond *
-vips_g_cond_new(void)
-{
-	GCond *cond;
-
-	cond = g_new(GCond, 1);
-	g_cond_init(cond);
-
-	return cond;
-}
-
-void
-vips_g_cond_free(GCond *cond)
-{
-	g_cond_clear(cond);
-	g_free(cond);
-}
-
 typedef struct {
 	const char *domain;
 	GThreadFunc func;
@@ -154,6 +114,16 @@ vips_thread_run(gpointer data)
 	return result;
 }
 
+/**
+ * vips_g_thread_new:
+ * @domain: (nullable): an (optional) name for the new thread
+ * @func: (scope async) (closure data): a function to execute in the new thread
+ * @data: (nullable): an argument to supply to the new thread
+ *
+ * Wrapper for g_thread_try_new().
+ *
+ * Returns: (transfer full): the new #GThread, or %NULL if an error occurred
+ */
 GThread *
 vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
 {

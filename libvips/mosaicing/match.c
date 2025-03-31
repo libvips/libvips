@@ -303,7 +303,7 @@ vips_match_init(VipsMatch *match)
 }
 
 /**
- * vips_match:
+ * vips_match: (method)
  * @ref: reference image
  * @sec: secondary image
  * @out: (out): output image

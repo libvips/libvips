@@ -56,16 +56,11 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: sbuf
- * @short_description: buffered read from a source
- * @stability: Stable
- * @see_also: <link linkend="libvips-foreign">foreign</link>
- * @include: vips/vips.h
- * @title: VipsSbuf
+ * VipsSbuf:
  *
- * #VipsSbuf wraps up a #VipsSource and provides a set of calls for
- * text-oriented buffered reading. You can fetch lines of text, skip
- * whitespace, and so on.
+ * A [class@Sbuf] provides a buffered reading interface for a [class@Source].
+ *
+ * You can fetch lines of text, skip whitespace, and so on.
  *
  * It is useful for implementing things like CSV readers, for example.
  */

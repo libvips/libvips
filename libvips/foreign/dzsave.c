@@ -776,11 +776,11 @@ write_json(VipsForeignSaveDz *dz)
 		"    {\n"
 		"      \"scaleFactors\": [\n");
 
-	for (i = 0; i < dz->level->n; i++) {
+	for (i = 0; i <= dz->level->n; i++) {
 		vips_dbuf_writef(&dbuf,
 			"        %d",
 			1 << i);
-		if (i != dz->level->n - 1)
+		if (i != dz->level->n)
 			vips_dbuf_writef(&dbuf, ",");
 		vips_dbuf_writef(&dbuf, "\n");
 	}
@@ -1288,7 +1288,7 @@ region_tile_equal(VipsRegion *region, VipsRect *rect,
 
 		for (x = 0; x < rect->width; x++) {
 			for (b = 0; b < bytes; b++)
-				if (VIPS_ABS(p[b] - ink[b]) > threshold)
+				if (abs(p[b] - ink[b]) > threshold)
 					return FALSE;
 
 			p += bytes;

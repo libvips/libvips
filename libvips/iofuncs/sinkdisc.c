@@ -59,8 +59,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
-#include <vips/threadpool.h>
 #include <vips/debug.h>
 
 #include "sink.h"
@@ -419,7 +417,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }
@@ -486,8 +484,8 @@ write_free(Write *write)
 /**
  * vips_sink_disc: (method)
  * @im: image to process
- * @write_fn: (scope call): called for every batch of pixels
- * @a: (closure write_fn): client data
+ * @write_fn: (scope call) (closure a): called for every batch of pixels
+ * @a: client data
  *
  * vips_sink_disc() loops over @im, top-to-bottom, generating it in sections.
  * As each section is produced, @write_fn is called.

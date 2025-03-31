@@ -303,7 +303,7 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	for (z = 0; z < convasep->width; z++)
 		sum += coeff[z];
 
-	convasep->divisor = VIPS_RINT(sum * area / scale);
+	convasep->divisor = rint(sum * area / scale);
 	if (convasep->divisor == 0)
 		convasep->divisor = 1;
 	convasep->rounding = (convasep->divisor + 1) / 2;

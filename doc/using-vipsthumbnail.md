@@ -1,23 +1,16 @@
-<refmeta>
-  <refentrytitle>Using `vipsthumbnail`</refentrytitle>
-  <manvolnum>3</manvolnum>
-  <refmiscinfo>libvips</refmiscinfo>
-</refmeta>
+Title: Using vipsthumbnail
 
-<refnamediv>
-  <refname>`vipsthumbnail`</refname>
-  <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
-</refnamediv>
+# Using vipsthumbnail
 
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples.
 
-The thumbnailing functionality is implemented by `vips_thumbnail()` and
-`vips_thumbnail_buffer()` (which thumbnails an image held as a string),
+The thumbnailing functionality is implemented by [func@thumbnail] and
+[func@thumbnail_buffer] (which thumbnails an image held as a string),
 see the docs for details. You can use these functions from any language
 with a libvips binding. For example, from PHP you could write:
 
-```php?start_inline=1
+```php
 $filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
@@ -31,9 +24,9 @@ $ cat k2.jpg | \
     cat > x.jpg
 ```
 
-# libvips options
+## libvips options
 
-`vipsthumbnail` supports the usual range of vips command-line options. A
+`vipsthumbnail` supports the usual range of `vips` command-line options. A
 few of them are useful:
 
 `--vips-cache-trace` shows each operation as libvips starts it. It can be
@@ -48,7 +41,7 @@ useful to see where libvips is looping and how often.
 `--vips-info` shows a higher level view of the operations that `vipsthumbnail`
 is running.
 
-# Looping
+## Looping
 
 `vipsthumbnail` can process many images in one command. For example:
 
@@ -68,7 +61,7 @@ much load you want to put on your system. For example:
 $ parallel vipsthumbnail ::: *.jpg
 ```
 
-# Thumbnail size
+## Thumbnail size
 
 You can set the bounding box of the generated thumbnail with the `--size`
 option. For example:
@@ -93,7 +86,7 @@ than the target.
 You can append `!` to force a resize to the exact target size, breaking
 the aspect ratio.
 
-# Cropping
+## Cropping
 
 `vipsthumbnail` normally shrinks images to fit within the box set by `--size`.
 You can use the `--smartcrop` option to crop to fill the box instead. Excess
@@ -105,18 +98,18 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 
 Where `owl.jpg` is an off-centre composition:
 
-![](owl.jpg)
+![Owl](owl.jpg)
 
 Gives this result:
 
-![](tn_owl.jpg)
+![Smartcrop](tn_owl.jpg)
 
 First it shrinks the image to get the vertical axis to 128 pixels, then crops
 down to 128 pixels across using the `attention` strategy. This one searches
-the image for features which might catch a human eye, see `vips_smartcrop()`
-for details.
+the image for features which might catch a human eye, see
+[method@Image.smartcrop] for details.
 
-# Linear light
+## Linear light
 
 Shrinking images involves combining many pixels into one. Arithmetic
 averaging really ought to be in terms of the number of photons, but (for
@@ -148,7 +141,7 @@ user	0m4.640s
 sys	0m0.016s
 ```
 
-# Output directory
+## Output directory
 
 You set the thumbnail write parameters with the `-o`
 option. This is a pattern which the input filename is pasted into to
@@ -184,7 +177,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
 Now both input files will have thumbnails written to a subdirectory of
 their current directory.
 
-# Output format and options
+## Output format and options
 
 You can use `-o` to specify the thumbnail image format too. For example:
 
@@ -206,11 +199,11 @@ optimizer.
 
 Check the image write operations to see all the possible options. For example:
 
-```
+```bash
 $ vips jpegsave
 save image to jpeg file
 usage:
-   jpegsave in filename
+   jpegsave in filename [--option-name option-value ...]
 where:
    in           - Image to save, input VipsImage
    filename     - Filename to save to, input gchararray
@@ -218,7 +211,6 @@ optional arguments:
    Q            - Q factor, input gint
 			default: 75
 			min: 1, max: 100
-   profile      - Filename of ICC profile to embed, input gchararray
    optimize-coding - Compute optimal Huffman coding tables, input gboolean
 			default: false
    interlace    - Generate an interlaced (progressive) jpeg, input gboolean
@@ -242,6 +234,7 @@ optional arguments:
 			default flags: exif:xmp:iptc:icc:other:all
 			allowed flags: none, exif, xmp, iptc, icc, other, all
    background   - Background value, input VipsArrayDouble
+   profile      - Filename of ICC profile to embed, input gchararray
 ```
 
 The `keep` option is especially useful. Many image have very large IPTC,
@@ -250,7 +243,7 @@ large saving.
 
 For example:
 
-```
+```bash
 $ vipsthumbnail 42-32157534.jpg
 $ ls -l tn_42-32157534.jpg
 -rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
@@ -258,13 +251,13 @@ $ ls -l tn_42-32157534.jpg
 
 `keep=none` almost halves the size of the thumbnail:
 
-```
+```bash
 $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,keep=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 ```
 
-# Colour management
+## Colour management
 
 `vipsthumbnail` will optionally put images through LittleCMS for you. You can
 use this to move all thumbnails to the same colour space. All web browsers
@@ -274,7 +267,7 @@ This can save several kb per thumbnail.
 
 For example:
 
-```
+```bash
 $ vipsthumbnail shark.jpg
 $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
@@ -283,7 +276,7 @@ $ ls -l tn_shark.jpg
 Now transform to sRGB and don't attach a profile (you can also use
 `keep=none`, though that will remove *all* metadata from the image):
 
-```
+```bash
 $ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
@@ -303,7 +296,7 @@ space, even though it has no embedded profile.
 $ vipsthumbnail kgdev.jpg --import-profile /my/profiles/a98.icm
 ```
 
-# Final suggestion
+## Final suggestion
 
 Putting all this together, I suggest this as a sensible set of options:
 

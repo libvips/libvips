@@ -46,7 +46,6 @@
 #include <string.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 
 static int

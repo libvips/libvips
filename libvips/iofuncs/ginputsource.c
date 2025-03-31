@@ -290,7 +290,7 @@ vips_g_input_stream_init(VipsGInputStream *gstream)
  * Create a new #GInputStream wrapping a #VipsSource. This is useful for
  * loaders like SVG and PDF which support GInput methods.
  *
- * Returns: a new #GInputStream
+ * Returns: (transfer full): a new #GInputStream
  */
 GInputStream *
 vips_g_input_stream_new_from_source(VipsSource *source)

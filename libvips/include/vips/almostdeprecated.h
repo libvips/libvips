@@ -151,6 +151,16 @@ VIPS_DEPRECATED_FOR(g_warning)
 void im_warning(const char *fmt, ...)
 	G_GNUC_PRINTF(1, 2);
 
+VIPS_DEPRECATED_FOR(g_mutex_init)
+GMutex *vips_g_mutex_new(void);
+VIPS_DEPRECATED_FOR(g_mutex_clear)
+void vips_g_mutex_free(GMutex *);
+
+VIPS_DEPRECATED_FOR(g_cond_init)
+GCond *vips_g_cond_new(void);
+VIPS_DEPRECATED_FOR(g_cond_clear)
+void vips_g_cond_free(GCond *);
+
 VIPS_DEPRECATED_FOR(g_thread_join)
 void *vips_g_thread_join(GThread *thread);
 

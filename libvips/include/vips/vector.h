@@ -38,10 +38,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Set from the command-line.
- */
-extern gboolean vips__vector_enabled;
-
 VIPS_API
 gboolean vips_vector_isenabled(void);
 VIPS_API

@@ -296,7 +296,7 @@ im__format_init(void)
 	vips_format_fits_get_type();
 #endif /*HAVE_CFITSIO*/
 	vips_format_rad_get_type();
-#ifdef HAVE_MAGICK
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 	extern GType vips_format_magick_get_type(void);
 	vips_format_magick_get_type();
 #endif /*HAVE_MAGICK*/
@@ -327,7 +327,7 @@ format_for_file_sub(VipsFormatClass *format,
 }
 
 /**
- * vips_format_for_file:
+ * vips_format_for_file: (skip)
  * @filename: file to find a format for
  *
  * Searches for a format you could use to load a file.
@@ -378,7 +378,7 @@ format_for_name_sub(VipsFormatClass *format, const char *name)
 }
 
 /**
- * vips_format_for_name:
+ * vips_format_for_name: (skip)
  * @filename: name to find a format for
  *
  * Searches for a format you could use to save a file.

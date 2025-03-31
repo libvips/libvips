@@ -366,8 +366,8 @@ vips_affine_gen(VipsRegion *out_region,
 		for (x = le; x < ri; x++) {
 			int fx, fy;
 
-			fx = VIPS_FLOOR(ix);
-			fy = VIPS_FLOOR(iy);
+			fx = floor(ix);
+			fy = floor(iy);
 
 			/* Clip against iarea.
 			 */

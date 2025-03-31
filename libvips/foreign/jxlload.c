@@ -764,7 +764,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 			/* gif uses centiseconds for delays
 			 */
-			vips_image_set_int(out, "gif-delay", VIPS_RINT(delay[0] / 10.0));
+			vips_image_set_int(out, "gif-delay", rint(delay[0] / 10.0));
 
 			vips_image_set_int(out, "loop", jxl->info.animation.num_loops);
 		}
@@ -993,7 +993,7 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				double tick = (double) jxl->info.animation.tps_denominator /
 					jxl->info.animation.tps_numerator;
 				// this duration in ms
-				int ms = VIPS_RINT(1000.0 * h.duration * tick);
+				int ms = rint(1000.0 * h.duration * tick);
 				// h.duration of 0xffffffff is used for multipage JXL ... map
 				// this to -1 in delay
 				int duration = h.duration == 0xffffffff ? -1 : ms;

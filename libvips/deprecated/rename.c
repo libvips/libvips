@@ -128,6 +128,42 @@ im_warning(const char *fmt, ...)
 	va_end(ap);
 }
 
+GMutex *
+vips_g_mutex_new(void)
+{
+	GMutex *mutex;
+
+	mutex = g_new(GMutex, 1);
+	g_mutex_init(mutex);
+
+	return mutex;
+}
+
+void
+vips_g_mutex_free(GMutex *mutex)
+{
+	g_mutex_clear(mutex);
+	g_free(mutex);
+}
+
+GCond *
+vips_g_cond_new(void)
+{
+	GCond *cond;
+
+	cond = g_new(GCond, 1);
+	g_cond_init(cond);
+
+	return cond;
+}
+
+void
+vips_g_cond_free(GCond *cond)
+{
+	g_cond_clear(cond);
+	g_free(cond);
+}
+
 void *
 vips_g_thread_join(GThread *thread)
 {

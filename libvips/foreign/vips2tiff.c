@@ -393,7 +393,7 @@ struct _Wtiff {
 
 	/* Lock thread calls into libtiff with this.
 	 */
-	GMutex *lock;
+	GMutex lock;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -1223,7 +1223,7 @@ wtiff_free(Wtiff *wtiff)
 
 	VIPS_UNREF(wtiff->ready);
 	VIPS_FREE(wtiff->tbuf);
-	VIPS_FREEF(vips_g_mutex_free, wtiff->lock);
+	g_mutex_clear(&wtiff->lock);
 	VIPS_FREE(wtiff);
 }
 
@@ -1390,7 +1390,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	wtiff->page_number = 0;
 	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
-	wtiff->lock = vips_g_mutex_new();
+	g_mutex_init(&wtiff->lock);
 
 	/* Any pre-processing on the image.
 	 */
@@ -1784,11 +1784,11 @@ wtiff_row_add_tile(WtiffRow *row,
 	tile->buffer = buffer;
 	tile->length = length;
 
-	g_mutex_lock(row->wtiff->lock);
+	g_mutex_lock(&row->wtiff->lock);
 
 	row->tiles = g_slist_prepend(row->tiles, tile);
 
-	g_mutex_unlock(row->wtiff->lock);
+	g_mutex_unlock(&row->wtiff->lock);
 
 	return 0;
 }
@@ -2315,7 +2315,7 @@ wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
 	 * simpler than searching every page for the largest tile with
 	 * TIFFTAG_TILEBYTECOUNTS.
 	 */
-	tile_size = 2 * wtiff->tls * wtiff->tileh;
+	tile_size = (tsize_t) 2 * wtiff->tls * wtiff->tileh;
 
 	buf = vips_malloc(NULL, tile_size);
 

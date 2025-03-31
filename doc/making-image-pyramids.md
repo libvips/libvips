@@ -1,39 +1,32 @@
-  <refmeta>
-    <refentrytitle>Image pyramids</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
+Title: How to use libvips to make image pyramids
 
-  <refnamediv>
-    <refname>Pyramids</refname>
-    <refpurpose>How to use libvips to make image pyramids</refpurpose>
-  </refnamediv>
+# How to use libvips to make image pyramids
 
-libvips includes `vips_dzsave()`, an operation
-that can build image pyramids compatible with <ulink
-url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify
-and <ulink url="https://developers.google.com/maps">Google Maps</ulink>
-image viewers. It's fast and can generate pyramids for large images using
-only a small amount of memory.
+libvips includes [method@Image.dzsave], an operation that can build image
+pyramids compatible with [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom),
+Zoomify and [Google Maps](https://developers.google.com/maps) image viewers.
+It's fast and can generate pyramids for large images using only a small amount
+of memory.
 
-The TIFF writer, `vips_tiffsave()` can also build tiled pyramidal TIFF images,
-but that's very simple to use. This page concentrates on the DeepZoom builder.  
+The TIFF writer, [method@Image.tiffsave] can also build tiled pyramidal TIFF
+images, but that's very simple to use. This page concentrates on the DeepZoom
+builder.
 
 Run dzsave with no arguments to see a summary:
 
-```
+```bash
 $ vips dzsave
 save image to deepzoom file
 usage:
-   dzsave in filename
+   dzsave in filename [--option-name option-value ...]
 where:
    in           - Image to save, input VipsImage
    filename     - Filename to save to, input gchararray
 optional arguments:
-   basename     - Base name to save to, input gchararray
+   imagename    - Image name, input gchararray
    layout       - Directory layout, input VipsForeignDzLayout
-			default: dz
-			allowed: dz, zoomify, google, iiif, iiif3
+			default enum: dz
+			allowed enums: dz, zoomify, google, iiif, iiif3
    suffix       - Filename suffix for tiles, input gchararray
    overlap      - Tile overlap in pixels, input gint
 			default: 1
@@ -44,30 +37,38 @@ optional arguments:
    centre       - Center image in tile, input gboolean
 			default: false
    depth        - Pyramid depth, input VipsForeignDzDepth
-			default: onepixel
-			allowed: onepixel, onetile, one
+			default enum: onepixel
+			allowed enums: onepixel, onetile, one
    angle        - Rotate image during save, input VipsAngle
-			default: d0
-			allowed: d0, d90, d180, d270
+			default enum: d0
+			allowed enums: d0, d90, d180, d270
    container    - Pyramid container type, input VipsForeignDzContainer
-			default: fs
-			allowed: fs, zip
-   properties   - Write a properties file to the output directory, input
-gboolean
-			default: false
+			default enum: fs
+			allowed enums: fs, zip, szi
    compression  - ZIP deflate compression level, input gint
 			default: 0
 			min: -1, max: 9
-   strip        - Strip all metadata from image, input gboolean
-			default: false
+   region-shrink - Method to shrink regions, input VipsRegionShrink
+			default enum: mean
+			allowed enums: mean, median, mode, max, min, nearest
+   skip-blanks  - Skip tiles which are nearly equal to the background, input gint
+			default: -1
+			min: -1, max: 65535
+   id           - Resource ID, input gchararray
+   Q            - Q factor, input gint
+			default: 75
+			min: 1, max: 100
+   keep         - Which metadata to retain, input VipsForeignKeep
+			default flags: exif:xmp:iptc:icc:other:all
+			allowed flags: none, exif, xmp, iptc, icc, other, all
    background   - Background value, input VipsArrayDouble
-operation flags: sequential nocache 
+operation flags: sequential nocache
 ```
 
-You can also call `vips_dzsave()` from any language with a libvips binding, or
-by using `.dz` or `.szi` as an output file suffix.
+You can also call [method@Image.dzsave] from any language with a libvips
+binding, or by using `.dz` or `.szi` as an output file suffix.
 
-# Writing DeepZoom pyramids
+## Writing DeepZoom pyramids
 
 The `--layout` option sets the basic mode of operation. With no
 `--layout`, dzsave writes DeepZoom pyramids. For example:
@@ -78,7 +79,7 @@ $ vips dzsave huge.tif mydz
 
 This will create a directory called `mydz_files` containing the image
 tiles, and write a file called `mydz.dzi` containing the image
-metadata. 
+metadata.
 
 You can use the `--suffix` option to control how tiles are written. For
 example:
@@ -88,10 +89,10 @@ $ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
 ```
 
 will write JPEG tiles with the quality factor set to 90. You can set any
-format write options you like, see the API docs for `vips_jpegsave()`
+format write options you like, see the API docs for [method@Image.jpegsave]
 for details.
 
-# Writing Zoomify pyramids
+## Writing Zoomify pyramids
 
 Use `--layout zoomify` to put dzsave into zoomify mode. For example:
 
@@ -105,11 +106,10 @@ directories called `TileGroupn`, each containing 256 image tiles.
 
 As with DeepZoom, you can use `--suffix` to set jpeg quality.
 
-# Writing Google Maps pyramids
+## Writing Google Maps pyramids
 
 Use `--layout google` to write Google maps-style pyramids. These are
-compatible with <ulink url="http://leafletjs.com">Leaflet</ulink>. For
-example:
+compatible with [Leaflet](http://leafletjs.com). For example:
 
 ```bash
 $ vips dzsave wtc.tif gmapdir --layout google
@@ -136,7 +136,7 @@ For example:
 $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
 ```
 
-# Other options
+## Other options
 
 You can use `--tile-size` and `--overlap` to control how large the tiles
 are and how they overlap (obviously). They default to the correct values
@@ -164,11 +164,11 @@ $ vips dzsave wtc.tif mypyr.zip
 to write a zipfile containing the tiles. You can use `.szi` as a suffix to
 enable zip output as well.
 
-# Preprocessing images
+## Preprocessing images
 
 You can use `.dz` as a filename suffix, meaning send the image to
-`vips_dzsave()`. This means you can write the output of any vips operation to a
-pyramid. For example:
+[method@Image.dzsave]. This means you can write the output of any libvips
+operation to a pyramid. For example:
 
 ```bash
 $ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
@@ -189,10 +189,8 @@ $ vips dzsave CMU-1.mrxs[level=1] x
 Will pull out level 1 (the half-resolution level of an MRXS slide) and
 make a pyramid from that.
 
-# Troubleshooting
+## Troubleshooting
 
-If you are building vips from source you do need to check the summary at
+If you are building libvips from source you do need to check the summary at
 the end of configure carefully. You must have the `libarchive-dev` package
-for `vips_dzsave()` to work.
-
-
+for [method@Image.dzsave] to work.

@@ -316,13 +316,13 @@ vips_target_init(VipsTarget *target)
 }
 
 /**
- * vips_target_new_to_descriptor:
+ * vips_target_new_to_descriptor: (constructor)
  * @descriptor: write to this file descriptor
  *
  * Create a target attached to a file descriptor.
  * @descriptor is kept open until the target is finalized.
  *
- * See also: vips_target_new_to_file().
+ * See also: [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
@@ -347,7 +347,7 @@ vips_target_new_to_descriptor(int descriptor)
 }
 
 /**
- * vips_target_new_to_file:
+ * vips_target_new_to_file: (constructor)
  * @filename: write to this file
  *
  * Create a target attached to a file.
@@ -375,12 +375,12 @@ vips_target_new_to_file(const char *filename)
 }
 
 /**
- * vips_target_new_to_memory:
+ * vips_target_new_to_memory: (constructor)
  *
  * Create a target which will write to a memory area. Read from @blob to get
  * memory.
  *
- * See also: vips_target_new_to_file().
+ * See also: [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
@@ -404,13 +404,13 @@ vips_target_new_to_memory(void)
 }
 
 /**
- * vips_target_new_temp:
+ * vips_target_new_temp: (constructor)
  * @based_on: base the temporary target on this target
  *
  * Create a temporary target -- either a temporary file on disc, or an area in
  * memory, depending on what sort of target @based_on is.
  *
- * See also: vips_target_new_to_file().
+ * See also: [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
@@ -503,15 +503,15 @@ vips_target_flush(VipsTarget *target)
 /**
  * vips_target_write:
  * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
+ * @data: data to write
+ * @length: length of @data in bytes
  *
- * Write @length bytes from @buffer to the output.
+ * Write @length bytes from @data to the output.
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_target_write(VipsTarget *target, const void *buffer, size_t length)
+vips_target_write(VipsTarget *target, const void *data, size_t length)
 {
 	VIPS_DEBUG_MSG("vips_target_write: %zd bytes\n", length);
 
@@ -522,12 +522,12 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
 	if (length > VIPS_TARGET_BUFFER_SIZE - target->write_point) {
 		/* Still too large? Do an unbuffered write.
 		 */
-		if (vips_target_write_unbuffered(target, buffer, length))
+		if (vips_target_write_unbuffered(target, data, length))
 			return -1;
 	}
 	else {
 		memcpy(target->output_buffer + target->write_point,
-			buffer, length);
+			data, length);
 		target->write_point += length;
 	}
 
@@ -544,7 +544,7 @@ vips_target_write(VipsTarget *target, const void *buffer, size_t length)
  * Return the number of bytes actually read. If all bytes have been read from
  * the file, return 0.
  *
- * Arguments exactly as read(2).
+ * Arguments exactly as [`read()`](man:read(2)).
  *
  * Reading from a target sounds weird, but libtiff needs this for
  * multi-page writes. This method will fail for targets like pipes.
@@ -567,43 +567,41 @@ vips_target_read(VipsTarget *target, void *buffer, size_t length)
 /**
  * vips_target_seek:
  * @target: target to operate on
- * @position: position to seek to
+ * @offset: offset to seek to
  * @whence: seek relative to beginning, offset, or end
  *
- * Seek the target. This behaves exactly as lseek(2).
+ * Seek the target. This behaves exactly as [`lseek()`](man:lseek(2)).
  *
  * Seeking a target sounds weird, but libtiff needs this. This method will
  * fail for targets like pipes.
  *
- * Returns: the new seek position, -1 on error.
+ * Returns: the new offset, -1 on error.
  */
 gint64
-vips_target_seek(VipsTarget *target, gint64 position, int whence)
+vips_target_seek(VipsTarget *target, gint64 offset, int whence)
 {
 	VipsTargetClass *class = VIPS_TARGET_GET_CLASS(target);
 
-	gint64 new_position;
+	gint64 new_offset;
 
-	VIPS_DEBUG_MSG("vips_target_seek: pos = %" G_GINT64_FORMAT
-		", whence = %d\n",
-		position, whence);
+	VIPS_DEBUG_MSG(
+		"vips_target_seek: offset = %" G_GINT64_FORMAT ", whence = %d\n",
+		offset, whence);
 
 	if (vips_target_flush(target))
 		return -1;
 
-	new_position = class->seek(target, position, whence);
+	new_offset = class->seek(target, offset, whence);
 
-	VIPS_DEBUG_MSG("vips_target_seek: new_position = %" G_GINT64_FORMAT "\n",
-		new_position);
+	VIPS_DEBUG_MSG("vips_target_seek: new_offset = %" G_GINT64_FORMAT "\n",
+		new_offset);
 
-	return new_position;
+	return new_offset;
 }
 
 /**
  * vips_target_end:
  * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
  *
  * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times.
@@ -652,16 +650,16 @@ vips_target_end(VipsTarget *target)
  * @target: target to operate on
  * @length: return number of bytes of data
  *
- * Memory targets only (see vips_target_new_to_memory()). Steal all data
- * written to the target so far, and call vips_target_end().
+ * Memory targets only (see [ctor@Target.new_to_memory]). Steal all data
+ * written to the target so far, and call [method@Target.end].
  *
- * You must free the returned pointer with g_free().
+ * You must free the returned pointer with [func@GLib.free].
  *
- * The data is NOT automatically null-terminated. vips_target_putc() a '\0'
- * before calling this to get a null-terminated string.
+ * The data is NOT automatically null-terminated. Use [method@Target.putc] with
+ * a '\0' before calling this to get a null-terminated string.
  *
- * You can't call this after vips_target_end(), since that moves the data to a
- * blob, and we can't steal from that in case the pointer has been be shared.
+ * You can't call this after [method@Target.end], since that moves the data to a
+ * blob, and we can't steal from that in case the pointer has been shared.
  *
  * You can't call this function more than once.
  *
@@ -698,7 +696,7 @@ vips_target_steal(VipsTarget *target, size_t *length)
  * vips_target_steal_text:
  * @target: target to operate on
  *
- * As vips_target_steal_text(), but return a null-terminated string.
+ * As [method@Target.steal], but return a null-terminated string.
  *
  * Returns: (transfer full): target contents as a null-terminated string.
  */
@@ -715,7 +713,7 @@ vips_target_steal_text(VipsTarget *target)
  * @target: target to operate on
  * @ch: character to write
  *
- * Write a single character @ch to @target. See the macro VIPS_TARGET_PUTC()
+ * Write a single character @ch to @target. See the macro [func@TARGET_PUTC]
  * for a faster way to do this.
  *
  * Returns: 0 on success, -1 on error.
@@ -753,7 +751,7 @@ vips_target_writes(VipsTarget *target, const char *str)
 /**
  * vips_target_writef:
  * @target: target to operate on
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @...: arguments to format string
  *
  * Format the string and write to @target.

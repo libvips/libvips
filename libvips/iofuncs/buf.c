@@ -46,11 +46,7 @@
 #include <vips/buf.h>
 
 /**
- * SECTION: buf
- * @short_description: a string you can append to
- * @stability: Stable
- * @see_also: #vips
- * @include: vips/vips.h
+ * VipsBuf:
  *
  * A message buffer you can append stuff to safely and quickly. If the message
  * gets too long, you get "..." and truncation. Message buffers can be on the
@@ -58,7 +54,7 @@
  *
  * For example:
  *
- * |[
+ * ```c
  * char txt[256];
  * VipsBuf buf = VIPS_BUF_STATIC(txt);
  * int i;
@@ -70,7 +66,7 @@
  *   vips_buf_appendg(&buf, array[i]);
  * }
  * printf("%s", vips_buf_all(&buf));
- * ]|
+ * ```
  */
 
 /**
@@ -167,12 +163,12 @@ vips_buf_set_static(VipsBuf *buf, char *base, int mx)
  *
  * For example:
  *
- * |[
+ * ```c
  * char txt[256];
  * VipsBuf buf;
  *
  * vips_buf_init_static(&buf, txt, 256);
- * ]|
+ * ```
  *
  * Static buffers don't need to be freed when they go out of scope, but their
  * size must be set at compile-time.
@@ -417,7 +413,10 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 	if (buf->full)
 		return FALSE;
 
-	avail = buf->mx - buf->i - 4;
+	// -3 to leave space for "..."
+	// not -4, since the terminating \0 will already be on the string written
+	// by g_vsnprintf()
+	avail = buf->mx - buf->i - 3;
 	p = buf->base + buf->i;
 	(void) g_vsnprintf(p, avail, fmt, ap);
 	buf->i += strlen(p);

@@ -71,6 +71,8 @@ extern "C" {
 #define VIPS_ARRAY(OBJ, N, T) \
 	((T *) VIPS_MALLOC(OBJ, (N) * sizeof(T)))
 
+#ifndef __GI_SCANNER__
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsImage, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsObject, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsRegion, g_object_unref)
@@ -88,6 +90,8 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsOperation, g_object_unref)
 // FIXME ... need more of these
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayImage, VipsArrayImage_unref)
+
+#endif /* !__GI_SCANNER__ */
 
 VIPS_API
 void *vips_malloc(VipsObject *object, size_t size);

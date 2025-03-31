@@ -92,7 +92,7 @@ G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
-	return hypot(x - sdf->a[0], y - sdf->a[1]) - sdf->r;
+	return hypotf(x - sdf->a[0], y - sdf->a[1]) - sdf->r;
 }
 
 static float
@@ -101,10 +101,10 @@ vips_sdf_box(VipsSdf *sdf, int x, int y)
 	float px = x - sdf->cx;
 	float py = y - sdf->cy;
 
-	float dx = fabs(px) - sdf->sx;
-	float dy = fabs(py) - sdf->sy;
+	float dx = fabsf(px) - sdf->sx;
+	float dy = fabsf(py) - sdf->sy;
 
-	return hypot(VIPS_MAX(dx, 0), VIPS_MAX(dy, 0)) +
+	return hypotf(VIPS_MAX(dx, 0), VIPS_MAX(dy, 0)) +
 		VIPS_MIN(VIPS_MAX(dx, dy), 0);
 }
 
@@ -119,10 +119,10 @@ vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 	float r_bottom = px > 0 ? sdf->corners[1] : sdf->corners[3];
 	float r = py > 0 ? r_top : r_bottom;
 
-	float qx = fabs(px) - sdf->sx + r;
-	float qy = fabs(py) - sdf->sy + r;
+	float qx = fabsf(px) - sdf->sx + r;
+	float qy = fabsf(py) - sdf->sy + r;
 
-	return hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) +
+	return hypotf(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) +
 		VIPS_MIN(VIPS_MAX(qx, qy), 0) - r;
 }
 
@@ -134,12 +134,12 @@ vips_sdf_line(VipsSdf *sdf, int px, int py)
 
 	float dot_paba = pax * sdf->dx + pay * sdf->dy;
 	float dot_baba = sdf->dx * sdf->dx + sdf->dy * sdf->dy;
-	float h = VIPS_CLIP(0, dot_paba / dot_baba, 1);
+	float h = VIPS_FCLIP(0, dot_paba / dot_baba, 1);
 
 	float dx = pax - h * sdf->dx;
 	float dy = pay - h * sdf->dy;
 
-	return hypot(dx, dy);
+	return hypotf(dx, dy);
 }
 
 static int

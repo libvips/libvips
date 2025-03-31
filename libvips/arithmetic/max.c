@@ -337,7 +337,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 		TYPE m; \
 \
 		for (i = 0; i < sz && values->n < values->size; i++) \
-			if (!VIPS_ISNAN(p[i])) \
+			if (!isnan(p[i])) \
 				vips_values_add(values, p[i], x + i / bands, y); \
 		m = values->value[0]; \
 \
@@ -358,7 +358,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 		for (i = 0; i < sz && values->n < values->size; i++) { \
 			TYPE mod2 = p[0] * p[0] + p[1] * p[1]; \
 \
-			if (!VIPS_ISNAN(mod2)) \
+			if (!isnan(mod2)) \
 				vips_values_add(values, p[i], x + i / bands, y); \
 \
 			p += 2; \
