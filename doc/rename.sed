@@ -15,6 +15,8 @@ s/VIPS_REGION\([^(]*\)()/[func@REGION\1]/g
 s/VIPS_MATRIX\([^(]*\)()/[func@MATRIX]/g
 s/VIPS_BUF_\([^(]*\)()/[func@BUF_\1]/g
 
+s/vips_image_\(pipeline_array\)()/[func@Image.\1]/g
+
 s/vips_\([^(]*\)_new()/[ctor@\u\1.new]/g
 s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
 s/vips_object_\([^(]*\)()/[method@Object.\1]/g
@@ -378,5 +380,7 @@ s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
+s/%GInputStream/[class@Gio.InputStream]/g
+s/%GInput/[class@Gio.Input]/g
 
 s/g_\([^(]*\)()/[func@GLib.\1]/g
