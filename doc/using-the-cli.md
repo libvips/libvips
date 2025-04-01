@@ -97,7 +97,7 @@ $ vips affine k2.jpg x.jpg "2 0 0 1"
 ```
 
 You may need the quotes to stop your shell breaking the argument at
-the spaces. [func@bandjoin] needs an array of input images to
+the spaces. [func@Image.bandjoin] needs an array of input images to
 join, run it like this:
 
 ```bash

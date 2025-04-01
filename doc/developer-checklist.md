@@ -5,11 +5,12 @@ Title: Checklist for libvips users
 libvips is a slightly unusual library and you may need to take some of its
 stranger features into account when you design software that uses it.
 
-## If you can, use [func@thumbnail], not [method@Image.resize]
+## If you can, use [ctor@Image.thumbnail], not [method@Image.resize]
 
-The [func@thumbnail] operation combines load and resize into one step. This
-lets it take advantage of format library features, such as shrink on load,
-and can lead to a large improvement in speed and a large drop in memory use.
+The [ctor@Image.thumbnail] operation combines load and resize into one step.
+This lets it take advantage of format library features, such as shrink on
+load, and can lead to a large improvement in speed and a large drop in memory
+use.
 
 For example, with this JPEG image:
 
@@ -40,16 +41,18 @@ $ /usr/bin/time -f %M:%e vips > /dev/null
 31232:0.02
 ```
 
-31 MB and 0.02s, so [func@thumbnail] is really 2.5x less memory and 4x faster.
+31 MB and 0.02s, so [ctor@Image.thumbnail] is really 2.5x less memory and
+4x faster.
 
 You can see much larger improvements with other formats, and quality will
-often be better as well, since [func@thumbnail] will automatically premultiply
-and can render vector images directly at the correct size.
+often be better as well, since [ctor@Image.thumbnail] will automatically
+premultiply and can render vector images directly at the correct size.
 
 ## Don't use [method@Image.thumbnail_image]
 
 It's just there for emergencies. It can't do any of the rendering tricks,
-so it's no faster than [method@Image.resize]. Use [func@thumbnail] if you can.
+so it's not faster than [method@Image.resize]. Use [ctor@Image.thumbnail] if
+you can.
 
 ## Use sequential mode if you can
 
@@ -85,8 +88,9 @@ This can raise memory use, of course.
 
 ## Adjust the order of operations in pipelines
 
-If you can, put large resizes right at the start (see [func@thumbnail] above),
-then area filters (sharpen, for example), and finally any point operations.
+If you can, put large resizes right at the start (see [ctor@Image.thumbnail]
+above), then area filters (sharpen, for example), and finally any point
+operations.
 
 ## Only enable the load libraries you need
 

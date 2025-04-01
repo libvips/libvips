@@ -5,8 +5,8 @@ Title: Using vipsthumbnail
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples.
 
-The thumbnailing functionality is implemented by [func@thumbnail] and
-[func@thumbnail_buffer] (which thumbnails an image held as a string),
+The thumbnailing functionality is implemented by [ctor@Image.thumbnail] and
+[ctor@Image.thumbnail_buffer] (which thumbnails an image held as a string),
 see the docs for details. You can use these functions from any language
 with a libvips binding. For example, from PHP you could write:
 
