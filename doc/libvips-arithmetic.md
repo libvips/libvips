@@ -68,7 +68,7 @@ float.
 ## Arithmetic functions
 
 * [method@Image.add]
-* [func@sum]
+* [func@Image.sum]
 * [method@Image.subtract]
 * [method@Image.multiply]
 * [method@Image.divide]

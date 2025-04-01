@@ -1038,8 +1038,9 @@ vips_image_get_data(VipsImage *image)
  * A convenience function to set the header fields after creating an image.
  * Normally you copy the fields from your input images with
  * [method.Image.pipelinev] and then make any adjustments you need,
- * but if you are creating an image from scratch, for example [func@black]
- * or [ctor@Image.jpegload], you do need to set all the fields yourself.
+ * but if you are creating an image from scratch, for example
+ * [ctor@Image.black] or [ctor@Image.jpegload], you do need to set all the
+ * fields yourself.
  *
  * See also: [method.Image.pipelinev].
  */
