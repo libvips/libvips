@@ -356,7 +356,7 @@ vips_region_summary(VipsObject *object, VipsBuf *buf)
 
 /* If a region is being created in one thread (eg. the main thread) and then
  * used in another (eg. a worker thread), the new thread needs to tell VIPS
- * to stop sanity g_assert() fails. The previous owner needs to
+ * to stop sanity [func@GLib.assert] fails. The previous owner needs to
  * [func@_region_no_ownership] before we can call this.
  */
 void
@@ -1542,7 +1542,8 @@ vips_region_shrink_alpha(VipsRegion *from,
  *
  * Write the pixels @target in @to from the x2 larger area in @from.
  * Non-complex uncoded images and LABQ only. Images with alpha (see
- * [method@Image.hasalpha]) shrink with pixels scaled by alpha to avoid fringing.
+ * [method@Image.hasalpha]) shrink with pixels scaled by alpha to avoid
+ * fringing.
  *
  * @method selects the method used to do the 2x2 shrink.
  *
@@ -1559,8 +1560,7 @@ vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 		return -1;
 
 	if (from->im->Coding == VIPS_CODING_NONE) {
-		if (vips_check_noncomplex("vips_region_shrink_method",
-				image))
+		if (vips_check_noncomplex("vips_region_shrink_method", image))
 			return -1;
 
 		if (vips_image_hasalpha(image))
@@ -1616,8 +1616,7 @@ vips_region_generate(VipsRegion *reg, void *a)
 	if (im->generate_fn(reg, reg->seq, im->client1, im->client2, &stop))
 		return -1;
 	if (stop) {
-		vips_error("vips_region_generate",
-			"%s", _("stop requested"));
+		vips_error("vips_region_generate", "%s", _("stop requested"));
 		return -1;
 	}
 
@@ -1724,8 +1723,7 @@ vips_region_prepare_to_generate(VipsRegion *reg,
 	VipsPel *p;
 
 	if (!im->generate_fn) {
-		vips_error("vips_region_prepare_to",
-			"%s", _("incomplete header"));
+		vips_error("vips_region_prepare_to", "%s", _("incomplete header"));
 		return -1;
 	}
 
@@ -1820,8 +1818,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	/* Test that dest->valid is large enough.
 	 */
 	if (!vips_rect_includesrect(&dest->valid, &wanted)) {
-		vips_error("vips_region_prepare_to",
-			"%s", _("dest too small"));
+		vips_error("vips_region_prepare_to", "%s", _("dest too small"));
 		return -1;
 	}
 
@@ -1878,8 +1875,7 @@ vips_region_prepare_to(VipsRegion *reg,
 		 * function, we are outputting.
 		 */
 		if (im->generate_fn) {
-			if (vips_region_prepare_to_generate(reg,
-					dest, &final, x, y))
+			if (vips_region_prepare_to_generate(reg, dest, &final, x, y))
 				return -1;
 		}
 		else {
