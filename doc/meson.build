@@ -17,6 +17,7 @@ vips_content_files = files(
   'how-it-opens-files.md',
   'how-it-works.md',
   'libvips-arithmetic.md',
+  'libvips-create.md',
   'libvips-draw.md',
   'libvips-header.md',
   'making-image-pyramids.md',

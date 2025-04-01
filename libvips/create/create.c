@@ -52,16 +52,6 @@
 #include "pmask.h"
 
 /**
- * SECTION: create
- * @short_description: create images in various ways
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These functions generate various images. You can combine them with
- * the arithmetic and rotate functions to build more complicated images.
- */
-
-/**
  * VipsTextWrap:
  * @VIPS_TEXT_WRAP_WORD: wrap at word boundaries
  * @VIPS_TEXT_WRAP_CHAR: wrap at character boundaries
