@@ -41,56 +41,46 @@ This figure shows how the libvips colour spaces interconvert:
 
 The colour spaces supported by libvips are:
 
-* [enum@Vips.Interpretation.lab]: CIELAB '76 colourspace with a D65 white.
-  This uses three floats for each band, and bands have the obvious range.
-
+- [enum@Vips.Interpretation.lab]: CIELAB '76 colourspace with a D65 white.
+  This uses three floats for each band, and bands have the obvious range.<br /><br />
   There are two variants, [enum@Vips.Interpretation.labq] and
   [enum@Vips.Interpretation.labs], which use ints to store values. These are
-  less precise, but can be quicker to store and process.
-
+  less precise, but can be quicker to store and process.<br /><br />
   [enum@Vips.Interpretation.lch] is the same, but with a\*b\* as polar
   coordinates. Hue is expressed in degrees.
 
-* [enum@Vips.Interpretation.xyz]: CIE XYZ. This uses three floats.
+- [enum@Vips.Interpretation.xyz]: CIE XYZ. This uses three floats.
   See [const@D75_X0] and friends for values for the ranges under various
-  illuminants.
-
+  illuminants.<br /><br />
   [enum@Vips.Interpretation.yxy] is the same, but with little x and y.
 
-* [enum@Vips.Interpretation.scrgb]: a linear colourspace with the sRGB
+- [enum@Vips.Interpretation.scrgb]: a linear colourspace with the sRGB
   primaries. This is useful if you need linear light and don't care
-  much what the primaries are.
-
+  much what the primaries are.<br /><br />
   Linearization is performed with the usual sRGB equations, see below.
 
-* [enum@Vips.Interpretation.srgb]: the standard sRGB colourspace, see:
-  [wikipedia sRGB](http://en.wikipedia.org/wiki/SRGB).
-
-  This uses three 8-bit values for each of RGB.
-
+- [enum@Vips.Interpretation.srgb]: the standard sRGB colourspace, see:
+  [wikipedia sRGB](http://en.wikipedia.org/wiki/SRGB).<br /><br />
+  This uses three 8-bit values for each of RGB.<br /><br />
   [enum@Vips.Interpretation.rgb16] is the same, but using three 16-bit values
-  for RGB.
-
+  for RGB.<br /><br />
   [enum@Vips.Interpretation.hsv] is sRGB, but in polar coordinates.
   [enum@Vips.Interpretation.lch] is much better, only use HSV if you have to.
 
-* [enum@Vips.Interpretation.b_w]: a monochrome image, roughly G from sRGB.
+- [enum@Vips.Interpretation.b_w]: a monochrome image, roughly G from sRGB.
   The grey value is calculated in linear [enum@Vips.Interpretation.scrgb]
   space with RGB ratios 0.2126, 0.7152, 0.0722 as defined by CIE 1931 linear
-  luminance.
-
+  luminance.<br /><br />
   [enum@Vips.Interpretation.grey16] is the same, but using 16 bits.
 
-* [enum@Vips.Interpretation.cmc]: a colour space based on the CMC(1:1)
+- [enum@Vips.Interpretation.cmc]: a colour space based on the CMC(1:1)
   colour difference measurement. This is a highly uniform colour space,
-  and much better than CIELAB for expressing small differences.
-
+  and much better than CIELAB for expressing small differences.<br /><br />
   The CMC colourspace is described in “Uniform Colour Space Based on the
   CMC(l:c) Colour-difference Formula”, M R Luo and B Rigg, Journal of the
   Society of Dyers and Colourists, vol 102, 1986. Distances in this
   colourspace approximate, within 10% or so, differences in the CMC(l:c)
-  colour difference formula.
-
+  colour difference formula.<br /><br />
   You can calculate metrics like CMC(2:1) by scaling the spaces before
   finding differences.
 
