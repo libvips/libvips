@@ -784,11 +784,11 @@ vips_region_region(VipsRegion *reg,
  *
  * Do two regions point to the same piece of image? ie.
  *
- * |[
+ * ```c
  * 	VIPS_REGION_ADDR(reg1, x, y) == VIPS_REGION_ADDR(reg2, x, y) &&
  * 	*VIPS_REGION_ADDR(reg1, x, y) ==
  * 		*VIPS_REGION_ADDR(reg2, x, y) for all x, y, reg1, reg2.
- * ]|
+ * ```
  *
  * Returns: non-zero on equality.
  */

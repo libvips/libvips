@@ -93,7 +93,7 @@
  * vips_thing_new:
  * @i:
  *
- * Returns: (transfer full): a new #VipsThing.
+ * Returns: (transfer full): a new [struct@Thing].
  */
 VipsThing *
 vips_thing_new(int i)
@@ -574,7 +574,8 @@ transform_save_string_ref_string(const GValue *src_value, GValue *dest_value)
  * ::: seealso
  *     [method@Area.unref].
  *
- * Returns: (transfer full) (nullable): the new #VipsRefString, or NULL on error.
+ * Returns: (transfer full) (nullable): the new [struct@RefString], or NULL on
+ * error.
  */
 VipsRefString *
 vips_ref_string_new(const char *str)
@@ -594,7 +595,7 @@ vips_ref_string_new(const char *str)
 
 /**
  * vips_ref_string_get:
- * @refstr: the #VipsRefString to fetch from
+ * @refstr: the [struct@RefString] to fetch from
  * @length: (out) (optional): return length here, optionally
  *
  * Get a pointer to the private string inside a refstr. Handy for language

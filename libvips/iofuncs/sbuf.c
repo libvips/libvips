@@ -99,9 +99,9 @@ vips_sbuf_init(VipsSbuf *sbuf)
  * vips_sbuf_new_from_source:
  * @source: source to operate on
  *
- * Create a VipsSbuf wrapping a source.
+ * Create a [class@Sbuf] wrapping a source.
  *
- * Returns: a new #VipsSbuf
+ * Returns: a new [class@Sbuf]
  */
 VipsSbuf *
 vips_sbuf_new_from_source(VipsSource *source)

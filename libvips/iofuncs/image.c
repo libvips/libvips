@@ -151,7 +151,7 @@
  * @VIPS_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
  *
  * The type of access an operation has to supply. See [method@Image.tilecache]
- * and #VipsForeign.
+ * and [class@Foreign].
  *
  * @VIPS_ACCESS_RANDOM means requests can come in any order.
  *
@@ -176,20 +176,20 @@
  * will use the most general style requested by the operations
  * in the pipeline.
  *
- * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
+ * @VIPS_DEMAND_STYLE_SMALLTILE -- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works
  * reasonably efficiently, even for bizarre operations like 45 degree rotate.
  *
- * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips
+ * @VIPS_DEMAND_STYLE_FATSTRIP -- This operation would like to output strips
  * the width of the image and as high as possible. This option is suitable
  * for area operations which do not violently transform coordinates, such
  * as [method@Image.conv].
  *
- * #VIPS_DEMAND_STYLE_THINSTRIP --- This operation would like to output strips
+ * @VIPS_DEMAND_STYLE_THINSTRIP -- This operation would like to output strips
  * the width of the image and a few pels high. This option is suitable for
  * point-to-point operations, such as those in the arithmetic package.
  *
- * #VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc
+ * @VIPS_DEMAND_STYLE_ANY -- This image is not being demand-read from a disc
  * file (even indirectly) so any demand style is OK. It's used for things like
  * [ctor@Image.black] where the pixels are calculated.
  *
@@ -206,7 +206,7 @@
  * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ
  * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
  * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
- * @VIPS_INTERPRETATION_LABQ: implies #VIPS_CODING_LABQ
+ * @VIPS_INTERPRETATION_LABQ: implies @VIPS_CODING_LABQ
  * @VIPS_INTERPRETATION_RGB: generic RGB space
  * @VIPS_INTERPRETATION_CMC: a uniform colourspace based on CMC(1:1)
  * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
@@ -220,7 +220,7 @@
  * @VIPS_INTERPRETATION_MATRIX: a matrix
  *
  * How the values in an image should be interpreted. For example, a
- * three-band float image of type #VIPS_INTERPRETATION_LAB should have its
+ * three-band float image of type @VIPS_INTERPRETATION_LAB should have its
  * pixels interpreted as coordinates in CIE Lab space.
  *
  * RGB and sRGB are treated in the same way. Use the colourspace functions if
@@ -320,10 +320,9 @@
  * @X: x coordinate
  * @Y: y coordinate
  *
- * This macro returns a pointer to a pixel in an image, cast to a #VipsPel *.
- * It only works for
- * images which are fully available in memory, so memory buffers and small
- * mapped images only.
+ * This macro returns a pointer to a pixel in an image, cast to a [alias@Pel]*.
+ * It only works for images which are fully available in memory, so memory
+ * buffers and small mapped images only.
  *
  * If VIPS_DEBUG is defined, you get a version that checks bounds for you.
  *
@@ -1863,15 +1862,15 @@ vips_filename_get_options(const char *vips_filename)
  *
  * @access lets you set a [enum@Access] hint giving the expected access pattern
  * for this file.
- * #VIPS_ACCESS_RANDOM means you can fetch pixels randomly from the image.
- * This is the default mode. #VIPS_ACCESS_SEQUENTIAL means you will read the
- * whole image exactly once, top-to-bottom. In this mode, vips can avoid
- * converting the whole image in one go, for a large memory saving. You are
- * allowed to make small non-local references, so area operations like
+ * [enum@Vips.Access.RANDOM] means you can fetch pixels randomly from the image.
+ * This is the default mode. [enum@Vips.Access.SEQUENTIAL] means you will
+ * read the whole image exactly once, top-to-bottom. In this mode, libvips
+ * can avoid converting the whole image in one go, for a large memory saving.
+ * You are allowed to make small non-local references, so area operations like
  * convolution will work.
  *
- * In #VIPS_ACCESS_RANDOM mode, small images are decompressed to memory and
- * then processed from there. Large images are decompressed to temporary
+ * In [enum@Vips.Access.RANDOM] mode, small images are decompressed to memory
+ * and then processed from there. Large images are decompressed to temporary
  * random-access files on disc and then processed from there.
  *
  * Set @memory to %TRUE to force loading via memory. The default is to load
@@ -1879,7 +1878,7 @@ vips_filename_get_options(const char *vips_filename)
  * [ctor@Image.new_temp_file] for an
  * explanation of how VIPS selects a location for the temporary file.
  *
- * The disc threshold can be set with the "--vips-disc-threshold"
+ * The disc threshold can be set with the `--vips-disc-threshold`
  * command-line argument, or the `VIPS_DISC_THRESHOLD` environment variable.
  * The value is a simple integer, but can take a unit postfix of "k",
  * "m" or "g" to indicate kilobytes, megabytes or gigabytes.
@@ -1887,20 +1886,20 @@ vips_filename_get_options(const char *vips_filename)
  *
  * For example:
  *
- * |[
+ * ```c
  * VipsImage *image = vips_image_new_from_file("fred.tif",
  *     "page", 12,
  *     NULL);
- * ]|
+ * ```
  *
  * Will open "fred.tif", reading page 12.
  *
- * |[
+ * ```c
  * VipsImage *image = vips_image_new_from_file("fred.jpg[shrink=2]",
  *     NULL);
- * ]|
+ * ```
  *
- * Will open "fred.jpg", downsampling by a factor of two.
+ * Will open `fred.jpg`, downsampling by a factor of two.
  *
  * Use [func@Foreign.find_load] or [func@Foreign.is_a] to see what format a
  * file is in and therefore what options are available. If you need more
@@ -2919,10 +2918,10 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
  * @out: (out): write to this image
  *
  * A convenience function to unpack to a format that we can compute with.
- * @out.coding is always #VIPS_CODING_NONE.
+ * @out.coding is always [enum@Vips.Coding.NONE].
  *
- * This unpacks LABQ to plain LAB. Use [method@Image.LabQ2LabS] for a bit more speed
- * if you need it.
+ * This unpacks LABQ to plain LAB. Use [method@Image.LabQ2LabS] for a bit
+ * more speed if you need it.
  *
  * ::: seealso
  *     [method@Image.encode], [method@Image.LabQ2Lab], [method@Image.rad2float].
@@ -3088,8 +3087,8 @@ vips_image_ispartial(VipsImage *image)
  * @image: image to check
  *
  * Look at an image's interpretation and see if it has extra alpha bands. For
- * example, a 4-band #VIPS_INTERPRETATION_sRGB would, but a six-band
- * #VIPS_INTERPRETATION_MULTIBAND would not.
+ * example, a 4-band [enum@Vips.Interpretation.sRGB] would, but a six-band
+ * [enum@Vips.Interpretation.MULTIBAND] would not.
  *
  * Return %TRUE if @image has an alpha channel.
  */

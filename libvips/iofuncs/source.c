@@ -1139,10 +1139,10 @@ vips_source_map_cb(void *a, VipsArea *area)
  * vips_source_map_blob:
  * @source: source to operate on
  *
- * Just like [method@Source.map], but return a #VipsBlob containing the
+ * Just like [method@Source.map], but return a [struct@Blob] containing the
  * pointer. @source will stay alive as long as the result is alive.
  *
- * Returns: a new #VipsBlob containing the data, or NULL on error.
+ * Returns: a new [struct@Blob] containing the data, or NULL on error.
  */
 VipsBlob *
 vips_source_map_blob(VipsSource *source)

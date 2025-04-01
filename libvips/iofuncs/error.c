@@ -88,7 +88,7 @@
  * user. If a function you call detects an error, just propagate it and don't
  * add another message.
  *
- * |[
+ * ```c
  * VipsImage *im;
  *
  * if (!(im = vips_image_new_from_file(filename, NULL)))
@@ -100,7 +100,7 @@
  *     vips_error("myprogram", "%s", _("width too small"));
  *     return -1;
  * }
- * ]|
+ * ```
  *
  * The domain argument most of these functions take is not localised and is
  * supposed to indicate the component which failed.
@@ -110,7 +110,7 @@
  * divert these messages. For example, info messages are hidden by default, but
  * you can see them with:
  *
- * |[
+ * ```c
  * $ G_MESSAGES_DEBUG=VIPS vipsthumbnail k2.jpg
  * VIPS-INFO: thumbnailing k2.jpg
  * VIPS-INFO: selected loader is VipsForeignLoadJpegFile
@@ -123,7 +123,7 @@
  * VIPS-INFO: residual reduceh by 0.5
  * VIPS-INFO: 13 point mask
  * VIPS-INFO: thumbnailing k2.jpg as ./tn_k2.jpg
- * ]|
+ * ```
  *
  */
 

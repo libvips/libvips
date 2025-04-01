@@ -825,7 +825,7 @@ vips_object_argument_isset(VipsObject *object, const char *name)
  *
  * Convenience: get the flags for an argument. Useful for bindings.
  *
- * Returns: The #VipsArgumentFlags for this argument.
+ * Returns: The [flags@ArgumentFlags] for this argument.
  */
 VipsArgumentFlags
 vips_object_get_argument_flags(VipsObject *object, const char *name)
@@ -2302,10 +2302,10 @@ vips_object_find_args(VipsObject *object,
  * vips_object_get_args: (skip)
  * @object: object whose args should be retrieved
  * @names: (transfer none) (array length=n_args) (allow-none): output array of %GParamSpec names
- * @flags: (transfer none) (array length=n_args) (allow-none): output array of #VipsArgumentFlags
+ * @flags: (transfer none) (array length=n_args) (allow-none): output array of [flags@ArgumentFlags]
  * @n_args: (allow-none): length of output arrays
  *
- * Get all %GParamSpec names and #VipsArgumentFlags for an object.
+ * Get all %GParamSpec names and [flags@ArgumentFlags] for an object.
  *
  * This is handy for language bindings. From C, it's usually more convenient to
  * use [func@Argument.map].

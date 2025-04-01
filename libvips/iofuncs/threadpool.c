@@ -546,10 +546,11 @@ vips_threadpool_new(VipsImage *im)
  *
  * This function is called once by each worker just before the first time work
  * is allocated to it to build the per-thread state. Per-thread state is used
- * by #VipsThreadpoolAllocate and #VipsThreadpoolWork to communicate.
+ * by [callback@ThreadpoolAllocateFn] and [callback@ThreadpoolWorkFn] to
+ * communicate.
  *
- * [class@ThreadState] is a subclass of [class@Object]. Start functions are called
- * from allocate, that is, they are single-threaded.
+ * [class@ThreadState] is a subclass of [class@Object]. Start functions are
+ * called from allocate, that is, they are single-threaded.
  *
  * ::: seealso
  *     [func@threadpool_run].

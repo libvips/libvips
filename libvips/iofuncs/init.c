@@ -686,7 +686,7 @@ vips_check_init(void)
  *
  * This function needs to be called when a thread that has been using vips
  * exits. It is called for you by [func@shutdown] and for any threads created
- * within the #VipsThreadPool.
+ * within the thread pool.
  *
  * You will need to call it from threads created in
  * other ways or there will be memory leaks. If you do not call it, vips

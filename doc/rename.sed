@@ -386,11 +386,13 @@ s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
 s/#Vips\(Precision\)/[enum@\1]/g
+s/#Vips\(ArgumentFlags\)/[flags@\1]/g
 
 s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(Progress\)/[struct@\1]/g
 
 s/#Vips\(Image\)/[class@\1]/g
+s/#Vips\(Foreign\)/[class@\1]/g
 s/#Vips\(Region\)/[class@\1]/g
 s/#Vips\(Object\)/[class@\1]/g
 s/#Vips\(Operation\)/[class@\1]/g
@@ -402,16 +404,25 @@ s/#Vips\(TargetCustom\)/[class@\1]/g
 s/#Vips\(Target\)/[class@\1]/g
 s/#Vips\(ThreadState\)/[class@\1]/g
 s/#Vips\(Buf\)/[class@\1]/g
+s/#Vips\(Sbuf\)/[class@\1]/g
 s/#Vips\(Dbuf\)/[class@\1]/g
 s/#Vips\(Blob\)/[struct@\1]/g
 s/#Vips\(Area\)/[struct@\1]/g
 s/#Vips\(ArrayInt\)/[struct@\1]/g
 s/#Vips\(ArrayDouble\)/[struct@\1]/g
 s/#Vips\(ArrayImage\)/[struct@\1]/g
+s/#Vips\(RefString\)/[struct@\1]/g
+s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
+s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
+s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
 s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
 s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
+s/#VIPS_DEMAND_STYLE_\([^ ,.]*\)/[enum@Vips.DemandStyle.\1]/g
+s/#VIPS_INTERPRETATION_\([^ ,.]*\)/[enum@Vips.Interpretation.\1]/g
+s/#VIPS_ACCESS_\([^ ,.]*\)/[enum@Vips.Access.\1]/g
+s/#VIPS_CODING_\([^ ,.]*\)/[enum@Vips.Coding.\1]/g
 
 s/g_thread_\([^(]*new\)()/[ctor@GLib.Thread.\1]/g
 s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
