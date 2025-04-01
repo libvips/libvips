@@ -242,6 +242,9 @@ vips_source_g_input_stream_init(VipsSourceGInputStream *source)
  *
  * Create a #VipsSourceGInputStream which wraps @stream.
  *
+ * ::: seealso
+ *     [func@g_input_stream_new_from_source]
+ *
  * Returns: (transfer full): the new source.
  */
 VipsSourceGInputStream *

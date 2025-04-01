@@ -291,6 +291,9 @@ vips_g_input_stream_init(VipsGInputStream *gstream)
  * useful for loaders like SVG and PDF which support [class@Gio.InputStream]
  * methods.
  *
+ * ::: seealso
+ *     [func@Source.g_input_stream_new]
+ *
  * Returns: (transfer full): a new [class@Gio.InputStream]
  */
 GInputStream *
