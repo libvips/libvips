@@ -421,5 +421,6 @@ s/%GObject/[class@GObject.Object]/g
 s/%GThread/[struct@GLib.Thread]/g
 s/%GInputStream/[class@Gio.InputStream]/g
 s/%GInput/[class@Gio.Input]/g
+s/%GSList/[struct@GLib.SList]/g
 
 s/g_\([^(]*\)()/[func@GLib.\1]/g
