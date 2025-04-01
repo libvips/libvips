@@ -92,7 +92,7 @@
  * VipsImage *im;
  *
  * if (!(im = vips_image_new_from_file(filename, NULL)))
- *     // vips_image_new_from_file() will set a message, we don't need to
+ *     // [ctor@Image.new_from_file] will set a message, we don't need to
  *     return -1;
  *
  * if (vips_image_get_width(im) &lt; 100) {
@@ -105,7 +105,7 @@
  * The domain argument most of these functions take is not localised and is
  * supposed to indicate the component which failed.
  *
- * libvips uses g_warning() and g_info() to send warning and information
+ * libvips uses [func@GLib.warning] and [func@GLib.info] to send warning and information
  * messages to the user. You can use the usual glib mechanisms to display or
  * divert these messages. For example, info messages are hidden by default, but
  * you can see them with:
@@ -137,7 +137,7 @@ static int vips_error_freeze_count = 0;
 /**
  * vips_error_freeze:
  *
- * Stop errors being logged. Use vips_error_thaw() to unfreeze. You can
+ * Stop errors being logged. Use [func@error_thaw] to unfreeze. You can
  * nest freeze/thaw pairs.
  */
 void
@@ -169,7 +169,8 @@ vips_error_thaw(void)
  * Get a pointer to the start of the error buffer as a C string.
  * The string is owned by the error system and must not be freed.
  *
- * See also: vips_error_clear().
+ * ::: seealso
+ *     [func@error_clear].
  *
  * Returns: the error buffer as a C string which must not be freed
  */
@@ -222,7 +223,8 @@ vips_error_buffer_copy(void)
  *
  * Append a message to the error buffer.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  */
 void
 vips_verror(const char *domain, const char *fmt, va_list ap)
@@ -263,7 +265,8 @@ vips_verror(const char *domain, const char *fmt, va_list ap)
  *
  * Format the string in the style of printf() and append to the error buffer.
  *
- * See also: vips_error_system(), vips_verror().
+ * ::: seealso
+ *     [func@error_system], [func@verror].
  */
 void
 vips_error(const char *domain, const char *fmt, ...)
@@ -286,7 +289,8 @@ vips_error(const char *domain, const char *fmt, ...)
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *
- * See also: vips_error_system().
+ * ::: seealso
+ *     [func@error_system].
  */
 void
 vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
@@ -306,7 +310,8 @@ vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *
- * See also: vips_verror_system().
+ * ::: seealso
+ *     [func@verror_system].
  */
 void
 vips_error_system(int err, const char *domain, const char *fmt, ...)
@@ -325,9 +330,10 @@ vips_error_system(int err, const char *domain, const char *fmt, ...)
  * This function sets the glib error pointer from the vips error buffer and
  * clears it. It's handy for returning errors to glib functions from vips.
  *
- * See vips_g_error() for the inverse operation.
+ * See [func@g_error] for the inverse operation.
  *
- * See also: g_set_error(), vips_g_error().
+ * ::: seealso
+ *     [func@GLib.set_error], [func@g_error].
  */
 void
 vips_error_g(GError **error)
@@ -352,9 +358,10 @@ vips_error_g(GError **error)
  * @error: glib error pointer
  *
  * This function adds the %GError to the vips error buffer and clears it. It's
- * the opposite of vips_error_g().
+ * the opposite of [func@error_g].
  *
- * See also: vips_error_g().
+ * ::: seealso
+ *     [func@error_g].
  */
 void
 vips_g_error(GError **error)
@@ -373,7 +380,8 @@ vips_g_error(GError **error)
  * Clear and reset the error buffer. This is typically called after presenting
  * an error to the user.
  *
- * See also: vips_error_buffer().
+ * ::: seealso
+ *     [func@error_buffer].
  */
 void
 vips_error_clear(void)
@@ -395,7 +403,8 @@ vips_error_clear(void)
  * @fmt may be %NULL, in which case only the error buffer is printed before
  * exiting.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  */
 void
 vips_error_exit(const char *fmt, ...)
@@ -431,7 +440,8 @@ vips_error_exit(const char *fmt, ...)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -455,7 +465,8 @@ vips_check_uncoded(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -483,7 +494,8 @@ vips_check_coding_noneorlabq(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -512,7 +524,8 @@ vips_check_coding_known(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -537,7 +550,8 @@ vips_check_coding(const char *domain, VipsImage *im, VipsCoding coding)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -562,7 +576,8 @@ vips_check_mono(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -586,7 +601,8 @@ vips_check_bands(const char *domain, VipsImage *im, int bands)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -612,7 +628,8 @@ vips_check_bands_1or3(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -639,7 +656,8 @@ vips_check_bands_atleast(const char *domain, VipsImage *im, int bands)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -664,11 +682,12 @@ vips_check_bands_1orn(const char *domain, VipsImage *im1, VipsImage *im2)
  * @n: number of bands, or 1
  *
  * Check that an image has 1 or @n bands. Handy for unary operations, cf.
- * vips_check_bands_1orn().
+ * [func@check_bands_1orn].
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_check_bands_1orn().
+ * ::: seealso
+ *     [func@check_bands_1orn].
  *
  * Returns: 0 on OK, or -1 on error.
  */
@@ -692,7 +711,8 @@ vips_check_bands_1orn_unary(const char *domain, VipsImage *im, int n)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -716,7 +736,8 @@ vips_check_noncomplex(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -741,7 +762,8 @@ vips_check_complex(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -768,7 +790,8 @@ vips_check_twocomponents(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -794,7 +817,8 @@ vips_check_format(const char *domain, VipsImage *im, VipsBandFormat fmt)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -818,7 +842,8 @@ vips_check_int(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -843,7 +868,8 @@ vips_check_uint(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -871,7 +897,8 @@ vips_check_8or16(const char *domain, VipsImage *im)
  * Otherwise set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -896,7 +923,8 @@ vips_check_u8or16(const char *domain, VipsImage *im)
  * Check that the image is 8 or 16-bit unsigned integer, or float.
  * Otherwise set an error message and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -922,7 +950,8 @@ vips_check_u8or16orf(const char *domain, VipsImage *im)
  * Check that the image is unsigned int or float.
  * Otherwise set an error message and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -951,7 +980,8 @@ vips_check_uintorf(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -976,7 +1006,8 @@ vips_check_size_same(const char *domain, VipsImage *im1, VipsImage *im2)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1003,7 +1034,8 @@ vips_check_oddsquare(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1030,7 +1062,8 @@ vips_check_bands_same(const char *domain, VipsImage *im1, VipsImage *im2)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1057,7 +1090,8 @@ vips_check_bandno(const char *domain, VipsImage *im, int bandno)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1083,7 +1117,8 @@ vips_check_format_same(const char *domain, VipsImage *im1, VipsImage *im2)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1107,7 +1142,8 @@ vips_check_coding_same(const char *domain, VipsImage *im1, VipsImage *im2)
  *
  * Check that @n == @len.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1132,7 +1168,8 @@ vips_check_vector_length(const char *domain, int n, int len)
  * the same number of elements as there are bands in the image, or a 1-band
  * image and a many-element vector.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1169,7 +1206,8 @@ vips_check_vector(const char *domain, int n, VipsImage *im)
  * 65536 elements. Return 0 if the image will pass as a histogram, or -1 and
  * set an error message otherwise.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1203,11 +1241,12 @@ vips_check_hist(const char *domain, VipsImage *im)
  * message otherwise.
  *
  * @out is set to be @im cast to double and stored in memory. Use
- * VIPS_MATRIX() to address values in @out.
+ * [func@MATRIX] to address values in @out.
  *
  * You must unref @out when you are done with it.
  *
- * See also: VIPS_MATRIX(), vips_object_local()
+ * ::: seealso
+ *     [func@MATRIX].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1249,7 +1288,8 @@ vips_check_matrix(const char *domain, VipsImage *im, VipsImage **out)
  * Return 0 if the image will pass, or -1 and
  * set an error message otherwise.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1275,7 +1315,8 @@ vips_check_separable(const char *domain, VipsImage *im)
  * If not, set an error message
  * and return non-zero.
  *
- * See also: vips_error().
+ * ::: seealso
+ *     [func@error].
  *
  * Returns: 0 on OK, or -1 on error.
  */

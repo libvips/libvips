@@ -1060,8 +1060,8 @@ vips_cache_set_max(int max)
  * cached operations. See [func@tracked_get_mem].
  *
  * libvips only tracks memory it allocates, it can't track memory allocated by
- * external libraries. If you use an operation like [func@magickload], most of
- * the memory it uses won't be included.
+ * external libraries. If you use an operation like [ctor@Image.magickload],
+ * most of the memory it uses won't be included.
  *
  * ::: seealso
  *     [func@tracked_get_mem].
@@ -1134,7 +1134,7 @@ vips_cache_get_max_mem(void)
  *
  * libvips only tracks file descriptors it allocates, it can't track ones
  * allocated by external libraries. If you use an operation like
- * [func@magickload], most of the descriptors it uses won't be included.
+ * [ctor@Image.magickload], most of the descriptors it uses won't be included.
  *
  * ::: seealso
  *     [func@tracked_get_files].

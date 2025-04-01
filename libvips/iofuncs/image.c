@@ -191,7 +191,7 @@
  *
  * #VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc
  * file (even indirectly) so any demand style is OK. It's used for things like
- * [func@black] where the pixels are calculated.
+ * [ctor@Image.black] where the pixels are calculated.
  *
  * ::: seealso
  *     [method@Image.pipelinev].
@@ -1856,7 +1856,7 @@ vips_filename_get_options(const char *vips_filename)
  * Load options may be appended to @filename as "[name=value,...]" or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
- * Many loaders add extra options, see [func@jpegload], for example.
+ * Many loaders add extra options, see [ctor@Image.jpegload], for example.
  *
  * [ctor@Image.new_from_file] always returns immediately with the header
  * fields filled in. No pixels are actually read until you first access them.
@@ -1905,7 +1905,7 @@ vips_filename_get_options(const char *vips_filename)
  * Use [func@Foreign.find_load] or [func@Foreign.is_a] to see what format a
  * file is in and therefore what options are available. If you need more
  * control over the loading process, you can call loaders directly, see
- * [func@jpegload], for example.
+ * [ctor@Image.jpegload], for example.
  *
  * ::: seealso
  *     [func@Foreign.find_load], [func@Foreign.is_a],
@@ -1975,7 +1975,7 @@ vips_image_new_from_file_RW(const char *filename)
  * [method@Image.copy] to transform the descriptor after loading it.
  *
  * ::: seealso
- *     [method@Image.copy], [func@rawload], [ctor@Image.new_from_file].
+ *     [method@Image.copy], [ctor@Image.rawload], [ctor@Image.new_from_file].
  *
  * Returns: (transfer full): the new [class@Image], or %NULL on error.
  */
