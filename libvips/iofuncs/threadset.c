@@ -252,10 +252,10 @@ vips_threadset_add_thread(VipsThreadset *set)
  * Create a new threadset.
  *
  * If @max_threads is 0, new threads will be created when necessary by
- * vips_threadset_run(), with no limit on the number of threads.
+ * [func@threadset_run], with no limit on the number of threads.
  *
  * If @max_threads is > 0, then that many threads will be created by
- * vips_threadset_new() during startup and vips_threadset_run() will
+ * [ctor@Threadset.new] during startup and [func@threadset_run] will
  * not spawn any additional threads.
  *
  * Returns: the new threadset.
@@ -292,7 +292,8 @@ vips_threadset_new(int max_threads)
  * thread limit specified by @max_threads has not been reached, a new thread
  * will be spawned.
  *
- * See also: vips_threadset_new().
+ * ::: seealso
+ *     [ctor@Threadset.new].
  *
  * Returns: 0 on success, or -1 on error.
  */
