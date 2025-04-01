@@ -55,6 +55,7 @@ content_files = [
   "cite.md",
 
   "libvips-arithmetic.md",
+  "libvips-draw.md",
   "libvips-header.md",
 ]
 content_images = [
