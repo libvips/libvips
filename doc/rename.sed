@@ -10,21 +10,26 @@ s/#VipsObject::\([^ ,.]*\)/[signal@Object::\1]/g
 
 s/vips_foreign_\([^(]*\)()/[func@Foreign.\1]/g
 
+s/VIPS_INIT()/[func@INIT]/g
 s/VIPS_IMAGE_\([^(]*\)()/[func@IMAGE_\1]/g
 s/VIPS_REGION\([^(]*\)()/[func@REGION\1]/g
 s/VIPS_MATRIX\([^(]*\)()/[func@MATRIX]/g
 s/VIPS_BUF_\([^(]*\)()/[func@BUF_\1]/g
+s/VIPS_SBUF_\([^(]*\)()/[func@SBUF_\1]/g
 
 s/vips_image_\(pipeline_array\)()/[func@Image.\1]/g
 
-s/vips_\([^(]*\)_new()/[ctor@\u\1.new]/g
-s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
+s/vips_operation_\([^(]*\)()/[method@Operation.\1]/g
 s/vips_object_\([^(]*\)()/[method@Object.\1]/g
+s/vips_\([^_]*\)_new()/[ctor@\u\1.new]/g
+s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
 s/vips_image_\(generate\)()/[method@Image.generate]/g
 s/vips_image_\([^(]*\)()/[method@Image.\1]/g
 s/vips_region_\([^(]*\)()/[method@Region.\1]/g
 s/vips_buf_\([^(]*\)()/[method@Buf.\1]/g
+s/vips_sbuf_\([^(]*\)()/[method@Sbuf.\1]/g
 s/vips_dbuf_\([^(]*\)()/[method@Dbuf.\1]/g
+s/vips_\(reorder_[^(]*\)()/[method@Image.\1]/g
 
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(acosh\)()/[method@Image.\1]/g
@@ -52,6 +57,7 @@ s/vips_\(bandjoin_const\)()/[method@Image.\1]/g
 s/vips_\(bandmean\)()/[method@Image.\1]/g
 s/vips_\(bandor\)()/[method@Image.\1]/g
 s/vips_\(bandunfold\)()/[method@Image.\1]/g
+s/vips_\(black\)()/[ctor@Image.\1]/g
 s/vips_\(boolean_const1\)()/[method@Image.\1]/g
 s/vips_\(boolean_const\)()/[method@Image.\1]/g
 s/vips_\(boolean\)()/[method@Image.\1]/g
@@ -377,6 +383,7 @@ s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
 s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
 
+s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
