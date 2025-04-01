@@ -22,6 +22,7 @@ def fixup_gir_for_doc(args):
 
     namespace_node = root.find('goi:namespace', namespace)
     image_node = namespace_node.find('goi:class[@name="Image"]', namespace)
+    blob_node = namespace_node.find('goi:record[@name="Blob"]', namespace)
 
     # A list of functions that needs to be converted to an Image constructor.
     # Note that all functions containing "load" are already converted.
@@ -71,7 +72,12 @@ def fixup_gir_for_doc(args):
 
     for node in namespace_node.findall('goi:function', namespace):
         name = node.get('name')
-        if 'load' in name or name in image_ctors:
+        if name == 'profile_load':
+            namespace_node.remove(node)
+
+            node.tag = 'constructor'
+            blob_node.append(node)
+        elif 'load' in name or name in image_ctors:
             namespace_node.remove(node)
 
             node.tag = 'constructor'
