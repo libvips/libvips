@@ -1300,7 +1300,7 @@ vips_image_class_init(VipsImageClass *class)
 	 * VipsImage::minimise:
 	 * @image: the image that is being minimised
 	 *
-	 * Thise signal is emitted when an image has been asked to
+	 * This signal is emitted when an image has been asked to
 	 * minimise memory usage. All non-essential caches are dropped.
 	 * See [method@Image.minimise_all].
 	 */
