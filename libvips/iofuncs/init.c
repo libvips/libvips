@@ -167,11 +167,11 @@ vips_max_coord_get(void)
 /**
  * vips_get_argv0:
  *
- * See also: VIPS_INIT().
+ * ::: seealso
+ *     [func@INIT].
  *
  * Returns: (transfer none): a pointer to an internal copy of the
- * argv0 string passed to
- * VIPS_INIT(). Do not free this value
+ * argv0 string passed to [func@INIT]. Do not free this value
  */
 const char *
 vips_get_argv0(void)
@@ -182,9 +182,10 @@ vips_get_argv0(void)
 /**
  * vips_get_prgname:
  *
- * Return the program name. This can be useful for the user tio see,.
+ * Return the program name.
  *
- * See also: VIPS_INIT().
+ * ::: seealso
+ *     [func@INIT].
  *
  * Returns: (transfer none): a pointer to an internal copy of the program
  * name. Do not free this value
@@ -204,9 +205,9 @@ vips_get_prgname(void)
  * VIPS_INIT:
  * @ARGV0: name of application
  *
- * VIPS_INIT() starts up the world of VIPS. You should call this on
+ * [func@INIT] starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
- * VIPS_INIT(), VIPS will call it for you when you use your first VIPS
+ * [func@INIT], VIPS will call it for you when you use your first VIPS
  * operation, but it may not be able to get hold of @ARGV0 and VIPS may
  * therefore be unable to find its data files. It is much better to call
  * this macro yourself.
@@ -215,23 +216,23 @@ vips_get_prgname(void)
  * relocated. If you don't need a relocatable package, you can just pass `""`
  * and it'll be fine.
  *
- * Additionally, VIPS_INIT() can be run from any thread, but it must not be
+ * Additionally, [func@INIT] can be run from any thread, but it must not be
  * called from more than one thread at the same time. This is much easier to
  * guarantee if you call it yourself.
  *
- * VIPS_INIT() is a macro, since it tries to check ABI compatibility
- * between the caller and the library. You can also call vips_init(), the
+ * [func@INIT] is a macro, since it tries to check ABI compatibility
+ * between the caller and the library. You can also call [func@init], the
  * non-macro version, if macros are not available to you.
  *
- * You may call VIPS_INIT() many times and vips_shutdown() many times, but you
- * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * You may call [func@INIT] many times and [func@shutdown] many times, but you
+ * must not call [func@INIT] after [func@shutdown]. In other words, you cannot
  * stop and restart vips.
  *
  * Use the environment variable `VIPS_MIN_STACK_SIZE` to set the minimum stack
  * size. For example, `2m` for a minimum of two megabytes of stack. This can
  * be important for systems like musl where the default stack is very small.
  *
- * VIPS_INIT() does approximately the following:
+ * [func@INIT] does approximately the following:
  *
  * + checks that the libvips your program is expecting is
  *   binary-compatible with the vips library you're running against
@@ -242,16 +243,16 @@ vips_get_prgname(void)
  *   and the threading system, if necessary
  *
  * + guesses where the VIPS data files are and sets up
- *   internationalisation --- see vips_guess_prefix()
+ *   internationalisation --- see [func@guess_prefix]
  *
- * + creates the main vips types, including #VipsImage and friends
+ * + creates the main vips types, including [class@Image] and friends
  *
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
  *
  * Example:
  *
- * |[
+ * ```c
  * int main(int argc, char **argv)
  * {
  *     if (VIPS_INIT(argv[0]))
@@ -261,10 +262,11 @@ vips_get_prgname(void)
  *
  *     return 0;
  * }
- * ]|
+ * ```
  *
- * See also: vips_shutdown(), vips_add_option_entries(), vips_version(),
- * vips_guess_prefix(), vips_guess_libdir().
+ * ::: seealso
+ *     [func@shutdown], [func@add_option_entries], [func@version],
+ * [func@guess_prefix], [func@guess_libdir].
  *
  * Returns: 0 on success, -1 otherwise
  */
@@ -404,8 +406,7 @@ vips_leak(void)
 	vips_buf_appends(&buf, "\n");
 
 	if (strlen(vips_error_buffer()) > 0) {
-		vips_buf_appendf(&buf, "error buffer: %s",
-			vips_error_buffer());
+		vips_buf_appendf(&buf, "error buffer: %s", vips_error_buffer());
 		n_leaks += strlen(vips_error_buffer());
 	}
 
@@ -424,12 +425,13 @@ vips_leak(void)
  * vips_init:
  * @argv0: name of application
  *
- * This function starts up libvips, see VIPS_INIT().
+ * This function starts up libvips, see [func@INIT].
  *
  * This function is for bindings which need to start up vips. C programs
- * should use the VIPS_INIT() macro, which does some extra checks.
+ * should use the [func@INIT] macro, which does some extra checks.
  *
- * See also: VIPS_INIT().
+ * ::: seealso
+ *     [func@INIT].
  *
  * Returns: 0 on success, -1 otherwise
  */
@@ -577,7 +579,7 @@ vips_init(const char *argv0)
 
 	/* Start up packages.
 	 */
-	(void) vips_system_get_type();
+	vips_system_get_type();
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
 	vips_create_operation_init();
@@ -639,7 +641,7 @@ vips_init(const char *argv0)
 
 	/* If VIPS_WARNING is defined, suppress all warning messages from vips.
 	 *
-	 * Libraries should not call g_log_set_handler(), it is
+	 * Libraries should not call [func@GLib.log_set_handler], it is
 	 * supposed to be for the application layer, but this can be awkward to
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround.
@@ -670,7 +672,7 @@ void
 vips_check_init(void)
 {
 	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an vips_init() call. We need
+	 * for old programs which are missing an [func@init] call. We need
 	 * i18n set up before we can translate.
 	 */
 	if (vips_init("vips"))
@@ -683,7 +685,7 @@ vips_check_init(void)
  * Free any thread-private data and flush any profiling information.
  *
  * This function needs to be called when a thread that has been using vips
- * exits. It is called for you by vips_shutdown() and for any threads created
+ * exits. It is called for you by [func@shutdown] and for any threads created
  * within the #VipsThreadPool.
  *
  * You will need to call it from threads created in
@@ -706,15 +708,16 @@ vips_thread_shutdown(void)
  * Call this to drop caches, close plugins, terminate background threads, and
  * finalize any internal library testing.
  *
- * vips_shutdown() is optional. If you don't call it, your platform will
+ * [func@shutdown] is optional. If you don't call it, your platform will
  * clean up for you. The only negative consequences are that the leak checker
  * and the profiler will not work.
  *
- * You may call VIPS_INIT() many times and vips_shutdown() many times, but you
- * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * You may call [func@INIT] many times and [func@shutdown] many times, but you
+ * must not call [func@INIT] after [func@shutdown]. In other words, you cannot
  * stop and restart libvips.
  *
- * See also: vips_profile_set(), vips_leak_set().
+ * ::: seealso
+ *     [func@profile_set], [func@leak_set].
  */
 void
 vips_shutdown(void)
@@ -916,9 +919,11 @@ static GOptionEntry option_entries[] = {
  * vips_add_option_entries:
  * @option_group: group to add to
  *
- * Add the standard vips %GOptionEntry to a %GOptionGroup.
+ * Add the standard vips [struct@GLib.OptionEntry] to a
+ * [struct@GLib.OptionGroup].
  *
- * See also: g_option_group_new().
+ * ::: seealso
+ *     [ctor@GLib.OptionGroup.new].
  */
 void
 vips_add_option_entries(GOptionGroup *option_group)
@@ -1127,17 +1132,18 @@ guess_prefix(const char *argv0, const char *name)
  * @argv0: program name (typically argv[0])
  * @env_name: save prefix in this environment variable
  *
- * vips_guess_prefix() tries to guess the install directory. You should pass
+ * [func@guess_prefix] tries to guess the install directory. You should pass
  * in the value of argv[0] (the name your program was run as) as a clue to
  * help it out, plus the name of the environment variable you let the user
  * override your package install area with (eg. "VIPSHOME").
  *
- * On success, vips_guess_prefix() returns the prefix it discovered, and as a
+ * On success, [func@guess_prefix] returns the prefix it discovered, and as a
  * side effect, sets the environment variable (if it's not set).
  *
  * Don't free the return string!
  *
- * See also: vips_guess_libdir().
+ * ::: seealso
+ *     [func@guess_libdir].
  *
  * Returns: (transfer none): the install prefix as a static string, do not free.
  */
@@ -1173,18 +1179,19 @@ vips_guess_prefix(const char *argv0, const char *env_name)
  * @argv0: program name (typically argv[0])
  * @env_name: save prefix in this environment variable
  *
- * vips_guess_libdir() tries to guess the install directory (usually the
+ * [func@guess_libdir] tries to guess the install directory (usually the
  * configure libdir, or $prefix/lib). You should pass
  * in the value of argv[0] (the name your program was run as) as a clue to
  * help it out, plus the name of the environment variable you let the user
  * override your package install area with (eg. "VIPSHOME").
  *
- * On success, vips_guess_libdir() returns the libdir it discovered, and as a
+ * On success, [func@guess_libdir] returns the libdir it discovered, and as a
  * side effect, sets the prefix environment variable (if it's not set).
  *
  * Don't free the return string!
  *
- * See also: vips_guess_prefix().
+ * ::: seealso
+ *     [func@guess_prefix].
  *
  * Returns: (transfer none): the libdir as a static string, do not free.
  */
@@ -1275,8 +1282,8 @@ vips_version(int flag)
  * vips_leak_set:
  * @leak: turn leak checking on or off
  *
- * Turn on or off vips leak checking. See also --vips-leak,
- * vips_add_option_entries() and the `VIPS_LEAK` environment variable.
+ * Turn on or off vips leak checking. See also `--vips-leak`,
+ * [func@add_option_entries] and the `VIPS_LEAK` environment variable.
  *
  * You should call this very early in your program.
  */
@@ -1304,9 +1311,9 @@ vips_block_untrusted_set_operation(VipsOperationClass *class, gboolean *state)
  *
  * Set the block state on all untrusted operations.
  *
- * |[
+ * ```c
  * vips_block_untrusted_set(TRUE);
- * ]|
+ * ```
  *
  * Will block all untrusted operations from running.
  *
@@ -1314,7 +1321,7 @@ vips_block_untrusted_set_operation(VipsOperationClass *class, gboolean *state)
  * operations are marked as untrusted.
  *
  * Set the environment variable `VIPS_BLOCK_UNTRUSTED` to block all untrusted
- * operations on vips_init().
+ * operations on [func@init].
  */
 void
 vips_block_untrusted_set(gboolean state)
