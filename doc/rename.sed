@@ -36,6 +36,20 @@ s/vips_sbuf_\([^(]*\)()/[method@Sbuf.\1]/g
 s/vips_dbuf_\([^(]*\)()/[method@Dbuf.\1]/g
 s/vips_\(reorder_[^(]*\)()/[method@Image.\1]/g
 
+s/vips_area_\(new\)()/[ctor@Area.\1]/g
+s/vips_area_\(new_[^(]*\)()/[ctor@Area.\1]/g
+s/vips_area_\([^(]*\)()/[method@Area.\1]/g
+
+s/vips_array_double_\(new[^(]*\)()/[ctor@ArrayDouble.\1]/g
+s/vips_array_double_\([^(]*\)()/[method@ArrayDouble.\1]/g
+
+s/vips_array_int_\(new[^(]*\)()/[ctor@ArrayInt.\1]/g
+s/vips_array_int_\([^(]*\)()/[method@ArrayInt.\1]/g
+
+s/vips_array_image_\(new[^(]*\)()/[ctor@ArrayImage.\1]/g
+s/vips_array_image_empty()/[ctor@ArrayImage.empty]/g
+s/vips_array_image_\([^(]*\)()/[method@ArrayImage.\1]/g
+
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(acosh\)()/[method@Image.\1]/g
 s/vips_\(acos\)()/[method@Image.\1]/g
@@ -389,7 +403,11 @@ s/#Vips\(Target\)/[class@\1]/g
 s/#Vips\(ThreadState\)/[class@\1]/g
 s/#Vips\(Buf\)/[class@\1]/g
 s/#Vips\(Dbuf\)/[class@\1]/g
-s/#Vips\(Blob\)/[class@\1]/g
+s/#Vips\(Blob\)/[struct@\1]/g
+s/#Vips\(Area\)/[struct@\1]/g
+s/#Vips\(ArrayInt\)/[struct@\1]/g
+s/#Vips\(ArrayDouble\)/[struct@\1]/g
+s/#Vips\(ArrayImage\)/[struct@\1]/g
 
 s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
