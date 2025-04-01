@@ -227,7 +227,8 @@ G_DEFINE_ABSTRACT_TYPE(VipsObject, vips_object, G_TYPE_OBJECT);
 /**
  * vips_argument_get_id: (skip)
  *
- * Allocate a new property id. See g_object_class_install_property().
+ * Allocate a new property id. See
+ * [method@GObject.ObjectClass.install_property].
  *
  * Returns: a new property id > 0
  */
@@ -575,9 +576,9 @@ vips_argument_table_destroy(VipsArgumentTable *table)
 }
 
 /**
- * vips_argument_map: (skip)
+ * vips_argument_map:
  * @object: object whose args should be enumerated
- * @fn: call this function for every argument
+ * @fn: (scope call) (closure a): call this function for every argument
  * @a: client data
  * @b: client data
  *
@@ -932,7 +933,7 @@ vips_object_dispose_argument(VipsObject *object, GParamSpec *pspec,
 
 /* Free all args on this object which may be holding resources.
  *
- * Note that this is not the same as vips_object_unref_outputs(). That
+ * Note that this is not the same as [method@Object.unref_outputs]. That
  * looks for output objects which may have been created during _build() which
  * hold refs to this object and unrefs them.
  *
@@ -1402,7 +1403,7 @@ vips_object_get_property(GObject *gobject,
 			argument_class->offset);
 
 		/* Copy the boxed into our pointer (will use eg.
-		 * vips__object_vector_dup ()).
+		 * vips__object_vector_dup()).
 		 */
 		g_value_set_boxed(value, *member);
 	}
@@ -2307,7 +2308,7 @@ vips_object_find_args(VipsObject *object,
  * Get all %GParamSpec names and #VipsArgumentFlags for an object.
  *
  * This is handy for language bindings. From C, it's usually more convenient to
- * use vips_argument_map().
+ * use [func@Argument.map].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2348,8 +2349,8 @@ vips_object_get_args(VipsObject *object,
  * @a: client data
  * @b: client data
  *
- * g_object_new() the object, set any arguments with @set, call
- * vips_object_build() and return the complete object.
+ * [ctor@GObject.Object.new] the object, set any arguments with @set, call
+ * [method@Object.build] and return the complete object.
  *
  * Returns: the new object
  */
@@ -2380,7 +2381,7 @@ vips_object_new(GType type, VipsObjectSetArguments set, void *a, void *b)
  * @object: object to set arguments on
  * @ap: %NULL-terminated list of argument/value pairs
  *
- * See vips_object_set().
+ * See [method@Object.set].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2421,17 +2422,18 @@ vips_object_set_valist(VipsObject *object, va_list ap)
  *
  * Set a list of vips object arguments. For example:
  *
- * |[
+ * ```c
  * vips_object_set(operation,
  *     "input", in,
  *     "output", &out,
  *     NULL);
- * ]|
+ * ```
  *
  * Input arguments are given in-line, output arguments are given as pointers
  * to where the output value should be written.
  *
- * See also: vips_object_set_valist(), vips_object_set_from_string().
+ * ::: seealso
+ *     [method@Object.set_valist], [method@Object.set_from_string].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2556,8 +2558,9 @@ vips_object_set_args(VipsObject *object, const char *p)
  *
  * You'd typically use this between creating the object and building it.
  *
- * See also: vips_object_set(), vips_object_build(),
- * vips_cache_operation_buildp().
+ * ::: seealso
+ *     [method@Object.set], [method@Object.build],
+ *     [func@cache_operation_buildp].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2672,8 +2675,8 @@ vips_object_to_string_optional(VipsObject *object,
  * @object: object to stringify
  * @buf: write string here
  *
- * The inverse of vips_object_new_from_string(): turn @object into eg.
- * "VipsInterpolateSnohalo1(blur=.333333)".
+ * The inverse of [ctor@Object.new_from_string]: turn @object into eg.
+ * `"VipsInterpolateSnohalo1(blur=.333333)"`.
  */
 void
 vips_object_to_string(VipsObject *object, VipsBuf *buf)
@@ -2874,7 +2877,8 @@ test_name(VipsObjectClass *class, const char *nickname)
  * Search below @basename, return the first class whose name or @nickname
  * matches.
  *
- * See also: vips_type_find()
+ * ::: seealso
+ *     [func@type_find]
  *
  * Returns: (transfer none): the found class.
  */
@@ -2952,11 +2956,12 @@ vips_class_build_hash_cb(void *dummy)
  *
  * Search below @basename, return the %GType of the class whose name or
  * @nickname matches, or 0 for not found.
- * If @basename is NULL, the whole of #VipsObject is searched.
+ * If @basename is NULL, the whole of [class@Object] is searched.
  *
  * This function uses a cache, so it should be quick.
  *
- * See also: vips_class_find()
+ * ::: seealso
+ *     [func@class_find]
  *
  * Returns: the %GType of the class, or 0 if the class is not found.
  */
@@ -3020,7 +3025,7 @@ vips_nickname_find(GType type)
 	return NULL;
 }
 
-/* The vips_object_local() macro uses this as its callback.
+/* The vips_object_local_array() macro uses this as its callback.
  */
 void
 vips_object_local_cb(VipsObject *vobject, GObject *gobject)
@@ -3059,7 +3064,7 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  *
  * Example:
  *
- * |[
+ * ```c
  * VipsObject **t;
  *
  * t = vips_object_local_array(parent, 5);
@@ -3068,9 +3073,7 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  *     vips_add(t[1], t[0], &t[2], NULL) ||
  *     vips_costra(t[2], out, NULL))
  *   return -1;
- * ]|
- *
- * See also: vips_object_local().
+ * ```
  *
  * Returns: an array of NULL pointers of length @n
  */
@@ -3223,7 +3226,8 @@ vips_object_unref_outputs_sub(VipsObject *object,
  * been made so far. This function can also be useful for callers when
  * they've finished processing outputs themselves.
  *
- * See also: vips_cache_operation_build().
+ * ::: seealso
+ *     [func@cache_operation_build].
  */
 void
 vips_object_unref_outputs(VipsObject *object)
