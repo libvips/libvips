@@ -386,6 +386,7 @@ s/#Vips\(SourceCustom\)/[class@\1]/g
 s/#Vips\(Source\)/[class@\1]/g
 s/#Vips\(TargetCustom\)/[class@\1]/g
 s/#Vips\(Target\)/[class@\1]/g
+s/#Vips\(ThreadState\)/[class@\1]/g
 s/#Vips\(Buf\)/[class@\1]/g
 s/#Vips\(Dbuf\)/[class@\1]/g
 s/#Vips\(Blob\)/[class@\1]/g
@@ -394,10 +395,12 @@ s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
 s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
 
+s/g_thread_\([^(]*new\)()/[ctor@GLib.Thread.\1]/g
 s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
+s/%GThread/[struct@GLib.Thread]/g
 s/%GInputStream/[class@Gio.InputStream]/g
 s/%GInput/[class@Gio.Input]/g
 

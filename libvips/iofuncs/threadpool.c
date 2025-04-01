@@ -85,7 +85,8 @@
  * [callback@ThreadpoolAllocateFn] functions can use these members to
  * communicate with [callback@ThreadpoolWorkFn] functions.
  *
- * See also: [func@threadpool_run].
+ * ::: seealso
+ *     [func@threadpool_run].
  */
 
 /* Set to stall threads for debugging.
@@ -547,12 +548,13 @@ vips_threadpool_new(VipsImage *im)
  * is allocated to it to build the per-thread state. Per-thread state is used
  * by #VipsThreadpoolAllocate and #VipsThreadpoolWork to communicate.
  *
- * #VipsThreadState is a subclass of #VipsObject. Start functions are called
+ * [class@ThreadState] is a subclass of [class@Object]. Start functions are called
  * from allocate, that is, they are single-threaded.
  *
- * See also: vips_threadpool_run().
+ * ::: seealso
+ *     [func@threadpool_run].
  *
- * Returns: a new #VipsThreadState object, or NULL on error
+ * Returns: a new [class@ThreadState] object, or NULL on error
  */
 
 /**
@@ -568,7 +570,8 @@ vips_threadpool_new(VipsImage *im)
  * It should set @stop to %TRUE to indicate that no work could be allocated
  * because the job is done.
  *
- * See also: vips_threadpool_run().
+ * ::: seealso
+ *     [func@threadpool_run].
  *
  * Returns: 0 on success, or -1 on error
  */
@@ -582,7 +585,8 @@ vips_threadpool_new(VipsImage *im)
  * at once, so it should not write to the per-pool state. It can write to
  * per-thread state.
  *
- * See also: vips_threadpool_run().
+ * ::: seealso
+ *     [func@threadpool_run].
  *
  * Returns: 0 on success, or -1 on error
  */
@@ -594,7 +598,8 @@ vips_threadpool_new(VipsImage *im)
  * This function is called by the main thread once for every work unit
  * processed. It can be used to give the user progress feedback.
  *
- * See also: vips_threadpool_run().
+ * ::: seealso
+ *     [func@threadpool_run].
  *
  * Returns: 0 on success, or -1 on error
  */
@@ -616,14 +621,15 @@ vips_threadpool_new(VipsImage *im)
  * progress feedback. @progress may be %NULL.
  *
  * The object returned by @start must be an instance of a subclass of
- * #VipsThreadState. Use this to communicate between @allocate and @work.
+ * [class@ThreadState]. Use this to communicate between @allocate and @work.
  *
  * @allocate and @start are always single-threaded (so they can write to the
  * per-pool state), whereas @work can be executed concurrently. @progress is
  * always called by
- * the main thread (ie. the thread which called vips_threadpool_run()).
+ * the main thread (ie. the thread which called [func@threadpool_run]).
  *
- * See also: vips_concurrency_set().
+ * ::: seealso
+ *     [func@concurrency_set].
  *
  * Returns: 0 on success, or -1 on error.
  */

@@ -120,9 +120,10 @@ vips_thread_run(gpointer data)
  * @func: (scope async) (closure data): a function to execute in the new thread
  * @data: (nullable): an argument to supply to the new thread
  *
- * Wrapper for g_thread_try_new().
+ * Wrapper for [ctor@GLib.Thread.try_new].
  *
- * Returns: (transfer full): the new #GThread, or %NULL if an error occurred
+ * Returns: (transfer full): the new [struct@GLib.Thread], or %NULL if an
+ * error occurred
  */
 GThread *
 vips_g_thread_new(const char *domain, GThreadFunc func, gpointer data)
@@ -191,14 +192,15 @@ vips__concurrency_get_default(void)
  * vips_concurrency_set:
  * @concurrency: number of threads to run
  *
- * Sets the number of worker threads that vips should use when running a
- * #VipsThreadPool.
+ * Sets the number of worker threads that vips should use when running
+ * [func@threadpool_run].
  *
  * The special value 0 means "default". In this case, the number of threads
  * is set by the environment variable VIPS_CONCURRENCY, or if that is not
  * set, the number of threads available on the host machine.
  *
- * See also: vips_concurrency_get().
+ * ::: seealso
+ *     [func@concurrency_get].
  */
 void
 vips_concurrency_set(int concurrency)
@@ -219,16 +221,16 @@ vips_concurrency_set(int concurrency)
 /**
  * vips_concurrency_get:
  *
- * Returns the number of worker threads that vips should use when running a
- * #VipsThreadPool.
+ * Returns the number of worker threads that vips should use when running
+ * [func@threadpool_run].
  *
  * vips gets this values from these sources in turn:
  *
- * If vips_concurrency_set() has been called, this value is used. The special
+ * If [func@concurrency_set] has been called, this value is used. The special
  * value 0 means "default". You can also use the command-line argument
  * "--vips-concurrency" to set this value.
  *
- * If vips_concurrency_set() has not been called and no command-line argument
+ * If [func@concurrency_set] has not been called and no command-line argument
  * was used, vips uses the value of the environment variable VIPS_CONCURRENCY,
  *
  * If VIPS_CONCURRENCY has not been set, vips finds the number of hardware
@@ -236,7 +238,8 @@ vips_concurrency_set(int concurrency)
  *
  * The final value is clipped to the range 1 - 1024.
  *
- * See also: vips_concurrency_get().
+ * ::: seealso
+ *     [func@concurrency_get].
  *
  * Returns: number of worker threads to use.
  */
@@ -254,7 +257,7 @@ vips_concurrency_get(void)
  * @n_lines: (out): return buffer height in scanlines
  *
  * Pick a tile size and a buffer height for this image and the current
- * value of vips_concurrency_get(). The buffer height
+ * value of [func@concurrency_get]. The buffer height
  * will always be a multiple of tile_height.
  *
  * The buffer height is the height of each buffer we fill in sink disc. Since
