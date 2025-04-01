@@ -20,6 +20,8 @@ s/VIPS_SBUF_\([^(]*\)()/[func@SBUF_\1]/g
 s/vips_image_\(pipeline_array\)()/[func@Image.\1]/g
 
 s/vips_operation_\([^(]*\)()/[method@Operation.\1]/g
+s/vips_connnection_\([^(]*\)()/[method@Connection.\1]/g
+s/vips_source_\([^(]*\)()/[method@Source.\1]/g
 s/vips_object_\([^(]*\)()/[method@Object.\1]/g
 s/vips_\([^_]*\)_new()/[ctor@\u\1.new]/g
 s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
@@ -376,10 +378,12 @@ s/#Vips\(Region\)/[class@\1]/g
 s/#Vips\(Object\)/[class@\1]/g
 s/#Vips\(Operation\)/[class@\1]/g
 s/#Vips\(ForeignLoad\)/[class@\1]/g
-s/#Vips\(Source*\)/[class@\1]/g
-s/#Vips\(Target*\)/[class@\1]/g
-s/#Vips\(Buf*\)/[class@\1]/g
-s/#Vips\(Dbuf*\)/[class@\1]/g
+s/#Vips\(Connection\)/[class@\1]/g
+s/#Vips\(Source\)/[class@\1]/g
+s/#Vips\(Target\)/[class@\1]/g
+s/#Vips\(Buf\)/[class@\1]/g
+s/#Vips\(Dbuf\)/[class@\1]/g
+s/#Vips\(Blob\)/[class@\1]/g
 
 s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
