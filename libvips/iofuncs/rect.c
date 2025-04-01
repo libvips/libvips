@@ -217,7 +217,7 @@ vips_rect_unionrect(const VipsRect *r1, const VipsRect *r2, VipsRect *out)
  * vips_rect_dup: (skip)
  * @r: rectangle to duplicate
  *
- * Duplicate a rect to the heap. You need to free the result with g_free().
+ * Duplicate a rect to the heap. You need to free the result with [func@GLib.free].
  *
  * Returns: (transfer full): a pointer to copy of @r allocated on the heap.
  */

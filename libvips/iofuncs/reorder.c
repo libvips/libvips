@@ -318,15 +318,16 @@ vips__reorder_set_input(VipsImage *image, VipsImage **in)
  * vips_reorder_prepare_many: (method)
  * @image: the image that's being written
  * @regions: (array): the set of regions to prepare
- * @r: the #VipsRect to prepare on each region
+ * @r: the [struct@Rect] to prepare on each region
  *
- * vips_reorder_prepare_many() runs vips_region_prepare() on each region in
- * @regions, requesting the pixels in @r.
+ * [method@Image.reorder_prepare_many] runs [method@Region.prepare] on each
+ * region in @regions, requesting the pixels in @r.
  *
  * It tries to request the regions in the order which will cause least
  * recomputation. This can give a large speedup, in some cases.
  *
- * See also: vips_region_prepare(), vips_reorder_margin_hint().
+ * ::: seealso
+ *     [method@Region.prepare], [method@Image.reorder_margin_hint].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -353,15 +354,16 @@ vips_reorder_prepare_many(VipsImage *image, VipsRegion **regions, VipsRect *r)
  * @image: the image to hint on
  * @margin: the size of the margin this operation has added
  *
- * vips_reorder_margin_hint() sets a hint that @image contains a margin, that
- * is, that each vips_region_prepare() on @image will request a slightly larger
- * region from it's inputs. A good value for @margin is (width * height) for
- * the window the operation uses.
+ * [method@Image.reorder_margin_hint] sets a hint that @image contains a
+ * margin, that is, that each [method@Region.prepare] on @image will request
+ * a slightly larger region from it's inputs. A good value for @margin is
+ * (width * height) for the window the operation uses.
  *
- * This information is used by vips_image_prepare_many() to attempt to reorder
- * computations to minimise recomputation.
+ * This information is used by [method@Image.reorder_prepare_many] to attempt to
+ * reorder computations to minimise recomputation.
  *
- * See also: vips_image_prepare_many().
+ * ::: seealso
+ *     [method@Image.reorder_prepare_many].
  */
 void
 vips_reorder_margin_hint(VipsImage *image, int margin)

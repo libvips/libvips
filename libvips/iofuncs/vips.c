@@ -115,7 +115,7 @@
  * VIPS is a relocatable package, meaning you can move the directory tree you
  * compiled it to at runtime and it will still be able to find all data files.
  * This is required for OS X and Windows, but slightly unusual in the Unix
- * world. See vips_init() and vips_guess_prefix().
+ * world. See [func@init] and [func@guess_prefix].
  */
 
 /* Open mode for image write.
@@ -144,7 +144,7 @@ vips__open_image_read(const char *filename)
 {
 	int fd;
 
-	/* Try to open read-write, so that calls to vips_image_inplace() will
+	/* Try to open read-write, so that calls to [method@Image.inplace] will
 	 * work. When we later mmap this file, we set read-only, so there
 	 * is little danger of scrubbing over files we own.
 	 */
@@ -184,7 +184,7 @@ vips__open_image_write(const char *filename, gboolean temp)
 	 *
 	 * This can fail since not all filesystems support it. In this case,
 	 * we open as a regular file and rely on the delete-on-close
-	 * mechanism, see vips_image_delete().
+	 * mechanism, see [method@Image.delete].
 	 */
 	if (temp) {
 		char *dirname;
@@ -946,7 +946,7 @@ vips__xml_properties_meta(VipsImage *image,
 }
 
 /* Make the xml we write to vips-properties in dzsave, or to TIFF. A simple
- * dump of all vips metadata. Free with g_free().
+ * dump of all vips metadata. Free with [func@GLib.free].
  */
 char *
 vips__xml_properties(VipsImage *image)

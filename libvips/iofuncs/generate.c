@@ -368,7 +368,8 @@ vips__demand_hint_array(VipsImage *image,
  * VIPS uses the list of input images to build the tree of operations it needs
  * for the cache invalidation system.
  *
- * See also: vips_image_pipelinev(), vips_image_generate().
+ * ::: seealso
+ *     [method@Image.pipelinev], [method@Image.generate].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -402,9 +403,10 @@ vips_image_pipeline_array(VipsImage *image,
  * @hint: hint for this image
  * @...: %NULL-terminated list of input images
  *
- * Build an array and call vips_image_pipeline_array().
+ * Build an array and call [func@Image.pipeline_array].
  *
- * See also: vips_image_generate().
+ * ::: seealso
+ *     [method@Image.generate].
  */
 int
 vips_image_pipelinev(VipsImage *image, VipsDemandStyle hint, ...)
@@ -438,7 +440,8 @@ vips_image_pipelinev(VipsImage *image, VipsDemandStyle hint, ...)
  *
  * Start function for one image in. Input image is @a.
  *
- * See also: vips_image_generate().
+ * ::: seealso
+ *     [method@Image.generate].
  */
 void *
 vips_start_one(VipsImage *out, void *a, void *b)
@@ -456,7 +459,8 @@ vips_start_one(VipsImage *out, void *a, void *b)
  *
  * Stop function for one image in. Input image is @a.
  *
- * See also: vips_image_generate().
+ * ::: seealso
+ *     [method@Image.generate].
  */
 int
 vips_stop_one(void *seq, void *a, void *b)
@@ -477,7 +481,8 @@ vips_stop_one(void *seq, void *a, void *b)
  * Stop function for many images in. @a is a pointer to
  * a %NULL-terminated array of input images.
  *
- * See also: vips_image_generate().
+ * ::: seealso
+ *     [method@Image.generate].
  */
 int
 vips_stop_many(void *seq, void *a, void *b)
@@ -504,7 +509,8 @@ vips_stop_many(void *seq, void *a, void *b)
  * Start function for many images in. @a is a pointer to
  * a %NULL-terminated array of input images.
  *
- * See also: vips_image_generate(), vips_allocate_input_array()
+ * ::: seealso
+ *     [method@Image.generate], [func@allocate_input_array]
  */
 void *
 vips_start_many(VipsImage *out, void *a, void *b)
@@ -542,9 +548,10 @@ vips_start_many(VipsImage *out, void *a, void *b)
  * @...: %NULL-terminated list of input images
  *
  * Convenience function --- make a %NULL-terminated array of input images.
- * Use with vips_start_many().
+ * Use with [func@start_many].
  *
- * See also: vips_image_generate(), vips_start_many().
+ * ::: seealso
+ *     [method@Image.generate], [func@start_many].
  *
  * Returns: (transfer none) (nullable): %NULL-terminated array of images.
  *   Do not free the result.
@@ -588,14 +595,15 @@ vips_allocate_input_array(VipsImage *out, ...)
  * Start a new processing sequence for this generate function. This allocates
  * per-thread state, such as an input region.
  *
- * See also: vips_start_one(), vips_start_many().
+ * ::: seealso
+ *     [func@start_one], [func@start_many].
  *
  * Returns: a new sequence value
  */
 
 /**
  * VipsGenerateFn:
- * @out: #VipsRegion to fill
+ * @out: [class@Region] to fill
  * @seq: sequence value
  * @a: user data
  * @b: user data
@@ -604,7 +612,8 @@ vips_allocate_input_array(VipsImage *out, ...)
  * Fill @out->valid with pixels. @seq contains per-thread state, such as the
  * input regions. Set @stop to %TRUE to stop processing.
  *
- * See also: vips_image_generate(), vips_stop_many().
+ * ::: seealso
+ *     [method@Image.generate], [func@stop_many].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -618,7 +627,8 @@ vips_allocate_input_array(VipsImage *out, ...)
  * Stop a processing sequence. This frees
  * per-thread state, such as an input region.
  *
- * See also: vips_stop_one(), vips_stop_many().
+ * ::: seealso
+ *     [func@stop_one], [func@stop_many].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -664,18 +674,19 @@ write_vips(VipsRegion *region, VipsRect *area, void *a)
  *
  * Generates an image. The action depends on the image type.
  *
- * For images created with vips_image_new(), vips_image_generate() just
+ * For images created with [ctor@Image.new], vips_image_generate() just
  * attaches the start/generate/stop callbacks and returns.
  *
- * For images created with vips_image_new_memory(), memory is allocated for
- * the whole image and it is entirely generated using vips_sink_memory().
+ * For images created with [ctor@Image.new_memory], memory is allocated for
+ * the whole image and it is entirely generated using [func@sink_memory].
  *
- * For images created with vips_image_new_temp_file() and friends, memory for
+ * For images created with [ctor@Image.new_temp_file] and friends, memory for
  * a few scanlines is allocated and
- * vips_sink_disc() used to generate the image in small chunks. As each
+ * [method@Image.sink_disc] used to generate the image in small chunks. As each
  * chunk is generated, it is written to disc.
  *
- * See also: vips_sink(), vips_image_new(), vips_region_prepare().
+ * ::: seealso
+ *     [func@sink_memory], [ctor@Image.new], [method@Region.prepare].
  *
  * Returns: 0 on success, or -1 on error.
  */

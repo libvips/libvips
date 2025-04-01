@@ -460,7 +460,8 @@ vips_sink_base_progress(void *a)
  * image edges). This is handy for things like writing a tiled TIFF image,
  * where tiles have to be generated with a certain size.
  *
- * See also: vips_sink(), vips_get_tile_size().
+ * ::: seealso
+ *     [method@Image.sink], [method@Image.get_tile_size].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -520,14 +521,15 @@ vips_sink_tile(VipsImage *im,
  * @b: user data
  *
  * Loops over an image. @generate_fn is called for every pixel in
- * the image, with
- * the @reg argument being a region of calculated pixels. vips_sink() is
- * used to implement operations like vips_avg() which have no image output.
+ * the image, with the @reg argument being a region of calculated pixels.
+ * [method@Image.sink] is used to implement operations like
+ * [method@Image.avg] which have no image output.
  *
  * Each set of pixels is sized according to the requirements of the image
  * pipeline that generated @im.
  *
- * See also: vips_image_generate(), vips_image_new().
+ * ::: seealso
+ *     [method@Image.generate], [ctor@Image.new].
  *
  * Returns: 0 on success, or -1 on error.
  */

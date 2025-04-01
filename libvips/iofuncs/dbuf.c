@@ -48,7 +48,7 @@
  * Initialize @dbuf. You can also just init to zero, eg.
  * `VipsDbuf buf = {0};`.
  *
- * Destroy with vips_dbuf_destroy().
+ * Destroy with [method@Dbuf.destroy].
  */
 void
 vips_dbuf_init(VipsDbuf *dbuf)
@@ -133,11 +133,11 @@ vips_dbuf_read(VipsDbuf *dbuf, unsigned char *data, size_t size)
  * @size: (allow-none): optionally return length in bytes here
  *
  * Return a pointer to an area you can write to, return length of area in
- * @size. Use vips_dbuf_allocate() before this call to set a minimum amount of
+ * @size. Use [method@Dbuf.allocate] before this call to set a minimum amount of
  * space to have available.
  *
  * The write point moves to just beyond the returned block. Use
- * vips_dbuf_seek() to move it back again.
+ * [method@Dbuf.seek] to move it back again.
  *
  * Returns: (transfer none): start of write area.
  */
@@ -399,7 +399,7 @@ vips_dbuf_null_terminate(VipsDbuf *dbuf)
  * @size: (allow-none): optionally return length in bytes here
  *
  * Destroy a buffer, but rather than freeing memory, a pointer is returned.
- * This must be freed with g_free().
+ * This must be freed with [func@GLib.free].
  *
  * A `\0` is appended, but not included in the character count. This is so the
  * pointer can be safely treated as a C string.

@@ -322,7 +322,8 @@ vips_target_init(VipsTarget *target)
  * Create a target attached to a file descriptor.
  * @descriptor is kept open until the target is finalized.
  *
- * See also: [ctor@Target.new_to_file].
+ * ::: seealso
+ *     [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
@@ -380,7 +381,8 @@ vips_target_new_to_file(const char *filename)
  * Create a target which will write to a memory area. Read from @blob to get
  * memory.
  *
- * See also: [ctor@Target.new_to_file].
+ * ::: seealso
+ *     [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
@@ -410,7 +412,8 @@ vips_target_new_to_memory(void)
  * Create a temporary target -- either a temporary file on disc, or an area in
  * memory, depending on what sort of target @based_on is.
  *
- * See also: [ctor@Target.new_to_file].
+ * ::: seealso
+ *     [ctor@Target.new_to_file].
  *
  * Returns: a new target.
  */
