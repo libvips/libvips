@@ -149,12 +149,6 @@ VIPS_API
 int vips_Lab2LCh(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
-int vips_Yxy2Lab(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_CMC2XYZ(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
 int vips_Lab2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
