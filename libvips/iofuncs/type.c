@@ -57,25 +57,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/**
- * SECTION: basic
- * @short_description: a few typedefs used everywhere
- * @stability: Stable
- * @include: vips/vips.h
- *
- * A few simple typedefs used by VIPS.
- */
-
-/**
- * SECTION: type
- * @short_description: basic types
- * @stability: Stable
- * @see_also: <link linkend="libvips-header">header</link>
- * @include: vips/vips.h
- *
- * A selection of %GType definitions used by VIPS.
- */
-
 /* A very simple boxed type for testing. Just an int.
  *
  * You can manipulate this thing from Python (for example) with:
