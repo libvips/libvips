@@ -60,6 +60,7 @@ content_files = [
   "libvips-colour.md",
   "libvips-create.md",
   "libvips-header.md",
+  "libvips-resample.md",
   "libvips-morphology.md",
   "libvips-vips.md",
 ]

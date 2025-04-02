@@ -22,6 +22,7 @@ vips_content_files = files(
   'libvips-create.md',
   'libvips-draw.md',
   'libvips-header.md',
+  'libvips-resample.md',
   'libvips-morphology.md',
   'libvips-vips.md',
   'making-image-pyramids.md',
