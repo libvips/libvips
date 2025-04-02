@@ -332,6 +332,7 @@ s/vips_\(scharr\)()/[method@Image.\1]/g
 s/vips_\(scRGB2BW\)()/[method@Image.\1]/g
 s/vips_\(scRGB2sRGB\)()/[method@Image.\1]/g
 s/vips_\(scRGB2XYZ\)()/[method@Image.\1]/g
+s/vips_\(sdf\)()/[ctor@Image.\1]/g
 s/vips_\(sequential\)()/[method@Image.\1]/g
 s/vips_\(sharpen\)()/[method@Image.\1]/g
 s/vips_\(shrinkh\)()/[method@Image.\1]/g
@@ -416,6 +417,14 @@ s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
+s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
+s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
+s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g
+s/#VIPS_OPERATION_BOOLEAN_\([^ ,.]*\)/[enum@Vips.OperationBoolean.\1]/g
+s/#VIPS_OPERATION_ROUND_\([^ ,.]*\)/[enum@Vips.OperationRound.\1]/g
+s/#VIPS_OPERATION_COMPLEX_\([^ ,.]*\)/[enum@Vips.OperationComplex.\1]/g
+s/#VIPS_OPERATION_COMPLEX2_\([^ ,.]*\)/[enum@Vips.OperationComplex2.\1]/g
+s/#VIPS_OPERATION_COMPLEXGET_\([^ ,.]*\)/[enum@Vips.OperationComplexget.\1]/g
 s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
 s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
 s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g

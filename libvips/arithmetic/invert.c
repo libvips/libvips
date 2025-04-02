@@ -197,9 +197,10 @@ vips_invert_init(VipsInvert *invert)
  * @in) for uchar. For signed and float formats, this operation calculates (-1
  * @in).
  *
- * For complex images, only the real part is inverted. See also vips_conj().
+ * For complex images, only the real part is inverted. See also [method@Image.conj].
  *
- * See also: vips_linear().
+ * ::: seealso
+ *     [method@Image.linear].
  *
  * Returns: 0 on success, -1 on error
  */

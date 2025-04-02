@@ -506,18 +506,17 @@ vips_max_init(VipsMax *max)
 
 /**
  * vips_max: (method)
- * @in: input #VipsImage
+ * @in: input [class@Image]
  * @out: (out): output pixel maximum
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @x: horizontal position of maximum
- * * @y: vertical position of maximum
- * * @size: number of maxima to find
- * * @out_array: return array of maximum values
- * * @x_array: corresponding horizontal positions
- * * @y_array: corresponding vertical positions
+ * ::: note "Optional arguments"
+ *     * @x: horizontal position of maximum
+ *     * @y: vertical position of maximum
+ *     * @size: number of maxima to find
+ *     * @out_array: return array of maximum values
+ *     * @x_array: corresponding horizontal positions
+ *     * @y_array: corresponding vertical positions
  *
  * This operation finds the maximum value in an image.
  *
@@ -527,7 +526,7 @@ vips_max_init(VipsMax *max)
  * Equal values will be sorted by y then x.
  *
  * It operates on all
- * bands of the input image: use vips_stats() if you need to find an
+ * bands of the input image: use [method@Image.stats] if you need to find an
  * maximum for each band.
  *
  * For complex images, this operation finds the maximum modulus.
@@ -540,7 +539,8 @@ vips_max_init(VipsMax *max)
  * If there are more than @size maxima, the maxima returned will be a random
  * selection of the maxima in the image.
  *
- * See also: vips_min(), vips_stats().
+ * ::: seealso
+ *     [method@Image.min], [method@Image.stats].
  *
  * Returns: 0 on success, -1 on error
  */

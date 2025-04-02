@@ -20,7 +20,7 @@
  * 19/11/11
  * 	- redo as a class
  * 21/11/11
- * 	- add vips_complexget()
+ * 	- add [method@Image.complexget]
  * 29/9/15
  * 	- return 0 for cross-product where one arg is zero
  */
@@ -276,8 +276,8 @@ vips_complexv(VipsImage *in, VipsImage **out,
 
 /**
  * vips_complex: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @cmplx: complex operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -303,11 +303,11 @@ vips_complex(VipsImage *in, VipsImage **out, VipsOperationComplex cmplx, ...)
 
 /**
  * vips_polar: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEX_POLAR on an image. See vips_complex().
+ * Perform [enum@Vips.OperationComplex.POLAR] on an image. See [method@Image.complex].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -326,11 +326,11 @@ vips_polar(VipsImage *in, VipsImage **out, ...)
 
 /**
  * vips_rect: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEX_RECT on an image. See vips_complex().
+ * Perform [enum@Vips.OperationComplex.RECT] on an image. See [method@Image.complex].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -349,11 +349,11 @@ vips_rect(VipsImage *in, VipsImage **out, ...)
 
 /**
  * vips_conj: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEX_CONJ on an image. See vips_complex().
+ * Perform [enum@Vips.OperationComplex.CONJ] on an image. See [method@Image.complex].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -557,9 +557,9 @@ vips_complex2v(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_complex2: (method)
- * @left: input #VipsImage
- * @right: input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: input [class@Image]
+ * @right: input [class@Image]
+ * @out: (out): output [class@Image]
  * @cmplx: complex2 operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -586,13 +586,13 @@ vips_complex2(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_cross_phase: (method)
- * @left: input #VipsImage
- * @right: input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: input [class@Image]
+ * @right: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEX2_CROSS_PHASE on an image.
- * See vips_complex2().
+ * Perform [enum@Vips.OperationComplex2.CROSS_PHASE] on an image.
+ * See [method@Image.complex2].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -790,16 +790,16 @@ vips_complexgetv(VipsImage *in, VipsImage **out,
 
 /**
  * vips_complexget: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @get: complex operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Get components of complex images.
  *
- * The output type is the same as the input type, except #VIPS_FORMAT_COMPLEX
- * becomes #VIPS_FORMAT_FLOAT and #VIPS_FORMAT_DPCOMPLEX becomes
- * #VIPS_FORMAT_DOUBLE.
+ * The output type is the same as the input type, except [enum@Vips.BandFormat.COMPLEX]
+ * becomes [enum@Vips.BandFormat.FLOAT] and [enum@Vips.BandFormat.DPCOMPLEX] becomes
+ * [enum@Vips.BandFormat.DOUBLE].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -819,11 +819,11 @@ vips_complexget(VipsImage *in, VipsImage **out,
 
 /**
  * vips_real: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEXGET_REAL on an image. See vips_complexget().
+ * Perform [enum@Vips.OperationComplexget.REAL] on an image. See [method@Image.complexget].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -843,11 +843,11 @@ vips_real(VipsImage *in, VipsImage **out, ...)
 
 /**
  * vips_imag: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_COMPLEXGET_IMAG on an image. See vips_complexget().
+ * Perform [enum@Vips.OperationComplexget.IMAG] on an image. See [method@Image.complexget].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -997,8 +997,8 @@ vips_complexform_init(VipsComplexform *complexform)
  * @...: %NULL-terminated list of optional named arguments
  *
  * Compose two real images to make a complex image. If either @left or @right
- * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out
- * is #VIPS_FORMAT_COMPLEX. @left becomes the real component of @out and
+ * are [enum@Vips.BandFormat.DOUBLE], @out is [enum@Vips.BandFormat.DPCOMPLEX]. Otherwise @out
+ * is [enum@Vips.BandFormat.COMPLEX]. @left becomes the real component of @out and
  * @right the imaginary.
  *
  * If the number of bands differs, one of the images
@@ -1006,7 +1006,8 @@ vips_complexform_init(VipsComplexform *complexform)
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * See also: vips_complexget().
+ * ::: seealso
+ *     [method@Image.complexget].
  *
  * Returns: 0 on success, -1 on error
  */

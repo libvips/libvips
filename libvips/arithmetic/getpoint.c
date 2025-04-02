@@ -201,13 +201,14 @@ vips_getpoint_init(VipsGetpoint *getpoint)
  * Reads a single pixel on an image.
  *
  * The pixel values are returned in @vector, the length of the
- * array in @n. You must free the array with g_free() when you are done with
+ * array in @n. You must free the array with [func@GLib.free] when you are done with
  * it.
  *
  * The result array has an element for each band. If @unpack_complex is set,
  * pixels in complex images are returned as double-length arrays.
  *
- * See also: vips_draw_point().
+ * ::: seealso
+ *     [method@Image.draw_point].
  *
  * Returns: 0 on success, or -1 on error.
  */

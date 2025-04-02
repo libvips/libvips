@@ -157,7 +157,7 @@ vips_subtract_buffer(VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 /* Type promotion for subtraction. Sign and value preserving. Make sure these
- * match the case statement in vips_subtract_buffer() above.
+ * match the case statement in [func@subtract_buffer] above.
  */
 static const VipsBandFormat vips_subtract_format_table[10] = {
 	/* Band format:  UC C  US S  UI I  F  X  D  DX */
@@ -262,7 +262,8 @@ vips_subtract_init(VipsSubtract *subtract)
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * See also: vips_add(), vips_linear().
+ * ::: seealso
+ *     [method@Image.add], [method@Image.linear].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -246,15 +246,16 @@ vips_avg_init(VipsAvg *avg)
 
 /**
  * vips_avg: (method)
- * @in: input #VipsImage
+ * @in: input [class@Image]
  * @out: (out): output pixel average
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the average value in an image. It operates on all
- * bands of the input image: use vips_stats() if you need to calculate an
+ * bands of the input image: use [method@Image.stats] if you need to calculate an
  * average for each band. For complex images, return the average modulus.
  *
- * See also: vips_stats(), vips_bandmean(), vips_deviate(), vips_rank()
+ * ::: seealso
+ *     [method@Image.stats], [method@Image.bandmean], [method@Image.deviate], [method@Image.rank]
  *
  * Returns: 0 on success, -1 on error
  */

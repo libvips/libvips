@@ -259,9 +259,9 @@ vips_math2v(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_math2: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @math2: math operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -286,7 +286,8 @@ vips_math2v(VipsImage *left, VipsImage *right, VipsImage **out,
  * <link linkend="libvips-arithmetic">arithmetic</link>), and that format is the
  * result type.
  *
- * See also: vips_math2_const().
+ * ::: seealso
+ *     [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -306,13 +307,13 @@ vips_math2(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_pow: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_POW on a pair of images. See
- * vips_math2().
+ * Perform [enum@Vips.OperationMath2.POW] on a pair of images. See
+ * [method@Image.math2].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -331,13 +332,13 @@ vips_pow(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_wop: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_WOP on a pair of images. See
- * vips_math2().
+ * Perform [enum@Vips.OperationMath2.WOP] on a pair of images. See
+ * [method@Image.math2].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -356,13 +357,13 @@ vips_wop(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_atan2: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_ATAN2 on a pair of images. See
- * vips_math2().
+ * Perform [enum@Vips.OperationMath2.ATAN2] on a pair of images. See
+ * [method@Image.math2].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -526,7 +527,8 @@ vips_math2_constv(VipsImage *in, VipsImage **out,
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
- * See also: vips_math2(), vips_math().
+ * ::: seealso
+ *     [method@Image.math2], [method@Image.math].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -546,14 +548,14 @@ vips_math2_const(VipsImage *in, VipsImage **out,
 
 /**
  * vips_pow_const: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_POW on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.POW] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -573,14 +575,14 @@ vips_pow_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 
 /**
  * vips_wop_const: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_WOP on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.WOP] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -600,14 +602,14 @@ vips_wop_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
 
 /**
  * vips_atan2_const: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_ATAN2 on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.ATAN2] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -634,7 +636,7 @@ vips_atan2_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates various 2-ary maths operations on an image and
- * a constant. See vips_math2_const().
+ * a constant. See [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -654,13 +656,13 @@ vips_math2_const1(VipsImage *in, VipsImage **out,
 
 /**
  * vips_pow_const1: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_POW on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.POW] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -680,13 +682,13 @@ vips_pow_const1(VipsImage *in, VipsImage **out, double c, ...)
 
 /**
  * vips_wop_const1: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_WOP on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.WOP] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -706,13 +708,13 @@ vips_wop_const1(VipsImage *in, VipsImage **out, double c, ...)
 
 /**
  * vips_atan2_const1: (method)
- * @in: left-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: left-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_MATH2_ATAN2 on an image and a constant. See
- * vips_math2_const().
+ * Perform [enum@Vips.OperationMath2.ATAN2] on an image and a constant. See
+ * [method@Image.math2_const].
  *
  * Returns: 0 on success, -1 on error
  */

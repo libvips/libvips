@@ -212,8 +212,8 @@ vips_abs_init(VipsAbs *abs)
 
 /**
  * vips_abs: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the absolute value of an image. It does a copy for
@@ -222,7 +222,8 @@ vips_abs_init(VipsAbs *abs)
  * float types, and calculates modulus for complex
  * types.
  *
- * See also: vips_sign().
+ * ::: seealso
+ *     [method@Image.sign].
  *
  * Returns: 0 on success, -1 on error
  */

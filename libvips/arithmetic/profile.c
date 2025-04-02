@@ -322,12 +322,13 @@ vips_profile_init(VipsProfile *profile)
  * @rows: (out): distances from left edge
  * @...: %NULL-terminated list of optional named arguments
  *
- * vips_profile() searches inward from the edge of @in and finds the
+ * [method@Image.profile] searches inward from the edge of @in and finds the
  * first non-zero pixel. Pixels in @columns have the distance from the top edge
  * to the first non-zero pixel in that column, @rows has the distance from the
  * left edge to the first non-zero pixel in that row.
  *
- * See also: vips_project(), vips_hist_find().
+ * ::: seealso
+ *     [method@Image.project], [method@Image.hist_find].
  *
  * Returns: 0 on success, -1 on error
  */
