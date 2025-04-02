@@ -116,6 +116,7 @@ endif
 
 openslide_module_sources = files(
     'openslideload.c',
+    'openslideconnection.c',
 )
 
 if not openslide_module

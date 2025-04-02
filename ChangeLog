@@ -20,6 +20,7 @@ master
 - improve vips_sink_screen() thumbnail rendering
 - heifload: improve detection of seek beyond EOF [lovell]
 - add "oneshot" option to jp2kload [mbklein]
+- share and reuse openslide connections
 
 8.16.1
 
