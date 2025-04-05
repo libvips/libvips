@@ -103,20 +103,6 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
-/**
- * SECTION: vips
- * @short_description: startup, shutdown, version
- * @stability: Stable
- * @see_also: <link linkend="VipsOperation">VipsOperation</link>
- * @include: vips/vips.h
- *
- * Start VIPS up, shut VIPS down, get version information, relocation.
- *
- * VIPS is a relocatable package, meaning you can move the directory tree you
- * compiled it to at runtime and it will still be able to find all data files.
- * This is required for OS X and Windows, but slightly unusual in the Unix
- * world. See [func@init] and [func@guess_prefix].
- */
 
 /* Open mode for image write.
  *

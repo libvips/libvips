@@ -1,5 +1,7 @@
 Title: Pixel arithmetic
 
+<!-- libvips/arithmetic -->
+
 # Pixel arithmetic
 
 These operations perform pixel arithmetic, that is, they perform an
@@ -65,7 +67,7 @@ generally the principle is that the output type should be large enough to
 represent the whole range of possible values, except that int never becomes
 float.
 
-## Arithmetic functions
+## Functions
 
 * [method@Image.add]
 * [func@Image.sum]
@@ -181,7 +183,7 @@ float.
 * [method@Image.project]
 * [method@Image.profile]
 
-## Arithmetic enumerations
+## Enumerations
 
 * [enum@OperationMath]
 * [enum@OperationMath2]

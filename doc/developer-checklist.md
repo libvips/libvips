@@ -21,7 +21,8 @@ nina.jpg: 6048x4032 uchar, 3 bands, srgb, jpegload
 
 I see:
 
-```bash/usr/bin/time -f %M:%e vips resize nina.jpg x.jpg 0.1
+```bash
+$ /usr/bin/time -f %M:%e vips resize nina.jpg x.jpg 0.1
 123648:0.23
 ```
 
@@ -97,7 +98,7 @@ operations.
 libvips after version 8.13 has a system for enabling and disabling image load
 libraries at runtime, see:
 
-https://www.libvips.org/2022/05/28/What's-new-in-8.13.html
+<https://www.libvips.org/2022/05/28/What's-new-in-8.13.html>
 
 You can usually improve security and avoid memory spikes by only enabling
 the image formats you really need.  If you are handling untrusted data,
@@ -116,7 +117,7 @@ There are two main checks that are very worthwhile:
 
 1. Sanity check image dimensions to protect you from decompression
    bombs like those described at
-   https://www.bamsoftware.com/hacks/deflate.html
+   <https://www.bamsoftware.com/hacks/deflate.html>
 
 2. Check for interlaced (also called progressive) images.
 

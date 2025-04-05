@@ -55,7 +55,14 @@ content_files = [
   "cite.md",
 
   "libvips-arithmetic.md",
+  "libvips-basic.md",
+  "libvips-draw.md",
+  "libvips-colour.md",
+  "libvips-create.md",
   "libvips-header.md",
+  "libvips-resample.md",
+  "libvips-morphology.md",
+  "libvips-vips.md",
 ]
 content_images = [
   "images/Combine.png",
