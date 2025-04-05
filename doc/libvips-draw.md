@@ -1,5 +1,7 @@
 Title: Drawing operations
 
+<!-- libvips/draw -->
+
 # Drawing operations
 
 These operations directly modify the image. They do not thread, on 32-bit

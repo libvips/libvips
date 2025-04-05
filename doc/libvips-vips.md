@@ -1,5 +1,7 @@
 Title: Initialize, finalize and version information
 
+<!-- libvips/iofuncs/init.c -->
+
 # Initialize, finalize and version information
 
 These functions handle the initialization, finalization, version retrieval,

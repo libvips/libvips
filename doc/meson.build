@@ -16,6 +16,16 @@ vips_content_files = files(
   'function-list.md',
   'how-it-opens-files.md',
   'how-it-works.md',
+  'making-image-pyramids.md',
+  'multipage-and-animated-images.md',
+  'using-from-c.md',
+  'using-from-cplusplus.md',
+  'using-the-cli.md',
+  'using-threads.md',
+  'using-vipsthumbnail.md',
+)
+
+vips_section_files = files(
   'libvips-arithmetic.md',
   'libvips-basic.md',
   'libvips-colour.md',
@@ -25,13 +35,6 @@ vips_content_files = files(
   'libvips-resample.md',
   'libvips-morphology.md',
   'libvips-vips.md',
-  'making-image-pyramids.md',
-  'multipage-and-animated-images.md',
-  'using-from-c.md',
-  'using-from-cplusplus.md',
-  'using-the-cli.md',
-  'using-threads.md',
-  'using-vipsthumbnail.md',
 )
 
 vips_include_dir = meson.current_build_dir() / 'libvips' / 'include'
@@ -52,6 +55,7 @@ vips_gir_doc = custom_target(
   input: vips_gir[0],
   output: 'Vips-@0@.0-doc.gir'.format(version_major),
   command: [fixup_gir_for_doc, '@INPUT@', '@OUTPUT@'],
+  depends: vips_gir[0],
 )
 
 custom_target('libvips-doc',
@@ -68,24 +72,33 @@ custom_target('libvips-doc',
     '--content-dir=@0@'.format(meson.current_source_dir()),
     '@INPUT1@',
   ],
-  depends: vips_gir[0],
-  depend_files: vips_content_files,
+  depends: vips_gir_doc,
+  depend_files: [vips_content_files, vips_section_files],
   build_by_default: true,
   install: true,
-  install_dir: docs_dir
+  install_dir: docs_dir,
 )
 
-test('doc-check-vips',
+test('doc-check-gir',
   gidocgen,
   args: [
     'check',
     '--config', vips_toml,
     '--add-include-path=@0@'.format(vips_include_dir),
-    vips_gir[0],
+    vips_gir_doc,
   ],
-  depends: vips_gir[0],
+  depends: vips_gir_doc,
   # FIXME: Remove once we have documented all public-facing symbols,
   # parameters and return values.
   should_fail: true,
+  suite: ['docs'],
+)
+
+check_sections = find_program('check-sections.py')
+
+test('doc-check-sections',
+  check_sections,
+  args: ['--gir', vips_gir_doc] + vips_section_files,
+  depends: vips_gir_doc,
   suite: ['docs'],
 )

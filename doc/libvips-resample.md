@@ -1,5 +1,7 @@
 Title: Resample operations
 
+<!-- libvips/resample -->
+
 # Resample operations
 
 These operations build on each other in a set of layers.

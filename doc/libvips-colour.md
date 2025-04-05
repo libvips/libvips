@@ -1,5 +1,7 @@
 Title: Colour operators
 
+<!-- libvips/colour -->
+
 # Colour operators
 
 These operators let you transform coordinates and images between colour

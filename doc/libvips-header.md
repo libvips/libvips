@@ -1,5 +1,7 @@
 Title: Image headers
 
+<!-- libvips/iofuncs/header.c -->
+
 # Image headers
 
 libvips supports getting and setting image header data (including metadata)

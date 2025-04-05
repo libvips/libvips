@@ -1,5 +1,7 @@
 Title: Create images
 
+<!-- libvips/create -->
+
 # Create images
 
 These functions generate various images. You can combine them with

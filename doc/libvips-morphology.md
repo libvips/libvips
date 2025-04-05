@@ -1,5 +1,7 @@
 Title: Morphological operators
 
+<!-- libvips/morphology -->
+
 # Morphological operators
 
 The morphological functions search images for particular patterns of pixels,

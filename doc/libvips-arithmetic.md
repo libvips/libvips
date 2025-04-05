@@ -1,5 +1,7 @@
 Title: Pixel arithmetic
 
+<!-- libvips/arithmetic -->
+
 # Pixel arithmetic
 
 These operations perform pixel arithmetic, that is, they perform an
