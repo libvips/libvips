@@ -35,6 +35,10 @@ unless you really have to.
 As a separate thing, [method@Image.mapim] can apply arbitrary 2D image
 transforms to an image.
 
+## Classes
+
+* [class@Interpolate]
+
 ## Functions
 
 * [method@Image.shrink]
@@ -53,6 +57,24 @@ transforms to an image.
 * [method@Image.resize]
 * [method@Image.mapim]
 * [method@Image.quadratic]
+* [func@interpolate]
+* [ctor@Interpolate.new]
+* [func@Interpolate.bilinear_static]
+* [func@Interpolate.nearest_static]
+* [method@Interpolate.get_method]
+* [method@Interpolate.get_window_offset]
+* [method@Interpolate.get_window_size]
+
+## Callbacks
+
+* [callback@InterpolateMethod]
+
+## Constants
+
+* [const@INTERPOLATE_SCALE]
+* [const@INTERPOLATE_SHIFT]
+* [const@TRANSFORM_SCALE]
+* [const@TRANSFORM_SHIFT]
 
 ## Enumerations
 
