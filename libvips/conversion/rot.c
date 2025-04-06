@@ -416,7 +416,7 @@ vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle, ...)
 }
 
 /**
- * vips_rot90:
+ * vips_rot90: (method)
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments

@@ -29,6 +29,7 @@ vips_section_files = files(
   'libvips-arithmetic.md',
   'libvips-basic.md',
   'libvips-colour.md',
+  'libvips-conversion.md',
   'libvips-create.md',
   'libvips-draw.md',
   'libvips-error.md',
