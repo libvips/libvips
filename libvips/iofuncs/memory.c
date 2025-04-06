@@ -75,28 +75,6 @@
 
 #include <vips/vips.h>
 
-/**
- * SECTION: memory
- * @short_description: memory utilities
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These functions cover two main areas.
- *
- * First, some simple utility functions over the underlying
- * [func@GLib.malloc]/[func@GLib.free] functions. Memory allocated and freeded using these
- * functions is interchangeable with any other glib library.
- *
- * Second, a pair of functions, [func@tracked_malloc] and [func@tracked_free],
- * which are NOT compatible. If you [func@GLib.free] memory that has been allocated
- * with [func@tracked_malloc] you will see crashes.
- *
- * The tracked functions are
- * only suitable for large allocations internal to the library, for example
- * pixel buffers. libvips watches the total amount of live tracked memory and
- * uses this information to decide when to trim caches.
- */
-
 /* g_assert_not_reached() on memory errors.
 #define DEBUG
  */

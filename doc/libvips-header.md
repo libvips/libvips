@@ -41,6 +41,10 @@ libvips provides a couple of base classes which implement reference-counted
 areas of memory. If you base your metadata on one of these types, it can be
 copied between images efficiently.
 
+## Callbacks
+
+* [callback@ImageMapFn]
+
 ## Functions
 
 * [func@format_sizeof]
@@ -99,10 +103,6 @@ copied between images efficiently.
 * [method@Image.history_printf]
 * [method@Image.history_args]
 * [method@Image.get_history]
-
-## Callbacks
-
-* [callback@ImageMapFn]
 
 ## Constants
 

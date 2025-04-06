@@ -52,16 +52,6 @@
 #include "pconvolution.h"
 
 /**
- * SECTION: convolution
- * @short_description: convolve and correlate images
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations convolve an image in some way, or are operations based on
- * simple convolution, or are useful with convolution.
- */
-
-/**
  * VipsPrecision:
  * @VIPS_PRECISION_INTEGER: int everywhere
  * @VIPS_PRECISION_FLOAT: float everywhere

@@ -23,7 +23,7 @@ can be used to extract any metadata.
 libvips files come in three parts. First, there is a 64-byte header, containing
 an identifying magic number and a set of very basic fields, such as image
 width in pixels. Next, the image data is stored as a set of band-interleaved
-scanlines, from the top of the image to the bottom.  Finally, after the
+scanlines, from the top of the image to the bottom. Finally, after the
 pixel data comes an optional block of XML containing any extra metadata,
 such as an ICC profile or the EXIF data.
 

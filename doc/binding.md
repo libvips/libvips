@@ -22,7 +22,7 @@ It's much better to use the layer below. This lower layer is structured as:
   [class@Operation] object from an operator nickname, like `"add"`.
 
 - Set parameters. You can use [method@Object.get_args] to
-  get the name and type of all arguments.  For each argument, you need to
+  get the name and type of all arguments. For each argument, you need to
   get the value from your language, convert to a [struct@GObject.Value], then
   use [method@GObject.Object.set_property] to set that value on the operator.
 

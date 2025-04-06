@@ -6,7 +6,7 @@ This page shows a few libvips examples using Python. They will work with
 small syntax changes in any language with a libvips binding.
 
 The libvips test suite is written in Python and exercises every operation
-in the API.  It's also a useful source of examples.
+in the API. It's also a useful source of examples.
 
 ## Average a region of interest box on an image
 

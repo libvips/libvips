@@ -10,7 +10,7 @@ $ vips rot k2.jpg x.jpg d90
 ```
 
 Will rotate the image `k2.jpg` by 90 degrees anticlockwise and write the
-result to the file `x.jpg`.  If you don't give any arguments to an operation,
+result to the file `x.jpg`. If you don't give any arguments to an operation,
 `vips` will give a short description, for example:
 
 ```bash

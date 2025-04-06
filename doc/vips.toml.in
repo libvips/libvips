@@ -56,12 +56,20 @@ content_files = [
 
   "libvips-arithmetic.md",
   "libvips-basic.md",
-  "libvips-draw.md",
   "libvips-colour.md",
+  "libvips-conversion.md",
+  "libvips-convolution.md",
   "libvips-create.md",
+  "libvips-draw.md",
+  "libvips-error.md",
+  "libvips-freqfilt.md",
+  "libvips-generate.md",
   "libvips-header.md",
-  "libvips-resample.md",
+  "libvips-histogram.md",
+  "libvips-memory.md",
   "libvips-morphology.md",
+  "libvips-mosaicing.md",
+  "libvips-resample.md",
   "libvips-vips.md",
 ]
 content_images = [
