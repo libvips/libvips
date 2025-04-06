@@ -31,6 +31,7 @@ vips_section_files = files(
   'libvips-colour.md',
   'libvips-create.md',
   'libvips-draw.md',
+  'libvips-error.md',
   'libvips-generate.md',
   'libvips-header.md',
   'libvips-memory.md',

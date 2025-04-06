@@ -69,64 +69,6 @@
 #include <lmerr.h>
 #endif /*G_OS_WIN32*/
 
-/**
- * SECTION: errors
- * @short_description: error messages and error handling
- * @stability: Stable
- * @include: vips/vips.h
- *
- * VIPS maintains an error buffer (a log of localised text messages),
- * a set of functions
- * for adding messages, and a way to access and clear the buffer.
- *
- * The error buffer is global, that is, it is shared between all threads. You
- * can add to the buffer from any thread (there is a lock to prevent
- * corruption), but it's sensible to only read and clear the buffer from the
- * main thread of execution.
- *
- * The general principle is: if you detect an error, log a message for the
- * user. If a function you call detects an error, just propagate it and don't
- * add another message.
- *
- * ```c
- * VipsImage *im;
- *
- * if (!(im = vips_image_new_from_file(filename, NULL)))
- *     // [ctor@Image.new_from_file] will set a message, we don't need to
- *     return -1;
- *
- * if (vips_image_get_width(im) &lt; 100) {
- *     // we have detected an error, we must set a message
- *     vips_error("myprogram", "%s", _("width too small"));
- *     return -1;
- * }
- * ```
- *
- * The domain argument most of these functions take is not localised and is
- * supposed to indicate the component which failed.
- *
- * libvips uses [func@GLib.warning] and [func@GLib.info] to send warning and information
- * messages to the user. You can use the usual glib mechanisms to display or
- * divert these messages. For example, info messages are hidden by default, but
- * you can see them with:
- *
- * ```c
- * $ G_MESSAGES_DEBUG=VIPS vipsthumbnail k2.jpg
- * VIPS-INFO: thumbnailing k2.jpg
- * VIPS-INFO: selected loader is VipsForeignLoadJpegFile
- * VIPS-INFO: input size is 1450 x 2048
- * VIPS-INFO: loading jpeg with factor 8 pre-shrink
- * VIPS-INFO: converting to processing space srgb
- * VIPS-INFO: residual reducev by 0.5
- * VIPS-INFO: 13 point mask
- * VIPS-INFO: using vector path
- * VIPS-INFO: residual reduceh by 0.5
- * VIPS-INFO: 13 point mask
- * VIPS-INFO: thumbnailing k2.jpg as ./tn_k2.jpg
- * ```
- *
- */
-
 /* Make global array to keep the error message buffer.
  */
 #define VIPS_MAX_ERROR (10240)
