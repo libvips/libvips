@@ -1,8 +1,6 @@
-Title: Convolve and correlate images
+Title: Operators by section -- Convolve and correlate images
 
 <!-- libvips/convolution -->
-
-# Convolve and correlate images
 
 These operations convolve an image in some way, or are operations based on
 simple convolution, or are useful with convolution.

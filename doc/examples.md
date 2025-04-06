@@ -1,7 +1,5 @@
 Title: A few example Python programs using libvips
 
-# A few example Python programs using libvips
-
 This page shows a few libvips examples using Python. They will work with
 small syntax changes in any language with a libvips binding.
 

@@ -1,8 +1,6 @@
-Title: Error messages and error handling
+Title: Operators by section -- Error messages and error handling
 
 <!-- libvips/iofuncs/error.c -->
-
-# Error messages and error handling
 
 libvips maintains an error buffer (a log of localised text messages), a set
 of functions for adding messages, and a way to access and clear the buffer.

@@ -1,8 +1,6 @@
-Title: Convert images in some way
+Title: Operators by section -- Convert images in some way
 
 <!-- libvips/conversion -->
-
-# Convert images in some way
 
 These operations convert an image in some way. They can be split into two
 main groups.

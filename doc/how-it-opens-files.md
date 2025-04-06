@@ -1,7 +1,5 @@
 Title: How libvips opens files
 
-# How libvips opens files
-
 libvips has at least four different ways of opening image files, each
 best for different file types, file sizes and image use cases. libvips tries
 hard to pick the best strategy in each case and mostly you don't need to

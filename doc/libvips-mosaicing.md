@@ -1,8 +1,6 @@
-Title: Build image mosaics
+Title: Operators by section -- Build image mosaics
 
 <!-- libvips/mosaicing -->
-
-# Build image mosaics
 
 These functions are useful for joining many small images together to make one
 large image. They can cope with unstable contrast and arbitrary sub-image

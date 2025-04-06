@@ -1,7 +1,5 @@
 Title: How to add operations to libvips
 
-# How to add operations to libvips
-
 This section runs quickly through adding a simple operator to libvips.
 For more information, see [class@Operation] and [class@Region]. A good
 starting point for a new operation is a similar one in libvips.

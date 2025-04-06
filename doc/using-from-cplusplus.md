@@ -1,7 +1,5 @@
 Title: Using libvips from C++
 
-# Using libvips from C++
-
 libvips comes with a convenient C++ API. It is a very thin wrapper over the
 C API and adds automatic reference counting, exceptions, operator
 overloads, and automatic constant expansion.

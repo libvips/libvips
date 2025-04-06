@@ -1,8 +1,6 @@
-Title: Morphological operators
+Title: Operators by section -- Morphological operators
 
 <!-- libvips/morphology -->
-
-# Morphological operators
 
 The morphological functions search images for particular patterns of pixels,
 specified with the mask argument, either adding or removing pixels when they

@@ -1,8 +1,6 @@
-Title: Calculate pixels and pixel buffers
+Title: Operators by section -- Calculate pixels and pixel buffers
 
 <!-- libvips/iofuncs/generate.c -->
-
-# Calculate pixels and pixel buffers
 
 These functions let you attach generate functions to images and ask for
 regions of images to be calculated.

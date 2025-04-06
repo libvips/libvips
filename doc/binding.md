@@ -1,7 +1,5 @@
 Title: Writing bindings for libvips
 
-# Writing bindings for libvips
-
 There are full libvips bindings for quite a few environments now, including
 C, C++, command-line, Ruby, PHP, Lua, Python, Crystal, Elixir, and JavaScript
 (Node.js).
