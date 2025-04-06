@@ -50,12 +50,15 @@
 #define OPENSLIDECONNECTION_CACHE_SIZE (32 * 1024 * 1024)
 
 typedef struct _VipsOpenslideConnection {
-	// lock access to these vars here
-	GMutex lock;
-
-	int ref_count;
 	char *filename;
+
+	// protected by vips_openslideconnection_lock
+	int ref_count;
+
+	// first access protected by separate lock, since initialization
+	// is slow
 	openslide_t *osr;
+	GMutex osr_lock;
 
 } VipsOpenslideConnection;
 
@@ -81,9 +84,11 @@ vips_openslideconnection_free(VipsOpenslideConnection *connection)
 	g_hash_table_remove(vips_openslideconnection_cache, connection->filename);
 	g_queue_remove(vips_openslideconnection_unused, connection);
 
-	g_mutex_clear(&connection->lock);
-	VIPS_FREE(connection->filename);
+	g_mutex_lock(&connection->osr_lock);
 	VIPS_FREEF(openslide_close, connection->osr);
+	g_mutex_unlock(&connection->osr_lock);
+	g_mutex_clear(&connection->osr_lock);
+	VIPS_FREE(connection->filename);
 	g_free(connection);
 }
 
@@ -104,8 +109,6 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 	gboolean trim;
 	gboolean free;
 
-	g_mutex_lock(&connection->lock);
-
 	g_assert(connection->ref_count > 0);
 
 	trim = FALSE;
@@ -124,8 +127,6 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 			trim = TRUE;
 	}
 
-	g_mutex_unlock(&connection->lock);
-
 	if (free)
 		vips_openslideconnection_free(connection);
 	else if (trim) {
@@ -137,16 +138,12 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 static void
 vips_openslideconnection_ref(VipsOpenslideConnection *connection)
 {
-	g_mutex_lock(&connection->lock);
-
 	g_assert(connection->ref_count >= 0);
 
 	if (connection->ref_count == 0)
 		g_queue_remove(vips_openslideconnection_unused, connection);
 
 	connection->ref_count += 1;
-
-	g_mutex_unlock(&connection->lock);
 }
 
 static VipsOpenslideConnection *
@@ -199,7 +196,7 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 
 	g_mutex_unlock(&vips_openslideconnection_lock);
 
-	g_mutex_lock(&connection->lock);
+	g_mutex_lock(&connection->osr_lock);
 
 	gboolean unref;
 
@@ -223,7 +220,7 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 
 	openslide_t *osr = connection->osr;
 
-	g_mutex_unlock(&connection->lock);
+	g_mutex_unlock(&connection->osr_lock);
 
 	if (unref) {
 		g_mutex_lock(&vips_openslideconnection_lock);
