@@ -37,6 +37,7 @@ vips_section_files = files(
   'libvips-histogram.md',
   'libvips-memory.md',
   'libvips-morphology.md',
+  'libvips-mosaicing.md',
   'libvips-resample.md',
   'libvips-vips.md',
 )
