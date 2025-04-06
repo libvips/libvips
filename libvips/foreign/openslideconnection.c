@@ -282,8 +282,11 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 
 	g_mutex_unlock(&connection->lock);
 
-	if (unref)
+	if (unref) {
+		g_mutex_lock(&vips_openslideconnection_lock);
 		vips_openslideconnection_unref(connection);
+		g_mutex_unlock(&vips_openslideconnection_lock);
+	}
 
 	return osr;
 }
