@@ -46,6 +46,9 @@
 // we keep this many connections around after they are closed, ready for reuse
 #define OPENSLIDECONNECTION (3)
 
+// a tile cache shared between all active openslide connections ... 32mb
+#define OPENSLIDECONNECTION_CACHE_SIZE (32 * 1024 * 1024)
+
 typedef struct _VipsOpenslideConnection {
 	// lock access to these vars here
 	GMutex lock;
@@ -54,10 +57,18 @@ typedef struct _VipsOpenslideConnection {
 	int time;
 	char *filename;
 	openslide_t *osr;
+
 } VipsOpenslideConnection;
 
 static GHashTable *vips_openslideconnection_cache = NULL;
 static GMutex vips_openslideconnection_lock;
+
+/* Added in 4.0 ... this is a tile cache that's shared between all active
+ * openslide connections.
+ */
+#ifdef HAVE_OPENSLIDE_CACHE_CREATE
+openslide_cache_t *vips_openslideconnection_openslide_cache;
+#endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
 
 static void
 vips_openslideconnection_free(VipsOpenslideConnection *connection)
@@ -142,17 +153,32 @@ static void
 vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 {
 	gboolean trim;
+	gboolean free;
 
 	g_mutex_lock(&connection->lock);
 
 	g_assert(connection->ref_count > 0);
 
+	trim = FALSE;
+	free = FALSE;
+
 	connection->ref_count -= 1;
-	trim = connection->ref_count == 0;
+
+	if (connection->ref_count == 0) {
+		/* If the openslide_t is in an error state, don't leave it in the
+		 * cache.
+		 */
+		if (openslide_get_error(connection->osr))
+			free = TRUE;
+		else
+			trim = TRUE;
+	}
 
 	g_mutex_unlock(&connection->lock);
 
-	if (trim)
+	if (free)
+		vips_openslideconnection_free(connection);
+	else if (trim)
 		vips_openslideconnection_trim();
 }
 
@@ -197,17 +223,29 @@ vips_openslideconnection_touch(VipsOpenslideConnection *connection)
 }
 
 openslide_t *
-vips__openslideconnection_open(const char *filename)
+vips__openslideconnection_open(const char *filename, gboolean revalidate)
 {
 	g_mutex_lock(&vips_openslideconnection_lock);
 
-	if (!vips_openslideconnection_cache)
+	if (!vips_openslideconnection_cache) {
 		vips_openslideconnection_cache =
 			g_hash_table_new(g_str_hash, g_str_equal);
+
+#ifdef HAVE_OPENSLIDE_CACHE_CREATE
+		vips_openslideconnection_openslide_cache =
+			openslide_cache_create(OPENSLIDECONNECTION_CACHE_SIZE);
+#endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
+	}
 
 	VipsOpenslideConnection *connection;
 
 	connection = g_hash_table_lookup(vips_openslideconnection_cache, filename);
+
+	// discard any cached connection on revalidate
+	if (connection &&
+		connection->ref_count == 0 &&
+		revalidate)
+		VIPS_FREEF(vips_openslideconnection_free, connection);
 
 	if (!connection)
 		connection = vips_openslideconnection_new(filename);
@@ -222,8 +260,13 @@ vips__openslideconnection_open(const char *filename)
 	/* We do the open outside the main lock (just in the connection lock)
 	 * since it can take many seconds for some slides.
 	 */
-	if (!connection->osr)
+	if (!connection->osr) {
 		connection->osr = openslide_open(connection->filename);
+#ifdef HAVE_OPENSLIDE_CACHE_CREATE
+		openslide_set_cache(connection->osr,
+			vips_openslideconnection_openslide_cache);
+#endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
+	}
 
 	openslide_t *osr = connection->osr;
 

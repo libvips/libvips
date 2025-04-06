@@ -107,7 +107,8 @@
 
 /* From openslideconnection.c
  */
-openslide_t *vips__openslideconnection_open(const char *filename);
+openslide_t *vips__openslideconnection_open(const char *filename,
+	gboolean revalidate);
 void vips__openslideconnection_close(const char *filename);
 
 typedef struct {
@@ -120,6 +121,7 @@ typedef struct {
 	char *associated;
 	gboolean attach_associated;
 	gboolean rgb;
+	gboolean revalidate;
 
 	openslide_t *osr;
 
@@ -162,7 +164,7 @@ vips__openslide_isslide(const char *filename)
 	int ok;
 
 	ok = 0;
-	osr = vips__openslideconnection_open(filename);
+	osr = vips__openslideconnection_open(filename, FALSE);
 
 	if (osr) {
 		const char *vendor;
@@ -246,9 +248,9 @@ get_bounds(openslide_t *osr, VipsRect *rect)
 }
 
 static ReadSlide *
-readslide_new(const char *filename, VipsImage *out,
-	int level, gboolean autocrop,
-	const char *associated, gboolean attach_associated, gboolean rgb)
+readslide_new(const char *filename, VipsImage *out, int level,
+	gboolean autocrop, const char *associated, gboolean attach_associated,
+	gboolean rgb, gboolean revalidate)
 {
 	ReadSlide *rslide;
 
@@ -277,6 +279,7 @@ readslide_new(const char *filename, VipsImage *out,
 	rslide->associated = g_strdup(associated);
 	rslide->attach_associated = attach_associated;
 	rslide->rgb = rgb;
+	rslide->revalidate = revalidate;
 
 	/* Non-crazy defaults, override in _parse() if we can.
 	 */
@@ -479,7 +482,8 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 	double xres;
 	double yres;
 
-	rslide->osr = vips__openslideconnection_open(rslide->filename);
+	rslide->osr = vips__openslideconnection_open(rslide->filename,
+		rslide->revalidate);
 	if (!rslide->osr) {
 		vips_error("openslide2vips", "%s", _("unsupported slide format"));
 		return -1;
@@ -652,12 +656,14 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 static int
 vips__openslide_read_header(const char *filename, VipsImage *out,
 	int level, gboolean autocrop,
-	char *associated, gboolean attach_associated, gboolean rgb)
+	char *associated, gboolean attach_associated, gboolean rgb,
+	gboolean revalidate)
 {
 	ReadSlide *rslide;
 
 	if (!(rslide = readslide_new(filename,
-			  out, level, autocrop, associated, attach_associated, rgb)) ||
+			  out, level, autocrop, associated, attach_associated, rgb,
+			  revalidate)) ||
 		readslide_parse(rslide, out))
 		return -1;
 
@@ -761,7 +767,7 @@ vips__openslide_stop(void *_seq, void *a, void *b)
 static int
 vips__openslide_read(const char *filename, VipsImage *out,
 	int level, gboolean autocrop, gboolean attach_associated,
-	gboolean rgb)
+	gboolean rgb, gboolean revalidate)
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -771,7 +777,7 @@ vips__openslide_read(const char *filename, VipsImage *out,
 		filename, level);
 
 	if (!(rslide = readslide_new(filename, out, level, autocrop,
-			  NULL, attach_associated, rgb)))
+			  NULL, attach_associated, rgb, revalidate)))
 		return -1;
 
 	raw = vips_image_new();
@@ -806,7 +812,7 @@ vips__openslide_read(const char *filename, VipsImage *out,
 
 static int
 vips__openslide_read_associated(const char *filename, VipsImage *out,
-	const char *associated_name, gboolean rgb)
+	const char *associated_name, gboolean rgb, gboolean revalidate)
 {
 	ReadSlide *rslide;
 	VipsImage *associated;
@@ -815,9 +821,9 @@ vips__openslide_read_associated(const char *filename, VipsImage *out,
 		filename, associated_name);
 
 	if (!(rslide = readslide_new(filename,
-			  out, 0, FALSE, associated_name, FALSE, rgb)))
+			  out, 0, FALSE, associated_name, FALSE, rgb, revalidate)))
 		return -1;
-	rslide->osr = vips__openslideconnection_open(rslide->filename);
+	rslide->osr = vips__openslideconnection_open(rslide->filename, revalidate);
 	if (!(associated = vips__openslide_get_associated(rslide, associated_name)))
 		return -1;
 
@@ -954,7 +960,7 @@ vips_foreign_load_openslide_header(VipsForeignLoad *load)
 	if (vips__openslide_read_header(openslide->filename, load->out,
 			openslide->level, openslide->autocrop,
 			openslide->associated, openslide->attach_associated,
-			openslide->rgb))
+			openslide->rgb, load->revalidate))
 		return -1;
 
 	VIPS_SETSTR(load->out->filename, openslide->filename);
@@ -971,12 +977,13 @@ vips_foreign_load_openslide_load(VipsForeignLoad *load)
 		if (vips__openslide_read(openslide->filename, load->real,
 				openslide->level, openslide->autocrop,
 				openslide->attach_associated,
-				openslide->rgb))
+				openslide->rgb, load->revalidate))
 			return -1;
 	}
 	else {
 		if (vips__openslide_read_associated(openslide->filename,
-				load->real, openslide->associated, openslide->rgb))
+				load->real, openslide->associated, openslide->rgb,
+				load->revalidate))
 			return -1;
 	}
 
