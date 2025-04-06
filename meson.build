@@ -405,6 +405,7 @@ if openslide_dep.found()
     cfg_var.set('HAVE_OPENSLIDE', true)
     cfg_var.set('HAVE_OPENSLIDE_3_4', openslide_dep.version().version_compare('>=3.4.0'))
     cfg_var.set('HAVE_OPENSLIDE_ICC', cc.has_function('openslide_get_icc_profile_size', dependencies: openslide_dep))
+    cfg_var.set('HAVE_OPENSLIDE_CACHE_CREATE', cc.has_function('openslide_cache_create', dependencies: openslide_dep))
 endif
 
 matio_dep = dependency('matio', required: get_option('matio'))
