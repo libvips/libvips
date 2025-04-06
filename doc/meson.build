@@ -34,6 +34,7 @@ vips_section_files = files(
   'libvips-error.md',
   'libvips-generate.md',
   'libvips-header.md',
+  'libvips-histogram.md',
   'libvips-memory.md',
   'libvips-morphology.md',
   'libvips-resample.md',
