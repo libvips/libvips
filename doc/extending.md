@@ -189,7 +189,7 @@ can put a cache in the pipeline after your operation, see
 [method@Image.linecache] and [method@Image.tilecache]. You can also make requests
 to your operation ordered, see [method@Image.sequential].
 
-Finally, [method@Image.generate] attaches a set of callbacks to the output 
+Finally, [method@Image.generate] attaches a set of callbacks to the output
 image to generate chunks of it on request. [func@start_one] and [func@stop_one]
 are convenience functions that make the input region for you, see below.
 

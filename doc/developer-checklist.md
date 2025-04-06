@@ -101,7 +101,7 @@ libraries at runtime, see:
 <https://www.libvips.org/2022/05/28/What's-new-in-8.13.html>
 
 You can usually improve security and avoid memory spikes by only enabling
-the image formats you really need.  If you are handling untrusted data,
+the image formats you really need. If you are handling untrusted data,
 I would set the `VIPS_BLOCK_UNTRUSTED` env var and only use the loaders we
 have tested for security.
 

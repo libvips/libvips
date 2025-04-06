@@ -14,7 +14,7 @@ definitions used by libvips.
 * [struct@ArrayImage]
 * [struct@ArrayInt]
 * [struct@Blob]
-* [struct@RefString] 
+* [struct@RefString]
 * [struct@SaveString]
 
 ## Aliases

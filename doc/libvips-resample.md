@@ -28,7 +28,7 @@ high-quality image resizer.
 Finally, [ctor@Image.thumbnail] combines load and resize in one operation, and
 adds colour management and correct handling of alpha transparency. Because
 load and resize happen together, it can exploit tricks like JPEG and TIFF
-shrink-on-load, giving a (potentially) huge speedup. 
+shrink-on-load, giving a (potentially) huge speedup.
 [method@Image.thumbnail_image] is only there for emergencies, don't use it
 unless you really have to.
 

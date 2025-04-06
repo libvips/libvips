@@ -28,7 +28,7 @@ to get the various properties, such as width, but no decoding occurs until
 pixel values are really needed.
 
 Once you have an image, you can get properties from it in the usual
-way.  You can use projection functions, like [method@Image.get_width] or
+way. You can use projection functions, like [method@Image.get_width] or
 [method@GObject.Object.get], to get [class@GObject.Object] properties. All
 libvips objects are immutable, meaning you can only get properties, you
 can't set them. See [libvips Header](file-format.html) to read about image
@@ -38,8 +38,8 @@ properties.
 
 libvips is based on the [class@GObject.Object] library and is therefore
 reference counted. [ctor@Image.new_from_file] returns an object with a count
-of 1.  When you are done with an image, use [method@GObject.Object.unref] to
-dispose of it.  If you pass an image to an operation and that operation needs
+of 1. When you are done with an image, use [method@GObject.Object.unref] to
+dispose of it. If you pass an image to an operation and that operation needs
 to keep a copy of the image, it will ref it. So you can unref an image as soon
 as you no longer need it, you don't need to hang on to it in case anyone else
 is still using it.

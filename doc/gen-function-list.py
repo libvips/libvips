@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
 libvips has a set of operators, each of which computes some useful image
 processing operation. Each operator is implemented as a [class@GObject.Object]
-class, for example `VipsGamma`.  Classes are identified by their unique
+class, for example `VipsGamma`. Classes are identified by their unique
 [property@VipsObject:nickname], in this case `gamma`.
 
 From the command-line, C++ and most language bindings, you use the nickname

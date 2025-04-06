@@ -14,4 +14,4 @@ International Conference on Image Processing 2, pp. 574-577, Genova.
 
 Cupitt, J. and Martinez, K. (1996)
 [VIPS: An image processing system for large images](
-http://eprints.soton.ac.uk/252227), Proc. SPIE, vol.  2663, pp. 19--28.
+http://eprints.soton.ac.uk/252227), Proc. SPIE, vol. 2663, pp. 19--28.

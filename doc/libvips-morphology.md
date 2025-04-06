@@ -39,7 +39,7 @@ applied to an image with [method@Image.morph]
 Dilate sets pixels in the output if any part of the mask matches, whereas
 erode sets pixels only if all the mask matches.
 
-See [method@Image.andimage], [method@Image.orimage] and 
+See [method@Image.andimage], [method@Image.orimage] and
 [method@Image.eorimage] for analogues of the usual set difference and set
 union operations.
 
