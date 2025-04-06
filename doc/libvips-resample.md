@@ -39,6 +39,10 @@ transforms to an image.
 
 * [class@Interpolate]
 
+## Callbacks
+
+* [callback@InterpolateMethod]
+
 ## Functions
 
 * [method@Image.shrink]
@@ -64,10 +68,6 @@ transforms to an image.
 * [method@Interpolate.get_method]
 * [method@Interpolate.get_window_offset]
 * [method@Interpolate.get_window_size]
-
-## Callbacks
-
-* [callback@InterpolateMethod]
 
 ## Constants
 
