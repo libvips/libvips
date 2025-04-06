@@ -73,7 +73,7 @@ openslide_cache_t *vips_openslideconnection_openslide_cache;
 static void
 vips_openslideconnection_free(VipsOpenslideConnection *connection)
 {
-	VipsOpenslideConnection *cached =
+	VipsOpenslideConnection *cached G_GNUC_UNUSED =
 		g_hash_table_lookup(vips_openslideconnection_cache,
 			connection->filename);
 	g_assert(cached);
