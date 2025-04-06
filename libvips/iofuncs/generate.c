@@ -110,18 +110,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/**
- * SECTION: generate
- * @short_description: calculate pixels and pixel buffers
- * @stability: Stable
- * @see_also: <link linkend="VipsImage">VipsImage</link>,
- * <link linkend="VipsRegion">VipsRegion</link>
- * @include: vips/vips.h
- *
- * These functions let you attach generate functions to images
- * and ask for regions of images to be calculated.
- */
-
 /* Max number of images we can handle.
  */
 #define MAX_IMAGES (1000)
