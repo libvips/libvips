@@ -168,7 +168,8 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 		/* If the openslide_t is in an error state, don't leave it in the
 		 * cache.
 		 */
-		if (openslide_get_error(connection->osr))
+		if (connection->osr &&
+			openslide_get_error(connection->osr))
 			free = TRUE;
 		else
 			trim = TRUE;
@@ -257,20 +258,33 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 
 	g_mutex_lock(&connection->lock);
 
+	gboolean unref;
+
 	/* We do the open outside the main lock (just in the connection lock)
 	 * since it can take many seconds for some slides.
 	 */
+	unref = FALSE;
 	if (!connection->osr) {
 		connection->osr = openslide_open(connection->filename);
+
+		/* If open fails, we must unref the connection since we'll return NULL.
+		 */
+		if (!connection->osr)
+			unref = TRUE;
+	}
+
 #ifdef HAVE_OPENSLIDE_CACHE_CREATE
+	if (connection->osr)
 		openslide_set_cache(connection->osr,
 			vips_openslideconnection_openslide_cache);
 #endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
-	}
 
 	openslide_t *osr = connection->osr;
 
 	g_mutex_unlock(&connection->lock);
+
+	if (unref)
+		vips_openslideconnection_unref(connection);
 
 	return osr;
 }
