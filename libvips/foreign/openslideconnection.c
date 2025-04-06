@@ -271,13 +271,12 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 		 */
 		if (!connection->osr)
 			unref = TRUE;
-	}
-
 #ifdef HAVE_OPENSLIDE_CACHE_CREATE
-	if (connection->osr)
-		openslide_set_cache(connection->osr,
-			vips_openslideconnection_openslide_cache);
+		else
+			openslide_set_cache(connection->osr,
+				vips_openslideconnection_openslide_cache);
 #endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
+	}
 
 	openslide_t *osr = connection->osr;
 
