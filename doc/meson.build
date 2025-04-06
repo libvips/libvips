@@ -32,6 +32,7 @@ vips_section_files = files(
   'libvips-create.md',
   'libvips-draw.md',
   'libvips-error.md',
+  'libvips-freqfilt.md',
   'libvips-generate.md',
   'libvips-header.md',
   'libvips-histogram.md',
