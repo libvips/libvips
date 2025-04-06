@@ -194,7 +194,8 @@ vips_sign_init(VipsSign *sign)
  * zero and positive pixels. For complex images, it returns a
  * complex normalised to length 1.
  *
- * See also: vips_abs().
+ * ::: seealso
+ *     [method@Image.abs].
  *
  * Returns: 0 on success, -1 on error
  */

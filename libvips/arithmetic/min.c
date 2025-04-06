@@ -506,18 +506,17 @@ vips_min_init(VipsMin *min)
 
 /**
  * vips_min: (method)
- * @in: input #VipsImage
+ * @in: input [class@Image]
  * @out: (out): output pixel minimum
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @x: horizontal position of minimum
- * * @y: vertical position of minimum
- * * @size: number of minima to find
- * * @out_array: return array of minimum values
- * * @x_array: corresponding horizontal positions
- * * @y_array: corresponding vertical positions
+ * ::: note "Optional arguments"
+ *     * @x: horizontal position of minimum
+ *     * @y: vertical position of minimum
+ *     * @size: number of minima to find
+ *     * @out_array: return array of minimum values
+ *     * @x_array: corresponding horizontal positions
+ *     * @y_array: corresponding vertical positions
  *
  * This operation finds the minimum value in an image.
  *
@@ -527,7 +526,7 @@ vips_min_init(VipsMin *min)
  * Equal values will be sorted by y then x.
  *
  * It operates on all
- * bands of the input image: use vips_stats() if you need to find an
+ * bands of the input image: use [method@Image.stats] if you need to find an
  * minimum for each band.
  *
  * For complex images, this operation finds the minimum modulus.
@@ -541,7 +540,8 @@ vips_min_init(VipsMin *min)
  * If there are more than @size minima, the minima returned will be a random
  * selection of the minima in the image.
  *
- * See also: vips_min(), vips_stats().
+ * ::: seealso
+ *     [method@Image.min], [method@Image.stats].
  *
  * Returns: 0 on success, -1 on error
  */

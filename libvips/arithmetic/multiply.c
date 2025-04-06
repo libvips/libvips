@@ -283,7 +283,8 @@ vips_multiply_init(VipsMultiply *multiply)
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * See also: vips_add(), vips_linear().
+ * ::: seealso
+ *     [method@Image.add], [method@Image.linear].
  *
  * Returns: 0 on success, -1 on error
  */

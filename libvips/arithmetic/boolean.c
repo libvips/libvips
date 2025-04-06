@@ -296,9 +296,9 @@ vips_booleanv(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_boolean: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -320,7 +320,8 @@ vips_booleanv(VipsImage *left, VipsImage *right, VipsImage **out,
  * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * See also: vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -340,13 +341,13 @@ vips_boolean(VipsImage *left, VipsImage *right, VipsImage **out,
 
 /**
  * vips_andimage: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_AND on a pair of images. See
- * vips_boolean().
+ * Perform [enum@Vips.OperationBoolean.AND] on a pair of images. See
+ * [method@Image.boolean].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -366,13 +367,13 @@ vips_andimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_orimage: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_OR on a pair of images. See
- * vips_boolean().
+ * Perform [enum@Vips.OperationBoolean.OR] on a pair of images. See
+ * [method@Image.boolean].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -392,13 +393,13 @@ vips_orimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_eorimage: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_EOR on a pair of images. See
- * vips_boolean().
+ * Perform [enum@Vips.OperationBoolean.EOR] on a pair of images. See
+ * [method@Image.boolean].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -418,13 +419,13 @@ vips_eorimage(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_lshift: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on a pair of images. See
- * vips_boolean().
+ * Perform [enum@Vips.OperationBoolean.LSHIFT] on a pair of images. See
+ * [method@Image.boolean].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -444,13 +445,13 @@ vips_lshift(VipsImage *left, VipsImage *right, VipsImage **out, ...)
 
 /**
  * vips_rshift: (method)
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_RSHIFT on a pair of images. See
- * vips_boolean().
+ * Perform [enum@Vips.OperationBoolean.RSHIFT] on a pair of images. See
+ * [method@Image.boolean].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -630,7 +631,8 @@ vips_boolean_constv(VipsImage *in, VipsImage **out,
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -656,10 +658,11 @@ vips_boolean_const(VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_AND on an image and an array of constants.
- * See vips_boolean_const().
+ * Perform [enum@Vips.OperationBoolean.AND] on an image and an array of constants.
+ * See [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -686,10 +689,11 @@ vips_andimage_const(VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_OR on an image and an array of constants.
- * See vips_boolean_const().
+ * Perform [enum@Vips.OperationBoolean.OR] on an image and an array of constants.
+ * See [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -716,10 +720,11 @@ vips_orimage_const(VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_EOR on an image and an array of constants.
- * See vips_boolean_const().
+ * Perform [enum@Vips.OperationBoolean.EOR] on an image and an array of constants.
+ * See [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -746,10 +751,11 @@ vips_eorimage_const(VipsImage *in, VipsImage **out,
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and an array of constants.
- * See vips_boolean_const().
+ * Perform [enum@Vips.OperationBoolean.LSHIFT] on an image and an array of constants.
+ * See [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -775,10 +781,11 @@ vips_lshift_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and an array of constants.
- * See vips_boolean_const().
+ * Perform [enum@Vips.OperationBoolean.LSHIFT] on an image and an array of constants.
+ * See [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const1().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const1].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -805,9 +812,10 @@ vips_rshift_const(VipsImage *in, VipsImage **out, const double *c, int n, ...)
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various boolean operations on an image with a single constant. See
- * vips_boolean_const().
+ * [method@Image.boolean_const].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -832,10 +840,11 @@ vips_boolean_const1(VipsImage *in, VipsImage **out,
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_AND on an image and a constant.
- * See vips_boolean_const1().
+ * Perform [enum@Vips.OperationBoolean.AND] on an image and a constant.
+ * See [method@Image.boolean_const1].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -860,10 +869,11 @@ vips_andimage_const1(VipsImage *in, VipsImage **out, double c, ...)
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_OR on an image and a constant.
- * See vips_boolean_const1().
+ * Perform [enum@Vips.OperationBoolean.OR] on an image and a constant.
+ * See [method@Image.boolean_const1].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -888,10 +898,11 @@ vips_orimage_const1(VipsImage *in, VipsImage **out, double c, ...)
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_EOR on an image and a constant.
- * See vips_boolean_const1().
+ * Perform [enum@Vips.OperationBoolean.EOR] on an image and a constant.
+ * See [method@Image.boolean_const1].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -916,10 +927,11 @@ vips_eorimage_const1(VipsImage *in, VipsImage **out, double c, ...)
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on an image and a constant.
- * See vips_boolean_const1().
+ * Perform [enum@Vips.OperationBoolean.LSHIFT] on an image and a constant.
+ * See [method@Image.boolean_const1].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -944,10 +956,11 @@ vips_lshift_const1(VipsImage *in, VipsImage **out, double c, ...)
  * @c: constant
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_BOOLEAN_RSHIFT on an image and a constant.
- * See vips_boolean_const1().
+ * Perform [enum@Vips.OperationBoolean.RSHIFT] on an image and a constant.
+ * See [method@Image.boolean_const1].
  *
- * See also: vips_boolean(), vips_boolean_const().
+ * ::: seealso
+ *     [method@Image.boolean], [method@Image.boolean_const].
  *
  * Returns: 0 on success, -1 on error
  */

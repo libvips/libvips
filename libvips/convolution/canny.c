@@ -478,10 +478,9 @@ vips_canny_init(VipsCanny *canny)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @sigma: %gdouble, sigma for gaussian blur
- * * @precision: #VipsPrecision, calculation accuracy
+ * ::: note "Optional arguments"
+ *     * @sigma: %gdouble, sigma for gaussian blur
+ *     * @precision: [enum@Precision], calculation accuracy
  *
  * Find edges by Canny's method: The maximum of the derivative of the gradient
  * in the direction of the gradient. Output is float, except for uchar input,
@@ -492,13 +491,14 @@ vips_canny_init(VipsCanny *canny)
  * usually a good value.
  *
  * Use @precision to set the precision of edge detection. For uchar images,
- * setting this to #VIPS_PRECISION_INTEGER will make edge detection much
+ * setting this to [enum@Vips.Precision.INTEGER] will make edge detection much
  * faster, but sacrifice some sensitivity.
  *
  * You will probably need to process the output further to eliminate weak
  * edges.
  *
- * See also: vips_sobel().
+ * ::: seealso
+ *	   vips_sobel().
  *
  * Returns: 0 on success, -1 on error.
  */

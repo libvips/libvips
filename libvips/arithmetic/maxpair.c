@@ -169,7 +169,8 @@ vips_maxpair_init(VipsMaxpair *maxpair)
  *
  * For each pixel, pick the maximum of a pair of images.
  *
- * See also: vips_minpair().
+ * ::: seealso
+ *     [method@Image.minpair].
  *
  * Returns: 0 on success, -1 on error
  */

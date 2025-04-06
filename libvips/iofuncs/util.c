@@ -266,7 +266,7 @@ vips_slist_free_all_cb(void *thing, void *dummy)
  * vips_slist_free_all:
  * @list: (element-type guint8): a #GSList
  *
- * Free a g_slist of things which need g_free()ing.
+ * Free a [struct@GLib.SList] of things which need [func@GLib.free]ing.
  */
 void
 vips_slist_free_all(GSList *list)
@@ -299,7 +299,7 @@ vips_hash_table_predicate(const char *key, void *value, Pair *pair)
 
 /**
  * vips_hash_table_map:
- * @hash: a #GHashTable
+ * @hash: a [struct@GLib.HashTable]
  * @fn: (scope call): function to apply to each hash value
  * @a: user data
  * @b: user data
@@ -339,7 +339,7 @@ vips_iscasepostfix(const char *a, const char *b)
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
- * random data. Use g_str_has_prefix() when both strings are non-NULL and
+ * random data. Use [func@GLib.str_has_prefix] when both strings are non-NULL and
  * NULL-terminated.
  */
 gboolean

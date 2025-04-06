@@ -505,9 +505,8 @@ vips_linearv(VipsImage *in, VipsImage **out,
  * @n: length of constant arrays
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @uchar: output uchar pixels
+ * ::: note "Optional arguments"
+ *     * @uchar: output uchar pixels
  *
  * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
  * is float for integer input, double for double input, complex for
@@ -521,7 +520,8 @@ vips_linearv(VipsImage *in, VipsImage **out,
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
- * See also: vips_linear1(), vips_add().
+ * ::: seealso
+ *     [method@Image.linear1], [method@Image.add].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -551,9 +551,10 @@ vips_linear(VipsImage *in, VipsImage **out,
  *
  * * @uchar: output uchar pixels
  *
- * Run vips_linear() with a single constant.
+ * Run [method@Image.linear] with a single constant.
  *
- * See also: vips_linear().
+ * ::: seealso
+ *     [method@Image.linear].
  *
  * Returns: 0 on success, -1 on error
  */

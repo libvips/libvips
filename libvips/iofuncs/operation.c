@@ -102,9 +102,9 @@
  * ```
  *
  * This will invert `im` and return a new [class@Image], `t1`. As the caller
- * of [method@Image.invert], you are responsible for `t1` and must unref it when
- * you no longer need it. If [method@Image.invert] fails, no `t1` is returned and
- * you don't need to do anything.
+ * of [method@Image.invert], you are responsible for `t1` and must unref it
+ * when you no longer need it. If [method@Image.invert] fails, no `t1` is
+ * returned and you don't need to do anything.
  *
  * If you don't need to use `im` for another operation, you can unref `im`
  * immediately after the call. If `im` is needed to calculate `t1`,
@@ -172,9 +172,9 @@
  *
  * Flags we associate with an operation.
  *
- * @VIPS_OPERATION_SEQUENTIAL means that the operation works like vips_conv():
- * it can process images top-to-bottom with only small non-local
- * references.
+ * @VIPS_OPERATION_SEQUENTIAL means that the operation works like
+ * [method@Image.conv]: it can process images top-to-bottom with only small
+ * non-local references.
  *
  * Every scan-line must be requested, you are not allowed to skip
  * ahead, but as a special case, the very first request can be for a region
@@ -194,11 +194,11 @@
  *
  * @VIPS_OPERATION_UNTRUSTED means the operation depends on external libraries
  * which have not been hardened against attack. It should probably not be used
- * on untrusted input. Use vips_block_untrusted_set() to block all
+ * on untrusted input. Use [func@block_untrusted_set] to block all
  * untrusted operations.
  *
  * @VIPS_OPERATION_BLOCKED means the operation is prevented from executing. Use
- * vips_operation_block_set() to enable and disable groups of operations.
+ * [func@Operation.block_set] to enable and disable groups of operations.
  *
  * @VIPS_OPERATION_REVALIDATE force the operation to run, updating the cache
  * with the new value. This is used by eg. VipsForeignLoad to implement the
@@ -722,11 +722,11 @@ vips_operation_invalidate(VipsOperation *operation)
  * vips_operation_new: (constructor)
  * @name: nickname of operation to create
  *
- * Return a new #VipsOperation with the specified nickname. Useful for
+ * Return a new [class@Operation] with the specified nickname. Useful for
  * language bindings.
  *
  * You'll need to set any arguments and build the operation before you can use
- * it. See vips_call() for a higher-level way to make new operations.
+ * it. See [func@call] for a higher-level way to make new operations.
  *
  * Returns: (transfer full): the new operation.
  */
@@ -1033,15 +1033,15 @@ vips_call_by_name(const char *operation_name,
  * @operation_name: name of operation to call
  * @...: required args, then a %NULL-terminated list of argument/value pairs
  *
- * vips_call() calls the named operation, passing in required arguments and
+ * [func@call] calls the named operation, passing in required arguments and
  * then setting any optional ones from the remainder of the arguments as a set
  * of name/value pairs.
  *
- * For example, vips_embed() takes six required arguments, @in, @out, @x, @y,
- * @width, @height, and has two optional arguments, @extend and @background.
- * You can run it with vips_call() like this:
+ * For example, [method@Image.embed] takes six required arguments, @in, @out,
+ * @x, @y, @width, @height, and has two optional arguments, @extend and
+ * @background. You can run it with [func@call] like this:
  *
- * |[
+ * ```c
  * VipsImage *in = ...
  * VipsImage *out;
  *
@@ -1049,12 +1049,13 @@ vips_call_by_name(const char *operation_name,
  *         "extend", VIPS_EXTEND_COPY,
  *         NULL))
  *     ... error
- * ]|
+ * ```
  *
- * Normally of course you'd just use the vips_embed() wrapper function and get
+ * Normally of course you'd just use the [method@Image.embed] wrapper function and get
  * type-safety for the required arguments.
  *
- * See also: vips_call_split(), vips_call_options().
+ * ::: seealso
+ *     [func@call_split], [func@call_options].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -1424,7 +1425,7 @@ vips_call_argv_output(VipsObject *object,
  * the GOption parser already, see above.
  *
  * We don't create the operation, so we must not unref it. The caller must
- * unref on error too. The caller must also call vips_object_unref_outputs() on
+ * unref on error too. The caller must also call [method@Object.unref_outputs] on
  * all code paths.
  */
 int
@@ -1516,10 +1517,10 @@ vips_operation_block_set_operation(VipsOperationClass *class, gboolean *state)
  *
  * For example:
  *
- * |[
+ * ```c
  * vips_operation_block_set("VipsForeignLoad", TRUE);
  * vips_operation_block_set("VipsForeignLoadJpeg", FALSE);
- * ]|
+ * ```
  *
  * Will block all load operations, except JPEG.
  *
@@ -1527,7 +1528,8 @@ vips_operation_block_set_operation(VipsOperationClass *class, gboolean *state)
  *
  * This call does nothing if the named operation is not found.
  *
- * See also: vips_block_untrusted_set().
+ * ::: seealso
+ *     [func@block_untrusted_set].
  */
 void
 vips_operation_block_set(const char *name, gboolean state)

@@ -457,12 +457,12 @@ vips_stats_init(VipsStats *stats)
  * @...: %NULL-terminated list of optional named arguments
  *
  * Find many image statistics in a single pass through the data. @out is a
- * one-band #VIPS_FORMAT_DOUBLE image of at least 10 columns by n + 1
+ * one-band [enum@Vips.BandFormat.DOUBLE] image of at least 10 columns by n + 1
  * (where n is number of bands in image @in)
  * rows. Columns are statistics, and are, in order: minimum, maximum, sum,
  * sum of squares, mean, standard deviation, x coordinate of minimum, y
  * coordinate of minimum, x coordinate of maximum, y coordinate of maximum.
- * Later versions of vips_stats() may add more columns.
+ * Later versions of [method@Image.stats] may add more columns.
  *
  * Row 0 has statistics for all
  * bands together, row 1 has stats for band 1, and so on.
@@ -470,7 +470,8 @@ vips_stats_init(VipsStats *stats)
  * If there is more than one maxima or minima, one of them will be chosen at
  * random.
  *
- * See also: vips_avg(), vips_min().
+ * ::: seealso
+ *     [method@Image.avg], [method@Image.min].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -1152,23 +1152,24 @@ vips__sink_screen_once(void *data)
  * consisting of a single tile. Single tile images are effectively
  * single-threaded, so all these renders are evaluated together.
  *
- * Calls to vips_region_prepare() on @out return immediately and hold
- * whatever is currently in cache for that #VipsRect (check @mask to see
- * which parts of the #VipsRect are valid). Any pixels in the #VipsRect
+ * Calls to [method@Region.prepare] on @out return immediately and hold
+ * whatever is currently in cache for that [struct@Rect] (check @mask to see
+ * which parts of the [struct@Rect] are valid). Any pixels in the [struct@Rect]
  * which are not in cache are added to a queue, and the @notify_fn
  * callback will trigger when those pixels are ready.
  *
  * The @notify_fn callback is run from one of the background threads. In the
  * callback you need to somehow send a message to the main thread that the
  * pixels are ready. In a glib-based application, this is easily done with
- * g_idle_add().
+ * [func@GLib.idle_add].
  *
- * If @notify_fn is %NULL then vips_sink_screen() runs synchronously.
- * vips_region_prepare() on @out will always block until the pixels have been
+ * If @notify_fn is %NULL then [method@Image.sink_screen] runs synchronously.
+ * [method@Region.prepare] on @out will always block until the pixels have been
  * calculated.
  *
- * See also: vips_tilecache(), vips_region_prepare(),
- * vips_sink_disc(), vips_sink().
+ * ::: seealso
+ *     [method@Image.tilecache], [method@Region.prepare],
+ *     [method@Image.sink_disc], [method@Image.sink].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -250,7 +250,7 @@ vips_thread_profile_get(void)
 /* This usually happens automatically when a thread shuts down, but that will
  * not happen for the main thread.
  *
- * Shut down any stats on the main thread with this, see vips_shutdown()
+ * Shut down any stats on the main thread with this, see vips_shutdown().
  */
 void
 vips__thread_profile_detach(void)

@@ -133,7 +133,7 @@ vips_vector_get_builtin_targets(void)
  * vips_vector_get_supported_targets:
  *
  * Gets a bitfield of enabled targets that are supported on this CPU. The
- * targets returned may change after calling vips_vector_disable_targets().
+ * targets returned may change after calling [func@vector_disable_targets].
  *
  * Returns: a bitfield of supported CPU targets.
  */

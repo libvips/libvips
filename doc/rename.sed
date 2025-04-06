@@ -1,15 +1,59 @@
-s/vips_\([^(]*\)_new()/[ctor@\u\1.new]/g
-s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
+s/See also: \([^.]\)/::: seealso\n *     \1/g
+
+s/#VipsImage::\(width\)/[property@Image:\1]/g
+s/#VipsImage::\(height\)/[property@Image:\1]/g
+s/#VipsImage::\(format\)/[property@Image:\1]/g
+s/#VipsImage::\(interpretation\)/[property@Image:\1]/g
+
+s/#VipsImage::\([^ ,.]*\)/[signal@Image::\1]/g
+s/#VipsObject::\([^ ,.]*\)/[signal@Object::\1]/g
+
+s/vips_foreign_\([^(]*\)()/[func@Foreign.\1]/g
+
+s/VIPS_INIT()/[func@INIT]/g
+s/VIPS_IMAGE_\([^(]*\)()/[func@IMAGE_\1]/g
+s/VIPS_REGION\([^(]*\)()/[func@REGION\1]/g
+s/VIPS_MATRIX\([^(]*\)()/[func@MATRIX]/g
+s/VIPS_BUF_\([^(]*\)()/[func@BUF_\1]/g
+s/VIPS_SBUF_\([^(]*\)()/[func@SBUF_\1]/g
+
+s/vips_image_\(pipeline_array\)()/[func@Image.\1]/g
+
+s/vips_operation_\([^(]*\)()/[method@Operation.\1]/g
+s/vips_connnection_\([^(]*\)()/[method@Connection.\1]/g
+s/vips_source_custom\([^(]*\)()/[method@SourceCustom.\1]/g
+s/vips_source_\([^(]*\)()/[method@Source.\1]/g
+s/vips_target_custom_\([^(]*\)()/[method@TargetCustom.\1]/g
+s/vips_target_\([^(]*\)()/[method@Target.\1]/g
 s/vips_object_\([^(]*\)()/[method@Object.\1]/g
-s/vips_image_\(generate\)()/[func@image_generate]/g
+s/vips_\([^_]*\)_new()/[ctor@\u\1.new]/g
+s/vips_image_\(new_[^(]*\)()/[ctor@Image.\1]/g
+s/vips_image_\(generate\)()/[method@Image.generate]/g
 s/vips_image_\([^(]*\)()/[method@Image.\1]/g
 s/vips_region_\([^(]*\)()/[method@Region.\1]/g
+s/vips_buf_\([^(]*\)()/[method@Buf.\1]/g
+s/vips_sbuf_\([^(]*\)()/[method@Sbuf.\1]/g
+s/vips_dbuf_\([^(]*\)()/[method@Dbuf.\1]/g
+s/vips_\(reorder_[^(]*\)()/[method@Image.\1]/g
+
+s/vips_area_\(new\)()/[ctor@Area.\1]/g
+s/vips_area_\(new_[^(]*\)()/[ctor@Area.\1]/g
+s/vips_area_\([^(]*\)()/[method@Area.\1]/g
+
+s/vips_array_double_\(new[^(]*\)()/[ctor@ArrayDouble.\1]/g
+s/vips_array_double_\([^(]*\)()/[method@ArrayDouble.\1]/g
+
+s/vips_array_int_\(new[^(]*\)()/[ctor@ArrayInt.\1]/g
+s/vips_array_int_\([^(]*\)()/[method@ArrayInt.\1]/g
+
+s/vips_array_image_\(new[^(]*\)()/[ctor@ArrayImage.\1]/g
+s/vips_array_image_empty()/[ctor@ArrayImage.empty]/g
+s/vips_array_image_\([^(]*\)()/[method@ArrayImage.\1]/g
 
 s/vips_\(abs\)()/[method@Image.\1]/g
 s/vips_\(acosh\)()/[method@Image.\1]/g
 s/vips_\(acos\)()/[method@Image.\1]/g
 s/vips_\(addalpha\)()/[method@Image.\1]/g
-s/vips_\(addlpha\)()/[method@Image.\1]/g
 s/vips_\(add\)()/[method@Image.\1]/g
 s/vips_\(affine\)()/[method@Image.\1]/g
 s/vips_\(andimage_const1\)()/[method@Image.\1]/g
@@ -32,6 +76,7 @@ s/vips_\(bandjoin_const\)()/[method@Image.\1]/g
 s/vips_\(bandmean\)()/[method@Image.\1]/g
 s/vips_\(bandor\)()/[method@Image.\1]/g
 s/vips_\(bandunfold\)()/[method@Image.\1]/g
+s/vips_\(black\)()/[ctor@Image.\1]/g
 s/vips_\(boolean_const1\)()/[method@Image.\1]/g
 s/vips_\(boolean_const\)()/[method@Image.\1]/g
 s/vips_\(boolean\)()/[method@Image.\1]/g
@@ -126,6 +171,7 @@ s/vips_\(fwfft\)()/[method@Image.\1]/g
 s/vips_\(gamma\)()/[method@Image.\1]/g
 s/vips_\(gaussblur\)()/[method@Image.\1]/g
 s/vips_\(getpoint\)()/[method@Image.\1]/g
+s/vips_\(get_tile_size\)()/[method@Image.\1]/g
 s/vips_\(gifsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(gifsave\)()/[method@Image.\1]/g
 s/vips_\(gifsave_target\)()/[method@Image.\1]/g
@@ -286,6 +332,7 @@ s/vips_\(scharr\)()/[method@Image.\1]/g
 s/vips_\(scRGB2BW\)()/[method@Image.\1]/g
 s/vips_\(scRGB2sRGB\)()/[method@Image.\1]/g
 s/vips_\(scRGB2XYZ\)()/[method@Image.\1]/g
+s/vips_\(sdf\)()/[ctor@Image.\1]/g
 s/vips_\(sequential\)()/[method@Image.\1]/g
 s/vips_\(sharpen\)()/[method@Image.\1]/g
 s/vips_\(shrinkh\)()/[method@Image.\1]/g
@@ -294,6 +341,9 @@ s/vips_\(shrinkv\)()/[method@Image.\1]/g
 s/vips_\(sign\)()/[method@Image.\1]/g
 s/vips_\(similarity\)()/[method@Image.\1]/g
 s/vips_\(sinh\)()/[method@Image.\1]/g
+s/vips_\(sink\)()/[method@Image.\1]/g
+s/vips_\(sink_disc\)()/[method@Image.\1]/g
+s/vips_\(sink_screen\)()/[method@Image.\1]/g
 s/vips_\(sin\)()/[method@Image.\1]/g
 s/vips_\(smartcrop\)()/[method@Image.\1]/g
 s/vips_\(sobel\)()/[method@Image.\1]/g
@@ -331,17 +381,66 @@ s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(Access\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
+s/#Vips\(Precision\)/[enum@\1]/g
+s/#Vips\(ArgumentFlags\)/[flags@\1]/g
+
 s/#Vips\(Rect\)/[struct@\1]/g
+s/#Vips\(Progress\)/[struct@\1]/g
+
 s/#Vips\(Image\)/[class@\1]/g
+s/#Vips\(Foreign\)/[class@\1]/g
 s/#Vips\(Region\)/[class@\1]/g
 s/#Vips\(Object\)/[class@\1]/g
 s/#Vips\(Operation\)/[class@\1]/g
 s/#Vips\(ForeignLoad\)/[class@\1]/g
+s/#Vips\(Connection\)/[class@\1]/g
+s/#Vips\(SourceCustom\)/[class@\1]/g
+s/#Vips\(Source\)/[class@\1]/g
+s/#Vips\(TargetCustom\)/[class@\1]/g
+s/#Vips\(Target\)/[class@\1]/g
+s/#Vips\(ThreadState\)/[class@\1]/g
+s/#Vips\(Buf\)/[class@\1]/g
+s/#Vips\(Sbuf\)/[class@\1]/g
+s/#Vips\(Dbuf\)/[class@\1]/g
+s/#Vips\(Blob\)/[struct@\1]/g
+s/#Vips\(Area\)/[struct@\1]/g
+s/#Vips\(ArrayInt\)/[struct@\1]/g
+s/#Vips\(ArrayDouble\)/[struct@\1]/g
+s/#Vips\(ArrayImage\)/[struct@\1]/g
+s/#Vips\(RefString\)/[struct@\1]/g
+s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
+s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
+s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
+s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
+s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
+s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g
+s/#VIPS_OPERATION_BOOLEAN_\([^ ,.]*\)/[enum@Vips.OperationBoolean.\1]/g
+s/#VIPS_OPERATION_ROUND_\([^ ,.]*\)/[enum@Vips.OperationRound.\1]/g
+s/#VIPS_OPERATION_COMPLEX_\([^ ,.]*\)/[enum@Vips.OperationComplex.\1]/g
+s/#VIPS_OPERATION_COMPLEX2_\([^ ,.]*\)/[enum@Vips.OperationComplex2.\1]/g
+s/#VIPS_OPERATION_COMPLEXGET_\([^ ,.]*\)/[enum@Vips.OperationComplexget.\1]/g
+s/#VIPS_OPERATION_\([^ ,.]*\)/[flags@Vips.OperationFlags.\1]/g
+s/#VIPS_FORMAT_\([^ ,.]*\)/[enum@Vips.BandFormat.\1]/g
+s/#VIPS_PRECISION_\([^ ,.]*\)/[enum@Vips.Precision.\1]/g
+s/#VIPS_DEMAND_STYLE_\([^ ,.]*\)/[enum@Vips.DemandStyle.\1]/g
+s/#VIPS_INTERPRETATION_\([^ ,.]*\)/[enum@Vips.Interpretation.\1]/g
+s/#VIPS_ACCESS_\([^ ,.]*\)/[enum@Vips.Access.\1]/g
+s/#VIPS_CODING_\([^ ,.]*\)/[enum@Vips.Coding.\1]/g
+
+s/g_thread_\([^(]*new\)()/[ctor@GLib.Thread.\1]/g
+s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
+s/%GThread/[struct@GLib.Thread]/g
+s/%GInputStream/[class@Gio.InputStream]/g
+s/%GInput/[class@Gio.Input]/g
+s/%GSList/[struct@GLib.SList]/g
+
+s/g_\([^(]*\)()/[func@GLib.\1]/g

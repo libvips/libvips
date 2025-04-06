@@ -46,37 +46,6 @@
 #include "pdraw.h"
 
 /**
- * SECTION: draw
- * @short_description: drawing operations: flood, paste, line, circle
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations directly modify the image. They do not thread, on 32-bit
- * machines they will be limited to 2GB images, and a little care needs to be
- * taken if you use them as part of an image pipeline.
- * They are mostly supposed to be useful for paintbox-style programs.
- *
- * libvips operations are all functional: they take zero or more existing input
- * images and generate zero or more new output images. Images are
- * never altered, you always create new images. This means libvips can cache
- * and thread very aggressively.
- *
- * The downside is that creating entirely fresh images each time can be very
- * slow. libvips has a range of tricks to avoid these problems, but there are
- * still times when you really have to be able to modify an image. An example
- * might be drawing a curved line from a set of straight line segments: if you
- * need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
- * to be a slow way to do it. This is where the draw operations come in.
- *
- * To use these operations, use vips_image_copy_memory() to make a private
- * memory copy of the image you want to modify, then call a
- * series of draw operations.
- *
- * Once you are done drawing, return to normal use of vips operations. Any time
- * you want to start drawing again, you'll need to copy again.
- */
-
-/**
  * VipsCombineMode:
  * @VIPS_COMBINE_MODE_SET: set pixels to the new value
  * @VIPS_COMBINE_MODE_ADD: add pixels

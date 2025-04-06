@@ -42,7 +42,7 @@
 	what about delayed writes ... do we ever write in close? we shouldn't,
 	should do in evalend or written or somesuch
 
-	use g_param_values_cmp() instead of value_equal()?
+	use [func@GLib.param_values_cmp] instead of value_equal()?
 
  */
 
@@ -775,7 +775,7 @@ vips_cache_get_first(void)
  * vips_cache_drop_all:
  *
  * Drop the whole operation cache, handy for leak tracking. Also called
- * automatically on vips_shutdown().
+ * automatically on [func@shutdown].
  */
 void
 vips_cache_drop_all(void)
@@ -793,7 +793,7 @@ vips_cache_drop_all(void)
 			vips_cache_print_nolock();
 
 		/* We can't modify the hash in the callback from
-		 * g_hash_table_foreach() and friends. Repeatedly drop the
+		 * [func@GLib.hash_table_foreach] and friends. Repeatedly drop the
 		 * first item instead.
 		 */
 		while ((operation = vips_cache_get_first()))
@@ -867,15 +867,16 @@ vips_cache_trim(void)
  *
  * If we miss, build and add @operation.
  *
- * Operators that have been tagged as invalid by the `invalidate` signal are
+ * Operators that have been tagged as invalid by [signal@Image::invalidate] are
  * removed from cache.
  *
- * Operators with the #VIPS_OPERATION_BLOCKED flag are never executed.
+ * Operators with the [flags@Vips.OperationFlags.BLOCKED] flag are never
+ * executed.
  *
- * Operators with the #VIPS_OPERATION_REVALIDATE flag are always executed and
- * any old cache value is replaced.
+ * Operators with the [flags@Vips.OperationFlags.REVALIDATE] flag are always
+ * executed and any old cache value is replaced.
  *
- * Operators with the #VIPS_OPERATION_NOCACHE flag are never cached.
+ * Operators with the [flags@Vips.OperationFlags.NOCACHE] flag are never cached.
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -974,7 +975,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 		VIPS_UNREF(operation_before);
 
-		/* Retrieve the flags again, as vips_foreign_load_build() may
+		/* Retrieve the flags again, as [func@Foreign.load_build] may
 		 * set load->nocache.
 		 */
 		flags = vips_operation_get_flags(*operation);
@@ -1012,11 +1013,11 @@ vips_cache_operation_buildp(VipsOperation **operation)
  * vips_cache_operation_build:
  * @operation: (transfer none): operation to lookup
  *
- * A binding-friendly version of vips_cache_operation_buildp().
+ * A binding-friendly version of [func@cache_operation_buildp].
  *
  * After calling this, @operation has the same ref count as when it went in,
- * and the result must be freed with vips_object_unref_outputs() and
- * g_object_unref().
+ * and the result must be freed with [method@Object.unref_outputs] and
+ * [method@GObject.Object.unref].
  *
  * Returns: (transfer full): The built operation.
  */
@@ -1056,13 +1057,14 @@ vips_cache_set_max(int max)
  * @max_mem: maximum amount of tracked memory we use
  *
  * Set the maximum amount of tracked memory we allow before we start dropping
- * cached operations. See vips_tracked_get_mem().
+ * cached operations. See [func@tracked_get_mem].
  *
  * libvips only tracks memory it allocates, it can't track memory allocated by
- * external libraries. If you use an operation like vips_magickload(), most of
- * the memory it uses won't be included.
+ * external libraries. If you use an operation like [ctor@Image.magickload],
+ * most of the memory it uses won't be included.
  *
- * See also: vips_tracked_get_mem().
+ * ::: seealso
+ *     [func@tracked_get_mem].
  */
 void
 vips_cache_set_max_mem(size_t max_mem)
@@ -1111,9 +1113,10 @@ vips_cache_get_size(void)
  * vips_cache_get_max_mem:
  *
  * Get the maximum amount of tracked memory we allow before we start dropping
- * cached operations. See vips_tracked_get_mem().
+ * cached operations. See [func@tracked_get_mem].
  *
- * See also: vips_tracked_get_mem().
+ * ::: seealso
+ *     [func@tracked_get_mem].
  *
  * Returns: the maximum amount of tracked memory we allow
  */
@@ -1127,13 +1130,14 @@ vips_cache_get_max_mem(void)
  * vips_cache_get_max_files:
  *
  * Get the maximum number of tracked files we allow before we start dropping
- * cached operations. See vips_tracked_get_files().
+ * cached operations. See [func@tracked_get_files].
  *
  * libvips only tracks file descriptors it allocates, it can't track ones
  * allocated by external libraries. If you use an operation like
- * vips_magickload(), most of the descriptors it uses won't be included.
+ * [ctor@Image.magickload], most of the descriptors it uses won't be included.
  *
- * See also: vips_tracked_get_files().
+ * ::: seealso
+ *     [func@tracked_get_files].
  *
  * Returns: the maximum number of tracked files we allow
  */
@@ -1148,9 +1152,10 @@ vips_cache_get_max_files(void)
  * @max_files: max open files we allow
  *
  * Set the maximum number of tracked files we allow before we start dropping
- * cached operations. See vips_tracked_get_files().
+ * cached operations. See [func@tracked_get_files].
  *
- * See also: vips_tracked_get_files().
+ * ::: seealso
+ *     [func@tracked_get_files].
  */
 void
 vips_cache_set_max_files(int max_files)
@@ -1165,7 +1170,8 @@ vips_cache_set_max_files(int max_files)
  *
  * Handy for debugging. Print the operation cache to stdout just before exit.
  *
- * See also: vips_cache_set_trace().
+ * ::: seealso
+ *     [func@cache_set_trace].
  */
 void
 vips_cache_set_dump(gboolean dump)
@@ -1182,7 +1188,8 @@ vips_cache_set_dump(gboolean dump)
  * You can set the environment variable `VIPS_TRACE` to turn this option on, or
  * use the command-line flag `--vips-cache-trace`.
  *
- * See also: vips_cache_set_dump().
+ * ::: seealso
+ *     [func@cache_set_dump].
  */
 void
 vips_cache_set_trace(gboolean trace)

@@ -243,7 +243,7 @@ vips_divide_init(VipsDivide *divide)
  * following table is used to determine the output type:
  *
  * <table>
- *   <title>vips_divide() type promotion</title>
+ *   <title>[method@Image.divide] type promotion</title>
  *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
  *     <thead>
  *       <row>
@@ -299,7 +299,8 @@ vips_divide_init(VipsDivide *divide)
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * See also: vips_multiply(), vips_linear(), vips_pow().
+ * ::: seealso
+ *     [method@Image.multiply], [method@Image.linear], [method@Image.pow].
  *
  * Returns: 0 on success, -1 on error
  */
