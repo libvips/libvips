@@ -32,8 +32,8 @@ vips_section_files = files(
   'libvips-create.md',
   'libvips-draw.md',
   'libvips-header.md',
-  'libvips-resample.md',
   'libvips-morphology.md',
+  'libvips-resample.md',
   'libvips-vips.md',
 )
 
