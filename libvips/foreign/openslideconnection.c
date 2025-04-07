@@ -50,17 +50,20 @@
 #define OPENSLIDECONNECTION_CACHE_SIZE (32 * 1024 * 1024)
 
 typedef struct _VipsOpenslideConnection {
-	// lock access to these vars here
-	GMutex lock;
-
-	int ref_count;
-	int time;
 	char *filename;
+
+	// protected by vips_openslideconnection_lock
+	int ref_count;
+
+	// first access protected by separate lock, since initialization
+	// is slow
 	openslide_t *osr;
+	GMutex osr_lock;
 
 } VipsOpenslideConnection;
 
 static GHashTable *vips_openslideconnection_cache = NULL;
+static GQueue *vips_openslideconnection_unused = NULL;
 static GMutex vips_openslideconnection_lock;
 
 /* Added in 4.0 ... this is a tile cache that's shared between all active
@@ -73,70 +76,20 @@ openslide_cache_t *vips_openslideconnection_openslide_cache;
 static void
 vips_openslideconnection_free(VipsOpenslideConnection *connection)
 {
-	VipsOpenslideConnection *cached =
+	VipsOpenslideConnection *cached G_GNUC_UNUSED =
 		g_hash_table_lookup(vips_openslideconnection_cache,
 			connection->filename);
 	g_assert(cached);
 	g_assert(cached == connection);
 	g_hash_table_remove(vips_openslideconnection_cache, connection->filename);
+	g_queue_remove(vips_openslideconnection_unused, connection);
 
-	g_mutex_clear(&connection->lock);
-	VIPS_FREE(connection->filename);
+	g_mutex_lock(&connection->osr_lock);
 	VIPS_FREEF(openslide_close, connection->osr);
+	g_mutex_unlock(&connection->osr_lock);
+	g_mutex_clear(&connection->osr_lock);
+	VIPS_FREE(connection->filename);
 	g_free(connection);
-}
-
-static void
-vips_openslideconnection_unused_cb(gpointer key, gpointer value, gpointer data)
-{
-	VipsOpenslideConnection *connection = (VipsOpenslideConnection *) value;
-	int *count = (int *) data;
-
-	g_mutex_lock(&connection->lock);
-
-	if (connection->ref_count == 0)
-		*count += 1;
-
-	g_mutex_unlock(&connection->lock);
-}
-
-static int
-vips_openslideconnection_unused(void)
-{
-	int unused;
-
-	unused = 0;
-	g_hash_table_foreach(vips_openslideconnection_cache,
-		vips_openslideconnection_unused_cb, &unused);
-
-	return unused;
-}
-
-static void
-vips_openslideconnection_oldest_cb(gpointer key, gpointer value, gpointer data)
-{
-	VipsOpenslideConnection *connection = (VipsOpenslideConnection *) value;
-	VipsOpenslideConnection **oldest = (VipsOpenslideConnection **) data;
-
-	g_mutex_lock(&connection->lock);
-
-	if (!*oldest ||
-		connection->time < (*oldest)->time)
-		*oldest = connection;
-
-	g_mutex_unlock(&connection->lock);
-}
-
-static VipsOpenslideConnection *
-vips_openslideconnection_oldest(void)
-{
-	VipsOpenslideConnection *oldest;
-
-	oldest = NULL;
-	g_hash_table_foreach(vips_openslideconnection_cache,
-		vips_openslideconnection_oldest_cb, &oldest);
-
-	return oldest;
 }
 
 static void
@@ -144,9 +97,10 @@ vips_openslideconnection_trim(void)
 {
 	VipsOpenslideConnection *oldest;
 
-	while (vips_openslideconnection_unused() > OPENSLIDECONNECTION &&
-		(oldest = vips_openslideconnection_oldest()))
+	while (vips_openslideconnection_unused->length > OPENSLIDECONNECTION) {
+		oldest = g_queue_pop_head(vips_openslideconnection_unused);
 		vips_openslideconnection_free(oldest);
+	}
 }
 
 static void
@@ -154,8 +108,6 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 {
 	gboolean trim;
 	gboolean free;
-
-	g_mutex_lock(&connection->lock);
 
 	g_assert(connection->ref_count > 0);
 
@@ -175,24 +127,23 @@ vips_openslideconnection_unref(VipsOpenslideConnection *connection)
 			trim = TRUE;
 	}
 
-	g_mutex_unlock(&connection->lock);
-
 	if (free)
 		vips_openslideconnection_free(connection);
-	else if (trim)
+	else if (trim) {
+		g_queue_push_tail(vips_openslideconnection_unused, connection);
 		vips_openslideconnection_trim();
+	}
 }
 
 static void
 vips_openslideconnection_ref(VipsOpenslideConnection *connection)
 {
-	g_mutex_lock(&connection->lock);
-
 	g_assert(connection->ref_count >= 0);
 
-	connection->ref_count += 1;
+	if (connection->ref_count == 0)
+		g_queue_remove(vips_openslideconnection_unused, connection);
 
-	g_mutex_unlock(&connection->lock);
+	connection->ref_count += 1;
 }
 
 static VipsOpenslideConnection *
@@ -211,18 +162,6 @@ vips_openslideconnection_new(const char *filename)
 	return connection;
 }
 
-static void
-vips_openslideconnection_touch(VipsOpenslideConnection *connection)
-{
-	static int time = 0;
-
-	g_mutex_lock(&connection->lock);
-
-	connection->time = time++;
-
-	g_mutex_unlock(&connection->lock);
-}
-
 openslide_t *
 vips__openslideconnection_open(const char *filename, gboolean revalidate)
 {
@@ -231,6 +170,8 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 	if (!vips_openslideconnection_cache) {
 		vips_openslideconnection_cache =
 			g_hash_table_new(g_str_hash, g_str_equal);
+		vips_openslideconnection_unused =
+			g_queue_new();
 
 #ifdef HAVE_OPENSLIDE_CACHE_CREATE
 		vips_openslideconnection_openslide_cache =
@@ -252,11 +193,10 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 		connection = vips_openslideconnection_new(filename);
 
 	vips_openslideconnection_ref(connection);
-	vips_openslideconnection_touch(connection);
 
 	g_mutex_unlock(&vips_openslideconnection_lock);
 
-	g_mutex_lock(&connection->lock);
+	g_mutex_lock(&connection->osr_lock);
 
 	gboolean unref;
 
@@ -271,20 +211,22 @@ vips__openslideconnection_open(const char *filename, gboolean revalidate)
 		 */
 		if (!connection->osr)
 			unref = TRUE;
-	}
-
 #ifdef HAVE_OPENSLIDE_CACHE_CREATE
-	if (connection->osr)
-		openslide_set_cache(connection->osr,
-			vips_openslideconnection_openslide_cache);
+		else
+			openslide_set_cache(connection->osr,
+				vips_openslideconnection_openslide_cache);
 #endif /*HAVE_OPENSLIDE_CACHE_CREATE*/
+	}
 
 	openslide_t *osr = connection->osr;
 
-	g_mutex_unlock(&connection->lock);
+	g_mutex_unlock(&connection->osr_lock);
 
-	if (unref)
+	if (unref) {
+		g_mutex_lock(&vips_openslideconnection_lock);
 		vips_openslideconnection_unref(connection);
+		g_mutex_unlock(&vips_openslideconnection_lock);
+	}
 
 	return osr;
 }
