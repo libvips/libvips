@@ -3765,6 +3765,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -3781,6 +3782,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -3797,6 +3799,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4520,7 +4523,7 @@ public:
 	static VImage matload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Invert an matrix.
+	 * Invert a matrix.
 	 * @param options Set of options.
 	 * @return Output matrix.
 	 */
@@ -4555,6 +4558,14 @@ public:
 	 * @return Output image.
 	 */
 	static VImage matrixload_source(VSource source, VOption *options = nullptr);
+
+	/**
+	 * Multiply two matrices.
+	 * @param right Second matrix to multiply.
+	 * @param options Set of options.
+	 * @return Output matrix.
+	 */
+	VImage matrixmultiply(VImage right, VOption *options = nullptr) const;
 
 	/**
 	 * Print matrix.
@@ -5758,6 +5769,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5776,6 +5788,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5794,6 +5807,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5937,9 +5951,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5956,9 +5971,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5975,9 +5991,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.

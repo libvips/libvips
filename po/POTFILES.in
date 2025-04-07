@@ -249,7 +249,6 @@ libvips/foreign/jpegload.c
 libvips/foreign/jpegsave.c
 libvips/foreign/jxlload.c
 libvips/foreign/jxlsave.c
-libvips/foreign/magick2vips.c
 libvips/foreign/magick6load.c
 libvips/foreign/magick7load.c
 libvips/foreign/magick.c
@@ -264,6 +263,7 @@ libvips/foreign/niftisave.c
 libvips/foreign/nsgifload.c
 libvips/foreign/openexr2vips.c
 libvips/foreign/openexrload.c
+libvips/foreign/openslideconnection.c
 libvips/foreign/openslideload.c
 libvips/foreign/pdf.c
 libvips/foreign/pdfiumload.c
@@ -377,6 +377,7 @@ libvips/mosaicing/lrmerge.c
 libvips/mosaicing/lrmosaic.c
 libvips/mosaicing/match.c
 libvips/mosaicing/matrixinvert.c
+libvips/mosaicing/matrixmultiply.c
 libvips/mosaicing/merge.c
 libvips/mosaicing/mosaic1.c
 libvips/mosaicing/mosaic.c
@@ -400,7 +401,9 @@ libvips/resample/resample.c
 libvips/resample/resize.c
 libvips/resample/shrink.c
 libvips/resample/shrinkh.c
+libvips/resample/shrinkh_hwy.cpp
 libvips/resample/shrinkv.c
+libvips/resample/shrinkv_hwy.cpp
 libvips/resample/similarity.c
 libvips/resample/thumbnail.c
 libvips/resample/transform.c
