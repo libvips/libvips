@@ -171,6 +171,10 @@ int vips__print_renders(void);
 int vips__type_leak(void);
 int vips__object_leak(void);
 
+#ifdef HAVE_OPENSLIDE
+int vips__openslideconnection_leak(void);
+#endif /*HAVE_OPENSLIDE*/
+
 /* iofuncs
  */
 int vips__open_image_read(const char *filename);
