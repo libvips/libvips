@@ -2316,6 +2316,19 @@ VImage::matrixload_source(VSource source, VOption *options)
 	return out;
 }
 
+VImage
+VImage::matrixmultiply(VImage right, VOption *options) const
+{
+	VImage out;
+
+	call("matrixmultiply", (options ? options : VImage::option())
+			->set("left", *this)
+			->set("out", &out)
+			->set("right", right));
+
+	return out;
+}
+
 void
 VImage::matrixprint(VOption *options) const
 {
