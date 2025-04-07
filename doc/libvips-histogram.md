@@ -1,8 +1,6 @@
-Title: Find, manipulate and apply histograms and lookup tables
+Title: Operators by section -- Find, manipulate and apply histograms and lookup tables
 
 <!-- libvips/histogram -->
-
-# Find, manipulate and apply histograms and lookup tables
 
 Histograms and look-up tables are 1xn or nx1 images, where n is less than
 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images.

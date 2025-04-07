@@ -1,8 +1,6 @@
-Title: Memory utilities
+Title: Operators by section -- Memory utilities
 
 <!-- libvips/iofuncs/memory.c -->
-
-# Memory utilities
 
 These functions cover two main areas.
 

@@ -40,20 +40,12 @@ content_files = [
   "using-the-cli.md",
   "using-from-c.md",
   "using-from-cplusplus.md",
-  "developer-checklist.md",
-  "using-threads.md",
-  "function-list.md",
   "making-image-pyramids.md",
   "multipage-and-animated-images.md",
   "using-vipsthumbnail.md",
-  "how-it-works.md",
-  "how-it-opens-files.md",
-  "file-format.md",
-  "extending.md",
-  "binding.md",
   "examples.md",
-  "cite.md",
 
+  "function-list.md",
   "libvips-arithmetic.md",
   "libvips-basic.md",
   "libvips-colour.md",
@@ -71,6 +63,18 @@ content_files = [
   "libvips-mosaicing.md",
   "libvips-resample.md",
   "libvips-vips.md",
+
+  "using-threads.md",
+  "how-it-works.md",
+  "how-it-opens-files.md",
+  "developer-checklist.md",
+  "file-format.md",
+
+  "extending.md",
+  "binding.md",
+
+  "cite.md",
+
 ]
 content_images = [
   "images/Combine.png",

@@ -1,7 +1,5 @@
 Title: How to use libvips to make image pyramids
 
-# How to use libvips to make image pyramids
-
 libvips includes [method@Image.dzsave], an operation that can build image
 pyramids compatible with [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom),
 Zoomify and [Google Maps](https://developers.google.com/maps) image viewers.

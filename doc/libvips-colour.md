@@ -1,8 +1,6 @@
-Title: Colour operators
+Title: Operators by section -- Colour operators
 
 <!-- libvips/colour -->
-
-# Colour operators
 
 These operators let you transform coordinates and images between colour
 spaces, calculate colour differences, and move to and from device spaces.

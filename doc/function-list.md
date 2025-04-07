@@ -1,6 +1,4 @@
-Title: All libvips functions and operators
-
-# Introduction
+Title: Index -- all operators in alphabetical order
 
 libvips has a set of operators, each of which computes some useful image
 processing operation. Each operator is implemented as a [class@GObject.Object]

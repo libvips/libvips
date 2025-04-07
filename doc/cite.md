@@ -1,7 +1,5 @@
 Title: References to cite for libvips
 
-# libvips References
-
 Cupitt, J., Martinez, K., Fuller, L. and Wolthuizen, K. A. (2025)
 [The libvips image processing library](
 https://www.southampton.ac.uk/~km2/papers/2025/vips-ist-preprint.pdf). In Proceedings of Electronic

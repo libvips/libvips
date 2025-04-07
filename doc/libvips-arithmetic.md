@@ -1,8 +1,6 @@
-Title: Pixel arithmetic
+Title: Operators by section -- Pixel arithmetic
 
 <!-- libvips/arithmetic -->
-
-# Pixel arithmetic
 
 These operations perform pixel arithmetic, that is, they perform an
 arithmetic operation, such as addition, on every pixel in an image or a

@@ -1,7 +1,5 @@
 Title: Using vipsthumbnail
 
-# Using vipsthumbnail
-
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples.
 

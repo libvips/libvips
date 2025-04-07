@@ -1,8 +1,6 @@
-Title: Create images
+Title: Operators by section -- Create images
 
 <!-- libvips/create -->
-
-# Create images
 
 These functions generate various images. You can combine them with
 the arithmetic and rotate functions to build more complicated images.

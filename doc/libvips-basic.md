@@ -1,8 +1,6 @@
-Title: Aliases, helpers and macros
+Title: Operators by section -- Aliases, helpers and macros
 
 <!-- libvips/iofuncs/type.c -->
-
-# Aliases, helpers and macros
 
 A selection of basic aliases, [alias@GObject.Type] helpers and macro
 definitions used by libvips.
