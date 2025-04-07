@@ -143,7 +143,6 @@ typedef struct {
 static int
 vips__openslide_isslide(const char *filename)
 {
-#ifdef HAVE_OPENSLIDE_3_4
 	const char *vendor;
 	int ok;
 
@@ -159,36 +158,6 @@ vips__openslide_isslide(const char *filename)
 	VIPS_DEBUG_MSG("vips__openslide_isslide: %s - %d\n", filename, ok);
 
 	return ok;
-#else
-	openslide_t *osr;
-	int ok;
-
-	ok = 0;
-	osr = vips__openslideconnection_open(filename, FALSE);
-
-	if (osr) {
-		const char *vendor;
-
-		/* Generic tiled tiff images can be opened by openslide as
-		 * well. Only offer to load this file if it's not a generic
-		 * tiff since we want vips_tiffload() to handle these.
-		 */
-		vendor = openslide_get_property_value(osr,
-			OPENSLIDE_PROPERTY_NAME_VENDOR);
-
-		/* vendor will be NULL if osr is in error state.
-		 */
-		if (vendor &&
-			strcmp(vendor, "generic-tiff") != 0)
-			ok = 1;
-
-		vips__openslideconnection_close(filename);
-	}
-
-	VIPS_DEBUG_MSG("vips__openslide_isslide: %s - %d\n", filename, ok);
-
-	return ok;
-#endif
 }
 
 static void
