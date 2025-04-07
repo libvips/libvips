@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['has_5falpha_0',['has_alpha',['../classVImage.html#a2dccb75d88e12b3a15b961f46297c9b8',1,'VImage']]],
+  ['heifload_1',['heifload',['../classVImage.html#ab857145c842880c13d64a81985e5e5d5',1,'VImage']]],
+  ['heifload_5fbuffer_2',['heifload_buffer',['../classVImage.html#a253461c6820f0fc32079df796f0be9dc',1,'VImage']]],
+  ['heifload_5fsource_3',['heifload_source',['../classVImage.html#aed93a06560c67c12681cad758dfcb542',1,'VImage']]],
+  ['heifsave_4',['heifsave',['../classVImage.html#aba1495e1ae7c3445b75d1c6705664f1a',1,'VImage']]],
+  ['heifsave_5fbuffer_5',['heifsave_buffer',['../classVImage.html#a7c6c6d31501946fb91b275d2dfebf4c3',1,'VImage']]],
+  ['heifsave_5ftarget_6',['heifsave_target',['../classVImage.html#afef5da6dfc1c4600b27fee8abfc8081a',1,'VImage']]],
+  ['height_7',['height',['../classVImage.html#aa3c3c89d915a976b5b95f0fc8938f4f2',1,'VImage']]],
+  ['hist_5fcum_8',['hist_cum',['../classVImage.html#a54c3cb6021f435a1c709499ac8d1dd46',1,'VImage']]],
+  ['hist_5fentropy_9',['hist_entropy',['../classVImage.html#a82e65d107e06d80b88a3a842d35731d6',1,'VImage']]],
+  ['hist_5fequal_10',['hist_equal',['../classVImage.html#a754af2dae820244fb3c9facaeee879d9',1,'VImage']]],
+  ['hist_5ffind_11',['hist_find',['../classVImage.html#a598ee98cd35588b57ae894528921191f',1,'VImage']]],
+  ['hist_5ffind_5findexed_12',['hist_find_indexed',['../classVImage.html#a81cf0ef639b09ae830f52eaaa55d1fb8',1,'VImage']]],
+  ['hist_5ffind_5fndim_13',['hist_find_ndim',['../classVImage.html#a75a997b9ea6a7199975b592d1e88e3a0',1,'VImage']]],
+  ['hist_5fismonotonic_14',['hist_ismonotonic',['../classVImage.html#ac56a7d76585325ae720e0e2fa95de931',1,'VImage']]],
+  ['hist_5flocal_15',['hist_local',['../classVImage.html#a4b338105d9bc693f1523ea6893398a5d',1,'VImage']]],
+  ['hist_5fmatch_16',['hist_match',['../classVImage.html#a31fa31e31425796c8278248c87d8221a',1,'VImage']]],
+  ['hist_5fnorm_17',['hist_norm',['../classVImage.html#a001879317878d39311eb4c6bd752e021',1,'VImage']]],
+  ['hist_5fplot_18',['hist_plot',['../classVImage.html#ab2b1e44d35aba2484b81c2e820d3fd4e',1,'VImage']]],
+  ['hough_5fcircle_19',['hough_circle',['../classVImage.html#a12320b47e270dbd52d9047b517c58fbb',1,'VImage']]],
+  ['hough_5fline_20',['hough_line',['../classVImage.html#a95e5ac3492d171eb1c4f4fde669c2bb8',1,'VImage']]],
+  ['hsv2srgb_21',['HSV2sRGB',['../classVImage.html#a80d328be53704b56a6cbe8da0605357a',1,'VImage']]]
+];
