@@ -136,6 +136,10 @@ GQuark vips__image_pixels_quark = 0;
  */
 static char *vips__max_coord_arg = NULL;
 
+#ifdef HAVE_OPENSLIDE
+int vips__openslideconnection_leak(void);
+#endif /*HAVE_OPENSLIDE*/
+
 /**
  * vips_max_coord_get:
  *
@@ -391,6 +395,9 @@ vips_leak(void)
 	n_leaks += vips_tracked_get_allocs();
 	n_leaks += vips_tracked_get_mem();
 	n_leaks += vips_tracked_get_files();
+#ifdef HAVE_OPENSLIDE
+	n_leaks += vips__openslideconnection_leak();
+#endif /*HAVE_OPENSLIDE*/
 
 	if (vips_tracked_get_allocs() ||
 		vips_tracked_get_mem() ||

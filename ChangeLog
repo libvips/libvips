@@ -21,6 +21,7 @@ master
 - heifload: improve detection of seek beyond EOF [lovell]
 - add "oneshot" option to jp2kload [mbklein]
 - share and reuse openslide connections
+- drop support for openslide 3.3
 
 8.16.1
 
