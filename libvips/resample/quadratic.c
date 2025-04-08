@@ -285,6 +285,7 @@ vips_quadratic_build(VipsObject *object)
 		return -1;
 	}
 
+#ifdef DEBUG
 	double *vec = VIPS_MATRIX(quadratic->mat, 0, 0);
 	printf("vips_quadratic_build:\n");
 	printf("\ta = %g, g = %g\n", vec[0], vec[1]);
@@ -303,6 +304,7 @@ vips_quadratic_build(VipsObject *object)
 		printf("\te = %g, k = %g\n", vec[8], vec[9]);
 		printf("\tf = %g, l = %g\n", vec[10], vec[11]);
 	}
+#endif /*DEBUG*/
 
 	if (!quadratic->interpolate)
 		quadratic->interpolate = vips_interpolate_new("bilinear"); // FIXME: Invalidates operation cache
