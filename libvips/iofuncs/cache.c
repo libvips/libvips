@@ -126,6 +126,42 @@ typedef struct _VipsOperationCacheEntry {
 
 } VipsOperationCacheEntry;
 
+/* Is an image small enough to be compared by value?
+ *
+ * Small images are used for arrays of parameters, so comparing by value is
+ * useful.
+ */
+static gboolean
+vips_cache_image_value_compare(VipsImage *i1)
+{
+	return
+		i1->Xsize < 10 &&
+		i1->Ysize < 10 &&
+		i1->Bands == 1 &&
+		i1->BandFmt == VIPS_FORMAT_DOUBLE;
+}
+
+static unsigned int
+vips_cache_image_hash(VipsImage *i1)
+{
+	if (vips_cache_image_value_compare(i1) &&
+		i1->data) {
+		double *d = (double *) i1->data;
+		size_t n_pels = VIPS_IMAGE_N_PELS(i1);
+
+		unsigned int hash;
+
+		hash = 0;
+		for (int i = 0; i < n_pels; i++)
+			hash = (hash << 1) ^ g_double_hash(d + i);
+
+		return hash;
+	}
+	else
+		// pointer hash otherwise
+		return i1 ? g_direct_hash(i1) : 0;
+}
+
 /* Pass in the pspec so we can get the generic type. For example, a
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
@@ -193,9 +229,18 @@ vips_value_hash(GParamSpec *pspec, GValue *value)
 		return p ? g_direct_hash(p) : 0;
 	}
 	else if (generic == G_TYPE_PARAM_OBJECT) {
-		void *p = g_value_get_object(value);
+		GType type = G_VALUE_TYPE(value);
 
-		return p ? g_direct_hash(p) : 0;
+		if (g_type_is_a(type, VIPS_TYPE_IMAGE)) {
+			VipsImage *image = VIPS_IMAGE(g_value_get_object(value));
+
+			return vips_cache_image_hash(image);
+		}
+		else {
+			void *p = g_value_get_object(value);
+
+			return p ? g_direct_hash(p) : 0;
+		}
 	}
 	else {
 		/* Fallback: convert to a string and hash that.
@@ -220,6 +265,24 @@ vips_value_hash(GParamSpec *pspec, GValue *value)
 
 		return hash;
 	}
+}
+
+// we compare small, matrix images by value, since they are probably eg.
+// params for affine or quadratic
+static gboolean
+vips_cache_image_equal(VipsImage *i1, VipsImage *i2)
+{
+	if (vips_cache_image_value_compare(i1) &&
+		i1->Xsize == i2->Xsize &&
+		i1->Ysize == i2->Ysize &&
+		i1->Bands == i2->Bands &&
+		i1->BandFmt == i2->BandFmt &&
+		i1->data &&
+		i2->data)
+		return memcmp(i1->data, i2->data, VIPS_IMAGE_SIZEOF_IMAGE(i1));
+	else
+		// pointer equality otherwise
+		return i1 == i2;
 }
 
 /* Pass in the pspec so we can get the generic type. For example, a
@@ -279,8 +342,17 @@ vips_value_equal(GParamSpec *pspec, GValue *v1, GValue *v2)
 		return g_value_get_boxed(v1) == g_value_get_boxed(v2);
 	if (generic == G_TYPE_PARAM_POINTER)
 		return g_value_get_pointer(v1) == g_value_get_pointer(v2);
-	if (generic == G_TYPE_PARAM_OBJECT)
-		return g_value_get_object(v1) == g_value_get_object(v2);
+	if (generic == G_TYPE_PARAM_OBJECT) {
+		if (g_type_is_a(t1, VIPS_TYPE_IMAGE) &&
+			g_type_is_a(t1, VIPS_TYPE_IMAGE)) {
+			VipsImage *i1 = VIPS_IMAGE(g_value_get_object(v1));
+			VipsImage *i2 = VIPS_IMAGE(g_value_get_object(v2));
+
+			return vips_cache_image_equal(i1, i2);
+		}
+		else
+			return g_value_get_object(v1) == g_value_get_object(v2);
+	}
 	else {
 		/* Fallback: convert to a string and compare that.
 		 * This is very slow, print a warning if we use it
