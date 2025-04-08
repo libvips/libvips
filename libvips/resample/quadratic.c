@@ -55,12 +55,12 @@
 
 /* The transform we compute:
 
-x',y'  = coordinates of srcim
-x,y    = coordinates of dstim
+x', y' = coordinates of srcim
+x, y   = coordinates of dstim
 a .. l = coefficients
 
 x = x' + a              : order 0     image shift only
-  + b x' + c y'   	: order 1     + affine transf.
+  + b x' + c y'         : order 1     + affine transf.
   + d x' y'             : order 2     + bilinear transf.
   + e x' x' + f y' y'   : order 3     + quadratic transf.
 
@@ -159,21 +159,19 @@ vips_quadratic_gen(VipsRegion *out_region,
 		return -1;
 
 	for (yo = ylow; yo < yhigh; yo++) {
-		fxi = 0.0;
-		fyi = 0.0;
+		fxi = xlow + vec[0];                /* order 0 */
+		fyi = yo + vec[1];
 		dx = 0.0;
 		dy = 0.0;
-		ddx = 0.0;
-		ddy = 0.0;
 
 		switch (quadratic->order) {
 		case 3:
 			fxi += vec[10] * yo * yo + vec[8] * xlow * xlow;
 			fyi += vec[11] * yo * yo + vec[9] * xlow * xlow;
 			dx += vec[8];
-			ddx += vec[8] * 2.0;
+			ddx = vec[8] * 2.0;
 			dy += vec[9];
-			ddy += vec[9] * 2.0;
+			ddy = vec[9] * 2.0;
 
 		case 2:
 			fxi += vec[6] * xlow * yo;
@@ -188,15 +186,11 @@ vips_quadratic_gen(VipsRegion *out_region,
 			dy += vec[3];
 
 		case 0:
-			fxi += vec[0];
-			fyi += vec[1];
 			break;
 
 		default:
 			g_assert_not_reached();
 		}
-
-		printf("dx = %g, dy = %g\n", dx, dy);
 
 		q = VIPS_REGION_ADDR(out_region, xlow, yo);
 
@@ -260,8 +254,7 @@ vips_quadratic_build(VipsObject *object)
 
 	if (vips_check_uncoded(class->nickname, in) ||
 		vips_check_noncomplex(class->nickname, in) ||
-		vips_check_matrix(class->nickname,
-			quadratic->coeff, &quadratic->mat))
+		vips_check_matrix(class->nickname, quadratic->coeff, &quadratic->mat))
 		return -1;
 
 	if (quadratic->mat->Xsize != 2) {
@@ -290,6 +283,25 @@ vips_quadratic_build(VipsObject *object)
 		vips_error(class->nickname,
 			"%s", _("coefficient matrix must have height 1, 3, 4 or 6"));
 		return -1;
+	}
+
+	double *vec = VIPS_MATRIX(quadratic->mat, 0, 0);
+	printf("vips_quadratic_build:\n");
+	printf("\ta = %g, g = %g\n", vec[0], vec[1]);
+
+	if (quadratic->order > 0)  {
+		printf("\t--------\n");
+		printf("\tb = %g, h = %g\n", vec[2], vec[3]);
+		printf("\tc = %g, i = %g\n", vec[4], vec[5]);
+	}
+	if (quadratic->order > 1)  {
+		printf("\t--------\n");
+		printf("\td = %g, j = %g\n", vec[6], vec[7]);
+	}
+	if (quadratic->order > 2)  {
+		printf("\t--------\n");
+		printf("\te = %g, k = %g\n", vec[8], vec[9]);
+		printf("\tf = %g, l = %g\n", vec[10], vec[11]);
 	}
 
 	if (!quadratic->interpolate)

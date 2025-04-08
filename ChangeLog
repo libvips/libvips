@@ -22,6 +22,7 @@ master
 - add "oneshot" option to jp2kload [mbklein]
 - share and reuse openslide connections
 - drop support for openslide 3.3
+- fix vips_quadratic()
 
 8.16.1
 
