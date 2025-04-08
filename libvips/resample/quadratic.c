@@ -144,7 +144,6 @@ vips_quadratic_gen(VipsRegion *out_region,
 	VipsPel *q;
 
 	int xo, yo; /* output coordinates, dstimage */
-	int z;
 	double fxi, fyi; /* input coordinates */
 	double dx, dy;	 /* xo derivative of input coord. */
 	double ddx, ddy; /* 2nd xo derivative of input coord. */
@@ -161,7 +160,7 @@ vips_quadratic_gen(VipsRegion *out_region,
 	for (yo = ylow; yo < yhigh; yo++) {
 		fxi = xlow + vec[0];                /* order 0 */
 		fyi = yo + vec[1];
-		dx = 0.0;
+		dx = 1.0;
 		dy = 0.0;
 
 		switch (quadratic->order) {
@@ -195,10 +194,8 @@ vips_quadratic_gen(VipsRegion *out_region,
 		q = VIPS_REGION_ADDR(out_region, xlow, yo);
 
 		for (xo = xlow; xo < xhigh; xo++) {
-			int xi, yi;
-
-			xi = fxi;
-			yi = fyi;
+			int xi = fxi;
+			int yi = fyi;
 
 			/* Clipping!
 			 */
@@ -206,12 +203,11 @@ vips_quadratic_gen(VipsRegion *out_region,
 				yi < 0 ||
 				xi >= clip_width ||
 				yi >= clip_height) {
-				for (z = 0; z < ps; z++)
+				for (int z = 0; z < ps; z++)
 					q[z] = 0;
 			}
 			else
-				interpolate_fn(quadratic->interpolate,
-					q, ir, fxi, fyi);
+				interpolate_fn(quadratic->interpolate, q, ir, fxi, fyi);
 
 			q += ps;
 
