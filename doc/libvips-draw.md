@@ -1,4 +1,4 @@
-Title: Operators by section -- Drawing operations
+Title: Operator index > By section > Draw
 
 <!-- libvips/draw -->
 

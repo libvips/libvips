@@ -1,4 +1,4 @@
-Title: Operators by section -- Colour operators
+Title: Operator index > By section > Colour
 
 <!-- libvips/colour -->
 

@@ -1,4 +1,4 @@
-Title: The libvips file format
+Title: Technical background > The libvips file format
 
 libvips has a simple, native file format. It's very fast, there is no image
 size limit, and it supports arbitrary metadata. Although few other programs

@@ -1,4 +1,4 @@
-Title: Operators by section -- Resample operations
+Title: Operator index > By section > Resample
 
 <!-- libvips/resample -->
 

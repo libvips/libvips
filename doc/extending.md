@@ -1,4 +1,4 @@
-Title: How to add operations to libvips
+Title: Advanced > Writing operators
 
 This section runs quickly through adding a simple operator to libvips.
 For more information, see [class@Operation] and [class@Region]. A good

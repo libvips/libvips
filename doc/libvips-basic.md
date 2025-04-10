@@ -1,4 +1,4 @@
-Title: Operators by section -- Aliases, helpers and macros
+Title: Operator index > By section > Basic
 
 <!-- libvips/iofuncs/type.c -->
 

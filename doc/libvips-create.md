@@ -1,4 +1,4 @@
-Title: Operators by section -- Create images
+Title: Operator index > By section > Create
 
 <!-- libvips/create -->
 

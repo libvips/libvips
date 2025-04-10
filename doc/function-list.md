@@ -1,4 +1,4 @@
-Title: Index -- all operators in alphabetical order
+Title: Operator index / Alphabetical
 
 libvips has a set of operators, each of which computes some useful image
 processing operation. Each operator is implemented as a [class@GObject.Object]

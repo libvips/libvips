@@ -1,4 +1,4 @@
-Title: Using libvips from C
+Title: Using > C
 
 libvips comes with a convenient, high-level C API. You should read the API
 docs for full details, but this section will try to give a brief overview.
