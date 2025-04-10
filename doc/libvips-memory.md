@@ -1,4 +1,4 @@
-Title: Operators by section -- Memory utilities
+Title: Operator index > By section > Memory
 
 <!-- libvips/iofuncs/memory.c -->
 

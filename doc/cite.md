@@ -1,4 +1,4 @@
-Title: References to cite for libvips
+Title: Citing libvips
 
 Cupitt, J., Martinez, K., Fuller, L. and Wolthuizen, K. A. (2025)
 [The libvips image processing library](

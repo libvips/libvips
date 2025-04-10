@@ -1,4 +1,4 @@
-Title: Operators by section -- Error messages and error handling
+Title: Operator index > By section > Error
 
 <!-- libvips/iofuncs/error.c -->
 

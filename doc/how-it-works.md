@@ -1,4 +1,4 @@
-Title: A high-level technical overview of libvips's evaluation system
+Title: Technical background > Evaluation
 
 Compared to most image processing libraries, libvips needs little RAM and runs
 quickly, especially on machines with more than one CPU. libvips achieves this

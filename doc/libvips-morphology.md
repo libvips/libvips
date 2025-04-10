@@ -1,4 +1,4 @@
-Title: Operators by section -- Morphological operators
+Title: Operator index > By section > Morphology
 
 <!-- libvips/morphology -->
 

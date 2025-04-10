@@ -1,4 +1,4 @@
-Title: Operators by section -- Image headers
+Title: Operator index > By section > Header
 
 <!-- libvips/iofuncs/header.c -->
 

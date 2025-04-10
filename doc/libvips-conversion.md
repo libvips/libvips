@@ -1,4 +1,4 @@
-Title: Operators by section -- Convert images in some way
+Title: Operator index > By section > Conversion
 
 <!-- libvips/conversion -->
 

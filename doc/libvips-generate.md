@@ -1,4 +1,4 @@
-Title: Operators by section -- Calculate pixels and pixel buffers
+Title: Operator index > By section > Generate
 
 <!-- libvips/iofuncs/generate.c -->
 

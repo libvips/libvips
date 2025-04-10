@@ -1,4 +1,4 @@
-Title: Using threads
+Title: Using > Threads
 
 This section tries to summarise the rules for threaded programs using
 libvips. Generally, libvips is threaded and thread-safe, with a few

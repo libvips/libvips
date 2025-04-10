@@ -1,4 +1,4 @@
-Title: Operators by section -- Initialize, finalize and version information
+Title: Operator index > By section > Initialisation
 
 <!-- libvips/iofuncs/init.c -->
 

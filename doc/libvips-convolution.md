@@ -1,4 +1,4 @@
-Title: Operators by section -- Convolve and correlate images
+Title: Operator index > By section > Convolution
 
 <!-- libvips/convolution -->
 

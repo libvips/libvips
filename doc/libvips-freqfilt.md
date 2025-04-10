@@ -1,4 +1,4 @@
-Title: Operators by section -- Fourier transforms and frequency-domain filters
+Title: Operator index > By section > Fourier
 
 <!-- libvips/freqfilt -->
 
