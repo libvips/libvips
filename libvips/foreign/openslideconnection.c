@@ -264,10 +264,13 @@ vips__openslideconnection_leak(void)
 {
 	int n_leaks;
 
+	n_leaks = 0;
+
 	g_mutex_lock(&vips_openslideconnection_lock);
 
-	n_leaks = g_hash_table_size(vips_openslideconnection_cache) -
-		vips_openslideconnection_unused->length;
+	if (vips_openslideconnection_cache)
+		n_leaks += g_hash_table_size(vips_openslideconnection_cache) -
+			vips_openslideconnection_unused->length;
 
 	g_mutex_unlock(&vips_openslideconnection_lock);
 
