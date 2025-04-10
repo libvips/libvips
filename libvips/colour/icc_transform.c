@@ -118,8 +118,8 @@
  * @VIPS_PCS_LAB: use CIELAB D65 as the Profile Connection Space
  * @VIPS_PCS_XYZ: use XYZ as the Profile Connection Space
  *
- * Pick a Profile Connection Space for vips_icc_import() and
- * vips_icc_export(). LAB is usually best, XYZ can be more convenient in some
+ * Pick a Profile Connection Space for [method@Image.icc_import] and
+ * [method@Image.icc_export]. LAB is usually best, XYZ can be more convenient in some
  * cases.
  */
 
@@ -1296,7 +1296,8 @@ vips_icc_transform_init(VipsIccTransform *transform)
  * Transform an image from absolute to relative colorimetry using the
  * MediaWhitePoint stored in the ICC profile.
  *
- * See also: vips_icc_transform(), vips_icc_import().
+ * ::: seealso
+ *     [method@Image.icc_transform], [method@Image.icc_import].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1454,8 +1455,8 @@ vips_icc_is_compatible_profile(VipsImage *image,
  *
  *	  1. If @embedded is set, libvips will try to use any profile in the input
  *	  image metadata. You can test for the presence of an embedded profile
- *	  with vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument.
- *	  This will return %GType 0 if there is no profile.
+ *	  with [method@Image.image_get_typeof] with #VIPS_META_ICC_NAME as an
+ *	  argument. This will return %GType 0 if there is no profile.
  *
  *	  2. Otherwise, if @input_profile is set, libvips will try to load a
  *	  profile from the named file. This can aslso be the name of one of the
@@ -1545,8 +1546,8 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  *
  *	  1. If @embedded is set, libvips will try to use any profile in the input
  *	  image metadata. You can test for the presence of an embedded profile
- *	  with vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument.
- *	  This will return %GType 0 if there is no profile.
+ *	  with [method@Image.image_get_typeof] with #VIPS_META_ICC_NAME as an
+ *	  argument. This will return %GType 0 if there is no profile.
  *
  *	  2. Otherwise, if @input_profile is set, libvips will try to load a
  *	  profile from the named file. This can aslso be the name of one of the
@@ -1563,7 +1564,7 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * The output image has the output profile attached to the #VIPS_META_ICC_NAME
  * field.
  *
- * Use vips_icc_import() and vips_icc_export() to do either the first or
+ * Use [method@Image.icc_import] and [method@Image.icc_export] to do either the first or
  * second half of this operation in isolation.
  *
  * Returns: 0 on success, -1 on error.

@@ -307,7 +307,8 @@ vips_scRGB2sRGB_init(VipsscRGB2sRGB *scRGB2sRGB)
  * If @depth is 16, any extra channels after RGB are
  * multiplied by 256.
  *
- * See also: vips_LabS2LabQ(), vips_sRGB2scRGB(), vips_rad2float().
+ * ::: seealso
+ *     [method@Image.LabS2LabQ], [method@Image.sRGB2scRGB], [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -107,7 +107,8 @@ vips_Lab2LabS_init(VipsLab2LabS *Lab2LabS)
  *
  * Turn Lab to LabS, signed 16-bit int fixed point.
  *
- * See also: vips_LabQ2Lab().
+ * ::: seealso
+ *     [method@Image.LabQ2Lab].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -141,7 +141,7 @@ make_hI(void)
  * vips_col_Lcmc2L:
  * @Lcmc: L cmc
  *
- * Calculate L from Lcmc using a table. Call vips_col_make_tables_CMC() at
+ * Calculate L from Lcmc using a table. Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: L*
@@ -163,7 +163,7 @@ vips_col_Lcmc2L(float Lcmc)
  * @Ccmc: Ccmc
  *
  * Calculate C from Ccmc using a table.
- * Call vips_col_make_tables_CMC() at
+ * Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: C.
@@ -186,7 +186,7 @@ vips_col_Ccmc2C(float Ccmc)
  * @hcmc: Hue cmc (degrees)
  *
  * Calculate h from C and hcmc, using a table.
- * Call vips_col_make_tables_CMC() at
+ * Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: h.
@@ -292,7 +292,8 @@ vips_CMC2LCh_init(VipsCMC2LCh *CMC2LCh)
  *
  * Turn LCh to CMC.
  *
- * See also: vips_LCh2CMC().
+ * ::: seealso
+ *     [method@Image.LCh2CMC].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -233,7 +233,8 @@ vips_LCh2CMC_init(VipsLCh2CMC *LCh2CMC)
  * This operation generates CMC(1:1). For CMC(2:1), halve Lucs and double
  * Cucs.
  *
- * See also: vips_CMC2LCh().
+ * ::: seealso
+ *     [method@Image.CMC2LCh].
  *
  * Returns: 0 on success, -1 on error
  */

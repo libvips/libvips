@@ -213,7 +213,7 @@ vips_CMYK2XYZ_init(VipsCMYK2XYZ *CMYK2XYZ)
  * fallback profile will be used.
  *
  * Conversion is to D65 XYZ with relative intent. If you need more control
- * over the process, use vips_icc_import() instead.
+ * over the process, use [method@Image.icc_import] instead.
  *
  * Returns: 0 on success, -1 on error
  */

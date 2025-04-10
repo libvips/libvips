@@ -160,10 +160,11 @@ vips_sRGB2HSV_init(VipssRGB2HSV *sRGB2HSV)
  * Convert to HSV.
  *
  * HSV is a crude polar coordinate system for RGB images. It is provided for
- * compatibility with other image processing systems. See vips_Lab2LCh() for a
+ * compatibility with other image processing systems. See [method@Image.Lab2LCh] for a
  * much better colour space.
  *
- * See also: vips_HSV2sRGB(), vips_Lab2LCh().
+ * ::: seealso
+ *     [method@Image.HSV2sRGB], [method@Image.Lab2LCh].
  *
  * Returns: 0 on success, -1 on error.
  */
