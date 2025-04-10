@@ -1,4 +1,4 @@
-Title: Operator index > By section > Mosaics
+Title: Operator index > By section > Mosaicing
 
 <!-- libvips/mosaicing -->
 
