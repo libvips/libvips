@@ -5,7 +5,7 @@ Title: Operator index > By section > Header
 libvips supports getting and setting image header data (including metadata)
 in a uniform way.
 
-Use [method@Image.image_get_typeof] to test for the existence and
+Use [method@Image.get_typeof] to test for the existence and
 [alias@GObject.Type] of a header field.
 
 You can attach arbitrary metadata to images. Metadata is copied as images
@@ -73,10 +73,10 @@ copied between images efficiently.
 * [method@Image.get_concurrency]
 * [method@Image.get_data]
 * [method@Image.init_fields]
-* [method@Image.image_set]
-* [method@Image.image_get]
+* [method@Image.set]
+* [method@Image.get]
 * [method@Image.get_as_string]
-* [method@Image.image_get_typeof]
+* [method@Image.get_typeof]
 * [method@Image.remove]
 * [method@Image.map]
 * [method@Image.get_fields]
@@ -84,15 +84,15 @@ copied between images efficiently.
 * [method@Image.get_area]
 * [method@Image.set_blob]
 * [method@Image.set_blob_copy]
-* [method@Image.image_get_blob]
-* [method@Image.image_get_int]
+* [method@Image.get_blob]
+* [method@Image.get_int]
 * [method@Image.set_int]
-* [method@Image.image_get_double]
+* [method@Image.get_double]
 * [method@Image.set_double]
 * [method@Image.get_string]
 * [method@Image.set_string]
 * [method@Image.print_field]
-* [method@Image.image_get_image]
+* [method@Image.get_image]
 * [method@Image.set_image]
 * [method@Image.set_array_int]
 * [method@Image.get_array_int]
