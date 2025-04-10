@@ -1,4 +1,4 @@
-Title: Processing multipage and animated images
+Title: Using > Multipage and animated images
 
 libvips represents animated and multipage images as tall, thin strips of
 frames, like a strip of movie film (or a roll of toilet paper). Special image

@@ -1,4 +1,4 @@
-Title: The libvips file format
+Title: Technical background > The libvips file format
 
 libvips has a simple, native file format. It's very fast, there is no image
 size limit, and it supports arbitrary metadata. Although few other programs
@@ -82,8 +82,8 @@ Other values of `coding` can set other coding styles. Use
 ## The metadata
 
 Following the image data is a chunk of XML holding a simple list of name-value
-pairs. Binary data is encoded with base64. Use [method@Image.image_set] and
-friends to set and get image metadata.
+pairs. Binary data is encoded with base64. Use [method@Image.set] and friends
+to set and get image metadata.
 
 You can use `vipsheader -f getext some_file.v` to get the XML from a libvips
 image, and `vipsedit --setext some_file.v < file.xml` to replace the XML.

@@ -1,4 +1,4 @@
-Title: Using libvips at the command-line
+Title: Using > At the command-line
 
 Use the `vips` command to execute libvips operations from the command-line.
 For example:

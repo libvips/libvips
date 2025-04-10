@@ -1,4 +1,4 @@
-Title: Operators by section -- Pixel arithmetic
+Title: Operator index > By section > Arithmetic
 
 <!-- libvips/arithmetic -->
 

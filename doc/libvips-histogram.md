@@ -1,4 +1,4 @@
-Title: Operators by section -- Find, manipulate and apply histograms and lookup tables
+Title: Operator index > By section > Histogram
 
 <!-- libvips/histogram -->
 
