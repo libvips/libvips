@@ -1455,7 +1455,7 @@ vips_icc_is_compatible_profile(VipsImage *image,
  *
  *	  1. If @embedded is set, libvips will try to use any profile in the input
  *	  image metadata. You can test for the presence of an embedded profile
- *	  with [method@Image.image_get_typeof] with #VIPS_META_ICC_NAME as an
+ *	  with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
  *	  argument. This will return %GType 0 if there is no profile.
  *
  *	  2. Otherwise, if @input_profile is set, libvips will try to load a
@@ -1546,7 +1546,7 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  *
  *	  1. If @embedded is set, libvips will try to use any profile in the input
  *	  image metadata. You can test for the presence of an embedded profile
- *	  with [method@Image.image_get_typeof] with #VIPS_META_ICC_NAME as an
+ *	  with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
  *	  argument. This will return %GType 0 if there is no profile.
  *
  *	  2. Otherwise, if @input_profile is set, libvips will try to load a
