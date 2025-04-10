@@ -1,4 +1,4 @@
-Title: Operator index > By section > Histograms
+Title: Operator index > By section > Histogram
 
 <!-- libvips/histogram -->
 
