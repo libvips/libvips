@@ -200,7 +200,7 @@ s/vips_\(icc_export\)()/[method@Image.\1]/g
 s/vips_\(icc_import\)()/[method@Image.\1]/g
 s/vips_\(icc_transform\)()/[method@Image.\1]/g
 s/vips_\(ifthenelse\)()/[method@Image.\1]/g
-s/vips_\(image_get_typeof\)()/[method@Image.\1]/g
+s/vips_image_\(get_typeof\)()/[method@Image.\1]/g
 s/vips_\(imag\)()/[method@Image.\1]/g
 s/vips_\(insert\)()/[method@Image.\1]/g
 s/vips_\(invertlut\)()/[method@Image.\1]/g
