@@ -100,6 +100,7 @@ s/vips_\(ceil\)()/[method@Image.\1]/g
 s/vips_\(clamp\)()/[method@Image.\1]/g
 s/vips_\(CMC2LCh\)()/[method@Image.\1]/g
 s/vips_\(CMYK2XYZ\)()/[method@Image.\1]/g
+s/vips_\(colourspace_issupported\)()/[method@Image.\1]/g
 s/vips_\(colourspace\)()/[method@Image.\1]/g
 s/vips_\(compass\)()/[method@Image.\1]/g
 s/vips_\(complex2\)()/[method@Image.\1]/g
@@ -199,6 +200,7 @@ s/vips_\(icc_export\)()/[method@Image.\1]/g
 s/vips_\(icc_import\)()/[method@Image.\1]/g
 s/vips_\(icc_transform\)()/[method@Image.\1]/g
 s/vips_\(ifthenelse\)()/[method@Image.\1]/g
+s/vips_image_\(get_typeof\)()/[method@Image.\1]/g
 s/vips_\(imag\)()/[method@Image.\1]/g
 s/vips_\(insert\)()/[method@Image.\1]/g
 s/vips_\(invertlut\)()/[method@Image.\1]/g
@@ -341,8 +343,8 @@ s/vips_\(shrinkv\)()/[method@Image.\1]/g
 s/vips_\(sign\)()/[method@Image.\1]/g
 s/vips_\(similarity\)()/[method@Image.\1]/g
 s/vips_\(sinh\)()/[method@Image.\1]/g
-s/vips_\(sink\)()/[method@Image.\1]/g
 s/vips_\(sink_disc\)()/[method@Image.\1]/g
+s/vips_\(sink\)()/[method@Image.\1]/g
 s/vips_\(sink_screen\)()/[method@Image.\1]/g
 s/vips_\(sin\)()/[method@Image.\1]/g
 s/vips_\(smartcrop\)()/[method@Image.\1]/g

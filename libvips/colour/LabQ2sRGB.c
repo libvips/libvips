@@ -222,7 +222,8 @@ vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B)
  *
  * Turn scRGB into XYZ.
  *
- * See also: vips_scRGB2XYZ().
+ * ::: seealso
+ *     [method@Image.scRGB2XYZ].
  */
 int
 vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
@@ -255,7 +256,8 @@ vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
  *
  * Turn XYZ into scRGB.
  *
- * See also: vips_XYZ2scRGB().
+ * ::: seealso
+ *     [method@Image.XYZ2scRGB].
  */
 int
 vips_col_XYZ2scRGB(float X, float Y, float Z, float *R, float *G, float *B)
@@ -571,9 +573,10 @@ vips_LabQ2sRGB_init(VipsLabQ2sRGB *LabQ2sRGB)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.
+ * Unpack a LabQ ([enum@Vips.Coding.LABQ)] image to a three-band short image.
  *
- * See also: vips_LabS2LabQ(), vips_LabQ2sRGB(), vips_rad2float().
+ * ::: seealso
+ *     [method@Image.LabS2LabQ], [method@Image.LabQ2sRGB], [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */

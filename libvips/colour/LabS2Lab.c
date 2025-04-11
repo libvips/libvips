@@ -103,7 +103,8 @@ vips_LabS2Lab_init(VipsLabS2Lab *LabS2Lab)
  *
  * Convert a LabS three-band signed short image to a three-band float image.
  *
- * See also: vips_LabS2Lab().
+ * ::: seealso
+ *     [method@Image.LabS2Lab].
  *
  * Returns: 0 on success, -1 on error.
  */

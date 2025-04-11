@@ -310,11 +310,12 @@ vips_sRGB2scRGB_init(VipssRGB2scRGB *sRGB2scRGB)
  *
  * Convert an sRGB image to scRGB. The input image can be 8 or 16-bit.
  *
- * If the input image is tagged as #VIPS_INTERPRETATION_RGB16, any extra
+ * If the input image is tagged as [enum@Vips.Interpretation.RGB16], any extra
  * channels after RGB are divided by 256. Thus, scRGB alpha is
  * always 0 - 255.99.
  *
- * See also: vips_scRGB2XYZ(), vips_scRGB2sRGB(), vips_rad2float().
+ * ::: seealso
+ *     [method@Image.scRGB2XYZ], [method@Image.scRGB2sRGB], [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */

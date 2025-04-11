@@ -180,7 +180,8 @@ vips_XYZ2Lab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
  *
  * Calculate XYZ from Lab, D65.
  *
- * See also: vips_XYZ2Lab().
+ * ::: seealso
+ *     [method@Image.XYZ2Lab].
  */
 void
 vips_col_XYZ2Lab(float X, float Y, float Z, float *L, float *a, float *b)
@@ -260,7 +261,7 @@ vips_XYZ2Lab_init(VipsXYZ2Lab *XYZ2Lab)
  *
  * Optional arguments:
  *
- * * @temp: #VipsArrayDouble, colour temperature
+ * * @temp: [struct@ArrayDouble], colour temperature
  *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
  * defaults to D65.

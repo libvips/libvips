@@ -85,7 +85,8 @@ vips_dECMC_init(VipsdECMC *dECMC)
  * transform the two source images to CMC yourself, scale the channels
  * appropriately, and call this function.
  *
- * See also: vips_colourspace()
+ * ::: seealso
+ *     [method@Image.colourspace]
  *
  * Returns: 0 on success, -1 on error
  */
