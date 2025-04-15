@@ -407,9 +407,9 @@ vips_colour_code_build(VipsObject *object)
 	/* If this is a LABQ and the coder wants uncoded, unpack.
 	 */
 	if (in &&
-		in->Coding == VIPS_CODING_LABQ &&
-		code->input_coding == VIPS_CODING_NONE) {
-		if (vips_LabQ2Lab(in, &t[0], NULL))
+		code->input_coding == VIPS_CODING_NONE &&
+		in->Coding != code->input_coding) {
+		if (vips_image_decode(in, &t[0]))
 			return -1;
 		in = t[0];
 	}
