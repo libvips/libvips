@@ -141,15 +141,7 @@ vips_quadratic_gen(VipsRegion *out_region,
 	int xhigh = VIPS_RECT_RIGHT(&out_region->valid);
 	int yhigh = VIPS_RECT_BOTTOM(&out_region->valid);
 
-	VipsPel *q;
-
-	int xo, yo; /* output coordinates, dstimage */
-	double fxi, fyi; /* input coordinates */
-	double dx, dy;	 /* xo derivative of input coord. */
-	double ddx, ddy; /* 2nd xo derivative of input coord. */
-
 	VipsRect image;
-
 	image.left = 0;
 	image.top = 0;
 	image.width = in->Xsize;
@@ -157,11 +149,18 @@ vips_quadratic_gen(VipsRegion *out_region,
 	if (vips_region_image(ir, &image))
 		return -1;
 
-	for (yo = ylow; yo < yhigh; yo++) {
-		fxi = xlow + vec[0];                /* order 0 */
+	for (int yo = ylow; yo < yhigh; yo++) {
+		double fxi, fyi;		/* input coordinates */
+		double dx, dy;			/* xo derivative of input coord. */
+		double ddx, ddy;		/* 2nd xo derivative of input coord. */
+		VipsPel *q;
+
+		fxi = xlow + vec[0];	/* order 0 */
 		fyi = yo + vec[1];
 		dx = 1.0;
 		dy = 0.0;
+		ddx = 0.0;
+		ddy = 0.0;
 
 		switch (quadratic->order) {
 		case 3:
@@ -193,7 +192,7 @@ vips_quadratic_gen(VipsRegion *out_region,
 
 		q = VIPS_REGION_ADDR(out_region, xlow, yo);
 
-		for (xo = xlow; xo < xhigh; xo++) {
+		for (int xo = xlow; xo < xhigh; xo++) {
 			int xi = fxi;
 			int yi = fyi;
 
