@@ -936,7 +936,7 @@ vips_icc_import_line(VipsColour *colour,
 	float *q;
 	int i;
 
-	/* Buffer of encoded 16-bit pixels we transform.
+	/* Transform to PCS pixels here.
 	 */
 	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
 
@@ -1098,7 +1098,7 @@ vips_icc_export_line_xyz(VipsColour *colour,
 	VipsPel *q;
 	int x;
 
-	/* Buffer of encoded float pixels we transform to device space.
+	/* Buffer of PCS pixels we transform to device space.
 	 */
 	float encoded[3 * PIXEL_BUFFER_SIZE];
 
