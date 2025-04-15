@@ -3377,6 +3377,7 @@ vips_image_copy_memory(VipsImage *image)
 			g_object_unref(new);
 			return NULL;
 		}
+
 		break;
 
 	default:
