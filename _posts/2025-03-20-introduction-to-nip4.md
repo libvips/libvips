@@ -17,7 +17,7 @@ language.
 
 nip4 is a free spreadsheet-like GUI for the [libvips image processing
 library](https://www.libvips.org/) with binaries for Linux, Windows and Mac.
-You can use it to build image processing pipelines, and then execute them on
+You can use it to build image processing pipelines and then execute them on
 large datasets. These pipelines can get quite complex --- I've made systems
 with over 10,000 operations chained together.
 
@@ -62,7 +62,7 @@ collection of images.
 
 ## The main window
 
-When you start nip4, it looks something like this. I've loaded a test image
+When you start nip4 it looks something like this. I've loaded a test image
 (drag one in, use the folder button at the top left, or start nip4 from the
 command-line with `nip4 my-great-image.jpg`):
 
@@ -105,29 +105,25 @@ You can reorder columns by dragging on the row label.
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-scale.png)
 
-You can enter new formula in the text box at the bottom of the column.
-Solarisation is a photographic technique where bright areas of the image
-become inverted. 
-
-This is easy to write as a formula.  nip4 does not have an undo operation,
-instead it has fast and easy duplicate, merge and delete. If you make a
-copy of column `A` before you start changing it, you can't lose any of your
-current work.
+nip4 does not have an undo operation, instead it has fast and easy duplicate,
+merge and delete. If you make a copy of column `A` before you start changing
+it, you can't lose any of your current work.
 
 Duplicate column `A` by right-clicking on the column title and selecting
 Duplicate from the menu.  Right-click on `B3` and select Delete, so you have:
 
 ![nip4]({{ site.baseurl }}/assets/images/nip4-duplicate.png)
 
-Now in the text box at the bottom of column `B`, enter the formula:
+Now in the text box at the bottom of column `B`, enter this formula for
+[Solarization](https://en.wikipedia.org/wiki/Solarization_(photography)):
 
 ```
 if B1 < B2 then 255 * B1 / B2 else 255 * (255 - B1) / (255 - B2)
 ```
 
-And try dragging scale `B2`. Hopefully you'll see a solarised image.
-This operation is also in the standard toolkits, next to Photographic
-Negative.
+And try dragging scale `B2`. Hopefully you'll see a solarized image.
+A version of this operation is also in the standard toolkits, next to
+Photographic Negative.
 
 If you double-click on an image thumbnail, you'll open an image view window.
 These are all live, so as you drag scales, they'll all update. You can zoom
