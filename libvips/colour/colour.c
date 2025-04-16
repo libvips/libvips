@@ -242,40 +242,48 @@ vips_colour_build(VipsObject *object)
 
 	if (vips_image_generate(out,
 			vips_start_many, vips_colour_gen, vips_stop_many,
-			in, colour))
+			in, colour)) {
+		VIPS_UNREF(out);
 		return -1;
+	}
 
 	/* Reattach higher bands, if necessary. If we have more than one input
 	 * image, just use the first extra bands.
 	 */
 	for (int i = 0; i < colour->n; i++)
 		if (extra_bands[i]) {
-			VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+			VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
 			double max_alpha_before =
 				vips_interpretation_max_alpha(extra_bands[i]->Type);
 			double max_alpha_after =
 				vips_interpretation_max_alpha(out->Type);
 
-			VipsImage *in;
+			VipsImage *alpha;
 
-			in = extra_bands[i];
+			alpha = extra_bands[i];
 
 			/* Rescale, if the alpha scale has changed.
 			 */
 			if (max_alpha_before != max_alpha_after) {
-				if (vips_linear1(in, &t[0],
-					max_alpha_after / max_alpha_before, 0.0, NULL))
+				if (vips_linear1(alpha, &t[0],
+					max_alpha_after / max_alpha_before, 0.0, NULL)) {
+					VIPS_UNREF(out);
 					return -1;
-				in = t[0];
+				}
+				alpha = t[0];
 			}
 
-			if (vips_cast(in, &t[1], out->BandFmt, NULL))
+			if (vips_cast(alpha, &t[1], out->BandFmt, NULL)) {
+				VIPS_UNREF(out);
 				return -1;
-			in = t[1];
+			}
+			alpha = t[1];
 
-			if (vips_bandjoin2(out, in, &t[2], NULL))
+			if (vips_bandjoin2(out, alpha, &t[2], NULL)) {
+				VIPS_UNREF(out);
 				return -1;
+			}
 			g_object_unref(out);
 			out = t[2];
 			t[2] = NULL;
