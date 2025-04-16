@@ -250,7 +250,7 @@ vips_colour_build(VipsObject *object)
 	 */
 	for (int i = 0; i < colour->n; i++)
 		if (extra_bands[i]) {
-			VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+			VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
 			double max_alpha_before =
 				vips_interpretation_max_alpha(extra_bands[i]->Type);
