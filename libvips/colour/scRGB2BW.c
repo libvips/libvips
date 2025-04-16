@@ -2,6 +2,8 @@
  *
  * 17/4/15
  * 	- from scRGB2BW.c
+ * 16/4/25
+ *	- move on top of ColourCode
  */
 
 /*
@@ -42,7 +44,6 @@
 #include <vips/vips.h>
 
 #include "pcolour.h"
-
 
 typedef struct _VipsscRGB2BW {
 	VipsColourCode parent_instance;
@@ -130,8 +131,7 @@ vips_scRGB2BW_build(VipsObject *object)
 		break;
 
 	default:
-		vips_error(class->nickname,
-			"%s", _("depth must be 8 or 16"));
+		vips_error(class->nickname, "%s", _("depth must be 8 or 16"));
 		return -1;
 	}
 
