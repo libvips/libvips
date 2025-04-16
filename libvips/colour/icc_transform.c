@@ -927,8 +927,7 @@ decode_xyz(guint16 *fixed, float *xyz, int n)
 /* Process a buffer of data.
  */
 static void
-vips_icc_import_line(VipsColour *colour,
-	VipsPel *out, VipsPel **in, int width)
+vips_icc_import_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
