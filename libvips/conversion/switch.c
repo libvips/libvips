@@ -238,9 +238,10 @@ vips_switchv(VipsImage **tests, VipsImage **out, int n, va_list ap)
  * bounding box of the set of images in @tests, and that size is used for
  * @out. @tests can have up to 255 elements.
  *
- * Combine with vips_case() to make an efficient multi-way vips_ifthenelse().
+ * Combine with [method@Image.case] to make an efficient multi-way [method@Image.ifthenelse].
  *
- * See also: vips_maplut(), vips_case(), vips_ifthenelse().
+ * ::: seealso
+ *     [method@Image.maplut], [method@Image.case], [method@Image.ifthenelse].
  *
  * Returns: 0 on success, -1 on error
  */

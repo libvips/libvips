@@ -475,16 +475,6 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @across: %gint, number of images per row
- * * @shim: %gint, space between images, in pixels
- * * @background: #VipsArrayDouble, background ink colour
- * * @halign: #VipsAlign, low, centre or high alignment
- * * @valign: #VipsAlign, low, centre or high alignment
- * * @hspacing: %gint, horizontal distance between images
- * * @vspacing: %gint, vertical distance between images
- *
  * Lay out the images in @in in a grid. The grid is @across images across and
  * however high is necessary to use up all of @in. Images are set down
  * left-to-right and top-to-bottom. @across defaults to @n.
@@ -511,10 +501,20 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * vips_colourspace() can be useful for moving the images to a common
+ * [method@Image.colourspace] can be useful for moving the images to a common
  * colourspace for compositing.
  *
- * See also: vips_join(), vips_insert(), vips_colourspace().
+ * ::: tip "Optional arguments"
+ *     * @across: %gint, number of images per row
+ *     * @shim: %gint, space between images, in pixels
+ *     * @background: [struct@ArrayDouble], background ink colour
+ *     * @halign: [enum@Align], low, centre or high alignment
+ *     * @valign: [enum@Align], low, centre or high alignment
+ *     * @hspacing: %gint, horizontal distance between images
+ *     * @vspacing: %gint, vertical distance between images
+ *
+ * ::: seealso
+ *     [method@Image.join], [method@Image.insert], [method@Image.colourspace].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -283,19 +283,15 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @max_alpha: %gdouble, maximum value for alpha
- *
  * Premultiplies any alpha channel.
- * The final band is taken to be the alpha
- * and the bands are transformed as:
  *
- * |[
- *   alpha = clip(0, in[in.bands - 1], @max_alpha);
- *   norm = alpha / @max_alpha;
- *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha];
- * ]|
+ * The final band is taken to be the alpha and the bands are transformed as:
+ *
+ * ```
+ *   alpha = clip(0, in[in.bands - 1], max_alpha)
+ *   norm = alpha / max_alpha
+ *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha]
+ * ```
  *
  * So for an N-band image, the first N - 1 bands are multiplied by the clipped
  * and normalised final band, the final band is clipped.
@@ -303,16 +299,20 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * the image is passed through unaltered.
  *
  * The result is
- * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which
- * case the output is double as well.
+ * [enum@Vips.BandFormat.FLOAT] unless the input format is
+ * [enum@Vips.BandFormat.DOUBLE], in which case the output is double as well.
  *
  * @max_alpha has the default value 255, or 65535 for images tagged as
- * #VIPS_INTERPRETATION_RGB16 or
- * #VIPS_INTERPRETATION_GREY16.
+ * [enum@Vips.Interpretation.RGB16] or [enum@Vips.Interpretation.GREY16], and
+ * 1.0 for images tagged as [enum@Vips.Interpretation.scRGB].
  *
  * Non-complex images only.
  *
- * See also: vips_unpremultiply(), vips_flatten().
+ * ::: tip "Optional arguments"
+ *     * @max_alpha: %gdouble, maximum value for alpha
+ *
+ * ::: seealso
+ *     [method@Image.unpremultiply], [method@Image.flatten].
  *
  * Returns: 0 on success, -1 on error
  */

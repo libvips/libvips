@@ -106,7 +106,8 @@ vips_addalpha_init(VipsAddAlpha *addalpha)
  *
  * Append an alpha channel.
  *
- * See also: vips_image_hasalpha().
+ * ::: seealso
+ *     [method@Image.hasalpha].
  *
  * Returns: 0 on success, -1 on error
  */

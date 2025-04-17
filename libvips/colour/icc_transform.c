@@ -1440,16 +1440,8 @@ vips_icc_is_compatible_profile(VipsImage *image,
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @pcs: #VipsPCS,  use XYZ or LAB PCS
- * * @intent: #VipsIntent, transform with this intent
- * * @black_point_compensation: %gboolean, enable black point compensation
- * * @embedded: %gboolean, use profile embedded in input image
- * * @input_profile: %gchararray, get the input profile from here
- *
  * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
- * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead.
+ * set to [enum@Vips.PCS.XYZ], use CIE XYZ PCS instead.
  *
  * The input profile is searched for in three places:
  *
@@ -1459,7 +1451,7 @@ vips_icc_is_compatible_profile(VipsImage *image,
  *	  argument. This will return %GType 0 if there is no profile.
  *
  *	  2. Otherwise, if @input_profile is set, libvips will try to load a
- *	  profile from the named file. This can aslso be the name of one of the
+ *	  profile from the named file. This can also be the name of one of the
  *	  built-in profiles.
  *
  *	  3. Otherwise, libvips will try to pick a compatible profile from the set
@@ -1467,6 +1459,13 @@ vips_icc_is_compatible_profile(VipsImage *image,
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
+ *
+ * ::: tip "Optional arguments"
+ *		* @pcs: [enum@PCS], use XYZ or LAB PCS
+ *		* @intent: [enum@Intent], transform with this intent
+ *		* @black_point_compensation: %gboolean, enable black point compensation
+ *		* @embedded: %gboolean, use profile embedded in input image
+ *		* @input_profile: %gchararray, get the input profile from here
  *
  * Returns: 0 on success, -1 on error.
  */

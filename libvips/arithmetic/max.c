@@ -510,14 +510,6 @@ vips_max_init(VipsMax *max)
  * @out: (out): output pixel maximum
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @x: horizontal position of maximum
- *     * @y: vertical position of maximum
- *     * @size: number of maxima to find
- *     * @out_array: return array of maximum values
- *     * @x_array: corresponding horizontal positions
- *     * @y_array: corresponding vertical positions
- *
  * This operation finds the maximum value in an image.
  *
  * By default it finds the single largest value. If @size is set >1, it will
@@ -538,6 +530,14 @@ vips_max_init(VipsMax *max)
  *
  * If there are more than @size maxima, the maxima returned will be a random
  * selection of the maxima in the image.
+ *
+ * ::: tip "Optional arguments"
+ *     * @x: horizontal position of maximum
+ *     * @y: vertical position of maximum
+ *     * @size: number of maxima to find
+ *     * @out_array: return array of maximum values
+ *     * @x_array: corresponding horizontal positions
+ *     * @y_array: corresponding vertical positions
  *
  * ::: seealso
  *     [method@Image.min], [method@Image.stats].

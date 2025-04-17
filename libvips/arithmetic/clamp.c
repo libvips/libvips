@@ -186,13 +186,13 @@ vips_clamp_init(VipsClamp *clamp)
  * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @min: %gdouble, minimum value
- *     * @max: %gdouble, maximum value
- *
  * This operation clamps pixel values to a range, by default 0 - 1.
  *
  * Use @min and @max to change the range.
+ *
+ * ::: tip "Optional arguments"
+ *     * @min: %gdouble, minimum value
+ *     * @max: %gdouble, maximum value
  *
  * ::: seealso
  *     [method@Image.sign], [method@Image.abs], [ctor@Image.sdf].

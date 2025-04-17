@@ -682,18 +682,17 @@ vips_embed_init(VipsEmbed *embed)
  * @height: @out should be this many pixels down
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * The opposite of [method@Image.extract_area]: embed @in within an image of
+ * size @width by @height at position @x, @y.
  *
- * * @extend: #VipsExtend to generate the edge pixels (default: black)
- * * @background: #VipsArrayDouble colour for edge pixels
+ * @extend controls what appears in the new pels, see [enum@Extend].
  *
- * The opposite of vips_extract_area(): embed @in within an image of size
- * @width by @height at position @x, @y.
+ * ::: tip "Optional arguments"
+ *     * @extend: [enum@Extend] to generate the edge pixels (default: black)
+ *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
- * @extend
- * controls what appears in the new pels, see #VipsExtend.
- *
- * See also: vips_extract_area(), vips_insert().
+ * ::: seealso
+ *     [method@Image.extract_area], [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -830,18 +829,17 @@ vips_gravity_init(VipsGravity *gravity)
  * @height: @out should be this many pixels down
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * The opposite of [method@Image.extract_area]: place @in within an image of
+ * size @width by @height at a certain gravity.
  *
- * * @extend: #VipsExtend to generate the edge pixels (default: black)
- * * @background: #VipsArrayDouble colour for edge pixels
+ * @extend controls what appears in the new pels, see #VipsExtend.
  *
- * The opposite of vips_extract_area(): place @in within an image of size
- * @width by @height at a certain gravity.
+ * ::: tip "Optional arguments"
+ *     * @extend: #VipsExtend to generate the edge pixels (default: black)
+ *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
- * @extend
- * controls what appears in the new pels, see #VipsExtend.
- *
- * See also: vips_extract_area(), vips_insert().
+ * ::: seealso
+ *     [method@Image.extract_area], [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error.
  */

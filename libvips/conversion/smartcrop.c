@@ -493,13 +493,6 @@ vips_smartcrop_init(VipsSmartcrop *smartcrop)
  * @height: height of area to extract
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @interesting: #VipsInteresting to use to find interesting areas (default: #VIPS_INTERESTING_ATTENTION)
- * * @premultiplied: %gboolean, input image already has premultiplied alpha
- * * @attention_x: %gint, horizontal position of attention centre when using attention based cropping
- * * @attention_y: %gint, vertical position of attention centre when using attention based cropping
- *
  * Crop an image down to a specified width and height by removing boring parts.
  *
  * Use @interesting to pick the method vips uses to decide which bits of the
@@ -508,7 +501,17 @@ vips_smartcrop_init(VipsSmartcrop *smartcrop)
  * You can test xoffset / yoffset on @out to find the location of the crop
  * within the input image.
  *
- * See also: vips_extract_area().
+ * ::: tip "Optional arguments"
+ *     * @interesting: [enum@Interesting] to use to find interesting areas
+ *       (default: [enum@Vips.Interesting.ATTENTION])
+ *     * @premultiplied: %gboolean, input image already has premultiplied alpha
+ *     * @attention_x: %gint, horizontal position of attention centre when
+ *       using attention based cropping (output)
+ *     * @attention_y: %gint, vertical position of attention centre when
+ *       using attention based cropping (output)
+ *
+ * ::: seealso
+ *     [method@Image.extract_area].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -510,14 +510,6 @@ vips_min_init(VipsMin *min)
  * @out: (out): output pixel minimum
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @x: horizontal position of minimum
- *     * @y: vertical position of minimum
- *     * @size: number of minima to find
- *     * @out_array: return array of minimum values
- *     * @x_array: corresponding horizontal positions
- *     * @y_array: corresponding vertical positions
- *
  * This operation finds the minimum value in an image.
  *
  * By default it finds the single smallest value. If @size is set >1, it will
@@ -539,6 +531,14 @@ vips_min_init(VipsMin *min)
  *
  * If there are more than @size minima, the minima returned will be a random
  * selection of the minima in the image.
+ *
+ * ::: tip "Optional arguments"
+ *     * @x: horizontal position of minimum
+ *     * @y: vertical position of minimum
+ *     * @size: number of minima to find
+ *     * @out_array: return array of minimum values
+ *     * @x_array: corresponding horizontal positions
+ *     * @y_array: corresponding vertical positions
  *
  * ::: seealso
  *     [method@Image.min], [method@Image.stats].

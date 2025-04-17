@@ -121,6 +121,7 @@ s/vips_\(cos\)()/[method@Image.\1]/g
 s/vips_\(countlines\)()/[method@Image.\1]/g
 s/vips_\(crop\)()/[method@Image.\1]/g
 s/vips_\(cross_phase\)()/[method@Image.\1]/g
+s/vips_\(csvload\)()/[ctor@Image.\1]/g
 s/vips_\(csvsave\)()/[method@Image.\1]/g
 s/vips_\(csvsave_target\)()/[method@Image.\1]/g
 s/vips_\(dE00\)()/[method@Image.\1]/g
@@ -199,6 +200,7 @@ s/vips_\(HSV2sRGB\)()/[method@Image.\1]/g
 s/vips_\(icc_export\)()/[method@Image.\1]/g
 s/vips_\(icc_import\)()/[method@Image.\1]/g
 s/vips_\(icc_transform\)()/[method@Image.\1]/g
+s/vips_\(identity\)()/[ctor@Image.\1]/g
 s/vips_\(ifthenelse\)()/[method@Image.\1]/g
 s/vips_image_\(get_typeof\)()/[method@Image.\1]/g
 s/vips_\(imag\)()/[method@Image.\1]/g
@@ -210,6 +212,7 @@ s/vips_\(join\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave_buffer\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave\)()/[method@Image.\1]/g
 s/vips_\(jp2ksave_target\)()/[method@Image.\1]/g
+s/vips_\(jpegload\)()/[ctor@Image.\1]/g
 s/vips_\(jpegsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(jpegsave\)()/[method@Image.\1]/g
 s/vips_\(jpegsave_mime\)()/[method@Image.\1]/g
@@ -285,10 +288,13 @@ s/vips_\(orimage_const\)()/[method@Image.\1]/g
 s/vips_\(orimage\)()/[method@Image.\1]/g
 s/vips_\(percent\)()/[method@Image.\1]/g
 s/vips_\(phasecor\)()/[method@Image.\1]/g
+s/vips_\(pngload\)()/[ctor@Image.\1]/g
 s/vips_\(pngsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(pngsave\)()/[method@Image.\1]/g
 s/vips_\(pngsave_target\)()/[method@Image.\1]/g
 s/vips_\(polar\)()/[method@Image.\1]/g
+s/vips_\(pow_const1\)()/[method@Image.\1]/g
+s/vips_\(pow_const\)()/[method@Image.\1]/g
 s/vips_\(pow\)()/[method@Image.\1]/g
 s/vips_\(ppmsave\)()/[method@Image.\1]/g
 s/vips_\(ppmsave_target\)()/[method@Image.\1]/g
@@ -302,6 +308,7 @@ s/vips_\(radsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(radsave\)()/[method@Image.\1]/g
 s/vips_\(radsave_target\)()/[method@Image.\1]/g
 s/vips_\(rank\)()/[method@Image.\1]/g
+s/vips_\(rawload\)()/[ctor@Image.\1]/g
 s/vips_\(rawsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(rawsave_fd\)()/[method@Image.\1]/g
 s/vips_\(rawsave\)()/[method@Image.\1]/g
@@ -381,15 +388,29 @@ s/vips_\(XYZ2Yxy\)()/[method@Image.\1]/g
 s/vips_\(Yxy2XYZ\)()/[method@Image.\1]/g
 s/vips_\(zoom\)()/[method@Image.\1]/g
 
+s/vips_\(arrayjoin\)()/[func@Image.\1]/g
+s/vips_\(bandjoin\)()/[func@Image.\1]/g
+s/vips_\(bandrank\)()/[func@Image.\1]/g
+s/vips_\(composite\)()/[func@Image.\1]/g
+s/vips_\(sum\)()/[func@Image.\1]/g
+s/vips_\(switch\)()/[func@Image.\1]/g
+
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(Extend\)/[enum@\1]/g
+s/#Vips\(Angle45\)/[enum@\1]/g
+s/#Vips\(Interesting\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
+s/#Vips\(Align\)/[enum@\1]/g
+s/#Vips\(Angle\)/[enum@\1]/g
+s/#Vips\(ArgumentFlags\)/[flags@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
-s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
+s/#Vips\(Intent\)/[enum@\1]/g
+s/#Vips\(Interpretation\)/[enum@\1]/g
+s/#Vips\(PCS\)/[enum@\1]/g
 s/#Vips\(Precision\)/[enum@\1]/g
-s/#Vips\(ArgumentFlags\)/[flags@\1]/g
 
 s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(Progress\)/[struct@\1]/g
@@ -420,6 +441,7 @@ s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
 s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
+s/#VIPS_PCS_\([^ ,.]*\)/[enum@Vips.PCS.\1]/g
 s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
 s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g
 s/#VIPS_OPERATION_BOOLEAN_\([^ ,.]*\)/[enum@Vips.OperationBoolean.\1]/g
@@ -435,6 +457,8 @@ s/#VIPS_INTERPRETATION_\([^ ,.]*\)/[enum@Vips.Interpretation.\1]/g
 s/#VIPS_ACCESS_\([^ ,.]*\)/[enum@Vips.Access.\1]/g
 s/#VIPS_CODING_\([^ ,.]*\)/[enum@Vips.Coding.\1]/g
 
+s/g_\(assert_not_reached\)/banana_\1_banana/g
+
 s/g_thread_\([^(]*new\)()/[ctor@GLib.Thread.\1]/g
 s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
@@ -446,3 +470,5 @@ s/%GInput/[class@Gio.Input]/g
 s/%GSList/[struct@GLib.SList]/g
 
 s/g_\([^(]*\)()/[func@GLib.\1]/g
+
+s/banana_\(.*\)_banana/g_\1/g

@@ -184,11 +184,6 @@ vips_scale_init(VipsScale *scale)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @log: log scale pixels
- * * @exp: exponent for log scale
- *
  * Search the image for the maximum and minimum value, then return the image
  * as unsigned 8-bit, scaled so that the maximum value is 255 and the
  * minimum is zero.
@@ -196,7 +191,12 @@ vips_scale_init(VipsScale *scale)
  * If @log is set, transform with log10(1.0 + pow(x, @exp)) + .5,
  * then scale so max == 255. By default, @exp is 0.25.
  *
- * See also: vips_cast().
+ * ::: tip "Optional arguments"
+ *     * @log: %gboolean, log scale pixels
+ *     * @exp: %gdouble, exponent for log scale
+ *
+ * ::: seealso
+ *     [method@Image.cast].
  *
  * Returns: 0 on success, -1 on error
  */

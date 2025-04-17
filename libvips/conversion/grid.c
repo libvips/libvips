@@ -252,7 +252,8 @@ vips_grid_init(VipsGrid *grid)
  * only really need two of these. Requiring three is a double-check that the
  * image has the expected geometry.
  *
- * See also: vips_embed(), vips_insert(), vips_join().
+ * ::: seealso
+ *     [method@Image.embed], [method@Image.insert], [method@Image.join].
  *
  * Returns: 0 on success, -1 on error
  */

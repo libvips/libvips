@@ -246,7 +246,8 @@ vips_bandjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * Smallest common format in
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * See also: vips_insert().
+ * ::: seealso
+ *     [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -270,7 +271,7 @@ vips_bandjoin(VipsImage **in, VipsImage **out, int n, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Join a pair of images together, bandwise. See vips_bandjoin().
+ * Join a pair of images together, bandwise. See [func@Image.bandjoin].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -477,7 +478,8 @@ vips_bandjoin_constv(VipsImage *in, VipsImage **out,
  *
  * Append a set of constant bands to an image.
  *
- * See also: vips_bandjoin().
+ * ::: seealso
+ *     [func@Image.bandjoin].
  *
  * Returns: 0 on success, -1 on error
  */

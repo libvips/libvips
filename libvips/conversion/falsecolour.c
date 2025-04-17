@@ -399,7 +399,8 @@ vips_falsecolour_init(VipsFalsecolour *falsecolour)
  * map. The map is supposed to make small differences in brightness more
  * obvious.
  *
- * See also: vips_maplut().
+ * ::: seealso
+ *     [method@Image.maplut].
  *
  * Returns: 0 on success, -1 on error
  */

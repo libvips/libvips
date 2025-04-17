@@ -822,40 +822,41 @@ vips_tile_cache_init(VipsTileCache *cache)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
  *
- * * @tile_width: width of tiles in cache
- * * @tile_height: height of tiles in cache
- * * @max_tiles: maximum number of tiles to cache
- * * @access: hint expected access pattern #VipsAccess
- * * @threaded: allow many threads
- * * @persistent: don't drop cache at end of computation
- *
- * This operation behaves rather like vips_copy() between images
+ * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it keeps a cache of computed pixels.
  * This cache is made of up to @max_tiles tiles (a value of -1
  * means any number of tiles), and each tile is of size @tile_width
  * by @tile_height pixels.
  *
  * Each cache tile is made with a single call to
- * vips_region_prepare().
+ * [method@Region.prepare].
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
- * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If
- * @access is #VIPS_ACCESS_SEQUENTIAL
+ * [enum@Vips.Access.RANDOM], then the least-recently-used tile is reused. If
+ * @access is [enum@Vips.Access.SEQUENTIAL]
  * the top-most tile is reused.
  *
  * By default, @tile_width and @tile_height are 128 pixels, and the operation
- * will cache up to 1,000 tiles. @access defaults to #VIPS_ACCESS_RANDOM.
+ * will cache up to 1,000 tiles. @access defaults to [enum@Vips.Access.RANDOM].
  *
  * Normally, only a single thread at once is allowed to calculate tiles. If
- * you set @threaded to %TRUE, vips_tilecache() will allow many threads to
- * calculate tiles at once, and share the cache between them.
+ * you set @threaded to %TRUE, [method@Image.tilecache] will allow many
+ * threads to calculate tiles at once, and share the cache between them.
  *
  * Normally the cache is dropped when computation finishes. Set @persistent to
  * %TRUE to keep the cache between computations.
  *
- * See also: vips_cache(), vips_linecache().
+ * ::: tip "Optional arguments"
+ *     * @tile_width: %gint, width of tiles in cache
+ *     * @tile_height: %gint, height of tiles in cache
+ *     * @max_tiles: %gint, maximum number of tiles to cache
+ *     * @access: [enum@Access], hint expected access pattern
+ *     * @threaded: %gboolean, allow many threads
+ *     * @persistent: %gboolean, don't drop cache at end of computation
+ *
+ * ::: seealso
+ *     [method@Image.linecache].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -995,34 +996,33 @@ vips_line_cache_init(VipsLineCache *cache)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @access: hint expected access pattern #VipsAccess
- * * @tile_height: height of tiles in cache
- * * @threaded: allow many threads
- *
- * This operation behaves rather like vips_copy() between images
+ * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it keeps a cache of computed scanlines.
  *
  * The number of lines cached is enough for a small amount of non-local
  * access.
  *
- * Each cache tile is made with a single call to
- * vips_region_prepare().
+ * Each cache tile is made with a single call to [method@Region.prepare].
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
- * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If
- * @access is #VIPS_ACCESS_SEQUENTIAL, then
- * the top-most tile is reused. @access defaults to #VIPS_ACCESS_RANDOM.
+ * [enum@Vips.Access.RANDOM], then the least-recently-used tile is reused. If
+ * @access is [enum@Vips.Access.SEQUENTIAL], then
+ * the top-most tile is reused. @access defaults to [enum@Vips.Access.RANDOM].
  *
  * @tile_height can be used to set the size of the strips that
- * vips_linecache() uses. The default is 1 (a single scanline).
+ * [method@Image.linecache] uses. The default is 1 (a single scanline).
  *
  * Normally, only a single thread at once is allowed to calculate tiles. If
- * you set @threaded to %TRUE, vips_linecache() will allow many threads to
- * calculate tiles at once and share the cache between them.
+ * you set @threaded to %TRUE, [method@Image.linecache] will allow many
+ * threads to calculate tiles at once and share the cache between them.
  *
- * See also: vips_cache(), vips_tilecache().
+ * ::: tip "Optional arguments"
+ *     * @access: [enum@Access], hint expected access pattern
+ *     * @tile_height: %gint, height of tiles in cache
+ *     * @threaded: %gboolean, allow many threads
+ *
+ * ::: seealso
+ *     [method@Image.tilecache].
  *
  * Returns: 0 on success, -1 on error.
  */

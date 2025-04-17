@@ -147,16 +147,17 @@ vips_wrap_init(VipsWrap *wrap)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @x: horizontal displacement
- * * @y: vertical displacement
- *
  * Slice an image up and move the segments about so that the pixel that was
- * at 0, 0 is now at @x, @y. If @x and @y are not set, they default to the
- * centre of the image.
+ * at 0, 0 is now at @x, @y.
  *
- * See also: vips_embed(), vips_replicate().
+ * If @x and @y are not set, they default to the centre of the image.
+ *
+ * ::: tip "Optional arguments"
+ *     * @x: horizontal displacement
+ *     * @y: vertical displacement
+ *
+ * ::: seealso
+ *     [method@Image.embed], [method@Image.replicate].
  *
  * Returns: 0 on success, -1 on error
  */
