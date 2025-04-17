@@ -498,7 +498,7 @@ vips_canny_init(VipsCanny *canny)
  * edges.
  *
  * ::: seealso
- *	   vips_sobel().
+ *     [method@Image.sobel].
  *
  * Returns: 0 on success, -1 on error.
  */
