@@ -498,8 +498,6 @@ vips_hist_find_indexed_init(VipsHistFindIndexed *indexed)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @combine: #VipsCombine, combine bins like this
  *
  * Make a histogram of @in, but use image @index to pick the bins. In other
  * words, element zero in @out contains the combination of all the pixels in @in
@@ -515,8 +513,12 @@ vips_hist_find_indexed_init(VipsHistFindIndexed *indexed)
  * Normally, bins are summed, but you can use @combine to set other combine
  * modes.
  *
- * This operation is useful in conjunction with [method@Image.labelregions]. You can
- * use it to find the centre of gravity of blobs in an image, for example.
+ * This operation is useful in conjunction with [method@Image.labelregions].
+ * You can use it to find the centre of gravity of blobs in an image, for
+ * example.
+ *
+ * ::: tip "Optional arguments"
+ *     * @combine: #VipsCombine, combine bins like this
  *
  * ::: seealso
  *     [method@Image.hist_find], [method@Image.labelregions].

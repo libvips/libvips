@@ -256,11 +256,6 @@ vips_find_trim_init(VipsFindTrim *find_trim)
  * @height: (out): output height
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @threshold: %gdouble, background / object threshold
- *     * @background: [struct@ArrayDouble], background colour
- *     * @line_art: %gboolean, enable line art mode
- *
  * Search @in for the bounding box of the non-background area.
  *
  * Any alpha is flattened out, then the image is median-filtered (unless
@@ -269,12 +264,12 @@ vips_find_trim_init(VipsFindTrim *find_trim)
  * the absolute difference are calculated from this binary image and searched
  * for the first row or column in each direction to obtain the bounding box.
  *
- * If the image is entirely background, [method@Image.find_trim] returns @width == 0
- * and @height == 0.
+ * If the image is entirely background, [method@Image.find_trim] returns
+ * @width == 0 and @height == 0.
  *
  * @background defaults to 255, or 65535 for 16-bit images. Set another value,
- * or use [method@Image.getpoint] to pick a value from an edge. You'll need to flatten
- * before [method@Image.getpoint] to get a correct background value.
+ * or use [method@Image.getpoint] to pick a value from an edge. You'll need
+ * to flatten before [method@Image.getpoint] to get a correct background value.
  *
  * @threshold defaults to 10.
  *
@@ -284,6 +279,11 @@ vips_find_trim_init(VipsFindTrim *find_trim)
  * filtering.
  *
  * The image needs to be at least 3x3 pixels in size.
+ *
+ * ::: tip "Optional arguments"
+ *     * @threshold: %gdouble, background / object threshold
+ *     * @background: [struct@ArrayDouble], background colour
+ *     * @line_art: %gboolean, enable line art mode
  *
  * ::: seealso
  *     [method@Image.getpoint], [method@Image.extract_area], [method@Image.smartcrop].

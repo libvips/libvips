@@ -188,10 +188,6 @@ vips_transpose3d_init(VipsTranspose3d *transpose3d)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page_height: %gint, size of each input page
- *
  * Transpose a volumetric image.
  *
  * Volumetric images are very tall, thin images, with the metadata item
@@ -206,7 +202,11 @@ vips_transpose3d_init(VipsTranspose3d *transpose3d)
  * #VIPS_META_PAGE_HEIGHT in the output image is the number of pages in the
  * input image.
  *
- * See also: vips_grid().
+ * ::: tip "Optional arguments"
+ *     * @page_height: %gint, size of each input page
+ *
+ * ::: seealso
+ *     [method@Image.grid].
  *
  * Returns: 0 on success, -1 on error
  */

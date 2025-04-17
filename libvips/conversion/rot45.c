@@ -290,17 +290,17 @@ vips_rot45_init(VipsRot45 *rot45)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @angle: #VipsAngle45 rotation angle
- *
  * Rotate @in by a multiple of 45 degrees. Odd-length sides and square images
  * only.
  *
  * This operation is useful for rotating convolution masks. Use
- * vips_similarity() to rotate images by arbitrary angles.
+ * [method@Image.similarity] to rotate images by arbitrary angles.
  *
- * See also: vips_rot(), vips_similarity().
+ * ::: tip "Optional arguments"
+ *     * @angle: [enum@Angle45], rotation angle
+ *
+ * ::: seealso
+ *     [method@Image.rot], [method@Image.similarity].
  *
  * Returns: 0 on success, -1 on error
  */

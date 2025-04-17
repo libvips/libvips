@@ -593,17 +593,17 @@ vips_colourspace_init(VipsColourspace *colourspace)
  * @space: convert to this colour space
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @source_space: input colour space
- *
  * This operation looks at the interpretation field of @in (or uses
  * @source_space, if set) and runs
  * a set of colourspace conversion functions to move it to @space.
  *
  * For example, given an image tagged as [enum@Vips.Interpretation.YXY], running
- * [method@Image.colourspace] with @space set to [enum@Vips.Interpretation.LAB] will
- * convert with [method@Image.Yxy2XYZ] and [method@Image.XYZ2Lab].
+ * [method@Image.colourspace] with @space set to
+ * [enum@Vips.Interpretation.LAB] will convert with [method@Image.Yxy2XYZ]
+ * and [method@Image.XYZ2Lab].
+ *
+ * ::: tip "Optional arguments"
+ *		* @source_space: input colour space
  *
  * ::: seealso
  *     [method@Image.colourspace_issupported],

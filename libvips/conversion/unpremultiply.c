@@ -352,39 +352,39 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @max_alpha: %gdouble, maximum value for alpha
- * * @alpha_band: %gint, band containing alpha data
- *
  * Unpremultiplies any alpha channel.
+ *
  * Band @alpha_band (by default the final band) contains the alpha and all
  * other bands are transformed as:
  *
- * |[
- *   alpha = (int) clip(0, in[in.bands - 1], @max_alpha);
- *   norm = (double) alpha / @max_alpha;
+ * ```
+ *   alpha = (int) clip(0, in[in.bands - 1], max_alpha);
+ *   norm = (double) alpha / max_alpha
  *   if (alpha == 0)
- *   	out = [0, ..., 0, alpha];
+ *   	out = [0, ..., 0, alpha]
  *   else
- *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha];
- * ]|
+ *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha]
+ * ```
  *
  * So for an N-band image, the first N - 1 bands are divided by the clipped
  * and normalised final band, the final band is clipped.
  * If there is only a single band, the image is passed through unaltered.
  *
- * The result is
- * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which
- * case the output is double as well.
+ * The result is [enum@Vips.BandFormat.FLOAT] unless the input format is
+ * [enum@Vips.BandFormat.DOUBLE], in which case the output is double as well.
  *
  * @max_alpha has the default value 255, or 65535 for images tagged as
- * #VIPS_INTERPRETATION_RGB16 or
- * #VIPS_INTERPRETATION_GREY16.
+ * [enum@Vips.Interpretation.RGB16] or [enum@Vips.Interpretation.GREY16], and
+ * 1.0 for images tagged as  [enum@Vips.Interpretation.scRGB.
  *
  * Non-complex images only.
  *
- * See also: vips_premultiply(), vips_flatten().
+ * ::: tip "Optional arguments"
+ *     * @max_alpha: %gdouble, maximum value for alpha
+ *     * @alpha_band: %gint, band containing alpha data
+ *
+ * ::: seealso
+ *     [method@Image.premultiply], [method@Image.flatten].
  *
  * Returns: 0 on success, -1 on error
  */

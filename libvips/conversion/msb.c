@@ -269,10 +269,6 @@ vips_msb_init(VipsMsb *msb)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @band: %gint, msb just this band
- *
  * Turn any integer image to 8-bit unsigned char by discarding all but the most
  * significant byte. Signed values are converted to unsigned by adding 128.
  *
@@ -280,7 +276,11 @@ vips_msb_init(VipsMsb *msb)
  *
  * This operator also works for LABQ coding.
  *
- * See also: vips_scale(), vips_cast().
+ * ::: tip "Optional arguments"
+ *     * @band: %gint, msb just this band
+ *
+ * ::: seealso
+ *     [method@Image.scale], [method@Image.cast].
  *
  * Returns: 0 on success, -1 on error.
  */
