@@ -139,7 +139,7 @@ static gint64 vips__pipe_read_limit = 1024 * 1024 * 1024;
  *
  * ::: seealso
  *     `--vips-pipe-read-limit` and the environment variable
- * `VIPS_PIPE_READ_LIMIT`.
+ *     `VIPS_PIPE_READ_LIMIT`.
  */
 void
 vips_pipe_read_limit_set(gint64 limit)
