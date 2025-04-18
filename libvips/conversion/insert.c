@@ -537,7 +537,7 @@ vips_insert_init(VipsInsert *insert)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * ::: tip "Optional arguments"
  *     * @expand: %gdouble, expand output to hold whole of both images

@@ -218,7 +218,7 @@ vips_abs_init(VipsAbs *abs)
  *
  * This operation finds the absolute value of an image. It does a copy for
  * unsigned integer types, negate for negative values in
- * signed integer types, <function>fabs(3)</function> for
+ * signed integer types, [`fabs()`](man:fabs(3)) for
  * float types, and calculates modulus for complex
  * types.
  *

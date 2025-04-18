@@ -700,11 +700,11 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * meaning read all lines to end of file.
  *
  * @whitespace sets the skippable whitespace characters.
- * Default <emphasis>space</emphasis>.
+ * Default *space*.
  * Whitespace characters are always run together.
  *
  * @separator sets the characters that separate fields.
- * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
+ * Default ;,*tab*. Separators are never run together.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.

@@ -1011,7 +1011,7 @@ vips_image_get_orientation_swap(VipsImage *image)
  * images which you are sure have not been shared with another thread.
  *
  * ::: seealso
- *     [method@Image.wio_input] or [method@Image.copy_memory].
+ *     [method@Image.wio_input], [method@Image.copy_memory].
  *
  * Returns: (nullable) (transfer none): a pointer to pixel data, if possible.
  */
@@ -1286,7 +1286,7 @@ vips_set_value_from_pointer(GValue *value, void *data)
  * ```
  *
  * ::: seealso
- *     [method@Image.get_typeof] or [method@Image.get_double].
+ *     [method@Image.get_typeof], [method@Image.get_double].
  *
  * Returns: (skip): 0 on success, -1 otherwise.
  */
@@ -1394,7 +1394,7 @@ vips_image_get_typeof(const VipsImage *image, const char *name)
  * name was found.
  *
  * ::: seealso
- *     [method@Image.set] or [method@Image.get_typeof].
+ *     [method@Image.set], [method@Image.get_typeof].
  *
  * Returns: `TRUE` if an item of metadata of that name was found and removed
  */
@@ -1458,7 +1458,7 @@ vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
  * iteration, or a non-`NULL` pointer to indicate early termination.
  *
  * ::: seealso
- *     [method@Image.get_typeof] or [method@Image.get].
+ *     [method@Image.get_typeof], [method@Image.get].
  *
  * Returns: (nullable) (transfer none): `NULL` on success, the failing
  *   pointer otherwise.
@@ -1550,7 +1550,7 @@ vips_image_get_fields(VipsImage *image)
  * VIPS no longer needs the metadata, it will be freed with @free_fn.
  *
  * ::: seealso
- *     [method@Image.get_double] or [method@Image.set].
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_area(VipsImage *image, const char *name,
@@ -1598,7 +1598,7 @@ meta_get_value(const VipsImage *image,
  * test for the existence of a piece of metadata.
  *
  * ::: seealso
- *     [method@Image.set_area], [method@Image.get] or
+ *     [method@Image.set_area], [method@Image.get],
  *     [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
@@ -1630,7 +1630,7 @@ vips_image_get_area(const VipsImage *image,
  * Attaches @data as a metadata item on @image under the name @name.
  *
  * ::: seealso
- *     [method@Image.get_blob] or [method@Image.set].
+ *     [method@Image.get_blob], [method@Image.set].
  */
 void
 vips_image_set_blob(VipsImage *image, const char *name,
@@ -1655,7 +1655,7 @@ vips_image_set_blob(VipsImage *image, const char *name,
  * a copy of the memory area.
  *
  * ::: seealso
- *     [method@Image.get_blob] or [method@Image.set].
+ *     [method@Image.get_blob], [method@Image.set].
  */
 void
 vips_image_set_blob_copy(VipsImage *image,
@@ -1696,7 +1696,7 @@ vips_image_set_blob_copy(VipsImage *image,
  * of a piece of metadata.
  *
  * ::: seealso
- *     [method@Image.get], [method@Image.get_typeof] or
+ *     [method@Image.get], [method@Image.get_typeof],
  *     [method@Blob.get].
  *
  * Returns: 0 on success, -1 otherwise.
@@ -1726,7 +1726,7 @@ vips_image_get_blob(const VipsImage *image, const char *name,
  * The value will be transformed into an int, if possible.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.get_typeof].
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1753,7 +1753,7 @@ vips_image_get_int(const VipsImage *image, const char *name, int *out)
  * convenience function over [method@Image.set].
  *
  * ::: seealso
- *     [method@Image.get_int] or [method@Image.set].
+ *     [method@Image.get_int], [method@Image.set].
  */
 void
 vips_image_set_int(VipsImage *image, const char *name, int i)
@@ -1776,7 +1776,7 @@ vips_image_set_int(VipsImage *image, const char *name, int i)
  * The value will be transformed into a double, if possible.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.get_typeof].
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1803,7 +1803,7 @@ vips_image_get_double(const VipsImage *image, const char *name, double *out)
  * convenience function over [method@Image.set].
  *
  * ::: seealso
- *     [method@Image.get_double] or [method@Image.set].
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_double(VipsImage *image, const char *name, double d)
@@ -1830,7 +1830,7 @@ vips_image_set_double(VipsImage *image, const char *name, double d)
  * Use [method@Image.get_as_string] to fetch any field as a string.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.get_typeof].
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1878,7 +1878,7 @@ vips_image_get_string(const VipsImage *image, const char *name,
  * function over [method@Image.set] using `VIPS_TYPE_REF_STRING`.
  *
  * ::: seealso
- *     [method@Image.get_double] or [method@Image.set].
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_string(VipsImage *image, const char *name, const char *str)
@@ -1905,7 +1905,7 @@ vips_image_set_string(VipsImage *image, const char *name, const char *str)
  * make a string that's for humans.
  *
  * ::: seealso
- *     [method@Image.get], [method@Image.get_typeof] or
+ *     [method@Image.get], [method@Image.get_typeof],
  *     [method@Buf.appendg].
  *
  * Returns: 0 on success, -1 otherwise.
@@ -1977,7 +1977,7 @@ vips_image_print_field(const VipsImage *image, const char *name)
  * existence of a piece of metadata.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.set_image]
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2005,7 +2005,7 @@ vips_image_get_image(const VipsImage *image,
  * A convenience function over [method@Image.set].
  *
  * ::: seealso
- *     [method@Image.get_image] or [method@Image.set].
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_image(VipsImage *image, const char *name, VipsImage *im)
@@ -2034,7 +2034,7 @@ vips_image_set_image(VipsImage *image, const char *name, VipsImage *im)
  * existence of a piece of metadata.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.set_image]
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2063,7 +2063,7 @@ vips_image_get_array_int(VipsImage *image, const char *name,
  * A convenience function over [method@Image.set].
  *
  * ::: seealso
- *     [method@Image.get_image] or [method@Image.set].
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_array_int(VipsImage *image, const char *name,
@@ -2093,7 +2093,7 @@ vips_image_set_array_int(VipsImage *image, const char *name,
  * existence of a piece of metadata.
  *
  * ::: seealso
- *     [method@Image.get] or [method@Image.set_image]
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2122,7 +2122,7 @@ vips_image_get_array_double(VipsImage *image, const char *name,
  * A convenience function over [method@Image.set].
  *
  * ::: seealso
- *     [method@Image.get_image] or [method@Image.set].
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_array_double(VipsImage *image, const char *name,

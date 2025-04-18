@@ -263,7 +263,7 @@ vips_XYZ2Lab_init(VipsXYZ2Lab *XYZ2Lab)
  * defaults to D65.
  *
  * ::: tip "Optional arguments"
- *		* @temp: [struct@ArrayDouble], colour temperature
+ *     * @temp: [struct@ArrayDouble], colour temperature
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -499,7 +499,7 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  *
  * The input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * [method@Image.colourspace] can be useful for moving the images to a common
  * colourspace for compositing.

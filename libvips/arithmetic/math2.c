@@ -283,7 +283,7 @@ vips_math2v(VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * The two input images are cast up to the smallest common format (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>), and that format is the
+ * [arithmetic](libvips-arithmetic.html)), and that format is the
  * result type.
  *
  * ::: seealso

@@ -183,7 +183,7 @@ vips_dbuf_write(VipsDbuf *dbuf, const unsigned char *data, size_t size)
 /**
  * vips_dbuf_writef:
  * @dbuf: the buffer
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @...: arguments to format string
  *
  * Format the string and write to @dbuf.
