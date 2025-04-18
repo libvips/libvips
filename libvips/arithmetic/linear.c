@@ -550,7 +550,7 @@ vips_linear(VipsImage *in, VipsImage **out,
  * Run [method@Image.linear] with a single constant.
  *
  * ::: tip "Optional arguments"
- *	   * @uchar: output uchar pixels
+ *     * @uchar: output uchar pixels
  *
  * ::: seealso
  *     [method@Image.linear].

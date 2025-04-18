@@ -209,7 +209,7 @@ vips_Lab2XYZ_init(VipsLab2XYZ *Lab2XYZ)
  * specified with @temp.
  *
  * ::: tip "Optional arguments"
- *		* @temp: [struct@ArrayDouble], colour temperature
+ *     * @temp: [struct@ArrayDouble], colour temperature
  *
  * Returns: 0 on success, -1 on error
  */

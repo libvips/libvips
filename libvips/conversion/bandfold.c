@@ -191,7 +191,7 @@ vips_bandfold_init(VipsBandfold *bandfold)
  * as many bands. By default the whole of the input width is folded up.
  *
  * ::: tip "Optional arguments"
- *		* @factor: %gint, fold by this factor
+ *     * @factor: %gint, fold by this factor
  *
  * ::: seealso
  *     [ctor@Image.csvload], [method@Image.bandunfold].
