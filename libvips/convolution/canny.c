@@ -478,10 +478,6 @@ vips_canny_init(VipsCanny *canny)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @sigma: %gdouble, sigma for gaussian blur
- *     * @precision: [enum@Precision], calculation accuracy
- *
  * Find edges by Canny's method: The maximum of the derivative of the gradient
  * in the direction of the gradient. Output is float, except for uchar input,
  * where output is uchar, and double input, where output is double. Non-complex
@@ -496,6 +492,10 @@ vips_canny_init(VipsCanny *canny)
  *
  * You will probably need to process the output further to eliminate weak
  * edges.
+ *
+ * ::: tip "Optional arguments"
+ *     * @sigma: %gdouble, sigma for gaussian blur
+ *     * @precision: [enum@Precision], calculation accuracy
  *
  * ::: seealso
  *     [method@Image.sobel].

@@ -1348,17 +1348,12 @@ vips_conva_init(VipsConva *conva)
  * @mask: convolution mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @layers: %gint, number of layers for approximation
- * * @cluster: %gint, cluster lines closer than this distance
- *
  * Perform an approximate integer convolution of @in with @mask.
- * This is a low-level operation, see
- * vips_conv() for something more convenient.
+ * This is a low-level operation, see [method@Image.conv] for something more
+ * convenient.
  *
  * The output image
- * always has the same #VipsBandFormat as the input image.
+ * always has the same [enum@BandFormat] as the input image.
  * Elements of @mask are converted to
  * integers before convolution.
  *
@@ -1371,7 +1366,12 @@ vips_conva_init(VipsConva *conva)
  * Smaller values of @cluster will give more accurate results, but be slower
  * and use more memory. 10% of the mask radius is a good rule of thumb.
  *
- * See also: vips_conv().
+ * ::: tip "Optional arguments"
+ *     * @layers: %gint, number of layers for approximation
+ *     * @cluster: %gint, cluster lines closer than this distance
+ *
+ * ::: seealso
+ *     [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

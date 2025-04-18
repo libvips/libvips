@@ -291,11 +291,12 @@ vips_relationalv(VipsImage *left, VipsImage *right, VipsImage **out,
  * [arithmetic](libvips-arithmetic.html)).
  *
  * To decide if pixels match exactly, that is have the same value in every
- * band, use [method@Image.bandbool] after this operation to AND or OR image bands
- * together.
+ * band, use [method@Image.bandbool] after this operation to AND or OR image
+ * bands together.
  *
  * ::: seealso
- *     [method@Image.boolean], [method@Image.bandbool], [method@Image.relational_const].
+ *     [method@Image.boolean], [method@Image.bandbool],
+ *     [method@Image.relational_const].
  *
  * Returns: 0 on success, -1 on error
  */

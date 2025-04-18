@@ -163,14 +163,8 @@ vips_convsep_init(VipsConvsep *convsep)
  * @mask: convolution mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @precision: calculation accuracy
- * * @layers: number of layers for approximation
- * * @cluster: cluster lines closer than this distance
- *
  * Perform a separable convolution of @in with @mask.
- * See vips_conv() for a detailed description.
+ * See [method@Image.conv] for a detailed description.
  *
  * The mask must be 1xn or nx1 elements.
  *
@@ -178,7 +172,13 @@ vips_convsep_init(VipsConvsep *convsep)
  * rotated by 90 degrees. This is much faster for certain types of mask
  * (gaussian blur, for example) than doing a full 2D convolution.
  *
- * See also: vips_conv(), vips_gaussmat().
+ * ::: tip "Optional arguments"
+ *     * @precision: [enum@Precision], calculation accuracy
+ *     * @layers: %gint, number of layers for approximation
+ *     * @cluster: %gint, cluster lines closer than this distance
+ *
+ * ::: seealso
+ *     [method@Image.conv], [ctor@Image.gaussmat].
  *
  * Returns: 0 on success, -1 on error
  */

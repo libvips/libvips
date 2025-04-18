@@ -936,12 +936,8 @@ vips_convasep_init(VipsConvasep *convasep)
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @layers: %gint, number of layers for approximation
- *
  * Approximate separable integer convolution. This is a low-level operation, see
- * vips_convsep() for something more convenient.
+ * [method@Image.convsep] for something more convenient.
  *
  * The image is convolved twice: once with @mask and then again with @mask
  * rotated by 90 degrees.
@@ -956,9 +952,13 @@ vips_convasep_init(VipsConvasep *convasep)
  * this value and accuracy will still be good.
  *
  * The output image
- * always has the same #VipsBandFormat as the input image.
+ * always has the same [enum@BandFormat] as the input image.
  *
- * See also: vips_convsep().
+ * ::: tip "Optional arguments"
+ *     * @layers: %gint, number of layers for approximation
+ *
+ * ::: seealso
+ *     [method@Image.convsep].
  *
  * Returns: 0 on success, -1 on error
  */
