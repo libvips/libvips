@@ -673,7 +673,7 @@ vips_mosaic1_init(VipsMosaic1 *mosaic1)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * See also: vips_merge(), vips_insert(), vips_globalbalance().
  *

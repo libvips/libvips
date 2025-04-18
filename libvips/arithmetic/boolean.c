@@ -318,7 +318,7 @@ vips_booleanv(VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * The two input images are cast up to the smallest common format (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * ::: seealso
  *     [method@Image.boolean_const].

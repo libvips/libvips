@@ -317,7 +317,7 @@ vips_join_init(VipsJoin *join)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * If you are going to be joining many thousands of images in a regular
  * grid, [func@Image.arrayjoin] is a better choice.

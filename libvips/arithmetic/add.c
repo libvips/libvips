@@ -206,7 +206,7 @@ vips_add_init(VipsAdd *add)
  *
  * The two input images are cast up to the smallest common format (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the
+ * [arithmetic](libvips-arithmetic.html)), then the
  * following table is used to determine the output type:
  *
  * <table>
