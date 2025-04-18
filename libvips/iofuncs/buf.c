@@ -397,10 +397,10 @@ vips_buf_removec(VipsBuf *buf, char ch)
 /**
  * vips_buf_vappendf:
  * @buf: the buffer
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @ap: arguments to format string
  *
- * Append to @buf, args as <function>vprintf()</function>.
+ * Append to @buf, args as [`vprintf()`](man:vprintf(3)).
  *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
@@ -434,7 +434,7 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 /**
  * vips_buf_appendf:
  * @buf: the buffer
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @...: arguments to format string
  *
  * Format the string and append to @buf.

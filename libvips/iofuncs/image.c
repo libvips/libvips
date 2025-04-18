@@ -247,7 +247,7 @@
  * The format used for each band element.
  *
  * Each corresponds to a native C type for the current machine. For example,
- * [enum@Vips.BandFormat.USHORT] is <type>unsigned short</type>.
+ * [enum@Vips.BandFormat.USHORT] is `unsigned short`.
  */
 
 /**
