@@ -693,11 +693,12 @@ vips_icc_verify_blob(VipsIcc *icc, VipsBlob **blob)
 
 /* Try to set the import profile. We read the input profile like this:
  *
- *    embedded	filename	action
- *    0		0 		image
- *    1		0		image
- *    0		1		file
- *    1		1		image, then fall back to file
+ * | embedded | filename | action                        |
+ * |----------|----------|-------------------------------|
+ * | 0        | 0        | image                         |
+ * | 1        | 0        | image                         |
+ * | 0        | 1        | file                          |
+ * | 1        | 1        | image, then fall back to file |
  *
  * If averything fails, we fall back to one of our built-in profiles,
  * depending on the input image.

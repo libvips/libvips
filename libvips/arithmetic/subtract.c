@@ -205,59 +205,20 @@ vips_subtract_init(VipsSubtract *subtract)
  * [arithmetic](libvips-arithmetic.html)), then the
  * following table is used to determine the output type:
  *
- * <table>
- *   <title>VipsSubtract type promotion</title>
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>input type</entry>
- *         <entry>output type</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>uchar</entry>
- *         <entry>short</entry>
- *       </row>
- *       <row>
- *         <entry>char</entry>
- *         <entry>short</entry>
- *       </row>
- *       <row>
- *         <entry>ushort</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>short</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>uint</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>int</entry>
- *         <entry>int</entry>
- *       </row>
- *       <row>
- *         <entry>float</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>double</entry>
- *         <entry>double</entry>
- *       </row>
- *       <row>
- *         <entry>complex</entry>
- *         <entry>complex</entry>
- *       </row>
- *       <row>
- *         <entry>double complex</entry>
- *         <entry>double complex</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * </table>
+ * ## [method@Image.subtract] type promotion
+ *
+ * | input type     | output type    |
+ * |----------------|----------------|
+ * | uchar          | short          |
+ * | char           | short          |
+ * | ushort         | int            |
+ * | short          | int            |
+ * | uint           | int            |
+ * | int            | int            |
+ * | float          | float          |
+ * | double         | double         |
+ * | complex        | complex        |
+ * | double complex | double complex |
  *
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
