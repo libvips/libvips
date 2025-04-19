@@ -75,12 +75,51 @@ constexpr int32_t max_bits = 1 << 8;
 #endif
 
 HWY_ATTR void
-vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
-	int32_t ne, int32_t vshrink, int32_t lskip)
+vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
+	int32_t ne, uint32_t *HWY_RESTRICT sum)
 {
 #if HWY_TARGET != HWY_SCALAR
-	const auto l1 = lskip / sizeof(uint8_t);
+#if !defined(HAVE_HWY_1_1_0) && \
+	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
+	/* Ensure we do not cross 128-bit block boundaries on RVV/SVE.
+	 */
+	const int32_t N = 8;
+#else
+	const int32_t N = Lanes(du16);
+#endif
 
+	const auto zero = Zero(du16);
+	auto *HWY_RESTRICT p = (uint8_t *) pin;
+
+	/* Main sum loop: unrolled.
+	 */
+	int32_t x = 0;
+	for (; x + N <= ne; x += N) {
+		auto pix0 = PromoteTo(du16, LoadU(du8x16, p + x));
+
+		auto sum0 = LoadU(du32, &sum[x + 0 * N / 2]);
+		auto sum1 = LoadU(du32, &sum[x + 1 * N / 2]);
+
+		sum0 = Add(sum0, BitCast(du32, InterleaveLower(du16, pix0, zero)));
+		sum1 = Add(sum1, BitCast(du32, InterleaveUpper(du16, pix0, zero)));
+
+		StoreU(sum0, du32, &sum[x + 0 * N / 2]);
+		StoreU(sum1, du32, &sum[x + 1 * N / 2]);
+	}
+
+	/* `ne` was not a multiple of the vector length `N`;
+	 * proceed one by one.
+	 */
+	for (; x < ne; ++x)
+		sum[x] += p[x];
+#endif
+}
+
+HWY_ATTR void
+vips_shrinkv_write_line_uchar_hwy(VipsPel *pout,
+	int32_t ne, int32_t vshrink, uint32_t *HWY_RESTRICT sum)
+{
+#if HWY_TARGET != HWY_SCALAR
 #if !defined(HAVE_HWY_1_1_0) && \
 	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
 	/* Ensure we do not cross 128-bit block boundaries on RVV/SVE.
@@ -93,39 +132,20 @@ vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	const uint32_t multiplier = max_uint32 / (max_bits * vshrink);
 	const uint32_t amend = vshrink / 2;
 
-	const auto zero = Zero(du16);
 	const auto multiplier_v = Set(du32, multiplier);
 	const auto amend_v = Set(du32, amend);
 
-	/* Main loop: unrolled.
+	/* Main write loop: unrolled.
 	 */
 	int32_t x = 0;
 	for (; x + N <= ne; x += N) {
-		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
-		auto sum0 = amend_v;
-		auto sum1 = amend_v;
+		auto sum0 = LoadU(du32, &sum[x + 0 * N / 2]);
+		auto sum1 = LoadU(du32, &sum[x + 1 * N / 2]);
 
-		int32_t yy = 0;
-		for (; yy + 2 <= vshrink; yy += 2) {
-			auto pix0 = PromoteTo(du16, LoadU(du8x16, p));
-			p += l1;
-			auto pix1 = PromoteTo(du16, LoadU(du8x16, p));
-			p += l1;
-
-			pix0 = Add(pix0, pix1);
-
-			sum0 = Add(sum0, BitCast(du32, InterleaveLower(du16, pix0, zero)));
-			sum1 = Add(sum1, BitCast(du32, InterleaveUpper(du16, pix0, zero)));
-		}
-		for (; yy < vshrink; ++yy) {
-			auto pix0 = PromoteTo(du16, LoadU(du8x16, p));
-			p += l1;
-
-			sum0 = Add(sum0, BitCast(du32, InterleaveLower(du16, pix0, zero)));
-			sum1 = Add(sum1, BitCast(du32, InterleaveUpper(du16, pix0, zero)));
-		}
+		sum0 = Add(sum0, amend_v);
+		sum1 = Add(sum1, amend_v);
 
 		sum0 = Mul(sum0, multiplier_v);
 		sum1 = Mul(sum1, multiplier_v);
@@ -156,28 +176,9 @@ vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	 * proceed one by one.
 	 */
 	for (; x < ne; ++x) {
-		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
-		uint32_t sum = amend;
-
-		int32_t yy = 0;
-		for (; yy + 2 <= vshrink; yy += 2) {
-			auto pix0 = *p;
-			p += l1;
-			auto pix1 = *p;
-			p += l1;
-
-			sum += pix0 + pix1;
-		}
-		for (; yy < vshrink; ++yy) {
-			auto pix0 = *p;
-			p += l1;
-
-			sum += pix0;
-		}
-
-		*q = (sum * multiplier) >> 24;
+		*q = ((sum[x] + amend) * multiplier) >> 24;
 	}
 #endif
 }
@@ -188,15 +189,26 @@ vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
 } /*namespace HWY_NAMESPACE*/
 
 #if HWY_ONCE
-HWY_EXPORT(vips_shrinkv_uchar_hwy);
+HWY_EXPORT(vips_shrinkv_add_line_uchar_hwy);
+HWY_EXPORT(vips_shrinkv_write_line_uchar_hwy);
 
 void
-vips_shrinkv_uchar_hwy(VipsPel *pout, VipsPel *pin,
-	int ne, int vshrink, int lskip)
+vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
+	int ne, unsigned int *restrict sum)
 {
 	/* clang-format off */
-	HWY_DYNAMIC_DISPATCH(vips_shrinkv_uchar_hwy)(pout, pin,
-		ne, vshrink, lskip);
+	HWY_DYNAMIC_DISPATCH(vips_shrinkv_add_line_uchar_hwy)(pin,
+		ne, sum);
+	/* clang-format on */
+}
+
+void
+vips_shrinkv_write_line_uchar_hwy(VipsPel *pout,
+	int ne, int vshrink, unsigned int *restrict sum)
+{
+	/* clang-format off */
+	HWY_DYNAMIC_DISPATCH(vips_shrinkv_write_line_uchar_hwy)(pout,
+		ne, vshrink, sum);
 	/* clang-format on */
 }
 #endif /*HWY_ONCE*/
