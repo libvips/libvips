@@ -355,10 +355,11 @@ vips_perlin_init(VipsPerlin *perlin)
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
- * Normally, output pixels are #VIPS_FORMAT_FLOAT in the range [-1, +1]. Set
+ * Normally, output pixels are [enum@Vips.BandFormat.FLOAT] in the range [-1, +1]. Set
  * @uchar to output a uchar image with pixels in [0, 255].
  *
- * See also: vips_worley(), vips_fractsurf(), vips_gaussnoise().
+ * ::: seealso
+ *     [ctor@Image.worley], [ctor@Image.fractsurf], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

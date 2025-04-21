@@ -124,7 +124,7 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  *
  * Set @optical to position the DC component in the centre of the image. This
  * makes the mask suitable for multiplying against optical Fourier transforms.
- * See vips_wrap().
+ * See [method@Image.wrap].
  *
  * Set @reject to invert the sense of
  * the filter. For example, low-pass becomes low-reject.
@@ -132,11 +132,12 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * Set @uchar to output an 8-bit unsigned char image rather than a
  * float image. In this case, pixels are in the range [0 - 255].
  *
- * See also: vips_mask_ideal(), vips_mask_ideal_ring(),
- * vips_mask_ideal_band(), vips_mask_butterworth(),
- * vips_mask_butterworth_ring(), vips_mask_butterworth_band(),
- * vips_mask_gaussian(), vips_mask_gaussian_ring(),
- * vips_mask_gaussian_band().
+ * ::: seealso
+ *     [ctor@Image.mask_ideal], [ctor@Image.mask_ideal_ring],
+ *     [ctor@Image.mask_ideal_band], [ctor@Image.mask_butterworth],
+ *     [ctor@Image.mask_butterworth_ring], [ctor@Image.mask_butterworth_band],
+ *     [ctor@Image.mask_gaussian], [ctor@Image.mask_gaussian_ring],
+ *     [ctor@Image.mask_gaussian_band].
  *
  * Returns: 0 on success, -1 on error
  */

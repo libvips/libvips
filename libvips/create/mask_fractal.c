@@ -119,9 +119,10 @@ vips_mask_fractal_init(VipsMaskFractal *fractal)
  * * @uchar: output a uchar image
  *
  * This operation should be used to create fractal images by filtering the
- * power spectrum of Gaussian white noise. See vips_gaussnoise().
+ * power spectrum of Gaussian white noise. See [ctor@Image.gaussnoise].
  *
- * See also: vips_mask_ideal().
+ * ::: seealso
+ *     [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error
  */

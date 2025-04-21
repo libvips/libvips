@@ -163,7 +163,8 @@ vips_mask_gaussian_band_init(VipsMaskGaussianBand *gaussian_band)
  * variable, smooth transition positioned at @frequency_cutoff_x,
  * @frequency_cutoff_y, of radius @radius.
  *
- * See also: vips_mask_ideal().
+ * ::: seealso
+ *     [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error
  */

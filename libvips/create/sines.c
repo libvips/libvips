@@ -172,7 +172,8 @@ vips_sines_init(VipsSines *sines)
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
- * See also: vips_grey(), vips_xyz().
+ * ::: seealso
+ *     [ctor@Image.grey], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

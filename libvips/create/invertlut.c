@@ -338,7 +338,8 @@ vips_invertlut_init(VipsInvertlut *lut)
  * (we should fix this). Interpolation is simple piecewise linear; we ought to
  * do something better really.
  *
- * See also: vips_buildlut().
+ * ::: seealso
+ *     [method@Image.buildlut].
  *
  * Returns: 0 on success, -1 on error
  */

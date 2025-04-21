@@ -367,10 +367,10 @@ vips_sdf_init(VipsSdf *sdf)
  *
  * Optional arguments:
  *
- * * @a: #VipsArrayDouble, first point
- * * @b: #VipsArrayDouble, second point
+ * * @a: [struct@ArrayDouble], first point
+ * * @b: [struct@ArrayDouble], second point
  * * @r: %gfloat, radius
- * * @corners: #VipsArrayDouble, corner radii
+ * * @corners: [struct@ArrayDouble], corner radii
  *
  * Create a signed distance field (SDF) image of the given shape. Different
  * shapes use different combinations of the optional arguments, see below.
@@ -387,7 +387,8 @@ vips_sdf_init(VipsSdf *sdf)
  *
  * @shape #VIPS_SDF_SHAPE_LINE: draw a line from @a to @b.
  *
- * See also: vips_grey(), vips_grid(), vips_xyz().
+ * ::: seealso
+ *     [ctor@Image.grey], [method@Image.grid], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

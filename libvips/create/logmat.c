@@ -15,7 +15,7 @@
  * 20/10/13
  * 	- redone as a class from logmat.c
  * 16/12/14
- * 	- default to int output to match vips_conv()
+ * 	- default to int output to match [method@Image.conv]
  * 	- use @precision, not @integer
  */
 
@@ -251,7 +251,7 @@ vips_logmat_init(VipsLogmat *logmat)
  * Optional arguments:
  *
  * * @separable: generate a separable mask
- * * @precision: #VipsPrecision for @out
+ * * @precision: [enum@Precision] for @out
  *
  * Creates a circularly symmetric Laplacian of Gaussian mask
  * of radius
@@ -270,17 +270,18 @@ vips_logmat_init(VipsLogmat *logmat)
  * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.
  *
  * The generated mask has odd size and its maximum value is normalised to
- * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
+ * 1.0, unless @precision is [enum@Vips.Precision.INTEGER].
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions.
  *
- * If @precision is #VIPS_PRECISION_INTEGER, an integer mask is generated.
+ * If @precision is [enum@Vips.Precision.INTEGER], an integer mask is generated.
  * This is useful for integer convolutions.
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: vips_gaussmat(), vips_conv().
+ * ::: seealso
+ *     [ctor@Image.gaussmat], [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -360,7 +360,8 @@ vips_worley_init(VipsWorley *worley)
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
- * See also: vips_perlin(), vips_fractsurf(), vips_gaussnoise().
+ * ::: seealso
+ *     [ctor@Image.perlin], [ctor@Image.fractsurf], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

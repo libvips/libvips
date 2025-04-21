@@ -325,7 +325,7 @@ vips_tonelut_init(VipsTonelut *lut)
  * * @M: mid-tone adjustment (+/- 30)
  * * @H: highlight adjustment (+/- 30)
  *
- * vips_tonelut() generates a tone curve for the adjustment of image
+ * [ctor@Image.tonelut] generates a tone curve for the adjustment of image
  * levels. It is mostly designed for adjusting the L* part of a LAB image in
  * a way suitable for print work, but you can use it for other things too.
  *

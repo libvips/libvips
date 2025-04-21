@@ -141,7 +141,8 @@ vips_fractsurf_init(VipsFractsurf *fractsurf)
  * Generate an image of size @width by @height and fractal dimension
  * @fractal_dimension. The dimension should be between 2 and 3.
  *
- * See also: vips_gaussnoise(), vips_mask_fractal().
+ * ::: seealso
+ *     [ctor@Image.gaussnoise], [ctor@Image.mask_fractal].
  *
  * Returns: 0 on success, -1 on error
  */

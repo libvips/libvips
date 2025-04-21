@@ -112,7 +112,8 @@ vips_zone_init(VipsZone *zone)
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
- * See also: vips_eye(), vips_xyz().
+ * ::: seealso
+ *     [ctor@Image.eye], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

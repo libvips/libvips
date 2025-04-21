@@ -123,7 +123,8 @@ vips_mask_gaussian_init(VipsMaskGaussian *gaussian)
  * Make a gaussian high- or low-pass filter, that is, one with a variable,
  * smooth transition positioned at @frequency_cutoff.
  *
- * See also: vips_mask_ideal().
+ * ::: seealso
+ *     [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -181,7 +181,7 @@ vips_identity_init(VipsIdentity *identity)
  * * @size: number of LUT elements for a ushort image
  *
  * Creates an identity lookup table, ie. one which will leave an image
- * unchanged when applied with vips_maplut(). Each entry in the table has a
+ * unchanged when applied with [method@Image.maplut]. Each entry in the table has a
  * value equal to its position.
  *
  * Use the arithmetic operations on these tables to make LUTs representing
@@ -192,7 +192,8 @@ vips_identity_init(VipsIdentity *identity)
  * Normally 16-bit tables have 65536 entries. You can set this smaller with
  * @size.
  *
- * See also: vips_xyz(), vips_maplut().
+ * ::: seealso
+ *     [ctor@Image.xyz], [method@Image.maplut].
  *
  * Returns: 0 on success, -1 on error
  */

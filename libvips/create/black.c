@@ -177,7 +177,8 @@ vips_black_init(VipsBlack *black)
  *
  * Make a black unsigned char image of a specified size.
  *
- * See also: vips_xyz(), vips_text(), vips_gaussnoise().
+ * ::: seealso
+ *     [ctor@Image.xyz], [ctor@Image.text], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

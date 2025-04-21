@@ -184,7 +184,8 @@ vips_mask_butterworth_band_init(
  * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987.
  *
- * See also: vips_mask_ideal().
+ * ::: seealso
+ *     [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error
  */

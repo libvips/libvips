@@ -136,7 +136,8 @@ vips_eye_init(VipsEye *eye)
  *
  * Set @uchar to output a uchar image.
  *
- * See also: vips_zone().
+ * ::: seealso
+ *     [ctor@Image.zone].
  *
  * Returns: 0 on success, -1 on error
  */

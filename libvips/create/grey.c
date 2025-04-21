@@ -115,7 +115,8 @@ vips_grey_init(VipsGrey *grey)
  * Set @uchar to output a uchar image with the leftmost pixel 0 and the
  * rightmost 255.
  *
- * See also: vips_xyz(), vips_identity().
+ * ::: seealso
+ *     [ctor@Image.xyz], [ctor@Image.identity].
  *
  * Returns: 0 on success, -1 on error
  */
