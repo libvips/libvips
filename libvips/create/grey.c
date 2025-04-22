@@ -105,15 +105,16 @@ vips_grey_init(VipsGrey *grey)
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @uchar: output a uchar image
- *
  * Create a one-band float image with the left-most column zero and the
- * right-most 1. Intermediate pixels are a linear ramp.
+ * right-most 1.
+ *
+ * Intermediate pixels are a linear ramp.
  *
  * Set @uchar to output a uchar image with the leftmost pixel 0 and the
  * rightmost 255.
+ *
+ * ::: tip "Optional arguments"
+ *     * @uchar: %gboolean, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.xyz], [ctor@Image.identity].

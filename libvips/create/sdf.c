@@ -365,27 +365,28 @@ vips_sdf_init(VipsSdf *sdf)
  * @shape: SDF to create
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Create a signed distance field (SDF) image of the given @shape.
  *
- * * @a: [struct@ArrayDouble], first point
- * * @b: [struct@ArrayDouble], second point
- * * @r: %gfloat, radius
- * * @corners: [struct@ArrayDouble], corner radii
- *
- * Create a signed distance field (SDF) image of the given shape. Different
+ * Different
  * shapes use different combinations of the optional arguments, see below.
  *
- * @shape #VIPS_SDF_SHAPE_CIRCLE: create a circle centred on @a, radius @r.
+ * @shape [enum@Vips.SdfShape.CIRCLE]: create a circle centred on @a, radius @r.
  *
- * @shape #VIPS_SDF_SHAPE_BOX: create a box with top-left corner @a and
+ * @shape [enum@Vips.SdfShape.BOX]: create a box with top-left corner @a and
  * bottom-right corner @b.
  *
- * @shape #VIPS_SDF_SHAPE_ROUNDED_BOX: create a box with top-left corner @a
+ * @shape [enum@Vips.SdfShape.ROUNDED_BOX]: create a box with top-left corner @a
  * and bottom-right corner @b, whose four corners are
  * rounded by the four-element float array @corners. @corners will default to
  * 0.0.
  *
- * @shape #VIPS_SDF_SHAPE_LINE: draw a line from @a to @b.
+ * @shape [enum@Vips.SdfShape.LINE]: draw a line from @a to @b.
+ *
+ * ::: tip "Optional arguments"
+ *     * @a: [struct@ArrayDouble], first point
+ *     * @b: [struct@ArrayDouble], second point
+ *     * @r: %gfloat, radius
+ *     * @corners: [struct@ArrayDouble], corner radii
  *
  * ::: seealso
  *     [ctor@Image.grey], [method@Image.grid], [ctor@Image.xyz].

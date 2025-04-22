@@ -174,15 +174,9 @@ vips_identity_init(VipsIdentity *identity)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @bands: number of bands to create
- * * @ushort: %TRUE for an unsigned short identity
- * * @size: number of LUT elements for a ushort image
- *
  * Creates an identity lookup table, ie. one which will leave an image
- * unchanged when applied with [method@Image.maplut]. Each entry in the table has a
- * value equal to its position.
+ * unchanged when applied with [method@Image.maplut]. Each entry in the table
+ * has a value equal to its position.
  *
  * Use the arithmetic operations on these tables to make LUTs representing
  * arbitrary functions.
@@ -191,6 +185,11 @@ vips_identity_init(VipsIdentity *identity)
  *
  * Normally 16-bit tables have 65536 entries. You can set this smaller with
  * @size.
+ *
+ * ::: tip "Optional arguments"
+ *     * @bands: %gint, number of bands to create
+ *     * @ushort: %gboolean, %TRUE for an unsigned short identity
+ *     * @size: %gint, number of LUT elements for a ushort image
  *
  * ::: seealso
  *     [ctor@Image.xyz], [method@Image.maplut].

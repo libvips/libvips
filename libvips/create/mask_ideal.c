@@ -102,13 +102,6 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * @frequency_cutoff: threshold at which filter ends
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @nodc: don't set the DC pixel
- * * @reject: invert the filter sense
- * * @optical: coordinates in optical space
- * * @uchar: output a uchar image
- *
  * Make an ideal high- or low-pass filter, that is, one with a sharp cutoff
  * positioned at @frequency_cutoff, where @frequency_cutoff is in
  * the range 0 - 1.
@@ -131,6 +124,12 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  *
  * Set @uchar to output an 8-bit unsigned char image rather than a
  * float image. In this case, pixels are in the range [0 - 255].
+ *
+ * ::: tip "Optional arguments"
+ *     * @nodc: %gboolean, don't set the DC pixel
+ *     * @reject: %gboolean, invert the filter sense
+ *     * @optical: %gboolean, coordinates in optical space
+ *     * @uchar: %gboolean, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.mask_ideal], [ctor@Image.mask_ideal_ring],

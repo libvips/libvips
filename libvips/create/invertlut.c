@@ -310,14 +310,12 @@ vips_invertlut_init(VipsInvertlut *lut)
  * @out: (out): output LUT
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @size: generate this much
- *
  * Given a mask of target values and real values, generate a LUT which
- * will map reals to targets. Handy for linearising images from
- * measurements of a colour chart. All values in [0,1]. Piecewise linear
- * interpolation, extrapolate head and tail to 0 and 1.
+ * will map reals to targets.
+ *
+ * Handy for linearising images from measurements of a colour chart. All
+ * values in [0,1]. Piecewise linear interpolation, extrapolate head and tail
+ * to 0 and 1.
  *
  * Eg. input like this:
  *
@@ -337,6 +335,9 @@ vips_invertlut_init(VipsInvertlut *lut)
  * It won't work too well for non-monotonic camera responses
  * (we should fix this). Interpolation is simple piecewise linear; we ought to
  * do something better really.
+ *
+ * ::: tip "Optional arguments"
+ *     * @size: %gint, generate this much
  *
  * ::: seealso
  *     [method@Image.buildlut].

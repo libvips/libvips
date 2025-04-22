@@ -73,6 +73,7 @@ s/vips_\(bandfold\)()/[method@Image.\1]/g
 s/vips_\(bandjoin2\)()/[method@Image.\1]/g
 s/vips_\(bandjoin_const1\)()/[method@Image.\1]/g
 s/vips_\(bandjoin_const\)()/[method@Image.\1]/g
+s/vips_\(bandjoin\)()/[func@Image.\1]/g
 s/vips_\(bandmean\)()/[method@Image.\1]/g
 s/vips_\(bandor\)()/[method@Image.\1]/g
 s/vips_\(bandunfold\)()/[method@Image.\1]/g
@@ -111,6 +112,7 @@ s/vips_\(composite2\)()/[method@Image.\1]/g
 s/vips_\(conj\)()/[method@Image.\1]/g
 s/vips_\(conva\)()/[method@Image.\1]/g
 s/vips_\(convasep\)()/[method@Image.\1]/g
+s/vips_\(conversion\)()/[func@Image.\1]/g
 s/vips_\(convf\)()/[method@Image.\1]/g
 s/vips_\(convi\)()/[method@Image.\1]/g
 s/vips_\(conv\)()/[method@Image.\1]/g
@@ -406,6 +408,7 @@ s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(SdfShape\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
@@ -442,6 +445,7 @@ s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
+s/#VIPS_SDF_SHAPE_\([^ ,.]*\)/[enum@Vips.SdfShape.\1]/g
 s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
 s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
 s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g

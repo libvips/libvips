@@ -656,21 +656,9 @@ vips_text_init(VipsText *text)
  * @text: utf-8 text string to render
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Draw the string @text to an image.
  *
- * * @font: %gchararray, font to render with
- * * @fontfile: %gchararray, load this font file
- * * @width: %gint, image should be no wider than this many pixels
- * * @height: %gint, image should be no higher than this many pixels
- * * @align: #VipsAlign, set justification alignment
- * * @justify: %gboolean, justify lines
- * * @dpi: %gint, render at this resolution
- * * @autofit_dpi: %gint, read out auto-fitted DPI
- * * @rgba: %gboolean, enable RGBA output
- * * @spacing: %gint, space lines by this in points
- * * @wrap: #VipsTextWrap, wrap lines on characters or words
- *
- * Draw the string @text to an image. @out is normally a one-band 8-bit
+ * @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
@@ -714,6 +702,19 @@ vips_text_init(VipsText *text)
  * You can read the coordinate of the top edge of the character from `Xoffset`
  * / `Yoffset`. This can be helpful if you need to line up the output of
  * several [ctor@Image.text].
+ *
+ * ::: tip "Optional arguments"
+ *     * @font: %gchararray, font to render with
+ *     * @fontfile: %gchararray, load this font file
+ *     * @width: %gint, image should be no wider than this many pixels
+ *     * @height: %gint, image should be no higher than this many pixels
+ *     * @align: #VipsAlign, set justification alignment
+ *     * @justify: %gboolean, justify lines
+ *     * @dpi: %gint, render at this resolution
+ *     * @autofit_dpi: %gint, read out auto-fitted DPI
+ *     * @rgba: %gboolean, enable RGBA output
+ *     * @spacing: %gint, space lines by this in points
+ *     * @wrap: #VipsTextWrap, wrap lines on characters or words
  *
  * ::: seealso
  *     [func@Image.bandjoin], [func@Image.composite].

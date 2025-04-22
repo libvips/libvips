@@ -104,13 +104,12 @@ vips_zone_init(VipsZone *zone)
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @uchar: output a uchar image
- *
  * Create a one-band image of a zone plate.
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
+ *
+ * ::: tip "Optional arguments"
+ *     * @uchar: %gboolean, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.eye], [ctor@Image.xyz].
