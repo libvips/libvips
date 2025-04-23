@@ -409,6 +409,7 @@ s/vips_\(zoom\)()/[method@Image.\1]/g
 s/vips_\([^(]*\)()/[func@\1]/g
 
 s/#Vips\(SdfShape\)/[enum@\1]/g
+s/#Vips\(CombineMode\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
@@ -445,6 +446,7 @@ s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
+s/#VIPS_COMBINE_MODE_\([^ ,.]*\)/[enum@Vips.CombineMode.\1]/g
 s/#VIPS_SDF_SHAPE_\([^ ,.]*\)/[enum@Vips.SdfShape.\1]/g
 s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
 s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
