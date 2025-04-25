@@ -336,8 +336,7 @@ vips_flatten_build(VipsObject *object)
 	 */
 	original_format = VIPS_FORMAT_NOTSET;
 	if (vips_band_format_isint(in->BandFmt) &&
-		flatten->max_alpha <
-			vips_image_get_format_max(in->BandFmt)) {
+		flatten->max_alpha < vips_image_get_format_max(in->BandFmt)) {
 		original_format = in->BandFmt;
 		if (vips_cast(in, &t[1], VIPS_FORMAT_DOUBLE, NULL))
 			return -1;
@@ -345,8 +344,7 @@ vips_flatten_build(VipsObject *object)
 	}
 
 	t[2] = vips_image_new();
-	if (vips_image_pipelinev(t[2],
-			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
+	if (vips_image_pipelinev(t[2], VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
 		return -1;
 	t[2]->Bands -= 1;
 
@@ -379,8 +377,7 @@ vips_flatten_build(VipsObject *object)
 			return -1;
 
 		if (vips_image_generate(t[2],
-				vips_start_one, vips_flatten_gen, vips_stop_one,
-				in, flatten))
+				vips_start_one, vips_flatten_gen, vips_stop_one, in, flatten))
 			return -1;
 		in = t[2];
 	}
