@@ -148,12 +148,12 @@ vips_scRGB2sRGB_build(VipsObject *object)
 
 	switch (scRGB2sRGB->depth) {
 	case 16:
-		colour->interpretation = VIPS_INTERPRETATION_GREY16;
+		colour->interpretation = VIPS_INTERPRETATION_RGB16;
 		colour->format = VIPS_FORMAT_USHORT;
 		break;
 
 	case 8:
-		colour->interpretation = VIPS_INTERPRETATION_B_W;
+		colour->interpretation = VIPS_INTERPRETATION_sRGB;
 		colour->format = VIPS_FORMAT_UCHAR;
 		break;
 
