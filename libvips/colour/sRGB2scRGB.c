@@ -70,9 +70,7 @@ G_DEFINE_TYPE(VipssRGB2scRGB, vips_sRGB2scRGB, VIPS_TYPE_COLOUR_CODE);
 static void
 vips_sRGB2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	VipsColourCode *code = (VipsColourCode *) colour;
-
-	if (code->in->BandFmt == VIPS_FORMAT_UCHAR) {
+	if (colour->in[0]->BandFmt == VIPS_FORMAT_UCHAR) {
 		float *restrict q;
 		VipsPel *restrict p;
 
@@ -87,7 +85,7 @@ vips_sRGB2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 			q += 3;
 		}
 	}
-	else {
+	else if (colour->in[0]->BandFmt == VIPS_FORMAT_USHORT) {
 		float *restrict q;
 		unsigned short *restrict p;
 
@@ -102,6 +100,8 @@ vips_sRGB2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 			q += 3;
 		}
 	}
+	else
+		g_assert_not_reached();
 }
 
 static int
