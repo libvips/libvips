@@ -365,7 +365,8 @@ vips_foreign_load_fits_source_init(VipsForeignLoadFitsSource *fits)
  *
  * FITS metadata is attached with the "fits-" prefix.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -388,7 +389,7 @@ vips_fitsload(const char *filename, VipsImage **out, ...)
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_fitsload(), but read from a source.
+ * Exactly as [ctor@Image.fitsload], but read from a source.
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -605,29 +605,6 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @compression: use this #VipsForeignTiffCompression
- * * @Q: %gint quality factor
- * * @predictor: use this #VipsForeignTiffPredictor
- * * @tile: %gboolean, set %TRUE to write a tiled tiff
- * * @tile_width: %gint for tile size
- * * @tile_height: %gint for tile size
- * * @pyramid: %gboolean, write an image pyramid
- * * @bitdepth: %int, change bit depth to 1,2, or 4 bit
- * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
- * * @resunit: #VipsForeignTiffResunit for resolution unit
- * * @xres: %gdouble horizontal resolution in pixels/mm
- * * @yres: %gdouble vertical resolution in pixels/mm
- * * @bigtiff: %gboolean, write a BigTiff file
- * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
- * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd or Deflate (zlib) compression level
- * * @lossless: %gboolean, WebP lossless mode
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @subifd: %gboolean write pyr layers as sub-ifds
- * * @premultiply: %gboolean write premultiplied alpha
- *
  * Write a VIPS image to a file as TIFF.
  *
  * If @in has the #VIPS_META_PAGE_HEIGHT metadata item, this is assumed to be a
@@ -712,7 +689,30 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * Set @premultiply to save with premultiplied alpha. Some programs, such as
  * InDesign, will only work with premultiplied alpha.
  *
- * See also: vips_tiffload(), vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @compression: use this [enum@ForeignTiffCompression]
+ *     * @Q: %gint quality factor
+ *     * @predictor: use this [enum@ForeignTiffPredictor]
+ *     * @tile: %gboolean, set %TRUE to write a tiled tiff
+ *     * @tile_width: %gint for tile size
+ *     * @tile_height: %gint for tile size
+ *     * @pyramid: %gboolean, write an image pyramid
+ *     * @bitdepth: %int, change bit depth to 1,2, or 4 bit
+ *     * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
+ *     * @resunit: [enum@ForeignTiffResunit] for resolution unit
+ *     * @xres: %gdouble horizontal resolution in pixels/mm
+ *     * @yres: %gdouble vertical resolution in pixels/mm
+ *     * @bigtiff: %gboolean, write a BigTiff file
+ *     * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
+ *     * @region_shrink: [enum@RegionShrink] How to shrink each 2x2 region.
+ *     * @level: %gint, Zstd or Deflate (zlib) compression level
+ *     * @lossless: %gboolean, WebP lossless mode
+ *     * @depth: [enum@ForeignDzDepth] how deep to make the pyramid
+ *     * @subifd: %gboolean write pyr layers as sub-ifds
+ *     * @premultiply: %gboolean write premultiplied alpha
+ *
+ * ::: seealso
+ *     [ctor@Image.tiffload], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -736,36 +736,36 @@ vips_tiffsave(VipsImage *in, const char *filename, ...)
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @compression: use this #VipsForeignTiffCompression
- * * @Q: %gint quality factor
- * * @predictor: use this #VipsForeignTiffPredictor
- * * @tile: %gboolean, set %TRUE to write a tiled tiff
- * * @tile_width: %gint for tile size
- * * @tile_height: %gint for tile size
- * * @pyramid: %gboolean, write an image pyramid
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
- * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
- * * @resunit: #VipsForeignTiffResunit for resolution unit
- * * @xres: %gdouble horizontal resolution in pixels/mm
- * * @yres: %gdouble vertical resolution in pixels/mm
- * * @bigtiff: %gboolean, write a BigTiff file
- * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
- * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd or Deflate (zlib) compression level
- * * @lossless: %gboolean, WebP lossless mode
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @subifd: %gboolean write pyr layers as sub-ifds
- * * @premultiply: %gboolean write premultiplied alpha
- *
- * As vips_tiffsave(), but save to a memory buffer.
+ * As [method@Image.tiffsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_tiffsave(), vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @compression: use this [enum@ForeignTiffCompression]
+ *     * @Q: %gint quality factor
+ *     * @predictor: use this [enum@ForeignTiffPredictor]
+ *     * @tile: %gboolean, set %TRUE to write a tiled tiff
+ *     * @tile_width: %gint for tile size
+ *     * @tile_height: %gint for tile size
+ *     * @pyramid: %gboolean, write an image pyramid
+ *     * @bitdepth: %int, change bit depth to 1,2, or 4 bit
+ *     * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
+ *     * @resunit: [enum@ForeignTiffResunit] for resolution unit
+ *     * @xres: %gdouble horizontal resolution in pixels/mm
+ *     * @yres: %gdouble vertical resolution in pixels/mm
+ *     * @bigtiff: %gboolean, write a BigTiff file
+ *     * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
+ *     * @region_shrink: [enum@RegionShrink] How to shrink each 2x2 region.
+ *     * @level: %gint, Zstd or Deflate (zlib) compression level
+ *     * @lossless: %gboolean, WebP lossless mode
+ *     * @depth: [enum@ForeignDzDepth] how deep to make the pyramid
+ *     * @subifd: %gboolean write pyr layers as sub-ifds
+ *     * @premultiply: %gboolean write premultiplied alpha
+ *
+ * ::: seealso
+ *     [method@Image.tiffsave], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -803,32 +803,32 @@ vips_tiffsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.tiffsave], but save to a target.
  *
- * * @compression: use this #VipsForeignTiffCompression
- * * @Q: %gint quality factor
- * * @predictor: use this #VipsForeignTiffPredictor
- * * @tile: %gboolean, set %TRUE to write a tiled tiff
- * * @tile_width: %gint for tile size
- * * @tile_height: %gint for tile size
- * * @pyramid: %gboolean, write an image pyramid
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
- * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
- * * @resunit: #VipsForeignTiffResunit for resolution unit
- * * @xres: %gdouble horizontal resolution in pixels/mm
- * * @yres: %gdouble vertical resolution in pixels/mm
- * * @bigtiff: %gboolean, write a BigTiff file
- * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
- * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @level: %gint, Zstd or Deflate (zlib) compression level
- * * @lossless: %gboolean, WebP lossless mode
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @subifd: %gboolean write pyr layers as sub-ifds
- * * @premultiply: %gboolean write premultiplied alpha
+ * ::: tip "Optional arguments"
+ *     * @compression: use this [enum@ForeignTiffCompression]
+ *     * @Q: %gint quality factor
+ *     * @predictor: use this [enum@ForeignTiffPredictor]
+ *     * @tile: %gboolean, set %TRUE to write a tiled tiff
+ *     * @tile_width: %gint for tile size
+ *     * @tile_height: %gint for tile size
+ *     * @pyramid: %gboolean, write an image pyramid
+ *     * @bitdepth: %int, change bit depth to 1,2, or 4 bit
+ *     * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
+ *     * @resunit: [enum@ForeignTiffResunit] for resolution unit
+ *     * @xres: %gdouble horizontal resolution in pixels/mm
+ *     * @yres: %gdouble vertical resolution in pixels/mm
+ *     * @bigtiff: %gboolean, write a BigTiff file
+ *     * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
+ *     * @region_shrink: [enum@RegionShrink] How to shrink each 2x2 region.
+ *     * @level: %gint, Zstd or Deflate (zlib) compression level
+ *     * @lossless: %gboolean, WebP lossless mode
+ *     * @depth: [enum@ForeignDzDepth] how deep to make the pyramid
+ *     * @subifd: %gboolean write pyr layers as sub-ifds
+ *     * @premultiply: %gboolean write premultiplied alpha
  *
- * As vips_tiffsave(), but save to a target.
- *
- * See also: vips_tiffsave(), vips_image_write_to_target().
+ * ::: seealso
+ *     [method@Image.tiffsave], [method@Image.write_to_target].
  *
  * Returns: 0 on success, -1 on error.
  */

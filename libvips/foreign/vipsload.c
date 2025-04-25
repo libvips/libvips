@@ -329,7 +329,8 @@ vips_foreign_load_vips_source_init(VipsForeignLoadVipsSource *source)
  *
  * Read in a vips image.
  *
- * See also: vips_vipssave().
+ * ::: seealso
+ *     [method@Image.vipssave].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -352,7 +353,7 @@ vips_vipsload(const char *filename, VipsImage **out, ...)
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_vipsload(), but read from a source.
+ * Exactly as [ctor@Image.vipsload], but read from a source.
  *
  * Returns: 0 on success, -1 on error.
  */

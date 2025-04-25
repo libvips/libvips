@@ -926,19 +926,13 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
- *
  * Read a GIF file into a libvips image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column. Set to -1 to mean "until the end of the
- * document". Use vips_grid() to change page layout.
+ * document". Use [method@Image.grid] to change page layout.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
@@ -946,7 +940,13 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * The output image is RGBA for GIFs containing transparent elements, RGB
  * otherwise.
  *
- * See also: vips_image_new_from_file().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
+ *
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -970,18 +970,18 @@ vips_gifload(const char *filename, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
- *
- * Exactly as vips_gifload(), but read from a memory buffer.
+ * Exactly as [ctor@Image.gifload], but read from a memory buffer.
  *
  * You must not free the buffer while @out is active. The
- * #VipsObject::postclose signal on @out is a good place to free.
+ * [signal@Object::postclose] signal on @out is a good place to free.
  *
- * See also: vips_gifload().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
+ *
+ * ::: seealso
+ *     [ctor@Image.gifload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1011,15 +1011,15 @@ vips_gifload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.gifload], but read from a source.
  *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
- * Exactly as vips_gifload(), but read from a source.
- *
- * See also: vips_gifload().
+ * ::: seealso
+ *     [ctor@Image.gifload].
  *
  * Returns: 0 on success, -1 on error.
  */

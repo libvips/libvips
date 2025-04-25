@@ -59,7 +59,7 @@ extern "C" {
 #endif
 
 #ifdef HAVE_QUANTIZATION
-VipsQuantiseAttr *vips__quantise_attr_create();
+VipsQuantiseAttr *vips__quantise_attr_create(void);
 VipsQuantiseError vips__quantise_set_max_colors(VipsQuantiseAttr *attr,
 	int colors);
 VipsQuantiseError vips__quantise_set_quality(VipsQuantiseAttr *attr,

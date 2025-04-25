@@ -1170,23 +1170,6 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @Q: %gint, quality factor
- * * @lossless: %gboolean, enables lossless compression
- * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
- * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
- * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @effort: %gint, level of CPU effort to reduce file size
- * * @target_size: %gint, desired target size in bytes
- * * @passes: %gint, number of entropy-analysis passes
- * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow both lossy and lossless encoding
- * * @kmin: %gint, minimum number of frames between keyframes
- * * @kmax: %gint, maximum number of frames between keyframes
- *
  * Write an image to a file in WebP format.
  *
  * By default, images are saved in lossy format, with
@@ -1233,7 +1216,26 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * Use the metadata items `loop` and `delay` to set the number of
  * loops for the animation and the frame delays.
  *
- * See also: vips_webpload(), vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @Q: %gint, quality factor
+ *     * @lossless: %gboolean, enables lossless compression
+ *     * @preset: [enum@ForeignWebpPreset], choose lossy compression preset
+ *     * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ *     * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking
+ *       filter
+ *     * @near_lossless: %gboolean, preprocess in lossless mode (controlled
+ *       by Q)
+ *     * @alpha_q: %gint, set alpha quality in lossless mode
+ *     * @effort: %gint, level of CPU effort to reduce file size
+ *     * @target_size: %gint, desired target size in bytes
+ *     * @passes: %gint, number of entropy-analysis passes
+ *     * @min_size: %gboolean, minimise size
+ *     * @mixed: %gboolean, allow both lossy and lossless encoding
+ *     * @kmin: %gint, minimum number of frames between keyframes
+ *     * @kmax: %gint, maximum number of frames between keyframes
+ *
+ * ::: seealso
+ *     [ctor@Image.webpload], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1257,30 +1259,32 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * @len: return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @Q: %gint, quality factor
- * * @lossless: %gboolean, enables lossless compression
- * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
- * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
- * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @effort: %gint, level of CPU effort to reduce file size
- * * @target_size: %gint, desired target size in bytes
- * * @passes: %gint, number of entropy-analysis passes
- * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow both lossy and lossless encoding
- * * @kmin: %gint, minimum number of frames between keyframes
- * * @kmax: %gint, maximum number of frames between keyframes
- *
- * As vips_webpsave(), but save to a memory buffer.
+ * As [method@Image.webpsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_webpsave().
+ * ::: tip "Optional arguments"
+ *     * @Q: %gint, quality factor
+ *     * @lossless: %gboolean, enables lossless compression
+ *     * @preset: [enum@ForeignWebpPreset], choose lossy compression preset
+ *     * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ *     * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking
+ *       filter
+ *     * @near_lossless: %gboolean, preprocess in lossless mode (controlled
+ *       by Q)
+ *     * @alpha_q: %gint, set alpha quality in lossless mode
+ *     * @effort: %gint, level of CPU effort to reduce file size
+ *     * @target_size: %gint, desired target size in bytes
+ *     * @passes: %gint, number of entropy-analysis passes
+ *     * @min_size: %gboolean, minimise size
+ *     * @mixed: %gboolean, allow both lossy and lossless encoding
+ *     * @kmin: %gint, minimum number of frames between keyframes
+ *     * @kmax: %gint, maximum number of frames between keyframes
+ *
+ * ::: seealso
+ *     [method@Image.webpsave].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1317,26 +1321,28 @@ vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @in: image to save
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.webpsave], but save as a mime webp on stdout.
  *
- * * @Q: %gint, quality factor
- * * @lossless: %gboolean, enables lossless compression
- * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
- * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
- * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @effort: %gint, level of CPU effort to reduce file size
- * * @target_size: %gint, desired target size in bytes
- * * @passes: %gint, number of entropy-analysis passes
- * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow both lossy and lossless encoding
- * * @kmin: %gint, minimum number of frames between keyframes
- * * @kmax: %gint, maximum number of frames between keyframes
+ * ::: tip "Optional arguments"
+ *     * @Q: %gint, quality factor
+ *     * @lossless: %gboolean, enables lossless compression
+ *     * @preset: [enum@ForeignWebpPreset], choose lossy compression preset
+ *     * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ *     * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking
+ *       filter
+ *     * @near_lossless: %gboolean, preprocess in lossless mode (controlled
+ *       by Q)
+ *     * @alpha_q: %gint, set alpha quality in lossless mode
+ *     * @effort: %gint, level of CPU effort to reduce file size
+ *     * @target_size: %gint, desired target size in bytes
+ *     * @passes: %gint, number of entropy-analysis passes
+ *     * @min_size: %gboolean, minimise size
+ *     * @mixed: %gboolean, allow both lossy and lossless encoding
+ *     * @kmin: %gint, minimum number of frames between keyframes
+ *     * @kmax: %gint, maximum number of frames between keyframes
  *
- * As vips_webpsave(), but save as a mime webp on stdout.
- *
- * See also: vips_webpsave(), vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.webpsave], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1359,26 +1365,28 @@ vips_webpsave_mime(VipsImage *in, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.webpsave], but save to a target.
  *
- * * @Q: %gint, quality factor
- * * @lossless: %gboolean, enables lossless compression
- * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
- * * @smart_subsample: %gboolean, enables high quality chroma subsampling
- * * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking filter
- * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @effort: %gint, level of CPU effort to reduce file size
- * * @target_size: %gint, desired target size in bytes
- * * @passes: %gint, number of entropy-analysis passes
- * * @min_size: %gboolean, minimise size
- * * @mixed: %gboolean, allow both lossy and lossless encoding
- * * @kmin: %gint, minimum number of frames between keyframes
- * * @kmax: %gint, maximum number of frames between keyframes
+ * ::: tip "Optional arguments"
+ *     * @Q: %gint, quality factor
+ *     * @lossless: %gboolean, enables lossless compression
+ *     * @preset: [enum@ForeignWebpPreset], choose lossy compression preset
+ *     * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ *     * @smart_deblock: %gboolean, enables auto-adjusting of the deblocking
+ *       filter
+ *     * @near_lossless: %gboolean, preprocess in lossless mode (controlled
+ *       by Q)
+ *     * @alpha_q: %gint, set alpha quality in lossless mode
+ *     * @effort: %gint, level of CPU effort to reduce file size
+ *     * @target_size: %gint, desired target size in bytes
+ *     * @passes: %gint, number of entropy-analysis passes
+ *     * @min_size: %gboolean, minimise size
+ *     * @mixed: %gboolean, allow both lossy and lossless encoding
+ *     * @kmin: %gint, minimum number of frames between keyframes
+ *     * @kmax: %gint, maximum number of frames between keyframes
  *
- * As vips_webpsave(), but save to a target.
- *
- * See also: vips_webpsave().
+ * ::: seealso
+ *     [method@Image.webpsave].
  *
  * Returns: 0 on success, -1 on error.
  */

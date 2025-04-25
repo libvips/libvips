@@ -196,14 +196,12 @@ vips_foreign_load_jxl_build(VipsObject *object)
 	printf("vips_foreign_load_jxl_build:\n");
 #endif /*DEBUG*/
 
-	jxl->runner = JxlThreadParallelRunnerCreate(NULL,
-		vips_concurrency_get());
+	jxl->runner = JxlThreadParallelRunnerCreate(NULL, vips_concurrency_get());
 	jxl->decoder = JxlDecoderCreate(NULL);
 
 	if (JxlDecoderSetParallelRunner(jxl->decoder,
 			JxlThreadParallelRunner, jxl->runner)) {
-		vips_foreign_load_jxl_error(jxl,
-			"JxlDecoderSetParallelRunner");
+		vips_foreign_load_jxl_error(jxl, "JxlDecoderSetParallelRunner");
 		return -1;
 	}
 

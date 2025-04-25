@@ -454,17 +454,6 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @compression: %gint, compression level
- * * @interlace: %gboolean, interlace image
- * * @filter: #VipsForeignPngFilter row filter flag(s)
- * * @palette: %gboolean, enable quantisation to 8bpp palette
- * * @Q: %gint, quality for 8bpp quantisation
- * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
- * * @effort: %gint, quantisation CPU effort
- *
  * Write a VIPS image to a file as PNG.
  *
  * @compression means compress with this much effort (0 - 9). Default 6.
@@ -475,7 +464,7 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  * non-interlaced image.
  *
  * Use @filter to specify one or more filters, defaults to none,
- * see #VipsForeignPngFilter.
+ * see [flags@ForeignPngFilter].
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are
@@ -495,7 +484,18 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  * XMP metadata is written to the XMP chunk. PNG comments are written to
  * separate text chunks.
  *
- * See also: vips_image_new_from_file().
+ * ::: tip "Optional arguments"
+ *     * @compression: %gint, compression level
+ *     * @interlace: %gboolean, interlace image
+ *     * @filter: [flags@ForeignPngFilter], row filter flag(s)
+ *     * @palette: %gboolean, enable quantisation to 8bpp palette
+ *     * @Q: %gint, quality for 8bpp quantisation
+ *     * @dither: %gdouble, amount of dithering for 8bpp quantization
+ *     * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
+ *     * @effort: %gint, quantisation CPU effort
+ *
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -519,24 +519,24 @@ vips_pngsave(VipsImage *in, const char *filename, ...)
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @compression: %gint, compression level
- * * @interlace: %gboolean, interlace image
- * * @filter: #VipsForeignPngFilter row filter flag(s)
- * * @palette: %gboolean, enable quantisation to 8bpp palette
- * * @Q: %gint, quality for 8bpp quantisation
- * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
- * * @effort: %gint, quantisation CPU effort
- *
- * As vips_pngsave(), but save to a memory buffer.
+ * As [method@Image.pngsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_pngsave(), vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @compression: %gint, compression level
+ *     * @interlace: %gboolean, interlace image
+ *     * @filter: [flags@ForeignPngFilter], row filter flag(s)
+ *     * @palette: %gboolean, enable quantisation to 8bpp palette
+ *     * @Q: %gint, quality for 8bpp quantisation
+ *     * @dither: %gdouble, amount of dithering for 8bpp quantization
+ *     * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
+ *     * @effort: %gint, quantisation CPU effort
+ *
+ * ::: seealso
+ *     [method@Image.pngsave], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -574,20 +574,20 @@ vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.pngsave], but save to a target.
  *
- * * @compression: compression level
- * * @interlace: interlace image
- * * @filter: libpng row filter flag(s)
- * * @palette: enable quantisation to 8bpp palette
- * * @Q: quality for 8bpp quantisation
- * * @dither: amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
- * * @effort: %gint, quantisation CPU effort
+ * ::: tip "Optional arguments"
+ *     * @compression: %gint, compression level
+ *     * @interlace: %gboolean, interlace image
+ *     * @filter: [flags@ForeignPngFilter], row filter flag(s)
+ *     * @palette: %gboolean, enable quantisation to 8bpp palette
+ *     * @Q: %gint, quality for 8bpp quantisation
+ *     * @dither: %gdouble, amount of dithering for 8bpp quantization
+ *     * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
+ *     * @effort: %gint, quantisation CPU effort
  *
- * As vips_pngsave(), but save to a target.
- *
- * See also: vips_pngsave(), vips_image_write_to_target().
+ * ::: seealso
+ *     [method@Image.pngsave], [method@Image.write_to_target].
  *
  * Returns: 0 on success, -1 on error.
  */

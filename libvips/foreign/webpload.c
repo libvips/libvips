@@ -441,19 +441,13 @@ vips_foreign_load_webp_buffer_init(VipsForeignLoadWebpBuffer *buffer)
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @scale: %gdouble, scale by this much on load
- *
  * Read a WebP file into a VIPS image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column, with each individual page aligned to the
- * left. Set to -1 to mean "until the end of the document". Use vips_grid()
+ * left. Set to -1 to mean "until the end of the document". Use [method@Image.grid]
  * to change page layout.
  *
  * Use @scale to specify a scale-on-load factor. For example, 2.0 to double
@@ -462,7 +456,13 @@ vips_foreign_load_webp_buffer_init(VipsForeignLoadWebpBuffer *buffer)
  *
  * The loader supports ICC, EXIF and XMP metadata.
  *
- * See also: vips_image_new_from_file().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @scale: %gdouble, scale by this much on load
+ *
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -486,19 +486,19 @@ vips_webpload(const char *filename, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @scale: %gdouble, scale by this much on load
- *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
- * vips_webpload(), but read from a memory buffer.
+ * [ctor@Image.webpload], but read from a memory buffer.
  *
  * You must not free the buffer while @out is active. The
- * #VipsObject::postclose signal on @out is a good place to free.
+ * [signal@Object::postclose] signal on @out is a good place to free.
  *
- * See also: vips_webpload()
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @scale: %gdouble, scale by this much on load
+ *
+ * ::: seealso
+ *     [ctor@Image.webpload]
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -528,15 +528,15 @@ vips_webpload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.webpload], but read from a source.
  *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @scale: %gdouble, scale by this much on load
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @scale: %gdouble, scale by this much on load
  *
- * Exactly as vips_webpload(), but read from a source.
- *
- * See also: vips_webpload()
+ * ::: seealso
+ *     [ctor@Image.webpload]
  *
  * Returns: 0 on success, -1 on error.
  */

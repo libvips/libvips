@@ -270,7 +270,8 @@ vips_foreign_save_vips_target_init(VipsForeignSaveVipsTarget *target)
  *
  * Write @in to @filename in VIPS format.
  *
- * See also: vips_vipsload().
+ * ::: seealso
+ *     [ctor@Image.vipsload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -293,7 +294,7 @@ vips_vipssave(VipsImage *in, const char *filename, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_vipssave(), but save to a target.
+ * As [method@Image.vipssave], but save to a target.
  *
  * Returns: 0 on success, -1 on error.
  */

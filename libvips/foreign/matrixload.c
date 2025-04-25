@@ -498,7 +498,8 @@ vips_foreign_load_matrix_source_init(VipsForeignLoadMatrixSource *source)
  * Extra characters at the ends of lines or at the end of the file are
  * ignored.
  *
- * See also: vips_matrixload().
+ * ::: seealso
+ *     [ctor@Image.matrixload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -521,9 +522,10 @@ vips_matrixload(const char *filename, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_matrixload(), but read from a source.
+ * Exactly as [ctor@Image.matrixload], but read from a source.
  *
- * See also: vips_matrixload().
+ * ::: seealso
+ *     [ctor@Image.matrixload].
  *
  * Returns: 0 on success, -1 on error.
  */

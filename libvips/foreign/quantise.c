@@ -50,7 +50,7 @@
 #ifdef HAVE_IMAGEQUANT
 
 VipsQuantiseAttr *
-vips__quantise_attr_create()
+vips__quantise_attr_create(void)
 {
 	return liq_attr_create();
 }
@@ -87,7 +87,7 @@ vips__quantise_image_quantize(VipsQuantiseImage *const input_image,
 	return liq_image_quantize(input_image, options, result_output);
 }
 
-/* Like vips__quantise_image_quantize(), but make a fixed palette that won't
+/* Like [func@_quantise_image_quantize], but make a fixed palette that won't
  * get remapped during dithering.
  */
 VipsQuantiseError
@@ -181,7 +181,7 @@ vips__quantise_attr_destroy(VipsQuantiseAttr *attr)
 #elif defined(HAVE_QUANTIZR) /*!HAVE_IMAGEQUANT*/
 
 VipsQuantiseAttr *
-vips__quantise_attr_create()
+vips__quantise_attr_create(void)
 {
 	return quantizr_new_options();
 }

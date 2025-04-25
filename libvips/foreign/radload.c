@@ -375,11 +375,11 @@ vips_foreign_load_rad_buffer_init(VipsForeignLoadRadBuffer *buffer)
  *
  * Read a Radiance (HDR) file into a VIPS image.
  *
- * Radiance files are read as #VIPS_CODING_RAD. They have one byte for each of
+ * Radiance files are read as [enum@Vips.Coding.RAD]. They have one byte for each of
  * red, green and blue, and one byte of shared exponent. Some operations (like
- * vips_extract_area()) can work directly with images in this format, but
+ * [method@Image.extract_area]) can work directly with images in this format, but
  * mmany (all the arithmetic operations, for example) will not. Unpack
- * #VIPS_CODING_RAD images to 3 band float with vips_rad2float() if
+ * [enum@Vips.Coding.RAD] images to 3 band float with [method@Image.rad2float] if
  * you want to do arithmetic on them.
  *
  * This operation ignores some header fields, like VIEW and DATE. It will not
@@ -387,7 +387,8 @@ vips_foreign_load_rad_buffer_init(VipsForeignLoadRadBuffer *buffer)
  *
  * Sections of this reader from Greg Ward and Radiance with kind permission.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -411,12 +412,13 @@ vips_radload(const char *filename, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_radload(), but read from a HDR-formatted memory block.
+ * Exactly as [ctor@Image.radload], but read from a HDR-formatted memory block.
  *
  * You must not free the buffer while @out is active. The
- * #VipsObject::postclose signal on @out is a good place to free.
+ * [signal@Object::postclose] signal on @out is a good place to free.
  *
- * See also: vips_radload().
+ * ::: seealso
+ *     [ctor@Image.radload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -446,9 +448,10 @@ vips_radload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_radload(), but read from a source.
+ * Exactly as [ctor@Image.radload], but read from a source.
  *
- * See also: vips_radload().
+ * ::: seealso
+ *     [ctor@Image.radload].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -166,7 +166,8 @@ vips_foreign_load_analyze_init(VipsForeignLoadAnalyze *analyze)
  * loaded lazilly and byte-swapped, if necessary. The Analyze metadata is read
  * and attached.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */

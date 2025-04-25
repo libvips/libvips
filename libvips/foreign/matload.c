@@ -162,7 +162,8 @@ vips_foreign_load_mat_init(VipsForeignLoadMat *mat)
  * it as an image. It will not handle complex images. It does not handle
  * sparse matrices.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */

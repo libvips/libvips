@@ -320,7 +320,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 #ifdef DEBUG
 	{
-		GTimer *timer = g_timer_new();
+		GTimer *timer = [func@GLib.timer_new];
 
 		printf("calling heif_context_encode_image() ...\n");
 #endif /*DEBUG*/

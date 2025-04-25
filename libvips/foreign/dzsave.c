@@ -2678,30 +2678,12 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * @name: name to save to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @basename: %gchar base part of name
- * * @layout: #VipsForeignDzLayout directory layout convention
- * * @suffix: %gchar suffix for tiles
- * * @overlap: %gint set tile overlap
- * * @tile_size: %gint set tile size
- * * @background: #VipsArrayDouble background colour
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @centre: %gboolean centre the tiles
- * * @angle: #VipsAngle rotate the image by this much
- * * @container: #VipsForeignDzContainer set container type
- * * @compression: %gint zip deflate compression level
- * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
- * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @id: %gchar id for IIIF properties
- * * @Q: %gint, quality factor
- *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
  *
- * vips_dzsave() creates a directory called @name to hold the tiles. If @name
- * ends `.zip`, vips_dzsave() will create a zip file called @name to hold the
- * tiles. You can use @container to force zip file output.
+ * [method@Image.dzsave] creates a directory called @name to hold the tiles.
+ * If @name ends `.zip`, [method@Image.dzsave] will create a zip file called
+ * @name to hold the tiles. You can use @container to force zip file output.
  *
  * Use @basename to set the name of the image we are creating. The
  * default value is set from @name.
@@ -2728,7 +2710,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * You can rotate the image during write with the @angle argument. However,
  * this will only work for images which support random access, like openslide,
  * and not for things like JPEG. You'll need to rotate those images
- * yourself with vips_rot(). Note that the `autorotate` option to the loader
+ * yourself with [method@Image.rot]. Note that the `autorotate` option to the loader
  * may do what you need.
  *
  * By default, all tiles are stripped since usually you do not want a copy of
@@ -2752,7 +2734,26 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  *
  * Use @layout #VIPS_FOREIGN_DZ_LAYOUT_IIIF3 for IIIF v3 layout.
  *
- * See also: vips_tiffsave().
+ * ::: tip "Optional arguments"
+ *     * @basename: %gchararray, base part of name
+ *     * @layout: [enum@ForeignDzLayout], directory layout convention
+ *     * @suffix: %gchararray, suffix for tiles
+ *     * @overlap: %gint, set tile overlap
+ *     * @tile_size: %gint, set tile size
+ *     * @background: [struct@ArrayDouble], background colour
+ *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
+ *     * @centre: %gboolean, centre the tiles
+ *     * @angle: [enum@Angle], rotate the image by this much
+ *     * @container: [enum@ForeignDzContainer], set container type
+ *     * @compression: %gint, zip deflate compression level
+ *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
+ *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *       background
+ *     * @id: %gchararray, id for IIIF properties
+ *     * @Q: %gint, quality factor
+ *
+ * ::: seealso
+ *     [method@Image.tiffsave].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2776,34 +2777,35 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @basename: %gchar base part of name
- * * @layout: #VipsForeignDzLayout directory layout convention
- * * @suffix: %gchar suffix for tiles
- * * @overlap: %gint set tile overlap
- * * @tile_size: %gint set tile size
- * * @background: #VipsArrayDouble background colour
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @centre: %gboolean centre the tiles
- * * @angle: #VipsAngle rotate the image by this much
- * * @container: #VipsForeignDzContainer set container type
- * * @compression: %gint zip deflate compression level
- * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
- * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @id: %gchar id for IIIF properties
- * * @Q: %gint, quality factor
- *
- * As vips_dzsave(), but save to a memory buffer.
+ * As [method@Image.dzsave], but save to a memory buffer.
  *
  * Output is always in a zip container. Use @basename to set the name of the
  * directory that the zip will create when unzipped.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_dzsave(), vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @basename: %gchararray, base part of name
+ *     * @layout: [enum@ForeignDzLayout], directory layout convention
+ *     * @suffix: %gchararray, suffix for tiles
+ *     * @overlap: %gint, set tile overlap
+ *     * @tile_size: %gint, set tile size
+ *     * @background: [struct@ArrayDouble], background colour
+ *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
+ *     * @centre: %gboolean, centre the tiles
+ *     * @angle: [enum@Angle], rotate the image by this much
+ *     * @container: [enum@ForeignDzContainer], set container type
+ *     * @compression: %gint, zip deflate compression level
+ *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
+ *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *       background
+ *     * @id: %gchararray, id for IIIF properties
+ *     * @Q: %gint, quality factor
+ *
+ * ::: seealso
+ *     [method@Image.dzsave], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2841,27 +2843,28 @@ vips_dzsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.dzsave], but save to a target.
  *
- * * @basename: %gchar base part of name
- * * @layout: #VipsForeignDzLayout directory layout convention
- * * @suffix: %gchar suffix for tiles
- * * @overlap: %gint set tile overlap
- * * @tile_size: %gint set tile size
- * * @background: #VipsArrayDouble background colour
- * * @depth: #VipsForeignDzDepth how deep to make the pyramid
- * * @centre: %gboolean centre the tiles
- * * @angle: #VipsAngle rotate the image by this much
- * * @container: #VipsForeignDzContainer set container type
- * * @compression: %gint zip deflate compression level
- * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
- * * @skip_blanks: %gint skip tiles which are nearly equal to the background
- * * @id: %gchar id for IIIF properties
- * * @Q: %gint, quality factor
+ * ::: tip "Optional arguments"
+ *     * @basename: %gchararray, base part of name
+ *     * @layout: [enum@ForeignDzLayout], directory layout convention
+ *     * @suffix: %gchararray, suffix for tiles
+ *     * @overlap: %gint, set tile overlap
+ *     * @tile_size: %gint, set tile size
+ *     * @background: [struct@ArrayDouble], background colour
+ *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
+ *     * @centre: %gboolean, centre the tiles
+ *     * @angle: [enum@Angle], rotate the image by this much
+ *     * @container: [enum@ForeignDzContainer], set container type
+ *     * @compression: %gint, zip deflate compression level
+ *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
+ *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *       background
+ *     * @id: %gchararray, id for IIIF properties
+ *     * @Q: %gint, quality factor
  *
- * As vips_dzsave(), but save to a target.
- *
- * See also: vips_dzsave(), vips_image_write_to_target().
+ * ::: seealso
+ *     [method@Image.dzsave], [method@Image.write_to_target].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -504,14 +504,12 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	if (jxl->distance == 0)
 		jxl->lossless = TRUE;
 
-	jxl->runner = JxlThreadParallelRunnerCreate(NULL,
-		vips_concurrency_get());
+	jxl->runner = JxlThreadParallelRunnerCreate(NULL, vips_concurrency_get());
 	jxl->encoder = JxlEncoderCreate(NULL);
 
 	if (JxlEncoderSetParallelRunner(jxl->encoder,
 			JxlThreadParallelRunner, jxl->runner)) {
-		vips_foreign_save_jxl_error(jxl,
-			"JxlDecoderSetParallelRunner");
+		vips_foreign_save_jxl_error(jxl, "JxlDecoderSetParallelRunner");
 		return -1;
 	}
 

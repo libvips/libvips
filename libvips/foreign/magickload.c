@@ -66,15 +66,10 @@
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Read in an image using libMagick, the ImageMagick library.
  *
- * * @page: %gint, load from this page
- * * @n: %gint, load this many pages
- * * @density: string, canvas resolution for rendering vector formats like SVG
- *
- * Read in an image using libMagick, the ImageMagick library. This library can
- * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many
- * others.
+ * This library can read more than 80 file formats, including BMP, EPS,
+ * DICOM and many others.
  * The reader can handle any ImageMagick image, including the float and double
  * formats. It will work with any quantum size, including HDR. Any metadata
  * attached to the libMagick image is copied on to the VIPS image.
@@ -94,7 +89,14 @@
  * docs](http://www.imagemagick.org/script/command-line-options.php#density)
  * on the imagemagick website.
  *
- * See also: vips_image_new_from_file().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, load from this page
+ *     * @n: %gint, load this many pages
+ *     * @density: string, canvas resolution for rendering vector formats
+ *       like SVG
+ *
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -118,19 +120,20 @@ vips_magickload(const char *filename, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, load from this page
- * * @n: %gint, load this many pages
- * * @density: string, canvas resolution for rendering vector formats like SVG
- *
  * Read an image memory block using libMagick into a VIPS image. Exactly as
- * vips_magickload(), but read from a memory source.
+ * [ctor@Image.magickload], but read from a memory source.
  *
  * You must not free the buffer while @out is active. The
- * #VipsObject::postclose signal on @out is a good place to free.
+ * [signal@Object::postclose] signal on @out is a good place to free.
  *
- * See also: vips_magickload().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, load from this page
+ *     * @n: %gint, load this many pages
+ *     * @density: string, canvas resolution for rendering vector formats
+ *       like SVG
+ *
+ * ::: seealso
+ *     [ctor@Image.magickload].
  *
  * Returns: 0 on success, -1 on error.
  */

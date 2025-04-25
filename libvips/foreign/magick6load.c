@@ -5,7 +5,7 @@
  * 3/2/03 JC
  *	- some InitializeMagick() fail with NULL arg
  * 2/11/04
- *	- im_magick2vips_header() also checks sensible width/height
+ *	- im_magick2[func@header] also checks sensible width/height
  * 28/10/05
  * 	- copy attributes to meta
  * 	- write many-frame images as a big column if all frames have identical

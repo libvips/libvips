@@ -1,3 +1,11 @@
+s/vips_\(amiMSBfirst\)/apple_\1_apple/g
+s/vips_\(error_freeze\)/apple_\1_apple/g
+s/vips_\(error_thaw\)/apple_\1_apple/g
+s/vips_\(error_buffer\)/apple_\1_apple/g
+s/vips_\(image_new\)/apple_\1_apple/g
+s/vips_\(target_new_to_memory\)/apple_\1_apple/g
+s/vips_\(.*\)_get_type/apple_\1_get_type_apple/g
+
 s/See also: \([^.]\)/::: seealso\n *     \1/g
 
 s/#VipsImage::\(width\)/[property@Image:\1]/g
@@ -163,6 +171,8 @@ s/vips_\(falsecolour\)()/[method@Image.\1]/g
 s/vips_\(fastcor\)()/[method@Image.\1]/g
 s/vips_\(fill_nearest\)()/[method@Image.\1]/g
 s/vips_\(find_trim\)()/[method@Image.\1]/g
+s/vips_\(vipsload\)()/[ctor@Image.\1]/g
+s/vips_\(radload\)()/[ctor@Image.\1]/g
 s/vips_\(fitsload\)()/[ctor@Image.\1]/g
 s/vips_\(fitsload_source\)()/[ctor@Image.\1]/g
 s/vips_\(fitssave\)()/[method@Image.\1]/g
@@ -253,6 +263,15 @@ s/vips_\(log\)()/[method@Image.\1]/g
 s/vips_\(lshift_const1\)()/[method@Image.\1]/g
 s/vips_\(lshift_const\)()/[method@Image.\1]/g
 s/vips_\(lshift\)()/[method@Image.\1]/g
+s/vips_\(pngload\)()/[ctor@Image.\1]/g
+s/vips_\(ppmload\)()/[ctor@Image.\1]/g
+s/vips_\(openslideload\)()/[ctor@Image.\1]/g
+s/vips_\(tiffload\)()/[ctor@Image.\1]/g
+s/vips_\(gifload\)()/[ctor@Image.\1]/g
+s/vips_\(niftiload\)()/[ctor@Image.\1]/g
+s/vips_\(matrixload\)()/[ctor@Image.\1]/g
+s/vips_\(svgload\)()/[ctor@Image.\1]/g
+s/vips_\(magickload\)()/[ctor@Image.\1]/g
 s/vips_\(magicksave_buffer\)()/[method@Image.\1]/g
 s/vips_\(magicksave\)()/[method@Image.\1]/g
 s/vips_\(mapim\)()/[method@Image.\1]/g
@@ -390,6 +409,11 @@ s/vips_\(transpose3d\)()/[method@Image.\1]/g
 s/vips_\(unpremultiply\)()/[method@Image.\1]/g
 s/vips_\(vipssave\)()/[method@Image.\1]/g
 s/vips_\(vipssave_target\)()/[method@Image.\1]/g
+s/vips_\(jpegload\)()/[ctor@Image.\1]/g
+s/vips_\(jpegload_buffer\)()/[ctor@Image.\1]/g
+s/vips_\(heifload\)()/[ctor@Image.\1]/g
+s/vips_\(csvload\)()/[ctor@Image.\1]/g
+s/vips_\(webpload\)()/[ctor@Image.\1]/g
 s/vips_\(webpsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(webpsave\)()/[method@Image.\1]/g
 s/vips_\(webpsave_mime\)()/[method@Image.\1]/g
@@ -411,12 +435,20 @@ s/vips_\([^(]*\)()/[func@\1]/g
 s/#Vips\(SdfShape\)/[enum@\1]/g
 s/#Vips\(CombineMode\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
+s/#Vips\(RegionShrink\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
 s/#Vips\(Coding\)/[enum@\1]/g
 s/#Vips\(DemandStyle\)/[enum@\1]/g
 s/#Vips\(Precision\)/[enum@\1]/g
 s/#Vips\(ArgumentFlags\)/[flags@\1]/g
+s/#Vips\(ForeignPngFilter\)/[flags@\1]/g
+s/#Vips\(ForeignPpmFormat\)/[enum@\1]/g
+s/#Vips\(ForeignTiffCompression\)/[enum@\1]/g
+s/#Vips\(ForeignTiffPredictor\)/[enum@\1]/g
+s/#Vips\(ForeignTiffResUnit\)/[enum@\1]/g
+s/#Vips\(ForeignDzDepth\)/[enum@\1]/g
+s/#Vips\(ForeignWebpPreset\)/[enum@\1]/g
 
 s/#Vips\(Rect\)/[struct@\1]/g
 s/#Vips\(Progress\)/[struct@\1]/g
@@ -463,6 +495,8 @@ s/#VIPS_DEMAND_STYLE_\([^ ,.]*\)/[enum@Vips.DemandStyle.\1]/g
 s/#VIPS_INTERPRETATION_\([^ ,.]*\)/[enum@Vips.Interpretation.\1]/g
 s/#VIPS_ACCESS_\([^ ,.]*\)/[enum@Vips.Access.\1]/g
 s/#VIPS_CODING_\([^ ,.]*\)/[enum@Vips.Coding.\1]/g
+
+s/apple_\(.*\)_apple/vips_\1/g
 
 s/g_\(assert_not_reached\)/banana_\1_banana/g
 
