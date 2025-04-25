@@ -104,7 +104,7 @@ vips_scRGB2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 			q[2] = b;
 
 			p += 3;
-			q += 1;
+			q += 3;
 		}
 	}
 	else {

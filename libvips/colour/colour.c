@@ -412,7 +412,7 @@ vips_colour_code_build(VipsObject *object)
 
 	in = code->in;
 
-	/* If this is a LABQ and the coder wants uncoded, unpack.
+	/* We want labq, rad etc. all decoded (unlike colour_build).
 	 */
 	if (in &&
 		code->input_coding == VIPS_CODING_NONE &&
