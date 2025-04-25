@@ -170,21 +170,22 @@ vips_mask_butterworth_band_init(
  * @amplitude_cutoff: amplitude threshold
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @nodc: don't set the DC pixel
- * * @reject: invert the filter sense
- * * @optical: coordinates in optical space
- * * @uchar: output a uchar image
- *
  * Make an butterworth band-pass or band-reject filter, that is, one with a
  * variable, smooth transition positioned at @frequency_cutoff_x,
  * @frequency_cutoff_y, of radius @radius.
+ *
  * The shape of the curve is controlled by
  * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987.
  *
- * See also: vips_mask_ideal().
+ * ::: tip "Optional arguments"
+ *     * @nodc: %gboolean, don't set the DC pixel
+ *     * @reject: %gboolean, invert the filter sense
+ *     * @optical: %gboolean, coordinates in optical space
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error
  */

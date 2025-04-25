@@ -406,7 +406,8 @@ vips_zoom_init(VipsZoom *zoom)
  * Zoom an image by repeating pixels. This is fast nearest-neighbour
  * zoom.
  *
- * See also: vips_affine(), vips_subsample().
+ * ::: seealso
+ *     [method@Image.affine], [method@Image.subsample].
  *
  * Returns: 0 on success, -1 on error.
  */

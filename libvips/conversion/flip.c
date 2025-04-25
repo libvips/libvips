@@ -264,7 +264,8 @@ vips_flip_init(VipsFlip *flip)
  *
  * Flips an image left-right or up-down.
  *
- * See also: vips_rot().
+ * ::: seealso
+ *     [method@Image.rot].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -188,16 +188,16 @@ vips_bandunfold_init(VipsBandunfold *bandunfold)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @factor: unfold by this factor
- *
  * Unfold image bands into x axis.
  * Use @factor to set how much to unfold by: @factor 3, for example, will make
  * the output image three times wider than the input, and with one third
  * as many bands. By default, all bands are unfolded.
  *
- * See also: vips_csvload(), vips_bandfold().
+ * ::: tip "Optional arguments"
+ *     * @factor: unfold by this factor
+ *
+ * ::: seealso
+ *     [ctor@Image.csvload], [method@Image.bandfold].
  *
  * Returns: 0 on success, -1 on error.
  */

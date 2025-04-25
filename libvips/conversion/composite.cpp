@@ -958,7 +958,7 @@ vips_combine_pixels(VipsCompositeSequence *seq, VipsPel *q)
 	T *restrict tq = (T *restrict) q;
 	T **restrict tp = (T * *restrict) seq->p;
 
-	double B[MAX_BANDS + 1];
+	double B[MAX_BANDS + 1] = { 0.0 };
 	double aB;
 
 	/* Load and scale the base pixel to 0 - 1.

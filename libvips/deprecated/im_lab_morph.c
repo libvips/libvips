@@ -208,42 +208,18 @@ morph_buffer(float *in, float *out, int width, Params *parm)
  *
  * We perform three adjustments:
  *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- *       <emphasis>cast</emphasis>
+ * ## Cast
  *
  * Pass in @mask containing CIELAB readings for a neutral greyscale. For
  * example:
  *
- * <tgroup cols='3' align='left' colsep='1' rowsep='1'>
- *   <tbody>
- *     <row>
- *       <entry>3</entry>
- *       <entry>4</entry>
- *     </row>
- *     <row>
- *       <entry>14.23</entry>
- *       <entry>4.8</entry>
- *       <entry>-3.95</entry>
- *     </row>
- *     <row>
- *       <entry>18.74</entry>
- *       <entry>2.76</entry>
- *       <entry>-2.62</entry>
- *     </row>
- *     <row>
- *       <entry>23.46</entry>
- *       <entry>1.4</entry>
- *       <entry>-1.95</entry>
- *     </row>
- *     <row>
- *       <entry>27.53</entry>
- *       <entry>1.76</entry>
- *       <entry>-2.01</entry>
- *     </row>
- *   </tbody>
- * </tgroup>
+ * ```
+ * 3 4
+ * 14.23 4.8  -3.95
+ * 18.74 2.76 -2.62
+ * 23.46 1.4  -1.95
+ * 27.53 1.76 -2.01
+ * ```
  *
  * Interpolation from this makes cast corrector. The top and tail are
  * interpolated towards [0, 0, 0] and [100, 0, 0], intermediate values are
@@ -252,23 +228,14 @@ morph_buffer(float *in, float *out, int width, Params *parm)
  *
  * Each pixel is displaced in a/b by the amount specified for that L in the
  * table.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis>L*</emphasis>
+ *
+ * ## L*
  *
  * Pass in scale and offset for L. L' = (L + offset) * scale.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis>saturation</emphasis>
+ *
+ * ## Saturation
  *
  * scale a and b by these amounts, eg. 1.5 increases saturation.
- *     </para>
- *   </listitem>
- * </itemizedlist>
  *
  * Find the top two by generating and printing a greyscale. Find the bottom
  * by printing a Macbeth and looking at a/b spread

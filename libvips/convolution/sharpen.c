@@ -399,17 +399,8 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @sigma: sigma of gaussian
- * * @x1: flat/jaggy threshold
- * * @y2: maximum amount of brightening
- * * @y3: maximum amount of darkening
- * * @m1: slope for flat areas
- * * @m2: slope for jaggy areas
- *
  * Selectively sharpen the L channel of a LAB image. The input image is
- * transformed to #VIPS_INTERPRETATION_LABS.
+ * transformed to [enum@Vips.Interpretation.LABS].
  *
  * The operation performs a gaussian blur and subtracts from @in to generate a
  * high-frequency signal. This signal is passed through a lookup table formed
@@ -417,7 +408,7 @@ vips_sharpen_init(VipsSharpen *sharpen)
  *
  * The lookup table is formed like this:
  *
- * |[
+ * ```
  * .                     ^
  * .                  y2 |- - - - - -----------
  * .                     |         /
@@ -435,18 +426,18 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * .        /            |
  * . ______/ _ _ _ _ _ _ | -y3
  * .                     |
- * ]|
+ * ```
  *
  * For screen output, we suggest the following settings (the defaults):
  *
- * |[
+ * ```
  *   sigma == 0.5
  *   x1 == 2
  *   y2 == 10         (don't brighten by more than 10 L*)
  *   y3 == 20         (can darken by up to 20 L*)
  *   m1 == 0          (no sharpening in flat areas)
  *   m2 == 3          (some sharpening in jaggy areas)
- * ]|
+ * ```
  *
  * If you want more or less sharpening, we suggest you just change the
  * m2 parameter.
@@ -458,7 +449,16 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * pixels/mm). These figures refer to the image raster, not the half-tone
  * resolution.
  *
- * See also: vips_conv().
+ * ::: tip "Optional arguments"
+ *     * @sigma: %gdouble, sigma of gaussian
+ *     * @x1: %gdouble, flat/jaggy threshold
+ *     * @y2: %gdouble, maximum amount of brightening
+ *     * @y3: %gdouble, maximum amount of darkening
+ *     * @m1: %gdouble, slope for flat areas
+ *     * @m2: %gdouble, slope for jaggy areas
+ *
+ * ::: seealso
+ *     [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error.
  */

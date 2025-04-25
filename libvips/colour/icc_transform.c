@@ -693,11 +693,12 @@ vips_icc_verify_blob(VipsIcc *icc, VipsBlob **blob)
 
 /* Try to set the import profile. We read the input profile like this:
  *
- *	embedded	filename	action
- *	0		0 		image
- *	1		0		image
- *	0		1		file
- *	1		1		image, then fall back to file
+ * | embedded | filename | action                        |
+ * |----------|----------|-------------------------------|
+ * | 0        | 0        | image                         |
+ * | 1        | 0        | image                         |
+ * | 0        | 1        | file                          |
+ * | 1        | 1        | image, then fall back to file |
  *
  * If averything fails, we fall back to one of our built-in profiles,
  * depending on the input image.
@@ -1439,33 +1440,33 @@ vips_icc_is_compatible_profile(VipsImage *image,
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Import an image from device space to D65 LAB with an ICC profile.
  *
- * * @pcs: #VipsPCS,  use XYZ or LAB PCS
- * * @intent: #VipsIntent, transform with this intent
- * * @black_point_compensation: %gboolean, enable black point compensation
- * * @embedded: %gboolean, use profile embedded in input image
- * * @input_profile: %gchararray, get the input profile from here
- *
- * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
- * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead.
+ * If @pcs is set to [enum@Vips.PCS.XYZ], use CIE XYZ PCS instead.
  *
  * The input profile is searched for in three places:
  *
- *	  1. If @embedded is set, libvips will try to use any profile in the input
- *	  image metadata. You can test for the presence of an embedded profile
- *	  with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
- *	  argument. This will return %GType 0 if there is no profile.
+ * 1. If @embedded is set, libvips will try to use any profile in the input
+ *    image metadata. You can test for the presence of an embedded profile
+ *    with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
+ *    argument. This will return %GType 0 if there is no profile.
  *
- *	  2. Otherwise, if @input_profile is set, libvips will try to load a
- *	  profile from the named file. This can aslso be the name of one of the
- *	  built-in profiles.
+ * 2. Otherwise, if @input_profile is set, libvips will try to load a
+ *    profile from the named file. This can also be the name of one of the
+ *    built-in profiles.
  *
- *	  3. Otherwise, libvips will try to pick a compatible profile from the set
- *	  of built-in profiles.
+ * 3. Otherwise, libvips will try to pick a compatible profile from the set
+ *    of built-in profiles.
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
+ *
+ * ::: tip "Optional arguments"
+ *     * @pcs: [enum@PCS], use XYZ or LAB PCS
+ *     * @intent: [enum@Intent], transform with this intent
+ *     * @black_point_compensation: %gboolean, enable black point compensation
+ *     * @embedded: %gboolean, use profile embedded in input image
+ *     * @input_profile: %gchararray, get the input profile from here
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1488,23 +1489,22 @@ vips_icc_import(VipsImage *in, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @pcs: #VipsPCS,  use XYZ or LAB PCS
- * * @intent: #VipsIntent, transform with this intent
- * * @black_point_compensation: %gboolean, enable black point compensation
- * * @output_profile: %gchararray, get the output profile from here
- * * @depth: %gint, depth of output image in bits
- *
  * Export an image from D65 LAB to device space with an ICC profile.
- * If @pcs is
- * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead.
+ *
+ * If @pcs is set to [enum@Vips.PCS.XYZ], use CIE XYZ PCS instead.
  * If @output_profile is not set, use the embedded profile, if any.
  * If @output_profile is set, export with that and attach it to the output
  * image.
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
+ *
+ * ::: tip "Optional arguments"
+ *     * @pcs: [enum@PCS],  use XYZ or LAB PCS
+ *     * @intent: [enum@Intent], transform with this intent
+ *     * @black_point_compensation: %gboolean, enable black point compensation
+ *     * @output_profile: %gchararray, get the output profile from here
+ *     * @depth: %gint, depth of output image in bits
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1528,32 +1528,24 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * @output_profile: get the output profile from here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Transform an image with a pair of ICC profiles.
  *
- * * @pcs: #VipsPCS,  use XYZ or LAB PCS
- * * @intent: #VipsIntent, transform with this intent
- * * @black_point_compensation: %gboolean, enable black point compensation
- * * @embedded: %gboolean, use profile embedded in input image
- * * @input_profile: %gchararray, get the input profile from here
- * * @depth: %gint, depth of output image in bits
- *
- * Transform an image with a pair of ICC profiles. The input image is moved to
- * profile-connection space with the input profile and then to the output
- * space with the output profile.
+ * The input image is moved to profile-connection space with the input
+ * profile and then to the output space with the output profile.
  *
  * The input profile is searched for in three places:
  *
- *	  1. If @embedded is set, libvips will try to use any profile in the input
- *	  image metadata. You can test for the presence of an embedded profile
- *	  with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
- *	  argument. This will return %GType 0 if there is no profile.
+ * 1. If @embedded is set, libvips will try to use any profile in the input
+ *    image metadata. You can test for the presence of an embedded profile
+ *    with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
+ *    argument. This will return %GType 0 if there is no profile.
  *
- *	  2. Otherwise, if @input_profile is set, libvips will try to load a
- *	  profile from the named file. This can aslso be the name of one of the
- *	  built-in profiles.
+ * 2. Otherwise, if @input_profile is set, libvips will try to load a
+ *    profile from the named file. This can also be the name of one of the
+ *    built-in profiles.
  *
- *	  3. Otherwise, libvips will try to pick a compatible profile from the set
- *	  of built-in profiles.
+ * 3. Otherwise, libvips will try to pick a compatible profile from the set
+ *    of built-in profiles.
  *
  * If @black_point_compensation is set, LCMS black point compensation is
  * enabled.
@@ -1563,8 +1555,16 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * The output image has the output profile attached to the #VIPS_META_ICC_NAME
  * field.
  *
- * Use [method@Image.icc_import] and [method@Image.icc_export] to do either the first or
- * second half of this operation in isolation.
+ * Use [method@Image.icc_import] and [method@Image.icc_export] to do either
+ * the first or second half of this operation in isolation.
+ *
+ * ::: tip "Optional arguments"
+ *     * @pcs: [enum@PCS], use XYZ or LAB PCS
+ *     * @intent: [enum@Intent], transform with this intent
+ *     * @black_point_compensation: %gboolean, enable black point compensation
+ *     * @embedded: %gboolean, use profile embedded in input image
+ *     * @input_profile: %gchararray, get the input profile from here
+ *     * @depth: %gint, depth of output image in bits
  *
  * Returns: 0 on success, -1 on error.
  */

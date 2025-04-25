@@ -167,44 +167,37 @@ vips_conv_init(VipsConv *conv)
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @precision: #VipsPrecision, calculation accuracy
- * * @layers: %gint, number of layers for approximation
- * * @cluster: %gint, cluster lines closer than this distance
- *
- * Convolution.
- *
  * Perform a convolution of @in with @mask.
+ *
  * Each output pixel is calculated as:
  *
- * |[
+ * ```
  * sigma[i]{pixel[i] * mask[i]} / scale + offset
- * ]|
+ * ```
  *
  * where scale and offset are part of @mask.
  *
  * By default, @precision is
- * #VIPS_PRECISION_FLOAT. The output image
- * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
- * @out is also #VIPS_FORMAT_DOUBLE.
+ * [enum@Vips.Precision.FLOAT]. The output image
+ * is always [enum@Vips.BandFormat.FLOAT] unless @in is
+ * [enum@Vips.BandFormat.DOUBLE], in which case @out is also
+ * [enum@Vips.BandFormat.DOUBLE].
  *
- * If @precision is #VIPS_PRECISION_INTEGER, then
- * elements of @mask are converted to
- * integers before convolution, using rint(),
- * and the output image
- * always has the same #VipsBandFormat as the input image.
+ * If @precision is [enum@Vips.Precision.INTEGER], then elements of @mask
+ * are converted to integers before convolution, using rint(),
+ * and the output image always has the same [enum@BandFormat] as the input
+ * image.
  *
- * For #VIPS_FORMAT_UCHAR images and #VIPS_PRECISION_INTEGER @precision,
- * vips_conv() uses a fast vector path based on
+ * For [enum@Vips.BandFormat.UCHAR] images and [enum@Vips.Precision.INTEGER]
+ * @precision, [method@Image.conv] uses a fast vector path based on
  * half-float arithmetic. This can produce slightly different results.
  * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
- * vips_vector_set_enabled().
+ * [func@vector_set_enabled].
  *
- * If @precision is #VIPS_PRECISION_APPROXIMATE then, like
- * #VIPS_PRECISION_INTEGER, @mask is converted to int before convolution, and
- * the output image
- * always has the same #VipsBandFormat as the input image.
+ * If @precision is [enum@Vips.Precision.APPROXIMATE] then, like
+ * [enum@Vips.Precision.INTEGER], @mask is converted to int before
+ * convolution, and the output image
+ * always has the same [enum@BandFormat] as the input image.
  *
  * Larger values for @layers give more accurate
  * results, but are slower. As @layers approaches the mask radius, the
@@ -215,7 +208,13 @@ vips_conv_init(VipsConv *conv)
  * Smaller values of @cluster will give more accurate results, but be slower
  * and use more memory. 10% of the mask radius is a good rule of thumb.
  *
- * See also: vips_convsep().
+ * ::: tip "Optional arguments"
+ *     * @precision: [enum@Precision], calculation accuracy
+ *     * @layers: %gint, number of layers for approximation
+ *     * @cluster: %gint, cluster lines closer than this distance
+ *
+ * ::: seealso
+ *     [method@Image.convsep].
  *
  * Returns: 0 on success, -1 on error
  */

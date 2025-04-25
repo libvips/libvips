@@ -15,7 +15,7 @@
  * 20/10/13
  * 	- redone as a class from logmat.c
  * 16/12/14
- * 	- default to int output to match vips_conv()
+ * 	- default to int output to match [method@Image.conv]
  * 	- use @precision, not @integer
  */
 
@@ -248,14 +248,10 @@ vips_logmat_init(VipsLogmat *logmat)
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Create a circularly symmetric Laplacian of Gaussian mask of radius
+ * @sigma.
  *
- * * @separable: generate a separable mask
- * * @precision: #VipsPrecision for @out
- *
- * Creates a circularly symmetric Laplacian of Gaussian mask
- * of radius
- * @sigma.  The size of the mask is determined by the variable @min_ampl;
+ * The size of the mask is determined by the variable @min_ampl;
  * if for instance the value .1 is entered this means that the produced mask
  * is clipped at values within 10 percent of zero, and where the change
  * between mask elements is less than 10%.
@@ -263,24 +259,35 @@ vips_logmat_init(VipsLogmat *logmat)
  * The program uses the following equation: (from Handbook of Pattern
  * Recognition and image processing by Young and Fu, AP 1986 pages 220-221):
  *
- *  H(r) = (1 / (2 * M_PI * s4)) *
- * 	(2 - (r2 / s2)) *
- * 	exp(-r2 / (2 * s2))
+ * ```
+ * H(r) = (1 / (2 * M_PI * s4)) * (2 - (r2 / s2)) * exp(-r2 / (2 * s2))
+ * ```
  *
- * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.
+ * where:
+ *
+ * ```
+ * 2 = @sigma * @sigma,
+ * s4 = s2 * s2
+ * r2 = r * r.
+ * ```
  *
  * The generated mask has odd size and its maximum value is normalised to
- * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
+ * 1.0, unless @precision is [enum@Vips.Precision.INTEGER].
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions.
  *
- * If @precision is #VIPS_PRECISION_INTEGER, an integer mask is generated.
+ * If @precision is [enum@Vips.Precision.INTEGER], an integer mask is generated.
  * This is useful for integer convolutions.
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: vips_gaussmat(), vips_conv().
+ * ::: tip "Optional arguments"
+ *     * @separable: %gboolean, generate a separable mask
+ *     * @precision: [enum@Precision] for @out
+ *
+ * ::: seealso
+ *     [ctor@Image.gaussmat], [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

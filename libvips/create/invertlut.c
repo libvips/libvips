@@ -310,43 +310,21 @@ vips_invertlut_init(VipsInvertlut *lut)
  * @out: (out): output LUT
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @size: generate this much
- *
  * Given a mask of target values and real values, generate a LUT which
- * will map reals to targets. Handy for linearising images from
- * measurements of a colour chart. All values in [0,1]. Piecewise linear
- * interpolation, extrapolate head and tail to 0 and 1.
+ * will map reals to targets.
+ *
+ * Handy for linearising images from measurements of a colour chart. All
+ * values in [0,1]. Piecewise linear interpolation, extrapolate head and tail
+ * to 0 and 1.
  *
  * Eg. input like this:
  *
- *   <tgroup cols='4' align='left' colsep='1' rowsep='1'>
- *     <tbody>
- *       <row>
- *         <entry>4</entry>
- *         <entry>3</entry>
- *       </row>
- *       <row>
- *         <entry>0.1</entry>
- *         <entry>0.2</entry>
- *         <entry>0.3</entry>
- *         <entry>0.1</entry>
- *       </row>
- *       <row>
- *         <entry>0.2</entry>
- *         <entry>0.4</entry>
- *         <entry>0.4</entry>
- *         <entry>0.2</entry>
- *       </row>
- *       <row>
- *         <entry>0.7</entry>
- *         <entry>0.5</entry>
- *         <entry>0.6</entry>
- *         <entry>0.3</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
+ * ```
+ * 4 3
+ * 0.1 0.2 0.3 0.1
+ * 0.2 0.4 0.4 0.2
+ * 0.7 0.5 0.6 0.3
+ * ```
  *
  * Means a patch with 10% reflectance produces an image with 20% in
  * channel 1, 30% in channel 2, and 10% in channel 3, and so on.
@@ -358,7 +336,11 @@ vips_invertlut_init(VipsInvertlut *lut)
  * (we should fix this). Interpolation is simple piecewise linear; we ought to
  * do something better really.
  *
- * See also: vips_buildlut().
+ * ::: tip "Optional arguments"
+ *     * @size: %gint, generate this much
+ *
+ * ::: seealso
+ *     [method@Image.buildlut].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -73,6 +73,7 @@ s/vips_\(bandfold\)()/[method@Image.\1]/g
 s/vips_\(bandjoin2\)()/[method@Image.\1]/g
 s/vips_\(bandjoin_const1\)()/[method@Image.\1]/g
 s/vips_\(bandjoin_const\)()/[method@Image.\1]/g
+s/vips_\(bandjoin\)()/[func@Image.\1]/g
 s/vips_\(bandmean\)()/[method@Image.\1]/g
 s/vips_\(bandor\)()/[method@Image.\1]/g
 s/vips_\(bandunfold\)()/[method@Image.\1]/g
@@ -111,6 +112,7 @@ s/vips_\(composite2\)()/[method@Image.\1]/g
 s/vips_\(conj\)()/[method@Image.\1]/g
 s/vips_\(conva\)()/[method@Image.\1]/g
 s/vips_\(convasep\)()/[method@Image.\1]/g
+s/vips_\(conversion\)()/[func@Image.\1]/g
 s/vips_\(convf\)()/[method@Image.\1]/g
 s/vips_\(convi\)()/[method@Image.\1]/g
 s/vips_\(conv\)()/[method@Image.\1]/g
@@ -156,6 +158,7 @@ s/vips_\(exp10\)()/[method@Image.\1]/g
 s/vips_\(exp\)()/[method@Image.\1]/g
 s/vips_\(extract_area\)()/[method@Image.\1]/g
 s/vips_\(extract_band\)()/[method@Image.\1]/g
+s/vips_\(eye\)()/[ctor@Image.\1]/g
 s/vips_\(falsecolour\)()/[method@Image.\1]/g
 s/vips_\(fastcor\)()/[method@Image.\1]/g
 s/vips_\(fill_nearest\)()/[method@Image.\1]/g
@@ -167,10 +170,13 @@ s/vips_\(flatten\)()/[method@Image.\1]/g
 s/vips_\(flip\)()/[method@Image.\1]/g
 s/vips_\(float2rad\)()/[method@Image.\1]/g
 s/vips_\(floor\)()/[method@Image.\1]/g
+s/vips_\(fractsurf\)()/[ctor@Image.\1]/g
 s/vips_\(freqmult\)()/[method@Image.\1]/g
 s/vips_\(fwfft\)()/[method@Image.\1]/g
 s/vips_\(gamma\)()/[method@Image.\1]/g
 s/vips_\(gaussblur\)()/[method@Image.\1]/g
+s/vips_\(gaussmat\)()/[ctor@Image.\1]/g
+s/vips_\(gaussnoise\)()/[ctor@Image.\1]/g
 s/vips_\(getpoint\)()/[method@Image.\1]/g
 s/vips_\(get_tile_size\)()/[method@Image.\1]/g
 s/vips_\(gifsave_buffer\)()/[method@Image.\1]/g
@@ -178,6 +184,7 @@ s/vips_\(gifsave\)()/[method@Image.\1]/g
 s/vips_\(gifsave_target\)()/[method@Image.\1]/g
 s/vips_\(globalbalance\)()/[method@Image.\1]/g
 s/vips_\(gravity\)()/[method@Image.\1]/g
+s/vips_\(grey\)()/[ctor@Image.\1]/g
 s/vips_\(grid\)()/[method@Image.\1]/g
 s/vips_\(heifsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(heifsave\)()/[method@Image.\1]/g
@@ -199,6 +206,7 @@ s/vips_\(HSV2sRGB\)()/[method@Image.\1]/g
 s/vips_\(icc_export\)()/[method@Image.\1]/g
 s/vips_\(icc_import\)()/[method@Image.\1]/g
 s/vips_\(icc_transform\)()/[method@Image.\1]/g
+s/vips_\(identity\)()/[ctor@Image.\1]/g
 s/vips_\(ifthenelse\)()/[method@Image.\1]/g
 s/vips_image_\(get_typeof\)()/[method@Image.\1]/g
 s/vips_\(imag\)()/[method@Image.\1]/g
@@ -240,6 +248,7 @@ s/vips_\(linear1\)()/[method@Image.\1]/g
 s/vips_\(linear\)()/[method@Image.\1]/g
 s/vips_\(linecache\)()/[method@Image.\1]/g
 s/vips_\(log10\)()/[method@Image.\1]/g
+s/vips_\(logmat\)()/[ctor@Image.\1]/g
 s/vips_\(log\)()/[method@Image.\1]/g
 s/vips_\(lshift_const1\)()/[method@Image.\1]/g
 s/vips_\(lshift_const\)()/[method@Image.\1]/g
@@ -248,6 +257,16 @@ s/vips_\(magicksave_buffer\)()/[method@Image.\1]/g
 s/vips_\(magicksave\)()/[method@Image.\1]/g
 s/vips_\(mapim\)()/[method@Image.\1]/g
 s/vips_\(maplut\)()/[method@Image.\1]/g
+s/vips_\(mask_butterworth_band\)()/[ctor@Image.\1]/g
+s/vips_\(mask_butterworth\)()/[ctor@Image.\1]/g
+s/vips_\(mask_butterworth_ring\)()/[ctor@Image.\1]/g
+s/vips_\(mask_fractal\)()/[ctor@Image.\1]/g
+s/vips_\(mask_gaussian_band\)()/[ctor@Image.\1]/g
+s/vips_\(mask_gaussian\)()/[ctor@Image.\1]/g
+s/vips_\(mask_gaussian_ring\)()/[ctor@Image.\1]/g
+s/vips_\(mask_ideal_band\)()/[ctor@Image.\1]/g
+s/vips_\(mask_ideal\)()/[ctor@Image.\1]/g
+s/vips_\(mask_ideal_ring\)()/[ctor@Image.\1]/g
 s/vips_\(match\)()/[method@Image.\1]/g
 s/vips_\(math2_const1\)()/[method@Image.\1]/g
 s/vips_\(math2_const\)()/[method@Image.\1]/g
@@ -284,6 +303,7 @@ s/vips_\(orimage_const1\)()/[method@Image.\1]/g
 s/vips_\(orimage_const\)()/[method@Image.\1]/g
 s/vips_\(orimage\)()/[method@Image.\1]/g
 s/vips_\(percent\)()/[method@Image.\1]/g
+s/vips_\(perlin\)()/[ctor@Image.\1]/g
 s/vips_\(phasecor\)()/[method@Image.\1]/g
 s/vips_\(pngsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(pngsave\)()/[method@Image.\1]/g
@@ -359,11 +379,13 @@ s/vips_\(subsample\)()/[method@Image.\1]/g
 s/vips_\(subtract\)()/[method@Image.\1]/g
 s/vips_\(tanh\)()/[method@Image.\1]/g
 s/vips_\(tan\)()/[method@Image.\1]/g
+s/vips_\(text\)()/[ctor@Image.\1]/g
 s/vips_\(thumbnail_image\)()/[method@Image.\1]/g
 s/vips_\(tiffsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(tiffsave\)()/[method@Image.\1]/g
 s/vips_\(tiffsave_target\)()/[method@Image.\1]/g
 s/vips_\(tilecache\)()/[method@Image.\1]/g
+s/vips_\(tonelut\)()/[ctor@Image.\1]/g
 s/vips_\(transpose3d\)()/[method@Image.\1]/g
 s/vips_\(unpremultiply\)()/[method@Image.\1]/g
 s/vips_\(vipssave\)()/[method@Image.\1]/g
@@ -373,16 +395,21 @@ s/vips_\(webpsave\)()/[method@Image.\1]/g
 s/vips_\(webpsave_mime\)()/[method@Image.\1]/g
 s/vips_\(webpsave_target\)()/[method@Image.\1]/g
 s/vips_\(wop\)()/[method@Image.\1]/g
+s/vips_\(worley\)()/[ctor@Image.\1]/g
 s/vips_\(wrap\)()/[method@Image.\1]/g
 s/vips_\(XYZ2CMYK\)()/[method@Image.\1]/g
 s/vips_\(XYZ2Lab\)()/[method@Image.\1]/g
 s/vips_\(XYZ2scRGB\)()/[method@Image.\1]/g
 s/vips_\(XYZ2Yxy\)()/[method@Image.\1]/g
+s/vips_\(xyz\)()/[ctor@Image.\1]/g
 s/vips_\(Yxy2XYZ\)()/[method@Image.\1]/g
+s/vips_\(zone\)()/[ctor@Image.\1]/g
 s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(SdfShape\)/[enum@\1]/g
+s/#Vips\(CombineMode\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
 s/#Vips\(BandFormat\)/[enum@\1]/g
 s/#Vips\(Interpretation\)/[enum@\1]/g
@@ -419,6 +446,8 @@ s/#Vips\(ThreadpoolAllocateFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolWorkFn\)/[callback@\1]/g
 s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
+s/#VIPS_COMBINE_MODE_\([^ ,.]*\)/[enum@Vips.CombineMode.\1]/g
+s/#VIPS_SDF_SHAPE_\([^ ,.]*\)/[enum@Vips.SdfShape.\1]/g
 s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
 s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
 s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g
@@ -435,6 +464,8 @@ s/#VIPS_INTERPRETATION_\([^ ,.]*\)/[enum@Vips.Interpretation.\1]/g
 s/#VIPS_ACCESS_\([^ ,.]*\)/[enum@Vips.Access.\1]/g
 s/#VIPS_CODING_\([^ ,.]*\)/[enum@Vips.Coding.\1]/g
 
+s/g_\(assert_not_reached\)/banana_\1_banana/g
+
 s/g_thread_\([^(]*new\)()/[ctor@GLib.Thread.\1]/g
 s/g_object_\(new\)()/[ctor@GObject.Object.\1]/g
 s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
@@ -446,3 +477,5 @@ s/%GInput/[class@Gio.Input]/g
 s/%GSList/[struct@GLib.SList]/g
 
 s/g_\([^(]*\)()/[func@GLib.\1]/g
+
+s/banana_\(.*\)_banana/g_\1/g

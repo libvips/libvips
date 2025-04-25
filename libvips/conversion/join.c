@@ -284,8 +284,6 @@ vips_join_class_init(VipsJoinClass *class)
 static void
 vips_join_init(VipsJoin *join)
 {
-	/* Init our instance fields.
-	 */
 	join->background = vips_array_double_newv(1, 0.0);
 }
 
@@ -296,13 +294,6 @@ vips_join_init(VipsJoin *join)
  * @out: (out): output image
  * @direction: join horizontally or vertically
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @expand: %TRUE to expand the output image to hold all of the input pixels
- * * @shim: space between images, in pixels
- * * @background: background ink colour
- * * @align: low, centre or high alignment
  *
  * Join @in1 and @in2 together, left-right or up-down depending on the value
  * of @direction.
@@ -326,12 +317,20 @@ vips_join_init(VipsJoin *join)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * If you are going to be joining many thousands of images in a regular
- * grid, vips_arrayjoin() is a better choice.
+ * grid, [func@Image.arrayjoin] is a better choice.
  *
- * See also: vips_arrayjoin(), vips_insert().
+ * ::: tip "Optional arguments"
+ *     * @expand: %gboolean, %TRUE to expand the output image to hold all of
+ *       the input pixels
+ *     * @shim: %gint, space between images, in pixels
+ *     * @background: [struct@ArrayDouble], background ink colour
+ *     * @align: [enumAlign], low, centre or high alignment
+ *
+ * ::: seealso
+ *     [func@Image.arrayjoin], [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -381,7 +381,7 @@ vips_text_autofit(VipsText *text)
 static void *
 vips_text_init_once(void *client)
 {
-	vips_text_fontmap = pango_cairo_font_map_new();
+	vips_text_fontmap = pango_cairo_font_map_new();;
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
 	return NULL;
@@ -656,21 +656,9 @@ vips_text_init(VipsText *text)
  * @text: utf-8 text string to render
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Draw the string @text to an image.
  *
- * * @font: %gchararray, font to render with
- * * @fontfile: %gchararray, load this font file
- * * @width: %gint, image should be no wider than this many pixels
- * * @height: %gint, image should be no higher than this many pixels
- * * @align: #VipsAlign, set justification alignment
- * * @justify: %gboolean, justify lines
- * * @dpi: %gint, render at this resolution
- * * @autofit_dpi: %gint, read out auto-fitted DPI
- * * @rgba: %gboolean, enable RGBA output
- * * @spacing: %gint, space lines by this in points
- * * @wrap: #VipsTextWrap, wrap lines on characters or words
- *
- * Draw the string @text to an image. @out is normally a one-band 8-bit
+ * @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
@@ -700,7 +688,7 @@ vips_text_init(VipsText *text)
  *
  * @height is the maximum number of pixels high the generated text can be. This
  * only takes effect when @dpi is not set, and @width is set, making a box.
- * In this case, vips_text() will search for a @dpi and set of line breaks
+ * In this case, [ctor@Image.text] will search for a @dpi and set of line breaks
  * which will just fit the text into @width and @height.
  *
  * You can use @autofit_dpi to read out the DPI selected by auto fit.
@@ -713,9 +701,23 @@ vips_text_init(VipsText *text)
  *
  * You can read the coordinate of the top edge of the character from `Xoffset`
  * / `Yoffset`. This can be helpful if you need to line up the output of
- * several vips_text().
+ * several [ctor@Image.text].
  *
- * See also: vips_bandjoin(), vips_composite().
+ * ::: tip "Optional arguments"
+ *     * @font: %gchararray, font to render with
+ *     * @fontfile: %gchararray, load this font file
+ *     * @width: %gint, image should be no wider than this many pixels
+ *     * @height: %gint, image should be no higher than this many pixels
+ *     * @align: #VipsAlign, set justification alignment
+ *     * @justify: %gboolean, justify lines
+ *     * @dpi: %gint, render at this resolution
+ *     * @autofit_dpi: %gint, read out auto-fitted DPI
+ *     * @rgba: %gboolean, enable RGBA output
+ *     * @spacing: %gint, space lines by this in points
+ *     * @wrap: #VipsTextWrap, wrap lines on characters or words
+ *
+ * ::: seealso
+ *     [func@Image.bandjoin], [func@Image.composite].
  *
  * Returns: 0 on success, -1 on error
  */

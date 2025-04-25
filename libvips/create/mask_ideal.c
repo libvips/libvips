@@ -102,13 +102,6 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * @frequency_cutoff: threshold at which filter ends
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @nodc: don't set the DC pixel
- * * @reject: invert the filter sense
- * * @optical: coordinates in optical space
- * * @uchar: output a uchar image
- *
  * Make an ideal high- or low-pass filter, that is, one with a sharp cutoff
  * positioned at @frequency_cutoff, where @frequency_cutoff is in
  * the range 0 - 1.
@@ -124,7 +117,7 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  *
  * Set @optical to position the DC component in the centre of the image. This
  * makes the mask suitable for multiplying against optical Fourier transforms.
- * See vips_wrap().
+ * See [method@Image.wrap].
  *
  * Set @reject to invert the sense of
  * the filter. For example, low-pass becomes low-reject.
@@ -132,11 +125,18 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * Set @uchar to output an 8-bit unsigned char image rather than a
  * float image. In this case, pixels are in the range [0 - 255].
  *
- * See also: vips_mask_ideal(), vips_mask_ideal_ring(),
- * vips_mask_ideal_band(), vips_mask_butterworth(),
- * vips_mask_butterworth_ring(), vips_mask_butterworth_band(),
- * vips_mask_gaussian(), vips_mask_gaussian_ring(),
- * vips_mask_gaussian_band().
+ * ::: tip "Optional arguments"
+ *     * @nodc: %gboolean, don't set the DC pixel
+ *     * @reject: %gboolean, invert the filter sense
+ *     * @optical: %gboolean, coordinates in optical space
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.mask_ideal], [ctor@Image.mask_ideal_ring],
+ *     [ctor@Image.mask_ideal_band], [ctor@Image.mask_butterworth],
+ *     [ctor@Image.mask_butterworth_ring], [ctor@Image.mask_butterworth_band],
+ *     [ctor@Image.mask_gaussian], [ctor@Image.mask_gaussian_ring],
+ *     [ctor@Image.mask_gaussian_band].
  *
  * Returns: 0 on success, -1 on error
  */

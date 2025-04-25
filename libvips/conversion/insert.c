@@ -520,11 +520,6 @@ vips_insert_init(VipsInsert *insert)
  * @y: top position of @sub
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @expand: expand output to hold whole of both images
- * * @background: colour for new pixels
- *
  * Insert @sub into @main at position @x, @y.
  *
  * Normally @out shows the whole of @main. If @expand is #TRUE then @out is
@@ -542,9 +537,14 @@ vips_insert_init(VipsInsert *insert)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
- * See also: vips_join(), vips_embed(), vips_extract_area().
+ * ::: tip "Optional arguments"
+ *     * @expand: %gdouble, expand output to hold whole of both images
+ *     * @background: [struct@ArrayDouble], colour for new pixels
+ *
+ * ::: seealso
+ *     [method@Image.join], [method@Image.embed], [method@Image.extract_area].
  *
  * Returns: 0 on success, -1 on error
  */

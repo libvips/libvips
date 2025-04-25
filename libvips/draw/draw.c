@@ -50,12 +50,13 @@
  * @VIPS_COMBINE_MODE_SET: set pixels to the new value
  * @VIPS_COMBINE_MODE_ADD: add pixels
  *
- * See vips_draw_image() and so on.
+ * See [method@Image.draw_image] and so on.
  *
- * Operations like vips_draw_image() need to be told how to combine images
+ * Operations like [method@Image.draw_image] need to be told how to combine images
  * from two sources.
  *
- * See also: vips_join().
+ * ::: seealso
+ *     [method@Image.join].
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsDraw, vips_draw, VIPS_TYPE_OPERATION);

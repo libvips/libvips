@@ -290,16 +290,18 @@ vips_draw_circlev(VipsImage *image,
  * @radius: draw_circle radius
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Draws a circle on @image.
  *
- * * @fill: fill the draw_circle
- *
- * Draws a circle on @image. If @fill is %TRUE then the circle is filled,
+ * If @fill is %TRUE then the circle is filled,
  * otherwise a 1-pixel-wide perimeter is drawn.
  *
  * @ink is an array of double containing values to draw.
  *
- * See also: vips_draw_circle1(), vips_draw_line().
+ * ::: tip "Optional arguments"
+ *     * @fill: %gboolean, fill the draw_circle
+ *
+ * ::: seealso
+ *     [method@Image.draw_circle1], [method@Image.draw_line].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -326,13 +328,13 @@ vips_draw_circle(VipsImage *image,
  * @radius: draw_circle radius
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.draw_circle], but just takes a single double for @ink.
  *
- * * @fill: fill the draw_circle
+ * ::: tip "Optional arguments"
+ *     * @fill: %gboolean, fill the draw_circle
  *
- * As vips_draw_circle(), but just takes a single double for @ink.
- *
- * See also: vips_draw_circle().
+ * ::: seealso
+ *     [method@Image.draw_circle].
  *
  * Returns: 0 on success, or -1 on error.
  */

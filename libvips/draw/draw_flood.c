@@ -103,8 +103,8 @@ typedef struct _Buffer {
 } Buffer;
 
 /* What we track during a flood. We have this in a separate struct so that we
- * can support vips__draw_flood_direct() ... a fast path for
- * vips_labelregions() that avoids all of the GObject call overhead. This
+ * can support [func@_draw_flood_direct] ... a fast path for
+ * [method@Image.labelregions] that avoids all of the GObject call overhead. This
  * gives a huge speedup, >x10 in many cases.
  */
 typedef struct _Flood {
@@ -623,7 +623,7 @@ vips_draw_flood_init(VipsDrawFlood *draw_flood)
 {
 }
 
-/* Direct path to flood for vips_labelregions(). We need to avoid the function
+/* Direct path to flood for [method@Image.labelregions]. We need to avoid the function
  * dispatch system for speed.
  *
  * Equivalent to:
@@ -696,16 +696,9 @@ vips_draw_floodv(VipsImage *image,
  * @y: centre of circle
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Flood-fill @image with @ink, starting at position @x, @y.
  *
- * * @test: test this image
- * * @equal: fill while equal to edge
- * * @left: output left edge of bounding box of modified area
- * * @top: output top edge of bounding box of modified area
- * * @width: output width of bounding box of modified area
- * * @height: output height of bounding box of modified area
- *
- * Flood-fill @image with @ink, starting at position @x, @y. The filled area is
+ * The filled area is
  * bounded by pixels that are equal to the ink colour, in other words, it
  * searches for pixels enclosed by an edge of @ink.
  *
@@ -719,9 +712,18 @@ vips_draw_floodv(VipsImage *image,
  * @left, @top, @width, @height output the bounding box of the modified
  * pixels.
  *
+ * ::: tip "Optional arguments"
+ *     * @test: [class@Image], test this image
+ *     * @equal: %gboolean, fill while equal to edge
+ *     * @left: %gint, output left edge of bounding box of modified area
+ *     * @top: %gint, output top edge of bounding box of modified area
+ *     * @width: %gint, output width of bounding box of modified area
+ *     * @height: %gint, output height of bounding box of modified area
+ *
  * @ink is an array of double containing values to draw.
  *
- * See also: vips_draw_flood1().
+ * ::: seealso
+ *     [method@Image.draw_flood1].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -747,18 +749,18 @@ vips_draw_flood(VipsImage *image,
  * @y: centre of circle
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.draw_flood], but just takes a single double for @ink.
  *
- * * @test: test this image
- * * @equal: fill while equal to edge
- * * @left: output left edge of bounding box of modified area
- * * @top: output top edge of bounding box of modified area
- * * @width: output width of bounding box of modified area
- * * @height: output height of bounding box of modified area
+ * ::: tip "Optional arguments"
+ *     * @test: [class@Image], test this image
+ *     * @equal: %gboolean, fill while equal to edge
+ *     * @left: %gint, output left edge of bounding box of modified area
+ *     * @top: %gint, output top edge of bounding box of modified area
+ *     * @width: %gint, output width of bounding box of modified area
+ *     * @height: %gint, output height of bounding box of modified area
  *
- * As vips_draw_flood(), but just takes a single double for @ink.
- *
- * See also: vips_draw_flood().
+ * ::: seealso
+ *     [method@Image.draw_flood].
  *
  * Returns: 0 on success, or -1 on error.
  */

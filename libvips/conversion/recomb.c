@@ -254,7 +254,8 @@ vips_recomb_init(VipsRecomb *recomb)
  *
  * It's useful for various sorts of colour space conversions.
  *
- * See also: vips_bandmean().
+ * ::: seealso
+ *     [method@Image.bandmean].
  *
  * Returns: 0 on success, -1 on error
  */

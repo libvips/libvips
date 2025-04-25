@@ -259,12 +259,11 @@ vips_XYZ2Lab_init(VipsXYZ2Lab *XYZ2Lab)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @temp: [struct@ArrayDouble], colour temperature
- *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
  * defaults to D65.
+ *
+ * ::: tip "Optional arguments"
+ *     * @temp: [struct@ArrayDouble], colour temperature
  *
  * Returns: 0 on success, -1 on error.
  */

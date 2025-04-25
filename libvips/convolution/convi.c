@@ -1264,7 +1264,7 @@ vips_convi_init(VipsConvi *convi)
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Integer convolution. This is a low-level operation, see vips_conv() for
+ * Integer convolution. This is a low-level operation, see [method@Image.conv] for
  * something more convenient.
  *
  * @mask is converted to an integer mask with rint() of each element, rint of
@@ -1274,14 +1274,15 @@ vips_convi_init(VipsConvi *convi)
  * sigma[i]{pixel[i] * mask[i]} / scale + offset
  * ]|
  *
- * The output image always has the same #VipsBandFormat as the input image.
+ * The output image always has the same [enum@BandFormat] as the input image.
  *
- * For #VIPS_FORMAT_UCHAR images, vips_convi() uses a fast vector path based on
+ * For [enum@Vips.BandFormat.UCHAR] images, [method@Image.convi] uses a fast vector path based on
  * half-float arithmetic. This can produce slightly different results.
  * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
- * vips_vector_set_enabled().
+ * [func@vector_set_enabled].
  *
- * See also: vips_conv().
+ * ::: seealso
+ *     [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

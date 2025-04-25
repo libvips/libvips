@@ -266,7 +266,7 @@ vips_get_prgname(void)
  *
  * ::: seealso
  *     [func@shutdown], [func@add_option_entries], [func@version],
- * [func@guess_prefix], [func@guess_libdir].
+ *     [func@guess_prefix], [func@guess_libdir].
  *
  * Returns: 0 on success, -1 otherwise
  */

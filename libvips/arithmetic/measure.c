@@ -259,12 +259,6 @@ vips_measure_init(VipsMeasure *measure)
  * @v: patches down chart
  * @...: %NULL-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
- *     * @left: area of image containing chart
- *     * @top: area of image containing chart
- *     * @width: area of image containing chart
- *     * @height: area of image containing chart
- *
  * Analyse a grid of colour patches, producing an array of patch averages.
  * The mask has a row for each measured patch and a column for each image
  * band. The operations issues a warning if any patch has a deviation more
@@ -274,6 +268,12 @@ vips_measure_init(VipsMeasure *measure)
  * If the chart does not fill the whole image, use the optional @left, @top,
  * @width, @height arguments to indicate the
  * position of the chart.
+ *
+ * ::: tip "Optional arguments"
+ *     * @left: area of image containing chart
+ *     * @top: area of image containing chart
+ *     * @width: area of image containing chart
+ *     * @height: area of image containing chart
  *
  * ::: seealso
  *     [method@Image.avg], [method@Image.deviate].
