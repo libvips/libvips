@@ -148,7 +148,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
 
 	seq->ir = vips_region_new(in);
 
-	/* Big enough for the largest intermediate .. a whole scanline.
+	/* Big enough for the largest intermediate .. a couple of scanlines.
 	 */
 	seq->sum = VIPS_ARRAY(NULL, shrink->sizeof_line_buffer, VipsPel);
 
@@ -157,7 +157,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
 
 #define ADD(ACC_TYPE, TYPE) \
 	{ \
-		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum; \
+		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum + sz * y; \
 		TYPE *restrict p = (TYPE *) in; \
 \
 		for (x = 0; x < sz; x++) \
@@ -168,7 +168,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
  */
 static void
 vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
-	VipsRegion *ir, int left, int top, int width)
+	VipsRegion *ir, int left, int top, int width, int y)
 {
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
@@ -219,7 +219,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
  */
 #define UCHAR_AVG() \
 	{ \
-		int *restrict sum = (int *) seq->sum; \
+		int *restrict sum = (int *) seq->sum + sz * y; \
 		unsigned char *restrict q = (unsigned char *) out; \
 		int amend = shrink->vshrink / 2; \
 		unsigned int multiplier = (1LL << 32) / ((1 << 8) * shrink->vshrink); \
@@ -232,7 +232,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
  */
 #define IAVG(ACC_TYPE, TYPE) \
 	{ \
-		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum; \
+		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum + sz * y; \
 		TYPE *restrict q = (TYPE *) out; \
 		int amend = shrink->vshrink / 2; \
 \
@@ -244,7 +244,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
  */
 #define FAVG(TYPE) \
 	{ \
-		double *restrict sum = (double *) seq->sum; \
+		double *restrict sum = (double *) seq->sum + sz * y; \
 		TYPE *restrict q = (TYPE *) out; \
 \
 		for (x = 0; x < sz; x++) \
@@ -255,7 +255,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
  */
 static void
 vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
-	VipsRegion *out_region, int left, int top, int width)
+	VipsRegion *out_region, int left, int top, int width, int y)
 {
 	VipsResample *resample = VIPS_RESAMPLE(shrink);
 	const int bands = resample->in->Bands *
@@ -311,47 +311,63 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &out_region->valid;
 
-	int y, y1;
-
 	/* How do we chunk up the image? We don't want to prepare the whole of
 	 * the input region corresponding to *r since it could be huge.
 	 *
-	 * Request input a line at a time, average to a line buffer.
+	 * Reading a line at a time could cause a lot of overcomputation, depending
+	 * on what's upstream from us. In SMALLTILE, output scanlines could be
+	 * quite small.
+	 *
+	 * Use fatstrip height as a compromise.
 	 */
+	int dy = vips__fatstrip_height;
+
+	int y, y1, y2;
 
 #ifdef DEBUG
 	printf("vips_shrinkv_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y++) {
+	for (y = 0; y < r->height; y += dy) {
+		int chunk_height = VIPS_MIN(dy, r->height - y);
+
 		memset(seq->sum, 0, shrink->sizeof_line_buffer);
 
-		for (y1 = 0; y1 < shrink->vshrink; y1++) {
+		const int start = (r->top + y) * shrink->vshrink;
+		const int end = (r->top + y + chunk_height) * shrink->vshrink;
+
+		for (y1 = start; y1 < end; y1 += dy) {
 			VipsRect s;
 
 			s.left = r->left;
-			s.top = y1 + (y + r->top) * shrink->vshrink;
+			s.top = y1;
 			s.width = r->width;
-			s.height = 1;
+			s.height = VIPS_MIN(dy, end - y1);
 #ifdef DEBUG
-			printf("vips_shrinkv_gen: requesting line %d\n", s.top);
+			printf("vips_shrinkv_gen: requesting %d lines from %d\n",
+				s.height, s.top);
 #endif /*DEBUG*/
 			if (vips_region_prepare(ir, &s))
 				return -1;
 
 			VIPS_GATE_START("vips_shrinkv_gen: work");
 
-			vips_shrinkv_add_line(shrink, seq, ir,
-				s.left, s.top, s.width);
+			for (y2 = 0; y2 < s.height; y2++) {
+				int chunk_y = (y1 + y2 - start) / shrink->vshrink;
+
+				vips_shrinkv_add_line(shrink, seq, ir,
+					s.left, y1 + y2, s.width, chunk_y);
+			}
 
 			VIPS_GATE_STOP("vips_shrinkv_gen: work");
 		}
 
 		VIPS_GATE_START("vips_shrinkv_gen: work");
 
-		vips_shrinkv_write_line(shrink, seq, out_region,
-			r->left, r->top + y, r->width);
+		for (y1 = 0; y1 < chunk_height; y1++)
+			vips_shrinkv_write_line(shrink, seq, out_region,
+				r->left, r->top + y + y1, r->width, y1);
 
 		VIPS_GATE_STOP("vips_shrinkv_gen: work");
 	}
@@ -374,51 +390,69 @@ vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
 	const int bands = in->Bands;
 	int ne = r->width * bands;
 
-	int y, y1;
-
 	/* How do we chunk up the image? We don't want to prepare the whole of
 	 * the input region corresponding to *r since it could be huge.
 	 *
-	 * Request input a line at a time, average to a line buffer.
+	 * Reading a line at a time could cause a lot of overcomputation, depending
+	 * on what's upstream from us. In SMALLTILE, output scanlines could be
+	 * quite small.
+	 *
+	 * Use fatstrip height as a compromise.
 	 */
+	int dy = vips__fatstrip_height;
+
+	int y, y1, y2;
 
 #ifdef DEBUG
 	printf("vips_shrinkv_uchar_vector_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y++) {
+	for (y = 0; y < r->height; y += dy) {
+		int chunk_height = VIPS_MIN(dy, r->height - y);
+
 		memset(seq->sum, 0, shrink->sizeof_line_buffer);
 
-		for (y1 = 0; y1 < shrink->vshrink; y1++) {
+		const int start = (r->top + y) * shrink->vshrink;
+		const int end = (r->top + y + chunk_height) * shrink->vshrink;
+
+		for (y1 = start; y1 < end; y1 += dy) {
 			VipsRect s;
 
 			s.left = r->left;
-			s.top = y1 + (y + r->top) * shrink->vshrink;
+			s.top = y1;
 			s.width = r->width;
-			s.height = 1;
+			s.height = VIPS_MIN(dy, end - y1);
 #ifdef DEBUG
-			printf("vips_shrinkv_uchar_vector_gen: requesting line %d\n",
-				s.top);
+			printf(
+				"vips_shrinkv_uchar_vector_gen: requesting %d lines from %d\n",
+				s.height, s.top);
 #endif /*DEBUG*/
 			if (vips_region_prepare(ir, &s))
 				return -1;
 
 			VIPS_GATE_START("vips_shrinkv_uchar_vector_gen: work");
 
-			VipsPel *p = VIPS_REGION_ADDR(ir, r->left, s.top);
+			for (y2 = 0; y2 < s.height; y2++) {
+				VipsPel *p = VIPS_REGION_ADDR(ir, r->left, y1 + y2);
+				int chunk_y = (y1 + y2 - start) / shrink->vshrink;
 
-			vips_shrinkv_add_line_uchar_hwy(p, ne, (unsigned int *) seq->sum);
+				vips_shrinkv_add_line_uchar_hwy(p, ne,
+					(unsigned int *) seq->sum + ne * chunk_y);
+			}
 
 			VIPS_GATE_STOP("vips_shrinkv_uchar_vector_gen: work");
 		}
 
 		VIPS_GATE_START("vips_shrinkv_uchar_vector_gen: work");
 
-		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		for (y1 = 0; y1 < chunk_height; y1++) {
+			VipsPel *q = VIPS_REGION_ADDR(out_region, r->left,
+				r->top + y + y1);
 
-		vips_shrinkv_write_line_uchar_hwy(q, ne, shrink->vshrink,
-			(unsigned int *) seq->sum);
+			vips_shrinkv_write_line_uchar_hwy(q, ne, shrink->vshrink,
+				(unsigned int *) seq->sum + ne * y1);
+		}
 
 		VIPS_GATE_STOP("vips_shrinkv_uchar_vector_gen: work");
 	}
@@ -468,7 +502,7 @@ vips_shrinkv_build(VipsObject *object)
 	/* We have to keep a line buffer as we sum columns.
 	 */
 	shrink->sizeof_line_buffer =
-		in->Xsize * in->Bands *
+		in->Xsize * in->Bands * vips__fatstrip_height *
 		vips_format_sizeof(VIPS_FORMAT_DPCOMPLEX);
 
 	/* For uchar input, try to make a vector path.
