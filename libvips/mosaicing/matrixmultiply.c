@@ -178,7 +178,8 @@ vips_matrixmultiply_init(VipsMatrixmultiply *matrix)
  *
  * The scale and offset members of @left and @right are ignored.
  *
- * See also: vips_matrixinvert().
+ * ::: seealso
+ *     [method@Image.matrixinvert].
  *
  * Returns: 0 on success, -1 on error
  */

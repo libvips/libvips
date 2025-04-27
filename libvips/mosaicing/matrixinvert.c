@@ -91,18 +91,18 @@ vips_matrixinvert_dispose(GObject *gobject)
  * lu_decomp:
  * @mat: matrix to decompose
  *
- * This function takes any square NxN #VipsImage.
- * It returns a #VipsImage which is (N+1)xN.
+ * This function takes any square NxN [class@Image].
+ * It returns a [class@Image] which is (N+1)xN.
  *
  * It calculates the PLU decomposition, storing the upper and diagonal parts
  * of U, together with the lower parts of L, as an NxN matrix in the first
  * N rows of the new matrix.  The diagonal parts of L are all set to unity
  * and are not stored.
  *
- * The final row of the new #VipsImage has only integer entries, which
+ * The final row of the new [class@Image] has only integer entries, which
  * represent the row-wise permutations made by the permutation matrix P.
  *
- * The scale and offset members of the input #VipsImage are ignored.
+ * The scale and offset members of the input [class@Image] are ignored.
  *
  * See:
  *
@@ -220,7 +220,7 @@ lu_decomp(VipsImage *mat)
  * @vec: name for output matrix
  *
  * Solve the system of linear equations Ax=b, where matrix A has already
- * been decomposed into LU form in VipsImage *lu.  Input vector b is in
+ * been decomposed into LU form in @lu.  Input vector b is in
  * vec and is overwritten with vector x.
  *
  * See:
@@ -228,7 +228,8 @@ lu_decomp(VipsImage *mat)
  *   PRESS, W. et al, 1992.  Numerical Recipes in C; The Art of Scientific
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
- * See also: vips__matrixtranspose(), vips__matrixmultiply().
+ * ::: seealso
+ *     [method@Image.matrixmultiply].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -466,7 +467,8 @@ vips_matrixinvert_init(VipsMatrixinvert *matrix)
  * This operation calculates the inverse of the matrix represented in @m.
  * The scale and offset members of the input matrix are ignored.
  *
- * See also: vips_matrixload().
+ * ::: seealso
+ *     [ctor@Image.matrixload], [method@Image.matrixmultiply].
  *
  * Returns: 0 on success, -1 on error
  */

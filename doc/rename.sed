@@ -2,6 +2,9 @@ s/vips_\(amiMSBfirst\)/apple_\1_apple/g
 s/vips_\(error_freeze\)/apple_\1_apple/g
 s/vips_\(error_thaw\)/apple_\1_apple/g
 s/vips_\(error_buffer\)/apple_\1_apple/g
+s/vips_\(error_clear\)/apple_\1_apple/g
+s/vips_\(_make_blend_luts\)/apple_\1_apple/g
+s/vips_\(clinear\)/apple_\1_apple/g
 s/vips_\(image_new\)/apple_\1_apple/g
 s/vips_\(target_new_to_memory\)/apple_\1_apple/g
 s/vips_\(vector_isenabled\)/apple_\1_apple/g

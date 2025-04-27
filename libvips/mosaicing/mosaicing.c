@@ -58,6 +58,7 @@ vips_mosaicing_operation_init(void)
 	extern GType vips_globalbalance_get_type(void);
 	extern GType vips_matrixinvert_get_type(void);
 	extern GType vips_matrixmultiply_get_type(void);
+	extern GType vips_remosaic_get_type(void);
 
 	vips_merge_get_type();
 	vips_mosaic_get_type();
@@ -66,4 +67,5 @@ vips_mosaicing_operation_init(void)
 	vips_matrixmultiply_get_type();
 	vips_match_get_type();
 	vips_globalbalance_get_type();
+	vips_remosaic_get_type();
 }

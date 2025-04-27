@@ -317,13 +317,6 @@ vips_match_init(VipsMatch *match)
  * @ys2: second secondary tie-point
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @search: search to improve tie-points
- * * @hwindow: half window size
- * * @harea: half search size
- * * @interpolate: interpolate pixels with this
- *
  * Scale, rotate and translate @sec so that the tie-points line up.
  *
  * If @search is %TRUE, before performing the transformation, the tie-points
@@ -331,6 +324,12 @@ vips_match_init(VipsMatch *match)
  * match of size @hwindow to @ref.
  *
  * This function will only work well for small rotates and scales.
+ *
+ * ::: tip "Optional arguments"
+ *     * @search: %gboolean, search to improve tie-points
+ *     * @hwindow: %gint, half window size
+ *     * @harea: %gint, half search size
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *
  * Returns: 0 on success, -1 on error
  */

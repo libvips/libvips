@@ -320,19 +320,6 @@ vips_mosaic_init(VipsMosaic *mosaic)
  * @ysec: position in secondary image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @bandno: %gint, band to search for features
- * * @hwindow: %gint, half window size
- * * @harea: %gint, half search size
- * * @mblend: %gint, maximum blend size
- * * @dx0: %gint, output, detected displacement
- * * @dy0: %gint, output, detected displacement
- * * @scale1: %gdouble, output, detected first order scale
- * * @angle1: %gdouble, output, detected first order rotation
- * * @dx1: %gdouble, output, detected first order displacement
- * * @dy1: %gdouble, output, detected first order displacement
- *
  * This operation joins two images left-right (with @ref on the left) or
  * top-bottom (with @ref above) given an approximate overlap.
  *
@@ -346,13 +333,26 @@ vips_mosaic_init(VipsMosaic *mosaic)
  * fit are discarded, and the model refitted until either too few points
  * remain or the model reaches good agreement.
  *
- * The detected displacement is used with vips_merge() to join the two images
- * together.
+ * The detected displacement is used with [method@Image.merge] to join the
+ * two images together.
  *
  * You can read out the detected transform with @dx0, @dy0, @scale1, @angle1,
  * @dx1, @dy1.
  *
- * See also: vips_merge(), vips_insert().
+ * ::: tip "Optional arguments"
+ *     * @bandno: %gint, band to search for features
+ *     * @hwindow: %gint, half window size
+ *     * @harea: %gint, half search size
+ *     * @mblend: %gint, maximum blend size
+ *     * @dx0: %gint, output, detected displacement
+ *     * @dy0: %gint, output, detected displacement
+ *     * @scale1: %gdouble, output, detected first order scale
+ *     * @angle1: %gdouble, output, detected first order rotation
+ *     * @dx1: %gdouble, output, detected first order displacement
+ *     * @dy1: %gdouble, output, detected first order displacement
+ *
+ * ::: seealso
+ *     [method@Image.merge], [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error
  */

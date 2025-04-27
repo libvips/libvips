@@ -641,14 +641,6 @@ vips_mosaic1_init(VipsMosaic1 *mosaic1)
  * @ys2: second secondary tie-point
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @search: search to improve tie-points
- * * @hwindow: half window size
- * * @harea: half search size
- * * @interpolate: interpolate pixels with this
- * * @mblend: maximum blend size
- *
  * This operation joins two images top-bottom (with @sec on the right)
  * or left-right (with @sec at the bottom)
  * given an approximate pair of tie-points. @sec is scaled and rotated as
@@ -675,7 +667,15 @@ vips_mosaic1_init(VipsMosaic1 *mosaic1)
  * Smallest common format in
  * [arithmetic](libvips-arithmetic.html)).
  *
- * See also: vips_merge(), vips_insert(), vips_globalbalance().
+ * ::: tip "Optional arguments"
+ *     * @search: %gboolean, search to improve tie-points
+ *     * @hwindow: %gint, half window size
+ *     * @harea: %gint, half search size
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
+ *     * @mblend: %gint, maximum blend size
+ *
+ * ::: seealso
+ *     [method@Image.merge], [method@Image.insert], [method@Image.globalbalance].
  *
  * Returns: 0 on success, -1 on error
  */
