@@ -294,7 +294,7 @@ vips_casev(VipsImage *index, VipsImage **cases, VipsImage **out, int n,
  * statement or a multi-way [method@Image.ifthenelse].
  *
  * ::: seealso
- *     [method@Image.maplut], [method@Image.switch], [method@Image.ifthenelse].
+ *     [method@Image.maplut], [func@Image.switch], [method@Image.ifthenelse].
  *
  * Returns: 0 on success, -1 on error
  */
