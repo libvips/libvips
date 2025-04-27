@@ -114,7 +114,8 @@ typedef struct {
  *
  * More like hit-miss, really.
  *
- * See also: vips_morph().
+ * ::: seealso
+ *     [method@Image.morph].
  */
 
 typedef struct {
@@ -1007,21 +1008,21 @@ vips_morph_init(VipsMorph *morph)
  * based on the book "Fundamentals of Digital Image Processing" by A. Jain,
  * pp 384-388, Prentice-Hall, 1989.
  *
- * For #VIPS_OPERATION_MORPHOLOGY_ERODE,
+ * For [enum@Vips.OperationMorphology.ERODE],
  * the whole mask must match for the output pixel to be
  * set, that is, the result is the logical AND of the selected input pixels.
  *
- * For #VIPS_OPERATION_MORPHOLOGY_DILATE,
+ * For [enum@Vips.OperationMorphology.DILATE],
  * the output pixel is set if any part of the mask
  * matches, that is, the result is the logical OR of the selected input pixels.
  *
- * See the boolean operations vips_andimage(), vips_orimage() and
- * vips_eorimage()
+ * See the boolean operations [method@Image.andimage], [method@Image.orimage]
+ * and [method@Image.eorimage]
  * for analogues of the usual set difference and set union operations.
  *
  * Operations are performed using the processor's vector unit,
  * if possible. Disable this with `--vips-novector` or `VIPS_NOVECTOR` or
- * vips_vector_set_enabled()
+ * [func@vector_set_enabled].
  *
  * Returns: 0 on success, -1 on error
  */
