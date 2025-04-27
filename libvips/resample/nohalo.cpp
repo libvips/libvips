@@ -230,7 +230,7 @@
  * http://doi.acm.org/10.1145/1557626.1557657.
  */
 
-/* Uncomment to enable bounds checking for VIPS_REGION_ADDR().
+/* Uncomment to enable bounds checking for [func@REGION_ADDR].
  */
 #define DEBUG
 

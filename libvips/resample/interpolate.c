@@ -90,7 +90,8 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  *
  * The interpolated value should be written to the pixel pointed to by @out.
  *
- * See also: [struct@VipsInterpolateClass].
+ * ::: seealso
+ *     [struct@VipsInterpolateClass].
  */
 
 /**
@@ -119,7 +120,8 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  * You also need to set [property@VipsObject:nickname] and
  * [property@VipsObject:description] in [class@Object].
  *
- * See also: [callback@InterpolateMethod], [class@Object] or
+ * ::: seealso
+ *     [callback@InterpolateMethod], [class@Object] or
  * [func@Interpolate.bilinear_static].
  */
 
@@ -641,7 +643,8 @@ vips__interpolate_init(void)
  * Look up an interpolator from a nickname and make one. You need to free the
  * result with [method@GObject.Object.unref] when you're done with it.
  *
- * See also: [func@type_find].
+ * ::: seealso
+ *     [func@type_find].
  *
  * Returns: an interpolator, or `NULL` on error.
  */

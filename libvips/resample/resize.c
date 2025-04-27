@@ -370,7 +370,7 @@ vips_resize_class_init(VipsResizeClass *class)
 		G_STRUCT_OFFSET(VipsResize, idy),
 		-10000000.0, 10000000.0, 0.0);
 
-	/* It's a kernel now we use vips_reduce() not vips_affine().
+	/* It's a kernel now we use vips_reduce() not [method@Image.affine].
 	 */
 	VIPS_ARG_INTERPOLATE(class, "interpolate", 2,
 		_("Interpolate"),
@@ -402,29 +402,25 @@ vips_resize_init(VipsResize *resize)
  * @scale: scale factor
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @vscale: %gdouble vertical scale factor
- * * @kernel: #VipsKernel to reduce with
- * * @gap: reducing gap to use (default: 2.0)
- *
  * Resize an image.
  *
- * Set @gap to speed up downsizing by having vips_shrink() to shrink
+ * Set @gap to speed up downsizing by having [method@Image.shrink] to shrink
  * with a box filter first. The bigger @gap, the closer the result
  * to the fair resampling. The smaller @gap, the faster resizing.
  * The default value is 2.0 (very close to fair resampling
  * while still being faster in many cases).
  *
- * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
- * can change this with @kernel. Downsizing is done with centre convention.
+ * [method@Image.resize] normally uses [enum@Vips.Kernel.LANCZOS3] for the final
+ * reduce, you can change this with @kernel. Downsizing is done with centre
+ * convention.
  *
- * When upsizing (@scale > 1), the operation uses vips_affine() with
- * a #VipsInterpolate selected depending on @kernel. It will use
- * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above. It adds a
- * 0.5 pixel displacement to the input pixels to get centre convention scaling.
+ * When upsizing (@scale > 1), the operation uses [method@Image.affine] with
+ * a [class@Interpolate] selected depending on @kernel. It will use
+ * [class@Interpolate] "bicubic" for [enum@Vips.Kernel.CUBIC] and above. It
+ * adds a 0.5 pixel displacement to the input pixels to get centre convention
+ * scaling.
  *
- * vips_resize() normally maintains the image aspect ratio. If you set
+ * [method@Image.resize] normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *
@@ -436,9 +432,15 @@ vips_resize_init(VipsResize *resize)
  * be updated by the application.
  *
  * This operation does not premultiply alpha. If your image has an alpha
- * channel, you should use vips_premultiply() on it first.
+ * channel, you should use [method@Image.premultiply] on it first.
  *
- * See also: vips_premultiply(), vips_shrink(), vips_reduce().
+ * ::: tip "optional arguments"
+ *     * @vscale: %gdouble, vertical scale factor
+ *     * @kernel: [enum@Kernel], to reduce with
+ *     * @gap: %gdouble, reducing gap to use (default: 2.0)
+ *
+ * ::: seealso
+ *     [method@Image.premultiply], [method@Image.shrink], [method@Image.reduce].
  *
  * Returns: 0 on success, -1 on error
  */

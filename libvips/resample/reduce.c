@@ -206,26 +206,27 @@ vips_reduce_init(VipsReduce *reduce)
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Reduce @in by a pair of factors with a pair of 1D kernels.
  *
- * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
- * * @gap: reducing gap to use (default: 0.0)
+ * This will not work well for shrink factors greater than three.
  *
- * Reduce @in by a pair of factors with a pair of 1D kernels. This
- * will not work well for shrink factors greater than three.
- *
- * Set @gap to speed up reducing by having vips_shrink() to shrink
+ * Set @gap to speed up reducing by having [method@Image.shrink] to shrink
  * with a box filter first. The bigger @gap, the closer the result
  * to the fair resampling. The smaller @gap, the faster resizing.
  * The default value is 0.0 (no optimization).
  *
- * This is a very low-level operation: see vips_resize() for a more
+ * This is a very low-level operation: see [method@Image.resize] for a more
  * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See also: vips_shrink(), vips_resize(), vips_affine().
+ * ::: tip "Optional arguments"
+ *     * @kernel: [enum@Kernel], kernel to interpolate with (default: lanczos3)
+ *     * @gap: reducing gap to use (default: 0.0)
+ *
+ * ::: seealso
+ *     [method@Image.shrink], [method@Image.resize], [method@Image.affine].
  *
  * Returns: 0 on success, -1 on error
  */

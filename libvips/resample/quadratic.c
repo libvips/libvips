@@ -53,38 +53,6 @@
 
 #include "presample.h"
 
-/* The transform we compute:
-
-x', y' = coordinates of srcim
-x, y   = coordinates of dstim
-a .. l = coefficients
-
-x = x' + a              : order 0     image shift only
-  + b x' + c y'         : order 1     + affine transf.
-  + d x' y'             : order 2     + bilinear transf.
-  + e x' x' + f y' y'   : order 3     + quadratic transf.
-
-y = y' + g
-  + h y' + i x'
-  + j y' x'
-  + k y' y' + l x' x'
-
-input matrix:
-
-  a g
-  --
-  b h
-  c i
-  --
-  d j
-  --
-  e k
-  f l
-
-matrix height may be 1, 3, 4, 6
-
- */
-
 typedef struct _VipsQuadratic {
 	VipsResample parent_instance;
 
@@ -375,13 +343,51 @@ vips_quadratic_init(VipsQuadratic *quadratic)
  * @coeff: horizontal quadratic
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Transform an image with a 0, 1, 2, or 3rd order polynomial.
  *
- * * @interpolate: use this interpolator (default bilinear)
+ * The transform we compute:
  *
- * This operation is unfinished and unusable, sorry.
+ * ```
+ * x = x' + a              : order 0     image shift only
+ *   + b x' + c y'         : order 1     + affine transf.
+ *   + d x' y'             : order 2     + bilinear transf.
+ *   + e x' x' + f y' y'   : order 3     + quadratic transf.
  *
- * See also: vips_affine().
+ * y = y' + g
+ *   + h y' + i x'
+ *   + j y' x'
+ *   + k y' y' + l x' x'
+ * ```
+ *
+ * where:
+ *
+ * ```
+ * x', y' = coordinates of srcim
+ * x, y   = coordinates of dstim
+ * a .. l = coefficients
+ * ```
+ *
+ * The coefficients are in the input matrix, ordered as:
+ *
+ * ```
+ *   a g
+ *   --
+ *   b h
+ *   c i
+ *   --
+ *   d j
+ *   --
+ *   e k
+ *   f l
+ * ```
+ *
+ * The matrix height may be 1, 3, 4, 6
+ *
+ * ::: tip "Optional arguments"
+ *     * @interpolate: use this interpolator (default bilinear)
+ *
+ * ::: seealso
+ *     [method@Image.affine].
  *
  * Returns: 0 on success, -1 on error
  */

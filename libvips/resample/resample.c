@@ -62,7 +62,8 @@
  * Controls whether an operation should upsize, downsize, both up and
  * downsize, or force a size.
  *
- * See also: vips_thumbnail().
+ * ::: seealso
+ *     [ctor@Image.thumbnail].
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsResample, vips_resample, VIPS_TYPE_OPERATION);

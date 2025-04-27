@@ -468,20 +468,22 @@ vips_shrinkh_init(VipsShrinkh *shrink)
  * @hshrink: horizontal shrink
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @ceil: round-up output dimensions
- *
- * Shrink @in horizontally by an integer factor. Each pixel in the output is
+ * Shrink @in horizontally by an integer factor.
+ * Each pixel in the output is
  * the average of the corresponding line of @hshrink pixels in the input.
  *
- * This is a very low-level operation: see vips_resize() for a more
+ * This is a very low-level operation: see [method@Image.resize] for a more
  * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See also: vips_shrinkv(), vips_shrink(), vips_resize(), vips_affine().
+ * ::: tip "Optional arguments"
+ *     * @ceil: %gboolean, round-up output dimensions
+ *
+ * ::: seealso
+ *     [method@Image.shrinkv], [method@Image.shrink], [method@Image.resize],
+ *     [method@Image.affine].
  *
  * Returns: 0 on success, -1 on error
  */

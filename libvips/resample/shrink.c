@@ -189,22 +189,23 @@ vips_shrink_init(VipsShrink *shrink)
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Shrink @in by a pair of factors with a simple box filter.
  *
- * * @ceil: round-up output dimensions
+ * For non-integer factors, [method@Image.shrink] will first shrink by the
+ * integer part with a box filter, then use [method@Image.reduce] to shrink
+ * by the remaining fractional part.
  *
- * Shrink @in by a pair of factors with a simple box filter. For non-integer
- * factors, vips_shrink() will first shrink by the integer part with a box
- * filter, then use vips_reduce() to shrink by the
- * remaining fractional part.
- *
- * This is a very low-level operation: see vips_resize() for a more
+ * This is a very low-level operation: see [method@Image.resize] for a more
  * convenient way to resize images.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See also: vips_resize(), vips_reduce().
+ * ::: tip "Optional arguments"
+ *     * @ceil: %gboolean, round-up output dimensions
+ *
+ * ::: seealso
+ *     [method@Image.resize], [method@Image.reduce].
  *
  * Returns: 0 on success, -1 on error
  */

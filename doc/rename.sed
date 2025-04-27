@@ -406,6 +406,9 @@ s/vips_\(tanh\)()/[method@Image.\1]/g
 s/vips_\(tan\)()/[method@Image.\1]/g
 s/vips_\(text\)()/[ctor@Image.\1]/g
 s/vips_\(thumbnail_image\)()/[method@Image.\1]/g
+s/vips_\(thumbnail_buffer\)()/[ctor@Image.\1]/g
+s/vips_\(thumbnail_source\)()/[ctor@Image.\1]/g
+s/vips_\(thumbnail\)()/[ctor@Image.\1]/g
 s/vips_\(tiffsave_buffer\)()/[method@Image.\1]/g
 s/vips_\(tiffsave\)()/[method@Image.\1]/g
 s/vips_\(tiffsave_target\)()/[method@Image.\1]/g
@@ -438,6 +441,7 @@ s/vips_\(zoom\)()/[method@Image.\1]/g
 
 s/vips_\([^(]*\)()/[func@\1]/g
 
+s/#Vips\(Kernel\)/[enum@\1]/g
 s/#Vips\(SdfShape\)/[enum@\1]/g
 s/#Vips\(CombineMode\)/[enum@\1]/g
 s/#Vips\(Access\)/[enum@\1]/g
@@ -486,6 +490,7 @@ s/#Vips\(ThreadpoolProgressFn\)/[callback@\1]/g
 
 s/#VIPS_COMBINE_MODE_\([^ ,.]*\)/[enum@Vips.CombineMode.\1]/g
 s/#VIPS_SDF_SHAPE_\([^ ,.]*\)/[enum@Vips.SdfShape.\1]/g
+s/#VIPS_KERNEL_\([^ ,.]*\)/[enum@Vips.Kernel.\1]/g
 s/#VIPS_OPERATION_MATH_\([^ ,.]*\)/[enum@Vips.OperationMath.\1]/g
 s/#VIPS_OPERATION_MATH2_\([^ ,.]*\)/[enum@Vips.OperationMath2.\1]/g
 s/#VIPS_OPERATION_RELATIONAL_\([^ ,.]*\)/[enum@Vips.OperationRelational.\1]/g

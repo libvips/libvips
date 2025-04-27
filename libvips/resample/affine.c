@@ -727,31 +727,22 @@ vips_affine_init(VipsAffine *affine)
  * @d: transformation matrix coefficient
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @interpolate: #VipsInterpolate, interpolate pixels with this
- * * @oarea: #VipsArrayInt, output rectangle
- * * @idx: %gdouble, input horizontal offset
- * * @idy: %gdouble, input vertical offset
- * * @odx: %gdouble, output horizontal offset
- * * @ody: %gdouble, output vertical offset
- * * @extend: #VipsExtend how to generate new pixels
- * * @background: #VipsArrayDouble colour for new pixels
- * * @premultiplied: %gboolean, images are already premultiplied
- *
  * This operator performs an affine transform on an image using @interpolate.
  *
  * The transform is:
  *
- * |[
- *   X = @a * (x + @idx) + @b * (y + @idy) + @odx
- *   Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+ * ```
+ *  X = @a * (x + @idx) + @b * (y + @idy) + @odx
+ *  Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+ *  ```
  *
- *   where:
- *     x and y are the coordinates in input image.
- *     X and Y are the coordinates in output image.
- *     (0,0) is the upper left corner.
- * ]|
+ *  where:
+ *
+ *  ```
+ *  x and y are the coordinates in input image.
+ *  X and Y are the coordinates in output image.
+ *  (0,0) is the upper left corner.
+ * ```
  *
  * The section of the output space defined by @oarea is written to
  * @out. @oarea is a four-element int array of left, top, width, height.
@@ -759,21 +750,33 @@ vips_affine_init(VipsAffine *affine)
  * transformed input image.
  *
  * By default, new pixels are filled with @background. This defaults to
- * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY
- * is better for image upsizing.
+ * zero (black). You can set other extend types with @extend.
+ * [enum@Vips.Extend.COPY] is better for image upsizing.
  *
  * @interpolate defaults to bilinear.
  *
  * @idx, @idy, @odx, @ody default to zero.
  *
- * Image are normally treated as unpremultiplied, so this operation can be used
- * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied.
+ * Image are normally treated as unpremultiplied, so this operation can be
+ * used directly on PNG images. If your images have been through
+ * [method@Image.premultiply], set @premultiplied.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See also: vips_shrink(), vips_resize(), #VipsInterpolate.
+ * ::: tip "Optional arguments"
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
+ *     * @oarea: [struct@ArrayInt], output rectangle
+ *     * @idx: %gdouble, input horizontal offset
+ *     * @idy: %gdouble, input vertical offset
+ *     * @odx: %gdouble, output horizontal offset
+ *     * @ody: %gdouble, output vertical offset
+ *     * @extend: [enum@Extend], how to generate new pixels
+ *     * @background: [struct@ArrayDouble] colour for new pixels
+ *     * @premultiplied: %gboolean, images are already premultiplied
+ *
+ * ::: seealso
+ *     [method@Image.shrink], [method@Image.resize], [class@Interpolate].
  *
  * Returns: 0 on success, -1 on error
  */
