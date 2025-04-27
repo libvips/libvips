@@ -290,10 +290,11 @@ vips_casev(VipsImage *index, VipsImage **cases, VipsImage **out, int n,
  * The output image is the same size as @index. Images in @cases are
  * expanded to the smallest common format and number of bands.
  *
- * Combine this with vips_switch() to make something like a case statement or
- * a multi-way vips_ifthenelse().
+ * Combine this with [method@Image.switch] to make something like a case statement or
+ * a multi-way [method@Image.ifthenelse].
  *
- * See also: vips_maplut(), vips_switch(), vips_ifthenelse().
+ * ::: seealso
+ *     [method@Image.maplut], [method@Image.switch], [method@Image.ifthenelse].
  *
  * Returns: 0 on success, -1 on error
  */

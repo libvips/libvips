@@ -396,6 +396,7 @@ s/vips_\(stats\)()/[method@Image.\1]/g
 s/vips_\(stdif\)()/[method@Image.\1]/g
 s/vips_\(subsample\)()/[method@Image.\1]/g
 s/vips_\(subtract\)()/[method@Image.\1]/g
+s/vips_\(switch\)()/[func@Image.\1]/g
 s/vips_\(tanh\)()/[method@Image.\1]/g
 s/vips_\(tan\)()/[method@Image.\1]/g
 s/vips_\(text\)()/[ctor@Image.\1]/g

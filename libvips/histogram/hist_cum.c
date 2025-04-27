@@ -174,7 +174,8 @@ vips_hist_cum_init(VipsHistCum *hist_cum)
  *
  * Form cumulative histogram.
  *
- * See also: vips_hist_norm().
+ * ::: seealso
+ *     [method@Image.hist_norm].
  *
  * Returns: 0 on success, -1 on error
  */
