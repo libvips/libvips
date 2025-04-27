@@ -284,17 +284,19 @@ vips_invfft_init(VipsInvfft *invfft)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Transform an image from Fourier space to real space.
  *
- * * @real: only output the real part
- *
- * Transform an image from Fourier space to real space. The result is complex.
- * If you are OK with a real result, set @real, it's quicker.
+ * The result is complex. If you are OK with a real result, set @real,
+ * it's quicker.
  *
  * VIPS uses the fftw Fourier Transform library. If this library was not
  * available when VIPS was configured, these functions will fail.
  *
- * See also: vips_fwfft().
+ * ::: tip "Optional arguments"
+ *     * @real: %gboolean, only output the real part
+ *
+ * ::: seealso
+ *     [method@Image.fwfft].
  *
  * Returns: 0 on success, -1 on error.
  */

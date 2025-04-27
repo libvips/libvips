@@ -151,7 +151,8 @@ vips_freqmult_init(VipsFreqmult *freqmult)
  * transformed back to real space. If @in is already a complex image, just
  * multiply then inverse transform.
  *
- * See also: vips_invfft(), vips_mask_ideal().
+ * ::: seealso
+ *     [method@Image.invfft], [ctor@Image.mask_ideal].
  *
  * Returns: 0 on success, -1 on error.
  */

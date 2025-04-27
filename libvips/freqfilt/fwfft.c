@@ -370,7 +370,8 @@ vips_fwfft_init(VipsFwfft *fwfft)
  * VIPS uses the fftw Fourier Transform library. If this library was not
  * available when VIPS was configured, these functions will fail.
  *
- * See also: vips_invfft().
+ * ::: seealso
+ *     [method@Image.invfft].
  *
  * Returns: 0 on success, -1 on error.
  */

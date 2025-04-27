@@ -116,8 +116,8 @@ vips_freqfilt_init(VipsFreqfilt *freqfilt)
  *             partial bandjoin ->
  *               output pipeline
  *
- * vips__fftproc() needs to just call VipsFftProcessFn directly for 1 band images,
- * so we can't cache the output in this fn.
+ * vips__fftproc() needs to just call VipsFftProcessFn directly for 1 band
+ * images, so we can't cache the output in this fn.
  */
 int
 vips__fftproc(VipsObject *context,
