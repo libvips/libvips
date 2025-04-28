@@ -309,7 +309,7 @@ vips_foreign_save_webp_get_delay(VipsForeignSaveWebp *webp, int page_number)
 	/* Force frames with a small or no duration to 100ms for consistency
 	 * with web browsers and other transcoding tools.
 	 */
-	return VIPS_MIN(100, delay);
+	return delay <= 10 ? 100 : delay;
 }
 
 /* We have a complete frame --- write!
