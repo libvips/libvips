@@ -666,8 +666,7 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 
 	if (cgif->delay &&
 		cgif->page_number < cgif->delay_length)
-		frame_config.delay =
-			rint(cgif->delay[cgif->page_number] / 10.0);
+		frame_config.delay = rint(cgif->delay[cgif->page_number] / 10.0);
 
 	/* Attach a local palette, if we need one.
 	 */

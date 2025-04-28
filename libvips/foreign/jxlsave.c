@@ -303,6 +303,24 @@ vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 }
 
 static int
+vips_foreign_save_jxl_get_delay(VipsForeignSaveJxl *jxl, int page_number)
+{
+	int delay;
+
+	if (jxl->delay &&
+		page_number < jxl->delay_length)
+		delay = jxl->delay[page_number];
+	else
+		// the old gif delay field was in centiseconds, so convert to ms
+		delay = jxl->gif_delay * 10;
+
+	/* Force frames with a small or no duration to 100ms for consistency
+	 * with web browsers and other transcoding tools.
+	 */
+	return delay <= 10 ? 100 : delay;
+}
+
+static int
 vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 {
 #ifdef HAVE_LIBJXL_0_7
@@ -326,10 +344,9 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 
 		if (!jxl->is_animated)
 			header.duration = 0xffffffff;
-		else if (jxl->delay && jxl->page_number < jxl->delay_length)
-			header.duration = jxl->delay[jxl->page_number];
 		else
-			header.duration = jxl->gif_delay * 10;
+			header.duration =
+				vips_foreign_save_jxl_get_delay(jxl, jxl->page_number);
 
 		JxlEncoderSetFrameHeader(frame_settings, &header);
 	}
@@ -472,7 +489,6 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	VipsImage *in;
 	VipsBandFormat format;
-	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->build(object))
 		return -1;
@@ -696,8 +712,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		 */
 		jxl->gif_delay = 10;
 		if (vips_image_get_typeof(save->ready, "gif-delay") &&
-			vips_image_get_int(save->ready, "gif-delay",
-				&jxl->gif_delay))
+			vips_image_get_int(save->ready, "gif-delay", &jxl->gif_delay))
 			return -1;
 
 		/* New images have an array of ints instead.
@@ -714,17 +729,6 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		if (vips_image_get_typeof(save->ready, "delay") ||
 			vips_image_get_typeof(save->ready, "gif-delay"))
 			jxl->is_animated = TRUE;
-
-		/* Force frames with a small or no duration to 100ms
-		 * to be consistent with web browsers and other
-		 * transcoding tools.
-		 */
-		if (jxl->gif_delay <= 1)
-			jxl->gif_delay = 10;
-
-		for (i = 0; i < jxl->delay_length; i++)
-			if (jxl->delay[i] <= 10)
-				jxl->delay[i] = 100;
 	}
 
 #ifdef DEBUG

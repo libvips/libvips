@@ -294,6 +294,24 @@ vips_foreign_save_webp_write_webp_image(VipsForeignSaveWebp *webp,
 	return 0;
 }
 
+static int
+vips_foreign_save_webp_get_delay(VipsForeignSaveWebp *webp, int page_number)
+{
+	int delay;
+
+	if (webp->delay &&
+		page_number < webp->delay_length)
+		delay = webp->delay[page_number];
+	else
+		// the old gif delay field was in centiseconds, so convert to ms
+		delay = webp->gif_delay * 10;
+
+	/* Force frames with a small or no duration to 100ms for consistency
+	 * with web browsers and other transcoding tools.
+	 */
+	return delay <= 10 ? 100 : delay;
+}
+
 /* We have a complete frame --- write!
  */
 static int
@@ -318,11 +336,8 @@ vips_foreign_save_webp_write_frame(VipsForeignSaveWebp *webp)
 
 		/* Adjust current timestamp
 		 */
-		if (webp->delay &&
-			webp->page_number < webp->delay_length)
-			webp->timestamp_ms += webp->delay[webp->page_number];
-		else
-			webp->timestamp_ms += webp->gif_delay * 10;
+		webp->timestamp_ms +=
+			vips_foreign_save_webp_get_delay(webp, webp->page_number);
 	}
 	else {
 		/* Single image write
@@ -636,7 +651,6 @@ vips_foreign_save_webp_init_anim_enc(VipsForeignSaveWebp *webp)
 	int page_height = vips_image_get_page_height(save->ready);
 
 	WebPAnimEncoderOptions anim_config;
-	int i;
 
 	/* Init config for animated write
 	 */
@@ -659,30 +673,18 @@ vips_foreign_save_webp_init_anim_enc(VipsForeignSaveWebp *webp)
 	/* Get delay array
 	 *
 	 * There might just be the old gif-delay field. This is centiseconds.
+	 * New images have an array of ints giving millisecond durations.
 	 */
 	webp->gif_delay = 10;
 	if (vips_image_get_typeof(save->ready, "gif-delay") &&
 		vips_image_get_int(save->ready, "gif-delay", &webp->gif_delay))
 		return -1;
 
-	/* New images have an array of ints instead.
-	 */
 	webp->delay = NULL;
 	if (vips_image_get_typeof(save->ready, "delay") &&
 		vips_image_get_array_int(save->ready, "delay",
 			&webp->delay, &webp->delay_length))
 		return -1;
-
-	/* Force frames with a small or no duration to 100ms
-	 * to be consistent with web browsers and other
-	 * transcoding tools.
-	 */
-	if (webp->gif_delay <= 1)
-		webp->gif_delay = 10;
-
-	for (i = 0; i < webp->delay_length; i++)
-		if (webp->delay[i] <= 10)
-			webp->delay[i] = 100;
 
 	return 0;
 }
