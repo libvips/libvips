@@ -285,10 +285,6 @@
  */
 #define MAX_ALPHA (64)
 
-/* Bioformats uses this tag for lossy jp2k compressed tiles.
- */
-#define JP2K_LOSSY 33004
-
 /* Compression types we handle ourselves.
  */
 static int wtiff_we_compress[] = {
@@ -396,6 +392,15 @@ struct _Wtiff {
 	GMutex lock;
 };
 
+/* libvips uses size_t for length, but libtiff wants uint32.
+ */
+static void
+set_data64(TIFF *tif, guint32 tag, size_t length, const void *data)
+{
+	if (length < UINT_MAX)
+        TIFFSetField(tif, tag, (guint32) length, data);
+}
+
 /* Write an ICC Profile from a file into the JPEG stream.
  */
 static int
@@ -410,7 +415,7 @@ embed_profile_file(TIFF *tif, const char *profile)
 		size_t length;
 		const void *data = vips_blob_get(blob, &length);
 
-		TIFFSetField(tif, TIFFTAG_ICCPROFILE, length, data);
+		set_data64(tif, TIFFTAG_ICCPROFILE, length, data);
 
 #ifdef DEBUG
 		printf("vips2tiff: attached profile \"%s\"\n", profile);
@@ -432,7 +437,7 @@ embed_profile_meta(TIFF *tif, VipsImage *im)
 
 	if (vips_image_get_blob(im, VIPS_META_ICC_NAME, &data, &length))
 		return -1;
-	TIFFSetField(tif, TIFFTAG_ICCPROFILE, length, data);
+	set_data64(tif, TIFFTAG_ICCPROFILE, length, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached profile from meta\n");
@@ -576,7 +581,7 @@ wtiff_embed_xmp(Wtiff *wtiff, TIFF *tif)
 	if (vips_image_get_blob(wtiff->ready, VIPS_META_XMP_NAME,
 			&data, &size))
 		return -1;
-	TIFFSetField(tif, TIFFTAG_XMLPACKET, size, data);
+	set_data64(tif, TIFFTAG_XMLPACKET, size, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached XMP from meta\n");
@@ -608,7 +613,7 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 	else
 		size /= 4;
 
-	TIFFSetField(tif, TIFFTAG_RICHTIFFIPTC, size, data);
+	set_data64(tif, TIFFTAG_RICHTIFFIPTC, size, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached IPTC from meta\n");
@@ -623,16 +628,27 @@ wtiff_embed_photoshop(Wtiff *wtiff, TIFF *tif)
 	const void *data;
 	size_t size;
 
-	if (!vips_image_get_typeof(wtiff->ready, VIPS_META_PHOTOSHOP_NAME))
-		return 0;
-	if (vips_image_get_blob(wtiff->ready, VIPS_META_PHOTOSHOP_NAME,
-			&data, &size))
-		return -1;
-	TIFFSetField(tif, TIFFTAG_PHOTOSHOP, size, data);
+	if (vips_image_get_typeof(wtiff->ready, VIPS_META_PHOTOSHOP_NAME)) {
+		if (vips_image_get_blob(wtiff->ready, VIPS_META_PHOTOSHOP_NAME,
+				&data, &size))
+			return -1;
+		set_data64(tif, TIFFTAG_PHOTOSHOP, size, data);
 
 #ifdef DEBUG
-	printf("vips2tiff: attached photoshop data from meta\n");
+		printf("vips2tiff: attached %zd bytes of photoshop data\n", size);
 #endif /*DEBUG*/
+	}
+
+	if (vips_image_get_typeof(wtiff->ready, VIPS_META_PHOTOSHOP_DATA)) {
+		if (vips_image_get_blob(wtiff->ready, VIPS_META_PHOTOSHOP_DATA,
+				&data, &size))
+			return -1;
+		set_data64(tif, TIFFTAG_IMAGESOURCEDATA, size, data);
+
+#ifdef DEBUG
+		printf("vips2tiff: attached %zd bytes of photoshop image data\n", size);
+#endif /*DEBUG*/
+	}
 
 	return 0;
 }
@@ -885,10 +901,10 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	if (wtiff->compression == COMPRESSION_ZSTD) {
 		// Set zstd compression level - only accept valid values (1-22)
 		if (wtiff->level)
-			TIFFSetField(tif, TIFFTAG_ZSTD_LEVEL, VIPS_CLIP(1, wtiff->level, 22));
-		if (wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
 			TIFFSetField(tif,
-				TIFFTAG_PREDICTOR, wtiff->predictor);
+				TIFFTAG_ZSTD_LEVEL, VIPS_CLIP(1, wtiff->level, 22));
+		if (wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
+			TIFFSetField(tif, TIFFTAG_PREDICTOR, wtiff->predictor);
 	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
@@ -960,8 +976,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 
 		int alpha_bands;
 
-		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL,
-			wtiff->ready->Bands);
+		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, wtiff->ready->Bands);
 		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
 			vips_format_sizeof(wtiff->ready->BandFmt) << 3);
 
@@ -1109,7 +1124,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		printf("setting %zd bytes of table data\n", length);
 #endif /*DEBUG*/
 
-		TIFFSetField(tif, TIFFTAG_JPEGTABLES, length, buffer);
+		set_data64(tif, TIFFTAG_JPEGTABLES, length, buffer);
 
 		g_free(buffer);
 	}
@@ -2297,7 +2312,7 @@ wtiff_write_lines(Wtiff *wtiff, VipsRegion *region, VipsRect *lines)
  */
 #define CopyField(tag, v) \
 	if (TIFFGetField(in, tag, &v)) \
-	TIFFSetField(out, tag, v)
+		TIFFSetField(out, tag, v)
 
 static int
 wtiff_copy_tiles(Wtiff *wtiff, TIFF *out, TIFF *in)
