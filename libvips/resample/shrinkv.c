@@ -473,6 +473,7 @@ vips_shrinkv_build(VipsObject *object)
 
 	VipsImage *in;
 	VipsGenerateFn generate;
+	size_t acc_size; 
 
 	if (VIPS_OBJECT_CLASS(vips_shrinkv_parent_class)->build(object))
 		return -1;
@@ -499,11 +500,31 @@ vips_shrinkv_build(VipsObject *object)
 		return -1;
 	in = t[1];
 
+	/* Determine the accumulator size based on the band format.
+	 */
+	switch (resample->in->BandFmt) {
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+		acc_size = sizeof(gint64);
+		break;
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		acc_size = sizeof(double);
+		break;
+	default:
+		acc_size = sizeof(int);
+		break;
+	}
+
+	if (vips_band_format_iscomplex(resample->in->BandFmt))
+		acc_size *= 2;
+
 	/* We have to keep a line buffer as we sum columns.
 	 */
 	shrink->sizeof_line_buffer =
-		in->Xsize * in->Bands * vips__fatstrip_height *
-		vips_format_sizeof(VIPS_FORMAT_DPCOMPLEX);
+		in->Xsize * in->Bands * vips__fatstrip_height * acc_size;
 
 	/* For uchar input, try to make a vector path.
 	 */
