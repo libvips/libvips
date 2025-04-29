@@ -271,6 +271,7 @@
 #include "jpeg.h"
 #endif /*HAVE_JPEG*/
 
+
 /* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
  */
 #define JP2K_YCC 33003
@@ -279,6 +280,11 @@
 /* Bioformats uses this tag for jp2k compressed tiles.
  */
 #define JP2K_LOSSY 33004
+
+// only in recent libtiffs
+#ifndef TIFFTAG_IMAGESOURCEDATA
+#define TIFFTAG_IMAGESOURCEDATA (37724)
+#endif
 
 /* Compression types we handle ourselves.
  */
@@ -1903,6 +1909,9 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	 */
 	if (TIFFGetField(rtiff->tiff, TIFFTAG_PHOTOSHOP, &data_len, &data))
 		vips_image_set_blob_copy(out, VIPS_META_PHOTOSHOP_NAME, data, data_len);
+
+	if (TIFFGetField(rtiff->tiff, TIFFTAG_IMAGESOURCEDATA, &data_len, &data))
+		vips_image_set_blob_copy(out, VIPS_META_PHOTOSHOP_DATA, data, data_len);
 
 	if (rtiff->header.image_description)
 		vips_image_set_string(out, VIPS_META_IMAGEDESCRIPTION,

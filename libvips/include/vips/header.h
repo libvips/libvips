@@ -68,6 +68,14 @@ extern "C" {
 #define VIPS_META_PHOTOSHOP_NAME "photoshop-data"
 
 /**
+ * VIPS_META_PHOTOSHOP_DATA:
+ *
+ * The name that TIFF read and write operations use for the image's
+ * TIFFTAG_IMAGESOURCEDATA data.
+ */
+#define VIPS_META_PHOTOSHOP_DATA "photoshop-image-data"
+
+/**
  * VIPS_META_ICC_NAME:
  *
  * The name we use to attach an ICC profile. The file read and write
