@@ -23,6 +23,8 @@ master
 - share and reuse openslide connections
 - drop support for openslide 3.3
 - fix vips_quadratic()
+- rename `thumbnail`'s export/import profile options as input/output for
+  consistency
 
 8.16.1
 
