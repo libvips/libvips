@@ -25,6 +25,7 @@ master
 - fix vips_quadratic()
 - rename `thumbnail`'s export/import profile options as input/output for
   consistency
+- restore vips_remosaic(), it was not being linked
 
 8.16.1
 

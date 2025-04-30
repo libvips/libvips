@@ -21,6 +21,3 @@ leak:___kmp_allocate
 # TODO: Does this requires calling heif_deinit()?
 leak:x265::x265_malloc
 leak:x265_12bit::x265_malloc
-
-# TODO: Remove after PR https://github.com/libvips/pyvips/pull/497
-leak:vips_filename_get_filename

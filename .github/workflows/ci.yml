@@ -16,9 +16,9 @@ jobs:
             os: ubuntu-24.04
             build: { cc: gcc-14, cxx: g++-14, linker: ld, docs: true }
 
-          - name: "Linux x64 (Ubuntu 24.04) - Clang 18 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
             os: ubuntu-24.04
-            build: { cc: clang-18, cxx: clang++-18, linker: ld.lld-18, sanitize: true }
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: true }
 
           - name: "macOS arm64 (14) - Xcode 15"
             os: macos-14
@@ -67,9 +67,9 @@ jobs:
             openexr openjpeg openslide pango \
             poppler webp
 
-      - name: Install Clang 18
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-18'
-        run: sudo apt-get install clang-18 libomp-18-dev lld-18 llvm-18
+      - name: Install Clang 19
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-19'
+        run: sudo apt-get install clang-19 libomp-19-dev lld-19 llvm-19
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
@@ -79,7 +79,7 @@ jobs:
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-18
+          LLVM_PREFIX: /usr/lib/llvm-19
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV

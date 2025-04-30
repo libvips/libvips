@@ -115,25 +115,10 @@ vips_target_build(VipsObject *object)
 		return -1;
 	}
 
-	if (connection->filename) {
-		const char *filename = connection->filename;
+	// for filename targets, don't create the file we write on _build() --
+	// do it lazily on the first write
 
-		int fd;
-
-		/* 0644 is rw user, r group and other.
-		 */
-		if ((fd = vips_tracked_open(filename,
-				 MODE_READWRITE, 0644)) == -1) {
-			vips_error_system(errno,
-				vips_connection_nick(connection),
-				"%s", _("unable to open for write"));
-			return -1;
-		}
-
-		connection->tracked_descriptor = fd;
-		connection->descriptor = fd;
-	}
-	else if (vips_object_argument_isset(object, "descriptor")) {
+	if (vips_object_argument_isset(object, "descriptor")) {
 		connection->descriptor = dup(connection->descriptor);
 		connection->close_descriptor = connection->descriptor;
 
@@ -147,6 +132,36 @@ vips_target_build(VipsObject *object)
 	else if (target->memory)
 		target->memory_buffer =
 			g_string_sized_new(VIPS_TARGET_BUFFER_SIZE);
+
+	return 0;
+}
+
+/* If necessary, create the file we write to from the filename. We do this
+ * lazily on first write, since eg. dzsave might not actually write to this
+ * filename in some cases.
+ */
+static int
+vips_target_create_file(VipsTarget *target)
+{
+	VipsConnection *connection = VIPS_CONNECTION(target);
+
+    if (connection->filename &&
+		connection->tracked_descriptor == -1) {
+        const char *filename = connection->filename;
+
+        int fd;
+
+        /* 0644 is rw user, r group and other.
+         */
+        if ((fd = vips_tracked_open(filename, MODE_READWRITE, 0644)) == -1) {
+            vips_error_system(errno, vips_connection_nick(connection),
+                "%s", _("unable to open for write"));
+            return -1;
+        }
+
+        connection->tracked_descriptor = fd;
+        connection->descriptor = fd;
+    }
 
 	return 0;
 }
@@ -169,8 +184,12 @@ vips_target_write_real(VipsTarget *target, const void *data, size_t length)
 		target->position += length;
 		result = length;
 	}
-	else
-		result = write(connection->descriptor, data, length);
+	else {
+		if (vips_target_create_file(target))
+			result = -1;
+		else
+			result = write(connection->descriptor, data, length);
+	}
 
 	return result;
 }

@@ -5425,6 +5425,15 @@ public:
 	VImage remainder_const(std::vector<double> c, VOption *options = nullptr) const;
 
 	/**
+	 * Rebuild an mosaiced image.
+	 * @param old_str Search for this string.
+	 * @param new_str And swap for this string.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage remosaic(const char *old_str, const char *new_str, VOption *options = nullptr) const;
+
+	/**
 	 * Replicate an image.
 	 * @param across Repeat this many times horizontally.
 	 * @param down Repeat this many times vertically.
@@ -5524,7 +5533,7 @@ public:
 	VImage scRGB2XYZ(VOption *options = nullptr) const;
 
 	/**
-	 * Convert an scrgb image to srgb.
+	 * Convert scrgb to srgb.
 	 *
 	 * **Optional parameters**
 	 *   - **depth** -- Output device space depth in bits, int.
