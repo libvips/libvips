@@ -754,7 +754,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		if (jxl->is_animated) {
 			int *delay = (int *) jxl->delay->data;
 
-  		g_assert(jxl->delay_count >= jxl->frame_count);
+			g_assert(jxl->delay->len >= jxl->frame_count);
 			vips_image_set_array_int(out, "delay", delay, jxl->frame_count);
 
 			/* gif uses centiseconds for delays

@@ -140,7 +140,7 @@ typedef struct _VipsForeignSaveJxl {
 	 * the mutex.
 	 */
 	GHashTable *tile_hash;
-	GMutex *tile_lock;
+	GMutex tile_lock;
 
 	/* Current page we are saving.
 	 */
@@ -258,12 +258,12 @@ vips_foreign_save_jxl_data_at(void *opaque,
 	VipsPel *pels = VIPS_IMAGE_ADDR(memory, 0, 0);
 	*row_offset = VIPS_IMAGE_SIZEOF_LINE(memory);
 
-	g_mutex_lock(jxl->tile_lock);
+	g_mutex_lock(&jxl->tile_lock);
 
 	g_assert(!g_hash_table_lookup(jxl->tile_hash, pels));
 	g_hash_table_insert(jxl->tile_hash, pels, memory);
 
-	g_mutex_unlock(jxl->tile_lock);
+	g_mutex_unlock(&jxl->tile_lock);
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
@@ -312,8 +312,6 @@ vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
 		.get_extra_channel_data_at = vips_foreign_save_jxl_extra_data_at,
 		.release_buffer = vips_foreign_save_jxl_input_release_buffer
 	};
-
-	jxl->tile_lock = vips_g_mutex_new();
 }
 
 static void
@@ -471,9 +469,8 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
 	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
-  VIPS_FREEF(vips_g_mutex_free, jxl->tile_lock);
-  
-  VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
+
+	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
