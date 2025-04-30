@@ -63,13 +63,15 @@
 #include <vips/internal.h>
 
 /**
- * SECTION: interpolator
- * @short_description: various interpolators: nearest, bilinear, and
- * some non-linear
- * @stability: Stable
- * @include: vips/vips.h
+ * VipsInterpolate:
  *
- * A number of image interpolators.
+ * An abstract base class for the various interpolation functions.
+ *
+ * Use `vips --list classes` to see all the interpolators available.
+ *
+ * An interpolator consists of a function to perform the interpolation, plus
+ * some extra data fields which tells libvips how to call the function and
+ * what data it needs.
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
@@ -83,12 +85,13 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  * @y: interpolate value at this position
  *
  * An interpolation function. It should read source pixels from @in with
- * VIPS_REGION_ADDR(), it can look left and up from (x, y) by @window_offset
+ * [func@REGION_ADDR], it can look left and up from (x, y) by @window_offset
  * pixels and it can access pixels in a window of size @window_size.
  *
  * The interpolated value should be written to the pixel pointed to by @out.
  *
- * See also: #VipsInterpolateClass.
+ * ::: seealso
+ *     [struct@VipsInterpolateClass].
  */
 
 /**
@@ -99,32 +102,27 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  * @get_window_offset: return the window offset for this method
  * @window_offset: or just set this for a constant window offset
  *
- * The abstract base class for the various VIPS interpolation functions.
- * Use "vips --list classes" to see all the interpolators available.
- *
- * An interpolator consists of a function to perform the interpolation, plus
- * some extra data fields which tell vips how to call the function and what
- * data it needs.
- *
  * @window_size is the size of the window that the interpolator needs. For
  * example, a bicubic interpolator needs to see a window of 4x4 pixels to be
  * able to interpolate a value.
  *
  * You can either have a function in @get_window_size which returns the window
- * that a specific interpolator needs, or you can leave @get_window_size %NULL
+ * that a specific interpolator needs, or you can leave @get_window_size `NULL`
  * and set a constant value in @window_size.
  *
  * @window_offset is how much to offset the window up and left of (x, y). For
- * example, a bicubic interpolator will want a @window_offset of 1.
+ * example, a bicubic interpolator will want an @window_offset of 1.
  *
  * You can either have a function in @get_window_offset which returns the
  * offset that a specific interpolator needs, or you can leave
- * @get_window_offset %NULL and set a constant value in @window_offset.
+ * @get_window_offset `NULL` and set a constant value in @window_offset.
  *
- * You also need to set @nickname and @description in #VipsObject.
+ * You also need to set [property@VipsObject:nickname] and
+ * [property@VipsObject:description] in [class@Object].
  *
- * See also: #VipsInterpolateMethod, #VipsObject,
- * vips_interpolate_bilinear_static().
+ * ::: seealso
+ *     [callback@InterpolateMethod], [class@Object] or
+ * [func@Interpolate.bilinear_static].
  */
 
 #ifdef DEBUG
@@ -209,7 +207,7 @@ vips_interpolate_init(VipsInterpolate *interpolate)
  * @y: interpolate value at this position
  *
  * Look up the @interpolate method in the class and call it. Use
- * vips_interpolate_get_method() to get a direct pointer to the function and
+ * [method@Interpolate.get_method] to get a direct pointer to the function and
  * avoid the lookup overhead.
  *
  * You need to set @in and @out up correctly.
@@ -230,7 +228,7 @@ vips_interpolate(VipsInterpolate *interpolate,
  * @interpolate: interpolator to use
  *
  * Look up the @interpolate method in the class and return it. Use this
- * instead of vips_interpolate() to cache method dispatch.
+ * instead of [func@interpolate] to cache method dispatch.
  *
  * Returns: a pointer to the interpolation function
  */
@@ -283,14 +281,14 @@ vips_interpolate_get_window_offset(VipsInterpolate *interpolate)
 /**
  * VIPS_TRANSFORM_SHIFT:
  *
- * Many of the vips interpolators use fixed-point arithmetic for coordinate
+ * Many of the libvips interpolators use fixed-point arithmetic for coordinate
  * calculation. This is how many bits of precision they use.
  */
 
 /**
  * VIPS_TRANSFORM_SCALE:
  *
- * #VIPS_TRANSFORM_SHIFT as a multiplicative constant.
+ * [const@TRANSFORM_SHIFT] as a multiplicative constant.
  */
 
 /**
@@ -303,7 +301,7 @@ vips_interpolate_get_window_offset(VipsInterpolate *interpolate)
 /**
  * VIPS_INTERPOLATE_SCALE:
  *
- * #VIPS_INTERPOLATE_SHIFT as a multiplicative constant.
+ * [const@INTERPOLATE_SHIFT] as a multiplicative constant.
  */
 
 /* VipsInterpolateNearest class
@@ -619,7 +617,7 @@ vips_interpolate_bilinear_static(void)
 	return interpolate;
 }
 
-/* Called on startup: register the base vips interpolators.
+/* Called on startup: register the base libvips interpolators.
  */
 void
 vips__interpolate_init(void)
@@ -643,11 +641,12 @@ vips__interpolate_init(void)
  * @nickname: nickname for interpolator
  *
  * Look up an interpolator from a nickname and make one. You need to free the
- * result with g_object_unref() when you're done with it.
+ * result with [method@GObject.Object.unref] when you're done with it.
  *
- * See also: vips_type_find().
+ * ::: seealso
+ *     [func@type_find].
  *
- * Returns: an interpolator, or %NULL on error.
+ * Returns: an interpolator, or `NULL` on error.
  */
 VipsInterpolate *
 vips_interpolate_new(const char *nickname)

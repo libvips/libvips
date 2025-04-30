@@ -75,9 +75,9 @@ vips_zone_point(VipsPoint *point, int x, int y)
 	int hheight = point->height / 2;
 	int h2 = (x - hwidth) * (x - hwidth);
 	int v2 = (y - hheight) * (y - hheight);
-	double c = VIPS_PI / zone->width;
+	float c = VIPS_PI / zone->width;
 
-	return cos(c * (v2 + h2));
+	return cosf(c * (v2 + h2));
 }
 
 static void
@@ -104,15 +104,15 @@ vips_zone_init(VipsZone *zone)
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @uchar: output a uchar image
- *
  * Create a one-band image of a zone plate.
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
- * See also: vips_eye(), vips_xyz().
+ * ::: tip "Optional arguments"
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.eye], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

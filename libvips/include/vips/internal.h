@@ -107,6 +107,10 @@ int vips__exif_update(VipsImage *image);
 
 void vips_check_init(void);
 
+/* Set from the command-line.
+ */
+extern gboolean vips__vector_enabled;
+
 void vips__vector_init(void);
 
 void vips__meta_init_types(void);
@@ -151,6 +155,13 @@ extern gboolean vips__cache_trace;
 void vips__thread_init(void);
 void vips__threadpool_init(void);
 void vips__threadpool_shutdown(void);
+
+typedef struct _VipsThreadset VipsThreadset;
+VipsThreadset *vips_threadset_new(int max_threads);
+int vips_threadset_run(VipsThreadset *set,
+	const char *domain, GFunc func, gpointer data);
+void vips_threadset_free(VipsThreadset *set);
+
 VIPS_API void vips__worker_lock(GMutex *mutex);
 VIPS_API void vips__worker_cond_wait(GCond *cond, GMutex *mutex);
 
@@ -160,24 +171,21 @@ int vips__print_renders(void);
 int vips__type_leak(void);
 int vips__object_leak(void);
 
+#ifdef HAVE_OPENSLIDE
+int vips__openslideconnection_leak(void);
+#endif /*HAVE_OPENSLIDE*/
+
 /* iofuncs
  */
 int vips__open_image_read(const char *filename);
 int vips__open_image_write(const char *filename, gboolean temp);
 
-/* im_image_open_input() needs to have this visible.
+/* Defined in `vips.h`, unless building with `-Ddeprecated=false`
  */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
+#if !VIPS_ENABLE_DEPRECATED
 int vips_image_open_input(VipsImage *image);
-
-/* im_image_open_output() needs to have this visible.
- */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
 int vips_image_open_output(VipsImage *image);
+#endif
 
 void vips__link_break_all(VipsImage *im);
 void *vips__link_map(VipsImage *image, gboolean upstream,
@@ -187,26 +195,13 @@ gboolean vips__mmap_supported(int fd);
 void *vips__mmap(int fd, int writeable, size_t length, gint64 offset);
 int vips__munmap(const void *start, size_t length);
 
-/* im_mapfile() needs to have this visible.
+/* Defined in `vips.h`, unless building with `-Ddeprecated=false`
  */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
+#if !VIPS_ENABLE_DEPRECATED
 int vips_mapfile(VipsImage *image);
-
-/* im_mapfilerw() needs to have this visible.
- */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
 int vips_mapfilerw(VipsImage *image);
-
-/* im_remapfilerw() needs to have this visible.
- */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
 int vips_remapfilerw(VipsImage *image);
+#endif
 
 void vips__buffer_init(void);
 void vips__buffer_shutdown(void);
@@ -238,16 +233,15 @@ VIPS_API
 int vips__write_header_bytes(VipsImage *im, unsigned char *to);
 int vips__image_meta_copy(VipsImage *dst, const VipsImage *src);
 
-extern GMutex *vips__global_lock;
+extern GMutex vips__global_lock;
 
 int vips_image_written(VipsImage *image);
 
-/* im_openout() needs to have this visible.
+/* Defined in `vips.h`, unless building with `-Ddeprecated=false`
  */
-#if VIPS_ENABLE_DEPRECATED
-VIPS_API
-#endif
+#if !VIPS_ENABLE_DEPRECATED
 VipsImage *vips_image_new_mode(const char *filename, const char *mode);
+#endif
 
 int vips__formatalike_vec(VipsImage **in, VipsImage **out, int n);
 int vips__sizealike_vec(VipsImage **in, VipsImage **out, int n);
@@ -369,6 +363,10 @@ VipsWindow *vips_window_take(VipsWindow *window,
 
 int vips__profile_set(VipsImage *image, const char *name);
 
+void vips__thread_profile_attach(const char *thread_name);
+void vips__thread_profile_detach(void);
+void vips__thread_profile_stop(void);
+
 int vips__lrmosaic(VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno,
 	int xref, int yref, int xsec, int ysec,
@@ -385,6 +383,48 @@ int vips__correl(VipsImage *ref, VipsImage *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y);
+
+unsigned int vips_operation_hash(VipsOperation *operation);
+
+int vips__open_read(const char *filename);
+FILE *vips__fopen(const char *filename, const char *mode);
+
+char *vips__file_read_name(const char *name, const char *fallback_dir,
+	size_t *length_out);
+int vips__file_write(void *data, size_t size, size_t nmemb, FILE *stream);
+
+int vips__fgetc(FILE *fp);
+
+GValue *vips__gvalue_ref_string_new(const char *text);
+void vips__gslist_gvalue_free(GSList *list);
+GSList *vips__gslist_gvalue_copy(const GSList *list);
+GSList *vips__gslist_gvalue_merge(GSList *a, const GSList *b);
+char *vips__gslist_gvalue_get(const GSList *list);
+
+gint64 vips__seek_no_error(int fd, gint64 pos, int whence);
+
+int vips__ftruncate(int fd, gint64 pos);
+
+const char *vips__token_must(const char *buffer, VipsToken *token,
+	char *string, int size);
+const char *vips__token_need(const char *buffer, VipsToken need_token,
+	char *string, int size);
+const char *vips__token_segment(const char *p, VipsToken *token,
+	char *string, int size);
+const char *vips__token_segment_need(const char *p, VipsToken need_token,
+	char *string, int size);
+const char *vips__find_rightmost_brackets(const char *p);
+
+void vips__change_suffix(const char *name, char *out, int mx,
+	const char *new_suff, const char **olds, int nolds);
+
+guint32 vips__random(guint32 seed);
+guint32 vips__random_add(guint32 seed, int value);
+
+const char *vips__icc_dir(void);
+const char *vips__windows_prefix(void);
+
+char *vips__get_iso8601(void);
 
 #ifdef __cplusplus
 }

@@ -131,6 +131,10 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	int gif_delay;
 
+	/* n, ready for libnsgif.
+	 */
+	int gif_n;
+
 	/* If the GIF contains any frames with transparent elements.
 	 */
 	gboolean has_transparency;
@@ -263,7 +267,7 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	VIPS_DEBUG_MSG("vips_foreign_load_nsgif_set_header:\n");
 
 	vips_image_init_fields(image,
-		gif->info->width, gif->info->height * gif->n,
+		gif->info->width, gif->info->height * gif->gif_n,
 		gif->has_transparency ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
@@ -272,9 +276,8 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.
 	 */
-	if (gif->n > 1)
-		vips_image_set_int(image,
-			VIPS_META_PAGE_HEIGHT, gif->info->height);
+	if (gif->gif_n > 1)
+		vips_image_set_int(image, VIPS_META_PAGE_HEIGHT, gif->info->height);
 	vips_image_set_int(image, VIPS_META_N_PAGES,
 		gif->info->frame_count);
 	vips_image_set_int(image, "loop", gif->info->loop_max);
@@ -435,11 +438,13 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	}
 
 	if (gif->n == -1)
-		gif->n = gif->info->frame_count - gif->page;
+		gif->gif_n = gif->info->frame_count - gif->page;
+	else
+		gif->gif_n = gif->n;
 
 	if (gif->page < 0 ||
-		gif->n <= 0 ||
-		gif->page + gif->n > gif->info->frame_count) {
+		gif->gif_n <= 0 ||
+		gif->page + gif->gif_n > gif->info->frame_count) {
 		vips_error(class->nickname, "%s", _("bad page number"));
 		return -1;
 	}
@@ -512,7 +517,7 @@ vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 			gif->frame_number = page;
 		}
 
-		p = (VipsPel *) gif->bitmap + line * gif->info->width * sizeof(int);
+		p = (VipsPel *) gif->bitmap + (size_t) line * gif->info->width * sizeof(int);
 		q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 		if (gif->has_transparency)
 			memcpy(q, p, VIPS_REGION_SIZEOF_LINE(out_region));
@@ -680,6 +685,7 @@ vips_foreign_load_nsgif_init(VipsForeignLoadNsgif *gif)
 	}
 
 	gif->n = 1;
+	gif->gif_n = 1;
 	gif->frame_number = -1;
 	gif->bitmap = NULL;
 }
@@ -920,19 +926,13 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
- *
  * Read a GIF file into a libvips image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column. Set to -1 to mean "until the end of the
- * document". Use vips_grid() to change page layout.
+ * document". Use [method@Image.grid] to change page layout.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
@@ -940,7 +940,13 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * The output image is RGBA for GIFs containing transparent elements, RGB
  * otherwise.
  *
- * See also: vips_image_new_from_file().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
+ *
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -964,18 +970,18 @@ vips_gifload(const char *filename, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
- *
- * Exactly as vips_gifload(), but read from a memory buffer.
+ * Exactly as [ctor@Image.gifload], but read from a memory buffer.
  *
  * You must not free the buffer while @out is active. The
- * #VipsObject::postclose signal on @out is a good place to free.
+ * [signal@Object::postclose] signal on @out is a good place to free.
  *
- * See also: vips_gifload().
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
+ *
+ * ::: seealso
+ *     [ctor@Image.gifload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1005,15 +1011,15 @@ vips_gifload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.gifload], but read from a source.
  *
- * * @page: %gint, page (frame) to read
- * * @n: %gint, load this many pages
- * * @fail_on: #VipsFailOn, types of read error to fail on
+ * ::: tip "Optional arguments"
+ *     * @page: %gint, page (frame) to read
+ *     * @n: %gint, load this many pages
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
- * Exactly as vips_gifload(), but read from a source.
- *
- * See also: vips_gifload().
+ * ::: seealso
+ *     [ctor@Image.gifload].
  *
  * Returns: 0 on success, -1 on error.
  */

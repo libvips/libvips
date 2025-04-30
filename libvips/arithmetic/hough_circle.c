@@ -234,7 +234,7 @@ vips_hough_circle_class_init(VipsHoughClass *class)
 		_("Scale down dimensions by this factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsHoughCircle, scale),
-		1, 100000, 3);
+		1, 100000, 1);
 
 	VIPS_ARG_INT(class, "min_radius", 120,
 		_("Min radius"),
@@ -265,12 +265,6 @@ vips_hough_circle_init(VipsHoughCircle *hough_circle)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @scale: scale down dimensions by this much
- * * @min_radius: smallest radius to search for
- * * @max_radius: largest radius to search for
- *
  * Find the circular Hough transform of an image. @in must be one band, with
  * non-zero pixels for image edges. @out is three-band, with the third channel
  * representing the detected circle radius. The operation scales the number of
@@ -287,7 +281,13 @@ vips_hough_circle_init(VipsHoughCircle *hough_circle)
  * @in, and reduce the number of radii tested (and hence the number of bands
  * int @out) by a factor of three as well.
  *
- * See also: vips_hough_line().
+ * ::: tip "Optional arguments"
+ *     * @scale: scale down dimensions by this much
+ *     * @min_radius: smallest radius to search for
+ *     * @max_radius: largest radius to search for
+ *
+ * ::: seealso
+ *     [method@Image.hough_line].
  *
  * Returns: 0 on success, -1 on error
  */

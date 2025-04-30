@@ -16,7 +16,7 @@
  * 20/10/09
  * 	- gtkdoc comment
  * 6/11/09
- *	- im_malloc()/im_free() now call g_try_malloc()/g_free() ... removes
+ *	- im_malloc()/im_free() now call g_try_malloc/g_free() ... removes
  *	  confusion over whether to use im_free() or g_free() for things like
  *	  im_header_string()
  * 21/9/11
@@ -74,29 +74,6 @@
 #endif
 
 #include <vips/vips.h>
-#include <vips/thread.h>
-
-/**
- * SECTION: memory
- * @short_description: memory utilities
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These functions cover two main areas.
- *
- * First, some simple utility functions over the underlying
- * g_malloc()/g_free() functions. Memory allocated and freeded using these
- * functions is interchangeable with any other glib library.
- *
- * Second, a pair of functions, vips_tracked_malloc() and vips_tracked_free(),
- * which are NOT compatible. If you g_free() memory that has been allocated
- * with vips_tracked_malloc() you will see crashes.
- *
- * The tracked functions are
- * only suitable for large allocations internal to the library, for example
- * pixel buffers. libvips watches the total amount of live tracked memory and
- * uses this information to decide when to trim caches.
- */
 
 /* g_assert_not_reached() on memory errors.
 #define DEBUG
@@ -115,7 +92,7 @@ static int vips_tracked_allocs = 0;
 static size_t vips_tracked_mem = 0;
 static int vips_tracked_files = 0;
 static size_t vips_tracked_mem_highwater = 0;
-static GMutex *vips_tracked_mutex = NULL;
+static GMutex vips_tracked_mutex;
 
 /**
  * VIPS_NEW:
@@ -125,10 +102,11 @@ static GMutex *vips_tracked_mutex = NULL;
  * Allocate memory for a thing of type @T. The memory is not
  * cleared.
  *
- * This macro cannot fail. See vips_tracked_malloc() if you are
+ * This macro cannot fail. See [func@tracked_malloc] if you are
  * allocating large amounts of memory.
  *
- * See also: vips_malloc().
+ * ::: seealso
+ *     [func@malloc].
  *
  * Returns: A pointer of type @T *.
  */
@@ -142,10 +120,11 @@ static GMutex *vips_tracked_mutex = NULL;
  * Allocate memory for an array of objects of type @T. The memory is not
  * cleared.
  *
- * This macro cannot fail. See vips_tracked_malloc() if you are
+ * This macro cannot fail. See [func@tracked_malloc] if you are
  * allocating large amounts of memory.
  *
- * See also: vips_malloc().
+ * ::: seealso
+ *     [func@malloc].
  *
  * Returns: A pointer of type @T *.
  */
@@ -158,17 +137,18 @@ vips_malloc_cb(VipsObject *object, char *buf)
 
 /**
  * vips_malloc:
- * @object: (nullable): allocate memory local to this #VipsObject, or %NULL
+ * @object: (nullable): allocate memory local to this [class@Object], or %NULL
  * @size: number of bytes to allocate
  *
- * g_malloc() local to @object, that is, the memory will be automatically
+ * [func@GLib.malloc] local to @object, that is, the memory will be automatically
  * freed for you when the object is closed. If @object is %NULL, you need to
- * free the memory explicitly with g_free().
+ * free the memory explicitly with [func@GLib.free].
  *
- * This function cannot fail. See vips_tracked_malloc() if you are
+ * This function cannot fail. See [func@tracked_malloc] if you are
  * allocating large amounts of memory.
  *
- * See also: vips_tracked_malloc().
+ * ::: seealso
+ *     [func@tracked_malloc].
  *
  * Returns: (transfer full): a pointer to the allocated memory.
  */
@@ -190,16 +170,17 @@ vips_malloc(VipsObject *object, size_t size)
 
 /**
  * vips_strdup:
- * @object: (nullable): allocate memory local to this #VipsObject, or %NULL
+ * @object: (nullable): allocate memory local to this [class@Object], or %NULL
  * @str: string to copy
  *
- * g_strdup() a string. When @object is freed, the string will be freed for
+ * [func@GLib.strdup] a string. When @object is freed, the string will be freed for
  * you.  If @object is %NULL, you need to
- * free the memory yourself with g_free().
+ * free the memory yourself with [func@GLib.free].
  *
  * This function cannot fail.
  *
- * See also: vips_malloc().
+ * ::: seealso
+ *     [func@malloc].
  *
  * Returns: (transfer full): a pointer to the allocated memory
  */
@@ -224,10 +205,11 @@ vips_strdup(VipsObject *object, const char *str)
  * @s: (transfer full): memory to free
  *
  * Only use it to free memory that was
- * previously allocated with vips_tracked_malloc()
+ * previously allocated with [func@tracked_malloc]
  * with a %NULL first argument.
  *
- * See also: vips_tracked_malloc().
+ * ::: seealso
+ *     [func@tracked_malloc].
  */
 void
 vips_tracked_free(void *s)
@@ -238,21 +220,21 @@ vips_tracked_free(void *s)
 	void *start = (void *) ((char *) s - 16);
 	size_t size = *((size_t *) start);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 #ifdef DEBUG_VERBOSE_MEM
 	printf("vips_tracked_free: %p, %zd bytes\n", s, size);
 #endif /*DEBUG_VERBOSE_MEM*/
 
 	if (vips_tracked_allocs <= 0)
-		g_warning("%s", _("vips_free: too many frees"));
+		g_warning("vips_free: too many frees");
 	if (vips_tracked_mem < size)
-		g_warning("%s", _("vips_free: too much free"));
+		g_warning("vips_free: too much free");
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	g_free(start);
 
@@ -264,10 +246,11 @@ vips_tracked_free(void *s)
  * @s: (transfer full): memory to free
  *
  * Only use it to free memory that was
- * previously allocated with vips_tracked_aligned_alloc()
+ * previously allocated with [func@tracked_aligned_alloc]
  * with a %NULL first argument.
  *
- * See also: vips_tracked_aligned_alloc().
+ * ::: seealso
+ *     [func@tracked_aligned_alloc].
  */
 void
 vips_tracked_aligned_free(void *s)
@@ -275,21 +258,21 @@ vips_tracked_aligned_free(void *s)
 	void *start = (size_t *) s - 1;
 	size_t size = *((size_t *) start);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 #ifdef DEBUG_VERBOSE
 	printf("vips_tracked_aligned_free: %p, %zd bytes\n", s, size);
 #endif /*DEBUG_VERBOSE*/
 
 	if (vips_tracked_allocs <= 0)
-		g_warning("%s", _("vips_free: too many frees"));
+		g_warning("vips_free: too many frees");
 	if (vips_tracked_mem < size)
-		g_warning("%s", _("vips_free: too much free"));
+		g_warning("vips_free: too much free");
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 #ifdef HAVE__ALIGNED_MALLOC
 	_aligned_free(start);
@@ -300,36 +283,20 @@ vips_tracked_aligned_free(void *s)
 	VIPS_GATE_FREE(size);
 }
 
-static void *
-vips_tracked_init_mutex(void *data)
-{
-	vips_tracked_mutex = vips_g_mutex_new();
-
-	return NULL;
-}
-
-static void
-vips_tracked_init(void)
-{
-	static GOnce vips_tracked_once = G_ONCE_INIT;
-
-	VIPS_ONCE(&vips_tracked_once,
-		vips_tracked_init_mutex, NULL);
-}
-
 /**
  * vips_tracked_malloc:
  * @size: number of bytes to allocate
  *
- * Allocate an area of memory that will be tracked by vips_tracked_get_mem()
+ * Allocate an area of memory that will be tracked by [func@tracked_get_mem]
  * and friends.
  *
- * If allocation fails, vips_tracked_malloc() returns %NULL and
+ * If allocation fails, [func@tracked_malloc] returns %NULL and
  * sets an error message.
  *
- * You must only free the memory returned with vips_tracked_free().
+ * You must only free the memory returned with [func@tracked_free].
  *
- * See also: vips_tracked_free(), vips_malloc().
+ * ::: seealso
+ *     [func@tracked_free], [func@malloc].
  *
  * Returns: (transfer full): a pointer to the allocated memory, or %NULL on error.
  */
@@ -337,8 +304,6 @@ void *
 vips_tracked_malloc(size_t size)
 {
 	void *buf;
-
-	vips_tracked_init();
 
 	/* Need an extra sizeof(size_t) bytes to track
 	 * size of this block. Ask for an extra 16 to make sure we don't break
@@ -360,7 +325,7 @@ vips_tracked_malloc(size_t size)
 		return NULL;
 	}
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	*((size_t *) buf) = size;
 	buf = (void *) ((char *) buf + 16);
@@ -374,7 +339,7 @@ vips_tracked_malloc(size_t size)
 	printf("vips_tracked_malloc: %p, %zd bytes\n", buf, size);
 #endif /*DEBUG_VERBOSE_MEM*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	VIPS_GATE_MALLOC(size);
 
@@ -387,15 +352,16 @@ vips_tracked_malloc(size_t size)
  * @align: specifies the alignment
  *
  * Allocate an area of memory aligned on a boundary specified
- * by @align that will be tracked by vips_tracked_get_mem()
+ * by @align that will be tracked by [func@tracked_get_mem]
  * and friends.
  *
- * If allocation fails, vips_tracked_aligned_alloc() returns %NULL
+ * If allocation fails, [func@tracked_aligned_alloc] returns %NULL
  * and sets an error message.
  *
- * You must only free the memory returned with vips_tracked_aligned_free().
+ * You must only free the memory returned with [func@tracked_aligned_free].
  *
- * See also: vips_tracked_malloc(), vips_tracked_aligned_free(), vips_malloc().
+ * ::: seealso
+ *     [func@tracked_malloc], [func@tracked_aligned_free], [func@malloc].
  *
  * Returns: (transfer full): a pointer to the allocated memory, or %NULL on error.
  */
@@ -403,8 +369,6 @@ void *
 vips_tracked_aligned_alloc(size_t size, size_t align)
 {
 	void *buf;
-
-	vips_tracked_init();
 
 	g_assert(!(align & (align - 1)));
 
@@ -437,7 +401,7 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 
 	memset(buf, 0, size);
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	*((size_t *) buf) = size;
 
@@ -450,7 +414,7 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 	printf("vips_tracked_aligned_alloc: %p, %zd bytes\n", buf, size);
 #endif /*DEBUG_VERBOSE*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	VIPS_GATE_MALLOC(size);
 
@@ -464,15 +428,16 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
  * @mode: open mode
  *
  * Exactly as open(2), but the number of files currently open via
- * vips_tracked_open() is available via vips_tracked_get_files(). This is used
+ * [func@tracked_open] is available via [func@tracked_get_files]. This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.
  *
- * You must only close the file descriptor with vips_tracked_close().
+ * You must only close the file descriptor with [func@tracked_close].
  *
  * @pathname should be utf8.
  *
- * See also: vips_tracked_close(), vips_tracked_get_files().
+ * ::: seealso
+ *     [func@tracked_close], [func@tracked_get_files].
  *
  * Returns: a file descriptor, or -1 on error.
  */
@@ -484,9 +449,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 	if ((fd = vips__open(pathname, flags, mode)) == -1)
 		return -1;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	vips_tracked_files += 1;
 #ifdef DEBUG_VERBOSE_FD
@@ -494,7 +457,7 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 		pathname, fd, vips_tracked_files);
 #endif /*DEBUG_VERBOSE_FD*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return fd;
 }
@@ -504,13 +467,14 @@ vips_tracked_open(const char *pathname, int flags, int mode)
  * @fd: file to close()
  *
  * Exactly as close(2), but update the number of files currently open via
- * vips_tracked_get_files(). This is used
+ * [func@tracked_get_files]. This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.
  *
- * You must only close file descriptors opened with vips_tracked_open().
+ * You must only close file descriptors opened with [func@tracked_open].
  *
- * See also: vips_tracked_open(), vips_tracked_get_files().
+ * ::: seealso
+ *     [func@tracked_open], [func@tracked_get_files].
  *
  * Returns: a file descriptor, or -1 on error.
  */
@@ -519,7 +483,7 @@ vips_tracked_close(int fd)
 {
 	int result;
 
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	/* libvips uses fd -1 to mean invalid descriptor.
 	 */
@@ -532,7 +496,7 @@ vips_tracked_close(int fd)
 	printf("   from thread %p\n", g_thread_self());
 #endif /*DEBUG_VERBOSE_FD*/
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	result = close(fd);
 
@@ -542,9 +506,9 @@ vips_tracked_close(int fd)
 /**
  * vips_tracked_get_mem:
  *
- * Returns the number of bytes currently allocated via vips_malloc() and
+ * Returns the number of bytes currently allocated via [func@malloc] and
  * friends. vips uses this figure to decide when to start dropping cache, see
- * #VipsOperation.
+ * [class@Operation].
  *
  * Returns: the number of currently allocated bytes
  */
@@ -553,13 +517,11 @@ vips_tracked_get_mem(void)
 {
 	size_t mem;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	mem = vips_tracked_mem;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return mem;
 }
@@ -568,7 +530,7 @@ vips_tracked_get_mem(void)
  * vips_tracked_get_mem_highwater:
  *
  * Returns the largest number of bytes simultaneously allocated via
- * vips_tracked_malloc(). Handy for estimating max memory requirements for a
+ * [func@tracked_malloc]. Handy for estimating max memory requirements for a
  * program.
  *
  * Returns: the largest number of currently allocated bytes
@@ -578,13 +540,11 @@ vips_tracked_get_mem_highwater(void)
 {
 	size_t mx;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	mx = vips_tracked_mem_highwater;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return mx;
 }
@@ -601,13 +561,11 @@ vips_tracked_get_allocs(void)
 {
 	int n;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	n = vips_tracked_allocs;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return n;
 }
@@ -624,13 +582,11 @@ vips_tracked_get_files(void)
 {
 	int n;
 
-	vips_tracked_init();
-
-	g_mutex_lock(vips_tracked_mutex);
+	g_mutex_lock(&vips_tracked_mutex);
 
 	n = vips_tracked_files;
 
-	g_mutex_unlock(vips_tracked_mutex);
+	g_mutex_unlock(&vips_tracked_mutex);
 
 	return n;
 }

@@ -50,39 +50,12 @@
 #include "pconversion.h"
 
 /**
- * SECTION: conversion
- * @short_description: convert images in some way: change band format, change header, insert, extract, join
- * @see_also: <link linkend="libvips-resample">resample</link>
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations convert an image in some way. They can be split into a two
- * main groups.
- *
- * The first set of operations change an image's format in some way. You
- * can change the band format (for example, cast to 32-bit unsigned
- * int), form complex images from real images, convert images to
- * matrices and back, change header fields, and a few others.
- *
- * The second group move pixels about in some way. You can flip, rotate,
- * extract, insert and join pairs of images in various ways.
- *
- */
-
-/**
  * vips_composite:
  * @in: (array length=n) (transfer none): array of input images
  * @out: (out): output image
  * @n: number of input images
  * @mode: array of (@n - 1) #VipsBlendMode
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @compositing_space: #VipsInterpretation to composite in
- * * @premultiplied: %gboolean, images are already premultiplied
- * * @x: #VipsArrayInt, array of (@n - 1) x coordinates
- * * @y: #VipsArrayInt, array of (@n - 1) y coordinates
  *
  * Composite an array of images together.
  *
@@ -92,15 +65,17 @@
  * in @mode.
  *
  * Images are transformed to a compositing space before processing. This is
- * #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_B_W,
- * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16
+ * [enum@Vips.Interpretation.sRGB], [enum@Vips.Interpretation.B_W],
+ * [enum@Vips.Interpretation.RGB16], or [enum@Vips.Interpretation.GREY16]
  * by default, depending on
  * how many bands and bits the input images have. You can select any other
- * space, such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
+ * space, such as [enum@Vips.Interpretation.LAB] or
+ * [enum@Vips.Interpretation.scRGB].
  *
  * The output image is in the compositing space. It will always be
- * #VIPS_FORMAT_FLOAT unless one of the inputs is #VIPS_FORMAT_DOUBLE, in
- * which case the output will be double as well.
+ * [enum@Vips.BandFormat.FLOAT] unless one of the inputs is
+ * [enum@Vips.BandFormat.DOUBLE], in which case the output will be double
+ * as well.
  *
  * Complex images are not supported.
  *
@@ -113,10 +88,17 @@
  * against that rectangle.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
- * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied.
+ * directly on PNG images. If your images have been through
+ * [method@Image.premultiply], set @premultiplied.
  *
- * See also: vips_insert().
+ * ::: tip "Optional arguments"
+ *     * @compositing_space: [enum@Interpretation] to composite in
+ *     * @premultiplied: %gboolean, images are already premultiplied
+ *     * @x: [struct@ArrayInt], array of (@n - 1) x coordinates
+ *     * @y: [struct@ArrayInt], array of (@n - 1) y coordinates
+ *
+ * ::: seealso
+ *     [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -129,14 +111,13 @@
  * @mode: composite with this blend mode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Composite @overlay on top of @base with @mode. See [func@Image.composite].
  *
- * * @compositing_space: #VipsInterpretation to composite in
- * * @premultiplied: %gboolean, images are already premultiplied
- * * @x: %gint, position of overlay
- * * @y: %gint, position of overlay
- *
- * Composite @overlay on top of @base with @mode. See vips_composite().
+ * ::: tip "Optional arguments"
+ *     * @compositing_space: [enum@Interpretation] to composite in
+ *     * @premultiplied: %gboolean, images are already premultiplied
+ *     * @x: %gint, position of overlay
+ *     * @y: %gint, position of overlay
  *
  * Returns: 0 on success, -1 on error
  */
@@ -169,7 +150,7 @@
  * @VIPS_BLEND_MODE_DIFFERENCE: difference of the two
  * @VIPS_BLEND_MODE_EXCLUSION: somewhat like DIFFERENCE, but lower-contrast
  *
- * The various Porter-Duff and PDF blend modes. See vips_composite(),
+ * The various Porter-Duff and PDF blend modes. See [func@Image.composite],
  * for example.
  *
  * The Cairo docs have a nice explanation of all the blend modes:
@@ -185,12 +166,13 @@
  * @VIPS_ALIGN_CENTRE: align centre
  * @VIPS_ALIGN_HIGH: align high coordinate edge
  *
- * See vips_join() and so on.
+ * See [method@Image.join] and so on.
  *
- * Operations like vips_join() need to be told whether to align images on the
+ * Operations like [method@Image.join] need to be told whether to align images on the
  * low or high coordinate edge, or centre.
  *
- * See also: vips_join().
+ * ::: seealso
+ *     [method@Image.join].
  */
 
 /**
@@ -200,11 +182,12 @@
  * @VIPS_ANGLE_D180: 180 degree rotate
  * @VIPS_ANGLE_D270: 90 degrees anti-clockwise
  *
- * See vips_rot() and so on.
+ * See [method@Image.rot] and so on.
  *
  * Fixed rotate angles.
  *
- * See also: vips_rot().
+ * ::: seealso
+ *     [method@Image.rot].
  */
 
 /**
@@ -218,14 +201,15 @@
  * @VIPS_INTERESTING_ALL: everything is interesting
  *
  * Pick the algorithm vips uses to decide image "interestingness". This is used
- * by vips_smartcrop(), for example, to decide what parts of the image to
+ * by [method@Image.smartcrop], for example, to decide what parts of the image to
  * keep.
  *
  * #VIPS_INTERESTING_NONE and #VIPS_INTERESTING_LOW mean the same -- the
  * crop is positioned at the top or left. #VIPS_INTERESTING_HIGH positions at
  * the bottom or right.
  *
- * See also: vips_smartcrop().
+ * ::: seealso
+ *     [method@Image.smartcrop].
  */
 
 /**
@@ -240,7 +224,7 @@
  * @VIPS_COMPASS_DIRECTION_SOUTH_WEST: south-west
  * @VIPS_COMPASS_DIRECTION_NORTH_WEST: north-west
  *
- * A direction on a compass. Used for vips_gravity(), for example.
+ * A direction on a compass. Used for [method@Image.gravity], for example.
  */
 
 /**
@@ -254,11 +238,12 @@
  * @VIPS_ANGLE45_D270: 90 degrees anti-clockwise
  * @VIPS_ANGLE45_D315: 45 degrees anti-clockwise
  *
- * See vips_rot45() and so on.
+ * See [method@Image.rot45] and so on.
  *
  * Fixed rotate angles.
  *
- * See also: vips_rot45().
+ * ::: seealso
+ *     [method@Image.rot45].
  */
 
 /**
@@ -270,7 +255,7 @@
  * @VIPS_EXTEND_WHITE: extend with white (all bits set) pixels
  * @VIPS_EXTEND_BACKGROUND: extend with colour from the @background property
  *
- * See vips_embed(), vips_conv(), vips_affine() and so on.
+ * See [method@Image.embed], [method@Image.conv], [method@Image.affine] and so on.
  *
  * When the edges of an image are extended, you can specify
  * how you want the extension done.
@@ -292,7 +277,8 @@
  * We have to specify the exact value of each enum member since we have to
  * keep these frozen for back compat with vips7.
  *
- * See also: vips_embed().
+ * ::: seealso
+ *     [method@Image.embed].
  */
 
 /**
@@ -300,12 +286,13 @@
  * @VIPS_DIRECTION_HORIZONTAL: left-right
  * @VIPS_DIRECTION_VERTICAL: top-bottom
  *
- * See vips_flip(), vips_join() and so on.
+ * See [method@Image.flip], [method@Image.join] and so on.
  *
- * Operations like vips_flip() need to be told whether to flip left-right or
+ * Operations like [method@Image.flip] need to be told whether to flip left-right or
  * top-bottom.
  *
- * See also: vips_flip(), vips_join().
+ * ::: seealso
+ *     [method@Image.flip], [method@Image.join].
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsConversion, vips_conversion, VIPS_TYPE_OPERATION);

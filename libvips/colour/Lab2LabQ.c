@@ -102,14 +102,14 @@ vips_Lab2LabQ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		lsbs = (intv & 0x3) << 6; /* 00000011 -> 11000000 */
 		q[0] = intv >> 2;		  /* drop bot 2 bits and store */
 
-		fval = 8.0 * p[1]; /* do a */
-		intv = VIPS_RINT(fval);
+		fval = 8.0F * p[1]; /* do a */
+		intv = rintf(fval);
 		intv = VIPS_CLIP(-1024, intv, 1023);
 		lsbs |= (intv & 0x7) << 3; /* 00000111 -> 00111000 */
 		q[1] = intv >> 3;		   /* drop bot 3 bits & store */
 
-		fval = 8.0 * p[2]; /* do b */
-		intv = VIPS_RINT(fval);
+		fval = 8.0F * p[2]; /* do b */
+		intv = rintf(fval);
 		intv = VIPS_CLIP(-1024, intv, 1023);
 		lsbs |= (intv & 0x7);
 		q[2] = intv >> 3;
@@ -161,9 +161,10 @@ vips_Lab2LabQ_init(VipsLab2LabQ *Lab2LabQ)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert a Lab three-band float image to LabQ (#VIPS_CODING_LABQ).
+ * Convert a Lab three-band float image to LabQ ([enum@Vips.Coding.LABQ)].
  *
- * See also: vips_LabQ2Lab().
+ * ::: seealso
+ *     [method@Image.LabQ2Lab].
  *
  * Returns: 0 on success, -1 on error.
  */

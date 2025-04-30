@@ -122,7 +122,7 @@ vips_match_build(VipsObject *object)
 		return -1;
 
 	if (!match->interpolate)
-		match->interpolate = vips_interpolate_new("bilinear");
+		match->interpolate = vips_interpolate_new("bilinear"); // FIXME: Invalidates operation cache
 
 	if (match->search) {
 		int xs, ys;
@@ -133,8 +133,8 @@ vips_match_build(VipsObject *object)
 				match->hwindow, match->harea,
 				&cor, &xs, &ys))
 			return -1;
-		match->xs1 = xs;
-		match->ys1 = ys;
+		match->xs1 = xs; // FIXME: Invalidates operation cache
+		match->ys1 = ys; // FIXME: Invalidates operation cache
 
 		if (vips__correl(match->ref, match->sec,
 				match->xr2, match->yr2, match->xs2, match->ys2,
@@ -142,8 +142,8 @@ vips_match_build(VipsObject *object)
 				&cor, &xs, &ys))
 			return -1;
 
-		match->xs2 = xs;
-		match->ys2 = ys;
+		match->xs2 = xs; // FIXME: Invalidates operation cache
+		match->ys2 = ys; // FIXME: Invalidates operation cache
 	}
 
 	/* Solve to get scale + rot + disp to obtain match.
@@ -271,14 +271,14 @@ vips_match_class_init(VipsMatchClass *class)
 		_("Half window size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMatch, hwindow),
-		0, 1000000000, 1);
+		0, 1000000000, 5);
 
 	VIPS_ARG_INT(class, "harea", 14,
 		_("harea"),
 		_("Half area size"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMatch, harea),
-		0, 1000000000, 1);
+		0, 1000000000, 15);
 
 	VIPS_ARG_BOOL(class, "search", 15,
 		_("Search"),
@@ -303,7 +303,7 @@ vips_match_init(VipsMatch *match)
 }
 
 /**
- * vips_match:
+ * vips_match: (method)
  * @ref: reference image
  * @sec: secondary image
  * @out: (out): output image
@@ -317,13 +317,6 @@ vips_match_init(VipsMatch *match)
  * @ys2: second secondary tie-point
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @search: search to improve tie-points
- * * @hwindow: half window size
- * * @harea: half search size
- * * @interpolate: interpolate pixels with this
- *
  * Scale, rotate and translate @sec so that the tie-points line up.
  *
  * If @search is %TRUE, before performing the transformation, the tie-points
@@ -331,6 +324,12 @@ vips_match_init(VipsMatch *match)
  * match of size @hwindow to @ref.
  *
  * This function will only work well for small rotates and scales.
+ *
+ * ::: tip "Optional arguments"
+ *     * @search: %gboolean, search to improve tie-points
+ *     * @hwindow: %gint, half window size
+ *     * @harea: %gint, half search size
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *
  * Returns: 0 on success, -1 on error
  */

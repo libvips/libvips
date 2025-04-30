@@ -424,7 +424,7 @@ static VipsColourRoute vips_colour_routes[] = {
  * vips_colourspace_issupported: (method)
  * @image: input image
  *
- * Test if @image is in a colourspace that vips_colourspace() can process.
+ * Test if @image is in a colourspace that [method@Image.colourspace] can process.
  *
  * Returns: %TRUE if @image is in a supported colourspace.
  */
@@ -593,20 +593,21 @@ vips_colourspace_init(VipsColourspace *colourspace)
  * @space: convert to this colour space
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @source_space: input colour space
- *
  * This operation looks at the interpretation field of @in (or uses
  * @source_space, if set) and runs
  * a set of colourspace conversion functions to move it to @space.
  *
- * For example, given an image tagged as #VIPS_INTERPRETATION_YXY, running
- * vips_colourspace() with @space set to #VIPS_INTERPRETATION_LAB will
- * convert with vips_Yxy2XYZ() and vips_XYZ2Lab().
+ * For example, given an image tagged as [enum@Vips.Interpretation.YXY], running
+ * [method@Image.colourspace] with @space set to
+ * [enum@Vips.Interpretation.LAB] will convert with [method@Image.Yxy2XYZ]
+ * and [method@Image.XYZ2Lab].
  *
- * See also: vips_colourspace_issupported(),
- * vips_image_guess_interpretation().
+ * ::: tip "Optional arguments"
+ *     * @source_space: input colour space
+ *
+ * ::: seealso
+ *     [method@Image.colourspace_issupported],
+ *     [method@Image.guess_interpretation].
  *
  * Returns: 0 on success, -1 on error.
  */

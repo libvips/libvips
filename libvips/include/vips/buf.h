@@ -39,11 +39,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* A string in the process of being written to ... multiple calls to
- * vips_buf_append add to it. On overflow append "..." and block further
- * writes.
- */
-
 struct _VipsBuf {
 	/* All fields are private.
 	 */

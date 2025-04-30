@@ -1103,7 +1103,7 @@ find_image_stats(VipsImage *mem,
 
 #ifdef DEBUG
 	if (count == 0)
-		g_warning("global_balance %s", _("empty overlap!"));
+		g_warning("global_balance empty overlap");
 #endif /*DEBUG*/
 
 	return t[4];
@@ -1495,18 +1495,12 @@ vips__build_mosaic(SymbolTable *st, VipsImage *out, transform_fn tfn, void *a)
 static int
 vips__matrixtranspose(VipsImage *in, VipsImage **out)
 {
-	int yc, xc;
-
-	/* Allocate output matrix.
-	 */
 	if (!(*out = vips_image_new_matrix(in->Ysize, in->Xsize)))
 		return -1;
 
-	/* Transpose.
-	 */
-	for (yc = 0; yc < (*out)->Ysize; ++yc)
-		for (xc = 0; xc < (*out)->Xsize; ++xc)
-			*VIPS_MATRIX(*out, xc, yc) = *VIPS_MATRIX(in, yc, xc);
+	for (int y = 0; y < (*out)->Ysize; y++)
+		for (int x = 0; x < (*out)->Xsize; x++)
+			*VIPS_MATRIX(*out, x, y) = *VIPS_MATRIX(in, y, x);
 
 	return 0;
 }
@@ -1614,7 +1608,7 @@ find_factors(SymbolTable *st, double gamma)
 #ifdef DEBUG
 	/* Diagnostics!
 	 */
-	printf("debugging output for vips_global_balance():\n");
+	printf("debugging output for vips_globalbalance():\n");
 	for (i = 0; i < st->nim; i++)
 		printf("balance factor %d = %g\n", i, st->fac[i]);
 	total = 0.0;
@@ -1959,12 +1953,7 @@ vips_globalbalance_init(VipsGlobalbalance *globalbalance)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @gamma: gamma of source images
- * * @int_output: %TRUE for integer image output
- *
- * vips_globalbalance() can be used to remove contrast differences in
+ * [method@Image.globalbalance] can be used to remove contrast differences in
  * an assembled mosaic.
  *
  * It reads the History field attached to @in and builds a list of the source
@@ -1979,16 +1968,21 @@ vips_globalbalance_init(VipsGlobalbalance *globalbalance)
  * 1.0 will stop this.
  *
  * Each of the source images is transformed with the appropriate correction
- * factor, then the mosaic is reassembled. @out is #VIPS_FORMAT_FLOAT, but
- * if @int_output is set, the output image is the same format as the input
- * images.
+ * factor, then the mosaic is reassembled. @out is
+ * [enum@Vips.BandFormat.FLOAT], but if @int_output is set, the output image
+ * is the same format as the input images.
  *
  * There are some conditions that must be met before this operation can work:
  * the source images must all be present under the filenames recorded in the
  * history on @in, and the mosaic must have been built using only operations in
  * this package.
  *
- * See also: vips_remosaic().
+ * ::: tip "Optional arguments"
+ *     * @gamma: %gdouble, gamma of source images
+ *     * @int_output: %gboolean, %TRUE for integer image output
+ *
+ * ::: seealso
+ *     [method@Image.mosaic].
  *
  * Returns: 0 on success, -1 on error
  */

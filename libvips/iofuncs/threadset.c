@@ -49,7 +49,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
 #include <vips/debug.h>
 
 typedef struct _VipsThreadExec {
@@ -74,6 +73,10 @@ struct _VipsThreadset {
 	/* Idle threads wait on this semaphore.
 	 */
 	VipsSemaphore idle;
+
+	/* The number of threads that haven't reached their entry point.
+	 */
+	int queue_guard;
 
 	/* The current number of (idle-)threads, the highwater mark,
 	 * and the max we allow before blocking thread creation.
@@ -137,6 +140,8 @@ vips_threadset_work(void *pointer)
 	VIPS_DEBUG_MSG("vips_threadset_work: starting %p\n", g_thread_self());
 
 	g_async_queue_lock(set->queue);
+
+	set->queue_guard--;
 
 	for (;;) {
 		/* Pop a task from the queue. If the number of threads is limited,
@@ -239,6 +244,7 @@ vips_threadset_add_thread(VipsThreadset *set)
 		g_thread_unref(thread);
 
 		set->n_threads++;
+		set->queue_guard++;
 		set->n_threads_highwater =
 			VIPS_MAX(set->n_threads_highwater, set->n_threads);
 	}
@@ -247,16 +253,16 @@ vips_threadset_add_thread(VipsThreadset *set)
 }
 
 /**
- * vips_threadset_new:
+ * vips_threadset_new: (free-func vips_threadset_free) (skip)
  * @max_threads: maximum number of system threads
  *
  * Create a new threadset.
  *
  * If @max_threads is 0, new threads will be created when necessary by
- * vips_threadset_run(), with no limit on the number of threads.
+ * [func@threadset_run], with no limit on the number of threads.
  *
  * If @max_threads is > 0, then that many threads will be created by
- * vips_threadset_new() during startup and vips_threadset_run() will
+ * [ctor@Threadset.new] during startup and [func@threadset_run] will
  * not spawn any additional threads.
  *
  * Returns: the new threadset.
@@ -286,14 +292,15 @@ vips_threadset_new(int max_threads)
  * vips_threadset_run:
  * @set: the threadset to run the task in
  * @domain: the name of the task (useful for debugging)
- * @func: the task to execute
- * @data: the task's data
+ * @func: (scope async) (closure data): the task to execute
+ * @data: (nullable): the task's data
  *
  * Execute a task in a thread. If there are no idle threads and the maximum
  * thread limit specified by @max_threads has not been reached, a new thread
  * will be spawned.
  *
- * See also: vips_threadset_new().
+ * ::: seealso
+ *     [ctor@Threadset.new].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -305,9 +312,11 @@ vips_threadset_run(VipsThreadset *set,
 
 	g_async_queue_lock(set->queue);
 
-	/* Create a new thread if there are no waiting threads in the queue.
+	/* Create or reuse an idle thread if there are at least as many tasks
+	 * in the queue as waiting threads. The guard comparison prevents
+	 * oversubscription by threads that haven't started yet.
 	 */
-	if (g_async_queue_length_unlocked(set->queue) >= 0)
+	if (g_async_queue_length_unlocked(set->queue) >= set->queue_guard)
 		if (!vips_threadset_add_thread(set)) {
 			g_async_queue_unlock(set->queue);
 

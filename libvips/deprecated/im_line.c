@@ -52,7 +52,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 int
 im_line(IMAGE *image, int x1, int y1, int x2, int y2, int pelval)

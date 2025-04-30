@@ -51,8 +51,6 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
-#include <vips/thread.h>
-#include <vips/threadpool.h>
 #include <vips/debug.h>
 
 #include "sink.h"
@@ -78,7 +76,7 @@ typedef struct _SinkMemory {
 	SinkMemoryArea *old_area;
 
 	/* A region covering the whole of the output image ... we write to
-	 * this from many workers with vips_region_prepare_to().
+	 * this from many workers with [method@Region.prepare_to].
 	 */
 	VipsRegion *region;
 } SinkMemory;
@@ -244,7 +242,7 @@ sink_memory_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }
@@ -316,7 +314,9 @@ sink_memory_init(SinkMemory *memory, VipsImage *image)
  * Loops over @im, generating it to a memory buffer attached to @im. It is
  * used by vips to implement writing to a memory buffer.
  *
- * See also: vips_sink(), vips_get_tile_size(), vips_image_new_memory().
+ * ::: seealso
+ *     [method@Image.sink], [method@Image.get_tile_size],
+ *     [ctor@Image.new_memory].
  *
  * Returns: 0 on success, or -1 on error.
  */

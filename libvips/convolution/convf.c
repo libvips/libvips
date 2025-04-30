@@ -390,7 +390,7 @@ vips_convf_init(VipsConvf *convf)
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convolution. This is a low-level operation, see vips_conv() for something
+ * Convolution. This is a low-level operation, see [method@Image.conv] for something
  * more convenient.
  *
  * Perform a convolution of @in with @mask.
@@ -399,10 +399,11 @@ vips_convf_init(VipsConvf *convf)
  * and offset are part of @mask.
  *
  * The convolution is performed with floating-point arithmetic. The output image
- * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
- * @out is also #VIPS_FORMAT_DOUBLE.
+ * is always [enum@Vips.BandFormat.FLOAT] unless @in is [enum@Vips.BandFormat.DOUBLE], in which case
+ * @out is also [enum@Vips.BandFormat.DOUBLE].
  *
- * See also: vips_conv().
+ * ::: seealso
+ *     [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

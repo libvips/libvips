@@ -125,6 +125,10 @@ typedef struct _VipsReducev {
 	 */
 	double voffset;
 
+	/* The vshrink we do after integer reduction.
+	 */
+	double residual_vshrink;
+
 	/* Precalculated interpolation matrices. short (used for pel
 	 * sizes up to int), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
@@ -350,9 +354,9 @@ vips_reducev_compile_section(VipsReducev *reducev, Pass *pass, gboolean first)
 
 	/* Some orcs seem to be unstable with many compilers active at once.
 	 */
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 	result = orc_program_compile(p);
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 
 	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result))
 		return -1;
@@ -471,7 +475,7 @@ static void inline reducev_notab(VipsReducev *reducev,
 	typename LongT<T>::type cy[MAX_POINT];
 
 	vips_reduce_make_mask(cy, reducev->kernel, reducev->n_point,
-		reducev->vshrink, y);
+		reducev->residual_vshrink, y);
 
 	for (int z = 0; z < ne; z++)
 		out[z] = reduce_sum<T>(in + z, l1, cy, n);
@@ -501,15 +505,15 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 #endif /*DEBUG*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink - reducev->voffset;
+	s.top = r->top * reducev->residual_vshrink - reducev->voffset;
 	s.width = r->width;
-	s.height = r->height * reducev->vshrink + reducev->n_point;
+	s.height = r->height * reducev->residual_vshrink + reducev->n_point;
 	if (vips_region_prepare(ir, &s))
 		return -1;
 
 	VIPS_GATE_START("vips_reducev_gen: work");
 
-	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 -
+	double Y = (r->top + 0.5) * reducev->residual_vshrink - 0.5 -
 		reducev->voffset;
 
 	for (int y = 0; y < r->height; y++) {
@@ -572,7 +576,7 @@ vips_reducev_gen(VipsRegion *out_region, void *vseq,
 			break;
 		}
 
-		Y += reducev->vshrink;
+		Y += reducev->residual_vshrink;
 	}
 
 	VIPS_GATE_STOP("vips_reducev_gen: work");
@@ -603,15 +607,15 @@ vips_reducev_uchar_vector_gen(VipsRegion *out_region, void *vseq,
 #endif /*DEBUG*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink - reducev->voffset;
+	s.top = r->top * reducev->residual_vshrink - reducev->voffset;
 	s.width = r->width;
-	s.height = r->height * reducev->vshrink + reducev->n_point;
+	s.height = r->height * reducev->residual_vshrink + reducev->n_point;
 	if (vips_region_prepare(ir, &s))
 		return -1;
 
 	VIPS_GATE_START("vips_reducev_uchar_vector_gen: work");
 
-	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 -
+	double Y = (r->top + 0.5) * reducev->residual_vshrink - 0.5 -
 		reducev->voffset;
 
 	for (int y = 0; y < r->height; y++) {
@@ -629,7 +633,7 @@ vips_reducev_uchar_vector_gen(VipsRegion *out_region, void *vseq,
 			q, p,
 			reducev->n_point, ne, lskip, cys);
 
-		Y += reducev->vshrink;
+		Y += reducev->residual_vshrink;
 	}
 
 	VIPS_GATE_STOP("vips_reducev_uchar_vector_gen: work");
@@ -662,9 +666,9 @@ vips_reducev_vector_gen(VipsRegion *out_region, void *vseq,
 #endif /*DEBUG_PIXELS*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink - reducev->voffset;
+	s.top = r->top * reducev->residual_vshrink - reducev->voffset;
 	s.width = r->width;
-	s.height = r->height * reducev->vshrink + reducev->n_point;
+	s.height = r->height * reducev->residual_vshrink + reducev->n_point;
 	if (vips_region_prepare(ir, &s))
 		return -1;
 
@@ -680,7 +684,7 @@ vips_reducev_vector_gen(VipsRegion *out_region, void *vseq,
 
 	VIPS_GATE_START("vips_reducev_vector_gen: work");
 
-	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 -
+	double Y = (r->top + 0.5) * reducev->residual_vshrink - 0.5 -
 		reducev->voffset;
 
 	for (int y = 0; y < r->height; y++) {
@@ -727,7 +731,7 @@ vips_reducev_vector_gen(VipsRegion *out_region, void *vseq,
 		printf("\t%d\n", *q);
 #endif /*DEBUG_PIXELS*/
 
-		Y += reducev->vshrink;
+		Y += reducev->residual_vshrink;
 	}
 
 	VIPS_GATE_STOP("vips_reducev_vector_gen: work");
@@ -758,7 +762,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 	fsum = 0.0;
 	for (i = 0; i < n; i++)
 		fsum += in[i];
-	target = VIPS_RINT(fsum * scale);
+	target = rint(fsum * scale);
 
 	/* As we rint() each scale element, we can get up to 0.5 error.
 	 * Therefore, by the end of the mask, we can be off by up to n/2. Our
@@ -772,7 +776,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 		guess = (high + low) / 2.0;
 
 		for (i = 0; i < n; i++)
-			out[i] = VIPS_RINT(in[i] * guess);
+			out[i] = rint(in[i] * guess);
 
 		sum = 0;
 		for (i = 0; i < n; i++)
@@ -808,7 +812,7 @@ vips_reducev_vector_to_fixed_point(double *in, int *out, int n, int scale)
 		 * first abs(extra_error) elements.
 		 */
 		int direction = extra_error > 0 ? 1 : -1;
-		int n_elements = VIPS_ABS(extra_error);
+		int n_elements = abs(extra_error);
 
 		for (i = 0; i < n; i++)
 			out[i] += each_error;
@@ -848,13 +852,16 @@ vips_reducev_build(VipsObject *object)
 	/* Output size. We need to always round to nearest, so round(), not
 	 * rint().
 	 */
-	height = VIPS_ROUND_UINT(
-		(double) in->Ysize / reducev->vshrink);
+	height = VIPS_ROUND_UINT((double) in->Ysize / reducev->vshrink);
 
 	/* How many pixels we are inventing in the input, -ve for
 	 * discarding.
 	 */
 	extra_pixels = height * reducev->vshrink - in->Ysize;
+
+	/* The vshrink we do after integer reduction.
+	 */
+	reducev->residual_vshrink = reducev->vshrink;
 
 	if (reducev->gap > 0.0 &&
 		reducev->kernel != VIPS_KERNEL_NEAREST) {
@@ -867,7 +874,7 @@ vips_reducev_build(VipsObject *object)
 		/* The int part of our reduce.
 		 */
 		int_vshrink = VIPS_MAX(1,
-			VIPS_FLOOR((double) in->Ysize / height / reducev->gap));
+			floor((double) in->Ysize / height / reducev->gap));
 
 		if (int_vshrink > 1) {
 			g_info("shrinkv by %d", int_vshrink);
@@ -877,16 +884,16 @@ vips_reducev_build(VipsObject *object)
 				return -1;
 			in = t[0];
 
-			reducev->vshrink /= int_vshrink;
 			extra_pixels /= int_vshrink;
+			reducev->residual_vshrink /= int_vshrink;
 		}
 	}
 
-	if (reducev->vshrink == 1.0)
+	if (reducev->residual_vshrink == 1.0)
 		return vips_image_write(in, resample->out);
 
 	reducev->n_point =
-		vips_reduce_get_points(reducev->kernel, reducev->vshrink);
+		vips_reduce_get_points(reducev->kernel, reducev->residual_vshrink);
 	g_info("reducev: %d point mask", reducev->n_point);
 	if (reducev->n_point > MAX_POINT) {
 		vips_error(object_class->nickname,
@@ -904,21 +911,19 @@ vips_reducev_build(VipsObject *object)
 	/* Build the tables of pre-computed coefficients.
 	 */
 	for (int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++) {
-		reducev->matrixf[y] =
-			VIPS_ARRAY(object, reducev->n_point, double);
-		reducev->matrixs[y] =
-			VIPS_ARRAY(object, reducev->n_point, short);
+		reducev->matrixf[y] = VIPS_ARRAY(object, reducev->n_point, double);
+		reducev->matrixs[y] = VIPS_ARRAY(object, reducev->n_point, short);
 		if (!reducev->matrixf[y] ||
 			!reducev->matrixs[y])
 			return -1;
 
 		vips_reduce_make_mask(reducev->matrixf[y], reducev->kernel,
-			reducev->n_point, reducev->vshrink,
+			reducev->n_point, reducev->residual_vshrink,
 			(float) y / VIPS_TRANSFORM_SCALE);
 
 		for (int i = 0; i < reducev->n_point; i++)
-			reducev->matrixs[y][i] = (short) (reducev->matrixf[y][i] *
-				VIPS_INTERPOLATE_SCALE);
+			reducev->matrixs[y][i] =
+				(short) (reducev->matrixf[y][i] * VIPS_INTERPOLATE_SCALE);
 #ifdef DEBUG
 		printf("vips_reducev_build: mask %d\n    ", y);
 		for (int i = 0; i < reducev->n_point; i++)
@@ -936,7 +941,7 @@ vips_reducev_build(VipsObject *object)
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if (vips_embed(in, &t[2],
-			0, VIPS_CEIL(reducev->n_point / 2.0) - 1,
+			0, ceil(reducev->n_point / 2.0) - 1,
 			in->Xsize, in->Ysize + reducev->n_point,
 			"extend", VIPS_EXTEND_COPY,
 			nullptr))
@@ -1108,9 +1113,38 @@ vips_reducev_init(VipsReducev *reducev)
 	reducev->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
-/* See reduce.c for the doc comment.
+/**
+ * vips_reducev: (method)
+ * @in: input image
+ * @out: (out): output image
+ * @vshrink: vertical reduce
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Reduce @in vertically by a float factor.
+ *
+ * The pixels in @out are
+ * interpolated with a 1D mask generated by @kernel.
+ *
+ * Set @gap to speed up reducing by having [method@Image.shrinkv] to shrink
+ * with a box filter first. The bigger @gap, the closer the result
+ * to the fair resampling. The smaller @gap, the faster resizing.
+ * The default value is 0.0 (no optimization).
+ *
+ * This is a very low-level operation: see [method@Image.resize] for a more
+ * convenient way to resize images.
+ *
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application.
+ *
+ * ::: tip "Optional arguments"
+ *     * @kernel: [enum@Kernel], to use to interpolate (default: lanczos3)
+ *     * @gap: %gboolean, reducing gap to use (default: 0.0)
+ *
+ * ::: seealso
+ *     [method@Image.shrink], [method@Image.resize], [method@Image.affine].
+ *
+ * Returns: 0 on success, -1 on error
  */
-
 int
 vips_reducev(VipsImage *in, VipsImage **out, double vshrink, ...)
 {

@@ -162,7 +162,8 @@ vips_foreign_save_fits_init(VipsForeignSaveFits *fits)
  *
  * Write a VIPS image to a file in FITS format.
  *
- * See also: vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */

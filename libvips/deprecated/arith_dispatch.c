@@ -38,7 +38,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* One image in, one out.
  */

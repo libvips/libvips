@@ -58,7 +58,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* This function works on either mmaped files or on images in buffer
  */

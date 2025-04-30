@@ -92,7 +92,7 @@ G_DEFINE_TYPE(VipsSdf, vips_sdf, VIPS_TYPE_CREATE);
 static float
 vips_sdf_circle(VipsSdf *sdf, int x, int y)
 {
-	return hypot(x - sdf->a[0], y - sdf->a[1]) - sdf->r;
+	return hypotf(x - sdf->a[0], y - sdf->a[1]) - sdf->r;
 }
 
 static float
@@ -101,10 +101,10 @@ vips_sdf_box(VipsSdf *sdf, int x, int y)
 	float px = x - sdf->cx;
 	float py = y - sdf->cy;
 
-	float dx = fabs(px) - sdf->sx;
-	float dy = fabs(py) - sdf->sy;
+	float dx = fabsf(px) - sdf->sx;
+	float dy = fabsf(py) - sdf->sy;
 
-	return hypot(VIPS_MAX(dx, 0), VIPS_MAX(dy, 0)) +
+	return hypotf(VIPS_MAX(dx, 0), VIPS_MAX(dy, 0)) +
 		VIPS_MIN(VIPS_MAX(dx, dy), 0);
 }
 
@@ -119,10 +119,10 @@ vips_sdf_rounded_box(VipsSdf *sdf, int x, int y)
 	float r_bottom = px > 0 ? sdf->corners[1] : sdf->corners[3];
 	float r = py > 0 ? r_top : r_bottom;
 
-	float qx = fabs(px) - sdf->sx + r;
-	float qy = fabs(py) - sdf->sy + r;
+	float qx = fabsf(px) - sdf->sx + r;
+	float qy = fabsf(py) - sdf->sy + r;
 
-	return hypot(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) +
+	return hypotf(VIPS_MAX(qx, 0), VIPS_MAX(qy, 0)) +
 		VIPS_MIN(VIPS_MAX(qx, qy), 0) - r;
 }
 
@@ -134,12 +134,12 @@ vips_sdf_line(VipsSdf *sdf, int px, int py)
 
 	float dot_paba = pax * sdf->dx + pay * sdf->dy;
 	float dot_baba = sdf->dx * sdf->dx + sdf->dy * sdf->dy;
-	float h = VIPS_CLIP(0, dot_paba / dot_baba, 1);
+	float h = VIPS_FCLIP(0, dot_paba / dot_baba, 1);
 
 	float dx = pax - h * sdf->dx;
 	float dy = pay - h * sdf->dy;
 
-	return hypot(dx, dy);
+	return hypotf(dx, dy);
 }
 
 static int
@@ -365,29 +365,31 @@ vips_sdf_init(VipsSdf *sdf)
  * @shape: SDF to create
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Create a signed distance field (SDF) image of the given @shape.
  *
- * * @a: #VipsArrayDouble, first point
- * * @b: #VipsArrayDouble, second point
- * * @r: %gfloat, radius
- * * @corners: #VipsArrayDouble, corner radii
- *
- * Create a signed distance field (SDF) image of the given shape. Different
+ * Different
  * shapes use different combinations of the optional arguments, see below.
  *
- * @shape #VIPS_SDF_SHAPE_CIRCLE: create a circle centred on @a, radius @r.
+ * @shape [enum@Vips.SdfShape.CIRCLE]: create a circle centred on @a, radius @r.
  *
- * @shape #VIPS_SDF_SHAPE_BOX: create a box with top-left corner @a and
+ * @shape [enum@Vips.SdfShape.BOX]: create a box with top-left corner @a and
  * bottom-right corner @b.
  *
- * @shape #VIPS_SDF_SHAPE_ROUNDED_BOX: create a box with top-left corner @a
+ * @shape [enum@Vips.SdfShape.ROUNDED_BOX]: create a box with top-left corner @a
  * and bottom-right corner @b, whose four corners are
  * rounded by the four-element float array @corners. @corners will default to
  * 0.0.
  *
- * @shape #VIPS_SDF_SHAPE_LINE: draw a line from @a to @b.
+ * @shape [enum@Vips.SdfShape.LINE]: draw a line from @a to @b.
  *
- * See also: vips_grey(), vips_grid(), vips_xyz().
+ * ::: tip "Optional arguments"
+ *     * @a: [struct@ArrayDouble], first point
+ *     * @b: [struct@ArrayDouble], second point
+ *     * @r: %gfloat, radius
+ *     * @corners: [struct@ArrayDouble], corner radii
+ *
+ * ::: seealso
+ *     [ctor@Image.grey], [method@Image.grid], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

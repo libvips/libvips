@@ -116,7 +116,7 @@ vips_abs_build(VipsObject *object)
 		int x; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = VIPS_FABS(p[x]); \
+			q[x] = fabs(p[x]); \
 	}
 
 /* Complex abs operation: calculate modulus.
@@ -212,17 +212,18 @@ vips_abs_init(VipsAbs *abs)
 
 /**
  * vips_abs: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the absolute value of an image. It does a copy for
  * unsigned integer types, negate for negative values in
- * signed integer types, <function>fabs(3)</function> for
+ * signed integer types, [`fabs()`](man:fabs(3)) for
  * float types, and calculates modulus for complex
  * types.
  *
- * See also: vips_sign().
+ * ::: seealso
+ *     [method@Image.sign].
  *
  * Returns: 0 on success, -1 on error
  */

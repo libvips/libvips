@@ -63,7 +63,7 @@ vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		float c, x, m;
 
 		c = p[2] * p[1] / 255.0;
-		x = c * (1 - VIPS_FABS(fmod(p[0] / SIXTH_OF_CHAR, 2) - 1));
+		x = c * (1 - fabsf(fmodf(p[0] / SIXTH_OF_CHAR, 2) - 1));
 		m = p[2] - c;
 
 		if (p[0] < (int) SIXTH_OF_CHAR) {
@@ -139,10 +139,11 @@ vips_HSV2sRGB_init(VipsHSV2sRGB *HSV2sRGB)
  * Convert HSV to sRGB.
  *
  * HSV is a crude polar coordinate system for RGB images. It is provided for
- * compatibility with other image processing systems. See vips_Lab2LCh() for a
+ * compatibility with other image processing systems. See [method@Image.Lab2LCh] for a
  * much better colour space.
  *
- * See also: vips_sRGB2HSV().
+ * ::: seealso
+ *     [method@Image.sRGB2HSV].
  *
  * Returns: 0 on success, -1 on error.
  */

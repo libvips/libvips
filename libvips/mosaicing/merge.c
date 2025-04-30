@@ -172,7 +172,7 @@ vips_merge_init(VipsMerge *merge)
 }
 
 /**
- * vips_merge:
+ * vips_merge: (method)
  * @ref: reference image
  * @sec: secondary image
  * @out: (out): output image
@@ -180,10 +180,6 @@ vips_merge_init(VipsMerge *merge)
  * @dx: displacement of ref from sec
  * @dy: displacement of ref from sec
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @mblend: %gint, maximum blend size
  *
  * This operation joins two images left-right (with @ref on the left) or
  * up-down (with @ref above) with a smooth seam.
@@ -195,7 +191,7 @@ vips_merge_init(VipsMerge *merge)
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * @dx and @dy give the displacement of @sec relative to @ref, in other words,
  * the vector to get from the origin of @sec to the origin of @ref, in other
@@ -209,7 +205,11 @@ vips_merge_init(VipsMerge *merge)
  * is, zero pixels in the overlap area do not  contribute  to  the  merge.
  * This makes it possible to join non-rectangular images.
  *
- * See also: vips_mosaic(), vips_insert().
+ * ::: tip "Optional arguments"
+ *     * @mblend: %gint, maximum blend size
+ *
+ * ::: seealso
+ *     [method@Image.mosaic], [method@Image.insert].
  *
  * Returns: 0 on success, -1 on error
  */

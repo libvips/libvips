@@ -241,12 +241,6 @@ vips_xyz_init(VipsXyz *xyz)
  * @height: vertical size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @csize: %gint, size for third dimension
- * * @dsize: %gint, size for fourth dimension
- * * @esize: %gint, size for fifth dimension
- *
  * Create a two-band uint32 image where the elements in the first band have the
  * value of their x coordinate and elements in the second band have their y
  * coordinate.
@@ -256,9 +250,15 @@ vips_xyz_init(VipsXyz *xyz)
  *
  * Set @csize, @dsize, @esize to generate higher dimensions and add more
  * bands. The extra dimensions are placed down the vertical axis. Use
- * vips_grid() to change the layout.
+ * [method@Image.grid] to change the layout.
  *
- * See also: vips_grey(), vips_grid(), vips_identity().
+ * ::: tip "Optional arguments"
+ *     * @csize: %gint, size for third dimension
+ *     * @dsize: %gint, size for fourth dimension
+ *     * @esize: %gint, size for fifth dimension
+ *
+ * ::: seealso
+ *     [ctor@Image.grey], [method@Image.grid], [ctor@Image.identity].
  *
  * Returns: 0 on success, -1 on error
  */

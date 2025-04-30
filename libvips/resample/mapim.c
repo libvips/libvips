@@ -285,8 +285,8 @@ vips_mapim_region_minmax(VipsRegion *region, VipsRect *r, VipsRect *bounds)
 			TYPE px = p1[0]; \
 			TYPE py = p1[1]; \
 \
-			if (VIPS_ISNAN(px) || \
-				VIPS_ISNAN(py) || \
+			if (isnan(px) || \
+				isnan(py) || \
 				px < -1 || \
 				px >= clip_width || \
 				py < -1 || \
@@ -600,27 +600,21 @@ vips_mapim_init(VipsMapim *mapim)
  * @index: index image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * This operator resamples @in using @index to look up pixels.
  *
- * * @interpolate: interpolate pixels with this
- * * @extend: #VipsExtend how to generate new pixels
- * * @background: #VipsArrayDouble colour for new pixels
- * * @premultiplied: %gboolean, images are already premultiplied
+ * @out is the same size as @index, with each pixel being fetched from that
+ * position in @in. That is:
  *
- * This operator resamples @in using @index to look up pixels. @out is
- * the same size as @index, with each pixel being fetched from that position in
- * @in. That is:
- *
- * |[
+ * ```
  * out[x, y] = in[index[x, y]]
- * ]|
+ * ```
  *
  * If @index has one band, that band must be complex. Otherwise, @index must
  * have two bands of any format.
  *
  * Coordinates in @index are in pixels, with (0, 0) being the top-left corner
- * of @in, and with y increasing down the image. Use vips_xyz() to build index
- * images.
+ * of @in, and with y increasing down the image. Use [ctor@Image.xyz] to
+ * build index images.
  *
  * @interpolate defaults to bilinear.
  *
@@ -629,16 +623,23 @@ vips_mapim_init(VipsMapim *mapim)
  * is better for image upsizing.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
- * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied.
+ * directly on PNG images. If your images have been through
+ * [method@Image.premultiply], set @premultiplied.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See vips_maplut() for a 1D equivalent of this operation.
+ * See [method@Image.maplut] for a 1D equivalent of this operation.
  *
- * See also: vips_xyz(), vips_affine(), vips_resize(),
- * vips_maplut(), #VipsInterpolate.
+ * ::: tip "Optional arguments"
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
+ *     * @extend: [enum@Vips.Extend], how to generate new pixels
+ *     * @background: [struct@ArrayDouble], colour for new pixels
+ *     * @premultiplied: %gboolean, images are already premultiplied
+ *
+ * ::: seealso
+ *     [ctor@Image.xyz], [method@Image.affine], [method@Image.resize],
+ *     [method@Image.maplut], [class@Interpolate].
  *
  * Returns: 0 on success, -1 on error
  */

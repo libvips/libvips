@@ -348,9 +348,9 @@ vips_target_custom_init(VipsTargetCustom *target_custom)
 /**
  * vips_target_custom_new:
  *
- * Create a #VipsTargetCustom. Attach signals to implement write and finish.
+ * Create a [class@TargetCustom]. Attach signals to implement write and finish.
  *
- * Returns: a new #VipsTargetCustom
+ * Returns: a new [class@TargetCustom]
  */
 VipsTargetCustom *
 vips_target_custom_new(void)

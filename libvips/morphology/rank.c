@@ -605,7 +605,7 @@ vips_rank_init(VipsRank *rank)
  * @index: select pixel
  * @...: %NULL-terminated list of optional named arguments
  *
- * vips_rank() does rank filtering on an image. A window of size @width by
+ * [method@Image.rank] does rank filtering on an image. A window of size @width by
  * @height is passed over the image. At each position, the pixels inside the
  * window are sorted into ascending order and the pixel at position @index is
  * output. @index numbers from 0.
@@ -622,7 +622,8 @@ vips_rank_init(VipsRank *rank)
  * The special cases n == 0 and n == m * m - 1 are useful dilate and
  * expand operators.
  *
- * See also: vips_conv(), vips_median(), vips_spcor().
+ * ::: seealso
+ *     [method@Image.conv], [method@Image.median], [method@Image.spcor].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -651,7 +652,8 @@ vips_rank(VipsImage *in, VipsImage **out,
  *
  *  vips_rank(in, out, size, size, (size * size) / 2);
  *
- * See also: vips_rank().
+ * ::: seealso
+ *     [method@Image.rank].
  *
  * Returns: 0 on success, -1 on error
  */

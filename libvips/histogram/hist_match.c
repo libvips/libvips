@@ -186,8 +186,9 @@ vips_hist_match_init(VipsHistMatch *match)
  * cumulative histograms, @out will be a LUT that adjusts the PDF of the image
  * from which @in was made to match the PDF of @ref's image.
  *
- * See also: vips_maplut(), vips_hist_find(), vips_hist_norm(),
- * vips_hist_cum().
+ * ::: seealso
+ *     [method@Image.maplut], [method@Image.hist_find], [method@Image.hist_norm],
+ * [method@Image.hist_cum].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -165,7 +165,8 @@ vips_hist_norm_init(VipsHistNorm *hist_norm)
  * index, so for example the max for a uchar image becomes 255.
  * Normalise each band separately.
  *
- * See also: vips_hist_cum().
+ * ::: seealso
+ *     [method@Image.hist_cum].
  *
  * Returns: 0 on success, -1 on error
  */

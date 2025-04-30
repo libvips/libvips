@@ -257,7 +257,8 @@ vips_draw_smudge_init(VipsDrawSmudge *draw_smudge)
  * Smudge a section of @image. Each pixel in the area @left, @top, @width,
  * @height is replaced by the average of the surrounding 3x3 pixels.
  *
- * See also: vips_draw_line().
+ * ::: seealso
+ *     [method@Image.draw_line].
  *
  * Returns: 0 on success, or -1 on error.
  */

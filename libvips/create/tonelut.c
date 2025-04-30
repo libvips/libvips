@@ -312,21 +312,10 @@ vips_tonelut_init(VipsTonelut *lut)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * [ctor@Image.tonelut] generates a tone curve for the adjustment of image
+ * levels.
  *
- * * @in_max: input range
- * * @out_max: output range
- * * @Lb: black-point [0-100]
- * * @Lw: white-point [0-100]
- * * @Ps: shadow point (eg. 0.2)
- * * @Pm: mid-tone point (eg. 0.5)
- * * @Ph: highlight point (eg. 0.8)
- * * @S: shadow adjustment (+/- 30)
- * * @M: mid-tone adjustment (+/- 30)
- * * @H: highlight adjustment (+/- 30)
- *
- * vips_tonelut() generates a tone curve for the adjustment of image
- * levels. It is mostly designed for adjusting the L* part of a LAB image in
+ * This is mostly designed for adjusting the L* part of a LAB image in
  * a way suitable for print work, but you can use it for other things too.
  *
  * The curve is an unsigned 16-bit image with (@in_max + 1) entries,
@@ -335,6 +324,18 @@ vips_tonelut_init(VipsTonelut *lut)
  * @Lb, @Lw are expressed as 0-100, as in LAB colour space. You
  * specify the scaling for the input and output images with the @in_max and
  * @out_max parameters.
+ *
+ * ::: tip "Optional arguments"
+ *     * @in_max: %gint, input range
+ *     * @out_max: %gint, output range
+ *     * @Lb: %gdouble, black-point [0-100]
+ *     * @Lw: %gdouble, white-point [0-100]
+ *     * @Ps: %gdouble, shadow point (eg. 0.2)
+ *     * @Pm: %gdouble, mid-tone point (eg. 0.5)
+ *     * @Ph: %gdouble, highlight point (eg. 0.8)
+ *     * @S: %gdouble, shadow adjustment (+/- 30)
+ *     * @M: %gdouble, mid-tone adjustment (+/- 30)
+ *     * @H: %gdouble, highlight adjustment (+/- 30)
  *
  * Returns: 0 on success, -1 on error
  */

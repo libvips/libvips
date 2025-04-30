@@ -462,7 +462,8 @@ vips_foreign_save_nifti_init(VipsForeignSaveNifti *nifti)
  *
  * Use the various NIFTI suffixes to pick the nifti save format.
  *
- * See also: vips_image_write_to_file(), vips_niftiload().
+ * ::: seealso
+ *     [method@Image.write_to_file], [ctor@Image.niftiload].
  *
  * Returns: 0 on success, -1 on error.
  */

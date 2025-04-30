@@ -35,6 +35,10 @@
 #ifndef IM_ALMOSTDEPRECATED_H
 #define IM_ALMOSTDEPRECATED_H
 
+#ifndef VIPS_VIPS7COMPAT_H
+#error Should not be included directly use vips7compat.h instead
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -146,6 +150,16 @@ void im_diagnostics(const char *fmt, ...)
 VIPS_DEPRECATED_FOR(g_warning)
 void im_warning(const char *fmt, ...)
 	G_GNUC_PRINTF(1, 2);
+
+VIPS_DEPRECATED_FOR(g_mutex_init)
+GMutex *vips_g_mutex_new(void);
+VIPS_DEPRECATED_FOR(g_mutex_clear)
+void vips_g_mutex_free(GMutex *);
+
+VIPS_DEPRECATED_FOR(g_cond_init)
+GCond *vips_g_cond_new(void);
+VIPS_DEPRECATED_FOR(g_cond_clear)
+void vips_g_cond_free(GCond *);
 
 VIPS_DEPRECATED_FOR(g_thread_join)
 void *vips_g_thread_join(GThread *thread);

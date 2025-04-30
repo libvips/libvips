@@ -1,45 +1,37 @@
-<refmeta>
-  <refentrytitle>How to write bindings</refentrytitle>
-  <manvolnum>3</manvolnum>
-  <refmiscinfo>libvips</refmiscinfo>
-</refmeta>
+Title: Advanced > Writing bindings
 
-<refnamediv>
-  <refname>Binding</refname>
-  <refpurpose>Writing bindings for libvips</refpurpose>
-</refnamediv>
-
-There are full libvips bindings for quite a few environments now: C, C++,
-command-line, Ruby, PHP, Lua, Python and JavaScript (node).
+There are full libvips bindings for quite a few environments now, including
+C, C++, command-line, Ruby, PHP, Lua, Python, Crystal, Elixir, and JavaScript
+(Node.js).
 
 This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
 to what you need.
 
-# Don't bind the top-level C API
+## Don't bind the top-level C API
 
-The libvips C API (vips_add() and so on) was designed to be easy for humans
-to write. It is inconvenient and dangerous to use from other languages due
-to its heavy use of varargs.
+The libvips C API ([method@Image.add] and so on) was designed to be easy
+for humans to write. It is inconvenient and dangerous to use from other
+languages due to its heavy use of varargs.
 
 It's much better to use the layer below. This lower layer is structured as:
 
-- Create operator. You can use vips_operation_new() to make a new
-  `VipsOperation` object from an operator nickname, like `"add"`.
+- Create operator. You can use [ctor@Operation.new] to make a new
+  [class@Operation] object from an operator nickname, like `"add"`.
 
-- Set parameters. You can loop over the operation with vips_argument_map() to
-  get the name and type of each input argument.  For each argument, you
-  need to get the value from your language, convert to a `GValue`, then
-  use g_object_set_property() to set that value on the operator.
+- Set parameters. You can use [method@Object.get_args] to
+  get the name and type of all arguments. For each argument, you need to
+  get the value from your language, convert to a [struct@GObject.Value], then
+  use [method@GObject.Object.set_property] to set that value on the operator.
 
-- Execute with vips_cache_operation_build().
+- Execute with [func@cache_operation_build].
 
-- Extract results. Again, you loop over the operator arguments with
-  vips_argument_map(), but instead of inputs, this time you look for output
-  arguments. You extract their value with g_object_get_property(), and pass
+- Extract results. Again, you loop over the arguments,
+  but instead of inputs, this time you look for output arguments. You
+  extract their value with [method@GObject.Object.get_property], and pass
   the value back to your language.
 
-For example, you can execute vips_invert() like this:
+For example, you can execute [method@Image.invert] like this:
 
 ```c
 /* compile with
@@ -60,7 +52,7 @@ main(int argc, char **argv)
 	GValue gvalue = G_VALUE_INIT;
 
 	if (VIPS_INIT(argv[0]))
-		/* This shows the vips error buffer and quits with a fail exit
+		/* This shows the libvips error buffer and quits with a fail exit
 		 * code.
 		 */
 		vips_error_exit(NULL);
@@ -94,7 +86,7 @@ main(int argc, char **argv)
 	 */
 	g_object_unref(in);
 
-	/* Call the operation. This will look up the operation+args in the vips
+	/* Call the operation. This will look up the operation+args in the libvips
 	 * operation cache and either return a previous operation, or build
 	 * this one. In either case, we have a new ref we must release.
 	 */
@@ -129,7 +121,7 @@ main(int argc, char **argv)
 }
 ```
 
-# Compiled language which can call C
+## Compiled language which can call C
 
 The C++ binding uses this lower layer to define a function called
 `VImage::call()` which can call any libvips operator with a set of variable
@@ -159,7 +151,7 @@ to get type-checked calls for at least the required operator arguments.
 The `VImage` class also adds automatic reference counting, constant expansion,
 operator overloads, and various other useful features.
 
-# Dynamic language with FFI
+## Dynamic language with FFI
 
 Languages like Ruby, Python, JavaScript and LuaJIT can't call C directly, but
 they do support FFI. The bindings for these languages work rather like C++,
@@ -167,8 +159,8 @@ but use FFI to call into libvips and run operations.
 
 Since these languages are dynamic, they can add another trick: they intercept
 the method-missing hook and attempt to run any method calls not implemented by
-the `Image` class as libvips operators. In effect, the binding is generated at
-runtime.
+the [class@Image] class as libvips operators. In effect, the binding is generated
+at runtime.
 
 # gobject-introspection
 
@@ -195,11 +187,11 @@ users is likely to be tricky.
 
 If you have a choice, I would recommend simply using FFI.
 
-# Documentation
+## Documentation
 
-You can generate searchable docs from a <code>.gir</code> (the thing that
-is built from scanning libvips and which in turn turn the typelib is
-made from) with <command>g-ir-doc-tool</command>, for example:
+You can generate searchable docs from a `.gir` (the thing that is built
+from scanning libvips and which in turn the typelib is made from) with
+`g-ir-doc-tool`, for example:
 
 ```bash
 $ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir

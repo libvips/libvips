@@ -240,9 +240,12 @@ vips_source_g_input_stream_init(VipsSourceGInputStream *source)
  * vips_source_g_input_stream_new:
  * @stream: read from this stream
  *
- * Create a #VipsSourceGInputStream which wraps @stream.
+ * Create a [struct@SourceGInputStream] which wraps @stream.
  *
- * Returns: the new source.
+ * ::: seealso
+ *     [func@g_input_stream_new_from_source]
+ *
+ * Returns: (transfer full): the new source.
  */
 VipsSourceGInputStream *
 vips_source_g_input_stream_new(GInputStream *stream)

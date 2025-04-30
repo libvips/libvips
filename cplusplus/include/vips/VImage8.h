@@ -2048,6 +2048,27 @@ public:
 	friend VIPS_CPLUSPLUS_API VImage &
 	operator>>=(VImage &a, const std::vector<double> b);
 
+	// Compat operations
+
+	static VImage
+	new_from_memory_steal(void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format);
+
+	/**
+	 * Write raw image to file descriptor.
+	 *
+	 * **Optional parameters**
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param fd File descriptor to write to.
+	 * @param options Set of options.
+	 */
+	G_DEPRECATED_FOR(rawsave_target)
+	void rawsave_fd(int fd, VOption *options = nullptr) const;
+
 	/* Automatically generated members.
 	 *
 	 * Rebuild with:
@@ -3255,6 +3276,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3276,6 +3298,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3297,6 +3320,7 @@ public:
 	 *   - **reuse** -- Reuse palette from input, bool.
 	 *   - **interpalette_maxerror** -- Maximum inter-palette error for palette reusage, double.
 	 *   - **interlace** -- Generate an interlaced (progressive) GIF, bool.
+	 *   - **keep_duplicate_frames** -- Keep duplicate frames in the output instead of combining them, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3741,6 +3765,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -3757,6 +3782,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -3773,6 +3799,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- Load this page from the image, int.
+	 *   - **oneshot** -- Load images a frame at a time, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4496,7 +4523,7 @@ public:
 	static VImage matload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Invert an matrix.
+	 * Invert a matrix.
 	 * @param options Set of options.
 	 * @return Output matrix.
 	 */
@@ -4531,6 +4558,14 @@ public:
 	 * @return Output image.
 	 */
 	static VImage matrixload_source(VSource source, VOption *options = nullptr);
+
+	/**
+	 * Multiply two matrices.
+	 * @param right Second matrix to multiply.
+	 * @param options Set of options.
+	 * @return Output matrix.
+	 */
+	VImage matrixmultiply(VImage right, VOption *options = nullptr) const;
 
 	/**
 	 * Print matrix.
@@ -5390,6 +5425,15 @@ public:
 	VImage remainder_const(std::vector<double> c, VOption *options = nullptr) const;
 
 	/**
+	 * Rebuild an mosaiced image.
+	 * @param old_str Search for this string.
+	 * @param new_str And swap for this string.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage remosaic(const char *old_str, const char *new_str, VOption *options = nullptr) const;
+
+	/**
 	 * Replicate an image.
 	 * @param across Repeat this many times horizontally.
 	 * @param down Repeat this many times vertically.
@@ -5489,7 +5533,7 @@ public:
 	VImage scRGB2XYZ(VOption *options = nullptr) const;
 
 	/**
-	 * Convert an scrgb image to srgb.
+	 * Convert scrgb to srgb.
 	 *
 	 * **Optional parameters**
 	 *   - **depth** -- Output device space depth in bits, int.
@@ -5734,6 +5778,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5752,6 +5797,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5770,6 +5816,7 @@ public:
 	 *   - **dpi** -- Render at this DPI, double.
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
+	 *   - **stylesheet** -- Custom CSS, const char *.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5913,9 +5960,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5932,9 +5980,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5951,9 +6000,10 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
-	 *   - **subifd** -- Subifd index, int.
 	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **autorotate** -- Rotate image using orientation tag, bool.
+	 *   - **subifd** -- Subifd index, int.
+	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.

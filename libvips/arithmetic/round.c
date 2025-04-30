@@ -71,7 +71,7 @@ vips_round_build(VipsObject *object)
 {
 	VipsUnary *unary = (VipsUnary *) object;
 
-	/* Is this one of the int types? Degenerate to vips_copy() if it
+	/* Is this one of the int types? Degenerate to [method@Image.copy] if it
 	 * is.
 	 */
 	if (unary->in &&
@@ -127,13 +127,13 @@ vips_round_buffer(VipsArithmetic *arithmetic,
 
 	switch (round->round) {
 	case VIPS_OPERATION_ROUND_RINT:
-		SWITCH(VIPS_RINT);
+		SWITCH(rint);
 		break;
 	case VIPS_OPERATION_ROUND_CEIL:
-		SWITCH(VIPS_CEIL);
+		SWITCH(ceil);
 		break;
 	case VIPS_OPERATION_ROUND_FLOOR:
-		SWITCH(VIPS_FLOOR);
+		SWITCH(floor);
 		break;
 
 	default:
@@ -199,9 +199,9 @@ vips_roundv(VipsImage *in, VipsImage **out,
 
 /**
  * vips_round: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
- * @round: #VipsOperationRound rounding operation to perform
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
+ * @round: [class@Operation]Round rounding operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Round to an integral value.
@@ -212,7 +212,8 @@ vips_roundv(VipsImage *in, VipsImage **out,
  * The format of @out is always the same as @in, so you may wish to cast to an
  * integer format afterwards.
  *
- * See also: vips_cast()
+ * ::: seealso
+ *     [method@Image.cast]
  *
  * Returns: 0 on success, -1 on error
  */
@@ -231,12 +232,12 @@ vips_round(VipsImage *in, VipsImage **out, VipsOperationRound round, ...)
 
 /**
  * vips_floor: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See
- * vips_round().
+ * Round to an integral value with [enum@Vips.OperationRound.FLOOR]. See
+ * [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -255,12 +256,12 @@ vips_floor(VipsImage *in, VipsImage **out, ...)
 
 /**
  * vips_ceil: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See
- * vips_round().
+ * Round to an integral value with [enum@Vips.OperationRound.CEIL]. See
+ * [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -279,12 +280,12 @@ vips_ceil(VipsImage *in, VipsImage **out, ...)
 
 /**
  * vips_rint: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
- * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See
- * vips_round().
+ * Round to an integral value with [enum@Vips.OperationRound.RINT]. See
+ * [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */

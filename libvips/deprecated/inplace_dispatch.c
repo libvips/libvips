@@ -38,7 +38,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 /* Calculate a pixel for an image from a vec of double. Valid while im is
  * valid.

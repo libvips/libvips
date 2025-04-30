@@ -486,7 +486,7 @@ vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail,
 
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
 	 * extra sharpness to the image. We want to block shrink to a
-	 * bit above our target, then vips_shrink() / vips_reduce() to the
+	 * bit above our target, then vips_shrink / vips_reduce() to the
 	 * final size.
 	 *
 	 * Leave at least a factor of two for the final resize step.
@@ -680,10 +680,10 @@ vips_thumbnail_build(VipsObject *object)
 	 * auto_rotate.
 	 */
 	if (vips_object_argument_isset(object, "no_rotate"))
-		thumbnail->auto_rotate = !thumbnail->no_rotate;
+		thumbnail->auto_rotate = !thumbnail->no_rotate; // FIXME: Invalidates operation cache
 
 	if (!vips_object_argument_isset(object, "height"))
-		thumbnail->height = thumbnail->width;
+		thumbnail->height = thumbnail->width; // FIXME: Invalidates operation cache
 
 	/* Open and do any pre-shrinking.
 	 */
@@ -783,7 +783,7 @@ vips_thumbnail_build(VipsObject *object)
 	 * page_height or we'll have pixels straddling page boundaries.
 	 */
 	if (in->Ysize > preshrunk_page_height) {
-		int target_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
+		int target_page_height = rint(preshrunk_page_height / vshrink);
 		int target_image_height =
 			target_page_height * thumbnail->n_loaded_pages;
 
@@ -827,7 +827,7 @@ vips_thumbnail_build(VipsObject *object)
 	 * accidentally turn into an animated image later.
 	 */
 	if (thumbnail->n_loaded_pages > 1) {
-		int output_page_height = VIPS_RINT(preshrunk_page_height / vshrink);
+		int output_page_height = rint(preshrunk_page_height / vshrink);
 
 		if (vips_copy(in, &t[8], NULL))
 			return -1;
@@ -1214,26 +1214,16 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Make a thumbnail from a file.
  *
- * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize, both or force
- * * @no_rotate: %gboolean, don't rotate upright using orientation tag
- * * @crop: #VipsInteresting, shrink and crop to fill target
- * * @linear: %gboolean, perform shrink in linear light
- * * @import_profile: %gchararray, fallback import ICC profile
- * * @export_profile: %gchararray, export ICC profile
- * * @intent: #VipsIntent, rendering intent
- * * @fail_on: #VipsFailOn, load error types to fail on
- *
- * Make a thumbnail from a file. Shrinking is done in three stages: using any
+ * Shrinking is done in three stages: using any
  * shrink-on-load features available in the file import library, using a block
  * shrink, and using a lanczos3 shrink. At least the final 200% is done with
  * lanczos3. The output should be high quality, and the operation should be
  * quick.
  *
- * See vips_thumbnail_buffer() to thumbnail from a memory buffer, or
- * vips_thumbnail_source() to thumbnail from an arbitrary byte source.
+ * See [ctor@Image.thumbnail_buffer] to thumbnail from a memory buffer, or
+ * [ctor@Image.thumbnail_source] to thumbnail from an arbitrary byte source.
  *
  * By default, libvips will only use the first frame of animated or multipage
  * images. To thumbnail all pages or frames, pass `n=-1` to the loader in
@@ -1244,7 +1234,7 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * @height to a very large number to ignore that dimension.
  *
  * If you set @crop, then the output image will fill the whole of the @width x
- * @height rectangle, with any excess cropped away. See vips_smartcrop() for
+ * @height rectangle, with any excess cropped away. See [method@Image.smartcrop] for
  * details on the cropping strategy.
  *
  * Normally the operation will upsize or downsize as required to fit the image
@@ -1278,7 +1268,19 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * Use @fail_on to control the types of error that will cause loading to fail.
  * The default is #VIPS_FAIL_ON_NONE, ie. thumbnail is permissive.
  *
- * See also: vips_thumbnail_buffer().
+ * ::: tip "Optional arguments"
+ *     * @height: %gint, target height in pixels
+ *     * @size: [enum@Size], upsize, downsize, both or force
+ *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @linear: %gboolean, perform shrink in linear light
+ *     * @import_profile: %gchararray, fallback import ICC profile
+ *     * @export_profile: %gchararray, export ICC profile
+ *     * @intent: [enum@Intent], rendering intent
+ *     * @fail_on: [enum@FailOn], load error types to fail on
+ *
+ * ::: seealso
+ *     [ctor@Image.thumbnail_buffer].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1469,24 +1471,25 @@ vips_thumbnail_buffer_init(VipsThumbnailBuffer *buffer)
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.thumbnail], but read from a memory buffer.
  *
- * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize, both or force
- * * @no_rotate: %gboolean, don't rotate upright using orientation tag
- * * @crop: #VipsInteresting, shrink and crop to fill target
- * * @linear: %gboolean, perform shrink in linear light
- * * @import_profile: %gchararray, fallback import ICC profile
- * * @export_profile: %gchararray, export ICC profile
- * * @intent: #VipsIntent, rendering intent
- * * @fail_on: #VipsFailOn, load error types to fail on
- * * @option_string: %gchararray, extra loader options
+ * One extra optional argument, @option_string, lets you pass options to the
+ * underlying loader.
  *
- * Exactly as vips_thumbnail(), but read from a memory buffer. One extra
- * optional argument, @option_string, lets you pass options to the underlying
- * loader.
+ * ::: tip "Optional arguments"
+ *     * @height: %gint, target height in pixels
+ *     * @size: [enum@Size], upsize, downsize, both or force
+ *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @linear: %gboolean, perform shrink in linear light
+ *     * @import_profile: %gchararray, fallback import ICC profile
+ *     * @export_profile: %gchararray, export ICC profile
+ *     * @intent: [enum@Intent], rendering intent
+ *     * @fail_on: [enum@FailOn], load error types to fail on
+ *     * @option_string: %gchararray, extra loader options
  *
- * See also: vips_thumbnail().
+ * ::: seealso
+ *     [ctor@Image.thumbnail].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1681,24 +1684,26 @@ vips_thumbnail_source_init(VipsThumbnailSource *source)
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.thumbnail], but read from a source.
  *
- * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize, both or force
- * * @no_rotate: %gboolean, don't rotate upright using orientation tag
- * * @crop: #VipsInteresting, shrink and crop to fill target
- * * @linear: %gboolean, perform shrink in linear light
- * * @import_profile: %gchararray, fallback import ICC profile
- * * @export_profile: %gchararray, export ICC profile
- * * @intent: #VipsIntent, rendering intent
- * * @fail_on: #VipsFailOn, load error types to fail on
- * * @option_string: %gchararray, extra loader options
- *
- * Exactly as vips_thumbnail(), but read from a source. One extra
+ * One extra
  * optional argument, @option_string, lets you pass options to the underlying
  * loader.
  *
- * See also: vips_thumbnail().
+ * ::: tip "Optional arguments"
+ *     * @height: %gint, target height in pixels
+ *     * @size: [enum@Size], upsize, downsize, both or force
+ *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @linear: %gboolean, perform shrink in linear light
+ *     * @import_profile: %gchararray, fallback import ICC profile
+ *     * @export_profile: %gchararray, export ICC profile
+ *     * @intent: [enum@Intent], rendering intent
+ *     * @fail_on: [enum@FailOn], load error types to fail on
+ *     * @option_string: %gchararray, extra loader options
+ *
+ * ::: seealso
+ *     [ctor@Image.thumbnail].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1797,26 +1802,26 @@ vips_thumbnail_image_init(VipsThumbnailImage *image)
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize, both or force
- * * @no_rotate: %gboolean, don't rotate upright using orientation tag
- * * @crop: #VipsInteresting, shrink and crop to fill target
- * * @linear: %gboolean, perform shrink in linear light
- * * @import_profile: %gchararray, fallback import ICC profile
- * * @export_profile: %gchararray, export ICC profile
- * * @intent: #VipsIntent, rendering intent
- * * @fail_on: #VipsFailOn, load error types to fail on
- *
- * Exactly as vips_thumbnail(), but read from an existing image.
+ * Exactly as [ctor@Image.thumbnail], but read from an existing image.
  *
  * This operation
  * is not able to exploit shrink-on-load features of image load libraries, so
- * it can be much slower than `vips_thumbnail()` and produce poorer quality
- * output. Only use it if you really have to.
+ * it can be much slower than [ctor@Image.thumbnail] and produce poorer quality
+ * output. Only use this operation if you really have to.
  *
- * See also: vips_thumbnail().
+ * ::: tip "Optional arguments"
+ *     * @height: %gint, target height in pixels
+ *     * @size: [enum@Size], upsize, downsize, both or force
+ *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @linear: %gboolean, perform shrink in linear light
+ *     * @import_profile: %gchararray, fallback import ICC profile
+ *     * @export_profile: %gchararray, export ICC profile
+ *     * @intent: [enum@Intent], rendering intent
+ *     * @fail_on: [enum@FailOn], load error types to fail on
+ *
+ * ::: seealso
+ *     [ctor@Image.thumbnail].
  *
  * Returns: 0 on success, -1 on error.
  */

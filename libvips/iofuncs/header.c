@@ -86,63 +86,10 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/* For the vips__image_sizeof_bandformat declaration.
- */
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
-
-/**
- * SECTION: header
- * @short_description: get, set and walk image headers
- * @stability: Stable
- * @see_also: <link linkend="libvips-type">type</link>
- * @include: vips/vips.h
- *
- * These functions let you get at image header data (including metadata) in a
- * uniform way.
- *
- * Use vips_image_get_typeof() to test for the
- * existence and #GType of a header field.
- *
- * You can attach arbitrary metadata to images. Metadata is copied as images
- * are processed, so all images which used this image as input, directly or
- * indirectly, will have this same bit of metadata attached to them. Copying
- * is implemented with reference-counted pointers, so it is efficient, even for
- * large items of data. This does however mean that metadata items need to be
- * immutable. Metadata is handy for things like ICC profiles or EXIF data.
- *
- * Various convenience functions (eg. vips_image_set_int()) let you easily
- * attach
- * simple types like
- * numbers, strings and memory blocks to images. Use vips_image_map() to loop
- * over an image's fields, including all metadata.
- *
- * Items of metadata are identified by strings. Some strings are reserved, for
- * example the ICC profile for an image is known by convention as
- * "icc-profile-data".
- *
- * If you save an image in VIPS format, all metadata (with a restriction, see
- * below) is automatically saved for you in a block of XML at the end of the
- * file. When you load a VIPS image, the metadata is restored. You can use the
- * `vipsedit` command-line tool to extract or replace this block of XML.
- *
- * VIPS metadata is based on %GValue. See the docs for that system if you want
- * to do fancy stuff such as defining a new metadata type.
- * VIPS defines a new %GValue called `vips_save_string`, a variety of string,
- * see vips_value_set_save_string().
- * If your %GValue can be transformed to `vips_save_string`, it will be
- * saved and loaded to and from VIPS files for you.
- *
- * VIPS provides a couple of base classes which implement
- * reference-counted areas of memory. If you base your metadata on one of
- * these types, it can be copied between images efficiently.
- */
-
 /* Use in various small places where we need a mutex and it's not worth
  * making a private one.
  */
-static GMutex *vips__meta_lock = NULL;
+static GMutex vips__meta_lock;
 
 /* We have to keep the gtype as a string, since we statically init this.
  */
@@ -225,7 +172,7 @@ vips_format_sizeof(VipsBandFormat format)
  * vips_format_sizeof_unsafe: (skip)
  * @format: format type
  *
- * A fast but dangerous version of vips_format_sizeof(). You must have
+ * A fast but dangerous version of [func@format_sizeof]. You must have
  * previously range-checked @format or you'll crash.
  *
  * Returns: number of bytes for a band format.
@@ -486,12 +433,12 @@ vips_image_get_format_max(VipsBandFormat format)
  * vips_image_guess_format:
  * @image: image to guess for
  *
- * Return the #VipsBandFormat for an image, guessing a sane value if
+ * Return the [enum@BandFormat] for an image, guessing a sane value if
  * the set value looks crazy.
  *
  * For example, for a float image tagged as rgb16, we'd return ushort.
  *
- * Returns: a sensible #VipsBandFormat for the image.
+ * Returns: a sensible [enum@BandFormat] for the image.
  */
 VipsBandFormat
 vips_image_guess_format(const VipsImage *image)
@@ -571,7 +518,7 @@ vips_image_guess_format(const VipsImage *image)
  * vips_image_get_coding:
  * @image: image to get from
  *
- * Returns: the image coding
+ * Returns: the [enum@Coding] from the image header.
  */
 VipsCoding
 vips_image_get_coding(const VipsImage *image)
@@ -583,10 +530,10 @@ vips_image_get_coding(const VipsImage *image)
  * vips_image_get_interpretation:
  * @image: image to get from
  *
- * Return the #VipsInterpretation set in the image header.
- * Use vips_image_guess_interpretation() if you want a sanity-checked value.
+ * Return the [enum@Interpretation] set in the image header.
+ * Use [method@Image.guess_format] if you want a sanity-checked value.
  *
- * Returns: the #VipsInterpretation from the image header.
+ * Returns: the [enum@Interpretation] from the image header.
  */
 VipsInterpretation
 vips_image_get_interpretation(const VipsImage *image)
@@ -670,10 +617,10 @@ vips_image_default_interpretation(const VipsImage *image)
  * vips_image_guess_interpretation:
  * @image: image to guess for
  *
- * Return the #VipsInterpretation for an image, guessing a sane value if
+ * Return the [enum@Interpretation] for an image, guessing a sane value if
  * the set value looks crazy.
  *
- * Returns: a sensible #VipsInterpretation for the image.
+ * Returns: a sensible [enum@Interpretation] for the image.
  */
 VipsInterpretation
 vips_image_guess_interpretation(const VipsImage *image)
@@ -847,8 +794,8 @@ vips_image_get_yoffset(const VipsImage *image)
  * vips_image_get_filename:
  * @image: image to get from
  *
- * Returns: the name of the file the image was loaded from, or NULL if there
- * is no filename.
+ * Returns: the name of the file the image was loaded from, or `NULL` if
+ *   there is no filename.
  */
 const char *
 vips_image_get_filename(const VipsImage *image)
@@ -942,8 +889,8 @@ vips_image_get_page_height(VipsImage *image)
  * vips_image_get_n_pages:
  * @image: image to get from
  *
- * Fetch and sanity-check #VIPS_META_N_PAGES. Default to 1 if not present or
- * crazy.
+ * Fetch and sanity-check [const@META_N_PAGES]. Default to 1 if not present
+ * or crazy.
  *
  * This is the number of pages in the image file, not the number of pages that
  * have been loaded into @image.
@@ -968,8 +915,8 @@ vips_image_get_n_pages(VipsImage *image)
  * vips_image_get_concurrency:
  * @image: image to get from
  *
- * Fetch and sanity-check #VIPS_CONCURRENCY. Default to 1 if not present or
- * crazy.
+ * Fetch and sanity-check [const@META_CONCURRENCY]. Default to 1 if not
+ * present or crazy.
  *
  * Returns: the suggested concurrency for this image
  */
@@ -992,8 +939,8 @@ vips_image_get_concurrency(VipsImage *image, int default_concurrency)
  * vips_image_get_n_subifds:
  * @image: image to get from
  *
- * Fetch and sanity-check #VIPS_META_N_SUBIFDS. Default to 0 if not present or
- * crazy.
+ * Fetch and sanity-check [const@META_N_SUBIFDS]. Default to 0 if not
+ * present or crazy.
  *
  * Returns: the number of subifds in the image file
  */
@@ -1015,7 +962,7 @@ vips_image_get_n_subifds(VipsImage *image)
  * vips_image_get_orientation:
  * @image: image to get from
  *
- * Fetch and sanity-check #VIPS_META_ORIENTATION. Default to 1 (no rotate,
+ * Fetch and sanity-check [const@META_ORIENTATION]. Default to 1 (no rotate,
  * no flip) if not present or crazy.
  *
  * Returns: the image orientation.
@@ -1039,7 +986,7 @@ vips_image_get_orientation(VipsImage *image)
  * vips_image_get_orientation_swap:
  * @image: image to get from
  *
- * Return %TRUE if applying the orientation would swap width and height.
+ * Return `TRUE` if applying the orientation would swap width and height.
  *
  * Returns: if width/height will swap
  */
@@ -1063,9 +1010,10 @@ vips_image_get_orientation_swap(VipsImage *image)
  * Since this function modifies @image, it is not threadsafe. Only call it on
  * images which you are sure have not been shared with another thread.
  *
- * See also: vips_image_wio_input(), vips_image_copy_memory().
+ * ::: seealso
+ *     [method@Image.wio_input], [method@Image.copy_memory].
  *
- * Returns: (transfer none): a pointer to pixel data, if possible.
+ * Returns: (nullable) (transfer none): a pointer to pixel data, if possible.
  */
 const void *
 vips_image_get_data(VipsImage *image)
@@ -1090,12 +1038,13 @@ vips_image_get_data(VipsImage *image)
  *
  * A convenience function to set the header fields after creating an image.
  * Normally you copy the fields from your input images with
- * vips_image_pipelinev() and then make
- * any adjustments you need, but if you are creating an image from scratch,
- * for example vips_black() or vips_jpegload(), you do need to set all the
+ * [method.Image.pipelinev] and then make any adjustments you need,
+ * but if you are creating an image from scratch, for example
+ * [ctor@Image.black] or [ctor@Image.jpegload], you do need to set all the
  * fields yourself.
  *
- * See also: vips_image_pipelinev().
+ * ::: seealso
+ *     [method.Image.pipelinev].
  */
 void
 vips_image_init_fields(VipsImage *image,
@@ -1149,11 +1098,11 @@ vips__image_meta_copy(VipsImage *dst, const VipsImage *src)
 		/* We lock with vips_image_set() to stop races in highly-
 		 * threaded applications.
 		 */
-		g_mutex_lock(vips__meta_lock);
+		g_mutex_lock(&vips__meta_lock);
 		meta_init(dst);
 		vips_slist_map2(src->meta_traverse,
 			(VipsSListMap2Fn) meta_cp_field, dst, NULL);
-		g_mutex_unlock(vips__meta_lock);
+		g_mutex_unlock(&vips__meta_lock);
 	}
 
 	return 0;
@@ -1215,25 +1164,26 @@ vips__image_copy_fields_array(VipsImage *out, VipsImage *in[])
  * vips_image_set:
  * @image: image to set the metadata on
  * @name: the name to give the metadata
- * @value: the %GValue to copy into the image
+ * @value: the [struct@GObject.Value] to copy into the image
  *
  * Set a piece of metadata on @image. Any old metadata with that name is
- * destroyed. The %GValue is copied into the image, so you need to unset the
+ * destroyed. The [struct@GObject.Value] is copied into the image, so you need to unset the
  * value when you're done with it.
  *
  * For example, to set an integer on an image (though you would use the
- * convenience function vips_image_set_int() in practice), you would do:
+ * convenience function [method@Image.set_int] in practice), you would do:
  *
- * |[
+ * ```c
  * GValue value = G_VALUE_INIT;
  *
  * g_value_init(&value, G_TYPE_INT);
  * g_value_set_int(&value, 42);
  * vips_image_set(image, name, &value);
  * g_value_unset(&value);
- * ]|
+ * ```
  *
- * See also: vips_image_get().
+ * ::: seealso
+ *     [method@Image.get].
  */
 void
 vips_image_set(VipsImage *image, const char *name, GValue *value)
@@ -1248,10 +1198,10 @@ vips_image_set(VipsImage *image, const char *name, GValue *value)
 	 * metadata copy on another -- this can lead to crashes in
 	 * highly-threaded applications.
 	 */
-	g_mutex_lock(vips__meta_lock);
+	g_mutex_lock(&vips__meta_lock);
 	meta_init(image);
 	(void) meta_new(image, name, value);
-	g_mutex_unlock(vips__meta_lock);
+	g_mutex_unlock(&vips__meta_lock);
 
 	/* If we're setting an EXIF data block, we need to automatically expand
 	 * out all the tags. This will set things like xres/yres too.
@@ -1300,21 +1250,22 @@ vips_set_value_from_pointer(GValue *value, void *data)
 
 /**
  * vips_image_get:
- * @image: image to get the field from from
+ * @image: image to get the field from
  * @name: the name to fetch
- * @value_copy: (transfer full) (out caller-allocates): the %GValue is copied into this
+ * @value_copy: (transfer full) (out caller-allocates): the
+ *   [struct@GObject.Value] is copied into this
  *
  * Fill @value_copy with a copy of the header field. @value_copy must be zeroed
  * but uninitialised.
  *
  * This will return -1 and add a message to the error buffer if the field
- * does not exist. Use vips_image_get_typeof() to test for the
+ * does not exist. Use [method@Image.get_typeof] to test for the
  * existence of a field first if you are not certain it will be there.
  *
  * For example, to read a double from an image (though of course you would use
- * vips_image_get_double() in practice):
+ * [method@Image.get_double] in practice):
  *
- * |[
+ * ```c
  * GValue value = G_VALUE_INIT;
  * double d;
  *
@@ -1332,9 +1283,10 @@ vips_set_value_from_pointer(GValue *value, void *data)
  *
  * d = g_value_get_double(&value);
  * g_value_unset(&value);
- * ]|
+ * ```
  *
- * See also: vips_image_get_typeof(), vips_image_get_double().
+ * ::: seealso
+ *     [method@Image.get_typeof], [method@Image.get_double].
  *
  * Returns: (skip): 0 on success, -1 otherwise.
  */
@@ -1393,13 +1345,14 @@ vips_image_get(const VipsImage *image, const char *name, GValue *value_copy)
  * @image: image to test
  * @name: the name to search for
  *
- * Read the %GType for a header field. Returns zero if there is no
- * field of that name.
+ * Read the [alias@GObject.Type] for a header field. Returns zero if there
+ * is no field of that name.
  *
- * See also: vips_image_get().
+ * ::: seealso
+ *     [method@Image.get].
  *
- * Returns: the %GType of the field, or zero if there is no
- * field of that name.
+ * Returns: the [alias@GObject.Type] of the field, or zero if there is no
+ *   field of that name.
  */
 GType
 vips_image_get_typeof(const VipsImage *image, const char *name)
@@ -1437,12 +1390,13 @@ vips_image_get_typeof(const VipsImage *image, const char *name)
  * @image: image to test
  * @name: the name to search for
  *
- * Find and remove an item of metadata. Return %FALSE if no metadata of that
+ * Find and remove an item of metadata. Return `FALSE` if no metadata of that
  * name was found.
  *
- * See also: vips_image_set(), vips_image_get_typeof().
+ * ::: seealso
+ *     [method@Image.set], [method@Image.get_typeof].
  *
- * Returns: %TRUE if an item of metadata of that name was found and removed
+ * Returns: `TRUE` if an item of metadata of that name was found and removed
  */
 gboolean
 vips_image_remove(VipsImage *image, const char *name)
@@ -1459,9 +1413,9 @@ vips_image_remove(VipsImage *image, const char *name)
 		 * racing with metadata copy on another -- this can lead to
 		 * crashes in highly-threaded applications.
 		 */
-		g_mutex_lock(vips__meta_lock);
+		g_mutex_lock(&vips__meta_lock);
 		result = g_hash_table_remove(image->meta, name);
-		g_mutex_unlock(vips__meta_lock);
+		g_mutex_unlock(&vips__meta_lock);
 	}
 
 	return result;
@@ -1494,18 +1448,20 @@ vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
 /**
  * vips_image_map:
  * @image: image to map over
- * @fn: (scope call): function to call for each header field
- * @a: (closure fn): user data for function
+ * @fn: (scope call) (closure a): function to call for each header field
+ * @a: user data for @fn
  *
  * This function calls @fn for every header field, including every item of
  * metadata.
  *
- * Like all _map functions, the user function should return %NULL to continue
- * iteration, or a non-%NULL pointer to indicate early termination.
+ * Like all _map functions, the user function should return `NULL` to continue
+ * iteration, or a non-`NULL` pointer to indicate early termination.
  *
- * See also: vips_image_get_typeof(), vips_image_get().
+ * ::: seealso
+ *     [method@Image.get_typeof], [method@Image.get].
  *
- * Returns: (transfer none): %NULL on success, the failing pointer otherwise.
+ * Returns: (nullable) (transfer none): `NULL` on success, the failing
+ *   pointer otherwise.
  */
 void *
 vips_image_map(VipsImage *image, VipsImageMapFn fn, void *a)
@@ -1558,14 +1514,14 @@ add_fields(VipsImage *image, const char *field, GValue *value, void *a)
  * vips_image_get_fields:
  * @image: image to get fields from
  *
- * Get a %NULL-terminated array listing all the metadata field names on @image.
- * Free the return result with g_strfreev().
+ * Get a `NULL`-terminated array listing all the metadata field names on @image.
+ * Free the return result with [func@GLib.strfreev].
  *
  * This is handy for language bindings. From C, it's usually more convenient to
- * use vips_image_map().
+ * use [method@Image.map].
  *
- * Returns: (transfer full): metadata fields in image, as a %NULL-terminated
- * array.
+ * Returns: (transfer full): metadata fields in image, as a `NULL`-terminated
+ *   array.
  */
 gchar **
 vips_image_get_fields(VipsImage *image)
@@ -1593,7 +1549,8 @@ vips_image_get_fields(VipsImage *image)
  * Attaches @data as a metadata item on @image under the name @name. When
  * VIPS no longer needs the metadata, it will be freed with @free_fn.
  *
- * See also: vips_image_get_double(), vips_image_set()
+ * ::: seealso
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_area(VipsImage *image, const char *name,
@@ -1637,11 +1594,12 @@ meta_get_value(const VipsImage *image,
  * @data: (out): return metadata value
  *
  * Gets @data from @image under the name @name. A convenience
- * function over vips_image_get(). Use vips_image_get_typeof() to test for
- * the existence of a piece of metadata.
+ * function over [method@Image.get]. Use [method@Image.get_typeof] to
+ * test for the existence of a piece of metadata.
  *
- * See also: vips_image_set_area(), vips_image_get(),
- * vips_image_get_typeof()
+ * ::: seealso
+ *     [method@Image.set_area], [method@Image.get],
+ *     [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1666,12 +1624,13 @@ vips_image_get_area(const VipsImage *image,
  * @name: metadata name
  * @free_fn: (scope async) (nullable): free function for @data
  * @data: (array length=length) (element-type guint8) (transfer full): pointer to area of
- * memory
+ *   memory
  * @length: length of memory area
  *
  * Attaches @data as a metadata item on @image under the name @name.
  *
- * See also: vips_image_get_blob(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_blob], [method@Image.set].
  */
 void
 vips_image_set_blob(VipsImage *image, const char *name,
@@ -1695,7 +1654,8 @@ vips_image_set_blob(VipsImage *image, const char *name,
  * Attaches @data as a metadata item on @image under the name @name, taking
  * a copy of the memory area.
  *
- * See also: vips_image_get_blob(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_blob], [method@Image.set].
  */
 void
 vips_image_set_blob_copy(VipsImage *image,
@@ -1727,14 +1687,17 @@ vips_image_set_blob_copy(VipsImage *image,
  * vips_image_get_blob:
  * @image: image to get the metadata from
  * @name: metadata name
- * @data: (out) (array length=length) (element-type guint8): pointer to area of memory
+ * @data: (out) (array length=length) (element-type guint8): pointer to area
+ *   of memory
  * @length: (out): return the blob length here, optionally
  *
  * Gets @data from @image under the name @name, optionally returns its
- * length in @length. Use vips_image_get_typeof() to test for the existence
+ * length in @length. Use [method@Image.get_typeof] to test for the existence
  * of a piece of metadata.
  *
- * See also: vips_image_get(), vips_image_get_typeof(), vips_blob_get(),
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof],
+ *     [method@Blob.get].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1760,10 +1723,10 @@ vips_image_get_blob(const VipsImage *image, const char *name,
  * @out: (out): return field value
  *
  * Gets @out from @im under the name @name.
- * The value will be transformed into
- * an int, if possible.
+ * The value will be transformed into an int, if possible.
  *
- * See also: vips_image_get(), vips_image_get_typeof()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1787,10 +1750,10 @@ vips_image_get_int(const VipsImage *image, const char *name, int *out)
  * @i: metadata value
  *
  * Attaches @i as a metadata item on @image under the name @name. A
- * convenience
- * function over vips_image_set().
+ * convenience function over [method@Image.set].
  *
- * See also: vips_image_get_int(), vips_image_set()
+ * ::: seealso
+ *     [method@Image.get_int], [method@Image.set].
  */
 void
 vips_image_set_int(VipsImage *image, const char *name, int i)
@@ -1810,10 +1773,10 @@ vips_image_set_int(VipsImage *image, const char *name, int i)
  * @out: (out): return field value
  *
  * Gets @out from @im under the name @name.
- * The value will be transformed into
- * a double, if possible.
+ * The value will be transformed into a double, if possible.
  *
- * See also: vips_image_get(), vips_image_get_typeof()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1837,10 +1800,10 @@ vips_image_get_double(const VipsImage *image, const char *name, double *out)
  * @d: metadata value
  *
  * Attaches @d as a metadata item on @image as @name. A
- * convenience
- * function over vips_image_set().
+ * convenience function over [method@Image.set].
  *
- * See also: vips_image_get_double(), vips_image_set()
+ * ::: seealso
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_double(VipsImage *image, const char *name, double d)
@@ -1860,14 +1823,14 @@ vips_image_set_double(VipsImage *image, const char *name, double d)
  * @out: (out) (transfer none): return field value
  *
  * Gets @out from @im under the name @name.
- * The field must be of type
- * G_TYPE_STRING, VIPS_TYPE_REF_STRING.
+ * The field must be of type `G_TYPE_STRING` or `VIPS_TYPE_REF_STRING`.
  *
  * Do not free @out.
  *
- * Use vips_image_get_as_string() to fetch any field as a string.
+ * Use [method@Image.get_as_string] to fetch any field as a string.
  *
- * See also: vips_image_get(), vips_image_get_typeof()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1912,9 +1875,10 @@ vips_image_get_string(const VipsImage *image, const char *name,
  *
  * Attaches @str as a metadata item on @image as @name.
  * A convenience
- * function over vips_image_set() using #VIPS_TYPE_REF_STRING.
+ * function over [method@Image.set] using `VIPS_TYPE_REF_STRING`.
  *
- * See also: vips_image_get_double(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_double], [method@Image.set].
  */
 void
 vips_image_set_string(VipsImage *image, const char *name, const char *str)
@@ -1935,12 +1899,14 @@ vips_image_set_string(VipsImage *image, const char *name, const char *str)
  *
  * Returns @name from @image in @out.
  * This function will read any field, returning it as a printable string.
- * You need to free the string with g_free() when you are done with it.
+ * You need to free the string with [func@GLib.free] when you are done with it.
  *
- * This will base64-encode BLOBs, for example. Use vips_buf_appendgv() to
+ * This will base64-encode BLOBs, for example. Use [method@Buf.appendg] to
  * make a string that's for humans.
  *
- * See also: vips_image_get(), vips_image_get_typeof(), vips_buf_appendgv().
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof],
+ *     [method@Buf.appendg].
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2004,13 +1970,14 @@ vips_image_print_field(const VipsImage *image, const char *name)
  * @out: (out) (transfer full): return metadata value
  *
  * Gets @out from @im under the name @name.
- * The field must be of type
- * #VIPS_TYPE_IMAGE. You must unref @out with g_object_unref().
+ * The field must be of type `VIPS_TYPE_IMAGE`.
+ * You must unref @out with [method@GObject.Object.unref].
  *
- * Use vips_image_get_typeof() to test for the
+ * Use [method@Image.get_typeof] to test for the
  * existence of a piece of metadata.
  *
- * See also: vips_image_get(), vips_image_set_image()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2035,9 +2002,10 @@ vips_image_get_image(const VipsImage *image,
  * @im: metadata value
  *
  * Attaches @im as a metadata item on @image as @name.
- * A convenience function over vips_image_set().
+ * A convenience function over [method@Image.set].
  *
- * See also: vips_image_get_image(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_image(VipsImage *image, const char *name, VipsImage *im)
@@ -2058,15 +2026,15 @@ vips_image_set_image(VipsImage *image, const char *name, VipsImage *im)
  * @n: (out) (optional): return the number of elements here, optionally
  *
  * Gets @out from @im under the name @name.
- * The field must be of type
- * #VIPS_TYPE_ARRAY_INT.
+ * The field must be of type `VIPS_TYPE_ARRAY_INT`.
  *
  * Do not free @out. @out is valid as long as @image is valid.
  *
- * Use vips_image_get_typeof() to test for the
+ * Use [method@Image.get_typeof] to test for the
  * existence of a piece of metadata.
  *
- * See also: vips_image_get(), vips_image_set_image()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2092,9 +2060,10 @@ vips_image_get_array_int(VipsImage *image, const char *name,
  * @n: the number of elements
  *
  * Attaches @array as a metadata item on @image as @name.
- * A convenience function over vips_image_set().
+ * A convenience function over [method@Image.set].
  *
- * See also: vips_image_get_image(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_array_int(VipsImage *image, const char *name,
@@ -2116,15 +2085,15 @@ vips_image_set_array_int(VipsImage *image, const char *name,
  * @n: (out) (optional): return the number of elements here, optionally
  *
  * Gets @out from @im under the name @name.
- * The field must be of type
- * #VIPS_TYPE_ARRAY_INT.
+ * The field must be of type `VIPS_TYPE_ARRAY_INT`.
  *
  * Do not free @out. @out is valid as long as @image is valid.
  *
- * Use vips_image_get_typeof() to test for the
+ * Use [method@Image.get_typeof] to test for the
  * existence of a piece of metadata.
  *
- * See also: vips_image_get(), vips_image_set_image()
+ * ::: seealso
+ *     [method@Image.get], [method@Image.set_image]
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -2150,9 +2119,10 @@ vips_image_get_array_double(VipsImage *image, const char *name,
  * @n: the number of elements
  *
  * Attaches @array as a metadata item on @image as @name.
- * A convenience function over vips_image_set().
+ * A convenience function over [method@Image.set].
  *
- * See also: vips_image_get_image(), vips_image_set().
+ * ::: seealso
+ *     [method@Image.get_image], [method@Image.set].
  */
 void
 vips_image_set_array_double(VipsImage *image, const char *name,
@@ -2169,7 +2139,7 @@ vips_image_set_array_double(VipsImage *image, const char *name,
 /**
  * vips_image_history_printf:
  * @image: add history line to this image
- * @format: printf() format string
+ * @format: `printf()`-style format string
  * @...: arguments to format string
  *
  * Add a line to the image history. The @format and arguments are expanded, the
@@ -2178,16 +2148,16 @@ vips_image_set_array_double(VipsImage *image, const char *name,
  *
  * For example:
  *
- * |[
+ * ```c
  * vips_image_history_printf(image, "vips invert %s %s",
  *     in->filename, out->filename);
- * ]|
+ * ```
  *
  * Might add the string
  *
- * |[
+ * ```bash
  * "vips invert /home/john/fred.v /home/john/jim.v # Fri Apr 3 23:30:35 2009\n"
- * ]|
+ * ```
  *
  * VIPS operations don't add history lines for you because a single action at
  * the application level might involve many VIPS operations. History must be
@@ -2234,10 +2204,11 @@ vips_image_history_printf(VipsImage *image, const char *fmt, ...)
  * @argv: (array length=argc) (element-type char*): program arguments
  *
  * Formats the name/argv as a single string and calls
- * vips_image_history_printf(). A
- * convenience function for command-line prorams.
+ * [method@Image.history_printf]. A convenience function for
+ * command-line programs.
  *
- * See also: vips_image_get_history().
+ * ::: seealso
+ *     [method@Image.get_history].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2271,10 +2242,11 @@ vips_image_history_args(VipsImage *image,
  *
  * VIPS tracks the history of each image, that is, the sequence of operations
  * that generated that image. Applications built on VIPS need to call
- * vips_image_history_printf() for each action they perform, setting the
+ * [method@Image.history_printf] for each action they perform, setting the
  * command-line equivalent for the action.
  *
- * See also: vips_image_history_printf().
+ * ::: seealso
+ *     [method@Image.history_printf].
  *
  * Returns: (transfer none): The history of @image as a C string. Do not free!
  */
@@ -2285,13 +2257,4 @@ vips_image_get_history(VipsImage *image)
 		image->Hist = vips__gslist_gvalue_get(image->history_list);
 
 	return image->Hist ? image->Hist : "";
-}
-
-/* Called during vips_init().
- */
-void
-vips__meta_init(void)
-{
-	if (!vips__meta_lock)
-		vips__meta_lock = vips_g_mutex_new();
 }

@@ -114,7 +114,7 @@ vips_gaussmat_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "integer") &&
 		!vips_object_argument_isset(object, "precision") &&
 		!gaussmat->integer)
-		gaussmat->precision = VIPS_PRECISION_FLOAT;
+		gaussmat->precision = VIPS_PRECISION_FLOAT; // FIXME: Invalidates operation cache
 
 	/* Find the size of the mask. Limit the mask size to 10k x 10k for
 	 * sanity. We allow x == 0, meaning a 1x1 mask.
@@ -150,7 +150,7 @@ vips_gaussmat_build(VipsObject *object)
 			double v = exp(-distance / sig2);
 
 			if (gaussmat->precision != VIPS_PRECISION_FLOAT)
-				v = VIPS_RINT(20 * v);
+				v = rint(20 * v);
 
 			*VIPS_MATRIX(create->out, x, y) = v;
 			sum += v;
@@ -232,32 +232,36 @@ vips_gaussmat_init(VipsGaussmat *gaussmat)
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @separable: generate a separable gaussian
- * * @precision: #VipsPrecision for @out
- *
  * Creates a circularly symmetric Gaussian image of radius
- * @sigma.  The size of the mask is determined by the variable @min_ampl;
+ * @sigma.
+ *
+ * The size of the mask is determined by the variable @min_ampl;
  * if for instance the value .1 is entered this means that the produced mask
  * is clipped at values less than 10 percent of the maximum amplitude.
  *
  * The program uses the following equation:
  *
- *   H(r) = exp(-(r * r) / (2 * @sigma * @sigma))
+ * ```
+ * H(r) = exp(-(r * r) / (2 * @sigma * @sigma))
+ * ```
  *
  * The generated image has odd size and its maximum value is normalised to
- * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
+ * 1.0, unless @precision is [enum@Vips.Precision.INTEGER].
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions.
  *
- * If @precision is #VIPS_PRECISION_INTEGER, an integer gaussian is generated.
- * This is useful for integer convolutions.
+ * If @precision is [enum@Vips.Precision.INTEGER], an integer gaussian is
+ * generated. This is useful for integer convolutions.
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: vips_logmat(), vips_conv().
+ * ::: tip "Optional arguments"
+ *     * @separable: %gboolean, generate a separable gaussian
+ *     * @precision: [enum@Precision] for @out
+ *
+ * ::: seealso
+ *     [ctor@Image.logmat], [method@Image.conv].
  *
  * Returns: 0 on success, -1 on error
  */

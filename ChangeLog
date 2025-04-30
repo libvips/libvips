@@ -1,4 +1,61 @@
-master 8.16
+master
+
+8.17.0
+
+- add `keep_duplicate_frames` option to GIF save [dloebl]
+- add Magic Kernel support [akimon658]
+- tiff: add threadsafe warning/error handlers (requires libtiff 4.5.0+) [lovell]
+- tiffload: add support for fail_on flag [lovell]
+- tiffload: add support for unlimited flag (requires libtiff 4.7.0+) [lovell]
+- much more reliable operation caching
+- colour: add support for auto-selecting the rendering intent [kleisauke]
+- add matrixmultiply
+- better handling of malformed size values [Simcha Kosman]
+- improve performance of vips_shrink() [kleisauke]
+- svgload: add support for custom CSS via stylesheet option [lovell]
+- heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
+- heifsave: improve alpha channel detection [lovell]
+- convi: ensure double sum precision for floats [lovell]
+- improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
+- improve vips_sink_screen() thumbnail rendering
+- heifload: improve detection of seek beyond EOF [lovell]
+- add "oneshot" option to jp2kload [mbklein]
+- share and reuse openslide connections
+- drop support for openslide 3.3
+- fix vips_quadratic()
+- restore vips_remosaic(), it was not being linked
+
+8.16.1
+
+- support multipage JXL
+- fix PFM byte order on big-endian machines [agoode]
+- morph: fix erode Highway path [kleisauke]
+- morph: fix C-paths with masks containing zero [kleisauke]
+- fix `--vips-info` CLI flag with GLib >= 2.80 [kleisauke]
+- make `subsample-mode=on` and `lossless=true` mutually exclusive [kleisauke]
+- fix SZI write with openslide4 [goran-hc]
+- heifsave: prevent use of AV1 intra block copy feature [lovell]
+- threadpool: improve cooperative downsizing [kleisauke]
+- fix alpha shift during colourspace conversions [frederikrosenberg]
+- heifsave: set image orientation using irot and imir transformations [lovell]
+- XYZ2Yxy: guard against divide by zero
+- fix MSVC compile error [na-trium-144]
+- exif: ensure enumerated entries can be converted to string values [lovell]
+- gifsave: add support for eval callback, ensure correct return code [lovell]
+- tiffsave: honor disc threshold during pyramid save [kleisauke]
+- fill_nearest: fix a leak
+- colour: use suggested rendering intent as fallback [kleisauke]
+- morph: fix Orc path with large masks [kleisauke]
+- invertlut: fix final value in some cases
+- matrixload: fix file format detect for some matrix types
+- radload: improve sanity check of colour-related headers [lovell]
+- heifsave: reject multiband images [lovell]
+- heifload: prevent possible int overflow for large images [kleisauke]
+- tiffload: add missing read loop [kleisauke]
+- prevent possible use-after-free when debugging via `--vips-leak` flag [lovell]
+- avoid possible overflow when multiplication result is cast up [lovell]
+
+10/10/24 8.16.0
 
 - allow small offsets for the PDF magic string [project0]
 - add support for OJPEG tiffs [DarthSim]
@@ -12,13 +69,11 @@ master 8.16
 - add configurable max coordinate and vips_max_coord_get()
 - improve kill handling
 - PFM save and load now uses scRGB (ie. linear 0-1) [NiHoel]
-- turn `vips_addalpha` into a VipsOperation [RiskoZoSlovenska]
+- turn vips_addalpha() into a VipsOperation [RiskoZoSlovenska]
 - add vips_rawsave_target(), vips_rawsave_buffer() [akash-akya]
 - vipsheader supports multiple "-f field" arguments [sergeevabc]
-- webpsave has @target_size parameter to set desired size
-  in bytes [john-parton]
-- webpsave has @passes parameter to set number of passes to achieve
-  desired target_size [john-parton]
+- add "target_size" to webpsave [john-parton]
+- add "passes" to webpsave [john-parton]
 - revise sRGB -> B_W coefficients [daniellovera]
 - add vips_sdf(), vips_clamp(), vips_maxpair(), vips_minpair()
 - more const for the C++ API [Julianiolo]

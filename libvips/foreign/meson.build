@@ -73,7 +73,6 @@ foreign_headers = files(
 # if it is not built as a dynamically loadable module.
 magick_module_sources = files(
     'magick.c',
-    'magick2vips.c',
     'magick6load.c',
     'magick7load.c',
     'vips2magick.c',
@@ -117,6 +116,7 @@ endif
 
 openslide_module_sources = files(
     'openslideload.c',
+    'openslideconnection.c',
 )
 
 if not openslide_module

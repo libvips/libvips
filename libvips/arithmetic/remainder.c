@@ -113,7 +113,7 @@ vips_remainder_build(VipsObject *object)
 			double a = p1[x]; \
 			double b = p2[x]; \
 \
-			q[x] = b ? a - b * VIPS_FLOOR(a / b) : -1; \
+			q[x] = b ? a - b * floor(a / b) : -1; \
 		} \
 	}
 
@@ -204,15 +204,15 @@ vips_remainder_init(VipsRemainder *remainder)
 }
 
 /**
- * vips_remainder:
- * @left: left-hand input #VipsImage
- * @right: right-hand input #VipsImage
- * @out: (out): output #VipsImage
+ * vips_remainder: (method)
+ * @left: left-hand input [class@Image]
+ * @right: right-hand input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates @left % @right (remainder after integer division)
  * and writes the result to @out. The images may have any
- * non-complex format. For float formats, vips_remainder() calculates @in1 -
+ * non-complex format. For float formats, [method@Image.remainder] calculates @in1 -
  * @in2 * floor (@in1 / @in2).
  *
  * If the images differ in size, the smaller image is enlarged to match the
@@ -225,10 +225,11 @@ vips_remainder_init(VipsRemainder *remainder)
  *
  * The two input images are cast up to the smallest common format (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>), and that format is the
+ * [arithmetic](libvips-arithmetic.html)), and that format is the
  * result type.
  *
- * See also: vips_remainder_const(), vips_divide(), vips_round().
+ * ::: seealso
+ *     [method@Image.remainder_const], [method@Image.divide], [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -396,7 +397,7 @@ vips_remainder_constv(VipsImage *in, VipsImage **out,
  * array of constants)
  * and writes the result to @out.
  * The image may have any
- * non-complex format. For float formats, vips_remainder_const() calculates
+ * non-complex format. For float formats, [method@Image.remainder_const] calculates
  * @in - @c * floor (@in / @c).
  *
  * If the array of constants has just one element, that constant is used for
@@ -406,7 +407,8 @@ vips_remainder_constv(VipsImage *in, VipsImage **out,
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
- * See also: vips_remainder(), vips_divide(), vips_round().
+ * ::: seealso
+ *     [method@Image.remainder], [method@Image.divide], [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -435,7 +437,7 @@ vips_remainder_const(VipsImage *in, VipsImage **out,
  * constant)
  * and writes the result to @out.
  * The image may have any
- * non-complex format. For float formats, vips_remainder_const() calculates
+ * non-complex format. For float formats, [method@Image.remainder_const] calculates
  * @in - @c * floor (@in / @c).
  *
  * If the array of constants has just one element, that constant is used for
@@ -445,7 +447,8 @@ vips_remainder_const(VipsImage *in, VipsImage **out,
  * element and the image only has a single band, the result is a many-band
  * image where each band corresponds to one array element.
  *
- * See also: vips_remainder(), vips_divide(), vips_round().
+ * ::: seealso
+ *     [method@Image.remainder], [method@Image.divide], [method@Image.round].
  *
  * Returns: 0 on success, -1 on error
  */

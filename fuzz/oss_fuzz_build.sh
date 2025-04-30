@@ -43,7 +43,7 @@ popd
 # lcms
 pushd $SRC/lcms
 meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Djpeg=disabled -Dtiff=disabled
+  -Dtests=disabled -Djpeg=disabled -Dtiff=disabled
 meson install -C build --tag devel
 popd
 
@@ -103,7 +103,7 @@ popd
 # libspng
 pushd $SRC/libspng
 meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Dstatic_zlib=true
+  -Dstatic_zlib=true -Dbuild_examples=false
 meson install -C build --tag devel
 popd
 
@@ -148,7 +148,8 @@ popd
 
 # cgif
 pushd $SRC/cgif
-meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized
+meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
+  -Dexamples=false -Dtests=false
 meson install -C build --tag devel
 popd
 
@@ -187,11 +188,14 @@ cmake \
 cmake --build . --target install
 popd
 
+# FIXME: Workaround for https://github.com/mesonbuild/meson/issues/14533
+export LDFLAGS+=" $CFLAGS"
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debugoptimized \
-  -Dbackend_max_links=4 -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
+  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 meson install -C build --tag devel

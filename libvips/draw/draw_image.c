@@ -307,19 +307,21 @@ vips_draw_image_init(VipsDrawImage *draw_image)
  * @y: draw @sub here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Draw @sub on top of @image at position @x, @y.
  *
- * * @mode: how to combine pixels
- *
- * Draw @sub on top of @image at position @x, @y. The two images must have the
+ * The two images must have the
  * same Coding. If @sub has 1 band, the bands will be duplicated to match the
  * number of bands in @image. @sub will be converted to @image's format, see
- * vips_cast().
+ * [method@Image.cast].
  *
  * Use @mode to set how pixels are combined. If you use
- * #VIPS_COMBINE_MODE_ADD, both images muct be uncoded.
+ * [enum@Vips.CombineMode.ADD], both images must be uncoded.
  *
- * See also: vips_draw_mask(), vips_insert().
+ * ::: tip "Optional arguments"
+ *     * @mode: [enum@CombineMode], how to combine pixels
+ *
+ * ::: seealso
+ *     [method@Image.draw_mask], [method@Image.insert].
  *
  * Returns: 0 on success, or -1 on error.
  */

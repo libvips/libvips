@@ -287,10 +287,14 @@ vips_g_input_stream_init(VipsGInputStream *gstream)
  * vips_g_input_stream_new_from_source:
  * @source: vips source to wrap
  *
- * Create a new #GInputStream wrapping a #VipsSource. This is useful for
- * loaders like SVG and PDF which support GInput methods.
+ * Create a new [class@Gio.InputStream] wrapping a [class@Source]. This is
+ * useful for loaders like SVG and PDF which support [class@Gio.InputStream]
+ * methods.
  *
- * Returns: a new #GInputStream
+ * ::: seealso
+ *     [func@Source.g_input_stream_new]
+ *
+ * Returns: (transfer full): a new [class@Gio.InputStream]
  */
 GInputStream *
 vips_g_input_stream_new_from_source(VipsSource *source)

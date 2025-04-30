@@ -117,9 +117,9 @@ vips_measure_build(VipsObject *object)
 	/* left/top/width/height default to the size of the image.
 	 */
 	if (!vips_object_argument_isset(object, "width"))
-		measure->width = vips_image_get_width(ready);
+		measure->width = vips_image_get_width(ready); // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "height"))
-		measure->height = vips_image_get_height(ready);
+		measure->height = vips_image_get_height(ready); // FIXME: Invalidates operation cache
 
 	/* How large are the patches we are to measure?
 	 */
@@ -159,8 +159,8 @@ vips_measure_build(VipsObject *object)
 				 * averages near zero (can get these if use
 				 * measure on IM_TYPE_LAB images).
 				 */
-				if (dev * 5 > VIPS_FABS(avg) &&
-					VIPS_FABS(avg) > 3)
+				if (dev * 5 > fabs(avg) &&
+					fabs(avg) > 3)
 					g_warning(_("%s: "
 								"patch %d x %d, "
 								"band %d: "
@@ -259,13 +259,6 @@ vips_measure_init(VipsMeasure *measure)
  * @v: patches down chart
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @left: area of image containing chart
- * * @top: area of image containing chart
- * * @width: area of image containing chart
- * * @height: area of image containing chart
- *
  * Analyse a grid of colour patches, producing an array of patch averages.
  * The mask has a row for each measured patch and a column for each image
  * band. The operations issues a warning if any patch has a deviation more
@@ -276,7 +269,14 @@ vips_measure_init(VipsMeasure *measure)
  * @width, @height arguments to indicate the
  * position of the chart.
  *
- * See also: vips_avg(), vips_deviate().
+ * ::: tip "Optional arguments"
+ *     * @left: area of image containing chart
+ *     * @top: area of image containing chart
+ *     * @width: area of image containing chart
+ *     * @height: area of image containing chart
+ *
+ * ::: seealso
+ *     [method@Image.avg], [method@Image.deviate].
  *
  * Returns: 0 on success, -1 on error
  */

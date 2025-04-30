@@ -109,7 +109,7 @@ typedef struct {
 	int naxis;
 	long long int naxes[MAX_DIMENSIONS];
 
-	GMutex *lock; /* Lock fits_*() calls with this */
+	GMutex lock; /* Lock fits_*() calls with this */
 
 	/* One line of pels ready for scatter/gather.
 	 */
@@ -139,7 +139,8 @@ static void
 vips_fits_close(VipsFits *fits)
 {
 	VIPS_FREE(fits->filename);
-	VIPS_FREEF(vips_g_mutex_free, fits->lock);
+	if (fits->line)
+		g_mutex_clear(&fits->lock);
 	VIPS_FREEF(vips_slist_free_all, fits->dedupe);
 
 	if (fits->fptr) {
@@ -174,7 +175,7 @@ vips_fits_new_read(const char *filename, VipsImage *out)
 	fits->filename = vips_strdup(NULL, filename);
 	fits->image = out;
 	fits->fptr = NULL;
-	fits->lock = NULL;
+	g_mutex_init(&fits->lock);
 	fits->line = NULL;
 	g_signal_connect(out, "close",
 		G_CALLBACK(vips_fits_close_cb), fits);
@@ -185,8 +186,6 @@ vips_fits_new_read(const char *filename, VipsImage *out)
 		vips_fits_error(status);
 		return NULL;
 	}
-
-	fits->lock = vips_g_mutex_new();
 
 	return fits;
 }
@@ -465,7 +464,7 @@ vips_fits_generate(VipsRegion *out,
 				   "generating left = %d, top = %d, width = %d, height = %d\n",
 		r->left, r->top, r->width, r->height);
 
-	vips__worker_lock(fits->lock);
+	vips__worker_lock(&fits->lock);
 
 	for (int w = 0; w < out->im->Bands; w++) {
 		for (int y = r->top; y < VIPS_RECT_BOTTOM(r); y++) {
@@ -492,7 +491,7 @@ vips_fits_generate(VipsRegion *out,
 			 */
 			if (vips_fits_read_subset(fits,
 					fpixel, lpixel, inc, fits->line)) {
-				g_mutex_unlock(fits->lock);
+				g_mutex_unlock(&fits->lock);
 				return -1;
 			}
 
@@ -502,7 +501,7 @@ vips_fits_generate(VipsRegion *out,
 		}
 	}
 
-	g_mutex_unlock(fits->lock);
+	g_mutex_unlock(&fits->lock);
 
 	return 0;
 }
@@ -561,7 +560,7 @@ vips_fits_new_write(VipsImage *in, const char *filename)
 	fits->filename = vips_strdup(VIPS_OBJECT(in), filename);
 	fits->image = in;
 	fits->fptr = NULL;
-	fits->lock = NULL;
+	g_mutex_init(&fits->lock);
 	fits->line = NULL;
 	g_signal_connect(in, "close",
 		G_CALLBACK(vips_fits_close_cb), fits);
@@ -575,7 +574,7 @@ vips_fits_new_write(VipsImage *in, const char *filename)
 			  VIPS_IMAGE_SIZEOF_ELEMENT(in) * in->Xsize, VipsPel)))
 		return NULL;
 
-	/* fits_create_file() will fail if there's a file of thet name, unless
+	/* fits_create_file() will fail if there's a file of that name, unless
 	 * we put a "!" in front of the filename. This breaks conventions with
 	 * the rest of vips, so just unlink explicitly.
 	 */
@@ -587,8 +586,6 @@ vips_fits_new_write(VipsImage *in, const char *filename)
 		vips_fits_error(status);
 		return NULL;
 	}
-
-	fits->lock = vips_g_mutex_new();
 
 	return fits;
 }

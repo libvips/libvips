@@ -46,7 +46,6 @@
 #include <ctype.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 #include <vips/transform.h>
@@ -5708,7 +5707,7 @@ im__insert_base(const char *domain,
  *
  * The two input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
  * See also: im_insert(), im_lrjoin().
  *

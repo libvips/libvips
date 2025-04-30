@@ -1,4 +1,4 @@
-/* vips_sink_screen() as an operation.
+/* [method@Image.sink_screen] as an operation.
  *
  * 13/1/12
  * 	- from tilecache.c
@@ -47,12 +47,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
-
-/* For the vips_cache() header decl.
- */
-#if ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#endif
 
 #include "pconversion.h"
 
@@ -135,7 +129,7 @@ vips_cache_class_init(VipsCacheClass *class)
 		_("Maximum number of tiles to cache"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsCache, max_tiles),
-		-1, 1000000, 1000);
+		-1, 1000000, 250);
 }
 
 static void
@@ -149,25 +143,19 @@ vips_cache_init(VipsCache *cache)
 }
 
 /**
- * vips_cache: (method)
+ * vips_cache:
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @tile_width: width of tiles in cache
- * * @tile_height: height of tiles in cache
- * * @max_tiles: maximum number of tiles to cache
- *
- * This operation behaves rather like vips_copy() between images
+ * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it keeps a cache of computed pixels.
  * This cache is made of up to @max_tiles tiles (a value of -1
  * means any number of tiles), and each tile is of size @tile_width
  * by @tile_height pixels. By default it will cache 250 128 x 128 pixel tiles,
  * enough for two 1920 x 1080 images.
  *
- * This operation is a thin wrapper over vips_sink_screen(), see the
+ * This operation is a thin wrapper over [method@Image.sink_screen], see the
  * documentation for that operation for details.
  *
  * It uses a set of background threads to calculate pixels and the various
@@ -176,7 +164,13 @@ vips_cache_init(VipsCache *cache)
  * of those pixels have been calculated. Pixels are calculated with a set of
  * threads.
  *
- * See also: vips_tilecache().
+ * ::: tip "Optional arguments"
+ *     * @tile_width: width of tiles in cache
+ *     * @tile_height: height of tiles in cache
+ *     * @max_tiles: maximum number of tiles to cache
+ *
+ * ::: seealso
+ *     [method@Image.tilecache].
  *
  * Returns: 0 on success, -1 on error.
  */

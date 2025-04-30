@@ -92,6 +92,11 @@
 #include <pango/pangocairo.h>
 
 #ifdef HAVE_FONTCONFIG
+/* ftconfig.h also appears to define HAVE_UNISTD_H.
+ */
+#ifdef HAVE_UNISTD_H
+#undef HAVE_UNISTD_H
+#endif
 #include <pango/pangofc-fontmap.h>
 #include <fontconfig/fontconfig.h>
 #endif
@@ -131,7 +136,7 @@ static PangoFontMap *vips_text_fontmap = NULL;
 
 /* ... single-thread vips_text_fontfiles with this.
  */
-static GMutex *vips_text_lock = NULL;
+static GMutex vips_text_lock;
 
 /* All the fontfiles we've loaded. fontconfig lets you add a fontfile
  * repeatedly, and we obviously don't want that.
@@ -314,7 +319,7 @@ vips_text_autofit(VipsText *text)
 		previous_difference = difference;
 		previous_dpi = text->dpi;
 
-		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
+		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2; // FIXME: Invalidates operation cache
 
 		/* This can happen with fixed-size fonts.
 		 */
@@ -343,7 +348,7 @@ vips_text_autofit(VipsText *text)
 	 */
 	while (upper_dpi - lower_dpi > 1 &&
 		difference != 0) {
-		text->dpi = (upper_dpi + lower_dpi) / 2;
+		text->dpi = (upper_dpi + lower_dpi) / 2; // FIXME: Invalidates operation cache
 		if (vips_text_get_extents(text, &extents))
 			return -1;
 		target.left = extents.left;
@@ -361,9 +366,9 @@ vips_text_autofit(VipsText *text)
 	 * must take lower.
 	 */
 	if (difference == 0)
-		text->dpi = upper_dpi;
+		text->dpi = upper_dpi; // FIXME: Invalidates operation cache
 	else
-		text->dpi = lower_dpi;
+		text->dpi = lower_dpi; // FIXME: Invalidates operation cache
 	g_object_set(text, "autofit_dpi", text->dpi, NULL);
 
 #ifdef DEBUG
@@ -376,8 +381,7 @@ vips_text_autofit(VipsText *text)
 static void *
 vips_text_init_once(void *client)
 {
-	vips_text_lock = vips_g_mutex_new();
-	vips_text_fontmap = pango_cairo_font_map_new();
+	vips_text_fontmap = pango_cairo_font_map_new();;
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
 	return NULL;
@@ -416,7 +420,7 @@ vips_text_build(VipsObject *object)
 	 * between all vips_text instances, we must lock all the way to the
 	 * end of text rendering.
 	 */
-	g_mutex_lock(vips_text_lock);
+	g_mutex_lock(&vips_text_lock);
 
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
@@ -441,8 +445,7 @@ vips_text_build(VipsObject *object)
 	}
 #else  /*!HAVE_FONTCONFIG*/
 	if (text->fontfile)
-		g_warning("%s",
-			_("ignoring fontfile (no fontconfig support)"));
+		g_warning("ignoring fontfile (no fontconfig support)");
 #endif /*HAVE_FONTCONFIG*/
 
 	/* If our caller set height and not dpi, we adjust dpi until
@@ -451,7 +454,7 @@ vips_text_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "height") &&
 		!vips_object_argument_isset(object, "dpi")) {
 		if (vips_text_autofit(text)) {
-			g_mutex_unlock(vips_text_lock);
+			g_mutex_unlock(&vips_text_lock);
 			return -1;
 		}
 	}
@@ -459,13 +462,13 @@ vips_text_build(VipsObject *object)
 	/* Layout. Can fail for "", for example.
 	 */
 	if (vips_text_get_extents(text, &extents)) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		return -1;
 	}
 
 	if (extents.width == 0 ||
 		extents.height == 0) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		vips_error(class->nickname, "%s", _("no text to render"));
 		return -1;
 	}
@@ -480,7 +483,7 @@ vips_text_build(VipsObject *object)
 
 	if (vips_image_pipelinev(t[0], VIPS_DEMAND_STYLE_ANY, NULL) ||
 		vips_image_write_prepare(t[0])) {
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		return -1;
 	}
 	in = t[0];
@@ -494,7 +497,7 @@ vips_text_build(VipsObject *object)
 	status = cairo_surface_status(surface);
 	if (status) {
 		cairo_surface_destroy(surface);
-		g_mutex_unlock(vips_text_lock);
+		g_mutex_unlock(&vips_text_lock);
 		vips_error(class->nickname,
 			"%s", cairo_status_to_string(status));
 		return -1;
@@ -509,7 +512,7 @@ vips_text_build(VipsObject *object)
 
 	cairo_destroy(cr);
 
-	g_mutex_unlock(vips_text_lock);
+	g_mutex_unlock(&vips_text_lock);
 
 	if (text->rgba) {
 		/* Cairo makes pre-multipled BRGA -- we must byteswap and
@@ -653,21 +656,9 @@ vips_text_init(VipsText *text)
  * @text: utf-8 text string to render
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Draw the string @text to an image.
  *
- * * @font: %gchararray, font to render with
- * * @fontfile: %gchararray, load this font file
- * * @width: %gint, image should be no wider than this many pixels
- * * @height: %gint, image should be no higher than this many pixels
- * * @align: #VipsAlign, set justification alignment
- * * @justify: %gboolean, justify lines
- * * @dpi: %gint, render at this resolution
- * * @autofit_dpi: %gint, read out auto-fitted DPI
- * * @rgba: %gboolean, enable RGBA output
- * * @spacing: %gint, space lines by this in points
- * * @wrap: #VipsTextWrap, wrap lines on characters or words
- *
- * Draw the string @text to an image. @out is normally a one-band 8-bit
+ * @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
@@ -697,7 +688,7 @@ vips_text_init(VipsText *text)
  *
  * @height is the maximum number of pixels high the generated text can be. This
  * only takes effect when @dpi is not set, and @width is set, making a box.
- * In this case, vips_text() will search for a @dpi and set of line breaks
+ * In this case, [ctor@Image.text] will search for a @dpi and set of line breaks
  * which will just fit the text into @width and @height.
  *
  * You can use @autofit_dpi to read out the DPI selected by auto fit.
@@ -710,9 +701,23 @@ vips_text_init(VipsText *text)
  *
  * You can read the coordinate of the top edge of the character from `Xoffset`
  * / `Yoffset`. This can be helpful if you need to line up the output of
- * several vips_text().
+ * several [ctor@Image.text].
  *
- * See also: vips_bandjoin(), vips_composite().
+ * ::: tip "Optional arguments"
+ *     * @font: %gchararray, font to render with
+ *     * @fontfile: %gchararray, load this font file
+ *     * @width: %gint, image should be no wider than this many pixels
+ *     * @height: %gint, image should be no higher than this many pixels
+ *     * @align: #VipsAlign, set justification alignment
+ *     * @justify: %gboolean, justify lines
+ *     * @dpi: %gint, render at this resolution
+ *     * @autofit_dpi: %gint, read out auto-fitted DPI
+ *     * @rgba: %gboolean, enable RGBA output
+ *     * @spacing: %gint, space lines by this in points
+ *     * @wrap: #VipsTextWrap, wrap lines on characters or words
+ *
+ * ::: seealso
+ *     [func@Image.bandjoin], [func@Image.composite].
  *
  * Returns: 0 on success, -1 on error
  */

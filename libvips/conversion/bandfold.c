@@ -96,7 +96,7 @@ vips_bandfold_gen(VipsRegion *out_region,
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy(q, p, psize * r->width);
+		memcpy(q, p, (size_t) psize * r->width);
 	}
 
 	return 0;
@@ -116,7 +116,8 @@ vips_bandfold_build(VipsObject *object)
 		return -1;
 
 	if (bandfold->factor == 0)
-		bandfold->factor = bandfold->in->Xsize;
+		bandfold->factor = bandfold->in->Xsize; // FIXME: Invalidates operation cache
+
 	if (bandfold->in->Xsize % bandfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image width"));
@@ -184,16 +185,16 @@ vips_bandfold_init(VipsBandfold *bandfold)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @factor: fold by this factor
- *
  * Fold up an image horizontally: width is collapsed into bands.
  * Use @factor to set how much to fold by: @factor 3, for example, will make
  * the output image three times narrower than the input, and with three times
  * as many bands. By default the whole of the input width is folded up.
  *
- * See also: vips_csvload(), vips_bandunfold().
+ * ::: tip "Optional arguments"
+ *     * @factor: %gint, fold by this factor
+ *
+ * ::: seealso
+ *     [ctor@Image.csvload], [method@Image.bandunfold].
  *
  * Returns: 0 on success, -1 on error.
  */

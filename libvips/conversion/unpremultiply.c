@@ -138,7 +138,7 @@ G_DEFINE_TYPE(VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION);
 \
 		for (x = 0; x < width; x++) { \
 			IN alpha = p[alpha_band]; \
-			OUT factor = VIPS_ABS(alpha) < 0.01 ? 0 : max_alpha / alpha; \
+			OUT factor = fabs(alpha) < 0.01 ? 0 : max_alpha / alpha; \
 \
 			for (i = 0; i < alpha_band; i++) \
 				q[i] = factor * p[i]; \
@@ -158,7 +158,7 @@ G_DEFINE_TYPE(VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION);
 \
 		for (x = 0; x < width; x++) { \
 			IN alpha = p[3]; \
-			OUT factor = VIPS_ABS(alpha) < 0.01 ? 0 : max_alpha / alpha; \
+			OUT factor = fabs(alpha) < 0.01 ? 0 : max_alpha / alpha; \
 \
 			q[0] = factor * p[0]; \
 			q[1] = factor * p[1]; \
@@ -281,12 +281,12 @@ vips_unpremultiply_build(VipsObject *object)
 	 * interpretation.
 	 */
 	if (!vips_object_argument_isset(object, "max_alpha"))
-		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type);
+		unpremultiply->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
 	/* Is alpha-band unset? Default to the final band for this image.
 	 */
 	if (!vips_object_argument_isset(object, "alpha_band"))
-		unpremultiply->alpha_band = in->Bands - 1;
+		unpremultiply->alpha_band = in->Bands - 1; // FIXME: Invalidates operation cache
 
 	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
@@ -352,39 +352,39 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @max_alpha: %gdouble, maximum value for alpha
- * * @alpha_band: %gint, band containing alpha data
- *
  * Unpremultiplies any alpha channel.
+ *
  * Band @alpha_band (by default the final band) contains the alpha and all
  * other bands are transformed as:
  *
- * |[
- *   alpha = (int) clip(0, in[in.bands - 1], @max_alpha);
- *   norm = (double) alpha / @max_alpha;
+ * ```
+ *   alpha = (int) clip(0, in[in.bands - 1], max_alpha);
+ *   norm = (double) alpha / max_alpha
  *   if (alpha == 0)
- *   	out = [0, ..., 0, alpha];
+ *   	out = [0, ..., 0, alpha]
  *   else
- *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha];
- * ]|
+ *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha]
+ * ```
  *
  * So for an N-band image, the first N - 1 bands are divided by the clipped
  * and normalised final band, the final band is clipped.
  * If there is only a single band, the image is passed through unaltered.
  *
- * The result is
- * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which
- * case the output is double as well.
+ * The result is [enum@Vips.BandFormat.FLOAT] unless the input format is
+ * [enum@Vips.BandFormat.DOUBLE], in which case the output is double as well.
  *
  * @max_alpha has the default value 255, or 65535 for images tagged as
- * #VIPS_INTERPRETATION_RGB16 or
- * #VIPS_INTERPRETATION_GREY16.
+ * [enum@Vips.Interpretation.RGB16] or [enum@Vips.Interpretation.GREY16], and
+ * 1.0 for images tagged as  [enum@Vips.Interpretation.scRGB.
  *
  * Non-complex images only.
  *
- * See also: vips_premultiply(), vips_flatten().
+ * ::: tip "Optional arguments"
+ *     * @max_alpha: %gdouble, maximum value for alpha
+ *     * @alpha_band: %gint, band containing alpha data
+ *
+ * ::: seealso
+ *     [method@Image.premultiply], [method@Image.flatten].
  *
  * Returns: 0 on success, -1 on error
  */

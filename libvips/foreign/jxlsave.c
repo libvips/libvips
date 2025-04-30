@@ -61,8 +61,6 @@
  * - need to emit the various progress signals etc. for a sink, eg. preeval
  *   eval, etc.
  *
- *
- *
  * - libjxl is currently missing error messages (I think)
  *
  * - add support encoding images with > 4 bands.
@@ -95,6 +93,11 @@ typedef struct _VipsForeignSaveJxl {
 	/* Set on API fail.
 	 */
 	gboolean error;
+
+	/* JXL multipage and animated images are the same, but multipage has
+	 * all the frame delays set to -1 (duration 0xffffffff).
+	 */
+	gboolean is_animated;
 
 	/* Animated jxl options.
 	 */
@@ -468,9 +471,9 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
 	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
-    VIPS_FREEF(vips_g_mutex_free, jxl->tile_lock);
-
-    VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
+  VIPS_FREEF(vips_g_mutex_free, jxl->tile_lock);
+  
+  VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
@@ -679,6 +682,24 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 }
 
 static int
+vips_foreign_save_jxl_get_delay(VipsForeignSaveJxl *jxl, int page_number)
+{
+	int delay;
+
+	if (jxl->delay &&
+		page_number < jxl->delay_length)
+		delay = jxl->delay[page_number];
+	else
+		// the old gif delay field was in centiseconds, so convert to ms
+		delay = jxl->gif_delay * 10;
+
+	/* Force frames with a small or no duration to 100ms for consistency
+	 * with web browsers and other transcoding tools.
+	 */
+	return delay <= 10 ? 100 : delay;
+}
+
+static int
 vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 {
 	JxlEncoderFrameSettings *frame_settings;
@@ -695,10 +716,11 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 		JxlFrameHeader header;
 		memset(&header, 0, sizeof(JxlFrameHeader));
 
-		if (jxl->delay && jxl->page_number < jxl->delay_length)
-			header.duration = jxl->delay[jxl->page_number];
+		if (!jxl->is_animated)
+			header.duration = 0xffffffff;
 		else
-			header.duration = jxl->gif_delay * 10;
+			header.duration =
+				vips_foreign_save_jxl_get_delay(jxl, jxl->page_number);
 
 		JxlEncoderSetFrameHeader(frame_settings, &header);
 	}
@@ -861,7 +883,6 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	VipsImage *in;
 	VipsBandFormat format;
-	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->build(object))
 		return -1;
@@ -949,16 +970,12 @@ vips_foreign_save_jxl_build(VipsObject *object)
 				&jxl->delay, &jxl->delay_length))
 			return -1;
 
-		/* Force frames with a small or no duration to 100ms
-		 * to be consistent with web browsers and other
-		 * transcoding tools.
+		/* If there's delay metadata, this is an animated image (as opposed to
+		 * a multipage one).
 		 */
-		if (jxl->gif_delay <= 1)
-			jxl->gif_delay = 10;
-
-		for (i = 0; i < jxl->delay_length; i++)
-			if (jxl->delay[i] <= 10)
-				jxl->delay[i] = 100;
+		if (vips_image_get_typeof(save->ready, "delay") ||
+			vips_image_get_typeof(save->ready, "gif-delay"))
+			jxl->is_animated = TRUE;
 	}
 
 #ifdef DEBUG

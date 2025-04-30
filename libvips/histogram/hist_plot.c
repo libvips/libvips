@@ -87,7 +87,7 @@ G_DEFINE_TYPE(VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION);
 \
 		for (x = le; x < ri; x++) { \
 			for (z = 0; z < nb; z++) \
-				q[z] = p1[z] < ((TYPE) x) ? 0 : 255; \
+				q[z] = p1[z] < x ? 0 : 255; \
 \
 			q += nb; \
 		} \
@@ -153,7 +153,7 @@ vips_hist_plot_vert_gen(VipsRegion *out_region,
 \
 		for (y = to; y < bo; y++) { \
 			for (z = 0; z < nb; z++) \
-				q[z] = p1[z] < ((TYPE) (ht - y)) ? 0 : 255; \
+				q[z] = p1[z] < ht - y ? 0 : 255; \
 \
 			q += lsk; \
 		} \
@@ -280,7 +280,7 @@ vips_hist_plot_build(VipsObject *object)
 	if (in->BandFmt == VIPS_FORMAT_UCHAR)
 		tsize = 256;
 	else
-		tsize = VIPS_CEIL(max);
+		tsize = ceil(max);
 
 	/* Make sure we don't make a zero height image.
 	 */
@@ -356,14 +356,14 @@ vips_hist_plot_init(VipsHistPlot *hist_plot)
  * Plot a 1 by any or any by 1 image file as a max by any or
  * any by max image using these rules:
  *
- * <emphasis>unsigned char</emphasis> max is always 256
+ * *unsigned char* max is always 256
  *
- * <emphasis>other unsigned integer types</emphasis> output 0 - maximum
+ * *other unsigned integer types* output 0 - maximum
  * value of @in.
  *
- * <emphasis>signed int types</emphasis> min moved to 0, max moved to max + min.
+ * *signed int types* min moved to 0, max moved to max + min.
  *
- * <emphasis>float types</emphasis> min moved to 0, max moved to any
+ * *float types* min moved to 0, max moved to any
  * (square output)
  *
  * Returns: 0 on success, -1 on error

@@ -294,7 +294,8 @@ vips_foreign_save_rad_buffer_init(VipsForeignSaveRadBuffer *buffer)
  *
  * Sections of this reader from Greg Ward and Radiance with kind permission.
  *
- * See also: vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -318,13 +319,14 @@ vips_radsave(VipsImage *in, const char *filename, ...)
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_radsave(), but save to a memory buffer.
+ * As [method@Image.radsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_radsave(), vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.radsave], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -362,9 +364,10 @@ vips_radsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_radsave(), but save to a target.
+ * As [method@Image.radsave], but save to a target.
  *
- * See also: vips_radsave().
+ * ::: seealso
+ *     [method@Image.radsave].
  *
  * Returns: 0 on success, -1 on error.
  */

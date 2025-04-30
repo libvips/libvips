@@ -120,7 +120,7 @@ vips_deviate_build(VipsObject *object)
 	s2 = deviate->sum2;
 
 	g_object_set(object,
-		"out", sqrt(VIPS_FABS(s2 - (s * s / vals)) / (vals - 1)),
+		"out", sqrt(fabs(s2 - (s * s / vals)) / (vals - 1)),
 		NULL);
 
 	return 0;
@@ -248,17 +248,18 @@ vips_deviate_init(VipsDeviate *deviate)
 
 /**
  * vips_deviate: (method)
- * @in: input #VipsImage
+ * @in: input [class@Image]
  * @out: (out): output pixel standard deviation
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the standard deviation of all pixels in @in. It
- * operates on all bands of the input image: use vips_stats() if you need
+ * operates on all bands of the input image: use [method@Image.stats] if you need
  * to calculate an average for each band.
  *
  * Non-complex images only.
  *
- * See also: vips_avg(), vips_stats()..
+ * ::: seealso
+ *     [method@Image.avg], [method@Image.stats]..
  *
  * Returns: 0 on success, -1 on error
  */

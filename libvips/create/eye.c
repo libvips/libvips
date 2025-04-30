@@ -82,10 +82,10 @@ vips_eye_point(VipsPoint *point, int x, int y)
 	int max_x = VIPS_MAX(point->width - 1, 1);
 	int max_y = VIPS_MAX(point->height - 1, 1);
 
-	double c = eye->factor * VIPS_PI / (2 * max_x);
-	double h = max_y * max_y;
+	float c = eye->factor * VIPS_PI / (2 * max_x);
+	float h = max_y * max_y;
 
-	return y * y * cos(c * x * x) / h;
+	return y * y * cosf(c * x * x) / h;
 }
 
 static void
@@ -125,18 +125,20 @@ vips_eye_init(VipsEye *eye)
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @factor: %gdouble, maximum spatial frequency
- * * @uchar: %gboolean, output a uchar image
- *
  * Create a test pattern with increasing spatial frequency in X and
- * amplitude in Y. @factor should be between 0 and 1 and determines the
+ * amplitude in Y.
+ *
+ * @factor should be between 0 and 1 and determines the
  * maximum spatial frequency.
  *
  * Set @uchar to output a uchar image.
  *
- * See also: vips_zone().
+ * ::: tip "Optional arguments"
+ *     * @factor: %gdouble, maximum spatial frequency
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.zone].
  *
  * Returns: 0 on success, -1 on error
  */

@@ -557,16 +557,12 @@ vips_ifthenelse_init(VipsIfthenelse *ifthenelse)
 }
 
 /**
- * vips_ifthenelse:
- * @cond: condition #VipsImage
- * @in1: then #VipsImage
- * @in2: else #VipsImage
- * @out: (out): output #VipsImage
+ * vips_ifthenelse: (method)
+ * @cond: condition [class@Image]
+ * @in1: then [class@Image]
+ * @in2: else [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @blend: blend smoothly between @in1 and @in2
  *
  * This operation scans the condition image @cond
  * and uses it to select pixels from either the then image @in1 or the else
@@ -585,9 +581,15 @@ vips_ifthenelse_init(VipsIfthenelse *ifthenelse)
  * If @blend is %TRUE, then values in @out are smoothly blended between @in1
  * and @in2 using the formula:
  *
- *   @out = (@cond / 255) * @in1 + (1 - @cond / 255) * @in2
+ * ```
+ *     out = (cond / 255) * in1 + (1 - cond / 255) * in2
+ * ```
  *
- * See also: vips_equal().
+ * ::: tip "Optional arguments"
+ *     * @blend: %gboolean, blend smoothly between @in1 and @in2
+ *
+ * ::: seealso
+ *     [method@Image.equal].
  *
  * Returns: 0 on success, -1 on error
  */

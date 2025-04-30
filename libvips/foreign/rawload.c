@@ -201,23 +201,23 @@ vips_foreign_load_raw_init(VipsForeignLoadRaw *raw)
  * @bands: number of image bands
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @offset: %guint64, offset in bytes from start of file
- * * @format: #VipsBandFormat, set image format
- * * @interpretation: #VipsInterpretation, set image interpretation
- *
  * This operation mmaps the file, setting up @out so that access to that
  * image will read from the file.
  *
  * By default, it assumes uchar pixels. Use @format to select something else.
  *
- * The image will be tagged as #VIPS_INTERPRETATION_MULTIBAND. Use
+ * The image will be tagged as [enum@Vips.Interpretation.MULTIBAND]. Use
  * @interpretation to select something else.
  *
- * Use vips_byteswap() to reverse the byte ordering if necessary.
+ * Use [method@Image.byteswap] to reverse the byte ordering if necessary.
  *
- * See also: vips_image_new_from_file(), vips_copy(), vips_byteswap().
+ * ::: tip "Optional arguments"
+ *     * @offset: %guint64, offset in bytes from start of file
+ *     * @format: [enum@BandFormat], set image format
+ *     * @interpretation: [enum@Interpretation], set image interpretation
+ *
+ * ::: seealso
+ *     vips_image_new_from_file(), [method@Image.copy], [method@Image.byteswap].
  *
  * Returns: 0 on success, -1 on error.
  */

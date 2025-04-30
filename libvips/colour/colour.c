@@ -46,113 +46,6 @@
 
 #include "pcolour.h"
 
-/**
- * SECTION: colour
- * @short_description: colour operators
- * @stability: Stable
- * @see_also: <link linkend="libvips-arithmetic">arithmetic</link>
- * @include: vips/vips.h
- *
- * These operators let you transform coordinates and images between colour
- * spaces, calculate colour differences, and move
- * to and from device spaces.
- *
- * All operations process colour from the first few bands and pass other bands
- * through unaltered. This means you can operate on images with alpha channels
- * safely. If you move to or from 16-bit RGB, any alpha channels are rescaled
- * for you.
- *
- * Radiance images have four 8-bits bands and store 8 bits of R, G and B and
- * another 8 bits of exponent, common to all channels. They are widely used in
- * the HDR imaging community.
- *
- * The colour functions can be divided into three main groups. First,
- * functions to transform images between the different colour spaces supported
- * by VIPS: #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_scRGB,
- * #VIPS_INTERPRETATION_B_W,
- * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,
- * #VIPS_INTERPRETATION_LAB,
- * #VIPS_INTERPRETATION_LCH, and
- * #VIPS_INTERPRETATION_CMC.
- *
- * There are also a set of minor colourspaces which are one of the above in a
- * slightly different format:
- * #VIPS_INTERPRETATION_LAB, #VIPS_INTERPRETATION_LABQ,
- * #VIPS_INTERPRETATION_LABS, #VIPS_INTERPRETATION_LCH,
- * #VIPS_INTERPRETATION_RGB16, and #VIPS_INTERPRETATION_GREY16.
- *
- * Use vips_colourspace() to move an image to a
- * target colourspace using the best sequence of colour transform operations.
- *
- * Secondly, there are a set of operations for
- * calculating colour difference metrics. Finally, VIPS wraps LittleCMS and
- * uses it to provide a set of operations for reading and writing images with
- * ICC profiles.
- *
- * This figure shows how the VIPS colour spaces interconvert:
- *
- * <para>
- *   <inlinegraphic fileref="interconvert.png" format="PNG" />
- * </para>
- *
- * The colour spaces supported by VIPS are:
- *
- * * #VIPS_INTERPRETATION_LAB -- CIELAB '76 colourspace with a D65 white. This
- *   uses three floats for each band, and bands have the obvious range.
- *
- *   There are two
- *   variants, #VIPS_INTERPRETATION_LABQ and #VIPS_INTERPRETATION_LABS, which
- *   use ints to store values. These are less precise, but can be quicker to
- *   store and process.
- *
- *   #VIPS_INTERPRETATION_LCH is the same, but with a*b* as polar coordinates.
- *   Hue is expressed in degrees.
- *
- * * #VIPS_INTERPRETATION_XYZ -- CIE XYZ. This uses three floats.
- *   See #VIPS_D75_X0 and friends for values for the ranges
- *   under various illuminants.
- *
- *   #VIPS_INTERPRETATION_YXY is the same, but with little x and y.
- *
- * * #VIPS_INTERPRETATION_scRGB -- a linear colourspace with the sRGB
- *   primaries. This is useful if you need linear light and don't care
- *   much what the primaries are.
- *
- *   Linearization is performed with the usual sRGB equations, see below.
- *
- * * #VIPS_INTERPRETATION_sRGB -- the standard sRGB colourspace, see:
- *   [wikipedia sRGB](http://en.wikipedia.org/wiki/SRGB).
- *
- *   This uses three 8-bit values for each of RGB.
- *
- *   #VIPS_INTERPRETATION_RGB16 is the same, but using three 16-bit values for
- *   RGB.
- *
- *   #VIPS_INTERPRETATION_HSV is sRGB, but in polar coordinates.
- *   #VIPS_INTERPRETATION_LCH is much better, only use HSV if you have to.
- *
- * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
- *   The grey value is
- *   calculated in linear #VIPS_INTERPRETATION_scRGB space with RGB ratios
- *   0.2126, 0.7152, 0.0722 as defined by CIE 1931 linear luminance.
- *
- *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16 bits.
- *
- * * #VIPS_INTERPRETATION_CMC -- a colour space based on the CMC(1:1)
- *   colour difference measurement. This is a highly uniform colour space,
- *   and much better than CIELAB for expressing small differences.
- *
- *   The CMC colourspace is described in "Uniform Colour Space Based on the
- *   CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
- *   Society of Dyers and Colourists, vol 102, 1986. Distances in this
- *   colourspace approximate, within 10% or so, differences in the CMC(l:c)
- *   colour difference formula.
- *
- *   You can calculate metrics like CMC(2:1) by scaling the spaces before
- *   finding differences.
- *
- */
-
 /* Areas under curves for Dxx. 2 degree observer.
  */
 
@@ -272,8 +165,6 @@ vips_colour_build(VipsObject *object)
 	VipsImage **extra_bands;
 	VipsImage *out;
 
-	int i;
-
 #ifdef DEBUG
 	printf("vips_colour_build: ");
 	vips_object_print_name(object);
@@ -284,11 +175,10 @@ vips_colour_build(VipsObject *object)
 		return -1;
 
 	if (colour->n > MAX_INPUT_IMAGES) {
-		vips_error(class->nickname,
-			"%s", _("too many input images"));
+		vips_error(class->nickname, "%s", _("too many input images"));
 		return -1;
 	}
-	for (i = 0; i < colour->n; i++)
+	for (int i = 0; i < colour->n; i++)
 		if (vips_image_pio_input(colour->in[i]))
 			return -1;
 
@@ -308,7 +198,7 @@ vips_colour_build(VipsObject *object)
 		VipsImage **new_in = (VipsImage **)
 			vips_object_local_array(object, colour->n);
 
-		for (i = 0; i < colour->n; i++) {
+		for (int i = 0; i < colour->n; i++) {
 			if (vips_check_bands_atleast(class->nickname,
 					in[i], colour->input_bands))
 				return -1;
@@ -353,38 +243,50 @@ vips_colour_build(VipsObject *object)
 	if (vips_image_generate(out,
 			vips_start_many, vips_colour_gen, vips_stop_many,
 			in, colour)) {
-		g_object_unref(out);
+		VIPS_UNREF(out);
 		return -1;
 	}
 
 	/* Reattach higher bands, if necessary. If we have more than one input
 	 * image, just use the first extra bands.
 	 */
-	for (i = 0; i < colour->n; i++)
+	for (int i = 0; i < colour->n; i++)
 		if (extra_bands[i]) {
-			VipsImage *t1, *t2;
+			VipsImage **t = (VipsImage **) vips_object_local_array(object, 3);
 
-			/* We can't just reattach the extra bands: they might
-			 * be float (for example) and we might be trying to
-			 * make a short image. Cast extra to match the body of
-			 * the image.
+			double max_alpha_before =
+				vips_interpretation_max_alpha(extra_bands[i]->Type);
+			double max_alpha_after =
+				vips_interpretation_max_alpha(out->Type);
+
+			VipsImage *alpha;
+
+			alpha = extra_bands[i];
+
+			/* Rescale, if the alpha scale has changed.
 			 */
-
-			if (vips_cast(extra_bands[i], &t1, out->BandFmt,
-					NULL)) {
-				g_object_unref(out);
-				return -1;
+			if (max_alpha_before != max_alpha_after) {
+				if (vips_linear1(alpha, &t[0],
+					max_alpha_after / max_alpha_before, 0.0, NULL)) {
+					VIPS_UNREF(out);
+					return -1;
+				}
+				alpha = t[0];
 			}
 
-			if (vips_bandjoin2(out, t1, &t2,
-					NULL)) {
-				g_object_unref(t1);
-				g_object_unref(out);
+			if (vips_cast(alpha, &t[1], out->BandFmt, NULL)) {
+				VIPS_UNREF(out);
+				return -1;
+			}
+			alpha = t[1];
+
+			if (vips_bandjoin2(out, alpha, &t[2], NULL)) {
+				VIPS_UNREF(out);
 				return -1;
 			}
 			g_object_unref(out);
-			g_object_unref(t1);
-			out = t2;
+			out = t[2];
+			t[2] = NULL;
 
 			break;
 		}
@@ -510,12 +412,12 @@ vips_colour_code_build(VipsObject *object)
 
 	in = code->in;
 
-	/* If this is a LABQ and the coder wants uncoded, unpack.
+	/* We want labq, rad etc. all decoded (unlike colour_build).
 	 */
 	if (in &&
-		in->Coding == VIPS_CODING_LABQ &&
-		code->input_coding == VIPS_CODING_NONE) {
-		if (vips_LabQ2Lab(in, &t[0], NULL))
+		code->input_coding == VIPS_CODING_NONE &&
+		in->Coding != code->input_coding) {
+		if (vips_image_decode(in, &t[0]))
 			return -1;
 		in = t[0];
 	}

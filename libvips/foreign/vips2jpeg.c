@@ -159,6 +159,12 @@
 #define MAX_BYTES_IN_MARKER 65533  /* maximum data len of a JPEG marker */
 #define MAX_DATA_BYTES_IN_MARKER (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
+const char *vips__jpeg_message_table[] = {
+	"premature end of JPEG image",
+	"unable to write to target",
+	NULL
+};
+
 /* New output message method - send to VIPS.
  */
 void
@@ -229,6 +235,9 @@ write_new(void)
 
 	write->row_pointer = NULL;
 	write->cinfo.err = jpeg_std_error(&write->eman.pub);
+	write->cinfo.err->addon_message_table = vips__jpeg_message_table;
+	write->cinfo.err->first_addon_message = 1000;
+	write->cinfo.err->last_addon_message = 1001;
 	write->cinfo.dest = NULL;
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
@@ -305,7 +314,7 @@ write_xmp(Write *write, VipsImage *in)
 	 * error with large chunks.
 	 */
 	if (data_length > 60000) {
-		g_warning("%s", _("VipsJpeg: large XMP not saved"));
+		g_warning("large XMP not saved");
 		return 0;
 	}
 
@@ -426,18 +435,18 @@ vips_jfif_resolution_from_image(struct jpeg_compress_struct *cinfo,
 
 	switch (unit) {
 	case 0:
-		xres = VIPS_RINT(image->Xres);
-		yres = VIPS_RINT(image->Yres);
+		xres = rint(image->Xres);
+		yres = rint(image->Yres);
 		break;
 
 	case 1:
-		xres = VIPS_RINT(image->Xres * 25.4);
-		yres = VIPS_RINT(image->Yres * 25.4);
+		xres = rint(image->Xres * 25.4);
+		yres = rint(image->Yres * 25.4);
 		break;
 
 	case 2:
-		xres = VIPS_RINT(image->Xres * 10.0);
-		yres = VIPS_RINT(image->Yres * 10.0);
+		xres = rint(image->Xres * 10.0);
+		yres = rint(image->Yres * 10.0);
 		break;
 
 	default:
@@ -511,7 +520,7 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 		write->row_pointer[y] = (JSAMPROW)
 			VIPS_REGION_ADDR(region, area->left, area->top + y);
 
-	/* Catch any longjmp()s from jpeg_write_scanlines() here.
+	/* Catch any longjmp()s from jpe[func@GLib.write_scanlines] here.
 	 */
 	if (setjmp(write->eman.jmp))
 		return -1;
@@ -598,7 +607,7 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			cinfo->optimize_coding = TRUE;
 		}
 		else
-			g_warning("%s", _("trellis_quant unsupported"));
+			g_warning("trellis_quant unsupported");
 	}
 
 	/* Apply overshooting to samples with extreme values e.g. 0 & 255
@@ -610,8 +619,7 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			jpeg_c_set_bool_param(cinfo,
 				JBOOLEAN_OVERSHOOT_DERINGING, TRUE);
 		else
-			g_warning("%s",
-				_("overshoot_deringing unsupported"));
+			g_warning("overshoot_deringing unsupported");
 	}
 
 	/* Split the spectrum of DCT coefficients into separate scans.
@@ -625,12 +633,10 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 				jpeg_c_set_bool_param(cinfo,
 					JBOOLEAN_OPTIMIZE_SCANS, TRUE);
 			else
-				g_warning("%s",
-					_("ignoring optimize_scans"));
+				g_warning("ignoring optimize_scans");
 		}
 		else
-			g_warning("%s",
-				_("ignoring optimize_scans for baseline"));
+			g_warning("ignoring optimize_scans for baseline");
 	}
 
 	/* Use predefined quantization table.
@@ -641,21 +647,20 @@ set_cinfo(struct jpeg_compress_struct *cinfo,
 			jpeg_c_set_int_param(cinfo,
 				JINT_BASE_QUANT_TBL_IDX, quant_table);
 		else
-			g_warning("%s",
-				_("setting quant_table unsupported"));
+			g_warning("setting quant_table unsupported");
 	}
 #else
 	/* Using jpeglib.h without extension parameters, warn of ignored
 	 * options.
 	 */
 	if (trellis_quant)
-		g_warning("%s", _("ignoring trellis_quant"));
+		g_warning("ignoring trellis_quant");
 	if (overshoot_deringing)
-		g_warning("%s", _("ignoring overshoot_deringing"));
+		g_warning("ignoring overshoot_deringing");
 	if (optimize_scans)
-		g_warning("%s", _("ignoring optimize_scans"));
+		g_warning("ignoring optimize_scans");
 	if (quant_table > 0)
-		g_warning("%s", _("ignoring quant_table"));
+		g_warning("ignoring quant_table");
 #endif
 
 	/* Set compression quality. Must be called after setting params above.
@@ -811,7 +816,7 @@ empty_output_buffer(j_compress_ptr cinfo)
 
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
+		ERREXIT(cinfo, JERR_VIPS_TARGET_WRITE);
 
 	dest->pub.next_output_byte = dest->buf;
 	dest->pub.free_in_buffer = TARGET_BUFFER_SIZE;
@@ -839,7 +844,7 @@ term_destination(j_compress_ptr cinfo)
 
 	if (vips_target_write(dest->target,
 			dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer))
-		ERREXIT(cinfo, JERR_FILE_WRITE);
+		ERREXIT(cinfo, JERR_VIPS_TARGET_WRITE);
 }
 
 /* Set dest to one of our objects.

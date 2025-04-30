@@ -325,7 +325,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* @n == -1 means until the end of the doc.
 	 */
 	if (pdf->n == -1)
-		pdf->n = pdf->n_pages - pdf->page_no;
+		pdf->n = pdf->n_pages - pdf->page_no; // FIXME: Invalidates operation cache
 
 	if (pdf->page_no + pdf->n > pdf->n_pages ||
 		pdf->page_no < 0 ||
@@ -357,8 +357,8 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT(width * pdf->total_scale);
-		pdf->pages[i].height = VIPS_RINT(height * pdf->total_scale);
+		pdf->pages[i].width = rint(width * pdf->total_scale);
+		pdf->pages[i].height = rint(height * pdf->total_scale);
 
 		if (pdf->pages[i].width > pdf->image.width)
 			pdf->image.width = pdf->pages[i].width;

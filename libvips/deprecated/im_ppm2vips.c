@@ -37,7 +37,6 @@
 #include <glib/gi18n-lib.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 int
 im_ppm2vips(const char *filename, IMAGE *out)

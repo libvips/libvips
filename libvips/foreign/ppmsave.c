@@ -324,7 +324,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 
 	/* Handle the deprecated squash parameter.
 	 */
-	if (vips_object_argument_isset(object, "squash"))
+	if (ppm->squash)
 		ppm->bitdepth = 1;
 
 	if (vips_check_uintorf("vips2ppm", image) ||
@@ -335,7 +335,7 @@ vips_foreign_save_ppm_build(VipsObject *object)
 
 	if (ppm->ascii &&
 		image->BandFmt == VIPS_FORMAT_FLOAT) {
-		g_warning("%s", _("float images must be binary -- disabling ascii"));
+		g_warning("float images must be binary -- disabling ascii");
 		ppm->ascii = FALSE;
 	}
 
@@ -344,9 +344,8 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	if (ppm->bitdepth &&
 		(image->Bands != 1 ||
 		 image->BandFmt != VIPS_FORMAT_UCHAR)) {
-		g_warning("%s",
-			_("can only save 1 band uchar images as 1 bit -- "
-			  "disabling 1 bit save"));
+		g_warning("can only save 1 band uchar images as 1 bit -- "
+				  "disabling 1 bit save");
 		ppm->bitdepth = 0;
 	}
 
@@ -410,9 +409,6 @@ vips_foreign_save_ppm_build(VipsObject *object)
 			if (vips_image_get_typeof(image, "pfm-scale") &&
 				!vips_image_get_double(image, "pfm-scale", &scale))
 				;
-
-			if (vips_amiMSBfirst())
-				scale *= -1;
 
 			/* Need to be locale independent.
 			 */
@@ -797,13 +793,9 @@ vips_foreign_save_pnm_target_init(VipsForeignSavePfmTarget *target)
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Write a VIPS image to a file as PPM.
  *
- * * @format: #VipsForeignPpmFormat, format to save in
- * * @ascii: %gboolean, save as ASCII rather than binary
- * * @bitdepth: %gint, bitdepth to save at
- *
- * Write a VIPS image to a file as PPM. It can write 1, 8, 16 or
+ * It can write 1, 8, 16 or
  * 32 bit unsigned integer images, float images, colour or monochrome,
  * stored as binary or ASCII.
  * Integer images of more than 8 bits can only be stored in ASCII.
@@ -818,7 +810,13 @@ vips_foreign_save_pnm_target_init(VipsForeignSavePfmTarget *target)
  *
  * @format defaults to the sub-type for this filename suffix.
  *
- * See also: vips_image_write_to_file().
+ * ::: tip "Optional arguments"
+ *     * @format: [enum@ForeignPpmFormat], format to save in
+ *     * @ascii: %gboolean, save as ASCII rather than binary
+ *     * @bitdepth: %gint, bitdepth to save at
+ *
+ * ::: seealso
+ *     [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -841,15 +839,15 @@ vips_ppmsave(VipsImage *in, const char *filename, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.ppmsave], but save to a target.
  *
- * * @format: #VipsForeignPpmFormat, format to save in
- * * @ascii: %gboolean, save as ASCII rather than binary
- * * @bitdepth: %gint, bitdepth to save at
+ * ::: tip "Optional arguments"
+ *     * @format: [enum@ForeignPpmFormat], format to save in
+ *     * @ascii: %gboolean, save as ASCII rather than binary
+ *     * @bitdepth: %gint, bitdepth to save at
  *
- * As vips_ppmsave(), but save to a target.
- *
- * See also: vips_ppmsave().
+ * ::: seealso
+ *     [method@Image.ppmsave].
  *
  * Returns: 0 on success, -1 on error.
  */

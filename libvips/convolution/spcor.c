@@ -365,7 +365,8 @@ vips_spcor_init(VipsSpcor *spcor)
  * The output image is always float, unless either of the two inputs is
  * double, in which case the output is also double.
  *
- * See also: vips_fastcor().
+ * ::: seealso
+ *     [method@Image.fastcor].
  *
  * Returns: 0 on success, -1 on error
  */

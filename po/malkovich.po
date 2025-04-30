@@ -386,10 +386,6 @@ msgstr ""
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
-#: libsrc/conversion/im_vips2tiff.c:1372
-msgid "can't have 1-bit JPEG -- disabling JPEG"
-msgstr ""
-
 #: libsrc/conversion/im_vips2tiff.c:1529
 #, fuzzy
 msgid "unknown coding type"

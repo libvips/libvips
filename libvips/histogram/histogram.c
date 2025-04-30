@@ -46,34 +46,6 @@
 
 #include "phistogram.h"
 
-/**
- * SECTION: histogram
- * @short_description: find, manipulate and apply histograms and lookup tables
- * @stability: Stable
- * @see_also: <link linkend="VipsImage">image</link>
- * <link linkend="libvips-arithmetic">arithmetic</link>
- * <link linkend="libvips-create">create</link>
- * @include: vips/vips.h
- *
- * Histograms and look-up tables are 1xn or nx1 images, where n is less than
- * 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images.
- * They are tagged with a #VipsInterpretation of
- * #VIPS_INTERPRETATION_HISTOGRAM and usually displayed by user-interfaces
- * such as nip2 as plots rather than images.
- *
- * These functions can be broadly grouped as things to find or build
- * histograms (vips_hist_find(), vips_hist_find_indexed(),
- * vips_hist_find_ndim(), vips_buildlut(), vips_identity()),
- * operations that
- * manipulate histograms in some way (vips_hist_cum(), vips_hist_norm()),
- * operations to apply histograms (vips_maplut()), and a variety of utility
- * operations.
- *
- * A final group of operations build tone curves. These are useful in
- * pre-press work for adjusting the appearance of images. They are designed
- * for CIELAB images, but might be useful elsewhere.
- */
-
 G_DEFINE_ABSTRACT_TYPE(VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION);
 
 /* sizealike by expanding in just one dimension and copying the final element.

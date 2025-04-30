@@ -156,6 +156,10 @@ typedef struct _VipsAffine {
 
 	VipsTransformation trn;
 
+	/* Interpolate parameter, prepared and ready for use.
+	 */
+	VipsInterpolate *affine_interpolate;
+
 	/* How to generate extra edge pixels.
 	 */
 	VipsExtend extend;
@@ -177,6 +181,16 @@ typedef struct _VipsAffine {
 typedef VipsResampleClass VipsAffineClass;
 
 G_DEFINE_TYPE(VipsAffine, vips_affine, VIPS_TYPE_RESAMPLE);
+
+static void
+vips_affine_dispose(GObject *gobject)
+{
+	VipsAffine *affine = (VipsAffine *) gobject;
+
+	VIPS_UNREF(affine->affine_interpolate);
+
+	G_OBJECT_CLASS(vips_affine_parent_class)->dispose(gobject);
+}
 
 /* We have five (!!) coordinate systems. Working forward through them, these
  * are:
@@ -216,12 +230,11 @@ vips_affine_gen(VipsRegion *out_region,
 	VipsRegion *ir = (VipsRegion *) seq;
 	const VipsAffine *affine = (VipsAffine *) b;
 	const VipsImage *in = (VipsImage *) a;
-	const int window_size =
-		vips_interpolate_get_window_size(affine->interpolate);
-	const int window_offset =
-		vips_interpolate_get_window_offset(affine->interpolate);
-	const VipsInterpolateMethod interpolate =
-		vips_interpolate_get_method(affine->interpolate);
+	VipsInterpolate *interpolate = affine->affine_interpolate;
+	const int window_size = vips_interpolate_get_window_size(interpolate);
+	const int window_offset = vips_interpolate_get_window_offset(interpolate);
+	const VipsInterpolateMethod interpolate_method =
+		vips_interpolate_get_method(interpolate);
 
 	/* Area we generate in the output image.
 	 */
@@ -353,8 +366,8 @@ vips_affine_gen(VipsRegion *out_region,
 		for (x = le; x < ri; x++) {
 			int fx, fy;
 
-			fx = VIPS_FLOOR(ix);
-			fy = VIPS_FLOOR(iy);
+			fx = floor(ix);
+			fy = floor(iy);
 
 			/* Clip against iarea.
 			 */
@@ -374,7 +387,7 @@ vips_affine_gen(VipsRegion *out_region,
 					(int) iy - window_offset +
 						window_size - 1));
 
-				interpolate(affine->interpolate, q, ir, ix, iy);
+				interpolate_method(interpolate, q, ir, ix, iy);
 			}
 			else {
 				/* Out of range: paint the background.
@@ -420,27 +433,28 @@ vips_affine_build(VipsObject *object)
 
 	if (vips_check_coding_known(class->nickname, resample->in))
 		return -1;
-	if (vips_check_vector_length(class->nickname,
-			affine->matrix->n, 4))
+	if (vips_check_vector_length(class->nickname, affine->matrix->n, 4))
 		return -1;
 	if (vips_object_argument_isset(object, "oarea") &&
-		vips_check_vector_length(class->nickname,
-			affine->oarea->n, 4))
+		vips_check_vector_length(class->nickname, affine->oarea->n, 4))
 		return -1;
 
-	/* Can be set explicitly to NULL to mean default setting.
+	/* "interpolate" be set explicitly to NULL to mean default setting.
 	 */
-	if (!affine->interpolate)
-		affine->interpolate = vips_interpolate_new("bilinear");
+	affine->affine_interpolate = affine->interpolate;
+	if (affine->affine_interpolate)
+		g_object_ref(affine->affine_interpolate);
+	else
+		affine->affine_interpolate = vips_interpolate_new("bilinear");
 
 	in = resample->in;
 
 	/* Set up transform.
 	 */
 
-	window_size = vips_interpolate_get_window_size(affine->interpolate);
+	window_size = vips_interpolate_get_window_size(affine->affine_interpolate);
 	window_offset =
-		vips_interpolate_get_window_offset(affine->interpolate);
+		vips_interpolate_get_window_offset(affine->affine_interpolate);
 
 	affine->trn.iarea.left = 0;
 	affine->trn.iarea.top = 0;
@@ -618,6 +632,7 @@ vips_affine_class_init(VipsAffineClass *class)
 
 	VIPS_DEBUG_MSG("vips_affine_class_init\n");
 
+	gobject_class->dispose = vips_affine_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -712,31 +727,22 @@ vips_affine_init(VipsAffine *affine)
  * @d: transformation matrix coefficient
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @interpolate: #VipsInterpolate, interpolate pixels with this
- * * @oarea: #VipsArrayInt, output rectangle
- * * @idx: %gdouble, input horizontal offset
- * * @idy: %gdouble, input vertical offset
- * * @odx: %gdouble, output horizontal offset
- * * @ody: %gdouble, output vertical offset
- * * @extend: #VipsExtend how to generate new pixels
- * * @background: #VipsArrayDouble colour for new pixels
- * * @premultiplied: %gboolean, images are already premultiplied
- *
  * This operator performs an affine transform on an image using @interpolate.
  *
  * The transform is:
  *
- * |[
- *   X = @a * (x + @idx) + @b * (y + @idy) + @odx
- *   Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+ * ```
+ *  X = @a * (x + @idx) + @b * (y + @idy) + @odx
+ *  Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+ *  ```
  *
- *   where:
- *     x and y are the coordinates in input image.
- *     X and Y are the coordinates in output image.
- *     (0,0) is the upper left corner.
- * ]|
+ *  where:
+ *
+ *  ```
+ *  x and y are the coordinates in input image.
+ *  X and Y are the coordinates in output image.
+ *  (0,0) is the upper left corner.
+ * ```
  *
  * The section of the output space defined by @oarea is written to
  * @out. @oarea is a four-element int array of left, top, width, height.
@@ -744,21 +750,33 @@ vips_affine_init(VipsAffine *affine)
  * transformed input image.
  *
  * By default, new pixels are filled with @background. This defaults to
- * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY
- * is better for image upsizing.
+ * zero (black). You can set other extend types with @extend.
+ * [enum@Vips.Extend.COPY] is better for image upsizing.
  *
  * @interpolate defaults to bilinear.
  *
  * @idx, @idy, @odx, @ody default to zero.
  *
- * Image are normally treated as unpremultiplied, so this operation can be used
- * directly on PNG images. If your images have been through vips_premultiply(),
- * set @premultiplied.
+ * Image are normally treated as unpremultiplied, so this operation can be
+ * used directly on PNG images. If your images have been through
+ * [method@Image.premultiply], set @premultiplied.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application.
  *
- * See also: vips_shrink(), vips_resize(), #VipsInterpolate.
+ * ::: tip "Optional arguments"
+ *     * @interpolate: [class@Interpolate], interpolate pixels with this
+ *     * @oarea: [struct@ArrayInt], output rectangle
+ *     * @idx: %gdouble, input horizontal offset
+ *     * @idy: %gdouble, input vertical offset
+ *     * @odx: %gdouble, output horizontal offset
+ *     * @ody: %gdouble, output vertical offset
+ *     * @extend: [enum@Extend], how to generate new pixels
+ *     * @background: [struct@ArrayDouble] colour for new pixels
+ *     * @premultiplied: %gboolean, images are already premultiplied
+ *
+ * ::: seealso
+ *     [method@Image.shrink], [method@Image.resize], [class@Interpolate].
  *
  * Returns: 0 on success, -1 on error
  */

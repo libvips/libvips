@@ -98,7 +98,7 @@ vips_edge_uchar_gen(VipsRegion *out_region,
 			int v2 = 2 * (p2[x] - 128);
 			/* Avoid the sqrt() for uchar.
 			 */
-			int v = VIPS_ABS(v1) + VIPS_ABS(v2);
+			int v = abs(v1) + abs(v2);
 
 			q[x] = v > 255 ? 255 : v;
 		}
@@ -341,7 +341,9 @@ vips_prewitt_init(VipsPrewitt *prewitt)
  * uchar images are computed using a fast, low-precision path. Cast to float
  * for a high-precision implementation.
  *
- * See also: vips_canny(), vips_sobel(), vips_prewitt(), vips_scharr().
+ * ::: seealso
+ *     [method@Image.canny], [method@Image.sobel], [method@Image.prewitt],
+ *     [method@Image.scharr].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -369,7 +371,9 @@ vips_sobel(VipsImage *in, VipsImage **out, ...)
  * uchar images are computed using a fast, low-precision path. Cast to float
  * for a high-precision implementation.
  *
- * See also: vips_canny(), vips_sobel(), vips_prewitt(), vips_scharr().
+ * ::: seealso
+ *     [method@Image.canny], [method@Image.sobel], [method@Image.prewitt],
+ *     [method@Image.scharr].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -397,7 +401,9 @@ vips_scharr(VipsImage *in, VipsImage **out, ...)
  * uchar images are computed using a fast, low-precision path. Cast to float
  * for a high-precision implementation.
  *
- * See also: vips_canny(), vips_sobel(), vips_prewitt(), vips_scharr().
+ * ::: seealso
+ *     [method@Image.canny], [method@Image.sobel], [method@Image.prewitt],
+ *     [method@Image.scharr].
  *
  * Returns: 0 on success, -1 on error.
  */

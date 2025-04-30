@@ -237,14 +237,15 @@ vips_draw_rectv(VipsImage *image,
  * @height: area to paint
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Paint pixels within @left, @top, @width, @height in @image with @ink.
  *
- * * @fill: fill the rect
+ * If @fill is zero, just paint a 1-pixel-wide outline.
  *
- * Paint pixels within @left, @top, @width, @height in @image with @ink. If
- * @fill is zero, just paint a 1-pixel-wide outline.
+ * ::: tip "Optional arguments"
+ *     * @fill: %gboolean, fill the rect
  *
- * See also: vips_draw_circle().
+ * ::: seealso
+ *     [method@Image.draw_circle].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -273,13 +274,13 @@ vips_draw_rect(VipsImage *image,
  * @height: area to paint
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * As [method@Image.draw_rect], but just take a single double for @ink.
  *
- * * @fill: fill the rect
+ * ::: tip "Optional arguments"
+ *     * @fill: %gboolean, fill the rect
  *
- * As vips_draw_rect(), but just take a single double for @ink.
- *
- * See also: vips_draw_rect().
+ * ::: seealso
+ *     [method@Image.draw_rect].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -310,9 +311,10 @@ vips_draw_rect1(VipsImage *image,
  * @y: point to paint
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_draw_rect(), but draw a single pixel at @x, @y.
+ * As [method@Image.draw_rect], but draw a single pixel at @x, @y.
  *
- * See also: vips_draw_rect().
+ * ::: seealso
+ *     [method@Image.draw_rect].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -337,9 +339,10 @@ vips_draw_point(VipsImage *image, double *ink, int n, int x, int y, ...)
  * @y: point to draw
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_draw_point(), but just take a single double for @ink.
+ * As [method@Image.draw_point], but just take a single double for @ink.
  *
- * See also: vips_draw_point().
+ * ::: seealso
+ *     [method@Image.draw_point].
  *
  * Returns: 0 on success, or -1 on error.
  */

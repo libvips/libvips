@@ -141,7 +141,7 @@ make_hI(void)
  * vips_col_Lcmc2L:
  * @Lcmc: L cmc
  *
- * Calculate L from Lcmc using a table. Call vips_col_make_tables_CMC() at
+ * Calculate L from Lcmc using a table. Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: L*
@@ -151,11 +151,11 @@ vips_col_Lcmc2L(float Lcmc)
 {
 	int known;
 
-	known = VIPS_FLOOR(Lcmc * 10.0);
+	known = floor(Lcmc * 10.0);
 	known = VIPS_CLIP(0, known, 999);
 
 	return LI[known] +
-		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known);
+		(LI[known + 1] - LI[known]) * (Lcmc * 10.0F - known);
 }
 
 /**
@@ -163,7 +163,7 @@ vips_col_Lcmc2L(float Lcmc)
  * @Ccmc: Ccmc
  *
  * Calculate C from Ccmc using a table.
- * Call vips_col_make_tables_CMC() at
+ * Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: C.
@@ -173,11 +173,11 @@ vips_col_Ccmc2C(float Ccmc)
 {
 	int known;
 
-	known = VIPS_FLOOR(Ccmc * 10.0);
+	known = floor(Ccmc * 10.0);
 	known = VIPS_CLIP(0, known, 2999);
 
 	return CI[known] +
-		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known);
+		(CI[known + 1] - CI[known]) * (Ccmc * 10.0F - known);
 }
 
 /**
@@ -186,7 +186,7 @@ vips_col_Ccmc2C(float Ccmc)
  * @hcmc: Hue cmc (degrees)
  *
  * Calculate h from C and hcmc, using a table.
- * Call vips_col_make_tables_CMC() at
+ * Call [func@col_make_tables_CMC] at
  * least once before using this function.
  *
  * Returns: h.
@@ -202,7 +202,7 @@ vips_col_Chcmc2h(float C, float hcmc)
 	r = (int) ((C + 1.0) / 2.0);
 	r = VIPS_CLIP(0, r, 99);
 
-	known = VIPS_FLOOR(hcmc);
+	known = floor(hcmc);
 	known = VIPS_CLIP(0, known, 359);
 
 	return hI[r][known] +
@@ -292,7 +292,8 @@ vips_CMC2LCh_init(VipsCMC2LCh *CMC2LCh)
  *
  * Turn LCh to CMC.
  *
- * See also: vips_LCh2CMC().
+ * ::: seealso
+ *     [method@Image.LCh2CMC].
  *
  * Returns: 0 on success, -1 on error
  */

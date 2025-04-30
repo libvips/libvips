@@ -175,7 +175,8 @@ vips_foreign_load_openexr_init(VipsForeignLoadOpenexr *openexr)
  * This reader uses the rather limited OpenEXR C API. It should really be
  * redone in C++.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */

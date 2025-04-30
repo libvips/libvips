@@ -138,7 +138,7 @@ vips_percent_init(VipsPercent *percent)
  * @threshold: (out): output threshold value
  * @...: %NULL-terminated list of optional named arguments
  *
- * vips_percent() returns (through the @threshold parameter) the threshold
+ * [method@Image.percent] returns (through the @threshold parameter) the threshold
  * below which there are @percent values of @in. For example:
  *
  * |[
@@ -151,7 +151,8 @@ vips_percent_init(VipsPercent *percent)
  * The function works for uchar and ushort images only.  It can be used
  * to threshold the scaled result of a filtering operation.
  *
- * See also: vips_hist_find(), vips_profile().
+ * ::: seealso
+ *     [method@Image.hist_find], [method@Image.profile].
  *
  * Returns: 0 on success, -1 on error
  */

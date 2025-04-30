@@ -36,7 +36,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 static int
 greyc_vec(im_object *argv)

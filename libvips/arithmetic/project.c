@@ -6,7 +6,7 @@
  * 	- gtkdoc
  * 	- small celanups
  * 11/9/13
- * 	- redo as a class, from vips_hist_find()
+ * 	- redo as a class, from [method@Image.hist_find]
  */
 
 /*
@@ -109,8 +109,8 @@ histogram_new(VipsProject *project)
 		!hist->row_sums)
 		return NULL;
 
-	memset(hist->column_sums, 0, psize * in->Xsize);
-	memset(hist->row_sums, 0, psize * in->Ysize);
+	memset(hist->column_sums, 0, (size_t) psize * in->Xsize);
+	memset(hist->row_sums, 0, (size_t) psize * in->Ysize);
 
 	return hist;
 }
@@ -359,7 +359,8 @@ vips_project_init(VipsProject *project)
  *
  * Non-complex images only.
  *
- * See also: vips_hist_find(), vips_profile().
+ * ::: seealso
+ *     [method@Image.hist_find], [method@Image.profile].
  *
  * Returns: 0 on success, -1 on error
  */

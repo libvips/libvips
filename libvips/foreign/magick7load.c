@@ -92,7 +92,7 @@ typedef struct _VipsForeignLoadMagick7 {
 
 	/* Mutex to serialise calls to libMagick during threaded read.
 	 */
-	GMutex *lock;
+	GMutex lock;
 
 } VipsForeignLoadMagick7;
 
@@ -286,7 +286,7 @@ vips_foreign_load_magick7_dispose(GObject *gobject)
 	VIPS_FREE(magick7->frames);
 	VIPS_FREE(magick7->cache_view);
 	VIPS_FREEF(magick_destroy_exception, magick7->exception);
-	VIPS_FREEF(vips_g_mutex_free, magick7->lock);
+	g_mutex_clear(&magick7->lock);
 
 	G_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->dispose(gobject);
 }
@@ -304,7 +304,7 @@ vips_foreign_load_magick7_build(VipsObject *object)
 
 	magick7->image_info = CloneImageInfo(NULL);
 	magick7->exception = magick_acquire_exception();
-	magick7->lock = vips_g_mutex_new();
+	g_mutex_init(&magick7->lock);
 
 	if (!magick7->image_info)
 		return -1;
@@ -675,13 +675,13 @@ vips_foreign_load_magick7_fill_region(VipsRegion *out_region,
 		Quantum *restrict p;
 		VipsPel *restrict q;
 
-		vips__worker_lock(magick7->lock);
+		vips__worker_lock(&magick7->lock);
 
 		p = GetCacheViewAuthenticPixels(magick7->cache_view[frame],
 			r->left, line, r->width, 1,
 			magick7->exception);
 
-		g_mutex_unlock(magick7->lock);
+		g_mutex_unlock(&magick7->lock);
 
 		if (!p)
 			/* This can happen if, for example, some frames of a

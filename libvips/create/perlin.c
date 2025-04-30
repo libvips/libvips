@@ -45,6 +45,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcreate.h"
 
@@ -264,10 +265,10 @@ vips_perlin_make_tables(void *client)
 	int i;
 
 	for (i = 0; i < 256; i++) {
-		double angle = 2 * VIPS_PI * i / 256.0;
+		float angle = 2.0F * VIPS_PI * i / 256.0F;
 
-		vips_perlin_cos[i] = cos(angle);
-		vips_perlin_sin[i] = sin(angle);
+		vips_perlin_cos[i] = cosf(angle);
+		vips_perlin_sin[i] = sinf(angle);
 	}
 
 	return NULL;
@@ -340,12 +341,9 @@ vips_perlin_init(VipsPerlin *perlin)
  * @height: vertical size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Create a one-band float image of Perlin noise.
  *
- * * @cell_size: %gint, size of Perlin cells
- * * @uchar: output a uchar image
- *
- * Create a one-band float image of Perlin noise. See:
+ * See:
  *
  * https://en.wikipedia.org/wiki/Perlin_noise
  *
@@ -354,10 +352,15 @@ vips_perlin_init(VipsPerlin *perlin)
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
- * Normally, output pixels are #VIPS_FORMAT_FLOAT in the range [-1, +1]. Set
- * @uchar to output a uchar image with pixels in [0, 255].
+ * Normally, output pixels are [enum@Vips.BandFormat.FLOAT] in the range
+ * [-1, +1]. Set @uchar to output a uchar image with pixels in [0, 255].
  *
- * See also: vips_worley(), vips_fractsurf(), vips_gaussnoise().
+ * ::: tip "Optional arguments"
+ *     * @cell_size: %gint, size of Perlin cells
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.worley], [ctor@Image.fractsurf], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

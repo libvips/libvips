@@ -39,7 +39,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <stdio.h>
 #include <math.h>
 
 /* Some platforms don't have M_PI :-(
@@ -54,38 +53,25 @@ extern "C" {
 #define VIPS_MAX(A, B) ((A) > (B) ? (A) : (B))
 #define VIPS_MIN(A, B) ((A) < (B) ? (A) : (B))
 
+#define VIPS_FMAX(A, B) fmax((A), (B)) VIPS_DEPRECATED_MACRO_FOR(fmax)
+#define VIPS_FMIN(A, B) fmin((A), (B)) VIPS_DEPRECATED_MACRO_FOR(fmin)
+
 #define VIPS_CLIP(A, V, B) VIPS_MAX((A), VIPS_MIN((B), (V)))
-#define VIPS_FCLIP(A, V, B) VIPS_FMAX((A), VIPS_FMIN((B), (V)))
+#define VIPS_FCLIP(A, V, B) fmax((A), fmin((B), (V)))
 
 #define VIPS_NUMBER(R) ((int) (sizeof(R) / sizeof(R[0])))
 
-#define VIPS_ABS(X) (((X) >= 0) ? (X) : -(X))
+#define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
+#define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
 
-/* The built-in isnan and isinf functions provided by gcc 4+ and clang are
- * up to 7x faster than their libc equivalent included from <math.h>.
- */
-#if defined(__clang__) || (__GNUC__ >= 4)
-#define VIPS_ISNAN(V) __builtin_isnan(V)
-#define VIPS_FLOOR(V) __builtin_floor(V)
-#define VIPS_CEIL(V) __builtin_ceil(V)
-#define VIPS_RINT(V) __builtin_rint(V)
-#define VIPS_ROUND(V) __builtin_round(V)
-#define VIPS_FABS(V) __builtin_fabs(V)
-#define VIPS_FMAX(A, B) __builtin_fmax(A, B)
-#define VIPS_FMIN(A, B) __builtin_fmin(A, B)
-#else
-#define VIPS_ISNAN(V) isnan(V)
-#define VIPS_FLOOR(V) floor(V)
-#define VIPS_CEIL(V) ceil(V)
-#define VIPS_RINT(V) rint(V)
-#define VIPS_ROUND(V) round(V)
-#define VIPS_FABS(V) VIPS_ABS(V)
-#define VIPS_FMAX(A, B) VIPS_MAX(A, B)
-#define VIPS_FMIN(A, B) VIPS_MIN(A, B)
-#endif
+#define VIPS_ISNAN(V) isnan(V) VIPS_DEPRECATED_MACRO_FOR(isnan)
+#define VIPS_FLOOR(V) floor(V) VIPS_DEPRECATED_MACRO_FOR(floor)
+#define VIPS_CEIL(V) ceil(V) VIPS_DEPRECATED_MACRO_FOR(ceil)
+#define VIPS_RINT(V) rint(V) VIPS_DEPRECATED_MACRO_FOR(rint)
+#define VIPS_ROUND(V) round(V) VIPS_DEPRECATED_MACRO_FOR(round)
 
 /* Testing status before the function call saves a lot of time.
  */
@@ -97,7 +83,7 @@ extern "C" {
 	} \
 	G_STMT_END
 
-/* VIPS_RINT() does "bankers rounding", it rounds to the nearest even integer.
+/* rint() does "bankers rounding", it rounds to the nearest even integer.
  * For things like image geometry, we want strict nearest int.
  *
  * If you know it's unsigned, _UINT is a little faster.
@@ -298,47 +284,7 @@ int vips_filename_suffix_match(const char *path, const char *suffixes[]);
 
 VIPS_API
 gint64 vips_file_length(int fd);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-int vips__write(int fd, const void *buf, size_t count);
 
-/* TODO(kleisauke): VIPS_API is required by test_connections.
- */
-VIPS_API
-int vips__open(const char *filename, int flags, int mode);
-int vips__open_read(const char *filename);
-FILE *vips__fopen(const char *filename, const char *mode);
-
-FILE *vips__file_open_read(const char *filename,
-	const char *fallback_dir, gboolean text_mode);
-FILE *vips__file_open_write(const char *filename,
-	gboolean text_mode);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-char *vips__file_read(FILE *fp, const char *name, size_t *length_out);
-char *vips__file_read_name(const char *name, const char *fallback_dir,
-	size_t *length_out);
-int vips__file_write(void *data, size_t size, size_t nmemb, FILE *stream);
-/* TODO(kleisauke): VIPS_API is required by the magick module.
- */
-VIPS_API
-gint64 vips__get_bytes(const char *filename, unsigned char buf[], gint64 len);
-int vips__fgetc(FILE *fp);
-
-GValue *vips__gvalue_ref_string_new(const char *text);
-void vips__gslist_gvalue_free(GSList *list);
-GSList *vips__gslist_gvalue_copy(const GSList *list);
-GSList *vips__gslist_gvalue_merge(GSList *a, const GSList *b);
-char *vips__gslist_gvalue_get(const GSList *list);
-
-gint64 vips__seek_no_error(int fd, gint64 pos, int whence);
-/* TODO(kleisauke): VIPS_API is required by vipsedit.
- */
-VIPS_API
-gint64 vips__seek(int fd, gint64 pos, int whence);
-int vips__ftruncate(int fd, gint64 pos);
 VIPS_API
 int vips_existsf(const char *name, ...)
 	G_GNUC_PRINTF(1, 2);
@@ -355,7 +301,7 @@ VIPS_API
 int vips_rename(const char *old_name, const char *new_name);
 
 /**
- * VipsToken:
+ * VipsToken: (skip)
  * @VIPS_TOKEN_LEFT: left bracket
  * @VIPS_TOKEN_RIGHT: right bracket
  * @VIPS_TOKEN_STRING: string constant
@@ -369,7 +315,6 @@ int vips_rename(const char *old_name, const char *new_name);
  *
  * Strings may be in double quotes, and may contain escaped quote characters,
  * for example string, "string" and "str\"ing".
- *
  */
 typedef enum {
 	VIPS_TOKEN_LEFT = 1,
@@ -379,48 +324,22 @@ typedef enum {
 	VIPS_TOKEN_COMMA
 } VipsToken;
 
+#ifndef __GI_SCANNER__
+
 // we expose this one in the API for testing
 VIPS_API
 const char *vips__token_get(const char *buffer,
 	VipsToken *token, char *string, int size);
-const char *vips__token_must(const char *buffer, VipsToken *token,
-	char *string, int size);
-const char *vips__token_need(const char *buffer, VipsToken need_token,
-	char *string, int size);
-const char *vips__token_segment(const char *p, VipsToken *token,
-	char *string, int size);
-const char *vips__token_segment_need(const char *p, VipsToken need_token,
-	char *string, int size);
-const char *vips__find_rightmost_brackets(const char *p);
-/* TODO(kleisauke): VIPS_API is required by libvips-cpp and vipsheader.
- */
-VIPS_API
-void vips__filename_split8(const char *name,
-	char *filename, char *option_string);
+
+#endif /* !__GI_SCANNER__ */
 
 VIPS_API
 int vips_ispoweroftwo(int p);
 VIPS_API
 int vips_amiMSBfirst(void);
 
-/* TODO(kleisauke): VIPS_API is required by jpegsave_file_fuzzer.
- */
-VIPS_API
-char *vips__temp_name(const char *format);
-
-void vips__change_suffix(const char *name, char *out, int mx,
-	const char *new_suff, const char **olds, int nolds);
-
 VIPS_API
 char *vips_realpath(const char *path);
-
-guint32 vips__random(guint32 seed);
-guint32 vips__random_add(guint32 seed, int value);
-
-const char *vips__icc_dir(void);
-const char *vips__windows_prefix(void);
-
-char *vips__get_iso8601(void);
 
 VIPS_API
 int vips_strtod(const char *str, double *out);

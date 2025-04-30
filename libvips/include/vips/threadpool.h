@@ -51,10 +51,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Per-thread state. Allocate functions can use these members to
- * communicate with work functions.
- */
-
 #define VIPS_TYPE_THREAD_STATE (vips_thread_state_get_type())
 #define VIPS_THREAD_STATE(obj) \
 	(G_TYPE_CHECK_INSTANCE_CAST((obj), \
@@ -112,8 +108,6 @@ typedef struct _VipsThreadStateClass {
 VIPS_API
 void *vips_thread_state_set(VipsObject *object, void *a, void *b);
 
-/* Don't put spaces around void here, it breaks gtk-doc.
- */
 VIPS_API
 GType vips_thread_state_get_type(void);
 

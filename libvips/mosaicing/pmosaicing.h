@@ -82,7 +82,7 @@ typedef struct _Overlapping {
 
 	/* Overlap start/end cache
 	 */
-	GMutex *fl_lock; /* Need to lock on build */
+	GMutex fl_lock; /* Need to lock on build */
 	int *first, *last;
 
 	/* Blend function.

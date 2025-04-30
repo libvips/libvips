@@ -92,17 +92,17 @@ vips_LabQ2Lab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		 */
 		l = ((unsigned char *) p)[0];
 		l = (l << 2) | (lsbs >> 6);
-		q[0] = (float) l * (100.0 / 1023.0);
+		q[0] = (float) l * (100.0F / 1023.0F);
 
 		/* Build a.
 		 */
 		l = VIPS_LSHIFT_INT(p[1], 3) | ((lsbs >> 3) & 0x7);
-		q[1] = (float) l * 0.125;
+		q[1] = (float) l * 0.125F;
 
 		/* And b.
 		 */
 		l = VIPS_LSHIFT_INT(p[2], 3) | (lsbs & 0x7);
-		q[2] = (float) l * 0.125;
+		q[2] = (float) l * 0.125F;
 
 		p += 4;
 		q += 3;
@@ -147,9 +147,10 @@ vips_LabQ2Lab_init(VipsLabQ2Lab *LabQ2Lab)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band float image.
+ * Unpack a LabQ ([enum@Vips.Coding.LABQ)] image to a three-band float image.
  *
- * See also: vips_LabQ2Lab(), vips_LabQ2LabS(), vips_rad2float().
+ * ::: seealso
+ *     [method@Image.LabQ2Lab], [method@Image.LabQ2LabS], [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */

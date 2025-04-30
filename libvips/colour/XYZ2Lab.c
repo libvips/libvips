@@ -97,9 +97,9 @@ table_init(void *client)
 		float Y = (double) i / QUANT_ELEMENTS;
 
 		if (Y < 0.008856)
-			cbrt_table[i] = 7.787 * Y + (16.0 / 116.0);
+			cbrt_table[i] = 7.787F * Y + (16.0F / 116.0F);
 		else
-			cbrt_table[i] = cbrt(Y);
+			cbrt_table[i] = cbrtf(Y);
 	}
 
 	return NULL;
@@ -132,9 +132,9 @@ vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	f = nZ - i;
 	cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-	*L = 116.0 * cby - 16.0;
-	*a = 500.0 * (cbx - cby);
-	*b = 200.0 * (cby - cbz);
+	*L = 116.0F * cby - 16.0F;
+	*a = 500.0F * (cbx - cby);
+	*b = 200.0F * (cby - cbz);
 }
 
 /* Process a buffer of data.
@@ -180,7 +180,8 @@ vips_XYZ2Lab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
  *
  * Calculate XYZ from Lab, D65.
  *
- * See also: vips_XYZ2Lab().
+ * ::: seealso
+ *     [method@Image.XYZ2Lab].
  */
 void
 vips_col_XYZ2Lab(float X, float Y, float Z, float *L, float *a, float *b)
@@ -258,12 +259,11 @@ vips_XYZ2Lab_init(VipsXYZ2Lab *XYZ2Lab)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @temp: #VipsArrayDouble, colour temperature
- *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
  * defaults to D65.
+ *
+ * ::: tip "Optional arguments"
+ *     * @temp: [struct@ArrayDouble], colour temperature
  *
  * Returns: 0 on success, -1 on error.
  */

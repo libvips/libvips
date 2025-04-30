@@ -170,7 +170,7 @@ vips_clamp_class_init(VipsClampClass *class)
 		_("Maximum value"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsClamp, max),
-		-INFINITY, INFINITY, 0.0);
+		-INFINITY, INFINITY, 1.0);
 }
 
 static void
@@ -182,20 +182,20 @@ vips_clamp_init(VipsClamp *clamp)
 
 /**
  * vips_clamp: (method)
- * @in: input #VipsImage
- * @out: (out): output #VipsImage
+ * @in: input [class@Image]
+ * @out: (out): output [class@Image]
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @min: %gdouble, minimum value
- * * @max: %gdouble, maximum value
  *
  * This operation clamps pixel values to a range, by default 0 - 1.
  *
  * Use @min and @max to change the range.
  *
- * See also: vips_sign(), vips_abs(), vips_sdf().
+ * ::: tip "Optional arguments"
+ *     * @min: %gdouble, minimum value
+ *     * @max: %gdouble, maximum value
+ *
+ * ::: seealso
+ *     [method@Image.sign], [method@Image.abs], [ctor@Image.sdf].
  *
  * Returns: 0 on success, -1 on error
  */

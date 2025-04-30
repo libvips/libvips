@@ -153,7 +153,8 @@ vips_LabS2LabQ_init(VipsLabS2LabQ *LabS2LabQ)
  *
  * Convert a LabS three-band signed short image to LabQ
  *
- * See also: vips_LabQ2LabS().
+ * ::: seealso
+ *     [method@Image.LabQ2LabS].
  *
  * Returns: 0 on success, -1 on error.
  */

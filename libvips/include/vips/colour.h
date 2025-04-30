@@ -93,11 +93,18 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
+/* Note: constants align with those defined in lcms2.h, except for
+ * VIPS_INTENT_AUTO, which is libvips-specific.
+ */
 typedef enum {
 	VIPS_INTENT_PERCEPTUAL = 0,
 	VIPS_INTENT_RELATIVE,
 	VIPS_INTENT_SATURATION,
 	VIPS_INTENT_ABSOLUTE,
+	/* Leave room for possible new rendering intents beyond the
+	 * four standard ones.
+	 */
+	VIPS_INTENT_AUTO = 32,
 	VIPS_INTENT_LAST
 } VipsIntent;
 
@@ -140,12 +147,6 @@ int vips_LCh2Lab(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_Lab2LCh(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_Yxy2Lab(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_CMC2XYZ(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_Lab2XYZ(VipsImage *in, VipsImage **out, ...)

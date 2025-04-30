@@ -92,9 +92,9 @@ vips_col_L2Lcmc(float L)
 	float Lcmc;
 
 	if (L < 16.0)
-		Lcmc = 1.744 * L;
+		Lcmc = 1.744F * L;
 	else
-		Lcmc = 21.75 * log(L) + 0.3838 * L - 38.54;
+		Lcmc = 21.75F * logf(L) + 0.3838F * L - 38.54F;
 
 	return Lcmc;
 }
@@ -112,7 +112,7 @@ vips_col_C2Ccmc(float C)
 {
 	float Ccmc;
 
-	Ccmc = 0.162 * C + 10.92 * log(0.638 + 0.07216 * C) + 4.907;
+	Ccmc = 0.162F * C + 10.92F * logf(0.638F + 0.07216F * C) + 4.907F;
 	if (Ccmc < 0)
 		Ccmc = 0;
 
@@ -136,38 +136,38 @@ vips_col_Ch2hcmc(float C, float h)
 	float hcmc;
 
 	if (h < 49.1) {
-		k4 = 133.87;
-		k5 = -134.5;
-		k6 = -.924;
-		k7 = 1.727;
-		k8 = 340.0;
+		k4 = 133.87F;
+		k5 = -134.5F;
+		k6 = -.924F;
+		k7 = 1.727F;
+		k8 = 340.0F;
 	}
 	else if (h < 110.1) {
-		k4 = 11.78;
-		k5 = -12.7;
-		k6 = -.218;
-		k7 = 2.12;
-		k8 = 333.0;
+		k4 = 11.78F;
+		k5 = -12.7F;
+		k6 = -.218F;
+		k7 = 2.12F;
+		k8 = 333.0F;
 	}
 	else if (h < 269.6) {
-		k4 = 13.87;
-		k5 = 10.93;
-		k6 = 0.14;
-		k7 = 1.0;
-		k8 = -83.0;
+		k4 = 13.87F;
+		k5 = 10.93F;
+		k6 = 0.14F;
+		k7 = 1.0F;
+		k8 = -83.0F;
 	}
 	else {
-		k4 = .14;
-		k5 = 5.23;
-		k6 = .17;
-		k7 = 1.61;
-		k8 = 233.0;
+		k4 = .14F;
+		k5 = 5.23F;
+		k6 = .17F;
+		k7 = 1.61F;
+		k8 = 233.0F;
 	}
 
-	P = cos(VIPS_RAD(k7 * h + k8));
-	D = k4 + k5 * P * pow(VIPS_FABS(P), k6);
+	P = cosf(VIPS_RAD(k7 * h + k8));
+	D = k4 + k5 * P * powf(fabsf(P), k6);
 	g = C * C * C * C;
-	f = sqrt(g / (g + 1900.0));
+	f = sqrtf(g / (g + 1900.0F));
 	hcmc = h + D * f;
 
 	return hcmc;
@@ -233,7 +233,8 @@ vips_LCh2CMC_init(VipsLCh2CMC *LCh2CMC)
  * This operation generates CMC(1:1). For CMC(2:1), halve Lucs and double
  * Cucs.
  *
- * See also: vips_CMC2LCh().
+ * ::: seealso
+ *     [method@Image.CMC2LCh].
  *
  * Returns: 0 on success, -1 on error
  */

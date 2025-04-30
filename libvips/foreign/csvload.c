@@ -500,7 +500,7 @@ vips_foreign_load_csv_class_init(VipsForeignLoadCsvClass *class)
 		_("Read this many lines from the file"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadCsv, lines),
-		-1, 10000000, 0);
+		-1, 10000000, -1);
 
 	VIPS_ARG_STRING(class, "whitespace", 22,
 		_("Whitespace"),
@@ -676,16 +676,10 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Load a CSV (comma-separated values) file.
  *
- * * @skip: skip this many lines at start of file
- * * @lines: read this many lines from file
- * * @whitespace: set of whitespace characters
- * * @separator: set of separator characters
- * * @fail_on: #VipsFailOn, types of read error to fail on
- *
- * Load a CSV (comma-separated values) file. The output image is always 1
- * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
+ * The output image is always 1 band (monochrome),
+ * [enum@Vips.BandFormat.DOUBLE]. Use [method@Image.bandfold] to turn
  * RGBRGBRGB mono images into colour images.
  *
  * Items in lines can be either floating point numbers in the C locale, or
@@ -700,16 +694,24 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * meaning read all lines to end of file.
  *
  * @whitespace sets the skippable whitespace characters.
- * Default <emphasis>space</emphasis>.
+ * Default *space*.
  * Whitespace characters are always run together.
  *
  * @separator sets the characters that separate fields.
- * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
+ * Default ;,*tab*. Separators are never run together.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
- * See also: vips_image_new_from_file(), vips_bandfold().
+ * ::: tip "Optional arguments"
+ *     * @skip: %gint, skip this many lines at start of file
+ *     * @lines: %gint, read this many lines from file
+ *     * @whitespace: %gchararray, set of whitespace characters
+ *     * @separator: %gchararray, set of separator characters
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
+ *
+ * ::: seealso
+ *     vips_image_new_from_file(), [method@Image.bandfold].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -732,17 +734,17 @@ vips_csvload(const char *filename, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Exactly as [ctor@Image.csvload], but read from a source.
  *
- * * @skip: skip this many lines at start of file
- * * @lines: read this many lines from file
- * * @whitespace: set of whitespace characters
- * * @separator: set of separator characters
- * * @fail_on: #VipsFailOn, types of read error to fail on
+ * ::: tip "Optional arguments"
+ *     * @skip: %gint, skip this many lines at start of file
+ *     * @lines: %gint, read this many lines from file
+ *     * @whitespace: %gchararray, set of whitespace characters
+ *     * @separator: %gchararray, set of separator characters
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
- * Exactly as vips_csvload(), but read from a source.
- *
- * See also: vips_csvload().
+ * ::: seealso
+ *     [ctor@Image.csvload].
  *
  * Returns: 0 on success, -1 on error.
  */

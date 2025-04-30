@@ -99,7 +99,7 @@ vips_bandunfold_gen(VipsRegion *out_region,
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy(q, p, r->width * psize);
+		memcpy(q, p, (size_t) r->width * psize);
 	}
 
 	return 0;
@@ -119,7 +119,8 @@ vips_bandunfold_build(VipsObject *object)
 		return -1;
 
 	if (bandunfold->factor == 0)
-		bandunfold->factor = bandunfold->in->Bands;
+		bandunfold->factor = bandunfold->in->Bands; // FIXME: Invalidates operation cache
+
 	if (bandunfold->in->Bands % bandunfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image bands"));
@@ -187,16 +188,16 @@ vips_bandunfold_init(VipsBandunfold *bandunfold)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @factor: unfold by this factor
- *
  * Unfold image bands into x axis.
  * Use @factor to set how much to unfold by: @factor 3, for example, will make
  * the output image three times wider than the input, and with one third
  * as many bands. By default, all bands are unfolded.
  *
- * See also: vips_csvload(), vips_bandfold().
+ * ::: tip "Optional arguments"
+ *     * @factor: unfold by this factor
+ *
+ * ::: seealso
+ *     [ctor@Image.csvload], [method@Image.bandfold].
  *
  * Returns: 0 on success, -1 on error.
  */

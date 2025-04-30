@@ -52,16 +52,6 @@
 #include "pconvolution.h"
 
 /**
- * SECTION: convolution
- * @short_description: convolve and correlate images
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations convolve an image in some way, or are operations based on
- * simple convolution, or are useful with convolution.
- */
-
-/**
  * VipsPrecision:
  * @VIPS_PRECISION_INTEGER: int everywhere
  * @VIPS_PRECISION_FLOAT: float everywhere
@@ -76,7 +66,7 @@
  * @VIPS_COMBINE_SUM: sum all the values
  * @VIPS_COMBINE_MIN: take the minimum value
  *
- * How to combine values. See vips_compass(), for example.
+ * How to combine values. See [method@Image.compass], for example.
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsConvolution, vips_convolution,

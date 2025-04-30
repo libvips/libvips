@@ -254,7 +254,8 @@ vips_byteswap_init(VipsByteswap *byteswap)
  *
  * Swap the byte order in an image.
  *
- * See also: vips_rawload().
+ * ::: seealso
+ *     [ctor@Image.rawload].
  *
  * Returns: 0 on success, -1 on error.
  */

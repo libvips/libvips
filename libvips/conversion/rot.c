@@ -395,10 +395,11 @@ vips_rotv(VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap)
  *
  * Rotate @in by a multiple of 90 degrees.
  *
- * Use vips_similarity() to rotate by an arbitrary angle. vips_rot45() is
- * useful for rotating convolution masks by 45 degrees.
+ * Use [method@Image.similarity] to rotate by an arbitrary angle.
+ * [method@Image.rot45] is useful for rotating convolution masks by 45 degrees.
  *
- * See also: vips_flip(), vips_similarity(), vips_rot45().
+ * ::: seealso
+ *     [method@Image.flip], [method@Image.similarity], [method@Image.rot45].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -416,14 +417,15 @@ vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle, ...)
 }
 
 /**
- * vips_rot90:
+ * vips_rot90: (method)
  * @in: input image
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 90 degrees clockwise. A convenience function over vips_rot().
+ * Rotate @in by 90 degrees clockwise. A convenience function over [method@Image.rot].
  *
- * See also: vips_rot().
+ * ::: seealso
+ *     [method@Image.rot].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -446,9 +448,10 @@ vips_rot90(VipsImage *in, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 180 degrees. A convenience function over vips_rot().
+ * Rotate @in by 180 degrees. A convenience function over [method@Image.rot].
  *
- * See also: vips_rot().
+ * ::: seealso
+ *     [method@Image.rot].
  *
  * Returns: 0 on success, -1 on error
  */
@@ -471,9 +474,10 @@ vips_rot180(VipsImage *in, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Rotate @in by 270 degrees clockwise. A convenience function over vips_rot().
+ * Rotate @in by 270 degrees clockwise. A convenience function over [method@Image.rot].
  *
- * See also: vips_rot().
+ * ::: seealso
+ *     [method@Image.rot].
  *
  * Returns: 0 on success, -1 on error
  */

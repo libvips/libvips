@@ -231,7 +231,8 @@ vips_bandmean_init(VipsBandmean *bandmean)
  * the same as the input band format. Integer types use round-to-nearest
  * averaging.
  *
- * See also: vips_add(), vips_avg(), vips_recomb()
+ * ::: seealso
+ *     [method@Image.add], [method@Image.avg], [method@Image.recomb]
  *
  * Returns: 0 on success, -1 on error
  */

@@ -182,7 +182,7 @@ static char *vips_pdfium_errors[] = {
 	"page not found or content error"
 };
 
-static GMutex *vips_pdfium_mutex = NULL;
+static GMutex vips_pdfium_mutex;
 
 static void
 vips_pdfium_error(void)
@@ -199,14 +199,14 @@ vips_pdfium_error(void)
 static void
 vips_foreign_load_pdf_close(VipsForeignLoadPdf *pdf)
 {
-	g_mutex_lock(vips_pdfium_mutex);
+	g_mutex_lock(&vips_pdfium_mutex);
 
 	VIPS_FREEF(FPDF_ClosePage, pdf->page);
 	VIPS_FREEF(FPDFDOC_ExitFormFillEnvironment, pdf->form);
 	VIPS_FREEF(FPDF_CloseDocument, pdf->doc);
 	VIPS_UNREF(pdf->source);
 
-	g_mutex_unlock(vips_pdfium_mutex);
+	g_mutex_unlock(&vips_pdfium_mutex);
 }
 
 static void
@@ -277,7 +277,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 	VIPS_ONCE(&once, vips_pdfium_init_cb, NULL);
 
 	if (!vips_object_argument_isset(object, "scale"))
-		pdf->scale = pdf->dpi / 72.0;
+		pdf->scale = pdf->dpi / 72.0; // FIXME: Invalidates operation cache
 
 	pdf->form_callbacks.version = 2;
 
@@ -297,11 +297,11 @@ vips_foreign_load_pdf_build(VipsObject *object)
 		pdf->file_access.m_GetBlock = vips_pdfium_GetBlock;
 		pdf->file_access.m_Param = pdf;
 
-		g_mutex_lock(vips_pdfium_mutex);
+		g_mutex_lock(&vips_pdfium_mutex);
 
 		if (!(pdf->doc = FPDF_LoadCustomDocument(&pdf->file_access,
 				  pdf->password))) {
-			g_mutex_unlock(vips_pdfium_mutex);
+			g_mutex_unlock(&vips_pdfium_mutex);
 			vips_pdfium_error();
 			vips_error("pdfload",
 				_("%s: unable to load"),
@@ -312,7 +312,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 
 		if (!(pdf->form = FPDFDOC_InitFormFillEnvironment(pdf->doc,
 				  &pdf->form_callbacks))) {
-			g_mutex_unlock(vips_pdfium_mutex);
+			g_mutex_unlock(&vips_pdfium_mutex);
 			vips_pdfium_error();
 			vips_error("pdfload",
 				_("%s: unable to initialize form fill environment"),
@@ -321,7 +321,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 			return -1;
 		}
 
-		g_mutex_unlock(vips_pdfium_mutex);
+		g_mutex_unlock(&vips_pdfium_mutex);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)->build(object))
@@ -350,7 +350,7 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 	if (pdf->current_page != page_no) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(pdf);
 
-		g_mutex_lock(vips_pdfium_mutex);
+		g_mutex_lock(&vips_pdfium_mutex);
 
 		VIPS_FREEF(FPDF_ClosePage, pdf->page);
 		pdf->current_page = -1;
@@ -360,7 +360,7 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 #endif /*DEBUG*/
 
 		if (!(pdf->page = FPDF_LoadPage(pdf->doc, page_no))) {
-			g_mutex_unlock(vips_pdfium_mutex);
+			g_mutex_unlock(&vips_pdfium_mutex);
 			vips_pdfium_error();
 			vips_error(class->nickname,
 				_("unable to load page %d"), page_no);
@@ -368,7 +368,7 @@ vips_foreign_load_pdf_get_page(VipsForeignLoadPdf *pdf, int page_no)
 		}
 		pdf->current_page = page_no;
 
-		g_mutex_unlock(vips_pdfium_mutex);
+		g_mutex_unlock(&vips_pdfium_mutex);
 	}
 
 	return 0;
@@ -412,7 +412,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 	vips_image_set_int(out, "pdf-n_pages", pdf->n_pages);
 	vips_image_set_int(out, VIPS_META_N_PAGES, pdf->n_pages);
 
-	g_mutex_lock(vips_pdfium_mutex);
+	g_mutex_lock(&vips_pdfium_mutex);
 
 	for (i = 0; i < n_metadata; i++) {
 		VipsForeignLoadPdfMetadata *metadata =
@@ -436,7 +436,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 		}
 	}
 
-	g_mutex_unlock(vips_pdfium_mutex);
+	g_mutex_unlock(&vips_pdfium_mutex);
 
 	/* We need pixels/mm for vips.
 	 */
@@ -463,14 +463,14 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	printf("vips_foreign_load_pdf_header: %p\n", pdf);
 #endif /*DEBUG*/
 
-	g_mutex_lock(vips_pdfium_mutex);
+	g_mutex_lock(&vips_pdfium_mutex);
 	pdf->n_pages = FPDF_GetPageCount(pdf->doc);
-	g_mutex_unlock(vips_pdfium_mutex);
+	g_mutex_unlock(&vips_pdfium_mutex);
 
 	/* @n == -1 means until the end of the doc.
 	 */
 	if (pdf->n == -1)
-		pdf->n = pdf->n_pages - pdf->page_no;
+		pdf->n = pdf->n_pages - pdf->page_no; // FIXME: Invalidates operation cache
 
 	if (pdf->page_no + pdf->n > pdf->n_pages ||
 		pdf->page_no < 0 ||
@@ -498,9 +498,9 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT(
+		pdf->pages[i].width = rint(
 			FPDF_GetPageWidth(pdf->page) * pdf->scale);
-		pdf->pages[i].height = VIPS_RINT(
+		pdf->pages[i].height = rint(
 			FPDF_GetPageHeight(pdf->page) * pdf->scale);
 
 		/* PDFium allows page width or height to be less than 1 (!!).
@@ -594,7 +594,7 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
 			return -1;
 
-		vips__worker_lock(vips_pdfium_mutex);
+		vips__worker_lock(&vips_pdfium_mutex);
 
 		/* 4 means RGBA.
 		 */
@@ -626,7 +626,7 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 		FPDFBitmap_Destroy(bitmap);
 
-		g_mutex_unlock(vips_pdfium_mutex);
+		g_mutex_unlock(&vips_pdfium_mutex);
 
 		top += rect.height;
 		i += 1;
@@ -670,27 +670,12 @@ vips_foreign_load_pdf_load(VipsForeignLoad *load)
 	return 0;
 }
 
-static void *
-vips_foreign_load_pdf_once_init(void *client)
-{
-	/* We must make the mutex on class init (not _build) since we
-	 * can lock even if build is not called.
-	 */
-	vips_pdfium_mutex = vips_g_mutex_new();
-
-	return NULL;
-}
-
 static void
 vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 {
-	static GOnce once = G_ONCE_INIT;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
-
-	VIPS_ONCE(&once, vips_foreign_load_pdf_once_init, NULL);
 
 	gobject_class->dispose = vips_foreign_load_pdf_dispose;
 	gobject_class->set_property = vips_object_set_property;

@@ -49,17 +49,6 @@
 
 #include "pfreqfilt.h"
 
-/**
- * SECTION: freqfilt
- * @short_description: fourier transforms and frequency-domin filters
- * @stability: Stable
- * @see_also: <link linkend="VipsImage">image</link>
- * @include: vips/vips.h
- *
- * To and from Fourier space, filter in Fourier space, convert Fourier-space
- * images to a displayable form.
- */
-
 G_DEFINE_ABSTRACT_TYPE(VipsFreqfilt, vips_freqfilt, VIPS_TYPE_OPERATION);
 
 static int
@@ -127,8 +116,8 @@ vips_freqfilt_init(VipsFreqfilt *freqfilt)
  *             partial bandjoin ->
  *               output pipeline
  *
- * vips__fftproc() needs to just call VipsFftProcessFn directly for 1 band images,
- * so we can't cache the output in this fn.
+ * vips__fftproc() needs to just call VipsFftProcessFn directly for 1 band
+ * images, so we can't cache the output in this fn.
  */
 int
 vips__fftproc(VipsObject *context,

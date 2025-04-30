@@ -332,7 +332,8 @@ vips_foreign_save_raw_buffer_init(VipsForeignSaveRawBuffer *buffer)
  * Writes the pixels in @in to the file @filename with no header or other
  * metadata.
  *
- * See also: vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -356,13 +357,14 @@ vips_rawsave(VipsImage *in, const char *filename, ...)
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_rawsave(), but save to a memory buffer.
+ * As [method@Image.rawsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
+ * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
  * are done with it.
  *
- * See also: vips_rawsave(), vips_image_write_to_memory(), vips_image_write_to_file().
+ * ::: seealso
+ *     [method@Image.rawsave], [method@Image.write_to_memory], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -400,9 +402,10 @@ vips_rawsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_rawsave(), but save to a target.
+ * As [method@Image.rawsave], but save to a target.
  *
- * See also: vips_rawsave().
+ * ::: seealso
+ *     [method@Image.rawsave].
  *
  * Returns: 0 on success, -1 on error.
  */

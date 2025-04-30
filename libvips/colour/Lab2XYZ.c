@@ -205,12 +205,11 @@ vips_Lab2XYZ_init(VipsLab2XYZ *Lab2XYZ)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @temp: #VipsArrayDouble, colour temperature
- *
  * Turn Lab to XYZ. The colour temperature defaults to D65, but can be
  * specified with @temp.
+ *
+ * ::: tip "Optional arguments"
+ *     * @temp: [struct@ArrayDouble], colour temperature
  *
  * Returns: 0 on success, -1 on error
  */
@@ -238,7 +237,8 @@ vips_Lab2XYZ(VipsImage *in, VipsImage **out, ...)
  *
  * Calculate XYZ from Lab, D65.
  *
- * See also: vips_Lab2XYZ().
+ * ::: seealso
+ *     [method@Image.Lab2XYZ].
  */
 void
 vips_col_Lab2XYZ(float L, float a, float b, float *X, float *Y, float *Z)

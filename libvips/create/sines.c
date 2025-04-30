@@ -81,7 +81,7 @@ vips_sines_point(VipsPoint *point, int x, int y)
 {
 	VipsSines *sines = (VipsSines *) point;
 
-	return cos(sines->c * (x * sines->costheta - y * sines->sintheta));
+	return cosf(sines->c * (x * sines->costheta - y * sines->sintheta));
 }
 
 static int
@@ -153,12 +153,6 @@ vips_sines_init(VipsSines *sines)
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @hfreq: horizontal frequency
- * * @vreq: vertical frequency
- * * @uchar: output a uchar image
- *
  * Creates a float one band image of the a sine waveform in two
  * dimensions.
  *
@@ -172,7 +166,13 @@ vips_sines_init(VipsSines *sines)
  *
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
- * See also: vips_grey(), vips_xyz().
+ * ::: tip "Optional arguments"
+ *     * @hfreq: %gdouble, horizontal frequency
+ *	   * @vreq: %gdouble, vertical frequency
+ *     * @uchar: %gboolean, output a uchar image
+ *
+ * ::: seealso
+ *     [ctor@Image.grey], [ctor@Image.xyz].
  *
  * Returns: 0 on success, -1 on error
  */

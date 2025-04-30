@@ -171,13 +171,13 @@ vips_black_init(VipsBlack *black)
  * @height: output height
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @bands: output bands
- *
  * Make a black unsigned char image of a specified size.
  *
- * See also: vips_xyz(), vips_text(), vips_gaussnoise().
+ * ::: tip "Optional arguments"
+ *     * @bands: %gint, output bands
+ *
+ * ::: seealso
+ *     [ctor@Image.xyz], [ctor@Image.text], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

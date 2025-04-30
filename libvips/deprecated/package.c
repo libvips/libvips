@@ -58,7 +58,6 @@
 #include <limits.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -646,9 +645,9 @@ plugin_free(Plugin *plug)
 	}
 	VIPS_FREE(plug->name);
 	plug->pack = NULL;
-	g_free(plug);
 
 	plugin_list = g_slist_remove(plugin_list, plug);
+	g_free(plug);
 
 	return 0;
 }
@@ -746,7 +745,7 @@ im_load_plugins(const char *fmt, ...)
 		return 0;
 
 	va_start(ap, fmt);
-	(void) im_vsnprintf(dir_name, VIPS_PATH_MAX - 1, fmt, ap);
+	(void) im_vsnprintf(dir_name, VIPS_PATH_MAX, fmt, ap);
 	va_end(ap);
 
 	g_info("im_load_plugins: searching \"%s\"", dir_name);
@@ -761,7 +760,7 @@ im_load_plugins(const char *fmt, ...)
 		if (im_ispostfix(name, ".plg")) {
 			char path[VIPS_PATH_MAX];
 
-			im_snprintf(path, VIPS_PATH_MAX - 1,
+			im_snprintf(path, VIPS_PATH_MAX,
 				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name);
 			if (!im_load_plugin(path))
 				result = -1;

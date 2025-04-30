@@ -115,9 +115,11 @@ vips_spectrum_init(VipsSpectrum *spectrum)
  * Make a displayable (ie. 8-bit unsigned int) power spectrum.
  *
  * If @in is non-complex, it is transformed to Fourier space. Then the
- * absolute value is passed through vips_scale() in log mode, and vips_wrap().
+ * absolute value is passed through [method@Image.scale] in log mode, and
+ * [method@Image.wrap].
  *
- * See also: vips_fwfft(), vips_scale(), vips_wrap().
+ * ::: seealso
+ *     [method@Image.fwfft], [method@Image.scale], [method@Image.wrap].
  *
  * Returns: 0 on success, -1 on error.
  */

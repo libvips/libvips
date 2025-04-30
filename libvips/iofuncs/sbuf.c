@@ -56,16 +56,11 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: sbuf
- * @short_description: buffered read from a source
- * @stability: Stable
- * @see_also: <link linkend="libvips-foreign">foreign</link>
- * @include: vips/vips.h
- * @title: VipsSbuf
+ * VipsSbuf:
  *
- * #VipsSbuf wraps up a #VipsSource and provides a set of calls for
- * text-oriented buffered reading. You can fetch lines of text, skip
- * whitespace, and so on.
+ * A [class@Sbuf] provides a buffered reading interface for a [class@Source].
+ *
+ * You can fetch lines of text, skip whitespace, and so on.
  *
  * It is useful for implementing things like CSV readers, for example.
  */
@@ -104,9 +99,9 @@ vips_sbuf_init(VipsSbuf *sbuf)
  * vips_sbuf_new_from_source:
  * @source: source to operate on
  *
- * Create a VipsSbuf wrapping a source.
+ * Create a [class@Sbuf] wrapping a source.
  *
- * Returns: a new #VipsSbuf
+ * Returns: a new [class@Sbuf]
  */
 VipsSbuf *
 vips_sbuf_new_from_source(VipsSource *source)
@@ -132,7 +127,7 @@ vips_sbuf_new_from_source(VipsSource *source)
  * @sbuf: source to operate on
  *
  * Discard the input buffer and reset the read point. You must call this
- * before using read or seek on the underlying #VipsSource class.
+ * before using read or seek on the underlying [class@Source] class.
  */
 void
 vips_sbuf_unbuffer(VipsSbuf *sbuf)
@@ -209,7 +204,7 @@ vips_sbuf_getc(VipsSbuf *sbuf)
  * vips_sbuf_ungetc:
  * @sbuf: source to operate on
  *
- * The opposite of vips_sbuf_getc(): undo the previous getc.
+ * The opposite of [method@Sbuf.getc]: undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file
  * does nothing.
@@ -227,7 +222,7 @@ vips_sbuf_ungetc(VipsSbuf *sbuf)
  * VIPS_SBUF_UNGETC:
  * @sbuf: source to operate on
  *
- * The opposite of vips_sbuf_getc(): undo the previous getc.
+ * The opposite of [method@Sbuf.getc]: undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file
  * does nothing.
@@ -332,7 +327,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  *
  * If the line is longer than some arbitrary (but large) limit, it is
  * truncated. If you need to be able to read very long lines, use the
- * slower vips_sbuf_get_line_copy().
+ * slower [method@Sbuf.get_line_copy].
  *
  * The return value is owned by @sbuf and must not be freed. It
  * is valid until the next get call to @sbuf.
@@ -398,9 +393,9 @@ vips_sbuf_get_line(VipsSbuf *sbuf)
  * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
- * The return result must be freed with g_free().
+ * The return result must be freed with [func@GLib.free].
  *
- * This is slower than vips_sbuf_get_line(), but can work with lines of
+ * This is slower than [method@Sbuf.get_line], but can work with lines of
  * any length.
  *
  * Returns: the next line of text, or NULL on EOF or read error.

@@ -222,7 +222,7 @@ vips_XYZ2CMYK_init(VipsXYZ2CMYK *XYZ2CMYK)
  * Turn XYZ to CMYK.
  *
  * Conversion is from D65 XYZ with relative intent. If you need more control
- * over the process, use vips_icc_export() instead.
+ * over the process, use [method@Image.icc_export] instead.
  *
  * Returns: 0 on success, -1 on error
  */

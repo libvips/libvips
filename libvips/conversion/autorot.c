@@ -90,7 +90,7 @@ vips_autorot_remove_angle_sub(VipsImage *image,
  * @image: image to remove orientation from
  *
  * Remove the orientation tag on @image. Also remove any exif orientation tags.
- * You must vips_copy() the image before calling this function since it
+ * You must [method@Image.copy] the image before calling this function since it
  * modifies metadata.
  */
 void
@@ -237,17 +237,16 @@ vips_autorot_init(VipsAutorot *autorot)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @angle: output #VipsAngle the image was rotated by
- * * @flip: output %gboolean whether the image was flipped
- *
  * Look at the image metadata and rotate and flip the image to make it
  * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent
  * accidental double rotation.
  *
  * Read @angle to find the amount the image was rotated by. Read @flip to
  * see if the image was also flipped.
+ *
+ * ::: tip "Optional arguments"
+ *     * @angle: output [enum@Angle] the image was rotated by
+ *     * @flip: output %gboolean whether the image was flipped
  *
  * Returns: 0 on success, -1 on error
  */

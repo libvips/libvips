@@ -45,23 +45,13 @@
 #include <vips/vips.h>
 
 /**
- * SECTION: rectangle
- * @short_description: the VIPS rectangle class
- * @stability: Stable
- * @see_also: <link linkend="VipsRegion">region</link>
- * @include: vips/vips.h
- *
- * The #VipsRect class and associated types and macros.
- */
-
-/**
  * VipsRect:
  * @left: left edge of rectangle
  * @top: top edge of rectangle
  * @width: width of rectangle
  * @height: height of rectangle
  *
- * A #VipsRect is a rectangular area of pixels. This is a struct for
+ * A [struct@Rect] is a rectangular area of pixels. This is a struct for
  * performing simple rectangle algebra.
  */
 
@@ -227,7 +217,7 @@ vips_rect_unionrect(const VipsRect *r1, const VipsRect *r2, VipsRect *out)
  * vips_rect_dup: (skip)
  * @r: rectangle to duplicate
  *
- * Duplicate a rect to the heap. You need to free the result with g_free().
+ * Duplicate a rect to the heap. You need to free the result with [func@GLib.free].
  *
  * Returns: (transfer full): a pointer to copy of @r allocated on the heap.
  */

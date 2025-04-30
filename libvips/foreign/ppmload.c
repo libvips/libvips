@@ -412,10 +412,10 @@ vips_foreign_load_ppm_set_image_metadata(VipsForeignLoadPpm *ppm,
 	if (ppm->index == 6 ||
 		ppm->index == 7)
 		vips_image_set_double(image,
-			"pfm-scale", VIPS_FABS(ppm->scale));
+			"pfm-scale", fabs(ppm->scale));
 	else
 		vips_image_set_double(image,
-			"ppm-max-value", VIPS_ABS(ppm->max_value));
+			"ppm-max-value", abs(ppm->max_value));
 
 	VIPS_SETSTR(image->filename,
 		vips_connection_filename(VIPS_CONNECTION(ppm->sbuf->source)));
@@ -764,7 +764,7 @@ vips_foreign_load_ppm_class_init(VipsForeignLoadPpmClass *class)
 static void
 vips_foreign_load_ppm_init(VipsForeignLoadPpm *ppm)
 {
-	ppm->scale = 1.0;
+	ppm->scale = 1.0F;
 }
 
 typedef struct _VipsForeignLoadPpmFile {
@@ -913,7 +913,8 @@ vips_foreign_load_ppm_source_init(VipsForeignLoadPpmSource *source)
  * stored in binary or in ASCII. One bit images become 8 bit VIPS images,
  * with 0 and 255 for 0 and 1.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -936,9 +937,10 @@ vips_ppmload(const char *filename, VipsImage **out, ...)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_ppmload(), but read from a source.
+ * Exactly as [ctor@Image.ppmload], but read from a source.
  *
- * See also: vips_ppmload().
+ * ::: seealso
+ *     [ctor@Image.ppmload].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -64,6 +64,7 @@ typedef enum {
 
 typedef struct _VipsFormat {
 	VipsObject parent_object;
+
 	/*< public >*/
 
 } VipsFormat;
@@ -72,25 +73,26 @@ typedef struct _VipsFormatClass {
 	VipsObjectClass parent_class;
 
 	/*< public >*/
+
 	/* Is a file in this format.
 	 */
-	gboolean (*is_a)(const char *);
+	gboolean (*is_a)(const char *filename);
 
 	/* Read just the header into the VipsImage.
 	 */
-	int (*header)(const char *, VipsImage *);
+	int (*header)(const char *filename, VipsImage *image);
 
 	/* Load the whole image.
 	 */
-	int (*load)(const char *, VipsImage *);
+	int (*load)(const char *filename, VipsImage *image);
 
 	/* Write the VipsImage to the file in this format.
 	 */
-	int (*save)(VipsImage *, const char *);
+	int (*save)(VipsImage *image, const char *filename);
 
 	/* Get the flags for this file in this format.
 	 */
-	VipsFormatFlags (*get_flags)(const char *);
+	VipsFormatFlags (*get_flags)(const char *filename);
 
 	/* Loop over formats in this order, default 0. We need this because
 	 * some formats can be read by several loaders (eg. tiff can be read

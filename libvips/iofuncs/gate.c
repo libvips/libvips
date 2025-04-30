@@ -70,8 +70,6 @@ typedef struct _VipsThreadGate {
  */
 
 typedef struct _VipsThreadProfile {
-	/*< private >*/
-
 	const char *name;
 	GThread *thread;
 	GHashTable *gates;
@@ -136,7 +134,7 @@ vips_thread_profile_save_cb(gpointer key, gpointer value, gpointer data)
 static void
 vips_thread_profile_save(VipsThreadProfile *profile)
 {
-	g_mutex_lock(vips__global_lock);
+	g_mutex_lock(&vips__global_lock);
 
 	VIPS_DEBUG_MSG("vips_thread_profile_save: %s\n", profile->name);
 
@@ -144,7 +142,7 @@ vips_thread_profile_save(VipsThreadProfile *profile)
 		vips__thread_fp =
 			vips__file_open_write("vips-profile.txt", TRUE);
 		if (!vips__thread_fp) {
-			g_mutex_unlock(vips__global_lock);
+			g_mutex_unlock(&vips__global_lock);
 			g_warning("unable to create profile log");
 			return;
 		}
@@ -157,7 +155,7 @@ vips_thread_profile_save(VipsThreadProfile *profile)
 		vips_thread_profile_save_cb, vips__thread_fp);
 	vips_thread_profile_save_gate(profile->memory, vips__thread_fp);
 
-	g_mutex_unlock(vips__global_lock);
+	g_mutex_unlock(&vips__global_lock);
 }
 
 static void
@@ -252,7 +250,7 @@ vips_thread_profile_get(void)
 /* This usually happens automatically when a thread shuts down, but that will
  * not happen for the main thread.
  *
- * Shut down any stats on the main thread with this, see vips_shutdown()
+ * Shut down any stats on the main thread with this, see vips_shutdown().
  */
 void
 vips__thread_profile_detach(void)

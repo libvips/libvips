@@ -366,25 +366,20 @@ vips_stdif_init(VipsStdif *stdif)
  * @height: height of region
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * [method@Image.stdif] performs statistical differencing according to the
+ * formula given in page 45 of the book "An Introduction to Digital Image
+ * Processing" by Wayne Niblack.
  *
- * * @a: weight of new mean
- * * @m0: target mean
- * * @b: weight of new deviation
- * * @s0: target deviation
- *
- * vips_stdif() performs statistical differencing according to the formula
- * given in page 45 of the book "An Introduction to Digital Image
- * Processing" by Wayne Niblack. This transformation emphasises the way in
+ * This transformation emphasises the way in
  * which a pel differs statistically from its neighbours. It is useful for
  * enhancing low-contrast images with lots of detail, such as X-ray plates.
  *
  * At point (i,j) the output is given by the equation:
  *
- * |[
+ * ```
  * vout(i,j) = @a * @m0 + (1 - @a) * meanv +
  *       (vin(i,j) - meanv) * (@b * @s0) / (@s0 + @b * stdv)
- * ]|
+ * ```
  *
  * Values @a, @m0, @b and @s0 are entered, while meanv and stdv are the values
  * calculated over a moving window of size @width, @height centred on pixel
@@ -393,15 +388,22 @@ vips_stdif_init(VipsStdif *stdif)
  *
  * Try:
  *
- * |[
+ * ```
  * vips stdif $VIPSHOME/pics/huysum.v fred.v 0.5 128 0.5 50 11 11
- * ]|
+ * ```
  *
  * The operation works on one-band uchar images only, and writes a one-band
  * uchar image as its result. The output image has the same size as the
  * input.
  *
- * See also: vips_hist_local().
+ * ::: tip "Optional arguments"
+ *     * @a: %gdouble, weight of new mean
+ *     * @m0: %gdouble, target mean
+ *     * @b: %gdouble, weight of new deviation
+ *     * @s0: %gdouble, target deviation
+ *
+ * ::: seealso
+ *     [method@Image.hist_local].
  *
  * Returns: 0 on success, -1 on error
  */

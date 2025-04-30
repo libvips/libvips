@@ -64,6 +64,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcreate.h"
 
@@ -214,16 +215,18 @@ vips_gaussnoise_init(VipsGaussnoise *gaussnoise)
  * @height: output height
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @mean: mean of generated pixels
- * * @sigma: standard deviation of generated pixels
- *
  * Make a one band float image of gaussian noise with the specified
- * distribution. The noise distribution is created by averaging 12 random
- * numbers with the appropriate weights.
+ * distribution.
  *
- * See also: vips_black(), vips_xyz(), vips_text().
+ * The gaussian distribution is created by averaging 12 random numbers from a
+ * linear generator, then weighting appropriately with @mean and @sigma.
+ *
+ * ::: tip "Optional arguments"
+ *     * @mean: %gdouble, mean of generated pixels
+ *     * @sigma: %gdouble, standard deviation of generated pixels
+ *
+ * ::: seealso
+ *     [ctor@Image.black], [ctor@Image.xyz], [ctor@Image.text].
  *
  * Returns: 0 on success, -1 on error
  */

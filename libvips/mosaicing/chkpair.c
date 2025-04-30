@@ -82,10 +82,11 @@
  *
  * Only  the  first  band  of each image is correlated. @ref and @sec may be
  * very large --- the function  extracts  and  generates  just  the
- * parts needed.  Correlation is done with vips_spcor(); the position of
- * the maximum is found with vips_max().
+ * parts needed.  Correlation is done with [method@Image.spcor]; the position
+ * of the maximum is found with [method@Image.max].
  *
- * See also: vips_match(), vips__lrmosaic().
+ * ::: seealso
+ *     [method@Image.match], [method@Image.mosaic].
  *
  * Returns: 0 on success, -1 on error
  */

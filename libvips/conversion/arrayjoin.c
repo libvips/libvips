@@ -64,7 +64,7 @@ typedef struct _VipsArrayjoin {
 	VipsArrayImage *in;
 	int across;
 	int shim;
-	VipsArea *background;
+	VipsArrayDouble *background;
 	VipsAlign halign;
 	VipsAlign valign;
 	int hspacing;
@@ -224,7 +224,7 @@ vips_arrayjoin_build(VipsObject *object)
 	 */
 	band = (VipsImage **) vips_object_local_array(object, n);
 	if (vips__bandalike_vec(class->nickname,
-			in, band, n, join->background->n))
+			in, band, n, VIPS_AREA(join->background)->n))
 		return -1;
 	in = band;
 
@@ -240,15 +240,15 @@ vips_arrayjoin_build(VipsObject *object)
 	}
 
 	if (!vips_object_argument_isset(object, "hspacing"))
-		join->hspacing = hspacing;
+		join->hspacing = hspacing; // FIXME: Invalidates operation cache
 	if (!vips_object_argument_isset(object, "vspacing"))
-		join->vspacing = vspacing;
+		join->vspacing = vspacing; // FIXME: Invalidates operation cache
 
 	hspacing = join->hspacing;
 	vspacing = join->vspacing;
 
 	if (!vips_object_argument_isset(object, "across"))
-		join->across = n;
+		join->across = n; // FIXME: Invalidates operation cache
 
 	/* How many images down the grid?
 	 */
@@ -452,9 +452,7 @@ vips_arrayjoin_init(VipsArrayjoin *join)
 {
 	/* Init our instance fields.
 	 */
-	join->background =
-		vips_area_new_array(G_TYPE_DOUBLE, sizeof(double), 1);
-	((double *) (join->background->data))[0] = 0.0;
+	join->background = vips_array_double_newv(1, 0.0);
 }
 
 static int
@@ -476,16 +474,6 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * @out: (out): output image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @across: %gint, number of images per row
- * * @shim: %gint, space between images, in pixels
- * * @background: #VipsArrayDouble, background ink colour
- * * @halign: #VipsAlign, low, centre or high alignment
- * * @valign: #VipsAlign, low, centre or high alignment
- * * @hspacing: %gint, horizontal distance between images
- * * @vspacing: %gint, vertical distance between images
  *
  * Lay out the images in @in in a grid. The grid is @across images across and
  * however high is necessary to use up all of @in. Images are set down
@@ -511,12 +499,22 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  *
  * The input images are cast up to the smallest common type (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>).
+ * [arithmetic](libvips-arithmetic.html)).
  *
- * vips_colourspace() can be useful for moving the images to a common
+ * [method@Image.colourspace] can be useful for moving the images to a common
  * colourspace for compositing.
  *
- * See also: vips_join(), vips_insert(), vips_colourspace().
+ * ::: tip "Optional arguments"
+ *     * @across: %gint, number of images per row
+ *     * @shim: %gint, space between images, in pixels
+ *     * @background: [struct@ArrayDouble], background ink colour
+ *     * @halign: [enum@Align], low, centre or high alignment
+ *     * @valign: [enum@Align], low, centre or high alignment
+ *     * @hspacing: %gint, horizontal distance between images
+ *     * @vspacing: %gint, vertical distance between images
+ *
+ * ::: seealso
+ *     [method@Image.join], [method@Image.insert], [method@Image.colourspace].
  *
  * Returns: 0 on success, -1 on error
  */

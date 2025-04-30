@@ -95,23 +95,7 @@ G_DEFINE_TYPE(VipsFwfft, vips_fwfft, VIPS_TYPE_FREQFILT);
 
 /* Everything in fftw3 except execute has to be behind a mutex.
  */
-GMutex *vips__fft_lock = NULL;
-
-static void *
-vips__fft_thread_init(void *data)
-{
-	vips__fft_lock = vips_g_mutex_new();
-
-    return NULL;
-}
-
-void
-vips__fft_init(void)
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE(&once, vips__fft_thread_init, NULL);
-}
+GMutex vips__fft_lock;
 
 /* Real to complex forward transform.
  */
@@ -152,23 +136,23 @@ rfwfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 	if (!(half_complex = VIPS_ARRAY(fwfft,
 			  in->Ysize * half_width * 2, double)))
 		return -1;
-	g_mutex_lock(vips__fft_lock);
+	g_mutex_lock(&vips__fft_lock);
 	if (!(plan = fftw_plan_dft_r2c_2d(in->Ysize, in->Xsize,
 			  planner_scratch, (fftw_complex *) half_complex,
 			  0))) {
-		g_mutex_unlock(vips__fft_lock);
+		g_mutex_unlock(&vips__fft_lock);
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
 		return -1;
 	}
-	g_mutex_unlock(vips__fft_lock);
+	g_mutex_unlock(&vips__fft_lock);
 
 	fftw_execute_dft_r2c(plan,
 		(double *) t[1]->data, (fftw_complex *) half_complex);
 
-	g_mutex_lock(vips__fft_lock);
+	g_mutex_lock(&vips__fft_lock);
 	fftw_destroy_plan(plan);
-	g_mutex_unlock(vips__fft_lock);
+	g_mutex_unlock(&vips__fft_lock);
 
 	/* Write to out as another memory buffer.
 	 */
@@ -271,25 +255,25 @@ cfwfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 
 	/* Make the plan for the transform.
 	 */
-	g_mutex_lock(vips__fft_lock);
+	g_mutex_lock(&vips__fft_lock);
 	if (!(plan = fftw_plan_dft_2d(in->Ysize, in->Xsize,
 			  (fftw_complex *) planner_scratch,
 			  (fftw_complex *) planner_scratch,
 			  FFTW_FORWARD,
 			  0))) {
-		g_mutex_unlock(vips__fft_lock);
+		g_mutex_unlock(&vips__fft_lock);
 		vips_error(class->nickname,
 			"%s", _("unable to create transform plan"));
 		return -1;
 	}
-	g_mutex_unlock(vips__fft_lock);
+	g_mutex_unlock(&vips__fft_lock);
 
 	fftw_execute_dft(plan,
 		(fftw_complex *) t[1]->data, (fftw_complex *) t[1]->data);
 
-	g_mutex_lock(vips__fft_lock);
+	g_mutex_lock(&vips__fft_lock);
 	fftw_destroy_plan(plan);
-	g_mutex_unlock(vips__fft_lock);
+	g_mutex_unlock(&vips__fft_lock);
 
 	/* Write to out as another memory buffer.
 	 */
@@ -331,8 +315,6 @@ vips_fwfft_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *in;
-
-	vips__fft_init();
 
 	if (VIPS_OBJECT_CLASS(vips_fwfft_parent_class)->build(object))
 		return -1;
@@ -388,7 +370,8 @@ vips_fwfft_init(VipsFwfft *fwfft)
  * VIPS uses the fftw Fourier Transform library. If this library was not
  * available when VIPS was configured, these functions will fail.
  *
- * See also: vips_invfft().
+ * ::: seealso
+ *     [method@Image.invfft].
  *
  * Returns: 0 on success, -1 on error.
  */

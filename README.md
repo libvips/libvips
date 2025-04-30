@@ -22,7 +22,7 @@ operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
 types](https://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, JPEG2000, JPEG-XL,
+It supports a good range of image formats, including JPEG, JPEG 2000, JPEG XL,
 TIFF, PNG, WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM /
 PFM, CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load
 images via ImageMagick or GraphicsMagick, letting it work with formats
@@ -56,7 +56,7 @@ libvips is used as an image processing engine by:
 | [bimg](https://github.com/h2non/bimg) |
 | [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
-| [carrierwave-vips](https://github.com/eltiare/carrierwave-vips) |
+| [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips) |
 | [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler) |
 | [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) |
 | [JVips](https://github.com/criteo/JVips) |
@@ -115,10 +115,10 @@ configuration.
 
 - Add `--default-library static` for a static build.
 
-- Use eg. `CC=clang CXX=clang++ meson setup ...` to change compiler.
+- Use e.g. `CC=clang CXX=clang++ meson setup ...` to change compiler.
 
-- You can have many `build-dir`, pick whatever names you like, for example
-  one for release and one for debug.
+- You can have an alternative build directory, pick whatever names you like,
+  for example one for release and one for debug.
 
 There's a more comprehensive test suite you can run once libvips has been
 installed. Use `pytest` in the libvips base directory.

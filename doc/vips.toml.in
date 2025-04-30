@@ -1,0 +1,98 @@
+[library]
+name = "Vips"
+version = "@VIPS_VERSION@"
+browse_url = "https://github.com/libvips/libvips"
+repository_url = "https://github.com/libvips/libvips.git"
+website_url = "https://www.libvips.org"
+docs_url = "https://www.libvips.org/API/@VIPS_VERSION@/"
+authors = "libvips team and contributors"
+license = "LGPL-2.1-or-later"
+description = "The libvips image processing library"
+search_index = true
+
+# List the dependencies using their GIR namespace
+dependencies = ["GObject-2.0"]
+
+  [dependencies."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
+
+related = ["GObject-2.0"]
+
+  [related."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
+
+[theme]
+name = "basic"
+show_class_hierarchy = true
+show_index_summary = true
+
+[source-location]
+# The base URL for accessing a file in the repository
+base_url = "https://github.com/libvips/libvips/blob/master/"
+
+[extra]
+# The same order will be used when generating the index
+content_files = [
+  "using-the-cli.md",
+  "using-from-c.md",
+  "using-from-cplusplus.md",
+  "making-image-pyramids.md",
+  "multipage-and-animated-images.md",
+  "using-vipsthumbnail.md",
+  "using-threads.md",
+  "developer-checklist.md",
+  "examples.md",
+
+  "function-list.md",
+  "libvips-basic.md",
+  "libvips-memory.md",
+  "libvips-error.md",
+  "libvips-vips.md",
+  "libvips-arithmetic.md",
+  "libvips-colour.md",
+  "libvips-conversion.md",
+  "libvips-convolution.md",
+  "libvips-create.md",
+  "libvips-draw.md",
+  "libvips-freqfilt.md",
+  "libvips-generate.md",
+  "libvips-header.md",
+  "libvips-histogram.md",
+  "libvips-morphology.md",
+  "libvips-mosaicing.md",
+  "libvips-resample.md",
+
+  "how-it-works.md",
+  "how-it-opens-files.md",
+  "file-format.md",
+
+  "extending.md",
+  "binding.md",
+
+  "cite.md",
+
+]
+content_images = [
+  "images/Combine.png",
+  "images/interconvert.png",
+  "images/Memtrace.png",
+  "images/owl.jpg",
+  "images/Sequence.png",
+  "images/Sink.png",
+  "images/tn_owl.jpg",
+  "images/Vips-smp.png",
+]
+content_base_url = "https://github.com/libvips/libvips/blob/master/doc/"
+urlmap_file = "urlmap.js"
+
+[check]
+ignore_deprecated = true
+
+# Hide the following types from the docs
+[[object]]
+name = "Token"
+hidden = true

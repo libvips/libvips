@@ -55,7 +55,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #define BRIGHT 255
 #define GREY 128

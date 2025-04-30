@@ -149,7 +149,7 @@ vips_gamma_class_init(VipsGammaClass *class)
 		_("Gamma factor"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsGamma, exponent),
-		0.000001, 1000.0, 2.4);
+		0.000001, 1000.0, 1.0 / 2.4);
 }
 
 static void
@@ -164,14 +164,14 @@ vips_gamma_init(VipsGamma *gamma)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @exponent: gamma, default 1.0 / 2.4
- *
  * Calculate @in ** (1 / @exponent), normalising to the maximum range of the
  * input type. For float types use 1.0 as the maximum.
  *
- * See also: vips_identity(), vips_pow_const1(), vips_maplut()
+ * ::: tip "Optional arguments"
+ *     * @exponent: %gdouble, gamma, default 1.0 / 2.4
+ *
+ * ::: seealso
+ *     [ctor@Image.identity], [method@Image.pow_const1], [method@Image.maplut]
  *
  * Returns: 0 on success, -1 on error
  */

@@ -97,7 +97,7 @@ G_DEFINE_TYPE(VipsDivide, vips_divide, VIPS_TYPE_BINARY);
 				q[0] = 0.0; \
 				q[1] = 0.0; \
 			} \
-			else if (VIPS_FABS(right[0]) > VIPS_FABS(right[1])) { \
+			else if (fabs(right[0]) > fabs(right[1])) { \
 				double a = right[1] / right[0]; \
 				double b = right[0] + right[1] * a; \
 \
@@ -220,7 +220,7 @@ vips_divide_init(VipsDivide *divide)
 }
 
 /**
- * vips_divide:
+ * vips_divide: (method)
  * @left: input image
  * @right: input image
  * @out: (out): output image
@@ -239,67 +239,29 @@ vips_divide_init(VipsDivide *divide)
  *
  * The two input images are cast up to the smallest common format (see table
  * Smallest common format in
- * <link linkend="libvips-arithmetic">arithmetic</link>), then the
+ * [arithmetic](libvips-arithmetic.html)), then the
  * following table is used to determine the output type:
  *
- * <table>
- *   <title>vips_divide() type promotion</title>
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>input type</entry>
- *         <entry>output type</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>uchar</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>char</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>ushort</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>short</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>uint</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>int</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>float</entry>
- *         <entry>float</entry>
- *       </row>
- *       <row>
- *         <entry>double</entry>
- *         <entry>double</entry>
- *       </row>
- *       <row>
- *         <entry>complex</entry>
- *         <entry>complex</entry>
- *       </row>
- *       <row>
- *         <entry>double complex</entry>
- *         <entry>double complex</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * </table>
+ * ## [method@Image.divide] type promotion
+ *
+ * | input type     | output type    |
+ * |----------------|----------------|
+ * | uchar          | float          |
+ * | char           | float          |
+ * | ushort         | float          |
+ * | short          | float          |
+ * | uint           | float          |
+ * | int            | float          |
+ * | float          | float          |
+ * | double         | double         |
+ * | complex        | complex        |
+ * | double complex | double complex |
  *
  * In other words, the output type is just large enough to hold the whole
  * range of possible values.
  *
- * See also: vips_multiply(), vips_linear(), vips_pow().
+ * ::: seealso
+ *     [method@Image.multiply], [method@Image.linear], [method@Image.pow].
  *
  * Returns: 0 on success, -1 on error
  */

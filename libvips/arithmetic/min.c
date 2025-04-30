@@ -337,7 +337,7 @@ vips_min_stop(VipsStatistic *statistic, void *seq)
 		TYPE m; \
 \
 		for (i = 0; i < sz && values->n < values->size; i++) \
-			if (!VIPS_ISNAN(p[i])) \
+			if (!isnan(p[i])) \
 				vips_values_add(values, p[i], x + i / bands, y); \
 		m = values->value[0]; \
 \
@@ -358,7 +358,7 @@ vips_min_stop(VipsStatistic *statistic, void *seq)
 		for (i = 0; i < sz && values->n < values->size; i++) { \
 			TYPE mod2 = p[0] * p[0] + p[1] * p[1]; \
 \
-			if (!VIPS_ISNAN(mod2)) \
+			if (!isnan(mod2)) \
 				vips_values_add(values, p[i], x + i / bands, y); \
 \
 			p += 2; \
@@ -474,7 +474,7 @@ vips_min_class_init(VipsMinClass *class)
 		_("Number of minimum values to find"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsMin, size),
-		1, 1000000, 10);
+		1, 1000000, 1);
 
 	VIPS_ARG_BOXED(class, "out_array", 6,
 		_("Output array"),
@@ -506,18 +506,9 @@ vips_min_init(VipsMin *min)
 
 /**
  * vips_min: (method)
- * @in: input #VipsImage
+ * @in: input [class@Image]
  * @out: (out): output pixel minimum
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @x: horizontal position of minimum
- * * @y: vertical position of minimum
- * * @size: number of minima to find
- * * @out_array: return array of minimum values
- * * @x_array: corresponding horizontal positions
- * * @y_array: corresponding vertical positions
  *
  * This operation finds the minimum value in an image.
  *
@@ -527,7 +518,7 @@ vips_min_init(VipsMin *min)
  * Equal values will be sorted by y then x.
  *
  * It operates on all
- * bands of the input image: use vips_stats() if you need to find an
+ * bands of the input image: use [method@Image.stats] if you need to find an
  * minimum for each band.
  *
  * For complex images, this operation finds the minimum modulus.
@@ -541,7 +532,16 @@ vips_min_init(VipsMin *min)
  * If there are more than @size minima, the minima returned will be a random
  * selection of the minima in the image.
  *
- * See also: vips_min(), vips_stats().
+ * ::: tip "Optional arguments"
+ *     * @x: horizontal position of minimum
+ *     * @y: vertical position of minimum
+ *     * @size: number of minima to find
+ *     * @out_array: return array of minimum values
+ *     * @x_array: corresponding horizontal positions
+ *     * @y_array: corresponding vertical positions
+ *
+ * ::: seealso
+ *     [method@Image.min], [method@Image.stats].
  *
  * Returns: 0 on success, -1 on error
  */

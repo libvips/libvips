@@ -44,7 +44,6 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
@@ -238,7 +237,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-	sink_base->processed += state->pos.width * state->pos.height;
+	sink_base->processed += (guint64) state->pos.width * state->pos.height;
 
 	return 0;
 }
@@ -447,9 +446,9 @@ vips_sink_base_progress(void *a)
  * @im: scan over this image
  * @tile_width: tile width
  * @tile_height: tile height
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *
@@ -461,7 +460,8 @@ vips_sink_base_progress(void *a)
  * image edges). This is handy for things like writing a tiled TIFF image,
  * where tiles have to be generated with a certain size.
  *
- * See also: vips_sink(), vips_get_tile_size().
+ * ::: seealso
+ *     [method@Image.sink], [method@Image.get_tile_size].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -514,21 +514,22 @@ vips_sink_tile(VipsImage *im,
 /**
  * vips_sink: (method)
  * @im: scan over this image
- * @start_fn: start sequences with this function
- * @generate_fn: generate pixels with this function
- * @stop_fn: stop sequences with this function
+ * @start_fn: (scope async): start sequences with this function
+ * @generate_fn: (scope async): generate pixels with this function
+ * @stop_fn: (scope async): stop sequences with this function
  * @a: user data
  * @b: user data
  *
  * Loops over an image. @generate_fn is called for every pixel in
- * the image, with
- * the @reg argument being a region of calculated pixels. vips_sink() is
- * used to implement operations like vips_avg() which have no image output.
+ * the image, with the @reg argument being a region of calculated pixels.
+ * [method@Image.sink] is used to implement operations like
+ * [method@Image.avg] which have no image output.
  *
  * Each set of pixels is sized according to the requirements of the image
  * pipeline that generated @im.
  *
- * See also: vips_image_generate(), vips_image_new().
+ * ::: seealso
+ *     [method@Image.generate], [ctor@Image.new].
  *
  * Returns: 0 on success, or -1 on error.
  */

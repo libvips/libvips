@@ -46,11 +46,7 @@
 #include <vips/buf.h>
 
 /**
- * SECTION: buf
- * @short_description: a string you can append to
- * @stability: Stable
- * @see_also: #vips
- * @include: vips/vips.h
+ * VipsBuf:
  *
  * A message buffer you can append stuff to safely and quickly. If the message
  * gets too long, you get "..." and truncation. Message buffers can be on the
@@ -58,19 +54,19 @@
  *
  * For example:
  *
- * |[
+ * ```c
  * char txt[256];
  * VipsBuf buf = VIPS_BUF_STATIC(txt);
  * int i;
  *
  * vips_buf_appends(&buf, "Numbers are: ");
- * for (i = 0; i &lt; array_length; i++) {
- *   if (i &gt; 0)
+ * for (i = 0; i < array_length; i++) {
+ *   if (i > 0)
  *     vips_buf_appends(&buf, ", ");
  *   vips_buf_appendg(&buf, array[i]);
  * }
  * printf("%s", vips_buf_all(&buf));
- * ]|
+ * ```
  */
 
 /**
@@ -79,10 +75,10 @@
  *
  * Initialize a heap buffer. For example:
  *
- * |[
+ * ```c
  * char txt[256];
  * VipsBuf buf = VIPS_BUF_STATIC(txt);
- * ]|
+ * ```
  */
 
 /**
@@ -162,17 +158,17 @@ vips_buf_set_static(VipsBuf *buf, char *base, int mx)
  * @base: the start of the memory area to use for storage
  * @mx: the size of the storage area
  *
- * Initialise and attach to a static memory area. VIPS_BUF_STATIC() is usually
+ * Initialise and attach to a static memory area. [func@BUF_STATIC] is usually
  * more convenient.
  *
  * For example:
  *
- * |[
+ * ```c
  * char txt[256];
  * VipsBuf buf;
  *
  * vips_buf_init_static(&buf, txt, 256);
- * ]|
+ * ```
  *
  * Static buffers don't need to be freed when they go out of scope, but their
  * size must be set at compile-time.
@@ -224,13 +220,13 @@ vips_buf_set_dynamic(VipsBuf *buf, int mx)
  * Initialise and attach to a heap memory area.
  * The memory area needs to be at least 4 bytes long.
  *
- * |[
+ * ```c
  * VipsBuf buf;
  *
- * vips_buf_init_synamic(&buf, 256);
- * ]|
+ * vips_buf_init_dynamic(&buf, 256);
+ * ```
  *
- * Dynamic buffers must be freed with vips_buf_destroy(), but their size can
+ * Dynamic buffers must be freed with [method@Buf.destroy], but their size can
  * be set at runtime.
  */
 void
@@ -247,7 +243,7 @@ vips_buf_init_dynamic(VipsBuf *buf, int mx)
  * @sz: the size of the string to append
  *
  * Append at most @sz chars from @str to @buf. @sz < 0 means unlimited. This
- * is the low-level append operation: functions like vips_buf_appendf() build
+ * is the low-level append operation: functions like [method@Buf.appendf] build
  * on top of this.
  *
  * Returns: %FALSE on overflow, %TRUE otherwise.
@@ -279,7 +275,7 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 
 	cpy = VIPS_MIN(n, avail);
 
-	/* Can't use g_strlcpy() here, we don't want to drop the end of the
+	/* Can't use [func@GLib.strlcpy] here, we don't want to drop the end of the
 	 * string.
 	 *
 	 * gcc10.3 (I think?) issues a false-positive warning about this.
@@ -401,10 +397,10 @@ vips_buf_removec(VipsBuf *buf, char ch)
 /**
  * vips_buf_vappendf:
  * @buf: the buffer
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @ap: arguments to format string
  *
- * Append to @buf, args as <function>vprintf()</function>.
+ * Append to @buf, args as [`vprintf()`](man:vprintf(3)).
  *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
@@ -417,7 +413,10 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 	if (buf->full)
 		return FALSE;
 
-	avail = buf->mx - buf->i - 4;
+	// -3 to leave space for "..."
+	// not -4, since the terminating \0 will already be on the string written
+	// by [func@GLib.vsnprintf]
+	avail = buf->mx - buf->i - 3;
 	p = buf->base + buf->i;
 	(void) g_vsnprintf(p, avail, fmt, ap);
 	buf->i += strlen(p);
@@ -435,7 +434,7 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 /**
  * vips_buf_appendf:
  * @buf: the buffer
- * @fmt: <function>printf()</function>-style format string
+ * @fmt: `printf()`-style format string
  * @...: arguments to format string
  *
  * Format the string and append to @buf.
@@ -501,7 +500,7 @@ vips_buf_appendd(VipsBuf *buf, int d)
  * Format and append a #GValue as a printable thing. We display text line "3144
  * bytes of binary data" for BLOBs like icc-profile-data.
  *
- * Use vips_image_get_as_string() to make a text representation of a field.
+ * Use [method@Image.get_as_string] to make a text representation of a field.
  * That will base64-encode blobs, for example.
  *
  * Returns: %FALSE on overflow, %TRUE otherwise.

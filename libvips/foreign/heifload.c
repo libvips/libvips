@@ -351,9 +351,17 @@ vips_foreign_load_heif_build(VipsObject *object)
 
 		heif->ctx = heif_context_alloc();
 #ifdef HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT
+		/* heifsave is limited to a maximum image size of 16384x16384,
+		 * so align the heifload defaults accordingly.
+		 */
 		heif_context_set_maximum_image_size_limit(heif->ctx,
 			heif->unlimited ? USHRT_MAX : 0x4000);
 #endif /* HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT */
+#ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
+		if (heif->unlimited)
+			heif_context_set_security_limits(heif->ctx,
+				heif_get_disabled_security_limits());
+#endif /* HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS */
 		error = heif_context_read_from_reader(heif->ctx,
 			heif->reader, heif, NULL);
 		if (error.code) {
@@ -810,10 +818,10 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	 */
 	if (!vips_object_argument_isset(VIPS_OBJECT(load), "page") &&
 		!vips_object_argument_isset(VIPS_OBJECT(load), "n"))
-		heif->page = heif->primary_page;
+		heif->page = heif->primary_page; // FIXME: Invalidates operation cache
 
 	if (heif->n == -1)
-		heif->n = heif->n_top - heif->page;
+		heif->n = heif->n_top - heif->page; // FIXME: Invalidates operation cache
 	if (heif->page < 0 ||
 		heif->n <= 0 ||
 		heif->page + heif->n > heif->n_top) {
@@ -993,7 +1001,7 @@ vips_foreign_load_heif_generate(VipsRegion *out_region,
 	}
 
 	memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
-		heif->data + heif->stride * line,
+		heif->data + (size_t) heif->stride * line,
 		VIPS_IMAGE_SIZEOF_LINE(out_region->im));
 
 	/* We may need to swap bytes and shift to fill 16 bits.
@@ -1107,12 +1115,14 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadHeif, autorotate),
 		FALSE);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	VIPS_ARG_BOOL(class, "unlimited", 22,
 		_("Unlimited"),
 		_("Remove all denial of service limits"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadHeif, unlimited),
 		FALSE);
+#endif
 }
 
 static gint64
@@ -1175,7 +1185,7 @@ vips_foreign_load_heif_wait_for_file_size(gint64 target_size, void *userdata)
 	result = vips_source_seek(heif->source, target_size, SEEK_SET);
 	vips_source_seek(heif->source, old_position, SEEK_SET);
 
-	if (result < 0)
+	if (result < 0 || old_position < 0)
 		/* Unable to seek to this point, so it's beyond EOF.
 		 */
 		status = heif_reader_grow_status_size_beyond_eof;

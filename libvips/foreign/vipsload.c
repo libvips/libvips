@@ -42,6 +42,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* For vips_image_new_mode()
+ */
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 
@@ -326,7 +329,8 @@ vips_foreign_load_vips_source_init(VipsForeignLoadVipsSource *source)
  *
  * Read in a vips image.
  *
- * See also: vips_vipssave().
+ * ::: seealso
+ *     [method@Image.vipssave].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -349,7 +353,7 @@ vips_vipsload(const char *filename, VipsImage **out, ...)
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_vipsload(), but read from a source.
+ * Exactly as [ctor@Image.vipsload], but read from a source.
  *
  * Returns: 0 on success, -1 on error.
  */

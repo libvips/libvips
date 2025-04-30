@@ -34,6 +34,12 @@
 #ifndef VIPS_VIPS7COMPAT_H
 #define VIPS_VIPS7COMPAT_H
 
+#include <vips/mask.h>
+
+#ifdef HAVE_ORC
+#include <orc/orc.h>
+#endif /* HAVE_ORC */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -1656,14 +1662,6 @@ size_t vips__get_sizeof_vipsobject(void);
 
 /* This is deprecated to make room for highway.
  */
-typedef struct _OrcProgram {
-	/* Opaque */
-} OrcProgram;
-
-typedef struct _OrcExecutor {
-	char data[808];
-} OrcExecutor;
-
 #define VIPS_VECTOR_SOURCE_MAX (10)
 
 typedef struct {
@@ -1685,13 +1683,17 @@ typedef struct {
 
 	int d1;
 
+#ifdef HAVE_ORC
 	OrcProgram *program;
+#endif /*HAVE_ORC*/
 
 	gboolean compiled;
 } VipsVector;
 
 typedef struct {
+#ifdef HAVE_ORC
 	OrcExecutor executor;
+#endif /*HAVE_ORC*/
 
 	VipsVector *vector;
 } VipsExecutor;
@@ -1760,6 +1762,7 @@ void vips_vector_to_fixed_point(double *in, int *out, int n, int scale);
 
 #include <vips/dispatch.h>
 #include <vips/almostdeprecated.h>
+#include <vips/video.h>
 
 #ifdef __cplusplus
 }

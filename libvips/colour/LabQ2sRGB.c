@@ -136,11 +136,11 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 		float v;
 
 		if (f <= 0.0031308)
-			v = 12.92 * f;
+			v = 12.92F * f;
 		else
-			v = (1.0 + 0.055) * pow(f, 1.0 / 2.4) - 0.055;
+			v = (1.0F + 0.055F) * powf(f, 1.0F / 2.4F) - 0.055F;
 
-		Y2v[i] = VIPS_RINT((range - 1) * v);
+		Y2v[i] = rintf((range - 1) * v);
 	}
 
 	/* Copy the final element. This is used in the piecewise linear
@@ -152,9 +152,9 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 		float f = (float) i / (range - 1);
 
 		if (f <= 0.04045)
-			v2Y[i] = f / 12.92;
+			v2Y[i] = f / 12.92F;
 		else
-			v2Y[i] = pow((f + 0.055) / (1 + 0.055), 2.4);
+			v2Y[i] = powf((f + 0.055F) / (1 + 0.055F), 2.4F);
 	}
 }
 
@@ -222,7 +222,8 @@ vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B)
  *
  * Turn scRGB into XYZ.
  *
- * See also: vips_scRGB2XYZ().
+ * ::: seealso
+ *     [method@Image.scRGB2XYZ].
  */
 int
 vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
@@ -231,15 +232,15 @@ vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
 	G *= SCALE;
 	B *= SCALE;
 
-	*X = 0.4124 * R +
-		0.3576 * G +
-		0.1805 * B;
-	*Y = 0.2126 * R +
-		0.7152 * G +
-		0.0722 * B;
-	*Z = 0.0193 * R +
-		0.1192 * G +
-		0.9505 * B;
+	*X = 0.4124F * R +
+		0.3576F * G +
+		0.1805F * B;
+	*Y = 0.2126F * R +
+		0.7152F * G +
+		0.0722F * B;
+	*Z = 0.0193F * R +
+		0.1192F * G +
+		0.9505F * B;
 
 	return 0;
 }
@@ -255,7 +256,8 @@ vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
  *
  * Turn XYZ into scRGB.
  *
- * See also: vips_XYZ2scRGB().
+ * ::: seealso
+ *     [method@Image.XYZ2scRGB].
  */
 int
 vips_col_XYZ2scRGB(float X, float Y, float Z, float *R, float *G, float *B)
@@ -266,15 +268,15 @@ vips_col_XYZ2scRGB(float X, float Y, float Z, float *R, float *G, float *B)
 
 	/* Use 6 decimal places of precision for the inverse matrix.
 	 */
-	*R = 3.240625 * X +
-		-1.537208 * Y +
-		-0.498629 * Z;
-	*G = -0.968931 * X +
-		1.875756 * Y +
-		0.041518 * Z;
-	*B = 0.055710 * X +
-		-0.204021 * Y +
-		1.056996 * Z;
+	*R = 3.240625F * X +
+		-1.537208F * Y +
+		-0.498629F * Z;
+	*G = -0.968931F * X +
+		1.875756F * Y +
+		0.041518F * Z;
+	*B = 0.055710F * X +
+		-0.204021F * Y +
+		1.056996F * Z;
 
 	return 0;
 }
@@ -303,7 +305,7 @@ vips_col_scRGB2sRGB(int range, int *lut,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers.
 	 */
-	if (VIPS_ISNAN(R) || VIPS_ISNAN(G) || VIPS_ISNAN(B)) {
+	if (isnan(R) || isnan(G) || isnan(B)) {
 		*r = 0;
 		*g = 0;
 		*b = 0;
@@ -337,19 +339,19 @@ vips_col_scRGB2sRGB(int range, int *lut,
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*r = VIPS_RINT(v);
+	*r = rintf(v);
 
 	Yf = G * maxval;
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*g = VIPS_RINT(v);
+	*g = rintf(v);
 
 	Yf = B * maxval;
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*b = VIPS_RINT(v);
+	*b = rintf(v);
 
 	if (og_ret)
 		*og_ret = og;
@@ -394,12 +396,12 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 
 	/* CIE linear luminance function, see https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
 	 */
-	Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+	Y = 0.2126F * R + 0.7152F * G + 0.0722F * B;
 
 	/* Y can be Nan. Throw those values out, they will break
 	 * our clipping.
 	 */
-	if (VIPS_ISNAN(Y)) {
+	if (isnan(Y)) {
 		*g = 0;
 
 		return -1;
@@ -417,7 +419,7 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	CLIP(0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	*g = VIPS_RINT(v);
+	*g = rintf(v);
 
 	if (og_ret)
 		*og_ret = og;
@@ -454,7 +456,7 @@ build_tables(void *client)
 			for (b = 0; b < 64; b++) {
 				/* Scale to lab space.
 				 */
-				float L = (l << 2) * (100.0 / 256.0);
+				float L = (l << 2) * (100.0F / 256.0F);
 				float A = (signed char) (a << 2);
 				float B = (signed char) (b << 2);
 				float X, Y, Z;
@@ -571,9 +573,10 @@ vips_LabQ2sRGB_init(VipsLabQ2sRGB *LabQ2sRGB)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.
+ * Unpack a LabQ ([enum@Vips.Coding.LABQ)] image to a three-band short image.
  *
- * See also: vips_LabS2LabQ(), vips_LabQ2sRGB(), vips_rad2float().
+ * ::: seealso
+ *     [method@Image.LabS2LabQ], [method@Image.LabQ2sRGB], [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */

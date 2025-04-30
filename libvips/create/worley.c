@@ -48,6 +48,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcreate.h"
 
@@ -197,9 +198,9 @@ vips_worley_start(VipsImage *out, void *a, void *b)
 static float
 vips_int_hypot(int x, int y)
 {
-	/* Faster than hypot() for int args.
+	/* Faster than hypotf() for int args.
 	 */
-	return sqrt(x * x + y * y);
+	return sqrtf(x * x + y * y);
 }
 
 static float
@@ -346,11 +347,9 @@ vips_worley_init(VipsWorley *worley)
  * @height: vertical size
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Create a one-band float image of Worley noise.
  *
- * * @cell_size: %gint, size of Worley cells
- *
- * Create a one-band float image of Worley noise. See:
+ * See:
  *
  * https://en.wikipedia.org/wiki/Worley_noise
  *
@@ -359,7 +358,11 @@ vips_worley_init(VipsWorley *worley)
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
- * See also: vips_perlin(), vips_fractsurf(), vips_gaussnoise().
+ * ::: tip "Optional arguments"
+ *     * @cell_size: %gint, size of Worley cells
+ *
+ * ::: seealso
+ *     [ctor@Image.perlin], [ctor@Image.fractsurf], [ctor@Image.gaussnoise].
  *
  * Returns: 0 on success, -1 on error
  */

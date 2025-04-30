@@ -14,7 +14,7 @@ jobs:
         include:
           - name: "Linux x64 (Ubuntu 24.04) - GCC 14"
             os: ubuntu-24.04
-            build: { cc: gcc-14, cxx: g++-14, linker: ld }
+            build: { cc: gcc-14, cxx: g++-14, linker: ld, docs: true }
 
           - name: "Linux x64 (Ubuntu 24.04) - Clang 18 with ASan and UBSan"
             os: ubuntu-24.04
@@ -39,7 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
-            meson pkg-config \
+            meson gi-docgen pkg-config \
             libarchive-dev libcfitsio-dev libcgif-dev \
             libexif-dev libexpat1-dev libffi-dev \
             libfftw3-dev libheif-dev libheif-plugin-aomenc \
@@ -54,8 +54,12 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           pip3 install meson --break-system-packages
+          # Run `brew update` to ensure we have the latest formulae.
+          # Note: GHA macOS runners set `HOMEBREW_NO_AUTO_UPDATE=1`
+          # by default, as updating can be time-consuming.
+          brew update
           brew install \
-            ninja pkg-config \
+            ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
             libheif libimagequant libmatio librsvg \
@@ -96,6 +100,7 @@ jobs:
         run:
           meson setup build
             -Ddebug=true
+            -Ddocs=${{ matrix.build.docs && 'true' || 'false' }}
             -Ddeprecated=false
             -Dmagick=disabled
           || (cat build/meson-logs/meson-log.txt && exit 1)
@@ -104,8 +109,8 @@ jobs:
         run: meson compile -C build
 
       - name: Check libvips
-        run: |
-          meson test -C build \
+        run:
+          meson test -C build
           || (cat build/meson-logs/testlog.txt && exit 1)
 
       - name: Install libvips
