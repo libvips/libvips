@@ -271,15 +271,6 @@
 #include "jpeg.h"
 #endif /*HAVE_JPEG*/
 
-/* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
- */
-#define JP2K_YCC 33003
-#define JP2K_RGB 33005
-
-/* Bioformats uses this tag for jp2k compressed tiles.
- */
-#define JP2K_LOSSY 33004
-
 /* Compression types we handle ourselves.
  */
 static int rtiff_we_decompress[] = {

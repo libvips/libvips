@@ -33,6 +33,15 @@
 
 #include <tiffio.h>
 
+/* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
+ */
+#define JP2K_YCC (33003)
+#define JP2K_RGB (33005)
+
+/* Bioformats uses this tag for jp2k compressed tiles.
+ */
+#define JP2K_LOSSY (33004)
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
