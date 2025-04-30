@@ -469,6 +469,7 @@ vips_foreign_save_jxl_dispose(GObject *gobject)
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
 	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+	g_mutex_clear(&jxl->tile_lock);
 
 	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
