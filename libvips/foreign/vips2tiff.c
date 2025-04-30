@@ -392,12 +392,13 @@ struct _Wtiff {
 	GMutex lock;
 };
 
-/* libvips uses size_t for length, but libtiff wants uint32.
+/* libvips uses size_t for the length of binary data items, but libtiff wants
+ * uint32.
  */
 static void
 set_data64(TIFF *tif, guint32 tag, size_t length, const void *data)
 {
-	if (length < UINT_MAX)
+	if (length <= UINT_MAX)
         TIFFSetField(tif, tag, (guint32) length, data);
 }
 
@@ -636,17 +637,6 @@ wtiff_embed_photoshop(Wtiff *wtiff, TIFF *tif)
 
 #ifdef DEBUG
 		printf("vips2tiff: attached %zd bytes of photoshop data\n", size);
-#endif /*DEBUG*/
-	}
-
-	if (vips_image_get_typeof(wtiff->ready, VIPS_META_PHOTOSHOP_DATA)) {
-		if (vips_image_get_blob(wtiff->ready, VIPS_META_PHOTOSHOP_DATA,
-				&data, &size))
-			return -1;
-		set_data64(tif, TIFFTAG_IMAGESOURCEDATA, size, data);
-
-#ifdef DEBUG
-		printf("vips2tiff: attached %zd bytes of photoshop image data\n", size);
 #endif /*DEBUG*/
 	}
 

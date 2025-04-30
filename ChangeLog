@@ -23,7 +23,6 @@ master
 - share and reuse openslide connections
 - drop support for openslide 3.3
 - fix vips_quadratic()
-- add read/write of TIFFTAG_IMAGESOURCEDATA metadata (photoshop document data)
 
 8.16.1
 

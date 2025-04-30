@@ -42,11 +42,6 @@
  */
 #define JP2K_LOSSY (33004)
 
-// only in recent libtiffs
-#ifndef TIFFTAG_IMAGESOURCEDATA
-#define TIFFTAG_IMAGESOURCEDATA (37724)
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
