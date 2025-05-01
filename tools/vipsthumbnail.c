@@ -105,6 +105,8 @@
  * 2/10/20
  * 	- support "stdin" as a magic input filename for thumbnail_source
  * 	- support ".suffix" as a magic output format for stdout write
+ * 30/4/25
+ *  - rename import/export profile args as input/oputput
  */
 
 #ifdef HAVE_CONFIG_H
@@ -131,8 +133,8 @@ static int thumbnail_width = 128;
 static int thumbnail_height = 128;
 static VipsSize size_restriction = VIPS_SIZE_BOTH;
 static char *output_format = "tn_%s.jpg";
-static char *export_profile = NULL;
-static char *import_profile = NULL;
+static char *output_profile = NULL;
+static char *input_profile = NULL;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
 static gboolean no_rotate_image = FALSE;
@@ -159,12 +161,12 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &output_format,
 		N_("output to FORMAT"),
 		N_("FORMAT") },
-	{ "export-profile", 'e', 0,
-		G_OPTION_ARG_FILENAME, &export_profile,
+	{ "output-profile", 0, 0,
+		G_OPTION_ARG_FILENAME, &output_profile,
 		N_("export with PROFILE"),
 		N_("PROFILE") },
-	{ "import-profile", 'i', 0,
-		G_OPTION_ARG_FILENAME, &import_profile,
+	{ "input-profile", 0, 0,
+		G_OPTION_ARG_FILENAME, &input_profile,
 		N_("import untagged images with PROFILE"),
 		N_("PROFILE") },
 	{ "linear", 'a', 0,
@@ -187,18 +189,28 @@ static GOptionEntry options[] = {
 	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version,
 		N_("print version"), NULL },
 
+	/* All deprecated.
+	 */
+	{ "export-profile", 'e', G_OPTION_FLAG_HIDDEN,
+		G_OPTION_ARG_FILENAME, &output_profile,
+		N_("export with PROFILE"),
+		N_("PROFILE") },
+	{ "import-profile", 'i', G_OPTION_FLAG_HIDDEN,
+		G_OPTION_ARG_FILENAME, &input_profile,
+		N_("import untagged images with PROFILE"),
+		N_("PROFILE") },
+	{ "eprofile", 0, G_OPTION_FLAG_HIDDEN,
+		G_OPTION_ARG_FILENAME, &output_profile,
+		N_("export with PROFILE"),
+		N_("PROFILE") },
+	{ "iprofile", 0, G_OPTION_FLAG_HIDDEN,
+		G_OPTION_ARG_FILENAME, &input_profile,
+		N_("import untagged images with PROFILE"),
+		N_("PROFILE") },
 	{ "format", 'f', G_OPTION_FLAG_HIDDEN,
 		G_OPTION_ARG_STRING, &output_format,
 		N_("set output format string to FORMAT"),
 		N_("FORMAT") },
-	{ "eprofile", 0, G_OPTION_FLAG_HIDDEN,
-		G_OPTION_ARG_FILENAME, &export_profile,
-		N_("export with PROFILE"),
-		N_("PROFILE") },
-	{ "iprofile", 0, G_OPTION_FLAG_HIDDEN,
-		G_OPTION_ARG_FILENAME, &import_profile,
-		N_("import untagged images with PROFILE"),
-		N_("PROFILE") },
 	{ "rotate", 't', G_OPTION_FLAG_HIDDEN,
 		G_OPTION_ARG_NONE, &rotate_image,
 		N_("(deprecated, does nothing)"), NULL },
@@ -321,8 +333,8 @@ thumbnail_process(VipsObject *process, const char *name)
 				"no-rotate", no_rotate_image,
 				"crop", interesting,
 				"linear", linear_processing,
-				"import-profile", import_profile,
-				"export-profile", export_profile,
+				"import-profile", input_profile,
+				"output-profile", output_profile,
 				"intent", intent,
 				NULL)) {
 			VIPS_UNREF(source);
@@ -337,8 +349,8 @@ thumbnail_process(VipsObject *process, const char *name)
 				"no-rotate", no_rotate_image,
 				"crop", interesting,
 				"linear", linear_processing,
-				"import-profile", import_profile,
-				"export-profile", export_profile,
+				"import-profile", input_profile,
+				"output-profile", output_profile,
 				"intent", intent,
 				NULL))
 			return -1;
