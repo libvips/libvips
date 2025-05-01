@@ -27,6 +27,14 @@ class TestForeign:
         im = pyvips.Image.new_from_file(GIF_FILE)
         cls.onebit = im[1] > 128
 
+        all = [cls.mono, cls.colour, cls.cmyk]
+        # and alpha variants of all of them
+        alpha = [x.bandjoin(255) for x in all]
+        # and with a second alpha
+        alpha2 = [x.bandjoin(255) for x in alpha]
+
+        cls.all = all + alpha + alpha2
+
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
@@ -35,6 +43,7 @@ class TestForeign:
         cls.mono = None
         cls.cmyk = None
         cls.onebit = None
+        cls.all = None
 
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
@@ -1012,6 +1021,7 @@ class TestForeign:
 
     @skip_if_no("openslideload")
     def test_openslideload(self):
+
         def openslide_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [244, 250, 243, 255])
@@ -1211,6 +1221,11 @@ class TestForeign:
 
     def test_matrix(self):
         self.save_load("%s.mat", self.mono)
+
+        # all image types should SAVEABLE_MONO
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.matrixsave_target(target)
 
     @skip_if_no("ppmload")
     def test_ppm(self):

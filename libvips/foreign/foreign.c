@@ -783,11 +783,6 @@ vips_foreign_find_load_source(VipsSource *source)
 		return NULL;
 	}
 
-	/* All source loaders should be NOCACHE.
-	 */
-	g_assert(VIPS_OPERATION_CLASS(load_class)->flags &
-		VIPS_OPERATION_NOCACHE);
-
 	return G_OBJECT_CLASS_NAME(load_class);
 }
 
