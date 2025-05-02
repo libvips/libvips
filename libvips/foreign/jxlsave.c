@@ -34,8 +34,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -256,12 +256,8 @@ vips_foreign_save_jxl_print_status(JxlEncoderStatus status)
 		printf("JXL_ENC_NEED_MORE_OUTPUT\n");
 		break;
 
-	case JXL_ENC_NOT_SUPPORTED:
-		printf("JXL_ENC_NOT_SUPPORTED\n");
-		break;
-
 	default:
-		printf("JXL_ENC_<unknown>\n");
+		printf("JXL_ENC_<unknown %d>\n", status);
 		break;
 	}
 }
@@ -290,8 +286,7 @@ vips_foreign_save_jxl_process_output(VipsForeignSaveJxl *jxl)
 			break;
 
 		default:
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderProcessOutput");
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderProcessOutput");
 #ifdef DEBUG
 			vips_foreign_save_jxl_print_status(status);
 #endif /*DEBUG*/
@@ -547,12 +542,11 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	in = t[0];
 
 	/* Mimics VIPS_SAVEABLE_RGBA.
+	 *
 	 * FIXME: add support encoding images with > 4 bands.
 	 */
 	if (in->Bands > 4) {
-		if (vips_extract_band(in, &t[1], 0,
-				"n", 4,
-				NULL))
+		if (vips_extract_band(in, &t[1], 0, "n", 4, NULL))
 			return -1;
 		in = t[1];
 	}
@@ -595,6 +589,12 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		jxl->info.num_color_channels = VIPS_MIN(3, in->Bands);
 		break;
 
+	case VIPS_INTERPRETATION_CMYK:
+		// CMYK is respresented as CMY plus a kBlack extra channel ... this is
+		// set just after SetBasicInfo
+		jxl->info.num_color_channels = VIPS_MIN(3, in->Bands);
+		break;
+
 	default:
 		jxl->info.num_color_channels = in->Bands;
 	}
@@ -626,8 +626,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	if (vips_image_hasalpha(in)) {
 		jxl->info.alpha_bits = jxl->info.bits_per_sample;
-		jxl->info.alpha_exponent_bits =
-			jxl->info.exponent_bits_per_sample;
+		jxl->info.alpha_exponent_bits = jxl->info.exponent_bits_per_sample;
 	}
 	else {
 		jxl->info.alpha_exponent_bits = 0;
@@ -652,23 +651,36 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		return -1;
 	}
 
+	/* For CMYK, we need to tag the first extra channel as kBlack. Other extra
+	 * channels default to alpha.
+	 */
+	if (in->Type == VIPS_INTERPRETATION_CMYK &&
+		jxl->info.num_extra_channels > 0) {
+		JxlExtraChannelInfo info;
+
+		JxlEncoderInitExtraChannelInfo(JXL_CHANNEL_BLACK, &info);
+		info.bits_per_sample = jxl->info.bits_per_sample;
+		info.dim_shift = 1;
+		if (JxlEncoderSetExtraChannelInfo(jxl->encoder, 0, &info)) {
+		  vips_foreign_save_jxl_error(jxl, "JxlEncoderSetExtraChannelInfo");
+		  return -1;
+		}
+	}
+
 	/* Set any ICC profile.
 	 */
 	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
 
-		if (vips_image_get_blob(in,
-				VIPS_META_ICC_NAME, &data, &length))
+		if (vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length))
 			return -1;
 
 #ifdef DEBUG
 		printf("attaching %zd bytes of ICC\n", length);
 #endif /*DEBUG*/
-		if (JxlEncoderSetICCProfile(jxl->encoder,
-				(guint8 *) data, length)) {
-			vips_foreign_save_jxl_error(jxl,
-				"JxlEncoderSetColorEncoding");
+		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
 			return -1;
 		}
 	}
@@ -877,7 +889,8 @@ vips_foreign_save_jxl_file_build(VipsObject *object)
 	if (!(jxl->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_file_parent_class)->
+		build(object))
 		return -1;
 
 	return 0;
