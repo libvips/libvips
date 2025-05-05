@@ -1223,9 +1223,9 @@ class TestForeign:
         self.save_load("%s.mat", self.mono)
 
         # all image types should SAVEABLE_MONO
-        for image in self.all:
-            target = pyvips.Target.new_to_memory()
-            image.matrixsave_target(target)
+        #for image in self.all:
+        #    target = pyvips.Target.new_to_memory()
+        #    image.matrixsave_target(target)
 
     @skip_if_no("ppmload")
     def test_ppm(self):

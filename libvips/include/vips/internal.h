@@ -345,7 +345,7 @@ typedef struct _VipsImagePixels {
 } VipsImagePixels;
 
 int vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsSaveableFlags saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background);
 
 int vips_foreign_load(const char *filename, VipsImage **out, ...)

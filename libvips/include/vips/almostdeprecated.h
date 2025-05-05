@@ -470,6 +470,33 @@ VIPS_DEPRECATED_FOR(g_snprintf)
 int vips_snprintf(char *str, size_t size, const char *format, ...)
 	G_GNUC_PRINTF(3, 4);
 
+/**
+ * VipsSaveable:
+ * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
+ * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM)
+ * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
+ * @VIPS_SAVEABLE_RGBA_ONLY: 3 or 4 bands (eg. WEBP)
+ * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
+ * @VIPS_SAVEABLE_ANY: anything goes (eg. TIFF)
+ *
+ * This has been deprecated and replaced by VipsSaveableFlags.
+ */
+typedef enum {
+	VIPS_SAVEABLE_MONO =
+		VIPS_SAVEABLE_FLAGS_MONO,
+	VIPS_SAVEABLE_RGB =
+		VIPS_SAVEABLE_FLAGS_MONO | VIPS_SAVEABLE_FLAGS_RGB,
+	VIPS_SAVEABLE_RGBA =
+		VIPS_SAVEABLE_RGB | VIPS_SAVEABLE_FLAGS_ALPHA,
+	VIPS_SAVEABLE_RGBA_ONLY =
+		VIPS_SAVEABLE_FLAGS_RGB | VIPS_SAVEABLE_FLAGS_ALPHA,
+	VIPS_SAVEABLE_RGB_CMYK =
+		VIPS_SAVEABLE_RGB | VIPS_SAVEABLE_FLAGS_CMYK,
+	VIPS_SAVEABLE_ANY =
+		VIPS_SAVEABLE_FLAGS_ANY,
+	VIPS_SAVEABLE_LAST = 99,
+} VipsSaveable;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
