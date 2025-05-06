@@ -1774,27 +1774,10 @@ vips_foreign_save_build(VipsObject *object)
 		VipsImage *ready;
 		VipsImage *x;
 
-		{
-			char txt[2456];
-			VipsBuf buf = VIPS_BUF_STATIC(txt);
-			vips_object_summary(VIPS_OBJECT(save->in), &buf);
-			printf("vips__foreign_convert_saveable: starting for %s\n", vips_buf_all(&buf));
-		}
-
 		if (vips__foreign_convert_saveable(save->in, &ready,
 				class->saveable, class->format_table, class->coding,
-				save->background)) {
-			printf("vips__foreign_convert_saveable: failed!!\n");
-			printf("\t%s\n", vips_error_buffer());
+				save->background))
 			return -1;
-		}
-
-		{
-			char txt[2456];
-			VipsBuf buf = VIPS_BUF_STATIC(txt);
-			vips_object_summary(VIPS_OBJECT(ready), &buf);
-			printf("\tresult is %s\n", vips_buf_all(&buf));
-		}
 
 		/* Updating metadata, need to copy the image.
 		 */
