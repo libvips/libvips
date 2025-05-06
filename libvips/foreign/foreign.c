@@ -1397,6 +1397,13 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	g_object_ref(in);
 
+	/* ANY? we are done.
+	 */
+	if (saveable & VIPS_SAVEABLE_FLAGS_ANY) {
+		*ready = in;
+		return 0;
+	}
+
 	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
@@ -1420,17 +1427,17 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this is a mono image and our saver supports mono, we are done.
+	/* If this is a mono-ish looking image and our saver supports mono, we
+	 * are done. We are not too strict about what a mono image is! We need to
+	 * work for things like "extract_band 1" on an RGB Image.
 	 */
 	if ((saveable & VIPS_SAVEABLE_FLAGS_MONO) &&
-		(in->Type == VIPS_INTERPRETATION_B_W ||
-		 in->Type == VIPS_INTERPRETATION_GREY16)) {
+		in->Bands < 3) {
 		*ready = in;
-
 		return 0;
 	}
 
-	/* CMYK-ish image?
+	/* CMYK image?
 	 */
 	if (in->Type == VIPS_INTERPRETATION_CMYK &&
 		in->Bands >= 4) {
@@ -1438,7 +1445,6 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		 */
 		if (saveable & VIPS_SAVEABLE_FLAGS_CMYK) {
 			*ready = in;
-
 			return 0;
 		}
 
@@ -1469,7 +1475,6 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 
 		*ready = in;
-
 		return 0;
 	}
 
@@ -1488,7 +1493,6 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 
 		*ready = in;
-
 		return 0;
 	}
 
@@ -1507,12 +1511,10 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 
 		*ready = in;
-
 		return 0;
 	}
 
 	vips_error("VipsForeignSave", _("saver does not support any output type"));
-
 	return -1;
 }
 
@@ -1527,6 +1529,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	VipsBandFormat original_format = in->BandFmt;
 
 	VipsImage *out;
+
+	/* in holds a reference to the output of our chain as we build it.
+	 */
+	g_object_ref(in);
 
 	/* For coded images, can this class save the coding we are in now?
 	 * Nothing to do.
@@ -1551,16 +1557,14 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * end.
 	 */
 
-	/* in holds a reference to the output of our chain as we build it.
-	 */
-	g_object_ref(in);
-
 	/* Apply saveable conversions to get mono/rgb/cmyk.
 	 */
 	if (vips_foreign_apply_saveable(in, &out, saveable)) {
 		g_object_unref(in);
 		return -1;
 	}
+	g_object_unref(in);
+	in = out;
 
 	/* Flatten alpha, if the saver does not support it.
 	 */
@@ -1574,65 +1578,66 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 
 	/* There might be more than one alpha ... drop any remaining excess
 	 * bands.
 	 */
-	int max_bands;
+	if (in->Coding == VIPS_CODING_NONE) {
+		int max_bands;
 
-	max_bands = 0;
-	switch (in->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		max_bands = 1;
-		break;
+		max_bands = 0;
+		switch (in->Type) {
+		case VIPS_INTERPRETATION_B_W:
+		case VIPS_INTERPRETATION_GREY16:
+			max_bands = 1;
+			break;
 
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-		max_bands = 3;
-		break;
+		case VIPS_INTERPRETATION_RGB:
+		case VIPS_INTERPRETATION_CMC:
+		case VIPS_INTERPRETATION_LCH:
+		case VIPS_INTERPRETATION_LABS:
+		case VIPS_INTERPRETATION_sRGB:
+		case VIPS_INTERPRETATION_YXY:
+		case VIPS_INTERPRETATION_XYZ:
+		case VIPS_INTERPRETATION_LAB:
+		case VIPS_INTERPRETATION_RGB16:
+		case VIPS_INTERPRETATION_scRGB:
+		case VIPS_INTERPRETATION_HSV:
+			max_bands = 3;
+			break;
 
-	case VIPS_INTERPRETATION_CMYK:
-		max_bands = 4;
-		break;
+		case VIPS_INTERPRETATION_CMYK:
+			max_bands = 4;
+			break;
 
-	default:
-	}
-
-	if (saveable & VIPS_SAVEABLE_FLAGS_ALPHA)
-		max_bands += 1;
-
-	if (saveable & VIPS_SAVEABLE_FLAGS_ANY)
-		max_bands = in->Bands;
-
-	if (max_bands > 0 &&
-		in->Bands > max_bands) {
-		if (vips_extract_band(in, &out, 0,
-				"n", max_bands,
-				NULL)) {
-			g_object_unref(in);
-			return -1;
+		default:
 		}
-		g_object_unref(in);
 
-		in = out;
+		if (saveable & VIPS_SAVEABLE_FLAGS_ALPHA)
+			max_bands += 1;
+
+		if (saveable & VIPS_SAVEABLE_FLAGS_ANY)
+			max_bands = in->Bands;
+
+		if (max_bands > 0 &&
+			in->Bands > max_bands) {
+			if (vips_extract_band(in, &out, 0,
+					"n", max_bands,
+					NULL)) {
+				g_object_unref(in);
+				return -1;
+			}
+			g_object_unref(in);
+			in = out;
+		}
 	}
 
 	/* Convert to the format the saver likes, based on the original format.
 	 */
-	if (format) {
+	if (in->Coding == VIPS_CODING_NONE &&
+		format) {
 		if (vips_cast(in, &out, format[original_format],
 			"shift", TRUE,
 			NULL)) {
@@ -1640,7 +1645,6 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 
@@ -1652,25 +1656,27 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		 */
 	}
 	else if (coding[VIPS_CODING_LABQ]) {
-		VipsImage *out;
-
 		if (vips_Lab2LabQ(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 	else if (coding[VIPS_CODING_RAD]) {
-		VipsImage *out;
-
 		if (vips_float2rad(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
+		in = out;
+	}
+	else if (coding[VIPS_CODING_NONE]) {
+		if (vips_image_decode(in, &out)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
 		in = out;
 	}
 
@@ -1768,10 +1774,27 @@ vips_foreign_save_build(VipsObject *object)
 		VipsImage *ready;
 		VipsImage *x;
 
+		{
+			char txt[2456];
+			VipsBuf buf = VIPS_BUF_STATIC(txt);
+			vips_object_summary(VIPS_OBJECT(save->in), &buf);
+			printf("vips__foreign_convert_saveable: starting for %s\n", vips_buf_all(&buf));
+		}
+
 		if (vips__foreign_convert_saveable(save->in, &ready,
 				class->saveable, class->format_table, class->coding,
-				save->background))
+				save->background)) {
+			printf("vips__foreign_convert_saveable: failed!!\n");
+			printf("\t%s\n", vips_error_buffer());
 			return -1;
+		}
+
+		{
+			char txt[2456];
+			VipsBuf buf = VIPS_BUF_STATIC(txt);
+			vips_object_summary(VIPS_OBJECT(ready), &buf);
+			printf("\tresult is %s\n", vips_buf_all(&buf));
+		}
 
 		/* Updating metadata, need to copy the image.
 		 */
