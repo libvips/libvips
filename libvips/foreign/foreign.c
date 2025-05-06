@@ -1437,9 +1437,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
-	/* CMYK image?
+	/* CMYK image? Use the sanity-checked interpretation value.
 	 */
-	if (in->Type == VIPS_INTERPRETATION_CMYK &&
+	if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CMYK &&
 		in->Bands >= 4) {
 		/* If our saver supports CMYK we are done, otherwise import to XYZ.
 		 */
@@ -1587,8 +1587,9 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	if (in->Coding == VIPS_CODING_NONE) {
 		int max_bands;
 
+		// use a sanity-checked interpretation
 		max_bands = 0;
-		switch (in->Type) {
+		switch (vips_image_guess_interpretation(in)) {
 		case VIPS_INTERPRETATION_B_W:
 		case VIPS_INTERPRETATION_GREY16:
 			max_bands = 1;
