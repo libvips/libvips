@@ -4,6 +4,10 @@
 
 G_BEGIN_DECLS
 
+VIPS_API
+GType vips_saveable_get_type(void) G_GNUC_CONST;
+#define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
+
 /*** END file-header ***/
 
 /*** BEGIN file-production ***/

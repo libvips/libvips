@@ -470,6 +470,24 @@ VIPS_DEPRECATED_FOR(g_snprintf)
 int vips_snprintf(char *str, size_t size, const char *format, ...)
 	G_GNUC_PRINTF(3, 4);
 
+/* This has been deprecated and replaced by VipsForeignSaveable.
+ */
+typedef enum /*< skip >*/ {
+	VIPS_SAVEABLE_MONO =
+		VIPS_FOREIGN_SAVEABLE_MONO,
+	VIPS_SAVEABLE_RGB =
+		VIPS_FOREIGN_SAVEABLE_MONO | VIPS_FOREIGN_SAVEABLE_RGB,
+	VIPS_SAVEABLE_RGBA =
+		VIPS_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA,
+	VIPS_SAVEABLE_RGBA_ONLY =
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA,
+	VIPS_SAVEABLE_RGB_CMYK =
+		VIPS_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_CMYK,
+	VIPS_SAVEABLE_ANY =
+		VIPS_FOREIGN_SAVEABLE_ANY,
+	VIPS_SAVEABLE_LAST = 99,
+} VipsSaveable;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
