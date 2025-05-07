@@ -93,7 +93,8 @@ vips_foreign_save_rad_class_init(VipsForeignSaveRadClass *class)
 
 	foreign_class->suffs = vips__rad_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGB;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_MONO | VIPS_FOREIGN_SAVEABLE_RGB;
 	save_class->format_table = vips_foreign_save_rad_format_table;
 	save_class->coding[VIPS_CODING_NONE] = FALSE;
 	save_class->coding[VIPS_CODING_RAD] = TRUE;
@@ -123,7 +124,8 @@ vips_foreign_save_rad_file_build(VipsObject *object)
 
 	VipsTarget *target;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_file_parent_class)->
+		build(object))
 		return -1;
 
 	if (!(target = vips_target_new_to_file(file->filename)))

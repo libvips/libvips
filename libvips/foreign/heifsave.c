@@ -767,7 +767,8 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	object_class->description = _("save image in HEIF format");
 	object_class->build = vips_foreign_save_heif_build;
 
-	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT(class, "Q", 10,

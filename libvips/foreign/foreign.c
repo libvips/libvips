@@ -317,7 +317,7 @@
  *
  *     foreign_class->suffs = vips__foreign_csv_suffs;
  *
- *     save_class->saveable = VIPS_SAVEABLE_FLAGS_MONO;
+ *     save_class->saveable = VIPS_FOREIGN_SAVEABLE_MONO;
  *     // no need to define ->format_table, we don't want the input
  *     // cast for us
  *
@@ -1346,7 +1346,7 @@ vips_foreign_save_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 		->summary_class(object_class, buf);
 
 	GValue value = { 0 };
-	g_value_init(&value, VIPS_TYPE_SAVEABLE_FLAGS);
+	g_value_init(&value, VIPS_TYPE_FOREIGN_SAVEABLE);
 	g_value_set_flags(&value, class->saveable);
 	vips_buf_appends(buf, ", ");
 	vips_buf_appendgv(buf, &value);
@@ -1385,7 +1385,7 @@ vips_foreign_save_new_from_string(const char *string)
  */
 static int
 vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
-	VipsSaveableFlags saveable)
+	VipsForeignSaveable saveable)
 {
 	// is this a 16-bit source image
 	gboolean sixteenbit = in->BandFmt == VIPS_FORMAT_USHORT;
@@ -1399,7 +1399,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 
 	/* ANY? we are done.
 	 */
-	if (saveable & VIPS_SAVEABLE_FLAGS_ANY) {
+	if (saveable & VIPS_FOREIGN_SAVEABLE_ANY) {
 		*ready = in;
 		return 0;
 	}
@@ -1431,7 +1431,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * are done. We are not too strict about what a mono image is! We need to
 	 * work for things like "extract_band 1" on an RGB Image.
 	 */
-	if ((saveable & VIPS_SAVEABLE_FLAGS_MONO) &&
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
 		in->Bands < 3) {
 		*ready = in;
 		return 0;
@@ -1443,7 +1443,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in->Bands >= 4) {
 		/* If our saver supports CMYK we are done, otherwise import to XYZ.
 		 */
-		if (saveable & VIPS_SAVEABLE_FLAGS_CMYK) {
+		if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
 			*ready = in;
 			return 0;
 		}
@@ -1463,7 +1463,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	/* If the saver supports RGB, go to RGB, or RGB16 if this is a ushort
 	 * source.
 	 */
-	if (saveable & VIPS_SAVEABLE_FLAGS_RGB) {
+	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
 		interpretation = sixteenbit ?
 			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 
@@ -1481,7 +1481,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	/* If the saver supports CMYK, go to RGB, or RGB16 if this is a ushort
 	 * source.
 	 */
-	if (saveable & VIPS_SAVEABLE_FLAGS_CMYK) {
+	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
 		if (vips_icc_export(in, &out,
 			"output-profile", "cmyk",
 			"depth", sixteenbit ? 16 : 8,
@@ -1499,7 +1499,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	/* If the saver supports mono, go to B_W, or GREY16 if this is a ushort
 	 * source.
 	 */
-	if (saveable & VIPS_SAVEABLE_FLAGS_MONO) {
+	if (saveable & VIPS_FOREIGN_SAVEABLE_MONO) {
 		interpretation = sixteenbit ?
 			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 
@@ -1523,7 +1523,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
  */
 int
 vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsSaveableFlags saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background)
 {
 	VipsBandFormat original_format = in->BandFmt;
@@ -1547,7 +1547,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		(saveable & VIPS_SAVEABLE_FLAGS_ANY) &&
+		(saveable & VIPS_FOREIGN_SAVEABLE_ANY) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1570,7 +1570,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
 		vips_image_hasalpha(in) &&
-		!(saveable & VIPS_SAVEABLE_FLAGS_ALPHA)) {
+		!(saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)) {
 		if (vips_flatten(in, &out,
 				"background", background,
 				NULL)) {
@@ -1616,10 +1616,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		default:
 		}
 
-		if (saveable & VIPS_SAVEABLE_FLAGS_ALPHA)
+		if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
 			max_bands += 1;
 
-		if (saveable & VIPS_SAVEABLE_FLAGS_ANY)
+		if (saveable & VIPS_FOREIGN_SAVEABLE_ANY)
 			max_bands = in->Bands;
 
 		if (max_bands > 0 &&

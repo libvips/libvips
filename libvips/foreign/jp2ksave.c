@@ -965,7 +965,7 @@ vips_foreign_save_jp2k_class_init(VipsForeignSaveJp2kClass *class)
 
 	foreign_class->suffs = vips__jp2k_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 
 	VIPS_ARG_INT(class, "tile_width", 11,
 		_("Tile width"),

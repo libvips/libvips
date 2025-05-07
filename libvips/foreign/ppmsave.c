@@ -499,7 +499,7 @@ vips_foreign_save_ppm_class_init(VipsForeignSavePpmClass *class)
 	object_class->description = _("save to ppm");
 	object_class->build = vips_foreign_save_ppm_build;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_ppm;
 
 	VIPS_ARG_ENUM(class, "format", 2,
