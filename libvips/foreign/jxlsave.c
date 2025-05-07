@@ -711,8 +711,7 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
 
 	if (jxl->info.have_animation) {
-		JxlFrameHeader header;
-		memset(&header, 0, sizeof(JxlFrameHeader));
+		JxlFrameHeader header = { 0 };
 
 		if (!jxl->is_animated)
 			header.duration = 0xffffffff;
