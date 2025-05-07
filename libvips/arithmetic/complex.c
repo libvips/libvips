@@ -20,7 +20,7 @@
  * 19/11/11
  * 	- redo as a class
  * 21/11/11
- * 	- add [method@Image.complexget]
+ * 	- add vips_complexget()
  * 29/9/15
  * 	- return 0 for cross-product where one arg is zero
  */

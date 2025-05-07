@@ -42,7 +42,7 @@
 	what about delayed writes ... do we ever write in close? we shouldn't,
 	should do in evalend or written or somesuch
 
-	use [func@GLib.param_values_cmp] instead of value_equal()?
+	use g_param_values_cmp() instead of value_equal()?
 
  */
 

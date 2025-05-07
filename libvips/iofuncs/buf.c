@@ -275,7 +275,7 @@ vips_buf_appendns(VipsBuf *buf, const char *str, int sz)
 
 	cpy = VIPS_MIN(n, avail);
 
-	/* Can't use [func@GLib.strlcpy] here, we don't want to drop the end of the
+	/* Can't use g_strlcpy() here, we don't want to drop the end of the
 	 * string.
 	 *
 	 * gcc10.3 (I think?) issues a false-positive warning about this.

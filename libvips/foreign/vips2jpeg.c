@@ -520,7 +520,7 @@ write_jpeg_block(VipsRegion *region, VipsRect *area, void *a)
 		write->row_pointer[y] = (JSAMPROW)
 			VIPS_REGION_ADDR(region, area->left, area->top + y);
 
-	/* Catch any longjmp()s from jpe[func@GLib.write_scanlines] here.
+	/* Catch any longjmp()s from jpeg_write_scanlines() here.
 	 */
 	if (setjmp(write->eman.jmp))
 		return -1;

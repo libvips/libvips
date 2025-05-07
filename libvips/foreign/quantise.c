@@ -87,7 +87,7 @@ vips__quantise_image_quantize(VipsQuantiseImage *const input_image,
 	return liq_image_quantize(input_image, options, result_output);
 }
 
-/* Like [func@_quantise_image_quantize], but make a fixed palette that won't
+/* Like vips__quantise_image_quantize(), but make a fixed palette that won't
  * get remapped during dithering.
  */
 VipsQuantiseError
