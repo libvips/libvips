@@ -1096,6 +1096,7 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->distance = 1.0;
 	jxl->effort = 7;
 	jxl->Q = 75;
+	g_mutex_init(&jxl->tile_lock);
 }
 
 typedef struct _VipsForeignSaveJxlFile {

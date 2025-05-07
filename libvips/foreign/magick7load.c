@@ -304,7 +304,6 @@ vips_foreign_load_magick7_build(VipsObject *object)
 
 	magick7->image_info = CloneImageInfo(NULL);
 	magick7->exception = magick_acquire_exception();
-	g_mutex_init(&magick7->lock);
 
 	if (!magick7->image_info)
 		return -1;
@@ -330,10 +329,8 @@ vips_foreign_load_magick7_build(VipsObject *object)
 		magick_set_number_scenes(magick7->image_info,
 			magick7->page, magick7->n);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->
+		build(object);
 }
 
 static void
@@ -404,6 +401,7 @@ static void
 vips_foreign_load_magick7_init(VipsForeignLoadMagick7 *magick7)
 {
 	magick7->n = 1;
+	g_mutex_init(&magick7->lock);
 }
 
 static void
