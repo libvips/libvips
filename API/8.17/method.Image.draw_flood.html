@@ -1,0 +1,1163 @@
+<!--
+SPDX-FileCopyrightText: libvips team and contributors
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Vips.Image.draw_flood</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta priority="og:title" content="Vips.Image.draw_flood"/>
+  <meta priority="og:description" content="Reference for Vips.Image.draw_flood"/>
+  <meta name="twitter:title" content="Vips.Image.draw_flood"/>
+  <meta name="twitter:description" content="Reference for Vips.Image.draw_flood"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Vips" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Vips</a></h3>
+        <p>API Version: 8.0</p>
+        
+        <p>Library Version: 8.17</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.Image.html">Image</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Image.CMC2LCh.html">CMC2LCh</a>
+  
+    <a class="method" href="method.Image.CMYK2XYZ.html">CMYK2XYZ</a>
+  
+    <a class="method" href="method.Image.HSV2sRGB.html">HSV2sRGB</a>
+  
+    <a class="method" href="method.Image.LCh2CMC.html">LCh2CMC</a>
+  
+    <a class="method" href="method.Image.LCh2Lab.html">LCh2Lab</a>
+  
+    <a class="method" href="method.Image.Lab2LCh.html">Lab2LCh</a>
+  
+    <a class="method" href="method.Image.Lab2LabQ.html">Lab2LabQ</a>
+  
+    <a class="method" href="method.Image.Lab2LabS.html">Lab2LabS</a>
+  
+    <a class="method" href="method.Image.Lab2XYZ.html">Lab2XYZ</a>
+  
+    <a class="method" href="method.Image.LabQ2Lab.html">LabQ2Lab</a>
+  
+    <a class="method" href="method.Image.LabQ2LabS.html">LabQ2LabS</a>
+  
+    <a class="method" href="method.Image.LabQ2sRGB.html">LabQ2sRGB</a>
+  
+    <a class="method" href="method.Image.LabS2Lab.html">LabS2Lab</a>
+  
+    <a class="method" href="method.Image.LabS2LabQ.html">LabS2LabQ</a>
+  
+    <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
+  
+    <a class="method" href="method.Image.XYZ2Lab.html">XYZ2Lab</a>
+  
+    <a class="method" href="method.Image.XYZ2Yxy.html">XYZ2Yxy</a>
+  
+    <a class="method" href="method.Image.XYZ2scRGB.html">XYZ2scRGB</a>
+  
+    <a class="method" href="method.Image.Yxy2XYZ.html">Yxy2XYZ</a>
+  
+    <a class="method" href="method.Image.abs.html">abs</a>
+  
+    <a class="method" href="method.Image.acos.html">acos</a>
+  
+    <a class="method" href="method.Image.acosh.html">acosh</a>
+  
+    <a class="method" href="method.Image.add.html">add</a>
+  
+    <a class="method" href="method.Image.addalpha.html">addalpha</a>
+  
+    <a class="method" href="method.Image.affine.html">affine</a>
+  
+    <a class="method" href="method.Image.andimage.html">andimage</a>
+  
+    <a class="method" href="method.Image.andimage_const.html">andimage_const</a>
+  
+    <a class="method" href="method.Image.andimage_const1.html">andimage_const1</a>
+  
+    <a class="method" href="method.Image.asin.html">asin</a>
+  
+    <a class="method" href="method.Image.asinh.html">asinh</a>
+  
+    <a class="method" href="method.Image.atan.html">atan</a>
+  
+    <a class="method" href="method.Image.atan2.html">atan2</a>
+  
+    <a class="method" href="method.Image.atan2_const.html">atan2_const</a>
+  
+    <a class="method" href="method.Image.atan2_const1.html">atan2_const1</a>
+  
+    <a class="method" href="method.Image.atanh.html">atanh</a>
+  
+    <a class="method" href="method.Image.autorot.html">autorot</a>
+  
+    <a class="method" href="method.Image.autorot_remove_angle.html">autorot_remove_angle</a>
+  
+    <a class="method" href="method.Image.avg.html">avg</a>
+  
+    <a class="method" href="method.Image.bandand.html">bandand</a>
+  
+    <a class="method" href="method.Image.bandbool.html">bandbool</a>
+  
+    <a class="method" href="method.Image.bandeor.html">bandeor</a>
+  
+    <a class="method" href="method.Image.bandfold.html">bandfold</a>
+  
+    <a class="method" href="method.Image.bandjoin2.html">bandjoin2</a>
+  
+    <a class="method" href="method.Image.bandjoin_const.html">bandjoin_const</a>
+  
+    <a class="method" href="method.Image.bandjoin_const1.html">bandjoin_const1</a>
+  
+    <a class="method" href="method.Image.bandmean.html">bandmean</a>
+  
+    <a class="method" href="method.Image.bandor.html">bandor</a>
+  
+    <a class="method" href="method.Image.bandunfold.html">bandunfold</a>
+  
+    <a class="method" href="method.Image.boolean.html">boolean</a>
+  
+    <a class="method" href="method.Image.boolean_const.html">boolean_const</a>
+  
+    <a class="method" href="method.Image.boolean_const1.html">boolean_const1</a>
+  
+    <a class="method" href="method.Image.buildlut.html">buildlut</a>
+  
+    <a class="method" href="method.Image.byteswap.html">byteswap</a>
+  
+    <a class="method" href="method.Image.canny.html">canny</a>
+  
+    <a class="method" href="method.Image.case.html">case</a>
+  
+    <a class="method" href="method.Image.cast.html">cast</a>
+  
+    <a class="method" href="method.Image.cast_char.html">cast_char</a>
+  
+    <a class="method" href="method.Image.cast_complex.html">cast_complex</a>
+  
+    <a class="method" href="method.Image.cast_double.html">cast_double</a>
+  
+    <a class="method" href="method.Image.cast_dpcomplex.html">cast_dpcomplex</a>
+  
+    <a class="method" href="method.Image.cast_float.html">cast_float</a>
+  
+    <a class="method" href="method.Image.cast_int.html">cast_int</a>
+  
+    <a class="method" href="method.Image.cast_short.html">cast_short</a>
+  
+    <a class="method" href="method.Image.cast_uchar.html">cast_uchar</a>
+  
+    <a class="method" href="method.Image.cast_uint.html">cast_uint</a>
+  
+    <a class="method" href="method.Image.cast_ushort.html">cast_ushort</a>
+  
+    <a class="method" href="method.Image.ceil.html">ceil</a>
+  
+    <a class="method" href="method.Image.clamp.html">clamp</a>
+  
+    <a class="method" href="method.Image.colourspace.html">colourspace</a>
+  
+    <a class="method" href="method.Image.colourspace_issupported.html">colourspace_issupported</a>
+  
+    <a class="method" href="method.Image.compass.html">compass</a>
+  
+    <a class="method" href="method.Image.complex.html">complex</a>
+  
+    <a class="method" href="method.Image.complex2.html">complex2</a>
+  
+    <a class="method" href="method.Image.complexform.html">complexform</a>
+  
+    <a class="method" href="method.Image.complexget.html">complexget</a>
+  
+    <a class="method" href="method.Image.composite2.html">composite2</a>
+  
+    <a class="method" href="method.Image.conj.html">conj</a>
+  
+    <a class="method" href="method.Image.conv.html">conv</a>
+  
+    <a class="method" href="method.Image.conva.html">conva</a>
+  
+    <a class="method" href="method.Image.convasep.html">convasep</a>
+  
+    <a class="method" href="method.Image.convf.html">convf</a>
+  
+    <a class="method" href="method.Image.convi.html">convi</a>
+  
+    <a class="method" href="method.Image.convsep.html">convsep</a>
+  
+    <a class="method" href="method.Image.copy.html">copy</a>
+  
+    <a class="method" href="method.Image.copy_file.html">copy_file</a>
+  
+    <a class="method" href="method.Image.copy_memory.html">copy_memory</a>
+  
+    <a class="method" href="method.Image.cos.html">cos</a>
+  
+    <a class="method" href="method.Image.cosh.html">cosh</a>
+  
+    <a class="method" href="method.Image.countlines.html">countlines</a>
+  
+    <a class="method" href="method.Image.crop.html">crop</a>
+  
+    <a class="method" href="method.Image.cross_phase.html">cross_phase</a>
+  
+    <a class="method" href="method.Image.csvsave.html">csvsave</a>
+  
+    <a class="method" href="method.Image.csvsave_target.html">csvsave_target</a>
+  
+    <a class="method" href="method.Image.dE00.html">dE00</a>
+  
+    <a class="method" href="method.Image.dE76.html">dE76</a>
+  
+    <a class="method" href="method.Image.dECMC.html">dECMC</a>
+  
+    <a class="method" href="method.Image.decode.html">decode</a>
+  
+    <a class="method" href="method.Image.decode_predict.html">decode_predict</a>
+  
+    <a class="method" href="method.Image.deviate.html">deviate</a>
+  
+    <a class="method" href="method.Image.divide.html">divide</a>
+  
+    <a class="method" href="method.Image.draw_circle.html">draw_circle</a>
+  
+    <a class="method" href="method.Image.draw_circle1.html">draw_circle1</a>
+  
+    <a class="method current" href="method.Image.draw_flood.html">draw_flood</a>
+  
+    <a class="method" href="method.Image.draw_flood1.html">draw_flood1</a>
+  
+    <a class="method" href="method.Image.draw_image.html">draw_image</a>
+  
+    <a class="method" href="method.Image.draw_line.html">draw_line</a>
+  
+    <a class="method" href="method.Image.draw_line1.html">draw_line1</a>
+  
+    <a class="method" href="method.Image.draw_mask.html">draw_mask</a>
+  
+    <a class="method" href="method.Image.draw_mask1.html">draw_mask1</a>
+  
+    <a class="method" href="method.Image.draw_point.html">draw_point</a>
+  
+    <a class="method" href="method.Image.draw_point1.html">draw_point1</a>
+  
+    <a class="method" href="method.Image.draw_rect.html">draw_rect</a>
+  
+    <a class="method" href="method.Image.draw_rect1.html">draw_rect1</a>
+  
+    <a class="method" href="method.Image.draw_smudge.html">draw_smudge</a>
+  
+    <a class="method" href="method.Image.dzsave.html">dzsave</a>
+  
+    <a class="method" href="method.Image.dzsave_buffer.html">dzsave_buffer</a>
+  
+    <a class="method" href="method.Image.dzsave_target.html">dzsave_target</a>
+  
+    <a class="method" href="method.Image.embed.html">embed</a>
+  
+    <a class="method" href="method.Image.encode.html">encode</a>
+  
+    <a class="method" href="method.Image.eorimage.html">eorimage</a>
+  
+    <a class="method" href="method.Image.eorimage_const.html">eorimage_const</a>
+  
+    <a class="method" href="method.Image.eorimage_const1.html">eorimage_const1</a>
+  
+    <a class="method" href="method.Image.equal.html">equal</a>
+  
+    <a class="method" href="method.Image.equal_const.html">equal_const</a>
+  
+    <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
+  
+    <a class="method" href="method.Image.exp.html">exp</a>
+  
+    <a class="method" href="method.Image.exp10.html">exp10</a>
+  
+    <a class="method" href="method.Image.extract_area.html">extract_area</a>
+  
+    <a class="method" href="method.Image.extract_band.html">extract_band</a>
+  
+    <a class="method" href="method.Image.falsecolour.html">falsecolour</a>
+  
+    <a class="method" href="method.Image.fastcor.html">fastcor</a>
+  
+    <a class="method" href="method.Image.fill_nearest.html">fill_nearest</a>
+  
+    <a class="method" href="method.Image.find_trim.html">find_trim</a>
+  
+    <a class="method" href="method.Image.fitssave.html">fitssave</a>
+  
+    <a class="method" href="method.Image.flatten.html">flatten</a>
+  
+    <a class="method" href="method.Image.flip.html">flip</a>
+  
+    <a class="method" href="method.Image.float2rad.html">float2rad</a>
+  
+    <a class="method" href="method.Image.floor.html">floor</a>
+  
+    <a class="method" href="method.Image.foreign_load_invalidate.html">foreign_load_invalidate</a>
+  
+    <a class="method" href="method.Image.free_buffer.html">free_buffer</a>
+  
+    <a class="method" href="method.Image.freqmult.html">freqmult</a>
+  
+    <a class="method" href="method.Image.fwfft.html">fwfft</a>
+  
+    <a class="method" href="method.Image.gamma.html">gamma</a>
+  
+    <a class="method" href="method.Image.gaussblur.html">gaussblur</a>
+  
+    <a class="method" href="method.Image.generate.html">generate</a>
+  
+    <a class="method" href="method.Image.get.html">get</a>
+  
+    <a class="method" href="method.Image.get_area.html">get_area</a>
+  
+    <a class="method" href="method.Image.get_array_double.html">get_array_double</a>
+  
+    <a class="method" href="method.Image.get_array_int.html">get_array_int</a>
+  
+    <a class="method" href="method.Image.get_as_string.html">get_as_string</a>
+  
+    <a class="method" href="method.Image.get_bands.html">get_bands</a>
+  
+    <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method" href="method.Image.get_coding.html">get_coding</a>
+  
+    <a class="method" href="method.Image.get_concurrency.html">get_concurrency</a>
+  
+    <a class="method" href="method.Image.get_data.html">get_data</a>
+  
+    <a class="method" href="method.Image.get_double.html">get_double</a>
+  
+    <a class="method" href="method.Image.get_fields.html">get_fields</a>
+  
+    <a class="method" href="method.Image.get_filename.html">get_filename</a>
+  
+    <a class="method" href="method.Image.get_format.html">get_format</a>
+  
+    <a class="method" href="method.Image.get_height.html">get_height</a>
+  
+    <a class="method" href="method.Image.get_history.html">get_history</a>
+  
+    <a class="method" href="method.Image.get_image.html">get_image</a>
+  
+    <a class="method" href="method.Image.get_int.html">get_int</a>
+  
+    <a class="method" href="method.Image.get_interpretation.html">get_interpretation</a>
+  
+    <a class="method" href="method.Image.get_mode.html">get_mode</a>
+  
+    <a class="method" href="method.Image.get_n_pages.html">get_n_pages</a>
+  
+    <a class="method" href="method.Image.get_n_subifds.html">get_n_subifds</a>
+  
+    <a class="method" href="method.Image.get_offset.html">get_offset</a>
+  
+    <a class="method" href="method.Image.get_orientation.html">get_orientation</a>
+  
+    <a class="method" href="method.Image.get_orientation_swap.html">get_orientation_swap</a>
+  
+    <a class="method" href="method.Image.get_page_height.html">get_page_height</a>
+  
+    <a class="method" href="method.Image.get_scale.html">get_scale</a>
+  
+    <a class="method" href="method.Image.get_string.html">get_string</a>
+  
+    <a class="method" href="method.Image.get_tile_size.html">get_tile_size</a>
+  
+    <a class="method" href="method.Image.get_typeof.html">get_typeof</a>
+  
+    <a class="method" href="method.Image.get_width.html">get_width</a>
+  
+    <a class="method" href="method.Image.get_xoffset.html">get_xoffset</a>
+  
+    <a class="method" href="method.Image.get_xres.html">get_xres</a>
+  
+    <a class="method" href="method.Image.get_yoffset.html">get_yoffset</a>
+  
+    <a class="method" href="method.Image.get_yres.html">get_yres</a>
+  
+    <a class="method" href="method.Image.getpoint.html">getpoint</a>
+  
+    <a class="method" href="method.Image.gifsave.html">gifsave</a>
+  
+    <a class="method" href="method.Image.gifsave_buffer.html">gifsave_buffer</a>
+  
+    <a class="method" href="method.Image.gifsave_target.html">gifsave_target</a>
+  
+    <a class="method" href="method.Image.globalbalance.html">globalbalance</a>
+  
+    <a class="method" href="method.Image.gravity.html">gravity</a>
+  
+    <a class="method" href="method.Image.grid.html">grid</a>
+  
+    <a class="method" href="method.Image.guess_format.html">guess_format</a>
+  
+    <a class="method" href="method.Image.guess_interpretation.html">guess_interpretation</a>
+  
+    <a class="method" href="method.Image.hasalpha.html">hasalpha</a>
+  
+    <a class="method" href="method.Image.heifsave.html">heifsave</a>
+  
+    <a class="method" href="method.Image.heifsave_buffer.html">heifsave_buffer</a>
+  
+    <a class="method" href="method.Image.heifsave_target.html">heifsave_target</a>
+  
+    <a class="method" href="method.Image.hist_cum.html">hist_cum</a>
+  
+    <a class="method" href="method.Image.hist_entropy.html">hist_entropy</a>
+  
+    <a class="method" href="method.Image.hist_equal.html">hist_equal</a>
+  
+    <a class="method" href="method.Image.hist_find.html">hist_find</a>
+  
+    <a class="method" href="method.Image.hist_find_indexed.html">hist_find_indexed</a>
+  
+    <a class="method" href="method.Image.hist_find_ndim.html">hist_find_ndim</a>
+  
+    <a class="method" href="method.Image.hist_ismonotonic.html">hist_ismonotonic</a>
+  
+    <a class="method" href="method.Image.hist_local.html">hist_local</a>
+  
+    <a class="method" href="method.Image.hist_match.html">hist_match</a>
+  
+    <a class="method" href="method.Image.hist_norm.html">hist_norm</a>
+  
+    <a class="method" href="method.Image.hist_plot.html">hist_plot</a>
+  
+    <a class="method" href="method.Image.history_args.html">history_args</a>
+  
+    <a class="method" href="method.Image.history_printf.html">history_printf</a>
+  
+    <a class="method" href="method.Image.hough_circle.html">hough_circle</a>
+  
+    <a class="method" href="method.Image.hough_line.html">hough_line</a>
+  
+    <a class="method" href="method.Image.icc_ac2rc.html">icc_ac2rc</a>
+  
+    <a class="method" href="method.Image.icc_export.html">icc_export</a>
+  
+    <a class="method" href="method.Image.icc_import.html">icc_import</a>
+  
+    <a class="method" href="method.Image.icc_transform.html">icc_transform</a>
+  
+    <a class="method" href="method.Image.ifthenelse.html">ifthenelse</a>
+  
+    <a class="method" href="method.Image.imag.html">imag</a>
+  
+    <a class="method" href="method.Image.init_fields.html">init_fields</a>
+  
+    <a class="method" href="method.Image.inplace.html">inplace</a>
+  
+    <a class="method" href="method.Image.insert.html">insert</a>
+  
+    <a class="method" href="method.Image.invalidate_all.html">invalidate_all</a>
+  
+    <a class="method" href="method.Image.invert.html">invert</a>
+  
+    <a class="method" href="method.Image.invertlut.html">invertlut</a>
+  
+    <a class="method" href="method.Image.invfft.html">invfft</a>
+  
+    <a class="method" href="method.Image.isMSBfirst.html">isMSBfirst</a>
+  
+    <a class="method" href="method.Image.is_sequential.html">is_sequential</a>
+  
+    <a class="method" href="method.Image.isfile.html">isfile</a>
+  
+    <a class="method" href="method.Image.iskilled.html">iskilled</a>
+  
+    <a class="method" href="method.Image.ispartial.html">ispartial</a>
+  
+    <a class="method" href="method.Image.join.html">join</a>
+  
+    <a class="method" href="method.Image.jp2ksave.html">jp2ksave</a>
+  
+    <a class="method" href="method.Image.jp2ksave_buffer.html">jp2ksave_buffer</a>
+  
+    <a class="method" href="method.Image.jp2ksave_target.html">jp2ksave_target</a>
+  
+    <a class="method" href="method.Image.jpegsave.html">jpegsave</a>
+  
+    <a class="method" href="method.Image.jpegsave_buffer.html">jpegsave_buffer</a>
+  
+    <a class="method" href="method.Image.jpegsave_mime.html">jpegsave_mime</a>
+  
+    <a class="method" href="method.Image.jpegsave_target.html">jpegsave_target</a>
+  
+    <a class="method" href="method.Image.jxlsave.html">jxlsave</a>
+  
+    <a class="method" href="method.Image.jxlsave_buffer.html">jxlsave_buffer</a>
+  
+    <a class="method" href="method.Image.jxlsave_target.html">jxlsave_target</a>
+  
+    <a class="method" href="method.Image.labelregions.html">labelregions</a>
+  
+    <a class="method" href="method.Image.less.html">less</a>
+  
+    <a class="method" href="method.Image.less_const.html">less_const</a>
+  
+    <a class="method" href="method.Image.less_const1.html">less_const1</a>
+  
+    <a class="method" href="method.Image.lesseq.html">lesseq</a>
+  
+    <a class="method" href="method.Image.lesseq_const.html">lesseq_const</a>
+  
+    <a class="method" href="method.Image.lesseq_const1.html">lesseq_const1</a>
+  
+    <a class="method" href="method.Image.linear.html">linear</a>
+  
+    <a class="method" href="method.Image.linear1.html">linear1</a>
+  
+    <a class="method" href="method.Image.linecache.html">linecache</a>
+  
+    <a class="method" href="method.Image.log.html">log</a>
+  
+    <a class="method" href="method.Image.log10.html">log10</a>
+  
+    <a class="method" href="method.Image.lshift.html">lshift</a>
+  
+    <a class="method" href="method.Image.lshift_const.html">lshift_const</a>
+  
+    <a class="method" href="method.Image.lshift_const1.html">lshift_const1</a>
+  
+    <a class="method" href="method.Image.magicksave.html">magicksave</a>
+  
+    <a class="method" href="method.Image.magicksave_buffer.html">magicksave_buffer</a>
+  
+    <a class="method" href="method.Image.map.html">map</a>
+  
+    <a class="method" href="method.Image.mapim.html">mapim</a>
+  
+    <a class="method" href="method.Image.maplut.html">maplut</a>
+  
+    <a class="method" href="method.Image.match.html">match</a>
+  
+    <a class="method" href="method.Image.math.html">math</a>
+  
+    <a class="method" href="method.Image.math2.html">math2</a>
+  
+    <a class="method" href="method.Image.math2_const.html">math2_const</a>
+  
+    <a class="method" href="method.Image.math2_const1.html">math2_const1</a>
+  
+    <a class="method" href="method.Image.matrixinvert.html">matrixinvert</a>
+  
+    <a class="method" href="method.Image.matrixmultiply.html">matrixmultiply</a>
+  
+    <a class="method" href="method.Image.matrixprint.html">matrixprint</a>
+  
+    <a class="method" href="method.Image.matrixsave.html">matrixsave</a>
+  
+    <a class="method" href="method.Image.matrixsave_target.html">matrixsave_target</a>
+  
+    <a class="method" href="method.Image.max.html">max</a>
+  
+    <a class="method" href="method.Image.maxpair.html">maxpair</a>
+  
+    <a class="method" href="method.Image.measure.html">measure</a>
+  
+    <a class="method" href="method.Image.median.html">median</a>
+  
+    <a class="method" href="method.Image.merge.html">merge</a>
+  
+    <a class="method" href="method.Image.min.html">min</a>
+  
+    <a class="method" href="method.Image.minimise_all.html">minimise_all</a>
+  
+    <a class="method" href="method.Image.minpair.html">minpair</a>
+  
+    <a class="method" href="method.Image.more.html">more</a>
+  
+    <a class="method" href="method.Image.more_const.html">more_const</a>
+  
+    <a class="method" href="method.Image.more_const1.html">more_const1</a>
+  
+    <a class="method" href="method.Image.moreeq.html">moreeq</a>
+  
+    <a class="method" href="method.Image.moreeq_const.html">moreeq_const</a>
+  
+    <a class="method" href="method.Image.moreeq_const1.html">moreeq_const1</a>
+  
+    <a class="method" href="method.Image.morph.html">morph</a>
+  
+    <a class="method" href="method.Image.mosaic.html">mosaic</a>
+  
+    <a class="method" href="method.Image.mosaic1.html">mosaic1</a>
+  
+    <a class="method" href="method.Image.msb.html">msb</a>
+  
+    <a class="method" href="method.Image.multiply.html">multiply</a>
+  
+    <a class="method" href="method.Image.niftisave.html">niftisave</a>
+  
+    <a class="method" href="method.Image.notequal.html">notequal</a>
+  
+    <a class="method" href="method.Image.notequal_const.html">notequal_const</a>
+  
+    <a class="method" href="method.Image.notequal_const1.html">notequal_const1</a>
+  
+    <a class="method" href="method.Image.orimage.html">orimage</a>
+  
+    <a class="method" href="method.Image.orimage_const.html">orimage_const</a>
+  
+    <a class="method" href="method.Image.orimage_const1.html">orimage_const1</a>
+  
+    <a class="method" href="method.Image.percent.html">percent</a>
+  
+    <a class="method" href="method.Image.phasecor.html">phasecor</a>
+  
+    <a class="method" href="method.Image.pio_input.html">pio_input</a>
+  
+    <a class="method" href="method.Image.pio_output.html">pio_output</a>
+  
+    <a class="method" href="method.Image.pipelinev.html">pipelinev</a>
+  
+    <a class="method" href="method.Image.pngsave.html">pngsave</a>
+  
+    <a class="method" href="method.Image.pngsave_buffer.html">pngsave_buffer</a>
+  
+    <a class="method" href="method.Image.pngsave_target.html">pngsave_target</a>
+  
+    <a class="method" href="method.Image.polar.html">polar</a>
+  
+    <a class="method" href="method.Image.pow.html">pow</a>
+  
+    <a class="method" href="method.Image.pow_const.html">pow_const</a>
+  
+    <a class="method" href="method.Image.pow_const1.html">pow_const1</a>
+  
+    <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
+  
+    <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.premultiply.html">premultiply</a>
+  
+    <a class="method" href="method.Image.prewitt.html">prewitt</a>
+  
+    <a class="method" href="method.Image.print_field.html">print_field</a>
+  
+    <a class="method" href="method.Image.profile.html">profile</a>
+  
+    <a class="method" href="method.Image.project.html">project</a>
+  
+    <a class="method" href="method.Image.quadratic.html">quadratic</a>
+  
+    <a class="method" href="method.Image.rad2float.html">rad2float</a>
+  
+    <a class="method" href="method.Image.radsave.html">radsave</a>
+  
+    <a class="method" href="method.Image.radsave_buffer.html">radsave_buffer</a>
+  
+    <a class="method" href="method.Image.radsave_target.html">radsave_target</a>
+  
+    <a class="method" href="method.Image.rank.html">rank</a>
+  
+    <a class="method" href="method.Image.rawsave.html">rawsave</a>
+  
+    <a class="method" href="method.Image.rawsave_buffer.html">rawsave_buffer</a>
+  
+    <a class="method" href="method.Image.rawsave_target.html">rawsave_target</a>
+  
+    <a class="method" href="method.Image.real.html">real</a>
+  
+    <a class="method" href="method.Image.recomb.html">recomb</a>
+  
+    <a class="method" href="method.Image.rect.html">rect</a>
+  
+    <a class="method" href="method.Image.reduce.html">reduce</a>
+  
+    <a class="method" href="method.Image.reduceh.html">reduceh</a>
+  
+    <a class="method" href="method.Image.reducev.html">reducev</a>
+  
+    <a class="method" href="method.Image.relational.html">relational</a>
+  
+    <a class="method" href="method.Image.relational_const.html">relational_const</a>
+  
+    <a class="method" href="method.Image.relational_const1.html">relational_const1</a>
+  
+    <a class="method" href="method.Image.remainder.html">remainder</a>
+  
+    <a class="method" href="method.Image.remainder_const.html">remainder_const</a>
+  
+    <a class="method" href="method.Image.remainder_const1.html">remainder_const1</a>
+  
+    <a class="method" href="method.Image.remosaic.html">remosaic</a>
+  
+    <a class="method" href="method.Image.remove.html">remove</a>
+  
+    <a class="method" href="method.Image.reorder_margin_hint.html">reorder_margin_hint</a>
+  
+    <a class="method" href="method.Image.reorder_prepare_many.html">reorder_prepare_many</a>
+  
+    <a class="method" href="method.Image.replicate.html">replicate</a>
+  
+    <a class="method" href="method.Image.resize.html">resize</a>
+  
+    <a class="method" href="method.Image.rint.html">rint</a>
+  
+    <a class="method" href="method.Image.rot.html">rot</a>
+  
+    <a class="method" href="method.Image.rot180.html">rot180</a>
+  
+    <a class="method" href="method.Image.rot270.html">rot270</a>
+  
+    <a class="method" href="method.Image.rot45.html">rot45</a>
+  
+    <a class="method" href="method.Image.rot90.html">rot90</a>
+  
+    <a class="method" href="method.Image.rotate.html">rotate</a>
+  
+    <a class="method" href="method.Image.round.html">round</a>
+  
+    <a class="method" href="method.Image.rshift.html">rshift</a>
+  
+    <a class="method" href="method.Image.rshift_const.html">rshift_const</a>
+  
+    <a class="method" href="method.Image.rshift_const1.html">rshift_const1</a>
+  
+    <a class="method" href="method.Image.sRGB2HSV.html">sRGB2HSV</a>
+  
+    <a class="method" href="method.Image.sRGB2scRGB.html">sRGB2scRGB</a>
+  
+    <a class="method" href="method.Image.scRGB2BW.html">scRGB2BW</a>
+  
+    <a class="method" href="method.Image.scRGB2XYZ.html">scRGB2XYZ</a>
+  
+    <a class="method" href="method.Image.scRGB2sRGB.html">scRGB2sRGB</a>
+  
+    <a class="method" href="method.Image.scale.html">scale</a>
+  
+    <a class="method" href="method.Image.scharr.html">scharr</a>
+  
+    <a class="method" href="method.Image.sequential.html">sequential</a>
+  
+    <a class="method" href="method.Image.set.html">set</a>
+  
+    <a class="method" href="method.Image.set_area.html">set_area</a>
+  
+    <a class="method" href="method.Image.set_array_double.html">set_array_double</a>
+  
+    <a class="method" href="method.Image.set_array_int.html">set_array_int</a>
+  
+    <a class="method" href="method.Image.set_blob.html">set_blob</a>
+  
+    <a class="method" href="method.Image.set_blob_copy.html">set_blob_copy</a>
+  
+    <a class="method" href="method.Image.set_delete_on_close.html">set_delete_on_close</a>
+  
+    <a class="method" href="method.Image.set_double.html">set_double</a>
+  
+    <a class="method" href="method.Image.set_image.html">set_image</a>
+  
+    <a class="method" href="method.Image.set_int.html">set_int</a>
+  
+    <a class="method" href="method.Image.set_kill.html">set_kill</a>
+  
+    <a class="method" href="method.Image.set_progress.html">set_progress</a>
+  
+    <a class="method" href="method.Image.set_string.html">set_string</a>
+  
+    <a class="method" href="method.Image.sharpen.html">sharpen</a>
+  
+    <a class="method" href="method.Image.shrink.html">shrink</a>
+  
+    <a class="method" href="method.Image.shrinkh.html">shrinkh</a>
+  
+    <a class="method" href="method.Image.shrinkv.html">shrinkv</a>
+  
+    <a class="method" href="method.Image.sign.html">sign</a>
+  
+    <a class="method" href="method.Image.similarity.html">similarity</a>
+  
+    <a class="method" href="method.Image.sin.html">sin</a>
+  
+    <a class="method" href="method.Image.sinh.html">sinh</a>
+  
+    <a class="method" href="method.Image.sink.html">sink</a>
+  
+    <a class="method" href="method.Image.sink_disc.html">sink_disc</a>
+  
+    <a class="method" href="method.Image.sink_screen.html">sink_screen</a>
+  
+    <a class="method" href="method.Image.sink_tile.html">sink_tile</a>
+  
+    <a class="method" href="method.Image.smartcrop.html">smartcrop</a>
+  
+    <a class="method" href="method.Image.sobel.html">sobel</a>
+  
+    <a class="method" href="method.Image.spcor.html">spcor</a>
+  
+    <a class="method" href="method.Image.spectrum.html">spectrum</a>
+  
+    <a class="method" href="method.Image.stats.html">stats</a>
+  
+    <a class="method" href="method.Image.stdif.html">stdif</a>
+  
+    <a class="method" href="method.Image.subsample.html">subsample</a>
+  
+    <a class="method" href="method.Image.subtract.html">subtract</a>
+  
+    <a class="method" href="method.Image.tan.html">tan</a>
+  
+    <a class="method" href="method.Image.tanh.html">tanh</a>
+  
+    <a class="method" href="method.Image.thumbnail_image.html">thumbnail_image</a>
+  
+    <a class="method" href="method.Image.tiffsave.html">tiffsave</a>
+  
+    <a class="method" href="method.Image.tiffsave_buffer.html">tiffsave_buffer</a>
+  
+    <a class="method" href="method.Image.tiffsave_target.html">tiffsave_target</a>
+  
+    <a class="method" href="method.Image.tilecache.html">tilecache</a>
+  
+    <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
+  
+    <a class="method" href="method.Image.unpremultiply.html">unpremultiply</a>
+  
+    <a class="method" href="method.Image.vipssave.html">vipssave</a>
+  
+    <a class="method" href="method.Image.vipssave_target.html">vipssave_target</a>
+  
+    <a class="method" href="method.Image.webpsave.html">webpsave</a>
+  
+    <a class="method" href="method.Image.webpsave_buffer.html">webpsave_buffer</a>
+  
+    <a class="method" href="method.Image.webpsave_mime.html">webpsave_mime</a>
+  
+    <a class="method" href="method.Image.webpsave_target.html">webpsave_target</a>
+  
+    <a class="method" href="method.Image.wio_input.html">wio_input</a>
+  
+    <a class="method" href="method.Image.wop.html">wop</a>
+  
+    <a class="method" href="method.Image.wop_const.html">wop_const</a>
+  
+    <a class="method" href="method.Image.wop_const1.html">wop_const1</a>
+  
+    <a class="method" href="method.Image.wrap.html">wrap</a>
+  
+    <a class="method" href="method.Image.write.html">write</a>
+  
+    <a class="method" href="method.Image.write_line.html">write_line</a>
+  
+    <a class="method" href="method.Image.write_prepare.html">write_prepare</a>
+  
+    <a class="method" href="method.Image.write_to_buffer.html">write_to_buffer</a>
+  
+    <a class="method" href="method.Image.write_to_file.html">write_to_file</a>
+  
+    <a class="method" href="method.Image.write_to_memory.html">write_to_memory</a>
+  
+    <a class="method" href="method.Image.write_to_target.html">write_to_target</a>
+  
+    <a class="method" href="method.Image.zoom.html">zoom</a>
+  
+  </div>
+</div>
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2025.3</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">Vips</a><span class="sep"></span><a href="class.Image.html">Image</a><span class="sep"></span>draw_flood</h1>
+  </header>
+
+  <section>
+    <div class="docblock">
+      <p></p>
+    </div>
+
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/draw.h#L98">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">int</span>
+<span class="n">vips_draw_flood</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="n">VipsImage</span><span class="o">*</span><span class="w"> </span><span class="n">image</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">double</span><span class="o">*</span><span class="w"> </span><span class="n">ink</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">,</span>
+<span class="w">  </span><span class="p">...</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/draw/draw_flood.c#L690">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Flood-fill <code>image</code> with <code>ink</code>, starting at position <code>x</code>, <code>y</code>.</p>
+<p>The filled area is
+bounded by pixels that are equal to the ink colour, in other words, it
+searches for pixels enclosed by an edge of <code>ink</code>.</p>
+<p>If <code>equal</code> is set, it instead searches for pixels which are equal to the
+start point and fills them with <code>ink</code>.</p>
+<p>Normally it will test and set pixels in <code>image</code>. If <code>test</code> is set, it will
+test pixels in <code>test</code> and set pixels in <code>image</code>. This lets you search an
+image (<code>test</code>) for continuous areas of pixels without modifying&nbsp;it.</p>
+<p><code>left</code>, <code>top</code>, <code>width</code>, <code>height</code> output the bounding box of the modified&nbsp;pixels.</p>
+<div class="admonition tip">
+<p class="admonition-title">Optional&nbsp;arguments</p>
+<ul>
+<li><code>test</code>: <a href="class.Image.html"><code>VipsImage</code></a>, test this&nbsp;image</li>
+<li><code>equal</code>: %gboolean, fill while equal to&nbsp;edge</li>
+<li><code>left</code>: %gint, output left edge of bounding box of modified&nbsp;area</li>
+<li><code>top</code>: %gint, output top edge of bounding box of modified&nbsp;area</li>
+<li><code>width</code>: %gint, output width of bounding box of modified&nbsp;area</li>
+<li><code>height</code>: %gint, output height of bounding box of modified&nbsp;area</li>
+</ul>
+</div>
+<p><code>ink</code> is an array of double containing values to&nbsp;draw.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See&nbsp;also</p>
+<p><a href="method.Image.draw_flood1.html"><code>vips_draw_flood1()</code></a>.</p>
+</div>
+      </div>
+
+      <div class="docblock">
+        
+        
+        
+        
+        <p>This method is not directly available to language bindings.</p>
+        
+        
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <dl class="arguments">
+          
+
+          
+          <dt class="arg-name"><code>ink</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;An array of&nbsp;<code>double</code></p>
+            <p>Value to&nbsp;draw.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            <tr><td>The length of the array is specified in the <code>n</code> argument.</td></tr>
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>n</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int</code></p>
+            <p>Length of ink&nbsp;array.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>x</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int</code></p>
+            <p>Centre of&nbsp;circle.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>y</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int</code></p>
+            <p>Centre of&nbsp;circle.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>...</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<code></code></p>
+            <p><code>NULL</code>-terminated list of optional named&nbsp;arguments.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </table>
+          </dd>
+          
+
+          
+        </dl>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <div class="returns">
+          <div class="arg-description">
+            <p><em>Type:</em>&nbsp;<code>int</code></p>
+            <p>0 on success, or -1 on&nbsp;error.</p>
+          </div>
+          <div>
+            <table>
+            
+            
+            
+            
+            
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>
