@@ -15,7 +15,7 @@
  * 20/10/13
  * 	- redone as a class from logmat.c
  * 16/12/14
- * 	- default to int output to match [method@Image.conv]
+ * 	- default to int output to match vips_conv()
  * 	- use @precision, not @integer
  */
 

@@ -155,7 +155,7 @@ vips_foreign_save_jpeg_class_init(VipsForeignSaveJpegClass *class)
 
 	foreign_class->suffs = vips__jpeg_suffs;
 
-	/* See also [func@Foreign.save_tiff_build] when saving JPEG in TIFF.
+	/* See also vips_foreign_save_tiff_build() when saving JPEG in TIFF.
 	 */
 	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
 	save_class->format_table = bandfmt_jpeg;

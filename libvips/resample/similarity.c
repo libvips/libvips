@@ -1,4 +1,4 @@
-/* simple wrapper over [method@Image.affine] to make scale / rotate easy from the
+/* simple wrapper over vips_affine() to make scale / rotate easy from the
  * command-line
  *
  * 3/10/13

@@ -370,7 +370,7 @@ vips_resize_class_init(VipsResizeClass *class)
 		G_STRUCT_OFFSET(VipsResize, idy),
 		-10000000.0, 10000000.0, 0.0);
 
-	/* It's a kernel now we use vips_reduce() not [method@Image.affine].
+	/* It's a kernel now we use vips_reduce() not vips_affine().
 	 */
 	VIPS_ARG_INTERPOLATE(class, "interpolate", 2,
 		_("Interpolate"),

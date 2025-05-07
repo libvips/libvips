@@ -6,7 +6,7 @@
  * 4/1/14
  * 	- better rounding
  * 9/5/15
- * 	- add max_alpha to match [method@Image.premultiply] etc.
+ * 	- add max_alpha to match vips_premultiply() etc.
  * 25/5/16
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
  * 12/9/21

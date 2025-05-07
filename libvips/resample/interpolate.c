@@ -122,7 +122,7 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  *
  * ::: seealso
  *     [callback@InterpolateMethod], [class@Object] or
- * [func@Interpolate.bilinear_static].
+ *     [func@Interpolate.bilinear_static].
  */
 
 #ifdef DEBUG

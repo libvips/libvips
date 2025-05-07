@@ -130,7 +130,7 @@ vips__open_image_read(const char *filename)
 {
 	int fd;
 
-	/* Try to open read-write, so that calls to [method@Image.inplace] will
+	/* Try to open read-write, so that calls to vips_image_inplace() will
 	 * work. When we later mmap this file, we set read-only, so there
 	 * is little danger of scrubbing over files we own.
 	 */
@@ -170,7 +170,7 @@ vips__open_image_write(const char *filename, gboolean temp)
 	 *
 	 * This can fail since not all filesystems support it. In this case,
 	 * we open as a regular file and rely on the delete-on-close
-	 * mechanism, see [method@Image.delete].
+	 * mechanism, see vips_image_delete().
 	 */
 	if (temp) {
 		char *dirname;
