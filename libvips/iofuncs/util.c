@@ -339,7 +339,7 @@ vips_iscasepostfix(const char *a, const char *b)
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
- * random data. Use [func@GLib.str_has_prefix] when both strings are non-NULL and
+ * random data. Use g_str_has_prefix() when both strings are non-NULL and
  * NULL-terminated.
  */
 gboolean

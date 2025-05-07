@@ -833,7 +833,7 @@ vips_image_build(VipsObject *object)
 	switch (mode[0]) {
 	case 'v':
 		/* Used by 'r' for native open of vips, see below. Also by
-		 * [method@Image.rewind_output].
+		 * vips_image_rewind_output().
 		 */
 		if (vips_image_open_input(image))
 			return -1;
@@ -2931,7 +2931,7 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 int
 vips_image_decode(VipsImage *in, VipsImage **out)
 {
-	/* Keep in sync with [func@_vector_to_ink].
+	/* Keep in sync with vips__vector_to_ink().
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2Lab(in, out, NULL))
@@ -3588,7 +3588,7 @@ vips__image_wio_output(VipsImage *image)
 int
 vips_image_inplace(VipsImage *image)
 {
-	/* Do an [method@Image.wio_input]. This will rewind, generate, etc.
+	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
 	 */
 	if (vips_image_wio_input(image))
 		return -1;

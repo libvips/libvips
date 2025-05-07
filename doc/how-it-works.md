@@ -42,7 +42,7 @@ if (vips_region_prepare(region, &r))
 // add VIPS_REGION_LSKIP() to move down a line
 VipsPel *pixel = VIPS_REGION_ADDR(region, x, y);
 
-// you can call [method@Region.prepare] many times
+// you can call vips_region_prepare() many times
 
 // everything in libvips is a GObject ... when you're done,
 // just free with

@@ -414,7 +414,7 @@ vips_buf_vappendf(VipsBuf *buf, const char *fmt, va_list ap)
 
 	// -3 to leave space for "..."
 	// not -4, since the terminating \0 will already be on the string written
-	// by [func@GLib.vsnprintf]
+	// by g_vsnprintf()
 	avail = buf->mx - buf->i - 3;
 	p = buf->base + buf->i;
 	(void) g_vsnprintf(p, avail, fmt, ap);
