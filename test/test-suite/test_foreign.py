@@ -500,7 +500,8 @@ class TestForeign:
             "exif-ifd0-ImageDescription", "test description")
         im2 = pyvips.Image.new_from_buffer(
             im1.write_to_buffer(".png"), "")
-        assert im2.get("exif-ifd0-ImageDescription").startswith("test description")
+        assert im2.get("exif-ifd0-ImageDescription") \
+            .startswith("test description")
 
     @skip_if_no("tiffload")
     def test_tiff(self):
