@@ -134,9 +134,9 @@ vips_hist_entropy_init(VipsHistEntropy *entropy)
  *
  * Estimate image entropy from a histogram. Entropy is calculated as:
  *
- * |[
+ * ```
  * -sum(p * log2(p))
- * ]|
+ * ```
  *
  * where p is histogram-value / sum-of-histogram-values.
  *
