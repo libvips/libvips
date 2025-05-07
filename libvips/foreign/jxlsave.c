@@ -823,11 +823,11 @@ vips_foreign_save_jxl_save_chunked_page(VipsForeignSaveJxl *jxl,
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
 
-		if (jxl->delay &&
-			n < jxl->delay_length)
-			header.duration = jxl->delay[n];
+		if (!jxl->is_animated)
+			header.duration = 0xffffffff;
 		else
-			header.duration = jxl->gif_delay * 10;
+			header.duration =
+				vips_foreign_save_jxl_get_delay(jxl, n);
 
 		JxlEncoderSetFrameHeader(frame_settings, &header);
 	}
